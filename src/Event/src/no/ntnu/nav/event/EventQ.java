@@ -138,9 +138,13 @@ public class EventQ {
 				Map.Entry me = (Map.Entry)it.next();
 				String var = (String)me.getKey();
 				String val = (String)me.getValue();
-				if (var == null || val == null) {
-					Log.w("EVENTQ", "POST_EVENT", "Cannot insert null var ("+var+") or val ("+val+") into eventqvar");
+				if (var == null || "null".equals(var)) {
+					Log.w("EVENTQ", "POST_EVENT", "Cannot insert null var into eventqvar");
 					continue;
+				}
+				if (val == null || "null".equals(val)) {
+					Log.d("EVENTQ", "POST_EVENT", "Inserting null val into eventqvar");
+					val = "(null)";
 				}
 				String[] insv = {
 					"eventqid", eventqid,
