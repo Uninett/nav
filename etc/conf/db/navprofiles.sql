@@ -1,4 +1,4 @@
-/*
+Ôªø/*
 =============================================
         NAVprofiles
     SQL Initialization script
@@ -539,8 +539,8 @@ matchfelt	This is a relation to matchfield
 matchtype	This specifies the operator used. This a static list.
                 Temporarily this list is used in the webinterface:
                     $type[0] = gettext('er lik');
-                    $type[1] = gettext('er større enn');
-                    $type[2] = gettext('er større eller lik');
+                    $type[1] = gettext('er st√∏rre enn');
+                    $type[2] = gettext('er st√∏rre eller lik');
                     $type[3] = gettext('er mindre enn');
                     $type[4] = gettext('er mindre eller lik');
                     $type[5] = gettext('er ulik');
@@ -843,6 +843,8 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
 (2, 2, '^/wap/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/alertprofiles/wap/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
 (2, 2, '^/$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
 (2, 2, '^/index.py/index$');
@@ -880,21 +882,21 @@ INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, v
 'Rom: Velg et bestemt rom.');
 
 INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(15, 'Bruksområde', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
-'Bruksområde: Enhetene er delt inn i bruksområde');
+(15, 'Bruksomr√•de', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
+'Bruksomr√•de: Enhetene er delt inn i bruksomr√•de');
 
 INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (16, 'Type utstyr', 'typegroup.typegroupid', 'typegroup.descr', null, 'typegroup.descr', true, 
 'Type utstyr: Enhetene er inndelt i kategorier etter typen utstyr');
 
 INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(17, 'Leverandør av utstyr', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
-'Leverandør av utstyr: Enhetene er inndelt i kategorier etter leverandøren som har laget enheten.');
+(17, 'Leverand√∏r av utstyr', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
+'Leverand√∏r av utstyr: Enhetene er inndelt i kategorier etter leverand√∏ren som har laget enheten.');
 
 INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
 (18, 'Adresse IP', null, 'netbox.ip', null, null, false,
 'Adresse IP: her kan du velge nettverkslagsadresse for enheter som benytter IP-protokollen.',
-'En IP-adresse kan skrives inn på formen 192.168.10.1');
+'En IP-adresse kan skrives inn p√• formen 192.168.10.1');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 18);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (6, 18);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 18);
