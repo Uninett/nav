@@ -76,6 +76,11 @@ AC_OUTPUT(Makefile
 	subsystem/messages/bin/Makefile
 	subsystem/messages/templates/Makefile
 	subsystem/messages/Makefile
+	subsystem/logger/src/Makefile
+	subsystem/logger/templates/Makefile
+	subsystem/logger/bin/Makefile
+	subsystem/logger/conf/Makefile
+	subsystem/logger/Makefile
 	subsystem/deviceManagement/src/Makefile
 	subsystem/deviceManagement/Makefile
 	subsystem/machinetracker/src/Makefile

@@ -36,6 +36,7 @@ subdirs = src \
 	subsystem/deviceManagement \
 	subsystem/editdb \
 	subsystem/messages \
+	subsystem/logger \
 	subsystem/machinetracker \
 	subsystem/pyproxy \
 	subsystem/report \
