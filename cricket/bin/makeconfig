@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.24 2003/05/11 10:10:03 magnun Exp $
+# $Id: makeconfig,v 1.25 2003/05/11 10:34:56 magnun Exp $
 
 use strict;
 
@@ -32,7 +32,8 @@ my $myself = "makeconfig"; # For use with config-hash
 
 
 # Load configuration
-open(CONFIG, "$basepath/../etc/conf/db.conf") || die "Configfile error";
+my $dbconfigfile = "$basepath/../etc/conf/db.conf";
+open(CONFIG, $dbconfigfile) || die "Configfile error: could not open $dbconfigfile";
 my %config = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
              grep { !/^(\s*\#|\s+$)/ && /.+=.*/ } <CONFIG>;
 close(CONFIG);
@@ -608,8 +609,8 @@ sub gigaswitchports {
 
     my %test;
     my $count = 0;
-
-    my $sporring = "select b.netboxid,b.ip,b.sysname,b.typeid,s.moduleid,s.port,s.portname,b.ro from swport s,netbox b where b.netboxid=s.netboxid and s.speed='1000' and s.portname!='' order by b.netboxid";
+    # We skip servers as it is very unlikely they will act as gigabit switches...
+    my $sporring = "select b.netboxid,b.ip,b.sysname,b.typeid,s.moduleid,s.port,s.portname,b.ro from swport s,netbox b where b.netboxid=s.to_netboxid and s.speed='1000' and s.portname!='' and b.catid!='SRV' order by b.netboxid ";
     my $getports = &db_select($sporring,$dbh);
 
     my $tempswitchnavn = "";
