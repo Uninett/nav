@@ -22,7 +22,7 @@ install: install-web
 
 install-web:
 	for file in $(files); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/messages/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/emotd/$$file || exit 1; \
 	done
 
 clean:
