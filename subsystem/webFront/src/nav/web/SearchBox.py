@@ -66,9 +66,17 @@ class SearchBox:
                     for entry in db.getAllIterator(where=where):
                         for key,column in columns.items():
                             value = entry
-                            
+                            if type(value) == type(None):
+                                continue
                             for c in column:
-                                value = getattr(value,c)
+                                # This must be done recursively
+                                # allowing to specify
+                                # netbox.catid as valid column
+                                for i in c.split('.'):
+                                    try:
+                                        value = getattr(value,i)
+                                    except:
+                                        pass
                             if type(value) not in (list, str, int):
                                 # a bit ugly, but we must ensure that we use the
                                 # id field
