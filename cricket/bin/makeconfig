@@ -15,11 +15,16 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
+# $Id: makeconfig,v 1.11 2002/06/06 14:44:39 stain Exp $
+
 use Pg;
 use strict;
 
-my $path = "/home/cricket/cricket-config";
-my $default = "/home/cricket/cricket/cricket-config_defaults";
+my $basepath = "/home/cricket";
+
+my $path = "$basepath/cricket-config";
+my $default = "$basepath/cricket-config_defaults";
+
 
 my @ruterliste;
 my @switchliste;
@@ -36,9 +41,14 @@ print "Sletter tidligere config-filer\n";
 `rm -R $path/giga-switch-ports/*`;
 `rm -R $path/switches/*`;
 `rm -R $path/routers/*`;
+`rm -R $path/servers/*`;
 
 print "Kopierer over default verdier\n";
-`cp -R $default/* $path`;
+`cp -R $default $path`;
+
+print "Skriver servere\n";
+&Servers;
+print "OK!\n";
 
 print "Skriver routere\n";
 &Routers;
@@ -65,9 +75,124 @@ print "Skriver gigaswitchports\n";
 print "OK!\n";
 
 print "Kompilerer nytt config-tre\n";
-system("/home/cricket/cricket/cricket/compile");
+system("$basepath/cricket/compile");
 
 print "Ferdig!\n";
+
+########################################
+# Henter info om serverne
+########################################
+sub Servers {
+
+
+    # Henter typegrupper fra type
+    my %typegruppe;
+    my $query = "select typeid,typegruppe from type";
+    my $getres = &db_select($query,$dbh);
+    while (my($typeid,$typegruppe) = $getres->fetchrow) {
+	$typegruppe{$typeid} = $typegruppe;
+    }
+
+    # Iterates over all the servers in the database marked SNMP, and
+    # writes them to various config files.    
+
+    $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,ostype FROM boks
+    WHERE kat='server' AND snmp ORDER BY sysname";
+    my $getservers = &db_select($query,$dbh);
+
+    while (my @temp = $getservers->fetchrow) {
+	my ($id, $sysname,$ip,$type,$romid,$community,$ostype) = @temp;
+	
+        # Avoid severe errors in the database
+	if ($sysname) {
+	    if ($community) {
+
+                mkdir ("$path/server/$sysname",0775);
+                my $fil = "$path/server/$sysname/server";
+                open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+                
+                print FIL "target --default--\n";
+                print FIL "\tserver\t=\t$sysname\n";
+                print FIL "\tsnmp-community\t=\t$community\n";
+
+
+                # Finding room description
+                $query = "SELECT descr FROM rom WHERE romid='$romid'";
+                my $getdesc = &db_select($query,$dbh);
+                if (!(my $desc = $getdesc->fetchrow)) {
+                    print "Ingen beskrivelse for rom med id=$romid\n";
+                    print FIL "\tshort-desc\t=\t\"\"\n";
+                } else {
+                    print FIL "\tshort-desc\t=\t\"$desc\"\n";
+                }
+                print FIL "\n";
+
+                print FIL "target \"users\"\n";
+                print FIL "\ttarget-type = users\n";
+                print FIL "\n";
+                
+                print FIL "target \"processes\"\n";
+                print FIL "\ttarget-type = processes\n";
+                print FIL "\n";
+
+                if($ostype=="unix") {
+                  print FIL "target \"load\"\n";
+                  print FIL "\ttarget-type = loadnix\n";
+                  print FIL "\n";
+                }
+
+
+                print FIL "target \"memory\"\n";
+                if($ostype=="win32") {
+                  print FIL "\ttarget-type = memwin\n";
+                } else { 
+                  print FIL "\ttarget-type = memnix\n";
+                }
+                print FIL "\n";
+                
+
+                print FIL "target \"memory\"\n";
+                if($ostype=="win32") {
+                  print FIL "\ttarget-type = cpuwin\n";
+                } else { 
+                  print FIL "\ttarget-type = cpunix\n";
+                }
+                print FIL "\n";
+                close FIL;
+                
+                # alle the interfaces
+                $fil = "$path/server/$sysname/interfaces";
+                open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+                $query = "SELECT interf FROM boksinterface WHERE boksid=$id";
+                my $getinterfaces = &db_select($query, $dbh);
+                while (my $interface = $getinterfaces->fetchrow) {
+                  print FIL "target \"interfaceTraffic\"\n";
+                  print FIL "\ttarget-type = interfaceTraffic\n";
+                  print FIL "\tinst = map(interface-name)\n";
+                  print FIL "\tinterface-name = \"$interface\"\n";
+                  print FIL "\n";
+                }
+                close FIL;
+
+                # Then all the disks
+                $fil = "$path/server/$sysname/disks";
+                open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+                $query = "SELECT path FROM boksdisk WHERE boksid=$id";
+                my $getpaths = &db_select($query, $dbh);
+                while (my $interface = $getpaths->fetchrow) {
+                  print FIL "target \"interfaceTraffic\"\n";
+                  print FIL "\ttarget-type = interfaceTraffic\n";
+                  print FIL "\tinst = map(interface-name)\n";
+                  print FIL "\tinterface-name = \"$interface\"\n";
+                  print FIL "\n";
+                }
+                close FIL;
+                
+	    }
+	}
+    }
+
+} # sub Servers
 
 
 ########################################
