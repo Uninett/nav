@@ -77,7 +77,16 @@ public class OidTester
 					sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
 
 					try {
-						List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+						List l = null;
+						boolean reqGetnext = true;
+						if (snmpoid.getGetnext()) {
+							// Check if getnext is really necessary
+							l = sSnmp.getAll(snmpoid.getDecodehex(), false);
+							if (!l.isEmpty()) reqGetnext = false;
+						}
+						if (reqGetnext) {
+							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+						}
 						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size());
 					
 						String regex = snmpoid.getMatchRegex();
@@ -95,6 +104,17 @@ public class OidTester
 										"frequency", ""+DEFAULT_FREQ
 									};
 									Database.insert("typesnmpoid", ins);
+
+									if (!reqGetnext) {
+										// Change status of getnext to false
+										String[] set = {
+											"getnext", "f",
+										};
+										String[] where = {
+											"snmpoidid", snmpoid.getSnmpoidid(),
+										};
+										Database.update("snmpoid", set, where);
+									}
 								}
 								supported = true;
 								t.addSnmpoid(DEFAULT_FREQ, snmpoid);
