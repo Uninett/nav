@@ -58,7 +58,7 @@ public class OidTester
 		if (!checkDupe(t.getTypeid()+":"+snmpoid.getOidkey())) return;
 
 		Log.d("OID_TESTER", "DO_TEST", "Starting test for type: " + t + ", snmpoid: " + snmpoid);
-		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getTypename());
+		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getVendor(), t.getTypename());
 
 		try {
 			// Get netboxes to test against
@@ -87,7 +87,7 @@ public class OidTester
 						if (reqGetnext) {
 							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
 						}
-						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + "(reqGetnext: "+reqGetnext+")");
+						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (reqGetnext: "+reqGetnext+")");
 					
 						String regex = snmpoid.getMatchRegex();
 						for (Iterator i = l.iterator(); i.hasNext();) {

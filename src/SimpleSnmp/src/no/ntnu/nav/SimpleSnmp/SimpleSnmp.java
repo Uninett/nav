@@ -43,20 +43,20 @@ public class SimpleSnmp
 	}
 
 	public static SimpleSnmp simpleSnmpFactory() {
-		return simpleSnmpFactory(null);
+		return simpleSnmpFactory(null, null);
 	}
 
 	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
-		return simpleSnmpFactory(null, host, cs_ro, baseOid);
+		return simpleSnmpFactory(null, null, host, cs_ro, baseOid);
 	}
 
-	public static SimpleSnmp simpleSnmpFactory(String type) {
-		if ("hp2524".equals(type)) return new SimpleSnmpHP2524();
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type) {
+		if ("hp".equals(vendor)) return new SimpleSnmpHP();
 		return new SimpleSnmp();
 	}
 
-	public static SimpleSnmp simpleSnmpFactory(String type, String host, String cs_ro, String baseOid) {
-		if ("hp2524".equals(type)) return new SimpleSnmpHP2524(host, cs_ro, baseOid);
+	public static SimpleSnmp simpleSnmpFactory(String vendor, String type, String host, String cs_ro, String baseOid) {
+		if ("hp".equals(vendor)) return new SimpleSnmpHP(host, cs_ro, baseOid);
 		return new SimpleSnmp(host, cs_ro, baseOid);
 	}
 

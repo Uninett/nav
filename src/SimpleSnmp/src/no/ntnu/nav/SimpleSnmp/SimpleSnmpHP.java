@@ -14,30 +14,29 @@ import no.ntnu.nav.Database.*;
  * <p> Class for quering devices via SNMP. The aim of this class is to
  * provide a very simple API for doing basic SNMP walking.  </p>
  *
- * <p> The HP 2524 switch requires special treatment when used in
- * stack mode; only the first switch (the commander) can be accessed
- * normally. To access the other switches "@&lt;switch num&gt;" must
- * be appended to the community string. This class takes care of the
- * details and allows HP stacks to be accessed as a single switch.
- * </p>
+ * <p> HP switches requires special treatment when used in stack mode;
+ * only the first switch (the commander) can be accessed normally. To
+ * access the other switches "@&lt;switch num&gt;" must be appended to
+ * the community string. This class takes care of the details and
+ * allows HP stacks to be accessed as a single switch.  </p>
  *
  * <p> Note that the individual switches in a HP stack uses the same
  * ifIndex numbers; this class therefore prepends the module number to
  * all returned OIDs.  </p>
  * 
  */
-public class SimpleSnmpHP2524 extends SimpleSnmp
+public class SimpleSnmpHP extends SimpleSnmp
 {
 	private List stackList;
 	private String askOnlyModule;
 
 	// Constructor
-	SimpleSnmpHP2524() { 
+	SimpleSnmpHP() { 
 		super();
 	}
 	
 	// Constructor
-	SimpleSnmpHP2524(String host, String cs_ro, String baseOid) {
+	SimpleSnmpHP(String host, String cs_ro, String baseOid) {
 		super(host, cs_ro, baseOid);
 	}
 
@@ -92,11 +91,11 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 	// If prependModule is true the module will be prepended to the OID
 	private ArrayList getAll(boolean prependModule, String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
 		if (baseOid == null) return null;
-		//Log.d("SimpleSnmpHP2524", "GET_ALL", "Fetch baseOid: " + baseOid);
+		//Log.d("SimpleSnmpHP", "GET_ALL", "Fetch baseOid: " + baseOid);
 		try {
 			if (checkSnmpContext()) stackList = null;
 		} catch (IOException e) {
-			Log.e("SimpleSnmpHP2524", "GET_ALL", "IOException: " + e.getMessage());
+			Log.e("SimpleSnmpHP", "GET_ALL", "IOException: " + e.getMessage());
 			return null;
 		}
 
@@ -106,12 +105,12 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			try {
 				ResultSet rs = Database.query("SELECT snmpoid FROM snmpoid WHERE oidkey='hpStack'");
 				if (!rs.next()) {
-					Log.e("SimpleSnmpHP2524", "GET_ALL", "Oidkey 'hpStack' not found in snmpoid");
+					Log.e("SimpleSnmpHP", "GET_ALL", "Oidkey 'hpStack' not found in snmpoid");
 					return null;
 				}
 				hpStackOid = rs.getString("snmpoid");
 			} catch (SQLException e) {
-				Log.e("SimpleSnmpHP2524", "GET_ALL", "SQLException: " + e.getMessage());
+				Log.e("SimpleSnmpHP", "GET_ALL", "SQLException: " + e.getMessage());
 				return null;
 			}
 
@@ -120,7 +119,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
 
-			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
+			Log.d("SimpleSnmpHP", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
 		}
 
 		String cs_ro = getCs_ro();

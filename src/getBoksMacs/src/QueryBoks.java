@@ -169,7 +169,7 @@ public class QueryBoks extends Thread
 				continue;
 			}
 
-			sSnmp = SimpleSnmp.simpleSnmpFactory(bd.boksType);
+			sSnmp = SimpleSnmp.simpleSnmpFactory(bd.vendor, bd.boksType);
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(cs_ro);
 
@@ -578,7 +578,7 @@ public class QueryBoks extends Thread
 				if (swportid != null) {
 					// Setter boksbak og swportbak for alle matchende interfacer
 					Log.d("PROCESS_CDP", "Updating boksbak("+workingOnBoksid+"), swportbak("+swportid+") for gw: " + boksIdName.get(netboxid)+", rIf: " + remoteIf);
-					Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+pm.getToNetboxid()+"' WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid='"+netboxid+"') AND interface = '"+remoteIf+"'");
+					Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+swportid+"' WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid='"+netboxid+"') AND interface = '"+remoteIf+"'");
 					if (DB_COMMIT) Database.commit(); else Database.rollback();
 				}
 			}

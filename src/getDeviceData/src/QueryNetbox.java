@@ -581,12 +581,13 @@ public class QueryNetbox extends Thread
 			String netboxid = nb.getNetboxidS();
 			String ip = nb.getIp();
 			String cs_ro = nb.getCommunityRo();
+			String vendor = nb.getTypeT().getVendor();
 			String type = nb.getType();
 			String sysName = nb.getSysname();
 			String cat = nb.getCat();
 			int snmpMajor = nb.getSnmpMajor();
 
-			SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(type);
+			SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(vendor, type);
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(cs_ro);
 
