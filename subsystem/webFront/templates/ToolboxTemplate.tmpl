@@ -1,8 +1,8 @@
-## $Id: $
 ##
-## This file is part of the NAV project.
+## ToolboxTemplate.tmpl
 ##
 ## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+##
 ## Builds html for the Toolbox with data in this form:
 ##
 ## $tools                              :: array of tools
@@ -20,8 +20,9 @@
 
 #extends MainTemplate
 
+#attr $boxesPerRow = 3
+
 #def add_tool($tool)
-  <div style="float: left">
     <table width="300" cellspacing="0" cellpadding="0" border="0">
       <tr>
         <td><img src="$imagefolder/toolbox/module-bar-start.gif" alt="" /></td>
@@ -30,7 +31,7 @@
 #else
         <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; "><img src="$imagefolder/blank.gif" width="47" height="54" alt="" /></td>
 #end if
-        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px" ><a class="navbar" href="$tool.uri">$tool.name</a></td>
+        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px"><a class="navbar" href="$tool.uri" nowrap>$tool.name</a></td>
         <td><img src="$imagefolder/toolbox/module-bar-end.gif" alt="" /></td>
       </tr>
       <tr valign="top" height="100">
@@ -46,11 +47,40 @@
         <td><img src="$imagefolder/toolbox/module-footer-end.gif" alt="" /></td>
       </tr>
     </table>
-  </div>
 #end def
 
 #block content
+<table cellspacing="0" cellpadding="0" border="0">
+#set $rowplace = 1
 #for $tool in $tools
+#if $rowplace == 1
+  <tr>
+#end if
+    <td>
 $add_tool($tool)
+    </td>
+#if $rowplace == $boxesPerRow
+  </tr>
+  #set $rowplace = 0
+#end if
+#set $rowplace = $rowplace + 1
+#end for
+</table>
+#end block content
+
+## This function was used to make the toolboxes float on the page to better use the width of the screen.
+## This did not work out so well in all browsers, so it was scrapped. 
+#block content_OLD_FLOAT
+#set $numtools = len($tools)
+#set $i = 0
+#for $tool in $tools
+#set $i = $i + 1
+#if $i == $numtools
+  <div>
+#else
+  <div style="float: left">
+#end if
+$add_tool($tool)
+  </div>
 #end for
 #end block content

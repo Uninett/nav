@@ -36,7 +36,7 @@
 ## Author: Magnar Sveen (magnars@idi.ntnu.no)
 ##
 
-#from nav.web import linkchecker
+#from nav.web import shouldShow
 
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
@@ -110,7 +110,7 @@ $additionalJavaScript()
         <tr>
 #set $separate = False
 #for $link in $user.preferences.navbar
-#if linkchecker.shouldShow($link.uri, $user)
+#if shouldShow($link.uri, $user)
   #if $separate
           <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
   #end if
@@ -124,7 +124,7 @@ $additionalJavaScript()
           <select onChange="return jump(this);">
             <option style="color: #669" selected> Quicklink #1 </option>
   #for $link in $user.preferences.qlink1
-  #if linkchecker.shouldShow($link.uri, $user)
+  #if shouldShow($link.uri, $user)
             <option value="$link.uri"> $link.name </option>
   #end if
   #end for
@@ -138,7 +138,7 @@ $additionalJavaScript()
           <select onChange="return jump(this);">
             <option style="color: #669" selected> Quicklink #2 </option>
   #for $link in $user.preferences.qlink2
-  #if linkchecker.shouldShow($link.uri, $user)
+  #if shouldShow($link.uri, $user)
             <option value="$link.uri"> $link.name </option>
   #end if
   #end for
@@ -201,6 +201,18 @@ $showPath(True)
   </center>
 #end def content
 $content()
+
+<hr noshade size="1" color="#cccccc">
+<font size="1" color="#999999">
+<center>
+NAV - Copyright &copy; 2003 NTNU ITEA <br>
+#if $user.id == 0
+You are not logged in.
+#else
+You are logged in as $user.name.
+#end if
+</center>
+</font>
 
   </body>
 </html>

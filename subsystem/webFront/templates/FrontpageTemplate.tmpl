@@ -3,6 +3,11 @@
 
 #attr boxesdown = False
 
+#attr numberOfBoxesShown = 10
+#attr numberOfMessagesShown = 5
+
+#from nav.web import shouldShow
+
 #block content
    <table border="0" cellspacing="0" cellpadding="0">
      <tr>
@@ -14,8 +19,8 @@
        <td><img src='$imagefolder/blank.gif' width="10"></td>
        <td valign="top">
 	$welcome
-	$status
 	$emotd
+	$status
        </td>
      </tr>
    </table>
@@ -28,10 +33,6 @@
 #end def
 
 #def navlinks
-	<a href="/">NAV hovedside</a><br>
-	<A HREF="/vlanPlot/">Nettkart</A><br>      
-	<a href="/status/">Status n&aring;</a><br>
-	<a href="http://metanav.ntnu.no/NAVlinks/">Om NAV / Andre NAV</a><br>
 #end def
 
 #def externallinksbox
@@ -56,8 +57,7 @@
 #end def
 
 #def status
-  <br><hr noshade color=#999999 size=1>
-
+  <br>
 <table cellspacing="0" cellpadding="0" border="0">
 
 <!------------------------ STATUS TITLE ---->
@@ -100,9 +100,13 @@
 #set $row = "oddrow"
 #for $box in $boxesdown
 #if not $box[4]
-  #if $numberdown < 10
+  #if $numberdown < $numberOfBoxesShown
     <tr class="$row">
+    #if shouldShow("/browse/$box[1]", $user)
       <td><a href="/browse/$box[1]">$box[1]</a>&nbsp;&nbsp;</td>
+    #else
+      <td>$box[1]&nbsp;&nbsp;</td>
+    #end if
       <td>$box[2]&nbsp;&nbsp;</td>
       <td align="right"><a title="$box[0]"><font color="black">$box[5]</font></a>&nbsp;&nbsp;</td>
       #set $since = $box[3].strftime('%d/%m/%Y %H:%M')
@@ -118,7 +122,7 @@
 #end if
 #end for
 
-#if len($boxesdown) > 10
+#if len($boxesdown) > $numberOfBoxesShown
   #set $linktext = "(more)"
 #else
   #set $linktext = "(to status page)"
@@ -130,8 +134,35 @@
 #end def
 
 #def emotd
-  <br><hr noshade color=#999999 size=1>
-  Message of the Day <br>
+  #from nav.web.EmotdSelect import getAllActive
+  #set $emotds = getAllActive()
+  <table cellspacing="0" cellpadding="0" border="0" style="padding: 1px 5px;">
+  #set $antall = 0
+  #for $emotd in $emotds
+     #if $antall < $numberOfMessagesShown
+     <tr>
+       <td style="border-top: 1px solid black; border-left: 1px solid black; background-color: #eeeeff;">
+         <a href="/emotd/view?id=$emotd.emotdid">$emotd.title</a>
+       </td>
+       <td align="right" style="border-top: 1px solid black; border-right: 1px solid black; background-color: #eeeeff;">
+         xy/xz/200x
+       </td>
+     </tr>
+     <tr>
+       <td colspan="2" style="border-bottom: 1px solid black; border-left: 1px solid black; border-right: 1px solid black;">
+         $emotd.description
+       </td>
+     </tr>
+     #end if
+     #set $antall = $antall + 1
+  #end for
+  #if len($emotds) > $numberOfMessagesShown
+    #set $linktext = "(more)"
+  #else
+    #set $linktext = "(to message of the day page)"
+  #end if
+     <tr><td colspan="6" align="center"><font size="-2"><a href="/emotd/">$linktext</td></tr>
+   </table>
 #end def
 
 
@@ -156,6 +187,10 @@
       TD { 
         font-family: verdana, arial, helvetica, sans-serif;
 	font-size: 13;
+      }
+
+      TD.smallfont {
+        font-size: 11;
       }
 
       td.sideboxlinks {
