@@ -129,9 +129,9 @@ class NetboxInfo(manage.Netbox):
         return vlan
 
     def showSw(self):
-        sw = self.getChildren(manage.Swport)
+        sw = self.getChildren(manage.Swport, 'to_netbox')
         if not sw:
-            return
+            return 'Unknown'
         sw = sw[0]
         swNetbox = sw.module.netbox
         swPort = sw.port
