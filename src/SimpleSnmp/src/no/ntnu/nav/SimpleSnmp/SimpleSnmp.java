@@ -166,6 +166,8 @@ public class SimpleSnmp
 	public Map getAllMap(String baseOid) throws TimeoutException
 	{
 		List l = getAll(baseOid);
+		if (l == null) return null;
+
 		Map m = new HashMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
@@ -205,7 +207,6 @@ public class SimpleSnmp
 	 */
 	public Map getAllMapList(String baseOid, int stripCnt) throws TimeoutException {
 		List l = getAll(baseOid);
-		System.err.println("Got list: " + l);
 		return listToMapList(l, stripCnt);
 	}
 	
