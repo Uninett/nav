@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 ## Name:	arpdblogger
-## $Id: arplogger.pl,v 1.2 2001/08/19 12:07:09 grohi Exp $
+## $Id: arplogger.pl,v 1.3 2001/08/23 16:06:47 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -23,13 +23,15 @@
 require 5.002;
 use strict;
 
-use SNMP_util;
+use SNMP_Session "0.57"; 
 
-#use BER;
+#use SNMP_util;
+
+use BER;
 use Pg;
 
 # ipNetToMediaPhysAddress
-my $ip2mac = '.1.3.6.1.2.1.4.22.1.2';
+#my $ip2mac = '.1.3.6.1.2.1.4.22.1.2';
 
 my @arguments;
 my $filename;
@@ -43,6 +45,7 @@ my %arptable_new;
 my $cursor;
 my $stat;
 my %prefiksdb;
+my %gwport;
 
 
 my $avsluttes;
@@ -54,6 +57,14 @@ my $tot_oppdat=0;
 my $tot_nye=0;
 
 my $sti = '/usr/local/nav/log/arp/';
+
+my %OIDS = (
+	    'ipNetToMediaPhysAddress' => [1,3,6,1,2,1,4,22,1,2],
+	    'ipNetToMediaType' => [1,3,6,1,2,1,4,22,1,4],
+	    );
+
+
+
 
 # Hente aktuelle rutere fra databasen.
 
@@ -77,10 +88,20 @@ $sql = "SELECT prefiksid,nettadr FROM prefiks";
 
 $resultat = db_select($sql,$conn);
 
-while(my @line = $resultat->fetchrow) 
+while (my @line = $resultat->fetchrow) 
 {
     $prefiksdb{$line[1]} = $line[0];
 }
+
+$sql = "SELECT boksid,ifindex,prefiksid FROM gwport";
+$resultat = db_select($sql,$conn);
+
+while (my @line = $resultat->fetchrow) 
+{
+    $gwport{$line[0]}{$line[1]}{$line[2]}++;
+}
+
+
 
 
 #exit();
@@ -106,8 +127,9 @@ while (@arguments)
 	|| print "Couldn't open $filnavn\n" && next;
     %arptable_new = ();
 
-    
-    &get_arpdata($hostid,$hostname,$community);
+    $session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
+			 \&process_arp_entry);
+    $session->close ();
 
     # Avslutter records som ikke ble funnet på ruter denne runden.
 
@@ -124,7 +146,7 @@ while (@arguments)
     %arptable=%arptable_new;
     dbmclose (%arptable);
 
-    print "$hostname\tnye:$nye\toppdaterte:$oppdat\tAvsluttet:$avsluttes\n";
+#    print "$hostname\tnye:$nye\toppdaterte:$oppdat\tAvsluttet:$avsluttes\n";
 
 
     $tot_nye += $nye;
@@ -134,77 +156,72 @@ while (@arguments)
 }
 
 
-print "TOTALT\t$tot_nye\t$tot_oppdat\t$tot_avs\n";
+#print "TOTALT\t$tot_nye\t$tot_oppdat\t$tot_avs\n";
 
 #$dbh->disconnect;
 1;
 
-sub get_arpdata
-{
-    my $id;
-    my $gwip;
-    my $ro;
-    my $line;
-    my $ifindex;
-    my $ip;
-    my $mac;
-    my $prefiksid;
-    my @temp;
-    my $sql1;
-    my $sql2;
+##
+sub process_arp_entry ($$$) {
+  my ($index, $mac, $type) = @_;
+ 
+  ## the index of this table has the form IFINDEX.IPADDRESS, where
+  ## IPADDRESS is a "dotted quad" of four integers.  We simply split
+  ## at the first dot to get the interface index and the IP address in
+  ## readable notation:
+  ##
+  my ($ifIndex, $ip) = split(/\./, $index, 2);
 
-    ($id,$gwip,$ro) = @_;
-    
-#    print "$gwip\t$ro\n";
 
-    @temp = &snmpwalk($ro."\@".$gwip,$ip2mac);
-    
-    foreach $line (@temp)    
-    {  
-	$ip = $mac = $prefiksid = '';
-#	    print "$line\n";
-	($ifindex,$mac) = split(/:/,$line);
-	($ifindex, $ip) = split(/\./, $ifindex, 2);
-	#    $mac = hex_string($mac);
-	$mac = unpack('H*', $mac); 
-	$arptable_new{$ip} = $mac;
-	
-#	print "$ip\t$mac\n";
+  my $prefiksid = getprefiks($ip);
 
-	$prefiksid = &getprefiks($ip);
 
-	if (defined($arptable{$ip} ))
-	{
-	    if ($arptable{$ip} ne $arptable_new{$ip}) 
-	    {
-		# Avslutte gammel record.  
-#		$sql1 = "UPDATE arp SET til=NOW() WHERE ip =\'$ip\' AND mac=\'$arptable{$ip}\' AND boksid=\'$id\' AND til IS NULL";
-#		print "$sql1\n";
-		db_execute($sql1,$conn);
-		
-		# Legge inn ny record.
-		my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$id\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
-#		print "$sql2\n";
-		db_execute($sql2,$conn);
+#  print "$hostname\t$ip\t$prefiksid\t";
 
-		$oppdat++;
-		
-	    }
-	    delete $arptable{$ip};
-	}
-	else # ikke i %arptable fra før: legg inn.
-	{
-	    
-	    # Legge inn ny record.
-	    my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$id\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
-#	    print "$sql2\n";
-	    db_execute($sql2,$conn);
-
-	    $nye++;
-
-	}
-    }
+#  if ($prefiksid == 0)
+#  {
+#      print "Finner ikke prefiks for $ip\n";
+      
+  unless (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
+  {
+      print "Feil prefiks: $ip\t$prefiksid\t$hostname.\n";
+#      print "Feil\n";
+  }
+  else  # prefiksid funnet og er ok, skal legges inn
+  {
+#      print "Legges inn\n";
+      $arptable_new{$ip} = hex_string($mac);
+      
+      if (defined( $arptable{$ip} )) {
+	  if ($arptable{$ip} ne $arptable_new{$ip}) {
+	      
+	      # Avslutte gammel record. 
+	      my $sql1 = "UPDATE arp SET til=NOW() WHERE ip =\'$ip\' AND mac=\'$arptable{$ip}\' AND boksid=\'$hostid\' AND til IS NULL"; 
+#               print "$sql1\n";                 
+	      db_execute($sql1,$conn);
+	      
+	      # Legge inn ny record.
+	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
+#               print "$sql2\n";
+	      db_execute($sql2,$conn);
+	      
+	      $oppdat++;
+	      
+	  }
+	  delete $arptable{$ip};
+      } 
+      else # ikke i %arptable fra før: legg inn.
+      {
+	  # Legge inn ny record.
+	  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
+#           print "$sql2\n";
+	  db_execute($sql2,$conn);
+	  
+	  $nye++;
+      }
+  }
 }
+
 ##############################################
 
 sub getprefiks
@@ -227,7 +244,7 @@ sub getprefiks
 	return $prefiksdb{$netadr} if (defined $prefiksdb{$netadr});
     }
 
-    print "Fant ikke prefiksid for $ip\n";
+#    print "Fant ikke prefiksid for $ip\n";
     return 0;
 }
 
