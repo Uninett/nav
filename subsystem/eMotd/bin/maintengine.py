@@ -14,7 +14,8 @@ Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
 import sys
 sys.path = ['/usr/local/nav/navme/lib/python','/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/python/lib/python2.2', '/usr/lib/apache/python/lib/python2.2/plat-linux2', '/usr/lib/apache/python/lib/python2.2/lib-tk', '/usr/lib/apache/python/lib/python2.2/lib-dynload', '/usr/lib/apache/python/lib/python2.2/site-packages', '/usr/local/nav/navme/lib/python', '/usr/local/lib/python2.2/site-packages']
 
-from nav.db.manage import Emotd,Emotd_related,Maintenance,Eventq,Eventqvar,Eventtype
+from nav.db.manage import Emotd,Emotd_related,Maintenance
+from nav.db.manage import Eventq,Eventqvar,Eventtype,Netbox
 from mx import DateTime
 
 ##
@@ -91,6 +92,7 @@ def send_event():
             e.subsystem = 'emotd'
             e.eventtype = 'maintenanceState'
             e.netbox = unit.value
+            e.deviceid = Netbox(unit.value).device.deviceid
             if unit.key == 'service':
                 e.subid = unit.value
             if event['type'] == 'maintenanceOn':
