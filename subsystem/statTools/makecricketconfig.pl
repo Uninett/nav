@@ -105,6 +105,7 @@ my $changelog = "$cricketdir/cricket-logs/changelog";
 my %config; # stores navconfig for the configtree
 my %dshash; # stores the mapping between ds and ds-type
 my %targettypehash;
+my %rtargettypehash; # temporar hash for servers
 my %rrdhash;
 
 my $step = 300;
@@ -175,7 +176,6 @@ print "Done\n" if $ll >= 3;
 # table: set only for interfaces, the table that we fetch interfaces from
 # id: set only for interfaces, the key-field of the table
 
-
 # Lets start working.
 
 # Rotating changelogs
@@ -226,7 +226,7 @@ foreach my $dir (@{ $config{'dirs'} } ) {
     }
 }
 # Making serverconfig...it's still under testing.
-# makeservers();
+&makeservers('servers');
 
 # Ok, we are done with editing config, making targettypes,
 # making targets and so on. Now lets fill the rrd-database
@@ -419,9 +419,9 @@ sub parseDefaults {
 	    }
 
 	    my @dsarr = map $roidhash{$_}, @tmp;
-
 	    print "Pushing @dsarr on $tt\n" if $ll >= 3;
 	    $targettypehash{$tt} = [@dsarr];
+	    $rtargettypehash{$tt} = [@tmp];
 	    @dsarr = ();
 
 	}
@@ -596,7 +596,7 @@ sub makeTTs {
 	    if ($numberofkeys > 0) {
 		for my $tt (@keys) {
 		    print "Adding targettype $tt to file.\n" if $ll >= 3;
-		    print CHANGELOG "Adding targettype %s to %s.\n", $tt, $path;
+		    printf CHANGELOG "Adding targettype %s to %s.\n", $tt, $path;
 		    print HANDLE "targetType $tt\n";
 		    print HANDLE "\tds\t=\t\"", join (",", map $oidhash{$_}, @{ $input{$tt} } ), "\"\n\n";
 		}
@@ -609,7 +609,7 @@ sub makeTTs {
 	    # if this targettype exists in the hash, delete it
 	    if ($input{$1}) {
 		print "Deleting targettype $1\n" if $ll >= 3;
-		printf CHANGELOG "Deleting targettype %s from %s", $1, $path;
+		printf CHANGELOG "Deleting targettype %s from %s\n", $1, $path;
 		$delete = 1;
 	    } else {
 		print HANDLE $line;
@@ -1153,7 +1153,12 @@ sub fillRRDdatabase {
 
 		# Gotta love perl and references...
 		for my $i (0 .. $#{ $rrdhash{$path}{$filename}{'ds'} } ) {
+		    
 		    my $datasource = $oidhash{ @{ $rrdhash{$path}{$filename}{'ds'} }[$i] };
+		    if ($path =~ /server/) {
+			$datasource = @{ $rrdhash{$path}{$filename}{'ds'} }[$i];
+			printf "\tPath matches server, using alternate value (%s)\n", $datasource  if $ll >= 3;
+		    }
 
 		    # Finding the units-value to give a hint for the graph
 		    my $units = 0;
@@ -1194,165 +1199,240 @@ sub makeservers {
     # Iterates over all the servers in the database marked SNMP, and
     # writes them to various config files.
     # the phrase snmpagent ~'^1' = starts with 1
-    my $path = "$cricketconfigdir";
-    my $query = "SELECT netboxid,sysname,ip,typeid,roomid,ro,snmp_agent FROM netbox WHERE catid='SRV' AND snmp_major > 0 AND snmp_agent ~'^.' ORDER BY sysname";
-    my $getservers = &NAV::select($dbh,$query);
-    while (my ($id, $sysname,$ip,$type,$roomid,$community,$snmpagent) = $getservers->fetchrow) {
+
+    my $me = "makeservers";
+    print "=> RUNNING $me <=\n";
+
+    my $dir = shift;
+    &parseDefaults($dir);
+
+    my $serverdir = "$cricketconfigdir/servers";
+    unless (-e $serverdir) {
+	mkdir($serverdir, 0775);
+    }
+
+    my $query = "SELECT netboxid,sysname,ip,typeid,roomid,ro FROM netbox WHERE catid='SRV' ORDER BY sysname";
+    print "$q\n" if $ll >= 3;
+
+    my $getservers = &select($dbh,$query);
+
+    while (my ($id, $sysname,$ip,$type,$roomid,$community) = $getservers->fetchrow) {
 	next unless $sysname;
 	next unless $ip;
 	next unless $community;
 
-	my $win32 = 0;
+	print "Making targets for $id, $sysname\n" if $ll >= 3;
+
+	my $os = 0;
+	my $win32 = 'WIN';
+	my $linux = 'LINUX';
+	my $unix = 'UNIX';
+
+	# Check if os_guess is set, if not try to find os from category. If nothing
+	# is found, set os to UNIX
+	my $q = "SELECT val FROM netboxinfo WHERE netboxid=$id AND var='os_guess'";
+	print "\t$q\n" if $ll >= 3;
+	my $r = $dbh->exec($q);
+	unless ($r->ntuples > 0) {
+	    
+	    print "\tNo os_guess found for $id, $sysname\n" if $ll >= 2;
+	    $q = "SELECT category FROM netboxcategory WHERE netboxid=$id";
+	    print "\t$q\n" if $ll >= 3;
+	    $r = $dbh->exec($q);
+
+	    $os = $unix;
+	    while (my ($category) = $r->fetchrow) {
+		if ($category eq 'WIN') {
+		    $os = $win32;
+		} elsif ($category eq 'LINUX') {
+		    $os = $linux;
+		}
+	    }
+
+	}  else {
+	    my ($val) = $r->fetchrow;
+	    $os = $val;
+	}
+
+	print "\tOS set to $os\n" if $ll >= 2;
+
+
+	my $fullpath = "$serverdir/$sysname";
+	$rrdhash{$fullpath}{'load'}{'netboxid'} = $id;
+	$rrdhash{$fullpath}{'users'}{'netboxid'} = $id;
+	$rrdhash{$fullpath}{'memory'}{'netboxid'} = $id;
+	$rrdhash{$fullpath}{'cpu'}{'netboxid'} = $id;
+	$rrdhash{$fullpath}{'error'}{'netboxid'} = $id;
+	$rrdhash{$fullpath}{'processes'}{'netboxid'} = $id;
+	
+	my $snmpagent = 0;
 	if($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.311\./) {
 	    $win32 = 1;
 	}
-	my $linux = 0;
+
 	if ($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.8072\.3\.2\.10\./) {
 	    $linux = 1;
 	}
-	#this is for diskIO useage in the future
-	#my $solaris =0;
-	#if ($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.8072\.3\.2\.3\./) {
-	#       $solaris = 1;
-	#}
+
 	my $server = $sysname;
-	mkdir ("$path/servers/$sysname",0775);
-	my $fil = "$path/servers/$sysname/$server";
+	mkdir ($fullpath,0775);
+
+	my $fil = "$fullpath/$server";
 	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
 	print FIL "target --default--\n";
-	print FIL "\tserver\t=\t$sysname\n";
+	print FIL "\tserver\t\t=\t$sysname\n";
 	print FIL "\tsnmp-community\t=\t$community\n";
 
 	# Finding room description
 	$query = "SELECT descr FROM room WHERE roomid='$roomid'";
-	my $getdesc = &NAV::select($dbh,$query);
+	my $getdesc = &select($dbh,$query);
 	if (!(my $desc = $getdesc->fetchrow)) {
-	    print "No description for room with id=$roomid\n";
+	    print "\tNo description for room with id=$roomid\n";
 	    print FIL "\tshort-desc\t=\t\"\"\n";
 	} else {
 	    print FIL "\tshort-desc\t=\t\"$desc\"\n";
 	}
 	print FIL "\n";
+
+
+	# USERS
+	my $ds;
+	if($os eq $win32) {
+	    $ds = "userswin";
+	} else {
+	    $ds = "usersnix";
+	}
+	$rrdhash{$fullpath}{'users'}{'ds'} = $rtargettypehash{$ds};
 	print FIL "target \"users\"\n";
+	print FIL "\ttarget-type\t=\t$ds\n\n";
 
-	if($win32) {
-	    print FIL "\ttarget-type\t=\tuserswin\n";
-	} else {
-	    print FIL "\ttarget-type\t=\tusersnix\n";
-	}
-	print FIL "\n";
 
+	# PROCESSES
 	print FIL "target \"processes\"\n";
-	print FIL "\ttarget-type\t=\tprocesses\n";
-	print FIL "\n";
+	print FIL "\ttarget-type\t=\tprocesses\n\n";
+	$rrdhash{$fullpath}{'processes'}{'ds'} = $rtargettypehash{'processes'};
 
-	if(not $win32) {
+
+	# LOAD
+	if($os ne $win32) {
 	    print FIL "target \"load\"\n";
-	    print FIL "\ttarget-type\t=\tloadnix\n";
-	    print FIL "\n";
+	    print FIL "\ttarget-type\t=\tloadnix\n\n";
+	    $rrdhash{$fullpath}{'load'}{'ds'} = $rtargettypehash{'loadnix'};
 	}
 
-	print FIL "target \"memory\"\n";
 
-	if($win32) {
-	    print FIL "\ttarget-type\t=\tmemwin\n";
-	}
-	elsif($linux) {
-	    print FIL "\ttarget-type\t=\tmemlin\n";
-	}
-	else {
-	    print FIL "\ttarget-type\t=\tmemnix\n";
-	}
-	print FIL "\n";
-
-	print FIL "target \"cpu\"\n";
-
-	if($win32) {
-	    print FIL "\ttarget-type\t=\tcpuwin\n";
+	# MEMORY
+	if($os eq $win32) {
+	    $ds = "memwin";
+	} elsif($os eq $linux) {
+	    $ds = "memlin";
 	} else {
-	    print FIL "\ttarget-type\t=\tcpunix\n";
+	    $ds = "memnix";
 	}
-	print FIL "\n";
-	if($win32) {
+	print FIL "target \"memory\"\n";
+	print FIL "\ttarget-type\t=\t$ds\n\n";
+	$rrdhash{$fullpath}{'memory'}{'ds'} = $rtargettypehash{$ds};
+
+
+	# CPU
+	if($os eq $win32) {
+	    $ds = "cpuwin";
+	} else {
+	    $ds = "cpunix";
+	}
+	print FIL "target \"cpu\"\n";
+	print FIL "\ttarget-type\t=\t$ds\n\n";
+	$rrdhash{$fullpath}{'cpu'}{'ds'} = $rtargettypehash{$ds};
+
+
+	# ERROR
+	if($os eq $win32) {
 	    print FIL "target \"Error\"\n";
-	    print FIL "\ttarget-type\t=\terror\n";
-	    print FIL "\n";
+	    print FIL "\ttarget-type\t=\terror\n\n";
+	    $rrdhash{$fullpath}{'error'}{'ds'} = $rtargettypehash{'error'};
 	}
 
-	# Get the category and insert into file
-	$query = "SELECT category FROM netboxcategory WHERE netboxid=$id";
-	my $getcategory = &NAV::select( $dbh,$query);
-	while (my $category = $getcategory->fetchrow) {
-	    print FIL "target \"$category\"\n";
-	    print FIL "\ttarget-type\t=\t$category\n";
-	    print FIL "\n";
-	}
-	print FIL "\n";
 	close FIL;
 
-	# All the interfaces
-	mkdir ("$path/servers/$sysname/interface",0775);
-	$fil = "$path/servers/$sysname/interface/interfaces";
 
-	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
+	# INTERFACES
+	# We make separate directory for interfaces
+	$query = "SELECT key FROM netboxinfo WHERE var='interf_type' AND netboxid=$id";
+	my $getinterfaces = &select($dbh,$query);
 
-	$query = "SELECT interf FROM boksinterface WHERE boksid=$id";
-	my $getinterfaces = &NAV::select($dbh,$query);
+	if ($getinterfaces->ntuples > 0) {
 
-	print FIL "target --default--\n";
-	print FIL "\tserver\t=\t$sysname\n";
-	print FIL "\n";
+	    mkdir ("$fullpath/interface",0775);
+	    $fil = "$fullpath/interface/interfaces";
 
-	while (my $interface = $getinterfaces->fetchrow) {
-	    my $name = $interface;
-	    $name =~ s/\s/_/g; # We need filesystem-rrd-nicer names without spaces
-	    $name =~ s,/,_,g;
-	    my $interface2 = $interface;
-	    $interface2 =~ s/\\/\\\\/g;
-	    print FIL "target \"$name\"\n";
+	    open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
+
+	    print FIL "target --default--\n";
+	    print FIL "\tserver\t\t=\t$sysname\n";
 	    print FIL "\ttarget-type\t=\tinterface\n";
-	    print FIL "\tinst\t=\tmap(interface-name)\n";
-	    print FIL "\tinterface-name\t=\t\"$interface2\"\n";
-	    print FIL "\tshort-desc\t=\t\"$interface\"\n";
+	    print FIL "\tinst\t\t=\tmap(interface-name)\n";
 	    print FIL "\n";
-	}
-	close FIL;
-
-	# Then all the disks
-	mkdir ("$path/servers/$sysname/disk",0775);
-	$fil = "$path/servers/$sysname/disk/disks";
-
-	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
-
-	$query = "SELECT path,blocksize FROM netboxdisk WHERE netboxid=$id";
-	my $getpaths = &NAV::select($dbh,$query);
-	print FIL "target --default--\n";
-	print FIL "\tserver\t=\t$sysname\n";
-	print FIL "\n";
-
-	while (my ($mnt,$blz) = $getpaths->fetchrow) {
-	    my $name = $mnt;
-	    if($name eq "/") {
-		$name = "root";    # Special case for /
-	    } else {
-		$name =~ s,/,_,g;  # /usr/local -> _usr_local
-		$name =~ s/^_//;   # _usr -> usr
-		$name =~ s/:.*//;  # C:\ Label nblablabalb -> C
+	    
+	    while (my $interface = $getinterfaces->fetchrow) {
+		my $name = $interface;
+		$name =~ s/\s/_/g; # We need filesystem-rrd-nicer names without spaces
+		$name =~ s,/,_,g;
+		my $interface2 = $interface;
+		$interface2 =~ s/\\/\\\\/g;
+		print FIL "target \"$name\"\n";
+		print FIL "\tinterface-name\t=\t\"$interface2\"\n";
+		print FIL "\tshort-desc\t=\t\"$interface\"\n";
+		print FIL "\n";
+		$rrdhash{"$fullpath/interface"}{$name}{'netboxid'}= $id;
+		$rrdhash{"$fullpath/interface"}{$name}{'ds'} = $rtargettypehash{"interface"};
 	    }
-	    $mnt =~ s/\\/\\\\/g; # Double escape backslashes in configfile  C:\ --> C:\\
-
-	    print FIL "target \"$name\"\n";
-	    # This is for diskIO useage in the future
-	    #if ($solaris) {
-	    #       print FIL "\ttarget-type = disksolaris\n"; }
-	    print FIL "\ttarget-type\t=\tdisk\n";
-	    print FIL "\tinst\t=\tmap(mount-point)\n";
-	    print FIL "\tmount-point\t=\t\"$mnt\"\n";
-	    print FIL "\tshort-desc\t=\t\"$mnt\"\n";
-	    print FIL "\tblocksize\t=\t\"$blz\"\n";
-	    print FIL "\n";
+	    close FIL;
 	}
-	close FIL;
-    }
 
+
+	# DISKS
+	# Then all the disks
+	$query = "SELECT key,val FROM netboxinfo WHERE var='disk_blocksizeInt' AND netboxid=$id";
+	my $getpaths = &select($dbh,$query);
+
+	if ($getpaths->ntuples > 0) {
+
+	    mkdir ("$fullpath/disk",0775);
+	    $fil = "$fullpath/disk/disks";
+
+	    open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
+
+	    print FIL "target --default--\n";
+	    print FIL "\tserver\t\t=\t$sysname\n";
+	    print FIL "\ttarget-type\t=\tdisk\n";
+	    print FIL "\tinst\t\t=\tmap(mount-point)\n";
+
+	    print FIL "\n";
+
+	    while (my ($key,$val) = $getpaths->fetchrow) {
+		my $name = $key;
+		if($name eq "/") {
+		    $name = "root";    # Special case for /
+		} else {
+		    $name =~ s,/,_,g;  # /usr/local -> _usr_local
+		    $name =~ s/^_//;   # _usr -> usr
+		    $name =~ s/:.*//;  # C:\ Label nblablabalb -> C
+		}
+		$key =~ s/\\/\\\\/g; # Double escape backslashes in configfile  C:\ --> C:\\
+
+		print FIL "target \"$name\"\n";
+		# This is for diskIO useage in the future
+		#if ($solaris) {
+		#       print FIL "\ttarget-type = disksolaris\n"; }
+		print FIL "\tmount-point\t=\t\"$key\"\n";
+		print FIL "\tshort-desc\t=\t\"$key\"\n";
+		print FIL "\tblocksize\t=\t$val\n";
+		print FIL "\n";
+
+		$rrdhash{"$fullpath/disk"}{$name}{'netboxid'}= $id;
+		$rrdhash{"$fullpath/disk"}{$name}{'ds'} = $rtargettypehash{"disk"};
+	    }
+	    close FIL;
+	}
+    }   
 }
