@@ -113,6 +113,7 @@ public class CiscoSwIOS implements DeviceHandler
 		String vlanOid = ".1.3.6.1.4.1.9.9.68.1.2.2.1.2";
 
 		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
+		Set matchIfindex = new HashSet();
 
 		// First we need to count the modules (Fa0, Gi0, Gi should be 1)
 		Map moduleCntMap = new HashMap();
@@ -123,14 +124,15 @@ public class CiscoSwIOS implements DeviceHandler
 				String[] s = (String[])it.next();
 				
 				String portif = s[1];
-				String modulePattern = "((.*?)\\d+)/.*";
+				String modulePattern = "((.*?)\\d+)/(\\d+)";
 				if (portif.matches(modulePattern)) {
 					Matcher m = Pattern.compile(modulePattern).matcher(portif);
 					m.matches();
 					String mn = m.group(1);
 					String interf = m.group(2);
 					if (!moduleCntMap.containsKey(interf)) moduleCntMap.put(interf, new Integer(modCnt));
-					if (moduleSet.add(mn)) modCnt++;					
+					if (moduleSet.add(mn)) modCnt++;
+					matchIfindex.add(s[0]);
 				}
 			}
 		}
@@ -140,11 +142,12 @@ public class CiscoSwIOS implements DeviceHandler
 			String[] s = (String[])it.next();
 			
 			String ifindex = s[0];
+			if (!matchIfindex.contains(ifindex)) continue;
 			String portif = s[1];
 
 			// Determine and create the module
 			int module = 0;
-			String modulePattern = "((.*?)(\\d+))/.*";
+			String modulePattern = "((.*?)(\\d+))/(\\d+)";
 			String moduleName = null;
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
@@ -180,6 +183,7 @@ public class CiscoSwIOS implements DeviceHandler
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
+				if (!matchIfindex.contains(ifindex)) continue;
 				int vlan = 0;
 				try{
 					vlan = Integer.parseInt(s[1]);
@@ -209,6 +213,7 @@ public class CiscoSwIOS implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+				if (!matchIfindex.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setHexstring(s[1]);
 			}
 		}
@@ -217,6 +222,7 @@ public class CiscoSwIOS implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+				if (!matchIfindex.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setPortname(s[1]);
 			}
 		}
