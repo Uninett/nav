@@ -472,15 +472,15 @@ public class NetboxInfo {
 
 	// Does not check for errors
 	private static int removeNoError(String netboxid, String key, String var) throws SQLException {
-		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+key+"'";
+		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+Database.addSlashes(key)+"'";
 
-		String q = "DELETE FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + " AND var = '"+var+"'";
+		String q = "DELETE FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + " AND var = '"+Database.addSlashes(var)+"'";
 		return Database.update(q);
 	}
 
 	private static ResultSet getVals(String netboxid, String key, String var) throws SQLException {
-		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+key+"'";
-		String v = (var == null) ? "" : " AND var = '" + var + "'";
+		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+Database.addSlashes(key)+"'";
+		String v = (var == null) ? "" : " AND var = '" + Database.addSlashes(var) + "'";
 		String v2 = (var == null) ? ", var" : "";
 
 		String q = "SELECT netboxinfoid, val" + v2 + " FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + v + " ORDER BY val";
