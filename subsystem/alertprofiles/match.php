@@ -1,7 +1,7 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
 <?php
-echo '<p>Oppsett av filter</p>';
+echo '<p>Equipment filter setup</p>';
 if ( get_exist('fid') ) {
 	session_set('match_fid', get_get('fid') );
 }
@@ -18,10 +18,9 @@ include("loginordie.php");
 loginOrDie();
 
 echo "<p>";
-echo gettext("Her lager du et sett med betingelser som alle må være oppfylt for at en bestemt hendelse skal inkluderes av filteret. 
-Hvis en eller flere av match'ene ikke slår til vil en hendelse altså ikke være med.");
+echo gettext("Here you can setup conditions to be fulfilled for a specific event to be match by the filter. If one or more conditions returns false the event will not be included in the filter.");
 echo '<p><a href="#nymatch">';
-echo gettext("Legg til ny betingelse");
+echo gettext("Add new condition");
 echo '</a>';
 
 
@@ -37,15 +36,15 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get
 }
 
 
-$type[0] = gettext('er lik');
-$type[1] = gettext('er større enn');
-$type[2] = gettext('er større eller lik');
-$type[3] = gettext('er mindre enn');
-$type[4] = gettext('er mindre eller lik');
-$type[5] = gettext('er ulik');
-$type[6] = gettext('starter med');
-$type[7] = gettext('slutter med');
-$type[8] = gettext('inneholder');
+$type[0] = gettext('equals');
+$type[1] = gettext('is greater');
+$type[2] = gettext('is greater or equal');
+$type[3] = gettext('is less');
+$type[4] = gettext('is less or equal');
+$type[5] = gettext('not equals');
+$type[6] = gettext('starts with');
+$type[7] = gettext('ends with');
+$type[8] = gettext('contains');
 $type[9] = gettext('regexp');
 $type[10] = gettext('wildcard (? og *)');
 
@@ -56,10 +55,10 @@ if ($subaction == 'slett') {
 	
 		$dbh->slettFiltermatch(session_get('match_fid'), get_get('mid') );
 
-		print "<p><font size=\"+3\">" . gettext("OK</font>, matchen er fjernet fra filteret.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, the condition is removed from the filter.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font>, matchen er <b>ikke</b> fjernet.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the match is <b>not</b> removed.");
 	}
 
 	// Viser feilmelding om det har oppstått en feil.
@@ -71,18 +70,18 @@ if ($subaction == 'slett') {
 }
 
 if ($subaction == "nymatch") {
-  print "<h3>" . gettext("Registrerer ny match...") . "</h3>";
+  print "<h3>" . gettext("Registering new condition...") . "</h3>";
   
   $error = NULL;
-  if ($navn == "") $navn = gettext("Uten navn");
+  if ($navn == "") $navn = gettext("No name");
   if ($uid > 0) { 
     
     $matchid = $dbh->nyMatch(post_get('matchfelt2'), post_get('matchtype'), 
     	post_get('verdi'), session_get('match_fid') );
-    print "<p><font size=\"+3\">" . gettext("OK</font>, en ny betingelse (match) er lagt til for dette filteret.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
     
   } else {
-    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny match er <b>ikke</b> lagt til i databasen.");
+    print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
   }
 
   // Viser feilmelding om det har oppstått en feil.
@@ -97,7 +96,7 @@ if ($subaction == "nymatch") {
 
 
 $l = new Lister(111,
-    array(gettext('Felt'), gettext('Betingelse'), gettext('Verdi'), gettext('Valg..') ),
+    array(gettext('Field'), gettext('Condition'), gettext('Value'), gettext('Option..') ),
     array(40, 15, 25, 20),
     array('left', 'left', 'left', 'right'),
     array(true, true, true, false),
@@ -105,7 +104,7 @@ $l = new Lister(111,
 );
 
 
-print "<h3>" . gettext("Filtermatcher") . "</h3>";
+print "<h3>" . gettext("Filter matches") . "</h3>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -129,12 +128,12 @@ for ($i = 0; $i < sizeof($match); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print "Antall filtermatcher: " . sizeof($match);
 
 
 echo '<a name="nymatch"></a><p><h3>';
-echo gettext("Legg til ny betingelse");
+echo gettext("Add new condition");
 echo '</h3>';
 
 
@@ -146,7 +145,7 @@ print '<form name="form2" method="post" action="index.php?subaction=velgtype">';
 
 
     <tr>
-    	<td width="30%"><p><?php echo gettext('Velg felt'); ?></p></td>
+    	<td width="30%"><p><?php echo gettext('Choose field'); ?></p></td>
     	<td width="70%">
     	<select name="matchfelt" id="select" onChange="this.form.submit()">
 <?php
@@ -202,7 +201,7 @@ if (post_exist('matchfelt') ) {
 }
 
 echo '<td width="30%"><p>';
-echo gettext("Velg betingelse");
+echo gettext("Choose condition");
 echo '</p></td><td width="70%">';
 
 if ( post_exist('matchfelt') ) {
@@ -215,7 +214,7 @@ if ( post_exist('matchfelt') ) {
                 print '<option value="' . $matchtype . '">' . $type[$matchtype] . '</option>';
             }
         } else {
-            print '<option value="0" selected>' . gettext("er lik") . '</option>';	
+            print '<option value="0" selected>' . gettext("equals") . '</option>';	
         }
         print '</select>';
 
@@ -240,7 +239,7 @@ if ( post_exist('matchfelt') ) {
 ?>
    	
     <tr>     
-    	<td width="30%"><p><?php echo gettext('Sett verdi'); ?></p></td>
+    	<td width="30%"><p><?php echo gettext('Set value'); ?></p></td>
     	<td width="70%">
 <?php    
 
@@ -300,9 +299,9 @@ if ( post_exist('matchfelt') ) {
 <?php
 
 if ( post_exist('matchfelt') ) {
-	$tekst = gettext("Legg til betingelse");
+	$tekst = gettext("Add condition");
 } else {
-	$tekst = gettext("Velg matchefelt");
+	$tekst = gettext("Choose matchfield");
 }
 
 if (post_exist('matchfelt')) {
@@ -321,7 +320,7 @@ print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . 
 <?php
     if (!post_exist('matchfelt') ) {
         echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
-        echo '<input type="submit" name="Submit" value="' . gettext('Ferdig med å editere filteret') . '">';
+        echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter') . '">';
         echo '</form>';
     }
 ?>

@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Hendelseslogg'); ?></p>
+<p><?php echo gettext('Event log'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -14,16 +14,16 @@ loginOrDie();
 <?php
 
 echo '<p>';
-echo gettext("Her er en liste over siste hendelser i NAVuser. ");
+echo gettext("Here is a list of the recent events on NAV Alert Profiles. ");
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
-print "<h3>" . gettext("Loggdata") . "</h3>";
+print "<h3>" . gettext("Log") . "</h3>";
 
 
 
 $l = new Lister( 223,
-	array(gettext('Hendelse'), gettext('Navn'), gettext('Tid'), gettext('Beskrivelse') ),
+	array(gettext('Event'), gettext('Name'), gettext('Time'), gettext('Description') ),
 	array(10, 20, 20, 50),
 	array('left', 'left', 'left', 'left'),
 	array(true, true, true, true ),
@@ -69,8 +69,8 @@ for ($i = 0; $i < sizeof($logg); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
-print gettext("Antall viste hendelser: ") . sizeof($logg);
+print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print gettext("Number of shown events: ") . sizeof($logg);
 
 
 ?>

@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Konfigurerering av WAP"); ?></p>
+<p><?php echo gettext("WAP setup"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,10 +10,8 @@ loginOrDie();
 
 
 echo "<p>";
-echo gettext('Her kan du sett opp og skru av muligheten for å 
-administrere din konto via en WAP-portal. Husk at du alltid må holde wapkeyen hemmelig, 
-og hvis du har misstanke om at noen kan ha fått tak i den kan du generere ny wapkey her. 
-Men da må du huske å oppdatere bokmerke på mobilen din.');
+echo gettext('Here you can setup and deactivate WAP access for your Alert profiles account.
+Remember to keep your wap key secret. If compromised, you can generate a new key here or deactivate WAP access. When generating a new WAP key you have to remember to update your bookmark on your mobile telephone or PDA.');
 
 
 
@@ -35,18 +33,18 @@ if ($subaction == 'slettkey') {
 
 
 $k = $dbh->hentwapkey($uid);
-print "<h2>" . gettext("Wapkey") . "</h2>";
+print "<h2>" . gettext("WAP key") . "</h2>";
 
 if ($k[0] == null) {
-	print "<p>" . gettext("Du har ingen wapkey. Du må generere en for å bruke WAP.");
-	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generer wapkey") . "</a> ]";	
+	print "<p>" . gettext("You have no WAP key. One must be generated to access Alert Profiles from WAP.");
+	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generate WAP key") . "</a> ]";	
 } else {
-	print "<p>" . gettext("Din wapkey er: ") ."<b>" . $k[0] . "</b>.";
-	print "<p>" . gettext("Det betyr at du kan nå din brukerprofil fra denne wapsiden:") . "<br>";
-	print "<pre>http://bigbud.itea.ntnu.no/wap/?k=" . $k[0] . "</pre>";
+	print "<p>" . gettext("Your WAP key is: ") ."<b>" . $k[0] . "</b>.";
+	print "<p>" . gettext("You can now access Alert profiles from this WAP page :") . "<br>";
+	print "<pre>http://isbre.itea.ntnu.no/wap/?k=" . $k[0] . "</pre>";
 
-	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generer ny key") . "</a> | 
-<a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Fjern wapkey") . "</a> ]";
+	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generate a new key") . "</a> | 
+<a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Deactivate WAP access") . "</a> ]";
 
 }
 ?>

@@ -140,7 +140,7 @@ class Meny {
 
 				} else {
 					$error = new Error(3);
-					$error->message = gettext("Du forsøkte å hente inn en submodul som din bruker ikke har tilgang til. Forsøk å logge ut og inn igjen, og hvis det fortsatt ikke fungerer varsle systemadministrator.");
+					$error->message = gettext("You have <b>no access</b> to this module.");
 					print $error->getHTML();
 				}
 			} else { // Vises som default...
@@ -159,7 +159,7 @@ class Meny {
 
 <table class="meny">
 <tr><td class="menyHead">
-<p><?php echo gettext('NAV Meny'); ?>
+<p><?php echo gettext('NAV Menu'); ?>
 </td></tr>
 
 <tr><td>
@@ -172,12 +172,12 @@ if ( get_get('action')  ) {
 $meny = NEW Meny($login);
 
 print "<P>";
-$meny->newOption(gettext("Oversikt"), "oversikt", 0, array('oversikt.php') );
-$meny->newOption(gettext("Adresser"), "adress", 1,array('adress.php') );
-$meny->newOption(gettext("Profiler"), "profil", 1, array('profil.php') );
-$meny->newOption(gettext("Utstyrsgrupper"), "utstyr", 1, array('utstyr.php') );
-$meny->newOption(gettext("Utstyrsfiltre"), "filter", 1, array('filter.php') );
-$meny->newOption(gettext("Hjelp"), "hjelp", 1, array('hjelp.php') );
+$meny->newOption(gettext("Overview"), "oversikt", 0, array('oversikt.php') );
+$meny->newOption(gettext("Addresses"), "adress", 1,array('adress.php') );
+$meny->newOption(gettext("Profiles"), "profil", 1, array('profil.php') );
+$meny->newOption(gettext("Equip. groups"), "utstyr", 1, array('utstyr.php') );
+$meny->newOption(gettext("Equip. filters"), "filter", 1, array('filter.php') );
+$meny->newOption(gettext("Help"), "hjelp", 1, array('hjelp.php') );
 
 /*
 	WAP and password changing disabled 3. Oct 2003, because of integration with NAV.
@@ -189,12 +189,12 @@ $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php
 */
 
 print "<p>";
-$meny->newOption(gettext("Brukere"), "admin", 1000, array('admin.php') );
-$meny->newOption(gettext("Brukergrupper"), "gruppe", 1000, array('gruppe.php') );
-$meny->newOption(gettext("Felles Utst.grp."), "futstyr", 100, array('fellesutstyr.php') );
-$meny->newOption(gettext("Felles Utst.filter"), "ffilter", 100, array('fellesfilter.php') );
-$meny->newOption(gettext("Adm. match-felt"), "filtermatchadm", 100, array('filtermatchadm.php') );
-$meny->newOption(gettext("Logg"), "logg", 20, array('logg.php') );
+$meny->newOption(gettext("Users"), "admin", 1000, array('admin.php') );
+$meny->newOption(gettext("User groups"), "gruppe", 1000, array('gruppe.php') );
+$meny->newOption(gettext("Pub eq.groups"), "futstyr", 100, array('fellesutstyr.php') );
+$meny->newOption(gettext("Pub eq.filters"), "ffilter", 100, array('fellesfilter.php') );
+$meny->newOption(gettext("Match fields"), "filtermatchadm", 100, array('filtermatchadm.php') );
+$meny->newOption(gettext("Log"), "logg", 20, array('logg.php') );
 
 
 $meny->newModule('periode', 1, array('periode.php') );
@@ -215,7 +215,7 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 <table class="meny">
 <tr><td class="menyHead">
 <p><?php
-	echo gettext("Velg språk");
+	echo gettext("Choose language");
 ?>
 </td></tr>
 
@@ -226,12 +226,12 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 
 print '<table width="100%" border="0"><tr><td width="50%"><p align="center">';
 if ($language == 'en') {
-	print '<img src="icons/gbr.png" alt"' . gettext("Engelsk") . '">';
+	print '<img src="icons/gbr.png" alt"' . gettext("English") . '">';
 } else {
 	if ($login) { 
 		print '<a href="index.php?langset=en">';
 	}
-	print '<img src="icons/gbrg.png" alt"' . gettext("Engelsk") . '">';
+	print '<img src="icons/gbrg.png" alt"' . gettext("English") . '">';
 	if ($login) { 
 		print '</a>';
 	}
@@ -239,12 +239,12 @@ if ($language == 'en') {
 }
 print '</td><td width="50%"><p align="center">';
 if ($language == 'no') {
-	print '<img src="icons/nor.png" alt"' . gettext("Norsk") . '">';
+	print '<img src="icons/nor.png" alt"' . gettext("Norwegian") . '">';
 } else {
 	if ($login) { 
 		print '<a href="index.php?langset=no">';
 	}
-	print '<img src="icons/norg.png" alt"' . gettext("Norsk") . '">';
+	print '<img src="icons/norg.png" alt"' . gettext("Norwegian") . '">';
 	if ($login) { 
 		print '</a>';
 	}
@@ -252,7 +252,7 @@ if ($language == 'no') {
 print '</td></tr></table>';
 
 if ($langset) {
-	echo gettext("Velkommen!<p><small>Språkvalget er lagret i databasen, men vil gjelde bare for AlertProfiles.</small>"); 
+	echo gettext("Welcome!<p><small>Your language of choice is saved, but at the moment it will only work for Alert Profiles.</small>");
 }
 
 ?>
@@ -271,7 +271,7 @@ echo '<p><b>' . gettext('StyleSheets') . '</b>';
 echo '</td></tr>';
 echo '<tr><td>';
 echo '<p>';
-echo gettext("Du har en nettleser som ikke støtter stylesheets. Vi anbefaler bruk av en nettleser som støtter stylesheets.");
+echo gettext("Your Internet browser do not support style sheets. We reccomend using a browser which support style sheets with Alert Profiles.");
 ?>
 </td></tr>
 </table>
@@ -304,7 +304,7 @@ foreach($filer as $incfile) {
 		require($incfile);
 	} else {
 		$error = new Error(4);
-		$error->message = gettext("Kan ikke lese filen") . " &lt;" . $incfile . "&gt;";
+		$error->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
 		print $error->getHTML();
 		$error = null;
 	}

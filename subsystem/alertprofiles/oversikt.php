@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Oversikt'); ?></p>
+<p><?php echo gettext('Overview'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,10 +10,10 @@
 
 function helgdescr($helg) {
 	switch($helg) {
-		case 1 : return gettext('Hele uken');
-		case 2 : return gettext('Man-Fre');
-		case 3 : return gettext('Lør-Søn');
-		default: return gettext('Ukjent');
+		case 1 : return gettext('All week');
+		case 2 : return gettext('Mon-Fri');
+		case 3 : return gettext('Sat-Sun');
+		default: return gettext('Uknown');
 	}
 }
 
@@ -23,8 +23,8 @@ function helgdescr($helg) {
 function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 
 	echo '<table class="timetable" border="0" cellpadding="0" cellspacing="0">';
-	echo '<tr class="header"><td class="clock">Klokke</td><td class="helg">Ukedag</td>' .
-		'<td class="eqg">Varsling til utstyrsgruppe</td></tr>';
+	echo '<tr class="header"><td class="clock">' . gettext('Time') . '</td><td class="helg">' . gettext('Weekday') . '</td>' .
+		'<td class="eqg">' . gettext('Supervised equipment groups') . '</td></tr>';
 	$t_per = $dbh->listPerioder($brukerinfo[4], 0);
 	$rc = 0;
 	$alt[0] = 'even'; $alt[1] = 'odd';
@@ -69,15 +69,15 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 					if ($p_a[3] == 0) {
 						$estring .= '<li class="direct">' . $vstr . "</li>";
 					} else if ($p_a[3] == 1) {
-						$estring .= '<li class="queue">' . $vstr . " (Daglig kø)</li>";
+						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Daily queue') . ")</li>";
 					} else if ($p_a[3] == 2) {
-						$estring .= '<li class="queue">' . $vstr . " (Ukentlig kø)</li>";
+						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Weekly queue') . ")</li>";
 					} else if ($p_a[3] == 3) {
-						$estring .= '<li class="queue">' . $vstr . " (Kø til profilbytte)</li>";
+						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Queued until profile changes') . ")</li>";
 					} else if ($p_a[3] == 4) {
-						$estring .= '<li class="direct">' . $vstr . " (Ingen varsling)</li>";
+						$estring .= '<li class="direct">' . $vstr . " (" . gettext('No alert') . ")</li>";
 					} else {
-						$estring .= '<li class="queue">' . $vstr . " (Ukjent køtype)</li>";
+						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Uknown queue type') . ")</li>";
 					}
 				}
 			}
@@ -93,7 +93,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 		}
 		if ($ecount == 0) { 
 			echo '<tr class="eqrow ' . $alt[++$rrc % 2] . '"><td><p>';
-			echo '<img src="icons/cancel.gif">&nbsp;Ingen varsling';
+			echo '<img src="icons/cancel.gif">&nbsp;' . gettext('No alert');
 			echo '</td></tr>'; 
 		}
 		echo '</table>';
@@ -105,7 +105,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 }
 
 if ($subaction == 'settaktiv') {
-	print "<p>" . gettext("Aktiv profil er endret.");
+	print "<p>" . gettext("Active profile changed.");
 	$dbh->aktivProfil(session_get('uid'), $pid);
 }
 
@@ -121,9 +121,9 @@ if (get_exist('tview') )
 	session_set('tview', get_get('tview') );	
 
 if (session_get('visoversikt') == 0) {
-	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=1">' . gettext("Vis mer info...") . '</a> ]</p>';
+	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=1">' . gettext("Show more info...") . '</a> ]</p>';
 } else {
-	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=0">' . gettext("Vis mindre info...") . '</a> ]</p>';
+	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=0">' . gettext("Show less info...") . '</a> ]</p>';
 }
 
 
@@ -133,11 +133,11 @@ if (session_get('visoversikt') == 0) {
 // Lag en dropdown meny for å velge aktiv profil
 print '<form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
 
-print 'Aktiv profil: <select name="pid" id="selectprof" onChange="this.form.submit()">';
+print gettext('Active profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
 
 
 if ($brukerinfo[4] < 1) { 
-	echo '<option value="0">' . gettext("Velg varslingsprofil") . '</option>'; 
+	echo '<option value="0">' . gettext("Choose alert profile") . '</option>'; 
 }
 for ($i = 0; $i < sizeof($profiler); $i++) {
 	print '<option value="' . $profiler[$i][0] . '" '; 
@@ -146,12 +146,12 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 }
 
 if (sizeof($profiler) < 1) {
-	print '<option value="0">' . gettext("Ingen profiler opprettet...") . '</option>';
+	print '<option value="0">' . gettext("No profiles exists...") . '</option>';
 }
 print '</select>';
 
 if ($brukerinfo[4] < 1) { 
-	echo "<p>" . gettext("Ingen brukerprofil er aktiv. Aktiviser en profil ved å velge den fra menyen over."); 
+	echo "<p>" . gettext("No alert profile is active. Activate a profile from the menu above."); 
 }
 print '</form>';
 
@@ -159,11 +159,11 @@ print '</form>';
 
     
 if ($brukerinfo[4] < 1) { 
-		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("Ingen brukerprofil er for øyeblikket aktiv. Det betyr at du ikke vil bli varslet om noen alarmer.") . '</td></tr></table>'; 
+		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("No alert profile is active for the moment. That means no alerts will be sent.") . '</td></tr></table>'; 
 }
     
 if (sizeof($profiler) < 1) {
-	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("Du har ikke opprettet noen profiler. Dermed vil du heller ikke få noe varsling. Gå til menyvalget Profiler i venstremargen og opprett en ny profil der.") . '</td></tr></table>'; 
+	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. Choose profiles from the menu at the left margin and create a new profile.") . '</td></tr></table>'; 
 }
     
     
@@ -181,16 +181,16 @@ if (sizeof($profiler) < 1) {
 
 if ($brukerinfo[4] > 0) {
 	if (session_get('tview') == 2) {
-		echo '<p style="font-size: small">Vis timeplan for [ <a href="?tview=1">ukedag og helg</a> | hele uken samlet ]';
-		echo "<h3>Timeplan hele uken</h3>";
+		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ <a href="?tview=1">' . gettext('weekdays and weekend separate') . '</a> | ' . gettext('the whole week together in one view') . ' ]';
+		echo "<h3>" . gettext('Timetable whole week') . "</h3>";
 		showTimeTable($dbh, $brukerinfo, array(1,2,3) );
 	} else {
-		echo '<p style="font-size: small">Vis timeplan for [ ukedag og helg | <a href="?tview=2">hele uken samlet</a> ]';
-		echo "<h3>Timeplan Mandag - Fredag</h3>";
+		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ ' . gettext('weekdays and weekend separate') . ' | <a href="?tview=2">' . gettext('the whole week together in one view') . '</a> ]';
+		echo "<h3>" . gettext('Timetable Monday to Friday') . "</h3>";
 
 		showTimeTable($dbh, $brukerinfo, array(1,2) );
 		
-		echo "<h3>Timeplan Lørdag - Søndag</h3>";
+		echo "<h3>" . gettext('Timetable Saturday and Sunday') . "</h3>";
 		showTimeTable($dbh, $brukerinfo, array(1,3) );
 	}
 }
@@ -206,7 +206,7 @@ if (session_get('visoversikt') == 1) {
     print '<p>&nbsp;';
     
     print '<table width="100%"><tr width="30%" valign="top"><td>';
-    print '<h3>' . gettext('Kontotype') . '</h3>';
+    print '<h3>' . gettext('Account type') . '</h3>';
     
     switch (session_get('admin') ) {
             case (100) :
@@ -214,22 +214,22 @@ if (session_get('visoversikt') == 1) {
                     print gettext('Administrator');
                     break;
             case (1) :
-                    print '<p><img alt="' . gettext('Vanlig bruker') . '" src="icons/person1.gif">&nbsp;';
-                    print gettext('Vanlig bruker');
+                    print '<p><img alt="' . gettext('Regular user') . '" src="icons/person1.gif">&nbsp;';
+                    print gettext('Regular user');
                     break;
             default: 
-                    print "<p>" . gettext("Ukjent administrator nivå.");
+                    print "<p>" . gettext("Uknown admin level.");
     }
     
     print '</td><td width="70%" valign="top">';
-    print '<h3>' . gettext("Tilgang til SMS") . '</h3>';
+    print '<h3>' . gettext("Access to SMS") . '</h3>';
     
     if ($brukerinfo[3] == 't') {
-            print '<p><img alt="' . gettext('Ja') . '" src="icons/ok.gif">&nbsp;';
-            print gettext('Ja, du har tilgang til å sette opp SMS alarmer.');
+            print '<p><img alt="' . gettext('Yes') . '" src="icons/ok.gif">&nbsp;';
+            print gettext('Yes, you have permission to setup SMS alerts.');
     } else {
             print '<p><img alt="Nei" src="icons/cancel.gif">&nbsp;';
-            print gettext('Nei, du har ikke lov til å sette opp SMS alarmer.');
+            print gettext('No, you do not have permission to setup SMS alerts.');
     }
     
     print '</td></tr></table>';
@@ -238,7 +238,7 @@ if (session_get('visoversikt') == 1) {
     print '<table width="100%"><tr>';
     print '<td width="50%" valign="top" class="oversikt">';
     
-    print '<h2>' . gettext("Brukergrupper") . '</h2>';
+    print '<h2>' . gettext("User groups") . '</h2>';
     
     $grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
     
@@ -249,14 +249,14 @@ if (session_get('visoversikt') == 1) {
     }
     
     if (sizeof($grupper) < 1) {
-            print gettext('<p>Du er <b>ikke</b> medlem av noen brukergrupper.');
+            print gettext('<p>You are <b>not</b> member of any user groups.');
     } else {
-            print gettext('<p>Du er medlem av ') . sizeof($grupper) . gettext(' brukergrupper.');
+            print gettext('<p>You are member of ') . sizeof($grupper) . gettext(' user groups.');
     }
     
     print '</td><td width="50%" valign="top" class="oversikt">';
     
-    print '<h2>' . gettext("Rettigheter") . '</h2>';
+    print '<h2>' . gettext("Permissions") . '</h2>';
     $grupper = $dbh->listUtstyrRettighet(session_get('uid'), 1);
     
             
@@ -266,9 +266,9 @@ if (session_get('visoversikt') == 1) {
     }
     
     if (sizeof($grupper) < 1) {
-            print gettext('<p>Du har <b>ikke</b> rettighet til noen utstyrsgrupper.');
+            print gettext('<p>You have <b>not</b> permissions to any equipment groups.');
     } else {
-            print gettext('<p>Du har rettighet til ') . sizeof($grupper) . gettext(' utstyrsgrupper.');
+            print gettext('<p>You have permissions to ') . sizeof($grupper) . gettext(' equipment groups.');
     }
     
     print '</td></tr></table>';

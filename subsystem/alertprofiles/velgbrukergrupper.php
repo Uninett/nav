@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Velg brukergrupper"); ?></p>
+<p><?php echo gettext("Choose user groups"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,7 +10,8 @@ loginOrDie();
 
 
 echo "<p>";
-echo gettext("Her kan du bestemme hvilke brukergrupper, den aktuelle brukeren skal være medlem av. Når en bruker er medlem i en brukergruppe, får han rettighet til alt utstyret gruppen gir tilgang til, og arver noen standard utstyrsgrupper som brukeren kan bruke til å definere sine varslingsprofiler.");
+echo gettext("Here you can specify which user groups the specific user is member of. When a user is member of an user group, he gets permissions to all equipment the groups allow.");
+
 echo "<p>";
 
 
@@ -34,8 +35,8 @@ if (session_get('subaction') == "valgt") {
 
 	}
 
-	print '<p>' . gettext("Brukeren er nå påmeldt valgte brukergrupper.") . "<p>" . 
-	gettext("Gå til ") .  '<a href="index.php?action=admin">' . gettext("administrering av brukere") . '</a>.';	
+	print '<p>' . gettext("The user is not member of the chosen user groups.") . "<p>" . 
+	gettext("Go to ") .  '<a href="index.php?action=admin">' . gettext("user administration") . '</a>.';	
 }
 
 if (session_get('subaction') == 'velge') {
@@ -44,11 +45,11 @@ if (session_get('subaction') == 'velge') {
 	if ( session_get('vbuid') >0) {
 
 
-		print "<h3>" . gettext("Velg brukergrupper") . "</h3>";
+		print "<h3>" . gettext("Choose user groups") . "</h3>";
 	
 		$l = new Lister( 299,
-			array(gettext('Brukergruppe'), gettext('#brukere'), gettext('#rettighet'), 
-				gettext('#std. grupper'), gettext('Velg..')),
+			array(gettext('User group'), gettext('#users'), gettext('#permissions'), 
+				gettext('#std. eq.groups'), gettext('Options..')),
 			array(45, 15, 15, 15, 10),
 			array('left', 'center', 'center', 'center', 'right' ),
 			array(true, true, true, true, false),
@@ -107,13 +108,13 @@ if (session_get('subaction') == 'velge') {
 <?php
 	
 		print $l->getHTML();
-		print '<p align="right"><input type="submit" name="Submit" value="' . gettext("Meld på valgte brukergrupper") . '"></form>';
+		print '<p align="right"><input type="submit" name="Submit" value="' . gettext("Add to the selected user groups") . '"></form>';
 
-		print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
-		print gettext("Antall grupper: ") . sizeof($grupper);
+		print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+		print gettext("Number of user groups: ") . sizeof($grupper);
 
 	} else {
-		print "<p>" . gettext("Ingen bruker valgt.");
+		print "<p>" . gettext("No user is chosen.");
 	}
 
 }

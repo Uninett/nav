@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Mine adresser'); ?></p>
+<p><?php echo gettext('My addresses'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,7 +10,7 @@ loginOrDie();
 
 
 echo "<p>";
-echo gettext("Her kan du administrere dine varlingsadresser.");
+echo gettext("Here you can setup your alert addresses.");
 
 if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 
@@ -18,9 +18,9 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	print '<a name="nyadresse"></a><div class="newelement">';
 	
 	if (get_get('subaction') == 'endre') {
-		print '<h2>' . gettext("Endre adresse") . '</h2>';
+		print '<h2>' . gettext("Change address") . '</h2>';
 	} else {
-		print '<h2>' . gettext("Legg til ny adresse") . '</h2>';
+		print '<h2>' . gettext("Add new address") . '</h2>';
 	}
 	
 	echo '<form name="form1" method="post" action="index.php?subaction=';
@@ -34,7 +34,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	echo '
 	  <table width="100%" border="0" cellspacing="0" cellpadding="3">
 	    <tr>
-	      <td width="30%">' .  gettext("Adressetype") . '</td>
+	      <td width="30%">' .  gettext("Address type") . '</td>
 	      <td width="70%">
 	      	<select name="adressetype" id="selectadr">';
 	      	
@@ -45,7 +45,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 		$adresse = '';
 	}
 	
-	print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-post") . '</option>';
+	print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-mail") . '</option>';
 	print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>' . gettext("SMS") . '</option>';
 //	print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>' . gettext("IRC") . '</option>';
 //	print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>' . gettext("ICQ") . '</option>';
@@ -57,10 +57,10 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	    
 	echo '
 	    <tr>
-	      <td valign="top">' .  gettext("Adresse") . '</td>
+	      <td valign="top">' .  gettext("Address") . '</td>
 	      <td>
 	      <input name="adresse" type="text" size="50" value="' .  $adresse . '">
-	      <p>' . gettext("Kan være f.eks:") . '<br>
+	      <p>' . gettext("Examples :") . '<br>
 	      mail: <i>bruker@uninett.no</i><br>
 	      sms: <i>99372612</i>
 	      </td>
@@ -69,15 +69,15 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	
 	echo '<tr>
 	      <td align="right" colspan="2"><input type="submit" name="Submit" value="';
-	if ($subaction == 'endre') echo gettext("Lagre endringer"); 
-		else echo gettext("Legg til ny adresse");
+	if ($subaction == 'endre') echo gettext("Save changes"); 
+		else echo gettext("Add new address");
 	echo '"></td>
 	    </tr></table></form></div>';
 
 
 } else {
 	echo '<p><a href="?subaction=ny">';
-	echo " " . gettext("Legg til ny adresse"); 
+	echo " " . gettext("Add new address"); 
 	echo "</a>";
 
 }
@@ -93,10 +93,10 @@ if (get_get('subaction') == 'endret') {
 	
 		$aid = $dbh->endreAdresse(post_get('aid'), post_get('adressetype'), post_get('adresse') );
 		$adresse=0;
-		print "<p><font size=\"+3\">" . gettext("OK</font>, adressen er endret.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, address is changed.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, adressen er <b>ikke</b> endret.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the address is  <b>not</b> changed.");
 	}
 
 
@@ -114,10 +114,10 @@ if (get_get('subaction') == 'slett') {
             	
 		$dbh->slettAdresse(get_get('aid') );
 		$adresse='';
-		print "<p><font size=\"+3\">" . gettext("OK</font>, adressen er slettet fra databasen.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, the address is removed from the database.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font>, adressen er <b>ikke</b> slettet.");
+		print "<p><font size=\"+3\">" . gettext("An error occured</font>, the address is <b>not</b> removed.");
 	}
 
   
@@ -129,21 +129,21 @@ if (get_get('subaction') == 'nyadresse') {
   if ($aid > 0) { 
     $adresse=0;
     
-    print "<p><font size=\"+3\">" . gettext("OK</font>, ny adresse er lagt til i databasen.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new address is added to the database.");
 
   } else {
-    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen.");
+    print "<p><font size=\"+3\">" . gettext("An error occured</font>, a new user is <b>not</b> added to the database.");
   }
 
 
   
 }
 
-print "<h3>" . gettext("Mine adresser") . "</h3>";
+print "<h3>" . gettext("My addresses") . "</h3>";
 
 //	function Lister($id, $labels, $c, $align, $isorts, $defaultsort) {
 $l = new Lister( 101,
-		array(gettext('Type'), gettext('Adresse'), gettext('Valg..') ),
+		array(gettext('Type'), gettext('Address'), gettext('Options..') ),
 		array(20, 60, 20),
 		array('left', 'left', 'right'),
 		array(true, true, false),
@@ -159,11 +159,11 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 
 	switch($adr[$i][2]) {
-		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("E-post"); break;
+		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("E-mail"); break;
 		case 2 : $type = '<img alt="sms" src="icons/mobil.gif" border=0>&nbsp;' . gettext("SMS"); break;
 		case 3 : $type = '<img alt="irc" src="icons/irc.gif" border=0>&nbsp;' . gettext("IRC"); break;
 		case 4 : $type = '<img alt="icq" src="icons/icq.gif" border=0>&nbsp;' . gettext("ICQ"); break;				
-		default : $type = '<img alt="ukjent" src="" border=0>&nbsp;' . gettext("Ukjent"); break;				
+		default : $type = '<img alt="ukjent" src="" border=0>&nbsp;' . gettext("Unknown"); break;				
 	}
 
   $valg = '<a href="index.php?action=' . $action . '&subaction=endre&aid=' . $adr[$i][0] . 
@@ -180,8 +180,8 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=\"0\"> ]</a> ";
-print gettext("Antall adresser: ") . sizeof($adr);
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=\"0\"> ]</a> ";
+print gettext("Number of addresses: ") . sizeof($adr);
 
 ?>
 

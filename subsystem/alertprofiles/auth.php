@@ -21,8 +21,8 @@ class Error {
   var $type_name;
   
   function Error ($errtype) {
-    $this->type_name = array(gettext('Ukjent Feil'), gettext('Feil under innlogging'), 
-    	gettext('Databasefeil'), gettext('Sikkerhetsfeil'), gettext('Lese/Skrive feil') );
+    $this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
+    	gettext('Database error'), gettext('Security error'), gettext('IO error') );
     $this->type = $errtype;
   }
 
@@ -55,7 +55,7 @@ if ( session_get('login') ) {
 	$login = true;	
 }
 if (!isset($_ENV['REMOTE_USER'])) {
-    $dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
+    $dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logged out") );
     $login = false;
     session_set('login', false);
 }
@@ -87,13 +87,13 @@ WHERE (Account.login = '$username') AND
 
     if (! $query = pg_exec($dbh->connection, $querystring)  ) {
         $error = new Error(2);
-        $error->message = gettext("Feil med datbasespørring.");
+        $error->message = gettext("Error occured with database query.");
     } else {
         if (pg_numrows($query) == 1) {
             if ( $data = pg_fetch_array($query, $row) ) {
                 // INNLOGGING OK!!
                 $foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
-                $dbh->nyLogghendelse($data["aid"], 1, gettext("Logget inn fra ") . $foo);
+                $dbh->nyLogghendelse($data["aid"], 1, gettext("Logged in from ") . $foo);
                 
                 $bgr = $dbh->listBrukersGrupper($data["aid"], 0);
                 $uadmin = 1;
@@ -120,11 +120,11 @@ WHERE (Account.login = '$username') AND
                 $login = true;
             } else {
                 $error = new Error(2);
-                $error->message = gettext("Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen.");
+                $error->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
             }
         } else {
             $error = new Error(1);
-            $error->message = gettext("Inkonsistens i databasen. Du er korrekt innlogget, men brukeren din er ikke konfigurert riktig for å kunne fungere med NAV Alert. Ta kontakt med systemadministrator.");
+            $error->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
         }
     }
 }

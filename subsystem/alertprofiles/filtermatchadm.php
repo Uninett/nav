@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Administrering av tilgjengelige match-felter"); ?></p>
+<p><?php echo gettext("Administration of avaiable match-fields"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -8,10 +8,11 @@
 include("loginordie.php");
 loginOrDie();
 
-echo "<p>" . gettext("Her kan du slette og opprette nye match-fetler med utgangspunkt i manage-databasen.");
+echo "<p>" . gettext("Here you can setup and create new match fields.
+<p><b>Warning</b>: The new match field has to be supported by the Alert Engine.");
 
 echo '<p><a href="#nymatch">';
-echo gettext("Legg til ny filtermatch") . "</a>";
+echo gettext("Add a new match field") . "</a>";
 echo "<p>";
 
 $dbhk = $dbinit->get_dbhk();
@@ -25,12 +26,12 @@ echo "</pre>";
 if (get_get('subaction') == "slett") {
 	
     $dbh->slettMatchField(get_get('mfid') );
-    print "<p><font size=\"+3\">" . gettext("OK</font>, match-feltet er slettet fra databasen.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, the match field is removed from the database.");
 
 }
 
 if (get_get('subaction') == "nymatch") {
-  print "<h3>" . gettext("Registrerer ny filtermatch...") . "</h3>";
+  print "<h3>" . gettext("Registering a new match field...") . "</h3>";
   
   $error = NULL;
 
@@ -41,14 +42,14 @@ if (get_get('subaction') == "nymatch") {
     post_get('showlist'), post_get('datatype')
   );
 
-    print "<p><font size=\"+3\">" . gettext("OK</font>, nytt match-felt er lagt inn i databasen og vil være tilgjengelig for bruk med engang. Felt-id-en er ") . $fid;
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new match field is added to the datbase and will be available for usage immediately (if supported by Alert Enige). The match field ID is ") . $fid;
 
 
 
 }
 
 $l = new Lister( 301,
-	array(gettext('id'), gettext('Navn'), gettext('Manage-referanse'), gettext('Valg...')),
+	array(gettext('ID'), gettext('Name'), gettext('Database-reference'), gettext('Options...')),
 	array(10, 30, 40, 20),
 	array('left', 'left', 'left', 'right'),
 	array(true, true, true, false),
@@ -56,7 +57,7 @@ $l = new Lister( 301,
 );
 
 
-print "<h3>" . gettext("Tilgjengelige Match-felter") . "</h3>";
+print "<h3>" . gettext("Available Match Fields") . "</h3>";
 
 
 if ( get_exist('sortid') )
@@ -80,12 +81,12 @@ for ($i = 0; $i < sizeof($fmlist); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
-print gettext("Antall tilgjengelige match-felter: ") . sizeof($fmlist);
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print gettext("Number of available match fields: ") . sizeof($fmlist);
 ?>
 <a name="nymatch"></a><p><h3>
 <?php
-echo gettext("Legg til nytt Match-felt"); 
+echo gettext("Add a new match field"); 
 ?>
 </h3>
 
@@ -97,7 +98,7 @@ echo '<table width="100%" border="0" cellspacing="0" cellpadding="3">';
 
 echo '    <tr>';
 echo '      <td width="30%">';
-echo '<p>' . gettext("Navn") . '</p></td>';
+echo '<p>' . gettext("Name") . '</p></td>';
 
 echo '      <td width="70%">';
 echo '<input name="name" type="text" size="40"></td>';
@@ -106,16 +107,16 @@ echo '    </tr>';
 
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Vis liste") . '</td>';
+echo '      <td width="30%">' . gettext("Show list") . '</td>';
 
 echo '      <td width="70%">';
-echo '<input name="showlist" value="true" type="radio" checked> ' . gettext("Vis liste") . '<br>';
-echo '<input name="showlist" value="false" type="radio"> ' . gettext("Vis input felt");
+echo '<input name="showlist" value="true" type="radio" checked> ' . gettext("Show list") . '<br>';
+echo '<input name="showlist" value="false" type="radio"> ' . gettext("Show input field");
 echo '      </td>';
 echo '    </tr>';
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Maks listelengde") . '</td>';
+echo '      <td width="30%">' . gettext("Max list length") . '</td>';
 
 echo '      <td width="70%">';
 echo '<select name="listlimit">';
@@ -130,12 +131,12 @@ echo '</select>';
 echo '    </td></tr>';
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Datatype") . '</td>';
+echo '      <td width="30%">' . gettext("Data type") . '</td>';
 
 $dtype = array(
-    0 => gettext("Streng"),
-    1 => gettext("Tallverdi"),
-    2 => gettext("IP-adresse")
+    0 => gettext("String"),
+    1 => gettext("Integer"),
+    2 => gettext("IP-address")
 );
 
 echo '      <td width="70%">';
@@ -156,11 +157,11 @@ $f = $dbhk->listFelter();
 
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Manage (id)") . '</td>';
+echo '      <td width="30%">' . gettext("Database (id)") . '</td>';
 
 echo '      <td width="70%">';
 echo '<select name="valueid" id="select">';
-echo '<option value="." selected>' . gettext("Ingen referanse") . '</option>';   
+echo '<option value="." selected>' . gettext("No reference") . '</option>';   
 // Traverser kategorier
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
@@ -175,11 +176,11 @@ echo '    </td></tr>';
 
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Manage (Navn)") . '</td>';
+echo '      <td width="30%">' . gettext("Database (Name)") . '</td>';
 
 echo '      <td width="70%">';
 echo '<select name="valuename" id="select">';   
-echo '<option value="" selected>' . gettext("Ingen referanse") . '</option>';  
+echo '<option value="" selected>' . gettext("No references") . '</option>';  
 // Traverser kategorier
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
@@ -195,12 +196,12 @@ echo '    </td></tr>';
 
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Manage (Kategori)") . '</td>';
+echo '      <td width="30%">' . gettext("Database (Category)") . '</td>';
 
 echo '      <td width="70%">';
 echo '<select name="valuecategory" id="select">';   
 
-echo '<option value="" selected>' . gettext("Ingen referanse") . '</option>';   
+echo '<option value="" selected>' . gettext("No reference") . '</option>';   
 // Traverser kategorier
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
@@ -216,11 +217,11 @@ echo '    </td></tr>';
 
 
 echo '    <tr>';
-echo '      <td width="30%">' . gettext("Manage (Sorter)") . '</td>';
+echo '      <td width="30%">' . gettext("Database (Sort by)") . '</td>';
 
 echo '      <td width="70%">';
 echo '<select name="valuesort" id="select">';    
-echo '<option value="" selected>' . gettext("Ingen referanse") . '</option>';
+echo '<option value="" selected>' . gettext("No reference") . '</option>';
 // Traverser kategorier
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
@@ -238,7 +239,7 @@ echo '    </td></tr>';
 
 echo '    <tr>';
 echo '      <td width="30%">';
-echo '<p>' . gettext("Beskrivelse") . '</p></td>';
+echo '<p>' . gettext("Description") . '</p></td>';
 
 echo '      <td width="70%">';
 echo '<textarea name="descr" cols="40" rows="6"></textarea></td>';
@@ -247,7 +248,7 @@ echo '    </tr>';
 
 echo '    <tr>';
 echo '      <td width="30%">';
-echo '<p>' . gettext("Verdihjelp") . '</p></td>';
+echo '<p>' . gettext("Value help") . '</p></td>';
 
 echo '      <td width="70%">';
 echo '<textarea name="valuehelp" cols="40" rows="6"></textarea></td>';
@@ -259,7 +260,7 @@ echo '    </tr>';
 
 echo '    <tr>';
 echo '      <td colspan="2" align="right"><input type="submit" name="Submit" value="';
-echo gettext('Legg til Match-felt') . '"></td>';
+echo gettext('Add new match field') . '"></td>';
 echo '    </tr>';
 
 

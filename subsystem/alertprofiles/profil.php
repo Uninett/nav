@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Mine profiler"); ?></p>
+<p><?php echo gettext("My alert profiles"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,16 +10,16 @@ loginOrDie();
 
 
 echo "<p>";
-echo gettext("Her kan du endre og opprette nye profiler.");
+echo gettext("Here you can create and setup alert profiles.");
 
 
-$dagnavn[0] = gettext("Mandag");
-$dagnavn[1] = gettext("Tirsdag");
-$dagnavn[2] = gettext("Onsdag");
-$dagnavn[3] = gettext("Torsdag");
-$dagnavn[4] = gettext("Fredag");
-$dagnavn[5] = gettext("Lørdag");
-$dagnavn[6] = gettext("Søndag");
+$dagnavn[0] = gettext("Monday");
+$dagnavn[1] = gettext("Tuesday");
+$dagnavn[2] = gettext("Wedenesday");
+$dagnavn[3] = gettext("Thursday");
+$dagnavn[4] = gettext("Friday");
+$dagnavn[5] = gettext("Saturday");
+$dagnavn[6] = gettext("Sunday");
 
 if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	
@@ -27,9 +27,9 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	print '<a name="nyadresse"></a><div class="newelement">';
 	
 	if ($subaction == 'endre') {
-		print '<h2>' . gettext("Endre navn på profil") . '</h2>';
+		print '<h2>' . gettext("Rename profile") . '</h2>';
 	} else {
-		print '<h2>' . gettext("Legg til ny profil") . '</h2>';
+		print '<h2>' . gettext("Add new profile") . '</h2>';
 	}
 	
 	
@@ -64,21 +64,21 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	
 
 	
-    echo '<td><p>' . gettext("Navn") . '</p></td>
+    echo '<td><p>' . gettext("Name") . '</p></td>
 	      <td><input name="navn" type="text" size="40" value="';
 	echo $navn;
 	echo '"></td>';
 	echo '<td align="right"><input type="submit" name="Submit" value="';
 
 	if ($subaction == 'endre') 
-		echo gettext("Lagre endringer"); else 
-		echo gettext("Legg til ny profil");
+		echo gettext("Save changes"); else 
+		echo gettext("Add new profile");
 	echo '"></td>
 	    </tr>
 		<tr>';
 
 	echo "<td>";
-	echo gettext("Ukevarsling");
+	echo gettext("Weekly alerts");
 	echo "</td>";
 	
 	echo '<td><select name="ukedag">';
@@ -95,7 +95,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 			</td>
 		</tr>';
 		
-	echo '<tr><td>' .  gettext("Dagvarsling") . '</td>
+	echo '<tr><td>' .  gettext("Daily alerts") . '</td>
 			<td><input name="tidh" type="text" value="' .  $tidh . '" size="2">&nbsp;:&nbsp;
 				<input name="tidm" type="text" value="' .  $tidm . '" size="2">
 			</td>
@@ -104,7 +104,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 
 } else {
 	echo '<p><a href="?subaction=ny">';
-	echo gettext("Legg til ny profil"); 
+	echo gettext("Add new profile"); 
 	echo "</a>";
 }
 
@@ -113,9 +113,9 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 if (get_get('subaction') == 'settaktiv') {
 	$dbh->aktivProfil(session_get('uid'), get_get('pid') );
         if (get_get('pid') > 0) {
-            echo "<p><font size=\"+3\">" . gettext('Aktivisert</font>. Du har nå byttet aktiv profil.');
+            echo "<p><font size=\"+3\">" . gettext('Activated</font>. You have now selected active profile.');
         } else {
-            echo "<p><font size=\"+3\">" . gettext('Deaktivert</font>. Du har nå ingen aktive profiler.');
+            echo "<p><font size=\"+3\">" . gettext('Deactivated</font>. You have now <b>no</b> active profiles.');
         }
 }
 
@@ -133,10 +133,10 @@ if (get_get('subaction') == 'endret') {
 			post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
 		$navn='';
 
-		print "<p><font size=\"+3\">" . gettext("OK</font>, profilnavnet er endret.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, profile is renamed.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, profilen er <b>ikke</b> endret.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the profile is <b>not</b> changed.");
 	}
 }
 
@@ -151,20 +151,20 @@ if (get_get('subaction') == 'slett') {
 		$foo = $dbh->slettProfil($pid);
 		$navn = '';
 		
-		print "<p><font size=\"+3\">" . gettext("OK</font>, profilen er slettet fra databasen.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, the profile is removed.");
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font>, profilen er <b>ikke</b> slettet.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the profile is <b>not</b> removed.");
 	}
 }
 
 
 if (get_get('subaction') == "nyprofil") {
-  print "<h3>" . gettext("Registrerer ny profil...") . "</h3>";
+  print "<h3>" . gettext("Registering new profile...") . "</h3>";
   
   $error = NULL;
 	
 	$navn = "";
-  if (post_get('navn') == "") $navn = gettext("Uten navn"); else $navn = post_get('navn');
+  if (post_get('navn') == "") $navn = gettext("No name"); else $navn = post_get('navn');
 
   if (session_get('uid') > 0) { 
     
@@ -172,23 +172,22 @@ if (get_get('subaction') == "nyprofil") {
     	post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
     $tidsid = $dbh->nyTidsperiode(1, '08:00', $profilid);
     
-    print "<p><font size=\"+3\">" . gettext("OK</font>, En ny profil er opprettet for brukeren " . session_get('bruker') . ", denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.");
-    
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new profile is created for user " . session_get('bruker') . ". The profile ID is $profilid. The profile has only one time period, from 08:00 to 08:00 all days.");    
   } else {
-    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.");
+    print "<p><font size=\"+3\">" . gettext("An errror</font> occured, a new profile is <b>not</b> created.");
   }
 
 
 }
 
 $l = new Lister( 106,
-	array(gettext('Aktiv'), gettext('Navn'), gettext('#perioder'), gettext('Valg..')),
+	array(gettext('Active'), gettext('Name'), gettext('#periods'), gettext('Options..')),
 	array(10, 50, 15, 25),
 	array('left', 'left', 'right', 'right'),
 	array(true, true, true, false),
 	1);
 
-print "<h3>" . gettext("Dine profiler") . "</h3>";
+print "<h3>" . gettext("My profiles") . "</h3>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -204,9 +203,9 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
       "\"><img alt=\"Aktiv\" src=\"icons/selectoff.png\" border=0></a>";
   }
   if ($profiler[$i][4] == 't') { 
-    $sms = '<img alt="' . gettext("Ja") . '" src="icons/ok.gif">';
+    $sms = '<img alt="' . gettext("Yes") . '" src="icons/ok.gif">';
   } else {
-    $sms = '<img alt="' . gettext("Nei") . '" src="icons/cancel.png">';
+    $sms = '<img alt="' . gettext("No") . '" src="icons/cancel.png">';
   }
   $valg = '<a href="index.php?action=periode&pid=' . $profiler[$i][0] . 
     '"><img alt="Open" src="icons/open2.gif" border=0></A>&nbsp;' .
@@ -228,9 +227,9 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 
 print $l->getHTML();
 
-print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deaktiver aktiv profil") . '</a> | ' .  
-    "<a href=\"index.php\">oppdater <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0></a> ] ";
-print gettext("Antall profiler: ") . sizeof($profiler);
+print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deactivate active profile") . '</a> | ' .  
+    "<a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0></a> ] ";
+print gettext("Number of profiles: ") . sizeof($profiler);
 
 
 ?>

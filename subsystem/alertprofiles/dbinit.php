@@ -50,8 +50,8 @@ class dbinit {
             //echo "<p>" . $cstr;
    
             if (! $this->dbh_dbcon = pg_connect($cstr) ) {
-                print "<h1>" . gettext("Databasefeil") . "</h1>";
-                print "<p>" . gettext("Hele portalen blir sperret når ikke databasen er tilgjenglig.");
+                print "<h1>" . gettext("Database error") . "</h1>";
+                print "<p>" . gettext("Due to database error, Alert Profiles is closed.");
                 exit(0);
             } 
 
@@ -95,8 +95,8 @@ class dbinit {
             //echo "<p>" . $cstr;
    
             if (! $this->dbhk_dbcon = pg_connect($cstr) ) {
-                print "<h1>" . gettext("Databasefeil") . "</h1>";
-                print "<p>" . gettext("Hele portalen blir sperret når ikke databasen er tilgjenglig.");
+                print "<h1>" . gettext("Database error") . "</h1>";
+                print "<p>" . gettext("Due to database error, Alert Profiles is closed.");
                 exit(0);
             } 
 

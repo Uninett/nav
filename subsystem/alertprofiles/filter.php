@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Utstyrsfiltre'); ?></p>
+<p><?php echo gettext('Equipment filters'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -9,11 +9,9 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo "<p>" . gettext("Et utstyrsfilter er et sett av filtermatch'er som utgjør en gruppe med betingelser for at et utstyr skal 
-inkluderes i det aktuelle filteret. Man kan sette sammen mange utstyrsfiltre til en utstyrsgruppe. 
-<p>Når du skal lage en varslingsprofil velger du blandt utstyrsgruppene dine for å definere hvilket utstyr 
-du ønsker å overvåke."); 
-echo '<p><a href="?subaction=ny">' . gettext("Legg til nytt filter") . '</A>';
+echo "<p>" . gettext("An equipment filter is a set of filtermatches, which constitutes a group of conditions for an quipment to be included. Equipment groups is created by several filters in an ordered list.
+<p>When creating an alert profile, you choose equipment groups to choose which equipment you want to supervise."); 
+echo '<p><a href="?subaction=ny">' . gettext("Add a new filter") . '</A>';
 
 
 session_set('lastaction', 'filter');
@@ -27,9 +25,9 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	print '<a name="ny"></a><div class="newelement">';
 	
 	if ($subaction == 'endre') {
-		print '<h2>' .gettext("Endre navn på filter") . '</h2>';
+		print '<h2>' .gettext("Rename filter") . '</h2>';
 	} else {
-		print '<h2>' .gettext("Legg til nytt filter") . '</h2>';
+		print '<h2>' .gettext("Add a new filter") . '</h2>';
 	}
 	
 
@@ -46,7 +44,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	
 	echo '<table width="100%" border="0" cellspacing="0" cellpadding="3">
 	    <tr>
-	      <td width="30%"><p>' . gettext("Navn") . '</p></td>
+	      <td width="30%"><p>' . gettext("Name") . '</p></td>
 	      <td width="70%"><input name="navn" type="text" size="40" 
 	value="' .  $navn . '"></td>
 	    </tr>';
@@ -55,7 +53,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	      <td>&nbsp;</td>
 	      <td align="right"><input type="submit" name="Submit" value="';
 
-	if ($subaction == 'endre') echo gettext("Lagre endringer"); else echo gettext("Legg til nytt filter");
+	if ($subaction == 'endre') echo gettext("Save changes"); else echo gettext("Add a new filter");
 	echo '"></td>
 	    </tr>
 	  </table>
@@ -79,11 +77,11 @@ if ($subaction == 'endret') {
 		$dbh->endreFilter($fid, $navn);
 
 		
-		print "<p><font size=\"+3\">" . gettext("OK</font>, filternavnet er endret.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, filter is renamed.");
 		$navn='';
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, filteret er <b>ikke</b> endret.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the filter is <b>not</b> changed.");
 	}
 
   
@@ -99,10 +97,10 @@ if ($subaction == 'slett') {
 		$foo = $dbh->slettFilter($fid);
 		$navn = '';
 		
-		print "<p><font size=\"+3\">" . gettext("OK</font>, filteret er slettet fra databasen.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, the filter is removed from the database.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font>, filteret er <b>ikke</b> slettet.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the filter will <b>not</b> be removed.");
 	}
 
 	// Viser feilmelding om det har oppstått en feil.
@@ -114,23 +112,23 @@ if ($subaction == 'slett') {
 }
 
 if ($subaction == "nyttfilter") {
-  print "<h3>" . gettext("Registrerer ny profil...") . "</h3>";
+  print "<h3>" . gettext("Registering a new profile...") . "</h3>";
   
   $error = NULL;
 
-  if ($navn == "") $navn = gettext("Uten navn");
+  if ($navn == "") $navn = gettext("No name");
 
   if ($uid > 0) { 
     
     $filterid = $dbh->nyttFilter($navn, $uid);
     
-    print "<p><font size=\"+3\">" . gettext("OK</font>, et nytt filter er opprettet. Åpne filteret for å legge til betingelser og begrensninger.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new filter is created. Open the filter to add filtermatches.");
     
   } else {
-    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.");
+    print "<p><font size=\"+3\">" . gettext("An error occured</font>, a new profile is <b>not</b> created.");
   }
 
-  // Viser feilmelding om det har oppstÂtt en feil.
+  // Viser feilmelding om det har oppstått en feil.
   if ( $error != NULL ) {
     print $error->getHTML();
     $error = NULL;
@@ -140,14 +138,14 @@ if ($subaction == "nyttfilter") {
 
 
 $l = new Lister( 110,
-		array(gettext('Navn'), gettext('#match'), gettext('#grupper'), gettext('Valg..') ),
+		array(gettext('Name'), gettext('#match'), gettext('#groups'), gettext('Options..') ),
 		array(50, 15, 15, 20),
 		array('left', 'right', 'right', 'right'),
 		array(true, true, true, false),
 		0
 );
 
-print "<h3>" .gettext("Dine utstyrsfiltre") . "</h3>";
+print "<h3>" .gettext("Your equipment filters") . "</h3>";
 
 if (! isset($sort) ) { $sort = 1; }
 $filtre = $dbh->listFiltre($uid, $sort);
@@ -184,8 +182,8 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" .gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
-print gettext("Antall filtre: ") . sizeof($filtre);
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" .gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>
 
