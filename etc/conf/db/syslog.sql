@@ -24,6 +24,12 @@ create table prioriteter(
        stikkord varchar(16) not null,
        beskrivelse varchar(32));
 
+create table messagetemplate(
+       id varchar(20) not null primary key,
+       class varchar(10) not null,
+       type varchar(22) not null,
+       message varchar(200));
+
 -- INDEX --
 
 CREATE INDEX meldinger_tid_btree ON meldinger USING btree (tid);
@@ -35,7 +41,7 @@ CREATE INDEX meldinger_type_hash ON meldinger USING hash (type);
 grant all on meldinger to syslogadmin;
 grant all on feillogg to syslogadmin;
 grant all on prioriteter to syslogadmin;
-
+grant all on messagetemplate to syslogadmin;
 -- INSERT --
 
 insert into prioriteter(prioritet, stikkord, beskrivelse) values (0,'emergencies','System unusable');
@@ -47,5 +53,3 @@ insert into prioriteter(prioritet, stikkord, beskrivelse) values (5,'notificatio
 insert into prioriteter(prioritet, stikkord, beskrivelse) values (6,'informational','Informational messages only');
 insert into prioriteter(prioritet, stikkord, beskrivelse) values (7,'debugging','Debugging messages');
 
-grant all on meldinger to syslogadmin;
-grant all on prioriteter to syslogadmin;
