@@ -294,10 +294,10 @@ CREATE TABLE swport (
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
   link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
-  speed VARCHAR(10),
-  duplex VARCHAR(4),
+  speed REAL NOT NULL,
+  duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR(16),
-  trunk BOOL DEFAULT false,
+  trunk BOOL NOT NULL DEFAULT false,
 --  static BOOL DEFAULT false,  
 --  portnavn VARCHAR(30),  
   portname VARCHAR(30),  
@@ -569,12 +569,14 @@ GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 -- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
+GRANT ALL    ON device TO getDeviceData;
 GRANT SELECT,UPDATE ON netbox TO getDeviceData;
 GRANT SELECT,UPDATE ON netboxinfo TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
 GRANT ALL    ON netboxdisk TO getDeviceData;
 GRANT ALL    ON netboxinterface TO getDeviceData;
 GRANT ALL    ON cat TO getDeviceData;
+GRANT ALL    ON module TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
