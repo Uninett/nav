@@ -13,7 +13,7 @@ Copyright (c) 2002 by NTNU, ITEA nettgruppen
 Author: Stian Søiland <stain@itea.ntnu.no> 
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.10 2002/10/18 09:23:15 stain Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.11 2003/05/11 10:52:36 stain Exp $"
 
 import UserDict
 import re
@@ -244,7 +244,7 @@ class HandlerServer(DeviceHandler):
       #print 'oooooh yes vi satte muligens inn noe'
     except:
       #print 'arghhhh . det ble noe galt med oppdatering'
-        
+      pass  
       
 
   def getDisks(self, box, snmp, deviceData, ignores):
