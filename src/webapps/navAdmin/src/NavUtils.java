@@ -442,7 +442,7 @@ class NavUtils
 				*/
 
 				// Så må vi sjekke om vi har en trunk der vi mangler allowedvlan
-				if (swrec.get("trunk").equals("t") && (swrec.get("hexstring") == null || swrec.get("hexstring").equals("")) ) {
+				if ("t".equals(swrec.get("trunk")) && (swrec.get("hexstring") == null || swrec.get("hexstring").equals("")) ) {
 					// Vi har en trunk som er static eller mangler hexstring, da tar vi rett og slett bare hexstringen fra andre siden og setter inn
 
 					Boks b = (Boks)bokser.get(bmp.boksbak);
@@ -1705,6 +1705,7 @@ class NavUtils
 
 	private static boolean isAllowedVlan(String hexstr, int vlan)
 	{
+		hexstr = hexstr.replaceAll(":", "");
 		if (hexstr.length() == 256) {
 			return isAllowedVlanFwd(hexstr, vlan);
 		}
