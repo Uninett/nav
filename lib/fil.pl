@@ -2,7 +2,7 @@
 
 #use strict;
 sub log_open {
-    open(COLLECTLOG,'>>','/usr/local/nav/local/log/collect/navllog.log');
+    open(COLLECTLOG,'>>','/usr/local/nav/local/log/syslog/navmessage.log');
 }
 
 sub log_close {

@@ -45,7 +45,7 @@ sub snmpsystem{
 	    unless($error){
 		&skriv("SNMP-DNSNAME", "ip=$host", "dns=$dns");
 	    } else {
-		&skriv("SNMP-ERROR", "ip=$host", "message=$error");
+		&snmperrorcorrect($host,$error);
 	    }
 	    $sys = 0;
 	    $type = 0;
@@ -64,6 +64,20 @@ sub snmpsystem{
 	$type =~ s/^\.//; # fjerner punktum fra starten av OID
 #	print $sys.$type."\n";
 	return ($sys,$type);
+    }
+}
+
+sub snmperrorcorrect {
+    my $error = $_[1];
+    my $ip = $_[0];
+
+    if($error =~ /^Timeout/){
+	
+	&skriv("SNMP-TIMEOUT","ip=$ip");
+
+    } else {
+
+	&skriv("SNMP-ERROR", "ip=$ip", "message=$error");
     }
 }
 
@@ -118,6 +132,37 @@ sub hent_dnsname{
     } else {
 	return 0;
     }   
+}
+sub sigwalk{
+    my $session = $_[0];
+    my $mib = $_[1];
+    my $vb = new SNMP::Varbind([$mib]);
+    my @min = ();
+    $min[0] = $mib;
+    my $teller = 0;
+    my @resultat = ();
+    while ($min[0] =~ /^$mib/) {
+
+	if(exists $min[1]){
+	    $min[0] =~ /$mib\.(\S+)/;
+	    my $temp;
+	    if($1){
+		$temp = $1.".".$min[1];
+	    } else {
+		$temp = $min[1];
+	    }
+	    $resultat[$teller] = [$temp,$min[2]];
+	    $teller++;
+	}
+	$session->fgetnext($vb);
+	@min = @{$vb};
+    }
+    return @resultat;
+}
+sub siget {
+    my $session = $_[0];
+    my $mib = $_[1];
+    return $session->get($mib);
 }
 
 

@@ -3,7 +3,7 @@
 use Pg;
 use strict;
 
-my $debug;
+my $debug=1;
 
 sub db_hent {
     my ($db,$sql) = @_;
@@ -173,10 +173,10 @@ sub db_sett_inn {
 	}
     }
     if(scalar(@key)){ #key eksisterer
-	&skriv("DATABASE-INSERT","tuple=".join(" ",@val),"table=$tabell");
 	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
 	print $sql if $debug;
-	&db_execute($db,$sql);
+	&skriv("DATABASE-INSERT","tuple=".join(" ",@val),"table=$tabell") if &db_execute($db,$sql);
+
     }
 }
 sub db_insert {
@@ -188,7 +188,7 @@ sub db_insert {
     my @val;
     my @key;
     foreach my $i (0..$#felt) {
-	print $verdier[$i]."\n";
+#	print $verdier[$i]."\n";
 	if (defined($verdier[$i]) && $verdier[$i] ne ''){
 	    push(@val, "\'".$verdier[$i]."\'");
 	    push(@key, $felt[$i]);
@@ -208,7 +208,7 @@ sub db_logg_insert {
     my @val;
     my @key;
     foreach my $i (0..$#felt) {
-	print $verdier[$i]."\n";
+#	print $verdier[$i]."\n";
 	if (defined($verdier[$i]) && $verdier[$i] ne ''){
 	    #normal
 	    push(@val, "\'".$verdier[$i]."\'");
@@ -222,8 +222,7 @@ sub db_logg_insert {
     if(scalar(@key)){ #key eksisterer
 #	my $nql = "\n\nSETTER INN I |$tabell| FELT |".join(" ",@key)."| VERDIER |".join(" ",@val)."|";
 	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-	&skriv("DATABASE-INSERT", "table=$tabell", "tuple=".join(" ",@val));
-	&db_execute($db,$sql);
+	&skriv("DATABASE-INSERT", "table=$tabell", "tuple=".join(" ",@val)) if &db_execute($db,$sql);
     }
 }
 sub db_update {
@@ -632,16 +631,45 @@ sub db_alt_per_linje {
 sub error_correct{
     my $conn = $_[0];
     my $sql = $_[1];
-    my $errmsg = $_ = $_[2];
-    if(/ERROR:  Cannot insert a duplicate key into unique index (\w+?)_/){
-	$sql =~ s/UPDATE/DELETE FROM/;
-	$sql =~ s/SET .* (WHERE)/$1/;
-	&skriv("DATABASE-ALREADY", "sql=$sql", "message=".$errmsg);
-	&db_execute($conn,$sql);
+    my $errmsg = $_[2];
+    chomp($errmsg);
+    if($errmsg =~ /ERROR:  Cannot insert a duplicate key into unique index (\w+?)_/){
+	if($sql =~ s/UPDATE/DELETE FROM/){
+	    $sql =~ s/SET .* (WHERE)/$1/;
+	    &skriv("DATABASE-ALREADY", "sql=$sql", "message=".$errmsg);
+	    &db_execute($conn,$sql);
+	} else {
+	    &skriv("DATABASE-ALREADY", "sql=$sql", "message=".$errmsg);
+	}
+    } elsif ($errmsg =~ /ERROR:  value too long for type character varying\((\d+)\)/){
+	my $lengde = $1;
+	if($sql =~ /^UPDATE (\w+) SET (\w+)=(.*) WHERE/){
+	    
+	    &skriv("TEXT-TOOLONG", "table=$1","field=$2","value=$3","length=$lengde");
+	    
+	} else {
+	      &skriv("TEXT-TOOLONG", "table=\"$sql\"","field=","value=$errmsg","length=$lengde");
+	}
+
+    } elsif ($errmsg =~ /ERROR:  ExecAppend: Fail to add null value in not null attribute (\w+)/){
+	&skriv("DATABASE-NOTNULL", "sql=$sql","value=$1");
+	
+    } elsif ($errmsg =~ /ERROR:  \<unnamed\> referential integrity violation - key referenced from (\w+) not found in (\w+)/){
+	
+	my $child = $1;
+	my $parent = $2;
+
+	my $field;
+
+	if($sql =~ /UPDATE \w+ SET (\w+)\=(.*) WHERE/){
+	
+	    $field = "(".$1."=".$2.")";
+	}
+	&skriv("DATABASE-REFERENCE", "sql=$sql","child=$child", "field=$field","parent=$parent");
+	
+    } else {
+	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$errmsg);
     }
-    
-
-
 }
 
 sub rydd {    
@@ -662,6 +690,26 @@ sub db_connect {
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
+
+sub db_get {
+    my $myself = $_[0];
+    my $filename = "/usr/local/nav/local/etc/conf/db.conf";
+
+    open(IN, $filename) || die "Could not open $filename: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+$)/ && /.+=.*/ } <IN>;
+	   close(IN);
+			
+	   my $db_user = $hash{'script_'.$myself};
+	   my $db_passwd = $hash{'userpw_'.$db_user};
+	   my $db_db = $hash{'db_'.$db_user};
+	   my $db_host = $hash{'dbhost'};
+	   my $db_port = $hash{'dbport'};
+						    
+	   my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
 sub db_select {
     my $sql = $_[1];
     my $conn = $_[0];
@@ -676,11 +724,11 @@ sub db_execute {
     my $conn = $_[0];
     my $resultat = $conn->exec($sql);
     unless ($resultat->resultStatus eq PGRES_COMMAND_OK){
-	&error_correct($conn->errorMessage);
+	&error_correct($conn,$sql,$conn->errorMessage);
 	return 0;
 #	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
     }
-    return $resultat->oidStatus;
+    return 1;
 }
 
 return 1;
