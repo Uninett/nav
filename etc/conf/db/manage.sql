@@ -848,6 +848,13 @@ CREATE TABLE maintenance (
     state VARCHAR CHECK (state IN ('scheduled','active','passed','overridden'))   
 );
 
+-- maintenanceview, joined maintenance with emotd_related
+CREATE OR REPLACE VIEW maintenance_view AS 
+    SELECT maintenance.maintenanceid, emotd_related.emotdid, 
+    emotd_related.key, emotd_related.value, maintenance.maint_start, 
+    maintenance.maint_end, maintenance.state FROM maintenance, 
+    emotd_related WHERE (emotd_related.emotdid = maintenance.emotdid);
+
 -- references to netbox/room/etc.
 CREATE TABLE emotd_related (
     emotdid INT REFERENCES emotd ON UPDATE CASCADE ON DELETE CASCADE,
