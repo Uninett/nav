@@ -44,6 +44,7 @@ DROP SEQUENCE device_deviceid_seq;
 DROP SEQUENCE product_productid_seq;
 DROP SEQUENCE module_moduleid_seq;
 DROP SEQUENCE mem_memid_seq;
+
 -------------
 DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
 DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
@@ -429,7 +430,6 @@ DROP TABLE port2pkt;
 DROP TABLE pkt2rom;  
 DROP VIEW netboxmac;
 DROP TABLE eventtype;
-DROP TABLE eventprocess;
 
 DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
@@ -652,15 +652,6 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('info','Basic information','n');
 
-CREATE TABLE eventprocess (
-  eventprocessid VARCHAR(32) PRIMARY KEY
-);
-INSERT INTO eventprocess (eventprocessid) VALUES ('eventEngine');
-INSERT INTO eventprocess (eventprocessid) VALUES ('pping');
-INSERT INTO eventprocess (eventprocessid) VALUES ('serviceping');
-INSERT INTO eventprocess (eventprocessid) VALUES ('moduleMon');
-INSERT INTO eventprocess (eventprocessid) VALUES ('thresholdMon');
-INSERT INTO eventprocess (eventprocessid) VALUES ('trapParser');
 
 DROP TABLE eventq;
 DROP SEQUENCE eventq_eventqid_seq;
@@ -668,8 +659,8 @@ DROP TABLE eventqvar;
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  target VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
@@ -694,7 +685,7 @@ DROP TABLE alertqvar;
 
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
@@ -718,7 +709,7 @@ DROP TABLE alerthistvar;
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
@@ -738,7 +729,10 @@ CREATE TABLE alerthistvar (
   UNIQUE(alerthistid, state, msgtype, language)
 );
 
---servicemon tables
+------------------------------------------------------------------------------------------
+-- servicemon tables
+------------------------------------------------------------------------------------------
+
 DROP TABLE service;
 DROP TABLE serviceproperty;
 DROP SEQUENCE service_serviceid_seq;
@@ -759,9 +753,72 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(serviceid, property)
 );
 
+------------------------------------------------------------------------------------------
+-- rrd metadb tables
+------------------------------------------------------------------------------------------
+
+DROP TABLE subsystem;
+DROP TABLE rrd_file;
+DROP TABLE rrd_datasource;
+
+DROP SEQUENCE rrd_file_seq;
+DROP SEQUENCE rrd_datasource_seq;
+
+-- This table contains the different systems that has rrd-data.
+-- Replaces table eventprocess
+CREATE TABLE subsystem (
+  name      VARCHAR PRIMARY KEY, -- name of the system, e.g. Cricket
+  descr     VARCHAR  -- description of the system
+);
+
+INSERT INTO subsystem (name) VALUES ('eventEngine');
+INSERT INTO subsystem (name) VALUES ('pping');
+INSERT INTO subsystem (name) VALUES ('serviceping');
+INSERT INTO subsystem (name) VALUES ('moduleMon');
+INSERT INTO subsystem (name) VALUES ('thresholdMon');
+INSERT INTO subsystem (name) VALUES ('trapParser');
+INSERT INTO subsystem (name) VALUES ('cricket');
+
+-- Each rrdfile should be registered here. We need the path to find it,
+-- and also a link to which unit or service it has data about to easily be
+-- able to select all relevant files to a unit or service. Key and value
+-- are meant to be combined and thereby point to a specific row in the db.
+CREATE TABLE rrd_file (
+  rrd_fileid    SERIAL PRIMARY KEY,
+  path      VARCHAR NOT NULL, -- complete path to the rrdfile
+  filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
+  step      INT, -- the number of seconds between each update
+  subsystem INT REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid  INT REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
+  key       VARCHAR,
+  value     VARCHAR
+);
+
+-- Each datasource for each rrdfile is registered here. We need the name and
+-- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
+-- to understand what that is for humans we need the descr.
+CREATE TABLE rrd_datasource (
+  rrd_datasourceid  SERIAL PRIMARY KEY,
+  rrd_fileid        INT REFERENCES rrdfile ON UPDATE CASCADE ON DELETE CASCADE,
+  name          VARCHAR, -- name of the datasource in the file
+  descr         VARCHAR, -- human-understandable name of the datasource
+  dstype        VARCHAR CHECK (type='GAUGE' OR type='DERIVE' OR type='COUNTER' OR type='ABSOLUTE'),
+  units         VARCHAR -- textual decription of the y-axis (percent, kilo, giga, etc.)
+);
+
+GRANT ALL ON rrd_file TO rrduser;
+GRANT ALL ON rrd_file TO manage;
+GRANT ALL ON rrd_datasource TO rrduser;
+GRANT ALL ON rrd_datasource TO manage;
+GRANT SELECT ON subsystem TO rrduser;
+GRANT ALL ON subsystem TO manage;
+
+------------------------------------------------------------------------------------------
+-- GRANTS AND GRUNTS
+------------------------------------------------------------------------------------------
 
 GRANT SELECT ON eventtype TO eventengine;
-GRANT SELECT ON eventprocess TO eventengine;
+GRANT SELECT ON subsystem TO eventengine;
 GRANT ALL ON eventq TO eventengine;
 GRANT ALL ON eventq_eventqid_seq TO eventengine;
 GRANT ALL ON eventqvar TO eventengine;
@@ -785,4 +842,5 @@ GRANT SELECT ON vlan TO eventengine;
 GRANT SELECT ON prefix TO eventengine;
 GRANT SELECT ON service TO eventengine;
 GRANT SELECT ON serviceproperty TO eventengine;
+
 
