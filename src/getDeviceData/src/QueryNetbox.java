@@ -1037,6 +1037,12 @@ public class QueryNetbox extends Thread
 				if (netboxid != null) {
 					runNetbox(netboxid, e.getVar("maxage"), e.getSource(), String.valueOf(e.getSubid()));
 				}
+			} else if ("dumpOidNetbox".equals(cmd)) {
+				String netboxid = String.valueOf(e.getNetboxid());
+				if (netboxid != null) {
+					NetboxImpl nb = (NetboxImpl)nbMap.get(netboxid);
+					if (nb != null) nb.printSchedule();
+				}
 			} else {
 				Log.d("HANDLE_EVENT", "Unknown command: " + cmd);
 			}
