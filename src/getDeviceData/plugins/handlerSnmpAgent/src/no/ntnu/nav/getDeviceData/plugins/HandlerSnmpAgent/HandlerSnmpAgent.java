@@ -1,14 +1,14 @@
 /**
  * Retrieves SNMP Agent sysObjectID.
  *
- * $Id: HandlerSnmpAgent.java,v 1.2 2002/10/18 09:26:30 stain Exp $
  * This file is part of the NAV project.
  * 
  * This small plugin is non-exclusive and retrieves the sysObjectID from
  * all devices that handles SNMP.
  *
  * Copyright (c) 2002 by NTNU, ITEA nettgruppen
- * Author: Stian Soiland <stain@itea.ntnu.no>
+ * @author Stian Soiland <stain@itea.ntnu.no>
+ * @version CVS $Id: HandlerSnmpAgent.java,v 1.3 2002/10/18 09:31:59 stain Exp $
  * 
  */
 
