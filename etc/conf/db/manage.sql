@@ -386,6 +386,7 @@ DROP SEQUENCE port2pkt_id_seq;
 DROP SEQUENCE pkt2rom_id_seq;
 
 -- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
+-- Merk at "createlang -U manage -d manage plpgsql" må kjøres først
 CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
   'BEGIN
      IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
