@@ -514,7 +514,22 @@ class ReportConfig:
         select = re.search("SELECT\s*(.*)\s*FROM\s+",sql,re.I|re.S|re.M)
         if select:
             select = select.group(1)
-            select = select.split(",")
+
+            # Split properly (e.i. not in the middle of ( ) )
+            last = 0
+            k = 0
+            elem = []
+            for i in range(len(select)):
+                if select[i] == '(': k += 1
+                elif select[i] == ')': k -= 1
+                elif k == 0 and select[i] == ',':
+                    if (last < i):
+                        elem.append(select[last:i]);
+                    last = i+1
+            if last < len(select):
+                elem.append(select[last:len(select)])
+            select = elem
+
             return ([ self.rstrip(word) for word in select],[a.strip() for a in select])
         else:
             return ([],[])
