@@ -108,7 +108,7 @@ class MegaPing(RotaterPlugin):
     # Create our common socket
     if socket is None:
       self.socket = makeSocket()
-~    else:
+    else:
       self.socket = socket
 
   def setHosts(self,netboxes):
