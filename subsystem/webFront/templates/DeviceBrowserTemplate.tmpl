@@ -1,0 +1,156 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Copyright (c) 2003 by NTNU, ITEA nettgruppen
+## Author: Stian Søiland <stain@itea.ntnu.no>
+##
+
+#extends MainTemplate
+
+#attr $logo = "ragen/logo+fill.gif"
+
+#block additionalCSS
+## $default_table_CSS()
+      table.serviceNetboxes {
+        border-collapse: collapse;
+        padding: 0;
+        margin: 0;
+      }
+      table.serviceNetboxes td {
+        padding: 0.2em;
+      }
+      table.serviceNetbox {
+          border-collapse: collapse;
+      }
+      table.serviceNetbox tr {
+          margin-left: 0;
+          margin-right: 0;
+      }
+      table.serviceNetbox th { 
+          background-color: white;
+          background-image:url('/images/ragen/navbar-fill.gif');
+          background-repeat: repeat-x;
+          height: 26px;
+          padding: 1px 0px 0px 0px;
+          font-size: 95%; 
+          font-weight: normal;
+      }
+      table.serviceNetbox tr.even {
+          font-size: 90%; 
+          background-color: #eee;
+      }
+      table.serviceNetbox tr.odd {
+          font-size: 90%; 
+      }
+
+      table.serviceNetbox td { padding: 0.2em; }
+      table.netboxinfo th { text-align: left; }
+      table.serviceNetbox th#activeSort { font-weight: bold; }
+      table.serviceNetboxes th { text-align: left;  }
+
+      div.alerts {
+        width: auto;
+        float: right;
+        padding: 0.2em;
+        border: 1px solid black;
+        background-color: #ace;
+      }
+      div.alerts td {
+        padding: 0.2em;
+        font-size: 85%;
+      }
+      div.module {
+        background-color: #9bd;
+        line-height: 2em;
+        margin-bottom: 1em;
+        width: 30em;
+        position: relative;
+      }
+      div.gw {
+        background-color: #fed;
+      }
+      div.module h3 {
+        display: none;
+        font-size: x-small;
+        text-transform: uppercase;
+        padding-bottom: 0;
+        font-weight: normal;
+      }
+      table {
+        cell-spacing: 5px;
+      }
+      .port {
+        background-color; #efe; /* unknown speed */
+        font-size: 85%;
+        border: 2px solid black;
+        margin: 15px;
+        width: 2em;
+        height: 2em;
+        text-align: middle;
+        vertical-align: center;
+      }
+      .trunk {
+        border-width: 3px;
+        margin: 3px;
+      }
+      .fduplex {
+      }
+      .hduplex {
+        border-color: #777;
+      }
+      .Mb10 {
+        background-color: #9d9;
+      }
+      .Mb100{
+        background-color: #dfd;
+      }
+      .Mb1000{
+        background-color: #5f5;
+      }
+      .passive {
+        background-color: #ccc;
+        /* normalize */
+        border-style: solid;
+        border-width: 2px;
+        margin: 5px;
+      }
+      div.legend .port {
+        width: 1.5em;
+        height: 1.5em;
+        margin: 0;
+      }
+      .blocked {
+        text-decoration: line-through;
+      }
+      div.legend {
+        width: auto;
+        border: 1px solid black;
+        font-size: 85%;
+        padding: 0.2em;
+        margin-top: 1em;
+        text-align: justify;
+      }
+      div.legend h3 {
+        font-size: 85%;
+        margin: 0;
+      }
+      td.y {
+        background: #8c8;
+      }
+      td.n {
+        background: #c88;
+      }
+      td.s {
+        background: #cc8;
+      }
+
+#block additionalJavaScript
+#end block additionalJavaScript
+
+#block content
+#if $myContent:
+  $myContent
+#if $treeselect:
+  $treeselect
+#end block content
