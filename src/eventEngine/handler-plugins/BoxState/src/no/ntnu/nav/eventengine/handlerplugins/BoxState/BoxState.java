@@ -219,88 +219,84 @@ public class BoxState implements EventHandler, EventCallback
 				Box b = (Box)i.next();
 				Log.d("CALLBACK", "Box down: " + b);
 
-				if (b instanceof Netel) {
-					Netel n = (Netel)b;
+				if (!b.isUp()) {
+					// The box iself is down, this means we don't report modules down if any
+					// Find the down event
+					Event e = (Event)startEventMap.get(b.getDeviceidI());
+					if (e == null) {
+						Log.w("CALLBACK", "Box " + b + " is down, but no start event found!");
+						continue;
+					}
+					if (sentWarning) startEventMap.remove(b.getDeviceidI());
 
-					if (!n.isUp()) {
-						// The box iself is down, this means we don't report modules down if any
-						// Find the down event
-						Event e = (Event)startEventMap.get(n.getDeviceidI());
-						if (e == null) {
-							Log.w("CALLBACK", "Netel " + n + " is down, but no start event found!");
-							continue;
-						}
-						if (sentWarning) startEventMap.remove(n.getDeviceidI());
+					// Ask the Box to update its status
+					b.updateStatus();
 
-						// Ask the Box to update its status
-						n.updateStatus();
+					// Create alert
+					Alert a = ddb.alertFactory(e);
 
-						// Create alert
-						Alert a = ddb.alertFactory(e);
+					// Set status (down or shadow)
+					a.addVar("status", b.getStatusS());
 
-						// Set status (down or shadow)
-						a.addVar("status", n.getStatusS());
+					// Update alerttype
+					String alerttype = "";
+					if (b.getStatus() == Box.STATUS_SHADOW) {
+						alerttype = "boxShadow";
+					} else if (b.getStatus() == Box.STATUS_DOWN) {
+						alerttype = "boxDown";
+					}
 
-						// Update alerttype
-						String alerttype = "";
-						if (n.getStatus() == Box.STATUS_SHADOW) {
-							alerttype = "boxShadow";
-						} else if (n.getStatus() == Box.STATUS_DOWN) {
-							alerttype = "boxDown";
-						}
-
-						// First send a warning
-						if (!sentWarning) {
-							a.setState(Event.STATE_NONE);
-							alerttype += "Warning";
-						} else {
-							// Delete 'down' event when alert is posted
-							a.addEvent(e);
-						}
-
-						a.setAlerttype(alerttype);
-
-						Log.d("CALLBACK", "Added alert: " + a);
-
-						// Post the alert
-						try {
-							ddb.postAlert(a);
-						} catch (PostAlertException exp) {
-							Log.w("CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
-						}
-
-
+					// First send a warning
+					if (!sentWarning) {
+						a.setState(Event.STATE_NONE);
+						alerttype += "Warning";
 					} else {
-						// The box is up, one of more modules must be down
+						// Delete 'down' event when alert is posted
+						a.addEvent(e);
+					}
+
+					a.setAlerttype(alerttype);
+
+					Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added alert: " + a);
+
+					// Post the alert
+					try {
+						ddb.postAlert(a);
+					} catch (PostAlertException exp) {
+						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
+					}
+				} else {
+					// Box is up, this means it is a Netbox with modules down
+					if (b instanceof Netel) {
+						Netel n = (Netel)b;
+
+						// The box is up, one or more modules must be down
 						for (Iterator md = n.getModulesDown(); md.hasNext();) {
 							Module m = (Module)md.next();
 							if (m.isUp()) continue;
-
+							
 							// Find the down event
 							Event e = (Event)startEventMap.remove(m.getDeviceidI());
 							if (e == null) {
-								Log.w("CALLBACK", "Module " + m + " is down, but no start event found!");
+								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "Module " + m + " is down, but no start event found!");
 								continue;
 							}
-
+							
 							// Create alert
 							Alert a = ddb.alertFactory(e, "moduleDown");
 							a.addEvent(e);
-
+							
 							// Post the alert
 							try {
 								ddb.postAlert(a);
 							} catch (PostAlertException exp) {
-								Log.w("CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
+								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
 							}
 						}
-
-
-
+						
 					}
-
+					
 				}
-
 
 			}
 
@@ -311,7 +307,7 @@ public class BoxState implements EventHandler, EventCallback
 				errl("BoxState: Error, eventMap is not empty after alert processing!");
 			}
 			*/
-			Log.d("CALLBACK", "Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
+			Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
 
 		}
 

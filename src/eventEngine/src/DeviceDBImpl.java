@@ -163,6 +163,8 @@ class DeviceDBImpl implements DeviceDB
 	public void postAlert(Alert a) throws PostAlertException
 	{
 		EventImpl e = (EventImpl)a;
+		
+		Log.d("DEV_DB", "POSTALERT", "Posting alert: " + e);
 
 		// Post the alert to alertq
 		try {
@@ -203,6 +205,7 @@ class DeviceDBImpl implements DeviceDB
 				EventImpl de = (EventImpl)i.next();
 				sb.append(",'"+de.getEventqid()+"'");
 			}
+			Log.d("DEV_DB", "POSTALERT", "Removing events from eventq: " + sb);
 			if (sb.length() > 0) {
 				sb.deleteCharAt(0);
 				Database.update("DELETE FROM eventq WHERE eventqid IN ("+sb+")");
@@ -218,10 +221,12 @@ class DeviceDBImpl implements DeviceDB
 			if (removeDownAlert) removeDownAlert(e);
 
 		} catch (SQLException exp) {
+			Log.d("DEV_DB", "POSTALERT", "SQLException while posting alert: " + exp);
 			exp.printStackTrace(System.err);
 			Database.rollback();
 			throw new PostAlertException("Got SQLException: " + exp.getMessage());
 		} catch (PostAlertException exp) {
+			Log.d("DEV_DB", "POSTALERT", "PostAlertException while posting alert: " + exp);
 			exp.printStackTrace(System.err);
 			Database.rollback();
 			throw exp;
