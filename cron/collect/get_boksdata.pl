@@ -115,11 +115,13 @@ foreach $id (keys %boks)
 	    &get_cgw($id) if ($boks{$id}{type} eq 'cgw');
 	    &get_3ss($id) if ($boks{$id}{type} eq '3ss');
 	    &get_catsw($id) if ($boks{$id}{type} eq 'cat-sw');
+            &get_hpsw($id) if ($boks{$id}{type} eq 'hpsw');	    
 #	&get_iossw($id) if ($boks{$id}{type} eq 'ios-sw');
 	    
-	    &get_mem($id) unless ($boks{$id}{type} =~ '3ss');
-	    &get_flash($id) unless ($boks{$id}{type} =~ '3ss');
-	    
+            unless (($boks{$id}{type} =~ '3ss') or ($boks{$id}{type} =~ 'hpsw')) {
+		    &get_mem($id);
+		    &get_flash($id);
+	    }
 #	}
 	
     }
@@ -472,6 +474,35 @@ sub get_catsw
 	}
     }
 }
+
+
+
+###########################################
+
+sub get_hpsw
+{
+    my $id_ = $_[0];
+    my (@ais, $ais, $unit);
+    
+    
+    # Finn antall unitter i stakken
+    @ais = &snmpwalk("$boks{$id_}{ro}\@$boks{$id_}{ip}","$mib{$boks{$id_}{type}}{'ais'}");
+    $ais =$#ais;
+    if ($ais eq '-1') {$ais = 0;}
+    
+    for ($unit = 0; $unit < $ais+1; $unit++) {
+        &hpwalk($id_,$unit,'model');
+	&hpwalk($id_,$unit,'serial');
+        &hpwalk($id_,$unit,'descr');
+	&hpwalk($id_,$unit,'hw');
+	&hpwalk($id_,$unit,'sw');
+	&hpwalk($id_,$unit,'size');
+	&hpwalk($id_,$unit,'used');
+    }	    
+
+}
+
+
 #############################################
 
 sub get_mem
@@ -632,6 +663,45 @@ sub walk
 }
 
 #############################################
+
+
+#############################################
+
+
+sub hpwalk
+{
+	my $id_ = $_[0];
+	my $unit_ = $_[1];
+	my $var = $_[2];
+
+	my @temp;
+	my $key;
+	my $number;
+	my $temp;
+	my $ro_;
+
+	if ($unit_ eq '0') {$ro_ = $boks{$id_}{ro};}
+	else { $ro_ = $boks{$id_}{ro}.'@sw'.$unit_;}
+	
+
+	(@temp) = &snmpget("$ro_\@$boks{$id_}{ip}","$mib{$boks{$id_}{type}}{$var}");
+	chomp($temp[0]);
+	foreach $key (@temp)
+	{
+		unless (($var =~ 'used') or ($var =~ 'size')) {
+			$module_new{$id_}{$unit_}{$var} = $temp[0];
+#			print "$id_\t$var: $unit_\t$temp[0]\n";
+		}
+		
+		else {
+			$mem{$id_}{'Unit'.$unit_}{$var} = $temp[0];	
+		}
+	}
+}
+
+#############################################
+
+
 sub mibs
 {    
 
@@ -672,6 +742,19 @@ sub mibs
     $mib{'cgw'}{serial} = '.1.3.6.1.4.1.9.3.6.11.1.4';
     $mib{'cgw'}{hw} = '.1.3.6.1.4.1.9.3.6.11.1.5';
     $mib{'cgw'}{sw} = '.1.3.6.1.4.1.9.3.6.11.1.6';
+
+
+# typegruppe hpsw
+    $mib{'hpsw'}{mac} = '.1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.2.0';
+    $mib{'hpsw'}{model} = '.1.3.6.1.4.1.11.2.36.1.1.2.5.0';
+    $mib{'hpsw'}{descr} = '.1.3.6.1.4.1.11.2.36.1.1.5.1.1.9.1';
+    $mib{'hpsw'}{serial} = '.1.3.6.1.2.1.47.1.1.1.1.11.1';
+    $mib{'hpsw'}{hw} = '.1.3.6.1.4.1.11.2.14.11.5.1.1.4.0';
+    $mib{'hpsw'}{sw} = '.1.3.6.1.4.1.11.2.14.11.5.1.1.3.0';
+    $mib{'hpsw'}{ais} = '.1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1';
+    $mib{'hpsw'}{size} = '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.5.1';
+    $mib{'hpsw'}{used} = '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1';
+    $mib{'hpsw'}{free} = '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1';
 
 
 # boksinfo
