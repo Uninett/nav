@@ -246,7 +246,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				String interf = (String)me.getValue();
 				String masterinterf = interf.split("\\.")[0];
 					
-				if (Integer.parseInt((String)ifInOctetsMap.get(ifindex)) == 0 &&
+				if (Long.parseLong((String)ifInOctetsMap.get(ifindex)) == 0 &&
 						interf.indexOf(".") >= 0 &&
 						ifInterfMM.containsKey(masterinterf)) {
 
