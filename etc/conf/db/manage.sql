@@ -179,12 +179,31 @@ CREATE TABLE boks (
   skygge BOOL DEFAULT false
 );
 
-
 CREATE TABLE boksinfo (
-boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-main_sw varchar(20),
-serial varchar(15),
-function VARCHAR(100)
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  key VARCHAR(32),
+  var varchar(32) NOT NULL,
+  val TEXT NOT NULL
+);
+
+CREATE TABLE boksinfo_old (
+  boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  main_sw varchar(20),
+  serial varchar(15),
+  function VARCHAR(100)
+);
+
+CREATE TABLE boksdisk (
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  path VARCHAR(255) NOT NULL,
+  blocksize INT4 NOT NULL DEFAULT 1024,
+  PRIMARY KEY (boksid, path)
+);
+
+CREATE TABLE boksinterface (
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  interf VARCHAR(50) NOT NULL,
+  PRIMARY KEY (boksid, interf)
 );
 
 CREATE TABLE module (
@@ -210,8 +229,8 @@ used INTEGER
 );
 
 
-CREATE TABLE swp_boks ( 
-  swp_boksid SERIAL PRIMARY KEY,                                                                  
+CREATE TABLE swp_boks (
+  swp_boksid SERIAL PRIMARY KEY,
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   modul VARCHAR(4) NOT NULL,
   port INT2 NOT NULL,
@@ -480,5 +499,130 @@ GRANT ALL    ON swportallowedvlan TO getPortData;
 -- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
+GRANT SELECT,UPDATE ON boks TO getDeviceData;
+GRANT SELECT,UPDATE ON boksinfo TO getDeviceData;
+GRANT SELECT ON type TO getDeviceData;
+GRANT ALL    ON boksdisk TO getDeviceData;
+GRANT ALL    ON boksinterface TO getDeviceData;
+GRANT ALL    ON bokscategory TO getDeviceData;
+GRANT ALL    ON swport TO getDeviceData;
+GRANT ALL    ON swport_swportid_seq TO getDeviceData;
+GRANT ALL    ON swportvlan TO getDeviceData;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
+GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- vlanPlot end ------
+
+
+-------- event system tables --------
+CREATE TABLE eventtype (
+  eventtypeid VARCHAR(32) PRIMARY KEY
+);
+INSERT INTO eventtype (eventtypeid) VALUES ('boxState');
+INSERT INTO eventtype (eventtypeid) VALUES ('serviceState');
+INSERT INTO eventtype (eventtypeid) VALUES ('moduleState');
+INSERT INTO eventtype (eventtypeid) VALUES ('thresholdState');
+INSERT INTO eventtype (eventtypeid) VALUES ('linkState');
+INSERT INTO eventtype (eventtypeid) VALUES ('coldStart');
+INSERT INTO eventtype (eventtypeid) VALUES ('warmStart');
+INSERT INTO eventtype (eventtypeid) VALUES ('info');
+
+CREATE TABLE eventprocess (
+  eventprocessid VARCHAR(32) PRIMARY KEY
+);
+INSERT INTO eventprocess (eventprocessid) VALUES ('eventEngine');
+INSERT INTO eventprocess (eventprocessid) VALUES ('pping');
+INSERT INTO eventprocess (eventprocessid) VALUES ('serviceping');
+INSERT INTO eventprocess (eventprocessid) VALUES ('moduleMon');
+INSERT INTO eventprocess (eventprocessid) VALUES ('thresholdMon');
+INSERT INTO eventprocess (eventprocessid) VALUES ('trapParser');
+
+DROP TABLE eventq;
+DROP SEQUENCE eventq_eventqid_seq;
+DROP TABLE eventqvar;
+
+CREATE TABLE eventq (
+  eventqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  time TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
+  value INT4 NOT NULL DEFAULT '100',
+  severity INT4 NOT NULL DEFAULT '50'
+);
+CREATE INDEX eventq_target_btree ON eventq USING btree (target);
+CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
+CREATE TABLE eventqvar (
+  eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  val TEXT NOT NULL
+);
+
+-- alert tables
+DROP TABLE alertq;
+DROP SEQUENCE alertq_alertqid_seq;
+DROP TABLE alertqvar;
+
+CREATE TABLE alertq (
+  alertqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  time TIMESTAMP NOT NULL,
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL,
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL
+);
+CREATE TABLE alertqvar (
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  val TEXT NOT NULL
+);
+
+DROP TABLE alerthist;
+DROP SEQUENCE alerthist_alerthistid_seq;
+DROP TABLE alerthistvar;
+
+CREATE TABLE alerthist (
+  alerthistid SERIAL PRIMARY KEY,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  start_t TIMESTAMP NOT NULL,
+  end_t TIMESTAMP DEFAULT 'infinity',
+  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL
+);
+CREATE INDEX alerthist_end_t_btree ON alerthist USING btree (end_t);
+CREATE TABLE alerthistvar (
+  alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  val TEXT NOT NULL
+);
+
+GRANT SELECT ON eventtype TO eventengine;
+GRANT SELECT ON eventprocess TO eventengine;
+GRANT ALL ON eventq TO eventengine;
+GRANT ALL ON eventq_eventqid_seq TO eventengine;
+GRANT ALL ON eventqvar TO eventengine;
+GRANT ALL ON alertq TO eventengine;
+GRANT ALL ON alertq_alertqid_seq TO eventengine;
+GRANT ALL ON alertqvar TO eventengine;
+GRANT ALL ON alerthist TO eventengine;
+GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
+GRANT ALL ON alerthistvar TO eventengine;
+GRANT SELECT,UPDATE ON boks TO eventengine;
+GRANT SELECT ON module TO eventengine;
+GRANT SELECT ON swport TO eventengine;
+GRANT SELECT ON swportvlan TO eventengine;
+GRANT SELECT ON gwport TO eventengine;
+GRANT SELECT ON prefiks TO eventengine;
+
