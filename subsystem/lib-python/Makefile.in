@@ -31,7 +31,7 @@ $(pathmodule): Makefile
 	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
 	@echo "webroot=\"$(webroot)\"" >> $(pathmodule)
 
-install: install-lib
+install: install-lib install-conf
 
 install-lib: $(pathmodule)
 	@cd src; \
@@ -43,6 +43,8 @@ install-lib: $(pathmodule)
 install-bin:
 	cd bin; \
 	$(INSTALL) -v -D -m 755 hasPrivilege.py $(DESTDIR)$(bindir)/hasPrivilege.py
+install-conf:
+	$(INSTALL) -v -D -m 644 *.conf $(DESTDIR)$(sysconfdir)/.
 
 clean:
 	backups=`find src -name '*~'`; \
