@@ -1,1 +1,1 @@
-Plugin-Class: no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwCGSW.CiscoSwCGSW
+Plugin-Class: no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwIOSaddon.CiscoSwIOSaddon
