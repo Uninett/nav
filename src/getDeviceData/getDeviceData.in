@@ -21,14 +21,14 @@ user=@nav_user@
 # Source function library.
 . ${initdir}/functions
 
-[ -x ${bindir}/getDeviceData/getDeviceData.sh ] || exit 1
+[ -x ${bindir}/getDeviceData.sh ] || exit 1
 
 # See how we were called.
 case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting getDeviceData: "
-		rc= daemon "su ${user} -c ${bindir}/getDeviceData/getDeviceData.sh"
+		rc= daemon "su ${user} -c ${bindir}/getDeviceData.sh"
 		echo
 		exit $rc
 		;;
