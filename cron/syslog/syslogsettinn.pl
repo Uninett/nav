@@ -21,14 +21,14 @@ my $loggfil = "/usr/local/nav/local/log/cisco.log";
 my $unntaksfil = "/usr/local/nav/local/etc/conf/syslog/unntak.txt";
 
 #MAIL
-my $mail_til_fra = "Syslog (auto)<gartmann\@pvv.ntnu.no>";
+my $mail_til_fra = "Syslog (auto)<nettstotte\@itea.ntnu.no>";
 my $mail_subject = ". prioritet syslogmelding";
 my $mail_topp = "Siste fem minutters syslogmeldinger av prioritet $pri eller viktigere:\n";
 my $mail_bunn = "-- \nhttps://www.nav.ntnu.no/sec/syslog/";
 
 #debugging;
 my $mail = 1;  #sender mail ved 1
-my $snmp = 0;  #sender snmp-traps ved 1
+my $snmp = 1;  #sender snmp-traps ved 1
 
 #----------------------
 #henter ut syslog_info til en array
@@ -329,15 +329,15 @@ sub send_mail {
 }
 
 sub sendtrap {
-    my $ipadresse = "129.241.190.200"; # Bigbud
-    my $prefix = '.1.3.6.1.4.1.3001.4.2.1';
+    my $ipadresse = "129.241.190.201"; # Bigbud
+    my $prefix = '.1.3.6.1.4.1.3001.1.5.0.1';
 
     my ($var1,$var2,$var3,$var4) = @_;
     my @data;
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
 
-    my $newprefix = ".1.3.6.1.4.1.3001.4.2.1.1";
+    my $newprefix = ".1.3.6.1.4.1.3001.1.5.1";
 
     push(@data, "$newprefix.1", 'string', "$var1"); # Datotidformat
     push(@data, "$newprefix.2", 'string', "$var2"); # Fra enhet 
@@ -355,16 +355,16 @@ sub unntak {
     open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
     foreach (<FIL>) {
 	if(@linje = &fil_hent_linje(3,$_)){
-	    if (($linje[0] ne "" || $linje[1] ne "") && $linje[2] ne ""){
-		if ($linje[0] eq ""){
-		    print "\n $_ blir lagt i bare_boks";
-		    $bare_boks{$linje[1]} = $linje[2];
-		} elsif ($linje[1] eq ""){
+	    if (($linje[2] ne "" || $linje[1] ne "") && $linje[0] ne ""){
+		if ($linje[2] eq ""){
 		    print "\n $_ blir lagt i bare_type";
-		    $bare_type{$linje[0]} = $linje[2];
+		    $bare_type{$linje[1]} = $linje[0];
+		} elsif ($linje[1] eq ""){
+		    print "\n $_ blir lagt i bare_boks";
+		    $bare_boks{$linje[2]} = $linje[0];
 		} else {
 		    print "\n $_ blir lagt i boks_type";
-		    $boks_type{$linje[1]}{$linje[0]} = $linje[2];
+		    $boks_type{$linje[1]}{$linje[2]} = $linje[0];
 		}
 	    } else {
 		print "\n $_ passet ikke inn";
