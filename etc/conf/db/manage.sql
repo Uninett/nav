@@ -214,10 +214,12 @@ GRANT ALL ON netboxcategory TO getDeviceData;
 
 
 CREATE TABLE netboxinfo (
+	netboxinfoid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   key VARCHAR,
   var VARCHAR NOT NULL,
-  val TEXT NOT NULL
+  val TEXT NOT NULL,
+	UNIQUE(netboxid, key, var)
 );
 
 -- netboxdisk and netboxinterface should be obsoleted by netboxinfo
