@@ -720,6 +720,11 @@ sub makeinterfaceTargets {
 	$type = "catid='$type'";
     }
 
+    # first we kill all the prior config here. 
+    # There should not be anything besides a defaults-file and the .nav-file here.
+    printf "Deleting all the directories in %s\n", $cricketconfigdir."/".$dir if $ll >= 3;
+    `rm -rf $cricketconfigdir/$dir/*/`;
+
     my $query = "SELECT netboxid,ip,sysname,ro,vendorid FROM netbox LEFT JOIN type USING (typeid) WHERE (". join ( " OR " , @types ) . ") AND up='y' ORDER BY sysname";
     my $res = $dbh->exec($query);
 
