@@ -184,6 +184,9 @@ Oversikt
   For å gjøre dette er det generelt sett et javaprogram getDeviceData
   som løper rundt og sjekker alle enheter i databasen. Denne har et
   pluginssystem, hvor hver plugin behandler et subsett av alle enhetene. 
+  Pluginene lagrer informasjon de finner i databasen. For servere sin
+  del er det da oppføringer i tabellene boksdisk og boksinterface, samt
+  snmp_agent i tabellen boks.
 
   Vi laget derfor en plugin som tar seg av alle serverne. Denne er
   skrevet i Jython, som kort fortalt er Python for Java. Denne
@@ -287,7 +290,22 @@ Oversikt
      Det er kun disse to forskjellene vi har funnet så langt.
 
 8) Vyer
-   *hente info fra salmaskiner
-   *hent ut mer kul snmp info 
-   *nytt grensesnitt
-   *..mer ?
+   * hente info fra salmaskiner
+     (snitt innloggingstid)
+   * hent ut mer kul snmp info 
+     (info ifra webkonsentrator LVS, mer om e-post, disk-IO på filtjenere,
+     raid-statistikk, domenekontrollere)
+   * nytt grensesnitt (python-tingen?)
+     Mulighet for sammensatt statistikk, f.eks. lage en graf som
+     sammenlikner antall e-post inn, trafikk på svitsjeport og 
+     lasten på filtjeneren.
+     Redusere antall musklikk.
+     Vi har laget en prototyp i Python som kan noe slik pr. idag. 
+     (cvs-addresse)
+     Gruppering av servere (utvidet bruk av bokskategori-tabellen i 
+     webvisning, f.eks. gruppere alle terminaltjenere sammen)
+   * konfigurasjon i database, ikke filer, konfigurasjon fra web
+     (enklere for NT-admins på høyskoler)
+   * tilgangskontroll  
+   * Ny parallellisert innsamler
+   
