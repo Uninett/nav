@@ -1,3 +1,6 @@
+--
+-- Automated dump by dumpsnmpoid.py initiated at 2004-07-20 13:02:56 GMT
+--
 BEGIN;
 DELETE FROM snmpoid WHERE oidkey='3c9300Mac';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -21,7 +24,7 @@ VALUES ('3cHwVer','1.3.6.1.4.1.43.10.27.1.1.1.11','Hardware version number','3co
 
 DELETE FROM snmpoid WHERE oidkey='3cIfDescr';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','0','.*\(Unit|Port\) \(\\d+\)\\b.*','1','ifDescr','IF-MIB');
+VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','0','.*(Unit|Port) (\\d+)\\b.*','1','ifDescr','IF-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='3cIfMauType';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -35,25 +38,25 @@ DELETE FROM snmpoid WHERE oidkey='3cModel';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('3cModel','1.3.6.1.4.1.43.10.27.1.1.1.19','Model','3com','0',NULL,'0',NULL,NULL);
 
+DELETE FROM snmpoid WHERE oidkey='3comModules';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('3comModules','1.3.6.1.4.1.43.10.27.1.1.1.12','unitChange',NULL,'0',NULL,'0',NULL,NULL);
+
 DELETE FROM snmpoid WHERE oidkey='3cPS40PortState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('3cPS40PortState','1.3.6.1.2.1.26.1.1.1.6','Port state for 3Com PS40','3com','0',NULL,'0','rpMauMediaAvailable','MAU-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='3cSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('3cSerial','1.3.6.1.4.1.43.10.27.1.1.1.13','Serial number','3com','0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='3cSSMac';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('3cSSMac','1.3.6.1.4.1.43.10.22.2.1.3','Bridge table for 3Com SuperStack','3com','0',NULL,'0','secureAddrMAC','SECURITY-MIB');
 
-DELETE FROM snmpoid WHERE oidkey='3cSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('3cSerial','1.3.6.1.4.1.43.10.27.1.1.1.13','Serial number','3com','1',NULL,'0',NULL,NULL);
-
 DELETE FROM snmpoid WHERE oidkey='3cSwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('3cSwVer','1.3.6.1.4.1.43.10.27.1.1.1.12','Software version number','3com','0',NULL,'0',NULL,NULL);
-
-DELETE FROM snmpoid WHERE oidkey='3comModules';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('3comModules','1.3.6.1.4.1.43.10.27.1.1.1.12','unitChange',NULL,'0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='basePortIfIndex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -69,11 +72,11 @@ VALUES ('c1900BandwidthMax','1.3.6.1.4.1.437.1.1.3.7.5.0','','Cricket','0',NULL,
 
 DELETE FROM snmpoid WHERE oidkey='c1900Duplex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('c1900Duplex','1.3.6.1.4.1.437.1.1.3.3.1.1.8','Duplex status','Cisco','1',NULL,'0','swPortFullDuplex','ESSWITCH.MIB');
+VALUES ('c1900Duplex','1.3.6.1.4.1.437.1.1.3.3.1.1.8','Duplex status','Cisco','0',NULL,'0','swPortFullDuplex','ESSWITCH.MIB');
 
 DELETE FROM snmpoid WHERE oidkey='c1900Portname';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('c1900Portname','1.3.6.1.4.1.437.1.1.3.3.1.1.3','Portname','Cisco','1',NULL,'0','swPortName','ESSWITCH.MIB');
+VALUES ('c1900Portname','1.3.6.1.4.1.437.1.1.3.3.1.1.3','Portname','Cisco','0',NULL,'0','swPortName','ESSWITCH.MIB');
 
 DELETE FROM snmpoid WHERE oidkey='c2900Bandwidth';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -86,6 +89,30 @@ VALUES ('c5000Bandwidth','1.3.6.1.4.1.9.5.1.1.8.0','','Cricket','0',NULL,'0','sy
 DELETE FROM snmpoid WHERE oidkey='c5000BandwidthMax';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('c5000BandwidthMax','1.3.6.1.4.1.9.5.1.1.19.0','','Cricket','0',NULL,'0','sysTrafficPeak','CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleFwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catModuleFwVer','1.3.6.1.4.1.9.5.1.3.1.1.19','Module firmware version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleHwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catModuleHwVer','1.3.6.1.4.1.9.5.1.3.1.1.18','Module hardware version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleModel';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catModuleModel','1.3.6.1.4.1.9.5.1.3.1.1.17','Module model','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catModuleSerial','1.3.6.1.4.1.9.5.1.3.1.1.26','Serial number','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleSwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catModuleSwVer','1.3.6.1.4.1.9.5.1.3.1.1.20','Module software version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='catSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catSerial','1.3.6.1.4.1.9.5.1.2.19','Serial number','cat','0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='cCardContainedByIndex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -134,6 +161,14 @@ VALUES ('cChassisVersion','1.3.6.1.4.1.9.3.6.2','Cisco',NULL,'0',NULL,'0','chass
 DELETE FROM snmpoid WHERE oidkey='cDescr';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cDescr','1.3.6.1.4.1.9.3.6.11.1.3','cgw',NULL,'0',NULL,'0','cardDescr','OLD-CISCO-CHASSIS-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cdpNeighbour';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cdpNeighbour','1.3.6.1.4.1.9.9.23.1.2.1.1.6','CDP neighbour','cisco','0',NULL,'0','cdpCacheDeviceId','CISCO-CDP-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cdpRemoteIf';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cdpRemoteIf','1.3.6.1.4.1.9.9.23.1.2.1.1.7','CDP remote interface','cisco','0',NULL,'0','cdpCacheDevicePort','CISCO-CDP-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='cHsrpGrpStandbyState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -199,46 +234,6 @@ DELETE FROM snmpoid WHERE oidkey='cModel';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cModel','1.3.6.1.4.1.9.3.6.11.1.2','cgw',NULL,'0',NULL,'0','cardType','OLD-CISCO-CHASSIS-MIB');
 
-DELETE FROM snmpoid WHERE oidkey='cSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('cSerial','1.3.6.1.4.1.9.3.6.3','cgw',NULL,'0',NULL,'0','chassisId','OLD-CISCO-CHASSIS-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='cSw';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('cSw','1.3.6.1.4.1.9.3.6.11.1.6','cgw',NULL,'0',NULL,'0','cardSwVersion','OLD-CISCO-CHASSIS-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catModuleFwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catModuleFwVer','1.3.6.1.4.1.9.5.1.3.1.1.19','Module firmware version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catModuleHwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catModuleHwVer','1.3.6.1.4.1.9.5.1.3.1.1.18','Module hardware version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catModuleModel';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catModuleModel','1.3.6.1.4.1.9.5.1.3.1.1.17','Module model','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catModuleSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catModuleSerial','1.3.6.1.4.1.9.5.1.3.1.1.26','Serial number','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catModuleSwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catModuleSwVer','1.3.6.1.4.1.9.5.1.3.1.1.20','Module software version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='catSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('catSerial','1.3.6.1.4.1.9.5.1.2.19','Serial number','cat','0',NULL,'0',NULL,NULL);
-
-DELETE FROM snmpoid WHERE oidkey='cdpNeighbour';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('cdpNeighbour','1.3.6.1.4.1.9.9.23.1.2.1.1.6','CDP neighbour','cisco','0',NULL,'0','cdpCacheDeviceId','CISCO-CDP-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='cdpRemoteIf';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('cdpRemoteIf','1.3.6.1.4.1.9.9.23.1.2.1.1.7','CDP remote interface','cisco','0',NULL,'0','cdpCacheDevicePort','CISCO-CDP-MIB');
-
 DELETE FROM snmpoid WHERE oidkey='cpu1min';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cpu1min','1.3.6.1.4.1.9.2.1.57.0','','Cricket','0',NULL,'0','avgBusy1','OLD-CISCO-CPU-MIB');
@@ -247,13 +242,33 @@ DELETE FROM snmpoid WHERE oidkey='cpu5min';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cpu5min','1.3.6.1.4.1.9.2.1.58.0','','Cricket','0',NULL,'0','avgBusy5','OLD-CISCO-CPU-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='cSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cSerial','1.3.6.1.4.1.9.3.6.3','cgw',NULL,'0',NULL,'0','chassisId','OLD-CISCO-CHASSIS-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cSw';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('cSw','1.3.6.1.4.1.9.3.6.11.1.6','cgw',NULL,'0',NULL,'0','cardSwVersion','OLD-CISCO-CHASSIS-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='dnscheck';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('dnscheck','1.3.6.1.2.1.1.5.0','Used by the DNSCheck plugin; is identical to sysname','mib-II','0',NULL,'1','sysName','SNMPv2-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='hpcpu';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('hpcpu','1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0','','Cricket','0',NULL,'0',NULL,NULL);
+
 DELETE FROM snmpoid WHERE oidkey='hpHwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('hpHwVer','1.3.6.1.4.1.11.2.14.11.5.1.1.4.0','Hardware version number','hp','0',NULL,'0',NULL,NULL);
+
+DELETE FROM snmpoid WHERE oidkey='hpmem5minFree';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('hpmem5minFree','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1','','Cricket','0',NULL,'0',NULL,NULL);
+
+DELETE FROM snmpoid WHERE oidkey='hpmem5minUsed';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('hpmem5minUsed','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1','','Cricket','0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='hpModules';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -278,18 +293,6 @@ VALUES ('hpSwVer','1.3.6.1.4.1.11.2.14.11.5.1.1.3.0','Software version number','
 DELETE FROM snmpoid WHERE oidkey='hpVlan';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('hpVlan','1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1','Vlan for each port','hp','0',NULL,'0',NULL,NULL);
-
-DELETE FROM snmpoid WHERE oidkey='hpcpu';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('hpcpu','1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0','','Cricket','0',NULL,'0',NULL,NULL);
-
-DELETE FROM snmpoid WHERE oidkey='hpmem5minFree';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('hpmem5minFree','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1','','Cricket','0',NULL,'0',NULL,NULL);
-
-DELETE FROM snmpoid WHERE oidkey='hpmem5minUsed';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('hpmem5minUsed','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1','','Cricket','0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='ifAdminStatus';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -319,6 +322,10 @@ DELETE FROM snmpoid WHERE oidkey='ifHCOutUcastPkts';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifHCOutUcastPkts','1.3.6.1.2.1.31.1.1.1.11','','mib-II','0',NULL,'0','ifHCOutUcastPkts','IF-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='ifIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ifIndex','1.3.6.1.2.1.2.2.1.1','standard','mib-II','0',NULL,'0','ifIndex','IF-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='ifInDiscards';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifInDiscards','1.3.6.1.2.1.2.2.1.13','','mib-II','0',NULL,'0','ifInDiscards','IF-MIB');
@@ -342,10 +349,6 @@ VALUES ('ifInUcastPkts','1.3.6.1.2.1.2.2.1.11','Packets which were not addressed
 DELETE FROM snmpoid WHERE oidkey='ifInUnknownProtos';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifInUnknownProtos','1.3.6.1.2.1.2.2.1.15','','mib-II','0',NULL,'0','ifInUnknownProtos','IF-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='ifIndex';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('ifIndex','1.3.6.1.2.1.2.2.1.1','standard','mib-II','0',NULL,'0','ifIndex','IF-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='ifLastChange';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -463,6 +466,46 @@ DELETE FROM snmpoid WHERE oidkey='ospfIfMetricMetric';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ospfIfMetricMetric','1.3.6.1.2.1.14.8.1.4','cgw',NULL,'0',NULL,'0','ospfIfMetricValue','OSPF-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='physClass';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physClass','1.3.6.1.2.1.47.1.1.1.1.5','An indication of the general hardware type of the physical entity','mib-II','0',NULL,'0','entPhysicalClass','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physContainedIn';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physContainedIn','1.3.6.1.2.1.47.1.1.1.1.4','The value of entPhysicalIndex for the physical entity which contains this physical entity','mib-II','0',NULL,'0','entPhysicalContainedIn','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physDescr';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physDescr','1.3.6.1.2.1.47.1.1.1.1.2','A textual description of physical entity','mib-II','0',NULL,'0','entPhysicalDescr','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physFwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physFwVer','1.3.6.1.2.1.47.1.1.1.1.9','The vendor-specific firmware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalFirmwareRev','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physHwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physHwVer','1.3.6.1.2.1.47.1.1.1.1.8','The vendor-specific hardware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalHardwareRev','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physMfgName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physMfgName','1.3.6.1.2.1.47.1.1.1.1.12','The name of the manufacturer of this physical component','mib-II','0',NULL,'0','entPhysicalMfgName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physModelName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physModelName','1.3.6.1.2.1.47.1.1.1.1.13','The vendor-specific model name identifier string associated with this physical component','mib-II','0',NULL,'0','entPhysicalModelName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physName','1.3.6.1.2.1.47.1.1.1.1.7','The textual name of the physical entity','mib-II','0',NULL,'0','entPhysicalName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physSerial','1.3.6.1.2.1.47.1.1.1.1.11','The vendor-specific serial number string for the physical entity','mib-II','0',NULL,'0','entPhysicalSerialNum','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physSwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physSwVer','1.3.6.1.2.1.47.1.1.1.1.10','The vendor-specific software revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalSoftwareRev','ENTITY-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='portDuplex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('portDuplex','1.3.6.1.4.1.9.5.1.4.1.1.10','cat-sw',NULL,'0',NULL,'0','portDuplex','CISCO-STACK-MIB');
@@ -491,13 +534,13 @@ DELETE FROM snmpoid WHERE oidkey='stpPortState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('stpPortState','1.3.6.1.2.1.17.2.15.1.3','Spanning tree port state','bridge-mib','0',NULL,'0','dot1dStpPortState','BRIDGE-MIB');
 
-DELETE FROM snmpoid WHERE oidkey='sysUpTime';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('sysUpTime','1.3.6.1.2.1.1.3.0','','mib-II','0',NULL,'0','sysUpTime','SNMPv2-MIB');
-
 DELETE FROM snmpoid WHERE oidkey='sysname';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('sysname','1.3.6.1.2.1.1.5.0','all',NULL,'0',NULL,'0','sysName','SNMPv2-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='sysUpTime';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('sysUpTime','1.3.6.1.2.1.1.3.0','','mib-II','0',NULL,'0','sysUpTime','SNMPv2-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='tempInlet';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
@@ -547,60 +590,18 @@ DELETE FROM snmpoid WHERE oidkey='ucd_memtotalAvail';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ucd_memtotalAvail','1.3.6.1.4.1.2021.4.11.0','','Cricket','0',NULL,'0',NULL,NULL);
 
-
-
-DELETE FROM snmpoid WHERE oidkey='physDescr';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physDescr','1.3.6.1.2.1.47.1.1.1.1.2','A textual description of physical entity','mib-II','0',NULL,'0','entPhysicalDescr','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physContainedIn';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physContainedIn','1.3.6.1.2.1.47.1.1.1.1.4','The value of entPhysicalIndex for the physical entity which contains this physical entity','mib-II','0',NULL,'0','entPhysicalContainedIn','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physClass';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physClass','1.3.6.1.2.1.47.1.1.1.1.5','An indication of the general hardware type of the physical entity','mib-II','0',NULL,'0','entPhysicalClass','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physName';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physName','1.3.6.1.2.1.47.1.1.1.1.7','The textual name of the physical entity','mib-II','0',NULL,'0','entPhysicalName','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physHwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physHwVer','1.3.6.1.2.1.47.1.1.1.1.8','The vendor-specific hardware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalHardwareRev','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physFwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physFwVer','1.3.6.1.2.1.47.1.1.1.1.9','The vendor-specific firmware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalFirmwareRev','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physSwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physSwVer','1.3.6.1.2.1.47.1.1.1.1.10','The vendor-specific software revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalSoftwareRev','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physSerial','1.3.6.1.2.1.47.1.1.1.1.11','The vendor-specific serial number string for the physical entity','mib-II','0',NULL,'0','entPhysicalSerialNum','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physMfgName';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physMfgName','1.3.6.1.2.1.47.1.1.1.1.12','The name of the manufacturer of this physical component','mib-II','0',NULL,'0','entPhysicalMfgName','ENTITY-MIB');
-
-DELETE FROM snmpoid WHERE oidkey='physModelName';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('physModelName','1.3.6.1.2.1.47.1.1.1.1.13','The vendor-specific model name identifier string associated with this physical component','mib-II','0',NULL,'0','entPhysicalModelName','ENTITY-MIB');
-
 DELETE FROM snmpoid WHERE oidkey='vtpVlanState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('vtpVlanState','1.3.6.1.4.1.9.9.46.1.3.1.1.2','The state of this VLAN','cisco','0',NULL,'0','vtpVlanState','CISCO-VTP-MIB');
-
-
-
 
 
 UPDATE snmpoid SET uptodate=true;
 UPDATE netbox SET uptodate=false;
 
 COMMIT;
+--
+-- Automatic dump ends here
+--
 
 
 -- *****************
