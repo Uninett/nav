@@ -1004,6 +1004,9 @@ class NavUtils
 			swportidMap.put(rs.getString("swportid"), hm);
 		}
 
+		// Bruker cam/arp til å sjekke vlan bak netbox / ifindex
+		//rs = Database.query("SELECT netbox.sysname,swport.ifindex,vlan.vlan FROM netbox JOIN module USING(netboxid) JOIN swport USING(moduleid) JOIN cam ON (netbox.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) GROUP BY netbox.sysname,swport.ifindex,vlan.vlan");
+
 		// Så henter vi ut alle vlan og hvilken switch vlanet "starter på"
 		outl("<pre>");
 		//rs = Database.query("SELECT module.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN gwport ON (rootgwid=gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
