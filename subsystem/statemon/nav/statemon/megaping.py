@@ -44,7 +44,7 @@ def makeSocket():
 
 class Host:
   def __init__(self, ip):
-    self.rnd = random.randint(0,2**16 -1)
+    self.rnd = random.randint(0,2**16-1)
     self.certain = 0
     self.ip = ip
     self.pkt = icmp.Packet()
@@ -124,7 +124,7 @@ class MegaPing:
     self._delay=float(self._conf.get('delay',2))/1000   # convert from ms
     # Timeout before considering hosts as down
     self._timeout = int(self._conf.get('timeout', 5))
-    self._hosts = []
+    self._hosts = {}
     packetsize = int(self._conf.get('packetsize', 64))
     if packetsize < 44:
       raise """Packetsize (%s) too small to create a proper cookie.
@@ -146,15 +146,13 @@ class MegaPing:
     increment
     """
     # add new hosts
-    newhosts = filter(lambda ip: ip not in self._hosts, ips)
-    for ip in newhosts:
-      self._hosts.append(Host(ip))
-    # remove outdated hosts...
-    oldhosts = filter(lambda ip: ip not in ips, self._hosts)
-    for ip in oldhosts:
-      print "removeing %s" % ip
-      self._hosts.remove(ip)
-
+    currenthosts = {}
+    for ip in ips:
+      if not self._hosts.has_key(ip):
+        currenthosts[ip] = Host(ip)
+      else:
+        currenthosts[ip] = self._hosts[ip]
+    self._hosts = currenthosts
     
   def reset(self):
     self._requests = {}
@@ -257,7 +255,7 @@ class MegaPing:
     if mySocket is None:
       mySocket = self._sock
     if hosts is None:
-      hosts = self._hosts
+      hosts = self._hosts.values()
     for host in hosts:
       if self._requests.has_key(host):
         debug("Duplicate host %s ignored" % host,6)
