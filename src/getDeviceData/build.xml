@@ -28,6 +28,10 @@
   <target name="device-plugins">
     <ant inheritAll="false" dir="device-plugins/3Com"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwBasic"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCAT"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwIOS"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCGSW"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCL3"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
   </target>
 
