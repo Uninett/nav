@@ -19,22 +19,28 @@ public class Box extends Device
 
 	protected String ip;
 	protected String sysname;
+	//protected int gwdeviceid;
+	protected int vlan;
+
+	// Translate boxid -> deviceid
+	private static Map boxidToDeviceid = new HashMap();
 
 	protected Box() { }
 
-	public Box(ResultSet rs) throws SQLException
+	public Box(DeviceDB devDB, ResultSet rs) throws SQLException
 	{
-		this(rs, null);
+		this(devDB, rs, null);
 	}
 
-	public Box(ResultSet rs, Device d) throws SQLException
+	public Box(DeviceDB devDB, ResultSet rs, Device d) throws SQLException
 	{
-		super(rs, d);
+		super(devDB, rs, d);
 		update(rs);
 
 		if (d instanceof Box) {
 			Box b = (Box)d;
 			status = b.status;
+			vlan = b.vlan;
 		}
 	}
 
@@ -44,12 +50,15 @@ public class Box extends Device
 		boxid = rs.getInt("boksid");
 		ip = rs.getString("ip");
 		sysname = rs.getString("sysname");
+		vlan = rs.getInt("vlan");
+
+		boxidToDeviceid.put(new Integer(boxid), new Integer(deviceid));
 	}
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		outld("Box.updateFromDB");
-		ResultSet rs = Database.query("SELECT boksid AS deviceid, boksid,ip,sysname FROM boks");
+		ResultSet rs = Database.query("SELECT boksid AS deviceid, boksid,ip,sysname,vlan FROM boks JOIN prefiks USING(prefiksid)");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -58,18 +67,28 @@ public class Box extends Device
 
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
-				Box b = new Box(rs);
+				Box b = new Box(ddb, rs);
 				ddb.putDevice(b);
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Box())) {
 					((Box)d).update(rs);
 					ddb.touchDevice(d);
 				} else {
-					Box b = new Box(rs, d);
+					Box b = new Box(ddb, rs, d);
 					ddb.putDevice(b);
 				}
 			}
 		}
+	}
+
+	public int getBoxid()
+	{
+		return boxid;
+	}
+
+	public String getSysname()
+	{
+		return sysname;
 	}
 
 	public static int boxDownCount()
@@ -77,9 +96,26 @@ public class Box extends Device
 		return downMap.size();
 	}
 
+	public int boxidToDeviceid(int boxid)
+	{
+		Integer i;
+		if ( (i=(Integer)boxidToDeviceid.get(new Integer(boxid))) != null) return i.intValue();
+		return 0;
+	}
+
 	public static Iterator findBoxesDown()
 	{
 		return downMap.values().iterator();
+	}
+
+	/**
+	 * Update status; basically check if this box is in shadow if it is down. The default is to
+	 * to nothing, it is up to subclasses to do something useful here.
+	 *
+	 */
+	public void updateStatus()
+	{
+
 	}
 
 	public void down()
@@ -105,6 +141,11 @@ public class Box extends Device
 	public int getStatus()
 	{
 		return status;
+	}
+
+	public String getStatusS()
+	{
+		return statusToString(getStatus());
 	}
 
 	public String toString()

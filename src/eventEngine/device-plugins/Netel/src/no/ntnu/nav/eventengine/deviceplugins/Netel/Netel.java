@@ -18,24 +18,17 @@ public class Netel extends Box
 
 	List modules = new ArrayList();
 	Map modulesDown = new HashMap();
-	/*
-	int boxid;
-	int status;
-
-	String ip;
-	String sysname;
-	*/
 
 	protected Netel() { }
 
-	public Netel(ResultSet rs) throws SQLException
+	public Netel(DeviceDB devDB, ResultSet rs) throws SQLException
 	{
-		this(rs, null);
+		this(devDB, rs, null);
 	}
 
-	public Netel(ResultSet rs, Device d) throws SQLException
+	public Netel(DeviceDB devDB, ResultSet rs, Device d) throws SQLException
 	{
-		super(rs, d);
+		super(devDB, rs, d);
 		update(rs);
 
 		if (d instanceof Netel) {
@@ -54,8 +47,22 @@ public class Netel extends Box
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
+		/* Since only the updateFromDB() methods in the plugin class is invoked, we need to also
+		 * invoke this methods for the other classes in this plugin. The order is important.
+		 * (yes, these classes should go into their own plugins; then event engine will take
+		 * care of the ordering automatically)
+		 */
+		// Gw class
+		try {
+			Gw.updateFromDB(ddb);
+		} catch (Exception e) {
+			errl("Exception: " + e.getMessage());
+			e.printStackTrace(System.err);
+			throw new RuntimeException(e.getMessage());
+		}
+
 		outld("Netel.updateFromDB");
-		ResultSet rs = Database.query("SELECT boksid AS deviceid,boksid,ip,sysname FROM boks WHERE kat IN ('GW','SW','KANT')");
+		ResultSet rs = Database.query("SELECT boksid AS deviceid,boksid,ip,sysname,vlan FROM boks JOIN prefiks USING(prefiksid) WHERE kat IN ('SW','KANT')");
 
 		while (rs.next()) {
 			try {
@@ -66,14 +73,14 @@ public class Netel extends Box
 
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
-				Netel n = new Netel(rs);
+				Netel n = new Netel(ddb, rs);
 				ddb.putDevice(n);
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Netel())) {
 					((Netel)d).update(rs);
 					ddb.touchDevice(d);
 				} else {
-					Netel n = new Netel(rs, d);
+					Netel n = new Netel(ddb, rs, d);
 					ddb.putDevice(n);
 				}
 			}
@@ -85,6 +92,7 @@ public class Netel extends Box
 			}
 		}
 
+		// Module class
 		try {
 			Module.updateFromDB(ddb);
 		} catch (Exception e) {
@@ -108,10 +116,13 @@ public class Netel extends Box
 	}
 	protected void removeModule(Module m)
 	{
+		// If it is down, bring it up first
+		moduleUp(m);
 		modules.remove(m);
 	}
 	protected void moduleDown(Module m)
 	{
+		if (modulesDown.containsKey(m.getDeviceidI())) return;
 		if (moduleDownCount++ == 0) {
 			downMap.put(new Integer(boxid), this);
 			moduleStatus = MODULE_STATUS_DOWN;
@@ -120,6 +131,7 @@ public class Netel extends Box
 	}
 	protected void moduleUp(Module m)
 	{
+		if (!modulesDown.containsKey(m.getDeviceidI())) return;
 		if (--moduleDownCount == 0) {
 			if (isUp()) downMap.remove(new Integer(boxid));
 			moduleStatus = MODULE_STATUS_UP;
@@ -152,14 +164,102 @@ public class Netel extends Box
 		return sb.toString();
 	}
 
+	/**
+	 * Overridden from superclass. We ask all uplinks recursivly if this box is reachable from it,
+	 * and if one of them says yes, then we are not in shadow.
+	 *
+	 */
+	public void updateStatus()
+	{
+		super.updateStatus();
+		if (isUp()) return;
 
-	// Override to traverse the network graph and check which boxes are in shadow
-	public static Iterator findBoxesDown()
+		if (!reachableFrom(this, vlan, new HashSet())) {
+			shadow();
+		}
+	}
+
+
+	/**
+	 * Check if b is reachable from this Netel.
+	 *
+	 * @return true if b is reachable from this Netel; false otherwise
+	 */
+	protected boolean reachableFrom(Box b, int vlan, Set visited)
 	{
 
+		boolean foundDownlink = false;
+		boolean foundUplink = false;
 
-		return Box.findBoxesDown();
+		outld("reachableFrom: @"+sysname+", vlan="+vlan);
+
+		// No downlink to overselves
+		if (b == this) {
+			foundDownlink = true;
+			visited.add(getDeviceidI());
+		} else {
+			// If we are down, b is obviously not reachable from here :)
+			if (!isUp()) return false;
+		}
+
+		for (Iterator i=modules.iterator(); i.hasNext();) {
+			Module m = (Module)i.next();
+			// Verify that we have a downlink to b on the correct vlan
+			for (Iterator j=m.getPortsTo(b); !foundDownlink && j.hasNext();) {
+				Port p = (Port)j.next();
+				int dir = p.vlanDirection(vlan);
+				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_UP) {
+					// This port is a downlink to b on the correct vlan
+					foundDownlink = true;
+				}
+			}
+
+			// Try to find an uplink which has the correct vlan reachable
+			for (Iterator j=m.getPorts(); !foundUplink && j.hasNext();) {
+				Port p = (Port)j.next();
+				int dir = p.vlanDirection(vlan);
+				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
+					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
+					if (d instanceof Netel) {
+						Netel n = (Netel)d;
+						outld("  Reachable from uplink " + n.sysname + "?");
+
+						// Visit this box if we have not already
+						if (visited.add(n.getDeviceidI()) && n.reachableFrom(this, vlan, visited)) {
+							outld("  Yes.");
+							foundUplink = true;
+						}
+						if (!foundUplink) outld("  No.");
+					}
+				}
+			}
+
+		}
+
+		if (!foundDownlink) {
+			errl("Netel.reachableFrom: Box " + b.getSysname() + " has uplink to " + sysname + ", but no downlink (on same vlan) found!");
+		}
+
+		return foundUplink;
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

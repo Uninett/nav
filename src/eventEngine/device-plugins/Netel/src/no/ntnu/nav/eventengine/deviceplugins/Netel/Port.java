@@ -11,9 +11,56 @@ public class Port
 {
 	protected static final boolean DEBUG_OUT = true;
 
+	public final static int DIRECTION_NONE = 0;
+	public final static int DIRECTION_BLOCKED = 1;
+	public final static int DIRECTION_DOWN = 2;
+	public final static int DIRECTION_UP = 3;
+	public final static int DIRECTION_UNKNOWN = 4;
+
+
 	protected int port;
-	protected int boksidBehind;
+	protected int boxidBehind;
 	protected boolean status;
+	protected Vlan[] vlan;
+
+	private class Vlan
+	{
+		public int vlan;
+		public int direction;
+
+		public Vlan(int vlan, char direction)
+		{
+			this.vlan = vlan;
+			this.direction = charToDirection(direction);
+		}
+
+		private int charToDirection(char c)
+		{
+			switch (c) {
+				case 'b': return DIRECTION_BLOCKED;
+				case 'n': return DIRECTION_DOWN;
+				case 'o': return DIRECTION_UP;
+				case 'u': return DIRECTION_UNKNOWN;
+				case 'x': return DIRECTION_UNKNOWN;
+			}
+			errl("Port.Vlan.charToDirection: Warning, unknown direction: " + c);
+			return DIRECTION_UNKNOWN;
+		}
+		private char directionToChar(int d)
+		{
+			switch (d) {
+				case DIRECTION_BLOCKED: return 'b';
+				case DIRECTION_DOWN: return 'n';
+				case DIRECTION_UP: return 'o';
+			}
+			return 'x';
+		}
+
+		public String toString()
+		{
+			return vlan+"("+directionToChar(direction)+")";
+		}
+	}
 
 
 	public Port(ResultSet rs) throws SQLException
@@ -22,10 +69,33 @@ public class Port
 		status = true;
 	}
 
-	protected void update(ResultSet rs) throws SQLException
+	void update(ResultSet rs) throws SQLException
 	{
+		// These are needed for knowing when we are done with the port
+		int parentDeviceid = rs.getInt("parent_deviceid");
+		String module = rs.getString("module");
+
 		port = rs.getInt("port");
-		boksidBehind = rs.getInt("boksid_behind");
+		boxidBehind = rs.getInt("boksid_behind");
+
+		List vl = new ArrayList();
+		do {
+			vl.add(new Vlan(rs.getInt("vlan"), rs.getString("direction").charAt(0)));
+			//errl("Debug   Port: New vlan: " + vl.get(vl.size()-1));
+		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module) && rs.getInt("port") == port);
+		rs.previous();
+
+		vlan = new Vlan[vl.size()];
+		for (int i=0; i < vl.size(); i++) vlan[i] = (Vlan)vl.get(i);
+	}
+
+	Integer getKey()
+	{
+		return new Integer(port);
+	}
+	static Integer getKey(ResultSet rs) throws SQLException
+	{
+		return new Integer(rs.getInt("port"));
 	}
 
 	public int getPort()
@@ -35,6 +105,21 @@ public class Port
 	public Integer getPortI()
 	{
 		return new Integer(port);
+	}
+	public int getBoxidBehind()
+	{
+		return boxidBehind;
+	}
+
+	public int vlanDirection(int vl)
+	{
+		// FIXME: This should not be necessary if vlan-avled is working properly
+		if (vlan.length == 1 && vlan[0].vlan == 1) return vlan[0].direction;
+
+		for (int i=0; i < vlan.length; i++) {
+			if (vlan[i].vlan == vl) return vlan[i].direction;
+		}
+		return DIRECTION_NONE;
 	}
 
 	public void down()
@@ -52,7 +137,13 @@ public class Port
 
 	public String toString()
 	{
-		return "Port [port="+port+", boksidBehind="+boksidBehind+"]";
+		StringBuffer sb = new StringBuffer("Port [port="+port+", boxidBehind="+boxidBehind);
+		if (vlan.length > 0) sb.append(", vlans=");
+		for (int i=0; i < vlan.length; i++) {
+			sb.append(vlan[i]+",");
+		}
+		sb.setCharAt(sb.length()-1, ']');
+		return sb.toString();
 	}
 
 
