@@ -1,8 +1,8 @@
 """
 database
 
-$Author: magnun $
-$Id: database.py,v 1.13 2002/06/25 23:51:53 magnun Exp $
+$Author: erikgors $
+$Id: database.py,v 1.14 2002/06/26 14:16:02 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -35,7 +35,7 @@ def newVersion(serviceid,version):
 	print "New version. Id: %i Version: " % (serviceid,version)
 	statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 	queue.put(statement)
-def getJobs():
+def getJobs(onlyactive = 1):
 	c = db.cursor()
 	query = """SELECT serviceid, property, value
 	FROM serviceproperty
@@ -48,11 +48,13 @@ def getJobs():
 			property[serviceid] = {}
 		property[serviceid][prop] = value
 
-	query = """SELECT serviceid ,boksid, handler, version, ip
+	query = """SELECT serviceid ,boksid, active, handler, version, ip
 	FROM service NATURAL JOIN boks order by serviceid"""
 	c.execute(query)
 	jobs = []
-	for serviceid,boksid,handler,version,ip in c.fetchall():
+	for serviceid,boksid,active,handler,version,ip in c.fetchall():
+		if not (onlyactive and not active):
+			continue
 		job = jobmap.get(handler,'')
 		if not job:
 			print 'no such handler:',handler
