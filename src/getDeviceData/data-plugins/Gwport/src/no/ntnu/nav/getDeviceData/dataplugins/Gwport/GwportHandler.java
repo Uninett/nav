@@ -349,8 +349,11 @@ public class GwportHandler implements DataHandler {
 							Prefix p = gp.getPrefix();
 							Vlan vl = p.getVlan();
 							//if (!vl.getNettype().equals("elink")) vl.setNettype(Vlan.UNKNOWN_NETTYPE);
-							if (vl.getNettype().equals("elink")) vl.setNetident(null);
+							//if (vl.getNettype().equals("elink")) vl.setNetident(null);
 							//vl.setNettype(Vlan.UNKNOWN_NETTYPE);
+							if (vl.getNetident() != null) {
+								vl.setNetident(util.remove(vl.getNetident(), navCp.get("DOMAIN_SUFFIX")));
+							}
 
 							errl("      Gwip: " + gwip);
 							errl("      Hsrp: " + hsrp);
@@ -510,8 +513,10 @@ public class GwportHandler implements DataHandler {
 							// Add prefix for autodetermination of nettype
 							if (unknownNettype) {
 								prefixUpdateSet.add(p.getCidr());
+							} else if (vl.getNettype().equals("elink")) {
+								setElinkNetident(nb, p);
+								updateVlan(vl, false);
 							}
-						
 						}
 					}
 				}
@@ -537,9 +542,9 @@ public class GwportHandler implements DataHandler {
 
 				// Do autodetermination of nettype
 				for (Iterator it = prefixUpdateSet.iterator(); it.hasNext();) {
+					String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
 					Prefix p = (Prefix)prefixDbMap.get(it.next());
 					Vlan vl = p.getVlan();
-					String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
 
 					String nettype, netident = null;
 					int numGwp = p.gwportCount();
@@ -569,16 +574,7 @@ public class GwportHandler implements DataHandler {
 							nettype = "loopback";
 						} else if (p.getMasklen() == 30) {
 							nettype = "elink";
-							// Try to find elink name from CDP so we can set netident
-							String ifindex = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[3];
-							// This is the swport ifindex, we need the gwport ifindex
-							if (vl.getVlan() != null) {
-								ResultSet myrs = Database.query("SELECT ifindex FROM swport JOIN module USING(moduleid) WHERE netboxid="+nb.getNetboxid()+" and vlan='"+vl.getVlan()+"'");
-								if (myrs.next()) {
-									String remoteCdp = NetboxInfo.getSingleton(nb.getNetboxidS(), "unrecognizedCDP", myrs.getString("ifindex"));
-									if (remoteCdp != null) vl.setNetident(util.remove(nb.getSysname(), DOMAIN_SUFFIX) + "," + util.remove(remoteCdp, DOMAIN_SUFFIX));
-								}
-							}
+							setElinkNetident(nb, p);
 						} else {
 							nettype = "lan";
 						}
@@ -646,6 +642,21 @@ public class GwportHandler implements DataHandler {
 			} catch (SQLException e) {
 				Log.e("HANDLE", "SQLException: " + e.getMessage());
 				e.printStackTrace(System.err);
+			}
+		}
+	}
+
+	private void setElinkNetident(Netbox nb, Prefix p) throws SQLException {
+		// Try to find elink name from CDP so we can set netident
+		String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
+		Vlan vl = p.getVlan();
+		String ifindex = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[3];
+		// This is the swport ifindex, we need the gwport ifindex
+		if (vl.getVlan() != null) {
+			ResultSet myrs = Database.query("SELECT ifindex FROM swport JOIN module USING(moduleid) WHERE netboxid="+nb.getNetboxid()+" and vlan='"+vl.getVlan()+"'");
+			if (myrs.next()) {
+				String remoteCdp = NetboxInfo.getSingleton(nb.getNetboxidS(), "unrecognizedCDP", myrs.getString("ifindex"));
+				if (remoteCdp != null) vl.setNetident(util.remove(nb.getSysname(), DOMAIN_SUFFIX) + "," + util.remove(remoteCdp, DOMAIN_SUFFIX));
 			}
 		}
 	}
