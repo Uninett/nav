@@ -1,7 +1,7 @@
 <?php
 ####################
 #
-# $Id: index.php,v 1.5 2002/11/30 11:09:21 gartmann Exp $
+# $Id: index.php,v 1.6 2002/12/17 15:24:14 gartmann Exp $
 # This file is part of the NAV project.
 # index is the main part of the ragen (report generator) web interface.
 # The reports defined in the ragen.conf-file is displayed in this web 
@@ -108,11 +108,11 @@ $sql2 = "SELECT ".join(",",$select)." FROM ".$har_from;
 $sql_antall = "SELECT $select[0] FROM ".$har_from;
 if($ar_where){
     foreach($ar_where as $key => $value){
-#	print $value;
-#	print "|";
+	//print $value;
+	//print "|";
 	$value = preg_replace("/(.+)\s+AS\s+\S+/i","\\1",$value);
-#	print $value;
-#	print "#";
+	//print $value;
+	//print "#";
 	$ar_where[$key] = $value;
     }
     $har_where = " WHERE ".join(" AND ",$ar_where);
