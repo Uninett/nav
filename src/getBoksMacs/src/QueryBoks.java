@@ -282,7 +282,7 @@ public class QueryBoks extends Thread
 			for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
-				String new_to_swportid = (String)interfaceMap.get(pm.getRemoteIf());
+				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
