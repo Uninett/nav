@@ -1,12 +1,15 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.17 2002/06/25 23:51:53 magnun Exp $
+$Id: controller.py,v 1.18 2002/06/27 11:47:44 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
+import os
+os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
+os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 
-import RunQueue, types, os, time, job, getopt, signal, database, config
+import RunQueue, types, time, job, getopt, signal, database, config
 
 class controller:
     def __init__(self, **kwargs):

@@ -1,6 +1,6 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.5 2002/06/15 21:34:42 magnun Exp $
+$Id: config.py,v 1.6 2002/06/27 11:47:44 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
 

@@ -2,12 +2,12 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.13 2002/06/25 23:51:53 magnun Exp $
+$Id: database.py,v 1.14 2002/06/27 11:47:44 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
-import thread
+import thread, jobmap
 from psycopg import connect
-from job import Event,jobmap
+from job import Event
 from Queue import Queue
 
 db = None
@@ -15,6 +15,8 @@ db = None
 queue = Queue()
 
 def startup(dsn):
+	global mapper
+	mapper=jobmap.jobmap()
 	global db
 	db = connect(dsn)
 	thread.start_new_thread(run,())
@@ -53,7 +55,7 @@ def getJobs():
 	c.execute(query)
 	jobs = []
 	for serviceid,boksid,handler,version,ip in c.fetchall():
-		job = jobmap.get(handler,'')
+		job = mapper.get(handler)
 		if not job:
 			print 'no such handler:',handler
 		newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
