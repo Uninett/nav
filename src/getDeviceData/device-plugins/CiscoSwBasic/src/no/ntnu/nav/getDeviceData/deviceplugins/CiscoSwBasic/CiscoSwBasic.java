@@ -465,17 +465,4 @@ public class CiscoSwBasic implements DeviceHandler
 		return modul;
 	}
 
-	private static void outa(String s) { System.out.print(s); }
-	private static void outla(String s) { System.out.println(s); }
-
-	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
-	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
-
-	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
-
 }

@@ -46,6 +46,14 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	}
 
 	/**
+	 * Get a data-handler for this container; this is a reference to the
+	 * NetboxHandler object which created the container.
+	 */
+	public DataHandler getDataHandler() {
+		return nh;
+	}
+
+	/**
 	 * <p> Return a NetboxData object which is used to describe a single
 	 * netbox. Since deviceplugins only works with a single netbox at a
 	 * time, it should only be neccessary to call this method once;
@@ -69,19 +77,6 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 		NetboxUpdatable nb = (NetboxUpdatable)nd.getNetbox();
 		nb.setType(nd.getType());
 		nb.setSysname(nd.getSysname());
-
-		// Typegroup we must look up in the database
-		try {
-			ResultSet rs = Database.query("SELECT typegroupid FROM type WHERE typeid = '"+nd.getType()+"'");
-			if (!rs.next()) {
-				Log.c("NetboxContainer", "COMMIT", "Typegroup not found for typeid: " + nd.getType());
-				return;
-			}
-			nb.setTypegroup(rs.getString("typegroupid"));
-		} catch (SQLException e) {
-			Log.e("NetboxContainer", "COMMIT", "SQLException: " + e.getMessage());
-			e.printStackTrace(System.err);
-		}
 
 		commit = true;		
 	}

@@ -427,13 +427,4 @@ public class _3Com implements DeviceHandler
 		return null;
 	}
 
-	private static void oute(String s) { System.err.print(s); }
-	private static void outle(String s) { System.err.println(s); }
-
-	private static void outa(String s) { System.out.print(s); }
-	private static void outla(String s) { System.out.println(s); }
-
-	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
-	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
-
 }

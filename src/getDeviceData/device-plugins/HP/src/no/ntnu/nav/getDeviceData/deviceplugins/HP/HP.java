@@ -17,13 +17,17 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 public class HP implements DeviceHandler
 {
-	private static boolean VERBOSE_OUT = true;
-	private static boolean DEBUG_OUT = true;
+	private static String[] canHandleOids = {
+		"ifIndex",
+		"ifSpeed",
+		"ifAdminStatus",
+		"ifOperStatus"
+	};
 
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.getTypegroup() != null && nb.getTypegroup().equals("hpsw") ? ALWAYS_HANDLE : NEVER_HANDLE;
+		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("HP_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
@@ -49,16 +53,12 @@ public class HP implements DeviceHandler
 		String netboxid = nb.getNetboxidS();
 		String ip = nb.getIp();
 		String cs_ro = nb.getCommunityRo();
-		String typegroup = nb.getTypegroup();
 		String type = nb.getType();
 		String sysName = nb.getSysname();
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		// Just to be sure...
-		if (canHandleDevice(nb) <= 0) return;
-
-		processHP(netboxid, ip, cs_ro, typegroup, type, sc);
+		processHP(nb, netboxid, ip, cs_ro, type, sc);
 
 		// Commit data
 		sc.commit();
@@ -68,9 +68,16 @@ public class HP implements DeviceHandler
 	 * HP
 	 *
 	 */
-	private void processHP(String netboxid, String ip, String cs_ro, String typegroup, String typeid, SwportContainer sc) throws TimeoutException
+	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
 	{
-		typeid = typeid.toLowerCase();
+
+		/* // Just for testing
+		Log.d("PROCESS_HP", "Actual SNMP processing not active");
+		Log.d("PROCESS_HP", "Allowed ifIndex: " + nb.requestOidFetchPermission("ifIndex"));
+		Log.d("PROCESS_HP", "Allowed ifType: " + nb.requestOidFetchPermission("ifType"));		
+		Log.d("PROCESS_HP", "Allowed ifDuplex: " + nb.requestOidFetchPermission("ifDuplex"));
+		if (true) return;
+		*/
 
 		/*
 		HP 2524:
@@ -213,8 +220,11 @@ public class HP implements DeviceHandler
 			SwModule m = sc.swModuleFactory(serial, hw_ver, sw_ver, modul);
 
 			// Get data
-			sSnmp.setBaseOid(ifSpeedOid);
-			ArrayList ifSpeedList = sSnmp.getAll();
+			Map speedMap = null;
+			if (nb.requestOidFetchPermission("ifType")) {
+				sSnmp.setBaseOid(nb.getOid("ifType"));
+				speedMap = sSnmp.getAllMap();
+			}
 
 			sSnmp.setBaseOid(ifOperStatusOid);
 			ArrayList ifOperStatusList = sSnmp.getAll();
@@ -234,12 +244,14 @@ public class HP implements DeviceHandler
 				break;
 			}
 			*/
-
+			
+			/*
 			HashMap speedMap = new HashMap();
 			for (int j=0; j < ifSpeedList.size(); j++) {
 				String[] speed = (String[])ifSpeedList.get(j);
 				speedMap.put(speed[0], speed[1]);
 			}
+			*/
 
 			HashMap operStatusMap = new HashMap();
 			for (int j=0; j < ifOperStatusList.size(); j++) {
@@ -263,13 +275,10 @@ public class HP implements DeviceHandler
 				vl.add(vlan[1]);
 			}
 
-			//errl("size: " + portTypeList.size());
-
 			for (int j=0; j < portTypeList.size(); j++) {
 				String[] portType = (String[])portTypeList.get(j);
 				String ifindex = portType[0];
 
-				String speed = (String)speedMap.get(ifindex);
 				String operStatus = (String)operStatusMap.get(ifindex);
 				String admStatus = (String)admStatusMap.get(ifindex);
 
@@ -287,14 +296,18 @@ public class HP implements DeviceHandler
 					continue;
 				}
 
-				long speedNum;
-				try {
-					speedNum = Long.parseLong(speed);
-				} catch (NumberFormatException e) {
-					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException on speed: " + speed);
-					continue;
+				String speedS = null;
+				if (speedMap != null) {
+					String speed = (String)speedMap.get(ifindex);
+					long speedNum;
+					try {
+						speedNum = Long.parseLong(speed);
+					} catch (NumberFormatException e) {
+						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException on speed: " + speed);
+						continue;
+					}
+					speedS = String.valueOf( (speedNum/1000000) );
 				}
-				String speedS = String.valueOf( (speedNum/1000000) );
 
 				char link = 'd'; // adm down
 				try {
@@ -306,11 +319,11 @@ public class HP implements DeviceHandler
 						else link = 'n'; // link oper down
 					}
 					else if (n != 2 && n != 0) {
-						errl("  processHP: netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
+						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
 						continue;
 					}
 				} catch (NumberFormatException e) {
-					errl("  processHP: netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatus);
+					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatus);
 					continue;
 				}
 
@@ -319,86 +332,86 @@ public class HP implements DeviceHandler
 				try {
 					int n = Integer.parseInt(portType[1]);
 					switch (n) {
-						case   1: // other(1),
-							media = "Unknown";
-							duplex = 'f'; // full
+					case   1: // other(1),
+						media = "Unknown";
+						duplex = 'f'; // full
 						break;
 
-						case   2: // none(2),
-							media = "None";
-							duplex = 'f'; // full
+					case   2: // none(2),
+						media = "None";
+						duplex = 'f'; // full
 						break;
 
-						case   6: // ethernetCsmacd(6),
-							media = "ethernetCsmacd";
-							duplex = 'f'; // full
+					case   6: // ethernetCsmacd(6),
+						media = "ethernetCsmacd";
+						duplex = 'f'; // full
 						break;
 
-						case   7: // iso88023Csmacd(7),
-							media = "iso88023Csmacd";
-							duplex = 'f'; // full
+					case   7: // iso88023Csmacd(7),
+						media = "iso88023Csmacd";
+						duplex = 'f'; // full
 						break;
 
-						case  15: // fddi(15),
-							media = "FDDI";
-							duplex = 'h'; // half
+					case  15: // fddi(15),
+						media = "FDDI";
+						duplex = 'h'; // half
 						break;
 
-						case  37: // atm(37),
-							media = "ATM";
-							duplex = 'f'; // full
+					case  37: // atm(37),
+						media = "ATM";
+						duplex = 'f'; // full
 						break;
 
-						case  54: // propMultiplexor(54),
-							media = "propMultiplexor";
-							duplex = 'f'; // full
+					case  54: // propMultiplexor(54),
+						media = "propMultiplexor";
+						duplex = 'f'; // full
 						break;
 
-						case  55: // ieee80212(55),
-							media = "ieee80212";
-							duplex = 'f'; // full
+					case  55: // ieee80212(55),
+						media = "ieee80212";
+						duplex = 'f'; // full
 						break;
 
-						case  62: // fastEther(62),
-							media = "100BaseTX";
-							duplex = 'f'; // full
+					case  62: // fastEther(62),
+						media = "100BaseTX";
+						duplex = 'f'; // full
 						break;
 
-						case  69: // fastEtherFX(69),
-							media = "100BaseFX";
-							duplex = 'f'; // full
+					case  69: // fastEtherFX(69),
+						media = "100BaseFX";
+						duplex = 'f'; // full
 						break;
 
-						case 117: // gigabitEthernetSX (117),
-							media = "1000BaseSX";
-							duplex = 'f'; // full
+					case 117: // gigabitEthernetSX (117),
+						media = "1000BaseSX";
+						duplex = 'f'; // full
 						break;
 
-						case 118: // gigabitEthernetLX (118),
-							media = "1000BaseLX";
-							duplex = 'f'; // full
+					case 118: // gigabitEthernetLX (118),
+						media = "1000BaseLX";
+						duplex = 'f'; // full
 						break;
 
-						case 119: // gigabitEthernetT (119),
-							media = "1000BaseTX";
-							duplex = 'f'; // full
+					case 119: // gigabitEthernetT (119),
+						media = "1000BaseTX";
+						duplex = 'f'; // full
 						break;
 
-						case 120: // gigabitEthernetStk (120)
-							media = "1000BaseSTK";
-							duplex = 'f'; // full
+					case 120: // gigabitEthernetStk (120)
+						media = "1000BaseSTK";
+						duplex = 'f'; // full
 						break;
 
-						default:
-							Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown port type: " + n);
-							continue;
+					default:
+						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown port type: " + n);
+						continue;
 					}
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for port type: " + portType[1]);
 					continue;
 				}
 
-				Log.d("PROCESS_HP", "Added portData("+netboxid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Link: " + link + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media);
+				Log.d("PROCESS_HP", "Added portData("+netboxid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Link: " + link + " Speed: " + speedS + " Duplex: " + duplex + " Media: " + media);
 
 				// PortData(String ifindex, String modul, String port, String status, String speed, String duplex, String media, boolean trunk, String portnavn)
 				//PortData pd = new PortData(ifindex, modul, port, status, speedS, duplex, media, false, "");
@@ -423,18 +436,5 @@ public class HP implements DeviceHandler
 		}
 
 	}
-
-	private static void outa(String s) { System.out.print(s); }
-	private static void outla(String s) { System.out.println(s); }
-
-	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
-	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
-
-	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
 
 }

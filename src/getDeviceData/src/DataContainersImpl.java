@@ -37,7 +37,12 @@ public class DataContainersImpl implements DataContainers {
 	void callDataHandlers(Netbox nb) {
 		for (Iterator i = containers.values().iterator(); i.hasNext();) {
 			DataContainer dc = (DataContainer)i.next();
-			dc.getDataHandler().handleData(nb, dc);
+			DataHandler dh = dc.getDataHandler();
+			if (dh == null) {
+				Log.w("DATA_CONTAINERS_IMPL", "CALL_DATA_HANDLERS", "DataHandler is null for DataContainer: " + dc);
+				continue;
+			}
+			dh.handleData(nb, dc);
 		}
 	}
 

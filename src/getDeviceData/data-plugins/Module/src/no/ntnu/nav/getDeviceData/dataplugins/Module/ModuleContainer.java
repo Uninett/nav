@@ -43,6 +43,14 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	/**
+	 * Get a data-handler for this container; this is a reference to the
+	 * ModuleHandler object which created the container.
+	 */
+	public DataHandler getDataHandler() {
+		return mh;
+	}
+
+	/**
 	 * Return a Module object which is used to describe a single module
 	 */
 	public Module moduleFactory(String serial, String hw_ver, String sw_ver, String module) {

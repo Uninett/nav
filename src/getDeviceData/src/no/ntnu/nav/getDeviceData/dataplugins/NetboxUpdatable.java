@@ -7,7 +7,6 @@ package no.ntnu.nav.getDeviceData.dataplugins;
  */ 
 public interface NetboxUpdatable
 {
-	public void setTypegroup(String s);
 	public void setType(String s);
 	public void setSysname(String s);
 }

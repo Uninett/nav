@@ -12,7 +12,6 @@ public interface Netbox
 	public String getNetboxidS();
 	public String getIp();
 	public String getCommunityRo();
-	public String getTypegroup();
 	public String getType();
 	public String getSysname();
 	public String getCat();
@@ -20,19 +19,24 @@ public interface Netbox
 	public String getSnmpagent();
 
 	/**
-	 * <p> Check if the OID for the given key is ready to be
-	 * quiered. Since different OID's, or even equal OID's, but on
-	 * different types of devices, can have different query frequencies,
-	 * this method should be called before attempting to query the
-	 * device. </p>
+	 * Takes as input an array of oidkeys, and returns true if this
+	 * netbox supports any of the given oidkeys.
 	 *
-	 * <p> Note that when this method is called with a key and returns
-	 * true it is assumed the OID will be quiered in this run. </p>
+	 * @param oidkeys Oidkeys to check
+	 * @return true if netbox supports any of the given oidkeys
+	 */
+	public boolean isSupportedOids(String[] oidkeys);
+
+	/**
+	 * <p> Ask permission to fetch the OID for the given key. Since
+	 * different OID's, or even equal OID's, but on different types of
+	 * devices, can have different query frequencies, this method must
+	 * be called before attempting to query the device. </p>
 	 *
 	 * @param key The key for the OID
-	 * @return if the OID is ready to be quieried
+	 * @return true if the OID is ready to be quieried
 	 */
-	public boolean isReadyOid(String key);
+	public boolean requestOidFetchPermission(String key);
 
 	/**
 	 * Get the OID for the given key.

@@ -19,8 +19,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
  *      Look at one of the existing device plugin modules for an example.
  *  </li>
  *  <li>Implement the {@link #canHandleDevice canHandleDevice()} method. The method will typically use the
- *      {@link Netbox#getType getType()} and
- *      {@link Netbox#getTypegroup getTypegroup()} methods of {@link Netbox Netbox} to determine if the device can be handled.
+ *      {@link Netbox#isSupportedOids isSupportedOids()} method of {@link Netbox Netbox} to determine
+ *      if the device can be handled.
  *  </li>
  *  <li>Implement the {@link #handleDevice handleDevice()} method. Here the actual data collection should take place; the
  *      {@link no.ntnu.nav.SimpleSnmp.SimpleSnmp SimpleSnmp} object can be used for getting data via SNMP.
