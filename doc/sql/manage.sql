@@ -205,6 +205,7 @@ CREATE TABLE type (
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
   cs_at_vlan BOOL,
+  chassis BOOL NOT NULL DEFAULT true,
   frequency INT4,
   uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
