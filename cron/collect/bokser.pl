@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #use Socket;
 use SNMP_util;
@@ -19,6 +19,9 @@ my $mib_type =     ".1.3.6.1.2.1.1.2.0";
 
 my (%server,%db_server,%nettel,%db_nettel,%alle,%db_alle);
 
+#unntak: bokser på watch
+my %db_unntak = ();#&db_hent_enkel($conn,"select ip,watch from boks where watch='y' or watch='t'");
+
 #sysname-endelser
 #leses inn fra fil og legges i kolonseparert skalar
     my $fil_endelser = "$localconf/endelser.txt";
@@ -26,42 +29,45 @@ my (%server,%db_server,%nettel,%db_nettel,%alle,%db_alle);
     my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
 #-----------------------
 #FILLESING: server.txt
-my @felt_server = ("ip","romid","sysname","orgid","kat","kat2","ro");
+my @felt_server = ("sysname","ip","romid","orgid","kat","kat2","ro");
 my $fil_server = "$localkilde/server.txt";
 %server = &fil_server($fil_server,scalar(@felt_server),$endelser);
 
 #----------------------------------
 #DATABASELESING
 
-%db_server = &db_hent_hash($conn,"SELECT ".join(",", @felt_server )." FROM boks");
+#hadde tenkt å ha med watch her, men vi bruker ikke snmp på servere per dags dato. Kan bare settes på når de ikke blir tatt med da de ikke svarer på snmp.
+%db_server = &db_hent_hash($conn,"SELECT ".join(",", @felt_server )." FROM boks where kat = 'SRV'");
 #legge til alle
 for my $a (keys %db_server) {
-    $db_alle{$a} = 1;
+    my $ip = $db_server{$a}[1];
+    $db_alle{$ip} = 1;
 }
 
 &db_endring($conn,\%server,\%db_server,\@felt_server,"boks");
 
 #------------------------------
 #FILLESING: nettel.txt
-my @felt_nettel = ("ip","typeid","romid","sysname","orgid","kat","kat2","ro","rw");
+my @felt_nettel = ("sysname","ip","typeid","romid","orgid","kat","kat2","ro","rw");
 my $fil_nettel = "$localkilde/nettel.txt";
-%nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser);
+%nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%db_unntak);
 
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
 
-%db_nettel = &db_hent_hash($conn,"SELECT ".join(",", @felt_nettel )." FROM boks");
+%db_nettel = &db_hent_hash($conn,"SELECT ".join(",", @felt_nettel )." FROM boks where kat <> 'SRV'");
 
 #legge til i alle
 for my $a (keys %db_nettel) {
-    $db_alle{$a} = 1;
+    my $ip = $db_nettel{$a}[1];
+    $db_alle{$ip} = 1;
 }
 &db_endring($conn,\%nettel,\%db_nettel,\@felt_nettel,"boks");
 
 #-----------------------------------
 #DELETE
-    my @felt_alle = ("ip");
+    my @felt_alle = ("ip"); # felt som fungerer som sletteindex, i.e. ip
     &db_sletting($conn,\%alle,\%db_alle,\@felt_alle,"boks");
 
 sub fil_endelser {
@@ -77,26 +83,29 @@ sub fil_endelser {
     return join(":",@endelser);
 }
 sub fil_nettel{
-    my ($fil,$felt,$endelser) = @_;
+    my ($fil,$felt,$endelser) = @_[0..2];
+    my %unntak = %{$_[3]};
     
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     while (<FIL>) {
 	@_ = &fil_hent_linje($felt,$_);
-
-	if(my $ip = $_[1]){
+	my $ip = $_[1];
+	if($ip&&!exists($unntak{$ip})){
 	    my $ro = $_[5];
 	    my $temptype;
-	    if($temptype = &snmp_type($ip,$ro,$mib_type)) {
-		my $type = $type{$temptype};
-		my $sysname = &snmp_sysname(1,$ip,$ro,$mib_sysname,$endelser);
-#		if($type) {
-		    @_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
-		    @_ = map rydd($_), @_;
-		    
-		    $nettel{$_[0]} = [ @_ ];
-		    $alle{$_[0]} = 1;
-#		}
+	    my $sysname;
+# gammel    ($sysname,$temptype) = &snmp_system(1,$ip,$ro,$endelser);
+	    ($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
+	    my $type = $type{$temptype};
+	    if($sysname){
+		@_ = ($sysname,$ip,$type,$_[0],$_[2],@_[3..6]);
+		@_ = map rydd($_), @_;
+		
+		$nettel{$sysname} = [ @_ ];
 	    }
+	    # må legges inn så lenge den eksisterer i fila, uavhengig av snmp
+	    $alle{$ip} = 1;
+	    print $sysname.$type."\n";
 	}
 	
     }
@@ -118,11 +127,12 @@ sub fil_server{
 	    
 	    my $sysname = &fjern_endelse($_[2],$endelser);
 	    
-	    $server{$_[0]} = [ @_[0..1],$sysname,@_[3..6] ];
-	    $alle{$_[0]} = 1;
+	    $server{$sysname} = [ $sysname,@_[0..1],@_[3..6] ];
+	    $alle{$ip} = 1;
 	}
     }
     close FIL;
     return %server;
 }
+
 return 1;

@@ -9,6 +9,7 @@ require "$lib/database.pl";
 require "$lib/snmplib.pl";
 require "$lib/fil.pl";
 require "$lib/iplib.pl";
+my $debug = 0;
 
 my $ip2IfIndex     = ".1.3.6.1.2.1.4.20.1.2"; 
 my $ip2NetMask     = ".1.3.6.1.2.1.4.20.1.3"; 
@@ -47,7 +48,7 @@ my %db_gwport = &db_select_hash($db,"gwport",\@felt_gwport,1,2,3);
 
 foreach my $boksid (keys %bokser) { #$_ = boksid keys %boks
     if($bokser{$boksid}[3] =~ /y|t/i) {
-	print "$bokser{$boksid}[2] er på watch.\n";
+	print "\n\n$bokser{$boksid}[2] er på watch. Data vil ikke bli hentet for denne ruteren.";
     } else {
 	if ( &hent_snmpdata($boksid,$bokser{$boksid}[1],$bokser{$boksid}[4]) eq '0' ) {
 	    print "Kunne ikke hente data fra $bokser{$boksid}[2]\n";
@@ -100,7 +101,7 @@ foreach my $prefiksid (keys %prefiksid2gwip) {
 }
 ## Setter antmask. Dette skjer til slutt. Det er dumt, det kunne vært
 ## gjort underveis.
-my %antmask = &db_hent_enkel($db,"select prefiksid,count(distinct mac) from arp where date_part('days',cast(NOW()-fra as INTERVAL)) <1 or til is null group by prefiksid");
+my %antmask = &db_hent_enkel($db,"select prefiksid,count(distinct mac) from arp where date_part('days',cast(NOW()-fra as INTERVAL)) <7 or til ='infinity' group by prefiksid");
 my %db_antmask = &db_hent_enkel($db,"select prefiksid,antmask from prefiks");
 foreach my $prefiksid (keys %db_antmask) {
     my $gammel = $db_antmask{$prefiksid};
@@ -112,7 +113,6 @@ foreach my $prefiksid (keys %db_antmask) {
 	&db_update($db,"prefiks","antmask",$gammel,$ny,"prefiksid=$prefiksid");
     }
 }
-
 
 ######################################
 sub hent_snmpdata {
@@ -215,27 +215,6 @@ sub hent_snmpdata {
     }
 
 
-#GA må svare for denne
-#går ut på å slette gw2 fra 23-bits nett
-#    foreach my $gwip (keys %gatewayip) {
-#		if (!($gatewayip{$gwip}{maske} == 0))  #  bits ulik 0 
-#ikke ennå	    && ($interface{$gatewayip{$gwip}{index}}{status} == 1))# nettet er adm oppe
-#	{
-        # Fjerner "gw nummer 2" fra 23-bits nett.
-#	    if ($gatewayip{$gwip}{maske} == 23) {
-#		my @temp = split(/\./,$gwip);
-#		my $temp = $temp[2] & 254;
-#		if ($temp[2] ne $temp){
-#		    delete $gatewayip{$gwip};
-#		    print "Sletter $gwip\n";
-#		}
-#	    }
-#	}
-#	else
-#	{
-#	    delete $gatewayip{$gwip};
-#	}
-#    }
     foreach my $if ( keys %interface ) {
 #	print $interface{$if}{status};
 	if($interface{$if}{status} == 1 && $interface{$if}{type} != 23) {
@@ -348,7 +327,7 @@ sub hent_snmpdata {
 #	    print "har funnet ukjent $_";
 	    my $nettype = "ukjent";
 	    if($prefiks{$nettadr}{$maske}[8]){
-		print "skriver ikke over $prefiks{$nettadr}{$maske}[8] \n";
+		print "\n\nSkriver ikke over $prefiks{$nettadr}{$maske}[8]" if $debug;
 	    } else {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
