@@ -1,8 +1,13 @@
 
-<p>[ <a href="ip">ip</a> | <a href="mac">mac</a> | <a href="swp">swp</a> ]</p>
+#extends MainTemplate
 
+#attr $path =  [("Home", "/"), ("Machine Tracker", "/machinetracker/")]
 
 #block content
+
+<p>[ <a href="ip">ip</a> | <a href="mac">mac</a> | <a href="swp">swp</a> ]</p>
+
+<table><tr><td style="font-size: 13px;">
 
 #if $form.dns=="on"
 #set $checked="checked"
@@ -21,59 +26,134 @@
 #end if 
 
 #if $form.search=="mac"
-
 <form action="" method="get">
-	<label>MAC</label><input type=text name=mac value=$form.mac>
-	<label>active</label><input type=checkbox name=aip>
-	<label>inactive</label><input type=checkbox name=naip>
-	<label>dns</label><input type=checkbox name=dns $checked>
-	<label>days</label><input type=text name=days value=$form.days>
+	<label>MAC </label><input type=text name=mac value=$form.mac>
+	<input type=checkbox name=aip $activechecked><label>active</label>
+	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
+	<input type=checkbox name=dns $checked><label>dns</label>
+#if $form.days
+	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+#else
+	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+#end if
 	<input type=submit name=send value="Send">
 </form>
 
 #elif $form.search=="swp"
 <form action="" method="get">
-	<label>Switch</label><input type=text name=switch value=$form.switch>
-	<label>Module</label><input type=text name=module value=$form.module>
-	<label>Port</label><input type=text name=port value=$form.port>
-	<label>active</label><input type=checkbox name=aip>
-	<label>inactive</label><input type=checkbox name=naip>
-	<label>dns</label><input type=checkbox name=dns $checked>
-	<label>days</label><input type=text name=days value=$form.days>
+	<label>Switch </label><input type=text name=switch value=$form.switch>
+	<label>Module </label><input type=text name=module size=3 value=$form.module>
+	<label>Port </label><input type=text name=port size=3 value=$form.port>
+	<input type=checkbox name=aip $activechecked><label>active</label>
+	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
+	<input type=checkbox name=dns $checked><label>dns</label>
+#if $form.days
+	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+#else
+	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+#end if
 	<input type=submit name=send value="Send">
 </form>
 
 #else
 
 <form action="" method="get">
-	<label>IP from</label><input type=text name=from_ip value=$form.ip_from>
-	<label>to</label><input type=text name=to_ip value=$form.ip_to>
-	<label>active</label><input type=checkbox name=aip $activechecked>
-	<label>inactive</label><input type=checkbox name=naip $inactivechecked>
-	<label>dns</label><input type=checkbox name=dns $checked>
-	<label>days</label><input type=text name=days value=$form.days>
+	<label>IP from </label><input type=text name=from_ip value=$form.ip_from>
+	<label>to </label><input type=text name=to_ip value=$form.ip_to>
+	<input type=checkbox name=aip $activechecked><label>active</label>
+	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
+	<input type=checkbox name=dns $checked><label>dns</label>
+#if $form.days
+	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+#else
+	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+#end if
 	<input type=submit name=send value="Send">
 </form>
 
 #end if
 
 #if $table
+<p>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<!------------------------- TITLE  ---->
+#set $rows = len($table)
+    <tr class="title">
+#if $form.dns=="on":
+      <td class="title" align="center" colspan="9" style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
+#else
+      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
+#end if
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="current">
+              <div class="title"><font color="black">Your Search</font></div>
+              $rows hits
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+<!------------------------- HEADER ---->
+#set $rows = len($table) + 2
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+#if $form.dns=="on":
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          DNS &nbsp;
+      </td>
+#end if
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          IP &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          MAC &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Switch &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Module &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Port &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Start time &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          End time &nbsp;
+      </td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+    </tr>
 
-<table>
+#set $rowtype = "evenrow"
 #for row in $table
-        <tr>
+#if $row.ipaddr
+   #if $rowtype == "evenrow"
+      #set $rowtype = "oddrow"
+   #else
+      #set $rowtype = "evenrow"
+   #end if
+#end if
+        <tr class="$rowtype">
 ##for cell in $row
 #if $form.dns=="on":
-		<td>$row.dnsname</td>
+		<td nowrap>$row.dnsname &nbsp;</td>
 #end if
-##                <td>$cell</td>
-		<td><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns">$row.ipaddr</a></td>
-		<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns">$row.mac</a></td>
-		<td><a href="/browse/$row.switch">$row.switch</a></td>
-		<td>$row.module</td>
-		<td><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a></td>
-		<td>$row.start_time</td>
-		<td>$row.end_time</td>
+##                <td>$cell </td>
+		<td nowrap><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns">$row.ipaddr</a> &nbsp;</td>
+		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns">$row.mac</a> &nbsp;</td>
+		<td nowrap><a href="/browse/$row.switch">$row.switch</a> &nbsp;</td>
+		<td nowrap align="center">$row.module &nbsp;</td>
+		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a> &nbsp;</td>
+		<td nowrap >$row.start_time &nbsp;</td>
+		<td nowrap >$row.end_time &nbsp;</td>
 ##end for
         </tr>
 #end for
@@ -82,4 +162,10 @@
 <p>The NAV system collects arp and cam information from all registered net devices. Arp data from all routers are inserted into the NAV database every 30. minutes, and mac address tables from all layer2-equipment are collected and inserted every X. minutes.</p><p> Machine tracker gives you the opportunity to search these data, to trace the whereabouts of a mac address or an IP address. The reverse search is also possible; to find which mac/ip was registered on a specified switchport in the last days.</p>
 #end if
 
+</td></tr></table></p>
+
 #end block content
+
+#block additionalCSS
+$default_table_CSS
+#end block additionalCSS
