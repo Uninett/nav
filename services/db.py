@@ -1,11 +1,11 @@
 """
 $Author: magnun $
-$Id: db.py,v 1.1 2002/06/15 21:30:47 magnun Exp $
+$Id: db.py,v 1.2 2002/06/15 21:34:42 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/db.py,v $
 
 """
 
-import thread, psycopg, job, Queue
+import threading, psycopg, job, Queue
 
 class db(threading.Thread):
     def __init__(self, dsn):

@@ -1,6 +1,6 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.4 2002/06/15 21:27:55 magnun Exp $
+$Id: config.py,v 1.5 2002/06/15 21:34:42 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/config.py,v $
 
 
@@ -19,7 +19,7 @@ class config(dict):
             self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
             self.parsefile()
         except:
-            print "Failed to open %s" % CONFIGFILE
+            print "Failed to open %s" % configfile
             os.sys.exit(0)
 
     def parsefile(self):
