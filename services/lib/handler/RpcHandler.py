@@ -1,5 +1,5 @@
 """
-$Id: RpcHandler.py,v 1.6 2002/10/08 18:46:03 magnun Exp $
+$Id: RpcHandler.py,v 1.7 2002/12/09 15:33:15 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/RpcHandler.py,v $
 """
 import os
@@ -10,9 +10,9 @@ class RpcHandler(JobHandler):
 	requried
 	ex: nfs,nlockmgr
 	"""
-	def __init__(self, serviceid, boksid, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version,sysname):
 		port = args.get("port", 111)
-		JobHandler.__init__(self, "rpc", serviceid, boksid, (ip, port), args, version)
+		JobHandler.__init__(self, "rpc", serviceid, boksid, (ip, port), args, version,sysname)
 
 	def execute(self):
 		args = self.getArgs()

@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.7 2002/07/17 18:01:36 magnun Exp $
+$Id: DnsHandler.py,v 1.8 2002/12/09 15:33:15 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler, Event
@@ -9,9 +9,9 @@ class DnsHandler(JobHandler):
 	Valid argument(s): request
 	"""
 
-	def __init__(self, serviceid, boksid, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version,sysname):
 		port = args.get("port", 42)
-		JobHandler.__init__(self, "dns", serviceid, boksid,(ip, port) , args, version)
+		JobHandler.__init__(self, "dns", serviceid, boksid,(ip, port) , args, version,sysname)
 
 	def execute(self):
 		ip, port = self.getAddress()
