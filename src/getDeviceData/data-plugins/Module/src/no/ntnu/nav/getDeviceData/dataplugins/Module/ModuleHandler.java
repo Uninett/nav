@@ -129,23 +129,26 @@ public class ModuleHandler implements DataHandler {
 			String moduleKey = nb.getNetboxid()+":"+md.getKey();
 			String moduleid = null;
 			Module oldmd = (Module)moduleMap.get(moduleKey);
-			//System.err.println("oldmd: " + oldmd);
+			/*
+			System.err.println("oldmd("+moduleKey+"): " + oldmd);
+			System.err.println("   md("+moduleKey+"): " + md);
+			System.err.println();
+			*/
 
 			try {
-				if (modDevidMap.containsKey(md.getDeviceidS())) {
+				if (oldmd != null && oldmd.getDeviceid() != md.getDeviceid()) {
+					// Module has changed
+					Log.i("UPDATE_MODULE", "Module has changed to new device");
+					// Delete old module
+					modDevidMap.put(md.getDeviceidS(), oldmd.getModuleidS());
+					oldmd = null;
+				}					
+
+				if (oldmd == null && modDevidMap.containsKey(md.getDeviceidS())) {
+					// Delete old module
 					String mid = (String)modDevidMap.get(md.getDeviceidS());
-					boolean b = oldmd != null && !oldmd.getModuleidS().equals(mid);
-					//System.err.println("mid: " + mid + " b: " + b);
-					if (oldmd == null || b) {
-						if (b) {
-							Database.update("DELETE FROM module WHERE moduleid='"+oldmd.getModuleidS()+"'");
-						}
-						Database.update("UPDATE module SET netboxid = '" + nb.getNetboxidS() + "' WHERE moduleid='"+mid+"'");
-						oldmd = new Module(0);
-						oldmd.setDeviceid(md.getDeviceid());
-						oldmd.setModuleid(mid);
-					}
-					//System.err.println("oldmd: " + oldmd + "\n");
+					Log.d("DEL_MODULE", "Deleting old module("+mid+"), md: " + md);
+					Database.update("DELETE FROM module WHERE moduleid='"+mid+"'");
 				}
 				
 				if (oldmd == null) {
@@ -168,6 +171,7 @@ public class ModuleHandler implements DataHandler {
 					};
 					moduleid = Database.insert("module", ins, null);
 					changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
+					modDevidMap.put(md.getDeviceidS(), moduleid);
 					if ("0".equals(moduleid)) {
 						Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
 						System.err.println("Database returned 0 ID for new module ("+nb.getNetboxid()+"), should not happen!");
@@ -185,15 +189,7 @@ public class ModuleHandler implements DataHandler {
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" model="+md.getModel()+" descr="+md.getDescr());
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+oldmd.getDeviceidS()+" module="+oldmd.getModule()+" model="+oldmd.getModel()+" descr="+oldmd.getDescr());
 
-						boolean newDevid = false;
-						if (oldmd.getDeviceid() != md.getDeviceid()) {
-							// Module has changed
-							Log.i("UPDATE_MODULE", "Module has changed to new device");
-							newDevid = true;
-						}
-
 						String[] set = {
-							"deviceid", md.getDeviceidS(),
 							"module", ""+md.getModule(),
 							"model", md.getModel(),
 							"descr", md.getDescr(),
@@ -202,7 +198,7 @@ public class ModuleHandler implements DataHandler {
 							"moduleid", moduleid
 						};
 						Database.update("module", set, where);
-						changedDeviceids.put(md.getDeviceidS(), new Integer(newDevid ? DataHandler.DEVICE_ADDED : DataHandler.DEVICE_UPDATED ));
+						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 					}
 				}
 

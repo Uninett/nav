@@ -31,6 +31,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
+	private Set moduleSet = new HashSet();
 	private boolean commit = false;
 
 	protected ModuleContainer(ModuleHandler mh) {
@@ -117,6 +118,13 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	/**
+	 * Get the set of module numbers.
+	 */
+	public Set getModuleSet() {
+		return moduleSet;
+	}
+
+	/**
 	 * Add the module to the internal module list.
 	 *
 	 * @param m The module to add
@@ -125,6 +133,12 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		// Also add it to the parent
 		addDevice(m);
 		moduleList.add(m);
+		moduleSet.add(""+m.getModule());
+		/*
+		if ("1".equals(""+m.getModule())) {
+			new RuntimeException().printStackTrace(System.err);
+		}
+		*/
 	}
 
 	public void commit() {

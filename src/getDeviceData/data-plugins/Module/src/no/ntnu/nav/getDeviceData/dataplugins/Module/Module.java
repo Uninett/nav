@@ -49,6 +49,11 @@ public class Module extends Device implements Comparable
 	 */
 	protected String getModuleidS() { return String.valueOf(moduleid); }
 
+	public void setSerial(String s) {
+		super.setSerial(s);
+	}
+
+
 	/**
 	 * Set the moduleid of this module.
 	 */
@@ -67,12 +72,20 @@ public class Module extends Device implements Comparable
 	/**
 	 * Set the model of this module.
 	 */
-	public void setModel(String s) { model = s; }
+	public void setModel(String s) {
+		if (s != null && s.length() > 0) {
+			model = s;
+		}
+	}
 
 	/**
 	 * Set the description of this module.
 	 */
-	public void setDescr(String s) { descr = s; }
+	public void setDescr(String s) {
+		if (s != null && s.length() > 0) {
+			descr = s;
+		}
+	}
 
 	/**
 	 * Return a key which identifies this module (currently the module number is returned).
