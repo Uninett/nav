@@ -792,10 +792,17 @@ class ThresholdSectionBox(SectionBox):
         DATASOURCEID = 8
         
         for tmpline in result:
+            tmpline = list(tmpline)
             # Must insert description (-1 since description isnt there yet)
+            if not tmpline[DATASOURCE_DESCR-1]:
+                tmpline[DATASOURCE_DESCR-1] = 'Unknown datasource '
+            if not tmpline[DATASOURCE_THRESHOLD-1]:
+                tmpline[DATASOURCE_THRESHOLD-1] = ''
+            if not tmpline[DATASOURCE_UNITS-1]:
+                tmpline[DATASOURCE_UNITS-1] = ''
             descr = tmpline[DATASOURCE_DESCR-1] + ' exceeded ' +\
-                    tmpline[DATASOURCE_THRESHOLD-1] +\
-                    tmpline[DATASOURCE_UNITS-1]
+                    str(tmpline[DATASOURCE_THRESHOLD-1]) +\
+                    str(tmpline[DATASOURCE_UNITS-1])
             line = list(tmpline[0:1]) + [descr] + list(tmpline[1:8])
 
             row = []
@@ -1317,6 +1324,14 @@ class ThresholdHistoryBox(SectionBox):
         
         for tmpline in result:
             # Must insert description (-2 since description isnt there yet)
+            tmpline = list(tmpline)
+            if not tmpline[DATASOURCE_DESCR-2]:
+                tmpline[DATASOURCE_DESCR-2] = 'Unknown datasource'
+            if not tmpline[DATASOURCE_THRESHOLD-2]:
+                tmpline[DATASOURCE_THRESHOLD-2] = ''
+            if not tmpline[DATASOURCE_UNITS-2]:
+                tmpline[DATASOURCE_UNITS-2] = ''
+                
             descr = tmpline[DATASOURCE_DESCR-2] + ' exceeded ' +\
                     tmpline[DATASOURCE_THRESHOLD-2] +\
                     tmpline[DATASOURCE_UNITS-2]
