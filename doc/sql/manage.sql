@@ -175,6 +175,7 @@ CREATE TABLE device (
   hw_ver VARCHAR,
   fw_ver VARCHAR,
   sw_ver VARCHAR,
+	auto BOOLEAN NOT NULL DEFAULT false,
   UNIQUE(serial)
 -- productid burde vært NOT NULL, men det går ikke nå
 );
@@ -189,7 +190,7 @@ CREATE TABLE type (
   tftp BOOL DEFAULT false,
   cs_at_vlan BOOL,
   frequency INT4,
-  uptodate BOOLEAN NOT NULL DEFAULT 'f',
+  uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
   UNIQUE (vendorid, typename),
   UNIQUE (sysObjectID)
@@ -200,10 +201,10 @@ CREATE TABLE snmpoid (
   oidkey VARCHAR NOT NULL,
   snmpoid VARCHAR NOT NULL,
   oidsource VARCHAR,
-  getnext BOOLEAN NOT NULL DEFAULT 't',
-  decodehex BOOLEAN NOT NULL DEFAULT 'f',
+  getnext BOOLEAN NOT NULL DEFAULT true,
+  decodehex BOOLEAN NOT NULL DEFAULT false,
   match_regex VARCHAR,
-  uptodate BOOLEAN NOT NULL DEFAULT 'f',
+  uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
   UNIQUE(oidkey)
 );
@@ -342,7 +343,7 @@ CREATE TABLE gwportprefix (
   gwportid INT4 NOT NULL REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 NOT NULL REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
   gwip INET NOT NULL,
-  hsrp BOOL NOT NULL DEFAULT 'f',
+  hsrp BOOL NOT NULL DEFAULT false,
   UNIQUE(gwip)
 );
 

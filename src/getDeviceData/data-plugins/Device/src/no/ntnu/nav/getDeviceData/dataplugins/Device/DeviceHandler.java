@@ -130,7 +130,8 @@ public class DeviceHandler implements DataHandler {
 						"deviceid", "",
 						"serial", dev.getSerial(),
 						"hw_ver", dev.getHwVer(),
-						"sw_ver", dev.getSwVer()
+						"sw_ver", dev.getSwVer(),
+						"auto", "t",
 					};
 					deviceid = Database.insert("device", ins, null);
 					changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
