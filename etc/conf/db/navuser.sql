@@ -94,7 +94,11 @@ DROP TABLE NavbarLink CASCADE;
 
 DROP TABLE AccountNavbar;
 
+-- WebAuthorization
+DROP TABLE WebAuthorization;
 
+-- AccountOrg
+DROP TABLE AccountOrg;
 
 
 
@@ -710,7 +714,47 @@ CREATE TABLE AccountNavbar (
                ON UPDATE CASCADE
 );
 
+/*
+-- WebAuthorization
 
+This table describes which web resources specific AccountGroups may
+access.  The uri field is a regular expression. For every request to
+the web server, the requested URI will be matched against a list of
+these regular expressions for each group the logged in user is a
+member of.  If a match is found, the user is granted access.  If no
+match is found, a 401 Authorization Required response is sent.
+
+*/
+CREATE TABLE WebAuthorization (
+       accountgroupid integer NOT NULL,
+       uri varchar NOT NULL,
+
+       CONSTRAINT accountgroup_exists
+                  FOREIGN KEY(accountgroupid) REFERENCES Accountgroup(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+);
+
+/*
+-- AccountOrg
+
+This table associates accounts with organizations.  Unfortunately, the
+entity describing organizations is contained in the manage database,
+so referential integrity must be enforced outside of the database
+server.
+
+*/
+CREATE TABLE AccountOrg (
+       accountid integer NOT NULL,
+       orgid varchar(10) NOT NULL,
+
+       CONSTRAINT accountorg_pk
+                  PRIMARY KEY (accountid, orgid),
+       CONSTRAINT account_exists
+                  FOREIGN KEY(accountid) REFERENCES Account(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+);
 
 /*
 ------------------------------------------------------
@@ -723,7 +767,11 @@ CREATE TABLE AccountNavbar (
 
 INSERT INTO AccountGroup (id, name, descr) VALUES
 (1, 'NAV Administrators', '');
+INSERT INTO AccountGroup (id, name, descr) VALUES
+(2, 'Anonymous users', 'Unauthenticated users (not logged in)');
 
+INSERT INTO Account (id, login, name, password) VALUES
+(0, 'default', 'Default User', '');
 INSERT INTO Account (id, login, name, password) VALUES 
 (1, 'admin', 'NAV Administrator', 'admin');
 
@@ -733,10 +781,21 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
 (1, 100, true, 100);
 
--- NAVBAR PREFERENCES
+-- DEFAULT WEB AUTHORIZATION
 
-INSERT INTO Account (id, login, name, password) VALUES
-(0, 'default', 'Default User', '');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(1, '.*');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(2, '^/index.py/login\\b');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(2, '^/images/.*');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(2, '^/$');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(2, '^/index.py/index$');
+
+
+-- NAVBAR PREFERENCES
 
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
 (1, 0, 'Preferences', '/preferences');
@@ -819,7 +878,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 GRANT SELECT, UPDATE ON accountids, accountgroupids, alarmadresseid, brukerprofilid, tidsperiodeid, utstyrgruppeid, utstyrfilterid, matchfieldids, filtermatchid, operatorids,loggid TO navprofile;
 
 -- giving away permissions to add change and delete from tables...
-GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg TO navprofile;
+GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, webauthorization, accountorg TO navprofile;
 
 
 /*
