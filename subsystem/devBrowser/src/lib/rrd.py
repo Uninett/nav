@@ -364,10 +364,9 @@ def datasources(query, session):
     if not query.has_key('id'):
         return
     id = query['id']
-    timeframe = query.get('tf', ['week'])
+    timeframe = query.get('tf', ['week'])[0]
     for i in id:
-        pres = presenter.presentation(i)
-        pres.timeLast(timeframe[0])
+        pres = presenter.presentation(tf=timeframe, ds=i)
         page.presentations.append(pres)
     session['rrd'] = page
     return showGraphs(session)
