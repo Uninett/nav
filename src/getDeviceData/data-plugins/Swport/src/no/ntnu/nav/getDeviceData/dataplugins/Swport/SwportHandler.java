@@ -61,15 +61,22 @@ public class SwportHandler implements DataHandler {
 						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
 						sd.setHexstring(rs.getString("hexstring"));
 						md.addSwport(sd);
-						swpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), md);
+						String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
+						if (swpMap.containsKey(key)) {
+							System.err.println("ERROR! Non-unique ifindex, deleting...");
+							Database.update("DELETE FROM swport WHERE swportid="+rs.getString("swportid"));
+						} else {
+							swpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), md);
+						}
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
 				}
 
-				String key = rs.getString("netboxid")+":"+md.getKey();
-				m.put(key, md);
+				//String key = rs.getString("netboxid")+":"+md.getKey();
+				//m.put(key, md);
 			}
-			moduleMap = m;
+			Database.commit();
+			//moduleMap = m;
 			swportMap = swpMap;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
@@ -201,9 +208,9 @@ public class SwportHandler implements DataHandler {
 						// Trunk, da må vi evt. oppdatere swportallowedvlan
 						if (sd.getHexstring().length() > 0) {
 							if (oldsd == null || oldsd.getHexstring().length() == 0) {
-								Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+sd.getHexstring()+"')");
+								Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+Database.addSlashes(sd.getHexstring())+"')");
 							} else if (!oldsd.getHexstring().equals(sd.getHexstring())) {
-								Database.update("UPDATE swportallowedvlan SET hexstring = '"+sd.getHexstring()+"' WHERE swportid = '"+sd.getSwportid()+"'");
+								Database.update("UPDATE swportallowedvlan SET hexstring = '"+Database.addSlashes(sd.getHexstring())+"' WHERE swportid = '"+sd.getSwportid()+"'");
 							}
 						}
 					}
