@@ -1,0 +1,22 @@
+#----------------------------------------------
+#
+#
+# fil: server.txt
+#
+# Hensikt: Oversikt over hvilke servere som skal
+# overvåkes av Live (pinges).
+#
+# Innholdet er sortert på telematikkrom.
+#
+# Syntaks:
+# rom:dnsnavn:drifter:kategori:underkategori:read-community:beskrivelse:porter
+
+# rom må være definert i rom.txt.
+# drifter betegner gruppen som skal ha beskjed dersom noe skjer
+# Underkategori for å spesifisere type server (mail,dns,web,....)
+# Porter er aktuelt i forb. med portovervåkning. Ikke aktuelt enda.
+# Read-community i tilfelle man skal gjøre snmp mot serverne en gang i framtida.
+#
+# Eksempel:
+# 813:alfa.itea.ntnu.no:SDRIFT:SRV:UNIX::Loginserver ansatte:
+#---------------------------------------------------------------------------

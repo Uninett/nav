@@ -1,0 +1,34 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: org.txt
+#
+# Hensikt: Beskriver de ulike organisatoriske enhetene.
+# Disse brukes i flere sammenhenger:
+# 1) Beskrivelse av nettnavn av typen 'lan' (lokalnett mot et brukermiljø)
+# 2) ansvarlig driftsenhet for en boks (server/nettel)
+# 3) organisatorisk tilhørighet for en NAV-bruker (bestemmende for
+#    hvilke bokser vedkommende kan få varsling for.
+#
+# org'er kan være hierarkisk, hierarkiet er beskrevet gjennom forelder.
+#
+# Syntaks:
+# org:forelder:beskrivelse:org2:org3:org4
+#
+# Feltforklaring:
+# * org er unike og er en forkortelse for enheten.
+# * Dersom dette er en underorg beskrives forelderorg i forelder-felt.
+# * org2, org3, org4 kan anvendes som man vil. Rapportgeneratoren
+#   gir mulighet for lokale tolkinger.
+#
+# NTNU-tolkning:
+# * Vi benytter org2, ikke org3 og org4.
+# * org2=epost,org3:person,org4=telefon
+# * Totalt har vi da syntaksen:
+#      org:forelder:beskrivelse:epost:person:telefon
+#
+# Eksempel:
+# fim::Fakultet for Fysikk, informatikk og matematikk:Rolf.Ofsti@itea.ntnu.no
+# idi:fim:Institutt for datateknikk og informasjonsvitenskap:teknisk@idi.ntnu.no
+#
+# ------------------------------------------------------------------
+

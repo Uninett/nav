@@ -1,0 +1,32 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: vlan.txt
+#
+# Hensikt: Lister alle vlan som er i bruk, med tilhørende nettnavn.
+# Fila fungerer som kildefil for uttak av nye vlan. vlan skal
+# være unike også på tvers av vtp-domener.
+ 
+# vlanet må naturligvis defineres på aktuell vtp-server i tillegg,
+# navnsett der som her.
+ 
+# Syntaks:
+# vlannr:nettnavn
+#
+# Feltforklaring: nettnavn
+# * Dersom netttype=lan:
+#       nettnavn = lan,$org,$kat
+# * Dersom netttype=stam:
+#       nettnavn = stam,$stamnavn
+# * Dersom netttype=link/elink:
+#       nettnavn = link,$gw1,$gw2  OBS: bryter med descriptionfelt
+#     Elink: ekstern link. Vi har bare kontroll på den ene siden av linken.
+#            "Vår boks" skrives først :)
+#
+# Eksempel:
+# 4:lan,ark,ans
+# 16:elink,bibsys-gw,bibsys-fw
+# 431:stam,fddi
+# 906:link,ntnu-gw,hb-gw2
+#
+# ------------------------------------------------------------------
+#
