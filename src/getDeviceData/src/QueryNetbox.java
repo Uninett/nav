@@ -612,170 +612,180 @@ public class QueryNetbox extends Thread
 
 		long beginTime = System.currentTimeMillis();
 
-		while (true) {
+		try {
+			while (true) {
 
-			// Check if we were assigned an oid object and not a netbox
-			if (oidUpdObj != null) {
-				OidTester oidTester = new OidTester();
-				if (oidUpdObj instanceof Type) {
-					oidTester.oidTest((Type)oidUpdObj, oidkeyMap.values().iterator() );
-				} else if (oidUpdObj instanceof Snmpoid) {
-					oidTester.oidTest((Snmpoid)oidUpdObj, typeidMap.values().iterator() );
-				}
-				synchronized (oidQ) {
-					if (oidQ.isEmpty()) {
-						Log.d("RUN", "oidQ empty, scheduling types/netboxes update");
-						scheduleUpdateNetboxes(0);
+				// Check if we were assigned an oid object and not a netbox
+				if (oidUpdObj != null) {
+					OidTester oidTester = new OidTester();
+					if (oidUpdObj instanceof Type) {
+						oidTester.oidTest((Type)oidUpdObj, oidkeyMap.values().iterator() );
+					} else if (oidUpdObj instanceof Snmpoid) {
+						oidTester.oidTest((Snmpoid)oidUpdObj, typeidMap.values().iterator() );
 					}
-				}
-				Log.d("RUN", "Thread idle, done OID object processing, exiting...");
-				threadIdle();
-				return;
-			}
-
-			// Process netbox
-			String netboxid = nb.getNetboxidS();
-			String ip = nb.getIp();
-			String cs_ro = nb.getCommunityRo();
-			String vendor = nb.getTypeT().getVendor();
-			String type = nb.getType();
-			String sysName = nb.getSysname();
-			String cat = nb.getCat();
-			int snmpMajor = nb.getSnmpMajor();
-
-			SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(vendor, type);
-			sSnmp.setHost(ip);
-			sSnmp.setCs_ro(cs_ro);
-
-			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxHigh+")");
-			long boksBeginTime = System.currentTimeMillis();
-
-			try {
-
-				// Get DataContainer objects from each data-plugin.
-				DataContainersImpl containers = getDataContainers(null);
-
-				// Find handlers for this boks
-				DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
-				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("  No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + ")");
-				}
-
-				Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
-				String dhNames = "";
-				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
-					String[] ss = String.valueOf(deviceHandler[dhNum].getClass()).split("\\.");
-					dhNames += (dhNum==0?"":",")+ss[ss.length-1];
-				}
-
-				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type + ")");
-
-				boolean timeout = false;
-				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
-					try {
-						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
-						if (nb.isRemoved() || nb.needRecreate()) break;
-
-					} catch (TimeoutException te) {
-						Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
-						Log.d("RUN", "TimeoutException: " + te.getMessage());
-						Log.w("RUN", "GIVING UP ON: " + sysName + ", typeid: " + type );
-						timeout = true;
-					} catch (Exception exp) {
-						Log.w("RUN", "Fatal error from devicehandler, skipping. Exception: " + exp.getMessage());
-						exp.printStackTrace(System.err);
-					} catch (Throwable e) {
-						Log.w("RUN", "Fatal error from devicehandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
-						e.printStackTrace(System.err);
+					synchronized (oidQ) {
+						if (oidQ.isEmpty()) {
+							Log.d("RUN", "oidQ empty, scheduling types/netboxes update");
+							scheduleUpdateNetboxes(0);
+						}
 					}
-
+					Log.d("RUN", "Thread idle, done OID object processing, exiting...");
+					threadIdle();
+					return;
 				}
 
-				if (!timeout && !nb.isRemoved() && !nb.needRecreate()) {
-					// Call the data handlers for all data plugins
-					try { 
-						Map changedDeviceids = containers.callDataHandlers(nb);
-						if (!changedDeviceids.isEmpty()) getDataContainers(changedDeviceids);
-						
-					} catch (Exception exp) {
-						Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
-						exp.printStackTrace(System.err);
-					} catch (Throwable e) {
-						Log.w("RUN", "Fatal error from datahandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
-						e.printStackTrace(System.err);
-					}
-				}
-				
-			} catch (NoDeviceHandlerException exp) {
-				Log.d("RUN", exp.getMessage());
-			}
-			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
+				// Process netbox
+				String netboxid = nb.getNetboxidS();
+				String ip = nb.getIp();
+				String cs_ro = nb.getCommunityRo();
+				String vendor = nb.getTypeT().getVendor();
+				String type = nb.getType();
+				String sysName = nb.getSysname();
+				String cat = nb.getCat();
+				int snmpMajor = nb.getSnmpMajor();
 
-			if (scheduleImmediatelyMap.containsKey(nb.getNetboxidS())) {
-				// Send event that we are done
-				String[] ss = (String[])scheduleImmediatelyMap.remove(nb.getNetboxidS());
-				String target = ss[0];
-				String subid = ss[1];
-				Log.i("RUN", "Done collecting immediate data for " + target + ", netbox: " + nb);
+				SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(vendor, type);
+				sSnmp.setHost(ip);
+				sSnmp.setCs_ro(cs_ro);
 
-				Map varMap = new HashMap();
-				varMap.put("command", "runNetboxDone");
-				EventQ.createAndPostEvent("getDeviceData", target, nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(subid), "notification", Event.STATE_NONE, 0, 0, varMap);
-			}
+				Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxHigh+")");
+				long boksBeginTime = System.currentTimeMillis();
 
-			// If we need to recreate the netbox, set the unknown type
-			if (nb.needRecreate()) {
-				Log.d("RUN", "Recreating netbox: " + nb);
-				nb.setType((Type)typeidMap.get(Type.UNKNOWN_TYPEID));
-			}
-
-			// If netbox is removed, don't add it to the RunQ
-			if (!nb.isRemoved()) {
-
-				// Store last collect time in netboxinfo
 				try {
-					NetboxInfo.put(nb.getNetboxidS(), null, "lastUpdated", String.valueOf(System.currentTimeMillis()));
-				} catch (RuntimeException rte) {
-					Log.w("RUN", "Database error while updating lastUpdated for " + nb.getSysname() + ", contact NAV support.");
-					Log.d("RUN", "Got exception while setting lastUpdated: " + rte.getMessage());
-				}
 
-				// Don't reschedule if we just set the unknown type for this netbox as we want it to run immediately
-				if (!nb.needRecreate()) {
-					nb.reschedule();
-				}
+					// Get DataContainer objects from each data-plugin.
+					DataContainersImpl containers = getDataContainers(null);
+
+					// Find handlers for this boks
+					DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
+					if (deviceHandler == null) {
+						throw new NoDeviceHandlerException("  No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + ")");
+					}
+
+					Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
+					String dhNames = "";
+					for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
+						String[] ss = String.valueOf(deviceHandler[dhNum].getClass()).split("\\.");
+						dhNames += (dhNum==0?"":",")+ss[ss.length-1];
+					}
+
+					Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type + ")");
+
+					boolean timeout = false;
+					for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
+						try {
+							deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
+							if (nb.isRemoved() || nb.needRecreate()) break;
+
+						} catch (TimeoutException te) {
+							Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
+							Log.d("RUN", "TimeoutException: " + te.getMessage());
+							Log.w("RUN", "GIVING UP ON: " + sysName + ", typeid: " + type );
+							timeout = true;
+						} catch (Exception exp) {
+							Log.w("RUN", "Fatal error from devicehandler, skipping. Exception: " + exp.getMessage());
+							exp.printStackTrace(System.err);
+						} catch (Throwable e) {
+							Log.w("RUN", "Fatal error from devicehandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+							e.printStackTrace(System.err);
+						}
+
+					}
+
+					if (!timeout && !nb.isRemoved() && !nb.needRecreate()) {
+						// Call the data handlers for all data plugins
+						try { 
+							Map changedDeviceids = containers.callDataHandlers(nb);
+							if (!changedDeviceids.isEmpty()) getDataContainers(changedDeviceids);
+						
+						} catch (Exception exp) {
+							Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
+							exp.printStackTrace(System.err);
+						} catch (Throwable e) {
+							Log.w("RUN", "Fatal error from datahandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+							e.printStackTrace(System.err);
+						}
+					}
 				
-				// Insert into queue
-				addToRunQ(nb);
+				} catch (NoDeviceHandlerException exp) {
+					Log.d("RUN", exp.getMessage());
+				}
+				Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
 
-				Log.d("RUN", "Done processing netbox " + nb);
+				if (scheduleImmediatelyMap.containsKey(nb.getNetboxidS())) {
+					// Send event that we are done
+					String[] ss = (String[])scheduleImmediatelyMap.remove(nb.getNetboxidS());
+					String target = ss[0];
+					String subid = ss[1];
+					Log.i("RUN", "Done collecting immediate data for " + target + ", netbox: " + nb);
 
-			} else {
-				Log.d("RUN", "Done, netbox is removed: " + nb);
-				if (nb.needUpdateNetboxes()) scheduleUpdateNetboxes(0);
+					Map varMap = new HashMap();
+					varMap.put("command", "runNetboxDone");
+					try {
+						EventQ.createAndPostEvent("getDeviceData", target, nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(subid), "notification", Event.STATE_NONE, 0, 0, varMap);
+					} catch (Exception e) {
+						Log.e("RUN", "Exception when posting to eventq: " + e);
+						e.printStackTrace(System.err);
+					}
+				}
+
+				// If we need to recreate the netbox, set the unknown type
+				if (nb.needRecreate()) {
+					Log.d("RUN", "Recreating netbox: " + nb);
+					nb.setType((Type)typeidMap.get(Type.UNKNOWN_TYPEID));
+				}
+
+				// If netbox is removed, don't add it to the RunQ
+				if (!nb.isRemoved()) {
+
+					// Store last collect time in netboxinfo
+					try {
+						NetboxInfo.put(nb.getNetboxidS(), null, "lastUpdated", String.valueOf(System.currentTimeMillis()));
+					} catch (RuntimeException rte) {
+						Log.w("RUN", "Database error while updating lastUpdated for " + nb.getSysname() + ", contact NAV support.");
+						Log.d("RUN", "Got exception while setting lastUpdated: " + rte.getMessage());
+					}
+
+					// Don't reschedule if we just set the unknown type for this netbox as we want it to run immediately
+					if (!nb.needRecreate()) {
+						nb.reschedule();
+					}
+				
+					// Insert into queue
+					addToRunQ(nb);
+
+					Log.d("RUN", "Done processing netbox " + nb);
+
+				} else {
+					Log.d("RUN", "Done, netbox is removed: " + nb);
+					if (nb.needUpdateNetboxes()) scheduleUpdateNetboxes(0);
+				}
+
+				long pc = ++nbProcessedCnt;
+				if ((pc % 100) == 0) {
+					Log.i("RUN", "** Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ") **");
+				}
+
+				// Try to get a new netbox to process
+				Object o = removeRunQHead();
+				if (o instanceof NetboxImpl) {
+					nb = (NetboxImpl)o;
+					Log.d("RUN", "Got new netbox: " + nb);
+				} else {				
+					// We didn't get a netbox; exit the thread
+					break;
+				}
+
 			}
 
-			long pc = ++nbProcessedCnt;
-			if ((pc % 100) == 0) {
-				Log.i("RUN", "** Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ") **");
-			}
-
-			// Try to get a new netbox to process
-			Object o = removeRunQHead();
-			if (o instanceof NetboxImpl) {
-				nb = (NetboxImpl)o;
-				Log.d("RUN", "Got new netbox: " + nb);
-			} else {				
-				// We didn't get a netbox; exit the thread
-				break;
-			}
-
+		} catch (Exception e) {
+			Log.e("RUN", "Caught exception, should not happen: " + e.getMessage());
+			e.printStackTrace(System.err);
+		} finally {
+			Log.d("RUN", "Thread idle, exiting...");
+			Log.freeThread();
+			threadIdle();
 		}
-
-		Log.d("RUN", "Thread idle, exiting...");
-		Log.freeThread();
-		threadIdle();
-
 	}
 
 	private DataContainersImpl getDataContainers(Map changedDeviceids) {
