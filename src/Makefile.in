@@ -37,16 +37,16 @@ ANT = @ANT@
 
 # Make sure we export make variables to the environment
 export
-.PHONY = all install clean distclean debug
+.PHONY = all install clean distclean debug .lastbuild
 
 all: $(subdirs)
 
-$(subdirs): .
+$(subdirs): .lastbuild
 	@echo "Building $@ ..."
 	(cd $@ && $(ANT) $(BUILDARGS)) && touch $@
 
-.:
-	touch .
+.lastbuild:
+# Do absolutely nothing, just let ANT decide whether a rebuild is necessary
 
 install:
 	@for dir in $(subdirs); do \
