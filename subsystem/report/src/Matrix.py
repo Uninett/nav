@@ -23,10 +23,18 @@
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
 #
 import string
+import os
+import re
+import nav.path
+import ConfigParser
+
 from nav import db
+
+from nav.web.templates.MatrixTemplate import MatrixTemplate
 
 connection = db.getConnection('webfront','manage')
 database = connection.cursor()
+configfile = os.path.join(nav.path.sysconfdir,'report/matrix.conf')
 
 class Matrix:
 
@@ -48,8 +56,11 @@ class Matrix:
         self.start = self.this_net.startnet
         self.end = self.this_net.endnet
         self.network = network
+        self.configuration = Configuration(configfile)
 
     def makeMatrix(self):
+
+        page = MatrixTemplate()
 
         whole_net = self.this_net
         unntak = self.unntak
@@ -83,16 +94,29 @@ class Matrix:
                     else:
                         if not subnet.has_key(tip[2]):
                             subnet[tip[2]] = {}
-                        subnet[tip[2]][tip[3]] = Subnet(small_net.net, small_net.masklen, prefix[0], prefix[2], prefix[3], prefix[4], prefix[5], prefix[6], prefix[7])
+                        subnet[tip[2]][tip[3]] = Subnet(small_net, prefix[0], prefix[2], prefix[3], prefix[4], prefix[5], prefix[6], prefix[7])
 
                         if small_net.masklen < 24:
                             big_net_rowspan[tip[2]] = pow(2,24-small_net.masklen)
+        
+        page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+        page.start = self.start
+        page.end = self.end
+        page.unntak = self.unntak
+        page.colspan = {20: 8, 21: 8,  22: 8, 23: 8, 24: 8, 25: 4, 26: 2, 27: 1}
+        page.big_net_rowspan = self.big_net_rowspan
+        page.subnet = self.subnet
+        page.bnet = self.bnet
+        page.network = self.network
+        page.numbers = self.numbers
+        page.configuration = self.configuration
 
+        return page.respond()
 
 class Subnet:
 
-    def __init__(self,ip,masklen,prefixid,vlan,machines,max,nettype,description,orgid):
-        self.bits = masklen
+    def __init__(self,network,prefixid,vlan,machines,max,nettype,description,orgid):
+        self.bits = network.masklen
         self.vlan = vlan
         self.machines = 0
         if machines:
@@ -100,7 +124,8 @@ class Subnet:
         self.max = None
         if max:
             self.max = int(max)
-        self.ip = ip
+        self.ip = network.net
+        self.suffix = string.join(network.net_splitted[2:3],".")
         self.prefixid = prefixid
         self.nettype = nettype
         if not description:
@@ -207,3 +232,20 @@ class NetworkAddress:
         else:
             raise ValueError(str(number_of_bits)+" is not an accepted value for mask")
 
+class Configuration:
+    def __init__(self,path):
+
+        config = file(path).readlines()
+        limits = {}
+        extras = {}
+        for line in config:
+            limitmatch = re.search("^\s*\>\=?\s*(\d+)\s*:\s*(\S+)",line)
+            if limitmatch:
+                limits[limitmatch.group(1)] = limitmatch.group(2)
+            else:
+                wordmatch = re.search("^\s*(\w+)\s*:\s*(\S+)",line)
+                if wordmatch:
+                    extras[wordmatch.group(1)] = wordmatch.group(2)
+
+        self.extras = extras
+        self.limits = limits

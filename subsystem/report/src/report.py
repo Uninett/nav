@@ -24,10 +24,10 @@
 #
 from mod_python import apache,util
 
-import re,string,copy,pprint
+import re,string,copy,pprint,urllib
 import os.path, nav.path
 from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
-from nav.web.templates.MatrixTemplate import MatrixTemplate
+from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
 
 from Generator import Generator,ReportList
 from Matrix import Matrix
@@ -70,24 +70,47 @@ def handler(req):
 
     elif reportName == "matrix":
 
-        page = MatrixTemplate()
         req.content_type = "text/html"
         req.send_http_header()
 
-        matrix = Matrix()
-        matrix.makeMatrix()
+        ## parameterdict
+        argsdict = {}
+        if req.args:
+            reqargsplit = urllib.unquote_plus(req.args).split("&")
+            if len(reqargsplit):
+                for a in reqargsplit:
+                    (c,d) = a.split("=")
+                    argsdict[c] = d
 
-        page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
-        page.start = matrix.start
-        page.end = matrix.end
-        page.unntak = matrix.unntak
-        page.big_net_rowspan = matrix.big_net_rowspan
-        page.colspan = {20: 8, 21: 8,  22: 8, 23: 8, 24: 8, 25: 4, 26: 2, 27: 1}
-        page.subnet = matrix.subnet
-        page.bnet = matrix.bnet
-        page.network = matrix.network
-        page.numbers = matrix.numbers
-        req.write(page.respond())
+        if argsdict.has_key("scope") and argsdict["scope"]:
+            matrix = Matrix(argsdict["scope"])
+            req.write(matrix.makeMatrix())
+            
+            
+        else:
+
+            ##could have been sourced out in its own python-file
+            
+            page = MatrixScopesTemplate()
+            ## print all scopes
+            from nav import db
+            import psycopg
+            connection = db.getConnection('webfront','manage')
+            database = connection.cursor()
+            database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
+
+            page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+            page.scopes = []
+            databasescopes = database.fetchall()
+            if len(databasescopes) == 1:
+                matrix = Matrix(databasescopes[0][0])
+                req.write(matrix.makeMatrix())
+
+            else:
+                for scope in database.fetchall():
+                    page.scopes.append(scope[0])
+
+                req.write(page.respond())
 
     else:
         page = ReportTemplate()
