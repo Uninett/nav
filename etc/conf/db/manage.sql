@@ -292,7 +292,7 @@ CREATE TABLE swport (
   port INT4 NOT NULL,
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
-    link CHAR(1) NOT NULL DEFAULT 'n' CHECK (link='y' OR link='n' OR link='d'),
+  link CHAR(1) NOT NULL DEFAULT 'n' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   speed VARCHAR(10),
   duplex VARCHAR(4),
   media VARCHAR(16),
