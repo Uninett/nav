@@ -1,7 +1,7 @@
 package NAV;
 ####################
 #
-# $Id: NAV.pm,v 1.5 2002/11/25 10:44:45 gartmann Exp $
+# $Id: NAV.pm,v 1.6 2002/11/25 10:52:09 gartmann Exp $
 # This file is part of the NAV project.
 # NAV module contains the common methods / subroutines that NAV scripts are
 # using. It also does some initial work regarding the NAVlog system.
@@ -153,53 +153,7 @@ sub db_select_hash {
     }
     return %resultat;
 }
-						    
-    my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
-    return $conn;
-}
 
-sub db_connect {
-    my ($db,$user,$password) = @_;
-    my $conn = Pg::connectdb("dbname=$db user=$user password=$password");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
-    return $conn;
-}
-
-sub db_select {
-    my $sql = $_[1];
-    my $conn = $_[0];
-    my $resultat = $conn->exec($sql);
-    unless ($resultat->resultStatus eq PGRES_TUPLES_OK){
-	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
-    }
-    return $resultat;
-}
-sub db_execute {
-    my $sql = $_[1];
-    my $conn = $_[0];
-    my $resultat = $conn->exec($sql);
-    unless ($resultat->resultStatus eq PGRES_COMMAND_OK){
-	&error_correct($conn,$sql,$conn->errorMessage);
-	return 0;
-#	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
-    }
-    return 1;
-}
-sub db_hent {
-    my ($db,$sql) = @_;
-    return &db_select($db,$sql);
-}
-sub db_hent_hash {
-    my ($db,$sql) = @_;
-    my $res = &db_select($db,$sql);
-    my %resultat;
-    while(@_ = $res->fetchrow) {
-	@_ = map rydd($_), @_;
-	$resultat{$_[0]} = [ @_ ];
-    }
-    return %resultat;
-}
 sub db_select_hash {
     my $db = $_[0];
     my $tabell = $_[1];
