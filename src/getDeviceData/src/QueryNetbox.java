@@ -88,6 +88,8 @@ public class QueryNetbox extends Thread
 		synchronized (timer) {
 			checkRunQTask.cancel();
 			checkRunQTask = new CheckRunQTask();
+            // Eh.. make sure we don't schedule anything negative =)
+            l = Math.max(l, 0);
 			Log.w("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule in " + l + " ms");
 			timer.schedule(checkRunQTask, l);
 		}
@@ -319,8 +321,8 @@ public class QueryNetbox extends Thread
 				nb.setType(rs.getString("typename"));
 				nb.setSysname(rs.getString("sysname"));
 				nb.setCat(rs.getString("catid"));
-				//bd.setSnmpMajor(rs.getInt("snmp_major"));
-				//bd.setSnmpagent(rs.getString("snmpagent"));
+				//nb.setSnmpMajor(rs.getInt("snmp_major"));
+				//nb.setSnmpagent(rs.getString("snmpagent"));
 
 				if (newNetbox) {
 					addToRunQ(nb);
