@@ -601,7 +601,7 @@ def bulkInsert(data,bulkdef,separator):
         addEntryBulk(rowlist,bulkdef.tablename)
     return len(rowlist)
 
-# Function for handling listing and editing of rooms
+# Function for handling listing and editing of snmpoids
 def editSnmpoid(req,selected,action,error=None):
     path = EDITPATH + [('Add snmpoid',False)]
     table = 'snmpoid'
@@ -3139,7 +3139,7 @@ class structNetbox:
                 else:
                     self.help = 'Unable to retrieve serialnumber for this ' + \
                                 'device by SNMP. ' + \
-                                'Enter a serialnumber (optional)'
+                                'Enter a serialnumber (optional).'
             else:
                 if serial:
                     # Serial was entered manually
@@ -3728,14 +3728,15 @@ class structNetbox:
                         templateform.add(editboxHiddenOrMessage(message))
                         templateform.showConfirm = False
                         return (status,action,templateform)
-            else:
-                # Empty serial specified, not allowed
-                nextStep = STEP_2
-                editboxHidden.addHidden(CNAME_STEP,nextStep) 
-
-                message = 'You must enter a serial'
-                templateform.add(editboxHiddenOrMessage(message))
-                return (status,action,templateform)
+            ## DO NOT NEED SERIAl ANYMORE 
+            #else:
+            #    # Empty serial specified, not allowed
+            #    nextStep = STEP_2
+            #    editboxHidden.addHidden(CNAME_STEP,nextStep) 
+            #
+            #    message = 'You must enter a serial'
+            #    templateform.add(editboxHiddenOrMessage(message))
+            #    return (status,action,templateform)
 
             # Show subcategory/function editbox 
             # If category has changed, then don't load the old subcatinfo
@@ -3778,9 +3779,10 @@ class structNetbox:
 
             if typeId:
                 fields['typeid'] = typeId
-                # Set uptyodate = false
-                tifields = {'uptodate': 'f'}
-                updateEntryFields(tifields,'type','typeid',typeId)
+                ## TYPE.UPTODATE IS MOVED TO NETBOX.UPTODATE
+                # Set uptodate = false
+                #tifields = {'uptodate': 'f'}
+                #updateEntryFields(tifields,'type','typeid',typeId)
 
             # Get prefixid
             query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
@@ -3791,6 +3793,9 @@ class structNetbox:
             except:
                 pass        
 
+            # Set netbox.uptodate = false (to make gdd check device)
+            fields['uptodate'] = 'f'
+            # Update netbox
             updateEntryFields(fields,'netbox','netboxid',selected)
 
             # Update device
@@ -4276,11 +4281,12 @@ class bulkdefNetbox:
 
             if (not hasRO) and editTables.Cat(data['catid']).req_snmp:
                 status = BULK_STATUS_YELLOW_ERROR
-                raise("This category requires an RO")
+                raise("This category requires an RO community")
 
-            if not (hasRO or hasSerial):
-                status = BULK_STATUS_RED_ERROR
-                raise("Neither RO, nor serial specified.")
+            ## SERIAL IS NOW OPTIONAL
+            #if not (hasRO or hasSerial):
+            #    status = BULK_STATUS_RED_ERROR
+            #    raise("Neither RO, nor serial specified.")
 
             if hasRO:
                 error = False
@@ -4366,7 +4372,7 @@ class bulkdefNetbox:
                     if netbox:
                         status = BULK_STATUS_RED_ERROR
                         remark = "A box with the serial '" + data + \
-                                 "', already exists"
+                                 "' already exists"
         if field == BULK_UNSPECIFIED_FIELDNAME:
             # These are subcats
             # Need to check not only if the subcat exists, but
@@ -4380,6 +4386,7 @@ class bulkdefNetbox:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
+        # Get sysname
         try:
             sysname = gethostbyaddr(row['ip'])[0]
         except:
@@ -4404,56 +4411,59 @@ class bulkdefNetbox:
                     if box.typeid:
                         typeId = str(box.typeid)
                         row['typeid'] = typeId
-                        # Set uptyodate = false for this type
-                        tifields = {'uptodate': 'f'}
-                        updateEntryFields(tifields,'type','typeid',typeId)
                     if box.snmpversion:
                         row['snmp_version'] = str(box.snmpversion[0])
                     # getDeviceId() now returns an Int
-                    deviceid = str(box.getDeviceId())
+                    deviceid = box.getDeviceId()
                 except:
                     # If initBox fails, always make a new device
                     deviceid = None
 
         if deviceid:
-            row['deviceid'] = deviceid
+            # Already got a device from initbox
+            row['deviceid'] = str(deviceid)
+            if row.has_key('serial'):
+                # Serial shouldn't be inserted into Netbox table
+                # remove it from the row
+                del(row['serial'])
         else:
-            if box:
-            # if we got serial from initbox, set this
-                if box.serial:
-                    row['serial'] = str(box.serial)
-                else:
-                    row['serial'] = 'NULL'
-            # Make new device
+            # Must make a new device
+            newSerial = None
+
+            # Got serial from row?
             if row.has_key('serial'):
                 if len(row['serial']):
-                    fields = {'serial': row['serial']}
-                    # serial shouldn't be inserted into Netbox table
-                    # so remove it from the row
-                    del(row['serial'])
-                else:
-                    # Don't insert an empty serialnumber
-                    # (as serialnumbers must be unique in the database)
-                    fields = {}
-                # Must check if a device with this serial is already present
-                if fields.has_key('serial'):
-                    where = "serial='%s'" % (fields['serial'])
-                    device = editTables.Device.getAll(where)
-                    if device:
-                        # Found device, and it is unique (serial must be unique)
-                        # Doesn't check if this device is already in use!
-                        # Must be done.
-                        deviceid = str(device[0].deviceid)
-                    else:
-                        # Make new device
-                        deviceid = addEntryFields(fields,
-                                                  'device',
-                                                  ('deviceid','device_deviceid_seq'))
-                row['deviceid'] = deviceid
-            else:
-                row = None
+                    newSerial = row['serial']
+                # Serial shouldn't be inserted into Netbox table
+                # remove it from the row
+                del(row['serial'])
 
-        #raise(repr(row))
+            # Got serial from snmp?
+            if box:
+                # (overrides manual serial)
+                if box.serial:
+                    newSerial = str(box.serial)
+
+            fields = {}
+            if newSerial:
+                # Serial given in row, or retrieved by snmp
+                fields = {'serial': newSerial}
+
+                # Must check if a device with this serial is already present
+                where = "serial='%s'" % (fields['serial'])
+                device = editTables.Device.getAll(where)
+                if device:
+                    # Found device, and it is unique (serial must be unique)
+                    deviceid = str(device[0].deviceid)
+            
+            if not deviceid:                
+                # Make new device
+                deviceid = addEntryFields(fields,
+                                          'device',
+                                          ('deviceid','device_deviceid_seq'))
+            
+            row['deviceid'] = deviceid
+
         if row:
             # Function
             netboxFunction = None
@@ -4471,7 +4481,8 @@ class bulkdefNetbox:
                 del(row[excessField])
                 excessCount += 1
                 excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
-            
+           
+            # Insert netbox
             netboxId = addEntryFields(row,
                                       'netbox',
                                       ('netboxid','netbox_netboxid_seq'))
