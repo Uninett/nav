@@ -34,15 +34,25 @@ def process(request):
         # We need a trailing /
         raise RedirectError, urlbuilder.createUrl(division="service")
     if args[0] == '':
+        request['templatePath'].append(('Services', None))
         return showIndex()
+    else:    
+        request['templatePath'].append(('Services', 
+               urlbuilder.createUrl(division="service")))
 
     if args[0] == 'all':
+        request['templatePath'].append(('All', None))
+
         return showAll(request,sort)
         
     if args[0] == 'allMatrix':
+        request['templatePath'].append(('All matrix', None)) 
         return showAllMatrix(request,sort)
-
-    return getNetboxes(args[0], sort)
+    
+    # else...
+    handler = args[0]
+    request['templatePath'].append((handler, None)) 
+    return getNetboxes(handler, sort)
 
 def getServices(netbox):
     services = netbox.getChildren(manage.Service)
