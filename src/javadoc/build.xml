@@ -67,10 +67,6 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
-    <packageset dir="../getDeviceData/device-plugins/CiscoSwBasic/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
-
     <packageset dir="../getDeviceData/device-plugins/CiscoSwCAT/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
@@ -92,6 +88,10 @@
     </packageset>
 
     <packageset dir="../getDeviceData/device-plugins/CiscoSwMenu/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/DNSCheck/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 
