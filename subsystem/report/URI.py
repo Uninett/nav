@@ -23,8 +23,9 @@ class URI:
             args = {}
             for arg in args_array:
                 if arg:
-                    (key,val) = arg.split("=")
-                    args[key] = val
+                    keyvallist = arg.split("=")
+                    if keyvallist[0]:
+                        args[keyvallist[0]] = keyvallist[1]
             self.args = args
         else:
             self.args = []
