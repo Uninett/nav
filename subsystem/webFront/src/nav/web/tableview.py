@@ -1,42 +1,41 @@
-"""
-$Id$
-
-This file is part of the NAV project.
-
-Extensions for forgetHTML useful for sorting.
-
-Copyright (c) 2003 by NTNU, ITEA nettgruppen
-Authors: Stian Søiland <stain@itea.ntnu.no>
-"""
-
 import forgetHTML as html
+from nav.web import sci_exp
 
-class ValueCell(html.TableCell):
-    """A special table cell containing a number.
-       The cell is sorted according to the numeric value, but 
+class Value(html.Text):
+    """A special html-text containing a number.
+       The item is sorted according to the numeric value, but 
        printed with the given decimal counts and the optional unit. 
-       In addition, by default it is right-aligned.
        """
-    def __init__(self, value, unit="", decimals=2, **kwargs):
+    def __init__(self, value, unit="", decimals=2, 
+                 sciunit=False, **kwargs):
+        try:
+            _ = value + 0
+            assert _ == value
+        except:
+            raise "Value %r not a number" % value
         self.value = value
         self.decimals = decimals
         self.unit = unit
-        html.TableCell.__init__(self, self._display(), **kwargs)
-        if not kwargs.has_key('align'):
-            self['align'] = 'right'
+        self.sciunit = sciunit
+        html.Text.__init__(self, self._display(), **kwargs)
     def _display(self):
         format = "%0." + str(self.decimals) + "f"
-        formatted = format % self.value
-        return formatted + self.unit
+        if self.sciunit:
+            (value, unit) = sci_exp.sci(self.value)
+            unit = unit + self.unit
+        else:
+            unit = self.unit
+            value = self.value
+        formatted = format % value
+        return formatted + unit
     def __cmp__(self, other):
         if isinstance(other, html.TableCell):
             return cmp(self.value, other.value)
         else:
             return cmp(self.value, other)
-        
+
 
 class TableView(html.SimpleTable):
-    """Some advanced SimpleTable that sorts it's content"""
     def __init__(self, *headers, **kwargs):
         html.SimpleTable.__init__(self, header=None)
         self['class'] = "tableView"
@@ -85,7 +84,6 @@ class TableView(html.SimpleTable):
         if self.sortBy:
             sortBy = self.sortBy
             self._items.sort(_sorter)
-            
     def _generateContent(self):
         row = html.TableRow(**self.__kwargs)
         self.append(row)
@@ -94,7 +92,7 @@ class TableView(html.SimpleTable):
             count += 1
             link = html.Anchor(header)
             headerCell = html.TableHeader(link)
-            headerCell['class'] = "sort"
+            headerCell['class'] = "sort col%s" % count
             row.append(headerCell)
             if abs(self.sortBy) == count:
                 # reverse the current
@@ -108,7 +106,6 @@ class TableView(html.SimpleTable):
         for extra in range(self._width - len(self.headers)):
             row.append(html.TableHeader(''))
         html.SimpleTable._generateContent(self)        
-        
     def output(self, *args, **kwargs):
         return html.SimpleTable.output(self, *args, **kwargs)
 
