@@ -21,7 +21,7 @@ public interface Event
 	public int getValue();
 	public int getSeverity();
 
-	public Set getVar(String var);
+	public String getVar(String var);
 
 	public String getKey();
 

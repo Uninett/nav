@@ -206,7 +206,7 @@ class EventImpl implements Event, Alert
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();
 			String var = (String)me.getKey();
-			String var = (String)me.getValue();
+			String val = (String)me.getValue();
 			s += "["+var+"="+val+"] ";
 			/*
 			List l = (List)me.getValue();
