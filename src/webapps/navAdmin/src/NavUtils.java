@@ -1550,9 +1550,9 @@ class NavUtils
 			}
 		}
 
-		if (!isActiveVlan) {
-			// Ikke aktivt på noen av portene med boks bak, sjekk om det er
-			// aktivt på noen ikke-trunk porter i det hele tatt
+		// Sjekk om vlanet er aktivt på noen ikke-trunk porter; vi må evt. legge til
+		// de uten to_netboxid
+		{
 			Map map = (Map)activeVlan.get(boksid);
 			if (map != null && map.containsKey(new Integer(vlan)) ) {
 				isActiveVlan = true;
