@@ -1,1 +1,32 @@
+What?
+=====
 This directory contains SQL scripts to create the initial NAV databases.
+
+
+Files
+=====
+manage.sql       - Creates the manage database
+snmpoid.sql      - Initializes the SNMP OID registry of the manage database
+navlog.sql       - Creates the navlog database
+navprofiles.sql  - Creates the navprofiles database
+
+
+How to create the databases from scratch
+========================================
+All the users referenced in db.conf must be created, and passwords need to be
+set for them.  The manage user must have ssuperuser privileges in the
+PostgreSQL database.
+
+The procedure is (replace *** with actual passwords):
+
+export PGUSER=manage PGPASSWORD=*******
+createdb --encoding UTF-8 manage
+createdb --encoding UTF-8 navprofiles
+createdb --encoding UTF-8 navlog
+createlang plpgsql manage
+psql -f manage.sql manage
+psql -f navprofiles.sql navprofiles
+psql -f navlog.sql navlog 
+psql -f snmpoid.sql manage
+unset PGUSER PGPASSWORD
+
