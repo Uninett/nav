@@ -829,7 +829,11 @@ public class QueryBoks extends Thread
 								if (swportid != null) {
 									// Find correct vlan
 									String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode.");
+									if (dbVlan == null) {
+										Log.d("MAC_ENTRY", "Netboxid: " + netboxid + " blocked ifindex: " + ifindex + " is missing VLAN for swportid: " + swportid);
+										continue;
+									}
+									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode (swportid="+swportid+")");
 									try {
 										String[] ins = {
 											"swportid", swportid,
