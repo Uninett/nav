@@ -24,6 +24,7 @@ class Box:
         (self.hostname,self.ip) = self.getNames(identifier)
         self.typeid = self.getType(identifier,ro)
         self.snmpversion = self.getSnmpVersion(identifier,ro)
+        self.serial = ''
 
 
     def getNames(self,identifier):
