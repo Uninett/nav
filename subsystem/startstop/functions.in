@@ -6,7 +6,7 @@
 # This file contains functions to be used by most or all shell scripts
 # in the NAV init.d directory.
 #
-# Copyright (c) 2002-2003 by NTNU, ITEA nettgruppen
+# Copyright (c) 2002-2004 by NTNU, ITEA
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 # Credits: Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
 #
@@ -22,32 +22,30 @@ daemon() {
     $1
     rc=$?
     if [ $rc = 0 ]; then
-	echo -n "Ok"
-	return 1
+        echo -n "Ok"
+        return 1
     else
-	echo -n "Failed"
-	return 0
+        echo -n "Failed"
+        return 0
     fi
 }
 
 killproc() {
     pid=`pidofproc $1`
     if [ -z "$pid" ] ; then
-	return 1
+        return 1
     fi
     if checkpid $pid 2>&1; then
-	kill $pid
-	usleep 10000
-	if checkpid $pid 2>&1; then
-	    echo -n "Unable to terminate the process ($pid)"
-	    return 1
-	else
-	    echo -n "Ok"
-	    return 0
-	fi
+        if kill $pid; then
+            echo -n "Ok"
+            return 0
+        else
+            echo -n "Unable to terminate the process ($pid)"
+            return 1
+        fi
     else
-	echo -n "$1 is not running"
-	return 0
+        echo -n "$1 is not running"
+        return 0
     fi
 }
 
@@ -55,38 +53,51 @@ status() {
     local base=${1##*/}
     local pid=`pidofproc $1`
     if [ "$pid" != "" ] ; then
-	echo "$1 (pid $pid) is running...";
+        echo "$1 (pid $pid) is running...";
     else
-	echo "$1 does not seem to be running...";
+        echo "$1 does not seem to be running...";
     fi
 }
 
 # Check if $pid (could be plural) are running
 checkpid() {
-	while [ "$1" ]; do
-	   [ -d /proc/$1 ] && return 0
-	   shift
-	done
-	return 1
+        while [ "$1" ]; do
+           ps -p "$1" >/dev/null && return 0
+           shift
+        done
+        return 1
 }
 
 pidofproc() {
     local base=${1##*/}
     local PIDOF=/sbin/pidof
-    local pidfile=${localstatedir}/run/${base}.pid
+    local piddir="${localstatedir}/run"
+    # Attempt removing any extensions from the base and check for two
+    # pid files (so if base is pping.py, we check both pping.py.pid
+    # and pping.pid)
+    local pidfiles="${piddir}/${base}.pid ${piddir}/${base/.*/}.pid"
 
-    if [ -f $pidfile ] ; then
-	local line p pid=
-	read line < $pidfile
-	for p in $line ; do
-	    [ -z "${p//[0-9]/}" -a -d /proc/$p ] && pid="$pid $p"
-	done
-	if [ -n "${pid-:}" ] ; then
-	    echo $pid
-	    return 0
-	fi
+    if [ ! -z "$DEBUG" ]; then echo Checking ${pidfiles}; fi
+    for pidfile in $pidfiles; do
+        if [ -f $pidfile ] ; then
+            local line p pid=
+            read line < $pidfile
+            for p in $line ; do
+                [ -z "${p//[0-9]/}" -a -d /proc/$p ] && pid="$pid $p"
+            done
+            if [ -n "${pid-:}" ] ; then
+                echo $pid
+                return 0
+            fi
+        elif [ ! -z "$DEBUG" ]; then
+            echo Could not find pidfile ${pidfile}
+        fi
+    done
+
+    # If no pid files were found, our last resort is to try the pidof
+    # command (if it exists)
+    if [ -x $PIDOF ]; then
+        $PIDOF -o $$ -o $PPID -o %PPID -x $1 || \
+        $PIDOF -o $$ -o $PPID -o %PPID -x ${base}
     fi
-
-    $PIDOF -o $$ -o $PPID -o %PPID -x $1 || \
-    $PIDOF -o $$ -o $PPID -o %PPID -x ${base}
 }
