@@ -3,8 +3,8 @@
 # og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
 # med job-finished filen.
 
-#NAV_ROOT="/usr/local/nav"
-NAV_ROOT="/home/kristian/devel"
+NAV_ROOT="/usr/local/nav"
+#NAV_ROOT="/home/kristian/devel"
 
 NAV_CONF="$NAV_ROOT/local/etc/conf/nav.conf"
 
