@@ -4,6 +4,7 @@ from nav import db
 from nav.db import manage 
 from nav.web.devBrowser import servicetable
 from nav.web import urlbuilder
+from nav.web.tableview import TableView
 from nav.errors import *
 import random
 import time
@@ -37,6 +38,9 @@ def process(request):
 
     if args[0] == 'all':
         return showAll(request,sort)
+        
+    if args[0] == 'allMatrix':
+        return showAllMatrix(request,sort)
 
     return getNetboxes(args[0], sort)
 
@@ -59,7 +63,46 @@ def showIndex(showAll=0):
             line.append(' (%s)' % count)
             result.append(line)
     result.append(html.Paragraph(html.Anchor("Show all", href="all")))        
+    result.append(html.Paragraph(html.Anchor("Show matrix", href="allMatrix")))        
     return result
+
+def showAllMatrix(request, sort):
+    curs = db.cursor()
+    curs.execute("""SELECT DISTINCT handler
+                    FROM service 
+                    ORDER BY handler""")
+    handlers = [handler for (handler,) in curs.fetchall()]                
+    netboxes = {}
+    for service in manage.Service.getAll():
+        netbox = service.netbox
+        if not netboxes.has_key(netbox.sysname):
+            # First time, remember to make a list
+            netboxes[netbox.sysname] = netbox
+            netbox.services = {}
+        netbox.services[service.handler] = service
+    
+    # Convert to a list, sorted by sysname
+    netboxes = netboxes.items()
+    netboxes.sort()
+    
+    # ok, generate HTML
+    result = TableView('Netbox', sortBy=sort, *handlers)
+    for (_, netbox) in netboxes:
+        row = []
+        # sysname with link
+        row.append(urlbuilder.createLink(netbox))
+        for handler in handlers:
+            service = netbox.services.get(handler)
+            state = html.TableCell()
+            if not service:
+                state.append('')
+            else:    
+                state.append(getServiceState(service))    
+                state['class'] = service.up
+            row.append(state)    
+        result.add(*row)          
+    result.sort()
+    return result            
 
 def showAll(request, sort):
     result = html.Division()
