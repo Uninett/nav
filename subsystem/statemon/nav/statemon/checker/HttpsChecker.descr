@@ -1,2 +1,2 @@
 description=HTTPS
-optargs=url port timeout
+optargs=url username password port timeout

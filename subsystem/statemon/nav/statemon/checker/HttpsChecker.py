@@ -2,12 +2,13 @@
 $Id: HttpChecker.py 2209 2004-01-27 11:25:30Z mortenv $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/HttpChecker.py,v $
 """
+import httplib
+import socket
+from urlparse import urlsplit
 from nav.statemon.event import Event
 from nav.statemon.abstractChecker import AbstractChecker
-from urlparse import urlsplit
-import httplib
 from nav.statemon import Socket
-import socket
+
 class HTTPConnection(httplib.HTTPConnection):
 	def __init__(self,timeout,host,port=80):
 		httplib.HTTPConnection.__init__(self,host,port)
@@ -32,7 +33,10 @@ class HttpsChecker(AbstractChecker):
 		AbstractChecker.__init__(self, "https", service, port=0, **kwargs)
 	def execute(self):
 		ip, port = self.getAddress()
-		url = self.getArgs().get('url','')
+		args = self.getArgs()
+		url = args.get('url','')
+		username = args.get('username')
+		password = args.get('password','')
 		if not url:
 			url = "/"
 		protocol, vhost, path, query, fragment = urlsplit(url)
@@ -46,6 +50,9 @@ class HttpsChecker(AbstractChecker):
 		internalRev = "$Rev: 1361 $"
 		internalRev = internalRev[:-2].replace('$Rev: ','')
 		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev)
+		if username:
+			auth="%s:%s" % (username, password)
+			i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
 		i.endheaders()
 		response = i.getresponse()
 		if response.status >= 200 and response.status < 400:
