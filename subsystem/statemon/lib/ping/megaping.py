@@ -1,5 +1,5 @@
 """
-$Id: megaping.py,v 1.1 2003/03/26 16:03:22 magnun Exp $                                                                                                                              
+$Id: megaping.py,v 1.2 2003/06/01 12:17:25 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -66,7 +66,7 @@ class Host:
       rrd.update(self.ip,'N','UP',pingtime)
     else:
       # Dette er litt grisete og bør endres
-      rrd.update(self.ip,'N','DOWN',10)
+      rrd.update(self.ip,'N','DOWN',self.timeout)
 
   def getState(self, nrping=3):
     if self.certain:

@@ -1,4 +1,4 @@
-# $Id: mailAlert.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
+# $Id: mailAlert.py,v 1.2 2003/06/01 12:17:25 magnun Exp $
 # $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/mailAlert.py,v $
 
 import smtplib, threading, Queue, time, debug
@@ -14,8 +14,8 @@ class _mailAlert(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(1)
-        self._recipent = "root+nav@stud.ntnu.no"
-        self._sender = "root+nav@stud.ntnu.no"
+        self._recipent = "drift-nav@itea.ntnu.no"
+        self._sender = "drift-nav@itea.ntnu.no"
         self._alertq = Queue.Queue()
         self._alertlist = []
         self.debug=debug.debug()
@@ -27,7 +27,7 @@ class _mailAlert(threading.Thread):
             self._alertlist.append(self._alertq.get())
             self.debug.log("mailalert -> Got event, waiting for corrlated events")
             # Wait and see if we get any other reports
-            time.sleep(180)
+            time.sleep(300)
             for i in range(self._alertq.qsize()):
                 self._alertlist.append(self._alertq.get())
             # Send the alert...
@@ -73,14 +73,14 @@ class _mailAlert(threading.Thread):
 
     
     def createMailText(self):
-        txt=""
+        txt="\n"
         for each in self._alertlist:
-            txt += "%-17s %-5s -> %s, %s\n" % (each.sysname, each.type, each.status, each.info)
+            txt += "[%s] %-17s %-5s -> %s, %s\n" % (each.time, each.sysname, each.type, each.status, each.info)
         self.alertText=txt
 
 
     def sendMail(self):
-        subject = "[NAV ServiceMonitor] New events"
+        subject = "[NAV ServiceMonitor] New event(s) %s" % (time.strftime('%Y-%m-%d %H:%M:%S'))
         msg = "From: %s\r\nTo: %s\r\nSubject: %s\r\n" % (self._sender, self._recipent, subject)
         msg += self.alertText
         msg += "\n\n--\nAs friendly as possible"

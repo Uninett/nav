@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.1 2003/03/26 16:01:43 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.2 2003/06/01 12:17:25 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -27,6 +27,7 @@ class Event:
 		self.version = version
 		self.sysname = ""
 		self.handler = ""
+		self.time = time.strftime('%H:%M:%S')
 
 	def setSysname(self, name):
 		self.sysname=name
