@@ -177,6 +177,8 @@ class CronService(Service):
         except CrontabError, e:
             print "Failed"
             raise e
+        except KeyError, e:
+            print "Not running"
         else:
             if not silent:
                 print "Ok"
