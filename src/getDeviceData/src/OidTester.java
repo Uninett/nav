@@ -87,7 +87,7 @@ public class OidTester
 						if (reqGetnext) {
 							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
 						}
-						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size());
+						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + "(reqGetnext: "+reqGetnext+")");
 					
 						String regex = snmpoid.getMatchRegex();
 						for (Iterator i = l.iterator(); i.hasNext();) {
