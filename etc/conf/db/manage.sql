@@ -18,6 +18,7 @@ DROP TABLE product CASCADE;
 DROP TABLE vendor CASCADE;
 DROP TABLE type CASCADE;
 DROP TABLE snmpoid CASCADE;
+DROP TABLE typesnmpoid CASCADE;
 DROP TABLE typegroup CASCADE;
 DROP TABLE room CASCADE;
 DROP TABLE location CASCADE;
@@ -125,22 +126,22 @@ CREATE TABLE prefix (
 );
 
 CREATE TABLE vendor (
-  vendorid varchar(15) PRIMARY KEY
+  vendorid VARCHAR(15) PRIMARY KEY
 );
 
 CREATE TABLE typegroup (
-  typegroupid varchar(15) PRIMARY KEY,
-  descr varchar
+  typegroupid VARCHAR(15) PRIMARY KEY,
+  descr VARCHAR
 );
 
 CREATE TABLE cat (
-  catid varchar(8) PRIMARY KEY,
-  descr varchar
+  catid VARCHAR(8) PRIMARY KEY,
+  descr VARCHAR
 );
 
 CREATE TABLE product (
   productid SERIAL PRIMARY KEY,
-  vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
+  vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
   productno VARCHAR NOT NULL,
   descr VARCHAR,
   UNIQUE (vendorid,productno)
@@ -160,9 +161,9 @@ CREATE TABLE device (
 
 CREATE TABLE type (
   typeid SERIAL PRIMARY KEY,
-  vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
+  vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
   typename VARCHAR(10) NOT NULL,
-  typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
+  typegroupid VARCHAR(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
   sysObjectID VARCHAR NOT NULL,
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
@@ -174,7 +175,7 @@ CREATE TABLE type (
 CREATE TABLE snmpoid (
 	snmpoidid SERIAL PRIMARY KEY,
 	oidkey VARCHAR NOT NULL,
-	objectid VARCHAR NOT NULL,
+	snmpoid VARCHAR NOT NULL,
 	descr VARCHAR
 );
 
@@ -215,7 +216,7 @@ GRANT ALL ON netboxcategory TO getDeviceData;
 CREATE TABLE netboxinfo (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   key VARCHAR,
-  var varchar NOT NULL,
+  var VARCHAR NOT NULL,
   val TEXT NOT NULL
 );
 
@@ -238,13 +239,11 @@ CREATE TABLE module (
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
-  submodule VARCHAR,
+  submodule VARCHAR, -- what is this used for?
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
   UNIQUE (netboxid, module)
 );
--- HVA ER SUBMODULE?
--- DEVICEID BØR VÆRE NOT NULL
 
 CREATE TABLE mem (
   memid SERIAL PRIMARY KEY,
@@ -310,7 +309,7 @@ CREATE TABLE swportvlan (
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar
+  hexstring VARCHAR
 );
 
 
@@ -356,7 +355,7 @@ GRANT ALL ON type_typeid_seq TO navall;
 ------------------------------------------------------------------
 
 DROP TABLE arp CASCADE;
-DROP TABLE cam CASCASE;
+DROP TABLE cam CASCADE;
 DROP VIEW netboxmac CASCADE;
 DROP TABLE eventtype CASCADE;
 
