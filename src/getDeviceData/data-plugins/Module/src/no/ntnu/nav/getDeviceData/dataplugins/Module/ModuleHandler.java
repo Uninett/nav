@@ -179,8 +179,8 @@ public class ModuleHandler implements DataHandler {
 				 - Module with same module, but different deviceid found
                    Module moved, delete
 				*/
-				rs = Database.query("SELECT module, moduleid FROM module WHERE deviceid='"+md.getDeviceid()+"'");
-				if (rs.next() && (md.getModule() != rs.getInt("module"))) {
+				rs = Database.query("SELECT module, moduleid, netboxid FROM module WHERE deviceid='"+md.getDeviceid()+"'");
+				if (rs.next() && (md.getModule() != rs.getInt("module") || nb.getNetboxid() != rs.getInt("netboxid"))) {
 					Log.d("DEL_MODULE", "Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
 					//System.err.println("Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
 					Database.update("DELETE FROM module WHERE moduleid='"+rs.getString("moduleid")+"'");
