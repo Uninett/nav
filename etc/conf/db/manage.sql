@@ -300,10 +300,11 @@ CREATE TABLE gwport (
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
+  swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
-  PRIMARY KEY(swportid, vlan)
+  UNIQUE (swportid, vlan)
 );
 
 CREATE TABLE swportallowedvlan (
