@@ -28,9 +28,12 @@ public class QueryNetbox extends Thread
 	private static CheckRunQTask checkRunQTask;
 
 	private static Map typeidMap;
+	private static Map oidkeyMap;
 	private static SortedMap nbRunQ;
 	private static Stack idleThreads;
 	private static Map nbMap;
+
+	private static LinkedList oidQ;
 
 	private static int maxThreadCnt;
 	private static int threadCnt;
@@ -62,6 +65,7 @@ public class QueryNetbox extends Thread
 		// Create the netbox map and the run queue
 		nbMap = new HashMap();
 		nbRunQ = new TreeMap();
+		oidQ = new LinkedList();
 		
 		// Fetch from DB
 		updateTypes(false);
@@ -123,41 +127,108 @@ public class QueryNetbox extends Thread
 
 	public static void updateTypes(boolean updateNetboxes) {
 		Map typeidM = new HashMap();
+		Map oidkeyM = new HashMap();
 
 		// First fetch new types from the database
 		try {
-			ResultSet rs = Database.query("SELECT typeid, type.frequency AS typefreq, typesnmpoid.frequency AS oidfreq, oidkey, snmpoid FROM type JOIN typesnmpoid USING(typeid) JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
+			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
 			String prevtypeid = null;
-			Map keyFreqMap = new HashMap(), keyMap = new HashMap();
+			//boolean prevuptodate;
+			//boolean dirty = false;
+			//Map keyFreqMap = new HashMap(), keyMap = new HashMap();
+			Type t = null;
+			Map keyFreqMap = null, keyMap = null;
+
+			synchronized (oidQ) {
+				oidQ.clear();
+			}
+
 			while (rs.next()) {
 				String typeid = rs.getString("typeid");
+				String typename = rs.getString("typename");
+				boolean uptodate = rs.getBoolean("uptodate");
+
+				if (!typeid.equals(prevtypeid)) {
+					keyFreqMap = new HashMap();
+					keyMap = new HashMap();
+					t = new Type(typeid, typename, uptodate, keyFreqMap, keyMap);
+					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
+					typeidM.put(typeid, t);
+				}
+					
+				/*
 				if (rs.isFirst()) {
 					prevtypeid = typeid;
+					prevuptodate = uptodate;
 				}
 				if (!typeid.equals(prevtypeid)) {
-					Type t = new Type(prevtypeid, keyFreqMap, keyMap);
+					Type t = new Type(prevtypeid, prevuptodate, keyFreqMap, keyMap);
+					t.setDirty(dirty);
+					dirty = false;
+					if (!prevuptodate) oidQ.add(t);
 					typeidM.put(prevtypeid, t);
 					keyFreqMap = new HashMap();
 					keyMap = new HashMap();
 				}
+				*/
 
-				boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
-				int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
-				if (freq == 0) {
-					Log.w("UPDATE_TYPES", "No frequency specified for type " + typeid + ", oid: " + rs.getString("oidkey") + ", skipping.");
-					prevtypeid = typeid;
-					continue;
+				if (rs.getBoolean("oiduptodate")) {
+					String snmpoidid = rs.getString("snmpoidid");
+					String oidkey = rs.getString("oidkey");
+					String oid = rs.getString("snmpoid");
+					boolean getnext = rs.getBoolean("getnext");
+					String matchRegex = rs.getString("match_regex");
+					boolean oiduptodate = rs.getBoolean("oiduptodate");
+				
+					Snmpoid snmpoid;
+					if ( (snmpoid=(Snmpoid)oidkeyM.get(oidkey)) == null) {
+						oidkeyM.put(oidkey, snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, matchRegex, oiduptodate));
+						/*
+						if (!oiduptodate && t.getUptodate()) {
+							synchronized (oidQ) { oidQ.add(snmpoid); }
+							t.setDirty(true);
+						}
+						*/
+					}
+					//snmpoid.addType(t);
+
+					boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
+					int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
+					if (freq == 0) {
+						Log.w("UPDATE_TYPES", "No frequency specified for type " + typeid + ", oid: " + rs.getString("oidkey") + ", skipping.");
+						prevtypeid = typeid;
+						//prevuptodate = uptodate;
+						continue;
+					}
+					keyFreqMap.put(rs.getString("oidkey"), new Integer(freq));
+					keyMap.put(rs.getString("oidkey"), snmpoid);
 				}
-				keyFreqMap.put(rs.getString("oidkey"), new Integer(freq));
-				keyMap.put(rs.getString("oidkey"), rs.getString("snmpoid"));
 				prevtypeid = typeid;
+				//prevuptodate = uptodate;
 			}
-			typeidM.put(prevtypeid, new Type(prevtypeid, keyFreqMap, keyMap));
+			//typeidM.put(prevtypeid, new Type(prevtypeid, keyFreqMap, keyMap));
+
+			// Now check all non-uptodate OIDs
+			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, match_regex, snmpoid.uptodate AS oiduptodate FROM snmpoid WHERE uptodate = 'f'");
+			while (rs.next()) {
+				String snmpoidid = rs.getString("snmpoidid");
+				String oidkey = rs.getString("oidkey");
+				String oid = rs.getString("snmpoid");
+				boolean getnext = rs.getBoolean("getnext");
+				String matchRegex = rs.getString("match_regex");
+				boolean oiduptodate = rs.getBoolean("oiduptodate");
+				
+				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, matchRegex, oiduptodate);
+				synchronized (oidQ) { oidQ.add(snmpoid); }
+
+			}
 
 			// Make new types global
 			typeidMap = typeidM;
+			oidkeyMap = oidkeyM;
 
 			Log.d("UPDATE_TYPES", "Updated typeidMap, size: " + typeidMap.size());
+			Log.d("UPDATE_TYPES", "Updated oidkeyMap, size: " + oidkeyMap.size());
 
 			// Then update all netboxes with the new types
 			if (updateNetboxes) updateNetboxesWithNewTypes();
@@ -172,6 +243,11 @@ public class QueryNetbox extends Thread
 			NetboxImpl nb = (NetboxImpl)it.next();
 			Type t = (Type)typeidMap.get(nb.getTypeT().getTypeid());
 			nb.setType(t);
+			if (t.getDirty()) {
+				synchronized (deviceNetboxCache) {
+					deviceNetboxCache.remove(nb.getNetboxidS());
+				}
+			}
 		} 
 	}
 
@@ -182,6 +258,7 @@ public class QueryNetbox extends Thread
 			ResultSet rs = Database.query(sql);
 
 			int nbCnt=0;
+			Set netboxidSet = new HashSet();
 			while (rs.next()) {
 				String netboxid = rs.getString("netboxid");
 				String typeid = rs.getString("typeid");
@@ -193,11 +270,18 @@ public class QueryNetbox extends Thread
 				}
 				NetboxImpl nb;
 
+				/*
 				synchronized (nbMap) {
 					if ( (nb=(NetboxImpl)nbMap.get(netboxid)) != null) {
 						nb.remove();
 					}
 					nbMap.put(netboxid, nb = new NetboxImpl(++nbCnt, t));
+				}
+				*/
+				boolean newNetbox = false;
+				if ( (nb=(NetboxImpl)nbMap.get(netboxid)) == null) {
+					nbMap.put(netboxid, nb = new NetboxImpl(++nbCnt, t));
+					newNetbox = true;
 				}
 				
 				nb.setNetboxid(netboxid);
@@ -209,10 +293,21 @@ public class QueryNetbox extends Thread
 				//bd.setSnmpMajor(rs.getInt("snmp_major"));
 				//bd.setSnmpagent(rs.getString("snmpagent"));
 
-				addToRunQ(nb);
+				if (newNetbox) {
+					addToRunQ(nb);
+				}
+				netboxidSet.add(new Integer(nb.getNetboxid()));
 			}
 
 			netboxCnt = nbCnt;
+
+			// Remove netboxes no longer present
+			for (Iterator it = nbMap.values().iterator(); it.hasNext();) {
+				NetboxImpl nb = (NetboxImpl)it.next();
+				if (!netboxidSet.contains(new Integer(nb.getNetboxid()))) nb.remove();
+				it.remove();
+			} 
+
 
 		} catch (SQLException e) {
 			Log.e("UPDATE_NETBOXES", "SQLException: " + e);			
@@ -297,6 +392,26 @@ public class QueryNetbox extends Thread
 		long beginTime = System.currentTimeMillis();
 
 		while (true) {
+
+			// First check if there are any OIDs to update
+			{
+				Object updateO = null;
+				synchronized (oidQ) {
+					if (!oidQ.isEmpty()) {
+						updateO = oidQ.removeFirst();
+					}
+				}
+				if (updateO != null) {
+					OidTester oidTester = new OidTester();
+					if (updateO instanceof Type) {
+						oidTester.oidTest((Type)updateO, oidkeyMap.values().iterator() );
+					} else if (updateO instanceof Snmpoid) {
+						oidTester.oidTest((Snmpoid)updateO, typeidMap.values().iterator() );
+					}
+					continue;
+				}
+			}
+					
 
 			String netboxid = nb.getNetboxidS();
 			String ip = nb.getIp();

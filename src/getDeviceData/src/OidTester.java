@@ -1,0 +1,158 @@
+import java.util.*;
+import java.sql.*;
+
+import no.ntnu.nav.logger.*;
+import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.SimpleSnmp.*;
+
+/**
+ * This class tests netboxes for OID compatibility.
+ */
+
+public class OidTester
+{
+	private static final int CHECK_NETBOX_CNT = 2;
+	private static final int DEFAULT_FREQ = 3600;
+
+	private static Map lockMap = new HashMap();
+	private static Set dupeSet = new HashSet();
+
+	private SimpleSnmp sSnmp;
+
+	public void oidTest(Type t, Iterator snmpoidIt) {
+		// Call test for all OIDs to this type
+		for (; snmpoidIt.hasNext();) {
+			Snmpoid snmpoid = (Snmpoid)snmpoidIt.next();
+			doTest(t, snmpoid);
+		}
+
+		try {
+			Database.update("UPDATE type SET uptodate='t' WHERE typeid='"+t.getTypeid()+"'");
+		} catch (SQLException e) {
+			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
+		}
+	}
+
+	public void oidTest(Snmpoid snmpoid, Iterator typeIt) {
+		// Call test for all types to this OID
+		for (; typeIt.hasNext();) {
+			Type t = (Type)typeIt.next();
+			doTest(t, snmpoid);
+		}
+
+		try {
+			Database.update("UPDATE snmpoid SET uptodate='t' WHERE snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+		} catch (SQLException e) {
+			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
+		}
+	}
+
+	private void doTest(Type t, Snmpoid snmpoid) {
+		// Return if this has already been checked
+		if (!checkDupe(t.getTypeid()+":"+snmpoid.getOidkey())) return;
+
+		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getTypename());
+
+		try {
+		// Get a netbox to test against
+		ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' LIMIT " + CHECK_NETBOX_CNT);
+		
+		while (rs.next()) {
+			// Check that not someone else is testing against this netbox
+			String ip = rs.getString("ip");
+			synchronized(lock(ip)) {
+
+				// Do the test
+				sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
+
+				boolean supported = false;
+
+				try {
+					List l;
+					if (snmpoid.getGetnext()) {
+						l = sSnmp.getAll();
+					} else {
+						l = sSnmp.getAll(false, false);
+					}
+
+					String regex = snmpoid.getMatchRegex();
+					for (Iterator i = l.iterator(); i.hasNext();) {
+						String[] s = (String[])i.next();
+						if (s[1] != null && s[1].matches(regex)) {
+							// Update db
+							rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+							if (!rs.next()) {
+								String[] ins = {
+									"typeid", t.getTypeid(),
+									"snmpoidid", snmpoid.getSnmpoidid(),
+									"frequency", ""+DEFAULT_FREQ
+								};
+								Database.insert("typesnmpoid", ins);
+							}
+							supported = true;
+							t.addSnmpoid(DEFAULT_FREQ, snmpoid);
+							break;
+						}
+					}
+				} catch (TimeoutException e) {
+					Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
+				}
+
+				if (!supported) {
+					Database.update("DELETE FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+				}
+
+			}
+			unlock(ip);
+		}
+		} catch (SQLException e) {
+			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
+		}
+
+	}
+
+	// Returns true if s is not a dupe (has not been checked before)
+	private static synchronized boolean checkDupe(String s) {
+		return dupeSet.add(s);
+	}
+
+	private static synchronized String lock(String s) {
+		if (!lockMap.containsKey(s)) {
+			lockMap.put(s, new Refcnt(s));
+		}
+		Refcnt rf = (Refcnt)lockMap.get(s);
+		rf.inc();
+		return rf.getS();
+	}
+
+	private static synchronized void unlock(String s) {
+		Refcnt rf = (Refcnt)lockMap.get(s);
+		if (rf != null && rf.dec()) {
+			lockMap.remove(s);
+		}
+	}
+
+	private static class Refcnt {
+		private int cnt = 0;
+		private String s;
+
+		Refcnt(String s) { this.s = s; }
+
+		String getS() { return s; }
+		void inc() { cnt++; }
+		boolean dec() { 
+			if (cnt > 0) {
+				cnt--;
+			}
+			return cnt == 0;
+		}
+	}
+
+}
