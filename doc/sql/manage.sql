@@ -242,7 +242,8 @@ CREATE TABLE netbox (
   snmp_agent VARCHAR,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   uptodate BOOLEAN NOT NULL DEFAULT false, 
-  UNIQUE(ip)
+  UNIQUE(ip),
+  UNIQUE(deviceid)
 );
 
 CREATE TABLE netboxsnmpoid (
