@@ -70,6 +70,11 @@ def handler(req):
             output = edit(req,path[1])
         else:
             output = edit(req)
+    elif path[0] == 'retire':
+        if len(path)>1:
+            output = retire(req,path[1])
+        else:
+            output = home(req,"active")
     elif path[0] == 'view':
         if len(path)>2:
                 output = view(req,path[1],path[2])
@@ -149,7 +154,7 @@ def feed(req):
     database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc") 
     page.messages = database.fetchall()
 
-    page.server = req.server.server_hostname
+    PAGE.server = req.server.server_hostname
 
     return page.respond()
 
@@ -839,6 +844,17 @@ def selectmessagelist():
     return messages
     
 
+def retire(req, id):
+    """ Retire a message. The message gets the new status "historical"."""
+
+    id = int(id)
+    database.execute("select publish_end from emotd where emotdid=%d",(id,))
+    publish_end = database.fetchone()[0]
+    if publish_end > DateTime.now():
+        database.execute("update emotd set publish_end=now() where emotdid=%d",(id,))
+    redirect(req,BASEPATH+"view"+str(id))
+    
+
 def edit(req, id = None):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
     page = EditTemplate()
@@ -984,7 +1000,7 @@ def commit(req):
             # database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
             database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
         elif req.form.has_key("cn_save_and_add"):
-            if not req.session.has_key("message"):
+            if not req.session.has_key("message") or not isinstance(req.session["message"],dict):
                 req.session["message"] = {}
             req.session['message']['title'] = title
             req.session['message']['description'] = description

@@ -72,14 +72,16 @@ $equipmentList($message.equipment)
 <span style="font-size:0.8em;">
 #if $access
 [ 
+<a href="/messages/add/$message.emotdid">Maintenance Setup</a>
 #if $username == $message.author:
-<a href="/messages/edit/$message.emotdid">Edit Message</a>
-#else
-<a href="/messages/edit/$message.emotdid">Followup Message</a> 
+| <a href="/messages/edit/$message.emotdid">Edit Message</a>
 #end if
 
-| <a href="/messages/add/$message.emotdid">Maintenance Setup</a>
+| <a href="/messages/edit/$message.emotdid">Followup Message</a> 
 
+#if not $message.retired
+| <a href="/messages/retire/$message.emotdid">Retire Message</a>
+#end if                                                                                
 #if not $all
  | <a href="/messages/view/$category">Show all</a>
 #end if
