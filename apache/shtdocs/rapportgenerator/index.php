@@ -145,7 +145,7 @@ print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\
 
 print "<table><tr><td>";
 
-print "<a href=\"main.html\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td><td>";
+print "<a href=\"../web.pl?side=reports\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td><td>";
 ## husker gammel querystring
 $peker = lag_peker($urlselect,$QUERY_STRING);
 if($begrenset){
