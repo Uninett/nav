@@ -1,5 +1,5 @@
 """
-$Id: x1$
+$Id$
 
 This file is part of the NAV project.
 
@@ -31,21 +31,33 @@ def getConnection(scriptName, database='nav'):
     cacheKey = '%s_%s' % (scriptName, database)
 
     # If the connection object already exists in the connection cache,
-    # we return this instead.  Here we should also perform some checks
-    # as to whether the connection is still valid.
+    # we check whether it is still open/valid.  If it is, we return
+    # this instead of a new connection.
     if _connectionCache.has_key(cacheKey):
-        return _connectionCache[cacheKey].object
-    else:
-        conf = config.readConfig('db.conf')
-        dbname = conf['db_%s' % database]
-        user   = conf['script_%s' % scriptName]
-        pw     = conf['userpw_%s' % user]
-        
-        connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
-                                     (conf['dbhost'], dbname, user, pw))
+        connection = _connectionCache[cacheKey].object
+        try:
+            cursor = conn.cursor()
+            cursor.execute('SELECT 1')
+            return connection
+        except psycopg.ProgrammingError:
+            import sys
+            sys.stderr.write('DB-DEBUG: Reaping a dead connection object\n')
+            conn.close()
+            del cursor
+            del connection
+            del _connectionCache[cacheKey]
 
-        _connectionCache[cacheKey] = CachedObject(connection)
-        return connection
+    # If we got this far, we did not return an existing connection.
+    conf = config.readConfig('db.conf')
+    dbname = conf['db_%s' % database]
+    user   = conf['script_%s' % scriptName]
+    pw     = conf['userpw_%s' % user]
+        
+    connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
+                                 (conf['dbhost'], dbname, user, pw))
+
+    _connectionCache[cacheKey] = CachedObject(connection)
+    return connection
 
 def setDefaultConnection(conn):
     global db, cursor

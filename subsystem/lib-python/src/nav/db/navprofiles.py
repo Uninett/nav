@@ -47,12 +47,16 @@ class Account(nav.db.forgotten.navprofiles.Account):
         for this Account.  In simpler terms; when password
         authentication is used, this method compares the given
         password with the one stored for this account and returns true
-        if they are equal.
+        if they are equal.  If the stored password is blank, we
+        interpret this as: 'The user is not allowed to log in'
 
         In the future, this could be extended to accept other types of
         authentication tokes, such as personal certificates or
         whatever.
         """
+        if not self.password.strip():
+            return False
+
         return (password == self.password)
 
 def _customizeTables():
