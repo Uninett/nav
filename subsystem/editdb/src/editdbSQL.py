@@ -14,7 +14,6 @@ def executeSQL(sqllist):
     for sql in sqllist:
         database.execute(sql)
     connection.commit()
-    connection.close()
 
 def executeSQLreturn(sql):
     connection = nav.db.getConnection('editdb','manage')

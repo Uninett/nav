@@ -13,7 +13,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 ## Imports
 
 import psycopg, cPickle, re
-
+import nav.db
 from StatusSections import *
 
 #################################################
@@ -253,8 +253,7 @@ class HandleStatusPrefs:
         " Pickles and saves the preferences "
         prefs = self.getPrefs()
                 
-        connection = psycopg.connect(dsn="host=localhost user=manage \
-        dbname=navprofiles password=eganam")
+        connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
         data = psycopg.QuotedString(cPickle.dumps(prefs))
@@ -273,13 +272,11 @@ class HandleStatusPrefs:
             (self.req.session['user'].id,self.STATUS_PROPERTY,data)
         database.execute(sql)
         connection.commit()
-        connection.close()
 
     def loadPrefs(cls,req):
         accountid = req.session['user'].id
 
-        connection = psycopg.connect(dsn="host=localhost user=manage \
-        dbname=navprofiles password=eganam")
+        connection = nav.db.getConnection('status', 'navprofile')
         database = connection.cursor()
 
         sql = "SELECT value FROM accountproperty WHERE accountid=%s \
@@ -296,7 +293,6 @@ class HandleStatusPrefs:
             fh = file(DEFAULT_PREFS_FILENAME,'r')
             prefs = cPickle.load(fh)
         
-        connection.close()
         return prefs
     loadPrefs = classmethod(loadPrefs)
 
