@@ -36,10 +36,6 @@ public class NetboxData extends Device
 	 * Set the sysname of the netbox.
 	 */
 	public void setSysname(String sysname) {
-		if (sysname == null) {
-			Log.d("NETBOX_DATA", "SET_SYSNAME", "Ignoring attempt to set NULL sysname");
-			return;
-		}
 		this.sysname = sysname;
 	}
 
