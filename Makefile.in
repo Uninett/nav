@@ -66,7 +66,7 @@ install-all:
 install-doc:
 	$(MAKE) -C doc install
 
-config = doc/conf/db.conf doc/conf/nav.conf
+config = doc/conf/db.conf doc/conf/nav.conf doc/conf/vPServer.conf
 install-conf:
 	@for file in $(config) ; do                               \
 	  dirname=`dirname $$file` ;                              \
