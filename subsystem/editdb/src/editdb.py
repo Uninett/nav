@@ -26,13 +26,14 @@
 #################################################
 ## Imports
 
+import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
+
 from mod_python import util,apache
 from editdbSQL import *
 from socket import gethostbyaddr,gethostbyname,gaierror
-
-import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
 from nav.web.serviceHelper import getCheckers,getDescription
-
+from nav.web.selectTree import selectTree,selectTreeLayoutBox
+from nav.web.selectTree import simpleSelect,updateSelect
 #################################################
 ## Templates
 
@@ -41,7 +42,7 @@ from nav.web.templates.editdbTemplate import editdbTemplate
 #################################################
 ## Constants
 
-BASEPATH = '/~hansjorg/editdb/'
+BASEPATH = '/editdb/'
 
 EDITPATH = [('Home','/'),('Tools','/toolbox'),('Edit database',BASEPATH)]
 
@@ -77,10 +78,22 @@ REQ_TRUE = 1
 REQ_FALSE = 2
 REQ_NONEMPTY = 3
 
+# Fieldtypes
+FIELD_STRING = 1
+FIELD_INTEGER = 2
+
+# Options for choosing patch splits
+# Used in pagePatch.editbox 
+PATCH_SPLIT_OPTIONS = [('no','No split'),
+                       ('lance25 A','lance25 A'),
+                       ('YA4-E2-E2 B','YA4-E2-E2 B'),
+                       ('A','A')]
+
 #################################################
 ## Functions
 
 def handler(req):
+    ''' mod_python handler '''
     path = req.uri
     request = re.search('editdb/(.+)$',path).group(1)
     request = request.split('/')
@@ -97,14 +110,14 @@ def handler(req):
             
     if not len(request) > 1:
         output = index(req,showHelp)
-    else:
-        editid = None
-        if len(request) == 3:
-            editid = request[2]
-
+    else:        
         table = request[0]
         action = request[1]
-        output = handleSubmit(req,table,action,editid)
+
+        if table == 'bulk':
+            output = bulkImport(req,action)
+        elif pageList.has_key(table):
+            output = editPage(req,pageList[table](),request)
 
     if output:
         req.write(output)
@@ -112,22 +125,18 @@ def handler(req):
     else:
         return apache.HTTP_NOT_FOUND
 
-# A general class for html tables (used by the index)
-class Table:
-    def __init__(self,title,infotext,headings,rows):
-        self.title = title
-        self.infotext = infotext
-        self.headings = headings
-        self.rows = rows
 
-def index(req,showHelp=False):
-    " Shows the index page "
+def index(req,showHelp=False,status=None):
+    ''' Generates the index page (main menu) '''
 
     # Empty body
     class body:
+        ''' Empty struct for template '''
         def __init__(self):
             pass
     
+    body.status = status
+
     body.title = 'Modify seed information for the NAV database'
     body.infotext = 'Here you can add, delete or edit seed information ' +\
                     'that are needed for the NAV database. Keep in mind ' +\
@@ -239,7 +248,7 @@ def index(req,showHelp=False):
     # Table for cabling and patch
     rows = [['Cabling',
              'Here you may document the horizontal cabling system ',
-            [BASEPATH + 'cabling/list','Add'],
+            [BASEPATH + 'cabling/edit','Add'],
             [BASEPATH + 'cabling/list','Edit'],
             [BASEPATH + 'bulk/cabling','Bulk import']],
             ['Patch',
@@ -257,19 +266,35 @@ def index(req,showHelp=False):
     return template.respond()
 
 
-# Function for handling all submits
-def handleSubmit(req, table, action, editid):
-    error = None
-    if editid:
-        selected = [editid]
-    else:
-        selected = []
-   
+######################
+##
+## General functions
+##
+########################
+
+# General function for handling editing
+def editPage(req,page,request):
+    ''' General handler function for all editpages. Whenever an action
+        add, update, list or delete is performed, this function is called. '''
+
     # Cancel button redirect
     if req.form.has_key(editForm.cnameCancel):
-        nav.web.redirect(req, BASEPATH, seeOther=True)
-    
-    # Make a list of selected entries (list of ids)
+        nav.web.redirect(req,BASEPATH,seeOther=True)
+   
+    # Make a status object
+    status = editdbStatus()
+
+    # Get action from request (url)
+    action = request[1] 
+
+    selected = []
+    # Get editid from url if it is present (external links and list links)
+    if len(request) > 1:
+        if len(request) == 3:
+            if request[2]:
+                selected = [request[2]]
+
+    # Make a list of selected entries from a posted selectlist
     if req.form.has_key(selectList.cnameChk):
         if type(req.form[selectList.cnameChk]) is str:
             # only one selected
@@ -279,55 +304,4076 @@ def handleSubmit(req, table, action, editid):
             for s in req.form[selectList.cnameChk]:
                 selected.append(s)
 
+    # Remember entries which we are already editing
+    # Used if editing is interrupted by an error
+    if req.form.has_key(UPDATE_ENTRY):
+        if type(req.form[UPDATE_ENTRY]) is str:
+            # only one selected
+            selected = [req.form[UPDATE_ENTRY]]
+        elif type(req.form[UPDATE_ENTRY]) is list:
+            # more than one selected
+            for s in req.form[UPDATE_ENTRY]:
+                selected.append(s)
+
+    # Disallow adding (for pageVlan)
+    if req.form.has_key(selectList.cnameAdd) and hasattr(page,'disallowAdd'):
+        status.errors.append(page.disallowAddReason)
+        action = 'list'
+
+    # Check if any entries are selected when action is 'edit' or 'delete'
     if action == 'edit':
         if req.form.has_key(selectList.cnameEdit):
             if not selected:
-                error = 'No entries selected for editing'
+                status.errors.append('No entries selected for editing')
                 action = 'list' 
         elif req.form.has_key(selectList.cnameDelete):
             action = 'delete'
             if not selected:
-                error = 'No entries selected'
+                status.errors.append('No entries selected')
                 action = 'list'
         else:
             if not selected:
                 action = 'add'
 
-    if table == 'location':
-        output = editLocation(req,selected,action,error)
-    elif table == 'room':
-        output = editRoom(req,selected,action,error)
-    elif table == 'org':
-        output = editOrg(req,selected,action,error)
-    elif table == 'type':
-        output = editType(req,selected,action,error)
-    elif table == 'product':
-        output = editProduct(req,selected,action,error)
-    elif table == 'vendor':
-        output = editVendor(req,selected,action,error)
-    elif table == 'netbox':
-        output = editPage(req,pageNetbox(),selected,action,error)
-    elif table == 'usage':
-        output = editUsage(req,selected,action,error)
-    elif table == 'service':
-        output = editService(req,selected,action,error)
-    elif table == 'prefix':
-        output = editPrefix(req,selected,action,error)
-    elif table == 'vlan':
-        output = editVlan(req,selected,action,error)
-    elif table == 'subcat':
-        output = editSubcat(req,selected,action,error)
-    elif table == 'snmpoid':
-        output = editSnmpoid(req,selected,action,error)
-    elif table == 'bulk':
-        output = bulkImport(req,action)
-    elif table == 'cabling':
-        output = editPage(req,selected,action,error)
-    elif table == 'patch':
-        output = editPage(req,selected,action,error) 
-    return output
+    # Set 'current path'
+    path = page.pathAdd
+
+    templatebox = page.editbox(page)
+    # Copy field defintions from the main templatebox (used by add/update)
+    page.fields = templatebox.fields
+
+    # Make form object for template
+    outputForm = editForm()
+    outputForm.action = page.basePath + 'edit/'
+
+    # List definition, get sorting parameter
+    sort = None
+    if req.form.has_key('sort'):
+        sort = req.form['sort']
+    listView = page.listDef(page,sort)
+   
+    # Check if the confirm button has been pressed
+    if req.form.has_key(outputForm.cnameConfirm):
+        missing = templatebox.hasMissing(req)
+        if not missing:
+            status = templatebox.verifyFields(req,status)
+            if not len(status.errors):
+                if req.form.has_key(ADDNEW_ENTRY):
+                    # add new entry
+                    (status,action,outputForm) = page.add(req,outputForm,action)
+                elif req.form.has_key(UPDATE_ENTRY):
+                    # update entry
+                    (status,action,outputForm,selected) = page.update(req,
+                                                                     outputForm,
+                                                                      selected)
+        else:
+            status.errors.append("Required field '" + missing + "' missing") 
+    # Confirm delete pressed?
+    elif req.form.has_key(selectList.cnameDeleteConfirm):
+        status = page.delete(selected,status)
+        outputForm = None
+        action = 'list' 
+    
+    # Decide what to show 
+    if action == 'predefined':
+        # Action is predefined by addNetbox() or updateNetbox()
+        outputForm.textConfirm = 'Continue'
+        outputForm.status = status
+        listView = None
+    elif action == 'continueAdd':
+        # Continue adding (used by pageService)
+        path = page.pathAdd
+        outputForm.textConfirm = 'Add ' + page.singular
+        outputForm.status = status
+        listView = None
+    elif action == 'continueEdit':
+        # Continue updating (used by pageService)
+        path = page.pathEdit
+        outputForm.textConfirm = 'Update ' + page.singular
+        outputForm.status = status
+        listView = None
+    elif action == 'edit':
+        path = page.pathEdit
+        title = 'Edit '
+        if len(selected) > 1:
+            title += page.plural
+        else:
+            title += page.singular
+        outputForm.title = title
+        outputForm.status = status
+        outputForm.textConfirm = 'Update'
+        if page.editMultipleAllowed:
+            # This page can edit multiple entries at a time
+            for s in selected:
+                outputForm.add(page.editbox(page,req,s,formData=req.form))
+        else:
+            # This page can only edit one entry at a time (eg. netbox)
+            outputForm.add(page.editbox(page,req,selected[0],formData=req.form))
+        # preserve path
+        #outputForm.action = page.basePath + 'edit/' + selected[0]
+        listView = None
+    elif action == 'add':
+        path = page.pathAdd
+        outputForm.status = status
+        outputForm.title = 'Add ' + page.singular
+        outputForm.textConfirm = 'Add ' + page.singular
+        outputForm.add(page.editbox(page,req,formData=req.form))
+        listView = None
+    elif action == 'delete':
+        path = page.pathDelete
+        listView = page.listDef(page,sort,selected)
+        listView.status = status
+        listView.fill()
+        outputForm = None
+    elif action == 'list':
+        path = page.pathList
+        listView.status=status
+        listView.fill()
+        outputForm = None
+    elif action == 'redirect':
+        # Redirect to main page (snmpoid add)
+        return index(req,status=status)
+
+    nameSpace = {'entryList': listView,'editList': None,'editForm': outputForm}
+    template = editdbTemplate(searchList=[nameSpace])
+    template.path = path
+    return template.respond()
+
+def insertNetbox(ip,sysname,catid,roomid,orgid,
+                 ro,rw,deviceid,serial,
+                 typeid,snmpversion,subcatlist=None,
+                 function=None):
+    ''' Inserts a netbox into the database. Used by pageNetbox.add(). '''
+    if not deviceid:
+
+        # Make new device first
+        if len(serial):
+            fields = {'serial': serial}
+        else:
+            # Don't insert an empty serialnumber (as serialnumbers must be
+            # unique in the database) (ie. don't insert '' for serial)
+            fields = {}
+            
+        deviceid = addEntryFields(fields,
+                                  'device',
+                                  ('deviceid','device_deviceid_seq'))
+
+    fields = {'ip': ip,
+              'roomid': roomid,
+              'deviceid': deviceid,
+              'sysname': sysname,
+              'catid': catid,
+              'orgid': orgid,
+              'ro': ro,
+              'rw': rw}
+    #uptodate = false per default
+
+    # Get prefixid
+    query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
+            % (fields['ip'],)
+    try:
+        result = executeSQLreturn(query) 
+        fields['prefixid'] = str(result[0][0])
+    except:
+        pass        
+
+    if typeid:
+        fields['typeid'] = typeid
+
+        # Set uptyodate = false
+        # This part is done in netbox now. And for a new box this
+        # field defaults to 'f'
+        #tifields = {'uptodate': 'f'}
+        #updateEntryFields(tifields,'type','typeid',typeid)
+
+    if snmpversion:
+        # Only use the first char from initbox, can't insert eg. '2c' in
+        # this field
+        snmpversion = snmpversion[0]
+        fields['snmp_version'] = snmpversion
+
+    netboxid = addEntryFields(fields,
+                              'netbox',
+                              ('netboxid','netbox_netboxid_seq'))
+    # If subcatlist and function is given, insert them
+    if subcatlist:
+        if type(subcatlist) is list:
+            for sc in subcatlist:
+                fields = {'netboxid': netboxid,
+                          'category': sc}
+                addEntryFields(fields,'netboxcategory')
+        else:
+            fields = {'netboxid': netboxid,
+                      'category': subcatlist}
+            addEntryFields(fields,'netboxcategory')
+
+    if function:
+        fields = {'netboxid': netboxid,
+                  'key': '',
+                  'var': 'function',
+                  'val': function}
+        addEntryFields(fields,'netboxinfo')
+
+
+######################
+##
+## General classes
+##
+########################
+
+class Table:
+    ''' A general class for html tables used by index(). '''
+    def __init__(self,title,infotext,headings,rows):
+        self.title = title
+        self.infotext = infotext
+        self.headings = headings
+        self.rows = rows
+
+class editdbStatus:
+    ''' Struct class which holds two lists (messages and errors). Every 
+        form object got an instance of this class and uses it to add 
+        messages and errors which is then displayed by the template. '''
+    # List of status messages, one line per message
+    messages = []
+    # List of error messages, one line per message
+    errors = []
+
+    def __init__(self):
+        self.messages = []
+        self.errors = []
+
+
+class entryListCell:
+    ''' Represents a cell (TD) in a selectlist object. '''
+
+    CHECKBOX = 'chk'
+    RADIO = 'rad'
+    HIDDEN = 'hid'
+
+    def __init__(self,text=None,url=None,buttonType=None,
+                 image=None,tooltip=None):
+        self.text = text
+        self.url = url
+        self.buttonType = buttonType
+        self.image = image
+        self.tooltip = tooltip
+
+## class entryList (rename to selectList)
+class entryList:
+    ''' Flexible class for making lists of entries which can be selected.
+        Used by all 'edit' pages. 
+        
+        Uses the list definitions defined in every page class.
+
+        descriptionFormat = [(text,forgetSQLfield),(text,...]
+        '''
+        
+    # Constants
+    CNAME_SELECT = 'checkbox_id'
+    CNAME_ADD = 'submit_add'
+    CNAME_EDIT = 'submit_edit'
+    CNAME_DELETE = 'submit_delete'
+    CNAME_CONFIRM_DELETE = 'confirm_delete'
+    
+    # Class variables used by the template
+    title = None
+    status = None
+    body = None
+    formMethod = 'post'
+    formAction = None
+    selectCname = CNAME_SELECT
+    buttonsTop = [(CNAME_ADD,'Add new'),
+                  (CNAME_EDIT,'Edit selected'),
+                  (CNAME_DELETE,'Delete selected')]
+    buttonsBottom = buttonsTop
+    hideFirstHeading = False  # Don't show first column heading (usually 
+                              # the select heading) if True
+    buttonTypeOverride = None # override the chosen select button type
+                              # used for bulk and delete lists where there
+                              # is no checkbox/radiobut., only hidden
+    headings = []             # list of cell objects
+    rows = []                 # tuples of (sortstring,id,cell object)
+
+    # Variables for filling the list
+    tableName = None
+    basePath = None                 
+    sortBy = None                   # Sort by columnumber
+    defaultSortBy = None            # Default columnnumber sorted by
+    headingDefinition = None        # list of tuples (heading,show sort link)
+    cellDefintion = None            # cellDefinition list
+    where = None                    # List of id's (strings)
+    sortingOn = True                # Show links for sorting the list
+
+    def __init__(self,struct,sort,deleteWhere=None):
+        self.headings = []
+        self.rows = []
+
+        if sort:
+            sort = int(sort)
+        self.sortBy = sort
+        self.tableName = struct.tableName
+        self.tableIdKey = struct.tableIdKey
+        self.basePath = struct.basePath
+        self.formAction = self.basePath + 'edit/'
+
+        if deleteWhere:
+            self.buttonTypeOverride = entryListCell.HIDDEN
+            self.hideFirstHeading = True
+            self.where = deleteWhere
+            title = 'Are you sure you want to delete the ' + \
+                    'selected '
+            if len(deleteWhere) > 1:
+                title += struct.plural
+            else:
+                title += struct.singular
+            self.title = title + '?'
+            self.sortingOn = False
+            self.buttonsTop = None
+            self.buttonsBottom = [(self.CNAME_CONFIRM_DELETE,'Delete')]
+        else:
+            self.title = 'Edit ' + struct.plural
+            self.sortingOn = True
+
+    def fill(self):
+        ''' Fill the list with data from the database. '''
+        # Make headings
+        i = 0
+        for heading,sortlink,sortFunction in self.headingDefinition:
+            if self.hideFirstHeading:
+                heading = ''
+                self.hideFirstHeading = False
+            if self.sortBy:
+                currentOrder = self.sortBy
+            else:
+                currentOrder = self.defaultSortBy
+            s = i
+            if i == currentOrder:
+                # Reverse sort?
+                s = -i
+            url = self.basePath + 'list/?sort=' + str(s)
+            if sortlink and self.sortingOn:
+                self.headings.append(entryListCell(heading,
+                                                    url))
+            else:
+                self.headings.append(entryListCell(heading,
+                                                    None))
+            i = i + 1
+
+        # Preparse tooltips, etc.
+        for sqlQuery,definition in self.cellDefinition:
+            for column in definition:
+                for cell in column:
+                    if type(cell) is list:
+                        # This cell definition is a list, as opposed to
+                        # a tuple, so we must prefetch some data for the
+                        # parse function
+                        # Must prefetch data for this column
+                        for tooltipDef in cell:
+                            # There can be one or more defintions per cell
+                            sql = tooltipDef[0]
+                            # column[2] is reserved for data
+                            tooltipDef[2] = executeSQLreturn(sql)
+
+        # Make rows
+        reverseSort = False
+        if self.sortBy:
+            if self.sortBy < 0:
+                self.sortBy = self.sortBy * -1
+                reverseSort = True
+
+        for sqlTuple,definition in self.cellDefinition:
+            # Create SQL query from tuple
+            columns,tablenames,join,where,orderBy = sqlTuple
+            sqlQuery = 'SELECT ' + columns + ' FROM ' + tablenames
+            if join:
+                sqlQuery += ' %s ' % (join,)
+            if where:
+                sqlQuery += ' WHERE ' + where
+            # Add where clause if self.where is present
+            if self.where:
+                if not where:
+                    # No where defined in sqlTuple, so add it now
+                    sqlQuery += ' WHERE '
+                else:
+                    # Else, these are additional so add AND
+                    sqlQuery += ' AND '
+                first = True
+                sqlQuery += ' ('
+                for id in self.where:
+                    if not first:
+                        sqlQuery += 'OR'
+                    sqlQuery += " %s='%s' " % (self.tableIdKey,id)
+                    if first:
+                        first = False
+                sqlQuery += ') '
+            if orderBy:
+                sqlQuery += ' ORDER BY ' + orderBy                                
+            fetched = executeSQLreturn(sqlQuery)
+            for row in fetched:
+                id = row[0]
+                cells = []
+                for text,url,buttonType,image,tooltip in definition:
+                    if buttonType and self.buttonTypeOverride:
+                        buttonType = self.buttonTypeOverride
+                    cells.append(entryListCell(self.parse(text,row),
+                                               self.parse(url,row,True),
+                                               buttonType,
+                                               image,
+                                               self.parse(tooltip,row))) 
+                
+                sortKey = None
+                if self.sortBy:
+                    sortKey = row[self.sortBy]
+                self.rows.append([sortKey,(id,cells)])
+        if self.sortBy:
+            if self.headingDefinition[self.sortBy][2]:
+                # Optional compare method
+                self.rows.sort(self.headingDefinition[self.sortBy][2])
+            else:
+                self.rows.sort()
+            if reverseSort:
+                self.rows.reverse()
+
+    def parse(self,parseString,currentRow,url=False):
+        ''' Parses format strings used by the list definitions. '''
+        result = None
+        if type(parseString) is int:
+            # parseString refers to integer column
+            result = [currentRow[parseString]]
+        elif type(parseString) is str:
+            parseString = parseString.replace('{p}',self.basePath)
+            parseString = parseString.replace('{id}',str(currentRow[0]))
+            if parseString.find('SELECT') == 0:
+                # This string is a sql query (used by vlan)
+                resultString = ''
+                sqlresult = executeSQLreturn(parseString)
+                for row in sqlresult:
+                    for col in row:
+                        resultString += col + '<br>'
+                result = [resultString]    
+            else:
+                if url:
+                    result = parseString
+                else:
+                    result = [parseString]
+        elif type(parseString) is list:
+            result = []
+            for tooltipDef in parseString:
+                data = tooltipDef[2]
+                if data:
+                    # There is preparsed data (ie. the sql returned something)
+                    result.append(tooltipDef[1][0])
+                    # [1][0] = Tooltip (can also be other preparsed data) header
+                    for row in data:
+                        if currentRow[0] == row[0]:
+                            # ID's match
+                            result.append(row[1])
+        return result        
+
+# Class representing a form, used by the template
+class editForm:
+    ''' Class representing a form element, the main component of every
+        edit page. Each form element can have any number of editbox
+        objects added to it. '''
+    
+    # For the template
+    method = 'post'
+    action = None
+    title = None
+    error = None
+    status = None
+    backlink = None
+    enctype = 'application/x-www-form-urlencoded'
+
+    # Text and controlname
+    textConfirm = None
+    cnameConfirm = 'form_confirm'
+    showConfirm = True
+
+    textCancel = 'Cancel'
+    cnameCancel = 'form_cancel'
+    showCancel = True
+    actionCancel = BASEPATH
+
+    # Used by edit netbox in the intermediate
+    CNAME_CONTINUE = 'cname_continue'
+
+    # List of editboxes to display
+    editboxes = []
+
+    def __init__(self,cnameConfirm=None):
+        if cnameConfirm:
+            self.cnameConfirm = cnameConfirm
+ 
+        self.editboxes = []
+
+    def add(self,box):
+        ''' Add an editbox object to this form element. '''
+        self.editboxes.append(box)
+
+class inputText:
+    ''' Class representing a textinput html control. '''
+
+    type = 'text'
+    name = None
+    value = ''
+    maxlength = None
+    def __init__(self,value='',size=22,maxlength=None,disabled=False):
+        self.value = value
+        self.disabled = disabled
+        self.size = str(size)
+        if maxlength:
+            self.maxlength = str(maxlength)
+
+class inputTreeSelect:
+    ''' Container class for treeselects. Used to get treeselect in the 
+        same format as all the other inputs used by the template. '''
+
+    type = 'treeselect'
+    name = None
+    treeselect = None
+    disabled = False
+
+    def __init__(self,treeselect):
+        self.value = ''
+        self.treeselect = treeselect
+
+class inputSelect:
+    ''' Class representing a select input html control. '''
+
+    type = 'select'
+    name = None
+    
+    def __init__(self,options=None,table=None,attribs=None,disabled=False):
+        self.value = ''
+        self.options = options
+        self.attribs = attribs
+        self.disabled = disabled
+
+        if table:
+            self.options = table.getOptions() 
+
+class inputMultipleSelect:
+    ''' Class representing a multiple select input html control. '''
+    type = 'multipleselect'
+    name = None
+    value = []
+    def __init__(self,options=None,table=None,disabled=False):
+        self.options = options
+        self.disabled = disabled
+
+        if table:
+            self.options = table.getOptions() 
+
+class inputFile:
+    ''' Class representing a file upload input control. '''
+
+    type = 'file'
+    name = None
+    value = ''
+    disabled = False
+    def __init__(self):
+        pass
+
+class inputTextArea:
+    ''' Class representing a textarea input html control. '''
+
+    type = 'textarea'
+    name = None
+    value = ''
+    disabled = False
+
+    def __init__(self,rows=20,cols=80):
+        self.rows = rows
+        self.cols = cols
+
+
+class inputCheckbox:
+    ''' Class representing a checkbox input html control. '''
+
+    type = 'checkbox'
+    name = None
+
+    def __init__(self,disabled=False):
+        self.value = '0'
+        self.disabled = disabled
+
+class inputHidden:
+    ''' Class representing a hidden input html control. '''
+    type = 'hidden'
+    name = None
+    disabled = False
+
+    def __init__(self,value):
+        self.value = value
+
+class editbox:
+    ''' Parent class for all the different editboxes which are all added 
+        to an editform object. There are normally one editbox per page, but
+        for some pages there are more (there are created three editboxes for
+        the netbox page for example, editbox(main),editboxserial and
+        editboxfunction (which also includes the subcat)). 
+        
+        The editbox contains field defitions used by the template to render
+        the forms and functions to fill the form with data from either the
+        database or from a previous http post. '''
+
+    boxName = ADDNEW_ENTRY
+    boxId = 0
+
+    # Current box number keeps track of the box number when there are
+    # more than one editbox in a form. Used by formFill to get correct data
+    #currentBoxNumber = 0
+
+    def fill(self):
+        ''' Fill this form with data from the database (entry = editId). '''
+        entry = self.table(self.editId)
+       
+        # Set the name of this boxname to reflect that we are
+        # updating an entry
+        self.boxName = UPDATE_ENTRY
+        self.boxId = self.editId
+
+        ## TEMPORARY:
+        ## check if this is one of the new pages by checking
+        ## for three instead of two entries in the desc list
+        if len(self.fields[self.fields.keys()[0]]) > 2:
+            # Uses psycopg to fill field values
+            page = pageList[self.page]
+
+            sql = "SELECT "
+            first = True
+            keyNumber = {}
+            i = 0
+            for key in self.fields.keys():
+                keyNumber[key] = i
+                i+=1
+                if not first:
+                    sql += ','
+                sql += key
+                first = False
+            sql += " FROM " + page.tableName + " WHERE "
+            sql += page.tableIdKey + "='" + self.editId + "'"
+            # For the benefit of pagePrefix (which must select from vlan too)
+            if hasattr(self,'additionalSQL'):
+                sql += self.additionalSQL
+                
+            result = executeSQLreturn(sql)
+            result = result[0]
+
+            for key,desc in self.fields.items():
+                value = result[keyNumber[key]]
+                if value:
+                    desc[0].value = str(value)
+        else:
+            # Old style filling with forgetsql
+            for fieldname,desc in self.fields.items():
+                value = getattr(entry,fieldname)
+                if value:
+                    desc[0].value = str(value)
+
+    def setControlNames(self,controlList=None):
+        ''' Set controlnames for the inputs to the same as the fieldnames. '''
+        if not controlList:
+            controlList = self.fields
+
+        for fieldname,desc in controlList.items():
+            desc[0].name = fieldname
+
+    def verifyFields(self,req,status):
+        ''' Verify that data entered into fields are of correct type.
+            Eg. integers in FIELD_INTEGER fields. '''
+
+        for field,desc in self.fields.items():
+            if req.form.has_key(field):
+                if type(req.form[field]) is list:
+                    # Editing several entries
+                    for each in req.form[field]:
+                        # Do tests here
+                        if desc[3] == FIELD_INTEGER:
+                            if len(each):
+                                try:
+                                    int(each)
+                                except ValueError:
+                                    error = "Invalid integer: '" +\
+                                            str(each) + "'"
+                                    status.errors.append(error)
+                else:
+                    # Editing only one field
+                    # Do tests here
+                    if desc[3] == FIELD_INTEGER:
+                        try:
+                            if len(req.form[field]):
+                                int(req.form[field])
+                        except ValueError:
+                            error = "Invalid integer: '" + \
+                                    str(req.form[field]) + "'"
+                            status.errors.append(error)
+        return status
+
+    def hasMissing(self,req):
+        ''' Check if any of the required fields are missing in the req.form
+            Returns the name the first missing field, or False
+            
+            Note: keep_blank_values (mod_python) must be True or empty fields 
+                  won't be present in the form  '''
+        missing = False
+        for field,desc in self.fields.items():
+            # Keep blank values must be switched on, or else the next line
+            # will fail, could be more robust
+            if req.form.has_key(field):
+                if type(req.form[field]) is list:
+                    # the field is a list, several entries have been edited
+                    for each in req.form[field]:
+                        if desc[1] == REQ_TRUE:
+                            # this field is required
+                            if not len(each):
+                                if len(desc) > 2:
+                                    # desc[2] is real fieldname
+                                    missing = desc[2]
+                                else:
+                                    # cryptic fieldname (remove this later)
+                                    missing = field
+                                break
+                else:
+                    if desc[1] == REQ_TRUE:
+                        # tihs field is required
+                        if not len(req.form[field]):
+                            if len(desc) > 2:
+                                # desc[2] is real fieldname
+                                missing = desc[2]
+                            else:
+                                # cryptic fieldname (remove this later)
+                                missing = field
+                            break
+        return missing
+
+    def addHidden(self,fieldname,value):
+        ''' Add hidden html input control to the editbox. '''
+        self.hiddenFields[fieldname] = [inputHidden(value),False]
+        self.hiddenFields[fieldname][0].name = fieldname
+
+    def addDisabled(self):
+        ''' Since fields which are disabled, aren't posted (stupid HTML)
+            we must add them as hidden fields.
+           
+            This only goes for textinputs (?!) so we must also change
+            controlnames to avoid getting double values for selects, etc. '''
+
+        for fieldname,definition in self.fields.items():
+            if definition[0].disabled and (not definition[0].type=='hidden'):
+                self.addHidden(fieldname,definition[0].value)
+                definition[0].name = definition[0].name + '_disabled'
+
+    def formFill(self,formData):
+        ''' Fill this editbox with data from the form.
+
+            This is used by intermediate steps (like register serial)
+            to remember field values and for refilling a form if an error
+            is encountered and the user has to resubmit a form. '''
+
+        if not hasattr(editbox,'currentBoxNumber'):
+            editbox.currentBoxNumber = 0
+
+        for field,definition in self.fields.items():
+            first = True
+            numberOfBoxes = None
+            if formData.has_key(field):
+                if type(formData[field]) is list:
+                    # Remember how many editboxes this form has
+                    if first:
+                        # NB! ASSUMES THAT THE FIRST FIELDNAME IN A FORM
+                        # IS NEVER A CHECKBOX (SINCE UNCHECKED CHECCKBOXES
+                        # ARE NOT POSTED). IF IT IS, THEN numberOfBoxes
+                        # WILL BE ONE LESS THAN IT SHOULD BE FOR EACH
+                        # UNCHECKED CHECKBOX
+                        numberOfBoxes = len(formData[field])                    
+                        first = False
+
+                    # We are editing more than one entry, pick the
+                    # right data from the form
+                    definition[0].value = formData[field][editbox.currentBoxNumber]
+                else:
+                    definition[0].value = formData[field]
+        # Update class variable currentFormNumber
+        if numberOfBoxes:
+            editbox.currentBoxNumber +=1
+            if editbox.currentBoxNumber == numberOfBoxes:
+                # Reset the currentFormNumber class instance
+                # Since it is a class instance, it will be common
+                # to all editbox instances for all requests, that's
+                # why it has to be reset
+                editbox.currentBoxNumber = 0
+
+class editboxHiddenOrMessage(editbox):
+    ''' This editbox can display a message and contain hidden inputs. '''
+    page = 'hiddenormessage'
+
+    def __init__(self,message=None):
+        self.hiddenFields = {}
+        self.message = message
+
+        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+        # don't need to repeat it here (so setting boxname to IGNORE_BOX) 
+        self.boxName = IGNORE_BOX
+
+
+class editdbPage:
+    ''' The main editing class. Every edit page inherits from this class.
+
+        Contains functions for adding, updating and describing entries.
+        Default functions can be overriden by children to do more specific
+        handling of adding or updating.
+
+        The children of this class contains all the information needed
+        for handling the different tables.
+
+         class editdbPage
+                 |+-- class listDef
+                 |+-- class editbox
+                 |+-- (optionally more editboxes)
+        
+                 |+-- def add
+                 |+-- def update
+                 |+-- def delete
+                 |+-- def describe
+    '''
+
+
+    def add(self,req,outputForm,action):
+        ''' Called when 'Add' is clicked on an edit page.
+
+            Takes the formdata from the request object and inserts
+            an entry in the database.
+
+            This is the general function used by almost all the edit
+            pages. Some of the edit page classes overrides this function
+            for more control over the adding (eg. the netbox page).
+
+            req: request object containing a form
+            outputForm: form with editboxes
+                        manipulated directly by eg. editNetbox.add() '''
+
+        error = None
+        status = editdbStatus()
+
+        # Get database connection
+        connection = nav.db.getConnection('editdb','manage')
+        database = connection.cursor()
+       
+        nextId = None 
+        if self.sequence:
+            # Get next id from sequence, will need this id to reload
+            # entry when making a description of the inserted row
+            # In the case that sequence=None, idfield is already
+            # present in the field data
+            sql = "SELECT nextval('%s')" % (self.sequence,)
+            database.execute(sql)
+            result = database.fetchall()
+            nextId = str(result[0][0])
+
+        sql = 'INSERT INTO ' + self.tableName + ' ('
+        first = True
+        for field,descr in self.fields.items():
+            if req.form.has_key(field):
+                if len(req.form[field]):
+                    if not first:
+                        sql += ','
+                    sql += field
+                    first = False
+        # Add the idfield if we have queried the sequence
+        if nextId:
+            sql += "," + self.tableIdKey
+        sql += ') VALUES ('
+        first = True
+        for field,descr in self.fields.items():
+            if req.form.has_key(field):
+                if len(req.form[field]):    
+                    if not first:
+                        sql += ','
+                    sql += "'" + req.form[field] + "'"
+                    first = False
+        # Add the id value if we have queried the sequence
+        if nextId:
+            sql += ",'" + nextId + "'"
+        sql += ')'
+        try:
+            database.execute(sql)
+            connection.commit()
+        except psycopg.IntegrityError,e:
+            if type(self.unique) is list:
+                error = 'There already exists an entry with '
+                first = True
+                for field in self.unique:
+                    if not first:
+                        error += ' and '
+                    error += field + "='" + req.form[field] + "'"
+                    first = False
+            else:
+                error = "There already exists an entry with the value '" + \
+                        req.form[self.unique] + "' for the unique field '" +\
+                        self.unique + "'"
+        if error:
+            status.errors.append(error)
+        else:
+            if self.sequence:
+                id = nextId
+            else:
+                id = req.form[self.tableIdKey]
+            entry = self.table(id)
+            message = 'Added ' + self.singular + ': ' + self.describe(entry)
+            status.messages.append(message)
+            action = 'list'
+        return (status,action,outputForm)
+
+      
+    def update(self,req,outputForm,selected):
+        ''' Updates one or more entries in the database. Takes data
+            from form in request object. Overriden by some subclasses 
+            such as pageNetbox. '''
+
+        status = editdbStatus()
+        sqllist = []
+        data = []
+        error = None
+     
+        # Get the name of one of the fields that should be present
+        presentfield = self.fields.keys()[0]
+
+        # Use this field to check if there are multiple
+        # editboxes (multiple entries edited)
+        if type(req.form[presentfield]) is list:
+            for i in range(0,len(req.form[presentfield])):
+                values = {}
+                for field,descr in self.fields.items():
+                    # Special case: checkboxes are not posted if
+                    # they are not selected. Check if the field
+                    # is present with "req.form[field][i] and
+                    # catch the indexError exception if it's not
+                    # present.
+                    try:
+                        req.form[field][i]
+                        # Don't insert empty strings into fields
+                        # where required = REQ_NONEMPTY
+                        if len(req.form[field][i]):
+                            values[field] = req.form[field][i]
+                        else:
+                            if descr[1] != REQ_NONEMPTY:
+                                values[field] = req.form[field][i]
+                            else:
+                                # Insert NULL instead
+                                values[field] = None
+                    except (KeyError,IndexError):
+                        # Field not present (ie. unchecked checkbox)
+                        # Insert NULL
+                        values[field] = None
+                # The hidden element UPDATE_ENTRY contains the original ID
+                data.append((req.form[UPDATE_ENTRY][i],values))
+        else:
+            values = {}
+            for field,descr in self.fields.items():
+                try:
+                    req.form[field]
+                    if len(req.form[field]):
+                        values[field] = req.form[field]
+                    else:
+                        # Don't insert empty strings into fields
+                        # where required = REQ_NONEMPTY
+                        if descr[1] != REQ_NONEMPTY:
+                            values[field] = req.form[field]
+                        else:
+                            # Insert NULL instead
+                            values[field] = None
+                except KeyError:
+                    # Field not present (ie. ie unchecked checkbox)
+                    values[field] = None
+            # The hidden element UPDATE_ENTRY contains the original ID
+            data.append((req.form[UPDATE_ENTRY],values))
+
+        for i in range(0,len(data)):
+            sql = 'UPDATE ' + self.tableName + ' SET '
+            id,fields = data[i]
+            first = True
+            for field,value in fields.items():
+                if not first:
+                    sql += ','
+                if value:
+                    sql += field + "='" + value + "'" 
+                else:
+                    sql += field + '=NULL'
+                first = False
+            sql += ' WHERE ' + self.tableIdKey + "='" + id + "'"
+            try:
+                executeSQL([sql])
+            except psycopg.IntegrityError:
+                # Assumes tableIdKey = the unique field
+                if type(self.unique) is list:
+                    error = 'There already exists an entry with '
+                    first = True
+                    for field in self.unique:
+                        if not first:
+                            error += ' and '
+                        error += field + "='" + req.form[field][i] + "'"
+                        first = False
+                    status.errors.append(error)
+                else:
+                    error = "There already exists an entry with the value '" + \
+                            req.form[self.unique][i] + \
+                            "' for the unique field '" + self.unique + "'"
+                    status.errors.append(error)
+         
+        # Make a list of id's. If error is returned then the original
+        # id's are still valid, if-not error then id's might have changed
+        idlist = []
+        if error:
+            for i in range(0,len(data)):
+                id,fields = data[i]
+                idlist.append(id)
+        elif not self.editIdAllowed:
+            # Id can't be edited by the user, so the ids are the same as
+            # we started with
+            for i in range(0,len(data)):
+                id,fields = data[i]
+                idlist.append(id)
+        else:
+            if type(req.form[self.tableIdKey]) is list:
+                for i in range(0,len(req.form[self.tableIdKey])):
+                    idlist.append(req.form[self.tableIdKey][i])
+            else:
+                idlist.append(req.form[self.tableIdKey])
+
+        action = 'list'
+        if error:
+            action = 'edit'
+        else:
+            # All entries updated without error, make list to displayed
+            # in the status header
+            for entry in idlist:
+                message = "Updated " + self.singular + ": "
+                message += self.describe(entry)
+                status.messages.append(message)
+
+        return (status,action,outputForm,selected)
+ 
+    def describe(self,id):
+        ''' Gives a textual description of a database entry.
+            Used when adding, deleting and updating entries to tell the user
+            exactly what entries were altered (useful when the id field 
+            of the table only contains a numerical key).
+
+            If the edit page class contains a descriptionFormat it 
+            is used. Otherwise it falls back to using the id field
+            passed to the function.
+
+            Remember to only use NOT NULL fields when writing descrFormats
+            to avoid malformed descriptions. '''
+ 
+        description = ''
+        
+        try:
+            entry = self.table(id)
+  
+            if hasattr(self,'descriptionFormat'):
+                # Use the description format for this page to make a
+                # nicely formatted description of a database entry
+                for part in self.descriptionFormat:
+                    (string,field) = part
+                    fieldData = ''
+                    if field:
+                        # Get data from a db field
+                        field = field.split('.')
+            
+                        if len(field) > 1:
+                            tempentry = entry
+                            i=0
+                            for f in field:
+                                #if i==1:
+                                #    raise(repr(tempentry)+':'+f)
+                                i+=1
+                                tempentry = getattr(tempentry,f)
+                                if type(tempentry) is str:
+                                    # Got the field we're after
+                                    break
+                            fieldData = tempentry
+                        else:
+                            fieldData = getattr(entry,field[0])
+
+                    description += string + str(fieldData)
+            else:
+                # Vanilla description (only the id field)
+                description = "'" + id +"'" 
+        except forgetSQL.NotFound:
+            # No such id in this table
+            pass
+        return description
+
+    def delete(self,idList,status):
+        for id in idList:
+            try:
+                deletedName = self.describe(id)
+                deleteEntry([id],self.tableName,self.tableIdKey)
+                status.messages.append("Deleted %s: %s" % \
+                                           (self.singular,deletedName))
+            except psycopg.IntegrityError:
+                # Got integrity error while deleting, must check what
+                # dependencies are blocking
+                error = "Error while deleting %s '%s': " % (self.singular,
+                                                            deletedName)
+                errorState = False
+                for (table,other,key,url) in self.dependencies:
+                    where = "%s='%s'" % (key,str(id))
+                    if table.getAll(where):
+                        errorState = True
+                        # UGLY.. HTML
+                        error += "referenced in "  + \
+                                 "one or more %s " % (other,) + \
+                                 "<a href=\"%s%s\">" % (url,id) + \
+                                 "(view report)</a>." 
+                        break
+                if not errorState:
+                    # There are no dependencies or couldn't find reference.
+                    # Give general error
+                    error += '%s is referenced in another table' % (self.name,)
+                status.errors.append(error) 
+        return status
+
+        
+class pageCabling(editdbPage):
+    ''' Describes editing of the cabling table. '''
+    
+    basePath = BASEPATH + 'cabling/'
+    table = nav.db.manage.Cabling
+    pageName = 'cabling'
+    tableName = 'cabling'
+    tableIdKey = 'cablingid'
+    sequence = 'cabling_cablingid_seq'
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Unique fields (for errormessages from add/update)
+    unique = ['roomid','jack']
+
+    # Nouns
+    singular = 'cabling'
+    plural = 'cablings'
+
+    # Delete dependencies
+    dependencies = [(nav.db.manage.Patch,
+                     'patches',
+                     'cablingid',
+                     '/report/netbox/?roomid=')]
+
+    # Description format used by describe(id)
+    # Example: room 021 (descr) to jack 123, building, office
+    descriptionFormat = [('\'jack ','jack'),
+                         (', ','targetroom'),
+                         (', ','building'),
+                         ('\' to room \'','room.roomid'),
+                         (', ','room.location.locationid'),
+                         ('\'',None)]
+
+    pathAdd = EDITPATH + [('Cabling',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Cabling',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Cabling',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Cabling',False)]
+
+    class listDef(entryList):
+        ''' Describes the format of the list view of cablings. '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Room',True,None),
+                                      ('Jack',True,None),
+                                      ('Building',True,None),
+                                      ('Target room',True,None),
+                                      ('Description',True,None),
+                                      ('Category',True,None)]
+
+            self.cellDefinition = [(('cablingid,roomid,jack,' + \
+                                     'building,targetroom,descr,category',
+                                     'cabling',
+                                     None,
+                                     None,
+                                     'building,roomid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing cabling entries.
+            The template uses this field information to draw the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            self.hiddenFields = {}
+            if editId:
+                # Preserve the selected id
+                self.addHidden(selectList.cnameChk,editId)
+                self.editId = editId
+     
+            r = [(None,'Select a room')]
+            for room in nav.db.manage.Room.getAllIterator(orderBy='roomid'):
+                loc = nav.db.manage.Location(room.location).descr
+                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
+                          str(room.descr) + ')'))
+
+            # Field definitions {field name: [input object, required]}
+            f = {'roomid': [inputSelect(options=r),REQ_TRUE,'Room',
+                            FIELD_STRING],
+                 'jack': [inputText(),REQ_TRUE,'Jack',FIELD_INTEGER],
+                 'building': [inputText(),REQ_TRUE,'Building',FIELD_STRING],
+                 'targetroom': [inputText(),REQ_TRUE,'Target room',
+                                FIELD_STRING],
+                 'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
+                 'category': [inputText(),REQ_TRUE,'Category',FIELD_STRING]}
+
+            self.fields = f
+            self.setControlNames()
+
+            # This box is for editing existing with id = editId
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+class pageLocation(editdbPage):
+    ''' Describes editing of the location table. '''
+    
+    basePath = BASEPATH + 'location/'
+    table = nav.db.manage.Location
+    pageName = 'location'
+    tableName = 'location'
+    tableIdKey = 'locationid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','locationid')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'locationid'
+
+    # Nouns
+    singular = 'location'
+    plural = 'locations'
+
+    # Delete dependencies
+    dependencies = [(nav.db.manage.Room,
+                     'rooms',
+                     'locationid',
+                     '/report/room/?locationid=')]
+
+    pathAdd = EDITPATH + [('Location',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Location',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Location',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Location',False)]
+
+    class listDef(entryList):
+        ''' Describes location list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Location Id',True,None),
+                                      ('Description',True,None)]
+
+            self.cellDefinition = [(('locationid,locationid,descr',
+                                     'location',
+                                     None,
+                                     None,
+                                     'locationid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing location entries.
+            The template uses this field information to draw the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+
+            self.hiddenFields = {}
+
+            disabled = False
+            if editId:
+                disabled = True
+
+            f = {'locationid': [inputText(disabled=disabled,
+                                maxlength=30),REQ_TRUE,'Location Id',
+                                FIELD_STRING],
+                 'descr': [inputText(),REQ_TRUE,'Description',
+                           FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+            
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+
+
+
+class pageNetbox(editdbPage):
+    ''' Describes editing of the netbox table '''
+
+    basePath = BASEPATH + 'netbox/'
+    table = nav.db.manage.Netbox
+    pageName = 'netbox'
+    tableName = 'netbox'
+    tableIdKey = 'netboxid'
+    sequence = 'netbox_netboxid_seq'
+    editMultipleAllowed = False
+    editIdAllowed = True
+
+    # Nouns
+    singular = 'box'
+    plural = 'boxes'
+
+    # Delete dependencies
+    dependencies = []
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','sysname')]
+
+    pathAdd = EDITPATH + [('Boxes',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Boxes',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Boxes',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Boxes',False)]
+
+    class listDef(entryList):
+        ''' Describes the format of the list view of netboxes. '''
+
+        def ipCompare(self,ip1,ip2):
+            ''' Function for comparing two ip's. Used for sorting the
+                netbox list. '''
+
+            # ip1[0] and ip2[0] are the sort parameter
+            ip1 = ip1[0].split('.')
+            ip2 = ip2[0].split('.')
+            r = 0
+            try:
+                for i in range(0,4):
+                    r = cmp(int(ip1[i]),int(ip2[i]))
+                    if r != 0:
+                        break
+            except:
+                r = 0
+            return r
+
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            # 1 = roomid
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Room',True,None),
+                                      ('Sysname',True,None),
+                                      ('IP',True,self.ipCompare),
+                                      ('Category',True,None),
+                                      ('Organisation',True,None),
+                                      ('RO',True,None),
+                                      ('RW',True,None),
+                                      ('Type',True,None),
+                                      ('Serial',True,None)]
+
+            subcatTooltip = [['SELECT netboxid,' + \
+                             'netboxcategory.category FROM netbox ' + \
+                             'WHERE netboxcategory.netboxid=netboxid',
+                             ('Subcategories:','{$1}'),None],
+                             ['SELECT netboxid,val FROM netboxinfo ' + \
+                             'WHERE var=\'function\'',
+                             ('Function:','{$1}'),None]]
+
+
+            self.cellDefinition = [(('netboxid,roomid,sysname,ip,' + \
+                                     'catid,orgid,ro,rw,type.typename,' + \
+                                     'device.serial',
+                                     'netbox',
+                                     'LEFT JOIN type ON ' + \
+                                     'netbox.typeid=type.typeid LEFT JOIN ' +\
+                                     'device ON ' + \
+                                     'netbox.deviceid=device.deviceid',
+                                     None,
+                                     'roomid,sysname'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,None,None,None,None),
+                                     (2,'{p}edit/{id}',None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,subcatTooltip),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None),
+                                     (8,None,None,None,None),
+                                     (9,None,None,None,None)])]
+
+
+    class editbox(editbox):
+        ''' This is the first editbox on the edit netbox page. It asks
+            for ip,ro,rw,cat,org and room. '''    
+        def __init__(self,page,req=None,editId=None,formData=None,
+                     disabled=False):
+            self.editId = editId
+            self.page = page.pageName
+            self.table = page.table
+            self.hiddenFields = {}
+            if editId:
+                # Preserve the selected id
+                self.addHidden(selectList.cnameChk,editId)
+                self.sysname = editTables.Netbox(editId).sysname
+                self.editId = editId
+                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                                        ('Edit',False)]
+            else:
+                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                                        ('Add',False)]
+     
+            o = [(None,'Select an organisation')]
+            for org in editTables.Org.getAllIterator(orderBy='orgid'):
+                o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
+
+            r = [(None,'Select a room')]
+            for room in editTables.Room.getAllIterator(orderBy='roomid'):
+                loc = editTables.Location(room.location).descr
+                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
+                          str(room.descr) + ')'))
+
+            c = [(None,'Select a category')]
+            for cat in editTables.Cat.getAllIterator(orderBy='catid'):
+                c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
+
+            # Field definitions {field name: [input object, required]}
+            f = {'ip': [inputText(disabled=disabled),REQ_TRUE,'Ip or hostname',
+                        FIELD_STRING],
+                 'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE,
+                           'Category',FIELD_STRING],
+                 'orgid': [inputSelect(options=o,disabled=disabled),REQ_TRUE,
+                           'Organisation',FIELD_STRING],
+                 'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE,
+                           'Room',FIELD_STRING],
+                 'ro': [inputText(disabled=disabled),REQ_FALSE,
+                        'RO community',FIELD_STRING],
+                 'rw': [inputText(disabled=disabled),REQ_FALSE,
+                        'RW community',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                # This box is for editing an existing netbox with id = editId
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+
+    class editboxSerial(editbox):
+        ''' This editbox for inputing serials (or showing a serial if 
+            it was found by snmp). '''
+        page = 'netboxserial'
+
+        def __init__(self,gotRo,serial='',sysname=None,typeid=None,
+                     snmpversion=None,formData=None,editSerial=False):
+            self.hiddenFields = {}
+            # Set info fields
+            self.sysname = sysname
+            if typeid:
+                self.typename = editTables.Type(typeid).typename
+            else:
+                self.typename = 'n/a'
+            if snmpversion:
+                self.snmpversion = snmpversion
+            else:
+                self.snmpversion = 'n/a'
+
+            disabled = False
+            self.help = None
+            if gotRo:
+                # RO was specified, so the box has been queried by SNMP
+                if serial:
+                    # It returned a serialnumber
+                    disabled = True
+                    self.help = 'Serialnumber retrieved by SNMP.'
+                else:
+                    self.help = 'Unable to retrieve serialnumber for this ' + \
+                                'device by SNMP. ' + \
+                                'Enter a serialnumber (optional).'
+            else:
+                if serial:
+                    # Serial was entered manually
+                    self.help = ''
+                    disabled = True
+                else:   
+                    self.help = 'Enter a serialnumber (optional).'
+
+            # If editSerial = True, override help text and always enable editing
+            if editSerial:
+                disabled = False
+                # Should be some help text here
+                self.help = ''
+
+            self.fields = {'serial': [inputText(value=serial,disabled=disabled),
+                                      REQ_FALSE,'Serialnumber',FIELD_STRING]}
+            self.setControlNames()
+
+            self.addHidden('sysname',sysname)
+            self.addHidden('typeid',typeid)
+            self.addHidden('snmpversion',snmpversion)
+
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+            
+            # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+            # don't need to repeat it here 
+            self.boxName = IGNORE_BOX
+
+    class editboxCategory(editbox):
+        ''' This editbox is for editing function and subcategories. '''
+        page = 'netboxcategory'
+
+        def __init__(self,catid,editId=None,showHelp=True):
+            self.hiddenFields = {}
+            subcategories = False
+            if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
+                subcategories = True
+
+            self.help = None
+            if editId:
+                self.editId = editId
+            elif showHelp:
+                # Only show help if we're adding a new box
+                if subcategories:
+                    self.help = 'You can select one or more subcategories ' +\
+                                'for boxes with the selected category. ' +\
+                                'You can also add an optional description ' +\
+                                'of the function of this box.'
+                else:
+                    self.help = 'You can add an optional description of the '+\
+                                'function of this box.'
+
+            o = []
+            for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
+                                                           catid + "'"):
+                o.append((subcat.subcatid,subcat.subcatid + ' (' + \
+                          subcat.descr + ')'))
+            if editId:
+                if subcategories:
+                    self.fields = {'subcat': \
+                                  [inputMultipleSelect(options=o),REQ_FALSE,
+                                   'Subcategory',FIELD_STRING],
+                                  'function': [inputText(size=40),REQ_FALSE,
+                                               'Function',FIELD_STRING]}
+                else:
+                    self.fields = {'function': [inputText(size=40),REQ_FALSE,
+                                                'Function',FIELD_STRING]}
+            else:
+                if subcategories:
+                    self.fields = {'subcat': [inputMultipleSelect(options=o),
+                                             REQ_FALSE,'Subcategory',
+                                             FIELD_STRING],
+                                   'function': [inputText(size=40),REQ_FALSE,
+                                                'Function',FIELD_STRING]}
+                else:
+                    self.fields = {'function': [inputText(size=40),REQ_FALSE,
+                                                'Function',FIELD_STRING]}
+     
+            self.setControlNames()
+
+            if editId:
+                # Get selected netboxcategories
+                sql = "SELECT category FROM netboxcategory WHERE " +\
+                      "netboxid='%s'" \
+                % (editId,)
+                res = executeSQLreturn(sql)
+                selected = []
+                for s in res:
+                   selected.append(s[0])
+                   if subcategories:
+                       # A subcat field is present for this box with this cat
+                       self.fields['subcat'][0].value = selected
+
+                # Get var 'function' from netboxinfo
+                sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
+                      % (editId,) + \
+                      "AND var='function'"
+                res = executeSQLreturn(sql)
+                if res:
+                    self.fields['function'][0].value = res[0][0]
+            
+            # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
+            # don't need to repeat it here 
+            self.boxName = IGNORE_BOX
+
+    # Overrides default add function
+    def add(self,req,templateform,action):
+        ''' Adds a netbox. Overrides the default add function. '''
+        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        STEP_1 = 1
+        STEP_2 = 2
+        CNAME_STEP = 'step' 
+        # Step0: ask for ip,ro,rw,catid,org,room
+        # Step1: ask for serial (and sysname,snmpversion and typeid)
+        #        and ask for subcategory and function
+        # Step2: add the box
+        message = "Got SNMP response, but can't find type in " + \
+                  "database. You must <a href=\"" + ADD_TYPE_URL + \
+                  "?sysobjectid=%s\" " + \
+                  "target=\"_blank\">add the " + \
+                  "type</a>  before proceeding (a new window will " + \
+                  "open, when the new type is added, press " + \
+                  "Continue to proceed)."
+
+        box = None
+        error = None
+        status = editdbStatus()
+        action = 'predefined'
+        form = req.form
+        templateform.title = 'Add box'
+
+        # Add editbox with hidden values for step (and deviceid)
+        editboxHidden = editboxHiddenOrMessage()
+        templateform.add(editboxHidden)
+        # What step are we in?
+        step = STEP_1
+        if form.has_key(CNAME_STEP):
+            step = int(form[CNAME_STEP])
+        nextStep = step + 1
+
+        if step == STEP_1:
+            # Look up sysname in DNS
+            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
+                              form['ip'])
+            ip = form['ip']
+            if result:
+                # This is an IP
+                try:
+                    sysname = gethostbyaddr(ip)[0]
+                except:
+                    sysname = ip
+            else:
+                # Not an IP, possibly a hostname
+                try:
+                    ip = gethostbyname(form['ip'])
+                    sysname = form['ip']
+                except:
+                    error = 'Invalid IP or hostname'
+
+            # 'ip' should be numerical ip now
+            editboxHidden.addHidden('hiddenIP',str(ip))
+
+            # Check if sysname or ip is already present in db
+            if not error:
+                where = "ip = '" + ip + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    box = box[0]
+                    error = 'IP already exists in database (' + box.sysname + ')' 
+                else:
+                    # If IP isn't duplicate, check sysname
+                    where = "sysname = '" + sysname + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        error = 'Sysname ' + sysname + ' (' + box[0].ip + \
+                                ') already exists in database'
+
+            if error:
+                status.errors.append(error)
+                templateform.add(pageNetbox.editbox(pageNetbox,formData=form))
+                return (status,action,templateform)
+
+            if editTables.Cat(form['catid']).req_snmp == True:
+                # SNMP required by the selected category
+                if len(form['ro']):
+                    # RO specified, check SNMP
+                    box = None
+                    try:
+                        box = initBox.Box(ip,form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        # No SNMP response
+                        status.errors.append('No SNMP response, check RO ' +\
+                                             'community')
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            formData=form))
+                        return (status,action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            formData=form))
+                        return (status,action,templateform)
+         
+                    box.getDeviceId()
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        formData=form,
+                                                          disabled=True))
+                    if box.typeid:
+                        # Got type (required for these categories)
+                        templateform.add(pageNetbox.editboxSerial(
+                                         gotRo=True,
+                                         serial=box.serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion))
+
+                        templateform.add(pageNetbox.editboxCategory(
+                                         req.form['catid']))
+
+                    else:
+                        # Couldn't find type, ask user to add
+                        # (type is required for this category)
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                        nextStep = STEP_1
+                else:
+                    # RO blank, return error
+                    status.errors.append('Category ' + form['catid'] + \
+                                         ' requires an RO community')
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        formData=form))
+                    nextStep = STEP_1
+            else:
+                # SNMP not required by cat
+                message = "Got SNMP response, but can't find type in " + \
+                          "database. Type is not required for this " +\
+                          "category, but if you want you can "+\
+                          "<a href=\"" + ADD_TYPE_URL + \
+                          "?sysobjectid=%s\" " + \
+                          "target=\"_blank\">" + \
+                          "add this type to the database</a>. " +\
+                          "After adding the type, start the registration " +\
+                          "again to set correct type on box."
+
+                if len(form['ro']):
+                    # RO specified, check SNMP anyway
+                    box = None
+                    try:
+                        box = initBox.Box(ip,form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        status.errors.append('No SNMP response, check RO community')
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            formData=form))
+                        return (status,action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            formData=form))
+                        return (status,action,templateform)
+
+                    box.getDeviceId()
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        formData=form,
+                                                        disabled=True))
+                    if not box.typeid:
+                        # Unknown type. Type is not required,
+                        # but ask if user wants to add type anyway.
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+
+                    templateform.add(pageNetbox.editboxSerial(gotRo=True,
+                                     serial=box.serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion))
+
+                    templateform.add(pageNetbox.editboxCategory(
+                                     req.form['catid']))
+                else:
+                    # RO blank, don't check SNMP, ask for serial
+                    # and subcat+function
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        formData=form,
+                                                        disabled=True))
+                    templateform.add(pageNetbox.editboxSerial(gotRo=False,
+                                                         sysname=sysname))
+                    templateform.add(pageNetbox.editboxCategory(
+                                                req.form['catid']))
+                    nextStep = STEP_2
+        if step == STEP_2:
+            # If we have serial, check if the device is already
+            # present in the databse
+            deviceId = None
+            serial = req.form['serial']
+            if len(serial):
+                # Any devices in the database with this serial?
+                where = "serial = '" + str(serial) + "'"
+                device = editTables.Device.getAll(where)
+                if device:
+                    # Found a device with this serial
+                    deviceId = str(device[0].deviceid)
+                    # Must check if there already is a box with this serial
+                    where = "deviceid = '" + deviceId + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        # A box with this serial already exists
+                        # in the database. Ask for serial again.
+                        box = box[0]
+                        status.errors.append('A box (' + box.sysname + \
+                                             ') with the serial \'' +\
+                                             str(serial) +\
+                                             '\' already exists.')
+                        templateform.add(pageNetbox.editbox(formData=form,
+                                                      disabled=True))
+                        templateform.showConfirm = True
+                        templateform.add(pageNetbox.editboxSerial(
+                                                      gotRo=False,
+                                                      sysname=
+                                                      req.form['sysname']))
+                        templateform.add(pageNetbox.editboxCategory(
+                                                      req.form['catid']))
+                        # Ask for serial again. Must "refresh" hidden values.
+                        nextStep = STEP_2
+                        editboxHidden.addHidden(CNAME_STEP,nextStep)
+                        editboxHidden.addHidden('hiddenIP',form['hiddenIP'])
+                        return (status,action,templateform)
+                else:
+                    # Not found, make new device
+                    deviceId = None
+
+            # Get selected subcategories
+            subcatlist = None
+            if form.has_key('subcat'):
+                subcatlist = form['subcat']
+            # Get function
+            function = None
+            if form.has_key('function'):
+                function = form['function']
+            # Get typeid and snmpversion (from hidden inputs)
+            typeId = None
+            if form.has_key('typeid'):
+                typeId = form['typeid']
+            snmpversion = None
+            if form.has_key('snmpversion'):
+                snmpversion = form['snmpversion']
+            # Get sysname (from hidden input)
+            sysname = req.form['sysname']
+
+            # Insert netbox
+            # hiddenIP contains numerical ip after dns lookup
+            # (in case user entered a hostname in the ip field)
+            insertNetbox(form['hiddenIP'],form['sysname'],
+                         form['catid'],form['roomid'],
+                         form['orgid'],form['ro'],
+                         form['rw'],deviceId,
+                         form['serial'],typeId,
+                         snmpversion,subcatlist,
+                         function)
+            action = 'list'
+            status.messages.append('Added box: ' + form['sysname'] + ' (' + \
+                                   req.form['hiddenIP'] + ')')
+        if not step == STEP_2: 
+            # Unless this is the last step, set the nextStep
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+        return (status,action,templateform)
+
+    # Overloads default update function
+    def update(self,req,templateform,selected):
+        ''' Updates a netbox, overrides the default update function. '''
+        selected = selected[0]
+        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        STEP_1 = 1
+        STEP_2 = 2
+        CNAME_STEP = 'step' 
+        # Step0: ask for ip,ro,rw,catid,org,room
+        # Step1: ask for serial (and sysname,snmpversion and typeid)
+        #        ask for subcategory and function
+        # Step2: add the box
+        message = "Got SNMP response, but can't find type in " + \
+                  "database. You must <a href=\"" + ADD_TYPE_URL + \
+                  "?sysobjectid=%s\" " + \
+                  "target=\"_blank\">add the " + \
+                  "type</a>  before proceeding (a new window will " + \
+                  "open, when the new type is added, press " + \
+                  "Continue to proceed)."
+
+        box = None
+        error = None
+        status = editdbStatus()
+        action = 'predefined'
+        form = req.form
+        templateform.title = 'Edit box'
+        # Preserve the URL
+        templateform.action = BASEPATH + 'netbox/edit/' + selected
+
+        # Add editbox with hidden values for step (and deviceid)
+        editboxHidden = editboxHiddenOrMessage()
+        templateform.add(editboxHidden)
+        # What step are we in?
+        step = STEP_1
+        if form.has_key(CNAME_STEP):
+            step = int(form[CNAME_STEP])
+        nextStep = step + 1
+
+        oldBox = editTables.editdbNetbox(selected)
+
+        if step == STEP_1:
+            # Look up sysname in DNS, it might have changed
+            # since the box was initially added
+            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
+                              form['ip'])
+            ip = form['ip']
+            if result:
+                # This is an IP
+                try:
+                    sysname = gethostbyaddr(ip)[0]
+                except:
+                    sysname = ip
+            else:
+                # Not an IP, possibly a hostname
+                try:
+                    ip = gethostbyname(form['ip'])
+                    sysname = form['ip']
+                except:
+                    error = 'Invalid IP or hostname'
+
+            # 'ip' should be numerical ip now
+            editboxHidden.addHidden('hiddenIP',str(ip))
+
+            # Check if (edited) ip is already present in db
+            #if (oldBox.ip != form['ip'])
+            if oldBox.ip != ip and (not error):
+                # If IP differs from the old, check for uniqueness
+                where = "ip = '" + ip + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    error = 'IP already exists in database'
+                if not error:
+                    # If IP isn't duplicate, check if (new) sysname is unique
+                    where = "sysname = '" + sysname + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        error = 'Sysname ' + sysname + ' (' + box[0].ip + \
+                                ') already exists in database'
+            if error:
+                status.errors.append(error)
+                templateform.add(pageNetbox.editbox(pageNetbox,
+                                                    editId=selected,
+                                                      formData=form))
+                return (status,action,templateform,selected)
+
+            if editTables.Cat(form['catid']).req_snmp == True:
+                # SNMP required by this category
+                if len(form['ro']):
+                    # RO specified, check SNMP
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        # No SNMP answer
+                        status.errors.append('No SNMP response, check ' +\
+                                             'RO community')
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            editId=selected,
+                                                            formData=form))
+                        return (status,action,templateform,selected)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: '+str(sys.exc_info()[0])+\
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            editId=selected,
+                                                            formData=form))
+                        return (status,action,templateform,selected)
+         
+                    box.getDeviceId()
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        editId=selected,
+                                                        formData=form,
+                                                        disabled=True))
+
+                    if box.typeid:
+                        # Got type
+                        if box.serial:
+                            serial = box.serial
+                        else:
+                            serial = oldBox.device.serial
+                        templateform.add(pageNetbox.editboxSerial(
+                                         gotRo=True,
+                                         serial=serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion,
+                                         editSerial=False))
+
+                        # Show subcategory/function editbox 
+                        # If category has changed, then don't 
+                        # load the old subcatinfo
+                        if oldBox.catid != form['catid']:
+                            templateform.add(pageNetbox.editboxCategory(
+                                                          req.form['catid'],
+                                                          showHelp=False))
+                        else:
+                            templateform.add(pageNetbox.editboxCategory(
+                                                          req.form['catid'],
+                                                          selected))
+                    else:
+                        # Couldn't find type, ask user to add
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                else:
+                    # RO blank, return error
+                    status.errors.append('Category ' + form['catid'] + \
+                                         ' requires a RO community')
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        editId=selected,
+                                                        formData=form))
+                    nextStep = STEP_1
+            else:
+                # SNMP not required by cat
+                message = "Got SNMP response, but can't find type in " + \
+                          "database. Type is not required for this " +\
+                          "category, but if you want you can "+\
+                          "<a href=\"" + ADD_TYPE_URL + \
+                          "?sysobjectid=%s\" " + \
+                          "target=\"_blank\">" + \
+                          "add this type to the database</a>. " +\
+                          "After adding the type, start the registration " +\
+                          "again to set correct type on box."
+
+                if len(form['ro']):
+                    # RO specified, check SNMP anyway
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            editId=selected,
+                                                            formData=form))
+                        return (status,action,templateform,selected)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: '+str(sys.exc_info()[0])+\
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            editId=selected,
+                                                            formData=form))
+                        return (status,action,templateform,selected)
+
+                    box.getDeviceId()
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        editId=selected,
+                                                        formData=form,
+                                                        disabled=True))
+                    if not box.typeid:
+                        # Unknown type. Type is not required,
+                        # but ask if user wants to add type anyway.
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                        
+                    if box.serial:
+                        serial = box.serial
+                    else:
+                        serial = oldBox.device.serial
+                
+                    templateform.add(pageNetbox.editboxSerial(gotRo=True,
+                                     serial=serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion,
+                                     editSerial=False))
+
+                    # Show subcategory/function editbox 
+                    # If category has changed, then don't 
+                    # load the old subcatinfo
+                    if oldBox.catid != form['catid']:
+                        templateform.add(pageNetbox.editboxCategory(
+                                                      req.form['catid'],
+                                                      showHelp=False))
+                    else:
+                        templateform.add(pageNetbox.editboxCategory(
+                                                      req.form['catid'],
+                                                      selected))
+                else:
+                    # RO blank, don't check SNMP, ask for serial
+                    templateform.add(pageNetbox.editbox(pageNetbox,
+                                                        editId=selected,
+                                                        formData=form,
+                                                        disabled=True))
+                    serial = oldBox.device.serial
+                    templateform.add(pageNetbox.editboxSerial(gotRo=False,
+                                                         serial = serial,
+                                                         sysname=sysname,
+                                                         editSerial=True))
+
+                    # Show subcategory/function editbox 
+                    # If category has changed, then don't 
+                    # load the old subcatinfo
+                    if oldBox.catid != form['catid']:
+                        templateform.add(pageNetbox.editboxCategory(
+                                                      req.form['catid'],
+                                                      showHelp=False))
+                    else:
+                        templateform.add(pageNetbox.editboxCategory(
+                                                      req.form['catid'],
+                                                      selected))
+                    nextStep = STEP_2
+        if step == STEP_2:
+            # Always use the old serial
+            serial = oldBox.device.serial
+                
+            # If the serial was changed we have to check if it's unique
+            if box:
+                # Got serial by SNMP?
+                newSerial = box.serial
+            else:
+                newSerial = form['serial']
+
+            if len(newSerial):
+                deviceId = None
+                if serial != newSerial:
+                    # Any other devices in the database with this serial?
+                    where = "serial = '" + str(newSerial) + "'"
+                    device = editTables.Device.getAll(where)
+                    if device:
+                        # Found a device with this serial
+                        deviceId = str(device[0].deviceid)
+                        # Must check if there already is a box with this serial
+                        where = "deviceid = '" + deviceId + "'"
+                        box = editTables.Netbox.getAll(where)
+                        if box:
+                            # A box with this serial already exists
+                            # in the database. Ask for serial again.
+                            box = box[0]
+                            status.errors.append('A box (' + box.sysname + \
+                                                 ') with the serial \'' +\
+                                                 str(serial) +\
+                                                 '\' already exists.')
+                            templateform.add(pageNetbox.editbox(pageNetbox,
+                                                                formData=form,
+                                                                disabled=True))
+                            templateform.showConfirm = True
+                            templateform.add(pageNetbox.editboxSerial(
+                                                          gotRo=False,
+                                                          sysname=
+                                                          req.form['sysname']))
+                            templateform.add(pageNetbox.editboxCategory(
+                                                          req.form['catid']))
+                            # Ask for serial again. Must "refresh" hidden values.
+                            nextStep = STEP_2
+                            editboxHidden.addHidden(CNAME_STEP,nextStep)
+                            editboxHidden.addHidden('hiddenIP',form['hiddenIP'])
+
+                            #templateform.add(editboxHiddenOrMessage(message))
+                            return (status,action,templateform,selected)
+            else:
+                # No serial, make new device
+                deviceId = None
+
+            # Get selected subcats, function, type and snmpversion
+            subcatlist = None
+            if form.has_key('subcat'):
+                subcatlist = form['subcat']
+                if not type(subcatlist) is list:
+                    subcatlist = [subcatlist]
+            function = None
+            if form.has_key('function'):
+                function = req.form['function']
+            typeId = None
+            if form.has_key('typeid'):
+                typeId = req.form['typeid']
+            snmpversion = None
+            if form.has_key('snmpversion'):
+                snmpversion = form['snmpversion']
+                # Only use first char of snmpversion, don't insert things like
+                # '2c'
+                if len(snmpversion):
+                    snmpversion = snmpversion[0]
+
+            # Update netbox
+            fields = {'ip': form['hiddenIP'],
+                      'sysname': form['sysname'],
+                      'catid': form['catid'],
+                      'roomid': form['roomid'],
+                      'orgid': form['orgid'],
+                      'ro': form['ro'],
+                      'rw': form['rw']}
+
+            # Set type if initbox found it
+            if typeId:
+                fields['typeid'] = typeId
+
+            # Update deviceid if it has changed (ie. if serial
+            # was updated and a device with this serial already
+            # existed in the database
+            if deviceId:
+                fields['deviceid'] = deviceId
+
+            # Get prefixid
+            query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
+                    % (fields['ip'],)
+            try:
+                result = executeSQLreturn(query) 
+                fields['prefixid'] = str(result[0][0])
+            except:
+                pass        
+
+            # Set netbox.uptodate = false (to make gdd update this device)
+            fields['uptodate'] = 'f'
+            # Update netbox
+            updateEntryFields(fields,'netbox','netboxid',selected)
+
+            # Update device (unless the serial was found in an already
+            # existing device)
+            if not deviceId:
+                if len(form['serial']) and \
+                   (form['serial']!=oldBox.device.serial):
+                    # Set new serial, if it has changed
+                    fields = {'serial': form['serial']}
+                    deviceId = str(oldBox.device.deviceid)
+                    updateEntryFields(fields,'device','deviceid',deviceId)
+
+            # Remove old subcat and function entries
+            netboxId = oldBox.netboxid
+            deleteEntry([netboxId],'netboxcategory','netboxid')
+            deleteEntry([netboxId],'netboxinfo','netboxid')
+
+            # If subcatlist and function is given, insert them
+            if subcatlist:
+                for sc in subcatlist:
+                    fields = {'netboxid': netboxId,
+                              'category': sc}
+                    addEntryFields(fields,'netboxcategory')
+
+            if function:
+                fields = {'netboxid': netboxId,
+                          'key': '',
+                          'var': 'function',
+                          'val': function}
+                addEntryFields(fields,'netboxinfo')
+
+            action = 'list'
+            status.messages.append('Updated box ' + form['sysname'] + ' (' + \
+                                   form['ip'] + ')')
+
+        if not step == STEP_2: 
+            # Unless this is the last step, set the nextStep
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+        return (status,action,templateform,selected)
+
+class pageOrg(editdbPage):
+    ''' Describes editing of the org table. '''
+    
+    basePath = BASEPATH + 'org/'
+    table = nav.db.manage.Org
+    pageName = 'org'
+    tableName = 'org'
+    tableIdKey = 'orgid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    # Example: room 021 (descr) to jack 123, building, office
+    descriptionFormat = [('','orgid')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'orgid'
+
+    # Nouns
+    singular = 'organisation'
+    plural = 'organisations'
+
+    # Delete dependencies
+    dependencies = [(editTables.Org,
+                    'organisations',
+                    'parent',
+                    '/report/org/?parent='),
+                    (editTables.Netbox,
+                    'boxes',
+                    'orgid',
+                    '/report/netbox/?orgid=')]
+
+    pathAdd = EDITPATH + [('Organisation',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Organisation',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Organisation',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Organisation',False)]
+
+    class listDef(entryList):
+        ''' Describes org list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Organisation',True,None),
+                                      ('Parent',True,None),
+                                      ('Description',True,None),
+                                      ('Optional 1',True,None),
+                                      ('Optional 2',True,None),
+                                      ('Optional 3',True,None)]
+
+            self.cellDefinition = [(('orgid,orgid,parent,descr,opt1,opt2,opt3',
+                                     'org',
+                                     None,
+                                     None,
+                                     'orgid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing org entries.
+            The template uses this field information to draw the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            o = [('','No parent')]
+
+            for org in self.table.getAllIterator(orderBy='orgid'):
+                o.append((org.orgid,org.orgid + \
+                          ' (' + str(org.descr) + ')'))
+
+            f = {'orgid': [inputText(maxlength=30),REQ_TRUE,'Organisation',
+                           FIELD_STRING],
+                 'parent': [inputSelect(options=o),REQ_NONEMPTY,'Parent',
+                            FIELD_STRING],
+                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING],
+                 'opt1': [inputText(),REQ_FALSE,'Optional 1',FIELD_STRING],
+                 'opt2': [inputText(),REQ_FALSE,'Optional 2',FIELD_STRING],
+                 'opt3': [inputText(),REQ_FALSE,'Optional 3',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+
+class pagePatch(editdbPage):
+    ''' Describes editing of the patch table. '''
+    
+    basePath = BASEPATH + 'patch/'
+    table = nav.db.manage.Patch
+    pageName = 'patch'
+    tableName = 'patch'
+    tableIdKey = 'patchid'
+    sequence = 'patch_patchid_seq'
+    editMultipleAllowed = False
+    editIdAllowed = False
+
+    # Unique fields (for errormessages from add/update)
+    # Set to none since this page checks this in it's own 
+    # add/update functions
+    unique = None
+
+    # Nouns
+    singular = 'patch'
+    plural = 'patches'
+
+    # Delete dependencies
+    dependencies = []
+
+    # Description format used by describe(id)
+    # Example: from netbox,module x,port y to jack z,room,building,location
+    descriptionFormat = [('from \'','cabling.jack'),
+                         (', ','cabling.targetroom'),
+                         (', ','cabling.building'),
+                         (', ','cabling.room.location.locationid'),
+                         ('\' to netbox \'','swport.module.netbox.sysname'),
+                         (', module ','swport.module.module'),
+                         (', port ','swport.port'),
+                         ('\'',None)]
+
+    pathAdd = EDITPATH + [('Patch',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Patch',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Patch',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Patch',False)]
+
+    class listDef(entryList):
+        ''' Describes patch list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Jack',True,None),
+                                      ('Target room',True,None),
+                                      ('Building',True,None),
+                                      ('Location',True,None),
+                                      ('Split',True,None),
+                                      ('Room',True,None),
+                                      ('Sysname',True,None),
+                                      ('Module',True,None),
+                                      ('Port',True,None)]
+
+            self.cellDefinition = [(('patch.patchid,cabling.jack,' +\
+                                     'cabling.targetroom,' +\
+                                     'cabling.building,room.locationid,' +\
+                                     'patch.split,room.roomid,' +\
+                                     'netbox.sysname,' +\
+                                     'module.module,swport.port',
+                                     'patch,cabling,room,netbox,swport,module',
+                                     None,
+                                     'patch.cablingid=cabling.cablingid ' +\
+                                     'AND cabling.roomid=room.roomid AND ' +\
+                                     'patch.swportid=swport.swportid AND ' +\
+                                     'swport.moduleid=module.moduleid AND ' +\
+                                     'module.netboxid=netbox.netboxid',
+                                     'room.locationid,room.roomid,' +\
+                                     'netbox.sysname,cabling.jack'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None),
+                                     (8,None,None,None,None),
+                                     (9,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. 
+            This box uses the selectTree classes and updates itself
+            instead of using editdbPage.formFill(). '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+
+            # Set the name of this boxname to reflect that we are
+            # updating an entry
+            if editId:
+                self.boxName = UPDATE_ENTRY
+                self.boxId = editId
+
+            self.hiddenFields = {}
+            if editId:
+                self.addHidden(UPDATE_ENTRY,editId)
+
+            selectedSwport = []
+            selectedModule = []
+            selectedSwitch = []
+            selectedJack = []
+            selectedRoom = []
+            selectedLocation = []
+            split = None
+            if editId:
+                # Preserve the selected id
+                self.addHidden(selectList.cnameChk,editId)
+                patch = self.table(editId)
+                selectedSwport = [patch.swport.swportid]
+                selectedModule = [patch.swport.module.moduleid]
+                selectedSwitch = [patch.swport.module.netbox.netboxid]
+                selectedJack = [patch.cabling.cablingid]
+                selectedRoom = [patch.cabling.room.roomid]
+                selectedLocation = [patch.cabling.room.location.locationid]
+  
+            self.help = ''
+
+            if req:
+                select1 = simpleSelect('Location',
+                                       'cn_loc',
+                                       ('locationid,descr',
+                                        'location',
+                                        None,
+                                        None,
+                                        'locationid'),
+                                        selectedLocation,
+                                        optionFormat='$1 ($2)',
+                                        selectMultiple=False,
+                                        multipleHeight=8)
+
+                select2 = updateSelect(select1,
+                                       'locationid',
+                                       'Room',
+                                       'cn_room',
+                                       ('roomid,descr',
+                                        'room',
+                                        None,
+                                        None,
+                                        'roomid'),
+                                        selectedRoom,
+                                        optionFormat='$1 ($2)',
+                                        selectMultiple=False,
+                                        multipleHeight=8)
+
+                select3 = updateSelect(select2,
+                                       'roomid',
+                                       'Jack',
+                                       'cn_jack',
+                                       ('cablingid,jack',
+                                        'cabling',
+                                        None,
+                                        None,
+                                        'jack'),
+                                        selectedJack,
+                                        optgroupFormat='Room $1',
+                                        postOnChange=False,
+                                        selectMultiple=False,
+                                        multipleHeight=8)
+
+                whereSwitch = "AND (catid='EDGE' or catid='SW' or catid='GSW')"
+                select4 = updateSelect(select2,
+                                       'roomid',
+                                       'Switch',
+                                       'cn_switch',
+                                       ('netboxid,sysname',
+                                        'netbox',
+                                        None,
+                                        whereSwitch,
+                                        'sysname'),
+                                        selectedSwitch,
+                                        optgroupFormat='Room $1',
+                                        selectMultiple=False,
+                                        multipleHeight=8)
+
+                select5 = updateSelect(select4,
+                                       'netboxid',
+                                       'Module',
+                                       'cn_module',
+                                       ('moduleid,module',
+                                        'module',
+                                       None,
+                                       None,
+                                       'module'),
+                                       selectedModule,
+                                       optgroupFormat='$2',
+                                       selectMultiple=False,
+                                       multipleHeight=8)
+
+                select6 = updateSelect(select5,
+                                       'moduleid',
+                                       'Port',
+                                       'cn_swport',
+                                       ('swportid,port',
+                                        'swport',
+                                        None,
+                                        None,
+                                        'port'),
+                                        selectedSwport,
+                                        optgroupFormat='Module $2',
+                                        postOnChange=False,
+                                        selectMultiple=False,
+                                        multipleHeight=8)
+
+                st = selectTree()
+                st.addSelect(select1)
+                st.addSelect(select2)
+                st.addSelect(select3)
+                st.addSelect(select4)
+                st.addSelect(select5)
+                st.addSelect(select6)
+                st.update(req.form)
+
+                lb = selectTreeLayoutBox()
+                lb.addSelect(select1)
+                lb.addSelect(select2)
+                lb.addSelect(select3)
+
+                lb2 = selectTreeLayoutBox()
+                lb2.addSelect(select4)
+                lb2.addSelect(select5)
+                lb2.addSelect(select6)
+
+                # Remember split
+                if req.form.has_key('split'):
+                    split = req.form['split']
+            else:
+                lb = None
+                lb2 = None
+
+
+            # Field definitions {field name: [input object, required]}
+            f = {'box1': [inputTreeSelect(treeselect=lb),
+                            REQ_FALSE,'Room',FIELD_STRING],
+                 'box2': [inputTreeSelect(treeselect=lb2),
+                             REQ_FALSE,'Switch port',FIELD_STRING],
+                 'split': [inputSelect(options=PATCH_SPLIT_OPTIONS),REQ_FALSE,
+                           'Split',FIELD_STRING]}
+
+            if split:
+                f['split'][0].value = split
+
+            self.fields = f
+            self.setControlNames()
+
+    def add(self,req,templateForm,action):
+            ''' Adds patch entries. Overrides the default add function. '''
+            error = None
+            status = editdbStatus()
+
+            split = None
+            cablingid = None
+            swportid = None
+            if req.form.has_key('split'):
+                split = req.form['split']
+            else:
+                error = "Missing required field 'Split'"
+            if req.form.has_key('cn_jack'):
+                cablingid = req.form['cn_jack']
+            else:
+                error = "Missing required field 'Jack'"
+            if req.form.has_key('cn_swport'):
+                swportid = req.form['cn_swport']
+            else:
+                error = "Missing required field 'Port'"
+
+            if not error:
+                fields = {'cablingid': cablingid,
+                          'swportid': swportid,
+                          'split': split}
+
+                try:
+                    patchId = addEntryFields(fields,self.tableName,
+                                             (self.tableIdKey,self.sequence))
+                    action = 'list'
+                except psycopg.IntegrityError,e:
+                    error = 'There already exists a patch from this jack ' +\
+                            'to that port'
+
+            if error:
+                status.errors.append(error)
+            else:
+                message = 'Added patch: ' + self.describe(patchId)
+                status.messages.append(message)
+                action = 'list'
+            return (status,action,templateForm)
+
+    def update(self,req,outputForm,selected):
+        ''' Updates patch entries. Overrides the default update function. '''
+
+        status = editdbStatus()
+        error = None
+
+        split = None
+        cablingid = None
+        swportid = None
+        if req.form.has_key('split'):
+            split = req.form['split']
+        else:
+            error = "Missing required field 'Split'"
+        if req.form.has_key('cn_jack'):
+            cablingid = req.form['cn_jack']
+        else:
+            error = "Missing required field 'Jack'"
+        if req.form.has_key('cn_swport'):
+            swportid = req.form['cn_swport']
+        else:
+            error = "Missing required field 'Port'"
+
+        if not error:
+            fields = {'cablingid': cablingid,
+                      'swportid': swportid,
+                      'split': split}
+
+            try:
+                updateEntryFields(fields,self.tableName,self.tableIdKey,
+                                  selected[0])
+                action = 'list'
+            except psycopg.IntegrityError,e:
+                error = 'There already exists a patch from this swport ' +\
+                        'to that jack'
+                action = 'edit'
+        if error:
+            status.errors.append(error)
+        else:
+            message = 'Updated patch: ' + self.describe(selected[0])
+            status.messages.append(message)
+            action = 'list'
+ 
+        return (status,action,outputForm,selected)
+ 
+
+
+
+class pagePrefix(editdbPage):
+    ''' Describes editing of the prefix table for nettypes of 'static'
+        'reserved' or 'scope'. '''
+
+    basePath = BASEPATH + 'prefix/'
+    table = nav.db.manage.Prefix
+    pageName = 'prefix'
+    tableName = 'prefix'
+    tableIdKey = 'prefixid'
+    sequence = 'prefix_prefixid_seq'
+    editMultipleAllowed = False
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','netaddr'),
+                         (', ','vlan.nettype')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'netaddr'
+
+    # Nouns
+    singular = 'prefix'
+    plural = 'prefixes'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Prefix',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Prefix',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Prefix',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Prefix',False)]
+
+    class listDef(entryList):
+        ''' Describes prefix list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Prefix/mask',True,None),
+                                      ('Nettype',True,None),
+                                      ('Org',True,None),
+                                      ('Netident',True,None),
+                                      ('Usage',True,None),
+                                      ('Description',True,None),
+                                      ('Vlan',True,None)]
+
+            where = "(vlan.nettype='static' or " + \
+                    "vlan.nettype='reserved' or " + \
+                    "vlan.nettype='scope')"
+
+            self.cellDefinition = [(('prefix.prefixid,netaddr,vlan.nettype,' +\
+                                     'vlan.orgid,vlan.netident,vlan.usageid,' +\
+                                     'vlan.description,vlan.vlan',
+                                     'prefix,vlan',
+                                     None,
+                                     'prefix.vlanid=vlan.vlanid AND ' + where,
+                                     'prefix.netaddr,nettype'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. '''
+           
+        # must get most of the fields from the vlan table
+        additionalSQL = ' AND prefix.vlanid=vlan.vlanid'
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+
+            nettypes = [('static','static'),
+                        ('reserved','reserved'),
+                        ('scope','scope')]
+
+            orgs = [('','No organisation')]
+            for o in nav.db.manage.Org.getAllIterator():
+                orgs.append((o.orgid,o.orgid + ' (' + o.descr + ')'))
+
+            usageids = [('','No usage')]
+            for usage in editTables.Usage.getAllIterator():
+                usageids.append((usage.usageid,usage.usageid + ' (' + \
+                                usage.descr + ')'))
+
+            # Field definitions {field name: [input object, required]}
+            f = {'netaddr': [inputText(),REQ_TRUE,'Prefix/mask (cidr)',
+                             FIELD_STRING],
+                 'vlan.nettype': [inputSelect(options=nettypes),REQ_TRUE,
+                                  'Network type',FIELD_STRING],
+                 'vlan.orgid': [inputSelect(options=orgs),REQ_NONEMPTY,
+                                'Organisation',FIELD_STRING],
+                 'vlan.netident': [inputText(),REQ_FALSE,'Netident',
+                                   FIELD_STRING],
+                 'vlan.description': [inputText(),REQ_FALSE,'Description',
+                                      FIELD_STRING],
+                 'vlan.vlan': [inputText(size=5),REQ_NONEMPTY,'Vlan',
+                               FIELD_INTEGER],
+                 'vlan.usageid': [inputSelect(options=usageids),REQ_NONEMPTY,
+                                  'Usage',FIELD_STRING]}
+                 
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill() 
+            if formData:
+                self.formFill(formData)
+
+    def add(self,req,templateForm,action):
+        ''' Adds prefix entries. Overrides the default add function. '''
+        error = None
+        status = editdbStatus()
+
+        data = {'nettype': req.form['vlan.nettype'],
+                'description': req.form['vlan.description'],
+                'netaddr': req.form['netaddr'],
+                'netident': req.form['vlan.netident'],
+                'vlan': req.form['vlan.vlan']}
+
+        if len(req.form['vlan.orgid']):
+            data['orgid'] = req.form['vlan.orgid'],
+        if len(req.form['vlan.usageid']):
+            data['usageid'] = req.form['vlan.usageid'],
+
+        error = self.insertPrefix(data)
+        if not error:
+            action = 'list'
+            status.messages.append('Added prefix')
+        else:
+            action = 'add'
+            status.errors.append(error)
+        return (status,action,templateForm)
+
+    def insertPrefix(self,data):
+        ''' Inserts prefixes into the database. Used by pagePrefix.add() '''
+        error = None
+
+        # Add new vlan
+        fields = {'nettype': data['nettype']}
+
+        if data.has_key('orgid'):
+            if len(data['orgid']):
+                fields['orgid'] = data['orgid']
+        if data.has_key('usageid'):
+            if len(data['usageid']):
+                fields['usageid'] = data['usageid']
+        if len(data['description']):
+            fields['description'] = data['description']
+        if len(data['vlan']):
+            fields['vlan'] = data['vlan']
+        if len(data['netident']):
+            fields['netident'] = data['netident']
+
+        vlanid = addEntryFields(fields,
+                                'vlan',
+                                ('vlanid','vlan_vlanid_seq'))
+        # Add new prefix
+        fields = {'netaddr': data['netaddr'],
+                  'vlanid': vlanid}
+        try:
+            addEntryFields(fields,'prefix')
+        except psycopg.ProgrammingError:
+            # Invalid cidr
+            error = 'Invalid CIDR'
+            # Remove vlan entry
+            deleteEntry([vlanid],'vlan','vlanid')
+        except psycopg.IntegrityError:
+            # Already existing cidr
+            error = 'Prefix already exists in database'
+            deleteEntry([vlanid],'vlan','vlanid')
+        return error
+
+    def update(self,req,templateform,selected):
+        ''' Updates prefix entries. Overrides the default update function.  '''
+        error = None
+        status = editdbStatus()
+        formdata = {}
+        idlist = []
+        if type(req.form[UPDATE_ENTRY]) is list:
+            # editing several entries
+            for i in range(0,len(req.form[UPDATE_ENTRY])):
+                entry = {}
+                editid = req.form[UPDATE_ENTRY][i]
+                idlist.append(editid)
+                entry['netaddr'] = req.form['netaddr'][i]
+                entry['description'] = req.form['vlan.description'][i]
+                entry['netident'] = req.form['vlan.netident'][i]
+                entry['orgid'] = req.form['vlan.orgid'][i]
+                entry['usageid'] = req.form['vlan.usageid'][i]
+                entry['nettype'] = req.form['vlan.nettype'][i]
+                entry['vlan'] = req.form['vlan.vlan'][i]
+                formdata[editid] = entry
+        else:
+            # editing just one entry
+            entry = {}
+            editid = req.form[UPDATE_ENTRY]
+            idlist = [editid]
+            entry['netaddr'] = req.form['netaddr']
+            entry['description'] = req.form['vlan.description']
+            entry['netident'] = req.form['vlan.netident']
+            entry['orgid'] = req.form['vlan.orgid']
+            entry['usageid'] = req.form['vlan.usageid']
+            entry['nettype'] = req.form['vlan.nettype']
+            entry['vlan'] = req.form['vlan.vlan']
+            formdata[editid] = entry
+
+        for updateid,data in formdata.items():
+            vlanfields = {'description': data['description'],
+                          'netident': data['netident'],
+                          'nettype': data['nettype']}
+            if len(data['orgid']):
+                vlanfields['orgid'] = data['orgid']
+            else:
+                vlanfields['orgid'] = None
+            if len(data['usageid']):
+                vlanfields['usageid'] = data['usageid']
+            else:
+                vlanfields['usageid'] = None
+            if len(data['vlan']):
+                vlanfields['vlan'] = data['vlan']
+            else:
+                vlanfields['vlan'] = None
+
+            prefixfields = {'netaddr': data['netaddr']}
+          
+            vlanid = editTables.Prefix(updateid).vlan.vlanid 
+            updateEntryFields(vlanfields,'vlan','vlanid',str(vlanid))
+            updateEntryFields(prefixfields,'prefix','prefixid',updateid)
+
+        selected = idlist
+        action = 'list'
+        if not error:
+            action = 'list'
+            status.messages.append('Updated prefix: ' + self.describe(updateid))
+        else:
+            action = 'edit'
+            status.errors.append(error)
+        return (status,action,templateform,selected)
+
+class pageProduct(editdbPage):
+    ''' Describes editing of the product table. '''
+    
+    basePath = BASEPATH + 'product/'
+    table = nav.db.manage.Product
+    pageName = 'product'
+    tableName = 'product'
+    tableIdKey = 'productid'
+    sequence = 'product_productid_seq'
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','vendor.vendorid'),
+                         (', ','productno')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = ['vendorid']
+
+    # Nouns
+    singular = 'product'
+    plural = 'products'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Product',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Product',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Product',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Product',False)]
+
+    class listDef(entryList):
+        ''' Describes product list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Vendor',True,None),
+                                      ('Productno',True,None),
+                                      ('Description',True,None)]
+
+            self.cellDefinition = [(('productid,vendorid,productno,descr',
+                                     'product',
+                                     None,
+                                     None,
+                                     'vendorid,productno'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing product entries.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            f = {'vendorid': [inputSelect(table=editTables.editdbVendor),
+                              REQ_TRUE,'Vendor',FIELD_STRING],
+                 'productno': [inputText(),REQ_TRUE,'Productno',FIELD_STRING],
+                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING]}
+
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+
+
+class pageRoom(editdbPage):
+    ''' Describes editing of the room table. '''
+    
+    basePath = BASEPATH + 'room/'
+    table = nav.db.manage.Room
+    pageName = 'room'
+    tableName = 'room'
+    tableIdKey = 'roomid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    # Example: room 021 (descr) to jack 123, building, office
+    # BUG: roomid.roomid should only have to be roomid
+    #      can't find any error in describe()
+    descriptionFormat = [('','roomid.roomid')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'roomid'
+
+    # Nouns
+    singular = 'room'
+    plural = 'rooms'
+
+    # Delete dependencies
+    dependencies = [(nav.db.manage.Netbox,
+                     'boxes',
+                     'roomid',
+                     '/report/netbox/?roomid=')]
+
+    pathAdd = EDITPATH + [('Room',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Room',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Room',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Room',False)]
+
+    class listDef(entryList):
+        ''' Describes room list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Room Id',True,None),
+                                      ('Location',True,None),
+                                      ('Description',True,None),
+                                      ('Optional 1',True,None),
+                                      ('Optional 2',True,None),
+                                      ('Optional 3',True,None),
+                                      ('Optional 4',True,None)]
+
+            self.cellDefinition = [(('roomid,roomid,locationid,descr,' +\
+                                     'opt1,opt2,opt3,opt4',
+                                     'room',
+                                     None,
+                                     None,
+                                     'roomid,locationid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing room entries.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            self.hiddenFields = {}
+
+            disabled = False
+            if editId:
+                disabled = True
+
+            locations = [('','Select a location')]
+            for l in nav.db.manage.Location.getAllIterator(
+                                            orderBy='locationid'):
+                locations.append((l.locationid,l.locationid + ' (' +
+                                  l.descr + ')'))
+
+            f = {'roomid': [inputText(disabled=disabled,maxlength=30),
+                            REQ_TRUE,'Room Id',FIELD_STRING],
+                 'locationid': [inputSelect(options=locations),
+                                REQ_TRUE,'Location',FIELD_STRING],
+                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING],
+                 'opt1': [inputText(),REQ_FALSE,'Optional 1',FIELD_STRING],
+                 'opt2': [inputText(),REQ_FALSE,'Optional 2',FIELD_STRING],
+                 'opt3': [inputText(),REQ_FALSE,'Optional 3',FIELD_STRING],
+                 'opt4': [inputText(),REQ_FALSE,'Optional 4',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+            
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+
+class pageService(editdbPage):
+    ''' Describes editing of the service table. '''
+    
+    basePath = BASEPATH + 'service/'
+    table = nav.db.manage.Service
+    pageName = 'service'
+    tableName = 'service'
+    tableIdKey = 'serviceid'
+    sequence = 'service_serviceid_seq'
+    editMultipleAllowed = False
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    # Example: room 021 (descr) to jack 123, building, office
+    descriptionFormat = [('','handler'),
+                         (' on ','netbox.sysname')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = ''
+
+    # Nouns
+    singular = 'service'
+    plural = 'services'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Service',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Service',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Service',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Service',False)]
+
+    class listDef(entryList):
+        ''' Describes service list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Server',True,None),
+                                      ('Handler',True,None),
+                                      ('Version',True,None)]
+
+            self.cellDefinition = [(('serviceid,netbox.sysname,handler,version',
+                                     'service,netbox',
+                                     None,
+                                     'service.netboxid=netbox.netboxid',
+                                     'netbox.sysname,handler'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing service entries.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None,
+                     disabled=False):
+            
+            self.page = page.pageName
+            self.table = page.table
+
+            self.hiddenFields = {}
+            self.help = ''
+            if not editId and not formData:
+                self.help = 'Select a server and a service handler'
+
+            servers = [('','Select a server')]
+            t = nav.db.manage.Netbox
+            for s in t.getAllIterator(where="catid='SRV'",orderBy='sysname'):
+                servers.append((str(s.netboxid),s.sysname))
+
+            handlers = [('','Select a handler')]
+            checkers = []
+            for c in getCheckers():
+                checkers.append((c,c))
+            checkers.sort()
+            handlers += checkers
+
+            disabledHandler = disabled
+            if editId:
+                disabledHandler = True
+            f = {'netboxid': [inputSelect(options=servers,disabled=disabled),
+                             REQ_TRUE,'Server',FIELD_STRING],
+                 'handler': [inputSelect(options=handlers,
+                                         disabled=disabledHandler),
+                            REQ_TRUE,'Handler',FIELD_STRING]}
+
+            self.fields = f
+            self.setControlNames()
+
+            if not editId:
+                if formData:
+                    self.formFill(formData)
+            if editId:
+                self.editId = editId
+                self.fill()
+            if disabled:
+                self.addDisabled()
+ 
+
+    class editboxServiceProperties(editbox):
+        ''' Editbox used to edit properties for a service. Gets info
+            about service parameters from the checker module. '''
+
+        page = 'serviceproperties'
+        table = nav.db.manage.Serviceproperty
+
+        def __init__(self,checker,boxId,editId=None):
+            self.show = False
+            properties = getDescription(checker)
+
+            self.args = {}
+            self.optargs = {}
+            if properties:
+                self.show = True
+                self.title = "Properties for '" + properties['description'] + \
+                             "' on " + nav.db.manage.Netbox(boxId).sysname
+
+                if properties.has_key('args'):
+                    for a in properties['args']:
+                        self.args[a] = [inputText(),REQ_TRUE]
+                        self.setControlNames(self.args)
+                if properties.has_key('optargs'):
+                    for a in properties['optargs']:
+                        self.optargs[a] = [inputText(),REQ_FALSE]
+                        self.setControlNames(self.optargs)
+
+                if editId:
+                    sql = "SELECT * FROM serviceproperty WHERE " + \
+                          "serviceid='" + editId + "'"
+                    result = executeSQLreturn(sql)
+                    for entry in result:
+                        property = entry[1]
+                        value = entry[2]
+                        if self.args.has_key(property):
+                            self.args[property][0].value = value
+                        if self.optargs.has_key(property):
+                            self.optargs[property][0].value = value
+
+            # The main editbox has UPDATE_ENTRY (which holds the id) 
+            # or ADDNEW, don't need to repeat it here 
+            self.boxName = IGNORE_BOX
+
+    def add(self,req,templateForm,action):
+        ''' Adds a service entry. Overrides the default add function of
+            editdbPage. '''
+
+        action = 'add'
+        status = editdbStatus()
+        # Check if all required serviceproperties are present
+        properties = getDescription(req.form['handler'])
+        missing = False
+        propertyStep = False
+       
+        if properties:
+            if properties.has_key('args'):
+                for required in properties['args']:
+                    if not req.form.has_key(required):
+                        propertyStep = True
+                    if req.form.has_key(required):
+                        if not len(req.form[required]):
+                            missing = required
+                            propertyStep = True
+            if properties.has_key('optargs'):
+                for optional in properties['optargs']:
+                    if not req.form.has_key(optional):
+                        # If optargs are missing, then we haven't reached
+                        # the add property step yet
+                        propertyStep = True
+
+        if propertyStep:
+            if propertyStep or (missing and len(req.form['netboxid']) and
+                len(req.form['handler'])):
+    
+                # Missing required property
+                if missing:
+                    status.errors.append("Missing required property '" +\
+                                         missing + "'")
+
+            checker = req.form['handler']
+            templateForm.title = 'Add service'
+            templateForm.add(self.editbox(self,formData=req.form,disabled=True))
+            templateForm.add(self.editboxServiceProperties(checker,
+                                                    req.form['netboxid']))
+            action = 'continueAdd'
+        elif not missing:
+            # Add service entry
+            fields = {'netboxid': req.form['netboxid'],
+                      'handler': req.form['handler']}
+            serviceid = addEntryFields(fields,
+                                      'service',
+                                      ('serviceid','service_serviceid_seq'))
+            action = 'list'
+            status.messages.append('Added service: ' +self.describe(serviceid))
+            # Add serviceproperty entries
+            if properties:
+                if properties.has_key('args'):
+                    for property in properties['args']:
+                        # Already know that all properties in 'args' are present
+                        fields = {'serviceid': serviceid,
+                                  'property': property,
+                                  'value': req.form[property]}
+                        addEntryFields(fields,
+                                       'serviceproperty')
+                if properties.has_key('optargs'):
+                    for property in properties['optargs']:
+                        # optargs are optional, must check if they are present
+                        if req.form.has_key(property):
+                            if len(req.form[property]):
+                                fields = {'serviceid': serviceid,
+                                          'property': property,
+                                          'value': req.form[property]}
+                                addEntryFields(fields,
+                                               'serviceproperty')
+        else:
+            # Missing required property
+            status.errors.append("Missing required property '" + missing + "'")
+        return (status,action,templateForm)
+
+    def update(self,req,templateForm,selected):
+        ''' Updates service entries. Overrides the default update function
+            in editdbPage '''
+
+        action = 'edit'
+        status = editdbStatus()
+        editId = req.form[UPDATE_ENTRY]
+        # Check if all required serviceproperties are present
+        handler = nav.db.manage.Service(editId).handler
+        properties = getDescription(handler)
+        missing = False
+        propertyStep = False
+
+        #ditboxHidden = editboxHiddenOrMessage()
+        #emplateForm.add(editboxHidden)
+        #ditboxHidden.addHidden('handler',handler)
+     
+        if properties:
+            if properties.has_key('args'):
+                for required in properties['args']:
+                    if not req.form.has_key(required):
+                        propertyStep = True
+                    if req.form.has_key(required):
+                        if not len(req.form[required]):
+                            missing = required
+                            propertyStep = True
+            if properties.has_key('optargs'):
+                for optional in properties['optargs']:
+                    if not req.form.has_key(optional):
+                        # If optargs are missing, then we haven't reached
+                        # the add property step yet
+                        propertyStep = True
+
+        if propertyStep or (missing and len(req.form['netboxid'])):
+            if missing:
+                # Missing required property
+                status.errors.append("Missing required property '" +\
+                                     missing + "'")
+
+            checker = handler
+            templateForm.title = 'Edit service'
+            templateForm.add(self.editbox(self,formData=req.form,
+                                          editId=selected[0],disabled=True))
+            templateForm.add(self.editboxServiceProperties(checker,
+                                                    req.form['netboxid'],
+                                                    editId=selected[0]))
+            action = 'continueEdit'
+        elif not missing:
+            # Update service entry
+            fields = {'netboxid': req.form['netboxid'],
+                      'handler': handler}
+            updateEntryFields(fields,'service','serviceid',editId)
+            # Update serviceproperty entries
+            if properties:
+                # Delete old properties
+                deleteEntry([editId],'serviceproperty','serviceid')
+                if properties.has_key('args'):
+                    for property in properties['args']:
+                        # Already know that all properties in 'args' are present
+                        fields = {'serviceid': editId,
+                                  'property': property,
+                                  'value': req.form[property]}
+                        addEntryFields(fields,'serviceproperty')
+                        action = 'list'
+                if properties.has_key('optargs'):
+                    for property in properties['optargs']:
+                        # optargs are optional, must check if they are present
+                        if req.form.has_key(property):
+                            if len(req.form[property]):
+                                fields = {'serviceid': editId,
+                                          'property': property,
+                                          'value': req.form[property]}
+                                addEntryFields(fields,'serviceproperty')
+                                action = 'list'
+        else:
+            status.errors.append("Missing required property '" + missing+"'")
+            action = 'list'
+        selected = [editId]
+        return (status,action,templateForm,selected)
+
+class pageSnmpoid(editdbPage):
+    ''' Describes adding to the snmpoid table. '''
+    
+    basePath = BASEPATH + 'snmpoid/'
+    table = nav.db.manage.Snmpoid
+    pageName = 'snmpoid'
+    tableName = 'snmpoid'
+    tableIdKey = 'snmpoidid'
+    sequence = 'snmpoid_snmpoidid_seq'
+    editMultipleAllowed = False
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','snmpoid')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'oidkey'
+
+    # Nouns
+    singular = 'snmpoid'
+    plural = 'snmpoids'
+
+    # Delete dependencies
+    # delete not allowed for snmpoid, so no dependencies
+
+    pathAdd = EDITPATH + [('Snmpoid',False),('Add',False)]
+
+    class listDef(entryList):
+        ''' Dummy class. No list view defined for for the snmpoid page. '''
+        pass
+
+    class editbox(editbox):
+        ''' Describes fields for adding snmpoid entries.
+            The template uses this field information to display the form. '''
+           
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+
+            self.hiddenFields = {}
+
+            disabled = False
+            if editId:
+                disabled = True
+
+            f = {'oidkey': [inputText(disabled=disabled),REQ_TRUE,'OID key',
+                            FIELD_STRING],
+                 'snmpoid': [inputText(),REQ_TRUE,'Snmpoid',FIELD_STRING],
+                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING],
+                 'oidsource': [inputText(),REQ_FALSE,'OID source',FIELD_STRING],
+                 'match_regex': [inputText(),REQ_FALSE,'Match regexp',
+                                 FIELD_STRING],
+                 'oidname': [inputText(),REQ_FALSE,'OID name',FIELD_STRING],
+                 'mib': [inputText(),REQ_FALSE,'MIB',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+            if formData:
+                self.formFill(formData)
+            if disabled:
+                self.addDisabled()
+
+
+    def add(self,req,outputForm,action):
+        ''' Dummy function which calls editdbPage.add and then sets action
+            to redirect (to the menu page). '''
+
+        status,action,outputForm = editdbPage.add(self,req,outputForm,action)
+        action = 'redirect'
+
+        return (status,action,outputForm)
+
+class pageSubcat(editdbPage):
+    ''' Describes editing of the subcat table. '''
+    
+    basePath = BASEPATH + 'subcat/'
+    table = nav.db.manage.Subcat
+    pageName = 'subcat'
+    tableName = 'subcat'
+    tableIdKey = 'subcatid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','subcatid'),
+                         (' (','descr'),
+                         (')',None)]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'subcatid'
+
+    # Nouns
+    singular = 'subcategory'
+    plural = 'subcategories'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Subcategory',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Subcategory',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Subcategory',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Subcategory',False)]
+
+    class listDef(entryList):
+        ''' Describes subcat list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Subcategory',True,None),
+                                      ('Parent category',True,None),
+                                      ('Description',True,None)]
+
+            self.cellDefinition = [(('subcatid,subcatid,catid,descr',
+                                     'subcat',
+                                     None,
+                                     None,
+                                     'catid,subcatid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None),
+                                     (3,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            
+            o = [('','Select a category')]
+            for cat in nav.db.manage.Cat.getAllIterator():
+                o.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
+
+            f = {'subcatid': [inputText(),REQ_TRUE,'Subcategory',FIELD_STRING],
+                 'catid': [inputSelect(options=o),REQ_TRUE,'Category',
+                           FIELD_STRING],
+                 'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData) 
+
+class pageType(editdbPage):
+    ''' Describes editing of the type table. '''
+    
+    basePath = BASEPATH + 'type/'
+    table = nav.db.manage.Type
+    pageName = 'type'
+    tableName = 'type'
+    tableIdKey = 'typeid'
+    sequence = 'type_typeid_seq' 
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','vendor.vendorid'),
+                         (' ','typename')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'sysobjectid'
+
+    # Nouns
+    singular = 'type'
+    plural = 'types'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Type',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Type',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Type',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Type',False)]
+
+    class listDef(entryList):
+        ''' Describes room list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Vendor',True,None),
+                                      ('Typename',True,None),
+                                      ('Description',True,None),
+                                      ('Sysobjectid',True,None),
+                                      ('Frequency',True,None),
+                                      ('cdp',True,None),
+                                      ('tftp',True,None)]
+
+            self.cellDefinition = [(('typeid,vendorid,typename,descr,' +\
+                                     'sysobjectid,frequency,' +\
+                                     'CASE WHEN cdp THEN \'yes\' ' +\
+                                     'ELSE \'no\' END,' +\
+                                     'CASE WHEN tftp THEN \'yes\' ' +\
+                                     'ELSE \'no\' END',
+                                     'type',
+                                     None,
+                                     None,
+                                     'vendorid,typename'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,None,None,None,None),
+                                     (2,'{p}edit/{id}',None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing type entries.
+            The template uses this field information to display the form. '''
+ 
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            f = {'typename': [inputText(),REQ_TRUE,'Typename',FIELD_STRING],
+                 'vendorid': [inputSelect(table=editTables.editdbVendor),
+                              REQ_TRUE,'Vendor',FIELD_STRING],
+                 'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
+                 'sysobjectid': [inputText(),REQ_TRUE,'Sysobjectid',
+                                 FIELD_STRING],
+                 'cdp': [inputCheckbox(),REQ_NONEMPTY,'cdp',FIELD_STRING],
+                 'tftp': [inputCheckbox(),REQ_NONEMPTY,'tftp',FIELD_STRING],
+                 'frequency': [inputText(),REQ_NONEMPTY,'frequency',
+                               FIELD_INTEGER]}
+
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+
+class pageUsage(editdbPage):
+    ''' Describes editing of the usage table. '''
+    
+    basePath = BASEPATH + 'usage/'
+    table = nav.db.manage.Usage
+    pageName = 'usage'
+    tableName = 'usage'
+    tableIdKey = 'usageid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','usageid'),
+                         (' (','descr'),
+                         (')',None)]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'usageid'
+
+    # Nouns
+    singular = 'usage category'
+    plural = 'usage categories'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Usage',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Usage',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Usage',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Usage',False)]
+
+    class listDef(entryList):
+        ''' Describes usage list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Usage category',True,None),
+                                      ('Description',True,None)]
+
+            self.cellDefinition = [(('usageid,usageid,descr',
+                                     'usage',
+                                     None,
+                                     None,
+                                     'usageid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. '''
+           
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            f = {'usageid': [inputText(maxlength=30),REQ_TRUE,
+                             'Usage category',FIELD_STRING],
+                 'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+class pageVendor(editdbPage):
+    ''' Describes editing of the vendor table. '''
+    
+    basePath = BASEPATH + 'vendor/'
+    table = nav.db.manage.Vendor
+    pageName = 'vendor'
+    tableName = 'vendor'
+    tableIdKey = 'vendorid'
+    sequence = None
+    editMultipleAllowed = True
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','vendorid')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = 'vendorid'
+
+    # Nouns
+    singular = 'vendor'
+    plural = 'vendors'
+
+    # Delete dependencies
+    dependencies = [(nav.db.manage.Type,
+                    'types',
+                    'vendorid',
+                    '/report/type/?vendorid='),
+                    (nav.db.manage.Product,
+                    'products',
+                    'vendorid',
+                    '/report/product/?vendorid=')]
+
+    pathAdd = EDITPATH + [('Vendor',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Vendor',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Vendor',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Vendor',False)]
+
+    class listDef(entryList):
+        ''' Describes vendor list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Vendor',True,None)]
+
+            self.cellDefinition = [(('vendorid,vendorid',
+                                     'vendor',
+                                     None,
+                                     None,
+                                     'vendorid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing vendor entries.
+            The template uses this field information to display the form. '''
+    
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            f = {'vendorid': [inputText(maxlength=15),REQ_TRUE,'Vendor',
+                              FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+class pageVlan(editdbPage):
+    ''' Describes editing of the vlan table (no adding or 
+        deleting allowed). '''
+    
+    basePath = BASEPATH + 'vlan/'
+    table = nav.db.manage.Vlan
+    pageName = 'vlan'
+    tableName = 'vlan'
+    tableIdKey = 'vlanid'
+    sequence = 'vlan_vlanid_seq'
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Disallow adding
+    disallowAdd = True
+    disallowAddReason = 'Cannot add vlans manually'
+
+    # Description format used by describe(id)
+    descriptionFormat = [('','nettype'),
+                         (' ','vlan')]
+
+    # Unique fields (for errormessages from add/update)
+    unique = ''
+
+    # Nouns
+    singular = 'vlan'
+    plural = 'vlans'
+
+    # Delete dependencies
+    dependencies = []
+
+    pathAdd = EDITPATH + [('Vlan',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Vlan',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Vlan',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Vlan',False)]
+
+    class listDef(entryList):
+        ''' Describes vlan list view '''
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Vlan',True,None),
+                                      ('Nettype',True,None),
+                                      ('Organisation',True,None),
+                                      ('Usage',True,None),
+                                      ('Netident',True,None),
+                                      ('Description',True,None),
+                                      ('Prefixes',False,None)]
+
+            prefixSQL = "SELECT netaddr FROM prefix WHERE VLANID={id}"
+            self.cellDefinition = [(('vlanid,vlan,nettype,orgid,usageid,' +\
+                                     'netident,description',
+                                     'vlan',
+                                     None,
+                                     None,
+                                     'vlan,nettype,orgid'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,'{p}edit/{id}',None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,None),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (prefixSQL,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing vlan entries.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Available nettypes (should be in the database)
+            nettypes = [('core','core'),
+                        ('elink','elink'),
+                        ('lan','lan'),
+                        ('link','link'),
+                        ('loopback','loopback'),
+                        ('private','private')]
+
+            orgs = [('','No organisation')]
+            for o in nav.db.manage.Org.getAllIterator():
+                orgs.append((o.orgid,o.orgid + ' (' + o.descr + ')'))
+
+            usageids = [('','No usage')]
+            for usage in nav.db.manage.Usage.getAllIterator():
+                usageids.append((usage.usageid,usage.usageid + ' (' + \
+                                usage.descr + ')'))
+
+            # Field definitions {field name: [input object, required]}
+            f = {'nettype': [inputSelect(options=nettypes),REQ_TRUE,
+                             'Nettype',FIELD_STRING],
+                 'orgid': [inputSelect(options=orgs),REQ_FALSE,
+                           'Organisation',FIELD_STRING],
+                 'netident': [inputText(),REQ_FALSE,'Netident',FIELD_STRING],
+                 'description': [inputText(),REQ_FALSE,'Description',
+                                 FIELD_STRING],
+                 'vlan': [inputText(size=5),REQ_FALSE,'Vlan',FIELD_INTEGER],
+                 'usageid': [inputSelect(options=usageids),REQ_FALSE,
+                             'Usage',FIELD_STRING]}
+                 
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill() 
+            if formData:
+                self.formFill(formData)
+
+# List of editdb pages
+pageList = {'cabling': pageCabling,
+            'location': pageLocation,
+            'netbox': pageNetbox,
+            'org': pageOrg,
+            'patch': pagePatch,
+            'prefix': pagePrefix,
+            'product': pageProduct,
+            'room': pageRoom,
+            'service': pageService,
+            'snmpoid': pageSnmpoid,
+            'subcat': pageSubcat,
+            'type': pageType,
+            'usage': pageUsage,
+            'vendor': pageVendor,
+            'vlan': pageVlan}
+
+######################
+##
+## Bulk import classes
+##
+########################
+
+
+class editboxBulk(editbox):
+    ''' Editbox used by the template to disaply the main bulk import page. '''
+
+    page = 'bulk'
+
+    help = 'Import multiple entries by selecting a file, or pasting ' +\
+           'into the textarea. Select an import type to see syntax ' + \
+           'for this type.'
+    
+    def __init__(self):
+        tables = [('','Select an import type'),
+                  ('location','Locations'),
+                  ('room','Rooms'),
+                  ('org','Organisations'),
+                  ('usage','Usage categories'),
+                  ('subcat','Subcategories'),
+                  ('type','Types'),
+                  ('product','Products'),
+                  ('vendor','Vendors'),
+                  ('netbox','Boxes'),
+                  ('service','Services'),
+                  ('vlan','Vlans'),
+                  ('prefix','Prefixes'),
+                  ('cabling','Cabling'),
+                  ('patch','Patch')]
+
+        sep = [(':','Colon (:)'),
+               (';','Semicolon (;)'),
+               (',','Comma (,)')]
+
+        f = {'table': [inputSelect(options=tables),REQ_FALSE],
+             'separator': [inputSelect(options=sep),REQ_FALSE],
+             'file': [inputFile(),REQ_FALSE],
+             'textarea': [inputTextArea(),REQ_FALSE]}
+        self.fields = f
+        self.setControlNames()
 
 def bulkImportParse(input,bulkdef,separator):
+    ''' Parses a list of input data.
+        input = list of rows to import
+        bulkdef = bulk defintion class
+        separator = field separator chosen '''
     commentChar = '#'
     # Any number of spaces followed by a # is a comment
     comment = re.compile('\s*%s' % commentChar)
@@ -424,6 +4470,7 @@ def bulkImportParse(input,bulkdef,separator):
 
 
 def bulkImport(req,action):
+    ''' Main bulk import function. Displays menu and starts parsing. '''
     # Cnames for hidden inputs
     BULK_HIDDEN_DATA = 'blk_hd'
     BULK_TABLENAME = 'blk_tbl'
@@ -446,7 +4493,9 @@ def bulkImport(req,action):
            "# For field syntax, select an import type\n"
 
     # Dict with the different bulk definitions
-    bulkdef = {'location': bulkdefLocation,
+    bulkdef = {'patch': bulkdefPatch,
+               'cabling': bulkdefCabling,
+               'location': bulkdefLocation,
                'room': bulkdefRoom,
                'netbox': bulkdefNetbox,
                'org': bulkdefOrg,
@@ -563,6 +4612,7 @@ def bulkImport(req,action):
 
 #Function for bulk inserting
 def bulkInsert(data,bulkdef,separator):
+    ''' Inserts data when bulk importing. '''
     if not type(data) is list:
         data = [data]
 
@@ -611,6 +4661,9 @@ def bulkInsert(data,bulkdef,separator):
             for i in range(0,len(fields)):
                 # fieldname,maxlen,required,use
                 field,ml,req,use = bulkdef.fields[i]
+                # Escape special characters
+                row[field] = row[field].replace("'","\\'")
+                #row[field] = row[field].replace('"','\\"')
                 if not use:
                     if row.has_key(field):
                         del(row[field])
@@ -618,3636 +4671,186 @@ def bulkInsert(data,bulkdef,separator):
         addEntryBulk(rowlist,bulkdef.tablename)
     return len(rowlist)
 
-# Function for handling listing and editing of snmpoids
-def editSnmpoid(req,selected,action,error=None):
-    path = EDITPATH + [('Add snmpoid',False)]
-    table = 'snmpoid'
-    idfield = 'snmpoidid'
-    templatebox = editboxSnmpoid()
-    deleteDef = deletedefSnmpoid()
-    # Form definition
-    form = editForm()
-    form.action = BASEPATH + 'snmpoid/edit/'
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    form.status = status
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.Snmpoid
-    editList.tablename = 'snmpoid'
-    editList.orderBy = 'oidkey'
-    editList.idcol = 'snmpoidid'
-    editList.columns = [('OID key','oidkey',True),
-                        ('Snmpoid','snmpoid',False),
-                        ('Description','descr',False),
-                        ('OID source','oidsource',False),
-                        ('Match regexp','match_regex',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='oidkey')
-                if not error:
-                    status.messages.append("Added snmpoid '" + \
-                                           req.form['oidkey'] + "'")
-                    action = 'add'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,
-                                             idfield,unique='oidkey')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Room(s).roomid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Snmpoid',BASEPATH+'snmpoid/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit snmpoids'
-        else:
-            form.title = 'Edit snmpoid'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxSnmpoid(s))
-        editList = None
-    elif action == 'add':
-        form.title = 'Add new snmpoid'
-        form.textConfirm = 'Add snmpoid'
-        form.add(editboxSnmpoid(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Snmpoids',BASEPATH+'snmpoid/list'),
-                           ('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected ' + \
-                         'snmpoid(s)?'
-        editList.action = BASEPATH + 'snmpoid/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Snmpoids',False)]
-        editList.title = 'Edit snmpoids'
-        editList.action = BASEPATH + 'snmpoid/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-
-
-
-# Function for handling listing and editing of rooms
-def editRoom(req,selected,action,error=None):
-    path = EDITPATH + [('Rooms',BASEPATH+'room/list'),('Add',False)]
-    table = 'room'
-    idfield = 'roomid'
-    templatebox = editboxRoom()
-    deleteDef = deletedefRoom()
-    # Form definition
-    form = editForm()
-    form.action = BASEPATH + 'room/edit/'
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    form.status = status
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbRoom
-    editList.tablename = 'room'
-    editList.orderBy = 'roomid'
-    editList.idcol = 'roomid'
-    editList.columns = [('Room Id','roomid',True),
-                        ('Location','location',False),
-                        ('Description','descr',False),
-                        ('Optional 1','opt1',False),
-                        ('Optional 2','opt2',False),
-                        ('Optional 3','opt3',False),
-                        ('Optional 4','opt4',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='roomid')
-                if not error:
-                    status.messages.append("Added room '" + \
-                                           req.form['roomid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,
-                                             idfield,unique='roomid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Room(s).roomid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Rooms',BASEPATH+'room/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit rooms'
-        else:
-            form.title = 'Edit room'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxRoom(s))
-        editList = None
-    elif action == 'add':
-        form.title = 'Add new room'
-        form.textConfirm = 'Add room'
-        form.add(editboxRoom(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Rooms',BASEPATH+'room/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected room(s)?'
-        editList.action = BASEPATH + 'room/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Rooms',False)]
-        editList.title = 'Edit rooms'
-        editList.action = BASEPATH + 'room/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of locations
-def editLocation(req,selected,action,error=None):
-    path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Add',False)]
-    table = 'location'
-    idfield = 'locationid'
-    templatebox = editboxLocation()
-    deleteDef = deletedefLocation()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Define form
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'location/edit/'
-
-    # Define list
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbLocation
-    editList.tablename = 'location'
-    editList.orderBy = 'locationid'
-    editList.idcol = 'locationid'
-    editList.columns = [('Location ID','locationid',True),
-                        ('Description','descr',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='locationid')
-                if not error:
-                    status.messages.append("Added location '" + \
-                                           req.form['locationid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,
-                                             idfield,unique='locationid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Location(s).locationid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit locations'
-        else:
-            form.title = 'Edit location'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxLocation(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Add',False)]
-        form.title = 'Add new location'
-        form.textConfirm = 'Add location'
-        form.add(editboxLocation(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected location(s)?'
-        editList.action = BASEPATH + 'location/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Locations',False)]
-        editList.title = 'Edit locations'
-        editList.action = BASEPATH + 'location/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of organisations
-def editOrg(req,selected,action,error=None):
-    path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Add',False)]
-    table = 'org'
-    idfield = 'orgid'
-    templatebox = editboxOrg()
-    deleteDef = deletedefOrg()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'org/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.Org
-    editList.tablename = 'org'
-    editList.orderBy = 'orgid'
-    editList.idcol = 'orgid'
-    editList.columns = [('Org Id','orgid',True),
-                        ('Parent','parent',False),
-                        ('Description','descr',False),
-                        ('Optional 1','opt1',False),
-                        ('Optional 2','opt2',False),
-                        ('Optional 3','opt3',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='orgid')
-                if not error:
-                    status.messages.append("Added org '" + \
-                                           req.form['orgid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,
-                                             idfield,unique='orgid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Org(s).orgid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit organisations'
-        else:
-            form.title = 'Edit organisation'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxOrg(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Add',False)]
-        form.title = 'Add new organisation'
-        form.textConfirm = 'Add'
-        form.add(editboxOrg(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected organisation(s)?'
-        editList.action = BASEPATH + 'org/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Organisations',False)]
-        editList.title = 'Edit organisations'
-        editList.action = BASEPATH + 'org/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of types
-def editType(req,selected,action,error=None):
-    path = EDITPATH + [('Types',BASEPATH+'type/list'),('Add',False)]
-    table = 'type'
-    idfield = 'typeid'
-    templatebox = editboxType()
-    deleteDef = deletedefType()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'type/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.Type
-    editList.tablename = 'type'
-    editList.orderBy = ['vendor','typename']
-    editList.idcol = 'typeid'
-    editList.columns = [('Vendor','vendor',False),
-                        ('Typename','typename',True),
-                        ('Description','descr',False),
-                        ('Sysobjectid','sysobjectid',False),
-                        ('Frequency','frequency',False),
-                        ('cdp','cdp',False),
-                        ('tftp','tftp',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,
-                                 unique=['vendorid','typename'])
-                if not error:
-                    status.messages.append("Added type '" + \
-                                           req.form['typename'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,idfield,
-                                             staticid=True,
-                                             unique=['vendorid','typename'])
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Type(s).typename + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Types',BASEPATH+'type/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit types'
-        else:
-            form.title = 'Edit type'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxType(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Types',BASEPATH+'type/list'),('Add',False)]
-        form.title = 'Add new type'
-        form.textConfirm = 'Add'
-        form.add(editboxType(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Types',BASEPATH+'type/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected type(s)?'
-        editList.action = BASEPATH + 'type/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Types',False)]
-        editList.title = 'Edit types'
-        editList.action = BASEPATH + 'type/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of products
-def editProduct(req,selected,action,error=None):
-    path = EDITPATH + [('Products',BASEPATH+'product/list'),('Add',False)]
-    table = 'product'
-    idfield = 'productid'
-    templatebox = editboxProduct()
-    deleteDef = deletedefProduct()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'product/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbProduct
-    editList.tablename = 'product'
-    editList.orderBy = 'vendorid'
-    editList.idcol = 'productid'
-    editList.columns = [('Vendor','vendor',False),
-                        ('Productno','productno',True),
-                        ('Description','descr',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,
-                                 unique=['productno','vendorid'])
-                if not error:
-                    status.messages.append("Added product '" + \
-                                           req.form['productno'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,idfield,
-                                             staticid=True,
-                                             unique=['productno','vendorid'])
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Product(s).productno + ' '  
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")   
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Products',BASEPATH+'product/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit products'
-        else:
-            form.title = 'Edit products'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxProduct(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Products',BASEPATH+'product/list'),('Add',False)]
-        form.title = 'Add new product'
-        form.textConfirm = 'Add'
-        form.add(editboxProduct(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Products',BASEPATH+'product/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected products(s)?'
-        editList.action = BASEPATH + 'product/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Products',False)]
-        editList.title = 'Edit products'
-        editList.action = BASEPATH + 'product/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of vendors
-def editVendor(req,selected,action,error=None):
-    path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Add',False)]
-    table = 'vendor'
-    idfield = 'vendorid'
-    templatebox = editboxVendor()
-    deleteDef = deletedefVendor()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'vendor/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbVendor
-    editList.tablename = 'vendor'
-    editList.orderBy = 'vendorid'
-    editList.idcol = 'vendorid'
-    editList.columns = [('Vendor','vendorid',True)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='vendorid')
-                if not error:
-                    status.messages.append("Added vendor '" + \
-                                           req.form['vendorid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,idfield,
-                                             unique='vendorid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Vendor(s).vendorid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit vendors'
-        else:
-            form.title = 'Edit vendor'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxVendor(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Add',False)]
-        form.title = 'Add new vendor'
-        form.textConfirm = 'Add'
-        form.add(editboxVendor(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected vendor(s)?'
-        editList.action = BASEPATH + 'vendor/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Vendors',False)]
-        editList.title = 'Edit vendors'
-        editList.action = BASEPATH + 'vendor/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for adding new prefixes
-def addPrefix(req):
-    error = None
-    data = {'nettype': req.form['nettype'],
-            'orgid': req.form['orgid'],
-            'usageid': req.form['usageid'],
-            'description': req.form['description'],
-            'netaddr': req.form['netaddr'],
-            'netident': req.form['netident'],
-            'vlan': req.form['vlannumber']}
-
-    error = insertPrefix(data)
-    return error
-
-def insertPrefix(data):
-    error = None
-    # Is the entered cidr correct? 
-    # regexp here
-
-    # Add new vlan
-    fields = {'nettype': data['nettype']}
-
-    if len(data['orgid']):
-        fields['orgid'] = data['orgid']
-    if len(data['usageid']):
-        fields['usageid'] = data['usageid']
-    if len(data['description']):
-        fields['description'] = data['description']
-    if len(data['vlan']):
-        fields['vlan'] = data['vlan']
-    if len(data['netident']):
-        fields['netident'] = data['netident']
-
-    vlanid = addEntryFields(fields,
-                            'vlan',
-                            ('vlanid','vlan_vlanid_seq'))
-    # Add new prefix
-    fields = {'netaddr': data['netaddr'],
-              'vlanid': vlanid}
-    try:
-        addEntryFields(fields,'prefix')
-    except psycopg.ProgrammingError:
-        # Invalid cidr
-        error = 'Invalid CIDR'
-        # Remove vlan entry
-        deleteEntry([vlanid],'vlan','vlanid')
-    except psycopg.IntegrityError:
-        # Already existing cidr
-        error = 'Prefix already present in database'
-        deleteEntry([vlanid],'vlan','vlanid')
-    return error
-
-# Function for updating prefixes
-def updatePrefix(req):
-    error = None
-    formdata = {}
-    idlist = []
-    if type(req.form[UPDATE_ENTRY]) is list:
-        # editing several entries
-        for i in range(0,len(req.form[UPDATE_ENTRY])):
-            entry = {}
-            editid = req.form[UPDATE_ENTRY][i]
-            idlist.append(editid)
-            entry['netaddr'] = req.form['netaddr'][i]
-            entry['description'] = req.form['description'][i]
-            entry['netident'] = req.form['netident'][i]
-            entry['orgid'] = req.form['orgid'][i]
-            entry['nettype'] = req.form['nettype'][i]
-            entry['vlan'] = req.form['vlannumber'][i]
-            entry['usageid'] = req.form['usageid'][i]
-            formdata[editid] = entry
-    else:
-        # editing just one entry
-        entry = {}
-        editid = req.form[UPDATE_ENTRY]
-        idlist = [editid]
-        entry['netaddr'] = req.form['netaddr']
-        entry['description'] = req.form['description']
-        entry['netident'] = req.form['netident']
-        entry['orgid'] = req.form['orgid']
-        entry['nettype'] = req.form['nettype']
-        entry['vlan'] = req.form['vlannumber']
-        entry['usageid'] = req.form['usageid']
-        formdata[editid] = entry
-
-    for updateid,data in formdata.items():
-        vlanfields = {'description': data['description'],
-                      'netident': data['netident'],
-                      'orgid': data['orgid'],
-                      'nettype': data['nettype'],
-                      'usageid': data['usageid']}
-
-        if len(data['vlan']):
-            vlanfields['vlan'] = data['vlan']
-
-        prefixfields = {'netaddr': data['netaddr']}
-      
-        vlanid = editTables.Prefix(updateid).vlan.vlanid 
-        updateEntryFields(vlanfields,'vlan','vlanid',str(vlanid))
-        updateEntryFields(prefixfields,'prefix','prefixid',updateid)
-    return (idlist,error)
-
-# Function for handling listing and editing of prefixes
-def editPrefix(req,selected,action,error=None):
-    path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Add',False)]
-    table = 'prefix'
-    idfield = 'prefixid'
-    templatebox = editboxPrefix()
-    deleteDef = deletedefPrefix()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'prefix/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbPrefixVlan
-    editList.tablename = 'prefix'
-    editList.orderBy = 'netaddr'
-    editList.idcol = 'prefixid'
-    editList.where = "vlan.nettype='static' or " + \
-                     "vlan.nettype='reserved' or " + \
-                     "vlan.nettype='scope'"
-    editList.columns = [('Prefix/mask','netaddr',True),
-                        ('Nettype','nettype',False),
-                        ('Org','orgid',False),
-                        ('Netident','netident',False),
-                        ('Usage','usageid',False),
-                        ('Description','description',False),
-                        ('Vlan','vlannumber',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addPrefix(req)
-                if not error:
-                    status.messages.append("Added prefix '" + \
-                                           req.form['netaddr'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updatePrefix(req)
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Prefix(s).netaddr + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit prefixes'
-        else:
-            form.title = 'Edit prefix'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxPrefix(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Add',False)]
-        form.title = 'Add new prefix'
-        form.textConfirm = 'Add'
-        form.add(editboxPrefix(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected ' + \
-                         'prefix(es)?'
-        editList.action = BASEPATH + 'prefix/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Prefixes',False)]
-        editList.title = 'Edit prefixes'
-        editList.action = BASEPATH + 'prefix/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of vlans
-def editVlan(req,selected,action,error=None):
-    path = EDITPATH + [('Vlan',BASEPATH+'vlan/list'),('Add',False)]
-    table = 'vlan'
-    idfield = 'vlanid'
-    templatebox = editboxVlan()
-    deleteDef = deletedefVlan()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'vlan/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbVlan
-    editList.tablename = 'vlan'
-    editList.orderBy = ['vlan', 'nettype']
-    editList.idcol = 'vlanid'
-    editList.where = "nettype != 'static' and nettype != 'reserved' " + \
-                     "and nettype != 'scope'"
-    editList.columns = [('Vlan','vlan',True),
-                        ('Netttype','nettype',True),
-                        ('Organisation','orgid',False),
-                        ('Usage','usage',False),
-                        ('Netident','netident',False),
-                        ('Description','description',False),
-                        ('Prefixes',(editTables.Prefix,'vlanid','netaddr'),False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,idfield,
-                                             staticid=True)
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += 'vlan ' + str(editTables.Vlan(s).vlan) + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit vlans'
-        else:
-            form.title = 'Edit vlan'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxVlan(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Add',False)]
-        form.title = 'Add new vlan'
-        form.textConfirm = 'Add'
-        form.add(editboxVlan())
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected ' + \
-                         'vlan(s)?'
-        editList.action = BASEPATH + 'vlan/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Vlans',False)]
-        editList.title = 'Edit vlans'
-        editList.action = BASEPATH + 'vlan/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-def insertNetbox(ip,sysname,catid,roomid,orgid,
-                 ro,rw,deviceid,serial,
-                 typeid,snmpversion,subcatlist=None,
-                 function=None):
-
-    if not deviceid:
-
-        # Make new device first
-        if len(serial):
-            fields = {'serial': serial}
-        else:
-            # Don't insert an empty serialnumber (as serialnumbers must be
-            # unique in the database) (ie. don't insert '' for serial)
-            fields = {}
-            
-        deviceid = addEntryFields(fields,
-                                  'device',
-                                  ('deviceid','device_deviceid_seq'))
-
-    fields = {'ip': ip,
-              'roomid': roomid,
-              'deviceid': deviceid,
-              'sysname': sysname,
-              'catid': catid,
-              'orgid': orgid,
-              'ro': ro,
-              'rw': rw}
-    #uptodate = false per default
-
-    # Get prefixid
-    query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
-            % (fields['ip'],)
-    try:
-        result = executeSQLreturn(query) 
-        fields['prefixid'] = str(result[0][0])
-    except:
-        pass        
-
-    if typeid:
-        fields['typeid'] = typeid
-
-        # Set uptyodate = false
-        # This part is done in netbox now. And for a new box this
-        # field defaults to 'f'
-        #tifields = {'uptodate': 'f'}
-        #updateEntryFields(tifields,'type','typeid',typeid)
-
-    if snmpversion:
-        # Only use the first char from initbox, can't insert eg. '2c' in
-        # this field
-        snmpversion = snmpversion[0]
-        fields['snmp_version'] = snmpversion
-
-    netboxid = addEntryFields(fields,
-                              'netbox',
-                              ('netboxid','netbox_netboxid_seq'))
-    # If subcatlist and function is given, insert them
-    if subcatlist:
-        if type(subcatlist) is list:
-            for sc in subcatlist:
-                fields = {'netboxid': netboxid,
-                          'category': sc}
-                addEntryFields(fields,'netboxcategory')
-        else:
-            fields = {'netboxid': netboxid,
-                      'category': subcatlist}
-            addEntryFields(fields,'netboxcategory')
-
-    if function:
-        fields = {'netboxid': netboxid,
-                  'key': '',
-                  'var': 'function',
-                  'val': function}
-        addEntryFields(fields,'netboxinfo')
-
-## REPLACED BY def editPage()
-# Function for handling listing and editing of netboxes
-#def editNetbox(req,selected,action,error=None):
-#    struct = structNetbox()
-#    path = struct.pathAdd
-#
-#    templatebox = struct.editbox()
-#
-#    # Make a status object
-#    status = editdbStatus()
-#    if error:
-#        status.errors.append(error)
-#
-#    # Form definition
-#    outputForm = editForm()
-#    outputForm.action = struct.basePath + 'edit/'
-#
-#    # List definition
-#    sort = None
-#    if req.form.has_key('sort'):
-#        sort = req.form['sort']
-#    listView = struct.listDef(struct,sort)
-#    
-#    # Check if the confirm button has been pressed
-#    if req.form.has_key(outputForm.cnameConfirm):
-#        missing = templatebox.hasMissing(req) 
-#        if not missing:
-#            if req.form.has_key(ADDNEW_ENTRY):
-#                # add new netbox
-#                (status,action,outputForm) = struct.add(req,outputForm)
-#            elif req.form.has_key(UPDATE_ENTRY):
-#                (status,action,outputForm) = struct.update(req,
-#                                             outputForm,selected)
-#        else:
-#            status.errors.append("Required field '" + missing + "' missing") 
-#    # Confirm delete pressed?
-#    elif req.form.has_key(selectList.cnameDeleteConfirm):
-#        deleteDef = struct.deleteDef()
-#        status = deleteDef.delete(selected,status)
-#        outputForm = None
-#        action = 'list' 
-#    
-#    # Decide what to show 
-#    if action == 'predefined':
-#        # Action is predefined by addNetbox() or updateNetbox()
-#        outputForm.textConfirm = 'Continue'
-#        outputForm.status = status
-#        listView = None
-#    elif action == 'edit':
-#        path = struct.pathEdit
-#        title = 'Edit '
-#        if len(selected) > 1:
-#            title += struct.plural
-#        else:
-#            title += struct.singular
-#        outputForm.title = title
-#        outputForm.status = status
-#        outputForm.textConfirm = 'Continue'
-#        outputForm.add(struct.editbox(selected[0]))
-#        # preserve path
-#        outputForm.action = struct.basePath + 'edit/' + selected[0]
-#        listView = None
-#    elif action == 'add':
-#        path = struct.pathAdd
-#        outputForm.status = status
-#        outputForm.title = 'Add ' + struct.singular
-#        outputForm.textConfirm = 'Continue'
-#        outputForm.add(struct.editbox(formData=req.form))
-#        listView = None
-#    elif action == 'delete':
-#        path = struct.pathDelete
-#        listView = struct.listDef(struct,sort,selected)
-#        listView.status = status
-#        listView.fill()
-#        outputForm = None
-#    elif action == 'list':
-#        path = struct.pathList
-#        listView.status=status
-#        listView.fill()
-#        outputForm = None
-#
-#    nameSpace = {'entryList': listView,'editList': None,'editForm': outputForm}
-#    template = editdbTemplate(searchList=[nameSpace])
-#    template.path = path
-#    return template.respond()
-
-# Function for handling listing and editing of usage categories
-def editUsage(req,selected,action,error=None):
-    path = EDITPATH + [('Usage categories',BASEPATH+'usage/list'),
-                       ('Add',False)]
-    table = 'usage'
-    idfield = 'usageid'
-    templatebox = editboxUsage()
-    deleteDef = deletedefUsage()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'usage/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.Usage
-    editList.tablename = 'usage'
-    editList.orderBy = 'usageid'
-    editList.idcol = 'usageid'
-    editList.columns = [('Usage category','usageid',True),
-                        ('Description','descr',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='usageid')
-                if not error:
-                    status.messages.append("Added usage category '" + \
-                                           req.form['usageid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,idfield,
-                                             unique='usageid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Usage(s).usageid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Usage categories',BASEPATH+'usage/list'),
-                           ('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit usage categories'
-        else:
-            form.title = 'Edit usage categories'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxUsage(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Usage categories',BASEPATH+'usage/list'),
-                           ('Add',False)]
-        form.title = 'Add new usage category'
-        form.textConfirm = 'Add'
-        form.add(editboxUsage(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Usage categories',BASEPATH+'usage/list'),
-                           ('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected ' + \
-                         'usage categories?'
-        editList.action = BASEPATH + 'usage/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Usage categories',False)]
-        editList.title = 'Edit usage categories'
-        editList.action = BASEPATH + 'usage/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-def addService(req,form):
-    action = 'add'
-    # Check if all required serviceproperties are present
-    properties = getDescription(req.form['handler'])
-    missing = False
-    if properties and properties.has_key('args'):
-        for required in properties['args']:
-            if not req.form.has_key(required):
-                missing = required
-            if req.form.has_key(required):
-                if not len(req.form[required]):
-                    missing = required
-
-    if not missing:
-        # Add service entry
-        fields = {'netboxid': req.form['netboxid'],
-                  'handler': req.form['handler']}
-        serviceid = addEntryFields(fields,
-                                  'service',
-                                  ('serviceid','service_serviceid_seq'))
-        # Add serviceproperty entries
-        if properties:
-            if properties.has_key('args'):
-                for property in properties['args']:
-                    # Already know that all properties in 'args' are present
-                    fields = {'serviceid': serviceid,
-                              'property': property,
-                              'value': req.form[property]}
-                    addEntryFields(fields,
-                                   'serviceproperty')
-                    action = 'list'
-            if properties.has_key('optargs'):
-                for property in properties['optargs']:
-                    # optargs are optional, must check if they are present
-                    if req.form.has_key(property):
-                        if len(req.form[property]):
-                            fields = {'serviceid': serviceid,
-                                      'property': property,
-                                      'value': req.form[property]}
-                            addEntryFields(fields,
-                                           'serviceproperty')
-                            action = 'list'
-    else:
-        checker = req.form['handler']
-        form = editForm(editForm.CNAME_CONTINUE)
-        form.title = 'Add service'
-        form.add(editboxService(formData=req.form,disabled=True))
-        form.add(editboxServiceProperties(checker,req.form['netboxid']))
-        form.textConfirm = 'Add service'
-        form.error = "Missing required property '" + missing + "'"
-        action = 'properties'
-    return action,form
-
-def updateService(req,form):
-    action = 'edit'
-    editId = req.form[UPDATE_ENTRY]
-    # Check if all required serviceproperties are present
-    handler = editTables.Service(editId).handler
-    properties = getDescription(handler)
-    missing = False
-    if properties and properties.has_key('args'):
-        for required in properties['args']:
-            if not req.form.has_key(required):
-                missing = required
-            if req.form.has_key(required):
-                if not len(req.form[required]):
-                    missing = required
-
-    if not missing:
-        # Update service entry
-        fields = {'netboxid': req.form['netboxid'],
-                  'handler': handler}
-        updateEntryFields(fields,'service','serviceid',editId)
-        # Update serviceproperty entries
-        if properties:
-            # Delete old properties
-            deleteEntry([editId],'serviceproperty','serviceid')
-            if properties.has_key('args'):
-                for property in properties['args']:
-                    # Already know that all properties in 'args' are present
-                    fields = {'serviceid': editId,
-                              'property': property,
-                              'value': req.form[property]}
-                    addEntryFields(fields,'serviceproperty')
-                    action = 'list'
-            if properties.has_key('optargs'):
-                for property in properties['optargs']:
-                    # optargs are optional, must check if they are present
-                    if req.form.has_key(property):
-                        if len(req.form[property]):
-                            fields = {'serviceid': editId,
-                                      'property': property,
-                                      'value': req.form[property]}
-                            addEntryFields(fields,'serviceproperty')
-                            action = 'list'
-    else:
-        form.error = "Missing required property '" + missing + "'"
-        action = 'list'
-    selected = [editId]
-    return action,form,selected
-
-# Function for handling listing and editing of services
-def editService(req,selected,action,error=None):
-    path = EDITPATH + [('Services',BASEPATH+'service/list'),('Add',False)]
-    table = 'service'
-    idfield = 'serviceid'
-    templatebox = editboxService()
-    deleteDef = deletedefService()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'service/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.Service
-    editList.tablename = 'service'
-    editList.orderBy = 'handler'
-    editList.idcol = 'serviceid'
-    editList.columns = [('Server','netbox',True),
-                        ('Handler','handler',False),
-                        ('Version','version',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm) or \
-       req.form.has_key(form.CNAME_CONTINUE):
-        missing = templatebox.hasMissing(req)
-        if not missing:
-            if req.form.has_key(form.CNAME_CONTINUE):
-                action,form = addService(req,form)
-            elif req.form.has_key(ADDNEW_ENTRY):
-                checker = req.form['handler']
-                # Check if this handler need any properties 
-                properties = getDescription(req.form['handler'])
-                if properties:
-                    form = editForm(editForm.CNAME_CONTINUE)
-                    form.title = 'Add service'
-                    form.add(editboxService(formData=req.form,disabled=True))
-                    form.add(editboxServiceProperties(checker,
-                                                      req.form['netboxid']))
-                    form.textConfirm = 'Add service'
-                    editList = None
-                    action = 'properties'
-                else:
-                    # No properties needed, so just add the service
-                    addService(req,form)
-                    status.messages.append('Added service')
-                    action = 'list'
-            elif req.form.has_key(UPDATE_ENTRY):
-                action,form,selected = updateService(req,form)
-                if action == 'list':
-                    status.messages.append('Updated service')
-                else:
-                    editList = None
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show
-    if action == 'properties':
-        editList = None 
-    elif action == 'edit':
-        path = EDITPATH + [('Services',BASEPATH+'service/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit services'
-        else:
-            form.title = 'Edit service'
-        form.textConfirm = 'Update'
-        # Only allow editing of one service at a time
-        selected = selected[0]
-        form.add(editboxService(selected))
-        checker = editTables.editdbService(selected).handler
-        netboxid = editTables.editdbService(selected).netboxid
-        properties = getDescription(checker)
-        if properties:
-            form.add(editboxServiceProperties(checker,netboxid,editId=selected))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Services',BASEPATH+'service/list'),('Add',False)]
-        form.title = 'Add service'
-        form.textConfirm = 'Continue'
-        form.add(editboxService())
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Services',BASEPATH+'service/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected service(s)?'
-        editList.action = BASEPATH + 'service/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Services',False)]
-        editList.title = 'Edit services'
-        editList.action = BASEPATH + 'service/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None,'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# Function for handling listing and editing of organisations
-def editSubcat(req,selected,action,error=None):
-    path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),('Add',False)]
-    table = 'subcat'
-    idfield = 'subcatid'
-    templatebox = editboxSubcat()
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-    deleteDef = deletedefSubcat()
-    # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'subcat/edit/'
-    # List definition
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbSubcat
-    editList.tablename = 'subcat'
-    editList.orderBy = ['catid','subcatid']
-    editList.idcol = 'subcatid'
-    editList.columns = [('Subcategory','subcatid',True),
-                        ('Category','catid',False),
-                        ('Description','descr',False)]
-
-    # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                error = addEntry(req,templatebox,table,unique='subcatid')
-                if not error:
-                    status.messages.append("Added subcategory '" + \
-                                           req.form['subcatid'] + "'")
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'add'
-            elif req.form.has_key(UPDATE_ENTRY):
-                selected,error = updateEntry(req,templatebox,table,
-                                             idfield,unique='subcatid')
-                if not error:
-                    message = 'Updated '
-                    for s in selected:
-                        message += editTables.Subcat(s).subcatid + ' ' 
-                    status.messages.append(message)
-                    action = 'list'
-                else:
-                    status.errors.append(error)
-                    action = 'edit'
-        else:
-            status.errors.append("Required field '" + missing + "' missing")    
-    # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
-        status = deleteDef.delete(selected,status)
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
-                           ('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit subcategory'
-        else:
-            form.title = 'Edit subcategory'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxSubcat(s))
-        editList = None
-    elif action == 'add':
-        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
-                           ('Add',False)]
-        form.title = 'Add new subcategory'
-        form.textConfirm = 'Add subcat'
-        form.add(editboxSubcat(formData=req.form))
-        editList = None
-    elif action == 'delete':
-        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
-                           ('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected ' + \
-                         'subcategory?'
-        editList.action = BASEPATH + 'subcat/edit/'
-        editList.fill()
-    elif action == 'list':
-        path = EDITPATH + [('Subcategories',False)]
-        editList.title = 'Edit subcategories'
-        editList.action = BASEPATH + 'subcat/edit/'
-        editList.fill()
-        # don't display the form
-        form = None
-
-    nameSpace = {'entryList': None,'editList': editList, 'editForm': form}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-# General function for handling editing
-def editPage(req,page,selected,action,error=None):
-    path = page.pathAdd
-
-    templatebox = page.editbox()
-
-    # Make a status object
-    status = editdbStatus()
-    if error:
-        status.errors.append(error)
-
-    # Form definition
-    outputForm = editForm()
-    outputForm.action = page.basePath + 'edit/'
-
-    # List definition
-    sort = None
-    if req.form.has_key('sort'):
-        sort = req.form['sort']
-    listView = page.listDef(page,sort)
-    
-    # Check if the confirm button has been pressed
-    if req.form.has_key(outputForm.cnameConfirm):
-        missing = templatebox.hasMissing(req) 
-        if not missing:
-            if req.form.has_key(ADDNEW_ENTRY):
-                # add new netbox
-                (status,action,outputForm) = page.add(req,outputForm)
-            elif req.form.has_key(UPDATE_ENTRY):
-                (status,action,outputForm) = page.update(req,
-                                             outputForm,selected)
-        else:
-            status.errors.append("Required field '" + missing + "' missing") 
-    # Confirm delete pressed?
-    elif req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteDef = page.deleteDef()
-        status = deleteDef.delete(selected,status)
-        outputForm = None
-        action = 'list' 
-    
-    # Decide what to show 
-    if action == 'predefined':
-        # Action is predefined by addNetbox() or updateNetbox()
-        outputForm.textConfirm = 'Continue'
-        outputForm.status = status
-        listView = None
-    elif action == 'edit':
-        path = page.pathEdit
-        title = 'Edit '
-        if len(selected) > 1:
-            title += page.plural
-        else:
-            title += page.singular
-        outputForm.title = title
-        outputForm.status = status
-        outputForm.textConfirm = 'Continue'
-        outputForm.add(page.editbox(selected[0]))
-        # preserve path
-        outputForm.action = page.basePath + 'edit/' + selected[0]
-        listView = None
-    elif action == 'add':
-        path = page.pathAdd
-        outputForm.status = status
-        outputForm.title = 'Add ' + page.singular
-        outputForm.textConfirm = 'Continue'
-        outputForm.add(page.editbox(formData=req.form))
-        listView = None
-    elif action == 'delete':
-        path = page.pathDelete
-        listView = page.listDef(page,sort,selected)
-        listView.status = status
-        listView.fill()
-        outputForm = None
-    elif action == 'list':
-        path = page.pathList
-        listView.status=status
-        listView.fill()
-        outputForm = None
-
-    nameSpace = {'entryList': listView,'editList': None,'editForm': outputForm}
-    template = editdbTemplate(searchList=[nameSpace])
-    template.path = path
-    return template.respond()
-
-## class entryListCell
-## A cell in a selectList
-class entryListCell:
-    CHECKBOX = 'chk'
-    RADIO = 'rad'
-    HIDDEN = 'hid'
-
-    def __init__(self,text=None,url=None,buttonType=None,
-                 image=None,tooltip=None):
-        self.text = text
-        self.url = url
-        self.buttonType = buttonType
-        self.image = image
-        self.tooltip = tooltip
-
-## class entryList (rename to selectList)
-class entryList:
-    # Constants
-    CNAME_SELECT = 'checkbox_id'
-    CNAME_ADD = 'submit_add'
-    CNAME_EDIT = 'submit_edit'
-    CNAME_DELETE = 'submit_delete'
-    CNAME_CONFIRM_DELETE = 'confirm_delete'
-    
-    # Class variables used by the template
-    title = None
-    status = None
-    body = None
-    formMethod = 'post'
-    formAction = None
-    selectCname = CNAME_SELECT
-    buttonsTop = [(CNAME_ADD,'Add new'),
-                  (CNAME_EDIT,'Edit selected'),
-                  (CNAME_DELETE,'Delete selected')]
-    buttonsBottom = buttonsTop
-    hideFirstHeading = False  # Don't show first column heading (usually 
-                              # the select heading) if True
-    buttonTypeOverride = None # override the chosen select button type
-                              # used for bulk and delete lists where there
-                              # is no checkbox/radiobut., only hidden
-    headings = []             # list of cell objects
-    rows = []                 # tuples of (sortstring,id,cell object)
-
-    # Variables for filling the list
-    tableName = None
-    basePath = None                 
-    sortBy = None                   # Sort by columnumber
-    defaultSortBy = None            # Default columnnumber sorted by
-    headingDefinition = None        # list of tuples (heading,show sort link)
-    cellDefintion = None            # cellDefinition list
-    where = None                    # List of id's (strings)
-    sortingOn = True                # Show links for sorting the list
-
-    def __init__(self,struct,sort,deleteWhere=None):
-        self.headings = []
-        self.rows = []
-
-        if sort:
-            sort = int(sort)
-        self.sortBy = sort
-        self.tableName = struct.tableName
-        self.tableIdKey = struct.tableIdKey
-        self.basePath = struct.basePath
-        self.formAction = self.basePath + 'edit/'
-
-        if deleteWhere:
-            self.buttonTypeOverride = entryListCell.HIDDEN
-            self.hideFirstHeading = True
-            self.where = deleteWhere
-            title = 'Are you sure you want to delete the ' + \
-                    'selected '
-            if len(deleteWhere) > 1:
-                title += struct.plural
-            else:
-                title += struct.singular
-            self.title = title + '?'
-            self.sortingOn = False
-            self.buttonsTop = None
-            self.buttonsBottom = [(self.CNAME_CONFIRM_DELETE,'Delete')]
-        else:
-            self.title = 'Edit ' + struct.plural
-            self.sortingOn = True
-
-    def fill(self):
-        # Make headings
-        i = 0
-        for heading,sortlink,sortFunction in self.headingDefinition:
-            if self.hideFirstHeading:
-                heading = ''
-                self.hideFirstHeading = False
-            if self.sortBy:
-                currentOrder = self.sortBy
-            else:
-                currentOrder = self.defaultSortBy
-            s = i
-            if i == currentOrder:
-                # Reverse sort?
-                s = -i
-            url = self.basePath + 'list/?sort=' + str(s)
-            if sortlink and self.sortingOn:
-                self.headings.append(entryListCell(heading,
-                                                    url))
-            else:
-                self.headings.append(entryListCell(heading,
-                                                    None))
-            i = i + 1
-
-        # Preparse tooltips, etc.
-        for sqlQuery,definition in self.cellDefinition:
-            for column in definition:
-                for cell in column:
-                    if type(cell) is list:
-                        # This cell definition is a list, as opposed to
-                        # a tuple, so we must prefetch some data for the
-                        # parse function
-                        # Must prefetch data for this column
-                        for tooltipDef in cell:
-                            # There can be one or more defintions per cell
-                            sql = tooltipDef[0]
-                            # column[2] is reserved for data
-                            tooltipDef[2] = executeSQLreturn(sql)
-
-        # Make rows
-        reverseSort = False
-        if self.sortBy:
-            if self.sortBy < 0:
-                self.sortBy = self.sortBy * -1
-                reverseSort = True
-
-        for sqlTuple,definition in self.cellDefinition:
-            # Create SQL query from tuple
-            columns,join,where,orderBy = sqlTuple
-            sqlQuery = 'SELECT ' + columns + ' FROM ' + self.tableName
-            if join:
-                sqlQuery += ' %s ' % (join,)
-            if where:
-                sqlQuery += ' WHERE ' + where
-            # Add where clause if self.where is present
-            if self.where:
-                if not where:
-                    # No where defined in sqlTuple, so add it now
-                    sqlQuery += ' WHERE '
-                else:
-                    # Else, these are additional so add AND
-                    sqlQuery += ' AND '
-                first = True
-                sqlQuery += ' ('
-                for id in self.where:
-                    if not first:
-                        sqlQuery += 'OR'
-                    sqlQuery += " %s='%s' " % (self.tableIdKey,id)
-                    if first:
-                        first = False
-                sqlQuery += ') '
-            if orderBy:
-                sqlQuery += ' ORDER BY ' + orderBy                                
-            fetched = executeSQLreturn(sqlQuery)
-            for row in fetched:
-                id = row[0]
-                cells = []
-                for text,url,buttonType,image,tooltip in definition:
-                    if buttonType and self.buttonTypeOverride:
-                        buttonType = self.buttonTypeOverride
-                    cells.append(entryListCell(self.parse(text,row),
-                                               self.parse(url,row,True),
-                                               buttonType,
-                                               image,
-                                               self.parse(tooltip,row))) 
-                
-                
-                sortKey = None
-                if self.sortBy:
-                    sortKey = row[self.sortBy]
-                self.rows.append([sortKey,(id,cells)])
-        if self.sortBy:
-            if self.headingDefinition[self.sortBy][2]:
-                # Optional compare method
-                self.rows.sort(self.headingDefinition[self.sortBy][2])
-            else:
-                self.rows.sort()
-            if reverseSort:
-                self.rows.reverse()
-
-    def parse(self,parseString,currentRow,url=False):
-        result = None
-        if type(parseString) is int:
-            # parseString refers to integer column
-            result = [currentRow[parseString]]
-        elif type(parseString) is str:
-            parseString = parseString.replace('{p}',self.basePath)
-            parseString = parseString.replace('{id}',str(currentRow[0]))
-            if url:
-                result = parseString
-            else:
-                result = [parseString]
-        elif type(parseString) is list:
-            result = []
-            for tooltipDef in parseString:
-                data = tooltipDef[2]
-                if data:
-                    # There is preparsed data (ie. the sql returned something)
-                    result.append(tooltipDef[1][0])
-                    # [1][0] = Tooltip (can also be other preparsed data) header
-                    for row in data:
-                        if currentRow[0] == row[0]:
-                            # ID's match
-                            result.append(row[1])
-        return result        
-
-# Class representing a form, used by the template
-class editForm:
-    # For the template
-    method = 'post'
-    action = None
-    title = None
-    error = None
-    status = None
-    backlink = None
-    enctype = 'application/x-www-form-urlencoded'
-
-    # Text and controlname
-    textConfirm = None
-    cnameConfirm = 'form_confirm'
-    showConfirm = True
-
-    textCancel = 'Cancel'
-    cnameCancel = 'form_cancel'
-    showCancel = True
-    actionCancel = BASEPATH
-
-    # Used by edit netbox in the intermediate
-    CNAME_CONTINUE = 'cname_continue'
-
-    # List of editboxes to display
-    editboxes = []
-
-    def __init__(self,cnameConfirm=None):
-        if cnameConfirm:
-            self.cnameConfirm = cnameConfirm
- 
-        self.editboxes = []
-
-    def add(self,box):
-       self.editboxes.append(box)
-
-class inputText:
-    type = 'text'
-    name = None
-    value = ''
-    maxlength = None
-    def __init__(self,value='',size=22,maxlength=None,disabled=False):
-        self.value = value
-        self.disabled = disabled
-        self.size = str(size)
-        if maxlength:
-            self.maxlength = str(maxlength)
-
-class inputSelect:
-    type = 'select'
-    name = None
-    
-    def __init__(self,options=None,table=None,attribs=None,disabled=False):
-        self.value = ''
-        self.options = options
-        self.attribs = attribs
-        self.disabled = disabled
-
-        if table:
-            self.options = table.getOptions() 
-
-class inputMultipleSelect:
-    type = 'multipleselect'
-    name = None
-    value = []
-    def __init__(self,options=None,table=None,disabled=False):
-        self.options = options
-        self.disabled = disabled
-
-        if table:
-            self.options = table.getOptions() 
-
-class inputFile:
-    type = 'file'
-    name = None
-    value = ''
-    disabled = False
-    def __init__(self):
-        pass
-
-class inputTextArea:
-    type = 'textarea'
-    name = None
-    value = ''
-    disabled = False
-
-    def __init__(self,rows=20,cols=80):
-        self.rows = rows
-        self.cols = cols
-
-
-class inputCheckbox:
-    type = 'checkbox'
-    name = None
-    # A value of 1 when selected is nice for boolean fields in the db
-    # this is repleaced by fill() though, so this is explicitly set in
-    # the template for checkboxes (bad)
-    value = "1"
-
-    def __init__(self,disabled=False):
-        self.value = "1"
-        self.disabled = disabled
-
-class inputHidden:
-    type = 'hidden'
-    name = None
-    disabled = False
-
-    def __init__(self,value):
-        self.value = value
-
-class editbox:
-    type = None
-    boxName = ADDNEW_ENTRY
-    boxId = 0
-
-    def fill(self):
-        " Fill this form from the database "
-        entry = self.table(self.editId)
-       
-        self.boxName = UPDATE_ENTRY
-        self.boxId = self.editId
-
-        for fieldname,desc in self.fields.items():
-            value = getattr(entry,fieldname)
-            if value:
-                desc[0].value = str(value)
-
-    def setControlNames(self,controlList=None):
-        " Set controlnames for the inputs to the fieldnames "
-        if not controlList:
-            controlList = self.fields
-
-        for fieldname,desc in controlList.items():
-            desc[0].name = fieldname
-
-    def hasMissing(self,req):
-        """
-        Check if any of the required fields are missing in the req.form
-        Returns the name the first missing field, or False
-        Note: keep_blank_values must be True or empty fields won't
-              be present in the form 
-        """
-        missing = False
-        for field,desc in self.fields.items():
-            # Keep blank values must be switched on, or else the next line
-            # will fail, could easily be more robust
-            if req.form.has_key(field):
-                if type(req.form[field]) is list:
-                    # the field is a list, several entries have been edited
-                    for each in req.form[field]:
-                        if desc[1] == REQ_TRUE:
-                            # this field is required
-                            if not len(each):
-                                missing = field
-                                break
-                else:
-                    if desc[1] == REQ_TRUE:
-                        # tihs field is required
-                        if not len(req.form[field]):
-                            missing = field
-                            break
-        return missing
-
-    def addHidden(self,fieldname,value):
-        self.hiddenFields[fieldname] = [inputHidden(value),False]
-        self.hiddenFields[fieldname][0].name = fieldname
-
-    def addDisabled(self):
-        # Since fields which are disabled, aren't posted (stupid HTML)
-        # we must add them as hidden fields
-        # This only goes for textinputs (?!) so we must also change
-        # controlnames to avoid getting double values for selects, etc.
-        for fieldname,definition in self.fields.items():
-            if definition[0].disabled and (not definition[0].type=='hidden'):
-                self.addHidden(fieldname,definition[0].value)
-                definition[0].name = definition[0].name + '_disabled'
-
-    def formFill(self,formData):
-        # Fill this editbox with data from the form
-        # This is used by intermediate steps (like register serial)
-        # to remember fieldvalues
-        for field,definition in self.fields.items():
-            if formData.has_key(field):
-                definition[0].value = formData[field]
-
-class editboxServiceProperties(editbox):
-    type = 'serviceproperties'
-    table = editTables.Serviceproperty
-
-    def __init__(self,checker,boxId,editId=None):
-        self.show = False
-        properties = getDescription(checker)
-
-        self.args = {}
-        self.optargs = {}
-        if properties:
-            self.show = True
-            self.title = "Properties for '" + properties['description'] + \
-                         "' on " + editTables.Netbox(boxId).sysname
-
-            if properties.has_key('args'):
-                for a in properties['args']:
-                    self.args[a] = [inputText(),REQ_TRUE]
-                    self.setControlNames(self.args)
-            if properties.has_key('optargs'):
-                for a in properties['optargs']:
-                    self.optargs[a] = [inputText(),REQ_FALSE]
-                    self.setControlNames(self.optargs)
-
-            if editId:
-                sql = "SELECT * FROM serviceproperty WHERE " + \
-                      "serviceid='" + editId + "'"
-                result = executeSQLreturn(sql)
-                for entry in result:
-                    property = entry[1]
-                    value = entry[2]
-                    if self.args.has_key(property):
-                        self.args[property][0].value = value
-                    if self.optargs.has_key(property):
-                        self.optargs[property][0].value = value
-
-        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
-        # don't need to repeat it here 
-        self.boxName = IGNORE_BOX
-
-class editboxService(editbox):
-    type = 'service'
-    table = editTables.editdbService
-            
-    def __init__(self,editId=None,formData=None,disabled=False):
-        self.hiddenFields = {}
-        self.help = ''
-        if not editId and not formData:
-            self.help = 'Select a server and a service handler'
-
-        servers = [('','Select a server')]
-        t = editTables.Netbox
-        for s in t.getAllIterator(where="catid='SRV'",orderBy='sysname'):
-            servers.append((str(s.netboxid),s.sysname))
-
-        handlers = [('','Select a handler')]
-        checkers = []
-        for c in getCheckers():
-            checkers.append((c,c))
-        checkers.sort()
-        handlers += checkers
-
-        disabledHandler = disabled
-        if editId:
-            disabledHandler = True
-        f = {'netboxid': [inputSelect(options=servers,disabled=disabled),
-                         REQ_TRUE],
-             'handler': [inputSelect(options=handlers,disabled=disabledHandler),
-                        REQ_TRUE]}
-
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
- 
-class editboxSnmpoid(editbox):
-    type = 'snmpoid'
-    table = editTables.Snmpoid
-            
-    def __init__(self,editId=None,formData=None):
-        self.hiddenFields = {}
-
-        disabled = False
-        if editId:
-            disabled = True
-
-        f = {'oidkey': [inputText(disabled=disabled),REQ_TRUE],
-             'snmpoid': [inputText(),REQ_TRUE],
-             'descr': [inputText(),REQ_FALSE],
-             'oidsource': [inputText(),REQ_FALSE],
-             'match_regex': [inputText(),REQ_FALSE],
-             'oidname': [inputText(),REQ_FALSE],
-             'mib': [inputText(),REQ_FALSE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-        
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
-
- 
-class editboxRoom(editbox):
-    type = 'room'
-    table = editTables.editdbRoom
-            
-    def __init__(self,editId=None,formData=None):
-        self.hiddenFields = {}
-
-        disabled = False
-        if editId:
-            disabled = True
-
-        f = {'roomid': [inputText(disabled=disabled,maxlength=30),REQ_TRUE],
-             'locationid': [inputSelect(table=editTables.editdbLocation),REQ_TRUE],
-             'descr': [inputText(),REQ_FALSE],
-             'opt1': [inputText(),REQ_FALSE],
-             'opt2': [inputText(),REQ_FALSE],
-             'opt3': [inputText(),REQ_FALSE],
-             'opt4': [inputText(),REQ_FALSE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-        
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
-
-
-class editboxLocation(editbox):
-    type = 'location'
-    table = editTables.Location
-            
-    def __init__(self,editId=None,formData=None):
-        self.hiddenFields = {}
-
-        disabled = False
-        if editId:
-            disabled = True
-
-        f = {'locationid': [inputText(disabled=disabled,maxlength=30),REQ_TRUE],
-             'descr': [inputText(),REQ_TRUE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-        
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
-
-class editboxOrg(editbox):
-    type = 'org'
-    table = editTables.Org
-            
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        o = [('','No parent')]
-
-        for org in self.table.getAllIterator(orderBy='orgid'):
-            o.append((org.orgid,org.orgid + \
-                      ' (' + str(org.descr) + ')'))
-
-        f = {'orgid': [inputText(maxlength=30),REQ_TRUE],
-             'parent': [inputSelect(options=o),REQ_NONEMPTY],
-             'descr': [inputText(),REQ_FALSE],
-             'opt1': [inputText(),REQ_FALSE],
-             'opt2': [inputText(),REQ_FALSE],
-             'opt3': [inputText(),REQ_FALSE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-class editboxType(editbox):
-    type = 'type'
-    table = editTables.editdbType
-            
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        f = {'typename': [inputText(),REQ_TRUE],
-             'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
-             'descr': [inputText(),REQ_TRUE],
-             'sysobjectid': [inputText(),REQ_TRUE],
-             'cdp': [inputCheckbox(),REQ_FALSE],
-             'tftp': [inputCheckbox(),REQ_FALSE],
-             'frequency': [inputText(),REQ_NONEMPTY]}
-
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-
-class editboxProduct(editbox):
-    type = 'product'
-    table = editTables.editdbProduct
-
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        f = {'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
-             'productno': [inputText(),REQ_TRUE],
-             'descr': [inputText(),REQ_FALSE]}
-
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-class editboxVendor(editbox):
-    type = 'vendor'
-    table = editTables.editdbVendor
-            
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        f = {'vendorid': [inputText(maxlength=15),REQ_TRUE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-class editboxUsage(editbox):
-    type = 'usage'
-    table = editTables.Usage
-            
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        f = {'usageid': [inputText(maxlength=30),REQ_TRUE],
-             'descr': [inputText(),REQ_TRUE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-class editboxPrefix(editbox):
-    type = 'prefix'
-    table = editTables.editdbPrefixVlan
-            
-    def __init__(self,editId=None,formData=None):
-        nettypes = [('static','static'),
-                    ('reserved','reserved'),
-                    ('scope','scope')]
-
-        orgs = [('','No organisation')]
-        for option in editTables.editdbOrg.getOptions():
-            orgs.append(option)
-
-        usageids = [('','No usage')]
-        for usage in editTables.Usage.getAllIterator():
-            usageids.append((usage.usageid,usage.usageid + ' (' + \
-                            usage.descr + ')'))
-
-        # Field definitions {field name: [input object, required]}
-        f = {'netaddr': [inputText(),REQ_TRUE],
-             'nettype': [inputSelect(options=nettypes),REQ_TRUE],
-             'orgid': [inputSelect(options=orgs),REQ_NONEMPTY],
-             'netident': [inputText(),REQ_FALSE],
-             'description': [inputText(),REQ_FALSE],
-             'vlannumber': [inputText(size=5),REQ_NONEMPTY],
-             'usageid': [inputSelect(options=usageids),REQ_NONEMPTY]}
-             
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill() 
-
-        if formData:
-            self.formFill(formData)
-
-class editboxVlan(editbox):
-    type = 'vlan'
-    table = editTables.editdbVlan
-            
-    def __init__(self,editId=None):
-        nettypes = [('core','core'),
-                    ('elink','elink'),
-                    ('lan','lan'),
-                    ('link','link'),
-                    ('loopback','loopback'),
-                    ('private','private')]
-
-        orgs = [('','No organisation')]
-        for option in editTables.editdbOrg.getOptions():
-            orgs.append(option)
-
-        usageids = [('','No usage')]
-        for usage in editTables.Usage.getAllIterator():
-            usageids.append((usage.usageid,usage.usageid + ' (' + \
-                            usage.descr + ')'))
-
-        # Field definitions {field name: [input object, required]}
-        f = {'nettype': [inputSelect(options=nettypes),REQ_TRUE],
-             'orgid': [inputSelect(options=orgs),REQ_FALSE],
-             'netident': [inputText(),REQ_FALSE],
-             'description': [inputText(),REQ_FALSE],
-             'vlan': [inputText(size=5),REQ_FALSE],
-             'usageid': [inputSelect(options=usageids),REQ_FALSE]}
-             
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill() 
-
-# This editbox can display a message and contain hidden inputs
-class editboxHiddenOrMessage(editbox):
-    type = 'hiddenormessage'
-
-    def __init__(self,message=None):
-        self.hiddenFields = {}
-        self.message = message
-
-        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
-        # don't need to repeat it here (so setting boxname to IGNORE_BOX) 
-        self.boxName = IGNORE_BOX
-
-class editboxSubcat(editbox):
-    type = 'subcat'
-    table = editTables.editdbSubcat
-            
-    def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
-        o = [('','Select a category')]
-        for cat in editTables.Cat.getAllIterator():
-            o.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
-
-        f = {'subcatid': [inputText(),REQ_TRUE],
-             'catid': [inputSelect(options=o),REQ_TRUE],
-             'descr': [inputText(),REQ_TRUE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData) 
-
-# Classes for deleting
-class deletedef:
-    # If getNameFromId is None, then display 'Delete $type $id', else
-    # use getNameFromId (forgetSQL table,column name) to get $id
-    getNameFromId = None
-
-    def delete(self,idList,status):
-        self.status = status
-        for id in idList:
-            try:
-                if self.getNameFromId:
-                    table,column = self.getNameFromId
-                    entry = table(str(id))
-                    deletedName = getattr(entry,column)
-                else:
-                    deletedName = str(id)
-                deleteEntry([id],self.table,self.idfield)
-                self.status.messages.append("Deleted %s '%s'" % \
-                                           (self.name,deletedName))
-            except psycopg.IntegrityError:
-                # Got integrity error while deleting, must check what
-                # dependencies are blocking
-                self.checkDependency(id)
-        return self.status
-
-    def checkDependency(self,id):
-        error = "Error while deleting %s '%s': " % (self.name,str(id))
-        errorState = False
-        for (table,other,key,url) in self.dependencies:
-            where = "%s='%s'" % (key,str(id))
-            if table.getAll(where):
-                errorState = True
-                # UGLY HTML
-                error += "%s is referenced in " % (self.name,) + \
-                         "one or more %s " % (other,) + \
-                         "<a href=\"%s%s\">" % (url,id) + \
-                         "(view report)</a>." 
-                break
-        if not errorState:
-            # Couldn't find the reference, maybe the tables are changed and
-            # the dependencies array must be updated? Give general error
-            error += '%s is referenced in another table' % (self.name,)
-        self.status.errors.append(error) 
-
-
-
-## class editdbPage
-##         |+-- class listDef
-##         |+-- class deleteDef
-##         |+-- class editbox
-##         |+-- (optionally more editboxes)
-##
-##         |+-- def add
-##         |+-- def update
-
-
-class editdbPage:
-    def add(self):
-        pass
-        
-    def update(self):
-        pass
-
-class pageCabling(editdbPage):
-
-    basePath = BASEPATH + 'cabling/'
-    tableName = 'cabling'
-    tableIdKey = 'cablingid'
-    singular = 'cabling'
-    plural = 'cablings'
-
-    pathAdd = EDITPATH + [('Cablings',basePath+'list'),('Add',False)]
-    pathEdit = EDITPATH + [('Cablings',basePath+'list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Cablings',basePath+'list'),('Delete',False)]
-    pathList = EDITPATH + [('Cablings',False)]
-
-    class listDef(entryList):
-        def __init__(self,struct,sort,deleteWhere=None):
-            # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
-            
-            # Specific init
-            # 1 = roomid
-            self.defaultSortBy = 1
-
-            # list of (heading text, show sortlink, compare function for sort)
-            self.headingDefinition = [('Select',False,None),
-                                      ('Room',True,None),
-                                      ('Jack',True,None),
-                                      ('Building',True,None),
-                                      ('Target room',True,None),
-                                      ('Description',True,None),
-                                      ('Category',True,None)]
-
-            self.cellDefinition = [(('cablingid,roomid,jack,' + \
-                                     'building,room,descr,category',
-                                     None,
-                                     None,
-                                     'building,roomid'),
-                                    [(None,None,entryListCell.CHECKBOX,None,None),
-                                     (1,None,None,None,None),
-                                     (2,'{p}edit/{id}',None,None,None),
-                                     (3,None,None,None,None),
-                                     (4,None,None,None,None),
-                                     (5,None,None,None,None),
-                                     (6,None,None,None,None)])]
-
-
-    class deleteDef(deletedef):
-        getNameFromId = (nav.db.manage.Netbox,'cablingid')
-        
-        table = 'cabling'
-        idfield = 'cablingid'
-       
-        dependencies = []
-        name = 'cabling'
-
-    class editbox(editbox):
-        type = 'cabling'
-        table = nav.db.manage.Netbox
-        editId = None
-
-        def __init__(self,editId=None,formData=None,disabled=False):
-            self.hiddenFields = {}
-            if editId:
-                # Preserve the selected id
-                self.addHidden(selectList.cnameChk,editId)
-                self.editId = editId
-                self.path = EDITPATH + [('Cablings','/editdb/cabling/list'),
-                                        ('Edit',False)]
-            else:
-                self.path = EDITPATH + [('Cablings','/editdb/cabling/list'),
-                                        ('Add',False)]
-     
-            r = [(None,'Select a room')]
-            for room in nav.db.manage.Room.getAllIterator(orderBy='roomid'):
-                loc = nav.db.manage.Location(room.location).descr
-                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
-                          str(room.descr) + ')'))
-
-            # Field definitions {field name: [input object, required]}
-            f = {'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE],
-                 'jack': [inputText(disabled=disabled),REQ_TRUE],
-                 'building': [inputText(disabled=disabled),REQ_TRUE],
-                 'room': [inputText(disabled=disabled),REQ_FALSE],
-                 'descr': [inputText(disabled=disabled),REQ_FALSE],
-                 'category': [inputText(disabled=disabled),REQ_FALSE]}
-
-            self.fields = f
-            self.setControlNames()
-
-            # This box is for editing existing with id = editId
-            if editId:
-                self.editId = editId
-                self.fill()
-
-            if formData:
-                self.formFill(formData)
-
-            # Disabled inputs
-            if disabled:
-                self.addDisabled()
-
-
-class pageNetbox(editdbPage):
-
-    basePath = BASEPATH + 'netbox/'
-    tableName = 'netbox'
-    tableIdKey = 'netboxid'
-    singular = 'box'
-    plural = 'boxes'
-
-    pathAdd = EDITPATH + [('Boxes',basePath+'list'),('Add',False)]
-    pathEdit = EDITPATH + [('Boxes',basePath+'list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Boxes',basePath+'list'),('Delete',False)]
-    pathList = EDITPATH + [('Boxes',False)]
-
-    class listDef(entryList):
-        def ipCompare(self,ip1,ip2):
-            # ip1[0] and ip2[0] are the sort parameter
-            ip1 = ip1[0].split('.')
-            ip2 = ip2[0].split('.')
-            r = 0
-            try:
-                for i in range(0,4):
-                    r = cmp(int(ip1[i]),int(ip2[i]))
-                    if r != 0:
-                        break
-            except:
-                r = 0
-            return r
-
-        def __init__(self,struct,sort,deleteWhere=None):
-            # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
-            
-            # Specific init
-            # 1 = roomid
-            self.defaultSortBy = 1
-
-            # list of (heading text, show sortlink, compare function for sort)
-            self.headingDefinition = [('Select',False,None),
-                                      ('Room',True,None),
-                                      ('Sysname',True,None),
-                                      ('IP',True,self.ipCompare),
-                                      ('Category',True,None),
-                                      ('Organisation',True,None),
-                                      ('RO',True,None),
-                                      ('RW',True,None),
-                                      ('Type',True,None),
-                                      ('Serial',True,None)]
-
-            subcatTooltip = [['SELECT netboxid,' + \
-                             'netboxcategory.category FROM netbox ' + \
-                             'WHERE netboxcategory.netboxid=netboxid',
-                             ('Subcategories:','{$1}'),None],
-                             ['SELECT netboxid,val FROM netboxinfo ' + \
-                             'WHERE var=\'function\'',
-                             ('Function:','{$1}'),None]]
-
-
-            self.cellDefinition = [(('netboxid,roomid,sysname,ip,' + \
-                                     'catid,orgid,ro,rw,type.typename,' + \
-                                     'device.serial',
-                                     'LEFT JOIN type ON ' + \
-                                     'netbox.typeid=type.typeid LEFT JOIN ' +\
-                                     'device ON ' + \
-                                     'netbox.deviceid=device.deviceid',
-                                     None,
-                                     'roomid,sysname'),
-                                    [(None,None,entryListCell.CHECKBOX,None,None),
-                                     (1,None,None,None,None),
-                                     (2,'{p}edit/{id}',None,None,None),
-                                     (3,None,None,None,None),
-                                     (4,None,None,None,subcatTooltip),
-                                     (5,None,None,None,None),
-                                     (6,None,None,None,None),
-                                     (7,None,None,None,None),
-                                     (8,None,None,None,None),
-                                     (9,None,None,None,None)])]
-
-
-    class deleteDef(deletedef):
-        getNameFromId = (editTables.Netbox,'sysname')
-
-        table = 'netbox'
-        idfield = 'netboxid'
-       
-        dependencies = []
-        name = 'box'
-
-    class editbox(editbox):
-        type = 'netbox'
-        table = editTables.editdbNetbox
-        editId = None
-
-        def __init__(self,editId=None,formData=None,disabled=False):
-            self.hiddenFields = {}
-            if editId:
-                # Preserve the selected id
-                self.addHidden(selectList.cnameChk,editId)
-                self.sysname = editTables.Netbox(editId).sysname
-                self.editId = editId
-                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
-                                        ('Edit',False)]
-            else:
-                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
-                                        ('Add',False)]
-     
-            o = [(None,'Select an organisation')]
-            for org in editTables.Org.getAllIterator(orderBy='orgid'):
-                o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
-
-            r = [(None,'Select a room')]
-            for room in editTables.Room.getAllIterator(orderBy='roomid'):
-                loc = editTables.Location(room.location).descr
-                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
-                          str(room.descr) + ')'))
-
-            c = [(None,'Select a category')]
-            for cat in editTables.Cat.getAllIterator(orderBy='catid'):
-                c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
-
-            # Field definitions {field name: [input object, required]}
-            f = {'ip': [inputText(disabled=disabled),REQ_TRUE,'Ip or hostname'],
-                 'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE,
-                           'Category'],
-                 'orgid': [inputSelect(options=o,disabled=disabled),REQ_TRUE,
-                           'Organisation'],
-                 'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE,
-                           'Room'],
-                 'ro': [inputText(disabled=disabled),REQ_FALSE,
-                        'RO community'],
-                 'rw': [inputText(disabled=disabled),REQ_FALSE,
-                        'RW community']}
-            self.fields = f
-            self.setControlNames()
-
-            if editId:
-                # This box is for editing an existing netbox with id = editId
-                self.editId = editId
-                self.fill()
-
-            if formData:
-                self.formFill(formData)
-
-            if disabled:
-                self.addDisabled()
-
-    class editboxSerial(editbox):
-        type = 'netboxserial'
-
-        def __init__(self,gotRo,serial='',sysname=None,typeid=None,
-                     snmpversion=None,formData=None,editSerial=False):
-            self.hiddenFields = {}
-            # Set info fields
-            self.sysname = sysname
-            if typeid:
-                self.typename = editTables.Type(typeid).typename
-            else:
-                self.typename = 'n/a'
-            if snmpversion:
-                self.snmpversion = snmpversion
-            else:
-                self.snmpversion = 'n/a'
-
-            disabled = False
-            self.help = None
-            if gotRo:
-                # RO was specified, so the box has been queried by SNMP
-                if serial:
-                    # It returned a serialnumber
-                    disabled = True
-                    self.help = 'Serialnumber retrieved by SNMP.'
-                else:
-                    self.help = 'Unable to retrieve serialnumber for this ' + \
-                                'device by SNMP. ' + \
-                                'Enter a serialnumber (optional).'
-            else:
-                if serial:
-                    # Serial was entered manually
-                    self.help = ''
-                    disabled = True
-                else:   
-                    self.help = 'Enter a serialnumber (optional).'
-
-            # If editSerial = True, override help text and always enable editing
-            if editSerial:
-                disabled = False
-                # Should be some help text here
-                self.help = ''
-
-            self.fields = {'serial': [inputText(value=serial,disabled=disabled),
-                                      REQ_FALSE,
-                                      'Serialnumber']}
-            self.setControlNames()
-
-            self.addHidden('sysname',sysname)
-            self.addHidden('typeid',typeid)
-            self.addHidden('snmpversion',snmpversion)
-
-            if formData:
-                self.formFill(formData)
-
-            if disabled:
-                self.addDisabled()
-            
-            # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
-            # don't need to repeat it here 
-            self.boxName = IGNORE_BOX
-
-    class editboxCategory(editbox):
-        type = 'netboxcategory'
-        editId = None
-
-        def __init__(self,catid,editId=None,showHelp=True):
-            self.hiddenFields = {}
-            subcategories = False
-            if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
-                subcategories = True
-
-            self.help = None
-            if editId:
-                self.editId = editId
-            elif showHelp:
-                # Only show help if we're adding a new box
-                if subcategories:
-                    self.help = 'You can select one or more subcategories ' +\
-                                'for boxes with the selected category. ' +\
-                                'You can also add an optional description ' +\
-                                'of the function of this box.'
-                else:
-                    self.help = 'You can add an optional description of the '+\
-                                'function of this box.'
-
-            o = []
-            for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
-                                                           catid + "'"):
-                o.append((subcat.subcatid,subcat.subcatid + ' (' + \
-                          subcat.descr + ')'))
-            if editId:
-                if subcategories:
-                    self.fields = {'subcat': \
-                                  [inputMultipleSelect(options=o),REQ_FALSE,
-                                   'Subcategory'],
-                                  'function': [inputText(size=40),REQ_FALSE,
-                                               'Function']}
-                else:
-                    self.fields = {'function': [inputText(size=40),REQ_FALSE,
-                                                'function']}
-            else:
-                if subcategories:
-                    self.fields = {'subcat': [inputMultipleSelect(options=o),
-                                             REQ_FALSE,'Subcategory'],
-                                   'function': [inputText(size=40),REQ_FALSE,
-                                                'Function']}
-                else:
-                    self.fields = {'function': [inputText(size=40),REQ_FALSE,
-                                                'Function']}
-     
-            self.setControlNames()
-
-            if editId:
-                # Get selected netboxcategories
-                sql = "SELECT category FROM netboxcategory WHERE " +\
-                      "netboxid='%s'" \
-                % (editId,)
-                res = executeSQLreturn(sql)
-                selected = []
-                for s in res:
-                   selected.append(s[0])
-                   if subcategories:
-                       # A subcat field is present for this box with this cat
-                       self.fields['subcat'][0].value = selected
-
-                # Get var 'function' from netboxinfo
-                sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
-                      % (editId,) + \
-                      "AND var='function'"
-                res = executeSQLreturn(sql)
-                if res:
-                    self.fields['function'][0].value = res[0][0]
-            
-            # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
-            # don't need to repeat it here 
-            self.boxName = IGNORE_BOX
-
-    # Overrides default add function
-    def add(self,req,templateform):
-        ADD_TYPE_URL = BASEPATH + 'type/edit/'
-        STEP_1 = 1
-        STEP_2 = 2
-        CNAME_STEP = 'step' 
-        # Step0: ask for ip,ro,rw,catid,org,room
-        # Step1: ask for serial (and sysname,snmpversion and typeid)
-        #        and ask for subcategory and function
-        # Step2: add the box
-        message = "Got SNMP response, but can't find type in " + \
-                  "database. You must <a href=\"" + ADD_TYPE_URL + \
-                  "?sysobjectid=%s\" " + \
-                  "target=\"_blank\">add the " + \
-                  "type</a>  before proceeding (a new window will " + \
-                  "open, when the new type is added, press " + \
-                  "Continue to proceed)."
-
-        box = None
-        error = None
-        status = editdbStatus()
-        action = 'predefined'
-        form = req.form
-        templateform.title = 'Add box'
-
-        # Add editbox with hidden values for step (and deviceid)
-        editboxHidden = editboxHiddenOrMessage()
-        templateform.add(editboxHidden)
-        # What step are we in?
-        step = STEP_1
-        if form.has_key(CNAME_STEP):
-            step = int(form[CNAME_STEP])
-        nextStep = step + 1
-
-        if step == STEP_1:
-            # Look up sysname in DNS
-            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
-                              form['ip'])
-            ip = form['ip']
-            if result:
-                # This is an IP
-                try:
-                    sysname = gethostbyaddr(ip)[0]
-                except:
-                    sysname = ip
-            else:
-                # Not an IP, possibly a hostname
-                try:
-                    ip = gethostbyname(form['ip'])
-                    sysname = form['ip']
-                except:
-                    error = 'Invalid IP or hostname'
-
-            # 'ip' should be numerical ip now
-            editboxHidden.addHidden('hiddenIP',str(ip))
-
-            # Check if sysname or ip is already present in db
-            if not error:
-                where = "ip = '" + ip + "'"
-                box = editTables.Netbox.getAll(where)
-                if box:
-                    box = box[0]
-                    error = 'IP already exists in database (' + box.sysname + ')' 
-                else:
-                    # If IP isn't duplicate, check sysname
-                    where = "sysname = '" + sysname + "'"
-                    box = editTables.Netbox.getAll(where)
-                    if box:
-                        error = 'Sysname ' + sysname + ' (' + box[0].ip + \
-                                ') already exists in database'
-
-            if error:
-                status.errors.append(error)
-                templateform.add(pageNetbox.editbox(formData=form))
-                return (status,action,templateform)
-
-            if editTables.Cat(form['catid']).req_snmp == True:
-                # SNMP required by the selected category
-                if len(form['ro']):
-                    # RO specified, check SNMP
-                    box = None
-                    try:
-                        box = initBox.Box(ip,form['ro'])
-                    except nav.Snmp.TimeOutException:
-                        # No SNMP response
-                        status.errors.append('No SNMP response, check RO ' +\
-                                             'community')
-                        templateform.add(pageNetbox.editbox(formData=form))
-                        return (status,action,templateform)
-                    except Exception, e:
-                        # Other error (no route to host for example)
-                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                             ': ' + str(sys.exc_info()[1]))
-                        templateform.add(pageNetbox.editbox(formData=form))
-                        return (status,action,templateform)
-         
-                    box.getDeviceId()
-                    templateform.add(pageNetbox.editbox(formData=form,
-                                                          disabled=True))
-                    if box.typeid:
-                        # Got type (required for these categories)
-                        templateform.add(pageNetbox.editboxSerial(
-                                         gotRo=True,
-                                         serial=box.serial,
-                                         sysname=sysname,
-                                         typeid=box.typeid,
-                                         snmpversion=box.snmpversion))
-
-                        templateform.add(pageNetbox.editboxCategory(
-                                         req.form['catid']))
-
-                    else:
-                        # Couldn't find type, ask user to add
-                        # (type is required for this category)
-                        message = message % (box.sysobjectid,)
-                        templateform.add(editboxHiddenOrMessage(message))
-                        nextStep = STEP_1
-                else:
-                    # RO blank, return error
-                    status.errors.append('Category ' + form['catid'] + \
-                                         ' requires an RO community')
-                    templateform.add(pageNetbox.editbox(formData=form))
-                    nextStep = STEP_1
-            else:
-                # SNMP not required by cat
-                message = "Got SNMP response, but can't find type in " + \
-                          "database. Type is not required for this " +\
-                          "category, but if you want you can "+\
-                          "<a href=\"" + ADD_TYPE_URL + \
-                          "?sysobjectid=%s\" " + \
-                          "target=\"_blank\">" + \
-                          "add this type to the database</a>. " +\
-                          "After adding the type, start the registration " +\
-                          "again to set correct type on box."
-
-                if len(form['ro']):
-                    # RO specified, check SNMP anyway
-                    box = None
-                    try:
-                        box = initBox.Box(ip,form['ro'])
-                    except nav.Snmp.TimeOutException:
-                        status.errors.append('No SNMP response, check RO community')
-                        templateform.add(pageNetbox.editbox(formData=form))
-                        return (status,action,templateform)
-                    except Exception, e:
-                        # Other error (no route to host for example)
-                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                             ': ' + str(sys.exc_info()[1]))
-                        templateform.add(pageNetbox.editbox(formData=form))
-                        return (status,action,templateform)
-
-                    box.getDeviceId()
-                    templateform.add(pageNetbox.editbox(formData=form,
-                                                          disabled=True))
-                    if not box.typeid:
-                        # Unknown type. Type is not required,
-                        # but ask if user wants to add type anyway.
-                        message = message % (box.sysobjectid,)
-                        templateform.add(editboxHiddenOrMessage(message))
-
-                    templateform.add(pageNetbox.editboxSerial(gotRo=True,
-                                     serial=box.serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion))
-
-                    templateform.add(pageNetbox.editboxCategory(
-                                     req.form['catid']))
-                else:
-                    # RO blank, don't check SNMP, ask for serial
-                    # and subcat+function
-                    templateform.add(pageNetbox.editbox(formData=form,
-                                                        disabled=True))
-                    templateform.add(pageNetbox.editboxSerial(gotRo=False,
-                                                         sysname=sysname))
-                    templateform.add(pageNetbox.editboxCategory(
-                                                req.form['catid']))
-                    nextStep = STEP_2
-        if step == STEP_2:
-            # If we have serial, check if the device is already
-            # present in the databse
-            deviceId = None
-            serial = req.form['serial']
-            if len(serial):
-                # Any devices in the database with this serial?
-                where = "serial = '" + str(serial) + "'"
-                device = editTables.Device.getAll(where)
-                if device:
-                    # Found a device with this serial
-                    deviceId = str(device[0].deviceid)
-                    # Must check if there already is a box with this serial
-                    where = "deviceid = '" + deviceId + "'"
-                    box = editTables.Netbox.getAll(where)
-                    if box:
-                        # A box with this serial already exists
-                        # in the database. Ask for serial again.
-                        box = box[0]
-                        status.errors.append('A box (' + box.sysname + \
-                                             ') with the serial \'' +\
-                                             str(serial) +\
-                                             '\' already exists.')
-                        templateform.add(pageNetbox.editbox(formData=form,
-                                                      disabled=True))
-                        templateform.showConfirm = True
-                        templateform.add(pageNetbox.editboxSerial(
-                                                      gotRo=False,
-                                                      sysname=
-                                                      req.form['sysname']))
-                        templateform.add(pageNetbox.editboxCategory(
-                                                      req.form['catid']))
-                        # Ask for serial again. Must "refresh" hidden values.
-                        nextStep = STEP_2
-                        editboxHidden.addHidden(CNAME_STEP,nextStep)
-                        editboxHidden.addHidden('hiddenIP',form['hiddenIP'])
-                        return (status,action,templateform)
-                else:
-                    # Not found, make new device
-                    deviceId = None
-
-            # Get selected subcategories
-            subcatlist = None
-            if form.has_key('subcat'):
-                subcatlist = form['subcat']
-            # Get function
-            function = None
-            if form.has_key('function'):
-                function = form['function']
-            # Get typeid and snmpversion (from hidden inputs)
-            typeId = None
-            if form.has_key('typeid'):
-                typeId = form['typeid']
-            snmpversion = None
-            if form.has_key('snmpversion'):
-                snmpversion = form['snmpversion']
-            # Get sysname (from hidden input)
-            sysname = req.form['sysname']
-
-            # Insert netbox
-            # hiddenIP contains numerical ip after dns lookup
-            # (in case user entered a hostname in the ip field)
-            insertNetbox(form['hiddenIP'],form['sysname'],
-                         form['catid'],form['roomid'],
-                         form['orgid'],form['ro'],
-                         form['rw'],deviceId,
-                         form['serial'],typeId,
-                         snmpversion,subcatlist,
-                         function)
-            action = 'list'
-            status.messages.append('Added box ' + form['sysname'] + ' (' + \
-                                   req.form['hiddenIP'] + ')')
-        if not step == STEP_2: 
-            # Unless this is the last step, set the nextStep
-            editboxHidden.addHidden(CNAME_STEP,nextStep) 
-        return (status,action,templateform)
-
-    # Overloads default update function
-    def update(self,req,templateform,selected):
-        selected = selected[0]
-        ADD_TYPE_URL = BASEPATH + 'type/edit/'
-        STEP_1 = 1
-        STEP_2 = 2
-        CNAME_STEP = 'step' 
-        # Step0: ask for ip,ro,rw,catid,org,room
-        # Step1: ask for serial (and sysname,snmpversion and typeid)
-        #        ask for subcategory and function
-        # Step2: add the box
-        message = "Got SNMP response, but can't find type in " + \
-                  "database. You must <a href=\"" + ADD_TYPE_URL + \
-                  "?sysobjectid=%s\" " + \
-                  "target=\"_blank\">add the " + \
-                  "type</a>  before proceeding (a new window will " + \
-                  "open, when the new type is added, press " + \
-                  "Continue to proceed)."
-
-        box = None
-        error = None
-        status = editdbStatus()
-        action = 'predefined'
-        form = req.form
-        templateform.title = 'Edit box'
-        # Preserve the URL
-        templateform.action = BASEPATH + 'netbox/edit/' + selected
-
-        # Add editbox with hidden values for step (and deviceid)
-        editboxHidden = editboxHiddenOrMessage()
-        templateform.add(editboxHidden)
-        # What step are we in?
-        step = STEP_1
-        if form.has_key(CNAME_STEP):
-            step = int(form[CNAME_STEP])
-        nextStep = step + 1
-
-        oldBox = editTables.editdbNetbox(selected)
-
-        if step == STEP_1:
-            # Look up sysname in DNS, it might have changed
-            # since the box was initially added
-            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
-                              form['ip'])
-            ip = form['ip']
-            if result:
-                # This is an IP
-                try:
-                    sysname = gethostbyaddr(ip)[0]
-                except:
-                    sysname = ip
-            else:
-                # Not an IP, possibly a hostname
-                try:
-                    ip = gethostbyname(form['ip'])
-                    sysname = form['ip']
-                except:
-                    error = 'Invalid IP or hostname'
-
-            # 'ip' should be numerical ip now
-            editboxHidden.addHidden('hiddenIP',str(ip))
-
-            # Check if (edited) ip is already present in db
-            #if (oldBox.ip != form['ip'])
-            if oldBox.ip != ip and (not error):
-                # If IP differs from the old, check for uniqueness
-                where = "ip = '" + ip + "'"
-                box = editTables.Netbox.getAll(where)
-                if box:
-                    error = 'IP already exists in database'
-                if not error:
-                    # If IP isn't duplicate, check if (new) sysname is unique
-                    where = "sysname = '" + sysname + "'"
-                    box = editTables.Netbox.getAll(where)
-                    if box:
-                        error = 'Sysname ' + sysname + ' (' + box[0].ip + \
-                                ') already exists in database'
-            if error:
-                status.errors.append(error)
-                templateform.add(pageNetbox.editbox(editId=selected,
-                                                      formData=form))
-                return (status,action,templateform)
-
-            if editTables.Cat(form['catid']).req_snmp == True:
-                # SNMP required by this category
-                if len(form['ro']):
-                    # RO specified, check SNMP
-                    box = None
-                    try:
-                        box = initBox.Box(form['ip'],form['ro'])
-                    except nav.Snmp.TimeOutException:
-                        # No SNMP answer
-                        status.errors.append('No SNMP response, check ' +\
-                                             'RO community')
-                        templateform.add(pageNetbox.editbox(editId=selected,
-                                                       formData=form))
-                        return (status,action,templateform)
-                    except Exception, e:
-                        # Other error (no route to host for example)
-                        status.errors.append('Error: '+str(sys.exc_info()[0])+\
-                                             ': ' + str(sys.exc_info()[1]))
-                        templateform.add(pageNetbox.editbox(editId=selected,
-                                                       formData=form))
-                        return (status,action,templateform)
-         
-                    box.getDeviceId()
-                    templateform.add(pageNetbox.editbox(editId=selected,
-                                                   formData=form,disabled=True))
-
-                    if box.typeid:
-                        # Got type
-                        if box.serial:
-                            serial = box.serial
-                        else:
-                            serial = oldBox.device.serial
-                        templateform.add(pageNetbox.editboxSerial(
-                                         gotRo=True,
-                                         serial=serial,
-                                         sysname=sysname,
-                                         typeid=box.typeid,
-                                         snmpversion=box.snmpversion,
-                                         editSerial=False))
-
-                        # Show subcategory/function editbox 
-                        # If category has changed, then don't 
-                        # load the old subcatinfo
-                        if oldBox.catid != form['catid']:
-                            templateform.add(pageNetbox.editboxCategory(
-                                                          req.form['catid'],
-                                                          showHelp=False))
-                        else:
-                            templateform.add(pageNetbox.editboxCategory(
-                                                          req.form['catid'],
-                                                          selected))
-                    else:
-                        # Couldn't find type, ask user to add
-                        message = message % (box.sysobjectid,)
-                        templateform.add(editboxHiddenOrMessage(message))
-                else:
-                    # RO blank, return error
-                    status.errors.append('Category ' + form['catid'] + \
-                                         ' requires a RO community')
-                    templateform.add(pageNetbox.editbox(
-                                     editId=selected,formData=form))
-                    nextStep = STEP_1
-            else:
-                # SNMP not required by cat
-                message = "Got SNMP response, but can't find type in " + \
-                          "database. Type is not required for this " +\
-                          "category, but if you want you can "+\
-                          "<a href=\"" + ADD_TYPE_URL + \
-                          "?sysobjectid=%s\" " + \
-                          "target=\"_blank\">" + \
-                          "add this type to the database</a>. " +\
-                          "After adding the type, start the registration " +\
-                          "again to set correct type on box."
-
-                if len(form['ro']):
-                    # RO specified, check SNMP anyway
-                    box = None
-                    try:
-                        box = initBox.Box(form['ip'],form['ro'])
-                    except nav.Snmp.TimeOutException:
-                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                             ': ' + str(sys.exc_info()[1]))
-                        templateform.add(pageNetbox.editbox(editId=selected,
-                                                       formData=form))
-                        return (status,action,templateform)
-                    except Exception, e:
-                        # Other error (no route to host for example)
-                        status.errors.append('Error: '+str(sys.exc_info()[0])+\
-                                             ': ' + str(sys.exc_info()[1]))
-                        templateform.add(pageNetbox.editbox(editId=selected,
-                                                      formData=form))
-                        return (action,templateform)
-
-                    box.getDeviceId()
-                    templateform.add(pageNetbox.editbox(editId=selected,
-                                                   formData=form,
-                                                   disabled=True))
-                    if not box.typeid:
-                        # Unknown type. Type is not required,
-                        # but ask if user wants to add type anyway.
-                        message = message % (box.sysobjectid,)
-                        templateform.add(editboxHiddenOrMessage(message))
-                        
-                    if box.serial:
-                        serial = box.serial
-                    else:
-                        serial = oldBox.device.serial
-                
-                    templateform.add(pageNetbox.editboxSerial(gotRo=True,
-                                     serial=serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion,
-                                     editSerial=False))
-
-                    # Show subcategory/function editbox 
-                    # If category has changed, then don't 
-                    # load the old subcatinfo
-                    if oldBox.catid != form['catid']:
-                        templateform.add(pageNetbox.editboxCategory(
-                                                      req.form['catid'],
-                                                      showHelp=False))
-                    else:
-                        templateform.add(pageNetbox.editboxCategory(
-                                                      req.form['catid'],
-                                                      selected))
-                else:
-                    # RO blank, don't check SNMP, ask for serial
-                    templateform.add(pageNetbox.editbox(editId=selected,
-                                                   formData=form,
-                                                   disabled=True))
-                    serial = oldBox.device.serial
-                    templateform.add(pageNetbox.editboxSerial(gotRo=False,
-                                                         serial = serial,
-                                                         sysname=sysname,
-                                                         editSerial=True))
-
-                    # Show subcategory/function editbox 
-                    # If category has changed, then don't 
-                    # load the old subcatinfo
-                    if oldBox.catid != form['catid']:
-                        templateform.add(pageNetbox.editboxCategory(
-                                                      req.form['catid'],
-                                                      showHelp=False))
-                    else:
-                        templateform.add(pageNetbox.editboxCategory(
-                                                      req.form['catid'],
-                                                      selected))
-                    nextStep = STEP_2
-        if step == STEP_2:
-            # Always use the old serial
-            serial = oldBox.device.serial
-                
-            # If the serial was changed we have to check if it's unique
-            if box:
-                newSerial = box.serial
-            else:
-                newSerial = form['serial']
-
-            if len(newSerial):
-                deviceId = None
-                if serial != newSerial:
-                    # Any other devices in the database with this serial?
-                    where = "serial = '" + str(newSerial) + "'"
-                    device = editTables.Device.getAll(where)
-                    if device:
-                        # Found a device with this serial
-                        deviceId = str(device[0].deviceid)
-                        # Must check if there already is a box with this serial
-                        where = "deviceid = '" + deviceId + "'"
-                        box = editTables.Netbox.getAll(where)
-                        if box:
-                            # A box with this serial already exists
-                            # in the database. Ask for serial again.
-                            box = box[0]
-                            status.errors.append('A box (' + box.sysname + \
-                                                 ') with the serial \'' +\
-                                                 str(serial) +\
-                                                 '\' already exists.')
-                            templateform.add(pageNetbox.editbox(formData=form,
-                                                          disabled=True))
-                            templateform.showConfirm = True
-                            templateform.add(pageNetbox.editboxSerial(
-                                                          gotRo=False,
-                                                          sysname=
-                                                          req.form['sysname']))
-                            templateform.add(pageNetbox.editboxCategory(
-                                                          req.form['catid']))
-                            # Ask for serial again. Must "refresh" hidden values.
-                            nextStep = STEP_2
-                            editboxHidden.addHidden(CNAME_STEP,nextStep)
-                            editboxHidden.addHidden('hiddenIP',form['hiddenIP'])
-
-                        templateform.add(editboxHiddenOrMessage(message))
-                        return (status,action,templateform)
-
-            # Get selected subcats, function, type and snmpversion
-            subcatlist = None
-            if form.has_key('subcat'):
-                subcatlist = form['subcat']
-                if not type(subcatlist) is list:
-                    subcatlist = [subcatlist]
-            function = None
-            if form.has_key('function'):
-                function = req.form['function']
-            typeId = None
-            if form.has_key('typeid'):
-                typeId = req.form['typeid']
-            snmpversion = None
-            if form.has_key('snmpversion'):
-                snmpversion = form['snmpversion']
-                # Only use first char of snmpversion, don't insert things like
-                # '2c'
-                if len(snmpversion):
-                    snmpversion = snmpversion[0]
-
-            # Update netbox
-            fields = {'ip': form['hiddenIP'],
-                      'sysname': form['sysname'],
-                      'catid': form['catid'],
-                      'roomid': form['roomid'],
-                      'orgid': form['orgid'],
-                      'ro': form['ro'],
-                      'rw': form['rw']}
-
-            # Set type if initbox found it
-            if typeId:
-                fields['typeid'] = typeId
-
-            # Update deviceid if it has changed (ie. if serial
-            # was updated and a device with this serial already
-            # existed in the database
-            if deviceId:
-                fields['deviceid'] = deviceId
-
-            # Get prefixid
-            query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
-                    % (fields['ip'],)
-            try:
-                result = executeSQLreturn(query) 
-                fields['prefixid'] = str(result[0][0])
-            except:
-                pass        
-
-            # Set netbox.uptodate = false (to make gdd update this device)
-            fields['uptodate'] = 'f'
-            # Update netbox
-            updateEntryFields(fields,'netbox','netboxid',selected)
-
-            # Update device
-            if len(form['serial']) and (form['serial']!=oldBox.device.serial):
-                # Set new serial, if it has changed
-                fields = {'serial': form['serial']}
-                deviceId = str(oldBox.device.deviceid)
-                updateEntryFields(fields,'device','deviceid',deviceId)
-
-            # Remove old subcat and function entries
-            netboxId = oldBox.netboxid
-            deleteEntry([netboxId],'netboxcategory','netboxid')
-            deleteEntry([netboxId],'netboxinfo','netboxid')
-
-            # If subcatlist and function is given, insert them
-            if subcatlist:
-                for sc in subcatlist:
-                    fields = {'netboxid': netboxId,
-                              'category': sc}
-                    addEntryFields(fields,'netboxcategory')
-
-            if function:
-                fields = {'netboxid': netboxId,
-                          'key': '',
-                          'var': 'function',
-                          'val': function}
-                addEntryFields(fields,'netboxinfo')
-
-            action = 'list'
-            status.messages.append('Updated box ' + form['sysname'] + ' (' + \
-                                   form['ip'] + ')')
-
-        if not step == STEP_2: 
-            # Unless this is the last step, set the nextStep
-            editboxHidden.addHidden(CNAME_STEP,nextStep) 
-        return (status,action,templateform)
-
-
-class editboxBulk(editbox):
-    type = 'bulk'
-
-    help = 'Import multiple entries by selecting a file, or pasting ' +\
-           'into the textarea. Select an import type to see syntax ' + \
-           'for this type.'
-    
-    def __init__(self):
-        tables = [('','Select an import type'),
-                  ('location','Locations'),
-                  ('room','Rooms'),
-                  ('org','Organisations'),
-                  ('usage','Usage categories'),
-                  ('subcat','Subcategories'),
-                  ('type','Types'),
-                  ('product','Products'),
-                  ('vendor','Vendors'),
-                  ('netbox','Boxes'),
-                  ('service','Services'),
-                  ('vlan','Vlans'),
-                  ('prefix','Prefixes')]
-
-        sep = [(':','Colon (:)'),
-               (';','Semicolon (;)'),
-               (',','Comma (,)')]
-
-        f = {'table': [inputSelect(options=tables),REQ_FALSE],
-             'separator': [inputSelect(options=sep),REQ_FALSE],
-             'file': [inputFile(),REQ_FALSE],
-             'textarea': [inputTextArea(),REQ_FALSE]}
-        self.fields = f
-        self.setControlNames()
-
-class deletedefSnmpoid(deletedef):
-    # This class isn't in use. Must define dependencies to use it.
-    table = 'snmpoid'
-    idfield = 'snmpoidid'
-   
-    dependencies = []
-    name = 'snmpoid'
-
-
-class deletedefRoom(deletedef):
-    table = 'room'
-    idfield = 'roomid'
-   
-    dependencies = [(editTables.Netbox,
-                     'boxes',
-                     'roomid',
-                     '/report/netbox/?roomid=')]
-    name = 'room'
-
-class deletedefLocation(deletedef):
-    table = 'location'
-    idfield = 'locationid'
-   
-    dependencies = [(editTables.Room,
-                     'rooms',
-                     'locationid',
-                     '/report/room/?locationid=')]
-    name = 'location'
-
-class deletedefSubcat(deletedef):
-    table = 'subcat'
-    idfield = 'subcatid'
-   
-    dependencies = []
-    name = 'subcategory'
-
-class deletedefOrg(deletedef):
-    table = 'org'
-    idfield = 'orgid'
-   
-    dependencies = [(editTables.Org,
-                    'organisations',
-                    'parent',
-                    '/report/org/?parent='),
-                    (editTables.Netbox,
-                    'boxes',
-                    'orgid',
-                    '/report/netbox/?orgid=')]
-    name = 'organisation'
-
-class deletedefUsage(deletedef):
-    table = 'usage'
-    idfield = 'usageid'
-   
-    dependencies = []
-    name = 'usage category'
-
-class deletedefType(deletedef):
-    table = 'type'
-    idfield = 'typeid'
-   
-    dependencies = []
-    name = 'type'
-
-class deletedefProduct(deletedef):
-    table = 'product'
-    idfield = 'productid'
-   
-    dependencies = []
-    name = 'product'
-
-class deletedefVendor(deletedef):
-    table = 'vendor'
-    idfield = 'vendorid'
-   
-    dependencies = [(editTables.Type,
-                    'types',
-                    'vendorid',
-                    '/report/type/?vendorid='),
-                    (editTables.Product,
-                    'products',
-                    'vendorid',
-                    '/report/product/?vendorid=')]
-
-    name = 'vendor'
-
-class deletedefVlan(deletedef):
-    table = 'vlan'
-    idfield = 'vlanid'
-   
-    dependencies = []
-    name = 'vlan'
-
-class deletedefPrefix(deletedef):
-    table = 'prefix'
-    idfield = 'vlanid'
-   
-    dependencies = []
-    name = 'prefix'
- 
-class deletedefService(deletedef):
-    table = 'service'
-    idfield = 'serviceid'
- 
-    getNameFromId = (editTables.Service,'handler')
-    dependencies = []
-    name = 'service'
-
-# Class for the template, holds status and error messages
-class editdbStatus:
-    # List of status messages, one line per message
-    messages = []
-    # List of error messages, one line per message
-    errors = []
-
-    def __init__(self):
-        self.messages = []
-        self.errors = []
-
 
 # Classes describing the fields for bulk import
+class bulkdefCabling:
+    ''' Contains defintion of fields for bulk importing cabling '''
+    tablename = 'cabling'
+    table = nav.db.manage.Cabling
+    uniqueField = 'cablingid'
+    enforce_max_fields = True
+    max_num_fields = 6
+    min_num_fields = 6
+
+    process = False
+    onlyProcess = False
+    syntax = '#roomid:jack:building:tagetroom:descr:category\n'
+
+    postCheck = False
+
+    # list of (fieldname,max length,not null,use field)
+    fields = [('roomid',30,True,True),
+              ('jack',0,True,True),
+              ('building',0,True,True),
+              ('targetroom',0,True,True),
+              ('descr',0,True,True),
+              ('category',0,True,True)]
+
+    def checkValidity(cls,field,data):
+        status = BULK_STATUS_OK
+        remark = None
+        # locationid must exist in Location
+        if field == 'roomid':
+            if data:
+                if len(data):
+                    try:
+                        nav.db.manage.Room(data).load()
+                    except forgetSQL.NotFound:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Room '" + data + "' not found in database"
+        return (status,remark)
+    checkValidity = classmethod(checkValidity)
+
+
+class bulkdefPatch:
+    ''' Contains defintion of fields for bulk importing patches '''
+    tablename = 'patch'
+    table = nav.db.manage.Patch
+    uniqueField = 'patchid'
+    enforce_max_fields = True
+    max_num_fields = 6
+    min_num_fields = 6
+
+    process = True
+    onlyProcess = False
+    syntax = '#switch(sysname):module:port:roomid:jack:split\n'
+
+    postCheck = False
+
+    # list of (fieldname,max length,not null,use field)
+    fields = [('sysname',0,True,True),
+              ('module',0,True,True),
+              ('port',0,True,True),
+              ('roomid',0,True,True),
+              ('jack',0,True,True),
+              ('split',0,True,True)]
+
+    def checkValidity(cls,field,data):
+        ''' Checks validity (eg. existance) of input fields.'''
+        status = BULK_STATUS_OK
+        remark = None
+        if field == 'roomid':
+            if data:
+                if len(data):
+                    try:
+                        room = nav.db.manage.Room(data)
+                        cls.roomId = room.roomid
+                        # If room existsm, check if netbox is in it
+                        where = "netboxid=" + str(cls.netboxId) + " AND " +\
+                                "roomid=" + cls.roomId
+                        box = nav.db.manage.Netbox.getAll(where)
+                        if not box:
+                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                            status = BULK_STATUS_RED_ERROR
+                            remark = "Switch '" + sw + "' not in room " +\
+                                     cls.roomId
+                    except forgetSQL.NotFound:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Room '" + data + "' not found in database"
+        if field == 'sysname':
+            if data:
+                if len(data):
+                    where = "sysname='" + data + "'"
+                    box = nav.db.manage.Netbox.getAll(where)
+                    if box:
+                        box = box[0]
+                        cls.netboxId = box.netboxid
+                    else:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Switch '" + data + "' not found in database"
+        if field == 'module':
+            if data:
+                if len(data):
+                    where = "module='" + data + "' AND " +\
+                            "netboxid='" + str(cls.netboxId) + "'"
+                    module = nav.db.manage.Module.getAll(where)
+                    if module:
+                        module = module[0]
+                        cls.moduleId = module.moduleid
+                    else:
+                        status = BULK_STATUS_RED_ERROR
+                        sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                        remark = "Module '" + data + "' in switch " +\
+                                 sw + " not found in database"
+        if field == 'port':
+            if data:
+                if len(data):
+                    where = "moduleid='" + str(cls.moduleId) + "' AND " +\
+                            "port='" + data + "'"
+                    swport = nav.db.manage.Swport.getAll(where)
+                    if swport:
+                        swport = swport[0]
+                        cls.swportId = swport.swportid
+                    else:
+                        status = BULK_STATUS_RED_ERROR
+                        sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                        module = nav.db.manage.Module(cls.moduleId).module
+                        remark = "Port '" + data + "', module '" +\
+                                 str(module) + "' in switch " +\
+                                 sw + " not found in database"
+        if field == 'jack':
+            if data:
+                if len(data):
+                    where = "roomid='" + cls.roomId + "' AND " +\
+                            "jack='" + data + "'"
+                    cabling = nav.db.manage.Cabling.getAll(where)
+                    if cabling:
+                        cabling = cabling[0]
+                        cls.cablingId = cabling.cablingid
+                    else:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Cabling between " +\
+                                 " jack '" + data + "' " +\
+                                 " and room '" + cls.roomId + "'" +\
+                                 " not found in database"
+        return (status,remark)
+    checkValidity = classmethod(checkValidity)
+
+    def preInsert(cls,row):
+        ''' Gets required data from db before inserting row. '''
+        where = "sysname='" + row['sysname'] + "'"
+        box = nav.db.manage.Netbox.getAll(where)
+        box = box[0]
+
+        where = "module='" + row['module'] + "' AND " +\
+                "netboxid='" + str(box.netboxid) + "'"
+        module = nav.db.manage.Module.getAll(where)
+        module = module[0]
+
+        where = "moduleid='" + str(module.moduleid) + "' AND " +\
+                "port='" + row['port'] + "'"
+        swport = nav.db.manage.Swport.getAll(where)
+        swport = swport[0]
+
+        where = "roomid='" + row['roomid'] + "' AND " +\
+                "jack='" + row['jack'] + "'"
+        cabling = nav.db.manage.Cabling.getAll(where)
+        cabling = cabling[0]
+
+        del row['roomid']
+        del row['jack']
+        del row['module']
+        del row['sysname']
+        del row['port']
+
+        row['swportid'] = str(swport.swportid)
+        row['cablingid'] = str(cabling.cablingid)
+        return row
+    preInsert = classmethod(preInsert)
+
+
 class bulkdefLocation:
+    ''' Contains defintion of fields for bulk importing locations '''
     # number of fields
     tablename = 'location'
     table = editTables.Location
@@ -4267,12 +4870,14 @@ class bulkdefLocation:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of fields. (No need for location). '''
         status = True
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefRoom:
+    ''' Contains defintion of fields for bulk importing rooms '''
     # number of fields
     tablename = 'room'
     table = editTables.Room
@@ -4312,6 +4917,7 @@ class bulkdefRoom:
     checkValidity = classmethod(checkValidity)
 
 class bulkdefOrg:
+    ''' Contains field definitions for bulk importing orgs. '''
     tablename = 'org'
     table = editTables.Org
     uniqueField = 'orgid'
@@ -4334,6 +4940,7 @@ class bulkdefOrg:
               ('opt3',0,False,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
         if field == 'parent' and len(data):
@@ -4346,6 +4953,7 @@ class bulkdefOrg:
     checkValidity = classmethod(checkValidity)
 
 class bulkdefUsage:
+    ''' Contains field definitions for bulk importing usage. '''
     # number of fields
     tablename = 'usage'
     table = editTables.Usage
@@ -4365,12 +4973,14 @@ class bulkdefUsage:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefVendor:
+    ''' Contains field information for bulk importing vendors. '''
     # number of fields
     tablename = 'vendor'
     table = editTables.Vendor
@@ -4389,12 +4999,14 @@ class bulkdefVendor:
     fields = [('vendorid',15,True,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefSubcat:
+    ''' Contains field information for bulk importing subcats. '''
     tablename = 'subcat'
     table = editTables.Subcat
     uniqueField = 'subcatid'
@@ -4414,6 +5026,7 @@ class bulkdefSubcat:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
 
@@ -4429,6 +5042,7 @@ class bulkdefSubcat:
 
 
 class bulkdefType:
+    ''' Contains field defintions for bulk importing types. '''
     # number of fields
     tablename = 'type'
     table = editTables.Type
@@ -4453,12 +5067,14 @@ class bulkdefType:
               ('tftp',0,False,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. (nothing checked for type) '''
         status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefProduct:
+    ''' Contains field definitions for bulk importing products. '''
     # number of fields
     tablename = 'product'
     table = editTables.Product
@@ -4479,6 +5095,7 @@ class bulkdefProduct:
               ('descr',0,False,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
 
@@ -4492,8 +5109,8 @@ class bulkdefProduct:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        # if cdp or tftp has any value, set it to "1" which is appropriate
-        # for the boolean fields in the database
+        ''' Alter fields before inserting. (set correct value for cdp
+            and tftp if anything is input in those fields) '''
         if row.has_key('cdp'):
             row['cdp'] = '1'
         if row.has_key('tftp'):
@@ -4502,7 +5119,7 @@ class bulkdefProduct:
     preInsert = classmethod(preInsert)
 
 class bulkdefNetbox:
-    " For parsing netboxes "    
+    ''' Contains field definitions for bulk importing boxes. '''
     tablename = 'netbox'
     table = editTables.Netbox
     uniqueField = 'ip'
@@ -4525,6 +5142,8 @@ class bulkdefNetbox:
               ('function',0,False,False)]
 
     def postCheck(cls,data):
+        ''' Checks each box before inserting. Tries to connect with snmp
+            if ro is specified. '''
         status = BULK_STATUS_OK
         remark = None
 
@@ -4592,6 +5211,7 @@ class bulkdefNetbox:
     postCheck = classmethod(postCheck)
 
     def checkValidity(cls,field,data):
+        ''' Checks the validity of the input fields. '''
         status = BULK_STATUS_OK
         remark = None
                  
@@ -4645,6 +5265,7 @@ class bulkdefNetbox:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
+        ''' Changes rows before inserting. Gets required data from db. '''
         # Get sysname
         try:
             sysname = gethostbyaddr(row['ip'])[0]
@@ -4771,6 +5392,7 @@ class bulkdefNetbox:
     preInsert = classmethod(preInsert)
 
 class bulkdefService:
+    ''' Contains field definitions for bulk importing services. '''
     tablename = 'service'
     table = editTables.Service
     uniqueField = None
@@ -4795,6 +5417,7 @@ class bulkdefService:
     insert = classmethod(insert)
 
     def postCheck(cls,data):
+        ''' Changes row data before inserting. Does DNS lookup etc. '''
         status = BULK_STATUS_OK
         remark = None
 
@@ -4852,6 +5475,7 @@ class bulkdefService:
     postCheck = classmethod(postCheck)
            
     def checkValidity(cls,field,data):
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
        
@@ -4863,6 +5487,7 @@ class bulkdefService:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,data):
+        ''' Fills in all missing data before inserting entry. '''
         try:
             ip = gethostbyname(data['netboxid'])
             where = "ip='%s'" % (ip,)
@@ -4906,6 +5531,7 @@ class bulkdefService:
 
 
 class bulkdefPrefix:
+    ''' Contains field definitions for bulk importing prefixes. '''
     tablename = 'prefix'
     table = editTables.Prefix
     uniqueField = 'prefixid'
@@ -4929,6 +5555,7 @@ class bulkdefPrefix:
               ('vlan',0,False,True)]
 
     def checkValidity(cls,field,data):
+        ''' Checks validity of fields '''
         status = BULK_STATUS_OK
         remark = None
         if field == 'netaddr':
@@ -4975,7 +5602,7 @@ class bulkdefPrefix:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-
+        ''' Changes row data before inserting. Removes empty fields. '''
         fields = {}
         if row.has_key('nettype'):
             if len(row['nettype']):
@@ -5021,6 +5648,10 @@ class bulkdefPrefix:
 
 # Class representing a list of entries, used by the template
 class selectList:
+    ''' Used by the template to display a list of entries. Only used by
+        bulk import. Could be replaced by the more flexible entryList
+        class for this purpose. '''
+
     # Text and controlnames for the action bar
     textAdd = 'Add new'
     textEdit = 'Edit selected'
@@ -5107,6 +5738,4 @@ class selectList:
                         for i in iter:
                             text.append(getattr(i,sectextfield)) 
                     row.append((text,None))
-            self.rows.append((id,row))
-
-   
+            self.rows.append((id,row))  

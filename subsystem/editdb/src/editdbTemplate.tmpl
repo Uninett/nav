@@ -23,6 +23,7 @@
 ##
 
 #extends nav.web.templates.MainTemplate
+#from nav.web.templates.selectTreeTemplate import selectTreeTemplate
 
 #def additionalCSS
     ## CSS Tooltip
@@ -95,7 +96,7 @@ $showBody($body)
 
 ## function showSelectList
 ##
-## Template function for displaying a list in a table with optional
+## Function for displaying a list in a table with optional
 ## radiobuttons or checkboxes for selecting rows
 ##
 ## $selectList
@@ -238,7 +239,7 @@ $showBody($body)
 
 ## function showStatus
 ##
-## Template function for displaying status and error messages
+## Function for displaying status and error messages
 ## takes an editdb.status object as parameter
 ##
 ## $status
@@ -258,10 +259,13 @@ $showBody($body)
     </p>
 #end def
 
-## Template function to show a body object
+## Form to show a body object
 ## ie. display the editdb main menu
 #def $showBody($body)
     <h2>$body.title</h2>
+#if $body.status
+    $showStatus($body.status)
+#end if
     <p class="infotext">$body.infotext</p>
     <p>
 #if not $body.showHelp
@@ -327,7 +331,7 @@ $showBody($body)
 #end def
 
 
-## Template function to display a list for selecting
+## Function to display a list for selecting
 ## which entries to edit, or delete
 #def showList($list)
     <H3>$list.title</H3>
@@ -429,7 +433,7 @@ $showBody($body)
     </P>
 #end def
 
-## Template function for displaying a form for adding or editing
+## Function for displaying a form for adding or editing
 #def showForm($form)
     <H3>$form.title</H3>
 #if $form.status
@@ -448,44 +452,48 @@ $showBody($body)
 #for $editbox in $form.editboxes
         <INPUT type="hidden" name="$editbox.boxName" value="$editbox.boxId">
         <P>
-#if $editbox.type == 'room'
+#if $editbox.page == 'room'
             $room($editbox)
-#elif $editbox.type == 'location'
+#elif $editbox.page == 'location'
             $location($editbox)
-#elif $editbox.type == 'org'
+#elif $editbox.page == 'org'
             $org($editbox)
-#elif $editbox.type == 'type'
+#elif $editbox.page == 'type'
             $typebox($editbox)
-#elif $editbox.type == 'vendor'
+#elif $editbox.page == 'vendor'
             $vendor($editbox)
-#elif $editbox.type == 'netbox'
+#elif $editbox.page == 'netbox'
             $netbox($editbox)
-#elif $editbox.type == 'netboxserial'
+#elif $editbox.page == 'netboxserial'
             $netboxserial($editbox)
-#elif $editbox.type == 'netboxcategory'
+#elif $editbox.page == 'netboxcategory'
             $netboxcategory($editbox)
-#elif $editbox.type == 'netboxproduct'
+#elif $editbox.page == 'netboxproduct'
             $netboxproduct($editbox)
-#elif $editbox.type == 'bulk'
+#elif $editbox.page == 'bulk'
             $bulk($editbox)
-#elif $editbox.type == 'usage'
+#elif $editbox.page == 'usage'
             $usage($editbox)
-#elif $editbox.type == 'service'
+#elif $editbox.page == 'service'
             $service($editbox)
-#elif $editbox.type == 'serviceproperties'
+#elif $editbox.page == 'serviceproperties'
             $serviceproperties($editbox)
-#elif $editbox.type == 'product'
+#elif $editbox.page == 'product'
             $product($editbox)
-#elif $editbox.type == 'prefix'
+#elif $editbox.page == 'prefix'
             $prefix($editbox)
-#elif $editbox.type == 'vlan'
+#elif $editbox.page == 'vlan'
             $vlan($editbox)
-#elif $editbox.type == 'subcat'
+#elif $editbox.page == 'subcat'
             $subcat($editbox)
-#elif $editbox.type == 'snmpoid'
+#elif $editbox.page == 'snmpoid'
             $snmpoid($editbox)
-#elif $editbox.type == 'hiddenormessage'
+#elif $editbox.page == 'hiddenormessage'
             $hiddenormessage($editbox)
+#elif $editbox.page == 'cabling'
+            $cabling($editbox)
+#elif $editbox.page == 'patch'
+            $patch($editbox)
 #end if
         </P>
 #end for
@@ -502,7 +510,66 @@ $showBody($body)
 #end if
 #end def
 
-## Template function for entering a serialnumber
+
+
+##
+## Forms for adding and editing
+##
+
+## For for editing patches
+#def patch($editbox)
+#set $fields = $editbox.fields
+    <p>
+        $editbox.help
+    </p>
+    <div style="border: 1px solid #666; background-image:url('/images/form/fill-active.gif');   background-color:#ccf; font-size: 13px; padding-top: 1em; padding-bottom: 1em; padding-left: 1em;">
+        <p>
+            $input($fields['box1'])
+        </p>
+        <p>
+            <h3>$heading($fields['split'])</h3>
+            $input($fields['split'])
+        </p>
+        <p>
+            $input($fields['box2'])
+        </p>
+    </div>
+#end def
+
+## Form for editing cabling
+#def cabling($editbox)
+#set $fields = $editbox.fields
+    <P>
+        <TABLE class="header-active">
+            <TR>
+                <TH colspan="2">$heading($fields['roomid'])</TH>
+                <TH>$heading($fields['jack'])</TH>
+            </TR>
+            <TR>
+                <TD colspan="2">$input($fields['roomid'])</TD>
+                <TD>$input($fields['jack'])</TD>
+            </TR>
+            <TR>
+                <TH>$heading($fields['building'])</TH>
+                <TH>$heading($fields['targetroom'])</TH>
+                <TH>$heading($fields['category'])</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['building'],'width: 100%;')</TD>
+                <TD align="center">$input($fields['targetroom'])</TD>
+                <TD>$input($fields['category'])</TD>
+            </TR>
+            <TR>
+                <TH colspan="3">$heading($fields['descr'])</TH>
+            </TR>
+            <TR>
+                <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
+            </TR>
+        </TABLE>
+    </P>
+#end def
+
+## Form for entering a serialnumber
 #def netboxserial($editbox)
 #set $fields = $editbox.fields
     <P>
@@ -536,16 +603,7 @@ $showBody($body)
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for choosing between netboxes with
-## identical serials, but (hopefully) different products
-#def netboxproduct($editbox)
-#set $fields = $editbox.fields
-    <P>$editbox.help</P>
-    <TABLE class="header-active">
-    </TABLE>
-#end def
-
-## Template function for server subcat and function
+## Form for server subcat and function
 #def netboxcategory($editbox)
 #set $fields = $editbox.fields
     <P>$editbox.help</P>
@@ -569,7 +627,7 @@ $hiddenfields($editbox.hiddenFields)
     </P>
 #end def
 
-## Template function for adding or editing a netbox
+## Form for adding or editing a netbox
 #def netbox($editbox)
 #set $fields = $editbox.fields
 #if $editbox.editId
@@ -605,15 +663,15 @@ $hiddenfields($editbox.hiddenFields)
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for adding or editing an snmpoid
+## Form for adding or editing an snmpoid
 #def snmpoid($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>OID key</TH>
-            <TH>Snmpoid</TH>
-            <TH>OID source</TH>
-            <TH>Match regexp</TH>
+            <TH>$heading($fields['oidkey'])</TH>
+            <TH>$heading($fields['snmpoid'])</TH>
+            <TH>$heading($fields['oidsource'])</TH>
+            <TH>$heading($fields['match_regex'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['oidkey'])</TD>
@@ -622,15 +680,15 @@ $hiddenfields($editbox.hiddenFields)
             <TD>$input($fields['match_regex'])</TD>
         </TR>
         <TR>
-            <TH colspan="2">OID name</TH>
-            <TH colspan="2">MIB</TH>
+            <TH colspan="2">$heading($fields['oidname'])</TH>
+            <TH colspan="2">$heading($fields['mib'])</TH>
         </TR>
         <TR>
             <TD colspan="2">$input($fields['oidname'],'width: 100%;')</TD>
             <TD colspan="2">$input($fields['mib'],'width: 100%;')</TD>
         </TR>
         <TR>
-            <TH colspan="4">Description</TH>
+            <TH colspan="4">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD colspan="4">$input($fields['descr'],'width: 100%;')</TD>
@@ -642,14 +700,14 @@ $hiddenfields($editbox.hiddenFields)
 
 
 
-## Template function for adding or editing a room
+## Form for adding or editing a room
 #def room($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>Room ID</TH>
-            <TH>Location</TH>
-            <TH colspan="2">Description</TH>
+            <TH>$heading($fields['roomid'])</TH>
+            <TH>$heading($fields['locationid'])</TH>
+            <TH colspan="2">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['roomid'])</TD>
@@ -657,10 +715,10 @@ $hiddenfields($editbox.hiddenFields)
             <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
         <TR>
-            <TH>Optional 1</TH>
-            <TH>Optional 2</TH>
-            <TH>Optional 3</TH>
-            <TH>Optional 4</TH>
+            <TH>$heading($fields['opt1'])</TH>
+            <TH>$heading($fields['opt2'])</TH>
+            <TH>$heading($fields['opt3'])</TH>
+            <TH>$heading($fields['opt4'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['opt1'])</TD>
@@ -672,13 +730,13 @@ $hiddenfields($editbox.hiddenFields)
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for adding or editing a location
+## Form for adding or editing a location
 #def location($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active" width="50%">
         <TR>
-            <TH width="30%">Location ID</TH>
-            <TH width="70%">Description</TH>
+            <TH width="30%">$heading($fields['locationid'])</TH>
+            <TH width="70%">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['locationid'],'width: 100%;')</TD>
@@ -688,28 +746,28 @@ $hiddenfields($editbox.hiddenFields)
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for adding or editing an org
+## Form for adding or editing an org
 #def org($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>Org ID</TH>
-            <TH colspan="2">Parent</TH>
+            <TH>$heading($fields['orgid'])</TH>
+            <TH colspan="2">$heading($fields['parent'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['orgid'])</TD>
             <TD colspan="2">$input($fields['parent'])</TD>
         </TR>
         <TR>
-            <TH colspan="3">Description</TH>
+            <TH colspan="3">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
         <TR>
-            <TH>Optional 1</TH>
-            <TH>Optional 2</TH>
-            <TH>Optional 3</TH>
+            <TH>$heading($fields['opt1'])</TH>
+            <TH>$heading($fields['opt2'])</TH>
+            <TH>$heading($fields['opt3'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['opt1'])</TD>
@@ -719,28 +777,28 @@ $hiddenfields($editbox.hiddenFields)
     </TABLE>
 #end def
 
-## Template function for adding or editing a type
+## Form for adding or editing a type
 #def typebox($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active" width="60%">
         <TR>
-            <TH colspan="3" width="30%">Typename</TH>
-            <TH>Description</TH>
+            <TH colspan="3" width="30%">$heading($fields['typename'])</TH>
+            <TH>$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD colspan="3">$input($fields['typename'],'width: 100%;')</TD>
             <TD>$input($fields['descr'],'width: 100%;')</TD>
         <TR>
-            <TH colspan="3">Vendor</TH>
-            <TH>Sysoid</TH>
+            <TH colspan="3">$heading($fields['vendorid'])</TH>
+            <TH>$heading($fields['sysobjectid'])</TH>
         </TR>
             <TD colspan="3">$input($fields['vendorid'],'width: 100%;')</TD>
             <TD>$input($fields['sysobjectid'],'width: 100%')</TD>
         </TR>
         <TR>
-            <TH>CDP</TH>
-            <TH>TFTP</TH>
-            <TH>Frequency</TH>
+            <TH>$heading($fields['cdp'])</TH>
+            <TH>$heading($fields['tftp'])</TH>
+            <TH>$heading($fields['frequency'])</TH>
             <TD>&nbsp;</TD>
         </TR>
         <TR>
@@ -752,7 +810,7 @@ $hiddenfields($editbox.hiddenFields)
 </TABLE>
 #end def
 
-## Template function for adding or editing a product
+## Form for adding or editing a product
 #def product($editbox)
 #set $fields = $editbox.fields
 #if $fields.has_key('productid')
@@ -760,15 +818,15 @@ $input($fields['productid'])
 #end if
     <TABLE class="header-active">
         <TR>
-            <TH>Vendorid</TH>
-            <TH>Productno</TH>
+            <TH>$heading($fields['vendorid'])</TH>
+            <TH>$heading($fields['productno'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['vendorid'])</TD>
             <TD>$input($fields['productno'])</TD>
         </TR>
         <TR>
-            <TH colspan="2">Description</TH>
+            <TH colspan="2">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
@@ -776,12 +834,12 @@ $input($fields['productid'])
     </TABLE>
 #end def
 
-## Template function for adding or editing a vendor
+## Form for adding or editing a vendor
 #def vendor($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>Vendor name</TH>
+            <TH>$heading($fields['vendorid'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['vendorid'])</TD>
@@ -789,13 +847,13 @@ $input($fields['productid'])
     </TABLE>
 #end def
 
-## Template function for adding or editing a user category
+## Form for adding or editing a user category
 #def usage($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>Usage category</TH>
-            <TH>Description</TH>
+            <TH>$heading($fields['usageid'])</TH>
+            <TH>$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['usageid'])</TD>
@@ -804,14 +862,14 @@ $input($fields['productid'])
     </TABLE>
 #end def
 
-## Template function for adding or editing a service
+## Form for adding or editing a service
 #def service($editbox)
 #set $fields = $editbox.fields
     <P>$editbox.help</P>
     <TABLE class="header-active">
         <TR>
-            <TH>Server</TH>
-            <TH>Handler</TH>
+            <TH>$heading($fields['netboxid'])</TH>
+            <TH>$heading($fields['handler'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['netboxid'])</TD>
@@ -821,7 +879,7 @@ $input($fields['productid'])
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for adding or editing service properties
+## Form for adding or editing service properties
 #def serviceproperties($editbox)
 #if $editbox.show
 #set $args = $editbox.args
@@ -855,55 +913,55 @@ $hiddenfields($editbox.hiddenFields)
 #end if
 #end def
 
-## Template function for prefix editing
-#def $prefix($editbox)
+## Form for prefix editing
+#def prefix($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH colspan="2">Prefix/mask (cidr)</TH>
-            <TH>Description</TH>
+            <TH colspan="2">$heading($fields['netaddr'])</TH>
+            <TH>$heading($fields['vlan.description'])</TH>
         </TR>
         <TR>
             <TD colspan="2">$input($fields['netaddr'])</TD>
-            <TD>$input($fields['description'],style='width: 100%;')</TD>
+            <TD>$input($fields['vlan.description'],style='width: 100%;')</TD>
         </TR>
         <TR>
-            <TH colspan="2">Netident</TH>
-            <TH>Organisation</TH>
+            <TH colspan="2">$heading($fields['vlan.netident'])</TH>
+            <TH>$heading($fields['vlan.orgid'])</TH>
         </TR>
         <TR>
-            <TD colspan="2">$input($fields['netident'])</TD>
-            <TD>$input($fields['orgid'])</TD>
+            <TD colspan="2">$input($fields['vlan.netident'])</TD>
+            <TD>$input($fields['vlan.orgid'])</TD>
         </TR>
         <TR>
-            <TH>Nettype</TH>
-            <TH>Vlan</TH>
-            <TH>Usage</TH>
+            <TH>$heading($fields['vlan.nettype'])</TH>
+            <TH>$heading($fields['vlan.vlan'])</TH>
+            <TH>$heading($fields['vlan.usageid'])</TH>
         </TR>
         <TR>
-            <TD>$input($fields['nettype'])</TD>
-            <TD>$input($fields['vlannumber'])</TD>
-            <TD>$input($fields['usageid'],style='width: 100%')</TD>
+            <TD>$input($fields['vlan.nettype'])</TD>
+            <TD>$input($fields['vlan.vlan'])</TD>
+            <TD>$input($fields['vlan.usageid'],style='width: 100%')</TD>
         </TR>
     </TABLE>
 #end def
 
-## Template function for vlan editing
+## Form for vlan editing
 #def $vlan($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH colspan="2">Netident</TH>
-            <TH>Organisation</TH>
+            <TH colspan="2">$heading($fields['netident'])</TH>
+            <TH>$heading($fields['orgid'])</TH>
         </TR>
         <TR>
             <TD colspan="2">$input($fields['netident'])</TD>
             <TD>$input($fields['orgid'])</TD>
         </TR>
         <TR>
-            <TH>Nettype</TH>
-            <TH>Vlan</TH>
-            <TH>Usage</TH>
+            <TH>$heading($fields['nettype'])</TH>
+            <TH>$heading($fields['vlan'])</TH>
+            <TH>$heading($fields['usageid'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['nettype'])</TD>
@@ -911,7 +969,7 @@ $hiddenfields($editbox.hiddenFields)
             <TD>$input($fields['usageid'],style='width: 100%')</TD>
         </TR>
         <TR>
-            <TH colspan="3">Description</TH>
+            <TH colspan="3">$heading($fields['description'])</TH>
         </TR>
         <TR>
             <TD colspan="3">$input($fields['description'],style='width: 100%;')</TD>
@@ -919,20 +977,20 @@ $hiddenfields($editbox.hiddenFields)
     </TABLE>
 #end def
 
-## Template function for adding or editing a subcategory
+## Form for adding or editing a subcategory
 #def subcat($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>Subcategory</TH>
-            <TH colspan="2">Category</TH>
+            <TH>$heading($fields['subcatid'])</TH>
+            <TH colspan="2">$heading($fields['catid'])</TH>
         </TR>
         <TR>
             <TD>$input($fields['subcatid'])</TD>
             <TD colspan="2">$input($fields['catid'])</TD>
         </TR>
         <TR>
-            <TH colspan="3">Description</TH>
+            <TH colspan="3">$heading($fields['descr'])</TH>
         </TR>
         <TR>
             <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
@@ -940,14 +998,14 @@ $hiddenfields($editbox.hiddenFields)
     </TABLE>
 #end def
 
-## Template function for showing a message and adding hidden controls
+## Form for showing a message and adding hidden controls
 #def hiddenormessage($editbox)
 <p>$editbox.message</p>
 <!-- def hiddenormessage ->
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Template function for bulk import
+## Form for bulk import
 #def bulk($editbox)
 #set $fields = $editbox.fields
     <P>$editbox.help</P>
@@ -971,7 +1029,7 @@ $hiddenfields($editbox.hiddenFields)
     </TABLE>
 #end def
 
-## Template function to write out all hidden input fields
+## Form to write out all hidden input fields
 #def hiddenfields($fieldlist)
 #for $field in $fieldlist.values()
 $input($field)
@@ -988,7 +1046,7 @@ $control[2]
 #end if
 #end def
 
-## Template function to display all input fields
+## Form to display all input fields
 #def input($control,$style='')
 #if $control[0].disabled
 #set $disabled = 'disabled'
@@ -1027,7 +1085,7 @@ $control[2]
 #elif $control.type == 'textarea'
     <TEXTAREA name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</TEXTAREA>
 #elif $control.type == 'checkbox'
-#if $control.value == True
+#if $control.value == '1'
 ## VALUE is hardcoded to 1, which is good for boolean fields in the db
     <INPUT type="checkbox" style="$style" name="$control.name" value="1" checked>
 #else
@@ -1035,6 +1093,11 @@ $control[2]
 #end if
 #elif $control.type == 'hidden'
     <INPUT type="hidden" name="$control.name" value="$control.value">
+#elif $control.type == 'treeselect'
+#set $ts = selectTreeTemplate()
+#if $control.treeselect
+    $ts.renderLayoutBox($control.treeselect)
+#end if
 #else
 Undefined control
 #end if

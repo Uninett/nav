@@ -43,6 +43,7 @@ def executeSQLreturn(sql):
     connection = nav.db.getConnection('editdb','manage')
     database = connection.cursor()
     database.execute(sql)
+    connection.commit()
     return database.fetchall()
 
 def addEntryBulk(data,table):
@@ -66,7 +67,10 @@ def addEntryBulk(data,table):
                 first = False
         sql += ')'
         sqllist.append(sql)
-    executeSQL(sqllist)
+    try:
+        executeSQL(sqllist)
+    except psycopg.IntegrityError:
+        pass
 
 def addEntry(req,templatebox,table,unique=None):
     # req: request object containing a form
@@ -137,7 +141,11 @@ def addEntryFields(fields,table,sequence=None):
     for field,value in fields.items():
         if not first:
             sql += ','
-        sql += "'" + value + "'"
+        if value:
+            sql += "'" + value + "'"
+        else:
+            # Remove value
+            sql += 'NULL'
         first = False
     sql += ')'
     sqllist = [sql]
@@ -150,7 +158,10 @@ def updateEntryFields(fields,table,idfield,updateid):
     for field,value in fields.items():
         if not first:
             sql += ','
-        sql += field + "='" + value + "'"
+        if value:
+            sql += field + "='" + value + "'"
+        else:
+            sql += field + "=NULL"
         first = False
     sql += ' WHERE ' + idfield + "='" + updateid + "'"
     sqllist = [sql]
