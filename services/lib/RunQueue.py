@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.5 2002/06/08 21:24:42 magnun Exp $
+$Id: RunQueue.py,v 1.6 2002/06/10 13:24:54 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 TODO
@@ -42,34 +42,36 @@ class worker(threading.Thread):
     """
     def __init__(self, rq):
         threading.Thread.__init__(self)
-        self._runQueue=rq
+        self._runqueue=rq
         self._runCount=0
         self._running=1
 
     def run(self):
         while self._running:
             try:
-                self._job=self._runQueue.deq()
+                self._job=self._runqueue.deq()
                 self.execute()
             except TerminateException:
-                self._runQueue.numThreads-=1
+                self._runqueue.numThreads-=1
                 return
             except:
                 traceback.print_exc()
 
     def execute(self):
-        #print self.getName() + ' kjører jobb nr ' +str(self.runCount)
         self._runCount+=1
         self._job.run()
-        if self._runCount > self._runQueue.getMaxRunCount():
+        if self._runCount > self._runqueue.getMaxRunCount():
             self._running=0
-            self._runQueue.unusedThreadName.append(self.getName())
-            self._runQueue.workers.remove(self)
+            self._runqueue.unusedThreadName.append(self.getName())
+            self._runqueue.workers.remove(self)
+        self._runqueue.debug("Jobb ferdig")    
 
 
 class RunQueue:
     def __init__(self,**kwargs):
         self.maxThreads=kwargs.get('maxthreads', sys.maxint)
+        self._controller=kwargs.get('controller',self)
+        self.debug=self._controller.debug
         self.numThreads=0
         self.numThreadsWaiting=0
         self._maxRunCount=5
@@ -80,7 +82,7 @@ class RunQueue:
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
-        self.startObserver()
+        #self.startObserver()
 
     def getMaxRunCount(self):
         return self._maxRunCount
@@ -93,6 +95,7 @@ class RunQueue:
         self.lock.acquire()
         self.rq.put(*r)
         self.debug('Elementer i køen: %i'% (len(self.rq)))
+        self.debug("Ventende tråder: %i" % self.numThreadsWaiting)
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
             self.debug('Har ventende tråd. Kaller self.awaitWork.notify()')
