@@ -24,7 +24,7 @@
     <ant inheritAll="false" dir="data-plugins/NetboxInfo"/>
     <ant inheritAll="false" dir="data-plugins/ModuleMon"/>
     <ant inheritAll="false" dir="data-plugins/Device"/>
-    <ant inheritAll="false" dir="data-plugins/Netbox"/>
+    <!-- <ant inheritAll="false" dir="data-plugins/Netbox"/> -->
     <ant inheritAll="false" dir="data-plugins/Module"/>
     <ant inheritAll="false" dir="data-plugins/Gwport"/>
     <ant inheritAll="false" dir="data-plugins/Swport"/>
@@ -97,7 +97,7 @@
     <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/ModuleMon" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Device" target="clean"/>
-    <ant inheritAll="false" dir="data-plugins/Netbox" target="clean"/>
+    <!-- <ant inheritAll="false" dir="data-plugins/Netbox" target="clean"/> -->
     <ant inheritAll="false" dir="data-plugins/Module" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Gwport" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Swport" target="clean"/>

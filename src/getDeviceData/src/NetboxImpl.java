@@ -71,6 +71,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	public void setNumInStack(int numInStack) { this.numInStack = numInStack; }
 
+	public String getTypeid() { return t.getTypeid(); }
+
 	Type getTypeT() {
 		return t;
 	}
