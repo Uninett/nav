@@ -1,12 +1,14 @@
 #!/usr/bin/perl -w
-
+#
+# $Id: index.pl,v 1.5 2002/07/30 12:12:24 mortenv Exp $
+#
 use CGI qw(:standard);
 
 print header;
 print start_html(NAV);
 
 $vhtdocs = '/usr/local/nav/navme/apache/vhtdocs';
-$htpasswd = '/usr/local/nav/navme/apache/htpasswd';
+$htpasswd = '/usr/local/nav/local/apache/htpasswd';
 
 $navstart = "$vhtdocs/navstart.pl";
 $navslutt = "$vhtdocs/navslutt.pl";
