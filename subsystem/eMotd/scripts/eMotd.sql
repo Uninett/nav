@@ -1,5 +1,5 @@
 ############################################################################# 
-$Id: eMotd.sql,v 1.1 2003/06/16 08:00:53 bgrotan Exp $
+$Id: eMotd.sql,v 1.2 2003/06/16 08:42:49 bgrotan Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/eMotd/scripts/eMotd.sql,v $
 ############################################################################# 
 # enhanced Message of the day - sql-import-script
@@ -11,7 +11,7 @@ $Source: /usr/local/cvs/navbak/navme/subsystem/eMotd/scripts/eMotd.sql,v $
 
 CREATE TABLE eMOTD (
         msgid SERIAL PRIMARY KEY,
-        bruker VARCHAR REFERENCES bruker NOT NULL,
+        bruker VARCHAR NOT NULL,
         date TIMESTAMP NOT NULL,
         date_start TIMESTAMP NOT NULL,
         date_end TIMESTAMP NOT NULL,
@@ -22,7 +22,10 @@ CREATE TABLE eMOTD (
 ); 
 
 CREATE TABLE eMOTD_ref (
-	msgid REFERENCES eMOTD UNIQUE,
-	key VARCHAR NOT NULL UNIQUE,
+	msgid SERIAL REFERENCES eMOTD 
+	      ON UPDATE CASCADE 
+              ON DELETE SET NULL,
+	key VARCHAR NOT NULL ,
 	value VARCHAR NOT NULL,
+	PRIMARY KEY (msgid,key)
 );
