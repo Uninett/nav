@@ -1,10 +1,11 @@
 #!/usr/bin/python
 """
-$Author: magnun $
-$Id: controller.py,v 1.19 2002/06/28 01:06:40 magnun Exp $
+$Author: erikgors $
+$Id: controller.py,v 1.20 2002/06/28 10:32:16 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
+__version__ = '$Id: controller.py,v 1.20 2002/06/28 10:32:16 erikgors Exp $'
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
@@ -128,12 +129,12 @@ if __name__=='__main__':
         nofork=0
 
         for opt, val in opts:
-            if opt == '-h' or opt == '--help':
+            if opt in ('-h','--help'):
                 help()
                 os.sys.exit()
-            elif opt == '-n' or opt == '--nofork':
+            elif opt in ('-n','--nofork'):
                 nofork=1
-            elif opt == '-v' or opt == '--version':
+            elif opt in ('-v','--version'):
                 print __version__
                 os.sys.exit(0)
                 
