@@ -594,11 +594,11 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('linkState','Tells us whether a link is up or down.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-  ('coldStart','Tells us that a network-unit has done a coldstart','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-  ('warmStart','Tells us that a network-unit has done a warmstart','n');
+  ('boxRestart','Tells us that a network-unit has done a restart','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('info','Basic information','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
+  ('notification','Notification event, typically between NAV systems','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
@@ -660,6 +660,8 @@ CREATE TABLE alerttype (
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxState','boxDownWarning','Warning sent before declaring the box down.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxShadowWarning','Warning sent before declaring the box in shadow.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxState','boxDown','Box declared down.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxState','boxUp','Box declared up.');
@@ -683,6 +685,12 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('thresholdState','exceededThreshold','Threshold exceeded.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('thresholdState','belowThreshold','Value below threshold.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('info','dnsMismatch','Mismatch between sysname and dnsname.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxRestart','coldStart','Tells us that a network-unit has done a coldstart.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxRestart','warmStart','Tells us that a network-unit has done a warmstart.');
 
 
 CREATE TABLE alertq (
