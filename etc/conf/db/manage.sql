@@ -665,7 +665,7 @@ CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 -- alert tables
 DROP TABLE alertq CASCADE;
 DROP SEQUENCE alertq_alertqid_seq;
-DROP TABLE alertqvar CASCADE;
+DROP TABLE alertqmsg CASCADE;
 
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
@@ -679,16 +679,19 @@ CREATE TABLE alertq (
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
-CREATE TABLE alertqvar (
+
+CREATE TABLE alertqmsg (
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   msgtype VARCHAR NOT NULL,
   language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
   UNIQUE(alertqid, msgtype, language)
 );
+CREATE INDEX alertqmsg_alertqid_btree ON alertqmsg USING btree (alertqid);
 
 DROP TABLE alerthist CASCADE;
 DROP SEQUENCE alerthist_alerthistid_seq;
+DROP TABLE alerthistmsg CASCADE;
 DROP TABLE alerthistvar CASCADE;
 
 CREATE TABLE alerthist (
@@ -704,7 +707,8 @@ CREATE TABLE alerthist (
   severity INT4 NOT NULL
 );
 CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
-CREATE TABLE alerthistvar (
+
+CREATE TABLE alerthistmsg (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   msgtype VARCHAR NOT NULL,
@@ -712,6 +716,16 @@ CREATE TABLE alerthistvar (
   msg TEXT NOT NULL,
   UNIQUE(alerthistid, state, msgtype, language)
 );
+CREATE INDEX alerthistmsg_alerthistid_btree ON alerthistmsg USING btree (alerthistid);
+
+CREATE TABLE alerthistvar (
+  alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL,
+  var VARCHAR NOT NULL,
+  val TEXT NOT NULL,
+  UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
+);
+CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
 
 ------------------------------------------------------------------------------------------
 -- servicemon tables
@@ -754,6 +768,7 @@ GRANT ALL ON alertq_alertqid_seq TO eventengine;
 GRANT ALL ON alertqvar TO eventengine;
 GRANT ALL ON alerthist TO eventengine;
 GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
+GRANT ALL ON alerthistmsg TO eventengine;
 GRANT ALL ON alerthistvar TO eventengine;
 GRANT SELECT ON device TO eventengine;
 GRANT SELECT,UPDATE ON netbox TO eventengine;
@@ -771,6 +786,6 @@ GRANT SELECT ON service TO eventengine;
 GRANT SELECT ON serviceproperty TO eventengine;
 
 -- adding grant select for NAVprofiles.....
-GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
+GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistmsg, alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
 -- skal inneholde alle tabeller i manage til en hver tid.
 -- -Andreas-
