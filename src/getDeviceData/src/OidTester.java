@@ -60,57 +60,57 @@ public class OidTester
 		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getTypename());
 
 		try {
-		// Get a netbox to test against
-		ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' LIMIT " + CHECK_NETBOX_CNT);
+			// Get a netbox to test against
+			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' LIMIT " + CHECK_NETBOX_CNT);
 		
-		while (rs.next()) {
-			// Check that not someone else is testing against this netbox
-			String ip = rs.getString("ip");
-			synchronized(lock(ip)) {
+			while (rs.next()) {
+				// Check that not someone else is testing against this netbox
+				String ip = rs.getString("ip");
+				synchronized(lock(ip)) {
 
-				// Do the test
-				sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
+					// Do the test
+					sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
 
-				boolean supported = false;
+					boolean supported = false;
 
-				try {
-					List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
-					Log.d("OID_TESTER", "DO_TEST", "Got results, length: " + l.size());
+					try {
+						List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+						Log.d("OID_TESTER", "DO_TEST", "Got results, length: " + l.size());
 					
-					String regex = snmpoid.getMatchRegex();
-					for (Iterator i = l.iterator(); i.hasNext();) {
-						String[] s = (String[])i.next();
-						if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
-							// Update db
-							Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
+						String regex = snmpoid.getMatchRegex();
+						for (Iterator i = l.iterator(); i.hasNext();) {
+							String[] s = (String[])i.next();
+							if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
+								// Update db
+								Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
 
-							rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
-							if (!rs.next()) {
-								String[] ins = {
-									"typeid", t.getTypeid(),
-									"snmpoidid", snmpoid.getSnmpoidid(),
-									"frequency", ""+DEFAULT_FREQ
-								};
-								Database.insert("typesnmpoid", ins);
+								rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+								if (!rs.next()) {
+									String[] ins = {
+										"typeid", t.getTypeid(),
+										"snmpoidid", snmpoid.getSnmpoidid(),
+										"frequency", ""+DEFAULT_FREQ
+									};
+									Database.insert("typesnmpoid", ins);
+								}
+								supported = true;
+								t.addSnmpoid(DEFAULT_FREQ, snmpoid);
+								break;
 							}
-							supported = true;
-							t.addSnmpoid(DEFAULT_FREQ, snmpoid);
-							break;
 						}
+					} catch (TimeoutException e) {
+						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
+					} catch (Exception e) {
+						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + "with netbox: " + ip + ", assuming not supported: " + e.getMessage());
 					}
-				} catch (TimeoutException e) {
-					Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
-				} catch (Exception e) {
-					Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + "with netbox: " + ip + ", assuming not supported: " + e.getMessage());
-				}
 						
-				if (!supported) {
-					Database.update("DELETE FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
-				}
+					if (!supported) {
+						Database.update("DELETE FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+					}
 
+				}
+				unlock(ip);
 			}
-			unlock(ip);
-		}
 		} catch (SQLException e) {
 			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
 			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
