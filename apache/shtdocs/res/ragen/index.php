@@ -1,7 +1,7 @@
 <?php
 ####################
 #
-# $Id: index.php,v 1.7 2002/12/17 16:18:30 gartmann Exp $
+# $Id: index.php,v 1.8 2003/01/10 14:32:59 gartmann Exp $
 # This file is part of the NAV project.
 # index is the main part of the ragen (report generator) web interface.
 # The reports defined in the ragen.conf-file is displayed in this web 
@@ -48,11 +48,16 @@ if(preg_match("/SELECT(.*)FROM/is",$sql,$sel)) {
     $urlselect = $select;
     for($i=0;$i<sizeof($urlselect);$i++){
 	//print $urlselect[$i];
+      /*
 	if(preg_match("/\ AS\ (\w+)/i",$urlselect[$i],$nysel)){
 	    $urlselect[$i]=$nysel[1];
 	} elseif(preg_match("/\.(\w+)/",$urlselect[$i],$nysel)){
 	    $urlselect[$i]=$nysel[1];
 	}
+      */
+      if(preg_match("/(\w+)\s*$/",$urlselect[$i],$nysel)){
+	$urlselect[$i]=$nysel[1];
+      }
 	$fraselect[$urlselect[$i]] = $i;
 	if($$urlselect[$i]){
 	    //print $$urlselect[$i];
@@ -509,7 +514,7 @@ function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner
 		    print " ".$count_cols[$i];
 		}
 		if($sum_cols[$i]){
-		    print " ".$sum_cols[$i];
+		    print " <font color=\"#ffffff\">&Sigma;=".$sum_cols[$i]."</font>";
 		}
 		print "</td>";
 	    }
