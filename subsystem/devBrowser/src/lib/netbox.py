@@ -172,7 +172,7 @@ class NetboxInfo(manage.Netbox):
         rrd.addDs(ds)
         value = rrd.average()
         if not value:
-            return 0
+            return None
         else:
             value = value[0]
         return value

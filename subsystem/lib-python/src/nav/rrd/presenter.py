@@ -208,7 +208,6 @@ class presentation:
             for i in data['data']:
                 sum += i
             sumList.append(sum)
-
         try:
             return map(lambda x,y:x/y['data'].__len__(),sumList,dataList)
         except ZeroDivisionError:
