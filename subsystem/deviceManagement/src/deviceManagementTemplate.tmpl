@@ -1,28 +1,10 @@
 ## $Id$
 ##
+## This file is a part of the NAV project.
+##
 ## Defines various functions for the different parts of the
-## deviceTracker
+## deviceTrakcer
 ##
-## Copyright 2003, 2004 Norwegian University of Science and Technology
-##
-## This file is part of Network Administration Visualized (NAV)
-##
-## NAV is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
-##
-## NAV is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with NAV; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-##
-##
-## Last changed: 2003.09.13
 ## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
 ##
 
@@ -30,53 +12,616 @@
 #from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 #from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
+#def additionalCSS
+    ## Table style 
+    tr.header   { background-color: white;
+                  background-image:url('/images/ragen/navbar-fill.gif');
+                  background-repeat: repeat-x;
+                  height: 26px;
+                  padding: 1px 0px 0px 0px;
+                  font-size: 13; }
+
+    tr.evenrow  { font-size: 12; background-color: #eeeeee; }
+    tr.oddrow   { font-size: 12; }
+
+    td.startheader {
+                  background-color: white;
+                  background-image: url('/images/ragen/navbar-start.gif');
+                  background-repeat: no-repeat;
+                  width: 14px}
+
+    td.endheader { 
+                  background-color: white;
+                  background-image:url('/images/ragen/navbar-end.gif');
+                  background-position: top right;
+                  background-repeat: no-repeat;
+                  width: 14px}
+
+    ## Status and error style
+    p.error     { color: #ff0000; }
+    p.status    { color: #00bb00; }
+    p.infotext  { width: 80%;
+                  font-size: 13; }
+$default_form_CSS()
+$default_tabs_CSS()
+#end def
+
 #def content
-#if $page == 'index'
-<h2>$args['title']</h2>
-$args['body']
+<div style="border: 1px solid #666; margin:33px 0px; padding: 0px 19px;">
+$makeMenu($page.menu)
+#if $page.searchbox
+$displaySearchBox($page.searchbox)
 #end if
-#if $page == 'order'
-$order()
+<h2>$page.title</h2>
+#if $page.submenu
+$makeSubMenu($page.submenu)
 #end if
-#if $page == 'addOrder'
-$addOrder()
+#if $page.name == 'history'
+$history($page)
+#elif $page.name == 'error'
+$registererror($page)
+#elif $page.name == 'order'
+$order($page)
+#elif $page.name == 'delete'
+$delete($page)
+#elif $page.name == 'rma'
+$rma($page)
+#elif $page.name == 'register'
+$registerOne($page)
 #end if
-#if $page == 'registerOrder'
-$registerOrder()
-#end if
-#if $page == 'register'
-$register()
-#end if
-#if $page == 'history'
-$history()
-#end if
-#if $page == 'error'
-$registerError($args['errordevice'])
-#end if
-#if $page == 'browse'
-$browse()
-#end if
-#if $page == 'delete'
-$delete()
-#end if
-#if $page == 'rma'
-$showRma()
+</div>
+#end def
+
+##
+## Page functions
+##
+
+#def $registerOne($page)
+<p>
+    $page.description
+</p>
+$showErrors($page)
+<form action="$page.action" method="post">
+    <p>
+        <table class="header-active" style="font-size: 13px;">
+            <tr>
+                <th align="left">Product</th>
+                <th align="left">Serial</th>
+            </tr>
+            <tr>
+                <td>$renderwidget($page.widgets['product'])</td>
+                <td>$renderwidget($page.widgets['serial'])</td>
+            </tr>
+        </table>
+    </p>
+    <p>
+        $renderwidget($page.widgets['submit'])
+    </p>
+</form>
+#end def
+
+#def rma($page)
+<p>$page.description</p>
+$showErrors($page)
+#if $page.subname == 'register'
+    <p>
+#set qs = SearchBoxTemplate()
+        $qs.searchbox($page.rmasearchbox)
+    </p>
+    <form action="$page.action" method="post">
+        $hiddenInputs($page)
+        <p>
+            $displayTreeSelect($page.treeselect)
+        </p>
+        <p>
+            $renderwidget($page.widgets['adddevice'])
+        </p>
+        <p>
+            $renderFormattedList($page.rmalist)    
+        </p>
+        <p>
+            <table class="header-active" style="font-size: 13px;">
+                <tr>
+                    <th>$renderwhead($page.widgets['number'])</th>
+                    <th>$renderwhead($page.widgets['retailer'])</th>
+                    <th>$renderwhead($page.widgets['rmadate'])</th>
+                </tr>
+                <tr>
+                    <td>$renderwidget($page.widgets['number'])</td>
+                    <td>$renderwidget($page.widgets['retailer'])</td>
+                    <td>$renderwidget($page.widgets['rmadate'])</td>
+                </tr>
+                <tr>
+                    <th colspan="3">$renderwhead($page.widgets['comment'])</th>
+                </tr>
+                <tr>
+                    <td colspan="3">$renderwidget($page.widgets['comment'])</td>
+                </tr>
+            </table>
+        </p>
+        <p>
+            $renderwidget($page.widgets['addrma'])
+        </p>
+    </form>
+#else
+    <p>
+       $renderFormattedList($page.rmaList)
+    </p>
 #end if
 #end def
 
-#def additionalCSS
+#def delete($page)
+<p>$page.description</p>
+$showErrors($page)
+#if $page.subname == 'confirmdelete'
+<form action="$page.action" method="post">
+    $hiddenInputs($page)
+    <p>
+        $renderwidget($page.widgets['moveto'])
+    </p>
+    <p>
+        $renderFormattedList($page.moduleList)
+    </p>
+    <p>
+        $renderwidget($page.widgets['confirm'])
+    </p>
+</form>
+#elif $page.subname == 'inventory' or $page.subname == 'inactive'
+<form action="$page.action" method="post">
+    <p>
+        $renderFormattedList($page.moduleList)
+    </p>
+    <p>
+        $renderwidget($page.widgets['move'])
+    </p>
+</form>
+#else
+<form action="$page.action" method="post">
+    $renderFormattedList($page.moduleList)
+    <p>
+        $renderwidget($page.widgets['delete'])
+    </p>
+</form>
+#end if
 #end def
+
+#def order(page)
+<p>$page.description</p>
+$showErrors($page)
+#if $page.subname == 'add' or $page.subname == 'edit'
+<form action="$page.action" method="post">
+$hiddenInputs($page)
+<table class="header-active" style="font-size: 13px;">
+    <tr>
+        <td>$renderwhead($page.widgets['orderdate'])</td>
+        <td>$renderwhead($page.widgets['product'])</td>
+        <td>$renderwhead($page.widgets['amount'])</td>
+    </tr>
+    <tr>
+        <td>$renderwidget($page.widgets['orderdate'])</td>
+        <td>$renderwidget($page.widgets['product'])</td>
+        <td>$renderwidget($page.widgets['amount'])</td>
+    </tr>
+    <tr>
+        <td colspan="3">$renderwhead($page.widgets['org'])</td>
+    </tr>
+    <tr>
+        <td colspan="3">$renderwidget($page.widgets['org'])</td>
+    </tr>
+    <tr>
+        <td colspan="3">$renderwhead($page.widgets['comment'])
+        $renderwidget($page.widgets['comment'])</td>
+    </tr>
+    <tr>
+        <td>$renderwhead($page.widgets['retailer'])</td>
+        <td>$renderwhead($page.widgets['ordernumber'])</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>$renderwidget($page.widgets['retailer'])</td>
+        <td>$renderwidget($page.widgets['ordernumber'])</td>
+        <td></td>
+    </tr>
+</table>
+<p>
+$renderwidget($page.widgets['submit'])
+$renderwidget($page.widgets['cancel'])
+</p>
+</form>
+#elif $page.subname == 'arrival'
+#if $page.orderFound
+<form action="$page.action" method="post">
+    <p><strong>$page.tableTitle</strong></p>
+    $renderwhead($page.widgets['arrivaldate'])
+    $renderwidget($page.widgets['arrivaldate'])
+    <p>
+        <table class="header-active" cellpadding="5%" style="font-size: 13px;">
+            <tr>
+                <th>Product</th>
+                <th>Serial</th>
+                <th>State</th>
+            </tr>
+#for $i in range(0,$page.numberOfInputs)
+            <tr>
+                <td>$page.productName</td>
+                <td>$renderwidget($page.widgets['serial'])</td>
+                <td>$renderwidget($page.widgets['action'])</td>
+            </tr>
+#end for
+        </table>
+    </p>
+    <p>
+        $renderwidget($page.widgets['submit'])
+        $renderwidget($page.widgets['cancel'])
+    </p>
+</form>
+#end if
+#elif $page.subname == 'delete'
+<p>
+    $orderDetails($page.orderData)
+    <form action="$page.action" method="post">
+        $renderwidget($page.widgets['confirm'])
+        $renderwidget($page.widgets['cancel'])
+        $hiddenInputs($page)
+    </form>
+</p>
+#elif $page.subname == 'details'
+<p>
+    $orderDetails($page.orderData)
+</p>
+#elif $page.subname == 'history'
+$renderFormattedList($page.orderList)
+#else
+## Main order page
+$renderFormattedList($page.orderList)
+#end if
+#end def
+
+#def history(page)
+#if $page.subname == 'history':
+<p>
+<table style="font-size: 13px;">
+    <tr>
+        <th align="left">From</th>
+        <td>$renderwidget($page.widgets['startdate'])</td>
+    </tr>
+    <tr>
+        <th align="left">To</th>
+        <td>$renderwidget($page.widgets['enddate'])</td>
+    </tr>
+</table>
+</p>
+#for $box in $page.boxList
+$renderFormattedList($box)
+#end for
+#else
+<p>$page.description</p>
+$showErrors($page)
+<form action="$page.action" method="post">
+#if $page.treeselect
+    $displayTreeSelect($page.treeselect)
+$submitButton($page.submit)
+#end if
+</form>
+#end if
+#end def
+
+#def registererror(page)
+<p>$page.description</p>
+$showErrors($page)
+<form action="$page.action" method="post">
+#if $page.treeselect
+    $displayTreeSelect($page.treeselect)
+## Error description input
+    <p>
+        <table width="50%">
+            <tr>
+                <th>$renderwhead($page.widgets['comment'])</th>
+            </tr>
+            <tr>
+                <td>$renderwidget($page.widgets['comment'])</td>
+            </tr>
+        </table>
+    </p>
+$submitButton($page.submit)
+#end if
+</form>
+#end def
+
+
+##
+## Help functions
+##
+
+#def $makeSubMenuOld($menu)
+<table style="background-image: url('/images/form/fill-active.gif');border: 1px solid #666;font-size: 11;">
+#for $item in $menu
+    <tr>
+        <td><a href="$item[2]" title="$item[1]">$item[0]</a></td>
+    </tr>
+#end for
+</table>
+#end if
+#end def
+
+#def makeSubMenu($menu)
+<br>
+<font size="1">
+[
+#set $first = True
+#for $item in $menu
+#if not $first
+    |
+#end if
+#if $item[2]
+<a title="$item[1]" href="$item[2]">$item[0]</a>
+#else
+$item[0]
+#end if
+#set $first = False
+#end for
+]
+</font>
+#end def
+
+#def $orderDetails($data)
+<strong>$page.orderDataHead</strong>
+<table style="font-size: 13px;">
+    <tr>
+        <td>$data['ordernumber'][0]</td>
+        <td>$data['ordernumber'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['product'][0]</td>
+        <td>$data['product'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['amount'][0]</td>
+        <td>$data['amount'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['arrived'][0]</td>
+        <td>$data['arrived'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['ordered'][0]</td>
+        <td>$data['ordered'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['registered'][0]</td>
+        <td>$data['registered'][1]</td>
+    </tr>
+#if $data.has_key('closed')
+    <tr>
+        <td>$data['closed'][0]</td>
+        <td>$data['closed'][1]</td>
+    </tr>
+#end if
+    <tr>
+        <td>$data['retailer'][0]</td>
+        <td>$data['retailer'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['username'][0]</td>
+        <td>$data['username'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['org'][0]</td>
+        <td>$data['org'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['comment'][0]</td>
+        <td>$data['comment'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['updatedby'][0]</td>
+        <td>$data['updatedby'][1]</td>
+    </tr>
+    <tr>
+        <td>$data['lastupdated'][0]</td>
+        <td>$data['lastupdated'][1]</td>
+    </tr>
+</table>
+#end def
+
+#def hiddenInputs($page)
+#for $input in $page.hiddenInputs
+<input type="hidden" name="$input[0]" value="$input[1]">
+#end for
+#end def
+
+#def renderFormattedList($flist)
+<h3>$flist.title</h3>
+<table border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;white-space: nowrap;">
+    <tr class="header">
+        <td class="startheader"></td>
+#for $h,$url in $flist.headings
+        <td valign="top">
+#if $url
+             <a href="$url">$h</a>&nbsp;
+#else
+             $h&nbsp;
+#end if
+        </td>
+#end for
+        <td class="endheader"></td>
+    </tr>
+#for $row in $flist.rows
+    <tr>
+        <td></td>
+#for $col in $row
+        <td>
+#for $part in $col
+            $renderFormatString($part)&nbsp;&nbsp;
+#end for 
+        </td>
+#end for
+        <td></td>
+    </tr>
+#end for
+</table>
+#end def
+
+#def renderFormatString($fstring)
+#if type($fstring) is str:
+    $fstring
+#elif type($fstring) is list:
+#set $ftype = $fstring[0]
+#if $ftype == 'url'
+    <a href="$fstring[2]">$fstring[1]</a>
+#elif $ftype == 'img'
+    <img src="$fstring[1]">
+#elif $ftype == 'widget'
+    $renderwidget($fstring[1])
+#end if
+#end if
+#end def
+
+#def renderwhead($widget)
+#if $widget.name
+    $widget.name
+#if $widget.required
+    <span style="color: #ff0000">*</span>
+#end if
+#end if
+#end def
+
+#def renderwidget($widget)
+#if $widget.value
+#set $value = $widget.value
+#else
+#set $value = ''
+#end if
+#if $widget.options.has_key('style')
+#set $style = $widget.options['style']
+#else
+#set $style = ''
+#end if
+#if $widget.type == 'text'
+#if $widget.options.has_key('size')
+#set size = $widget.options['size']
+#else
+#set size='30'
+#end if
+    <input type="text" name="$widget.controlname" value="$value" style="$style" size="$size">
+#elif $widget.type == 'select'
+    <select name="$widget.controlname" style="$style">
+#for $id,$option,$selected in $widget.options['options']
+#if $value == $id
+#set $selected = True
+#end if
+#if $selected
+        <option selected value="$id">$option</option>
+#else
+        <option value="$id">$option</option>
+#end if 
+#end for
+    </select>
+#elif $widget.type == 'date'
+#set i = 0
+#for $options in [$widget.options['days'],$widget.options['months'],$widget.options['years']]
+    <select name="$widget.controlname[i]" style="$style">
+#set i += 1
+#for $id,$option,$selected in $options
+#if $selected
+        <option selected value="$id">$option</option>
+#else
+         <option value="$id">$option</option>
+#end if 
+#end for
+    </select>
+#end for
+#elif $widget.type == 'submit'
+
+#set $enabled = True
+#if $widget.options.has_key('enabled')
+#if not $widget.options['enabled']
+#set $enabled = False
+#end if
+#end if
+#if $enabled
+    <input type="submit" name="$widget.controlname" value="$widget.name">
+#else
+    <input type="submit" disbled name="$widget.controlname" value="$widget.name">
+#end if
+#elif $widget.type == 'checkbox'
+    <input type="checkbox" name="$widget.controlname" value="$widget.value">
+#elif $widget.type == 'textarea'
+    #set $options = $widget.options
+    <textarea name="$widget.controlname" rows="$options['rows']" cols="$options['cols']" style="$style">$widget.value</textarea>
+#end if
+#end def
+
+#def showErrors($page)
+#if $page.errors
+#for $error in $page.errors
+    <span style="color: #ff0000;">$error</span><br>
+#end for
+#end if
+#if $page.messages
+#for $message in $page.messages
+    <span style="color: #00aa00;">$message</span><br>
+#end for
+#end if
+
+#end def
+
+#def makeMenu($menu)
+<div id="tabs" style="margin: -24px -10px;">
+<ul>
+#set $first = True
+#for $item,$url,$help in $menu
+#if $url
+<li>
+<a title="$help" href="$url">$item</a>
+#else
+<li id="current">
+<a>$item</a>
+#end if
+#set $first = False
+</li>
+#end for
+</ul>
+</div>
+#end def
+
+
+#def $displaySearchBox($searchbox)
+#set qs = SearchBoxTemplate()
+<div style="float: right;margin-right: 33px;margin-top:33px;">
+$qs.searchbox($searchbox)
+</div>
+#end def
+
+#def $displayTreeSelect($treeselect)
+#set ts = TreeSelectTemplate()
+$ts.treeselect($treeselect)
+#end def
+
+#def submitButton($submit)
+    <p>
+#if $submit['enabled']
+        <input type="submit" name="$submit['control']" value="$submit['value']">
+#else
+        <input disabled type="submit" name="$submit['control']" value="$submit['value']">
+#end if
+    </p>
+#end def
+
+
+##
+## EOF
+
 
 #def browse()
 #if not ($args['deviceHistList'] or $args['errorDevice'] or $args['rmaDevice'])
-#set global path = [("Home","/"),("Test","/")]
 <h2>$args['title']</h2>
 #set qs = SearchBoxTemplate()
 #set ts = TreeSelectTemplate()
     $qs.searchbox($args['searchbox'])
 <form action="$args['action']" method="post">
     $ts.treeselect($args['selectbox'])
-    <table>
+    <table style="font-size: 13px;">
         <tr>
 #if $args['submit']['enabled']
             <td><input type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
@@ -95,7 +640,7 @@ $registerRma($args['rmaDevice'])
 #end if
 #end def
 
-#def order()
+#def orderold()
 <h3>Active orders <a href="$args['update']">(update)</a></h3>
 <table>
     <tr>
@@ -103,7 +648,7 @@ $registerRma($args['rmaDevice'])
         <th>Product</th>
         <th>Amount</th>
         <th>Ordered</th>
-        <th>Dealer</th>
+        <th>Retailer</th>
         <th>Ordered by</th>
         <th>Organisation</th>
         <th>Arrival</th>
@@ -114,7 +659,7 @@ $registerRma($args['rmaDevice'])
         <td>$order.product</td>
         <td>$order.amount</td>
         <td>$order.orderTime</td>
-        <td>$order.dealer</td>
+        <td>$order.retailer</td>
         <td>$order.orderedByPerson</td>
         <td>$order.orderedByOrg</td>
         <td><a href="register/$order.orderId">Register arrival</a></td>
@@ -133,7 +678,7 @@ $registerRma($args['rmaDevice'])
         <th>Amount</th>
         <th>Ordered</th>
         <th>Arrived</th>
-        <th>Dealer</th>
+        <th>Retailer</th>
         <th>Ordered by</th>
         <th>Organisation</th>
     </tr>
@@ -146,7 +691,7 @@ $registerRma($args['rmaDevice'])
         <td>$order.amount</td>
         <td>$order.orderTime</td>
         <td>$order.arrivedTime</td>
-        <td>$order.dealer</td>
+        <td>$order.retailer</td>
         <td>$order.orderedByPerson</td>
         <td>$order.orderedByOrg</td>
     </tr>
@@ -166,14 +711,14 @@ $registerRma($args['rmaDevice'])
         <th>Product</th>
         <th>Amount</th>
         <th>Organisation</th>
-        <th>Dealer</th>
+        <th>Retailer</th>
         <th>Ordernr</th>
     </tr>
     <tr>
         <td>
             <select name="cn_prodid">
-#for $id,$productno,$descr in $args['productList']
-                <option value="$id">$productno</option>
+#for $id,$descr in $args['productList']
+                <option value="$id">$descr</option>
 #end for
             </select>
         </td>
@@ -181,11 +726,11 @@ $registerRma($args['rmaDevice'])
         <td>
             <select name="cn_org">
 #for $value,$option in $args['orgList']
-                <option value="$value">($value) $option</option>
+                <option value="$value">$option</option>
 #end if
             </select>
         </td>
-        <td><input type="text" name="cn_dealer"></td>
+        <td><input type="text" name="cn_retailer"></td>
         <td><input type="text" name="cn_ordernr"></td>
     </tr>
     <tr>
@@ -270,7 +815,7 @@ $registerRma($args['rmaDevice'])
 #end def
 
 
-#def history()
+#def historyOld()
 #if $args['deviceHistList']
 $deviceHistory($args['deviceHistList'])
 #end if
@@ -411,7 +956,7 @@ $registerRma($args['rmaDevice'])
 #end def
 
 
-#def delete()
+#def deleteOld()
 <h3>Modules that have been down more than $args['threshold'] hours</h3>
 <form method="post" action="$args['action']">
     <table>
