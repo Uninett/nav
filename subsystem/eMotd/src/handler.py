@@ -779,8 +779,8 @@ def maintenance(req, id = None):
                 for key in req.form.keys():
                     m = re.search("cn_%s_(\w+)"%kind,key)
                     if m:
-                        sql = "insert into emotd_related (emotdid,key,value) values (%d, '%s', '%s')" % (int(emotdid), kind, m.group(1))
-                        database.execute(sql)
+                        sql = "insert into emotd_related (emotdid,key,value) values (%d, %s, %s)"
+                        database.execute(sql, (emotdid, kind, m.group(1)))
                 connection.commit()
             redirect(req,BASEPATH+"add/%s" % emotdid)
 
@@ -985,13 +985,13 @@ def committime(req):
         start = DateTime.DateTime(int(req.form["start_year"]),int(req.form["start_month"]),int(req.form["start_day"]),int(req.form["start_hour"]),int(req.form["start_minute"]))
         end = DateTime.DateTime(int(req.form["end_year"]),int(req.form["end_month"]),int(req.form["end_day"]),int(req.form["end_hour"]),int(req.form["end_minute"]))
         if hasattr(req,"ny") and req.ny:
-            sql = "insert into maintenance (emotdid,maint_start,maint_end) values (%d,'%s','%s')" % (req.emotdid, start.strftime("%Y-%m-%d %H:%M"), end.strftime("%Y-%m-%d %H:%M"))
-            database.execute(sql)
+            sql = "insert into maintenance (emotdid,maint_start,maint_end) values (%d,%s,%s)"
+            database.execute(sql, (req.emotdid, str(start), str(end)))
             connection.commit()
             redirect(req,"%sadd/%s" % (BASEPATH,req.emotdid))
         else:
-            sql = "update maintenance set maint_start='%s', maint_end='%s' where emotdid=%d" % (start.strftime("%Y-%m-%d %H:%M"), end.strftime("%Y-%m-%d %H:%M"), req.emotdid)
-            database.execute(sql)
+            sql = "update maintenance set maint_start=%s, maint_end=%s where emotdid=%d"
+            database.execute(sql, (str(start), str(end), req.emotdid))
             connection.commit()
             redirect(req,"%sview/%s" % (BASEPATH,req.emotdid))
 
@@ -1028,17 +1028,18 @@ def commit(req):
     if req.form.has_key("parent_id") and req.form["parent_id"]:
         replaces = int(req.form["parent_id"])
         #oppdater published end
-        database.execute("update emotd set publish_end='%s' where emotdid=%d" % (DateTime.now(),replaces))
+        database.execute("update emotd set publish_end=%s where emotdid=%d",
+           (str(DateTime.now()) ,replaces))
         #lag ny
         database.execute("select nextval('emotd_emotdid_seq')")
         emotdid = int(database.fetchone()[0])
         #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, parent_id, last_changed))
-        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')", (emotdid, author, description, detail, title, affected, downtime, type, start, end, replaces, last_changed))
+        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), replaces, str(last_changed)))
     
     elif req.form.has_key('emotdid') and req.form["emotdid"]:
         emotdid = int(req.form["emotdid"])
         #database.execute("update emotd set description='%s', description_en='%s', detail='%s', detail_en='%s', title='%s', title_en='%s', affected='%s', affected_en='%s', downtime='%s', downtime_en='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed, emotdid))
-        database.execute("update emotd set description='%s', detail='%s', title='%s', affected='%s', downtime='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, detail, title, affected, downtime, type, start, end, last_changed, emotdid))
+        database.execute("update emotd set description=%s, detail=%s, title=%s, affected=%s, downtime=%s, type=%s, publish_start=%s, publish_end=%s, last_changed=%s where emotdid=%d", (description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed), emotdid))
         
     else:
         # if no id, make a new MOTD
@@ -1064,7 +1065,7 @@ def commitplacement(req):
                     database.execute("select emotdid from emotd_related where emotdid=%d and key='%s' and value='%s'" % (int(req.form["id"]), type, id))
                     already_exists = database.fetchone()
                     if not already_exists:
-                        database.execute("insert into emotd_related (emotdid, key, value) values (%d, '%s', '%s')" % (int(req.form["id"]), type, id))
+                        database.execute("insert into emotd_related (emotdid, key, value) values (%d, %s, %s)", (req.form["id"], type, id))
             req.session["equipment"] = {}
             req.session.save()
             connection.commit()
@@ -1081,7 +1082,9 @@ def remove(req,emotdid = 0):
             (key,vals) = t.split("=")
             for val in vals.split(","):
                 if emotdid:
-                    database.execute("delete from emotd_related where emotdid=%d and key='%s' and value='%s'" % (int(emotdid), key, val))
+                    database.execute("delete from emotd_related " + 
+                        "where emotdid=%d and key=%s and value=%s",
+                     (emotdid, key, val))
                 elif req.session.has_key("equipment") and req.session["equipment"].has_key(key):
                     while req.session["equipment"][key].count(val):
                         req.session["equipment"][key].remove(val)
