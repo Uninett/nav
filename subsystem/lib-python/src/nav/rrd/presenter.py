@@ -341,7 +341,7 @@ class presentation:
             if ds.units and ds.units.count("%"):
                 virtual += ',100,*'
             params += [virtual]
-            params += [linetype+':v_'+rrd_variable+color[index]+':'+''+legend+'']
+            params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
 
             a = rrdtool.info(rrd_filename)
             # HVA I HELVETE SKJER HER!?!?!??!?!
