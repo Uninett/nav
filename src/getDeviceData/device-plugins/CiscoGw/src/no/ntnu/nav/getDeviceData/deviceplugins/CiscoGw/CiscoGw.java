@@ -353,7 +353,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 	private static boolean isNumber(String s) {
 		try {
 			Integer.parseInt(s);
-		} catch (NumberFormatException) {
+		} catch (NumberFormatException e) {
 			return false;
 		}
 		return true;
