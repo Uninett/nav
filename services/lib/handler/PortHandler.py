@@ -1,5 +1,5 @@
 """
-$Id: PortHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: PortHandler.py,v 1.2 2002/07/01 16:10:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/PortHandler.py,v $
 """
 from job import JobHandler, Event
@@ -17,3 +17,4 @@ class PortHandler(JobHandler):
 		s.close()
 
 		return status,txt
+

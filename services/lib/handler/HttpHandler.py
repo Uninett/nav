@@ -1,5 +1,5 @@
 """
-$Id: HttpHandler.py,v 1.3 2002/06/28 02:35:01 magnun Exp $
+$Id: HttpHandler.py,v 1.4 2002/07/01 16:10:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/HttpHandler.py,v $
 """
 from job import Event, JobHandler
@@ -33,3 +33,11 @@ class HttpHandler(JobHandler):
 			info = 'ERROR (' +  str(response.status) + ')'
 		return status,info
 
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+								

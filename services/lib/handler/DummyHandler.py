@@ -1,5 +1,5 @@
 """
-$Id: DummyHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: DummyHandler.py,v 1.2 2002/07/01 16:10:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DummyHandler.py,v $
 """
 
@@ -12,3 +12,11 @@ class DummyHandler(JobHandler):
 		import random
 		time.sleep(random.random()*10)
 		return Event.UP,'OK'
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+								

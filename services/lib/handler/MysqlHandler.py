@@ -1,5 +1,5 @@
 """
-$Id: MysqlHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
+$Id: MysqlHandler.py,v 1.3 2002/07/01 16:10:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/MysqlHandler.py,v $
 """
 
@@ -18,3 +18,11 @@ class MysqlHandler(JobHandler):
 		version = line.split('-')[1].split('\n')[1].strip()
 		self.setVersion(version)
 		return Event.UP, 'OK'
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+								

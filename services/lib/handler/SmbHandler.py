@@ -1,5 +1,5 @@
 """
-$Id: SmbHandler.py,v 1.3 2002/07/01 09:20:25 magnun Exp $
+$Id: SmbHandler.py,v 1.4 2002/07/01 16:10:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmbHandler.py,v $
 """
 import os,re
@@ -33,3 +33,11 @@ class SmbHandler(JobHandler):
 			return Event.UP,'OK'
 		else:
 			return Event.DOWN,'error %s' % s.strip().split('\n')[-1]
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+								
