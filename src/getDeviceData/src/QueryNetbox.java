@@ -72,8 +72,6 @@ public class QueryNetbox extends Thread
 		nbRunQ = new TreeMap();
 		oidQ = new LinkedList();
 
-		createUnknownType();
-		
 		// Fetch from DB
 		updateTypes(false);
 		updateNetboxes();
@@ -98,7 +96,7 @@ public class QueryNetbox extends Thread
 		}
 	}
 
-	private static void createUnknownType() {
+	private static void createUnknownType(Map typeidMapL) {
 		// The unknown type is used for netboxes with missing type and only supports the 'typeoid' oidkey
 		String typeid = Type.UNKNOWN_TYPEID;
 		String typename = "unknownType";
@@ -119,8 +117,7 @@ public class QueryNetbox extends Thread
 		}
 
 		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
-		typeidMap = new HashMap();
-		typeidMap.put(typeid, t);
+		typeidMapL.put(typeid, t);
 
 	}
 
@@ -193,6 +190,9 @@ public class QueryNetbox extends Thread
 	public static synchronized void updateTypes(boolean updateNetboxes) {
 		Map typeidM = new HashMap();
 		Map oidkeyM = new HashMap();
+
+		// The unknown type is for netboxes without type
+		createUnknownType(typeidM);
 
 		// First fetch new types from the database
 		try {
