@@ -75,7 +75,7 @@ til timestamp
 --sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
 --smsid int4,
 --tidsendt timestamp
---); 
+--);
 
 ------------------------------------------
 
@@ -258,7 +258,7 @@ CREATE TABLE swport (
   media VARCHAR(16),
   trunk BOOL DEFAULT false,
   static BOOL DEFAULT false,  
-  portnavn VARCHAR(30),  
+  portnavn VARCHAR(30),
   boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   vpkatbak VARCHAR(5),
   UNIQUE(boksid, modul, port)
@@ -279,7 +279,7 @@ CREATE TABLE gwport (
   swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
--- not null fjernet fra interf 
+-- not null fjernet fra interf
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -338,7 +338,7 @@ DROP TABLE cam;
 DROP TABLE port2pkt; 
 DROP TABLE pkt2rom;  
 
-DROP SEQUENCE arp_arpid_seq; 
+DROP SEQUENCE arp_arpid_seq;
 DROP SEQUENCE cam_camid_seq; 
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
@@ -411,7 +411,7 @@ GRANT all ON pkt2rom_id_seq TO navall;
 
 
 -- VIEWs -----------------------
-CREATE VIEW boksmac AS  
+CREATE VIEW boksmac AS
 (SELECT DISTINCT ON (mac) boks.boksid,mac
  FROM arp
  JOIN boks USING (ip)
@@ -425,7 +425,7 @@ UNION
 
 -------- vlanPlot tabeller ------
 CREATE TABLE vpBoksGrpInfo (
-  gruppeid SERIAL PRIMARY KEY,              
+  gruppeid SERIAL PRIMARY KEY,
   name VARCHAR(16) NOT NULL,
   x INT2 NOT NULL DEFAULT '0',
   y INT2 NOT NULL DEFAULT '0'
@@ -443,7 +443,7 @@ CREATE TABLE vpBoksGrp (
 );
 
 CREATE TABLE vpBoksXY (
-  vpBoksXYId SERIAL PRIMARY KEY, 
+  vpBoksXYId SERIAL PRIMARY KEY,
   pboksid INT4 NOT NULL,
   x INT2 NOT NULL,
   y INT2 NOT NULL,
@@ -474,7 +474,7 @@ GRANT SELECT ON boks TO navadmin;
 GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON boksmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON prefiks TO navadmin; 
+GRANT SELECT ON prefiks TO navadmin;
 GRANT ALL    ON swport TO navadmin;
 GRANT ALL    ON swport_swportid_seq TO navadmin;
 GRANT ALL    ON swportvlan TO navadmin;
@@ -511,3 +511,112 @@ GRANT ALL    ON swportallowedvlan TO getPortData;
 
 
 -------- vlanPlot end ------
+
+
+-------- event system tables --------
+CREATE TABLE eventtype (
+  eventtypeid VARCHAR(32) PRIMARY KEY
+);
+INSERT INTO eventtype (eventtypeid) VALUES ('boxState');
+INSERT INTO eventtype (eventtypeid) VALUES ('serviceState');
+INSERT INTO eventtype (eventtypeid) VALUES ('moduleState');
+INSERT INTO eventtype (eventtypeid) VALUES ('thresholdState');
+INSERT INTO eventtype (eventtypeid) VALUES ('linkState');
+INSERT INTO eventtype (eventtypeid) VALUES ('coldStart');
+INSERT INTO eventtype (eventtypeid) VALUES ('warmStart');
+INSERT INTO eventtype (eventtypeid) VALUES ('info');
+
+CREATE TABLE eventprocess (
+  eventprocessid VARCHAR(32) PRIMARY KEY
+);
+INSERT INTO eventprocess (eventprocessid) VALUES ('eventEngine');
+INSERT INTO eventprocess (eventprocessid) VALUES ('pping');
+INSERT INTO eventprocess (eventprocessid) VALUES ('serviceping');
+INSERT INTO eventprocess (eventprocessid) VALUES ('moduleMon');
+INSERT INTO eventprocess (eventprocessid) VALUES ('thresholdMon');
+INSERT INTO eventprocess (eventprocessid) VALUES ('trapParser');
+
+DROP TABLE eventq;
+DROP SEQUENCE eventq_eventqid_seq;
+DROP TABLE evertqvar;
+
+CREATE TABLE eventq (
+  eventqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  target VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  time TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL DEFAULT 'x', -- x = stateless, t = start, f = end
+  value INT4 NOT NULL DEFAULT '100',
+  severity INT4 NOT NULL DEFAULT '50'
+);
+CREATE TABLE eventqvar (
+  eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  value TEXT NOT NULL
+);
+
+-- alert tables
+DROP TABLE alertq;
+DROP SEQUENCE alertq_alertqid_seq;
+DROP TABLE alertqvar;
+
+CREATE TABLE alertq (
+  alertqid SERIAL PRIMARY KEY,
+  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  time TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  state CHAR(1) NOT NULL DEFAULT 'x',
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL
+);
+CREATE TABLE alertqvar (
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  value TEXT NOT NULL
+);
+
+DROP TABLE alerthist;
+DROP SEQUENCE alerthist_alerthistid_seq;
+DROP TABLE alerthistvar;
+
+CREATE TABLE alerthist (
+  alerthistid SERIAL PRIMARY KEY,
+  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  subid INT4,
+  start_t TIMESTAMP NOT NULL,
+  end_t TIMESTAMP NOT NULL,
+  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  value INT4 NOT NULL,
+  severity INT4 NOT NULL
+);
+CREATE TABLE alerthistvar (
+  alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR(32) NOT NULL,
+  value TEXT NOT NULL
+);
+
+GRANT SELECT ON eventtype TO eventengine;
+GRANT SELECT ON eventprocess TO eventengine;
+GRANT ALL ON eventq TO eventengine;
+GRANT ALL ON eventq_eventqid_seq TO eventengine;
+GRANT ALL ON eventqvar TO eventengine;
+GRANT ALL ON alertq TO eventengine;
+GRANT ALL ON alertq_alertqid_seq TO eventengine;
+GRANT ALL ON alertqvar TO eventengine;
+GRANT ALL ON alerthist TO eventengine;
+GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
+GRANT ALL ON alerthistvar TO eventengine;
+GRANT SELECT,UPDATE ON boks TO eventengine;
+GRANT SELECT ON swport TO eventengine;
+GRANT SELECT ON gwport TO eventengine;
+GRANT SELECT ON prefiks TO eventengine;
+
