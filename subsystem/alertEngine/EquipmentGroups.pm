@@ -21,10 +21,12 @@ sub new
     $this->{dbh}=shift;
 
     #Access control fields
+    $this->{field}{Netboxtype}=3;
+    $this->{field}{Severity}=5;
     $this->{field}{IP}=6;
     $this->{field}{Name}=7;
     $this->{field}{Source}=10;
-    $this->{field}{Severity}=11;
+    $this->{field}{Eventtype}=11;
     
     #Access control type
     $this->{type}{eq}=0;
@@ -160,54 +162,80 @@ sub checkMatch()
   {
     my ($this,$fm,$alert)=@_;
     if($fm->{field}==$this->{field}{IP})
-      {
+    {
 	return $this->checkIP($fm->{type},$fm->{value},$alert->getIP());
-      }
+    }
     elsif($fm->{field}==$this->{field}{Source})
     {
 	return $this->checkName($fm->{type},$fm->{value},$alert->getSource());
     }
     elsif($fm->{field}==$this->{field}{Severity})
     {
-	return $this->checkSeverity($fm->{type},$fm->{value},$alert->getSeverity());
+	return $this->checkInt($fm->{type},$fm->{value},$alert->getSeverity());
     }
     elsif($fm->{field}==$this->{field}{Name})
     {
 	return $this->checkName($fm->{type},$fm->{value},$alert->getName());
     }
+    elsif($fm->{field}==$this->{field}{Eventtype})
+    {
+	return $this->checkString($fm->{type},$fm->{value},$alert->getEventtype());
+    }
+    elsif($fm->{field}==$this->{field}{Netboxtype})
+    {
+	return $this->checkInt($fm->{type},$fm->{value},$alert->getNetboxtype());
+    }
     return 0;
   }
 
-sub checkSeverity()
+sub checkString()
 {
-    my ($this,$type,$value,$severity)=@_;
+    my ($this,$type,$value,$str)=@_;
+
+    my $match=0;
+
+    if($value eq $str) {
+	$match=1;
+    }
+
     if($type==$this->{type}{eq}) {
-	if($severity==$value) {
+	return $match;
+    } else {
+	return !$match;
+    }
+	
+}
+
+sub checkInt()
+{
+    my ($this,$type,$value,$int)=@_;
+    if($type==$this->{type}{eq}) {
+	if($int==$value) {
 	    return 1;
 	}	    
     }
     elsif($type==$this->{type}{more}) {
-	if($severity>$value) {
+	if($int>$value) {
 	    return 1;
 	}	    
     }
     elsif($type==$this->{type}{moreeq}) {
-	if($severity>=$value) {
+	if($int>=$value) {
 	    return 1;
 	}	    
     }
     elsif($type==$this->{type}{less}) {
-	if($severity<$value) {
+	if($int<$value) {
 	    return 1;
 	}	    
     }
     elsif($type==$this->{type}{lesseq}) {
-	if($severity<=$value) {
+	if($int<=$value) {
 	    return 1;
 	}	    
     }
     elsif($type==$this->{type}{ne}) {
-	if($severity!=$value) {
+	if($int!=$value) {
 	    return 1;
 	}	    
     }

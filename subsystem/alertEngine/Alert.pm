@@ -58,7 +58,7 @@ sub collectNetbox()
     if(defined $this->{netboxid})
       {
 	
-	my $sth=$this->{dbh}->prepare("select ip,sysname from netbox where netboxid=$this->{netboxid}");
+	my $sth=$this->{dbh}->prepare("select ip,sysname,typeid from netbox where netboxid=$this->{netboxid}");
 	$sth->execute;
 	
 	my $info=$sth->fetchrow_arrayref();
@@ -179,6 +179,12 @@ sub collectVar()
     }    
 }
 
+sub getEventtype()
+{
+    my $this=shift;
+    return $this->{eventtypeid};
+}
+
 sub getID()
 #returns ID of alert
 {
@@ -198,7 +204,7 @@ sub delete()
     my $this=shift;
     if(!$this->{queued})
     {
-#	print "delete\n";
+	print "delete alertqid=$this->{id}\n";
 #	return;
 	$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
     }

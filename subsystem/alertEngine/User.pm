@@ -248,28 +248,30 @@ sub sendAlert()
 sub sendSMS()
 {
     my($this,$to,$msg)=@_;
+    my $now=localtime;
     if(length($msg)==0)
     {
 	print "Error: no SMS message\n";
     }
 
-    print "SMS $to: $msg\n";
-#    return; 
-    $this->{dbh}->do("insert into smsutko (tlfnr,melding) values($to,'$msg')");
+    print "$now SMS $to: $msg\n";
+ #   return; 
+#    $this->{dbh}->do("insert into smsutko (tlfnr,melding) values($to,'$msg')");
 }
 
 sub sendEmail()
 {
     my($this,$to,$subject,$body)=@_;
+    my $now=localtime;
     if(length($subject)==0)
     {
 	print "Error: no subject defined\n";
 	return;
     }
 
-
-    print "EMAIL $to\tSubject: $subject\n";
-#    return;
+    
+    print "$now EMAIL $to\tSubject: $subject\n";
+    return;
 
     open(SENDMAIL, "|$this->{sendmail}")
       or die "Can't fork for sendmail: $!\n";
