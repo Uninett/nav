@@ -71,6 +71,28 @@ public class SimpleSnmpHP extends SimpleSnmp
 		super(host, cs_ro, baseOid);
 	}
 
+	/**
+	 * Overridden to add an "OidToModuleMapping" entry for mapping an
+	 * OID to its module number if oidToModuleMap is true.
+	 */
+	public Map getAllMap(String baseOid, boolean decodeHex, int stripCnt, boolean oidToModuleMap) throws TimeoutException
+	{
+		List l = getAll(baseOid, decodeHex);
+		if (l == null) return null;
+
+		Map m = new HashMap();
+		Map modMap = new HashMap();
+		for (Iterator it = l.iterator(); it.hasNext();) {
+			String[] s = (String[])it.next();
+			s[0] = strip(s[0], '.', stripCnt, true);
+			m.put(s[0], s[1]);
+			if (s.length > 2) modMap.put(s[0], s[2]);
+		}
+		if (oidToModuleMap) m.put("OidToModuleMapping", modMap);
+		return m;
+	}
+
+
 	// Doc in parent
 	// Must be overridden to avoid module being prepended twice if stripCnt is 0
 	public Map getAllMapList(String baseOid, int stripCnt) throws TimeoutException {
@@ -186,6 +208,9 @@ public class SimpleSnmpHP extends SimpleSnmp
 						s[0] = convertToIfIndex(s, 0);
 						s[1] = convertToIfIndex(s, 1);
 						break;
+					case IFINDEX_NONE:
+					default:
+						break;						
 					}
 				}
 				//System.err.println("Ret s0: " + s[0] + " s1: " + s[1] + " s2: " + s[2] + " s3: " + s[3]);

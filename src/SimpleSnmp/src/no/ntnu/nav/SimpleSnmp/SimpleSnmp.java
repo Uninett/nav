@@ -49,6 +49,8 @@ public class SimpleSnmp
 	public static final int IFINDEX_OID = 0;
 	public static final int IFINDEX_VALUE = 1;
 	public static final int IFINDEX_BOTH = 2;
+	public static final int IFINDEX_NONE = 3;
+	public static final int IFINDEX_DEFAULT = IFINDEX_OID;
 
 	private final int DEFAULT_TIMEOUT_LIMIT = 4;
 	private int timeoutLimit = 4;
@@ -133,9 +135,10 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Specify if the OID, the value or both contain the ifindex. This
-	 * is important for certain types, e.g. HP, which need to treat the
-	 * ifindex special due to unit stacking.
+	 * Specify if the ifindex is contained in the OID, the value,
+	 * both, or there is no ifindex. This is important for certain
+	 * types, e.g. HP, which need to treat the ifindex special due to
+	 * unit stacking.
 	 */
 	public void setIfindexIs(int ifindexIs) {
 		
@@ -265,6 +268,25 @@ public class SimpleSnmp
 
 	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map. Includes the option to ask for a map from OID to module to
+	 * be included, but the default implementation ignores this.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex try to decode returned hex to ASCII
+	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
+	 * @return a Map which maps the OIDs to their corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMap(String baseOid, boolean decodeHex, int stripCnt, boolean oidToModuleMap) throws TimeoutException
+	{
+		return getAllMap(baseOid, decodeHex, stripCnt);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
 	 * Map; the OIDs are mapped to a {@link java.util.List List} of
 	 * values.  </p>
 	 *
@@ -322,7 +344,7 @@ public class SimpleSnmp
 	}
 
 	// Strip elements from string s
-	private String strip(String s, char sep, int cnt, boolean front) {
+	protected String strip(String s, char sep, int cnt, boolean front) {
 		if (cnt > 0) {
 			int p = 0, k = 0;
 			for (int i=0; i < cnt; i++) {
