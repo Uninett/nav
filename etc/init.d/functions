@@ -1,7 +1,7 @@
 #!/bin/sh
 ####################
 #
-# $Id: functions,v 1.4 2003/05/26 12:19:36 mortenv Exp $
+# $Id: functions,v 1.5 2003/06/02 12:18:50 mortenv Exp $
 # This file is part of the NAV project.
 # This file contains functions to be used by most or all shell scripts
 # in the navme/bin/init directory.
@@ -65,7 +65,7 @@ checkpid() {
 
 pidofproc() {
     local base=${1##*/}
-
+    local PIDOF=/sbin/pidof
     local pidfile=/usr/local/nav/local/var/run/${base}.pid
 
     if [ -f $pidfile ] ; then
@@ -80,6 +80,6 @@ pidofproc() {
 	fi
     fi
 
-    pidof -o $$ -o $PPID -o %PPID -x $1 || \
-    pidof -o $$ -o $PPID -o %PPID -x ${base}
+    $PIDOF -o $$ -o $PPID -o %PPID -x $1 || \
+    $PIDOF -o $$ -o $PPID -o %PPID -x ${base}
 }
