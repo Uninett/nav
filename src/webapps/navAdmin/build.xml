@@ -52,6 +52,13 @@
   </target>
 
   <target name="install" depends="dist">
+    <!-- The point of the following is to set the isUnix property to
+    os.name if os.family is unix.  Later, we use isUnix in os lists to
+    exec when calling chmod on files -->
+    <condition property="isUnix" value="${os.name}">
+      <os family="unix" />
+    </condition>
+
     <mkdir dir="${DESTDIR}${jarinstdir}"/>
     <copy file="${dist}/${jar}" todir="${DESTDIR}${jarinstdir}"/>
 
@@ -65,6 +72,9 @@
     <mkdir dir="${DESTDIR}${bindir}" />
     <copy file="runAvledTopologi.sh" todir="${DESTDIR}${bindir}" />
     <copy file="runAvledVlan.sh" todir="${DESTDIR}${bindir}" />
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 runAvledTopologi.sh runAvledVlan.sh" />
+    </exec>
 
     <mkdir dir="${DESTDIR}${crondir}"/>
     <copy file="collect" todir="${DESTDIR}${crondir}" />

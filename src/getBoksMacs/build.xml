@@ -40,15 +40,28 @@
   </target>
 
   <target name="install" depends="dist">
+    <!-- The point of the following is to set the isUnix property to
+    os.name if os.family is unix.  Later, we use isUnix in os lists to
+    exec when calling chmod on files -->
+    <condition property="isUnix" value="${os.name}">
+      <os family="unix" />
+    </condition>
+
     <mkdir dir="${DESTDIR}${instdir}"/>
     <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
     <copy file="arplogger.pl" todir="${DESTDIR}${bindir}"/>
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 arplogger.pl" />
+    </exec>
 
     <mkdir dir="${DESTDIR}${sysconfdir}"/>
     <copy file="getBoksMacs.conf" todir="${DESTDIR}${sysconfdir}"/>
 
     <mkdir dir="${DESTDIR}${bindir}"/>
     <copy file="getBoksMacs.sh" todir="${DESTDIR}${bindir}"/>
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 getBoksMacs.sh" />
+    </exec>
 
     <mkdir dir="${DESTDIR}${crondir}"/>
     <copy file="iptrace" todir="${DESTDIR}${crondir}"/>

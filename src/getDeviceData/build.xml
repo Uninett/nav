@@ -68,6 +68,13 @@
   </target>
 
   <target name="install" depends="dist">
+    <!-- The point of the following is to set the isUnix property to
+    os.name if os.family is unix.  Later, we use isUnix in os lists to
+    exec when calling chmod on files -->
+    <condition property="isUnix" value="${os.name}">
+      <os family="unix" />
+    </condition>
+
     <mkdir dir="${DESTDIR}${instdir}"/>
     <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
 
@@ -83,9 +90,15 @@
 
     <mkdir dir="${DESTDIR}${bindir}"/>
     <copy file="getDeviceData.sh" todir="${DESTDIR}${bindir}"/>
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 getDeviceData.sh" />
+    </exec>
 
-    <mkdir dir="${DESTDIR}${sysconfdir}/init.d"/>
-    <copy file="getDeviceData" todir="${DESTDIR}${sysconfdir}/init.d"/>
+    <mkdir dir="${DESTDIR}${initdir}" />
+    <copy file="getDeviceData" todir="${DESTDIR}${initdir}" />
+    <exec dir="${DESTDIR}${initdir}" executable="chmod" os="${isUnix}">
+      <arg line="755 getDeviceData" />
+    </exec>
     <copy file="getDeviceData.conf" todir="${DESTDIR}${sysconfdir}"/>
   </target>
 
