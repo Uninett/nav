@@ -1,4 +1,4 @@
-<project name="handlerHP" default="dist" basedir=".">
+<project name="handlerHP" default="copy" basedir=".">
     <description>
         getDeviceData plugin for HP
     </description>
@@ -28,6 +28,10 @@
 
     <!-- Put everything in ${build} into the handlerHP.jar file -->
     <jar jarfile="${dist}/handlerHP.jar" basedir="${build}" manifest="Plugin-Class"/>
+  </target>
+
+  <target name="copy" depends="dist">
+    <copy file="${dist}/handlerHP.jar" todir="../"/>
   </target>
 
   <target name="clean"

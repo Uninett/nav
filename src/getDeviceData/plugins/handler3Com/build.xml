@@ -1,4 +1,4 @@
-<project name="handler3Com" default="dist" basedir=".">
+<project name="handler3Com" default="copy" basedir=".">
     <description>
         getDeviceData plugin for 3Com
     </description>
@@ -28,6 +28,10 @@
 
     <!-- Put everything in ${build} into the handler3Com.jar file -->
     <jar jarfile="${dist}/handler3Com.jar" basedir="${build}" manifest="Plugin-Class"/>
+  </target>
+
+  <target name="copy" depends="dist">
+    <copy file="${dist}/handler3Com.jar" todir="../"/>
   </target>
 
   <target name="clean"
