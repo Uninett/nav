@@ -63,6 +63,7 @@ public class GwModule extends Module implements Comparable
 	 * Return a Gwport-object which is used to describe a single router interface.
 	 */
 	public Gwport gwportFactory(String ifindex, String interf) {
+		if (gwports.containsKey(ifindex)) return (Gwport)gwports.get(ifindex);
 		Gwport gw = new Gwport(ifindex, interf);
 		gwports.put(ifindex, gw);
 		return gw;

@@ -22,6 +22,8 @@ public class GwportHandler implements DataHandler {
 
 	private static final boolean DEBUG_OUT = false;
 
+	private static MultiMap nbGwpMap = new HashMultiMap();
+	private static Map devidMap = Collections.synchronizedMap(new HashMap());
 	private static Map moduleMap;
 
 	private static Map prefixDbMap;
@@ -37,6 +39,29 @@ public class GwportHandler implements DataHandler {
 	 * Fetch initial data from module/gwport/prefix/vlan tables.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
+		// Remove any devices no longer present
+		if (!changedDeviceids.isEmpty()) {
+			synchronized(getClass()) {
+				Map removeGwipMap = new HashMap();
+				for (Iterator it = changedDeviceids.entrySet().iterator(); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					if (((Integer)me.getValue()).intValue() == DataHandler.DEVICE_DELETED) {
+						GwModule gwm = (GwModule)devidMap.remove(me.getKey());
+						if (gwm != null) {
+							for (Iterator gwIt = gwm.getGwports(); gwIt.hasNext();) {
+								Gwport gwp = (Gwport)gwIt.next();
+								removeGwipMap.put(gwp.getGwportidS(), gwp.gwipSet());
+							}
+						}
+					}
+				}
+				try {
+					removeGwips(removeGwipMap);
+				} catch (SQLException e) {
+					Log.e("INIT-REMOVE-GWIP", "SQLException: " + e.getMessage());
+				}
+			}
+		}
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -112,6 +137,7 @@ public class GwportHandler implements DataHandler {
 						gwp.setMasterindex(rs.getInt("masterindex"));
 						gwp.setSpeed(rs.getDouble("speed"));
 						if (rs.getString("ospf") != null) gwp.setOspf(rs.getInt("ospf"));
+						nbGwpMap.put(rs.getString("netboxid"), gwp);
 
 						int gwportid = rs.getInt("gwportid");
 						do {
@@ -128,6 +154,7 @@ public class GwportHandler implements DataHandler {
 
 				String key = rs.getString("netboxid")+":"+rs.getString("moduleid");
 				m.put(key, gwm);
+				devidMap.put(gwm.getDeviceidS(), gwm);
 			}
 
 			moduleMap = m;
@@ -167,7 +194,8 @@ public class GwportHandler implements DataHandler {
 			Log.setDefaultSubsystem("GwportHandler");
 			int newcnt = 0, updcnt = 0, newPrefixCnt=0;
 
-			errl("Gwports for " + nb);
+			//errl("Gwports for " + nb);
+			Map foundGwps = new HashMap();
 
 			try {
 
@@ -185,14 +213,34 @@ public class GwportHandler implements DataHandler {
 					GwModule oldgwm = (GwModule)moduleMap.get(gwportKey);
 					//System.err.println("   GWM: " + gwm);
 					//System.err.println("OLDGWM: " + oldgwm);
+					devidMap.put(gwm.getDeviceidS(), gwm);
 					moduleMap.put(gwportKey, gwm);
 
 					errl("  GwModule: " + gwm);
 				
 					for (Iterator gwPorts = gwm.getGwports(); gwPorts.hasNext();) {
 						Gwport gwp = (Gwport)gwPorts.next();
-
 						errl("    Gwport: " + gwp);
+
+						// Check if this is a static entry
+						for (Iterator gwportPrefices = gwp.getGwportPrefices(); gwportPrefices.hasNext();) {
+							Gwportprefix gp = (Gwportprefix)gwportPrefices.next();
+							Prefix p = gp.getPrefix();
+							Vlan vl = p.getVlan();
+							if ("static".equals(vl.getNettype()) && prefixDbMap.containsKey(p.getCidr())) {
+								Prefix oldp = (Prefix)prefixDbMap.get(p.getCidr());
+								Vlan oldv = oldp.getVlan();
+								if (!"static".equals(oldv.getNettype())) {
+									System.err.println("Removed static prefix: " + p.getCidr());
+									gwportPrefices.remove();
+								}
+							}
+						}
+						if (!gwp.getGwportPrefices().hasNext()) {
+							System.err.println("  Not adding gwp because no prefices: " + gwp);
+							continue;
+						}
+						foundGwps.put(gwp.getIfindex(), gwp);
 
 						// Find old if exists
 						String gwportid;
@@ -265,7 +313,7 @@ public class GwportHandler implements DataHandler {
 							Vlan vl = p.getVlan();
 							//if (!vl.getNettype().equals("elink")) vl.setNettype(Vlan.UNKNOWN_NETTYPE);
 							if (vl.getNettype().equals("elink")) vl.setNetident(null);
-							vl.setNettype(Vlan.UNKNOWN_NETTYPE);
+							//vl.setNettype(Vlan.UNKNOWN_NETTYPE);
 
 							errl("      Gwip: " + gwip);
 							errl("      Hsrp: " + hsrp);
@@ -407,22 +455,28 @@ public class GwportHandler implements DataHandler {
 					}
 				}
 
-				// Remove all gwips from gwports where they no longer exist.
-				for (Iterator it = removeGwipMap.entrySet().iterator(); it.hasNext();) {
-					Map.Entry me = (Map.Entry)it.next();
-					String gwportid = (String)me.getKey();
-					for (Iterator gwipIt = ((Set)me.getValue()).iterator(); gwipIt.hasNext();) {
-						String rgwip = (String)gwipIt.next();
-						if (gwpDbMap.containsKey(rgwip)) {
-							Gwportprefix rgwp = (Gwportprefix)gwpDbMap.get(rgwip);
-							rgwp.getPrefix().removeGwport(gwportid);
-
-							// Delete it
-							Database.update("DELETE FROM gwportprefix WHERE gwip='" + rgwip + "'");
-							gwpDbMap.remove(rgwip);
-						}
-					}
+				// Remove gwports missing
+				Set oldIfindex = new HashSet();
+				Set oldgwpSet = nbGwpMap.get(nb.getNetboxidS());
+				nbGwpMap.remove(nb.getNetboxidS());
+				for (Iterator it = oldgwpSet.iterator(); it.hasNext();) {
+					oldIfindex.add(((Gwport)it.next()).getIfindex());
 				}
+				nbGwpMap.put(nb.getNetboxidS(), foundGwps.values());
+				oldIfindex.removeAll(foundGwps.keySet());
+				
+				for (Iterator it = oldIfindex.iterator(); it.hasNext();) {
+					String ifind = (String)it.next();
+					//Gwport gwp = (Gwport)foundGwps.get(it.next());
+					Gwport gwp = (Gwport)foundGwps.get(ifind);
+					if (gwp == null) {
+						System.err.println("Warning, gwp null for ifindex: " + ifind);
+						continue;
+					}
+					removeGwipMap.put(gwp.getGwportidS(), gwp.gwipSet());
+				}
+
+				removeGwips(removeGwipMap);
 
 				// Do autodetermination of nettype
 				for (Iterator it = prefixUpdateSet.iterator(); it.hasNext();) {
@@ -471,6 +525,21 @@ public class GwportHandler implements DataHandler {
 							nettype = "lan";
 						}
 					}
+					// Two different routers + hsrp = lan
+					else if (hsrpCnt > 0 && sysnameSet.size() == 2) {
+						nettype = "lan";
+					}
+					// Two gwports from different routers = link
+					else if (numGwp == 2 && sysnameSet.size() == 2 && hsrpCnt == 0) {
+						nettype = "link";
+						Iterator sIt = sysnameSet.iterator();
+						netident = sIt.next()+","+sIt.next();
+					}
+					// More than two gwports without hsrp = core
+					else {
+						nettype = "core";
+					}
+					/*
 					// More than one gwport + hsrp = lan
 					else if (hsrpCnt > 0 && numGwp > 1) {
 						nettype = "lan";
@@ -485,6 +554,7 @@ public class GwportHandler implements DataHandler {
 					else {
 						nettype = "core";
 					}
+					*/
 
 					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl + " New: " + nettype);
 
@@ -508,6 +578,26 @@ public class GwportHandler implements DataHandler {
 				e.printStackTrace(System.err);
 			}
 		}
+	}
+
+	private static void removeGwips(Map removeGwipMap) throws SQLException {
+		// Remove all gwips from gwports where they no longer exist.
+		for (Iterator it = removeGwipMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String gwportid = (String)me.getKey();
+			for (Iterator gwipIt = ((Set)me.getValue()).iterator(); gwipIt.hasNext();) {
+				String rgwip = (String)gwipIt.next();
+				if (gwpDbMap.containsKey(rgwip)) {
+					Gwportprefix rgwp = (Gwportprefix)gwpDbMap.get(rgwip);
+					rgwp.getPrefix().removeGwport(gwportid);
+
+					// Delete it
+					Database.update("DELETE FROM gwportprefix WHERE gwip='" + rgwip + "'");
+					gwpDbMap.remove(rgwip);
+				}
+			}
+		}
+
 	}
 	
 	private static void createVlan(Vlan vl) throws SQLException {

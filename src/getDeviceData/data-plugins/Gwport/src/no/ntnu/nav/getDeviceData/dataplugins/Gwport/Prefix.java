@@ -28,7 +28,7 @@ public class Prefix implements Comparable
 		this(and_ip(gwip, netmask), masklen(netmask), vlan);
 	}
 
-	private static String and_ip(String ip, String mask) {
+	public static String and_ip(String ip, String mask) {
 		StringTokenizer a = new StringTokenizer(hexToIp(ip), ".");
 		StringTokenizer b = new StringTokenizer(hexToIp(mask), ".");
 		String and_ip = "";
@@ -40,7 +40,7 @@ public class Prefix implements Comparable
 	}
 
 	// Calc the number of bits in mask
-	private static int masklen(String mask) {
+	public static int masklen(String mask) {
 		int bits = 0;
 		String[] s = hexToIp(mask).split("\\.");
 
