@@ -352,7 +352,9 @@ class Mouse implements MouseListener
 				}
 
 			}
-		} else
+		} 
+		/*
+		else
 		if (overLogo)
 		{
 			if (button1 && button2 || meta )
@@ -367,7 +369,7 @@ class Mouse implements MouseListener
 				}
 			}
 		}
-
+		*/
 
 	}
 

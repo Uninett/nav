@@ -145,17 +145,19 @@ class AdminMenu extends Panel
 		c.fill = GridBagConstraints.BOTH;
 
 		// admin-label
+		/*
 		Label topLabel = new Label("Admin:");
 		c.weightx = 0.0; c.weighty = 0.0;
 		c.gridx = 1; c.gridy = 1; c.gridwidth = 1; c.gridheight = 1;
 		c.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(topLabel, c);
 		add(topLabel, c);
+		*/
 
 		// move nettel button
 		Button moveMode = new Button("Enter move-mode");
 		c.weightx = 0.0; c.weighty = 0.0;
-		c.gridx = 1; c.gridy = 2; c.gridwidth = 1; c.gridheight = 1;
+		c.gridx = 1; c.gridy = 1; c.gridwidth = 1; c.gridheight = 1;
 		c.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(moveMode, c);
 		add(moveMode, c);
@@ -163,7 +165,7 @@ class AdminMenu extends Panel
 		// move nettel button
 		Button saveBoksXY = new Button("Save pos");
 		c.weightx = 0.0; c.weighty = 0.0;
-		c.gridx = 1; c.gridy = 3; c.gridwidth = 1; c.gridheight = 1;
+		c.gridx = 1; c.gridy = 2; c.gridwidth = 1; c.gridheight = 1;
 		c.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(saveBoksXY, c);
 		add(saveBoksXY, c);
@@ -171,7 +173,7 @@ class AdminMenu extends Panel
 		// save-knapp
 		Button exitAdmin = new Button("Exit admin");
 		c.weightx = 0.0; c.weighty = 0.0;
-		c.gridx = 1; c.gridy = 4; c.gridwidth = 1; c.gridheight = 1;
+		c.gridx = 1; c.gridy = 3; c.gridwidth = 1; c.gridheight = 1;
 		c.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(exitAdmin, c);
 		add(exitAdmin, c);

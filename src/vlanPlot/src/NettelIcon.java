@@ -52,7 +52,7 @@ class NettelIcon implements ImageObserver
 			sizeY = height;
 		}
 
-		if (sizeX != -1 && sizeY != -1) parent.recalcLink();
+		if (sizeX != -1 && sizeY != -1 && parent != null) parent.recalcLink();
 
 		return (sizeX == -1 || sizeY == -1);
 	}

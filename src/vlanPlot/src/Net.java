@@ -25,6 +25,7 @@ class Net extends Canvas implements ItemListener
 
 	public static String netName;
 	public static String netLink;
+	public static String domainSuffix = "";
 
 	// Denne styrer om vi har satt konfigurasjon
 	public static boolean setConfig = false;
@@ -39,6 +40,8 @@ class Net extends Canvas implements ItemListener
 	//boolean busy;
 	int visVlan = 0; // hvilket vlan det fokuseres på
 	int visGruppe = -1; // hvilken gruppe det fokuseres på
+	String visGruppeNavn = "";
+	Hashtable gruppeIdMap = new Hashtable(); // Convert between gruppe navn and gruppe id (db)
 
 	//Vector nettel;
 	Vector group = new Vector();
@@ -99,6 +102,8 @@ class Net extends Canvas implements ItemListener
 		Input input = new Input(com);
 		com.setInput(input);
 
+		gruppeIdMap.put("", new Integer(0));
+
 		PopupMenuListener pmListener = new PopupMenuListener(com);
 
 		vlanMenu = new PopupMenus("VLAN_MENU", "Vlan meny", this, pmListener);
@@ -156,8 +161,11 @@ class Net extends Canvas implements ItemListener
 	{
 		//String name = (visGruppe < netNames.length) ? netNames[visGruppe] : "nettgruppe "+visGruppe;
 
-		if (visGruppe < 0) visGruppe = 0;
-		com.d("Starter buildBynett(), gruppe " + visGruppe, 1);
+		if (visGruppe < 0) {
+			visGruppe = 0;
+			visGruppeNavn = "";
+		}
+		com.d("Starter buildBynett(), gruppe " + visGruppe + " ("+visGruppeNavn+","+gruppeIdMap.get(visGruppeNavn)+")", 1);
 		com.d("------------", 1);
 		com.d("Blanker Nettel-hash", 1);
 
@@ -175,7 +183,8 @@ class Net extends Canvas implements ItemListener
 		bynettView = true;
 
 		// Hent data
-		Hashtable h = com.getInput().getDefaultInput(visGruppe);
+		int visGruppeId = ((Integer)gruppeIdMap.get(visGruppeNavn)).intValue();
+		Hashtable h = com.getInput().getDefaultInput(visGruppeId);
 
 
 		if (!setConfig) {
@@ -200,7 +209,7 @@ class Net extends Canvas implements ItemListener
 			// Bare ta med enheter som skal være med
 			Hashtable tmp = new Hashtable();
 			//Hashtable tmp2 = new Hashtable();
-			String[] s = (String[])lRouterGroups.get(""+visGruppe);
+			String[] s = (String[])lRouterGroups.get(""+visGruppeId);
 			for (int i = 4; i < s.length; i++) // Element 2 og 3 er X og Y for gruppen
 			{
 				// legg til enheten hvis den eksiterer
@@ -277,8 +286,15 @@ class Net extends Canvas implements ItemListener
 
 			if ( (xy = (String[])lRouterXY.get(s[0])) == null) {
 				xy = new String[3];
+				/*
 				xy[1] = "10";
 				xy[2] = "25";
+				*/
+				// Random
+				xy[1] = "" + (10 + (int)(Math.random()*500));
+				xy[2] = "" + (25 + (int)(Math.random()*500));
+			} else {
+				n.locationSet();
 			}
 			n.setXY(Integer.parseInt(xy[1]), Integer.parseInt(xy[2]) );
 			com.d("   " + s[0] + ", " + s[1] + ", type: " + s[2] + " ("+xy[1]+","+xy[2]+")", 3);
@@ -296,13 +312,24 @@ class Net extends Canvas implements ItemListener
 
 			// Legg til gruppenavnet til GUI-menyen
 			com.getLeft().addNettNavn(s[1]);
+			com.d("Adding gruppeIdMap: " + s[1] + " -> " + s[0], 3);
+			gruppeIdMap.put(s[1], new Integer(s[0]));
 			if (s[0].equals("0")) continue; // Bynettet
 
-			Grp grp = new Grp(com, Integer.parseInt(s[0]) );
+			Grp grp = new Grp(com, Integer.parseInt(s[0]), Boolean.valueOf(s[4]).booleanValue() );
 			grp.setName(s[1]);
-			grp.setXY(Integer.parseInt(s[2]), Integer.parseInt(s[3]) );
+			grp.setIconName(s[5]);
+			{
+				int x = Integer.parseInt(s[2]);
+				int y = Integer.parseInt(s[3]);
+				if (x == 0 && y == 0) {
+					x = (10 + (int)(Math.random()*500));
+					y = (25 + (int)(Math.random()*500));
+				}
+				grp.setXY(x, y);
+			}
 			group.addElement(grp);
-			com.d("   Added group (" + s[0] + "): " + s[1] + ", at ("+s[2]+","+s[3]+")", 4);
+			com.d("   Added group (" + s[0] + "): " + s[1] + ", at ("+s[2]+","+s[3]+"), hideicons: " + s[4], 4);
 
 
 			for (int j = 4; j < s.length; j++)
@@ -315,6 +342,7 @@ class Net extends Canvas implements ItemListener
 
 				com.d("     grp " + s[0] + ": " + n.getName(), 5);
 			}
+			grp.autoLayout();
 		}
 		com.getLeft().addNettNavn(null); // Listen blir sortert og lukket
 		setOverskrift(com.getLeft().getNettNavn(visGruppe)+" for "+netName); // Nå kan vi sette overskrift
@@ -834,6 +862,9 @@ class Net extends Canvas implements ItemListener
 		s = (String[])lConfig.get("vpNetLink");
 		netLink = s[1];
 
+		s = (String[])lConfig.get("domainSuffix");
+		domainSuffix = s[1];
+
 		s = (String[])lConfig.get("userName");
 		if (s != null) com.d("Found userName: " + s[1], 1);
 
@@ -841,6 +872,10 @@ class Net extends Canvas implements ItemListener
 		if (s != null) {
 			com.d("hasAdmin: " + s[1], 1);
 			com.getAdmin().setHasAdmin(new Boolean(s[1]).booleanValue());
+		}
+
+		if (com.getAdmin().getHasAdmin()) {
+			com.getLeft().showAdminButton();
 		}
 
 		setConfig = true;
@@ -893,6 +928,7 @@ class Net extends Canvas implements ItemListener
 		if (visNettel == null)
 		{
 			// Vi befinner oss i en gruppe, record den
+			history.push(visGruppeNavn);
 			history.push("-"+visGruppe);
 			com.d("Record history: " + "-"+visGruppe,5);
 		} else
@@ -919,7 +955,8 @@ class Net extends Canvas implements ItemListener
 			// Oppdater GUI-menyen med rett gruppe
 			com.getLeft().setNettIndex(k);
 			//com.getNet().setVisNettel(null);
-			com.getNet().setVisGruppe(k);
+			String grpNavn = (String)history.pop();
+			com.getNet().setVisGruppe(k, grpNavn);
 			com.d("Refresh nettel...",6);
 			com.getNet().refreshNettel();
 
@@ -966,7 +1003,7 @@ class Net extends Canvas implements ItemListener
 
 		for (int i = 0; i < group.size(); i++) {
 			Grp grp = (Grp)group.elementAt(i);
-			grp.drawSelf(g);
+			if (!grp.getHideicons()) grp.drawSelf(g);
 		}
 
 		for (int i = 1; i <= ANTALL_PASS; i++) {
@@ -976,6 +1013,12 @@ class Net extends Canvas implements ItemListener
 				n.drawSelf(g, i);
 			}
 		}
+
+		for (int i = 0; i < group.size(); i++) {
+			Grp grp = (Grp)group.elementAt(i);
+			if (grp.getHideicons()) grp.drawSelf(g);
+		}
+
 	}
 
 	public void itemStateChanged(ItemEvent e)
@@ -987,12 +1030,15 @@ class Net extends Canvas implements ItemListener
 			if (visGruppe == -1) return;
 			com.getLeft().setNettIndex(visGruppe);
 		}
+		if (nettNavn.startsWith("Vis ")) {
+			nettNavn = nettNavn.substring(4, nettNavn.length());
+		}
 		int nett = ((Choice)e.getSource()).getSelectedIndex();
 
-		com.d(" ->Bytter nett til: " + nett, 2);
+		com.d(" ->Bytter nett til: " + nett + " ("+nettNavn+")", 2);
 
 		//com.getNet().setVisNettel(null);
-		com.getNet().setVisGruppe(nett);
+		com.getNet().setVisGruppe(nett, nettNavn);
 		com.getNet().refreshNettel();
 	}
 
@@ -1041,7 +1087,7 @@ class Net extends Canvas implements ItemListener
 	}
 	public boolean isBackKnappClicked(int clickX, int clickY) { return backKnapp.contains(clickX, clickY); }
 
-	public void setVisGruppe(int inVisGruppe)
+	public void setVisGruppe(int inVisGruppe, String inVisGruppeNavn)
 	{
 		if (visGruppe != inVisGruppe)
 		{
@@ -1050,6 +1096,7 @@ class Net extends Canvas implements ItemListener
 			recordHistory();
 		}
 		visGruppe = inVisGruppe;
+		visGruppeNavn = inVisGruppeNavn;
 	}
 	public int getVisGruppe() { return visGruppe; }
 

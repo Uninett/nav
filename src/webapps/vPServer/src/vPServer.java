@@ -34,8 +34,9 @@ public class vPServer extends HttpServlet
 		String navRoot = getServletContext().getInitParameter("navRoot");
 		String dbConfigFile = getServletContext().getInitParameter("dbConfigFile");
 		String configFile = getServletContext().getInitParameter("configFile");
+		String navConfigFile = getServletContext().getInitParameter("navConfigFile");
 
-		ConfigParser cp, dbCp;
+		ConfigParser cp, dbCp, navCp;
 		try {
 			cp = new ConfigParser(navRoot + configFile);
 		} catch (IOException e) {
@@ -46,6 +47,12 @@ public class vPServer extends HttpServlet
 			dbCp = new ConfigParser(navRoot + dbConfigFile);
 		} catch (IOException e) {
 			out.println("Error, could not read database config file: " + navRoot + dbConfigFile);
+			return;
+		}
+		try {
+			navCp = new ConfigParser(navRoot + navConfigFile);
+		} catch (IOException e) {
+			out.println("Error, could not read nav config file: " + navRoot + navConfigFile);
 			return;
 		}
 
@@ -77,7 +84,7 @@ public class vPServer extends HttpServlet
 
 				if (section.equals("boks")) {
 					while (st.hasMoreTokens()) {
-						SqlBoks.serviceRequest(st.nextToken(), user, hasAdmin, cp);
+						SqlBoks.serviceRequest(st.nextToken(), user, hasAdmin, cp, navCp);
 					}
 				} else
 				if (section.equals("admin")) {
@@ -112,10 +119,10 @@ class SqlBoks
 	public static HttpServletRequest req;
 	public static ServletOutputStream out;
 
-	static void serviceRequest(String req, String user, boolean hasAdmin, ConfigParser cp) throws IOException
+	static void serviceRequest(String req, String user, boolean hasAdmin, ConfigParser cp, ConfigParser navCp) throws IOException
 	{
 		try {
-			if (req.equals("listConfig")) listConfig(user, hasAdmin, cp);
+			if (req.equals("listConfig")) listConfig(user, hasAdmin, cp, navCp);
 			else if (req.equals("listRouters")) listRouters();
 			else if (req.equals("listRouterGroups")) listRouterGroups();
 			else if (req.equals("listRouterXY")) listRouterXY();
@@ -133,7 +140,7 @@ class SqlBoks
 	}
 
 	// Config for vP
-	static void listConfig(String user, boolean hasAdmin, ConfigParser cp) throws SQLException
+	static void listConfig(String user, boolean hasAdmin, ConfigParser cp, ConfigParser navCp) throws SQLException
 	{
 		outl("listConfig");
 
@@ -142,6 +149,7 @@ class SqlBoks
 
 		outl("vpNetName^"+vpNetName);
 		outl("vpNetLink^"+vpNetLink);
+		outl("domainSuffix^"+navCp.get("DOMAIN_SUFFIX"));
 		outl("userName^"+user);
 
 		outl("hasAdmin^"+hasAdmin);
@@ -703,12 +711,12 @@ class SqlBoks
 
 		int curid=-1;
 		//ResultSet rs = Database.query("SELECT gruppeid,name,pboksid FROM vpBoksGrpInfo NATURAL JOIN vpBoksGrp ORDER BY gruppeid");
-		ResultSet rs = Database.query("SELECT vp_netbox_grp_infoid,name,x,y,pnetboxid FROM vp_netbox_grp_info LEFT JOIN vp_netbox_grp USING (vp_netbox_grp_infoid) ORDER BY vp_netbox_grp_infoid");
+		ResultSet rs = Database.query("SELECT vp_netbox_grp_infoid,name,hideicons,iconname,x,y,pnetboxid FROM vp_netbox_grp_info LEFT JOIN vp_netbox_grp USING (vp_netbox_grp_infoid) ORDER BY vp_netbox_grp_infoid");
 		while (rs.next()) {
 			if (rs.getInt("vp_netbox_grp_infoid")!=curid) {
 				if (curid>=0) outl("");
 				curid = rs.getInt("vp_netbox_grp_infoid");
-				out(rs.getString("vp_netbox_grp_infoid") + "^" + rs.getString("name") + "^" + rs.getString("x") + "^" + rs.getString("y") );
+				out(rs.getString("vp_netbox_grp_infoid") + "^" + rs.getString("name") + "^" + rs.getString("x") + "^" + rs.getString("y") + "^" + (rs.getBoolean("hideicons")?"true":"false") + "^" + rs.getString("iconname") );
 				if (rs.getString("pnetboxid") == null) continue;
 			}
 			out("^" + rs.getString("pnetboxid"));

@@ -78,6 +78,7 @@ class Nettel
 
 	// state-variabler for objektet
 	boolean isVisible = true;
+	boolean iconVisible = true;
 	boolean click = false;
 	boolean setMove = false;
 	boolean setSelected = false;
@@ -95,6 +96,7 @@ class Nettel
 
 	int x = 0,y = 25; // koordinater, y settes lik 25 som default så den kommer under knappene på toppen
 	int lastX = 0, lastY = 0;
+	boolean locationSet = false;
 
 	// stats
 	double nettelLastPst = -1.0;
@@ -143,6 +145,15 @@ class Nettel
 	public void setName(String s)
 	{
 		name = s;
+		int k;
+		while ((k=name.indexOf(Net.domainSuffix)) >= 0) {
+			name = name.substring(0, k) + name.substring(k+Net.domainSuffix.length(), name.length());
+		}
+		/*
+		if (name != null && name.endsWith(Net.domainSuffix)) {
+			name = name.substring(0, name.length() - Net.domainSuffix.length());
+		}
+		*/
 		keywords.put("sysname".toLowerCase(), name);
 	}
 	public String getName() { return name; }
@@ -213,14 +224,16 @@ class Nettel
 		if (pass == 2)
 		{
 			// Tegn selve iconet for nettel-boksen
-			nettelIcon.drawSelf(g, com.getNet() );
+			if (iconVisible) {
+				nettelIcon.drawSelf(g, com.getNet() );
+			}
 
 		} else
-		if (pass == 3)
+		if (pass == 3 && iconVisible)
 		{
 			// Navn-tegning er felles for alle enheter
-			int spaceX = 3;
-			int spaceY = 3;
+			int spaceX = 2;
+			int spaceY = 4;
 
 			// ikke skriv navn for FDDI-ringen
 			if (name.equalsIgnoreCase("fddi")) return;
@@ -236,8 +249,8 @@ class Nettel
 				p.addPoint(x+nettelIcon.getSizeX()/2-fontWidth/2-spaceX, y+nettelIcon.getSizeY() );
 				p.addPoint(x+nettelIcon.getSizeX()/2+fontWidth/2+spaceX, y+nettelIcon.getSizeY() );
 
-				p.addPoint(x+nettelIcon.getSizeX()/2+fontWidth/2+spaceX, y+nettelIcon.getSizeY()+fontMetrics.getHeight()+spaceY );
-				p.addPoint(x+nettelIcon.getSizeX()/2-fontWidth/2-spaceX, y+nettelIcon.getSizeY()+fontMetrics.getHeight()+spaceY );
+				p.addPoint(x+nettelIcon.getSizeX()/2+fontWidth/2+spaceX, y+nettelIcon.getSizeY()+fontMetrics.getHeight()/2+spaceY );
+				p.addPoint(x+nettelIcon.getSizeX()/2-fontWidth/2-spaceX, y+nettelIcon.getSizeY()+fontMetrics.getHeight()/2+spaceY );
 
 			g.setColor(new Color(255, 255, 225) );
 			g.fillPolygon(p);
@@ -260,7 +273,7 @@ class Nettel
 			}
 
 			g.setColor(Color.black);
-			g.drawString(text, x+nettelIcon.getSizeX()/2-fontWidth/2, y+nettelIcon.getSizeY()+fontMetrics.getHeight() );
+			g.drawString(text, x+nettelIcon.getSizeX()/2-fontWidth/2, y+nettelIcon.getSizeY()+fontMetrics.getHeight()-fontMetrics.getHeight()/2+spaceY/2 );
 
 
 		} else if (pass == 4) {
@@ -365,6 +378,9 @@ class Nettel
 
 	public void setHashKey(String s) { hashKey = s; }
 	public String getHashKey() { return hashKey; }
+
+	public boolean getIconVisible() { return iconVisible; }
+	public void setIconVisible(boolean visible) { iconVisible = visible; }
 
 	public boolean isVisible() { return isVisible; }
 	public void setVisible(boolean visible)
@@ -495,6 +511,8 @@ class Nettel
 
 	}
 
+	public void locationSet() { locationSet = true; }
+	public boolean getLocationSet() { return locationSet; }
 
 	public int getX() { return x; }
 	public int getY() { return y; }
@@ -726,7 +744,7 @@ class Nettel
 
 	public boolean contains(int x, int y)
 	{
-		if (!isVisible) return false;
+		if (!isVisible || !iconVisible) return false;
 
 		if (nettelIcon.contains(x, y) ) {
 			mouseOverLink = -1;
@@ -788,6 +806,10 @@ class Nettel
 	{
 		descText = Input.processText(text, data, keywords);
 		return descText;
+	}
+
+	public String toString() {
+		return getName();
 	}
 }
 

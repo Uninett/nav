@@ -64,7 +64,7 @@ class Left extends Panel
 
 		// logo
 		Logo logo = new Logo(com);
-		c.weightx = 0; c.weighty = 50;
+		c.weightx = 0; c.weighty = 0;
 		c.gridx = 0; c.gridy = 0; c.gridwidth = 1; c.gridheight = 1;
 		//c.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(logo, c);
@@ -82,7 +82,7 @@ class Left extends Panel
 
 		// admin-panelet
 		AdminPanel ap = new AdminPanel(com);
-		c.weightx = 0; c.weighty = 15;
+		c.weightx = 0; c.weighty = 1;
 		c.gridx = 0; c.gridy = 2; c.gridwidth = 1; c.gridheight = 1;
 		//c.ipady = 40;
 		//c.anchor = GridBagConstraints.CENTER;
@@ -102,6 +102,8 @@ class Left extends Panel
 	public void setNettNavn(String navn) { topPanel.setNettNavn(navn); }
 
 	public String getNettNavn(int i) { return topPanel.getNettNavn(i); }
+
+	public void showAdminButton() { topPanel.showAdminButton(); }
 
 
 
@@ -144,6 +146,8 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 	private boolean relativSkala;
 	private boolean avg;
+
+	private Button adminButton;
 
 /*
 	public Dimension getMinimumSize()
@@ -196,6 +200,12 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		return null;
 	}
 
+	public void showAdminButton() {
+		adminButton.setVisible(true);
+		com.d("Showing admin button", 5);
+		validate();
+	}
+
 	public TopPanel(Com InCom)
 	{
 		com = InCom;
@@ -205,6 +215,8 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		Label avgmaxLabel = new Label("  Last:");
 
 		Button okButton = new Button("OK");
+		adminButton = new Button("Admin");
+		adminButton.setVisible(false);
 
 		skala.addItem("Absolutt skala");
 		skala.addItem("Relativ skala");
@@ -322,12 +334,18 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		gridbag.setConstraints(okButton, c);
 		add(okButton, c);
 
+		// adminButton
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0.0; c.weighty = 10;
+		c.gridx = 2; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
+		gridbag.setConstraints(adminButton, c);
+		add(adminButton, c);
+
 		// errorLabel
 		c.weightx = 0.0; c.weighty = 0;
 		c.gridx = 2; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
 		gridbag.setConstraints(errorLabel, c);
 		add(errorLabel, c);
-
 
 		// itemListener
 		skala.addItemListener(this);
@@ -337,6 +355,13 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 		// acionListeners
 		okButton.addActionListener(this);
+
+		adminButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					AdminPanel ap = com.getAdminPanel();
+					ap.showMenu();
+				}
+			});
 
 		itemStateChanged(new ItemEvent(lastValg, ItemEvent.SELECTED, lastValg, ItemEvent.SELECTED) );
 	}
@@ -759,7 +784,7 @@ class LogoPanel extends Panel
 		gridbag.setConstraints(logo, c);
 		add(logo, c);
 */
-		setSize(200, 500);
+		//setSize(200, 450);
 
 		Logo logo = new Logo(com);
 		setLayout(new GridLayout(1, 1));
@@ -797,8 +822,9 @@ class Logo extends Canvas
 		MouseMove mv = new MouseMove(com);
 		addMouseListener(mouse);
 		addMouseMotionListener(mv);
+		setSize(100, 232);
 
-
+		/*
 		if (com.getApplet() != null)
 		{
 			navLogo = com.getApplet().getImage(com.getApplet().getDocumentBase(),DIR_PREFIX+"nav_logo.gif");
@@ -806,20 +832,23 @@ class Logo extends Canvas
 		{
 			navLogo = Toolkit.getDefaultToolkit().getImage(DIR_PREFIX+"nav_logo.gif");
 		}
+		*/
 
 	}
 
 	public void paint(Graphics g)
 	{
 		// ntnulogo
+		/*
 		int imageX = 8;
 		int imageY = 12;
 		g.drawImage(navLogo, imageX, imageY, this);
+		*/
 
 		// Linjer
 		{
 			int xstart = 20;
-			int ystart = 86;
+			int ystart = 8;
 
 		    // Tykkelse på linjer
 		    g.setColor(Color.black);
@@ -835,7 +864,7 @@ class Logo extends Canvas
 
 	    // Fargeskala
 	    int xstart = 10;
-	    int ystart = 130;
+	    int ystart = 52;
 	    int boxSizeX = 15;
 	    int boxSizeY = 15;
 	    int spaceX = 5;
