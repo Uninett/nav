@@ -126,7 +126,10 @@ class NetboxInfo(manage.Netbox):
         result=html.Division()
         for timerange in TIMERANGES:
             value = self.rrdAverage(statusDS, timerange)
-            value = (1-value)*100    
+            if value:
+                value = (1-value)*100    
+            else:
+                value = 0 # unknown -> not availabe..?
             value = tableview.Value(value, "%")
             dsids = [ds.rrd_datasourceid for ds in datasources]
             link = urlbuilder.createLink(subsystem='rrd',
