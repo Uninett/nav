@@ -1,28 +1,37 @@
 """
 threadpool
 
-$Id: threadpool.py,v 1.4 2002/06/04 15:06:21 erikgors Exp $
+$Id: threadpool.py,v 1.5 2002/06/06 09:19:45 erikgors Exp $
 """
 
-import threading
+import threading,time
+from Queue import Queue
 IDLE = 2
 WORK = 4
 
+THREADS = 10
 
-jobqueue = []
-threadpool = []
 
-class jobber(threading.Thread):
+jobqueue = Queue()
+workers = []
+
+class Worker(threading.Thread):
 	def __init__(self,name):
-		Thread.__init__(self)
-		Thread.setName(self,name)
+		threading.Thread.__init__(self)
+		threading.Thread.setName(self,name)
 		self.status = IDLE
 		self.running = 1
 
 	def run(self):
 		while self.running:
 			self.status = IDLE
-			self.job = jobqueue.pop()
+			self.job = jobqueue.get()
 
-			self.status = WORKING
+			self.status = WORK
 			result = self.job.run()
+def start():
+	global workers
+	for i in range(THREADS):
+		thread = Worker('thread ' + str(i))
+		workers += [thread]
+		thread.start()

@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.3 2002/06/05 11:26:00 erikgors Exp $
+$Id: job.py,v 1.4 2002/06/06 09:19:45 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys
@@ -14,6 +14,8 @@ class Job:
 	"""
 	Jobb-klasse som hver enkel "tjeneste"-modul skal extende,
 	den må ha en execute() som returnerer (state,txt)
+
+	Denne vil koble til en port og lese _en_ linje
 	"""
 	def __init__(self,address):
 		self.setName('generic')
@@ -31,7 +33,7 @@ class Job:
 			database.add(self,state)
 		else:
 			self.setState(state)
-		self.setLastRun()
+		self.setTimestamp()
 	def execute(self):
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
@@ -85,6 +87,25 @@ class Job:
 		return int(i)
 	def __repr__(self):
 		return '\'' + self.getName() + '\' ' + str(self.getAddress())
+class Port(Job):
+	"""
+	sjekker om en port er i live
+	"""
+	def __init__(self,address):
+		Job.__init__(self,address)
+		Job.setName(self,'portlive')
+	def execute(self):
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		try:
+			s.connect(self.getAddress())
+			state = OK
+			txt = 'alive'
+		except:
+			state = FEIL
+			txt = str(sys.exc_type) + str(sys.exc_info()[1].args)
+		s.close()
+		return state,txt
+
 class Url(Job):
 	def __init__(self,address,type,path = '/'):
 		Job.__init__(self,address)
