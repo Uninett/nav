@@ -176,6 +176,7 @@ public class GwportHandler implements DataHandler {
 				Vlan vl = new Vlan(null);
 				vl.setVlanid(rs.getInt("vlanid"));
 				Prefix p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vl);
+				p.setPrefixid(rs.getInt("prefixid"));
 				prefixDbMap.put(rs.getString("cidr"), p);
 			}
 
