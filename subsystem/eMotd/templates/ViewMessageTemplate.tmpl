@@ -1,17 +1,16 @@
 #extends nav.web.templates.EmotdTemplate
 
 #block content
-## tar inn en melding::message
 
-#set count = len($messages)
-
-#if count>0
+#if $all
 <h1>$title</h1>
+#else
+<a href="/emotd/view/$category">Show all</a>
 #end if
 
 #for message in $messages
 
-#if count>0
+#if $all
 <h2>$message.title</h2>
 #else
 <h1>$message.title</h1>
@@ -55,12 +54,22 @@ $message.detail
 #end if
 
 #if $access
+#if $username == $message.author:
 [ <a href="/emotd/edit/$message.emotdid">Edit Message</a> 
-#if $message.maint_start
-| <a href="/emotd/time/$message.emotdid">Edit Maintenance Window</a> | <a href="/emotd/add/$message.emotdid">Edit Equipment List</a> 
 #else
-| <a href="/emotd/time/$message.emotdid">Define Maintenance Window and Add Equipment</a>
+[ <a href="/emotd/edit/$message.emotdid">Followup Message</a> 
 #end if
+
+| <a href="/emotd/add/$message.emotdid">Maintenance Setup</a>
+
+
+###if $message.maint_start
+##| <a href="/emotd/time/$message.emotdid">Edit Maintenance Window</a> | <a href="/emotd/add/$message.emotdid">Edit Equipment List</a> 
+###else
+##| <a href="/emotd/time/$message.emotdid">Define Maintenance Window and Add Equipment</a>
+###end if
+
+
 ]</form>
 #end if
 

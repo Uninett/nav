@@ -3,6 +3,7 @@
 ##from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #block content
+$emotdid
 <form action="$args['action']" method="post">
 <h1>Maintenance setup</h1>
 
@@ -12,12 +13,13 @@ $information()
 $new()
 #end if
 
-#if $emotdid
-#set $eq = $equipment[int($emotdid)]
+#set $emotdid = int($emotdid)
+
+#if $emotdid > 0
+#set $eq = $equipment[$emotdid]
 $equipmentList($eq,$emotdid)
-#elif $emotdid == 0:
-$equipmentList($equipment)
 #end if
+$equipmentList($newequipment)
 
 $searchbox($args['searchbox'])
 
@@ -30,6 +32,9 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 </p>
 
 $maint()
+</form>
+<form action="$args['cancelaction']" method="post">
+<input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
 </form>
 #end block
 
@@ -44,16 +49,26 @@ $maint()
 #end def
 
 #def new
-<div><label>Select message</label><select name="id">
+<div><label>Select message</label><select name="emotdid" onchange="this.form.submit()">
+#if $emotdid==0:
+	<option value="0" selected="1">Compose new message</option>
+#else:
+	<option value="0">Compose new message</option>
+#end if
+
 #for $b in $messagelist
 #set $c = "["+$b[1]+"] "+$b[2]
 #set $d = $c[0:80]
+#if $emotdid==$b[0]
+	<option value="$b[0]" selected="1">$d ...</option>
+#else
 	<option value="$b[0]">$d ...</option>
+#end if
 #end for
 </select></div>
-<div><label>Title: </label><input type="text" name="title" value="$messagetitle" /></div>
-<div><label>Description: </label><textarea name="description" cols="40" rows="3">$messagedescription</textarea></div>
-<div><label>Type: </label><select name="type">
+<div><label>Title: </label><input type="text" name="messagetitle" value="$messagetitle" /></div>
+<div><label>Description: </label><textarea name="messagedescription" cols="40" rows="3">$messagedescription</textarea></div>
+<div><label>Type: </label><select name="messagetype">
 #for $t in ("error","scheduled","info","internal")
 #set selected = ''
 #if $t==$messagetype
@@ -77,14 +92,8 @@ $maint()
 #else
             <input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
 #end if
-<input type="hidden" name="id" value="$emotdid"/>
 ##<form action="$args['doneaction']" method="post">
 <input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
-#if not $emotdid
-<form action="$args['cancelaction']" method="post">
-<input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
-</form>
-#end if
 #end def
 
 

@@ -99,7 +99,7 @@ selected="1" #slurp
 
 #end def
 
-#def equipmentList($eq,$emotdid=0,$session=0)
+#def equipmentList($eq,$emotdid=0)
 #if len($eq) and len($eq.keys()):
 	<ul>
 #for a,b in $eq.items():
@@ -107,8 +107,8 @@ selected="1" #slurp
 	<li>$a $c[1] #slurp
 #if $emotdid
 (<a href="/emotd/remove/$emotdid/?$a=$c[0]">remove</a>)#slurp
-#elif $session
-(<a href="/emotd/remove/?$a=$c">remove</a>)#slurp
+#elif $emotdid==0:
+(<a href="/emotd/remove/?$a=$c[0]">remove</a>)#slurp
 #end if
 </li>
 #end for
