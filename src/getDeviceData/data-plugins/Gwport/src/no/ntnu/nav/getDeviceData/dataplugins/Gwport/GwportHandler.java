@@ -253,7 +253,7 @@ public class GwportHandler implements DataHandler {
 
 			}
 			*/
-			Database.query("");
+			Database.query("SELECT 1");
 
 		} catch (SQLException e) {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());

@@ -38,7 +38,7 @@ public class Prefix implements Comparable
 		String and_ip = "";
 
 		while (a.hasMoreTokens()) {
-			and_ip += "."+(Integer.parseInt(a.nextToken(),base)&Integer.parseInt(b.nextToken(),base));
+			and_ip += "."+(Integer.parseInt(a.nextToken())&Integer.parseInt(b.nextToken(),base));
 		}
 		return and_ip.substring(1, and_ip.length());
 	}
