@@ -177,6 +177,7 @@ CREATE TABLE snmpoid (
 	snmpoidid SERIAL PRIMARY KEY,
 	oidkey VARCHAR NOT NULL,
 	snmpoid VARCHAR NOT NULL,
+	oidsource VARCHAR,
 	descr VARCHAR
 );
 
