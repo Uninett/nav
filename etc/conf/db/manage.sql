@@ -208,6 +208,7 @@ CREATE TABLE netbox (
 --  romid VARCHAR(10) NOT NULL REFERENCES rom,
   roomid VARCHAR(10) NOT NULL REFERENCES room,
   typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   sysname VARCHAR(30) UNIQUE,
   catid VARCHAR(8) NOT NULL REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
 --  kat2 VARCHAR(10),
@@ -379,6 +380,7 @@ GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 GRANT ALL ON module_moduleid_seq TO navall;
 GRANT ALL ON mem_memid_seq TO navall;
 GRANT ALL ON product_productid_seq TO navall;
+GRANT ALL ON device_deviceid_seq TO navall;
 GRANT ALL ON type_typeid_seq TO navall;
 
 ------------------------------------------------------------------
