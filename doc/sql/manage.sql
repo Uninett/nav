@@ -259,8 +259,6 @@ CREATE TABLE netboxcategory (
   category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
 );
-GRANT ALL ON netboxcategory TO navall;
-GRANT ALL ON netboxcategory TO getDeviceData;
 
 
 CREATE TABLE netboxinfo (
@@ -378,43 +376,6 @@ CREATE TABLE alertengine (
 
 INSERT INTO alertengine (lastalertqid) values(0);
 
-GRANT ALL ON org TO navall;
-GRANT ALL ON usage TO navall;
-GRANT ALL ON location TO navall;
-GRANT ALL ON room TO navall;
-GRANT ALL ON prefix TO navall;
-GRANT ALL ON type TO navall;
-GRANT ALL ON netbox TO navall;
-GRANT ALL ON netboxinfo TO navall;
-GRANT ALL ON netboxinfo_netboxinfoid_seq TO navall;
-GRANT ALL ON module TO navall;
-GRANT ALL ON mem TO navall;
-GRANT ALL ON gwport TO navall;
-GRANT ALL ON gwportprefix TO navall;
-GRANT ALL ON subcat TO navall;
-GRANT ALL ON swport TO navall;
-GRANT ALL ON swportvlan TO navall;
-GRANT ALL ON swportallowedvlan TO navall;
-GRANT ALL ON vendor TO navall;
-GRANT ALL ON product TO navall;
-GRANT ALL ON device TO navall;
-GRANT ALL ON cat TO navall;
-GRANT ALL ON nettype TO navall;
-GRANT ALL ON vlan TO navall;
-GRANT ALL ON port2off TO navall;
-
-GRANT ALL ON netbox_netboxid_seq TO navall;
-GRANT ALL ON gwport_gwportid_seq TO navall;
-GRANT ALL ON prefix_prefixid_seq TO navall;
-GRANT ALL ON swport_swportid_seq TO navall;
-GRANT ALL ON module_moduleid_seq TO navall;
-GRANT ALL ON mem_memid_seq TO navall;
-GRANT ALL ON product_productid_seq TO navall;
-GRANT ALL ON device_deviceid_seq TO navall;
-GRANT ALL ON type_typeid_seq TO navall;
-GRANT ALL ON alertengine TO navall;
-
-GRANT ALL ON snmpoid TO navall;
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
@@ -476,9 +437,6 @@ CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
-GRANT all ON arp TO navall;
-GRANT all ON arp_arpid_seq TO navall;
-GRANT SELECT ON cam TO navall;
 
 -- VIEWs -----------------------
 CREATE VIEW netboxmac AS  
@@ -540,79 +498,6 @@ CREATE TABLE vp_netbox_xy (
 -- CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 -- CREATE USER getportdata WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 
-GRANT SELECT ON netbox TO vPServer;
-GRANT SELECT ON netboxinfo TO vPServer;
-GRANT SELECT ON gwport TO vPServer;
-GRANT SELECT ON prefix TO vPServer;
-GRANT SELECT ON vlan TO vPServer;
-GRANT SELECT ON swport TO vPServer;
-GRANT SELECT ON swportvlan TO vPServer;
-GRANT SELECT,UPDATE ON vp_netbox_grp_info TO vPServer;
-GRANT ALL    ON vp_netbox_grp TO vPServer;
-GRANT ALL    ON vp_netbox_xy TO vPServer;
-GRANT ALL    ON vp_netbox_xy_vp_netbox_xyid_seq TO vPServer;
-
-GRANT SELECT ON netbox TO navadmin;
-GRANT SELECT ON type TO navadmin;
-GRANT SELECT ON netboxmac TO navadmin;
-GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON gwportprefix TO navadmin;
-GRANT ALL ON vlan TO navadmin;
-GRANT ALL ON vlan_vlanid_seq TO navAdmin;
-GRANT SELECT,UPDATE ON prefix TO navadmin;
-GRANT SELECT ON module TO navadmin;
-GRANT ALL    ON swport TO navadmin;
-GRANT ALL    ON swport_swportid_seq TO navadmin;
-GRANT ALL    ON swportvlan TO navadmin;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
-GRANT SELECT,DELETE ON swp_netbox TO navadmin;
-GRANT ALL    ON swportallowedvlan TO navadmin;
-GRANT SELECT ON swportblocked TO navadmin;
-
-GRANT SELECT ON netbox TO getBoksMacs;
-GRANT SELECT ON type TO getBoksMacs;
-GRANT SELECT ON typesnmpoid TO getboksmacs;
-GRANT SELECT ON snmpoid TO getboksmacs;
-GRANT SELECT ON module TO getBoksMacs;
-GRANT SELECT ON swport TO getBoksMacs;
-GRANT SELECT ON vlan TO getBoksMacs;
-GRANT ALL    ON swportvlan TO getBoksMacs;
-GRANT SELECT ON swportallowedvlan TO getBoksMacs;
-GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
-GRANT SELECT ON gwportprefix TO getBoksMacs;
-GRANT SELECT ON prefix TO getBoksMacs;
-GRANT SELECT ON netboxmac TO getBoksMacs;
-GRANT ALL    ON swp_netbox TO getBoksMacs;
-GRANT ALL    ON swp_netbox_swp_netboxid_seq TO getBoksMacs;
-GRANT ALL    ON swportblocked TO getBoksMacs;
-GRANT ALL    ON cam TO getBoksMacs;
-GRANT ALL    ON cam_camid_seq TO getBoksMacs;
-
-GRANT ALL    ON device TO getDeviceData;
-GRANT ALL    ON device_deviceid_seq TO getDeviceData;
-GRANT ALL    ON netbox TO getDeviceData;
-GRANT ALL    ON netbox_netboxid_seq TO getDeviceData;
-GRANT ALL    ON netboxinfo TO getDeviceData;
-GRANT ALL    ON netboxinfo_netboxinfoid_seq TO getDeviceData;
-GRANT SELECT,UPDATE ON type TO getDeviceData;
-GRANT ALL    ON cat TO getDeviceData;
-GRANT ALL    ON module TO getDeviceData;
-GRANT ALL    ON module_moduleid_seq TO getDeviceData;
-GRANT ALL    ON swport TO getDeviceData;
-GRANT ALL    ON swport_swportid_seq TO getDeviceData;
-GRANT ALL    ON vlan TO getDeviceData;
-GRANT ALL    ON swportvlan TO getDeviceData;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
-GRANT ALL    ON swportallowedvlan TO getDeviceData;
-GRANT ALL    ON gwport TO getDeviceData;
-GRANT ALL    ON gwport_gwportid_seq TO getDeviceData;
-GRANT ALL    ON gwportprefix TO getDeviceData;
-GRANT ALL    ON prefix TO getDeviceData;
-GRANT ALL    ON prefix_prefixid_seq TO getDeviceData;
-GRANT ALL    ON vlan TO getDeviceData;
-GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
-GRANT ALL    ON typesnmpoid TO getDeviceData;
-GRANT SELECT,UPDATE ON snmpoid TO getDeviceData;
 
 
 -------- vlanPlot end ------
@@ -676,9 +561,6 @@ CREATE TABLE rrd_datasource (
   thresholdstate VARCHAR CHECK (thresholdstate='active' OR thresholdstate='inactive')
 );
 
-GRANT ALL ON rrd_file TO manage;
-GRANT ALL ON rrd_datasource TO manage;
-GRANT ALL ON subsystem TO manage;
 
 -- 
 CREATE VIEW rrddatasourcenetbox AS
@@ -756,10 +638,6 @@ CREATE TABLE eventqvar (
 );
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
--- Grants for these objects
-GRANT ALL ON eventq TO getDeviceData;
-GRANT ALL ON eventq_eventqid_seq TO getDeviceData;
-GRANT ALL ON eventqvar TO getDeviceData;
 
 
 -- alert tables
@@ -916,62 +794,48 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
 -- GRANTS AND GRUNTS
 ------------------------------------------------------------------------------------------
 
-GRANT ALL ON service TO navall;
-GRANT ALL ON serviceproperty TO navall;
-GRANT ALL ON service_serviceid_seq TO navall;
-GRANT ALL ON alerthist TO navall;
-GRANT ALL ON alerthistvar TO navall;
-GRANT ALL ON alertq TO navall;
-GRANT ALL ON eventtype TO navall;
-GRANT ALL ON service TO navall;
-GRANT ALL ON prefix TO navall;
-GRANT ALL ON vlan TO navall;
-GRANT ALL ON vlan_vlanid_seq TO navall;
-GRANT SELECT,UPDATE,DELETE ON netbox TO navall;
-GRANT SELECT,UPDATE,DELETE ON netboxinfo TO navall;
-GRANT ALL ON netboxinfo_netboxinfoid_seq TO navall;
-GRANT SELECT,UPDATE,DELETE ON netboxcategory TO navall;
-GRANT SELECT,UPDATE,DELETE ON room TO navall;
-GRANT SELECT,UPDATE,DELETE ON location TO navall;
-GRANT SELECT,UPDATE,DELETE ON org TO navall;
-GRANT SELECT,UPDATE,DELETE ON usage TO navall;
-GRANT SELECT,UPDATE,DELETE ON type TO navall;
-GRANT SELECT,UPDATE,DELETE ON product TO navall;
-GRANT SELECT,UPDATE,DELETE ON vendor TO navall;
-GRANT INSERT,SELECT,UPDATE,DELETE ON emotd TO navall;
-GRANT INSERT,SELECT,UPDATE,DELETE ON emotd_related TO navall;
-GRANT INSERT,SELECT,UPDATE,DELETE ON maintenance TO navall;
-GRANT ALL ON emotd_emotdid_seq TO navall;
-GRANT ALL ON maintenance_maintenanceid_seq TO navall;
-GRANT SELECT ON eventtype TO eventengine;
-GRANT SELECT ON subsystem TO eventengine;
-GRANT ALL ON eventq TO eventengine;
-GRANT ALL ON eventq_eventqid_seq TO eventengine;
-GRANT ALL ON eventqvar TO eventengine;
-GRANT ALL ON alertq TO eventengine;
-GRANT ALL ON alertq_alertqid_seq TO eventengine;
-GRANT ALL ON alertqmsg TO eventengine;
-GRANT ALL ON alerthist TO eventengine;
-GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
-GRANT ALL ON alerthistmsg TO eventengine;
-GRANT ALL ON alerthistvar TO eventengine;
-GRANT SELECT ON device TO eventengine;
-GRANT SELECT,UPDATE ON netbox TO eventengine;
-GRANT SELECT ON cat TO eventengine;
-GRANT SELECT ON type TO eventengine;
-GRANT SELECT ON room TO eventengine;
-GRANT SELECT ON location TO eventengine;
-GRANT SELECT,UPDATE ON module TO eventengine;
-GRANT SELECT ON swport TO eventengine;
-GRANT SELECT ON swportvlan TO eventengine;
-GRANT SELECT ON gwport TO eventengine;
-GRANT SELECT ON vlan TO eventengine;
-GRANT SELECT ON prefix TO eventengine;
-GRANT SELECT ON service TO eventengine;
-GRANT SELECT ON serviceproperty TO eventengine;
 
--- adding grant select for NAVprofiles.....
--- GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistmsg, alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
--- brukeren navprofilemanage finnes  jo ikke
--- skal inneholde alle tabeller i manage til en hver tid.
--- -Andreas-
+CREATE OR REPLACE FUNCTION nav_grant(TEXT, BOOL) RETURNS INTEGER AS '
+  DECLARE
+    tables_rec   RECORD;
+    counter      INTEGER;
+    user_name    ALIAS FOR $1;
+    write_access ALIAS FOR $2;
+    use_priv     TEXT := ''SELECT'';
+  BEGIN
+    counter := 0;
+    IF write_access THEN
+      use_priv := ''ALL'';
+    END IF;
+
+    FOR tables_rec IN SELECT * FROM pg_tables WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.tablename)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_views WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.viewname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_statio_all_sequences WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.relname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    RETURN counter;
+  END;
+' LANGUAGE 'plpgsql';
+
+
+SELECT nav_grant('navread', false);
+SELECT nav_grant('navwrite', true);

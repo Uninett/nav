@@ -933,13 +933,50 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 ------------------------------------------------------
 */
 
+CREATE OR REPLACE FUNCTION nav_grant(TEXT, BOOL) RETURNS INTEGER AS '
+  DECLARE
+    tables_rec   RECORD;
+    counter      INTEGER;
+    user_name    ALIAS FOR $1;
+    write_access ALIAS FOR $2;
+    use_priv     TEXT := ''SELECT'';
+  BEGIN
+    counter := 0;
+    IF write_access THEN
+      use_priv := ''ALL'';
+    END IF;
 
--- giving away permission to select from sequences..
-GRANT SELECT, UPDATE ON account_id_seq, accountgroup_id_seq, alarmadresse_id_seq, brukerprofil_id_seq, tidsperiode_id_seq, utstyrgruppe_id_seq, utstyrfilter_id_seq, matchfield_id_seq, filtermatch_id_seq, operator_id_seq, logg_id_seq, navbarlink_id_seq, privilege_id_seq, privilegebygroup TO navprofile;
+    FOR tables_rec IN SELECT * FROM pg_tables WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.tablename)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
 
--- giving away permissions to add change and delete from tables...
-GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlink_id_seq, accountnavbar, privilege, accountgroupprivilege, accountorg, smsq, navbarlink TO navprofile;
+    FOR tables_rec IN SELECT * FROM pg_views WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.viewname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
 
+    FOR tables_rec IN SELECT * FROM pg_statio_all_sequences WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.relname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    RETURN counter;
+  END;
+' LANGUAGE 'plpgsql';
+
+
+SELECT nav_grant('navread', false);
+SELECT nav_grant('navwrite', true);
 
 /*
 ------------------------------------------------------
