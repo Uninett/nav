@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.9 2002/07/08 14:12:40 magnun Exp $
+$Id: setup.py,v 1.10 2002/07/15 23:01:45 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -153,13 +153,13 @@ def main(file,conf):
 			print 'quitting'
 			sys.exit(1)
 		for i in delete:
-			database.delete(i)
+			database.deleteService(i)
 	print 'updating db'
 
 	print "Elements to add: %i" % len(new)
 	for each in new:
 		print "Adding service: %s" % each
-		database.insertservice(each)
+		database.insertService(each)
 
 def help():
 	print """ - Setup -

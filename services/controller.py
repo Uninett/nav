@@ -1,16 +1,15 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.22 2002/07/01 09:20:25 magnun Exp $
+$Id: controller.py,v 1.23 2002/07/15 23:01:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
-__version__ = '$Id: controller.py,v 1.22 2002/07/01 09:20:25 magnun Exp $'
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 
-import RunQueue, types, time, job, getopt, signal, database, config
+import RunQueue, types, time, job, getopt, signal,  config, db
 
 class controller:
     def __init__(self, **kwargs):
@@ -24,6 +23,8 @@ class controller:
         self._runqueue=RunQueue.RunQueue(controller=self, maxthreads=20)
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
+        self.db=db.db(self.config)
+        self.db.start()
 
 
                       
@@ -32,8 +33,8 @@ class controller:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-        newjobs = database.getJobs()
-        #newjobs = self.db.getJobs()
+        #newjobs = database.getJobs()
+        newjobs = self.db.getJobs()
 
 
         s=[]    
@@ -84,11 +85,11 @@ class controller:
         by self._looptime
         """
 
-        database.startup("host = %s user = %s dbname = %s password = %s" %
-                         (self.config["dbhost"],
-                          "manage",
-                          self.config["db_nav"],
-                          self.config["userpw_manage"]))
+        #database.startup("host = %s user = %s dbname = %s password = %s" %
+        #                 (self.config["dbhost"],
+        #                  "manage",
+        #                  self.config["db_nav"],
+        #                  self.config["userpw_manage"]))
         
         while self._isrunning:
             start=time.time()

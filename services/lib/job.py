@@ -1,15 +1,15 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.7 2002/07/08 14:13:33 magnun Exp $
+$Id: job.py,v 1.8 2002/07/15 23:01:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
-import time,socket,sys,types
+import time,socket,sys,types,config
 from select import select
 from errno import errorcode
 from Socket import Socket
 
-TIMEOUT = 5 #default timeout
+TIMEOUT = 7 #default timeout
 DEBUG=1
 class Event:
 	UP = 'UP'
@@ -24,7 +24,8 @@ class Event:
 
 
 class JobHandler:
-	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP,db=None):
+	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
+		import db
 		self.setServiceid(serviceid)
 		self.setBoksid(boksid)
 		self.setType(type)
@@ -34,7 +35,7 @@ class JobHandler:
 		self.setArgs(args)
 		self.setVersion(version)
 		self.setTimeout(args.get('timeout',TIMEOUT))
-		self.db=db
+		self.db=db.db(config.config())
 		
 	def run(self):
 		import rrd,db
@@ -51,7 +52,7 @@ class JobHandler:
 			print "Info:  %-25s %-5s -> %s" % (host, self.getType(),info)
 			
 		runcount = 0
-		while status != self.getStatus() and runcount < 4:
+		while status != self.getStatus() and runcount < 3:
 			if DEBUG:
 				print "Info:  %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType())
 			time.sleep(5)

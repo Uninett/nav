@@ -1,9 +1,10 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.6 2002/06/27 11:47:44 magnun Exp $
+$Id: config.py,v 1.7 2002/07/15 23:01:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
-
+Implements the singleton pattern ensuring only one
+instance created.
 """
 import os, re
 
@@ -11,7 +12,13 @@ import os, re
 # Valid configoptions must be specified in this list
 validoptions=["dbhost", "dbport", "db_nav", "userpw_manage"]
 
-class config(dict):
+def config(configfile="db.conf"):
+    if _config._instance is None:
+        _config._instance=_config(configfile)
+    return _config._instance
+
+class _config(dict):
+    _instance=None
     def __init__(self, configfile="db.conf"):
         dict.__init__(self)
         try:
