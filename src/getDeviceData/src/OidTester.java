@@ -28,6 +28,7 @@ public class OidTester
 	public void oidTest(NetboxImpl nb, Iterator snmpoidIt, SimpleSnmp sSnmp) {
 		// Call test for all OIDs to this type
 		Map tmp = new HashMap();
+		nb.clearSnmpoid();
 		for (; snmpoidIt.hasNext();) {
 			Snmpoid snmpoid = (Snmpoid)snmpoidIt.next();
 			doTest(nb, snmpoid, sSnmp, tmp);
@@ -40,6 +41,7 @@ public class OidTester
 			Log.d("OID_TESTER", "TEST_NETBOX", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+		nb.setUptodate(true);
 		Log.i("OID_TESTER", "TEST_NETBOX", "Netbox " + nb + " is now up-to-date");
 	}
 

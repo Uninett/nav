@@ -14,6 +14,7 @@ import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.NetboxUpdatable;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 
 /**
  * <p>
@@ -51,6 +52,20 @@ public class Typeoid implements DeviceHandler
 		Log.setDefaultSubsystem("TYPEOID_DEVHANDLER");
 		NetboxUpdatable nu = (NetboxUpdatable)nb;
 
+		NetboxContainer nc;
+		{
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+		}
+
 		// Fetch the typeoid
 		sSnmp.onlyAskModule("0");
 		List l;
@@ -84,7 +99,14 @@ public class Typeoid implements DeviceHandler
 					varMap.put("new_typename", rs.getString("typename"));
 					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 				}
-				
+
+				Database.update("UPDATE netbox SET typeid = '" + typeid + "', uptodate=false WHERE netboxid = '"+nb.getNetboxid()+"'");
+				//Database.update("DELETE FROM module WHERE netboxid = '"+nb.getNetboxid()+"'");
+				nu.refetch();
+				nc.netboxDataFactory(nb);
+				nc.commit();
+
+				/*
 				// Delete the netbox and insert new netbox with correct type
 				rs = Database.query("SELECT ip,roomid,deviceid,sysname,catid,orgid,ro,rw,prefixid,up FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 				rs.next();
@@ -94,13 +116,6 @@ public class Typeoid implements DeviceHandler
 				Database.beginTransaction();
 				Database.update("DELETE FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 
-				/*
-				String[] insDev = {
-					"deviceid", "",
-				};
-				String deviceid = Database.insert("device", insDev, null);
-				*/
-				
 				String[] insNb = {
 					"ip", rs.getString("ip"),
 					"roomid", rs.getString("roomid"),
@@ -120,6 +135,7 @@ public class Typeoid implements DeviceHandler
 
 				// It is now safe to remove the netbox
 				nu.remove(true);
+				*/
 
 			}
 		} catch (SQLException e) {

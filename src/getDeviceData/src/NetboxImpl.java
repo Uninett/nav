@@ -19,9 +19,13 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	private boolean uptodate;
 
-	private boolean removed;
+	/*
 	private boolean updateNetboxes;
 	private boolean recreate;
+	*/
+	private boolean removed;
+	private boolean needRefetch;
+	private boolean needRestart;
 
 	// Maps an OID key to frequency in seconds
 	private Map keyFreqMap;
@@ -203,6 +207,14 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		return ((Integer)numberStoreMap.get(k)).intValue();
 	}
 
+	void clearSnmpoid() {
+		synchronized (oidRunQ) {
+			oidRunQ.clear();
+			oidNextRunMap.clear();
+			keyFreqMap.clear();
+			keyMap.clear();
+		}
+	}		
 
 	void addSnmpoid(int freq, Snmpoid snmpoid) {
 		String oidkey = snmpoid.getOidkey();
@@ -312,9 +324,9 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	void printSchedule() {
 		System.err.println("sysName: " + toString());
-		System.err.println("needUpdateNetboxes: " + needUpdateNetboxes());
-		System.err.println("needRecreate: " + needRecreate());
-		System.err.println("isRemoved: " + isRemoved());
+		//System.err.println("needUpdateNetboxes: " + needUpdateNetboxes());
+		//System.err.println("needRecreate: " + needRecreate());
+		//System.err.println("isRemoved: " + isRemoved());
 		System.err.println("nextRun: " + getNextRun());
 		SortedMap tm = new TreeMap();
 		long curTime = System.currentTimeMillis();
@@ -329,12 +341,20 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		System.err.println("currentTime: " + System.currentTimeMillis());
 	}
 
+	public boolean needRefetch() { return needRefetch; }
+	public void refetch() { needRefetch = true; }
+
+	public void setNeedRestart(boolean b) { needRestart = b; }
+	public boolean needRestart() { return needRestart; }
+	public void restart() { needRestart = true; }
+
 	// Return if this netbox is removed
 	boolean isRemoved() { return removed; }
 
 	// Remove this netbox
 	void remove() { removed = true; }
 
+	/*
 	boolean needUpdateNetboxes() { return updateNetboxes; }
 
 	boolean needRecreate() { return recreate; }
@@ -347,6 +367,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		this.updateNetboxes = updateNetboxes;
 		remove();
 	}
+	*/
 
 	public String getKey() {
 		return getNetboxidS();

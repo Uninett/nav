@@ -24,7 +24,9 @@ public interface NetboxUpdatable
 	 * from the database, along with any additional information, and a
 	 * new record started.
 	 */
-	public void recreate();
+	public void refetch();
+
+	public void restart();
 
 	/**
 	 * <p> Remove the netbox; calling this method guarantees that no
@@ -35,6 +37,6 @@ public interface NetboxUpdatable
 	 * the database and gDD needs to update itself.
 	 *
 	 */
-	public void remove(boolean updateNetboxes);
+	//public void remove(boolean updateNetboxes);
 
 }

@@ -154,10 +154,27 @@ public class NetboxHandler implements DataHandler {
 				Database.update("netbox", set, where);
 			}
 
+			if (nb.needRefetch()) {
+				// Delete all modules
+				{
+					ResultSet rs = Database.query("SELECT deviceid FROM module WHERE netboxid = '"+netboxid+"'");
+					while (rs.next()) {
+						changedDeviceids.put(rs.getString("deviceid"), new Integer(DataHandler.DEVICE_DELETED));
+					}
+					int alerthistCnt = Database.update("UPDATE alerthist SET end_time=NOW() WHERE end_time='infinity' AND deviceid IN (SELECT deviceid FROM module WHERE netboxid='"+nb.getNetboxidS()+"' AND eventtypeid='moduleState')");
+					int delModuleCnt = Database.update("DELETE FROM module WHERE netboxid = '"+netboxid+"'");
+					Log.d("UPDATE_NETBOX", "Closed " + alerthistCnt + " alerthist records, deleted " + delModuleCnt + " modules from nb: " + nb);					
+					//System.err.println("Exec: DELETE FROM module WHERE netboxid = '"+netboxid+"', " + changedDeviceids);
+				}
+				sysnameSet.remove(nb.getSysname());
+				return;
+			}
+
 			// Check if the serial has changed
 			if (oldn.getSerial() != null && n.getSerial() != null && !n.getSerial().equals(oldn.getSerial())) {
 				// New serial, we need to recreate the netbox
-				Log.d("UPDATE_NETBOX", "Serial changed (" + oldn.getSerial() + " -> " + n.getSerial() + "), recreating netbox");
+				Log.d("UPDATE_NETBOX", "Serial changed (" + oldn.getSerial() + " -> " + n.getSerial() + ")");
+				/*
 				NetboxUpdatable nu = (NetboxUpdatable)nb;
 				nu.recreate();
 				changedDeviceids.put(String.valueOf(nb.getDeviceid()), new Integer(DataHandler.DEVICE_DELETED));
@@ -168,20 +185,21 @@ public class NetboxHandler implements DataHandler {
 						changedDeviceids.put(rs.getString("deviceid"), new Integer(DataHandler.DEVICE_DELETED));
 					}
 				}
+				*/
 				Map varMap = new HashMap();
-				varMap.put("alerttype", "deviceRecreated");
+				varMap.put("alerttype", "serialChanged");
 				varMap.put("old_deviceid", String.valueOf(oldn.getDeviceid()));
 				varMap.put("new_deviceid", String.valueOf(n.getDeviceid()));
 				varMap.put("old_serial", String.valueOf(oldn.getSerial()));
 				varMap.put("new_serial", String.valueOf(n.getSerial()));
 				EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "info", Event.STATE_NONE, 0, 0, varMap);
-				netboxMap.remove(netboxid);
-				return;
+				//netboxMap.remove(netboxid);
+				//return;
 			}
 
 			// Update vtpVlan if necessary
 			try {
-				Database.beginTransaction();
+				//Database.beginTransaction();
 				for (Iterator addIt = n.vtpVlanDifference(oldn).iterator(); addIt.hasNext();) {
 					String[] ins = {
 						"netboxid", netboxid,
@@ -192,10 +210,10 @@ public class NetboxHandler implements DataHandler {
 				for (Iterator delIt = oldn.vtpVlanDifference(n).iterator(); delIt.hasNext();) {
 					Database.update("DELETE FROM netbox_vtpvlan WHERE netboxid="+netboxid+" AND vtpvlan='"+delIt.next()+"'");
 				}
-				Database.commit();
+				//Database.commit();
 			} catch (SQLException e) {
 				e.printStackTrace(System.err);
-				Database.rollback();
+				//Database.rollback();
 			}
 
 			String deltaS = oldn != null ? " delta = " + util.format(n.uptimeDelta(oldn),1) + "s" : "";

@@ -245,7 +245,13 @@ public class HP implements DeviceHandler
 		if (memberList != null) {
 			for (Iterator it = memberList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				String module = s[0];
+				String module;
+				if (s.length < 4) {
+					System.err.println("Error in HP, module not found!");
+					module = s[0];
+				} else {
+					module = s[3];
+				}
 				int status = Integer.parseInt(s[1]);
 				if (status == 12) {
 					// Commander

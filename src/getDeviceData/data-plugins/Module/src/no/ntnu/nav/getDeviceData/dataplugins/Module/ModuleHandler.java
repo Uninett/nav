@@ -22,6 +22,7 @@ public class ModuleHandler implements DataHandler {
 	private static Map deviceMap;
 	private static Map moduleMap;
 	private static Map modDevidMap;
+	private static Set deletedDevSet = Collections.synchronizedSet(new HashSet());
 
 	/**
 	 * Fetch initial data from device and module tables.
@@ -33,6 +34,7 @@ public class ModuleHandler implements DataHandler {
 				Map.Entry me = (Map.Entry)it.next();
 				if (((Integer)me.getValue()).intValue() == DataHandler.DEVICE_DELETED) {
 					modDevidMap.remove(me.getKey());
+					deletedDevSet.add(me.getKey());
 				}
 			}
 		}
@@ -129,6 +131,11 @@ public class ModuleHandler implements DataHandler {
 			String moduleKey = nb.getNetboxid()+":"+md.getKey();
 			String moduleid = null;
 			Module oldmd = (Module)moduleMap.get(moduleKey);
+
+			if (oldmd != null && deletedDevSet.remove(oldmd.getDeviceidS())) {
+				moduleMap.remove(moduleKey);
+				oldmd = null;
+			}
 			/*
 			System.err.println("oldmd("+moduleKey+"): " + oldmd);
 			System.err.println("   md("+moduleKey+"): " + md);

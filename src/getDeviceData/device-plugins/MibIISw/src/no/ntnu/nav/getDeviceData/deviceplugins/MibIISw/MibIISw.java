@@ -149,10 +149,16 @@ public class MibIISw implements DeviceHandler
 				List statusList = sSnmp.getAll(hpMemberStatusOid);
 				for (Iterator it = statusList.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
-					String module = s[0];
+					String module;
+					if (s.length < 4) {
+						System.err.println("Error in ModuleMon, module not found!");
+						module = s[0];
+					} else {
+						module = s[3];
+					}
 					int status = Integer.parseInt(s[1]);
 					moduleStatus.put(module, ""+status);
-					if (status == 10 && status == 12) {
+					if (status == 10 || status == 12) {
 						// Up
 						modulesUp.add(module);
 					}
@@ -169,6 +175,7 @@ public class MibIISw implements DeviceHandler
 						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
 					}
 				}
+				mmc.commit();
 			} else
 			if (baseOid != null) {
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {

@@ -316,8 +316,11 @@ public class QueryNetbox extends Thread
 			if (qNetbox != null) {
 				String qn = qNetbox;
 
-				if (qn.startsWith("_") || qn.indexOf(",") >= 0) {
-					if (qn.startsWith("_")) {
+				if (qn.startsWith("_") || qn.startsWith("-") || qn.indexOf(",") >= 0) {
+					if (qn.startsWith("-")) {
+						qn = qn.substring(1, qn.length());
+						sql += " AND typeid IN (";
+					} else if (qn.startsWith("_")) {
 						qn = qn.substring(1, qn.length());
 						sql += " AND catid IN (";
 					} else {
@@ -398,6 +401,11 @@ public class QueryNetbox extends Thread
 						if (newNetbox) {
 							newcnt++;
 							addToRunQList.add(nb);
+							if (!rs.getBoolean("uptodate")) {
+								synchronized (deviceNetboxCache) {
+									deviceNetboxCache.remove(nb.getNetboxidS());
+								}
+							}
 						}
 						netboxidSet.add(new Integer(nb.getNetboxid()));
 						nb.setUptodate(rs.getBoolean("uptodate"));
@@ -668,6 +676,7 @@ public class QueryNetbox extends Thread
 					}
 					oidUpdObj = null;
 				}
+				nb.setNeedRestart(false);
 
 				// Process netbox
 				String netboxid = nb.getNetboxidS();
@@ -711,7 +720,7 @@ public class QueryNetbox extends Thread
 					for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 						try {
 							deviceHandler[dhNum].handleDevice(nb, sSnmp, myCp, containers);
-							if (nb.isRemoved() || nb.needRecreate()) break;
+							if (nb.needRefetch() || nb.needRestart() || nb.isRemoved()) break;
 
 						} catch (TimeoutException te) {
 							Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
@@ -728,7 +737,7 @@ public class QueryNetbox extends Thread
 
 					}
 
-					if (!timeout && !nb.isRemoved() && !nb.needRecreate()) {
+					if (!timeout && !nb.isRemoved()) {
 						// Call the data handlers for all data plugins
 						try { 
 							Map changedDeviceids = containers.callDataHandlers(nb);
@@ -766,13 +775,15 @@ public class QueryNetbox extends Thread
 				}
 
 				// If we need to recreate the netbox, set the unknown type
+				/*
 				if (nb.needRecreate()) {
 					Log.d("RUN", "Recreating netbox: " + nb);
 					nb.setType((Type)typeidMap.get(Type.UNKNOWN_TYPEID));
 				}
+				*/
 
 				// If netbox is removed, don't add it to the RunQ
-				if (!nb.isRemoved()) {
+				if (!nb.needRefetch() && !nb.isRemoved()) {
 
 					// Store last collect time in netboxinfo
 					try {
@@ -782,10 +793,14 @@ public class QueryNetbox extends Thread
 						Log.d("RUN", "Got exception while setting lastUpdated: " + rte.getMessage());
 					}
 
+					nb.reschedule();
+
+					/*
 					// Don't reschedule if we just set the unknown type for this netbox as we want it to run immediately
 					if (!nb.needRecreate()) {
 						nb.reschedule();
 					}
+					*/
 				
 					// Insert into queue
 					addToRunQ(nb);
@@ -793,8 +808,11 @@ public class QueryNetbox extends Thread
 					Log.d("RUN", "Done processing netbox " + nb + " (nextrun: " + (nb.getNextRun()-System.currentTimeMillis())+ ")");
 
 				} else {
-					Log.d("RUN", "Done, netbox is removed: " + nb);
-					if (nb.needUpdateNetboxes()) scheduleUpdateNetboxes(0);
+					Log.d("RUN", "Done, re-fetching nb from database: " + nb);
+					synchronized (nbMap) {
+						nbMap.remove(nb.getNetboxidS());
+					}
+					scheduleUpdateNetboxes(0);
 				}
 
 				long pc = ++nbProcessedCnt;
@@ -802,14 +820,17 @@ public class QueryNetbox extends Thread
 					Log.i("RUN", "** Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ") **");
 				}
 
-				// Try to get a new netbox to process
-				Object o = removeRunQHead();
-				if (o instanceof NetboxImpl) {
-					nb = (NetboxImpl)o;
-					Log.d("RUN", "Got new netbox: " + nb);
-				} else {				
-					// We didn't get a netbox; exit the thread
-					break;
+				if (nb.needRefetch() || !nb.needRestart()) {
+					// Try to get a new netbox to process
+					Object o = removeRunQHead();
+					if (o instanceof NetboxImpl) {
+						nb = (NetboxImpl)o;
+						Log.d("RUN", "Got new netbox: " + nb);
+					} else {
+						// We didn't get a netbox; exit the thread
+						Log.d("RUN", "No new netbox available: " + o);
+						break;
+					}
 				}
 
 			}

@@ -97,6 +97,9 @@ public interface Netbox
 	 */
 	public void scheduleOid(String key, long delay);
 
+	public boolean needRefetch();
+	public boolean needRestart();
+
 	/**
 	 * <p> Store a number in this netbox object. </p>
 	 */

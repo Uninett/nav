@@ -63,7 +63,7 @@ public class DataContainersImpl implements DataContainers {
 			Map m = new HashMap();
 			dh.handleData(nb, dc, m);
 			changedDeviceids.putAll(m);
-			if (nb.isRemoved() || nb.needRecreate()) break;
+			if (nb.needRefetch() && !changedDeviceids.isEmpty()) break;
 		}
 		return changedDeviceids;
 	}
