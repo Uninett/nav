@@ -952,8 +952,8 @@ class NavUtils
 
 		// Oversikt over hvilke linker:vlan som er blokkert av spanning tree
 		HashSet spanTreeBlocked = new HashSet();
-		rs = Database.query("SELECT swportid,vlanid FROM swportblocked");
-		while (rs.next()) spanTreeBlocked.add(rs.getString("swportid")+":"+rs.getString("vlanid"));
+		rs = Database.query("SELECT swportid,vlan FROM swportblocked");
+		while (rs.next()) spanTreeBlocked.add(rs.getString("swportid")+":"+rs.getString("vlan"));
 
 		// Oversikt over ikke-trunker ut fra hver boks per vlan
 		HashMap nontrunkVlan = new HashMap();
@@ -1644,7 +1644,7 @@ class NavUtils
 			if (DEBUG_OUT) outl(pad+"----><b>Allowed</b> to("+toid+"): " + boksName.get(toid) + ", visiting...");
 
 			// Sjekk om linken er blokkert av spanning tree
-			if (spanTreeBlocked.contains(swportid+":"+vlan) || spanTreeBlocked.contains(swportidBack+":"+vlanid)) {
+			if (spanTreeBlocked.contains(swportid+":"+vlan) || spanTreeBlocked.contains(swportidBack+":"+vlan)) {
 				// Jepp, da legger vi til vlanet med blokking i begge ender
 				String[] tvlan = {
 					swportid,
