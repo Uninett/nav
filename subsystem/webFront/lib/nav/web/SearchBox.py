@@ -9,7 +9,7 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 """
 
-import nav.db.manage
+import nav.db.manage,re
 
 # Class for displaying a search box
 class SearchBox:
@@ -84,3 +84,19 @@ class SearchBox:
                             else:
                                 results[key].append(str(value))
         return results
+
+
+# Callback function for SearchBoxes with a sysname/ip search
+# Checks if input is an ip or a hostname, returns a where clause
+def checkIP(input):
+    result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',input)
+    if result:
+        # this is an ip address
+        for octet in result.groups():
+            if (int(octet) > 255) or (int(octet) < 0):
+                raise("Invalid IP")
+        where = "ip='%s'" % (input,)
+    else:
+        # this is a hostname
+        where = "sysname like '%" + input + "%'"
+    return (True,where)
