@@ -4232,10 +4232,10 @@ class bulkdefNetbox:
             if len(row['ro']):
                 try:
                     box = initBox.Box(row['ip'],row['ro'])
-                    # getDeviceId() Returns a list (of ints, so str())
-                    deviceid = str(box.getDeviceId()[0])
                     if box.typeid:
                         row['typeid'] = str(box.typeid)
+                    # getDeviceId() Returns a list (of ints, so str())
+                    deviceid = str(box.getDeviceId()[0])
                 except:
                     # If initBox fails, always make a new device
                     deviceid = None
