@@ -133,29 +133,63 @@
 
 #end def
 
+
+#def newmessage($message)
+<div style="padding: 5px 10px;">
+<a href="/messages/view/$message.id"><font size=3><b>$message.title</b></font></a><br>
+#if $message.description
+$message.description
+#end if
+<br>
+#if $message.affected
+<br><label class="title">Affected end users:</label> $message.affected
+#end if
+#if $message.downtime
+<br><label class="title">Estimated downtime:</label> $message.downtime
+#end if
+#if $message.units
+<br><label class="title">Units on maintenance:</label> <a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a>
+</div>
+#end def
+
+
+
 #def emotd
 
+
 #if $messages:
-<table style="font-size:13px; border: 1px solid black;" cellspacing="0">
-  <TR><TD COLSPAN=2 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
+<table style="font-size:13px; border: 1px solid black;" cellspacing="0" width="100%">
+  <TR><TD COLSPAN=3 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
   <div style="position: relative; margin-top: -12px;"><img src="/images/emotd/top-l.gif"></div>
-  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;">$title</div>
+  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;">Messages</div>
   </TD></TR>
 #set $farge = "white";
   #for $message in $messages
+
+#if $message.new
+<style>
+   label.title {
+	font-weight: bold;
+   }
+</style>
+   <tr><td colspan="2">
+$newmessage($message)
+   </td></tr>
+#set $farge = "white";
+#else
    <tr style="background: $farge;">
       <td style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
 #if $message.units
-      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id"><img src="/images/wrench.gif" border="0">$message.units</a></td>
+      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a></td>
 #else
       <td style="padding: 0px 10px;">&nbsp;</td>      
 #end if
-
-#if $message.new
-          	Edited: $message.last_changed by $message.author<br />
-	        Description: $message.description<br />
-		Units on maintenance: $message.units<br />
-		Is this a new message: $message.new
+#if not $title == "Active Messages"
+#set $start = str($message.publish_start)[0:16]
+#set $end = str($message.publish_end)[0:16]
+      <td style="padding: 0px 10px; font-size:9px;" nowrap>
+      <a style="color: black; text-decoration: none;" title="Published at $start">$start[8:10]/$start[5:7]</a> - <a style="color: black; text-decoration: none;" title="Outdated at $end">$end[8:10]/$end[5:7]</a></td>      
+#end if
 #end if
 
 #if $farge == "white":
@@ -170,64 +204,6 @@
 No $title found.<br>
 #end if
 
-##   <br>
-##   #from nav.web.EmotdSelect import getAllActive
-##   #set $emotds = getAllActive()
-##   #set $antemotds = len($emotds)
-##   <table width="100%" cellspacing="0" cellpadding="0" border="0">
-
-##     <tr class="title">
-##       <td class="title" align="center" colspan="3" style="background-image:url('$imagefolder/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">  
-##         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-##           <tr class="navigation">
-##             <td class="current">
-## #if $antemotds == 0
-##               <div class="title"><a href="/emotd/"><font color="black">Messages of the Day</font></a></div>
-##                 No active messages
-## #else if $antemotds == 1
-##               <div class="title"><a href="/emotd/"><font color="black">Message of the Day</font></a></div>
-##                 One active message
-## #else
-##               <div class="title"><a href="/emotd/"><font color="black">Messages of the Day</font></a></div>
-##                 $antemotds active messages
-## #end if
-##             </td>
-##           </tr>
-##         </table>
-##       </td>
-##       <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
-##     </tr>
-##   </table>
-##   <table width="100%" cellspacing="0" cellpadding="0" border="0">
-
-##   #set $antall = 0
-##   #for $emotd in $emotds
-##      #if $antall < $numberOfMessagesShown
-##      <tr>
-##        <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
-##          <a href="/emotd/view?id=$emotd.emotdid">$emotd.title</a>
-##        </td>
-##        <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
-## 	  #set $last = $emotd.last_changed
-##           #set $date = $last[-2:] + "/" + $last[5:7] + "/" + $last[0:4]
-##           $date
-##        </td>
-##      </tr>
-##      <tr>
-##        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-##          $emotd.description
-##        </td>
-##      </tr>
-##      #end if
-##      #set $antall = $antall + 1
-##   #end for
-##   #if len($emotds) > $numberOfMessagesShown
-##     #set $linktext = "(more)"
-##   #else
-##     #set $linktext = "(to message of the day page)"
-##   #end if
-##      <tr><td colspan="6" align="center"><font size="-2"><a href="/emotd/">$linktext</td></tr>
-##    </table>
 #end def
 <a href="/messages/" style="text-align:center">(messages of the day)</a>
 
