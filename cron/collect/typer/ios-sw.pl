@@ -49,9 +49,9 @@ sub bulk{
 	my $tempduplex = $$duplex[$j][2];
 	my $duplex;
 	if($tempduplex==1){
-	    $duplex = 'full';
+	    $duplex = 'f';
 	} else {
-	    $duplex = 'half';
+	    $duplex = 'h';
 	}
 
 	my $temptrunk = $$trunk[$j][2];
@@ -132,9 +132,9 @@ sub duplex{
 	    $interface++;
 	    my ($modul,$port) = split /\./, $if2mp{$interface};
 	    if($duplex==1){
-		$returverdi{$modul}{$port} = 'full';
+		$returverdi{$modul}{$port} = 'f';
 	    } else {
-		$returverdi{$modul}{$port} = 'half';
+		$returverdi{$modul}{$port} = 'h';
 	    }
 	}
     }

@@ -50,9 +50,9 @@ sub bulk{
 	my $tempduplex = $$duplex[$i][2];
 	my $duplex;
 	if($tempduplex==1){
-	    $duplex = 'half';
+	    $duplex = 'h';
 	} else {
-	    $duplex = 'full';
+	    $duplex = 'f';
 	}
 
 #	print " porttype = ".$$porttype[$i][2];	
