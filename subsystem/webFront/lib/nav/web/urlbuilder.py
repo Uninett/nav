@@ -35,7 +35,9 @@ _subsystems = {
     'report': '/report',
     'rrd': '/browse/rrd',
     'editdb': '/editdb',
-    'emotd':'/emotd',
+    # compatibility mode "emotd" 
+    'emotd':'/messages',
+    'messages':'/messages',
 }
 
 _divisionClasses = {
@@ -125,7 +127,7 @@ def createUrl(object=None, id=None, division=None,
                     url += ','.join(id)
                 url += '/' # make sure we have trailing /    
 
-    elif subsystem == 'emotd':
+    elif subsystem == 'emotd' or subsystem == 'messages':
         if not division and object:
             try:
                 division = _getDivisionByObject(object)
