@@ -36,8 +36,8 @@ public class GwModule extends Module implements Comparable
 	/*
 	Iterator getSwports() { return swports.values().iterator(); }
 	int getSwportCount() { return swports.size(); }
-	Swport getSwport(Integer port) { return (Swport)swports.get(port); }
 	*/
+	Gwport getGwport(String ifindex) { return (Gwport)gwports.get(ifindex); }
 
 	/**
 	 * Return a Vlan-object which is used to describe a single vlan. The

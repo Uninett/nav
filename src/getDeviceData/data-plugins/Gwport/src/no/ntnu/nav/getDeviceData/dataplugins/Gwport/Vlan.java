@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Vlan implements Comparable
 {
 	private int vlanid;
-	private int vlan;
+	private Integer vlan;
 
 	private String nettype;
 	private String orgid;
@@ -25,14 +25,22 @@ public class Vlan implements Comparable
 
 	Vlan(String netident, int vlan) {
 		this(netident);
-		this.vlan = vlan;
+		this.vlan = new Integer(vlan);
 	}
 
 	int getVlanid() { return vlanid; }
+	String getVlanidS() { return ""+vlanid; }
 	void setVlanid(int i) { vlanid = i; }	
 
-	int getVlan() { return vlan; }
-	void setVlan(int i) { vlan = i; }
+	Integer getVlan() { return vlan; }
+	String getVlanS() { return vlan == null ? null : String.valueOf(vlan); }
+	void setVlan(int i) { vlan = new Integer(i); }
+
+	String getNettype() { return nettype; }
+	String getOrgid() { return orgid; }
+	String getUsageid() { return usageid; }
+	String getNetident() { return netident; }
+	String getDescription() { return description; }
 
 	/**
 	 * Set nettype.
@@ -62,18 +70,11 @@ public class Vlan implements Comparable
 		description = s;
 	}
 
-	/*
-	public boolean equalsGwport(Gwport gw) {
-		return (port.equals(sw.port) &&
-						ifindex.equals(sw.ifindex) &&
-						link == sw.link &&
-						speed.equals(sw.speed) &&
-						duplex == sw.duplex &&
-						media.equals(sw.media) &&
-						trunk == sw.trunk &&
-						portname.equals(sw.portname));
+	public boolean equalsVlan(Vlan vl) {
+		return false;
 	}
 
+	/*
 	public boolean equals(Object o) {
 		return (o instanceof Swport && 
 						equalsSwport((Swport)o) &&
@@ -83,7 +84,7 @@ public class Vlan implements Comparable
 
 	public int compareTo(Object o) {
 		Vlan v = (Vlan)o;
-		return new Integer(vlan).compareTo(new Integer(v.vlan));
+		return vlan.compareTo(v.vlan);
 	}
 
 	public String toString() {

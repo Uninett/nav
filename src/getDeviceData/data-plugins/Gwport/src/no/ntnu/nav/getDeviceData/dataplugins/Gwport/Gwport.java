@@ -10,15 +10,31 @@ import no.ntnu.nav.logger.*;
 
 public class Gwport implements Comparable
 {
+	/**
+	 * The switch port has link.
+	 */
+	public static final char PORT_LINK_YES = 'y';
+
+	/**
+	 * The switch port does not have link.
+	 */
+	public static final char PORT_LINK_NO = 'n';
+
+	/**
+	 * The switch port is turned off (admin down).
+	 */
+	public static final char PORT_LINK_DOWN = 'd';
+
 	private int gwportid;
 
 	private String ifindex;
 	private String interf;
 
-	private int masterindex;
+	private Character link;
+	private Integer masterindex;
 	private String masterinterf;
-	private double speed;
-	private int ospf;
+	private Double speed;
+	private Integer ospf;
 
 	private Map gwportprefixMap = new HashMap();
 
@@ -35,13 +51,14 @@ public class Gwport implements Comparable
 	String getIfindex() { return ifindex; }
 	String getIfindexS() { return ((ifindex.length()==1)?" ":"")+getIfindex(); }
 	String getInterf() { return interf; }
-	//String getGwip() { return gwip; }
 
-	int getMasterindex() { return masterindex; }
-	void setMasterindex(int i) { masterindex = i; }
+	Integer getMasterindex() { return masterindex; }
+	void setMasterindex(int i) { masterindex = new Integer(i); }
 
 	String getMasterinterf() { return masterinterf; }
-	
+
+	Gwportprefix getGwportprefix(String gwip) { return (Gwportprefix)gwportprefixMap.get(gwip); }
+
 	/**
 	 * Set the masterinterf .
 	 */
@@ -49,22 +66,38 @@ public class Gwport implements Comparable
 		masterinterf = s;
 	}
 
-	double getSpeed() { return speed; }
+	Character getLink() { return link; }
+	String getLinkS() { return string(link); }
 	
-	/**
-	 * Set the speed.
-	 */
-	public void setSpeed(double d) {
-		speed = d;
-	}
 
-	int getOspf() { return ospf; }
+	/**
+	 * Set the link status of the port:
+	 * 
+	 * <ul>
+	 *  <li>'y' means link is up</li>
+	 *  <li>'n' means link is down</li>
+	 *  <li>'d' means the port is turned off (adm down)</li>
+	 * </ul>
+	 */
+	public void setLink(char c) { link = new Character(c); }
+
+	Double getSpeed() { return speed; }
+	String getSpeedS() { return string(speed); }
+
+	/**
+	 * Set the current speed of the port in MBit/sec.
+	 *
+	 */
+	public void setSpeed(double d) { speed = new Double(d); }
+
+	Integer getOspf() { return ospf; }
+	String getOspfS() { return string(ospf); }
 
 	/**
 	 * Set ospf cost.
 	 */
 	public void setOspf(int i) {
-		ospf = i;
+		ospf = new Integer(i);
 	}
 
 	/**
@@ -88,16 +121,11 @@ public class Gwport implements Comparable
 		return gwportprefixMap.values().iterator();
 	}
 
+	public boolean equalsGwport(Gwport gw) {
+		return false;
+	}
+
 	/*
-	private String ifindex;
-	private String interf;
-	private String gwip;
-
-	private String masterindex;
-	private double speed;
-	private int ospf;
-	private boolean hsrp;
-
 	public boolean equalsGwport(Gwport gw) {
 		return (port.equals(sw.port) &&
 						ifindex.equals(sw.ifindex) &&
@@ -123,6 +151,11 @@ public class Gwport implements Comparable
 
 	public String toString() {
 		return "ifindex="+ifindex+" interf="+interf;
+	}
+
+	private String string(Object o) {
+		if (o == null) return null;
+		return String.valueOf(o);
 	}
 
 }
