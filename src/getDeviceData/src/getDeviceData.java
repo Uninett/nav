@@ -729,7 +729,7 @@ class QueryNetbox extends Thread
 			String cat = nb.getCat();
 			int snmpMajor = nb.getSnmpMajor();
 
-			outla("T"+id+": Now working with("+netboxid+"): " + sysName + " ("+ type +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
+			outla("T"+id+": Now working with("+netboxid+"): " + sysName + ", type="+type+", typegroup="+typegroup+", ip="+ip+" (device "+ curBd +" of "+ antBd+")");
 			long boksBeginTime = System.currentTimeMillis();
 
 			try {
@@ -740,9 +740,9 @@ class QueryNetbox extends Thread
 				// Find handlers for this boks
 				DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + netboxid + " (cat: " + cat + " type: " + type + ")");
+					throw new NoDeviceHandlerException("T"+id+":   No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + " typegroup: " + typegroup);
 				}
-				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type + ")");
+				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type + " typegroup: " + typegroup);
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
