@@ -1,0 +1,61 @@
+#!/bin/bash
+# Relativt komplisert script på grunn av at java-prosessen kan henge seg opp,
+# og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
+# med job-finished filen.
+
+#!/usr/bin/env bash
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+localstatedir=@localstatedir@
+sysconfdir=@sysconfdir@
+
+NAV_CONF="${sysconfdir}/nav.conf"
+
+if [ "$JAVA_HOME" == "" ]; then
+	JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+fi
+
+CUR_DIR=${bindir}/getBoksMacs
+LOG_DIR="${localstatedir}/log"
+PIDFILE=${localstatedir}/run/getBoksMacs.pid
+JOB_FINISHED=$CUR_DIR/job-finished
+
+
+getpid() {
+    if [ -f $PIDFILE ]; then
+	local pidnum=`cat $PIDFILE`
+	if [ -d /proc/$pidnum ]; then
+	    echo $pidnum
+	fi
+    fi
+}
+
+if [ -z `getpid` ] || [ -f $JOB_FINISHED ]; then
+    cd $CUR_DIR
+    if [ -f $JOB_FINISHED ]; then
+        # Must kill old script
+	kill -9 $pidnum
+	rm -f $JOB_FINISHED
+	sleep 2
+    fi
+
+    # Check again that getBoksMacs is not already running
+    if [ -z `getpid` ]; then
+        # Now run script
+	$JAVA_HOME/bin/java -jar getBoksMacs.jar $1 >> "$LOG_DIR/getBoksMacs.log" &
+	pidno="$!"
+	echo $pidno >$PIDFILE
+	wait $pidno
+	if [ -f $JOB_FINISHED ]; then
+	    rm -f $JOB_FINISHED
+	fi
+	rm $PIDFILE
+    else
+	echo "ERROR, kill -9 of previous getBoksMacs failed!"
+    fi
+else
+    # echo "getBoksMacsMulti already running (and not finished)"
+    echo -n ""
+fi

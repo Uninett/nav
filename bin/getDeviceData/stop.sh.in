@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+localstatedir=@localstatedir@
+PIDFILE=${localstatedir}/run/getDeviceData.pid
+
+echo -n "Stopping getDeviceData..."
+if [ -f $PIDFILE ]; then
+  kill `cat $PIDFILE`
+  rm -f $PIDFILE
+  echo "OK"
+else
+  echo "Not running"
+fi

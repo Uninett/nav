@@ -44,6 +44,13 @@ AC_OUTPUT(Makefile
 	etc/init.d/smsd
 	etc/init.d/eventengine
 	etc/init.d/getDeviceData
+	bin/getDeviceData/getDeviceData.sh
+	bin/getDeviceData/stop.sh
+	bin/eventEngine/eventEngine.sh
+	bin/eventEngine/stop.sh
+	bin/getBoksMacs/getBoksMacs.sh
+	bin/navAdmin/runAvledTopologi.sh
+	bin/navAdmin/runAvledVlan.sh
 	src/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
