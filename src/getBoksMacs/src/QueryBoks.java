@@ -187,9 +187,9 @@ public class QueryBoks extends Thread
 			String vendor = bd.vendor;
 			boolean csAtVlan = bd.csAtVlan;
 			boolean cdp = bd.cdp;
-			oidkeys = (Map)oidDb.get(boksType);
+			oidkeys = (Map)oidDb.get(boksId);
 			if (oidkeys == null) {
-				Log.d("RUN", "Missing OID keys for type: " + boksType + ", skipping " + sysName);
+				Log.d("RUN", "Missing OID keys for netbox: " + boksId + ", skipping " + sysName);
 				continue;
 			}
 
@@ -314,6 +314,9 @@ public class QueryBoks extends Thread
 				Log.d("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
 				System.exit(1);
+			} finally {
+				sSnmp.destroy();
+				sSnmp = null;
 			}
 
 			Collections.sort(netboxList);
@@ -1573,7 +1576,11 @@ public class QueryBoks extends Thread
 				unclosedCam.remove(camKey);
 			}
 			String camid = s[2];
-			int misscnt = Integer.parseInt(s[3]);
+			int misscnt = 1;
+			try {
+				misscnt = Integer.parseInt(s[3]);
+			} catch (NumberFormatException e) {
+			}
 
 			if (misscnt > 0) {
 				// til-feltet må settes tilbake til infinity, og misscnt tilbake til 0

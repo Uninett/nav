@@ -285,32 +285,55 @@ class getBoksMacs
 		// Hent alle aktive vlan
 		out("  vlan...");
 		dumpBeginTime = System.currentTimeMillis();
-		//rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN swportvlan USING (swportid) JOIN module USING(moduleid) WHERE trunk='f'");
+		// Get VLANs from netbox_vtpvlan and swportvlan, or fall back to using swportallowedvlan
+		{
+			rs = Database.query("SELECT netboxid,vtpvlan FROM netbox_vtpvlan");
+			while (rs.next()) {
+				Set s;
+				String boksid = rs.getString("netboxid");
+				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+				s.add(new Integer(rs.getInt("vtpvlan")));
+			}
+			Set vtpBoksid = vlanBoksid.keySet();
+			rs = Database.query("SELECT DISTINCT netboxid,vlan.vlan FROM module JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid)");
+			while (rs.next()) {
+				Set s;
+				String boksid = rs.getString("netboxid");
+				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+				s.add(new Integer(rs.getInt("vlan")));
+			}
+			
+			rs = Database.query("SELECT DISTINCT vlan FROM vlan WHERE vlan IS NOT NULL");
+			List tmp = new ArrayList();
+			while (rs.next()) tmp.add(new Integer(rs.getInt("vlan")));
+			int[] vlanList = new int[tmp.size()];
+			{
+				int i=0;
+				for (Iterator it=tmp.iterator(); it.hasNext(); i++) vlanList[i] = ((Integer)it.next()).intValue();
+			}
+
+			rs = Database.query("SELECT netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid)");
+			while (rs.next()) {
+				String boksid = rs.getString("netboxid");
+				if (!vtpBoksid.contains(boksid)) {
+					Set s;
+					String hexstring = rs.getString("hexstring");
+					if (hexstring == null || hexstring.length() == 0) continue;
+					if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
+					for (int i=0; i < vlanList.length; i++) {
+						if (isAllowedVlan(hexstring, vlanList[i])) {
+							s.add(new Integer(vlanList[i]));
+						}
+					}
+				}
+			}
+		}
 		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
 		while (rs.next()) {
 			Set s;
 			String boksid = rs.getString("netboxid");
 			if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
 			s.add(new Integer(rs.getInt("vlan")));
-		}
-		{
-			rs = Database.query("SELECT DISTINCT vlan FROM prefix JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL");
-			int[] vlanList = new int[rs.getFetchSize()];
-			for (int i=0; rs.next(); i++) vlanList[i] = rs.getInt("vlan");
-
-			rs = Database.query("SELECT netboxid,hexstring FROM swport JOIN module USING(moduleid) JOIN swportallowedvlan USING (swportid)");
-			while (rs.next()) {
-				Set s;
-				String boksid = rs.getString("netboxid");
-				String hexstring = rs.getString("hexstring");
-				if (hexstring == null || hexstring.length() == 0) continue;
-				if ( (s=(Set)vlanBoksid.get(boksid)) == null) vlanBoksid.put(boksid, s = new TreeSet());
-				for (int i=0; i < vlanList.length; i++) {
-					if (isAllowedVlan(hexstring, vlanList[i])) {
-						s.add(new Integer(vlanList[i]));
-					}
-				}
-			}
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -342,15 +365,19 @@ class getBoksMacs
 		outl(dumpUsedTime + " ms.");
 
 		// Fetch OID db
+		out("  OID db...");
+		dumpBeginTime = System.currentTimeMillis();
 		QueryBoks.oidDb = new HashMap();
 		Map oidDb = QueryBoks.oidDb;
-		rs = Database.query("SELECT typename,oidkey,snmpoid FROM type JOIN typesnmpoid USING(typeid) JOIN snmpoid USING(snmpoidid)");
+		rs = Database.query("SELECT netboxid,oidkey,snmpoid FROM netbox JOIN netboxsnmpoid USING(netboxid) JOIN snmpoid USING(snmpoidid)");
 		while (rs.next()) {
 			Map m;
-			String tn = rs.getString("typename");
-			if ( (m=(Map)oidDb.get(tn)) == null) oidDb.put(tn, m = new HashMap());
+			String nid = rs.getString("netboxid");
+			if ( (m=(Map)oidDb.get(nid)) == null) oidDb.put(nid, m = new HashMap());
 			m.put(rs.getString("oidkey"), rs.getString("snmpoid"));
 		}
+		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
+		outl(dumpUsedTime + " ms.");
 
 		// netboxid+ifindex -> vlan
 		QueryBoks.vlanMap = new HashMap();
@@ -556,7 +583,11 @@ class getBoksMacs
 
 			String[] s = (String[])me.getValue();
 			String camid = s[0];
-			int misscnt = Integer.parseInt(s[1]);
+			int misscnt=0;
+			try {
+				misscnt = Integer.parseInt(s[1]);
+			} catch (NumberFormatException e) {
+			}
 			misscnt++;
 
 			if (misscnt > MAX_MISSCNT) {
