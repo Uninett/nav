@@ -948,7 +948,7 @@ class NavUtils
 
 		// Oversikt over hvilke vlan som kjører på en swport mot gw
 		HashSet swportGwVlanSet = new HashSet();
-		rs = Database.query("SELECT DISTINCT to_swportid,vlanid FROM gwport JOIN prefix USING(prefixid) WHERE to_swportid IS NOT NULL AND vlanid IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT to_swportid,vlanid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) WHERE to_swportid IS NOT NULL AND vlanid IS NOT NULL");
 		while (rs.next()) swportGwVlanSet.add(rs.getString("to_swportid")+":"+rs.getString("vlanid"));
 
 		// Oversikt over hvilke linker:vlan som er blokkert av spanning tree
