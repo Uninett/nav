@@ -116,8 +116,9 @@ public class ModuleMonHandler implements DataHandler {
 
 	// Post the event
 	private void sendEvent(Netbox nb, String m, int state, int severity) {
-			Event e = EventQ.eventFactory("moduleMon", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(m), "moduleState", state, -1, severity, null);
-			EventQ.postEvent(e);
+		if (!EventQ.createAndPostEvent("moduleMon", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(m), "moduleState", state, -1, severity, null)) {
+			Log.c("MODULE_MON", "SEND_EVENT", "Error sending moduleUp|Down event for " + nb + ", moduleid: " + m);
+		}
 	}
 
 }
