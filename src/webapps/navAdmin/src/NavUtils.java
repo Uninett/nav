@@ -1046,7 +1046,7 @@ class NavUtils
 		while (rs.next()) {
 			int vlanid = rs.getInt("vlanid");
 			int vlan = -1;
-			if (vlanidVlan.get(String.valueOf(vlan)) != null) vlan = Integer.parseInt((String)vlanidVlan.get(String.valueOf(vlan)));
+			if (vlanidVlan.get(String.valueOf(vlanid)) != null) vlan = Integer.parseInt((String)vlanidVlan.get(String.valueOf(vlanid)));
 
 			if (doneVlan.add(new Integer(vlanid))) visitedNodeSet.clear();
 			String netaddr = rs.getString("netaddr");
@@ -1151,7 +1151,7 @@ class NavUtils
 			}
 			
 			int vlan = -1;
-			if (vlanidVlan.get(String.valueOf(vlan)) != null) vlan = Integer.parseInt((String)vlanidVlan.get(String.valueOf(vlan)));
+			if (vlanidVlan.get(String.valueOf(vlanid)) != null) vlan = Integer.parseInt((String)vlanidVlan.get(String.valueOf(vlanid)));
 
 			if (DEBUG_OUT) outl("\n<b>NEW VLAN: " + vlan + "</b>, starting from <b>"+rs.getString("sysname")+"</b> ("+rs.getString("to_netboxid")+")<br>");
 			vlanTraverseLink(vlanid, vlan, null, rs.getString("to_netboxid"), true, false, nontrunkVlan, allowedVlan, activeVlan, swportidMap, spanTreeBlocked, trunkVlan, vlanRename, visitNode, 0, com, DEBUG_OUT, boksGwSet, swportGwVlanSet, boksName);
@@ -1589,7 +1589,7 @@ class NavUtils
 				*/
 				if (swportGwVlanSet.contains(swportid+":"+vlanid)) {
 					if (!isAllowedVlan(hexstr, vlan)) {
-						if (DEBUG_OUT) outl(pad+"--><font color=\"red\">ERROR, running on trunk to GW, but isAllowedVlan is false, vlan: <b>" + vlan + "</b>, boksid("+boksid+"): <b>" + boksName.get(boksid) + "</b>, to("+toid+"): <b>" + boksName.get(toid) + "</b> level: <b>" + level + "</b> (<b>"+swportid+"</b>)");
+						if (DEBUG_OUT) outl(pad+"--><font color=\"red\">ERROR, running on trunk to GW, but isAllowedVlan is false, vlan: <b>" + vlan + "</b>, boksid("+boksid+"): <b>" + boksName.get(boksid) + "</b>, to("+toid+"): <b>" + boksName.get(toid) + "</b> level: <b>" + level + "</b> (<b>"+swportid+"</b>)</font>");
 						continue;
 					}
 
