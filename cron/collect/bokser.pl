@@ -4,7 +4,7 @@
 use SNMP_util;
 use strict;
 
-my $vei = "/usr/local/nav/navme/lib";
+require "/usr/local/nav/navme/etc/conf/path.pl";
 require "$vei/database.pl";
 require "$vei/snmplib.pl";
 require "$vei/fil.pl";

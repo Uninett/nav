@@ -2,11 +2,11 @@
 
 use strict;
 
-my $vei = "/usr/local/nav/navme/lib";
-require "$vei/database.pl";
-require "$vei/snmplib.pl";
-require "$vei/fil.pl";
-require "$vei/iplib.pl";
+require "/usr/local/nav/navme/etc/conf/path.pl";
+require "$lib/database.pl";
+require "$lib/snmplib.pl";
+require "$lib/fil.pl";
+require "$lib/iplib.pl";
 
 my $db = &db_connect("manage","navall","uka97urgf");
 

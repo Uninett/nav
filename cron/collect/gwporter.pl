@@ -2,11 +2,11 @@
 
 use strict;
 
-my $vei = "/usr/local/nav/navme/lib";
-require "$vei/database.pl";
-require "$vei/snmplib.pl";
-require "$vei/fil.pl";
-require "$vei/iplib.pl";
+require "/usr/local/nav/navme/etc/conf/path.pl";
+require "$lib/database.pl";
+require "$lib/snmplib.pl";
+require "$lib/fil.pl";
+require "$lib/iplib.pl";
 
 my $ip2IfIndex     = ".1.3.6.1.2.1.4.20.1.2"; 
 my $ip2NetMask     = ".1.3.6.1.2.1.4.20.1.3"; 

@@ -3,8 +3,8 @@
 use Pg;
 use strict;
 
-my $vei = "/usr/local/nav/navme/lib";
-require "$vei/database.pl";
+require "/usr/local/nav/navme/etc/conf/path.pl";
+require "$lib/database.pl";
  
 my $dbh_m = &db_connect("manage", "navall", "uka97urgf");
 my $dbh_t = &db_connect("trapdetect", "varsle", "lgagikk5p");
