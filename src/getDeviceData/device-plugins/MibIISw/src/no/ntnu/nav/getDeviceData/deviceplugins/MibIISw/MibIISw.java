@@ -114,9 +114,7 @@ public class MibIISw implements DeviceHandler
 		processMibII(nb, netboxid, ip, cs_ro, type, nc, sc, mmc);
 
 		// Commit data
-		nc.commit();
 		sc.commit();
-		mmc.commit();
 	}
 
 	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
@@ -128,20 +126,26 @@ public class MibIISw implements DeviceHandler
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String ifindex = s[0];
+					String ifindexOid = sSnmp.extractIfIndexOID(ifindex);
 					String module = s[1];
 					try {
 						sSnmp.onlyAskModule(module);
-						List l = sSnmp.getNext(baseOid+"."+ifindex, 1, false, false);
+						List l = sSnmp.getNext(baseOid+"."+ifindexOid, 1, false, false);
 						if (l != null && !l.isEmpty()) {
 							// We got a response
 							mmc.ifindexActive(ifindex);
+						} else {
+							Log.d("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " returned no values");
 						}
 					} catch (TimeoutException te) {
 						// Assume the module is down
-						Log.i("PROCESS_MIBII", "Module with ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
+						Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
 					}
 				}
 				sSnmp.onlyAskModule(null);
+				mmc.commit();
+			} else {
+				Log.w("MODULE_MON", "Netbox " + nb.getSysname() + ", type " + nb.getType() + " does not support the moduleMon OID, skipping");
 			}
 		}
 
@@ -152,9 +156,10 @@ public class MibIISw implements DeviceHandler
 		if (l != null && !l.isEmpty()) {
 			// sysname (dnsname) should start with the collected sysname
 			String[] s = (String[])l.get(0);
-			if (!nb.getSysname().startsWith(s[1])) {
+			String netboxSysname = s[1];
+			if (!nb.getSysname().startsWith(netboxSysname)) {
 				// Log
-				Log.i("HANDLE", "Sysname (DNS) ("+nb.getSysname()+") does not start with the collected sysname ("+s[1]+")");
+				Log.i("HANDLE", "Sysname (DNS) ("+nb.getSysname()+") does not start with the collected sysname ("+netboxSysname+")");
 
 				Map varMap = new HashMap();
 				varMap.put("dnsname", String.valueOf(nb.getSysname()));
@@ -169,6 +174,7 @@ public class MibIISw implements DeviceHandler
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
 			nc.netboxDataFactory(nb).setUptimeTicks(Long.parseLong(s[1]));
+			nc.commit();
 		}
 
 		Set skipIfindexSet = new HashSet();
