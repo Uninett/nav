@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.4 2003/06/15 11:06:28 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.5 2003/06/19 12:50:34 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -13,9 +13,9 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 
-import threading, jobmap, psycopg, Queue, job, debug, time, event
+import threading, checkermap, psycopg, Queue, abstractChecker, time, event
 from setup import Service
-
+from debug import debug
 
 def db(conf):
 	if _db._instance is None:
@@ -27,8 +27,6 @@ class _db(threading.Thread):
 	_instance=None
 	def __init__(self, conf):
 		threading.Thread.__init__(self)
-		self.mapper=jobmap.jobmap()
-		self.debug=debug.debug()
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(0)
 		self.sysnetbox()
@@ -39,11 +37,11 @@ class _db(threading.Thread):
 		while 1:
 			event = self.queue.get()
 			# Lock table exclusively
-			#self.debug.log("Locking eventq exclusively")
+			#debug("Locking eventq exclusively")
 			#self.execute("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE", commit=0);
 			#time.sleep(10)
 			self.commitEvent(event)
-			#self.debug.log("Committing events in 10 secs...")
+			#debug("Committing events in 10 secs...")
 			#time.sleep(10)
 			self.db.commit()
 
@@ -64,38 +62,38 @@ class _db(threading.Thread):
 	def query(self, statement, commit=1):
 		try:
 			cursor=self.db.cursor()
-			self.debug.log("Executeing: %s" % statement,7)
+			debug("Executeing: %s" % statement,7)
 			cursor.execute(statement)
 			if commit:
 				self.db.commit()
 			return cursor.fetchall()
 		except psycopg.DatabaseError, e:
-			self.debug.log("Could not execute query: %s" % statement, 2)
-			self.debug.log(str(e))
+			debug("Could not execute query: %s" % statement, 2)
+			debug(str(e))
 			if commit:
 				self.db.rollback()
 			return []
 		except psycopg.InterfaceError, e:
-			self.debug.log("Could not execute query: %s" % statement, 2)
-			self.debug.log(str(e))
+			debug("Could not execute query: %s" % statement, 2)
+			debug(str(e))
 			if commit:
 				self.db.rollback()
 			return []
 	def execute(self, statement, commit=1):
 		try:
 			cursor=self.db.cursor()
-			self.debug.log("Executeing: %s" % statement,7)
+			debug("Executeing: %s" % statement,7)
 			cursor.execute(statement)
 			if commit:
 				self.db.commit()
 		except psycopg.DatabaseError, e:
-			self.debug.log("Could not execute statement: %s" % statement, 2)
-			self.debug.log(str(e))
+			debug("Could not execute statement: %s" % statement, 2)
+			debug(str(e))
 			if commit:
 				self.db.rollback()
 		except psycopg.InterfaceError, e:
-			self.debug.log("Could not execute statement: %s" % statement, 2)
-			self.debug.log(str(e))
+			debug("Could not execute statement: %s" % statement, 2)
+			debug(str(e))
 			if commit:
 				self.db.rollback()
 
@@ -138,9 +136,9 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
 		try:
 			netboxid, deviceid=self.query(query)[0][0:2]
-			self.debug.log("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
+			debug("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
 		except Exception,e:
-			self.debug.log("Couldn't get deviceid for %s, Errormsg: %s" % (host,e),3)
+			debug("Couldn't get deviceid for %s, Errormsg: %s" % (host,e),3)
 
 			
 
@@ -151,21 +149,21 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 			state = 's'
 			value = 0
 
-		#self.debug.log("Locking eventq exclusively")
+		#debug("Locking eventq exclusively")
 		#self.execute("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE", commit=0);
 		statement = "INSERT INTO eventq (netboxid, deviceid, eventtypeid, state, value, source, target) values (%i, %i, '%s','%s', %i, '%s','%s' )" % (netboxid, deviceid, "boxState", state, value,"pping","eventEngine")
 		self.execute(statement)
 		
 
 	def newVersion(self, serviceid, version):
-		self.debug.log( "New version. Id: %i Version: %s" % (serviceid,version))
+		debug( "New version. Id: %i Version: %s" % (serviceid,version))
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 
 	def hostsToPing(self):
 		query="""SELECT DISTINCT ip FROM netbox """
 		return self.query(query)
 
-	def getJobs(self, useDbStatus, onlyactive = 1):
+	def getCheckers(self, useDbStatus, onlyactive = 1):
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
 		order by serviceid"""
@@ -182,16 +180,16 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		(service.netboxid=netbox.netboxid) order by serviceid"""
 		map(fromdb.append, self.query(query))
 		
-		jobs = []
+		checkers = []
 		for each in fromdb:
 			if len(each) == 8:
 				serviceid,netboxid,active,handler,version,ip,sysname,up = each
 			else:
-				self.debug("Invalid job: %s" % each,2)
+				debug("Invalid checker: %s" % each,2)
 				continue
-			job = self.mapper.get(handler)
-			if not job:
-				self.debug("no such handler: %s",handler,2)
+			checker = checkermap.get(handler)
+			if not checker:
+				debug("no such checker: %s",handler,2)
 				continue
 			service={'id':serviceid,
 				 'netboxid':netboxid,
@@ -205,23 +203,23 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 					up=event.Event.UP
 				else:
 					event.up=Event.DOWN
-				newJob = job(service, status=up)
+				newChecker = checker(service, status=up)
 			else:
-				newJob = job(service)
+				newChecker = checker(service)
 			if onlyactive and not active:
 				continue
 			else:
-				setattr(newJob,'active',active)
+				setattr(newChecker,'active',active)
 
-			jobs += [newJob]
+			checkers += [newChecker]
 
-		return jobs
+		return checkers
 
 
 	def getServices(self):
 		services = []
 		
-		for i in self.getJobs(0):
+		for i in self.getCheckers(0):
 			serviceid = i.getServiceid()
 			active = (i.active and 'true') or 'false'
 			netboxid = i.getNetboxid()

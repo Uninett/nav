@@ -1,5 +1,5 @@
 """
-$Id: RunQueue.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
+$Id: RunQueue.py,v 1.2 2003/06/19 12:50:34 magnun Exp $
 This file is part of the NAV project.
 
 Copyright (c) 2002 by NTNU, ITEA nettgruppen
@@ -7,21 +7,21 @@ Copyright (c) 2002 by NTNU, ITEA nettgruppen
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 from threading import *
-import threading, DEQueue, sys, time, types, traceback, debug, config
+import threading, DEQueue, sys, time, types, traceback, config
+from debug import debug
 import prioqueunique
 class TerminateException(Exception):
     pass
 
 class worker(threading.Thread):
     """
-    The thread removes a job from the runqueue and executes it. If the
-    runque is empty, the thread sleeps until it gets woken when a job is
+    The thread removes a checker from the runqueue and executes it. If the
+    runque is empty, the thread sleeps until it gets woken when a checker is
     placed in the queue.
 
     """
     def __init__(self, rq):
         threading.Thread.__init__(self)
-        self.debug=debug.debug()
         self._runqueue=rq
         self._runcount=0
         self._running=1
@@ -30,12 +30,12 @@ class worker(threading.Thread):
 
     def run(self):
         """
-        Tries to dequeue a job. Loops while
+        Tries to dequeue a checker. Loops while
         self._running=1
         """
         while self._running:
             try:
-                self._job=self._runqueue.deq()
+                self._checker=self._runqueue.deq()
                 self.execute()
             except TerminateException:
                 self._runqueue.workers.remove(self)
@@ -45,19 +45,19 @@ class worker(threading.Thread):
 
     def execute(self):
         """
-        Executes the job. If maximum runcount is
+        Executes the checker. If maximum runcount is
         exceeded, self._running is set to zero and the
         thread will be recycled.
         """
         self._runcount+=1
         self._timeStartExecute=time.time()
-        self._job.run()
+        self._checker.run()
         if self._runqueue.getMaxRunCount() != 0 and self._runcount > self._runqueue.getMaxRunCount():
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
-            self.debug.log("%s is recycling."% self.getName())
-        self.debug.log("%s finished job number %i" % (self.getName(), self._runcount),7)
+            debug("%s is recycling."% self.getName())
+        debug("%s finished checker number %i" % (self.getName(), self._runcount),7)
         self._timeStartExecute=0
 
 
@@ -70,11 +70,10 @@ class _RunQueue:
     _instance=None
     def __init__(self,**kwargs):
         self.conf=config.serviceconf()
-        self.debug=debug.debug()
         self._maxThreads=int(self.conf.get('maxthreads', sys.maxint))
-        self.debug.log("Setting maxthreads=%i" % self._maxThreads)
+        debug("Setting maxthreads=%i" % self._maxThreads)
         self._maxRunCount=int(self.conf.get('recycle interval',50))
-        self.debug.log("Setting maxRunCount=%i" % self._maxRunCount)
+        debug("Setting maxRunCount=%i" % self._maxRunCount)
         self._controller=kwargs.get('controller',self)
         self.workers=[]
         self.unusedThreadName=[]
@@ -96,7 +95,7 @@ class _RunQueue:
         quickly as possible after time timestamp has occured.
         """
         self.lock.acquire()
-        # Jobs with priority is put in a seperate queue
+        # Checkers with priority is put in a seperate queue
         if type(runnable) == types.TupleType:
             pri,obj=runnable
             self.pq.put(pri,obj)
@@ -104,9 +103,9 @@ class _RunQueue:
             self.rq.put(runnable)
 
         # This is quite dirty, but I really need to know how many
-        # threads are waiting for jobs.
+        # threads are waiting for checkers.
         numWaiters=len(self.awaitWork._Condition__waiters)
-        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters), 7)
+        debug("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters), 7)
         if numWaiters > 0:
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:
@@ -123,14 +122,14 @@ class _RunQueue:
     def deq(self):
         """
         Gets a runnable from the runqueue. Checks if we have
-        scheduled jobs (runnables containing timestamp. If not, we
-        return a job without timestamp.
+        scheduled checkers (runnables containing timestamp. If not, we
+        return a checker without timestamp.
         self.pq = priorityqueue
         self.rq = queue
         """
         self.lock.acquire()
         while 1:
-            # wait if we have no jobs in queue
+            # wait if we have no checkers in queue
             while len(self.rq)==0 and len(self.pq)==0:
                 if self.stop:
                     self.lock.release()
@@ -151,16 +150,16 @@ class _RunQueue:
                     r=self.pq.get()
                     self.lock.release()
                     return r
-            # We have no priority jobs ready.
-            # Check if we have unpriority jobs
+            # We have no priority checkers ready.
+            # Check if we have unpriority checkers
             # to execute
             if len(self.rq) > 0:
                 r=self.rq.get()
                 self.lock.release()
                 return r
-            # Wait to execute priority job, break if new jobs arrive
+            # Wait to execute priority checker, break if new checkers arrive
             else:
-                self.debug.log("Thread waits for %s secs"%wait,7)
+                debug("Thread waits for %s secs"%wait,7)
                 self.awaitWork.wait(wait)
 
     def terminate(self):
@@ -169,7 +168,7 @@ class _RunQueue:
         self.awaitWork.notifyAll()
         self.numThreadsWaiting=0
         self.lock.release()
-	self.debug.log("Waiting for threads to terminate...")
+	debug("Waiting for threads to terminate...")
         for i in self.workers:
             i.join()
-        self.debug.log("All threads have finished")
+        debug("All threads have finished")

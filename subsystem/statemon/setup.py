@@ -1,14 +1,13 @@
 """
-$Id: setup.py,v 1.1 2003/03/26 16:00:00 magnun Exp $
+$Id: setup.py,v 1.2 2003/06/19 12:50:34 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
-import re,getopt,sys,config,psycopg,jobmap,string,db
+import re,getopt,sys,config,psycopg,checkermap,string,db
 
 HEADER = '#sysname              handler    args'
 
-mapper = jobmap.jobmap()
 
 class Service:
 	def __init__(self, sysname, handler, args, id=''):
@@ -40,8 +39,8 @@ def parseLine(line):
 	except ValueError:
 		print "Argumentet har ikke riktig syntax: %s" % args
 		args=""
-	
-	if handler not in mapper:
+
+	if not checkermap.get(handler):
 		msg = "no such handler/type: (%s)" % handler
 		raise TypeError(msg)
 

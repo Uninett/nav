@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.4 2003/06/18 11:38:31 magnun Exp $                                                                                                                              
+$Id: servicemon.py,v 1.5 2003/06/19 12:50:34 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -8,10 +8,11 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
+os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
 
-import RunQueue, types, time, job, getopt, signal, config, db, debug, mailAlert, random
+import RunQueue, types, time, abstractChecker, getopt, signal, config, db, mailAlert, random
 import gc, threading
+import debug
 
 class controller:
     def __init__(self, **kwargs):
@@ -19,17 +20,19 @@ class controller:
         signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.conf=config.serviceconf()
-        debugger=debug.debug(level=self.conf.get('debuglevel',4))
-        self.debug=debugger.log
+        debug.setDebugLevel(self.conf.get('debuglevel',4))
         self._deamon=kwargs.get("fork", 1)
         self._isrunning=1
-        self._jobs=[]
-        self._runqueue=RunQueue.RunQueue(controller=self)
-        self._pidfile=self.conf.get('pidfile', 'controller.pid')
+        self._checkers=[]
+        self._pidfile=self.conf.get('pidfile', 'servicemon.pid')
+        debug.debug("Wrote pidfile %s" % self._pidfile)
         self._looptime=int(self.conf.get("checkinterval",60))
-        self.debug("Setting checkinterval=%i"% self._looptime)
+        debug.debug("Setting checkinterval=%i"% self._looptime)
         self.db=db.db(config.dbconf("db.conf"))
+        debug.debug("Reading database config")
         self.db.start()
+        debug.debug("Setting up runqueue")
+        self._runqueue=RunQueue.RunQueue(controller=self)
         self.alerter=mailAlert.mailAlert()
         self.alerter.start()
         self.dirty = 1
@@ -42,38 +45,38 @@ class controller:
         try:
             outputfile = open('/var/www/html/services/status.txt','w')
         except:
-            self.debug("Failed to open outputfile: %s" % outputfile,2)
+            debug.debug("Failed to open outputfile: %s" % outputfile,2)
             return
 
         try:
-            for each in self._jobs:
+            for each in self._checkers:
                 outputfile.write("%-25s %-5s %-5s %s\n" % (each.getSysname(), each.getType(), each.getStatus(), each.getVersion()) )
 
             outputfile.write("\n\nLast updated: %s" % time.asctime())
             outputfile.close()
         except:
-            self.debug("Failed to write to %s" % outputfile,2)
+            debug.debug("Failed to write to %s" % outputfile,2)
 
                       
-    def getJobs(self):
+    def getCheckers(self):
         """
-        Fetches new jobs from the NAV database and appends them to
+        Fetches new checkers from the NAV database and appends them to
         the runqueue.
         """
-        newjobs = self.db.getJobs(self.dirty)
+        newcheckers = self.db.getCheckers(self.dirty)
         self.dirty=0
 
         s=[]    
-        for i in newjobs:
-            if i in self._jobs:
-                s.append(self._jobs[self._jobs.index(i)])
+        for i in newcheckers:
+            if i in self._checkers:
+                s.append(self._checkers[self._checkers.index(i)])
             else:
                 s.append(i)
 
-        self._jobs=s
-        #randomiserer rekkefølgen på jobbene
-        for i in self._jobs:
-            self._jobs.append(self._jobs.pop(int(len(self._jobs)*random.random())))
+        self._checkers=s
+        #randomiserer rekkefølgen på checkerbene
+        for i in self._checkers:
+            self._checkers.append(self._checkers.pop(int(len(self._checkers)*random.random())))
                     
     def main(self):
         """
@@ -83,14 +86,14 @@ class controller:
 
         while self._isrunning:
             start=time.time()
-            self.getJobs()
+            self.getCheckers()
 
             wait=self._looptime - (time.time() - start)
-            if self._jobs:
-                pause=wait/(len(self._jobs)*2)
+            if self._checkers:
+                pause=wait/(len(self._checkers)*2)
             else:
                 pause=0
-            for each in self._jobs:
+            for each in self._checkers:
                 self._runqueue.enq(each)
                 time.sleep(pause)
 
@@ -101,12 +104,12 @@ class controller:
             #for i in gc.get_objects():
             #    if isinstance(i, threading.Thread):
             #        dbgthreads.append(i)
-            #self.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
+            #debug.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
 
             wait=(self._looptime - (time.time() - start))
-            self.debug("Waiting %i seconds." % wait)
+            debug.debug("Waiting %i seconds." % wait)
             if wait <= 0:
-                self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
+                debug.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
                 wait %= self._looptime
                 time.sleep(wait)
             else:
@@ -115,20 +118,20 @@ class controller:
 
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
-            self.debug( "Caught SIGTERM. Exiting.")
+            debug.debug( "Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
             os.sys.exit(0)
         elif signum == signal.SIGUSR1:
             # reopen the logfile
             logfile=self.conf.get("logfile", "servicemon.log")
-            self.debug("Caught SIGUSR1. Reopening logfile...")
+            debug.debug("Caught SIGUSR1. Reopening logfile...")
             os.sys.stdout.close()
             os.sys.stderr.close()
             os.sys.stdout = open(logfile,'a')
             os.sys.stderr = open(logfile,'a')
-            self.debug("Reopened logfile: %s" % logfile)
+            debug.debug("Reopened logfile: %s" % logfile)
         else:
-            self.debug( "Caught %s. Resuming operation." % (signum))
+            debug.debug( "Caught %s. Resuming operation." % (signum))
 
 
 def start(nofork):

@@ -1,5 +1,5 @@
 """
-$Id: jobmap.py,v 1.1 2003/03/26 16:01:43 magnun Exp $                                                                                                                              
+$Id: jobmap.py,v 1.2 2003/06/19 12:50:34 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -8,7 +8,7 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import os, re
 
-class jobmap(dict):
+class checkermap(dict):
     DEBUG = 0
     def __init__(self):
         dict.__init__(self)
@@ -28,13 +28,13 @@ class jobmap(dict):
         Parses the dir lib/handler for Handlers.
 
         """
-        files=os.listdir("./lib/handler/")
-        handlerpattern="Handler.py"
+        files=os.listdir("./lib/checker/")
+        handlerpattern="Checker.py"
         for file in files:
             if len(file) > len(handlerpattern) and file[len(file)-len(handlerpattern):]==handlerpattern:
                 key = file[:-len(handlerpattern)].lower()
                 handler = file[:-3]
 		if self.DEBUG:
-	                print "Registering handler %s from module %s" % (key, handler)
+	                print "Registering checker %s from module %s" % (key, handler)
                 self[key]=handler
                 
