@@ -1,0 +1,24 @@
+# file view-groups 
+
+# At the moment '#' is used for comments, but anything that not starts
+# with the word 'view' will be ignored.
+
+# This file is inteded to group the views for the targettypes. In a
+# targettype we have two config-options: ds and view. ds (datasource)
+# defines what datasources to gather from on this targettype, while
+# view defines how the grapher.cgi groups the different graphs. So for
+# instance we have one group for cpu-graphs, one for memory graphs and
+# so on.
+
+# Every line that start with 'view' defines a group. In a group we
+# have all possible members of that group. Some targettypes may not
+# include all members, for instance the group temp has 3 groupmembers
+# (tempInlet, tempOutlet and tempState) but not every targettype with
+# the view temp may include all those three.
+
+# Last edited 02-07-04  by John Magne Bredal <bredal@itea.ntnu.no>
+
+view cpu: cpu1min cpu5min hpcpu
+view memory: mem5minUsed mem5minFree hpmem5minUsed hpmem5minFree
+view temp: tempInlet tempOutlet tempState
+view bandwidth: c1900Bandwidth c1900BandwidthMax c2900Bandwidth c5000Bandwidth c5000BandwidthMax
