@@ -1,0 +1,23 @@
+# ------------------------------------------------------------------
+#
+# Filename: kat.txt
+#
+# Purpose: Defines the different categories in use for boxes.
+# kat.txt is loaded into the kat table. The main purpose og the
+# kat table is to have a structured way of giving error messages if
+# a new box is placed in an unknown kategory (in nettel.txt/server.txt)
+#
+# Syntax:       Kat:descr
+# Max length:   8  :50    
+#
+GW:routers (layer 3 device)
+GSW:A layer 2 and layer 3 device (ex:6509)
+KANT:edge switch without vlans (layer 2)
+SW:core switches (layer 2), typically with many vlans
+SRV:server
+TS:terminal server
+v6GW:ipv6 router
+#
+# End of file
+#
+

@@ -1,0 +1,17 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: vendor.txt
+#
+# Hensikt: Definerer de ulike produsentene som man kjøper produkter fra.
+#
+# Syntaks:      vendor
+# Makslengde:   15    
+#
+cisco
+3com
+hp
+dlink
+#
+# End of file
+#
+
