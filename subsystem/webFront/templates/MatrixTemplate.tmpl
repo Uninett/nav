@@ -60,7 +60,7 @@ style="text-align:center;background-color:$load($subnet[$x][$y].percent,$subnet[
 #set $x = $x + 1
 #set $ignore[$x] = 1
 <tr>
-<td>$netlink($bnet,$x)</td>
+<td>$bnet.$x</td>
 </tr>
 #end for
 
@@ -113,18 +113,10 @@ $netinfo($subnet[$x][$y])
 #if $nettype=="static" or $nettype=="scope" or $nettype=="reserved"
 #if $configuration.extras.has_key("other")
 $configuration.extras["other"]#slurp
-#else
-##set $c = "blapp"
-##$c#slurp
-'#blapp'
 #end if
 #elif $nettype=="large"
 #if $configuration.extras.has_key("large")
 $configuration.extras["large"]#slurp
-#else
-##set $c = "blapp"
-##$c#slurp
-'#blapp'
 #end if
 #else
 #set $lims = $configuration.limits
