@@ -9,6 +9,7 @@ from nav.web.devBrowser import service
 from nav.web.devBrowser.servicetable import ServiceTable
 import forgetHTML as html
 import random
+import re
 from mx import DateTime
 
 _statusTranslator = {'y':'Up',
@@ -242,16 +243,21 @@ class NetboxInfo(manage.Netbox):
     def showPorts(self):
         div = html.Division(_class="ports")
         div.append(html.Header("Switchports", level=2))
+        div.append(self.showModuleLegend())        
         # div.append(modules)
         modules = self.getChildren(manage.Module)
-        modules.sort()
         if not modules:
             return None
+        isNum = lambda x: re.match("^[0-9]+$",x)
+        modules.sort(lambda a,b:
+            # sort by number - if possible
+            (isNum(a.module) and isNum(b.module) 
+             and cmp(int(a.module), int(b.module))) 
+            or cmp(a.module,b.module)) 
         for module in modules:
             moduleView = self.showModule(module)
             if moduleView:
                 div.append(moduleView)
-        div.append(self.showModuleLegend())        
         return div
 
     def showModule(self,module):
@@ -277,9 +283,7 @@ class NetboxInfo(manage.Netbox):
         moduleView = html.Division(_class="module")
         if type == "gw":
             moduleView['class'] += ' gw'
-        # a <h3><span>-trick to get nice header
-        moduleView.append(html.Header(
-            html.Span("Module %s" % module.module), level=3))
+        moduleView.append(html.Header(module.module or "", level=3))
         # calc width
         width = findDisplayWidth(ports)
         count = 0
@@ -313,8 +317,21 @@ class NetboxInfo(manage.Netbox):
                     portView['class'] += ' trunk'
                     titles.append("trunk")
                 portView['class'] += ' %sduplex' % port.duplex
+                if port.duplex == 'h':
+                    titles.append("half duplex")
+                elif port.duplex == 'f':
+                    titles.append("full duplex")
                 if port.media:
                     titles.append(port.media)
+                vlans = port.getChildren(manage.Swportvlan)
+                if vlans:
+                    vlans = [str(x.vlan) for x in vlans]
+                    titles.append('Vlan ' + ','.join(vlans))
+                blocked = port.getChildren(manage.Swportblocked)        
+                if blocked:
+                    portView['class'] += ' blocked'
+                    vlans = [str(block.vlan) for block in blocked]
+                    titles.append("blocked " + ','.join(vlans))
             if type == 'gw':
                 for item in port._values.items():
                     titles.append("%s %s" % item)
@@ -338,9 +355,11 @@ class NetboxInfo(manage.Netbox):
             legend.append(" ")
         mkLegend("passive", "Not active")
         mkLegend("hduplex", "Half duplex")
-        mkLegend("trunk", "Trunk")
-        legend.append(html.Break())
+        mkLegend("blocked", "Blocked")
         mkLegend("Mb10", "10 Mbit")
         mkLegend("Mb100", "100 Mbit")
         mkLegend("Mb1000", "1 Gbit")
+        mkLegend("trunk", "Trunk")
+        legend.append(html.Break())
+        legend.append(html.Emphasis("Hold mouse over port for info, click for details"))
         return legend    
