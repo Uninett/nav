@@ -4,7 +4,7 @@
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 1
+Release: 2
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
@@ -12,6 +12,7 @@ Source0: %{name}-%{version}.tar.gz
 License: Commercial
 Group: Applications/Internet
 BuildRoot: %{_builddir}/%{name}-buildroot
+BuildArch: noarch
 Prefix: %{_prefix}
 Requires: bind-utils, postgresql >= 7.3, python >= 2.2, perl >= 5.6, j2re >= 1.4
 
@@ -43,6 +44,16 @@ if ( ! grep -q  "^navcron:" /etc/passwd ); then
   useradd -M -g nav -d %{_prefix} navcron
 fi
 
+%post
+# Most processes are now run by  navcron, so we make sure any existing
+# logfiles and pidfiles are owned by navcron and not root.
+if ( test -d %{_prefix}/var/log ); then
+  chown -R navcron %{_prefix}/var/log/*
+fi
+if ( test -d %{_prefix}/var/run ); then
+  chown -R navcron %{_prefix}/var/run/*
+fi
+
 %files
 %defattr(-,root,nav)
 # %doc README doc/sql/*.sql
@@ -61,10 +72,10 @@ fi
 %dir %{_prefix}/etc
 %dir %{_prefix}/etc/report
 %dir %{_prefix}/etc/webfront
+%dir %{_prefix}/etc/cron.d
 %defattr(0664,root,nav)
 %config(noreplace) %{_prefix}/etc/nav.conf
 %config(noreplace) %{_prefix}/etc/db.conf
-%config(noreplace) %{_prefix}/etc/crontab_navcron.nav
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
@@ -84,10 +95,11 @@ fi
 %config(noreplace) %{_prefix}/etc/webfront/webfront.conf
 %config(noreplace) %{_prefix}/etc/webfront/welcome-anonymous.txt
 %config(noreplace) %{_prefix}/etc/webfront/welcome-registered.txt
+%config(noreplace) %{_prefix}/etc/cron.d/*
 
 
 %changelog
-* Fri Mar 19 2004  <morten.vold@itea.ntnu.no>
+* Wed Mar 24 2004  <morten.vold@itea.ntnu.no>
 
 - Grabbed new version 3.0_beta3.
 
