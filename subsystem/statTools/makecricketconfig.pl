@@ -1211,7 +1211,6 @@ sub makeservers {
 	#       $solaris = 1;
 	#}
 	my $server = $sysname;
-	my $sysname = $sysname . '.ntnu.no';
 	mkdir ("$path/servers/$sysname",0775);
 	my $fil = "$path/servers/$sysname/$server";
 	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
