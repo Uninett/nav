@@ -22,7 +22,6 @@ DROP TABLE product CASCADE;
 DROP TABLE vendor CASCADE;
 DROP TABLE type CASCADE;
 DROP TABLE snmpoid CASCADE;
-DROP TABLE typesnmpoid CASCADE;
 DROP TABLE typegroup CASCADE;
 DROP TABLE room CASCADE;
 DROP TABLE location CASCADE;
@@ -135,10 +134,8 @@ CREATE TABLE vlan (
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
   netaddr CIDR NOT NULL,
---  rootgwid INT4,
   vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(netaddr)
---  UNIQUE(rootgwid)
 );
 
 CREATE TABLE vendor (
@@ -207,7 +204,6 @@ CREATE TABLE type (
   cs_at_vlan BOOL,
   chassis BOOL NOT NULL DEFAULT true,
   frequency INT4,
-  uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
   UNIQUE (vendorid, typename),
   UNIQUE (sysObjectID)
@@ -228,13 +224,6 @@ CREATE TABLE snmpoid (
   UNIQUE(oidkey)
 );
 
-CREATE TABLE typesnmpoid (
-  typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-  snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
-  frequency INT4,
-  UNIQUE(typeid, snmpoidid)
-);  
-
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
@@ -252,7 +241,21 @@ CREATE TABLE netbox (
   snmp_version INT4 NOT NULL DEFAULT 1,
   snmp_agent VARCHAR,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
+  uptodate BOOLEAN NOT NULL DEFAULT false, 
   UNIQUE(ip)
+);
+
+CREATE TABLE netboxsnmpoid (
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
+  frequency INT4,
+  UNIQUE(netboxid, snmpoidid)
+);  
+
+CREATE TABLE netbox_vtpvlan (
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  vtpvlan INT4,
+  UNIQUE(netboxid, vtpvlan)
 );
 
 CREATE TABLE subcat (
