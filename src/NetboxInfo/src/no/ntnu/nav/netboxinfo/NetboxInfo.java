@@ -316,8 +316,12 @@ public class NetboxInfo {
 				newValSet.add(newVals.next());
 			}
 
-			// Remove all equal values since we don't need to update those
-			newValSet.removeAll(valMap.keySet());
+			// Remove all equal values (the intersection) from both sets
+			// since we don't need to update those
+			Set intersection = new HashSet(newValSet);
+			intersection.retainAll(valMap.keySet());
+			newValSet.removeAll(intersection);
+			valMap.keySet().removeAll(intersection);
 
 			// All remaining values in valMap should no longer be present; if there are
 			// any values left in newValMap, update rows from valMap
@@ -325,6 +329,8 @@ public class NetboxInfo {
 					 newValIt.hasNext() && valIt.hasNext();) {
 				String newVal = (String)newValIt.next();
 				String netboxinfoid = (String)valIt.next();
+				newValIt.remove();
+				valIt.remove();
 
 				String[] set = {
 					"val", newVal
@@ -335,8 +341,9 @@ public class NetboxInfo {
 				Database.update("netboxinfo", set, where);
 			}
 
-			// Now either newValSet or valMap is empty; in the first case the remaning entries from valMap
-			// are deleted, in the second the remaining entries in newValSet are inserted.
+			// Now either newValSet or valMap (or both) are empty; in the
+			// first case the remaning entries from valMap are deleted, in
+			// the second the remaining entries in newValSet are inserted.
 			if (!newValSet.isEmpty()) {
 				insertVals(netboxid, key, var, newValSet.iterator());
 			}

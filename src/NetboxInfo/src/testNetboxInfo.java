@@ -18,15 +18,20 @@ class testNetboxInfo {
 	public static void main(String[] args) throws Exception {
 		if (!connectDb()) return;
 
-		ResultSet rs = Database.query("SELECT netboxid FROM netbox WHERE sysname = 'ntnu-sw'");
-		rs.next();
+		String netbox = (args.length > 0) ? args[0] : "ntnu-gsw";
+
+		ResultSet rs = Database.query("SELECT netboxid FROM netbox WHERE sysname = '" + netbox + "'");
+		if (!rs.next()) {
+			outl("Test netbox " + netbox + " not found! Aborting...");
+			return;
+		}
 		NetboxInfo.setDefaultNetboxid(rs.getString("netboxid"));
 
 		// Test remove
 		if (NetboxInfo.remove("testKeyD", "testVarD") > 0) {
 			outl("Failed delete test for testKeyD and testVarD!");
 		}
-		if (NetboxInfo.remove("testVar") > 0) {
+		if (NetboxInfo.remove("testVarD") > 0) {
 			outl("Failed delete test for testVarD!");
 		}
 

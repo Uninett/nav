@@ -119,8 +119,12 @@ public class NetboxInfoHandler implements DataHandler {
 					} else {
 						// Var exists, try to update before delete
 
-						// Remove all equal values since we don't need to update those
-						newValMap.keySet().removeAll(valMap.keySet());
+						// Remove all equal values (the intersection) from both sets
+						// since we don't need to update those
+						Set intersection = new HashSet(newValMap.keySet());
+						intersection.retainAll(valMap.keySet());
+						newValMap.keySet().removeAll(intersection);
+						valMap.keySet().removeAll(intersection);
 
 						// All remaining values in valMap should no longer be present; if there are
 						// any values left in newValMap, update rows from valMap
@@ -128,6 +132,8 @@ public class NetboxInfoHandler implements DataHandler {
 								 newValIt.hasNext() && valIt.hasNext();) {
 							String newVal = (String)newValIt.next();
 							String netboxinfoid = (String)valIt.next();
+							newValIt.remove();
+							valIt.remove();
 
 							String[] set = {
 								"val", newVal
@@ -139,8 +145,10 @@ public class NetboxInfoHandler implements DataHandler {
 							newValMap.put(newVal, netboxinfoid);
 						}
 
-						// Now either newValMap or valMap is empty; in the first case the remaning entries from valMap
-						// are deleted, in the second the remaining entries in newValMap are inserted.
+						// Now either newValMap or valMap is empty; in the first
+						// case the remaning entries from valMap are deleted, in
+						// the second the remaining entries in newValMap are
+						// inserted.
 						if (!newValMap.isEmpty()) {
 							insertVals(netboxid, newKey, newVar, newValMap.keySet().iterator(), newValMap);
 						}
