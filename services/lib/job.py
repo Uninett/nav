@@ -1,10 +1,10 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.16 2002/12/13 20:13:22 magnun Exp $
+$Id: job.py,v 1.17 2003/01/02 22:00:20 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
-import time,socket,sys,types,config,debug,mailAlert
+import time,socket,sys,types,config,debug,mailAlert, RunQueue
 from select import select
 from errno import errorcode
 from Socket import Socket
@@ -49,6 +49,8 @@ class JobHandler:
 		self.debug=debug.debug()
 		self.alerter=mailAlert.mailAlert()
 		self.debug.log("New job instance for %s:%s " % (sysname, type),6)
+		self.runcount=0
+		self.rq=RunQueue.RunQueue()
 		
 	def run(self):
 		import rrd,db
@@ -56,15 +58,22 @@ class JobHandler:
 		version = self.getVersion()
 		status, info = self.executeTest()
 
-		self.debug.log("%-25s %-5s -> %s" % (self.getSysname(), self.getType(),info),6)
+		self.debug.log("%-25s %-5s -> %s" % (self.getSysname(), self.getType(),info))
 
-		runcount = 0
-		while status != self.getStatus() and runcount < int(self._conf.get('retry',3)):
+		if status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
 			delay = int(self._conf.get('retry delay',5))
-			self.debug.log(" %-25s %-5s -> State changed. Trying again in %i sec..." % (self.getSysname(), self.getType(), delay))
-			time.sleep(delay)
-			status, info = self.executeTest()
-			runcount += 1
+			self.runcount+=1
+			self.debug.log(" %-25s %-5s -> State changed. Scheduling new check in %i sec..." % (self.getSysname(), self.getType(), delay))
+			priority=delay+time.time()
+			# Queue ourself
+			self.rq.enq((priority,self))
+			return
+		#while status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
+		#	delay = int(self._conf.get('retry delay',5))
+		#	self.debug.log(" %-25s %-5s -> State changed. Trying again in %i sec..." % (self.getSysname(), self.getType(), delay))
+		#	time.sleep(delay)
+		#	status, info = self.executeTest()
+		#	self.runcount += 1
 
 		if status != self.getStatus():
 			self.debug.log("%-25s %-5s -> %s, %s" % (self.getSysname(), self.getType(), status, info),1)
@@ -77,14 +86,16 @@ class JobHandler:
 			# NAV alertengine to function properly
 			self.alerter.put(newEvent)
 			self.setStatus(status)
-
-
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
 			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(), self.getType(), status, info, eventtype="version", version=self.getVersion()))
 
-		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+		try:
+			rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+		except Exception,e:
+			self.debug.log("Faild to update rrd: %s" % e,3)
 		self.setTimestamp()
+		self.runcount=0
 
 
 	def executeTest(self):
@@ -96,8 +107,6 @@ class JobHandler:
 			info = str(info)
 		self.setResponsetime(time.time()-start)
 		return status, info
-
-
 
 	def setServiceid(self,serviceid):
 		self._serviceid = serviceid
