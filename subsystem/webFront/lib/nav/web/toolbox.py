@@ -9,11 +9,8 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 from nav import config
-import os
-import os.path
-import nav.auth
-
-webfrontConfig = config.readConfig('webfront/webfront.conf')
+import os, os.path
+import nav.auth, nav.web, nav.path
 
 def _compareTools(x, y):
     """
@@ -28,11 +25,11 @@ def _compareTools(x, y):
     return ret
     
 def getToolList():
-    """Searches the TOOLPATH search path for *.tool files and returns
-    a list of Tool objects representing these files"""
+    """ Searches the configured list of paths for *.tool files and
+    returns a list of Tool objects representing these files"""
     paths = {}
-    if webfrontConfig.has_key('TOOLPATH'):
-        paths = webfrontConfig['TOOLPATH'].split(os.pathsep)
+    if nav.web.webfrontConfig.has_option('toolbox', 'path'):
+        paths = nav.web.webfrontConfig.get('toolbox', 'path').split(os.pathsep)
     else:
         return None
 

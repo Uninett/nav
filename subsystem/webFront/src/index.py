@@ -11,9 +11,10 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 
 """
 from mod_python import apache
-import os, os.path
+import os, os.path, sys
 import nav, nav.path
 from nav import web
+from nav.web import ldapAuth
 
 webConfDir = os.path.join(nav.path.sysconfdir, "webfront")
 welcomeFileAnonymous = os.path.join(webConfDir, "welcome-anonymous.txt")
@@ -92,9 +93,58 @@ def login(req, login='', password='', origin=''):
         try:
             account = Account.loadByLogin(login)
         except nav.db.navprofiles.NoSuchAccountError:
-            return _getLoginPage(origin, "Login failed")
+            account = None
+            print >> sys.stderr, 'NAV-DEBUG: Account %s not found in NAVdb' % login
+            
+        if account is None:
+            # If we did not find the account in the NAVdb, we try to
+            # find the account through LDAP, if available.
+            if ldapAuth.available and ldapAuth.authenticate(login, password):
+                print >> sys.stderr, 'NAV-DEBUG: Account %s authenticated through LDAP' % login
+                # The login name was authenticated through our LDAP
+                # setup, so we create a new account in the NAVdb for
+                # this user.
+                fullName = ldapAuth.getUserName(login)
+                
+                account = Account()
+                account.login = login
+                account.name = fullName
+                account.setPassword(password)
+                account.ext_sync = 'ldap'
+                account.save()
 
-        if (account.authenticate(password)):
+                # Copy the preferences of the default user
+                preference = navprofiles.Preference(0)
+                preference.load()
+                preference.account = account.id
+                preference._new = True
+                preference.save()
+
+                # Later, we should allow configuration of default
+                # groups and such
+            else:
+                # If no alternative account retrieval methods were
+                # available, we fail the login
+                return _getLoginPage(origin, "Login failed")
+
+        authenticated = False
+        if account.ext_sync == 'ldap' and ldapAuth.available:
+            # Try to authenticate this ldap account through the ldap server
+            try:
+                authenticated = ldapAuth.authenticate(login, password)
+                # If we were authenticated, we update the stored password hash
+                account.setPassword(password)
+                account.save()
+            except ldapAuth.NoAnswerError, e:
+                req.session['message'] = 'No answer from LDAP server ' + e
+
+        if not authenticated:
+            # If no external methods authenticated us so far, do the
+            # default internal authentication against the password
+            # stored in NAVdb
+            authenticated = account.authenticate(password)
+
+        if authenticated:
             # Place the Account object in the session dictionary
             req.session['user'] = account
             req.session.save()

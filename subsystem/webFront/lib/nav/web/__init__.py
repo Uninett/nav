@@ -12,6 +12,11 @@ import state
 import auth
 import nav
 import time
+import ConfigParser
+import os.path, nav.path
+
+webfrontConfig = ConfigParser.ConfigParser()
+webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
 
 def headerparserhandler(req):
     """
