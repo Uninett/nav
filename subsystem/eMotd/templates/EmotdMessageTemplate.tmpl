@@ -1,0 +1,41 @@
+#extends nav.web.templates.EmotdTemplate
+
+#block content
+$makeMenu()
+<h1>$title</h1>
+<form action="" method="post">
+$listEquipment()
+<input type="submit" name="newmessage" value="Add this equipment to a new message" />
+<input type="submit" name="placemessage" value="Add this equipment to the selected message from below" />
+$listMessages()
+</form>
+#end block
+
+#def listEquipment
+<h2>$type to add to message</h2>
+<input type="hidden" name="type" value="$type"/>
+<ul>
+#for e in $equipment_list
+#if $type=="netbox":
+	<input type="hidden" name="netbox_$e.netboxid" value="0" />
+	<li>$e.sysname</li>
+#elif $type=="room":
+	<input type="hidden" name="room_$e.roomid" value="0" />
+	<li>$e.roomid</li>
+#elif $type=="location":
+	<input type="hidden" name="location_$e.locationid" value="0" />
+	<li>$e.locationid</li>
+#end if
+#end for
+</ul>
+#end def
+
+#def listMessages
+<h2>Pick the right message</h2>
+<table>
+#for e in $emotds
+<tr><td>$e.emotdid</td><td>$e.title</td></tr>
+<tr><td><input type="radio" name="emotdid" value="$e.emotdid"/></td><td>$e.description</td></tr>
+#end for
+</table>
+#end def

@@ -13,3 +13,44 @@
 	</ul>
 </div>
 #end def
+
+#def equipmentList($eq)
+#if len($eq.keys()):
+	<ul>
+#for a,b in $eq.items():
+#for c in $b:
+	<li>$a $c</li>
+#end for
+#end for
+	</ul>
+#end if
+#end def
+
+#def maintList
+
+Maintenance List
+#if len($maints) == 0
+No maintenance info.
+#end if
+  <!-- Here comes the actual information regarding maintenance information -->
+  <table>
+  <tr>
+    <td><b>Room</b></td>
+    <td><b>Netbox</b></td>
+    <td><b>Service</b></td>
+    <td><b>Start</b></td>
+    <td><b>End</b></td>
+    <td><b>Title</b></td>
+  </tr>
+  #for $message in $maints
+  <tr>
+    <td><a href="/report/netbox?roomid=$message.roomid">$message.roomid ($message.roomdesc)</td>
+    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
+    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
+    <td>$message.mstart</td>
+    <td>$message.mend</td>
+    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
+  </tr>
+  #end for
+  </table>
+#end def

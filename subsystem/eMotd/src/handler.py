@@ -9,10 +9,11 @@ from time import strftime
 import sys,os,re,copy,string
 import nav
 import nav.db.manage 
+from nav import db
 from nav.db.manage import Emotd, Emotd_related, Maintenance 
 from nav.db.manage import Room, Service, Netbox 
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
-from nav.web import SearchBox,EmotdSelect
+from nav.web import SearchBox,EmotdSelect,redirect
 
 #################################################
 ## Templates
@@ -20,7 +21,9 @@ from nav.web import SearchBox,EmotdSelect
 from nav.web.templates.EmotdTemplate import EmotdTemplate
 from nav.web.templates.EmotdStandardTemplate import EmotdStandardTemplate
 from nav.web.templates.EmotdFrontpage import EmotdFrontpage
+from nav.web.templates.EmotdMessageTemplate import EmotdMessageTemplate
 from nav.web.templates.MaintenanceTemplate import MaintenanceTemplate
+from nav.web.templates.MaintListTemplate import MaintListTemplate
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 
 #################################################
@@ -34,6 +37,9 @@ DATEFORMAT = "%Y-%m-%d %H:%M"
 BASEPATH = '/emotd/'
 LANG1 = "Norwegian"
 LANG2 = "English"
+
+connection = db.getConnection('webfront','manage')
+database = connection.cursor()
 
 #################################################
 # Elements 
@@ -53,7 +59,11 @@ def handler(req):
     elif path[0] == 'viewall':
         output = viewall(req)
     elif path[0] == 'maintenance':
+        output = maintlist(req)
+    elif path[0] == 'add':
         output = maintenance(req)
+    elif path[0] == 'commit':
+        output = commit(req)
     else:
         output = show_active(req)
 
@@ -139,6 +149,28 @@ def search(req):
     return page.respond()
 
 
+class Message:
+    def __init__(self, mess, equipment):# emotdid, last_changed, author, title, description, detail, affected, downtime, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd, key, value):
+        #raise(repr(args))
+        (emotdid, last_changed, author, title, description, detail, affected, downtime, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd) = mess[0:16]
+        self.emotdid = emotdid
+        if not isinstance(last_changed, str):
+            last_changed = strftime("%Y-%m-%d %H:%M",last_changed.tuple())
+        self.last_changed = last_changed
+        self.author = author
+        self.title = title
+        self.description = description
+        self.detail = detail
+        self.affected = affected
+        self.downtime = downtime
+        self.title_en = title_en
+        self.description_en = description_en
+        self.detail_en = detail_en
+        self.affected_en = affected_en
+        self.downtime_en = downtime_en
+        self.replaces_emotd = replaces_emotd
+        self.equipment = equipment
+                 
 def show_active(req):
     ''' Show all active MOTD (as in not outdated )'''
     page = EmotdFrontpage() #searchList=[nameSpace]
@@ -146,23 +178,88 @@ def show_active(req):
     page.title = 'Current active messages'
     body = ''
     form = ''
+    emotds = []
     page.menu = getMenu(req)
     if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
-        page.emotds = EmotdSelect.getAllActive(access=True)
-        for emotd in page.emotds:
-            emotd = formatEmotd(emotd)
+        sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) where publish_end > now() order by publish_end desc"
+        database.execute(sql)
+
+        equipment = {}
+        for (emotdid, key, value) in database.fetchall():
+            if not equipment.has_key(emotdid):
+                equipment[emotdid] = {}
+            if not equipment[emotdid].has_key(key):
+                equipment[emotdid][key] = []
+            equipment[emotdid][key].append(value)
+            
+        sql = "select emotdid, last_changed, author, title, description, detail, affected, downtime, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd from emotd where publish_end > now() order by publish_end desc"
+        database.execute(sql)
+        eq = {}
+        for emotd in database.fetchall():
+            emotdid = emotd[0]
+            if equipment.has_key(emotdid):
+                eq = equipment[emotdid]
+                #raise repr(eq)
+            emotds.append(Message(emotd,equipmentformat(eq)))
         page.access = True
     else:
         page.access = False
         page.emotds = EmotdSelect.getAllActive()
         for emotd in page.emotds:
             emotd = formatEmotd(emotd)
-    #page.emotds = motd
+    page.emotds = emotds
     #page.menu = menu
     #nameSpace = {'title': title, 'emotds': motd, 'menu': menu, 'access': access}#
     #if access:
     #    page.access = True
     return page.respond()
+
+def equipmentlist(emotdid = None):
+
+    whereextra = ""
+    if emotdid:
+        whereextra = "and emotdid=%d" % int(emotdid)
+    sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) where publish_end > now() %s order by publish_end desc" % whereextra
+    database.execute(sql)
+    
+    equipment = {}
+    for (emotdid, key, value) in database.fetchall():
+        if not equipment.has_key(emotdid):
+            equipment[emotdid] = {}
+        if not equipment[emotdid].has_key(key):
+            equipment[emotdid][key] = []
+        equipment[emotdid][key].append(value)
+
+    for a,b in equipment.items():
+        equipment[emotdid] = equipmentformat(equipment[emotdid])
+        
+    return equipment
+
+def equipmentformat(eqdict):
+    resdict = {}
+    if eqdict:
+        if eqdict.has_key("location"):
+            resdict["location"] = []
+            for l in eqdict["location"]:
+                database.execute("select descr from location where locationid = '%s'" % l)
+                resdict["location"].append("%s (%s)" % (l,database.fetchone()[0]))
+        if eqdict.has_key("room"):
+            resdict["room"] = []
+            for l in eqdict["room"]:
+                database.execute("select descr from room where roomid = '%s'" % l)
+                resdict["room"].append("%s (%s)" % (l,database.fetchone()[0]))
+        if eqdict.has_key("netbox"):
+            resdict["netbox"] = []
+            for l in eqdict["netbox"]:
+                database.execute("select sysname from netbox where netboxid = '%s'" % l)
+                resdict["netbox"].append(database.fetchone()[0])
+        if eqdict.has_key("service"):
+            resdict["service"] = []
+            for l in eqdict["service"]:
+                database.execute("select sysname from handler, netbox inner join service using (netboxid) where serviceid = '%s'" % l)
+                resultat = database.fetchone()
+                resdict["service"].append("%s (%s)" % (resultat[0], resultat[1]))
+    return resdict
 
 def maintparse(maintdict):
     maints = []
@@ -285,13 +382,19 @@ def maintenance(req):
     args = {}
     form = ''
     body = ''
-    title = 'Put on maintenance'
+    title = 'Set on maintenance'
     menu = getMenu(req)
 
     args['path'] = [('Frontpage','/'),
                     ('Tools','/toolbox'),
                     ('Messages',BASEPATH)]
+    if not hasattr(req,"emotdid"):
+        req.emotdid = 0
+        if req.form.has_key('id'):
+            req.emotdid = req.form['id']
+    emotdid = req.emotdid
 
+        
     searchBox = SearchBox.SearchBox(req,'Type a room id, an ip,a (partial) sysname or servicename')
     selectBox = TreeSelect()
     # search
@@ -323,13 +426,9 @@ def maintenance(req):
     args['searchbox'] = searchbox
     sr = searchbox.getResults(req)
     
-    args['action'] = BASEPATH + 'maintenance/'# + path + '/'
+    args['action'] = BASEPATH + 'add'# + path + '/'
     args['returnpath'] = {'url': BASEPATH,
                           'text': 'Return'}
-    #if path == 'rma':
-    #    args['returnpath'] = {'url': BASEPATH + 'rma/',
-    #                          'text': 'Return'}
- 
     args['error'] = None
     selectbox = TreeSelect()
     args['formname'] = selectbox.formName
@@ -395,8 +494,20 @@ def maintenance(req):
     # Update the selectboxes based on form data
     selectbox.update(req.form)
     # Not allowed to go on, unless at least a netbox is selected
+    buttontext = "Add to message"
+    buttonkey = "cn_add"
     if len(select3.selectedList):
         validSelect = True
+        buttontext = "Add netbox(es) to message"
+        buttonkey = "cn_add_netboxes"
+    elif len(select2.selectedList):
+        validSelect = True
+        buttontext = "Add room(s) to message"
+        buttonkey = "cn_add_rooms"
+    elif len(select.selectedList):
+        validSelect = True
+        buttontext = "Add location(s) to message"
+        buttonkey = "cn_add_locations"
 
     # View history clicked?
     deviceHistList = []
@@ -427,22 +538,34 @@ def maintenance(req):
                     deviceHistList.append(History(deviceid,netboxId=netboxid))
                 args['returnpath'] = {'url': BASEPATH + 'history/',
                                       'text': 'Return'}
+##     # Register error clicked?
+##     errorDevice = None
+##     if req.form.has_key('cn_add_boxes'):
+##         if req.form.has_key('cn_module'):
+##             if len(req.form['cn_module']):
+##                 moduleid = req.form['cn_module']
+##                 deviceid = dtTables.Module(moduleid).device.deviceid
+##                 # Uses History(), should have been a Device() class
+##                 # (subclass of forgetSQL.Device())
+##                 errorDevice = History(deviceid,moduleId=moduleid)
+##         elif req.form.has_key('cn_netbox'):
+##             if len(req.form['cn_netbox']):
+##                 netboxid = req.form['cn_netbox']
+##         args['action'] = BASEPATH + 'emotd/add'
     # Register error clicked?
     errorDevice = None
-    if req.form.has_key('cn_submit_error'):
-        if req.form.has_key('cn_module'):
-            if len(req.form['cn_module']):
-                moduleid = req.form['cn_module']
-                deviceid = dtTables.Module(moduleid).device.deviceid
+    if req.form.has_key('cn_add_boxes'):
+        #if req.form.has_key('cn_module'):
+        #    if len(req.form['cn_module']):
+        #        moduleid = req.form['cn_module']
+        #        deviceid = dtTables.Module(moduleid).device.deviceid
                 # Uses History(), should have been a Device() class
                 # (subclass of forgetSQL.Device())
-                errorDevice = History(deviceid,moduleId=moduleid)
-        elif req.form.has_key('cn_netbox'):
-            if len(req.form['cn_netbox']):
-                netboxid = req.form['cn_netbox']
-                deviceid = dtTables.Netbox(netboxid).device.deviceid
-                errorDevice = History(deviceid,netboxId=netboxid)
-        args['action'] = BASEPATH + 'error/device/' + str(deviceid)
+        #        errorDevice = History(deviceid,moduleId=moduleid)
+        #elif req.form.has_key('cn_netbox'):
+        #    if len(req.form['cn_netbox']):
+        #        netboxid = req.form['cn_netbox']
+        args['action'] = BASEPATH + 'maintenance'
        
     rmaDevice = None 
     # Register rma clicked?
@@ -467,8 +590,8 @@ def maintenance(req):
 ##     elif path == 'error':
 ##    args['path'].append(('Register error',False))
 ##    args['title'] = 'Register error - select a box or a module'
-    args['submit'] = {'control': 'cn_submit_error',
-                      'value': 'Register error',
+    args['submit'] = {'control': buttonkey,
+                      'value': buttontext,
                       'enabled': validSelect}
 ##     elif path == 'rma':
 ##         args['path'].append(('Register RMA',False))
@@ -639,27 +762,88 @@ def maintenance(req):
 ##         else:
 ##             body = '<font color=red><p>No netbox or service/module chosen</font>'
 
-    #args['searchbox'] = searchBox
-    #args['selectbox'] = selectBox
-    
-    s = {}
-    s['roomurl'] = '/devicebrowser/482s'
-    s['netboxurl'] = '/devicebrowser/129.241.93.17'
-    s['serviceurl'] = '/devicebrowser/ssh'
-    s['mstart'] = '06.12.03 08:00'
-    s['mend'] = '16.12.03 08:00'
-    s['emotdurl'] = '/emotd/view?id=3'
     #maints = [maintparse(activedict),maintparse(scheduleddict)]
-    maints = maintparse(activedict)
+    #maints = maintparse(activedict)
     ##maints = [s,]
     args['title'] = title
 #    nameSpace = {'title': title, 'motd': None, 'maints': maints, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
-    nameSpace = {'title': title,'page': 'browse', 'body': body, 'args': args, 'form':form, 'menu': menu,'maints': maints}
-    page = MaintenanceTemplate(searchList=[nameSpace])
-#    return page.respond()
-    #template = deviceManagementTemplate(searchList=[nameSpace])
-    page.path = args['path']
+    nameSpace = {'title': title,'page': 'browse', 'body': body, 'args': args, 'form':form, 'menu': menu}
+    if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
+        if hasattr(req,"emotdid") and req.emotdid > 0:#req.form.has_key("id") and int(req.form["id"])>0:
+            #emotdid = req.form["id"]
+            emotdid = req.emotdid
+            kind = None
+            if req.form.has_key("cn_netbox"):
+                kind = "netbox"
+
+            elif req.form.has_key("cn_room"):
+                kind = "room"
+
+            elif req.form.has_key("cn_location"):
+                kind = "location"
+
+            if kind:
+                for key in req.form.keys():
+                    m = re.search("cn_%s_(\w+)"%kind,key)
+                    if m:
+                        sql = "insert into emotd_related (emotdid,key,value) values (%d, '%s', '%s')" % (int(emotdid), kind, m.group(1))
+                        database.execute(sql)
+                connection.commit()
+            redirect(req,BASEPATH+"add?id=%s" % emotdid)
+
+        else:
+            return placemessage(req)
+    else:
+        page = MaintenanceTemplate(searchList=[nameSpace])
+        page.equipment = equipmentlist(emotdid)
+        #raise repr(page.equipment)
+        #    return page.respond()
+        #template = deviceManagementTemplate(searchList=[nameSpace])
+        page.path = args['path']
+        page.emotdid = emotdid
+        return page.respond()
+
+def status(req):
+    if req.form.has_key("id"):
+        l = []
+        if req.form.has_key("cn_netbox"):
+            req.write("Add netboxes")
+            for key in req.form.keys():
+                m = re.search("cn_netbox_(\d+)",key)
+                if m:
+                    l.append(m.group(1))
+        elif req.form.has_key("cn_room"):
+            req.write("Add rooms")
+            for key in req.form.keys():
+                m = re.search("cn_room_(\d+)",key)
+                if m:
+                    l.append(m.group(1))
+        elif req.form.has_key("cn_location"):
+            req.write("Add locations")
+            for key in req.form.keys():
+                m = re.search("cn_location_(\d+)",key)
+                if m:
+                    l.append(m.group(1))
+        req.write(repr(l))
+    else:
+        req.write("hei")
+    return apache.OK
+
+def maintlist(req):
+    activedict = EmotdSelect.getMaintenance(state='active',access=True)
+    maints = maintparse(activedict)
+    ##maints = [s,]
+    #args['title'] = title
+#    nameSpace = {'title': title, 'motd': None, 'maints': maints, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
+    nameSpace = {'title': 'Maintenance List', 'menu': menu,'maints': maints}
+    page = MaintListTemplate(searchList=[nameSpace])
+    page.path = [('Frontpage','/'),
+                 ('Tools','/toolbox'),
+                 ('Messages',BASEPATH),
+                 ('Maintenance List','')]
+    page.body=""
     return page.respond()
+
 
 def formatEmotd(emotd):
     if emotd.has_key('last_changed'):
@@ -719,6 +903,38 @@ def view(req):
 def isdefault(a,b):
     if a==b:
         return 'selected=selected'
+
+def placemessage(req):
+
+    page = EmotdMessageTemplate()
+    page.title = "Add equipment to message"
+    page.path = [("Frontpage", "/"), ("eMotd", BASEPATH),("Add to message","")]
+    page.menu = getMenu(req)
+    type = None
+    eql = []
+    if req.form.has_key("cn_netbox"):
+        type = "netbox"
+        for key in req.form.keys():
+            m = re.search("cn_netbox_(\d+)",key)
+            if m:
+                eql.append(Netbox(m.group(1)))
+    elif req.form.has_key("cn_room"):
+        type = "room"
+        for key in req.form.keys():
+            m = re.search("cn_room_(\d+)",key)
+            if m:
+                eql.append(m.group(1))
+    elif req.form.has_key("cn_location"):
+        type = "location"
+        for key in req.form.keys():
+            m = re.search("cn_location_(\d+)",key)
+            if m:
+                eql.append(m.group(1))
+
+    page.type = type    
+    page.equipment_list = eql
+    page.emotds = EmotdSelect.fetchAll()
+    return page.respond()
 
 def edit(req):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
@@ -878,7 +1094,7 @@ def edit(req):
     body += '<li><label>Title</label><font color="red">*</font><input type=text name=title size=20 maxlength=100 value="%s">' % title
     body += '<li><label>Estimated downtime</label><textarea wrap="hard" name="downtime" rows=2 cols=30>%s</textarea></li>'
     body += '<li><label>Affected end users</label><textarea wrap="hard" name="affected" rows=2 cols=30>%s</textarea></li>'
-    body += '<li><label>Description</label>%s<textarea wrap="hard" name="detail" rows=8 cols=30>%s</textarea></li>\n' % (muststar,detail)
+    body += '<li><label>Description</label>%s<textarea wrap="hard" name="description" rows=8 cols=30>%s</textarea></li>\n' % (muststar,detail)
     body += '<li><label>Details</label><textarea wrap="hard" name="detail" rows=8 cols=30>%s</textarea></li>\n' % detail
     body += '</ul></td><td><h2>%s</h2><ul style="list-style-type:none;marin=0;padding:0;">' % LANG2
     body += '<li><label>Title</label><input type=text name=title_en size=20 maxlength=100 value="%s"></li>' % title_en
@@ -915,13 +1131,15 @@ def edit(req):
     #if req.form.has_key('parent_id'):
     if parent_id:
         body += '<input type=hidden name=parent_id value=%s>' % parent_id #req.form['parent_id']
-        buttonValue = 'Add'
-    else:
-        buttonValue = 'Submit'
+        #buttonValue = 'Add'
+    #else:
+        #buttonValue = 'Submit'
+    buttonValue = 'Save'
     #body += '<tr><td colspan=2 align=center><input type=submit name=submitbutton value=%s></td></tr>\n' % buttonValue
-    body += '<li><input type=submit name=submitbutton value=%s></li>\n' % buttonValue
-    body += '</form>\n'
     body += '</ul>'
+    body += '<input type=submit name="cn_save" value="%s">\n' % (buttonValue + " this message")
+    body += '<input type=submit name="cn_save_and_add" value="%s">\n' % (buttonValue + " and add equipment to this message")
+    body += '</form>\n'
     #body += '</table>'
 
     selectBox = None
@@ -1007,7 +1225,12 @@ def commit(req):
                 if req.form.has_key('netbox'):
                     body += '&netbox=%s' % req.form['netbox']
                 body += '>Maintenenace</a> administration for current Emotd' 
-    nameSpace = {'title': title, 'motd': None,'searchBox': None, 'menu': menu, 'body': body}
-    page = EmotdTemplate(searchList=[nameSpace])
-    return page.respond()
+    #nameSpace = {'title': title, 'motd': None,'searchBox': None, 'menu': menu, 'body': body}
+    #page = EmotdTemplate(searchList=[nameSpace])
+    #return page.respond()
+    if req.form.has_key("cn_save"):
+        redirect(req,"%s/view?id=%s" % (BASEPATH, m.emotdid))
+    elif req.form.has_key("cn_save_and_add"):
+        redirect(req,"%s/add?id=%s" % (BASEPATH, m.emotdid))
+    return apache.OK
 
