@@ -308,6 +308,7 @@ GRANT SELECT ON gwport TO navadmin;
 GRANT SELECT ON prefiks TO navadmin;
 GRANT SELECT ON swport TO navadmin;
 GRANT SELECT,INSERT,DELETE ON swportvlan TO navadmin;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
 GRANT SELECT,DELETE ON swp_boks TO navadmin;
 GRANT SELECT ON swportallowedvlan TO navadmin;
 
