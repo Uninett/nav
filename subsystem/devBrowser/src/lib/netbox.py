@@ -1,9 +1,9 @@
-
+import IPy
 from mod_python import apache
 import forgetHTML as html
-import random
 import re
 from mx import DateTime
+
 
 from nav.db import manage
 from nav.web import urlbuilder
@@ -60,7 +60,7 @@ def findNetboxes(hostname):
     if len(matches) == 1:
         raise RedirectError, urlbuilder.createUrl(matches[0])
     elif matches:
-        return matches
+        return [(match, None) for match in matches] 
     # try mr. levenshtein...
     a=hostname.count('.')
     for sysname in sysnames:
@@ -69,18 +69,30 @@ def findNetboxes(hostname):
             shortname = '.'.join(sysname.split('.')[:a+1])
             matches.append((distance(hostname, shortname), sysname))
     matches.sort()
-    return [manage.getNetbox(x[1]) for x in matches[:20]]
+    result = []
+    for match in matches:
+        dist, sysname = match
+        # 5 seems to be a reasonable distance...
+        if dist < 5 or len(result) < 1:
+            result.append((manage.getNetbox(sysname), dist))
+        else:
+            break
+    if len(result) == 1:
+        raise RedirectError, urlbuilder.createUrl(result[0][0])
+    return result
+    #return [(manage.getNetbox(x[1]),x[0]) for x in matches[:20]]
     
     raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
     
 def showMatches(netboxes):
     result = html.Division()
-    heading = html.Header("Found %s netboxes matching your query" % len(netboxes),
+    heading = html.Header("Listing %s closest matches" % len(netboxes),
                           level=2)
     result.append(heading)
-    for netbox in netboxes:
+    for match in netboxes:
+        netbox, distance = match
         line = html.Division()
-        line.append(urlbuilder.createLink(netbox))
+        line.append("%s (%s)" % (urlbuilder.createLink(netbox), distance))
         result.append(line)
     return result    
 
@@ -102,10 +114,13 @@ def process(request):
         # How did we get here?
         return showIndex()
     netboxes = findNetboxes(hostname)
+    # returns a list of tuples; [(netbox, distance),]
     if len(netboxes) > 1:
         return showMatches(netboxes)
-    else:
+    elif len(netboxes) == 1:
         netbox = netboxes[0]
+    else:
+        raise "Dette burde ikke skje"
     request['templatePath'].append((str(netbox), None))
 
     #for i in netbox._sqlFields.keys():
@@ -175,6 +190,8 @@ class NetboxInfo(manage.Netbox):
     def showGw(self):
         if not self.prefix:
             return 'Unknown'
+        netmasklen = self.prefix.netaddr.split('/')[1]
+        netmask = IPy.intToIp(IPy._prefixlenToNetmask(int(netmasklen), 4), 4)
         # Find the gw
         gws = self.prefix.getChildren(manage.Gwportprefix,
                                  orderBy=['hsrp','gwip'])
@@ -188,7 +205,7 @@ class NetboxInfo(manage.Netbox):
             gw = gws[0]
         gwNetbox = gw.gwport.module.netbox
         gwLink = urlbuilder.createLink(gwNetbox, content=gw.gwip)
-        return gwLink
+        return "%s /%s (%s) " % (gwLink, netmasklen, netmask)
 
     def showVlan(self):
         if self.prefix:
@@ -233,11 +250,7 @@ class NetboxInfo(manage.Netbox):
         
         
     def showIp(self):
-        if self.prefix:
-            netmask = self.prefix.netaddr.split('/')[1]
-        else:
-            netmask = 'unknown'
-        return "%s /%s " % (self.ip, netmask)
+        return str(self.ip)
 
     def availability(self):
         TIMERANGES = ('day', 'week', 'month')

@@ -45,11 +45,11 @@ def handler(req):
                              globals(), locals(), ('nav', 'web'))
         handler.process # make sure that there is a process functin
     except ImportError, e:
-        #req.write("Hmm")
-        req.write(str(e))
+        req.write("%s\n" % e)
+        req.write("%s \n" % sys.path)
         return apache.HTTP_NOT_FOUND
     except AttributeError, e:
-        req.write(str(e))
+        req.write("%s\n" % e)
         return apache.HTTP_NOT_FOUND
     
     req.session.setdefault('uris', [])
