@@ -1,1 +1,1 @@
-snmptrapd -On -a -c /home/trapdet/config
+snmptrapd -On -a -c config
