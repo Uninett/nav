@@ -31,6 +31,7 @@ class MegaPing(RotaterPlugin):
     self.timeout = timeout
     self.sent = 0
     self.pid = os.getpid()
+    self.icmpPrototype()
     # Create our common socket
     self.socket = makeSocket()
 
@@ -50,15 +51,15 @@ class MegaPing(RotaterPlugin):
     while(self.getter.isAlive()):
       self.rotate()    
     
+  def icmpPrototype(self):
+    self.pkt = icmp.Packet()
+    self.pkt.type = icmp.ICMP_ECHO
+    self.pkt.id = self.pid
+    self.pkt.seq = 0 # Always sequence number 0..
   
   def makeIcmpPacket(self, pingstring=PINGSTRING):
-    # We use the same icmp-packet to them all!
-    pkt = icmp.Packet()
-    pkt.type = icmp.ICMP_ECHO
-    pkt.id = self.pid
-    pkt.seq = 0 # Always sequence number 0..
-    pkt.data = pingstring
-    return pkt.assemble()
+    self.pkt.data = pingstring
+    return self.pkt.assemble()
 
   def _getResponses(self):
     profiler = profile.Profile()
@@ -153,7 +154,7 @@ class MegaPing(RotaterPlugin):
       packet=self.makeIcmpPacket(identifier)
       mySocket.sendto(packet, (host, 0))
       time.sleep(self.delay)
-      self.senderFinished = 1
+    self.senderFinished = 1
       
   def noAnswers(self):
     return [host for (host, ping) in self.responses.items() if not ping]
