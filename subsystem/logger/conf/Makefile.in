@@ -12,11 +12,16 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
+top_srcdir = @top_srcdir@
+
 files = logger.conf
 
 .PHONY: all install install-web clean distclean
 
-all:
+all: logger.conf
+
+logger.conf: logger.conf.source
+	$(top_srcdir)/tools/expand.pl logger.conf.source > logger.conf
 
 install: install-web
 

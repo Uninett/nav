@@ -5,7 +5,7 @@ enable: 1
 
 [paths]
 # path to syslog file
-syslog:/usr/local/nav/var/log/cisco.log
+syslog:@localstatedir@/log/cisco.log
 
 [deletepriority]
 # deletes messages of the given priority older than a limited number of days

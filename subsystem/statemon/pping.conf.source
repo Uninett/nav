@@ -24,7 +24,7 @@ timeout = 5
 delay = 2
 
 # Location of the logfile, defaults to ./pping.log
-logfile = /usr/local/nav/var/log/pping.log
+logfile = @localstatedir@/log/pping.log
 
 # Location of the pid file
-pidfile = /usr/local/nav/var/run/pping.pid
+pidfile = @localstatedir@/run/pping.pid

@@ -17,9 +17,14 @@ startscripts = smsd
 conffiles = smsd.conf
 cronfiles = safe_smsd
 
+top_srcdir = @top_srcdir@
+
 .PHONY: all install install-bin install-scripts clean distclean install-conf install-cron
 
-all: 
+all: smsd.conf
+
+smsd.conf: smsd.conf.source
+	$(top_srcdir)/tools/expand.pl smsd.conf.source > smsd.conf
 
 install: $(startscripts) install-bin install-scripts install-cron install-conf 
 

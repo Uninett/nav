@@ -21,14 +21,22 @@ CONFFILES=servicemon.conf pping.conf
 # programs to use for make
 INSTALL=@INSTALL@
 
+top_srcdir = @top_srcdir@
+
 .PHONY: install-lib install-bin install-checker install-conf
 
 # ok, the targets
-all: 
+all: pping.conf servicemon.conf
 lib:
 bin:
 conf:
 checker:
+
+pping.conf: pping.conf.source
+	$(top_srcdir)/tools/expand.pl pping.conf.source > pping.conf
+	
+servicemon.conf: servicemon.conf.source
+	$(top_srcdir)/tools/expand.pl servicemon.conf.source > servicemon.conf
 
 # the install
 install: install-lib install-bin install-checker install-conf
