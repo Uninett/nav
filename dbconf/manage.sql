@@ -55,15 +55,16 @@ fra timestamp not null,
 til timestamp
 );
 
-create table smsutko (
-id serial primary key,
-brukerid int2 not null,
-tidspunkt timestamp not null,
-melding varchar(145) not null,
-sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
-smsid int4,
-tidsendt timestamp
-); 
+-- smsutko er flyttet til trapdetect-databasen
+--create table smsutko (
+--id serial primary key,
+--brukerid int2 not null,
+--tidspunkt timestamp not null,
+--melding varchar(145) not null,
+--sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
+--smsid int4,
+--tidsendt timestamp
+--); 
 
 ------------------------------------------
 
@@ -352,7 +353,6 @@ GRANT ALL ON swport_swportid_seq TO navall;
 GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 
 ------------------------------------------------------------------
--- TRACE
 ------------------------------------------------------------------
 
 DROP TABLE arp; 
@@ -367,8 +367,9 @@ DROP SEQUENCE pkt2rom_id_seq;
 
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
-  boksid INT4 NOT NULL REFERENCES boks,
-  prefiksid INT4 NOT NULL REFERENCES prefiks,
+  boksid INT4 REFERENCES boks ON UPDATE SET NULL,
+  prefiksid INT4 REFERENCES prefiks ON UPDATE SET NULL,
+  kilde VARCHAR(20) NOT NULL,
   ip VARCHAR(15) NOT NULL,
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
