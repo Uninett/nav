@@ -9,16 +9,40 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import psycopg
-from nav import config
+from nav import config, ObjectCache, CacheableObject
 
 db = None
 driver = psycopg
-_connectionCache = {}
+_connectionCache = ObjectCache()
+
+class ConnectionObject(CacheableObject):
+    """
+    Specialization of nav.CacheableObject to implement psycopg
+    connection caching.
+    """
+    def __init__(self, object, key):
+        CacheableObject.__init__(self, object)
+        self.key = key
+
+    def isInvalid(self):
+        try:
+            cursor = self.object.cursor()
+            cursor.execute('SELECT 1')
+            return False
+        except psycopg.ProgrammingError:
+            import sys
+            sys.stderr.write('DB-DEBUG: Invalid connection object (%s), age=%s\n' % (repr(self.key), self.age()))
+            self.object.close()
+            return True
+        except psycopg.InterfaceError:
+            import sys
+            sys.stderr.write('DB-DEBUG: Connection may already be closed (%s)\n' % repr(self.key))
+            return True
 
 def escape(string):
     return str(psycopg.QuotedString(string))
 
-def getConnection(scriptName, database='nav'):
+def getConnection(scriptName, database='manage'):
     """
     Returns an open database connection, as configured in db.conf for
     the given scriptName.  Connections are cached, so that future
@@ -28,35 +52,25 @@ def getConnection(scriptName, database='nav'):
     import nav
     from nav import CachedObject
     global _connectionCache
-    cacheKey = '%s_%s' % (scriptName, database)
 
-    # If the connection object already exists in the connection cache,
-    # we check whether it is still open/valid.  If it is, we return
-    # this instead of a new connection.
-    if _connectionCache.has_key(cacheKey):
-        connection = _connectionCache[cacheKey].object
-        try:
-            cursor = connection.cursor()
-            cursor.execute('SELECT 1')
-            return connection
-        except psycopg.ProgrammingError:
-            import sys
-            sys.stderr.write('DB-DEBUG: Reaping a dead connection object\n')
-            connection.close()
-            del cursor
-            del connection
-            del _connectionCache[cacheKey]
-
-    # If we got this far, we did not return an existing connection.
+    # Get the config setup for the requested connection
     conf = config.readConfig('db.conf')
     dbname = conf['db_%s' % database]
     user   = conf['script_%s' % scriptName]
     pw     = conf['userpw_%s' % user]
-        
-    connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
-                                 (conf['dbhost'], dbname, user, pw))
+    cacheKey = (dbname, user)
 
-    _connectionCache[cacheKey] = CachedObject(connection)
+    # First, invalidate any dead connections.  Return a connection
+    # object from the cache if one exists, open a new one if not.
+    _connectionCache.invalidate()
+    try:
+        connection = _connectionCache[cacheKey].object
+    except KeyError:
+        connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
+                                     (conf['dbhost'], dbname, user, pw))
+        connObject = ConnectionObject(connection, cacheKey)
+        _connectionCache.cache(connObject)
+        
     return connection
 
 def setDefaultConnection(conn):
