@@ -44,7 +44,7 @@ def parsedir():
     files=os.listdir(checkerdir)
     handlerpattern="Checker.py"
     for file in files:
-        if len(file) > len(handlerpattern) and file[len(file)-len(handlerpattern):]==handlerpattern:
+        if file.endswith(handlerpattern):
             key = file[:-len(handlerpattern)].lower()
             handler = file[:-3]
             register(key, handler)

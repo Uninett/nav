@@ -1,15 +1,39 @@
+#
+# Copyright 2003 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# $Id: $
+# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#
 """
-$Id: RunQueue.py,v 1.2 2003/06/19 12:50:34 magnun Exp $
-This file is part of the NAV project.
-
-Copyright (c) 2002 by NTNU, ITEA nettgruppen
-
-Author: Magnus Nordseth <magnun@stud.ntnu.no>
+This module provides a threadpool and fair scheduling.
 """
 from threading import *
-import threading, DEQueue, sys, time, types, traceback, config
+import threading
+import DEQueue
+import sys
+import time
+import types
+import config
 from debug import debug
 import prioqueunique
+
 class TerminateException(Exception):
     pass
 
@@ -40,8 +64,6 @@ class worker(threading.Thread):
             except TerminateException:
                 self._runqueue.workers.remove(self)
                 return
-            except:
-                traceback.print_exc()
 
     def execute(self):
         """
@@ -52,7 +74,8 @@ class worker(threading.Thread):
         self._runcount+=1
         self._timeStartExecute=time.time()
         self._checker.run()
-        if self._runqueue.getMaxRunCount() != 0 and self._runcount > self._runqueue.getMaxRunCount():
+        if self._runqueue.getMaxRunCount() != 0 and \
+               self._runcount > self._runqueue.getMaxRunCount():
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
@@ -105,7 +128,8 @@ class _RunQueue:
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
         numWaiters=len(self.awaitWork._Condition__waiters)
-        debug("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters), 7)
+        debug("Number of workers: %i Waiting workers: %i" % \
+              (len(self.workers), numWaiters), 7)
         if numWaiters > 0:
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:

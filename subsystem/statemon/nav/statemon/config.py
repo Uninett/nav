@@ -1,17 +1,35 @@
+#
+# Copyright 2003, 2004 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# $Id: $
+# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#
 """
-$Id: config.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
-This file is part of the NAV project.
-
 Abstraction for the various config files used
 by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
-
-Copyright (c) 2002 by NTNU, ITEA nettgruppen
-Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
-import os, re
+import os
+import re
 
 try:
     # this module exists in a properly installed enviroment

@@ -1,16 +1,33 @@
+#
+# Copyright 2002 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# $Id: $
+# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#          Erik Gorset     <erikgors@stud.ntnu.no>
+#
 """
-$Id: db.py,v 1.8 2003/06/25 15:04:44 magnun Exp $
-This file is part of the NAV project.
-
 This class is an abstraction of the database operations needed
 by the service monitor.
 
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
-
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                               
-Author: Magnus Nordseth <magnun@stud.ntnu.no>
-        Erik Gorset     <erikgors@stud.ntnu.no>
 """
 
 import threading
@@ -49,8 +66,9 @@ class _db(threading.Thread):
             user = self.conf['script_servicemon']
             passwd = self.conf['userpw_%s'%user]
             dbname = self.conf['db_nav']
-            self.db = psycopg.connect("host = %s user = %s dbname = %s password = %s"
-                          % (host, user, dbname, passwd))
+            self.db = \
+                    psycopg.connect("host = %s user = %s dbname = %s password = %s"
+                                    % (host, user, dbname, passwd))
             debug("Successfully (re)connected to NAVdb")
             self.db.autocommit(0)
         except Exception, e:

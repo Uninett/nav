@@ -1,11 +1,30 @@
+#
+# Copyright 2002 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# Some code from Timothy O'Malley's TimeoutSocket.py
+#
+# $Id: $
+# Authors: Erik Gorset	<erikgors@stud.ntnu.no>
+#
 """
-$Id: Socket.py,v 1.1 2003/03/26 16:01:43 magnun Exp $                                                                                                                              
-This file is part of the NAV project.
-
 Socket module with timeout.
-
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
-Author: Erik Gorset	<erikgors@stud.ntnu.no>
 """
 import time,socket,sys,types,string
 from select import select
@@ -29,11 +48,13 @@ class Socket:
 		self.s.setblocking(1)
 		r,w,e = select([],[self],[],self.timeout)
 		if not w:
-			raise Timeout('Timeout in connect after %i sec' % self.timeout)
+			raise Timeout('Timeout in connect after %i sec' %\
+				      self.timeout)
 	def recv(self,*args):
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
-			raise Timeout('Timeout in recv after %i sec' % self.timeout)
+			raise Timeout('Timeout in recv after %i sec' % \
+				      self.timeout)
 		return self.s.recv(*args)
 	def readline(self):
 		line = ''
@@ -45,7 +66,8 @@ class Socket:
 	def send(self,*args):
 		r,w,e = select([],[self.s],[],self.timeout)
 		if not w:
-			raise Timeout('Timeout in write after %i sec' % self.timeout)
+			raise Timeout('Timeout in write after %i sec' % \
+				      self.timeout)
 		self.s.send(*args)
 	
 	def write(self,line):
@@ -66,14 +88,15 @@ class Socket:
 	def sendall(self,*args):
 		r,w,e = select([],[self.s],[],self.timeout)
 		if not w:
-			raise Timeout('Timeout in write after %i sec' % self.timeout)
+			raise Timeout('Timeout in write after %i sec' % \
+				      self.timeout)
 		return self.s.sendall(*args)
 	
 
 class TimeoutFile:
     """TimeoutFile object
     Implements a file-like object on top of TimeoutSocket.
-    This is a slightly modified version of the TimeoutFile ovject
+    This is a slightly modified version of the TimeoutFile object
     in Timothy O'Malley's TimeoutSocket.py.
 
     """

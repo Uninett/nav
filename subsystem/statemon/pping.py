@@ -1,12 +1,29 @@
 #!/usr/bin/env python
+#
+# Copyright 2002-2004 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# $Id: $
+# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#
 """
-$Id: pinger.py,v 1.2 2003/06/20 09:34:44 magnun Exp $
-This file is part of the NAV project.
-
-Copyright (c) 2002 by NTNU, ITEA
-
-
-Author: Magnus Nordseth <magnun@stud.ntnu.no>
+Pings multiple hosts in parallel
 """
 
 import os
@@ -23,7 +40,6 @@ from nav.statemon import circbuf
 from nav.statemon import debug
 from nav.statemon.event import Event
 from nav.statemon.netbox import Netbox
-from nav.statemon.output import color
 
 class pinger:
     def __init__(self, **kwargs):
@@ -76,7 +92,8 @@ class pinger:
             self.ipToNetboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
         self.netboxmap = netboxmap
-        debug.debug("We now got %i hosts in our list to ping" % len(self.netboxmap),7)
+        debug.debug("We now got %i hosts in our list to ping" % 
+                    len(self.netboxmap), 7)
         #then update our pinger object
         self.pinger.setHosts(self.ipToNetboxid.keys())
 
@@ -147,17 +164,20 @@ class pinger:
         self.db.start()
         while self._isrunning:
             start=time.time()
-            debug.debug("Starts pinging....",7)
+            debug.debug("Starts pinging....", 7)
             self.updateHostList()
             elapsedtime=self.pinger.ping()
             self.generateEvents()
-            debug.debug("%i hosts checked in %03.3f secs. %i hosts currently marked as down." % (len(self.netboxmap),elapsedtime,len(self.down)))
+            debug.debug("%i hosts checked in %03.3f secs. %i hosts "
+                        "currently marked as down." %
+                        (len(self.netboxmap), elapsedtime, len(self.down)))
             wait=self._looptime-elapsedtime
             if wait > 0:
                 debug.debug("Sleeping %03.3f secs" % wait,6)
             else:
                 wait=abs(self._looptime + wait)
-                debug.debug("Check lasted longer than looptime. Delaying next check for %03.3f secs" % wait,2)
+                debug.debug("Check lasted longer than looptime. "
+                            "Delaying next check for %03.3f secs" % wait,2)
             time.sleep(wait)
 
     def signalhandler(self, signum, frame):
@@ -171,28 +191,15 @@ class pinger:
 
 
 def help():
-    #print """Paralell pinger for NAV (Network Administration Visualized).
-    #
-    #Usage: %s [OPTIONS]
-    #-h  --help      Displays this message
-    #-n  --nofork    Run in foreground
-    #-v  --version   Display version and exit
+    print """Paralell pinger for NAV (Network Administration Visualized).
+    
+    Usage: %s [OPTIONS]
+    -h  --help      Displays this message
+    -n  --nofork    Run in foreground
+    -v  --version   Display version and exit
 
-    #Written by Stian Søiland and Magnus Nordseth, 2002
-    #"""  % os.path.basename(os.sys.argv[0]))
-    print color("Parallel pinger for NAV (Network Administration Visualized).","white")
-    print
-    print "Usage : %s [OPTIONS]" % os.path.basename(os.sys.argv[0])
-    print color("-h  --help   ", "green"), "Displays this message"
-    print color("-n  --nofork ", "green"), "Run in foreground"
-    print color("-v  --version", "green"), "Display version and exit"
-    print
-    print
-    print "Written by Stian Søiland and Magnus Nordseth, 2002"
-    print
-
-
-
+    Written by Stian Søiland and Magnus Nordseth, 2002
+    """  % os.path.basename(os.sys.argv[0]))
 
 def start(nofork):
     """
