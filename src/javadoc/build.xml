@@ -119,6 +119,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../Util/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
 		<!-- Dummy packages to make the javadoc look nicer -->
     <packageset dir="src" defaultexcludes="yes">
       <include name="java/lang/**" />
