@@ -32,7 +32,7 @@ class DeviceDBImpl implements DeviceDB
 
 		// Fetch all unclosed alerthist records
 		try {
-			ResultSet rs = Database.query("SELECT * FROM alerthist NATURAL LEFT JOIN alerthistvar WHERE end_time='infinity'");
+			ResultSet rs = Database.query("SELECT * FROM alerthist WHERE end_time='infinity'");
 			while (rs.next()) {
 				EventImpl e = eventImplFactory(rs, true);
 				downAlertMap.put(e.getKey(), e);
@@ -53,10 +53,9 @@ class DeviceDBImpl implements DeviceDB
 	{
 		String table = history?"alerthist":"eventq";
 		String tableid = table+"id";
-		String tablevar = table+"var";
 
 		// Get fields
-		int id = rs.getInt(tableid);
+		String id = rs.getString(tableid);
 		String source = rs.getString("source");
 		int deviceid = rs.getInt("deviceid");
 		int boxid = rs.getInt("netboxid");
@@ -73,7 +72,7 @@ class DeviceDBImpl implements DeviceDB
 			do {
 				varMap.put(rs.getString("var"), rs.getString("val"));
 				
-			} while (rs.next() && rs.getInt(tableid) == id);
+			} while (rs.next() && rs.getString(tableid).equals(id));
 			rs.previous();
 		}
 
@@ -170,14 +169,14 @@ class DeviceDBImpl implements DeviceDB
 			Database.beginTransaction();
 
 			// Insert into alertq
-			insertAlert(e, false, 0);
+			insertAlert(e, false, null);
 
 			// Update alertqhist
 			boolean removeDownAlert = false;
 			boolean noDownAlertExp = false;
 			if (e.getState() != Event.STATE_END) {
 				// Insert into alerthist
-				int id = insertAlert(e, true, 0);
+				String id = insertAlert(e, true, null);
 
 				if (e.getState() == Event.STATE_START) {
 					e.setEventqid(id);
@@ -189,11 +188,11 @@ class DeviceDBImpl implements DeviceDB
 				if (da == null) {
 					noDownAlertExp = true;
 				} else {
-					int alerthistid = da.getEventqid();
+					String alerthistid = da.getEventqid();
 					Database.update("UPDATE alerthist SET end_time = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
 					removeDownAlert = true;
 
-					// Insert into alerthistvar
+					// Insert into alerthistmsg
 					insertAlert(e, true, alerthistid);
 				}
 			}
@@ -230,55 +229,60 @@ class DeviceDBImpl implements DeviceDB
 
 	}
 
-	private int insertAlert(EventImpl e, boolean history, int alerthistid) throws SQLException, PostAlertException
+	private String insertAlert(EventImpl e, boolean history, String alerthistid) throws SQLException, PostAlertException
 	{
 		String table = history?"alerthist":"alertq";
 		String tableid = table+"id";
-		String tablevar = table+"var";
-		String tableseq = table+"_"+table+"id_seq";
+		String tablemsg = table+"msg";
+		//String tableseq = table+"_"+table+"id_seq";
 
+		/*
 		// First get an id
 		ResultSet rs = Database.query("SELECT nextval('"+tableseq+"')");
 		if (!rs.next()) throw new PostAlertException("Error, could not get id from seq " + tableseq);
 		int id = rs.getInt("nextval");
+		*/
+		String id;
 
-		String[] ins;
-		if (!history) {
-			String[] s = {
-				tableid, String.valueOf(id),
-				"source", e.getSourceSql(),
-				"deviceid", e.getDeviceidSql(),
-				"netboxid", e.getNetboxidSql(),
-				"subid", e.getSubidSql(),
-				"time", e.getTimeSql(),
-				"eventtypeid", e.getEventtypeidSql(),
-				"state", e.getStateSql(),
-				"value", e.getValueSql(),
-				"severity", e.getSeveritySql()
-			};
-			ins = s;
+		// Don't insert into alerthist of this is an end-alert
+		if (alerthistid == null) {
+			String[] ins;
+			if (!history) {
+				String[] s = {
+					tableid, "",
+					"source", e.getSourceSql(),
+					"deviceid", e.getDeviceidSql(),
+					"netboxid", e.getNetboxidSql(),
+					"subid", e.getSubidSql(),
+					"time", e.getTimeSql(),
+					"eventtypeid", e.getEventtypeidSql(),
+					"state", e.getStateSql(),
+					"value", e.getValueSql(),
+					"severity", e.getSeveritySql()
+				};
+				ins = s;
+			} else {
+				String[] s = {
+					tableid, "",
+					"source", e.getSourceSql(),
+					"deviceid", e.getDeviceidSql(),
+					"netboxid", e.getNetboxidSql(),
+					"subid", e.getSubidSql(),
+					"start_time", e.getTimeSql(),
+					"end_time", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
+					"eventtypeid", e.getEventtypeidSql(),
+					"value", e.getValueSql(),
+					"severity", e.getSeveritySql()
+				};
+				ins = s;
+			}
+			id = Database.insert(table, ins, null);
 		} else {
-			String[] s = {
-				tableid, String.valueOf(id),
-				"source", e.getSourceSql(),
-				"deviceid", e.getDeviceidSql(),
-				"netboxid", e.getNetboxidSql(),
-				"subid", e.getSubidSql(),
-				"start_time", e.getTimeSql(),
-				"end_time", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
-				"eventtypeid", e.getEventtypeidSql(),
-				"value", e.getValueSql(),
-				"severity", e.getSeveritySql()
-			};
-			ins = s;
-		}
-		// If we are inserting into alerthist and this is an end-event, only insert into alerthistvar
-		if (alerthistid == 0) {
-			Database.insert(table, ins);
+			id = alerthistid;
 		}
 
-		Iterator it = e.getMsgs();
-		while (it.hasNext()) {
+		// Insert messages
+		for (Iterator it = e.getMsgs(); it.hasNext();) {
 			String[] s = (String[])it.next();
 			String media = s[0];
 			String lang = s[1];
@@ -287,7 +291,7 @@ class DeviceDBImpl implements DeviceDB
 			String[] insv;
 			if (!history) {
 				String[] v = {
-					tableid, String.valueOf(id),
+					tableid, id,
 					"msgtype", media,
 					"language", lang,
 					"msg", msg
@@ -295,7 +299,7 @@ class DeviceDBImpl implements DeviceDB
 				insv = v;
 			} else {
 				String[] v = {
-					tableid, String.valueOf( (alerthistid==0 ? id : alerthistid) ),
+					tableid, id,
 					"state", e.getStateSql(),
 					"msgtype", media,
 					"language", lang,
@@ -303,8 +307,24 @@ class DeviceDBImpl implements DeviceDB
 				};
 				insv = v;
 			}
-			Database.insert(tablevar, insv);
+			Database.insert(tablemsg, insv);
 		}
+
+		// Additionally, if we are posting to alerthist, insert any historyVars into alerthistvar
+		if (history) {
+			for (Iterator it = e.historyVarIterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+
+				String[] ins = {
+					tableid, id,
+					"state", e.getStateSql(),
+					"var", (String)me.getKey(),
+					"val", (String)me.getValue()
+				};
+				Database.insert("alerthistvar", ins);
+			}
+		}
+
 		return id;
 	}
 

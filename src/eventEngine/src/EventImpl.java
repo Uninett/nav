@@ -16,7 +16,7 @@ import no.ntnu.nav.eventengine.*;
 
 class EventImpl implements Event, Alert
 {
-	private int eventqid;
+	private String eventqid;
 	private String source;
 	private int deviceid;
 	private int netboxid;
@@ -27,6 +27,7 @@ class EventImpl implements Event, Alert
 	private int value;
 	private int severity;
 	private Map varMap;
+	private Map historyVarMap = new HashMap();
 
 	private String alerttype;
 
@@ -34,7 +35,7 @@ class EventImpl implements Event, Alert
 
 	private boolean disposed;
 
-	public EventImpl(int eventqid, String source, int deviceid, int netboxid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
+	public EventImpl(String eventqid, String source, int deviceid, int netboxid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
 	{
 		this.eventqid = eventqid;
 		this.source = source;
@@ -82,8 +83,8 @@ class EventImpl implements Event, Alert
 		varMap = new HashMap();
 	}
 
-	public int getEventqid() { return eventqid; }
-	public void setEventqid(int i) { eventqid = i; }
+	public String getEventqid() { return eventqid; }
+	public void setEventqid(String s) { eventqid = s; }
 
 	// Event
 	public String getSource() { return source; }
@@ -99,6 +100,7 @@ class EventImpl implements Event, Alert
 	public int getSeverity() { return severity; }
 	//public Set getVar(String var) { return (Set)varMap.get(var); }
 	public String getVar(String var) { return (String)varMap.get(var); }
+	public Iterator getVarIterator() { return varMap.entrySet().iterator(); }
 	public Map getVarMap() { return varMap; }
 	public void dispose()
 	{
@@ -121,13 +123,28 @@ class EventImpl implements Event, Alert
 	public void setValue(int value) { this.value = value; }
 	public void setSeverity(int severity) { this.severity = severity; }
 
-	public void addVar(String key, String val)
-	{
+	// Doc in interface
+	public void addVar(String key, String val) {
 		varMap.put(key, val);
 	}
-	public void addVars(Map vm)
-	{
+
+	// Doc in interface
+	public void addVars(Map vm) {
 		varMap.putAll(vm);
+	}
+
+	// Doc in interface
+	public void addHistoryVar(String key, String val) {
+		historyVarMap.put(key, val);
+	}
+
+	// Doc in interface
+	public void addHistoryVars(Map vm) {
+		historyVarMap.putAll(vm);
+	}
+
+	Iterator historyVarIterator() {
+		return historyVarMap.entrySet().iterator();
 	}
 
 	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
