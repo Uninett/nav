@@ -33,12 +33,13 @@ subdirs = \
 # We build our own classpath, to resolve interdependencies between the java modules.
 CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done ; echo -n $$CLASSPATH)
 INSTALL_TARGETS = $(patsubst %,%_inst,$(subdirs))
+QUICK_TARGETS = $(patsubst %,%_q,$(subdirs))
 
 ANT = @ANT@
 
 # Make sure we export make variables to the environment
 export
-.PHONY = all install clean distclean debug .lastbuild $(INSTALL_TARGETS)
+.PHONY = all install clean distclean debug .lastbuild $(INSTALL_TARGETS) $(QUICK_TARGETS)
 
 all: $(subdirs)
 
@@ -90,3 +91,8 @@ $(INSTALL_TARGETS):
 	@dir="$(patsubst %_inst,%,$@)";  \
 	echo "Installing $$dir ..."; \
 	cd $$dir && $(ANT) install $(INSTALLARGS)
+
+$(QUICK_TARGETS):
+	@realtarget="$(patsubst %_q,%,$@)";                            \
+	echo "Building $$realtarget ..." ;                             \
+	(cd $$realtarget && $(ANT) $(BUILDARGS)) && touch $$realtarget
