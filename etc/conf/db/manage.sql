@@ -202,17 +202,18 @@ CREATE TABLE swp_boks (
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  ifindex INT2 NOT NULL,
+  ifindex INT4 NOT NULL,
+  modul VARCHAR(4) NOT NULL,
+  port INT2 NOT NULL,
   status VARCHAR(4) NOT NULL DEFAULT 'down',
   speed VARCHAR(10),
   duplex VARCHAR(4),
+  media VARCHAR(16),
   trunk BOOL DEFAULT false,
   static BOOL DEFAULT false,  
-  modul VARCHAR(4) NOT NULL,
-  port INT2 NOT NULL,
   portnavn VARCHAR(30),  
+  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   vpkatbak VARCHAR(5),
-  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
   UNIQUE(boksid, ifindex)
 );
 
@@ -289,9 +290,9 @@ DROP SEQUENCE port2pkt_id_seq;
 DROP SEQUENCE pkt2rom_id_seq;
 
 CREATE TABLE boksmac_cache (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   mac VARCHAR(12) NOT NULL,
-  UNIQUE(mac)
+  UNIQUE(boksid,mac)
 );
 
 CREATE TABLE arp (
@@ -390,8 +391,9 @@ CREATE TABLE vpBoksXY (
 );
 -- vPServer bruker
 CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
-CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 CREATE USER navadmin WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
+CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
+CREATE USER getportdata WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 
 GRANT SELECT ON boks TO vPServer;
 GRANT SELECT ON boksinfo TO vPServer;
@@ -406,6 +408,19 @@ GRANT ALL    ON vpBoksGrp_vpboksgrpid_seq TO vPServer;
 GRANT UPDATE ON vpBoksGrpInfo TO vPServer;
 GRANT ALL    ON vpBoksXY TO vPServer;
 GRANT ALL    ON vpboksxy_vpboksxyid_seq TO vPServer;
+
+GRANT SELECT ON boks TO navadmin;
+GRANT SELECT ON type TO navadmin;
+GRANT SELECT ON boksmac TO navadmin;
+GRANT SELECT ON gwport TO navadmin;
+GRANT SELECT ON prefiks TO navadmin; 
+GRANT ALL    ON swport TO navadmin;
+GRANT ALL    ON swport_swportid_seq TO navadmin;
+GRANT ALL    ON swportvlan TO navadmin;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
+GRANT SELECT,DELETE ON swp_boks TO navadmin;
+GRANT ALL    ON swportallowedvlan TO navadmin;
+GRANT SELECT ON swportblocked TO navadmin;
 
 GRANT SELECT ON boks TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
@@ -422,17 +437,16 @@ GRANT ALL    ON swportblocked TO getBoksMacs;
 GRANT ALL    ON cam TO getBoksMacs;
 GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 
-GRANT SELECT ON boks TO navadmin;
-GRANT SELECT ON type TO navadmin;
-GRANT SELECT ON boksmac TO navadmin;
-GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON prefiks TO navadmin;
-GRANT ALL    ON swport TO navadmin;
-GRANT ALL    ON swport_swportid_seq TO navadmin;
-GRANT ALL    ON swportvlan TO navadmin;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
-GRANT SELECT,DELETE ON swp_boks TO navadmin;
-GRANT ALL    ON swportallowedvlan TO navadmin;
-GRANT SELECT ON swportblocked TO navadmin;
+GRANT SELECT ON boks TO getPortData;
+GRANT SELECT ON type TO getPortData;
+GRANT ALL    ON swport TO getPortData;
+GRANT ALL    ON swport_swportid_seq TO getPortData;
+GRANT ALL    ON swportvlan TO getPortData;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO getPortData;
+GRANT ALL    ON swportallowedvlan TO getPortData;
+-- GRANT ALL    ON gwport TO getPortData;
+-- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
+-- GRANT SELECT ON prefiks TO getBoksMacs;
+
 
 -------- vlanPlot end ------
