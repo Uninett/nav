@@ -95,6 +95,7 @@ fi
 %config(noreplace) %{_prefix}/etc/webfront/welcome-anonymous.txt
 %config(noreplace) %{_prefix}/etc/webfront/welcome-registered.txt
 %config(noreplace) %{_prefix}/etc/cron.d/*
+%config(noreplace) %{_prefix}/etc/rrdBrowser.conf
 
 
 %changelog
