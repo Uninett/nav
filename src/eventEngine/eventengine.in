@@ -28,7 +28,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting eventEngine: "
-		rc= daemon "su ${user} -c ${bindir}/eventEngine.sh"
+		rc= daemon "su - ${user} -c ${bindir}/eventEngine.sh"
 		echo
 		exit $rc
 		;;

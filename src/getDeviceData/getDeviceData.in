@@ -33,7 +33,7 @@ case "$1" in
 		if [ `whoami` == "${user}" ]; then
 		    SU=""
 		else
-		    SU="su ${user} -c "
+		    SU="su - ${user} -c "
 		fi
 		rc= daemon "${SU}${bindir}/getDeviceData.sh"
 		echo

@@ -43,7 +43,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting servicemon: "
-		rc= daemon "su ${user} -c $BIN"
+		rc= daemon "su - ${user} -c $BIN"
 		echo
 		exit $rc
 		;;
