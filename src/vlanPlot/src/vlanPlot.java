@@ -256,6 +256,9 @@ class panel extends Panel
 			cricketURL = a.getParameter("cricketURL");
 			netflowURL = a.getParameter("netflowURL");
 
+			Input.sessionid = a.getParameter("nav_sessid");
+			Input.authuser = a.getParameter("user");
+
 			// Skal vi starte på en bestemt boksid?
 			String gotoBoksid = a.getParameter("gotoBoksid");
 			if (gotoBoksid != null && gotoBoksid.length() > 0) {

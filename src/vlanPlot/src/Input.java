@@ -23,7 +23,6 @@ class Input
 	//http://www.nav.ntnu.no/vPServerNG/servlet/vPServer?section=boks&boksid=271&kat=&request=listConfig,listRouterGroups,listBoks
 
 
-
 	// URL for vPServer-modulen
 	public static String vPServerURL;
 
@@ -35,6 +34,9 @@ class Input
 
 	// URL til Netflow, hvis det er aktivt
 	public static String netflowURL;
+
+	public static String sessionid;
+	public static String authuser;
 
 
 	Com com;
@@ -150,6 +152,7 @@ class Input
 
 			URL url = new URL(b.toString() );
 			URLConnection connection = url.openConnection();
+			connection.setRequestProperty("Cookie", "nav_sessid="+sessionid);
 			connection.connect();
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
