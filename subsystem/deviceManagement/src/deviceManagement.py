@@ -1594,9 +1594,11 @@ def makeHistory(form,historyType,unitList):
             box = nav.db.manage.Netbox.getAll(where=where)
             module = nav.db.manage.Module.getAll(where=where)
             if box:
-                boxList.append(NetboxHistoryBox(unitid))
+                box = box[0]
+                boxList.append(NetboxHistoryBox(box.netboxid))
             elif module:
-                boxList.append(ModuleHistoryBox(unitid))
+                module = module[0]
+                boxList.append(ModuleHistoryBox(module.moduleid))
             else:
                 boxList.append(DeviceHistoryBox(unitid))
     return boxList
@@ -2375,6 +2377,7 @@ class NetboxHistoryBox(HistoryBox):
 class ModuleHistoryBox(HistoryBox):
     def __init__(self,moduleid):
         module = nav.db.manage.Module(moduleid)
+        
         self.title = 'Module ' + str(module.module) + ' in ' + \
                       module.netbox.sysname
 
@@ -2495,11 +2498,6 @@ class GetEvents:
                         event.addVar(var[1],var[2],var[0])
                 events.append(event)
         self.events = events
-
-
-
-
-
 
 def registerRma(req,deviceId=None):
     args = {}
