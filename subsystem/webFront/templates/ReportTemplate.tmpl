@@ -1,0 +1,240 @@
+##
+## ReportTemplate.tmpl
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+##
+## Builds html for the Report Generator with data in this form:
+##
+## $report
+##   +-- header                        :: name of the report
+##   +-- navigator
+##   |    +-- previous                 :: uri to previous page (optional)
+##   |    +-- view                     :: info about current page
+##   |    +-- next                     :: uri to next page (optional)
+##   +-- table
+##        +-- header
+##        |    +-- cells               :: array of cells
+##        |         +-- uri            :: link (optional)
+##        |         +-- text           :: name of the column
+##        |         +-- explanation    :: description of data in the column (optional)
+##        +-- rows
+##        |    +-- cells               :: array of cells
+##        |         +-- uri            :: link (optional)
+##        |         +-- text           :: the bread and butter of the table
+##        +-- footer
+##             +-- cells               :: array of cells
+##                  +-- sum            :: sum of values in the column (optional)
+##
+## The template uses images in $imagefolder/ragen/, where $imagefolder
+## is inherited from MainTemplate and defaults to "/images".
+##
+## Last changed: 2003.06.25
+## Author: Magnar Sveen (magnars@idi.ntnu.no)
+##
+
+#extends MainTemplate
+
+#block additionalCSS
+      DIV.title { font-size: 15; font-weight: bold; text-align: center; padding: 0px 0px 0px 0px}
+
+      TR.navigation { font-size: 11; }
+      TD.previous { text-align: right; }
+      TD.current  { text-align: center; }
+      TD.next     { text-align: left; }
+
+      TR.header { background-image:url('$imagefolder/ragen/navbar-fill.gif'); background-repeat: repeat-x; height: 26px; padding: 1px 0px 0px 0px; }
+
+      TR.header { font-size: 13; background-color: #eeeeee; }
+      TR.footer { font-size: 13; font-weight: bold; background-color: white; }
+
+      TR.evenrow { font-size: 11; background-color: #eeeeee; }
+      TR.oddrow  { font-size: 11; }
+#end block additionalCSS
+
+#block additionalJavaScript
+      image1 = new Image();
+      image1.src = "$imagefolder/ragen/previous-active.gif";
+      image2 = new Image();
+      image2.src = "$imagefolder/ragen/next-active.gif";
+      image3 = new Image();
+      image3.src = "$imagefolder/ragen/bottom-previous-active.gif";
+      image4 = new Image();
+      image4.src = "$imagefolder/ragen/bottom-next-active.gif";
+#end block additionalJavaScript
+
+#block content
+#if $report
+  <table class="title" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-image:url('$imagefolder/ragen/logo+fill.gif'); background-repeat: no-repeat; ">
+    <tr class="title">
+      <td width="9"> </td>
+      <td class="title" align="center">
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="previous">
+#if $report.navigator.previous
+              <a title="previous page" href="$report.navigator.previous"
+                 onmouseover="image1.src='$imagefolder/ragen/previous-active.gif';"
+                 onmouseout="image1.src='$imagefolder/ragen/previous.gif';">
+              <img name="image1" src="$imagefolder/ragen/previous.gif" border="0" alt="<< previous" title="previous page" /></a>
+#else
+              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+#end if
+              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
+            </td>
+            <td class="current">
+              <div class="title">$report.header</div>
+              $report.navigator.view
+            </td>
+            <td class="next">
+              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
+#if $report.navigator.next
+              <a title="next page" href="$report.navigator.next"
+                 onmouseover="image2.src='$imagefolder/ragen/next-active.gif';"
+                 onmouseout="image2.src='$imagefolder/ragen/next.gif';">
+              <img name="image2" src="$imagefolder/ragen/next.gif" border="0" alt="next >>" title="next page" /></a>
+#else
+              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+#end if
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td style="background-image:url('$imagefolder/ragen/top-end.gif'); background-repeat: no-repeat; " width="9"> </td>
+    </tr>
+  </table>
+  <table class="results" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="9999"><img src=$imagefolder/blank.gif"" width=14 height=1 alt="" /></td>
+#for $cell in $report.table.header.cells
+      <td class="header" valign="top" style="padding: 0px 10px 0px 0px; ">
+#if $cell.uri
+        <a href="$cell.uri" class="navbar" title="$cell.explanation">
+#else
+        <a class="navbar" title="$cell.explanation">
+#end if
+          $cell.text
+        </a>&nbsp;
+      </td>
+#end for
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-repeat: no-repeat; width: 14px;" rowspan="9999"><img src=$imagefolder/blank.gif"" width=14 height=1 alt="" /></td>
+    </tr>
+#set $evenrow = 0
+#for $row in $report.table.rows
+#if $evenrow
+    <tr class="evenrow">
+#set $evenrow = 0
+#else
+    <tr class="oddrow">
+#set $evenrow = 1
+#end if
+#set $evencell = 0
+#for $cell in $row.cells
+#if $evencell
+      <td nowrap class="evencell" style="padding: 0px 10px 0px 0px">
+#set $evencell = 0
+#else
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+#set $evencell = 1
+#end if
+#if $cell.uri
+        <a href="$cell.uri">
+#end if
+          $cell.text
+#if $cell.uri
+        </a>
+#end if
+      </td>
+#end for
+    </tr>
+#end for
+#set $cols = len($report.table.header.cells)
+    <tr bgcolor="black"><td colspan="$cols"><img src="$imagefolder/blank.gif" height="1" width="1" alt="" /></td></tr>
+    <tr class="footer">
+#for $cell in $report.table.footer.cells
+      <td class="footer">
+#if $cell.sum
+        $cell.sum
+#end if
+      </td>
+#end for
+    </tr>
+  </table>
+
+  <table class="navigation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr class="navigation" style="background-image:url('$imagefolder/ragen/bottom-fill.gif'); background-repeat: repeat-x;">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/bottom-start.gif'); background-repeat: no-repeat; width: 10px"></td>
+      <td class="navigation" align="center">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="previous">
+#if $report.navigator.previous
+              <img src="$imagefolder/blank.gif" width="1" height="1" alt="" /><br/>
+              <a title="previous page" href="$report.navigator.previous"
+                 onmouseover="image3.src='$imagefolder/ragen/bottom-previous-active.gif';"
+                 onmouseout="image3.src='$imagefolder/ragen/bottom-previous.gif';">
+              <img name="image3" src="$imagefolder/ragen/bottom-previous.gif" border="0" alt="<< previous" title="previous page" /></a>
+#else
+              <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
+#end if
+              <img src="$imagefolder/blank.gif" width="3" height="1" alt="" />
+            </td>
+            <td class="current">
+	      $report.navigator.view
+            </td>
+            <td class="next">
+              <img src="$imagefolder/blank.gif" width="1" height="1" alt="" /><br />
+#if $report.navigator.next
+              <img src="$imagefolder/blank.gif" width="3" height="1" alt="" />
+              <a title="next page" href="$report.navigator.next"
+                 onmouseover="image4.src='$imagefolder/ragen/bottom-next-active.gif';"
+                 onmouseout="image4.src='$imagefolder/ragen/bottom-next.gif';">
+              <img name="image4" src="$imagefolder/ragen/bottom-next.gif" border="0" alt="next >>" title="next page" /></a>
+#else
+              <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
+#end if
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/bottom-end.gif'); background-repeat: no-repeat; width: 10px"></td>
+    </tr>
+  </table>
+#else 
+
+  <table class="title" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-image:url('$imagefolder/ragen/logo+fill.gif'); background-repeat: no-repeat; ">
+    <tr class="title">
+      <td width="9"> </td>
+      <td class="title" align="center">
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="current">
+              <div class="title">&nbsp;</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td style="background-image:url('$imagefolder/ragen/top-end.gif');" width="9"> </td>
+    </tr>
+  </table>
+  <table class="results" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="2"></td>
+      <td class="header" valign="top">
+        &nbsp;
+      </td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-repeat: no-repeat; width: 14px;" rowspan="2"></td>
+    </tr>
+    <tr class="oddrow">
+      <td class="oddcell">
+        <br/>
+        <center>
+          <font size="3">
+            No results found!
+          </font>
+        </center>
+      </td>
+    </tr>
+  </table>
+
+#end if
+#end block content

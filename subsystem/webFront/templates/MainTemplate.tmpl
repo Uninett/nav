@@ -1,0 +1,101 @@
+##
+## MainTemplate.tmpl
+##
+## Every other template extends this one. It contains the header-information,
+## NAV-logo and navigation-bar.
+##
+## The content-block should be replaced by all templates. CSS or JavaScript
+## can be added by replacing the additionalCSS or additionalJavaScript blocks.
+##
+## To use without making a separate template, do this:
+##
+##   import MainTemplate from foo.bar.MainTemplate
+##   page = MainTemplate()
+##   page.content = lambda: "<h1>Foo</h1>Bar"
+##
+## The template uses images in $imagefolder/main/, where $imagefolder
+## defaults to "/images".
+##
+## Last changed: 2003.06.25
+## Author: Magnar Sveen (magnars@idi.ntnu.no)
+##
+
+#attr $imagefolder = "/images"
+#attr $bodyOnLoad = ""
+
+<html>
+  <head>
+    <meta HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
+    <title></title>
+    <style type="text/css">
+#def standardCSS
+      BODY { 
+        font-family: verdana, arial, helvetica, sans-serif;
+        background-image:url('$imagefolder/main/background-fill.gif');
+        background-repeat: repeat-x;
+        background-color: white; 
+      }
+
+      A.navbar         { color: #000000; text-decoration: none; font-size: 13; }
+      A.navbar:visited { color: #000000; text-decoration: none; }
+      A.navbar:hover   { color: #336699; text-decoration: none; }
+      A.navbar:active  { color: #4477AA; text-decoration: none; }
+
+      A         { color: #336699; text-decoration: none; }
+      A:visited { color: #336699; text-decoration: none; }
+      A:hover   { color: #000000; text-decoration: underline; }
+      A:active  { color: #6699CC; text-decoration: none; }
+#end def standardCSS
+$standardCSS()
+
+#def additionalCSS
+#end def additionalCSS
+$additionalCSS()
+    </style>
+    <script language="JavaScript" type="text/javascript">
+      <!-- begin
+#def additionalJavaScript
+#end def additionalJavaScript
+$additionalJavaScript()
+      // end -->
+    </script>
+  </head>
+  <body $bodyOnLoad>
+    <div style="position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('$imagefolder/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
+    <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
+      <table cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Preferences</a></td>
+          <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="/index.py/toolbox">Toolbox</a></td>
+          <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+	  <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Useradmin</a></td>
+          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+          <td width="0%" valign="top" style="background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
+          <select>
+            <option> Choose a tool </option>
+            <option> Network Explorer </option>
+	    <option> VlanPlot </option>
+	    <option> RaGen </option>
+	    <option> Cricket </option>
+	    <option> Device Browser </option>
+	  </select>
+          </td>
+          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+          <td width="100%" valign="top" align="right"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="#">Logout</a></td>
+      </tr>
+    </table>
+  </div>
+
+  <img src="$imagefolder/blank.gif" height="100" alt="" /><br/>
+
+#def content
+  <br/><center>
+  <font size="2" color="#666">This space intentionally left blank.</font>
+  </center>
+#end def content
+$content()
+
+  </body>
+</html>

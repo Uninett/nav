@@ -1,0 +1,56 @@
+##
+## ToolboxTemplate.tmpl
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+##
+## Builds html for the Toolbox with data in this form:
+##
+## $tools                              :: array of tools
+##   +-- name                          :: name of the tool
+##   +-- uri                           :: location of the tool
+##   +-- icon                          :: uri to the tools' icon
+##   +-- description                   :: explanation of the tools purpose or function
+## 
+## The template uses images in $imagefolder/toolbox/, where $imagefolder
+## is inherited from MainTemplate and defaults to "/images".
+##
+## Last changed: 2003.06.27
+## Author: Magnar Sveen (magnars@idi.ntnu.no)
+##
+
+#extends MainTemplate
+
+#def add_tool($tool)
+  <div style="float: left">
+    <table width="300" cellspacing="0" cellpadding="0" border="0">
+      <tr>
+        <td><img src="$imagefolder/toolbox/module-bar-start.gif" alt="" /></td>
+#if $tool.icon
+        <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; "><a href="$tool.uri"><img src="$tool.icon" border="0" alt="" /></a></td>
+#else
+        <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; "><img src="$imagefolder/blank.gif" width="47" height="54" alt="" /></td>
+#end if
+        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px"><a class="navbar" href="$tool.uri">$tool.name</a></td>
+        <td><img src="$imagefolder/toolbox/module-bar-end.gif" alt="" /></td>
+      </tr>
+      <tr valign="top" height="100">
+        <td style="background-image:url('$imagefolder/toolbox/module-fill-start.gif'); background-repeat: repeat-y; "></td>
+        <td colspan="2" style="background-image:url('$imagefolder/toolbox/module-fill.gif'); background-repeat: repeat; font-size: 13; padding: 0px 0px 0px 10px">
+          $tool.description
+        </td>
+        <td style="background-image:url('$imagefolder/toolbox/module-fill-end.gif'); background-repeat: repeat-y; "></td>
+      </tr>
+      <tr>
+        <td><img src="$imagefolder/toolbox/module-footer-start.gif" alt="" /></td>
+        <td colspan="2" width="100%" style="background-image:url('$imagefolder/toolbox/module-footer-fill.gif'); background-repeat: repeat-x; "></td>
+        <td><img src="$imagefolder/toolbox/module-footer-end.gif" alt="" /></td>
+      </tr>
+    </table>
+  </div>
+#end def
+
+#block content
+#for $tool in $tools
+$add_tool($tool)
+#end for
+#end block content
