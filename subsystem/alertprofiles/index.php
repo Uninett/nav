@@ -31,7 +31,7 @@
 
 
 // Report all errors except E_NOTICE
-//error_reporting (E_ALL ^ E_NOTICE);
+error_reporting (E_ALL ^ E_NOTICE);
 
 
 
@@ -212,9 +212,15 @@ require("listing.php");
 
 <head>
 <title><?php echo gettext('NAV Alert Profiles'); ?></title>
-<link rel="stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
-<style type="text/css" media="all">@import "css/stil.css";</style>
+<meta name="keywords" content="nav, alert, sms, network, failure, message, itea, uninett">
+<meta name="author" content="Andreas &Aring;kre Solberg">
+<meta name="description" content="Alert Profiles is a subsystem of NAV (Network Administration Visualized) which handles alert subscription administration.">
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="Home" href="../">
+<link rel="Author" href="mailto:andrs@uninett.no">
+<link rel="Stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
+<style type="text/css" media="all">@import "css/stil.css";</style>
+
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
@@ -437,7 +443,7 @@ echo gettext("Your Internet browser do not support style sheets. We reccomend us
 
 <?php
 
-// Viser feilmelding om det har oppstått en feil.
+// Shows errors if occured
 flusherrors();
 
 /*
