@@ -1,3 +1,4 @@
+!/usr/bin/env python
 #
 # Copyright 2003 Norwegian University of Science and Technology
 #
