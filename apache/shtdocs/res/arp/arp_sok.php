@@ -159,7 +159,7 @@ else
 
     print "<b>IP fra $IPfra til $IPtil siste $dager dager</b><br>"; 
 
-    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by ip,fra";
+    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by ip_inet,fra";
 
     $result = pg_exec($dbh,$sql);
 
