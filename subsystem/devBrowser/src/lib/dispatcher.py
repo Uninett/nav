@@ -73,7 +73,9 @@ def handler(req):
         raise error
     except Exception, error:
         result = html.Paragraph("""We're terribly sorry, but something went wrong.. :(""")
-        warns.append(repr(error) + "\n" + str(error))
+        trace = traceback.format_exception(*sys.exc_info())
+        message = "".join(trace)
+        warns.append(message)
     
     # postpend the warnings
     if warns:    
