@@ -451,30 +451,16 @@ class SimpleSelect(Select):
         if self.orderByValue:
             ob = self.initIdColumn
 
-        if type(self.initIdColumn) is list:
-            idColumn = self.initIdColumn[len(self.initIdColumn)-1]
-        else:
-            idColumn = self.initIdColumn
-
         if len(self.initIdList):
             where = ''
             for id in self.initIdList:
                 if where:
                     where += " OR "
-                where += idColumn + "='%s' " % (id,)
+                where += self.initIdColumn + "='%s' " % (id,)
 
             for row in table.getAllIterator(orderBy=ob,where=where):
                 descr = getattr(row, self.initTextColumn)
-
-                if type(self.initIdColumn) is list:
-                    for col in self.initIdColumn:
-                        value = getattr(row, col)
-                        if not type(row) is str:
-                            row = value
-                        else:
-                            break
-                else:
-                    value = getattr(row, self.initIdColumn)
+                value = getattr(row, self.initIdColumn)
 
                 if self.optionFormat:
                     text = self.optionFormat
