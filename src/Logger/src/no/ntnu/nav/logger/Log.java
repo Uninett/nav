@@ -26,6 +26,7 @@ public class Log {
 	private static File log;
 	private static String system;
 	private static Map subsystemMap = Collections.synchronizedMap(new HashMap());
+	private static Map threadIdMap = Collections.synchronizedMap(new HashMap());
 
 	public static final int MSG_EMERGENCY = 0;
 	public static final int MSG_ALERT = 1;
@@ -53,11 +54,31 @@ public class Log {
 
 	/**
 	 * Set the default subsystem name to use. This is stored per thread,
-	 * and it is thus safe for multiple threads to use this method
-	 * at the same time.
+	 * and it is thus safe for multiple threads to use this method at
+	 * the same time. The thread should call freeThread before exiting
+	 * to enable probler garbage collection since this class keeps a
+	 * reference to the thread context.
 	 */
 	public static void setDefaultSubsystem(String subsystem) {
 		subsystemMap.put(Thread.currentThread(), subsystem);
+	}
+
+	/**
+	 * Set a unique identifier for the thread. This identifier will be
+	 * appended to the system-string in the log. The thread should call
+	 * freeThread before exiting to enable probler garbage collection
+	 * since this class keeps a reference to the thread context.
+	 */
+	public static void setThreadId(String id) {
+		threadIdMap.put(Thread.currentThread(), id);
+	}
+
+	/**
+	 * Remove all references to the calling thread.
+	 */
+	public static void freeThread() {
+		subsystemMap.remove(Thread.currentThread());
+		threadIdMap.remove(Thread.currentThread());
 	}
 
 	/**
@@ -162,6 +183,9 @@ public class Log {
 		if (subsystem == null) subsystem = (String)subsystemMap.get(Thread.currentThread());
 		if (msg == null) msg = "";
 
+		String id = "";
+		if (threadIdMap.containsKey(Thread.currentThread())) id = "_" + threadIdMap.get(Thread.currentThread());
+
 		try {
 			PrintStream out;
 			if (log == null) {
@@ -170,7 +194,7 @@ public class Log {
 				out = new PrintStream(new BufferedOutputStream(new FileOutputStream(log, true)));
 			}
 
-			String t = sdf.format(new GregorianCalendar().getTime()) + " " + system + " " + subsystem+"-"+priority+"-"+type + " " + msg;
+			String t = sdf.format(new GregorianCalendar().getTime()) + " " + system + id + " " + subsystem+"-"+priority+"-"+type + " " + msg;
 
 			// Capitalize first letter of log text (name of month)
 			t = t.substring(0, 1).toUpperCase() + t.substring(1, t.length());
