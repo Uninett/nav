@@ -199,10 +199,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 		// Check for router OID
 		oidsNotSupported = nb.oidsNotSupported(new String[] {
-			"cCardIndex",
-			"cCardDescr",
-			"cCardSerial",
-			"cCardSlotNumber",
 			"ipAdEntIfIndex",
 			"ipAdEntIfNetMask",
 		});
@@ -213,13 +209,33 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			}
 			return false;
 		}
+
+		/*
+			"cCardIndex",
+			"cCardDescr",
+			"cCardSerial",
+			"cCardSlotNumber",
+		*/
+
+		/*
+			"cL3Serial"
+			"cL3Model"
+			"cl3HwVer"
+			"cl3SwVer"
+		*/
 		
 		// The card OIDs
+		MultiMap cardSlotNum = util.reverse(sSnmp.getAllMap(nb.getOid("cCardSlotNumber")));
 		Map cardDescr = sSnmp.getAllMap(nb.getOid("cCardDescr"), true);
 		Map cardSerial = sSnmp.getAllMap(nb.getOid("cCardSerial"), true);
 		Map cardHwVer = sSnmp.getAllMap(nb.getOid("cCardHwVersion"), true);
 		Map cardSwVer = sSnmp.getAllMap(nb.getOid("cCardSwVersion"), true);
-		MultiMap cardSlotNum = util.reverse(sSnmp.getAllMap(nb.getOid("cCardSlotNumber")));
+
+		// The cL3 OIDs
+		Map cl3Serial = sSnmp.getAllMap(nb.getOid("cL3Serial"), true);
+		Map cl3Model = sSnmp.getAllMap(nb.getOid("cL3Model"), true);
+		Map cl3HwVer = sSnmp.getAllMap(nb.getOid("cL3HwVer"), true);
+		Map cl3SwVer = sSnmp.getAllMap(nb.getOid("cL3SwVer"), true);
 
 		// Fetch HSRP
 		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
@@ -302,18 +318,25 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				GwModule gwm = gwc.gwModuleFactory(module);
 
 				// Fill in extra info
-				Set slotSet = cardSlotNum.get(""+module);
-				String slot = (String) (slotSet.size() > 0 ? slotSet.iterator().next() : null);
-				if (slot == null && cardSlotNum.numKeys() > 0) {
-					// Just pick one
-					slot = (String)cardSlotNum.values().iterator().next();
+				if (cardSlotNum != null) {
+					Set slotSet = cardSlotNum.get(""+module);
+					String slot = (String) (slotSet.size() > 0 ? slotSet.iterator().next() : null);
+					if (slot == null && cardSlotNum.numKeys() > 0) {
+						// Just pick one
+						slot = (String)cardSlotNum.values().iterator().next();
+					}
+					if (slot != null) {
+						if (cardDescr != null) gwm.setDescr((String)cardDescr.get(slot));
+						if (cardSerial != null) gwm.setSerial((String)cardSerial.get(slot));
+						if (cardHwVer != null) gwm.setHwVer((String)cardHwVer.get(slot));
+						if (cardSwVer != null) gwm.setSwVer((String)cardSwVer.get(slot));
+					}
 				}
-				if (slot != null) {
-					gwm.setSerial((String)cardSerial.get(slot));
-					if (cardHwVer != null) gwm.setHwVer((String)cardHwVer.get(slot));
-					if (cardSwVer != null) gwm.setSwVer((String)cardSwVer.get(slot));
-					gwm.setDescr((String)cardDescr.get(slot));
-				}
+
+				if (cl3Serial != null && cl3Serial.containsKey(module+"000")) gwm.setSerial((String)cl3Serial.get(module+"000"));
+				if (cl3Model != null && cl3Model.containsKey(module+"000")) gwm.setDescr((String)cl3Model.get(module+"000"));
+				if (cl3HwVer != null && cl3HwVer.containsKey(module+"000")) gwm.setHwVer((String)cl3HwVer.get(module+"000"));
+				if (cl3SwVer != null && cl3SwVer.containsKey(module+"000")) gwm.setSwVer((String)cl3SwVer.get(module+"000"));
 
 				String nettype = "null";
 				String netident = "null";

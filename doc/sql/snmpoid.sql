@@ -311,6 +311,15 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='cL3Serial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3Serial','1.3.6.1.4.1.9.9.92.1.1.1.2','Serial number','cL3','0',NULL,'0');
 
+DELETE FROM snmpoid WHERE oidkey='cL3Model';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3Model','1.3.6.1.4.1.9.9.92.1.1.1.3','Model number','cL3','0',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='cL3HwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3HwVer','1.3.6.1.4.1.9.9.92.1.1.1.4','Hardware version','cL3','0',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='cL3SwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3SwVer','1.3.6.1.4.1.9.9.92.1.1.1.8','Software version','cL3','0',NULL,'0');
+
 DELETE FROM snmpoid WHERE oidkey='3c9300Mac';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('3c9300Mac','1.3.6.1.4.1.43.29.4.10.8.1.5.1','Bridge table for 3Com SuperStack 1900','3com','0',NULL,'0');
 
