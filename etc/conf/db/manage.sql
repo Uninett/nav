@@ -89,9 +89,9 @@ CREATE TABLE org (
 
 
 --CREATE TABLE anv (
-CREATE TABLE use (
+CREATE TABLE usage (
 --  anvid VARCHAR(10) PRIMARY KEY,
-  useid VARCHAR(10) PRIMARY KEY,
+  usageid VARCHAR(10) PRIMARY KEY,
   descr VARCHAR(20) NOT NULL
 );
 
@@ -132,32 +132,18 @@ CREATE TABLE prefix (
   rootgwid INT2 UNIQUE,
   vlan INT2,
 --  antmask INT2,
-  computers INT2,
+  active_ip_cnt INT2,
   maxhosts INT2,
   nettype VARCHAR(10) NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
 --  anvid VARCHAR(10) REFERENCES anv,
-  useid VARCHAR(10) REFERENCES use,
+  usageid VARCHAR(10) REFERENCES usage,
 --  nettident VARCHAR(30),
   netident VARCHAR(30),
 --  samband VARCHAR(20),
-    communication VARCHAR(20),
+    to_gw VARCHAR(20),
 --  komm VARCHAR(20)
-  descr VARCHAR(40)
-);
-
-
-CREATE TABLE type (
-typeid SERIAL PRIMARY KEY,
-vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-typename VARCHAR(10) NOT NULL,
-typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE
-CASCADE ON DELETE CASCADE,
-sysObjectID VARCHAR(30) NOT NULL,
-cdp BOOL DEFAULT false,
-tftp BOOL DEFAULT false,
-descr VARCHAR(50),
-UNIQUE (vendorid,typename)
+  descr VARCHAR(50)
 );
 
 CREATE TABLE vendor (
@@ -194,10 +180,22 @@ CREATE TABLE device (
 );
 -- tror ikke uniquene jeg har lagt inn skader.
 
+CREATE TABLE type (
+typeid SERIAL PRIMARY KEY,
+vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
+typename VARCHAR(10) NOT NULL,
+typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
+sysObjectID VARCHAR(30) NOT NULL,
+cdp BOOL DEFAULT false,
+tftp BOOL DEFAULT false,
+descr VARCHAR(50),
+UNIQUE (vendorid,typename)
+);
+
 --CREATE TABLE boks (
-CREATE TABLE boxx (
+CREATE TABLE netbox (
 --  boksid SERIAL PRIMARY KEY,
-  boxxid SERIAL PRIMARY KEY,
+  netboxid SERIAL PRIMARY KEY,
 --  ip varchar(15) NOT NULL, har vært inet en stund
   ip inet NOT NULL,
 --  romid VARCHAR(10) NOT NULL REFERENCES rom,
@@ -218,7 +216,8 @@ CREATE TABLE boxx (
 --  static BOOL DEFAULT false,
 --  watch BOOL DEFAULT false,
 --  skygge BOOL DEFAULT false
-    up CHAR(1) NOT NULL DEFAULT 'n'
+    up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='s'),
+    UNIQUE(ip)
 );
 -- trenger constraints, det finnes ingen i denne fila jeg kan kopiere.
 
@@ -247,12 +246,12 @@ CREATE TABLE netboxinterface (
 CREATE TABLE module (
        moduleid SERIAL PRIMARY KEY,
        deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
-       boxxid INT4 NOT NULL REFERENCES boxx ON UPDATE CASCADE ON DELETE CASCADE,
+       netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
        module VARCHAR(4) NOT NULL,
        submodule VARCHAR(8),
-       up CHAR(1) NOT NULL DEFAULT 'n',
+       up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n'),
        lastseen VARCHAR(8),
-       UNIQUE (boxxid,module)
+       UNIQUE (netboxid,module)
 );
 -- LITT I TVIL OM DATOFORMAT LASTSEEN, KOMMER TILBAKE TIL DETTE SEINERE.
 -- UP TRENGER CONSTRAINT
@@ -284,31 +283,31 @@ CREATE TABLE swp_netbox (
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
 --  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
---  boxxid INT4 NOT NULL REFERENCES boxx ON UPDATE CASCADE ON DELETE CASCADE,
+--  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
 --  modul VARCHAR(4) NOT NULL,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
   port INT2 NOT NULL,
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
-    link CHAR(1) NOT NULL DEFAULT 'n',
+    link CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='d'),
   speed VARCHAR(10),
   duplex VARCHAR(4),
   media VARCHAR(16),
   trunk BOOL DEFAULT false,
 --  static BOOL DEFAULT false,  
-  portnavn VARCHAR(30),  
+--  portnavn VARCHAR(30),  
+  portname VARCHAR(30),  
 --  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
-  boxxbehind INT4 REFERENCES boxx ON UPDATE CASCADE ON DELETE SET NULL,
+  to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
 --  vpkatbak VARCHAR(5),
-  vpcatbehind VARCHAR(5),
-  UNIQUE(boxxid, moduleid, port)
+  to_catid VARCHAR(8),
+  UNIQUE(moduleid, port)
 );
--- trenger du boksbak & vpkatbak, kristian?
 
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
 --  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  boxxid INT4 NOT NULL REFERENCES boxx ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
 --  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT2 NOT NULL,
@@ -317,12 +316,14 @@ CREATE TABLE gwport (
   interface VARCHAR(30),
   gwip inet,
   speed VARCHAR(10),
-  ospf INT2
+  ospf INT2,
 --  static BOOL DEFAULT false,
-  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET null,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
+--  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
+  to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+--  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
+    to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
--- trenger du boksbak, så får du oversette den selv.
+
 
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
@@ -338,6 +339,7 @@ CREATE TABLE swportvlan (
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256)
+--  static BOOL NOT NULL DEFAULT false
 );
 -- hva ble det til med static her?
 
@@ -350,12 +352,12 @@ CREATE TABLE swportblocked (
 
 
 GRANT ALL ON org TO navall;
-GRANT ALL ON use TO navall;
+GRANT ALL ON usage TO navall;
 GRANT ALL ON location TO navall;
 GRANT ALL ON room TO navall;
 GRANT ALL ON prefix TO navall;
 GRANT ALL ON type TO navall;
-GRANT ALL ON boxx TO navall;
+GRANT ALL ON netbox TO navall;
 GRANT ALL ON boksinfo TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
@@ -369,7 +371,7 @@ GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
 GRANT ALL ON typegroup TO navall;
 
-GRANT ALL ON boxx_boxxid_seq TO navall;
+GRANT ALL ON netbox_netboxid_seq TO navall;
 GRANT ALL ON gwport_gwportid_seq TO navall;
 GRANT ALL ON prefix_prefixid_seq TO navall;
 GRANT ALL ON swport_swportid_seq TO navall;
