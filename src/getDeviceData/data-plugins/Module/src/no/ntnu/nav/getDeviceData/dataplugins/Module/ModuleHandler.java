@@ -51,7 +51,7 @@ public class ModuleHandler implements DataHandler {
 			// module
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,module,netboxid,descr FROM device JOIN module USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,module,netboxid,descr FROM device JOIN module USING (deviceid) ORDER BY moduleid");
 			while (rs.next()) {
 				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
 				md.setDeviceid(rs.getInt("deviceid"));
@@ -142,6 +142,7 @@ public class ModuleHandler implements DataHandler {
 					if (!md.equalsModule(oldmd)) {
 						// Vi må oppdatere module
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" descr="+md.getDescr());
+						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+oldmd.getDeviceidS()+" module="+oldmd.getModule()+" descr="+oldmd.getDescr());
 
 						if (oldmd.getDeviceid() != md.getDeviceid()) {
 							// Module has changed

@@ -163,7 +163,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
                  GigabitEthernet1/0/1 
 
    3.3   LAG PREFIKS RECORD
-         Lag prefiksrecord når:
+   Lag prefiksrecord når:
             a) ny gwport lages 
          OG 
             b) denne har ip adresserom
@@ -356,6 +356,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				// Parse the description (ifAlias)
 				try {
 					s = descr.split(",");
+					for (int i=0; i < s.length; i++) if (s[i] != null) s[i] = s[i].trim();
+
+					// Try to recognize NTNU description
 					if (descr.startsWith("lan") || descr.startsWith("stam") || descr.startsWith("core")) {
 						nettype = "lan";
 						orgid = s[1];
@@ -377,6 +380,11 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						if (s.length >= 5) vlan = s[4];
 					} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
 						nettype = "loopback";
+					} else if (s.length > 1) {
+						// Interpret as UNINETT description
+						nettype = Vlan.UNKNOWN_NETTYPE;
+						netident = s[1];
+						description = s[0];
 					} else {
 						nettype = Vlan.UNKNOWN_NETTYPE;
 						netident = descr;
@@ -395,14 +403,14 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				}
 
 				// Check that vlan is number:
-				if (vlan != null && !isNumber(vlan)) {
+				if (vlan != null && !"null".equals(vlan) && !isNumber(vlan)) {
 					Log.w("PROCESS_CGW", "Vlan ("+vlan+") from ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + ") is not a number");
 					vlan = null;
 				}
 
 				// Create Vlan
 				Vlan vl;
-				if (vlan != null) {
+				if (vlan != null && !"null".equals(vlan)) {
 					vl = gwm.vlanFactory(netident, Integer.parseInt(vlan));
 				} else {
 					vl = gwm.vlanFactory(netident);

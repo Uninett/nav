@@ -83,6 +83,7 @@ public class SwportHandler implements DataHandler {
 
 		} catch (SQLException e) {
 			Log.e("INIT", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 
 	}

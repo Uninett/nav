@@ -131,23 +131,29 @@ public class CiscoSwIOS implements DeviceHandler
 
 		// Check which interfaces match our pattern
 		Set matchIfindex = new HashSet();
+		Set moduleCntSet = new HashSet();
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 			
 				String portif = s[1];
-				String modulePattern = "((.*)\\d+)/(\\d+)";
+				String modulePattern = "((.*)(\\d+))/(\\d+)";
 
 				if (portif.matches(modulePattern)) {
 					matchIfindex.add(s[0]);
+					Matcher m = Pattern.compile(modulePattern).matcher(portif);
+					m.matches();
+					moduleCntSet.add(m.group(3));
 				}
 			}
 		}
 		if (matchIfindex.isEmpty()) return;
 
-		int highModule = -1; // Highest module number seen so far
-		Map moduleNumMap = new HashMap();
+		//int highModule = -1; // Highest module number seen so far
+		//Map moduleNumMap = new HashMap();
 
+		MultiMap modPortMM = new HashMultiMap();
+		MultiMap modNames = new HashMultiMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
 			
@@ -158,6 +164,7 @@ public class CiscoSwIOS implements DeviceHandler
 			// Determine and create the module
 			// Use *? because otherwise two digit numbers won't work!
 			int module = 0;
+			int realModule = 0;
 			String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
 			String moduleNamePattern = "((.*)(\\d+))/(\\d+)";
 
@@ -170,6 +177,8 @@ public class CiscoSwIOS implements DeviceHandler
 				m = Pattern.compile(modulePattern).matcher(portif);
 				m.matches();
 				module = Integer.parseInt(m.group(3));
+				realModule = module;
+				/*
 				if (!moduleNumMap.containsKey(moduleName)) {
 					if (module > highModule) {
 						highModule = module;
@@ -180,27 +189,47 @@ public class CiscoSwIOS implements DeviceHandler
 				} else {
 					module = ((Integer)moduleNumMap.get(moduleName)).intValue();
 				}
+				*/
 				// If submodule then we add the submodule number to module as a string
 				if (util.groupCountNotNull(m) >= 6) {
 					String submod = m.group(4);
 					module = Integer.parseInt(module + submod);
+					realModule = module;
 				}
 			}
 
-			if (mc.getModule(module) == null) {
-				// Not allowed to create module
-				Log.w("PROCESS_IOS", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
-				continue;
+			Module md = mc.getModule(module);
+			if (md == null) {
+				if (module == 0 && moduleCntSet.size() == 1) {
+					module = 1;
+					md = mc.moduleFactory(1);
+				} else {
+					// Not allowed to create module
+					Log.w("PROCESS_IOS", "Module " + module + " ("+moduleName+") does not exist on netbox " + nb.getSysname() + ", skipping");
+					continue;
+				}
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-			if (mc.getModule(module).getDescr() == null && moduleName != null) swm.setDescr(moduleName);
+			if (moduleName != null) {
+				boolean composed = false;
+				if (!modNames.put(new Integer(module), moduleName)) {
+					moduleName = composeModuleName(realModule, modNames.get(new Integer(module)));
+					if (!moduleName.equals(md.getDescr())) composed = true;
+				}
+				if (md.getDescr() == null || composed) {
+					md.setDescr(moduleName);
+				}
+			}
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
 				try {
 					// If we have a submodule the port is one index higher
 					Integer port = modulport.length > 2 ? Integer.valueOf(modulport[2]) : Integer.valueOf(modulport[1]);
+					if (!modPortMM.put(new Integer(module), port)) {
+						port = new Integer(Integer.parseInt(ifindex));
+					}
 					swp.setPort(port);
 				} catch (NumberFormatException e) { }
 			}
@@ -265,5 +294,40 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 
+	}
+
+	private String composeModuleName(int module, Set names) {
+		Set ls = new HashSet(names);
+		String n = "";
+		String pat = "([a-zA-z]+)Ethernet(\\d+)";
+		List nl = new ArrayList();
+		boolean eth  = false;
+		for (Iterator it = ls.iterator(); it.hasNext();) {
+			String s = (String)it.next();
+			Matcher m = Pattern.compile(pat).matcher(s);
+			if (m.matches()) {
+				it.remove();
+				nl.add(m.group(1));
+				eth = true;
+			}
+		}
+		Collections.sort(nl);
+		for (Iterator it = nl.iterator(); it.hasNext();) {
+			n += it.next();
+		}
+
+		nl.clear();
+		for (Iterator it = ls.iterator(); it.hasNext();) {
+			nl.add(it.next());
+		}
+		Collections.sort(nl);
+		for (Iterator it = nl.iterator(); it.hasNext();) {
+			n += it.next();
+		}
+
+		if (eth) {
+			n += "Ethernet" + module;
+		}
+		return n;
 	}
 }

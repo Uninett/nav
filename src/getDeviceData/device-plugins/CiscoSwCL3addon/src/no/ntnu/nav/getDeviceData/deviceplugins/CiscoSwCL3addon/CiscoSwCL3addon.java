@@ -23,7 +23,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  * <ul>
  *  <li>From Cisco CL3</li>
  *  <ul>
- *   <li>ifTrunk</li>
+ *   <li>cL3Trunk</li>
  *  </ul>
  * </ul>
  * </p>
@@ -34,7 +34,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 public class CiscoSwCL3addon implements DeviceHandler
 {
 	private static String[] canHandleOids = {
-	    "ifTrunk", 
+	    "cL3Trunk", 
 	};
 	private static boolean VERBOSE_OUT = true;
 	private static boolean DEBUG_OUT = true;

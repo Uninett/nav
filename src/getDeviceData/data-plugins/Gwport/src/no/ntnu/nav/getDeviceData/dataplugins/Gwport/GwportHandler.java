@@ -357,10 +357,10 @@ public class GwportHandler implements DataHandler {
 							if (vl.getVlan() == null || vl.getVlan().equals(dbvl.getVlan())) {
 								if (!vl.equalsVlan(dbvl)) {
 									// Update vlan and dbvl object
-									if (!unknownNettype) {
+									if (!unknownNettype || !vl.equalsDataVlan(dbvl)) {
 										Log.d("UPDATE_VLAN", "Update vlan " + vl);
 										vl.setVlanid(dbvl.getVlanid());
-										updateVlan(vl);
+										updateVlan(vl, unknownNettype);
 									}
 									dbvl.setEqual(vl);
 								}
@@ -488,11 +488,11 @@ public class GwportHandler implements DataHandler {
 					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl + " New: " + nettype);
 
 					if (!Vlan.equals(vl.getNettype(), nettype) ||
-							(netident != null && !netident.equals(vl.getNetident()))) {
+						(netident != null && !netident.equals(vl.getNetident()))) {
 						vl.setNettype(nettype);
 						if (netident != null) vl.setNetident(netident);
 					
-						updateVlan(vl);
+						updateVlan(vl, false);
 						//System.err.println("Update(" + vl.getVlanid() + "): " + vl);
 					}
 				}
@@ -523,9 +523,9 @@ public class GwportHandler implements DataHandler {
 		vl.setVlanid(vlanid);
 	}
 
-	private static void updateVlan(Vlan vl) throws SQLException {
+	private static void updateVlan(Vlan vl, boolean unknownNettype) throws SQLException {
 		String[] set = {
-			"nettype", vl.getNettype(),
+			"nettype", unknownNettype ? null : vl.getNettype(),
 			"orgid", "(SELECT orgid FROM org WHERE orgid='"+vl.getOrgid()+"')",
 			"usageid", "(SELECT usageid FROM usage WHERE usageid='"+vl.getUsageid()+"')",
 			"netident", vl.getNetident(),

@@ -75,6 +75,7 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	public NetboxData netboxDataFactory(String serial, String hw_ver, String fw_ver, String sw_ver, Netbox nb) {
 		if (nd == null) {
 			nd = new NetboxData(serial, hw_ver, fw_ver, sw_ver, nb);
+			addDevice(nd);
 		}
 		return nd;
 	}

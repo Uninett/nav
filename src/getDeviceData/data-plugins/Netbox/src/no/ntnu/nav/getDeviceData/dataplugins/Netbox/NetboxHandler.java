@@ -136,9 +136,21 @@ public class NetboxHandler implements DataHandler {
 		Log.setDefaultSubsystem("NetboxHandler");
 
 		try {
+			// Check if we have the wrong deviceid
+			if (n.getDeviceid() != oldn.getDeviceid()) {
+				String[] set = {
+					"deviceid", n.getDeviceidS(),
+				};
+				String[] where = {
+					"netboxid", netboxid
+				};
+				Database.update("netbox", set, where);
+			}
+
 			// Check if the serial has changed
 			if (oldn.getSerial() != null && n.getSerial() != null && !n.getSerial().equals(oldn.getSerial())) {
 				// New serial, we need to recreate the netbox
+				Log.d("UPDATE_NETBOX", "Serial changed (" + oldn.getSerial() + " -> " + n.getSerial() + "), recreating netbox");
 				NetboxUpdatable nu = (NetboxUpdatable)nb;
 				nu.recreate();
 				changedDeviceids.put(String.valueOf(nb.getDeviceid()), new Integer(DataHandler.DEVICE_DELETED));
@@ -213,7 +225,6 @@ public class NetboxHandler implements DataHandler {
 				}
 
 				String[] set = {
-					"deviceid", n.getDeviceidS(),
 					"sysname", n.getSysname(),
 				};
 				String[] where = {

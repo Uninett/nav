@@ -104,6 +104,6 @@ public class Device
 						serial.equals(((Device)o).serial));
 	}
 
-	public String toString() { return "serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver; }
+	public String toString() { return "devid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver; }
 
 }

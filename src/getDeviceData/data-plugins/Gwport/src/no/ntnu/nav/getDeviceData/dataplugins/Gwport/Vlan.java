@@ -84,13 +84,17 @@ public class Vlan implements Comparable
 		description = s;
 	}
 
+	public boolean equalsDataVlan(Vlan vl) {
+		return ((equals(orgid, vl.orgid)) &&
+				(equals(usageid, vl.usageid)) &&
+				(equals(netident, vl.netident)) &&
+				(equals(description, vl.description)));
+	}
+
 	public boolean equalsVlan(Vlan vl) {
 		return ((vlan == null || vlan.equals(vl.vlan)) &&
-						(equals(nettype, vl.nettype)) &&
-						(equals(orgid, vl.orgid)) &&
-						(equals(usageid, vl.usageid)) &&
-						(equals(netident, vl.netident)) &&
-						(equals(description, vl.description)));
+				(equals(nettype, vl.nettype)) &&
+				equalsDataVlan(vl));
 	}
 
 	public boolean equals(Object o) {

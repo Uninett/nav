@@ -34,7 +34,7 @@ public class DataContainersImpl implements DataContainers {
 	/**
 	 * Call the handleData() methods of all the DataContainer objects
 	 */
-	Map callDataHandlers(Netbox nb) {
+	Map callDataHandlers(NetboxImpl nb) {
 		Map changedDeviceids = new HashMap();
 
 		// Make sure we call the containers in the correct order
@@ -63,6 +63,7 @@ public class DataContainersImpl implements DataContainers {
 			Map m = new HashMap();
 			dh.handleData(nb, dc, m);
 			changedDeviceids.putAll(m);
+			if (nb.isRemoved() || nb.needRecreate()) break;
 		}
 		return changedDeviceids;
 	}

@@ -151,6 +151,6 @@ public class NetboxData extends Device
 						super.equals(o));
 	}
 
-	public String toString() { return getSysname(); }
+	public String toString() { return getSysname() + ", " + super.toString(); }
 
 }
