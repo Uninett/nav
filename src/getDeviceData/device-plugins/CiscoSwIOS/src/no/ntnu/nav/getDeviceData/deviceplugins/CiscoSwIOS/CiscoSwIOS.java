@@ -112,7 +112,7 @@ public class CiscoSwIOS implements DeviceHandler
 		String vlanHexOid = ".1.3.6.1.4.1.9.9.46.1.6.1.1.4";
 		String vlanOid = ".1.3.6.1.4.1.9.9.68.1.2.2.1.2";
 
-		l = sSnmp.getAll(nb.getOid("ifDescr"));
+		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
 
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
