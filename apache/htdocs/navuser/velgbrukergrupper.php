@@ -109,7 +109,7 @@ if (session_get('subaction') == 'velge') {
 		print $l->getHTML();
 		print '<p align="right"><input type="submit" name="Submit" value="' . gettext("Meld på valgte brukergrupper") . '"></form>';
 
-		print "<p>[ <a href=\"index.php\">" . gettext("Refresh") . " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
+		print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0> ]</a> ";
 		print gettext("Antall grupper: ") . sizeof($grupper);
 
 	} else {

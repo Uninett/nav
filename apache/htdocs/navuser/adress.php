@@ -106,7 +106,7 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("Refresh") . " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=\"0\"> ]</a> ";
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=\"0\"> ]</a> ";
 print gettext("Antall adresser: ") . sizeof($adr);
 
 print '<a name="nyadresse"></a><p>';

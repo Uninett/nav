@@ -1281,6 +1281,16 @@ function endrepassord($brukernavn, $passwd) {
 }
 
 
+// Endre språk
+function setlang($brukernavn, $lang) {
+	$querystr = "UPDATE Bruker SET lang = '" . addslashes($lang) . 
+		"' WHERE brukernavn = '" . addslashes($brukernavn) . "'";
+	@pg_exec($this->connection, $querystr);
+
+
+}
+
+
 // Legge til eller endre en varslingsadresse for en periode
 function endreVarsleadresse($tid, $adresseid, $utstyrgruppeid, $type) {
 

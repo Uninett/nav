@@ -126,7 +126,7 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php\">oppdater <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Antall profiler: ") . sizeof($profiler);
 
 print '<a name="nyprofil"></a><p>';

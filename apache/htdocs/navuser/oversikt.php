@@ -33,7 +33,7 @@ print '<h3>' . gettext('Kontotype') . '</h3>';
 
 switch ($brukerinfo[2]) {
 	case (100) :
-		print '<p><img alt="'. gettext('Administrator') . " src="icons/person100.gif">&nbsp;';
+		print '<p><img alt="'. gettext('Administrator') . '" src="icons/person100.gif">&nbsp;';
 		print gettext('Administrator');
 		break;
 	case (1) :

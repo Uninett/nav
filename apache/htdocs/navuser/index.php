@@ -10,18 +10,26 @@ header("Content-Type: text/html; charset=utf-8");
 
 
 // I18N support information here
-$language = 'en';
+$language = 'no';
+
+if ($login) {
+	$language = session_get('lang');
+}
+
+if (get_exist('langset') && $login) {
+	$dbh->setlang(session_get('bruker'), get_get('langset'));
+	session_set('lang', get_get('langset'));
+	$language = session_get('lang');
+}
 
 putenv("LANG=$language");
 putenv("LANGUAGE=$language");
 setlocale(LC_ALL, $language);
 
 // Set the text domain as 'messages'
-$domain = 'messages';
+$domain = 'messages5';
 bindtextdomain($domain, "./locale/");
 textdomain($domain);
-
-
 
 
 
@@ -226,6 +234,56 @@ if ( $login) {
 </table>
 
 
+
+<table class="meny">
+<tr class="menyHead"><td>
+<p><?php
+	echo gettext("Velg språk");
+?>
+</td></tr>
+
+<tr><td>
+<?php
+
+print '<table width="100%" border="0"><tr><td width="50%"><p align="center">';
+if ($language == 'en') {
+	print '<img src="icons/gbr.png" alt"' . gettext("Engelsk") . '">';
+} else {
+	if ($login) { 
+		print '<a href="index.php?langset=en">';
+	}
+	print '<img src="icons/gbrg.png" alt"' . gettext("Engelsk") . '">';
+	if ($login) { 
+		print '</a>';
+	}
+
+}
+print '</td><td width="50%"><p align="center">';
+if ($language == 'no') {
+	print '<img src="icons/nor.png" alt"' . gettext("Norsk") . '">';
+} else {
+	if ($login) { 
+		print '<a href="index.php?langset=no">';
+	}
+	print '<img src="icons/norg.png" alt"' . gettext("Norsk") . '">';
+	if ($login) { 
+		print '</a>';
+	}
+}
+print '</td></tr></table>';
+
+if ($langset) {
+	echo gettext("Velkommen!"); 
+}
+
+?>
+</td></tr>
+</table>
+
+
+
+
+
 <table class="meny">
 <tr class="menyHead"><td>
 <p><?php echo gettext('Kontakt'); ?>
@@ -266,6 +324,8 @@ echo "<br>";
 
 </td></tr>
 </table>
+
+
 
 <div class="noCSS">
 <table class="meny">

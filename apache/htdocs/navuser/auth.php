@@ -70,7 +70,7 @@ $login = false;
 	$username = addslashes($username);
 	$passwd = addslashes($passwd);
     
-	if (! $query = @pg_exec($dbcon, "SELECT id, admin FROM bruker WHERE brukernavn = '$username' AND passord = '$passwd'")  ) {
+	if (! $query = @pg_exec($dbcon, "SELECT id, admin, lang FROM bruker WHERE brukernavn = '$username' AND passord = '$passwd'")  ) {
 		$error = new Error(2);
 		$error->message = gettext("Feil med datbasespørring.");
     } else {
@@ -81,6 +81,7 @@ $login = false;
 				$dbh->nyLogghendelse($data["id"], 1, gettext("Logget inn fra ") . $foo);
 				session_set('uid', $data["id"]);
 				session_set('admin', $data["admin"]);
+				session_set('lang', $data["lang"]);
 				session_set('bruker', $username);
 				session_set('login', true);
 				$login = true;
