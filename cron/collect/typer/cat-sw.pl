@@ -2,8 +2,8 @@
 
 use strict;
 
-use Net::SNMP;
-#&bulk("blasal-sw2","gotcha","821");
+use SNMP;
+#&bulk("blasal-sw","gotcha","821");
 
 sub bulk{
     my $host = $_[0];
@@ -19,13 +19,11 @@ sub bulk{
     
     my $numInts = $sess->get('ifNumber.0');
 
-    if(my $error = $sess->{ErrorStr}){
-	&skriv("SNMP-ERROR","ip=$host","message=$error");
-    }
+    &skriv("SNERR",$sess->{ErrorStr});
 
     my ($ifindex,$portname,$status, $duplex, $porttype, $trunk) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.11'],['.1.3.6.1.4.1.9.5.1.4.1.1.4'],['.1.3.6.1.4.1.9.5.1.4.1.1.6'],['.1.3.6.1.4.1.9.5.1.4.1.1.10'],['.1.3.6.1.4.1.9.5.1.4.1.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.8']]);
     
-    my ($speed,$vlanhex, $vlan ) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.3']]);
+    my ($speed, $vlan ,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.3'],['.1.3.6.1.4.1.9.5.1.9.3.1.5']]);
 
     my @speed2;
     for my $u (@{$speed}){
@@ -44,9 +42,9 @@ sub bulk{
 	my $tempstatus = $$status[$i][2];
 	my $status;
 	if($tempstatus==2){
-	    $status = 'up';
+	    $status = 'y';
 	} else {
-	    $status = 'down';
+	    $status = 'n';
 	}
 
 	my $tempduplex = $$duplex[$i][2];
@@ -61,16 +59,15 @@ sub bulk{
 
 	my $temptrunk = $$trunk[$i][2];
 	my $trunk;
-	my $rtemp;
 	if($temptrunk==1){
 	    $trunk = 't';
 	    if($modul&&$port){
-		$rtemp = $swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$i][2];
+		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$i][2];
 	    }
 	} else {
 	    $trunk = 'f';
 	    if($modul&&$port){
-		$rtemp = $swportvlantemp{$modul}{$port} = $$vlan[$i][2];
+		$swportvlantemp{$modul}{$port} = $$vlan[$i][2];
 	    }
 	}
 
@@ -81,10 +78,10 @@ sub bulk{
 	$tempspeed =~ s/^(.{0,10}).*/$1/;
 
 	if($modul&&$port){
-	    $swport{$modul}{$port} = [ undef, $boksid, $modul, $port, $ifindex, $status, $tempspeed, $duplex,$trunk,undef,$portname];
+	    $swport{$modul}{$port} = [ $ifindex, $status, $tempspeed, $duplex,$trunk,$portname];
 	}
 
-	print "\n $ifindex modul = $modul port = $port status = ".$status." duplex = ".$duplex." porttype = ".$$porttype[$i][2]." trunk = ".$trunk." speed = ".$tempspeed." vlan = ".$rtemp if $debug;
+	print "\n $ifindex modul = $modul port = $port status = ".$status." duplex = ".$duplex." porttype = ".$$porttype[$i][2]." trunk = ".$trunk." speed = ".$tempspeed if $debug;
 	
 	$i++;
 

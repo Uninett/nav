@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 use strict;
-use Net::SNMP;
-#&bulk("rfb-418-sw","gotcha","404");
+use SNMP;
+#&bulk("musikk-sw","gotcha","404");
 
 sub bulk{
     my $host = $_[0];
@@ -19,12 +19,11 @@ sub bulk{
     my $numInts = $sess->get('ifNumber.0');
 
 # må fordeles, resultatet med vlanhex fyller et slags buffer.    
-    my ($ifindex,$portname,$duplex,$status,$trunk,$vlan) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.2.1.2.2.1.2'],['.1.3.6.1.4.1.9.2.2.1.1.28'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.32.0'],['.1.3.6.1.2.1.2.2.1.8'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0'],['.1.3.6.1.4.1.9.9.68.1.2.2.1.2']]);
-    my ($speed,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.9.46.1.6.1.1.4']]);
+    my ($ifindex,$portname,$duplex,$status,$trunk) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.2.1.2.2.1.2'],['.1.3.6.1.4.1.9.2.2.1.1.28'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.32.0'],['.1.3.6.1.2.1.2.2.1.8'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0']]);
+    my ($speed,$vlan,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.9.68.1.2.2.1.2'],['.1.3.6.1.4.1.9.9.46.1.6.1.1.4']]);
 
     # k er vlanhex, som av en eller annen grunn starter på 0 her, men i cat-sw blir alle lagret.
-    my $k = my $l = -1;
-    my $i = 0;
+    my $k = my $i = 0;
     while (defined($$speed[$i])){
 
 	$$ifindex[$i][2] =~ /^(\w+)\/(\d+)$/;
@@ -40,9 +39,9 @@ sub bulk{
 	my $tempstatus = $$status[$i][2];
 	my $status;
 	if($tempstatus == 1){
-	    $status = 'up';
+	    $status = 'y';
 	} else {
-	    $status = 'down';
+	    $status = 'n';
 	}
 
 	my $j = $i-1;
@@ -57,31 +56,29 @@ sub bulk{
 
 	my $temptrunk = $$trunk[$j][2];
 	my $trunk;
-	my $rtemp;
 	if($temptrunk==0){
 	    $trunk = 't';
 	    if($modul&&$port){
-		$rtemp = $swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$k][2];
+		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$k-1][2];
 	    }
 	    $k++;
 	} else {
 	    $trunk = 'f';
 	    if($modul&&$port){
-		$rtemp = $swportvlantemp{$modul}{$port} = $$vlan[$l][2];
+		$swportvlantemp{$modul}{$port} = $$vlan[$j][2];
 	    }
-	    $l++;
 	}
 
 	my $speed = ($$speed[$i][2]/1e6);
 	$speed =~ s/^(.{0,10}).*/$1/;
 
 	if($modul&&$port){
-	    $swport{$modul}{$port} = [ undef, $boksid, $modul, $port, $ifindex, $status, $speed, $duplex,$trunk,undef,$portname];
+	    $swport{$modul}{$port} = [ $ifindex, $status, $speed, $duplex,$trunk,$portname];
 	    print "lagt til: " if $debug;
 	}
 	
 
-	print "$ifindex:$modul/$port status = ".$status." duplex = ".$duplex." speed = ".$speed." trunk = ".$trunk." vlan = ".$rtemp."\n" if $debug;
+	print "$modul/$port status = ".$status." duplex = ".$duplex." speed = ".$speed."\n" if $debug;
 
 
 	$i++;
