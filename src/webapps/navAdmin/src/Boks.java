@@ -202,11 +202,18 @@ class Boks
 				madeChange = true;
 
 				// Porten på denne siden
-				//Mp mp = new Mp(mpKey);
-				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
 				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
-
 				BoksMpBak bmp = (BoksMpBak)l.get(0);
+
+				// Hent boksen fra mpBoksbak hvis den finnes der
+				if (mpBoksbak.containsKey(mpKey)) {
+					BoksMpBak bmpA = (BoksMpBak)mpBoksbak.get(mpKey);
+					if (!bmp.boksbak.equals(bmpA.boksbak)) {
+						outl("<font color=red>[WARNING]</font> Conflicting boksbak in mp vs. mpBoksbak for Boks("+getBoksid()+"): <b>" + getName() + "</b> Mp: <b>"+mpKey+"</b> bmp: " + bmp + ", bmpA: " + bmpA + " <br>");
+					}
+					bmp = bmpA;
+				}
+
 				Boks b = (Boks)bokser.get(bmp.boksbak);
 				if (bmp.toIfindex == null && b.foundUplinkMp()) {
 					// Vi velger bare uplink-porten siden vi er direkte uplink
@@ -284,18 +291,17 @@ class Boks
 			}
 
 			if (bestGuessIndex >= 0) {
+				// Porten på denne siden
+				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
+
 				// Vi har funnet en kandidat, og velger den
 				BoksMpBak bmp = (BoksMpBak)l.get(bestGuessIndex);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
+
 				if (bmp.toIfindex == null && b.foundUplinkMp()) {
 					// Vi velger bare uplink-porten siden vi er direkte uplink
 					bmp.setToIfindex(b.getUplinkMp());
 				}
-
-				// Porten på denne siden
-				//Mp mp = new Mp(mpKey);
-				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
-				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
 
 				b.addUplinkBoksid(myBmp, bmp.toIfindex);
 
