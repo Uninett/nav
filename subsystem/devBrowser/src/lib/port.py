@@ -25,6 +25,11 @@ def process(request):
     netbox = netbox.findNetbox(request['hostname'])
     module = module.findModule(netbox, request['module'])
     port = findPort(module, request['port'])
+    request['templatePath'].append((str(netbox), 
+                                    urlbuilder.createUrl(netbox)))
+    request['templatePath'].append(("Module %s" % module.module, 
+                                    urlbuilder.createUrl(module)))
+    request['templatePath'].append(('Port %s' % port.port, None))
     result = html.Division()
     result.append(showInfo(port))
     return result
@@ -33,7 +38,7 @@ def findPort(module, portName):
     portName = portName.replace("port", "").lower()
     allPorts = module.getChildren(manage.Swport)
     for p in allPorts:
-        if str(p.ifindex) == portName:
+        if str(p.port) == portName:
             return p
     raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
@@ -41,7 +46,7 @@ def showInfo(port):
     info = html.Division()
     module = port.module
     info.append(html.Header("Port %s, module %s, device %s" % 
-                (port.ifindex, 
+                (port.port, 
                 urlbuilder.createLink(module, content=module.module),
                 urlbuilder.createLink(module.netbox))))
     table = html.SimpleTable()            
