@@ -1,8 +1,8 @@
 Kopier report til webroot
 
-Legg til eksterne filer:
-etc/conf/report/report.conf
-etc/conf/report/front.html
+
+cp front.html /usr/local/nav/local/etc/conf/report/front.html
+cp report.conf /usr/local/nav/local/etc/conf/report/report.conf
 
 ReportTemplate må være i template-katalogen
 

@@ -1,0 +1,80 @@
+
+<h2>Reports</h2>
+
+<table>
+<tr><td><form action=../browse/>Device Browser</td>
+<td><input type=text name=netbox size=10><br><font size=1 color=gray>IP / sysname</font></td>
+<td><input type=submit value=Find></td>
+</form></tr>
+
+<tr><td><form action=netbox/>Equipment in a room</td>
+<td><input type=text name=roomid size=10><br><font size=1 color=gray>room</font></td>
+<td><input type=submit value=Find></td>
+</form></tr>
+
+
+<tr><td><form action=swportv/>Switchports with vlan</td>
+<td><input type=text name=vlan size=10><br><font size=1 color=gray>vlan number</font></td>
+<td><input type=submit value=Find></td>
+</form></tr>
+</table>
+
+
+<p>
+
+<p>
+
+<table border=1 cellspacing=1 cellpadding=10>
+
+<tr><td>
+
+
+<dl>
+<dt><a href=netbox>Devices in Operation (all)</a>
+
+<dt><a href=gw>Routers</a>
+<dd><a href=prefixmgw>Subnets grouped by router</a>
+<dd><a href=gwport>Router ports</a>
+<dd><a href=prefix>Prefices</a>
+
+
+<dt><a href=sw>Core Switches</a>
+<dd><a href=swport>Core switch ports</a></li>
+<dd><a href=coreswportt>Trunked core switch ports</a></li>
+<dd><a href=coreswportv>Core switch ports (expand trunks to vlan)</a></li>
+
+<dt><a href=kant>Edge Switches and Hubs</a>
+<dd><a href=egdeswportv>Edge switch ports</a></li>
+
+<dt><a href=wlan>Wireless</a>
+
+<dt><a href=srv>Servers</a>
+<dd><a href=servicemon>Services</a>
+
+<dt><a href=oppsop>Other devices</a>
+
+
+</td>
+<td>
+
+
+<dt>Additionals
+<dd><a href=modules>Modules</a>
+<dd><a href=mem>Memory</a>
+<p>
+<dt>Manually updated information (<a href="../editdb">update database</a>)
+
+<dd><a href=room>Rooms</a>
+<dd><a href=location>Locations</a>
+<dd><a href=org>Organisations</a>
+<dd><a href=usage>User groups</a>
+<dd><a href=vendor>Vendors</a>
+<dd><a href=type>Equipment types</a> &nbsp An equipment type can be monitored (directly or by way of other devices)
+<dd><a href=product>Products</a>  &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp  A product can be monitored, - or not... 
+
+
+</dl>
+
+</td></tr>
+</table>
+
