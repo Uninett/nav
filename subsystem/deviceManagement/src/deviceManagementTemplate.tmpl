@@ -358,7 +358,6 @@ $submitButton($page.submit)
     </tr>
 #end for
 </table>
-#end if
 #end def
 
 #def makeSubMenu($menu)
@@ -744,7 +743,7 @@ $registerRma($args['rmaDevice'])
             <select name="cn_org">
 #for $value,$option in $args['orgList']
                 <option value="$value">$option</option>
-#end if
+#end for
             </select>
         </td>
         <td><input type="text" name="cn_retailer"></td>
@@ -881,8 +880,8 @@ $deviceHistory($args['deviceHistList'])
 #end for    
 </table>
 #end if
-#end for
 #end if
+#end for
 #end def
 
 #def registerError($device)
