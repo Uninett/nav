@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ## Name:	arplogger.pl
-## $Id: arplogger.pl,v 1.8 2001/12/03 14:29:10 grohi Exp $
+## $Id: arplogger.pl,v 1.9 2002/02/15 14:46:20 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -96,7 +96,7 @@ while (my @line = $resultat->fetchrow)
     $gwport{$line[0]}{$line[1]}{$line[2]}++;
 }
 
-$sql= "SELECT arpid,boksid,ip,mac FROM arp WHERE til IS NULL"; 
+$sql= "SELECT arpid,boksid,ip,mac FROM arp WHERE til='infinity'"; 
 
 $resultat = db_select($sql,$conn);
 
