@@ -256,10 +256,13 @@ def view(req, view = None, offset="0", lang = None):
     
     if list:
         page.title = "%s Messages" % view.capitalize()
-        page.path =  [("Home", "/"), ("Messages", "/emotd"),(page.title,"")]
+        page.path =  [("Home", "/"), ("Messages", BASEPATH),(page.title,"")]
     else:
-        page.title = messages[0].title.capitalize()
-        page.path =  [("Home", "/"), ("Messages", "/emotd"),(category.capitalize()+" Messages",BASEPATH+category),(page.title,"")]
+        if messages:
+            page.title = messages[0].title.capitalize()
+            page.path =  [("Home", "/"), ("Messages", BASEPATH),(category.capitalize()+" Messages",BASEPATH+category),(page.title,"")]
+        else:
+            redirect(req, BASEPATH)
     
     page.category = category
     page.messages = messages
