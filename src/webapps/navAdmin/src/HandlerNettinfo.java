@@ -259,7 +259,7 @@ class HandlerNettinfo
 	}
 
 	private synchronized HashMap[] getPortMap() throws SQLException {
-		final long AGE_LIMIT = 1000*60*5; // 5 mins
+		final long AGE_LIMIT = 1000*60*15; // 5 mins
 		//final long AGE_LIMIT = 1000*30; // 30 sec
 		//final long AGE_LIMIT = 1000*60*60*24*7; // 1 week
 
@@ -291,47 +291,78 @@ class HandlerNettinfo
 			// Hent gw'ene som danner røttene i treet
 			//ResultSet rs = Database.query("SELECT gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY sysname,vlan,interf");
 			//ResultSet rs = Database.query("SELECT DISTINCT ON (boksid,vlan) gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY boksid,vlan,interf");
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf");
+
+			// NAVv2 SQL: "SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,ip,kat,romid,main_sw,serial,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks LEFT JOIN boksinfo USING (boksid) JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf"
+
+			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan) gwport.netboxid,sysname,ip,catid,roomid,sw_ver,serial,interface,vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,module AS to_module,port AS to_port FROM netbox LEFT JOIN device USING (deviceid) JOIN gwport USING (netboxid) LEFT JOIN prefix ON (gwport.prefixid=prefix.prefixid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module USING (moduleid) ORDER BY sysname,vlan,interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
-				String boksid = rs.getString("boksid");
-				String boksbak = rs.getString("boksbak");
+				String boksid = rs.getString("netboxid");
+				String boksbak = rs.getString("to_netboxid");
+				String kat = rs.getString("catid");
+				String vlan = rs.getString("vlan");
+
+				// GSW'er er både GW og SW i samme enhet
+				String gsw = "";
+				if (kat.equals("GSW")) {
+					boksbak = boksid;
+					// Need this to avoid the root being under the loopback interface
+					if (vlan != null && vlan.equals("0")) gsw = "r";
+				}
+
 				String key = boksid+":0";
 				List l;
 				if ( (l=(List)portMap.get(key)) == null) portMap.put(key, l=new ArrayList());
 
+
 				HashMap hm = new HashMap();
-				hm.put("boksid", rs.getString("boksbak"));
-				hm.put("boksbak", rs.getString("boksbak"));
+				hm.put("netboxid", boksbak);
+				hm.put("to_netboxid", boksbak+gsw);
+				//hm.put("kat", kat);
 				//hm.put("boksid", "gw"+rs.getString("gwportid"));
 				hm.put("vlan", rs.getString("vlan"));
-				hm.put("retning", "n");
-				hm.put("port", rs.getString("interf"));
-				hm.put("modulbak", rs.getString("modulbak"));
-				hm.put("portbak", rs.getString("portbak"));
-				hm.put("katbak", "gwport");
+				hm.put("direction", "n");
+				hm.put("port", rs.getString("interface"));
+				hm.put("to_module", rs.getString("to_module"));
+				hm.put("to_port", rs.getString("to_port"));
+				hm.put("to_catid", "gwport");
 				hm.put("netaddr", rs.getString("netaddr"));
 				hm.put("nettype", rs.getString("nettype"));
-				hm.put("nettident", rs.getString("nettident"));
+				hm.put("netident", rs.getString("netident"));
 				//hm.put("boksbak", rs.getString("boksbak"));
+
+				// For search
+				hm.put("sysname", rs.getString("sysname"));
+				hm.put("ip", rs.getString("ip"));
+				hm.put("room", rs.getString("roomid"));
+				hm.put("software", rs.getString("sw_ver"));
+				hm.put("serial", rs.getString("serial"));
+
+
+
 				l.add(hm);
 
 				if (!rootMap.containsKey(boksid)) {
 					hm = new HashMap();
 					hm.put("vlan", "0");
-					hm.put("retning", "n");
-					hm.put("boksid", boksid);
-					hm.put("boksbak", boksid);
+					hm.put("direction", "n");
+					hm.put("netboxid", boksid);
+					hm.put("to_netboxid", boksid);
+					hm.put("catid", kat);
 					rootMap.put(boksid, hm);
 				}
 			}
 
 			// Hent hele swport
-			rs = Database.query("SELECT a.swportid,a.boksid,a.modul,a.port,vlan,retning,a.status,a.speed,a.duplex,a.media,a.status,a.trunk,a.portnavn AS portname,a.boksbak,b.modul AS modulbak,b.port AS portbak FROM swport AS a JOIN swportvlan USING (swportid) LEFT JOIN swport AS b ON (a.swportbak = b.swportid) ORDER BY a.boksid, a.modul, a.port");
+			//rs = Database.query("SELECT a.swportid,a.boksid,boks.sysname,boks.ip,boks.romid AS room,main_sw AS software,serial,boks2.sysname AS sysnamebak,a.modul,a.port,vlan,retning,a.status,a.speed,a.duplex,a.media,a.status,a.trunk,a.portnavn AS portname,a.boksbak,b.modul AS modulbak,b.port AS portbak FROM swport AS a JOIN boks USING (boksid) LEFT JOIN boksinfo USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN swport AS b ON (a.swportbak = b.swportid) LEFT JOIN boks AS boks2 ON (a.boksbak = boks2.boksid) ORDER BY a.boksid, a.modul, a.port");
+
+			// NAVv2 SQL: SELECT a.swportid,a.boksid,boks.sysname,boks.ip,boks.romid AS room,main_sw AS software,serial,boks2.sysname AS sysnamebak,a.modul,a.port,vlan,retning,a.status,a.speed,a.duplex,a.media,a.status,a.trunk,a.portnavn AS portname,a.boksbak,b.modul AS modulbak,b.port AS portbak FROM swport AS a JOIN boks USING (boksid) LEFT JOIN boksinfo USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN swport AS b ON (a.swportbak = b.swportid) LEFT JOIN boks AS boks2 ON (a.boksbak = boks2.boksid)
+
+			rs = Database.query("SELECT a.swportid,module.netboxid,netbox.sysname,netbox.ip,netbox.roomid AS room,sw_ver AS software,serial,netbox2.sysname AS to_sysname,module.module,a.port,vlan,direction,module.up,a.speed,a.duplex,a.media,module.up,a.trunk,a.portname,a.to_netboxid,module2.module AS to_module,b.port AS to_port FROM swport AS a JOIN module USING (moduleid) JOIN netbox USING (netboxid) JOIN device ON (netbox.deviceid=device.deviceid) JOIN swportvlan USING (swportid) LEFT JOIN swport AS b ON (a.to_swportid = b.swportid) LEFT JOIN module AS module2 ON (b.moduleid = module2.moduleid) LEFT JOIN netbox AS netbox2 ON (a.to_netboxid = netbox2.netboxid)");
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
-				String key = rs.getString("boksid")+":"+rs.getString("vlan");
+				String key = rs.getString("netboxid")+":"+rs.getString("vlan");
 				List l;
 				if ( (l=(List)portMap.get(key)) == null) portMap.put(key, l=new ArrayList());
 
@@ -339,12 +370,27 @@ class HandlerNettinfo
 				l.add(hm);
 			}
 
-			// Hent sysname,kat
-			rs = Database.query("SELECT boksid,sysname,kat FROM boks");
+			// Hent servicer
+			rs = Database.query("SELECT netboxid,active AS up,handler AS portname,version,vlan FROM service JOIN netbox USING (netboxid) JOIN prefix USING (prefixid)");
+			rsmd = rs.getMetaData();
 			while (rs.next()) {
-				String boksid = rs.getString("boksid");
+				String key = rs.getString("netboxid")+":"+rs.getString("vlan");
+				List l;
+				if ( (l=(List)portMap.get(key)) == null) portMap.put(key, l=new ArrayList());
+
+				HashMap hm = getHashFromResultSet(rs, rsmd, false);
+				hm.put("direction", "n");
+				hm.put("nodeType", "service");
+
+				l.add(hm);
+			}
+
+			// Hent sysname,kat
+			rs = Database.query("SELECT netboxid,sysname,catid FROM netbox");
+			while (rs.next()) {
+				String boksid = rs.getString("netboxid");
 				sysnameMap.put(boksid, rs.getString("sysname"));
-				katMap.put(boksid, rs.getString("kat"));
+				katMap.put(boksid, rs.getString("catid"));
 			}
 
 			topologiMap = new HashMap[] { portMap, rootMap, sysnameMap, katMap };
@@ -366,7 +412,56 @@ class HandlerNettinfo
 	 */
 	private void visTopologi() throws SQLException
 	{
-		String name = "<b>NTNU network</b>";
+		if (s.length > 2) {
+			if (s[2].equals("showempty")) {
+				com.out( com.get("ni.visTopologi.showempty") );
+			}
+			if (s[2].equals("searchexact")) {
+				com.out( com.get("ni.visTopologi.searchexact") );
+			}
+			if (s[2].equals("showpath")) {
+				com.out( com.get("ni.visTopologi.showpath") );
+			}
+			if (s[2].equals("searchblocked")) {
+				com.out( com.get("ni.visTopologi.searchblocked") );
+			}
+
+			if (s.length > 3 && s[2].equals("searchField")) {
+				String num = s[3];
+				com.out( (num.equals(com.get("ni.visTopologi.searchFieldNum")) ? " selected" : "") );
+			}
+			if (s[2].equals("searchFor")) {
+				//com.out( (com.get("ni.visTopologi.searchFor") != null) ? com.get("ni.visTopologi.searchFor") : "" );
+				com.out( (com.getp("searchFor") != null ? com.getp("searchFor") : "") );
+			}
+
+			return;
+		}
+
+		boolean showempty = false;
+		{
+			String s = com.get("ni.visTopologi.showempty");
+			if (s != null && s.equals("checked")) showempty = true;
+		}
+		boolean searchexact = false;
+		{
+			String s = com.get("ni.visTopologi.searchexact");
+			if (s != null && s.equals("checked")) searchexact = true;
+		}
+		boolean showpath = false;
+		{
+			String s = com.get("ni.visTopologi.showpath");
+			if (s != null && s.equals("checked")) showpath = true;
+		}
+		boolean searchblocked = false;
+		{
+			String s = com.get("ni.visTopologi.searchblocked");
+			if (s != null && s.equals("checked")) searchblocked = true;
+		}
+
+		//com.outl("<div id=\"t1\" class=\"tip\">This is a Javascript Tooltip</div>");
+
+		String name = "<b>Network&nbsp;</b>";
 		String imgRoot = "<img border=0 src=\"" + gfxRoot + "/";
 		String ntnuImg = imgRoot + "ntnunet.gif" + "\">";
 		String expandIcon = imgRoot + "expand.gif" + "\" alt=\"Expand entire branch\">";
@@ -379,10 +474,12 @@ class HandlerNettinfo
 		com.outl("    </td>");
 		com.outl("    <td colspan=50>");
 
+		/*
 		com.out(      "<a href=\"");
 		link("link.ni.visTopologi.expand." + "0");
 		com.out("#" + "0:0");
 		com.outl("\">" + expandIcon + "</a>");
+		*/
 
 		com.outl("      <font color=black>" + name + "</font>");
 		com.outl("    </td>");
@@ -410,8 +507,9 @@ class HandlerNettinfo
 		HashMap travMap = (HashMap)com.getUser().getData("traverseList");
 		if (travMap == null) {
 			travMap = new HashMap();
-			//com.outl("no trav list found");
+			//com.outl("no trav list found<br>");
 		}
+		com.getUser().setData("traverseList", travMap);
 
 		for (Iterator iter=travMap.entrySet().iterator(); iter.hasNext();) {
 			Map.Entry me = (Map.Entry)iter.next();
@@ -438,15 +536,36 @@ class HandlerNettinfo
 		}
 
 		HashMap rootRec = new HashMap();
-		rootRec.put("boksbak", "0");
+		rootRec.put("to_netboxid", "0");
 		rootRec.put("vlan", "0");
 		rootRec.put("rootRec", null);
 		Set visitSet = new HashSet();
 
+		HashSet searchHitSet = new HashSet();
+		if (com.getp("searchField") != null && com.getp("searchFor").length() > 0) {
+			String searchF = com.getp("searchField");
+			String searchFor = com.getp("searchFor");
+
+			// Remove leading number in searchField
+			searchF = searchF.substring(searchF.indexOf(".")+1, searchF.length());
+
+			StringTokenizer st = new StringTokenizer(searchF, "|");
+			String[] searchField = new String[st.countTokens()];
+			for (int i=0; i < searchField.length; i++) searchField[i] = st.nextToken();
+
+			for (Iterator iter=rootMap.values().iterator(); iter.hasNext();) {
+				HashMap swrec = (HashMap)iter.next();
+				swportExpand(swrec, rootRec, 0, !iter.hasNext(), expandRoot, showempty, searchexact, showpath, searchblocked, searchField, searchFor, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
+			}
+			visitSet.clear();
+		}
+
+
+
 		com.out("<table border=0 cellspacing=0 cellpadding=0>\n");
 		for (Iterator iter=rootMap.values().iterator(); iter.hasNext();) {
 			HashMap swrec = (HashMap)iter.next();
-			swportExpand(swrec, rootRec, 0, !iter.hasNext(), expandRoot, portMap, travMap, sysnameMap, katMap, visitSet);
+			swportExpand(swrec, rootRec, 0, !iter.hasNext(), expandRoot, showempty, false, showpath, searchblocked, null, null, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
 		}
 		/*
 		for (int i = 0; i < swId.length; i++)
@@ -463,20 +582,26 @@ class HandlerNettinfo
 
 	}
 
-	private void swportExpand(HashMap swrec, HashMap parentSwrec, int depth, boolean lastPort, boolean expand, HashMap portMap, HashMap travMap, HashMap sysnameMap, HashMap katMap, Set visitSet)
+	private boolean swportExpand(HashMap swrec, HashMap parentSwrec, int depth, boolean lastPort, boolean expand, boolean showempty, boolean searchexact, boolean showpath, boolean searchblocked, String[] searchField, String searchFor, HashSet searchHitSet, HashMap portMap, HashMap travMap, HashMap sysnameMap, HashMap katMap, Set visitSet)
 	{
 		int strekType = (lastPort ? BOXOPEN_BOTTOM : BOXOPEN_BOTH);
 
-		if (depth > 16) {
+		if (depth > 24) {
 			com.outl("<tr><td colspan=50>ERROR, depth too large, return.</td></tr>");
-			return;
+			return false;
 		}
 
-		String boksid = (String)swrec.get("boksid");
-		String boksbak = (String)swrec.get("boksbak");
+		String boksid = (String)swrec.get("netboxid");
+		String boksbak = (String)swrec.get("to_netboxid");
+		String kat = (String)swrec.get("catid");
 		String vlan = (String)swrec.get("vlan");
 		String key = boksid+":"+vlan;
 		String keyBak = boksbak+":"+vlan;
+
+		String direction = (String)swrec.get("direction");
+		boolean dirDown = direction == null || !(direction.equals("b") || direction.equals("o"));
+
+		boolean searchFound = false;
 
 		// Hvis ikke boksbak så vises ikke porten i det hele tatt
 		//if (boksbak == null) return;
@@ -494,16 +619,64 @@ class HandlerNettinfo
 		List portList = (List)portMap.get(keyBak);
 		boolean expandable = portList != null && !visitSet.contains(boksbak);
 
-		// Skriv ut denne noden
-		if (!expandable) strekType = (lastPort ? STREK_BOTTOM : STREK_BOTH);
-		else if (!traverse) strekType = (lastPort ? BOXCLOSED_BOTTOM : BOXCLOSED_BOTH);
-		printNode(swrec, parentSwrec, depth, strekType, sysnameMap, katMap);
-		if (!traverse) return;
+		/*
+		if (kat != null && kat.equals("GSW")) {
+			com.outl(swrec.get("sysname") + ", key: " + key + " keyBak: " + keyBak + " trav: " + traverse + " expable: " + expandable + " visit: " + visitSet.contains(boksbak) + " dep: " + depth);
+		}
+		*/
 
+		if (searchField == null) {
+			if (!showempty) {
+				String bb = (String)swrec.get("to_netboxid");
+				String portname = (String)swrec.get("portname");
+				if (bb == null && (portname == null || portname.length() == 0)) return false;
+			}
+
+			// Skriv ut denne noden
+			if (!expandable) strekType = (lastPort ? STREK_BOTTOM : STREK_BOTH);
+			else if (!traverse) strekType = (lastPort ? BOXCLOSED_BOTTOM : BOXCLOSED_BOTH);
+
+			String searchKey = ((boksbak==null||boksbak.length()==0)?swrec.get("swportid"):boksbak)+":"+vlan;
+			boolean searchHit = searchHitSet.contains(searchKey);
+			//com.outl("Node: " + searchHit + " ("+swrec.get("sysname")+","+swrec.get("to_sysname")+","+searchKey+")<br>");
+			printNode(swrec, parentSwrec, depth, strekType, searchHit, sysnameMap, katMap);
+			if (!traverse) return false;
+		} else {
+			for (int i=0; i < searchField.length && !searchFound; i++) {
+				String s = (String)swrec.get(searchField[i]);
+				//String searchKey = ((boksbak==null||boksbak.length()==0)?swrec.get("swportid"):boksbak)+":"+vlan;
+				//com.outl("search field: " + searchField[i] + " match: |" + s + "|" + searchFor + "| ("+swrec.get("sysname")+","+swrec.get("to_sysname")+","+searchKey+")<br>");
+				if (searchexact) {
+					if (s != null && s.equals(searchFor)) searchFound = true;
+				} else {
+					if (s != null && s.indexOf(searchFor) != -1) searchFound = true;
+					//if (s != null && s.indexOf(searchFor) != -1) {
+					//	com.outl("  Found match at " + swrec.get("sysname") + ", s="+s+" searchFor="+searchFor+" sf="+searchField[i]);
+					//}
+				}
+			}
+		}
+
+		if (searchField != null && searchFound) {
+			key = boksid+":"+vlan;
+			travMap.put(key, new Boolean(false) );
+			String searchKey = ((boksbak==null||boksbak.length()==0)?swrec.get("swportid"):boksbak)+":"+vlan;
+			searchHitSet.add(searchKey);
+			//com.outl("Added hit: " + searchKey + "(swportid used: " + (boksbak==null||boksbak.length()==0) + ")");
+		}
+
+		if (depth == 0 && kat != null && kat.equals("GSW")) {
+			// Vi legger ikke til i visitSet i først rekursjon da vi treffer på samme enhet ett nivå ned
+		} else
 		// Pass på at vi ikke går i løkke
 		if (!visitSet.add(boksbak)) {
 			//com.outl("** swportExpand, boksid: "+ boksid + " boksbak: " + swrec.get("boksbak") + " return");
-			return;
+			return searchFound;
+		}
+
+		if (!dirDown && searchField != null && !searchblocked) {
+			visitSet.remove(boksbak);
+			return searchFound;
 		}
 
 		//com.outl("swportExpand called, boksid: " + boksid + " vlan: "+ vlan + " depth: " + depth + "<br>");
@@ -515,22 +688,10 @@ class HandlerNettinfo
 			//printNode(id, parentName, swName, port, parentPort, depth, "sw", false, true);
 			//com.outl("  ERROR! portList not found for key: " + key + " keyBak: "+ keyBak + "! return<br>");
 			visitSet.remove(boksbak);
-			return;
+			return searchFound;
 		} else {
 			//com.outl("->Found portList: " + portList.size() + " key:: "+ key + " keyBak: " + keyBak + "<br>");
 		}
-
-		// hent ut navn fra portname
-		/*
-		String[] typeBak = new String[portname.length];
-		String[] nameBak = new String[portname.length];
-		for (int i = 0; i < portname.length; i++)
-		{
-			String[] pn = misc.tokenizel(portname[i], ":");
-			typeBak[i] = pn[0];
-			nameBak[i] = pn[1];
-		}
-		*/
 
 		//printNode(id, swName, port, findPortBak(swName, null, parentName, false), parentId, parentName, depth, "n", "sw", strekType, false);
 		//printNode(id, parentName, swName, port, parentPort, depth, "sw", strekType, false);
@@ -541,7 +702,8 @@ class HandlerNettinfo
 			HashMap port = (HashMap)portList.get(i);
 
 			//if (i == portList.size()-1) strekType = STREK_BOTTOM;
-			swportExpand(port, swrec, depth+1, (i == portList.size()-1), expand, portMap, travMap, sysnameMap, katMap, visitSet);
+			boolean b = swportExpand(port, swrec, depth+1, (i == portList.size()-1), expand, showempty, searchexact, showpath, searchblocked, searchField, searchFor, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
+			if (searchField != null && b) searchFound = true;
 
 
 			//printNode(port, swrec, depth+1, strekType, sysnameMap, katMap);
@@ -613,13 +775,18 @@ class HandlerNettinfo
 			*/
 		}
 
-
 		visitSet.remove(boksbak);
+
+		if (searchField != null && searchFound) {
+			key = boksid+":"+vlan;
+			travMap.put(key, new Boolean(false) );
+		}
+		return searchFound;
 
 	}
 
 	//private void printNode(String id, String name, String port, String portBak, String parentId, String parentName, int depth, String direct, String type, int strekType, boolean missing)
-	private void printNode(HashMap swrec, HashMap parentrec, int depth, int strekType, HashMap sysnameMap, HashMap katMap)
+	private void printNode(HashMap swrec, HashMap parentrec, int depth, int strekType, boolean searchHit, HashMap sysnameMap, HashMap katMap)
 	{
 		String imgRoot = "<img border=0 src=\"" + gfxRoot + "/";
 		String expandIcon = imgRoot + "expand.gif" + "\" alt=\"Expand entire branch\">";
@@ -656,36 +823,46 @@ class HandlerNettinfo
 
 		boolean box = false; boolean boxOpen = false;
 
-		String boksid = (String)swrec.get("boksid");
-		String boksbak = (String)swrec.get("boksbak");
+		String nodeType = (String)swrec.get("nodeType");
+		if (nodeType == null) nodeType = "default";
+
+		String boksid = (String)swrec.get("netboxid");
+		String boksbak = (String)swrec.get("to_netboxid");
+
+		if (boksbak != null && boksbak.endsWith("r")) boksbak = boksbak.substring(0, boksbak.length()-1);
 		//if (boksbak == null) com.outl("ERROR, unknown kat for boksbak null: " + boksid);
 		//if (boksbak == null) boksbak = boksid;
 
 		String sysname = (String)sysnameMap.get(boksbak);
 		//if (!katMap.containsKey(boksbak))
 		String kat;
-		if (swrec.containsKey("katbak")) {
-			kat = (String)swrec.get("katbak");
+		if (swrec.containsKey("to_catid")) {
+			kat = (String)swrec.get("to_catid");
 		} else {
 			if (boksbak != null) kat = ((String)katMap.get(boksbak)).toLowerCase();
+			//if (boksbak != null) kat = ((String)katMap.get(boksbak));
 			else kat = "undef";
+			/*
+			if (kat == null) com.outl("wops, boksbak " + boksbak + " no kat");
+			else kat = kat.toLowerCase();
+			*/
 		}
-		String parentBoksbak = (String)parentrec.get("boksbak");
+		String parentBoksbak = (String)parentrec.get("to_netboxid");
 		String parentVlan = (String)parentrec.get("vlan");
 
-		String modul = (String)swrec.get("modul");
+		String modul = (String)swrec.get("module");
 		String port = (String)swrec.get("port");
 		String mp = (modul!=null?modul+"/":"")+port;
 		if (depth >= 2) mp = " [<b>"+mp+"</b>]";
 
-		String modulbak = (String)swrec.get("modulbak");
-		String portbak = (String)swrec.get("portbak");
+		String modulbak = (String)swrec.get("to_module");
+		String portbak = (String)swrec.get("to_port");
 		String mpBak;
 		if (modulbak == null && portbak == null) mpBak = "";
 		else mpBak = " [<b>"+(modulbak!=null?modulbak+"/":"")+portbak+"</b>]";
 
 		String vlan = (String)swrec.get("vlan");
-		String retning = (String)swrec.get("retning");
+		String retning = (String)swrec.get("direction");
 		//typeIcon = undefImg;
 		typeIcon = imgRoot + kat + ".gif" + "\">";
 
@@ -750,15 +927,27 @@ class HandlerNettinfo
 		// Label
 		//com.out("<td><a name=\""+boksbak+"\"></a></td>");
 
-		printDepth(depth, strekVertical);
+		printDepth(depth, strekVertical, searchHit);
 
 		// print table
-		com.outl("    <td>");
+		//com.outl("    <td>");
+		if (searchHit) {
+			com.outl("<td bgcolor=\"#F0E18C\" colspan=\"50\">");
+		} else {
+			com.outl("<td colspan=\"50\">");
+		}
+		/*
+		if (depth == 0) {
+			com.outl("<td width=\"100%\" colspan=50>");
+		} else {
+			com.outl("<td colspan=50>");
+		}
+		*/
 		com.out(label);
 
 		if (box)
 		{
-			com.out(      "<a href=\"");
+			com.out("<a href=\"");
 			if (boxOpen)
 			{
 				link("link.ni.visTopologi.close." + boksbak);
@@ -772,19 +961,12 @@ class HandlerNettinfo
 
 		} else
 		{
-			com.out("      " + strekIcon);
+			//com.out("      " + strekIcon);
+			com.out(strekIcon);
 		}
 
-		// Typeikon
-		/*
-		com.outl("</td>");
-		com.out("    <td>");
-		com.out(typeIcon);
-		com.outl("</td>");
-		*/
-
 		// Expand ikon
-		com.outl("<td align=\"left\">");
+		//com.outl("<td align=\"left\" colspan=\"50\">");
 		if (box) {
 			com.out("<a href=\"");
 			link("link.ni.visTopologi.expand." + boksbak);
@@ -795,204 +977,74 @@ class HandlerNettinfo
 			com.out(expandGrayIcon);
 		}
 		com.outl("&nbsp;");
-		com.outl("</td>");
+		//com.outl("</td>");
 
 		String netaddr = "";
 		if (swrec.containsKey("netaddr")) {
-			netaddr = " ("+swrec.get("netaddr")+", " + swrec.get("nettype") + ", " + swrec.get("nettident")+")";
+			netaddr = " ("+swrec.get("netaddr")+", " + swrec.get("nettype") + ", " + swrec.get("netident")+")";
 		}
 
 		if (boksbak == null) sysname = (String)swrec.get("portname");
 		if (sysname == null) sysname = "";
-		if (sysname.length() > 0 && swrec.containsKey("status") && "down".equals(swrec.get("status")))
+		if (sysname.length() > 0 && swrec.containsKey("up") && "n".equals(swrec.get("up")))
 			sysname = "<font color=\"gray\">" + sysname + "</font>";
 
-		String parentSysname = (String)parentrec.get("boksbak");
+		String parentSysname = (String)parentrec.get("to_netboxid");
 		parentSysname = (String)sysnameMap.get(parentSysname);
 
 		// Evt. modul/port
 		//if (!kat.equals("gw") && !kat.equals("gsw") && !swrec.containsKey("rootRec")) {
 		if (!parentrec.containsKey("rootRec")) {
-			com.outl("    <td align=\"right\">");
+			//com.outl("    <td align=\"right\">");
 			//if (depth >= 2) com.outl(sysname + " ");
 			if (depth >= 2) com.outl(parentSysname + " ");
-			com.outl("      " + mp);
-			com.outl("    </td>");
-			com.outl("    <td align=\"center\">");
+
+			if (!nodeType.equals("service")) {
+				com.outl("      " + mp);
+			}
+			//com.outl("    </td>");
+			//com.outl("    <td align=\"center\">");
 			com.outl("      " + portIcon);
-			com.outl("    </td>");
+			//com.outl("    </td>");
 			//com.outl("    <td align=\"left\">");
 			//com.outl("      " + mpBak);
 			//com.outl("    </td>");
 		}
 
-		com.outl("<td align=\"right\">&nbsp;&nbsp;" + arrowIcon + "&nbsp;</td>");
+		//com.outl("<td align=\"right\">&nbsp;&nbsp;" + arrowIcon + "&nbsp;</td>");
+		com.outl("&nbsp;&nbsp;" + arrowIcon + "&nbsp;");
 
-		com.outl("    <td colspan=50 align=\"left\">");
+		//com.outl("    <td colspan=50 align=\"left\">");
 		com.out(typeIcon);
 
-		/*
-		if (box)
-		{
-			com.out(      "&nbsp;<a href=\"");
-			link("link.ni.visTopologi.expand." + boksid);
-			com.out("&vlan="+vlan);
-			com.out("#" + boksid);
-			com.outl("\">" + expandIcon + "</a>");
+		if (nodeType.equals("service")) {
+			com.outl("<div id=\"t" + tooltipsCnt + "\" class=\"tip\">" + swrec.get("version") + "</div>");
+			sysname = "<a href=\"#\" onmouseout=\"popUp(event,'t" + tooltipsCnt +"')\" onmouseover=\"popUp(event,'t" + tooltipsCnt + "')\" onclick=\"return false\">" + sysname + "</a>";
+			tooltipsCnt++;
 		}
-		*/
 
-
-		//com.outl("      " + katItalic + fontBegin + "" + sysname + descr + fontEnd);
 		com.outl("      " + fontBegin + "" + sysname + mpBak + netaddr + fontEnd);
 		com.outl("    </td>");
-		com.out("  </tr>\n\n\n");
+		//com.out("  </tr>\n\n\n");
+		com.out("  </tr>");
 
-		/*
-		if (portBak.equals("Not found")) portBak = "NA";
-
-		direct = "<i>" + direct + ": </i>";
-
-		//com.out("<table>\n");
-		com.out("  <tr>\n");
-		//com.out("    <td>\n");
-
-		printDepth(depth, strekVertical);
-		if (port != null)
-		{
-			if (missing)
-			{
-				strekIcon = redCross;
-				typeIcon = switchImg;;
-
-				fontBegin = "<font color=red>";
-				fontEnd = "</font>";
-
-			} else
-			if (type.equals("sw"))
-			{
-				typeIcon = switchImg;
-				label = "<a name=\"" + id + "\"></a>";
-
-			} else
-			if (type.equals("hub")) typeIcon = hubImg; else
-			if (type.equals("dumhub")) typeIcon = dumhubImg; else
-			if (type.equals("gw")) typeIcon = routerImg; else
-			if (type.equals("srv")) typeIcon = serverImg; else
-			if (type.equals("mas")) typeIcon = maskinImg; else
-			typeIcon = undefImg;
-
-
-			if (portBak.equals("NA"))
-			{
-				fontBegin = "<font color=red>";
-				fontEnd = "</font>";
-			}
-
-			// print table
-			com.outl("    <td>");
-
-			if (box)
-			{
-				com.out(      "<a href=\"");
-				if (boxOpen)
-				{
-					link("link.ni.listSwport.close." + id);
-				} else
-				{
-					link("link.ni.listSwport.open." + id);
-				}
-				com.out("#" + linkLabel);
-				com.outl("\">" + strekIcon + "</a>");
-
-			} else
-			{
-				com.outl("      " + strekIcon);
-			}
-
-			com.outl("    </td>");
-			com.outl("    <td>");
-			//com.outl("      " + typeIcon + label);
-			com.outl("      " + label + typeIcon);
-			com.outl("    </td>");
-			com.outl("    <td align=\"right\">");
-			com.outl("      " + port);
-			com.outl("    </td>");
-			com.outl("    <td align=\"center\">");
-			com.outl("      " + portIcon);
-			com.outl("    </td>");
-			com.outl("    <td align=\"left\">");
-			com.outl("      " + portBak);
-			com.outl("    </td>");
-
-			com.outl("    <td colspan=50>");
-
-			if (box)
-			{
-				com.out(      "&nbsp;<a href=\"");
-				link("link.ni.listSwport.expand." + id);
-				com.out("#" + id);
-				com.outl("\">" + expandIcon + "</a>");
-			}
-
-			com.outl("      " + direct + fontBegin + "" + name + "" + fontEnd);
-			com.outl("    </td>");
-
-		} else
-		{
-			// root-sw
-			com.outl("    <td>");
-
-			if (box)
-			{
-				label = "<a name=\"" + id + "\"></a>";
-
-				com.out(      "<a href=\"");
-				if (boxOpen)
-				{
-					link("link.ni.listSwport.close." + id );
-				} else
-				{
-					link("link.ni.listSwport.open." + id );
-				}
-				com.out("#" + linkLabel);
-				com.outl("\">" + strekIcon + "</a>");
-
-			} else
-			{
-				com.outl("      " + strekIcon);
-			}
-
-			com.outl("    </td>");
-			com.outl("    <td>");
-			com.outl("      " + label + switchImg);
-			com.outl("    </td>");
-			com.outl("    <td colspan=50>");
-
-			if (box)
-			{
-				com.out(      "&nbsp;<a href=\"");
-				link("link.ni.listSwport.expand." + id);
-				com.out("#" + id);
-				com.outl("\">" + expandIcon + "</a>");
-			}
-
-			com.outl("      <font color=blue>" + name + "</font>");
-			com.outl("    </td>");
-		}
-
-		//com.out("    </td>\n");
-		com.out("  </tr>\n");
-		//com.out("</table>\n");
-		*/
 	}
-	private void printDepth(int depth, String strek)
+	int tooltipsCnt = 0;
+
+	private void printDepth(int depth, String strek, boolean searchHit)
 	{
 		for (int i = 0; i < depth; i++)
 		{
-			com.outl("   <td>");
+			/*
+			com.outl("   <td width=\"0\">");
 			com.outl("    " + strek);
 			com.outl("   </td>");
+			*/
+			if (searchHit) {
+				com.outl("<td bgcolor=\"#F0E18C\">" + strek + "</td>");
+			} else {
+				com.outl("<td>" + strek + "</td>");
+			}
 		}
 	}
 
@@ -2807,8 +2859,33 @@ class HandlerNettinfo
 			} else
 			if (subSect.equals("visTopologi"))
 			{
+				if (com.getp("B1") != null) {
+					String showempty = com.getp("showempty");
+					com.set("ni.visTopologi.showempty", (showempty!=null ? "checked" : ""), false );
+
+					String searchexact = com.getp("searchexact");
+					com.set("ni.visTopologi.searchexact", (searchexact!=null ? "checked" : ""), false );
+
+					String showpath = com.getp("showpath");
+					com.set("ni.visTopologi.showpath", (showpath!=null ? "checked" : ""), false );
+
+					String searchblocked = com.getp("searchblocked");
+					com.set("ni.visTopologi.searchblocked", (searchblocked!=null ? "checked" : ""), false );
+
+					String searchField = com.getp("searchField");
+					com.set("ni.visTopologi.searchFieldNum", (searchField!=null ? searchField.substring(0, searchField.indexOf(".")) : ""), false );
+				}
+
 				String p1 = com.getp("p1");
 
+				if (p1 != null && p1.equals("closeAll")) {
+					HashMap trav;
+					Object o = com.getUser().getData("traverseList");
+					if (o != null) {
+						trav = (HashMap)o;
+						trav.clear();
+					}
+				} else
 				if (p1 != null)
 				{
 					String p2 = com.getp("p2");
