@@ -31,6 +31,7 @@ DROP TABLE org CASCADE;
 DROP TABLE port2off CASCADE;
 
 DROP TABLE swp_netbox CASCADE;
+DROP TABLE alertengine;
 
 -------VP - fingra fra fatet, Sigurd:
 DROP TABLE vp_netbox_xy CASCADE;
@@ -368,6 +369,11 @@ CREATE TABLE port2off (
   PRIMARY KEY(roomid, socket)
 );
 
+CREATE TABLE alertengine (
+	lastalertqid integer
+);
+
+INSERT INTO alertengine (lastalertqid) values(0);
 
 GRANT ALL ON org TO navall;
 GRANT ALL ON usage TO navall;
@@ -403,6 +409,8 @@ GRANT ALL ON mem_memid_seq TO navall;
 GRANT ALL ON product_productid_seq TO navall;
 GRANT ALL ON device_deviceid_seq TO navall;
 GRANT ALL ON type_typeid_seq TO navall;
+GRANT ALL ON alertengine TO navall;
+
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
