@@ -104,9 +104,12 @@ class Session(dict):
         except IOError:
             # If the session does not exist, create a new one using the given id.
             return dict.__new__(cls, sessionId)
-    
+
         unpickler = cPickle.Unpickler(file)
-        session = unpickler.load()
+        try:
+            session = unpickler.load()
+        except:
+            pass
         session._changed = False
         return session
 
