@@ -4,20 +4,22 @@
 # 
 
 # paths
-PREFIX=@prefix@
-NAVVER=navme
-pythonlibdir = @pythonlibdir@
-PYLIB=$(pythonlibdir)/statemon
-BINDIR=@bindir@
-INITDIR=$(PREFIX)/$(NAVVER)/etc/init.d
+
+prefix=@prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+pythonlibdir=@pythonlibdir@
+bindir=@bindir@
+sysconfdir=@sysconfdir@
+INITDIR=$(PREFIX)/etc/init.d
 INITFILES=pping servicemon
 BINS=checkService.py pping.py servicemon.py
 LIBS=
-CHECKERDIR=$(PYLIB)/checker
-CONFDIR=@sysconfdir@
 CONFFILES=servicemon.conf pping.conf
 # programs to use for make
 INSTALL=@INSTALL@
+
+.PHONY: install-lib install-bin install-checker install-conf
 
 # ok, the targets
 all: 
@@ -30,25 +32,19 @@ checker:
 install: install-lib install-bin install-checker install-conf
 
 install-lib: lib
-	mkdir --parents $(DESTDIR)$(PYLIB)
-	for file in nav/statemon/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(PYLIB)/; done
-	mkdir --parents $(DESTDIR)$(PYLIB)/DNS
-	for file in nav/statemon/DNS/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(PYLIB)/DNS/; done
+	for file in nav/statemon/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in nav/statemon/DNS/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/DNS/$$file || exit 1; done
 install-bin: bin
-	mkdir --parents $(DESTDIR)$(BINDIR)
-	for file in $(BINS);do $(INSTALL) -m 755 $$file $(DESTDIR)$(BINDIR)/ ;done
-	mkdir --parents $(DESTDIR)$(INITDIR)
-	for file in $(INITFILES); do $(INSTALL) -m 755 $$file $(DESTDIR)$(INITDIR); done
+	for file in $(BINS);do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1;done
+	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(INITDIR)/$$file || exit 1; done
 install-checker: checker
-	mkdir --parents $(DESTDIR)$(CHECKERDIR)
-	for file in nav/statemon/checker/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(CHECKERDIR)/; done
-	for file in nav/statemon/checker/*.descr; do $(INSTALL) -m 644 $$file $(DESTDIR)$(CHECKERDIR)/; done
+	for file in nav/statemon/checker/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
+	for file in nav/statemon/checker/*.descr; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(CHECKERDIR)/$$file || exit 1; done
 install-conf: conf
-	mkdir --parents $(DESTDIR)$(CONFDIR)
-	for file in $(CONFFILES); do $(INSTALL) -m 640 $$file $(DESTDIR)$(CONFDIR)/; done
+	for file in $(CONFFILES); do $(INSTALL) -v -D -m 640 $$file $(DESTDIR)$(CONFDIR)/$$file || exit 1; done
 uninstall:
-	for file in $(BINS); do rm -f $(DESTDIR)$(BINDIR)/$$file; done	
-	rm -rf $(DESTDIR)$(CHECKERDIR)
-	rm -rf $(DESTDIR)$(PYLIB)
+	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file; done	
+	rm -rf $(DESTDIR)$(pythonlibdir)
+	rm -rf $(DESTDIR)$(pythonlibdir)
 clean:
 	find -name *.pyc -print0 | xargs --null rm -f
