@@ -145,12 +145,38 @@ public class SimpleSnmp
 	 * @return a Map which maps the OIDs to a List of corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public Map getAllMapList() throws TimeoutException
+	public Map getAllMapList() throws TimeoutException {
+		return getAllMapList(0);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map; the OIDs are mapped to a {@link java.util.List List} of
+	 * values.  </p>
+	 *
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
+	 *
+	 * @param stripCnt Strip this many elements (separated by .) from the OIDs
+	 * @return a Map which maps the OIDs to a List of corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMapList(int stripCnt) throws TimeoutException
 	{
 		List l = getAll();
 		Map m = new HashMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
+
+			if (stripCnt > 0) {
+				int p = 0, k = 0;
+				for (int i=0; i < stripCnt; i++) {
+					k = s[0].indexOf(".", p);
+					if (k < 0) break;
+					p = k+1;
+				}
+				s[0] = s[0].substring(p, s[0].length());
+			}
 
 			List vl;
 			if ( (vl=(List)m.get(s[0])) == null) m.put(s[0], vl=new ArrayList());
