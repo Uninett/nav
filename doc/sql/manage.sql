@@ -223,6 +223,11 @@ CREATE TABLE snmpoid (
   mib VARCHAR,
   UNIQUE(oidkey)
 );
+-- needed to bootstrap editDB
+INSERT INTO snmpoid(oidkey, snmpoid, getnext, uptodate, descr, oidname, mib)
+            values ('typeoid', '1.3.6.1.2.1.1.2.0', 'f', 't', 'all', 
+                    'sysObjectID', 'SNMPv2-MIB');
+
 
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
