@@ -7,3 +7,6 @@ p, a, td {
 td{
 	padding-left:1em;
 }
+input {
+	border: 0;
+}

@@ -31,7 +31,7 @@ if(preg_match("/SELECT(.*)FROM/is",$sql,$sel)) {
     for($i=0;$i<sizeof($urlselect);$i++){
 	//print $urlselect[$i];
 	if(preg_match("/\ AS\ (\w+)/i",$urlselect[$i],$nysel)){
-	    print $urlselect[$i]=$nysel[1];
+	    $urlselect[$i]=$nysel[1];
 	} elseif(preg_match("/\.(\w+)/",$urlselect[$i],$nysel)){
 	    $urlselect[$i]=$nysel[1];
 	}
