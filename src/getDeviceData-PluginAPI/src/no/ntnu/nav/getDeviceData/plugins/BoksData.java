@@ -9,4 +9,5 @@ public interface BoksData
 	public String getType();
 	public String getSysname();
 	public String getKat();
+	public int getSnmpMajor();
 }
