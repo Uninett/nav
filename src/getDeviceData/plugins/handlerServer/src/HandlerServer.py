@@ -6,7 +6,7 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.6 2002/07/02 14:08:52 stain Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.7 2002/07/04 16:19:25 cricket Exp $"
 
 import UserDict
 import re
@@ -20,6 +20,7 @@ from no.ntnu.nav.getDeviceData.plugins import DeviceData
 
 class OID:
   """Constants for typical used OIDs"""
+  sysDescr = "1.3.6.1.2.1.1.1.0"
   sysObjectID = "1.3.6.1.2.1.1.2"
   interfaceDescriptions = "1.3.6.1.2.1.2.2.1.2"
   interfaceTypes = "1.3.6.1.2.1.2.2.1.3" 
@@ -29,6 +30,10 @@ class OID:
   diskFilesystems = "1.3.6.1.2.1.25.3.8.1.4"
   filesystemNFS = "1.3.6.1.2.1.25.3.9.14"
   filesystemUnknown = "1.3.6.1.2.1.25.3.9.2"
+  solarisAgent = "1.3.6.1.4.1.8072.3.2.3"
+  linuxAgent = "1.3.6.1.4.1.8072.3.2.10"
+  other = "1.3.6.1.4.1.8072.3.2.255"
+  bugAgent = "1.3.6.1.4.1.8072.3.2"
 
 class Unit:
   """A temporary way to store unit data"""
@@ -199,16 +204,23 @@ class HandlerServer(DeviceHandler):
     """
     
     # Get the descriptions
-    snmp.setBaseOid(OID.sysObjectID)
-    result = snmp.getAll(1) 
-    if(result):
-      agent = result[0][1]
-      print "Oh, fant agent", agent
-      sql = "UPDATE boks SET snmpagent='%s' WHERE boksid='%s'" % \
-            (db.addSlashes(agent), box.getBoksid())
-      print "Utfører SQL:", sql      
-      db.update(sql)
-
+    agent = box.getSnmpagent()
+    
+    #TEMP - this is not good but a bug in the net-snmp agent forced us
+    # to set the agent like this.
+    if (agent == OID.bugAgent): 
+      snmp.setBaseOid(OID.sysDescr)
+      res = snmp.getAll(1)[0]
+      res = res.split(" ")[0]
+      if (res.lower() == "sunos"):
+        agent = (OID.solarisAgent)
+      elif (res.lower() == "linux"):
+        agent = (OID.linuxAgent)
+      else:
+        agent = (OID.other)
+      
+      deviceDate.setSnmpagent(agent)
+      
 
   def getDisks(self, box, snmp, deviceData, check_array):
     """Retrieve disk data and prepare to store in deviceData.
