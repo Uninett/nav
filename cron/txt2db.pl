@@ -77,3 +77,4 @@ sub db_endring {
     }
 
 }
+return 1;

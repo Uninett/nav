@@ -141,3 +141,4 @@ sub rydd {
 	return "";
     }
 }
+return 1;

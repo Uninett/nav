@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ## Name:	arpdblogger
-## $Id: arplogger.pl,v 1.3 2001/08/23 16:06:47 grohi Exp $
+## $Id: arplogger.pl,v 1.4 2001/08/31 17:47:33 gartmann Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that

@@ -2,6 +2,33 @@
 
 use Pg;
 use strict;
+sub and_ip {
+    my @a =split(/\./,$_[0]);
+    my @b =split(/\./,$_[1]);
+
+    for (0..$#a) {
+	$a[$_] = int($a[$_]) & int($b[$_]);
+    }
+    
+    return join(".",@a);
+}
+sub mask_bits {
+    $_ = $_[0];
+    if    (/255.255.254.0/)   { return 23; }
+    elsif (/255.255.255.0/)   { return 24; }
+    elsif (/255.255.255.128/) { return 25; }
+    elsif (/255.255.255.192/) { return 26; }
+    elsif (/255.255.255.224/) { return 27; }
+    elsif (/255.255.255.240/) { return 28; }
+    elsif (/255.255.255.248/) { return 29; }
+    elsif (/255.255.255.252/) { return 30; }
+    elsif (/255.255.255.255/) { return 32; }
+    else
+    {
+        return 0;
+    }
+}   
+
 
 sub fil_hent {
     my ($fil,$felt) = @_;
@@ -31,6 +58,16 @@ sub db_hent {
     while(@_ = $res->fetchrow) {
 	@_ = map rydd($_), @_;
 	$resultat{$_[0]} = [ @_ ];
+    }
+    return %resultat;
+}
+sub db_hent_en {
+    my ($db,$sql) = @_;
+    my %resultat = ();
+    my $res =  &db_select($sql,$db);
+    while(@_ = $res->fetchrow) {
+	@_ = map rydd($_), @_;
+	$resultat{$_[0]} =  $_[1] ;
     }
     return %resultat;
 }

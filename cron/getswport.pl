@@ -97,7 +97,7 @@ my $trunk_iossw    = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 &hent_db_swport;
 
 #henter snmp-data og legger dem i hashen swport
-foreach my $boksid ("609") { #keys %boks 584 609 2
+foreach my $boksid (keys %boks) { #keys %boks 584 609 2
     &hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
 }
 
@@ -669,3 +669,4 @@ sub rydd {
 
 
 
+return 1;

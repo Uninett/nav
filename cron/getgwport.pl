@@ -5,6 +5,8 @@ use Pg;
 
 use strict;
 
+require "felles.pl";
+
 my $database = "manage";
 my $eier = "grohi\@itea.ntnu.no";
 
@@ -24,8 +26,9 @@ my %db_gwport = ();
 my %gwport = ();
 my %db_prefiks = ();
 my %prefiks = ();
-my @felt_gwport = ("gwip","boksid","prefiksid","ifindeks","interf","speed","ospf","hsrppri");
+my @felt_gwport = ("gwip","boksid","prefiksid","ifindex","interf","speed","ospf");
 my %boks;
+my %rootgw;
 
 # Mibs:
 my $ip2IfIndex = ".1.3.6.1.2.1.4.20.1.2"; 
@@ -37,16 +40,19 @@ my $if2Descr = ".1.3.6.1.2.1.2.2.1.2";
 my $if2Speed = ".1.3.6.1.2.1.2.2.1.5";
 my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28"; 
 
+my $hsrp_status = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
+my $hsrp_rootgw = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
+
 #henter fra database
 &hent_database(); 
 
 #her er det mye gammelt (fra før GA sin tid)
-foreach (keys %boks) { #$_ = boksid
-    if($boks{$_}{watch} =~ /y|t/i) {
+foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
+    if($boks{$boksid}{watch} =~ /y|t/i) {
 	print "$boks{$_}{ip} er på watch.\n";
     } else {
-	if (&hent_gwdata($_) eq '0') {
-	    print "Kunne ikke hente data fra $boks{$_}{ip}\n";
+	if (&hent_gwdata($boksid) eq '0') {
+	    print "Kunne ikke hente data fra $boks{$boksid}{ip}\n";
 	}
 	
     }
@@ -54,6 +60,19 @@ foreach (keys %boks) { #$_ = boksid
 
 }
 &oppdat_db();
+
+my %ip2id = &db_hent_en($conn,"SELECT gwip,gwportid FROM gwport");
+my %root = &db_hent_en($conn,"SELECT prefiksid,rootgwid FROM prefiks");
+
+foreach my $pref (keys %rootgw) {
+    print $pref."\n";
+    my $root = $root{$pref};
+    my $gwid = $ip2id{$rootgw{$pref}};
+    unless ($gwid eq $root){
+	&oppdater($conn,"prefiks","rootgwid","","\'$gwid\'","prefiksid",$pref);
+    }
+}
+
 
 
 sub oppdat_db
@@ -254,7 +273,8 @@ sub hent_gwdata {
 
     }
 
-    foreach $gwip (sort by_ip keys %tnett)
+ 
+    foreach $gwip (keys %tnett)
     {
 #	print "$gwip\n";
 
@@ -278,15 +298,19 @@ sub hent_gwdata {
 	}
 	else
 	{
-	    delete $tnett{$gwip};
+	    if($tnett{$gwip}{maske}){
+		delete $tnett{$gwip};
+	    }
 	}
 
 	
 
     }
-#tar fra hashene tnett og if og legger i gwport
+
+
     foreach $gwip (keys %tnett)
     {
+	
 	$tnett{$gwip}{interf}   = $if{$tnett{$gwip}{ifindeks}}{interf};
 	$tnett{$gwip}{speed}    = $if{$tnett{$gwip}{ifindeks}}{speed};
 	$tnett{$gwip}{maxhosts} = &max_ant_hosts($tnett{$gwip}{maske});
@@ -294,11 +318,7 @@ sub hent_gwdata {
 
 	$_ = $if{$tnett{$gwip}{ifindeks}}{nettnavn};
 
-	$tnett{$gwip}{hsrppri} = "1";
-	if(/^lan(\d*)/i) {
-	    $tnett{$gwip}{hsrppri} = $1 if $1;
-	}
-	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{ifindeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf},$tnett{$gwip}{hsrppri}];
+	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{ifindeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf}];
     }
 
 }
@@ -355,6 +375,21 @@ sub max_ant_hosts
 #ikke akkurat fullstendig
 sub ant_maskiner {
     return 1;
+}
+
+sub finn_laveste_ip {
+    my $prefiks = $_[0];
+    my $ret = 0;
+    my $sql = "select min(gwip) from prefiks natural join gwport where nettadr < gwip and prefiksid=\'$prefiks\'";
+
+    $resultat = db_select($sql,$conn);
+    
+    while (@line=$resultat->fetchrow)
+    {
+	@line = map rydd($_), @line;
+	$ret = $line[0];
+    }
+    return $ret;
 }
 
 sub by_ip {
@@ -441,3 +476,4 @@ sub rydd {
 }
 
 
+return 1;

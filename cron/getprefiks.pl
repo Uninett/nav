@@ -327,6 +327,8 @@ sub hent_prefiksdata {
 			      $tnett{$gwip}{nettadr},
 			      $tnett{$gwip}{maske},
 			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
 			      $tnett{$gwip}{nettype}, 
 			      $tnett{$gwip}{org}, 
 			      undef,
@@ -515,3 +517,4 @@ sub rydd {
 }
 
 
+return 1;

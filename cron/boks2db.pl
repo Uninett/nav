@@ -46,6 +46,18 @@ my (%server,%db_server,%nettel,%db_nettel,%alle,%db_alle,@felt_nettel,@felt_serv
 #kommenter ut =cut i hent_type for å hente ut typer
 #tar så lang tid, så det er ikke like gøy hver gang
 
+#sysname-endelser
+$fil = "/usr/local/nav/etc/conf/endelser.txt";
+open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
+my @endelser;
+while (<FIL>) {
+#leser bare kolonner med "ord:"
+
+    next unless /^\./; 
+    my $endelse = rydd($_);
+    @endelser=(@endelser,$endelse);
+}
+close FIL;
 
 #-----------------------
 #FILLESING: server.txt
@@ -63,8 +75,10 @@ while (<FIL>) {
 	@_ = ($ip,@_[0..5]);
 	@_ = map rydd($_), @_;
 
+	my $sysname = &fjern_endelse($_[2],join(":",@endelser));
+
 #lagrer array i hash
-	$server{$_[0]} = [ @_ ];
+	$server{$_[0]} = [ @_[0..1],$sysname,@_[3..6] ];
 	map print($_), @{$server{$_[0]}};
 	print "\n";
 	$alle{$_[0]} = 1;
@@ -90,7 +104,7 @@ while(@_ = $resultat->fetchrow) {
 }
 
 for my $it (keys %server) {
-    print "$it\n";
+#    print "$it\n";
     &sammenlikn(\%server,\%db_server,\@felt_server,"boks",$it);
 }
 
@@ -110,7 +124,7 @@ while (<FIL>) {
     $ip = $_[1];
     my $ro = $_[5];
     $type = hent_type($ip,$ro);
-    my $sysname = hent_sysname($ip,$ro);
+    my $sysname = hent_sysname($ip,$ro,join(":",@endelser));
     if($type) {
 	@_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
 	@_ = map rydd($_), @_;
@@ -270,12 +284,12 @@ sub hent_type{
     if (defined($ro) && $ro ne "") {
 	my @res = snmpwalk("$ro\@$ip:161:1:2:4","system");
 	(undef,my $oid) = split /:/, $res[1];
-	print "oid: ".$oid."\n";
+#	print "oid: ".$oid."\n";
 	my $conn = db_connect($db);
 	my $sql = "SELECT typeid FROM type WHERE sysobjectid=\'$oid\'";
 	$resultat = db_select($sql,$conn);
 	$resultat = $resultat->fetchrow;
-	print "OK:\t$ro\@$ip = $resultat \n";
+#	print "OK:\t$ro\@$ip = $resultat \n";
 	
     }
     return $resultat;
@@ -284,11 +298,24 @@ sub hent_type{
 sub hent_sysname{
     my $ip = $_[0];
     my $ro = $_[1];
+    my $endelser = $_[2];
     my $resultat = "";
     if ($ro) {
 	($resultat) = &snmpget("$ro\@$ip:161:1:2:4",$mib_sysname);
+	$resultat = &fjern_endelse($resultat,$endelser);
     }
     return $resultat;
+}
+sub fjern_endelse{
+    my $sysname = $_[0];
+    my @endelser =  split(/:/,$_[1]);
+    for my $endelse (@endelser) {
+	if ($sysname =~ /$endelse/){
+#		print "fjerner endelse\n\n\n";
+	    $sysname =~ s/$endelse//i;
+	}
+    }
+    return $sysname;
 }
 sub db_connect {
     my $db = $_[0];
@@ -325,3 +352,4 @@ sub rydd {    if (defined $_[0]) {
 }
 
 
+return 1;

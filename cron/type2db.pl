@@ -130,7 +130,7 @@ sub sjekk{
 	return $_[0];
     }
 }
-
+return 1;
 
 
 
