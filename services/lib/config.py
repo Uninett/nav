@@ -1,7 +1,7 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.1 2002/06/13 13:55:21 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/etc/conf/Attic/config.py,v $
+$Id: config.py,v 1.1 2002/06/13 14:00:24 magnun Exp $
+$Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
 
 """
