@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 require '/usr/local/nav/navme/subsystem/lib-perl/nav.pm';

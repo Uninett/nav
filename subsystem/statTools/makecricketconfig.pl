@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 ##################################################
 # This file is part of the NAV project.
 #
@@ -16,6 +16,7 @@
 # 1 -> silent
 # 2 -> default
 # 3 -> debug
+use warnings;
 
 BEGIN {
 

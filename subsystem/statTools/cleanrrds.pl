@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 #############################################################
 # This file is part of the NAV project.
 #
@@ -16,6 +16,7 @@
 # Authors: John Magne Bredal <bredal@itea.ntnu.no>
 ############################################################
 
+use warnings;
 use vars qw($opt_l $opt_d $opt_t $opt_f $opt_h  $opt_p);
 use Getopt::Std;
 use Pg;

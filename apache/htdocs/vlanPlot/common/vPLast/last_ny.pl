@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 ############################################################
 # Beregner last på grunnlag av input fra Java Servermodul
 # og printer det ut til STDOUT for innlesning av samme
@@ -39,7 +39,7 @@
 
 use Pg;
 use strict;
-
+use warnings;
 my $dbh = &db_connect("manage", "manage", "eganam");
 
 # Teit boolsk variable som er med pga. at skrivCPUlast kalles flere ganger.

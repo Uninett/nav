@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#!/usr/bin/env perl
 #
 # alertengine.pm
 #
@@ -8,6 +8,7 @@
 
 package AlertEngine;
 
+use warnings;
 use strict;
 use diagnostics;
 use POSIX qw(setsid);

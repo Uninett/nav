@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script takes a path to the NAV webroot on the commandline.
 # It will find all .htaccess files in the web directory hierarchy that

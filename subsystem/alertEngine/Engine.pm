@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#! /usr/bin/env perl
 #
 # Engine.pm
 #
@@ -12,6 +12,7 @@ package Engine;
 
 #use lib '/home/arneos/perl/lib/perl5/site_perl/5.8.0/i386-linux-thread-multi';
 
+use warnings;
 use strict 'vars';
 use diagnostics;
 use DBI;

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 #
 # NAV development tool used to expand environment variable references
 # in files during build (not at configure-time).  When used in
@@ -8,7 +8,7 @@
 # Copyright (C) 2003 NTNU ITEA
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
-
+use warnings;
 my @vars = keys %ENV;
 
 sub expand {

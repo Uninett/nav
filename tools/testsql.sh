@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script will run an SQL file through PostgreSQL and create an
 # error report if errors are found.

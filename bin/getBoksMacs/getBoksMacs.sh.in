@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Relativt komplisert script på grunn av at java-prosessen kan henge seg opp,
 # og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
 # med job-finished filen.
-
-#!/usr/bin/env bash
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 ##################################################
 # This file is part of the NAV project.
 #
@@ -11,6 +11,7 @@
 ##################################################
 
 use strict;
+use warnings;
 use Pg;
 use Getopt::Std;
 
