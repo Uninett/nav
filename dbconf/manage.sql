@@ -13,7 +13,7 @@ DROP TABLE sted;
 DROP TABLE anv;
 DROP TABLE org;
 
-#############NEI
+#############VP - fingra fra fatet, Sigurd:
 
 DROP TABLE vpBoksXY;
 DROP TABLE vpBoksGrp;
@@ -130,7 +130,7 @@ CREATE TABLE boks (
   boksid SERIAL PRIMARY KEY,
   ip VARCHAR(15) NOT NULL,
   romid VARCHAR(10) NOT NULL REFERENCES rom,
-  typeid VARCHAR(10) NOT NULL REFERENCES type,
+  typeid VARCHAR(10) REFERENCES type,
   sysName VARCHAR(30),
   kat VARCHAR(10) NOT NULL,
   kat2 VARCHAR(10),
