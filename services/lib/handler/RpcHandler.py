@@ -1,5 +1,5 @@
 """
-$Id: RpcHandler.py,v 1.8 2003/01/03 15:43:54 magnun Exp $
+$Id: RpcHandler.py,v 1.9 2003/01/05 02:50:09 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/RpcHandler.py,v $
 """
 import os
@@ -21,7 +21,8 @@ class RpcHandler(JobHandler):
 
 		ip, port = self.getAddress()
 
-		input, output, err = os.popen3('/usr/sbin/rpcinfo -p %s' % ip)
+		#input, output, err = os.popen3('/usr/sbin/rpcinfo -p %s' % ip)
+		output = os.popen('/usr/sbin/rpcinfo -p %s' % ip)
 		output = output.read()
 		if not output:
 			return Event.DOWN,'timeout'
