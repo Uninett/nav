@@ -203,8 +203,8 @@ graph   --default--
 	# finished graphs. It's too much trouble to try to calculate
 	# them at runtime. If there is any doubt, don't set them. Bad hints
 	# are worse than no hints!
-	width-hint	= 	595
-	height-hint	= 	255
+	# width-hint	= 	595
+	# height-hint	= 	255
 
 	# if this attribute exists, then vertical rules will be placed
 	# on the graphs at every zero-time, i.e. midnight, Monday, first of
