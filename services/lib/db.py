@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.4 2002/07/17 18:01:36 magnun Exp $
+$Id: db.py,v 1.5 2002/07/25 16:53:39 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -75,12 +75,30 @@ class _db(threading.Thread):
 		self.execute(statement)
 
 
+	def pingEvent(self, host, state):
+		query = "SELECT boksid FROM boks WHERE ip='%s'"%host
+		boksid=self.query(query)[0][0]
+
+		if state == 'UP':
+			state = 'e'
+			value = 100
+		else:
+			state = 's'
+			value = 0
+
+		statement = "INSERT INTO eventq (boksid, eventtypeid, state, value, source, target) values (%i, '%s','%s', %i, '%s','%s' )" % (boksid, "boxState", state, value,"pping","eventEngine")
+		self.execute(statement)
+
 	def newVersion(self, serviceid, version):
 		print "New version. Id: %i Version: %s" % (serviceid,version)
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 		self.execute(statement)
 		self.db.commit()
 		self.db.autocommit(1)
+
+	def hostsToPing(self):
+		query="""SELECT ip FROM boks WHERE active='t' """
+		return self.query(query)
 
 	def getJobs(self, onlyactive = 1):
 		query = """SELECT serviceid, property, value
