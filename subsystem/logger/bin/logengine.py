@@ -27,6 +27,7 @@
 ## to see that this file is converted from procedure oriented perl code.
 
 import re
+import fcntl
 import os
 import nav
 from mx import DateTime
@@ -202,9 +203,17 @@ if __name__ == '__main__':
     ## add new records
     ## the new records are read from the cisco syslog file specified 
     ## by the syslog path in the logger.conf configuration file
-    f = file(logfile).readlines()
 
-    for line in f:
+    f = open(logfile, "r+")
+    fcntl.flock(f, fcntl.LOCK_EX)
+    
+    fcon = f.readlines()
+    f.truncate(0)
+    
+    fcntl.flock(f, fcntl.LOCK_UN)
+    f.close()
+
+    for line in fcon:
         message = createMessage(line)
 
         if origins.has_key(message.origin):
