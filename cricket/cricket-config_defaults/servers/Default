@@ -1,0 +1,130 @@
+Target --default--
+	snmp-host       = %server%
+	rrd-ds-type     = GAUGE
+	target-type     = undef
+	snmp-community	= public
+			
+#disc
+OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  #prints all the discs
+OID    StorageSize              1.3.6.1.2.1.25.2.3.1.5  #the size of the disc
+OID    StorageUsed              1.3.6.1.2.1.25.2.3.1.6  #how much space is used
+#Users
+OID    numOfUsers		1.3.6.1.2.1.25.1.5.0
+#pros
+OID    numOfPros		1.3.6.1.2.1.25.1.6.0
+#interface
+#OID    ifIndex                  1.3.6.1.2.1.2.2.1.1  # number of if
+OID    ifDescription            1.3.6.1.2.1.2.2.1.2
+OID    interfaceInBit          	1.3.6.1.2.1.2.2.1.10
+OID    interfaceOutBit          1.3.6.1.2.1.2.2.1.16
+OID    interfaceInUcastPackage  1.3.6.1.2.1.2.2.1.11
+OID    interfaceOutUcastPackage	1.3.6.1.2.1.2.2.1.17
+OID    interfaceInError		1.3.6.1.2.1.2.2.1.14
+OID    interfaceOutError	1.3.6.1.2.1.2.2.1.20
+OID    ifInDiscards             1.3.6.1.2.1.2.2.1.12
+OID    ifOutDiscards            1.3.6.1.2.1.2.2.1.19
+#mem
+OID    totalMem              	1.3.6.1.2.1.25.2.2.0
+#nix
+OID loadnix                     1.3.6.1.4.1.2021.10.1.5.1 #average load last 5 min
+OID memUsagenix			1.3.6.1.4.1.2021.4.6.0
+OID cpunix                      1.3.6.1.4.1.2021.11.10
+#windows
+#OID Loadwin                    ARG!!
+OID memUsagewin			1.3.6.1.4.1.311.1.1.3.1.1.7.2.0
+OID cpuwin			1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.0
+
+			
+datasource	StorageDescription	ds-source =	snmp://%snmp%/StorageDescription
+datasource	StorageSize		ds-source =	snmp://%snmp%/StorageSize.%inst%		rrd-ds-type = COUNTER
+datasource	StorageUsed		ds-source =	snmp://%snmp%/StorageUsed.%inst%		rrd-ds-type = COUNTER
+datasource	numOfUsers		ds-source =	snmp://%snmp%/numOfUsers
+datasource	numOfPros		ds-source =	snmp://%snmp%/numOfPros
+datasource	interfaceInBit		ds-source =	snmp://%snmp%/interfaceInBit.%inst%		rrd-ds-type =  COUNTER
+datasource	interfaceOutBit		ds-source =	snmp://%snmp%/interfaceOutBit.%inst%		rrd-ds-type =  COUNTER
+datasource	interfaceInUcastPackage	ds-source =	snmp://%snmp%/interfaceInUcastPackage.%inst%	rrd-ds-type =  COUNTER
+datasource	interfaceInError	ds-source =	snmp://%snmp%/interfaceInError.%inst%		rrd-ds-type =  COUNTER
+datasource	interfaceOutError	ds-source = 	snmp://%snmp%/interfaceOutError.%inst%		rrd-ds-type =  COUNTER
+datasource	ifInDiscards		ds-source =	snmp://%snmp%/ifInDiscards.%inst%		rrd-ds-type =  COUNTER
+datasource	ifOutDiscards		ds-source =	snmp://%snmp%/ifOutDiscards.%inst%		rrd-ds-type =  COUNTER
+datasource	totalMem		ds-source =	snmp://%snmp%/totalMem
+datasource	loadnix			ds-source =	snmp://%snmp%/loadnix 
+datasource	memUsagenix		ds-source =	snmp://%snmp%/memUsagenix
+datasource	cpunix			ds-source =	snmp://%snmp%/cpunix
+datasource	memUsagewin		ds-source =	snmp://%snmp%/memUsagewin
+datasource	cpuwin			ds-source =	snmp://%snmp%/cpuwin
+
+# PS! read the  rrdtutorial.html section: "What has been created ?" _before_ you change anything here.
+# One pkt per 5 min , reaches 24 timer
+# math ex : 5 (min) * 1 (interval) * 288 (factor) = 1440 , 1440/60(min) = 24 (hours)
+rra             5minAve     AVERAGE:0.5:1:288
+# et pkt per 30 min går over 7 dager
+#  math ex : 5 (min) * 6 (interval) * 336 (factor) = 10080 ,  10080/60(min) = 168 (hours)
+#                 168/24(hours in one day) = 7 days.
+rra             30minAve        AVERAGE:0.5:6:336
+# One pkt per 2. time , går over 30 dager
+rra             2hrAve          AVERAGE:0.5:12:720
+rra             2hrMax          MAX:0.5:12:720
+# et pkt per dag , går over 1 år
+rra             1dayAve         AVERAGE:0.5:288:365
+rra             1dayMax         MAX:0.5:288:365
+# et pkt per dag , går over 3 år
+rra             1dayAve         AVERAGE:0.5:288:1095
+rra             1dayMax         MAX:0.5:288:1095
+# we will add datasources to each specific target-type later
+
+targetType      --default--
+        rra     =       "5minAve, 30minAve, 2hrAve, 2hrMax, 1dayAve, 1dayMax"
+
+map interface-name
+    base-oid    =   ifDescription
+    match       =   %interface-name%
+
+map mount-point
+    base-oid    =   StorageDescription
+    match       =   %mount-point%
+
+
+targettype disc
+	ds = "StorageSize,StorageUsed"
+targettype interfaceTraffic
+	ds = "interfaceInBit,interfaceOutBit"
+targettype interfaceUnicast
+	ds = "interfaceInUcastPackage,interfaceOutUcastPackage"
+targettype interfaceError
+	ds = "interfaceInError,interfaceOutError"
+targettype interfaceDiscard
+	ds = "ifInDiscards,ifOutDiscards"
+targettype users
+	ds = "numOfUsers"
+targettype processes
+	ds = "numOfPros"
+targettype memnix
+	ds = "totalMem,memUsagenix"
+targettype memwin
+	ds = "totalMem,memUsagewin"
+targettype cpunix
+	ds = "cpunix"
+targettype cpuwin
+	ds = "cpuwin"
+targettype loadnix
+	ds = "loadnix"
+
+
+# graf helvete
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
