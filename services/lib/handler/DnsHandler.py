@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.3 2002/06/28 02:35:01 magnun Exp $
+$Id: DnsHandler.py,v 1.4 2002/07/01 14:59:35 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler, Event
@@ -37,7 +37,11 @@ class DnsHandler(JobHandler):
 					#print "%s -> %s"%(request[i], reply.answers[0]["data"])
 				elif not timeout and len(reply.answers)==0:
 					answer.append(0)
-				
+
+			ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers[0]['data'][0]
+			self.setVersion(ver)
+
+			
 			if not timeout and 0 not in answer:
 				return Event.UP, "Ok"
 			elif not timeout and 0 in answer:
