@@ -177,6 +177,7 @@ class AbstractChecker:
 				   self.getType()
 				   )
 		except Exception,e:
+			service = "%s:%s" % (self.getSysname(), self.getType())
 			debug("rrd update failed for %s [%s]" % (service,e),3)
 		
 

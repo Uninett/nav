@@ -216,7 +216,7 @@ if __name__=='__main__':
     #mydir, myname = os.path.split(os.sys.argv[0])
     #os.chdir(mydir)
     # Make sure our files are readable for all 
-    os.umask(0664)
+    os.umask(0002)
                                   
     try:
         opts, args = getopt.getopt(os.sys.argv[1:], 'hnv', ['help','nofork', 'version'])

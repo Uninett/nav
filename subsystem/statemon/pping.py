@@ -236,11 +236,10 @@ def setUser():
         os.sys.exit()
     os.setegid(gid)
     os.seteuid(uid)
-    os.umask(0022)
+    # Make things read/write for user and group
+    os.umask(0002)
 
 if __name__=="__main__":
-    # Make things readable for all
-    os.umask(0664) 
     nofork=0
     try:
         opts, args = getopt.getopt(os.sys.argv[1:],
