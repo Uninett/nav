@@ -192,6 +192,7 @@ public class MibIISw implements DeviceHandler
 		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
+			Log.d("HANDLE", "Setting serial for netbox ("+nb.getSysname()+"): " + s[1]);
 			nc.netboxDataFactory(nb).setSerial(s[1]);
 			nc.commit();
 		}
