@@ -10,6 +10,7 @@ from socket import gethostbyaddr
 
 import editTables,nav.Snmp,sys,re,copy,initBox
 from nav.web.serviceHelper import getCheckers,getDescription
+from nav.Snmp import TimeOutException
 
 #################################################
 ## Constants
@@ -24,6 +25,13 @@ IGNORE_BOX = 'ignore_this_box'
 
 IMG_SYNTAXOK = '/images/lys/green.png'
 IMG_SYNTAXERROR = '/images/lys/red.png'
+
+# REQ_TRUE: a required field
+# REQ_FALSE: not required
+# REQ_NONEMPTY: not required, but don't insert empty field
+REQ_TRUE = 1
+REQ_FALSE = 2
+REQ_NONEMPTY = 3
 
 #################################################
 ## Templates
@@ -114,7 +122,13 @@ def index(req,showHelp=False):
     body.tables.append(Table('Rooms and locations','',headings,rows))
 
     # Table org and usage cat
-    rows = [['Organisation',
+    rows = [['Subcategory',
+             'The main categories of a device are predefined by NAV (i.e. ' +\
+             'GW,SW,SRV). You may however create subcategories yourself.',
+            [BASEPATH + 'subcat/edit','Add'],
+            [BASEPATH + 'subcat/list','Edit'],
+            [BASEPATH + 'bulk/subcat','Bulk import']],
+            ['Organisation',
              'Register all organisational units that are relevant. I.e. ' +\
              'all units that have their own subnet/server facilities.',
             [BASEPATH + 'org/edit','Add'],
@@ -239,6 +253,8 @@ def handleSubmit(req, table, action, editid):
         output = editPrefix(req,selected,action,error)
     elif table == 'vlan':
         output = editVlan(req,selected,action,error)
+    elif table == 'subcat':
+        output = editSubcat(req,selected,action,error)
     elif table == 'bulk':
         output = bulkImport(req,action)
     return output
@@ -328,6 +344,7 @@ def bulkImport(req,action):
                'usage': bulkdefUsage,
                'service': bulkdefService,
                'vendor': bulkdefVendor,
+               'subcat': bulkdefSubcat,
                'type': bulkdefType,
                'product': bulkdefProduct,
                'prefix': bulkdefPrefix}
@@ -361,17 +378,17 @@ def bulkImport(req,action):
         for p in parsed:
             status,data,remark,line,linenr = p
             if status:
-                row = [('<IMG src="' + IMG_SYNTAXOK + '">',False),
-                       (linenr,False),
-                       (line,False),
-                       (remark,False)]
+                row = [(['<IMG src="' + IMG_SYNTAXOK + '">'],False),
+                       ([linenr],False),
+                       ([line],False),
+                       ([remark],False)]
             else:
-                row = [('<IMG src="' + IMG_SYNTAXERROR + '">',False),
-                       (linenr,False),
-                       (line,False),
-                       (remark,False)]
+                row = [(['<IMG src="' + IMG_SYNTAXERROR + '">'],False),
+                       ([linenr],False),
+                       ([line],False),
+                       ([remark],False)]
             rows.append((data,row)) 
-
+            
         # show list
         list = selectList()
         list.isBulkList = True
@@ -462,7 +479,7 @@ def editRoom(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='roomid')
                 if not error:
-                    form.status = "Added new room '" + req.form['roomid'] + "'"
+                    editList.status = "Added room '" + req.form['roomid'] + "'"
                     action = 'list'
                 else:
                     form.error = error
@@ -471,8 +488,11 @@ def editRoom(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='roomid')
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Room(s).roomid + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -498,7 +518,7 @@ def editRoom(req,selected,action,error=None):
     elif action == 'add':
         form.title = 'Add new room'
         form.textConfirm = 'Add room'
-        form.add(editboxRoom())
+        form.add(editboxRoom(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Rooms',BASEPATH+'room/list'),('Delete',False)]
@@ -547,7 +567,7 @@ def editLocation(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='locationid')
                 if not error:
-                    form.status = "Added new location '" + \
+                    editList.status = "Added location '" + \
                                   req.form['locationid'] + "'"
                     action = 'list'
                 else:
@@ -557,8 +577,11 @@ def editLocation(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='locationid')
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Location(s).locationid + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -585,7 +608,7 @@ def editLocation(req,selected,action,error=None):
         path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Add',False)]
         form.title = 'Add new location'
         form.textConfirm = 'Add location'
-        form.add(editboxLocation())
+        form.add(editboxLocation(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Locations',BASEPATH+'location/list'),('Delete',False)]
@@ -637,7 +660,7 @@ def editOrg(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='orgid')
                 if not error:
-                    form.status = "Added new org '" + req.form['orgid'] + "'"
+                    editList.status = "Added org '" + req.form['orgid'] + "'"
                     action = 'list'
                 else:
                     form.error = error
@@ -646,8 +669,11 @@ def editOrg(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='orgid')
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Org(s).orgid + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -674,7 +700,7 @@ def editOrg(req,selected,action,error=None):
         path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Add',False)]
         form.title = 'Add new organisation'
         form.textConfirm = 'Add'
-        form.add(editboxOrg())
+        form.add(editboxOrg(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Organisations',BASEPATH+'org/list'),('Delete',False)]
@@ -710,7 +736,7 @@ def editType(req,selected,action,error=None):
     editList = selectList()
     editList.table = editTables.Type
     editList.tablename = 'type'
-    editList.orderBy = 'typename'
+    editList.orderBy = ['vendor','typename']
     editList.idcol = 'typeid'
     editList.columns = [('Vendor','vendor',False),
                         ('Typename','typename',True),
@@ -728,7 +754,7 @@ def editType(req,selected,action,error=None):
                 error = addEntry(req,templatebox,table,
                                  unique=['vendorid','typename'])
                 if not error:
-                    form.status = "Added new type '" + \
+                    editList.status = "Added type '" + \
                                   req.form['typename'] + "'"
                     action = 'list'
                 else:
@@ -739,8 +765,11 @@ def editType(req,selected,action,error=None):
                                              staticid=True,
                                              unique=['vendorid','typename'])
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Type(s).typename + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -767,7 +796,7 @@ def editType(req,selected,action,error=None):
         path = EDITPATH + [('Types',BASEPATH+'type/list'),('Add',False)]
         form.title = 'Add new type'
         form.textConfirm = 'Add'
-        form.add(editboxType())
+        form.add(editboxType(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Types',BASEPATH+'type/list'),('Delete',False)]
@@ -817,7 +846,7 @@ def editProduct(req,selected,action,error=None):
                 error = addEntry(req,templatebox,table,
                                  unique=['productno','vendorid'])
                 if not error:
-                    form.status = "Added new product '" + \
+                    editList.status = "Added product '" + \
                                   req.form['productno'] + "'"
                     action = 'list'
                 else:
@@ -828,7 +857,10 @@ def editProduct(req,selected,action,error=None):
                                              staticid=True,
                                              unique=['productno','vendorid'])
                 if not error:
-                    editList.status = 'Updated'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Product(s).productno + ' '  
+                    editList.status = status
                     action = 'list'
                 else:
                     form.error = error
@@ -856,7 +888,7 @@ def editProduct(req,selected,action,error=None):
         path = EDITPATH + [('Products',BASEPATH+'product/list'),('Add',False)]
         form.title = 'Add new product'
         form.textConfirm = 'Add'
-        form.add(editboxProduct())
+        form.add(editboxProduct(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Products',BASEPATH+'product/list'),('Delete',False)]
@@ -903,7 +935,7 @@ def editVendor(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='vendorid')
                 if not error:
-                    form.status = "Added new vendor '" + \
+                    editList.status = "Added vendor '" + \
                                   req.form['vendorid'] + "'"
                     action = 'list'
                 else:
@@ -913,8 +945,11 @@ def editVendor(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              unique='vendorid')
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Vendor(s).vendorid + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -941,7 +976,7 @@ def editVendor(req,selected,action,error=None):
         path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Add',False)]
         form.title = 'Add new vendor'
         form.textConfirm = 'Add'
-        form.add(editboxVendor())
+        form.add(editboxVendor(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Delete',False)]
@@ -1054,8 +1089,10 @@ def updatePrefix(req):
                       'netident': data['netident'],
                       'orgid': data['orgid'],
                       'nettype': data['nettype'],
-                      'vlan': data['vlan'],
                       'usageid': data['usageid']}
+
+        if len(data['vlan']):
+            vlanfields['vlan'] = data['vlan']
 
         prefixfields = {'netaddr': data['netaddr']}
       
@@ -1097,7 +1134,7 @@ def editPrefix(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addPrefix(req)
                 if not error:
-                    form.status = "Added new prefix '" + \
+                    editList.status = "Added prefix '" + \
                                   req.form['netaddr'] + "'"
                     action = 'list'
                 else:
@@ -1106,8 +1143,11 @@ def editPrefix(req,selected,action,error=None):
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updatePrefix(req)
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Prefix(s).netaddr + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -1134,7 +1174,7 @@ def editPrefix(req,selected,action,error=None):
         path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Add',False)]
         form.title = 'Add new prefix'
         form.textConfirm = 'Add'
-        form.add(editboxPrefix())
+        form.add(editboxPrefix(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Delete',False)]
@@ -1191,8 +1231,11 @@ def editVlan(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              staticid=True)
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += 'vlan ' + str(editTables.Vlan(s).vlan) + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -1244,12 +1287,10 @@ def editVlan(req,selected,action,error=None):
     return template.respond()
 
 
-
-
-
-def insertNetbox(ip,catid,roomid,orgid,
-                 ro,rw,deviceid,serial=None,
-                 subcatlist=None,function=None):
+def insertNetbox(ip,sysname,catid,roomid,orgid,
+                 ro,rw,deviceid,serial,
+                 typeid,snmpversion,subcatlist=None,
+                 function=None):
 
     if not deviceid:
         # Make new device first
@@ -1257,18 +1298,11 @@ def insertNetbox(ip,catid,roomid,orgid,
             fields = {'serial': serial}
         else:
             # Don't insert an empty serialnumber (as serialnumbers must be
-            # unique in the database)
+            # unique in the database) (ie. don't insert '' for serial)
             fields = {}
         deviceid = addEntryFields(fields,
                                   'device',
                                   ('deviceid','device_deviceid_seq'))
-
-    # Make new netbox
-    # Lookup sysname, if not found in dns, sysname = ip
-    try:
-        sysname = gethostbyaddr(ip)[0]
-    except:
-        sysname = ip
 
     fields = {'ip': ip,
               'roomid': roomid,
@@ -1278,6 +1312,11 @@ def insertNetbox(ip,catid,roomid,orgid,
               'orgid': orgid,
               'ro': ro,
               'rw': rw}
+
+    if typeid:
+        fields['typeid'] = typeid
+    if snmpversion:
+        fields['snmp_version'] = snmpversion
 
     netboxid = addEntryFields(fields,
                               'netbox',
@@ -1294,7 +1333,6 @@ def insertNetbox(ip,catid,roomid,orgid,
                       'category': subcatlist}
             addEntryFields(fields,'netboxcategory')
 
-
     if function:
         fields = {'netboxid': netboxid,
                   'key': '',
@@ -1302,177 +1340,501 @@ def insertNetbox(ip,catid,roomid,orgid,
                   'val': function}
         addEntryFields(fields,'netboxinfo')
 
-def updateNetbox(req):
-    formdata = {}
-    idlist = []
-    if type(req.form[UPDATE_ENTRY]) is list:
-        # editing several entries
-        # j is incremented for each category = server
-        for i in range(0,len(req.form[UPDATE_ENTRY])):
-            entry = {}
-            editid = req.form[UPDATE_ENTRY][i]
-            idlist.append(editid)
-            entry['ip'] = req.form['ip'][i]
-            entry['catid'] = req.form['catid'][i]
-            entry['roomid'] = req.form['roomid'][i]
-            entry['orgid'] = req.form['orgid'][i]
-            entry['ro'] = req.form['ro'][i]
-            entry['rw'] = req.form['rw'][i]
-            if req.form['catid'][i] == 'SRV':
-                if req.form.has_key(editid+'subcat'):
-                    entry['subcat'] = req.form[editid+'subcat']
-                    entry['function'] = req.form[editid+'function']
-            formdata[editid] = entry
-    else:
-        # editing just one entry
-        entry = {}
-        editid = req.form[UPDATE_ENTRY]
-        idlist = [editid]
-        entry['ip'] = req.form['ip']
-        entry['catid'] = req.form['catid']
-        entry['roomid'] = req.form['roomid']
-        entry['orgid'] = req.form['orgid']
-        entry['ro'] = req.form['ro']
-        entry['rw'] = req.form['rw']
-        if req.form['catid'] == 'SRV':
-            if req.form.has_key(editid+'subcat'):
-                entry['subcatlist'] = req.form[editid+'subcat']
-                entry['function'] = req.form[editid+'function']
-        formdata[editid] = entry
 
-    for updateid,data in formdata.items():
-        # Remove any entries in netboxcategory
-        deleteEntry([updateid],'netboxcategory','netboxid')
+def updateNetbox(req,templateform,selected):
+    ADD_TYPE_URL = BASEPATH + 'type/edit/'
+    STEP_1 = 1
+    STEP_2 = 2
+    STEP_3 = 3
+    CNAME_STEP = 'step' 
+    # Step0: ask for ip,ro,rw,catid,org,room
+    # Step1: ask for serial (and sysname,snmpversion and typeid)
+    # Step2: ask for subcategory and function
+    # Step3: add the box
+    message = "Got SNMP response, but can't find type in " + \
+              "database. You must <a href=\"" + ADD_TYPE_URL + \
+              "?sysobjectid=%s\" " + \
+              "target=\"_blank\">add the " + \
+              "type</a>  before proceeding (a new window will " + \
+              "open, when the new type is added, press " + \
+              "Continue to proceed)."
 
-        # If there exists a 'function' entry in netboxinfo, remove this
-        deleteEntry([updateid],'netboxinfo','netboxid',"var='function'")
+    box = None
+    status = None
+    action = 'predefined'
+    form = req.form
+    templateform.title = 'Edit box'
+    # Preserve the URL
+    templateform.action = BASEPATH + 'netbox/edit/' + selected
 
-        # If category = server, add netboxcategories and function
-        if data['catid'] == 'SRV' and data.has_key('subcatlist'):
-            # If subcatlist and function is given, insert them
-            if data['subcatlist']:
-                if type(data['subcatlist']) is list:
-                    for sc in data['subcatlist']:
-                        fields = {'netboxid': updateid,
-                                  'category': sc}
-                        addEntryFields(fields,'netboxcategory')
+    # Add editbox with hidden values for step (and deviceid)
+    editboxHidden = editboxHiddenOrMessage()
+    templateform.add(editboxHidden)
+    # What step are we in?
+    step = STEP_1
+    if form.has_key(CNAME_STEP):
+        step = int(form[CNAME_STEP])
+    nextStep = step + 1
 
-                else:
-                    fields = {'netboxid': updateid,
-                              'category': data['subcatlist']}
-                    addEntryFields(fields,'netboxcategory')
+    oldBox = editTables.editdbNetbox(selected)
 
-            if data['function']:
-                fields = {'netboxid': updateid,
-                          'key': '',
-                          'var': 'function',
-                          'val': data['function']}
-                addEntryFields(fields,'netboxinfo')
-
-        # Get new sysname (might have changed,hm)
+    if step == STEP_1:
+        # Look up sysname in DNS
         try:
-            sysname = gethostbyaddr(data['ip'])[0]
+            sysname = gethostbyaddr(form['ip'])[0]
         except:
-            sysname = data['ip']
+            sysname = form['ip']
 
-        # Update other fields
-        fields = {'ip': data['ip'],
-                  'sysname': sysname,
-                  'catid': data['catid'],
-                  'roomid': data['roomid'],
-                  'orgid': data['orgid'],
-                  'ro': data['ro'],
-                  'rw': data['rw']}
-        updateEntryFields(fields,'netbox','netboxid',updateid)
-    return idlist
+        # Check if (edited) sysname or ip is already present in db
+        if (oldBox.ip != form['ip']) or (oldBox.sysname != sysname):
+            # If IP or sysname differs from the old, then check them
+            error = None
+            where = "ip = '" + form['ip'] + "'"
+            box = editTables.Netbox.getAll(where)
+            if box:
+                error = 'IP already exists in database'
+                nextStep = STEP_1
+            if not error:
+                # If IP isn't duplicate, check sysname
+                where = "sysname = '" + sysname + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    error = 'Sysname ' + sysname + ' (' + form['ip'] + \
+                            ') already exists in database'
+                    nextStep = STEP_1
+            if error:
+                templateform.error = error
+                templateform.add(editboxNetbox(editId=selected,formData=form))
+                editboxHidden.addHidden(CNAME_STEP,nextStep)
+                return (status,action,templateform)
+
+        if editTables.Cat(form['catid']).req_snmp == True:
+            # SNMP required by cat
+            if len(form['ro']):
+                # RO specified, check SNMP
+                box = None
+                try:
+                    box = initBox.Box(form['ip'],form['ro'])
+                except TimeOutException:
+                    # No SNMP answer
+                    templateform.error = 'No SNMP response, check RO community'
+                    templateform.add(editboxNetbox(editId=selected,
+                                                   formData=form))
+                    return (status,action,templateform)
+                except Exception, e:
+                    # Other error (no route to host for example)
+                    templateform.error = 'Error:' + repr(e)
+                    templateform.add(editboxNetbox(editId=selected,
+                                                   formData=form))
+                    return (status,action,templateform)
+     
+                box.getDeviceId()
+                templateform.add(editboxNetbox(editId=selected,
+                                               formData=form,disabled=True))
+                if box.typeid:
+                    # Got type
+                    if box.serial:
+                        serial = box.serial
+                    else:
+                        serial = oldBox.device.serial
+                    templateform.add(editboxNetboxSerial(
+                                     gotRo=True,
+                                     serial=serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion,
+                                     editSerial=True))
+                    if box.serial:
+                        # Got serial, go directly to step 2
+                        step = STEP_2
+                    else:
+                        nextStep = STEP_2
+                else:
+                    # Couldn't find type, ask user to add
+                    message = message % (box.sysobjectid,)
+                    templateform.add(editboxHiddenOrMessage(message))
+            else:
+                # RO blank, return error
+                templateform.error = 'Category ' + form['catid'] + \
+                                     ' requires a RO community'
+                templateform.add(editboxNetbox(editId=selected,formData=form))
+        else:
+            # SNMP not required by cat
+            if len(form['ro']):
+                # RO specified, check SNMP anyway
+                box = None
+                try:
+                    box = initBox.Box(form['ip'],form['ro'])
+                except TimeOutException:
+                    templateform.error = 'No SNMP response, check RO community'
+                    templateform.add(editboxNetbox(editId=selected,
+                                                   formData=form))
+                    return (action,templateform)
+                except Exception, e:
+                    # Other error (no route to host for example)
+                    templateform.error = 'Error:' + repr(e)
+                    templateform.add(editboxNetbox(editId=selected,
+                                                   formData=form))
+                    return (action,templateform)
+
+                box.getDeviceId()
+                templateform.add(editboxNetbox(editId=selected,
+                                               formData=form,
+                                               disabled=True))
+                if box.typeid:
+                    # Got type
+                    if box.serial:
+                        serial = box.serial
+                    else:
+                        serial = oldBox.device.serial
+                    templateform.add(editboxNetboxSerial(gotRo=True,
+                                     serial=serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion,
+                                     editSerial=True))
+                    if box.serial:
+                        # Got serial, go directly to step 2
+                        step = STEP_2
+                    else:
+                        nextStep = STEP_2
+                else:
+                    # Unknown type, ask user to add
+                    message = message % (box.sysobjectid,)
+                    templateform.add(editboxHiddenOrMessage(message))
+            else:
+                # RO blank, don't check SNMP, ask for serial
+                templateform.add(editboxNetbox(editId=selected,
+                                               formData=form,
+                                               disabled=True))
+                serial = oldBox.device.serial
+                templateform.add(editboxNetboxSerial(gotRo=False,
+                                                     serial = serial,
+                                                     sysname=sysname,
+                                                     editSerial=True))
+                nextStep = STEP_2
+    if step == STEP_2:
+        # Always use the old serial
+        serial = oldBox.device.serial
+            
+        if nextStep == STEP_3:
+            # We didn't get here by skipping a step (ie. we didn't get
+            # serialnumber by SNMP), so we must add the first two boxes
+            templateform.add(editboxNetbox(editId=selected,
+                                           formData=form,disabled=True))
+            templateform.add(editboxNetboxSerial(gotRo=False,
+                             serial=req.form['serial'],
+                             sysname=req.form['sysname'],
+                             typeid=req.form['typeid'],
+                             snmpversion=req.form['snmpversion']))
+        # If the serial was changed we have to check if it's unique
+        if (oldBox.device.serial != form['serial']) and len(serial):
+            # Any other devices in the database with this serial?
+            where = "serial = '" + str(form['serial']) + "'"
+            device = editTables.Device.getAll(where)
+            if device:
+                message = 'Can\'t change the serialnumber since another ' + \
+                          'device with this serial exists in ' + \
+                          'the database.'
+                templateform.add(editboxHiddenOrMessage(message))
+                templateform.showConfirm = False
+                return (status,action,templateform)
+
+        # Show subcategory/function editbox 
+        # If category has changed, then don't load the old subcatinfo
+        if oldBox.catid != form['catid']:
+            templateform.add(editboxNetboxCategory(req.form['catid'],
+                                                   showHelp=False))
+        else:
+            templateform.add(editboxNetboxCategory(req.form['catid'],
+                                                   selected))
+        nextStep = STEP_3
+
+    if step == STEP_3:
+        subcatlist = None
+        if form.has_key('subcat'):
+            subcatlist = form['subcat']
+            if not type(subcatlist) is list:
+                subcatlist = [subcatlist]
+        function = None
+        if form.has_key('function'):
+            function = req.form['function']
+        typeId = None
+        if form.has_key('typeid'):
+            typeId = req.form['typeid']
+        snmpversion = None
+        if form.has_key('snmpversion'):
+            snmpversion = form['snmpversion']
+
+        # Update netbox
+        fields = {'ip': form['ip'],
+                  'sysname': form['sysname'],
+                  'catid': form['catid'],
+                  'roomid': form['roomid'],
+                  'orgid': form['orgid'],
+                  'ro': form['ro'],
+                  'rw': form['rw']}
+
+        if typeId:
+            fields['typeid'] = typeId
+        updateEntryFields(fields,'netbox','netboxid',selected)
+
+        # Update device
+        fields = {'serial': form['serial']}
+        deviceId = str(oldBox.device.deviceid)
+        updateEntryFields(fields,'device','deviceid',deviceId)
+
+        # Remove old subcat and function entries
+        netboxId = oldBox.netboxid
+        deleteEntry([netboxId],'netboxcategory','netboxid')
+        deleteEntry([netboxId],'netboxinfo','netboxid')
+
+        # If subcatlist and function is given, insert them
+        if subcatlist:
+            for sc in subcatlist:
+                fields = {'netboxid': netboxId,
+                          'category': sc}
+                addEntryFields(fields,'netboxcategory')
+
+        if function:
+            fields = {'netboxid': netboxId,
+                      'key': '',
+                      'var': 'function',
+                      'val': function}
+            addEntryFields(fields,'netboxinfo')
+
+        action = 'list'
+        status = 'Updated box ' + form['sysname'] + ' (' + \
+                 form['ip'] + ')'
+
+    if not step == STEP_3: 
+        # Unless this is the last step, set the nextStep
+        editboxHidden.addHidden(CNAME_STEP,nextStep) 
+    return (status,action,templateform)
 
 def addNetbox(req,templateform):
-    action = 'add'
+    ADD_TYPE_URL = BASEPATH + 'type/edit/'
+    STEP_1 = 1
+    STEP_2 = 2
+    STEP_3 = 3
+    CNAME_STEP = 'step' 
+    # Step0: ask for ip,ro,rw,catid,org,room
+    # Step1: ask for serial (and sysname,snmpversion and typeid)
+    # Step2: ask for subcategory and function
+    # Step3: add the box
+    message = "Got SNMP response, but can't find type in " + \
+              "database. You must <a href=\"" + ADD_TYPE_URL + \
+              "?sysobjectid=%s\" " + \
+              "target=\"_blank\">add the " + \
+              "type</a>  before proceeding (a new window will " + \
+              "open, when the new type is added, press " + \
+              "Continue to proceed)."
 
-    subcategories = False
-    if editTables.Subcat.getAllIterator(where="catid='" +req.form['catid'] + \
-                                        "'"):
-        subcategories = True
+    box = None
+    status = None
+    action = 'predefined'
+    form = req.form
+    templateform.title = 'Add box'
 
-    if req.form.has_key(editForm.CNAME_CONTINUE):
-        # User has pressed "Continue"
-        subcatlist = None
-        function = None
-        if subcategories and req.form.has_key('subcat'):
-            subcatlist = req.form['subcat']
-            function = req.form['function']
+    # Add editbox with hidden values for step (and deviceid)
+    editboxHidden = editboxHiddenOrMessage()
+    templateform.add(editboxHidden)
+    # What step are we in?
+    step = STEP_1
+    if form.has_key(CNAME_STEP):
+        step = int(form[CNAME_STEP])
+    nextStep = step + 1
 
+    if step == STEP_1:
+        # Look up sysname in DNS
         try:
-            insertNetbox(req.form['ip'],
-                         req.form['catid'],
-                         req.form['roomid'],
-                         req.form['orgid'],
-                         req.form['ro'],
-                         req.form['rw'],
-                         deviceid = None,
-                         serial = req.form['serial'],
-                         subcatlist = subcatlist,
-                         function = function)
-            templateform.status = "Added new box with ip '" + \
-                                  req.form['ip'] + "'"
-            action = 'list'
-        except Exception,e:
-            templateform.error = 'Error: ' + repr(type(e)) + ' ' + repr(e.args)
-    else:
-        if len(req.form['ro']):
-            # Got read community
-            try:
-                box = initBox.Box(req.form['ip'],req.form['ro'])
-                if box:
-                    # getDeviceId() cannot return more than one id since
-                    # the database doesn't support it (serial must be unique)
-                    # this must be updated if the db is updated
-                    deviceId = box.getDeviceId()
-                    if deviceId:
-                        deviceId = str(deviceId[0])
-                    if not deviceId:
-                        if box.serial:
-                            templateform = editForm(editForm.CNAME_CONTINUE)
-                            templateform.action = BASEPATH + 'netbox/edit'
-                            templateform.add(editboxNetboxSerial(gotRo=True,
-                                             serial=box.serial))
-                            templateform.add(editboxNetboxCategory(\
-                                             req.form['catid']))
-                            templateform.add(editboxNetbox(formData=req.form))
-                            action = 'serial' 
-                        else:
-                            templateform.error = 'No device, no serial'
-                    else:
-                        # Found this device in the database
-                        # insert the netbox
-                        try:
-                            insertNetbox(req.form['ip'],
-                                         req.form['catid'],
-                                         req.form['roomid'],
-                                         req.form['orgid'],
-                                         req.form['ro'],
-                                         req.form['rw'],
-                                         deviceid = deviceId)
-                            templateform.status = 'Device found in database,'+\
-                                                  ' added new box'
-                        except Exception,e:
-                            templateform.error = 'Error: ' + \
-                                                 repr(type(e)) + ' ' + \
-                                                 repr(e.args)
-                else:
-                    templateform.error = 'No box from initBox'
-            except nav.Snmp.TimeOutException,e:
-                templateform.error = repr(e)
-        else:
-            # Didn't get read community, ask for serial
-            templateform = editForm(editForm.CNAME_CONTINUE)
-            templateform.action = BASEPATH + 'netbox/edit'
-            templateform.add(editboxNetboxSerial(gotRo=False))
-            templateform.add(editboxNetboxCategory(req.form['catid']))
-            templateform.add(editboxNetbox(formData=req.form))
-            action = 'serial' 
-    return (action,templateform)
+            sysname = gethostbyaddr(form['ip'])[0]
+        except:
+            sysname = form['ip']
 
+        # Check if sysname or ip is already present in db
+        error = None
+        where = "ip = '" + form['ip'] + "'"
+        box = editTables.Netbox.getAll(where)
+        if box:
+            error = 'IP already exists in database'
+            nextStep = STEP_1
+        if not error:
+            # If IP isn't duplicate, check sysname
+            where = "sysname = '" + sysname + "'"
+            box = editTables.Netbox.getAll(where)
+            if box:
+                error = 'Sysname ' + sysname + ' (' + form['ip'] + \
+                        ') already exists in database'
+                nextStep = STEP_1
+        if error:
+            templateform.error = error
+            templateform.add(editboxNetbox(formData=form))
+            editboxHidden.addHidden(CNAME_STEP,nextStep)
+            return (status,action,templateform)
+
+        if editTables.Cat(form['catid']).req_snmp == True:
+            # SNMP required by cat
+            if len(form['ro']):
+                # RO specified, check SNMP
+                box = None
+                try:
+                    box = initBox.Box(form['ip'],form['ro'])
+                except TimeOutException:
+                    # No SNMP answer
+                    templateform.error = 'No SNMP response, check RO community'
+                    templateform.add(editboxNetbox(formData=form))
+                    return (status,action,templateform)
+                except Exception, e:
+                    # Other error (no route to host for example)
+                    templateform.error = 'Error:' + repr(e)
+                    templateform.add(editboxNetbox(formData=form))
+                    return (status,action,templateform)
+     
+                box.getDeviceId()
+                templateform.add(editboxNetbox(formData=form,disabled=True))
+                if box.typeid:
+                    # Got type
+                    templateform.add(editboxNetboxSerial(
+                                     gotRo=True,
+                                     serial=box.serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion))
+                    if box.serial:
+                        # Got serial, go directly to step 2
+                        step = STEP_2
+                    else:
+                        nextStep = STEP_2
+                else:
+                    # Couldn't find type, ask user to add
+                    message = message % (box.sysobjectid,)
+                    templateform.add(editboxHiddenOrMessage(message))
+            else:
+                # RO blank, return error
+                templateform.error = 'Category ' + form['catid'] + \
+                                     ' requires a RO community'
+                templateform.add(editboxNetbox(formData=form))
+        else:
+            # SNMP not required by cat
+            if len(form['ro']):
+                # RO specified, check SNMP anyway
+                box = None
+                try:
+                    box = initBox.Box(form['ip'],form['ro'])
+                except TimeOutException:
+                    templateform.error = 'No SNMP response, check RO community'
+                    templateform.add(editboxNetbox(formData=form))
+                    return (action,templateform)
+                except Exception, e:
+                    # Other error (no route to host for example)
+                    templateform.error = 'Error:' + repr(e)
+                    templateform.add(editboxNetbox(formData=form))
+                    return (action,templateform)
+
+                box.getDeviceId()
+                templateform.add(editboxNetbox(formData=form,disabled=True))
+                if box.typeid:
+                    # Got type
+                    templateform.add(editboxNetboxSerial(gotRo=True,
+                                     serial=box.serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion))
+                    if box.serial:
+                        # Got serial, go directly to step 2
+                        step = STEP_2
+                    else:
+                        nextStep = STEP_2
+                else:
+                    # Unknown type, ask user to add
+                    message = message % (box.sysobjectid,)
+                    templateform.add(editboxHiddenOrMessage(message))
+            else:
+                # RO blank, don't check SNMP, ask for serial
+                templateform.add(editboxNetbox(formData=form,disabled=True))
+                templateform.add(editboxNetboxSerial(gotRo=False,
+                                                     sysname=sysname))
+                nextStep = STEP_2
+    if step == STEP_2:
+        if box:
+            # If we got here by skipping a step (ie. got serial by SNMP)
+            # the serial isn't posted yet, but we still got the box object
+            serial = box.serial
+        else:
+            serial = req.form['serial']
+            
+        if nextStep == STEP_3:
+            # We didn't get here by skipping a step (ie. we didn't get
+            # serialnumber by SNMP), so we must add the first two boxes
+            templateform.add(editboxNetbox(formData=form,disabled=True))
+            templateform.add(editboxNetboxSerial(gotRo=False,
+                             serial=req.form['serial'],
+                             sysname=req.form['sysname'],
+                             typeid=req.form['typeid'],
+                             snmpversion=req.form['snmpversion'],
+                             formData=form))
+        if len(serial):
+            # Any devices in the database with this serial?
+            where = "serial = '" + str(serial) + "'"
+            device = editTables.Device.getAll(where)
+            if device:
+                # Found a device with this serial
+                deviceId = device[0].deviceid
+                # Must check if there already is a box with this serial
+                where = "deviceid = '" + str(deviceId) + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    box = box[0]
+                    message = 'A box with this serial already exists ' + \
+                              '(' + box.sysname + ')'
+                    templateform.add(editboxHiddenOrMessage(message))
+                    #This doesn't work for some reason:
+                    #templateform.add(editboxNetbox(box.netboxid,
+                    #                               disabled=True))
+                    templateform.showConfirm = False
+                    return (status,action,templateform)
+            else:
+                # Not found, make new device
+                deviceId = None
+        else:
+            # No serial specified
+            deviceId = None
+        editboxHidden.addHidden('deviceid',deviceId)
+
+        # Show subcategory/function editbox 
+        templateform.add(editboxNetboxCategory(req.form['catid']))
+        nextStep = STEP_3
+
+    if step == STEP_3:
+        subcatlist = None
+        if form.has_key('subcat'):
+            subcatlist = form['subcat']
+        function = None
+        if form.has_key('function'):
+            function = form['function']
+        typeId = None
+        if form.has_key('typeid'):
+            typeId = form['typeid']
+        snmpversion = None
+        if form.has_key('snmpversion'):
+            snmpversion = form['snmpversion']
+
+        insertNetbox(form['ip'],form['sysname'],
+                     form['catid'],form['roomid'],
+                     form['orgid'],form['ro'],
+                     form['rw'],form['deviceid'],
+                     form['serial'],typeId,
+                     snmpversion,subcatlist,
+                     function)
+        action = 'list'
+        status = 'Added box ' + form['sysname'] + ' (' + \
+                 form['ip'] + ')'
+
+    if not step == STEP_3: 
+        # Unless this is the last step, set the nextStep
+        editboxHidden.addHidden(CNAME_STEP,nextStep) 
+    return (status,action,templateform)
 
 # Function for handling listing and editing of netboxes
 def editNetbox(req,selected,action,error=None):
@@ -1487,7 +1849,7 @@ def editNetbox(req,selected,action,error=None):
     editList = selectList()
     editList.table = editTables.editdbNetbox
     editList.tablename = 'netbox'
-    editList.orderBy = 'sysname'
+    editList.orderBy = ['roomid','sysname']
     editList.idcol = 'netboxid'
     editList.columns = [('Room','roomid',False),
                         ('Sysname','sysname',True),
@@ -1498,24 +1860,19 @@ def editNetbox(req,selected,action,error=None):
                         ('RW','rw',False)]
 
     # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm) or \
-        req.form.has_key(editForm.CNAME_CONTINUE):
-
+    if req.form.has_key(form.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
-            if req.form.has_key(editForm.CNAME_CONTINUE):
+            if req.form.has_key(ADDNEW_ENTRY):
                 # add new netbox
-                (action,form) = addNetbox(req,form)
-                # Ugly, fix:
-                editList.status = form.status
-            elif req.form.has_key(ADDNEW_ENTRY):
-                # add new netbox
-                (action,form) = addNetbox(req,form)
+                (status,action,form) = addNetbox(req,form)
+                if action == 'list':
+                    editList.status = status
             elif req.form.has_key(UPDATE_ENTRY):
-                #error,selected = updateEntry(req,templatebox,table,idfield)
-                selected = updateNetbox(req)
-                action = 'edit'
-                form.status = 'Updated'
+                selected = selected[0]
+                (status,action,form) = updateNetbox(req,form,selected)
+                if action == 'list':
+                    editList.status = status
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -1525,25 +1882,23 @@ def editNetbox(req,selected,action,error=None):
         action = 'list' 
     
     # Decide what to show 
-    if action == 'edit':
-        path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
-        if len(selected)>1:
-            form.title = 'Edit boxes'
-        else:
-            form.title = 'Edit box'
-        form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxNetbox(s))
-            catid = editTables.Netbox(s).cat.catid
-            form.add(editboxNetboxCategory(catid,s))
-        editList = None
-    elif action == 'serial':
-        form.title = 'Register box'
+    if action == 'predefined':
+        # Action is predefined by addNetbox() or updateNetbox()
         form.textConfirm = 'Continue'
+        editList = None
+    elif action == 'edit':
+        path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
+        form.title = 'Edit box'
+        form.textConfirm = 'Continue'
+        # can only edit one
+        selected = selected[0]
+        form.add(editboxNetbox(selected))
+        # preserve path
+        form.action = BASEPATH + 'netbox/edit/' + selected
         editList = None
     elif action == 'add':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
-        form.title = 'Register box'
+        form.title = 'Add box'
         form.textConfirm = 'Add'
         form.add(editboxNetbox())
         editList = None
@@ -1594,7 +1949,7 @@ def editUsage(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='usageid')
                 if not error:
-                    form.status = "Added new usage category '" + \
+                    editList.status = "Added usage category '" + \
                                   req.form['usageid'] + "'"
                     action = 'list'
                 else:
@@ -1604,8 +1959,11 @@ def editUsage(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              unique='usageid')
                 if not error:
-                    form.status = 'Updated'
-                    action = 'edit'
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Usage(s).usageid + ' ' 
+                    editList.status = status
+                    action = 'list'
                 else:
                     form.error = error
                     action = 'edit'
@@ -1634,7 +1992,7 @@ def editUsage(req,selected,action,error=None):
                            ('Add',False)]
         form.title = 'Add new usage category'
         form.textConfirm = 'Add'
-        form.add(editboxUsage())
+        form.add(editboxUsage(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Usage categories',BASEPATH+'usage/list'),
@@ -1694,23 +2052,71 @@ def addService(req,form):
                 for property in properties['optargs']:
                     # optargs are optional, must check if they are present
                     if req.form.has_key(property):
-                        fields = {'serviceid': serviceid,
-                                  'property': property,
-                                  'value': req.form[property]}
-                        addEntryFields(fields,
-                                       'serviceproperty')
-                        action = 'list'
+                        if len(req.form[property]):
+                            fields = {'serviceid': serviceid,
+                                      'property': property,
+                                      'value': req.form[property]}
+                            addEntryFields(fields,
+                                           'serviceproperty')
+                            action = 'list'
     else:
         checker = req.form['handler']
         form = editForm(editForm.CNAME_CONTINUE)
         form.title = 'Add service'
+        form.add(editboxService(formData=req.form,disabled=True))
         form.add(editboxServiceProperties(checker,req.form['netboxid']))
-        form.add(editboxService(formData=req.form))
         form.textConfirm = 'Add service'
         form.error = "Missing required property '" + missing + "'"
         action = 'properties'
     return action,form
 
+def updateService(req,form):
+    action = 'edit'
+    editId = req.form[UPDATE_ENTRY]
+    # Check if all required serviceproperties are present
+    handler = editTables.Service(editId).handler
+    properties = getDescription(handler)
+    missing = False
+    if properties and properties.has_key('args'):
+        for required in properties['args']:
+            if not req.form.has_key(required):
+                missing = required
+            if req.form.has_key(required):
+                if not len(req.form[required]):
+                    missing = required
+
+    if not missing:
+        # Update service entry
+        fields = {'netboxid': req.form['netboxid'],
+                  'handler': handler}
+        updateEntryFields(fields,'service','serviceid',editId)
+        # Update serviceproperty entries
+        if properties:
+            # Delete old properties
+            deleteEntry([editId],'serviceproperty','serviceid')
+            if properties.has_key('args'):
+                for property in properties['args']:
+                    # Already know that all properties in 'args' are present
+                    fields = {'serviceid': editId,
+                              'property': property,
+                              'value': req.form[property]}
+                    addEntryFields(fields,'serviceproperty')
+                    action = 'list'
+            if properties.has_key('optargs'):
+                for property in properties['optargs']:
+                    # optargs are optional, must check if they are present
+                    if req.form.has_key(property):
+                        if len(req.form[property]):
+                            fields = {'serviceid': editId,
+                                      'property': property,
+                                      'value': req.form[property]}
+                            addEntryFields(fields,'serviceproperty')
+                            action = 'list'
+    else:
+        form.error = "Missing required property '" + missing + "'"
+        action = 'edit'
+    selected = [editId]
+    return action,form,selected
 
 # Function for handling listing and editing of services
 def editService(req,selected,action,error=None):
@@ -1725,7 +2131,7 @@ def editService(req,selected,action,error=None):
     editList = selectList()
     editList.table = editTables.Service
     editList.tablename = 'service'
-    editList.orderBy = 'serviceid'
+    editList.orderBy = 'handler'
     editList.idcol = 'serviceid'
     editList.columns = [('Server','netbox',True),
                         ('Handler','handler',False),
@@ -1734,23 +2140,34 @@ def editService(req,selected,action,error=None):
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm) or \
        req.form.has_key(form.CNAME_CONTINUE):
-        missing = templatebox.hasMissing(req) 
+        missing = templatebox.hasMissing(req)
         if not missing:
             if req.form.has_key(form.CNAME_CONTINUE):
                 action,form = addService(req,form)
             elif req.form.has_key(ADDNEW_ENTRY):
                 checker = req.form['handler']
-                form = editForm(editForm.CNAME_CONTINUE)
-                form.title = 'Add service'
-                form.add(editboxServiceProperties(checker,req.form['netboxid']))
-                form.add(editboxService(formData=req.form))
-                form.textConfirm = 'Add service'
-                editList = None
-                action = 'properties'
+                # Check if this handler need any properties 
+                properties = getDescription(req.form['handler'])
+                if properties:
+                    form = editForm(editForm.CNAME_CONTINUE)
+                    form.title = 'Add service'
+                    form.add(editboxService(formData=req.form,disabled=True))
+                    form.add(editboxServiceProperties(checker,
+                                                      req.form['netboxid']))
+                    form.textConfirm = 'Add service'
+                    editList = None
+                    action = 'properties'
+                else:
+                    # No properties needed, so just add the service
+                    addService(req,form)
+                    editList.status = 'Added service'
+                    action = 'list'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                action,form,selected = updateService(req,form)
+                if action == 'list':
+                    editList.status = 'Updated service'
+                else:
+                    editList = None
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -1759,16 +2176,24 @@ def editService(req,selected,action,error=None):
         editList.status = 'Selected service(s) deleted'
         action = 'list' 
     
-    # Decide what to show 
-    if action == 'edit':
+    # Decide what to show
+    if action == 'properties':
+        editList = None 
+    elif action == 'edit':
         path = EDITPATH + [('Services',BASEPATH+'service/list'),('Edit',False)]
         if len(selected)>1:
             form.title = 'Edit services'
         else:
             form.title = 'Edit service'
         form.textConfirm = 'Update'
-        for s in selected:
-            form.add(editboxService(s))
+        # Only allow editing of one service at a time
+        selected = selected[0]
+        form.add(editboxService(selected))
+        checker = editTables.editdbService(selected).handler
+        netboxid = editTables.editdbService(selected).netboxid
+        properties = getDescription(checker)
+        if properties:
+            form.add(editboxServiceProperties(checker,netboxid,editId=selected))
         editList = None
     elif action == 'add':
         path = EDITPATH + [('Services',BASEPATH+'service/list'),('Add',False)]
@@ -1797,6 +2222,100 @@ def editService(req,selected,action,error=None):
     template.path = path
     return template.respond()
 
+# Function for handling listing and editing of organisations
+def editSubcat(req,selected,action,error=None):
+    path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),('Add',False)]
+    table = 'subcat'
+    idfield = 'subcatid'
+    templatebox = editboxSubcat()
+    # Form definition
+    form = editForm()
+    form.action = BASEPATH + 'subcat/edit/'
+    # List definition
+    editList = selectList()
+    editList.table = editTables.editdbSubcat
+    editList.tablename = 'subcat'
+    editList.orderBy = ['catid','subcatid']
+    editList.idcol = 'subcatid'
+    editList.columns = [('Subcategory','subcatid',True),
+                        ('Category','catid',False),
+                        ('Description','descr',False)]
+
+    # Check if the confirm button has been pressed
+    if req.form.has_key(form.cnameConfirm):
+        missing = templatebox.hasMissing(req) 
+        if not missing:
+            if req.form.has_key(ADDNEW_ENTRY):
+                error = addEntry(req,templatebox,table,unique='subcatid')
+                if not error:
+                    editList.status = "Added subcategory '" + \
+                                  req.form['subcatid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
+            elif req.form.has_key(UPDATE_ENTRY):
+                selected,error = updateEntry(req,templatebox,table,
+                                             idfield,unique='subcatid')
+                if not error:
+                    status = 'Updated '
+                    for s in selected:
+                        status += editTables.Subcat(s).subcatid + ' ' 
+                    editList.status = status
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'edit'
+        else:
+            form.error = "Required field '" + missing + "' missing"    
+    # Confirm delete pressed?
+    if req.form.has_key(selectList.cnameDeleteConfirm):
+        deleteEntry(selected,table,idfield)
+        editList.status = 'Selected subcategory deleted'
+        action = 'list' 
+    
+    # Decide what to show 
+    if action == 'edit':
+        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
+                           ('Edit',False)]
+        if len(selected)>1:
+            form.title = 'Edit subcategory'
+        else:
+            form.title = 'Edit subcategory'
+        form.textConfirm = 'Update'
+        for s in selected:
+            form.add(editboxSubcat(s))
+        editList = None
+    elif action == 'add':
+        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
+                           ('Add',False)]
+        form.title = 'Add new subcategory'
+        form.textConfirm = 'Add'
+        form.add(editboxSubcat(formData=req.form))
+        editList = None
+    elif action == 'delete':
+        path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
+                           ('Delete',False)]
+        editList.isDeleteList = True
+        editList.deleteList = selected
+        editList.title = 'Are you sure you want to delete the selected ' + \
+                         'subcategory?'
+        editList.action = BASEPATH + 'subcat/edit/'
+        editList.fill()
+    elif action == 'list':
+        path = EDITPATH + [('Subcategories',False)]
+        editList.title = 'Edit subcategories'
+        editList.action = BASEPATH + 'subcat/edit/'
+        editList.error = error
+        editList.fill()
+        # don't display the form
+        form = None
+
+    nameSpace = {'editList': editList, 'editForm': form}
+    template = editdbTemplate(searchList=[nameSpace])
+    template.path = path
+    return template.respond()
+
 
 # Class representing a form, used by the template
 class editForm:
@@ -1812,7 +2331,9 @@ class editForm:
     # Text and controlname
     textConfirm = None
     cnameConfirm = 'form_confirm'
+    showConfirm = True
 
+    # Used by edit netbox in the intermediate
     CNAME_CONTINUE = 'cname_continue'
 
     # List of editboxes to display
@@ -1832,8 +2353,9 @@ class inputText:
     name = None
     value = ''
     maxlength = None
-    def __init__(self,value='',size=22,maxlength=None):
+    def __init__(self,value='',size=22,maxlength=None,disabled=False):
         self.value = value
+        self.disabled = disabled
         self.size = str(size)
         if maxlength:
             self.maxlength = str(maxlength)
@@ -1841,10 +2363,12 @@ class inputText:
 class inputSelect:
     type = 'select'
     name = None
-    value = ''
-    def __init__(self,options=None,table=None,attribs=None):
+    
+    def __init__(self,options=None,table=None,attribs=None,disabled=False):
+        self.value = ''
         self.options = options
         self.attribs = attribs
+        self.disabled = disabled
 
         if table:
             self.options = table.getOptions() 
@@ -1853,8 +2377,9 @@ class inputMultipleSelect:
     type = 'multipleselect'
     name = None
     value = []
-    def __init__(self,options=None,table=None):
+    def __init__(self,options=None,table=None,disabled=False):
         self.options = options
+        self.disabled = disabled
 
         if table:
             self.options = table.getOptions() 
@@ -1863,6 +2388,7 @@ class inputFile:
     type = 'file'
     name = None
     value = ''
+    disabled = False
     def __init__(self):
         pass
 
@@ -1870,6 +2396,7 @@ class inputTextArea:
     type = 'textarea'
     name = None
     value = ''
+    disabled = False
 
     def __init__(self,rows=20,cols=80):
         self.rows = rows
@@ -1884,12 +2411,14 @@ class inputCheckbox:
     # the template for checkboxes (bad)
     value = "1"
 
-    def __init__(self):
+    def __init__(self,disabled=False):
         self.value = "1"
+        self.disabled = disabled
 
 class inputHidden:
     type = 'hidden'
     name = None
+    disabled = False
 
     def __init__(self,value):
         self.value = value
@@ -1902,12 +2431,12 @@ class editbox:
     def fill(self):
         " Fill this form from the database "
         entry = self.table(self.editId)
-
+       
         self.boxName = UPDATE_ENTRY
         self.boxId = self.editId
 
         for fieldname,desc in self.fields.items():
-            desc[0].value = getattr(entry,fieldname)
+            desc[0].value = str(getattr(entry,fieldname))
 
     def setControlNames(self,controlList=None):
         " Set controlnames for the inputs to the fieldnames "
@@ -1932,18 +2461,40 @@ class editbox:
                 if type(req.form[field]) is list:
                     # the field is a list, several entries have been edited
                     for each in req.form[field]:
-                        if desc[1]:
+                        if desc[1] == REQ_TRUE:
                             # this field is required
                             if not len(each):
                                 missing = field
                                 break
                 else:
-                    if desc[1]:
+                    if desc[1] == REQ_TRUE:
                         # tihs field is required
                         if not len(req.form[field]):
                             missing = field
                             break
         return missing
+
+    def addHidden(self,fieldname,value):
+        self.hiddenFields[fieldname] = [inputHidden(value),False]
+        self.hiddenFields[fieldname][0].name = fieldname
+
+    def addDisabled(self):
+        # Since fields are disabled, they aren't posted (stupid HTML)
+        # so we must add them as hidden fields
+        # This only goes for textinputs (?!) so we must also change
+        # controlnames to avoid getting double values for selects, etc.
+        for fieldname,definition in self.fields.items():
+            if not definition[0].type=='hidden':
+                self.addHidden(fieldname,definition[0].value)
+                definition[0].name = definition[0].name + '_disabled'
+
+    def formFill(self,formData):
+        # Fill this editbox with data from the form
+        # This is used by intermediate steps (like register serial)
+        # to remember fieldvalues
+        for field,definition in self.fields.items():
+            if formData.has_key(field):
+                definition[0].value = formData[field]
 
 class editboxServiceProperties(editbox):
     type = 'serviceproperties'
@@ -1962,18 +2513,35 @@ class editboxServiceProperties(editbox):
 
             if properties.has_key('args'):
                 for a in properties['args']:
-                    self.args[a] = [inputText(),True]
+                    self.args[a] = [inputText(),REQ_TRUE]
                     self.setControlNames(self.args)
             if properties.has_key('optargs'):
                 for a in properties['optargs']:
-                    self.optargs[a] = [inputText(),False]
+                    self.optargs[a] = [inputText(),REQ_FALSE]
                     self.setControlNames(self.optargs)
+
+            if editId:
+                sql = "SELECT * FROM serviceproperty WHERE " + \
+                      "serviceid='" + editId + "'"
+                result = executeSQLreturn(sql)
+                for entry in result:
+                    property = entry[1]
+                    value = entry[2]
+                    if self.args.has_key(property):
+                        self.args[property][0].value = value
+                    if self.optargs.has_key(property):
+                        self.optargs[property][0].value = value
+
+        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+        # don't need to repeat it here 
+        self.boxName = IGNORE_BOX
 
 class editboxService(editbox):
     type = 'service'
-    table = editTables.Service
+    table = editTables.editdbService
             
-    def __init__(self,editId=None,formData=None):
+    def __init__(self,editId=None,formData=None,disabled=False):
+        self.hiddenFields = {}
         self.help = ''
         if not editId and not formData:
             self.help = 'Select a server and a service handler'
@@ -1990,12 +2558,13 @@ class editboxService(editbox):
         checkers.sort()
         handlers += checkers
 
-        f = {'netboxid': [inputSelect(options=servers),True],
-             'handler': [inputSelect(options=handlers),True]}
-        if formData:
-            #raise(repr(formData['netboxid']))
-            f['netboxid'][0].value = str(formData['netboxid'])
-            f['handler'][0].value = formData['handler']
+        disabledHandler = disabled
+        if editId:
+            disabledHandler = True
+        f = {'netboxid': [inputSelect(options=servers,disabled=disabled),
+                         REQ_TRUE],
+             'handler': [inputSelect(options=handlers,disabled=disabledHandler),
+                        REQ_TRUE]}
 
         self.fields = f
         self.setControlNames()
@@ -2004,78 +2573,95 @@ class editboxService(editbox):
             self.editId = editId
             self.fill()
 
+        if formData:
+            self.formFill(formData)
+
+        if disabled:
+            self.addDisabled()
+ 
  
 class editboxRoom(editbox):
     type = 'room'
     table = editTables.editdbRoom
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'roomid': [inputText(),True],
-             'locationid': [inputSelect(table=editTables.editdbLocation),True],
-             'descr': [inputText(),False],
-             'opt1': [inputText(),False],
-             'opt2': [inputText(),False],
-             'opt3': [inputText(),False],
-             'opt4': [inputText(),False]}
+        f = {'roomid': [inputText(),REQ_TRUE],
+             'locationid': [inputSelect(table=editTables.editdbLocation),REQ_TRUE],
+             'descr': [inputText(),REQ_FALSE],
+             'opt1': [inputText(),REQ_FALSE],
+             'opt2': [inputText(),REQ_FALSE],
+             'opt3': [inputText(),REQ_FALSE],
+             'opt4': [inputText(),REQ_FALSE]}
         self.fields = f
         self.setControlNames()
 
         if editId:
             self.editId = editId
             self.fill()
+        
+        if formData:
+            self.formFill(formData)
 
 class editboxLocation(editbox):
     type = 'location'
     table = editTables.Location
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'locationid': [inputText(),True],
-             'descr': [inputText(),True]}
+        f = {'locationid': [inputText(),REQ_TRUE],
+             'descr': [inputText(),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
 
         if editId:
             self.editId = editId
             self.fill()
+        
+        if formData:
+            self.formFill(formData)
 
 class editboxOrg(editbox):
     type = 'org'
-    table = editTables.editdbOrg
+    table = editTables.Org
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
         o = [('','No parent')]
-        for option in self.table.getOptions():
-            o.append(option)
 
-        f = {'orgid': [inputText(maxlength=10),True],
-             'parent': [inputSelect(options=o),False],
-             'descr': [inputText(),False],
-             'opt1': [inputText(),False],
-             'opt2': [inputText(),False],
-             'opt3': [inputText(),False]}
+        for org in self.table.getAllIterator():
+            o.append((org.orgid,org.orgid + \
+                      ' (' + str(org.descr) + ')'))
+
+        f = {'orgid': [inputText(maxlength=10),REQ_TRUE],
+             'parent': [inputSelect(options=o),REQ_NONEMPTY],
+             'descr': [inputText(),REQ_FALSE],
+             'opt1': [inputText(),REQ_FALSE],
+             'opt2': [inputText(),REQ_FALSE],
+             'opt3': [inputText(),REQ_FALSE]}
         self.fields = f
         self.setControlNames()
 
         if editId:
             self.editId = editId
             self.fill()
+
+        if formData:
+            self.formFill(formData)
 
 class editboxType(editbox):
     type = 'type'
     table = editTables.editdbType
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'typename': [inputText(),True],
-             'vendorid': [inputSelect(table=editTables.editdbVendor),True],
-             'descr': [inputText(),False],
-             'sysobjectid': [inputText(),True],
-             'cdp': [inputCheckbox(),False],
-             'tftp': [inputCheckbox(),False],
-             'frequency': [inputText(),False]}
+        f = {'typename': [inputText(),REQ_TRUE],
+             'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
+             'descr': [inputText(),REQ_TRUE],
+             'sysobjectid': [inputText(),REQ_TRUE],
+             'cdp': [inputCheckbox(),REQ_FALSE],
+             'tftp': [inputCheckbox(),REQ_FALSE],
+             'frequency': [inputText(),REQ_FALSE]}
 
         self.fields = f
         self.setControlNames()
@@ -2083,16 +2669,20 @@ class editboxType(editbox):
         if editId:
             self.editId = editId
             self.fill()
+
+        if formData:
+            self.formFill(formData)
+
 
 class editboxProduct(editbox):
     type = 'product'
     table = editTables.editdbProduct
 
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'vendorid': [inputSelect(table=editTables.editdbVendor),True],
-             'productno': [inputText(),True],
-             'descr': [inputText(),False]}
+        f = {'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
+             'productno': [inputText(),REQ_TRUE],
+             'descr': [inputText(),REQ_FALSE]}
 
         self.fields = f
         self.setControlNames()
@@ -2101,29 +2691,34 @@ class editboxProduct(editbox):
             self.editId = editId
             self.fill()
 
+        if formData:
+            self.formFill(formData)
 
 class editboxVendor(editbox):
     type = 'vendor'
     table = editTables.editdbVendor
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'vendorid': [inputText(maxlength=15),True]}
+        f = {'vendorid': [inputText(maxlength=15),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
 
         if editId:
             self.editId = editId
             self.fill()
+
+        if formData:
+            self.formFill(formData)
 
 class editboxUsage(editbox):
     type = 'usage'
     table = editTables.Usage
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'usageid': [inputText(),True],
-             'descr': [inputText(),True]}
+        f = {'usageid': [inputText(),REQ_TRUE],
+             'descr': [inputText(),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
 
@@ -2131,11 +2726,14 @@ class editboxUsage(editbox):
             self.editId = editId
             self.fill()
 
+        if formData:
+            self.formFill(formData)
+
 class editboxPrefix(editbox):
     type = 'prefix'
     table = editTables.editdbPrefixVlan
             
-    def __init__(self,editId=None):
+    def __init__(self,editId=None,formData=None):
         nettypes = [('static','static'),
                     ('reserved','reserved'),
                     ('scope','scope')]
@@ -2150,13 +2748,13 @@ class editboxPrefix(editbox):
                             usage.descr + ')'))
 
         # Field definitions {field name: [input object, required]}
-        f = {'netaddr': [inputText(),True],
-             'nettype': [inputSelect(options=nettypes),True],
-             'orgid': [inputSelect(options=orgs),False],
-             'netident': [inputText(),False],
-             'description': [inputText(),False],
-             'vlannumber': [inputText(size=5),False],
-             'usageid': [inputSelect(options=usageids),False]}
+        f = {'netaddr': [inputText(),REQ_TRUE],
+             'nettype': [inputSelect(options=nettypes),REQ_TRUE],
+             'orgid': [inputSelect(options=orgs),REQ_NONEMPTY],
+             'netident': [inputText(),REQ_FALSE],
+             'description': [inputText(),REQ_FALSE],
+             'vlannumber': [inputText(size=5),REQ_NONEMPTY],
+             'usageid': [inputSelect(options=usageids),REQ_NONEMPTY]}
              
         self.fields = f
         self.setControlNames()
@@ -2164,6 +2762,9 @@ class editboxPrefix(editbox):
         if editId:
             self.editId = editId
             self.fill() 
+
+        if formData:
+            self.formFill(formData)
 
 class editboxVlan(editbox):
     type = 'vlan'
@@ -2187,12 +2788,12 @@ class editboxVlan(editbox):
                             usage.descr + ')'))
 
         # Field definitions {field name: [input object, required]}
-        f = {'nettype': [inputSelect(options=nettypes),True],
-             'orgid': [inputSelect(options=orgs),False],
-             'netident': [inputText(),False],
-             'description': [inputText(),False],
-             'vlan': [inputText(size=5),False],
-             'usageid': [inputSelect(options=usageids),False]}
+        f = {'nettype': [inputSelect(options=nettypes),REQ_TRUE],
+             'orgid': [inputSelect(options=orgs),REQ_FALSE],
+             'netident': [inputText(),REQ_FALSE],
+             'description': [inputText(),REQ_FALSE],
+             'vlan': [inputText(size=5),REQ_FALSE],
+             'usageid': [inputSelect(options=usageids),REQ_FALSE]}
              
         self.fields = f
         self.setControlNames()
@@ -2201,44 +2802,98 @@ class editboxVlan(editbox):
             self.editId = editId
             self.fill() 
 
+# This editbox can display a message and contain hidden inputs
+class editboxHiddenOrMessage(editbox):
+    type = 'hiddenormessage'
+
+    def __init__(self,message=None):
+        self.hiddenFields = {}
+        self.message = message
+
+        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+        # don't need to repeat it here 
+        self.boxName = IGNORE_BOX
+
+
 class editboxNetboxSerial(editbox):
     type = 'netboxserial'
 
-    def __init__(self,gotRo,serial=''):
+    def __init__(self,gotRo,serial='',sysname=None,typeid=None,
+                 snmpversion=None,formData=None,editSerial=False):
+        self.hiddenFields = {}
+        # Set info fields
+        self.sysname = sysname
+        if typeid:
+            self.typename = editTables.Type(typeid).typename
+        else:
+            self.typename = 'n/a'
+        if snmpversion:
+            self.snmpversion = snmpversion
+        else:
+            self.snmpversion = 'n/a'
+
+        disabled = False
+        self.help = None
         if gotRo:
+            # RO was specified, so the box has been queried by SNMP
             if serial:
-                self.help = 'Serialnumber retrieved, but no device with ' + \
-                            'this serialnumber found in the database. ' + \
-                            'If you continue, a new device with this ' + \
-                            'serial will be created.'
+                # It returned a serialnumber
+                disabled = True
+                self.help = 'Serialnumber retrieved by SNMP.'
             else:
                 self.help = 'Unable to retrieve serialnumber for this ' + \
-                            'device. Enter a serialnumber, or leave blank ' + \
+                            'device by SNMP. ' + \
+                            'Enter a serialnumber, or leave blank ' + \
                             'if you don\'t want to register a serial ' +\
                             'for this device.'
         else:
-                self.help = 'Unable to retrieve serialnumber since no RO ' +\
-                            'community was specified. Enter a serialnumber, ' +\
-                            'or leave ' +\
-                            'blank if you don\'t want to register a serial '+\
-                            'for this device.'
+            if serial:
+                # Serial was entered manually
+                self.help = ''
+                disabled = True
+            else:   
+                self.help = 'Enter a serialnumber, or leave ' +\
+                            'blank if you don\'t want to register ' + \
+                            'a serial for this device.'
 
-        self.fields = {'serial': [inputText(value=serial),True]}
+        # If editSerial = True, override help text and always enable editing
+        if editSerial:
+            disabled = False
+            # Should be some help text here
+            self.help = ''
+
+        self.fields = {'serial': [inputText(value=serial,disabled=disabled),
+                                  REQ_TRUE]}
         self.setControlNames()
+
+        self.addHidden('sysname',sysname)
+        self.addHidden('typeid',typeid)
+        self.addHidden('snmpversion',snmpversion)
+
+        if formData:
+            self.formFill(formData)
+
+        if disabled:
+            self.addDisabled()
+        
+        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+        # don't need to repeat it here 
+        self.boxName = IGNORE_BOX
 
 class editboxNetboxCategory(editbox):
     type = 'netboxcategory'
     editId = None
 
-    def __init__(self,catid,editId=None):
+    def __init__(self,catid,editId=None,showHelp=True):
+        self.hiddenFields = {}
         subcategories = False
         if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
             subcategories = True
 
+        self.help = None
         if editId:
             self.editId = editId
-            self.help = None
-        else:
+        elif showHelp:
             # Only show help if we're adding a new box
             if subcategories:
                 self.help = 'You can select one or more subcategories for '+\
@@ -2255,27 +2910,23 @@ class editboxNetboxCategory(editbox):
             o.append((subcat.subcatid,subcat.subcatid + ' (' + \
                       subcat.descr + ')'))
         if editId:
-            # tag fieldnames with the id
             if subcategories:
-                self.fields = {editId + 'subcat': \
-                              [inputMultipleSelect(options=o),False],
-                              editId + 'function': [inputText(size=40),False]}
+                self.fields = {'subcat': \
+                              [inputMultipleSelect(options=o),REQ_FALSE],
+                              'function': [inputText(size=40),REQ_FALSE]}
             else:
-                self.fields = {editId + 'function': [inputText(size=40),False]}
+                self.fields = {'function': [inputText(size=40),REQ_FALSE]}
         else:
             if subcategories:
-                self.fields = {'subcat': [inputMultipleSelect(options=o),False],
-                               'function': [inputText(size=40),False]}
+                self.fields = {'subcat': [inputMultipleSelect(options=o),
+                                         REQ_FALSE],
+                               'function': [inputText(size=40),REQ_FALSE]}
             else:
-                self.fields = {'function': [inputText(size=40),False]}
+                self.fields = {'function': [inputText(size=40),REQ_FALSE]}
  
         self.setControlNames()
 
         if editId:
-            # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
-            # don't need to repeat it here 
-            self.boxName = IGNORE_BOX
-
             # Get selected netboxcategories
             sql = "SELECT category FROM netboxcategory WHERE netboxid='%s'" \
             % (editId,)
@@ -2285,7 +2936,7 @@ class editboxNetboxCategory(editbox):
                selected.append(s[0])
                if subcategories:
                    # A subcat field is present for this box with this cat
-                   self.fields[editId+'subcat'][0].value = selected
+                   self.fields['subcat'][0].value = selected
 
             # Get var 'function' from netboxinfo
             sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
@@ -2293,16 +2944,22 @@ class editboxNetboxCategory(editbox):
                   "AND var='function'"
             res = executeSQLreturn(sql)
             if res:
-                self.fields[editId+'function'][0].value = res[0][0]
-
+                self.fields['function'][0].value = res[0][0]
+        
+        # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
+        # don't need to repeat it here 
+        self.boxName = IGNORE_BOX
 
 class editboxNetbox(editbox):
     type = 'netbox'
     table = editTables.editdbNetbox
     editId = None
 
-    def __init__(self,editId=None,formData=None):
+    def __init__(self,editId=None,formData=None,disabled=False):
+        self.hiddenFields = {}
         if editId:
+            # Preserve the selected id
+            self.addHidden(selectList.cnameChk,editId)
             self.sysname = editTables.Netbox(editId).sysname
             self.editId = editId
             self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
@@ -2317,35 +2974,59 @@ class editboxNetbox(editbox):
 
         r = [(None,'Select a room')]
         for room in editTables.Room.getAllIterator(orderBy='roomid'):
-            r.append((room.roomid,room.roomid + ' (' + room.descr + ')'))
+            loc = editTables.Location(room.location).descr
+            r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
+                      room.descr + ')'))
 
         c = [(None,'Select a category')]
         for cat in editTables.Cat.getAllIterator(orderBy='catid'):
             c.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
 
         # Field definitions {field name: [input object, required]}
-        f = {'ip': [inputText(),True],
-             'catid': [inputSelect(options=c),True],
-             'orgid': [inputSelect(options=o),True],
-             'roomid': [inputSelect(options=r),True],
-             'ro': [inputText(),False],
-             'rw': [inputText(),False]}
+        f = {'ip': [inputText(disabled=disabled),REQ_TRUE],
+             'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE],
+             'orgid': [inputSelect(options=o,disabled=disabled),REQ_TRUE],
+             'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE],
+             'ro': [inputText(disabled=disabled),REQ_FALSE],
+             'rw': [inputText(disabled=disabled),REQ_FALSE]}
         self.fields = f
         self.setControlNames()
 
-        if formData:
-            # Fill this editbox with data from the form
-            # This is used by intermediate steps (like register serial)
-            # to remember fieldvalues
-            for field,definition in self.fields.items():
-                if formData.has_key(field):
-                    definition[0].value = formData[field]
-            
         if editId:
             # This box is for editing an existing netbox with id = editId
             self.editId = editId
             self.fill()
+
+        if formData:
+            self.formFill(formData)
+
+        if disabled:
+            self.addDisabled()
+
  
+class editboxSubcat(editbox):
+    type = 'subcat'
+    table = editTables.editdbSubcat
+            
+    def __init__(self,editId=None,formData=None):
+        # Field definitions {field name: [input object, required]}
+        o = [('','Select a category')]
+        for cat in editTables.Cat.getAllIterator():
+            o.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
+
+        f = {'subcatid': [inputText(),REQ_TRUE],
+             'catid': [inputSelect(options=o),REQ_TRUE],
+             'descr': [inputText(),REQ_TRUE]}
+        self.fields = f
+        self.setControlNames()
+
+        if editId:
+            self.editId = editId
+            self.fill()
+
+        if formData:
+            self.formFill(formData) 
+
 class editboxBulk(editbox):
     type = 'bulk'
 
@@ -2359,6 +3040,7 @@ class editboxBulk(editbox):
                   ('room','Rooms'),
                   ('org','Organisations'),
                   ('usage','Usage categories'),
+                  ('subcat','Subcategories'),
                   ('type','Types'),
                   ('product','Products'),
                   ('vendor','Vendors'),
@@ -2371,10 +3053,10 @@ class editboxBulk(editbox):
                (';','Semicolon (;)'),
                (',','Comma (,)')]
 
-        f = {'table': [inputSelect(options=tables),False],
-             'separator': [inputSelect(options=sep),False],
-             'file': [inputFile(),False],
-             'textarea': [inputTextArea(),False]}
+        f = {'table': [inputSelect(options=tables),REQ_FALSE],
+             'separator': [inputSelect(options=sep),REQ_FALSE],
+             'file': [inputFile(),REQ_FALSE],
+             'textarea': [inputTextArea(),REQ_FALSE]}
         self.fields = f
         self.setControlNames()
 
@@ -2486,6 +3168,27 @@ class bulkdefVendor:
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
+
+class bulkdefSubcat:
+    tablename = 'subcat'
+    table = editTables.Subcat
+    uniqueField = 'subcatid'
+    num_fields = 3
+
+    process = False
+    syntax = '#subcatid:catid:description'
+
+    # list of (fieldname,max length,not null,use field)
+    fields = [('subcatid',0,True,True),
+              ('catid',8,True,True),
+              ('descr',0,True,True)]
+
+    def checkValidity(cls,field,data):
+        status = True
+        remark = None
+        return (status,remark)
+    checkValidity = classmethod(checkValidity)
+
 
 class bulkdefType:
     # number of fields

@@ -228,56 +228,55 @@ $showBody($body)
             $prefix($editbox)
 #elif $editbox.type == 'vlan'
             $vlan($editbox)
+#elif $editbox.type == 'subcat'
+            $subcat($editbox)
+#elif $editbox.type == 'hiddenormessage'
+            $hiddenormessage($editbox)
 #end if
         </P>
 #end for
+#if $form.showConfirm
         <TABLE>
             <TR>
                 <TD><INPUT type="submit" name="$form.cnameConfirm" value="$form.textConfirm"></TD>
             </TR>
         </TABLE>
     </FORM>
-#end def
-
-## Template function for adding or editing a netbox
-#def netbox.old($editbox)
-#set $controls = $editbox.controls
-        <TABLE class=header-active>
-            <TR>
-                <TH>IP</TH>
-                <TH>Category</TH>
-                <TH>RO Community</TH>
-                <TH>RW Community</TH>
-            </TR>
-            <TR>
-                <TD class=header-active><</TD>
-                <TD class=header-active><SELECT><OPTION>test</SELECT></TD>
-                <TD class=header-active><INPUT type="text"></TD>
-                <TD class=header-active><INPUT type="text"></TD>
-            </TR>
-            <TR>
-                <TH colspan="2">Room</TH>
-                <TH colspan="2">Organisation</TH>
-            </TR>
-            <TR>
-                <TD colspan="2" class=header-active><SELECT><OPTION>room</SELECT></TD>
-                <TD colspan="2" class=header-active><SELECT><OPTION>org</SELECT></TD>
-            </TR>
-        </TABLE>
+#end if
 #end def
 
 ## Template function for entering a serialnumber
 #def netboxserial($editbox)
 #set $fields = $editbox.fields
+    <P>
+        <TABLE class="header-active">
+            <TR>
+                <TD>Sysname</TD>
+                <TD>$editbox.sysname</TD>
+            </TR>
+            <TR>
+                <TD>Type</TD>
+                <TD>$editbox.typename</TD>
+            </TR>
+            <TR>
+                <TD>SNMP version</TD>
+                <TD>$editbox.snmpversion</TD>
+            </TR>
+        </TABLE>
+    </P>
     <P>$editbox.help</P>
-    <TABLE class="header-active">
-        <TR>
-            <TH>Serialnumber</TH>
-        </TR>
-        <TR>
-            <TD>$input($fields['serial'])</TD>
-        </TR>
-    </TABLE>
+    <P>
+        <TABLE class="header-active">
+            <TR>
+                <TH>Serialnumber</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['serial'])</TD>
+            </TR>
+        </TABLE>
+    </P>
+<!-- def netboxserial ->
+$hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for choosing between netboxes with
@@ -292,27 +291,25 @@ $showBody($body)
 ## Template function for server subcat and function
 #def netboxcategory($editbox)
 #set $fields = $editbox.fields
-#set $editId = ''
-#if $editbox.editId
-#set $editId = $editbox.editId
-#end if
     <P>$editbox.help</P>
-    <TABLE class="header-active">
-#if $fields.has_key($editId+'subcat')
-        <TR>
-            <TH>Subcategory</TH>
-        </TR>
-        <TR>
-            <TD>$input($fields[$editId+'subcat'],'width: 100%;')</TD>
-        </TR>
+    <P>
+        <TABLE class="header-active">
+#if $fields.has_key('subcat')
+            <TR>
+                <TH>Subcategory</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['subcat'],'width: 100%;')</TD>
+            </TR>
 #end if
-        <TR>
-            <TH>Function</TH>
-        </TR>
-        <TR>
-            <TD>$input($fields[$editId+'function'])</TD>
-        </TR>
-    </TABLE>
+            <TR>
+                <TH>Function</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['function'])</TD>
+            </TR>
+        </TABLE>
+    </P>
 #end def
 
 ## Template function for adding or editing a netbox
@@ -347,6 +344,8 @@ $showBody($body)
                 <TD>$input($fields['orgid'])</TD>
             </TR>
         </TABLE>
+<!-- def netbox ->
+$hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for adding or editing a room
@@ -523,6 +522,7 @@ $input($fields['productid'])
             <TD>$input($fields['handler'])</TD>
         </TR>
     </TABLE>
+$hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for adding or editing service properties
@@ -623,6 +623,33 @@ $input($fields['productid'])
     </TABLE>
 #end def
 
+## Template function for adding or editing a subcategory
+#def subcat($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>Subcategory</TH>
+            <TH colspan="2">Category</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['subcatid'])</TD>
+            <TD colspan="2">$input($fields['catid'])</TD>
+        </TR>
+        <TR>
+            <TH colspan="3">Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for showing a message and adding hidden controls
+#def hiddenormessage($editbox)
+<p>$editbox.message</p>
+<!-- def hiddenormessage ->
+$hiddenfields($editbox.hiddenFields)
+#end def
 
 ## Template function for bulk import
 #def $bulk($editbox)
@@ -648,17 +675,29 @@ $input($fields['productid'])
     </TABLE>
 #end def
 
+## Template function to write out all hidden input fields
+#def $hiddenfields($fieldlist)
+#for $field in $fieldlist.values()
+$input($field)
+#end for
+#end def
+
 ## Template function to display all input fields
 #def $input($control,$style='')
+#if $control[0].disabled
+#set $disabled = 'disabled'
+#else
+#set $disabled = ''
+#end if
 #set $control = $control[0]
 #if $control.type == 'text'
 #if $control.maxlength
-<INPUT type="text" style="$style" size="$control.size" maxlength="$control.maxlength" name="$control.name" value="$control.value">
+<INPUT $disabled type="text" style="$style" size="$control.size" maxlength="$control.maxlength" name="$control.name" value="$control.value">
 #else
-<INPUT type="text" style="$style" size="$control.size" name="$control.name" value="$control.value">
+<INPUT $disabled type="text" style="$style" size="$control.size" name="$control.name" value="$control.value">
 #end if
 #elif $control.type == 'select'
-<SELECT name="$control.name" style="$style" $control.attribs>
+<SELECT $disabled name="$control.name" style="$style" $control.attribs>
 #for $id,$option in $control.options
 #if $id == $control.value
     <OPTION value="$id" selected>$option</OPTION>

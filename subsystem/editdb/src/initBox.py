@@ -75,9 +75,9 @@ class Box:
         
         sysobjectid = snmp.get(oid)
         
-        sysobjectid = sysobjectid.lstrip(".")
+        self.sysobjectid = sysobjectid.lstrip(".")
 
-        typeidsql = "select typeid from type where sysobjectid = '%s'"%sysobjectid
+        typeidsql = "select typeid from type where sysobjectid = '%s'"%self.sysobjectid
         handle.execute(typeidsql)
         try:
             typeid = handle.fetchone()[0]

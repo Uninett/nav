@@ -16,7 +16,7 @@ class editdbOrg(Org):
         options = []
         for entry in cls.getAllIterator(orderBy='orgid'):
             options.append((entry.orgid,entry.orgid + ' (' + \
-                            entry.descr + ')'))    
+                            str(entry.descr) + ')'))    
         return options       
     getOptions = classmethod(getOptions)
 
@@ -59,7 +59,6 @@ class editdbNetbox(Netbox):
                    'type': 'typeid',
                    'up': 'up'}
 
-
 class editdbProduct(Product):
     # adds vendorid
     _sqlFields =  {'descr': 'descr',
@@ -92,7 +91,6 @@ class editdbRoom(Room):
     _sqlLinks =  {}
     _userClasses = {}
     #_userClasses =  {'location': 'Location'}
-    _userClasses = {}
     _sqlPrimary =  ('roomid',)
     _shortView =  ()
     _sqlTable =  'room'
@@ -131,18 +129,27 @@ class editdbVlan(Vlan):
     _sqlTable =  'vlan'
     _descriptions =  {}
 
-class ServiceEditdb(Service):
+class editdbSubcat(Subcat):
+    _sqlFields =  {'subcatid': 'subcatid', 'descr': 'descr', 'catid': 'catid'}
+    _sqlLinks =  {}
+    _userClasses =  {}
+    _sqlPrimary =  ('subcatid',)
+    _shortView =  ()
+    _sqlTable =  'subcat'
+    _descriptions =  {}
+                            
+class editdbService(Service):
     _sqlFields =  {'active': 'active',
-                  'handler': 'handler',
-                  'netbox': 'netboxid',
-                  'serviceid': 'serviceid',
-                  'up': 'up',
-                  'version': 'version',
-        		  'sysname': 'netbox.sysname'}
-    _sqlLinks =  (('netboxid','netbox.netboxid'),)
+                   'handler': 'handler',
+                   'netboxid': 'netboxid',
+                   'netbox': 'netboxid',
+                   'serviceid': 'serviceid',
+                   'up': 'up',
+                   'version': 'version'}
+    _sqlLinks =  {}
     _userClasses =  {'netbox': Netbox}
     _sqlPrimary =  ('serviceid',)
     _shortView =  ()
     _sqlTable =  'service'
     _descriptions =  {}
-
+                                            
