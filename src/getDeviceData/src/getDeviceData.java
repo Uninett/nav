@@ -700,9 +700,9 @@ class QueryBoks extends Thread
 				// Find a handler for this boks
 				DeviceHandler deviceHandler = findHandler(bd);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("T"+id+":   No device handler found for type: " + boksType);
+					throw new NoDeviceHandlerException("T"+id+":   No device handler found boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
 				}
-				outld("T"+id+":   Found deviceHandler for type: " + boksType);
+				outld("T"+id+":   Found deviceHandler for boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
 
 				DeviceDataListImpl dlist = new DeviceDataListImpl();
 				deviceHandler.handle(bd, sSnmp, dlist);
