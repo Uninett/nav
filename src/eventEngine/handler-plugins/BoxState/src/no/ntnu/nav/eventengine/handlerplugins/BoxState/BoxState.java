@@ -44,6 +44,12 @@ public class BoxState implements EventHandler, EventCallback
 
 		if (eventtype.equals("boxState") || eventtype.equals("moduleState") || eventtype.equals("linkState")) {
 			if (d instanceof Box) {
+				if (eventtype.equals("moduleState")) {
+					Log.d("HANDLE", "Ignoring moduleState event for the box itself!");
+					e.dispose();
+					return;
+				}
+					
 				Box b = (Box)d;
 
 				if (e.getState() == Event.STATE_START) {
