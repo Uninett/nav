@@ -12,8 +12,8 @@ use POSIX qw(strftime);
 
 my ($res, $filnavn);
 
-my $now_string = strftime "%e %w %A %B %V", localtime;
-my ($dummy, $dayofmonth, $dayofweek, $weekday, $month, $weeknumber) = split(/\s/, $now_string);
+my $now_string = strftime "%w %e %A %B %V", localtime;
+my ($dayofweek, $dayofmonth, $weekday, $month, $weeknumber) = split(/\s/, $now_string);
 
 my $conf = '/usr/local/nav/local/etc/conf/pgpasswd.conf';
 
@@ -71,9 +71,10 @@ if ($res ne '') { print LOGFIL "$res\n\n"; }
 #VacuumDB
 $now_string = strftime "%a %e %b %Y %T", localtime;
 print LOGFIL "$now_string\tVacuumdb ...\n";
-$res = `PGPASSWORD=$passord  vacuumdb -U postgres -a`;
-if ($res ne '') { print LOGFIL "$res\n\n"; }
+$res = `PGPASSWORD=$passord  vacuumdb -U postgres -a -z`;
+if ($res ne '') { print LOGFIL "$res"; }
 
-print LOGFIL "$now_string\tFerdig.\n";
+$now_string = strftime "%a %e %b %Y %T", localtime;
+print LOGFIL "$now_string\tFerdig.\n\n";
 
 close(LOGFIL);
