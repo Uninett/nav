@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ## Name:	arplogger.pl
-## $Id: arplogger.pl,v 1.7 2001/10/19 14:27:43 grohi Exp $
+## $Id: arplogger.pl,v 1.8 2001/12/03 14:29:10 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -36,6 +36,7 @@ my %arptable_new;
 my $cursor;
 my $stat;
 my %prefiksdb;
+my %prefiks2boks;
 my %gwport;
 my %arpid;
 my %sysName;
@@ -73,13 +74,18 @@ while(my @line = $resultat->fetchrow)
 }
 
 
-$sql = "SELECT prefiksid,nettadr FROM prefiks"; 
+#$sql = "SELECT prefiksid,nettadr FROM prefiks"; 
+
+$sql = "SELECT boksid,prefiksid,nettadr FROM gwport JOIN prefiks USING (prefiksid) WHERE gwportid=rootgwid"; 
 
 $resultat = db_select($sql,$conn);
 
 while (my @line = $resultat->fetchrow) 
 {
-    $prefiksdb{$line[1]} = $line[0];
+    $prefiksdb{$line[2]} = $line[1];
+
+    $prefiks2boks{$line[1]} = $line[0];
+
 }
 
 $sql = "SELECT boksid,ifindex,prefiksid FROM gwport";
@@ -96,7 +102,7 @@ $resultat = db_select($sql,$conn);
 
 while (my @line = $resultat->fetchrow) 
 {
-    $arpid{$line[1]}{$line[2]}{$line[4]} = $line[0];
+    $arpid{$line[1]}{$line[2]}{$line[3]} = $line[0];
     $arptable{$line[1]}{$line[2]} = $line[3];
 }
 
@@ -188,10 +194,12 @@ sub process_arp_entry ($$$) {
 	      db_execute($sql1,$conn);
 	      
 	      # Legge inn ny record.
-	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
+	      if ($prefiks2boks{$prefiksid} == $hostid)
+	      {
+		  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,ip_inet,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
 #               print "$sql2\n";
-	      db_execute($sql2,$conn);
-	      
+		  db_execute($sql2,$conn);
+	      }
 	      $oppdat++;
 	      
 	  }
@@ -202,11 +210,13 @@ sub process_arp_entry ($$$) {
 #	  print "LIKE\n";
 
 	  # Legge inn ny record.
-	  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
+	  if ($prefiks2boks{$prefiksid} == $hostid)
+	  {
+	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,ip_inet,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
 #           print "NY: $sql2\n";
-	  db_execute($sql2,$conn);
-	  
-	  $nye++;
+	      db_execute($sql2,$conn);
+	      $nye++;
+	  }
       }
 #  }
 }
