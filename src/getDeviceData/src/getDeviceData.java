@@ -58,6 +58,7 @@ import no.ntnu.nav.Path;
 
 class getDeviceData
 {
+	public static final String navConfigFile = (Path.sysconfdir + "/nav.conf").replace('/', File.separatorChar);
 	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String configFile = (Path.sysconfdir + "/getDeviceData.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getDeviceData";
@@ -118,12 +119,18 @@ class getDeviceData
 		Log.i("INIT", "============ getDeviceData starting ============");
 		Log.i("INIT", "Running with " + NUM_THREADS + " threads (max)");
 
-		ConfigParser cp, dbCp;
+		ConfigParser cp, navCp, dbCp;
 		try {
 			if (cf == null) cf = configFile;
 			cp = new ConfigParser(cf);
 		} catch (IOException e) {
 			Log.e("INIT", "Could not read config file: " + cf);
+			return;
+		}
+		try {
+			navCp = new ConfigParser(navConfigFile);
+		} catch (IOException e) {
+			Log.e("INIT", "Could not read config file: " + navConfigFile);
 			return;
 		}
 		try {
@@ -167,7 +174,7 @@ class getDeviceData
 
 		// Start the query scheduler
 		Log.d("INIT", "Starting query scheduler");
-		QueryNetbox.init(NUM_THREADS, loadDataInterval, cp, dataClassMap, deviceClassMap, qNetbox);
+		QueryNetbox.init(NUM_THREADS, loadDataInterval, cp, navCp, dataClassMap, deviceClassMap, qNetbox);
 
 	}
 

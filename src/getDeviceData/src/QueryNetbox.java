@@ -24,6 +24,7 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 public class QueryNetbox extends Thread
 {
 	private static ConfigParser navCp;
+	private static ConfigParser myCp;
 	private static Map dataClassMap, deviceClassMap;
 
 	private static Timer timer;
@@ -73,10 +74,12 @@ public class QueryNetbox extends Thread
 	Object oidUpdObj;
 
 	// Static init
-	public static void init(int numThreads, int updateDataIntervalI, ConfigParser cp, Map dataCM, Map deviceCM, String qnb) {
+	public static void init(int numThreads, int updateDataIntervalI, ConfigParser _myCp, ConfigParser _navCp, Map dataCM, Map deviceCM, String qnb) {
 		maxThreadCnt = numThreads;
 		updateDataInterval = updateDataIntervalI;
-		navCp = cp;
+		myCp = _myCp;
+		navCp = _navCp;
+		myCp.setObject("navCp", navCp);
 		dataClassMap = dataCM;
 		deviceClassMap = deviceCM;
 		qNetbox = qnb;
@@ -415,16 +418,20 @@ public class QueryNetbox extends Thread
 					}
 
 					String oidkey = rs.getString("oidkey");
-					Snmpoid snmpoid = (Snmpoid)oidkeyMap.get(oidkey);
+					if (oidkey != null) {
+						Snmpoid snmpoid = (Snmpoid)oidkeyMap.get(oidkey);
 
-					boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
-					int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
-					if (freq <= 0) {
-						Log.w("UPDATE_NETBOXES", "No frequency specified for netbox " + netboxid + ", oid: " + oidkey + ", skipping.");
-						continue;
+						boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
+						int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
+						if (freq <= 0) {
+							Log.w("UPDATE_NETBOXES", "No frequency specified for netbox " + netboxid + ", oid: " + oidkey + ", skipping.");
+							continue;
+						}
+						keyFreqMap.put(oidkey, new Integer(freq));
+						keyMap.put(oidkey, snmpoid);
+					} else {
+						Log.d("UPDATE_NETBOXES", "No OIDs found for netbox: " + rs.getString("sysname"));
 					}
-					keyFreqMap.put(oidkey, new Integer(freq));
-					keyMap.put(oidkey, snmpoid);
 				} finally {
 					prevnetboxid = netboxid;
 				}
@@ -641,6 +648,7 @@ public class QueryNetbox extends Thread
 						sSnmp.setHost(nb.getIp());
 						sSnmp.setCs_ro(nb.getCommunityRo());
 						oidTester.oidTest(nb, oidkeyMap.values().iterator(), sSnmp );
+						//nb.scheduleImmediately();
 					} else if (oidUpdObj instanceof Snmpoid) {
 						Snmpoid oid = (Snmpoid)oidUpdObj;
 						oidTester.oidTest(oid, nbList.iterator() );
@@ -698,7 +706,7 @@ public class QueryNetbox extends Thread
 					boolean timeout = false;
 					for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 						try {
-							deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
+							deviceHandler[dhNum].handleDevice(nb, sSnmp, myCp, containers);
 							if (nb.isRemoved() || nb.needRecreate()) break;
 
 						} catch (TimeoutException te) {
@@ -833,6 +841,7 @@ public class QueryNetbox extends Thread
 					
 					Map m;
 					if ( (m = (Map)persistentStorage.get(fn)) == null) persistentStorage.put(fn,  m = Collections.synchronizedMap(new HashMap()));
+					m.put("navCp", navCp);
 					dh.init(m, changedDeviceids);
 
 					dcs.addContainer(dh.dataContainerFactory());				

@@ -259,6 +259,16 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		if (s.isEmpty()) oidRunQ.remove(oidNextRun);		
 	}
 
+	void printSchedule() {
+		System.err.println("sysName: " + toString());
+		System.err.println("needUpdateNetboxes: " + needUpdateNetboxes());
+		System.err.println("needRecreate: " + needRecreate());
+		System.err.println("isRemoved: " + isRemoved());
+		System.err.println("nextRun: " + getNextRun());
+		System.err.println("nextRunMap: " + oidNextRunMap);
+		System.err.println("oidRunQ: " + oidRunQ);
+	}
+
 	// Return if this netbox is removed
 	boolean isRemoved() { return removed; }
 
