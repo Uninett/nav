@@ -36,6 +36,7 @@ public class DeviceDB
 			}
 		} catch (SQLException e) {
 			System.err.println("DeviceDB.DeviceDB: Unable to read alerthist: " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 	}
 
@@ -63,6 +64,7 @@ public class DeviceDB
 		int severity = rs.getInt("severity");
 		Map varMap = new HashMap();
 
+		/*
 		String var = rs.getString("var");
 		if (var != null) {
 			do {
@@ -74,6 +76,7 @@ public class DeviceDB
 			} while (rs.next() && rs.getInt(tableid) == id);
 			rs.previous();
 		}
+		*/
 
 		EventImpl e = new EventImpl(id, source, deviceid, boxid, subid, time, eventtypeid, state, value, severity, varMap);
 		return e;
