@@ -30,6 +30,7 @@ instance created.
 
 import os
 import re
+from debug import debug
 
 try:
     # this module exists in a properly installed enviroment
@@ -52,7 +53,7 @@ class Conf(dict):
                 pass
 
         if self._configfile is None:
-            print "Failed to open %s" % self._file
+            #debug("Failed to open %s" % self._file)
             os.sys.exit(0)
         self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
         self.parsefile()
