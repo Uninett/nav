@@ -178,11 +178,12 @@ CREATE TABLE product (
 
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
-  productid INT4 NOT NULL REFERENCES product ON UPDATE CASCADE ON DELETE CASCADE,
+  productid INT4 REFERENCES product ON UPDATE CASCADE ON DELETE SET NULL,
   serial VARCHAR(15),
   hw_ver VARCHAR(10),
   sw_ver VARCHAR(10),
   UNIQUE(serial)
+-- productid burde vært NOT NULL, men det går ikke nå
 );
 -- tror ikke uniquene jeg har lagt inn skader.
 
