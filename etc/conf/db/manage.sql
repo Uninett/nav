@@ -189,6 +189,13 @@ CREATE TABLE boksinterface (
   PRIMARY KEY (boksid, interf)
 );
 
+CREATE TABLE bokscategory (
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  category VARCHAR(30) NOT NULL,
+  PRIMARY KEY(boksid, category)
+ );
+
+
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
