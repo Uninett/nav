@@ -151,10 +151,14 @@ sub hent_data
 
 #sysName
     (my $sn) = &snmpget("$ro\@$ip","sysName");
+
+# Sysname avsluttes ved 1. punktum.
+    my $dummy;
+    ($sn,$dummy) = split(/\./,$sn);
    
     return 0 if (!$sn);
    
-    unless ($boks{$id}{sysName} =~ /$sn/){
+    unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
 	&oppdater_en("boks","sysName",$sn,"id",$id);
     }
