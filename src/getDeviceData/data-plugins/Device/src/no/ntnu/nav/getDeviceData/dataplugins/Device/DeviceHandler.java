@@ -126,8 +126,6 @@ public class DeviceHandler implements DataHandler {
 				if (olddev == null) {
 					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
 					// Først oppretter vi device
-					Log.i("NEW_DEVICE", "New device with serial: " + dev.getSerial());
-
 					String[] ins = {
 						"deviceid", "",
 						"serial", dev.getSerial(),
@@ -138,6 +136,7 @@ public class DeviceHandler implements DataHandler {
 					};
 					deviceid = Database.insert("device", ins, null);
 					changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
+					Log.i("NEW_DEVICE", "New device("+deviceid+") with serial: " + dev.getSerial() + ", " + dev);
 				} else {
 					deviceid = olddev.getDeviceidS();
 					if (!dev.equalsDevice(olddev)) {

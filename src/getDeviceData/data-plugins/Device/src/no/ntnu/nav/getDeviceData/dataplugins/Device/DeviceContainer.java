@@ -84,7 +84,7 @@ public class DeviceContainer implements DataContainer {
 	/**
 	 * Return if the data in this container is commited.
 	 */
-	protected boolean isCommited() {
+	public boolean isCommited() {
 		return commit;
 	}
 
