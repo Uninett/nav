@@ -47,6 +47,7 @@ class TableView(html.SimpleTable):
         except:
             self.sortBy = 0
         self.baseurl = kwargs.get('baseurl', '')
+        self.sortName = kwargs.get('sortName', 'sort')
         
     def sort(self):
         def _getColumns(column, a, b):
@@ -94,14 +95,17 @@ class TableView(html.SimpleTable):
             headerCell = html.TableHeader(link)
             headerCell['class'] = "sort col%s" % count
             row.append(headerCell)
+            url = '%s%s%s=' % (self.baseurl,
+                               '?' in self.baseurl and '&' or '?',
+                               self.sortName)
             if abs(self.sortBy) == count:
                 # reverse the current
-                link['href'] = '%s?sort=%s' % (self.baseurl, -self.sortBy)
+                link['href'] = '%s%s' % (url, -self.sortBy)
                 headerCell['id'] = "activeSort"
                 if self.sortBy < 0:
                     headerCell['class'] = "reverseSort"
             else:
-                link['href']='%s?sort=%s' % (self.baseurl, count)
+                link['href'] = '%s%s' % (url, count)
         # make sure width is correct.        
         for extra in range(self._width - len(self.headers)):
             row.append(html.TableHeader(''))
