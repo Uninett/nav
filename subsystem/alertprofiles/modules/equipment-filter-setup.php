@@ -126,7 +126,7 @@ echo '</h3>';
 
 
 
-print '<form name="form1" method="post" action="index.php?subaction=nymatch">';
+print '<form name="form1" method="post" action="index.php?subaction=velgmatchfelt">';
 
 ?>
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
@@ -149,6 +149,8 @@ foreach ($matchfields AS $matchfield) {
 
 echo '</select></td></tr>';
 
+
+echo '</form><form name="nymatch" method="post" action="index.php?subaction=nymatch">';
 
 if ( post_exist('matchfelt') ) {
 	$valgt_matchfelt = post_get('matchfelt');
@@ -182,6 +184,8 @@ echo '<tr>';
 echo '<td width="30%"><p>';
 echo gettext("Choose condition");
 echo '</p></td><td width="70%">';
+
+echo '<input type="hidden" name="matchfelt" value="' . $valgt_matchfelt . '">';
 
 print '<select name="matchtype" id="select">';
 
@@ -254,11 +258,7 @@ if ($matchfieldinfo[8] == 't' ) {
       
 <?php
 
-if ( post_exist('matchfelt') ) {
-	$tekst = gettext("Add condition");
-} else {
-	$tekst = gettext("Choose matchfield");
-}
+$tekst = gettext("Add condition");
 
 print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 
@@ -271,11 +271,9 @@ print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . 
 </form>
 
 <?php
-    if (!post_exist('matchfelt') ) {
-        echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
-        echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter') . '">';
-        echo '</form>';
-    }
+	echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
+	echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter') . '">';
+	echo '</form>';
 ?>
 
 </td></tr>

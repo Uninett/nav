@@ -96,7 +96,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 		}
 
 		echo '<td class="clock">';
-		echo '<a class="tt" href="?action=periode&amp;subaction=endre&amp;tid=' . $t_p[0] . '&amp;pid=' . $brukerinfo[4] . '#endre">';
+		echo '<a class="tt" href="?action=periode-setup&amp;subaction=endre&amp;tid=' . $t_p[0] . '&amp;pid=' . $brukerinfo[4] . '#endre">';
 		echo leading_zero($t_p[2],2) . ":" . leading_zero($t_p[3],2) . '</a><br>';
 		echo '<img src="icons/clock.png"><br>' ;		
 		echo '<span style="font-size:x-small">-' . leading_zero($t_p['next'][2],2) . ":" . leading_zero($t_p['next'][3], 2) . '</span>';

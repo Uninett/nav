@@ -81,7 +81,7 @@ if ($subaction == "swap") {
 
 $l = new Lister( 114,
 		array(gettext('Incl'), gettext('Neg'), gettext('Equipment filter'), gettext('Move'), gettext('Options..') ),
-		array(10, 10, 50, 15, 15),
+		array(15, 10, 45, 15, 15),
 		array('center', 'center', 'left', 'center', 'right'),
 		array(false, false, false, false, false),
 		0
@@ -119,9 +119,9 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
   		'<img alt="Delete" src="icons/delete.gif" border=0></a>';	
   	
   	if ($filtre[$i][3] == 't') {
-		$inkicon = '<img src="icons/pluss.gif" border="0" alt="' . gettext("Include") . '">';
+		$inkicon = '<img src="icons/pluss.gif" border="0" alt="' . gettext("Include") . '"> Include';
 	} else {
-		$inkicon = '<img src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . '">';
+		$inkicon = '<img src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . '"> Exclude';
 	}
 	
 	if ($filtre[$i][4] == 't') {
@@ -131,13 +131,30 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 		//$negicon = '<img src="icons/neg.gif" border="0" alt="' . gettext("Inverted") . '">';
 		$negicon = gettext('<b>NOT</b>');		
 	}
+	
+	$fm = "<ul>";
+	$match = $dbh->listMatch($filtre[$i][0], 0 );
+	for ($j = 0; $j < sizeof($match); $j++) {
+		/*
+		$match[$row][0] = $data["id"]; 
+		$match[$row][1] = $data["name"];
+		$match[$row][2] = $data["matchtype"];
+		$match[$row][3] = $data["verdi"];		
+		*/
+		$fm .= '<li>' . $match[$j][1] . ' ' . $type[$match[$j][2]] . ' ' . $match[$j][3] . '</li>' ."\n";
+	}
+	$fm .= "</ul>";
 
-  $l->addElement( array($inkicon, // inkluder
-  			$negicon,
-  			$filtre[$i][1],  // navn
-  			$flytt,
-			$valg ) 
-		  );
+	$fnavn = '<p><a href="index.php?action=match&amp;fid=' . $filtre[$i][0] . '"><b>' .
+		$filtre[$i][1] . '</b></a>' .
+		$fm;
+	
+	$l->addElement( array($inkicon, // inkluder
+		$negicon,
+		$fnavn,  // navn
+		$flytt,
+		$valg ) 
+	);
 }
 
 

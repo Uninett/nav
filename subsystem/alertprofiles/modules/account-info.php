@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Overview'); ?></p>
+<p><?php echo gettext('Account info'); ?></p>
 </td></tr>
 
 <tr><td>

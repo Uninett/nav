@@ -194,18 +194,11 @@ $meny->newOption(gettext("Alert language"), "language", 1, array('modules/langua
 $meny->newOption(gettext("WAP setup"), "wap", 1, array('modules/wap-setup.php') );
 $meny->newOption(gettext("Help"), "hjelp", 1, array('modules/help.php') );
 
+echo "<p>";
 /*
-	WAP and password changing disabled 3. Oct 2003, because of integration with NAV.
-	WAP may be enabled again later.
-
-echo "<p>";
-
-$meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
-*/
-
-echo "<p>";
 $meny->newOption(gettext("Users"), "admin", 1000, array('modules/user-admin.php') );
 $meny->newOption(gettext("User groups"), "gruppe", 1000, array('modules/user-group-admin.php') );
+*/
 $meny->newOption(gettext("Pub eq.groups"), "futstyr", 100, array('modules/equipment-group-public.php') );
 $meny->newOption(gettext("Pub eq.filters"), "ffilter", 100, array('modules/equipment-filter-public.php') );
 $meny->newOption(gettext("Match fields"), "filtermatchadm", 100, array('modules/filtermatch-admin.php') );
@@ -213,6 +206,7 @@ $meny->newOption(gettext("Log"), "logg", 20, array('modules/log.php') );
 
 
 $meny->newModule('periode', 1, array('modules/timeperiod.php') );
+$meny->newModule('periode-setup', 1, array('modules/timeperiod-setup.php') );
 $meny->newModule('utstyrgrp', 1, array('modules/equipment-group-setup.php') );
 $meny->newModule('equipment-group-view', 1, array('modules/equipment-group-view.php') );
 $meny->newModule('match', 1, array('modules/equipment-filter-setup.php') );

@@ -410,6 +410,54 @@ ORDER BY " . $sorts[$sort];
 
 
 // Lister opp alle adresser knyttet til tidsprofiler, og henter ut køvariabel
+  function listAlleVarsleAdresser($uid, $tid, $sort) {
+    
+//    print "<p>UID: $uid  - TID: $tid  - GID: $gid   - SORT: $sort";
+    $adr = NULL;
+    
+    $sorts = array (
+    	'min, gnavn', 
+    	'type',
+    	'adresse, gnavn',
+    	'vent, adresse'
+    	);
+
+    $querystring = '
+    SELECT alarmadresse.id AS adrid, adresse, type, vent, utstyrgruppe.id AS gid, utstyrgruppe.navn AS gnavn, 
+	    (Utstyrgruppe.accountid = ' . addslashes($uid). ') AS min 
+    FROM Utstyrgruppe, Varsle, Alarmadresse 
+    WHERE (utstyrgruppe.id = varsle.utstyrgruppeid) AND
+    	(alarmadresse.id = varsle.alarmadresseid) AND 
+    	(varsle.tidsperiodeid = ' . addslashes($tid) . ') 
+		ORDER BY ' . $sorts[$sort];
+		
+	//echo '<p>' . $querystring . '<p>';
+
+    if ( $query = pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$adr[$row][0] = $data["adrid"];
+		$adr[$row][1] = $data["adresse"];
+		$adr[$row][2] = $data["type"];
+		$adr[$row][3] = $data["vent"];
+		$adr[$row][4] = $data["gid"];
+		$adr[$row][5] = $data["gnavn"];
+		$adr[$row][6] = $data["min"];
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    return $adr;
+  }
+
+
+// Lister opp alle adresser knyttet til tidsprofiler for en gitt utstyrsgruppe, 
+// og henter ut køvariabel
   function listVarsleAdresser($uid, $tid, $gid, $sort) {
     
 //    print "<p>UID: $uid  - TID: $tid  - GID: $gid   - SORT: $sort";
@@ -449,6 +497,9 @@ ORDER BY " . $sorts[$sort];
     
     return $adr;
   }
+
+
+
 
 
 
