@@ -223,30 +223,23 @@ CREATE TABLE boxx (
 -- trenger constraints, det finnes ingen i denne fila jeg kan kopiere.
 
 
-CREATE TABLE boksinfo (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+CREATE TABLE netboxinfo (
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   key VARCHAR(32),
   var varchar(32) NOT NULL,
   val TEXT NOT NULL
 );
 
-CREATE TABLE boksinfo_old (
-  boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  main_sw varchar(20),
-  serial varchar(15),
-  function VARCHAR(100)
-);
-
-CREATE TABLE boksdisk (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+CREATE TABLE netboxdisk (
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   path VARCHAR(255) NOT NULL,
   blocksize INT4 NOT NULL DEFAULT 1024,
   PRIMARY KEY (boksid, path)
 );
 
 
-CREATE TABLE boksinterface (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+CREATE TABLE netboxinterface (
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   interf VARCHAR(50) NOT NULL,
   PRIMARY KEY (boksid, interf)
 );
@@ -276,14 +269,14 @@ used INTEGER
 );
 
 
-CREATE TABLE swp_boks (
-  swp_boksid SERIAL PRIMARY KEY,
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  modul VARCHAR(4) NOT NULL,
+CREATE TABLE swp_netbox (
+  swp_netboxid SERIAL PRIMARY KEY,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  module VARCHAR(4) NOT NULL,
   port INT2 NOT NULL,
-  boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  modulbak VARCHAR(4),
-  portbak INT2,
+  to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  to_module VARCHAR(4),
+  to_port INT2,
   misscnt INT2 NOT NULL DEFAULT '0',
   UNIQUE(boksid,modul,port,boksbak)
 );
@@ -326,12 +319,12 @@ CREATE TABLE gwport (
   speed VARCHAR(10),
   ospf INT2
 --  static BOOL DEFAULT false,
---  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
---  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
+  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET null,
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 -- trenger du boksbak, så får du oversette den selv.
 
-CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
+CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -344,8 +337,7 @@ CREATE TABLE swportvlan (
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar(256),
-  static BOOL NOT NULL DEFAULT false
+  hexstring varchar(256)
 );
 -- hva ble det til med static her?
 
@@ -400,11 +392,14 @@ DROP SEQUENCE cam_camid_seq;
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
 
-CREATE TABLE boksmac_cache (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  mac VARCHAR(12) NOT NULL,
-  UNIQUE(boksid,mac)
-);
+-- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
+CREATE FUNCTION boksid_null_upd_til () RETURNS opaque AS
+  'BEGIN
+     IF old.boksid IS NOT NULL AND new.boksid IS NULL THEN
+       new.til = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
 
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
@@ -417,6 +412,7 @@ CREATE TABLE arp (
   fra TIMESTAMP NOT NULL,
   til TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
+CREATE TRIGGER update_arp BEFORE UPDATE ON arp FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
 CREATE INDEX arp_mac_btree ON arp USING btree (mac);
 CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
 CREATE INDEX arp_fra_btree ON arp USING btree (fra); 
@@ -434,6 +430,7 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
+CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_fra_btree ON cam USING btree (fra);
 CREATE INDEX cam_til_btree ON cam USING btree (til);
@@ -548,7 +545,6 @@ GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
-GRANT ALL    ON boksmac_cache TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
 GRANT ALL    ON swp_boks_swp_boksid_seq TO getBoksMacs;
 GRANT ALL    ON swportblocked TO getBoksMacs;
