@@ -44,7 +44,7 @@ def makeSocket():
 
 class Host:
   def __init__(self, ip):
-    self.rnd = random.randint(0,2**16)
+    self.rnd = random.randint(0,2**16 -1)
     self.certain = 0
     self.ip = ip
     self.pkt = icmp.Packet()
