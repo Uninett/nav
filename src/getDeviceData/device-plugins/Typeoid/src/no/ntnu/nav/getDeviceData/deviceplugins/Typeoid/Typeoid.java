@@ -1,4 +1,4 @@
-package no.ntnu.nav.getDeviceData.deviceplugins.MibIISw;
+package no.ntnu.nav.getDeviceData.deviceplugins.Typeoid;
 
 import java.util.*;
 import java.sql.ResultSet;

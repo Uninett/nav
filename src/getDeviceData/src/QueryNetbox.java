@@ -72,18 +72,19 @@ public class QueryNetbox extends Thread
 		nbRunQ = new TreeMap();
 		oidQ = new LinkedList();
 
+		timer = new Timer();
+		updateDataTimer = new Timer();
+
 		// Fetch from DB
 		updateTypes(false);
 		updateNetboxes();
 
 		// Schedule fetch updates
 		Log.d("INIT", "Starting timer for data updating");
-		updateDataTimer = new Timer();
 		scheduleUpdateNetboxes(updateDataInterval);
 
 		Log.d("INIT", "Starting timer for netbox query scheduling");
-		timer = new Timer();
-		timer.schedule( checkRunQTask = new CheckRunQTask(), 0);
+		scheduleCheckRunQ(0);
 
 	}
 
