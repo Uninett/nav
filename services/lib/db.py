@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.7 2002/08/16 19:38:30 magnun Exp $
+$Id: db.py,v 1.8 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -37,9 +37,19 @@ class _db(threading.Thread):
 			self.commitEvent(event)
 
         def sysnetbox(self):
+		"""
+		sysname -> netboxid mapping
+		"""
 		s = self.query('select sysname,netboxid from netbox')
 		self.netbox = dict(s)
-						
+
+	def getnetboxid(self):
+		"""
+		netboxid -> sysname mapping
+		"""
+		s = self.query('select netboxid, sysname from netbox')
+		self.netboxid = dict(s)
+		
 	def query(self, statement):
 		try:
 			self.cursor.execute(statement)
@@ -104,16 +114,17 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 		self.debug.log( "New version. Id: %i Version: %s" % (serviceid,version))
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 
-		#self.execute(statement)
-		#self.db.commit()
-		#self.db.autocommit(1)
-
 	def hostsToPing(self):
 		#query="""SELECT DISTINCT ip FROM netbox WHERE active='t' """
 		query="""SELECT DISTINCT ip FROM netbox """
 		return self.query(query)
 
 	def getJobs(self, onlyactive = 1):
+		# Update our netboxid <-> sysname hash first. It
+		# is used by job.py to do some more userfriendly
+		# logging.
+		self.getnetboxid()
+
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
 		order by serviceid"""
@@ -165,7 +176,7 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 			active = (i.active and 'true') or 'false'
 			netboxid = i.getBoksid()
 			if not netboxid:
-				sysname=''
+				sysname='None'
 			else:
 				for j in self.netbox:
 					if self.netbox[j] == netboxid:
@@ -186,10 +197,17 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 
 	def insertService(self,service):
 		next = self.query("select nextval('service_serviceid_seq')")[0][0]
-		try:
-			self.execute("INSERT INTO service (serviceid,netboxid,handler) VALUES (%s,%s,'%s')" % (next, self.netbox[service.sysname], service.handler))
-		except KeyError:
-			self.execute("INSERT INTO service (serviceid,netboxid,handler) VALUES (%s,%s,'%s')" % (next, 'NULL', service.handler))
+		if service.sysname == "None":
+			netboxid="NULL"
+		else:
+			try:
+				netboxid=self.netbox[service.sysname]
+			except KeyError:
+				print "%s is not defined in the NAV database" % service.sysname
+				return
+		
+		self.execute("INSERT INTO service (serviceid,netboxid,handler) VALUES (%s,%s,'%s')" % (next, netboxid, service.handler))
+			
 		service.id = next
 		self.insertServiceArgs(service)						
         def insertServiceArgs(self,service):

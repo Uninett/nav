@@ -1,5 +1,5 @@
 """
-$Id: SmbHandler.py,v 1.7 2002/07/17 18:01:36 magnun Exp $
+$Id: SmbHandler.py,v 1.8 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmbHandler.py,v $
 """
 import os,re
@@ -8,6 +8,7 @@ pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re
 class SmbHandler(JobHandler):
 	"""
 	args:
+	        'hostname'
 		'username'
 		'password'
 		'port'
@@ -16,7 +17,9 @@ class SmbHandler(JobHandler):
 		address = (ip,args.get('port',139))
 		JobHandler.__init__(self,'smb',serviceid,boksid,address,args,version)
 	def execute(self):
+		ip,port = self.getAddress()
 		args = self.getArgs()
+		host = args.get('hostname',ip)
 		username = args.get('username','')
 		password = args.get('password','')
 
@@ -25,8 +28,8 @@ class SmbHandler(JobHandler):
 		else:
 			s = '-N'
 
-		ip,port = self.getAddress()
-		s = os.popen('./Timeout.py -t %s /usr/local/samba/bin/smbclient -L %s -p %i %s 2>/dev/null' % (self.getTimeout(),ip,port,s)).read()
+
+		s = os.popen('./Timeout.py -t %s /usr/local/samba/bin/smbclient -L %s -p %i %s 2>/dev/null' % (self.getTimeout(),host,port,s)).read()
 		version = pattern.search(s) and ' '.join(pattern.search(s).groups())
 		if version:
 			self.setVersion(version)

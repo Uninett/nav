@@ -1,6 +1,6 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.9 2002/08/26 20:55:02 magnun Exp $
+$Id: config.py,v 1.10 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
 Implements the singleton pattern ensuring only one
@@ -53,7 +53,7 @@ class _dbconf(Conf):
 class _serviceconf(Conf):
     _instance=None
     def __init__(self, *args, **kwargs):
-        self._file=kwargs.get('configfile','servmon.conf')
+        self._file=kwargs.get('configfile','servicemon.conf')
         self.validoptions=[]
         Conf.__init__(self, *args, **kwargs)
 

@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.12 2002/08/16 19:38:30 magnun Exp $
+$Id: setup.py,v 1.13 2002/09/19 22:21:05 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -110,7 +110,7 @@ def main(file,conf):
 		database.insertService(each)
 
 def help():
-	print """ - Setup -
+	print """Setup program for NAV service monitor.
 
 	valid options:
 		-h 	- shows help
@@ -118,6 +118,8 @@ def help():
 		-c file	- default db.conf
 		-n	- generates a new service.conf from db
 		-u	- updates the db from services.conf
+
+Written by Erik Gorset and Magnus Nordseth, 2002
 """
 if __name__=='__main__':
 	try:

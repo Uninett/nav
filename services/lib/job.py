@@ -1,16 +1,16 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.11 2002/08/16 19:38:30 magnun Exp $
+$Id: job.py,v 1.12 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
-import time,socket,sys,types,config,debug
+import time,socket,sys,types,config,debug,mailAlert
 from select import select
 from errno import errorcode
 from Socket import Socket
 
 TIMEOUT = 5 #default, hardcoded timeout :)
-DEBUG=1
+DEBUG=0
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
@@ -23,6 +23,12 @@ class Event:
 		self.info = info
 		self.eventtype = eventtype
 		self.version = version
+		self.sysname = ""
+		self.handler = ""
+
+	def setSysname(self, name):
+		self.sysname=name
+
 
 class JobHandler:
 	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
@@ -37,10 +43,10 @@ class JobHandler:
 		self.setArgs(args)
 		self.setVersion(version)
 		timeout = args.get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
-		#print "timeout: %s "% timeout
 		self.setTimeout(int(timeout))
 		self.db=db.db(config.dbconf())
 		self.debug=debug.debug()
+		self.alerter=mailAlert.mailAlert()
 		
 	def run(self):
 		import rrd,db
@@ -48,27 +54,33 @@ class JobHandler:
 		version = self.getVersion()
 		status, info = self.executeTest()
 
-		if DEBUG:
-			import socket
-			host=self.getAddress()
-			if type(host)==type(()):
-				host=host[0]
-			if host:
-				host = socket.getfqdn(host)
-			else:
-				host = "Unspecified host"
-			self.debug.log("%-25s %-5s -> %s" % (host, self.getType(),info))
+		# Get the sysname we are checking
+		try:
+			host=self.db.netboxid[self.getBoksid()]
+		except KeyError:
+			host = "Unspecified host"
+			print "Boksid: %s" % self.getBoksid()
+		self.debug.log("%-25s %-5s -> %s" % (host, self.getType(),info))
 			
 		runcount = 0
 		while status != self.getStatus() and runcount < int(self._conf.get('retry',3)):
-			if DEBUG:
-				self.debug.log(" %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType()))
-			time.sleep(5)
+			delay = int(self._conf.get('retry delay',5))
+			self.debug.log(" %-25s %-5s -> State changed. Trying again in %i sec..." % (host, self.getType(), delay))
+			time.sleep(delay)
 			status, info = self.executeTest()
 			runcount += 1
 
 		if status != self.getStatus():
-			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
+			newEvent=Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info)
+			newEvent.setSysname(host)
+			# Post to the NAV alertq
+			self.db.newEvent(newEvent)
+
+			# Send an mail while we are waiting for the
+			# NAV alertengine to function properly
+			self.alerter.put(newEvent)
+
+			
 			self.setStatus(status)
 			if DEBUG:
 				self.debug.log("%-25s %-5s -> %s, %s" % (host, self.getType(), status, info))
@@ -77,7 +89,7 @@ class JobHandler:
 		if version != self.getVersion() and self.getStatus() == Event.UP:
 			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(), self.getType(), status, info, eventtype="version", version=self.getVersion()))
 
-		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+		#rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		self.setTimestamp()
 
 

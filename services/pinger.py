@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.4 2002/08/26 20:55:02 magnun Exp $
+$Id: pinger.py,v 1.5 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -10,6 +10,7 @@ os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/hand
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/ping")
 
 import megaping, db, debug, config, signal, getopt, time, pwd
+from output import color
 
 class pinger:
     def __init__(self, **kwargs):
@@ -80,15 +81,28 @@ class pinger:
 
 
 def help():
-    print """Paralell pinger for NAV (Network Administration Visualized).
+    #print """Paralell pinger for NAV (Network Administration Visualized).
+    #
+    #Usage: %s [OPTIONS]
+    #-h  --help      Displays this message
+    #-n  --nofork    Run in foreground
+    #-v  --version   Display version and exit
 
-    Usage: %s [OPTIONS]
-    -h  --help      Displays this message
-    -n  --nofork    Run in foreground
-    -v  --version   Display version and exit
+    #Written by Stian Søiland and Magnus Nordseth, 2002
+    #"""  % os.path.basename(os.sys.argv[0]))
+    print color("Paralell pinger for NAV (Network Administration Visualized).","white")
+    print
+    print "Usage : %s [OPTIONS]" % os.path.basename(os.sys.argv[0])
+    print color("-h  --help   ", "green"), "Displays this message"
+    print color("-n  --nofork ", "green"), "Run in foreground"
+    print color("-v  --version", "green"), "Display version and exit"
+    print
+    print
+    print "Written by Stian Søiland and Magnus Nordseth, 2002"
+    print
 
-    Written by Stian Søiland and Magnus Nordseth, 2002
-    """  % os.path.basename(os.sys.argv[0])
+
+
 
 def start(nofork):
     """

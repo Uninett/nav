@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.25 2002/08/26 20:55:02 magnun Exp $
+$Id: controller.py,v 1.26 2002/09/19 22:21:05 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -9,7 +9,7 @@ import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 
-import RunQueue, types, time, job, getopt, signal, config, db, debug
+import RunQueue, types, time, job, getopt, signal, config, db, debug, mailAlert
 
 class controller:
     def __init__(self, **kwargs):
@@ -28,6 +28,8 @@ class controller:
         self.debug("Setting checkinterval=%i"% self._looptime)
         self.db=db.db(config.dbconf("db.conf"))
         self.db.start()
+        self.alerter=mailAlert.mailAlert()
+        self.alerter.start()
 
 
                       
@@ -111,6 +113,9 @@ def help():
     -h  --help      Displays this message
     -n  --nofork    Run in foreground
     -v  --version   Display version and exit
+
+
+Written by Erik Gorset and Magnus Nordseth, 2002
 
     """  % os.path.basename(os.sys.argv[0])
 
