@@ -31,4 +31,13 @@ public interface DataContainer {
 	 */
 	public DataHandler getDataHandler();
 
+	/**
+	 * This method must be called after all processing is done to signal
+	 * that collection of data completed successfully and old data no
+	 * longer present can safely be deleted. After this method is called
+	 * it is no longer possible to add new data.
+	 */
+	public void commit();
+
+
 }

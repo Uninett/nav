@@ -1156,7 +1156,7 @@ class PluginMonitorTask extends TimerTask
 	public void run()
 	{
 		// Update data plugins
-		update(dataDir, dataFileMap, dataClassMap, null );
+		update(dataDir, dataFileMap, dataClassMap, dataDir.listFiles() );
 
 		// Update device plugins
 		update(deviceDir, deviceFileMap, deviceClassMap, dataDir.listFiles() );
