@@ -1530,6 +1530,15 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
               'ro': ro,
               'rw': rw}
 
+    # Get prefixid
+    query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
+            % (fields['ip'],)
+    try:
+        result = executeSQLreturn(query) 
+        fields['prefixid'] = str(result[0][0])
+    except:
+        pass        
+
     if typeid:
         fields['typeid'] = typeid
 
@@ -3658,6 +3667,15 @@ class structNetbox:
                 tifields = {'uptodate': 'f'}
                 updateEntryFields(tifields,'type','typeid',typeId)
 
+            # Get prefixid
+            query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
+                    % (fields['ip'],)
+            try:
+                result = executeSQLreturn(query) 
+                fields['prefixid'] = str(result[0][0])
+            except:
+                pass        
+
             updateEntryFields(fields,'netbox','netboxid',selected)
 
             # Update device
@@ -4242,6 +4260,15 @@ class bulkdefNetbox:
             sysname = row['ip'] 
         row['sysname'] = sysname
 
+        # Get prefixid
+        query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
+                % (row['ip'],)
+        try:
+            result = executeSQLreturn(query) 
+            row['prefixid'] = str(result[0][0])
+        except:
+            pass        
+    
         deviceid = None
         box = None
         if row.has_key('ro'):
