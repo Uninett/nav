@@ -136,7 +136,7 @@ public class MibIISw implements DeviceHandler
 				if (ifdescr.indexOf("Ethernet") >= 0) {
 					interf = ifdescr;
 				} else {
-					interf = (ifname != null ? ifname : ifdescr);
+					interf = (ifname != null && ifname.length() > 0 ? ifname : ifdescr);
 				}
 
 				swp.setInterface(interf);
