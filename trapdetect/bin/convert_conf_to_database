@@ -23,7 +23,7 @@ if (defined $valg) {
 
 my ($ok,$ok2, $ok_org, $ok_kat); # Feilsjekkvariable
 #my $fil = "../etc/TrapDetect.conf_bak"; # conf-fila som skal legges inn i database.
-my $fil = "TrapDetect.conf_bak";
+my $fil = "../etc/TrapDetect.conf";
 
 my $dbh = db_connect("trapdetect");
 
@@ -93,14 +93,14 @@ sub les_fil {
 		    ($sykoid, $syktekst, $kat, $eiere) = @linje;
 		    $bool = 1;
 		    $eier{$syktekst} = $eiere;
-		    $kategorier{$syktekst} = $kat;
+		    $kategorier{$syktekst} = uc $kat;
 		    $beskrivelse{$syktekst} = $besk;
 		    $trap{$syktekst} = [$sykoid,$syktekst,$hovedkat];
 		} elsif ($antall == 6) { # Tilstandsfulle traps
 		    ($sykoid,$syktekst,$friskoid,$frisktekst,$kat,$eiere) = @linje;
 		    $bool = 1;
 		    $eier{$syktekst} = $eiere;
-		    $kategorier{$syktekst} = $kat;
+		    $kategorier{$syktekst} = uc $kat;
 		    $beskrivelse{$syktekst} = $besk;
 		    $trap{$syktekst} = [$sykoid,$syktekst,$friskoid,$frisktekst,$hovedkat];
 		} else {
@@ -159,11 +159,7 @@ sub les_fil {
 	}
     }
 
-    # Sletter alt fra databasen siden bare det som er i 
-    # fila skal være i databasen.
-    my $sporring = "delete from trap";
-    my $rows = &db_execute($sporring,$dbh);
-
+    my $sporring;
     # Legger inn alle traps i trap-tabellen
     my @keys = keys (%trap);
     for (@keys) {
@@ -173,16 +169,35 @@ sub les_fil {
 	if ($length == 5) {
 	    # Tilstandsfull funnet
 	    ($sykoid,$syktekst,$friskoid,$frisktekst,$hovedkat) = @arr;
-	    $sporring = "insert into trap (sykoid,syknavn,friskoid,frisknavn,beskrivelse,type) values ";
-	    $sporring .= "('$sykoid','$syktekst','$friskoid','$frisktekst','$besk',$hovedkat)";
-	    print "$sporring\n";
-	    $ok = &db_execute($sporring,$dbh);
+	    # Sjekk om den finnes fra før
+	    my $finnes = &db_select("select id from trap where syknavn='$syktekst'",$dbh);
+	    if ($finnes->ntuples != 0) {
+		$sporring = "update trap set sykoid='$sykoid', syknavn='$syktekst', friskoid='$friskoid', ";
+		$sporring .= "frisknavn='$frisktekst', beskrivelse='$besk', type=$hovedkat where ";
+		$sporring .= "syknavn='$syktekst'";
+		print "$sporring\n";
+		$ok = &db_execute($sporring,$dbh);
+	    } else {
+		$sporring = "insert into trap (sykoid,syknavn,friskoid,frisknavn,beskrivelse,type) values ";
+		$sporring .= "('$sykoid','$syktekst','$friskoid','$frisktekst','$besk',$hovedkat)";
+		print "$sporring\n";
+		$ok = &db_execute($sporring,$dbh);
+	    }
 	} elsif ($length == 3) {
 	    # Tilstandsløs funnet
 	    ($sykoid,$syktekst,$hovedkat) = @arr;
-	    $sporring = "insert into trap (sykoid,syknavn,beskrivelse,type) values ('$sykoid','$syktekst','$besk',$hovedkat)";
-	    print "$sporring\n";
-	    $ok = &db_execute($sporring,$dbh);
+	    # Sjekk om den finnes fra før
+	    my $finnes = &db_select("select id from trap where syknavn='$syktekst'",$dbh);
+	    if ($finnes->ntuples != 0) {
+		$sporring = "update trap set sykoid='$sykoid', syknavn='$syktekst',";
+		$sporring .= "beskrivelse='$besk', type=$hovedkat where syknavn='$syktekst'";
+		print "$sporring\n";
+		$ok = &db_execute($sporring,$dbh);
+	    } else {
+		$sporring = "insert into trap (sykoid,syknavn,beskrivelse,type) values ('$sykoid','$syktekst','$besk',$hovedkat)";
+		print "$sporring\n";
+		$ok = &db_execute($sporring,$dbh);
+	    }
 	}
     }
 
@@ -213,7 +228,7 @@ sub les_fil {
 	    my ($suboid,$navn) = @$_;
 	    $sporring = "insert into subtrap (trapid,suboid,navn) values ";
 	    $sporring .= "($trap{$key},'$suboid','$navn')";
-		print "$sporring\n";
+	    print "$sporring\n";
 	    $ok2 = &db_execute($sporring,$dbh);
 	}
     }
@@ -239,12 +254,22 @@ sub les_fil {
     foreach $key (@keys) {
 	my $eiere = $eier{$key};
 	my @alle = split /,/,$eiere;
-	for (@alle) {
-	    $_ = lc $_;
-	    if (exists $org{$_}) {
-		$sporring = "insert into trapeier (orgid,trapid) values ($org{$_},$trap{$key})";
+	if ($eiere eq "*") {
+	    # Skal legge inn alle org
+	    @alle = keys %org;
+	    for (@alle) {
+		$sporring = "insert into trapeier (orgid,trapid) values ($org{$_}, $trap{$key})";
 		print "$sporring\n";
 		$ok_org = &db_execute($sporring,$dbh);
+	    }
+	} else {
+	    for (@alle) {
+		$_ = lc $_;
+		if (exists $org{$_}) {
+		    $sporring = "insert into trapeier (orgid,trapid) values ($org{$_},$trap{$key})";
+		    print "$sporring\n";
+		    $ok_org = &db_execute($sporring,$dbh);
+		}
 	    }
 	}
     }
@@ -252,7 +277,7 @@ sub les_fil {
 
 sub db_connect {
     my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db");
+    my $conn = Pg::connectdb("dbname=$db user=trapdetect password=tcetedpart");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
