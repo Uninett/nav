@@ -105,8 +105,8 @@ class Com
 	public void setAdmin(Admin InAdmin) { admin = InAdmin; }
 	public Admin getAdmin() { return admin; }
 
-	public void setAdminPanel(AdminPanel InAdminPanel) { adminPanel = InAdminPanel; }
-	public AdminPanel getAdminPanel() { return adminPanel; }
+	//public void setAdminPanel(AdminPanel InAdminPanel) { adminPanel = InAdminPanel; }
+	//public AdminPanel getAdminPanel() { return adminPanel; }
 
 
 	public void setLogo(Logo InLogo) { logo = InLogo; }
@@ -144,10 +144,11 @@ class Com
 	public void setMainPanel(panel p) { mainPanel = p; }
 	public panel getMainPanel() { return mainPanel; }
 
+	/*
 	AdminListener adminListener;
 	public void setAdminListener(AdminListener al) { adminListener = al; }
 	public AdminListener getAdminListener() { return adminListener; }
-
+	*/
 
 
 
@@ -180,7 +181,7 @@ class Com
 	Net net;
 	Input input;
 	Admin admin;
-	AdminPanel adminPanel;
+	//AdminPanel adminPanel;
 	//Cnf cnf;
 
 	LayoutNettel layoutNettel;
@@ -256,7 +257,7 @@ class Com
 				i1 = Integer.parseInt((String)o1);
 				i2 = Integer.parseInt((String)o2);
 			} catch (NumberFormatException e) {
-				return ((String)o1).compareTo((String)o2);
+				return (((String)o1).toLowerCase()).compareTo(((String)o2).toLowerCase());
 			}
 		} else if (o1 instanceof Vlan) {
 			i1 = ((Vlan)o1).getVlan();

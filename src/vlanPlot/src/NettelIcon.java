@@ -25,6 +25,8 @@ class NettelIcon implements ImageObserver
 	Image icon;
 	Nettel parent;
 
+	private static Stack updateQ = new Stack();
+
 	public NettelIcon(Com com, String kat, Nettel parent)
 	{
 		this.com = com;
@@ -38,8 +40,14 @@ class NettelIcon implements ImageObserver
 		} else {
 			icon = Toolkit.getDefaultToolkit().getImage(DIR_PREFIX+imageName);
 		}
-		sizeX = icon.getWidth(this);
-		sizeY = icon.getHeight(this);
+		synchronized (updateQ) {
+			if (updateQ.isEmpty()) {
+				sizeX = icon.getWidth(this);
+				sizeY = icon.getHeight(this);
+			} else {
+				updateQ.push(this);
+			}
+		}
 	}
 
 	public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height)
@@ -54,8 +62,27 @@ class NettelIcon implements ImageObserver
 
 		if (sizeX != -1 && sizeY != -1 && parent != null) parent.recalcLink();
 
-		return (sizeX == -1 || sizeY == -1);
+		boolean needMoreUpdates = (sizeX == -1 || sizeY == -1);
+
+		if (!needMoreUpdates) {
+			synchronized (updateQ) {
+				while (!updateQ.empty()) {
+					NettelIcon ni = (NettelIcon)updateQ.pop();
+					if (ni.updateDim()) break;
+				}
+			}
+		}
+		return needMoreUpdates;
 	}
+
+	private boolean updateDim() {
+		sizeX = icon.getWidth(this);
+		sizeY = icon.getHeight(this);
+		boolean needMoreUpdates = (sizeX == -1 || sizeY == -1);
+		return needMoreUpdates;		
+	}
+
+			   
 
 	public void setX(int x) { this.x = x; }
 	public void setY(int y) { this.y = y; }

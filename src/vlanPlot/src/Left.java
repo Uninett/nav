@@ -81,14 +81,16 @@ class Left extends Panel
 		add(topPanel, c);
 
 		// admin-panelet
-		AdminPanel ap = new AdminPanel(com);
+		//AdminPanel ap = new AdminPanel(com);
+		/*
 		c.weightx = 0; c.weighty = 1;
 		c.gridx = 0; c.gridy = 2; c.gridwidth = 1; c.gridheight = 1;
 		//c.ipady = 40;
 		//c.anchor = GridBagConstraints.CENTER;
 		gridbag.setConstraints(ap, c);
 		add(ap, c);
-		com.setAdminPanel(ap);
+		*/
+		//com.setAdminPanel(ap);
 
 
 
@@ -104,6 +106,8 @@ class Left extends Panel
 	public String getNettNavn(int i) { return topPanel.getNettNavn(i); }
 
 	public void showAdminButton() { topPanel.showAdminButton(); }
+
+	public void setMsg(String s) { topPanel.setMsg(s); }
 
 
 
@@ -123,7 +127,7 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 	private TextField tilDato;
 	private Choice tilYear = new Choice();
 
-	private Label errorLabel = new Label("");
+	private Label errorLabel = new Label("                   ");
 
 /*
 	private Choice tilMin = new Choice();
@@ -147,7 +151,8 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 	private boolean relativSkala;
 	private boolean avg;
 
-	private Button adminButton;
+	private Button moveButton;
+	private Button saveButton;
 
 /*
 	public Dimension getMinimumSize()
@@ -174,7 +179,8 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 			Com.quickSort(v);
 
 			for (int i = 0; i < v.size(); i++) {
-				nett.addItem("Vis " + v.elementAt(i));
+				//nett.addItem("Vis " + v.elementAt(i));
+				nett.addItem("" + v.elementAt(i));
 			}
 			nett.addItem("");
 
@@ -201,35 +207,39 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 	}
 
 	public void showAdminButton() {
-		adminButton.setVisible(true);
 		com.d("Showing admin button", 5);
-		validate();
+		moveButton.setVisible(true);
+		saveButton.setVisible(true);
+		setMsg("Data not saved");
+		//validate();
 	}
 
 	public TopPanel(Com InCom)
 	{
 		com = InCom;
 
-		Label fraLabel = new Label("  Fra tid:");
-		Label tilLabel = new Label("  Til tid:");
-		Label avgmaxLabel = new Label("  Last:");
+		Label fraLabel = new Label("  St time");
+		Label tilLabel = new Label("  En time:");
+		Label avgmaxLabel = new Label("  Load:");
 
 		Button okButton = new Button("OK");
-		adminButton = new Button("Admin");
-		adminButton.setVisible(false);
+		moveButton = new Button("Move");
+		saveButton = new Button("Save");
+		moveButton.setVisible(false);
+		saveButton.setVisible(false);
 
-		skala.addItem("Absolutt skala");
-		skala.addItem("Relativ skala");
+		skala.addItem("Absolute scale");
+		skala.addItem("Relative scale");
 
-		lastValg.addItem("Avg. siste 5 min");
-		lastValg.addItem("Avg. siste 1h");
-		lastValg.addItem("Avg. siste 24h");
-		lastValg.addItem("Maks siste 2h");
-		lastValg.addItem("Maks siste 24h");
-		lastValg.addItem("Manuel");
+		lastValg.addItem("Avg. last 5 min");
+		lastValg.addItem("Avg. last 1h");
+		lastValg.addItem("Avg. last 24h");
+		lastValg.addItem("Max last 2h");
+		lastValg.addItem("Max last 24h");
+		lastValg.addItem("Manual");
 
 		avgmax.addItem("Avg");
-		avgmax.addItem("Maks");
+		avgmax.addItem("Max");
 
 		fraTid = new TextField("HH:MM"); fraTid.setColumns(4);
 		fraDato = new TextField("DD/MM"); fraDato.setColumns(4);
@@ -329,21 +339,28 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 		// okButton
 		c.fill = GridBagConstraints.NONE;
-		c.weightx = 0.0; c.weighty = 10;
+		c.weightx = 0.0; c.weighty = 1;
 		c.gridx = 1; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
 		gridbag.setConstraints(okButton, c);
 		add(okButton, c);
 
 		// adminButton
 		c.fill = GridBagConstraints.NONE;
-		c.weightx = 0.0; c.weighty = 10;
+		c.weightx = 0.0; c.weighty = 1;
 		c.gridx = 2; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
-		gridbag.setConstraints(adminButton, c);
-		add(adminButton, c);
+		gridbag.setConstraints(moveButton, c);
+		add(moveButton, c);
+
+		// adminButton
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0.0; c.weighty = 1;
+		c.gridx = 2; c.gridy = 9; c.gridwidth = 1; c.gridheight = 1;
+		gridbag.setConstraints(saveButton, c);
+		add(saveButton, c);
 
 		// errorLabel
-		c.weightx = 0.0; c.weighty = 0;
-		c.gridx = 2; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
+		c.weightx = 0; c.weighty = 1;
+		c.gridx = 1; c.gridy = 10; c.gridwidth = 2; c.gridheight = 1;
 		gridbag.setConstraints(errorLabel, c);
 		add(errorLabel, c);
 
@@ -356,12 +373,11 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		// acionListeners
 		okButton.addActionListener(this);
 
-		adminButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					AdminPanel ap = com.getAdminPanel();
-					ap.showMenu();
-				}
-			});
+		AdminListener al = new AdminListener(com);
+		al.setMoveMode(moveButton);
+		al.setSaveBoksXY(saveButton);
+		moveButton.addActionListener(al);
+		saveButton.addActionListener(al);
 
 		itemStateChanged(new ItemEvent(lastValg, ItemEvent.SELECTED, lastValg, ItemEvent.SELECTED) );
 	}
@@ -466,7 +482,7 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		if (e.getSource() == skala)
 		{
 			String s = skala.getSelectedItem();
-			relativSkala = (s.equals("Relativ skala")) ? true : false;
+			relativSkala = (s.equals("Relative scale")) ? true : false;
 			com.setRelativSkala(relativSkala);
 			int sk = (relativSkala) ? LastColor.RELATIV_SKALA : LastColor.ABSOLUTT_SKALA;
 			LastColor.setSkala(sk);
@@ -491,32 +507,32 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 			lastTid[1] = 0;
 			com.setTidAvg(true);
 
-			if (s.equals("Avg. siste 5 min"))
+			if (s.equals("Avg. last 5 min"))
 			{
 				lastTid[0] = -5 * 60;
 				avgmax.select("Avg");
 			} else
-			if (s.equals("Avg. siste 1h"))
+			if (s.equals("Avg. last 1h"))
 			{
 				lastTid[0] = -1 * 60 * 60;
 				avgmax.select("Avg");
 			} else
-			if (s.equals("Avg. siste 24h"))
+			if (s.equals("Avg. last 24h"))
 			{
 				lastTid[0] = -24 * 60 * 60;
 				avgmax.select("Avg");
 			} else
-			if (s.equals("Maks siste 2h"))
+			if (s.equals("Max last 2h"))
 			{
 				lastTid[0] = -2 * 60 * 60;
 				com.setTidAvg(false);
 				avgmax.select("Maks");
 			} else
-			if (s.equals("Maks siste 24h"))
+			if (s.equals("Max last 24h"))
 			{
 				lastTid[0] = -24 * 60 * 60;
 				com.setTidAvg(false);
-				avgmax.select("Maks");
+				avgmax.select("Max");
 			}
 
 			com.setLastInterval(lastTid);
@@ -525,6 +541,12 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 
 
+	}
+
+	public void setMsg(String s)
+	{
+		errorLabel.setText(s);
+		validate();
 	}
 
 	public void actionPerformed(ActionEvent e)
@@ -549,11 +571,10 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		catch (ParseException exc)
 		{
 			com.d(exc.getMessage(), 1);
-			errorLabel.setText("Datofeil");
-			validate();
+			setMsg("Date err");
 			return;
 		}
-		errorLabel.setText("");
+		setMsg("");
 		com.d("   Differanse, diff: " + diff + " diffCurrent: " + diffCurrent, 3);
 
 
@@ -591,7 +612,7 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		com.d("     beginInterval: " + beginDate, 4);
 		com.d("     endInterval  : " + endDate, 4);
 
-		lastValg.select("Manuel");
+		lastValg.select("Manual");
 
 		//com.getNet().refetchLastInput();
 		com.getNet().setNeedReset(true);

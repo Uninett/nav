@@ -19,7 +19,6 @@ class AdminListener implements ActionListener
 	Com com;
 	private Button moveMode;
 	private Button saveBoksXY;
-	private Button exitAdmin;
 
 	public AdminListener(Com InCom)
 	{
@@ -28,8 +27,6 @@ class AdminListener implements ActionListener
 
 	public void setMoveMode(Button moveMode) { this.moveMode=moveMode; }
 	public void setSaveBoksXY(Button saveBoksXY) { this.saveBoksXY=saveBoksXY; }
-	public void setExitAdmin(Button b) { exitAdmin=b; }
-
 
 	public void actionPerformed(ActionEvent e)
 	{
@@ -48,15 +45,9 @@ class AdminListener implements ActionListener
 			// Det er kun lov å trykke denne knappen i bynettView-modus
 			if (com.getNet().getBynettView()) {
 				Output outp = new Output(com);
-				outp.saveBoksXY(com.getNet().getNettelHash(), com.getNet().getVisGruppe() );
+				outp.saveBoksXY(com.getNet().getNettelHash(), com.getNet().getVisGruppeid() );
 			}
-		} else
-		if (o.equals(exitAdmin)) {
-			com.getAdmin().setAdmin(false);
-			com.getAdminPanel().hideMenu();
-
 		}
-
 	}
 
 	public void setMoveMode(boolean b)
@@ -64,7 +55,7 @@ class AdminListener implements ActionListener
 		// Skru av eller på move-mode
 		Admin adm = com.getAdmin();
 		adm.setMoveMode(b);
-		moveMode.setLabel( (b)?"Exit move-mode":"Enter move-mode" );
+		moveMode.setLabel( (b)?"Off":"Move" );
 	}
 
 }

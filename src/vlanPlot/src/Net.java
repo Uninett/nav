@@ -68,6 +68,8 @@ class Net extends Canvas implements ItemListener
 	boolean vlanVandring = false;
 	boolean bynettView = false;
 
+	boolean hideCore = false;
+
 	public static int FONT_SIZE = 20;
 	//Font overskriftFont = new Font("Helvetica",Font.PLAIN, FONT_SIZE);
 	Font overskriftFont = new Font("Arial",Font.BOLD, FONT_SIZE);
@@ -314,7 +316,19 @@ class Net extends Canvas implements ItemListener
 			com.getLeft().addNettNavn(s[1]);
 			com.d("Adding gruppeIdMap: " + s[1] + " -> " + s[0], 3);
 			gruppeIdMap.put(s[1], new Integer(s[0]));
-			if (s[0].equals("0")) continue; // Bynettet
+			if (s[0].equals("0")) {
+				// Set global hideicons
+				hideCore = Boolean.valueOf(s[4]).booleanValue();
+				if (hideCore) {
+					// Clear all core
+					Enumeration ne = nh.elements();
+					while (ne.hasMoreElements()) {
+						Nettel n = (Nettel)ne.nextElement();
+						if (n.isCore()) n.setVisible(false);
+					}
+				}
+				continue; // Bynettet
+			}
 
 			Grp grp = new Grp(com, Integer.parseInt(s[0]), Boolean.valueOf(s[4]).booleanValue() );
 			grp.setName(s[1]);
@@ -389,6 +403,7 @@ class Net extends Canvas implements ItemListener
 
 				} else
 				{
+					if (hideCore && visGruppe == 0) continue;
 					// stam||elink
 					l = n.addLink( linkTo, linkId, capacity.doubleValue(), -1, ifName );
 					//l.setOspf(linkInfo[8]);
@@ -1068,7 +1083,7 @@ class Net extends Canvas implements ItemListener
 		g.fillPolygon(backKnapp);
 		// teksten på knappen
 		g.setColor(Color.black);
-		g.drawString("Tilbake", startX+3, startY+15);
+		g.drawString("Go back", startX+3, startY+15);
 
 	}
 
@@ -1099,6 +1114,9 @@ class Net extends Canvas implements ItemListener
 		visGruppeNavn = inVisGruppeNavn;
 	}
 	public int getVisGruppe() { return visGruppe; }
+	public int getVisGruppeid() {
+		return ((Integer)gruppeIdMap.get(visGruppeNavn)).intValue();
+	}
 
 	//public void setNeedRefetch(boolean b) { needRefetch = b; }
 	public void setNeedReset(boolean b) { needReset = b; }

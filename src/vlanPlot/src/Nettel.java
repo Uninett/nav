@@ -142,6 +142,10 @@ class Nettel
 	public void setClickId(int i) { clickId = i; }
 	public void setClickKat(String s) { clickKat = s; }
 
+	public boolean isCore() {
+		return boksid < 0;
+	}
+
 	public void setName(String s)
 	{
 		name = s;
