@@ -1,9 +1,5 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
-/**
- * Store Swport data
- */
-
 import java.util.*;
 import java.sql.*;
 
@@ -11,6 +7,13 @@ import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
+
+/**
+ * DataHandler plugin for getDeviceData; provides an interface for storing
+ * switch data, which includes modules and switch ports.
+ *
+ * @see SwportContainer
+ */
 
 public class SwportHandler implements DataHandler {
 
@@ -22,8 +25,7 @@ public class SwportHandler implements DataHandler {
 	
 
 	/**
-	 * Do init. Usually used for fetching initial data from the database and
-	 * store it in the given persistent storage object.
+	 * Fetch initial data from device, module and swport tables.
 	 */
 	public synchronized void init(Map persistentStorage) {
 		if (persistentStorage.containsKey("initDone")) return;

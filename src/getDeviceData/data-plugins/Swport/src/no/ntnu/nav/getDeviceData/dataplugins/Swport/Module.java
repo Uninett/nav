@@ -1,12 +1,12 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
-/**
- * Contain Swport-objects
- */
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+
+/**
+ * Contain Swport-objects
+ */
 
 public class Module implements Comparable
 {

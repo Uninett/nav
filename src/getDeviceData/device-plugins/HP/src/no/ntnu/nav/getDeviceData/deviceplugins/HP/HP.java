@@ -9,6 +9,9 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
+/**
+ * DeviceHandler for collecting switch port data from HP switches.
+ */
 
 public class HP implements DeviceHandler
 {

@@ -1,15 +1,26 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
+import java.util.ArrayList;
+
 /**
  * Contain Swport data
  */
 
-import java.util.ArrayList;
-
 public class Swport implements Comparable
 {
+	/**
+	 * The switch port has link.
+	 */
 	public static final char PORT_LINK_YES = 'y';
+
+	/**
+	 * The switch port does not have link.
+	 */
 	public static final char PORT_LINK_NO = 'n';
+
+	/**
+	 * The switch port is turned off (admin down).
+	 */
 	public static final char PORT_LINK_DOWN = 'd';
 
 	private int swportid;
