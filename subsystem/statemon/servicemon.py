@@ -71,15 +71,19 @@ class controller:
         """
         newcheckers = self.db.getCheckers(self.dirty)
         self.dirty=0
+        # make sure we don't delete all checkers if we get an empty
+        # list from the database (maybe we have lost connection to
+        # the db)
+        if newcheckers:
+            s=[]    
+            for i in newcheckers:
+                if i in self._checkers:
+                    oldchecker = self._checkers[self._checkers.index(i)]
+                    s.append(oldchecker)
+                else:
+                    s.append(i)
 
-        s=[]    
-        for i in newcheckers:
-            if i in self._checkers:
-                s.append(self._checkers[self._checkers.index(i)])
-            else:
-                s.append(i)
-
-        self._checkers=s
+            self._checkers=s
         #randomiserer rekkefølgen på checkerbene
         for i in self._checkers:
             self._checkers.append(self._checkers.pop(int(len(self._checkers)*random.random())))

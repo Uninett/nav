@@ -18,6 +18,7 @@ from event import Event
 from setup import Service
 from debug import debug
 
+
 def db(conf):
 	if _db._instance is None:
 		_db._instance=_db(conf)
@@ -28,23 +29,37 @@ class _db(threading.Thread):
 	_instance=None
 	def __init__(self, conf):
 		threading.Thread.__init__(self)
-		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s"
-					% (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
+		self.conf = conf
+		self.connect()
 		self.db.autocommit(0)
 		self.sysnetbox()
 		self.setDaemon(1)
 		self.queue = Queue.Queue()
+	def connect(self):
+		try:
+			self.db = psycopg.connect("host = %s user = %s dbname = %s password = %s"
+						  % (self.conf["dbhost"],
+						     "manage"
+						     ,self.conf["db_nav"],
+						     self.conf["userpw_manage"]))
+		except Exception, e:
+			debug("Couldn't connect to db.", 2)
+			debug(str(e),2)
+			self.db=None
+	
+	def cursor(self):
+		try:
+			cursor = self.db.cursor()
+		except:
+			debug("Could not get cursor. Trying to reconnect...", 2)
+			self.connect()
+			cursor = self.db.connect()
+		return cursor
 
 	def run(self):
 		while 1:
 			event = self.queue.get()
-			# Lock table exclusively
-			#debug("Locking eventq exclusively")
-			#self.execute("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE", commit=0);
-			#time.sleep(10)
 			self.commitEvent(event)
-			#debug("Committing events in 10 secs...")
-			#time.sleep(10)
 			self.db.commit()
 
         def sysnetbox(self):
@@ -63,7 +78,7 @@ class _db(threading.Thread):
 		
 	def query(self, statement, commit=1):
 		try:
-			cursor=self.db.cursor()
+			cursor=self.cursor()
 			debug("Executeing: %s" % statement,7)
 			cursor.execute(statement)
 			if commit:
@@ -83,7 +98,7 @@ class _db(threading.Thread):
 			return []
 	def execute(self, statement, commit=1):
 		try:
-			cursor=self.db.cursor()
+			cursor=self.cursor()
 			debug("Executeing: %s" % statement,7)
 			cursor.execute(statement)
 			if commit:
