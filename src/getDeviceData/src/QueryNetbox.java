@@ -349,6 +349,7 @@ public class QueryNetbox extends Thread
 				exp.printStackTrace(System.err);
 			} catch (Throwable e) {
 				Log.w("RUN", "Fatal error, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+				e.printStackTrace(System.err);
 			}
 
 			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
