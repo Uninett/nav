@@ -1,10 +1,24 @@
 package NAV;
+####################
+#
+# $Id: NAV.pm,v 1.5 2002/11/25 10:44:45 gartmann Exp $
+# This file is part of the NAV project.
+# NAV module contains the common methods / subroutines that NAV scripts are
+# using. It also does some initial work regarding the NAVlog system.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
+#
+####################
 
 require Exporter;
 use strict;
 use Pg;
 use Fcntl qw/:flock/;
-use FileHandle;
+#use FileHandle;
+use SNMP;
+use SNMP_util;
+use Socket;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(log_open log_close skriv log_write db_get get_path db_safe rydd db_select db_execute db_connect db_readconf hash_conf and_ip mask_bits);
