@@ -12,15 +12,7 @@
 # John Magne Bredal
 # 08-09-2000
 #
-# Sist forandret (major bug...!) 27-10-2000 - JM
-#
-# Oppdatert 23-01-2001 - JM
-# Bruker nå nye navn på tabellene i databasen
-#
-# Oppdatert 26-01-2001 - JM
-# Fikset minor bug der det ikke ble sjekket om community faktisk
-# fantes før routeren ble slengt inn i arrayet. Laget stort sett
-# bare uviktige feilmeldinger.
+# Utallige forandringer gjennomført.
 ############################################################
 
 use Pg;
@@ -85,37 +77,40 @@ sub Routers {
 
     my $fil = "$path/routers/Targets";
 
+    # Henter typegrupper fra type
+    my %typegruppe;
+    my $sporring = "select typeid,typegruppe from type";
+    my $getres = &db_select($sporring,$dbh);
+    while (my($typeid,$typegruppe) = $getres->fetchrow) {
+	$typegruppe{$typeid} = $typegruppe;
+    }
+
     # Henter alle ruterne fra databasen
-    my $sporring = "SELECT boksid,sysname,ip,typeid,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
+    $sporring = "SELECT boksid,sysname,ip,typeid,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
     my $getrouters = &db_select($sporring,$dbh);
 
     # Skriver til filen
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
     while (my @temp = $getrouters->fetchrow) {
-	@temp = map &rydd($_), @temp;
 	my ($id, $sysname,$ip,$type,$romid,$community) = @temp;
 	
 	# Unngår hvis det er feil i databasen
 	if ($sysname) {
-	    $sysname =~ s/\..+//;
-
-	    # Hardkoding av unntak....
-	    if ($sysname =~ /(erke-gw|psykiatri-gw|ringve-gw)/) {
-		$sysname = "$sysname-trlos";
-	    }
+#	    $sysname =~ s/\..+//;
 
 	    if ($community) {
 		push @ruterliste, [$id, $sysname, $ip, $romid,$community];
 		print FIL "target $sysname\n";
 		print FIL "\tsnmp-host\t=\t$ip\n";
 		print FIL "\tsnmp-community\t=\t$community\n";
+		print FIL "\ttarget-type\t=\t$typegruppe{$type}\n";
 
-		# Unntak for type ruter
-		if ($type =~ /^(IGS|AGS|C2514|C4000|C4700|C1005|C7200|C7500)$/ ) {
-		    print FIL "\ttarget-type\t=\t$type-Router\n";
-		} else {
-		    print FIL "\ttarget-type\t=\tStandard-Router\n";
-		}
+#  		# Unntak for type ruter
+#  		if ($type =~ /^(IGS|AGS|C2514|C4000|C4700|C1005|C7200|C7500)$/ ) {
+#  		    print FIL "\ttarget-type\t=\t$type-Router\n";
+#  		} else {
+#  		    print FIL "\ttarget-type\t=\tStandard-Router\n";
+#  		}
 
 		# Må finne beskrivelsen til rommet
 		$sporring = "SELECT descr FROM rom WHERE romid='$romid'";
@@ -124,7 +119,6 @@ sub Routers {
 		    print "Ingen beskrivelse for rom med id=$romid\n";
 		    print FIL "\tshort-desc\t=\t\"\"\n\n";
 		} else {
-		    $desc = &rydd($desc);
 		    print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
 		}
 	    }
@@ -158,48 +152,44 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,nettype,orgid,anvid,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 ORDER BY vlan";
+	my $sporring = "SELECT g.interf,g.speed,p.nettype,p.nettident FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 and g.masterindex is null ORDER BY vlan";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
-
-	while (my @temp = $getinterfaces->fetchrow) {
-	    @temp = map &rydd($_), @temp;
-	    my ($interf,$speed,$type,$org,$anv,$samband,$komm) = @temp;
+	
+	my @liste;
+	my ($interf,$speed,$type,$nettident);
+	while (($interf,$speed,$type,$nettident) = $getinterfaces->fetchrow) {
 	    unless ($routerint{$interf}) {
 		$routerint{$interf}++;
 		# Vil ikke ha med Loopback-interfacene.
 		unless ($interf =~ /Loopback/) {
-		    $interf =~ s/\//_/g;
-		    print FIL "\ntarget $interf\n";
-		    $interf =~ s/_/\//g;
-		    print FIL "\tinterface-name\t=\t$interf\n";
-
-		    # Må sette sammen en description
-		    my @elementer = ($org, $anv, $samband, $komm);
-		    unless ($sysname =~ /trlos/) {
-			$sysname =~ s/-gw//;
-		    } else {
-			$sysname =~ s/-gw-trlos//;
-		    }
-		    
-		    print FIL "\tshort-desc\t=\t$type,$sysname";
-
-		    for (@elementer) {
-			if ($_) {
-			    print FIL ",$_";
-			}
-		    }
-		    print FIL "\n";
-
-		    # Setter slik at alle capacities har .00 etter seg
-		    if ($speed =~ /\./) {
-			print FIL "\tcapacity\t=\t$speed\n";
-		    } else {
-			print FIL "\tcapacity\t=\t$speed.00\n";
-		    }
+		    push @liste, [$interf,$speed,$type,$nettident];
 		}
 	    }
 	}
+
+	@liste = &sorter(0, @liste);
+	my $order = @liste;
+
+	for (@liste) {
+	    ($interf,$speed,$type,$nettident) = @$_;
+	    $interf =~ s/\//_/g;
+	    print FIL "\ntarget $interf\n";
+	    $interf =~ s/_/\//g;
+	    print FIL "\tinterface-name\t=\t$interf\n";
+
+	    print FIL "\tshort-desc\t=\t$nettident\n";
+
+	    # Setter slik at alle capacities har .00 etter seg
+	    if ($speed =~ /\./) {
+		print FIL "\tcapacity\t=\t$speed\n";
+	    } else {
+		print FIL "\tcapacity\t=\t$speed.00\n";
+	    }
+	    $order--;
+	    print FIL "\torder\t\t=\t$order\n\n";
+	}
+
 	$count++;
 	close FIL;
     }
@@ -216,16 +206,23 @@ sub Switches {
 
     my $fil = "$path/switches/switches";
 
-    my $sporring = "SELECT boksid, ip, sysName,typeid,ro FROM boks WHERE kat='SW' ORDER BY sysName";
+    # Henter typegrupper fra type
+    my %typegruppe;
+    my $sporring = "select typeid,typegruppe from type";
+    my $getres = &db_select($sporring,$dbh);
+    while (my($typeid,$typegruppe) = $getres->fetchrow) {
+	$typegruppe{$typeid} = $typegruppe;
+    }
+
+    $sporring = "SELECT boksid, ip, sysName,typeid,ro FROM boks WHERE kat='SW' ORDER BY sysName";
     my $getswitches = &db_select($sporring,$dbh);
 
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
     while (my @temp = $getswitches->fetchrow) {
-	@temp = map &rydd($_),@temp;
 	my ($id,$ip,$sysname, $type, $community) = @temp;
 	# Unngår feil i databasen
 	if ($sysname) {
-	    $sysname =~ s/\..+//;
+#	    $sysname =~ s/\..+//;
 	    # Hardkoder unntak for rene svitsjer (SW1100|SW3300|SW9300)
 	    if ($type) {
 		unless ($type =~ /(SW|C3000|C3100)/) {
@@ -234,7 +231,8 @@ sub Switches {
 		    if ($community) {
 			print FIL "target $sysname\n";
 			print FIL "\tsnmp-community\t=\t$community\n";
-			print FIL "\ttarget-type\t=\t$type\n";
+			print FIL "\ttarget-type\t=\t$typegruppe{$type}\n\n";
+#			print FIL "\ttarget-type\t=\t$type\n";
 		    }
 		}
 	    }
@@ -279,23 +277,26 @@ sub Switchports {
 		my @liste;
 		
 		while (my @temp = $getports->fetchrow) {
-		    @temp = map &rydd($_), @temp;
 		    my ($modul,$port,$portname) = @temp;
 		    unless (!$modul or !$port) {
-			push @liste, [@temp];
+			$port = $modul."_".$port;
+			push @liste, [$port,$portname];
 		    }
 		}
+
+		@liste = &sorter(0,@liste);
 
 		# Order holder styr på rekkefølgen som Cricket
 		# viser portene i. Høyt tall = høy prioritet.
 		my $order = @liste;
-
+		
 		for my $ref (@liste) {
-		    my ($modul, $port, $portname) = @$ref;
-		    $modul =~ s/fe/Fa/i;
-		    $modul =~ s/ge/Gi/i;
-		    print FIL "target ".$modul."_".$port."\n";
-		    print FIL "\tport-name\t=\t".$modul."/".$port."\n";
+		    my ($port, $portname) = @$ref;
+		    $port =~ s/fe/Fa/i;
+		    $port =~ s/ge/Gi/i;
+		    print FIL "target $port\n";
+		    $port =~ s/_/\//;
+		    print FIL "\tport-name\t=\t$port\n";
 		    $portname =~ s/\s/_/g;
 		    print FIL "\tshort-desc\t=\t$portname\n";
 
@@ -315,61 +316,65 @@ sub gigarouterinterfaces {
 
     my $count = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,p.orgid,p.anvid,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid";
+    my $sporring = "SELECT b.ip,b.sysname,g.interf,p.nettident,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid and g.masterindex is null";
     my $getinterfaces = &db_select($sporring,$dbh);
+    
+    my $tempip = "0";
+    my @liste;
+    my @liste_bak;
+    my($ip,$sysname,$interf,$nettident,$speed,$type,$community);
+    while (($ip,$sysname,$interf,$nettident,$speed,$type,$community) = $getinterfaces->fetchrow) {
+#	$sysname =~ s/\..+//;
 
-    while (my @temp = $getinterfaces->fetchrow) {
-	@temp = map &rydd($_), @temp;
-	my($ip,$sysname,$org,$anv,$samband,$komm,$interf,$speed,$type,$community) = @temp;
-
-	$sysname =~ s/\..+//;
-
-	unless (-e "$path/giga-router-interfaces/$sysname") {
-	    mkdir ("$path/giga-router-interfaces/$sysname",0775);
-	}
-
-	my $fil = "$path/giga-router-interfaces/$sysname/interfaces";
-	if (-e "$path/giga-router-interfaces/$sysname/interfaces") {
-	    open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+	if ($ip eq $tempip || $tempip eq "0") {
+	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$type,$community];
+	    $tempip = $ip;
 	} else {
-	    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-	    print FIL "target --default--\n";
-	    print FIL "\trouter = $ip\n";
-	    print FIL "\tsnmp-community =\t$community\n";
-	}
+	    @liste = @liste_bak;
+	    @liste_bak = ();
+	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$type,$community];
+	    $tempip = $ip;
+	    @liste = &sorter (6,@liste);
+	    my $order = @liste;
 
-	$interf =~ s/\//_/g;
-	print FIL "\ntarget $interf\n";
-	$interf =~ s/_/\//g;
-	print FIL "\tinterface-name\t=\t$interf\n";
+	    for (@liste) {
+		($ip,$sysname,$interf,$nettident,$speed,$type,$community) = @$_;
 
-	# Må sette sammen en description
-	my @elementer = ($org, $anv, $samband, $komm);
-	unless ($sysname =~ /trlos/) {
-	    $sysname =~ s/-gw//;
-	} else {
-	    $sysname =~ s/-gw-trlos//;
-	}
-		    
-	print FIL "\tshort-desc\t=\t$type,$sysname";
-	
-	for (@elementer) {
-	    if ($_) {
-		print FIL ",$_";
+		unless (-e "$path/giga-router-interfaces/$sysname") {
+		    mkdir ("$path/giga-router-interfaces/$sysname",0775);
+		}
+
+		my $fil = "$path/giga-router-interfaces/$sysname/interfaces";
+		if (-e "$path/giga-router-interfaces/$sysname/interfaces") {
+		    open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+		} else {
+		    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+		    print FIL "target --default--\n";
+		    print FIL "\trouter = $ip\n";
+		    print FIL "\tsnmp-community =\t$community\n";
+		}
+
+		$interf =~ s/\//_/g;
+		print FIL "\ntarget $interf\n";
+		$interf =~ s/_/\//g;
+		print FIL "\tinterface-name\t=\t$interf\n";
+		print FIL "\tshort-desc\t=\t$nettident";
+		
+		# Setter slik at alle capacities har .00 etter seg
+		if ($speed =~ /\./) {
+		    print FIL "\tcapacity\t=\t$speed\n";
+		} else {
+		    print FIL "\tcapacity\t=\t$speed.00\n";
+		}
+
+		# Setter sorteringsinfo
+		print FIL "\torder\t\t=\t$order\n\n";
+		$order--;
 	    }
+	    close FIL;
+	    $count++;
 	}
-	print FIL "\n";
-
-	# Setter slik at alle capacities har .00 etter seg
-	if ($speed =~ /\./) {
-	    print FIL "\tcapacity\t=\t$speed\n";
-	} else {
-	    print FIL "\tcapacity\t=\t$speed.00\n";
-	}
-	$count++;
     }
-
-    close FIL;
     print "$count filer laget\n"
 
 } # sub gigainterfaces
@@ -382,44 +387,62 @@ sub gigaswitchports {
     my $sporring = "select b.boksid,b.ip,b.sysname,b.typeid,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.boksid=s.boksid and s.speed='1000' and portnavn!='' order by b.boksid";
     my $getports = &db_select($sporring,$dbh);
 
-    while (my @temp = $getports->fetchrow) {
-	@temp = map &rydd($_), @temp;
-	my($id,$ip,$switchnavn,$type,$modul,$port,$portname,$community) = @temp;
+    my $tempswitchnavn = "";
+    my @liste;
+    my @liste_bak;
+    my ($id,$ip,$switchnavn,$type,$modul,$port,$portname,$community);
+    while (($id,$ip,$switchnavn,$type,$modul,$port,$portname,$community) = $getports->fetchrow) {
+#	$switchnavn =~ s/\..+//;
+	$port = $modul."_".$port;
+	if ($switchnavn eq $tempswitchnavn || $tempswitchnavn eq "") {
+	    push @liste_bak, [$id,$ip,$switchnavn,$type,$port,$portname,$community];
+	    $tempswitchnavn = $switchnavn;
+	} else {
+	    @liste = @liste_bak;
+	    @liste_bak = ();
+	    push @liste_bak, [$id,$ip,$switchnavn,$type,$port,$portname,$community];
 
-	unless ($type =~ /SW\d{4}/ ) {
-	    unless ($portname =~ /(udef|undef)/ or !$modul or !$port) {
-		$test{$id}++;
+	    $tempswitchnavn = $switchnavn;
+	    @liste = &sorter(4,@liste);
+	    my $order = @liste;
 
-		if ($community) {
-		    unless (-e "$path/giga-switch-ports/$switchnavn") {
-			mkdir ("$path/giga-switch-ports/$switchnavn", 0775);
+	    for (@liste) {
+		($id,$ip,$switchnavn,$type,$port,$portname,$community) = @$_;
+		unless ($type =~ /SW\d{4}/ ) {
+		    unless ($portname =~ /(udef|undef)/ or !$port) {
+			$test{$id}++;
+
+			if ($community) {
+			    unless (-e "$path/giga-switch-ports/$switchnavn") {
+				mkdir ("$path/giga-switch-ports/$switchnavn", 0775);
+			    }
+			    
+			    my $fil = "$path/giga-switch-ports/$switchnavn/ports";
+			    
+			    if (-e "$path/giga-switch-ports/$switchnavn/ports") {
+				open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+			    } else {
+				open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+				print FIL "target --default--\n";
+				print FIL "\tswitch\t\t=\t$ip\n";
+				print FIL "\tsnmp-community\t=\t$community\n\n";
+			    }
+			    
+			    $modul =~ s/fe/Fa/i;
+			    $modul =~ s/ge/Gi/i;
+			    print FIL "target $port\n";
+			    $port =~ s/_/\//;
+			    print FIL "\tport-name\t=\t$port\n";
+			    $portname =~ s/\s/_/g;
+			    print FIL "\tshort-desc\t=\t$portname\n";
+			    print FIL "\torder\t\t=\t$order\n\n";		
+			    $order--;
+			    close FIL;
+			}
 		    }
-
-		    my $fil = "$path/giga-switch-ports/$switchnavn/ports";
-
-		    if (-e "$path/giga-switch-ports/$switchnavn/ports") {
-			open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-		    } else {
-			open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-			print FIL "target --default--\n";
-			print FIL "\tswitch\t\t=\t$ip\n";
-			print FIL "\tsnmp-community\t=\t$community\n\n";
-		    }
-
-		    $modul =~ s/fe/Fa/i;
-		    $modul =~ s/ge/Gi/i;
-		    print FIL "target ".$modul."_".$port."\n";
-		    print FIL "\tport-name\t=\t$modul\/$port\n";
-		    $portname =~ s/\s/_/g;
-		    print FIL "\tshort-desc\t=\t$portname\n";
-		    my $order = $test{$id};
-		    print FIL "\torder\t\t=\t$order\n\n";		
-
-		    close FIL;
-
-		    $count++;
 		}
 	    }
+	    $count++;
 	}
     }
     print "$count filer laget\n"
@@ -454,13 +477,41 @@ sub db_execute {
     return $resultat;
 }
 
-sub rydd {
-    if (defined $_[0]) {
-        $_ = $_[0];
-        s/\s*$//;
-        s/^\s*//;
-    return $_;
-    } else {
-        return "";
+sub sorter {
+
+    my $indeks = shift;
+    my @array = @_;
+    my %temp;
+
+    #print "\n---------- Ny enhet ----------\n";
+
+    for (@array) {
+	my $key = @$_[$indeks];
+	#print "$key ";
+	# Hiver inn en null hvis bare et tall
+	if ($key =~ /_\d{1}/ && $key !~ /_\d{2}/) {
+	    $key =~ s/_(\d)\D/\.0$1/g;
+	}
+
+	# Fjerner alle ikke-tall
+	$key =~ s/\D+//g;
+	$temp{$key} = [@$_];
     }
+    
+    #print "\nSorterer...\n";
+
+    my @res = sort numerically keys %temp;
+    my @ret;
+    for (@res) {
+	#print "$_ ";
+	#print "@{$temp{$_}}\n";
+	push @ret, [@{$temp{$_}}];
+    }
+
+    return @ret;
+
+}
+
+sub numerically {
+    $a <=> $b;
 }
