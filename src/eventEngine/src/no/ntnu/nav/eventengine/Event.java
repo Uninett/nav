@@ -20,7 +20,7 @@ public interface Event
 	public int getValue();
 	public int getSeverity();
 
-	public Map getVarMap();
+	public Set getVar(String var);
 
 	public String getKey();
 

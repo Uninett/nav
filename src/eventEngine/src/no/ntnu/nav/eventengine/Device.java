@@ -8,12 +8,15 @@ public abstract class Device
 {
 	protected static final boolean DEBUG_OUT = true;
 
-	int deviceid;
+	protected DeviceDB devDB;
+
+	protected int deviceid;
 
 	protected Device() { }
 
-	public Device(ResultSet rs, Device d) throws SQLException
+	public Device(DeviceDB devDB, ResultSet rs, Device d) throws SQLException
 	{
+		this.devDB = devDB;
 		deviceid = rs.getInt("deviceid");
 	}
 

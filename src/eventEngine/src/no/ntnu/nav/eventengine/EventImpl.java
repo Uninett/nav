@@ -86,6 +86,7 @@ class EventImpl implements Event, Alert
 	public int getState() { return state; }
 	public int getValue() { return value; }
 	public int getSeverity() { return severity; }
+	public Set getVar(String var) { return (Set)varMap.get(var); }
 	public Map getVarMap() { return varMap; }
 	public void dispose()
 	{
@@ -109,7 +110,12 @@ class EventImpl implements Event, Alert
 	public void setValue(int value) { this.value = value; }
 	public void setSeverity(int severity) { this.severity = severity; }
 
-	public void addVar(String key, String val) { varMap.put(key, val); }
+	public void addVar(String key, String val)
+	{
+		Set s;
+		if ( (s=(Set)varMap.get(key)) == null) varMap.put(key, s=new HashSet());
+		s.add(val);
+	}
 
 	public void addEvent (Event e) { eventList.add(e); }
 

@@ -257,9 +257,9 @@ public class DeviceDB
 			while (i.hasNext()) {
 				Map.Entry me = (Map.Entry)i.next();
 				String var = (String)me.getKey();
-				List l = (List)me.getValue();
-				for (int j=0; j<l.size(); j++) {
-					String val = (String)l.get(j);
+				Set valSet = (Set)me.getValue();
+				for (Iterator j=valSet.iterator(); j.hasNext();) {
+					String val = (String)j.next();
 					String[] insv = {
 						tableid, String.valueOf(id),
 						"var", var,
