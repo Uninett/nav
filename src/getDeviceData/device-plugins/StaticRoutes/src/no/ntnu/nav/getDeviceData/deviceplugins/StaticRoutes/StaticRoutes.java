@@ -124,7 +124,7 @@ public class StaticRoutes implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, mc, gwc, sc);
+		boolean fetch = processCiscoGw(cp, nb, netboxid, ip, cs_ro, type, mc, gwc, sc);
 			
 		// Commit data
 		if (fetch) {
@@ -136,7 +136,7 @@ public class StaticRoutes implements DeviceHandler
 	 * CiscoGw
 	 *
 	 */
-	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
+	private boolean processCiscoGw(ConfigParser cp, Netbox nb, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
 
 		/*
 
@@ -171,6 +171,7 @@ o For hver ruter (GW/GSW)
 		if (getNextDelay > 0) sSnmp.setGetNextDelay(getNextDelay);
 		MultiMap routeProto = util.reverse(sSnmp.getAllMap(nb.getOid("ipRouteProto"), true));
 		if (getNextDelay > 0) sSnmp.setGetNextDelay(0);
+		if (routeProto == null) return false;
 		Set routes = routeProto.get("2");
 		if (routes.isEmpty()) return false;
 		//System.err.println("Routes1: " + routes);
@@ -322,7 +323,8 @@ o For hver ruter (GW/GSW)
 		
 			// Create Vlan
 			// netident = 'sysname-til-ruteren-du-spør,ipRouteNextHop'
-			String netident = nb.getSysname()+","+nexthop;
+			String DOMAIN_SUFFIX = ((ConfigParser)cp.getObject("navCp")).get("DOMAIN_SUFFIX");
+			String netident = util.remove(nb.getSysname(), DOMAIN_SUFFIX) +","+nexthop;
 			Vlan vl = gwm.vlanFactory(netident);
 			vl.setNettype("static");
 			vl.setDescription(alias);
