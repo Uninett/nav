@@ -94,6 +94,7 @@ if not checker:
 
 service={'id':serviceid,
          'netboxid':netboxid,
+         'deviceid':0,
          'ip':ip,
          'sysname':sysname,
          'args':args,

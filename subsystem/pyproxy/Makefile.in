@@ -35,9 +35,9 @@ pythonlibdir=@pythonlibdir@
 webroot=@webroot@
 sysconfdir=@sysconfdir@
 WEBLIB=$(pythonlibdir)/nav/web/pyproxy
-WEBNAME=navAdmin
+WEBNAMES=navAdmin vPServer
 
-WEBDIR=$(webroot)/$(WEBNAME)
+#WEBDIR=$(webroot)/$(WEBNAME)
 WEBLIBS=proxy.py
 
 
@@ -55,11 +55,11 @@ install-lib: lib
 	touch $(DESTDIR)$(WEBLIB)/__init__.py
 	for file in $(WEBLIBS); do $(INSTALL) -m 644 src/$$file $(DESTDIR)$(WEBLIB)/; done
 install-web: web
-	$(INSTALL) -d $(DESTDIR)$(WEBDIR)
-	$(INSTALL) -m 644 src/.htaccess $(DESTDIR)$(WEBDIR)/.htaccess
-# Apache is lame and needs an EXISTING FILE to use 
-# DirectoryIndex...... so let's create an empty one
-	touch $(DESTDIR)$(WEBDIR)/index
+	for dir in $(WEBNAMES); do \
+		$(INSTALL) -d $(DESTDIR)$(webroot)/$$dir; \
+		$(INSTALL) -m 644 src/.htaccess $(DESTDIR)$(webroot)/$$dir/.htaccess;\
+		touch $(DESTDIR)$(webroot)/$$dir/index; \
+	 done
 
 clean:
 	find -name *.pyc -print0 | xargs --null rm -f

@@ -59,6 +59,7 @@ AC_OUTPUT(Makefile
 	src/webapps/navAdmin/runAvledVlan.sh
 	src/Makefile
 	subsystem/backup/Makefile
+	subsystem/pyproxy/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
