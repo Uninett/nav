@@ -28,6 +28,42 @@ class Account(nav.db.forgotten.navprofiles.Account):
         links = self.getChildren(Accountorg)
         return [link.orgid for link in links]
 
+    def getImplicitOrgIds(self):
+        """
+        Returns a list of  organization ids this Account is associated
+        with,  including   implicit  organization  membersships.   The
+        hierarchy of  organizations from manage is  taken into account
+        here.
+        """
+        conn = nav.db.getConnection('webfront', 'manage')
+
+        # First, get the organizational units this user is an explicit
+        # member of.
+        orgList = self.getOrgIds()
+
+        if len(orgList) > 0:
+            # Then we need to trace organizational units below these in the
+            # hierarchy.
+            manageCursor = conn.cursor()
+            done = False
+            while not done:
+                orgString = ",".join(["'%s'" % org for org in orgList])
+                sql = \
+                    """
+                    SELECT DISTINCT orgid
+                    FROM org
+                    WHERE parent IN (%s)
+                    AND orgid NOT IN (%s);
+                    """ % (orgString, orgString)
+                manageCursor.execute(sql)
+                if manageCursor.rowcount < 1:
+                    done = True
+                else:
+                    orgList.extend([row[0] for row in manageCursor.fetchall()])
+
+        return orgList
+        
+
     def loadByLogin(cls, login):
         """
         Load and return an Account object by login name instead of id number.

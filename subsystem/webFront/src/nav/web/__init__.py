@@ -29,6 +29,11 @@ def headerparserhandler(req):
     state.setupSession(req)
     auth.authenticate(req)
 
+    # Make sure the main web template knows which user to produce
+    # output for.
+    from nav.web.templates.MainTemplate import MainTemplate
+    MainTemplate.user = req.session['user']
+
     return apache.OK
 
 

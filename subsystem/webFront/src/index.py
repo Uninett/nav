@@ -20,10 +20,15 @@ def index(req):
         name = req.session['user'].name
     else:
         name = req.session.id
-    
-    return """
+
+    from nav.web.templates.MainTemplate import MainTemplate
+
+    page = MainTemplate()
+    page.content = lambda: """
     <a href="/index.py/toolbox">Toolbox is here, %s</a>
 """ %  name
+
+    return page
 
 def toolbox(req):
     from nav.web.templates.ToolboxTemplate import ToolboxTemplate
