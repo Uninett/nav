@@ -82,14 +82,19 @@ class NavUtils
 		if (argSet.contains("-debug")) debugParam = "yes";
 
 		try {
+			String title;
+			if (argSet.contains("-avledTopologi")) title = "Avled topologi report";
+			else if (argSet.contains("-avledVlan")) title = "Avled vlan report";
+			else title = "Argument is not valid";
+
 			nu.outl("<html>");
-			nu.outl("<head><title>"+args[1].substring(1, args[1].length())+"</title></head>");
+			nu.outl("<head><title>"+title+"</title></head>");
 			nu.outl("<body>");
 
 			if (argSet.contains("-avledTopologi")) nu.avledTopologi();
 			else if (argSet.contains("-avledVlan")) nu.avledVlan();
 			else {
-				nu.outl("Ikke gyldig argument, start uten agrumenter for hjelp.");
+				nu.outl("Argument is not valid, start without arguments for help.");
 			}
 
 			nu.outl("</body>");
