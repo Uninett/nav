@@ -308,7 +308,8 @@ CREATE TABLE arp (
   til TIMESTAMP
 );
 CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
- 
+CREATE INDEX arp_fra_btree ON arp USING btree (fra); 
+
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
