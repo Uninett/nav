@@ -116,7 +116,7 @@ public class DeviceHandler implements DataHandler {
 					// If the serial changes we need to recreate the netbox
 					// If devids don't match it means that we are dealing with an existing device moved
 					// If serials don't match we have a new serial to an existing deviceid
-					if (dev.getDeviceid() != olddev.getDeviceid() || !olddev.getSerial().equals(dev.getSerial())) {
+					if (dev.getDeviceid() != olddev.getDeviceid() || !equals(dev.getSerial(), dev.getSerial())) {
 						NetboxUpdatable nu = (NetboxUpdatable)nb;
 						nu.recreate();
 						Map varMap = new HashMap();
@@ -171,6 +171,12 @@ public class DeviceHandler implements DataHandler {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+	}
+
+	private boolean equals(String s1, String s2) {
+		if (s1 == null && s2 == null) return true;
+		if (s1 != null) return s1.equals(s2);
+		return s2.equals(s1);
 	}
 
 }
