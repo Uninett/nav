@@ -120,7 +120,7 @@ def process(request):
                             subsystem='editdb', content="[Edit]"))
     result.append(urlbuilder.createLink(netbox,
                                         subsystem='emotd',
-                                        content='[Schedule maintainence]'))
+                                        content='[Schedule maintenance]'))
     services = info.showServices(sortBy)
     if services:
         result.append(services)

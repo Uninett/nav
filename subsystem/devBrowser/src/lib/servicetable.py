@@ -152,7 +152,7 @@ class ServiceTable:
             row.append(editLink)
             row.append(urlbuilder.createLink(service,
                                              subsystem='emotd',
-                                             content='[Schedule maintainence]'))
+                                             content='[Schedule maintenance]'))
             self.html.add(_class=service.up, *row)
             
     def getServiceRrds(self, service, timeframe, ds):
