@@ -511,7 +511,7 @@ class ReportConfig:
         return last.strip()
 
     def parse_select(self,sql):
-        select = re.search("SELECT\s*(.*)\s*FROM\s+",sql,re.I|re.S|re.M)
+        select = re.search("SELECT\s*(.*?)\s*FROM\s+",sql,re.I|re.S|re.M)
         if select:
             select = select.group(1)
 
@@ -535,52 +535,74 @@ class ReportConfig:
             return ([],[])
 
     def parse_from(self,sql):
-        fromm = re.search("FROM\s*(.*?)\s*(?:WHERE|ORDER|GROUP|LIMIT|OFFSET|$)",sql,re.I|re.S|re.M)
+        str = ''
+        for elem in sql: str += elem
+        fromm = self.findInLevel(0, str, 'FROM', ['WHERE','ORDER','GROUP','LIMIT','OFFSET'])
         if fromm:
-            return fromm.group(1)
-        else:
-            return ""
+            return fromm
+        return ""
 
     def parse_where(self,sql):
-        where = re.search("WHERE\s*(.*?)\s*(?:ORDER|GROUP|LIMIT|OFFSET|$)",sql,re.I|re.S)
+        str = ''
+        for elem in sql: str += elem
+        where = self.findInLevel(0, str, 'WHERE', ['ORDER','GROUP','LIMIT','OFFSET'])
         if where:
-            where = where.group(1)
-            where = where.split(",")
-            return where
-        else:
-            return []
+            return [where]
+        return []
 
     def parse_group(self,sql):
-        group = re.search("GROUP\ BY\s*(.*?)\s*(?:ORDER|LIMIT|OFFSET|$)",sql,re.I|re.S)
+        str = ''
+        for elem in sql: str += elem
+        group = self.findInLevel(0, str, 'GROUP BY', ['ORDER','LIMIT','OFFSET'])
         if group:
-            group = group.group(1)
-            group = group.split(",")
-            return group
-        else:
-            return []
+            return [group]
+        return []
 
     def parse_order(self,sql):
-        order = re.search("ORDER\ BY\s*(.*?)\s*(?:GROUP|LIMIT|OFFSET|$)",sql,re.I|re.S)
+        str = ''
+        for elem in sql: str += elem
+        order = self.findInLevel(0, str, 'ORDER BY', ['GROUP BY','LIMIT','OFFSET'])
         if order:
-            order = order.group(1)
-            order = order.split(",")
-            return order
-        else:
-            return []
+            return [order]
+        return []
 
     def parse_limit(self,sql):
-        limit = re.search("LIMIT\s*(.*?)\s*(?:OFFSET|$)",sql,re.I|re.S)
+        str = ''
+        for elem in sql: str += elem
+        limit = self.findInLevel(0, str, 'LIMIT', ['OFFSET'])
         if limit:
-            limit = limit.group(1)
             return limit
-        else:
-            return ""
+        return ""
 
     def parse_offset(self,sql):
-        offset = re.search("OFFSET\s*(.*?)\s*$",sql,re.I|re.S)
+        str = ''
+        for elem in sql: str += elem
+        offset = self.findInLevel(0, str, 'OFFSET', [])
         if offset:
-            offset = offset.group(1)
             return offset
-        else:
-            return ""
+        return ""
 
+    def strAtIdx(self, idx, str, set):
+        for elem in set:
+            if str[idx:idx+len(elem)].lower() == elem.lower():
+                return 1
+        return 0
+
+    def findInLevel(self, level, str, begin, end):
+        last = 0
+        k = 0
+        elem = []
+        beginIdx = -1
+        endLev = -1
+        if (level == 0): endLev = len(str)
+        for i in xrange(len(str)):
+            if str[i] == '(': k += 1
+            elif str[i] == ')':
+                if k == level: endLev = i
+                k -= 1
+            elif k == level:
+                if beginIdx == -1 and self.strAtIdx(i, str, [begin]):
+                    beginIdx = i + len(begin)
+                elif beginIdx >= 0 and self.strAtIdx(i, str, end):
+                    return str[beginIdx:i]
+        if beginIdx >= 0 and endLev >= 0: return str[beginIdx:endLev]
