@@ -1,20 +1,8 @@
-"""
-$Id:
-
-    This file is part of the NAV project.
-
-    This module contains functionality related to eMotd and maintenance.
-
-    Copyright (c) 2003 by NTNU, ITEA nettgruppen
-    Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
-
-"""
 #################################################
-## handler.py
+## blapp.py
 
 #################################################
 ## Imports
-#from miscUtils import getattrlist,makewherelist
 from mod_python import util, apache
 from mx import DateTime
 import sys,os,re,copy,string
@@ -30,7 +18,6 @@ from nav.web import SearchBox
 
 from nav.web.templates.EmotdTemplate import EmotdTemplate
 from nav.web.templates.EmotdFrontpage import EmotdFrontpage
-from nav.web.templates.MaintenanceTemplate import MaintenanceTemplate
 
 #################################################
 ## Module constants
@@ -376,7 +363,7 @@ def maintenance(req):
     form += '</td></tr></table>'
     
     if req and req.form.has_key('list'): 
-        body = '<p>Current maintenance:</p>'
+        body = '<p>Current maintenance:</p>\n'
         maintdict = {}
         if req.form['list'] == 'current' or req.form['list'] == 'active':
             maintdict = EmotdSelect.getMaintenance(state='active',access=True)
@@ -396,19 +383,22 @@ def maintenance(req):
                 # One maintenance, can keep severel rooms,netbox,services
                 entry = maintdict[maint][f]
                 if entry['key'] == 'room':
-                    room = Room(entry['value']).roomid + "," + Room(entry['value']).descr
+                    room = Room(entry['value']).roomid 
+                    roomdesc = Room(entry['value']).descr
                     roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
-                    body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (roomurl,mstart,mend,emotdurl)
+                    body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,mstart,mend,emotdurl)
                 if entry['key'] == 'netbox':
-                    room = Netbox(entry['value']).room.roomid + "," + Netbox(entry['value']).room.descr 
-                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
+                    room = Netbox(entry['value']).room.roomid  
+                    roomdesc = Netbox(entry['value']).room.descr 
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s (%s) </a>" % (room,room,roomdesc) 
                     netbox = Netbox(entry['value']).sysname 
                     netboxurl = "<a href=/browse/%s> %s </a>" % (netbox,netbox) 
-                    body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (roomurl,netboxurl,mstart,mend,emotdurl)
+                    body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,netboxurl,mstart,mend,emotdurl)
                 if entry['key'] == 'service':
                     netbox = Service(entry['value']).netbox.sysname
-                    room = Service(entry['value']).netbox.room.roomid + "," + Service(61).netbox.room.descr
-                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
+                    room = Service(entry['value']).netbox.room.roomid 
+                    roomdesc = Service(61).netbox.room.descr
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s (%s)</a>" % (room,room,roomdesc) 
                     service = Service(entry['value']).handler
                     serviceurl = "<a href=/browse/service/%s> %s </a>" % (service,service) 
                     body += '<tr><td>%s</td><td>%s</td><td><b>&s</b></td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,netboxurl,serviceurl,mstart,mend,emotdurl)
