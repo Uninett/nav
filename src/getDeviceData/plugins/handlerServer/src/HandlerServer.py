@@ -6,20 +6,17 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.5 2002/07/02 09:34:05 cricket Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.6 2002/07/02 14:08:52 stain Exp $"
 
 import UserDict
 import re
-from array import array
+import os
 import string
 
 import no.ntnu.nav.Database.Database as db 
 import no.ntnu.nav.SimpleSnmp as snmp
 from no.ntnu.nav.getDeviceData.plugins import DeviceHandler
 from no.ntnu.nav.getDeviceData.plugins import DeviceData
-
-#temp code
-file = "/usr/local/nav/local/etc/conf/diskException.conf"
 
 class OID:
   """Constants for typical used OIDs"""
@@ -101,7 +98,7 @@ class HandlerServer(DeviceHandler):
       return 1  
     else:
       return 0
-  def handle(self, box, snmp, deviceDataList):
+  def handle(self, box, snmp, configParser, deviceDataList):
     """Process this box. Called by the server for each box.
 
        As specified in the interface
@@ -111,10 +108,17 @@ class HandlerServer(DeviceHandler):
               investigate
        snmp -- SimpleSnmp.SimpleSnmp instance a snmp connection for our
                free use
+       configParser -- ConfigParser-instance with the main NAV
+                       configuration file already opened
+                       (used to find our base path)
        deviceDataList -- getDeviceData.plugins.DeviceDataList instance
                          with methods to store DeviceData instances - 
                          which again contains our changes
     """
+
+    self.basePath = configParser.get("NAVROOT")
+    print "Basepath er", self.basePath
+
 
     print "Handler", box
 
@@ -153,7 +157,12 @@ class HandlerServer(DeviceHandler):
     s = Checking()
     sep = ' '
     arr = []
-    conf_file = open(file ,'r')
+    file = os.path.join(self.basePath, 'local', 'etc', 'conf', 'diskException.conf')
+    try:
+      conf_file = open(file ,'r')
+    except:
+      print "Could not open config file %s" % file
+      return [] # We failed.
     lines = conf_file.readlines()
     for line in lines:
       line2 = string.expandtabs(line,1)
@@ -174,6 +183,7 @@ class HandlerServer(DeviceHandler):
         on = s.rec(line,sep)
         arr.append((on[0],on[1]))
         continue
+    return arr  
 
 
   def getSnmpAgent(self, box, snmp, deviceData):
@@ -272,7 +282,11 @@ class HandlerServer(DeviceHandler):
 
     # Insert into database
     for disk in disks.values():
-      deviceData.addBoksDisk(disk.description, disk.size) 
+      try:
+        blocksize = int(disk.size)
+      except:
+        blocksize = 1024 # Default
+      deviceData.addBoksDisk(disk.description, blocksize) 
     
     deviceData.boksDiskUpdated()
 
