@@ -273,7 +273,7 @@
     </condition>
 
     <mkdir dir="${DESTDIR}${warinstdir}"/>
-    <copy file="${dist.home}/${app.name}-${app.version}.war" todir="${DESTDIR}${warinstdir}"/>
+    <copy file="${dist.home}/${app.name}.war" todir="${DESTDIR}${warinstdir}"/>
     <!-- The navAdmin tool does not yet exist
     <mkdir dir="${DESTDIR}${tooldir}"/>
     <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
@@ -363,7 +363,7 @@
     </copy>
 
     <!-- Create application JAR file -->
-    <war destfile="${dist.home}/${app.name}-${app.version}.war"
+    <war destfile="${dist.home}/${app.name}.war"
          webxml="metadata/web.xml">
       <classes dir="${build.home}"/>
       <webinf dir=".">
@@ -405,7 +405,7 @@
        username="${manager.username}"
        password="${manager.password}"
            path="${app.path}"
-            war="file://${dist.home}/${app.name}-${app.version}.war"/>
+            war="file://${dist.home}/${app.name}.war"/>
 
   </target>
 
