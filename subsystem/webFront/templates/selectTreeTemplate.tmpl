@@ -85,7 +85,7 @@ $layoutBox.emptySelectText $select.prevSelect.title
 #if $select.disabled
 #set $disabled = 'disabled'
 #end if
-<select $disabled name="$select.controlName" $attribs style="$style">
+<select $disabled id="$select.controlName" name="$select.controlName" $attribs style="$style">
 #if len($select.options) == 0
 ## dummy option to force some browsers to render empty selects
     <option disabled value=""></option>
