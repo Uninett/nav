@@ -176,7 +176,7 @@ class NavUtils
 		}
 
 		// Endret for å få med GSW
-		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
+		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
 
 		HashMap bokser = new HashMap();
 		ArrayList boksList = new ArrayList();
