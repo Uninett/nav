@@ -11,7 +11,7 @@ $navslutt = '/local/apache/htdocs/public/perl/navslutt.pl';
 $public     = '../vhtdocs/public.html';
 $restricted = '../vhtdocs/restricted.html';
 $secret     = '../vhtdocs/secret.html';
-$htpasswd = "/usr/local/apache/htpasswd/.htpasswd-sroot";
+$htpasswd = "/usr/local/nav/htpasswd/.htpasswd-sroot";
 
 ###########################################
 # Kjører filen navstart, og skriver "print-linjene" til web
