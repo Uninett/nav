@@ -188,6 +188,7 @@ sub db_insert {
     my @val;
     my @key;
     foreach my $i (0..$#felt) {
+	print $verdier[$i]."\n";
 	if (defined($verdier[$i]) && $verdier[$i] ne ''){
 	    #normal
 	    push(@val, "\'".$verdier[$i]."\'");
@@ -452,14 +453,17 @@ sub db_alt{
     my @felt = @{$_[4]};
     my %ny = %{$_[5]};
     my %gammel = %{$_[6]};
+    my @keys = @{$_[7]};
+#    my @required = @{$_[8]}; #kommer med i ny databasemetode seinere. denne skal være med for å sjekke konsistens. not-null-felter skal være listet opp her.
+
     if($niv == 3){ 
 	for my $key1 ( keys %ny ) {
 	    for my $key2 (keys %{$ny{$key1}}) {
 		for my $key3 (keys %{$ny{$key1}{$key2}}) {
 #		my @nyrad = @{$ny{$key1}{$key2}{$key3}};
 #		my @gammelrad = @{$gammel{$key1}{$key2}{$key3}};
-		    my $where = &lag_where(\@felt,$key1,$key2,$key3);
-		    if($gammel{$key1}{$key2}{$key3}[1]) {
+		    my $where = &lag_where(\@felt,\@keys,[$key1,$key2,$key3]);
+		    if(exists $gammel{$key1}{$key2}{$key3}) {
 			for my $i (0..$#felt ) {
 			    &db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}{$key3}[$i],$ny{$key1}{$key2}{$key3}[$i],$where);
 			}
@@ -476,7 +480,7 @@ sub db_alt{
 #		    my @nyrad = @{$ny{$key1}{$key2}{$key3}};
 #		    my @gammelrad = @{$gammel{$key1}{$key2}{$key3}};
 			unless($ny{$key1}{$key2}{$key3}[1]) {
-			    my $where = &lag_where(\@felt,$key1,$key2,$key3);
+			    my $where = &lag_where(\@felt,\@keys,[$key1,$key2,$key3]);
 			    &db_delete($db,$tabell,$where);
 			}
 		    }
@@ -486,8 +490,8 @@ sub db_alt{
     } elsif ($niv == 2){
 	for my $key1 ( keys %ny ) {
 	    for my $key2 (keys %{$ny{$key1}}) {
-		my $where = &lag_where(\@felt,$key1,$key2);
-		if($gammel{$key1}{$key2}[1]) {
+		my $where = &lag_where(\@felt,\@keys,[$key1,$key2]);
+		if(exists $gammel{$key1}{$key2}) {
 		    for my $i (0..$#felt ) {
 			&db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}[$i],$ny{$key1}{$key2}[$i],$where);
 		    }
@@ -500,7 +504,7 @@ sub db_alt{
 	    for my $key2 (keys %{$gammel{$key1}}) {
 		if($slett == 1){
 		    unless($ny{$key1}{$key2}[1]) {
-			my $where = &lag_where(\@felt,$key1,$key2);
+			my $where = &lag_where(\@felt,\@keys,[$key1,$key2]);
 			if($gammel{$key1}{$key2}[1]){
 			    &db_delete($db,$tabell,$where);
 			}
@@ -508,34 +512,56 @@ sub db_alt{
 		}
 	    }
 	}
+    } elsif ($niv == 1){
+	for my $key1 ( keys %ny ) {
+	    my $where = &lag_where(\@felt,\@keys,[$key1]);
+	    if(exists $gammel{$key1}) {
+		for my $i (0..$#felt ) {
+		    &db_update($db,$tabell,$felt[$i],$gammel{$key1}[$i],$ny{$key1}[$i],$where);
+		}
+	    } else {
+		&db_insert($db,$tabell,\@felt,\@{$ny{$key1}});
+	    }
+	}
+    	
+	for my $key1 ( keys %gammel ) {
+	    if($slett == 1){
+		unless($ny{$key1}[1]) {
+		    my $where = &lag_where(\@felt,\@keys,[$key1]);
+		    if($gammel{$key1}[1]){
+			&db_delete($db,$tabell,$where);
+		    }
+		}
+	    }
+	}
+	
     }
 }
 sub lag_where{
     my @felt = @{$_[0]};
-    my $key1 = $_[1];
-    my $key2 = $_[2];
-    my $key3 = $_[3];
+    my @keys = @{$_[1]};
+    my @vals = @{$_[2]};
 
     my @where;
-    if (defined($key1)){
-	if($key1 eq ''){
-	    $where[0] = "$felt[1] is null ";
+    if (defined($vals[0])){
+	if($vals[0] eq ''){
+	    $where[0] = $felt[$keys[0]]." is null ";
 	} else {
-	    $where[0] = "$felt[1] = \'$key1\' ";
+	    $where[0] = $felt[$keys[0]]." = \'".$vals[0]."\' ";
 	}
     }
-    if (defined($key2)){
-	if($key2 eq ''){
-	    $where[1] = "$felt[2] is null ";
+    if (defined($vals[1])){
+	if($vals[1] eq ''){
+	    $where[1] = $felt[$keys[1]]." is null ";
 	} else {
-	    $where[1] = "$felt[2] = \'$key2\' ";
+	    $where[1] = $felt[$keys[1]]." = \'".$vals[1]."\' ";
 	}
     }
-    if (defined($key3)){
-	if($key3 eq ''){
-	    $where[2] = "$felt[3] is null ";
+    if (defined($vals[2])){
+	if($vals[2] eq ''){
+	    $where[2] = $felt[$keys[2]]." is null ";
 	} else {
-	    $where[2] = "$felt[3] = \'$key3\' ";
+	    $where[2] = $felt[$keys[2]]." = \'".$vals[2]."\' ";
 	}
     }
     my $where = " ".join("AND ",@where);

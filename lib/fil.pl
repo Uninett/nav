@@ -48,14 +48,14 @@ sub skriv (*$) {
 
     my ($handle,$tekst) = @_;
 
-    print DBERR $tekst if $handle=="DBERR";
-    print DBOUT $tekst if $handle=="DBOUT";
-    print SNERR $tekst if $handle=="SNERR";
-    print SNOUT $tekst if $handle=="SNOUT";
-    print GWERR $tekst if $handle=="GWERR";
-    print GWOUT $tekst if $handle=="GWOUT";
-    print SWERR $tekst if $handle=="SWERR";
-    print SWOUT $tekst if $handle=="SWOUT";
+    print DBERR $tekst if $handle =~ /DBERR/;
+    print DBOUT $tekst if $handle =~ /DBOUT/;
+    print SNERR $tekst if $handle =~ /SNERR/;
+    print SNOUT $tekst if $handle =~ /SNOUT/;
+    print GWERR $tekst if $handle =~ /GWERR/;
+    print GWOUT $tekst if $handle =~ /GWOUT/;
+    print SWERR $tekst if $handle =~ /SWERR/;
+    print SWOUT $tekst if $handle =~ /SWOUT/;
 
     print $tekst unless fileno($handle);
 

@@ -63,7 +63,7 @@ foreach my $boksid (keys %bokser) { #$_ = boksid keys %boks
 #	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
 #    }
 #}
-&db_alt($db,2,1,"prefiks",\@felt_prefiks,\%prefiks,\%db_prefiks);
+&db_alt($db,2,1,"prefiks",\@felt_prefiks,\%prefiks,\%db_prefiks,[1,2]);
 
 #nå som alle prefiksene er samlet inn, vil det være på sin plass å sette dem inn i boks.
 
@@ -82,7 +82,7 @@ my %nettadr2prefiksid = &db_hent_enkel($db,"SELECT nettadr,prefiksid FROM prefik
 #	}
 #    }
 #}
-&db_alt($db,3,1,"gwport",\@felt_gwport,\%gwport,\%db_gwport);
+&db_alt($db,3,1,"gwport",\@felt_gwport,\%gwport,\%db_gwport,[1,2,3]);
 
 
 #prefiksid i gwport oppdateres her

@@ -43,7 +43,6 @@ for my $a (keys %db_server) {
     my $ip = $db_server{$a}[1];
     $db_alle{$ip} = 1;
 }
-
 &db_endring($conn,\%server,\%db_server,\@felt_server,"boks");
 
 #------------------------------

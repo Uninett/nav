@@ -2,6 +2,93 @@
 
 use strict;
 
+use SNMP;
+#&bulk("blasal-sw","gotcha","821");
+
+sub bulk{
+    my $host = $_[0];
+    my $community = $_[1];
+    my $boksid = $_[2];
+    my %swport;
+    my %swportvlantemp;
+    my %swportallowedvlantemp;
+
+    my $debug = 0;
+
+    my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 2, UseNumeric=>1, UseLongNames=>1);
+    
+    my $numInts = $sess->get('ifNumber.0');
+
+    &skriv("SNERR",$sess->{ErrorStr});
+
+    my ($ifindex,$portname,$status, $duplex, $porttype, $trunk, $vlan ) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.11'],['.1.3.6.1.4.1.9.5.1.4.1.1.4'],['.1.3.6.1.4.1.9.5.1.4.1.1.6'],['.1.3.6.1.4.1.9.5.1.4.1.1.10'],['.1.3.6.1.4.1.9.5.1.4.1.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.8'],['.1.3.6.1.4.1.9.5.1.9.3.1.3']]);
+    
+    my ($speed,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.5']]);
+
+    my @speed2;
+    for my $u (@{$speed}){
+	$speed2[$$u[1]] = $$u[2];
+    }
+
+    my $i = 0;
+    while ($$status[$i]){
+	
+	$$ifindex[$i][0] =~ /\.(\d+)$/;
+	my $modul = $1;
+	my $port = $$ifindex[$i][1];
+	my $ifindex = $$ifindex[$i][2];
+	my $portname = $$portname[$i][2];
+
+	my $tempstatus = $$status[$i][2];
+	my $status;
+	if($tempstatus==2){
+	    $status = 'up';
+	} else {
+	    $status = 'down';
+	}
+
+	my $tempduplex = $$duplex[$i][2];
+	my $duplex;
+	if($tempduplex==1){
+	    $duplex = 'half';
+	} else {
+	    $duplex = 'full';
+	}
+
+#	print " porttype = ".$$porttype[$i][2];	
+
+	my $temptrunk = $$trunk[$i][2];
+	my $trunk;
+	if($temptrunk==1){
+	    $trunk = 't';
+	    if($modul&&$port){
+		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$i][2];
+	    }
+	} else {
+	    $trunk = 'f';
+	    if($modul&&$port){
+		$swportvlantemp{$modul}{$port} = $$vlan[$i][2];
+	    }
+	}
+
+	my $j = $ifindex;
+#	print $j.$ifindex.$speed2[$j];
+	my $tempspeed = $speed2[$j];
+	$tempspeed  = ($tempspeed/1e6);
+	$tempspeed =~ s/^(.{0,10}).*/$1/;
+
+	if($modul&&$port){
+	    $swport{$modul}{$port} = [ undef, $boksid, $modul, $port, $ifindex, $status, $tempspeed, $duplex,$trunk,undef,$portname];
+	}
+
+	print "\n $ifindex modul = $modul port = $port status = ".$status." duplex = ".$duplex." porttype = ".$$porttype[$i][2]." trunk = ".$trunk." speed = ".$tempspeed if $debug;
+	
+	$i++;
+
+    }
+    return \%swport, \%swportvlantemp, \%swportallowedvlantemp;
+}
+
 sub ifindex{
     my ($ip,$ro,%mib) = (@_[0..1],%{$_[2]});
     my (%returverdi,%interface);
@@ -14,6 +101,9 @@ sub ifindex{
     }
     return \%returverdi,\%interface;
 }
+
+
+
 
 sub duplex{
     my $ip = $_[0];
@@ -144,4 +234,4 @@ sub portname{
     return \%returverdi;
 }
 
-return 1;
+#return 1;
