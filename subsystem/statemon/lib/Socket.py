@@ -18,7 +18,7 @@ def ssl(sock, sock, keyfile=None, certfile=None):
 	"""
 	Returns an sslsocket with timeout support.
 	"""
-	return SslSocket(timeout, sock, keyfile, certfile))
+	return SslSocket(timeout, sock, keyfile, certfile)
 
 class SslSocket:
 	def __init__(self, timeout, realsock, keyfile=None, certfile=None):
