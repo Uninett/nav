@@ -26,9 +26,8 @@
 use Pg;
 use strict;
 
-my $path = "/home/cricket/cricket-config";
-my $default = "/home/cricket/cricket-config_defaults";
-my $listports = "/home/cricket/bin/ntnu_listPorts";
+my $path = "/home/bredal/cricket-config";
+my $default = "/home/bredal/cricket-config_defaults";
 
 my @ruterliste;
 my @switchliste;
@@ -72,10 +71,10 @@ print "Skriver gigaswitchports\n";
 &gigaswitchports;
 print "OK!\n";
 
-$dbh->disconnect;
+#$dbh->disconnect;
 
 print "Kompilerer nytt config-tre\n";
-system("/home/cricket/cricket/compile");
+#system("/home/cricket/cricket/compile");
 
 print "Ferdig!\n";
 
@@ -88,14 +87,19 @@ sub Routers {
     my $fil = "$path/routers/Targets";
 
     # Henter alle ruterne fra databasen
-    my $sporring = "SELECT id,sysname,ip,type,romid FROM boks WHERE kat='GW' ORDER BY sysname";
+    my $sporring = "SELECT id,sysname,ip,type,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
     my $getrouters = &db_select($sporring,$dbh);
 
     # Skriver til filen
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-    while (my ($id, $sysname,$ip,$type,$romid,$community) = $getrouters->fetchrow) {
+    while (my @temp = $getrouters->fetchrow) {
+	@temp = map &rydd($_), @temp;
+	my ($id, $sysname,$ip,$type,$romid,$community) = @temp;
+	
 	# Unngår hvis det er feil i databasen
 	if ($sysname) {
+	    $sysname =~ s/\..+//;
+
 	    # Hardkoding av unntak....
 	    if ($sysname =~ /(erke-gw|psykiatri-gw|ringve-gw)/) {
 		$sysname = "$sysname-trlos";
@@ -121,6 +125,7 @@ sub Routers {
 		    print "Ingen beskrivelse for rom med id=$romid\n";
 		    print FIL "\tshort-desc\t=\t\"\"\n\n";
 		} else {
+		    $desc = &rydd($desc);
 		    print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
 		}
 	    }
@@ -141,7 +146,7 @@ sub Routerinterfaces {
     for (@ruterliste) {
         my %routerint = ();
 
-	my ($ruterid, $sysname, $ip, $rom, $community) = @$_;
+	my ($ruterid, $sysname, $ip, $romid, $community) = @$_;
 
 	unless (-e "$path/router-interfaces/$sysname") {
 	    mkdir ("$path/router-interfaces/$sysname",0775);
@@ -154,10 +159,13 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=54 AND g.prefiksid=p.id ORDER BY vlan";
-	my $getinterfaces = &db_select($sporring);
+	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.id ORDER BY vlan";
 
-	while (my ($interf,$speed,$type,$org,$anv,$samband,$komm) = $getinterfaces->fetchrow) {
+	my $getinterfaces = &db_select($sporring,$dbh);
+
+	while (my @temp = $getinterfaces->fetchrow) {
+	    @temp = map &rydd($_), @temp;
+	    my ($interf,$speed,$type,$org,$anv,$samband,$komm) = @temp;
 	    unless ($routerint{$interf}) {
 		$routerint{$interf}++;
 		# Vil ikke ha med Loopback-interfacene.
@@ -213,9 +221,12 @@ sub Switches {
     my $getswitches = &db_select($sporring,$dbh);
 
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-    while (my ($id,$ip,$sysname, $type, $community) = $getswitches->fetchrow) {
+    while (my @temp = $getswitches->fetchrow) {
+	@temp = map &rydd($_),@temp;
+	my ($id,$ip,$sysname, $type, $community) = @temp;
 	# Unngår feil i databasen
 	if ($sysname) {
+	    $sysname =~ s/\..+//;
 	    # Hardkoder unntak for rene svitsjer (SW1100|SW3300|SW9300)
 	    if ($type) {
 		unless ($type =~ /(SW|C3000|C3100)/) {
@@ -261,14 +272,16 @@ sub Switchports {
 
 	    unless ($type =~ /SW/) {
 		# Finner alle portene som er på switchen.
-		my $sporring = "SELECT modul,port,portname FROM swport WHERE boksid=$id ORDER BY id";
+		my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id ORDER BY id";
 		my $getports = &db_select($sporring,$dbh);
 
 		my @liste;
 		
-		while (my ($modul, $port, $portname) = $getports->fetchrow) {
+		while (my @temp = $getports->fetchrow) {
+		    @temp = map &rydd($_), @temp;
+		    my ($modul,$port,$portname) = @temp;
 		    unless ($portname =~ /(udef|undef)/ or !$modul or !$port) {
-			push @liste, [$modul, $port, $portname];
+			push @liste, [@temp];
 		    }
 		}
 
@@ -276,14 +289,12 @@ sub Switchports {
 		# viser portene i. Høyt tall = høy prioritet.
 		my $order = @liste;
 
-		for (@liste) {
-		    my ($mp, $portname) = @$_;
-		    $mp =~ s/fe/Fa/i;
-		    $mp =~ s/ge/Gi/i;
-		    $mp =~ s/\./_/;
-		    print FIL "target $modul_$port\n";
-		    $mp =~ s/_/\//;
-		    print FIL "\tport-name\t=\t$modul\/$port\n";
+		for my $ref (@liste) {
+		    my ($modul, $port, $portname) = @$ref;
+		    $modul =~ s/fe/Fa/i;
+		    $modul =~ s/ge/Gi/i;
+		    print FIL "target ".$modul."_".$port."\n";
+		    print FIL "\tport-name\t=\t".$modul."/".$port."\n";
 		    $portname =~ s/\s/_/g;
 		    print FIL "\tshort-desc\t=\t$portname\n";
 
@@ -303,14 +314,20 @@ sub gigarouterinterfaces {
 
     my $count = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.id and g.boksid=b.id";
+    my $sporring = "SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.id and g.boksid=b.id";
     my $getinterfaces = &db_select($sporring,$dbh);
 
-    while (my($ip,$sysname,$org,$anv,$samband,$komm,$interf,$speed,$type) = $getinterfaces->fetchrow) {
+    while (my @temp = $getinterfaces->fetchrow) {
+	@temp = map &rydd($_), @temp;
+	my($ip,$sysname,$org,$anv,$samband,$komm,$interf,$speed,$type,$community) = @temp;
+
+	$sysname =~ s/\..+//;
 
 	unless (-e "$path/giga-router-interfaces/$sysname") {
 	    mkdir ("$path/giga-router-interfaces/$sysname",0775);
 	}
+
+	print "$sysname\n";
 
 	my $fil = "$path/giga-router-interfaces/$sysname/interfaces";
 	if (-e "$path/giga-router-interfaces/$sysname/interfaces") {
@@ -366,9 +383,12 @@ sub gigaswitchports {
     my $sporring = "select b.id,b.ip,b.sysname,b.type,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.id=s.boksid and s.speed='1000' order by b.id";
     my $getports = &db_select($sporring,$dbh);
 
-    while (my($id,$ip,$switchnavn,$type,$mp,$portname,$community) = $getports->fetchrow) {
+    while (my @temp = $getports->fetchrow) {
+	@temp = map &rydd($_), @temp;
+	my($id,$ip,$switchnavn,$type,$modul,$port,$portname,$community) = @temp;
+
 	unless ($type =~ /SW\d{4}/ ) {
-	    unless ($portname =~ /(udef|undef)/ or !$mp) {
+	    unless ($portname =~ /(udef|undef)/ or !$modul or !$port) {
 		$test{$id}++;
 
 		if ($community) {
@@ -389,8 +409,7 @@ sub gigaswitchports {
 
 		    $modul =~ s/fe/Fa/i;
 		    $modul =~ s/ge/Gi/i;
-		    print FIL "target $modul_$port\n";
-		    $mp =~ s/_/\//;
+		    print FIL "target ".$modul."_".$port."\n";
 		    print FIL "\tport-name\t=\t$modul\/$port\n";
 		    $portname =~ s/\s/_/g;
 		    print FIL "\tshort-desc\t=\t$portname\n";
@@ -418,7 +437,7 @@ sub db_select {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
         unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
     return $resultat;
 }
