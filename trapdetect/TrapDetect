@@ -501,7 +501,7 @@ sub sendAlarm {
     # Henter inn kategori og underkategori for denne enhet.
     # Hvis den ikke finnes i nettel, antas begge som null-verdier.
     my ($kat,$ukat,$active,$eier);
-    my $finn_info = &db_select("SELECT kat,underkat,active,eier FROM nettel where id=$nettelid",$dbh);
+    my $finn_info = &db_select("SELECT kat,underkat,active,eier FROM boks where id=$nettelid",$dbh);
     if (($kat,$ukat,$active,$eier) = $finn_info->fetchrow) {
 	if (!$kat) {
 	    $kat = "kat is null";
@@ -534,11 +534,11 @@ sub sendAlarm {
 	
 	# Spør etter innlegg i varsel-tabellen som tilsvarer innkommet data
 	if ($avhengig) {
-	    $sporring = "select userid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and $kat and $ukat";
+	    $sporring = "select brukerid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and $kat and $ukat";
 	} else {
-	    $sporring = "select userid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0";	
+	    $sporring = "select brukerid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0";	
 	}
-	my $finn_varsel = &db_select($sporring);
+	my $finn_varsel = &db_select($sporring,$dbh_t);
 	print "$sporring\n";
 
 	# Legger resultat i bruker-hash
@@ -547,7 +547,7 @@ sub sendAlarm {
 	    my @unntak = ();
 	    
 	    # Finner unntak som ikke skal legges inn.
-	    my $finn_unntak = &db_select("select unntak.id from unntak,trap where userid=$brukerid and unntak.trapid=trap.id and trap.sykoid='$sykoid' and status='minus' and nettelid=$nettelid");
+	    my $finn_unntak = &db_select("select unntak.id from unntak,trap where brukerid=$brukerid and unntak.trapid=trap.id and trap.sykoid='$sykoid' and status='minus' and nettelid=$nettelid",$dbh_t);
 	    @unntak = $finn_unntak->fetchrow;
 	    if (defined($unntak[0])) {
 		print "$unntak[0]\n";
@@ -559,8 +559,8 @@ sub sendAlarm {
 	$finn_varsel->finish;
 
 	# Spør etter innlegg i unntak-tabellen som tilsvarer innkommet data
-	$sporring = "select userid,vtypeid from unntak,trap where unntak.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and status='pluss' and nettelid=$nettelid";
-	$finn_varsel = &db_select($sporring);
+	$sporring = "select brukerid,vtypeid from unntak,trap where unntak.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and status='pluss' and nettelid=$nettelid";
+	$finn_varsel = &db_select($sporring,$dbh_t);
 	print "$sporring\n";
 
 	while (my ($brukerid,$varselid) = $finn_varsel->fetchrow) {
@@ -583,7 +583,7 @@ sub sendAlarm {
 	    # hvis han er med i en, hvis ikke gjør ingenting.
 	    if ($eier) {
 		# Hent alle org bruker er med i
-		my $hent_useriorg = &db_select("select orgid,navn from useriorg,org where userid=$brukerid and orgid=id");
+		my $hent_useriorg = &db_select("select orgid,navn from brukeriorg,org where brukerid=$brukerid and orgid=id",$dbh_t);
 		while (my $res = $hent_useriorg->fetchrow_hashref) {
 		    if ($res->{navn} eq $eier) {
 			print "$brukerid er med i $eier: $res->{navn}\n";
@@ -598,8 +598,8 @@ sub sendAlarm {
 	    # trap er uavhengig av enheter (mao vi bryr oss ikke om eier)
 	    if (!$eier || $orgrett || !$avhengig) {
 		# Henter info om bruker NB!!!! husk databasene
-		my $hent_brukerinfo = &db_select("select * from user where id=$brukerid");
-		my $brukerinfo = $hent_brukerinfo->fetchrow_hashref;
+		my $hent_brukerinfo = &db_select("select * from bruker where id=$brukerid",$dbh_t);
+		my $brukerinfo = $hent_brukerinfo->fetchrow;
 
 		# Legger varslet i den riktige listen
 		my $status = $brukerinfo->{status};
@@ -631,7 +631,7 @@ sub sendAlarm {
 	for (keys (%delay_liste)) {
 	    # Sender delayed melding.
 	    # Må sjekke for hver bruker hva han er satt opp på
-	    my $sporring = &db_select("Select dsms_fra,dsms_til from user where id=$_");
+	    my $sporring = &db_select("Select dsms_fra,dsms_til from bruker where id=$_",$dbh_t);
 	    
 	    my ($fra,$til) = $sporring->fetchrow;
 	    my @temp = split /:/, $fra;
@@ -946,7 +946,7 @@ sub finn_nettelid {
     }
 
     # Slår opp i database og henter nettelid til sysname
-    my $finn_nettelid = &db_execute("SELECT id FROM nettel WHERE sysname='$sysname'",$dbh);
+    my $finn_nettelid = &db_execute("SELECT id FROM boks WHERE sysname='$sysname'",$dbh);
 
     my $id = $finn_nettelid->fetchrow;
 
