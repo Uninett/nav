@@ -1,0 +1,53 @@
+#extends nav.web.templates.EmotdTemplate
+
+#block content
+## tar inn en melding::message
+
+<h1>$title</h1>
+
+##klokkeslett tas imot på iso-format
+
+<p class="pysetekst" style="font-size:0.6em">$type
+#if $access
+$publishstart - $publishend
+#end if
+by $author on $last_changed
+</p>
+#if $affected
+<p><label>Affected end users:</label>$affected</p>
+#end if
+#if $downtime
+<p><label>Estimated downtime:</label>$downtime</p>
+#end if
+#if $maintstart and $access
+
+<p><label>Maintenance window:</label><b>$maintstart - $maintend</b></p>
+#end if
+#if $description
+$description
+#end if
+#if $maintlist
+$equipmentList($maintlist)
+#end if
+#if $detail
+$detail
+#end if
+
+#if $replaces_emotd
+#if $replaces_title
+<p>This message replaces: <a href="/emotd/view/$replaces_emotd">$replaces_title</a>.</p>
+#else
+<p>This message replaces message no.: <a href="/emotd/view/$replaces_emotd">$replaces_emotd</a>.</p>
+#end if
+#end if
+
+#if $access
+[ <a href="/emotd/edit/$emotdid">Edit Message</a> 
+#if $maintstart
+| <a href="/emotd/time/$emotdid">Edit Maintenance Window</a> | <a href="/emotd/add/$emotdid">Edit Equipment List</a> 
+#else
+| <a href="/emotd/time/$emotdid">Define Maintenance Window and Add Equipment</a>
+#end if
+]</form>
+#end if
+#end block
