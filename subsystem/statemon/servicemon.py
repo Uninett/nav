@@ -168,6 +168,11 @@ def start(nofork):
         os.sys.stdout = open(logfile,'a')
         os.sys.stderr = open(logfile,'a')
 
+    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/servicemon.pid")
+    pidfile = open(pidfilename, 'w')
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
+
     myController=controller(fork=fork)
     myController.main()
                 

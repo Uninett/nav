@@ -207,6 +207,12 @@ def start(nofork):
         logfile = conf.get("logfile","pping.log")
         os.sys.stdout = open(logfile,"a")
         os.sys.stderr = open(logfile,"a")
+
+    pidfilename = conf.get("pidfile","/usr/local/nav/var/run/pping.pid")
+    pidfile = open(pidfilename, 'w')
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
+
     myPinger=pinger(socket=sock)
     myPinger.main()
 
