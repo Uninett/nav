@@ -336,16 +336,16 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						}
 					}
 					if (!sup) {
-						Log.w("MATCH-MODULE", "Supervisor not found and could not match module pattern to if: " + interf);
+						Log.w("CGW_MATCH-MODULE", "Supervisor not found and could not match module pattern to if: " + interf);
 					}
 					if (mc.getModule(module) == null && mc.getModule(0) != null) {
-						Log.w("MATCH-MODULE", "No module match from interf, defaulting to module 0");
+						Log.w("CGW_MATCH-MODULE", "No module match from interf, defaulting to module 0");
 						module = 0;
 					}
 				}
 				if (mc.getModule(module) == null) {
 					// Not allowed to create module
-					Log.w("MATCH-MODULE", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
+					Log.w("CGW_MATCH-MODULE", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
 					continue;
 				}
 				GwModule gwm = gwc.gwModuleFactory(module);
