@@ -129,6 +129,10 @@ $showBody($body)
 #if $selectList.status
     $showStatus($selectList.status)
 #end if
+## Filters
+#if $selectList.filters
+    $renderFilters($selectList)
+#end if
     <form method="$selectList.formMethod" action="$selectList.formAction">
 ## Top buttons
 #if $selectList.buttonsTop
@@ -236,6 +240,39 @@ $showBody($body)
 #end if
     </form>
 #end def
+
+## function renderFilters
+##
+## Function for displaying list filters
+##
+#def renderFilters($slist)
+<form method="$slist.formMethod" action="$slist.filterAction">
+    <table class="header-active">
+#set $filters = $slist.filters
+#for $listFilter in $filters
+        <tr>
+            <td>${listFilter[0]}</td>
+            <td>
+                <select name="${listFilter[5]}">
+##raise repr($listFilter)
+#for $option in $listFilter[9]
+#if $option[0][0] == $listFilter[10]:
+                    <option value="$option[0][0]" selected>$option[1][0]</option>
+#else
+                    <option value="$option[0][0]">$option[1][0]</option>
+#end if
+#end for
+                </select>
+            </td>
+        </tr>
+#end for
+        <tr>
+            <td colspan="2" align="right"><input type="submit" name="$slist.filterConfirm" value="$slist.filterConfirmText"</td>
+        </tr>
+    </table>
+</form>
+#end def
+
 
 ## function showStatus
 ##

@@ -94,7 +94,26 @@ def handler(req):
 
     # Get form from request object
     keep_blank_values = True
-    req.form = util.FieldStorage(req,keep_blank_values)
+    fieldStorage = util.FieldStorage(req,keep_blank_values)
+    
+    form = {}
+    for field in fieldStorage.list:
+        if form.has_key(field.name):
+            # This input name already exists
+            if type(form[field.name]) is list:
+                # and it's already a list, so just append the
+                # the new value
+                form[field.name].append(str(field.value))
+            else:
+                # it's a string, so make a list and append the
+                # new value to it
+                valueList = []
+                valueList.append(form[field.name])
+                valueList.append(str(field.value))
+                form[field.name] = valueList
+        else:
+            form[field.name] = str(field.value)
+    req.form = form
 
     # Read configuration file
     #if not globals().has_key('CONFIG_CACHED'):
@@ -321,6 +340,7 @@ def editPage(req,page,request):
     action = request[1] 
 
     selected = []
+    addedId = None
     # Get editid from url if it is present (external links and list links)
     if len(request) > 1:
         if (len(request) == 3) or (len(request) == 4):
@@ -386,7 +406,7 @@ def editPage(req,page,request):
     sort = None
     if req.form.has_key('sort'):
         sort = req.form['sort']
-    listView = page.listDef(page,sort)
+    listView = page.listDef(req,page,sort)
    
     # Check if the confirm button has been pressed
     if req.form.has_key(outputForm.cnameConfirm):
@@ -396,7 +416,8 @@ def editPage(req,page,request):
             if not len(status.errors):
                 if req.form.has_key(ADDNEW_ENTRY):
                     # add new entry
-                    (status,action,outputForm) = page.add(req,outputForm,action)
+                    (status,action,outputForm,addedId) = page.add(req,
+                                                            outputForm,action)
                 elif req.form.has_key(UPDATE_ENTRY):
                     # update entry
                     (status,action,outputForm,selected) = page.update(req,
@@ -408,6 +429,7 @@ def editPage(req,page,request):
     elif req.form.has_key(selectList.cnameDeleteConfirm):
         status = page.delete(selected,status)
         outputForm = None
+        selected = None
         action = 'list' 
     
     # Decide what to show 
@@ -457,14 +479,18 @@ def editPage(req,page,request):
         listView = None
     elif action == 'delete':
         path = page.pathDelete
-        listView = page.listDef(page,sort,selected)
+        listView = page.listDef(req,page,sort,selected)
         listView.status = status
-        listView.fill()
+        listView.fill(req)
         outputForm = None
     elif action == 'list':
+        if addedId:
+            listView.selectedId = addedId
+        if selected:
+            listView.selectedId = selected[0]
         path = page.pathList
         listView.status=status
-        listView.fill()
+        listView.fill(req)
         outputForm = None
     elif action == 'redirect':
         # Redirect to main page (snmpoid add)
@@ -601,8 +627,7 @@ class entryList:
         
         Uses the list definitions defined in every page class.
 
-        descriptionFormat = [(text,forgetSQLfield),(text,...]
-        '''
+        descriptionFormat = [(text,forgetSQLfield),(text,...] '''
         
     # Constants
     CNAME_SELECT = 'checkbox_id'
@@ -640,7 +665,13 @@ class entryList:
     where = None                    # List of id's (strings)
     sortingOn = True                # Show links for sorting the list
 
-    def __init__(self,struct,sort,deleteWhere=None):
+    # SQL filters
+    filters = None
+    filterConfirm = 'cn_filter'
+    filterConfirmText = 'Update list'
+    selectedId = None
+
+    def __init__(self,req,struct,sort,deleteWhere=None):
         self.headings = []
         self.rows = []
 
@@ -650,7 +681,9 @@ class entryList:
         self.tableName = struct.tableName
         self.tableIdKey = struct.tableIdKey
         self.basePath = struct.basePath
+        self.deleteWhere = deleteWhere
         self.formAction = self.basePath + 'edit/'
+        self.filterAction = self.basePath + 'list/'
 
         if deleteWhere:
             self.buttonTypeOverride = entryListCell.HIDDEN
@@ -670,8 +703,16 @@ class entryList:
             self.title = 'Edit ' + struct.plural
             self.sortingOn = True
 
-    def fill(self):
+    def fill(self,req):
         ''' Fill the list with data from the database. '''
+        
+        # No filters if this is a delete list
+        if self.deleteWhere:
+            self.filters = None
+        # Make filters
+        if self.filters:
+            self.makeFilters(req)
+
         # Make headings
         i = 0
         for heading,sortlink,sortFunction in self.headingDefinition:
@@ -695,80 +736,104 @@ class entryList:
                                                     None))
             i = i + 1
 
-        # Preparse tooltips, etc.
-        for sqlQuery,definition in self.cellDefinition:
-            for column in definition:
-                for cell in column:
-                    if type(cell) is list:
-                        # This cell definition is a list, as opposed to
-                        # a tuple, so we must prefetch some data for the
-                        # parse function
-                        # Must prefetch data for this column
-                        for tooltipDef in cell:
-                            # There can be one or more defintions per cell
-                            sql = tooltipDef[0]
-                            # column[2] is reserved for data
-                            tooltipDef[2] = executeSQLreturn(sql)
+        # Check filters and decide if we're going to show list
+        renderList = True
+        filterSettings = []
+        if self.filters:
+            renderList = False
+            for filter in self.filters:
+                # filter[10] is selected id in filter
+                if filter[10]:
+                    # Something is selected, show list
+                    renderList = True
+                    # filter[6] is tableIdKey
+                    filterSettings.append((filter[10],filter[6]))
 
-        # Make rows
-        reverseSort = False
-        if self.sortBy:
-            if self.sortBy < 0:
-                self.sortBy = self.sortBy * -1
-                reverseSort = True
+        # Skip filling if no result from filter
+        if renderList:
+            # Preparse tooltips, etc.
+            for sqlQuery,definition in self.cellDefinition:
+                for column in definition:
+                    for cell in column:
+                        if type(cell) is list:
+                            # This cell definition is a list, as opposed to
+                            # a tuple, so we must prefetch some data for the
+                            # parse function
+                            # Must prefetch data for this column
+                            for tooltipDef in cell:
+                                # There can be one or more defintions per cell
+                                sql = tooltipDef[0]
+                                # column[2] is reserved for data
+                                tooltipDef[2] = executeSQLreturn(sql)
 
-        for sqlTuple,definition in self.cellDefinition:
-            # Create SQL query from tuple
-            columns,tablenames,join,where,orderBy = sqlTuple
-            sqlQuery = 'SELECT ' + columns + ' FROM ' + tablenames
-            if join:
-                sqlQuery += ' %s ' % (join,)
-            if where:
-                sqlQuery += ' WHERE ' + where
-            # Add where clause if self.where is present
-            if self.where:
-                if not where:
-                    # No where defined in sqlTuple, so add it now
-                    sqlQuery += ' WHERE '
+            # Make rows
+            reverseSort = False
+            if self.sortBy:
+                if self.sortBy < 0:
+                    self.sortBy = self.sortBy * -1
+                    reverseSort = True
+
+            for sqlTuple,definition in self.cellDefinition:
+                # Create SQL query from tuple
+                columns,tablenames,join,where,orderBy = sqlTuple
+                sqlQuery = 'SELECT ' + columns + ' FROM ' + tablenames
+                if join:
+                    sqlQuery += ' %s ' % (join,)
+                if where:
+                    sqlQuery += ' WHERE ' + where
+                # Add where clause if self.where is present
+                if self.where:
+                    if not where:
+                        # No where defined in sqlTuple, so add it now
+                        sqlQuery += ' WHERE '
+                    else:
+                        # Else, these are additional so add AND
+                        sqlQuery += ' AND '
+                    first = True
+                    sqlQuery += ' ('
+                    for id in self.where:
+                        if not first:
+                            sqlQuery += 'OR'
+                        sqlQuery += " %s='%s' " % (self.tableIdKey,id)
+                        if first:
+                            first = False
+                    sqlQuery += ') '
+                # Add where clause if filterSettings is present
+                for filter in filterSettings:
+                    if not where:
+                        # No where defined in sqlTuple, so add it now
+                        sqlQuery += ' WHERE '
+                    else:
+                        # Else, these are additional so add AND
+                        sqlQuery += ' AND '
+                    sqlQuery += filter[1] + "='" + filter[0] + "' "
+                if orderBy:
+                    sqlQuery += ' ORDER BY ' + orderBy                                
+                fetched = executeSQLreturn(sqlQuery)
+                for row in fetched:
+                    id = row[0]
+                    cells = []
+                    for text,url,buttonType,image,tooltip in definition:
+                        if buttonType and self.buttonTypeOverride:
+                            buttonType = self.buttonTypeOverride
+                        cells.append(entryListCell(self.parse(text,row),
+                                                   self.parse(url,row,True),
+                                                   buttonType,
+                                                   image,
+                                                   self.parse(tooltip,row))) 
+                    
+                    sortKey = None
+                    if self.sortBy:
+                        sortKey = row[self.sortBy]
+                    self.rows.append([sortKey,(id,cells)])
+            if self.sortBy:
+                if self.headingDefinition[self.sortBy][2]:
+                    # Optional compare method
+                    self.rows.sort(self.headingDefinition[self.sortBy][2])
                 else:
-                    # Else, these are additional so add AND
-                    sqlQuery += ' AND '
-                first = True
-                sqlQuery += ' ('
-                for id in self.where:
-                    if not first:
-                        sqlQuery += 'OR'
-                    sqlQuery += " %s='%s' " % (self.tableIdKey,id)
-                    if first:
-                        first = False
-                sqlQuery += ') '
-            if orderBy:
-                sqlQuery += ' ORDER BY ' + orderBy                                
-            fetched = executeSQLreturn(sqlQuery)
-            for row in fetched:
-                id = row[0]
-                cells = []
-                for text,url,buttonType,image,tooltip in definition:
-                    if buttonType and self.buttonTypeOverride:
-                        buttonType = self.buttonTypeOverride
-                    cells.append(entryListCell(self.parse(text,row),
-                                               self.parse(url,row,True),
-                                               buttonType,
-                                               image,
-                                               self.parse(tooltip,row))) 
-                
-                sortKey = None
-                if self.sortBy:
-                    sortKey = row[self.sortBy]
-                self.rows.append([sortKey,(id,cells)])
-        if self.sortBy:
-            if self.headingDefinition[self.sortBy][2]:
-                # Optional compare method
-                self.rows.sort(self.headingDefinition[self.sortBy][2])
-            else:
-                self.rows.sort()
-            if reverseSort:
-                self.rows.reverse()
+                    self.rows.sort()
+                if reverseSort:
+                    self.rows.reverse()
 
     def parse(self,parseString,currentRow,url=False):
         ''' Parses format strings used by the list definitions. '''
@@ -779,6 +844,7 @@ class entryList:
         elif type(parseString) is str:
             parseString = parseString.replace('{p}',self.basePath)
             parseString = parseString.replace('{id}',str(currentRow[0]))
+            parseString = parseString.replace('{descr}',str(currentRow[1]))
             if parseString.find('SELECT') == 0:
                 # This string is a sql query (used by vlan)
                 resultString = ''
@@ -805,6 +871,42 @@ class entryList:
                             # ID's match
                             result.append(row[1])
         return result        
+
+    def makeFilters(self,req):
+        for filter in self.filters:
+            text,firstEntry,sqlTuple,idFormat,optionFormat,\
+            controlName,tableId,table,fields = filter
+           
+            optionsList = []
+            if firstEntry:
+                firstEntry = ([firstEntry[0]],[firstEntry[1]])
+                optionsList.append(firstEntry)
+            # Make sql
+            sql = "SELECT " + sqlTuple[0] + " FROM " + sqlTuple[1] + " "
+            if sqlTuple[2]:
+                sql += sqlTuple[2] + " "
+            if sqlTuple[3]:
+                sql += "WHERE " + sqlTuple[3] + " "
+            if sqlTuple[4]:
+                sql += "ORDER BY " + sqlTuple[4]
+            result = executeSQLreturn(sql)
+            for row in result:
+                id = self.parse(idFormat,row)
+                text = self.parse(optionFormat,row)
+                optionsList.append((id,text))
+            filter.append(optionsList)
+            # Selected id
+            selected = None
+            if self.selectedId:
+                entry = table(self.selectedId)
+                fieldList = fields.split('.')
+                for field in fieldList:
+                    entry = getattr(entry,field)
+                selected = str(entry) 
+            if req.form.has_key(controlName):
+                if len(req.form[controlName]):
+                    selected = req.form[controlName]
+            filter.append(selected)
 
 # Class representing a form, used by the template
 class editForm:
@@ -1260,7 +1362,7 @@ class editdbPage:
             message = 'Added ' + self.singular + ': ' + self.describe(entry)
             status.messages.append(message)
             action = 'list'
-        return (status,action,outputForm)
+        return (status,action,outputForm,id)
 
       
     def update(self,req,outputForm,selected):
@@ -1515,12 +1617,30 @@ class pageCabling(editdbPage):
 
     class listDef(entryList):
         ''' Describes the format of the list view of cablings. '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
+
+            # List filters
+            self.filters = [['Show cablings in room ',
+                            ('','Select a room'),
+                            ('roomid,descr',
+                             'room',
+                             None,
+                             '((SELECT count(*) FROM cabling WHERE ' +\
+                             'cabling.roomid=room.roomid) > 0)',
+                             'room.roomid'),
+                             '{id}',
+                             '{id} ({descr})',
+                             'flt_room',
+                             'roomid',
+                             nav.db.manage.Cabling,
+                             'room.roomid']]
+
+
 
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
@@ -1621,9 +1741,9 @@ class pageLocation(editdbPage):
 
     class listDef(entryList):
         ''' Describes location list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -1723,9 +1843,9 @@ class pageNetbox(editdbPage):
                 r = 0
             return r
 
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             # 1 = roomid
@@ -2050,7 +2170,7 @@ class pageNetbox(editdbPage):
             if error:
                 status.errors.append(error)
                 templateform.add(pageNetbox.editbox(pageNetbox,formData=form))
-                return (status,action,templateform)
+                return (status,action,templateform,None)
 
             if editTables.Cat(form['catid']).req_snmp == True:
                 # SNMP required by the selected category
@@ -2065,14 +2185,14 @@ class pageNetbox(editdbPage):
                                              'community')
                         templateform.add(pageNetbox.editbox(pageNetbox,
                                                             formData=form))
-                        return (status,action,templateform)
+                        return (status,action,templateform,None)
                     except Exception, e:
                         # Other error (no route to host for example)
                         status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                              ': ' + str(sys.exc_info()[1]))
                         templateform.add(pageNetbox.editbox(pageNetbox,
                                                             formData=form))
-                        return (status,action,templateform)
+                        return (status,action,templateform,None)
          
                     box.getDeviceId()
                     templateform.add(pageNetbox.editbox(pageNetbox,
@@ -2124,14 +2244,14 @@ class pageNetbox(editdbPage):
                         status.errors.append('No SNMP response, check RO community')
                         templateform.add(pageNetbox.editbox(pageNetbox,
                                                             formData=form))
-                        return (status,action,templateform)
+                        return (status,action,templateform,None)
                     except Exception, e:
                         # Other error (no route to host for example)
                         status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                              ': ' + str(sys.exc_info()[1]))
                         templateform.add(pageNetbox.editbox(pageNetbox,
                                                             formData=form))
-                        return (status,action,templateform)
+                        return (status,action,templateform,None)
 
                     box.getDeviceId()
                     templateform.add(pageNetbox.editbox(pageNetbox,
@@ -2198,7 +2318,7 @@ class pageNetbox(editdbPage):
                         nextStep = STEP_2
                         editboxHidden.addHidden(CNAME_STEP,nextStep)
                         editboxHidden.addHidden('hiddenIP',form['hiddenIP'])
-                        return (status,action,templateform)
+                        return (status,action,templateform,None)
                 else:
                     # Not found, make new device
                     deviceId = None
@@ -2237,7 +2357,7 @@ class pageNetbox(editdbPage):
         if not step == STEP_2: 
             # Unless this is the last step, set the nextStep
             editboxHidden.addHidden(CNAME_STEP,nextStep) 
-        return (status,action,templateform)
+        return (status,action,templateform,None)
 
     # Overloads default update function
     def update(self,req,templateform,selected):
@@ -2665,9 +2785,9 @@ class pageOrg(editdbPage):
 
     class listDef(entryList):
         ''' Describes org list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -2774,25 +2894,29 @@ class pagePatch(editdbPage):
 
     class listDef(entryList):
         ''' Describes patch list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
 
             # List filters
-            #elf.filters = [('Show patches in room ',
-            #                ('roomid,descr',
-            #                 'room',
-            #                 None,
-            #                 None,
-            #                 'roomid'),
-            #                 1,
-            #                 2,
-            #                 'flt_room',
-                               
-
+            self.filters = [['Show patches in room ',
+                            ('','Select a room'),
+                            ('roomid,descr',
+                             'room',
+                             None,
+                             '((SELECT count(*) FROM patch,cabling WHERE ' +\
+                             'patch.cablingid=cabling.cablingid AND ' +\
+                             'cabling.roomid=room.roomid) > 0)',
+                             'room.roomid'),
+                             '{id}',
+                             '{id} ({descr})',
+                             'flt_room',
+                             'cabling.roomid',
+                             nav.db.manage.Patch,
+                             'cabling.room.roomid']]
 
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
@@ -3111,7 +3235,7 @@ class pagePatch(editdbPage):
                 message = 'Added patch: ' + self.describe(patchId)
                 status.messages.append(message)
                 action = 'list'
-            return (status,action,templateForm)
+            return (status,action,templateForm,patchId)
 
     def update(self,req,outputForm,selected):
         ''' Updates patch entries. Overrides the default update function. '''
@@ -3218,9 +3342,9 @@ class pagePrefix(editdbPage):
 
     class listDef(entryList):
         ''' Describes prefix list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -3327,7 +3451,7 @@ class pagePrefix(editdbPage):
         else:
             action = 'add'
             status.errors.append(error)
-        return (status,action,templateForm)
+        return (status,action,templateForm,None)
 
     def insertPrefix(self,data):
         ''' Inserts prefixes into the database. Used by pagePrefix.add() '''
@@ -3468,9 +3592,9 @@ class pageProduct(editdbPage):
 
     class listDef(entryList):
         ''' Describes product list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -3554,9 +3678,9 @@ class pageRoom(editdbPage):
 
     class listDef(entryList):
         ''' Describes room list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -3661,9 +3785,9 @@ class pageService(editdbPage):
 
     class listDef(entryList):
         ''' Describes service list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -3850,7 +3974,7 @@ class pageService(editdbPage):
         else:
             # Missing required property
             status.errors.append("Missing required property '" + missing + "'")
-        return (status,action,templateForm)
+        return (status,action,templateForm,serviceid)
 
     def update(self,req,templateForm,selected):
         ''' Updates service entries. Overrides the default update function
@@ -4002,10 +4126,11 @@ class pageSnmpoid(editdbPage):
         ''' Dummy function which calls editdbPage.add and then sets action
             to redirect (to the menu page). '''
 
-        status,action,outputForm = editdbPage.add(self,req,outputForm,action)
+        status,action,outputForm,addedId = editdbPage.add(self,req,
+                                                          outputForm,action)
         action = 'redirect'
 
-        return (status,action,outputForm)
+        return (status,action,outputForm,addedId)
 
 class pageSubcat(editdbPage):
     ''' Describes editing of the subcat table. '''
@@ -4041,9 +4166,9 @@ class pageSubcat(editdbPage):
 
     class listDef(entryList):
         ''' Describes subcat list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -4123,9 +4248,9 @@ class pageType(editdbPage):
 
     class listDef(entryList):
         ''' Describes room list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -4223,9 +4348,9 @@ class pageUsage(editdbPage):
 
     class listDef(entryList):
         ''' Describes usage list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -4304,9 +4429,9 @@ class pageVendor(editdbPage):
 
     class listDef(entryList):
         ''' Describes vendor list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
@@ -4381,9 +4506,9 @@ class pageVlan(editdbPage):
 
     class listDef(entryList):
         ''' Describes vlan list view '''
-        def __init__(self,struct,sort,deleteWhere=None):
+        def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
-            entryList.__init__(self,struct,sort,deleteWhere)
+            entryList.__init__(self,req,struct,sort,deleteWhere)
             
             # Specific init
             self.defaultSortBy = 1
