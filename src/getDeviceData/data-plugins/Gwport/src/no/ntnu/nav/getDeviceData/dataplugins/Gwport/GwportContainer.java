@@ -105,7 +105,7 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	}
 
 	// Doc in parent
-	protected boolean isCommited() {
+	public boolean isCommited() {
 		return super.isCommited();
 	}
 
