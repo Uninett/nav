@@ -22,7 +22,7 @@ public class CiscoSwIOS implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.getTypegroup() != null && nb.getTypegroup().equals("cat-sw") ? ALWAYS_HANDLE : NEVER_HANDLE;
+		int v = nb.getTypegroup() != null && nb.getTypegroup().equals("ios-sw") ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("IOS_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
@@ -270,15 +270,6 @@ public class CiscoSwIOS implements DeviceHandler
 				String vlanHex = (String)vlanHexMap.get(ifindex);
 				String portname = (String)portNameMap.get(ifindex);
 				
-				Integer vlanNum;
-				try {
-				    vlanNum = new Integer(Integer.parseInt(vlan));
-				} catch (NumberFormatException e) {
-					Log.w("PROCESS_IOS", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException on vlan: " + vlan);
-					continue;
-				}
-
-
 				Integer port;
 				try {
 					port = new Integer(Integer.parseInt(modulport[1]));
@@ -370,6 +361,14 @@ public class CiscoSwIOS implements DeviceHandler
 					Log.w("PROCESS_IOS", "Error, vlan not found for ifindex: " + ifindex);
 					continue;
 				    } else {
+					Integer vlanNum;
+					try {
+					    vlanNum = new Integer(Integer.parseInt(vlan));
+					} catch (NumberFormatException e) {
+					    Log.w("PROCESS_IOS", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException on vlan: " + vlan);
+					    continue;
+					}
+
 					sw.setVlan(vlanNum.intValue());
 				    }
 				}
