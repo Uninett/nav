@@ -3,7 +3,7 @@
 $menybredde = "100%";
 
 $vhtdocs = '/usr/local/nav/navme/apache/vhtdocs';
-$htpasswd = '/usr/local/nav/navme/apache/vhtdocs';
+$htpasswd = '/usr/local/nav/navme/apache/htpasswd';
 $local_dir = '/usr/local/nav/etc/vhtdocs';
 
 
@@ -29,8 +29,8 @@ $user_data{''}{'omraade'} = 'aapen';
 close(HTPASSWD);
 
 
-$remote_host = $ENV{'REMOTE_HOST'};
-
+$remote_ip = $ENV{'REMOTE_ADDR'};
+$servername = $ENV{'SERVER_NAME'};
 
 print "<body bgcolor=\#ffffff text=\#000000>";
 
