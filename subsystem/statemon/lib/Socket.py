@@ -14,17 +14,31 @@ from errno import errorcode
 class Timeout(Exception):
 	pass
 
-def ssl(sock, timeout, keyfile=None, certfile=None):
+def ssl(sock, sock, keyfile=None, certfile=None):
 	"""
 	Returns an sslsocket with timeout support.
 	"""
-	return Socket(timeout, socket.ssl(sock, keyfile, certfile))
+	return SslSocket(timeout, sock, keyfile, certfile))
 
-#class SslSocket(Socket):
+class SslSocket:
+	def __init__(self, timeout, realsock, keyfile=None, certfile=None):
+		self.timeout = timeout
+		self.realsock = realsock
+		self.sslsock = socket.ssl(sock, keyfile, certfile)
+	def read(*args):
+		r,w,e = select([self.realsock],[],[],self.timeout)
+		if not r:
+			raise Timeout('Timeout in readafter %i sec' % self.timeout)
+		return self.sslsock.read(*args)
+	def write(*args):
+		r,w,e = select([],[self.realsock],[],self.timeout)
+		if not w:
+			raise Timeout('Timeout in write after %i sec' % self.timeout)
+		return self.sslsock.write(*args)
 	
 
 class Socket:
-	def __init__(self, timeout, sock=None):
+	def __init__(self, timeout):
 		self.timeout = timeout
 		if sock:
 			self.s = sock
