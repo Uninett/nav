@@ -1,28 +1,78 @@
 #!/usr/bin/perl -w
 
 use strict;
+use SNMP;
 use SNMP_util;
 use Socket;
 
-sub snmp_sysname{
-    my ($antallpunktum,$ip,$ro,$mib,$endelser) = @_;
-    my $sys;
+sub snmp_system{
+    my ($antallpunktum,$ip,$ro,$endelser) = @_;
+    my ($sys,$type);
     if ($ro) {
-	unless(($sys) = &snmpget("$ro\@$ip:161:1:2:4",$mib)) {
-	    return 0;
-	}
-	$sys = &fjern_endelse($sys,$endelser);
 	my $dns = &hent_dnsname($ip);
 	$dns = &fjern_endelse($dns,$endelser);
-	if($dns =~ /$sys/i) {
-	    $sys = $dns;
-		($sys,undef) = split(/\./,$sys,$antallpunktum+1);
+	my @snmpresult = &snmpwalk($ro.'@'.$ip.':161:8:1:1',"system");
+	(undef,$sys) = split(/:/,$snmpresult[4]);
+	(undef,$type) = split(/:/,$snmpresult[1]);
+	unless($sys&&$type) { #hvis sysname er tomt
+	    $sys = 0;
+	    $type = 0;
 	} else {
-	    print "DNSNAME($dns) OG SYSNAME($sys) ER FORSKJELLIGE\n";
+	    $sys = &fjern_endelse($sys,$endelser);
+	    if($dns =~ /$sys/i) {
+		$sys = $dns;
+		($sys,undef) = split(/\./,$sys,$antallpunktum+1);
+	    } else {
+		&skriv("SNOUT", "\nDNSNAME($dns) OG SYSNAME($sys) ER FORSKJELLIGE for $ip\n");
+	    }
 	}
     }
-    return $sys;
+    return ($sys,$type);
 }
+sub snmpsystem{
+    my ($host,$community,$endelser) = @_;
+    if ($community){
+	my ($sys,$type);
+	my $dns = &hent_dnsname($host);
+	$dns = &fjern_endelse($dns,$endelser);
+
+	my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 1);
+	my $vars = new SNMP::VarList(['1.3.6.1.2.1.1.5.0'], ['1.3.6.1.2.1.1.2.0']);
+	my ($sys, $type) = $sess->get($vars);   
+	unless($sys) {
+	    my $error = $sess->{ErrorStr};
+	    unless($error){
+		$error = "Feil";
+	    }
+	    &skriv("SNERR", $error." for $host\n");
+	    $sys = 0;
+	    $type = 0;
+	} else {
+	    my $for = $sys = &fjern_endelse($sys,$endelser);
+	    if($dns =~ /$sys/i) {
+		my $mellom = $sys = $dns;
+		($sys,undef) = split(/\./,$sys,2);
+		my $etter = $sys;
+#	print "\n$for\n$mellom\n$etter\n";
+		
+	    } else {
+		&skriv("SNOUT", "\nDNSNAME($dns) OG SYSNAME($sys) ER FORSKJELLIGE for $host\n");
+	    }
+	}
+	$type =~ s/^\.//; # fjerner punktum fra starten av OID
+#	print $sys.$type."\n";
+	return ($sys,$type);
+    }
+}
+
+sub verifymib{
+    if($_[0]){
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
 sub fjern_endelse{
     my $sysname = $_[0];
     my @endelser =  split(/:/,$_[1]);
@@ -36,11 +86,9 @@ sub fjern_endelse{
 
 sub snmp_type{
     my ($ip,$ro,$mib) = @_;
-#    print $ro;
     my $resultat = 0;
     if ($ro) {
         ($resultat) = &snmpget("$ro\@$ip:161:1:2:4",$mib);
-#	print $resultat;
     }
     return $resultat;
 }
@@ -60,9 +108,7 @@ sub hent_dnsname{
     if (defined $_[0]){
 	my $dns;
 	if($dns =&inet_aton($_[0])){
-#	    print "DNS: $dns\n";
 	    $dns = gethostbyaddr($dns,AF_INET);
-#	    print "DNS: $dns\n";
 	    return $dns;
 	} else {
 	    return 0;
