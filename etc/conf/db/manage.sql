@@ -259,9 +259,10 @@ CREATE TABLE swport (
   duplex VARCHAR(4),
   media VARCHAR(16),
   trunk BOOL DEFAULT false,
-  static BOOL DEFAULT false,  
+  static BOOL DEFAULT false,
   portnavn VARCHAR(30),
   boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
+  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   vpkatbak VARCHAR(5),
   UNIQUE(boksid, modul, port)
 );
@@ -269,7 +270,7 @@ CREATE TABLE swport (
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
+  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET NULL,
   ifindex INT2 NOT NULL,
   masterindex INT2,
   interf VARCHAR(30),
@@ -277,7 +278,7 @@ CREATE TABLE gwport (
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false,
-  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
+  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET NULL,
   swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
