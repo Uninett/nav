@@ -96,6 +96,11 @@ class selectTree:
                 select.fill()
 
         # Set all selected options and fill updateselect()s
+
+        # Set firstLoad=True so that fill() knows that any
+        # entries in the addEntryList must be selected if
+        # they are set to be. If firstLoad is false all
+        # entries in the addEntryList defaults to select=false.
         firstLoad = True
         for select in self.selectList:
             
@@ -112,14 +117,11 @@ class selectTree:
                 # got this select (controlName) posted. Ie. only set
                 # preselected entries when the page first loads, then
                 # update normally.
-                for preSelected in select.preSelected:
-                    # preSelected ids may be ints, so str()
-                    if not selected.count(str(preSelected)):
-                        selected.append(str(preSelected))
-                # Set firstLoad=True so that fill() knows that any
-                # entries in the addEntryList must be selected if
-                # they are set to be. If firstLoad is false all
-                # entries in the addEntryList defaults to select=false.
+                if firstLoad:
+                    for preSelected in select.preSelected:
+                        # preSelected ids may be ints, so str()
+                        if not selected.count(str(preSelected)):
+                            selected.append(str(preSelected))
             select.firstLoad = firstLoad
 
             if not select.prevSelect:
@@ -443,7 +445,13 @@ class updateSelect(simpleSelect):
                         # Value (id) isn't already present
                         state = entry[3]
                         if not self.firstLoad:
+                            # If this isn't the first load of the page
+                            # then selected defaults to false no matter
+                            # what the addEntryList entry says
                             state = False
+                        if self.possiblySelected.count(entry[1]):
+                            # But the user could have selected it
+                            state = True
                         option = selectOption(entry[2],entry[1],state)
                         self.options.append(option)
             # Add end of optgroup tag to list of options
