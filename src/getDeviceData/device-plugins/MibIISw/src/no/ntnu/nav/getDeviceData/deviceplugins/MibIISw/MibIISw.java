@@ -1,6 +1,7 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.MibIISw;
 
 import java.util.*;
+import java.util.regex.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
@@ -413,6 +414,39 @@ public class MibIISw implements DeviceHandler
 
 				Swport swp = sc.swportFactory(ifindex);
 				swp.setPortname(alias);
+			}
+		}
+
+		// Collect sysDescr
+		List sysDescrList = sSnmp.getAll(nb.getOid("sysDescr"), true, false);
+		if (sysDescrList != null) {
+			for (Iterator it = sysDescrList.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String sysDescr = s[1];
+				NetboxInfo.put(nb.getNetboxidS(), null, "sysDescr", sysDescr);
+
+				String version = null;
+				// Extract version
+				int k=0;
+				if ( (k=sysDescr.indexOf("Version")) >= 0) {
+					k += "Version".length();
+					int e = sysDescr.indexOf(",", k);
+					int e2 = sysDescr.indexOf("\n", k);
+					if (e <= k) e = sysDescr.length();
+					if (e2 <= k) e2 = sysDescr.length();
+					version =  sysDescr.substring(k, Math.min(e,e2));
+				} else {
+					Matcher m = Pattern.compile("V([0-9]+[a-zA-Z0-9.&&[^ ]]*)").matcher(sysDescr);
+					if (m.find()) {	
+						version = m.group(1);
+					}
+				}
+				if (version != null) {
+					version = version.trim();
+					nc.netboxDataFactory(nb).setSwVer(version);
+				}
+
+				break;
 			}
 		}
 
