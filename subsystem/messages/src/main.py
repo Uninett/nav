@@ -34,7 +34,7 @@ import re
 from nav import db
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox,redirect,shouldShow
-from nav.web.messages.lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime
+from nav.web.messages.lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime, MaintTree, MaintTreeMessage, Location, Room, Netbox, Service
 from nav.web.messages.menu import Menu
 
 ## Configuration
@@ -154,7 +154,7 @@ def feed(req):
     database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc") 
     page.messages = database.fetchall()
 
-    PAGE.server = req.server.server_hostname
+    page.server = req.server.server_hostname
 
     return page.respond()
 
@@ -297,100 +297,58 @@ def home(req,view="active",offset="0"):
 def maintlist(req):
     page = MaintListTemplate()
     page.path = [('Home','/'), ('Messages',BASEPATH), ("Units on maintenance", None)]
-    sql = "select emotd.emotdid, title, key, value, maint_start, maint_end, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' and maint_end > now() order by maint_end desc"
+    sql = "select emotd.emotdid, title, key, value, maint_start, maint_end, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' and maint_end > now() and maint_start < now() order by maint_end desc"
     ## should be either or, not , in the order by clause
-    
+
     database.execute(sql)
     maints = database.fetchall()
-    maintlist = []
+    t = MaintTree()
+
     for (emotdid, title,  key, value, start, end, state) in maints:
-        if key == 'room':
-            netboxid = ""
-            sysname = ""
-            try:
-                database.execute("select descr from room where roomid='%s'" % value)
-                descr = database.fetchone()[0]
 
-            except:
-                descr = value
-                
-            database.execute("select sysname, netboxid from netbox where roomid='%s'" % value)
+        ## where-klausul må bygges
+        if key == "location":
+            where = "locationid='%s'" % value
+        elif key == "room":
+            where = "roomid='%s'" % value
+        elif key == "netbox":
+            where = "netboxid='%s'" % value
+        elif key == "service":
+            where = "serviceid='%s'" % value
+        elif key =="module":
+            where = "moduleid='%s'" % value
+        else:
+            raise repr("Key «%s» not recognized" % key)
+        
+        ## state brukes ikke
+        database.execute("select locationid, location.descr, roomid, room.descr, netboxid, sysname, serviceid, handler, moduleid, module from location left outer join room using (locationid) left outer join netbox using (roomid) left outer join service using (netboxid) left outer join module using (netboxid) where %s" % where)
+        results = database.fetchall()
+        m = t.getMessage(emotdid, title, start, end)
 
-            for (sysname, netboxid) in database.fetchall():
-
-                mle = MaintListElement(emotdid,title,start,end, key)
-                if netboxid:
-                    mle.setNetbox(netboxid,sysname)
-                mle.setRoom(value,descr)
-                maintlist.append(mle)
-                    
-        elif key == 'location':
-            netboxid = ""
-            sysname = ""
-            roomid =""
-            roomdesc = ""
-            try:
-                database.execute("select descr from location where locationid='%s'" % value)
-                descr = database.fetchone()
-            except:
-                descr = value
-
-            database.execute("select roomid, descr, netboxid, sysname from room left outer join netbox using (roomid) where locationid='%s'" % value)
-
-            for (roomid, roomdesc, netboxid, sysname) in database.fetchall():
-                mle = MaintListElement(emotdid, title, start, end, key)
-                if netboxid:
-                    mle.setNetbox(netboxid,sysname)
-                mle.setRoom(roomid, roomdesc)
-                mle.setLocation(value,descr)
- 
-                maintlist.append(mle)
-                
-        elif key == 'netbox':
-            try:
-                database.execute("select sysname from netbox where netboxid=%d" % int(value))
-                descr = database.fetchone()[0]
-            except:
-                descr = key + value
-                
-            mle = MaintListElement(emotdid, title, start, end, key)
-            mle.setNetbox(value,descr)
-           
-            maintlist.append(mle)
-
-        elif key == 'service':
-            netboxid = ""
-            sysname = ""
-            try:
-                database.execute("select handle, netbox.netboxid, sysname from service left outer join netbox using (netboxid) where serviceid=%d" % int(value))
-                (descr,netboxid,sysname) = database.fetchone()
-            except:
-                descr = key + value
-
-            mle = MaintListElement(emotdid), title, start, end, key
+        for (locationid, locationdescr, roomid, roomdescr, netboxid, sysname, serviceid, handler, moduleid, module) in results:
+            if locationid:
+                l = m.getLocation(locationid, locationdescr)
+                if key == "location":
+                    l.onMaintenance = True
+            if roomid:
+                r = l.getRoom(roomid, roomdescr)
+                if key == "room":
+                    r.onMaintenance = True
             if netboxid:
-                mle.setNetbox(netboxid,sysname)
-            mle.setService(value,descr)
-            maintlist.append(mle)
-                
-        elif key == 'module':
-            netboxid = ""
-            sysname = ""
-            module =""
-            try:
-                database.execute("select moduleid, module, descr from module where moduleid=%d" % int(value))
-                (moduleid, module, descr, netboxid, sysname) = database.fetchone()
-            except:
-                descr = key + value
-                
-            mle = MaintListElement(emotdid, title, start, end, key)
-            if netboxid:
-                mle.setNetbox(netboxid,sysname)
-            mle.setModule(value,module,descr)
-            maintlist.append(mle)
+                n = r.getNetbox(netboxid, sysname)
+                if key == "netbox":
+                    n.onMaintenance = True
+            if serviceid:
+                s = n.getService(serviceid, handler)
+                if key == "service":
+                    s.onMaintenance = True
+            if moduleid:
+                s = n.getModule(moduleid, module)
+                if key == "module":
+                    s.onMaintenance = True
 
     page.menu = Menu().getMenu(req.session['user'], 'maintenance')
-    page.maintlist = maintlist
+    page.maintlist = t
     return page.respond()
 
 
@@ -446,7 +404,7 @@ def maintenance(req, id = None):
 
     args['searchbox'] = searchbox
 
-    sr = {"locations":[],"rooms":[],"netboxes":[]}
+    sr = {"locations":[],"rooms":[],"netboxes":[], "services":[]}
     if req.form.has_key('sb_submit'):
         sr = searchbox.getResults(req)
 
@@ -495,19 +453,37 @@ def maintenance(req, id = None):
                                multipleSize=10,
                                preSelected = sr['netboxes'])
 
-    select4 = UpdateableSelect(select3,
-                               'cn_service',
-                               'Module/Service',
-                               'Service',
-                               'handler',
-                               'serviceid',
-                               'netboxid',
-                               multiple = True,
-                               multipleSize=10,
-                               onchange='',
-                               optgroupFormat = '$d') 
-    #                           preSelected = sr['services'])
-
+    catid = None
+    if req.form.has_key("cn_netbox") and req.form["cn_netbox"]:
+        database.execute("select catid from netbox where netboxid=%s", (req.form["cn_netbox"],))
+        result = database.fetchone()
+        if result:
+            catid = result[0]
+    
+    if catid == "SRV":
+        select4 = UpdateableSelect(select3,
+                                   'cn_service',
+                                   'Service',
+                                   'Service',
+                                   'handler',
+                                   'serviceid',
+                                   'netboxid',
+                                   multiple = True,
+                                   multipleSize=10,
+                                   optgroupFormat = '$d',
+                                   preSelected = sr['services'])
+    else:
+        select4 = UpdateableSelect(select3,
+                                   'cn_module',
+                                   'Module',
+                                   'Module',
+                                   'module',
+                                   'moduleid',
+                                   'netboxid',
+                                   multiple = True,
+                                   multipleSize=10,
+                                   optgroupFormat = '$d')
+        #preSelected = sr['services'])
 
     selectbox.addSelect(select)
     selectbox.addSelect(select2)
@@ -521,7 +497,15 @@ def maintenance(req, id = None):
     # Not allowed to go on, unless at least one unit is selected
     buttontext = "Add to message"
     buttonkey = "cn_add"
-    if len(select3.selectedList):
+    if len(select4.selectedList):
+        validSelect = True
+        if catid == "SRV":
+            buttontext = "Add service(s) to message"
+            buttonkey = "cn_add_services"
+        else:
+            buttontext = "Add module(s) to message"
+            buttonkey = "cn_add_modules"
+    elif len(select3.selectedList):
         validSelect = True
         buttontext = "Add netbox(es) to message"
         buttonkey = "cn_add_netboxes"
@@ -580,9 +564,15 @@ def maintenance(req, id = None):
         if req.form.has_key("messagetype"):
             req.session['emotdmessage']['type'] = req.form["messagetype"]
            
-        if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
+        if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations') or req.form.has_key('cn_add_services') or req.form.has_key('cn_add_modules'):
             kind = None
-            if req.form.has_key("cn_netbox"):
+            if req.form.has_key("cn_module"):
+                kind = "module"
+                
+            elif req.form.has_key("cn_service"):
+                kind = "service"
+                
+            elif req.form.has_key("cn_netbox"):
                 kind = "netbox"
                 
             elif req.form.has_key("cn_room"):
@@ -606,7 +596,7 @@ def maintenance(req, id = None):
     if req.form.has_key("cn_done"):
         redirect(req,BASEPATH+"submit")
 
-    elif req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
+    elif req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations') or req.form.has_key('cn_add_services') or req.form.has_key('cn_add_modules'):
         redirect(req,BASEPATH+"add")
     else:
         # make page. one submit makes this script (maintenance method) both parsing input and redirect to this page for making the resulting page.
@@ -686,7 +676,7 @@ def submit(req):
             if req.session.has_key("equipment"):
                 equipment = req.session["equipment"]
                 database.execute("select key,value from emotd_related where emotdid=%d",(emotdid,))
-                old = {"location":[], "room":[], "netbox":[], "module":[], "service":[]}
+                old = {"location":[], "room":[], "netbox":[], "module":[], "service":[], "module":[]}
                 for (key,value) in database.fetchall():
                     old[key].append(value)
 
@@ -709,6 +699,13 @@ def submit(req):
             if req.session['emotdmessage'].has_key('maint_end') and req.session['emotdmessage']['maint_end']:
                 messagemaintend = req.session['emotdmessage']['maint_end']
             if messagemaintstart and messagemaintend:
+                database.execute("select publish_end from emotd where emotdid=%s", (emotdid,))
+                publish = database.fetchone()
+                if publish:
+                    publishend = publish[0]
+                    if publishend < messagemaintend: ## if the maintenance window ends after publish window
+                        database.execute("update emotd set publish_end = %s where emotdid=%s", (messagemaintend, emotdid)) ## expands the publish window
+                        
                 database.execute("select emotdid from maintenance where emotdid=%s",(emotdid,))
                 maintenance = database.fetchone()
                 if maintenance:
@@ -754,7 +751,13 @@ def submit(req):
             elif req.session['emotdmessage'].has_key("maint_start"):
                 messagepublishstart = req.session['emotdmessage']['maint_start']
             if req.session['emotdmessage'].has_key('publish_end') and req.session['emotdmessage']['publish_end']:
-                messagepublishend = req.session['emotdmessage']['publish_end']
+                if req.session['emotdmessage'].has_key("maint_end"): ## publish end cannot be earlier than maintenance end
+                    if req.session['emotdmessage']['publish_end'] < req.session['emotdmessage']['maint_end']:
+                        messagepublishend = req.session['emotdmessage']['maint_end']
+                    else:
+                        messagepublishend = req.session['emotdmessage']['publish_end']
+                else:
+                    messagepublishend = req.session['emotdmessage']['publish_end']
             elif req.session['emotdmessage'].has_key("maint_end"):
                 messagepublishend = req.session['emotdmessage']['maint_end']
             if req.session['emotdmessage'].has_key('type') and req.session['emotdmessage']['type']:
@@ -867,7 +870,7 @@ def edit(req, id = None):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
     page = EditTemplate()
     #title = 'Editing as %s ' % (req.session['user'].login)
-    page.path =  [("Home", "/"), ("Messages", "/emotd"),("Edit Message","")]
+    page.path =  [("Home", "/"), ("Messages", BASEPATH),("Edit Message","")]
     page.pagetitle = "Edit Message"
     #page.menu = getMenu(req)
     page.parent_id = None
@@ -998,6 +1001,12 @@ def commit(req):
     elif req.form.has_key('emotdid') and req.form["emotdid"]:
         emotdid = int(req.form["emotdid"])
         #database.execute("update emotd set description='%s', description_en='%s', detail='%s', detail_en='%s', title='%s', title_en='%s', affected='%s', affected_en='%s', downtime='%s', downtime_en='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed, emotdid))
+        database.execute("select maint_end from maintenance where emotdid=%s", (emotdid,))
+        maintend = database.fetchone()
+        if maintend:
+            maintend = maintend[0]
+            if maintend > end:  ## publish end has to be the largest of these
+                end = maintend
         database.execute("update emotd set description=%s, detail=%s, title=%s, affected=%s, downtime=%s, type=%s, publish_start=%s, publish_end=%s, last_changed=%s where emotdid=%d", (description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed), emotdid))
         
     else:

@@ -28,85 +28,103 @@
 #block content
 $makeMenu("Maintenance list")
 
-#set $last_location = True
-#set $last_room = True
-#set $last_netbox = True
-#set $last_message = True
-#set $columns = ("message", "location", "room", "netbox", "service/module", "maintenance end")
-<table style="font-size:0.7em;padding:0;margin:0;">
-<tr>#slurp
-#for $column in $columns
-<th nowrap>$column</th>#slurp
-#end for
+#if len($maintlist)
+<div class="maintlist">
+#if len($maintlist.messages)
+#for $m in $maintlist.messages
+<div class="message">
+<h2><a href="/messages/view/$m.id">$m.title</a></h2>
+<p style="font-size:0.6em">$m.maintend</p>
+#if len($m.locations)
+#for $l in $m.locations
+#if $l.onMaintenance
+<div class="locationmaint">
+#else
+<div class="location">
+#end if
+<h3><a href="/report/room?locationid=$l.id">$l.id, $l.descr</a></h3>
+#if len($l.rooms)
+#for $r in $l.rooms
+#if $r.onMaintenance
+<div class="roommaint">
+#else
+<div class="room">
+#end if
+<h4><a href="/report/netbox?roomid=$r.id">$r.id, $r.descr</a></h4>
+#if len($r.netboxes)
+<table>
+#for $n in $r.netboxes
+#if $n.onMaintenance
+<tr><td class="netboxmaint"><a href="/browse/$n.id">$n.sysname</a></td>
+#else
+<tr><td><a href="/browse/$n.id">$n.sysname</a></td>
+#end if
+#if len($n)
+#if $n.onMaintenance
+<td class="netboxmaint">
+#else
+<td>
+#end if
+
+#if len($n.services)
+#for $s in $n.services
+#if $s.onMaintenance
+<a href="/report/servicemon?netboxid=$n.id" class="servicemaint">$s.handler</a>
+#else
+<a href="/report/servicemon?netboxid=$n.id">$s.handler</a>
+#end if
+#end for s services
+#end if services
+
+#if len($n.modules)
+#for $s in $n.modules
+#if $s.onMaintenance
+<a href="/report/swport?b1.sysname=$n.sysname&module=$s.modulenumber" class="servicemaint">$s.modulenumber</a>
+#else
+<a href="/report/swport?b1.sysname=$n.sysname&module=$s.modulenumber">$s.modulenumber</a>
+#end if
+#end for s modules
+#end if modules
+
+</td>
+#end if
 </tr>
-
-#for $element in $maintlist
-<tr>#slurp
-#if $element.message
-<td style="background-color:#eeeeee">#slurp
-#else
-<td>#slurp
-#end if
-#if not $last_message==$element.message
-<a href="/messages/view/$element.message">$element.title</a>#slurp
-#else
-&nbsp;#slurp
-#end if
-</td>#slurp
-#if $element.category=="location"
-<td style="background-color:#AABBCC">#slurp
-#elif $element.locationid
-<td style="background-color:#eeeeee">#slurp
-#else
-<td>#slurp
-#end if
-#if $element.locationid and not $last_location==$element.locationid
-<a href="/report/room?locationid=$element.locationid">$element.locationid, $element.locationdescr</a>#slurp
-#else
-&nbsp;#slurp
-#end if
-</td>#slurp
-#if $element.category=="room"
-<td style="background-color:#AABBCC">#slurp
-#elif $element.roomid
-<td style="background-color:#eeeeee">#slurp
-#else
-<td>#slurp
-#end if
-#if $element.roomid and not $last_room==$element.roomid
-<a href="/report/netbox?roomid=$element.roomid">$element.roomid, $element.roomdescr</a>#slurp
-#else
-&nbsp;#slurp
-#end if
-</td>#slurp
-#set $last_location = $element.locationid
-#set $last_room = $element.roomid
-#set $last_message = $element.message
-#if $element.category=="netbox"
-<td style="background-color:#AABBCC">#slurp
-#elif $element.netboxid
-<td style="background-color:#eeeeee">#slurp
-#else
-<td>#slurp
-#end if
-#if not $last_netbox==$element.netboxid
-<a href="/browse/$element.netboxid">$element.sysname</a>#slurp
-#else
-&nbsp;#slurp
-#end if
-</td>#slurp
-#set $last_netbox=$element.netboxid
-
-##go on with coloring
-<td>#slurp
-#if $element.serviceid
-<a href="/report/servicemon?netboxid=$element.netboxid">$element.handler</a>#slurp
-#elif $element.module
-<a href="/report/swport?b1.sysname=$element.sysname&module=$element.module">$element.module</a>#slurp
-#end if
-</td><td>$element.end</td></tr>
-
-#end for
+#end for n
 </table>
+#end if
+</div>
+#end for r
+#end if
+</div>
+#end for l
+#end if
+</div>
+#end for m
+#end if
+</div>
+#end if
 
+#end block
+
+
+#block additionalCSS
+
+div.message {
+ 	background-color:#eae8e3;
+}
+
+div.location, div.room, table.netbox{
+	margin-left:2em;
+	border: 1px solid #eae8e3;
+}
+
+div.locationmaint, div.roommaint {
+	margin-left:2em;
+ 	background-color:#e0b6af;
+	border: 1px solid #eae8e3;
+}
+
+td.netboxmaint, a.servicemaint {
+ 	background-color:#e0b6af;
+}
 #end block

@@ -64,6 +64,13 @@ $newmessage($message)
    </tr>
   #end for
 </table>
+<span style="text-align:center">
+#if $previousuri
+<a href="$previousuri">previous page</a>
+#end if
+#if $nexturi
+<a href="$nexturi">next page</a>
+#end if
 #else:
 No $title found.<br>
 #end if

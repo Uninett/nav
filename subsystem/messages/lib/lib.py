@@ -193,12 +193,143 @@ def equipmentformat(eqdict):
                     resdict["service"].append((l,"%s (%s)" % (resultat[0], resultat[1])))
                 except:
                     resdict["service"].append((l,l))
+        if eqdict.has_key("module"):
+            resdict["module"] = []
+            for l in eqdict["module"]:
+                try:
+                    database.execute("select sysname, module from module inner join  netbox using (netboxid) where moduleid = '%s'" % l)
+                    resultat = database.fetchone()
+                    resdict["module"].append((l,"%s (%s)" % (resultat[1], resultat[0])))
+                except:
+                    resdict["module"].append((l,l))
     return resdict
 
 def textpara(text):
     """ Formats the paragraphed text according to html syntax."""
     text = re.sub("(?:\r?\n)+", "</p><p>", text)
     return "<p>" + text + "</p>"
+
+
+class MaintTree:
+    def __init__(self):
+        self.messages = []
+        self.messages_k = {}
+
+    def getMessage(self,id,title, maintstart, maintend):
+        if not self.messages_k.has_key(id):
+            message = MaintTreeMessage(id, title, maintstart, maintend)
+            self.messages_k[id] = len(self.messages)
+            self.messages.append(message)
+        else:
+            message = self.messages[self.messages_k[id]]
+        return message
+
+    def __len__(self):
+        return len(self.messages)
+
+class MaintTreeMessage:
+    def __init__(self, id, title, maintstart, maintend):
+        self.locations = []
+        self.locations_k = {}
+        self.id = id
+        self.title = title
+        self.maintstart = maintstart
+        self.maintend = maintend
+
+    def getLocation(self,id, descr):
+        if not self.locations_k.has_key(id):
+            location = Location(id, descr)
+            self.locations_k[id] = len(self.locations)
+            self.locations.append(location)
+        else:
+            location = self.locations[self.locations_k[id]]
+        return location
+
+    def __len__(self):
+        return len(self.locations)
+
+class Location:
+    def __init__(self, id, descr):
+        self.id = id
+        self.descr = descr
+        self.rooms = []
+        self.rooms_k = {}
+        self.onMaintenance = False
+
+    def getRoom(self, id, descr):
+        if not self.rooms_k.has_key(id):
+            room = Room(id, descr)
+            self.rooms_k[id] = len(self.rooms)
+            self.rooms.append(room)
+        else:
+            room = self.rooms[self.rooms_k[id]]
+        return room
+            
+    def __len__(self):
+        return len(self.rooms)
+
+class Room:
+    def __init__(self,id,descr):
+        self.id = id
+        self.descr = descr
+        self.netboxes = []
+        self.netboxes_k = {}
+        self.onMaintenance = False
+
+    def getNetbox(self,id,sysname):
+        if not self.netboxes_k.has_key(id):
+            netbox = Netbox(id,sysname)
+            self.netboxes_k[id] = len(self.netboxes)
+            self.netboxes.append(netbox)
+        else:
+            netbox = self.netboxes[self.netboxes_k[id]]
+        return netbox
+
+    def __len__(self):
+        return len(self.netboxes)
+
+class Netbox:
+    def __init__(self,id,sysname):
+        self.id = id
+        self.sysname = sysname
+        self.services = []
+        self.modules = []
+        self.services_k = {}
+        self.modules_k = {}
+        self.onMaintenance = False
+
+    def getService(self,id,handler):
+        if not self.services_k.has_key(id):
+            service = Service(id, handler)
+            self.services_k[id] = len(self.services)
+            self.services.append(service)
+        else:
+            service = self.services[self.services_k[id]]
+        return service
+
+    def getModule(self, id, modulenumber):
+        if not self.modules_k.has_key(id):
+            module = Module(id, modulenumber)
+            self.modules_k[id] = len(self.modules)
+            self.modules.append(module)
+        else:
+            module = self.modules[self.modules_k[id]]
+        return module
+
+    def __len__(self):
+            return len(self.services)+len(self.modules)
+
+class Service:
+    def __init__(self,id,handler):
+        self.id = id
+        self.handler = handler
+        self.onMaintenance = False
+
+class Module:
+    def __init__(self,id,modulenumber):
+        self.id = id
+        self.modulenumber = modulenumber
+        self.onMaintenance = False
 
 class MaintListElement:
     def __init__(self, message, title, start, end, key):
