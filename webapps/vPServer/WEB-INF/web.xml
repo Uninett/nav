@@ -45,9 +45,17 @@
 
     <context-param>
       <param-name>navRoot</param-name>
-      <param-value>/usr/local/nav/</param-value>
+      <param-value>/home/kristian/devel/</param-value>
       <description>
         The NAV root (needs trailing /)
+      </description>
+    </context-param>
+
+    <context-param>
+      <param-name>dbConfigFile</param-name>
+      <param-value>local/etc/conf/db.conf</param-value>
+      <description>
+        Location of the database config file within the NAV root
       </description>
     </context-param>
 
