@@ -161,7 +161,6 @@ if (get_get('subaction') == 'slett') {
 if (get_get('subaction') == "nyprofil") {
   print "<h3>" . gettext("Registering new profile...") . "</h3>";
   
-  $error = NULL;
 	
 	$navn = "";
   if (post_get('navn') == "") $navn = gettext("No name"); else $navn = post_get('navn');

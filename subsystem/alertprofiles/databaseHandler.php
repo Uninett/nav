@@ -1778,7 +1778,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyTidsperiode($helg, $tid, $profilid) {
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Tidsperiode (id, helg, starttid, brukerprofilid) VALUES (" . 
-      "nextval('tidsperiodeid'), " . addslashes($helg) . ", '" . 
+      "nextval('tidsperiode_id_seq'), " . addslashes($helg) . ", '" . 
       addslashes($tid) ."', " . addslashes($profilid) . ")";
     
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -1802,7 +1802,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Alarmadresse (id, accountid, adresse, type) VALUES (" . 
-      "nextval('alarmadresseid'), " . addslashes($brukerid) . ", '" . 
+      "nextval('alarmadresse_id_seq'), " . addslashes($brukerid) . ", '" . 
       addslashes($adresse) ."', " . addslashes($adressetype) . " )";
     
 	#print "<p>query: $querystring\n brukerid: $brukerid";
@@ -1851,12 +1851,13 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Brukerprofil (id, accountid, navn, ukedag, uketid, tid) VALUES (" . 
-      "nextval('brukerprofilid'), " . $brukerid . ", '" . 
+      "nextval('brukerprofil_id_seq'), " . $brukerid . ", '" . 
       addslashes($navn) ."', " . addslashes($ukedag) . ", '" . 
       addslashes($uketidh) . ":" . addslashes($uketidm) . "', '" .
       addslashes($tidh) . ":" . addslashes($tidm) . "' " .
       " )";
-      
+     
+    
       
     //echo "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -1882,7 +1883,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
-      "nextval('utstyrfilterid'), " . addslashes($brukerid) . ", '" . 
+      "nextval('utstyrfilter_id_seq'), " . addslashes($brukerid) . ", '" . 
       addslashes($navn) ."' )";
     
 #    print "<p>query: $querystring";
@@ -1908,7 +1909,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
-      "nextval('utstyrfilterid'), null, '" . 
+      "nextval('utstyrfilter_id_seq'), null, '" . 
       addslashes($navn) ."' )";
     
 #    print "<p>query: $querystring";
@@ -2012,7 +2013,7 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO FilterMatch (id, matchfelt, matchtype, utstyrfilterid, verdi) VALUES (" . 
-      "nextval('filtermatchid'), " . addslashes($matchfelt) . ", " . 
+      "nextval('filtermatch_id_seq'), " . addslashes($matchfelt) . ", " . 
       addslashes($matchtype) .", " . addslashes($fid) . ", '" . 
       addslashes($verdi) . "' )";
     
@@ -2042,7 +2043,7 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
-    "nextval('filtermatchid'), " . addslashes($uid) . ", '" . 
+    "nextval('filtermatch_id_seq'), " . addslashes($uid) . ", '" . 
     addslashes($navn) ."', '" . addslashes($descr) . "' )";
     
     // print "<p>query: $querystring";
@@ -2155,7 +2156,7 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
-      "nextval('filtermatchid'), null, '" . 
+      "nextval('filtermatch_id_seq'), null, '" . 
       addslashes($navn) ."', '" . addslashes($descr) . "' )";
     
 //    print "<p>query: $querystring";

@@ -62,11 +62,6 @@ if (session_get('subaction') == 'slett' ) {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the time period is <b>not</b> removed.");
 	}
 
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
 	session_set('subaction', 'idle');
   
 }

@@ -58,7 +58,6 @@ if (get_get('subaction') == "slett") {
 if (get_get('subaction') == "nybruker") {
   print "<h3>" . gettext("Registering a new user...") . "</h3>";
   
-  $error = NULL;
   
  
   

@@ -40,11 +40,6 @@ if (get_get('subaction') == 'endre') {
         print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, passord er <b>ikke</b> endret.");
     }
 
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
   
 }
 

@@ -49,16 +49,10 @@ if ($subaction == 'slett') {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the filter is <b>not</b> removed.");
 	}
 
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
   
 }
 
 if ($subaction == "nyttfilter") {  
-  $error = NULL;
   if (($uid > 0) AND (isset($filterid))){ 
   	$neg = post_get('neg-check') == 1 ? 0 : 1;
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
@@ -67,11 +61,6 @@ if ($subaction == "nyttfilter") {
     print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new filter is <b>not</b> added.");
   }
 
-  // Viser feilmelding om det har oppstått en feil.
-  if ( $error != NULL ) {
-    print $error->getHTML();
-    $error = NULL;
-  }
 }
 
 if ($subaction == "swap") {  

@@ -7,8 +7,120 @@
  */
 
 
+
 // Report all errors except E_NOTICE
-error_reporting (E_ALL ^ E_NOTICE);
+//error_reporting (E_ALL ^ E_NOTICE);
+
+
+
+/*
+	******************
+	ERROR  Handling
+*/
+
+
+
+
+/* 
+ * Dette er en generell feilmeldingsklasse. 
+ */
+class Error {
+  var $type;
+  var $message;
+  var $type_name;
+  var $sev; 
+  
+  function Error ($errtype, $sev = 0) {
+    $this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
+    	gettext('Database error'), gettext('Security error'), gettext('IO error'),
+    	gettext('AlertProfiles PHP Errorhandler') );
+    $this->type = $errtype;
+    $this->sev = $sev;
+  }
+
+  function getHeader () {
+    return $this->type_name[$this->type];
+  }
+
+  function setMessage ($msg) {
+    $this->message = $msg;
+  }
+  
+  function isSevere() {
+  	return ($this->sev == 1);
+  }
+
+  function getHTML () {
+    $html =  "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+    $html .= $this->GetHeader();
+    $html .= "</h2></td></tr>";
+    $html .= "<tr><td><p>" . $this->message . "</td></tr></table>";
+    return $html;
+  }
+
+}
+
+global $error;
+
+// set the error reporting level for this script
+//error_reporting(E_ALL);
+
+
+// error handler function
+function myErrorHandler($errno, $errstr, $errfile, $errline) 
+{
+	global $error;
+	switch ($errno) {
+		case E_ERROR:
+			echo "AlertProfiles error-handler:<b>FATAL</b> [$errno] $errstr<br />\n";
+			echo "  Fatal error in line $errline of file $errfile";
+			echo ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />
+			$errfile [$errline]\n";
+			echo "Aborting...<br />\n";
+			exit(1);
+		break;
+		case E_ERROR:
+			$ne = new Error(5, 1);
+			$ne->message = gettext("<b>ERROR</b> [$errno] $errstr<br />
+			$errfile [$errline]");
+			$error[] = $ne;
+		break;
+		case E_NOTICE:
+			$ne = new Error(5);
+			$ne->message = gettext("AlertProfiles error-handler:<b>WARNING</b> [$errno] $errstr<br />
+			$errfile [$errline]\n");
+			$error[] = $ne;			
+		break;
+		default:
+			$ne = new Error(5);
+			$ne->message = gettext("AlertProfiles error-handler:Unkown error type: [$errno] $errstr<br />
+			$errfile [$errline]\n");
+			$error[] = $ne;							
+		break;
+	}
+}
+
+function flusherrors() {
+	global $error;
+/* 	print "<pre>ERRORS:"; */
+/* 	print_r($error); */
+/* 	print "</pre>"; */
+	while ($err = array_pop($error)) {
+
+		if ( $err->isSevere()  or isset($_GET['debug']) ) {
+			print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+			print $err->GetHeader();
+			print "</h2></td></tr>";
+			print "<tr><td><p>" . $err->message . "</td></tr></table>";
+		}
+		
+	}
+}
+
+// set to the user defined error handler
+$old_error_handler = set_error_handler("myErrorHandler");
+
+
 
 require("config.php");
 require("databaseHandler.php");
@@ -23,6 +135,11 @@ require("check_syntax.function.php");
 require("auth.php");
 
 header("Content-Type: text/html; charset=utf-8");
+
+
+
+
+
 
 
 // I18N support information here
@@ -67,18 +184,28 @@ require("listing.php");
 
 <!-- INCLUDE HEADER -->
 <?php
-exec('/usr/local/nav/bin/navTemplate.py user=' . session_get('bruker') . ' content=%%% path=AlertProfiles:/alertprofiles ', $out );
+$interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
+$cmd = $interpreter . ' ' . PATH_BIN . 'navTemplate.py user=' . session_get('bruker') . 
+	' content=%%% path=AlertProfiles:/alertprofiles ';
+
+exec($cmd, $out, $retval );
+
+/* exec('export', $aaa); echo '<pre>' . implode("\n", $aaa) . '</pre>'; */
 
 $pyhtml = implode(" ",$out);
-
-preg_match('/<body.*?>(.*?)%%%/', $pyhtml, $header);
-preg_match('/%%%(.*?)<\/body>/', $pyhtml, $footer);
+//echo '<h1>' . `which python`. ":::::" .$cmd . 'RetVAL:' . $retval . '</h1><pre>' . $pyhtml . '</pre>';
 
 
-echo $header[1];
+preg_match('/<(body|BODY).*?>(.*?)%%%/', $pyhtml, $header);
+preg_match('/%%%(.*?)<\/(body|BODY)>/', $pyhtml, $footer);
+
+
+echo $header[2];
 
 ?>
 <!-- /INCLUDE HEADER -->
+
+
 
 
 
@@ -151,9 +278,9 @@ class Meny {
 
 
 				} else {
-					$error = new Error(3);
-					$error->message = gettext("You have <b>no access</b> to this module.");
-					print $error->getHTML();
+					$ne = new Error(3);
+					$ne->message = gettext("You have <b>no access</b> to this module.");
+					$error[] = $ne;
 				}
 			} else { // Vises som default...
 				return array('modules/overview.php');
@@ -223,7 +350,6 @@ $meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php')
 
 
 
-
 <div class="noCSS">
 <table class="meny">
 <tr><td class="menyHead">
@@ -245,13 +371,7 @@ echo gettext("Your Internet browser do not support style sheets. We reccomend us
 <?php
 
 // Viser feilmelding om det har oppstått en feil.
-if ( $error != null ) {
-  print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-  print $error->GetHeader();
-  print "</h2></td></tr>";
-  print "<tr><td><p>" . $error->message . "</td></tr></table>";
-  $error = null;
-}
+flusherrors();
 
 /*
  * Hovedmeny. Her velger man alle undersidene..
@@ -266,18 +386,12 @@ foreach($filer as $incfile) {
 	} else {
 		$error = new Error(4);
 		$error->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
-		print $error->getHTML();
-		$error = null;
+		
+
 	}
 }
+flusherrors();
 
-// Viser feilmelding om det har oppstått en feil.
-if ( $error != null ) {
-	print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-	print $error->GetHeader();
-	print "</h2></td></tr>";
-	print "<tr><td><p>" . $error->message . "</td></tr></table>";
-}
 
 ?>
 

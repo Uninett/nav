@@ -12,37 +12,6 @@
  */
 
 
-/* 
- * Dette er en generell feilmeldingsklasse. 
- */
-class Error {
-  var $type;
-  var $message;
-  var $type_name;
-  
-  function Error ($errtype) {
-    $this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
-    	gettext('Database error'), gettext('Security error'), gettext('IO error') );
-    $this->type = $errtype;
-  }
-
-  function getHeader () {
-    return $this->type_name[$this->type];
-  }
-
-  function setMessage ($msg) {
-    $this->message = $msg;
-  }
-
-  function getHTML () {
-    $html =  "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-    $html .= $this->GetHeader();
-    $html .= "</h2></td></tr>";
-    $html .= "<tr><td><p>" . $this->message . "</td></tr></table>";
-    return $html;
-  }
-
-}
 
 
 global $login;

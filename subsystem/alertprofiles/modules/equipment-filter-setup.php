@@ -48,18 +48,12 @@ if ($subaction == 'slett') {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the match is <b>not</b> removed.");
 	}
 
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
   
 }
 
 if ($subaction == "nymatch") {
 	print "<h3>" . gettext("Registering new condition...") . "</h3>";
 	
-	$error = NULL;
 	if ($navn == "") $navn = gettext("No name");
 	if ($uid > 0) { 
 	
@@ -71,11 +65,6 @@ if ($subaction == "nymatch") {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
 	}
 	
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
 	$subaction = "";
 	unset($matchfelt);
   

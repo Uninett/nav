@@ -1,4 +1,4 @@
-@import url("listing.css");
+/* @import url("listing.css"); */
 
 /*
  * NAVuser main stylesheet
@@ -43,7 +43,6 @@ div.window {
 	margin-top: 2.5em;
 	margin-left: 25px;
 	position: absolute;
-	float: left;
 	background: url(../images/bluepixel85.png);
 	display: none;
 	border: thin solid black;

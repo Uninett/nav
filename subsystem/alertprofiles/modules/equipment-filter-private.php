@@ -103,18 +103,12 @@ if ($subaction == 'slett') {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the filter will <b>not</b> be removed.");
 	}
 
-	// Viser feilmelding om det har oppstått en feil.
-	if ( $error != NULL ) {
-		print $error->getHTML();
-		$error = NULL;
-	}
   
 }
 
 if ($subaction == "nyttfilter") {
   print "<h3>" . gettext("Registering a new profile...") . "</h3>";
   
-  $error = NULL;
 
   if ($navn == "") $navn = gettext("No name");
 
@@ -128,11 +122,6 @@ if ($subaction == "nyttfilter") {
     print "<p><font size=\"+3\">" . gettext("An error occured</font>, a new profile is <b>not</b> created.");
   }
 
-  // Viser feilmelding om det har oppstått en feil.
-  if ( $error != NULL ) {
-    print $error->getHTML();
-    $error = NULL;
-  }
 
 }
 

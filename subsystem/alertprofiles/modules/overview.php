@@ -71,10 +71,17 @@ function eqgroupviewsmall($dbh, $eqid) {
 
 function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 
+	$t_per = $dbh->listPerioder($brukerinfo[4], 0);
+	
+	if (sizeof($t_per) < 1)  {
+		echo '<p>No time periods. Please setup your profile.</p>';
+		return 0;
+	}
+
 	echo '<table class="timetable" border="0" cellpadding="0" cellspacing="0">';
 	echo '<tr class="header"><td class="clock">' . gettext('Time') . '</td><td class="helg">' . gettext('Weekday') . '</td>' .
 		'<td class="eqg">' . gettext('Supervised equipment groups') . '</td></tr>';
-	$t_per = $dbh->listPerioder($brukerinfo[4], 0);
+
 	$rc = 0;
 	$alt[0] = 'even'; $alt[1] = 'odd';
 	
