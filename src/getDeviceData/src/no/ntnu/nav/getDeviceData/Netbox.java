@@ -28,6 +28,15 @@ public interface Netbox
 	public boolean isSupportedOids(String[] oidkeys);
 
 	/**
+	 * <p> Takes as input an array of oidkeys, and returns true if this
+	 * netbox supports all of the given oidkeys.  </p>
+	 *
+	 * @param oidkeys Oidkeys to check
+	 * @return true if netbox supports all of the given oidkeys
+	 */
+	public boolean isSupportedAllOids(String[] oidkeys);
+
+	/**
 	 * <p> Check if the OID for the given key is ready to be
 	 * fetched. Since different OID's, or even equal OID's, but on
 	 * different types of devices, can have different query frequencies,

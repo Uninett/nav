@@ -191,6 +191,22 @@ A) For hver ruter (kat=GW eller kat=GSW)
        (som skal være opprettet)
 		*/
 
+		// Check for OID support
+		if (!nb.isSupportedAllOids(new String[] {
+			"ipAdEntIfIndex",
+			"ipAdEntIfNetMask",
+			"ifSpeed",
+			"ifAdminStatus",
+			"ifDescr",
+			"ifInOctets",
+			"ifAlias"
+		})) {
+
+			Log.w("PROCESS_CGW", "One or more required OIDs are not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+			return;
+		}
+				
+
 		// Fetch HSRP
 		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
 
