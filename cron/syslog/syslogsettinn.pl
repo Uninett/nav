@@ -55,7 +55,7 @@ if (scalar(@syslog)){
 #	    INSERT INTO meldinger (tid, boks, bokstype, prioritet, type, beskrivelse) VALUES (?, ?, ?, ?, ?, ?)
 #	    }) || die $dbh->errstr;
 
-    my $conn = &db_connect("syslog","syslogadmin","urg20ola");
+    my $conn = &db_get("syslogsettinn");
 
     my @felt = ("tid", "boks", "bokstype", "prioritet", "type", "beskrivelse");
 

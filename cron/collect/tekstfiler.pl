@@ -9,7 +9,7 @@ require "$lib/database.pl";
 require "$lib/fil.pl";
 &log_open;
 #-------------ALLE-------------
-my $db = &db_connect("manage","navall","uka97urgf");
+my $db = &db_get("tekstfiler");
 my ($fil,$tabell,@felt);
 #--------------ANV-------------
 $fil = "$localkilde/anv.txt";

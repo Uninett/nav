@@ -13,7 +13,7 @@ require "$lib/iplib.pl";
 
 my $debug;
 
-my $db = &db_connect("manage","navall","uka97urgf");
+my $db = &db_get("swporter");
 
 my @felt_swport = ("swportid","boksid","modul","port","ifindex","status","speed","duplex","trunk","portnavn");
 my @felt_swportvlan = ("swportid","vlan");

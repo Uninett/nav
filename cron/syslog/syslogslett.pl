@@ -15,7 +15,7 @@ my @tid = localtime(time());
 my $midnatt = timelocal_nocheck(0,0,0,$tid[3],$tid[4],$tid[5]);
 
 &slettefil($fil);
-my $database = &db_connect("syslog","syslogadmin","urg20ola");
+my $database = &db_get("syslogslett");
 
 for (my $p = 0; $p<@prioritet;$p++) {
     if(exists($prioritet[$p])){

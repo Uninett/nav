@@ -18,7 +18,7 @@ use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
-require "$lib/database.pl";
+require "$lib/snmplib.pl";
 require "$lib/database.pl";
 
 my %boks = ();
@@ -35,7 +35,7 @@ my %cat6sw = (); # ID til bokser med main_sw fra 5.X og oppover legges i denne. 
 
 my %catswModulType;
 
-my $conn = &db_connect("manage","navall","uka97urgf"); 
+my $conn = &db_get("get_boksdata"); 
 
 my $sql = "SELECT boksid,ip,ro,typegruppe,watch FROM boks join type using (typeid)";
 
@@ -101,6 +101,7 @@ my $id;
 
 foreach $id (keys %boks)
 {
+
     unless ($boks{$id}{watch} eq 't')
     {
 	

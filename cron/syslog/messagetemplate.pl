@@ -10,7 +10,7 @@ opendir(DIR, $dir) || die("Cannot open directory");
 
 my @files = readdir(DIR);
 
-my $connection = &db_connect("syslog","syslogadmin","urg20ola");
+my $connection = &db_get("messagetemplate");
 my $table = "messagetemplate";
 my @felt = ("id","class","type","message");
 

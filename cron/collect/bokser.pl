@@ -14,7 +14,7 @@ require "$lib/fil.pl";
 
 &log_open;
 
-my $conn = &db_connect("manage","navall","uka97urgf");
+my $conn = &db_get("bokser");
 
 my $mib_sysname = ".1.3.6.1.2.1.1.5.0";
 my $mib_type =     ".1.3.6.1.2.1.1.2.0";

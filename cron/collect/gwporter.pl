@@ -25,7 +25,7 @@ my $ifAlias        = ".1.3.6.1.2.1.31.1.1.1.18";
 my $hsrp_status    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
-my $db = &db_connect("manage","navall","uka97urgf");
+my $db = &db_get("gwporter");
 
 ## antmask tatt ut
 my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","samband","komm");
@@ -69,7 +69,7 @@ foreach my $boksid (keys %bokser) { #$_ = boksid keys %boks
 #	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
 #    }
 #}
-print "***********************************************";
+#print "***********************************************";
 
 &db_alt($db,2,0,"prefiks",\@felt_prefiks,\%prefiks,\%db_prefiks,[1,2]);
 
@@ -135,10 +135,10 @@ sub snmp_ruter{
 
     my $debug = 1;
 
-    print "skal teste $host" if $debug;
+    &skriv("DEVICE-COLLECT","ip=$host");
 
     my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 2, UseNumeric=>1, UseLongNames=>1);
-    print $sess->{ErrorStr};
+#    print $sess->{ErrorStr};
 
    if(my $numInts = $sess->get('ifNumber.0')){ #ver 2
 
@@ -210,18 +210,18 @@ sub snmp_ruter{
 
 #	print $hsrp[$interface];
 
-	print $gwip."   ".$interface."   ".$speed."   ".$status."   ".$octet."   ".$type."   ".$description."   ".$nettnavn."   ".$maske."   ".$hsrp;
+#	print $gwip."   ".$interface."   ".$speed."   ".$status."   ".$octet."   ".$type."   ".$description."   ".$nettnavn."   ".$maske."   ".$hsrp;
 
-	print "\n";
+#	print "\n";
 
 	if($status == 1 && $type != 23){
 	    if($octet && !$gwip){
-		print "skal legge ut med tom gwip\n";
+#		print "skal legge ut med tom gwip\n";
 	    }
 	}
 
 	if($status == 1 && $type != 23){
-	    print "ok: ".$host."    ".$gwip."   ".$interface."   ".$speed."   ".$status."   ".$octet."   ".$type."   ".$description."   ".$nettnavn."   ".$maske."   ".$hsrp."\n";
+#	    print "ok: ".$host."    ".$gwip."   ".$interface."   ".$speed."   ".$status."   ".$octet."   ".$type."   ".$description."   ".$nettnavn."   ".$maske."   ".$hsrp."\n";
 	}
 
 	my $maxhosts = &max_ant_hosts($maske);
@@ -298,7 +298,7 @@ sub snmp_ruter{
 
     }
 } else {
-    print "$host ver1";
+#    print "$host ver1";
 }
 }
 
@@ -313,24 +313,27 @@ sub hent_snmpdata {
     my %id;
     my %boks;
 
-    my @ifindex = &snmpwalk("$ro\@$ip",$ip2IfIndex);
+    my $sess = new SNMP::Session(DestHost => $ip, Community => $ro, Version => 1, UseNumeric=>1, UseLongNames=>1);
+    &skriv("DEVICE-COLLECT","ip=$ip");
+
+    my @ifindex = &sigwalk($sess,$ip2IfIndex);
     return(0) unless $ifindex[0];
     foreach my $line (@ifindex) {
-        (my $gwip,my $if) = split(/:/,$line);
-#	print "\n$boksid:$if:gwip:",
+        (my $gwip,my $if) = @{$line};
+#	print "\n$boksid:$if:$gwip:",
 	$interface{$if}{gwip} = $gwip;
 	$gatewayip{$gwip}{ifindex} = $if;
     }
-    my @alias = &snmpwalk("$ro\@$ip",$ifAlias);
+    my @alias = &sigwalk($sess,$ifAlias);
     foreach my $line (@alias) {
-        (my $if,my $nettnavn) = split(/:/,$line);
+        (my $if,my $nettnavn) = @{$line};
 #	print "nettnavn $nettnavn\n\n";
 	$interface{$if}{nettnavn} = $nettnavn;
     }    
-    my @descr = &snmpwalk("$ro\@$ip",$if2Descr);
+    my @descr = &sigwalk($sess,$if2Descr);
     my %description;
     foreach my $line (@descr) {
-        (my $if,my $interf) = split(/:/,$line);
+        (my $if,my $interf) = @{$line};
 	$interface{$if}{interf} = $interf;
 	my ($masterinterf,$subinterf) = split/\./,$interf;
 	if($subinterf){
@@ -339,10 +342,10 @@ sub hent_snmpdata {
 	    $description{$masterinterf} = $if;
 	}
     } 
-    my @netmask = &snmpwalk("$ro\@$ip",$ip2NetMask);
+    my @netmask = &sigwalk($sess,$ip2NetMask);
     foreach my $line (@netmask)
     {
-        (my $gwip,my $netmask) = split(/:/,$line);
+        (my $gwip,my $netmask) = @{$line};
 	$gatewayip{$gwip}{netmask} = $netmask;
 	$gatewayip{$gwip}{nettadr} = &and_ip($gwip,$netmask);
 #	print "\n$gwip & $netmask = ".$gatewayip{$gwip}{nettadr};
@@ -356,32 +359,32 @@ sub hent_snmpdata {
 #	print $gatewayip{$gwip}{prefiksid};
     }
 #over: prefiks& under: gwport
-    my @speed = &snmpwalk("$ro\@$ip",$if2Speed);
+    my @speed = &sigwalk($sess,$if2Speed);
     foreach my $line (@speed) {
-        (my $if,my $speed) = split(/:/,$line);
+        (my $if,my $speed) = @{$line};
 	$speed = ($speed/1e6);
 	$speed =~ s/^(.{0,10}).*/$1/; #tar med de 10 første tegn fra speed
 	$interface{$if}{speed} = $speed;
     }
-    my @adminstatus = &snmpwalk("$ro\@$ip",$if2AdminStatus);
+    my @adminstatus = &sigwalk($sess,$if2AdminStatus);
     foreach my $line (@adminstatus) {                                             
-	(my $if,my $status) = split(/:/,$line); 
+	(my $if,my $status) = @{$line}; 
 	$interface{$if}{status} = $status;
     }
-    my @inoctet = &snmpwalk("$ro\@$ip",$ifInOctet);
+    my @inoctet = &sigwalk($sess,$ifInOctet);
     foreach my $line (@inoctet) {                                             
-	(my $if,my $octet) = split(/:/,$line); 
+	(my $if,my $octet) = @{$line}; 
 	$interface{$if}{octet} = $octet;
 #	$gatewayip{0.0.0.0}{ifindex} = $if;
     }    
-    my @type = &snmpwalk("$ro\@$ip",$ifType);
+    my @type = &sigwalk($sess,$ifType);
     foreach my $line (@type) {                                             
-	(my $if,my $type) = split(/:/,$line); 
+	(my $if,my $type) = @{$line}; 
 	$interface{$if}{type} = $type;
     }
-    my @ospf = &snmpwalk("$ro\@$ip",$ip2ospf);
+    my @ospf = &sigwalk($sess,$ip2ospf);
     foreach my $line (@ospf) {
-        (my $utv_ip,my $ospf) = split(/:/,$line);
+        (my $utv_ip,my $ospf) = @{$line};
         if ($utv_ip =~ /\.0\.0$/){
             my (@ip) = split(/\./,$utv_ip);
             my $gwip = "$ip[0].$ip[1].$ip[2].$ip[3]";
@@ -392,18 +395,17 @@ sub hent_snmpdata {
         }
     }  
 # hsrpgw-triksing
-    my @hsrp = &snmpwalk("$ro\@$ip",$hsrp_status);
-    foreach my $line (@hsrp) {
-	(my $if,undef,my $hsrpstatus) = split(/:|\./,$line);    
+    my @hsrp = &sigwalk($sess,$hsrp_status);
+  foreach my $line (@hsrp) {
+	(my $if,my $hsrpstatus) = @{$line};
 	if($hsrpstatus == 6) {
-	    if(my ($rootgwip) = &snmpget("$ro\@$ip",$hsrp_rootgw.".".$if.".0")){
-#	    print "\n$boksid:$if:nhsrp:",
+	    if(my ($rootgwip) = &siget($sess,$hsrp_rootgw.".".$if)){
+		($if,undef) = split /\./,$if,2;
+#		print "\n$if:$rootgwip:hsrp:",
 		$gatewayip{$rootgwip}{ifindex} = $if;
 	    }
 	}
     }
-
-
     foreach my $if ( keys %interface ) {
 #	print $interface{$if}{status};
 	if($interface{$if}{status} == 1 && $interface{$if}{type} != 23) {
@@ -516,7 +518,7 @@ sub hent_snmpdata {
 #	    print "har funnet ukjent $_";
 	    my $nettype = "ukjent";
 	    if($prefiks{$nettadr}{$maske}[8]){
-		&skriv("PREFIX-NOOVRWRT", "prefix=".$prefiks{$nettadr}{$maske}[8]);
+		&skriv("DEBUG-NOOVRWRT", "prefix=".$prefiks{$nettadr}{$maske}[8]);
 	    } else {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
