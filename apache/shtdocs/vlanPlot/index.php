@@ -10,7 +10,7 @@
    WIDTH=800 HEIGHT=600
    >
    <?php
-     include("/usr/local/nav/local/etc/conf/vlanPlot.conf");
+     include("/usr/local/nav/local/etc/conf/vlanPlotS.conf");
      if ($boksid != "") echo "<PARAM NAME=\"gotoBoksid\" VALUE=\"$boksid\">";
      if ($vlan != "") echo "<PARAM NAME=\"gotoVlan\" VALUE=\"$vlan\">";
    ?>
