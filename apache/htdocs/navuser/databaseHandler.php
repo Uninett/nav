@@ -1440,7 +1440,7 @@ function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde
 
 // Endre passord
 function endrepassord($brukernavn, $passwd) {
-	$querystr = "UPDATE Account SET passord = '" . addslashes($passwd) . 
+	$querystr = "UPDATE Account SET password = '" . addslashes($passwd) . 
 		"' WHERE login = '" . addslashes($brukernavn) . "'";
 	@pg_exec($this->connection, $querystr);
 

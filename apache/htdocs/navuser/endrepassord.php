@@ -8,30 +8,37 @@
 include("loginordie.php");
 loginOrDie();
 
-
-echo "<p>" . gettext("Her kan du endre passord for en bruker.");
-
+if (session_get('admin') >= 100) {
+    echo "<p>" . gettext("Her kan du endre passord for en bruker.");
+} else {
+    echo "<p>" . gettext("Her kan du endre passord for din bruker.");
+}
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 if (get_get('subaction') == 'endre') {
 
-	if (post_exist('ebrukernavn') ) { 
+    if (post_exist('ebrukernavn') ) { 
 
-		if (post_get('pass1') == post_get('pass2') ) {
-			$dbh->endrePassord(post_get('ebrukernavn'), post_get('pass1'));
+        if (post_get('pass1') == post_get('pass2') ) {
+            if (session_get('admin') >= 100) {
+                $cb = post_get('ebrukernavn');
+            } else {
+                $cb = $brukernavn;
+            }
+            $dbh->endrePassord($cb, post_get('pass1'));
 
-			print "<p><font size=\"+3\">" . gettext("OK</font>, passordet er endret for brukeren ") . $ebrukernavn . ".";
-			unset($ebrukernavn);			
+            print "<p><font size=\"+3\">" . gettext("OK</font>, passordet er endret for brukeren ") . $ebrukernavn . ".";
+            unset($ebrukernavn);			
 
-		} else {
-			print "<p><font size=\"+3\">" . gettext("Feil</font>, du skrev ikke to like passord, derfor vil det <b>ikke</b> bli endret.");
-		}
+        } else {
+            print "<p><font size=\"+3\">" . gettext("Feil</font>, du skrev ikke to like passord, derfor vil det <b>ikke</b> bli endret.");
+        }
 		
 
-	} else {
-		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, passord er <b>ikke</b> endret.");
-	}
+    } else {
+        print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, passord er <b>ikke</b> endret.");
+    }
 
 	// Viser feilmelding om det har oppstått en feil.
 	if ( $error != NULL ) {
@@ -41,7 +48,7 @@ if (get_get('subaction') == 'endre') {
   
 }
 
-print "<h3>" . gettext("Endre passord for en bruker") . "</h3>";
+print "<h3>" . gettext("Endre passord") . "</h3>";
 
 ?>
 
@@ -53,8 +60,14 @@ print "<h3>" . gettext("Endre passord for en bruker") . "</h3>";
     
     <tr>
     	<td width="30%"><p><?php echo gettext("Brukernavn"); ?></p></td>
-    	<td width="70%"><input name="ebrukernavn" type="text" size="15" 
-value="<?php echo $ebrukernavn; ?>"></select>
+    	<td width="70%">
+<?php
+if (session_get('admin') >= 100) {
+    echo '<input name="ebrukernavn" type="text" size="15" value="' . $brukernavn . '">';
+} else {
+    echo '<input name="ebrukernavn" type="text" size="15" value="' . $brukernavn . '" disabled >';
+}
+?>
         </td>
    	</tr>
 
