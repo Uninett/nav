@@ -526,7 +526,13 @@ public class QueryNetbox extends Thread
 				}
 
 				Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
-				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type);
+				String dhNames = "";
+				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
+					String[] ss = String.valueOf(deviceHandler[dhNum].getClass()).split("\\.");
+					dhNames += (dhNum==0?"":",")+ss[ss.length-1];
+				}
+
+				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type);
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
