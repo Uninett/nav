@@ -2,8 +2,8 @@
 """
 Overvåker
 
-$Author: erikgors $
-$Id: job.py,v 1.20 2002/06/18 14:26:27 erikgors Exp $
+$Author: magnun $
+$Id: job.py,v 1.21 2002/06/18 15:17:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -29,7 +29,6 @@ class Socket:
 	def connect(self,address):
 		self.s.setblocking(0)
 		try:
-
 			self.s.connect(address)
 		except socket.error, (number,info):
 			if not errorcode[number] == 'EINPROGRESS':
