@@ -6,7 +6,7 @@
 
 from mod_python import util,apache
 from editdbSQL import *
-from socket import gethostbyaddr
+from socket import gethostbyaddr,gethostbyname
 
 import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
 from nav.web.serviceHelper import getCheckers,getDescription
@@ -16,7 +16,7 @@ from nav.web.serviceHelper import getCheckers,getDescription
 
 BASEPATH = '/editdb/'
 
-EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database','/editdb')]
+EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database',BASEPATH)]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
@@ -358,13 +358,17 @@ def bulkImportParse(input,bulkdef,separator):
                     if (status == BULK_STATUS_OK) and (use == True):
                         data[fn] = fields[i] 
             # postCheck
-            if bulkdef.postCheck:
-                (status,validremark,data) = bulkdef.postCheck(data)
-                if data.has_key('serial'):
-                    del(data['serial'])
-            if validremark:
-                remark = validremark
 
+            if status == BULK_STATUS_OK:
+                validremark = False
+                if bulkdef.postCheck:
+
+                    (status,validremark,data) = bulkdef.postCheck(data)
+                    #if data.has_key('serial'):
+                    #    del(data['serial'])
+
+                if validremark:
+                    remark = validremark
             parsed.append((status,data,remark,line,linenr))
     return parsed
 
@@ -413,9 +417,10 @@ def bulkImport(req,action):
 
     # form  submitted?
     if req.form.has_key(form.cnameConfirm) and len(req.form['table']):
-        if len(req.form['file']):
-                input = req.form['file']
-                input = input.split('\n')
+        fileName = req.form['file']
+        if len(fileName.value):
+            input = fileName.value
+            input = input.split('\n')
         else:
             input = req.form['textarea']
             input = input.split('\n')
@@ -451,6 +456,7 @@ def bulkImport(req,action):
             
         # show list
         list = selectList()
+        list.action = BASEPATH + 'bulk/'
         list.isBulkList = True
         list.imgGreen = BULK_IMG_GREEN
         list.imgYellow = BULK_IMG_YELLOW
@@ -473,10 +479,13 @@ def bulkImport(req,action):
         # import confirmed after preview
         table = req.form[BULK_TABLENAME]
         separator = req.form[BULK_SEPARATOR]
-        data = req.form[BULK_HIDDEN_DATA]
-        result = bulkInsert(data,bulkdef[table],separator)
         form.status = editdbStatus()
-        form.status.messages.append('Inserted ' + str(result) + ' rows')
+        if req.form.has_key(BULK_HIDDEN_DATA):
+            data = req.form[BULK_HIDDEN_DATA]
+            result = bulkInsert(data,bulkdef[table],separator)
+            form.status.messages.append('Inserted ' + str(result) + ' rows')
+        else:
+            form.status.errors.append('No rows to insert.')
 
     nameSpace = {'entryList': None, 'editList': list, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
@@ -485,11 +494,10 @@ def bulkImport(req,action):
 
 #Function for bulk inserting
 def bulkInsert(data,bulkdef,separator):
-    prerowlist = []
-
     if not type(data) is list:
         data = [data]
 
+    prerowlist = []
     for line in data:
         fields = re.split(separator,line)
 
@@ -511,6 +519,16 @@ def bulkInsert(data,bulkdef,separator):
     else:
         # do nothing, just insert it
         rowlist = prerowlist            
+
+    # Remove all fields
+    # where use = False
+    for row in rowlist:
+        for i in range(0,len(fields)):
+            # fieldname,maxlen,required,use
+            field,ml,req,use = bulkdef.fields[i]
+            if not use:
+                if row.has_key(field):
+                    del(row[field])
 
     addEntryBulk(rowlist,bulkdef.tablename)
     return len(rowlist)
@@ -1564,6 +1582,7 @@ def editNetbox(req,selected,action,error=None):
     if req.form.has_key('sort'):
         sort = req.form['sort']
     listView = struct.listDef(struct,sort)
+    listView.status = status
     
     # Check if the confirm button has been pressed
     if req.form.has_key(outputForm.cnameConfirm):
@@ -1583,6 +1602,7 @@ def editNetbox(req,selected,action,error=None):
     elif req.form.has_key(selectList.cnameDeleteConfirm):
         deleteDef = struct.deleteDef()
         status = deleteDef.delete(selected,status)
+        outputForm = None
         action = 'list' 
     
     # Decide what to show 
@@ -2029,15 +2049,18 @@ def editSubcat(req,selected,action,error=None):
     template.path = path
     return template.respond()
 
-## class selectListCell
+## class entryListCell
 ## A cell in a selectList
-class selectListCell:
-    def __init__(self,text=None,url=None,checkbox=False,radiobutton=False,
+class entryListCell:
+    CHECKBOX = 'chk'
+    RADIO = 'rad'
+    HIDDEN = 'hid'
+
+    def __init__(self,text=None,url=None,buttonType=None,
                  image=None,tooltip=None):
         self.text = text
         self.url = url
-        self.checkbox = checkbox
-        self.radiobutton = radiobutton
+        self.buttonType = buttonType
         self.image = image
         self.tooltip = tooltip
 
@@ -2061,6 +2084,11 @@ class entryList:
                   (CNAME_EDIT,'Edit selected'),
                   (CNAME_DELETE,'Delete selected')]
     buttonsBottom = buttonsTop
+    hideFirstHeading = False  # Don't show first column heading (usually 
+                              # the select heading) if True
+    buttonTypeOverride = None # override the chosen select button type
+                              # used for bulk and delete lists where there
+                              # is no checkbox/radiobut., only hidden
     headings = []             # list of cell objects
     rows = []                 # tuples of (sortstring,id,cell object)
 
@@ -2078,6 +2106,8 @@ class entryList:
         self.headings = []
         self.rows = []
 
+        if sort:
+            sort = int(sort)
         self.sortBy = sort
         self.tableName = struct.tableName
         self.tableIdKey = struct.tableIdKey
@@ -2085,6 +2115,8 @@ class entryList:
         self.formAction = self.basePath + 'edit/'
 
         if deleteWhere:
+            self.buttonTypeOverride = entryListCell.HIDDEN
+            self.hideFirstHeading = True
             self.where = deleteWhere
             title = 'Are you sure you want to delete the ' + \
                     'selected '
@@ -2103,7 +2135,10 @@ class entryList:
     def fill(self):
         # Make headings
         i = 0
-        for heading,sortlink in self.headingDefinition:
+        for heading,sortlink,sortFunction in self.headingDefinition:
+            if self.hideFirstHeading:
+                heading = ''
+                self.hideFirstHeading = False
             if self.sortBy:
                 currentOrder = self.sortBy
             else:
@@ -2114,10 +2149,10 @@ class entryList:
                 s = -i
             url = self.basePath + 'list/?sort=' + str(s)
             if sortlink and self.sortingOn:
-                self.headings.append(selectListCell(heading,
+                self.headings.append(entryListCell(heading,
                                                     url))
             else:
-                self.headings.append(selectListCell(heading,
+                self.headings.append(entryListCell(heading,
                                                     None))
             i = i + 1
 
@@ -2145,8 +2180,10 @@ class entryList:
 
         for sqlTuple,definition in self.cellDefinition:
             # Create SQL query from tuple
-            columns,where,orderBy = sqlTuple
+            columns,join,where,orderBy = sqlTuple
             sqlQuery = 'SELECT ' + columns + ' FROM ' + self.tableName
+            if join:
+                sqlQuery += ' %s ' % (join,)
             if where:
                 sqlQuery += ' WHERE ' + where
             # Add where clause if self.where is present
@@ -2172,11 +2209,12 @@ class entryList:
             for row in fetched:
                 id = row[0]
                 cells = []
-                for text,url,checkbox,radio,image,tooltip in definition:
-                   cells.append(selectListCell(self.parse(text,row),
+                for text,url,buttonType,image,tooltip in definition:
+                    if buttonType and self.buttonTypeOverride:
+                        buttonType = self.buttonTypeOverride
+                    cells.append(entryListCell(self.parse(text,row),
                                                self.parse(url,row,True),
-                                               checkbox,
-                                               radio,
+                                               buttonType,
                                                image,
                                                self.parse(tooltip,row))) 
                 
@@ -2186,7 +2224,11 @@ class entryList:
                     sortKey = row[self.sortBy]
                 self.rows.append([sortKey,(id,cells)])
         if self.sortBy:
-            self.rows.sort()
+            if self.headingDefinition[self.sortBy][2]:
+                # Optional compare method
+                self.rows.sort(self.headingDefinition[self.sortBy][2])
+            else:
+                self.rows.sort()
             if reverseSort:
                 self.rows.reverse()
 
@@ -2791,13 +2833,23 @@ class editboxSubcat(editbox):
 
 # Classes for deleting
 class deletedef:
+    # If getNameFromId is None, then display 'Delete $type $id', else
+    # use getNameFromId (forgetSQL table,column name) to get $id
+    getNameFromId = None
+
     def delete(self,idList,status):
         self.status = status
         for id in idList:
             try:
+                if self.getNameFromId:
+                    table,column = self.getNameFromId
+                    entry = table(str(id))
+                    deletedName = getattr(entry,column)
+                else:
+                    deletedName = str(id)
                 deleteEntry([id],self.table,self.idfield)
                 self.status.messages.append("Deleted %s '%s'" % \
-                                           (self.name,str(id)))
+                                           (self.name,deletedName))
             except psycopg.IntegrityError:
                 # Got integrity error while deleting, must check what
                 # dependencies are blocking
@@ -2840,12 +2892,26 @@ class structNetbox:
     singular = 'box'
     plural = 'boxes'
 
-    pathAdd = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
-    pathEdit = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Delete',False)]
+    pathAdd = EDITPATH + [('Boxes',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Boxes',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Boxes',basePath+'list'),('Delete',False)]
     pathList = EDITPATH + [('Boxes',False)]
 
     class listDef(entryList):
+        def ipCompare(self,ip1,ip2):
+            # ip1[0] and ip2[0] are the sort parameter
+            ip1 = ip1[0].split('.')
+            ip2 = ip2[0].split('.')
+            r = 0
+            try:
+                for i in range(0,4):
+                    r = cmp(int(ip1[i]),int(ip2[i]))
+                    if r != 0:
+                        break
+            except:
+                r = 0
+            return r
+
         def __init__(self,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,struct,sort,deleteWhere)
@@ -2854,16 +2920,17 @@ class structNetbox:
             # 1 = roomid
             self.defaultSortBy = 1
 
-            self.headingDefinition = [('Select',False),
-                                      ('Room',True),
-                                      ('Sysname',True),
-                                      ('IP',True),
-                                      ('Category',True),
-                                      ('Organisation',True),
-                                      ('RO',True),
-                                      ('RW',True),
-                                      ('Type',True),
-                                      ('Serial',True)]
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Room',True,None),
+                                      ('Sysname',True,None),
+                                      ('IP',True,self.ipCompare),
+                                      ('Category',True,None),
+                                      ('Organisation',True,None),
+                                      ('RO',True,None),
+                                      ('RW',True,None),
+                                      ('Type',True,None),
+                                      ('Serial',True,None)]
 
             subcatTooltip = [['SELECT netboxid,' + \
                              'netboxcategory.category FROM netbox ' + \
@@ -2877,37 +2944,27 @@ class structNetbox:
             self.cellDefinition = [(('netboxid,roomid,sysname,ip,' + \
                                      'catid,orgid,ro,rw,type.typename,' + \
                                      'device.serial',
-                                     '(deviceid=device.deviceid) ' + \
-                                     'AND (typeid=type.typeid) ',
+                                     'LEFT JOIN type ON ' + \
+                                     'netbox.typeid=type.typeid LEFT JOIN ' +\
+                                     'device ON ' + \
+                                     'netbox.deviceid=device.deviceid',
+                                     None,
                                      'roomid,sysname'),
-                                    [(None,None,True,False,None,None),
-                                     (1,None,False,False,None,None),
-                                     (2,'{p}edit/{id}',False,False,None,None),
-                                     (3,None,False,False,None,None),
-                                     (4,None,False,False,None,subcatTooltip),
-                                     (5,None,False,False,None,None),
-                                     (6,None,False,False,None,None),
-                                     (7,None,False,False,None,None),
-                                     (8,None,False,False,None,None),
-                                     (9,None,False,False,None,None)]),
-                                    (('netboxid,roomid,sysname,ip,' + \
-                                      'catid,orgid,ro,rw,device.serial',
-                                      '(deviceid=device.deviceid) ' + \
-                                      'AND (typeid IS NULL) ',
-                                      'roomid,sysname'),
-                                    [(None,None,True,False,None,None),
-                                     (1,None,False,False,None,None),
-                                     (2,'{p}edit/{id}',False,False,None,None),
-                                     (3,None,False,False,None,None),
-                                     (4,None,False,False,None,subcatTooltip),
-                                     (5,None,False,False,None,None),
-                                     (6,None,False,False,None,None),
-                                     (7,None,False,False,None,None),
-                                     ('No type',None,False,False,None,None),
-                                     (8,None,False,False,None,None)])]
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,None,None,None,None),
+                                     (2,'{p}edit/{id}',None,None,None),
+                                     (3,None,None,None,None),
+                                     (4,None,None,None,subcatTooltip),
+                                     (5,None,None,None,None),
+                                     (6,None,None,None,None),
+                                     (7,None,None,None,None),
+                                     (8,None,None,None,None),
+                                     (9,None,None,None,None)])]
 
 
     class deleteDef(deletedef):
+        getNameFromId = (editTables.Netbox,'sysname')
+
         table = 'netbox'
         idfield = 'netboxid'
        
@@ -3215,13 +3272,13 @@ class structNetbox:
                     except nav.Snmp.TimeOutException:
                         status.errors.append('No SNMP response, check RO community')
                         templateform.add(structNetbox.editbox(formData=form))
-                        return (action,templateform)
+                        return (status,action,templateform)
                     except Exception, e:
                         # Other error (no route to host for example)
                         status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                              ': ' + str(sys.exc_info()[1]))
                         templateform.add(structNetbox.editbox(formData=form))
-                        return (action,templateform)
+                        return (status,action,templateform)
 
                     box.getDeviceId()
                     templateform.add(structNetbox.editbox(formData=form,disabled=True))
@@ -3466,7 +3523,7 @@ class structNetbox:
                                              ': ' + str(sys.exc_info()[1]))
                         templateform.add(structNetbox.editbox(editId=selected,
                                                        formData=form))
-                        return (action,templateform)
+                        return (status,action,templateform)
                     except Exception, e:
                         # Other error (no route to host for example)
                         status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
@@ -3792,7 +3849,7 @@ class bulkdefLocation:
     tablename = 'location'
     table = editTables.Location
     uniqueField = 'locationid'
-    enofrce_max_fields = True
+    enforce_max_fields = True
     max_num_fields = 2
     min_num_fields = 2
 
@@ -3839,11 +3896,13 @@ class bulkdefRoom:
         remark = None
         # locationid must exist in Location
         if field == 'locationid':
-            try:
-                editTables.Location(data).load()
-            except forgetSQL.NotFound:
-                status = BULK_STATUS_RED_ERROR
-                remark = "Location '" + data + "' not found in database"
+            if data:
+                if len(data):
+                    try:
+                        editTables.Location(data).load()
+                    except forgetSQL.NotFound:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Location '" + data + "' not found in database"
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3948,6 +4007,14 @@ class bulkdefSubcat:
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
         remark = None
+
+        if field == 'catid':
+             try:
+                editTables.Cat(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Category '" + data + "' not found in database"  
+
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -4059,27 +4126,42 @@ class bulkdefNetbox:
                 if len(data['serial']):
                    hasSerial = True
 
+            if (not hasRO) and editTables.Cat(data['catid']).req_snmp:
+                status = BULK_STATUS_YELLOW_ERROR
+                raise("This category requires an RO")
+
             if not (hasRO or hasSerial):
                 status = BULK_STATUS_RED_ERROR
-                raise("Neither RO, nor serial specified")
+                raise("Neither RO, nor serial specified.")
 
             if hasRO:
                 error = False
                 try:
                     box = initBox.Box(data['ip'],data['ro'])
+                    box.getDeviceId()
                     if (not hasSerial) and (not box.serial):
-                        error = "No serial returned by SNMP, and no serial given"
+                        status = BULK_STATUS_YELLOW_ERROR
+                        error = "No serial returned by SNMP, and no serial given."
                     if (not box.typeid):
-                        error = "Unknown type, add this box manually"
+                        if editTables.Cat(data['catid']).req_snmp:
+                            status = BULK_STATUS_YELLOW_ERROR
+                            error = "Got SNMP response, but couldn't get type which is required for boxes of this category. Add type manually."
+                        else:
+                            status = BULK_STATUS_OK
+                            error = "Got SNMP response, but couldn't get type (type isn't required for this category)."
                 except:
-                    status = BULK_STATUS_YELLOW_ERROR
-                    raise("RO given, but failed to contact box by SNMP")
+                    if editTables.Cat(data['catid']).req_snmp:
+                        # Snmp failed, but is required by this CAT
+                        status = BULK_STATUS_YELLOW_ERROR
+                        raise("RO given, but failed to contact box by SNMP (boxes of this category are required to answer).")
+                    else:
+                        # Snmp failed, but isn't required by this CAT
+                        status = BULK_STATUS_OK
+                        raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer).")
                 if error:
-                    status = BULK_STATUS_YELLOW_ERROR
                     raise(error)
         except:
             remark = sys.exc_info()[0]
-
 
         return (status,remark,data)
     postCheck = classmethod(postCheck)
@@ -4152,6 +4234,8 @@ class bulkdefNetbox:
                     box = initBox.Box(row['ip'],row['ro'])
                     # getDeviceId() Returns a list (of ints, so str())
                     deviceid = str(box.getDeviceId()[0])
+                    if box.typeid:
+                        row['typeid'] = str(box.typeid)
                 except:
                     # If initBox fails, always make a new device
                     deviceid = None
@@ -4204,7 +4288,7 @@ class bulkdefService:
     max_num_fields = 2
     min_num_fields = 2
 
-    process = False
+    process = True
     syntax = '#sysname/ip:handler\n'
 
     postCheck = False
@@ -4213,6 +4297,27 @@ class bulkdefService:
     fields = [('netboxid',0,True,True),
               ('handler',0,True,True)]
 
+    def postCheck(cls,data):
+        status = BULK_STATUS_OK
+        remark = None
+
+        try:
+            ip = gethostbyname(data['netboxid'])
+            where = "ip='%s'" % (ip,)
+            box = editTables.Netbox.getAll(where)
+            if box:
+                data['netboxid'] = str(box[0].netboxid)
+            else:
+                raise("No box with sysname or ip '" + data['netboxid'] + \
+                      "found in database.")
+        except:
+            status = BULK_STATUS_YELLOW_ERROR
+            remark = sys.exc_info()[1]
+
+        return (status,remark,data)
+    postCheck = classmethod(postCheck)
+
+           
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
         remark = None
@@ -4224,6 +4329,22 @@ class bulkdefService:
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
+    def preInsert(cls,data):
+        try:
+            ip = gethostbyname(data['netboxid'])
+            where = "ip='%s'" % (ip,)
+            box = editTables.Netbox.getAll(where)
+            if box:
+                data['netboxid'] = str(box[0].netboxid)
+            else:
+                data = None
+        except:
+            data = None
+
+        return data
+    preInsert = classmethod(preInsert)
+
+
 class bulkdefPrefix:
     tablename = 'prefix'
     table = editTables.Prefix
@@ -4232,15 +4353,15 @@ class bulkdefPrefix:
     max_num_fields = 6
     min_num_fields = 1
 
-    process = False
-    syntax= '#prefix/mask:nettype[:org:netident:usage:description:vlan]\n'
+    process = True
+    syntax= '#prefix/mask:nettype[:orgid:netident:usage:description:vlan]\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netaddr',0,True,True),
               ('nettype',0,True,True),
-              ('org',0,False,True),
+              ('orgid',0,False,True),
               ('netident',0,False,True),
               ('usage',0,False,True),
               ('description',0,False,True),
@@ -4254,6 +4375,14 @@ class bulkdefPrefix:
             try:
                 sql = "SELECT '%s'::inet::cidr" % (data,) 
                 executeSQL([sql])
+
+                # Already present?
+                where = "netaddr='%s'" % (data,)
+                prefixes = editTables.Prefix.getAll(where)
+                if prefixes:
+                    status = BULK_STATUS_YELLOW_ERROR
+                    remark = "CIDR already present in database."
+            
             except psycopg.ProgrammingError:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid CIDR '" + data + "'"
@@ -4264,21 +4393,70 @@ class bulkdefPrefix:
             if not result:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid nettype '" + data + "'"
-        if field == 'org':
-            try:
-                editTables.Org(data).load()
-            except forgetSQL.NotFound:
-                status = BULK_STATUS_RED_ERROR
-                remark = "Organisation '" + data + "' not found in database"
+        if field == 'orgid':
+            if data:
+                if len(data):
+                    try:
+                        editTables.Org(data).load()
+                    except forgetSQL.NotFound:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Organisation '" + data + "' not found in database"
         if field == 'usage':
-            try:
-                editTables.Usage(data).load()
-            except forgetSQL.NotFound:
-                status = BULK_STATUS_RED_ERROR
-                remark = "Usage '" + data + "' not found in database"
+            if data:
+                if len(data):
+                    try:
+                        editTables.Usage(data).load()
+                    except forgetSQL.NotFound:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Usage '" + data + "' not found in database"
  
         return (status,remark)
     checkValidity = classmethod(checkValidity)
+
+    def preInsert(cls,row):
+
+        fields = {}
+        if row.has_key('nettype'):
+            if len(row['nettype']):
+                fields['nettype'] = row['nettype']
+            del(row['nettype'])
+
+        if row.has_key('orgid'):
+            if len(row['orgid']):
+                fields['orgid'] = row['orgid']
+            del(row['orgid'])
+
+        if row.has_key('netident'):
+            if len(row['netident']):
+                fields['netident'] = row['netident']
+            del(row['netident'])
+
+        if row.has_key('usage'):
+            if len(row['usage']):
+                fields['usage'] = row['usage']
+            del(row['usage'])
+
+        if row.has_key('description'):
+            if len(row['description']):
+                fields['description'] = row['description']
+            del(row['description'])
+
+        if row.has_key('vlan'):
+            try:
+                vlan = int(row['vlan'])
+                fields['vlan'] = row['vlan']
+            except:
+                vlan = None
+            del(row['vlan'])
+
+        vlanid = addEntryFields(fields,
+                                'vlan',
+                                ('vlanid','vlan_vlanid_seq'))
+
+        row['vlanid'] = str(vlanid)
+        return row
+ 
+    preInsert = classmethod(preInsert)
 
 # Class representing a list of entries, used by the template
 class selectList:

@@ -186,10 +186,12 @@ $showBody($body)
 #end for
                     </span>
 #end if
-#if $cell.checkbox
+#if $cell.buttonType == 'chk'
                     <input type="checkbox" name="$selectList.selectCname" value="$id">
-#elif $cell.radiobutton
+#elif $cell.buttonType == 'rad'
                     <input type="radio" name="$selectList.selectCname" value="$id">
+#elif $cell.buttonType == 'hid'
+                    <input type="hidden" name="$selectList.selectCname" value="$id">
 #end if
 #if $cell.url or $cell.tooltip
                     </a>
