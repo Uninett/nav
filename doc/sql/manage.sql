@@ -716,7 +716,7 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('info','dnsMismatch','Mismatch between sysname and dnsname.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('info','deviceRecreated','Device has been recreated in response to the serial changing.');
+  ('info','serialChanged','Serial number for the device has changed.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxRestart','coldStart','Tells us that a network-unit has done a coldstart.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
