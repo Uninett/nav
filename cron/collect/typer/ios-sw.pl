@@ -1,8 +1,19 @@
 #!/usr/bin/perl
+####################
+#
+# $Id: ios-sw.pl,v 1.8 2002/12/19 16:31:02 gartmann Exp $
+# This file is part of the NAV project.
+# ios-sw is a plugin for swporter that uses SNMP to get information about a
+# switch and its modules and ports. The results are returned to the swporter
+# script.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
+#
+####################
 
 use strict;
 use SNMP;
-#&bulk("musikk-sw","gotcha","404");
 
 sub bulk{
     my $host = $_[0];
@@ -16,37 +27,69 @@ sub bulk{
     
     my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 2, UseNumeric=>1, UseLongNames=>1);
     
+    my $testvar = '.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0';
+    my $vb = new SNMP::Varbind([$testvar]);
+
+    my $val = $sess->getnext($vb);
+    my @test = @{$vb};
+
+    unless($test[0] =~ /$testvar/){
+	&skriv("SNMP-WRONGTYPEGROUP", "typegroup=ios-sw", "sysname=$host");
+	return 0;
+    } else {
     my $numInts = $sess->get('ifNumber.0');
 
 # må fordeles, resultatet med vlanhex fyller et slags buffer.    
-    my ($ifindex,$portname,$duplex,$status,$trunk) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.2.1.2.2.1.2'],['.1.3.6.1.4.1.9.2.2.1.1.28'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.32.0'],['.1.3.6.1.2.1.2.2.1.8'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0']]);
-    my ($speed,$vlan,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.9.68.1.2.2.1.2'],['.1.3.6.1.4.1.9.9.46.1.6.1.1.4']]);
+    my ($ifindex,$portname,$duplex,$status,$trunk,$vlan) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.2.1.2.2.1.2'],['.1.3.6.1.4.1.9.2.2.1.1.28'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.32.0'],['.1.3.6.1.2.1.2.2.1.8'],['.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0'],['.1.3.6.1.4.1.9.9.68.1.2.2.1.2']]);
+    my ($speed,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.9.46.1.6.1.1.4']]);
 
-    # k er vlanhex, som av en eller annen grunn starter på 0 her, men i cat-sw blir alle lagret.
-    my $k = my $i = 0;
+    my %snmpresult;
+    my $i = 0;
     while (defined($$speed[$i])){
 
-	$$ifindex[$i][2] =~ /^(\w+)\/(\d+)$/;
-	my $modul = $1;
-	my $port = $2;
-    
-	$modul =~ s/FastEthernet/Fa/i;
-	$modul =~ s/GigabitEthernet/Gi/i;
+	my $ifno = $$ifindex[$i][1];
+	my $ifi = $$ifindex[$i][2];
+	$ifi =~ /^(\w+)\/(\d+)$/;
+	    my $modul = $1;
+	    my $port = $2;
+	    
+	    $modul =~ s/FastEthernet/Fa/i;
+	    $modul =~ s/GigabitEthernet/Gi/i;
 
-	my $ifindex = $$ifindex[$i][1];
-	my $portname = $$portname[$i][2];
+	    $snmpresult{$ifno}{modul} = $modul;
+	    $snmpresult{$ifno}{port} = $port;
 
-	my $tempstatus = $$status[$i][2];
-	my $status;
-	if($tempstatus == 1){
-	    $status = 'y';
-	} else {
-	    $status = 'n';
+	$snmpresult{$ifno}{ifindex} = $ifno;
+
+	    $snmpresult{$$portname[$i][1]}{portname} = $$portname[$i][2];
+
+	    $snmpresult{$$status[$i][1]}{status} = $$status[$i][2];
+	    $snmpresult{$$speed[$i][1]}{speed} = $$speed[$i][2];
+	$snmpresult{$$duplex[$i][1]+1}{duplex} = $$duplex[$i][2];
+	    $snmpresult{$$trunk[$i][1]+1}{trunk} = $$trunk[$i][2];
+
+	    $snmpresult{$$vlanhex[$i][1]}{vlanhex} = $$vlanhex[$i][2];
+	    $snmpresult{$$vlan[$i][1]}{vlan} = $$vlan[$i][2];
+
+	    $i++;
 	}
 
-	my $j = $i-1;
+	foreach my $k (sort keys %snmpresult){
 
-	my $tempduplex = $$duplex[$j][2];
+	    my $modul = $snmpresult{$k}{modul};
+	    my $port = $snmpresult{$k}{port};
+	    my $ifindex = $snmpresult{$k}{ifindex};
+	    my $portname = $snmpresult{$k}{portname};
+	    my $tempstatus = $snmpresult{$k}{status};
+	    my $tempduplex = $snmpresult{$k}{duplex};
+
+	    my $status;
+	    if($tempstatus == 1){
+		$status = 'y';
+	    } else {
+		$status = 'n';
+	    }
+
 	my $duplex;
 	if($tempduplex==1){
 	    $duplex = 'f';
@@ -54,23 +97,25 @@ sub bulk{
 	    $duplex = 'h';
 	}
 
-	my $temptrunk = $$trunk[$j][2];
-	my $trunk;
-	if($temptrunk==0){
+
+
+	my $rtemp;
+	    my $trunk;
+	if($snmpresult{$k}{trunk} == 0){
 	    $trunk = 't';
 	    if($modul&&$port){
-		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$k-1][2];
+		$rtemp = $swportallowedvlantemp{$modul}{$port} = unpack "H*", $snmpresult{$k}{vlanhex};
 	    }
-	    $k++;
 	} else {
 	    $trunk = 'f';
 	    if($modul&&$port){
-		$swportvlantemp{$modul}{$port} = $$vlan[$j][2];
+		$rtemp = $swportvlantemp{$modul}{$port} = $snmpresult{$k}{vlan};
 	    }
 	}
 
-	my $speed = ($$speed[$i][2]/1e6);
-	$speed =~ s/^(.{0,10}).*/$1/;
+	    my $speed = ($snmpresult{$k}{speed}/1e6);
+	    $speed =~ s/^(.{0,10}).*/$1/;
+	    $speed = "0" unless defined $speed;
 
 	if($modul&&$port){
 	    $swport{$modul}{$port} = [ $ifindex, $status, $speed, $duplex,$trunk,$portname];
@@ -78,7 +123,7 @@ sub bulk{
 	}
 	
 
-	print "$modul/$port status = ".$status." duplex = ".$duplex." speed = ".$speed."\n" if $debug;
+	print "$ifindex:$modul/$port $portname status = ".$status." duplex = ".$duplex." speed = ".$speed." trunk = ".$trunk." vlan = ".$rtemp."\n" if $debug;
 
 
 	$i++;
@@ -93,169 +138,4 @@ sub bulk{
 
     return \%swport, \%swportvlantemp, \%swportallowedvlantemp;
 }
-
-sub ifindex{
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-
-    my (%returverdi,%interface);
-    my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib{ifindex}[1]);
-    foreach my $result (@snmpresult){
-	my ($interface,$modulport) = split(/:/,$result);
-	unless ($modulport =~ /Null|Vlan|Tunnel/i) {
-	    $modulport =~ s/FastEthernet/Fa/i;
-	    $modulport =~ s/GigabitEthernet/Gi/i;
-	    my ($modul,$port) = split /\//,$modulport;
-	    $modulport = join '.',($modul,$port);
-	    $returverdi{$modul}{$port} = $interface;
-	    $interface{$interface} = $modulport;
-	}
-    }
-    return \%returverdi,\%interface;
 }
-
-sub duplex{
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-
-    my %returverdi;
-    my $mib = $mib{duplex}[1];
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib);
-	foreach my $result (@snmpresult){
-#	print "\n";
-#	print $result;
-	    my ($interface,$duplex) = split(/:/,$result);
-	    $interface++;
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    if($duplex==1){
-		$returverdi{$modul}{$port} = 'f';
-	    } else {
-		$returverdi{$modul}{$port} = 'h';
-	    }
-	}
-    }
-    return \%returverdi;
-}
-
-sub porttype {
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-
-
-    my %returverdi;
-
-    my $mib = $mib{porttype}[1];
-
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib);
-	foreach my $result (@snmpresult){
-	    my ($interface,$porttype) = split(/:/,$result);
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    $returverdi{$modul}{$port} = $porttype;
-	}
-    }
-
-    return \%returverdi;
-}
-
-sub status {
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-    my %returverdi;
-    my $mib = $mib{status}[1];
-    
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib);
-	foreach my $result (@snmpresult){
-	    my ($interface,$status) = split(/:/,$result);
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    if($status==1){
-		$returverdi{$modul}{$port} = 'up';
-	    } else {
-		$returverdi{$modul}{$port} = 'down';
-	    }
-	}
-    }
-    return \%returverdi;
-}
-
-sub speed{
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-
-    my %returverdi;
-    my $mib = $mib{speed}[1];
-
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib{speed}[1]);
-	foreach my $result (@snmpresult){
-	    my ($interface,$speed) = split(/:/,$result);
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    $speed = ($speed/1e6);
-	    $speed =~ s/^(.{0,10}).*/$1/;
-	    $returverdi{$modul}{$port} = $speed;
-	}
-    }
-    return \%returverdi;
-}
-
-sub trunk{
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-    my (%returverdi,%vlan,%vlanhex);
-    my $mib = $mib{trunk}[1];
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib);
-	foreach my $result (@snmpresult){
-	    my ($interface,$trunk) = split(/:/,$result);
-	    $interface++;
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    if($trunk==0){
-		$returverdi{$modul}{$port} = 't';
-		my ($vlanhex) = &snmpget($ro.'@'.$ip,"1.3.6.1.4.1.9.9.46.1.6.1.1.4.$interface");
-		$vlanhex = unpack "H*", $vlanhex;
-		$vlanhex{$modul}{$port} = $vlanhex;
-	    } else {
-		$returverdi{$modul}{$port} = 'f';
-		my ($vlan) = &snmpget($ro.'@'.$ip,$mib{vlan}[1].".".$interface);
-		$vlan{$modul}{$port} = $vlan;
-	    }
-	    
-	}
-    }
-    return \%returverdi,\%vlan,\%vlanhex;
-}
-
-sub portname{
-    my $ip = $_[0];
-    my $ro = $_[1];
-    my %mib = %{$_[2]};
-    my %if2mp = %{$_[3]};
-    my ($ip,$ro,%mib) = (@_[0..1],%{$_[2]});
-
-    my %returverdi;
-    my $mib = $mib{portname}[1];
-    if(&verifymib($mib)){
-	my @snmpresult = &snmpwalk($ro.'@'.$ip,$mib);
-	foreach my $result (@snmpresult){
-	    my ($interface,$portname) = split(/:/,$result,2);
-	    my ($modul,$port) = split /\./, $if2mp{$interface};
-	    $returverdi{$modul}{$port} = $portname;
-	}
-    }
-    return \%returverdi;
-}
-
-#return 1;

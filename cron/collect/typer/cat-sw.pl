@@ -1,9 +1,22 @@
 #!/usr/bin/perl
+####################
+#
+# $Id: cat-sw.pl,v 1.9 2002/12/19 16:31:02 gartmann Exp $
+# This file is part of the NAV project.
+# cat-sw is a plugin for swporter that uses SNMP to get information about a
+# switch and its modules and ports. The results are returned to the swporter
+# script.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
+#
+####################
 
 use strict;
 
 use SNMP;
-#&bulk("blasal-sw","gotcha","821");
+# test:
+#&bulk("sb-354-sw","******","821");
 
 sub bulk{
     my $host = $_[0];
@@ -17,13 +30,27 @@ sub bulk{
 
     my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 2, UseNumeric=>1, UseLongNames=>1);
     
+    my $testvar = '.1.3.6.1.4.1.9.5.1.9.3.1.8';
+    my $vb = new SNMP::Varbind([$testvar]);
+
+    my $val = $sess->getnext($vb);
+    my @test = @{$vb};
+
+    unless($test[0] =~ /$testvar/){
+	&skriv("SNMP-WRONGTYPEGROUP", "typegroup=cat-sw", "sysname=$host");
+	return 0;
+    } else {
     my $numInts = $sess->get('ifNumber.0');
 
-    &skriv("SNERR",$sess->{ErrorStr});
+    if(my $error = $sess->{ErrorStr}){
+	&skriv("SNMP-ERROR","ip=$host","message=$error");
+    }
 
-    my ($ifindex,$portname,$status, $duplex, $porttype, $trunk) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.11'],['.1.3.6.1.4.1.9.5.1.4.1.1.4'],['.1.3.6.1.4.1.9.5.1.4.1.1.6'],['.1.3.6.1.4.1.9.5.1.4.1.1.10'],['.1.3.6.1.4.1.9.5.1.4.1.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.8']]);
+    my ($ifindex) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.11']]);
+
+    my ($portname,$status, $duplex) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.4'],['.1.3.6.1.4.1.9.5.1.4.1.1.6'],['.1.3.6.1.4.1.9.5.1.4.1.1.10']]);
     
-    my ($speed, $vlan ,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.3'],['.1.3.6.1.4.1.9.5.1.9.3.1.5']]);
+    my ($speed, $trunk,$vlanhex, $vlan ) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.8'],['.1.3.6.1.4.1.9.5.1.9.3.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.3']]);
 
     my @speed2;
     for my $u (@{$speed}){
@@ -59,15 +86,16 @@ sub bulk{
 
 	my $temptrunk = $$trunk[$i][2];
 	my $trunk;
+	my $rtemp;
 	if($temptrunk==1){
 	    $trunk = 't';
 	    if($modul&&$port){
-		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$i][2];
+		$rtemp = $swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$i][2];
 	    }
 	} else {
 	    $trunk = 'f';
 	    if($modul&&$port){
-		$swportvlantemp{$modul}{$port} = $$vlan[$i][2];
+		$rtemp = $swportvlantemp{$modul}{$port} = $$vlan[$i][2];
 	    }
 	}
 
@@ -76,17 +104,19 @@ sub bulk{
 	my $tempspeed = $speed2[$j];
 	$tempspeed  = ($tempspeed/1e6);
 	$tempspeed =~ s/^(.{0,10}).*/$1/;
+	my $speed = $tempspeed;
 
 	if($modul&&$port){
-	    $swport{$modul}{$port} = [ $ifindex, $status, $tempspeed, $duplex,$trunk,$portname];
+	    $swport{$modul}{$port} = [ $ifindex, $status, $speed, $duplex,$trunk,$portname];
 	}
 
-	print "\n $ifindex modul = $modul port = $port status = ".$status." duplex = ".$duplex." porttype = ".$$porttype[$i][2]." trunk = ".$trunk." speed = ".$tempspeed if $debug;
+	print "\n $ifindex modul = $modul port = $port status = ".$status." duplex = ".$duplex." portname = ".$portname." trunk = ".$trunk." speed = ".$tempspeed." vlan = ".$rtemp if $debug;
 	
 	$i++;
 
     }
     return \%swport, \%swportvlantemp, \%swportallowedvlantemp;
+}
 }
 
 sub ifindex{
