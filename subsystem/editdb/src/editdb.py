@@ -956,7 +956,7 @@ def updateNetbox(req):
         for i in range(0,len(req.form[UPDATE_ENTRY])):
             entry = {}
             editid = req.form[UPDATE_ENTRY][i]
-            idlist.appen(editid)
+            idlist.append(editid)
             entry['ip'] = req.form['ip'][i]
             entry['catid'] = req.form['catid'][i]
             entry['roomid'] = req.form['roomid'][i]
