@@ -1261,7 +1261,9 @@ class NavUtils
 				activeVlanOnTrunk = new HashSet();
 				activeOnTrunk.put(swportid, activeVlanOnTrunk);
 			}
-			activeVlanOnTrunk.add(vlanid);
+			String vlan = "[null]";
+			if (vlanidVlan.get(vlanid) != null) vlan = (String)vlanidVlan.get(vlanid);
+			activeVlanOnTrunk.add(vlan);
 		}
 
 		// Nå kan vi gå gjennom swportvlan og slette de innslagene som ikke lenger eksisterer
@@ -1302,8 +1304,8 @@ class NavUtils
 		//if (!DB_COMMIT) Database.rollback();
 
 		// Så skriver vi ut en rapport om mismatch mellom swportallowedvlan og det som faktisk kjører
-		outl("<h2>Allowed VLANs that are not active:</h2>");
-		outl("<h4>(<i><b>Note</b>: VLANs 1 and 1000-1005 are for interswitch control traffic and is always allowed</i>)</h4>");
+		outl("<h2>Allowed, but non-active VLANs:</h2>");
+		outl("<h4>(<i><b>Note</b>: VLANs 1 and 1000-1005 are for interswitch control traffic and are always allowed</i>)</h4>");
 		int allowedcnt=0, totcnt=0;
 		iter = allowedVlan.values().iterator();
 		while (iter.hasNext()) {
