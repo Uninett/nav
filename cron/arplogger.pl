@@ -1,15 +1,20 @@
 #!/usr/bin/perl
-## Name:	arpdblogger
-## $Id: arplogger.pl,v 1.6 2001/10/08 10:59:00 grohi Exp $
+## Name:	arplogger.pl
+## $Id: arplogger.pl,v 1.7 2001/10/19 14:27:43 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
 ## we are using.
-## Description:	Print changes in arp caches from previous run
 ##
-## Modified by grohi@itea.ntnu.no, Aug/Sept 2001
+## Modified by grohi@itea.ntnu.no, Aug/Sept/Oct 2001
 ######################################################################
 
+# * asks the database for data (which gw's to get arp from++)
+# * asks each gw for it's 
+# * checks with existing records in the database manage, the arp table
+#   - inserts new records unless already inserted
+#   - terminates old records where the ip<->mac comb. was not found 
+#   - leaves the rest unchanged
 
 require 5.002;
 use strict;
@@ -32,7 +37,8 @@ my $cursor;
 my $stat;
 my %prefiksdb;
 my %gwport;
-
+my %arpid;
+my %sysName;
 
 my $avsluttes;
 my $oppdat;
@@ -56,15 +62,14 @@ my $db = "manage";
 my $conn = db_connect($db);
 
 
-my $sql = "SELECT boksid,ip,ro FROM boks WHERE kat=\'GW\'";
-
-#print "$sql\n";
+my $sql = "SELECT boksid,ip,ro,sysName FROM boks WHERE kat=\'GW\'";
 
 my $resultat = db_select($sql,$conn);
 
 while(my @line = $resultat->fetchrow) 
 {
     push(@arguments,$line[0],$line[1],$line[2]);
+    $sysName{$line[0]} = $line[3];
 }
 
 
@@ -85,6 +90,15 @@ while (my @line = $resultat->fetchrow)
     $gwport{$line[0]}{$line[1]}{$line[2]}++;
 }
 
+$sql= "SELECT arpid,boksid,ip,mac FROM arp WHERE til IS NULL"; 
+
+$resultat = db_select($sql,$conn);
+
+while (my @line = $resultat->fetchrow) 
+{
+    $arpid{$line[1]}{$line[2]}{$line[4]} = $line[0];
+    $arptable{$line[1]}{$line[2]} = $line[3];
+}
 
 # Main program
 
@@ -98,13 +112,12 @@ while (@arguments)
     $hostname  = shift @arguments;
     $community = shift @arguments;
 
-    my $filnavn = $sti."arpdb_".$hostname;
+#    print "Henter fra $hostname\n";
 
     print "Couldn't open SNMP session to $hostname\n" && next
 	unless ($session = SNMP_Session->open ($hostname, $community, 161));
-    dbmopen (%arptable, "$filnavn", 0644)
-	|| print "Couldn't open $filnavn\n" && next;
-    %arptable_new = ();
+ 
+   %arptable_new = ();
 
     $session->map_table ([$OIDS{'ipNetToMediaPhysAddress'}],
 			 \&process_arp_entry);
@@ -113,18 +126,17 @@ while (@arguments)
     # Avslutter records som ikke ble funnet på ruter denne runden.
 
     my $ip = '';
-    foreach $ip (keys %arptable) 
+    foreach $ip (keys %{$arptable{$hostid}}) 
     { 
+#	print "$ip\n";
 
-	my $sql = "UPDATE arp SET til=NOW() WHERE ip =\'$ip\' AND mac=\'$arptable{$ip}\' AND boksid=\'$hostid\' AND til IS NULL";
+	my $sql = "UPDATE arp SET til=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
+
 	$avsluttes++;
 	db_execute($sql,$conn);
 	
     }
     
-    %arptable=%arptable_new;
-    dbmclose (%arptable);
-
 #    print "$hostname\tnye:$nye\toppdaterte:$oppdat\tAvsluttet:$avsluttes\n";
 
 
@@ -141,54 +153,62 @@ while (@arguments)
 
 ##
 sub process_arp_entry ($$$) {
-  my ($index, $mac, $type) = @_;
- 
-  ## the index of this table has the form IFINDEX.IPADDRESS, where
-  ## IPADDRESS is a "dotted quad" of four integers.  We simply split
-  ## at the first dot to get the interface index and the IP address in
-  ## readable notation:
-  ##
-  my ($ifIndex, $ip) = split(/\./, $index, 2);
+    
+    my ($index, $mac, $type) = @_;
+    
+    ## the index of this table has the form IFINDEX.IPADDRESS, where
+    ## IPADDRESS is a "dotted quad" of four integers.  We simply split
+    ## at the first dot to get the interface index and the IP address in
+    ## readable notation:
+    ##
+    
+    my ($ifIndex, $ip) = split(/\./, $index, 2);
+    
+    my $prefiksid = getprefiks($ip);
+    
+    
+    
+#    if (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
+#    {
+#      print "Legges inn: $ip\n";
 
+	$arptable_new{$ip} = hex_string($mac);
+	
+	if (defined( $arptable{$hostid}{$ip} )) {
 
-  my $prefiksid = getprefiks($ip);
+#	    print "gml: $ip fra *$arptable{$hostid}{$ip}* til *$arptable_new{$ip}*\n";
 
-
-#  print "$hostname\t$ip\t$prefiksid\t";
-
-  if (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
-  {
-#      print "Legges inn\n";
-      $arptable_new{$ip} = hex_string($mac);
-      
-      if (defined( $arptable{$ip} )) {
-	  if ($arptable{$ip} ne $arptable_new{$ip}) {
+	    if ($arptable{$hostid}{$ip} ne $arptable_new{$ip}) {
 	      
+#		print "IKKE like\n";
+
 	      # Avslutte gammel record. 
-	      my $sql1 = "UPDATE arp SET til=NOW() WHERE ip =\'$ip\' AND mac=\'$arptable{$ip}\' AND boksid=\'$hostid\' AND til IS NULL"; 
-#               print "$sql1\n";                 
+	      my $sql1 = "UPDATE arp SET til=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
+#               print "AVSLUTT: $sql1\n";                 
 	      db_execute($sql1,$conn);
 	      
 	      # Legge inn ny record.
-	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
+	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
 #               print "$sql2\n";
 	      db_execute($sql2,$conn);
 	      
 	      $oppdat++;
 	      
 	  }
-	  delete $arptable{$ip};
+	  delete $arptable{$hostid}{$ip};
       } 
       else # ikke i %arptable fra før: legg inn.
       {
+#	  print "LIKE\n";
+
 	  # Legge inn ny record.
-	  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',NOW())";
-#           print "$sql2\n";
+	  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
+#           print "NY: $sql2\n";
 	  db_execute($sql2,$conn);
 	  
 	  $nye++;
       }
-  }
+#  }
 }
 
 ##############################################
