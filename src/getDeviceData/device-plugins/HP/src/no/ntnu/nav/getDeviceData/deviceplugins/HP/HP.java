@@ -23,7 +23,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *
  * <p>
  * <ui>
- *  <li>hpSerial</li>
+ *  <li>ifSerial</li>
  *  <li>hpHwVer</li>
  *  <li>hpSwVer</li>
  *  <li>hpPortType</li>
@@ -32,14 +32,14 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  * </p>
  *
  * <p>
- * <b>Note:</b> Both hpSerial and hpPortType are required for any OID fetching to take place.
+ * <b>Note:</b> Both ifSerial and hpPortType are required for any OID fetching to take place.
  * </p>
  */
 
 public class HP implements DeviceHandler
 {
 	private static String[] canHandleOids = {
-		"hpSerial",
+		"ifSerial",
 		"hpHwVer",
 		"hpSwVer",
 		"hpPortType",
@@ -200,7 +200,7 @@ public class HP implements DeviceHandler
 
 		// We always want the serial as well as the port type (since we
 		// don't use ifIndex)
-		if (!nb.canGetOid("hpSerial") ||
+		if (!nb.canGetOid("ifSerial") ||
 				!nb.canGetOid("hpPortType")) {
 			return;
 		}
@@ -208,13 +208,22 @@ public class HP implements DeviceHandler
 		List l;
 
 		// Module data
-		l = sSnmp.getNext(nb.getOid("hpSerial"), 1, true, false);
+		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				if (s.length < 3) Log.d("PROCESS_HP", "Missing 3rd element from hpSerial on: " + nb + " (" + nb.getType() + ")");
-				sc.swModuleFactory(Integer.parseInt(s[2])).setSerial(s[1]);
-				Log.d("PROCESS_HP", "Module: " + s[2] + " Serial: " + s[1]);
+				// Assume only one module if info is missing
+				String module = (s.length >= 3 ? s[2] : "0");
+
+				if (s.length < 3 && "hp2524".equals(nb.getType())) {
+					// Assume type is wrong and will be corrected later, so we just skip
+					//Log.d("PROCESS_HP", "Missing 3rd element from ifSerial on: " + nb + " (" + nb.getType() + ")");
+					System.err.println("PROCESS_HP: Missing 3rd element from ifSerial on: " + nb + " (" + nb.getType() + ")");
+					//return;
+				}
+				
+				sc.swModuleFactory(Integer.parseInt(module)).setSerial(s[1]);
+				Log.d("PROCESS_HP", "Module: " + module + " Serial: " + s[1]);
 			}
 		}
 
@@ -222,7 +231,8 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(Integer.parseInt(s[2])).setHwVer(s[1]);
+				String module = (s.length >= 3 ? s[2] : "0");
+				sc.swModuleFactory(Integer.parseInt(module)).setHwVer(s[1]);
 			}
 		}
 
@@ -230,7 +240,8 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(Integer.parseInt(s[2])).setSwVer(s[1]);
+				String module = (s.length >= 3 ? s[2] : "0");
+				sc.swModuleFactory(Integer.parseInt(module)).setSwVer(s[1]);
 			}
 		}
 
@@ -245,18 +256,23 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] portType = (String[])it.next();
+				String ifindex = portType[0];
+				String module = (portType.length >= 3 ? portType[2] : "0");
+				String port = (portType.length >= 4 ? portType[3] : ifindex);
+
+				/*
 				if (portType.length < 4) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " Module/port number missing");
 					continue;
 				}
+				*/
 				
-				String ifindex = portType[0];
-				Swport swp = sc.swModuleFactory(Integer.parseInt(portType[2])).swportFactory(ifindex);
+				Swport swp = sc.swModuleFactory(Integer.parseInt(module)).swportFactory(ifindex);
 
 				//System.err.println("ifindex: " + ifindex + ", p0: " + portType[0] + ", p1: " + portType[1] + ", p2: " + portType[2]);
 
 				try {
-					swp.setPort(new Integer(Integer.parseInt(portType[3])));
+					swp.setPort(new Integer(Integer.parseInt(port)));
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " NumberFormatException on ifindex: " + ifindex);
 				}
