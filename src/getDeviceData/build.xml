@@ -25,6 +25,7 @@
 	<!-- Device plugins -->
   <target name="device-plugins">
     <ant inheritAll="false" dir="device-plugins/3Com"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwBasic"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
   </target>
 
@@ -78,6 +79,7 @@
     <delete dir="${dist}"/>
     <ant inheritAll="false" dir="data-plugins/Swport" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/3Com" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwBasic" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
   </target>
 </project>
