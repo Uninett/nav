@@ -129,9 +129,8 @@ public class CiscoSwIOS implements DeviceHandler
 					m.matches();
 					String mn = m.group(1);
 					String interf = m.group(2);
-					if (moduleCntMap.containsKey(interf)) moduleCntMap.put(interf, new Integer(modCnt));
-					if (!moduleSet.add(mn)) modCnt++;
-					
+					if (!moduleCntMap.containsKey(interf)) moduleCntMap.put(interf, new Integer(modCnt));
+					if (moduleSet.add(mn)) modCnt++;					
 				}
 			}
 		}
@@ -155,7 +154,7 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-			swp.setDescr(moduleName);
+			swm.setDescr(moduleName);
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
