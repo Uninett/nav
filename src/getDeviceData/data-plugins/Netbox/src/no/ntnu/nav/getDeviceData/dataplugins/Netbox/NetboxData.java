@@ -79,7 +79,7 @@ public class NetboxData extends Device
 
 	public boolean equalsNetboxData(NetboxData n) {
 		return (getDeviceid() == n.getDeviceid() &&
-						sysname.equals(n.sysname) &&
+						(sysname == null || sysname.equals(n.sysname)) &&
 						equalsUptime(n));
 	}
 	
