@@ -826,8 +826,20 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
 ------------------------------------------------------------------------------------------
 
 GRANT ALL ON alerthist TO navall;
+GRANT ALL ON alerthistvar TO navall;
+GRANT ALL ON alertq TO navall;
 GRANT ALL ON eventtype TO navall;
 GRANT ALL ON service TO navall;
+GRANT SELECT,UPDATE,DELETE ON netbox TO navall;
+GRANT SELECT,UPDATE,DELETE ON netboxinfo TO navall;
+GRANT SELECT,UPDATE,DELETE ON netboxcategory TO navall;
+GRANT SELECT,UPDATE,DELETE ON room TO navall;
+GRANT SELECT,UPDATE,DELETE ON location TO navall;
+GRANT SELECT,UPDATE,DELETE ON org TO navall;
+GRANT SELECT,UPDATE,DELETE ON usage TO navall;
+GRANT SELECT,UPDATE,DELETE ON type TO navall;
+GRANT SELECT,UPDATE,DELETE ON product TO navall;
+GRANT SELECT,UPDATE,DELETE ON vendor TO navall;
 GRANT SELECT ON eventtype TO eventengine;
 GRANT SELECT ON subsystem TO eventengine;
 GRANT ALL ON eventq TO eventengine;
