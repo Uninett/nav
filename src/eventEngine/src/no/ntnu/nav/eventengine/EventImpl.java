@@ -92,7 +92,8 @@ class EventImpl implements Event, Alert
 	public int getState() { return state; }
 	public int getValue() { return value; }
 	public int getSeverity() { return severity; }
-	public Set getVar(String var) { return (Set)varMap.get(var); }
+	//public Set getVar(String var) { return (Set)varMap.get(var); }
+	public String getVar(String var) { return (String)varMap.get(var); }
 	public Map getVarMap() { return varMap; }
 	public void dispose()
 	{
@@ -118,9 +119,12 @@ class EventImpl implements Event, Alert
 
 	public void addVar(String key, String val)
 	{
+		varMap.put(key, val);
+		/*
 		Set s;
 		if ( (s=(Set)varMap.get(key)) == null) varMap.put(key, s=new HashSet());
 		s.add(val);
+		*/
 	}
 
 	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
@@ -198,16 +202,20 @@ class EventImpl implements Event, Alert
 	public String toString()
 	{
 		//String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time="+time+" eventtypeid="+eventtypeid;
-		String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql();
+		String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql()+"\n";
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();
 			String var = (String)me.getKey();
+			String var = (String)me.getValue();
+			s += "["+var+"="+val+"] ";
+			/*
 			List l = (List)me.getValue();
 			s += "\n  "+var+"=";
 			for (int j=0; j<l.size(); j++) {
 				s += l.get(j);
 				if (j < l.size()-1) s +=", ";
 			}
+			*/
 		}
 		return s;
 	}
