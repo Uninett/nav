@@ -1,9 +1,10 @@
 """
-$Id: SmbHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: SmbHandler.py,v 1.2 2002/06/28 13:46:50 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmbHandler.py,v $
 """
-
+import os,re
 from job import JobHandler, Event
+pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re.I) #tihihi
 class SmbHandler(JobHandler):
 	"""
 	args:
@@ -25,10 +26,10 @@ class SmbHandler(JobHandler):
 			s = '-N'
 
 		ip,port = self.getAddress()
-		import os
-		status = os.system('smbclient -L %s -p %i %s 2>/dev/null > /dev/null' %(ip,port,s))
-
-		if status:
-			return Event.DOWN,'error %i' % status
-		else:
+		s = os.popen('./Timeout.py -t %s smbclient -L %s -p %i %s' % (self.getTimeout(),ip,port,s)).read()
+		version = pattern.search(s) and ' '.join(pattern.search(s).groups())
+		if version:
+			self.setVersion(version)
 			return Event.UP,'OK'
+		else:
+			return Event.DOWN,'error %s' % s.strip().split('\n')[-1]
