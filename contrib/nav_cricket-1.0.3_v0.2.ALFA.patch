@@ -1,0 +1,197 @@
+Index: compile
+===================================================================
+--- compile	(.../vendor/cricket/1.0.3)	(revision 9)
++++ compile	(.../nav/cricket)	(revision 9)
+@@ -1,4 +1,4 @@
+-#!/usr/local/bin/perl -w
++#!/usr/bin/perl -w
+ # -*- perl -*-
+ 
+ # Cricket: a configuration, polling and data display wrapper for RRD files
+@@ -66,16 +66,22 @@
+ 
+ sub check_and_set_lock {
+ 	my $lockfile = $gCT->Base() . "/config.db.lock";
+-	if (-f $lockfile) {
+-		my($db_mtime) = (stat($lockfile))[9];
+-		# Do not recompile if another process already is busy compiling
+-		if ((time() - $db_mtime) < 900) {
+-			Warn("Skipping recompile; already in progress");
+-			return 1;
+-		} else {  
+-			# But warn if that other process is dead
+-			Warn("Forcing recompile; previous compile aborted?");
+-		}
++	my $tries = 0;
++	while (-f $lockfile) {
++	    my($db_mtime) = (stat($lockfile))[9];
++	    # Do not recompile if another process already is busy compiling
++	    if ((time() - $db_mtime) < 900) {
++		++$tries >= 5 && do { 
++		    Warn("Skipping recompile; already in progress");
++		    return 1;
++		};
++		Warn("Lockfile found, sleeping 5 secs.");
++		sleep(5);
++	    } else {
++		# But warn if that other process is dead
++		Warn("Forcing recompile; previous compile aborted?");
++		unlink $lockfile;
++	    }
+ 	}
+ 	open(LOCK, ">$lockfile") || die "Can't create $lockfile";
+ 	print LOCK "$$\n";
+Index: grapher.cgi
+===================================================================
+--- grapher.cgi	(.../vendor/cricket/1.0.3)	(revision 9)
++++ grapher.cgi	(.../nav/cricket)	(revision 9)
+@@ -1,4 +1,4 @@
+-#!/usr/local/bin/perl -w
++#!/usr/bin/perl -w
+ # -*- perl -*-
+ 
+ # Cricket: a configuration, polling and data display wrapper for RRD files
+@@ -388,7 +388,7 @@
+                     $label = rangeToLabel($range);
+                 }
+                 print "<h3>$label graph${plural}</h3>\n";
+-
++                
+                 #
+                 # If we have this, we should use it
+                 #
+@@ -518,22 +518,70 @@
+                     my($format) = graphParam($gRef, 'graph-format', $defFmt);
+ 
+                     my($cache) = $gQ->param('cache');
++                    
++                    ##################################################
++                    # Edited by John Magne Bredal <bredal@itea.ntnu.no>
++                    # for NAV-v3 ITEA NTNU © 2003
++                    ##################################################
++                    
++                    my $yokohoma = $gQ->param('yokohoma');
+ 
++                    # End of edit
++                    ##################################################
++
+                     $gQ->delete_all();
+                     $gQ->param('type', $format);
+                     $gQ->param('target', $thisTarget2);
+                     $gQ->param('inst', $thisInst) if defined($thisInst);
+-
++                        
+                     $gQ->param('dslist', $dslist);
+                     $gQ->param('range', $range);
+-
++                    
+                     $gQ->param('hw',$hwParam) if (defined($hwParam));
+-
++                    
+                     # this parameter is to trick Netscape into
+                     # always asking the CGI for the image, instead
+                     # of trying to cache it inappropriately
+                     $gQ->param('rand', int(rand(1000)));
+ 
++                    ##################################################
++                    # Edited by John Magne Bredal <bredal@itea.ntnu.no>
++                    # for NAV-v3 ITEA NTNU © 2003
++                    ##################################################
++
++                    $gQ->param('yokohoma',$yokohoma);
++
++                    print $gQ->start_form(-method => 'GET');
++                    print "Enter maxvalue (m/k/M/% - blank revert to autoscale):\n";
++                    foreach my $key ($gQ->url_param()) {
++                        next if $key eq 'yokohoma';
++                        print $gQ->hidden(-name => $key,
++                                          -default => $gQ->url_param($key));
++                    }
++                    print $gQ->textfield(-name => 'yokohoma',
++                                         -size => 10,
++                                         -maxlength => 10);
++                    print $gQ->end_form;
++                    
++                    my %lettervalues;
++                    $lettervalues{'m'} = 0.001;
++                    $lettervalues{'k'} = 1000;
++                    $lettervalues{'M'} = 1000000;
++                    
++                    if (defined($gQ->param('yokohoma'))) {
++                        my $yokohoma = $gQ->param('yokohoma');
++                        if ($yokohoma =~ /(\d+\.?\d*)([a-zA-Z])/) {
++                            $yokohoma = $1;
++                            my $lettervalue = $2;
++                            $yokohoma = $yokohoma*$lettervalues{$lettervalue};
++                        }
++
++                        $gQ->param('yokohoma', $yokohoma);
++                    } 
++                    
++                    # End of edit
++                    ##################################################
++
+                     # pass thru the value of the cache param, if given
+                     $gQ->param('cache', $cache) if (defined($cache));
+ 
+@@ -649,6 +697,33 @@
+             }
+ 
+             print "<h3>Targets that are available:</h3>\n";
++
++            ##################################################
++            # Edited by John Magne Bredal <bredal@itea.ntnu.no>
++            # for NAV-v3 ITEA NTNU © 2003
++            ##################################################
++            
++            # Making links from giga to non-giga graphs
++            my $navlink = $gQ->self_url();
++            my $navname = $name;
++            if ($navname =~ /giga/) {
++                # searches for non-giga graphs
++                $navname =~ s/^\///;
++                $navlink =~ s/giga-//;
++                if (-e "$Common::global::gCricketHome/cricket-data/$navname") {
++                    print "<a href=$navlink>Non-giga interfaces</a> exist for this unit.\n";
++                }
++            } else {
++                # searches for giga-interface graphs
++                $navname =~ s/^\///;
++                if (-e "$Common::global::gCricketHome/cricket-data/giga-$navname") {
++                    $navlink =~ s/\%2F/\%2Fgiga-/;
++                    print "<a href=$navlink>giga-interfaces</a> exist for this unit.\n";
++                }
++            }
++            # End of edit
++            ##################################################
++
+             print "<table border cellpadding=2 width=100%>\n";
+ 
+             if ($doDesc) {
+@@ -1241,9 +1316,24 @@
+         @interlaced = ( '-i' );
+     }
+ 
+-    my($ymax) = graphParam($gRefDef, 'y-max', undef);
+-    my($ymin) = graphParam($gRefDef, 'y-min', undef);
++    ##################################################
++    # Edited by John Magne Bredal <bredal@itea.ntnu.no>
++    # for NAV-v3 ITEA NTNU © 2003
++    ##################################################
+ 
++    my $ymax;
++    my $ymin;
++    if (defined($gQ->param('yokohoma'))) {
++        $ymax = $gQ->param('yokohoma');
++        $ymin = 0;
++    } else {
++        $ymax = graphParam($gRefDef, 'y-max', undef);
++        $ymin = graphParam($gRefDef, 'y-min', undef);
++    }
++
++    # End of edit
++    ##################################################
++
+     my ($ymaxlck) = 0;
+     my ($yminlck) = 0;
+ 
