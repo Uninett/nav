@@ -1,0 +1,26 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the UserAdmin template for common useradmin structure.
+## Builds html for the Account list screen of the useradmin module.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends UserAdmin
+
+#def add_account($account)
+  <a href="/useradmin/account?id=$account.id">$account.login</a> - $account.name - $account.groupcount<br>
+#end def
+
+
+#block useradmin
+<a href="account">Create new user</a><br>
+
+Login - Name - \# of groups<br>
+<hr>
+#for $account in $accounts
+$add_account($account)
+#end for
+#end block useradmin

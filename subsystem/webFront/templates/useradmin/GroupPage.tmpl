@@ -1,0 +1,78 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the UserAdmin template for common useradmin structure.
+## Builds html for the edit Group screen of the useradmin module.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends UserAdmin
+
+#def textfield($name, $value, $maxLength=0, $forceEditable=0)
+#if $editable or $forceEditable
+  <input type="text" name="$name" value="$value" />
+#else
+  <i>$value</i>
+#end if
+#end def
+
+
+#def add_account($account, $add=False)
+  <a href="/useradmin/account?id=$account.id">$account.login</a> - $account.name -
+#if $add
+  <a href="/useradmin/link?gid=$group.id&uid=$account.id&source=group">ADD</a>
+#else
+  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=group">REMOVE</a>  
+#end if
+  <br>
+#end def
+
+#def add_privilege($privilege)
+  <b>$privilege.privilegename</b> to <code>$privilege.target</code><br>
+#end def
+
+## 
+## useradmin is the content block for all useradmin pages
+## it begins here
+##
+
+#block useradmin
+<form method="POST" action="groupsubmit">
+#if not $newGroup
+  <input type="hidden" name="id" value="$group.id">
+#end if
+  <b>Name:</b> $textfield('name', $group.name)<br>
+  <b>Description:</b> $textfield('description', $group.description)<br>
+  <input type="submit" value="Submit changes" />
+</form>
+
+#if not $newGroup
+
+<h3>Privileges</h3>
+
+<p>(See <a
+href="http://www.amk.ca/python/howto/regex/">http://www.amk.ca/python/howto/regex/</a>
+for a HOWTO on the Regular expressions used for matching targets for privileges
+like 'web_access'.)</p>
+
+#for $privilege in $group.privileges
+$add_privilege($privilege)
+#end for
+
+<h3>Member list</h3>
+
+#for $account in $group.members
+$add_account($account, False)
+#end for
+
+<h3>Non-member list</h3>
+
+#for $account in $group.nonmembers
+$add_account($account, True)
+#end for
+
+#end if
+
+#end block useradmin

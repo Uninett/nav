@@ -1,0 +1,26 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the UserAdmin template for common useradmin structure.
+## Builds html for the Group list screen of the useradmin module.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends UserAdmin
+
+#def add_group($group)
+  <a href="/useradmin/group?id=$group.id">$group.name</a> - $group.description - $group.membercount<br>
+#end def
+
+
+#block useradmin
+<a href="group">Create new group</a><br>
+
+Name - Description - \# of members<br>
+<hr>
+#for $group in $groups
+$add_group($group)
+#end for
+#end block useradmin

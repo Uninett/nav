@@ -1,0 +1,33 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+## Contains common template code for the useradmin panel.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends nav.web.templates.MainTemplate.MainTemplate
+
+#attr $path = [("Frontpage", "/"), ("Useradmin", "/useradmin/index"), ("Index", "False")]
+
+#def useradmin()
+  This space intentionally left blank
+#end def
+
+#block content
+<p>
+User administration | <a href="accountlist">Account List</a> | <a href="grouplist">Group List</a>
+</p>
+
+#if $varExists('information')
+<h3>$information</h3>
+#end if
+
+#if $varExists('statusMessage')
+<p><font color="#FF0000">$statusMessage</font><br></p>
+#end if
+
+$useradmin()
+#end block content

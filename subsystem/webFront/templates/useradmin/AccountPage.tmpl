@@ -1,0 +1,67 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the UserAdmin template for common useradmin structure.
+## Builds html for the edit Account screen of the useradmin module.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends UserAdmin
+
+#def textfield($name, $value, $maxLength=0, $forceEditable=0)
+#if $editable or $forceEditable
+  <input type="text" name="$name" value="$value" />
+#else
+  <i>$value</i>
+#end if
+#end def
+
+
+#def add_group($group, $add=False)
+  <a href="/useradmin/group?id=$group.id">$group.name</a> - $group.description -
+#if $add
+  <a href="/useradmin/link?gid=$group.id&uid=$account.id&source=account">ADD</a>
+#else
+  <a href="/useradmin/unlink?gid=$group.id&uid=$account.id&source=account">REMOVE</a>  
+#end if
+  <br>
+#end def
+
+
+
+#block useradmin
+<form method="POST" action="accountsubmit">
+#if not $newAccount
+  <input type="hidden" name="id" value="$account.id">
+#end if
+  <b>Login:</b> $textfield('login', $account.login)<br>
+  <b>Name:</b> $textfield('name', $account.name, forceEditable=1)<br>
+  <b>External:</b> <i>
+#if $account.ext_sync
+$account.ext_sync
+#else
+[None]
+#end if
+  </i><br>
+  <input type="submit" value="Submit changes" />
+</form>
+
+#if not $newAccount
+
+<h3>Group memberships</h3>
+
+#for $group in $account.groups
+$add_group($group)
+#end for
+
+<h3>Group non-memberships</h3>
+
+#for $group in $account.nongroups
+$add_group($group, add=True)
+#end for
+
+#end if
+
+#end block useradmin

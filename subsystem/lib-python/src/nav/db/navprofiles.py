@@ -95,6 +95,15 @@ class Account(nav.db.forgotten.navprofiles.Account):
 
         return (password == self.password)
 
+class Accountgroup(Accountgroup):
+    def getMembers(self):
+        """
+        Return a list of Account objects that are members of this
+        Accountgroup.
+        """
+        links = self.getChildren(Accountingroup)
+        return [Account(link.account) for link in links]    
+
 def _customizeTables():
     """
     Customize the output from forgetSQL

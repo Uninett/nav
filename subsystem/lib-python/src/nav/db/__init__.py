@@ -9,6 +9,7 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import psycopg
+import nav
 from nav import config, ObjectCache, CacheableObject
 
 db = None
@@ -21,7 +22,7 @@ class ConnectionObject(CacheableObject):
     connection caching.
     """
     def __init__(self, object, key):
-        CacheableObject.__init__(self, object)
+        super(ConnectionObject, self).__init__(object)
         self.key = key
 
     def isInvalid(self):
@@ -50,7 +51,6 @@ def getConnection(scriptName, database='manage'):
     connection.
     """
     import nav
-    from nav import CachedObject
     global _connectionCache
 
     # Get the config setup for the requested connection

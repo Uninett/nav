@@ -134,6 +134,11 @@ class Session(dict):
         dict.__setitem__(self, key, value)
         self._changed = True
 
+    def __delitem__(self, key):
+        """Make sure we register as changed when an item is deleted"""
+        dict.__delitem__(self, key)
+        self._changed = True
+
     def __del__(self):
         # Persist to disk only if we changed during our existence
         if self._changed:

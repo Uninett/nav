@@ -75,7 +75,7 @@ class ObjectCache(dict):
                 count += 1
         return count    
 
-class CacheableObject:
+class CacheableObject(object):
     """
     A simple class to wrap objects for 'caching'.  It contains the
     object reference and the time the object was loaded.
