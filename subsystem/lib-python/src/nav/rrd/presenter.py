@@ -380,7 +380,7 @@ class presentation:
         id = self.genImage(*params)
         #raise str(params)
         #return '/browse/rrd/graph?id=%s' % id
-        return urlbuilder.createUrl(division='grapher', id=id)
+        return urlbuilder.createUrl(subsystem='rrd', division='graph', id=id)
 
     def genImage (self,*rrd_params):
         conf = nav.config.readConfig(configfile)
