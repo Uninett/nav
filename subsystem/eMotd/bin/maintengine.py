@@ -84,7 +84,7 @@ def send_event():
             eventqid = database.fetchone()[0]
             if key=='netbox':
                 database.execute("select deviceid,sysname from netbox where netboxid = %d" % int(val))
-                (deviceid,sysname) = database.fetchone()[0]
+                (deviceid,sysname) = database.fetchone()
                 database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(val), int(deviceid), source, severity, state, value))
                 database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, sysname))
             elif key=='room' or key=='location':
