@@ -50,7 +50,6 @@ public class NetboxInfo {
 	 * null. A default netboxid must be set before this method is
 	 * called.
 	 *
-	 * @param key The key to get the value for
 	 * @param var The variable to get the value for
 	 * @return a value, or null if no value exists
 	 */
@@ -66,6 +65,7 @@ public class NetboxInfo {
 	 * null; var is not. A default netboxid must be set before this
 	 * method is called.
 	 *
+	 * @param key The key to get the value for
 	 * @param var The variable to get the value for
 	 * @return a value, or null if no value exists
 	 */
