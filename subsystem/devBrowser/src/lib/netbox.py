@@ -118,6 +118,9 @@ def process(request):
     result.append(info.showInfo())
     result.append(urlbuilder.createLink(netbox, 
                             subsystem='editdb', content="[Edit]"))
+    result.append(urlbuilder.createLink(netbox,
+                                        subsystem='emotd',
+                                        content='[Schedule maintainence]'))
     services = info.showServices(sortBy)
     if services:
         result.append(services)
@@ -196,20 +199,33 @@ class NetboxInfo(manage.Netbox):
         sw = self.getChildren(manage.Swport, 'to_netbox')
         if not sw:
             return 'Unknown'
-        vlans = []
+        vlanList = []
+        swList = []
         for i in sw:
-            vlan = i.vlan
-            if vlan not in vlans:
-                vlans.append(vlan)
-        if len(vlans) > 1:
-            return 'Unknown' 
-        sw = sw[0]
-        swNetbox = sw.module.netbox
-        swPort = sw.port
-        swModule = sw.module.module
-        swLink = urlbuilder.createLink(swNetbox)
-        swLink.append('(Module %s, Port %s)' % (swModule, swPort))
-        return swLink
+            # vlan = i.vlan
+            vlans = i.getChildren(manage.Swportvlan)
+            for vlan in vlans:
+                if i not in swList and vlan.direction=='n':
+                    vlanList.append(vlan)
+                    swList.append(i)
+        #if len(vlans) > 1:
+        #    return 'Unknown'
+        #if len(swList) > 1:
+            #raise str(swList)
+        #    return 'Unknown'
+        # raise str(swList)
+        result = html.Division()
+        #sw = swList[0]
+        for sw in swList:
+            swNetbox = sw.module.netbox
+            swPort = sw.port
+            swModule = sw.module.module
+            swLink = urlbuilder.createLink(swNetbox)
+            swLink.append('(Module %s, Port %s)' % (swModule, swPort))
+            div = html.Division()
+            div.append(swLink)
+            result.append(div)
+        return result
         
         
     def showIp(self):
