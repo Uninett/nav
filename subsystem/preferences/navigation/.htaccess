@@ -1,0 +1,7 @@
+PythonPath "['/usr/local/nav/navme/lib/python','/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/python/lib/python2.2', '/usr/lib/apache/python/lib/python2.2/plat-linux2', '/usr/lib/apache/python/lib/python2.2/lib-tk', '/usr/lib/apache/python/lib/python2.2/lib-dynload', '/usr/lib/apache/python/lib/python2.2/site-packages', '/usr/local/nav/navme/lib/python', '/usr/local/lib/python2.2/site-packages','/usr/local/nav/navme/apache/webroot/preferences/navigation']"
+SetHandler python-program
+PythonHandler mod_python.publisher
+PythonHeaderParserHandler nav.web
+DirectoryIndex navigation.py/handler
+PythonInterpreter magnars_1
+PythonDebug On

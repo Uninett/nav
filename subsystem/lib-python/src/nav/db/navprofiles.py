@@ -121,6 +121,12 @@ def _customizeTables():
     # Fix Accountorg
     Accountorg._sqlPrimary = ('account', 'orgid')
 
+    # Fix Accountnavbar
+    Accountnavbar._sqlPrimary  =('account', 'navbar')
+
+    # Fix Navbarlink
+    Accountnavbar._sqlPrimary  =('account', 'navbar')
+    Navbarlink._sqlPrimary = ('id',)
 
 def setCursorMethod(cursor):
     import forgotten.navprofiles
