@@ -30,7 +30,6 @@ class SearchBox:
 
         self.help = help
         self.error = None
-        self.status = None
         self.result = None
         self.searches = {}
     
@@ -80,7 +79,18 @@ class SearchBox:
                                 validSearch = False
 
                     if validSearch:
-                        for entry in db.getAllIterator(where=where):
+                        entryList = db.getAll(where=where)
+                        # Status messages
+                        if len(entryList):
+                            if len(entryList) == 1:
+                                self.result = "1 match"     
+                            else:
+                                self.result = "%d matches" % \
+                                              (len(entryList),)
+                        else:
+                            self.error = "No matches"
+
+                        for entry in entryList:
                             for key,column in columns.items():
                                 value = entry
                                 if type(value) == type(None):
@@ -100,7 +110,6 @@ class SearchBox:
                                     results[key].append(value._getID()[0])
                                 else:
                                     results[key].append(str(value))
-                                self.status = "%d matches" % (len(results),)
         return results
 
 
