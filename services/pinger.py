@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.7 2002/12/13 20:14:15 magnun Exp $
+$Id: pinger.py,v 1.8 2003/01/02 22:01:57 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -76,8 +76,8 @@ class pinger:
             if wait > 0:
                 self.debug.log("Sleeping %03.3f secs" % wait,6)
             else:
-                self.debug.log("Check lasted longer than looptime. Delaying next check",2)
-                wait=self._looptime + wait
+                wait=abs(self._looptime + wait)
+                self.debug.log("Check lasted longer than looptime. Delaying next check for %03.3f secs" % wait,2)
             time.sleep(wait)
 
     def signalhandler(self, signum, frame):
@@ -135,8 +135,8 @@ def start(nofork):
 
         logfile = conf.get('logfile','pinger.log')
         print "Logger til ", logfile
-        os.sys.stdout = open(logfile,'w')
-        os.sys.stderr = open(logfile,'w')
+        os.sys.stdout = open(logfile,'a')
+        os.sys.stderr = open(logfile,'a')
     myPinger=pinger(socket=sock)
     myPinger.main()
 

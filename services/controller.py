@@ -2,7 +2,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.29 2002/12/09 15:41:15 magnun Exp $
+$Id: controller.py,v 1.30 2003/01/02 22:02:12 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -121,8 +121,8 @@ class controller:
             self.debug("Caught SIGUSR1. Reopening logfile...")
             os.sys.stdout.close()
             os.sys.stderr.close()
-            os.sys.stdout = open(logfile,'w')
-            os.sys.stderr = open(logfile,'w')
+            os.sys.stdout = open(logfile,'a')
+            os.sys.stderr = open(logfile,'a')
             self.debug("Reopened logfile: %s" % logfile)
         else:
             self.debug( "Caught %s. Resuming operation." % (signum))
@@ -149,8 +149,8 @@ def start(nofork):
                 
         logfile = conf.get('logfile','servicemon.log')
         #print "Logger til ", logfile
-        os.sys.stdout = open(logfile,'w')
-        os.sys.stderr = open(logfile,'w')
+        os.sys.stdout = open(logfile,'a')
+        os.sys.stderr = open(logfile,'a')
 
     myController=controller(fork=fork)
     myController.main()
