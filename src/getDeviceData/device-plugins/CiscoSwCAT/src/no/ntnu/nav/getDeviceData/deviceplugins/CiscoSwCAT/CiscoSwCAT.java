@@ -107,16 +107,16 @@ public class CiscoSwCAT implements DeviceHandler
 					String portif = s[1];
 
 					// Determine and create the module
-					int module = 0;
-					String modulePattern = ".*?(\\d+)/.*";
+					String modulePattern = ".*?(\\d+)/(\\d+)";
 					if (portif.matches(modulePattern)) {
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);
 						m.matches();
-						module = Integer.parseInt(m.group(1));
+						int module = Integer.parseInt(m.group(1));
+
+						SwModule swm = sc.swModuleFactory(module);
+						swm.swportFactory(ifindex); // Create module <-> ifindex mapping
+						//swm.setDescr(portif.split("/")[0]);
 					}
-					SwModule swm = sc.swModuleFactory(module);
-					swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-					//swm.setDescr(portif.split("/")[0]);
 				}
 			}
 			for (Iterator it = o.iterator(); it.hasNext();) {
