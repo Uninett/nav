@@ -30,10 +30,15 @@ public class Prefix implements Comparable
 	private static String and_ip(String ip, String mask) {
 		StringTokenizer a = new StringTokenizer(ip, ".");
 		StringTokenizer b = new StringTokenizer(mask, ".");
+		int base = 10;
+		if (b.countTokens() == 1) {
+			b = new StringTokenizer(mask, ":");
+			base = 16;
+		}
 		String and_ip = "";
 
 		while (a.hasMoreTokens()) {
-			and_ip += "."+(Integer.parseInt(a.nextToken())&Integer.parseInt(b.nextToken()));
+			and_ip += "."+(Integer.parseInt(a.nextToken(),base)&Integer.parseInt(b.nextToken(),base));
 		}
 		return and_ip.substring(1, and_ip.length());
 	}
@@ -42,9 +47,14 @@ public class Prefix implements Comparable
 	private static int masklen(String mask) {
 		int bits = 0;
 		String[] s = mask.split("\\.");
+		int base = 10;
+		if (s.length == 1) {
+			s = mask.split(":");
+			base = 16;
+		}
 		for (int i=0; i < s.length; i++) {
 			// 8-(log (256-128) / log 2)
-			bits += (int) Math.round( 8 - (Math.log(256-Integer.parseInt(s[i])) / Math.log(2)) );
+			bits += (int) Math.round( 8 - (Math.log(256-Integer.parseInt(s[i],base)) / Math.log(2)) );
 		}
 		return bits;
 	}
