@@ -28,11 +28,10 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	// Run queue
 	private SortedMap oidRunQ;
 
-	// List of oidkeys to be rescheduled
-	private List rescheduleList = new ArrayList();
-
 	NetboxImpl(int netboxNum, Type t) {
 		this.netboxNum = netboxNum;
+		oidRunQ = Collections.synchronizedSortedMap(new TreeMap());
+		oidNextRunMap = Collections.synchronizedMap(new HashMap());
 		setType(t);
 	}
 
@@ -74,23 +73,26 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	void updateNextRun() {
-		Map m = new HashMap();
-		SortedMap sm = new TreeMap();
 		Long baseTime = new Long(System.currentTimeMillis());
+		Set r = new HashSet();
+		r.addAll(oidNextRunMap.keySet());
 
-		Set s = new HashSet();
 		for (Iterator it = t.getKeyFreqMapIterator(); it.hasNext();) {
 			Map.Entry me = (Map.Entry)it.next();
 			String oidkey = (String)me.getKey();
-			m.put(oidkey, baseTime);
-			s.add(oidkey);
+			r.remove(oidkey);
+			if (!oidNextRunMap.containsKey(oidkey)) {
+				addToRunQ(oidkey, baseTime);
+			}
 		}
-		if (!s.isEmpty()) sm.put(baseTime, s);
 
-		oidRunQ = sm;
-		oidNextRunMap = m;
+		// Remove oidkeys no longer supported
+		for (Iterator it = r.iterator(); it.hasNext();) {
+			removeFromRunQ((String)it.next());
+		}
+		oidNextRunMap.keySet().removeAll(r);
 	}
-	
+
 	// Doc in interface
 	public boolean isSupportedOids(String[] oidkeys) {
 		for (Iterator it = Arrays.asList(oidkeys).iterator(); it.hasNext();) {
@@ -125,7 +127,6 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 		long nextRun = ((Long)oidNextRunMap.get(key)).longValue();
 		if (nextRun <= System.currentTimeMillis()) {
-			rescheduleList.add(key);
 			return true;
 		}
 		return false;
@@ -165,9 +166,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 			long nextRun = baseTime + d / freq * freq + freq;
 
 			addToRunQ(oidkey, new Long(nextRun));
-			oidNextRunMap.put(oidkey, new Long(nextRun));
 		}
-		rescheduleList.clear();
 	}
 
 	private String removeRunQHead() {
@@ -188,6 +187,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		Set s;
 		if ( (s = (Set)oidRunQ.get(nextRun)) == null) oidRunQ.put(nextRun, s = new HashSet());
 		s.add(oidkey);
+		oidNextRunMap.put(oidkey, nextRun);
 	}
 
 	// Currently not in use
