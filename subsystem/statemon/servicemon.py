@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.1 2003/03/26 16:00:00 magnun Exp $                                                                                                                              
+$Id: servicemon.py,v 1.2 2003/05/26 17:49:03 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -102,11 +102,12 @@ class controller:
             #        dbgthreads.append(i)
             #self.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
 
-            wait=self._looptime - (time.time() - start)
+            wait=(self._looptime - (time.time() - start))
             self.debug("Waiting %i seconds." % wait)
             if wait <= 0:
                 self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
-                time.sleep(self._looptime + wait)
+                wait %= self._looptime
+                time.sleep(wait)
             else:
                 time.sleep(wait)
 
