@@ -61,8 +61,22 @@
 
 -->
 
-  <property file="build.properties"/>
-  <property file="${user.home}/devel/build.properties"/>
+  <property name="jar" value="NavUtils.jar"/>
+  <property name="war" value="navAdmin.war"/>
+  <property name="src" location="src"/>
+  <property name="lib" location="lib"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../../build.properties"/>
+
+  <property name="jarinstdir"  location="${javalibdir}/navAdmin"/>
+  <property name="warinstdir"  location="${prefix}/apache/webapps"/>
+	<property name="debug" value="yes"/>
+  <property name="build.compiler.emacs" value="yes"/>
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -112,7 +126,7 @@
   <property name="app.name"      value="navAdmin"/>
   <property name="app.jar.name"  value="NavUtils"/>
   <property name="app.path"      value="/${app.name}"/>
-  <property name="app.version"   value="0.1-dev"/>
+  <property name="app.version"   value="1.0"/>
   <property name="build.home"    value="${basedir}/build"/>
   <property name="catalina.home" value="/usr/local/jakarta-tomcat-5.0.16"/> <!-- UPDATE THIS! -->
   <property name="dist.home"     value="${basedir}/dist"/>
@@ -146,10 +160,10 @@
 
 -->
 
-  <taskdef name="deploy"   classname="org.apache.catalina.ant.DeployTask"/>
+  <taskdef name="deployTomcat"   classname="org.apache.catalina.ant.DeployTask"/>
   <taskdef name="list"     classname="org.apache.catalina.ant.ListTask"/>
   <taskdef name="reload"   classname="org.apache.catalina.ant.ReloadTask"/>
-  <taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask"/>
+  <taskdef name="undeployTomcat" classname="org.apache.catalina.ant.UndeployTask"/>
 
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -250,6 +264,27 @@
    description="Clean build and dist directories, then compile"/>
 
 
+  <target name="install" depends="dist">
+    <!-- The point of the following is to set the isUnix property to
+    os.name if os.family is unix.  Later, we use isUnix in os lists to
+    exec when calling chmod on files -->
+    <condition property="isUnix" value="${os.name}">
+      <os family="unix" />
+    </condition>
+
+    <mkdir dir="${DESTDIR}${warinstdir}"/>
+    <copy file="${dist.home}/${app.name}-${app.version}.war" todir="${DESTDIR}${warinstdir}"/>
+    <!-- The navAdmin tool does not yet exist
+    <mkdir dir="${DESTDIR}${tooldir}"/>
+    <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
+    -->
+  </target>
+  <target name="uninstall">
+    <delete file="${DESTDIR}${warinstdir}/${war}"/>
+    <!-- The navAdmin tool does not yet exist
+    <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
+    -->
+  </target>
 
 <!-- ==================== Clean Target ==================================== -->
 
@@ -265,7 +300,6 @@
     <delete dir="${build.home}"/>
     <delete dir="${dist.home}"/>
   </target>
-
 
 
 <!-- ==================== Compile Target ================================== -->
@@ -338,7 +372,6 @@
       <zipfileset dir="gfx" prefix="gfx"/>
       <zipfileset dir="tooltips" prefix="tooltips"/>
     </war>
-    <jar jarfile="${dist.home}/${app.jar.name}.jar" basedir="${build.home}" manifest="Main-Class"/>
 
   </target>
 
@@ -365,10 +398,10 @@
 
 -->
 
-  <target name="install" depends="dist"
+  <target name="deploy" depends="dist"
    description="Install application to servlet container">
 
-    <deploy url="${manager.url}"
+    <deployTomcat url="${manager.url}"
        username="${manager.username}"
        password="${manager.password}"
            path="${app.path}"
@@ -437,6 +470,7 @@
 -->
 
   <target name="prepare">
+    <tstamp/>
 
     <!-- Create build directories as needed -->
     <mkdir  dir="${build.home}"/>
@@ -502,7 +536,7 @@
   <target name="remove"
    description="Remove application on servlet container">
 
-    <undeploy url="${manager.url}"
+    <undeployTomcat url="${manager.url}"
          username="${manager.username}"
          password="${manager.password}"
              path="${app.path}"/>

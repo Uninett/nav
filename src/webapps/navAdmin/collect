@@ -1,4 +1,0 @@
-## info: Collects information about the topology of your network
-
-35 * * * *              $BINDIR/runAvledTopologi.sh
-36 * * * *              $BINDIR/runAvledVlan.sh
