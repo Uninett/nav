@@ -6,7 +6,8 @@ class editdbLocation(Location):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='locationid'):
-            options.append((entry.locationid,entry.descr))    
+            options.append((entry.locationid,entry.locationid + \
+                            ' (' + entry.descr + ')'))    
         return options       
     getOptions = classmethod(getOptions)
 
@@ -14,7 +15,8 @@ class editdbOrg(Org):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='orgid'):
-            options.append((entry.orgid,entry.descr))    
+            options.append((entry.orgid,entry.orgid + ' (' + \
+                            entry.descr + ')'))    
         return options       
     getOptions = classmethod(getOptions)
 
@@ -96,17 +98,38 @@ class editdbRoom(Room):
     _sqlTable =  'room'
     _descriptions =  {}
 
-#class editdbRoom(Room):
-#    # reassign locationid to locationid
-#    _sqlFields =  {'descr': 'descr',
-#                   'location': 'locationid',
-#                   #'locationid': 'locationid',
-#                   'room2': 'room2',
-#                   'room3': 'room3',
-#                   'room4': 'room4',
-#                   'room5': 'room5',
-#                   'roomid': 'roomid'}
+class editdbPrefixVlan(Prefix):
+    _sqlFields =  {'prefixid': 'prefixid',
+                   'vlan': 'vlanid', 
+                   'netaddr': 'netaddr',
+                   'nettype': 'vlan.nettype',
+                   'vlannumber': 'vlan.vlan',
+                   'orgid': 'vlan.orgid',
+                   'netident': 'vlan.netident',
+                   'description': 'vlan.description',
+                   'usageid': 'vlan.usageid'}
+    _sqlLinks = (('vlanid','vlan.vlanid'),)
+    _userClasses = {'vlan': Vlan}
+    _shortView = ()
+    _sqlTable = 'prefix'
+    _descriptions = {}
 
+class editdbVlan(Vlan):
+    _sqlFields =  {'description': 'description',
+                   'netident': 'netident',
+                   'nettype': 'nettype',
+                   'org': 'orgid',
+                   'usage': 'usageid',
+                   'orgid': 'orgid',
+                   'usageid': 'usageid',
+                   'vlan': 'vlan',
+                   'vlanid': 'vlanid'}
+    _sqlLinks =  {}
+    _userClasses =  {'usage': Usage, 'org': Org}
+    _sqlPrimary =  ('vlanid',)
+    _shortView =  ()
+    _sqlTable =  'vlan'
+    _descriptions =  {}
 
 class ServiceEditdb(Service):
     _sqlFields =  {'active': 'active',

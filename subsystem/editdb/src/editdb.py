@@ -158,9 +158,9 @@ def index(req,showHelp=False):
     rows = [['Vlan',
              'Register the vlan number that are in use (this info may ' +\
              'also be derived automatically from the routers)',
-            [BASEPATH + 'vlan/edit','Add'],
+            None,
             [BASEPATH + 'vlan/list','Edit'],
-            [BASEPATH + 'bulk/vlan','Bulk import']],
+            None],
             ['Prefix',
              'Register special ip prefixes. Typically reserved prefixes ' +\
              'or prefixes that are not directly connected to monitored ' +\
@@ -234,7 +234,11 @@ def handleSubmit(req, table, action, editid):
     elif table == 'usage':
         output = editUsage(req,selected,action,error)
     elif table == 'service':
-         output = editService(req,selected,action,error)
+        output = editService(req,selected,action,error)
+    elif table == 'prefix':
+        output = editPrefix(req,selected,action,error)
+    elif table == 'vlan':
+        output = editVlan(req,selected,action,error)
     elif table == 'bulk':
         output = bulkImport(req,action)
     return output
@@ -325,7 +329,8 @@ def bulkImport(req,action):
                'service': bulkdefService,
                'vendor': bulkdefVendor,
                'type': bulkdefType,
-               'product': bulkdefProduct}
+               'product': bulkdefProduct,
+               'prefix': bulkdefPrefix}
 
     # direct link to a specific table?
     if action:
@@ -444,20 +449,33 @@ def editRoom(req,selected,action,error=None):
     editList.idcol = 'roomid'
     editList.columns = [('Room Id','roomid',True),
                         ('Location','location',False),
-                        ('Description','descr',False)]
+                        ('Description','descr',False),
+                        ('Optional 1','opt1',False),
+                        ('Optional 2','opt2',False),
+                        ('Optional 3','opt3',False),
+                        ('Optional 4','opt4',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new room '" + req.form['roomid'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,unique='roomid')
+                if not error:
+                    form.status = "Added new room '" + req.form['roomid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,
+                                             idfield,unique='roomid')
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -527,19 +545,29 @@ def editLocation(req,selected,action,error=None):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new location '" + req.form['locationid'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,unique='locationid')
+                if not error:
+                    form.status = "Added new location '" + \
+                                  req.form['locationid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,
+                                             idfield,unique='locationid')
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
         deleteEntry(selected,table,idfield)
-        editList.status = 'Selected locations deleted'
+        editList.status = 'Selected location(s) deleted'
         action = 'list' 
     
     # Decide what to show 
@@ -597,20 +625,32 @@ def editOrg(req,selected,action,error=None):
     editList.idcol = 'orgid'
     editList.columns = [('Org Id','orgid',True),
                         ('Parent','parent',False),
-                        ('Description','descr',False)]
+                        ('Description','descr',False),
+                        ('Optional 1','opt1',False),
+                        ('Optional 2','opt2',False),
+                        ('Optional 3','opt3',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new org '" + req.form['orgid'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,unique='orgid')
+                if not error:
+                    form.status = "Added new org '" + req.form['orgid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,
+                                             idfield,unique='orgid')
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -672,23 +712,38 @@ def editType(req,selected,action,error=None):
     editList.tablename = 'type'
     editList.orderBy = 'typename'
     editList.idcol = 'typeid'
-    editList.columns = [('Type','typename',True),
-                        ('Vendor','vendor',False),
-                        ('Description','descr',False)]
+    editList.columns = [('Vendor','vendor',False),
+                        ('Typename','typename',True),
+                        ('Description','descr',False),
+                        ('Sysobjectid','sysobjectid',False),
+                        ('Frequency','frequency',False),
+                        ('cdp','cdp',False),
+                        ('tftp','tftp',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new type '" + req.form['typename'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,
+                                 unique=['vendorid','typename'])
+                if not error:
+                    form.status = "Added new type '" + \
+                                  req.form['typename'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield,
-                                       staticid=True)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,idfield,
+                                             staticid=True,
+                                             unique=['vendorid','typename'])
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -748,10 +803,10 @@ def editProduct(req,selected,action,error=None):
     editList = selectList()
     editList.table = editTables.editdbProduct
     editList.tablename = 'product'
-    editList.orderBy = 'productno'
+    editList.orderBy = 'vendorid'
     editList.idcol = 'productid'
-    editList.columns = [('Productno','productno',True),
-                        ('Vendor','vendor',False),
+    editList.columns = [('Vendor','vendor',False),
+                        ('Productno','productno',True),
                         ('Description','descr',False)]
 
     # Check if the confirm button has been pressed
@@ -759,15 +814,25 @@ def editProduct(req,selected,action,error=None):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new product '" + \
-                              req.form['productno'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,
+                                 unique=['productno','vendorid'])
+                if not error:
+                    form.status = "Added new product '" + \
+                                  req.form['productno'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield,
-                                       staticid=True)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,idfield,
+                                             staticid=True,
+                                             unique=['productno','vendorid'])
+                if not error:
+                    editList.status = 'Updated'
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -814,8 +879,6 @@ def editProduct(req,selected,action,error=None):
     template.path = path
     return template.respond()
 
-
-
 # Function for handling listing and editing of vendors
 def editVendor(req,selected,action,error=None):
     path = EDITPATH + [('Vendors',BASEPATH+'vendor/list'),('Add',False)]
@@ -838,13 +901,23 @@ def editVendor(req,selected,action,error=None):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new vendor '" + req.form['vendorid'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,unique='vendorid')
+                if not error:
+                    form.status = "Added new vendor '" + \
+                                  req.form['vendorid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,idfield,
+                                             unique='vendorid')
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -890,6 +963,288 @@ def editVendor(req,selected,action,error=None):
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
+
+# Function for adding new prefixes
+def addPrefix(req):
+    error = None
+    data = {'nettype': req.form['nettype'],
+            'orgid': req.form['orgid'],
+            'usageid': req.form['usageid'],
+            'description': req.form['description'],
+            'netaddr': req.form['netaddr'],
+            'netident': req.form['netident'],
+            'vlan': req.form['vlannumber']}
+
+    error = insertPrefix(data)
+    return error
+
+def insertPrefix(data):
+    error = None
+    # Is the entered cidr correct? 
+    # regexp here
+
+    # Add new vlan
+    fields = {'nettype': data['nettype']}
+
+    if len(data['orgid']):
+        fields['orgid'] = data['orgid']
+    if len(data['usageid']):
+        fields['usageid'] = data['usageid']
+    if len(data['description']):
+        fields['description'] = data['description']
+    if len(data['vlan']):
+        fields['vlan'] = data['vlan']
+    if len(data['netident']):
+        fields['netident'] = data['netident']
+
+    vlanid = addEntryFields(fields,
+                            'vlan',
+                            ('vlanid','vlan_vlanid_seq'))
+    # Add new prefix
+    fields = {'netaddr': data['netaddr'],
+              'vlanid': vlanid}
+    try:
+        addEntryFields(fields,'prefix')
+    except psycopg.ProgrammingError:
+        # Invalid cidr
+        error = 'Invalid CIDR'
+        # Remove vlan entry
+        deleteEntry([vlanid],'vlan','vlanid')
+    except psycopg.IntegrityError:
+        # Already existing cidr
+        error = 'Prefix already present in database'
+        deleteEntry([vlanid],'vlan','vlanid')
+    return error
+
+# Function for updating prefixes
+def updatePrefix(req):
+    error = None
+    formdata = {}
+    idlist = []
+    if type(req.form[UPDATE_ENTRY]) is list:
+        # editing several entries
+        for i in range(0,len(req.form[UPDATE_ENTRY])):
+            entry = {}
+            editid = req.form[UPDATE_ENTRY][i]
+            idlist.append(editid)
+            entry['netaddr'] = req.form['netaddr'][i]
+            entry['description'] = req.form['description'][i]
+            entry['netident'] = req.form['netident'][i]
+            entry['orgid'] = req.form['orgid'][i]
+            entry['nettype'] = req.form['nettype'][i]
+            entry['vlan'] = req.form['vlannumber'][i]
+            entry['usageid'] = req.form['usageid'][i]
+            formdata[editid] = entry
+    else:
+        # editing just one entry
+        entry = {}
+        editid = req.form[UPDATE_ENTRY]
+        idlist = [editid]
+        entry['netaddr'] = req.form['netaddr']
+        entry['description'] = req.form['description']
+        entry['netident'] = req.form['netident']
+        entry['orgid'] = req.form['orgid']
+        entry['nettype'] = req.form['nettype']
+        entry['vlan'] = req.form['vlannumber']
+        entry['usageid'] = req.form['usageid']
+        formdata[editid] = entry
+
+    for updateid,data in formdata.items():
+        vlanfields = {'description': data['description'],
+                      'netident': data['netident'],
+                      'orgid': data['orgid'],
+                      'nettype': data['nettype'],
+                      'vlan': data['vlan'],
+                      'usageid': data['usageid']}
+
+        prefixfields = {'netaddr': data['netaddr']}
+      
+        vlanid = editTables.Prefix(updateid).vlan.vlanid 
+        updateEntryFields(vlanfields,'vlan','vlanid',str(vlanid))
+        updateEntryFields(prefixfields,'prefix','prefixid',updateid)
+    return (idlist,error)
+
+# Function for handling listing and editing of prefixes
+def editPrefix(req,selected,action,error=None):
+    path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Add',False)]
+    table = 'prefix'
+    idfield = 'prefixid'
+    templatebox = editboxPrefix()
+    # Form definition
+    form = editForm()
+    form.action = BASEPATH + 'prefix/edit/'
+    # List definition
+    editList = selectList()
+    editList.table = editTables.editdbPrefixVlan
+    editList.tablename = 'prefix'
+    editList.orderBy = 'netaddr'
+    editList.idcol = 'prefixid'
+    editList.where = "vlan.nettype='static' or " + \
+                     "vlan.nettype='reserved' or " + \
+                     "vlan.nettype='scope'"
+    editList.columns = [('Prefix/mask','netaddr',True),
+                        ('Nettype','nettype',False),
+                        ('Org','orgid',False),
+                        ('Netident','netident',False),
+                        ('Usage','usageid',False),
+                        ('Description','description',False),
+                        ('Vlan','vlannumber',False)]
+
+    # Check if the confirm button has been pressed
+    if req.form.has_key(form.cnameConfirm):
+        missing = templatebox.hasMissing(req) 
+        if not missing:
+            if req.form.has_key(ADDNEW_ENTRY):
+                error = addPrefix(req)
+                if not error:
+                    form.status = "Added new prefix '" + \
+                                  req.form['netaddr'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
+            elif req.form.has_key(UPDATE_ENTRY):
+                selected,error = updatePrefix(req)
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
+        else:
+            form.error = "Required field '" + missing + "' missing"    
+    # Confirm delete pressed?
+    if req.form.has_key(selectList.cnameDeleteConfirm):
+        deleteEntry(selected,table,idfield)
+        editList.status = 'Selected prefix(es) deleted'
+        action = 'list' 
+    
+    # Decide what to show 
+    if action == 'edit':
+        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Edit',False)]
+        if len(selected)>1:
+            form.title = 'Edit prefixes'
+        else:
+            form.title = 'Edit prefix'
+        form.textConfirm = 'Update'
+        for s in selected:
+            form.add(editboxPrefix(s))
+        editList = None
+    elif action == 'add':
+        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Add',False)]
+        form.title = 'Add new prefix'
+        form.textConfirm = 'Add'
+        form.add(editboxPrefix())
+        editList = None
+    elif action == 'delete':
+        path = EDITPATH + [('Prefixes',BASEPATH+'prefix/list'),('Delete',False)]
+        editList.isDeleteList = True
+        editList.deleteList = selected
+        editList.title = 'Are you sure you want to delete the selected ' + \
+                         'prefix(es)?'
+        editList.action = BASEPATH + 'prefix/edit/'
+        editList.fill()
+    elif action == 'list':
+        path = EDITPATH + [('Prefixes',False)]
+        editList.title = 'Edit prefixes'
+        editList.action = BASEPATH + 'prefix/edit/'
+        editList.error = error
+        editList.fill()
+        # don't display the form
+        form = None
+
+    nameSpace = {'editList': editList, 'editForm': form}
+    template = editdbTemplate(searchList=[nameSpace])
+    template.path = path
+    return template.respond()
+
+# Function for handling listing and editing of vlans
+def editVlan(req,selected,action,error=None):
+    path = EDITPATH + [('Vlan',BASEPATH+'vlan/list'),('Add',False)]
+    table = 'vlan'
+    idfield = 'vlanid'
+    templatebox = editboxVlan()
+    # Form definition
+    form = editForm()
+    form.action = BASEPATH + 'vlan/edit/'
+    # List definition
+    editList = selectList()
+    editList.table = editTables.editdbVlan
+    editList.tablename = 'vlan'
+    editList.orderBy = ['vlan', 'nettype']
+    editList.idcol = 'vlanid'
+    editList.where = "nettype != 'static' and nettype != 'reserved' " + \
+                     "and nettype != 'scope'"
+    editList.columns = [('Vlan','vlan',True),
+                        ('Netttype','nettype',True),
+                        ('Organisation','orgid',False),
+                        ('Usage','usage',False),
+                        ('Netident','netident',False),
+                        ('Description','description',False),
+                        ('Prefixes',(editTables.Prefix,'vlanid','netaddr'),False)]
+
+    # Check if the confirm button has been pressed
+    if req.form.has_key(form.cnameConfirm):
+        missing = templatebox.hasMissing(req) 
+        if not missing:
+            if req.form.has_key(UPDATE_ENTRY):
+                selected,error = updateEntry(req,templatebox,table,idfield,
+                                             staticid=True)
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
+        else:
+            form.error = "Required field '" + missing + "' missing"    
+    # Confirm delete pressed?
+    if req.form.has_key(selectList.cnameDeleteConfirm):
+        deleteEntry(selected,table,idfield)
+        editList.status = 'Selected prefix(es) deleted'
+        action = 'list' 
+    
+    # Decide what to show 
+    if action == 'edit':
+        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Edit',False)]
+        if len(selected)>1:
+            form.title = 'Edit vlans'
+        else:
+            form.title = 'Edit vlan'
+        form.textConfirm = 'Update'
+        for s in selected:
+            form.add(editboxVlan(s))
+        editList = None
+    elif action == 'add':
+        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Add',False)]
+        form.title = 'Add new vlan'
+        form.textConfirm = 'Add'
+        form.add(editboxVlan())
+        editList = None
+    elif action == 'delete':
+        path = EDITPATH + [('Vlans',BASEPATH+'vlan/list'),('Delete',False)]
+        editList.isDeleteList = True
+        editList.deleteList = selected
+        editList.title = 'Are you sure you want to delete the selected ' + \
+                         'vlan(s)?'
+        editList.action = BASEPATH + 'vlan/edit/'
+        editList.fill()
+    elif action == 'list':
+        path = EDITPATH + [('Vlans',False)]
+        editList.title = 'Edit vlans'
+        editList.action = BASEPATH + 'vlan/edit/'
+        editList.error = error
+        editList.fill()
+        # don't display the form
+        form = None
+
+    nameSpace = {'editList': editList, 'editForm': form}
+    template = editdbTemplate(searchList=[nameSpace])
+    template.path = path
+    return template.respond()
+
+
+
 
 
 def insertNetbox(ip,catid,roomid,orgid,
@@ -1034,16 +1389,16 @@ def updateNetbox(req):
 def addNetbox(req,templateform):
     action = 'add'
 
-    # Is this a server?
-    server = False
-    if req.form['catid'] == 'SRV':
-        server = True
+    subcategories = False
+    if editTables.Subcat.getAllIterator(where="catid='" +req.form['catid'] + \
+                                        "'"):
+        subcategories = True
 
     if req.form.has_key(editForm.CNAME_CONTINUE):
         # User has pressed "Continue"
         subcatlist = None
         function = None
-        if server and req.form.has_key('subcat'):
+        if subcategories and req.form.has_key('subcat'):
             subcatlist = req.form['subcat']
             function = req.form['function']
 
@@ -1058,7 +1413,9 @@ def addNetbox(req,templateform):
                          serial = req.form['serial'],
                          subcatlist = subcatlist,
                          function = function)
-            templateform.status = 'Added new box'
+            templateform.status = "Added new box with ip '" + \
+                                  req.form['ip'] + "'"
+            action = 'list'
         except Exception,e:
             templateform.error = 'Error: ' + repr(type(e)) + ' ' + repr(e.args)
     else:
@@ -1070,15 +1427,17 @@ def addNetbox(req,templateform):
                     # getDeviceId() cannot return more than one id since
                     # the database doesn't support it (serial must be unique)
                     # this must be updated if the db is updated
-                    deviceId = str(box.getDeviceId()[0])
+                    deviceId = box.getDeviceId()
+                    if deviceId:
+                        deviceId = str(deviceId[0])
                     if not deviceId:
                         if box.serial:
                             templateform = editForm(editForm.CNAME_CONTINUE)
                             templateform.action = BASEPATH + 'netbox/edit'
                             templateform.add(editboxNetboxSerial(gotRo=True,
                                              serial=box.serial))
-                            if server:
-                                templateform.add(editboxNetboxServer())
+                            templateform.add(editboxNetboxCategory(\
+                                             req.form['catid']))
                             templateform.add(editboxNetbox(formData=req.form))
                             action = 'serial' 
                         else:
@@ -1109,11 +1468,9 @@ def addNetbox(req,templateform):
             templateform = editForm(editForm.CNAME_CONTINUE)
             templateform.action = BASEPATH + 'netbox/edit'
             templateform.add(editboxNetboxSerial(gotRo=False))
-            if server:
-                templateform.add(editboxNetboxServer())
+            templateform.add(editboxNetboxCategory(req.form['catid']))
             templateform.add(editboxNetbox(formData=req.form))
             action = 'serial' 
-
     return (action,templateform)
 
 
@@ -1132,9 +1489,13 @@ def editNetbox(req,selected,action,error=None):
     editList.tablename = 'netbox'
     editList.orderBy = 'sysname'
     editList.idcol = 'netboxid'
-    editList.columns = [('Sysname','sysname',True),
+    editList.columns = [('Room','roomid',False),
+                        ('Sysname','sysname',True),
                         ('IP','ip',False),
-                        ('Category','catid',False),]
+                        ('Category','catid',False),
+                        ('Organisation','orgid',False),
+                        ('RO','ro',False),
+                        ('RW','rw',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm) or \
@@ -1143,7 +1504,10 @@ def editNetbox(req,selected,action,error=None):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(editForm.CNAME_CONTINUE):
+                # add new netbox
                 (action,form) = addNetbox(req,form)
+                # Ugly, fix:
+                editList.status = form.status
             elif req.form.has_key(ADDNEW_ENTRY):
                 # add new netbox
                 (action,form) = addNetbox(req,form)
@@ -1170,9 +1534,8 @@ def editNetbox(req,selected,action,error=None):
         form.textConfirm = 'Update'
         for s in selected:
             form.add(editboxNetbox(s))
-            # Check if this is a server, if it is then show server fields
-            if editTables.Netbox(s).cat.catid == 'SRV':
-                form.add(editboxNetboxServer(s))
+            catid = editTables.Netbox(s).cat.catid
+            form.add(editboxNetboxCategory(catid,s))
         editList = None
     elif action == 'serial':
         form.title = 'Register box'
@@ -1222,21 +1585,30 @@ def editUsage(req,selected,action,error=None):
     editList.orderBy = 'usageid'
     editList.idcol = 'usageid'
     editList.columns = [('Usage category','usageid',True),
-                        ('Description','descr',True)]
+                        ('Description','descr',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
-                addEntry(req,templatebox,table)
-                form.status = "Added new usage category '" + \
-                              req.form['usageid'] + "'"
-                action = 'add'
+                error = addEntry(req,templatebox,table,unique='usageid')
+                if not error:
+                    form.status = "Added new usage category '" + \
+                                  req.form['usageid'] + "'"
+                    action = 'list'
+                else:
+                    form.error = error
+                    action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
-                selected = updateEntry(req,templatebox,table,idfield)
-                form.status = 'Updated'
-                action = 'edit'
+                selected,error = updateEntry(req,templatebox,table,idfield,
+                                             unique='usageid')
+                if not error:
+                    form.status = 'Updated'
+                    action = 'edit'
+                else:
+                    form.error = error
+                    action = 'edit'
         else:
             form.error = "Required field '" + missing + "' missing"    
     # Confirm delete pressed?
@@ -1317,6 +1689,7 @@ def addService(req,form):
                               'value': req.form[property]}
                     addEntryFields(fields,
                                    'serviceproperty')
+                    action = 'list'
             if properties.has_key('optargs'):
                 for property in properties['optargs']:
                     # optargs are optional, must check if they are present
@@ -1326,6 +1699,7 @@ def addService(req,form):
                                   'value': req.form[property]}
                         addEntryFields(fields,
                                        'serviceproperty')
+                        action = 'list'
     else:
         checker = req.form['handler']
         form = editForm(editForm.CNAME_CONTINUE)
@@ -1353,7 +1727,7 @@ def editService(req,selected,action,error=None):
     editList.tablename = 'service'
     editList.orderBy = 'serviceid'
     editList.idcol = 'serviceid'
-    editList.columns = [('Netbox','netbox',True),
+    editList.columns = [('Server','netbox',True),
                         ('Handler','handler',False),
                         ('Version','version',False)]
 
@@ -1364,7 +1738,6 @@ def editService(req,selected,action,error=None):
         if not missing:
             if req.form.has_key(form.CNAME_CONTINUE):
                 action,form = addService(req,form)
-                editList = None
             elif req.form.has_key(ADDNEW_ENTRY):
                 checker = req.form['handler']
                 form = editForm(editForm.CNAME_CONTINUE)
@@ -1458,9 +1831,12 @@ class inputText:
     type = 'text'
     name = None
     value = ''
-    def __init__(self,value='',size=22):
+    maxlength = None
+    def __init__(self,value='',size=22,maxlength=None):
         self.value = value
         self.size = str(size)
+        if maxlength:
+            self.maxlength = str(maxlength)
 
 class inputSelect:
     type = 'select'
@@ -1656,7 +2032,7 @@ class editboxLocation(editbox):
     def __init__(self,editId=None):
         # Field definitions {field name: [input object, required]}
         f = {'locationid': [inputText(),True],
-             'descr': [inputText(),False]}
+             'descr': [inputText(),True]}
         self.fields = f
         self.setControlNames()
 
@@ -1674,7 +2050,7 @@ class editboxOrg(editbox):
         for option in self.table.getOptions():
             o.append(option)
 
-        f = {'orgid': [inputText(),True],
+        f = {'orgid': [inputText(maxlength=10),True],
              'parent': [inputSelect(options=o),False],
              'descr': [inputText(),False],
              'opt1': [inputText(),False],
@@ -1732,7 +2108,7 @@ class editboxVendor(editbox):
             
     def __init__(self,editId=None):
         # Field definitions {field name: [input object, required]}
-        f = {'vendorid': [inputText(),True]}
+        f = {'vendorid': [inputText(maxlength=15),True]}
         self.fields = f
         self.setControlNames()
 
@@ -1754,6 +2130,76 @@ class editboxUsage(editbox):
         if editId:
             self.editId = editId
             self.fill()
+
+class editboxPrefix(editbox):
+    type = 'prefix'
+    table = editTables.editdbPrefixVlan
+            
+    def __init__(self,editId=None):
+        nettypes = [('static','static'),
+                    ('reserved','reserved'),
+                    ('scope','scope')]
+
+        orgs = [('','No organisation')]
+        for option in editTables.editdbOrg.getOptions():
+            orgs.append(option)
+
+        usageids = [('','No usage')]
+        for usage in editTables.Usage.getAllIterator():
+            usageids.append((usage.usageid,usage.usageid + ' (' + \
+                            usage.descr + ')'))
+
+        # Field definitions {field name: [input object, required]}
+        f = {'netaddr': [inputText(),True],
+             'nettype': [inputSelect(options=nettypes),True],
+             'orgid': [inputSelect(options=orgs),False],
+             'netident': [inputText(),False],
+             'description': [inputText(),False],
+             'vlannumber': [inputText(size=5),False],
+             'usageid': [inputSelect(options=usageids),False]}
+             
+        self.fields = f
+        self.setControlNames()
+
+        if editId:
+            self.editId = editId
+            self.fill() 
+
+class editboxVlan(editbox):
+    type = 'vlan'
+    table = editTables.editdbVlan
+            
+    def __init__(self,editId=None):
+        nettypes = [('core','core'),
+                    ('elink','elink'),
+                    ('lan','lan'),
+                    ('link','link'),
+                    ('loopback','loopback'),
+                    ('private','private')]
+
+        orgs = [('','No organisation')]
+        for option in editTables.editdbOrg.getOptions():
+            orgs.append(option)
+
+        usageids = [('','No usage')]
+        for usage in editTables.Usage.getAllIterator():
+            usageids.append((usage.usageid,usage.usageid + ' (' + \
+                            usage.descr + ')'))
+
+        # Field definitions {field name: [input object, required]}
+        f = {'nettype': [inputSelect(options=nettypes),True],
+             'orgid': [inputSelect(options=orgs),False],
+             'netident': [inputText(),False],
+             'description': [inputText(),False],
+             'vlan': [inputText(size=5),False],
+             'usageid': [inputSelect(options=usageids),False]}
+             
+        self.fields = f
+        self.setControlNames()
+
+        if editId:
+            self.editId = editId
+            self.fill() 
 
 class editboxNetboxSerial(editbox):
     type = 'netboxserial'
@@ -1780,49 +2226,54 @@ class editboxNetboxSerial(editbox):
         self.fields = {'serial': [inputText(value=serial),True]}
         self.setControlNames()
 
-class editboxNetboxServer(editbox):
-    type = 'netboxserver'
+class editboxNetboxCategory(editbox):
+    type = 'netboxcategory'
     editId = None
 
-    def __init__(self,editId=None):
+    def __init__(self,catid,editId=None):
+        subcategories = False
+        if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
+            subcategories = True
+
         if editId:
             self.editId = editId
             self.help = None
         else:
             # Only show help if we're adding a new box
-            self.help = 'You have selected category \'server\'. ' +\
-                        'For boxes that are servers, you can select one or ' +\
-                        'more subcategories, and enter a description of the ' +\
-                        'server\'s function.'
+            if subcategories:
+                self.help = 'You can select one or more subcategories for '+\
+                            'boxes with the selected category. You can also '+\
+                            'add an optional description of the function of '+\
+                            'this box.'
+            else:
+                self.help = 'You can add an optional description of the ' + \
+                            'function of this box.'
 
-        o = [('AD','AD'),
-             ('ADC','ADC'),
-             ('BACKUP','BACKUP'),
-             ('DNS','DNS'),
-             ('FS','FS'),
-             ('LDAP','LDAP'),
-             ('MAIL','MAIL'),
-             ('NOTES','NOTES'),
-             ('STORE','STORE'),
-             ('TEST','TEST'),
-             ('UNIX','UNIX'),
-             ('UNIX-STUD','UNIX-STUD'),
-             ('WEB','WEB'),
-             ('WIN','WIN'),
-             ('WIN-STUD','WIN-STUD')]
-
+        o = []
+        for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
+                                                       catid + "'"):
+            o.append((subcat.subcatid,subcat.subcatid + ' (' + \
+                      subcat.descr + ')'))
         if editId:
             # tag fieldnames with the id
-            self.fields = {editId + 'subcat': [inputMultipleSelect(options=o),
-                                              False],
-                           editId + 'function': [inputText(size=40),False]}
+            if subcategories:
+                self.fields = {editId + 'subcat': \
+                              [inputMultipleSelect(options=o),False],
+                              editId + 'function': [inputText(size=40),False]}
+            else:
+                self.fields = {editId + 'function': [inputText(size=40),False]}
         else:
-            self.fields = {'subcat': [inputMultipleSelect(options=o),False],
-                           'function': [inputText(size=40),False]}
+            if subcategories:
+                self.fields = {'subcat': [inputMultipleSelect(options=o),False],
+                               'function': [inputText(size=40),False]}
+            else:
+                self.fields = {'function': [inputText(size=40),False]}
+ 
         self.setControlNames()
 
         if editId:
-            # The editboxNetbox has UPDATE_ENTRY, so ignore this
+            # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
+            # don't need to repeat it here 
             self.boxName = IGNORE_BOX
 
             # Get selected netboxcategories
@@ -1832,7 +2283,9 @@ class editboxNetboxServer(editbox):
             selected = []
             for s in res:
                selected.append(s[0])
-            self.fields[editId+'subcat'][0].value = selected
+               if subcategories:
+                   # A subcat field is present for this box with this cat
+                   self.fields[editId+'subcat'][0].value = selected
 
             # Get var 'function' from netboxinfo
             sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
@@ -2067,7 +2520,7 @@ class bulkdefProduct:
     num_fields = 4
 
     process = True
-    syntax = '#vendorid:productno:sysoid:description'
+    syntax = '#vendorid:productno:description'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
@@ -2099,16 +2552,16 @@ class bulkdefNetbox:
     num_fields = 7
 
     process = True
-    syntax = '#ip:serial:roomid:orgid:catid:ro:rw'
+    syntax = '#roomid:ip:orgid:catid:ro:rw:serial'
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('ip',0,True,True),
-              ('serial',0,False,True),
-              ('roomid',0,True,True),
+    fields = [('roomid',0,True,True),
+              ('ip',0,True,True),
               ('orgid',10,True,True),
               ('catid',8,True,True),
               ('ro',0,False,True),
-              ('rw',0,False,True)]
+              ('rw',0,False,True),
+              ('serial',0,True,True)]
 
     def checkValidity(cls,field,data):
         status = True
@@ -2177,6 +2630,30 @@ class bulkdefService:
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
+class bulkdefPrefix:
+    tablename = 'prefix'
+    table = editTables.Prefix
+    uniqueField = 'prefixid'
+    num_fields = 7
+
+    process = False
+    syntax = '#prefix/mask:nettype:org:netident:usage:description'
+
+    # list of (fieldname,max length,not null,use field)
+    fields = [('netaddr',0,True,True),
+              ('nettype',0,False,True),
+              ('org',0,False,True),
+              ('netident',0,False,True),
+              ('usage',0,False,True),
+              ('description',0,False,True)]
+
+    def checkValidity(cls,field,data):
+        status = True
+        remark = None
+        # check if cidr is valid here
+        return (status,remark)
+    checkValidity = classmethod(checkValidity)
+
 
 # Class representing a list of entries, used by the template
 class selectList:
@@ -2197,6 +2674,8 @@ class selectList:
     # Hidden id control
     cnameHiddenId = 'hidden_id'
     cnameHiddenData = 'hidden_data'
+    # List rows where
+    where = None
 
     def __init__(self):
         # bulk confirm list?
@@ -2237,7 +2716,8 @@ class selectList:
         # fill rows
         entries = []
         if not self.isDeleteList:
-            entries = self.table.getAllIterator(orderBy=self.orderBy)
+            entries = self.table.getAllIterator(orderBy=self.orderBy,
+                                                where=self.where)
         else:
             for id in self.deleteList:
                 entries.append(self.table(id))
@@ -2251,8 +2731,16 @@ class selectList:
                     eid = id
                     if not type(eid) is str:
                         eid = str(id)
-                    row.append((getattr(entry,column),BASEPATH + self.tablename + '/edit/' + eid))
+                    row.append(([getattr(entry,column)],BASEPATH + self.tablename + '/edit/' + eid))
                 else:
-                    row.append((getattr(entry,column),None))
+                    text = []
+                    if type(column) is str:
+                        text = [getattr(entry,column)]
+                    else:
+                        sectable,secidfield,sectextfield = column
+                        iter = sectable.getAllIterator(where=secidfield + \
+                                        "='" + eid + "'")
+                        for i in iter:
+                            text.append(getattr(i,sectextfield)) 
+                    row.append((text,None))
             self.rows.append((id,row))
-

@@ -78,9 +78,19 @@ $showBody($body)
 #if $body.showHelp
             <td style="$rowstyle[1]">$row[1]</td>
 #end if
+#if $row[2]
+## Add
             <td style="$rowstyle[2]"><a href="$row[2][0]">$row[2][1]</a></td>
+#else
+            <td>&nbsp;</td>
+#end if
             <td style="$rowstyle[3]"><a href="$row[3][0]">$row[3][1]</a></td>
+#if $row[4]
+## Bulk import
             <td style="$rowstyle[4]"><a href="$row[4][0]">$row[4][1]</a></td>
+#else
+            <td>&nbsp;</td>
+#end if
         </tr>
 #end for
     </table>
@@ -131,9 +141,13 @@ $showBody($body)
 #end if
 #for $entry,$link in $row
 #if $link
-                <TD><A href="$link">$entry</A>&nbsp;&nbsp;</TD>
+                <TD><A href="$link">$entry[0]</A>&nbsp;&nbsp;</TD>
 #else
-                <TD>$entry&nbsp;&nbsp;</TD>
+                <TD>
+#for $line in $entry
+                    $line&nbsp;&nbsp;<BR>
+#end for
+                </TD>
 #end if
 #end for
                 <TD>&nbsp;</TD> ## last column is end gfx (fix)
@@ -196,8 +210,8 @@ $showBody($body)
             $netbox($editbox)
 #elif $editbox.type == 'netboxserial'
             $netboxserial($editbox)
-#elif $editbox.type == 'netboxserver'
-            $netboxserver($editbox)
+#elif $editbox.type == 'netboxcategory'
+            $netboxcategory($editbox)
 #elif $editbox.type == 'netboxproduct'
             $netboxproduct($editbox)
 #elif $editbox.type == 'bulk'
@@ -210,6 +224,10 @@ $showBody($body)
             $serviceproperties($editbox)
 #elif $editbox.type == 'product'
             $product($editbox)
+#elif $editbox.type == 'prefix'
+            $prefix($editbox)
+#elif $editbox.type == 'vlan'
+            $vlan($editbox)
 #end if
         </P>
 #end for
@@ -272,7 +290,7 @@ $showBody($body)
 #end def
 
 ## Template function for server subcat and function
-#def netboxserver($editbox)
+#def netboxcategory($editbox)
 #set $fields = $editbox.fields
 #set $editId = ''
 #if $editbox.editId
@@ -280,12 +298,14 @@ $showBody($body)
 #end if
     <P>$editbox.help</P>
     <TABLE class="header-active">
+#if $fields.has_key($editId+'subcat')
         <TR>
             <TH>Subcategory</TH>
         </TR>
         <TR>
             <TD>$input($fields[$editId+'subcat'],'width: 100%;')</TD>
         </TR>
+#end if
         <TR>
             <TH>Function</TH>
         </TR>
@@ -344,10 +364,10 @@ $showBody($body)
             <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
         <TR>
+            <TH>Optional 1</TH>
             <TH>Optional 2</TH>
             <TH>Optional 3</TH>
             <TH>Optional 4</TH>
-            <TH>Optional 5</TH>
         </TR>
         <TR>
             <TD>$input($fields['opt1'])</TD>
@@ -409,7 +429,7 @@ $showBody($body)
 #set $fields = $editbox.fields
     <TABLE class="header-active" width="60%">
         <TR>
-            <TH colspan="3" width="30%">Name</TH>
+            <TH colspan="3" width="30%">Typename</TH>
             <TH>Description</TH>
         </TR>
         <TR>
@@ -539,6 +559,69 @@ $input($fields['productid'])
 #end if
 #end def
 
+## Template function for prefix editing
+#def $prefix($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH colspan="2">Prefix/mask (cidr)</TH>
+            <TH>Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['netaddr'])</TD>
+            <TD>$input($fields['description'],style='width: 100%;')</TD>
+        </TR>
+        <TR>
+            <TH colspan="2">Netident</TH>
+            <TH>Organisation</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['netident'])</TD>
+            <TD>$input($fields['orgid'])</TD>
+        </TR>
+        <TR>
+            <TH>Nettype</TH>
+            <TH>Vlan</TH>
+            <TH>Usage</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['nettype'])</TD>
+            <TD>$input($fields['vlannumber'])</TD>
+            <TD>$input($fields['usageid'],style='width: 100%')</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for vlan editing
+#def $vlan($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH colspan="2">Netident</TH>
+            <TH>Organisation</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['netident'])</TD>
+            <TD>$input($fields['orgid'])</TD>
+        </TR>
+        <TR>
+            <TH>Nettype</TH>
+            <TH>Vlan</TH>
+            <TH>Usage</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['nettype'])</TD>
+            <TD>$input($fields['vlan'])</TD>
+            <TD>$input($fields['usageid'],style='width: 100%')</TD>
+        </TR>
+        <TR>
+            <TH colspan="3">Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="3">$input($fields['description'],style='width: 100%;')</TD>
+        </TR>
+    </TABLE>
+#end def
 
 
 ## Template function for bulk import
@@ -569,7 +652,11 @@ $input($fields['productid'])
 #def $input($control,$style='')
 #set $control = $control[0]
 #if $control.type == 'text'
+#if $control.maxlength
+<INPUT type="text" style="$style" size="$control.size" maxlength="$control.maxlength" name="$control.name" value="$control.value">
+#else
 <INPUT type="text" style="$style" size="$control.size" name="$control.name" value="$control.value">
+#end if
 #elif $control.type == 'select'
 <SELECT name="$control.name" style="$style" $control.attribs>
 #for $id,$option in $control.options
