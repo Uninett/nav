@@ -1,11 +1,8 @@
 """
 $Author: magnun $
-$Id: DEQueue.py,v 1.1 2002/06/04 09:39:21 magnun Exp $
+$Id: DEQueue.py,v 1.2 2003/01/02 22:01:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/DEQueue.py,v $
-
-
 """
-
 
 class DEQueueEmptyError(LookupError):
     pass

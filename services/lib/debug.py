@@ -1,5 +1,5 @@
 """
-$Id: debug.py,v 1.3 2002/08/26 20:55:02 magnun Exp $
+$Id: debug.py,v 1.4 2003/01/02 22:01:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/debug.py,v $
 """
 
@@ -29,6 +29,6 @@ class _debug:
 
     def log(self, msg, level=5):
         if level <= self.debuglevel:
-            print "%s %-8s %s" % ((time.strftime('%H:%M:%S ', time.localtime()), loglevels[level], msg.strip()))
+            print "%s %-8s %s" % ((time.strftime('%Y-%m-%d %H:%M:%S ', time.localtime()), loglevels[level], msg.strip()))
             if not sys.stdout.isatty():
                 sys.stdout.flush()
