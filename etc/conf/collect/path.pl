@@ -2,5 +2,10 @@
 
 use strict;
 
-my $collect = "/usr/local/nav/navme/cron/collect";
-my $lib = "/usr/local/nav/navme/lib";
+sub collect{
+    return "/usr/local/nav/navme/cron/collect";
+}
+
+sub lib{
+    return "/usr/local/nav/navme/lib";
+}

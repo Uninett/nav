@@ -17,6 +17,7 @@ use Pg;
 use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
+my $lib = &lib();
 require "$lib/database.pl";
 
 my %boks = ();

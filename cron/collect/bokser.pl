@@ -5,9 +5,10 @@ use SNMP_util;
 use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
-require "$vei/database.pl";
-require "$vei/snmplib.pl";
-require "$vei/fil.pl";
+my $lib = &lib();
+require "$lib/database.pl";
+require "$lib/snmplib.pl";
+require "$lib/fil.pl";
 
 my $conn = &db_connect("manage","navall","uka97urgf");
 
