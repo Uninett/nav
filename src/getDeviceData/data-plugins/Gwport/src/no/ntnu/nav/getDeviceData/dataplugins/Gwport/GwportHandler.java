@@ -189,6 +189,7 @@ public class GwportHandler implements DataHandler {
 
 			// module, gwport, prefix, vlan
 			Map moduleMap = new HashMap();
+			Map vlanDbMap = new HashMap();
 			rs = Database.query("SELECT device.deviceid,serial,hw_ver,sw_ver,moduleid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,prefix.prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,vlan.orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) JOIN netbox USING(netboxid) WHERE netboxid=" + nb.getNetboxid() + " ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
@@ -364,7 +365,7 @@ public class GwportHandler implements DataHandler {
 							};
 							prefixid = Database.insert("prefix", ins, null);
 							p.setPrefixid(prefixid);
-							prefixMap.put(p.getCidr(), p);
+							prefixDbMap.put(p.getCidr(), p);
 
 							String[] ins2 = {
 								"gwportid", gwportid,
@@ -380,7 +381,7 @@ public class GwportHandler implements DataHandler {
 							
 							String[] ins = {
 								"gwportid", gwportid,
-								"prefixid", ((Prefix)prefixMap.get(p.getCidr())).getPrefixidS(),
+								"prefixid", ((Prefix)prefixDbMap.get(p.getCidr())).getPrefixidS(),
 								"gwip", gp.getGwip(),
 								"hsrp", gp.getHsrp()?"t":"f"
 							};
@@ -389,7 +390,7 @@ public class GwportHandler implements DataHandler {
 							// oldgp == null -> we must update prefix/gwportprefix
 							// oldgp != null -> only update prefix/gwportprefix if changed
 							oldgp = (Gwportprefix)gwpDbMap.get(gp.getGwip());
-							oldp = (Prefix)prefixDbMap.get(p.getCidr());
+							Prefix oldp = (Prefix)prefixDbMap.get(p.getCidr());
 
 							if (!p.equalsPrefix(oldp)) {
 								// Update prefix
