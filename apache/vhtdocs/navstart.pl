@@ -2,10 +2,10 @@
 
 $menybrede = "100%";
 
-$header     = './header.html';
-$meny       = './meny.html';
-$kontakt    = './kontakt.html';
-$bruker     = './vhtdocs/bruker.html';
+$header     = '../vhtdocs/header.html';
+$meny       = '../vhtdocs/meny.html';
+$kontakt    = '../vhtdocs/kontakt.html';
+$bruker     = '../vhtdocs/bruker.html';
 $htpasswd   = '../htpasswd/.htpasswd-sroot';
 
 open (HTPASSWD, $htpasswd) || die "Får ikke åpnet $htpasswd";
