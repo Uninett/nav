@@ -438,8 +438,9 @@ public class NetboxInfo {
 	private static ResultSet getVals(String netboxid, String key, String var) throws SQLException {
 		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+key+"'";
 		String v = (var == null) ? "" : " AND var = '" + var + "'";
+		String v2 = (var == null) ? ", var" : "";
 
-		String q = "SELECT netboxinfoid, val FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + v + " ORDER BY val";
+		String q = "SELECT netboxinfoid, val" + v2 + " FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + v + " ORDER BY val";
 		return Database.query(q);
 	}
 
