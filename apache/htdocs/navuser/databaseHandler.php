@@ -373,6 +373,95 @@ ORDER BY " . $sorts[$sort];
   }
 
 
+
+  // Lister ut alle mulige filtermatch felter.
+  function listMatchField($sort) {
+    
+    $matcher = NULL;
+    
+    $sorts = array (
+        'name'
+    );
+
+    $querystring = "SELECT matchfieldid, name, descr, valuehelp " .
+    	"FROM MatchField " .
+    	"ORDER BY " . $sorts[$sort];
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+        $tot = pg_numrows($query); $row = 0;
+
+        while ( $row < $tot) {
+            $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+            $matcher[$row][0] = $data["matchfieldid"];
+            $matcher[$row][1] = $data["name"];
+            $matcher[$row][2] = $data["descr"];
+            $matcher[$row][3] = $data["valuehelp"];
+            $row++;
+        }
+        
+    }  else {
+        $error = new Error(2);
+        $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+
+    
+    return $matcher;
+  }
+
+  // Hent ut info om et matchfield felt.
+  function matchFieldInfo($mid) {
+    $mf = NULL;
+
+    $querystring = "SELECT name, descr, valuehelp, valueid, valuename, 
+valuecategory, valuesort, listlimit, showlist 
+FROM MatchField 
+WHERE matchfieldid = " . addslashes($mid) ;
+
+    if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
+        $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+	$mf[0] = $data["name"];
+	$mf[1] = $data["descr"];
+	$mf[2] = $data["valuehelp"];
+	$mf[3] = $data["valueid"];
+	$mf[4] = $data["valuename"];
+	$mf[5] = $data["valuecategory"];
+	$mf[6] = $data["valuesort"];
+	$mf[7] = $data["listlimit"];
+	$mf[8] = $data["showlist"];
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    $querystring = "SELECT operatorid " .
+    	"FROM Operator " .
+        "WHERE matchfieldid = " . addslashes($mid) . " " .
+    	"ORDER BY operatorid ";
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+        $tot = pg_numrows($query); $row = 0;
+
+        while ( $row < $tot) {
+            $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+            $operators[] = $data["operatorid"];
+            $row++;
+        }
+        
+    }  else {
+        $error = new Error(2);
+        $bruker{'errmsg'}= "Feil med datbasespørring.";
+
+    }    
+    
+    $mf[9] = $operators;
+
+    return $mf;
+  }
+
+
+
+
+
   // Liste alle profilene til en bruker
   function listProfiler($uid, $sort) {
     
@@ -1116,11 +1205,13 @@ ORDER BY prioritet";
 		'matchtype', 
 		'verdi');
 
-    $querystring = "SELECT id, matchfelt, matchtype, verdi 
-    FROM FilterMatch 
-    WHERE utstyrfilterid = " . addslashes($fid) . " ORDER BY " . $sorts[$sort];
+    $querystring = "SELECT id, MatchField.name, matchtype, verdi 
+    FROM FilterMatch, MatchField 
+    WHERE utstyrfilterid = " . addslashes($fid) . 
+    " AND FilterMatch.matchfelt = MatchField.matchfieldid" .
+    " ORDER BY " . $sorts[$sort];
 
-//	print "<p>$querystring";
+    //print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
@@ -1128,7 +1219,7 @@ ORDER BY prioritet";
       while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$match[$row][0] = $data["id"]; 
-		$match[$row][1] = $data["matchfelt"];
+		$match[$row][1] = $data["name"];
 		$match[$row][2] = $data["matchtype"];
 		$match[$row][3] = $data["verdi"];
 		$row++;
@@ -1660,7 +1751,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       addslashes($matchtype) .", " . addslashes($fid) . ", '" . 
       addslashes($verdi) . "' )";
     
-//    print "<p>query: $querystring";
+    // echo "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
       
       // Henter ut object id`n til raden.
@@ -2014,158 +2105,56 @@ class DBHK {
     $this->connection = $connection;
   }
   
-  
-  function listSted($sort) {
-    
-    $steder = NULL;
-    
-    $sorts = array ('brukernavn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
-		    
-    $querystring = "SELECT locationid, org, descr FROM location ORDER BY org, descr";
-
-    if ( $query = @pg_exec($this->connection, $querystring) ) {
-		$tot = pg_numrows($query); $row = 0;
-
-	while ( $row < $tot) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$steder[$row][0] = utf8_encode($data["locationid"]);
-		$steder[$row][1] = utf8_encode($data["org"] . " " . $data["descr"]);
-		$row++;
-      } 
-    }  else {
-      $error = new Error(2);
-    }
-    
-    return $steder;
+  function get_table($streng) {
+    $r = split('\.', $streng, 2);
+    return addslashes($r[0]);
   }
   
+  function get_field($streng) {
+    $r = split('\.', $streng, 2);
+    return addslashes($r[1]);  
+  }
   
-  
-  function listOmraade($sort) {
-    
-    $steder = NULL;
-    
-    $sorts = array ('brukernavn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
-		    
-    $querystring = "SELECT areaid, descr FROM area ORDER BY descr";
+  function listVerdier($valueid, $valuename, $valuecategory, $valuesort) {
 
-    if ( $query = @pg_exec($this->connection, $querystring) ) {
-		$tot = pg_numrows($query); $row = 0;
-
-	while ( $row < $tot) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$steder[$row][0] = utf8_encode($data["areaid"]);
-		$steder[$row][1] = utf8_encode($data["descr"]);
-		$row++;
-      } 
-    }  else {
-      $error = new Error(2);
+    $verdier = null;
+    $vtabell = $this->get_table($valueid);
+    $vid = $this->get_field($valueid);
+    $vname = $this->get_field($valuename);
+    $vsort = $this->get_field($valuesort);
+    $vcat = $this->get_field($valuecategory);
+    if ($valuecategory != "") {
+        $vc = ", " . $vcat;
+    } else {
+        $vc = "";
     }
-    
-    return $steder;
-  }  
-  
-  
-  function listType($sort) {
-    
-    $typer = NULL;
-    
-    $sorts = array ('brukernavn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
-		    
-    $querystring = "SELECT typeid, descr FROM type ORDER BY descr";
+    $querystring = "SELECT $vid, $vname $vc " . 
+    	"FROM $vtabell " .
+    	"ORDER BY $vsort";
+
+    //echo "<p>query: " . $querystring;
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
-		$tot = pg_numrows($query); $row = 0;
-
-	while ( $row < $tot) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$typer[$row][0] = utf8_encode( $data["typeid"] );
-		$typer[$row][1] = utf8_encode( $data["descr"] );
-		$row++;
-      } 
-    }  else {
-      $error = new Error(2);
-    }
-    
-    return $typer;
-  }    
-  
-  
- function listTypegruppe($sort) {
-    
-    $typer = NULL;
-    
-    $sorts = array ('brukernavn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
-		    
-    $querystring = "SELECT typegroupid, descr FROM typegroup ORDER BY descr";
-
-    if ( $query = @pg_exec($this->connection, $querystring) ) {
-		$tot = pg_numrows($query); $row = 0;
-
-	while ( $row < $tot) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$typer[$row][0] = $data["typegroupid"];
-		$typer[$row][1] = $data["descr"];
-		$row++;
-      } 
-    }  else {
-      $error = new Error(2);
-    }
-    
-    return $typer;
-  }      
-  
-  
-function listEventtypes($sort) {
-
-    $typer = NULL;
-
-    $sorts = array ('brukernavn',
-                    'navn',
-                    'admin, navn',
-                    'sms, navn',
-                    'pa, navn',
-                    'aa, navn');
-
-    $querystring = "SELECT eventtypeid FROM eventtype ORDER BY
-    eventtypeid";
-
-    if ( $query = @pg_exec($this->connection, $querystring) ) {
-                $tot = pg_numrows($query); $row = 0;
+        $tot = pg_numrows($query); $row = 0;
 
         while ( $row < $tot) {
-                $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-                $typer[$row][0] = $data["eventtypeid"];
-                $row++;
-      }
+            $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+            $verdier[$data[$vcat]][$row][0] = $data[$vid];
+            $verdier[$data[$vcat]][$row][1] = $data[$vname];
+            $row++;
+        }
+        
     }  else {
-      $error = new Error(2);
+        $error = new Error(2);
+        $bruker{'errmsg'}= "Feil med datbasespørring.";
     }
 
-    return $typer;
-  }  
+    
+    return $verdier;  
   
-  
+  }
+
+
 }
 
 

@@ -3,7 +3,6 @@ require("session.php");
 require("databaseHandler.php");
 require("dbinit.php");
 
-
 require("auth.php");
 
 header("Content-Type: text/html; charset=utf-8");
@@ -187,19 +186,6 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 </table>
 
 
-<!--
-<table class="meny">
-<tr class="menyHead"><td>
-<p>Applett-ting
-</td></tr>
-
-<tr><td>
-<p><a href="/">Start Applet</a>
-</td></tr>
-</table>
--->
-
-
 <table class="meny">
 <tr class="menyHead"><td>
 <p><?php echo gettext('Innlogging'); ?>
@@ -235,6 +221,7 @@ if ( $login) {
 
 
 
+
 <table class="meny">
 <tr class="menyHead"><td>
 <p><?php
@@ -242,6 +229,8 @@ if ( $login) {
 ?>
 </td></tr>
 
+
+<!-- ************* SPRÅK HÅNDTERING ************* -->
 <tr><td>
 <?php
 
@@ -278,6 +267,9 @@ if ($langset) {
 
 ?>
 </td></tr>
+<!-- **************** ***************** -->
+
+
 </table>
 
 
