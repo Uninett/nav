@@ -7,14 +7,12 @@ import uk.co.westhawk.snmp.stack.*;
 import uk.co.westhawk.snmp.pdu.*;
 
 /**
- * <p>
- * Class for quering devices via SNMP. The aim of this class
- * is to provide a very simple API for doing basic SNMP walking.
- * </p>
+ * <p> Class for quering devices via SNMP. The aim of this class is to
+ * provide a very simple API for doing basic SNMP walking.  </p>
  *
- * <p>
- * To use first call setBaseOid(), setCs_ro() and setHost() methods (or use setParams() ), then
- * call the getAll() (or getNext() ) method to retrieve values.
+ * <p> To use first call setBaseOid(), setCs_ro() and setHost()
+ * methods (or use setParams() ), then call the getAll() (or getNext()
+ * ) method to retrieve values.  </p>
  * 
  */
 public class SimpleSnmp
@@ -79,9 +77,11 @@ public class SimpleSnmp
 	*/
 
 	/**
-	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree.
+	 * <p> Snmpwalk the given OID and return a maximum of cnt entries
+	 * from the subtree.  </p>
 	 *
-	 * Note: the baseOid prefix is removed from the returned OIDs.
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -95,10 +95,11 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree.
+	 * <p> Snmpwalk the given OID and return a maximum of cnt entries
+	 * from the subtree.  </p>
 	 *
-	 * Note: the baseOid prefix will be removed from the returned OIDs if they are not
-	 * equal (getNext is used).
+	 * <p>Note: the baseOid prefix will be removed from the
+	 * returned OIDs if they are not equal (getNext is used).  </p>
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -113,9 +114,11 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree as a Map.
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map.  </p>
 	 *
-	 * Note: the baseOid prefix is removed from the returned OIDs.
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
 	 *
 	 * @return a Map which maps the OIDs to their corresponding values
 	 * @throws TimeoutException if the hosts times out
@@ -132,9 +135,35 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree.
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map; the OIDs are mapped to a {@link java.util.List List} of
+	 * values.  </p>
 	 *
-	 * Note: the baseOid prefix is removed from the returned OIDs.
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
+	 *
+	 * @return a Map which maps the OIDs to a List of corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMapList() throws TimeoutException
+	{
+		List l = getAll();
+		Map m = new HashMap();
+		for (Iterator it = l.iterator(); it.hasNext();) {
+			String[] s = (String[])it.next();
+
+			List vl;
+			if ( (vl=(List)m.get(s[0])) == null) m.put(s[0], vl=new ArrayList());
+			vl.add(s[1]);
+		}
+		return m;
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
 	 *
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
@@ -145,9 +174,10 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree.
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
-	 * Note: the baseOid prefix is removed from the returned OIDs.
+	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
+	 * </p>
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @return an ArrayList containing String arrays of two elements; OID and value
@@ -159,10 +189,10 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree.
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
-	 * Note: the baseOid prefix will be removed from the returned OIDs if they are not
-	 * equal (getNext is used).
+	 * <p> Note: the baseOid prefix will be removed from the returned
+	 * OIDs if they are not equal (getNext is used).  </p>
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
@@ -289,7 +319,6 @@ public class SimpleSnmp
 	public void finalize()
 	{
 		if (context != null) {
-			outl("Context distroyed by finalize.");
 			context.destroy();
 			context = null;
 		}
