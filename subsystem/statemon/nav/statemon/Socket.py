@@ -33,7 +33,14 @@ from errno import errorcode
 class Timeout(Exception):
 	pass
 
-class Socket:
+class socketwrapper(socket.socket):
+	def __init__(self, timeout):
+		socket.socket.__init__(self, socket.AF_INET, socket.SOCK_STREAM)
+		self.settimeout(timeout)
+	
+
+
+class timeoutsocket:
 	def __init__(self,timeout):
 		self.timeout = timeout
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -183,3 +190,7 @@ class TimeoutFile:
 
     def flush(self):  pass
 	    
+if hasattr(socket, "setdefaulttimeout"):
+	Socket = socketwrapper
+else:
+	Socket = timeoutsocket

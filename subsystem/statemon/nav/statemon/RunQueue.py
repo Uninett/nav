@@ -183,7 +183,7 @@ class _RunQueue:
                 return r
             # Wait to execute priority checker, break if new checkers arrive
             else:
-                debug("Thread waits for %s secs"%wait,7)
+                debug("Thread waits for %s secs" % wait,7)
                 self.awaitWork.wait(wait)
 
     def terminate(self):
