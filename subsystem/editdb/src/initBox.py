@@ -205,6 +205,6 @@ class Box:
 ##         print "FEIL: " + record[1]+" fikk ikke fornuftig svar"
 ##     print "\n"
 
-a = Box("129.241.23.14","idija")
-print a.getDeviceId()
-print a.serial
+#a = Box("129.241.23.14","idija")
+#print a.getDeviceId()
+#print a.serial
