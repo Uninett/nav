@@ -21,7 +21,8 @@ def boxesDown():
           "alerthist.netboxid=netbox.netboxid AND " +\
           "(alerttype.alerttype='boxDown' or " +\
           "alerttype.alerttype='boxShadow') AND " +\
-          "netbox.up='n' ORDER BY now()-alerthist.start_time;"
+          "(netbox.up='n' OR netbox.up='s') " +\
+          "ORDER BY now()-alerthist.start_time;"
 
     connection = nav.db.getConnection('status', 'manage')
     database = connection.cursor()
@@ -48,7 +49,8 @@ def boxesDownSortByNewest():
           "alerthist.netboxid=netbox.netboxid AND " +\
           "(alerttype.alerttype='boxDown' or " +\
           "alerttype.alerttype='boxShadow') AND " +\
-          "netbox.up='n' ORDER BY now()-alerthist.start_time;"
+          "(netbox.up='n' OR netbox.up='s') " +\
+          "ORDER BY now()-alerthist.start_time;"
 
     connection = nav.db.getConnection('status', 'manage')
     database = connection.cursor()
