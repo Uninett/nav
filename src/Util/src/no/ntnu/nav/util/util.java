@@ -57,10 +57,17 @@ public class util {
 	 * Removes all occurrences of a string from another string.
 	 */
 	public static String remove(String s, String rem) {
-		if (s == null || rem == null || s.indexOf(rem) < 0) return s;
+		int k;
+		if (s == null || rem == null || (k=s.indexOf(rem)) < 0) return s;
+
 		StringBuffer sb = new StringBuffer();
-		StringTokenizer st = new StringTokenizer(s, rem);
-		while (st.hasMoreTokens()) sb.append(st.nextToken());
+		int begin = 0;
+		do {
+			sb.append(s.substring(begin, k));
+			begin = k + rem.length();
+
+		} while ((k=s.indexOf(rem, begin)) >= 0);
+
 		return sb.toString();
 	}
 
