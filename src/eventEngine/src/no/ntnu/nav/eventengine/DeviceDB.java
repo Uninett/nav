@@ -169,13 +169,14 @@ public class DeviceDB
 		EventImpl e = (EventImpl)a;
 		// Post the alert to alertq
 		try {
-			insertAlert(e, false);
+			// Insert into alertq
+			insertAlert(e, false, 0);
 
 			// Update alertqhist
 			boolean removeDownAlert = false;
 			if (e.getState() != Event.STATE_END) {
-				// Insert new record
-				int id = insertAlert(e, true);
+				// Insert into alerthist
+				int id = insertAlert(e, true, 0);
 
 				if (e.getState() == Event.STATE_START) {
 					e.setEventqid(id);
@@ -188,6 +189,9 @@ public class DeviceDB
 				int alerthistid = da.getEventqid();
 				Database.update("UPDATE alerthist SET end_time = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
 				removeDownAlert = true;
+
+				// Insert into alerthistvar
+				insertAlert(e, true, alerthistid);
 			}
 
 			// Now delete releated events from eventq
@@ -217,7 +221,7 @@ public class DeviceDB
 		}
 
 	}
-	private int insertAlert(EventImpl e, boolean history) throws SQLException, PostAlertException
+	private int insertAlert(EventImpl e, boolean history, int alerthistid) throws SQLException, PostAlertException
 	{
 		String table = history?"alerthist":"alertq";
 		String tableid = table+"id";
@@ -259,44 +263,39 @@ public class DeviceDB
 			};
 			ins = s;
 		}
-		Database.insert(table, ins);
+		// If we are inserting into alerthist and this is an end-event, only insert into alerthistvar
+		if (alerthistid == 0) {
+			Database.insert(table, ins);
+		}
 
-		if (!history) {
-			Iterator it = e.getMsgs();
-			while (it.hasNext()) {
-				String[] s = (String[])it.next();
-				String media = s[0];
-				String lang = s[1];
-				String msg = s[2];
+		Iterator it = e.getMsgs();
+		while (it.hasNext()) {
+			String[] s = (String[])it.next();
+			String media = s[0];
+			String lang = s[1];
+			String msg = s[2];
 
-				String[] insv = {
+			String[] insv;
+			if (!history) {
+				String[] v = {
 					tableid, String.valueOf(id),
 					"msgtype", media,
 					"language", lang,
 					"msg", msg
 				};
-				Database.insert(tablevar, insv);
+				insv = v;
+			} else {
+				String[] v = {
+					tableid, String.valueOf( (alerthistid==0 ? id : alerthistid) ),
+					"state", e.getStateSql(),
+					"msgtype", media,
+					"language", lang,
+					"msg", msg
+				};
+				insv = v;
 			}
+			Database.insert(tablevar, insv);
 		}
-		/*
-		Iterator i = e.getVarMap().entrySet().iterator();
-		if (i.hasNext()) {
-			while (i.hasNext()) {
-				Map.Entry me = (Map.Entry)i.next();
-				String var = (String)me.getKey();
-				Set valSet = (Set)me.getValue();
-				for (Iterator j=valSet.iterator(); j.hasNext();) {
-					String val = (String)j.next();
-					String[] insv = {
-						tableid, String.valueOf(id),
-						"var", var,
-						"val", val
-					};
-					Database.insert(tablevar, insv);
-				}
-			}
-		}
-		*/
 		return id;
 	}
 

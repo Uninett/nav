@@ -67,6 +67,10 @@ public class BoxState implements EventHandler, EventCallback
 						// Post alert
 						a = ddb.alertFactory(e, "boxUp");
 						a.addEvent(e);
+
+						// Set time
+						a.addVar("time", e.getTimeS());
+
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
