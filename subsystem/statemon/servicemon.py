@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 $Id: servicemon.py,v 1.6 2003/06/20 09:34:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
