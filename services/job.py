@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.13 2002/06/13 15:34:35 erikgors Exp $
+$Id: job.py,v 1.14 2002/06/14 12:37:33 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -168,17 +168,18 @@ class DummyHandler(JobHandler):
 
 import httplib
 class HTTPConnection(httplib.HTTPConnection):
-	def __init__(self,host,port=None):
+	def __init__(self,timeout,host,port=None):
 		httplib.HTTPConnection.__init__(self,host,port)
+		self.timeout = timeout
 	def connect(self):
-		self.sock = Socket()
+		self.sock = Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
 	def __init__(self,id,ip,args,version):
 		port = args.get('port',80)
 		JobHandler.__init__(self,'http',id,(ip,port),args,version)
 	def execute(self):
-		i = HTTPConnection(*self.getAddress())
+		i = HTTPConnection(self.getTimeout(),*self.getAddress())
 		path = self.getArgs().get('path',['/'])[0]
 		url = 'http://%s:%i%s' % (self.getAddress()[0],self.getAddress()[1],path)
 		print url
