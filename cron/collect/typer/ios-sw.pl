@@ -2,7 +2,7 @@
 
 use strict;
 use SNMP;
-#&bulk("musikk-sw","gotcha","404");
+#&bulk("rfb-418-sw","gotcha","404");
 
 sub bulk{
     my $host = $_[0];
@@ -23,7 +23,8 @@ sub bulk{
     my ($speed,$vlanhex) = $sess->bulkwalk(0,$numInts+1,[['.1.3.6.1.2.1.2.2.1.5'],['.1.3.6.1.4.1.9.9.46.1.6.1.1.4']]);
 
     # k er vlanhex, som av en eller annen grunn starter på 0 her, men i cat-sw blir alle lagret.
-    my $k = my $i = 0;
+    my $k = my $l = -1;
+    my $i = 0;
     while (defined($$speed[$i])){
 
 	$$ifindex[$i][2] =~ /^(\w+)\/(\d+)$/;
@@ -56,17 +57,19 @@ sub bulk{
 
 	my $temptrunk = $$trunk[$j][2];
 	my $trunk;
+	my $rtemp;
 	if($temptrunk==0){
 	    $trunk = 't';
 	    if($modul&&$port){
-		$swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$k-1][2];
+		$rtemp = $swportallowedvlantemp{$modul}{$port} = unpack "H*", $$vlanhex[$k][2];
 	    }
 	    $k++;
 	} else {
 	    $trunk = 'f';
 	    if($modul&&$port){
-		$swportvlantemp{$modul}{$port} = $$vlan[$j][2];
+		$rtemp = $swportvlantemp{$modul}{$port} = $$vlan[$l][2];
 	    }
+	    $l++;
 	}
 
 	my $speed = ($$speed[$i][2]/1e6);
@@ -78,7 +81,7 @@ sub bulk{
 	}
 	
 
-	print "$modul/$port status = ".$status." duplex = ".$duplex." speed = ".$speed."\n" if $debug;
+	print "$ifindex:$modul/$port status = ".$status." duplex = ".$duplex." speed = ".$speed." trunk = ".$trunk." vlan = ".$rtemp."\n" if $debug;
 
 
 	$i++;

@@ -12,6 +12,8 @@ require "$lib/database.pl";
 require "$lib/snmplib.pl";
 require "$lib/fil.pl";
 
+&log_open;
+
 my $conn = &db_connect("manage","navall","uka97urgf");
 
 my $mib_sysname = ".1.3.6.1.2.1.1.5.0";
@@ -68,6 +70,12 @@ for my $a (keys %db_nettel) {
 #DELETE
     my @felt_alle = ("ip"); # felt som fungerer som sletteindex, i.e. ip
     &db_sletting($conn,\%alle,\%db_alle,\@felt_alle,"boks");
+
+
+&log_close;
+
+# end main
+#-----------------------------------------------------------------------
 
 sub fil_endelser {
     my $fil = $_[0];

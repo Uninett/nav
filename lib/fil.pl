@@ -1,7 +1,13 @@
 #!/usr/bin/perl
 
 #use strict;
-open(COLLECTLOG,'>>','/usr/local/nav/local/log/collect/navllog.log');
+sub log_open {
+    open(COLLECTLOG,'>>','/usr/local/nav/local/log/collect/navllog.log');
+}
+
+sub log_close {
+    close(COLLECTLOG);
+}
 
 sub fil_hent_linje {
     (my $felt,$_) = @_;

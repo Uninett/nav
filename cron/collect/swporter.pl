@@ -9,6 +9,8 @@ require "$lib/snmplib.pl";
 require "$lib/fil.pl";
 require "$lib/iplib.pl";
 
+&log_open;
+
 my $debug;
 
 my $db = &db_connect("manage","navall","uka97urgf");
@@ -90,6 +92,8 @@ for my $boks (keys %swportallowedvlantemp) {
 
 #my $res_commit = $db->exec("commit");
 
+&log_close;
+
 #################################################################
 sub snmp_svitsj{
     my $ip = $_[0];
@@ -101,8 +105,7 @@ sub snmp_svitsj{
     my $includefile = "/usr/local/nav/navme/cron/collect/typer/".$typegruppe.".pl";
     if(-r $includefile){
 
-	do $includefile;
-
+	do $includefile ||  print $!;
 	&skriv("DEVICE-COLLECT","ip=$ip");
 
 	my @sw = &bulk($ip,$ro,$boksid);
@@ -114,6 +117,6 @@ sub snmp_svitsj{
 	return 1; #feilmelding om snmp ellers
     } else {
 	&skriv("SWITCH-TYPEGRP","typegroup=$typegruppe","ip=$ip");
-	return 0;
+	return 1;
     }
 }

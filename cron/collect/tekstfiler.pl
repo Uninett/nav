@@ -7,6 +7,7 @@ my $localkilde = &localkilde();
 my $navmekilde = &navmekilde();
 require "$lib/database.pl";
 require "$lib/fil.pl";
+&log_open;
 #-------------ALLE-------------
 my $db = &db_connect("manage","navall","uka97urgf");
 my ($fil,$tabell,@felt);
@@ -36,7 +37,7 @@ $tabell = "type";
 @felt = ("typeid","typegruppe","sysObjectID","descr");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------SLUTT-----------
-
+&log_close;
 
 sub spesiell_endring_org {
     my ($db,$fil,$tabell,$felt) = @_;

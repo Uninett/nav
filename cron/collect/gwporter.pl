@@ -11,6 +11,8 @@ require "$lib/fil.pl";
 require "$lib/iplib.pl";
 my $debug = 0;
 
+&log_open;
+
 my $ip2IfIndex     = ".1.3.6.1.2.1.4.20.1.2"; 
 my $ip2NetMask     = ".1.3.6.1.2.1.4.20.1.3"; 
 my $ip2ospf        = ".1.3.6.1.2.1.14.8.1.4";
@@ -120,6 +122,8 @@ foreach my $prefiksid (keys %db_antmask) {
 	&db_update($db,"prefiks","antmask",$gammel,$ny,"prefiksid=$prefiksid");
     }
 }
+
+&log_close;
 
 ######################################
 sub snmp_ruter{

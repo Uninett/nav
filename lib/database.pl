@@ -234,14 +234,12 @@ sub db_update {
 	if (!$til && $fra){
 	    my $sql = "UPDATE $tabell SET $felt=null WHERE $hvor";
 #	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null| hvor |$hvor|";
-	    &skriv("DATABASE-UPDATE", "from=$fra","to=null","where=$hvor","table=$tabell", "field=$felt");
-	 &db_execute($db,$sql);
+	    &skriv("DATABASE-UPDATE", "from=$fra","to=null","where=$hvor","table=$tabell", "field=$felt") if &db_execute($db,$sql);
 
 	} elsif ($til) {
 	    my $sql = "UPDATE $tabell SET $felt=\'$til\' WHERE $hvor";
 #	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |$til| hvor |$hvor|";
-	    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor","table=$tabell","field=$felt");
-	   &db_execute($db,$sql);
+	    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor","table=$tabell","field=$felt") if &db_execute($db,$sql);
 	    print $sql if $debug;
 #	} else {
 #	    print "tomme: $til & $fra\n";
@@ -254,8 +252,7 @@ sub db_oppdater {
     my ($db,$tabell,$felt,$fra,$til,$hvor_nokkel,$hvor_passer) = @_;
 
     my $sql = "UPDATE $tabell SET $felt=$til WHERE $hvor_nokkel=\'$hvor_passer\'";
-    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor_nokkel = $hvor_passer","table=$tabell","field=$felt");
- &db_execute($db,$sql);
+    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor_nokkel = $hvor_passer","table=$tabell","field=$felt") if &db_execute($db,$sql);
 
     print $sql if $debug;
 }
@@ -632,7 +629,20 @@ sub db_alt_per_linje {
     }
 }
 
+sub error_correct{
+    my $conn = $_[0];
+    my $sql = $_[1];
+    my $errmsg = $_ = $_[2];
+    if(/ERROR:  Cannot insert a duplicate key into unique index (\w+?)_/){
+	$sql =~ s/UPDATE/DELETE FROM/;
+	$sql =~ s/SET .* (WHERE)/$1/;
+	&skriv("DATABASE-ALREADY", "sql=$sql", "message=".$errmsg);
+	&db_execute($conn,$sql);
+    }
+    
 
+
+}
 
 sub rydd {    
     if (defined $_[0]) {
@@ -666,7 +676,9 @@ sub db_execute {
     my $conn = $_[0];
     my $resultat = $conn->exec($sql);
     unless ($resultat->resultStatus eq PGRES_COMMAND_OK){
-	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
+	&error_correct($conn->errorMessage);
+	return 0;
+#	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
     }
     return $resultat->oidStatus;
 }
