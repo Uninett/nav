@@ -103,13 +103,13 @@ public class MibIISw implements DeviceHandler
 				
 				long speedNum;
 				try {
-					speedNum = Long.parseLong(s[1]);
+					speedNum = Long.parseLong(s[1]) / 1000000;
 					if (speedNum <= 0) {
 						skipIfindexSet.add(s[0]);
 						sc.ignoreSwport(s[0]);
 					} else {
 						Swport swp = sc.swportFactory(s[0]);
-						swp.setSpeed(String.valueOf( (speedNum/1000000) ));
+						swp.setSpeed(String.valueOf( speedNum ));
 					}
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on speed: " + s[1]);
