@@ -571,13 +571,13 @@ DROP TABLE evertqvar;
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  target VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
-  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' or state='t' or state='f'), -- x = stateless, t = start, f = end
   value INT4 NOT NULL DEFAULT '100',
   severity INT4 NOT NULL DEFAULT '50'
@@ -595,13 +595,13 @@ DROP TABLE alertqvar;
 
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
-  time TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  time TIMESTAMP NOT NULL,
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL DEFAULT 'x',
+  state CHAR(1) NOT NULL,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
@@ -617,13 +617,13 @@ DROP TABLE alerthistvar;
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
-  source VARCHAR(32) REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
+  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   start_t TIMESTAMP NOT NULL,
   end_t TIMESTAMP NOT NULL,
-  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
