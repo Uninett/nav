@@ -109,7 +109,7 @@ class Session(dict):
         try:
             session = unpickler.load()
         except:
-            pass
+            return dict.__new__(cls)
         session._changed = False
         return session
 
