@@ -315,6 +315,9 @@ public class _3Com implements DeviceHandler
 					Swport swp = sc.swportFactory(ifindex);
 					swp.setDuplex(s[1].charAt(0));
 					swp.setMedia(s[2]);
+					swp.setTrunk(false);
+					swp.setVlan(1);
+
 				} else {
 					Log.w("PROCESS_3COM", "Unknown mauTypeOid: " + mauTypeOid + ", netboxid: " + netboxid + " ifindex: " + ifindex);
 				}
