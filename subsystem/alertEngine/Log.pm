@@ -1,9 +1,9 @@
 package Log;
-
+use NAV::Path;
 use vars qw{%log};
 
-if(-f "$ENV{'NAV_PREFIX'}/etc/conf/alertengine.cfg") {
-    require "$ENV{'NAV_PREFIX'}/etc/conf/alertengine.cfg";
+if(-f "$NAV::Path::sysconfdir/alertengine.cfg") {
+    require "$NAV::Path::sysconfdir/alertengine.cfg";
 } else {
     require "alertengine.cfg";
 }

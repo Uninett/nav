@@ -79,9 +79,7 @@ umask 007;
 
 use strict;
 
-my $pathtonav = "/usr/local/nav/navme/lib";
-require "$pathtonav/NAV.pm";
-import NAV;
+use NAV;
 
 my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
@@ -117,7 +115,7 @@ if ($opt_l && $opt_l =~ m/\d/) {
 }
 
 # DB-vars
-my $dbh = &NAV::db_get('statTools');
+my $dbh = &NAV::connection('statTools', 'manage');
 
 # Must have the cricket-rows of the snmpoid-table in memory.
 my %oidhash;
@@ -1188,7 +1186,7 @@ sub makeservers {
     # the phrase snmpagent ~'^1' = starts with 1
     my $path = "$cricketconfigdir";
     my $query = "SELECT netboxid,sysname,ip,typeid,roomid,ro,snmp_agent FROM netbox WHERE catid='SRV' AND snmp_major > 0 AND snmp_agent ~'^.' ORDER BY sysname";
-    my $getservers = &db_select($dbh,$query);
+    my $getservers = &NAV::select($dbh,$query);
     while (my ($id, $sysname,$ip,$type,$roomid,$community,$snmpagent) = $getservers->fetchrow) {
 	next unless $sysname;
 	next unless $ip;
@@ -1218,7 +1216,7 @@ sub makeservers {
 
 	# Finding room description
 	$query = "SELECT descr FROM room WHERE roomid='$roomid'";
-	my $getdesc = &db_select($dbh,$query);
+	my $getdesc = &NAV::select($dbh,$query);
 	if (!(my $desc = $getdesc->fetchrow)) {
 	    print "No description for room with id=$roomid\n";
 	    print FIL "\tshort-desc\t=\t\"\"\n";
@@ -1274,7 +1272,7 @@ sub makeservers {
 
 	# Get the category and insert into file
 	$query = "SELECT category FROM netboxcategory WHERE netboxid=$id";
-	my $getcategory = &db_select( $dbh,$query);
+	my $getcategory = &NAV::select( $dbh,$query);
 	while (my $category = $getcategory->fetchrow) {
 	    print FIL "target \"$category\"\n";
 	    print FIL "\ttarget-type\t=\t$category\n";
@@ -1290,7 +1288,7 @@ sub makeservers {
 	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
 
 	$query = "SELECT interf FROM boksinterface WHERE boksid=$id";
-	my $getinterfaces = &db_select($dbh,$query);
+	my $getinterfaces = &NAV::select($dbh,$query);
 
 	print FIL "target --default--\n";
 	print FIL "\tserver\t=\t$sysname\n";
@@ -1318,7 +1316,7 @@ sub makeservers {
 	open (FIL, ">$fil") or die "Could not open $fil for writing: $!\n";
 
 	$query = "SELECT path,blocksize FROM netboxdisk WHERE netboxid=$id";
-	my $getpaths = &db_select($dbh,$query);
+	my $getpaths = &NAV::select($dbh,$query);
 	print FIL "target --default--\n";
 	print FIL "\tserver\t=\t$sysname\n";
 	print FIL "\n";

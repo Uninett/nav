@@ -1,20 +1,24 @@
 #!/usr/bin/perl
-
-###########################################################################
-# Et cron-script som sjekker vert n-min om smsd framdeles kjører. 
-# Skulle smsd ha stoppet startes den og det sendes en mail til ansvarlige.
-# Skulle noen stoppe smsd og fjerne pid filen fungerer ikke testen.
+####################
 #
-# knutvi@itea.ntnu.no
-###########################################################################
-
+# $Id$
+# This file is part of the NAV project.
+# This script runs from cron to check that the SMS Daemon is up and
+# running.  If the daemon is gone, while the pidfile remains, it
+# is restarted, and a mail is sent to the NAV administrator.
+#
+# Copyright (c) 2001-2003 by NTNU, ITEA
+# Authors: Knut-Helge Vindheim <knut-helge.vindheim@itea.ntnu.no>
+#
+####################
 use strict;
 use POSIX qw(strftime);
-require '/usr/local/nav/navme/lib/fil.pl';
+use NAV;
+use NAV::Path;
 
-my %navconf = &read_navconf();
+my %navconf = &NAV::config("$NAV::Path::sysconfdir/nav.conf");
 my $MAILDRIFT = $navconf{ADMIN_MAIL} || 'postmaster@localhost';
-my $pidfil = '/usr/local/nav/local/var/run/smsd.pl.pid';
+my $pidfil = "$NAV::Path::vardir/run/smsd.pl.pid";
 my $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime; 
 my ($pid, $res); 
 
@@ -25,7 +29,7 @@ if (open PIDFIL, "<$pidfil") {
 
 	unless (kill(0, $pid)) { 
 
-	    $res = `/usr/local/nav/navme/etc/init.d/smsd restart` || die $!;
+	    $res = `$NAV::Path::initdir/smsd restart` || die $!;
 	    # Send mail
 	    open(MAIL, "|mail -s 'Restartet smsd' $MAILDRIFT");
 	    print MAIL "$dato\tstartet smsd på nytt\n";

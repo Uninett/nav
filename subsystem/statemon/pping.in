@@ -16,7 +16,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 BIN=@bindir@/pping.py
-PIDFILE=@vardir@/pping.pid
+PIDFILE=@localstatedir@/run/pping.pid
 
 [ -x $BIN ] || exit 1
 
@@ -47,7 +47,7 @@ case "$1" in
 		$0 start
 		;;
 	status)
-	        status servicemon
+	        status pping.py
 		exit $?
 		;;
 	*)

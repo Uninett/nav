@@ -1,16 +1,22 @@
 #!/usr/bin/perl
-
-# $Id: pg_backup.pl,v 1.8 2002/10/01 08:49:21 knutvi Exp $
-##############################################################
-# Et script som tar full backup av databasen hver
-#  * Dag	Roterer pr uke
-#  * Uke	Roterer pr 5 uke
-#  * Måned	Roterer pr år
+####################
 #
-##############################################################
-
+# $Id$
+# This file is part of the NAV project.
+# Takes a full backup of the NAV database every
+#  * Day        Rotates once every week
+#  * Week       Rotates once every 5 weeks
+#  * Month      Rotates once a year
+#
+# Copyright (c) 2002-2003 by NTNU ITEA
+# Authors: Knut-Helge Vindheim <knutvi@itea.ntnu.no>
+#          Morten Vold <morten.vold@itea.ntnu.no>
+#
+####################
 use POSIX qw(strftime);
-require "/usr/local/nav/navme/lib/fil.pl";
+use NAV;
+use NAV::Path;
+
 # De-taint:
 $ENV{'PATH'} = '/bin:/usr/bin:/usr/local/bin';
 delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
@@ -20,10 +26,10 @@ my ($res, $filnavn);
 my $now_string = strftime "%w:%d:%A:%B:%V", localtime;
 my ($dayofweek, $dayofmonth, $weekday, $month, $weeknumber) = split(/\:/, $now_string);
 
-my $conf = '/usr/local/nav/local/etc/conf/pgpasswd.conf';
+my $conf = "$NAV::Path::sysconfdir/pgpasswd.conf";
 
 
-my %config = &hash_conf($conf);
+my %config = &NAV::config($conf);
 
 my $passord = $config{'passord'};
 my $brukernavn = $config{'brukernavn'};

@@ -17,7 +17,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 BIN=@bindir@/servicemon.py
-PIDFILE=@vardir@/servicemon.pid
+PIDFILE=@localstatedir@/run/servicemon.pid
 
 [ -x $BIN ] || exit 1
 

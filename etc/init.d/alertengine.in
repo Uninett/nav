@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+####################
+#
+# $Id$
+# This file is part of the NAV project.
+# This script controls start/stop/status of the NAV alertEngine Daemon.
+#
+# Copyright (c) 2003 by NTNU, ITEA nettgruppen
+# Authors: Arne Oslebo <arne.oslebo@uninett.no>
+#
+####################
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+sysconfdir=@sysconfdir@
+initdir=@initdir@
+bindir=@bindir@
+
+# Source function library.
+. ${initdir}/functions
+
+[ -x ${bindir}/alertdaemon.pl ] || exit 1
+
+cd ${bindir}
+
+# See how we were called.
+case "$1" in
+	start)
+		# Start daemons.
+		rc= ${bindir}/alertdaemon.pl start
+		echo
+		exit $rc;
+		;;
+	stop)
+		# Stop daemons.
+		rc= ${bindir}/alertdaemon.pl stop
+		echo
+		exit $rc;
+        	;;
+	restart)
+		rc= ${bindir}/alertdaemon.pl restart
+		echo
+		exit $rc;
+		;;
+	status)
+		rc= ${bindir}/alertdaemon.pl status
+		echo
+		exit $rc;
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
+
+exit 0
+
+# === End of File ===

@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ####################
 #
-# $Id: smsd,v 1.3 2003/05/26 12:19:36 mortenv Exp $
+# $Id$
 # This file is part of the NAV project.
 # This script controls start/stop/status of the NAV SMS Daemon.
 #
@@ -9,18 +9,24 @@
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+sysconfdir=@sysconfdir@
+initdir=@initdir@
+bindir=@bindir@
+localstatedir=@localstatedir@
 
 # Source function library.
-. /usr/local/nav/navme/etc/init.d/functions
+. ${initdir}/functions
 
-[ -x /usr/local/nav/navme/bin/smsd.pl ] || exit 1
+[ -x ${bindir}/smsd.pl ] || exit 1
 
 # See how we were called.
 case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting smsd.pl: "
-		rc= daemon /usr/local/nav/navme/bin/smsd.pl
+		rc= daemon ${bindir}/smsd.pl
 		echo
 		exit $rc
 		;;
@@ -29,7 +35,7 @@ case "$1" in
 		echo -n "Shutting down smsd.pl: "
 		if killproc smsd.pl; then
 		# Make sure the pidfile is gone when stopping normal
-		    rm -f /usr/local/nav/local/var/run/smsd.pl.pid
+		    rm -f ${localstatedir}/run/smsd.pl
 		    echo
 		    exit 0
 		else

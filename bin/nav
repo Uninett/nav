@@ -36,9 +36,8 @@ if ($EUID != 0) {
 die "$CRONFILE does not exist" unless (-f $CRONFILE);
 chdir($NAVME_INIT);
 
-require "$NAV_ROOT/navme/lib/NAV.pm";
-import NAV qw(hash_conf);
-my %navconf = &hash_conf($NAV_CONF);
+use NAV;
+my %navconf = &NAV::config($NAV_CONF);
 
 my %crontasks = &parseCronFile();
 my $tempbuffer = `$CRONTAB -u $NAVCRON_USER -l`;

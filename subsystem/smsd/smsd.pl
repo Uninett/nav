@@ -7,10 +7,10 @@
 # from the database to users' phones, through the use of
 # MyGnokii2/Gammu
 #
-# Copyright (c) 2001-2003 by NTNU, ITEA nettgruppen
+# Copyright (c) 2001-2003 by NTNU, ITEA
 # Authors: Knut-Helge Vindheim <knut-helge.vindheim@itea.ntnu.no>
 #          Gro-Anita Vindheim <gro-anita.vindheim@itea.ntnu.no>
-#          Morten Vold <mortenv@tihlde.org>
+#          Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
 
@@ -40,24 +40,22 @@ use Getopt::Std;
 use English;
 use Pg;
 
-my $NAVROOT='/usr/local/nav';
-my $vei = "/usr/local/nav/navme/lib";
-require "$vei/NAV.pm";
-import NAV;
+use NAV;
+use NAV::Path;
 
-my $DISPATCHER = '/usr/local/bin/gammu';
+my $DISPATCHER = 'gammu';
 my $FREEZELIMIT = 30;
-my $pidfil = "$NAVROOT/local/var/run/smsd.pl.pid";
-my $conffil= "$NAVROOT/local/etc/conf/smsd.conf";
-my $navconf= "$NAVROOT/local/etc/conf/nav.conf";
+my $pidfil = "$NAV::Path::vardir/run/smsd.pl.pid";
+my $conffil= "$NAV::Path::sysconfdir/smsd.conf";
+my $navconf= "$NAV::Path::sysconfdir/nav.conf";
 
 switchuser(); # Sørg for at vi kjører som brukeren navcron
 
-getopt('dt'); 
+getopt('dtc'); 
 
-my %conf = &hash_conf($conffil);
-my $logfil = $conf{logfil} || '/usr/local/nav/local/log/smsd.log';
-my %navconf = &hash_conf($navconf);
+my %conf = &config($conffil);
+my $logfil = $conf{logfil} || "$NAV::Path::vardir/log/smsd.log";
+my %navconf = &config($navconf);
 my $MAILDRIFT = $navconf{ADMIN_MAIL};
 
 
@@ -66,19 +64,19 @@ my $smssyk = 0;
 
 my ($tlf, $tekst, @respons, $respons_, $v, $nr1);
 my ($dbh, $ko, $ko2, $maxidsok, $smsid);
-my $dato = strftime "Tid: %H:%M:%S", localtime;
+my $dato = strftime "Time: %H:%M:%S", localtime;
 my $forsinkelse = 30;
 
 
 # Viser hjelp
 if ($opt_h) {
-    print "\nsmsd [-[hc] [-d sec] [-t tlf]\n -h Viser denne hjelpen\n -c Setter alle meldingen i utkøen til ignored\n -d setter sleep i sekunder\n -t sender en testmelding til <tlf>\n\n";
+    print "\nsmsd [-h] [-c] [-d sec] [-t phone no.]\n -h Shows this help screen\n -c Flags all messages in the queue to be ignored\n -d Set the delay (in seconds) between queue checks\n -t Send a test message to <phone no.>\n\n";
     exit(0);   
 }
 
 # Kjører en lokal test på systemet
 if ($opt_t) {
-    $respons_ = &send_sms($opt_t, "Dette er en test fra smsd paa " . `hostname`);
+    $respons_ = &send_sms($opt_t, "This is a test of the NAV SMS daemon at " . `hostname`);
     print "$respons_\n";
     exit(0);    
 }
@@ -86,18 +84,14 @@ if ($opt_t) {
 justme();				# sjekker om smsd kjøres fra før.
 
 # Lager bare en connection mot databasen, som er konstant.
-my %dbconf = &db_readconf();
-my $dbname = $dbconf{db_navprofile};
-my $dbuser = $dbconf{script_smsd};
-my $userpw = $dbconf{'userpw_' . $dbuser};
-my $conn = &db_connect($dbname, $dbuser, $userpw);
+my $conn = &connection('smsd', 'navprofile');
 
 # Sletter utkøen i databasen
 if ($opt_c) {
     
     my $sql = "UPDATE smsq SET sent=\'I\', timesent=NOW() WHERE sent=\'N\'";
     
-    my $ok = &db_execute($conn,$sql);
+    my $ok = &execute($conn,$sql);
 }
 
 
@@ -113,7 +107,7 @@ if ($opt_d) {
 my $sql = "SELECT max(smsid) FROM smsq";
 
 &sjekk_conn;
-$maxidsok = &db_select($conn,$sql);
+$maxidsok = &select($conn,$sql);
 
 if ($maxidsok->ntuples)
 {
@@ -157,7 +151,7 @@ sub sjekk_ko {
     my (%hash_ko_, @line);
     
     &sjekk_conn;
-    my $ko_N = &db_select($conn,$sql);
+    my $ko_N = &select($conn,$sql);
     
     if ($ko_N->ntuples) {
 	while ( @line = $ko_N->fetchrow) {
@@ -198,7 +192,7 @@ sub sorter_sms {
 	$ko = "SELECT id,msg FROM smsq WHERE sent=\'N\' AND phone=\'$user\'"; 
 
 	&sjekk_conn;
-	$ok = &db_select($conn,$ko);
+	$ok = &select($conn,$ko);
 
 	# Hvis der var noe flere meldinger legges de i en hash
 	if ($ok->ntuples) {
@@ -242,14 +236,14 @@ sub sorter_sms {
 
 	# Hvis der er flere en 1 melding til persone
 	if ($ant_ignored > 0) {
-#	    $respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
-	    print "$tlf_\t$text_ +$ant_ignored se web";
+	    $respons_ = &send_sms($tlf_, $text_." +$ant_ignored see web.");
+	    print "$tlf_\t$text_ +$ant_ignored see web";
 	    $respons_ = 0;
 	}
 
 	# Hvis der kun er en melding til personen
 	else {
-#	    $respons_ = &send_sms($tlf_, $text_);
+	    $respons_ = &send_sms($tlf_, $text_);
 	    print "$tlf_\t$text_";
 	    $respons_ = 0;
 	}
@@ -265,7 +259,7 @@ sub sorter_sms {
 		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
 		print LOGFIL "\nsmsd_up: $dato\tExit-code: $respons_\n";
 
-		sendmail($MAILDRIFT, 'Re: Feil på smsd',
+		sendmail($MAILDRIFT, 'Re: NAV SMS daemon error',
 			 "\nsmsd_ok: $dato\tExit-code: $respons_\n");
 	    }
 
@@ -282,19 +276,19 @@ sub sorter_sms {
 		$ko2 = "UPDATE smsq SET sent=\'Y\',smsid=\'$smsid\',timesent=NOW() WHERE id=\'$id_\'";
 
 		&sjekk_conn;
-		$ga = &db_execute($conn,$ko2);
+		$ga = &execute($conn,$ko2);
 
 		# Skriv til logg
 		if ($nr1 == $#sendt_id) {
-		    print LOGFIL "Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
+		    print LOGFIL "Sent: $dato\t$user\t$hash_ko2_{$id_}\n";
 		}
 		else {
-		    print LOGFIL "  Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
+		    print LOGFIL "  Sent: $dato\t$user\t$hash_ko2_{$id_}\n";
 		}
 
 		unless ($ga) {
 		    print LOGFIL "Database error: $dato\tUnable to mark message as sent, terminating!\n";
-		    sendmail($MAILDRIFT, 'Feil på smsd',
+		    sendmail($MAILDRIFT, 'NAV SMS daemon error',
 			     "\nDatabase error: $dato\tUnable to mark message as sent, terminating!\n");
 		    exit(1);
 		}
@@ -307,7 +301,7 @@ sub sorter_sms {
 
 		$ko2 = "UPDATE smsq SET sent=\'I\',smsid=\'$smsid\',timesent=NOW() WHERE id=\'$id_\'";
 		&sjekk_conn;
-		$ga = &db_execute($conn,$ko2);
+		$ga = &execute($conn,$ko2);
 
 		# Skriv til logg
 		print LOGFIL "  Ignored: $dato\t$user\t$hash_ko2_{$id_}\n";
@@ -324,7 +318,7 @@ sub sorter_sms {
 		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
 		print LOGFIL "\nError: $dato\tExit-code: $respons_\n";
 
-		sendmail($MAILDRIFT, 'Feil på smsd',
+		sendmail($MAILDRIFT, 'NAV SMS daemon error',
 			 "\nError: $dato\tExit-code: $respons_\n");
 
 		# Resetter gnokii programmet
@@ -404,7 +398,7 @@ sub send_sms {
 	    print LOGFIL "\nError: $date\t$DISPATCHER froze, killing process (including sms daemon)\n";
 	    close(LOGFIL);
 
-	    sendmail($MAILDRIFT, 'Feil på smsd',
+	    sendmail($MAILDRIFT, 'NAV SMS daemon error',
 		     "\nError: $date\t$DISPATCHER froze, killing process (including sms daemon)\n");
 
 	    # Send a KILL signal to pid 0.  This is the only efficient
@@ -414,7 +408,7 @@ sub send_sms {
 	    # next run.
 	    unless (kill('KILL', 0)) {
 		$date = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		sendmail($MAILDRIFT, 'Feil på smsd', 
+		sendmail($MAILDRIFT, 'NAV SMS daemon error', 
 			 "\nError: $date\tWas UNABLE to signal my dispatcher subprocess!\n");
 		print STDERR " - Failed to kill it\n";
 		# Never thought of this happening...
@@ -426,7 +420,9 @@ sub send_sms {
 	    # call.  It seems the connection to the database is lost,
 	    # and the sjekk_conn() subroutine seems to not do any
 	    # good when this particular situation arises.
-	    $conn->reset;
+	    if ($conn) {
+		$conn->reset;
+	    }
 	    return $err_code;
 	}
     }
@@ -501,11 +497,11 @@ sub switchuser
 
 	    #print "DEBUG: UID=$UID,GID=$GID,EUID=$EUID,EGID=$EGID\n";
 
-	    $UID == $uid or die "Kan ikke skifte til bruker navcron!";
+	    $UID == $uid or die "Unable to change UID to navcron!";
 	}
     } else {
 	# Dersom navcron ikke eksisterer på systemet:
-	print STDERR "Advarsel! Kjører med root-privilegier!\n";
+	print STDERR "WARNING! Running with root privileges!\n";
     }
 }
 

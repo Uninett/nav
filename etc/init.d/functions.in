@@ -1,16 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ####################
 #
-# $Id: functions,v 1.5 2003/06/02 12:18:50 mortenv Exp $
+# $Id$
 # This file is part of the NAV project.
 # This file contains functions to be used by most or all shell scripts
 # in the navme/bin/init directory.
 #
-# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Copyright (c) 2002-2003 by NTNU, ITEA nettgruppen
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 # Credits: Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
 #
 ####################
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+sysconfdir=@sysconfdir@
+initdir=@initdir@
+bindir=@bindir@
+localstatedir=@localstatedir@
+
 daemon() {
     $1
     rc=$?
@@ -46,7 +53,7 @@ killproc() {
 
 status() {
     local base=${1##*/}
-    pid=`pidof -o $$ -o $PPID -o %PPID -x $1 || pidof -o $$ -o $PPID -o %PPID -x ${base}`
+    local pid=`pidofproc $1`
     if [ "$pid" != "" ] ; then
 	echo "$1 (pid $pid) is running...";
     else
@@ -66,7 +73,7 @@ checkpid() {
 pidofproc() {
     local base=${1##*/}
     local PIDOF=/sbin/pidof
-    local pidfile=/usr/local/nav/local/var/run/${base}.pid
+    local pidfile=${localstatedir}/run/${base}.pid
 
     if [ -f $pidfile ] ; then
 	local line p pid=

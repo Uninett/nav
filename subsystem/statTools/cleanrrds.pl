@@ -21,11 +21,9 @@ use Getopt::Std;
 use Pg;
 use strict;
 
-my $pathtonav = "/usr/local/nav/navme/lib";
-require "$pathtonav/NAV.pm";
-import NAV;
+use NAV;
 
-my $dbh = &db_get('statTools');
+my $dbh = &NAV::connection('statTools', 'manage');
 
 my $deletelimit = 30;
 my $usage = "

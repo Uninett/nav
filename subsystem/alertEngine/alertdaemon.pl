@@ -8,8 +8,6 @@
 
 package AlertEngine;
 
-use lib "$ENV{'NAV_PREFIX'}/lib/perl" ; 
-
 use strict;
 use diagnostics;
 use POSIX qw(setsid);

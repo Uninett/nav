@@ -1,36 +1,42 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ####################
 #
-# $Id: getDeviceData,v 1.1 2003/05/28 15:10:26 kristian Exp $
+# $Id$
 # This file is part of the NAV project.
-# This script controls start/stop/status of the NAV getDeviceData Daemon.
+# This script controls start/stop/status of the NAV eventEngine Daemon.
 #
 # Copyright (c) 2002 by NTNU, ITEA nettgruppen
 # Authors: Kristian Eide <kreide@online.no>
 #          Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+sysconfdir=@sysconfdir@
+initdir=@initdir@
+bindir=@bindir@
+localstatedir=@localstatedir@
 
 # Source function library.
-. /usr/local/nav/navme/etc/init.d/functions
+. ${initdir}/functions
 
-[ -x /usr/local/nav/navme/subsystem/getDeviceData/getDeviceData.sh ] || exit 1
+[ -x ${bindir}/eventEngine/eventEngine.sh ] || exit 1
 
 # See how we were called.
 case "$1" in
 	start)
 		# Start daemons.
-		echo -n "Starting getDeviceData: "
-		rc= daemon /usr/local/nav/navme/subsystem/getDeviceData/getDeviceData.sh
+		echo -n "Starting eventEngine: "
+		rc= daemon ${bindir}/eventEngine/eventEngine.sh
 		echo
 		exit $rc
 		;;
 	stop)
 		# Stop daemons.
-		echo -n "Shutting down getDeviceData: "
-		if killproc getDeviceData; then
+		echo -n "Shutting down eventEngine: "
+		if killproc eventEngine; then
 		# Make sure the pidfile is gone when stopping normal
-		    rm -f /usr/local/nav/local/var/run/getDeviceData.pid
+		    rm -f ${localstatedir}/run/eventEngine.pid
 		    echo
 		    exit 0
 		else
@@ -43,7 +49,7 @@ case "$1" in
 		$0 start
 		;;
 	status)
-	        status getDeviceData
+	        status eventEngine
 		exit $?
 		;;
 	*)

@@ -14,6 +14,7 @@ CDIR=/usr/local/nav/navme/cron
 BDIR=/usr/local/nav/navme/bin
 LDIR=/usr/local/nav/local/cron
 LOGDIR=/usr/local/nav/local/log
+PERL5LIB=/usr/local/nav/navme/lib/perl
 
 # This adress is changed during installation of NAV. This
 # is the default mail-adress that the jobs report to.
