@@ -172,12 +172,12 @@ if ( get_get('action')  ) {
 $meny = NEW Meny($login);
 
 print "<P>";
-$meny->newOption(gettext("Overview"), "oversikt", 0, array('oversikt.php') );
-$meny->newOption(gettext("Addresses"), "adress", 1,array('adress.php') );
-$meny->newOption(gettext("Profiles"), "profil", 1, array('profil.php') );
-$meny->newOption(gettext("Equip. groups"), "utstyr", 1, array('utstyr.php') );
-$meny->newOption(gettext("Equip. filters"), "filter", 1, array('filter.php') );
-$meny->newOption(gettext("Help"), "hjelp", 1, array('hjelp.php') );
+$meny->newOption(gettext("Overview"), "oversikt", 0, array('modules/overview.php') );
+$meny->newOption(gettext("Addresses"), "adress", 1,array('modules/address.php') );
+$meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profiles.php') );
+$meny->newOption(gettext("Equip. groups"), "utstyr", 1, array('modules/equipment-group-private.php') );
+$meny->newOption(gettext("Equip. filters"), "filter", 1, array('modules/equipment-filter-private.php') );
+$meny->newOption(gettext("Help"), "hjelp", 1, array('modules/help.php') );
 
 /*
 	WAP and password changing disabled 3. Oct 2003, because of integration with NAV.
@@ -189,19 +189,19 @@ $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php
 */
 
 print "<p>";
-$meny->newOption(gettext("Users"), "admin", 1000, array('admin.php') );
-$meny->newOption(gettext("User groups"), "gruppe", 1000, array('gruppe.php') );
-$meny->newOption(gettext("Pub eq.groups"), "futstyr", 100, array('fellesutstyr.php') );
-$meny->newOption(gettext("Pub eq.filters"), "ffilter", 100, array('fellesfilter.php') );
-$meny->newOption(gettext("Match fields"), "filtermatchadm", 100, array('filtermatchadm.php') );
-$meny->newOption(gettext("Log"), "logg", 20, array('logg.php') );
+$meny->newOption(gettext("Users"), "admin", 1000, array('modules/user-admin.php') );
+$meny->newOption(gettext("User groups"), "gruppe", 1000, array('modules/user-group-admin.php') );
+$meny->newOption(gettext("Pub eq.groups"), "futstyr", 100, array('modules/equipment-group-public.php') );
+$meny->newOption(gettext("Pub eq.filters"), "ffilter", 100, array('modules/equipment-filter-public.php') );
+$meny->newOption(gettext("Match fields"), "filtermatchadm", 100, array('modules/filtermatch-admin.php') );
+$meny->newOption(gettext("Log"), "logg", 20, array('modules/log.php') );
 
 
-$meny->newModule('periode', 1, array('periode.php') );
-$meny->newModule('utstyrgrp', 1, array('utstyrgrp.php') );
-$meny->newModule('futstyrgrp', 100, array('fellesutstyrgrp.php') );
-$meny->newModule('match', 1, array('match.php') );
-$meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
+$meny->newModule('periode', 1, array('modules/timeperiod.php') );
+$meny->newModule('utstyrgrp', 1, array('modules/equipment-group-setup.php') );
+//$meny->newModule('futstyrgrp', 100, array('fellesutstyrgrp.php') );
+$meny->newModule('match', 1, array('modules/equipment-filter-setup.php') );
+$meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php') );
 
 ?>
 
