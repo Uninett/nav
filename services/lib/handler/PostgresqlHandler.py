@@ -1,5 +1,5 @@
 """
-$Id: PostgresqlHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
+$Id: PostgresqlHandler.py,v 1.3 2002/07/01 16:12:46 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/PostgresqlHandler.py,v $
 """
 from job import JobHandler, Event
@@ -14,3 +14,11 @@ class PostgresqlHandler(JobHandler):
 		s.connect(self.getAddress())
 		s.close()
 		return Event.UP,'alive'
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+								
