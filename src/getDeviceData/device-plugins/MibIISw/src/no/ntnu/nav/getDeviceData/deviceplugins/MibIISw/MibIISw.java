@@ -141,16 +141,31 @@ public class MibIISw implements DeviceHandler
 		}
 
 		// Set ifDescr
-		Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
-		if (ifdescrMap != null) {
-			for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
-				Map.Entry me = (Map.Entry)it.next();
-				String ifindex = (String)me.getKey();
+		// If type supports portIfindex
+		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfindex")));
+		if (portIfindexMap != null) {
+			for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
+				String ifindex = (String)it.next();
 				if (skipIfindexSet.contains(ifindex)) continue;
-				String ifdescr = (String)me.getValue();
 
+				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\.");
+				
 				Swport swp = sc.swportFactory(ifindex);
-				swp.setInterface(ifdescr);
+				swp.setInterface(mp[0] + "/" + mp[1]);
+			}
+		} else {
+			// Type does not support portifIndex; instead use ifDescr
+			Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
+			if (ifdescrMap != null) {
+				for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					String ifindex = (String)me.getKey();
+					if (skipIfindexSet.contains(ifindex)) continue;
+					String ifdescr = (String)me.getValue();
+					
+					Swport swp = sc.swportFactory(ifindex);
+					swp.setInterface(ifdescr);
+				}
 			}
 		}
 
