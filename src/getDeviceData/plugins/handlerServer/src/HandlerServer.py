@@ -1,12 +1,19 @@
-"""Plugin for server registering using SNMP
+"""Plugin for server registering using SNMP.
 
-part of the NAVme project 
-http://www.nav.ntnu.no/
+This file is part of the NAV project.
 
-(c) Stian Søiland <stain@itea.ntnu.no> 2002
+Connects with SNMP to boxes in category
+srv with snmpMajor > 0, records which interfaces and 
+disks the server has, as well as the OS type.
+
+These disk/interface-mappings are later used by the 
+cricket-config-maker.
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen
+Author: Stian Søiland <stain@itea.ntnu.no> 
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.9 2002/07/05 11:26:55 stain Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.10 2002/10/18 09:23:15 stain Exp $"
 
 import UserDict
 import re
@@ -66,7 +73,7 @@ class Checking:
         partition = i
         break
     option = None
-    print j
+    #print j
     try:
       for i in li[j:]:
         i = string.strip(i)
@@ -98,7 +105,7 @@ class HandlerServer(DeviceHandler):
   def canHandleDevice(self, box):
     """Report if this box is our responsibility"""
     # Lower the string before compare
-    print "Skal sjekke", box
+    #print "Skal sjekke", box
     if(box.getKat().lower() == 'srv' and box.getSnmpMajor() > 0):
       # We only care about servers with snmp enabled.
       return 1  
@@ -123,10 +130,10 @@ class HandlerServer(DeviceHandler):
     """
 
     self.basePath = configParser.get("NAVROOT")
-    print "Basepath er", self.basePath
+    #print "Basepath er", self.basePath
 
 
-    print "Handler", box
+    #print "Handler", box
 
     # Prepare a DeviceData object for us to store changes in
     deviceData = DeviceData()
@@ -138,8 +145,8 @@ class HandlerServer(DeviceHandler):
     snmp.setCs_ro(box.getCommunityRo())
 
     # Print
-    print "ip", box.getIp()
-    print "comm", box.getCommunityRo()
+    #print "ip", box.getIp()
+    #print "comm", box.getCommunityRo()
 
 
     self.getSnmpAgent(box, snmp, deviceData, deviceDataList)
@@ -168,7 +175,7 @@ class HandlerServer(DeviceHandler):
     try:
       conf_file = open(file ,'r')
     except:
-      print "Could not open config file %s" % file
+      #print "Could not open config file %s" % file
       return [] # We failed.
     lines = conf_file.readlines()
     for line in lines:
@@ -203,40 +210,40 @@ class HandlerServer(DeviceHandler):
     
     # Get the descriptions
     agent = box.getSnmpagent()
-    print 'hurra her kommer agenten'
-    print agent
+    #print 'hurra her kommer agenten'
+    #print agent
     #TEMP - this is not good but a bug in the net-snmp agent forced us
     # to set the agent like this.
     if (agent == OID.bugAgent):
-      print 'vi fikk en bugge agent !!'
+      #print 'vi fikk en bugge agent !!'
       snmp.setBaseOid(OID.sysDescr)
       res = ""
       try:
         res = snmp.getAll(1)
         res = res[0][1]
-        print 'men alt gikk ok ......'
+        #print 'men alt gikk ok ......'
       except:
-        print "Nei og nei, vi fikk ingen snmpdata"
-        print res
+        #print "Nei og nei, vi fikk ingen snmpdata"
+        #print res
         return None # Give up
 
       res = res.split(" ")[0]
       if (res.lower() == "sunos"):
         agent = (OID.solarisAgent)
-        print ' solaris '
+        #print ' solaris '
       elif (res.lower() == "linux"):
         agent = (OID.linuxAgent)
-        print ' linux '
+        #print ' linux '
       else:
         agent = (OID.other)
-        print 'fikk en annen'
+        #print 'fikk en annen'
 
     try:
       deviceData.setSnmpagent(agent)
       deviceDataList.setDeviceData(deviceData)
-      print 'oooooh yes vi satte muligens inn noe'
+      #print 'oooooh yes vi satte muligens inn noe'
     except:
-      print 'arghhhh . det ble noe galt med oppdatering'
+      #print 'arghhhh . det ble noe galt med oppdatering'
         
       
 
@@ -259,7 +266,7 @@ class HandlerServer(DeviceHandler):
     diskDescriptions = snmp.getAll(1)
     for (diskID, description) in diskDescriptions:
       # uhm.. get diskID, this is the last number in the OID
-      print "Fant disk %s med deskripsjon %s" %  (diskID, description)
+      #print "Fant disk %s med deskripsjon %s" %  (diskID, description)
       disks[diskID].description = description
 
     # .. and their filesystems
@@ -267,14 +274,14 @@ class HandlerServer(DeviceHandler):
     diskFilesystems = snmp.getAll(1)
     for (diskID, filesystem) in diskFilesystems:
       # uhm.. get diskID, this is the last number in the OID
-      print "Fant disk %s med filsystem %s" %  (diskID, filesystem)
+      #print "Fant disk %s med filsystem %s" %  (diskID, filesystem)
       disks[diskID].type = filesystem
 
     #...and also their blocksize
     snmp.setBaseOid(OID.diskBlockSize)
     diskBlockSize = snmp.getAll(1)
     for (diskID,blocksize) in diskBlockSize:
-      print "Fant disk %s med blokkstr %s" % (diskID,blocksize)
+      #print "Fant disk %s med blokkstr %s" % (diskID,blocksize)
       disks[diskID].size = blocksize
     
     # some sanity checks 
@@ -313,7 +320,7 @@ class HandlerServer(DeviceHandler):
       try:
         blocksize = int(disk.size)
       except:
-        print "Invalid blocksize %s, using default of 1024 for %s" % (disk.size, disk.description)
+        #print "Invalid blocksize %s, using default of 1024 for %s" % (disk.size, disk.description)
         blocksize = 1024 # Default
       deviceData.addBoksDisk(disk.description, blocksize) 
     
@@ -339,7 +346,7 @@ class HandlerServer(DeviceHandler):
     interfaceDescriptions = snmp.getAll(1)
     for (interfaceID, description) in interfaceDescriptions:
       # uhm.. get interfaceID, this is the last number in the OID
-      print "Fant interface %s med deskripsjon %s" %  (interfaceID, description)
+      #print "Fant interface %s med deskripsjon %s" %  (interfaceID, description)
       interfaces[interfaceID].description = description
 
     # .. and their interfacetypes
@@ -347,7 +354,7 @@ class HandlerServer(DeviceHandler):
     interfaceFilesystems = snmp.getAll(1)
     for (interfaceID, type) in interfaceFilesystems:
       # uhm.. get interfaceID, this is the last number in the OID
-      print "Fant interface %s med type %s" %  (interfaceID, type)
+      #print "Fant interface %s med type %s" %  (interfaceID, type)
       interfaces[interfaceID].type = type
 
 
