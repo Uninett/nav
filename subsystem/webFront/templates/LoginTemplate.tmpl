@@ -1,8 +1,27 @@
+## $Id: $
+##
+## This file is part of the NAV project.
+##
+## It contains the Cheetah template for the login page to the NAV web
+## interface.
+##
+## Copyright (c) 2003 by NTNU, ITEA nettgruppen
+## Authors: Magnar Sveen <magnars@stud.ntnu.no>
+##          Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#attr $origin = ""
+#attr $message = ""
 <table height=40% border=0 width=100%><tr valign=middle><td valign=middle align=center>
 
 <br><br><br>
-<img src=/images/scanlines.gif><br>
-<br><input type=text><br><font face=verdana size=1 color=#6699CC>username</font>
-<br><input type=password><br><font face=verdana size=1 color=#6699CC>password</font>
+<img src="/images/login/login.gif"><br>
+<font face=verdana size=1 color=#FF0000>$message</font>
+<form method="POST" action="/index.py/login">
+<br><input type="text" name="login"><br><font face=verdana size=1 color=#6699CC>username</font>
+<br><input type="password" name="password"><br><font face=verdana size=1 color=#6699CC>password</font>
+<input type="hidden" name="origin" value="$origin">
+<br><input type="submit" value="Log in">
+</form>
 
 </td></tr></table>

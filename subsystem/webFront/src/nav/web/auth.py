@@ -49,11 +49,26 @@ def checkAuthorization(user, uri):
     """Check whether the given user object is authorized to access the
     specified URI)"""
 
-    regex = re.compile('\.pl$')
-    if regex.search(uri) and not user:
-        return False
+    from nav import db
+    conn = db.getConnection('navprofile', 'navprofile')
+    cursor = conn.cursor()
+    anonGroup = 2
+
+    if user:
+        groups = user.getGroups()
     else:
-        return True
+        from nav.db.navprofiles import Accountgroup
+        groups = [Accountgroup(2)]
+
+    groupString = ",".join([str(group.id) for group in groups])
+    cursor.execute("SELECT * FROM WebAuthorization WHERE accountgroupid IN (%s)" % groupString)
+    for authz in cursor.dictfetchall():
+        regex = re.compile(authz['uri'])
+        if regex.search(uri):
+            return True
+
+    # If none matched, we return false.
+    return False
     
 
 def headerparserhandler(req):
@@ -64,15 +79,20 @@ def headerparserhandler(req):
     
     from mod_python import apache
     # just some debug output
-    req.headers_out['X-Debug'] = "uri=%s" % req.uri
-    req.err_headers_out['X-Debug'] = "uri=%s" % req.uri
+    #req.headers_out['X-Debug'] = "uri=%s" % req.uri
+    #req.err_headers_out['X-Debug'] = "uri=%s" % req.uri
 
-    user = processAuthentication(req)
+    #user = processAuthentication(req)
+    user = None
+    try:
+        if req.session and req.session.has_key('user'):
+            user = req.session['user']
+    except AttributeError:
+        pass
     if checkAuthorization(user, req.uri):
         return apache.OK
     else:
-        setAuthHeader(req)
-        raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+        redirectToLogin(req)
 
 def reloadEverything():
     # Quick-n-dirty development-hack to reload everything
@@ -81,4 +101,12 @@ def reloadEverything():
             reload(module)
         except:
             pass
+
+
+def redirectToLogin(req):
+    from mod_python import apache
+    req.headers_out['Location'] = '/index.py/login?origin=%s' % req.uri
+    req.status = apache.HTTP_TEMPORARY_REDIRECT
+    req.send_http_header()
+    raise apache.SERVER_RETURN, apache.HTTP_TEMPORARY_REDIRECT
 
