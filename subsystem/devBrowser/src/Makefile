@@ -11,7 +11,7 @@ WEBLIB=$(PYLIB)/nav/web
 WEBROOT=$(PREFIX)/$(NAVVER)/apache/webroot
 WEBNAME=browse
 WEBDIR=$(WEBROOT)/$(WEBNAME)
-WEBLIBS=indexer.py netbox.py module.py port.py room.py service.py servicetable.py dispatcher.py
+WEBLIBS=netbox.py module.py port.py service.py servicetable.py dispatcher.py rrd.py
 # programs to use for make
 INSTALL=install
 
