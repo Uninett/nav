@@ -16,6 +16,8 @@ class SearchBox:
     formCname = 'sb_form'
     inputCname = 'sb_input'
     typeCname = 'sb_searchtype'
+    submitCname = 'sb_submit'
+    submitText = 'Search'
 
     method = 'post'
     title = 'Search'
