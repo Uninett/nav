@@ -13,15 +13,30 @@ if (!$bruker) {
   $bruker = $PHP_AUTH_USER;
 }
 
+$dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
+
+
 $vars = $HTTP_GET_VARS;
 
-$sok   = $vars[sok];
-$dager = $vars[dager];
-$dns   = $vars[dns];
-$mac   = $vars[mac];
-$IPfra = $vars[IPfra];
-$IPtil = $vars[IPtil];
+if ($vars[prefiksid])
+{
+  $sok = 'IP';
+  $dager = 7;
 
+  list($IPfra,$IPtil) = IPrange($dbh,$prefix,$vars[prefiksid]);
+
+  print "IPfra $IPfra IPtil $IPtil<br>";
+
+}
+else
+{
+  $sok   = $vars[sok];
+  $dager = $vars[dager];
+  $dns   = $vars[dns];
+  $mac   = $vars[mac];
+  $IPfra = $vars[IPfra];
+  $IPtil = $vars[IPtil];
+}
 
 navstart("Status nå",$bruker);
  
@@ -32,7 +47,7 @@ skjema($prefix,$sok,$dager,$dns,$mac,$IPfra,$IPtil);
 
 print "<hr>";
 
-$dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
+#$dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
 if ($sok == 'IP')
 {
@@ -265,5 +280,65 @@ print "</form>";
 
 }
 
+############################################
 
+function IPrange($dbh,$prefix,$prefiksid)
+{
+
+  $sql = "SELECT nettadr,maske FROM prefiks WHERE prefiksid='$prefiksid'"; 
+
+  $result = pg_exec($dbh,$sql);
+  $rows = pg_numrows($result);
+ 
+  if ($rows == 0)
+  {
+    print "<b>Ukjent prefiksid</b><br>";
+  }
+  else
+  {
+    for ($i=0;$i < $rows; $i++) 
+    {
+      $svar = pg_fetch_row($result,$i);
+
+      $fra = ereg_replace ($prefix, "", $svar[0]); 
+
+#      print "IPfra: $IPfra<br>";
+
+      list ($bcast[0],$bcast[1],$bcast[2],$bcast[3]) = split("\.",$svar[0],4);
+
+#      print "nett: $nett<br>";
+#      $bcast = $nett;
+
+      if ($svar[1] == 23)
+      {
+        $bcast[2] = $bcast[2] + 1;
+        $bcast[3] = $bcast[3] + 255; 
+      }
+
+      if ($svar[1] == 24)
+      { $bcast[3] = $bcast[3] + 255; }
+      if ($svar[1] == 25)
+      { $bcast[3] = $bcast[3] + 127; }
+      if ($svar[1] == 26)
+      { $bcast[3] = $bcast[3] + 63; }
+      if ($svar[1] == 27)
+      { $bcast[3] = $bcast[3] + 31; }
+      if ($svar[1] == 28)
+      { $bcast[3] = $bcast[3] + 15; }
+      if ($svar[1] == 29)
+      { $bcast[3] = $bcast[3] + 7; }
+      if ($svar[1] == 30)
+      { $bcast[3] = $bcast[3] + 3; }
+      if ($svar[1] == 31)
+      { $bcast[3] = $bcast[3] + 1; }
+
+      $til = "$bcast[2].$bcast[3]";
+
+      print "Fra $fra til $til<br>";
+
+     return array($fra,$til);
+
+    }
+  }
+}
 ?> 
