@@ -168,13 +168,13 @@ print '</select>';
 <img src="icons/neg.gif" border="0" alt="Invers">
 <input type="radio" name="invers" value="0"><?php echo gettext("Motsatt"); ?>
 </td>
-
-
-   	</tr>
+</tr>
+        
+        
    	<tr>
    	<td>&nbsp;</td>
    	<td>&nbsp;</td>
-   	<td><?php
+<td><?php
 if ($i > 0 ) { 
       print '<input type="submit" name="Submit" value="' . gettext("Legg til") . '"></td>';
  } else {

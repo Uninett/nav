@@ -835,6 +835,34 @@ WHERE id = " . addslashes($gid) ;
   }
 
 
+
+
+	// Hent ut info om en utstyrsgruppeid
+  function utstyrgruppeInfoAdv($gid, $uid) {
+    $gr = NULL;
+
+    $querystring = "SELECT navn, descr, (brukerid = " . $uid . ") AS min 
+FROM Utstyrgruppe WHERE id = " . addslashes($gid) ;
+
+//	print "<p>" . $querystring;
+
+    if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$gr[0] = $data["navn"]; 
+		$gr[1] = $data["descr"];
+                $gr[2] = $data["min"];		
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasesørring.";
+    }
+    return $gr;
+  }
+
+
+
+
+
+
 	// Hent ut info om en brukerprofil
   function brukerprofilInfo($pid) {
     $p = NULL;
@@ -1651,26 +1679,117 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
 
   // opprette ny utstyrsgruppe
-  function nyUtstyrgruppe($uid, $navn, $descr) {
+  function nyUtstyrgruppe($uid, $navn, $descr, $basertpaa) {
+
+
+    // Legg inn ny utstyrsgruppe i databasen
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrgruppe (id, brukerid, navn, descr) VALUES (" . 
-      "nextval('filtermatchid'), " . addslashes($uid) . ", '" . 
-      addslashes($navn) ."', '" . addslashes($descr) . "' )";
+    "nextval('filtermatchid'), " . addslashes($uid) . ", '" . 
+    addslashes($navn) ."', '" . addslashes($descr) . "' )";
     
-//    print "<p>query: $querystring";
+    // print "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
-      
-      // Henter ut object id`n til raden.
-      $oid = pg_getlastoid($query);
-      
-      // Henter ut id`n til raden og returnerer den.
-      $idres = pg_exec( $this->connection, "SELECT id FROM Utstyrgruppe WHERE oid = $oid");
-      $idrow = pg_fetch_row($idres, 0);
-      return $idrow[0];
+    
+        // Henter ut object id`n til raden.
+        $oid = pg_getlastoid($query);
+    
+        // Henter ut id`n til raden og returnerer den.
+        $idres = pg_exec( $this->connection, "SELECT id FROM Utstyrgruppe WHERE oid = $oid");
+            $idrow = pg_fetch_row($idres, 0);
+            
+        $nyutstgrpid = $idrow[0];
     } else {
-      // fikk ikke til e legge i databasen
-      return 0;
+        // fikk ikke til e legge i databasen
+        return 0;
+    }
+
+
+    // Legge inn utstyrsfiltre hvis utstyrsgruppen skal være basert på en annen.
+    if ($basertpaa > 0 ) {
+        $utstgrinfo = $this->utstyrgruppeInfoAdv($basertpaa, $uid);
+        
+        // Hvis utstyrfiltergruppa som den skal baseres på er min egen :
+        if ($utstgrinfo[2] ) {
+            $querystring = "INSERT INTO 
+GruppeTilFilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) 
+SELECT inkluder, positiv, prioritet, utstyrfilterid, " . $nyutstgrpid . "  
+FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($basertpaa) . ")";
+echo "<pre>" . $querystring . "</pre>";
+            if ( $query = pg_exec( $this->connection, $querystring)) { 
+                //echo "<p>funka fint dette (12)...";
+                return 1;
+            }
+        } else {
+        // Hvis ikke utstyrsfiltergruppa som det skal baseres på er egen,
+        // må filtermatchene også klones.
+        
+            // Legger inn alle utstyrsgrupper som må arves
+            $arvefilter = $this->listFiltreGruppe($basertpaa, 0);
+            foreach ($arvefilter AS $arvfilterelement) {
+                //echo "<p>Kloner utstyrsfilter " . $arvfilterelement[0];
+                
+                // utstyrfilterid inneholder utstyrfilterid for både den orginale og 
+                // den klonede utstyrsfilteret.
+                $utstyrfilteridlist[] = array(
+                    $this->nyttFilter($arvfilterelement[1], $uid) ,
+                    $arvfilterelement[0]
+                );
+                
+            }
+            /* Variabler:
+             *  $ustyrfilterid[1]    utstyrfilterid orginalt utstyrsfilter
+             *  $ustyrfilterid[0]    utstyrfilterid nytt/klonet utstyrsfilter
+             *  $basertpaa           utstyrgruppeid orginal utstyrgruppe
+             *  $nyutstgrpid         utstyrgruppeid ny/klonet utstyrgruppe
+             */
+            
+            // Legger inn referanser fra den nye utstyrsgruppen til de nye klonede filtrene.
+            foreach ($utstyrfilteridlist AS $utstyrfilterid) {
+            /*
+                echo "<p>DEBUG<br>Lager referanse til utstyrsfilter<br>" . 
+                    "gammel: " . $utstyrfilterid[1] . 
+                    "<br>ny: " . $utstyrfilterid[0] . 
+                    "<br>utstyrgruppe gammel : " .  $basertpaa .
+                    "<br>utstyrgruppe ny : " . $nyutstgrpid;
+                */
+                $querystring = "INSERT INTO 
+GruppeTilFilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) 
+SELECT inkluder, positiv, prioritet, " . $utstyrfilterid[0] . ", " . $nyutstgrpid . "  
+FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($basertpaa) . ") AND 
+(utstyrfilterid = " . $utstyrfilterid[1] . ")";
+                //echo "<p>Query:<br><PRE>" . $querystring . "</PRE>";
+                if ( $query = pg_exec( $this->connection, $querystring)) { 
+                   // echo "<p>funka fint dette (13)...";
+                }
+                
+            }
+            
+            // Traversere utstyrsfiltre som skal arves for å finne filtermatcher som skal arves
+            foreach ($utstyrfilteridlist AS $utstyrfilterid) {
+                //echo "<p>Henter inn match fra utstyrfilter:" . $utstyrfilterid[1];
+                //$arvematcher = $this->listMatch($utstyrfilterid[1],0);
+                //foreach ($arvematcher AS $arvematch) {
+                //echo "<p>Kloner matcher... ";
+                $querystring = "INSERT INTO 
+FilterMatch (matchfelt, matchtype, verdi, utstyrfilterid) 
+SELECT matchfelt, matchtype, verdi, " . $utstyrfilterid[0] . " 
+FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
+                //echo "<p> Query:<br><PRE>" . $querystring . "</PRE>";
+                if ( $query = pg_exec( $this->connection, $querystring)) { 
+                //    echo "<p>funka fint dette (14)...";
+                }                    
+                //}
+            }
+            
+            // 
+        
+        }
+        
+        
+    } else {
+        return $nyutstgrpid;
     }
 
   }
@@ -1881,7 +2000,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
  */
 
 /*
- *	Dette er en klasse for spørringer mot kunnskapsdatabasen
+ *	Dette er en klasse for spørringer mot kunnskapsdatabasen til UNINETT
  *
  */
 class DBHK {
