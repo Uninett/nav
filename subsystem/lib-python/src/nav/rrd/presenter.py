@@ -40,7 +40,8 @@ import time
 import rrdtool
 import random
 import glob
-import os 
+import os
+import warnings
 from mx import DateTime
 from os import path
 
@@ -227,30 +228,37 @@ class presentation:
         self.toTime   = 'now'
         self.fromTime = 'now-1Y'
         self.timeFrame = 'year'        
+        warnings.warn( "DEPRECATED Use timeLast('year') instead!")
 
     def timeLastMonth(self):
         """Set the timeframe. DEPRECATED Use timeLast('month') instead!"""        
         self.toTime   = 'now'
         self.fromTime = 'now-1m'
         self.timeFrame = 'month'
+        warnings.warn( "DEPRECATED Use timeLast('month') instead!")
     
     def timeLastWeek(self):
         """Set the timeframe. DEPRECATED Use timeLast('week') instead! """        
         self.toTime   = 'now'
         self.fromTime = 'now-1w'
         self.timeFrame = 'week'        
+        warnings.warn( "DEPRECATED Use timeLast('week') instead!")    
+
 
     def timeLastDay(self):
         """Set the timeframe. DEPRECATED Use timeLast('day') instead!"""        
         self.toTime   = 'now'
         self.fromTime = 'now-1d'
         self.timeFrame = 'day'        
+        warnings.warn( "DEPRECATED Use timeLast('day') instead!")    
+    
         
     def timeLastHour(self):
         """Set the timeframe. DEPRECATED! Use timeLast('hour') instead!"""        
         self.toTime   = 'now'
         self.fromTime = 'now-1h'
         self.timeFrame = 'hour'        
+        warnings.warn( "DEPRECATED Use timeLast('hour') instead!")    
 
     def timeLast(self,timeframe='day'):
         """Sets the timeframe of the presentation
@@ -301,18 +309,26 @@ class presentation:
             pass
         
         for i in self.datasources:
-            color = {0:'#0000FF',1:'#00FF00',2:'#FF0000',3:'#00FFFF',4:'#FFFF00',5:'#FF00FF',6:'#000044',7:'#004400',8:'#440000'}
-            rrd_variable = 'cel'+str(index)
+            color = {0:'#0F0CFF',1:'#00FF00',2:'#FF0000',3:'#00FFFF',4:'#FFFF00',5:'#FF00FF',6:'#000044',7:'#004400',8:'#440000'}
+            color_max = {0:'#6b69e1',1:'#007F00',2:'#7F0000',3:'#007F7F',4:'#7F7F00',5:'#7F007F',6:'#000022',7:'#002200',8:'#220000'}            
+            rrd_variable = 'avg'+str(index)
+            rrd_max_variable = 'max'+str(index)
             rrd_filename = i.fullPath()
             rrd_datasourcename = i.name
             linetype = i.linetype
+            linetype_max = 'LINE1'
             legend = i.legend
             params += ['DEF:'+rrd_variable+'='+rrd_filename+':'+rrd_datasourcename+':AVERAGE',linetype+':'+rrd_variable+color[index]+':'+''+legend+'']
+
+            a = rrdtool.info(rrd_filename)
+            if [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))]:
+                legend += ' - MAX'
+                params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX',linetype_max+':'+rrd_max_variable+color_max[index]+':'+''+legend+'']
+                
             index += 1
             
         if index == 0:
             params += ["COMMENT:''"]
-        
         id = self.genImage(*params)
         return 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id='+id
 
