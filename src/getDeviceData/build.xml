@@ -106,6 +106,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOS" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoGw" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/Server" target="clean"/>
