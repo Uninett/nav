@@ -47,9 +47,6 @@ public class MibIISw implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		// Ugly hack for GWs, waiting for new table port
-		if ("GW".equals(nb.getCat())) return NEVER_HANDLE;
-
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("MIB_II_SW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
@@ -96,6 +93,13 @@ public class MibIISw implements DeviceHandler
 		if (speedList != null) {
 			for (Iterator it = speedList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+
+				// Ugly hack for GWs, waiting for new table port
+				if ("GW".equals(nb.getCat())) {
+					skipIfindexSet.add(s[0]);
+					sc.ignoreSwport(s[0]);
+					continue;
+				}
 				
 				long speedNum;
 				try {
@@ -112,6 +116,8 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
+		
+		if ("GW".equals(nb.getCat())) return;
 			
 		Map operStatusMap = sSnmp.getAllMap(nb.getOid("ifOperStatus"));
 		Map admStatusMap = sSnmp.getAllMap(nb.getOid("ifAdminStatus"));
@@ -153,7 +159,7 @@ public class MibIISw implements DeviceHandler
 				String ifindex = (String)me.getKey();
 				if (skipIfindexSet.contains(ifindex)) continue;
 				String ifdescr = (String)me.getValue();
-				String ifname = (ifNameMap != null ? (String)ifNameMap.get(ifindex) : null);				
+				String ifname = (ifNameMap != null ? (String)ifNameMap.get(ifindex) : null);
 				Swport swp = sc.swportFactory(ifindex);
 
 				// Some heuristics for choosing either ifdescr or ifname
@@ -166,6 +172,8 @@ public class MibIISw implements DeviceHandler
 				}
 
 				swp.setInterface(interf);
+
+				if (ifdescr.indexOfIgnoreCase("vlan") >= 0 || interf.indexOfIgnoreCase("vlan") >= 0) sc.ignoreSwport(ifindex);
 			}
 		}
 

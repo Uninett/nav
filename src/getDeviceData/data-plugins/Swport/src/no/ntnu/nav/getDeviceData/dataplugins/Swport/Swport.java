@@ -46,7 +46,6 @@ public class Swport implements Comparable
 	private String hexstring;
 
 	private boolean assignedToModule;
-	private boolean ignore;
 
 	Swport(String ifindex)
 	{
@@ -95,9 +94,6 @@ public class Swport implements Comparable
 	}
 
 	String getMedia() { return media; }
-
-	void ignore() { ignore = true; }
-	boolean getIgnore() { return ignore; }
 
 	void assignedToModule() { assignedToModule = true; }
 	boolean isAssignedToModule() { return assignedToModule; }
