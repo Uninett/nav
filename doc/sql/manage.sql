@@ -189,7 +189,8 @@ CREATE TABLE type (
   frequency INT4,
   uptodate BOOLEAN NOT NULL DEFAULT 'f',
   descr VARCHAR,
-  UNIQUE (vendorid, typename)
+  UNIQUE (vendorid, typename),
+  UNIQUE (sysObjectID)
 );
 
 CREATE TABLE snmpoid (
@@ -201,7 +202,8 @@ CREATE TABLE snmpoid (
   decodehex BOOLEAN NOT NULL DEFAULT 'f',
   match_regex VARCHAR,
   uptodate BOOLEAN NOT NULL DEFAULT 'f',
-  descr VARCHAR
+  descr VARCHAR,
+  UNIQUE(oidkey)
 );
 
 CREATE TABLE typesnmpoid (
@@ -329,7 +331,8 @@ CREATE TABLE gwport (
   speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
   to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
+  UNIQUE(moduleid, ifindex)
 );
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
@@ -645,6 +648,40 @@ DROP TABLE alertq CASCADE;
 DROP SEQUENCE alertq_alertqid_seq;
 DROP TABLE alertqmsg CASCADE;
 
+CREATE TABLE alerttype (
+  alerttypeid SERIAL PRIMARY KEY,
+  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  alerttype VARCHAR,
+  alerttypedesc VARCHAR
+);
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxDownWarning','Warning sent before declaring the box down.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxDown','Box declared down.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxUp','Box declared up.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxShadow','Box declared down, but is in shadow.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('boxState','boxSunny','Box declared up from a previous shadow state.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('moduleState','moduleDown','Module declared down.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('moduleState','moduleUp','Module declared up.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('serviceState','httpDown','http service not responding.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('serviceState','httpUp','http service responding.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('maintenanceState','onMaintenance','Box put on maintenance.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('maintenanceState','offMaintenance','Box taken off maintenance.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('thresholdState','exceededThreshold','Threshold exceeded.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('thresholdState','belowThreshold','Value below threshold.');
+
+
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -653,6 +690,7 @@ CREATE TABLE alertq (
   subid INT4,
   time TIMESTAMP NOT NULL,
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
@@ -681,6 +719,7 @@ CREATE TABLE alerthist (
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP DEFAULT 'infinity',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
+  alerttypeid INT4 REFERENCES alerttype ON UPDATE CASCADE ON DELETE CASCADE,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
