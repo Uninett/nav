@@ -10,9 +10,10 @@
 # </name_of_subsystem> for end of subsystem.
 
 # The paths we use for the different scripts
-BDIR=/usr/local/nav/navme/bin
-LOGDIR=/usr/local/nav/local/log
-PERL5LIB=/usr/local/nav/navme/lib/perl
+BDIR=/usr/local/nav/bin
+LOGDIR=/usr/local/nav/var/log
+PERL5LIB=/usr/local/nav/lib/perl
+PYTHONPATH=/usr/local/nav/lib/python
 
 # This adress is changed during installation of NAV. This
 # is the default mail-adress that the jobs report to.
