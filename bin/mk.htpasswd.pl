@@ -2,10 +2,10 @@
 
 use strict;
 
-my $intern_userlist = "../../etc/htpasswd/intern_user";
-my $nettass_userlist = "../../etc/htpasswd/nettass_user"; 
-my $stat_userlist  = "../../etc/htpasswd/stat_user";
-my $bdb_userlist = "../../etc/passwd.dat";
+my $intern_userlist = "../../htpasswd/intern_user";
+my $nettass_userlist = "../../htpasswd/nettass_user"; 
+my $stat_userlist  = "../../htpasswd/stat_user";
+my $bdb_userlist = "../../htpasswd/passwd";
 
 my $htpasswd_sroot = "../apache/htpasswd/.htpasswd-sroot";
 my $htpasswd_sec = "../apache/htpasswd/.htpasswd-sec";
