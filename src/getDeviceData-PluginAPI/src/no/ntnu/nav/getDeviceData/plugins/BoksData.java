@@ -1,5 +1,10 @@
 package no.ntnu.nav.getDeviceData.plugins;
 
+/**
+ * <p>
+ * Describes a device.
+ * </p>
+ */ 
 public interface BoksData
 {
 	public String getBoksid();

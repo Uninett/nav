@@ -11,7 +11,7 @@ import no.ntnu.nav.ConfigParser.*;
  *
  * <b>Step-by-step guide for writing a plugin</b>
  * <p>
- * <ul>
+ * <ol>
  *  <li>Create a class in package <i>no.ntnu.nav.getDeviceData.plugins</i> which
  *      implement the DeviceHandler interface (found in package no.ntnu.nav.getDeviceData.plugins).
  *      Look at one of the existing plugin modules for an example.
@@ -24,18 +24,19 @@ import no.ntnu.nav.ConfigParser.*;
  *      DeviceDataList object (see below for details).
  *  </li>
  *  <li>Compile the plugin to a JAR file. Again look at an existing plugin module for
- *      an example. The build.xml will need to be updated with the new name for the JAR file,
+ *      an example. The build.xml file will need to be updated with the new name for the JAR file,
  *      and the Plugin-class with the name of the class implementing the DeviceHandler interface.
  *  </li>
  *  <li>Copy the JAR file into the plugin directory of getDeviceData. It will automatically
  *      be loaded; if an older copy was overwritten it will be reloaded.
  *  </li>
- * </ul>
+ * </ol>
  *
  * <b>The architecture of getDeviceData</b>
  * <p>
- * getDeviceData first loads all devices to be queried from netbox and stores them in a
- * FIFO queue; the device list is reloaded from the database every <i>loadDataInterval</i> minutes
+ * getDeviceData first loads all devices to be queried from the database and stores them in a
+ * FIFO queue; the device list is reloaded from the database every <i>loadDataInterval</i>
+ * see config file) minutes
  * (a future version will do this in respons to a changeDevice event). Then all data from
  * modules / swport is loaded; this data need not be refreshed. Finally the scheduler is called.
  * </p>
@@ -73,6 +74,7 @@ import no.ntnu.nav.ConfigParser.*;
  * inserted. The plugin modules does not need to worry about the old state of things,
  * they only need to collect the current state. This moves much complexity out of the
  * plugin module writing and avoids the need to duplicating the database updating code.
+ * After the database is updated the device is added to the end of the queue.
  * </p>
  *
  */

@@ -12,10 +12,18 @@ package no.ntnu.nav.ConfigParser;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Class for parsing a config file in <key> = <value> format. The value can be
+ * retrieved by calling get() with the corresponding key.
+ */
 public class ConfigParser
 {
-	HashMap map = new HashMap();
+    HashMap map = new HashMap();
 
+        /**
+         * Construct a new ConfigParser.
+         * @param confFile Full path to the file to be parsed.
+         */
 	public ConfigParser(String confFile) throws IOException
 	{
 		addDefaults();
@@ -43,6 +51,11 @@ public class ConfigParser
 		map.put(key, value);
 	}
 
+       /**
+        * Get the value for a key.
+        * @param key The key
+        * @return the value for the given key, or null if no such key exists.
+        */
 	public String get(String key)
 	{
 		return (String)map.get(key);

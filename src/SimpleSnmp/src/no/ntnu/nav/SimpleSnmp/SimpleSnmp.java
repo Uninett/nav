@@ -6,7 +6,17 @@ import java.util.*;
 import uk.co.westhawk.snmp.stack.*;
 import uk.co.westhawk.snmp.pdu.*;
 
-
+/**
+ * <p>
+ * Class for quering devices via SNMP. The aim of this class
+ * is to provide a very simple API for doing basic SNMP walking.
+ * </p>
+ *
+ * <p>
+ * To use first call setBaseOid(), setCs_ro() and setHost() methods (or use setParams() ), then
+ * call the getAll() (or getNext() ) method to retrieve values.
+ * 
+ */
 public class SimpleSnmp
 {
 	private final int DEFAULT_TIMEOUT_LIMIT = 4;
@@ -21,8 +31,14 @@ public class SimpleSnmp
 	private int getCnt;
 	private boolean getNext = false;
 
+        /**
+         * Construct an empty SimpleSnmp class.
+         */
 	public SimpleSnmp() { }
 
+        /**
+         * Construct a SimpleSnmp class and set initial parameters.
+         */
 	public SimpleSnmp(String host, String cs_ro, String baseOid)
 	{
 		setParams(host, cs_ro, baseOid);
@@ -38,10 +54,17 @@ public class SimpleSnmp
 		setBaseOid(baseOid);
 	}
 
+        /**
+	 * Set how many times the device can time out before a TimeoutException is thrown.
+         */
 	public void setTimeoutLimit(int limit)
 	{
 		timeoutLimit = Math.max(1,limit);
 	}
+
+        /**
+	 * Set the timeout limit to the default value (currently 4).
+	 */
 	public void setDefaultTimeoutLimit()
 	{
 		timeoutLimit = DEFAULT_TIMEOUT_LIMIT;
