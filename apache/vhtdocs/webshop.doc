@@ -1,0 +1,334 @@
+<div align="center">
+<h2>Webshop 2001</h2>
+av Nicolas Mendoza   
+</div>
+
+
+<h3>Introduksjon:</h3>
+Webshop-prosjektet er laget for å ta over administrasjon av nettverksdeler som teleseksjonen tidligere hadde.
+Den skal både være et grensesnitt for brukere som ønsker å bestille varer og for ITEA for å kunne administrere varelageret, motta bestillinger, skipe ut varer, se statistikk etc.
+
+
+
+<h3>Inneholder:</h3>
+webshop.pl
+webshop_gui.html
+/usr/local/apache/vhtdocs/webshop_forside.html
+webshop_admin.pl
+webshop_admin_gui.html
+/usr/local/apache/vhtdocs/webshop_admin_forside.html
+/usr/local/apache/vhtdocs/webshop.doc (denne filen)
+
+
+
+<h3>Oppbygning:</h3>
+
+Systemet består av to separate deler en brukerdel og en admindel. Begge er perlscript som kjøres over cgi eller vha. mod_perl og bruker HTML for å presentere informasjon samt motta inndata fra brukerne. De kjører hver for seg men kobler opp mot samme database som i dette tilfellet kjører mysql. DB-oppbygningen er forklart senere.
+
+Innlogging og tilgangskontroll skjer via http-auth slik at adminscriptet må ligge tilgjengelig bare for admin'er og brukerdelene tilgjengelig for gyldige brukere.
+
+Scriptenes grafiske utseende rundt innholdet bestemmes av filene webshop_gui.html og webshop_admin_gui.html.
+
+
+
+
+<h3>Rammeverk:</h3>
+
+<b>Brukere</b>
+
+brukere er de som har tilgang til butikken fra brukersiden. De får rettighet til å registrere seg først etter å ha blitt lagt inn på NAV sitt http-auth-system. Ved registrering skriver man inn sine data og blir lagt inn i DB. Det er ingen autentisering foruten httpauth. Hvilken bruker som er logget på blir hentet via remoteuser() funksjonen til CGI-modulen. En bruker kan være medlem av en org.enhet. BRukeren kan endre på dette men ingen endringer vil skje fysisk i hans histikk. Han vil alltid se org.enheten han er med i sin bestillingshistorie. Dette kan føre til at folk spionerer på hverandre fakultetmessig. Men såpass må man kunne stole på ansvarlige mennesker.
+
+<b>Ordrer/transaksjoner</b>
+
+En ordre består av en eller flere transaksjoner. En bruker lager en ordre ved å velge antall varer av hver type han skal ha. Hver vare vil ha sin egen transaksjon, men de vil alle høre til samme ordren. Hver transaksjon kan ha en status som enten sendt, total, pluss, minus, slettet eller ikke sendt og en type som rest, bestilling eller admin. På brukersiden vil bare sendt/ikke sendt spille inn på status og rest/bestilling på type.
+
+Om en transaksjon er sendt eller ikke sendt settes av en administartor på administratordelen gjerne etter å ha sendt av går de pakken. Rest og bestilling bestemmes til enhver tid av om en vare er inne eller ikke. La oss nå si at vi har 10 badeender og 20 baderinger på lageret. Per bestiller så 15 badeender og 10 baderinger. Han vil da generere en ordre bestående av en bestillingstransaksjon på 10 baderinger, en bestilling på 10 badeender og en resttransaksjon på 5 badeender. På lageret vil vi da ha 10 baderinger og 0 badeender, men vi vil ha en resordre liggende å vente med de siste 5 badeendene til Per. Med en gang noen fyller på lageret vil admindelen se etter om det er noen slike restordrer liggende og gjøre de om til vanlige bestillinger som så vil bli sendt via e-post.
+
+<b>Sletting</b>
+
+For å ha nogenlunde kontroll ved evt. menneskelige feil el. har man mulighet for å slette transaksjoner, de vil ikke bli slettet fra DB men bli markert som slettet. Det samme gjelder brukere, org.enheter og produkter. Man vil på denne måten være i stand til å få tilbake ting man sletter som man igjen får bruk for, eller som ikke var ment å slette i utgangspunktet.
+
+<b>Administrasjon</b>
+
+Hver gang man fyller på/trekker fra varer fra databasen vil dette legge seg inn i transaksjonstabellen som en en transaksjon av typen admin, en slik påfylling vil ha status pluss, minus eller total som er henholdsvis påfylling, tømming og justering av vareantallet.
+
+<b>Terskel</b>
+
+Hver gang noen bestiller en vare vil man sjekke om det ble en overskridelse av en terksel. En terskel er en grense for hvor mange varer det er igjen før man sier i fra om at det må fylles på. Skjedde det en overskridelse ved en bestilling vil et e-brev bli sendt til administrasjonen.
+
+<b>Bestilling</b>
+
+Ved en bestilling vil et e-brev bli sent til kunden med oversikt over hva han har bestilt, i tillegg vil administrasjonen (nettstotte@itea.ntnu.no) motta en mail med oversikt over bestilling formatert slik at den kan skrives ut og brukes som faktura på selve pakken.
+
+
+
+
+<h3>Brukergrensesnitt:</h3>
+
+Forsiden - Selvforklarende
+
+Vis beholdning - Viser oversikt over lagertet med lenker til å endre navn, antall, terskel etc..
+
+Masseoppdatering - Viser alle varer slik at det er lett å oppdatere flere varers antall om gangen, f.eks. ved varetelling eller lignende.
+
+Vis brukere - Viser alle brukerne med mulighet for å endre deres data.
+
+Vis org.enhet - Viser alle organisasjonsenheten med mulighet for å endre disse.
+
+Vis administrator - Viser alle administratorene, denne funksjonen har ikke noen hensikt enda.
+
+Vis transaksjoner - Viser alle transaksjoner og gir mulighet til å filtrere ut ting og tang, samt sortere. Den brukes også for å krysse av når varer er sendt og/eller om transaksjoner skal slettes.
+
+Hjelp - Denne hjelpen.
+
+
+
+
+<h3>Programlogikk:</h3>
+
+Hovedsaklig så kjører begge scriptene slik: 
+
+1. koble opp mot DB  
+2. sjekk om noe skal gjøres 
+3. koble ned fra DB 
+4. slå sammen resultatet med en ekstern html-fil
+5. avslutt.
+
+
+2:
+
+Sjekker på innvariabelen $action og kjører så den gitte funksjonen. 
+
+Siden dette er laget i perl er både typesjekking og forsikring om at nok/alle argumenter som trengs ganske vanskelig, derfor har jeg valgt at slik sjekking skjer underveis av eksekveringen av hver enkelt funksjon. Mangler et argument eller er det på feil format vil det i de fleste tilfeller komme en feilmelding.
+
+Resultatet legges i en global variabel $content som er tilgjengelig overalt og som jo til slutt slåes sammen med html-fila.
+
+4:
+
+Scriptet erstatter følgende tekst i html-fila med tilsvarende variabler:
+
+$title <- $title
+$menu <- $menu
+$content <- $content
+$bottomline <- $bottomline
+
+
+<h3>Funksjoner:</h3>
+
+<b>(begge)</b>
+
+void action - sjekker hva den skal gjøre og kjører gitte funksjon.
+
+string gui - kobler html med @content, @menu etc.. og returnerer resultatet.
+
+void hjelp - skriver ut hjelp.
+
+string gui_menu - menyen blir definert her og returneres.
+
+void feil - lager en feilmelding av gitt innargument.
+
+string lenke - lager en lenke av innargumentene og returner den.
+
+boolean send_brev - sender et brev, returnerer 1 om det gikk.
+
+string strip_html - denne stripper innargument for html-tagger og
+$nbsp; samt at den gjør om <BR> til linjeskift og returnerer.
+
+string table_row - lager en rad av inn-array og returnerer.
+
+string table_title2 - lager en subtittelrad av innargumentene og returnerer.
+
+string table_title - lager en tittelrad som kan spenne over flere celler og returnerer.
+
+string table_header - starter en tabell og returnerer.
+
+string table_footer - lukker en tabell og returnerer.
+
+string form_header - starter en form og returnerer.
+
+string form_footer - lukker en form og returnerer.
+
+string form_input - lager en input_form og returnerer.
+
+string form_select - lager en select_form og returnerer.
+
+
+
+<b>(webshop.pl)</b>
+
+int get_uid - returnerer brukerid fra DB
+
+int get_fid - returnerer orgenhetid fra DB
+
+void bruker_form - viser en form enten ved gitte data eller tomt.
+
+void bruker_leggtil - legger til en bruker i databasen.
+
+void bruker_vis - viser dataene til en bruker som en  tabell.
+
+void prod_vis - viser alle produktene som tabell.
+
+void prod_bestill - forsøker å bestille et produkt, ingenting blir utført før Bekreft=Bekreft. Dette for å kunne la brukeren ombestemme seg, se en oversikt før han gir sin endelige bekreftelse.
+
+void sjekk_terskel - denne blir kjørt hver gang en bruker bestiller noe, den sender av gårde en mail hver gang en bestilling gjør at en vare kommer under sin terskel.
+
+void status_vis - viser bestillingshistorien til fakultetet brukeren tilhører.
+
+string swrite - en versjon av write() men som kan lagre resultatet i en variabel (brukt for å formattere tekst)
+
+void slettet - skriver ut at kontoen til dennåværende brukeren er slettet
+
+
+
+<b>(webshop_admin.pl)</b>
+
+void prod_form - Lager en tom form eller en form med det gitte produktets data i.
+
+void fak_form - Lager en tom form eller en form med det gitte fakultetets data i.
+
+void bruker_form - Lager en tom form eller en form med den gitte brukerens data i.
+
+void admin_form - Lager en tom form eller en form med den gitte administraqtoren i.
+
+void prod_leggtil - Legger til det gitte produktet til DB.
+
+void fak_leggtil - Legger til den gitte org.enheten til DB.
+ 
+void bruker_leggtil - Legger til den gitte brukere til DB.
+
+void admin_leggtil - Legger til den gitte brukeren.
+
+void prod_vis - Viser alle eller et gitt produkt.
+
+void fak_vis - Viser alle eller en gitt org.enhet.
+
+void bruker_vis - Viser alle eller en gitt bruker.
+
+void flerprod_vis - Viser alle produktene for å lettere kunne oppdatere antallet.
+
+void flerprod_endre - Tar imot en drøss med argumenter for å kunne endre mange produkter samtidig.
+
+void oppdater_transordre - Sjekker i databasen om det er ordrer ol. som må endres på etter å ha slettet transaksjoner/ordrer, sender også mail om en restordre har blitt om til en bestilling eller om den er devlis endret til en bestilling. Dvs. om deler av restordren er inne på lager.
+
+void admin_vis - Viser tilgjengelige administratorer. Administratorer brukes foreløpig ikke til noe lurt.
+
+void prod_slett - Sletter et gitt produkt, dvs. setter dens prod_status som 'slettet'.
+
+void fak_slett - Sletter en gitt org.enhet, dvs. setter dens fak_status som 'slettet'.
+
+void bruker_slett - Sletter en gitt bruker, dvs. setter dens bruker_status som 'slettet'.
+
+void admin_slett - Sletter en administrator.
+
+void trans_stat - Viser oversikt over transaksjoner, mulighet for å sortere på ting og filtrere ut ting og tang.
+
+string sorterlenke - returnerer en lenke slik at den kan brukes til å sortere med.
+
+string form_check - returnerer en avkrysningsboks.
+
+string form_sim_select - returnerer en simpel rullegardinmeny som bruker de gitte verdiene som valg
+
+string form_stat_select - returnerer en rullegardin som slår opp i databasen for å få ut riktige verdier basert på id'er.
+
+
+
+<h3>Databaseformat:</h3>
+
+# MySQL dump 6.0
+#
+# Host: localhost    Database: webshop
+#--------------------------------------------------------
+# Server version	3.23.39-log
+
+#
+# Tabell for å holde rede på diverse administratorer.
+# Ikke brukt til noe for tiden siden alle som får tilgang
+# til admindelen er admin'er.
+#
+CREATE TABLE admin (
+  admin_id int(11) NOT NULL auto_increment,
+  admin_navn varchar(30),
+  admin_epost varchar(50),
+  admin_tlfnr varchar(10),
+  PRIMARY KEY (admin_id)
+);
+
+#
+# Tabell med oversikt over brukere og deres data.
+#
+CREATE TABLE bruker (
+  bruker_id int(11) NOT NULL auto_increment,
+  bruker_bruker varchar(10) DEFAULT '' NOT NULL,
+  bruker_navn varchar(30) DEFAULT '' NOT NULL,
+  bruker_fak_id int(11) DEFAULT '0' NOT NULL,
+  bruker_levadr varchar(100) DEFAULT '' NOT NULL,
+  bruker_tlfnr varchar(10) DEFAULT '' NOT NULL,
+  bruker_epost varchar(50) DEFAULT '' NOT NULL,
+  bruker_status varchar(10) DEFAULT '' NOT NULL,
+  PRIMARY KEY (bruker_id)
+);
+
+#
+# Tabell med oversikt over org.enheter, heter fakultet
+# siden det var navnet som først ble brukt. Det gjør 
+# ingenting siden brukere bare blitt møtt med ordet 
+# "organisasjonsenhet".
+#
+CREATE TABLE fakultet (
+  fak_id int(11) NOT NULL auto_increment,
+  fak_navn varchar(30) DEFAULT '' NOT NULL,
+  fak_adresse varchar(100) DEFAULT '' NOT NULL,
+  fak_tlf varchar(10) DEFAULT '' NOT NULL,
+  fak_status varchar(10) DEFAULT '' NOT NULL,
+  PRIMARY KEY (fak_id)
+);
+
+#
+# Tabell over odrer, en ordre har 1-N mot transaksjon.
+# Id'en til org_enheten og brukeren som bestilte varen
+# ligger her og ikke på transaksjon.
+#
+CREATE TABLE ordre (
+  ordre_id int(11) NOT NULL auto_increment,
+  ordre_timestamp timestamp(14),
+  ordre_bruker_id int(11) DEFAULT '0' NOT NULL,
+  ordre_fak_id int(11) DEFAULT '0' NOT NULL,
+  PRIMARY KEY (ordre_id)
+);
+
+#
+# Tabell over produktenes data, navn, terskel,
+# beskrivelse og antall på lager.
+#
+CREATE TABLE produkter (
+  prod_id int(11) NOT NULL auto_increment,
+  prod_navn varchar(30) DEFAULT '' NOT NULL,
+  prod_terskel int(11) DEFAULT '0' NOT NULL,
+  prod_beskr varchar(100) DEFAULT '',
+  prod_antall int(10) unsigned DEFAULT '0' NOT NULL,
+  prod_status varchar(10) DEFAULT '' NOT NULL,
+  PRIMARY KEY (prod_id)
+);
+
+#
+# Tabell over transaksjoner, en transaksjon er en 
+# bestilling av en spesifikk vare. Den har et N-1
+# forhold til ordre. Dvs. at en ordre kan inneholde
+# en eller flere transaksjoner. Transaksjon har felt
+# for tiden bestillingen ble utført, hvilke ordre den
+# hører under, hvilket produkt som ble bestilt og hvor 
+# mange, om bestillingen er sendt/ikke sendt og om typen
+# gjør at det er en transaksjon av typen admin som er det
+# å fylle/tømme lageret fra adminsiden.
+#
+CREATE TABLE transaksjon (
+  trans_id int(11) NOT NULL auto_increment,
+  trans_timestamp timestamp(14),
+  trans_ordre_id int(11) DEFAULT '0' NOT NULL,
+  trans_prod_id int(11) DEFAULT '0' NOT NULL,
+  trans_prod_antall int(11) DEFAULT '0' NOT NULL,
+  trans_status varchar(10) DEFAULT '' NOT NULL,
+  trans_type varchar(10) DEFAULT '' NOT NULL,
+  PRIMARY KEY (trans_id)
+);
+

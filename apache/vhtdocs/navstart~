@@ -1,0 +1,89 @@
+print "<body bgcolor=\#ffffff text=\#000000>";
+
+print "<table><tr><td bgcolor=\#ffffff colspan=2>";
+
+$header     = '../vhtdocs/header.html';
+$meny       = '../vhtdocs/meny.html';
+$kontakt    = '../vhtdocs/kontakt.html';
+
+open(TOPP,$header);
+while (<TOPP>)
+{ print ; }
+close(TOPP);
+print "</td></tr>";
+
+print "<tr><td valign=top>";
+
+print "
+<table bgcolor=\#000000 border=0 cellpadding=0 cellspacing=1>
+ <tr><td>
+   <table width=\"100%\" cellspacing=1 border=0 cellpadding=2 bgcolor=\#e6e6e6>
+   <tr><td bgcolor=\#486591><font color=\#ffffff>
+        <strong><font color=\#fefefe\>Brukerinfo
+";  
+
+print "<a href=https://www.nav.ntnu.no/restricted/>Logg inn</a> 
+<a href=http://www.nav.ntnu.no/hjelp.html>Hjelp</a>" if
+(lc($user_data{$remote_user}{'omraade'}) eq 'aapen');
+print "<a href=https://www.nav.ntnu.no/secret/>Logg inn</a>" if (lc($user_data{$remote_user}{'omraade'}) eq 'begrenset');
+
+print "
+</font></strong></font>
+       </td>
+   </tr>
+   </table>
+   <table cellspacing=1 border=0 cellpadding=7 bgcolor=\#fefefe>
+   <tr><td bgcolor=\#e6e6e6>
+         <table>
+         <tr><td><b>BRUKER:</td><td>$remote_user</td></tr>
+         <tr><td><b>ADGANG:</td><td>$user_data{$remote_user}{omraade}</td></tr>
+         <tr><td><b>IP:</td><td>$remote_ip</td></tr>
+         </table>
+       </td>
+   </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<p>
+";
+
+print "
+<table width=\"100%\" bgcolor=\#000000 border=0 cellpadding=0 cellspacing=1>
+ <tr><td>
+  <table width=\"100%\" cellspacing=1 border=0 cellpadding=2 bgcolor=\#e6e6e6>
+    <tr><td bgcolor=\#486591><font color=\#ffffff>
+       <strong><font color=\#fefefe\>Linker</font></strong>      </font>
+     </td></tr>
+  </table>
+  <table width=\"100%\" cellspacing=1 border=0 cellpadding=7 bgcolor=\#fefefe>
+    <tr><td bgcolor=\#e6e6e6>
+";
+
+open(MENY,$meny);
+while (<MENY>)
+{ print ; }
+close(MENY);
+
+print "</td></tr></table></td></tr></table><p>";
+
+print "
+<table width=\"100%\" bgcolor=\#000000 border=0 cellpadding=0 cellspacing=1>
+ <tr><td>
+   <table width=\"100%\" cellspacing=1 border=0 cellpadding=2 bgcolor=\#e6e6e6>
+    <tr><td bgcolor=\#486591><font color=\#ffffff>
+       <strong><font color=\#fefefe\>Kontakt Nettgruppen</font></strong>      </font>
+     </td></tr></table>
+   <table width=\"100%\" cellspacing=1 border=0 cellpadding=7 bgcolor=\#fefefe>
+   <tr><td bgcolor=\#e6e6e6>
+";
+
+open(KONTAKT,$kontakt);
+while (<KONTAKT>)
+{ print ; }
+close(KONTAKT);
+
+print "</td></tr></table></td></tr></table>";
+
+
+print "</td><td valign=top bgcolor=\#ffffff>";
