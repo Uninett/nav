@@ -140,18 +140,18 @@ if(!$overskrift){
     $overskrift = $rapport;
 }
 $overskrift = urlencode($overskrift);
-print "<img src=\"overskrift.php?overskrift=$overskrift\">";
+print "<img src=\"overskrift.php?overskrift=$overskrift\" border=\"0\">";
 print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\"><font color=\"#ffffff\"><img src=\"bildetekst.php?tekst=".date("j.n.Y")."\"  border=\"0\"></font>";
 
-print "<table><tr><td>";
+print "<table><tr><td valign=\"top\">";
 
-print "<a href=\"../web.pl?side=reports\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td><td>";
+print "<a href=\"../web.pl?side=reports\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td><td valign=\"top\">";
 ## husker gammel querystring
 $peker = lag_peker($urlselect,$QUERY_STRING);
 if($begrenset){
-        print "<form action=\"?$peker&begrenset=0\" method=\"post\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema\"></form>";
+        print "<form action=\"?$peker&begrenset=0\" method=\"post\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema\" border=\"0\"></form>";
 } else {
-print "<form action=\"?$peker&begrenset=1\" method=\"post\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Søkeskjema\"></form>";
+print "<form action=\"?$peker&begrenset=1\" method=\"post\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Søkeskjema\" border=\"0\"></form>";
 }
 print "</td></tr></table></td></tr></table>";
 
@@ -164,7 +164,7 @@ if($begrenset){
     skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner);
 }
 
-lag_peker($urlselect,$QUERY_STRING);
+
 
 
 ## bla
@@ -175,7 +175,7 @@ $neste = $ar_limit[1]+$grense;
 $forrige = $ar_limit[1]-$grense;
 print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td align=\"left\" width=\"100\">";
 if($ar_limit[1]!=0){ 
-print "<a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
+print "<a href=\"?$peker&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
 } else {
     print "&nbsp;";
 }
@@ -197,7 +197,7 @@ if($antall_treff){
 print "</td><td align=\"right\" width=\"100\">";
 
 if($antall_rader == $ar_limit[0]){
-    print " <a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
+    print " <a href=\"?$peker&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
 } else {
     print "&nbsp;";
 }
@@ -322,7 +322,7 @@ function skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner){
 	
 	 print "<td><input type=\"text\" name=\"$this\" value=\"$skjemaverdi\"></td></tr>";
     }
-    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk\" name=\"send\" value=\"Send\"></td></tr></table></form></td><td><p>Fyll inn det du vil søke etter i ønskede felt. Du kan bruke % for wildcard.</p></td></tr></table>";
+    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk\" border=\"0\" name=\"send\" value=\"Send\"></td></tr></table></form></td><td><p>Fyll inn det du vil søke etter i ønskede felt. Du kan bruke % for wildcard.</p></td></tr></table>";
 }
 
 
@@ -334,14 +334,12 @@ function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner
 		global $QUERY_STRING;
 		$peker = lag_peker($urlselect,$QUERY_STRING);
 		print "<td bgcolor=\"#486591\"><form action=\"?$peker&order_by=$this\" method=\"post\"><input type=\"image\" src=\"bildetekst.php?tekst=";
-//<font color=\"#ffffff\">";
 		if($navnparam[$this]){
 		    print $navnparam[$this];
 		} else {
 		    print $this;
 		}
-//		print "</font>";
-		print "\"></form></td>";
+		print "\" border=\"0\"></form></td>";
 	    }
     }
     print "</tr>";
