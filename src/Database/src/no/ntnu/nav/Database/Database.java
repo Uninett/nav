@@ -358,21 +358,25 @@ public class Database
 
 		String query = "INSERT INTO " + table + " (";
 		for (int i = 0; i < fieldValues.length; i += 2) {
-			if (i != 0) query += ",";
-			query += fieldValues[i];
+			if (fieldValues[i+1] != null) {
+				if (i != 0) query += ",";
+				query += fieldValues[i];
+			}
 		}
 
 		query += ") VALUES (";
 		for (int i = 1; i < fieldValues.length; i += 2) {
-			if (i != 1) query += ",";
+			if (fieldValues[i] != null) {
+				if (i != 1) query += ",";
 
-			String fnutt = "'";
-			if (fieldValues[i].equals("NOW()") ||
-					fieldValues[i].equals("null")) {
-				fnutt = "";
+				String fnutt = "'";
+				if (fieldValues[i].equals("NOW()") ||
+						fieldValues[i].equals("null")) {
+					fnutt = "";
+				}
+				
+				query += fnutt + fieldValues[i] + fnutt;
 			}
-			
-			query += fnutt + fieldValues[i] + fnutt;
 		}
 		query += ")";
 		return update(query);
