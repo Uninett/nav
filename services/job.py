@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.11 2002/06/13 13:37:52 erikgors Exp $
+$Id: job.py,v 1.12 2002/06/13 13:57:22 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -19,7 +19,6 @@ class Event:
 		self.id = id
 		self.info = info
 
-import database
 class Socket:
 	def __init__(self,timeout=5):
 		self.timeout = timeout
@@ -137,8 +136,8 @@ class JobHandler:
 	def __hash__(self):
 		return self.getId()
 	def __repr__(self):
-		s = '%i: %s %s' % (self.getId(),self.getType(),str(self.getAddress()))
-		return s.ljust(40) + self.getStatus()
+		s = '%i: %s %s %s' % (self.getId(),self.getType(),str(self.getAddress()),str(self.getArgs()))
+		return s.ljust(60) + self.getStatus()
 class PortHandler(JobHandler):
 	def __init__(self,*args):
 		JobHandler.__init__(self,'port',*args)
@@ -216,4 +215,5 @@ class FTP(ftplib.FTP):
 		self.file = self.sock.makefile('rb')
 		self.welcome = self.getresp()
 		return self.welcome
-jobmap = {'http':HttpHandler,'port',PortHandler}
+jobmap = {'http':HttpHandler,'port':PortHandler}
+import database
