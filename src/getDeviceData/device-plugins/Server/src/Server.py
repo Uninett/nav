@@ -192,7 +192,7 @@ class Server(DeviceHandler):
     #TEMP - this is not good but a bug in the net-snmp agent forced us
     # to set the agent like this.
     if (agent == OID.bugAgent):
-      Log.i("getSnmpAgent", "Got buggy SNMP agent for %s" % netbox.getSysname())
+      Log.d("getSnmpAgent", "Got buggy SNMP agent for %s" % netbox.getSysname())
       snmp.setBaseOid(OID.sysDescr)
       res = ""
       try:
@@ -284,7 +284,7 @@ class Server(DeviceHandler):
         # On the other hand if disk.description is empty, we have no
         # way to identify the disk, so we MUST avoid it, sadly
         # enough. 
-        Log.i("getDisks", 
+        Log.d("getDisks", 
               "Skipping disk %s on %s since it has no description" % 
                   (disk, netbox.getSysname()) )
         del disks[disk.unitID]
@@ -302,7 +302,7 @@ class Server(DeviceHandler):
       try:
         blocksize = int(disk.size)
       except:
-        Log.i("getDisks", "Invalid blocksize, using default of 1024 for %s on %s" % 
+        Log.d("getDisks", "Invalid blocksize, using default of 1024 for %s on %s" % 
                             (disk, netbox.getSysname()))
         blocksize = 1024 # Default
       
