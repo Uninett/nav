@@ -6,12 +6,13 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.8 2002/07/04 20:45:07 cricket Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.9 2002/07/05 11:26:55 stain Exp $"
 
 import UserDict
 import re
 import os
 import string
+import fnmatch
 
 import no.ntnu.nav.Database.Database as db 
 import no.ntnu.nav.SimpleSnmp as snmp
@@ -64,16 +65,16 @@ class Checking:
         #print 'fant noe'
         partition = i
         break
-    moveon = None
+    option = None
     print j
     try:
       for i in li[j:]:
         i = string.strip(i)
         if (i == 'recursive'):
-          moveon = 'recursive'
-      return (partition,moveon)
+          option = 'recursive'
+      return (partition,option)
     except:
-      return (partition,moveon)
+      return (partition,option)
 
 class Units(UserDict.UserDict):
   """And a nice dictionary creating those unit for us on-the-fly"""
@@ -142,14 +143,15 @@ class HandlerServer(DeviceHandler):
 
 
     self.getSnmpAgent(box, snmp, deviceData, deviceDataList)
-    check_array = self.getDiskconf(box)
-    keep_on = 1
-    for i in check_array:
-      if i[0] == '*':
-        keep_on = 0
+    ignores = self.getDiskconf(box)
+    checkDisks = 1
+    for (path, option) in ignores:
+      if path == '*':
+        # No none of the disks on this machine should be checked
+        checkDisks = 0
         break
-    if keep_on:
-      self.getDisks(box, snmp, deviceData, check_array)
+    if checkDisks:
+      self.getDisks(box, snmp, deviceData, ignores)
     self.getInterfaces(box, snmp, deviceData)
 
     # We're done! Submit to the old large database
@@ -158,10 +160,10 @@ class HandlerServer(DeviceHandler):
   def getDiskconf(self,box):
     """ We open the config file and insert all the disks we don't want
         to monitor in an array """
-
+    sysname = box.getSysname()
     s = Checking()
     sep = ' '
-    arr = []
+    ignores = []
     file = os.path.join(self.basePath, 'local', 'etc', 'conf', 'diskException.conf')
     try:
       conf_file = open(file ,'r')
@@ -176,19 +178,15 @@ class HandlerServer(DeviceHandler):
       if ((line[0] == '#') or (line == " ") or (line == "\n") or (line=="\t")):
         continue
       elif string.find(line,'"') != -1:
-        if ((line[0] == '*') or (string.split(line2,' ')[0]==box)):
+        if (fnmatch(sysname, line2.split(' ')[0])):
           on = s.rec(line,'"')
-          arr.append((on[0],on[1]))
+          ignores.append((on[0],on[1]))
           continue
-      elif (line[0] == '*'):
+      elif (fnmatch(sysname, line2.split(' ')[0])):
         on = s.rec(line,sep)
-        arr.append((on[0],on[1]))
+        ignores.append((on[0],on[1]))
         continue
-      elif (string.split(line2,' ')[0]==box):
-        on = s.rec(line,sep)
-        arr.append((on[0],on[1]))
-        continue
-    return arr  
+    return ignores  
 
 
   def getSnmpAgent(self, box, snmp, deviceData, deviceDataList):
@@ -242,7 +240,7 @@ class HandlerServer(DeviceHandler):
         
       
 
-  def getDisks(self, box, snmp, deviceData, check_array):
+  def getDisks(self, box, snmp, deviceData, ignores):
     """Retrieve disk data and prepare to store in deviceData.
     
        box -- getDeviceData.plugins.BoksData instance of the box
@@ -304,19 +302,18 @@ class HandlerServer(DeviceHandler):
       
       # /dev and /proc and their childs are not interresting
       # Here we will sort out the partitions we don't want to monitor
-      for i in check_array:
-        if i[1] == 'recursive':
-          if(re.match(r"^"+i[0], disk.description)):
-            del disks[disk.unitID]
-        else:
-          if(i[0] == disk.description):
-            del disks[disk.unitID]
+      for (path, option) in ignores:
+        if option == 'recursive':
+          path += '*' # Make the pattern recursive /Store/ -> /Store/*
+        if(fnmatch.fnmatch(disk.description, path)):
+          del disks[disk.unitID]
 
     # Insert into database
     for disk in disks.values():
       try:
         blocksize = int(disk.size)
       except:
+        print "Invalid blocksize %s, using default of 1024 for %s" % (disk.size, disk.description)
         blocksize = 1024 # Default
       deviceData.addBoksDisk(disk.description, blocksize) 
     
