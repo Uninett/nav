@@ -1,10 +1,21 @@
-﻿/*
+/*
 =============================================
         NAVprofiles
     SQL Initialization script
     
     Run the command:
     psql navprofiles -f navprofiles.sql
+    
+    
+	!! WARNING !!
+	This SQL script is encoded as unicode (UTF-8),
+	before you do changes and commit, be 100% sure
+	that your editor do not mess it up.
+    
+    Check 1 : These norwegian letters looks nice:
+    ! æøåÆØÅ !
+    Check 2 : This is the Euro currency sign: 
+    ! € !
 =============================================
 */
 
@@ -32,22 +43,22 @@ DROP TABLE AccountInGroup CASCADE;
 DROP TABLE AccountProperty CASCADE;
 
 -- 5 ALARMADRESSE
-DROP SEQUENCE alarmadresseid;
+DROP SEQUENCE alarmadresse_id_seq;
 DROP TABLE Alarmadresse CASCADE;
 
 -- 6 BRUKERPROFIL
-DROP SEQUENCE brukerprofilid;
+DROP SEQUENCE brukerprofil_id_seq;
 DROP TABLE Brukerprofil CASCADE;
 
 -- 7 PREFERENCE
 DROP TABLE Preference CASCADE;
 
 -- 8 TIDSPERIODE
-DROP SEQUENCE tidsperiodeid;
+DROP SEQUENCE tidsperiode_id_seq;
 DROP TABLE Tidsperiode CASCADE;
 
 -- 9 UTSTYRGRUPPE
-DROP SEQUENCE utstyrgruppeid;
+DROP SEQUENCE utstyrgruppe_id_seq;
 DROP TABLE Utstyrgruppe CASCADE;
 
 -- 10 VARSLE
@@ -63,49 +74,59 @@ DROP TABLE BrukerRettighet CASCADE;
 DROP TABLE DefaultUtstyr CASCADE;
 
 -- 14 UTSTYRFILTER
-DROP SEQUENCE utstyrfilterid;
+DROP SEQUENCE utstyrfilter_id_seq;
 DROP TABLE Utstyrfilter CASCADE;
 
 -- 15 GRUPPETILFILTER
 DROP TABLE GruppeTilFilter CASCADE;
 
 -- 16 MATCHFIELD
-DROP SEQUENCE matchfieldids;
+DROP SEQUENCE matchfield_id_seq;
 DROP TABLE MatchField CASCADE;
 
 -- 17 FILTERMATCH
-DROP SEQUENCE filtermatchid;
+DROP SEQUENCE filtermatch_id_seq;
 DROP TABLE FilterMatch CASCADE;
 
 -- 18 OPERATOR
-DROP SEQUENCE operatorids;
+DROP SEQUENCE operator_id_seq;
 DROP TABLE Operator;
 
 -- 19 LOGG
-DROP SEQUENCE loggid;
+DROP SEQUENCE logg_id_seq;
 DROP TABLE Logg CASCADE;
 
--- 22 NAVBARLINK
+--DROP SEQUENCE smsq_id_seq;
+DROP TABLE smsq CASCADE;
 
-DROP SEQUENCE navbarlinkids;
+--DROP SEQUENCE queue_id_seq;
+DROP TABLE queue CASCADE;
+
+-- 22 NAVBARLINK
+DROP SEQUENCE navbarlink_id_seq;
 DROP TABLE NavbarLink CASCADE;
 
 -- 23 ACCOUNTNAVBAR
-
 DROP TABLE AccountNavbar;
+
 
 -- AccountOrg
 DROP TABLE AccountOrg;
 
--- AccountGroupPrivilege
-DROP TABLE AccountGroupPrivilege;
 
--- Privilege
-DROP TABLE Privilege;
-DROP SEQUENCE privilege_id_seq;
+-- Privileges
 
 -- PrivilegeByGroup
 DROP VIEW PrivilegeByGroup;
+
+-- AccountGroupPrivilege
+DROP TABLE AccountGroupPrivilege CASCADE;
+
+DROP SEQUENCE privilege_id_seq;
+DROP TABLE Privilege CASCADE;
+
+
+
 
 /*
 ------------------------------------------------------
@@ -810,9 +831,9 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 (1, 1);
 
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
-(1, 100, true, 100);
+(1, 100, true, '14 days');
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
-(0, 1, false, '5 minutes');
+(0, 1, false, '14 days');
 
 -- NAVBAR PREFERENCES
 
@@ -916,7 +937,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 GRANT SELECT, UPDATE ON account_id_seq, accountgroup_id_seq, alarmadresse_id_seq, brukerprofil_id_seq, tidsperiode_id_seq, utstyrgruppe_id_seq, utstyrfilter_id_seq, matchfield_id_seq, filtermatch_id_seq, operator_id_seq, logg_id_seq, navbarlink_id_seq, privilege_id_seq, privilegebygroup TO navprofile;
 
 -- giving away permissions to add change and delete from tables...
-GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, privilege, accountgroupprivilege, accountorg, smsq TO navprofile;
+GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlink_id_seq, accountnavbar, privilege, accountgroupprivilege, accountorg, smsq TO navprofile;
 
 
 /*
