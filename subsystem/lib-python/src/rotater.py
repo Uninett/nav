@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: ISO8859-1 -*-
 # 
 # Copyright (c) 2002-2003 Magnus Nordseth, Stian Søiland
 # 
