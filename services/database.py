@@ -2,7 +2,7 @@
 database
 
 $Author: erikgors $
-$Id: database.py,v 1.14 2002/06/26 14:16:02 erikgors Exp $
+$Id: database.py,v 1.15 2002/06/26 14:19:46 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -53,13 +53,15 @@ def getJobs(onlyactive = 1):
 	c.execute(query)
 	jobs = []
 	for serviceid,boksid,active,handler,version,ip in c.fetchall():
-		if not (onlyactive and not active):
+		if not active and onlyactive:
 			continue
 		job = jobmap.get(handler,'')
 		if not job:
 			print 'no such handler:',handler
 		newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
-		print "Property: %s" % property
+		if not onlyactive:
+			setattr(newJob,'active',active)
+
 		jobs += [newJob]
 	db.commit()
 	return jobs
