@@ -215,8 +215,11 @@ class PluginMonitorTask extends TimerTask
 			Class[] ddbClass = new Class[1];
 			Object[] o = new Object[] { devDB };
 			try {
-				ddbClass[0] = Class.forName("DeviceDBImpl");
-			} catch (ClassNotFoundException e) {}
+				ddbClass[0] = Class.forName("no.ntnu.nav.eventengine.DeviceDB");
+			} catch (ClassNotFoundException e) {
+				System.err.println("ClassNotFoundException when getting DeviceDB reference: " + e.getMessage());
+				e.printStackTrace(System.err);
+			}
 
 			List deviceClassList = new ArrayList();
 			for (Iterator i = deviceClassMap.values().iterator(); i.hasNext();) {
@@ -232,9 +235,11 @@ class PluginMonitorTask extends TimerTask
 					Method m = c.getMethod("updateFromDB", ddbClass);
 					m.invoke(null, o);
 				} catch (NoSuchMethodException e) {
-
+					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "NoSuchMethodException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+					e.printStackTrace(System.err);
 				} catch (IllegalAccessException e) {
-
+					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "IllegalAccessException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+					e.printStackTrace(System.err);
 				} catch (InvocationTargetException e) {
 					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
 					e.printStackTrace(System.err);
