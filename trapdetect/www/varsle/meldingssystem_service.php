@@ -1,24 +1,20 @@
-<!-- Får inn disse variable:
-eier: kan være flere variable
-trap: sier seg selv
-bruker: brukernavn på han som er på
--->
-
 <?php
 require ('meldingssystem.inc');
 html_topp('Sett på service');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-if ($admin && $REMOTE_USER != $bruker) {
-  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
-}
+#if ($admin && $REMOTE_USER != $bruker) {
+#  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+#}
 
+$bruker=$REMOTE_USER;
 $border=0;
 $temp = $HTTP_POST_VARS;
 
-$enheterav = finn_enheter('t', $bruker);
-$enheterpa = finn_enheter('f', $bruker);
+$enheterav = finn_enheter('t', $REMOTE_USER);
+$enheterpa = finn_enheter('f', $REMOTE_USER);
 
+print "<table width=600><tr><td>\n";
 print "<p><h3>Sett på service</h3>Her er oversikt over alle enheter du har mulighet til å sette på service. I tabellen til venstre kan du merke de enhetene du vil sette PÅ service. I tabellen til høyre kan du merke de enhetene du vil TA AV service. Trykk så <b>OK</b></p>";
 
 # Knapp til loggen
@@ -27,7 +23,7 @@ print "<input type=hidden name=bruker value=$bruker>";
 print "<input type=submit value=\"Logg\">\n";
 print "</form>\n";
 
-knapp_hovedside($bruker);
+#knapp_hovedside($bruker);
 
 ##############################
 # Kobler til database
@@ -89,6 +85,7 @@ echo "<input type=hidden name=bruker value=$bruker>\n";
 echo "<input type=submit value=Reset>";
 echo "</form>";
 
+print "</td></tr></table>\n";
 ########################################
 # Henter alle bokser som er på/av service
 ########################################

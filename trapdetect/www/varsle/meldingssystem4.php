@@ -164,19 +164,10 @@ function legginn($trapid,$variable) {
 #    echo "$sporring<br>\n";
     pg_exec($dbh,$sporring);
   }
-
-  echo "<p>Innleggene for <b>$trapname[0]</b> er nå lagt i databasen.</p>";
-
 }
+echo "<p>Innleggene er lagt i databasen.</p>";
 
-echo "<p>Trykk på <b>Registrer ny trap</b>-knappen for å legge til et nytt abonnement eller gå tilbake til hovedsiden med å trykke <b>Til hovedsiden</b></p>";
-
-echo "<form action=meldingssystem.php method=\"POST\">";
-echo "<input type=hidden name=bruker value=$bruker>";
-echo "<input type=submit value=\"Registrer ny trap\">\n";
-echo "</form>\n";
-
-knapp_hovedside($bruker);
+knapp_hovedside($bruker,'Til varslingssiden');
 
 ?>
 </body></html>

@@ -60,10 +60,26 @@ function skrivpost($array) {
 }
 
 # Skriver ut en knapp som fører deg til hovedsiden
-function knapp_hovedside($bruker) {
+function knapp_hovedside($bruker,$tittel) {
   print "<form action=meldingssystem_start.php method=POST>";
   print "<input type=hidden name=bruker value=$bruker>";
-  print "<input type=submit value=\"Til hovedsiden\">\n";
+  print "<input type=submit value='$tittel'>\n";
   print "</form>\n";
 }
+
+function knapp_adminside($bruker) {
+  print "<form action=meldingssystem_admin.php method=POST>";
+  print "<input type=hidden name=bruker value=$bruker>";
+  print "<input type=submit value=\"Til adminsiden\">\n";
+  print "</form>\n";
+}
+
+function knapp_serviceside($bruker) {
+  print "<form action=meldingssystem_service.php method=POST>";
+  print "<input type=hidden name=bruker value=$bruker>";
+  print "<input type=submit value=\"Til Servicesiden\">\n";
+  print "</form>\n";
+}
+
+
 ?>

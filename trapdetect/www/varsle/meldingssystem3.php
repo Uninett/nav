@@ -13,14 +13,7 @@ if ($admin && $REMOTE_USER != $bruker) {
 $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
 $dbh_m = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
-echo "<p><h3>STEG 3</h3>Velg varslingstype for de valgte enheter for <b>$trap</b> bruker <b>$bruker</b></p>\n";
-
-echo "<form action=meldingssystem.php method=\"POST\">";
-echo "<input type=hidden name=bruker value=$bruker>";
-echo "<input type=submit value=\"Tilbake til steg 1\">\n";
-echo "</form>\n";
-
-knapp_hovedside($bruker);
+echo "<p><h3>STEG 3 av 3</h3>Velg varslingstype for de valgte enheter for <b>$trap</b> bruker <b>$bruker</b></p>\n";
 
 $borders=0;
 $unntak = array(); # Holder styr på alt som ikke skal være med 
@@ -138,7 +131,6 @@ for ($i=0;$i<$antall;$i++) {
 }
 $type = array_keys($varseltype);
 
-echo "Velg varslingstype for de forskjellige kategoriene/underkategoriene/enhetene";
 echo "<form action=meldingssystem4.php method=\"POST\">\n";
 
 ##################################################
@@ -235,14 +227,16 @@ echo "</table>\n";
 # Utskriving er ferdig, sender data til neste
 # side med submit.
 ##################################################
-
+print "<table border=$borders><tr><td>";
 foreach($unntak as $element) {
   echo "<input type=hidden name=$trapid:unntak[] value=$element>\n";
 }
 echo "<input type=hidden name=bruker value=".$bruker.">\n";
 echo "<input type=submit value=\"Gå videre\">";
 echo "</form>\n";
-
+print "</td><td>";
+knapp_hovedside($bruker,'Angre');
+print "</td></tr></table>\n";
 
 ############################################################
 ####################     FUNKSJONER     ####################

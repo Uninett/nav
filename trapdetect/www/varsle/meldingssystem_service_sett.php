@@ -8,9 +8,9 @@ require ('meldingssystem.inc');
 html_topp('Sett på service');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-if ($admin && $REMOTE_USER != $bruker) {
-  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
-}
+#if ($admin && $REMOTE_USER != $bruker) {
+#  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+#}
 
 $postvars = $HTTP_POST_VARS;
 #skrivpost($HTTP_POST_VARS);
@@ -53,7 +53,7 @@ $file = fopen ($filnavn, "w");
 fwrite ($file, $log.$innhold);
 fclose ($file);
 
-knapp_hovedside($bruker);
+knapp_serviceside($bruker);
 
 ?>
 </body></html>

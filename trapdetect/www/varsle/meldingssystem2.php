@@ -1,9 +1,4 @@
 <html><head><title>Varslingsregistrering - Steg 2</title>
-<!-- Får inn disse variable:
-eier: kan være flere variable
-trap: sier seg selv
-bruker: brukernavn på han som er på
--->
 <?php
 require ('meldingssystem.inc');
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
@@ -54,20 +49,13 @@ foreach ($keys as $key) {
   $postvars[$tempkey] = $postvars[$key];
 }
 
-print "<p><h3>STEG 2</h3>Her er oversikt over alle kategorier og underkategorier som tilhører $trap-trapen. Velg kategori (og evt. underkategori) du vil abonnere på og trykk <b>Gå videre</b> nederst på siden.</p>";
+print "<p><h3>STEG 2 AV 3</h3>Her er oversikt over alle kategorier og underkategorier som tilhører $trap-hendelsen. Velg kategori (og evt. underkategori) du vil abonnere på og trykk <b>Gå videre</b> nederst på siden.</p>";
 
 ##################################################
 # En liten ting som viser hjelp om nødvendig
 ##################################################
 
 echo "<p><a href=\"#\" onClick=\"popup('meldingssystem2_hjelp.php', 'Win1', 500, 300); return false\">Hjelp</a></p>\n";
-
-echo "<form action=meldingssystem.php method=\"POST\">";
-echo "<input type=hidden name=bruker value=$bruker>";
-echo "<input type=submit value=\"Tilbake til steg 1\">\n";
-echo "</form>\n";
-
-knapp_hovedside($bruker);
 
 echo "<hr width=90%>\n";
 
@@ -276,13 +264,23 @@ if ($antall == 0) {
 
 }
 
+
+##############################
+# Skriver knappene
+##############################
+print "<table border=$border><tr><td>";
 foreach ($eier as $name) {
   echo "<input type=hidden name=eier value=".$name.">\n";
 }
 echo "<input type=hidden name=bruker value=".$bruker.">\n";
 echo "<input type=hidden name=trap value=".$trap.">\n";
 echo "<input type=submit value=\"Gå videre\">";
-echo "</form>\n";
+echo "</form>";
+
+print "</td><td>";
+knapp_hovedside($bruker,'Angre');
+print "</td></tr>";
+print "<tr><td>";
 
 # Stygg måte å resette på...
 echo "<form action=meldingssystem2.php method=\"POST\">";
@@ -293,6 +291,9 @@ echo "<input type=hidden name=bruker value=".$bruker.">\n";
 echo "<input type=hidden name=trap value=$trap>";
 echo "<input type=submit value=Reset>";
 echo "</form>";
+
+print "</td><td>&nbsp;</td></tr>";
+print "</table>";
 
 ##################################################
 # En funksjon som skriver ut en drop-down
@@ -319,6 +320,7 @@ function lagDropDown($array,$name) {
 
 function finn_enheter($bruker,$trapid) {
   $array = array();
+#  global $dbh,$dbh_m;
 
   $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
   $dbh_m = pg_Connect ("dbname=manage user=navall password=uka97urgf");
