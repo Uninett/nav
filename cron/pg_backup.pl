@@ -12,7 +12,7 @@ use POSIX qw(strftime);
 
 my ($res, $filnavn);
 
-my $now_string = strftime "%e %w %A %B %W", localtime;
+my $now_string = strftime "%e %w %A %B %V", localtime;
 my ($dummy, $dayofmonth, $dayofweek, $weekday, $month, $weeknumber) = split(/\s/, $now_string);
 
 my $conf = '/usr/local/nav/local/etc/conf/pgpasswd.conf';
