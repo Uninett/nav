@@ -1,0 +1,148 @@
+# router sub-tree
+#
+# This is where we collect stats on the chassis of our routers
+# (i.e. memory, CPU, temperature). These are kept separate from
+# the interfaces themselves since they have quite different
+# configuration needs.
+
+Target	--default--
+	router			= %auto-target-name%
+	snmp-host		= %router%.uit.no
+	# you could set a router-specific community string here:
+	# snmp-community	= not-public
+	#
+	# Provide no default type, since each router will be different,
+	# and if we want to specify each model explicitly, or
+	# get a warning.
+	target-type		= standard-router
+
+# OID's we'll be using in this tree
+OID		cpu1min		1.3.6.1.4.1.9.2.1.57.0
+OID		cpu5min		1.3.6.1.4.1.9.2.1.58.0
+OID		tempInlet	1.3.6.1.4.1.9.9.13.1.3.1.3.1
+OID		tempOutlet	1.3.6.1.4.1.9.9.13.1.3.1.3.3
+OID		tempState	1.3.6.1.4.1.9.9.13.1.3.1.6.1
+OID		mem5minUsed	1.3.6.1.4.1.9.9.48.1.1.1.5.1
+OID		mem5minFree	1.3.6.1.4.1.9.9.48.1.1.1.6.1
+
+datasource	--default--
+	rrd-ds-type		=	GAUGE
+	rrd-heartbeat	=	1800
+	rrd-min			=	undef
+	rrd-max			=	undef
+	
+datasource	cpu1min		ds-source	=	snmp://%snmp%/cpu1min
+datasource	cpu5min		ds-source	=	snmp://%snmp%/cpu5min
+datasource	tempInlet	ds-source	=	snmp://%snmp%/tempInlet
+datasource	tempOutlet	ds-source	=	snmp://%snmp%/tempOutlet
+datasource	tempState	ds-source	=	snmp://%snmp%/tempState
+datasource	mem5minUsed	ds-source	=	snmp://%snmp%/mem5minUsed
+datasource	mem5minFree	ds-source	=	snmp://%snmp%/mem5minFree
+
+targetType	Cisco-7200-Router
+	ds	=	"cpu1min, cpu5min, tempInlet, tempOutlet, mem5minUsed, mem5minFree"
+	view	=	"cpu: cpu1min cpu5min,
+					temperature: tempInlet tempOutlet,
+					memory: mem5minUsed mem5minFree"
+
+targetType	Cisco-7500-Router
+    ds  =   "cpu1min, cpu5min, tempInlet, tempOutlet, mem5minUsed, mem5minFree"
+    view    =   "cpu: cpu1min cpu5min,
+                    temperature: tempInlet tempOutlet,
+                    memory: mem5minUsed mem5minFree"
+
+# 3600 routers do not report temperature -- they only
+# report tempterature states:
+#               normal(1),
+#               warning(2),
+#               critical(3),
+#               shutdown(4),
+#               notPresent(5) 
+
+targetType	Cisco-3600-Router
+	ds	=	"cpu1min, cpu5min, tempState, mem5minUsed, mem5minFree"
+    view	=	"cpu: cpu1min cpu5min,
+					tempAlarm: tempState,
+					memory: mem5minUsed mem5minFree"
+
+targetType Standard-Router
+	ds	=       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
+	view	=       "cpu: cpu1min cpu5min,
+			memory: mem5minUsed mem5minFree"
+
+#
+#Rutere som ikke rapporterer minne..
+#
+targetType IGS-Router
+	ds	=       "cpu1min, cpu5min"
+	view	=       "cpu: cpu1min cpu5min"
+
+targetType AGS-Router
+	ds	=       "cpu1min, cpu5min"
+	view    =       "cpu: cpu1min cpu5min"
+
+targetType C2500-Router
+	ds      =       "cpu1min, cpu5min"
+	view    =       "cpu: cpu1min cpu5min"
+
+targetType C4000-Router
+	ds      =       "cpu1min, cpu5min"
+	view    =       "cpu: cpu1min cpu5min"
+
+targetType C4700-Router
+	ds      =       "cpu1min, cpu5min"
+	view    =       "cpu: cpu1min cpu5min"
+
+targetType C1000-Router
+	ds      =       "cpu1min, cpu5min"
+	view    =       "cpu: cpu1min cpu5min" 
+
+html short-desc                 Router Chassis
+
+graph   cpu1min
+    units   =   "%"
+    color   =   dark-green
+    draw-as =   AREA
+    y-axis  =   "Percent CPU utilization"
+    legend  =   "1 minute CPU utilization"
+	# fixed y-axis, since this is a percentage
+	y-min	=	0
+	y-max	=	100
+
+graph   cpu5min
+    units   =   "%"
+    color   =   blue
+    y-axis  =   "Percent CPU utilization"
+    legend  =   "5 minute CPU utilization"
+	# fixed y-axis, since this is a percentage
+	y-min	=	0
+	y-max	=	100
+
+graph   tempInlet
+    color   =   dark-green
+    draw-as =   AREA
+    y-axis  =   "degrees Centigrade"
+	units	=	"&#176;"
+	space	=	""
+    legend  =   "Inlet temperature in C"
+	precision	=	integer
+
+graph   tempOutlet
+    color   =   blue
+    y-axis  =   "degrees Centigrade"
+	units	=	"&#176;"
+	space	=	""
+    legend  =   "Outlet temperature in C"
+	precision	=	integer
+
+graph   mem5minUsed
+    color   =   dark-green
+    draw-as =   AREA
+    y-axis  =   "Bytes"
+    legend  =   "5 minute used memory"
+
+graph   mem5minFree
+    color   =   blue
+    y-axis  =   "Bytes"
+    legend  =   "5 minute free memory"
+

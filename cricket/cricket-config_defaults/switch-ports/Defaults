@@ -1,0 +1,36 @@
+# switch-ports sub-tree
+#
+# This is where we collect stats on switch ports. We inherit pretty
+# much everything we need, since it's in the root Default file.
+
+Target	--default--
+	inst            = map(switch-port-name) 
+	rrd-datafile	=	%dataDir%/%auto-target-name%-%inst%.rrd
+	switch			=	%auto-target-name%
+	snmp-host		=	%switch%
+	target-type		=	switch-port
+
+dataSource ifInOctets
+    ds-source = snmp://%snmp%/ifInOctets.%inst%
+    rrd-ds-type     =   COUNTER
+    rrd-heartbeat   =   1800
+
+dataSource ifOutOctets
+    ds-source = snmp://%snmp%/ifOutOctets.%inst%
+    rrd-ds-type     =   COUNTER
+    rrd-heartbeat   =   1800
+
+dataSource ifInErrors
+    ds-source = snmp://%snmp%/ifInErrors.%inst%
+    rrd-ds-type     =   COUNTER
+    rrd-heartbeat   =   1800
+
+dataSource ifOutErrors
+    ds-source =  snmp://%snmp%/ifOutErrors.%inst%
+    rrd-ds-type     =   COUNTER
+    rrd-heartbeat   =   1800
+
+targetType switch-port
+    ds = "ifInOctets, ifOutOctets, ifInErrors, ifOutErrors"
+    view = "Octets: ifInOctets ifOutOctets, Errors: ifInErrors ifOutErrors"
+
