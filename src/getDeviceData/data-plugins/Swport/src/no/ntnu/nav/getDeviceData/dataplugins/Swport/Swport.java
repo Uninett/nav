@@ -1,8 +1,10 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
-import no.ntnu.nav.logger.*;
-
 import java.util.ArrayList;
+
+import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
+
 
 /**
  * Contain Swport data
