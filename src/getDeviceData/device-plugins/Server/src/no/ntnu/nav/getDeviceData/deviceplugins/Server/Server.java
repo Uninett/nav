@@ -71,6 +71,7 @@ public class Server implements DeviceHandler
     static final String OID_linuxAgent = "1.3.6.1.4.1.8072.3.2.10";
     static final String OID_other = "1.3.6.1.4.1.8072.3.2.255";
     static final String OID_bugAgent = "1.3.6.1.4.1.8072.3.2";
+    static final String OID_windows = "1.3.6.1.4.1.311";
     class ServerHandler {
         Netbox nb;
         SimpleSnmp snmp;
@@ -93,6 +94,29 @@ public class Server implements DeviceHandler
             // this.containers = containers
         }
         void getSnmp() {
+            snmp.setBaseOid(OID_sysDescr);
+            List result = snmp.getAll(true);
+            if ( result.isEmpty() ) {
+                Log.w("getSnmp", "No sysDescr found");
+                return;
+            }
+            String descr = (String)result.get(0);
+            Log.i("getSnmp", "sysDescr found: " + descr);
+            info.put("snmp_agent", descr);
+            String os;
+            if (descr.equals(OID_solarisAgent)) {
+                os = "solaris";
+            } else if (descr.equals(OID_linuxAgent)) {
+                os = "linux";
+            } else if (descr.startsWith(OID_bugAgent)) {
+                os = "unix"; // when is this?
+            } else if (descr.startsWith(OID_windows)) {
+                os = "windows"; // could guess version
+            } else {
+                os = "unknown";
+            }
+            Log.i("getSnmp", "os guessed: " + os);
+            info.put("os_guess", os);
         }
         void getDisks() {
             DiskMap disks = new DiskMap();
