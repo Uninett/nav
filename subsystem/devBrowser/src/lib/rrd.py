@@ -16,7 +16,7 @@ from nav.rrd import presenter
 import forgetHTML as html
 from nav.web import urlbuilder
 from nav.errors import *
-from nav.web.templates.tsTemplate import tsTemplate
+from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 from nav.web.SearchBox import SearchBox
 
@@ -293,7 +293,7 @@ def treeselect(req, session, action=None):
         nameSpace = {'selectbox': selectbox}
         oldds = req.session['rrd'].presentations
         debug = {'debug': "%s Old Ds: %s" % (str(req.form.keys()), str(oldds))}
-        template = tsTemplate()
+        template = TreeSelectTemplate()
         result.append(template.treeselect(selectbox))
     result.append(html.Input(type='submit', name='cn_commitDs', value='Add selected'))
     result.append(html.Input(type='submit', name='cn_joinDs', value='Add and join'))
