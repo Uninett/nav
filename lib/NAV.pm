@@ -6,7 +6,7 @@ package NAV;
 # NAV module contains the common methods / subroutines that NAV scripts are
 # using. It also does some initial work regarding the NAVlog system.
 #
-# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Copyright (c) 2002-2003 by NTNU ITEA
 # Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
 #
 ####################
@@ -16,32 +16,23 @@ use strict;
 use Pg;
 use Fcntl qw/:flock/;
 #use FileHandle;
-use SNMP;
-use SNMP_util;
 use Socket;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(log_open log_close skriv log_write db_get get_path db_safe rydd db_select db_execute db_connect db_readconf hash_conf and_ip mask_bits);
-our @EXPORT_OK = qw(db_file_to_db fil_hent db_hent_hash db_endring_per_linje db_endring db_sletting db_hent_enkel fil_hent_linje db_delete db_logg_insert db_sett_inn db_insert db_oppdater fil_netaddr db_select_hash db_update db_hent_dobbel snmpsystem snmperrorcorrect verifymib fjern_endelse snmp_type hent_ip hent_dnsname sigwalk siget hent_scalar db_slett db_do_delete get_log make_and_get_sequence_number);
+our @EXPORT = qw(log_open log_close skriv log_write db_get db_safe rydd db_select db_execute db_connect db_readconf hash_conf and_ip mask_bits);
+our @EXPORT_OK = qw(get_log make_and_get_sequence_number);
 our %EXPORT_TAGS = (
 		    collect => [qw(db_file_to_db fil_hent db_hent_hash db_endring_per_linje db_endring db_sletting db_hent_enkel fil_hent_linje db_delete db_logg_insert db_sett_inn db_insert db_oppdater db_select_hash db_update db_hent_dobbel fil_netaddr hent_scalar db_slett db_do_delete)],
-		    fil => [qw(fil_netaddr)],
-		    snmp => [qw(snmpsystem snmperrorcorrect verifymib fjern_endelse snmp_type hent_ip hent_dnsname sigwalk siget)],
 		    log => [qw(get_log make_and_get_sequence_number)],
 		    );
 
 our @VERSION = 3.0;
 
 my $NAVDIR = "/usr/local/nav/";
-my %conf = &hash_conf($NAVDIR."navme/etc/conf/collect/collect.conf");
 my %types = &get_types("navmessage");
 
 my $debug = 0;
 
-sub get_path{
-    my $que = $_[0];
-    return $conf{$que};
-}
 
 
 # Leser inn en config-fil i en hash. Config-filen må være av type
@@ -112,16 +103,6 @@ sub db_execute {
 sub db_hent {
     my ($db,$sql) = @_;
     return &db_select($db,$sql);
-}
-sub db_hent_hash {
-    my ($db,$sql) = @_;
-    my $res = &db_select($db,$sql);
-    my %resultat;
-    while(@_ = $res->fetchrow) {
-	@_ = map rydd($_), @_;
-	$resultat{$_[0]} = [ @_ ];
-    }
-    return %resultat;
 }
 
 sub db_select_hash {
@@ -438,98 +419,6 @@ sub db_do{
 	print "done\n" if $debug;
     }
 }
-sub db_do_insert {
-    my $db = $_[0];
-    my $tabell = $_[1];
-    my @felt = @{$_[2]};
-    my @verdier = @{$_[3]};
-    my $insert = $_[4];
-
-    if($insert eq "device"){
-	my $seq = &finn_og_bruk_deviceid($db);
-	push(@felt, "deviceid");
-	push(@verdier, $seq);
-    }
-
-    @verdier = map rydd($_), @verdier;
-
-    my @val;
-    my @key;
-    foreach my $i (0..$#felt) {
-#	print $verdier[$i]."\n";
-	if (defined($verdier[$i]) && $verdier[$i] ne ''){
-	    push(@val, "\'".$verdier[$i]."\'");
-	    push(@key, $felt[$i]);
-	}
-    }
-    if(scalar(@key)){ #key eksisterer
-	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-#	print $sql."\n" if $debug;
-	if($insert eq "nolog"){
-	    &db_execute($db,$sql);
-	} else {
-	    &skriv("DATABASE-INSERT", "table=$tabell", "tuple=".join(" ",@val)) if &db_execute($db,$sql);
-#	    print $db->errorMessage;
-
-	}
-    }
-}
-sub db_do_update {
-    my %parameter = @_;
-    
-    unless(
-	   exists($parameter{old}) && 
-	   exists($parameter{new}) && 
-	   exists($parameter{connection}) &&
-	   exists($parameter{table}) &&
-	   exists($parameter{field}) && 
-	   exists($parameter{where}) 
-	   ) {
-
-	die("Parametrene er ikke fullstendig utfylt\n");
-	
-    } else {
-	my $db = $parameter{connection};
-	my $tabell = $parameter{table};
-	my $felt = $parameter{field};
-	my $fra = $parameter{old};
-	my $til = $parameter{new};
-	my $hvor = $parameter{where};
-
-	my $update;
-	if(exists($parameter{update})){
-	    $update = $parameter{update};
-	}
-	$til = &rydd($til);
-	unless($til eq $fra) {
-	    if (!$til && $fra){
-		my $sql = "UPDATE $tabell SET $felt=null WHERE $hvor";
-		&skriv("DATABASE-UPDATE", "from=$fra","to=null","where=$hvor","table=$tabell", "field=$felt") if &db_execute($db,$sql);
-		
-	    } elsif ($til) {
-		my $sql = "UPDATE $tabell SET $felt=\'$til\' WHERE $hvor";
-
-		if($update eq "swport" && $felt eq "trunk"){
-		    my $swportid = &hent_scalar($db,"SELECT swportid from swport WHERE $hvor");
-		    &db_do_delete($db,"swportvlan","swportid=$swportid");
-		} 
-		&skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor","table=$tabell","field=$felt") if &db_execute($db,$sql);
-	    }
-	}
-    }
-}
-sub db_do_delete {
-    my ($db,$tabell,$hvor,$special) = @_[0..2];
-    if($special eq "swport"){
-	&db_do_delete($db,"swport",$hvor." and swportbak is not null");
-    }
-    my $sql = "DELETE FROM $tabell WHERE $hvor";
-    &skriv("DATABASE-DELETE", "table=$tabell","where=$hvor");
-    &db_execute($db,$sql);
-    
-#    print $sql;
-}  
-
 sub hent_scalar {
     my ($db,$sql) = @_;
     my $resultat;
@@ -541,13 +430,6 @@ sub hent_scalar {
     return $resultat;
 }
 
-sub finn_og_bruk_deviceid {
-    my $db = $_[0];
-    my $sql = "select nextval(\'device_deviceid_seq\')";
-    my $seq = &hent_scalar($db,$sql);
-    &db_logg_insert($db, "device", ["deviceid"],[$seq]);
-    return $seq;
-}
 sub db_safe {
     my %parameter = @_;
 
@@ -673,46 +555,6 @@ sub lag_where{
     return $where;
 }
 
-sub db_file_to_db {
-    my %parameter = @_;
-
-    print "er i file_to_db\n" if $debug;
-
-    my $db = $parameter{connection};
-    my $file = $parameter{file};
-    my $table = $parameter{table};
-    my @fields = @{$parameter{databasefields}};
-    my @fieldindex = ();
-    my @fieldsequence;
-
-    if($parameter{filefields}){
-	@fieldsequence = @{$parameter{filefields}};
-    } else {
-	@fieldsequence = @{$parameter{databasefields}};
-    }
-
-    unless(exists($parameter{index})){
-	@fieldindex = ("0");
-    } else {
-	@fieldindex = @{&make_sequence(\@{$parameter{index}},\@fields)};
-	
-    }
-
-    my $localfile = get_path("path_local").$file;
-    my $navmefile = get_path("path_navme").$file;
-
-    my %file = ();
-    my %database;
-
-    %file = %{&file_get_hash(file=>$navmefile,fields=>\@fields,sequence=>\@fieldsequence,index=>\@fieldindex,oldfile=>\%file)} if -r $navmefile;
-    %file = %{&file_get_hash(file=>$localfile,fields=>\@fields,sequence=>\@fieldsequence,index=>\@fieldindex,oldfile=>\%file)} if -r $localfile;
-
-    %database = %{&db_get_hash(connection=>$db,fields => \@fields,index=>\@fieldindex,query=>"SELECT ".join(",", @fields )." FROM ".$table)};
-
-### sammenlikn data i hasher, legg inn, erstatt og slett
-    &db_do(connection=>$db,table=>$table,fields=>\@fields,index=>\@fieldindex,sequence=>\@fieldsequence,new=>\%file,old=>\%database,delete=>1);
-
-}
 sub db_get_hash {
     my %parameter = @_;
 
@@ -751,105 +593,6 @@ sub db_get_hash {
     return \%result;
    
 }
-sub file_get_hash {
-    my %parameter = @_;
-
-    my $file = $parameter{file};
-    my @index = @{$parameter{index}};
-    my %result = %{$parameter{oldfile}};
-    my @line = ();
-    my @newline = ();
-    my $serial = 0;
-
-    my @sequence;
-    my @fields;
-
-    if (exists($parameter{fields})){
-
-	@fields = @{$parameter{fields}};
-	@sequence = @{&make_sequence(\@{$parameter{fields}},\@{$parameter{sequence}})};
-
-    } else {
-	
-	@fields = @{$parameter{fields}};
-	@sequence = @{&count_sequence(scalar(@fields))};
-	
-    }
-
-    my $complexity = scalar(@index);
-    my $rest = scalar(@sequence);
-
-    open (FILE, "<$file") || die ("KUNNE IKKE ÅPNE FILA: $file");
-    foreach my $f(<FILE>) {
-	@line = &file_get_line($f);
-	@line = map rydd($_), @line;
-	if($line[0]){
-	    @newline = ();
-	    for my $s (@sequence){
-		my $new = $line[$s]||"";
-		push(@newline,$new);
-	    }
-	    if($complexity==3){
-		$result{$newline[$index[0]]}{$newline[$index[1]]}{$newline[$index[2]]} = [@newline];
-	    } elsif ($complexity==2){
-		$result{$newline[$index[0]]}{$newline[$index[1]]} = [@newline];
-#		print $line[$index[0]].$line[$index[1]]." = ".$newline[0].$newline[1]."\n";
-	    } elsif ($complexity==1){
-		$result{$newline[$index[0]]} = [@newline];
-#		print $line[$index[0]]." = ".$newline[0].$newline[1]."\n";
-	    }
-	}
-    }
-    close FILE;
-    return \%result;
-}
-
-sub file_get_line {
-    my $l = $_[0];
-    #tar med linjer som begynner med ord før kolon bestående av 
-    #tall,bokstaver,lavstrek,bindestrek,punktum
-    if ($l =~ /^([\w_\-\.]+):?/) {
-	if($1){
-	#sletter ting som er ekstra i stedet for å slå 
-	#sammen med seinere feilkolonner.
-	(my @line) = split(/:/,$l); 
-#	for(@line){print};
-#	@line = map rydd($_), @line; #rydder opp
-	return @line;
-    }
-    } else {
-	return 0;
-    }
-}    
-sub fil_hent_linje {
-    (my $felt,$_) = @_;
-    #tar med linjer som begynner med ord før kolon bestående av 
-    #tall,bokstaver,lavstrek,bindestrek,punktum
-    if (/^([\w_\-\.]+):?/) {
-	#sletter ting som er ekstra i stedet for å slå 
-	#sammen med seinere feilkolonner.
-	(my @linje,undef) = split(/:/,$_,$felt+1); 
-	@linje = map rydd($_), @linje; #rydder opp
-	return @linje;
-#    } else {
-#	return 0;
-    }
-}  
-
-sub fil_hent {
-    my ($fil,$felt) = @_;
-    my %resultat = ();
-    my @linje = ();
-    open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
-    foreach (<FIL>) {
-	if(@linje = &fil_hent_linje($felt,$_)){
-	    $resultat{$linje[0]} = [ @linje ]; #legger inn i hash
-	}
-    }
-    close FIL;
-    return %resultat;
-}
-
 sub rydd {    
     if (defined $_[0]) {
 	$_ = $_[0];
@@ -909,89 +652,6 @@ sub error_correct{
     }
 }
 
-sub db_endring {
-
-    my $db = $_[0];
-    my %ny = %{$_[1]};
-    my %gammel = %{$_[2]};
-    my @felt = @{$_[3]};
-    my $tabell = $_[4];
-    for my $feltnull (keys %ny) {
-	&db_endring_per_linje($db,\@{$ny{$feltnull}},\@{$gammel{$feltnull}},\@felt,$tabell,$feltnull);
-    }
-}
-
-sub db_endring_per_linje {
-    my $db = $_[0];
-    my @ny = @{$_[1]};
-    my @gammel = @{$_[2]};
-    my @felt = @{$_[3]};
-    my $tabell = $_[4];
-    my $id = $_[5];
-    
-    #eksisterer i databasen?
-    if($gammel[0]) {
-#-----------------------
-#UPDATE
-	for my $i (0..$#felt ) {
-	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
-#		print "NY: $ny[$i] GAMMEL: $gammel[$i]\n";
-		unless($ny[$i] eq $gammel[$i]) {
-		    #oppdatereringer til null må ha egen spørring
-		    if ($ny[$i] eq "" && $gammel[$i] ne ""){
-			&db_oppdater($db,$tabell,$felt[$i],$gammel[$i],"null",$felt[0],$id);
-		    } else {
-			
-			&db_oppdater($db,$tabell,$felt[$i],"\'$gammel[$i]\'","\'$ny[$i]\'",$felt[0],$id);
-		    }
-		}
-	    }
-	}
-    }else{
-#-----------------------
-#INSERT
-	&db_sett_inn($db,$tabell,join(":",@felt),join(":",@ny));
-	
-    }
-}
-sub db_sletting{
-    my $db = $_[0];
-    my %ny = %{$_[1]};
-    my %gammel = %{$_[2]};
-    my @felt = @{$_[3]};
-    my $tabell = $_[4];
-#-----------------------------------
-#DELETE
-    #hvis den ikke ligger i fila
-    for my $f (keys %gammel) {
-	unless(exists($ny{$f})) {
-	    &db_slett($db,$tabell,$felt[0],$f);
-	}
-    }
-}
-sub db_sett_inn {
-    my ($db,$tabell,$felt,$verdier) = @_;
-    my @felt = split/:/,$felt;
-    my @verdier = split/:/,$verdier;
-    my @val;
-    my @key;
-    foreach my $i (0..$#felt) {
-	if (defined($verdier[$i]) && $verdier[$i] ne ''){
-	    #normal
-	    push(@val, "\'".$verdier[$i]."\'");
-	    push(@key, $felt[$i]);
-#	} elsif (defined($verdier[$i])) {
-	    #null
-#	    push(@val, "NULL");
-#	    push(@key, $felt[$i]);
-	}
-    }
-    if(scalar(@key)){ #key eksisterer
-	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-	&skriv("DATABASE-INSERT","tuple=".join(" ",@val),"table=$tabell") if &db_execute($db,$sql);
-
-    }
-}
 sub db_insert {
     my $db = $_[0];
     my $tabell = $_[1];
@@ -1034,16 +694,6 @@ sub db_oppdater {
     &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor_nokkel = $hvor_passer","table=$tabell","field=$felt") if &db_execute($db,$sql);
 
 }
-sub db_delete {
-    my ($db,$tabell,$hvor) = @_;
-#    my $nql = "\n\nSLETTER FRA TABELL |$tabell| HVOR |$hvor|";
-    my $sql = "DELETE FROM $tabell WHERE $hvor";
-    &skriv("DATABASE-DELETE", "table=$tabell","where=$hvor");
-  &db_execute($db,$sql);
-
-#    print $sql;
-}    
-
 sub db_slett {
     my ($db,$tabell,$hvor_nokkel,$hvor_passer) = @_;
     if($hvor_passer){
@@ -1053,45 +703,6 @@ sub db_slett {
 
     }
 }    
-sub db_hent_enkel {
-## Henter ut hash indeksert på første ledd i sql-setning. 
-## Nøkkelen er første ledd
-## Verdien er andre ledd
-    my ($db,$sql) = @_;
-    my %resultat = ();
-    my $res =  &db_select($db,$sql);
-    while(@_ = $res->fetchrow) {
-	@_ = map rydd($_), @_;
-	$resultat{$_[0]} = $_[1] ;
-    }
-    return %resultat;
-}
-sub db_logg_insert {
-    my $db = $_[0];
-    my $tabell = $_[1];
-    my @felt = @{$_[2]};
-    my @verdier = @{$_[3]};
-
-    my @val;
-    my @key;
-    foreach my $i (0..$#felt) {
-#	print $verdier[$i]."\n";
-	if (defined($verdier[$i]) && $verdier[$i] ne ''){
-	    #normal
-	    push(@val, "\'".$verdier[$i]."\'");
-	    push(@key, $felt[$i]);
-#	} elsif (defined($verdier[$i])) {
-	    #null
-#	    push(@val, "NULL");
-#	    push(@key, $felt[$i]);
-	}
-    }
-    if(scalar(@key)){ #key eksisterer
-#	my $nql = "\n\nSETTER INN I |$tabell| FELT |".join(" ",@key)."| VERDIER |".join(" ",@val)."|";
-	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-	&skriv("DATABASE-INSERT", "table=$tabell", "tuple=".join(" ",@val)) if &db_execute($db,$sql);
-    }
-}
 sub db_hent_dobbel {
     my ($db,$sql) = @_;
     my %resultat = ();
@@ -1102,166 +713,6 @@ sub db_hent_dobbel {
     }
     return %resultat;
 }
-###############################################
-### SNMP
-###############################################
-
-
-sub snmpsystem{
-    my ($host,$community,$endelser) = @_;
-
-    # kan ikke gjøre noe før vi har community
-    if ($community){
-	# henter dnsname og fjerner domain suffix
-	my $dns = &hent_dnsname($host);
-	$dns = &fjern_endelse($dns,$endelser);
-
-	# oppretter et snmpobjekt, og henter type og sysname derfra.
-	my $sess = new SNMP::Session(DestHost => $host, Community => $community, Version => 1, Timeout => 1000000, Retries => 1);
-	my $vars = new SNMP::VarList(['1.3.6.1.2.1.1.5.0'], ['1.3.6.1.2.1.1.2.0']);
-	my ($sys, $type) = $sess->get($vars);   
-
-	# hvis sysname ok:
-	if($sys){
-	    $sys = &fjern_endelse($sys,$endelser);
-	    # rapporterer at vi henter data fra "sysname"
-	    &skriv("DEVICE-COLLECT","ip=$sys");
-	    
-	    # rapporter feilmelding hvis dns og sysname er forskjellige
-	    unless($dns eq $sys) {
-		&skriv("DNS-NAMECHAOS", "ip=$host", "sysname=$sys", "dns=$dns");
-	    }
-	} else {
-	    # skriver ut feilmelding hvis ikke svar, etc.
-	    my $error = $sess->{ErrorStr};
-
-	    # rapporterer at vi henter data fra "ip"
-	    &skriv("DEVICE-COLLECT","ip=$host");
-
-	    # hvis feilmelding, rapporter riktig type feilmelding,
-	    # hvis ikke: rapporter at vi her bruker dns, siden vi ikke
-	    # fikk noe sysname
-	    if($error){
-		&snmperrorcorrect($host,$error);
-	    } else {
-		&skriv("SNMP-DNSNAME", "ip=$host", "dns=$dns");
-	    }
-
-	    #dns brukes som sysname hvis sysname ikke fins.
-	    $sys = $dns;
-	}
-	# fjerner punktum fra starten av OID
-	$type =~ s/^\.//; 
-	return ($sys,$type);
-    }
-}
-
-sub snmperrorcorrect {
-    my $error = $_[1];
-    my $ip = $_[0];
-
-    if($error =~ /^Timeout/){
-	
-	&skriv("SNMP-TIMEOUT","ip=$ip");
-
-    } else {
-
-	&skriv("SNMP-ERROR", "ip=$ip", "message=$error");
-    }
-}
-
-sub verifymib{
-    if($_[0]){
-	return 1;
-    } else {
-	return 0;
-    }
-}
-
-sub fjern_endelse{
-    
-    # tar inn sysname
-    my $sysname = $_[0];
-
-    # splitter de forskjellige endelsene, der skilletegn er , eller :
-    my @endelser =  split(/:|,/,$_[1]);
-
-    #for hver endelse
-    for my $endelse (@endelser) {
-	
-	# fjern endelse fra name
-	$sysname =~ s/\.?$endelse//i;
-    }
-    return $sysname;
-}
-
-
-# depricated
-sub snmp_type{
-    my ($ip,$ro,$mib) = @_;
-    my $resultat = 0;
-    if ($ro) {
-        ($resultat) = &snmpget("$ro\@$ip:161:1:2:4",$mib);
-    }
-    return $resultat;
-}
-
-sub hent_ip{
-    if (defined $_[0]){
-	if(my $ip = gethostbyname($_[0])){
-	    return inet_ntoa($ip);
-	} else {
-	    return 0;
-	}
-    } else {
-	return "";
-    }   
-}
-sub hent_dnsname{
-    if (defined $_[0]){
-	my $dns;
-	if($dns =&inet_aton($_[0])){
-	    $dns = gethostbyaddr($dns,AF_INET);
-	    return $dns;
-	} else {
-	    return 0;
-	}
-    } else {
-	return 0;
-    }   
-}
-sub sigwalk{
-    my $session = $_[0];
-    my $mib = $_[1];
-    my $vb = new SNMP::Varbind([$mib]);
-    my @min = ();
-    $min[0] = $mib;
-    my $teller = 0;
-    my @resultat = ();
-    while ($min[0] =~ /^$mib/ && !$session->{ErrorNum}) {
-
-	if(exists $min[1]){
-	    $min[0] =~ /$mib\.(\S+)/;
-	    my $temp;
-	    if($1){
-		$temp = $1.".".$min[1];
-	    } else {
-		$temp = $min[1];
-	    }
-	    $resultat[$teller] = [$temp,$min[2]];
-	    $teller++;
-	}
-	$session->fgetnext($vb);
-	@min = @{$vb};
-    }
-    return @resultat;
-}
-sub siget {
-    my $session = $_[0];
-    my $mib = $_[1];
-    return $session->get($mib);
-}
-
 ###############################################
 ### IP
 ###############################################
