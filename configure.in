@@ -70,11 +70,11 @@ AC_OUTPUT(Makefile
 	subsystem/editdb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
-	subsystem/eMotd/lib/Makefile
-	subsystem/eMotd/src/Makefile
-	subsystem/eMotd/bin/Makefile
-	subsystem/eMotd/templates/Makefile
-	subsystem/eMotd/Makefile
+	subsystem/messages/lib/Makefile
+	subsystem/messages/src/Makefile
+	subsystem/messages/bin/Makefile
+	subsystem/messages/templates/Makefile
+	subsystem/messages/Makefile
 	subsystem/deviceManagement/src/Makefile
 	subsystem/deviceManagement/Makefile
 	subsystem/machinetracker/src/Makefile

@@ -33,7 +33,7 @@ subdirs = src \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
 	subsystem/editdb \
-	subsystem/eMotd \
+	subsystem/messages \
 	subsystem/machinetracker \
 	subsystem/report \
 	subsystem/smsd \
