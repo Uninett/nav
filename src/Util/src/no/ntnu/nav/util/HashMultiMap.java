@@ -99,6 +99,10 @@ public class HashMultiMap implements MultiMap {
 	if( ret == null ) m.put( o, ret = newSet() );
 	return ret;
     }
+	public Object getFirst( Object o) {
+		Set ret = get(o);
+		return ret.isEmpty() ? null : ret.iterator().next();
+	}
     public Set keySet() {
 	return m.keySet();
     }

@@ -38,6 +38,7 @@ public interface MultiMap {
     public boolean remove( Object key );
     public boolean removeAll( Object key, Set values );
     public Set get( Object o );
+	public Object getFirst( Object o );
     public Set keySet();
     public Set values();
     public boolean equals( Object o );
