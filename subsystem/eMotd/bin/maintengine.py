@@ -66,11 +66,11 @@ def send_event():
         mid = event['maintenanceid']
         type = event['type']
 
-        # ugly (=large) sql to handle that follow-ups copies manitenance units from its parent
-        sql = "select key,value from emotd_related inner join emotd using (emotdid) where emotdid=%d and (emotd.replaces_emotd is null and maintenance.state = 'scheduled' or emotd.replaces_emotd is not null and maintenance.state = 'active')" % int(emotdid)
+        # handle that follow-ups copies manitenance units from its parent
+        sql = "select key,value,type from emotd_related inner join emotd using (emotdid) where emotdid=%d and (emotd.replaces_emotd is null and maintenance.state = 'scheduled' or emotd.replaces_emotd is not null and maintenance.state = 'active')" % int(emotdid)
         database.execute(sql)
         
-        for (key,val) in database.fetchall():
+        for (key,val,emotdtype) in database.fetchall():
             target = 'eventEngine'
             subsystem = 'emotd'
             severity = 50
@@ -79,39 +79,106 @@ def send_event():
             state = 'e'
             value = 0
             if type == 'active':
+                if emotdtype=='info':
+                    severity = 10
+                elif emotdtype=='internal':
+                    severity = 20
+                elif emotdtype=='scheduled':
+                    severity = 60
+                elif emotdtype=='error':
+                    severity = 80
                 state = 's'
                 value = 100
-            database.execute("select nextval('eventq_eventqid_seq')")
-            eventqid = database.fetchone()[0]
+
+            # type-dependant handling
+
+            # type netbox
             if key=='netbox':
+
+                #get new eventqid to insert into eventq AND eventqvar
+                database.execute("select nextval('eventq_eventqid_seq')")
+                eventqid = database.fetchone()[0]
+
+                #select info from the netbox
                 database.execute("select deviceid,sysname from netbox where netboxid = %d" % int(val))
                 result = database.fetchone()
                 if result:
                     (deviceid,sysname) = result
+
+                    #insert into eventq
                     database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(val), int(deviceid), source, severity, state, value))
+
+                    #insert sysname into eventqvar
                     database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, sysname))
+
+            # type room or location
             elif key=='room' or key=='location':
-                database.execute("insert into eventq (eventqid,target,eventtypeid,source,severity,state,value) values (%d,'%s','%s','%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, source, severity, state, value))
-                database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, val))
+                if key=='room':
+                    #get all netboxes from this room
+                    database.execute("select netboxid, sysname, deviceid from netbox where roomid=%s",(val,))
+                else:
+                    #get all netboxes from this location
+                    database.execute("select netboxid, sysname, deviceid from netbox inner join room using (roomid) where locationid=%s",(val,))
+
+                #for each netbox
+                for (netboxid, sysname, deviceid) in database.fetchall():
+
+                    #get eventqid
+                    database.execute("select nextval('eventq_eventqid_seq')")
+                    eventqid = database.fetchone()[0]
+
+                    #insert into eventq
+                    database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s','%s','%s','%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(netboxid), int(deviceid), source, severity, state, value))
+
+                    #insert sysname into eventqvar
+                    database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), 'netbox', sysname))
+
+            #type module
             elif key=='module':
+
+                #get eventqid
+                database.execute("select nextval('eventq_eventqid_seq')")
+                eventqid = database.fetchone()[0]
+
+                #select useful information regarding this module
                 database.execute("select netboxid, deviceid, module, descr from module where moduleid=%d" % int(val))
                 result = database.fetchone()
                 if result:
                     (netboxid, deviceid, module, descr) = result
+
+                    #insert into eventq
                     database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(netboxid), int(deviceid), source, severity, state, value))
+
+                    #insert into eventqvar
                     database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, module + ":" + descr))
+
+            #type service
             elif key=='service':
+
+                #get eventqid
+                database.execute("select nextval('eventq_eventqid_seq')")
+                eventqid = database.fetchone()[0]
+
+                #select useful information regarding the service
                 database.execute("select netboxid, handler from service where serviceid=%d" % int(val))
                 result = database.fetchone()
                 if result:
                     (netboxid, handler) = result
+
+                    #insert into eventq
                     database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,subid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(netboxid), int(val), source, severity, state, value))
+
+                    #insert into eventqvar
                     database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, handler))
             else:
+
+                #never happens
                 raise repr("Unrecognised equipment key")
 
-                
+        #update maintenance states
         database.execute("update maintenance set state='%s' where maintenanceid = %d" % (type, int(mid)))
+
+        #commit transaction
         connection.commit()
 
 
