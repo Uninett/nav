@@ -19,6 +19,8 @@
 
 	<!-- Data plugins -->
   <target name="data-plugins">
+    <ant inheritAll="false" dir="data-plugins/NetboxInfo"/>
+    <ant inheritAll="false" dir="data-plugins/Module"/>
     <ant inheritAll="false" dir="data-plugins/Swport"/>
   </target>
 
@@ -77,6 +79,8 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/>
+    <ant inheritAll="false" dir="data-plugins/Module" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Swport" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/3Com" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwBasic" target="clean"/>
