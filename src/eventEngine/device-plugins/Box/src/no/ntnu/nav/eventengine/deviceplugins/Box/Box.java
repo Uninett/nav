@@ -23,6 +23,9 @@ public class Box extends Device
 	//protected int gwdeviceid;
 	protected int vlan;
 
+	protected String maintenanceState;
+	protected boolean onMaintenance;
+
 	// Translate boxid -> deviceid
 	private static Map boxidToDeviceid = new HashMap();
 
@@ -52,6 +55,8 @@ public class Box extends Device
 		ip = rs.getString("ip");
 		sysname = rs.getString("sysname");
 		vlan = rs.getInt("vlan");
+		maintenanceState = rs.getString("maintenanceState");
+		if ("active".equals(maintenanceState)) onMaintenance = true;
 		char up = rs.getString("up").charAt(0);
 		switch (up) {
 			case 'y': status = STATUS_UP; break;
@@ -65,7 +70,7 @@ public class Box extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("BOX_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all boxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid)");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid)");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -96,6 +101,27 @@ public class Box extends Device
 	public String getSysname()
 	{
 		return sysname;
+	}
+
+	/**
+	 * Returns the maintenance state; may be null.
+	 */
+	public String getMaintenanceState() {
+		return maintenanceState;
+	}
+
+	/**
+	 * Returns true if this box is on maintenance; false otherwise.
+	 */
+	public boolean onMaintenance() {
+		return onMaintenance;
+	}
+
+	/**
+	 * Take the box on/off maintenance.
+	 */
+	public void onMaintenance(boolean onMaintenance) {
+		this.onMaintenance = onMaintenance;
 	}
 
 	public static int boxDownCount()
