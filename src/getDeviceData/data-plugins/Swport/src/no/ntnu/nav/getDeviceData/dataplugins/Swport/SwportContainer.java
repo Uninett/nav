@@ -131,10 +131,16 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 
 	// Assign any module-less swports to module 1
 	void assignSwportsWithoutModule() {
-		SwModule m = swModuleFactory(1);
+		List l = new ArrayList();
 		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
 			Swport swp = (Swport)it.next();
-			if (!swp.isAssignedToModule()) m.addSwport(swp);
+			if (!swp.isAssignedToModule()) l.add(swp);
+		}
+
+		// Only create SwModule if it contains any swports
+		if (!l.isEmpty()) {
+			SwModule m = swModuleFactory(1);
+			for (Iterator it = l.iterator(); it.hasNext();) m.addSwport((Swport)it.next());
 		}
 	}
 
