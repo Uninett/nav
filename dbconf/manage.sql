@@ -136,7 +136,7 @@ CREATE TABLE prefiks (
   prefiksid SERIAL PRIMARY KEY,
   nettadr VARCHAR(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
-  rootgw INT4,
+  rootgw VARCHAR(15),
   vlan INT2,
   antmask INT2,
   maxhosts INT2,
@@ -210,13 +210,13 @@ CREATE TABLE gwport (
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT2 NOT NULL,
-  interf VARCHAR(30) NOT NULL,
+  interf VARCHAR(30),
   gwip VARCHAR(15) NOT NULL,
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false
 );
-
+-- not null fjernet fra interf 
 
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
