@@ -9,8 +9,9 @@ disks the server has, as well as the OS type.
 These disk/interface-mappings are later used by the 
 cricket-config-maker.
 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen
-Author: Stian Søiland <stain@itea.ntnu.no> 
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: Stian Søiland <stain@itea.ntnu.no> 
+         Magnus Nordseth <magnun@itea.ntnu.no>
 """
 
 __version__ = "$Id: HandlerServer.py,v 1.10 2002/10/18 09:23:15 stain Exp $"
@@ -21,8 +22,8 @@ import os
 import string
 import fnmatch
 
-import no.ntnu.nav.SimpleSnmp as snmp
 from no.ntnu.nav.getDeviceData.deviceplugins import DeviceHandler
+
 from no.ntnu.nav.logger import Log
 
 class OID:
@@ -44,7 +45,7 @@ class OID:
 
 class Unit:
   """A temporary way to store unit data"""
-  def __init__(self, unitID, description="", type="", size="1024"):
+  def __init__(self, unitID, description="", type="", size=None):
     self.unitID = unitID
     self.description = description
     self.type = type
@@ -104,7 +105,6 @@ class Server(DeviceHandler):
   def canHandleDevice(self, netbox):
     """Report if this netbox is our responsibility"""
     # Lower the string before compare
-    #print "Skal sjekke", netbox
     if(netbox.getCat().lower() == 'srv' and netbox.getSnmpMajor() > 0):
       Log.d("ServerPlugin", "canHandleDevice", "We are ready to serve %s" % netbox.getSysname())
       # We only care about servers with snmp enabled.
@@ -128,7 +128,8 @@ class Server(DeviceHandler):
     """
 
     self.basePath = configParser.get("NAVROOT")
-    Log.d("ServerPlugin", "handleDevice", "Just starting, %s" % netbox.getSysname())
+    Log.setDefaultSubsystem("ServerPlugin")
+    Log.d("handleDevice", "Just starting, %s" % netbox.getSysname())
     # Preparing container to store our data, we are doing this the
     # java way =)
     infoContainer = containers.getContainer("NetboxInfoContainer")
@@ -137,20 +138,12 @@ class Server(DeviceHandler):
     snmp.setHost(netbox.getIp())
     snmp.setCs_ro(netbox.getCommunityRo())
 
-    self.getSnmpAgent(netbox, snmp, infoContainer)
-    ignores = self.getDiskconf(netbox)
-    checkDisks = 1
-    for (path, option) in ignores:
-      if path == '*':
-        # No none of the disks on this machine should be checked
-        checkDisks = 0
-        break
-    if checkDisks:
-      self.getDisks(netbox, snmp, infoContainer, ignores)
+    self.getSnmpAgent(netbox, snmp)
+    self.getDisks(netbox, snmp, infoContainer)
     self.getInterfaces(netbox, snmp, infoContainer)
 
     # We're done! Submit to the old large database
-    # deviceDataList.setDeviceData(deviceData)
+    infoContainer.commit()
 
   def getDiskconf(self,netbox):
     """ We open the config file and insert all the disks we don't want
@@ -163,7 +156,7 @@ class Server(DeviceHandler):
     try:
       conf_file = open(file ,'r')
     except:
-      #print "Could not open config file %s" % file
+      Log.e("getDiskconf", "Could not open config file %s" % file)
       return [] # We failed.
     lines = conf_file.readlines()
     for line in lines:
@@ -184,7 +177,7 @@ class Server(DeviceHandler):
     return ignores  
 
 
-  def getSnmpAgent(self, netbox, snmp, infoContainer):
+  def getSnmpAgent(self, netbox, snmp):
     """Retrieve SNMP agent version and store it in the database directly
        (should use deviceData, but it currently does not support that)
     
@@ -192,63 +185,60 @@ class Server(DeviceHandler):
               to investigate
        snmp -- SimpleSnmp.SimpleSnmp instance of prepared 
                SNMP connection to the netbox
-       deviceData -- getDeviceData.plugins.DeviceData instance
-                     for storing the results
     """
     
     # Get the descriptions
     agent = netbox.getSnmpagent()
-    #print 'hurra her kommer agenten'
-    #print agent
     #TEMP - this is not good but a bug in the net-snmp agent forced us
     # to set the agent like this.
     if (agent == OID.bugAgent):
-      #print 'vi fikk en bugge agent !!'
+      Log.i("getSnmpAgent", "Got buggy SNMP agent for %s" % netbox.getSysname())
       snmp.setBaseOid(OID.sysDescr)
       res = ""
       try:
         res = snmp.getAll(1)
         res = res[0][1]
-        #print 'men alt gikk ok ......'
       except:
-        #print "Nei og nei, vi fikk ingen snmpdata"
-        #print res
+        Log.w("getSnmpAgent", "Found no SNMP sysDescr for %s" % netbox.getSysname())
         return None # Give up
 
       res = res.split(" ")[0]
       if (res.lower() == "sunos"):
         agent = (OID.solarisAgent)
-        #print ' solaris '
       elif (res.lower() == "linux"):
         agent = (OID.linuxAgent)
-        #print ' linux '
       else:
         agent = (OID.other)
-        #print 'fikk en annen'
 
     try:
+      Log.d("getSnmpAgent", "Setting agent %s for %s" % 
+                             (agent, netbox.getSysname()) )
       netbox.setSnmpagent(agent)
-      #netbox.setDeviceData(deviceData)
-      #print 'oooooh yes vi satte muligens inn noe'
-    except:
-      pass
-      #print 'arghhhh . det ble noe galt med oppdatering'
-        
-      
+    except Exception, e:
+      Log.e("getSnmpAgent", "Could not set SNMP agent on %s: %s" % 
+            (netbox.getSysname(), e) )
 
-  def getDisks(self, netbox, snmp, infoContainer, ignores):
+  def getDisks(self, netbox, snmp, infoContainer):
     """Retrieve disk data and prepare to store in deviceData.
     
        netbox -- getDeviceData.plugins.BoksData instance of the netbox
               to investigate
-       snmp -- SimpleSnmp.SimpleSnmp instance of prepared 
+       snmp -- SimpleSnmp.SimpleSnmp instance, a prepared 
                SNMP connection to the netbox
-       deviceData -- getDeviceData.plugins.DeviceData instance
-                     for storing the results
+       infoContainer -- a NetboxInfoContainer to store information
+                        about this netbox
     """
+    # First - get the ignores and.. check if we have anything to do at all
+    ignores = self.getDiskconf(netbox)
+    for (path, option) in ignores:
+      if path == '*':
+        # No none of the disks on this machine should be checked
+        return
     
     # And now for some magic to combine decriptions and filesystem
     disks = Units()
+    # Note that accessing disks[diskID] will create a Unit if it
+    # does not exist.
 
     # Get the descriptions
     snmp.setBaseOid(OID.diskDescriptions)
@@ -294,58 +284,62 @@ class Server(DeviceHandler):
         # On the other hand if disk.description is empty, we have no
         # way to identify the disk, so we MUST avoid it, sadly
         # enough. 
+        Log.i("getDisks", 
+              "Skipping disk %s on %s since it has no description" % 
+                  (disk, netbox.getSysname()) )
         del disks[disk.unitID]
       
-      # /dev and /proc and their childs are not interresting
+      # /dev and /proc and their childs are not interesting
       # Here we will sort out the partitions we don't want to monitor
       for (path, option) in ignores:
         if option == 'recursive':
-          path += '*' # Make the pattern recursive /Store/ -> /Store/*
+          path += '*' # Make the pattern recursive, ie. /Store/ -> /Store/*
         if(fnmatch.fnmatch(disk.description, path)):
           del disks[disk.unitID]
 
-    # Insert into database
+    # Insert the resulting disks into database
     for disk in disks.values():
       try:
         blocksize = int(disk.size)
       except:
-        #print "Invalid blocksize %s, using default of 1024 for %s" % (disk.size, disk.description)
+        Log.i("getDisks", "Invalid blocksize, using default of 1024 for %s on %s" % 
+                            (disk, netbox.getSysname()))
         blocksize = 1024 # Default
-      deviceData.addBoksDisk(disk.description, blocksize) 
-    
-    deviceData.boksDiskUpdated()
+      
 
+      # Insert into database.. note that disk.description is the
+      # key used to match these different attributes
+      infoContainer.put(disk.description, 'disk_unitid', disk.unitID)
+      infoContainer.put(disk.description, 'disk_filesystem', disk.type)
+      infoContainer.put(disk.description, 'disk_blocksize', blocksize)
 
-  def getInterfaces(self, netbox, snmp, deviceData):
+  def getInterfaces(self, netbox, snmp, infoContainer):
     """Retrieve interface names and prepare to store in deviceData.
     
        netbox -- getDeviceData.plugins.BoksData instance of the netbox
               to investigate
        snmp -- SimpleSnmp.SimpleSnmp instance of prepared 
                SNMP connection to the netbox
-       deviceData -- getDeviceData.plugins.DeviceData instance
-                     for storing the results
+       infoContainer -- a NetboxInfoContainer to store information
+                        about this netbox
     """
     
     # And now for some magic to combine decriptions and interface type
     interfaces = Units()
+    # Note that accessing interfaces[interfaceID] will create a Unit if it
+    # does not exist.
 
     # Get the descriptions
     snmp.setBaseOid(OID.interfaceDescriptions)
     interfaceDescriptions = snmp.getAll(1)
     for (interfaceID, description) in interfaceDescriptions:
-      # uhm.. get interfaceID, this is the last number in the OID
-      #print "Fant interface %s med deskripsjon %s" %  (interfaceID, description)
       interfaces[interfaceID].description = description
 
     # .. and their interfacetypes
     snmp.setBaseOid(OID.interfaceTypes)
-    interfaceFilesystems = snmp.getAll(1)
-    for (interfaceID, type) in interfaceFilesystems:
-      # uhm.. get interfaceID, this is the last number in the OID
-      #print "Fant interface %s med type %s" %  (interfaceID, type)
+    interfaceTypes = snmp.getAll(1)
+    for (interfaceID, type) in interfaceTypes:
       interfaces[interfaceID].type = type
-
 
     # some sanity checks 
     for interface in interfaces.values():
@@ -367,6 +361,10 @@ class Server(DeviceHandler):
 
     # Insert into database
     for interface in interfaces.values():
-      deviceData.addBoksInterface(interface.description) 
+      infoContainer.put(interface.description, 
+                        'interf_unitid', interface.unitID)
+      infoContainer.put(interface.description, 
+                        'interf_type', interface.unitID)
+                        
+
     
-    deviceData.boksInterfaceUpdated()  
