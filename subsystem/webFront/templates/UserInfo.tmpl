@@ -10,6 +10,13 @@
 
 #extends nav.web.templates.MainTemplate.MainTemplate
 
+#def grouplist()
+#echo ', '.join( [g.name for g in $groups] )
+#end def
+
+#def orglist()
+#echo ', '.join($orgs)
+#end def
 
 #block content
 
@@ -24,6 +31,14 @@
   <tr>
     <td class="attr_name">Name:</td>
     <td class="attr">$account.name</td>
+  </tr>
+  <tr>
+    <td class="attr_name">Groups:</td>
+    <td class="attr">$grouplist()</td>
+  </tr>
+  <tr>
+    <td class="attr_name">Organizations:</td>
+    <td class="attr">$orglist()</td>
   </tr>
 </table>
 

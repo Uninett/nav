@@ -205,6 +205,9 @@ def userinfo(req):
         page.account = req.session['user']
         page.changePassword = (page.account.ext_sync is None or len(page.account.ext_sync) == 0)
 
+        page.groups = page.account.getGroups()
+        page.orgs = page.account.getOrgIds()
+
     if req.session.has_key('message'):
         page.message = req.session['message']
         del req.session['message']
