@@ -173,7 +173,7 @@ public class MibIISw implements DeviceHandler
 
 				swp.setInterface(interf);
 
-				if (ifdescr.indexOfIgnoreCase("vlan") >= 0 || interf.indexOfIgnoreCase("vlan") >= 0) sc.ignoreSwport(ifindex);
+				if (ifdescr.toLowerCase().indexOf("vlan") >= 0 || interf.toLowerCase().indexOf("vlan") >= 0) sc.ignoreSwport(ifindex);
 			}
 		}
 
