@@ -4,6 +4,7 @@ $Id: setup.py,v 1.2 2003/06/19 12:50:34 magnun Exp $
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
+import abstractChecker
 import re,getopt,sys,config,psycopg,checkermap,string,db
 
 HEADER = '#sysname              handler    args'
@@ -96,11 +97,11 @@ def main(file,conf):
 		while s not in ('yes','no'):
 			print '\nare you sure you want to delete? (yes/no)'
 			s = raw_input()
-		if s == 'no':
-			print 'quitting'
-			sys.exit(1)
-		for i in delete:
-			database.deleteService(i)
+		if s == 'yes':
+			for i in delete:
+				database.deleteService(i)
+		else:
+			print "Continueing..."
 	print 'updating db'
 
 	print "Elements to add: %i" % len(new)

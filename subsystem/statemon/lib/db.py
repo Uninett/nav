@@ -48,12 +48,14 @@ class _db(threading.Thread):
 			self.db=None
 	
 	def cursor(self):
+		cursor = self.db.cursor()
 		try:
-			cursor = self.db.cursor()
+			# this is a very dirty workaround...
+			cursor.execute('SELECT 1')
 		except:
 			debug("Could not get cursor. Trying to reconnect...", 2)
 			self.connect()
-			cursor = self.db.connect()
+			cursor = self.db.cursor()
 		return cursor
 
 	def run(self):
