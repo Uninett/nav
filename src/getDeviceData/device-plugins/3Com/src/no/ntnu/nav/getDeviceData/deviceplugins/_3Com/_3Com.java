@@ -292,6 +292,7 @@ public class _3Com implements DeviceHandler
 			oidMap.put(pre+"17", new String[] { "100", "half", "100BaseFX" } );
 			oidMap.put(pre+"18", new String[] { "100", "full", "100BaseFX" } );
 			oidMap.put(pre+"26", new String[] { "100", "full", "1000BaseSX" } );
+			oidMap.put(pre+"30", new String[] { "100", "full", "1000BaseFD" } );
 			pre = "1.3.6.1.4.1.43.18.8.2.";
 			oidMap.put(pre+"2", new String[] { "1000", "full", "1000BaseSX" } );
 			oidMap.put(pre+"3", new String[] { "1000", "full", "1000BaseSX" } );
@@ -302,6 +303,8 @@ public class _3Com implements DeviceHandler
 				String[] s = (String[])it.next();
 				String ifindex = s[0].split("\\.")[0];
 				String mauTypeOid = s[1];
+
+				if ("0.0".equals(oidMap.get(mauTypeOid))) continue;
 
 				if (oidMap.containsKey(mauTypeOid)) {
 					s = (String[])oidMap.get(mauTypeOid);
