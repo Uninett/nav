@@ -13,6 +13,7 @@ Oversikt
 4)makeconfig
 5)cricket
 6)jyhton - plugin
+  - konfig fil
 7)problemer
 8)vyer
 
@@ -232,6 +233,11 @@ Oversikt
   bigbud:~/navme/src/getDeviceData/dist$ java -jar getDeviceData.jar - \
                                           due.stud
 
+  i) Vi har laget en konfig fil til jython scriptet der man kan
+     spesifisere hvilke disker man ikke vil overvåke. Denne 
+     heter diskException.conf og ligger under nav rota.
+     Grunnen til at man ikke vil overvåke enkelte mountpoints
+     kan feks være at de automonteres.
 
 7)problemer
   Det er fem ting som har vært spesielle:
