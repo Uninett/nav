@@ -294,7 +294,6 @@ CREATE TABLE swport (
   portname VARCHAR,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  to_catid VARCHAR(8),
   UNIQUE(moduleid, ifindex)
 );
 
