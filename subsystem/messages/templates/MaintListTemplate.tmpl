@@ -5,6 +5,7 @@ $makeMenu("Maintenance list")
 
 #set $last_location = True
 #set $last_room = True
+#set $last_netbox = True
 #set $last_message = True
 #set $columns = ("message", "location", "room", "netbox", "service/module", "maintenance end")
 <table style="font-size:0.7em">
@@ -15,26 +16,64 @@ $makeMenu("Maintenance list")
 </tr>
 
 #for $element in $maintlist
-<tr>
-#if not $last_message==$element.message
-<td>$element.title</td>#slurp
+<tr>#slurp
+#if $element.message
+<td style="background-color:snow">#slurp
 #else
-<td></td>#slurp
+<td>#slurp
+#end if
+#if not $last_message==$element.message
+$element.message $element.title#slurp
+#else
+&nbsp;#slurp
+#end if
+</td>#slurp
+#if $element.category=="location"
+<td style="background-color:aqua">#slurp
+#elif $element.locationid
+<td style="background-color:snow">#slurp
+#else
+<td>#slurp
 #end if
 #if not $last_location==$element.locationid
-<td>$element.locationid</td>#slurp
+$element.locationid $element.locationdescr#slurp
 #else
-<td></td>#slurp
+&nbsp;#slurp
+#end if
+</td>#slurp
+#if $element.category=="room"
+<td style="background-color:aqua">#slurp
+#elif $element.roomid
+<td style="background-color:snow">#slurp
+#else
+<td>#slurp
 #end if
 #if not $last_room==$element.roomid
-<td>$element.roomid</td>#slurp
+$element.roomid $element.roomdescr#slurp
 #else
-<td></td>#slurp
+&nbsp;#slurp
 #end if
+</td>#slurp
 #set $last_location = $element.locationid
 #set $last_room = $element.roomid
 #set $last_message = $element.message
-<td>$element.sysname</td><td>#slurp
+#if $element.category=="netbox"
+<td style="background-color:aqua">#slurp
+#elif $element.netboxid
+<td style="background-color:snow">#slurp
+#else
+<td>#slurp
+#end if
+#if not $last_netbox==$element.netboxid
+$element.sysname $element.netboxid#slurp
+#else
+&nbsp;#slurp
+#end if
+</td>#slurp
+#set $last_netbox=$element.netboxid
+
+##go on with coloring
+<td>#slurp
 #if $element.serviceid
 $element.handler#slurp
 #elif $element.module

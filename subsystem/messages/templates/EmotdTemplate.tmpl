@@ -34,19 +34,19 @@ $default_tabs_CSS();
 <div style="border: 1px solid black; margin: 33px 0px; padding: 0px 19px;">
 <div id="tabs" style="margin: -24px -10px;">
 	<ul>
-		<li id="same"><a href="/emotd/active">Active messages</a></li>
-		<li id="same"><a href="/emotd/planned">Planned messages</a></li>
-		<li id="same"><a href="/emotd/historic">Historic messages</a></li>
-		<li id="same"><a href="/emotd/maintenance">Maintenance list</a></li>
+		<li id="same"><a href="/messages/active">Active messages</a></li>
+		<li id="same"><a href="/messages/planned">Planned messages</a></li>
+		<li id="same"><a href="/messages/historic">Historic messages</a></li>
+		<li id="same"><a href="/messages/maintenance">Maintenance list</a></li>
 #if $current == "New message":
 		<li id="current"><a>New message</a></li>
 #else:
-		<li><a href="/emotd/edit">New message</a></li>
+		<li><a href="/messages/edit">New message</a></li>
 #end if
 #if $current == "Maintenance Setup":
 		<li id="current"><a>Maintenance Setup</a></li>
 #else:
-		<li><a href="/emotd/add/">Maintenance Setup</a></li>
+		<li><a href="/messages/add/">Maintenance Setup</a></li>
 #end if
 	</ul>
 </div>
@@ -143,9 +143,9 @@ selected="1" #slurp
 #for c in $b:
 	<tr>
 #if $emotdid
-<td><a href="/emotd/remove/$emotdid/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
+<td><a href="/messages/remove/$emotdid/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
 #elif $emotdid==0:
-<td><a href="/emotd/remove/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
+<td><a href="/messages/remove/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
 #end if
 <td>$a $c[1] #slurp</td>
 </tr>
@@ -174,7 +174,7 @@ No maintenance info.
 ##    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
 ##    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
 ##    <td>$message.mend</td>
-##    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
+##    <td><a href="/messages/view=$message.emotdid">$message.title</a></td>
 #if $message.key == 'room'
     <td><a href="/report/netbox?roomid=$message.value">$message.description</td>
 #elif $message.key == 'location'
@@ -186,7 +186,7 @@ No maintenance info.
 #elif $message.key == 'service'
     <td><a href="/browse/service/$message.value">$message.description</a></td>
 #end if
-    <td><a href="/emotd/view/$message.emotdid">$message.title</a></td>
+    <td><a href="/messages/view/$message.emotdid">$message.title</a></td>
     <td>$message.end</td>
   </tr>
   #end for

@@ -7,8 +7,8 @@
 >
 
   <channel rdf:about="http://metanav.ntnu.no/NAVlinks/">
-    <title>NAV Emotd</title>
-    <link>http://$server/emotd</link>
+    <title>NAV Messages of the Day</title>
+    <link>http://$server/messages</link>
     <description>
       NAV Messages of the Day is the place where you find messages from the Network Administrators.
     </description>
@@ -16,7 +16,7 @@
     <items>
       <rdf:Seq>
 #for $message in $messages
-        <rdf:li resource="http://$server/emotd/view/$message[0]" />
+        <rdf:li resource="http://$server/messages/view/$message[0]" />
 #end for
       </rdf:Seq>
     </items>
@@ -24,9 +24,9 @@
   </channel>
 
 #for $message in $messages
-  <item rdf:about="http://$server/emotd/view/$message[0]">
+  <item rdf:about="http://$server/message/view/$message[0]">
     <title>$message[1]</title>
-    <link>http://$server/emotd/view/$message[0]</link>
+    <link>http://$server/messages/view/$message[0]</link>
     <description>
       $message[2]
     </description>

@@ -12,9 +12,9 @@ $makeMenu()
 #set $farge = "white";
   #for $message in $messages
    <tr style="background: $farge;">
-      <td style="padding: 0px 10px;"><a href="/emotd/view/$message.id">$message.title</a></td>
+      <td style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
 #if $message.units
-      <td style="padding: 0px 10px;" align="right"><a href="/emotd/add/$message.id"><img src="/images/wrench.gif" border="0">$message.units</a></td>
+      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id"><img src="/images/wrench.gif" border="0">$message.units</a></td>
 #else
       <td style="padding: 0px 10px;">&nbsp;</td>      
 #end if
