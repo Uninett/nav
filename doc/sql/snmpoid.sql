@@ -276,7 +276,7 @@ DELETE FROM snmpoid WHERE oidkey='cSw';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cSw','1.3.6.1.4.1.9.3.6.11.1.6','cgw',NULL,'0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='ifSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ifSerial','1.3.6.1.2.1.47.1.1.1.1.11.1','standard',NULL,'0',NULL,'0');
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ifSerial','1.3.6.1.2.1.47.1.1.1.1.11.1','Serial number for device','mib-II','0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='cCardSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardSerial','1.3.6.1.4.1.9.3.6.11.1.4','Slot card serial','Cisco','0',NULL,'0');
@@ -339,7 +339,7 @@ DELETE FROM snmpoid WHERE oidkey='portPortName';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('portPortName','1.3.6.1.4.1.9.5.1.4.1.1.4','cat-sw',NULL,'0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='3cIfDescr';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','0','.*Port (\d+)\b.*','1');
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('3cIfDescr','1.3.6.1.2.1.2.2.1.2','3Com ifDescr for port and unit','3com','0','.*(Unit|Port) +(\\d+)\\b.*','1');
 
 DELETE FROM snmpoid WHERE oidkey='3cModel';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('3cModel','1.3.6.1.4.1.43.10.27.1.1.1.19','Model','3com','0',NULL,'0');
