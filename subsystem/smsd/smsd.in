@@ -27,7 +27,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting smsd.pl: "
-		rc= daemon "su -c ${bindir}/smsd.pl ${user}"
+		rc= daemon "su ${user} -c ${bindir}/smsd.pl"
 		echo
 		exit $rc
 		;;

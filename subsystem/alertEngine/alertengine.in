@@ -38,7 +38,7 @@ case "$1" in
 		exit $rc;
         	;;
 	restart)
-		rc= su -c "${bindir}/alertdaemon.pl restart" ${user}
+		rc= su ${user} -c "${bindir}/alertdaemon.pl restart"
 		echo
 		exit $rc;
 		;;

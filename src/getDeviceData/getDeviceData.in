@@ -28,7 +28,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting getDeviceData: "
-		rc= daemon "su -c ${bindir}/getDeviceData/getDeviceData.sh ${user}"
+		rc= daemon "su ${user} -c ${bindir}/getDeviceData/getDeviceData.sh"
 		echo
 		exit $rc
 		;;
