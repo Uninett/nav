@@ -298,7 +298,7 @@ class HandlerNettinfo
 
 			// NAVv2 SQL: "SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,ip,kat,romid,main_sw,serial,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks LEFT JOIN boksinfo USING (boksid) JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf"
 
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlanid) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlanid,gwport.interface");
+			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlanid) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.ifindex,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlanid,gwport.interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -327,6 +327,7 @@ class HandlerNettinfo
 				//hm.put("boksid", "gw"+rs.getString("gwportid"));
 				hm.put("vlan", rs.getString("vlan"));
 				hm.put("direction", "n");
+				hm.put("ifindex", rs.getString("ifindex"));
 				hm.put("port", rs.getString("interface"));
 				hm.put("to_module", rs.getString("to_module"));
 				hm.put("to_port", rs.getString("to_port"));
@@ -373,6 +374,10 @@ class HandlerNettinfo
 				if ( (l=(List)portMap.get(key)) == null) portMap.put(key, l=new ArrayList());
 
 				HashMap hm = getHashFromResultSet(rs, rsmd, false);
+				if (rs.getString("to_netboxid") == null) {
+					//com.outl("to_netboxid is null for: " + rs.getString("netboxid") + ", " + rs.getString("ifindex") + " key: " + key);
+					hm.put("to_netboxid", "cam"+rs.getString("netboxid")+":"+rs.getString("ifindex"));
+				}
 				l.add(hm);
 			}
 
@@ -387,6 +392,23 @@ class HandlerNettinfo
 				HashMap hm = getHashFromResultSet(rs, rsmd, false);
 				hm.put("direction", "n");
 				hm.put("nodeType", "service");
+
+				l.add(hm);
+			}
+
+			// Hent cam
+			rs = Database.query("SELECT cam.netboxid,ifindex,arp.ip,mac AS portname,cam.start_time,cam.end_time,vlan FROM cam JOIN netbox USING(netboxid) JOIN arp USING(mac) JOIN prefix ON(arp.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE cam.end_time='infinity' and arp.end_time='infinity' AND vlan IS NOT NULL");
+			rsmd = rs.getMetaData();
+			while (rs.next()) {
+				String key = "cam"+rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("vlan");
+				//com.outl("Adding key: " + key + " mac: " + rs.getString("portname"));
+				List l;
+				if ( (l=(List)portMap.get(key)) == null) portMap.put(key, l=new ArrayList());
+
+				HashMap hm = getHashFromResultSet(rs, rsmd, false);
+				hm.put("parentKey", key);
+				hm.put("direction", "o");
+				hm.put("nodeType", "cam");
 
 				l.add(hm);
 			}
@@ -416,6 +438,7 @@ class HandlerNettinfo
 
 	private static final int SORT_SYSNAME = 0;
 	private static final int SORT_IFINDEX = 10;
+	private static final int SORT_PORT = 20;
 	private Collection sort(Collection c, final int sortOn) {
 		List l = new ArrayList(c);
 		Collections.sort(l,	new Comparator() {
@@ -424,17 +447,32 @@ class HandlerNettinfo
 						HashMap m1 = (HashMap)o1;
 						HashMap m2 = (HashMap)o2;
 						switch (sortOn) {
-						case SORT_SYSNAME:
+						case SORT_SYSNAME: {
 							String s1 = (String)sysnameMap.get(m1.containsKey("to_netboxid") ? m1.get("to_netboxid") : "");
 							String s2 = (String)sysnameMap.get(m2.containsKey("to_netboxid") ? m2.get("to_netboxid") : "");
 							return s1.compareTo(s2);
+						}
 
-						case SORT_IFINDEX:
+						case SORT_IFINDEX: {
 							String if1 = (String)m1.get("ifindex");
 							String if2 = (String)m2.get("ifindex");
 							Integer i1 = new Integer(if1 != null && !"null".equals(if1) ? if1 : "0");
 							Integer i2 = new Integer(if2 != null && !"null".equals(if2) ? if2 : "0");
-							return i1.compareTo(i2);
+							int cmp = i1.compareTo(i2);
+							if (cmp != 0) return cmp;
+						}
+
+						case SORT_PORT: {
+							String p1 = (String)m1.get("port");
+							String p2 = (String)m2.get("port");
+							try {
+								Integer i1 = new Integer(p1 != null && !"null".equals(p1) ? p1 : "0");
+								Integer i2 = new Integer(p2 != null && !"null".equals(p2) ? p2 : "0");
+								return i1.compareTo(i2);
+							} catch (NumberFormatException exp) {
+								return p1 == null ? 0 : p1.compareTo(p2);
+							}
+						}
 						}
 						return 0;
 					}
@@ -447,6 +485,7 @@ class HandlerNettinfo
 	/* [/ni.visTopologi]
 	 *
 	 */
+	private boolean firstSearchHit = false;
 	private void visTopologi() throws SQLException
 	{
 		if (s.length > 2) {
@@ -627,7 +666,7 @@ class HandlerNettinfo
 		com.outl("<div style=\"font-size: 13\">");
 		com.outl("<br>Fetch from DB/cache: " + (p1-begin) + " ms. Output HTML: " + (p2-p1) + " ms.");
 		com.outl("</div>");
-
+		firstSearchHit = false;
 	}
 
 	private boolean swportExpand(HashMap swrec, HashMap parentSwrec, int depth, boolean lastPort, boolean expand, boolean showempty, boolean searchexact, boolean showpath, boolean searchblocked, String[] searchField, String searchFor, HashSet searchHitSet, HashMap portMap, HashMap travMap, HashMap sysnameMap, HashMap katMap, Set visitSet)
@@ -650,6 +689,7 @@ class HandlerNettinfo
 		boolean dirDown = direction == null || !(direction.equals("b") || direction.equals("o"));
 
 		boolean searchFound = false;
+		//swrec.put("portname", boksbak);
 
 		// Hvis ikke boksbak så vises ikke porten i det hele tatt
 		//if (boksbak == null) return;
@@ -665,6 +705,8 @@ class HandlerNettinfo
 		}
 
 		List portList = (List)portMap.get(keyBak);
+		//swrec.put("portname", swrec.get("portname")+" ("+portList+")");
+		//if (keyBak.startsWith("cam") && portList == null) com.outl("Not found for: " + keyBak);
 		boolean expandable = portList != null && !visitSet.contains(boksbak);
 
 		/*
@@ -706,8 +748,10 @@ class HandlerNettinfo
 		}
 
 		if (searchField != null && searchFound) {
-			key = boksid+":"+vlan;
-			travMap.put(key, new Boolean(false) );
+			String parentKey = boksid+":"+vlan;
+			if (swrec.containsKey("parentKey")) parentKey = (String)swrec.get("parentKey");
+			//key = boksid+":"+vlan;
+			travMap.put(parentKey, new Boolean(false) );
 			String searchKey = ((boksbak==null||boksbak.length()==0)?swrec.get("swportid"):boksbak)+":"+vlan;
 			searchHitSet.add(searchKey);
 			//com.outl("Added hit: " + searchKey + "(swportid used: " + (boksbak==null||boksbak.length()==0) + ")");
@@ -748,6 +792,7 @@ class HandlerNettinfo
 
 		//for (int i = 0; i < portList.size(); i++) {
 		//	HashMap port = (HashMap)portList.get(i);
+		//swrec.put("portname", boksbak);
 		for (Iterator it=sort(portList, SORT_IFINDEX).iterator(); it.hasNext();) {
 			HashMap port = (HashMap)it.next();
 
@@ -889,7 +934,7 @@ class HandlerNettinfo
 		if (swrec.containsKey("to_catid")) {
 			kat = (String)swrec.get("to_catid");
 		} else {
-			if (boksbak != null) kat = ((String)katMap.get(boksbak)).toLowerCase();
+			if (boksbak != null && katMap.containsKey(boksbak)) kat = ((String)katMap.get(boksbak)).toLowerCase();
 			//if (boksbak != null) kat = ((String)katMap.get(boksbak));
 			else kat = "undef";
 			/*
@@ -994,6 +1039,10 @@ class HandlerNettinfo
 		}
 		*/
 		com.out(label);
+		if (searchHit && !firstSearchHit) {
+			firstSearchHit = true;
+			com.out("\n<a name=\"searchtarget\">");
+		}
 
 		if (box)
 		{
@@ -1034,13 +1083,15 @@ class HandlerNettinfo
 			netaddr = " ("+swrec.get("netaddr")+", " + swrec.get("nettype") + ", " + swrec.get("netident")+")";
 		}
 
-		if (boksbak == null) sysname = (String)swrec.get("portname");
+		//com.outl("boksbak is: " + boksbak + " portn: " + swrec.get("portname"));
+		if (boksbak == null || boksbak.startsWith("cam")) sysname = (String)swrec.get("portname");
 		if (sysname == null) sysname = "";
 		if (sysname.length() > 0 && swrec.containsKey("up") && "n".equals(swrec.get("up")))
 			sysname = "<font color=\"gray\">" + sysname + "</font>";
 
 		String parentSysname = (String)parentrec.get("to_netboxid");
 		parentSysname = (String)sysnameMap.get(parentSysname);
+		if (nodeType.equals("cam")) parentSysname = (String)swrec.get("ip");
 
 		// Evt. modul/port
 		//if (!kat.equals("gw") && !kat.equals("gsw") && !swrec.containsKey("rootRec")) {
@@ -1049,7 +1100,7 @@ class HandlerNettinfo
 			//if (depth >= 2) com.outl(sysname + " ");
 			if (depth >= 2) com.outl(parentSysname + " ");
 
-			if (!nodeType.equals("service")) {
+			if (!nodeType.equals("service") && !nodeType.equals("cam")) {
 				com.outl("      " + mp);
 			}
 			//com.outl("    </td>");
@@ -2911,22 +2962,22 @@ class HandlerNettinfo
 			{
 				if (com.getp("B1") != null) {
 					String showdetails = com.getp("showdetails");
-					com.set("ni.visTopologi.showdetails", (showdetails!=null ? "checked" : ""), false );
+					com.set("ni.visTopologi.showdetails", (showdetails!=null ? "checked" : ""), true );
 
 					String showempty = com.getp("showempty");
-					com.set("ni.visTopologi.showempty", (showempty!=null ? "checked" : ""), false );
+					com.set("ni.visTopologi.showempty", (showempty!=null ? "checked" : ""), true );
 
 					String searchexact = com.getp("searchexact");
-					com.set("ni.visTopologi.searchexact", (searchexact!=null ? "checked" : ""), false );
+					com.set("ni.visTopologi.searchexact", (searchexact!=null ? "checked" : ""), true );
 
 					String showpath = com.getp("showpath");
-					com.set("ni.visTopologi.showpath", (showpath!=null ? "checked" : ""), false );
+					com.set("ni.visTopologi.showpath", (showpath!=null ? "checked" : ""), true );
 
 					String searchblocked = com.getp("searchblocked");
-					com.set("ni.visTopologi.searchblocked", (searchblocked!=null ? "checked" : ""), false );
+					com.set("ni.visTopologi.searchblocked", (searchblocked!=null ? "checked" : ""), true );
 
 					String searchField = com.getp("searchField");
-					com.set("ni.visTopologi.searchFieldNum", (searchField!=null ? searchField.substring(0, searchField.indexOf(".")) : ""), false );
+					com.set("ni.visTopologi.searchFieldNum", (searchField!=null ? searchField.substring(0, searchField.indexOf(".")) : ""), true );
 				}
 
 				String p1 = com.getp("p1");
