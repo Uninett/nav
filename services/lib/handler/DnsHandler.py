@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: DnsHandler.py,v 1.2 2002/06/27 15:23:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler, Event
@@ -30,11 +30,11 @@ class DnsHandler(JobHandler):
 					reply = d.req(name=request[i].strip())
 				except DNS.Error:
 					timeout = 1
-					print "%s timed out..." %request[i]
+					#print "%s timed out..." %request[i]
 					
 				if not timeout and len(reply.answers) > 0 :
 					answer.append(1)
-					print "%s -> %s"%(request[i], reply.answers[0]["data"])
+					#print "%s -> %s"%(request[i], reply.answers[0]["data"])
 				elif not timeout and len(reply.answers)==0:
 					answer.append(0)
 				

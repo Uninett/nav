@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.1 2002/06/26 09:04:45 magnun Exp $
+$Id: job.py,v 1.2 2002/06/27 15:23:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -38,23 +38,38 @@ class JobHandler:
 	def run(self):
 		import database
 		import rrd
+
+		status, info = self.executeTest()
+
+		if status != self.getStatus():
+			print "State changed. Trying again in 5 sec..."
+			time.sleep(5)
+			status, info = self.executeTest()
+		
+		if status != self.getStatus():
+			print "Updating database"
+			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
+			self.setStatus(status)
+		
+		if version != self.getVersion() and self.getStatus() == Event.UP:
+			database.newVersion(self.getServiceid(),self.getVersion())
+		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+		self.setTimestamp()
+
+	def executeTest(self):
 		start = time.time()
 		version = self.getVersion()
+
 		try:
 			status,info = self.execute()
 		except Exception,info:
 			status = Event.DOWN
 			info = str(info)
 		self.setResponsetime(time.time()-start)
+		return status, info
 
-		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
-		
-		if status != self.getStatus():
-			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
-			self.setStatus(status)
-		if version != self.getVersion() and self.getStatus() == Event.UP:
-			database.newVersion(self.getServiceid(),self.getVersion())
-		self.setTimestamp()
+
+
 	def setServiceid(self,serviceid):
 		self._serviceid = serviceid
 	def getServiceid(self):
