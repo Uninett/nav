@@ -1,0 +1,6 @@
+
+SetHandler python-program
+PythonHandler handler
+PythonDebug On
+PythonHeaderParserHandler nav.web
+DirectoryIndex handler.py
