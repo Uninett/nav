@@ -1,13 +1,23 @@
 #extends nav.web.templates.EmotdTemplate
 
+#block additionalCSS
+$default_tabs_CSS();
+#end block additionalCSS
+
 #def $makeMenu
-<div>
-	<ul style="list-style-type:none;marin=0;padding:0;">
+<div id="tabs" style="margin: -33px -10px; width: 755px;">
+	<ul>
 #for $item in $menu:
+## HACK
+#if $item.text == "Compose new message":
+#set $item.text = "New message";
+#end if
 #if $item.this:
-		<li style="display: block;float: left;text-align: center;padding: 0;margin: 0; width:100px;">$item.text</li>
+		<li id="current"><a>$item.text</a></li>
+#elif $item.text == "New message" or $item.text == "Maintenance Setup":
+		<li><a href="$item.link">$item.text</a></li>
 #else:
-		<li style="display: block;float: left;text-align: center;padding: 0;margin: 0; width:100px;"><a href="$item.link">$item.text</a></li>
+		<li id="same"><a href="$item.link">$item.text</a></li>
 #end if
 #end for
 	</ul>
@@ -15,6 +25,7 @@
 #end def
 
 #block content
+<div style="border: 1px solid black; margin: 33px 0px; padding: 0px 19px; min-width: 730px;">
 $makeMenu()
 	<h1>$title</h1>
 
@@ -32,4 +43,5 @@ $makeMenu()
 	</li>
   #end for
 </ul>
+</div>
 #end block
