@@ -1,5 +1,5 @@
 ##
-## Attempted Makefile for Java subsystems
+## Makefile for NAV's Java subsystems
 ## 
 SHELL = @SHELL@
 prefix = @prefix@
@@ -15,8 +15,6 @@ tooldir = @tooldir@
 
 top_srcdir = @top_srcdir@
 
-#BUILDARGS = -Dtop_srcdir=$(top_srcdir)/.. -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir) -Dtooldir=$(tooldir) -Dwebroot=$(webroot)
-#INSTALLARGS = -Dtop_srcdir=$(top_srcdir)/.. -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir) -Dtooldir=$(DESTDIR)$(tooldir) -Dwebroot=$(DESTDIR)$(webroot)
 INSTALLARGS = -DDESTDIR=$(DESTDIR)
 
 subdirs = \
@@ -32,11 +30,14 @@ subdirs = \
 	SimpleSnmp \
 	webapps/navAdmin
 
+# We build our own classpath, to resolve interdependencies between the java modules.
+CLASSPATH = $(shell for x in $(subdirs); do echo -n "$$PWD/$${x}/build:"; done)
+
 ANT = @ANT@
 
 # Make sure we export make variables to the environment
 export
-.PHONY = all install clean distclean
+.PHONY = all install clean distclean debug
 
 all: $(subdirs)
 
@@ -62,4 +63,8 @@ clean:
 
 distclean:
 	@echo Target distclean is not supported in the java projects, but should be...
-	rm -f build.properties
+	rm -f Makefile build.properties
+
+# Debug target just prints some debug information from the Makefile
+debug:
+	@echo $$CLASSPATH
