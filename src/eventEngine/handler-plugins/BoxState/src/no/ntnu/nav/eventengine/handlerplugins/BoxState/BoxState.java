@@ -188,7 +188,7 @@ public class BoxState implements EventHandler, EventCallback
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
 		}
 
-		outld("BoxState Event processed, startEventMap size="+startEventMap.size());
+		outld("BoxState finished handling event, startEventMap size="+startEventMap.size() + " callback: " + ddb.isScheduledCallback(this));
 
 	}
 
