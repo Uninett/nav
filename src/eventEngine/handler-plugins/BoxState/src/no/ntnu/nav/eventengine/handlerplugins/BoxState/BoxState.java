@@ -65,7 +65,7 @@ public class BoxState implements EventHandler, EventCallback
 						outld("BoxState  Box going up");
 
 						// Post alert
-						a = ddb.alertFactory(e);
+						a = ddb.alertFactory(e, "boxUp");
 						a.addEvent(e);
 						try {
 							ddb.postAlert(a);
@@ -127,7 +127,7 @@ public class BoxState implements EventHandler, EventCallback
 							outld("BoxState  Module going up");
 
 							// Post alert
-							a = ddb.alertFactory(e);
+							a = ddb.alertFactory(e, "moduleUp");
 							a.addEvent(e);
 							try {
 								ddb.postAlert(a);
@@ -205,6 +205,13 @@ public class BoxState implements EventHandler, EventCallback
 						// Set status (down or shadow)
 						a.addVar("status", n.getStatusS());
 
+						// Update alerttype
+						if (n.getStatus() == Box.STATUS_SHADOW) {
+							a.setAlerttype("boxShadow");
+						} else if (n.getStatus() == Box.STATUS_DOWN) {
+							a.setAlerttype("boxDown");
+						}
+
 						// Post the alert
 						try {
 							ddb.postAlert(a);
@@ -227,7 +234,7 @@ public class BoxState implements EventHandler, EventCallback
 							}
 
 							// Create alert
-							Alert a = ddb.alertFactory(e);
+							Alert a = ddb.alertFactory(e, "moduleDown");
 							a.addEvent(e);
 
 							// Post the alert
