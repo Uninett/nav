@@ -60,8 +60,9 @@ WHERE (Account.login = '$username') AND
    //echo "<p>Query: " . $querystring;
 
     if (! $query = pg_exec($dbh->connection, $querystring)  ) {
-        $error = new Error(2);
-        $error->message = gettext("Error occured with database query.");
+        $nerror = new Error(2);
+        $nerror->message = gettext("Error occured with database query.");
+        $error[] = $nerror;
     } else {
         if (pg_numrows($query) == 1) {
             if ( $data = pg_fetch_array($query, $row) ) {
@@ -98,12 +99,21 @@ WHERE (Account.login = '$username') AND
                 session_set('login', true);
                 $login = true;
             } else {
-                $error = new Error(2);
-                $error->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
+                $nerror = new Error(2, 1);
+                $nerror->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
+				$error[] = $nerror;
             }
         } else {
-            $error = new Error(1);
-            $error->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
+            $nerror = new Error(1, 1);
+            $nerror->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
+
+/* 		print '<pre>DEBUG ERRORS'; */
+/* 		print_r($error); */
+/* 		print_r($nerror); */
+/* 		print '</pre>'; */
+			global $error;
+			array_push($error, $nerror);
+/* 			$error[] = $nerror; */
         }
     }
 }

@@ -290,7 +290,7 @@ class Meny {
 
 
 				} else {
-					$ne = new Error(3);
+					$ne = new Error(3, 1);
 					$ne->message = gettext("You have <b>no access</b> to this module.");
 					$error[] = $ne;
 				}
@@ -396,9 +396,12 @@ foreach($filer as $incfile) {
 	if( file_exists($incfile)) {
 		require($incfile);
 	} else {
-		$error = new Error(4);
-		$error->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
-		
+		$nerror = new Error(4);
+		$nerror->message = gettext("Could not read file") . " &lt;" . $incfile . "&gt;";
+/* 		print '<pre>DEBUG ERRORS'; */
+/* 		print_r($error); */
+/* 		print '</pre>'; */
+		$error[] = $nerror;
 
 	}
 }

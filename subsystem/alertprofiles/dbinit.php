@@ -42,7 +42,7 @@ class dbinit {
                     case 'dbport'		: $dport = $value; break;
                     case 'db_navprofile'	: $ddb   = $value; break;
                     case 'script_navprofile' 	: $duser = $value; break;
-                    case 'userpw_navprofile'  	: $dpass = $value; break;
+                    case 'userpw_' . $duser  	: $dpass = $value; break;
                 }
             }
             
