@@ -24,6 +24,7 @@ DROP TABLE room CASCADE;
 DROP TABLE location CASCADE;
 DROP TABLE usage CASCADE;
 DROP TABLE org CASCADE;
+DROP TABLE port2off CASCADE;
 
 DROP TABLE swp_netbox CASCADE;
 
@@ -322,6 +323,16 @@ CREATE TABLE swportblocked (
 );
 
 
+CREATE TABLE port2off (
+  swportid INTEGER REFERENCES swport(swportid) ON UPDATE CASCADE ON DELETE SET NULL,
+  roomid VARHCAR(10) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
+  socket VARCHAR NOT NULL,
+  office VARCHAR,
+  PRIMARY KEY(roomid,socket)
+);
+
+
+
 GRANT ALL ON org TO navall;
 GRANT ALL ON usage TO navall;
 GRANT ALL ON location TO navall;
@@ -342,6 +353,7 @@ GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
 GRANT ALL ON typegroup TO navall;
 GRANT ALL ON vlan TO navall;
+GRANT ALL ON port2off TO navall;
 
 GRANT ALL ON netbox_netboxid_seq TO navall;
 GRANT ALL ON gwport_gwportid_seq TO navall;
