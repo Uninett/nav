@@ -317,6 +317,8 @@
     <mkdir    dir="${build.home}"/>
     <javac srcdir="${src.home}"
           destdir="${build.home}"
+           source="1.4"
+           target="1.4"
             debug="${compile.debug}"
       deprecation="${compile.deprecation}"
          optimize="${compile.optimize}">
