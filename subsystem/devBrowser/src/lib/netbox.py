@@ -119,8 +119,8 @@ class NetboxInfo(manage.Netbox):
         return gwLink
 
     def showVlan(self):
-        vlan = self.prefix.vlan
-        if vlan.vlan:
+        if self.prefix:
+            vlan = self.prefix.vlan
             vlan = urlbuilder.createLink(vlan, 
                                          content="Vlan %s" % vlan.vlan)
         else:
