@@ -1624,7 +1624,7 @@ def editNetbox(req,selected,action,error=None):
             title += struct.singular
         outputForm.title = title
         outputForm.textConfirm = 'Continue'
-        outputForm.add(struct.editbox(selected))
+        outputForm.add(struct.editbox(selected[0]))
         # preserve path
         outputForm.action = struct.basePath + 'edit/' + selected[0]
         listView = None
@@ -2984,8 +2984,6 @@ class structNetbox:
         def __init__(self,editId=None,formData=None,disabled=False):
             self.hiddenFields = {}
             if editId:
-                # We only edit one box at a time
-                editId = editId[0]
                 # Preserve the selected id
                 self.addHidden(selectList.cnameChk,editId)
                 self.sysname = editTables.Netbox(editId).sysname
@@ -3656,6 +3654,10 @@ class structNetbox:
 
             if typeId:
                 fields['typeid'] = typeId
+                # Set uptyodate = false
+                tifields = {'uptodate': 'f'}
+                updateEntryFields(tifields,'type','typeid',typeId)
+
             updateEntryFields(fields,'netbox','netboxid',selected)
 
             # Update device
