@@ -14,6 +14,10 @@ use strict;
 use Pg;
 use Getopt::Std;
 
+my $pathtonav = "/usr/local/nav/navme/lib";
+require "$pathtonav/NAV.pm";
+import NAV;
+
 use vars qw ($opt_l $opt_h $opt_f);
 
 getopts('hl:f:');
@@ -29,13 +33,8 @@ $oidfile = $opt_f if $opt_f;
 
 print "Using file $oidfile as sourcefile for oids.\n" if $ll >= 2;
 
-# DB-vars
-# Need to write a module to get password
-my $db_name = "manage";
-my $db_user = "manage";
-my $db_pass = "eganam";
-
-my $dbh = Pg::connectdb("dbname=$db_name user=$db_user password=$db_pass");
+# Connecting to database.
+my $dbh = &db_get('statTools');
 
 my $keyword = "Cricket";
 my $keyword2 = "mib-II";

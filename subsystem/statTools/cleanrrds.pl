@@ -19,13 +19,11 @@ use Getopt::Std;
 use Pg;
 use strict;
 
-# DB-vars - must not be hardcoded!
-my $db_name = "manage";
-my $db_user = "manage";
-my $db_pass = "eganam";
+my $pathtonav = "/usr/local/nav/navme/lib";
+require "$pathtonav/NAV.pm";
+import NAV;
 
-# Connecting to the db
-my $dbh = Pg::connectdb("dbname=$db_name user=$db_user password=$db_pass");
+my $dbh = &db_get('statTools');
 
 my $deletelimit = 30;
 my $usage = "

@@ -47,6 +47,11 @@ if (! $gCT->init()) {
 }
 
 use strict;
+
+my $pathtonav = "/usr/local/nav/navme/lib";
+require "$pathtonav/NAV.pm";
+import NAV;
+
 getopts('hl:');
 
 my $usage = "USAGE: $0 [-h] [-l loglevel]
@@ -82,12 +87,8 @@ if ($opt_l && $opt_l =~ m/\d/) {
     print "Setting loglevel to $ll\n" if $ll >= 2;
 }
 
-# DB-vars - must not be hardcoded!
-my $db_name = "manage";
-my $db_user = "manage";
-my $db_pass = "eganam";
-
-my $dbh = Pg::connectdb("dbname=$db_name user=$db_user password=$db_pass");
+# DB-vars
+my $dbh = &db_get('statTools');
 
 # Must have the cricket-rows of the snmpoid-table in memory.
 my %oidhash;
