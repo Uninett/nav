@@ -478,6 +478,19 @@ class EventqMonitorTask extends TimerTask
 
 /*
 BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',348,347,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',48977,1912,'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',348,347,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',48977,1912,'boxState','e',100);
+COMMIT;
+
+
+
+
+BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','t',100);
 INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
 COMMIT;
