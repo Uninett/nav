@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 use strict;
 
-require "/usr/local/nav/navme/etc/conf/collect/path.pl";
+require "/usr/local/nav/navme/etc/conf/path.pl";
+my $collect = &collect();
 
 my $tid = localtime(time); 
 print "START $tid\n";
