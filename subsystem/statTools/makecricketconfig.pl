@@ -6,6 +6,9 @@
 # ITEA NTNU © 2003
 # Author: John Magne Bredal <bredal@itea.ntnu.no>
 ##################################################
+# TODO:
+# - use config.db to see target-types too.
+# - make views automatically
 
 # ABSTRACT
 # --------
@@ -415,6 +418,7 @@ sub parseDefaults {
 # INPUT: Directory of work (scalar)
 ##################################################
 sub createTargetTypes {
+    our $gCT;
     my $dir = shift;
     my $type = $config{$dir}{'type'};
 
@@ -451,17 +455,26 @@ sub createTargetTypes {
 	printf "%s\n", $q if $ll >= 3;
 	my $fetchoids = $dbh->exec($q);
 
+	# fetches all the oid's that exists in this part of the config-tree
+	my $purepath = "/".$dir;
+	my $oidinconfig = $gCT->configHash($purepath,'oid');
+
 	# for each oid, check if it should be used in a targettype
 	my @newtt;
 	while (my $snmpoidid = $fetchoids->fetchrow) {
 	    print "Found snmpoidid $snmpoidid.\n" if $ll >= 3;
-	    
+
+	    next unless $oidhash{$snmpoidid};
+
 	    # here we do a weak test for interface-oids
-	    if ($oidhash{$snmpoidid}) {
-		unless ($oidhash{$snmpoidid} =~ m/^if/) {
-		    printf "%s should be integrated as a datasource.\n", $oidhash{$snmpoidid} if $ll >= 2;
-		    push @newtt, $snmpoidid;
-		}
+	    next if $oidhash{$snmpoidid} =~ m/^if/;
+
+	    # if the oid is not in the config-file we cannot collect data from it	    
+	    if ($oidinconfig->{lc($oidhash{$snmpoidid})}) {
+		printf "%s should be integrated as a datasource.\n", $oidhash{$snmpoidid} if $ll >= 2;
+		push @newtt, $snmpoidid;
+	    } else {
+		printf "Could not find %s in the config-tree, skipping it.\n", $oidhash{$snmpoidid} if $ll >= 3;
 	    }
 	}
 
@@ -563,8 +576,9 @@ sub makeTTs {
 		print "Deleting targettype $1\n" if $ll >= 3;
 		printf CHANGELOG "Deleting targettype %s from %s", $1, $path;
 		$delete = 1;
+	    } else {
+		print HANDLE $line;
 	    }
-	    print HANDLE $line;
 	} elsif ($delete && $line =~ m/^\s*ds/) {
 	    # delete
 	    print "Deleting line: $line" if $ll >= 3;
@@ -871,7 +885,7 @@ sub compare {
     if ($asize == $bsize) {
 	print "Same size.\n" if $ll >= 3;
     } else {
-	print "Arrays are not equal.\n" if $ll >= 3;
+	print "Arrays are not equal (%s != %s).\n", $asize, $bsize if $ll >= 3;
 	return 0;
     }
 
