@@ -193,7 +193,9 @@ if __name__=='__main__':
         help()
         os.sys.exit(2)
 
-    print "Creating socket"
+    if os.getuid() != 0:
+        print "Must be started as root"
+        os.exit(0)
     sock = megaping.makeSocket()
     setUser()
     start(nofork)
