@@ -152,7 +152,7 @@ sub finnRuterLast {
 		push @{$linkliste[$linkteller]}, $_, $ruterid, $link, $linktype, $speed;
 		$linkteller++;
 	    } else {
-		print "$linktype er ingen definert linktype\n";
+#		print "$linktype er ingen definert linktype\n";
 	    }
 	    
 	    # Må ha ruternavn for å finne rett RRD-fil
