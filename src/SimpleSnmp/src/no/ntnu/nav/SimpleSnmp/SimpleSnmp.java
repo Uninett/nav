@@ -165,7 +165,24 @@ public class SimpleSnmp
 	 */
 	public Map getAllMap(String baseOid) throws TimeoutException
 	{
-		List l = getAll(baseOid);
+		return getAllMap(baseOid, false);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex try to decode returned hex to ASCII
+	 * @return a Map which maps the OIDs to their corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMap(String baseOid, boolean decodeHex) throws TimeoutException
+	{
+		List l = getAll(baseOid, decodeHex);
 		if (l == null) return null;
 
 		Map m = new HashMap();
