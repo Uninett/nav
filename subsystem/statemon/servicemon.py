@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 """
 $Id: servicemon.py,v 1.6 2003/06/20 09:34:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
@@ -189,6 +189,10 @@ Written by Erik Gorset and Magnus Nordseth, 2002
 
 
 if __name__=='__main__':
+    # chdir into own dir
+    mydir, myname = os.path.split(os.sys.argv[1:])
+    os.chdir(mydir)
+                                  
     try:
         opts, args = getopt.getopt(os.sys.argv[1:], 'hnv', ['help','nofork', 'version'])
         fork=1
