@@ -24,11 +24,22 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
  * @see NetboxInfoHandler
  */
 
+        
 public class NetboxInfoContainer implements DataContainer {
 
 	private NetboxInfoHandler nih;
 	private Map keyMap = new HashMap();
 	private boolean commit = false;
+    protected static Map mapGet(Map map, Object key) {
+        /** Returns the key from map if it exists, 
+          * if else a HashMap is created, inserted and returned.
+          */
+        if (! map.containsKey(key)) {
+            map.put(key, new HashMap());
+        }
+        return (Map)map.get(key);
+    }
+
 
 	NetboxInfoContainer(NetboxInfoHandler nih) {
 		this.nih = nih;
@@ -98,14 +109,12 @@ public class NetboxInfoContainer implements DataContainer {
 	* null; var and val are not.
 	*/
 	public void put(String key, String var, String val) {
-		if (var == null || val == null) return;
-
-		Map varMap;
-		if ( (varMap = (Map)keyMap.get(key)) == null) keyMap.put(key, varMap = new HashMap());
-		
-		Map valMap;
-		if ( (valMap = (Map)varMap.get(var)) == null) valMap.put(var, valMap = new HashMap());
-
+		if (var == null || val == null) {
+            System.err.println("NetboxInfoContainer.put called with var/val == null");
+            return;
+        }
+        Map varMap = mapGet(keyMap, key);
+		Map valMap = mapGet(varMap, var);
 		valMap.put(val, null);
 	}
 
