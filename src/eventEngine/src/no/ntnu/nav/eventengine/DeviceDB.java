@@ -22,7 +22,7 @@ public class DeviceDB
 
 		// Fetch all unclosed alerthist records
 		try {
-			ResultSet rs = Database.query("SELECT * FROM alerthist LEFT NATURAL JOIN alerthistvar WHERE closed='f'");
+			ResultSet rs = Database.query("SELECT * FROM alerthist LEFT NATURAL JOIN alerthistvar WHERE end_t='infinity'");
 			while (rs.next()) {
 				EventImpl e = eventImplFactory(rs, true);
 				downAlertMap.put(e.getKey(), e);
@@ -130,16 +130,15 @@ public class DeviceDB
 		EventImpl e = (EventImpl)a;
 		// Post the alert to alertq
 		try {
-			insertAlert(e, false, false);
+			insertAlert(e, false);
 
 			// Update alertqhist
-			System.err.println("Alert state: " + e.getState());
 			if (e.getState() != Event.STATE_END) {
 				// Insert new record
-				int id = insertAlert(e, true, true);
-				e.setEventqid(id);
+				int id = insertAlert(e, true);
 
 				if (e.getState() == Event.STATE_START) {
+					e.setEventqid(id);
 					downAlertMap.put(e.getKey(), e);
 				}
 			} else {
@@ -148,10 +147,23 @@ public class DeviceDB
 				EventImpl da = (EventImpl)getDownAlert(e);
 				if (da == null) throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
 				int alerthistid = da.getEventqid();
-				Database.update("UPDATE alerthist SET end_t = '"+da.getTimeSql()+"', closed = 't' WHERE alerthistid = "+alerthistid);
-				//((System.err.println("debug: " + ("UPDATE alerthist SET end = '"+da.getTimeSql()+"' WHERE alerthistid = "+alerthistid));
-				Database.commit();
+				Database.update("UPDATE alerthist SET end_t = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
 			}
+
+			// Now delete releated events from eventq
+			StringBuffer sb = new StringBuffer();
+			for (Iterator i=e.getEventList().iterator(); i.hasNext();) {
+				EventImpl de = (EventImpl)i.next();
+				sb.append(",'"+de.getEventqid()+"'");
+			}
+			if (sb.length() > 0) {
+				sb.deleteCharAt(0);
+				Database.update("DELETE FROM eventq WHERE eventqid IN ("+sb+")");
+			}
+
+			// Everything went well, so it is safe to commit
+			Database.commit();
+
 		} catch (SQLException exp) {
 			exp.printStackTrace(System.err);
 			Database.rollback();
@@ -162,14 +174,23 @@ public class DeviceDB
 			throw exp;
 		}
 
-
-
 	}
-	private int insertAlert(EventImpl e, boolean history, boolean needId) throws SQLException, PostAlertException
+	private int insertAlert(EventImpl e, boolean history) throws SQLException, PostAlertException
 	{
+		String table = history?"alerthist":"alertq";
+		String tableid = table+"id";
+		String tablevar = table+"var";
+		String tableseq = table+"_"+table+"id_seq";
+
+		// First get an id
+		ResultSet rs = Database.query("SELECT nextval('"+tableseq+"')");
+		if (!rs.next()) throw new PostAlertException("Error, could not get id from seq " + tableseq);
+		int id = rs.getInt("nextval");
+
 		String[] ins;
 		if (!history) {
 			String[] s = {
+				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
 				"boksid", e.getBoksidSql(),
@@ -183,37 +204,23 @@ public class DeviceDB
 			ins = s;
 		} else {
 			String[] s = {
+				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
 				"boksid", e.getBoksidSql(),
 				"subid", e.getSubidSql(),
 				"start_t", e.getTimeSql(),
+				"end_t", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
 				"eventtypeid", e.getEventtypeidSql(),
-				"closed", (e.getState() == Event.STATE_NONE ? "t" : "f"),
 				"value", e.getValueSql(),
 				"severity", e.getSeveritySql()
 			};
 			ins = s;
 		}
-
-		String table = history?"alerthist":"alertq";
-		String tableid = table+"id";
-		String tablevar = table+"var";
-
 		Database.insert(table, ins);
 
-		int id = -1;
 		Iterator i = e.getVarMap().entrySet().iterator();
-		if (i.hasNext() || needId) {
-			// We need the alertqid value
-			String ss = "SELECT "+tableid+" FROM "+table+" WHERE deviceid"+e.getDeviceidSqlE()+
-										" AND boksid"+e.getBoksidSqlE()+" AND subid"+e.getSubidSqlE()+
-										" AND eventtypeid='"+e.getEventtypeid()+"'"+(history?"":" AND state='"+e.getStateSql()+"'");
-			ResultSet rs = Database.query("SELECT "+tableid+" FROM "+table+" WHERE deviceid"+e.getDeviceidSqlE()+
-										" AND boksid"+e.getBoksidSqlE()+" AND subid"+e.getSubidSqlE()+
-										" AND eventtypeid='"+e.getEventtypeid()+"'"+(history?"":" AND state='"+e.getStateSql()+"'"));
-			if (!rs.next() || rs.getFetchSize() > 1) throw new PostAlertException(tableid+" not found or more than one ("+rs.getFetchSize()+") for tuple just inserted, should not happen"+ss);
-			id = rs.getInt(tableid);
+		if (i.hasNext()) {
 			while (i.hasNext()) {
 				Map.Entry me = (Map.Entry)i.next();
 				String var = (String)me.getKey();
@@ -229,7 +236,6 @@ public class DeviceDB
 				}
 			}
 		}
-		Database.commit();
 		return id;
 	}
 

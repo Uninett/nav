@@ -99,15 +99,9 @@ class EventImpl implements Event, Alert
 
 
 	public String getSourceSql() { return source; }
-
 	public String getDeviceidSql() { return deviceid>0 ? String.valueOf(deviceid) : "null"; }
 	public String getBoksidSql() { return boksid>0 ? String.valueOf(boksid) : "null"; }
 	public String getSubidSql() { return subid>0 ? String.valueOf(subid) : "null"; }
-	public String getDeviceidSqlE() { return deviceid>0 ? "="+deviceid : " is null"; }
-	public String getBoksidSqlE() { return boksid>0 ? "="+boksid : " is null"; }
-	public String getSubidSqlE() { return subid>0 ? "="+subid : " is null"; }
-
-
 	public String getTimeSql() { return dateToString(time); }
 	public String getEventtypeidSql() { return eventtypeid; }
 	public String getStateSql()

@@ -92,14 +92,14 @@ class eventEngine
 		cfmt.run(); // Load config first time
 		timer.schedule(cfmt, 5 * 1000, 5 * 1000); // 5 second delay
 
-		HashMap handlerMap = new HashMap();
+		HashMap handlerClassMap = new HashMap();
 		DeviceDB devDB = new DeviceDB();
 
 		// The eventq monitor
-		EventqMonitorTask emt = new EventqMonitorTask(handlerMap, devDB);
+		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB);
 
 		// Set up the plugin monitor
-		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerMap, devDB, emt );
+		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerClassMap, devDB, emt );
 		pmt.run(); // Load all plugins
 
 		timer.schedule(pmt, 5 * 1000, 5 * 1000); // Check for new plugin every 5 seconds
@@ -298,7 +298,7 @@ class ConfigFileMonitorTask extends TimerTask
 class PluginMonitorTask extends TimerTask
 {
 	File deviceDir, handlerDir;
-	Map deviceMap, handlerMap;
+	Map deviceMap, handlerClassMap;
 
 	Map deviceFileMap = new HashMap();
 	Map handlerFileMap = new HashMap();
@@ -306,12 +306,12 @@ class PluginMonitorTask extends TimerTask
 	DeviceDB devDB;
 	EventqMonitorTask emt;
 
-	public PluginMonitorTask(String devicePath, Map deviceMap, String handlerPath, Map handlerMap, DeviceDB devDB, EventqMonitorTask emt)
+	public PluginMonitorTask(String devicePath, Map deviceMap, String handlerPath, Map handlerClassMap, DeviceDB devDB, EventqMonitorTask emt)
 	{
 		deviceDir = new File(devicePath);
 		this.deviceMap = deviceMap;
 		handlerDir = new File(handlerPath);
-		this.handlerMap = handlerMap;
+		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
 		this.emt = emt;
 
@@ -362,7 +362,7 @@ class PluginMonitorTask extends TimerTask
 		}
 
 		// Update EventHandlers
-		if (update(handlerDir, handlerFileMap, handlerMap, false)) {
+		if (update(handlerDir, handlerFileMap, handlerClassMap, false)) {
 			emt.updateCache();
 		}
 	}
@@ -436,7 +436,7 @@ class PluginMonitorTask extends TimerTask
 					Manifest mf = jf.getManifest();
 					Attributes attr = mf.getMainAttributes();
 					String cn = attr.getValue("Plugin-Class");
-					outld("PluginMonitorTask: New or modified jar, trying to load jar " + fileList[i].getName());
+					outld("PluginMonitorTask: New or modified jar, trying to load " + fileList[i].getName());
 
 					if (cn == null) {
 						outld("PluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
@@ -494,22 +494,23 @@ class PluginMonitorTask extends TimerTask
 
 class EventqMonitorTask extends TimerTask
 {
-	Map handlerMap;
+	Map handlerClassMap;
 	DeviceDB devDB;
 
 	Map handlerCache = new HashMap();
-	int lastEventqid = 0;
+	int lastEventqid = 3162;
 
-	public EventqMonitorTask(Map handlerMap, DeviceDB devDB)
+	public EventqMonitorTask(Map handlerClassMap, DeviceDB devDB)
 	{
-		this.handlerMap = handlerMap;
+		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
 	}
 
 	public void updateCache()
 	{
+		//Map cloneMap = (Map) ((HashMap)handlerClassMap).clone();
 		handlerCache.clear();
-		for (Iterator i=handlerMap.values().iterator(); i.hasNext();) {
+		for (Iterator i=handlerClassMap.values().iterator(); i.hasNext();) {
 			Class c = (Class)i.next();
 			EventHandler eh;
 			try {
@@ -545,7 +546,12 @@ class EventqMonitorTask extends TimerTask
 				if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
 					outld("  Found handler: " + eh.getClass().getName());
-					eh.handle(devDB, e);
+					try {
+						eh.handle(devDB, e);
+					} catch (Exception exp) {
+						errl("EventqMonitorTask: Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
+						exp.printStackTrace(System.err);
+					}
 				} else {
 					outld("  No handler found for eventtype: " + eventtypeid);
 				}
@@ -570,6 +576,26 @@ COMMIT;
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','f',100);
 COMMIT;
+
+
+- Hva gjøres i tilfellet der man har f.eks to like etterfølgende info-events?
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','t',100);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','f',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','x',100);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
+COMMIT;
+
+
+
 
 */
 
