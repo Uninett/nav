@@ -234,7 +234,7 @@ Oversikt
 
 
 7)problemer
-  Det er fire ting som har vært spesielle:
+  Det er fem ting som har vært spesielle:
   i) NT 
      Vi har ikke klart å hente ut HOST-RESOURCE-MIB fra NT 4.0 boksene våre.
      Dette har ført til at vi har droppet innhenting av info fra de boksene 
@@ -305,6 +305,13 @@ Oversikt
      om de siste bevegelsene.
      
      Det er kun disse to forskjellene vi har funnet så langt.
+ 
+ v) net-snmp sin system.sysDescr.0
+    I net snmp skal det være mulig å hente ut hvilket os boksen har ,
+    feks solaris , linux. Dette er ikke mulig da feltet
+    system.sysDescr.0 alltid gir ut samme verdi (1.3.6.1.4.1.8072.3.2)
+    for solaris og linux. Dette medførte at vi skrive litt statisk kode
+    i jython scriptet.
 
 8) Vyer
    * hente info fra salmaskiner
