@@ -1,14 +1,14 @@
 """
-$Id: MysqlHandler.py,v 1.4 2002/07/02 13:13:34 magnun Exp $
+$Id: MysqlHandler.py,v 1.5 2002/07/08 14:13:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/MysqlHandler.py,v $
 """
 
 from job import JobHandler, Event
 import Socket
 class MysqlHandler(JobHandler):
-	def __init__(self, serviceid, boksid, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version, db=None):
 		port = args.get("port", 3306)
-		JobHandler.__init__(self, "mysql", serviceid, boksid, (ip, port), args, version)
+		JobHandler.__init__(self, "mysql", serviceid, boksid, (ip, port), args, version, db=db)
 	def execute(self):
 		s = Socket.Socket(self.getTimeout())
 		s.connect(self.getAddress())

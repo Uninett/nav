@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.6 2002/07/02 18:45:16 magnun Exp $
+$Id: job.py,v 1.7 2002/07/08 14:13:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -24,7 +24,7 @@ class Event:
 
 
 class JobHandler:
-	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
+	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP,db=None):
 		self.setServiceid(serviceid)
 		self.setBoksid(boksid)
 		self.setType(type)
@@ -34,9 +34,10 @@ class JobHandler:
 		self.setArgs(args)
 		self.setVersion(version)
 		self.setTimeout(args.get('timeout',TIMEOUT))
+		self.db=db
+		
 	def run(self):
-		import database
-		import rrd
+		import rrd,db
 
 		version = self.getVersion()
 		status, info = self.executeTest()
@@ -58,14 +59,14 @@ class JobHandler:
 			runcount += 1
 
 		if status != self.getStatus():
-			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
+			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
 			self.setStatus(status)
 			if DEBUG:
 				print "Event: %-25s %-5s -> %s, %s" % (host, self.getType(), status, info)
 
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
-			database.newVersion(self.getServiceid(),self.getVersion())
+			self.db.newVersion(self.getServiceid(),self.getVersion())
 		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		self.setTimestamp()
 

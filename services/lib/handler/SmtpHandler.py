@@ -1,5 +1,5 @@
 """
-$Id: SmtpHandler.py,v 1.3 2002/07/01 13:10:02 magnun Exp $
+$Id: SmtpHandler.py,v 1.4 2002/07/08 14:13:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmtpHandler.py,v $
 """
 
@@ -15,9 +15,9 @@ class SMTP(smtplib.SMTP):
 		return self.getreply()
 
 class SmtpHandler(JobHandler):
-	def __init__(self, serviceid, boksid, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version,db=None):
 		address = (ip,args.get('port',25))
-		JobHandler.__init__(self,'smtp',serviceid,boksid,address,args,version)
+		JobHandler.__init__(self,'smtp',serviceid,boksid,address,args,version,db=db)
 	def execute(self):
 		ip,port = self.getAddress()
 		s = SMTP(self.getTimeout())

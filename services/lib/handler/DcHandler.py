@@ -1,5 +1,5 @@
 """
-$Id: DcHandler.py,v 1.2 2002/07/01 13:10:02 magnun Exp $
+$Id: DcHandler.py,v 1.3 2002/07/08 14:13:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DcHandler.py,v $
 """
 
@@ -11,9 +11,9 @@ class DcHandler(JobHandler):
 	Required argument:
 	username
 	"""
-	def __init__(self, serviceid, boksid, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version,db=None):
 		address = (ip, 0)
-		JobHandler.__init__(self, 'dc', serviceid, boksid, address, args, version)
+		JobHandler.__init__(self, 'dc', serviceid, boksid, address, args, version,db=db)
 
 	def execute(self):
 		args = self.getArgs()
