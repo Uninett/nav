@@ -23,45 +23,54 @@ public class ModuleMonHandler implements DataHandler {
 	private static final boolean DB_COMMIT = true;
 
 	private static Map ifindMap;
+	private static Map modidMap;
 	private static MultiMap modules;
 	
 	private static MultiMap queryIfindices;
 
-	private static Set modulesDown = Collections.synchronizedSet(new HashSet());
+	private static Set modulesDown = new HashSet();
 	
 
 	/**
 	 * Fetch initial data from swport table.
 	 */
-	public synchronized void init(Map persistentStorage) {
-		if (persistentStorage.containsKey("initDone")) return;
+	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+		if (persistentStorage.containsKey("initDone") && changedDeviceids.isEmpty()) return;
 		persistentStorage.put("initDone", null);
 
 		Log.setDefaultSubsystem("ModuleMonHandler");
 
-		try {
-			// We need to the mapping from netboxid:ifindex -> module and the modules belonging to each netbox
-			Map ifindMapL = new HashMap();
-			MultiMap modulesL = new HashMultiMap();
-			MultiMap queryIfindicesL = new HashMultiMap();
-			Set queryDupe = new HashSet();
-			ResultSet rs = Database.query("SELECT netboxid,ifindex,moduleid,module FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
-			while (rs.next()) {
-				ifindMapL.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("moduleid"));
-				modulesL.put(rs.getString("netboxid"), rs.getString("moduleid"));
+		synchronized (modulesDown) {
+			int oldcnt = modidMap != null ? modidMap.size() : 0;
 
-				String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
-				if (queryDupe.add(k)) {
-					queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
+			try {
+				// We need to the mapping from netboxid:ifindex -> module and the modules belonging to each netbox
+				Map ifindMapL = new HashMap();
+				Map modidMapL = new HashMap();
+				MultiMap modulesL = new HashMultiMap();
+				MultiMap queryIfindicesL = new HashMultiMap();
+				Set queryDupe = new HashSet();
+				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
+				while (rs.next()) {
+					ifindMapL.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("moduleid"));
+					modidMapL.put(rs.getString("moduleid"), rs.getString("deviceid"));
+					modulesL.put(rs.getString("netboxid"), rs.getString("moduleid"));
+
+					String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
+					if (queryDupe.add(k)) {
+						queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
+					}
 				}
+
+				modidMap = modidMapL;
+				ifindMap = ifindMapL;
+				modules = modulesL;
+				queryIfindices = queryIfindicesL;
+				Log.d("INIT", "Fetched " + modidMap.size() + " modules (" + (modidMap.size()-oldcnt) + " new)");
+
+			} catch (SQLException e) {
+				Log.e("INIT", "SQLException: " + e.getMessage());
 			}
-
-			ifindMap = ifindMapL;
-			modules = modulesL;
-			queryIfindices = queryIfindicesL;
-
-		} catch (SQLException e) {
-			Log.e("INIT", "SQLException: " + e.getMessage());
 		}
 
 	}
@@ -77,47 +86,53 @@ public class ModuleMonHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc) {
+	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
 		if (!(dc instanceof ModuleMonContainer)) return;
 		ModuleMonContainer mmc = (ModuleMonContainer)dc;
 		if (!mmc.isCommited()) return;
 
-		Set mod = modules.get(nb.getNetboxidS());
-		if (mod == null) {
-			Log.w("MODULE_MON", "HANDLE", "No modules found for netbox " + nb.getSysname());
-			return;
-		}
+		synchronized (modulesDown) {
 
-		// Local copy we can modify
-		mod = new HashSet(mod);
-
-		int severity = 50;
-
-		for (Iterator it = mmc.getActiveIfindices(); it.hasNext();) {
-			String m = (String)ifindMap.get(nb.getNetboxid()+":"+it.next());
-			String key = nb.getNetboxid()+":"+m;
-
-			if (modulesDown.contains(key)) {
-				// The module is coming up, send up event
-				sendEvent(nb, m, Event.STATE_END, severity);
-				modulesDown.remove(key);
+			Set mod = modules.get(nb.getNetboxidS());
+			if (mod == null) {
+				Log.w("MODULE_MON", "HANDLE", "No modules found for netbox " + nb.getSysname());
+				return;
 			}
-			mod.remove(m);
+
+			// Local copy we can modify
+			mod = new HashSet(mod);
+
+			int severity = 50;
+
+			for (Iterator it = mmc.getActiveIfindices(); it.hasNext();) {
+				String moduleid = (String)ifindMap.get(nb.getNetboxid()+":"+it.next());;
+				String deviceid = (String)modidMap.get(moduleid);
+				String key = nb.getNetboxid()+":"+moduleid;
+
+				if (modulesDown.contains(key)) {
+					// The module is coming up, send up event
+					sendEvent(nb, deviceid, moduleid, Event.STATE_END, severity);
+					modulesDown.remove(key);
+				}
+				mod.remove(moduleid);
+			}
+
+			// All remaining modules are now considered down; send event
+			for (Iterator it = mod.iterator(); it.hasNext();) {
+				String moduleid = (String)it.next();
+				String deviceid = (String)modidMap.get(moduleid);
+
+				sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
+				modulesDown.add(nb.getNetboxid()+":"+moduleid);
+			}
 		}
 
-		// All remaining modules are now considered down; send event
-		for (Iterator it = mod.iterator(); it.hasNext();) {
-			String m = (String)it.next();
-
-			sendEvent(nb, m, Event.STATE_START, severity);
-			modulesDown.add(nb.getNetboxid()+":"+m);
-		}
 	}
 
 	// Post the event
-	private void sendEvent(Netbox nb, String m, int state, int severity) {
-		if (!EventQ.createAndPostEvent("moduleMon", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(m), "moduleState", state, -1, severity, null)) {
-			Log.c("MODULE_MON", "SEND_EVENT", "Error sending moduleUp|Down event for " + nb + ", moduleid: " + m);
+	private void sendEvent(Netbox nb, String deviceid, String moduleid, int state, int severity) {
+		if (!EventQ.createAndPostEvent("moduleMon", "eventEngine", Integer.parseInt(deviceid), nb.getNetboxid(), Integer.parseInt(moduleid), "moduleState", state, -1, severity, null)) {
+			Log.c("MODULE_MON", "SEND_EVENT", "Error sending moduleUp|Down event for " + nb + ", moduleid: " + moduleid);
 		}
 	}
 

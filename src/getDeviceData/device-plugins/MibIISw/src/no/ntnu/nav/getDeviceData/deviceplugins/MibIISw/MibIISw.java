@@ -121,6 +121,22 @@ public class MibIISw implements DeviceHandler
 	{
 		if (nb.getNumInStack() > 1) {
 			// Do moduleMon
+			// PS40 must use a special OID
+			Map ifindexMap = null;
+			String baseOidAlt = null;
+			if (nb.getOid("3cPS40PortState") != null) {
+				List portList = sSnmp.getAll(nb.getOid("3cPS40PortState"));
+				if (portList != null) {
+					ifindexMap = new HashMap();
+					baseOidAlt = nb.getOid("3cPS40PortState");
+					for (Iterator it = portList.iterator(); it.hasNext();) {
+						String[] s = (String[])it.next();
+						String[] mp = s[0].split("\\.");
+						String ifindex = mp[0] + (Integer.parseInt(mp[1])<10?"0":"") + mp[1];
+						ifindexMap.put(ifindex, s[0]);
+					}
+				}
+			}
 			String baseOid = nb.getOid("moduleMon");
 			if (baseOid != null) {
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
@@ -130,7 +146,8 @@ public class MibIISw implements DeviceHandler
 					String module = s[1];
 					try {
 						sSnmp.onlyAskModule(module);
-						List l = sSnmp.getNext(baseOid+"."+ifindexOid, 1, false, false);
+						String askOid = (ifindexMap != null && ifindexMap.containsKey(ifindexOid) ? baseOidAlt + "." + ifindexMap.get(ifindexOid) : baseOid + "." + ifindexOid);
+						List l = sSnmp.getNext(askOid, 1, false, false);
 						if (l != null && !l.isEmpty()) {
 							// We got a response
 							mmc.ifindexActive(ifindex);
@@ -162,6 +179,7 @@ public class MibIISw implements DeviceHandler
 				Log.i("HANDLE", "Sysname (DNS) ("+nb.getSysname()+") does not start with the collected sysname ("+netboxSysname+")");
 
 				Map varMap = new HashMap();
+				varMap.put("alerttype", "dnsMismatch");
 				varMap.put("dnsname", String.valueOf(nb.getSysname()));
 				varMap.put("sysname", String.valueOf(s[1]));
 				EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);

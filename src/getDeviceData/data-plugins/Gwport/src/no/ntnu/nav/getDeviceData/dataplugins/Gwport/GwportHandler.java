@@ -6,6 +6,7 @@ import java.sql.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.util.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
@@ -35,7 +36,7 @@ public class GwportHandler implements DataHandler {
 	/**
 	 * Fetch initial data from module/gwport/prefix/vlan tables.
 	 */
-	public synchronized void init(Map persistentStorage) {
+	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -47,9 +48,9 @@ public class GwportHandler implements DataHandler {
 		try {
 			// gwportid -> netboxid + interface
 			gwportidMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT gwport.gwportid,sysname,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t')");
+			rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t')");
 			while (rs.next()) {
-				gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")) });
+				gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")), rs.getString("ifindex") });
 			}
 
 			// Create vlanMap; only used locally to as the prefices stores references to these
@@ -149,14 +150,14 @@ public class GwportHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc) {
+	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
 		if (!(dc instanceof GwportContainer)) return;
 		GwportContainer gc = (GwportContainer)dc;
 		if (!gc.isCommited()) return;
 
 		// Let ModuleHandler update the module table first
 		ModuleHandler mh = new ModuleHandler();
-		mh.handleData(nb, dc);
+		mh.handleData(nb, dc, changedDeviceids);
 
 		// We protect the whole update procedure to be on the safe
 		// side. This code executes very quickly compared to data
@@ -216,6 +217,7 @@ public class GwportHandler implements DataHandler {
 							};
 							gwportid = Database.insert("gwport", ins, null);
 							gwportidMap.put(gwportid, new String[] { nb.getSysname(), gwp.getInterf(), (gwp.hsrpCount()>0?"true":"false") });
+							changedDeviceids.add(gwm.getDeviceidS());							
 							newcnt++;
 
 						} else {
@@ -240,6 +242,7 @@ public class GwportHandler implements DataHandler {
 									"gwportid", gwportid
 								};
 								Database.update("gwport", set, where);
+								changedDeviceids.add(gwm.getDeviceidS());							
 								updcnt++;
 							}
 
@@ -259,7 +262,9 @@ public class GwportHandler implements DataHandler {
 							boolean hsrp = gp.getHsrp();
 							Prefix p = gp.getPrefix();
 							Vlan vl = p.getVlan();
-							if (!vl.getNettype().equals("elink")) vl.setNettype(Vlan.UNKNOWN_NETTYPE);
+							//if (!vl.getNettype().equals("elink")) vl.setNettype(Vlan.UNKNOWN_NETTYPE);
+							if (vl.getNettype().equals("elink")) vl.setNetident(null);
+							vl.setNettype(Vlan.UNKNOWN_NETTYPE);
 
 							errl("      Gwip: " + gwip);
 							errl("      Hsrp: " + hsrp);
@@ -344,11 +349,13 @@ public class GwportHandler implements DataHandler {
 								return;
 							}
 
+							boolean unknownNettype = vl.getNettype().equals(Vlan.UNKNOWN_NETTYPE);
+
 							if (vl.getVlan() == null || vl.getVlan().equals(dbvl.getVlan())) {
 								if (!vl.equalsVlan(dbvl)) {
 									// Update vlan and dbvl object
-									Log.d("UPDATE_VLAN", "Update vlan " + vl);
-									if (!vl.getNettype().equals(Vlan.UNKNOWN_NETTYPE)) {
+									if (!unknownNettype) {
+										Log.d("UPDATE_VLAN", "Update vlan " + vl);
 										vl.setVlanid(dbvl.getVlanid());
 										updateVlan(vl);
 									}
@@ -363,7 +370,7 @@ public class GwportHandler implements DataHandler {
 								createVlan(vl);
 								vlanMap.put(vl, null);
 							}
-						
+
 							if (!p.equalsPrefix(dbp)) {
 								// Update prefix and dbp object
 								Log.d("UPDATE_PREFIX", "Update prefix " + p);
@@ -376,7 +383,7 @@ public class GwportHandler implements DataHandler {
 								};
 								Database.update("prefix", set, where);
 								dbp.setNetaddr(p.getNetaddr());
-								dbp.setMasklen(p.getMasklen());
+								dbp.setMasklen(p.getMasklen());								
 								dbp.setVlan(vl);
 								p = dbp;
 							}
@@ -388,7 +395,9 @@ public class GwportHandler implements DataHandler {
 							p.addGwport(gwportid);
 						
 							// Add prefix for autodetermination of nettype
-							prefixUpdateSet.add(p.getCidr());
+							if (unknownNettype) {
+								prefixUpdateSet.add(p.getCidr());
+							}
 						
 						}
 					}
@@ -416,55 +425,69 @@ public class GwportHandler implements DataHandler {
 					Prefix p = (Prefix)prefixDbMap.get(it.next());
 					Vlan vl = p.getVlan();
 
-					if (vl.getNettype().equals(Vlan.UNKNOWN_NETTYPE)) {
-						String nettype, netident = null;
-						int numGwp = p.gwportCount();
+					String nettype, netident = null;
+					int numGwp = p.gwportCount();
 					
-						Set sysnameSet = new HashSet();
-						int hsrpCnt = 0;
-						for (Iterator gwIt = p.getGwportidIterator(); gwIt.hasNext();) {
-							String[] s = (String[])gwportidMap.get(gwIt.next());
-							sysnameSet.add(s[0]);
-							boolean hsrp = s[2].startsWith("t");
-							if (hsrp) hsrpCnt++;
-						}
+					Set sysnameSet = new HashSet();
+					int hsrpCnt = 0;
+					for (Iterator gwIt = p.getGwportidIterator(); gwIt.hasNext();) {
+						String[] s = (String[])gwportidMap.get(gwIt.next());
+						sysnameSet.add(s[0]);
+						boolean hsrp = s[2].startsWith("t");
+						if (hsrp) hsrpCnt++;
+					}
 
-						//System.err.println("Prefix: " + p + ", num: " + numGwp + ", hsrpCnt: " + hsrpCnt + ", sysnames: " + sysnameSet);
-
-						if (numGwp == 0) {
-							// This can't happen
-							System.err.println("Prefix without any gwports, this cannot happen, contact nav support!");
-							Log.e("HANDLE", "Prefix without any gwports, this cannot happen, contact nav support!");
-							continue;
-						}
-						// Only one gwport = lan
-						else if (numGwp == 1) {
-							String interf = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[1];
-							if (interf.toLowerCase().indexOf("loopback") >= 0) {
-								nettype = "loopback";
-							} else {
-								nettype = "lan";
+					//System.err.println("Prefix: " + p + ", num: " + numGwp + ", hsrpCnt: " + hsrpCnt + ", sysnames: " + sysnameSet);
+						
+					if (numGwp == 0) {
+						// This can't happen
+						System.err.println("Prefix without any gwports, this cannot happen, contact nav support!");
+						Log.e("HANDLE", "Prefix without any gwports, this cannot happen, contact nav support!");
+						continue;
+					}
+					// Only one gwport = loopback, elink or lan (default)
+					else if (numGwp == 1) {
+						String interf = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[1];
+						if (interf.toLowerCase().indexOf("loopback") >= 0) {
+							nettype = "loopback";
+						} else if (p.getMasklen() == 30) {
+							nettype = "elink";
+							// Try to find elink name from CDP so we can set netident
+							String ifindex = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[3];
+							// This is the swport ifindex, we need the gwport ifindex
+							if (vl.getVlan() != null) {
+								ResultSet myrs = Database.query("SELECT ifindex FROM swport JOIN module USING(moduleid) WHERE netboxid="+nb.getNetboxid()+" and vlan='"+vl.getVlan()+"'");
+								if (myrs.next()) {
+									String remoteCdp = NetboxInfo.getSingleton(nb.getNetboxidS(), "unrecognizedCDP", myrs.getString("ifindex"));
+									if (remoteCdp != null) vl.setNetident(nb.getSysname() + "," + remoteCdp);
+								}
 							}
-						}
-						// More than one gwport + hsrp = lan
-						else if (hsrpCnt > 0 && numGwp > 1) {
+								
+						} else {
 							nettype = "lan";
 						}
-						// Two gwports from different routers = link
-						else if (numGwp == 2 && sysnameSet.size() == 2) {
-							nettype = "link";
-							Iterator sIt = sysnameSet.iterator();
-							netident = sIt.next()+","+sIt.next();
-						}
-						// More than two gwports without hsrp = stam
-						else {
-							nettype = "stam";
-						}
+					}
+					// More than one gwport + hsrp = lan
+					else if (hsrpCnt > 0 && numGwp > 1) {
+						nettype = "lan";
+					}
+					// Two gwports from different routers = link
+					else if (numGwp == 2 && sysnameSet.size() == 2) {
+						nettype = "link";
+						Iterator sIt = sysnameSet.iterator();
+						netident = sIt.next()+","+sIt.next();
+					}
+					// More than two gwports without hsrp = core
+					else {
+						nettype = "core";
+					}
 
+					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl);
+
+					if (!Vlan.equals(vl.getNettype(), nettype) ||
+							(netident != null && !netident.equals(vl.getNetident()))) {
 						vl.setNettype(nettype);
 						if (netident != null) vl.setNetident(netident);
-
-						Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + nettype);
 					
 						updateVlan(vl);
 						//System.err.println("Update(" + vl.getVlanid() + "): " + vl);

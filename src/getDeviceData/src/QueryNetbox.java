@@ -11,6 +11,7 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.event.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
@@ -34,12 +35,15 @@ public class QueryNetbox extends Thread
 	private static Map typeidMap;
 	private static Map oidkeyMap;
 	private static SortedMap nbRunQ;
+	private static Map netboxidRunQMap;
 	private static Stack idleThreads;
 	private static Map nbMap;
 
 	private static LinkedList oidQ;
 
 	private static int maxThreadCnt;
+	private static int extraThreadCnt;
+	private static Map scheduleImmediatelyMap = Collections.synchronizedMap(new HashMap());
 	private static int threadCnt;
 	private static Integer idleThreadLock = new Integer(0);
 	private static int netboxCnt;
@@ -73,10 +77,11 @@ public class QueryNetbox extends Thread
 		// Create the netbox map and the run queue
 		nbMap = new HashMap();
 		nbRunQ = new TreeMap();
+		netboxidRunQMap = new HashMap();
 		oidQ = new LinkedList();
 
 		// Create the EventListener
-		EventQ.init(5000);
+		EventQ.init(2000);
 		EventQ.addEventQListener("getDeviceData", new EventListener());
 
 		timer = new Timer();
@@ -168,7 +173,7 @@ public class QueryNetbox extends Thread
 				Log.d("CHECK_RUN_Q", "oidQ not empty, got: " + updateO);
 
 				// Try to get a free thread
-				String tid = requestThread();
+				String tid = requestThread(false);
 				if (tid == null) {
 					Log.d("CHECK_RUN_Q", "oidQ not empty, but no thread available");
 					oidQ.addFirst(updateO);
@@ -189,7 +194,7 @@ public class QueryNetbox extends Thread
 			Log.d("CHECK_RUN_Q", "Got netbox: " + nb);
 
 			// Try to get a free thread
-			String tid = requestThread();
+			String tid = requestThread(true);
 			if (tid == null) {
 				Log.d("CHECK_RUN_Q", "Netbox is available, but no threads are idle");
 				// Re-insert into queue
@@ -269,7 +274,7 @@ public class QueryNetbox extends Thread
 
 					boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
 					int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
-					if (freq == 0) {
+					if (freq <= 0) {
 						Log.w("UPDATE_TYPES", "No frequency specified for type " + typeid + ", oid: " + rs.getString("oidkey") + ", skipping.");
 						prevtypeid = typeid;
 						//prevuptodate = uptodate;
@@ -474,6 +479,7 @@ public class QueryNetbox extends Thread
 			} else {
 				l.add(nb);
 			}
+			netboxidRunQMap.put(nb.getNetboxidS(), nextRun);
 		}
 	}
 
@@ -484,6 +490,7 @@ public class QueryNetbox extends Thread
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				if (nb.getNum() == ((NetboxImpl)it.next()).getNum()) {
 					it.remove();
+					netboxidRunQMap.remove(nb.getNetboxidS());
 					break;
 				}
 			}
@@ -516,15 +523,52 @@ public class QueryNetbox extends Thread
 
 			LinkedList l = (LinkedList)nbRunQ.get(nextRun);
 			NetboxImpl nb  = (NetboxImpl)l.removeFirst();
+			netboxidRunQMap.remove(nb.getNetboxidS());
 			if (l.isEmpty()) nbRunQ.remove(nextRun);
 			return nb;
 		}
 	}
 
-	private static String requestThread() {
+	private static NetboxImpl removeFromRunQ(String netboxid) {
+		synchronized (nbRunQ) {
+ 			LinkedList l;
+			Long nextRun = (Long)netboxidRunQMap.get(netboxid);
+			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) return null;
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				NetboxImpl nb = (NetboxImpl)it.next();
+				if (nb.getNetboxidS().equals(netboxid)) {
+					it.remove();
+					if (l.isEmpty()) nbRunQ.remove(nextRun);
+					netboxidRunQMap.remove(nb.getNetboxidS());
+					return nb;
+				}
+			}
+		}
+		return null;
+	}
+
+	// Run the nexbox immediately
+	private static boolean runNetbox(String netboxid, String maxage, String source, String subid) {
+		scheduleImmediatelyMap.put(netboxid, new String[] { source, subid });
+		NetboxImpl nb = removeFromRunQ(netboxid);
+		Log.d("QUERY_NETBOX", "RUN_NETBOX", "Immediate run for netbox("+netboxid+"): " + nb);
+		if (nb == null) return false;
+		nb.scheduleImmediately(); // Schedule immediately
+		addToRunQFront(nb);
 		synchronized (idleThreadLock) {
-			if (threadCnt < maxThreadCnt) {
-				return format(threadCnt++, String.valueOf(maxThreadCnt-1).length());
+			// If there are no idle threads, make one
+			extraThreadCnt++;
+		}
+		scheduleCheckRunQ(0);
+		return true;
+	}
+
+	private static String requestThread(boolean allowExtra) {
+		synchronized (idleThreadLock) {
+			int max = allowExtra ? maxThreadCnt+extraThreadCnt : maxThreadCnt;
+			if (allowExtra && extraThreadCnt > 0) extraThreadCnt--;
+			if (threadCnt < max) {
+				return format(threadCnt++, String.valueOf(max-1).length());
 			}
 			return null;
 		}
@@ -597,7 +641,7 @@ public class QueryNetbox extends Thread
 			try {
 
 				// Get DataContainer objects from each data-plugin.
-				DataContainersImpl containers = getDataContainers();
+				DataContainersImpl containers = getDataContainers(null);
 
 				// Find handlers for this boks
 				DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
@@ -614,8 +658,8 @@ public class QueryNetbox extends Thread
 
 				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type + ")");
 
+				boolean timeout = false;
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
-
 					try {
 						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
 						if (nb.isRemoved() || nb.needRecreate()) break;
@@ -624,7 +668,7 @@ public class QueryNetbox extends Thread
 						Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
 						Log.d("RUN", "TimeoutException: " + te.getMessage());
 						Log.w("RUN", "GIVING UP ON: " + sysName + ", typeid: " + type );
-						continue;
+						timeout = true;
 					} catch (Exception exp) {
 						Log.w("RUN", "Fatal error from devicehandler, skipping. Exception: " + exp.getMessage());
 						exp.printStackTrace(System.err);
@@ -635,10 +679,12 @@ public class QueryNetbox extends Thread
 
 				}
 
-				if (!nb.isRemoved() && !nb.needRecreate()) {
+				if (!timeout && !nb.isRemoved() && !nb.needRecreate()) {
 					// Call the data handlers for all data plugins
 					try { 
-						containers.callDataHandlers(nb);
+						Set changedDeviceids = containers.callDataHandlers(nb);
+						if (!changedDeviceids.isEmpty()) getDataContainers(changedDeviceids);
+						
 					} catch (Exception exp) {
 						Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
 						exp.printStackTrace(System.err);
@@ -652,6 +698,21 @@ public class QueryNetbox extends Thread
 				Log.d("RUN", exp.getMessage());
 			}
 			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
+
+			if (scheduleImmediatelyMap.containsKey(nb.getNetboxidS())) {
+				// Send event that we are done
+				String[] ss = (String[])scheduleImmediatelyMap.remove(nb.getNetboxidS());
+				String target = ss[0];
+				String subid = ss[1];
+				Log.i("RUN", "Done collecting immediate data for " + target + ", netbox: " + nb);
+
+				Map varMap = new HashMap();
+				varMap.put("command", "runNetboxDone");
+				EventQ.createAndPostEvent("getDeviceData", target, nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(subid), "notification", Event.STATE_NONE, 0, 0, varMap);
+			}
+
+			// Store last collect time in netboxinfo
+			NetboxInfo.put(nb.getNetboxidS(), null, "lastUpdated", String.valueOf(System.currentTimeMillis()));
 
 			// If we need to recreate the netbox, set the unknown type
 			if (nb.needRecreate()) {
@@ -700,7 +761,8 @@ public class QueryNetbox extends Thread
 
 	}
 
-	private DataContainersImpl getDataContainers() {
+	private DataContainersImpl getDataContainers(Set changedDeviceids) {
+		if (changedDeviceids == null) changedDeviceids = new HashSet();
 		DataContainersImpl dcs = new DataContainersImpl();
 
 		try {
@@ -716,7 +778,7 @@ public class QueryNetbox extends Thread
 					
 					Map m;
 					if ( (m = (Map)persistentStorage.get(fn)) == null) persistentStorage.put(fn,  m = Collections.synchronizedMap(new HashMap()));
-					dh.init(m);
+					dh.init(m, changedDeviceids);
 
 					dcs.addContainer(dh.dataContainerFactory());				
 				}
@@ -818,10 +880,15 @@ public class QueryNetbox extends Thread
 
 	static class EventListener implements EventQListener {
 		public void handleEvent(Event e) {
-			Log.setDefaultSubsystem("HANDLE_EVENT");		
+			Log.setDefaultSubsystem("HANDLE_EVENT");
+			if (!e.getEventtypeid().equals("notification")) {
+				Log.d("HANDLE_EVENT", "Unknown eventtypeid: " + e.getEventtypeid());
+				e.dispose();
+				return;
+			}
 
-			switch (e.getSubid()) {
-			case 0:
+			String cmd = e.getVar("command");
+			if ("dumpRunq".equals(cmd)) {
 				// Dump runq
 				synchronized (nbRunQ) {
 					Log.d("RUNQ", "Dumping runQ: " + nbRunQ.size() + " entries"); 
@@ -831,17 +898,17 @@ public class QueryNetbox extends Thread
 						Log.d("RUNQ", (((Long)me.getKey()).longValue()-curTime) + ": " + me.getValue());
 					}
 				}
-				break;
-
-			case 1:
+			} else if ("updateFromDB".equals(cmd)) {
 				// Update types/netboxes
 				Log.d("UPDATE", "Updating types/netboxes");
 				scheduleUpdateNetboxes(0);
-				break;
-
-			default:
-				Log.d("DEFAULT", "Unknown event("+e.getSubid()+"): " + e);
-				break;
+			} else if ("runNetbox".equals(cmd)) {
+				String netboxid = String.valueOf(e.getNetboxid());
+				if (netboxid != null) {
+					runNetbox(netboxid, e.getVar("maxage"), e.getSource(), String.valueOf(e.getSubid()));
+				}
+			} else {
+				Log.d("HANDLE_EVENT", "Unknown command: " + cmd);
 			}
 
 			e.dispose();

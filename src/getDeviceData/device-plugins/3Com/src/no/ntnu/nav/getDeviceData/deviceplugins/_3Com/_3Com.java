@@ -176,7 +176,6 @@ public class _3Com implements DeviceHandler
 					String portState = s[1];
 					s = s[0].split("\\.");
 					String moduleS = s[0];
-					String ifindex = moduleS+s[1];
 
 					int module;
 					Integer port;
@@ -195,6 +194,8 @@ public class _3Com implements DeviceHandler
 						Log.d("PROCESS_3COM", "NumberFormatException when converting module " + moduleS + " to number, netbox: " + netboxid + ", " + exp);
 						continue;
 					}
+
+					String ifindex = module + (port.intValue()<10?"0":"") + port;
 
 					char link = 'n';
 					try {
@@ -224,7 +225,7 @@ public class _3Com implements DeviceHandler
 		List l;
 
 		// Module data
-		l = sSnmp.getAll(nb.getOid("3cSerial"), true, false);
+		l = sSnmp.getAll(nb.getOid("3cSerial"), true);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -233,7 +234,7 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getAll(nb.getOid("3cHwVer"), true, false);
+		l = sSnmp.getAll(nb.getOid("3cHwVer"), true);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -241,7 +242,7 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getAll(nb.getOid("3cSwVer"), true, false);
+		l = sSnmp.getAll(nb.getOid("3cSwVer"), true);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -249,8 +250,20 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
+		l = sSnmp.getAll(nb.getOid("3cModel"), true);
+		Map descrMap = sSnmp.getAllMap(nb.getOid("3cDescr"), true);
+		if (l != null) {
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String module = s[0];
+				String descr = s[1];
+				if (descrMap != null && descrMap.containsKey(module)) descr += " (" + descrMap.get(module) + ")";
+				sc.swModuleFactory(Integer.parseInt(module)).setDescr(descr);
+			}
+		}
+
 		// Fetch ifDescr
-		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true, true);
+		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true);
 		if (ifDescrList != null) {
 			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();

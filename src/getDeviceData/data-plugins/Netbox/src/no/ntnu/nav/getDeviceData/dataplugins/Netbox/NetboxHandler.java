@@ -27,7 +27,7 @@ public class NetboxHandler implements DataHandler {
 	/**
 	 * Fetch initial data from device and netbox tables.
 	 */
-	public synchronized void init(Map persistentStorage) {
+	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -81,7 +81,7 @@ public class NetboxHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc) {
+	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
 		if (!(dc instanceof NetboxContainer)) return;
 		NetboxContainer nc = (NetboxContainer)dc;
 		if (!nc.isCommited()) return;
@@ -96,7 +96,7 @@ public class NetboxHandler implements DataHandler {
 			oldn = (NetboxData)netboxMap.get(netboxid);
 			if (oldn == null) {
 				// Time to update the netboxMap
-				init(new HashMap());
+				init(new HashMap(), new HashSet());
 				oldn = (NetboxData)netboxMap.get(netboxid);
 			}
 			netboxMap.put(netboxid, n);
@@ -107,7 +107,7 @@ public class NetboxHandler implements DataHandler {
 
 		// Let DeviceHandler update the device table first
 		DeviceHandler dh = new DeviceHandler();
-		dh.handleData(nb, dc);
+		dh.handleData(nb, dc, changedDeviceids);
 
 		Log.setDefaultSubsystem("NetboxHandler");
 
@@ -129,9 +129,10 @@ public class NetboxHandler implements DataHandler {
 				// Send event if uptime changed
 				if (!oldn.equalsUptime(n)) {
 					Map varMap = new HashMap();
+					varMap.put("alerttype", "coldStart");
 					varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
 					varMap.put("new_upsince", String.valueOf(n.getUpsince()));
-					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "coldStart", Event.STATE_NONE, 0, 0, varMap);
+					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "boxRestart", Event.STATE_NONE, 0, 0, varMap);
 
 					// Update DB. We should only do this if the update really
 					// has changed since the value might have wrapped.

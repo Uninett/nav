@@ -34,7 +34,8 @@ public class DataContainersImpl implements DataContainers {
 	/**
 	 * Call the handleData() methods of all the DataContainer objects
 	 */
-	void callDataHandlers(Netbox nb) {
+	Set callDataHandlers(Netbox nb) {
+		Set changedDeviceids = new HashSet();
 		for (Iterator i = containers.values().iterator(); i.hasNext();) {
 			DataContainer dc = (DataContainer)i.next();
 			DataHandler dh = dc.getDataHandler();
@@ -42,8 +43,11 @@ public class DataContainersImpl implements DataContainers {
 				Log.w("DATA_CONTAINERS_IMPL", "CALL_DATA_HANDLERS", "DataHandler is null for DataContainer: " + dc);
 				continue;
 			}
-			dh.handleData(nb, dc);
+			Set s = new HashSet();
+			dh.handleData(nb, dc, s);
+			changedDeviceids.addAll(s);
 		}
+		return changedDeviceids;
 	}
 
 }

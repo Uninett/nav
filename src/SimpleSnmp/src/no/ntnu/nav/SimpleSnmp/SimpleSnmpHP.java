@@ -30,6 +30,8 @@ public class SimpleSnmpHP extends SimpleSnmp
 	private List stackList;
 	private String askOnlyModule;
 
+	private int ifindexIs;
+
 	// Constructor
 	SimpleSnmpHP() { 
 		super();
@@ -50,9 +52,9 @@ public class SimpleSnmpHP extends SimpleSnmp
 	/**
 	 * Override to add module number to ifIndex.
 	 */
-	protected String convertToIfIndex(String[] s) {
+	protected String convertToIfIndex(String[] s, int idx) {
 		// Construct ifIndex
-		String ifindex = s[0];
+		String ifindex = s[idx];
 		if (ifindex.split("\\.")[0].length() == 1) ifindex = "0" + ifindex;
 		ifindex = new Integer(Integer.parseInt(s[2])+1) + ifindex;
 		return ifindex;
@@ -81,6 +83,11 @@ public class SimpleSnmpHP extends SimpleSnmp
 	// Doc in parent
 	public void onlyAskModule(String module) {
 		this.askOnlyModule = module;
+	}
+
+	// Doc in parent
+	public void setIfindexIs(int ifindexIs) {
+		this.ifindexIs = ifindexIs;
 	}
 
 	// Doc in parent
@@ -139,7 +146,18 @@ public class SimpleSnmpHP extends SimpleSnmp
 				s = new String[] { s[0], s[1], module, port };
 				if (prependModule) {
 					// Construct ifIndex
-					s[0] = convertToIfIndex(s);
+					switch (ifindexIs) {
+					case IFINDEX_OID:
+						s[0] = convertToIfIndex(s, 0);
+						break;
+					case IFINDEX_VALUE:
+						s[1] = convertToIfIndex(s, 1);
+						break;
+					case IFINDEX_BOTH:
+						s[0] = convertToIfIndex(s, 0);
+						s[1] = convertToIfIndex(s, 1);
+						break;
+					}
 				}
 				//System.err.println("Ret s0: " + s[0] + " s1: " + s[1] + " s2: " + s[2] + " s3: " + s[3]);
 				l.add(s);

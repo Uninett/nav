@@ -32,12 +32,12 @@ public class Device
 	/**
 	 * Return the deviceid.
 	 */
-	protected int getDeviceid() { return deviceid; }
+	public int getDeviceid() { return deviceid; }
 
 	/**
 	 * Return the deviceid as a String.
 	 */
-	protected String getDeviceidS() { return deviceid == 0 ? null : String.valueOf(getDeviceid()); }
+	public String getDeviceidS() { return deviceid == 0 ? null : String.valueOf(getDeviceid()); }
 
 	/**
 	 * Set the deviceid of the physical device.

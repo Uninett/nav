@@ -83,6 +83,14 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		updateNextRun();
 	}
 
+	void scheduleImmediately() {
+		synchronized (oidRunQ) {
+			oidRunQ.clear();
+			oidNextRunMap.clear();
+			updateNextRun();
+		}
+	}
+
 	void updateNextRun() {
 		Set r = new HashSet();
 		r.addAll(oidNextRunMap.keySet());

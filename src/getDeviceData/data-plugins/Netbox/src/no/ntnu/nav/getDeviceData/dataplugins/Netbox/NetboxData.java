@@ -69,8 +69,8 @@ public class NetboxData extends Device
 
 	// Doc in parent
 	protected void setDeviceid(int i) { super.setDeviceid(i); }
-	protected int getDeviceid() { return super.getDeviceid(); }
-	protected String getDeviceidS() { return super.getDeviceidS(); }
+	public int getDeviceid() { return super.getDeviceid(); }
+	public String getDeviceidS() { return super.getDeviceidS(); }
 
 	void setUpsince(String upsince) { this.upsince = upsince; }
 

@@ -69,8 +69,9 @@ public interface DataHandler {
 	 * store it in the given persistent storage object.
 	 *
 	 * @param persistentStorage A map the plugin can use for storing data between succesive calls
+	 * @param changedDeviceids Set of deviceids which have changed (been added)
 	 */
-	public void init(Map persistentStorage);
+	public void init(Map persistentStorage, Set changedDeviceids);
 
 	/**
 	 * Return a DataContainer object used to return data to this
@@ -85,7 +86,8 @@ public interface DataHandler {
 	 *
 	 * @param nb The Netbox the data was collected from
 	 * @param dc The collected data
+	 * @param changedDeviceids set of new/changed deviceids by this DataHandler
 	 */
-	public void handleData(Netbox nb, DataContainer dc);
+	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids);
 
 }

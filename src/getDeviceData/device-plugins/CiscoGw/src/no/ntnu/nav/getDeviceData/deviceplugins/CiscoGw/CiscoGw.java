@@ -246,13 +246,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					$netttype = 'loopback' utgår, ingen description her.
 			*/
 
-			String nettype;
-			String netident = null;
-			String orgid = null;
-			String usageid = null;
-			String vlan = null;
-			String description = null;
-
 			Map ifDescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
 
 			// Masterindex
@@ -322,10 +315,17 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					gwm.setDescr((String)cardDescr.get(slot));
 				}
 
+				String nettype = "null";
+				String netident = "null";
+				String orgid = "null";
+				String usageid = "null";
+				String vlan = "null";
+				String description = "null";
+
 				// Parse the description (ifAlias)
 				try {
 					s = descr.split(",");
-					if (descr.startsWith("lan") || descr.startsWith("stam")) {
+					if (descr.startsWith("lan") || descr.startsWith("stam") || descr.startsWith("core")) {
 						nettype = "lan";
 						orgid = s[1];
 						usageid = s[2];

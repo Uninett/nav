@@ -12,11 +12,15 @@ General getDeviceData documentation; supported events.
 <p>
 
 <p>
-<a name="requestSnmp"></a>
+<a name="runNetbox"></a>
 <table border="1" cellpadding="3" cellspacing="0">
  <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Name</b></td>
+  <td colspan="2"><b>runNetbox</b></td>
+ </tr>
+ <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
-  <td colspan="2"><b>requestSnmp</b></td>
+  <td colspan="2"><b>notification</b></td>
  </tr>
  <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
@@ -24,7 +28,7 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
-  <td colspan="2"><a href="#requestSnmpDone">requestSnmpDone</a></td>
+  <td colspan="2"><a href="#runNetboxDone">runNetboxDone</a></td>
  </tr>
  <tr bgcolor="#CCCCFF" class="TableHeadingColor">
   <td><b>Eventq fields</b></td>
@@ -43,7 +47,7 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td><b>subid</b></td>
-  <td>Copied to the requestSnmpDone event if present; use this to differenciate answer events.</td>
+  <td>Copied to the runNetboxDone event if present; use this to differenciate answer events.</td>
   <td>No</td>
  </tr>
  <tr>
@@ -81,21 +85,25 @@ General getDeviceData documentation; supported events.
 <b>Supported outgoing events</b>
 <p>
 
-<!-- requestSnmpDone -->
+<!-- runNetboxDone -->
 <p>
-<a name="requestSnmpDone"></a>
+<a name="runNetboxDone"></a>
 <table border="1" cellpadding="3" cellspacing="0">
  <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Name</b></td>
+  <td colspan="2"><b>runNetboxDone</b></td>
+ </tr>
+ <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
-  <td colspan="2"><b>requestSnmpDone</b></td>
+  <td colspan="2"><b>notification</b></td>
  </tr>
  <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
-  <td colspan="2">Sent as response to a requestSnmp event when processing is finished.</td>
+  <td colspan="2">Sent as response to a runNetbox event when processing is finished.</td>
  </tr>
  <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
-  <td colspan="2"><a href="#requestSnmp">requestSnmp</a></td>
+  <td colspan="2"><a href="#runNetbox">runNetbox</a></td>
  </tr>
  <tr bgcolor="#CCCCFF" class="TableHeadingColor">
   <td><b>Eventq fields</b></td>
@@ -114,7 +122,7 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td><b>subid</b></td>
-  <td>Copied from the requestSnmp event if present there</td>
+  <td>Copied from the runNetbox event if present there</td>
   <td>No</td>
  </tr>
  <tr>

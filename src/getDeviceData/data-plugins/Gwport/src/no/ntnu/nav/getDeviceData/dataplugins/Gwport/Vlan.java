@@ -27,7 +27,7 @@ public class Vlan implements Comparable
 
 	Vlan(String netident, int vlan) {
 		this(netident);
-		this.vlan = new Integer(vlan);
+		setVlan(vlan);
 	}
 
 	int getVlanid() { return vlanid; }
@@ -37,7 +37,7 @@ public class Vlan implements Comparable
 
 	Integer getVlan() { return vlan; }
 	String getVlanS() { return vlan == null ? null : String.valueOf(vlan); }
-	void setVlan(int i) { vlan = new Integer(i); }
+	void setVlan(int i) { vlan = i == 0 ? null : new Integer(i); }
 
 	String getNettype() { return nettype; }
 	String getOrgid() { return orgid; }
@@ -49,11 +49,11 @@ public class Vlan implements Comparable
 
 	void setEqual(Vlan vl) {
 		if (vl.vlan != null) vlan = vl.vlan;
-		if (vl.nettype != null && !vl.nettype.equals(UNKNOWN_NETTYPE)) nettype = vl.nettype;
-		if (vl.orgid != null) orgid = vl.orgid;
-		if (vl.usageid != null) usageid = vl.usageid;
-		if (vl.netident != null) netident = vl.netident;
-		if (vl.description != null) description = vl.description;
+		if (!vl.nettype.equals(UNKNOWN_NETTYPE)) nettype = vl.nettype;
+		orgid = vl.orgid;
+		usageid = vl.usageid;
+		netident = vl.netident;
+		description = vl.description;
 	}
 
 	/**
@@ -86,11 +86,11 @@ public class Vlan implements Comparable
 
 	public boolean equalsVlan(Vlan vl) {
 		return ((vlan == null || vlan.equals(vl.vlan)) &&
-						(nettype == null || nettype.equals(UNKNOWN_NETTYPE) || nettype.equals(vl.nettype)) &&
-						(orgid == null || orgid.equals(vl.orgid)) &&
-						(usageid == null || usageid.equals(vl.usageid)) &&
-						(netident == null || netident.equals(vl.netident)) &&
-						(description == null || description.equals(vl.description)));
+						(equals(nettype, vl.nettype)) &&
+						(equals(orgid, vl.orgid)) &&
+						(equals(usageid, vl.usageid)) &&
+						(equals(netident, vl.netident)) &&
+						(equals(description, vl.description)));
 	}
 
 	public boolean equals(Object o) {
@@ -106,5 +106,12 @@ public class Vlan implements Comparable
 	public String toString() {
 		return vlan + ", nettype="+nettype+", org="+orgid+", usage="+usageid+", netident="+netident+", descr="+description + " ("+Integer.toHexString(hashCode())+")";
 	}
+
+	public static boolean equals(String s1, String s2) {
+		if (s1 == null && s2 == null) return true;
+		if (s1 != null) return s1.equals(s2);
+		return s2.equals(s1);
+	}
+
 
 }

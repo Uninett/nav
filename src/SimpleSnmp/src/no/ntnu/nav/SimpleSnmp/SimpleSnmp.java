@@ -17,6 +17,10 @@ import uk.co.westhawk.snmp.pdu.*;
  */
 public class SimpleSnmp
 {
+	public static final int IFINDEX_OID = 0;
+	public static final int IFINDEX_VALUE = 1;
+	public static final int IFINDEX_BOTH = 2;
+
 	private final int DEFAULT_TIMEOUT_LIMIT = 4;
 	private int timeoutLimit = 4;
 
@@ -97,6 +101,15 @@ public class SimpleSnmp
 	 */
 	public void onlyAskModule(String module) {
 
+	}
+
+	/**
+	 * Specify if the OID, the value or both contain the ifindex. This
+	 * is important for certain types, e.g. HP, which need to treat the
+	 * ifindex special due to unit stacking.
+	 */
+	public void setIfindexIs(int ifindexIs) {
+		
 	}
 
 	/*
@@ -304,7 +317,18 @@ public class SimpleSnmp
 	 * first element.
 	 */
 	protected String convertToIfIndex(String[] s) {
-		return s[0];
+		return convertToIfIndex(s, 0);
+	}
+
+	/**
+	 * Get the ifIndex from the String array. Subclasses can override
+	 * this to do special processing; the default is just to return the
+	 * <i>i</i>th element.
+	 *
+	 * @param idx Index in string array of the ifindex to be converted
+	 */
+	protected String convertToIfIndex(String[] s, int idx) {
+		return s[idx];
 	}
 
 	/**
