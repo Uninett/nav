@@ -365,7 +365,7 @@ sub doHTMLPage {
       		my @values = split(/&/,$ENV{'QUERY_STRING'});
       		my $i_jm;
       		for $i_jm (@values) {
-		    print "$i_jm<br>\n";
+		    #print "$i_jm<br>\n";
 		    # Sjekk for tidligere versjoner, uten patch.
 		    if ($i_jm =~ /;/) {
 			my @jm_tidligere = split(/;/,$i_jm);
@@ -1803,7 +1803,7 @@ sub htmlHeader {
 
 sub htmlFooter {
     my($name, $targRef) = @_;
-    print"$yokohoma<br>";
+    #print"$yokohoma<br>";
     my($h) = getHTMLDict($name, $targRef);
   ConfigTree::Cache::expandHash($h, $h, \&Warn);
 
