@@ -205,7 +205,7 @@ class getBoksMacs
 		// Hent alle vlan som er blokkert av spanning-tree
 		out("  swportblocked...");
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT swportid,netboxid,ifindex,vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid)");
+		rs = Database.query("SELECT swportid,netboxid,ifindex,swportblocked.vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid)");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
 			HashMap blockedIfind;
