@@ -1,0 +1,84 @@
+## $Id:$
+##
+## This file is part of the NAV project.
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+## Defines the user information page, which includes a password changing form.
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends nav.web.templates.MainTemplate.MainTemplate
+
+
+#block content
+
+<h1>User information</h1>
+
+#if $varExists('account')
+<table>
+  <tr>
+    <td class="attr_name">Login:</td>
+    <td class="attr">$account.login</td>
+  </tr>
+  <tr>
+    <td class="attr_name">Name:</td>
+    <td class="attr">$account.name</td>
+  </tr>
+</table>
+
+#if $changePassword
+
+<h3>Change your password</h3>
+$messages()
+<form action="/index/passwd" method="POST">
+  <table>
+    <tr>
+      <td class="attr_name">Your old password:</td>
+      <td class="attr"><input type="password" name="oldpasswd" /></td>
+    </tr>
+    <tr>
+      <td class="attr_name">Choose a new password:</td>
+      <td class="attr"><input type="password" name="newpasswd1" /></td>
+    </tr>
+    <tr>
+      <td class="attr_name">Confirm your new password:</td>
+      <td class="attr"><input type="password" name="newpasswd2" /></td>
+    </tr>
+  </table>
+  <input type="submit" value="Change password" />
+</form>
+#else
+$messages()
+<p>You are not allowed to change your password from this page.  Your account is
+managed through an external system, known as &quot;$account.ext_sync&quot;.</p>
+#end if
+
+
+#else
+$messages()
+<p>You are not logged in.</p>
+
+<p><a href="/">Click here to return to the main page.</a></p>
+
+#end if
+#end block content
+
+#block messages
+#if $varExists('errorMessage')
+<p style="color: red">ERROR: $errorMessage</p>
+#end if
+#if $varExists('message'):
+<p style="color: green">NOTICE: $message</p>
+#end if
+#end block messages
+
+#block additionalCSS
+$default_table_CSS
+.attr_name {
+  font-weight: bold;
+}
+.attr {
+  font-style: italic;
+}
+#end block additionalCSS
