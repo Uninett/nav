@@ -169,6 +169,8 @@ class Handlers:
         global SEPARATOR
         old_sep = SEPARATOR
         if SEPARATOR==":":
+            # (since it is used in URLs for HTTP checker and we don't
+            # have a defined way to escape it) 
             warn("Not smart to use : as separator for services, using ;")
             SEPARATOR=";"
         header("#ip/sysname:handler[:arg=value[:arg=value]]")
@@ -184,7 +186,7 @@ class Handlers:
 
 def main():
     try:
-        # Should
+        # Available from Python 2.3
         from optparse import OptionParser
     except ImportError:
         try:
@@ -245,11 +247,12 @@ def main():
     
     handler = getattr(Handlers(), options.table, "")
     if not handler:
+        parser.print_help()
         tables = [table for table in Handlers.__dict__.keys() 
                   if not table[0] == "_"]
         tables.sort()              
-        tables = str.join("\n", tables)
-        fail(3, "You must select a valid table. Valid tables are:\n" + tables)
+        tables = str.join(" ", tables)
+        fail(3, "\nERROR: You must select a valid table. Valid tables are:\n" + tables)
 
     # And run the handler
     handler()
