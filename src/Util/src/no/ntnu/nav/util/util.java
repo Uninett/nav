@@ -1,6 +1,7 @@
 package no.ntnu.nav.util;
 
 import java.util.*;
+import java.text.*;
 
 /**
  * Various utility functions.
@@ -31,6 +32,25 @@ public class util {
 		StringTokenizer st = new StringTokenizer(s, rem);
 		while (st.hasMoreTokens()) sb.append(st.nextToken());
 		return sb.toString();
+	}
+
+	/**
+	 * Return the filename and line number of the parent of the caller
+	 * to this method.
+	 */
+	public static String parentCodeLine() {
+		Throwable t = new Throwable();
+		StackTraceElement elements[] = t.getStackTrace();
+		return elements.length >= 3 ? elements[2].toString() : null;
+	}
+
+	/**
+	 * Return the double as a String rounded to n decimals.
+	 */
+	public static String format(double d, int n) {
+		DecimalFormat df = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH) );
+		df.setMinimumFractionDigits(n);
+		return df.format(d);
 	}
 
 }
