@@ -53,7 +53,7 @@ $down = '4';
 ###########################################################
 # Lese config-fil
 
-$conf = '/usr/local/nav/etc/live.conf';
+$conf = '/usr/local/nav/etc/conf/live.conf';
 ############################################################
 
 open(CONF,$conf);
@@ -206,7 +206,7 @@ foreach $id (keys %boks)
 
     if ($ip =~ /^\d/)
     {
-	print "Pinger $boks{$id}{sysName} nå :)\n"; # if ($boks{$id}{kat} eq 'SRV');
+#	print "Pinger $boks{$id}{sysName} nå :)\n" if ($boks{$id}{kat} eq 'SRV');
 
 	if ($boks{$id}{kat} eq 'SRV')
 	{
