@@ -47,8 +47,6 @@ sub collectInfo()
 
     $sth->execute();
 
-    print "select p.activeprofile, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'\n";
-
     my $info=$sth->fetchrow_arrayref();
 
     if($DBI::errstr)
