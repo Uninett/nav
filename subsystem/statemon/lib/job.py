@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.6 2003/06/15 11:28:56 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.7 2003/06/15 11:44:04 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -18,6 +18,38 @@ TIMEOUT = 5 #default, hardcoded timeout :)
 DEBUG=0
 
 class JobHandler:
+	"""
+	This is the superclass for each handler. If you want to
+	check a service that is not supported by NAV, you have to
+	write your own handler. This is done quite easily by subclassing
+	this class.
+
+	Quick how-to:
+	Let's say we want to create a handler for the gopher service.
+	Create a new file called GopherHandler.py in the handler/
+	subdirectory. (the filename must be on that form).
+	This file should look something like this:
+
+	from job import JobHandler # this is important
+	from event import Event
+	class GopherHandler(JobHandler):
+	  def __init__(self, service, **kwargs):
+	    JobHandler.__init__(self, "gopher", service, **kwargs)
+	    self.setPort(self.getPort() or 70) # gopher usually runs on port 70
+	  def execute(self):
+	    # In case you need user/pass you can do like this:
+	    args = self.getArgs()
+	    user = args.get("username", "")
+	    pass = args.get("password", "")
+            # Now you need to do the actual check
+	    # I don't implement it now, but every exception is
+	    # caught by the suberclass, and will mark the service
+	    # as down.
+	    # You should try to extract a version number from the server.
+	    version = ""
+	    # and then we return status UP, and our version string.
+	    return Event.UP, version
+	"""
 	def __init__(self,type,service,status=event.Event.UP):
 		self._conf=config.serviceconf()
 		self.setType(type)
