@@ -11,6 +11,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 import state
 import auth
 import nav
+import time
 
 def headerparserhandler(req):
     """
@@ -30,6 +31,9 @@ def headerparserhandler(req):
 
     state.setupSession(req)
     auth.authenticate(req)
+
+    # Make sure the user's session is updated on every request
+    req.session['lastRequest'] = time.time()
 
     # Make sure the main web template knows which user to produce
     # output for.
