@@ -173,7 +173,7 @@ public class _3Com implements DeviceHandler
 				for (Iterator it = portList.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String portState = s[1];
-					s = s[0].split(".");
+					s = s[0].split("\\.");
 					String moduleS = s[0];
 					String ifindex = moduleS+s[1];
 
