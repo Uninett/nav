@@ -66,6 +66,9 @@ class Input
 	//boolean fetchConfig = true;
 	boolean fetchConfig = false;
 
+	ServerFetcher serverFetcher;
+	Vector inputQ;
+
 	public Input(Com InCom)
 	{
 		com = InCom;
@@ -81,10 +84,12 @@ class Input
 
 	public Hashtable getDefaultInput(int grp)
 	{
+		/*
 		if(netCache.containsKey(new Integer(grp))) {
 			com.d("Found grp " + grp + " in cache! :-)", 2);
 			return (Hashtable)netCache.get(new Integer(grp));
 		}
+		*/
 
 		// Ikke i cache, så vi må hente struktur-info fra server
 		Vector v = new Vector();
@@ -119,14 +124,14 @@ class Input
 	public Hashtable fetch(String[] req, String param, String serverURL, String hashKey)
 	{
 		// Check if we have this in boksCache
+		/*
 		if (hashKey != null && boksCache.containsKey(hashKey)) {
 			com.d("fetch(): Found hashKey: " + hashKey + " in cache", 2);
 			return (Hashtable)boksCache.get(hashKey);
 		}
+		*/
 
-		Hashtable ret = new Hashtable();
-		String name = null;
-		Hashtable hash = null;
+		Hashtable ret;
 
 		try
 		{
@@ -148,41 +153,109 @@ class Input
 					b.append(",");
 				}
 			}
+
+			{
+				long[] lastInterval = com.getLastInterval();
+				b.append("&time=" + lastInterval[0] + ",");
+				b.append( (lastInterval[1] >= 0 ? "0" : ""+lastInterval[1]) );
+				b.append("&" + (com.getTidAvg() ? "type=avg" : "type=max"));
+			}
+
 			//b.append("&");
 			//b.append("send=Send\n");
 
 			com.d("URL: " + b.toString(), 2);
-
 			URL url = new URL(b.toString() );
-			URLConnection connection = url.openConnection();
-			connection.setRequestProperty("Cookie", "nav_sessid="+sessionid);
-			connection.connect();
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			String line;
-			while ((line = in.readLine()) != null)
-			{
-				if (line.length() >= 4 && line.substring(0, 4).equals("list"))
-				{
-					if (name != null) ret.put(name, hash);
-					name = line;
-					hash = new Hashtable();
-					continue;
+			inputQ = new Vector();
+			com.d("Create new ServerFetcher",2);
+			serverFetcher = new ServerFetcher(url, inputQ);
+			serverFetcher.start();
+			synchronized (inputQ) {
+				if (inputQ.isEmpty()) {
+					com.d("Waiting on inputQ...",2);
+					inputQ.wait();
 				}
-				String[] s = misc.tokenize(line, "^");
-				hash.put(s[0], s);
+				com.d("Wait over",2);
+				ret = (Hashtable)inputQ.elementAt(0);
+				inputQ.removeElementAt(0);
 			}
-			if (name != null) ret.put(name, hash);
+
 		} catch (Exception e) {
 			com.d("Error: " + e.getMessage(), 0);
-			throw new RuntimeException(e.getMessage());
+			throw new ServerFetchException("Error: " + e.getMessage());
 		}
 
 		if (hashKey != null) boksCache.put(hashKey, ret);
 		return ret;
 	}
 
+	class ServerFetcher extends Thread {
+		private URL url;
+		private Vector q;
+
+		public ServerFetcher(URL myUrl, Vector queue) {
+			url = myUrl;
+			q = queue;
+		}
+
+		public void run() {
+			try {
+				String name = null;
+				Hashtable ret = new Hashtable();
+				URLConnection connection = url.openConnection();
+				connection.setRequestProperty("Cookie", "nav_sessid="+sessionid);
+				connection.connect();
+
+				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+				String line;
+				Hashtable hash = null;
+				while ((line = in.readLine()) != null) {
+						if (line.equals("---")) {
+							synchronized (q) {
+								System.out.println("  Adding 1");
+								q.addElement(ret);
+								q.notify();
+							}
+							ret = new Hashtable();
+							continue;
+						} else
+						if (line.length() >= 4 && line.substring(0, 4).equals("list")) {
+							ret.put(line, hash = new Hashtable());
+							continue;
+						} else {
+							String[] s = misc.tokenize(line, "^");
+							hash.put(s[0], s);
+						}
+				}
+				System.out.println("About to enter q");
+				synchronized (q) {
+					q.addElement(ret);
+					q.notify();
+				}
+			} catch (Exception e) {
+				com.d("Exception: " + e.getMessage(), 0);
+			}
+		}
+	}
+
 	public Hashtable getDefaultLast()
+	{
+		try {
+			synchronized (inputQ) {
+				if (inputQ.isEmpty()) {
+					inputQ.wait();
+				}
+				Hashtable ht = (Hashtable)inputQ.elementAt(0);
+				inputQ.removeElementAt(0);
+				return ht;
+			}
+		} catch (Exception e) {
+			com.d("Error: " + e.getMessage(), 0);
+		}
+		return null;
+	}
+
+	public Hashtable getDefaultLast2()
 	{
 		// kun ruter-linker
 		String[] param = new String[4];

@@ -271,9 +271,16 @@
 
     <mkdir dir="${DESTDIR}${warinstdir}"/>
     <copy file="${dist.home}/${app.name}.war" todir="${DESTDIR}${warinstdir}"/>
+
+    <mkdir dir="${DESTDIR}${bindir}"/>
+    <copy file="vprrd.py" todir="${DESTDIR}${bindir}"/>
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 vprrd.py" />
+    </exec>
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${warinstdir}/${war}"/>
+    <delete file="${DESTDIR}${bindir}/vprrd.py"/>
   </target>
 
 <!-- ==================== Clean Target ==================================== -->

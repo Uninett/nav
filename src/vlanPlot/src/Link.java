@@ -90,6 +90,7 @@ class Link
 
 		String lastPstS = (lastPst >= 0.01) ? LastColor.format(lastPst,2)+"%" : "<0.01%";
 		String lastS = (last > 0) ? LastColor.formatBytes(last*8,true,2,true) : "No data";
+		System.out.println("LastS: " + lastS);
 
 		keywords.put("LinkLastPst".toLowerCase(), lastPstS);
 		keywords.put("LinkLast".toLowerCase(), lastS);
@@ -112,7 +113,7 @@ class Link
 	{
 		if (from.getKat().equals("gw") ||
 			from.getKat().equals("lan") ||
-			from.getKat().equals("stam") ||
+			from.getKat().equals("core") ||
 			from.getKat().equals("elink") )
 		{
 			return "net";

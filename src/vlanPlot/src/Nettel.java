@@ -123,7 +123,7 @@ class Nettel
 
 		//nettelIcon = new NettelIcon(com, this, kat);
 
-		if (kat.equals("gw") || kat.equals("gsw") || kat.equals("sw") || kat.equals("kant") ) isClickable = true;
+		if (kat.equals("gw") || kat.equals("gsw") || kat.equals("sw") || kat.equals("edge") ) isClickable = true;
 		//if (vlan == 0 || com.getNet().getVisVlan() != 0) setDrawVlan(false);
 
 
@@ -140,6 +140,7 @@ class Nettel
 
 	public int getClickId() { return clickId; }
 	public void setClickId(int i) { clickId = i; }
+	public String getClickKat() { return clickKat != null ? clickKat : getKat(); }
 	public void setClickKat(String s) { clickKat = s; }
 
 	public boolean isCore() {

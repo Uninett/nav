@@ -28,8 +28,11 @@ public class vPServer extends HttpServlet
 
 	public void service(HttpServletRequest req, HttpServletResponse res) throws IOException
 	{
-		ServletOutputStream out = res.getOutputStream();
 		//Com com = new Com();
+		res.setContentType("text/html");
+		res.setHeader("nav-template-wrapper", "false");
+		ServletOutputStream out = res.getOutputStream();
+
 
 		String navRoot = getServletContext().getInitParameter("navRoot");
 		String dbConfigFile = getServletContext().getInitParameter("dbConfigFile");
@@ -61,16 +64,14 @@ public class vPServer extends HttpServlet
 			out.println("Error, could not connect to database!");
 			return;
 		}
-
 		HttpSession session = req.getSession(true);
-		res.setContentType("text/html");
-		res.setHeader("nav-template-wrapper", "false");
 
 		// Check user
 		String user = req.getHeader("x-authenticated-user");
 		boolean hasAdmin = user != null && user.length() > 0;
 
 		SqlBoks.req = req;
+		SqlBoks.res = res;
 		SqlBoks.out = out;
 		SqlAdmin.req = req;
 		SqlAdmin.out = out;
@@ -80,21 +81,18 @@ public class vPServer extends HttpServlet
 
 		//try {
 			if (section != null && request != null) {
-				StringTokenizer st = new StringTokenizer(request, ",");
+				//StringTokenizer st = new StringTokenizer(request, ",");
+				String[] r = request.split(",");
 
 				if (section.equals("boks")) {
-					while (st.hasMoreTokens()) {
-						SqlBoks.serviceRequest(st.nextToken(), user, hasAdmin, cp, navCp);
-					}
+					SqlBoks.serviceRequest(r, user, hasAdmin, cp, navCp);
 				} else
 				if (section.equals("admin")) {
 					if (!hasAdmin) {
 						failAuth(out);
 						return;
 					}
-					while (st.hasMoreTokens()) {
-						SqlAdmin.serviceRequest(st.nextToken(), user);
-					}
+					SqlAdmin.serviceRequest(r, user);
 				}
 			} else {
 				out.println("Missing parameter.");
@@ -117,30 +115,42 @@ public class vPServer extends HttpServlet
 class SqlBoks
 {
 	public static HttpServletRequest req;
+	public static HttpServletResponse res;
 	public static ServletOutputStream out;
 
-	static void serviceRequest(String req, String user, boolean hasAdmin, ConfigParser cp, ConfigParser navCp) throws IOException
+	private static String rrdTime;
+	private static String rrdType;
+	private static ConfigParser navCp;
+
+	private static LinkedList reqQ = new LinkedList();
+	static void serviceRequest(String[] reqA, String user, boolean hasAdmin, ConfigParser cp, ConfigParser _navCp) throws IOException
 	{
-		try {
-			if (req.equals("listConfig")) listConfig(user, hasAdmin, cp, navCp);
-			else if (req.equals("listRouters")) listRouters();
-			else if (req.equals("listRouterGroups")) listRouterGroups();
-			else if (req.equals("listRouterXY")) listRouterXY();
-			else if (req.equals("listBoks")) listBoks();
-			else outl("Unsupported request string: " + req);
+		reqQ.addAll(Arrays.asList(reqA));
+		navCp = _navCp;
+
+		rrdTime = req.getParameter("time");
+		rrdType = req.getParameter("type");
+
+		while (!reqQ.isEmpty()) {
+			String req = (String)reqQ.removeFirst();
+			try {
+				if (req.equals("listConfig")) listConfig(user, hasAdmin, cp, navCp);
+				else if (req.equals("listRouters")) listRouters();
+				else if (req.equals("listRouterGroups")) listRouterGroups();
+				else if (req.equals("listRouterXY")) listRouterXY();
+				else if (req.equals("listBoks")) listBoks();
+				else if (req.equals("listLoad")) listLoad();
+				else outl("Unsupported request string: " + req);
 
 
-		} catch (SQLException e) {
-			outl("<pre>");
-			outl("Got SQLException: " + e.getMessage());
-			e.printStackTrace(new PrintStream(out));
-			outl("Stack trace complete.");
-			outl("</pre>");
+			} catch (SQLException e) {
+				outl("<pre>");
+				outl("Got SQLException: " + e.getMessage());
+				e.printStackTrace(new PrintStream(out));
+				outl("Stack trace complete.");
+				outl("</pre>");
+			}
 		}
-
-
-
-
 	}
 
 	// Config for vP
@@ -165,7 +175,6 @@ class SqlBoks
 	{
 		HashMap text = new HashMap();
 		HashMap textOut = new HashMap();
-
 
 		/*
 		listRouterText
@@ -359,8 +368,8 @@ class SqlBoks
 		ArrayList otherBoksIds = new ArrayList();
 
 		HashMap textLinks = new HashMap();
-		ArrayList routerLinkIds = new ArrayList();
-		ArrayList otherLinkIds = new ArrayList();
+		//ArrayList routerLinkIds = new ArrayList();
+		//ArrayList otherLinkIds = new ArrayList();
 
 
 		// Gå gjennom data fra databasen og legg det i datastrukturene klar for å skrives ut
@@ -507,6 +516,8 @@ class SqlBoks
 		outl("listRouters");
 		//outl("boksid^sysname^kat");
 		Iterator iter = sysNames.entrySet().iterator();
+		Set rrdNetboxid = new HashSet();
+		Map sysnameMap = new HashMap();
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
 			// Ikke skriv ut (stam||elink) rutere (negativ boksid)
@@ -516,6 +527,15 @@ class SqlBoks
 			String[] s = (String[])entry.getValue();
 			outl(boksid + "^" + s[0] + "^" + s[1] );
 			routerBoksIds.add(boksid);
+			rrdNetboxid.add(boksid);
+			sysnameMap.put(boksid, s[0]);
+		}
+
+		{
+			Map mm = new HashMap();
+			mm.put("boxId", rrdNetboxid);
+			mm.put("datatype", "cpu5min");
+			loadMap.put("listBoxLoad", mm);
 		}
 
 		// Skriv ut alle (stam||elink) rutere
@@ -538,6 +558,8 @@ class SqlBoks
 		// Skriv ut liste over linker mellom ruterne
 		outl("listRouterLinks");
 		//outl("boksid^linkto^kat");
+		Set routerLinkIds = new HashSet();
+		//List rrdLinks = new ArrayList();
 		for (int i=0; i<links.size(); i++) {
 			l = (ArrayList)links.get(i);
 			int myBoksid = ((Integer)l.get(0)).intValue();
@@ -554,12 +576,14 @@ class SqlBoks
 					// Format: linkid,boksid
 					out("^"+g1+","+v1);
 					routerLinkIds.add(new Integer(g1));
+					//rrdLinks.add(new String[] { ""+myBoksid, ""+g1, (String)sysnameMap.get(""+myBoksid) });
 				}
 			}
 			outl("");
 		}
 
 		// Skriv ut alle (stam||elink) linker
+		Set otherLinkIds = new HashSet();
 		iter = pRouters.entrySet().iterator();
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
@@ -574,6 +598,15 @@ class SqlBoks
 			}
 			outl("");
 		}
+
+		{
+			Map mm = new HashMap();
+			mm.put("gwId", routerLinkIds);
+			mm.put("dualGwId", otherLinkIds);
+			loadMap.put("listLinkLoad", mm);
+		}
+
+		//listCPULinkLoad(rrdLinks, linkInfo);
 
 		outl("listRouterLinkInfo");
 		iter = linkInfo.entrySet().iterator();
@@ -662,8 +695,14 @@ class SqlBoks
 
 
 
+		reqQ.add("listLoad");
 
+	}
 
+	private static Map newMap(String key, Object val) {
+		Map m = new HashMap();
+		m.put(key, val);
+		return m;
 	}
 
 	/*
@@ -709,6 +748,250 @@ class SqlBoks
 		}
 	}
 	*/
+
+	private static Map loadMap = new HashMap();
+	private static void listLoad() throws SQLException
+	{
+		outl("---");
+		try {
+			out.flush();
+			res.flushBuffer();
+		} catch (IOException exp) {
+			outl("IOException: " + exp);
+		}
+
+		try {
+			for (Iterator it = loadMap.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String func = (String)me.getKey();
+				Map m = (Map)me.getValue();
+	
+				if (func.equals("listBoxLoad")) listBoxLoad(m);
+				if (func.equals("listLinkLoad")) listLinkLoad(m);
+			}
+		} catch (Exception e) {
+			e.printStackTrace(new PrintStream(out));
+		}
+	}
+
+
+	private static void listBoxLoad(Map hm)
+	{
+		outl("listBoxLoad");
+
+		Set rrdNetboxid = (Set)hm.get("boxId");
+		String datatype = (String)hm.get("datatype");
+
+		Map m = getRRD(rrdNetboxid, datatype);
+		for (Iterator it = m.entrySet().iterator(); it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String netboxid = (String)me.getKey();
+			Map fnMap = (Map)((Map)me.getValue()).get(datatype);
+			outl(netboxid+"^"+fnMap.values().iterator().next());
+		}
+	}
+
+	private static void listLinkLoad(Map hm) throws SQLException
+	{
+		outl("listLinkLoad");
+		Set rrdGwId = (Set)hm.get("gwId");
+		Set rrdSwId = (Set)hm.get("swId");
+		Set rrdDualGwId = (Set)hm.get("dualGwId");
+		Set rrdDualSwId = (Set)hm.get("dualSwId");
+
+		if (rrdGwId == null) rrdGwId = new HashSet();
+		if (rrdSwId == null) rrdSwId = new HashSet();
+		if (rrdDualGwId == null) rrdDualGwId = new HashSet();
+
+		String sqlAdd = "";
+		Map swMap = new HashMap();
+		Set gwSet = new HashSet();
+		Set swId = new HashSet();
+		if (!rrdGwId.isEmpty() || !rrdDualGwId.isEmpty()) {
+			// Get RSM translation
+			ResultSet rs = Database.query("select gwportid,swportid from gwport join gwportprefix using(gwportid) join prefix using(prefixid) join vlan using(vlanid) join module m1 on (gwport.moduleid=m1.moduleid) join swport on (substr(gwport.interface,5)=swport.vlan and swport.moduleid in (select moduleid from module where netboxid=gwport.to_netboxid)) join netbox using(netboxid) join type using(typeid) where typename='Cis-WX5302' and swport.link='y' and trunk='f' and gwportid in ("+concat(rrdGwId)+concat(rrdDualGwId)+") order by gwportid");
+
+			while (rs.next()) {
+				swId.add(rs.getString("swportid"));
+				swMap.put(rs.getString("swportid"), rs.getString("gwportid"));
+				gwSet.add(rs.getString("gwportid"));
+			}
+		}
+		rrdSwId.addAll(swId);
+
+		Map m = getRRD(null, "ifOutOctets", rrdGwId, rrdSwId);
+		Map m2 = getRRD(null, new HashSet(Arrays.asList(new String[] { "ifOutOctets", "ifInOctets" })), rrdDualGwId, rrdDualSwId);
+
+		Map[] mA = new Map[] { m, m2 };
+		for (int k=0; k < mA.length; k++) {
+			for (Iterator it = mA[k].entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String netboxid = (String)me.getKey();
+				Map ifMap = (Map)((Map)me.getValue()).values().iterator().next();
+				for (Iterator ifIt = ifMap.entrySet().iterator(); ifIt.hasNext();) {
+					me = (Map.Entry)ifIt.next();
+					String[] ss = ((String)me.getKey()).split(":");
+					String id = ss[1];
+					if (swMap.containsKey(id)) id = (String)swMap.get(id);
+					else if (gwSet.contains(id)) continue;
+					outl(id+"^"+me.getValue());
+				}
+			}
+		}
+	}
+
+
+	private static Map getRRD(Set netboxidS, String s) {
+		return getRRD(netboxidS, s, null, null);
+	}
+	private static Map getRRD(Set netboxidS, String s, Set gwSet) {
+		return getRRD(netboxidS, s, gwSet, null);
+	}
+	private static Map getRRD(Set netboxidS, String s, Set gwSet, Set swSet) {
+		return getRRD(netboxidS, new HashSet(Arrays.asList(new String[] { s } )), gwSet, swSet, null);
+	}
+	private static Map getRRD(Set netboxidS, Set descrS, Set gwSet, Set swSet) {
+		return getRRD(netboxidS, descrS, gwSet, swSet, null);
+	}
+	private static Map getRRD(Set netboxidS, Set descrS, Set gwSet, Set swSet, String sqlAdd) {
+		if ((netboxidS == null || netboxidS.isEmpty()) &&
+			(gwSet == null || gwSet.isEmpty()) &&
+			(swSet == null || swSet.isEmpty()) &&
+			sqlAdd == null) return new HashMap();
+
+		try {
+			String sql = "SELECT netboxid,descr,name,path,filename,key,value FROM rrd_file JOIN rrd_datasource USING(rrd_fileid) WHERE subsystem='cricket' AND descr IN ("+concat(descrS,"'")+")";
+			if (netboxidS != null && !netboxidS.isEmpty()) sql += " AND netboxid IN ("+concat(netboxidS)+")";
+			boolean g = gwSet != null && !gwSet.isEmpty();
+			if (g) sql += " AND ((key='gwport' AND value IN ("+concat(gwSet)+"))";
+			if (swSet != null && !swSet.isEmpty()) sql += " " + (g?"OR":"AND") + " (key='swport' AND value IN ("+concat(swSet)+"))";
+			if (g) sql += ")";
+			if (sqlAdd != null) sql += sqlAdd;
+			ResultSet rs = Database.query(sql);
+
+			Map fnMap = new HashMap();
+			while (rs.next()) {
+				String fn = rs.getString("path")+"/"+rs.getString("filename");
+				List l;
+				if ( (l=(List)fnMap.get(fn)) == null) {
+					fnMap.put(fn, l = new ArrayList());
+					l.add(new String[] { rs.getString("netboxid"), rs.getString("descr"), rs.getString("key"), rs.getString("value") } );
+				}
+				l.add(rs.getString("name"));
+			}
+			List f = new ArrayList();
+			List ff = new ArrayList();
+			for (Iterator it = fnMap.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String fn = (String)me.getKey();
+				List l = (List)me.getValue();
+				ff.add(l.remove(0));
+				for (Iterator lIt = l.iterator(); lIt.hasNext();) {
+					fn += " " + lIt.next();
+				}
+				f.add(fn);
+			}
+			List rrd = rrd(f);
+			if (rrd.size() != f.size()) {
+				outl("0^Error, rrd: " + rrd.size() + ", " + f.size());
+				return new HashMap();
+			}
+			Map m = new HashMap();
+			for (int i=0; i < rrd.size(); i++) {
+				String rrdVal = (String)rrd.get(i);
+				String[] rrdA = rrdVal.split(" ");
+				if (!isNum(rrdA[0])) continue;
+				String[] s = (String[])ff.get(i);
+				String netboxid = s[0];
+				String descr = s[1];
+				String kv = s[2]+":"+s[3];
+				Map m2;
+				if ( (m2=(Map)m.get(netboxid)) == null) m.put(netboxid, m2 = new HashMap());
+
+				Map m3;
+				if ( (m3=(Map)m2.get(descr)) == null) m2.put(descr, m3 = new HashMap());
+
+				if (rrdA.length > 1 && isNum(rrdA[1])) {
+					rrdVal = rrdA[0] + "^" + rrdA[1];
+				}					
+				m3.put(kv, rrdVal);
+			}
+			return m;
+		} catch (SQLException exp) {
+			outl("SQLException: " + exp);
+			exp.printStackTrace(new PrintStream(out));
+		} catch (Exception exp) {
+			outl("Exception: " + exp);
+			exp.printStackTrace(new PrintStream(out));
+		}
+		return new HashMap();
+	}
+
+	private static boolean isNum(String s) {
+		try {
+			Double.parseDouble(s);
+		} catch (NumberFormatException exp) {
+			return false;
+		}
+		return true;
+	}
+
+	private static String concat(Set set) {
+		return concat(set, "");
+	}
+	private static String concat(Set set, String fnut) {
+		StringBuffer sb = new StringBuffer();
+		for (Iterator it = set.iterator(); it.hasNext();) {
+			Object s = (Object)it.next();
+			sb.append(fnut+s+fnut);
+			if (it.hasNext()) sb.append(",");
+		}
+		return sb.toString();
+	}
+
+	private static List rrd(List f)
+	{
+		List rrd = new ArrayList();
+		try {
+			File hostBin = new File("/usr/bin/python");
+
+			String[] hostCmd = {
+				//hostBin.getAbsolutePath(),
+				navCp.get("NAVROOT") + File.separatorChar + "bin" + File.separatorChar + "vprrd.py",
+			};
+
+			Runtime rt = Runtime.getRuntime();
+			Process p = rt.exec(hostCmd);
+			PrintWriter out = new PrintWriter(p.getOutputStream());
+			//out.println("/usr/local/nav/cricket/cricket-data/");
+			out.println( ("max".equals(rrdType)?"MAX":"AVERAGE") );
+			out.println(rrdTime);
+			for (Iterator it = f.iterator(); it.hasNext();) {
+				out.println(it.next());
+			}
+			out.close();
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			try {
+				p.waitFor();
+			} catch (InterruptedException e) {
+				System.err.println("InterruptedException: " + e);
+				outl("InterruptedException: " + e);
+				e.printStackTrace(System.err);
+				return rrd;
+			}
+			String s;
+			while ( (s=in.readLine()) != null) {
+				s = s.trim();
+				if (s.length() == 0) continue;
+				rrd.add(s);
+			}
+		} catch (Exception e) {
+			e.printStackTrace(new PrintStream(out));
+		}
+		return rrd;
+	}
+		
 
 	static void listRouterGroups() throws SQLException
 	{
@@ -783,6 +1066,10 @@ class SqlBoks
 
 		HashMap text = new HashMap();
 		HashMap textOut = new HashMap();
+
+		Set netboxidSet = new HashSet();
+		Set rrdGwId = new HashSet();
+		Set rrdSwId = new HashSet();
 
 		// Vi har egentlig tre tilfeller her:
 		// kat=gw -> vi henter info fra gwport og prefiks
@@ -946,6 +1233,7 @@ class SqlBoks
 				String nettype = rs.getString("nettype");
 				String boksbak = rs.getString("to_netboxid");
 				String retning = "o"; // Up er default
+				netboxidSet.add(boksidTo);
 
 				// Først legger vi til boksen som den er for å være sikker på at den alltid kommer med
 				if (boksDupe.add(boksidTo)) {
@@ -975,6 +1263,7 @@ class SqlBoks
 					// lan, elink, stam eller tilsvarende. Nå skal det bare være en enkelt link, så vi bare skriver ut
 					// og legger til linken.
 					String nettident = rs.getString("netident");
+					if (nettident == null) nettident = "(null)";
 					if (nettident.indexOf("-fw") != -1) nettype = "fw";
 
 					boksidTo = "-"+prefiksid;
@@ -1097,30 +1386,30 @@ class SqlBoks
 			{
 				String[] s = {
 					"&&sysName!!Kat: ##!!Romid: ##!!Bakplan: &&boksLast",
-					"kat",
-					"romid"
+					"catid",
+					"roomid"
 				};
 				text.put("swBoks", s);
 			}
 			{
 				String[] s = {
 					"&&sysName!!Kat: ##!!Romid: ##!!Last: &&boksLast",
-					"kat",
-					"romid"
+					"catid",
+					"roomid"
 				};
 				text.put("gwBoks", s);
 			}
 			{
 				String[] s = {
 					"&&sysName!!Kat: ## (kant)",
-					"kat"
+					"catid"
 				};
 				text.put("kantBoks", s);
 			}
 			{
 				String[] s = {
 					"&&sysName!!Kat: ## (srv)",
-					"kat"
+					"catid"
 				};
 				text.put("srvBoks", s);
 			}
@@ -1141,66 +1430,66 @@ class SqlBoks
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->sw)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-swLink", s);
 			}
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->gw)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-gwLink", s);
 			}
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->kant)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-kantLink", s);
 			}
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->hub)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-hubLink", s);
 			}
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->srv)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-srvLink", s);
 			}
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(sw->mas)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("sw-masLink", s);
 			}
@@ -1214,11 +1503,11 @@ class SqlBoks
 			{
 				String[] s = {
 					"&&sysNameFrom -> &&sysNameTo!!MP: ##/##!!Speed: ##!!Duplex: ##!!Portnavn: ##!!Last: &&linkLastPst (&&linkLast)!!(kant->sw)",
-					"modul",
+					"module",
 					"port",
 					"speed",
 					"duplex",
-					"portnavn"
+					"portname"
 				};
 				text.put("kant-swLink", s);
 			}
@@ -1240,14 +1529,14 @@ class SqlBoks
 
 			// Vi trenger kobling mellom boksid og kat for å vite hvilken tekst som skal på en link ut fra senter-enheten
 			HashMap boksidKatMap = new HashMap();
-			rs = Database.query("SELECT boksid,kat FROM boks WHERE boksid IN (SELECT boksid FROM swport WHERE boksbak="+thisBoksid+")");
-			while (rs.next()) boksidKatMap.put(rs.getString("boksid"), rs.getString("kat").toLowerCase() );
+			rs = Database.query("SELECT netboxid,catid FROM netbox WHERE netboxid IN (SELECT netboxid FROM module JOIN swport USING (moduleid) WHERE to_netboxid="+thisBoksid+")");
+			while (rs.next()) boksidKatMap.put(rs.getString("netboxid"), rs.getString("catid").toLowerCase() );
 
 			// Felter fra gw'er som skal med
 			String cFields = "";
 			{
 				HashSet hs = new HashSet();
-				String[] aa = { "boksid", "sysName" };
+				String[] aa = { "netboxid", "sysName" };
 				for (int i=0; i < aa.length; i++) hs.add(aa[i].toLowerCase());
 
 				Iterator iter = text.entrySet().iterator();
@@ -1265,12 +1554,12 @@ class SqlBoks
 			HashSet boksDupe = new HashSet();
 			HashSet linkDupe = new HashSet();
 			HashSet gwboksSet = new HashSet();
-			rs = Database.query("SELECT boksid,sysName"+cFields+" FROM boks WHERE kat='GW' AND boksid IN (SELECT boksbak FROM swport WHERE boksid='"+thisBoksid+"')");
+			rs = Database.query("SELECT netboxid,sysName"+cFields+" FROM netbox WHERE catid='GW' AND netboxid IN (SELECT netboxid FROM module JOIN gwport USING(moduleid) WHERE to_netboxid='"+thisBoksid+"')");
 			// SELECT boksid,sysName FROM boks WHERE kat='GW' AND boksid IN (SELECT boksbak FROM swport WHERE boksid='')
 			while (rs.next()) {
-				String boksid = rs.getString("boksid");
+				String boksid = rs.getString("netboxid");
 				String sysname = rs.getString("sysname");
-				String kat = rs.getString("kat").toLowerCase();
+				String kat = rs.getString("catid").toLowerCase();
 
 				outl(boksid+"^"+sysname+"^"+kat);
 
@@ -1295,7 +1584,7 @@ class SqlBoks
 			cFields = "";
 			{
 				HashSet hs = new HashSet();
-				String[] aa = { "swportid", "boksid", "sysName", "kat", "modul", "port", "vlan", "speed", "retning", "boksbak", "vpkatbak", "portnavn", "nettype", "nettident" };
+				String[] aa = { "swportid", "netboxid", "sysName", "catid", "module", "port", "vlan.vlan", "speed", "direction", "to_netboxid", "portname", "nettype", "netident" };
 				for (int i=0; i < aa.length; i++) hs.add(aa[i].toLowerCase());
 
 				Iterator iter = text.entrySet().iterator();
@@ -1313,11 +1602,11 @@ class SqlBoks
 			// Så henter vi alle bokser vi må eksplistitt hente info fra boks for
 			// SELECT * da vi ikke vet hva som skal være med
 			HashSet boksSet = new HashSet();
-			rs = Database.query("SELECT * FROM boks WHERE boksid IN (SELECT boksbak FROM swport WHERE boksid="+thisBoksid+") AND boksid NOT IN (SELECT boksid FROM swport WHERE boksbak="+thisBoksid+")");
+			rs = Database.query("SELECT * FROM netbox WHERE netboxid IN (SELECT netboxid FROM module JOIN swport USING(moduleid) WHERE netboxid="+thisBoksid+") AND netboxid NOT IN (SELECT netboxid FROM module JOIN swport USING(moduleid) WHERE to_netboxid="+thisBoksid+")");
 			while (rs.next()) {
-				String boksid = rs.getString("boksid");
+				String boksid = rs.getString("netboxid");
 				String sysname = rs.getString("sysname");
-				String kat = rs.getString("kat").toLowerCase();
+				String kat = rs.getString("catid").toLowerCase();
 
 				outl(boksid+"^"+sysname+"^"+kat);
 
@@ -1339,7 +1628,7 @@ class SqlBoks
 			}
 
 			//rs = Database.query("SELECT swportid,boksid,sysName,kat,vlan,speed,retning,boksbak"+cFields+" FROM swport JOIN boks USING (boksid) JOIN swportvlan USING (swportid) WHERE status!='down' AND boksbak IS NOT NULL AND (boksid='"+thisBoksid+"' OR boksbak='"+thisBoksid+"')");
-			rs = Database.query("SELECT swportid,boksid,sysName,kat,modul,port,vlan,speed,retning,boksbak,vpkatbak,portnavn,nettype,nettident"+cFields+" FROM swport JOIN boks USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN prefiks USING (vlan) WHERE status!='down' AND (boksid='"+thisBoksid+"' OR boksbak='"+thisBoksid+"') ORDER BY vlan");
+			rs = Database.query("SELECT swportid,netboxid,sysName,catid,module,port,vlan.vlan,speed,direction,to_netboxid,portname,nettype,netident"+cFields+" FROM swport JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) LEFT JOIN prefix USING (vlanid) WHERE netbox.up!='n' AND (netboxid='"+thisBoksid+"' OR to_netboxid='"+thisBoksid+"') ORDER BY vlan.vlan");
 			//SELECT DISTINCT ON (vlan,boksid,boksbak) swportid,boksid,sysName,kat,vlan,speed,retning,boksbak,vpkatbak,portnavn,nettype,nettident FROM swport JOIN boks USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN prefiks USING (vlan) WHERE status!='down' AND (boksid='' OR boksbak='') ORDER BY vlan
 
 			//SELECT DISTINCT ON (vlan,boksid,boksbak) swportid,boksid,sysName,kat,trunk,boksbak,vlan,retning,vpkatbak,nettype,nettident FROM swport JOIN boks USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN prefiks USING (vlan) WHERE status!='down' AND (boksid='16' OR boksbak='16') and boksbak IN (1,28) ORDER BY vlan,boksbak;
@@ -1348,19 +1637,19 @@ class SqlBoks
 			ArrayList noInfoBoksL = new ArrayList();
 			while (rs.next()) {
 				String swportid = rs.getString("swportid");
-				String boksid = rs.getString("boksid");
+				String boksid = rs.getString("netboxid");
 				String sysname = rs.getString("sysname");
-				String kat = rs.getString("kat").toLowerCase();
+				String kat = rs.getString("catid").toLowerCase();
 				String vlan = rs.getString("vlan");
 				//String retning = rs.getString("retning");
-				String boksbak = rs.getString("boksbak");
+				String boksbak = rs.getString("to_netboxid");
 				boolean boksbakNull = (boksbak==null) ? true : false;
 
 				String katBak;
 				if (thisBoksid.equals(boksid)) {
 					// Link ut fra enheten, så vi må endre kat
 					if (boksbak == null) {
-						String[] katSysname = decodeBoksbak(rs.getString("vpkatbak"), rs.getString("portnavn"));
+						String[] katSysname = decodeBoksbak(null, rs.getString("portname"));
 						katBak = katSysname[0];
 						String boksidBak = String.valueOf(++maxBoksid);
 						boksbak = boksidBak;
@@ -1390,7 +1679,7 @@ class SqlBoks
 
 				// Legg til vlan
 				if (!vlanNameMap.containsKey(vlan)) {
-					vlanNameMap.put(vlan, rs.getString("nettype")+","+rs.getString("nettident"));
+					vlanNameMap.put(vlan, rs.getString("nettype")+","+rs.getString("netident"));
 				}
 
 				// Legg evt. til boksen
@@ -1433,7 +1722,7 @@ class SqlBoks
 						}
 					}
 
-					String[] linkInfoTo = { swportid, rs.getString("speed"), rs.getString("modul")+"_"+rs.getString("port") };
+					String[] linkInfoTo = { swportid, rs.getString("speed"), rs.getString("module")+"_"+rs.getString("port") };
 					linkInfo.add(linkInfoTo);
 
 					// Legg til tekst for vanlige linker
@@ -1515,7 +1804,7 @@ class SqlBoks
 				{
 					ArrayList l;
 					if ( (l=(ArrayList)linkVlanMap.get(swportid)) == null) linkVlanMap.put(swportid, l=new ArrayList());
-					String retning = rs.getString("retning");
+					String retning = rs.getString("direction");
 					if (!retning.equals("o") && !retning.equals("b")) retning = "n";
 					l.add(rs.getString("vlan")+","+retning);
 				}
@@ -1573,10 +1862,33 @@ class SqlBoks
 
 		}
 
+		{
+			Map newMap = new HashMap();
+			netboxidSet.add(thisBoksid);
+
+			newMap.put("boxId", netboxidSet);
+			newMap.put("datatype", "c5000Bandwidth");
+			loadMap.put("listBoxLoad", newMap);
+		}
+
 		// Så skrives linkene ut
 		outl("listBoksLinks");
-		outl("cn^"+thisBoksid);
-		for (int i=0; i < link.size(); i++) outl((String)link.get(i) );
+		Set linkIdSet = new HashSet();
+		for (int i=0; i < link.size(); i++) {
+			outl((String)link.get(i) );
+			linkIdSet.add( ((String)link.get(i)).split("\\^")[0] );
+		}
+
+		{
+			Map newMap = new HashMap();
+			newMap.put("cn", thisBoksid);
+			if (thisKat.equalsIgnoreCase("gw")) rrdGwId.addAll(linkIdSet);
+			else rrdSwId.addAll(linkIdSet);
+
+			newMap.put("dualGwId", rrdGwId);
+			newMap.put("dualSwId", rrdSwId);
+			loadMap.put("listLinkLoad", newMap);
+		}
 
 		/*
 		out("up");
@@ -1654,7 +1966,7 @@ class SqlBoks
 				tcnt++;
 			}
 		}
-
+		reqQ.add("listLoad");
 	}
 
 	// Henter ut sysname og kat ved å se på vpkatbak og portnavn
@@ -1713,17 +2025,23 @@ class SqlAdmin
 	public static HttpServletRequest req;
 	public static ServletOutputStream out;
 
-	static void serviceRequest(String req, String user) throws IOException
+	static void serviceRequest(String[] reqA, String user) throws IOException
 	{
-		try {
-			if (req.equals("verifyPw")) return;
-			else if (req.equals("saveBoksXY")) saveBoksXY(user);
-			else outl("Unsupported request string: " + req);
+		LinkedList reqQ = new LinkedList();
+		reqQ.addAll(Arrays.asList(reqA));
 
-		} catch (SQLException e) {
-			out.println("SQLException: " + e.getMessage());
+		while (!reqQ.isEmpty()) {
+			String req = (String)reqQ.removeFirst();
+
+			try {
+				if (req.equals("verifyPw")) return;
+				else if (req.equals("saveBoksXY")) saveBoksXY(user);
+				else outl("Unsupported request string: " + req);
+
+			} catch (SQLException e) {
+				out.println("SQLException: " + e.getMessage());
+			}
 		}
-
 	}
 
 

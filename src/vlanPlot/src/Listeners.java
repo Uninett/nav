@@ -177,7 +177,7 @@ class Mouse implements MouseListener
 					{
 						overNettel = true;
 						com.d("Klikket: " + n.getName(),3);
-						boolean router = !n.getKat().equals("sw");
+						boolean router = !n.getClickKat().equals("sw");
 
 						if (button1)
 						{ // venstre-klikk på nettel/link
@@ -187,7 +187,7 @@ class Mouse implements MouseListener
 								if (router) n.setVlan(0);
 
 								com.d("------------------------------------------------------------------------", 1);
-								com.d("Aktivert klikk: " + n.getName() + " Vlan: " + n.getVlan(), 1 );
+								com.d("Aktivert klikk: " + n.getName() + " Vlan: " + n.getVlan() + " Kat: " + n.getKat() +" Router: " + router, 1 );
 
 								com.getNet().setVisNettel(n);
 								com.getNet().refreshNettel();

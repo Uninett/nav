@@ -162,7 +162,6 @@ class Net extends Canvas implements ItemListener
 		}
 	}
 */
-
 	public void buildBynett()
 	{
 		//String name = (visGruppe < netNames.length) ? netNames[visGruppe] : "nettgruppe "+visGruppe;
@@ -192,7 +191,6 @@ class Net extends Canvas implements ItemListener
 		int visGruppeId = ((Integer)gruppeIdMap.get(visGruppeNavn)).intValue();
 		Hashtable h = com.getInput().getDefaultInput(visGruppeId);
 
-
 		if (!setConfig) {
 			Hashtable lConfig = (Hashtable)h.get("listConfig");
 			setConfig(lConfig);
@@ -208,7 +206,7 @@ class Net extends Canvas implements ItemListener
 
 		com.d("listRouters size: " + lRouters.size(), 2);
 		com.d("listRouterLinks size: " + lRouterLinks.size(), 2);
-		com.d("listRouteXY size: " + lRouterXY.size(), 2);
+		com.d("listRouterXY size: " + lRouterXY.size(), 2);
 
 		if (visGruppe > 0)
 		{
@@ -424,14 +422,22 @@ class Net extends Canvas implements ItemListener
 			}
 		}
 
+		Hashtable lRouterText = (Hashtable)h.get("listBoksText");
+		Hashtable lRouterLinkText = (Hashtable)h.get("listLinkText");
+
 		if (APPLY_LAST_BYNETT) {
-			applyLast();
+			applyLast(lRouterText, lRouterLinkText);
 		}
 
+		applyText(lRouterText, lRouterLinkText);
+	}
+
+	private synchronized void applyText(Hashtable lRouterText, Hashtable lRouterLinkText)
+	{
 		// Så legger vi til tekst for alle bokser
 		String[] tList;
 		int tcnt=0;
-		Hashtable lRouterText = (Hashtable)h.get("listBoksText");
+		//Hashtable lRouterText = (Hashtable)h.get("listBoksText");
 		while ( (tList = (String[])lRouterText.get("t"+tcnt)) != null) {
 			String text = tList[1];
 			for (int i=2; i < tList.length; i++) {
@@ -451,7 +457,7 @@ class Net extends Canvas implements ItemListener
 		}
 
 		com.d("Behandler listRouterLinkText", 2);
-		Hashtable lRouterLinkText = (Hashtable)h.get("listLinkText");
+		//Hashtable lRouterLinkText = (Hashtable)h.get("listLinkText");
 		tcnt=0;
 		while ( (tList = (String[])lRouterLinkText.get("t"+tcnt)) != null) {
 			String text = tList[1];
@@ -488,7 +494,84 @@ class Net extends Canvas implements ItemListener
 		return new int[] { x, y };
 	}
 
-	public void applyLast()
+	public void applyLast(Hashtable lRouterText, Hashtable lRouterLinkText)
+	{
+		ApplyLoadThread t = new ApplyLoadThread(lRouterText, lRouterLinkText);
+		t.start();
+	}
+
+	class ApplyLoadThread extends Thread
+	{
+		Hashtable lRouterText, lRouterLinkText;
+		public ApplyLoadThread(Hashtable h1, Hashtable h2) {
+			lRouterText = h1;
+			lRouterLinkText = h2;
+		}
+
+		public void run() {
+			com.d("Henter last-data", 1);
+			com.d("----------------", 1);
+			com.getMainPanel().setWaitCursor();
+
+			Hashtable h = com.getInput().getDefaultLast();
+			if (h == null) return;
+
+			Hashtable boksLast = (Hashtable)h.get("listBoxLoad");
+			com.d("boksLast size: " + boksLast.size(), 2);
+
+			// Sett boks-last
+			Enumeration e = boksLast.elements();
+			while (e.hasMoreElements()) {
+				String[] s = (String[])e.nextElement();
+				if (!nh.containsKey(s[0])) continue;
+				Nettel n = (Nettel)nh.get(s[0]);
+				try {
+					n.setNettelLast( Double.valueOf(s[1]).doubleValue() );
+				} catch (NumberFormatException exp) {
+				}
+			}
+
+			Hashtable linkOctetLast = (Hashtable)h.get("listLinkLoad");
+			com.d("linkOctetLast size: " + linkOctetLast.size(), 2);
+
+			// Sett link-last
+			e = linkOctetLast.elements();
+			while (e.hasMoreElements()) {
+				String[] s = (String[])e.nextElement();
+				if (!lh.containsKey(s[0])) continue;
+
+				Link l = (Link)lh.get(s[0]);
+				com.d("  Satt last: " + Double.valueOf(s[1]).doubleValue() , 5);
+				l.setLast( Double.valueOf(s[1]).doubleValue() );
+				l.recalc();
+
+				if (s.length == 3) {
+					// Det er gitt last begge veier her
+					if (lh.containsKey("-"+s[0]) ) {
+						// Vi forventet også last begge veier, så det er riktig
+						l = (Link)lh.get("-"+s[0]);
+						l.setLast( Double.valueOf(s[2]).doubleValue() );
+						l.recalc();
+					} else {
+						// Vi forventet ikke last andre veien, men finn likevel linken
+						l = l.getLinkOtherWay();
+						if (l != null) {
+							l.setLast( Double.valueOf(s[2]).doubleValue() );
+							l.recalc();
+						} else {
+							com.d("  Last funnet andre veien, men fant ikke linken tilbake!!", 4);
+						}
+
+					}
+				}
+			}
+
+			applyText(lRouterText, lRouterLinkText);
+			repaint();
+			com.getMainPanel().setDefaultCursor();
+		}
+	}
+	public void applyLast2()
 	{
 		com.d("Henter last-data", 1);
 		com.d("----------------", 1);
@@ -820,7 +903,7 @@ class Net extends Canvas implements ItemListener
 		lnTop.activate();
 		lnBottom.activate();
 
-		// Oppdatert PopupMeny'en med liste over mulige vlan
+		// Oppdater PopupMenu med liste over mulige vlan
 		e = vlanSet.elements();
 		vlanMenu.clear();
 		vlanMenu.setMenuLabel("Skift vlan på "+n.getName());
@@ -838,14 +921,15 @@ class Net extends Canvas implements ItemListener
 		vlanMenu.refresh();
 
 		// Hent og legg til last-data
+		Hashtable lBoksText = (Hashtable)h.get("listBoksText");
+		Hashtable lLinkText = (Hashtable)h.get("listLinkText");
 		if (APPLY_LAST_VLANV) {
-			applyLast();
+			applyLast(lBoksText, lLinkText);
 		}
 
 		// Så legger vi til tekst for alle bokser
 		String[] tList;
 		int tcnt=0;
-		Hashtable lBoksText = (Hashtable)h.get("listBoksText");
 		while ( (tList = (String[])lBoksText.get("t"+tcnt)) != null) {
 			String text = tList[1];
 			for (int j=2; j < tList.length; j++) {
@@ -865,7 +949,6 @@ class Net extends Canvas implements ItemListener
 		}
 
 		com.d("Behandler listRouterLinkText", 2);
-		Hashtable lLinkText = (Hashtable)h.get("listLinkText");
 		tcnt=0;
 		while ( (tList = (String[])lLinkText.get("t"+tcnt)) != null) {
 			String text = tList[1];
@@ -944,7 +1027,7 @@ class Net extends Canvas implements ItemListener
 			if (visNettel == null) showBynett(); else showNettel();
 			if (visGruppe == -1) com.getLeft().setNettNavn(""); // Vis blankt menyvalg
 			error = false;
-		} catch (Exception e) {
+		} catch (ServerFetchException e) {
 			error = true;
 			errorMsg = e.getMessage();
 		} finally {
