@@ -22,7 +22,7 @@ public class Device
 	 * Constructor.
 	 */
 	protected Device(String serial, String hwVer, String swVer) {
-		this.serial = serial;
+		setSerial(serial);
 		this.hw_ver = hwVer;
 		this.sw_ver = swVer;
 	}
@@ -51,7 +51,13 @@ public class Device
 	/**
 	 * Set the the serial number of the physical device.
 	 */
-	public void setSerial(String serial) { this.serial = serial; }
+	public void setSerial(String serial) {
+		if (serial != null && serial.length() > 0 && !serial.equals("0")) {
+			this.serial = serial;
+		} else {
+			this.serial = null;
+		}
+	}
 
 	/**
 	 * Set the the hardware version number of the physical device.

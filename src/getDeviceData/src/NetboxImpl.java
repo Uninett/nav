@@ -84,7 +84,6 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	void updateNextRun() {
-		Long baseTime = new Long(System.currentTimeMillis());
 		Set r = new HashSet();
 		r.addAll(oidNextRunMap.keySet());
 
@@ -93,7 +92,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 			String oidkey = (String)me.getKey();
 			r.remove(oidkey);
 			if (!oidNextRunMap.containsKey(oidkey)) {
-				addToRunQ(oidkey, baseTime);
+				// Schedule immediately
+				addToRunQ(oidkey, new Long(0));
 			}
 		}
 
@@ -158,7 +158,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	// Next run for this Netbox
 	long getNextRun() {
-		if (oidRunQ.isEmpty()) return System.currentTimeMillis() + Integer.MAX_VALUE; // Infinity...
+		if (oidRunQ.isEmpty()) return Long.MAX_VALUE / 2; // Infinity...
 		return ((Long)oidRunQ.firstKey()).longValue();
 	}
 

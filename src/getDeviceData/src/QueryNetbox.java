@@ -76,6 +76,7 @@ public class QueryNetbox extends Thread
 		oidQ = new LinkedList();
 
 		// Create the EventListener
+		EventQ.init(5000);
 		EventQ.addEventQListener("getDeviceData", new EventListener());
 
 		timer = new Timer();
@@ -129,7 +130,7 @@ public class QueryNetbox extends Thread
 		try {
 			ResultSet rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, uptodate FROM snmpoid WHERE oidkey='" + oidkey + "'");
 			rs.next();
-			keyFreqMap.put(rs.getString("oidkey"), new Integer(Integer.MAX_VALUE));
+			keyFreqMap.put(rs.getString("oidkey"), new Integer(OidTester.DEFAULT_FREQ));
 
 			Snmpoid snmpoid = new Snmpoid(rs.getString("snmpoidid"), rs.getString("oidkey"), rs.getString("snmpoid"), rs.getBoolean("getnext"), rs.getBoolean("decodehex"), rs.getString("match_regex"), rs.getBoolean("uptodate"));
 			keyMap.put(rs.getString("oidkey"), snmpoid);
@@ -375,7 +376,6 @@ public class QueryNetbox extends Thread
 				if ( (nb=(NetboxImpl)nbMap.get(netboxid)) == null) {
 					nbMap.put(netboxid, nb = new NetboxImpl(++nbHigh, t));
 					newNetbox = true;
-					newcnt++;
 				} else {
 					long oldNextRun = nb.getNextRun();
 					nb.setType(t);
@@ -401,6 +401,7 @@ public class QueryNetbox extends Thread
 				//nb.setSnmpagent(rs.getString("snmpagent"));
 
 				if (newNetbox) {
+					newcnt++;
 					addToRunQ(nb);
 				}
 				netboxidSet.add(new Integer(nb.getNetboxid()));
@@ -484,7 +485,7 @@ public class QueryNetbox extends Thread
 
 	private static Object removeRunQHeadNoCheck() {
 		synchronized (nbRunQ) {
-			if (nbRunQ.isEmpty()) return new Long(System.currentTimeMillis() + Integer.MAX_VALUE); // Infinity...
+			if (nbRunQ.isEmpty()) return new Long(Long.MAX_VALUE / 2); // Infinity...
 
 			Long nextRun = (Long)nbRunQ.firstKey();
 			if (nextRun.longValue() > System.currentTimeMillis()) return new Long(nextRun.longValue() - System.currentTimeMillis());
@@ -540,6 +541,12 @@ public class QueryNetbox extends Thread
 					oidTester.oidTest((Type)oidUpdObj, oidkeyMap.values().iterator() );
 				} else if (oidUpdObj instanceof Snmpoid) {
 					oidTester.oidTest((Snmpoid)oidUpdObj, typeidMap.values().iterator() );
+				}
+				synchronized (oidQ) {
+					if (oidQ.isEmpty()) {
+						Log.d("RUN", "oidQ empty, scheduling types/netboxes update");
+						scheduleUpdateNetboxes(0);
+					}
 				}
 				Log.d("RUN", "Thread idle, done OID object processing, exiting...");
 				threadIdle();
@@ -629,7 +636,11 @@ public class QueryNetbox extends Thread
 
 			// If netbox is removed, don't add it to the RunQ
 			if (!nb.isRemoved()) {
-				nb.reschedule();
+
+				// Don't reschedule if we just set the unknown type for this netbox as we want it to run immediately
+				if (!nb.needRecreate()) {
+					nb.reschedule();
+				}
 				
 				// Insert into queue
 				addToRunQ(nb);
@@ -785,7 +796,7 @@ public class QueryNetbox extends Thread
 			Log.setDefaultSubsystem("HANDLE_EVENT");		
 
 			switch (e.getSubid()) {
-			case '0':
+			case 0:
 				// Dump runq
 				synchronized (nbRunQ) {
 					Log.d("RUNQ", "Dumping runQ: " + nbRunQ.size() + " entries"); 
@@ -796,15 +807,14 @@ public class QueryNetbox extends Thread
 				}
 				break;
 
-			case '1':
+			case 1:
 				// Update types/netboxes
 				Log.d("UPDATE", "Updating types/netboxes");
-				updateTypes(false);
-				updateNetboxes();
+				scheduleUpdateNetboxes(0);
 				break;
 
 			default:
-				Log.d("DEFAULT", "Unknown event: " + e);
+				Log.d("DEFAULT", "Unknown event("+e.getSubid()+"): " + e);
 				break;
 			}
 

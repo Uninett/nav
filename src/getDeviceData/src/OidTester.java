@@ -12,7 +12,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 
 public class OidTester
 {
-	private static final int DEFAULT_FREQ = 3600;
+	public static final int DEFAULT_FREQ = 3600;
 
 	private static Map lockMap = new HashMap();
 	private static Set dupeSet = new HashSet();

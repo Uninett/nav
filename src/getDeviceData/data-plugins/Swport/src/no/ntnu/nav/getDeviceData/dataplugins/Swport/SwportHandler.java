@@ -80,12 +80,8 @@ public class SwportHandler implements DataHandler {
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
 				}
-
-				//String key = rs.getString("netboxid")+":"+md.getKey();
-				//m.put(key, md);
 			}
 			Database.commit();
-			//moduleMap = m;
 			swportMap = swpMap;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
@@ -144,11 +140,11 @@ public class SwportHandler implements DataHandler {
 
 					// Finn evt. gammel
 					String swportid;
-					//Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
+					String swportKey = nb.getNetboxid()+":"+sd.getIfindex();
 
-					SwModule oldmd = (SwModule)swportMap.get(nb.getNetboxid()+":"+sd.getIfindex());
+					SwModule oldmd = (SwModule)swportMap.get(swportKey);
 					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
-					swportMap.put(sd.getIfindex(), md);
+					swportMap.put(swportKey, md);
 					
 					if (oldsd == null) {
 						// Sett inn ny

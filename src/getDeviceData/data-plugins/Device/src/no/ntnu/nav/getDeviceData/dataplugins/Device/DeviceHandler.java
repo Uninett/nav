@@ -114,9 +114,9 @@ public class DeviceHandler implements DataHandler {
 					int nbid = nb.getDeviceid();
 
 					// If the serial changes we need to recreate the netbox
-					// If devids don't match it means that we are dealing with an existing device moved
+					// If devids don't match it means that we are dealing with an existing device which has moved
 					// If serials don't match we have a new serial to an existing deviceid
-					if (dev.getDeviceid() != olddev.getDeviceid() || !equals(dev.getSerial(), dev.getSerial())) {
+					if ((dev.getDeviceid() > 0 && dev.getDeviceid() != olddev.getDeviceid()) || !equals(dev.getSerial(), olddev.getSerial())) {
 						NetboxUpdatable nu = (NetboxUpdatable)nb;
 						nu.recreate();
 						Map varMap = new HashMap();

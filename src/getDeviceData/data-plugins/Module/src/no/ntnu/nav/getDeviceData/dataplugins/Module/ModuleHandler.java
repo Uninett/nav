@@ -98,7 +98,7 @@ public class ModuleHandler implements DataHandler {
 			Module md = (Module)modules.next();
 			String moduleKey = nb.getNetboxid()+":"+md.getKey();
 			Module oldmd = (Module)moduleMap.get(moduleKey);
-			if (md.hasEmptySerial() && oldmd != null) {
+			if (oldmd != null) {
 				md.setDeviceid(oldmd.getDeviceid());
 			}
 		}

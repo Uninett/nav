@@ -113,30 +113,22 @@ public class CiscoSwIOS implements DeviceHandler
 		String vlanOid = ".1.3.6.1.4.1.9.9.68.1.2.2.1.2";
 
 		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
-		Set matchIfindex = new HashSet();
 
-		// First we need to count the modules (Fa0, Gi0, Gi should be 1)
-		Map moduleCntMap = new HashMap();
-		{
-			Set moduleSet = new HashSet();
-			int modCnt=0;
-			for (Iterator it = l.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-				
-				String portif = s[1];
-				String modulePattern = "((.*?)\\d+)/(\\d+)";
-				if (portif.matches(modulePattern)) {
-					Matcher m = Pattern.compile(modulePattern).matcher(portif);
-					m.matches();
-					String mn = m.group(1);
-					String interf = m.group(2);
-					if (!moduleCntMap.containsKey(interf)) moduleCntMap.put(interf, new Integer(modCnt));
-					if (moduleSet.add(mn)) modCnt++;
-					matchIfindex.add(s[0]);
-				}
+		// Check which interfaces match our pattern
+		Set matchIfindex = new HashSet();
+		for (Iterator it = l.iterator(); it.hasNext();) {
+			String[] s = (String[])it.next();
+			
+			String portif = s[1];
+			String modulePattern = "((.*?)\\d+)/(\\d+)";
+			if (portif.matches(modulePattern)) {
+				matchIfindex.add(s[0]);
 			}
 		}
-		if (moduleCntMap.isEmpty()) return;
+		if (matchIfindex.isEmpty()) return;
+
+		int highModule = -1; // Highest module number seen so far
+		Map moduleNumMap = new HashMap();
 
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
@@ -152,9 +144,18 @@ public class CiscoSwIOS implements DeviceHandler
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
 				m.matches();
-				int base = ((Integer)moduleCntMap.get(m.group(2))).intValue();
-				module = base+Integer.parseInt(m.group(3));
 				moduleName = m.group(1);
+				module = Integer.parseInt(m.group(3));
+				if (!moduleNumMap.containsKey(moduleName)) {
+					if (module > highModule) {
+						highModule = module;
+					} else {
+						module = ++highModule;
+					}
+					moduleNumMap.put(moduleName, new Integer(module));
+				} else {
+					module = ((Integer)moduleNumMap.get(moduleName)).intValue();
+				}
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping

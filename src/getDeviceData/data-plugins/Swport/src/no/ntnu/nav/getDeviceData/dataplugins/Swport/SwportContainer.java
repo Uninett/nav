@@ -58,6 +58,14 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		return swh;
 	}
 
+	/**
+	 * Returns true if this SwportContainer already knows about the
+	 * specified ifindex.
+	 */
+	public boolean containsIfindex(String ifindex) {
+		return swportMap.containsKey(ifindex);
+	}
+
 	Swport createOrGetSwport(String ifindex) {
 		if (swportMap.containsKey(ifindex)) {
 			return (Swport)swportMap.get(ifindex);
@@ -134,7 +142,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		List l = new ArrayList();
 		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
 			Swport swp = (Swport)it.next();
-			if (!swp.isAssignedToModule()) l.add(swp);
+			if (!swp.isAssignedToModule() && !getIgnoreSwport(swp.getIfindex())) l.add(swp);
 		}
 
 		// Only create SwModule if it contains any swports
