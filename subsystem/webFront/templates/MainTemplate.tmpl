@@ -3,7 +3,8 @@
 ## This file is part of the NAV project.
 ##
 ## Every other template extends this one. It contains the header-information,
-## NAV-logo and navigation-bar.
+## NAV-logo and navigation-bar. It also contains default_table_CSS and
+## default_form_CSS.
 ##
 ## The content-block should be replaced by all templates. CSS or JavaScript
 ## can be added by replacing the additionalCSS or additionalJavaScript blocks.
@@ -17,7 +18,8 @@
 ## The template uses images in $imagefolder/main/, where $imagefolder
 ## defaults to "/images".
 ##
-## Author: Magnar Sveen <magnars@idi.ntnu.no>
+## Last changed: 2003.06.25
+## Author: Magnar Sveen (magnars@idi.ntnu.no)
 ##
 
 #attr $imagefolder = "/images"
@@ -99,3 +101,36 @@ $content()
 
   </body>
 </html>
+
+#def default_table_CSS
+      DIV.title     { font-size: 15;
+                      font-weight: bold;
+                      text-align: center;
+                      padding: 0px 0px 0px 0px; }
+      TR.navigation { font-size: 11; }
+      TD.previous   { text-align: right; }
+      TD.current    { text-align: center; }
+      TD.next       { text-align: left; }
+      TR.header     { background-color: white;
+                      background-image:url('$imagefolder/ragen/navbar-fill.gif');
+                      background-repeat: repeat-x;
+                      height: 26px;
+                      padding: 1px 0px 0px 0px;
+                      font-size: 13; }
+      TR.footer     { font-size: 13; font-weight: bold; background-color: white; }
+      TR.evenrow    { font-size: 11; background-color: #eeeeee; }
+      TR.oddrow     { font-size: 11; }
+#end def default_table_CSS
+
+#def default_form_CSS
+      table.header-active   { border: 1px solid #666; background-image:url('$imagefolder/form/fill-active.gif');   background-color:#ccf; font-size: 13px; }
+      table.header-inactive { border: 1px solid #666; background-image:url('$imagefolder/form/fill-inactive.gif'); background-color:#eee; font-size: 13px; }
+      table.header-disabled { border: 1px solid #666; background-image:url('$imagefolder/form/fill-inactive.gif'); background-color:#eee; font-size: 13px; }
+      table.header-submit   { border: 1px solid #666; background-image:url('$imagefolder/form/fill-submit.gif');   background-color:#ddf; font-size: 13px; }
+      table.header-white    { border: 1px solid #666;                                                              background-color:#fff; font-size: 13px; }
+      td.header-active      { border: 1px solid #69c; background-image:url('$imagefolder/form/fill-active.gif');   text-align: center; }
+      td.header-inactive    { border: 1px solid #bcd; background-image:url('$imagefolder/form/fill-inactive.gif'); text-align: center; }
+      td.header-disabled    { border: 1px solid #ccc; background-image:url('$imagefolder/form/fill-inactive.gif'); text-align: center; color: #999}
+      td.header-submit      { border: 1px solid #9cf; background-image:url('$imagefolder/form/fill-submit.gif');   text-align: center; }
+      td.header-white       { border: 1px solid #ccc;                                                              text-align: center; }
+#end def default_form_CSS
