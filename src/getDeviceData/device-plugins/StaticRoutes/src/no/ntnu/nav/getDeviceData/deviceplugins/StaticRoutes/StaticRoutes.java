@@ -129,6 +129,7 @@ public class StaticRoutes implements DeviceHandler
 		// Commit data
 		if (fetch) {
 			gwc.commit();
+			gwc.commitStatic();
 		}
 	}
 
@@ -173,6 +174,7 @@ o For hver ruter (GW/GSW)
 		if (getNextDelay > 0) sSnmp.setGetNextDelay(0);
 		if (routeProto == null) return false;
 		Set routes = routeProto.get("2");
+		if (routes.isEmpty()) Log.d("ROUTE_PROTO", "Did not find any of type 2");
 		if (routes.isEmpty()) return false;
 		//System.err.println("Routes1: " + routes);
 
@@ -186,6 +188,7 @@ o For hver ruter (GW/GSW)
 			if (l.isEmpty() || !"4".equals(((String[])l.get(0))[1])) it.remove();
 		}
 		//System.err.println("Routes2: " + routes);
+		if (routes.isEmpty()) Log.d("ROUTE_TYPE", "Routes is now empty");
 		if (routes.isEmpty()) return false;
 
 		// Remove routeDest = 0.0.0.0 and ipRouteNextHop = Null0
@@ -199,6 +202,7 @@ o For hver ruter (GW/GSW)
 			else routeDest.put(s, Prefix.hexToIp(((String[])l.get(0))[1]));
 		}
 		//System.err.println("Routes3: " + routes);
+		if (routes.isEmpty()) Log.d("ROUTE_DEST", "Routes is now empty");
 		if (routes.isEmpty()) return false;
 
 		String ipRouteNextHop = nb.getOid("ipRouteNextHop");
@@ -214,6 +218,7 @@ o For hver ruter (GW/GSW)
 			*/
 		}
 		//System.err.println("Routes4: " + routes);
+		if (routes.isEmpty()) Log.d("ROUTE_NEXTHOP", "Routes is now empty");
 		if (routes.isEmpty()) return false;
 
 		// Remove mask <= 16
@@ -227,6 +232,7 @@ o For hver ruter (GW/GSW)
 			else routeMask.put(s, Prefix.hexToIp(((String[])l.get(0))[1]));
 		}
 		//System.err.println("Routes4: " + routes);
+		if (routes.isEmpty()) Log.d("ROUTE_MASK", "Routes is now empty");
 		if (routes.isEmpty()) return false;
 
 		// Create net map
@@ -249,6 +255,7 @@ o For hver ruter (GW/GSW)
 		Map admStatusMap = sSnmp.getAllMap(nb.getOid("ifAdminStatus"));
 		Map speedMap = sSnmp.getAllMap(nb.getOid("ifSpeed"));
 
+		boolean addedRoute = false;
 		for (Iterator it = routes.iterator(); it.hasNext();) {
 			String r = Prefix.hexToIp((String)it.next());
 			String alias = (String)ifAlias.get(r);
@@ -280,11 +287,17 @@ o For hver ruter (GW/GSW)
 			// Ignore any admDown interfaces
 			String link = (String)admStatusMap.get(ifindex);
 			//System.err.println("  Link: " + link);
-			if (!"1".equals(link)) continue;
+			if (!"1".equals(link)) {
+				Log.d("ADM_DOWN", "Interface " + ifindex + " is admDown, skipping");
+				continue;
+			}
 
 			String interf = (String)ifDescr.get(ifindex);
 			//System.err.println("  interf: " + interf);
-			if (interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0")) continue;
+			if (interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0")) {
+				Log.d("INTERF", "Interface " + ifindex + " = " + interf + ", skipping");
+				continue;
+			}
 
 			// Determine and create the module
 			int module = 1;
@@ -331,6 +344,7 @@ o For hver ruter (GW/GSW)
 
 			// Create Gwport
 			Gwport gwp = gwm.gwportFactory(ifindex, (String)ifDescr.get(ifindex));
+			addedRoute = true;
 
 			// We can now ignore this ifindex as an swport
 			sc.ignoreSwport(ifindex);
@@ -341,12 +355,13 @@ o For hver ruter (GW/GSW)
 
 			// Create prefix
 			Prefix p = gwp.prefixFactory(dest, false, mask, vl);
+			p.setNexthop(nexthop);
 
 			Log.d("PROCESS_SRT", "Added static route " + dest+"/"+mask + ", module " + module + ", ifindex " + ifindex);
 
 			
 		}
-		return true;
+		return addedRoute;
 	}
 
 	private static boolean isNumber(String s) {

@@ -221,7 +221,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
      - gwport.prefiksid knytter seg til aktuelle prefiks
        (som skal være opprettet)
 		*/
-
 		// Check for standard OID support
 		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"ifSpeed",
@@ -231,7 +230,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		});
 
 		if (!oidsNotSupported.isEmpty()) {
-			if (nb.getCat().equals("GW")) {
+			if (nb.getCat().equals("GW") || nb.getCat().equals("GSW")) {
 				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			}
 			return false;
@@ -244,7 +243,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		});
 
 		if (!oidsNotSupported.isEmpty()) {
-			if (nb.getCat().equals("GW")) {
+			if (nb.getCat().equals("GW") || nb.getCat().equals("GSW")) {
 				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			}
 			return false;
@@ -256,6 +255,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		// Prefices and mapping to ifindex
 		Map ipMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex"));
 		MultiMap prefixMap = util.reverse(ipMap);
+		boolean addedGwport = false;
 		if (prefixMap != null) {
 			Map netmaskMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfNetMask"));
 
@@ -325,8 +325,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				String interf = s[1];
 
 				if (!masterinterfSet.contains(interf) &&
-						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
-						 !prefixMap.containsKey(ifindex))) continue;
+					(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
+					 !prefixMap.containsKey(ifindex))) continue;
 
 				// Ignore any admDown interfaces
 				String link = (String)admStatusMap.get(ifindex);
@@ -452,6 +452,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Create Gwport
 				Gwport gwp = gwm.gwportFactory(ifindex, (String)ifDescrMap.get(ifindex));
+				addedGwport = true;
 
 				// We can now ignore this ifindex as an swport
 				sc.ignoreSwport(ifindex);
@@ -486,7 +487,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				
 			}
 		}
-		return true;
+		return addedGwport;
 	}
 
 	private static boolean isNumber(String s) {
