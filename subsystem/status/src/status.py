@@ -237,7 +237,8 @@ class NetboxHistoryBox(SectionBox):
  
     def initColumns(self,date,boxid):
         where_clause = "eventtypeid = 'boxState' " +\
-                       "and date(start_time) = '%s' " % (date,)
+                       "and date(start_time) = '%s' " % (date,) + \
+                       "and alerttypeid = 2"
                        #"and end_time != 'infinity' "
 
         if boxid:

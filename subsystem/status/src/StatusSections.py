@@ -498,7 +498,8 @@ class NetboxSectionBox(SectionBox):
     def initColumns(self,filterSettings):
         # basic where
         where_clause = "eventtypeid = 'boxState' " +\
-                       "and end_time = 'infinity'"
+                       "and end_time = 'infinity'" +\
+                       "and alerttypeid = 2"
 
         # parse filter settings
         ##raise(repr(filterSettings))
