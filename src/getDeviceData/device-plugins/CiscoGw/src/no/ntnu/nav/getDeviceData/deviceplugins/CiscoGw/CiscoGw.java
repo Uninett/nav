@@ -192,7 +192,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		*/
 
 		// Fetch HSRP
-		Map hsrpIpMap = sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr"));
+		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
 
 
 		// Prefices and mapping to ifindex
@@ -272,30 +272,35 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						 !prefixMap.containsKey(ifindex))) continue;
 
 				// Parse the description (ifAlias)
-				System.err.println("Parsing ifAlias: " + descr);
-				s = descr.split(",");
-				if (descr.startsWith("lan") || descr.startsWith("stam")) {
-					nettype = "lan";
-					orgid = s[1];
-					usageid = s[2];
-					netident = orgid+","+usageid;
-					if (s.length >= 4) netident += s[3];
-					if (s.length >= 5) description = s[4];
-					if (s.length >= 6) vlan = s[5];
-				} else if (descr.startsWith("link")) {
-					nettype = "link";
-					netident = nb.getSysname()+","+s[1];
-					if (s.length >= 3) description = s[2];
-					if (s.length >= 4) vlan = s[3];
-				} else if (descr.startsWith("elink")) {
-					nettype = "elink";
-					netident = nb.getSysname()+","+s[1];
-					orgid = s[2];
-					if (s.length >= 4) description = s[3];
-					if (s.length >= 5) vlan = s[4];
-				} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
-					nettype = "loopback";
-				} else {
+				try {
+					s = descr.split(",");
+					if (descr.startsWith("lan") || descr.startsWith("stam")) {
+						nettype = "lan";
+						orgid = s[1];
+						usageid = s[2];
+						netident = orgid+","+usageid;
+						if (s.length >= 4) netident += s[3];
+						if (s.length >= 5) description = s[4];
+						if (s.length >= 6) vlan = s[5];
+					} else if (descr.startsWith("link")) {
+						nettype = "link";
+						netident = nb.getSysname()+","+s[1];
+						if (s.length >= 3) description = s[2];
+						if (s.length >= 4) vlan = s[3];
+					} else if (descr.startsWith("elink")) {
+						nettype = "elink";
+						netident = nb.getSysname()+","+s[1];
+						orgid = s[2];
+						if (s.length >= 4) description = s[3];
+						if (s.length >= 5) vlan = s[4];
+					} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
+						nettype = "loopback";
+					} else {
+						nettype = "unknown";
+						netident = descr;
+					}
+				} catch (Exception e) {
+					Log.w("PROCESS_CGW", "Cannot parse ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + "): " + descr);
 					nettype = "unknown";
 					netident = descr;
 				}
@@ -309,7 +314,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Check that vlan is number:
 				if (vlan != null && !isNumber(vlan)) {
-					System.err.println("Vlan is not a number! " + vlan);
+					Log.w("PROCESS_CGW", "Vlan ("+vlan+") from ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + ") is not a number");
 					vlan = null;
 				}
 
@@ -342,7 +347,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					String gwip = (String)prefixIt.next();
 					String mask = (String)netmaskMap.get(gwip);
 
-					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(ifindex);
+					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(gwip);
 					Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
 
 				}
