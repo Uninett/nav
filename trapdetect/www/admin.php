@@ -16,7 +16,7 @@ Velkommen til adminsiden. Velg de innlegg som skal friskmeldes manuelt og trykk 
 
 <?php
 
-$dbh = pg_Connect ("dbname=manage user=manage password=eganam");
+$dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
 $sporring = "SELECT * FROM status WHERE tilstandsfull='Y' AND til is null ORDER BY fra desc";
 

@@ -9,8 +9,8 @@ Oversikt over det totale antall traps som ligger i databasen.
 
 <?php
 
-$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
-$dbh_m = pg_Connect ("dbname=manage user=manage password=eganam");
+$dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
+$dbh_m = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
 # Totalt antall innlegg
 $sporring = "select count(*) from status";

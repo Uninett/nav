@@ -10,8 +10,8 @@ Her er en oversikt over de enheter som har sendt inn sykmeldinger til TrapDetect
 
 <?php
 
-$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
-$dbh_m = pg_Connect ("dbname=manage user=manage password=eganam");
+$dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
+$dbh_m = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
 $sporring = "SELECT * FROM status WHERE tilstandsfull='Y' AND til is null ORDER BY fra desc";
 

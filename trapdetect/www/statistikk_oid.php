@@ -60,7 +60,7 @@ function lagDatatmp() {
 
   global $dato, $dager;
 
-  $dbh = pg_Connect ("dbname=manage user=manage password=eganam");
+  $dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
 
   $ar = substr($dato,-2);
   $temp = substr($dato,0,4);
