@@ -37,9 +37,15 @@ public class CiscoGw implements DeviceHandler
 		"ipAdEntIfIndex"
 	};
 
+	private static String[] supportedCatids = {
+		"GSW",
+		"GW",
+	};
+
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
+		if (!new HashSet(Arrays.asList(supportedCatids)).contains(nb.getCat())) return NEVER_HANDLE;
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("CGW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
