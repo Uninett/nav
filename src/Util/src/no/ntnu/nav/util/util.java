@@ -92,9 +92,10 @@ public class util {
 	 */
 	public static String[] stringArray(Set s) {
 		if (s == null) return null;
-		String[] a = new String[s.length()];
+		String[] a = new String[s.size()];
 		int i=0;
 		for (Iterator it = s.iterator(); it.hasNext();) a[i++] = (String)it.next();
+		return a;
 	}
 
 }
