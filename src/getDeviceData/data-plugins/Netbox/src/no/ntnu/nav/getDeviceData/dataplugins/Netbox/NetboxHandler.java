@@ -19,8 +19,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 
 public class NetboxHandler implements DataHandler {
 
-	private static final boolean DB_COMMIT = true;
-
 	private static Map deviceMap;
 	private static Map netboxMap;
 	
@@ -54,16 +52,16 @@ public class NetboxHandler implements DataHandler {
 			// netbox
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,typeid,sysname FROM device JOIN netbox USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,sysname,EXTRACT(EPOCH FROM NOW()-upsince)*100 AS upsince FROM device JOIN netbox USING (deviceid)");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
 																			rs.getString("hw_ver"),
 																			rs.getString("sw_ver"),
-																			null,
-																			rs.getString("typeid"),
-																			rs.getString("sysname"));
+																			null);
 				n.setDeviceid(rs.getInt("deviceid"));
-
+				n.setSysname(rs.getString("sysname"));
+				n.setUptime(rs.getDouble("upsince"));
+				
 				String key = rs.getString("netboxid");
 				m.put(key, n);
 			}
@@ -114,20 +112,21 @@ public class NetboxHandler implements DataHandler {
 				// Check if we need to update netbox
 			if (!oldn.equalsNetboxData(n)) {
 				// We need to update netbox
-				Log.i("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" typeid="+n.getType()+" sysname="+n.getSysname());
+				Log.i("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
+
+				// Convert uptime to timestamp
+				ResultSet rs = Database.query("SELECT NOW() - (("+n.getUptime()+"/100) || ' seconds')::interval AS ts");
 
 				String[] set = {
 					"deviceid", n.getDeviceidS(),
-					"typeid", n.getType(),
-					"sysname", n.getSysname()
+					"sysname", n.getSysname(),
+					"upsince", rs.getString("ts"),
 				};
 				String[] where = {
 					"netboxid", netboxid
 				};
 				Database.update("netbox", set, where);
 			}
-			
-			if (DB_COMMIT) Database.commit(); else Database.rollback();
 			
 		} catch (SQLException e) {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());

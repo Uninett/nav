@@ -9,6 +9,11 @@ public interface NetboxUpdatable
 {
 
 	/**
+	 * Set the sysname of the netbox.
+	 */
+	public void setSysname(String sysname);
+
+	/**
 	 * Return the typeid for the type. Normally only required if you
 	 * want to make updates to the database directly.
 	 */

@@ -65,18 +65,30 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	 * called. This information is required by other device
 	 * plugins. </p>
 	 */
-	public NetboxData netboxDataFactory(String serial, String hw_ver, String sw_ver, Netbox nb, String type, String sysname) {
+	public NetboxData netboxDataFactory(String serial, String hw_ver, String sw_ver, Netbox nb) {
 		if (nd == null) {
-			nd = new NetboxData(serial, hw_ver, sw_ver, nb, type, sysname);
+			nd = new NetboxData(serial, hw_ver, sw_ver, nb);
 		}
 		return nd;
 	}
 
+	/**
+	 * <p>
+	 * Convenience method. Same as calling:
+	 * </p>
+	 *
+	 * <code>
+	 * netboxDataFactory(null, null, null, nb);
+	 * </code>
+	 */
+	public NetboxData netboxDataFactory(Netbox nb) {
+		return netboxDataFactory(null, null, null, nb);
+	}
+
 	public void commit() {
-		// Here we need to do some magic because other plugins need to know the correct type
-		NetboxUpdatable nb = (NetboxUpdatable)nd.getNetbox();
-		nb.setType(nd.getType());
-		nb.setSysname(nd.getSysname());
+		// Here we need to do some magic in order for other plugins to see the correct sysname
+		NetboxUpdatable nu = (NetboxUpdatable)nd.getNetbox();
+		nu.setSysname(nd.getSysname());
 
 		commit = true;		
 	}
