@@ -1,0 +1,45 @@
+#
+# This file contains database configuration setup for NAV.  Please be
+# aware that whitespace is allowed on each side of the = characters.
+# $Id: db.conf.template,v 1.1 2002/06/03 07:29:58 mortenv Exp $
+#
+
+# Configure which host is running the postmaster.
+dbhost=localhost
+
+# Configure which port the postmaster listens to.
+dbport=5432
+
+# Configure the names of the databases on the SQL server.
+db_nav=manage
+db_trapdetect=trapdetect
+db_syslog=syslog
+
+# This section tells each NAV script/program what username to use when
+# logging in to the postgresql server. Script author: Insert your
+# needed config line here, as soon as your script supports reading it!
+#
+# Example:
+#
+#   script_live=navall
+#   script_bokser=manage
+# 
+
+
+# Configure postgresql user passwords.
+# These are of the form: 
+# userpw_<username>=§§password§§
+#
+# The §§password§§ token tells the installer to generate a new
+# password for this user when copying the template file to the local
+# configuration.  The locally installed copy should NOT have these
+# tokens in it.
+#
+userpw_manage=§§password§§
+userpw_navall=§§password§§
+userpw_navadmin=§§password§§
+userpw_syslogadmin=§§password§§
+userpw_varsle=§§password§§
+userpw_vpserver=§§password§§
+userpw_getboksmacs=§§password§§
+userpw_getportdata=§§password§§
