@@ -5,7 +5,7 @@ use SNMP_util;
 use Socket;
 
 sub snmp_sysname{
-    my ($ip,$ro,$mib,$endelser) = @_;
+    my ($antallpunktum,$ip,$ro,$mib,$endelser) = @_;
     my $sys;
     if ($ro) {
 	unless(($sys) = &snmpget("$ro\@$ip:161:1:2:4",$mib)) {
@@ -16,6 +16,7 @@ sub snmp_sysname{
 	$dns = &fjern_endelse($dns,$endelser);
 	if($dns =~ /$sys/i) {
 	    $sys = $dns;
+		($sys,undef) = split(/\./,$sys,$antallpunktum+1);
 	} else {
 	    print "DNSNAME($dns) OG SYSNAME($sys) ER FORSKJELLIGE\n";
 	}

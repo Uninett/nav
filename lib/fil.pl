@@ -12,8 +12,8 @@ sub fil_hent_linje {
 	(my @linje,undef) = split(/:/,$_,$felt+1); 
 	@linje = map rydd($_), @linje; #rydder opp
 	return @linje;
-    } else {
-	return 0;
+#    } else {
+#	return 0;
     }
 }    
 
@@ -38,7 +38,7 @@ sub fil_prefiks {
     open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
     foreach (<FIL>) {
 	if(my @linje = &fil_hent_linje($felt,$_)){
-	    $resultat{$linje[0]}{$linje[1]} = [ undef,$linje[0],$linje[1],undef,undef,undef,$linje[2],$linje[3],undef,undef,$linje[4] ]; #legger inn i hash
+	    $resultat{$linje[0]}{$linje[1]} = [ undef,$linje[0],$linje[1],undef,undef,$linje[2],$linje[3],undef,undef,undef,$linje[4] ]; #legger inn i hash
 	}
     }
     close FIL;
