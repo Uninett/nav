@@ -14,18 +14,21 @@ import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
  * <p>
  * <ol>
  *  <li>Create a class in package {@link no.ntnu.nav.getDeviceData.dataplugins dataplugins} which
- *      implement the DataHandler interface (found in package no.ntnu.nav.getDeviceData.dataplugins).
+ *      implement the {@link DataHandler DataHandler} interface
+ *      (found in package no.ntnu.nav.getDeviceData.dataplugins).
  *      Look at one of the existing device plugin modules for an example.
  *  </li>
- *  <li>Implement the init() method. The method will typically fetch initial data from the database
+ *  <li>Implement the {@link #init init()} method. The method will typically fetch initial data from the database
  *      used for comparing with collected data as to only update the database when values change.
  *  </li>
- *  <li>Implement the dataContainerFactory() method. It should return an object implementing the
- *      DataContainer interface. This is the interface presented to the device plugins for storing
- *      collected data. See the DataContainer doc for more information.
+ *  <li>Implement the {@link #dataContainerFactory dataContainerFactory()} method. It should return an object implementing the
+ *      {@link no.ntnu.nav.getDeviceData.dataplugins.DataContainer DataContainer} interface. This is
+ *      the interface presented to the device plugins for storing
+ *      collected data. See the {@link no.ntnu.nav.getDeviceData.dataplugins.DataContainer DataContainer}
+ *      doc for more information.
  *  </li>
- *  <li>Implement the handleData() method. The arguments are the Netbox the data was collected from
- *      along with an object returned from the dataContainerFactory() method. The plugin should now
+ *  <li>Implement the {@link #handleData handleData()} method. The arguments are the Netbox the data was collected from
+ *      along with an object returned from the {@link #dataContainerFactory dataContainerFactory()} method. The plugin should now
  *      store the collected data in the database.
  *  </li>
  *  <li>Compile the plugin to a JAR file. Again look at an existing data plugin module for

@@ -2,10 +2,10 @@ package no.ntnu.nav.getDeviceData.dataplugins;
 
 /**
  * Each DataContainer must have an unique name, and DataContainer
- * objects can be retrieved using the getContainer() method with the
- * name of the DataContainer as argument. See the documentation for
- * the class implementing DataContainer in each data plugin for
- * getting the names.
+ * objects can be retrieved using the {@link #getContainer
+ * getContainer()} method with the name of the DataContainer as
+ * argument. See the documentation for the class implementing
+ * DataContainer in each data plugin for getting the names.
  *
  * @see DataContainer
  */
