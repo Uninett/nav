@@ -3,21 +3,19 @@
 ## This file is a part of the NAV project.
 ##
 ## Defines various functions for the different parts of the
-## deviceTrakcer, called based upon args['page']
+## deviceTrakcer
 ##
-## There should be more common objects to render for this template
-## for example, a common list/table object for all the tables
-##
-## Last changed: 2003.07.25
+## Last changed: 2003.09.13
 ## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
 ##
 
 #extends nav.web.templates.MainTemplate
 #from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
+#from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #def content
 #if $page == 'index'
-<h1>Device Tracker</h1>
+<h2>$args['title']</h2>
 $args['body']
 #end if
 #if $page == 'order'
@@ -47,11 +45,6 @@ $delete()
 #if $page == 'rma'
 $showRma()
 #end if
-#if $args['returnpath']:
-<p>
-    <a href="$args['returnpath']['url']">$args['returnpath']['text']</a>
-</p>
-#end if
 #end def
 
 #def additionalCSS
@@ -59,8 +52,11 @@ $showRma()
 
 #def browse()
 #if not ($args['deviceHistList'] or $args['errorDevice'] or $args['rmaDevice'])
-<h2>Choose a netbox or a module</h2>
-#set ts = tsTemplate()
+#set global path = [("Frontpage","/"),("Test","/")]
+<h2>$args['title']</h2>
+#set qs = SearchBoxTemplate()
+#set ts = TreeSelectTemplate()
+    $qs.searchbox($args['searchbox'])
 <form action="$args['action']" method="post">
     $ts.treeselect($args['selectbox'])
     <table>
@@ -151,7 +147,7 @@ $registerRma($args['rmaDevice'])
 <table>
     <tr>
         <th>Product</th>
-        <th>Number</th>
+        <th>Amount</th>
         <th>Organisation</th>
         <th>Dealer</th>
         <th>Ordernr</th>
@@ -266,9 +262,9 @@ $deviceHistory($args['deviceHistList'])
 #def deviceHistory($deviceHistList)
 #for $device in $deviceHistList
 #if $device.netboxId
-<h3>Device history for netbox <a href="$device.url">$device.sysname</a></h3>
+<h3>Device history for box <a href="$device.url">$device.sysname</a></h3>
 #elif $device.moduleId
-<h3>Device history for module $device.module in netbox <a href="$device.url">$device.sysname</a></h3>
+<h3>Device history for module $device.module in box <a href="$device.url">$device.sysname</a></h3>
 #else
 <h3>Device history for device $device.deviceId</h3>
 #end if
@@ -316,7 +312,7 @@ $deviceHistory($args['deviceHistList'])
     <table>
         <tr>
 #if $device.netboxId
-            <th>Register error situation for netbox $device.sysname</th>
+            <th>Register error situation for box $device.sysname</th>
 #elif $device.moduleId
             <th>Register error situation for module $device.module in netbox $device.sysname</th>
 #else

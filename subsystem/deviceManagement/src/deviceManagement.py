@@ -10,24 +10,24 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 """
 
-
-
 #################################################
 ## Imports
 
-import psycopg,dtTables,mx.DateTime,re,forgetSQL
+import psycopg,deviceManagementTables,mx.DateTime,re,forgetSQL
 
 from mod_python import util,apache
-from deviceTrackerTemplate import dtTemplate
+from deviceManagementTemplate import deviceManagementTemplate
 #from miscUtils import memberoforg
-from nav.web.templates.TreeSelect import TreeSelect,Select,UpdateableSelect,Option
-from nav.web import urlbuilder
+from nav.web.TreeSelect import TreeSelect,Select,UpdateableSelect,Option
+from nav.web import urlbuilder,SearchBox
 
 
 #################################################
 ## Constants (read from config file)
 
-BASEPATH = '/~hansjorg/deviceTracker/'
+# fix, s&r dtTables
+dtTables = deviceManagementTables
+BASEPATH = '/devicemanagement/'
 DATEFORMAT = '%d-%m-%Y'
 TIMEFORMAT = '%d-%m-%Y %H:%M'
 INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
@@ -39,7 +39,7 @@ DELETE_TIME_THRESHOLD = mx.DateTime.TimeDelta(hours=48)
 def handler(req):
     keep_blank_values = True
     req.form = util.FieldStorage(req,keep_blank_values)
-    path = req.uri.split('deviceTracker/')[1]
+    path = req.uri.split(BASEPATH)[1]
     path = path.split('/')
 
     if path[0] == 'order':
@@ -114,17 +114,26 @@ def index(req):
 
     args = {}
     args['body'] = body
-    args['returnpath'] = None
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',False)]
+    args['title'] = 'Device Management'
 
     nameSpace = {'page': 'index', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
+    
 
 def delete(req):
     """
     Manual module delete
     """
     args = {}
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',BASEPATH),
+                    ('Module delete',False)]
 
     timestamp = mx.DateTime.now() - DELETE_TIME_THRESHOLD
     where = 'downsince <' + str(psycopg.TimestampFromMx(timestamp))
@@ -163,12 +172,37 @@ def delete(req):
                           'text': 'Return'}
 
     nameSpace = {'page': 'delete', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
 
-
 def browse(req,path):
+    # Args holds everything for the template
     args = {}
+    # Common path for all browse views
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',BASEPATH)]
+
+    # Make the searchbox
+    searchbox = SearchBox.SearchBox(req,
+                'Type a room id, an ip or a (partial) sysname')
+    searchbox.addSearch('host',
+                        'ip or hostname',
+                        'Netbox',
+                        {'rooms': ['room','roomid'],
+                         'locations': ['room','location','locationid'],
+                         'netboxes': ['netboxid']},
+                        call = SearchBox.checkIP)
+    searchbox.addSearch('room',
+                        'room id',
+                        'Room',
+                        {'rooms': ['roomid'],
+                         'locations': ['location','locationid']},
+                        where = "roomid = '%s'")
+    args['searchbox'] = searchbox
+    sr = searchbox.getResults(req)
+    
     args['action'] = BASEPATH + 'browse/' + path + '/'
     args['returnpath'] = {'url': BASEPATH,
                           'text': 'Return'}
@@ -177,8 +211,8 @@ def browse(req,path):
                               'text': 'Return'}
  
     args['error'] = None
-
     selectbox = TreeSelect()
+    args['formname'] = selectbox.formName
 
     multiple = False
     if path == 'history':
@@ -190,7 +224,10 @@ def browse(req,path):
                     multipleSize = 20,
                     initTable='Location', 
                     initTextColumn='descr',
-                    initIdColumn='locationid')
+                    initIdColumn='locationid',
+                    preSelected = sr['locations'],
+                    optionFormat = '$v ($d)',
+                    orderByValue = True)
 
     select2 = UpdateableSelect(select,
                                'cn_room',
@@ -200,17 +237,21 @@ def browse(req,path):
                                'roomid',
                                'locationid',
                                multiple=True,
-                               multipleSize=20)
+                               multipleSize=20,
+                               preSelected = sr['rooms'],
+                               optionFormat = '$v ($d)',
+                               orderByValue = True)
 
     select3 = UpdateableSelect(select2,
                                'cn_netbox',
-                               'Netbox',
+                               'Box',
                                'Netbox',
                                'sysname',
                                'netboxid',
                                'roomid',
                                multiple=multiple,
-                               multipleSize=20)
+                               multipleSize=20,
+                               preSelected = sr['netboxes'])
 
     select4 = UpdateableSelect(select3,
                                'cn_module',
@@ -221,7 +262,8 @@ def browse(req,path):
                                'netboxid',
                                multiple=multiple,
                                multipleSize=20,
-                               onchange='')     
+                               onchange='',
+                               optgroupFormat = '$d') 
     # onchange='' since this doesn't update anything
 
     selectbox.addSelect(select)
@@ -230,11 +272,12 @@ def browse(req,path):
     selectbox.addSelect(select4)
 
     validSelect = False
-    if req.form.has_key('cn_location'):
-        selectbox.update(req.form)
-        if req.form.has_key('cn_netbox') or req.form.has_key('cn_module'):
-            if len(req.form['cn_netbox']) or len(req.form['cn_module']):
-                validSelect = True
+    
+    # Update the selectboxes based on form data
+    selectbox.update(req.form)
+    # Not allowed to go on, unless at least a netbox is selected
+    if len(select3.selectedList):
+        validSelect = True
 
     # View history clicked?
     deviceHistList = []
@@ -295,16 +338,22 @@ def browse(req,path):
             rmaDevice = History(deviceid,netboxId=netboxid)
         args['action'] = BASEPATH + 'rma/device/' + str(deviceid)
 
-    # Subtit buttons
+    # Submit buttons, title and path for the different views
     if path == 'history':
+        args['path'].append(('View history',False))
+        args['title'] = 'View history - select a box or a module'
         args['submit'] = {'control': 'cn_submit_history',
                           'value': 'View history',
                           'enabled': validSelect}
     elif path == 'error':
+        args['path'].append(('Register error',False))
+        args['title'] = 'Register error - select a box or a module'
         args['submit'] = {'control': 'cn_submit_error',
                           'value': 'Register error',
                           'enabled': validSelect}
     elif path == 'rma':
+        args['path'].append(('Register RMA',False))
+        args['title'] = 'Register RMA - select a box or a module'
         args['submit'] = {'control': 'cn_submit_rma',
                           'value': 'Register RMA',
                           'enabled': validSelect}
@@ -315,11 +364,17 @@ def browse(req,path):
     args['rmaDevice'] = rmaDevice
 
     nameSpace = {'page': 'browse', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
 
 def registerRma(req,deviceId=None):
     args = {}
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',BASEPATH),
+                    ('Register RMA',False)]
+
     args['error'] = None
     rmaList = None
 
@@ -400,7 +455,8 @@ def registerRma(req,deviceId=None):
 
 
     nameSpace = {'page': 'rma', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
 
 
@@ -453,7 +509,7 @@ def registerError(req,deviceId=None):
     args['action'] = BASEPATH + 'error/device/' + str(deviceId)
 
     nameSpace = {'page': 'error', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
     return template.respond()
 
    
@@ -481,10 +537,16 @@ def history(req,deviceId):
         args['returnpath'] = None
 
     nameSpace = {'page': 'history', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
     return template.respond()
 
 def order(req):
+    args = {}
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',BASEPATH),
+                    ('Order management',False)]
+
     alerthist = dtTables.AlerthistDt
     where = ["eventtypeid='deviceOrdered'"]
     allOrders = {}
@@ -531,7 +593,6 @@ def order(req):
         else:
             oldOrders.append(o)
 
-    args = {}
     args['activeOrders'] = activeOrders
     args['oldOrders'] = oldOrders
     args['returnpath'] = {'url': BASEPATH,
@@ -539,7 +600,8 @@ def order(req):
     args['update'] = BASEPATH + 'order/'
 
     nameSpace = {'page': 'order', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
 
 def addOrder(req):
@@ -621,7 +683,7 @@ def addOrder(req):
                           'text': 'Return to order overview'}
 
     nameSpace = {'page': 'addOrder', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
     return template.respond()
 
 
@@ -727,12 +789,16 @@ def registerOrder(req,orderId):
 
 
     nameSpace = {'page': 'registerOrder', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
     return template.respond()
 
 def register(req):
     args = {}
     args['error'] = None
+    args['path'] = [('Frontpage','/'),
+                    ('Tools','/toolbox'),
+                    ('Device Management',BASEPATH),
+                    ('Register new device',False)]
 
     try:
         if req.form.has_key('cn_submit'):
@@ -780,7 +846,8 @@ def register(req):
                           'text': 'Return'}
 
     nameSpace = {'page': 'register', 'args': args}
-    template = dtTemplate(searchList=[nameSpace])
+    template = deviceManagementTemplate(searchList=[nameSpace])
+    template.path = args['path']
     return template.respond()
 
 def redirect(req, url):
