@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: erikgors $
-$Id: job.py,v 1.23 2002/06/19 10:02:54 erikgors Exp $
+$Id: job.py,v 1.24 2002/06/19 10:35:15 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -84,14 +84,17 @@ class JobHandler:
 		self.setTimeout(args.get('timeout',TIMEOUT))
 	def run(self):
 		import database
+		import rrd
 		start = time.time()
 		version = self.getVersion()
 		try:
 			status,info = self.execute()
 		except Exception,info:
-			status = 'DOWN'
+			status = Event.DOWN
 			info = str(info)
-		self.setUsage(time.time()-start)
+		self.setResponsetime(time.time()-start)
+
+		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		
 		if status != self.getStatus():
 			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
@@ -107,9 +110,9 @@ class JobHandler:
 		self._boksid = boksid
 	def getBoksid(self):
 		return self._boksid
-	def getUsage(self):
+	def getResponsetime(self):
 		return self._usage
-	def setUsage(self,usage):
+	def setResponsetime(self,usage):
 		self._usage = usage
 	def getStatus(self):
 		return self._status
