@@ -599,11 +599,11 @@ COMMIT;
 
 --test modul
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','s',100);
 COMMIT;
 
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
 COMMIT;
 
 

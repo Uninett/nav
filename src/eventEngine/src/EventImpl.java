@@ -201,14 +201,21 @@ class EventImpl implements Event, Alert
 	public Iterator getMsgs() {
 		// Update varMap from database
 		try {
-			ResultSet rs = Database.query("SELECT * FROM device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
+			ResultSet rs = Database.query("SELECT * FROM device LEFT JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) LEFT JOIN module USING(deviceid) WHERE deviceid = " + deviceid);
 			ResultSetMetaData rsmd = rs.getMetaData();
+			if (rs.next()) {
+				HashMap hm = Database.getHashFromResultSet(rs, rsmd);
+				varMap.putAll(hm);
+			}
+			rs = Database.query("SELECT * FROM netbox JOIN device USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE netboxid = " + netboxid);
+			rsmd = rs.getMetaData();
 			if (rs.next()) {
 				HashMap hm = Database.getHashFromResultSet(rs, rsmd);
 				varMap.putAll(hm);
 			}
 		} catch (SQLException e) {
 			Log.e("EVENT_IMPL", "GET_MSGS", "SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 
 		// Add time
@@ -363,10 +370,13 @@ class AlertmsgParser
 				while (e < msg.length() && (Character.isLetterOrDigit(msg.charAt(e)) || e == ';' || e == '_')  ) e++;
 				String var = msg.substring(i, e).trim();
 				if (var.length() == 0) continue;
-				if (varMap.containsKey(var)) {
+				if (varMap.containsKey(var) || varMap.containsKey(var.toLowerCase())) {
 					String val = (String)varMap.get(var);
+					if (val == null) val = (String)varMap.get(var.toLowerCase());
 					if (val == null) val = "[empty]";
 					msg.replace(i-1, e, val);
+				} else {
+					System.err.println("Could not expand " + var + ", vars: " + varMap + ", msg: " + msg);
 				}
 			}
 			l.add(new String[] { s[0], s[1], msg.toString() });
