@@ -1,8 +1,8 @@
 """
 database
 
-$Author: erikgors $
-$Id: database.py,v 1.5 2002/06/13 15:34:35 erikgors Exp $
+$Author: magnun $
+$Id: database.py,v 1.6 2002/06/14 12:09:52 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread
@@ -40,7 +40,8 @@ def getJobs():
 			property[id] = {}
 		property[id][prop] = value
 
-	query = 'SELECT serviceid, handler, version, ip FROM service NATURAL JOIN boks order by serviceid'
+	query = """SELECT serviceid, handler, version, ip
+	FROM service NATURAL JOIN boks order by serviceid"""
 	c.execute(query)
 	jobs = []
 	for id,handler,version,ip in c.fetchall():
