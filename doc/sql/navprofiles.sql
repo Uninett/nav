@@ -320,7 +320,9 @@ CREATE TABLE Preference (
 -- whenever a new account is inserted.  I would like to insert a
 -- composite row variable, but couldn't find any way to do so, so this
 -- function needs to be updated whenever the schema of the preference
--- table is updated!
+-- table is updated!  We don't attach the trigger until after we
+-- insert some default accounts and privileges (further down in this
+-- script)
 CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
   DECLARE
     pref preference%ROWTYPE;
@@ -331,7 +333,6 @@ CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
       VALUES (pref.accountid, pref.queuelength, pref.activeprofile, pref.lastsentday, pref.lastsentweek);
     RETURN NEW;
   END' LANGUAGE 'plpgsql';
-CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
 
 /*
 -- 8 TIDSPERIODE
@@ -880,59 +881,64 @@ CREATE VIEW PrivilegeByGroup AS (
 */
 
 
--- BRUKERE
+-- Accounts and Accountgroups
 
-INSERT INTO AccountGroup (id, name, descr) VALUES
-(1, 'NAV Administrators', '');
-INSERT INTO AccountGroup (id, name, descr) VALUES
-(2, 'Anonymous users', 'Unauthenticated users (not logged in)');
-INSERT INTO AccountGroup (id, name, descr) VALUES
-(3, 'Restricted users', 'Users with restricted access');
+INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', '');
+INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
 
-INSERT INTO Account (id, login, name, password) VALUES
-(0, 'default', 'Default User', '');
-INSERT INTO Account (id, login, name, password) VALUES 
-(1, 'admin', 'NAV Administrator', 'admin');
+-- Some default example groups
+INSERT INTO AccountGroup (name, descr) VALUES ('ReadAll', 'Read access to most things');
+INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS alerts');
 
-INSERT INTO AccountInGroup (accountid, groupid) VALUES 
-(1, 1);
+-- Default system accounts
+INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
+INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', 'admin');
 
+INSERT INTO AccountInGroup (accountid, groupid) VALUES (1, 1);
+
+INSERT INTO Preference (accountid, queuelength) VALUES (1, '14 days');
+INSERT INTO Preference (accountid, queuelength) VALUES (0, '14 days');
+
+-- Default preference rows are now inserted, so we create the trigger
+-- on the account table
+CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
 
 -- NAVBAR PREFERENCES
 
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
-(1, 0, 'Preferences', '/preferences');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
-(2, 0, 'Toolbox', '/toolbox');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/index');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/useradmin/userinfo');
 
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
-(0, 1, 'navbar');
-INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
-(0, 2, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 3, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 1, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 2, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'navbar');
+
 
 -- Privileges
 
-INSERT INTO Privilege VALUES (1, 'empty_privilege');
+-- INSERT INTO Privilege VALUES (1, 'empty_privilege');
 INSERT INTO Privilege VALUES (2, 'web_access');
 INSERT INTO Privilege VALUES (3, 'alert_by');
 
 /*
   Set some default web_access privileges
 */
--- Administrators get full access
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (1, 2, '.*');
 -- Anonymous users need access to a few things, like the login page and images and soforth
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index.py/login\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/images/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/wap/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/alertprofiles/wap/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/$');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index.py/index$');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/toolbox\b');
--- Gives access to most tools for restricted users (during alpha testing, at least)
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(index|report|status|editdb|emotd|alertprofiles|devicemanagement|machinetracker)/?');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/toolbox\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
 
+-- Give read access to most informational tools for ReadAll group
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
+       VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 2, '^/(report|status|emotd|alertprofiles|trace|browse|preferences|cricket)/?');
 
+-- Give alert_by privilege to SMS group
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
+       VALUES ((SELECT id FROM AccountGroup WHERE name='SMS'), 3, 'sms');
 
 
 -- Matchfields
