@@ -103,7 +103,7 @@ class Boks
 				if (rawBoksbakMp.containsKey(new Integer(boksbak))) {
 					// Oh oh, nå er vi i trøbbel, da det er flere linker til denne enheten uten at vi vet mp bak
 					// (og da går vi ut ifra at andre siden heller ikke vet vår mp)
-					outl("---->[<font color=red>WARNING</font>]: Boks(" + boksid + "): <b>" + boksNavn.get(boksidI) + "</b>, flere enn en link til boks("+boksbak+") "+boksNavn.get(new Integer(boksbak))+", uten at vi vet mp i andre enden.<br>");
+					outl("---->[<font color=red>WARNING</font>]: Boks(" + boksid + "): <b>" + boksNavn.get(boksidI) + "</b>, mer enn en link til boks("+boksbak+") "+boksNavn.get(new Integer(boksbak))+", uten at vi vet mp i andre enden.<br>");
 				} else {
 					rawBoksbakMp.put(new Integer(boksbak), mpKey);
 				}
