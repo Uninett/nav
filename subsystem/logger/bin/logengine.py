@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -120,7 +121,7 @@ def createMessage(line):
             origin = notsotypicalmatch.group(6)
             type = notsotypicalmatch.group(7)
             priority = int(notsotypicalmatch.group(8))
-            message = notsotypicalmatch.group(9)
+            description = notsotypicalmatch.group(9)
 
             servtime = DateTime.DateTime(year,month,day,hour,min)
             
@@ -239,13 +240,20 @@ if __name__ == '__main__':
     ## the new records are read from the cisco syslog file specified 
     ## by the syslog path in the logger.conf configuration file
 
+    ## open log
     f = open(logfile, "r+")
+    ## lock logfile
     fcntl.flock(f, fcntl.LOCK_EX)
-    
+
+    ## read log
     fcon = f.readlines()
-    #f.truncate(0)
-    
+
+    ## truncate logfile
+    f.truncate(0)
+
+    ## unlock logfile
     fcntl.flock(f, fcntl.LOCK_UN)
+    ##close log
     f.close()
 
     for line in fcon:
@@ -253,23 +261,28 @@ if __name__ == '__main__':
         message = createMessage(line)
         if message:
 
+            ## check origin (host)
             if origins.has_key(message.origin):
                 originid = origins[message.origin]
 
             else:
+                ## update category database table
                 if not categories.has_key(message.category):
                     database.execute("insert into category (category) values ('%s')" % message.category)
                     categories[message.category] = message.category
 
+                ## update origin database table
                 database.execute("select nextval('origin_origin_seq')")
                 originid = database.fetchone()[0]
                 database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
                 origins[message.origin] = originid
 
+            ## check type
             if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
                 typeid = types[message.facility][message.mnemonic]
 
             else:
+                ## update type database table
                 database.execute("select nextval('type_type_seq')")
                 typeid = int(database.fetchone()[0])
 
@@ -297,7 +310,7 @@ if __name__ == '__main__':
                 except:
                     pass
 
-            #insert into database
+            ## insert message into database
             database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, '%s')"% (message.time, originid, message.priorityid, typeid, message.description))
 
     connection.commit()
