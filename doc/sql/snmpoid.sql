@@ -203,6 +203,9 @@ INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('hpcpu','1.3.6.1.4.
 
 -- mib II
 
+DELETE FROM snmpoid WHERE oidkey='sysUpTime';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('sysUpTime','1.3.6.1.2.1.1.3.0','mib-II','');
+
 DELETE FROM snmpoid WHERE oidkey='ifNumber';
 INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifNumber','1.3.6.1.2.1.2.1.0','mib-II','');
 
@@ -291,6 +294,11 @@ INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifName','1.3.6.1.2
 
 DELETE FROM snmpoid WHERE oidkey='moduleMon';
 INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('moduleMon','1.3.6.1.2.1.2.2.1.1','mib-II','Used by the module monitor; is identical to ifIndex');
+
+-- used by DNSCheck
+
+DELETE FROM snmpoid WHERE oidkey='dnscheck';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('dnscheck','1.3.6.1.2.1.1.5.0','mib-II','Used by the DNSCheck plugin; is identical to sysname');
 
 -- used by initBox (editdb)
 
