@@ -1,5 +1,5 @@
 #
-# $Id: treeSelect.py 2773 2004-06-04 18:00:00Z hansjorg $
+# $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -19,7 +19,6 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #
 
@@ -33,7 +32,21 @@ class selectTreeLayoutBox:
         from the structure of the selectTree and could also contain selects
         from different selectTrees. For maximum control of layout, you
         can make one selectTreeLayouBox for each select and place them
-        anywhere. '''
+        anywhere. 
+        
+        showEmptySelects = BOOLEAN, if True even empty selectboxes will be
+                           rendered by the template.
+        showHelpTexts = BOOLEAN, if True help texts will be displayed when
+                        there is no select to display and showEmptySelects
+                        is false. The help texts says 'Select a $PREVTITLE$'
+                        where $PREVTITLE$ is the title of the previous select.
+        showTitles = BOOLEAN, if True the title of each select is rendered in
+                     a <th> table element above the select.
+        minimumSelectWidth = The minimum width of the select in pixels
+                             (not respected by IE).
+        exactSelectWidth = BOOLEAN, set the width of the select to x elements
+                           where x is the length of the longest option string.
+        '''
 
     onChange = 'this.form.submit()'
     emptySelectText = 'Select a '
@@ -120,7 +133,35 @@ class selectTree:
 class simpleSelect:
     ''' A select which is not updated by any other select, but takes it's 
         list of options directly from a table. Usually the first select
-        in a selectTree '''
+        in a selectTree.
+        
+        title = Title which can be displayed above the select. If it is
+                displayed or not depends on how the layoutbox is setup.
+        controlName = HTML control name for the select.
+        sqlTuple = Tuple of (fields to get,from tables,join with,
+                   where,order by). The strings are merged to give the
+                   sql which gets all the entries for the select.
+        preSelected = List of id's which must be marked as selected. Used
+                      when a search has been done for example.
+        addEntryList = List of entries that's added after filling the list
+                       from sql. Used to manually add entries which is
+                       excluded from the sql for some reason. The entries
+                       are tuples (id,text,selected=True|False).
+        optionFormat = Format string for the option text in the select.
+                       $x is replaced by field x in the sql result.
+        valuleFormat = Format string for the value of an option in the select.
+                       $x is replaced by field x in the sql result.
+                       The default is $1 which means that the sql should
+                       get the id field as field number one (or this string
+                       must be set otherwise).
+        postOnChange = BOOLEAN, if True the form the select is in will be
+                       posted each time a change is made (ie. something is
+                       selected or deselected. Usually set to false for
+                       the last select in a chain.
+        selectMultiple = BOOLEAN, if True the select gets the HTML attribute
+                         multiple.
+        multipleHeight = INT, the height of the select in lines.
+        '''
 
     simpleSelect = True
     maxOptionTextLength = 0
@@ -130,6 +171,7 @@ class simpleSelect:
                  controlName,
                  sqlTuple,
                  preSelected=[],
+                 addEntryList=[],
                  optionFormat='$2',
                  valueFormat='$1',
                  postOnChange=True,
@@ -143,6 +185,7 @@ class simpleSelect:
         self.controlName = controlName
         self.sqlTuple = sqlTuple
         self.preSelected = preSelected
+        self.addEntryList = addEntryList
         self.optionFormat = optionFormat
         self.valueFormat = valueFormat
         self.postOnChange = postOnChange
@@ -156,6 +199,8 @@ class simpleSelect:
         self.options = []
         # List of selected rows. Save for optgroupformat for next select.
         self.rows = []
+        # List of values (id's) in the select
+        self.values = []
 
     def fill(self):
         ''' Fill select from database (using sqltuple) '''
@@ -186,6 +231,7 @@ class simpleSelect:
 
             optionText = self.parseFormatstring(self.optionFormat,row)
             value = self.parseFormatstring(self.valueFormat,row)
+            self.values.append(value)
 
             # Find the longest optiontext (used for width of
             # the select in template)
@@ -194,6 +240,12 @@ class simpleSelect:
 
             option = selectOption(optionText,value)
             self.options.append(option)
+        # Add entries from the addEntryList
+        for entry in self.addEntryList:
+            # Check if value (id) is already in select
+            if not entry[0] in self.values:
+                option = selectOption(entry[1],entry[0],entry[2])
+                self.options.append(option)
 
     def parseFormatstring(self,formatString,fetchedRow):
         ''' Parses format strings for options, values and optgroups.
@@ -220,7 +272,39 @@ class simpleSelect:
         return optgroupText
 
 class updateSelect(simpleSelect):
-    ''' A select which is updated by a previous select. '''
+    ''' A select which is updated by a previous select.
+        
+        prevSelect = The previous select object in the chain.
+        prevTableIdKey = The id key used by the table in the
+                         previous select.        
+        title = Title which can be displayed above the select. If it is
+                displayed or not depends on how the layoutbox is setup.
+        controlName = HTML control name for the select.
+        sqlTuple = Tuple of (fields to get,from tables,join with,
+                   where,order by). The strings are merged to give the
+                   sql which gets all the entries for the select.
+        preSelected = List of id's which must be marked as selected. Used
+                      when a search has been done for example.
+        addEntryList = List of entries that's added after filling the list
+                       from sql. Used to manually add entries which is
+                       excluded from the sql for some reason. The entries
+                       are tuples (optgroupid,id,text,selected=True|False).
+        optionFormat = Format string for the option text in the select.
+                       $x is replaced by field x in the sql result.
+        valuleFormat = Format string for the value of an option in the select.
+                       $x is replaced by field x in the sql result.
+                       The default is $1 which means that the sql should
+                       get the id field as field number one (or this string
+                       must be set otherwise).
+        optgroupFormat = Format string for the optgroup text. $x is replaced
+                         by field x in the sql result.
+        postOnChange = BOOLEAN, if True the form the select is in will be
+                       posted each time a change is made (ie. something is
+                       selected or deselected. Usually set to false for
+                       the last select in a chain.
+        selectMultiple = BOOLEAN, if True the select gets the HTML attribute
+                         multiple.
+        multipleHeight = INT, the height of the select in lines. '''
 
     simpleSelect = False
 
@@ -231,6 +315,7 @@ class updateSelect(simpleSelect):
                  controlName,
                  sqlTuple,
                  preSelected=[],
+                 addEntryList=[],
                  optionFormat='$2',
                  valueFormat='$1',
                  optgroupFormat=None,
@@ -246,6 +331,7 @@ class updateSelect(simpleSelect):
         self.controlName = controlName
         self.sqlTuple = sqlTuple
         self.preSelected = preSelected
+        self.addEntryList = addEntryList
         self.optionFormat = optionFormat
         self.valueFormat = valueFormat
         self.optgroupFormat = optgroupFormat
@@ -260,6 +346,8 @@ class updateSelect(simpleSelect):
         self.options = []
         # List of selected rows. Save for optgroupformat for next select.
         self.rows = []
+        # List of values (id's) in the select
+        self.values = []
 
     def fill(self):
         ''' Fill select from database (using sqltuple and prevselected).
@@ -267,8 +355,6 @@ class updateSelect(simpleSelect):
             select. '''
 
         # Any of the options in the previous select selected?
-        #raise(repr(self.prevSelected))
-        #if self.prevSelected:
         # Make sql query
         fields,tables,join,where,orderBy = self.sqlTuple
        
@@ -305,6 +391,7 @@ class updateSelect(simpleSelect):
                 self.rows.append(row)
                 optionText = self.parseFormatstring(self.optionFormat,row)
                 value = self.parseFormatstring(self.valueFormat,row)
+                self.values.append(value)
 
                 # Find the longest optiontext (used for width of
                 # the select in template)
@@ -331,6 +418,15 @@ class updateSelect(simpleSelect):
                         confirmedSelected.append(value)
                 option = selectOption(optionText,value,selected)
                 self.options.append(option)
+            # Add entries from addEntryList
+            for entry in self.addEntryList:
+                if s == entry[0]:
+                    # This is the right optgroup for this entry
+                    if not entry[1] in self.values:
+                        # Value (id) isn't already present
+                        option = selectOption(entry[2],entry[1],entry[3])
+                        self.options.append(option)
+            # Add end of optgroup tag to list of options
             optgroup = selectOption('','',optgroupEnd=True)
             self.options.append(optgroup)
         self.possiblySelected = confirmedSelected
