@@ -386,6 +386,21 @@ CREATE INDEX cam_fra_btree ON cam USING btree (fra);
 CREATE INDEX cam_til_btree ON cam USING btree (til);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
+-- Trigger for arp, cam
+CREATE FUNCTION boksid_null_upd_til () RETURNS opaque AS
+  'BEGIN
+     IF old.boksid IS NOT NULL AND new.boksid IS NULL THEN
+       new.til = current_timestamp;
+     END IF;
+     RETURN new;
+   end' LANGUAGE plpgsql;
+
+CREATE TRIGGER update_cam BEFORE UPDATE ON cam
+  FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
+CREATE TRIGGER update_arp BEFORE UPDATE ON arp
+  FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
+
+
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
   boks VARCHAR(15) NOT NULL,
@@ -563,7 +578,7 @@ CREATE TABLE eventq (
   subid INT4,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL DEFAULT 'x', -- x = stateless, t = start, f = end
+  state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' or state='t' or state='f'), -- x = stateless, t = start, f = end
   value INT4 NOT NULL DEFAULT '100',
   severity INT4 NOT NULL DEFAULT '50'
 );
