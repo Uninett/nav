@@ -149,7 +149,7 @@ public class MibIISw implements DeviceHandler
 				String ifindex = (String)it.next();
 				if (skipIfindexSet.contains(ifindex)) continue;
 
-				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\.");
+				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\\.");
 				
 				Swport swp = sc.swportFactory(ifindex);
 				swp.setInterface(mp[0] + "/" + mp[1]);
