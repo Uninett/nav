@@ -203,7 +203,7 @@ require("listing.php");
 <!-- INCLUDE HEADER -->
 <?php
 $interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
-$cmd = $interpreter . ' ' . PATH_BIN . 'navTemplate.py user=' . session_get('bruker') . 
+$cmd = $interpreter . ' ' . PATH_BIN . '/navTemplate.py user=' . session_get('bruker') . 
 	' content=%%% path=AlertProfiles:/alertprofiles 2>&1';
 
 exec($cmd, $out, $retval );

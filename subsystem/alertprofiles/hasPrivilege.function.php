@@ -13,7 +13,7 @@ function access_address_type($username, $addresstype) {
 	$returncode = 'NA';
 	$interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
 	
-	$cmd = $interpreter . ' ' . PATH_BIN . 'hasPrivilege.py ' . escapeshellcmd($username) . ' alert_by ' . $atypes[$addresstype];
+	$cmd = $interpreter . ' ' . PATH_BIN . '/hasPrivilege.py ' . escapeshellcmd($username) . ' alert_by ' . $atypes[$addresstype];
 	system($cmd, $returncode);
 	return ($returncode === 0);
 }
