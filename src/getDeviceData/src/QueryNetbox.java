@@ -119,6 +119,7 @@ public class QueryNetbox extends Thread
 		}
 
 		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
+		typeidMap = new HashMap();
 		typeidMap.put(typeid, t);
 
 	}
