@@ -82,6 +82,50 @@
 $default_form_CSS()
 #end def
 
+#block additionalJavaScript
+
+function updateDisplay(select) {
+    var options = select.options;
+    for (optIndex = 0; optIndex < options.length; optIndex++) {
+        option = options.item(optIndex);
+        setElementDisplay(option.value,option.selected);
+    }    
+}
+
+function setElementDisplay(elementId,display) {
+    if (document.getElementById) {
+        var element = document.getElementById(elementId);
+        if (element) {
+            if (display) {
+                element.style.display = '';
+            } else {
+                element.style.display = 'none';
+            }
+        }
+    }
+}
+
+function toggleDisabled(select,elementId) {
+    var options = select.options;
+    var somethingSelected = false;
+    for (optIndex = 0; optIndex < options.length; optIndex++) {
+        option = options.item(optIndex);
+        if (option.selected == true) {
+            somethingSelected = true;
+            break;
+        }
+    }    
+    if (document.getElementById) {
+        var element = document.getElementById(elementId);
+        if (somethingSelected = true) {
+            element.disabled = false;
+        } else {
+            element.disabled = true;
+        }
+    }
+}
+#end block additionalJavaScript
+
 #def content
 #if $entryList
 $showSelectList($entryList)
@@ -515,8 +559,6 @@ $showBody($body)
             $usage($editbox)
 #elif $editbox.page == 'service'
             $service($editbox)
-#elif $editbox.page == 'serviceproperties'
-            $serviceproperties($editbox)
 #elif $editbox.page == 'product'
             $product($editbox)
 #elif $editbox.page == 'prefix'
@@ -940,49 +982,54 @@ $input($fields['productid'])
     <P>$editbox.help</P>
     <TABLE class="header-active">
         <TR>
-            <TH>$heading($fields['netboxid'])</TH>
+            <TH>$heading($fields['boxid'])</TH>
             <TH>$heading($fields['handler'])</TH>
         </TR>
         <TR>
-            <TD>$input($fields['netboxid'])</TD>
+            <TD>$input($fields['boxid'])</TD>
             <TD>$input($fields['handler'])</TD>
         </TR>
     </TABLE>
+    $input($fields['properties'])
 $hiddenfields($editbox.hiddenFields)
 #end def
 
-## Form for adding or editing service properties
-#def serviceproperties($editbox)
-#if $editbox.show
-#set $args = $editbox.args
-#set $optargs = $editbox.optargs
-    <P>$editbox.title</P>
-    <TABLE class="header-active">
-#if len($editbox.args)
-            <TR>
-                <TH colspan="2">Required</TH>
-            </TR>
+## Form for editing serviceproperties (called by input())
+#def serviceproperty($property)
+#set $args = $property.args
+#set $optargs = $property.optargs
+#if $property.display
+#set $style = ''
+#else
+#set $style = 'display:none;'
+#end if
+    <DIV id="$property.id" style="$style">
+        <P>$property.title</P>
+        <TABLE class="header-active">
+#if len($property.args)
+                <TR>
+                    <TH colspan="2">Required</TH>
+                </TR>
 #for $field,$content in $args.items()
-            <TR>
-                <TD>$field</TD>
-                <TD>$input($args[$field])</TD>
-            </TR>
-#end for
+                <TR>
+                    <TD>$field&nbsp;<span style="color: #ff0000">*</span></TD>
+                    <TD>$input($args[$field])</TD>
+                </TR>
 #end for
 #end if
-#if len($editbox.optargs)
-            <TR>
-                <TH colspan="2">Optional</TH>
-            </TR>
+#if len($property.optargs)
+                <TR>
+                    <TH colspan="2">Optional</TH>
+                </TR>
 #for $field,$content in $optargs.items()
-            <TR>
-                <TD>$field</TD>
-                <TD>$input($optargs[$field])</TD>
-            </TR>
+                <TR>
+                    <TD>$field</TD>
+                    <TD>$input($optargs[$field])</TD>
+                </TR>
 #end for
 #end if
-    </TABLE>
-#end if
+        </TABLE>
+    </DIV>
 #end def
 
 ## Form for prefix editing
@@ -1170,6 +1217,10 @@ $control[2]
 #if $control.treeselect
     $ts.renderLayoutBox($control.treeselect)
 #end if
+#elif $control.type == 'serviceproperties'
+#for $property in $control.propertyList
+    $serviceproperty($property)
+#end for
 #else
 Undefined control
 #end if

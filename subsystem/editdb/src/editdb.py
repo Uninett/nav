@@ -34,6 +34,12 @@ from socket import gethostbyaddr,gethostbyname,gaierror
 from nav.web.serviceHelper import getCheckers,getDescription
 from nav.web.selectTree import selectTree,selectTreeLayoutBox
 from nav.web.selectTree import simpleSelect,updateSelect
+
+# Temporary fix:
+mod = __import__('encodings.utf_8',globals(),locals(),'*')
+mod = __import__('encodings.utf_16_be',globals(),locals(),'*')
+mod = __import__('encodings.latin_1',globals(),locals(),'*')
+
 #################################################
 ## Templates
 
@@ -200,7 +206,7 @@ def index(req,showHelp=False,status=None):
     
     # Table for boxes and services
     rows = [['IP devices',
-             'Input seed information on the IP device you want to ' +\
+             'Input seed information on the IP devices you want to ' +\
              'monitor',
             [BASEPATH + 'netbox/edit','Add'],
             [BASEPATH + 'netbox/list','Edit'],
@@ -449,18 +455,6 @@ def editPage(req,page,request):
     if action == 'predefined':
         # Action is predefined by addNetbox() or updateNetbox()
         outputForm.textConfirm = 'Continue'
-        outputForm.status = status
-        listView = None
-    elif action == 'continueAdd':
-        # Continue adding (used by pageService)
-        path = page.pathAdd
-        outputForm.textConfirm = 'Add ' + page.singular
-        outputForm.status = status
-        listView = None
-    elif action == 'continueEdit':
-        # Continue updating (used by pageService)
-        path = page.pathEdit
-        outputForm.textConfirm = 'Update ' + page.singular
         outputForm.status = status
         listView = None
     elif action == 'edit':
@@ -968,8 +962,8 @@ class inputText:
 
     type = 'text'
     name = None
-    value = ''
     maxlength = None
+    
     def __init__(self,value='',size=22,maxlength=None,disabled=False):
         self.value = value
         self.disabled = disabled
@@ -1032,13 +1026,12 @@ class inputTextArea:
 
     type = 'textarea'
     name = None
-    value = ''
-    disabled = False
 
     def __init__(self,rows=20,cols=80):
         self.rows = rows
         self.cols = cols
-
+        self.value = ''
+        self.disabled = False
 
 class inputCheckbox:
     ''' Class representing a checkbox input html control. '''
@@ -1058,6 +1051,31 @@ class inputHidden:
 
     def __init__(self,value):
         self.value = value
+
+
+class inputServiceProperties:
+    ''' Contains a list of inputServiceProperty inputs. 
+        (used by pageService) '''
+
+    type = 'serviceproperties'
+    disabled = False
+    
+    def __init__(self,propertyList):
+        self.propertyList = propertyList
+
+class inputServiceProperty:
+    ''' Class representing a serviceproperty input box. 
+        (used by pageService) '''
+
+    type = 'serviceproperty'
+    disabled = False
+
+    def __init__(self,title,id,args,optargs,display=True):
+        self.title = title
+        self.id = id
+        self.display = display
+        self.args = args
+        self.optargs = optargs
 
 class editbox:
     ''' Parent class for all the different editboxes which are all added 
@@ -1081,7 +1099,7 @@ class editbox:
         ''' Fill this form with data from the database (entry = editId). '''
         entry = self.table(self.editId)
        
-        # Set the name of this boxname to reflect that we are
+        # Set the name of this box to reflect that we are
         # updating an entry
         self.boxName = UPDATE_ENTRY
         self.boxId = self.editId
@@ -3088,9 +3106,9 @@ class pagePatch(editdbPage):
   
             self.help = 'Add or update a patch by selecting a jack and a ' +\
                         'switchport. Optionally select a split. Only rooms '+\
-                        'with at least one switch and at least one available ' +\
-                        'jack are listed. Available jacks have '+\
-                        'either no patch or at most one splitted patch connected.'
+                        'with at least one switch and at least one available '+\
+                        'jack are listed. Available jacks have either '+\
+                        'no patch or at most one splitted patch connected.'
 
             if req:
                 select1 = simpleSelect('Location',
@@ -3146,7 +3164,7 @@ class pagePatch(editdbPage):
                                         selectedJack,
                                         addJack,
                                         optgroupFormat='Room $1',
-                                        postOnChange=True,
+                                        setOnChange=True,
                                         selectMultiple=False,
                                         multipleHeight=8)
 
@@ -3194,7 +3212,7 @@ class pagePatch(editdbPage):
                                         selectedSwport,
                                         addSwport,
                                         optgroupFormat='Module $2',
-                                        postOnChange=False,
+                                        setOnChange=False,
                                         selectMultiple=False,
                                         multipleHeight=8)
 
@@ -3826,7 +3844,7 @@ class pageRic(editdbPage):
                                     'sysname'),
                                     selectedRouters,
                                     optionFormat='$2',
-                                    postOnChange=False,
+                                    setOnChange=False,
                                     selectMultiple=True,
                                     multipleHeight=8)
 
@@ -3919,8 +3937,8 @@ class pageRic(editdbPage):
             addEntryFields(fields,self.tableName)
 
         selected = [editId]
+        status.messages.append('Updated container')
         return (status,action,templateForm,selected)
-
 
 
 class pageRoom(editdbPage):
@@ -4097,91 +4115,315 @@ class pageService(editdbPage):
 
         def __init__(self,page,req=None,editId=None,formData=None,
                      disabled=False):
-            
+           
             self.page = page.pageName
             self.table = page.table
-
             self.hiddenFields = {}
+            self.editId = editId
             self.help = ''
-            if not editId and not formData:
-                self.help = 'Select a server and a service handler'
-
-            servers = [('','Select a server')]
-            t = nav.db.manage.Netbox
-            for s in t.getAllIterator(where="catid='SRV'",orderBy='sysname'):
-                servers.append((str(s.netboxid),s.sysname))
-
-            handlers = [('','Select a handler')]
-            checkers = []
-            for c in getCheckers():
-                checkers.append((c,c))
-            checkers.sort()
-            handlers += checkers
-
-            disabledHandler = disabled
+            form = {}
+            if req:
+                form = req.form
+           
+            propertyListFilled = []
+            handlerEntries = []
+            presentHandlers = []
             if editId:
-                disabledHandler = True
-            f = {'netboxid': [inputSelect(options=servers,disabled=disabled),
-                             REQ_TRUE,'Server',FIELD_STRING],
-                 'handler': [inputSelect(options=handlers,
-                                         disabled=disabledHandler),
-                            REQ_TRUE,'Handler',FIELD_STRING]}
+                # Make editbox for editing properties (not for adding services)
+                self.help = 'Edit service properties for services on this ' +\
+                            'IP device'
+
+                # Set the name of this boxname to reflect that we are
+                # updating an entry
+                self.boxName = UPDATE_ENTRY
+                self.boxId = editId
+
+                # editId is serviceid, get netboxid
+                boxid = str(nav.db.manage.Service(editId).netbox.netboxid)
+                sql = "SELECT serviceid FROM service WHERE netboxid='" +\
+                       boxid + "' ORDER BY handler"
+
+                result = executeSQLreturn(sql)
+                serviceIdList = []
+                if result:
+                    for row in result:
+                        serviceIdList.append(str(row[0]))
+               
+                for serviceId in serviceIdList:        
+                    handler = nav.db.manage.Service(serviceId).handler
+                    presentHandlers.append(handler)
+                    handlerId = handler + '_' + serviceId
+                    handlerName = handler
+                    if presentHandlers.count(handler) > 0:
+                        handlerName = handler + ' (' +\
+                                      str(presentHandlers.count(handler)) + ')'
+                    handlerEntries.append((handlerId,handlerName,True))
+                    sql = "SELECT * FROM serviceproperty WHERE " + \
+                          "serviceid='" + serviceId + "'"
+                    result = executeSQLreturn(sql)
+                    propertyValues = {}
+                    for entry in result:
+                        property = entry[1]
+                        value = entry[2]
+                        propertyValues[property] = value
+
+                    prop = self.makePropertyInput(handler,propertyValues,
+                                                  serviceId=serviceId)
+                    if prop:
+                        propertyListFilled.append(prop)
+                # Preselected values
+                catid = nav.db.manage.Netbox(boxid).cat.catid
+                preSelectedCatid = [catid]
+                preSelectedBoxid = [boxid]
+                catidDisabled = True
+                boxidDisabled = True
+            else:
+                self.help = 'Select an IP device and one or more service ' +\
+                            'handlers'
+                preSelectedCatid = []
+                preSelectedBoxid = []
+                catidDisabled = False
+                boxidDisabled = False
+
+            lb = None
+            lb2 = None
+            if req:
+                # Catid select
+                select1 = simpleSelect('Category',
+                                       'cn_catid',
+                                       ('catid,descr',
+                                        'cat',
+                                        None,
+                                        None,
+                                        'catid'),
+                                        preSelectedCatid,
+                                        optionFormat='$1',
+                                        selectMultiple=False,
+                                        multipleHeight=8,
+                                        disabled=catidDisabled)
+
+                # Ip device select
+                select2 = updateSelect(select1,
+                                       'catid',
+                                       'IP device',
+                                       'boxid',
+                                       ('netboxid,sysname',
+                                        'netbox',
+                                        None,
+                                        None,
+                                        'sysname'),
+                                        preSelectedBoxid,
+                                        optionFormat='$2',
+                                        actionOnChange="toggleDisabled" +\
+                                                       "(this,'handler');",
+                                        selectMultiple=False,
+                                        multipleHeight=8,
+                                        disabled=boxidDisabled)
+
+                # Handler select
+                # Get checkers (handler names)
+                for c in getCheckers():
+                    presentHandlers.append(c)
+                    handlerName = c
+                    if presentHandlers.count(c) > 1:
+                        handlerName = c + ' (' + str(presentHandlers.count(c))+\
+                                      ')'
+                    handlerEntries.append((c,handlerName,False))
+
+                handlerEntries.sort()
+
+                handlerDisabled = True
+                if req.form.has_key('boxid') or editId:
+                    handlerDisabled = False
+                select3 = simpleSelect('Handler',
+                                       'handler',
+                                       None,
+                                       addEntryList=handlerEntries,
+                                       actionOnChange="updateDisplay" +\
+                                                      "(this);",
+                                       selectMultiple=True,
+                                       multipleHeight=8,
+                                       disabled=handlerDisabled)
+
+                st = selectTree()
+                st.addSelect(select1)
+                st.addSelect(select2)
+                st.update(req.form)
+
+                st2 = selectTree()
+                st2.addSelect(select3)
+                st2.update(req.form)
+
+                lb = selectTreeLayoutBox(showTitles=False)
+                lb.addSelect(select1)
+                lb.addSelect(select2)
+
+                lb2 = selectTreeLayoutBox(showEmptySelects=True,
+                                          showTitles=False)
+                lb2.addSelect(select3)
+
+            # Make all the serviceproperty boxes (they are hidden until
+            # displayed by javascript)
+            # Remember selected boxes
+            selectedHandlers = []
+            if form.has_key('handler'):
+                selectedHandlers = form['handler']
+            if not type(selectedHandlers) is list:
+                selectedHandlers = [selectedHandlers]
+            
+            propertyList = []
+            for checker in getCheckers():
+                prop = self.makePropertyInput(checker,form,selectedHandlers)
+                if prop:
+                    propertyList.append(prop)
+            propertyList = propertyListFilled + propertyList
+
+            f = {'boxid': [inputTreeSelect(treeselect=lb),
+                           REQ_TRUE,'IP device',FIELD_STRING],
+                 'handler': [inputTreeSelect(treeselect=lb2),
+                            REQ_TRUE,'Handler',FIELD_STRING],
+                 'properties': [inputServiceProperties(propertyList),
+                                REQ_FALSE,'Properties',FIELD_STRING]}
 
             self.fields = f
             self.setControlNames()
 
-            if not editId:
-                if formData:
-                    self.formFill(formData)
-            if editId:
-                self.editId = editId
-                self.fill()
-            if disabled:
-                self.addDisabled()
- 
+        def makePropertyInput(self,handler,form,selectedHandlers=None,
+                              serviceId=None):
+            ''' Used by init to make property inputs
+                handler = handler/checker name (string)
+                form    = form/value (dict)
+                selectedHandler = list of handlers already selected in add 
+                serviceId = fill fields with this service '''
+            properties = getDescription(handler)
+            propertyInput = None
 
-    class editboxServiceProperties(editbox):
-        ''' Editbox used to edit properties for a service. Gets info
-            about service parameters from the checker module. '''
-
-        page = 'serviceproperties'
-        table = nav.db.manage.Serviceproperty
-
-        def __init__(self,checker,boxId,editId=None):
-            self.show = False
-            properties = getDescription(checker)
-
-            self.args = {}
-            self.optargs = {}
+            args = {}
+            optargs = {}
             if properties:
-                self.show = True
-                self.title = "Properties for '" + properties['description'] + \
-                             "' on " + nav.db.manage.Netbox(boxId).sysname
+                title = "Properties for " + handler + ' (' +\
+                        properties['description']+ ')'
 
                 if properties.has_key('args'):
+                    i = 0
                     for a in properties['args']:
-                        self.args[a] = [inputText(),REQ_TRUE]
-                        self.setControlNames(self.args)
+                        textInput = inputText()
+                        if serviceId:
+                            name = handler + '_' + serviceId + '_' + str(i)
+                        else:
+                            name = handler + '_' + str(i)
+                        textInput.name = name
+                        if form.has_key(name):
+                            textInput.value = form[name]
+                        elif form.has_key(a):
+                            # When editing, form is replaced by
+                            # propertyValues which is a dict with
+                            # the real propertyy names (not the form names)
+                            textInput.value = form[a]
+                        args[a] = [textInput,REQ_TRUE]
+                        i += 1
                 if properties.has_key('optargs'):
+                    i = 0
                     for a in properties['optargs']:
-                        self.optargs[a] = [inputText(),REQ_FALSE]
-                        self.setControlNames(self.optargs)
-
-                if editId:
-                    sql = "SELECT * FROM serviceproperty WHERE " + \
-                          "serviceid='" + editId + "'"
-                    result = executeSQLreturn(sql)
-                    for entry in result:
-                        property = entry[1]
-                        value = entry[2]
-                        if self.args.has_key(property):
-                            self.args[property][0].value = value
-                        if self.optargs.has_key(property):
-                            self.optargs[property][0].value = value
-
-            # The main editbox has UPDATE_ENTRY (which holds the id) 
-            # or ADDNEW, don't need to repeat it here 
-            self.boxName = IGNORE_BOX
+                        textInput = inputText()
+                        if serviceId:
+                            name = handler + '_' + serviceId + '_opt_' + str(i)
+                        else:
+                            name = handler + '_opt_' + str(i)
+                        textInput.name = name
+                        if form.has_key(name):
+                            textInput.value = form[name]
+                        elif form.has_key(a):
+                            textInput.value = form[a]
+                        optargs[a] = [textInput,REQ_FALSE]
+                        i += 1
+                if len(args) or len(optargs):
+                    if serviceId:
+                        id = handler + '_' + serviceId
+                    else:
+                        id = handler
+                    if type(selectedHandlers) is list:
+                        if (id in selectedHandlers):
+                            # This property was already selected, so show
+                            # the property box
+                            display = True
+                        else:
+                            display = False
+                    else:
+                        # No list of selected handlers given
+                        # (for making edit page)
+                        display = True
+                    propertyInput = inputServiceProperty(title,id,args,optargs,
+                                                         display)
+                return propertyInput
+   
+    def checkRequiredProperties(self,handler,form,serviceId=None):
+        ''' Check if all the required properties of handler is present
+            in the form data. 
+            handler = handler/checker name (string)
+            form = form data dict
+            serviceId = id to append to field names if we're editing (string)'''
+        properties = getDescription(handler)
+        if properties:
+            if properties.has_key('args'):
+                i = 0
+                for arg in properties['args']:
+                    if serviceId:
+                        requiredArg = handler + '_' + serviceId + '_' + str(i) 
+                    else:
+                        requiredArg = handler + '_' + str(i)
+                    missing = False
+                    if not form.has_key(requiredArg):
+                        missing = True
+                    else:
+                        if not len(form[requiredArg]):
+                            missing = True
+                    if missing:
+                        raise("Missing required field '" + arg + "'" +\
+                              " for handler " + handler) 
+                    i += 1
+    
+    def insertProperties(self,handler,form,serviceId,editing=False):
+        ''' Insert service properties for a serviceId from form data.
+            handler   = service handler (string)
+            form      = form data (dict)
+            serviceId = service id the properties belong to (string)
+            editing   = if we're editing then add serviceId to field names '''
+        properties = getDescription(handler)
+        if properties:
+            if properties.has_key('args'):
+                i = 0
+                for property in properties['args']:
+                    # Already know that all properties in 'args'
+                    # are present
+                    if editing:
+                        propertyName = handler + '_' + serviceId + '_' + str(i)
+                    else:
+                        propertyName = handler + '_' + str(i)
+                    fields = {'serviceid': serviceId,
+                              'property': property,
+                              'value': form[propertyName]}
+                    addEntryFields(fields,
+                                   'serviceproperty')
+                    i += 1
+            if properties.has_key('optargs'):
+                i = 0
+                for property in properties['optargs']:
+                    # optargs are optional, must 
+                    # check if they are present
+                    if editing:
+                        propertyName = handler + '_' + serviceId + '_opt_' +\
+                                       str(i)
+                    else:
+                        propertyName = handler + '_opt_' + str(i)
+                    if form.has_key(propertyName):
+                        if len(form[propertyName]):
+                            fields = {'serviceid': serviceId,
+                                      'property': property,
+                                      'value': form[propertyName]}
+                            addEntryFields(fields,
+                                           'serviceproperty')
+                    i += 1
 
     def add(self,req,templateForm,action):
         ''' Adds a service entry. Overrides the default add function of
@@ -4189,81 +4431,133 @@ class pageService(editdbPage):
 
         action = 'add'
         status = editdbStatus()
-        # Check if all required serviceproperties are present
-        properties = getDescription(req.form['handler'])
-        serviceid = None
-        missing = False
-        propertyStep = False
-       
-        if properties:
-            if properties.has_key('args'):
-                for required in properties['args']:
-                    if not req.form.has_key(required):
-                        propertyStep = True
-                    if req.form.has_key(required):
-                        if not len(req.form[required]):
-                            missing = required
-                            propertyStep = True
-            if properties.has_key('optargs'):
-                for optional in properties['optargs']:
-                    if not req.form.has_key(optional):
-                        # If optargs are missing, then we haven't reached
-                        # the add property step yet
-                        propertyStep = True
 
-        if propertyStep:
-            if propertyStep or (missing and len(req.form['netboxid']) and
-                len(req.form['handler'])):
-    
-                # Missing required property
-                if missing:
-                    status.errors.append("Missing required property '" +\
-                                         missing + "'")
-
-            checker = req.form['handler']
-            templateForm.title = 'Add service'
-            templateForm.add(self.editbox(self,formData=req.form,disabled=True))
-            templateForm.add(self.editboxServiceProperties(checker,
-                                                    req.form['netboxid']))
-            action = 'continueAdd'
-        elif not missing:
-            # Add service entry
-            fields = {'netboxid': req.form['netboxid'],
-                      'handler': req.form['handler']}
-            serviceid = addEntryFields(fields,
-                                      'service',
-                                      ('serviceid','service_serviceid_seq'))
-            action = 'list'
-            status.messages.append('Added service: ' +self.describe(serviceid))
-            # Add serviceproperty entries
-            if properties:
-                if properties.has_key('args'):
-                    for property in properties['args']:
-                        # Already know that all properties in 'args' are present
-                        fields = {'serviceid': serviceid,
-                                  'property': property,
-                                  'value': req.form[property]}
-                        addEntryFields(fields,
-                                       'serviceproperty')
-                if properties.has_key('optargs'):
-                    for property in properties['optargs']:
-                        # optargs are optional, must check if they are present
-                        if req.form.has_key(property):
-                            if len(req.form[property]):
-                                fields = {'serviceid': serviceid,
-                                          'property': property,
-                                          'value': req.form[property]}
-                                addEntryFields(fields,
-                                               'serviceproperty')
-        else:
-            # Missing required property
-            status.errors.append("Missing required property '" + missing + "'")
-        return (status,action,templateForm,serviceid)
+        form = req.form
+        try:
+            if not form.has_key('boxid'):
+                raise("Missing required field 'IP device'")
+            if not form.has_key('handler'):
+                raise("Missing required field 'handler'")
+            # Make list of selected handlers
+            selectedHandlers = form['handler']
+            if not type(selectedHandlers) is list:
+                selectedHandlers = [selectedHandlers]
+            # Check if all required properties are present
+            for handler in selectedHandlers:
+                self.checkRequiredProperties(handler,form)
+            # Add new services
+            for handler in selectedHandlers:
+                # Add service entry
+                fields = {'netboxid': form['boxid'],
+                          'handler': handler}
+                serviceId = addEntryFields(fields,self.tableName,
+                                          (self.tableIdKey,self.sequence))
+                # Add serviceproperty entries
+                self.insertProperties(handler,form,serviceId)
+                action = 'list'
+                status.messages.append('Added service: ' +\
+                                       self.describe(serviceId))
+        except:
+            status.errors.append(str(sys.exc_info()[0]))
+        return (status,action,templateForm,None)
 
     def update(self,req,templateForm,selected):
         ''' Updates service entries. Overrides the default update function
             in editdbPage '''
 
+        action = 'edit'
+        status = editdbStatus()
+        editId = selected[0]
+        form = req.form
+
+        # Get selected handlers
+        selectedHandlers = []
+        if form.has_key('handler'):
+            if len(form['handler']):
+                selectedHandlers = form['handler']
+        if not type(selectedHandlers) is list:
+            selectedHandlers = [selectedHandlers]
+
+        try:
+            # editId is serviceid, get netboxid
+            boxid = str(nav.db.manage.Service(editId).netbox.netboxid)
+            sql = "SELECT serviceid FROM service WHERE netboxid='" +\
+                   boxid + "' ORDER BY handler"
+
+            result = executeSQLreturn(sql)
+            # get all serviceid's for this netbox
+            serviceIdList = []
+            if result:
+                for row in result:
+                    serviceIdList.append(str(row[0]))
+          
+            stillSelectedHandlers = []
+            deselectedHandlers = []
+            currentHandlerIds = []
+            for serviceId in serviceIdList: 
+                handler = nav.db.manage.Service(serviceId).handler
+                handlerId = handler + '_' + serviceId
+                currentHandlerIds.append(handlerId)
+                
+                if handlerId in selectedHandlers:
+                    stillSelectedHandlers.append(serviceId)
+                else:
+                    deselectedHandlers.append(serviceId)
+
+                addHandlers = []
+                for handlerId in selectedHandlers:
+                    # Remove selected handlers which were already present
+                    # when starting editing. selectedHandlers should contain
+                    # only new handlers for adding after this
+                    if not (handlerId in currentHandlerIds):
+                        addHandlers.append(handlerId)
+             
+            # Check for all required properties for old services
+            for serviceId in stillSelectedHandlers:
+                handler = nav.db.manage.Service(serviceId).handler
+                self.checkRequiredProperties(handler,form,serviceId)  
+
+            # Check for all required properties for new services
+            for handler in addHandlers:
+                self.checkRequiredProperties(handler,form)
+
+            # Update properties for old services
+            for serviceId in stillSelectedHandlers:
+                # Delete all old serviceproperties for this serviceId,
+                handler = nav.db.manage.Service(serviceId).handler
+                sql = "DELETE FROM serviceproperty WHERE serviceid='" +\
+                      serviceId + "'"
+                executeSQL([sql])
+                # Insert new serviceproperties
+                self.insertProperties(handler,form,serviceId,editing=True)
+                status.messages.append('Updated service: ' +\
+                                       self.describe(serviceId))
+
+            # Add new services
+            for handler in addHandlers:
+                fields = {'netboxid': boxid,
+                          'handler': handler}
+                serviceId = addEntryFields(fields,self.tableName,
+                                          (self.tableIdKey,self.sequence))
+                # Add serviceproperty entries
+                self.insertProperties(handler,form,serviceId)
+                status.messages.append('Added service: ' +\
+                                       self.describe(serviceId))
+
+            # Delete deselected services
+            for serviceId in deselectedHandlers:
+                status.messages.append('Deleted service: ' +\
+                                       self.describe(serviceId))
+                sql = "DELETE FROM service WHERE serviceid='" + serviceId + "'"
+                executeSQL([sql])
+
+            action = 'list'
+        except:
+            status.errors.append(str(sys.exc_info()[0]))
+        return (status,action,templateForm,selected)
+
+
+    def updateOLD(self):
         action = 'edit'
         status = editdbStatus()
         editId = req.form[UPDATE_ENTRY]
@@ -5066,6 +5360,7 @@ def bulkImport(req,action):
                'product': bulkdefProduct,
                'prefix': bulkdefPrefix}
 
+    listView = None
     # direct link to a specific table?
     if action:
         if bulkdef.has_key(action):
@@ -5161,10 +5456,15 @@ def bulkImport(req,action):
             data = req.form[BULK_HIDDEN_DATA]
             result = bulkInsert(data,bulkdef[table],separator)
             form.status.messages.append('Inserted ' + str(result) + ' rows')
+            page = pageList[table]
+            listView = page.listDef(req,page,None)
+            listView.status = form.status
+            listView.fill(req)
+            form = None
         else:
             form.status.errors.append('No rows to insert.')
 
-    nameSpace = {'entryList': None, 'editList': list, 'editForm': form}
+    nameSpace = {'entryList': listView, 'editList': list, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = EDITPATH + [('Bulk import',False)]
     return template.respond()
