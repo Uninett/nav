@@ -299,8 +299,8 @@ DROP SEQUENCE pkt2rom_id_seq;
 
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks,
-  prefiksid INT4 REFERENCES prefiks,
+  boksid INT4 NOT NULL REFERENCES boks,
+  prefiksid INT4 NOT NULL REFERENCES prefiks,
   ip VARCHAR(15) NOT NULL,
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
@@ -345,3 +345,4 @@ GRANT all ON port2pkt TO navall;
 GRANT all ON port2pkt_id_seq TO navall;
 GRANT all ON pkt2rom TO navall;
 GRANT all ON pkt2rom_id_seq TO navall;
+
