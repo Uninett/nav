@@ -79,6 +79,13 @@ id serial primary key,
 navn varchar(9) not null
 );
 
+insert into varseltype (navn) values ('sms');
+insert into varseltype (navn) values ('dsms');
+insert into varseltype (navn) values ('dsms/mail');
+insert into varseltype (navn) values ('sms/mail');
+insert into varseltype (navn) values ('mail');
+insert into varseltype (navn) values ('fri');
+
 create table varsel (
 id serial primary key,
 brukerid int2 references bruker on update cascade on delete cascade,
