@@ -310,6 +310,23 @@ CREATE TABLE Preference (
         ON UPDATE CASCADE
 );
 
+-- Trigger function to copy the preference row of the default user
+-- whenever a new account is inserted.  I would like to insert a
+-- composite row variable, but couldn't find any way to do so, so this
+-- function needs to be updated whenever the schema of the preference
+-- table is updated!
+CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
+  DECLARE
+    pref preference%ROWTYPE;
+  BEGIN
+    SELECT INTO pref * FROM preference WHERE accountid = 0;
+    pref.accountid := NEW.id;
+    INSERT INTO preference (accountid, queuelength, admin, activeprofile, sms, lastsentday, lastsentweek)
+      VALUES (pref.accountid, pref.queuelength, pref.admin, pref.activeprofile, pref.sms, pref.lastsentday, pref.lastsentweek);
+    RETURN NEW;
+  END' LANGUAGE 'plpgsql';
+CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
+
 /*
 -- 8 TIDSPERIODE
 

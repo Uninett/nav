@@ -115,13 +115,6 @@ def login(req, login='', password='', origin=''):
                 account.ext_sync = 'ldap'
                 account.save()
 
-                # Copy the preferences of the default user
-                preference = navprofiles.Preference(0)
-                preference.load()
-                preference.account = account.id
-                preference._new = True
-                preference.save()
-
                 # Later, we should allow configuration of default
                 # groups and such
             else:
