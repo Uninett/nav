@@ -158,7 +158,8 @@ public class _3Com implements DeviceHandler
 
 		*/
 
-		if (type.equals("off8") || type.equals("ps40")) {
+		// (type.equals("off8") || type.equals("ps40")) {
+		{
 			// OID: 1.3.6.1.2.1.26.1.1.1.6.<modul>.<port>.1 = 3|4
 			// 3 = oppe
 			// 4 = nede
@@ -218,7 +219,6 @@ public class _3Com implements DeviceHandler
 					Log.d("PROCESS_3COM", "Added port, netbox: "+ netboxid +", " + swp);
 				}				
 			}
-			return;
 		}
 
 		List l;
@@ -258,17 +258,17 @@ public class _3Com implements DeviceHandler
 				String ifdescr = s[1];
 
 				// Use regex for extracting unit and port
-				Matcher m = Pattern.compile("Port (\\d+)\\b").matcher(ifdescr);
-				if (!m.find()) continue;
-				String port = m.group(1);
+				String port = null;
+				Matcher m = Pattern.compile("Port +(\\d+)\\b").matcher(ifdescr);
+				if (m.find()) port = m.group(1);
 
 				int module = 1;
-				m = Pattern.compile("Unit (\\d+)\\b").matcher(ifdescr);
+				m = Pattern.compile("Unit +(\\d+)\\b").matcher(ifdescr);
 				if (m.find()) module = Integer.parseInt(m.group(1));
 
 				SwModule swm = sc.swModuleFactory(module);
 				Swport swp = swm.swportFactory(ifindex);
-				swp.setPort(new Integer(port));
+				if (port != null) swp.setPort(new Integer(port));
 				swp.setTrunk(false);
 				swp.setVlan(1);
 
