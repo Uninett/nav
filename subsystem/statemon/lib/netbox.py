@@ -6,7 +6,7 @@ class Netbox:
         self.ip = ip
         self.up = up
     def __eq__(self, obj):
-        if type(obj) == string:
+        if type(obj) == type(""):
             return self.ip == string
         return self.netboxid == obj.netboxid
     def __repr__(self):
