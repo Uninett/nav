@@ -80,7 +80,7 @@ class Boks
 
 			//String mpKey = modul+":"+port;
 			String mpKey = ifindex;
-			BoksMpBak bmp = new BoksMpBak(new Integer(boksbak), new Integer(toIfindex));
+			BoksMpBak bmp = new BoksMpBak(new Integer(boksbak), toIfindex);
 
 			if (mpKey.equals(uplinkMp)) continue; // Ikke legg til for uplink-porten
 
@@ -204,7 +204,7 @@ class Boks
 				// Porten på denne siden
 				//Mp mp = new Mp(mpKey);
 				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
-				BoksMpBak myBmp = new BoksMpBak(getBoksid(), new Integer(mpKey));
+				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
 
 				BoksMpBak bmp = (BoksMpBak)l.get(0);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
@@ -295,7 +295,7 @@ class Boks
 				// Porten på denne siden
 				//Mp mp = new Mp(mpKey);
 				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
-				BoksMpBak myBmp = new BoksMpBak(getBoksid(), new Integer(mpKey));
+				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
 
 				b.addUplinkBoksid(myBmp, bmp.toIfindex);
 
@@ -567,7 +567,7 @@ class Boks
 	}
 	*/
 
-	public void addUplinkBoksid(BoksMpBak bmp, Integer myIfindex)
+	public void addUplinkBoksid(BoksMpBak bmp, String myIfindex)
 	{
 		/*
 		if (getBoksid() == 716 && bmp.boksbak.equals(new Integer(708))) {
@@ -626,7 +626,8 @@ class Boks
 
 	// Returnerer bak hvilken mp en boksid befinner seg, eller null hvis denne boksen ikke har link til enheten
 	//public Mp getMpTo(Integer boksid) { return new Mp((String)boksbakMp.get(boksid)); }
-	public Mp getMpTo(int boksid, String modulbak, String portbak) { return new Mp((String)boksbakMp.get(boksid+":"+modulbak+":"+portbak)); }
+	//public Mp getMpTo(int boksid, String modulbak, String portbak) { return new Mp((String)boksbakMp.get(boksid+":"+modulbak+":"+portbak)); }
+	public String getIfindexTo(int boksid, String toIfindex) { return (String)boksbakMp.get(boksid+":"+toIfindex); }
 
 	public int getBehindMpCount() { return behindMpCount; }
 

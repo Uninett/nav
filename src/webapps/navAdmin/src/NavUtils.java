@@ -266,13 +266,13 @@ class NavUtils
 		ArrayList swport = new ArrayList();
 		HashMap swrecMap = new HashMap();
 		Map swrecSwportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,link,speed,duplex,module,port,portname,to_netboxid,trunk,hexstring FROM swport JOIN module USING(moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY netboxid,ifindex");
+		rs = Database.query("SELECT swportid,netboxid,link,speed,duplex,ifindex,portname,to_netboxid,trunk,hexstring FROM swport JOIN module USING(moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY netboxid,ifindex");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			HashMap hm = getHashFromResultSet(rs, rsmd);
 			String link = rs.getString("link");
 			if (link == null || link.toLowerCase().equals("y")) swport.add(hm);
-			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port");
+			String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
 			swrecMap.put(key, hm);
 			swrecSwportidMap.put(rs.getString("swportid"), hm);
 		}
@@ -287,12 +287,10 @@ class NavUtils
 
 			StringTokenizer st = new StringTokenizer(key, ":");
 			String boksid;
-			String modul;
-			String port;
+			String ifindex;
 			try {
 				boksid = st.nextToken();
-				modul = st.nextToken();
-				port = st.nextToken();
+				ifindex = st.nextToken();
 			} catch (Exception e) {
 				errl("Exception: " + e.getMessage() + " Key: " + key + " bmp: " + bmp);
 				e.printStackTrace(System.err);
@@ -422,10 +420,11 @@ class NavUtils
 					// Vi har en trunk som er static eller mangler hexstring, da tar vi rett og slett bare hexstringen fra andre siden og setter inn
 
 					Boks b = (Boks)bokser.get(bmp.boksbak);
-					Mp mpBak = b.getMpTo(Integer.parseInt(boksid), modul, port);
-					if (mpBak != null) {
+					//Mp mpBak = b.getMpTo(Integer.parseInt(boksid), modul, port);
+					String toIfindex = b.getIfindexTo(Integer.parseInt(boksid), ifindex);
+					if (toIfindex != null) {
 						// Port på andre siden funnet, men eksisterer denne porten i tabellen?
-						String keyBak = bmp.boksbak+":"+mpBak;
+						String keyBak = bmp.boksbak+":"+toIfindex;
 						if (swrecMap.containsKey(keyBak)) {
 							// Eksisterer, sjekk om det er en trunk
 							HashMap swrecBak = (HashMap)swrecMap.get(keyBak);
@@ -436,7 +435,7 @@ class NavUtils
 								if (allowedVlan == null || allowedVlan.length() == 0) {
 									if (allowedVlanBak == null || allowedVlanBak.length() == 0) {
 										// Feilsituasjon! Nå er vi i virkelig trøbbel, da det er static trunk på begge sider...
-										outl("<font color=\"red\">ERROR:</font> Link is trunk with no swportallowedvlan on either side! boks: " + boksNavn.get(new Integer(boksid)) + " Modul: " + modul + " Port: " + port + " boksBak: " + boksNavn.get(bmp.boksbak) + " ModulBak: " + swrecBak.get("modul") + " PortBak: " + swrecBak.get("port") + "<br>");
+										outl("<font color=\"red\">ERROR:</font> Link is trunk with no swportallowedvlan on either side! boks: " + boksNavn.get(new Integer(boksid)) + " Ifindex: " + ifindex+ " boksBak: " + boksNavn.get(bmp.boksbak) + " ToIfindex: " + swrecBak.get("ifindex") + "<br>");
 
 									} else {
 										// Nå må vi sette inn en ny record i swportallowedvlan
@@ -473,7 +472,7 @@ class NavUtils
 								}
 							} else {
 								// Feilsituasjon, trunk<->non-trunk!
-								outl("<font color=\"red\">ERROR:</font> Link is trunk / non-trunk: boks: " + boksNavn.get(new Integer(boksid)) + " Modul: " + modul + " Port: " + port + " boksBak: " + boksNavn.get(bmp.boksbak) + " ModulBak: " + swrecBak.get("module") + " PortBak: " + swrecBak.get("port") + "<br>");
+								outl("<font color=\"red\">ERROR:</font> Link is trunk / non-trunk: boks: " + boksNavn.get(new Integer(boksid)) + " Ifindex: " + ifindex + " boksBak: " + boksNavn.get(bmp.boksbak) + " ToIfindex: " + swrecBak.get("ifindex") + "<br>");
 							}
 						}
 					}
@@ -482,7 +481,7 @@ class NavUtils
 
 			} else {
 				// Dette er nå en feilsituasjon som ikke bør skje! :-)
-				outl("<font color=\"red\">ERROR:</font> Could not find record for other side of link! boks("+boksid+"): <b>" + boksNavn.get(new Integer(boksid)) + "</b> Modul: <b>" + modul + "</b> Port: <b>" + port + "</b> boksBak: <b>" + boksNavn.get(bmp.boksbak) + "</b><br>");
+				outl("<font color=\"red\">ERROR:</font> Could not find record for other side of link! boks("+boksid+"): <b>" + boksNavn.get(new Integer(boksid)) + "</b> Ifindex: <b>" + ifindex + "</b> boksBak: <b>" + boksNavn.get(bmp.boksbak) + "</b><br>");
 
 			}
 
@@ -713,8 +712,7 @@ class NavUtils
 		for (int i=0; i < swport.size(); i++) {
 			HashMap swrec = (HashMap)swport.get(i);
 			String boksid = (String)swrec.get("netboxid");
-			String modul = (String)swrec.get("module");
-			String port = (String)swrec.get("port");
+			String ifindex = (String)swrec.get("ifindex");
 			String portnavn = (String)swrec.get("portname");
 			//boolean isStatic = swrec.get("static").equals("t");
 			String change = (String)swrec.get("change");
@@ -723,7 +721,7 @@ class NavUtils
 
 			String boksbak = "";
 			//Integer idbak = (Integer)boksMp.get(boksid+":"+modul+":"+port);
-			BoksMpBak bmp = (BoksMpBak)boksMp.get(boksid+":"+modul+":"+port);
+			BoksMpBak bmp = (BoksMpBak)boksMp.get(boksid+":"+ifindex);
 			Integer idbak = (bmp != null) ? bmp.boksbak : null;
 			if (idbak != null) boksbak = (String)boksNavn.get(idbak);
 			if (boksbak == null) {
@@ -795,8 +793,7 @@ class NavUtils
 		for (int i=0; i < swport.size(); i++) {
 			HashMap swrec = (HashMap)swport.get(i);
 			String boksid = (String)swrec.get("netboxid");
-			String modul = (String)swrec.get("module");
-			String port = (String)swrec.get("port");
+			String ifindex = (String)swrec.get("ifindex");
 			String portnavn = (String)swrec.get("portname");
 			//boolean isStatic = swrec.get("static").equals("t");
 			String change = (String)swrec.get("change");
@@ -804,7 +801,7 @@ class NavUtils
 			if (portnavn == null) portnavn = "";
 
 			String boksbak = "";
-			BoksMpBak bmp = (BoksMpBak)boksMp.get(boksid+":"+modul+":"+port);
+			BoksMpBak bmp = (BoksMpBak)boksMp.get(boksid+":"+ifindex);
 			Integer idbak = (bmp != null) ? bmp.boksbak : null;
 			if (idbak != null) boksbak = (String)boksNavn.get(idbak);
 			if (boksbak == null) {

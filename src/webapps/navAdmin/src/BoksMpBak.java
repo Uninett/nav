@@ -7,21 +7,16 @@ import java.util.*;
 public class BoksMpBak
 {
 	public Integer boksbak;
-	public Integer toIfindex;
+	public String toIfindex;
 
 	String hashKey;
 
-	public BoksMpBak(int boksbak, int toIfindex)
-	{
-		this(new Integer(boksbak), new Integer(toIfindex));
-	}
-
-	public BoksMpBak(int boksbak, Integer toIfindex)
+	public BoksMpBak(int boksbak, String toIfindex)
 	{
 		this(new Integer(boksbak), toIfindex);
 	}
 
-	public BoksMpBak(Integer boksbak, Integer toIfindex)
+	public BoksMpBak(Integer boksbak, String toIfindex)
 	{
 		this.boksbak = boksbak;
 		this.toIfindex = toIfindex;
@@ -38,7 +33,7 @@ public class BoksMpBak
 	}
 	*/
 	public void setToIfindex(String toIfindex) {
-		this.toIfindex = new Integer(toIfindex);
+		this.toIfindex = toIfindex;
 	}
 
 	public String hashKey() { return hashKey; }
