@@ -1,0 +1,148 @@
+/* Stilsett for NAV front-end.
+ *	her kan man gjore endring som endrer utseende på hele NAV portalen. Hvis man
+ * onsker å endre utseende bor det gjores i denne CSS filen, ikke i html koden.
+ *
+ */
+
+.ilink {
+	cursor:crosshair;
+}
+
+
+/* Utseende av linker */
+
+A:link, A:visited {
+	color: #333333
+}
+
+P A:active, P A:hover {
+	color: #993333
+}
+
+A {
+	text-decoration: none
+}
+
+A.sort:link, A.sort:visited {
+	color: #CCCCCC
+}
+
+A.sort:active, A.sort:hover {
+	color: #FF9999
+}
+
+
+/* Boksen under periode som man endrer tidsperiodeinstillingene paa */
+
+.endreboks {
+	background-color: #FFFFCC;
+	border-width: thin;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: solid;
+	border-left-style: none;
+	border-color: #000000
+}
+
+/* Dokument utseende */
+
+BODY { 
+	background : #FFFFFF;
+	color : #000000;
+	font-family : arial, sans-serif;
+	margin : 1.4em
+}
+.main {
+	text-align : left;
+	width : 80%
+}
+
+.meny {
+	width : 100%;
+	border : 1px groove #000000;
+	margin : 0px 0px 10px 0px;
+	background : #CCCCFF
+}
+
+.mainWindow {
+	margin : 0px 0px 10px 0px;
+	background : #ffffdd;
+	border : 1px groove #000000
+}
+
+.feilWindow {
+	margin : 2px 2px 22px 2px;
+	background : #FFFF00;
+	border : 1px groove #000000
+}
+
+.menyHead {
+	font-weight : bold;
+	background : #336699;
+	color : #CCCCCC;
+	text-align : center
+}
+
+.mainWindowHead {
+	font-weight : bold;
+	color : #ffffdd;
+	background : #003366;
+	text-align : center
+}
+
+INPUT.subm {
+	font-weight: bold
+}
+
+INPUT.fieldOne, INPUT.fieldTwo, TEXTAREA.field {
+	font-family : monospace;
+}
+
+INPUT.fieldOne {
+	width : 100%
+}
+
+P.nop {
+	margin-bottom: 0em
+}
+
+P.descr {
+	font-family: arial, sans-serif;
+	color: #333333;
+	font-size: 0.9em;
+	margin: 0em
+}
+
+.oversikt { 
+	background : #dddddd;
+	border : 1px groove #000000
+}
+
+P, TD, TH, TR, LI {
+	font-family: arial, sans-serif;
+	font-size: 1.0em
+}
+
+
+
+h1, h2, h3 {
+  
+}
+
+h1 {
+	font-size: 1.4em;
+	font-weight: bold
+}
+
+h2 {
+	font-size: 1.2em;
+	font-weight: bold
+}
+
+h3 {
+	font-size: 1em;
+	font-weight: bold
+}
+
+.noCSS { display: none }
+
