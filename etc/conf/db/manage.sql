@@ -624,6 +624,17 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceRegistered','Tells us that a device has been registered with a serial number','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceError','Registers an error situation with a device','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceOnService','Registers that a device is put on service','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceInOperation','Registers that a device is in operation','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceSwUpgrade','Registers a sofware upgrade on a device','n');
+ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceHwUpgrade','Registers a hardware upgrade on a device','n');
+
 
 DROP TABLE eventq CASCADE;
 DROP SEQUENCE eventq_eventqid_seq;
