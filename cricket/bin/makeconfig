@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.17 2002/06/19 13:10:01 stain Exp $
+# $Id: makeconfig,v 1.18 2002/06/19 13:28:29 stain Exp $
 
 use strict;
 
@@ -116,8 +116,6 @@ sub Servers {
 
     # Iterates over all the servers in the database marked SNMP, and
     # writes them to various config files.    
-
-    my $oid_win32 = "1.3.6.1.4.1.2021.250.10";
     
 
     $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,snmpagent FROM boks
@@ -129,6 +127,12 @@ sub Servers {
             # Avoid severe errors in the database
       if ($sysname) {
           if ($community) {
+
+                my $win32 = 0;
+                if($ostype =~ /^1\.3\.6\.1\.4\.1\.311/) {
+                  $win32 = 1;
+                }
+          
                 my $server = $sysname;
                 my $sysname = $sysname . '.ntnu.no';
                 mkdir ("$path/servers/$sysname",0775);
@@ -152,7 +156,7 @@ sub Servers {
                 print FIL "\n";
 
                 print FIL "target \"users\"\n";
-		if($ostype eq "win32") {
+                if($win32) {
                   print FIL "\ttarget-type = userswin\n";
 		} else {
 		  print FIL "\ttarget-type = usersnix\n";
@@ -163,7 +167,7 @@ sub Servers {
                 print FIL "\ttarget-type = processes\n";
                 print FIL "\n";
 
-                if(not $ostype eq $oid_win32) {
+                if(not $win32) {
                   print FIL "target \"load\"\n";
                   print FIL "\ttarget-type = loadnix\n";
                   print FIL "\n";
@@ -171,7 +175,7 @@ sub Servers {
 
 
                 print FIL "target \"memory\"\n";
-                if($ostype eq $oid_win32) {
+                if($win32) {
                   print FIL "\ttarget-type = memwin\n";
                 } else { 
                   print FIL "\ttarget-type = memnix\n";
@@ -180,7 +184,7 @@ sub Servers {
                 
 
                 print FIL "target \"cpu\"\n";
-                if($ostype eq $oid_win32) {
+                if($win32) {
                   print FIL "\ttarget-type = cpuwin\n";
                 } else { 
                   print FIL "\ttarget-type = cpunix\n";
