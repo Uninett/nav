@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.11 2002/06/15 21:27:55 magnun Exp $
+$Id: RunQueue.py,v 1.12 2002/06/15 22:13:14 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/RunQueue.py,v $
 
 """
@@ -89,7 +89,7 @@ class RunQueue:
             if len(self.unusedThreadName) > 0:
                 t.setName(self.unusedThreadName.pop())
             else:
-                t.setName('worker'+str(self.numThreads))
+                t.setName('worker'+str(len(self.workers)))
             self.debug('Created new thread, %s' % (t.getName()))
             self.workers.append(t)
 
