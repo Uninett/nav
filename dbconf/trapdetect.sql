@@ -1,3 +1,28 @@
+-- Slette alle tabeller
+DROP TABLE bruker;
+DROP TABLE brukeriorg;
+DROP TABLE org;
+DROP TABLE smsutko;
+DROP TABLE subtrap;
+DROP TABLE trap;
+DROP TABLE trapeier;
+DROP TABLE trapkat;
+DROP TABLE unntak;
+DROP TABLE varsel;
+DROP TABLE varseltype;
+
+-- Slette alle sekvenser
+
+DROP SEQUENCE bruker_id_seq;
+DROP SEQUENCE org_id_seq;
+DROP SEQUENCE smsutko_id_seq;
+DROP SEQUENCE trap_id_seq;
+DROP SEQUENCE unntak_id_seq;
+DROP SEQUENCE varsel_id_seq;
+DROP SEQUENCE varseltype_id_seq;
+
+-- Lage tabeller
+
 create table trap (
 id serial primary key,
 sykoid varchar(50) not null,
@@ -82,5 +107,31 @@ sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
 smsid int4, 
 tidsendt timestamp 
 );
+
+
+-- Gi rettigheter til bruker varsle
+
+GRANT ALL ON bruker TO varsle;
+GRANT ALL ON brukeriorg TO varsle;
+GRANT ALL ON org TO varsle;
+GRANT ALL ON smsutko TO varsle;
+GRANT ALL ON subtrap TO varsle;
+GRANT ALL ON trap TO varsle;
+GRANT ALL ON trapeier TO varsle;
+GRANT ALL ON trapkat TO varsle;
+GRANT ALL ON unntak TO varsle;
+GRANT ALL ON varsel TO varsle;
+GRANT ALL ON varseltype TO varsle;
+
+GRANT ALL ON bruker_id_seq TO varsle;
+GRANT ALL ON org_id_seq TO varsle;
+GRANT ALL ON smsutko_id_seq TO varsle;
+GRANT ALL ON trap_id_seq TO varsle;
+GRANT ALL ON unntak_id_seq TO varsle;
+GRANT ALL ON varsel_id_seq TO varsle;
+GRANT ALL ON varseltype_id_seq TO varsle;
+
+
+
 
 
