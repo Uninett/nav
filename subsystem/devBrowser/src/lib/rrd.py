@@ -20,6 +20,8 @@ from nav.web import urlbuilder
 from nav.errors import *
 import nav.web.templates.tsTemplate
 
+configfile = 'rrdBrowser.conf'
+
 def process(request):
     args = request['args']
     query = parseQuery(request['query'])
@@ -40,6 +42,8 @@ def process(request):
         graphAction(request['req'])
         session.save()
         raise RedirectError, urlbuilder.createUrl(division="rrd")
+    if args[0] == "graph":
+        graph(request['req'], query['id'][0])
     if args[0] == "join":
         try:
             id = query['id']
@@ -274,4 +278,12 @@ def datasources(query, session):
     session['rrd'] = page
     return showGraphs(session)
         
-    
+def graph(req,id):
+    conf = nav.config.readConfig(configfile)
+    filename = "%s%s%s" % (conf['fileprefix'],id, conf['filesuffix'])
+    req.content_type  = 'image/gif'
+    req.send_http_header()
+    f = open(filename)
+    req.write(f.read())
+    f.close()
+                                
