@@ -21,7 +21,31 @@ def headerparserhandler(req):
     """
     from mod_python import apache
 
+    # We automagically redirect users to the index page if they
+    # request the root.
+    if req.uri == '/':
+        redirect(req, '/index.py/index')
+
     state.setupSession(req)
     auth.authenticate(req)
 
     return apache.OK
+
+
+def redirect(req, url, temporary=False):
+    """
+    Immediately redirects the request to the given url. If the
+    temporary parameter is set, the server issues a 307 Temporary
+    Redirect, if not it issues a 301 Moved Permanently.
+    """
+    from mod_python import apache
+
+    if temporary:
+        status = apache.HTTP_TEMPORARY_REDIRECT
+    else:
+        status = apache.HTTP_MOVED_PERMANENTLY
+    
+    req.headers_out['Location'] = url
+    req.status = status
+    req.send_http_header()
+    raise apache.SERVER_RETURN, apache.status

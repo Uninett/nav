@@ -30,14 +30,15 @@ def checkAuthorization(user, uri):
         from nav.db.navprofiles import Accountgroup
         groups = [Accountgroup(2)]
 
-    groupString = ",".join([str(group.id) for group in groups])
-    cursor.execute("SELECT * FROM WebAuthorization WHERE accountgroupid IN (%s)" % groupString)
-    for authz in cursor.dictfetchall():
-        regex = re.compile(authz['uri'])
-        if regex.search(uri):
-            return True
+    if len(groups):  # If any groups were found
+        groupString = ",".join([str(group.id) for group in groups])
+        cursor.execute("SELECT * FROM WebAuthorization WHERE accountgroupid IN (%s)" % groupString)
+        for authz in cursor.dictfetchall():
+            regex = re.compile(authz['uri'])
+            if regex.search(uri):
+                return True
 
-    # If none matched, we return false.
+    # If no groups or uri matches were found, we return false.
     return False
     
 
@@ -45,11 +46,8 @@ def redirectToLogin(req):
     """
     Takes the supplied request and redirects it to the NAV login page.
     """
-    from mod_python import apache
-    req.headers_out['Location'] = '/index.py/login?origin=%s' % req.uri
-    req.status = apache.HTTP_TEMPORARY_REDIRECT
-    req.send_http_header()
-    raise apache.SERVER_RETURN, apache.HTTP_TEMPORARY_REDIRECT
+    from nav import web
+    web.redirect(req, '/index.py/login?origin=%s' % req.uri, temporary=True)
 
 def authenticate(req):
     """

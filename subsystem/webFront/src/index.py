@@ -74,7 +74,10 @@ def login(req, login='', password='', origin=''):
             return _getLoginPage(origin, "Login failed")
     else:
         # The user requested only the login page
-        return _getLoginPage(origin)
+        if origin:
+            return _getLoginPage(origin, "Not authorized")
+        else:
+            return _getLoginPage('')
 
 def _getLoginPage(origin, message=''):
     from nav.web.templates.LoginTemplate import LoginTemplate
