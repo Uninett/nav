@@ -74,11 +74,14 @@ class MacForm (Form):
 class PortForm:
 
     def __init__(self,netbox="",module="",port="",days="7",justme=""):
-        if not module:
+        if not module or module == "*":
             module = "%"
             
-        if not port:
+        if not port or port == "*":
             port = "%"
+
+	if not days:
+	    days = "7"
                 
         self.netbox  = netbox
         self.module  = module
@@ -135,7 +138,7 @@ class Trace:
     self.host   = {}
   ##############################
     
-  execfile("/usr/local/nav/local/etc/conf/ipmac.conf")
+  execfile("/usr/local/nav/local/etc/conf/machinetracker.conf")
 
 
   def strip_mac(self,mac):
@@ -171,9 +174,9 @@ class Trace:
 
     streng = self.get_macstreng(mac)
 
-    sql = "select netbox.sysname, ip, module, port, vlan, mac, start_time, end_time from cam inner join netbox using (netboxid) inner join prefix using (prefixid) where " + streng + " and " + tidstreng + " order by mac, start_time"
+    sql = "select netbox.sysname, ip, module, port, vlan, mac, start_time, end_time from cam inner join netbox using (netboxid) inner join prefix using (prefixid) left outer join vlan using (vlanid) where " + streng + " and " + tidstreng + " order by mac, start_time"
     
-    connection = psycopg.connect(dsn="host=localhost user=manage dbname=manage password=eganam")
+    connection = db.getConnection('webfront', 'manage')
     handle = connection.cursor()
     
     handle.execute(sql)
@@ -209,9 +212,9 @@ class Trace:
     
     streng = self.get_macstreng(mac)
 
-    sql = "select ip,mac, start_time, end_time,vlan from prefix inner join arp using (prefixid) where " + streng + " and " + tidstreng + " order by ip, mac, start_time"
+    sql = "select ip,mac, start_time, end_time,vlan from prefix inner join arp using (prefixid) left outer join vlan using (vlanid) where " + streng + " and " + tidstreng + " order by ip, mac, start_time"
 
-    connection = psycopg.connect(dsn="host=localhost user=manage dbname=manage password=eganam")
+    connection = db.getConnection('webfront', 'manage')
     handle = connection.cursor()
     
     handle.execute(sql)
@@ -224,8 +227,11 @@ class Trace:
       ip = row[0]
       if dns:
         if not host.has_key(ip):
-          host[ip] = gethostbyaddr(ip)[0]
-
+	  try:
+            host[ip] = gethostbyaddr(ip)[0]
+	  except herror,e:
+	    #håndterer dnsfeil på denne uelegante måten:
+	    host[ip] = "feil"
       mac = row[1]
       start = row[2]
       end = row[3]
@@ -271,14 +277,14 @@ class Trace:
     #lager sql selv
     #sql = "select ip,mac, start_time, end_time from vlan inner join prefix using (vlan) inner join arp using (prefixid) where orgid in (,,,) and ip between '129.241.104.0' and '129.241.104.255'";
     if prefixid:
-      sql = "select ip,mac, start_time, end_time from vlan inner join prefix using (vlan) inner join arp using (prefixid) where orgid in " + orgids + " and prefixid = " + prefixid + " and " + tidstreng + " order by ip, mac, start_time";
+      sql = "select ip,mac, start_time, end_time from vlan inner join prefix using (vlanid) inner join arp using (prefixid) where orgid in " + orgids + " and prefixid = " + prefixid + " and " + tidstreng + " order by ip, mac, start_time";
     elif group == "admin":
       sql = "select ip,mac, start_time, end_time from prefix inner join arp using (prefixid) where ip between '" + from_ip + "' and '" + to_ip + "' and " + tidstreng + " order by ip, mac, start_time";
     else :
       sql = "select ip,mac, start_time, end_time from vlan inner join prefix using (vlan) inner join arp using (prefixid) where " + orgids + "ip between '" + from_ip + "' and '" + to_ip + "' and " + tidstreng + " order by ip, mac, start_time";
 
-    connection = psycopg.connect(dsn="host=localhost user=manage dbname=manage password=eganam")
-    handle = connection.cursor()
+    connection = db.getConnection('webfront','manage')
+    handle = connection.cursor()	
     
     handle.execute(sql)
     arp_ = handle.fetchall()
@@ -403,8 +409,6 @@ class PortTrace:
             
         sql = "SELECT DISTINCT cam.module,cam.port,cam.mac,arp.ip,swport.portname FROM netbox JOIN cam USING (netboxid) JOIN module USING (netboxid) JOIN swport USING (moduleid) JOIN arp USING (mac) WHERE "
 
-        
-
         sql = sql+"netbox.sysName = '"+form.netbox+"' "
 
 
@@ -429,10 +433,6 @@ class PortTrace:
 
         sql = sql+"order by module,port,mac,ip"
             
-        
-#        connection = psycopg.connect(dsn="host=localhost user=manage dbname=manage password=eganam")
-#        handle = connection.cursor()
-
         conn = db.getConnection('webfront', 'manage')
         cursor = conn.cursor()
         
@@ -493,11 +493,11 @@ class PortTrace:
         return form
     
     def hrefArp(self,ip):
-        ref = "<a href=/trace/ip?days=7&from_ip="+ip+"&aip=on>"+ip+"</a>"
+        ref = "<a href=/machinetracker/ip?days=7&from_ip="+ip+"&aip=on>"+ip+"</a>"
         return ref
 
     def hrefCam(self,mac):
-        ref = "<a href=/trace/mac&days=7&mac="+mac+">"+mac+"</a>"
+        ref = "<a href=/machinetracker/mac?days=7&mac="+mac+">"+mac+"</a>"
         return ref
 
 #    def refHelp(self):
