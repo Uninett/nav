@@ -76,7 +76,7 @@ class AbstractChecker:
 		timeout = self.getArgs().get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
 		self.setTimeout(int(timeout))
 		self.db=db.db(config.dbconf())
-		self.alerter=mailAlert.mailAlert()
+		# self.alerter=mailAlert.mailAlert()
 		debug("New checker instance for %s:%s " % (self.getSysname(), self.getType()),6)
 		self.runcount=0
 		self.rq=RunQueue.RunQueue()
@@ -117,7 +117,7 @@ class AbstractChecker:
 
 			# Send an mail while we are waiting for the
 			# NAV alertengine to function properly
-			self.alerter.put(newEvent)
+			# self.alerter.put(newEvent)
 			self.setStatus(status)
 		
 		if version != self.getVersion() and self.getStatus() == event.Event.UP:

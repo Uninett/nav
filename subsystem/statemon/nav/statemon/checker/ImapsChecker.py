@@ -3,10 +3,12 @@ $Id: $
 $Source: $
 """
 
-from abstractChecker import AbstractChecker
-from event import  Event
-import imaplib, Socket, socket
-from OpenSSL import SSL
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import  Event
+from nav.statemon import  Socket
+import imaplib
+import socket
+
 #class IMAPConnection(imaplib.IMAP4):
 #	def __init__(self, timeout, host, port):
 #		self.timeout=timeout
@@ -40,7 +42,7 @@ class IMAPSConnection(imaplib.IMAP4):
         self.certfile = certfile
         self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
-        self.ctx = SSL.Context(SSL.SSLv23_METHOD)
+        # self.ctx = SSL.Context(SSL.SSLv23_METHOD)
 
 
     def open(self, host, port ):

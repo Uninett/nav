@@ -2,11 +2,11 @@
 $Id: HttpChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/HttpChecker.py,v $
 """
-from event import Event
-from abstractChecker import AbstractChecker
+from nav.statemon.event import Event
+from nav.statemon.abstractChecker import AbstractChecker
 from urlparse import urlsplit
 import httplib
-import Socket
+from nav.statemon import Socket
 import socket
 class HTTPConnection(httplib.HTTPConnection):
 	def __init__(self,timeout,host,port=80):
@@ -45,7 +45,7 @@ class HttpChecker(AbstractChecker):
 			i.host=vhost
 		#i.set_debuglevel(9)
 		i.putrequest('GET',path)
-		internalRev = "$Rev$"
+		internalRev = "$Rev: 1361 $"
 		internalRev = internalRev[:-2].replace('$Rev: ','')
 		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev)
 		i.endheaders()

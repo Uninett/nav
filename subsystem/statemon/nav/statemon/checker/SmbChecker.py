@@ -3,8 +3,8 @@ $Id: SmbChecker.py,v 1.2 2003/06/20 09:34:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/SmbChecker.py,v $
 """
 import os,re
-from abstractChecker import AbstractChecker
-from event import Event
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re.I) #tihihi
 class SmbChecker(AbstractChecker):
 	"""

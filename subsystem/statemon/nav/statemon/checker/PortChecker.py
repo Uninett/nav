@@ -2,7 +2,7 @@
 $Id: PortChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/PortChecker.py,v $
 """
-from abstractChecker import AbstractChecker, Event
+from nav.statemon.abstractChecker import AbstractChecker, Event
 class PortChecker(AbstractChecker):
 	def __init__(self,*args):
 		AbstractChecker.__init__(self,'port',*args)

@@ -3,8 +3,8 @@ $Id: LdapChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/LdapChecker.py,v $
 """
 
-from abstractChecker import AbstractChecker
-from event import Event
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 import ldap,base64,string
 
 class LdapChecker(AbstractChecker):

@@ -4,7 +4,7 @@ $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/DummyChecker
 """
 
 
-from abstractChecker import AbstractChecker, Event
+from nav.statemon.abstractChecker import AbstractChecker, Event
 class DummyChecker(AbstractChecker):
 	def __init__(self,*args):
 		AbstractChecker.__init__(self,'dummy',*args)

@@ -3,15 +3,16 @@ $Id: SmtpChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/SmtpChecker.py,v $
 """
 
-from abstractChecker import AbstractChecker
-from event import Event
-import smtplib, Socket
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
+from nav.statemon.Socket import Socket
+import smtplib
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):
 		self.timeout = timeout
 		smtplib.SMTP.__init__(self,host,port)
 	def connect(self, host='localhost', port = 25):
-		self.sock = Socket.Socket(self.timeout)
+		self.sock = Socket(self.timeout)
 		self.sock.connect((host,port))
 		return self.getreply()
 

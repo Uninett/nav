@@ -2,9 +2,10 @@
 $Id: Pop3Checker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/Pop3Checker.py,v $
 """
-from abstractChecker import AbstractChecker
-from event import Event
-import poplib, Socket
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
+from nav.statemon import Socket
+import poplib
 class PopConnection(poplib.POP3):
 	def __init__(self, timeout, ip, port):
 		self.ip=ip

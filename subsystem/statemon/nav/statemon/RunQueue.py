@@ -172,7 +172,3 @@ class _RunQueue:
         for i in self.workers:
             i.join()
         debug("All threads have finished")
-
-
-    def __len__(self):
-        return DEQueue.__len__(self)

@@ -9,8 +9,8 @@ Copyright (c) 2002 by NTNU, ITEA nettgruppen
 Author: Arve Vanvik <arveva@itea.ntnu.no>
 """
 
-from abstractChecker import AbstractChecker
-from event import Event
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 import cx_Oracle, string, exceptions, sys
 import os
 

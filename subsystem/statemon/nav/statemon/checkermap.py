@@ -9,7 +9,10 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 import os, re, debug
 from debug import debug
 checkers = {}
-
+checkerdir = os.path.join(os.path.dirname(__file__), "checker")
+if checkerdir not in os.sys.path:
+    debug("Adding %s to sys.path" % checkerdir)
+    os.sys.path.append(checkerdir)
 def register(key, module):
     if not key in checkers.keys():
         debug("Registering checker %s from module %s" % (key, module))
@@ -26,10 +29,10 @@ def get(checker):
 
 def parsedir():
     """
-    Parses the dir lib/handler for Handlers.
+    Parses the checkerdir for Handlers.
     
     """
-    files=os.listdir("./lib/checker/")
+    files=os.listdir(checkerdir)
     handlerpattern="Checker.py"
     for file in files:
         if len(file) > len(handlerpattern) and file[len(file)-len(handlerpattern):]==handlerpattern:

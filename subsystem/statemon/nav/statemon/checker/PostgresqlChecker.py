@@ -2,8 +2,8 @@
 $Id: PostgresqlChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/PostgresqlChecker.py,v $
 """
-from abstractChecker import AbstractChecker, Event
-import Socket
+from nav.statemon.abstractChecker import AbstractChecker, Event
+from nav.statemon import Socket
 class PostgresqlChecker(AbstractChecker):
 	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get('port', 5432)

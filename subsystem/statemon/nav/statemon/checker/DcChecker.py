@@ -3,8 +3,8 @@ $Id: DcChecker.py,v 1.2 2003/06/20 09:34:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/DcChecker.py,v $
 """
 
-from abstractChecker import AbstractChecker
-from event import Event
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 import os
 
 class DcChecker(AbstractChecker):
