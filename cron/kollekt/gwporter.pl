@@ -20,7 +20,7 @@ my $ifAlias        = ".1.3.6.1.2.1.31.1.1.1.18";
 my $hsrp_status    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
-my $db = &db_connect("manage","navall","uka97urgf");
+my $db = &db_connect("manage2","navall","uka97urgf");
 
 ## antmask tatt ut
 my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","samband","komm");
@@ -60,7 +60,7 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
 #	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
 #    }
 #}
-&db_alt($db,2,1,"prefiks",\@felt_prefiks,\%prefiks,\%db_prefiks);
+&alt($db,1,\%prefiks,\%db_prefiks,"prefiks",\@felt_prefiks,1,2);
 
 #nå som alle prefiksene er samlet inn, vil det være på sin plass å sette dem inn i boks.
 
@@ -79,7 +79,7 @@ my %nettadr2prefiksid = &db_hent_enkel($db,"SELECT nettadr,prefiksid FROM prefik
 #	}
 #    }
 #}
-&db_alt($db,3,1,"gwport",\@felt_gwport,\%gwport,\%db_gwport);
+&alt($db,1,\%gwport,\%db_gwport,"gwport",\@felt_gwport,1,2,3);
 
 
 #prefiksid i gwport oppdateres her
