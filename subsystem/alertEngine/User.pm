@@ -62,7 +62,7 @@ sub collectInfo()
 #Returns true if successful.
   {
     my $this=shift;
-    my $sth=$this->{dbh}->prepare("select p.activeprofile, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'");
+    my $sth=$this->{dbh}->prepare("select p.activeprofile, ap.value,extract('dow' from now()),a.login from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'");
 
     $sth->execute();
 
@@ -78,7 +78,7 @@ sub collectInfo()
     $this->{lang}=$info->[1];
     $this->{day}=$info->[2];
 
-    $this->{sms}=system("$NAV::Path::bindir/hasPrivilege.py arneos alerttype sms");
+    $this->{sms}=system("$NAV::Path::bindir/hasPrivilege.py $info->[3] alerttype sms");
 
     if(!$this->{lang}) {
 	$this->{log}->printlog("User","collectInfo",$Log::error,"no language defined for acountid=$this->{id}");
