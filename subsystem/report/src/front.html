@@ -1,22 +1,35 @@
 
 <h2>Reports</h2>
 
-<table>
-<tr><td><form action=../browse/>Device Browser</td>
-<td><input type=text name=netbox size=10><br><font size=1 color=gray>IP / sysname</font></td>
-<td><input type=submit value=Find></td>
-</form></tr>
+<table width=80%>
+<tr>
 
-<tr><td><form action=netbox>Equipment in a room</td>
-<td><input type=text name=roomid size=10><br><font size=1 color=gray>room</font></td>
-<td><input type=submit value=Find></td>
-</form></tr>
+<td width=25%><form action=../browse/>Device Browser<br>
+<input type=text name=netbox size=10>
+<input type=submit value=Find>
+<br><font size=1 color=gray>IP / sysname</font>
+</form></td>
+
+<td width=25%><form action=netbox>Equipment in a room<br>
+<input type=text name=roomid size=10>
+<input type=submit value=Find>
+<br><font size=1 color=gray>room</font>
+</form></td>
+
+<td width=25%><form action=device>Device<br>
+<input type=text name="serial" size=10>
+<input type=submit value=Find>
+<br><font size=1 color=gray>serial number</font>
+</form></td>
+
+<td width=25%><form action=swportv>Switchports with vlan<br>
+<input type=text name="vlan.vlan" size=10>
+<input type=submit value=Find>
+<br><font size=1 color=gray>vlan number</font>
+</form></td>
 
 
-<tr><td><form action=swportv>Switchports with vlan</td>
-<td><input type=text name="vlan.vlan" size=10><br><font size=1 color=gray>vlan number</font></td>
-<td><input type=submit value=Find></td>
-</form></tr>
+</tr>
 </table>
 
 
@@ -24,20 +37,15 @@
 
 <p>
 
-<table border=1 cellspacing=1 cellpadding=10>
+<table width=80% border=0 cellspacing=1 cellpadding=10>
 
-<tr><td>
-
-
+<tr><td colspan=2 width=50%>
 <dl>
+Collected information
 <dt><a href=netbox>Devices in Operation (all)</a>
 
 <dt><a href=gw>Routers</a>
-<dd><a href=prefixmgw>Subnets grouped by router</a>
-<dd><a href=gwport>Router ports</a>
 <dd><a href=prefix>Prefixes</a>
-
-
 <dt><a href=sw>Core Switches</a>
 <dd><a href=swport?b1.catid=SW>Core switch ports</a></li>
 <dd><a href=swport?b1.catid=SW&s1.trunk=1>Trunked core switch ports</a></li>
@@ -52,25 +60,22 @@
 <dd><a href=servicemon>Services</a>
 
 <dt><a href=other>Other devices</a>
-
-
+<dt><a href=modules>Modules</a>
+<dt><a href=mem>Memory</a>
+</dl>
 </td>
-<td>
-
-
-<dt>Additionals
-<dd><a href=modules>Modules</a>
-<dd><a href=mem>Memory</a>
-<p>
-<dt>Manually updated information (<a href="../editdb">update database</a>)
-
-<dd><a href=room>Rooms</a>
-<dd><a href=location>Locations</a>
-<dd><a href=org>Organisations</a>
-<dd><a href=usage>User groups</a>
-<dd><a href=vendor>Vendors</a>
-<dd><a href=type>Equipment types</a> &nbsp An equipment type can be monitored (directly or by way of other devices)
-<dd><a href=product>Products</a>  &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp  A product can be monitored, - or not... 
+<td valign=top width=50% colspan=2>
+<dl>
+<dt>Manually updated information
+<dt><a href="../editdb"><i>Update database</i></a>
+<br><br>
+<dt><a href=type>Equipment types</a>
+<dt><a href=room>Rooms</a>
+<dt><a href=location>Locations</a>
+<dt><a href=org>Organisations</a>
+<dt><a href=usage>User groups</a>
+<dt><a href=vendor>Vendors</a>
+<dt><a href=product>Products</a>
 
 
 </dl>
