@@ -14,53 +14,78 @@
 </div>
 #end def
 
-#def $makeDateTime($prefix,$year,$month,$day,$hour,$minute)
 
+#def $makeFormField($type,$name,$value="",$label=None,$star=None)
+
+#if $label
+<label>$label</label>#slurp
+#end if
+#if $star
+<span style="color:red;">*</span>
+#end if
+#if $type == "textarea"
+<textarea name="$name" cols="50" rows="5">$value</textarea>
+#else
+<input type="$type" name="$name" value="$value" />
+#end if
+
+#end def
+
+#def $makeDateTime($label,$prefix,$year,$month,$day,$hour,$minute)
+
+<label>$label</label>
 <select name="${prefix}_year">
 #for y in range(2004,2020)
-<option value="$y".slurp
+<option value="$y" #slurp
 #if $y==$year
- selected="1".slurp
+selected="1" #slurp
 #end if
 >$y</option>
 #end for
 </select>
 
+#set $months = ("January","February","March","April","May","June","July","August","September","October","November","December")
+
 <select name="${prefix}_month">
 #for m in range(1,13)
-<option value="$m".slurp
+<option value="$m" #slurp
 #if $m==$month
- selected = "1".slurp
+selected="1" #slurp
 #end if
->$m</option>
+>$months[$m-1]</option>
 #end for
 </select>
 
 <select name="${prefix}_day">
 #for d in range(1,32)
-<option value="$d".slurp
+<option value="$d" #slurp
 #if $d==$day
- selected = "1".slurp
+selected="1" #slurp
 #end if
 >$d</option>
 #end for
 </select>
 
+<label>at</label>
+
 <select name="${prefix}_hour">
 #for h in range(0,24)
-<option value="$h".slurp
+<option value="$h" #slurp
 #if $h==$hour
- selected = "1".slurp
+selected="1" #slurp
 #end if
 >$h</option>
 #end for
 </select>
 
 <select name="${prefix}_minute">
-#for m in ("00","15","30","45")
-<option value="$m".slurp
+#for m in range(0,60,5)
+<option value="$m" #slurp
 #if $m==$minute
- selected = "1".slurp
+selected="1" #slurp
+#end if
+#if $m < 10
+#set $m = "0"+str($m)
 #end if
 >$m</option>
 #end for
@@ -89,20 +114,32 @@ No maintenance info.
   <!-- Here comes the actual information regarding maintenance information -->
   <table>
   <tr>
-    <td><b>Room</b></td>
-    <td><b>Netbox</b></td>
-    <td><b>Service</b></td>
-    <td><b>Start</b></td>
-    <td><b>End</b></td>
-    <td><b>Title</b></td>
+    <th><b>On Service</b></th>
+    <th><b>Start</b></th>
+    <th><b>End</b></th>
+    <th><b>Title</b></th>
   </tr>
   #for $message in $maints
   <tr>
-    <td><a href="/report/netbox?roomid=$message.roomid">$message.roomid ($message.roomdesc)</td>
-    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
-    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
-    <td>$message.mstart</td>
-    <td>$message.mend</td>
+##    <td><a href="/report/netbox?roomid=$message.roomid">$message.roomid ($message.roomdesc)</td>
+##    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
+##    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
+##    <td>$message.mstart</td>
+##    <td>$message.mend</td>
+##    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
+#if $message.key == 'room'
+    <td><a href="/report/netbox?roomid=$message.value">$message.description</td>
+#elif $message.key == 'location'
+    <td><a href="/report/room?locationid=$message.value">$message.description</td>
+#elif $message.key == 'netbox'
+    <td><a href="/browse/$message.value">$message.description</a></td>
+#elif $message.key == 'module'
+    <td><a href="/report/module?moduleid=$message.value">$message.description</td>
+#elif $message.key == 'service'
+    <td><a href="/browse/service/$message.value">$message.description</a></td>
+#end if
+    <td>$message.start</td>
+    <td>$message.end</td>
     <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
   </tr>
   #end for

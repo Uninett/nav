@@ -1,0 +1,52 @@
+#extends nav.web.templates.EmotdTemplate
+
+
+#block content
+
+<h1>$pagetitle</h1>
+
+<form action="$action" method="post">
+$makeFormField("hidden","author",$author)
+$makeFormField("hidden","last_changed",$last_changed)
+$makeFormField("hidden","emotdid",$emotdid)
+$makeFormField("hidden","parent_id",$parent_id)
+<ul style="list-style-type:none;margin=0;padding:0;">
+<li>$makeDateTime("Active From","published_start",$published_start[0],$published_start[1],$published_start[2],$published_start[3],$published_start[4])</li>
+<li>$makeDateTime("Active To","published_end",$published_end[0],$published_end[1],$published_end[2],$published_end[3],$published_end[4]) <i>Defaults to one week</i></li>
+
+<li>
+<label>Type</label>
+<select name="type">
+<option value="info">Informational</option>
+<option value="error">Error</option>
+<option value="internal">Internal </option>
+<option value="scheduled">Scheduled outage</option>
+</select>
+<i>Internal will not be published in public</i>
+</li>
+
+<li><table><tr><td>
+<h2>$primary_language</h2>
+<ul style="list-style-type:none;margin=0;padding:0;">
+<li>$makeFormField("text","title","$title","Title",1)</li>
+<li>$makeFormField("textarea","downtime","$downtime","Estimated downtime")</li>
+<li>$makeFormField("textarea","affected","$affected","Affected end users")</li>
+<li>$makeFormField("textarea","description","$description","Description",1)</li>
+<li>$makeFormField("textarea","detail","$detail","Details")</li>
+#if $secondary_language
+</ul></td><td>
+<h2>$secondary_language</h2>
+<ul style="list-style-type:none;margin=0;padding:0;">
+<li>$makeFormField("text","title_en","$title_en","Title",1)</li>
+<li>$makeFormField("textarea","downtime_en","$downtime_en","Estimated downtime")</li>
+<li>$makeFormField("textarea","affected_en","$affected_en","Affected end users")</li>
+<li>$makeFormField("textarea","description_en","$description_en","Description",1)</li>
+<li>$makeFormField("textarea","detail_en","$detail_en","Details")</li>
+#end if
+</ul></td></tr></table></li>
+
+<li><input type="submit" name="cn_save" value="Save this message" /></li>
+<li><input type="submit" name="cn_save_and_add" value="Save and add equipment to this message" /></li>
+</ul>
+</form>
+#end block

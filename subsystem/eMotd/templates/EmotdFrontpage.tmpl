@@ -6,18 +6,22 @@
 
 #block content
 $makeMenu()
-<table border="0" cellspacing="0" cellpadding="0"><tr><td>
-  #set $antemotds = len($emotds)
-<h1>Messages of the Day</h1>
-<p>
+#set $antemotds = len($emotds)
+	<h1>$title</h1>
 #if $antemotds == 0
-               No active messages
-#else if $antemotds == 1
-               One active message
+#set $m = "messages"
+#set $n = "No"
+#elif $antemotds == 1
+#set $m = "message"
+#set $n = $antemotds
 #else
-               $antemotds active messages
+#set $m = "messages"
+#set $n = $antemotds
 #end if
-</p>
+               <p>$n $statustype $m</p>
+##block errormessage
+##end block
+
 <ul style="list-style-type:none;margin:0px;padding:0px;">
   #for $message in $emotds
 	<li style="margin-bottom:8px"><table>
@@ -49,7 +53,13 @@ $equipmentList($eq)
       </tr>
       <tr>
         <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;background-color: #eee;">
-		<span style="font-size:11px">[ <a href="/emotd/edit?action=change&id=$message.emotdid">Change</a> | <a href="/emotd/edit?action=followup&id=$message.emotdid">Followup</a> | <a href="/emotd/add?id=$message.emotdid">Add equipment</a>]</span>
+#if $message.own
+	<span style="font-size:11px">[ <a href="/emotd/edit?action=change&id=$message.emotdid">Change</a> | <a href="/emotd/mainttime?id=$message.emotdid">Maint. window</a> | <a href="/emotd/add?id=$message.emotdid">Add equipment</a>]</span>
+#else
+	<span style="font-size:11px">[ <a href="/emotd/edit?action=followup&id=$message.emotdid">Followup</a> ]</span>
+
+
+#end if
         </td>
       </tr>
 	</table></li>
@@ -81,49 +91,6 @@ $equipmentList($eq)
 #def sideboxend
       </td>
     </tr>
-  </table>
-#end def
-
-#def emotd
-  <br>
-  #set $antemotds = len($emotds)
-  <table width="100%" cellspacing="0" cellpadding="0" border="0">
-    <tr class="title">
-      <td class="title" align="center" colspan="3" style="background-image:url('/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <div class="title"><a href="/emotd/"><font color="black">Messages of the Day</font></a></div>
-#if $antemotds == 0
-               No active messages
-#else if $antemotds == 1
-               One active message
-#else
-               $antemotds active messages
-#end if
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td align=right style="background-image:url('/arpcam/fill.gif');"><img src="/ragen/top-end.gif"></td>
-    </tr>
-  </table>
-  <table width="100%" cellspacing="0" cellpadding="0" border="0">
-  #for $message in $emotds
-      <tr>
-        <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
-          <a href="/emotd/view?id=$emotd.emotdid">$message.title</a>
-        </td>
-        <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
-          $message.last_changed by $message.author
-        </td>
-      </tr>
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-          Description: <br>$message.description
-        </td>
-      </tr>
-  #end for
   </table>
 #end def
 
