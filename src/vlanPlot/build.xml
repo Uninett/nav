@@ -29,6 +29,14 @@
     <jar jarfile="${dist}/vlanPlot.jar" basedir="${build}"/>
   </target>
 
+  <target name="install" depends="dist">
+    <mkdir dir="../../apache/htdocs/vlanPlot/common"/>
+    <copy file="${dist}/vlanPlot.jar" todir="../../apache/htdocs/vlanPlot/common"/>
+  </target>
+  <target name="uninstall">
+    <delete file="../../apache/htdocs/vlanPlot/common/vlanPlot.jar"/>
+  </target>
+
   <target name="dist_debug" depends="dist"
         description="Upload dist to server">
     <exec dir="${dist}" executable="scp" os="Windows 2000">
