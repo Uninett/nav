@@ -1,5 +1,5 @@
 """
-$Id: OracleChecker.py,v 1.2 2003/06/27 12:01:39 arveva Exp $
+$Id: OracleChecker.py,v 1.3 2003/06/27 12:46:36 arveva Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/OracleChecker.py,v $
 
 
@@ -13,8 +13,6 @@ from abstractChecker import AbstractChecker
 from event import Event
 import cx_Oracle, string, exceptions, sys
 import os
-# Don't ask me why this is necessary
-os.environ['ORACLE_HOME']='/ora01/OraHome1'
 
 class OracleChecker(AbstractChecker):
     """
@@ -22,6 +20,14 @@ class OracleChecker(AbstractChecker):
     Description:
     ------------
     This checker tries to connect to a given Oracle database.
+    
+    The checker relies on that the neccesary Oracle software have been
+    installed and that the following Oracle environment variables
+    have been set:
+
+    - $ORACLE_HOME
+    - $NLS_LANG
+
     
     Arguments:
     ----------
@@ -33,6 +39,7 @@ class OracleChecker(AbstractChecker):
               - ALTER SESSION
               - select on sys.v_$instance
     password: Password for the Oracle database account.
+
 
     Return values:
     --------------
