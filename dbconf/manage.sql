@@ -270,7 +270,9 @@ UNION
 -------- vlanPlot tabeller ------
 CREATE TABLE vpBoksGrpInfo (
   gruppeid SERIAL PRIMARY KEY,              
-  name VARCHAR(16) NOT NULL
+  name VARCHAR(16) NOT NULL,
+  x INT2 NOT NULL DEFAULT '0',
+  y INT2 NOT NULL DEFAULT '0'
 );
 -- Default nett
 INSERT INTO vpboksgrpinfo (gruppeid,name) VALUES (0,'Bynett');
@@ -305,8 +307,9 @@ GRANT SELECT ON swport TO vPServer;
 GRANT SELECT ON swportvlan TO vPServer;
 GRANT SELECT ON vpBoksGrp TO vPServer;
 GRANT SELECT ON vpBoksGrpInfo TO vPServer;
-GRANT ALL    ON vpboksgrp TO vPServer;
-GRANT ALL    ON vpboksgrp_vpboksgrpid_seq TO vPServer;
+GRANT ALL    ON vpBoksGrp TO vPServer;
+GRANT ALL    ON vpBoksGrp_vpboksgrpid_seq TO vPServer;
+GRANT UPDATE ON vpBoksGrpInfo TO vPServer;
 GRANT ALL    ON vpBoksXY TO vPServer;
 GRANT ALL    ON vpboksxy_vpboksxyid_seq TO vPServer;
 
