@@ -180,8 +180,8 @@ CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
   productid INT4 NOT NULL REFERENCES product ON UPDATE CASCADE ON DELETE CASCADE,
   serial VARCHAR(15),
-  sw VARCHAR(10),
-  hw VARCHAR(10),
+  sw_var VARCHAR(10),
+  hw_var VARCHAR(10),
   UNIQUE(serial)
 );
 -- tror ikke uniquene jeg har lagt inn skader.
