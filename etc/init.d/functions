@@ -3,7 +3,7 @@
 # functions	This file contains functions to be used by most or all
 #		shell scripts in the navme/bin/init directory.
 #
-# Version:	$Id: functions,v 1.2 2002/07/23 10:04:53 mortenv Exp $
+# Version:	$Id: functions,v 1.3 2002/08/20 09:05:55 mortenv Exp $
 #
 # Author:	Morten Vold <mortenv@tihlde.org>
 # Ideas from:	functions script from Mandrake Linux
@@ -21,15 +21,9 @@ daemon() {
 }
 
 killproc() {
-    pid=`pidof $1`
-    if [ "$pid" == "" ] ; then
-	pidfile="/usr/local/nav/local/var/run/$1.pid";
-	if [ -f $pidfile ]; then
-	    pid=`cat $pidfile`
-	else
-	    echo -n "$1 is not running"
-	    return 1
-	fi
+    pid=`pidofproc $1`
+    if [ -z "$pid" ] ; then
+	return 0
     fi
     if checkpid $pid 2>&1; then
 	kill $pid
@@ -38,7 +32,7 @@ killproc() {
 	    echo -n "Unable to terminate the process ($pid)"
 	    return 0
 	else
-	    echo "Ok"
+	    echo -n "Ok"
 	    return 1
 	fi
     else
@@ -48,8 +42,9 @@ killproc() {
 }
 
 status() {
-    pid=`pidof $1`
-    if [ "$pid" != "" ] ; then
+    local base=${1##*/}
+    pid=`pidof -o $$ -o $PPID -o %PPID -x $1 || pidof -o $$ -o $PPID -o %PPID -x ${base}`
+    if [ -n $pid ] ; then
 	echo "$1 (pid $pid) is running...";
     else
 	echo "$1 does not seem to be running...";
@@ -63,4 +58,25 @@ checkpid() {
 	   shift
 	done
 	return 1
+}
+
+pidofproc() {
+    local base=${1##*/}
+
+    local pidfile=/usr/local/nav/local/var/run/${base}.pid
+
+    if [ -f $pidfile ] ; then
+	local line p pid=
+	read line < $pidfile
+	for p in $line ; do
+	    [ -z "${p//[0-9]/}" -a -d /proc/$p ] && pid="$pid $p"
+	done
+	if [ -n "${pid-:}" ] ; then
+	    echo $pid
+	    return 0
+	fi
+    fi
+
+    pidof -o $$ -o $PPID -o %PPID -x $1 || \
+    pidof -o $$ -o $PPID -o %PPID -x ${base}
 }
