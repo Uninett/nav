@@ -1,3 +1,55 @@
+Version 3.0_beta8
+(released xx November 2004)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ User-visible changes:
+ * Encoding info has been added to several python modules, to make
+   newer versions of Python stop complaining about PEP 0263.  But
+   there are probably more modules that need these changes.
+ * Attempting to stop not running cron services using the nav command
+   will no longer yield a Python exception.
+ * Alert profiles containing time periods spanning across midnight
+   will now work.
+ * Interface names containing more than one forward slash now work
+   with makecricketconfig.
+ * Added config file cricket-views.conf to define which views
+   makecricketconfig will create.
+ * Several editdb crash bugs were fixed.
+ * Default set of reports (report.conf) were bugfixed.
+ * MachineTracker had a serious design flaw in its primary SQL
+   statement, which would cause arbitrary and erroneous search result.
+   The automatic combination of arp and cam data should now be more
+   accurate.
+ * When there are no active messages, the annoying "No Found" message
+   is no longer displayed on the home page.
+ * Some missing icons have been added, and new icons for some tools.
+ * Some strange errors on the web were due to small differences in
+   mod_python versions used on Apache 1.3 and Apache 2, the ones that
+   have been found have been fixed.
+ * Tremendous amount of fixes related to the getDeviceData collection
+   system, more accurate collection of module information and module
+   state, detection of replaced netboxes, etc.
+ * Errors in getDeviceData and missing constraints in the database
+   would sometimes cause several netboxes and/or several modules to
+   refer to the same device and serial number (which is supposed to be
+   impossible).  This has been fixed.
+ * Improvements to vlanPlot layout, including links to IP device
+   center and Network Explorer.  Will now also display an error
+   message when contact cannot be establishwith the vPServer, whereas
+   previously it would only present a blank screen.
+ 
+
 Version 3.0_beta7
 (released 21 July 2004)
 
