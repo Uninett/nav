@@ -21,7 +21,7 @@ public class NetboxData extends Device
 	private Netbox nb;
 	private String sysname;
 	private String upsince;
-	private double uptime;
+	private double uptime = 0;
 	//private long curTime;
 	//private long baseTime;
 	private Set vtpVlanSet = new HashSet();
@@ -164,8 +164,8 @@ public class NetboxData extends Device
 
 	public boolean equalsNetboxData(NetboxData n) {
 		return (getDeviceid() == n.getDeviceid() &&
-						(sysname == null || sysname.equals(n.sysname)) &&
-						equalsUptime(n));
+				(sysname == null || sysname.equals(n.sysname)) &&
+				(uptime == 0 || equalsUptime(n)));
 	}
 
 	// Override to avoid Netbox/Module fighting over fields

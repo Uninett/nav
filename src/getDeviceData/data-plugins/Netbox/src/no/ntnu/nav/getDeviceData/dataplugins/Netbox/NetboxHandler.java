@@ -215,8 +215,11 @@ public class NetboxHandler implements DataHandler {
 				System.err.println();
 			}
 			*/
-					
-			Log.d("UPDATE_NETBOX", "devid="+n.getDeviceidS()+" "+n.getSysname() + " ("+netboxid+") ticks=" + n.getTicks() + deltaS);
+				
+			if (n.getUptime() > 0) {
+				Log.d("UPDATE_NETBOX", "devid="+n.getDeviceidS()+" "+n.getSysname() + " ("+netboxid+") ticks=" + n.getTicks() + deltaS);
+			}
+
 			// Check if we need to update netbox
 			if (oldn == null || !n.equalsNetboxData(oldn)) {
 				// We need to update netbox
