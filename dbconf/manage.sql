@@ -1,4 +1,5 @@
-# Slette alle tabeller
+-- Slette alle tabeller
+DROP TABLE swportallowedvlan;
 DROP TABLE swportvlan;
 DROP TABLE swport;
 DROP TABLE gwport;
@@ -13,13 +14,13 @@ DROP TABLE sted;
 DROP TABLE anv;
 DROP TABLE org;
 
-#############VP - fingra fra fatet, Sigurd:
+-------VP - fingra fra fatet, Sigurd:
 
 DROP TABLE vpBoksXY;
 DROP TABLE vpBoksGrp;
 DROP TABLE vpBoksGrpInfo;
 
-# Slette alle sekvenser
+-- Slette alle sekvenser
 DROP SEQUENCE boks_boksid_seq;
 DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefiks_prefiksid_seq;
@@ -30,7 +31,9 @@ DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
 DROP SEQUENCE vpboksxy_vpboksxyid_seq;
 
-########## JM - don't touch
+-- Slette alle indekser
+
+--########## JM - don't touch
 
 DROP TABLE status;
 DROP SEQUENCE status_statusid_seq;
@@ -56,12 +59,9 @@ smsid int4,
 tidsendt timestamp
 ); 
 
-####################
+--####################
 
-# Slette alle indekser
-
-
-# Definerer gruppe nav:
+-- Definerer gruppe nav:
 CREATE GROUP nav;
 
 # Legger inn gartmann i nav:
@@ -136,6 +136,7 @@ CREATE TABLE prefiks (
   prefiksid SERIAL PRIMARY KEY,
   nettadr VARCHAR(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
+  rootgw INT4 REFERENCES gwport,
   vlan INT2,
   antmask INT2,
   maxhosts INT2,
@@ -213,7 +214,6 @@ CREATE TABLE gwport (
   gwip VARCHAR(15) NOT NULL,
   speed VARCHAR(10),
   ospf INT2,
-  hsrppri VARCHAR(1),
   static BOOL DEFAULT false
 );
 
@@ -243,7 +243,7 @@ CREATE TABLE swportvlan (
 );
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar(150)
+  hexstring varchar(255)
 );
 
 
