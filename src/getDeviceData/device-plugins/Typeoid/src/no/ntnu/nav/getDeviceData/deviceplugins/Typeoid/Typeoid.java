@@ -52,10 +52,16 @@ public class Typeoid implements DeviceHandler
 		NetboxUpdatable nu = (NetboxUpdatable)nb;
 
 		// Fetch the typeoid
-		List l = sSnmp.getNext(nb.getOidNoCheck("typeoid"), 1, true, false);
-		if (l == null || l.isEmpty()) {
-			Log.w("HANDLE_DEVICE", "No returned results from typeoid (" + nb + ","+nb.getType()+","+nb.getOid("typeoid")+"), cannot update type! ("+l+")");
-			return;
+		sSnmp.onlyAskModule("0");
+		List l;
+		try {
+			l = sSnmp.getNext(nb.getOidNoCheck("typeoid"), 1, true, false);
+			if (l == null || l.isEmpty()) {
+				Log.w("HANDLE_DEVICE", "No returned results from typeoid (" + nb + ","+nb.getType()+","+nb.getOid("typeoid")+"), cannot update type! ("+l+")");
+				return;
+			}
+		} finally {
+			sSnmp.onlyAskModule(null);
 		}
 
 		String sysobjectid = ((String[])l.get(0))[1];
