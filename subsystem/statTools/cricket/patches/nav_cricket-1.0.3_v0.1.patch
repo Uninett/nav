@@ -1,7 +1,7 @@
 Index: compile
 ===================================================================
---- compile	(.../vendor/cricket/1.0.3)	(revision 8)
-+++ compile	(.../nav/cricket)	(revision 8)
+--- compile	(.../vendor/cricket/1.0.3)	(revision 9)
++++ compile	(.../nav/cricket)	(revision 9)
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl -w
 +#!/usr/bin/perl -w
@@ -43,8 +43,8 @@ Index: compile
  	print LOCK "$$\n";
 Index: grapher.cgi
 ===================================================================
---- grapher.cgi	(.../vendor/cricket/1.0.3)	(revision 8)
-+++ grapher.cgi	(.../nav/cricket)	(revision 8)
+--- grapher.cgi	(.../vendor/cricket/1.0.3)	(revision 9)
++++ grapher.cgi	(.../nav/cricket)	(revision 9)
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl -w
 +#!/usr/bin/perl -w
@@ -108,7 +108,7 @@ Index: grapher.cgi
 +                                          -default => $gQ->url_param($key));
 +                    }
 +                    print $gQ->textfield(-name => 'yokohoma',
-+                                         -size => 10
++                                         -size => 10,
 +                                         -maxlength => 10);
 +                    print $gQ->end_form;
 +                    
