@@ -40,7 +40,7 @@ public class Gw extends Netel
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		outld("Gw.updateFromDB");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan FROM netbox LEFT JOIN prefix USING(prefixid) WHERE catid IN ('GW')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox LEFT JOIN prefix USING(prefixid) WHERE catid IN ('GW')");
 
 		while (rs.next()) {
 			try {

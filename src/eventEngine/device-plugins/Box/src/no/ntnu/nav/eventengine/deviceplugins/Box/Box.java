@@ -51,6 +51,12 @@ public class Box extends Device
 		ip = rs.getString("ip");
 		sysname = rs.getString("sysname");
 		vlan = rs.getInt("vlan");
+		char up = rs.getString("up").charAt(0);
+		switch (up) {
+			case 'y': status = STATUS_UP; break;
+			case 'n': status = STATUS_DOWN; break;
+			case 's': status = STATUS_SHADOW; break;
+		}
 
 		boxidToDeviceid.put(new Integer(boxid), new Integer(deviceid));
 	}
@@ -58,7 +64,7 @@ public class Box extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		outld("Box.updateFromDB");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan FROM netbox JOIN prefix USING(prefixid)");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid)");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -122,18 +128,41 @@ public class Box extends Device
 	{
 		downMap.put(new Integer(boxid), this);
 		status = STATUS_DOWN;
+
+		updateDbNetboxStatus();
 	}
 
 	public void shadow()
 	{
 		downMap.put(new Integer(boxid), this);
 		status = STATUS_SHADOW;
+
+		updateDbNetboxStatus();
 	}
 
 	public void up()
 	{
 		downMap.remove(new Integer(boxid));
 		status = STATUS_UP;
+
+		updateDbNetboxStatus();
+	}
+
+	private void updateDbNetboxStatus()
+	{
+		char c;
+		switch (status) {
+			case STATUS_UP: c = 'y'; break;
+			case STATUS_DOWN: c = 'n'; break;
+			case STATUS_SHADOW: c= 's'; break;
+			default: return;
+		}
+
+		try {
+			Database.update("UPDATE netbox SET up='"+c+"' WHERE netboxid="+boxid);
+		} catch (SQLException e) {
+			outld("Error, could not change status for netboxid="+boxid);
+		}
 	}
 
 	public boolean isUp() { return status == STATUS_UP; }

@@ -62,7 +62,7 @@ public class Netel extends Box
 		}
 
 		outld("Netel.updateFromDB");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan FROM netbox JOIN prefix USING(prefixid) WHERE catid IN ('SW','KANT')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) WHERE catid IN ('SW','KANT')");
 
 		while (rs.next()) {
 			try {
