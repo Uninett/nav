@@ -7,7 +7,7 @@
 ## Databasetilkobling
 ############
     $db = pg_Connect("dbname=manage user=navall password=uka97urgf");
-$fil = les_fil("ragen.conf","r");
+$fil = les_fil("/usr/local/nav/navme/etc/conf/ragen/ragen.conf","r");
 
 list($filparam,$urlparam,$navnparam) = tolk_fil($fil,$rapport);
 
