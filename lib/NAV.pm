@@ -7,7 +7,7 @@ use Fcntl qw/:flock/;
 use FileHandle;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(log_open log_close skriv log_write db_get get_path db_safe rydd db_select db_execute db_connect db_readconf);
+our @EXPORT = qw(log_open log_close skriv log_write db_get get_path db_safe rydd db_select db_execute db_connect db_readconf hash_conf);
 our @EXPORT_OK = qw(db_file_to_db fil_hent db_hent_hash db_endring_per_linje db_endring db_sletting db_hent_enkel fil_hent_linje db_delete db_logg_insert db_sett_inn db_insert db_oppdater fil_netaddr db_select_hash db_update db_hent_dobbel);
 our %EXPORT_TAGS = (
 		    collect => [qw(db_file_to_db fil_hent db_hent_hash db_endring_per_linje db_endring db_sletting db_hent_enkel fil_hent_linje db_delete db_logg_insert db_sett_inn db_insert db_oppdater db_select_hash db_update db_hent_dobbel fil_netaddr)],

@@ -5,11 +5,15 @@ use strict;
 #denne skal hentes i fra den generelle config
 my $nav_sti = "/usr/local/nav";
 
+require "$nav_sti/navme/lib/NAV.pm";
+import NAV qw(hash_conf);
+
+my %navconf = &hash_conf("$nav_sti/local/etc/conf/nav.conf");
+
 my $apache_htpasswd = "$nav_sti/local/apache/htpasswd";
 my $nav_htpasswd_conf = "$nav_sti/local/etc/htpasswd";
 
-# Må oppdateres etter instalasjonen
-my $brukerdb = "$nav_htpasswd_conf/passwd";
+my $brukerdb = $navconf{NAV_PASSWD};
 
 
 my $intern_userlist = "$nav_htpasswd_conf/intern_user";
@@ -74,41 +78,43 @@ while (<STAT_FIL>) {
 
 close (STAT_FIL);
 
+# Dersom vi er satt opp til å bruke en brukerdatabase i passwd-format,
+# så tar vi med denne.
+if (defined($brukerdb) && $brukerdb ne '') {
+    open (DB_FIL, "<$brukerdb") || die "Får ikke åpnet filen med brukerene: $brukerdb $!\n";
 
-open (DB_FIL, "<$brukerdb") || die "Får ikke åpnet filen med brukerene: $brukerdb $!\n";
+    while (<DB_FIL>) {
 
-while (<DB_FIL>) {
-    
-    next if (/^\W/);
-    
-    ($user, $passwd, $dummy, $dummy, $navn, $dummy) = split(/:/, $_);
-    
-    if ($internlist{$user} eq $user)  {
-	
-	delete $sroot{$user} if ($sroot{$user});
-	delete $res{$user}   if ($res{$user});
-	
-	$sec{$user}{passwd} = $passwd;
-	$sec{$user}{navn}   = $navn;
-	$sec{$user}{info}   = 'autogenerert';
-	$sec{$user}{adgang} = 'intern';
+	next if (/^\W/);
+
+	($user, $passwd, $dummy, $dummy, $navn, $dummy) = split(/:/, $_);
+
+	if ($internlist{$user} eq $user)  {
+
+	    delete $sroot{$user} if ($sroot{$user});
+	    delete $res{$user}   if ($res{$user});
+
+	    $sec{$user}{passwd} = $passwd;
+	    $sec{$user}{navn}   = $navn;
+	    $sec{$user}{info}   = 'autogenerert';
+	    $sec{$user}{adgang} = 'intern';
+	}
+
+	else {
+
+	    delete $sroot{$user} if ($sroot{$user});
+	    delete $sec{$user}   if ($sec{$user});
+
+	    $res{$user}{passwd} = $passwd;
+	    $res{$user}{navn}   = $navn;
+	    $res{$user}{info}   = 'autogenerert';
+	    $res{$user}{adgang} = 'begrenset';
+	}
+
     }
-    
-    else {
-	
-	delete $sroot{$user} if ($sroot{$user});
-	delete $sec{$user}   if ($sec{$user});
-	
-	$res{$user}{passwd} = $passwd;
-	$res{$user}{navn}   = $navn;
-	$res{$user}{info}   = 'autogenerert';
-	$res{$user}{adgang} = 'begrenset';
-    }
-    
+
+    close (DB_FIL);
 }
-
-close (DB_FIL);
-
 
 
 open (SROOT, ">$htpasswd_sroot") || die "Får ikke åpnet filen: $htpasswd_sroot $!\n";
