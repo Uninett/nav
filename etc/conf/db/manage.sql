@@ -214,7 +214,7 @@ CREATE TABLE netbox (
 --  static BOOL DEFAULT false,
 --  watch BOOL DEFAULT false,
 --  skygge BOOL DEFAULT false
-  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='s'), -- y=up, n=down, s=shadow
+  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   UNIQUE(ip)
 );
 
@@ -245,7 +245,7 @@ CREATE TABLE module (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
   submodule VARCHAR(8),
-  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n'), -- y=up, n=down
+  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (up='y' OR up='n'), -- y=up, n=down
   lastseen TIMESTAMP NOT NULL DEFAULT 'NOW()',
   UNIQUE (netboxid,module)
 );
@@ -283,7 +283,7 @@ CREATE TABLE swport (
   port INT4 NOT NULL,
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
-    link CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='d'),
+    link CHAR(1) NOT NULL DEFAULT 'n' CHECK (link='y' OR link='n' OR link='d'),
   speed VARCHAR(10),
   duplex VARCHAR(4),
   media VARCHAR(16),
@@ -598,7 +598,7 @@ CREATE TABLE eventq (
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -623,7 +623,7 @@ CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   time TIMESTAMP NOT NULL,
   eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
@@ -645,7 +645,7 @@ CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP DEFAULT 'infinity',
@@ -671,10 +671,10 @@ GRANT ALL ON alertqvar TO eventengine;
 GRANT ALL ON alerthist TO eventengine;
 GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
 GRANT ALL ON alerthistvar TO eventengine;
-GRANT SELECT,UPDATE ON boks TO eventengine;
+GRANT SELECT,UPDATE ON netbox TO eventengine;
 GRANT SELECT ON module TO eventengine;
 GRANT SELECT ON swport TO eventengine;
 GRANT SELECT ON swportvlan TO eventengine;
 GRANT SELECT ON gwport TO eventengine;
-GRANT SELECT ON prefiks TO eventengine;
+GRANT SELECT ON prefix TO eventengine;
 
