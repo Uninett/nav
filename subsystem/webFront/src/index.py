@@ -114,7 +114,7 @@ def login(req, login='', password='', origin=''):
         except nav.db.navprofiles.NoSuchAccountError:
             account = None
             apache.log_error('Account %s not found in NAVdb' % login,
-                             apache.APLOG_INFO, req.server)
+                             apache.APLOG_NOTICE, req.server)
             
         authenticated = False
         if account is None:
@@ -129,7 +129,7 @@ def login(req, login='', password='', origin=''):
                     if not authenticated:
                         return _getLoginPage(origin, "Login failed")
                     apache.log_error('Account %s authenticated through LDAP' % login,
-                                     apache.APLOG_INFO, req.server)
+                                     apache.APLOG_NOTICE, req.server)
                     # The login name was authenticated through our LDAP
                     # setup, so we create a new account in the NAVdb for
                     # this user.
@@ -157,7 +157,7 @@ def login(req, login='', password='', origin=''):
                     # If we were authenticated, we update the stored password hash
                     if authenticated:
                         apache.log_error('Account %s authenticated through LDAP' % login,
-                                         apache.APLOG_INFO, req.server)
+                                         apache.APLOG_NOTICE, req.server)
                         account.setPassword(password)
                         account.save()
                 except ldapAuth.NoAnswerError, e:
@@ -172,7 +172,7 @@ def login(req, login='', password='', origin=''):
 
         if authenticated:
             apache.log_error('Account %s successfully logged in' % login,
-                             apache.APLOG_INFO, req.server)
+                             apache.APLOG_NOTICE, req.server)
             # Place the Account object in the session dictionary
             req.session['user'] = account
             req.session.save()
