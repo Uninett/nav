@@ -1,0 +1,65 @@
+<project name="navAdmin" default="dist" basedir=".">
+    <description>
+        build file for navAdmin
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="build.compiler.emacs" value="yes"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}"/>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+
+    <!-- Put everything in ${build} into the navAdmin.war file -->
+    <war destfile="${dist}/navAdmin.war"
+         webxml="metadata/web.xml">
+      <classes dir="${build}"/>
+      <webinf dir=".">
+        <include name="html/**"/>
+      </webinf>
+      <zipfileset dir="gfx" prefix="gfx"/>
+    </war>
+  </target>
+
+  <target name="dist_navutils" depends="compile"
+        description="Make NavUtils.jar">
+    <mkdir dir="${dist}"/>
+    <jar jarfile="${dist}/NavUtils.jar" basedir="${build}" manifest="Main-Class"/>
+  </target>
+
+  <target name="dist_debug" depends="dist,dist_navutils"
+        description="Upload dist to server">
+    <exec dir="${dist}" executable="scp" os="Windows 2000">
+      <arg line="navAdmin.war bb.itea.ntnu.no:devel/navme/webapps"/>
+    </exec>
+    <exec executable="ssh" os="Windows 2000">
+      <arg line="bb.itea.ntnu.no mkdir -p devel/navme/webapps/navAdmin ; cd devel/navme/webapps/navAdmin ; jar xf ../navAdmin.war"/>
+    </exec>
+    <exec dir="${dist}" executable="scp" os="Windows 2000">
+      <arg line="NavUtils.jar bb.itea.ntnu.no:devel/navme/cron/navAdmin"/>
+    </exec>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>
