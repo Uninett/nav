@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+# $Id: pg_backup.pl,v 1.7 2002/07/24 12:34:00 mortenv Exp $
 ##############################################################
 # Et script som tar full backup av databasen hver
 #  * Dag	Roterer pr uke
@@ -9,6 +10,10 @@
 ##############################################################
 
 use POSIX qw(strftime);
+require "/usr/local/nav/navme/lib/fil.pl";
+# De-taint:
+$ENV{'PATH'} = '/bin:/usr/bin:/usr/local/bin';
+delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 my ($res, $filnavn);
 
@@ -18,17 +23,7 @@ my ($dayofweek, $dayofmonth, $weekday, $month, $weeknumber) = split(/\:/, $now_s
 my $conf = '/usr/local/nav/local/etc/conf/pgpasswd.conf';
 
 
-open(CONF,$conf);
-while (<CONF>)
-{
-	unless (/^\#|^\s+/)
-	{
-		($key,$string) = split(/=/);
-		chomp($string);  # Fjerne linjeskift
-		$config{$key}=$string;
-	}
-}
-close(CONF);
+my %config = &hash_conf($conf);
 
 my $passord = $config{'passord'};
 my $brukernavn = $config{'brukernavn'};
@@ -53,7 +48,7 @@ else
 	$filnavn = "fullbackup_postgres_$weekday";
 }
 
-open(LOGFIL,">>$logfil");
+open(LOGFIL,">>$logfil") || die "Kan ikke åpne loggfilen ($logfil): $!";
 
 
 # Kjøre backup
