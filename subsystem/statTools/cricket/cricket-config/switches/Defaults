@@ -185,7 +185,7 @@ graph   mem5minFree
 graph	tempInlet
 	y-axis 		=	"Degrees Celcius"
 	legend		=	"Temperature in the inlet"
-	units		=	"#&178"
+	units		=	"&#176;"
 	draw-as		=	LINE2
 
 # ALFA version:

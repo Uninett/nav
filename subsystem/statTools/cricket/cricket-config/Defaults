@@ -51,6 +51,10 @@ dataSource --default--
 	rrd-heartbeat	=	1800
 	rrd-min		=	0
 
+
+dataSource sysUptime
+        ds-source       =       snmp://%snmp%/sysUptime
+
 # These datasources are used for interfaces of all types.
 dataSource  ifInOctets
 	ds-source	=	snmp://%snmp%/ifInOctets.%inst%
@@ -209,6 +213,14 @@ graph   --default--
 
 	# Just testing for fashion
 	rrd-graph-args 	=	"-c BACK#CDD3FE"
+
+# global sysUptime setting
+graph sysUptime
+        color           =       dark-green
+        draw-as         =       area
+        legend          =       "uptime in days"
+        y-axis          =       "days"
+        scale           =       8640000,/
 
 # Standard graphing for interfaces.
 graph   ifInOctets
