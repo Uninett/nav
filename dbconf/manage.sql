@@ -252,7 +252,96 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
--- VIEWs
+
+GRANT ALL ON org TO navall;
+GRANT ALL ON anv TO navall;
+GRANT ALL ON sted TO navall;
+GRANT ALL ON rom TO navall;
+GRANT ALL ON prefiks TO navall;
+GRANT ALL ON type TO navall;
+GRANT ALL ON boks TO navall;
+GRANT ALL ON boksinfo TO navall;
+GRANT ALL ON module TO navall;
+GRANT ALL ON mem TO navall;
+GRANT ALL ON gwport TO navall;
+GRANT ALL ON swport TO navall;
+GRANT ALL ON swportvlan TO navall;
+GRANT ALL ON swportallowedvlan TO navall;
+
+GRANT ALL ON boks_boksid_seq TO navall;
+GRANT ALL ON gwport_gwportid_seq TO navall;
+GRANT ALL ON prefiks_prefiksid_seq TO navall;
+GRANT ALL ON swport_swportid_seq TO navall;
+GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
+GRANT ALL ON module_moduleid_seq TO navall;
+GRANT ALL ON mem_memid_seq TO navall;
+
+------------------------------------------------------------------
+------------------------------------------------------------------
+
+DROP TABLE arp; 
+DROP TABLE cam; 
+DROP TABLE port2pkt; 
+DROP TABLE pkt2rom;  
+
+DROP SEQUENCE arp_arpid_seq; 
+DROP SEQUENCE cam_camid_seq; 
+DROP SEQUENCE port2pkt_id_seq; 
+DROP SEQUENCE pkt2rom_id_seq;
+
+CREATE TABLE arp (
+  arpid SERIAL PRIMARY KEY,
+  boksid INT4 REFERENCES boks ON UPDATE SET NULL,
+  prefiksid INT4 REFERENCES prefiks ON UPDATE SET NULL,
+  kilde VARCHAR(20) NOT NULL,
+  ip VARCHAR(15) NOT NULL,
+  ip_inet INET NOT NULL,
+  mac VARCHAR(12) NOT NULL,
+  fra TIMESTAMP NOT NULL,
+  til TIMESTAMP
+);
+CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
+ 
+CREATE TABLE cam (
+  camid SERIAL PRIMARY KEY,
+  mac VARCHAR(12) NOT NULL,
+  boks VARCHAR(15) NOT NULL,
+  unit VARCHAR(2) NOT NULL,
+  port VARCHAR(2) NOT NULL,
+  fra TIMESTAMP NOT NULL,
+  til TIMESTAMP
+);
+ 
+CREATE TABLE port2pkt (
+  id SERIAL PRIMARY KEY,
+  boks VARCHAR(15) NOT NULL,
+  unit VARCHAR(2) NOT NULL,
+  port VARCHAR(2) NOT NULL,
+  trom VARCHAR(10) NOT NULL,
+  pkt VARCHAR(4) NOT NULL
+);
+
+
+CREATE TABLE pkt2rom (
+  id SERIAL PRIMARY KEY,
+  trom VARCHAR(10) NOT NULL,
+  pkt VARCHAR(4) NOT NULL,
+  bygg VARCHAR(15) NOT NULL,
+  rom VARCHAR(10) NOT NULL
+);
+
+
+GRANT all ON arp TO navall;
+GRANT all ON arp_arpid_seq TO navall;
+GRANT all ON cam TO navall;
+GRANT all ON cam_camid_seq TO navall;
+GRANT all ON port2pkt TO navall;
+GRANT all ON port2pkt_id_seq TO navall;
+GRANT all ON pkt2rom TO navall;
+GRANT all ON pkt2rom_id_seq TO navall;
+
+
+-- VIEWs -----------------------
 CREATE VIEW boksmac AS  
 (SELECT DISTINCT ON (mac) boks.boksid,mac
  FROM arp
@@ -333,92 +422,3 @@ GRANT ALL    ON swportallowedvlan TO navadmin;
 GRANT SELECT ON swportblocked TO navadmin;
 
 -------- vlanPlot end ------
-
-GRANT ALL ON org TO navall;
-GRANT ALL ON anv TO navall;
-GRANT ALL ON sted TO navall;
-GRANT ALL ON rom TO navall;
-GRANT ALL ON prefiks TO navall;
-GRANT ALL ON type TO navall;
-GRANT ALL ON boks TO navall;
-GRANT ALL ON boksinfo TO navall;
-GRANT ALL ON module TO navall;
-GRANT ALL ON mem TO navall;
-GRANT ALL ON gwport TO navall;
-GRANT ALL ON swport TO navall;
-GRANT ALL ON swportvlan TO navall;
-GRANT ALL ON swportallowedvlan TO navall;
-
-
-
-GRANT ALL ON boks_boksid_seq TO navall;
-GRANT ALL ON gwport_gwportid_seq TO navall;
-GRANT ALL ON prefiks_prefiksid_seq TO navall;
-GRANT ALL ON swport_swportid_seq TO navall;
-GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
-GRANT ALL ON module_moduleid_seq TO navall;
-GRANT ALL ON mem_memid_seq TO navall;
-
-------------------------------------------------------------------
-------------------------------------------------------------------
-
-DROP TABLE arp; 
-DROP TABLE cam; 
-DROP TABLE port2pkt; 
-DROP TABLE pkt2rom;  
-
-DROP SEQUENCE arp_arpid_seq; 
-DROP SEQUENCE cam_camid_seq; 
-DROP SEQUENCE port2pkt_id_seq; 
-DROP SEQUENCE pkt2rom_id_seq;
-
-CREATE TABLE arp (
-  arpid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks ON UPDATE SET NULL,
-  prefiksid INT4 REFERENCES prefiks ON UPDATE SET NULL,
-  kilde VARCHAR(20) NOT NULL,
-  ip VARCHAR(15) NOT NULL,
-  mac VARCHAR(12) NOT NULL,
-  fra TIMESTAMP NOT NULL,
-  til TIMESTAMP
-);
-
- 
-CREATE TABLE cam (
-  camid SERIAL PRIMARY KEY,
-  mac VARCHAR(12) NOT NULL,
-  boks VARCHAR(15) NOT NULL,
-  unit VARCHAR(2) NOT NULL,
-  port VARCHAR(2) NOT NULL,
-  fra TIMESTAMP NOT NULL,
-  til TIMESTAMP
-);
- 
-CREATE TABLE port2pkt (
-  id SERIAL PRIMARY KEY,
-  boks VARCHAR(15) NOT NULL,
-  unit VARCHAR(2) NOT NULL,
-  port VARCHAR(2) NOT NULL,
-  trom VARCHAR(10) NOT NULL,
-  pkt VARCHAR(4) NOT NULL
-);
-
-
-CREATE TABLE pkt2rom (
-  id SERIAL PRIMARY KEY,
-  trom VARCHAR(10) NOT NULL,
-  pkt VARCHAR(4) NOT NULL,
-  bygg VARCHAR(15) NOT NULL,
-  rom VARCHAR(10) NOT NULL
-);
-
-
-GRANT all ON arp TO navall;
-GRANT all ON arp_arpid_seq TO navall;
-GRANT all ON cam TO navall;
-GRANT all ON cam_camid_seq TO navall;
-GRANT all ON port2pkt TO navall;
-GRANT all ON port2pkt_id_seq TO navall;
-GRANT all ON pkt2rom TO navall;
-GRANT all ON pkt2rom_id_seq TO navall;
-
