@@ -113,8 +113,10 @@ public class QueryNetbox extends Thread
 			ResultSet rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, uptodate FROM snmpoid WHERE oidkey='typeoid'");
 			rs.next();
 			keyFreqMap.put(rs.getString("oidkey"), new Integer(Integer.MAX_VALUE));
+
 			Snmpoid snmpoid = new Snmpoid(rs.getString("snmpoidid"), rs.getString("oidkey"), rs.getString("snmpoid"), rs.getBoolean("getnext"), rs.getBoolean("decodehex"), rs.getString("match_regex"), rs.getBoolean("uptodate"));
 			keyMap.put(rs.getString("oidkey"), snmpoid);
+
 		} catch (SQLException e) {
 			Log.w("QUERY_NETBOX", "CREATE_UNKNOWN_NETBOX", "Missing typeoid from snmpoid, cannot update types!");
 			Log.d("QUERY_NETBOX", "CREATE_UNKNOWN_NETBOX", "SQLException: " + e.getMessage());
