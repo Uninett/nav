@@ -130,4 +130,160 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cSSMac', '1.3.
 DELETE FROM snmpoid WHERE oidkey='3cHubMac';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cHubMac', '1.3.6.1.4.1.43.10.9.5.1.6','3com','Bridge table for 3Com HUBs');
 
+-- Cricket specific oids, lacks some descriptions...
+
+DELETE FROM snmpoid WHERE oidkey='cpu1min';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('cpu1min','1.3.6.1.4.1.9.2.1.57.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='cpu5min';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('cpu5min','1.3.6.1.4.1.9.2.1.58.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='tempInlet';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('tempInlet','1.3.6.1.4.1.9.9.13.1.3.1.3.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='mem5minUsed';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('mem5minUsed','1.3.6.1.4.1.9.9.48.1.1.1.5.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='tempOutlet';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('tempOutlet','1.3.6.1.4.1.9.9.13.1.3.1.3.3','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='mem5minFree';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('mem5minFree','1.3.6.1.4.1.9.9.48.1.1.1.6.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_load1min';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_load1min','1.3.6.1.4.1.2021.10.1.3.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_load5min';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_load5min','1.3.6.1.4.1.2021.10.1.3.2','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_load15min';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_load15min','1.3.6.1.4.1.2021.10.1.3.3','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_memswapAvail';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_memswapAvail','1.3.6.1.4.1.2021.4.4.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_memrealAvail';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_memrealAvail','1.3.6.1.4.1.2021.4.6.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_memtotalAvail';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_memtotalAvail','1.3.6.1.4.1.2021.4.11.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_cpuUser';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_cpuUser','1.3.6.1.4.1.2021.11.9.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_cpuSystem';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_cpuSystem','1.3.6.1.4.1.2021.11.10.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='ucd_cpuIdle';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ucd_cpuIdle','1.3.6.1.4.1.2021.11.11.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='c1900Bandwidth';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('c1900Bandwidth','1.3.6.1.4.1.437.1.1.3.7.1.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='c1900BandwidthMax';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('c1900BandwidthMax','1.3.6.1.4.1.437.1.1.3.7.5.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='c2900Bandwidth';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('c2900Bandwidth','1.3.6.1.4.1.9.9.87.1.5.1.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='c5000Bandwidth';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('c5000Bandwidth','1.3.6.1.4.1.9.5.1.1.8.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='c5000BandwidthMax';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('c5000BandwidthMax','1.3.6.1.4.1.9.5.1.1.19.0','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='hpmem5minUsed';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('hpmem5minUsed','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='hpmem5minFree';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('hpmem5minFree','1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1','Cricket','');
+
+DELETE FROM snmpoid WHERE oidkey='hpcpu';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('hpcpu','1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0','Cricket','');
+
+-- mib II
+
+DELETE FROM snmpoid WHERE oidkey='ifNumber';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifNumber','1.3.6.1.2.1.2.1.0','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifIndex';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifIndex','1.3.6.1.2.1.2.2.1.1','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifDescr';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifDescr','1.3.6.1.2.1.2.2.1.2','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifType';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifType','1.3.6.1.2.1.2.2.1.3','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifMtu';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifMtu','1.3.6.1.2.1.2.2.1.4','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifSpeed';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifSpeed','1.3.6.1.2.1.2.2.1.5','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifPhysAddress';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifPhysAddress','1.3.6.1.2.1.2.2.1.6','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifAdminStatus';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifAdminStatus','1.3.6.1.2.1.2.2.1.7','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifOperStatus';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOperStatus','1.3.6.1.2.1.2.2.1.8','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifLastChange';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifLastChange','1.3.6.1.2.1.2.2.1.9','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifInOctets';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInOctets','1.3.6.1.2.1.2.2.1.10','mib-II','Number of octets received on the interface');
+
+DELETE FROM snmpoid WHERE oidkey='ifInUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInUcastPkts','1.3.6.1.2.1.2.2.1.11','mib-II','Packets which were not addressed to a multicast or broadcast address at this sub-layer');
+
+DELETE FROM snmpoid WHERE oidkey='ifInNUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInNUcastPkts','1.3.6.1.2.1.2.2.1.12','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifInDiscards';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInDiscards','1.3.6.1.2.1.2.2.1.13','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifInErrors';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInErrors','1.3.6.1.2.1.2.2.1.14','mib-II','Number of inbound packets that contained errors');
+
+DELETE FROM snmpoid WHERE oidkey='ifInUnknownProtos';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInUnknownProtos','1.3.6.1.2.1.2.2.1.15','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutOctets';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutOctets','1.3.6.1.2.1.2.2.1.16','mib-II','Number of octets transmitted out of the interface');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutUcastPkts','1.3.6.1.2.1.2.2.1.17','mib-II','Packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutNUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutNUcastPkts','1.3.6.1.2.1.2.2.1.18','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutDiscards';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutDiscards','1.3.6.1.2.1.2.2.1.19','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutErrors';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutErrors','1.3.6.1.2.1.2.2.1.20','mib-II','Number of outbound packets that could not be transmitted because of errors');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutQLen';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutQLen','1.3.6.1.2.1.2.2.1.21','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifHCInOctets';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifHCInOctets','1.3.6.1.2.1.31.1.1.1.6','mib-II','Number of octets received on the interface');
+
+DELETE FROM snmpoid WHERE oidkey='ifHCInUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifHCInUcastPkts','1.3.6.1.2.1.31.1.1.1.7','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifHCOutOctets';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifHCOutOctets','1.3.6.1.2.1.31.1.1.1.10','mib-II','Number of octets transmitted out of the interface');
+
+DELETE FROM snmpoid WHERE oidkey='ifHCOutUcastPkts';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifHCOutUcastPkts','1.3.6.1.2.1.31.1.1.1.11','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifAlias';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifAlias','1.3.6.1.2.1.31.1.1.1.18','mib-II','');
+
+DELETE FROM snmpoid WHERE oidkey='ifName';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifName','1.3.6.1.2.1.31.1.1.1.1','mib-II','');
 
