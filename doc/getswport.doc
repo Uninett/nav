@@ -1,0 +1,60 @@
+FILNAVN
+getswport.pl
+
+REVISJONER OG ANSVARLIG PROGRAMMERER	
+02.08.01 Sigurd Gartmann
+
+MERKNAD
+Langt fra ferdig.
+
+BAKGRUNN
+Skript som legger inn SNMP-opplysninger i swporttabellen og swportvlantabellen.
+
+BESKRIVELSE
+Bruker SNMP til å innhente opplysninger om svitsjeporter. Dette lagres eller oppdateres i databasetabellene swport og swportvlan.
+
+MODULER
+strict
+Pg
+SNMP_util
+Socket
+
+DATABASETABELLER
+manage.boks
+manage.swport
+manage.swportvlan
+
+MIBER
+.1.3.6.1.2.1.2.2.1.2
+.1.3.6.1.2.1.2.2.1.5
+.1.3.6.1.2.1.2.2.1.8
+.1.3.6.1.4.1.9.2.2.1.1.28
+.1.3.6.1.4.1.9.5.1.4.1.1.4
+.1.3.6.1.4.1.9.5.1.4.1.1.5
+.1.3.6.1.4.1.9.5.1.4.1.1.6
+.1.3.6.1.4.1.9.5.1.4.1.1.10
+.1.3.6.1.4.1.9.5.1.4.1.1.11
+.1.3.6.1.4.1.9.5.1.9.3.1.3
+.1.3.6.1.4.1.9.5.1.9.3.1.8
+.1.3.6.1.4.1.9.9.68.1.2.2.1.2
+.1.3.6.1.4.1.9.9.87.1.4.1.1.6.0
+.1.3.6.1.4.1.9.9.87.1.4.1.1.32.0
+
+
+KJENTE FEIL
+Leser ikke inn fra alle typer utstyr. Bare de to hovedkategoriene cat-sw og ios-sw.
+Har ikke riktig MIB for ios-porttype.
+
+DOKUMENTASJON
+getgwport.doc
+
+DOKUMENTASJONSHISTORIE
+02.08.01 Sigurd Gartmann
+
+
+
+
+
+
+
+

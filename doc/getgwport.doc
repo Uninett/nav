@@ -1,0 +1,51 @@
+FILNAVN
+getgwport.pl
+
+REVISJONER OG ANSVARLIG PROGRAMMERER	
+02.08.01 Sigurd Gartmann
+
+MERKNAD
+Langt fra ferdig.
+
+BAKGRUNN
+Skript som legger inn SNMP-opplysninger i gwporttabellen.
+
+BESKRIVELSE
+Bruker SNMP til å innhente opplysninger om ruterporter. Dette lagres eller oppdateres i databasetabellen gwport.
+
+MODULER
+strict
+Pg
+SNMP_util
+
+DATABASETABELLER
+manage.boks
+manage.prefiks
+manage.gwport
+
+MIBER
+.1.3.6.1.2.1.2.2.1.2
+.1.3.6.1.2.1.2.2.1.5
+.1.3.6.1.2.1.2.2.1.7
+.1.3.6.1.2.1.4.20.1.2
+.1.3.6.1.2.1.4.20.1.3
+.1.3.6.1.4.1.9.2.2.1.1.28
+.1.3.6.1.2.1.14.8.1.4
+
+KJENTE FEIL
+Leser ikke inn fra alle typer utstyr. Bare de to hovedkategoriene cat-sw og ios-sw.
+Har ikke riktig MIB for ios-porttype.
+
+DOKUMENTASJON
+txt2db.doc
+
+DOKUMENTASJONSHISTORIE
+02.08.01 Sigurd Gartmann
+
+
+
+
+
+
+
+

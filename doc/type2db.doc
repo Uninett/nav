@@ -1,0 +1,36 @@
+FILNAVN
+type2db.pl
+
+HISTORIE
+02.08.01 Sigurd Gartmann
+
+MERKNAD
+Skal legges inn i txt2db.pl
+Ikke godt kommentert.
+
+BAKGRUNN
+Oppdatering av database på grunnlag av tekstfiler.
+
+BESKRIVELSE
+Fil som leser fra manuelt editerte tekstfiler og legger de innleste opplysningene inn i databasetabeller. Dersom noe er endret, blir databasen endret, og dersom noe er slettet, blir raden fra databasen slettet.
+
+MODULER
+strict
+Pg
+
+FILER
+/usr/local/nav/etc/type.txt
+
+DATABASETABELLER
+manage.type
+
+DOKUMENTASJON
+type2db.doc
+
+DOKUMENTASJONSHISTORIE
+02.08.01 Sigurd Gartmann
+
+
+
+
+

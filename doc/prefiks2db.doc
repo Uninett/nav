@@ -1,0 +1,38 @@
+FILNAVN
+prefiks2db.pl
+
+REVISJONER OG ANSVARLIG PROGRAMMERER	
+02.08.01 Sigurd Gartmann
+
+MERKNAD
+Kan legges inn i en samlefil.
+
+BAKGRUNN
+Oppdatering av database på grunnlag av tekstfiler.
+
+BESKRIVELSE
+Fil som leser fra manuelt editerte tekstfiler og legger de innleste opplysningene inn i databasetabeller. Prefikstabellen blir også fylt med opplysninger som kommer fra getprefiks.pl Dersom noe er endret i fila, blir databasen endret. Sletter ikke fra databasen på grunn av innlesing fra getprefiks.pl
+
+MODULER
+strict
+Pg
+
+FILER
+/usr/local/nav/etc/prefiks.txt
+
+DATABASETABELLER
+manage.prefiks
+
+DOKUMENTASJON
+txt2db.doc
+
+DOKUMENTASJONSHISTORIE
+02.08.01 Sigurd Gartmann
+
+
+
+
+
+
+
+
