@@ -2,12 +2,16 @@ from mod_python import apache
 from nav.db import manage
 from nav.web import urlbuilder
 import forgetHTML as html
+#import warnings
 
 def process(request):
     # PYTHON IMPORTS ZUCZ=RZZZ!!
     import netbox
     netbox = netbox.findNetbox(request['hostname'])
     module = findModule(netbox, request['module'])
+    request['templatePath'].append((str(netbox), 
+                                    urlbuilder.createUrl(netbox)))
+    request['templatePath'].append(('Module %s' % module.module, None))
     result = html.Division()
     result.append("Module %s, netbox %s" % 
                    (module.module,
@@ -38,7 +42,7 @@ class ModuleInfo(manage.Module):
                     return x
             return 12
 
-        ports = self.getChildren(manage.Swport, orderBy=('port', 'ifindex'))
+        ports = self.getChildren(manage.Swport, orderBy=('port'))
         if not ports:
             type = "gw"
         else:
@@ -71,7 +75,10 @@ class ModuleInfo(manage.Module):
             else:
                 # Hmmmmmm what's the difference between these?
                 # portNr = (port.ifindex is not None and port.ifindex) or port.port
-                portNr = (port.port is not None and port.port) or port.ifindex
+                portNr = port.port
+                if not portNr:
+                    # warnings.warn("Unknown portNr for %s" % port)
+                    continue
             portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
             row.append(portView)
             titles = []
