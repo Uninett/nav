@@ -127,6 +127,9 @@ sub getInfo()
 	elsif($db eq "vlan") {
 	    $this->collecttable($db,"select v.* from vlan v,org o, netbox n where n.netboxid=$this->{alertq}->{netboxid} and o.orgid=n.orgid and v.orgid=o.orgid");
 	}
+	elsif($db eq "alerttype") {
+	    $this->collecttable($db,"select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}");
+	}
 	else {
 	    $this->{log}->printlog("Alert","getInfo",$Log::warning, "no support for table $db");
 	}
