@@ -1,12 +1,12 @@
 from mod_python import apache
 from nav.db import manage
-from nav.web.servicetable import ServiceTable
 from nav.web import urlbuilder
 from nav.errors import *
 from nav.rrd import presenter
 
 from nav.web import tableview
 from nav.web.devBrowser import service
+from nav.web.devBrowser.servicetable import ServiceTable
 import forgetHTML as html
 import random
 from mx import DateTime
@@ -283,9 +283,13 @@ class NetboxInfo(manage.Netbox):
         # calc width
         width = findDisplayWidth(ports)
         count = 0
+        portTable = html.Table()
+        moduleView.append(portTable)
+        row = html.TableRow()
         for port in ports:
             if count and not count % width:
-                moduleView.append(html.Break())
+                portTable.append(row)
+                row = html.TableRow()
             count += 1
             if type=="gw":
                 if port.masterindex:
@@ -294,7 +298,8 @@ class NetboxInfo(manage.Netbox):
                     portNr = port.ifindex
             else:
                 portNr = port.port
-            portView = html.Span("%s"% portNr,  _class="port")
+            portView = html.TableCell("%s"% portNr,  _class="port")
+            row.append(portView)
             titles = []
             portView['title'] = ""
             if type == 'sw' and port.link <> 'y':
@@ -318,7 +323,8 @@ class NetboxInfo(manage.Netbox):
                 titles[0] = titles[0][0].upper() + titles[0][1:]
                 title = ', '.join(titles)
                 portView['title'] = title
-            moduleView.append(portView)
+                
+        portTable.append(row)
         return moduleView
 
     def showModuleLegend(self):
