@@ -81,6 +81,9 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardSlotNumber
 DELETE FROM snmpoid WHERE oidkey='hpStack';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpStack', '1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1','hp','Lists modules in the stack');
 
+DELETE FROM snmpoid WHERE oidkey='hpStackName';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr, getnext) VALUES ('hpStackName', '1.3.6.1.4.1.11.2.14.11.5.1.10.3.1.0','hp','Name of stack', 'f');
+
 DELETE FROM snmpoid WHERE oidkey='hpSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpSerial', '1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1','hp','Serial number');
 
@@ -96,10 +99,18 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpPortType', '1
 DELETE FROM snmpoid WHERE oidkey='hpVlan';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpVlan', '1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1','hp','Vlan for each port');
 
+-- CDP
+
+DELETE FROM snmpoid WHERE oidkey='cdpNeighbour';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cdpNeighbour', '1.3.6.1.4.1.9.9.23.1.2.1.1.6','cisco','CDP neighbour');
+
+DELETE FROM snmpoid WHERE oidkey='cdpRemoteIf';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cdpRemoteIf', '1.3.6.1.4.1.9.9.23.1.2.1.1.7','cisco','CDP remote interface');
+
 -- CAM logger
 
-DELETE FROM snmpoid WHERE oidkey='macEntry';
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('macEntry', '1.3.6.1.2.1.17.4.3.1','bridge-mib','Bridge table for various switches');
+DELETE FROM snmpoid WHERE oidkey='macPortEntry';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('macPortEntry', '1.3.6.1.2.1.17.4.3.1.2','bridge-mib','Bridge table for various switches');
 
 DELETE FROM snmpoid WHERE oidkey='basePortIfIndex';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('basePortIfIndex', '1.3.6.1.2.1.17.1.4.1.2','bridge-mib','Port ifindex mapping');
