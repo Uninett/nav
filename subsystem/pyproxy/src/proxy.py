@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
-# Copyright 2002-2004 Norwegian University of Science and Technology
+# $Id$
+#
+# Copyright 2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,7 +21,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
@@ -50,7 +51,11 @@ def handler(req):
         postdata = req.read()
     else:
         postdata = ''
-    response = doRequest(proxyreq, req.method, remotecookie, query=postdata)
+    user = None
+    if req.session.has_key('user') and req.session['user'].id > 0:
+        user = req.session['user'].login
+    response = doRequest(proxyreq, req.method, remotecookie, query=postdata,
+                         user=user, session=req.session.id)
     remoteanswer = response.read()
     req.content_type = response.msg.dict['content-type']
     if not req.content_type.startswith('text'):
@@ -88,13 +93,17 @@ def handler(req):
     return apache.OK
     
 
-def doRequest(path, method, cookie, query=''):
+def doRequest(path, method, cookie, query='', user=None, session=None):
     request = httplib.HTTPConnection(SERVERBASE, SERVERPORT)
     if method == 'POST':
         headers = {"Content-type": "application/x-www-form-urlencoded",
                    "Accept": "text/plain"}
     else:
         headers = {}
+    if user is not None:
+        headers.update({'x-authenticated-user': user})
+    if session is not None:
+        headers.update({'x-session': session})        
     headers['Cookie']=cookie
     request.request(method, path, query, headers)
     response = request.getresponse()
