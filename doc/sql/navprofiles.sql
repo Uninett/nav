@@ -1070,51 +1070,51 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 22);
 
 -- Table:Utstyrgruppe
 
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (62, NULL, 'Category_10: All routers', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (63, NULL, 'Category_20: All switches', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (64, NULL, 'Category_30: All core switches', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (65, NULL, 'Category_40: All edge switches', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (68, NULL, 'Category_50: All wireless equipment', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (69, NULL, 'Category_60: All servers', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (70, NULL, 'Category_70: All other equipment', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (71, NULL, 'All alarms', 'This filter group matches every alert. The group can i.e. be used to give a group permission to receive all alerts.');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (72, NULL, 'Event_10: Box: All boxState alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (73, NULL, 'Event_11: Box: up/down alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (74, NULL, 'Event_13: Box: shadow/sunny alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (75, NULL, 'Event_15: Box: early warning alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (76, NULL, 'Event_20: Module alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (77, NULL, 'Event_30: Services alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (78, NULL, 'Event_50: Threshold alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (79, NULL, 'Event_60: Device change alerts', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (80, NULL, 'Severity_20: All severities (incl info)', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (81, NULL, 'Severity_40: Warnings and above', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (82, NULL, 'Severity_60: Errors and above', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (83, NULL, 'Severity_80: Critical and emergency', '');
-INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (84, NULL, 'Severity_99: Emergency only', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (71, NULL, 'G01: All alerts', 'This filter group matches every alert. The group can i.e. be used to give a group permission to receive all alerts.');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (62, NULL, 'G02: All router alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (63, NULL, 'G03: All switch (core and edge) alerts', '');
+
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (64, NULL, 'G04: All core switch alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (65, NULL, 'G05: All edge switch alert', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (68, NULL, 'G06: All alerts from wireless boxes', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (69, NULL, 'G07: All alerts from servers', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (70, NULL, 'G08: All alerts from OTHER equipment', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (72, NULL, 'G09: All boxState alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (73, NULL, 'G10: All box up/down alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (74, NULL, 'G11: All box sunny/shadow alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (75, NULL, 'G12: All boxState early warnings', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (76, NULL, 'G13: All module outage alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (77, NULL, 'G14: All services alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (78, NULL, 'G15: All threshold alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (79, NULL, 'G16: All device change alerts', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (81, NULL, 'G17: All alerts with severity >= Warning', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (82, NULL, 'G18: All alerts with severity >= Errors', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (83, NULL, 'G19: All alerts with severity >= Critical', '');
+INSERT INTO utstyrgruppe (id, accountid, navn, descr) VALUES (84, NULL, 'G20: All alerts with severity = Emergency', '');
 
 -- Table:Utstyrfilter
 
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (13, NULL, 'All alarms');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (14, NULL, 'Event_11: Box: up/down alerts');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (15, NULL, 'Event_13: Box: sunny/shadow alerts');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (16, NULL, 'Event_20: Module outage');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (19, NULL, 'Severity_20: All severities (incl info)');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (20, NULL, 'Severity_40: Warning and above');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (21, NULL, 'Severity_60: Errors and above');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (23, NULL, 'Severity_80: Critical and emergency');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (24, NULL, 'Severity_99: Emergency only');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (25, NULL, 'Event_15: Box: early warnings');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (26, NULL, 'Event_30: Services up/down');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (27, NULL, 'Event_50: Threshold alerts');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (28, NULL, 'Event_60: Device changes');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (29, NULL, 'Cat_10: All routers');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (30, NULL, 'Cat_20: All switches');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (31, NULL, 'Cat_30: Core switches');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (32, NULL, 'Cat_40: Edge switches');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (33, NULL, 'Cat_50: Wireless');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (34, NULL, 'Cat_60: Servers');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (35, NULL, 'Cat_70: Other equipment');
-INSERT INTO utstyrfilter (id, accountid, navn) VALUES (36, NULL, 'Event_10: Box: all alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (13, NULL, 'F01: All alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (29, NULL, 'F02: All router alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (30, NULL, 'F03: All switch (core and edge) alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (31, NULL, 'F04: All core switch alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (32, NULL, 'F05: All edge switch alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (33, NULL, 'F06: All alerts from wireless boxes');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (34, NULL, 'F07: All alerts from servers');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (35, NULL, 'F08: All alerts from OTHER equipment');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (36, NULL, 'F09: All boxState alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (14, NULL, 'F10: All box up/down alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (15, NULL, 'F11: All box sunny/shadow alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (25, NULL, 'F12: All boxState early warnings');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (16, NULL, 'F13: All module outage alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (26, NULL, 'F14: All services alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (27, NULL, 'F15: All threshold alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (28, NULL, 'F16: All device change alerts');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (20, NULL, 'F17: All alerts with severity >= Warning');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (21, NULL, 'F18: All alerts with severity >= Errors');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (23, NULL, 'F19: All alerts with severity >= Critical');
+INSERT INTO utstyrfilter (id, accountid, navn) VALUES (24, NULL, 'F20: All alerts with severity = Emergency');
+
 
 
 
@@ -1136,7 +1136,7 @@ INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utsty
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 26, 77);
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 27, 78);
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 28, 79);
-INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 19, 80);
+--INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 19, 80);
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 20, 81);
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 21, 82);
 INSERT INTO gruppetilfilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) VALUES (true, true, 1, 23, 83);
@@ -1160,7 +1160,7 @@ INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (52, 26, 10, 0, 'serviceState');
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (53, 27, 10, 0, 'thresholdState');
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (55, 20, 12, 2, '20');
-INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (56, 19, 12, 2, '0');
+--INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (56, 19, 12, 2, '0');
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (57, 21, 12, 2, '40');
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (58, 28, 10, 0, 'deviceChanged');
 INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES (59, 23, 12, 2, '60');
@@ -1176,6 +1176,26 @@ INSERT INTO rettighet (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM A
 -- Table: defaultutstyr
 
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 71);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 62);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 63);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 64);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 65);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 68);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 69);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 70);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 72);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 73);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 74);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 75);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 76);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 77);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 78);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 79);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 81);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 82);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 83);
+INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 84);
+
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 71);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 62);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 63);
@@ -1192,7 +1212,7 @@ INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FR
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 77);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 78);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 79);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 80);
+--INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 80);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 81);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 82);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 83);
@@ -1202,6 +1222,26 @@ INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FR
 -- Table: defaultfilter
 
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 13);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 29);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 30);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 31);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 32);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 33);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 34);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 35);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 36);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 14);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 15);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 25);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 16);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 26);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 27);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 28);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 20);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 21);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 23);
+INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 24);
+
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 13);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 29);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 30);
@@ -1218,7 +1258,7 @@ INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FR
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 26);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 27);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 28);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 19);
+--INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 19);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 20);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 21);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 23);
