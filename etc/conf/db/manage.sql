@@ -5,6 +5,7 @@ DROP TABLE swportblocked;
 DROP TABLE swportallowedvlan;
 DROP TABLE swportvlan;
 DROP TABLE gwport;
+DROP TABLE vlan;
 DROP TABLE prefix;
 DROP TABLE swport;
 DROP TABLE module;
@@ -38,7 +39,6 @@ DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefix_prefixid_seq;
 DROP SEQUENCE type_typeid_seq;
 DROP SEQUENCE swport_swportid_seq;
-DROP SEQUENCE swportvlan_swportvlanid_seq;
 DROP SEQUENCE swp_netbox_swp_netboxid_seq;
 DROP SEQUENCE device_deviceid_seq;
 DROP SEQUENCE product_productid_seq;
@@ -138,20 +138,18 @@ CREATE TABLE prefix (
 --fjernet under nav2 uten oppdatering av nav3
   netaddr CIDR NOT NULL,
   rootgwid INT4 UNIQUE,
-  vlan INT4,
+--  vlan INT4,
 --  antmask INT2,
   active_ip_cnt INT4,
   max_ip_cnt INT4,
-  nettype VARCHAR NOT NULL,
-  orgid VARCHAR(10) REFERENCES org,
---  anvid VARCHAR(10) REFERENCES anv,
-  usageid VARCHAR(10) REFERENCES usage,
---  nettident VARCHAR(30),
-  netident VARCHAR,
---  samband VARCHAR(20),
+--  nettype VARCHAR NOT NULL,
+--  orgid VARCHAR(10) REFERENCES org,
+--  usageid VARCHAR(10) REFERENCES usage,
+--  netident VARCHAR,
     to_gw VARCHAR,
 --  komm VARCHAR(20)
-  descr VARCHAR
+--  descr VARCHAR
+  vlan INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE vendor (
@@ -199,6 +197,18 @@ CREATE TABLE type (
   descr VARCHAR,
   UNIQUE (vendorid,typename)
 );
+
+
+CREATE TABLE vlan (
+  vlan INT4 PRIMARY KEY,
+--  vlan INT4 NOT NULL,
+  nettype VARCHAR NOT NULL,
+  orgid VARCHAR(10) REFERENCES org,
+  usageid VARCHAR(10) REFERENCES usage,
+  netident VARCHAR,
+  description VARCHAR
+);  
+  
 
 --CREATE TABLE boks (
 CREATE TABLE netbox (
@@ -267,7 +277,7 @@ CREATE TABLE module (
   module VARCHAR(4) NOT NULL,
   submodule VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
-  lastseen TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  downsince TIMESTAMP NOT NULL DEFAULT 'NOW()',
   UNIQUE (netboxid,module)
 );
 -- HVA ER SUBMODULE?
@@ -322,15 +332,14 @@ CREATE TABLE swport (
 
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
---  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
---  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
+--  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT4 NOT NULL,
   masterindex INT4,
 --  interf VARCHAR(30),
   interface VARCHAR,
-  gwip inet,
+  gwip INET,
   speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
 --  static BOOL DEFAULT false,
@@ -342,12 +351,11 @@ CREATE TABLE gwport (
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
-  swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  vlan INT4 NOT NULL,
+  vlan INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
 --  retning CHAR(1) NOT NULL DEFAULT 'x',
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
-  UNIQUE (swportid,vlan)
+  PRIMARY KEY(swportid,vlan)
 );
 
 CREATE TABLE swportallowedvlan (
@@ -385,12 +393,12 @@ GRANT ALL ON typegroup TO navall;
 GRANT ALL ON alerthist TO navall;
 GRANT ALL ON eventtype TO navall;
 GRANT ALL ON service TO navall;
+GRANT ALL ON vlan TO navall;
 
 GRANT ALL ON netbox_netboxid_seq TO navall;
 GRANT ALL ON gwport_gwportid_seq TO navall;
 GRANT ALL ON prefix_prefixid_seq TO navall;
 GRANT ALL ON swport_swportid_seq TO navall;
-GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 GRANT ALL ON module_moduleid_seq TO navall;
 GRANT ALL ON mem_memid_seq TO navall;
 GRANT ALL ON product_productid_seq TO navall;
@@ -538,6 +546,7 @@ GRANT SELECT ON netbox TO vPServer;
 GRANT SELECT ON netboxinfo TO vPServer;
 GRANT SELECT ON gwport TO vPServer;
 GRANT SELECT ON prefix TO vPServer;
+GRANT SELECT ON vlan TO vPServer;
 GRANT SELECT ON swport TO vPServer;
 GRANT SELECT ON swportvlan TO vPServer;
 GRANT SELECT,UPDATE ON vp_netbox_grp_info TO vPServer;
@@ -549,12 +558,12 @@ GRANT SELECT ON netbox TO navadmin;
 GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON netboxmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
+GRANT SELECT ON vlan TO navadmin;
 GRANT SELECT ON prefix TO navadmin;
 GRANT SELECT ON module TO navadmin;
 GRANT ALL    ON swport TO navadmin;
 GRANT ALL    ON swport_swportid_seq TO navadmin;
 GRANT ALL    ON swportvlan TO navadmin;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
 GRANT SELECT,DELETE ON swp_netbox TO navadmin;
 GRANT ALL    ON swportallowedvlan TO navadmin;
 GRANT SELECT ON swportblocked TO navadmin;
@@ -563,8 +572,8 @@ GRANT SELECT ON netbox TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
 GRANT SELECT ON module TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
+GRANT SELECT ON vlan TO getBoksMacs;
 GRANT ALL    ON swportvlan TO getBoksMacs;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
 GRANT SELECT ON swportallowedvlan TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefix TO getBoksMacs;
@@ -598,8 +607,8 @@ GRANT ALL    ON module TO getDeviceData;
 GRANT ALL    ON module_moduleid_seq TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
+GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
 GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- vlanPlot end ------
@@ -756,6 +765,7 @@ GRANT SELECT,UPDATE ON module TO eventengine;
 GRANT SELECT ON swport TO eventengine;
 GRANT SELECT ON swportvlan TO eventengine;
 GRANT SELECT ON gwport TO eventengine;
+GRANT SELECT ON vlan TO eventengine;
 GRANT SELECT ON prefix TO eventengine;
 GRANT SELECT ON service TO eventengine;
 GRANT SELECT ON serviceproperty TO eventengine;
