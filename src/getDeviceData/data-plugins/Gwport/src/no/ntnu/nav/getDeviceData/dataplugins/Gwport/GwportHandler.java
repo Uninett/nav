@@ -341,7 +341,7 @@ public class GwportHandler implements DataHandler {
 						// Then gwportprefix / prefix
 						Gwportprefix oldgp = oldgwp == null ? null : oldgwp.getGwportprefix(gwip);
 						String prefixid;
-						if (oldgp == null && !prefixMap.containsKey(p.getNetaddr())) {
+						if (oldgp == null && !prefixMap.containsKey(p.getCidr())) {
 							// Insert new
 							Log.d("NEW_PREFIX", "Creating vlan: " + vl);
 							
@@ -352,7 +352,7 @@ public class GwportHandler implements DataHandler {
 							};
 							prefixid = Database.insert("prefix", ins, null);
 							p.setPrefixid(prefixid);
-							prefixMap.put(p.getNetaddr(), p);
+							prefixMap.put(p.getCidr(), p);
 
 							String[] ins2 = {
 								"gwportid", gwportid,
