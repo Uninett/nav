@@ -362,7 +362,7 @@ public class GwportHandler implements DataHandler {
 							};
 							Database.insert("gwportprefix", ins2);
 							
-						} else {
+						} else if (oldgp == null) {
 							// Insert into gwportprefix
 							Log.d("APPEND_TO_PREFIX", "Prefix: " + p);
 							
