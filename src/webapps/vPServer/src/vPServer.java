@@ -49,14 +49,6 @@ public class vPServer extends HttpServlet
 			return;
 		}
 
-		PasswdParser pp;
-		try {
-			pp = new PasswdParser(cp.get("htpasswd"));
-		} catch (IOException e) {
-			out.println("Error, could not read passwd file: " + cp.get("htpasswd") );
-			return;
-		}
-
 		// Åpne databasen
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
 			out.println("Error, could not connect to database!");
@@ -65,15 +57,11 @@ public class vPServer extends HttpServlet
 
 		HttpSession session = req.getSession(true);
 		res.setContentType("text/html");
+		res.setHeader("nav-template-wrapper", "false");
 
-		/*
-		com.setReq(req);
-		com.setRes(res);
-
-		com.setSes(session);
-		com.setOut(out);
-		//com.setDb(db);
-		*/
+		// Check user
+		String user = req.getHeader("x-authenticated-user");
+		boolean hasAdmin = user != null && user.length() > 0;
 
 		SqlBoks.req = req;
 		SqlBoks.out = out;
@@ -89,12 +77,16 @@ public class vPServer extends HttpServlet
 
 				if (section.equals("boks")) {
 					while (st.hasMoreTokens()) {
-						SqlBoks.serviceRequest(st.nextToken(), req.getRemoteUser(), cp, pp);
+						SqlBoks.serviceRequest(st.nextToken(), user, hasAdmin, cp);
 					}
 				} else
 				if (section.equals("admin")) {
+					if (!hasAdmin) {
+						failAuth(out);
+						return;
+					}
 					while (st.hasMoreTokens()) {
-						SqlAdmin.serviceRequest(st.nextToken(), req.getRemoteUser(), pp);
+						SqlAdmin.serviceRequest(st.nextToken(), user);
 					}
 				}
 			} else {
@@ -107,6 +99,12 @@ public class vPServer extends HttpServlet
 		out.close(); //Close the output stream
 		Database.closeConnection(); // Close the SQL connection
 	}
+
+	private void failAuth(ServletOutputStream out) throws IOException {
+		out.println("Error, failed authentication!");
+	}
+
+
 }
 
 class SqlBoks
@@ -114,10 +112,10 @@ class SqlBoks
 	public static HttpServletRequest req;
 	public static ServletOutputStream out;
 
-	static void serviceRequest(String req, String user, ConfigParser cp, PasswdParser pp) throws IOException
+	static void serviceRequest(String req, String user, boolean hasAdmin, ConfigParser cp) throws IOException
 	{
 		try {
-			if (req.equals("listConfig")) listConfig(user, cp, pp);
+			if (req.equals("listConfig")) listConfig(user, hasAdmin, cp);
 			else if (req.equals("listRouters")) listRouters();
 			else if (req.equals("listRouterGroups")) listRouterGroups();
 			else if (req.equals("listRouterXY")) listRouterXY();
@@ -135,7 +133,7 @@ class SqlBoks
 	}
 
 	// Config for vP
-	static void listConfig(String user, ConfigParser cp, PasswdParser pp) throws SQLException
+	static void listConfig(String user, boolean hasAdmin, ConfigParser cp) throws SQLException
 	{
 		outl("listConfig");
 
@@ -146,13 +144,6 @@ class SqlBoks
 		outl("vpNetLink^"+vpNetLink);
 		outl("userName^"+user);
 
-		boolean hasAdmin = false;
-		String userClass = pp.getUserClass(user);
-		if (userClass != null) {
-			if (userClass.equals("intern")) {
-				hasAdmin = true;
-			}
-		}
 		outl("hasAdmin^"+hasAdmin);
 
 	}
@@ -218,25 +209,24 @@ class SqlBoks
 		// && = variabelnavn, ## = bytt ut med gitt verdi, !! = \n
 		{
 			String[] s = {
-				"&&sysName!!Kat: ##!!Romid: ##!!Last: &&boksLast",
-				"kat",
-				"romid"
+				"&&sysName!!Cat: ##!!Roomid: ##!!Load: &&boksLast",
+				"catid",
+				"roomid"
 			};
 			text.put("gwBoks", s);
 		}
 		{
 			String[] s = {
-				"&&sysName!!Kat: ## (stam)!!Nettadr: ##/##",
-				"kat",
-				"nettadr",
-				"maske"
+				"&&sysName!!Cat: ## (stam)!!Netaddr: ##",
+				"catid",
+				"netaddr"
 			};
 			text.put("stamBoks", s);
 		}
 		{
 			String[] s = {
-				"sysName!!(def)",
-				"kat"
+				"sysname!!(def)",
+				"catid"
 			};
 			text.put("defBoks", s);
 		}
@@ -244,62 +234,56 @@ class SqlBoks
 		// Linker
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
-				"interf",
+				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
+				"interface",
 				"ospf",
-				"nettadr",
-				"maske",
+				"netaddr",
 				"speed"
 			};
 			text.put("gw-gwLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
-				"interf",
+				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
+				"interface",
 				"ospf",
-				"nettadr",
-				"maske",
+				"netaddr",
 				"speed"
 			};
 			text.put("gw-stamLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
-				"interf",
+				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
+				"interface",
 				"ospf",
-				"nettadr",
-				"maske",
+				"netaddr",
 				"speed"
 			};
 			text.put("gw-defLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(stam->gw)",
+				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(stam->gw)",
 				"ospf",
-				"nettadr",
-				"maske",
+				"netaddr",
 				"speed"
 			};
 			text.put("stam-gwLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->gw)",
+				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->gw)",
 				"ospf",
-				"nettadr",
-				"maske",
+				"netaddr",
 				"speed"
 			};
 			text.put("def-gwLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->def)",
-				"nettadr",
-				"maske",
+				"&&sysNameFrom -> &&sysNameTo!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->def)",
+				"netaddr",
 				"speed"
 			};
 			text.put("def-defLink", s);
@@ -309,7 +293,7 @@ class SqlBoks
 		String cFields = "";
 		{
 			HashSet hs = new HashSet();
-			String[] aa = { "gwportid", "boksid", "sysName", "interf", "prefiksid", "nettype", "kat", "nettident" };
+			String[] aa = { "gwportid", "netboxid", "sysname", "interface", "prefixid", "nettype", "catid", "netident" };
 			for (int i=0; i < aa.length; i++) hs.add(aa[i].toLowerCase());
 
 			Iterator iter = text.entrySet().iterator();
@@ -324,7 +308,7 @@ class SqlBoks
 		}
 
 
-		ResultSet rs = Database.query("SELECT gwportid,boksid,sysName,interf,gwport.prefiksid,nettype,kat,nettident"+cFields+" FROM (gwport JOIN prefiks USING (prefiksid)) JOIN boks USING (boksid) WHERE nettype NOT IN ('loopback','ukjent','lan') ORDER BY boksid");
+		ResultSet rs = Database.query("SELECT gwportid,netboxid,sysname,interface,prefix.prefixid,nettype,catid,netident"+cFields+" FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING (prefixid) JOIN vlan USING(vlanid) JOIN module USING (moduleid) JOIN netbox USING (netboxid) WHERE nettype NOT IN ('loopback','unknown','lan') ORDER BY netboxid");
 		// SELECT gwportid,boksid,sysName,gwport.prefiksid,nettype,kat,nettident FROM (gwport JOIN prefiks USING (prefiksid)) JOIN boks USING (boksid) WHERE nettype NOT IN ('loopback','ukjent','lan') ORDER BY boksid
 
 
@@ -354,17 +338,18 @@ class SqlBoks
 		HashSet boksDupe = new HashSet();
 		while (rs.next()) {
 			Integer gwportid = new Integer(rs.getString("gwportid"));
-			Integer boksid = new Integer(rs.getString("boksid"));
-			Integer prefiksid = new Integer(rs.getString("prefiksid"));
+			Integer boksid = new Integer(rs.getString("netboxid"));
+			Integer prefiksid = new Integer(rs.getString("prefixid"));
 			String nettype = rs.getString("nettype");
-			String kat = rs.getString("kat").toLowerCase();
+			String kat = rs.getString("catid").toLowerCase();
 
 			if (!pRouters.containsKey(prefiksid)) {
 				// Ny prefiksid oppdaget, lag tom liste for den og legg til enheten
 				pRouters.put(prefiksid, new ArrayList() );
 
 				if (!nettype.equals("link")) {
-					String nettident = rs.getString("nettident");
+					String nettident = rs.getString("netident");
+					if (nettident == null || nettident.length() == 0) nettident = "unknown_netident";
 					if (nettident.indexOf("-fw") != -1) nettype = "fw";
 
 					String[] s = { nettident, nettype };
@@ -403,7 +388,7 @@ class SqlBoks
 			{
 				String[] s = {
 					rs.getString("speed"),
-					rs.getString("interf")
+					rs.getString("interface")
 				};
 				linkInfo.put(gwportid, s);
 			}
@@ -475,8 +460,8 @@ class SqlBoks
 				tl.add(s);
 			}
 
-			if (rs.getInt("boksid")!=curid) {
-				curid = rs.getInt("boksid");
+			if (rs.getInt("netboxid")!=curid) {
+				curid = rs.getInt("netboxid");
 				l = new ArrayList();
 				l.add(new Integer(curid));
 				links.add(l);
@@ -718,15 +703,15 @@ class SqlBoks
 
 		int curid=-1;
 		//ResultSet rs = Database.query("SELECT gruppeid,name,pboksid FROM vpBoksGrpInfo NATURAL JOIN vpBoksGrp ORDER BY gruppeid");
-		ResultSet rs = Database.query("SELECT vpBoksGrpInfo.gruppeid,name,x,y,pboksid FROM vpBoksGrpInfo LEFT JOIN vpBoksGrp ON vpBoksGrpInfo.gruppeid = vpBoksGrp.gruppeid ORDER BY gruppeid");
+		ResultSet rs = Database.query("SELECT vp_netbox_grp_infoid,name,x,y,pnetboxid FROM vp_netbox_grp_info LEFT JOIN vp_netbox_grp USING (vp_netbox_grp_infoid) ORDER BY vp_netbox_grp_infoid");
 		while (rs.next()) {
-			if (rs.getInt("gruppeid")!=curid) {
+			if (rs.getInt("vp_netbox_grp_infoid")!=curid) {
 				if (curid>=0) outl("");
-				curid = rs.getInt("gruppeid");
-				out(rs.getString("gruppeid") + "^" + rs.getString("name") + "^" + rs.getString("x") + "^" + rs.getString("y") );
-				if (rs.getString("pboksid") == null) continue;
+				curid = rs.getInt("vp_netbox_grp_infoid");
+				out(rs.getString("vp_netbox_grp_infoid") + "^" + rs.getString("name") + "^" + rs.getString("x") + "^" + rs.getString("y") );
+				if (rs.getString("pnetboxid") == null) continue;
 			}
-			out("^" + rs.getString("pboksid"));
+			out("^" + rs.getString("pnetboxid"));
 		}
 		outl("");
 	}
@@ -738,9 +723,9 @@ class SqlBoks
 		String gruppeid = getp("gruppeid");
 		if (gruppeid == null) return;
 
-		ResultSet rs = Database.query("SELECT pboksid,x,y FROM vpBoksXY WHERE gruppeid = '" + gruppeid + "'");
+		ResultSet rs = Database.query("SELECT pnetboxid,x,y FROM vp_netbox_xy WHERE vp_netbox_grp_infoid = '" + gruppeid + "'");
 		while (rs.next()) {
-			outl(rs.getString("pboksid") + "^" + rs.getString("x") + "^" + rs.getString("y"));
+			outl(rs.getString("pnetboxid") + "^" + rs.getString("x") + "^" + rs.getString("y"));
 		}
 	}
 
@@ -1705,23 +1690,14 @@ class SqlBoks
 
 class SqlAdmin
 {
-	private static final String ADMIN_PW = "agaton";
-
 	public static HttpServletRequest req;
 	public static ServletOutputStream out;
 
-	static void serviceRequest(String req, String user, PasswdParser pp) throws IOException
+	static void serviceRequest(String req, String user) throws IOException
 	{
-		/*
-		if (!getp("pw").equals(ADMIN_PW)) {
-			outl("Error, wrong user/pw!");
-			return;
-		}
-		*/
-
 		try {
 			if (req.equals("verifyPw")) return;
-			else if (req.equals("saveBoksXY")) saveBoksXY(user, pp);
+			else if (req.equals("saveBoksXY")) saveBoksXY(user);
 			else outl("Unsupported request string: " + req);
 
 		} catch (SQLException e) {
@@ -1731,21 +1707,8 @@ class SqlAdmin
 	}
 
 
-	static void saveBoksXY(String user, PasswdParser pp) throws SQLException
+	static void saveBoksXY(String user) throws SQLException
 	{
-		// Først sjekk at brukeren har tilgang til dette
-		boolean hasAdmin = false;
-		String userClass = pp.getUserClass(user);
-		if (userClass != null) {
-			if (userClass.equals("intern")) {
-				hasAdmin = true;
-			}
-		}
-		if (!hasAdmin) {
-			outl("Error, failed authentication!");
-			return;
-		}
-
 		String gruppeid = getp("gruppeid");
 		String boks = getp("boks");
 
@@ -1756,10 +1719,10 @@ class SqlAdmin
 		} catch (NumberFormatException e) { }
 
 		HashMap boksXYMap = new HashMap();
-		ResultSet rs = Database.query("SELECT pboksid,x,y FROM vpBoksXY WHERE gruppeid='"+gruppeid+"'");
+		ResultSet rs = Database.query("SELECT pnetboxid,x,y FROM vp_netbox_xy WHERE vp_netbox_grp_infoid='"+gruppeid+"'");
 		while (rs.next()) {
 			int[] xy = { rs.getInt("x"), rs.getInt("y") };
-			boksXYMap.put(rs.getString("pboksid"), xy);
+			boksXYMap.put(rs.getString("pnetboxid"), xy);
 		}
 
 		int newcnt=0,updcnt=0,remcnt=0;
@@ -1782,21 +1745,21 @@ class SqlAdmin
 						"y", String.valueOf(y)
 					};
 					String[] condFields = {
-						"pboksid", boksid,
-						"gruppeid", gruppeid
+						"pnetboxid", boksid,
+						"vp_netbox_grp_infoid", gruppeid
 					};
-					Database.update("vpBoksXY", updateFields, condFields);
+					Database.update("vp_netbox_xy", updateFields, condFields);
 					updcnt++;
 				}
 			} else {
 				// Må sette inn
 				String[] insertFields = {
-					"pboksid", boksid,
+					"pnetboxid", boksid,
 					"x", String.valueOf(x),
 					"y", String.valueOf(y),
-					"gruppeid", gruppeid
+					"vp_netbox_grp_infoid", gruppeid
 				};
-				Database.insert("vpBoksXY", insertFields);
+				Database.insert("vp_netbox_xy", insertFields);
 				newcnt++;
 			}
 		}
@@ -1805,7 +1768,7 @@ class SqlAdmin
 		while (iter.hasNext()) {
 			String boksid = (String)iter.next();
 
-			String sql = "DELETE FROM vpBoksXY WHERE pboksid='"+boksid+"' AND gruppeid='"+gruppeid+"'";
+			String sql = "DELETE FROM vp_netbox_xy WHERE pnetboxid='"+boksid+"' AND vp_netbox_grp_infoid='"+gruppeid+"'";
 			//Database.update(sql);
 			//remcnt++;
 		}
@@ -1817,10 +1780,10 @@ class SqlAdmin
 			if (gruppe == null) return;
 
 			HashMap grpXYMap = new HashMap();
-			rs = Database.query("SELECT gruppeid,x,y FROM vpBoksGrpInfo");
+			rs = Database.query("SELECT vp_netbox_grp_infoid,x,y FROM vp_netbox_grp_info");
 			while (rs.next()) {
 				int[] xy = { rs.getInt("x"), rs.getInt("y") };
-				grpXYMap.put(rs.getString("gruppeid"), xy);
+				grpXYMap.put(rs.getString("vp_netbox_grp_infoid"), xy);
 			}
 
 			st = new StringTokenizer(gruppe, "*");
@@ -1842,9 +1805,9 @@ class SqlAdmin
 							"y", String.valueOf(y)
 						};
 						String[] condFields = {
-							"gruppeid", grpid
+							"vp_netbox_grp_infoid", grpid
 						};
-						Database.update("vpBoksGrpInfo", updateFields, condFields);
+						Database.update("vp_netbox_grp_info", updateFields, condFields);
 						grpcnt++;
 					}
 				}
