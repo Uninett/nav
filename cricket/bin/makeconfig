@@ -158,7 +158,7 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.id ORDER BY vlan";
+	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.id AND speed!=1000 ORDER BY vlan";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
 
@@ -257,29 +257,31 @@ sub Switchports {
 	my ($id, $ip, $switchnavn, $type, $community) = @$_;
 
 	if ($community) {
-	    unless (-e "$path/switch-ports/$switchnavn") {
-		mkdir ("$path/switch-ports/$switchnavn", 0775);
-	    }
+	    # Finner alle portene som er på switchen.
+	    my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id and speed!=1000 and portnavn!='' ORDER BY id";
+	    my $getports = &db_select($sporring,$dbh);
+	    my $antall = $getports->ntuples;
 
-	    my $fil = "$path/switch-ports/$switchnavn/ports";
+	    # Hvis ingenting returneres skal vi ikke gjøre noe.
+            unless ($antall == 0) {
+                unless (-e "$path/switch-ports/$switchnavn") {
+                    mkdir ("$path/switch-ports/$switchnavn", 0775);
+                }
+		
+		my $fil = "$path/switch-ports/$switchnavn/ports";
 
-	    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-	    print FIL "target --default--\n";
-	    print FIL "\tswitch\t\t=\t$ip\n";
+		open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+		print FIL "target --default--\n";
+		print FIL "\tswitch\t\t=\t$ip\n";
 
-	    print FIL "\tsnmp-community\t=\t$community\n\n";
-
-	    unless ($type =~ /SW/) {
-		# Finner alle portene som er på switchen.
-		my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id ORDER BY id";
-		my $getports = &db_select($sporring,$dbh);
+		print FIL "\tsnmp-community\t=\t$community\n\n";
 
 		my @liste;
 		
 		while (my @temp = $getports->fetchrow) {
 		    @temp = map &rydd($_), @temp;
 		    my ($modul,$port,$portname) = @temp;
-		    unless ($portname =~ /(udef|undef)/ or !$modul or !$port) {
+		    unless (!$modul or !$port) {
 			push @liste, [@temp];
 		    }
 		}
@@ -301,9 +303,9 @@ sub Switchports {
 		    print FIL "\torder\t\t=\t$order\n\n";
 		}
 		$count++;
+		close FIL;
 	    }
 	}
-	close FIL;
     }
     print "$count filer laget\n"
 
