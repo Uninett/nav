@@ -1,0 +1,51 @@
+# Forsøk på config-fil for formatering av traps som skal sendes vha. sms.
+# John Magne Bredal - 13.06.01
+# 
+# Måten denne config-filen fungerer på er at du skriver inn den meldingen som skal
+# sendes vha. sms selv. I meldingen putter du inn variabelnavn som TrapDetect
+# selv finner og setter inn verdier for. Variabelnavnene er subiod'ene til trapen. Disse
+# må du inn i TrapDetect.conf for å finne. I tillegg er det en fast variabel $avsender,
+# som inneholder den enheten som har SENDT trapen. 
+#
+# NB!! I f.eks. boxDown er det IKKE boksen som går ned som har sendt trap'en! Det er live
+# som har sendt den, og derfor vil det ikke hjelpe å skrive $avsender og tro at det er 
+# enheten som har gått ned som vil komme der.
+#
+# Eksempel: linkDown
+# linkDown har 3 suboid'er ifIndex, interface og type. Disse står i TrapDetect.conf.
+# Vi vil sende sms på dette formatet: linkDown fra 'avsender': 'interface'
+# For å gjøre dette sier vi bare:
+# linkDown fra $avsender: $interface
+# Resultatet vil da kunne bli: linkDown fra sb-355-sw: FastEthernet0/19
+#
+# NB! Formatering må bare foregå på èn linje.
+# NB! Formatering MÅ starte med navnet på trapen, ORDRETT. Hvis ikke har jeg ikke noe
+# å lete etter.
+# NB! Ved tilstandsfulle traps MÅ det defineres en formatering for begge meldingene.
+# Hvis ikke vil de ikke bli formatert.
+# NB! Hvis det er * i variabelnavnet i Trapdetect.conf, trenger den IKKE være med her.
+# F.eks. $belastning i terskelOpp.
+#
+# Se ellers hvordan det er gjort fra før. Ved spm. send mail til bredal@stud.ntnu.no
+#########################################################################################
+
+boxDown: $sysname ($ip)
+boxUp: $sysname ($ip)
+boxShadow: $sysname ($ip)
+boxSunny: $sysname ($ip)
+
+flowStart: $beskrivelse
+flowStopp: $beskrivelse
+
+linkDown fra $avsender: interface $ifIndex
+linkUp fra $avsender: interface $ifIndex
+
+snort tid-fra: $tid-fra ip-fra-til $ip-fra-til
+
+DDoSStart $ip-fra-til $antall
+DDoSStop $ip-fra-til $antall
+
+terskelOpp $beskrivelse $belastning
+terskelNed $beskrivelse
+
+unitChange: $sysname $info
