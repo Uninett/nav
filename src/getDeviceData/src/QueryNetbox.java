@@ -88,9 +88,10 @@ public class QueryNetbox extends Thread
 		synchronized (timer) {
 			checkRunQTask.cancel();
 			checkRunQTask = new CheckRunQTask();
-            // Eh.. make sure we don't schedule anything negative =)
-            l = Math.max(l, 0);
-			Log.w("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule in " + l + " ms");
+			// Eh.. make sure we don't schedule anything negative =)
+			// If this happens it is a bug and should be fixed!
+			//l = Math.max(l, 0);
+			Log.d("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule in " + l + " ms");
 			timer.schedule(checkRunQTask, l);
 		}
 	}

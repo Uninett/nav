@@ -196,8 +196,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			"cCardIndex",
 			"cCardDescr",
 			"cCardSerial",
-			"cCardHwVersion",
-			"cCardSwVersion",
 			"cCardSlotNumber",
 			"ipAdEntIfIndex",
 			"ipAdEntIfNetMask",
@@ -316,8 +314,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				}
 				if (slot != null) {
 					gwm.setSerial((String)cardSerial.get(slot));
-					gwm.setHwVer((String)cardHwVer.get(slot));
-					gwm.setSwVer((String)cardSwVer.get(slot));
+					if (cardHwVer != null) gwm.setHwVer((String)cardHwVer.get(slot));
+					if (cardSwVer != null) gwm.setSwVer((String)cardSwVer.get(slot));
 					gwm.setDescr((String)cardDescr.get(slot));
 				}
 
