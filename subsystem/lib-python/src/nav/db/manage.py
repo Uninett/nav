@@ -72,7 +72,7 @@ def getNetbox(address):
         query = "ip=%s" % nav.db.escape(address)
     else:    
         # eat our default domain until database is correct..
-        address = address.replace(".ntnu.no", "")
+        #address = address.replace(".ntnu.no", "")
         hostname = nav.db.escape(address)
         query = "sysname=%s" % hostname
 
