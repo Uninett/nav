@@ -32,18 +32,37 @@ public class SimpleSnmp
 	/**
 	 * Construct an empty SimpleSnmp class.
 	 */
-	public SimpleSnmp() { }
+	protected SimpleSnmp() {
+	}
 	
 	/**
 	 * Construct a SimpleSnmp class and set initial parameters.
 	 */
-	public SimpleSnmp(String host, String cs_ro, String baseOid)
-	{
+	protected SimpleSnmp(String host, String cs_ro, String baseOid) {
 		setParams(host, cs_ro, baseOid);
+	}
+
+	public static SimpleSnmp simpleSnmpFactory() {
+		return simpleSnmpFactory(null);
+	}
+
+	public static SimpleSnmp simpleSnmpFactory(String host, String cs_ro, String baseOid) {
+		return simpleSnmpFactory(null, host, cs_ro, baseOid);
+	}
+
+	public static SimpleSnmp simpleSnmpFactory(String type) {
+		if ("2524".equals(type)) return new SimpleSnmpHP2524();
+		return new SimpleSnmp();
+	}
+
+	public static SimpleSnmp simpleSnmpFactory(String type, String host, String cs_ro, String baseOid) {
+		if ("2524".equals(type)) return new SimpleSnmpHP2524(host, cs_ro, baseOid);
+		return new SimpleSnmp(host, cs_ro, baseOid);
 	}
 
 	public void setHost(String host) { this.host = host; }
 	public void setCs_ro(String cs_ro) { this.cs_ro = cs_ro; }
+	protected String getCs_ro() { return cs_ro; }
 	public void setBaseOid(String baseOid) { this.baseOid = baseOid; }
 	public void setParams(String host, String cs_ro, String baseOid)
 	{
@@ -80,8 +99,8 @@ public class SimpleSnmp
 	 * <p> Snmpwalk the given OID and return a maximum of cnt entries
 	 * from the subtree.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -98,8 +117,8 @@ public class SimpleSnmp
 	 * <p> Snmpwalk the given OID and return a maximum of cnt entries
 	 * from the subtree.  </p>
 	 *
-	 * <p>Note: the baseOid prefix will be removed from the
-	 * returned OIDs if they are not equal (getNext is used).  </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -114,18 +133,39 @@ public class SimpleSnmp
 	}
 
 	/**
+	 * <p> Snmpwalk the given OID and return a maximum of cnt entries
+	 * from the subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param decodeHex try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getNext(String baseOid, int cnt, boolean decodeHex, boolean getNext) throws TimeoutException
+	{
+		getCnt = (cnt < 0) ? 0 : cnt;
+		return getAll(baseOid, decodeHex, getNext);
+	}
+
+	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree as a
 	 * Map.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
 	 * @return a Map which maps the OIDs to their corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public Map getAllMap() throws TimeoutException
+	public Map getAllMap(String baseOid) throws TimeoutException
 	{
-		List l = getAll();
+		List l = getAll(baseOid);
 		Map m = new HashMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
@@ -139,14 +179,15 @@ public class SimpleSnmp
 	 * Map; the OIDs are mapped to a {@link java.util.List List} of
 	 * values.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
 	 * @return a Map which maps the OIDs to a List of corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public Map getAllMapList() throws TimeoutException {
-		return getAllMapList(0);
+	public Map getAllMapList(String baseOid) throws TimeoutException {
+		return getAllMapList(baseOid, 0);
 	}
 
 	/**
@@ -154,16 +195,29 @@ public class SimpleSnmp
 	 * Map; the OIDs are mapped to a {@link java.util.List List} of
 	 * values.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
 	 * @param stripCnt Strip this many elements (separated by .) from the OIDs
 	 * @return a Map which maps the OIDs to a List of corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public Map getAllMapList(int stripCnt) throws TimeoutException
-	{
-		List l = getAll();
+	public Map getAllMapList(String baseOid, int stripCnt) throws TimeoutException {
+		List l = getAll(baseOid);
+		return listToMapList(l, stripCnt);
+	}
+	
+	/**
+	 * <p> Convert a list of two-element String arrays to a Map of
+	 * Lists, stripping the first stripCnt elements (separated by .)
+	 * from the first String in the array.  </p>
+	 *
+	 * <p> If the String array contains 3 elements, the third will be
+	 * prepended to the first after stripping.  </p>
+	 */
+	protected Map listToMapList(List l, int stripCnt) {
+		if (l == null) return null;
 		Map m = new HashMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
@@ -177,6 +231,7 @@ public class SimpleSnmp
 				}
 				s[0] = s[0].substring(p, s[0].length());
 			}
+			if (s.length == 3) s[0] = s[2] + s[0];
 
 			List vl;
 			if ( (vl=(List)m.get(s[0])) == null) m.put(s[0], vl=new ArrayList());
@@ -188,59 +243,93 @@ public class SimpleSnmp
 	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getAll() throws TimeoutException
-	{
+	public ArrayList getAll() throws TimeoutException	{
 		return getAll(false, true);
 	}
 
 	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
-	 * <p> Note: the baseOid prefix is removed from the returned OIDs.
-	 * </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid) throws TimeoutException	{
+		return getAll(baseOid, false, true);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getAll(boolean decodeHex) throws TimeoutException
-	{
+	public ArrayList getAll(boolean decodeHex) throws TimeoutException {
 		return getAll(decodeHex, true);
 	}
 
 	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
-	 * <p> Note: the baseOid prefix will be removed from the returned
-	 * OIDs if they are not equal (getNext is used).  </p>
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid, boolean decodeHex) throws TimeoutException {
+		return getAll(baseOid, decodeHex, true);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getAll(boolean decodeHex, boolean getNext) throws TimeoutException
-	{
-		ArrayList l = new ArrayList();
+	public ArrayList getAll(boolean decodeHex, boolean getNext) throws TimeoutException	{
+		return getAll(baseOid, decodeHex, getNext);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
+		if (baseOid == null) return null;
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
+		ArrayList l = new ArrayList();
 		try {
-			if (context == null || !context.getHost().equals(host)) {
-				if (context != null) context.destroy();
-				//outl("Switched context, host: " + host);
-				context = new SnmpContext(host, 161);
-				context.setCommunity(cs_ro);
-				timeoutCnt = 0;
-			} else if (!context.getCommunity().equals(cs_ro)) {
-				//outl("Community changed: " + cs_ro);
-				context.setCommunity(cs_ro);
-			}
+			checkSnmpContext();
 
 			BlockPdu pdu = new BlockPdu(context);
 
@@ -281,9 +370,9 @@ public class SimpleSnmp
 						//outl("Oid : " + oid);
 
 						// If the returned OID is of greater length than the baseOid, remove the baseOid prefix;
-						// otherwise, use it as-is.
+						// otherwise, use the empty string
 						String[] s = {
-							oid.length() == baseOid.length() ? oid : oid.substring(baseOid.length()+1, oid.length()),
+							oid.length() == baseOid.length() ? "" : oid.substring(baseOid.length()+1, oid.length()),
 							data.trim()
 						};
 						l.add(s);
@@ -331,16 +420,23 @@ public class SimpleSnmp
 		return l;
 	}
 
-	/*
-	public void destroy()
-	{
-		if (context != null) {
-			outl("Context distroyed..");
-			context.destroy();
-			context = null;
+	/**
+	 * Check if the SnmpContext is still valid and update it if necessary.
+	 *
+	 * @return true if the SnmpContext was updated
+	 */
+	protected boolean checkSnmpContext() throws IOException {
+		if (context == null || !context.getHost().equals(host)) {
+			if (context != null) context.destroy();
+			context = new SnmpContext(host, 161);
+			context.setCommunity(cs_ro);
+			timeoutCnt = 0;
+			return true;
+		} else if (!context.getCommunity().equals(cs_ro)) {
+				context.setCommunity(cs_ro);
 		}
+		return false;
 	}
-	*/
 
 	public void finalize()
 	{
