@@ -163,7 +163,7 @@ public class BoxState implements EventHandler, EventCallback
 		} else
 		if (callback && !scheduledCB) {
 			lastDownCount = downCount;
-			ddb.scheduleCallback(this, 3000, 3);
+			ddb.scheduleCallback(this, 30000, 3);
 		}
 
 
