@@ -12,7 +12,7 @@ import forgetHTML as html
 # Drrrty read av config
 import nav.config
 
-from nav.web.templates.MainTemplate import MainTemplate
+from nav.web.templates.DeviceBrowserTemplate import DeviceBrowserTemplate
 
 try:
     script = __file__
@@ -67,61 +67,9 @@ def handler(req):
             message = html.Pre(warn, _class="warning")
             result.append(message)
     
-    template = MainTemplate()
+    template = DeviceBrowserTemplate()
     template.content = lambda: result
     # DRRRRRRTYUUUYY
-    template.additionalCSS = lambda: """
-      table.serviceNetboxes {
-        border-collapse: collapse;
-        padding: 0;
-        margin: 0;
-      }
-      table.serviceNetboxes td {
-        padding: 0.2em;
-      }
-      /* Services down have red light, in shadow yellow */
-      table.serviceNetbox td { padding: 0.2em; }
-      table.netboxinfo th { text-align: left; }
-      /* Arrows for sorting!! 
-      th.reverseSort#activeSort:after { content: url("/images/pilopp.png") }
-      th.sort#activeSort:after { content: url("/images/pilned.png") }
-      */
-      th#activeSort { background-color: #ace; }
-      table.serviceNetboxes th { text-align: left;  }
-      pre.alert {
-        position: absolute;
-        border: 1px solid black;
-        background-color: #ffa;
-        visibility: hidden;
-        z-index: 2;
-        width: auto;
-        padding: 0.1em;
-      }
-      div.alertBox {
-        padding-right: 1em;
-        float: left;
-      }
-      pre.warning {
-        padding: 1em;
-        border: 2px dotted black;
-        background-color: #a88;
-        color: black;
-        margin-left: 10em;
-        margin-right: 10em;
-        margin-top: 2em;
-      }
-      
-    """
-    template.additionalJavaScript = lambda: """
-    function show(id) {
-        elem = document.getElementById(id);
-        elem.style.visibility = 'visible';
-    }
-    function hide(id) {
-        elem = document.getElementById(id);
-        elem.style.visibility = 'hidden';
-    }
-    """
     response = template.respond()
 
     req.send_http_header()

@@ -20,7 +20,7 @@ def getServiceState(service):
 def process(request):
     args = request['args']
     query = request['query']
-    sort = 1
+    sort = 2
     if query:
         query = query.split("=")
     if query and query[0]=='sort' and query[1:]:
@@ -28,7 +28,7 @@ def process(request):
     try:
         sort = int(sort)
     except:
-        sort = 1
+        sort = 2
     if not args:
         # We need a trailing /
         raise RedirectError, urlbuilder.createUrl(division="service")
@@ -47,7 +47,7 @@ def getServices(netbox):
 def showIndex(showAll=0):
     result = html.Division()
     result.append(html.Header("All services", level=1))
-    curs = database.cursor()
+    curs = db.cursor()
     # We'll do this manually to do it alot quicker (and smoother)
     curs.execute("""SELECT handler, count(serviceid) 
                     FROM service 
@@ -86,5 +86,8 @@ def showAll(request, sort):
     return result
     
 def getNetboxes(servicename, sort):
-    table = servicetable.ServiceTable(servicenames=(servicename,), sort=sort) 
-    return table.html      
+    result = html.Division()
+    result.append(html.Header("All servers running %s" % servicename, level=1))
+    table = servicetable.ServiceTable(servicenames=(servicename,), sort=sort)
+    result.append(table.html)
+    return result
