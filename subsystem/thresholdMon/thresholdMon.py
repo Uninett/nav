@@ -56,10 +56,7 @@ def makeEvent (presobject,datasource,state):
     rrdfile = datasource.rrd_file
 
     var = datasource.descr
-    if datasource.delimiter == '>':
-        val = "more than %s" % datasource.threshold
-    else:
-        val = "less than %s" % datasource.threshold
+    val = datasource.threshold
 
     print "Setting var to %s" % var
     print "Setting val to %s" % val
