@@ -307,8 +307,9 @@ GRANT SELECT ON boksmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
 GRANT SELECT ON prefiks TO navadmin;
 GRANT SELECT ON swport TO navadmin;
-GRANT SELECT ON swportvlan TO navadmin;
+GRANT SELECT,INSERT,DELETE ON swportvlan TO navadmin;
 GRANT SELECT,DELETE ON swp_boks TO navadmin;
+GRANT SELECT ON swportallowedvlan TO navadmin;
 
 --### vlanPlot end ###
 
