@@ -8,5 +8,6 @@ if [ "$COUNT" = "0" ]; then
         cd /usr/local/nav/navme/cron/getBoksMacs/
         $JAVA_HOME/bin/java -cp $CLASSPATH updateBoksmacCache $1 > "/usr/local/nav/local/log/cam/boksmacCacheUpdate-`/bin/date +%Y-%m-%d_%H-%M`.log"
 else
-        echo "updateBoksmacCache already running"
+        #echo updateBoksmacCache already running"
+        echo -n ""
 fi
