@@ -96,8 +96,8 @@ class DeviceDBImpl implements DeviceDB
 		if (!updateMode && !deviceMap.containsKey(id) && (System.currentTimeMillis()-lastDBUpdate > MIN_UPDATE_INTERVAL)) {
 			// Update from DB
 			Log.d("DEVICEDB_IMPL", "GET_DEVICE", "Device not found, forcing DB update: " + deviceid);
-			System.out.println("Device not found, forcing DB update: " + deviceid);
-			//mp.updateFromDB();
+			System.err.println("Device not found, forcing DB update: " + deviceid);
+			mp.updateFromDB();
 			lastDBUpdate = System.currentTimeMillis();
 		}
 		return (Device)deviceMap.get(id);
