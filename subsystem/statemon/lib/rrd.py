@@ -19,7 +19,7 @@ import config
 RRDDIR = '/var/rrd'
 database = db.db(config.dbconf())
 
-def create(filename, netboxid, serviceid=None):
+def create(filename, netboxid, serviceid=None, handler=""):
 	step = 300
 	
 	if RRDDIR and not os.path.exists(RRDDIR):
@@ -44,15 +44,19 @@ def create(filename, netboxid, serviceid=None):
 		key="serviceid"
 		val=serviceid
 		subsystem = "serviceping"
+		statusdescr = "%s availability" % handler
+		responsedescr = "%s responsetime" % handler
 	else:
 		key=""
 		val=""
 		subsystem= "pping"
+		statusdescr = "Packet loss"
+		responsedescr = "Roundtrip time"
 	rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid, subsystem, key, val)
-	database.registerDS(rrd_fileid, "RESPONSETIME", "", "GAUGE", "s")
-	database.registerDS(rrd_fileid, "STATUS", "Availability of the service", "GAUGE", "")
+	database.registerDS(rrd_fileid, "RESPONSETIME", responsedescr, "GAUGE", "s")
+	database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", "")
 
-def update(netboxid,sysname,time,status,responsetime,serviceid=None):
+def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
 	"""
 	time: 'N' or time.time()
 	status: 'UP' or 'DOWN' (from Event.status)
@@ -65,12 +69,12 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None):
 		filename = '%s.rrd' % (sysname)
 		# typically ludvig.ntnu.no.rrd
 
-	os.path.exists(os.path.join(RRDDIR, filename)) or create(filename, netboxid, serviceid)
+	os.path.exists(os.path.join(RRDDIR, filename)) or create(filename, netboxid, serviceid,handler)
 	if status == event.Event.UP:
-		rrdstatus=0
+		rrdstatus = 0
 	else:
 		rrdstatus = 1
 	
 	rrdParam = (os.path.join(RRDDIR,filename),'%s:%i:%s' % (time, rrdstatus, responsetime))
 	rrd.update(*rrdParam)
-	debug("Updated %s" % filename,6)
+	debug("Updated %s" % filename)

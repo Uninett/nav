@@ -162,7 +162,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 
 	def hostsToPing(self):
-		query="""SELECT DISTINCT ip FROM netbox """
+		query="""SELECT ip,sysname FROM netbox """
 		return self.query(query)
 
 	def getCheckers(self, useDbStatus, onlyactive = 1):

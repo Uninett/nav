@@ -99,7 +99,8 @@ class AbstractChecker:
 			# Updates rrd every time to get proper 'uptime' for the service
 			try:
 				rrd.update(self.getNetboxid(), self.getSysname(), 'N',
-					   self.getStatus(), self.getResponsetime(), self.getServiceid())
+					   self.getStatus(), self.getResponsetime(), self.getServiceid(),
+					   self.getType())
 			except Exception,e:
 				debug("rrd update failed for %s [%s]" % (service,e),3)
 			priority=delay+time.time()
@@ -127,7 +128,8 @@ class AbstractChecker:
 
 		try:
 			rrd.update(self.getNetboxid(), self.getSysname(), 'N',
-				   self.getStatus(), self.getResponsetime(), self.getServiceid())
+				   self.getStatus(), self.getResponsetime(), self.getServiceid(),
+				   self.getType())
 		except Exception,e:
 			debug("rrd update failed for %s [%s]" % (service,e),3)
 		self.setTimestamp()
