@@ -1143,7 +1143,7 @@ class NavUtils
 		// SELECT DISTINCT ON (vlan,boksid) boksid,modul,port,boksbak,vlan,trunk FROM swport NATURAL JOIN swportvlan WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan,boksid
 		if (DEBUG_OUT) outl("\n<b>VLANs with no router to start from:</b><br>");
 		//rs = Database.query("SELECT DISTINCT ON (vlan,boksid) vlan,sysname,boksbak FROM swport NATURAL JOIN swportvlan JOIN boks USING (boksid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT DISTINCT ON (vlanid,module.netboxid) vlanid,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlanid NOT IN (SELECT DISTINCT vlanid FROM prefix JOIN gwport USING (prefixid) WHERE to_netboxid IS NOT NULL AND vlanid IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlanid");
+		rs = Database.query("SELECT DISTINCT ON (vlanid,module.netboxid) vlanid,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlanid NOT IN (SELECT DISTINCT vlanid FROM prefix JOIN gwportprefix USING (prefixid) JOIN gwport USING (gwportid) WHERE to_netboxid IS NOT NULL AND vlanid IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlanid");
 		HashSet visitNode = null;
 		int prevVlanid=-1;
 		while (rs.next()) {
