@@ -1,0 +1,6 @@
+# Denne filen kan inneholde en liste over brukernavn fra en sentral
+# brukerdatabase som skal ha tilgang til NAV.  Bruk av en sentral
+# passordfil er valgfritt, men anbefales dersom denne finnes.  Ekstra
+# brukere kan ellers konfigureres i stat_user.
+#
+# Ett brukernavn på hver linje.
