@@ -4,7 +4,10 @@
  *
  */
 
+// PATHS
 
+define("PATH_DB", "/usr/local/nav/local/etc/conf/");
+define("PATH_BIN", "/usr/local/nav/navme/bin/");
 
 /*
  * Matchfield operators
@@ -24,5 +27,7 @@ $type = array (
 	9 => gettext('regexp'),
 	10=> gettext('wildcard (? og *)')
 );
+
+
 
 ?>

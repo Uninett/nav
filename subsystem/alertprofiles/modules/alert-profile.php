@@ -228,7 +228,7 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 print $l->getHTML();
 
 print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deactivate active profile") . '</a> | ' .  
-    "<a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0></a> ] ";
+    "<a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0></a> ] ";
 print gettext("Number of profiles: ") . sizeof($profiler);
 
 

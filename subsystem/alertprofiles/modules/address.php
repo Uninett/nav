@@ -180,7 +180,7 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=\"0\"> ]</a> ";
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
 print gettext("Number of addresses: ") . sizeof($adr);
 
 ?>

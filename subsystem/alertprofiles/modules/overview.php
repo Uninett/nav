@@ -172,21 +172,6 @@ if ($subaction == 'settaktiv') {
 $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 $profiler = $dbh->listProfiler( session_get('uid'), 1);
 
-if (get_exist('vis') )
-	session_set('visoversikt', get_get('vis') );
-	
-if (get_exist('tview') )
-	session_set('tview', get_get('tview') );	
-
-if (session_get('visoversikt') == 0) {
-	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=1">' . gettext("Show more info...") . '</a> ]</p>';
-} else {
-	echo '<p style="text-align: right; font-size: small">[ <a href="index.php?vis=0">' . gettext("Show less info...") . '</a> ]</p>';
-}
-
-
-
-
 
 // Lag en dropdown meny for å velge aktiv profil
 print '<form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
@@ -255,87 +240,6 @@ if ($brukerinfo[4] > 0) {
 
 
 
-
-
-
-
-if (session_get('visoversikt') == 1) {
-    
-    print '<p>&nbsp;';
-    
-    print '<table width="100%"><tr width="30%" valign="top"><td>';
-    print '<h3>' . gettext('Account type') . '</h3>';
-    
-    switch (session_get('admin') ) {
-            case (100) :
-                    print '<p><img alt="'. gettext('Administrator') . '" src="icons/person100.gif">&nbsp;';
-                    print gettext('Administrator');
-                    break;
-            case (1) :
-                    print '<p><img alt="' . gettext('Regular user') . '" src="icons/person1.gif">&nbsp;';
-                    print gettext('Regular user');
-                    break;
-            default: 
-                    print "<p>" . gettext("Uknown admin level.");
-    }
-    
-    print '</td><td width="70%" valign="top">';
-    print '<h3>' . gettext("Access to SMS") . '</h3>';
-    
-    if ($brukerinfo[3] == 't') {
-            print '<p><img alt="' . gettext('Yes') . '" src="icons/ok.gif">&nbsp;';
-            print gettext('Yes, you have permission to setup SMS alerts.');
-    } else {
-            print '<p><img alt="Nei" src="icons/cancel.gif">&nbsp;';
-            print gettext('No, you do not have permission to setup SMS alerts.');
-    }
-    
-    print '</td></tr></table>';
-    #print '<p>&nbsp;';
-    
-    print '<table width="100%"><tr>';
-    print '<td width="50%" valign="top" class="oversikt">';
-    
-    print '<h2>' . gettext("User groups") . '</h2>';
-    
-    $grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
-    
-            
-    for ($i = 0; $i < sizeof($grupper); $i++) {
-            print '<p class=nop><img src="icons/gruppe.gif"><b>' . $grupper[$i][1] . '</b></p>';
-            print '<p class="descr">' . $grupper[$i][2]. '</p>';
-    }
-    
-    if (sizeof($grupper) < 1) {
-            print gettext('<p>You are <b>not</b> member of any user groups.');
-    } else {
-            print gettext('<p>You are member of ') . sizeof($grupper) . gettext(' user groups.');
-    }
-    
-    print '</td><td width="50%" valign="top" class="oversikt">';
-    
-    print '<h2>' . gettext("Permissions") . '</h2>';
-    $grupper = $dbh->listUtstyrRettighet(session_get('uid'), 1);
-    
-            
-    for ($i = 0; $i < sizeof($grupper); $i++) {
-            print '<p class="nop"><img src="icons/chip.gif"><b>' . $grupper[$i][1] . '</b></p>';
-            print '<p class="descr">' . $grupper[$i][2]. '</p>';
-    }
-    
-    if (sizeof($grupper) < 1) {
-            print gettext('<p>You have <b>not</b> permissions to any equipment groups.');
-    } else {
-            print gettext('<p>You have permissions to ') . sizeof($grupper) . gettext(' equipment groups.');
-    }
-    
-    print '</td></tr></table>';
-    
-
-
-
-    
-}
 ?>
 </td></tr>
 </table>

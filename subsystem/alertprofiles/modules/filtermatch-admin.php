@@ -81,7 +81,7 @@ for ($i = 0; $i < sizeof($fmlist); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
 print gettext("Number of available match fields: ") . sizeof($fmlist);
 ?>
 <a name="nymatch"></a><p><h3>

@@ -2,7 +2,7 @@
 /*
  *	index.php
  *
- *	Main file for NAVuser. All submodules will be called from this file.
+ *	Main file for Alert profiles. All submodules will be called from this file.
  *
  */
 
@@ -10,13 +10,14 @@
 // Report all errors except E_NOTICE
 error_reporting (E_ALL ^ E_NOTICE);
 
-	require("config.php");
+require("config.php");
 require("databaseHandler.php");
 require("session.php");
 
 
 require("dbinit.php");
 require("leading_zero.function.php");
+require("hasPrivilege.function.php");
 
 require("auth.php");
 
@@ -69,8 +70,8 @@ exec('PYTHONPATH="/usr/local/nav/navme/lib/python" /usr/local/nav/navme/bin/navT
 
 $pyhtml = implode(" ",$out);
 
-preg_match("/<body.*?>(.*?)%%%/", $pyhtml, $header);
-preg_match("/%%%(.*?)<\/body>/", $pyhtml, $footer);
+preg_match('/<body.*?>(.*?)%%%/', $pyhtml, $header);
+preg_match('/%%%(.*?)<\/body>/', $pyhtml, $footer);
 
 
 echo $header[1];
@@ -183,6 +184,7 @@ $meny = NEW Meny($login);
 
 echo "<p>";
 $meny->newOption(gettext("Overview"), "oversikt", 0, array('modules/overview.php') );
+$meny->newOption(gettext("Account info"), "account-info", 1, array('modules/account-info.php') );
 $meny->newOption(gettext("Addresses"), "adress", 1,array('modules/address.php') );
 $meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profile.php') );
 $meny->newOption(gettext("Equip. groups"), "utstyr", 1, array('modules/equipment-group-private.php') );

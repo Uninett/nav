@@ -55,7 +55,7 @@ div.window p,div.window h3 {
 }
 div.hoverelement:hover div.window {
 	display: inline;
-}	
+}
 
 
 /* Visual Document */
@@ -117,7 +117,10 @@ INPUT.fieldOne, INPUT.fieldTwo, TEXTAREA.field {
 INPUT.fieldOne {
 	width : 100%
 }
-
+img.refresh {
+	position: relative;
+	top: 8px;
+}
 P.nop {
 	margin-bottom: 0px
 }

@@ -21,7 +21,7 @@ class dbinit {
 
     function get_dbh() {
         if ($this->dbh == null) {
-            $filename = "/usr/local/nav/local/etc/conf/db.conf";
+            $filename = PATH_DB . "db.conf";
             
             // Get fileconfiglines            
             $conffile = file($filename);
@@ -66,7 +66,7 @@ class dbinit {
     function get_dbhk() {
         if ($this->dbhk == null) {
             // Get fileconfiglines
-            $filename = "/usr/local/nav/local/etc/conf/db.conf";
+            $filename = PATH_DB . "db.conf";
             
             $conffile = file($filename);
             

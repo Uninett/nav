@@ -177,7 +177,7 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
 print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>

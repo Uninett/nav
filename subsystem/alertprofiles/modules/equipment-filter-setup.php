@@ -63,7 +63,7 @@ if ($subaction == "nymatch") {
 	if ($navn == "") $navn = gettext("No name");
 	if ($uid > 0) { 
 	
-		$matchid = $dbh->nyMatch(post_get('matchfelt2'), post_get('matchtype'), 
+		$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
 		post_get('verdi'), session_get('match_fid') );
 		print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
 	
@@ -116,7 +116,7 @@ for ($i = 0; $i < sizeof($match); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
 print "Antall filtermatcher: " . sizeof($match);
 
 
@@ -126,7 +126,7 @@ echo '</h3>';
 
 
 
-print '<form name="form2" method="post" action="index.php?subaction=velgtype">';
+print '<form name="form1" method="post" action="index.php?subaction=nymatch">';
 
 ?>
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
@@ -147,82 +147,57 @@ foreach ($matchfields AS $matchfield) {
 	print '<option value="' . $matchfield[0] . '"' . $sel . '>' . $matchfield[1] . '</option>';
 }
 
-?>   	            
-        </select>
-        </td>
-   	</tr>
+echo '</select></td></tr>';
 
-
-<?php
 
 if ( post_exist('matchfelt') ) {
-	/*
-		$mf[0] = $data["name"];
-		$mf[1] = $data["descr"];
-		$mf[2] = $data["valuehelp"];
-		$mf[3] = $data["valueid"];
-		$mf[4] = $data["valuename"];
-		$mf[5] = $data["valuecategory"];
-		$mf[6] = $data["valuesort"];
-		$mf[7] = $data["listlimit"];
-		$mf[8] = $data["showlist"];
-	*/
-
-    $matchfieldinfo = $dbh->matchFieldInfo(post_get('matchfelt'));
-
-    echo '<tr><td colspan="2"><small><p>';
-    echo $matchfieldinfo[1];
-    echo '</small></td></tr>';
+	$valgt_matchfelt = post_get('matchfelt');
+} else {
+	$valgt_matchfelt = $matchfields[0][0];
 }
+//echo '<p>Valg matchfelt er: ' . $valgt_matchfelt . ' postverdi er:' .  post_get('matchfelt');
+/*
+	$mf[0] = $data["name"];
+	$mf[1] = $data["descr"];
+	$mf[2] = $data["valuehelp"];
+	$mf[3] = $data["valueid"];
+	$mf[4] = $data["valuename"];
+	$mf[5] = $data["valuecategory"];
+	$mf[6] = $data["valuesort"];
+	$mf[7] = $data["listlimit"];
+	$mf[8] = $data["showlist"];
+*/
 
-?>
+$matchfieldinfo = $dbh->matchFieldInfo($valgt_matchfelt);
 
-    <tr>
+echo '<tr><td colspan="2"><small><p>';
+echo $matchfieldinfo[1];
+echo '</small></td></tr>';
 
-<?php
+echo '<tr>';
 
 
 // Valg av operator ----------------------------------------
-if (post_exist('matchfelt') ) {
-    print '</form>';
-    print '<form name="form1" method="post" action="index.php?subaction=nymatch">';
-}
 
 echo '<td width="30%"><p>';
 echo gettext("Choose condition");
 echo '</p></td><td width="70%">';
 
-if ( post_exist('matchfelt') ) {
+print '<select name="matchtype" id="select">';
 
-
-        print '<select name="matchtype" id="select">';
-    
-        if ( sizeof($matchfieldinfo[9]) > 0) {
-            foreach ($matchfieldinfo[9] as $matchtype) {
-                print '<option value="' . $matchtype . '">' . $type[$matchtype] . '</option>';
-            }
-        } else {
-            print '<option value="0" selected>' . gettext("equals") . '</option>';	
-        }
-        print '</select>';
-
-	
+if ( sizeof($matchfieldinfo[9]) > 0) {
+	foreach ($matchfieldinfo[9] as $matchtype) {
+		print '<option value="' . $matchtype . '">' . $type[$matchtype] . '</option>';
+	}
 } else {
-	print "<p>...";
+	print '<option value="0" selected>' . gettext("equals") . '</option>';	
 }
+echo '</select>';
+echo '</td></tr>';
+echo '<tr><td colspan="2"><small><p>';
+echo $matchfieldinfo[2];
+echo '</small></td></tr>';
 
-
-?>    	
-        </td>    	
-   	</tr>
-
-<?php
-
-if ( post_exist('matchfelt') ) {
-    echo '<tr><td colspan="2"><small><p>';
-    echo $matchfieldinfo[2];
-    echo '</small></td></tr>';
-}
 
 ?>
    	
@@ -234,46 +209,39 @@ if ( post_exist('matchfelt') ) {
 
 
 // Valg av verdi ----------------------------------------	
-if ( post_exist('matchfelt') ) {
-
 
     
-    $verdier = $dbhk->listVerdier(
-        $matchfieldinfo[3],
-        $matchfieldinfo[4],
-        $matchfieldinfo[5],
-        $matchfieldinfo[6],
-        $matchfieldinfo[7]
-    );
-    /*
-    echo "<pre>...\n";
-    print_r($verdier);
-    echo "</pre>";
-    */
-    
-    if ($matchfieldinfo[8] == 't' ) {
-      
-        echo '<select name="verdi" id="select">';    
-    
-        // Traverser kategorier
-        foreach ($verdier AS $cat => $catlist) {
-            if ($cat != "") echo '<optgroup label="' . $cat . '">';
-            foreach ($catlist AS $catelem) {
-                echo ' <option value="' . $catelem[0] . '">' . $catelem[1] . '</option>' . "\n";
-            }
-            if ($cat != "") echo '</optgroup>';
-        }
-                    
-        echo '</select>';
-        
-    } else {
-        echo '<input name="verdi" size="40">';
-    }    
-    //echo '<input name="verdi" id="select" size="40">';
+$verdier = $dbhk->listVerdier(
+	$matchfieldinfo[3],
+	$matchfieldinfo[4],
+	$matchfieldinfo[5],
+	$matchfieldinfo[6],
+	$matchfieldinfo[7]
+);
+/*
+echo "<pre>...\n";
+print_r($verdier);
+echo "</pre>";
+*/
 
+if ($matchfieldinfo[8] == 't' ) {
+  
+	echo '<select name="verdi" id="select">';    
+
+	// Traverser kategorier
+	foreach ($verdier AS $cat => $catlist) {
+		if ($cat != "") echo '<optgroup label="' . $cat . '">';
+		foreach ($catlist AS $catelem) {
+			echo ' <option value="' . $catelem[0] . '">' . $catelem[1] . '</option>' . "\n";
+		}
+		if ($cat != "") echo '</optgroup>';
+	}
+				
+	echo '</select>';
+	
 } else {
-	print "<p>...";
-}
+	echo '<input name="verdi" size="40">';
+}    
 
 ?>
 
@@ -292,9 +260,6 @@ if ( post_exist('matchfelt') ) {
 	$tekst = gettext("Choose matchfield");
 }
 
-if (post_exist('matchfelt')) {
-    echo '<input type="hidden" name="matchfelt2" value="' . post_get('matchfelt') . '">';
-}
 print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 
 
