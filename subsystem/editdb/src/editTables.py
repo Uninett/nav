@@ -52,14 +52,14 @@ class editdbVendor(Vendor):
         return options       
     getOptions = classmethod(getOptions)
 
-class editdbTypegroup(Typegroup):
-    def getOptions(cls):
-        options = []
-        for entry in cls.getAllIterator(orderBy='typegroupid'):
-            text = entry.typegroupid + ': ' + entry.descr
-            options.append((entry.typegroupid,text))    
-        return options       
-    getOptions = classmethod(getOptions)
+#class editdbTypegroup(Typegroup):
+#    def getOptions(cls):
+#        options = []
+#        for entry in cls.getAllIterator(orderBy='typegroupid'):
+#            text = entry.typegroupid + ': ' + entry.descr
+#            options.append((entry.typegroupid,text))    
+#        return options       
+#    getOptions = classmethod(getOptions)
 
 
 class editdbNetbox(Netbox):
@@ -189,14 +189,14 @@ class editdbService(Service):
     _sqlTable =  'service'
     _descriptions =  {}
 
-class editdbTypesnmpoid(Typesnmpoid):
-    _sqlFields =  {'frequency': 'frequency',
-                   'type': 'typeid',
-                   'snmpoid': 'snmpoidid'}
-    _sqlLinks =  {}
-    _sqlPrimary = ('typeid',)
-    _userClasses =  {'type': 'Type', 'snmpoid': 'Snmpoid'}
-    _shortView =  ()
-    _sqlTable =  'typesnmpoid'
-    _descriptions =  {}
+## class editdbNetboxsnmpoid(Netboxsnmpoid):
+##     _sqlFields =  {'frequency': 'frequency',
+##                    'netbox': 'netboxid',
+##                    'snmpoid': 'snmpoidid'}
+##     _sqlLinks =  {}
+##     _sqlPrimary = ('typeid',)
+##     _userClasses =  {'netbox': 'Netbox', 'snmpoid': 'Snmpoid'}
+##     _shortView =  ()
+##     _sqlTable =  'netboxsnmpoid'
+##     _descriptions =  {}
                                                  

@@ -142,7 +142,7 @@ def index(req,showHelp=False):
     
     # Table for boxes and services
     rows = [['Boxes',
-             'Input seed information on the IP-devices you want to ' +\
+             'Input seed information on the IP-device you want to ' +\
              'monitor',
             [BASEPATH + 'netbox/edit','Add'],
             [BASEPATH + 'netbox/list','Edit'],
@@ -1578,13 +1578,14 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
                  function=None):
 
     if not deviceid:
+
         # Make new device first
-        #if len(serial):
-        fields = {'serial': serial}
-        #else:
+        if len(serial):
+            fields = {'serial': serial}
+        else:
             # Don't insert an empty serialnumber (as serialnumbers must be
             # unique in the database) (ie. don't insert '' for serial)
-            #fields = {}
+            fields = {}
             
         deviceid = addEntryFields(fields,
                                   'device',
@@ -1598,6 +1599,7 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
               'orgid': orgid,
               'ro': ro,
               'rw': rw}
+    #uptodate = false per default
 
     # Get prefixid
     query = "SELECT prefixid FROM prefix WHERE '%s'::inet << netaddr" \
@@ -1612,8 +1614,10 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
         fields['typeid'] = typeid
 
         # Set uptyodate = false
-        tifields = {'uptodate': 'f'}
-        updateEntryFields(tifields,'type','typeid',typeid)
+        # This part is done in netbox now. And for a new box this
+        # field defaults to 'f'
+        #tifields = {'uptodate': 'f'}
+        #updateEntryFields(tifields,'type','typeid',typeid)
 
     if snmpversion:
         # Only use the first char from initbox, can't insert eg. '2c' in
@@ -3135,14 +3139,14 @@ class structNetbox:
                 else:
                     self.help = 'Unable to retrieve serialnumber for this ' + \
                                 'device by SNMP. ' + \
-                                'Enter a serialnumber'
+                                'Enter a serialnumber (optional)'
             else:
                 if serial:
                     # Serial was entered manually
                     self.help = ''
                     disabled = True
                 else:   
-                    self.help = 'Enter a serialnumber'
+                    self.help = 'Enter a serialnumber (optional)'
 
             # If editSerial = True, override help text and always enable editing
             if editSerial:
@@ -3424,30 +3428,32 @@ class structNetbox:
                                  typeid=req.form['typeid'],
                                  snmpversion=req.form['snmpversion'],
                                  formData=form))
-            #if len(serial):
-            # Any devices in the database with this serial?
-            where = "serial = '" + str(serial) + "'"
-            device = editTables.Device.getAll(where)
-            if device:
-                # Found a device with this serial
-                deviceId = device[0].deviceid
-                # Must check if there already is a box with this serial
-                where = "deviceid = '" + str(deviceId) + "'"
-                box = editTables.Netbox.getAll(where)
-                if box:
-                    box = box[0]
-                    message = 'A box with this serial already exists ' + \
-                              '(' + box.sysname + ')'
-                    templateform.add(editboxHiddenOrMessage(message))
-                    #This doesn't work for some reason:
-                    #templateform.add(editboxNetbox(box.netboxid,
-                    #                               disabled=True))
-                    templateform.showConfirm = False
-                    return (status,action,templateform)
-            else:
-                # Not found, make new device
-                deviceId = None
-                    
+            deviceId = None
+            if len(serial):
+                # Any devices in the database with this serial?
+                where = "serial = '" + str(serial) + "'"
+                device = editTables.Device.getAll(where)
+                if device:
+                    # Found a device with this serial
+                    deviceId = device[0].deviceid
+                    # Must check if there already is a box with this serial
+                    where = "deviceid = '" + str(deviceId) + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        box = box[0]
+                        message = 'A box with this serial already exists ' + \
+                                  '(' + box.sysname + ')'
+                        templateform.add(editboxHiddenOrMessage(message))
+                        #This doesn't work for some reason:
+                        #templateform.add(editboxNetbox(box.netboxid,
+                        #                               disabled=True))
+                        templateform.showConfirm = False
+                        return (status,action,templateform)
+                else:
+                    # Not found, make new device
+                    deviceId = None
+
+            #DO NOT NEED SERIAL ANYMORE
             #else: # MATCHES if-SENTENCE ON LINE 3427: if len(serial)
                 # Empty serial specified, not allowed
                 #nextStep = STEP_2
@@ -3457,6 +3463,7 @@ class structNetbox:
                 #templateform.add(editboxHiddenOrMessage(message))
                 #return (status,action,templateform)
 
+            #deviceid must be supplied for the database insertion
             editboxHidden.addHidden('deviceid',deviceId)
 
             # Show subcategory/function editbox 
@@ -4279,7 +4286,10 @@ class bulkdefNetbox:
                 error = False
                 try:
                     box = initBox.Box(data['ip'],data['ro'])
-                    box.getDeviceId()
+                    
+                    # DeviceId / Serial takes too long time to get
+                    # We will not do it here
+#                    box.getDeviceId()
 #                    if (not hasSerial) and (not box.serial):
 #                        status = BULK_STATUS_YELLOW_ERROR
 #                        error = "No serial returned by SNMP, and no serial given."
@@ -4399,8 +4409,8 @@ class bulkdefNetbox:
                         updateEntryFields(tifields,'type','typeid',typeId)
                     if box.snmpversion:
                         row['snmp_version'] = str(box.snmpversion[0])
-                    # getDeviceId() Returns a list (of ints, so str())
-                    deviceid = str(box.getDeviceId()[0])
+                    # getDeviceId() now returns an Int
+                    deviceid = str(box.getDeviceId())
                 except:
                     # If initBox fails, always make a new device
                     deviceid = None
@@ -4416,16 +4426,15 @@ class bulkdefNetbox:
                     row['serial'] = 'NULL'
             # Make new device
             if row.has_key('serial'):
-                # Hacked by JM to avoid serial
-                #if len(row['serial']):
-                fields = {'serial': row['serial']}
-                # serial shouldn't be inserted into Netbox table
-                # so remove it from the row
-                del(row['serial'])
-                #else:
+                if len(row['serial']):
+                    fields = {'serial': row['serial']}
+                    # serial shouldn't be inserted into Netbox table
+                    # so remove it from the row
+                    del(row['serial'])
+                else:
                     # Don't insert an empty serialnumber
                     # (as serialnumbers must be unique in the database)
-                    #fields = {}
+                    fields = {}
                 # Must check if a device with this serial is already present
                 if fields.has_key('serial'):
                     where = "serial='%s'" % (fields['serial'])

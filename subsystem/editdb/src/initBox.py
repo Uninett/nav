@@ -107,8 +107,6 @@ class Box:
             typeid = handle.fetchone()[0]
         except TypeError:
             typeid = None
-        #hae? hva gjør denne?
-        snmpversion = 1
 
         return typeid
 
@@ -133,7 +131,9 @@ class Box:
                             if r[1]:
                                 walkserials.append(r[1])
                 else:
-                    serials.append(snmp.get(oid.strip()).strip())
+                    result = snmp.get(oid.strip()).strip()
+                    if result:
+                        serials.append(result)
 
             except:
                 pass
@@ -157,19 +157,11 @@ class Box:
         handle = connection.cursor()
 
         serials = []
-        type = self.typeid
-#        if type:
-#            sql = "select snmpoid,getnext from snmpoid left outer join typesnmpoid using (snmpoidid) where typeid = "+str(type)+" and oidkey ilike '%serial%'"
-#            handle.execute(sql)
-#            results = handle.fetchall()
-#            serials = self.__getSerials(results)
+        sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
+        handle.execute(sql)
+        results = handle.fetchall()
+        serials = self.__getSerials(results)
 
-        if not serials:
-            sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
-            handle.execute(sql)
-            results = handle.fetchall()
-            serials = self.__getSerials(results)
-            
         devlist = []
         sqlserials = []
         if len(serials):
@@ -183,7 +175,8 @@ class Box:
 
         #if devlist:
         self.deviceIdList = devlist
-        return devlist
+        if len(devlist):
+            return devlist[0]
      
     def getSnmpVersion(self,identifier,ro):
         """
@@ -233,6 +226,7 @@ class Box:
 ##         print "FEIL: " + record[1]+" fikk ikke fornuftig svar"
 ##     print "\n"
 
-## a = Box("129.241.119.7","--------")
-## print a.getDeviceId()
-## print a.serial
+#a = Box("129.241.2.4","--------")
+#print a.getBoxValues()
+#print a.getDeviceId()
+#print a.serial
