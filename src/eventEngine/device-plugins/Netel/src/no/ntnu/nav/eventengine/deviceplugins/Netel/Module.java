@@ -44,23 +44,25 @@ public class Module extends Device
 		parentBoxid = rs.getInt("parent_netboxid");
 		module = rs.getString("module");
 		status = "y".equals(rs.getString("up"));
-		do {
-			//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
-			Port p;
-			if ( (p=(Port)ports.get(Port.getKey(rs))) != null) {
-				p.update(rs);
-			} else {
-				p = new Port(rs);
-				ports.put(p.getKey(), p);
-			}
-		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module));
-		rs.previous();
+		if (rs.getString("swportid") != null) {
+			do {
+				//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
+				Port p;
+				if ( (p=(Port)ports.get(Port.getKey(rs))) != null) {
+					p.update(rs);
+				} else {
+					p = new Port(rs);
+					ports.put(p.getKey(), p);
+				}
+			} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module));
+			rs.previous();
+		}
 	}
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("MODULE_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all modules from database");
-		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,module.up,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) LEFT JOIN swportvlan USING(swportid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,module,port");
+		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,module.up,swportid,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) LEFT JOIN swport USING(moduleid) LEFT JOIN swportvlan USING(swportid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,module,port");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
