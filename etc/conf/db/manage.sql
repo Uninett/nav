@@ -367,6 +367,7 @@ GRANT ALL ON service_serviceid_seq TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
+GRANT ALL ON gwportprefix TO navall;
 GRANT ALL ON swport TO navall;
 GRANT ALL ON swportvlan TO navall;
 GRANT ALL ON swportallowedvlan TO navall;
