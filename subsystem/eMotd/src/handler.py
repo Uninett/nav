@@ -66,7 +66,7 @@ def handler(req):
     elif path[0] == 'commit':
         output = commit(req)
     elif path[0] == 'time':
-        output = mainttime()
+        output = mainttime(req)
     else:
         output = show_active(req)
 

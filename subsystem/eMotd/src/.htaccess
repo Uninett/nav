@@ -1,3 +1,4 @@
+PythonPath "sys.path+['/usr/local/nav/apache/webroot/emotd']"
 SetHandler python-program
 PythonHandler handler
 DirectoryIndex handler.py
