@@ -1,0 +1,12 @@
+#!/bin/sh
+JAVA_HOME=/usr/java/jdk1.3.1_01
+CLASSPATH=./getBoksMacs.jar:/usr/local/nav/navme/java/lib/postgre.jar:/usr/local/nav/navme/java/lib/snmp.jar:.
+
+COUNT=`ps wwwwx|grep "getBoksMacsMulti"|grep -v grep|wc -l|sed s/" "//g`
+if [ "$COUNT" = "0" ]; then
+#        echo "getBoksMacsMulti not running"
+        cd /usr/local/nav/navme/cron/getBoksMacs/
+        $JAVA_HOME/bin/java -cp $CLASSPATH getBoksMacsMulti $1 > "/usr/local/nav/log/cam/getBoksMacs-`/bin/date +%Y-%m-%d_%H-%M`.log"
+else
+        echo "getBoksMacsMulti already running"
+fi
