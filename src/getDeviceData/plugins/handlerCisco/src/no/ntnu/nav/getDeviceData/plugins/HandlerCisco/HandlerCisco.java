@@ -7,7 +7,8 @@ import java.util.*;
 
 public class HandlerCisco implements DeviceHandler
 {
-	private static boolean VERBOSE_OUT = false;
+	private static boolean VERBOSE_OUT = true;
+	private static boolean DEBUG_OUT = true;
 
 	private static Set canHandle = new HashSet();
 	private SimpleSnmp sSnmp;
@@ -17,10 +18,10 @@ public class HandlerCisco implements DeviceHandler
 		if (canHandle.size() == 0) {
 			synchronized (canHandle) {
 				if (canHandle.size() == 0) {
-					canHandle.add("cgw-nomem");
-					canHandle.add("cgw");
-					canHandle.add("ios-sw");
-					canHandle.add("cat-sw");
+					//canHandle.add("cgw-nomem");
+					//canHandle.add("cgw");
+					//canHandle.add("ios-sw");
+					//canHandle.add("cat-sw");
 					canHandle.add("cat1900-sw");
 					canHandle.add("catmeny-sw");
 				}
@@ -60,13 +61,13 @@ public class HandlerCisco implements DeviceHandler
 			//boolean decodeHex = false;
 		}
 
-		ArrayList swportDataList = new ArrayList();
+		ArrayList moduleDataList = new ArrayList();
 
 		if (boksTypegruppe.equals("cat1900-sw")) {
-			swportDataList = processCisco1900(boksid, ip, cs_ro, boksType, ifindexMp);
+			moduleDataList = processCisco1900(boksid, ip, cs_ro, boksType, ifindexMp);
 		} else
 		if (boksTypegruppe.equals("catmeny-sw")) {
-			swportDataList = processCisco1Q(boksid, ip, cs_ro, boksType);
+			moduleDataList = processCisco1Q(boksid, ip, cs_ro, boksType);
 		}
 		/*
 		if (boksTypegruppe.equals("cat-sw") || boksTypegruppe.equals("ios-sw")) {
@@ -75,9 +76,9 @@ public class HandlerCisco implements DeviceHandler
 		} else
 		*/
 
-		for (Iterator it=swportDataList.iterator(); it.hasNext();) {
-			SwportData swpd = (SwportData)it.next();
-			ddList.addSwportData(swpd);
+		for (Iterator it=moduleDataList.iterator(); it.hasNext();) {
+			ModuleData md = (ModuleData)it.next();
+			ddList.addModuleData(md);
 		}
 	}
 
@@ -96,20 +97,27 @@ public class HandlerCisco implements DeviceHandler
 		/*
 		Alle C1900*
 
-	ifindex:
-		1.3.6.1.2.1.2.2.1.1 = ifindex
-		port = ifindex
+	Standard fra MIB-II:
 
-	Status:
-		1.3.6.1.2.1.2.2.1.8 = status
+		ifIndex: .1.3.6.1.2.1.2.2.1.1
+		ifSpeed: .1.3.6.1.2.1.2.2.1.5
+		ifAdminStatus: .1.3.6.1.2.1.2.2.1.7
+		ifOperStatus: .1.3.6.1.2.1.2.2.1.8
 
-		1 = up
-		2/other = down
+		ifindex:
+			1.3.6.1.2.1.2.2.1.1 = ifindex
+			port = ifindex
 
-	Speed:
-		1.3.6.1.2.1.2.2.1.5 = speed
+		Status:
+			1.3.6.1.2.1.2.2.1.8 = status
 
-		speed is in bits/sec
+			1 = up
+			2/other = down
+
+		Speed:
+			1.3.6.1.2.1.2.2.1.5 = speed
+
+			speed is in bits/sec
 
 	Duplex:
 		1.3.6.1.4.1.437.1.1.3.3.1.1.8 = duplex
@@ -125,7 +133,8 @@ public class HandlerCisco implements DeviceHandler
 		*/
 
 		String ifindexOid = "1.3.6.1.2.1.2.2.1.1";
-		String statusOid = "1.3.6.1.2.1.2.2.1.8";
+		String ifAdmStatusOid = ".1.3.6.1.2.1.2.2.1.7";
+		String ifOperStatusOid = ".1.3.6.1.2.1.2.2.1.8";
 		String speedOid = "1.3.6.1.2.1.2.2.1.5";
 		String duplexOid = "1.3.6.1.4.1.437.1.1.3.3.1.1.8";
 		String portnavnOid = "1.3.6.1.4.1.437.1.1.3.3.1.1.3";
@@ -140,20 +149,32 @@ public class HandlerCisco implements DeviceHandler
 
 			String ifindex = getLastToken(s[0]);
 			String port = s[1];
-			SwportData pd = new SwportData(ifindex, modul, port);
-			portMap.put(ifindex, pd);
+			SwportData sd = new SwportData(port, ifindex);
+			portMap.put(ifindex, sd);
 		}
 
-		// Hent status
-		sSnmp.setParams(ip, cs_ro, statusOid);
+		// Hent link status
+		sSnmp.setBaseOid(ifOperStatusOid);
 		portList = sSnmp.getAll();
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
-			String status = (s[1].equals("1") ? "up" : "down");
-			pd.setStatus(status);
+			String link = (s[1].equals("1") ? "yes" : "no");
+			sd.setLink(link.charAt(0));
+		}
+
+		sSnmp.setBaseOid(ifAdmStatusOid);
+		portList = sSnmp.getAll();
+		for (int i=0; i < portList.size(); i++) {
+			String[] s = (String[])portList.get(i);
+			String ifindex = getLastToken(s[0]);
+			SwportData sd = (SwportData)portMap.get(ifindex);
+
+			if (!s[1].equals("1")) {
+				sd.setLink('d'); // adm down
+			}
 		}
 
 		// Hent speed&media
@@ -162,12 +183,12 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
-			long speed = Long.parseLong(s[1]);
-			speed /= 1000000; // Speed is in Mbit/sec
+			double speed = Double.parseDouble(s[1]);
+			speed /= 1000000.0; // Speed is in Mbit/sec
 
-			pd.setSpeed(String.valueOf(speed));
+			sd.setSpeed(String.valueOf(speed));
 		}
 
 		// Hent duplex
@@ -176,10 +197,10 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
 			String duplex = (s[1].equals("1") ? "full" : "half");
-			pd.setDuplex(duplex);
+			sd.setDuplex(duplex.charAt(0));
 		}
 
 		// Hent portnavn
@@ -188,15 +209,15 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
-			pd.setPortnavn(s[1].trim());
+			sd.setPortname(s[1].trim());
 		}
 
 		Iterator iter = portMap.values().iterator();
 		while (iter.hasNext()) {
-			SwportData pd = (SwportData)iter.next();
-			l.add(pd);
+			SwportData sd = (SwportData)iter.next();
+			l.add(sd);
 		}
 
 		return l;
@@ -249,7 +270,8 @@ public class HandlerCisco implements DeviceHandler
 
 		*/
 		String ifindexOid = "1.3.6.1.4.1.9.5.14.4.1.1.4";
-		String statusOid = "1.3.6.1.4.1.9.5.14.4.1.1.29";
+		String ifAdmStatusOid = ".1.3.6.1.2.1.2.2.1.7";
+		String ifOperStatusOid = ".1.3.6.1.2.1.2.2.1.8";
 		String speedOid = "1.3.6.1.4.1.9.5.14.4.1.1.41";
 		String duplexOid = "1.3.6.1.4.1.9.5.14.4.1.1.5";
 		String trunkOid = "1.3.6.1.4.1.9.5.14.4.1.1.44";
@@ -265,20 +287,32 @@ public class HandlerCisco implements DeviceHandler
 
 			String ifindex = getLastToken(s[0]);
 			String port = s[1];
-			SwportData pd = new SwportData(ifindex, modul, port);
-			portMap.put(ifindex, pd);
+			SwportData sd = new SwportData(port, ifindex);
+			portMap.put(ifindex, sd);
 		}
 
-		// Hent status
-		sSnmp.setParams(ip, cs_ro, statusOid);
+		// Hent link status
+		sSnmp.setBaseOid(ifOperStatusOid);
 		portList = sSnmp.getAll();
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
-			String status = (s[1].equals("1") ? "up" : "down");
-			pd.setStatus(status);
+			String link = (s[1].equals("1") ? "yes" : "no");
+			sd.setLink(link.charAt(0));
+		}
+
+		sSnmp.setBaseOid(ifAdmStatusOid);
+		portList = sSnmp.getAll();
+		for (int i=0; i < portList.size(); i++) {
+			String[] s = (String[])portList.get(i);
+			String ifindex = getLastToken(s[0]);
+			SwportData sd = (SwportData)portMap.get(ifindex);
+
+			if (!s[1].equals("1")) {
+				sd.setLink('d'); // adm down
+			}
 		}
 
 		// Hent speed&media
@@ -287,7 +321,7 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
 			String speed = "-1";
 			if (s[1].equals("1") || s[1].equals("5") || s[1].equals("6") || s[1].equals("7")) {
@@ -305,8 +339,8 @@ public class HandlerCisco implements DeviceHandler
 			if (s[1].equals("12")) media = "ISL FX";
 			if (s[1].equals("13")) media = "ISL TX";
 
-			pd.setSpeed(speed);
-			pd.setMedia(media);
+			sd.setSpeed(speed);
+			sd.setMedia(media);
 		}
 
 		// Hent duplex
@@ -315,10 +349,10 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
 			String duplex = (s[1].equals("1") ? "full" : "half");
-			pd.setDuplex(duplex);
+			sd.setDuplex(duplex.charAt(0));
 		}
 
 		// Hent trunk
@@ -327,10 +361,10 @@ public class HandlerCisco implements DeviceHandler
 		for (int i=0; i < portList.size(); i++) {
 			String[] s = (String[])portList.get(i);
 			String ifindex = getLastToken(s[0]);
-			SwportData pd = (SwportData)portMap.get(ifindex);
+			SwportData sd = (SwportData)portMap.get(ifindex);
 
 			boolean trunk = s[1].equals("1");
-			pd.setTrunk(trunk);
+			sd.setTrunk(trunk);
 		}
 
 		// Hent vlan
@@ -344,24 +378,24 @@ public class HandlerCisco implements DeviceHandler
 			ArrayList portVlanList = getPortVlan(s[1]);
 			for (int j=0; j < portVlanList.size(); j++) {
 				String p = (String)portVlanList.get(j);
-				SwportData pd = (SwportData)portMap.get(p);
-				if (pd == null) {
+				SwportData sd = (SwportData)portMap.get(p);
+				if (sd == null) {
 					outla("Error, port: " + p + " not found in portMap ("+boksType+"), boksid: " + boksid);
 					continue;
 				}
-				if (pd.getTrunk()) {
+				if (sd.getTrunk()) {
 					// Trunk, da skal vi lage oss en fin hexstring som går i swportallowedvlan :-(
-					pd.addTrunkVlan(vlan);
+					sd.addTrunkVlan(vlan);
 				} else {
-					pd.setVlan(Integer.parseInt(vlan));
+					sd.setVlan(Integer.parseInt(vlan));
 				}
 			}
 		}
 
 		Iterator iter = portMap.values().iterator();
 		while (iter.hasNext()) {
-			SwportData pd = (SwportData)iter.next();
-			l.add(pd);
+			SwportData sd = (SwportData)iter.next();
+			l.add(sd);
 		}
 
 		return l;
@@ -495,5 +529,12 @@ public class HandlerCisco implements DeviceHandler
 
 	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
 	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
+
+	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
+	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
+
+	private static void err(Object o) { System.err.print(o); }
+	private static void errl(Object o) { System.err.println(o); }
+	private static void errflush() { System.err.flush(); }
 
 }

@@ -28,8 +28,8 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the handlerHP.jar file -->
-    <jar jarfile="${dist}/handlerHP.jar" basedir="${build}" manifest="Plugin-Class"/>
+    <!-- Put everything in ${build} into the ${jar} file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Plugin-Class"/>
   </target>
 
   <target name="install" depends="dist">

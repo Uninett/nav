@@ -7,7 +7,8 @@ import java.util.*;
 
 public class Handler3Com implements DeviceHandler
 {
-	private static boolean VERBOSE_OUT = false;
+	private static boolean VERBOSE_OUT = true;
+	private static boolean DEBUG_OUT = true;
 
 	private SimpleSnmp sSnmp;
 
@@ -33,14 +34,13 @@ public class Handler3Com implements DeviceHandler
 		// Just to be sure...
 		if (canHandleDevice(bd) <= 0) return;
 
-		List swportDataList = process3Com(boksid, ip, cs_ro, boksTypegruppe, boksType);
+		List moduleDataList = process3Com(boksid, ip, cs_ro, boksTypegruppe, boksType);
 
-		for (Iterator it=swportDataList.iterator(); it.hasNext();) {
-			SwportData swpd = (SwportData)it.next();
-			ddList.addSwportData(swpd);
+		for (Iterator it=moduleDataList.iterator(); it.hasNext();) {
+			ModuleData md = (ModuleData)it.next();
+			ddList.addModuleData(md);
 		}
 	}
-
 
 	/*
 	 * 3COM
@@ -65,6 +65,14 @@ public class Handler3Com implements DeviceHandler
 
 		SWxx00
 		======
+
+		$mib{'3ss'}{mac} = '.1.3.6.1.4.1.43.10.27.1.1.1.2';
+		$mib{'3ss'}{model} = '.1.3.6.1.4.1.43.10.27.1.1.1.19';
+		$mib{'3ss'}{descr} = '.1.3.6.1.4.1.43.10.27.1.1.1.5';
+		$mib{'3ss'}{serial} = '.1.3.6.1.4.1.43.10.27.1.1.1.13';
+		$mib{'3ss'}{hw} = '.1.3.6.1.4.1.43.10.27.1.1.1.11';
+		$mib{'3ss'}{sw} = '.1.3.6.1.4.1.43.10.27.1.1.1.12';
+
 	IfIndex:
 		Tolkes fra ifDescr:
 		.1.3.6.1.2.1.2.2.1.2.ifindex = tekststring av litt diverse typer. Må
@@ -114,7 +122,7 @@ public class Handler3Com implements DeviceHandler
 			// 4 = nede
 			// IfIndex = <modul><port>
 			String speed = "10";
-			String duplex = "half";
+			char duplex = 'h';
 			String media = "10Base-T";
 
 			// Hent listen
@@ -133,25 +141,24 @@ public class Handler3Com implements DeviceHandler
 					n = Integer.parseInt(port);
 					if (n > 32) continue;
 				} catch (NumberFormatException e) {
-					outle("  process3Com(): boksid: " + boksid + " modul: " + modul + " port: " + port + " NumberFormatException on modul|port: " + modul+"|"+port);
+					errl("  process3Com(): boksid: " + boksid + " modul: " + modul + " port: " + port + " NumberFormatException on modul|port: " + modul+"|"+port);
 					continue;
 				}
 				String ifindex = modul+port;
 
-				String status = "down";
+				char link = 'n';
 				try {
 					int n = Integer.parseInt(s[1]);
-					if (n == 1 || n == 3) status = "up";
+					if (n == 1 || n == 3) link = 'y';
 				} catch (NumberFormatException e) {
-					outle("  process3Com(): boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException on status: " + s[1]);
+					errl("  process3Com(): boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException on status: " + s[1]);
 					continue;
 				}
 
-				outl("  Added portData("+boksid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Status: " + status + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media);
+				outl("  Added portData("+boksid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Link: " + link + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media);
 
-				// SwportData(String ifindex, String modul, String port, String status, String speed, String duplex, String media, boolean trunk, String portnavn)
-				SwportData pd = new SwportData(ifindex, modul, port, status, speed, duplex, media, false, "");
-				l.add(pd);
+				SwportData sd = new SwportData(port, ifindex, link, speed, duplex, media, false, "");
+				l.add(sd);
 			}
 		} else if (typegruppe.equals("3ss9300") || typegruppe.equals("3ss")) {
 			// IfIndex: 1.3.6.1.2.1.2.2.1.2.ifindex = tekststring
@@ -231,7 +238,7 @@ public class Handler3Com implements DeviceHandler
 					if (oidMap.containsKey(oid)) {
 						mauTypeMap.put(ifindex, oidMap.get(oid));
 					} else {
-						outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Unknown mauOid: " + oid);
+						errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Unknown mauOid: " + oid);
 					}
 				}
 			} else if (typegruppe.equals("3ss9300")) {
@@ -248,7 +255,7 @@ public class Handler3Com implements DeviceHandler
 					try {
 						speedNum = Long.parseLong(s[1]);
 					} catch (NumberFormatException e) {
-						outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException on speed: " + s[1]);
+						errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException on speed: " + s[1]);
 						continue;
 					}
 					String speed = String.valueOf( (speedNum/1000000) );
@@ -259,34 +266,34 @@ public class Handler3Com implements DeviceHandler
 			}
 
 			// Så sjekker vi status for porten, up|down
-			HashMap statusMap = new HashMap();
+			HashMap linkMap = new HashMap();
 			{
-				String statusOid = "1.3.6.1.2.1.2.2.1.8";
-				sSnmp.setParams(ip, cs_ro, statusOid);
-				ArrayList statusList = sSnmp.getAll();
+				String linkOid = "1.3.6.1.2.1.2.2.1.8";
+				sSnmp.setParams(ip, cs_ro, linkOid);
+				ArrayList linkList = sSnmp.getAll();
 
-				for (int i=0; i < statusList.size(); i++) {
-					String[] s = (String[])statusList.get(i);
+				for (int i=0; i < linkList.size(); i++) {
+					String[] s = (String[])linkList.get(i);
 					String ifindex = s[0];
-					String status;
+					String link;
 					try {
 						int n = Integer.parseInt(s[1]);
 						if (n == 1) {
-							status = "up";
+							link = "yes"; // up
 						} else if (n == 2) {
-							status = "down";
+							link = "no"; // down
 						} else if (n == 0) {
 							// FIXME
-							status = "down";
+							link = "no"; // down
 						} else {
-							outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Unknown status code: " + n);
+							errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Unknown link code: " + n);
 							continue;
 						}
 					} catch (NumberFormatException e) {
-						outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException for status code: " + s[1]);
+						errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " NumberFormatException for link code: " + s[1]);
 						continue;
 					}
-					statusMap.put(ifindex, status);
+					linkMap.put(ifindex, link);
 				}
 			}
 
@@ -302,36 +309,29 @@ public class Handler3Com implements DeviceHandler
 
 				String[] mau = (String[])mauTypeMap.get(ifindex);
 				if (mau == null) {
-					outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Could not find mauType for ifindex");
+					errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Could not find mauType for ifindex");
 					continue;
 				}
 
-				String status = (String)statusMap.get(ifindex);
-				if (status == null) {
-					outle("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Could not find status for ifindex");
+
+				if (!linkMap.containsKey(ifindex)) {
+					errl("  process3Com: boksid: " + boksid + " ifindex: " + ifindex + " Could not find status for ifindex");
 					continue;
 				}
+				char link = ((String)linkMap.get(ifindex)).charAt(0);
 
 				String speed = mau[0];
-				String duplex = mau[1];
+				char duplex = mau[1].charAt(0);
 				String media = mau[2];
 
-				outl("  Added portData("+boksid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Status: " + status + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media);
+				outl("  Added portData("+boksid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Link: " + link + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media);
 
-				// SwportData(String ifindex, String modul, String port, String status, String speed, String duplex, String media, boolean trunk, String portnavn)
-				SwportData pd = new SwportData(ifindex, modul, port, status, speed, duplex, media, false, "");
-				l.add(pd);
+				SwportData sd = new SwportData(port, ifindex, link, speed, duplex, media, false, "");
+				l.add(sd);
 			}
 
-
-
-
-
-
-
-
 		} else {
-			outle("  process3Com: boksid: " + boksid + " Unsupported typegruppe: " + typegruppe + " typeid: " + typeid);
+			errl("  process3Com: boksid: " + boksid + " Unsupported typegruppe: " + typegruppe + " typeid: " + typeid);
 			return l;
 		}
 
@@ -359,13 +359,17 @@ public class Handler3Com implements DeviceHandler
 		return null;
 	}
 
-	private static void oute(String s) { System.err.print(s); }
-	private static void outle(String s) { System.err.println(s); }
-
 	private static void outa(String s) { System.out.print(s); }
 	private static void outla(String s) { System.out.println(s); }
 
 	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
 	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
+
+	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
+	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
+
+	private static void err(Object o) { System.err.print(o); }
+	private static void errl(Object o) { System.err.println(o); }
+	private static void errflush() { System.err.flush(); }
 
 }
