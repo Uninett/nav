@@ -12,6 +12,7 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
  * <p>
@@ -62,6 +63,21 @@ public class CiscoGw implements DeviceHandler
 			gwc = (GwportContainer)dc;
 		}
 
+		SwportContainer sc;
+		{
+			DataContainer dc = containers.getContainer("SwportContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No SwportContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof SwportContainer)) {
+				Log.w("NO_CONTAINER", "Container is not an SwportContainer! " + dc);
+				return;
+			}
+			sc = (SwportContainer)dc;
+		}
+
+
 		String netboxid = nb.getNetboxidS();
 		String ip = nb.getIp();
 		String cs_ro = nb.getCommunityRo();
@@ -70,17 +86,20 @@ public class CiscoGw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, gwc);
-
+		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, gwc, sc);
+			
 		// Commit data
-		if (fetch) gwc.commit();
+		if (fetch) {
+			gwc.commit();
+			sc.commit();
+		}
 	}
 
 	/*
 	 * CiscoGw
 	 *
 	 */
-	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, GwportContainer gwc) throws TimeoutException {
+	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
 
 		/*
 
@@ -406,6 +425,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Create Gwport
 				Gwport gwp = gwm.gwportFactory(ifindex, (String)ifDescrMap.get(ifindex));
+
+				// We can now ignore this ifindex as an swport
+				sc.ignoreSwport(ifindex);
 
 				// Check if masterindex
 				if (subinterfMap.containsKey(interf)) {
