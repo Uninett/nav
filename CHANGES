@@ -1,3 +1,42 @@
+Version 3.0_beta10
+(released 11 February 2005)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ Improvements:
+
+ * gDD now makes sure to give priority to new devices when its work
+   load with old devices is high.
+ * gDD now refers to IP Devices by sysname in its logs, making it
+   easier to track its actions when reading the logs.
+ * gDD now correctly updates the netident of elinks.
+ * gDD will now also attempt to extract software version information
+   from a device's sysDescr OID (also collects sw_ver for the device
+   itself, and not just its modules).
+ * A bug that prevented the service monitor's LDAP plugin from
+   functioning from time to time was fixed.
+ * Router ports that are administratively down are removed from NAVdb
+   by gDD.
+ * The report generator now supports multi-line and complex SQL
+   queries.
+ * The SQL queries of the netbox, gw, sw, edge and wlan reports were
+   optimized for speed.
+
+ Additions:
+
+ * gDD will now collect memory information from devices.
+
+
 Version 3.0_beta9
 (released 21 January 2005)
 

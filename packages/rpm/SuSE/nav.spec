@@ -1,4 +1,4 @@
-%define version 3.0_beta9
+%define version 3.0_beta10
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
