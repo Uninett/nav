@@ -1,5 +1,5 @@
 """
-$Id: RunQueue.py,v 1.25 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+$Id: RunQueue.py,v 1.26 2003/01/08 22:21:49 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -75,7 +75,6 @@ class _RunQueue:
         self._maxRunCount=int(self.conf.get('recycle interval',50))
         self.debug.log("Setting maxRunCount=%i" % self._maxRunCount)
         self._controller=kwargs.get('controller',self)
-        self.numThreadsWaiting=0
         self.workers=[]
         self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
@@ -88,32 +87,44 @@ class _RunQueue:
     def getMaxRunCount(self):
         return self._maxRunCount
 
-    def enq(self, r):
+    def enq(self, runnable):
+        """
+        Enqueues a runnable in the runqueue. It accepts
+        a runnable, or a tuple containing (timestamp, runnable).
+        If given in the last form, the runnable will be run as
+        quickly as possible after time timestamp has occured.
+        """
         self.lock.acquire()
         # Jobs with priority is put in a seperate queue
-        if type(r) == types.TupleType:
-            pri,obj=r
+        if type(runnable) == types.TupleType:
+            pri,obj=runnable
             self.pq.put(pri,obj)
         else:
-            self.rq.put(r)
+            self.rq.put(runnable)
 
-        #self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
-        if self.numThreadsWaiting>0:
-            self.numThreadsWaiting-=1
+        # This is quite dirty, but I really need to know how many
+        # threads are waiting for jobs.
+        numWaiters=len(self.awaitWork._Condition__waiters)
+        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters))
+        if numWaiters > 0:
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:
-            t=worker(self)
-            t.setDaemon(self.makeDaemon)
+            newWorker=worker(self)
+            newWorker.setDaemon(self.makeDaemon)
             if len(self.unusedThreadName) > 0:
-                t.setName(self.unusedThreadName.pop())
+                newWorker.setName(self.unusedThreadName.pop())
             else:
-                t.setName('worker'+str(len(self.workers)))
-            self.workers.append(t)
-
-            t.start()
+                newWorker.setName('worker'+str(len(self.workers)))
+            self.workers.append(newWorker)
+            newWorker.start()
         self.lock.release()
 
     def deq(self):
+        """
+        Gets a runnable from the runqueue. Checks if we have
+        scheduled jobs (runnables containing timestamp. If not, we
+        return a job without timestamp.
+        """
         self.lock.acquire()
         while 1:
             # wait if we have no jobs in queue
@@ -121,7 +132,6 @@ class _RunQueue:
                 if self.stop:
                     self.lock.release()
                     raise TerminateException
-                self.numThreadsWaiting+=1
                 self.awaitWork.wait()
             if self.stop: 
                 self.lock.release()
@@ -147,10 +157,8 @@ class _RunQueue:
                 return r
             # Wait to execute priority job, break if new jobs arrive
             else:
-                self.numThreadsWaiting+=1
                 self.debug.log("Thread waits for %s secs"%wait,7)
                 self.awaitWork.wait(wait)
-            
 
     def terminate(self):
         self.lock.acquire()
