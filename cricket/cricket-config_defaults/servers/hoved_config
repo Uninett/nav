@@ -1,0 +1,20 @@
+target --default--
+      server = bagdad.stud.ntnu.no
+      snmp-community =  public
+      short-desc = <henter ut via snmp : system.sysLocation.0>
+
+target "users"
+    target-type = users
+
+target "processes"
+    target-type = processes
+
+target "load"
+    target-type = loadnix
+
+target "memory"
+    target-type = memnix (evt memwin)
+
+target "cpu"
+    target-type = cpunix (evt cpunix)
+	    
