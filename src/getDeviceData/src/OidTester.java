@@ -2,6 +2,7 @@ import java.util.*;
 import java.sql.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
@@ -15,7 +16,8 @@ public class OidTester
 	public static final int DEFAULT_FREQ = 3600;
 
 	private static Map lockMap = new HashMap();
-	private static Set dupeSet = new HashSet();
+	//private static Set dupeSet = new HashSet();
+	private static MultiMap dupeMap = new HashMultiMap();
 
 	private SimpleSnmp sSnmp;
 
@@ -55,7 +57,7 @@ public class OidTester
 
 	private void doTest(Type t, Snmpoid snmpoid) {
 		// Return if this has already been checked
-		if (!checkDupe(t.getTypeid()+":"+snmpoid.getOidkey())) return;
+		if (!checkDupe(t, snmpoid)) return;
 
 		Log.d("OID_TESTER", "DO_TEST", "Starting test for type: " + t + ", snmpoid: " + snmpoid);
 		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getVendor(), t.getTypename());
@@ -176,8 +178,24 @@ public class OidTester
 	}
 
 	// Returns true if s is not a dupe (has not been checked before)
-	private static synchronized boolean checkDupe(String s) {
-		return dupeSet.add(s);
+	private static boolean checkDupe(Type t, Snmpoid snmpoid) {
+		synchronized (dupeMap) {
+			return dupeMap.put(t.getKey(), snmpoid.getKey()) || dupeMap.put(snmpoid.getKey(), t.getKey());
+		}
+	}
+
+	// Clear the type from the dupe cache
+	public static void clearDupe(Type t) {
+		synchronized (dupeMap) {
+			dupeMap.remove(t.getKey());
+		}
+	}
+
+	// Clear the snmpoid from the dupe cache
+	public static void clearDupe(Snmpoid snmpoid) {
+		synchronized (dupeMap) {
+			dupeMap.remove(snmpoid.getKey());
+		}
 	}
 
 	private static synchronized String lock(String s) {

@@ -93,6 +93,10 @@ public class Type
 		keyFreqMap.put(oidkey, new Integer(freq));
 		keyMap.put(oidkey, snmpoid);
 	}
+	
+	public String getKey() {
+		return "t" + getTypeid();
+	}
 
 	public String toString() {
 		return typename+"("+typeid+")";

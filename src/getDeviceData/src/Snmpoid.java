@@ -61,6 +61,10 @@ public class Snmpoid
 		return typeMap.values().iterator();
 	}
 
+	public String getKey() {
+		return "s" + getOidkey();
+	}
+
 	public String toString() {
 		return oidkey;
 	}

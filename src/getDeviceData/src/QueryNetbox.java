@@ -247,7 +247,12 @@ public class QueryNetbox extends Thread
 					boolean uptodate = rs.getBoolean("uptodate");
 
 					t = new Type(typeid, typename, rs.getString("vendorid"), csAtVlan, uptodate, keyFreqMap, keyMap);
-					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
+					if (!uptodate) {
+						OidTester.clearDupe(t);
+						synchronized (oidQ) {
+							oidQ.add(t);
+						}
+					}
 					typeidM.put(typeid, t);
 				}
 					
@@ -304,8 +309,12 @@ public class QueryNetbox extends Thread
 				
 				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, oiduptodate);
 				oidkeyM.put(oidkey, snmpoid);
-				if (!oiduptodate) synchronized (oidQ) { oidQ.add(snmpoid); }
-
+				if (!oiduptodate) {
+					OidTester.clearDupe(snmpoid);
+					synchronized (oidQ) {
+						oidQ.add(snmpoid);
+					}
+				}
 			}
 
 			// Make new types global
