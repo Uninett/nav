@@ -426,13 +426,15 @@ class HandlerNettinfo
 						HashMap m2 = (HashMap)o2;
 						switch (sortOn) {
 						case SORT_SYSNAME:
-							String s1 = (String)sysnameMap.get(m1.get("to_netboxid"));
-							String s2 = (String)sysnameMap.get(m2.get("to_netboxid"));
+							String s1 = (String)sysnameMap.get(m1.containsKey("to_netboxid") ? m1.get("to_netboxid") : "");
+							String s2 = (String)sysnameMap.get(m2.containsKey("to_netboxid") ? m2.get("to_netboxid") : "");
 							return s1.compareTo(s2);
 
 						case SORT_IFINDEX:
-							Integer i1 = new Integer((String)m1.get("to_ifindex"));
-							Integer i2 = new Integer((String)m2.get("to_ifindex"));
+							String if1 = (String)m1.get("to_ifindex");
+							String if2 = (String)m2.get("to_ifindex");
+							Integer i1 = new Integer(if1 != null && !"null".equals(if1) ? if1 : "0");
+							Integer i2 = new Integer(if2 != null && !"null".equals(if2) ? if2 : "0");
 							return i1.compareTo(i2);
 						}
 						return 0;
