@@ -622,6 +622,8 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('info','Basic information','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceRegistered','Tells us that a device has been registered with a serial number','n');
 
 DROP TABLE eventq CASCADE;
 DROP SEQUENCE eventq_eventqid_seq;
