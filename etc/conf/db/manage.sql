@@ -744,6 +744,10 @@ CREATE TABLE service (
   version VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s') -- y=up, n=down, s=shadow
 );
+CREATE RULE rrdfile_deleter AS 
+    ON DELETE TO service 
+    DO DELETE FROM rrd_file 
+        WHERE key='serviceid' AND value=old.serviceid;
 
 CREATE TABLE serviceproperty (
 serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
