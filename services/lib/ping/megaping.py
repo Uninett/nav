@@ -30,6 +30,7 @@ class MegaPing(RotaterPlugin):
     self.hosts = hosts
     self.timeout = timeout
     self.sent = 0
+    self.totaltWait=0
     self.pid = os.getpid()
     self.icmpPrototype()
     # Create our common socket
@@ -39,15 +40,18 @@ class MegaPing(RotaterPlugin):
     self.requests = {}
     self.responses = {}
     self.senderFinished = 0
-    
+    self.totalWait=0
 
   def start(self, hosts=[]):
     # Start working
     if hosts:
       self.hosts=hosts
     self.reset()
+    #kwargs = {'mySocket': makeSocket()}
     self.sender = threading.Thread(target=self.sendRequests, name="sender")
     self.getter = threading.Thread(target=self.getResponses, name="getter")
+    self.sender.setDaemon(1)
+    self.getter.setDaemon(1)
     self.sender.start()
     self.getter.start()
     while(self.getter.isAlive()):
@@ -71,8 +75,18 @@ class MegaPing(RotaterPlugin):
 
   def getResponses(self):
     start = time.time()
-    while not self.senderFinished or self.requests:
-      rd, wt, er = select.select([self.socket], [], [], self.timeout)
+    timeout=self.timeout
+
+    while not self.senderFinished or self.requests:      
+      if self.senderFinished:
+        runtime=time.time()-self.senderFinished
+        if runtime > self.timeout:
+          break
+        else:
+          timeout=self.timeout-runtime
+          
+      startwait = time.time()
+      rd, wt, er = select.select([self.socket], [], [], timeout)
       if rd:
         # okay to use time here, because select has told us
         # there is data and we don't care to measure the time
@@ -81,27 +95,33 @@ class MegaPing(RotaterPlugin):
         try:
           (pkt, (host, blapp)) = self.socket.recvfrom(4096)
         except socket.error:
+          print "RealityError -2"
           continue
         # could also use the ip module to get the payload
+
         repip = ip.Packet(pkt)
         try:
           reply = icmp.Packet(repip.data)
         except ValueError:
+          print "Ugyldig format"
           continue
         if reply.id <> self.pid:
           continue
-        
         try:
           (host, sent, pingstring) = reply.data.split('|')
+
         except:
+          print "Noen fucker med oss, vi lager ikke slike pakker"
           continue # It's not our packet
         if pingstring <> PINGSTRING:
+          print "Ikke vår pakke: %s" % pingstring
           continue
           
         try:
           if str(self.requests[host]) <> sent:
             continue # Not sent at our time
         except KeyError:
+          #print "Vi sendte ikke til denne hosten: %s" % repr(host)
           continue # unknown host
 
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
@@ -116,7 +136,8 @@ class MegaPing(RotaterPlugin):
     for host in self.requests.keys():
       self.responses[host] = None
     end = time.time()
-    print "It took ", end-start, "seconds"
+    print "It took %4f seconds." % (end-start)
+
 
 
   def _sendRequests(self, *args):
@@ -144,19 +165,18 @@ class MegaPing(RotaterPlugin):
     if(hosts is None):
       hosts = self.hosts
     for host in hosts:
-      try:
-        host = socket.gethostbyname(host) # The IP
-      except socket.error:
-        hosts.remove(host)
-        continue # Fuck you!
+      if self.requests.has_key(host):
+        print "Duplicate host %s ignored" % host
+        continue
+
       now = time.time()
       self.requests[host] = now
       identifier = '|'.join([host, str(now), PINGSTRING])
-      # 129.241.190.190|0x19831983|BLAPPidentifier
+      # 129.241.190.190|2554428.22|Stian og Magnus ruler verden
       packet=self.makeIcmpPacket(identifier)
       mySocket.sendto(packet, (host, 0))
       time.sleep(self.delay)
-    self.senderFinished = 1
+    self.senderFinished = time.time()
       
   def noAnswers(self):
     return [host for (host, ping) in self.responses.items() if not ping]
