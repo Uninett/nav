@@ -57,18 +57,24 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
     }
 }
 
-&db_endring_spesiell($db,\%swport, \%db_swport, \@felt_swport, "swport");
 my %swport2swportid = &db_hent_dobbel($db,"SELECT boksid,ifindex,swportid FROM swport");
+&db_endring_spesiell($db,\%swport, \%db_swport, \@felt_swport, "swport");
 
+
+foreach my $h (keys %swport2swportid) {
+    foreach my $hu (keys %{$swport2swportid{$h}}) {
+	print "\nSWPORTID $hu = $swport2swportid{$h}{$hu}";
+    }
+}
 #må legge på id fra databasen, ikke bare fake-id som ble brukt i swport.
 foreach my $id (keys %swportvlanfeilid) {
-    print $id;
+#    print $id;
     my ($boksid,$ifindex) =  split /\//,$id;    
     my $nyid = $swport2swportid{$boksid}{$ifindex};
     $swportvlan{$nyid} = [$nyid,$swportvlanfeilid{$id}];
 }
 foreach my $id (keys %swportallowedvlanfeilid) {
-    print $id;
+#    print $id;
     my ($boksid,$ifindex) =  split /\//,$id;
     my $nyid = $swport2swportid{$boksid}{$ifindex};
     $swportallowedvlan{$nyid} = [$nyid,$swportallowedvlanfeilid{$id}];
@@ -169,7 +175,8 @@ sub hent_catsw {
     }
     my @lines = &snmpwalk("$ro\@$ip",$portName_catsw);
     foreach my $line (@lines) {
-	(my $mp,my $portnavn) = split(/:/,$line,2);
+	(my $mp,my $portnavn) = split(/\:/,$line,2);
+#	print "$line - $portnavn\n";
 	$interface{$modulport2ifindex{$mp}}{portnavn} = $portnavn; 
     }
     foreach my $if (keys %interface) {
@@ -300,7 +307,8 @@ sub db_endring_spesiell {
     my $tabell = $_[4];
 
     for my $rad (keys %ny) {
-	my $id = $swport2swportid{$gammel{$rad}[1]}{$gammel{$rad}[2]};
+	my $id = $swport2swportid{$ny{$rad}[1]}{$ny{$rad}[2]};
+	print "ID=$id\n";
 	&db_endring_per_linje($db,\@{$ny{$rad}},\@{$gammel{$rad}},\@felt,$tabell,$id);
     }
 }

@@ -27,18 +27,11 @@ $fil = "/usr/local/nav/etc/org.txt";
 $tabell = "org";
 @felt = ("orgid","forelder","descr","org2","org3","org4");
 &spesiell_endring_org($db,$fil,$tabell,join(":",@felt),join(":",@felt));
-#@felt = ("orgid","forelder","descr","org2","org3","org4");
-#&db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------TYPE------------
 $fil = "/usr/local/nav/etc/type.txt";
 $tabell = "type";
 @felt = ("typeid","typegruppe","sysObjectID","descr");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
-#--------------PREFIKS---------
-$fil = "/usr/local/nav/etc/prefiks.txt";
-$tabell = "prefiks";
-@felt = ("nettadr","maske","nettype","orgid","komm");
-&db_endring_uten_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------SLUTT-----------
 
 

@@ -2,7 +2,7 @@
 
 use strict;
 
-sub fil_hent_le {
+sub fil_hent_linje {
     (my $felt,$_) = @_;
     #tar med linjer som begynner med ord før kolon bestående av 
     #tall,bokstaver,lavstrek,bindestrek,punktum
@@ -31,4 +31,17 @@ sub fil_hent {
     return %resultat;
 }
 
+sub fil_prefiks {
+    my ($fil,$felt) = @_;
+    my %resultat;
+#    my @linje = ();
+    open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
+    foreach (<FIL>) {
+	if(my @linje = &fil_hent_linje($felt,$_)){
+	    $resultat{$linje[0]}{$linje[1]} = [ undef,$linje[0],$linje[1],undef,undef,undef,$linje[2],$linje[3],undef,undef,$linje[4] ]; #legger inn i hash
+	}
+    }
+    close FIL;
+    return %resultat;
+}
 return 1;

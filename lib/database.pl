@@ -17,6 +17,18 @@ sub db_hent_hash {
     }
     return %resultat;
 }
+sub db_hent_array {
+    my ($db,$sql) = @_;
+    my $res = &db_select($db,$sql);
+    my @resultat;
+    my $i;
+    while(@_ = $res->fetchrow) {
+	@_ = map rydd($_), @_;
+	$resultat[$i] = [ @_ ];
+	$i++;
+    }
+    return @resultat;
+}
 sub db_hent_hash_konkatiner {
     my ($db,$sql) = @_;
     my $res = &db_select($db,$sql);
@@ -155,8 +167,10 @@ sub db_insert {
     }
 }
 sub db_update {
-    my ($db,$tabell,$felt,$fra,$til,$hvor);
+    my ($db,$tabell,$felt,$fra,$til,$hvor) = @_;
+    if(defined( $fra ) && defined( $til )){
     unless($til eq $fra) {
+	print "***IKKE LIKE\n";
 	if ($til eq "" && $fra ne ""){
 	    my $sql = "UPDATE $tabell SET $felt=null $hvor";
 	    my $nql = "OPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null|\n";
@@ -167,7 +181,9 @@ sub db_update {
 	    my $nql = "OPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |$til|\n";
 	    print $nql;
 	    print &db_execute($db,$sql);
+	    print $sql;
 	}
+    }
     }
 }
 
@@ -177,7 +193,7 @@ sub db_oppdater {
     print "Oppdaterer *$tabell* felt *$felt* fra *$fra* til *$til*\n";
     my $sql = "UPDATE $tabell SET $felt=$til WHERE $hvor_nokkel=\'$hvor_passer\'";
     print &db_execute($db,$sql);
-#    print $sql,"\n";
+    print $sql,"\n";
 }
 sub db_oppdater_idant_to {
     my ($db,$tabell,$felt,$fra,$til,$hvor_nokkel1,$hvor_nokkel2,$hvor_passer1,$hvor_passer2) = @_;
@@ -256,16 +272,19 @@ sub db_manipulate {
 
     my $where = " WHERE ".join("AND ",@where);
 
-#	print "til: $ny[1] & fra: $gammel[1] $where\n";
+#	print "til: $ny[3] & fra: $gammel[3] $where\n";
 
 
     if($gammel[1]) {
 	for my $i (0..$#felt ) {
-	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
-		&db_update($db,$tabell,@felt,$gammel[$i],$ny[$i],$where);
+#	    print "-$i|$gammel[$i]|$ny[$i]|";
+#	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
+#	    print "FELT til: $ny[$i] & fra: $gammel[$i] $where\n";
+		&db_update($db,$tabell,$felt[$i],$gammel[$i],$ny[$i],$where);
 
-	    }
+#	    }
 	}
+#	print "\n";
     } else {
 	&db_insert($db,$tabell,\@felt,\@ny);
     }
@@ -297,6 +316,7 @@ sub db_endring_uten_sletting {
 
     &db_endring($db,\%ny,\%gammel,\@felt,$tabell);
 }
+
 sub db_endring {
 
     my $db = $_[0];
@@ -381,6 +401,103 @@ sub db_alt_per_linje_idant_to {
 	&db_slett_idant_to($db,$tabell,$nokkel1,$nokkel2,$id1,$id2);
     }
 }
+
+sub db_alt{
+    my $db = $_[0];
+    my $niv = $_[1]; #nivå av hashing
+    my $slett = $_[2];
+    my $tabell = $_[3];
+    my @felt = @{$_[4]};
+    my %ny = %{$_[5]};
+    my %gammel = %{$_[6]};
+    if($niv == 3){ 
+	for my $key1 ( keys %ny ) {
+	    for my $key2 (keys %{$ny{$key1}}) {
+		for my $key3 (keys %{$ny{$key1}{$key2}}) {
+#		my @nyrad = @{$ny{$key1}{$key2}{$key3}};
+#		my @gammelrad = @{$gammel{$key1}{$key2}{$key3}};
+		    my $where = &lag_where(\@felt,$key1,$key2,$key3);
+		    if($gammel{$key1}{$key2}{$key3}[1]) {
+			for my $i (0..$#felt ) {
+			    &db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}{$key3}[$i],$ny{$key1}{$key2}{$key3}[$i],$where);
+			}
+		    } else {
+			&db_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}{$key3}});
+		    }
+		}
+	    }
+	}
+	for my $key1 ( keys %gammel ) {
+	    for my $key2 (keys %{$gammel{$key1}}) {
+		for my $key3 (keys %{$gammel{$key1}{$key2}}) {
+		    if($slett == 1){
+#		    my @nyrad = @{$ny{$key1}{$key2}{$key3}};
+#		    my @gammelrad = @{$gammel{$key1}{$key2}{$key3}};
+			unless($ny{$key1}{$key2}{$key3}[1]) {
+			    my $where = &lag_where(\@felt,$key1,$key2,$key3);
+			    &db_delete($db,$tabell,$where);
+			}
+		    }
+		}
+	    }
+	}
+    } elsif ($niv == 2){
+	for my $key1 ( keys %ny ) {
+	    for my $key2 (keys %{$ny{$key1}}) {
+		my $where = &lag_where(\@felt,$key1,$key2);
+		if($gammel{$key1}{$key2}[1]) {
+		    for my $i (0..$#felt ) {
+			&db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}[$i],$ny{$key1}{$key2}[$i],$where);
+		    }
+		} else {
+		    &db_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}});
+		}
+	    }
+	}	
+	for my $key1 ( keys %gammel ) {
+	    for my $key2 (keys %{$gammel{$key1}}) {
+		if($slett == 1){
+		    unless($ny{$key1}{$key2}[1]) {
+			my $where = &lag_where(\@felt,$key1,$key2);
+			&db_delete($db,$tabell,$where);
+		    }
+		}
+	    }
+	}
+    }
+}
+sub lag_where{
+    my @felt = @{$_[0]};
+    my $key1 = $_[1];
+    my $key2 = $_[2];
+    my $key3 = $_[3];
+
+    my @where;
+    if (defined($key1)){
+	if($key1 eq ''){
+	    $where[0] = "$felt[1] is null ";
+	} else {
+	    $where[0] = "$felt[1] = \'$key1\' ";
+	}
+    }
+    if (defined($key2)){
+	if($key2 eq ''){
+	    $where[1] = "$felt[2] is null ";
+	} else {
+	    $where[1] = "$felt[2] = \'$key2\' ";
+	}
+    }
+    if (defined($key3)){
+	if($key3 eq ''){
+	    $where[2] = "$felt[3] is null ";
+	} else {
+	    $where[2] = "$felt[3] = \'$key3\' ";
+	}
+    }
+    my $where = " WHERE ".join("AND ",@where);
+    return $where;
+}
+
 sub db_alt_per_linje {
     my $db = $_[0];
     my @ny = @{$_[1]};
@@ -424,6 +541,8 @@ sub db_alt_per_linje {
 sub rydd {    
     if (defined $_[0]) {
 	$_ = $_[0];
+	s/\'/\\\'/;
+	s/\\/\\\\/;
 	s/\s*$//;
 	s/^\s*//;
     return $_;

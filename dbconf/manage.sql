@@ -39,7 +39,7 @@ DROP SEQUENCE vpboksxy_vpboksxyid_seq;
 
 -- Slette alle indekser
 
---########## JM - don't touch
+---------------------- JM - don't touch
 
 DROP TABLE status;
 DROP SEQUENCE status_statusid_seq;
@@ -65,46 +65,46 @@ smsid int4,
 tidsendt timestamp
 ); 
 
---####################
+------------------------------------------
 
 -- Definerer gruppe nav:
 CREATE GROUP nav;
 
-# Legger inn gartmann i nav:
+-- Legger inn gartmann i nav:
 ALTER GROUP nav add user gartmann;
 
-# Fjerner gartmann fra nav:
+-- Fjerner gartmann fra nav:
 ALTER GROUP nav drop user gartmann;
 
 
-# org: descr fra 60 til 80
-# boks: type ikke NOT NULL fordi ikke definert i nettel.txt
+-- org: descr fra 60 til 80
+-- boks: type ikke NOT NULL fordi ikke definert i nettel.txt
 
-#community har blitt fjernet!
-CREATE TABLE community (
-  communityid SERIAL PRIMARY KEY,
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  ro CHAR(10),
-  rw CHAR(10)
-);
+--community har blitt fjernet!
+--CREATE TABLE community (
+--  communityid SERIAL PRIMARY KEY,
+--  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+--  ro CHAR(10),
+--  rw CHAR(10)
+--);
 
-GRANT ALL ON community TO group nav;
+--GRANT ALL ON community TO group nav;
 
-#ro og rw går inn i boks
-#tabellen type lagt til
-#boks:sysname 20->30 dns er for lange for 20
-#boks:type er ute av drift inntil bruk
-#prefiks: vlan ikke NOT NULL
-#prefiksid REFERENCES prefiks ikke boks overalt
-#swport: lagt til port(nummer) og modul
-#boksinfo:sysCon fra 30 til 40
-#fremmednøkler til prefiksid peker på prefiks, ikke boks
-#boksinfo:sysType CHAR(30):fjernet
-#gwport og swport: speed endret til CHAR(10) for å kunne godta opptil 10 000 Tbps eller ned 0.000001 bps. (overkill?);
-#alle char endret til varchar
-#NOT NULL fjernet fra duplex i swport
-#NOT NULL fjernet fra descr i rom
-#############################################
+--ro og rw går inn i boks
+--tabellen type lagt til
+--boks:sysname 20->30 dns er for lange for 20
+--boks:type er ute av drift inntil bruk
+--prefiks: vlan ikke NOT NULL
+--prefiksid REFERENCES prefiks ikke boks overalt
+--swport: lagt til port(nummer) og modul
+--boksinfo:sysCon fra 30 til 40
+--fremmednøkler til prefiksid peker på prefiks, ikke boks
+--boksinfo:sysType CHAR(30):fjernet
+--gwport og swport: speed endret til CHAR(10) for å kunne godta opptil 10 000 Tbps eller ned 0.000001 bps. (overkill?);
+--alle char endret til varchar
+--NOT NULL fjernet fra duplex i swport
+--NOT NULL fjernet fra descr i rom
+------------------------------------------------------------------------------------------
 
 CREATE TABLE org (
   orgid VARCHAR(10) PRIMARY KEY,
@@ -254,7 +254,7 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
-# VIEWs
+-- VIEWs
 CREATE VIEW boksmac AS  
 (SELECT DISTINCT ON (mac) boks.boksid,mac
  FROM arp
@@ -265,12 +265,12 @@ UNION
  WHERE arp.ip=gwport.gwip);
 
 
---### vlanPlot tabeller ###
+-------- vlanPlot tabeller ------
 CREATE TABLE vpBoksGrpInfo (
   gruppeid SERIAL PRIMARY KEY,              
   name VARCHAR(16) NOT NULL
 );
-# Default nett
+-- Default nett
 INSERT INTO vpboksgrpinfo (gruppeid,name) VALUES (0,'Bynett');
 INSERT INTO vpboksgrpinfo (name) VALUES ('Kjernenett');
 INSERT INTO vpboksgrpinfo (name) VALUES ('Testnett');
@@ -290,7 +290,7 @@ CREATE TABLE vpBoksXY (
   gruppeid INT4 NOT NULL REFERENCES vpBoksGrpInfo ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(pboksid, gruppeid)
 );
-# vPServer bruker
+-- vPServer bruker
 CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 CREATE USER navadmin WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
@@ -328,7 +328,7 @@ GRANT SELECT,DELETE ON swp_boks TO navadmin;
 GRANT ALL    ON swportallowedvlan TO navadmin;
 GRANT SELECT ON swportblocked TO navadmin;
 
---### vlanPlot end ###
+-------- vlanPlot end ------
 
 GRANT ALL ON org TO navall;
 GRANT ALL ON anv TO navall;
@@ -351,9 +351,9 @@ GRANT ALL ON prefiks_prefiksid_seq TO navall;
 GRANT ALL ON swport_swportid_seq TO navall;
 GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 
---################################
+------------------------------------------------------------------
 -- TRACE
---################################
+------------------------------------------------------------------
 
 DROP TABLE arp; 
 DROP TABLE cam; 
