@@ -159,13 +159,13 @@ public class HandlerHP implements DeviceHandler
 			//outld("processHP:   modul: " + modul);
 
 			// Get data
-			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@"+s[1]:""), ifSpeedOid);
+			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""), ifSpeedOid);
 			ArrayList ifSpeedList = sSnmp.getAll();
 
-			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@"+s[1]:""), ifOperStatusOid);
+			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""), ifOperStatusOid);
 			ArrayList ifOperStatusList = sSnmp.getAll();
 
-			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@"+s[1]:""), portTypeOid);
+			sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""), portTypeOid);
 			ArrayList portTypeList = sSnmp.getAll();
 
 			/*
