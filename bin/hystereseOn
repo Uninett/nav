@@ -1,0 +1,405 @@
+#!/usr/bin/perl
+# Dette programmet går gjennom alle svitsjeportene,
+# ruter-interfacene, svitsj-bakplanene og ruter-cpuene,
+# finner lasten de har hatt i løpet av det spesifiserte
+# tidsrommet. Hvis lasten overskrider en oppgitt grense,
+# sender programmet en hysterese-trap vha. snmp.
+#
+# Skrevet av John Magne Bredal
+# 29.09.2000
+# 
+# 23.01.2001 - scriptet bruker nå de nye navnene på 
+# tabellene i databasen. JM
+#
+# 26.01.2001 - lagd en ny sub-oid som identifiserer hvilken
+# enhet som det er for stor belastning på. Dette fordi det er 
+# bedre at dette scriptet gjør det, enn at TrapDetect gjør det.
+#
+# 02-02-2001 - Sender med nettelid for de ulike enhetene - JM
+############################################################
+
+use DBI;
+use strict;
+use RRDs;
+use Mail::Mailer;
+use SNMP_util;
+
+# "Globale" variable
+# Hvor stor belastning den skal kicke på (i prosent).
+my $limit = 87;
+
+# Tidsrom (i sekunder bakover i tid)
+my $fra = -900;
+
+# SNMP-variable
+my $ipadresse = "129.241.190.200";
+my $prefix = '.1.3.6.1.4.1.2595.1.1';
+
+my $fil = "/home/cricket/bin/alarm";
+my $enhet = "/home/cricket/bin/alarm2";
+my $to = "bredal\@stud.ntnu.no";
+my %svitsjliste;
+my %ruterliste;
+
+my $dbh = DBI->connect("manage","nett","stotte","mysql");
+
+# Kjører subrutinene
+#&switches;
+&routers;
+&switchports;
+&routerinterfaces;
+
+$dbh->disconnect;
+
+sub switches {
+
+    my ($id, $sysname);
+
+    # Henter ut alle svitsjer og svitsjeporter
+    my $hentsvitsjer = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='SW' ORDER BY sysName");
+    $hentsvitsjer->execute;
+
+    while (($id, $sysname) = $hentsvitsjer->fetchrow_array) {
+	$svitsjliste{$id} = $sysname;
+    }
+    $hentsvitsjer->finish;
+
+    while (($id, $sysname) = each %svitsjliste) {
+	my $verdi = 0;
+	if (-e "/home/cricket/cricket-data/switches/$sysname.rrd") {
+	    my $RRD = "/home/cricket/cricket-data/switches/$sysname.rrd";
+
+	    my($graphret) = RRDs::graph "/dev/null",
+	    "--start","$fra",
+	    "--end","now",
+	    "DEF:value=$RRD:ds0:AVERAGE", # Backplane
+	    "PRINT:value:AVERAGE:%6.2lf";
+	    my($ERROR) = RRDs::error;
+	    warn "ERROR: $ERROR\n" if $ERROR ;
+	    
+	    if (@$graphret[0] =~ /\d/) { $verdi = int(@$graphret[0]); } else { $verdi = 0; }
+
+	    # Skriver ut data til skjerm
+	    print "$sysname:\t$verdi\n";
+
+	} else {
+	    print "Finner ikke $sysname.rrd\n";
+	}
+    }
+
+}
+
+sub routers {
+
+    my ($id,$sysname);
+
+    my $hentrutere = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='GW'");
+    $hentrutere->execute;
+
+    while (($id, $sysname) = $hentrutere->fetchrow_array) {
+	unless ($sysname =~ /psykiatri|ringve|erke/) {
+	    $ruterliste{$id} = $sysname;
+	} else {
+	    $ruterliste{$id} = "$sysname-trlos";
+	}
+    }
+    $hentrutere->finish;
+
+    while (($id, $sysname) = each %ruterliste) {
+	my $verdi;
+	if (-e "/home/cricket/cricket-data/routers/$sysname.rrd") {
+	    my $RRD = "/home/cricket/cricket-data/routers/$sysname.rrd";
+
+	    my($graphret) = RRDs::graph "/dev/null",
+	    "--start","$fra",
+	    "--end","now",
+	    "DEF:value=$RRD:ds1:AVERAGE", # avg5min
+	    "PRINT:value:AVERAGE:%6.2lf";
+	    my($ERROR) = RRDs::error;
+	    warn "ERROR: $ERROR\n" if $ERROR ;
+	    
+	    if (@$graphret[0] =~ /\d/) { $verdi = int(@$graphret[0]); } else { $verdi = 0; }
+
+	    # Sender melding hvis belastning over godkjent.
+	    if ($verdi > $limit && $verdi < 100) {
+		# Sjekker om finnes fra før
+		unless(&sjekkfil2($sysname)) {
+		    print "$sysname:\t$verdi\n";
+		    # Skriver til oversiktsfil
+		    open (ENHET, ">>$enhet") or die "Kunne ikke legge til $enhet $! \n";
+		    print ENHET "$sysname\n";
+		    close ENHET;
+		    
+		    &sendtrap2($sysname, $id, "$verdi%");
+		} else {
+		    #print "Innlegg finnes fra før\n";
+		}
+	    }
+	} else {
+	    #print "Kan ikke finne $sysname.rrd\n";
+	}
+    }
+
+}
+
+sub switchports {
+
+    my ($id, $sysname);
+
+    while (($id, $sysname) = each %svitsjliste) {
+	my $hentporter = $dbh->prepare("SELECT mp,portname,speed FROM swport WHERE swid=$id");
+	$hentporter->execute;
+
+	while (my ($mp, $portname, $speed) = $hentporter->fetchrow_array) {
+	    unless ($portname =~ /(udef|undef)/) {
+		# Diverse omformateringer på filnavnene... :(
+		$mp = lc $mp;
+		$mp =~ s/fe/fa/;
+		$mp =~ s/ge/gi/;
+		$mp =~ s/\./_/;
+		
+		my $verdi;
+		if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
+		    my $RRD = "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd";
+
+		    my($graphret) = RRDs::graph "/dev/null",
+		    "--start","$fra",
+		    "--end","now",
+		    "DEF:value=$RRD:ds1:AVERAGE", # ifOutOctets
+		    "PRINT:value:AVERAGE:%6.2lf";
+		    my($ERROR) = RRDs::error;
+		    warn "ERROR: $ERROR\n" if $ERROR ;
+		    
+		    if (@$graphret[0] =~ /\d/) { $verdi = 8 * int(@$graphret[0]); } else { $verdi = 0; }
+		    
+		    if ($speed) {
+			my $mspeed = $speed * 10486;
+			my $belastning = $verdi/$mspeed;
+			$belastning =~ m/\d+\.(\d)/;
+			my $rest = $1;
+			if ($rest > 4) {
+			    $belastning += 1;
+			}
+			
+			# Skriver ut interessant info
+			if ($belastning > $limit && $belastning < 100) {
+			    $belastning = int($belastning);
+
+			    # Hvis ikke innlegg finnes fra før
+			    # legg inn i fil, sende mail.
+			    unless (&sjekkfil($sysname,$mp)) {
+				#print "Innlegg ikke funnet\n";
+
+				# Sender mail hvis belastning er for stor.
+				my $body = "port: $sysname/$mp\n";
+				$body .= "link: $portname\n";
+				$body .= "nettelid: $id\n";
+				$body .= "last: $belastning%\n";
+
+				open (FIL, ">>$fil") or die "Kunne ikke åpne $fil $!\n";
+				print FIL "$sysname,$mp\n";
+				close FIL;
+				
+				# Sender trap
+				my $temp1 = "$sysname/$mp";
+				&sendtrap($temp1, $portname, $id,"$belastning%");
+
+				print $body;
+				#&sendmail($body);
+			    } else {
+				#print "Innlegg funnet!\n";
+			    }
+			}
+			if ($belastning > 100) {
+			    my $body = "port: $sysname/$mp\n";
+			    $body .= "link: $portname\n";
+			    $body .= "last: $belastning%\n";
+			    &sendmail($body);
+			}
+		    }
+		}
+	    }
+	}
+	$hentporter->finish;
+    }
+} #sub switchports
+
+
+sub routerinterfaces{
+
+    my ($id,$sysname);
+
+    while (($id,$sysname) = each %ruterliste) {
+	my $hentporter = $dbh->prepare("SELECT interf,speed,type,ruter,tilruter,org,kat,samband FROM subnet WHERE ruter=$id");
+	$hentporter->execute;
+
+	while (my ($interf, $speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow_array) {
+	    unless ($interf =~ /Loopback0/) {
+		# Omforming på filnavn
+		$interf = lc $interf;
+		$interf =~ s(/)(_)g;
+		
+		my @portarray = ($type, $ruterliste{$ruter}, $ruterliste{$tilruter}, $org, $kat, $samband);
+
+		# Henter lastdata
+		my $verdi;
+		if (-e "/home/cricket/cricket-data/router-interfaces/$sysname/$interf.rrd") {
+		    my $RRD = "/home/cricket/cricket-data/router-interfaces/$sysname/$interf.rrd";
+
+		    my($graphret) = RRDs::graph "/dev/null",
+		    "--start","$fra",
+		    "--end","now",
+		    "DEF:value=$RRD:ds1:AVERAGE", # ifOutOctets
+		    "PRINT:value:AVERAGE:%6.2lf";
+		    my($ERROR) = RRDs::error;
+		    warn "ERROR: $ERROR\n" if $ERROR ;
+		    
+		    if (@$graphret[0] =~ /\d/) { $verdi = 8 * int(@$graphret[0]); } else { $verdi = 0; }
+
+		    if ($speed) {
+			my $mspeed = $speed * 10486;
+			my $belastning = $verdi/$mspeed;
+			$belastning =~ m/\d+\.(\d)/;
+			my $rest = $1;
+			if ($rest > 4) {
+			    $belastning += 1;
+			}
+			
+			# Skriver ut interessant info
+			if ($belastning > $limit && $belastning < 100) {
+			    my $portname = shift @portarray;
+			    my $element;
+			    foreach $element (@portarray) {
+				if ($element) {
+				    $portname .= ",$element";
+				}
+			    }
+
+			    $belastning = int($belastning);
+
+			    # Hvis ikke innlegg finnes fra før
+			    # legg inn i fil, sende mail.
+			    unless (&sjekkfil($sysname,$interf)) {
+				#print "Innlegg ikke funnet\n";
+
+				open (FIL, ">>$fil") or die "Kunne ikke åpne $fil $!\n";
+				print FIL "$sysname,$interf\n";
+				close FIL;
+
+				# Sender trap
+				my $temp1 = "$sysname/$interf";
+				&sendtrap($temp1, $portname, $id, "$belastning%");
+				
+				# Sender mail.
+				my $body = "port: $sysname/$interf\n";
+				$body .= "link: $portname\n";
+				$body .= "nettelid: $id\n";
+				$body .= "last: $belastning%\n";
+				
+				print "$body\n";
+				#&sendmail($body);
+			    } else {
+				#print "Innlegg funnet!\n";
+			    }
+			}
+		    }
+		} else {
+		    #print "Finner ikke $sysname: $interf.rrd\n\n";
+		}
+	    }
+	}
+	$hentporter->finish;
+    }
+}
+
+sub sendmail {
+
+    my $body = shift;
+    my $subject = "hystereseAlarmOn";
+
+    #print "Sendmail: $body\n";
+    my $from = "bredal";
+
+    my $mailer = Mail::Mailer->new();
+    $mailer->open({ From    => $from,
+		    To      => $to,
+		    Subject => $subject,
+		})
+	or die "Can't open: $!\n";
+    print $mailer $body;
+    $mailer->close();
+
+}
+
+sub sjekkfil {
+
+    my ($sysname, $port) = @_;
+    my $funnet = 0;
+    
+    open (FIL, $fil) or die "Kunne ikke åpne $fil for lesing $!\n";
+    while (<FIL>) {
+	if (m/$sysname/i && m/$port/i) {
+	    $funnet = 1;
+	}
+    }
+    close FIL;
+
+    return $funnet;
+}
+
+sub sjekkfil2 {
+
+    my $sysname = shift;
+    my $funnet = 0;
+    
+    open (FIL, $enhet) or die "Kunne ikke åpne $enhet for lesing $!\n";
+    while (<FIL>) {
+	if (m/$sysname/i) {
+	    $funnet = 1;
+	}
+    }
+    close FIL;
+
+    return $funnet;
+}
+
+sub sendtrap {
+    
+    my ($sysname, $portname, $nettelid, $belastning) = @_;
+    my @data;
+
+    my $string = "ifInOctets:hysteresis:8750000:10000000";
+
+    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+
+    push(@data, "$newprefix.1", 'string', "hysteresis");
+    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.3", 'string', "$sysname");
+    push(@data, "$newprefix.4", 'string', "$nettelid");
+    push(@data, "$newprefix.5", 'string', "$portname");
+    push(@data, "$newprefix.6", 'string', "$belastning");
+
+    &snmptrap($ipadresse, $prefix, "bigbud", 6, 4, @data);
+
+}
+
+sub sendtrap2 {
+
+    my ($sysname, $nettelid, $belastning) = @_;
+    my @data;
+
+    my $string = "ifInOctets:hysteresis:8750000:10000000";
+
+    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+
+    push(@data, "$newprefix.1", 'string', "hysteresis");
+    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.3", 'string', "$sysname");
+    push(@data, "$newprefix.4", 'string', "$nettelid");
+
+    push(@data, "$newprefix.6", 'string', "$belastning");
+
+    &snmptrap($ipadresse, $prefix, "bigbud", 6, 4, @data);
+
+
+}

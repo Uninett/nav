@@ -1,0 +1,408 @@
+#!/usr/bin/perl -w
+# Dette programmet er motsetningen til hysterese.
+# Det leter gjennom fila som hysterese har laget og
+# slår opp på alle enhetene for å finne ut om lasten har 
+# gått ned. Hvis den har det, sender den off-trap + 
+# sletter innlegget fra fila.
+#
+# Skrevet av John Magne Bredal
+# 06.10.2000
+# 
+# 23-01-2001 Scriptet bruker nå de nye navnene fra tabellene
+# i databasen
+#
+# 02-02-2001 Sender med nettelid for de ulike enhetene - JM
+############################################################
+
+use DBI;
+use strict;
+use RRDs;
+use Mail::Mailer;
+use SNMP_util;
+
+# "Globale" variable
+# Hvor stor belastning den skal kicke på (i prosent).
+my $limit = 70;
+
+# Tidsrom (i sekunder bakover i tid)
+my $fra = -900;
+
+# SNMP-variable
+my $ipadresse = "129.241.190.200";
+my $prefix = '.1.3.6.1.4.1.2595.1.1';
+
+my $fil = "/home/cricket/bin/alarm";
+my $enhet = "/home/cricket/bin/alarm2";
+my $to = "bredal\@stud.ntnu.no";
+
+my $dbh = DBI->connect("manage","nett","stotte","mysql");
+my %ruterliste;
+
+# Kjører subrutinene
+&main;
+$dbh->disconnect;
+
+sub main {
+    open (FIL, $fil) or die "Kunne ikke åpne $fil for lesing$!\n";
+    my @innhold = <FIL>;
+    close FIL;
+
+    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for lesing$!\n";
+    for (@innhold) {
+	my ($sysname,$port) = split /,/, $_;
+	chomp $port;
+	if ($sysname =~ /-sw/) {
+	    #print "\nFunnet: $sysname,$port\n";
+	    if (&switchports($sysname,$port)) {
+		#print "Sletter innlegg ...\n";
+	    } else {
+		print FIL $_;
+	    }
+	} else {
+	    #print "\nFunnet: $sysname,$port\n";
+	    if (&routerinterfaces($sysname,$port)) {
+		#print "Sletter innlegg ...\n";
+	    } else {
+		print FIL $_;
+	    }
+	}
+    }
+    close FIL;
+
+    open (FIL, $enhet) or die "Kunne ikke åpne $enhet for lesing$!\n";
+    @innhold = <FIL>;
+    close FIL;
+    
+    open (FIL, ">$enhet") or die "Kunne ikke åpne $enhet for lesing$!\n";
+    for (@innhold) {
+	my $sysname = $_;
+	chomp $sysname;
+	print "\nFunnet: $sysname\n";
+	if (&routers($sysname)) {
+	    print "Sletter innlegg ...\n";
+	} else {
+	    print FIL $_;
+	}
+    }
+    close FIL;
+}
+
+sub routers {
+
+    my $returverdi = 0;
+    my $sysname = shift;
+
+    # Spør databasen etter nettelid som skal sendes i trap'en.
+    my $dbsysname = $sysname;
+    if ($sysname =~ /psykiatri|ringve|erke/) {
+	$dbsysname =~ s/-trlos//;
+	print "$sysname skifter navn til $dbsysname\n";
+    }
+
+    my $hentnettelid = $dbh->prepare("SELECT id FROM nettel WHERE sysname='$dbsysname'");
+    $hentnettelid->execute;
+
+    my $nettelid = $hentnettelid->fetchrow_array;
+    print "Nettelid: $nettelid\n";
+
+    my $verdi;
+    if (-e "/home/cricket/cricket-data/routers/$sysname.rrd") {
+	my $RRD = "/home/cricket/cricket-data/routers/$sysname.rrd";
+
+	my($graphret) = RRDs::graph "/dev/null",
+	"--start","$fra",
+	"--end","now",
+	"DEF:value=$RRD:ds1:AVERAGE", # avg5min
+	"PRINT:value:AVERAGE:%6.2lf";
+	my($ERROR) = RRDs::error;
+	warn "ERROR: $ERROR\n" if $ERROR ;
+	
+	if (@$graphret[0] =~ /\d/) { $verdi = int(@$graphret[0]); } else { $verdi = 0; }
+
+	if ($verdi < $limit) {
+	    #print "Belastning har lagt seg, sletter innlegg, sender off-trap\n";
+	    $returverdi = 1;
+
+	    &sendtrap2($sysname, $nettelid);
+	} else {
+	    #print "Belastning holder seg: $verdi\n";
+	}
+    } else {
+	#print "Finner ikke $sysname.rrd\n";
+    }
+
+    return $returverdi;
+
+}
+
+sub switchports {
+
+    my $returverdi = 0;
+    my ($sysname, $mp) = @_;
+
+    # Henter id fra nettel
+    my $hentsvitsjer = $dbh->prepare("SELECT id FROM nettel WHERE sysName='$sysname'");
+    $hentsvitsjer->execute;
+
+    my $id = $hentsvitsjer->fetchrow_array;
+
+    $hentsvitsjer->finish;
+    
+    # Diverse omformateringer på filnavnene... :(
+    my $tempmp = $mp;
+    $tempmp = uc $mp;
+    $tempmp =~ s/FA/FE/;
+    $tempmp =~ s/GI/GE/;
+    $tempmp =~ s/_/\./;
+
+#    print "Tempmp: $tempmp\n";
+
+    my $hentporter = $dbh->prepare("SELECT portname,speed FROM swport WHERE swid=$id AND mp=$tempmp");
+    $hentporter->execute;
+    my ($portname, $speed) = $hentporter->fetchrow_array;
+
+#    print "Hentet $portname, $speed\n";
+
+#		$mp = lc $mp;
+#		$mp =~ s/fe/fa/;
+#		$mp =~ s/ge/gi/;
+#		$mp =~ s/\./_/;
+
+
+    my $verdi;
+    if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
+	my $RRD = "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd";
+
+	my($graphret) = RRDs::graph "/dev/null",
+	"--start","$fra",
+	"--end","now",
+	"DEF:value=$RRD:ds1:AVERAGE", # ifOutOctets
+	"PRINT:value:AVERAGE:%6.2lf";
+	my($ERROR) = RRDs::error;
+	warn "ERROR: $ERROR\n" if $ERROR ;
+	
+	if (@$graphret[0] =~ /\d/) { $verdi = 8 * int(@$graphret[0]); } else { $verdi = 0; }
+
+	if ($speed) {
+	    my $mspeed = $speed * 10486;
+	    my $belastning = $verdi/$mspeed;
+	    $belastning =~ m/\d+\.(\d)/;
+	    my $rest = $1;
+	    if ($rest > 4) {
+		$belastning += 1;
+	    }
+	    
+	    # Skriver ut interessant info
+	    if ($belastning > $limit) {
+		#print "Belastning holder seg\n";
+	    } else {
+		#print "Belastning er gått ned. Sender off-trap\n";
+		$belastning = int($belastning);
+
+		# Sender trap
+		my $temp1 = "$sysname/$mp";
+		&sendtrap($temp1, $portname, $id, "$belastning%");
+
+		# Sender mail.
+		my $body = "port: $sysname/$mp\n";
+		$body .= "link: $portname\n";
+		$body .= "nettelid: $id\n";
+		$body .= "last: $belastning%\n";
+		
+		print "$body\n";
+		#&sendmail($body);
+
+		$returverdi = 1;
+	    }
+	}
+    } else {
+	#print "Finner ikke $sysname: $mp.rrd\n\n";
+    }
+
+    return $returverdi;
+
+} #sub switchports
+
+
+########################################
+# Gjør det samme som switchports, men nå
+# for routerinterfaces
+########################################
+sub routerinterfaces{
+
+    my $returverdi = 0;
+
+    my ($name, $interf) = @_;
+
+    if ($name =~ m/trlos/) {
+	$name =~ s/-trlos//;
+    }
+    
+    my $hentrutere = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='GW'");
+    $hentrutere->execute;
+
+    my ($id,$sysname,$ruterid);
+
+    while (($id, $sysname) = $hentrutere->fetchrow_array) {
+	unless ($sysname =~ /psykiatri|ringve|erke/) {
+	    if ($sysname eq $name) {
+		$ruterid = $id;
+	    }
+	    $ruterliste{$id} = $sysname;
+	} else {
+	    $ruterliste{$id} = "$sysname-trlos";
+	}
+    }
+    $hentrutere->finish;
+
+    # Omforming på filnavn
+    my $tempinterf = $interf;
+    $tempinterf =~ s(_)(/)g;
+
+    # Henter variable brukt til sammensetning av beskrivelse.
+    my $hentporter = $dbh->prepare("SELECT speed,type,ruter,tilruter,org,kat,samband FROM subnet WHERE ruter=$ruterid AND interf='$tempinterf'");
+    $hentporter->execute;
+
+    my ($speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow_array;
+
+    my @portarray = ($type, $ruterliste{$ruter}, $ruterliste{$tilruter}, $org, $kat, $samband);
+
+    # Henter lastdata
+    my $verdi;
+    if (-e "/home/cricket/cricket-data/router-interfaces/$name/$interf.rrd") {
+	my $RRD = "/home/cricket/cricket-data/router-interfaces/$name/$interf.rrd";
+	
+	my($graphret) = RRDs::graph "/dev/null",
+	"--start","$fra",
+	"--end","now",
+	"DEF:value=$RRD:ds1:AVERAGE", # ifOutOctets
+	"PRINT:value:AVERAGE:%6.2lf";
+	my($ERROR) = RRDs::error;
+	warn "ERROR: $ERROR\n" if $ERROR ;
+	
+	if (@$graphret[0] =~ /\d/) { $verdi = 8 * int(@$graphret[0]); } else { $verdi = 0; }
+	
+	if ($speed) {
+	    my $mspeed = $speed * 10486;
+	    my $belastning = $verdi/$mspeed;
+	    $belastning =~ m/\d+\.(\d)/;
+	    my $rest = $1;
+	    if ($rest > 4) {
+		$belastning += 1;
+	    }
+	    
+	    # Skriver ut interessant info
+	    
+	    unless ($belastning > $limit) {
+		print "Belastning er gått ned, sender off-trap\n";
+		my $portname = shift @portarray;
+		my $element;
+		foreach $element (@portarray) {
+		    if ($element) {
+			$portname .= ",$element";
+		    }
+		}
+		
+		$belastning = int($belastning);
+
+		# Sender trap
+		my $temp1 = "$name/$interf";
+		&sendtrap($temp1, $portname, $ruterid, "$belastning%");
+		
+		# Sender mail.
+		my $body = "port: $name/$interf\n";
+		$body .= "link: $portname\n";
+		$body .= "nettelid: $ruterid\n";
+		$body .= "last: $belastning%\n";
+		
+		print "$body\n";
+		#&sendmail($body);
+
+		$returverdi = 1;
+	    } else {
+		#print "Belastning holder seg: $belastning\n";
+	    }
+	} else {
+	    #print "Ingen speed definert\n";
+	}
+    } else {
+	#print "Finner ikke $sysname: $interf.rrd\n\n";
+    }
+
+    return $returverdi;
+
+}
+
+sub sendmail {
+
+    my $body = shift;
+    my $subject = "hystereseAlarmOff";
+
+    #print "Sendmail: $body\n";
+    my $from = "bredal";
+
+    my $mailer = Mail::Mailer->new();
+    $mailer->open({ From    => $from,
+		    To      => $to,
+		    Subject => $subject,
+		})
+	or die "Can't open: $!\n";
+    print $mailer $body;
+    $mailer->close();
+
+}
+
+sub sjekkfil {
+
+    my ($sysname, $port) = @_;
+    my $funnet = 0;
+    
+    open (FIL, $fil) or die "Kunne ikke åpne $fil for lesing $!\n";
+    while (<FIL>) {
+	if (m/$sysname/ && m/$port/) {
+	    $funnet = 1;
+	}
+    }
+    close FIL;
+
+    return $funnet;
+}
+
+sub sendtrap {
+    
+    my ($sysname, $portname, $nettelid, $belastning) = @_;
+    my @data;
+
+    my $string = "ifInOctets:hysteresis:8750000:10000000";
+
+    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+
+    push(@data, "$newprefix.1", 'string', "hysteresis");
+    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.3", 'string', "$sysname");
+    push(@data, "$newprefix.4", 'string', "$nettelid");
+    push(@data, "$newprefix.5", 'string', "$portname");
+
+    &snmptrap($ipadresse, $prefix, "bigbud", 6, 5, @data);
+
+}
+
+sub sendtrap2 {
+
+    my $sysname = shift;
+    my $nettelid = shift;
+    my @data;
+
+    my $string = "ifInOctets:hysteresis:8750000:10000000";
+
+    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+
+    push(@data, "$newprefix.1", 'string', "hysteresis");
+    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.3", 'string', "$sysname");
+    push(@data, "$newprefix.4", 'string', "$nettelid");
+
+    &snmptrap($ipadresse, $prefix, "bigbud", 6, 5, @data);
+
+    
+}
