@@ -6,14 +6,15 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id"
+__version__ = "$Id: HandlerServer.py,v 1.3 2002/06/19 13:12:13 stain Exp $"
 
+import UserDict
+import re
 
 import no.ntnu.nav.Database.Database as db 
 import no.ntnu.nav.SimpleSnmp as snmp
 from no.ntnu.nav.getDeviceData.plugins import DeviceHandler
 from no.ntnu.nav.getDeviceData.plugins import DeviceData
-import UserDict
 
 class OID:
   """Constants for typical used OIDs"""
@@ -94,21 +95,36 @@ class HandlerServer(DeviceHandler):
     print "ip", box.getIp()
     print "comm", box.getCommunityRo()
 
-    # Retrieve snmpagent version 
-    snmp.setBaseOid(OID.sysObjectID)
-    result = snmp.getAll(1) 
-    if(not result):
-      print "Error: Could not find objectID %s" % OID.sysObjectID
-      return None
 
-    agent = result[0][1]
-    print agent  
-
+    self.getSnmpAgent(box, snmp, deviceData)
     self.getDisks(box, snmp, deviceData)
     self.getInterfaces(box, snmp, deviceData)
 
     # We're done! Submit to the old large database
     deviceDataList.setDeviceData(deviceData)
+
+  def getSnmpAgent(self, box, snmp, deviceData):
+    """Retrieve SNMP agent version and store it in the database directly
+       (should use deviceData, but it currently does not support that)
+    
+       box -- getDeviceData.plugins.BoksData instance of the box
+              to investigate
+       snmp -- SimpleSnmp.SimpleSnmp instance of prepared 
+               SNMP connection to the box
+       deviceData -- getDeviceData.plugins.DeviceData instance
+                     for storing the results
+    """
+    
+    # Get the descriptions
+    snmp.setBaseOid(OID.sysObjectID)
+    result = snmp.getAll(1) 
+    if(result):
+      agent = result[0][1]
+      print "Oh, fant agent", agent
+      sql = "UPDATE boks SET snmpagent='%s' WHERE boksid='%s'" % \
+            (db.addSlashes(agent), box.getBoksid())
+      print "Utfører SQL:", sql      
+      db.update(sql)
 
 
   def getDisks(self, box, snmp, deviceData):
@@ -120,7 +136,6 @@ class HandlerServer(DeviceHandler):
                SNMP connection to the box
        deviceData -- getDeviceData.plugins.DeviceData instance
                      for storing the results
-    
     """
     
     # And now for some magic to combine decriptions and filesystem
@@ -165,6 +180,11 @@ class HandlerServer(DeviceHandler):
         # way to identify the disk, so we MUST avoid it, sadly
         # enough. 
         del disks[disk.unitID]
+      
+      # /dev and /proc and their childs are not interresting
+      if(re.match(r"^/(dev|proc)", disk.description)):
+        del disks[disk.unitID]
+
 
     # Insert into database
     for disk in disks.values():
