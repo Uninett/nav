@@ -140,7 +140,7 @@ print "</table><p>";
 # # # # # Mac-soek: Oppslag i ARP # # # # #
 
 
-$sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE ";
+$sql = "SELECT ip,mac,fra,til FROM arp WHERE ";
 
 if ( strlen($mac) == 12 )
 {
@@ -174,16 +174,16 @@ $sql = $sql."and (til='infinity' OR fra > '$fra') order by mac,fra";
     {
       $svar = pg_fetch_array($result,$i);
 
-      $IPfra = ereg_replace ($prefix, "", $svar[ip_inet]); 
+      $IPfra = ereg_replace ($prefix, "", $svar[ip]); 
 
-      print "<tr><td><a href=$ego?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&alleip=$alleip&&IPfra=$IPfra>$svar[ip_inet]</a></td>";
+      print "<tr><td><a href=$ego?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&alleip=$alleip&&IPfra=$IPfra>$svar[ip]</a></td>";
  
       if ($dns)
       {
 
-         if ($dnsip != $svar[ip_inet])
+         if ($dnsip != $svar[ip])
          {
-           $dnsip = $svar[ip_inet];
+           $dnsip = $svar[ip];
            $dnsname= gethostbyaddr($dnsip);
            if ($dnsname == $dnsip)
            {
@@ -242,8 +242,10 @@ else # ip-fra gyldig
 
     print "<b>IP fra $IPfra til $IPtil siste $dager dager</b><br>"; 
 
-    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til='infinity' or fra > '$fra') order by ip_inet,fra";
+#    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til='infinity' or fra > '$fra') order by ip_inet,fra";
 
+    $sql = "SELECT ip,mac,fra,til FROM arp WHERE (ip BETWEEN '$IPfra' AND '$IPtil') AND (til='infinity' or fra > '$fra') order by ip,fra";
+ 
     $result = pg_exec($dbh,$sql);
 
     $rows = pg_numrows($result);
@@ -265,7 +267,7 @@ else # ip-fra gyldig
 
         if ($ip != $svar[0])
         {
-          $ip = $svar[ip_inet];
+          $ip = $svar[ip];
           $teller = 0;
         }
 
@@ -385,10 +387,10 @@ else
 
 print "<p><b>IP</b> fra $prefix<input type=text size=7 name=IPfra";
 
-if ($IPfra) { print " value=$IPfra";}
+if ($IPfra) { print " value=\"".$IPfra."\"";}
 
 print "> til $prefix<input type=text size=7 name=IPtil";
-if ($IPtil) { print " value=$IPtil";}
+if ($IPtil) { print " value=\"".$IPtil."\"";}
 
 print "><br>";
 
@@ -430,7 +432,7 @@ print "</form>";
 function IPrange($dbh,$prefix,$prefiksid)
 {
 
-  $sql = "SELECT nettadr,maske FROM prefiks WHERE prefiksid='$prefiksid'"; 
+  $sql = "SELECT netaddr FROM prefiks WHERE prefiksid='$prefiksid'"; 
 
   $result = pg_exec($dbh,$sql);
   $rows = pg_numrows($result);
@@ -444,9 +446,13 @@ function IPrange($dbh,$prefix,$prefiksid)
     for ($i=0;$i < $rows; $i++) 
     {
       $svar = pg_fetch_row($result,$i);
-
+      $svarliste = split("/",$svar[0]);
+      if(sizeof($svarliste)<2){
+	  $svarliste = array($svarliste[0],32);
+      }
+      $svar = $svarliste;
       $fra = ereg_replace ($prefix, "", $svar[0]); 
-
+      
       list ($bcast[0],$bcast[1],$bcast[2],$bcast[3]) = split("\.",$svar[0],4);
 
       if ($svar[1] == 23)

@@ -1,6 +1,6 @@
 #!/usr/bin/perl 
 
-# $Id: live.pl,v 1.7 2002/07/23 10:04:53 mortenv Exp $
+# $Id: live.pl,v 1.8 2002/08/13 08:42:15 knutvi Exp $
 #####################################
 #
 # live.pl pinger boksene som finnes i tabellen manage.boks, og sender traps ved endringer i status.
@@ -105,7 +105,8 @@ $conn = &db_get('live');
 # Plukker alle id'er i nettel
 ############################################################
 
-$sql = "SELECT boksid,ip,sysname,watch,kat,typeid FROM boks";
+#$sql = "SELECT boksid,ip,sysname,watch,kat,typeid FROM boks";
+$sql = "SELECT boksid,ip,sysname,watch,kat,typename FROM boks left outer JOIN type USING (typeid)";
 
 $resultat = db_select($conn,$sql);
 
