@@ -1,0 +1,498 @@
+## $Id: $
+##
+## This file is part of the NAV project.
+##
+## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+## Builds html for the IP/mac-search with data in this form:
+##
+## $object
+##   +-- title                         ::
+##   +-- errmsg                        :: error message
+##   +-- arp
+##   |    +-- ip                       ::
+##   |    +-- dns                      :: (optional)
+##   |    +-- mac                      ::
+##   |    +-- start                    ::
+##   |    +-- end                      ::
+##   |    +-- uri                      :: (optional)
+##   +-- cam
+##   |    +-- mac                      ::
+##   |    +-- sysname                  ::
+##   |    +-- module                   ::
+##   |    +-- port                     ::
+##   |    +-- start                    ::
+##   |    +-- end                      ::
+##   |    +-- uri                      :: (optional)
+##   | 
+##   +-- form                          :: choices made by the user:
+##        +-- search                   :: ip or mac
+##        +-- from_ip                  :: (optional)
+##        +-- to_ip                    :: (optional)
+##        +-- mac                      :: (optional)
+##        +-- dns                      :: boolean: should DNS be shown?
+##        +-- aip                      :: boolean: should active IPs be shown?
+##        +-- naip                     :: boolean: should inactive IPs be shown?
+##        +-- days                     :: number of days in search
+##
+## The template uses images in $imagefolder/arpcam/, where $imagefolder
+## is inherited from MainTemplate and defaults to "/images".
+##
+## Copyright (c) 2003 by NTNU, ITEA nettgruppen
+## Author: Magnar Sveen <magnars@idi.ntnu.no>
+##
+
+#extends MainTemplate
+
+#attr $bodyOnLoad = "onLoad='checkAll();'"
+
+#block additionalCSS
+$default_form_CSS()
+$default_table_CSS()
+#end block additionalCSS
+
+#block additionalJavaScript
+      /** returns an element from the document designated by its ID-tag. */
+      function getObj(id) {
+        if (document.getElementById) {
+          return document.getElementById(id);
+        } else if (document.all) {
+          return document.all[id];
+        }
+      }
+
+      /** checks if the users browser has functionality to change the class of an element */
+      function canChangeClassName() {
+        if (document.getElementById) {
+          return document.getElementById("ip-table").className;
+        } else if (document.all) {
+          return document.all["ip-table"].className;
+        } else {
+          return false;
+        }
+      }
+
+      var checked; // remembers which box is active, to avoid activating it over and over
+      /** checks which of the IP and MAC-boxes is active, and sets the classes accordingly */
+      function checkBoxes() {
+        if (!canChangeClassName()) { return; }
+        if (getObj("ip-radio").checked) {
+          if (checked != "ip") {
+            activate("ip");
+            deactivate("mac");
+            getObj("to-input").disabled = false;
+            getObj("mac-input").disabled = true;
+            var obj = getObj("from-input");
+            obj.disabled = false;
+            obj.focus();
+            getObj("aip-box").disabled = false;
+            getObj("naip-box").disabled = false;
+            checkShowBox("aip");
+            checkShowBox("naip");
+            checked = "ip";
+          }
+        } else if (getObj("mac-radio").checked) {
+          if (checked != "mac") {
+            activate("mac");
+            deactivate("ip");
+            getObj("from-input").disabled = true;
+            getObj("to-input").disabled = true;
+            var obj = getObj("mac-input");
+            obj.disabled = false;
+            obj.focus();
+            getObj("aip-box").disabled = true;
+            getObj("naip-box").disabled = true;
+            checkShowBox("aip");
+            checkShowBox("naip");
+            checked = "mac";
+          }
+        }                
+      }
+
+      /** helper-function for checkBoxes(), activating all elements of a box (IP or MAC) */
+      function activate(box) {
+        var obj;
+        obj = getObj(box + "-table"); if (obj) { obj.className = "header-active"; }
+        obj = getObj(box + "-td-0" ); if (obj) { obj.className = "header-active"; }
+        obj = getObj(box + "-td-1" ); if (obj) { obj.className = "header-active"; }
+        obj = getObj(box + "-td-2" ); if (obj) { obj.className = "header-active"; }
+      }
+
+      /** helper-function for checkBoxes(), deactivating all elements of a box (IP or MAC) */
+      function deactivate(box) {
+        var obj;
+        obj = getObj(box + "-table"); if (obj) { obj.className = "header-disabled"; }
+        obj = getObj(box + "-td-0" ); if (obj) { obj.className = "header-disabled"; }
+        obj = getObj(box + "-td-1" ); if (obj) { obj.className = "header-disabled"; }
+        obj = getObj(box + "-td-2" ); if (obj) { obj.className = "header-disabled"; }
+      }
+
+      var checkboxClicked = false;
+      /** One of the three "Show DNS/Active IPs/Inactive IPs" has been clicked,
+       *  so check the checkbox and activate/deactivate. 
+       */
+      function showboxClicked(box) {
+        if (checkboxClicked) {
+          // the user clicked the actual checkbox, so no need to do it for him/her
+          checkboxClicked = false;
+        } else {
+          var obj = getObj(box + "-box");
+          if (!obj.disabled) {
+            obj.checked = !obj.checked;
+          }
+        }
+        checkShowBox(box);
+      }
+
+      /** Activates/deactivates the showboxes according to their checkboxes */
+      function checkShowBox(box) {
+        if (!canChangeClassName()) { return; }
+        var obj = getObj(box + "-box");
+        if (!obj) {
+        } else if (obj.disabled) {
+          getObj(box + "-td").className = "header-disabled";
+          getObj("showboxes-table").className = "header-disabled";
+          return;
+        } else if (obj.checked) {
+          getObj(box + "-td").className = "header-active";
+        } else {
+          getObj(box + "-td").className = "header-inactive";
+        }
+        if (box == "aip" || box == "naip") {
+          if (getObj("aip-box").checked && getObj("naip-box").checked) {
+            getObj("showboxes-table").className = "header-active";
+          } else {
+            getObj("showboxes-table").className = "header-inactive";
+          }
+        }
+        if (box == "dns") {
+          if (getObj("dns-box").checked) {
+            getObj("dns-table").className = "header-active";
+          } else {
+            getObj("dns-table").className = "header-inactive";
+          }
+        }
+      }
+
+      /** called when the page loads to check all elements to get a correct initial look  */
+      function checkAll() {
+        checkBoxes();
+        checkShowBox('dns');
+        checkShowBox('aip');
+        checkShowBox('naip');
+      }
+#end block additionalJavaScript
+
+#block content
+  <table border="0" cellspacing="0" cellpadding="0" >
+
+## ------------------------------------------------------------------------- FORM ---- ##
+    <form>
+    <tr class="form">
+      <td colspan="9">
+        <table border="0" cellspacing="5" cellpadding="0" >
+          <tr>
+            <td colspan=2>
+##
+## ---------------------------------------------------------------------- IP FORM ---- ##
+##
+              <table id="ip-table" width="100%" cellspacing="5" cellpadding="5" border="0" class="header-inactive">
+                <tr onClick="getObj('ip-radio').checked = true; checkBoxes();">
+                  <td id="ip-td-0" nowrap class="header-inactive">
+                    <input id="ip-radio" type="radio" name="search" value="ip" #if $object.form.search == "ip" then 'checked' else ''# >
+                  </td>
+                  <td id="ip-td-1" nowrap class="header-inactive">
+                    IP from: <input id="from-input" type="text" name="from_ip" value="$object.form.from_ip" onChange="if (this.value.indexOf(getObj('to-input').value) == 0) {getObj('to-input').value = this.value;}" onFocus="getObj('ip-radio').checked = true; checkBoxes();">
+                  </td>
+                  <td id="ip-td-2" nowrap class="header-inactive">
+                    to: <input id="to-input" type="text" name="to_ip" value="$object.form.to_ip" onFocus="getObj('ip-radio').checked = true; checkBoxes();">
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+            <td colspan=2>
+##
+## --------------------------------------------------------------------- MAC FORM ---- ##
+##
+              <table id="mac-table" width="100%" cellspacing="5" cellpadding="5" border="0" class="header-inactive">
+                <tr onClick="getObj('mac-radio').checked = true; checkBoxes();">
+                  <td id="mac-td-0" nowrap class="header-inactive">
+                    <input id="mac-radio" type="radio" name="search" value="mac" #if $object.form.search == "mac" then 'checked' else ''# >
+                  </td>
+                  <td id="mac-td-1" nowrap class="header-inactive">
+                    MAC: <input id="mac-input" type="text" name="mac" value="$object.form.mac" onFocus="getObj('mac-radio').checked = true; checkBoxes();">
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+          <tr>
+            <td>
+##
+## -------------------------------------------------------------- ACTIVE/INACTIVE ---- ##
+##
+              <table id="showboxes-table" width="100%" height="50" cellspacing="5" cellpadding="5" class="header-inactive">
+                <tr>
+                  <td id="aip-td" nowrap class="header-inactive" onClick="showboxClicked('aip');">
+                    <input id="aip-box" type="checkbox" name="aip" onClick="checkboxClicked = true;" #if $object.form.aip then 'checked' else ''# > Show active IPs
+                  </td>
+                  <td id="naip-td" nowrap class="header-inactive" onClick="showboxClicked('naip');">
+                    <input id="naip-box" type="checkbox" name="naip" onClick="checkboxClicked = true;" #if $object.form.naip then 'checked' else ''# > Show inactive IPs
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+            <td>
+##
+## --------------------------------------------------------------------- SHOW DNS ---- ##
+##
+              <table id="dns-table" width="100%" height="50" cellspacing="5" cellpadding="5" class="header-inactive">
+                <tr>
+                  <td id="dns-td" nowrap class="header-inactive" onClick="showboxClicked('dns');">
+                    <input id="dns-box" type="checkbox" name="dns" onClick="checkboxClicked = true;" #if $object.form.dns then 'checked' else ''# > Show DNS
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td>
+##
+## --------------------------------------------------------------- NUMBER OF DAYS ---- ##
+##
+              <table width="100%" height="50" cellspacing="5" cellpadding="5" class="header-white">
+                <tr onClick="getObj('days-input').focus();">
+                  <td nowrap class="header-white">
+                    Last <input id="days-input" name="days" style="border: 1px solid #999; padding: 2px; text-align: center;" size="5" value="$object.form.days" type="text"> days
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+            <td>
+##
+## ----------------------------------------------------------------------- SUBMIT ---- ##
+##
+              <table width="100%" height="50" cellspacing="5" cellpadding="5" class="header-submit">
+                <tr>
+                  <td nowrap class="header-submit">
+                    <input type="submit" value="Search">
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    </form>
+## ------------------------------------------------------------------ END OF FORM ---- ##
+##
+## ---------------------------------------------------------------- ERROR MESSAGE ---- ##
+#if $object.errmsg
+    <tr>
+      <td colspan="9" align="center">
+        <font size="+2" color="red">$object.errmsg</font>
+      </td>
+    </tr>
+#end if
+##
+## -------------------------------------------------------------------- ARP TABLE ---- ##
+#if $object.arp
+  #set $rows = len($object.arp) + 1
+## -------------------------------------------------------------------- TITLE ROW ---- ##
+    <tr class="title">
+      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/arplogo+fill.gif'); background-repeat: no-repeat;">  
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="previous">
+              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
+            </td>
+            <td class="current">
+              <div class="title">$object.title</div>
+              Results from the arp-table
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+## ------------------------------------------------------------------- HEADER ROW ---- ##
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          IP &nbsp;
+      </td>
+#if $object.form.dns
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          DNS &nbsp;
+      </td>
+#end if
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          MAC &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Start &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          End &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+      </td>
+#if not $object.form.dns
+      <td class="header" valign="top" bgcolor="white" nowrap >
+      </td>
+#end if
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+    </tr>
+## -------------------------------------------------------------------- DATA ROWS ---- ##
+#set $evenrow = 0
+#for $row in $object.arp
+#if $evenrow
+    <tr class="evenrow">
+#set $evenrow = 0
+#else
+    <tr class="oddrow">
+#set $evenrow = 1
+#end if
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          <a href="trace?search=ip&from_ip=$row.ip&to_ip=$row.ip&days=$object.form.days&dns=$object.form.dns&aip=$object.form.aip&naip=$object.form.naip">$row.ip</a>
+      </td>
+#if $object.form.dns
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.dns
+      </td>
+#end if
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          <a href="trace?search=mac&mac=$row.mac&days=$object.form.days&dns=$object.form.dns">$row.mac</a>
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.start
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.end
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+#if $row.uri
+          <a href="$row.uri" title="More information">
+            <img src="$imagefolder/arpcam/info.gif" border="0" alt="(i)" />
+          </a>
+#end if
+      </td>
+    </tr>
+#end for
+## -------------------------------------------------------------------- BLANK ROW ---- ##
+    <tr bgcolor="white">
+      <td colspan="8">
+        <img src="$imagefolder/blank.gif" height="5" width="1" alt="" />
+      </td>
+    </tr>
+#end if
+##
+## -------------------------------------------------------------------- CAM TABLE ---- ##
+#if $object.cam
+  #set $rows = len($object.cam) + 1
+## -------------------------------------------------------------------- TITLE ROW ---- ##
+    <tr class="title">
+      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/camlogo+fill.gif'); background-repeat: no-repeat;">  
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="previous">
+              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
+            </td>
+            <td class="current">
+              <div class="title">$object.title</div>
+              Results from the cam-table
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+## ------------------------------------------------------------------- HEADER ROW ---- ##
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" />
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          MAC &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          Sysname &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          Module &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          Port &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          Start &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+          End &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor=white nowrap >
+      </td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" />
+      </td>
+    </tr>
+##
+## -------------------------------------------------------------------- DATA ROWS ---- ##
+#set $evenrow = 0
+#for $row in $object.cam
+#if $evenrow
+    <tr class="evenrow">
+#set $evenrow = 0
+#else
+    <tr class="oddrow">
+#set $evenrow = 1
+#end if
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.mac
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          <a href="/report/netbox?sysname=$row.sysname" title="Information about netbox $row.sysname">$row.sysname</a>
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          <a href="/report/swport?sysname=$row.sysname&module=$row.module" title="Information about the swports of $row.sysname module $row.module">$row.module</a>
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          <a href="/report/swport?sysname=$row.sysname" title="Information about $row.sysname's swports">$row.port</a>
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.start
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+          $row.end
+      </td>
+      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
+#if $row.uri
+          <a href="$row.uri" title="More information">
+            <img src="$imagefolder/arpcam/info.gif" border="0" alt="(i)" />
+          </a>
+#end if
+      </td>
+    </tr>
+#end for
+## -------------------------------------------------------------------- BLANK ROW ---- ##
+    <tr bgcolor="white">
+      <td colspan="8">
+        <img src="$imagefolder/blank.gif" height="5" width="1" alt="" />
+      </td>
+    </tr>
+#end if
+
+  </table>
+</body>
+#end block content
