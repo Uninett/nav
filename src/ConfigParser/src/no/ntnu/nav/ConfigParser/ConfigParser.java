@@ -41,6 +41,7 @@ import java.util.*;
 public class ConfigParser
 {
     private HashMap map = new HashMap();
+	private Map objectMap = new HashMap();
 	private String conffile;
 
     /**
@@ -70,6 +71,14 @@ public class ConfigParser
             }
         }
     }
+
+	public void setObject(String key, Object o) {
+		objectMap.put(key, o);
+	}
+
+	public Object getObject(String key) {
+		return objectMap.get(key);
+	}
 
     private void setOption(String key, String value)
     {
