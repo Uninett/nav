@@ -132,7 +132,7 @@ def createMessage(line):
             # if this message shows sign of cisco format, put it in the error log
             typematch = re.search("\w+-\d+-?\S*:",line)
             if typematch:
-                database.execute("insert into errorerror (message) values (%s)" , (db.escape(line),))
+                database.execute("insert into errorerror (message) values (%s)" , (line,))
                 connection.commit()
             #raise "this is an undefined message"+line
 
@@ -314,7 +314,7 @@ if __name__ == '__main__':
                     pass
 
             ## insert message into database
-            database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, '%s')"% (message.time, originid, message.priorityid, typeid, message.description))
+            database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, %s)"% (message.time, originid, message.priorityid, typeid, message.description))
 
     connection.commit()
 
