@@ -188,6 +188,8 @@ public class BoxState implements EventHandler, EventCallback
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
 		}
 
+		outld("BoxState Event processed, startEventMap size="+startEventMap.size());
+
 	}
 
 	/**
@@ -310,7 +312,7 @@ public class BoxState implements EventHandler, EventCallback
 				errl("BoxState: Error, eventMap is not empty after alert processing!");
 			}
 			*/
-			outld("BoxState.callback: Alert processing done, events remaining: " + startEventMap.size());
+			outld("BoxState.callback: Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
 
 		}
 
