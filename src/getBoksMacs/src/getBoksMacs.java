@@ -1,8 +1,13 @@
-/*
- *
- *
- *
- */
+/*******************
+*
+* $Id: getBoksMacs.java,v 1.3 2002/11/22 21:33:59 kristian Exp $
+* This file is part of the NAV project.
+* Logging of CAM/CDP data
+*
+* Copyright (c) 2002 by NTNU, ITEA nettgruppen
+* Authors: Kristian Eide <kreide@online.no>
+*
+*******************/
 
 import java.io.*;
 import java.util.*;
@@ -14,18 +19,6 @@ import java.sql.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
-
-// SET enable_seqscan TO off;
-
-/* SQL setning for å rydde opp hvis en MAC på en port av en eller annen grunn har flere records med til='infinity'
- * Recorden med den tidligste 'fra' blir tatt vare på, resten slettes
- *
- * select count(*) from cam where til='infinity' and (boksid,modul,port,mac) IN (select boksid,modul,port,mac from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1) and fra NOT IN (select min(fra) as fra from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1)
- * select * from cam where til='infinity' and (boksid,modul,port,mac) IN (select boksid,modul,port,mac from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1) and fra NOT IN (select min(fra) as fra from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1)
- *
- * delete from cam where til='infinity' and (boksid,modul,port,mac) IN (select boksid,modul,port,mac from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1) and fra NOT IN (select min(fra) as fra from cam where til='infinity' group by boksid,modul,port,mac having count(camid) > 1)
- *
- */
 
 
 class getBoksMacs
