@@ -120,7 +120,7 @@ class MegaPing(RotaterPlugin):
     newhosts = filter(lambda x: x not in self.hosts, netboxes)
     for netbox in newhosts:
       self.hosts.append(Host(netbox))
-     remove outdated hosts...
+    # remove outdated hosts...
     oldhosts = filter(lambda x: x not in netboxes, self.hosts)
     for netbox in oldhosts:
       self.hosts.remove(Host(netbox))
