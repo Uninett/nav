@@ -104,7 +104,10 @@ my %antmask = &db_hent_enkel($db,"select prefiksid,count(distinct mac) from arp 
 my %db_antmask = &db_hent_enkel($db,"select prefiksid,antmask from prefiks");
 foreach my $prefiksid (keys %db_antmask) {
     my $gammel = $db_antmask{$prefiksid};
-    my $ny = $antmask{$prefiksid};
+    my $ny;
+    unless($ny = $antmask{$prefiksid}){
+	$ny = '';
+    }
     unless ($ny eq $gammel) {
 	&db_update($db,"prefiks","antmask",$gammel,$ny,"prefiksid=$prefiksid");
     }
