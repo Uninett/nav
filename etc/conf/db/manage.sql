@@ -553,7 +553,7 @@ CREATE TABLE rrd_file (
   path      VARCHAR NOT NULL, -- complete path to the rrdfile
   filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
   step      INT, -- the number of seconds between each update
-  subsystem INT REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid  INT REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
   key       VARCHAR,
   value     VARCHAR
