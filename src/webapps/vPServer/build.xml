@@ -1,0 +1,52 @@
+<project name="vPServer" default="dist" basedir=".">
+    <description>
+        build file for vPServer
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="build.compiler.emacs" value="yes"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}"/>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+
+    <!-- Put everything in ${build} into the vPServer.war file -->
+    <war destfile="${dist}/vPServer.war"
+         webxml="metadata/web.xml">
+      <classes dir="${build}"/>
+    </war>
+  </target>
+
+  <target name="dist_debug" depends="dist"
+        description="Upload dist to server">
+    <exec dir="${dist}" executable="scp" os="Windows 2000">
+      <arg line="vPServer.war bb.itea.ntnu.no:devel/navme/webapps"/>
+    </exec>
+    <exec executable="ssh" os="Windows 2000">
+      <arg line="bb.itea.ntnu.no mkdir -p devel/navme/webapps/vPServer ; cd devel/navme/webapps/vPServer ; jar xf ../vPServer.war"/>
+    </exec>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>
