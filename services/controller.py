@@ -1,12 +1,12 @@
 #!/usr/bin/python
 """
-$Author: erikgors $
-$Id: controller.py,v 1.7 2002/06/13 15:47:18 erikgors Exp $
+$Author: magnun $
+$Id: controller.py,v 1.8 2002/06/14 12:24:31 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
 
-import RunQueue, types, os, time, job, getopt, signal,database
+import RunQueue, types, os, time, job, getopt, signal, database
 
 class controller:
     def __init__(self, **kwargs):
@@ -49,15 +49,17 @@ class controller:
         Forks a new prosess, letting the service run as
         a daemon.
         """
-
         if nofork:
             self.main()
         else:    
             pid=os.fork()
             if pid > 0:
-                self._pidfile=open(PIDFILE, 'w')
-                self._pidfile.write(str(pid)+'\n')
-                self._pidfile.close()
+                try:
+                    self._pidfile=open(self._pidfile, 'w')
+                    self._pidfile.write(str(pid)+'\n')
+                    self._pidfile.close()
+                except:
+                    print "Could not open %s" % self._pidfile
                 os.sys.stdin.close()
                 os.sys.stdout.close()
                 os.sys.stderr.close()
