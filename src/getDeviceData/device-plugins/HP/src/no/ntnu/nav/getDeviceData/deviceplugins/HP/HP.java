@@ -212,6 +212,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+				if (s.length < 3) Log.d("PROCESS_HP", "Missing 3rd element from hpSerial on: " + nb + " (" + nb.getType() + ")");
 				sc.swModuleFactory(Integer.parseInt(s[2])).setSerial(s[1]);
 				Log.d("PROCESS_HP", "Module: " + s[2] + " Serial: " + s[1]);
 			}
