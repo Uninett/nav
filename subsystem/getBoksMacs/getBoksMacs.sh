@@ -32,7 +32,7 @@ if [ "$COUNT" == "0" ] || [ -a $JOB_FINISHED ]; then
         # Check again that getBoksMacs is not already running
         if [ "$COUNT" == "0" ]; then
                 # Now run script
-                $JAVA_HOME/bin/java -jar getBoksMacs.jar $1 > "$LOG_DIR/getBoksMacs-`/bin/date +%Y-%m-%d_%H-%M`.log" &
+                $JAVA_HOME/bin/java -jar getBoksMacs.jar $1 >> "$LOG_DIR/getBoksMacs.log" &
                 PID="$!"
                 echo $PID >last.pid
                 wait $PID
