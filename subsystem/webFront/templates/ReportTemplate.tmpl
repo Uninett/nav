@@ -62,6 +62,34 @@ $default_table_CSS()
 
 #block content
 
+#if $search>0
+
+<a href="${old_uri}adv=">Close Search</a>
+<h2>Advanced Search</h2><form action="" method="get"><table>
+
+#for $a in $report.form
+<tr><td><label for="$a.raw">$a.title</label></td><td><input type="checkbox" name="${a.raw}_not" id="${a.raw}_not"#slurp
+#if $neg.has_key($a.raw)
+ checked="1"#slurp
+#end if
+</td><td><label for="${a.raw}_not">not</label></td><td>
+#if $operator.has_key($a.raw)
+$selectoptiondraw($a.raw+"_op", $operatorlist, $operators,$operator[$a.raw], $descriptions)
+#else
+$selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
+#end if
+</td><td><input type="text" name="$a.raw" id="$a.raw"#slurp
+#if $contents.has_key($a.raw)
+ value="$contents[$a.raw]"#slurp
+#end if
+#end for
+
+<tr><td></td><td></td><td><input type="hidden" name="adv" value="1"/></td><td><input type="submit" name="r4g3n53nd" value="Send"/></table></form>
+<font size=1>The operators are used like this
+<ul><li>= : "equals" (enter null for empty string)</li><li>~ : "case insensitive search (* wildcards)"</li><li>[:] : "between", takes two colon-separated arguments</li><li>(,,) : "is one of", takes a comma-separated list of any size as argument. </li></ul><p><,>,<= and >= needs no explanation. </p><p> All these operators may be negated by clicking the "not" checkbox.</p></font>
+#else
+<a href="${old_uri}adv=1">Advanced Search</a>
+#end if
 ## ----------------------------------------------------------------------- REPORT ---- ##
 #if $report
 #set $rows = len($report.table.rows) + 2
@@ -246,3 +274,20 @@ $default_table_CSS()
 
 #end if
 #end block content
+
+#def selectoptiondraw($name, $elementlist, $elementdict, $selected="", $descriptiondict=None)
+<select name="$name">
+#for $element in $elementlist
+<option value="$element"#slurp
+#if $element == $selected
+ selected="1"#slurp
+#end if
+#if $descriptiondict.has_key($element)
+ title="$descriptiondict[$element]"#slurp
+#end if
+>#slurp
+$elementdict[$element]#slurp
+</option>
+#end for
+</select>
+#end def
