@@ -19,6 +19,7 @@ import java.sql.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.logger.*;
 
 
 class getBoksMacs
@@ -28,23 +29,16 @@ class getBoksMacs
 	public static final String configFile = "local/etc/conf/getBoksMacs.conf";
 	public static final String watchMacsFile = "local/etc/conf/watchMacs.conf";
 	public static final String scriptName = "getBoksMacs";
+	public static final String logFile = "local/log/getBoksData.log";
 
 	public static int NUM_THREADS = 24;
 	public static final int SHOW_TOP = 25;
 
-	public static final boolean VERBOSE_OUT = false;
-	public static final boolean DEBUG_OUT = false;
-
-	public static final boolean DB_UPDATE = true;
 	public static final boolean DB_COMMIT = true;
 
 	public static final boolean DUMP_CAM = true;
 
 	/*
-	public static final boolean VERBOSE_OUT = true;
-	public static final boolean DEBUG_OUT = true;
-
-	public static final boolean DB_UPDATE = false;
 	public static final boolean DB_COMMIT = false;
 
 	public static final boolean DUMP_CAM = false;
@@ -117,7 +111,12 @@ class getBoksMacs
 				return;
 			}
 		}
-		outl("Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
+
+		// Init logger
+		Log.init(navRoot + logFile, "getBoksData");
+
+		Log.i("INIT", "============ getDeviceData starting ============");
+		Log.i("INIT", "Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
 
 		// Load watchMacs
 		try {
@@ -145,7 +144,9 @@ class getBoksMacs
 		out("  netboxmac...");
 		dumpBeginTime = System.currentTimeMillis();
 		ResultSet rs = Database.query("SELECT netboxid,mac FROM netboxmac");
-		while (rs.next()) macBoksId.put(rs.getString("mac"), rs.getString("netboxid"));
+		while (rs.next()) {
+			macBoksId.put(rs.getString("mac"), rs.getString("netboxid"));
+		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 
@@ -193,11 +194,11 @@ class getBoksMacs
 		// Mapping fra boksid, port og modul til swportid i swport
 		out("  swport...");
 		dumpBeginTime = System.currentTimeMillis();
-		QueryBoks.swportSwportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,module,port FROM swport JOIN module USING(moduleid)");
+		QueryBoks.swportidMap = new HashMap();
+		rs = Database.query("SELECT swportid,netboxid,ifindex FROM swport JOIN module USING(moduleid)");
 		while (rs.next()) {
-			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port");
-			QueryBoks.swportSwportidMap.put(key, rs.getString("swportid"));
+			String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
+			QueryBoks.swportidMap.put(key, rs.getString("swportid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -255,11 +256,11 @@ class getBoksMacs
 		dumpBeginTime = System.currentTimeMillis();
 		HashSet swp = new HashSet();
 		HashMap swp_d = new HashMap();
-		rs = Database.query("SELECT swp_netboxid,netboxid,module,port,to_netboxid,to_module,to_port,misscnt FROM swp_netbox");
+		rs = Database.query("SELECT swp_netboxid,netboxid,ifindex,to_netboxid,to_ifindex,misscnt FROM swp_netbox");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		//rs = Database.query("SELECT swp_boksid,boksid,modul,port,boksbak FROM swp_boks JOIN boks USING (boksid) WHERE sysName='sb-sw'");
 		while (rs.next()) {
-			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port")+":"+rs.getString("to_netboxid");
+			String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("to_netboxid");
 			swp.add(key);
 
 			HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -268,20 +269,55 @@ class getBoksMacs
 			// Vi trenger å vite om det befinner seg en GW|SW|KANT bak en gitt enhet
 			String boksBakKat = (String)boksidKat.get(rs.getString("to_netboxid"));
 			if (boksBakKat == null || isNetel(boksBakKat)) {
-				foundBoksBakSwp.add(rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port"));
+				foundBoksBakSwp.add(rs.getString("netboxid")+":"+rs.getString("ifindex"));
 			}
 
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 
+		// Fetch OID db
+		QueryBoks.oidDb = new HashMap();
+		Map oidDb = QueryBoks.oidDb;
+		rs = Database.query("SELECT typename,oidkey,snmpoid FROM type JOIN typesnmpoid USING(typeid) JOIN snmpoid USING(snmpoidid)");
+		while (rs.next()) {
+			Map m;
+			String tn = rs.getString("typename");
+			if ( (m=(Map)oidDb.get(tn)) == null) oidDb.put(tn, m = new HashMap());
+			m.put(rs.getString("oidkey"), rs.getString("snmpoid"));
+		}
+
+		// netboxid+ifindex -> vlan
+		QueryBoks.vlanMap = new HashMap();
+		Map vlanMap = QueryBoks.vlanMap;
+		rs = Database.query("SELECT netboxid,ifindex,vlan FROM swport JOIN module USING(moduleid) WHERE vlan IS NOT NULL");
+		while (rs.next()) {
+			vlanMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("vlan"));
+		}
+
+		// netboxid+interface -> swportid
+		QueryBoks.interfaceMap = new HashMap();
+		Map interfaceMap = QueryBoks.interfaceMap;
+		rs = Database.query("SELECT netboxid,interface,swportid FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
+		while (rs.next()) {
+			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("interface"), rs.getString("swportid"));
+		}
+
+		QueryBoks.mpMap = new HashMap();
+		Map mpMap = QueryBoks.mpMap;
+		rs = Database.query("SELECT netboxid,ifindex,module,port FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
+		while (rs.next()) {
+			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("port") } );
+		}
+
+
 		// For CAM-logger, alle uavsluttede CAM-records (dvs. alle steder hvor til er null)
 		if (DUMP_CAM) {
 			out("  cam...");
 			dumpBeginTime = System.currentTimeMillis();
-			rs = Database.query("SELECT camid,netboxid,module,port,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL");
+			rs = Database.query("SELECT camid,netboxid,ifindex,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL");
 			while (rs.next()) {
-				String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port")+":"+rs.getString("mac");
+				String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("mac");
 				if (unclosedCam.put(key, new String[] { rs.getString("camid"), rs.getString("misscnt") } ) != null) {
 					errl("Error, found duplicate in cam for key: " + key);
 				}
@@ -322,7 +358,7 @@ class getBoksMacs
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='KANT' or kat='SW') ORDER BY boksid");
 		} else
 		if (qNettel.equals("_all")) {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysName FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','KANT','GW','GSW') AND up='y' AND ro IS NOT NULL");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysName,vendorid,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','KANT','GW','GSW') AND up='y' AND ro IS NOT NULL");
 		} else
 		if (qNettel.equals("_gw")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='GW'");
@@ -333,7 +369,7 @@ class getBoksMacs
 		if (qNettel.equals("_kant")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='KANT'");
 		} else {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysName FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,,catid,sysName,vendorid,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE typegruppe in ('cat-sw', 'ios-sw')");
 		}
@@ -345,18 +381,16 @@ class getBoksMacs
 			bd.ip = rs.getString("ip");
 			bd.cs_ro = rs.getString("ro");
 			bd.boksId = rs.getString("netboxid");
-			bd.boksTypegruppe = rs.getString("typegroupid");
 			bd.boksType = rs.getString("typename");
 			bd.sysName = rs.getString("sysname");
 			bd.kat = rs.getString("catid");
+			bd.vendor = rs.getString("vendorid");
+			bd.csAtVlan = rs.getBoolean("cs_at_vlan");
 			bdStack.push(bd);
 		}
 		int antBd = bdStack.size();
 
 		// Sett datastrukturer for alle tråder
-		QueryBoks.VERBOSE_OUT = VERBOSE_OUT;
-		QueryBoks.DEBUG_OUT = DEBUG_OUT;
-		QueryBoks.DB_UPDATE = DB_UPDATE;
 		QueryBoks.DB_COMMIT = DB_COMMIT;
 
 		QueryBoks.macBoksId = macBoksId;
@@ -369,6 +403,8 @@ class getBoksMacs
 
 		QueryBoks.cdpBoks = cdpBoks;
 		QueryBoks.vlanBoksid = vlanBoksid;
+
+		QueryBoks.oidDb = oidDb;
 
 		QueryBoks.setFoundBoksBakSwp(foundBoksBakSwp);
 
@@ -416,12 +452,12 @@ class getBoksMacs
 			if (misscnt > MAX_MISSCNT) {
 				remcnt++;
 				// Slett record fra swp_boks
-				if (DB_UPDATE) Database.update("DELETE FROM swp_netbox WHERE swp_netboxid = '"+swp_boksid+"'");
+				Database.update("DELETE FROM swp_netbox WHERE swp_netboxid = '"+swp_boksid+"'");
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			} else {
 				missinc++;
 				// Øk misscnt med 1
-				if (DB_UPDATE) Database.update("UPDATE swp_netbox SET misscnt=misscnt+1 WHERE swp_netboxid = '"+swp_boksid+"'");
+				Database.update("UPDATE swp_netbox SET misscnt=misscnt+1 WHERE swp_netboxid = '"+swp_boksid+"'");
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			}
 
@@ -486,46 +522,42 @@ class getBoksMacs
 
 			if (misscnt > MAX_MISSCNT) {
 				// Nå skal vi virkelig lukke denne recorden
-				if (DB_UPDATE) {
-					try {
-						String[] updateFields = {
-							"misscnt", "null"
-						};
-						String[] condFields = {
-							"camid", camid
-						};
-						if (DB_UPDATE) Database.update("cam", updateFields, condFields);
-						if (DB_COMMIT) Database.commit(); else Database.rollback();
-					} catch (SQLException e) {
-						outl("  finishCam(): Closing record in cam, SQLException: " + e.getMessage() );
-					}
+				try {
+					String[] updateFields = {
+						"misscnt", "null"
+					};
+					String[] condFields = {
+						"camid", camid
+					};
+					Database.update("cam", updateFields, condFields);
+					if (DB_COMMIT) Database.commit(); else Database.rollback();
+				} catch (SQLException e) {
+					outl("  finishCam(): Closing record in cam, SQLException: " + e.getMessage() );
 				}
 				remCnt++;
 			} else {
 				// Misscnt-feltet økes med en; dersom det var 0 fra før skal til settes til NOW()
-				if (DB_UPDATE) {
-					try {
-						String[] updateFields;
-						if (misscnt == 1) {
-							String[] sa = {
-								"end_time", "NOW()",
-								"misscnt", String.valueOf(misscnt)
-							};
-							updateFields = sa;
-						} else {
-							String[] sa = {
-								"misscnt", String.valueOf(misscnt)
-							};
-							updateFields = sa;
-						}
-						String[] condFields = {
-							"camid", camid
+				try {
+					String[] updateFields;
+					if (misscnt == 1) {
+						String[] sa = {
+							"end_time", "NOW()",
+							"misscnt", String.valueOf(misscnt)
 						};
-						if (DB_UPDATE) Database.update("cam", updateFields, condFields);
-						if (DB_COMMIT) Database.commit(); else Database.rollback();
-					} catch (SQLException e) {
-						outl("  finishCam(): Semi-closing record in cam, SQLException: " + e.getMessage() );
+						updateFields = sa;
+					} else {
+						String[] sa = {
+							"misscnt", String.valueOf(misscnt)
+						};
+						updateFields = sa;
 					}
+					String[] condFields = {
+						"camid", camid
+					};
+					Database.update("cam", updateFields, condFields);
+					if (DB_COMMIT) Database.commit(); else Database.rollback();
+				} catch (SQLException e) {
+					outl("  finishCam(): Semi-closing record in cam, SQLException: " + e.getMessage() );
 				}
 				missInc++;
 			}
