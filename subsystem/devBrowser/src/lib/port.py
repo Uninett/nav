@@ -87,6 +87,9 @@ def showInfo(port):
     for field in \
         'port duplex ifindex portname media link speed trunk'.split():
         value = getattr(port, field)
+        if type(value) == bool:
+            # convert to a string 
+            value = value and "y" or "n"
         if value is None:
             continue
         if field == 'duplex':
