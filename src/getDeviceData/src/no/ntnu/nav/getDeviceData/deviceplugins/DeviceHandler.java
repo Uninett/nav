@@ -8,7 +8,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
 /**
  * <p> The DeviceHandler interface must be implemented by all device
  * plugin modules to getDeviceData; it contains two methods,
- * canHandleDevice() and handleDevice().  </p>
+ * {@link #canHandleDevice canHandleDevice()} and {@link #handleDevice handleDevice()}.  </p>
  *
  * <b>Step-by-step guide for writing a device plugin</b>
  * <p>
@@ -17,12 +17,15 @@ import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
  *      implement the DeviceHandler interface (found in package no.ntnu.nav.getDeviceData.deviceplugins).
  *      Look at one of the existing device plugin modules for an example.
  *  </li>
- *  <li>Implement the canHandleDevice() method. The method will typically use the getType() and
- *      getTypegroup() methods to determine if the device can be handled.
+ *  <li>Implement the {@link #canHandleDevice canHandleDevice()} method. The method will typically use the
+ *      {@link Netbox#getType getType()} and
+ *      {@link Netbox#getTypegroup getTypegroup()} methods of {@link Netbox Netbox} to determine if the device can be handled.
  *  </li>
- *  <li>Implement the handleDevice() method. Here the actual data collection should take place; the
- *      SimpleSnmp object can be used for getting data via SNMP. Data should be returned in DataContainer
- *      objects retrieved from the DataContainers object; see DataContainers for details.
+ *  <li>Implement the {@link #handleDevice handleDevice()} method. Here the actual data collection should take place; the
+ *      {@link no.ntnu.nav.SimpleSnmp.SimpleSnmp SimpleSnmp} object can be used for getting data via SNMP.
+ *      Data should be returned in {@link no.ntnu.nav.getDeviceData.dataplugins.DataContainer DataContainer}
+ *      objects retrieved from the {@link no.ntnu.nav.getDeviceData.dataplugins.DataContainers DataContainers} object;
+ *      see DataContainers for details.
  *  </li>
  *  <li>Compile the plugin to a JAR file. Again look at an existing plugin module for
  *      an example. The build.xml file will need to be updated with the new name for the JAR file,
@@ -56,7 +59,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
  *
  * <p> When a thread is assigned a Netbox it iterates through all
  * DeviceHandler plugins, and calls the canHandleDevice() method with
- * the Netbox object as argument. The plugin must examine the Netbox
+ * the Netbox object as argument. Each plugin must examine the Netbox
  * and determine if it can handle it. The method documentation gives
  * more details.  </p>
  *
