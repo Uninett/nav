@@ -66,7 +66,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		if ( (k=swModuleList.indexOf(m)) >= 0) {
 			m = (SwModule)swModuleList.get(k);
 		} else {
-			swModuleList.add(m);
+			addSwModule(m);
 		}
 		return m;
 	}
