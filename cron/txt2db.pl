@@ -8,22 +8,22 @@ my $db = "manage";
 my $conn = db_connect($db);
 my ($fil,$tabell,@felt);
 #--------------ANV-------------
-$fil = "/usr/local/NAV/etc/kilde/anv.txt";
+$fil = "/usr/local/nav/etc/anv.txt";
 $tabell = "anv";
 @felt = ("id","descr");
 &db_endring($fil,$tabell,\@felt);
 #--------------STED------------
-$fil = "/usr/local/NAV/etc/kilde/sted.txt";
+$fil = "/usr/local/nav/etc/sted.txt";
 $tabell = "sted";
 @felt = ("sted","descr");
 &db_endring($fil,$tabell,\@felt);
 #--------------ROM-------------
-$fil = "/usr/local/NAV/etc/kilde/rom.txt";
+$fil = "/usr/local/nav/etc/rom.txt";
 $tabell = "rom";
 @felt = ("id","sted","descr","rom2","rom3","rom4","rom5");
 &db_endring($fil,$tabell,\@felt);
 #--------------ORG-------------
-$fil = "/usr/local/NAV/etc/kilde/org.txt";
+$fil = "/usr/local/nav/etc/org.txt";
 $tabell = "org";
 @felt = ("id","forelder","descr","org2","org3","org4");
 &db_endring($fil,$tabell,\@felt);

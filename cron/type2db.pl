@@ -17,7 +17,7 @@ my %db;
 my $cols = 4;
 #--------------TYPE-------------
 
-$fil = "/usr/local/NAV/etc/kilde/type.txt";
+$fil = "/usr/local/nav/etc/type.txt";
 print "\n Leser fra fila $fil og legger inn i databasen $db\n"; 
 
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");

@@ -46,7 +46,7 @@ my @gen;
 
 #-----------------------
 #FILLESING: server.txt
-$fil = "/usr/local/NAV/etc/kilde/server.txt";
+$fil = "/usr/local/nav/etc/server.txt";
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
 foreach my $l (<FIL>) {
 #leser bare kolonner med "ord:"
@@ -70,7 +70,7 @@ close FIL;
 
 #------------------------------
 #FILLESING: nettel.txt
-$fil = "/usr/local/NAV/etc/kilde/nettel.txt";
+$fil = "/usr/local/nav/etc/nettel.txt";
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
 while (<FIL>) {
 #leser bare kolonner med "ord:"

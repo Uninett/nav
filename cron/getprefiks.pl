@@ -41,7 +41,7 @@ my $if2Speed = ".1.3.6.1.2.1.2.2.1.5";
 my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28"; 
 
 my (%lan, %stam, %link);
-open VLAN, "</usr/local/NAV/etc/kilde/vlan.txt";
+open VLAN, "</usr/local/nav/etc/vlan.txt";
 foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
     if(/^(\d+)\:lan\,(\S+?)\,(\S+?)$/) {
 	$lan{$2}{$3} = $1;

@@ -31,7 +31,7 @@ my $les = 6;
 
 #-----------------------
 #FILLESING: prefiks.txt
-$fil = "/usr/local/NAV/etc/kilde/prefiks.txt";
+$fil = "/usr/local/nav/etc/prefiks.txt";
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
 foreach my $l (<FIL>) {
 #leser bare kolonner med "ord:"

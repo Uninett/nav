@@ -9,12 +9,6 @@ use Pg;
 
 my $eier = 'grohi@itea.ntnu.no';
 
-# Filer
-my $nettelfil  = '</local/nettinfo/etc/nettel.txt'; 
-my $teleromfil = '</local/nettinfo/etc/telerom';
-my $NTNUnet    = '</local/nettinfo/report/NTNUnet';
-#$loggfil     = "/local/nettinfo/log/NTNUunits.log";
-
 my @felt = ("boksid","sysCon","software","supVersion");
 #################################
 
