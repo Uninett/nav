@@ -23,13 +23,19 @@ def process(request):
     
 
 def findModule(netbox, moduleName):
-    # possible bug: module can't be named 'module'! =)
-    moduleName = moduleName.replace("module", "").lower()
-    allModules = netbox.getChildren(manage.Module)
-    for m in allModules:
-        if m.module.lower() == moduleName:
-            return m
-    raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+    moduleName = moduleName.replace("module", "")
+    try:
+        # Safe variable, must be integer
+        module = int(moduleName)
+    except TypeError:
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+    modules = netbox.getChildren(manage.Module,
+                    where="module='%s'" % module)
+    if not modules:
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+    return modules[0]
 
 class ModuleInfo(manage.Module):
     def showModule(self):
@@ -83,13 +89,15 @@ class ModuleInfo(manage.Module):
             row.append(portView)
             titles = []
             portView['title'] = ""
-            if type == 'sw' and port.link <> 'y':
-                portView['class'] += ' passive'
-                titles.append('not active')
             if port.speed:
                 portView['class'] += ' Mb%d' % port.speed
                 titles.append( '%d Mbit' % port.speed)
             if type == 'sw':
+                if port.link == 'd':
+                    portView['class'] += ' disabled'
+                elif port.link <> 'y':
+                    portView['class'] += ' passive'
+                    titles.append('not active')
                 if port.trunk:
                     portView['class'] += ' trunk'
                     titles.append("trunk")
