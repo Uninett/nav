@@ -16,6 +16,7 @@ Oversikt
   - konfig fil
 7)problemer
 8)vyer
+9)kjekke linker
 
 ------------------------
 
@@ -338,4 +339,18 @@ Oversikt
      (enklere for NT-admins på høyskoler)
    * tilgangskontroll  
    * Ny parallellisert innsamler
-   
+  
+
+9) Linker
+   cricket sin hjemmeside:
+   	http://cricket.sourceforge.net
+   net-snmp:
+   	http://net-snmp.sourceforge.net
+   win-snmp hjelp:
+   	http://snmpboy.msft.net (win 2k)
+	http://www.wtcs.org/snmp4tpc/ (win 2k og NT)
+   mib-hjelp:
+        http://www.mibcentral.com
+	http://www.intermapper.com/contrib/mibs/UCD-SNMP(net-snmp)-MIB
+	
+   	
