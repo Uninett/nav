@@ -12,6 +12,7 @@ libdir = @libdir@
 sysconfdir = @sysconfdir@
 localstatedir=@localstatedir@
 perllibdir = @perllibdir@
+initdir = @initdir@
 
 binaries = alertdaemon.pl alertengine.pl
 libraries = Alert.pm AlertsBase.pm Engine.pm EquipmentGroups.pm IP.pm Log.pm NewAlerts.pm QueuedAlerts.pm User.pm UserGroups.pm
@@ -32,6 +33,7 @@ install-bin:
 	for file in $(libraries); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(perllibdir)/$$file || exit 1; \
 	done
+	$(INSTALL) -v -D -m 755 alertengine $(DESTDIR)$(initdir)/alertengine
 
 install-conf:
 	@for file in $(conffiles); do                          \

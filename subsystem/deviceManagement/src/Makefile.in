@@ -31,7 +31,7 @@ install-lib: $(templates)
 
 install-web:
 	for file in $(files); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/editdb/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/devicemanagement/$$file || exit 1; \
 	done
 
 clean:
