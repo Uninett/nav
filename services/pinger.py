@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.5 2002/09/19 22:21:05 magnun Exp $
+$Id: pinger.py,v 1.6 2002/12/09 15:42:55 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -67,7 +67,11 @@ class pinger:
 
             self.debug.log("%i hosts checked in %03.3f secs. %i hosts currently marked as down." % (len(self.hosts),elapsedtime,len(self.down)))
             wait=self._looptime-elapsedtime
-            self.debug.log("Sleeping %03.3f secs" % wait,6)
+            if wait > 0:
+                self.debug.log("Sleeping %03.3f secs" % wait,6)
+            else:
+                self.debug.log("Check lasted longer than looptime. Delaying next check",2)
+                wait=self._looptime + wait
             time.sleep(wait)
 
     def signalhandler(self, signum, frame):
