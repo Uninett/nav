@@ -228,10 +228,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			"ifAdminStatus",
 			"ifDescr",
 			"ifInOctets",
-			"ifAlias"
 		});
 
 		if (!oidsNotSupported.isEmpty()) {
+			if (nb.getCat().equals("GW")) {
+				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+			}
 			return false;
 		}
 
@@ -252,9 +254,22 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
 
 		// Prefices and mapping to ifindex
-		MultiMap prefixMap = util.reverse(sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex")));
+		Map ipMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex"));
+		MultiMap prefixMap = util.reverse(ipMap);
 		if (prefixMap != null) {
 			Map netmaskMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfNetMask"));
+
+			// Collect ospf
+			Map ospfMap = new HashMap();
+			String ospfOid = nb.getOid("ospfIfMetricMetric");
+			if (ospfOid != null) {
+				for (Iterator it = prefixMap.keySet().iterator(); it.hasNext();) {
+					String ifidx = (String)it.next();
+					String ifip = (String)prefixMap.get(ifidx).iterator().next();
+					List l = sSnmp.getAll(ospfOid+"."+ifip+".0.0", false, false);
+					if (l != null && !l.isEmpty()) ospfMap.put(ifidx, ((String[])l.get(0))[1]);
+				}
+			}
 			
 			// From Mib-II
 			Map speedMap = sSnmp.getAllMap(nb.getOid("ifSpeed"));
@@ -272,6 +287,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					$netttype = 'loopback' utgår, ingen description her.
 			*/
 
+			Map ifAliasMap = sSnmp.getAllMap(nb.getOid("ifAlias"), true);
 			Map ifDescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
 
 			// Masterindex
@@ -302,20 +318,19 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			}
 
 
-			List l = sSnmp.getAll(nb.getOid("ifAlias"), true);
+			List l = sSnmp.getAll(nb.getOid("ifDescr"), true);
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
-				String descr = s[1];
+				String interf = s[1];
+
+				if (!masterinterfSet.contains(interf) &&
+						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
+						 !prefixMap.containsKey(ifindex))) continue;
 
 				// Ignore any admDown interfaces
 				String link = (String)admStatusMap.get(ifindex);
 				if (!"1".equals(link)) continue;
-
-				String interf = (String)ifDescrMap.get(ifindex);
-				if (!masterinterfSet.contains(interf) &&
-						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
-						 !prefixMap.containsKey(ifindex))) continue;
 
 				// Determine and create the module
 				int module = 1;
@@ -344,59 +359,69 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					}
 				}
 				if (mc.getModule(module) == null) {
+					// Create module 1
+					Log.w("CGW_MATCH-MODULE", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", default to 1");
+					module = 1;
+					/*
 					// Not allowed to create module
 					Log.w("CGW_MATCH-MODULE", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
 					continue;
+					*/
 				}
 				GwModule gwm = gwc.gwModuleFactory(module);
 
-				String nettype = "null";
+				String nettype = Vlan.UNKNOWN_NETTYPE;
 				String netident = "null";
 				String orgid = "null";
 				String usageid = "null";
 				String vlan = "null";
 				String description = "null";
+				int convention = Vlan.CONVENTION_NTNU;
 
 				// Parse the description (ifAlias)
-				try {
-					s = descr.split(",");
-					for (int i=0; i < s.length; i++) if (s[i] != null) s[i] = s[i].trim();
+				if (ifAliasMap != null) {
+					String descr = (String)ifAliasMap.get(ifindex);
+					try {
+						s = descr.split(",");
+						for (int i=0; i < s.length; i++) if (s[i] != null) s[i] = s[i].trim();
 
-					// Try to recognize NTNU description
-					if (descr.startsWith("lan") || descr.startsWith("stam") || descr.startsWith("core")) {
-						nettype = "lan";
-						orgid = s[1];
-						usageid = s[2];
-						netident = orgid+","+usageid;
-						if (s.length >= 4) netident += s[3];
-						if (s.length >= 5) description = s[4];
-						if (s.length >= 6) vlan = s[5];
-					} else if (descr.startsWith("link")) {
-						nettype = "link";
-						netident = nb.getSysname()+","+s[1];
-						if (s.length >= 3) description = s[2];
-						if (s.length >= 4) vlan = s[3];
-					} else if (descr.startsWith("elink")) {
-						nettype = "elink";
-						netident = nb.getSysname()+","+s[1];
-						orgid = s[2];
-						if (s.length >= 4) description = s[3];
-						if (s.length >= 5) vlan = s[4];
-					} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
-						nettype = "loopback";
-					} else if (s.length > 1) {
-						// Interpret as UNINETT description
-						nettype = Vlan.UNKNOWN_NETTYPE;
-						netident = s[1];
-						description = s[0];
-					} else {
+						// Try to recognize NTNU description
+						if (descr.startsWith("lan") || descr.startsWith("stam") || descr.startsWith("core")) {
+							nettype = "lan";
+							orgid = s[1];
+							usageid = s[2];
+							netident = orgid+","+usageid;
+							if (s.length >= 4) netident += s[3];
+							if (s.length >= 5) description = s[4];
+							if (s.length >= 6) vlan = s[5];
+						} else if (descr.startsWith("link")) {
+							nettype = "link";
+							netident = nb.getSysname()+","+s[1];
+							if (s.length >= 3) description = s[2];
+							if (s.length >= 4) vlan = s[3];
+						} else if (descr.startsWith("elink")) {
+							nettype = "elink";
+							netident = nb.getSysname()+","+s[1];
+							orgid = s[2];
+							if (s.length >= 4) description = s[3];
+							if (s.length >= 5) vlan = s[4];
+						} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
+							nettype = "loopback";
+						} else if (s.length > 1) {
+							// Interpret as UNINETT description
+							convention = Vlan.CONVENTION_UNINETT;
+							nettype = Vlan.UNKNOWN_NETTYPE;
+							netident = s[1];
+							description = s[0];
+						} else {
+							nettype = Vlan.UNKNOWN_NETTYPE;
+							netident = descr;
+						}
+					} catch (Exception e) {
+						Log.w("PROCESS_CGW", "Cannot parse ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + "): " + descr);
 						nettype = Vlan.UNKNOWN_NETTYPE;
 						netident = descr;
 					}
-				} catch (Exception e) {
-					Log.w("PROCESS_CGW", "Cannot parse ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + "): " + descr);
-					nettype = Vlan.UNKNOWN_NETTYPE;
-					netident = descr;
 				}
 
 				String pattern = "Vlan(\\d+).*";
@@ -423,12 +448,22 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				vl.setOrgid(orgid);
 				vl.setUsageid(usageid);
 				vl.setDescription(description);
+				vl.setConvention(convention);
 
 				// Create Gwport
 				Gwport gwp = gwm.gwportFactory(ifindex, (String)ifDescrMap.get(ifindex));
 
 				// We can now ignore this ifindex as an swport
 				sc.ignoreSwport(ifindex);
+
+				// Set OSPF
+				if (ospfMap.containsKey(ifindex)) {
+					try {
+						gwp.setOspf(Integer.parseInt((String)ospfMap.get(ifindex)));
+					} catch (NumberFormatException e) {
+						System.err.println("Malformed OSPF: " + ospfMap.get(ifindex));
+					}
+				}
 
 				// Check if masterindex
 				if (subinterfMap.containsKey(interf)) {
