@@ -24,7 +24,6 @@ import no.ntnu.nav.Path;
 class NavUtils
 {
 	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);;
-	public static final String configFile = (Path.sysconfdir + "/getPortData.conf").replace('/', File.separatorChar);;
 	public static final String scriptName = "navAdmin";
 
 	private Com com;
@@ -43,9 +42,9 @@ class NavUtils
 	{
 		NavUtils nu = new NavUtils();
 
-		if (args.length < 2)
+		if (args.length < 1)
 		{
-			nu.outl("Arguments: <configFile> <options>\n");
+			nu.outl("Arguments: [configFile] <options>\n");
 			nu.outl("Where options include:\n");
 			//com.outl("   -checkError\t\tSjekk for feil i nettel, swport og subnet tabellene.");
 			nu.outl("   -avledTopologi\tAvled topologi med data samlet inn via SNMP.");
@@ -54,18 +53,22 @@ class NavUtils
 			return;
 		}
 
+		int beginOptions = 0;
 		String configFile = args[0];
 		ConfigParser cp, dbCp;
-		try {
-			cp = new ConfigParser(configFile);
-		} catch (IOException e) {
-			nu.outl("Error, could not read config file: " + configFile);
-			return;
+		if (!configFile.startsWith("-")) {
+			beginOptions = 1;
+			try {
+				cp = new ConfigParser(configFile);
+			} catch (IOException e) {
+				nu.outl("Error, could not read config file: " + configFile);
+				return;
+			}
 		}
 		try {
 			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			nu.outl("Error, could not read config file: " + dbConfigFile);
+			nu.outl("Error, could not read database config file: " + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
@@ -74,7 +77,7 @@ class NavUtils
 		}
 
 		Set argSet = new HashSet();
-		for (int i=1; i < args.length; i++) argSet.add(args[i]);
+		for (int i=beginOptions; i < args.length; i++) argSet.add(args[i]);
 
 		if (argSet.contains("-debug")) debugParam = "yes";
 
