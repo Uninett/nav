@@ -7,7 +7,6 @@ include('file.inc.php');
 list($lock,$user) = locked($file);
 
 if(isset($file) && $lock == 1 && $user == user_res()){
-  
   unlock_nrs($file);
   if(!$commit){
       copy(path_nrt($file),path_file($file));
@@ -17,7 +16,6 @@ if(isset($file) && $lock == 1 && $user == user_res()){
   exec("/usr/bin/ci -u -m'".user_res().":\t$commit' ".path_file($file));
 
 }
-
 header("Location: index.php");
 
 ?>

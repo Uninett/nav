@@ -13,7 +13,6 @@ if(isset($file) && $lock == 1 && $user == user_res()){
     header("Location: view.php?file=$file");
 
   } elseif($ok && $commit){
-
     header("Location: unlock.php?file=$file&commit=$commit");
 
   } else {

@@ -7,7 +7,12 @@ function strip_fnutts($text){
   return $text;
 }
 
-if(isset($file) && $operation == "update" && isset($row) && $felt){
+if($command=="run"){
+
+  system("/usr/local/nav/navme/cron/fyll_db.pl >/dev/null &");
+  header("Location: ".$HTTP_REFERER);
+
+}elseif(isset($file) && $operation == "update" && isset($row) && $felt){
 
   if(is_array($felt)){
     // rad med data
@@ -25,15 +30,20 @@ if(isset($file) && $operation == "update" && isset($row) && $felt){
   fclose($handle);
 
 
-} elseif (isset($file) && $operation == "insert" && isset($row) && $felt){
-
-  if(is_array($felt)){
+} elseif (isset($file) && $operation == "insert" && isset($row) && ($felt||$option=="blank")){
+  //  print $option;
+  if($option=="blank"){
+    //print "hei";
+    $contents = "#\n";
+  } elseif(is_array($felt)){
     // rad med data
     $contents = strip_fnutts(join(":",$felt))."\n";
   } else {
     //kommentar
     $contents = "# ".strip_fnutts($felt)."\n";
   }
+
+  //print $contents."-".$row;
 
   $file_array = file(path_file($file));
     
@@ -44,11 +54,14 @@ if(isset($file) && $operation == "update" && isset($row) && $felt){
   }
 
   $new_file_array[$row] = $contents;
+  //print $new_file_array[$row];
     
   for($i = $row; $i < sizeof($file_array) + 1; $i++){
     $new_index = $i + 1;
     $new_file_array[$new_index] = $file_array[$i];
   }
+
+  //print sizeof($new_file_array)."-".sizeof($file_array);
 
   $handle = fopen(path_file($file), 'w');
   fwrite($handle, join("",$new_file_array));

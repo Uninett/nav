@@ -194,6 +194,16 @@ function errormessage($error=0){
   return "<div id=\"error\"><img src=\"ikoner/error.png\" alt=\"error\"/><br/>".$message."</div>";;
   }
 }
+function get_filenames($f,$filliste=""){
+
+  if(!$filliste){
+    $filliste = list_files();
+  }
+  $name = basename($filliste[$f]);
+  $get = locked($f);
+  
+  return "<div class=\"filenames\"><h2><a href=\"lock.php?file=$f\">$name</a></h2><p>$filliste[$f]</p></div>";
+}
 function get_fileinfo($f,$filliste=""){
 
   if(!$filliste){
