@@ -14,11 +14,9 @@ Installation
 
 All the files should be placed in a directory 'editdb' in the webroot.
 
+The file editdbTemplate.tmpl must be compiled with cheetah and placed in the
+'editdb' directory.
+
 The file 'htaccess' must be renamed to '.htaccess'. The path directive in
 the htaccess file must possibly be edited. The last element points to the
 editdb directory in the webroot.
-
-*TEMPORARY*:
-
-The file initBox.py must be edited and the variable SERIAL_OIDS_FILENAME
-must be set to the absolute path to the file initBoxSerialOIDs.txt
