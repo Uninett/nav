@@ -209,9 +209,33 @@ CREATE TABLE netbox (
   snmp_agent VARCHAR,
   UNIQUE(ip)
 );
+
+CREATE TABLE subcat (
+    subcatid VARCHAR NOT NULL,
+    descr VARCHAR NOT NULL,
+    catid VARCHAR(8) NOT NULL REFERENCES cat(catid)
+);
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('AD','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('ADC','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('BACKUP','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('DNS','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('FS','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('LDAP','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('MAIL','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('NOTES','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('STORE','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('TEST','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX-STUD','Description','SRV
+');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('WEB','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN','Description','SRV');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
+);
+
 CREATE TABLE netboxcategory (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR NOT NULL,
+  category VARCHAR NOT NULL REFERENCES subcat(subcatid) ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
 );
 GRANT ALL ON netboxcategory TO navall;
@@ -341,6 +365,7 @@ GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
 GRANT ALL ON gwportprefix TO navall;
+GRANT ALL ON subcat TO navall;
 GRANT ALL ON swport TO navall;
 GRANT ALL ON swportvlan TO navall;
 GRANT ALL ON swportallowedvlan TO navall;
