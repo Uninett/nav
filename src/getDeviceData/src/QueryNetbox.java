@@ -506,7 +506,7 @@ public class QueryNetbox extends Thread
 
 			long pc = ++nbProcessedCnt;
 			if ((pc % 100) == 0) {
-				Log.i("RUN", "Processed " + pc + " netboxes (" + (pc%netboxCnt) + " of " + netboxCnt + ")");
+				Log.i("RUN", "Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ")");
 			}
 
 			// If netbox is removed, don't add it to the RunQ

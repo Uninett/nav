@@ -62,7 +62,7 @@ public class OidTester
 
 		try {
 			// Get netboxes to test against
-			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' ORDER BY random() * netboxid");
+			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' AND up='y' ORDER BY random() * netboxid");
 		
 			while (rs.next()) {
 				boolean supported = false;
@@ -121,6 +121,7 @@ public class OidTester
 						} else {
 							// Do test
 							try {
+								sSnmp.setTimeoutLimit(1);
 								sSnmp.setCs_ro(ro+"@1");
 								sSnmp.getNext("1", 1, false, true);
 								
@@ -132,6 +133,7 @@ public class OidTester
 								t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
 								Log.d("OID_TESTER", "CS_AT_VLAN", "Type " + t + ", Exception " + e);
 							}
+							sSnmp.setDefaultTimeoutLimit();
 						}
 						Database.update("UPDATE type SET cs_at_vlan = '" + t.getCsAtVlanC() + "' WHERE typeid = '"+t.getTypeid()+"'");
 						Log.i("OID_TESTER", "CS_AT_VLAN", "Type " + t + " supports cs@vlan: " + t.getCsAtVlanC());
