@@ -307,6 +307,7 @@ CREATE TABLE arp (
   fra TIMESTAMP NOT NULL,
   til TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
+CREATE INDEX arp_mac_btree ON arp USING btree (mac);
 CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
 CREATE INDEX arp_fra_btree ON arp USING btree (fra); 
 CREATE INDEX arp_til_btree ON arp USING btree (til);
@@ -323,7 +324,7 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
-CREATE INDEX cam_mac_hash ON cam USING hash (mac);
+CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_fra_btree ON cam USING btree (fra);
 CREATE INDEX cam_til_btree ON cam USING btree (til);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
