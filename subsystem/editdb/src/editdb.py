@@ -16,7 +16,7 @@ from nav.web.serviceHelper import getCheckers,getDescription
 
 BASEPATH = '/editdb/'
 
-EDITPATH = [('Home','/'),('Tools','/toolbox'),('Edit database','/editdb')]
+EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database','/editdb')]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
@@ -207,7 +207,7 @@ def index(req,showHelp=False):
 
     nameSpace = {'editList': None, 'editForm': None, 'body': body}
     template = editdbTemplate(searchList=[nameSpace])
-    template.path = [('Home','/'),
+    template.path = [('Frontpage','/'),
                      ('Tools','/toolbox'),
                      ('Edit database',None)]
     return template.respond()
@@ -3755,8 +3755,8 @@ class bulkdefNetbox:
               ('ip',0,True,True),
               ('orgid',10,True,True),
               ('catid',8,True,True),
-              ('serial',0,False,False),
               ('ro',0,False,True),
+              ('serial',0,False,False),
               ('rw',0,False,True),
               ('function',0,False,False)]
 
@@ -3825,7 +3825,8 @@ class bulkdefNetbox:
         if len(row['ro']):
             try:
                 box = initBox.Box(row['ip'],row['ro'])
-                deviceid = box.getDeviceId()
+                # getDeviceId() Returns a list (of ints, so str())
+                deviceid = str(box.getDeviceId()[0])
             except:
                 # If initBox fails, always make a new device
                 deviceid = None
@@ -3838,16 +3839,21 @@ class bulkdefNetbox:
                 if box.serial:
                     row['serial'] = box.serial
             # Make new device
-            if len(row['serial']):
-                fields = {'serial': row['serial']}
+            if row.has_key('serial'):
+                if len(row['serial']):
+                    fields = {'serial': row['serial']}
+                else:
+                    # Don't insert an empty serialnumber
+                    # (as serialnumbers must be unique in the database)
+                    fields = {}
+                deviceid = addEntryFields(fields,
+                                          'device',
+                                          ('deviceid','device_deviceid_seq'))
+                row['deviceid'] = deviceid
             else:
-                # Don't insert an empty serialnumber
-                # (as serialnumbers must be unique in the database)
-                fields = {}
-            deviceid = addEntryFields(fields,
-                                      'device',
-                                      ('deviceid','device_deviceid_seq'))
-            row['deviceid'] = deviceid
+                # No serial given, and got no serial from snmp,
+                # skip this box. Fix this: give error in preInsert
+                row = None
         return row
     preInsert = classmethod(preInsert)
 
