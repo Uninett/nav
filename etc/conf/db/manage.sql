@@ -733,4 +733,6 @@ GRANT SELECT ON swport TO eventengine;
 GRANT SELECT ON swportvlan TO eventengine;
 GRANT SELECT ON gwport TO eventengine;
 GRANT SELECT ON prefix TO eventengine;
+GRANT SELECT ON service TO eventengine;
+GRANT SELECT ON serviceproperty TO eventengine;
 
