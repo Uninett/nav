@@ -41,6 +41,16 @@ public class ServiceState implements EventHandler
 		// Lookup the server
 		Device d = ddb.getDevice(e.getDeviceid());
 		if (d != null) {
+			if (d instanceof Box) {
+				Box b = (Box)d;
+				if (b.onMaintenance()) {
+					// We simply ignore any events from boxes on maintenance
+					Log.d("HANDLE", "Ignoring event as the box is on maintenance");
+					e.dispose();
+					return;
+				}
+			}
+				
 			String deviceup;
 			if (!d.isUp()) {
 				// Lower the severity by 30 points, but not below zero
