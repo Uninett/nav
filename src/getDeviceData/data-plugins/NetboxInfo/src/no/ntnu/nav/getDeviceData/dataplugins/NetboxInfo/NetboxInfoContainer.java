@@ -38,7 +38,7 @@ public class NetboxInfoContainer implements DataContainer {
 	 * Get the name of the container; returns the string NetboxInfoContainer
 	 */
 	public String getName() {
-		return "NetboxInfotContainer";
+		return "NetboxInfoContainer";
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class NetboxInfoContainer implements DataContainer {
 
 	/**
 	* Add a list of values for the given variable. The key is
-	* assumed to be null. Var and val are not allowed to be null.
+ 	* assumed to be null. Var and val are not allowed to be null.
 	*/
 	public void put(String var, List vals) {
 		put(null, var, vals);
