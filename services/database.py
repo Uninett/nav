@@ -2,7 +2,7 @@
 database
 
 $Author: erikgors $
-$Id: database.py,v 1.15 2002/06/26 14:19:46 erikgors Exp $
+$Id: database.py,v 1.16 2002/06/26 14:48:41 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -17,6 +17,7 @@ queue = Queue()
 def startup(dsn):
 	global db
 	db = connect(dsn)
+	db.autocommit(1)
 	thread.start_new_thread(run,())
 def run():
 	c = db.cursor()

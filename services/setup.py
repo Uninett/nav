@@ -1,4 +1,4 @@
-import re,getopt,sys,config,database,psycopg
+import re,getopt,sys,config,database,psycopg,os
 from job import jobmap
 
 class Service:
@@ -23,7 +23,7 @@ def parseLine(line):
 	except ValueError:
 		msg = "tuple of wrong size: (%s)" % line
 		raise TypeError(msg)
-	if not (id == 'new' or id.isdigit()):
+	if not (id == 'new' or str(id).isdigit()):
 		msg = "should be 'new' or a number: (%s)" % id
 		raise TypeError(msg)
 	if not active in ('false','true'):
@@ -58,6 +58,7 @@ class DB:
 	def connect(self):
 		conf = self.conf
 		self.db = psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
+		self.db.autocommit(1)
 		self.sysboks()
 	def sysboks(self):
 		s = self.query('select sysname,boksid from boks')
@@ -88,15 +89,42 @@ class DB:
 	def insertargs(self,service):
 		s = self.db.cursor()
 		s.execute('DELETE FROM serviceproperty WHERE serviceid = %s' % service.id)
-		for prop,value in service.args.elements():
-			s.execute("INSERT INTO serviceproperty (serviceid,property,value) values (%s,'%s','%s'" % (serviceid.id,prop,value))
+		for prop,value in service.args.items():
+			s.execute("INSERT INTO serviceproperty (serviceid,property,value) values (%s,'%s','%s')" % (service.id,prop,value))
+def newFile(file,conf):
+	conf = config.config(conf)
+	db = DB(conf)
+	db.connect()
+
+	database.db = db.db
+	jobs  = db.fromDB()
+
+	services = []
+
+	for i in database.getJobs(0):
+		serviceid = i.getServiceid()
+		active = (i.active and 'true') or 'false'
+		sysname = jobs[serviceid]
+		handler = i.getType()
+		args = i.getArgs()
+		
+		new = Service(serviceid,active,sysname,handler,args)
+		services += [new]
+	services.sort()
+	header = '#id     active   sysname              handler    args'
+	print header
+	for i in services:
+		print i
+	
 		
 def main(file,conf):
 	conf = config.config(conf)
 	db = DB(conf)
 
 	print 'parsing file'
-	new = fromFile(file)
+	new = {}
+	for i in fromFile(file):
+		new[i.id] = i
 	print new
 
 	print 'fetching services from db'
@@ -106,12 +134,12 @@ def main(file,conf):
 
 	delete = []
 	for i in result:
-		if i not in old:
+		if i not in new:
 			delete += [i]
-		elif old[i].sysname != result[i]:
-			msg = 'serviceid and sysname do not match: (%s,%s) should be (%s,%s)' % (i,old[i],i,result[i])
+		elif new[i].sysname != result[i]:
+			msg = 'serviceid and sysname do not match: (%s,%s) should be (%s,%s)' % (i,new[i],i,result[i])
 			raise TypeError(msg)
-	for i in new:
+	for i in new.values():
 		if i.sysname not in db.boks:
 			msg = 'sysname not found: (%s)' % i.sysname
 			raise TypeError(msg)
@@ -120,25 +148,33 @@ def main(file,conf):
 	for i in delete:
 		db.delete(i)
 	print 'to be added/updateded:', new
-	for i in new:
+	for i in new.values():
 		if i.id == 'new':
 			db.insertservice(i)
 		else:
 			db.updateservice(i)
-	new.sort()
-	for i in new:
-		print new
+	keys = new.keys()
+	keys.sort()
+	for i in keys:
+		print new[i]
 	
 if __name__=='__main__':
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hf:c:')
+		opts, args = getopt.getopt(sys.argv[1:], 'hnf:c:')
 		opts = dict(opts)
 		if '-h' in opts:
 			help()
 			sys.exit()
 		file = opts.get('-f','services.conf')
 		conf = opts.get('-c','db.conf')
-		main(file,conf)
+		if '-n' in opts:
+			newFile(file,conf)
+		else:
+			for i in (file,conf):
+				if not os.path.exists(i):
+					msg = 'cant find file: ' + i
+					raise IOError(msg)
+			main(file,conf)
 		sys.exit(0)
 	except (getopt.error):
 		pass
