@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 NAV_ROOT="/usr/local/nav"
 
