@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use SNMP;
+use Nav::SNMP;
 use SNMP_util;
 use Socket;
 
