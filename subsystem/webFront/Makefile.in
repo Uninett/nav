@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 tooldir = @tooldir@
 
-tools = 
+tools = useradmin.tool
 
 config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external-links.txt webfront.conf welcome-registered.txt
 
