@@ -1,5 +1,5 @@
 """
-$Id: SshHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
+$Id: SshHandler.py,v 1.3 2003/06/16 15:40:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/SshHandler.py,v $
 """
 from job import JobHandler
@@ -9,8 +9,7 @@ class SshHandler(JobHandler):
 	"""
 	"""
 	def __init__(self,service, **kwargs):
-		JobHandler.__init__(self, "ssh", service, **kwargs)
-		self.setPort(self.getPort() or 22)
+		JobHandler.__init__(self, "ssh", service, port=22, **kwargs)
 	def execute(self):
 		s = Socket.Socket(self.getTimeout())
 		s.connect(self.getAddress())

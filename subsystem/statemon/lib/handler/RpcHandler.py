@@ -1,5 +1,5 @@
 """
-$Id: RpcHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
+$Id: RpcHandler.py,v 1.3 2003/06/16 15:40:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/RpcHandler.py,v $
 """
 import os
@@ -12,10 +12,8 @@ class RpcHandler(JobHandler):
 	ex: nfs,nlockmgr
 	"""
 	def __init__(self,service, **kwargs):
-		JobHandler.__init__(self, "rpc", service, **kwargs)
+		JobHandler.__init__(self, "rpc", service,port=111, **kwargs)
 		# This handler doesn't obey port argument
-		self.setPort(self.getPort() or 111)
-
 	def execute(self):
 		args = self.getArgs()
 		default = ['nfs', 'nlockmgr', 'mountd']

@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.8 2003/06/15 14:03:56 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.9 2003/06/16 15:40:26 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -53,7 +53,7 @@ class JobHandler:
 	    # and then we return status UP, and our version string.
 	    return Event.UP, version
 	"""
-	def __init__(self,type,service,status=event.Event.UP):
+	def __init__(self,type,service,port=0,status=event.Event.UP):
 		"""
 		type is the name of the handler (subclass)
 		service is a dict containing ip, sysname, netboxid, serviceid,
@@ -69,7 +69,7 @@ class JobHandler:
 		self.setVersion(service['version'])
 		self.setSysname(service['sysname'])
 		# This is (and should be) used by all subclasses
-		self.setPort(int(service['args'].get('port', 0)))
+		self.setPort(int(service['args'].get('port', port)))
 		self.setStatus(status)
 		self.setTimestamp(0)
 		timeout = self.getArgs().get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))

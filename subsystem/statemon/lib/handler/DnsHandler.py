@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.3 2003/06/13 12:52:37 magnun Exp $
+$Id: DnsHandler.py,v 1.4 2003/06/16 15:40:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler
@@ -10,10 +10,8 @@ class DnsHandler(JobHandler):
 	Valid argument(s): request
 	"""
 	def __init__(self,service, **kwargs):
-		JobHandler.__init__(self,"dns",service, **kwargs)
+		JobHandler.__init__(self,"dns",service,port=42, **kwargs)
 		# Please note that this handler doesn't obey the port directive
-		self.setPort(self.getPort() or 42)
-
 	def execute(self):
 		ip, port = self.getAddress()
 		d = DNS.DnsRequest(server=ip, timeout=self.getTimeout())

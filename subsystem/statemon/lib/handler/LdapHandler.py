@@ -1,5 +1,5 @@
 """
-$Id: LdapHandler.py,v 1.4 2003/06/15 18:14:59 bgrotan Exp $
+$Id: LdapHandler.py,v 1.5 2003/06/16 15:40:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/LdapHandler.py,v $
 """
 
@@ -33,8 +33,7 @@ class LdapHandler(JobHandler):
 	"""
 
 	def __init__(self,service, **kwargs):
-		JobHandler.__init__(self, "ldap", service, **kwargs)
-		self.setPort(self.getPort() or 389)
+		JobHandler.__init__(self, "ldap", service,port=389, **kwargs)
 	def execute(self):
 
 		args = self.getArgs()

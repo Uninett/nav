@@ -1,5 +1,5 @@
 """
-$Id: SmbHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
+$Id: SmbHandler.py,v 1.3 2003/06/16 15:40:26 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/SmbHandler.py,v $
 """
 import os,re
@@ -15,8 +15,7 @@ class SmbHandler(JobHandler):
 		'port'
 	"""
 	def __init__(self,service, **kwargs):
-		JobHandler.__init__(self, "smb", service, **kwargs)
-		self.setPort(self.getPort() or 139)
+		JobHandler.__init__(self, "smb", service, port=139, **kwargs)
 	def execute(self):
 		ip,port = self.getAddress()
 		args = self.getArgs()
