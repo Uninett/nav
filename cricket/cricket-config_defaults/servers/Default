@@ -36,8 +36,8 @@ OID cpuwin			1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.0
 
 			
 datasource	StorageDescription	ds-source =	snmp://%snmp%/StorageDescription
-datasource	StorageSize		ds-source =	snmp://%snmp%/StorageSize.%inst%		rrd-ds-type = COUNTER
-datasource	StorageUsed		ds-source =	snmp://%snmp%/StorageUsed.%inst%		rrd-ds-type = COUNTER
+datasource	StorageSize		ds-source =	snmp://%snmp%/StorageSize.%inst%		#rrd-ds-type = COUNTER
+datasource	StorageUsed		ds-source =	snmp://%snmp%/StorageUsed.%inst%		#rrd-ds-type = COUNTER
 datasource	numOfUsers		ds-source =	snmp://%snmp%/numOfUsers
 datasource	numOfPros		ds-source =	snmp://%snmp%/numOfPros
 datasource	interfaceInBit		ds-source =	snmp://%snmp%/interfaceInBit.%inst%		rrd-ds-type =  COUNTER
@@ -113,18 +113,108 @@ targettype loadnix
 
 # graf helvete
 
+#disc
+graph   StorageSize
+     units  = "bytes"
+     color  = dark-green
+     draw-as= AREA
+     #scale = 8,*
 
+graph   StorageUsed
+     units  = "bytes"
+     color  = blue
+     draw-as= AREA
 
+#interface
+graph interfaceInBit
+    units   = "bit"
+    color   = green
+    draw-as = AREA
 
+graph interfaceOutBit
+    units   = "bit"
+    color   = blue
+    draw-as = LINE2
+		
+graph interfaceInUcastPackage
+    units   = "bit"
+    color   = green
+    draw-as = AREA
 
+graph interfaceInUcastPackage
+    units   = "bit"
+    color   = blue
+    draw-as = LINE2
 
+graph interfaceInError
+    units   = "bit"
+    color   = green
+    draw-as = AREA
 
+graph interfaceOutError
+    units   = "bit"
+    color   = blue
+    draw-as = LINE2
 
+graph ifInDiscards
+    units   = "bit"
+    color   = green
+    draw-as = AREA
 
+graph ifOutDiscards
+    units   = "bit"
+    color   = blue
+    draw-as = LINE2
 
+#users
+graph numOfUsers
+    units   = "Antall"
+    color   = dark-green
+    draw-as = AREA
 
+#Processes 
+graph numOfPros
+    units   = "Antall"
+    color   = dark-green
+    draw-as = AREA
 
+#Memory
+graph totalMem
+    units   = "bytes"
+    color   = green
+    draw-as = AREA
 
+graph memUsagenix
+    units   = "bytes"
+    color   = blue
+    draw-as = AREA
 
+graph memUsagewin
+    units   = "bytes"
+    color   = blue
+    draw-as = AREA
+    
+
+#cpu
+graph   cpunix
+    units   = "%"
+    color   = blue
+    y-axis  = "Percent CPU utilization"
+    legend  = "5 minute CPU utilization"
+    y-min   = 0
+    y-max   = 100
+
+graph   cpuwin
+    units   = "%"
+    color   = blue
+    y-axis  = "Percent CPU utilization"
+    legend  = "5 minute CPU utilization"
+    y-min   = 0
+    y-max   = 100
+    
+graph loadnix
+   units   = ""
+   color   = dark-green
+   draw-as = AREA
 
 
