@@ -39,6 +39,7 @@ from nav.web.selectTree import simpleSelect,updateSelect
 mod = __import__('encodings.utf_8',globals(),locals(),'*')
 mod = __import__('encodings.utf_16_be',globals(),locals(),'*')
 mod = __import__('encodings.latin_1',globals(),locals(),'*')
+mod = __import__('encodings.utf_16',globals(),locals(),'*')
 
 #################################################
 ## Templates
@@ -93,6 +94,10 @@ def handler(req):
         request = request.split('/')
     else:
         request = ""
+
+    # Read configuration file
+    #if not globals().has_key('CONFIG_CACHED'):
+    readConfig()
     
     # Get form from request object
     keep_blank_values = True
@@ -115,11 +120,22 @@ def handler(req):
                 form[field.name] = valueList
         else:
             form[field.name] = str(field.value)
-    req.form = form
 
-    # Read configuration file
-    #if not globals().has_key('CONFIG_CACHED'):
-    readConfig()
+    # Check that all input is in the default encoding (utf8)
+    unicodeError = False
+    try:
+        for key,value in form.items():
+            if type(value) is list:
+                for field in value:
+                    unicode_str = field.decode(DEFAULT_ENCODING)
+            else:
+                unicode_str = value.decode(DEFAULT_ENCODING)
+    except UnicodeError:
+        # Some of the input values is not in the default encoding
+        unicodeError = True
+    
+    # Set form in request object
+    req.form = form
 
     output = None
     showHelp = False
@@ -137,7 +153,7 @@ def handler(req):
         if table == 'bulk':
             output = bulkImport(req,action)
         elif pageList.has_key(table):
-            output = editPage(req,pageList[table](),request)
+            output = editPage(req,pageList[table](),request,unicodeError)
 
     if output:
         req.content_type = "text/html"
@@ -344,7 +360,7 @@ def index(req,showHelp=False,status=None):
 ########################
 
 # General function for handling editing
-def editPage(req,page,request):
+def editPage(req,page,request,unicodeError):
     ''' General handler function for all editpages. Whenever an action
         add, update, list or delete is performed, this function is called. '''
 
@@ -406,6 +422,14 @@ def editPage(req,page,request):
         else:
             if not selected:
                 action = 'add'
+
+    # Check for unicode errors in input
+    if unicodeError:
+        status.errors.append('The data you input was sent in a ' +\
+                             'non-recognisible encoding. Make sure your '
+                             'browser uses automatic character encoding ' +\
+                             'or set it to \'' + str(DEFAULT_ENCODING) + '\'.')
+        action = 'list'
 
     # Set 'current path'
     path = page.pathAdd
@@ -1331,6 +1355,7 @@ class editdbPage:
         connection = nav.db.getConnection('editdb','manage')
         database = connection.cursor()
        
+        id = None
         nextId = None 
         if self.sequence:
             # Get next id from sequence, will need this id to reload
@@ -1370,7 +1395,8 @@ class editdbPage:
         try:
             database.execute(sql)
             connection.commit()
-        except psycopg.IntegrityError,e:
+        except (psycopg.IntegrityError,psycopg.ProgrammingError),e:
+            # Earlier versions of psycopg always returned IntegrityError
             if type(self.unique) is list:
                 error = 'There already exists an entry with '
                 first = True
@@ -3404,8 +3430,6 @@ class pagePatch(editdbPage):
         return (status,action,outputForm,selected)
  
 
-
-
 class pagePrefix(editdbPage):
     ''' Describes editing of the prefix table for nettypes of 'static'
         'reserved' or 'scope'. '''
@@ -3493,11 +3517,11 @@ class pagePrefix(editdbPage):
                         ('scope','scope')]
 
             orgs = [('','No organisation')]
-            for o in nav.db.manage.Org.getAllIterator():
+            for o in nav.db.manage.Org.getAllIterator(orderBy='orgid'):
                 orgs.append((o.orgid,o.orgid + ' (' + o.descr + ')'))
 
             usageids = [('','No usage')]
-            for usage in editTables.Usage.getAllIterator():
+            for usage in editTables.Usage.getAllIterator(orderBy='usageid'):
                 usageids.append((usage.usageid,usage.usageid + ' (' + \
                                 usage.descr + ')'))
 
@@ -3538,9 +3562,9 @@ class pagePrefix(editdbPage):
                 'vlan': req.form['vlan.vlan']}
 
         if len(req.form['vlan.orgid']):
-            data['orgid'] = req.form['vlan.orgid'],
+            data['orgid'] = req.form['vlan.orgid']
         if len(req.form['vlan.usageid']):
-            data['usageid'] = req.form['vlan.usageid'],
+            data['usageid'] = req.form['vlan.usageid']
 
         error = self.insertPrefix(data)
         if not error:
@@ -5293,7 +5317,7 @@ def bulkImportParse(input,bulkdef,separator):
 
                     # check the validity of this field with the bulkdefs 
                     # checkValidity function this is for checking things 
-                    # like: do ip resolve to a hostname for netbox?
+                    # like: do ip resolve to a hostname for ip devices?
                     (status,validremark) = bulkdef.checkValidity(fn,fields[i])
                     if validremark:
                         remark = validremark
@@ -5370,15 +5394,12 @@ def bulkImport(req,action):
 
     # form  submitted?
     if req.form.has_key(form.cnameConfirm) and len(req.form['table']):
-        fileName = req.form['file']
+        # Get data from uploaded file or from textarea
+        fileinput = req.form['file']
         input = req.form['textarea']
-        if not type(fileName) is str:
-            # Opera returns a str for req.form['file']
-            # when it is left empty. Strange.
-            if len(fileName.value):
-                input = fileName.value
- 
-        #encoding = None
+        if len(fileinput):
+            input = fileinput
+
         # Try decoding different encodings
         for encoding in BULK_TRY_ENCODINGS:
             try:
@@ -5387,6 +5408,8 @@ def bulkImport(req,action):
                 break
             except UnicodeError:
                 pass
+            except:
+                raise(repr(encoding))
 
         input = input.split('\n')
 
@@ -5441,11 +5464,6 @@ def bulkImport(req,action):
                 list.hiddenData.append((BULK_HIDDEN_DATA,line))
         list.headings = ['','Line','Input','Remark']
         list.rows = rows
-        # Output charset encoding debug info
-        #if fileName:
-        #    list.status = editdbStatus()
-        #    message = "Read %d lines of %s encoded data" %(len(parsed),encoding)
-        #    list.status.messages.append(message)
         form = None
     elif req.form.has_key(selectList.cnameBulkConfirm):
         # import confirmed after preview
@@ -5455,7 +5473,10 @@ def bulkImport(req,action):
         if req.form.has_key(BULK_HIDDEN_DATA):
             data = req.form[BULK_HIDDEN_DATA]
             result = bulkInsert(data,bulkdef[table],separator)
-            form.status.messages.append('Inserted ' + str(result) + ' rows')
+            noun = ' rows'
+            if result == 1:
+                noun = ' row'
+            form.status.messages.append('Inserted ' + str(result) + noun)
             page = pageList[table]
             listView = page.listDef(req,page,None)
             listView.status = form.status
@@ -6039,9 +6060,10 @@ class bulkdefType:
     max_num_fields = 7
     min_num_fields = 3
 
-    process = False
+    process = True
     onlyProcess = False
-    syntax = '#vendorid:typename:sysoid[:description:frequency:cdp:tftp]\n'
+    syntax = '#vendorid:typename:sysoid[:description:frequency:cdp=(yes|no)' +\
+             ':tftp=(yes|no)]\n'
 
     postCheck = False
 
@@ -6055,11 +6077,37 @@ class bulkdefType:
               ('tftp',0,False,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. (nothing checked for type) '''
+        ''' Checks validity of input fields. '''
         status = BULK_STATUS_OK
         remark = None
+
+        if field == 'vendorid':
+            try:
+                editTables.Vendor(data).load()
+            except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Vendor '" + data + "' not found in database"  
+
         return (status,remark)
     checkValidity = classmethod(checkValidity)
+
+    def preInsert(cls,row):
+        ''' Alter fields before inserting. (set correct value for cdp
+            and tftp if anything is input in those fields) '''
+        if row.has_key('cdp'):
+            if len(row['cdp']):
+                if not row['cdp'].lower() == 'no':
+                    row['cdp'] = '1'
+            else:
+                row['cdp'] = '0'
+        if row.has_key('tftp'):
+            if len(row['tftp']):
+                if not row['tftp'].lower() == 'no':
+                    row['tftp'] = '1'
+            else:
+                row['tftp'] = '0'
+        return row
+    preInsert = classmethod(preInsert)
 
 class bulkdefProduct:
     ''' Contains field definitions for bulk importing products. '''
@@ -6535,12 +6583,12 @@ class bulkdefPrefix:
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netaddr',0,True,True),
-              ('nettype',0,True,True),
-              ('orgid',0,False,True),
-              ('netident',0,False,True),
-              ('usage',0,False,True),
-              ('description',0,False,True),
-              ('vlan',0,False,True)]
+              ('nettype',0,True,False),
+              ('orgid',0,False,False),
+              ('netident',0,False,False),
+              ('usage',0,False,False),
+              ('description',0,False,False),
+              ('vlan',0,False,False)]
 
     def checkValidity(cls,field,data):
         ''' Checks validity of fields '''
@@ -6595,27 +6643,27 @@ class bulkdefPrefix:
         if row.has_key('nettype'):
             if len(row['nettype']):
                 fields['nettype'] = row['nettype']
-            del(row['nettype'])
+            #del(row['nettype'])
 
         if row.has_key('orgid'):
             if len(row['orgid']):
                 fields['orgid'] = row['orgid']
-            del(row['orgid'])
+            #del(row['orgid'])
 
         if row.has_key('netident'):
             if len(row['netident']):
                 fields['netident'] = row['netident']
-            del(row['netident'])
+            #del(row['netident'])
 
         if row.has_key('usage'):
             if len(row['usage']):
                 fields['usageid'] = row['usage']
-            del(row['usage'])
+            #del(row['usage'])
 
         if row.has_key('description'):
             if len(row['description']):
                 fields['description'] = row['description']
-            del(row['description'])
+            #del(row['description'])
 
         if row.has_key('vlan'):
             try:
@@ -6623,7 +6671,7 @@ class bulkdefPrefix:
                 fields['vlan'] = row['vlan']
             except:
                 vlan = None
-            del(row['vlan'])
+            #del(row['vlan'])
 
         vlanid = addEntryFields(fields,
                                 'vlan',
