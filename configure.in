@@ -54,6 +54,7 @@ AC_OUTPUT(Makefile
 	src/getDeviceData/getDeviceData
 	src/getDeviceData/getDeviceData.sh
 	src/eventEngine/eventEngine.sh
+	src/networkDiscovery/networkDiscovery.sh
 	src/getBoksMacs/getBoksMacs.sh
 	src/webapps/navAdmin/runAvledTopologi.sh
 	src/webapps/navAdmin/runAvledVlan.sh
