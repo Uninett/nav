@@ -20,8 +20,7 @@
 # $Id$
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
-"""
-Provides common IP (Internet Protocol) functionality for NAV.
+"""IP (Internet Protocol) address utilities.
 """
 import re, struct
 import socket
