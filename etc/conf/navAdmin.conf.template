@@ -1,4 +1,4 @@
-# Config-file for getNettelMacs Java application
+# Config-file for navAdmin Java application
 
 # Servlet path (end with /)
 ServletRoot = /usr/local/nav/navme/webapps/navAdmin/WEB-INF/classes/
