@@ -59,9 +59,7 @@ def create(filename, netboxid, serviceid=None, handler=""):
 		statusdescr = "Packet loss"
 		responsedescr = "Roundtrip time"
 		unit = '%'
-	rrd_fileid = database.registerRrd(RRDDIR, filename, step,
-					  netboxid, subsystem,
-					  key, val)
+	rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid, subsystem, key, val)
 	database.registerDS(rrd_fileid, "RESPONSETIME",
 			    responsedescr, "GAUGE", "s")
 

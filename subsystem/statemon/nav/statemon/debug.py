@@ -37,3 +37,4 @@ def debug(msg, level=5):
         print msg
         if not sys.stdout.isatty():
             sys.stdout.flush()
+

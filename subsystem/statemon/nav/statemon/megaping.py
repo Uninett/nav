@@ -1,55 +1,65 @@
 """
-$Id: megaping.py,v 1.4 2003/06/20 15:49:21 magnun Exp $                                                                                                                              
-This file is part of the NAV project.                                                                                             
-                                                                                                                                 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
-Author: Magnus Nordseth <magnun@stud.ntnu.no>
-	Stian Soiland   <stain@stud.ntnu.no>
-"""
-import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,config
-from debug import debug
-from netbox import Netbox
-# From our friend:
-import ip,icmp,rrd
+$Id: megaping.py,v 1.4 2003/06/20 15:49:21 magnun Exp $
+This file is part of the NAV project.
 
-ROTATION=r"/-\|"
+Copyright (c) 2002 by NTNU, ITEA nettgruppen
+
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
+        Stian Soiland   <stain@stud.ntnu.no>
+"""
+import threading
+import sys
+import time
+import socket
+import select
+import os
+import profile
+import md5
+import random
+import struct
+import circbuf
+import config
+from debug import debug
+
+# Do we really need this?
+# from netbox import Netbox
+
+# From our friend:
+import ip
+import icmp
+
+# updating rrd should be moved out
+# import rrd
+
 PINGSTRING="Stian og Magnus ruler verden"
 
 hasher = md5.md5()
 
-class RotaterPlugin:
-  def __init__(self, rotdelay=0.1):
-    self.rotation = 0
-    self.rotatedelay = rotdelay
-  def rotate(self, noDelay=None):
-    self.rotation = (self.rotation + 1) % len(ROTATION)
-    sys.stdout.write("\010" + ROTATION[self.rotation])
-    sys.stdout.flush()
-    if(not noDelay):
-      time.sleep(self.rotatedelay)
-  
 def makeSocket():
-  sock = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-                              socket.IPPROTO_ICMP)
+  sock = socket.socket(socket.AF_INET,
+                       socket.SOCK_RAW,
+                       socket.IPPROTO_ICMP)
   sock.setblocking(1)
   return sock
 
 class Host:
-  def __init__(self, netbox):
+  def __init__(self, ip):
     self.rnd = random.randint(0,2**16)
     self.certain = 0
-    self.ip = netbox.ip
+    self.ip = ip
     self.pkt = icmp.Packet()
     self.pkt.type = icmp.ICMP_ECHO
     self.pkt.id = os.getpid()
     self.pkt.seq = 0
     self.replies = circbuf.CircBuf()
-    self.netbox = netbox
 
   def makePacket(self, pingstring=PINGSTRING):
     self.pkt.data = pingstring
     return self.pkt.assemble()
 
+  def getseq(self):
+    return self.pkt.seq
+  
   def nextseq(self):
     self.pkt.seq = (self.pkt.seq + 1) % 2**16
     if not self.certain and self.pkt.seq > 2:
@@ -59,125 +69,146 @@ class Host:
     return self.ip.__hash__()
 
   def __eq__(self, obj):
-    if type(obj) == type(""):
-      return self.netbox.ip == obj
+    if type(obj) == type(''):
+      return self.ip == obj
     else:
-      return self.netbox.ip == obj.ip
+      return self.ip == obj.ip
+  def __repr__(self):
+    return "megaping.Host instance for ip %s " % self.ip
 
-  def logPingTime(self, pingtime):
-    netbox = self.netbox
-    if pingtime:
-      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'UP', pingtime)
-      #rrd.update(self.ip,'N','UP',pingtime)
-    else:
-      # Dette er litt grisete og bør endres
-      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN', 5)
-      #rrd.update(self.ip,'N','DOWN',5)
+#  def logPingTime(self, pingtime):
+#    netbox = self.netbox
+#    if pingtime:
+#      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'UP', pingtime)
+#      #rrd.update(self.ip,'N','UP',pingtime)
+#    else:
+#      # Dette er litt grisete og bør endres
+#      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN', 5)
+#      #rrd.update(self.ip,'N','DOWN',5)
 
   def getState(self, nrping=3):
-    if self.certain:
-      status = self.replies[:nrping] != [None]*nrping
-      return status
-    else:
-      # Return the value from the databasse
-      #print "Netbox.up: %s" % self.netbox.up
-      if self.netbox.up == 'y':
-        return 1
-      return 0
+    # This is the reoundtrip time. Not sure if we need
+    # status bit as well...
+    return self.replies[0]
 
-class MegaPing(RotaterPlugin):
+#    if self.certain:
+#      status = self.replies[:nrping] != [None]*nrping
+#      return status
+#    else:
+#      # Return the value from the databasse
+#      #print "Netbox.up: %s" % self.netbox.up
+#      if self.netbox.up == 'y':
+#        return 1
+#      return 0
+
+class MegaPing:
+  """
+  Sends icmp echo to multiple hosts in parallell.
+  Typical use:
+  pinger = megaping.MegaPing()
+  pinger.setHosts(['127.0.0.1','10.0.0.1'])
+  timeUsed = pinger.ping()
+  hostsUp = pinger.answers()
+  hostsDown = pinger.noAnswers()
+  """
   def __init__(self, socket=None, conf=None):
-    RotaterPlugin.__init__(self)
     if conf is None:
-      self.conf=config.pingconf()
+      try:
+        self._conf=config.pingconf()
+      except:
+        debug("Failed to open config file. Using default values.", 2)
+        self._conf={}
     else:
-      self.conf=conf
-    self.delay=float(self.conf.get('delay',2))/1000   # convert from ms
-    self.timeout = int(self.conf.get('timeout', 5))
-    self.hosts = []
-    self.sent = 0
-    packetsize = int(self.conf.get('packetsize', 64))
+      self._conf=conf
+    # delay between each packet is transmitted
+    self._delay=float(self._conf.get('delay',2))/1000   # convert from ms
+    # Timeout before considering hosts as down
+    self._timeout = int(self._conf.get('timeout', 5))
+    self._hosts = []
+    packetsize = int(self._conf.get('packetsize', 64))
     if packetsize < 44:
       raise """Packetsize (%s) too small to create a proper cookie.
                Must be at least 44."""%packetsize
-    self.packetsize=packetsize
-    self.totaltWait=0
-    self.pid = os.getpid()
-    self.elapsedtime=0
+    self._packetsize=packetsize
+    self._pid = os.getpid()
+    self._elapsedtime=0
     
     # Create our common socket
     if socket is None:
-      self.socket = makeSocket()
+      self._sock = makeSocket()
     else:
-      self.socket = socket
+      self._sock = socket
 
-  def setHosts(self,netboxes):
+  def setHosts(self,ips):
     """
-    Specify a list of hosts to ping. If we alredy have the host
-    in our list, we reuse that  host object
+    Specify a list of ip addresses to ping. If we alredy have the host
+    in our list, we reuse that host object to ensure proper sequence
+    increment
     """
     # add new hosts
-    newhosts = filter(lambda x: x.ip not in self.hosts, netboxes)
-    for netbox in newhosts:
-      self.hosts.append(Host(netbox))
+    newhosts = filter(lambda ip: ip not in self._hosts, ips)
+    for ip in newhosts:
+      self._hosts.append(Host(ip))
     # remove outdated hosts...
-    oldhosts = filter(lambda x: x.ip not in netboxes, self.hosts)
-    for netbox in oldhosts:
-      self.hosts.remove(Host(netbox))
+    oldhosts = filter(lambda ip: ip not in ips, self._hosts)
+    for ip in oldhosts:
+      print "removeing %s" % ip
+      self._hosts.remove(ip)
 
     
   def reset(self):
-    self.requests = {}
+    self._requests = {}
     self.responses = {}
-    self.senderFinished = 0
-    self.totalWait=0
+    self._senderFinished = 0
 
-  def start(self):
+  def ping(self):
+    """
+    Send icmp echo to all configured hosts. Returns the
+    time used.
+    """
     # Start working
     self.reset()
     #kwargs = {'mySocket': makeSocket()}
-    self.sender = threading.Thread(target=self.sendRequests, name="sender")
-    self.getter = threading.Thread(target=self.getResponses, name="getter")
-    self.sender.setDaemon(1)
-    self.getter.setDaemon(1)
-    self.sender.start()
-    self.getter.start()
-    self.getter.join()
-    #while(self.getter.isAlive()):
-    #  self.rotate()    
-    return self.elapsedtime
+    self._sender = threading.Thread(target=self._sendRequests, name="sender")
+    self._getter = threading.Thread(target=self._getResponses, name="getter")
+    self._sender.setDaemon(1)
+    self._getter.setDaemon(1)
+    self._sender.start()
+    self._getter.start()
+    self._getter.join()
+    return self._elapsedtime
   
   #def icmpPrototype(self):
   #  self.pkt = icmp.Packet()
   #  self.pkt.type = icmp.ICMP_ECHO
-  #  self.pkt.id = self.pid
+  #  self.pkt.id = self._pid
   #  self.pkt.seq = 0 # Always sequence number 0..
   
   #def makeIcmpPacket(self, pingstring=PINGSTRING):
   #  self.pkt.data = pingstring
   #  return self.pkt.assemble()
 
-  def getResponses(self):
+  def _getResponses(self):
     start = time.time()
-    timeout=self.timeout
+    timeout=self._timeout
 
-    while not self.senderFinished or self.requests:      
-      if self.senderFinished:
-        runtime=time.time()-self.senderFinished
-        if runtime > self.timeout:
+    while not self._senderFinished or self._requests:      
+      if self._senderFinished:
+        runtime=time.time()-self._senderFinished
+        if runtime > self._timeout:
           break
         else:
-          timeout=self.timeout-runtime
+          timeout=self._timeout-runtime
           
       startwait = time.time()
-      rd, wt, er = select.select([self.socket], [], [], timeout)
+      rd, wt, er = select.select([self._sock], [], [], timeout)
       if rd:
         # okay to use time here, because select has told us
         # there is data and we don't care to measure the time
         # it takes the system to give us the packet.
         arrival = time.time()
         try:
-          (pkt, (sender, blapp)) = self.socket.recvfrom(4096)
+          (pkt, (sender, blapp)) = self._sock.recvfrom(4096)
         except socket.error:
           debug("RealityError -2", 1)
           continue
@@ -187,15 +218,16 @@ class MegaPing(RotaterPlugin):
         try:
           reply = icmp.Packet(repip.data)
         except ValueError:
-          debug("Recived illegeal packet from %s: %s" % (sender,repr(repip.data)), 7)
+          debug("Recived illegeal packet from %s: %s" % (sender,
+                                                         repr(repip.data)), 7)
           continue
-        if reply.id <> self.pid:
+        if reply.id <> self._pid:
           debug("The id field of the packet does not match for %s"% sender,7)
           continue
 
         cookie = reply.data[0:14]
         try:
-          host = self.requests[cookie]
+          host = self._requests[cookie]
         except KeyError:
           debug("The packet recieved from %s does not match any of the packets we sent." % repr(sender),7)
           debug("Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie),7)
@@ -203,61 +235,83 @@ class MegaPing(RotaterPlugin):
 
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
         pingtime = arrival - host.time
-        ### sett inn i RotatingList
+        ### Insert answer to circbuf
         host.replies.push(pingtime)
-        host.logPingTime(pingtime)
+
+        #host.logPingTime(pingtime)
         
         debug("Response from %-16s in %03.3f ms" % (sender, pingtime*1000),7)
-        del self.requests[cookie]  
-      elif self.senderFinished:
+        del self._requests[cookie]  
+      elif self._senderFinished:
           break
 
     # Everything else timed out
-    for host in self.requests.values():
+    for host in self._requests.values():
       host.replies.push(None)
-      host.logPingTime(None)
+      #host.logPingTime(None)
     end = time.time()
-    self.elapsedtime=end-start
+    self._elapsedtime=end-start
 
 
-  def sendRequests(self, mySocket=None, hosts=None):
-    if(mySocket is None):
-      mySocket = self.socket
-    if(hosts is None):
-      hosts = self.hosts
+  def _sendRequests(self, mySocket=None, hosts=None):
+    if mySocket is None:
+      mySocket = self._sock
+    if hosts is None:
+      hosts = self._hosts
     for host in hosts:
-      if self.requests.has_key(host):
+      if self._requests.has_key(host):
         debug("Duplicate host %s ignored" % host,6)
         continue
 
       now = time.time()
       host.time = now
+      #convert ip to chr (hex notation)
       chrip = "".join(map(lambda x:chr(int(x)), host.ip.split('.')))
       packedtime = struct.pack('d', now)
       packedrnd = struct.pack('H', host.rnd)
       identifier = ''.join([chrip, packedtime, packedrnd])
-      cookie = identifier.ljust(self.packetsize-icmp.ICMP_MINLEN)
+      cookie = identifier.ljust(self._packetsize-icmp.ICMP_MINLEN)
       # typical cookie: "\x81\xf18F\x06\xf13\xc9\x87\xa8\xceA\xe5m"
       # the cookie is 14 bytes long
-      self.requests[identifier] = host
+      self._requests[identifier] = host
       packet = host.makePacket(cookie)
       host.nextseq()
       mySocket.sendto(packet, (host.ip, 0))
-      time.sleep(self.delay)
-    self.senderFinished = time.time()
-      
-  def noAnswers(self):
-    reply=[]
-    for host in self.hosts:
-      if not host.getState():
-        reply.append(host.netbox)
+      time.sleep(self._delay)
+    self._senderFinished = time.time()
 
+  def results(self):
+    """
+    Returns a tuple of
+    (ip, roundtriptime) for all hosts.
+    Unreachable hosts will have roundtriptime = -1
+    """
+    reply=[]
+    for host in self._hosts:
+      if host.getState():
+        reply.append((host.ip, host.replies[0]))
+      else:
+        reply.append((host.ip, -1))
+    return reply
+  
+  def noAnswers(self):
+    """
+    Returns a tuple of
+    (ip, timeout) for the unreachable hosts.
+    """
+    reply=[]
+    for host in self._hosts:
+      if not host.getState():
+        reply.append((host.ip, self._timeout))
     return reply
 
   def answers(self):
+    """
+    Returns a tuple of
+    (ip, roundtriptime) for reachable hosts.
+    """
     reply=[]
-    for host in self.hosts:
+    for host in self._hosts:
       if host.getState():
-        reply.append(host.netbox)
-
+        reply.append((host.ip, host.replies[0]))
     return reply
