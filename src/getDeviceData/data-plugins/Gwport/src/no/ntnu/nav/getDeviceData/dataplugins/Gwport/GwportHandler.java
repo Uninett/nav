@@ -336,7 +336,7 @@ public class GwportHandler implements DataHandler {
 						}
 
 						// Then gwportprefix / prefix
-						Gwportprefix oldgp = oldgwp.getGwportprefix(gwip);
+						Gwportprefix oldgp = oldgwp == null ? null : oldgwp.getGwportprefix(gwip);
 						String prefixid;
 						if (oldgp == null && !prefixMap.containsKey(p.getNetaddr())) {
 							// Insert new
