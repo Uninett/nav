@@ -19,16 +19,19 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 
 public class ModuleHandler implements DataHandler {
 
+	/*
 	private static Map deviceMap;
 	private static Map moduleMap;
 	private static Map modDevidMap;
 	private static Set deletedDevSet = Collections.synchronizedSet(new HashSet());
+	*/
 
 	/**
 	 * Fetch initial data from device and module tables.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		// Remove any devices no longer present
+		/*
 		if (!changedDeviceids.isEmpty()) {
 			for (Iterator it = changedDeviceids.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
@@ -38,9 +41,11 @@ public class ModuleHandler implements DataHandler {
 				}
 			}
 		}
+		*/
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
+		/*
 		Map m;
 		ResultSet rs;
 		long dumpBeginTime,dumpUsedTime;
@@ -88,6 +93,7 @@ public class ModuleHandler implements DataHandler {
 			Module mod = (Module)it.next();
 			if ("0".equals(mod.getModuleidS())) System.err.println("OH OH!");
 		}
+		*/
 
 	}
 
@@ -97,6 +103,25 @@ public class ModuleHandler implements DataHandler {
 	 */
 	public DataContainer dataContainerFactory() {
 		return new ModuleContainer(this);
+	}
+
+	private Module getModule(String netboxid, String module) {
+		try {
+			ResultSet rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,module,netboxid,model,descr FROM device JOIN module USING (deviceid) WHERE netboxid='"+netboxid+"' AND module='"+module+"'");
+			if (rs.next()) {
+				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
+				md.setDeviceid(rs.getInt("deviceid"));
+				md.setModuleid(rs.getInt("moduleid"));
+				md.setModel(rs.getString("model"));
+				md.setDescr(rs.getString("descr"));
+
+				return md;
+			}
+		} catch (SQLException e) {
+			Log.e("HANDLE", "Cannot fetch old module: " + netboxid + ", " + module);
+			e.printStackTrace(System.err);
+		}
+		return null;
 	}
 	
 	/**
@@ -112,10 +137,14 @@ public class ModuleHandler implements DataHandler {
 		// all modules and check the deviceid if serial is empty.
 		for (Iterator modules = mc.getModules(); modules.hasNext();) {
 			Module md = (Module)modules.next();
-			String moduleKey = nb.getNetboxid()+":"+md.getKey();
-			Module oldmd = (Module)moduleMap.get(moduleKey);
-			if (oldmd != null) {
-				md.setDeviceid(oldmd.getDeviceid());
+			try {
+				ResultSet rs = Database.query("SELECT deviceid FROM module WHERE netboxid='"+nb.getNetboxid()+"' AND module='"+md.getModule()+"'");
+				if (rs.next()) {
+					md.setDeviceid(rs.getInt("deviceid"));
+				}
+			} catch (SQLException e) {
+				Log.e("HANDLE", "Cannot fetch old module deviceid: " + nb.getNetboxid() + ", " + md.getModule());
+				e.printStackTrace(System.err);
 			}
 		}
 
@@ -127,37 +156,52 @@ public class ModuleHandler implements DataHandler {
 		for (Iterator modules = mc.getModules(); modules.hasNext();) {
 			Module md = (Module)modules.next();
 
-			// Check if the module is new
-			String moduleKey = nb.getNetboxid()+":"+md.getKey();
-			String moduleid = null;
-			Module oldmd = (Module)moduleMap.get(moduleKey);
-
-			if (oldmd != null && deletedDevSet.remove(oldmd.getDeviceidS())) {
-				moduleMap.remove(moduleKey);
-				oldmd = null;
-			}
-			/*
-			System.err.println("oldmd("+moduleKey+"): " + oldmd);
-			System.err.println("   md("+moduleKey+"): " + md);
-			System.err.println();
-			*/
-
+			String moduleid = "-1";
 			try {
-				if (oldmd != null && oldmd.getDeviceid() != md.getDeviceid()) {
-					// Module has changed
-					Log.i("UPDATE_MODULE", "Module has changed to new device");
-					// Delete old module
-					modDevidMap.put(md.getDeviceidS(), oldmd.getModuleidS());
-					oldmd = null;
-				}					
-
-				if (oldmd == null && modDevidMap.containsKey(md.getDeviceidS())) {
-					// Delete old module
-					String mid = (String)modDevidMap.get(md.getDeviceidS());
-					Log.d("DEL_MODULE", "Deleting old module("+mid+"), md: " + md);
-					Database.update("DELETE FROM module WHERE moduleid='"+mid+"'");
+				// Check if the module is new
+				Module oldmd = null;
+				ResultSet rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,module,netboxid,model,descr FROM device JOIN module USING (deviceid) WHERE netboxid="+nb.getNetboxid()+" AND module='"+md.getModule()+"'");
+				if (rs.next()) {
+					oldmd = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
+					oldmd.setDeviceid(rs.getInt("deviceid"));
+					oldmd.setModuleid(rs.getInt("moduleid"));
+					oldmd.setModel(rs.getString("model"));
+					oldmd.setDescr(rs.getString("descr"));
 				}
+				//System.err.println("    module: " + md);
+				//System.err.println("Old module: " + oldmd);
 				
+				
+				/*
+				  Cases:
+				 - Module with same deviceid, but different module found
+				   Existing module moved here, delete old and new
+				 - Module with same module, but different deviceid found
+                   Module moved, delete
+				*/
+				rs = Database.query("SELECT module, moduleid FROM module WHERE deviceid='"+md.getDeviceid()+"'");
+				if (rs.next() && (md.getModule() != rs.getInt("module"))) {
+					Log.d("DEL_MODULE", "Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
+					//System.err.println("Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
+					Database.update("DELETE FROM module WHERE moduleid='"+rs.getString("moduleid")+"'");
+				}
+				if (oldmd != null && md.getDeviceid() != oldmd.getDeviceid()) {
+					Database.update("DELETE FROM module WHERE deviceid='"+oldmd.getDeviceid()+"'");
+					//System.err.println("Deleting old module("+oldmd.getDeviceid()+")");
+					oldmd = null;
+				}
+				/*
+				if (rs.next() && (oldmd == null || oldmd.getModuleid() != rs.getInt("moduleid")) || (oldmd != null && oldmd.getDeviceid() != md.getDeviceid())) {
+					Log.d("DEL_MODULE", "Deleting old module("+rs.getString("moduleid")+"), md: " + md);
+					Database.update("DELETE FROM module WHERE moduleid='"+rs.getString("moduleid")+"'");
+					if (oldmd != null) {
+						Log.d("DEL_MODULE", "Deleting old module("+oldmd.getModuleid()+"), md: " + oldmd);
+						Database.update("DELETE FROM module WHERE moduleid='"+oldmd.getModuleid()+"'");
+						oldmd = null;
+					}
+				}
+				*/
+
 				if (oldmd == null) {
 					// Sett inn i module
 					Log.i("NEW_MODULE", "deviceid="+md.getDeviceidS()+" netboxid="+nb.getNetboxid()+" module="+md.getModule()+" model="+md.getModel()+" descr="+md.getDescr());
@@ -177,12 +221,15 @@ public class ModuleHandler implements DataHandler {
 						"descr", md.getDescr(),
 					};
 					moduleid = Database.insert("module", ins, null);
-					changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
-					modDevidMap.put(md.getDeviceidS(), moduleid);
-					if ("0".equals(moduleid)) {
-						Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
-						System.err.println("Database returned 0 ID for new module ("+nb.getNetboxid()+"), should not happen!");
-					}
+					//md.setModuleid(moduleid);
+					/*
+					  changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
+					  modDevidMap.put(md.getDeviceidS(), moduleid);
+					  if ("0".equals(moduleid)) {
+					  Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
+					  System.err.println("Database returned 0 ID for new module ("+nb.getNetboxid()+"), should not happen!");
+					  }
+					*/
 
 				} else {
 					moduleid = oldmd.getModuleidS();
@@ -205,19 +252,23 @@ public class ModuleHandler implements DataHandler {
 							"moduleid", moduleid
 						};
 						Database.update("module", set, where);
-						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
+						//changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 					}
 				}
 
 			} catch (SQLException e) {
 				Log.e("HANDLE", "SQLException: " + e.getMessage());
 				e.printStackTrace(System.err);
+			} finally {
+				md.setModuleid(moduleid);
 			}
+			/*
 			if (moduleid != null) {
 				md.setModuleid(moduleid);
 				moduleMap.put(moduleKey, md);
 				modDevidMap.put(md.getDeviceidS(), md.getModuleidS());
 			}
+			*/
 		}
 	}
 

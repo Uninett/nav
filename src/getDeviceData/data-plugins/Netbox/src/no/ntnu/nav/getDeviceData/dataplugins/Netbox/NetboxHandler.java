@@ -21,14 +21,16 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 
 public class NetboxHandler implements DataHandler {
 
-	private static Map netboxMap;
-	private static Set sysnameSet;
+	//private static Map netboxMap;
+	//private static Set sysnameSet;
+	private static Set firstRunSet = Collections.synchronizedSet(new HashSet());
 
 	/**
 	 * Fetch initial data from device and netbox tables.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		// Remove any devices no longer present
+		/*
 		if (!changedDeviceids.isEmpty()) {
 			for (Iterator it = changedDeviceids.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
@@ -46,9 +48,11 @@ public class NetboxHandler implements DataHandler {
 				}
 			}
 		}
+		*/
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
+		/*
 		Map m;
 		Set set;
 		ResultSet rs;
@@ -93,6 +97,7 @@ public class NetboxHandler implements DataHandler {
 		} catch (SQLException e) {
 			Log.e("INIT", "SQLException: " + e.getMessage());
 		}
+		*/
 
 	}
 
@@ -117,23 +122,36 @@ public class NetboxHandler implements DataHandler {
 		// deviceid if serial is empty.
 		NetboxData n = (NetboxData)nc.getNetbox();
 		String netboxid = nb.getNetboxidS();
-		NetboxData oldn;
-		synchronized (netboxMap) {
-			oldn = (NetboxData)netboxMap.get(netboxid);
-			if (oldn == null) {
-				// Time to update the netboxMap
-				init(new HashMap(), new HashMap());
-				oldn = (NetboxData)netboxMap.get(netboxid);
+
+		boolean firstRun = firstRunSet.add(netboxid);
+		
+		NetboxData oldn = null;
+		try {
+			ResultSet rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime,vtpvlan FROM device JOIN netbox USING (deviceid) LEFT JOIN netbox_vtpvlan USING (netboxid) WHERE netboxid='"+netboxid+"'");
+			if (rs.next()) {
+				oldn = new NetboxData(rs.getString("serial"),
+									  rs.getString("hw_ver"),
+									  rs.getString("fw_ver"),
+									  rs.getString("sw_ver"),
+									  null);
+				oldn.setDeviceid(rs.getInt("deviceid"));
+				oldn.setSysname(rs.getString("sysname"));
+				oldn.setUpsince(rs.getString("upsince"));
+				oldn.setUptime(rs.getDouble("uptime"));
+
+				if (rs.getInt("vtpvlan") != 0) {
+					do {
+						oldn.addVtpVlan(rs.getInt("vtpvlan"));
+					} while (rs.next());
+				}
 			}
-			if (oldn == null) {
-				// Cannot happen!
-				Log.e("UPDATE_NETBOX", "Cannot find old netbox from netboxid("+netboxid+"), cannot happen, contact nav support!");
-				return;
-			}
-			netboxMap.put(netboxid, n);
+			
 			if (n.hasEmptySerial()) {
 				n.setDeviceid(oldn.getDeviceid());
 			}
+		} catch (SQLException e) {
+			Log.e("INIT", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 
 		// Let DeviceHandler update the device table first
@@ -166,7 +184,6 @@ public class NetboxHandler implements DataHandler {
 					Log.d("UPDATE_NETBOX", "Closed " + alerthistCnt + " alerthist records, deleted " + delModuleCnt + " modules from nb: " + nb);					
 					//System.err.println("Exec: DELETE FROM module WHERE netboxid = '"+netboxid+"', " + changedDeviceids);
 				}
-				sysnameSet.remove(nb.getSysname());
 				return;
 			}
 
@@ -246,8 +263,6 @@ public class NetboxHandler implements DataHandler {
 			// Check if we need to update netbox
 			if (oldn == null || !n.equalsNetboxData(oldn)) {
 				// We need to update netbox
-				if (oldn != null) sysnameSet.remove(oldn.getSysname());
-
 				// Convert uptime to timestamp
 				ResultSet rs = Database.query("SELECT 'epoch'::timestamp with time zone + ("+n.getUptime()+" || ' seconds')::interval AS upsince");
 				rs.next();
@@ -257,7 +272,8 @@ public class NetboxHandler implements DataHandler {
 
 				// Send event if uptime changed
 				if (oldn == null || !oldn.equalsUptime(n)) {
-					if (oldn != null && oldn.uptimeDelta(n) > NetboxData.EVENT_DELTA) {
+					// Don't send event on first gDD start
+					if (oldn != null && oldn.uptimeDelta(n) > NetboxData.EVENT_DELTA && !firstRun) {
 						Map varMap = new HashMap();
 						varMap.put("alerttype", "coldStart");
 						varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
@@ -265,7 +281,7 @@ public class NetboxHandler implements DataHandler {
 						EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "boxRestart", Event.STATE_NONE, 0, 0, varMap);
 					}
 
-					// Update DB. We should only do this if the update really
+					// Update DB. We should only do this if the uptime really
 					// has changed since the value might have wrapped.
 					String[] set = {
 						"upsince", n.getUpsince(),
@@ -276,11 +292,10 @@ public class NetboxHandler implements DataHandler {
 					Database.update("netbox", set, where);
 				}
 
-				if (sysnameSet.contains(n.getSysname())) {
+				rs = Database.query("SELECT netboxid FROM netbox WHERE sysname='"+n.getSysname()+"'");
+				if (rs.next() && !netboxid.equals(rs.getString("netboxid"))) {
 					Log.w("UPDATE_NETBOX", "Cannot change " + oldn + " to " + n + " as it is already present in netbox");
 					n.setSysname(null);
-				} else {
-					sysnameSet.add(n.getSysname());
 				}
 
 				String[] set = {

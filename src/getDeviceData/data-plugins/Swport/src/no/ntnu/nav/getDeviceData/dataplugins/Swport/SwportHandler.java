@@ -18,9 +18,11 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
 
 public class SwportHandler implements DataHandler {
 
+	/*
 	private static Map moduleMap;
 	private static Map swportMap;
 	private static Map portMap;
+	*/
 
 	/**
 	 * Fetch initial data from swport table.
@@ -29,6 +31,7 @@ public class SwportHandler implements DataHandler {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
+		/*
 		Map m;
 		Map swpMap;
 		ResultSet rs;
@@ -101,6 +104,7 @@ public class SwportHandler implements DataHandler {
 			Log.e("INIT", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+		*/
 
 	}
 
@@ -145,8 +149,33 @@ public class SwportHandler implements DataHandler {
 				SwModule oldmd = (SwModule)moduleMap.get(moduleKey);
 				moduleMap.put(moduleKey, md);
 				*/
+				Map swportMap = new HashMap();
+				Map portMap = new HashMap();
+				ResultSet rs = Database.query("SELECT swportid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM swport LEFT JOIN swportallowedvlan USING (swportid) WHERE moduleid='"+moduleid+"'");
+				while (rs.next()) {
+					String ifindex = rs.getString("ifindex");
+					Swport sd = new Swport(ifindex);
+					sd.setSwportid(rs.getInt("swportid"));
+						
+					if (rs.getString("port") != null) {
+						sd.setPort(new Integer(rs.getInt("port")));
+						portMap.put(new Integer(rs.getInt("port")), rs.getString("swportid"));
+					}
+					if (rs.getString("link") != null) sd.setLink(rs.getString("link").charAt(0));
+					sd.setSpeed(rs.getString("speed"));
+					if (rs.getString("duplex") != null) sd.setDuplex(rs.getString("duplex").charAt(0));
+					sd.setMedia(rs.getString("media"));
+					sd.setPortname(rs.getString("portname"));
+					sd.setInterface(rs.getString("interface"));
+					if (rs.getString("vlan") != null) sd.setVlan(rs.getInt("vlan"));
+					if (rs.getString("trunk") != null) sd.setTrunk(rs.getBoolean("trunk"));
+					sd.setHexstring(rs.getString("hexstring"));
+
+					swportMap.put(ifindex, sd);
+				}
 
 				// Så alle swportene
+				String swportid;
 				for (Iterator j = md.getSwports(); j.hasNext();) {
 					Swport sd = (Swport)j.next();
 
@@ -155,25 +184,17 @@ public class SwportHandler implements DataHandler {
 					// Check if this swport should be ignored
 					if (sc.getIgnoreSwport(sd.getIfindex())) continue;
 
-					// Finn evt. gammel
-					String swportid;
-					//String swportKey = nb.getNetboxid()+":"+sd.getIfindex();
-					String swportKey = moduleid+":"+sd.getIfindex();
-
-					SwModule oldmd = (SwModule)swportMap.get(swportKey);
-					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
-					swportMap.put(swportKey, md);
+					Swport oldsd = (Swport)swportMap.get(sd.getIfindex());
 
 					if (oldsd == null) {
-						// If there is an identical ifDescr, delete it
-						String portKey = moduleid+":"+sd.getPort();
-						if (sd.getPort() != null && portMap.containsKey(portKey)) {
-							System.err.println("Want to delete port: " + portKey + ", " + nb);
-							Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(portKey)+"'");
+						// If there is an identical port, delete it
+						if (portMap.containsKey(sd.getPort())) {
+							System.err.println("Want to delete port: " + moduleid +  ", " + sd.getPort() + ", " + nb);
+							Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(sd.getPort())+"'");
 						}
 
 						// Sett inn ny
-						ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
+						rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
 						rs.next();
 						swportid = rs.getString("swportid");
 
@@ -194,19 +215,18 @@ public class SwportHandler implements DataHandler {
 							"portname", Database.addSlashes(sd.getPortname())
 						};
 						Database.insert("swport", inss);
-						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
+						//changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 						newcnt++;
-						portMap.put(portKey, swportid);
+						//portMap.put(portKey, swportid);
 
 					} else {
 						swportid = oldsd.getSwportidS();
-						if (!sd.equalsSwport(oldsd) || md.getModuleid() != oldmd.getModuleid()) {
+						if (!sd.equalsSwport(oldsd)) {
 							// Vi må oppdatere
 							Log.d("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							Log.d("UPDATE_SWPORT", "Old: " + oldsd + ", New: " + sd);
 
 							String[] set = {
-								"moduleid", md.getModuleidS(),
 								"ifindex", sd.getIfindex(),
 								"port", sd.getPortS(),
 								"interface", Database.addSlashes(sd.getInterface()),
@@ -222,15 +242,17 @@ public class SwportHandler implements DataHandler {
 								"swportid", swportid
 							};
 							Database.update("swport", set, where);
-							changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
+							//changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 							updcnt++;
 
+							/*
 							String oldPortKey = oldmd.getModuleid()+":"+oldsd.getPort();
 							String portKey = moduleid+":"+sd.getPort();
 							if (sd.getPort() != null) {
 								portMap.remove(oldPortKey);
 								portMap.put(portKey, swportid);
 							}
+							*/
 						}
 					}
 					sd.setSwportid(swportid);

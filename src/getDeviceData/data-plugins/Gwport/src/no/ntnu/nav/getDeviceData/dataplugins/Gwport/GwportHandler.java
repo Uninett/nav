@@ -638,8 +638,8 @@ public class GwportHandler implements DataHandler {
 				}
 
 				if (fixupPrefix) {
-					int delPrefix = Database.update("DELETE FROM prefix WHERE prefixid NOT IN (SELECT prefixid FROM gwportprefix) AND vlanid NOT IN (SELECT vlanid FROM vlan JOIN swportvlan USING(vlanid))");
-					int delVlan = Database.update("DELETE FROM vlan WHERE vlanid NOT IN (SELECT vlanid FROM prefix UNION SELECT vlanid FROM swportvlan)");
+					int delPrefix = Database.update("DELETE FROM prefix WHERE prefixid NOT IN (SELECT prefixid FROM gwportprefix) AND vlanid NOT IN (SELECT vlanid FROM vlan JOIN swportvlan USING(vlanid) UNION SELECT vlanid FROM vlan WHERE nettype='scope')");
+					int delVlan = Database.update("DELETE FROM vlan WHERE vlanid NOT IN (SELECT vlanid FROM prefix UNION SELECT vlanid FROM swportvlan UNION SELECT vlanid FROM vlan WHERE nettype='scope')");
 					Log.d("FIXUP_PREFIX", "Deleted " + delPrefix + " prefices, " + delVlan + " VLANs no longer in use");
 				}
 

@@ -111,7 +111,7 @@ public class _3Com implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		process3Com(nb, netboxid, ip, cs_ro, type, nc, sc);
+		process3Com(nb, netboxid, ip, cs_ro, type, nc, mc, sc);
 
 		// Commit data
 		if (mc.isCommited()) sc.setEqual(mc);
@@ -123,7 +123,7 @@ public class _3Com implements DeviceHandler
 	 * 3COM
 	 *
 	 */
-	private void process3Com(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, SwportContainer sc) throws TimeoutException {
+	private void process3Com(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc, SwportContainer sc) throws TimeoutException {
 		type = type.toLowerCase();
 
 		/*
@@ -257,8 +257,46 @@ public class _3Com implements DeviceHandler
 
 		List l;
 
- 		// Fetch ifDescr
 		Set moduleSet = new HashSet();
+		l = sSnmp.getAll(nb.getOid("3cSerial"), true);
+		if (l != null) {
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String module = s[0];
+				moduleSet.add(module);
+			}
+		}
+
+		String moduleWithIP = "1";
+		if (moduleSet.size() > 1) {
+			// Check which module has the IP
+			String ipAdEntIfIndex = nb.getOid("ipAdEntIfIndex");
+			if (ipAdEntIfIndex != null) {
+				ipAdEntIfIndex += "."+nb.getIp();
+				List ipList = sSnmp.getAll(ipAdEntIfIndex, false, false);
+				if (ipList != null && !ipList.isEmpty()) {
+					String[] s = (String[])ipList.get(0);
+					String ifindex = s[1];
+					int module = Integer.parseInt(""+ifindex.charAt(0));
+					moduleWithIP = ""+module;
+					NetboxInfo.put(nb.getNetboxidS(), null, "ModuleWithIP", moduleWithIP);
+					
+				}
+			}
+		}
+
+		if (nb.getNumInStack() == 2 && moduleSet.size() == 1) {
+			moduleWithIP = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
+			String module = (String)moduleSet.iterator().next();
+			System.err.println("module: " + module + " IP: " + moduleWithIP);
+			if (moduleWithIP != null && !module.equals(moduleWithIP)) {
+				// Since there are only two modules we are surely talking to the one with the IP
+				mc.moduleTranslate(module, moduleWithIP);
+				sc.moduleTranslate(module, moduleWithIP);
+			}
+		}
+
+ 		// Fetch ifDescr
 		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true);
 		if (ifDescrList != null) {
 			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
@@ -278,7 +316,6 @@ public class _3Com implements DeviceHandler
 					int k = extractModuleFromDescr(ifdescr);
 					if (k >= 0) module = k;
 				}
-				moduleSet.add(""+module);
 
 				SwModule swm = sc.swModuleFactory(module);
 				Swport swp = swm.swportFactory(ifindex);
@@ -290,24 +327,6 @@ public class _3Com implements DeviceHandler
 				if (type.equals("sw9300")) {
 					swp.setDuplex('f');
 					swp.setMedia("1000BaseSX");
-				}
-			}
-		}
-
-		String moduleWithIP = "1";
-		if (moduleSet.size() > 1) {
-			// Check which module has the IP
-			String ipAdEntIfIndex = nb.getOid("ipAdEntIfIndex");
-			if (ipAdEntIfIndex != null) {
-				ipAdEntIfIndex += "."+nb.getIp();
-				List ipList = sSnmp.getAll(ipAdEntIfIndex, false, false);
-				if (ipList != null && !ipList.isEmpty()) {
-					String[] s = (String[])ipList.get(0);
-					String ifindex = s[1];
-					int module = Integer.parseInt(""+ifindex.charAt(0));
-					moduleWithIP = ""+module;
-					NetboxInfo.put(nb.getNetboxidS(), null, "ModuleWithIP", moduleWithIP);
-					
 				}
 			}
 		}

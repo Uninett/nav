@@ -119,6 +119,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 * Return an SwModule object which is used to describe one switch module.
 	 */
 	public SwModule swModuleFactory(int module) {
+		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
 		SwModule m = new SwModule(module, this);
 		int k;
 		if ( (k=swModuleList.indexOf(m)) >= 0) {

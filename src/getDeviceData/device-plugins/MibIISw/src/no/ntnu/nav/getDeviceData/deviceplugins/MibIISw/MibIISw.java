@@ -70,6 +70,7 @@ public class MibIISw implements DeviceHandler
 		Log.setDefaultSubsystem("MIB_II_SW_DEVHANDLER");
 		
 		NetboxContainer nc;
+		ModuleContainer mc;
 		SwportContainer sc;
 		ModuleMonContainer mmc;
 		{
@@ -83,6 +84,17 @@ public class MibIISw implements DeviceHandler
 				return;
 			}
 			nc = (NetboxContainer)dc;
+
+			dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
 
 			dc = containers.getContainer("SwportContainer");
 			if (dc == null) {
@@ -115,38 +127,48 @@ public class MibIISw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processMibII(nb, netboxid, ip, cs_ro, type, nc, sc, mmc);
+		processMibII(nb, netboxid, ip, cs_ro, type, nc, mc, sc, mmc);
 
 		// Commit data
 		sc.commit();
 	}
 
-	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
+	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, ModuleContainer mc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
 	{
 		if (nb.getNumInStack() > 1) {
+			System.err.println("Do moduleMon: " + nb.getNumInStack());
 			// Do moduleMon
 			// PS40 must use a special OID
 			Map ifindexMap = null;
 			String baseOidAlt = null;
+			if (nb.getSysname().equals("iot-stud-313-h.ntnu.no")) {
+				System.err.println("iot-stud-313-h.ntnu.no: " + nb.getOid("3cPS40PortState") + ", " + nb.getOid("moduleMon"));
+			};
 			if (nb.getOid("3cPS40PortState") != null) {
-				List portList = sSnmp.getAll(nb.getOid("3cPS40PortState"));
-				if (portList != null) {
-					ifindexMap = new HashMap();
-					baseOidAlt = nb.getOid("3cPS40PortState");
-					for (Iterator it = portList.iterator(); it.hasNext();) {
-						String[] s = (String[])it.next();
-						String[] mp = s[0].split("\\.");
-						String ifindex = mp[0] + (Integer.parseInt(mp[1])<10?"0":"") + mp[1];
-						ifindexMap.put(ifindex, s[0]);
+				baseOidAlt = nb.getOid("3cPS40PortState");
+				ifindexMap = new HashMap();
+				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					String module = (String)me.getKey();
+					List ifindexList = (List)me.getValue();
+					for (Iterator ifIt = ifindexList.iterator(); ifIt.hasNext();) {
+						String ifindex = (String)ifIt.next();
+						if (ifindex.length() < 3) continue;
+						String m = ifindex.substring(0, ifindex.length()-2);
+						String p = ifindex.substring(ifindex.length()-2, ifindex.length());
+						ifindexMap.put(ifindex, Integer.parseInt(m)+"."+Integer.parseInt(p));
 					}
 				}
 			}
 			String baseOid = nb.getOid("moduleMon");
 			String hpMemberStatusOid = nb.getOid("hpStackStatsMemberOperStatus");
 			if (hpMemberStatusOid != null) {
+				System.err.println("Collect hpStackStatsMemberOperStatus");
 				Set modulesUp = new HashSet();
 				Map moduleStatus = new HashMap();
+				sSnmp.onlyAskModule("0");
 				List statusList = sSnmp.getAll(hpMemberStatusOid);
+				sSnmp.onlyAskModule(null);
 				for (Iterator it = statusList.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String module;
@@ -163,15 +185,13 @@ public class MibIISw implements DeviceHandler
 						modulesUp.add(module);
 					}
 				}
-				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
-					String[] s = (String[])it.next();
-					String ifindex = s[0];
-					String module = s[1];
+				for (Iterator it = mmc.getModuleSet(netboxid).iterator(); it.hasNext();) {
+					String module = (String)it.next();
 					if (modulesUp.contains(module)) {
 						mmc.moduleUp(nb, module);
 					} else {
-						Log.d("MODULE_MON", "HP Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
-						System.err.println("HP module down, " + nb + ", " + module + ", " + ifindex + ", " + modulesUp + ", " + moduleStatus);
+						Log.d("MODULE_MON", "HP Module " + module + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
+						System.err.println("HP module down, " + nb + ", " + module + ", " + modulesUp + ", " + moduleStatus);
 						sSnmp.ignoreModule(module);
 						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
 					}
@@ -180,37 +200,42 @@ public class MibIISw implements DeviceHandler
 			} else
 			if (baseOid != null) {
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
-					String[] s = (String[])it.next();
-					String ifindex = s[0];
-					String ifindexOid = sSnmp.extractIfIndexOID(ifindex);
-					String module = s[1];
-					try {
-						sSnmp.onlyAskModule(module);
-						String askOid = (ifindexMap != null && ifindexMap.containsKey(ifindexOid) ? baseOidAlt + "." + ifindexMap.get(ifindexOid) : baseOid + "." + ifindexOid);
-						List l = sSnmp.getNext(askOid, 1, false, false);
-						if (l != null && !l.isEmpty()) {
-							// We got a response
-							if (nb.getNumInStack() == 2) {
-								String moduleWithIP = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
-								if (moduleWithIP != null) {
-									String ifind = mmc.ifindexForModule(nb.getNetboxidS(), moduleWithIP);
-									// Since there are only two modules we are surely talking to the one with the IP
-									if (ifind != null) ifindex = ifind;
-									else System.err.println("Wops, ifind is null for " + nb.getSysname() + " moduleWithIP: " + moduleWithIP);
-								}
+					Map.Entry me = (Map.Entry)it.next();
+					String module = (String)me.getKey();
+					List ifindexList = (List)me.getValue();
+					sSnmp.onlyAskModule(module);
+					boolean down = true;
+					int cnt = 0;
+					for (Iterator ifIt = ifindexList.iterator(); ifIt.hasNext() && down && cnt++ < 5;) {
+						String ifindex = (String)ifIt.next();
+						String ifindexOid = sSnmp.extractIfIndexOID(ifindex);
+						try {
+							String askOid = (ifindexMap != null && ifindexMap.containsKey(ifindexOid) ? baseOidAlt + "." + ifindexMap.get(ifindexOid) + ".1" : baseOid + "." + ifindexOid);
+							List l = sSnmp.getNext(askOid, 1, false, false);
+							if (l != null && !l.isEmpty()) {
+								// We got a response
+								mmc.moduleUp(nb, module);
+								down = false;
+							} else {
+								System.err.println("No response on askOid " + askOid + ", trying next (cnt: " + cnt + ")");
 							}
-							mmc.moduleUp(nb, module);
-						} else {
-							// Assume down
-							Log.d("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " returned no values");						
-							System.err.println("Module down, " + nb + ", " + module + ", " + ifindex + ", " + askOid + ", " + ifindexMap + ", " + l);
+						} catch (TimeoutException te) {
+							// Assume the module is down
+							Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
 							sSnmp.ignoreModule(module);
-							mmc.rescheduleNetbox(nb, module, "moduleMon");
+							break;
 						}
-					} catch (TimeoutException te) {
-						// Assume the module is down
-						Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
+					}
+					if (down) {
+						// Assume down
+						Log.d("MODULE_MON", "Module " + module + " on " + nb.getSysname() + " returned no values");						
+						System.err.println("Module down, " + nb + ", " + module + ", ifindexMap " + ifindexMap);
 						sSnmp.ignoreModule(module);
+						List oidL = new ArrayList();
+						oidL.add("moduleMon");
+						if (baseOidAlt != null) oidL.add("3cPS40PortState");
+						if (hpMemberStatusOid != null) oidL.add("hpStackStatsMemberOperStatus");
+						mmc.rescheduleNetbox(nb, module, oidL);
 					}
 				}
 				sSnmp.onlyAskModule(null);

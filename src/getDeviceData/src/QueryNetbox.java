@@ -35,6 +35,7 @@ public class QueryNetbox extends Thread
 
 	private static Map typeidMap;
 	private static Map oidkeyMap;
+	private static List initialQ;
 	private static SortedMap nbRunQ;
 	private static Map netboxidRunQMap;
 	private static Stack idleThreads;
@@ -86,6 +87,7 @@ public class QueryNetbox extends Thread
 
 		// Create the netbox map and the run queue
 		nbMap = new HashMap();
+		initialQ = Collections.synchronizedList(new ArrayList());
 		nbRunQ = new TreeMap();
 		nbList = new ArrayList();
 		netboxidRunQMap = new HashMap();
@@ -178,7 +180,13 @@ public class QueryNetbox extends Thread
 			// The delay can actually be negative due to inaccuracy in the Java timer
 			l = Math.max(l, 0);
 			Log.d("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule check runq in " + l + " ms");
-			timer.schedule(checkRunQTask, l);
+			try {
+				timer.schedule(checkRunQTask, l);
+			} catch (IllegalStateException e) {
+				timer = new Timer();
+				checkRunQTask = new CheckRunQTask();
+				timer.schedule(checkRunQTask, l);
+			}
 		}
 	}
 
@@ -448,7 +456,8 @@ public class QueryNetbox extends Thread
 			for (Iterator it = addToRunQList.iterator(); it.hasNext();) {
 				NetboxImpl nb = (NetboxImpl)it.next();
 				nb.updateNextRun();
-				addToRunQ(nb);
+				initialQ.add(nb);
+				//addToRunQ(nb);
 			}
 
 			netboxCnt = netboxidSet.size();
@@ -509,7 +518,16 @@ public class QueryNetbox extends Thread
 	private static void removeFromRunQ(NetboxImpl nb, Long nextRun) {
 		synchronized (nbRunQ) {
  			LinkedList l;
-			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) return;
+			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) {
+				// Check if the netbox is still in the initialQ
+				for (Iterator it = initialQ.iterator(); it.hasNext();) {
+					if (nb.getNum() == ((NetboxImpl)it.next()).getNum()) {
+						it.remove();
+						break;
+					}
+				}
+				return;
+			}
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				if (nb.getNum() == ((NetboxImpl)it.next()).getNum()) {
 					it.remove();
@@ -539,10 +557,15 @@ public class QueryNetbox extends Thread
 
 	private static Object removeRunQHeadNoCheck() {
 		synchronized (nbRunQ) {
-			if (nbRunQ.isEmpty()) return new Long(Long.MAX_VALUE / 2); // Infinity...
-
+			if (nbRunQ.isEmpty()) {
+				if (!initialQ.isEmpty()) return initialQ.remove(initialQ.size()-1);
+				return new Long(Long.MAX_VALUE / 2); // Infinity...
+			}
 			Long nextRun = (Long)nbRunQ.firstKey();
-			if (nextRun.longValue() > System.currentTimeMillis()) return new Long(nextRun.longValue() - System.currentTimeMillis());
+			if (nextRun.longValue() > System.currentTimeMillis()) {
+				if (!initialQ.isEmpty()) return initialQ.remove(initialQ.size()-1);
+				return new Long(nextRun.longValue() - System.currentTimeMillis());
+			}
 
 			LinkedList l = (LinkedList)nbRunQ.get(nextRun);
 			NetboxImpl nb  = (NetboxImpl)l.removeFirst();
@@ -704,6 +727,7 @@ public class QueryNetbox extends Thread
 					// Find handlers for this boks
 					DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
 					if (deviceHandler == null) {
+						nb.printSchedule();
 						throw new NoDeviceHandlerException("  No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + ")");
 					}
 

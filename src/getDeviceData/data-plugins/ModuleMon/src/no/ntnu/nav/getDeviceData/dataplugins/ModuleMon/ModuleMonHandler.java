@@ -35,6 +35,7 @@ public class ModuleMonHandler implements DataHandler {
 	 * Fetch initial data from swport table.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
+		/*
 		boolean onlyUpdate = true;
 		for (Iterator it = changedDeviceids.values().iterator(); it.hasNext() && onlyUpdate;) {
 			if (((Integer)it.next()).intValue() != DataHandler.DEVICE_UPDATED) onlyUpdate = false;
@@ -42,9 +43,13 @@ public class ModuleMonHandler implements DataHandler {
 
 		if (persistentStorage.containsKey("initDone") && (changedDeviceids.isEmpty() || onlyUpdate)) return;
 		persistentStorage.put("initDone", null);
+		*/
+		if (persistentStorage.containsKey("initDone")) return;
+		persistentStorage.put("initDone", null);
 
 		Log.setDefaultSubsystem("ModuleMonHandler");
 
+		/*
 		synchronized (modulesDown) {
 			int oldcnt = modidMap != null ? modidMap.size() : 0;
 
@@ -105,6 +110,7 @@ public class ModuleMonHandler implements DataHandler {
 				e.printStackTrace(System.err);
 			}
 		}
+		*/
 
 	}
 
@@ -113,7 +119,8 @@ public class ModuleMonHandler implements DataHandler {
 	 * DataHandler.
 	 */
 	public DataContainer dataContainerFactory() {
-		return new ModuleMonContainer(this, queryIfindices, moduleToIfindex);
+		//return new ModuleMonContainer(this, queryIfindices, moduleToIfindex);
+		return new ModuleMonContainer(this);
 	}
 	
 	/**
@@ -124,47 +131,53 @@ public class ModuleMonHandler implements DataHandler {
 		ModuleMonContainer mmc = (ModuleMonContainer)dc;
 		if (!mmc.isCommited()) return;
 
-		synchronized (modulesDown) {
-			if (DEBUG) err("Check modules down("+nb+"): " + modulesDown);
-
-			Set mod = modules.get(nb.getNetboxidS());
-			if (mod == null) {
-				Log.w("MODULE_MON", "HANDLE", "No modules found for netbox " + nb.getSysname());
-				return;
+		Map modules = new HashMap();
+		Map deviceMap = new HashMap();
+		Map moduleMap = new HashMap();
+		try {
+			ResultSet rs = Database.query("SELECT module, up, deviceid, moduleid FROM module WHERE netboxid='"+nb.getNetboxid()+"'");
+			while (rs.next()) {
+				modules.put(rs.getString("module"), rs.getString("up"));
+				deviceMap.put(rs.getString("module"), rs.getString("deviceid"));
+				moduleMap.put(rs.getString("module"), rs.getString("moduleid"));
 			}
+		} catch (SQLException e) {
+			Log.e("INIT", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
+		}
 
-			// Local copy we can modify
-			mod = new HashSet(mod);
-			if (DEBUG) err("  Modules: " + new ArrayList(mod));
+		int severity = 50;
+		if (DEBUG) err("  Modules up: " + mmc.getModulesUpSet());
+		for (Iterator it = mmc.getModulesUp(); it.hasNext();) {
+			String module = (String)it.next();
+			String up = (String)modules.remove(module);
+			if (up == null) continue;
 
-			int severity = 50;
-			if (DEBUG) err("  Modules up: " + mmc.getModulesUpSet());
-			for (Iterator it = mmc.getModulesUp(); it.hasNext();) {
-				String moduleid = (String)moduleMap.get(nb.getNetboxid()+":"+it.next());;
-				String deviceid = (String)modidMap.get(moduleid);
-				String key = nb.getNetboxid()+":"+moduleid;
-
-				if (modulesDown.contains(key)) {
-					// The module is coming up, send up event
-					sendEvent(nb, deviceid, moduleid, Event.STATE_END, severity);
-					modulesDown.remove(key);
-				}
-				mod.remove(moduleid);
-			}
-
-			// All remaining modules are now considered down; send event
-			if (DEBUG) err("  Remaining modules: " + new ArrayList(mod));
-			if (!mod.isEmpty()) Log.d("MODULE_MON", "REPORT_DOWN", "Reporting modules down: " + mod + " ("+modules.get(nb.getNetboxidS())+")");
-			for (Iterator it = mod.iterator(); it.hasNext();) {
-				String moduleid = (String)it.next();
-				String deviceid = (String)modidMap.get(moduleid);
-
-				Log.d("MODULE_MON", "REPORT_DOWN", "Module("+moduleid+","+deviceid+") is down, sending event");
-				sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
-				modulesDown.add(nb.getNetboxid()+":"+moduleid);
+			if ("n".equals(""+up)) {
+				// The module is coming up, send up event
+				String deviceid = (String)deviceMap.get(module);
+				String moduleid = (String)moduleMap.get(module);
+				sendEvent(nb, deviceid, moduleid, Event.STATE_END, severity);
 			}
 		}
 
+		// All remaining modules are now considered down; send event
+		if (DEBUG) err("  Remaining modules: " + modules);
+		if (!modules.isEmpty()) Log.d("MODULE_MON", "REPORT_DOWN", "Reporting modules down: " + modules);
+		for (Iterator it = modules.entrySet().iterator(); it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String module = (String)me.getKey();
+			String up = (String)me.getValue();
+
+			if ("y".equals(""+up)) {
+				// Module is going down, send down event
+				String deviceid = (String)deviceMap.get(module);
+				String moduleid = (String)moduleMap.get(module);
+				Log.d("MODULE_MON", "REPORT_DOWN", "Module("+moduleid+","+deviceid+") is down, sending event");
+				sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
+			}
+			
+		}
 	}
 
 	// Post the event

@@ -18,8 +18,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class DeviceHandler implements DataHandler {
 
-	private static Map devidMap;
-	private static Map devserialMap;
+	//private static Map devidMap;
+	//private static Map devserialMap;
 
 	/**
 	 * Fetch initial data from device and module tables.
@@ -28,6 +28,7 @@ public class DeviceHandler implements DataHandler {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
+		/*
 		ResultSet rs;
 		long dumpBeginTime,dumpUsedTime;
 
@@ -60,38 +61,22 @@ public class DeviceHandler implements DataHandler {
 		} catch (SQLException e) {
 			Log.e("INIT", "SQLException: " + e.getMessage());
 		}
+		*/
 
 	}
 
 	// Check if the serial is in use in the DB, and if it is, update devidMap
-	private Device getOldDevice(Device dev) throws SQLException {
-		String serial = dev.getSerial();
-		String deviceid = String.valueOf(dev.getDeviceid());
+	private Device getDevice(ResultSet rs) throws SQLException {
+		String deviceid = rs.getString("deviceid");
+		String serial = rs.getString("serial");
+		String hw_ver = rs.getString("hw_ver");
+		String fw_ver = rs.getString("fw_ver");
+		String sw_ver = rs.getString("sw_ver");
 
-		// Try to look up device by serial first
-		if (devserialMap.containsKey(serial)) return (Device)devserialMap.get(serial);
+		Device d = new Device(serial, hw_ver, fw_ver, sw_ver);
+		d.setDeviceid(deviceid);
 
-		// If that didn't work we try by deviceid
-		if (devidMap.containsKey(deviceid)) return (Device)devidMap.get(deviceid);
-
-		// Check if we find the device in the DB
-		if (serial != null && serial.length() > 0) {
-			ResultSet rs = Database.query("SELECT deviceid,hw_ver,fw_ver,sw_ver FROM device WHERE serial = '" + serial + "'");
-			if (rs.next()) {
-				deviceid = rs.getString("deviceid");
-				String hw_ver = rs.getString("hw_ver");
-				String fw_ver = rs.getString("fw_ver");
-				String sw_ver = rs.getString("sw_ver");
-
-				Device d = new Device(serial, hw_ver, fw_ver, sw_ver);
-				d.setDeviceid(deviceid);
-
-				devidMap.put(deviceid, d);
-				if (serial != null) devserialMap.put(serial, d);
-				return d;
-			}
-		}
-		return null;
+		return d;
 	}
 
 	/**
@@ -111,6 +96,7 @@ public class DeviceHandler implements DataHandler {
 		if (!devc.isCommited()) return;
 
 		Log.setDefaultSubsystem("DeviceHandler");
+		//new RuntimeException().printStackTrace(System.err);
 
 		try {
 
@@ -118,10 +104,31 @@ public class DeviceHandler implements DataHandler {
 				Device dev = (Device)devices.next();
 
 				// Check if this is a new device
+				Device olddev = null;
 				String serial = dev.getSerial();
 				String deviceid = dev.getDeviceidS();
 
-				Device olddev = getOldDevice(dev);
+				try {
+					String fields = "deviceid,serial,hw_ver,fw_ver,sw_ver FROM device WHERE";
+					ResultSet rs = Database.query("SELECT " + fields + " serial='"+serial+"'");
+					if (rs.next()) {
+						olddev = getDevice(rs);
+						//System.err.println("Found old device: " + olddev);
+					} else {
+						//System.err.println("Not found: " + "SELECT " + fields + " serial='"+serial+"'");
+					}
+
+					if (olddev == null && deviceid != null && !"0".equals(deviceid)) {
+						rs = Database.query("SELECT " + fields + " deviceid='"+deviceid+"'");
+						if (rs.next()) {
+							olddev = getDevice(rs);
+							//System.err.println("Found old device2: " + olddev);
+						}
+					}
+				} catch (SQLException e) {
+					Log.e("HANDLE", "Cannot fetch old device: " + serial + ", " + deviceid);
+					e.printStackTrace(System.err);
+				}
 
 				if (olddev == null) {
 					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
@@ -135,7 +142,8 @@ public class DeviceHandler implements DataHandler {
 						"auto", "t",
 					};
 					deviceid = Database.insert("device", ins, null);
-					changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
+					//dev.setDeviceid(deviceid);
+					//changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
 					Log.i("NEW_DEVICE", "New device("+deviceid+") with serial: " + dev.getSerial() + ", " + dev);
 				} else {
 					deviceid = olddev.getDeviceidS();
@@ -155,7 +163,7 @@ public class DeviceHandler implements DataHandler {
 							"deviceid", deviceid,
 						};
 						Database.update("device", set, where);
-						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
+						//changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
 
 						// Now we need to send events if hw_ver, fw_ver or sw_ver changed
 						if (!equals(dev.getHwVer(), olddev.getHwVer())) {
@@ -185,11 +193,11 @@ public class DeviceHandler implements DataHandler {
 							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 					}
-					dev.setEqual(olddev);
+					//dev.setEqual(olddev);
 				}
 				dev.setDeviceid(deviceid);
-				devidMap.put(deviceid, dev);
-				if (serial != null) devserialMap.put(serial, dev);
+				//devidMap.put(deviceid, dev);
+				//if (serial != null) devserialMap.put(serial, dev);
 
 			}
 

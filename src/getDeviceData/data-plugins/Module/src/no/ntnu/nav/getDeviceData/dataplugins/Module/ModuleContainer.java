@@ -32,6 +32,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
 	private Set moduleSet = new HashSet();
+	protected Map moduleTranslation = new HashMap();
 	private boolean commit = false;
 
 	protected ModuleContainer(ModuleHandler mh) {
@@ -59,6 +60,11 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		return mh;
 	}
 
+	public void moduleTranslate(String from, String to) {
+		System.err.println("Translate from " + from + " to " + to);
+		moduleTranslation.put(from, to);
+	}
+
 	/**
 	 * Return a Module object which is used to describe a single
 	 * module. If the argument is not a valid number an empty Module
@@ -78,6 +84,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * Return a Module object which is used to describe a single module.
 	 */
 	public Module moduleFactory(int module) {
+		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
@@ -94,6 +101,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * module already exists.
 	 */
 	public Module moduleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
 		Module m = new Module(serial, hw_ver, fw_ver, sw_ver, module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
@@ -109,6 +117,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * moduleFactory, or return null if the module does not exist.
 	 */
 	public Module getModule(int module) {
+		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
