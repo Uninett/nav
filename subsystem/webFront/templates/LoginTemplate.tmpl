@@ -15,13 +15,16 @@
 <table height=40% border=0 width=100%><tr valign=middle><td valign=middle align=center>
 
 <br><br><br>
-<img src="/images/login/login.gif"><br>
-<font face=verdana size=1 color=#FF0000>$message</font>
+<font face=verdana size=1>
 <form method="POST" action="/index.py/login">
-<br><input type="text" name="login"><br><font face=verdana size=1 color=#6699CC>username</font>
-<br><input type="password" name="password"><br><font face=verdana size=1 color=#6699CC>password</font>
+<img src="/images/login/login.gif"><br>
+#if $message
+<br><font color=#FF0000>$message</font>
+#end if
+<br><input type="text" name="login" style="border: 1px solid #99c;"><br><font color=#6699CC>username</font>
+<br><input type="password" name="password" style="border: 1px solid #99c;"><br><font color=#6699CC>password</font>
 <input type="hidden" name="origin" value="$origin">
-<br><input type="submit" value="Log in">
+<br><br><input type="submit" value="Log in">
 </form>
-
+</font>
 </td></tr></table>

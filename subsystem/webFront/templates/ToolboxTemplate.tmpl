@@ -1,8 +1,8 @@
+## $Id: $
 ##
-## ToolboxTemplate.tmpl
+## This file is part of the NAV project.
 ##
 ## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
-##
 ## Builds html for the Toolbox with data in this form:
 ##
 ## $tools                              :: array of tools
@@ -30,7 +30,7 @@
 #else
         <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; "><img src="$imagefolder/blank.gif" width="47" height="54" alt="" /></td>
 #end if
-        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px"><a class="navbar" href="$tool.uri">$tool.name</a></td>
+        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px" ><a class="navbar" href="$tool.uri">$tool.name</a></td>
         <td><img src="$imagefolder/toolbox/module-bar-end.gif" alt="" /></td>
       </tr>
       <tr valign="top" height="100">
