@@ -1,5 +1,5 @@
 """
-$Id: ImapHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: ImapHandler.py,v 1.2 2003/06/01 12:15:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/ImapHandler.py,v $
 """
 
@@ -27,7 +27,9 @@ class ImapHandler(JobHandler):
 	password
 	"""
 	def __init__(self,service):
-		port = service['args'].get('port', 143)
+		# this probably should be moved up to the superclass as
+		# we use port in almost every subclass...
+		port = int(service['args'].get('port', 143))
 		service['ip']=(service['ip'],port)
 		JobHandler.__init__(self, "imap", service)
 	
