@@ -122,6 +122,12 @@ public class DeviceDB
 		updateMode = false;
 	}
 
+	/**
+	 * Get the 'up' Alert to use for completing previous 'down' Alert.
+	 *
+	 * @param e The 'up' event (STATE_END)
+	 * @return the 'up' alert
+	 */
 	public Alert getDownAlert(Event e)
 	{
 		if (e.getState() == Event.STATE_END && e instanceof EventImpl) {
@@ -146,11 +152,25 @@ public class DeviceDB
 		return key;
 	}
 
+	/**
+	 * Create a new alert with the given event as a template. 'default'
+	 * will be used as alerttype.
+	 *
+	 * @param e The event to use as template
+	 * @return a new alert
+	 */
 	public Alert alertFactory(Event e)
 	{
 		return alertFactory(e, null);
 	}
 
+	/**
+	 * Create a new alert with the given event as a template.
+	 *
+	 * @param e The event to use as template
+	 * @param alerttype The alerttype to use (see top of alertmsg.conf for details)
+	 * @return a new alert
+	 */
 	public Alert alertFactory(Event e, String alerttype)
 	{
 		EventImpl ei;
@@ -165,7 +185,10 @@ public class DeviceDB
 	 * the associated Events.
 	 *
 	 * If the state for this Alert is 'down', it will be added to the
-	 * down alert list.
+	 * down alert list. Call getDownAlert() to get the alert to use
+	 * for the 'up' Alert.
+	 *
+	 * @param a The alert to be posted
 	 */
 	public void postAlert(Alert a) throws PostAlertException
 	{
