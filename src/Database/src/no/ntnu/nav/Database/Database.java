@@ -1,11 +1,13 @@
-/*
- * NTNU ITEA "nav" prosjekt
- *
- * Database interface class
- *
- * Skrvet av: Kristian Eide <kreide@online.no>
- *
- */
+/*******************
+*
+* $Id: Database.java,v 1.3 2002/12/01 01:56:19 kristian Exp $
+* This file is part of the NAV project.
+* Database interface class
+*
+* Copyright (c) 2002 by NTNU, ITEA nettgruppen
+* Authors: Kristian Eide <kreide@online.no>
+*
+*******************/
 
 package no.ntnu.nav.Database;
 

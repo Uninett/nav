@@ -120,30 +120,27 @@ class EventImpl implements Event, Alert
 	public void addVar(String key, String val)
 	{
 		varMap.put(key, val);
-		/*
-		Set s;
-		if ( (s=(Set)varMap.get(key)) == null) varMap.put(key, s=new HashSet());
-		s.add(val);
-		*/
+	}
+	public void addVars(Map vm)
+	{
+		varMap.putAll(vm);
 	}
 
 	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
 	public Iterator getMsgs() {
-		if (alerttype == null) return null;
-
 		// Update varMap from database
 		try {
-			ResultSet rs = Database.query("SELECT * from device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
+			ResultSet rs = Database.query("SELECT * FROM device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
 			ResultSetMetaData rsmd = rs.getMetaData();
 			if (rs.next()) {
-				HashMap hm = getHashFromResultSet(rs, rsmd);
+				HashMap hm = Database.getHashFromResultSet(rs, rsmd);
 				varMap.putAll(hm);
 			}
 		} catch (SQLException e) {
 			errl("EventImpl: SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
 		}
 
-		return AlertmsgParser.formatMsgs(eventtypeid, alerttype, varMap);
+		return AlertmsgParser.formatMsgs(eventtypeid, alerttype, state, varMap);
 	}
 
 	public void addEvent (Event e) { eventList.add(e); }
@@ -222,7 +219,7 @@ class EventImpl implements Event, Alert
 		return s;
 	}
 
-
+	/*
 	private HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md) throws SQLException
 	{
 		HashMap hm = new HashMap();
@@ -231,6 +228,7 @@ class EventImpl implements Event, Alert
 		}
 		return hm;
 	}
+	*/
 
 	private static void outd(Object o) { System.out.print(o); }
 	private static void outld(Object o) { System.out.println(o); }
@@ -262,7 +260,7 @@ class AlertmsgParser
 		return true;
 	}
 
-	public static Iterator formatMsgs(String eventtypeid, String alerttype, Map varMap)
+	public static Iterator formatMsgs(String eventtypeid, String alerttype, int state, Map varMap)
 	{
 		try {
 			parseAlertmsg();
@@ -278,10 +276,17 @@ class AlertmsgParser
 			return null;
 		}
 
+		if (alerttype == null) alerttype = "";
 		List msgList = (List)m.get(alerttype);
 		if (msgList == null) {
-			outld("Alerttype: " + alerttype + " not found in alertmsg file!");
-			return null;
+			String s = state==Event.STATE_NONE?"":state==Event.STATE_START?"Start":"End";
+			outld("Alerttype: WARNING: " + alerttype + " not found in alertmsg file! Trying default"+s);
+
+			msgList = (List)m.get("default"+s);
+			if (msgList == null) {
+				outld("Alerttype: FATAL: default"+s+" not found in alertmsg file!");
+				return null;
+			}
 		}
 
 		List l = new ArrayList();
@@ -298,7 +303,9 @@ class AlertmsgParser
 				String var = msg.substring(i, e).trim();
 				if (var.length() == 0) continue;
 				if (varMap.containsKey(var)) {
-					msg.replace(i-1, e, (String)varMap.get(var));
+					String val = (String)varMap.get(var);
+					if (val == null) val = "[empty]";
+					msg.replace(i-1, e, val);
 				}
 			}
 			l.add(new String[] { s[0], s[1], msg.toString() });

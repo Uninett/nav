@@ -177,6 +177,7 @@ public class DeviceDB
 
 			// Update alertqhist
 			boolean removeDownAlert = false;
+			boolean noDownAlertExp = false;
 			if (e.getState() != Event.STATE_END) {
 				// Insert into alerthist
 				int id = insertAlert(e, true, 0);
@@ -188,13 +189,16 @@ public class DeviceDB
 			} else {
 				// End event, set end time for previous (start) alert
 				EventImpl da = (EventImpl)getDownAlert(e);
-				if (da == null) throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
-				int alerthistid = da.getEventqid();
-				Database.update("UPDATE alerthist SET end_time = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
-				removeDownAlert = true;
+				if (da == null) {
+					noDownAlertExp = true;
+				} else {
+					int alerthistid = da.getEventqid();
+					Database.update("UPDATE alerthist SET end_time = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
+					removeDownAlert = true;
 
-				// Insert into alerthistvar
-				insertAlert(e, true, alerthistid);
+					// Insert into alerthistvar
+					insertAlert(e, true, alerthistid);
+				}
 			}
 
 			// Now delete releated events from eventq
@@ -210,6 +214,10 @@ public class DeviceDB
 
 			// Everything went well, so it is safe to commit
 			Database.commit();
+
+			if (noDownAlertExp) {
+				throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
+			}
 
 			if (removeDownAlert) removeDownAlert(e);
 

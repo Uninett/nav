@@ -201,6 +201,7 @@ class ConfigFileMonitorTask extends TimerTask
 	File cf;
 	ConfigParser cp;
 	boolean cfNotFound;
+	long lastMod;
 
 	public ConfigFileMonitorTask(String cfPath)
 	{
@@ -211,6 +212,8 @@ class ConfigFileMonitorTask extends TimerTask
 	public void run()
 	{
 		if (cfNotFound) return;
+		if (lastMod == cf.lastModified()) return;
+		lastMod = cf.lastModified();
 
 		try {
 			cp = new ConfigParser(cf.getAbsolutePath());
@@ -481,8 +484,10 @@ class EventqMonitorTask extends TimerTask
 		try {
 			//outld("Last lastEventqid is: " + lastEventqid);
 			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' AND source='test' ORDER BY eventqid");
-			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' and source='pping' ORDER BY eventqid");
+			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' and source='pping' ORDER BY eventqid");
+			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid LIMIT 1");
 			if (rs.getFetchSize() > 0) outld("Fetched " + rs.getFetchSize() + " events from eventq");
+			else return;
 
 			while (rs.next()) {
 

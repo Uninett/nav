@@ -15,6 +15,7 @@ public interface Alert
 	public void setSeverity(int severity);
 
 	public void addVar(String key, String val);
+	public void addVars(Map varMap);
 
 	public void setAlerttype(String alerttype);
 
