@@ -33,8 +33,8 @@ BEGIN {
     # Checking for Cricket if c-option not set.
     my @defaultcricketdirs = ("/home/navcron/cricket","/usr/local/cricket");
     if ($opt_c) {
-	print "Setting cricketdir to $opt_d.\n";
-	$cricketdir = $opt_d;
+	print "Setting cricketdir to $opt_c.\n";
+	$cricketdir = $opt_c;
     } else {
 	print "No path to Cricket specified, searching default paths...\n" if $ll >= 2;
 	foreach my $dir (@defaultcricketdirs) {
@@ -190,7 +190,7 @@ open (CHANGELOG, ">$changelog") or warn ("Could not open $changelog for writing:
 chdir ($cricketconfigdir);
 my $cwd = cwd;
 
-# First of all, stop the subsystem - MUST BE IMPLEMENTED
+# First of all, stop the subsystem - MUST BE IMPLEMENTED (not critical)
 my $ok = 1;
 print "Stopping Cricket..." if $ll >= 2;
 if ($ok) {
