@@ -777,9 +777,9 @@ sub makeinterfaceTargets {
 
 	my $q;
 	if ($giga) {
-	    $q = "SELECT ".$table."id,ifindex,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed = 1000";
+	    $q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed = 1000";
 	} else {
-	    $q = "SELECT ".$table."id,ifindex,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed != 1000";
+	    $q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed != 1000";
 	}
 	
 	foreach my $parameter (@nameparameters) {
@@ -813,6 +813,7 @@ sub makeinterfaceTargets {
 	while (my @params = $r->fetchrow) {
 	    my $id = $params[0];
 	    my $ifindex = $params[1];
+	    my $interface = $params[2];
 	    if ($vendor eq 'hp') {
 		$ifindex =~ s/^\d0?(.*)/$1/;
 	    }
@@ -869,6 +870,9 @@ sub makeinterfaceTargets {
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'table'} = $table;
 
 	    $filetext .= "target \"$name\"\n";
+	    if ($interface =~ m/(.*)\.\d+/) {
+		$filetext .= "\ttarget-type\t=\tsub-interface\n";
+	    }
 	    $filetext .= "\torder\t=\t$order\n";
 	    $filetext .= "\tinterface-index\t=\t$ifindex\n";
 	    $filetext .= "\tshort-desc\t=\t$descr\n\n";

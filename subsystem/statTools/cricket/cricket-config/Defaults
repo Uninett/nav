@@ -110,6 +110,10 @@ targetType  standard-interface
         ds              =       "ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
         view            =       "Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
 
+targetType  sub-interface
+	ds		=	"ifInOctets, ifOutOctets"
+	view		=	"Octets: ifInOctets ifOutOctets"
+
 # The HTML dict has bits and pieces of HTML that gets used
 # by the grapher.
 
