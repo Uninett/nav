@@ -85,13 +85,13 @@ DELETE FROM snmpoid WHERE oidkey='hpStackName';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr, getnext) VALUES ('hpStackName', '1.3.6.1.4.1.11.2.14.11.5.1.10.3.1.0','hp','Name of stack', 'f');
 
 DELETE FROM snmpoid WHERE oidkey='hpSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpSerial', '1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1','hp','Serial number');
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr, getnext) VALUES ('hpSerial', '1.3.6.1.2.1.47.1.1.1.1.11.1','hp','Serial number', 'f');
 
 DELETE FROM snmpoid WHERE oidkey='hpHwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpHwVer', '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0','hp','Hardware version number');
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr, getnext) VALUES ('hpHwVer', '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0','hp','Hardware version number', 'f');
 
 DELETE FROM snmpoid WHERE oidkey='hpSwVer';
-INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpSwVer', '1.3.6.1.4.1.11.2.14.11.5.1.1.3.0','hp','Software version number');
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr, getnext) VALUES ('hpSwVer', '1.3.6.1.4.1.11.2.14.11.5.1.1.3.0','hp','Software version number', 'f');
 
 DELETE FROM snmpoid WHERE oidkey='hpPortType';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpPortType', '1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.2','hp','Type of each port (media, duplex)');
