@@ -62,7 +62,7 @@ my $MAILDRIFT = $navconf{ADMIN_MAIL};
 my $temp;
 my $smssyk = 0;
 
-my ($tlf, $tekst, @respons, $respons_, $v, $nr1);
+my ($tlf, $tekst, @respons, $respons_, $nr1);
 my ($dbh, $ko, $ko2, $maxidsok, $smsid);
 my $dato = strftime "Time: %H:%M:%S", localtime;
 my $forsinkelse = 30;
@@ -121,7 +121,7 @@ else
     $smsid=0;
 }
 
-my $sql = "SELECT phone,id,msg FROM smsq WHERE sent=\'N\'";
+$sql = "SELECT phone,id,msg FROM smsq WHERE sent=\'N\'";
 
 chdir('/');
 # Disconnect from terminal, STD(OUT|ERR|IN)
@@ -141,7 +141,7 @@ if ($pid) {
 $0 = 'smsd.pl: NAV SMS daemon ready...';
 
 # Kjører en uendelig løkke her
-while ($v=2) {
+while (1) {
     &sjekk_ko;
     sleep $forsinkelse;
 }
