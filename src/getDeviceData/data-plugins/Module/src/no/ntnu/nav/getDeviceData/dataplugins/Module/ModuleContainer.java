@@ -53,7 +53,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	/**
 	 * Return a Module object which is used to describe a single module
 	 */
-	public Module moduleFactory(String serial, String hw_ver, String sw_ver, String module) {
+	public Module moduleFactory(String serial, String hw_ver, String sw_ver, int module) {
 		Module m = new Module(serial, hw_ver, sw_ver, module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {

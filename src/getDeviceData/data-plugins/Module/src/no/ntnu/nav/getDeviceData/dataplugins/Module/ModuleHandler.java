@@ -55,12 +55,12 @@ public class ModuleHandler implements DataHandler {
 			// module
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule FROM device JOIN module USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,descr FROM device JOIN module USING (deviceid)");
 			while (rs.next()) {
-				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
 				md.setDeviceid(rs.getInt("deviceid"));
 				md.setModuleid(rs.getInt("moduleid"));
-				md.setSubmodule(rs.getString("submodule"));
+				md.setDescr(rs.getString("descr"));
 
 				String key = rs.getString("netboxid")+":"+md.getKey();
 				m.put(key, md);
@@ -122,14 +122,14 @@ public class ModuleHandler implements DataHandler {
 
 				if (oldmd == null) {
 					// Sett inn i module
-					Log.i("NEW_MODULE", "deviceid="+md.getDeviceidS()+" netboxid="+nb.getNetboxid()+" module="+md.getModule()+" submodule="+md.getSubmodule());
+					Log.i("NEW_MODULE", "deviceid="+md.getDeviceidS()+" netboxid="+nb.getNetboxid()+" module="+md.getModule()+" descr="+md.getDescr());
 
 					String[] ins = {
 						"moduleid", "",
 						"deviceid", md.getDeviceidS(),
 						"netboxid", nb.getNetboxidS(),
-						"module", md.getModule(),
-						"submodule", md.getSubmodule()
+						"module", ""+md.getModule(),
+						"descr", md.getDescr()
 					};
 					moduleid = Database.insert("module", ins, null);
 
@@ -137,12 +137,12 @@ public class ModuleHandler implements DataHandler {
 					moduleid = oldmd.getModuleidS();
 					if (!md.equalsModule(oldmd)) {
 						// Vi må oppdatere module
-						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" submodule="+md.getSubmodule());
+						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" descr="+md.getDescr());
 
 						String[] set = {
 							"deviceid", md.getDeviceidS(),
-							"module", md.getModule(),
-							"submodule", md.getSubmodule()
+							"module", ""+md.getModule(),
+							"descr", md.getDescr()
 						};
 						String[] where = {
 							"moduleid", moduleid

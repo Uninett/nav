@@ -89,7 +89,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	/**
 	 * Return an SwModule object which is used to describe one switch module.
 	 */
-	public SwModule swModuleFactory(String module) {
+	public SwModule swModuleFactory(int module) {
 		SwModule m = new SwModule(module, this);
 		int k;
 		if ( (k=swModuleList.indexOf(m)) >= 0) {
@@ -118,7 +118,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 
 	// Assign any module-less swports to module 1
 	void assignSwportsWithoutModule() {
-		SwModule m = swModuleFactory("1");
+		SwModule m = swModuleFactory(1);
 		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
 			Swport swp = (Swport)it.next();
 			if (!swp.isAssignedToModule()) m.addSwport(swp);
