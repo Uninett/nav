@@ -2,7 +2,7 @@
 
 import re
 
-from URI import URI
+from nav.web.URI import URI
 
 class Field:
 
