@@ -294,7 +294,8 @@ class NavUtils
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			HashMap hm = getHashFromResultSet(rs, rsmd);
-			if (rs.getString("link").toLowerCase().equals("y")) swport.add(hm);
+			String link = rs.getString("link");
+			if (link == null || link.toLowerCase().equals("y")) swport.add(hm);
 			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port");
 			swrecMap.put(key, hm);
 			swrecSwportidMap.put(rs.getString("swportid"), hm);
