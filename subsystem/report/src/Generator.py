@@ -293,7 +293,7 @@ class ArgumentParser:
                             
                     elif operator[key] == "geq":
                         if neg:
-                            operat = "lt"
+                            operat = "<"
                             neg = ""
                         else:
                             operat = ">="
