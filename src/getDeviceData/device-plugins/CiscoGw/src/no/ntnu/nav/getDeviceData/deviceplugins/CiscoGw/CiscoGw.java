@@ -245,11 +245,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				String ifindex = (String)me.getKey();
 				String interf = (String)me.getValue();
 				String masterinterf = interf.split("\\.")[0];
-					
-				if (Long.parseLong((String)ifInOctetsMap.get(ifindex)) == 0 &&
+
+				if (ifInOctetsMap.containsKey(ifindex) &&
+						Long.parseLong((String)ifInOctetsMap.get(ifindex)) == 0 &&
 						interf.indexOf(".") >= 0 &&
 						ifInterfMM.containsKey(masterinterf)) {
-
+					
 					masterinterfSet.add(masterinterf);
 					subinterfMap.put(interf, masterinterf);
 				}
@@ -264,7 +265,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Ignore any admDown interfaces
 				String link = (String)admStatusMap.get(ifindex);
-				if (!link.equals("1")) continue;
+				if ("1".equals(link)) continue;
 
 				String interf = (String)ifDescrMap.get(ifindex);
 				if (!masterinterfSet.contains(interf) &&
@@ -333,7 +334,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				}
 
 				// Set speed from Mib-II
-				double speed = Long.parseLong((String)speedMap.get(ifindex)) / 1000000.0;
+				double speed = speedMap.containsKey(ifindex) ? Long.parseLong((String)speedMap.get(ifindex)) / 1000000.0 : 0.0;
 				gwp.setSpeed(speed);
 
 				// Create prefices
