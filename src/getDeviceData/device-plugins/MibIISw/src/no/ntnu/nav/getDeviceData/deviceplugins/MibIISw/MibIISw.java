@@ -133,7 +133,7 @@ public class MibIISw implements DeviceHandler
 					}
 					swp.setLink(link);
 				} catch (NumberFormatException e) {
-					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatusMap.get(ifindex));
+					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + admStatusMap.get(ifindex) + " / " + operStatusMap.get(ifindex));
 				}
 			}
 		}

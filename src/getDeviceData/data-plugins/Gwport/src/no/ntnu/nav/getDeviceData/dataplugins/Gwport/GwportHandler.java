@@ -247,7 +247,7 @@ public class GwportHandler implements DataHandler {
 					String gwportid;
 					if (oldgwp == null) {
 						// Insert new
-						Log.i("NEW_GWPORT", "Creating gwport: " + gwp);
+						Log.d("NEW_GWPORT", "Creating gwport: " + gwp);
 
 						String masterindex = null;
 
@@ -268,7 +268,7 @@ public class GwportHandler implements DataHandler {
 						//if (!gwp.equalsGwport(oldgwp) || gwp.getModuleid() != oldgwp.getModuleid()) {
 						if (!gwp.equalsGwport(oldgwp)) {
 							// Vi må oppdatere
-							Log.i("UPDATE_GWPORT", "Update gwportid: "+gwportid+" ifindex="+gwp.getIfindex());
+							Log.d("UPDATE_GWPORT", "Update gwportid: "+gwportid+" ifindex="+gwp.getIfindex());
 
 							String masterindex = null;
 
@@ -303,7 +303,7 @@ public class GwportHandler implements DataHandler {
 						String vlanid;
 						if (dbvlan == null) {
 							// Insert new
-							Log.i("NEW_VLAN", "Creating vlan: " + vl);
+							Log.d("NEW_VLAN", "Creating vlan: " + vl);
 							
 							String[] ins = {
 								"vlanid", "",
@@ -322,7 +322,7 @@ public class GwportHandler implements DataHandler {
 							vlanid = dbvlan.getVlanidS();
 							if (!vl.equalsVlan(dbvlan)) {
 								// Vi må oppdatere
-								Log.i("UPDATE_VLAN", "Update vlan " + vl);
+								Log.d("UPDATE_VLAN", "Update vlan " + vl);
 								String[] set = {
 									"vlan", vl.getVlanS(),
 									"nettype", vl.getNettype(),
@@ -343,7 +343,7 @@ public class GwportHandler implements DataHandler {
 						String prefixid;
 						if (oldgp == null && !prefixMap.containsKey(p.getNetaddr())) {
 							// Insert new
-							Log.i("NEW_PREFIX", "Creating vlan: " + vl);
+							Log.d("NEW_PREFIX", "Creating vlan: " + vl);
 							
 							String[] ins = {
 								"prefixid", "",
@@ -368,7 +368,7 @@ public class GwportHandler implements DataHandler {
 							vlanid = oldgwp.getVlanidS();
 							if (!vl.equalsVlan(dbvlan)) {
 								// Vi må oppdatere
-								Log.i("UPDATE_VLAN", "Update vlan " + vl);
+								Log.d("UPDATE_VLAN", "Update vlan " + vl);
 								String[] set = {
 									"vlan", vl.getVlanS(),
 									"nettype", vl.getNettype(),
@@ -429,11 +429,6 @@ public class GwportHandler implements DataHandler {
 							vl.setNettype(nettype);
 						}
 						*/
-
-						
-
-						
-						
 
 						
 						

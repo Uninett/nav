@@ -165,7 +165,7 @@ public class _3Com implements DeviceHandler
 			// IfIndex = <modul><port>
 			String speed = "10";
 			String duplex = "half";
-			String media = "10Base-T";
+			String media = "10BaseT";
 
 			// Hent listen
 			List portList = sSnmp.getAll(nb.getOid("3cPS40PortState"));
@@ -271,7 +271,7 @@ public class _3Com implements DeviceHandler
 				// Special case for 3Com 9300 which only has FD gigabit ports
 				if (type.equals("sw9300")) {
 					swp.setDuplex('f');
-					swp.setMedia("1000Base-SX");
+					swp.setMedia("1000BaseSX");
 				}
 			}
 		}
@@ -279,23 +279,24 @@ public class _3Com implements DeviceHandler
 		// Fetch mauType
 		List mauTypeList = sSnmp.getAll(nb.getOid("3cIfMauType"));
 		if (mauTypeList != null) {
-			String _10BaseT = "10Base-T";
-			if (type.equals("sw3300")) _10BaseT = "100Base-TX"; // 3300 har bare 100Mbit-porter
+			String _10BaseT = "10BaseT";
+			if (type.equals("sw3300")) _10BaseT = "100BaseTX"; // 3300 har bare 100Mbit-porter
 			
 			HashMap oidMap = new HashMap();
 			String pre = "1.3.6.1.2.1.26.4.";
 			oidMap.put(pre+"3", new String[] { "10", "half", "FOIRL" } );
 			oidMap.put(pre+"10", new String[] { "10", "half", _10BaseT } );
 			oidMap.put(pre+"11", new String[] { "10", "full", _10BaseT } );
-			oidMap.put(pre+"15", new String[] { "100", "half", "100Base-TX" } );
-			oidMap.put(pre+"16", new String[] { "100", "full", "100Base-TX" } );
-			oidMap.put(pre+"17", new String[] { "100", "half", "100Base-FX" } );
-			oidMap.put(pre+"18", new String[] { "100", "full", "100Base-FX" } );
+			oidMap.put(pre+"15", new String[] { "100", "half", "100BaseTX" } );
+			oidMap.put(pre+"16", new String[] { "100", "full", "100BaseTX" } );
+			oidMap.put(pre+"17", new String[] { "100", "half", "100BaseFX" } );
+			oidMap.put(pre+"18", new String[] { "100", "full", "100BaseFX" } );
+			oidMap.put(pre+"26", new String[] { "100", "full", "1000BaseSX" } );
 			pre = "1.3.6.1.4.1.43.18.8.2.";
-			oidMap.put(pre+"2", new String[] { "1000", "full", "1000Base-SX" } );
-			oidMap.put(pre+"3", new String[] { "1000", "full", "1000Base-SX" } );
-			oidMap.put(pre+"7", new String[] { "1000", "full", "1000Base-T" } );
-			oidMap.put(pre+"9", new String[] { "1000", "full", "1000Base-T" } );
+			oidMap.put(pre+"2", new String[] { "1000", "full", "1000BaseSX" } );
+			oidMap.put(pre+"3", new String[] { "1000", "full", "1000BaseSX" } );
+			oidMap.put(pre+"7", new String[] { "1000", "full", "1000BaseT" } );
+			oidMap.put(pre+"9", new String[] { "1000", "full", "1000BaseT" } );
 			
 			for (Iterator it = mauTypeList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();

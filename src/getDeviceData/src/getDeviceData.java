@@ -88,7 +88,8 @@ class getDeviceData
 		Log.init(navRoot + logFile, "getDeviceData");
 		Log.setDefaultSubsystem("MAIN");
 
-		Log.d("INIT", "Running with " + NUM_THREADS + " threads max.");
+		Log.i("INIT", "============ getDeviceData starting ============");
+		Log.i("INIT", "Running with " + NUM_THREADS + " threads (max)");
 
 		ConfigParser cp, dbCp;
 		try {
