@@ -191,14 +191,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
        (som skal være opprettet)
 		*/
 
-		// Check for OID support
+		// Check for standard OID support
 		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
-			"cCardIndex",
-			"cCardDescr",
-			"cCardSerial",
-			"cCardSlotNumber",
-			"ipAdEntIfIndex",
-			"ipAdEntIfNetMask",
 			"ifSpeed",
 			"ifAdminStatus",
 			"ifDescr",
@@ -207,7 +201,23 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		});
 
 		if (!oidsNotSupported.isEmpty()) {
-			Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+			return;
+		}
+
+		// Check for router OID
+		oidsNotSupported = nb.oidsNotSupported(new String[] {
+			"cCardIndex",
+			"cCardDescr",
+			"cCardSerial",
+			"cCardSlotNumber",
+			"ipAdEntIfIndex",
+			"ipAdEntIfNetMask",
+		});
+
+		if (!oidsNotSupported.isEmpty()) {
+			if (nb.getCat().equals("GW")) {
+				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+			}
 			return;
 		}
 		
