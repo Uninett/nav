@@ -159,7 +159,7 @@ public class BoxState implements EventHandler, EventCallback
 		} else
 		if (callback && !scheduledCB) {
 			lastDownCount = downCount;
-			ddb.scheduleCallback(this, 10000, 3);
+			ddb.scheduleCallback(this, 3000, 3);
 		}
 
 
@@ -195,10 +195,17 @@ public class BoxState implements EventHandler, EventCallback
 							continue;
 						}
 
-						// Post the alert
+						// Ask the Box to update its status
+						n.updateStatus();
+
+						// Create alert
 						Alert a = ddb.alertFactory(e);
 						a.addEvent(e);
 
+						// Set status (down or shadow)
+						a.addVar("status", n.getStatusS());
+
+						// Post the alert
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
@@ -219,10 +226,11 @@ public class BoxState implements EventHandler, EventCallback
 								continue;
 							}
 
-							// Post the alert
+							// Create alert
 							Alert a = ddb.alertFactory(e);
 							a.addEvent(e);
 
+							// Post the alert
 							try {
 								ddb.postAlert(a);
 							} catch (PostAlertException exp) {
