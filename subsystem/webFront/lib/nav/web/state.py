@@ -20,12 +20,11 @@ from os import path
 import sys
 import fcntl
 import nav.errors
-from mod_python import apache
+import nav.web
 
 sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
 serialPrefix = '%s_' % sessionCookieName
-maxAge = 3600 # Sessions time out after this amount of seconds
 _timestamp = 0
 
 
@@ -51,6 +50,7 @@ def setupSession(req):
     not we create a new one and post a new session cookie to the
     client.
     """
+    from mod_python import apache
     req.session = None
     message = None
     global _timestamp
@@ -125,7 +125,7 @@ def _oldFilter(file):
     try:
         mtime = os.stat(name)[8]
         nowtime = int(time.time())
-        return (nowtime-mtime > maxAge)
+        return (nowtime-mtime > nav.web.webfrontConfig.getint('sessions', 'timeout'))
     except:
         return False
 
