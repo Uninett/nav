@@ -165,6 +165,7 @@ CREATE TABLE boks (
   static BOOL DEFAULT false,
   watch BOOL DEFAULT false,
   skygge BOOL DEFAULT false,
+
   snmp_major INT4 NOT NULL DEFAULT 1,
   snmpagent VARCHAR(30),
 );
@@ -312,6 +313,7 @@ GRANT ALL ON type TO navall;
 GRANT ALL ON boks TO navall;
 GRANT ALL ON boksinfo TO navall;
 GRANT ALL ON boksinterface TO navall;
+GRANT ALL ON bokscategory TO navall;
 GRANT ALL ON boksdisk TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
@@ -514,6 +516,7 @@ GRANT SELECT,UPDATE ON boks TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
 GRANT ALL    ON boksdisk TO getDeviceData;
 GRANT ALL    ON boksinterface TO getDeviceData;
+GRANT ALL    ON bokscategory TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
