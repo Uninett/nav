@@ -357,17 +357,27 @@ public class Database
 			return -1;
 
 		String query = "INSERT INTO " + table + " (";
+		boolean first = true;
 		for (int i = 0; i < fieldValues.length; i += 2) {
 			if (fieldValues[i+1] != null) {
-				if (i != 0) query += ",";
+				if (!first) {
+					query += ",";
+				} else {
+					first = false;
+				}
 				query += fieldValues[i];
 			}
 		}
 
 		query += ") VALUES (";
+		first = true;
 		for (int i = 1; i < fieldValues.length; i += 2) {
 			if (fieldValues[i] != null) {
-				if (i != 1) query += ",";
+				if (!first) {
+					query += ",";
+				} else {
+					first = false;
+				}
 
 				String fnutt = "'";
 				if (fieldValues[i].equals("NOW()") ||
@@ -408,9 +418,14 @@ public class Database
 
 		String query = "UPDATE " + table + " SET ";
 		boolean noUpdate = true;
+		boolean first = true;
 		for (int i = 0; i < fieldValues.length; i += 2) {
 			if (fieldValues[i+1] != null) {
-				if (i != 0) query += ",";
+				if (!first) {
+					query += ",";
+				} else {
+					first = false;
+				}
 
 				noUpdate = false;
 				String fnutt = "'";
