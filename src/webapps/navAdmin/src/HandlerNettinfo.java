@@ -417,7 +417,7 @@ class HandlerNettinfo
 
 	private static final int SORT_SYSNAME = 0;
 	private static final int SORT_IFINDEX = 10;
-	private Collection sort(Collection c, int sortOn) {
+	private Collection sort(Collection c, final int sortOn) {
 		List l = new ArrayList(c);
 		Collections.sort(l,	new Comparator() {
 					public int compare(Object o1, Object o2) {
@@ -435,6 +435,7 @@ class HandlerNettinfo
 							Integer i2 = new Integer((String)m2.get("to_ifindex"));
 							return i1.compareTo(i2);
 						}
+						return 0;
 					}
 			});
 		return l;
@@ -750,7 +751,7 @@ class HandlerNettinfo
 			HashMap port = (HashMap)it.next();
 
 			//if (i == portList.size()-1) strekType = STREK_BOTTOM;
-			boolean b = swportExpand(port, swrec, depth+1, (i == portList.size()-1), expand, showempty, searchexact, showpath, searchblocked, searchField, searchFor, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
+			boolean b = swportExpand(port, swrec, depth+1, it.hasNext(), expand, showempty, searchexact, showpath, searchblocked, searchField, searchFor, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
 			if (searchField != null && b) searchFound = true;
 
 
