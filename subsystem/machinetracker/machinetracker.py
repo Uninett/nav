@@ -9,7 +9,7 @@ import Trace
 #from Trace import PortTrace
 from URI import URI
 
-from nav.web.templates.ArpCamTemplate import ArpCamTemplate,MainTemplate
+from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate,MainTemplate
 
 def handler(req):
   s = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
@@ -39,14 +39,14 @@ def handler(req):
 
   else:
     page = MainTemplate()
-    page.title = "Trace"
-    page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Trace", False)]
+    page.title = "Machine Tracker"
+    page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Machine Tracker", False)]
     req.content_type = "text/html"
     req.send_http_header()
 
     c = ""
     
-    if section and section != "trace":
+    if section and section != "machinetracker":
       c += "The specified section '"+section+"' does not exist"
 
     c += "<p><h2>Trace Tools</h2></p>Search for:<br>"
@@ -62,7 +62,7 @@ def handler(req):
   
 
 def ip(req, from_ip="",to_ip="",days="7",dns="",aip="",naip="",prefixid=""):
-  page = ArpCamTemplate()
+  page = MachineTrackerTemplate()
   object = Trace.Trace()
   keyword = "IP"
   if not days:
@@ -77,8 +77,8 @@ def ip(req, from_ip="",to_ip="",days="7",dns="",aip="",naip="",prefixid=""):
   
   page.object = object
 
-  page.title = "Trace - "+keyword
-  page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Trace", "/trace/"), (keyword,False)]
+  page.title = "Machine Tracker - "+keyword
+  page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Machine Tracker", "/machinetracker/"), (keyword,False)]
   
   if not from_ip and not prefixid:
     #object.errmsg = "You have to specify a valid IP address in the 'from'-field"
@@ -102,7 +102,7 @@ def ip(req, from_ip="",to_ip="",days="7",dns="",aip="",naip="",prefixid=""):
   
 
 def mac(req, mac="",days="7",dns="",aip="",naip="",prefixid=""):
-  page = ArpCamTemplate()
+  page = MachineTrackerTemplate()
   keyword = "Mac"
   if not days:
     days = "7"
@@ -122,12 +122,15 @@ def mac(req, mac="",days="7",dns="",aip="",naip="",prefixid=""):
 
   object.form = form
                 
-  page.title = "Trace - "+keyword
-  page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Trace", "/trace/"), (keyword,False)]
+  page.title = "Machine Tracker - "+keyword
+  page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Machine Tracker", "/machinetracker/"), (keyword,False)]
   return page.respond()
 
   
-def switchport(req, netbox="", module="%", port="%"):
+def switchport(req, netbox="", module="", port="", days=""):
+
+    if not days:
+	days="7"
 
     keyword = "Switchport"
 
@@ -137,7 +140,7 @@ def switchport(req, netbox="", module="%", port="%"):
     #import PortTrace
     object = Trace.PortTrace()
 
-    object.form = Trace.PortForm(netbox,module,port)
+    object.form = Trace.PortForm(netbox,module,port,days)
         
     streng = object.createForm(object.form)
     if object.form.netbox:
@@ -153,8 +156,8 @@ def switchport(req, netbox="", module="%", port="%"):
 
 
     page.content = lambda:streng
-    page.title = "Trace - "+keyword
-    page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Trace", "/trace/"), (keyword,False)]
+    page.title = "Machine Tracker - "+keyword
+    page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Machine Tracker", "/machinetracker/"), (keyword,False)]
 
 
     return page.respond()

@@ -366,7 +366,7 @@ $default_table_CSS()
 #set $evenrow = 1
 #end if
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
-          <a href="/trace/ip?from_ip=$row.ip&to_ip=$row.ip&days=$object.form.days&dns=$object.form.dns&aip=$object.form.aip&naip=$object.form.naip">$row.ip</a>
+          <a href="/machinetracker/ip?from_ip=$row.ip&to_ip=$row.ip&days=$object.form.days&dns=$object.form.dns&aip=$object.form.aip&naip=$object.form.naip">$row.ip</a>
       </td>
 #if $object.form.dns
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
@@ -374,7 +374,7 @@ $default_table_CSS()
       </td>
 #end if
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
-          <a href="/trace/mac?mac=$row.mac&days=$object.form.days&dns=$object.form.dns">$row.mac</a>
+          <a href="/machinetracker/mac?mac=$row.mac&days=$object.form.days&dns=$object.form.dns">$row.mac</a>
       </td>
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
           $row.start
