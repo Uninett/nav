@@ -37,8 +37,14 @@ def headerparserhandler(req):
     state.setupSession(req)
     auth.authenticate(req)
 
-    # Make sure the user's session is updated on every request
-    req.session['lastRequest'] = time.time()
+    # Make sure the user's session is updated on (almost) every
+    # request. If it was updated less than 30 seconds ago, we don't
+    # bother to update (to protect against writing the session on
+    # every request in a burst).
+    timenow = time.time()
+    if not req.session.has_key('lastRequest') or req.session['lastRequest'] < (timenow + 30):
+        req.session['lastRequest'] = timenow
+        req.session.save()
 
     # Make sure the main web template knows which user to produce
     # output for.

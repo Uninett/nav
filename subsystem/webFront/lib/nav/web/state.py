@@ -166,24 +166,32 @@ class Session(dict):
             return dict.__new__(cls)
         
         filename = path.join(tempDir, '%s%s' % (serialPrefix, sessionId))
-        try:
-            file = open(filename, 'r')
-        except IOError:
-            # If the session does  not exist, it has probably expired,
-            # and we raise an error
-            raise NoSuchSessionError, sessionId
+        attempts = 3
+        while attempts > 0:
+            try:
+                file = open(filename, 'r')
+            except IOError:
+                # If the session does  not exist, it has probably expired,
+                # and we raise an error
+                raise NoSuchSessionError, sessionId
 
-        fcntl.lockf(file, fcntl.LOCK_SH) # Shared read lock
-        unpickler = cPickle.Unpickler(file)
-        try:
-            session = unpickler.load()
-        except Exception, e:
-            # Make sure we unlock before reraising the exception
-            fcntl.lockf(file, fcntl.LOCK_UN)
-            raise e
-        else:
-            fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
-        
+            fcntl.lockf(file, fcntl.LOCK_SH) # Shared read lock
+            unpickler = cPickle.Unpickler(file)
+            try:
+                session = unpickler.load()
+            except Exception, e:
+                # Make sure we unlock before we do anything to handle
+                # this exception.  If the exception still occurs after
+                # three attempts at loading the session, we reraise
+                # the exception for someone else to handle
+                fcntl.lockf(file, fcntl.LOCK_UN)
+                attempts -= 1
+                if attempts <= 0:
+                    raise e
+            else:
+                attempts = 0
+                fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
+
         session._changed = False
         return session
 
