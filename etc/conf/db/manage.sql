@@ -151,7 +151,8 @@ CREATE TABLE vendor (
 
 CREATE TABLE cat (
   catid VARCHAR(8) PRIMARY KEY,
-  descr VARCHAR
+  descr VARCHAR,
+  req_snmp BOOLEAN NOT NULL
 );
 
 CREATE TABLE product (
