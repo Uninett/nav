@@ -126,7 +126,7 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Antall filtre: ") . sizeof($filtre);
 
 ?>

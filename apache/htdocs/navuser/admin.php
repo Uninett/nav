@@ -168,7 +168,7 @@ for ($i = 0; $i < sizeof($brukere); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Antall brukere: ") . sizeof($brukere);
 ?>
 <a name="nybruker"></a><p><h3>
