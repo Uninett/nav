@@ -1,5 +1,7 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
+import no.ntnu.nav.logger.*;
+
 import java.util.ArrayList;
 
 /**
@@ -78,7 +80,17 @@ public class Swport implements Comparable
 
 	String getSpeed() { return speed; }
 	char getDuplex() { return duplex; }
-	String getDuplexS() { return String.valueOf(duplex); }
+	String getDuplexS() { 
+		String s = String.valueOf(duplex).trim();
+		System.err.println("Duplex for port " +getPort() + " is |" + s + "|");
+		if (s.length() == 0) {
+			System.err.println("  match");
+			Log.w("SWPORT", "MISSING_DUPLEX", "Defaulting to full duplex. Port="+getPort()+", Swportid="+getSwportid());
+			return "f";
+		}
+		return s;
+	}
+
 	String getMedia() { return media; }
 
 	/**

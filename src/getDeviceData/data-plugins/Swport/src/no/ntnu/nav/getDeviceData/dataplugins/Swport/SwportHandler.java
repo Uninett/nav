@@ -203,10 +203,12 @@ public class SwportHandler implements DataHandler {
 					if (oldsd == null) {
 						// Sett inn ny
 						Log.i("NEW_SWPORT", "New swport: " + sd.getPort());
-
 						ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
 						rs.next();
 						swportid = rs.getString("swportid");
+
+						Log.d("NEW_SWPORT", "New swport, swportid="+swportid+", moduleid="+moduleid+", port="+sd.getPort()+", ifindex="+sd.getIfindex()+", link="+sd.getLink()+", speed="+sd.getSpeed()+", duplex="+sd.getDuplexS()+", media="+Database.addSlashes(sd.getMedia())+", trunk="+sd.getTrunkS()+", portname="+Database.addSlashes(sd.getPortname()));
+
 
 						String[] inss = {
 							"swportid", swportid,
