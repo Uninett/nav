@@ -4,7 +4,7 @@ $Id$
 This file is part of the NAV project.
 
 Copyright (c) 2003 by NTNU, ITEA nettgruppen
-Authors: Magnus Nordseth <magnun@itea.ntnu.no>,
+Authors: Magnus Nordseth <magnun@itea.ntnu.no>
          Stian Søiland <stain@itea.ntnu.no> 
 
 """
