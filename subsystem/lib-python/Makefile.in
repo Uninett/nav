@@ -14,7 +14,7 @@ localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
 pathmodule = src/nav/path.py
 
-.PHONY: all install install-lib clean distclean
+.PHONY: all install install-lib install-bin clean distclean
 
 all: $(pathmodule)
 
@@ -35,8 +35,13 @@ install-lib: $(pathmodule)
 	@cd src; \
 	installable=`find . -name '*.py'`; \
 	for file in $$installable; do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)/$(pythonlibdir)/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; \
 	done
+
+install-bin:
+	cd bin; \
+	$(INSTALL) -v -D -m 755 hasPrivilege.py $(DESTDIR)$(bindir)/hasPrivilege.py
+
 clean:
 	backups=`find src -name '*~'`; \
 	rm -f $$backups
