@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.5 2002/06/28 09:36:54 erikgors Exp $
+$Id: setup.py,v 1.6 2002/06/28 13:42:50 erikgors Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -30,7 +30,7 @@ class Service:
 		return self.id.__hash__()
 def parseLine(line):
 	try:
-		id,active,sysname,handler,args = eval(line.lower())
+		id,active,sysname,handler,args = eval(line)
 	except ValueError:
 		msg = "tuple of wrong size: (%s)" % line
 		raise TypeError(msg)
