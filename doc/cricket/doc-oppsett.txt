@@ -350,7 +350,8 @@ Oversikt
 	alt til rette for dette (trenger ikke gjøre noen forandring) men man 
 	må kommentere inn noen linjer i makeconfig scriptet (kommenter inn linjene 
 	i disk angående disksolaris). I tillegg må det legges inn støtte for dette 
-	i diskDevice.java og jython plugin scriptet.
+	i diskDevice.java og jython plugin scriptet. Tilslutt så må det seff opprettes
+	en tabell for diskIO
 
 9) Linker
    cricket sin hjemmeside:
