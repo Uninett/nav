@@ -38,7 +38,7 @@ use NAV::Path;
 $ENV{'PATH'} = '/bin:/usr/bin:/usr/local/bin';
 delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
-my ($res, $filnavn);
+my ($res, $filename);
 
 my $now_string = strftime "%w:%d:%A:%B:%V", localtime;
 my ($dayofweek, $dayofmonth, $weekday, $month, $weeknumber) = split(/\:/, $now_string);
@@ -48,51 +48,51 @@ my $conf = "$NAV::Path::sysconfdir/pgpasswd.conf";
 
 my %config = &NAV::config($conf);
 
-my $passord = $config{'passord'};
-my $brukernavn = $config{'brukernavn'};
-my $sti = $config{'sti'};
-my $logfil = $config{'logfil'};
+my $password = $config{'password'};
+my $username = $config{'username'} || 'postgres';
+my $path = $config{'path'} || '.';
+my $logfile = $config{'logfile'} || "$NAV::Path::localstatedir/log/pg_backup.log";
 
 
-# Sjekker om det er den første i måneden
+# Check whether today is the first of the month
 if ($dayofmonth eq '01')
 {
-	$filnavn = "fullbackup_postgres_01\.$month";
+	$filename = "fullbackup_postgres_01\.$month";
 }
-# Sjekker om det er første dagen i uka
+# Check whether it is the first day of the week
 elsif ($dayofweek eq '0')
 {
-	$uke = $weeknumber % 5;
-	$filnavn = "fullbackup_postgres_uke$uke";
+	$week = $weeknumber % 5;
+	$filename = "fullbackup_postgres_week$week";
 }
-# Hvis ikke så er det en vanlig ukedag
+# If not, it is a regular weekday
 else 
 {
-	$filnavn = "fullbackup_postgres_$weekday";
+	$filename = "fullbackup_postgres_$weekday";
 }
 
-open(LOGFIL,">>$logfil") || die "Kan ikke åpne loggfilen ($logfil): $!";
+open(LOGFILE,">>$logfile") || die "Unable to open log for writing ($logfile): $!";
 
 
-# Kjøre backup
+# Dump all the databases
 $now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFIL "$now_string\tBackup: pg_dumpall > $sti$filnavn\n";
-$res = `PGPASSWORD=$passord PGUSER=$brukernavn pg_dumpall > $sti$filnavn`;
-if ($res ne '') { print LOGFIL "$res\n\n"; }
+print LOGFILE "$now_string\tBackup: pg_dumpall > $path/$filename\n";
+$res = `PGPASSWORD=$password PGUSER=$username pg_dumpall > $path/$filename`;
+if ($res ne '') { print LOGFILE "$res\n\n"; }
 
-# Pakker ned filen
+# Compress the dump file
 $now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFIL "$now_string\tbzip2 $sti$filnavn\n";
-$res = `nice bzip2 -f $sti$filnavn`;
-if ($res ne '') { print LOGFIL "$res\n\n"; }
+print LOGFILE "$now_string\tbzip2 $path/$filename\n";
+$res = `nice bzip2 -f $path/$filename`;
+if ($res ne '') { print LOGFILE "$res\n\n"; }
 
-#VacuumDB
+# Vacuum databases
 $now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFIL "$now_string\tVacuumdb ...\n";
-$res = `PGPASSWORD=$passord  vacuumdb -U postgres -a -z`;
-if ($res ne '') { print LOGFIL "$res"; }
+print LOGFILE "$now_string\tVacuumdb ...\n";
+$res = `PGPASSWORD=$password  vacuumdb -U postgres -a -z`;
+if ($res ne '') { print LOGFILE "$res"; }
 
 $now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFIL "$now_string\tFerdig.\n\n";
+print LOGFILE "$now_string\tDone.\n\n";
 
-close(LOGFIL);
+close(LOGFILE);
