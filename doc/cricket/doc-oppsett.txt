@@ -238,6 +238,10 @@ Oversikt
   bigbud:~/navme/src/getDeviceData/dist$ java -jar getDeviceData.jar - \
                                           due.stud
 
+  NB! pga en liten bug i jyhton er det nødvendig å innstallere jython
+      på den maskinen som nav skal kjøre på. Dette må være jython 2.1
+      eller bedre.
+
   i) Vi har laget en konfig fil til jython scriptet der man kan
      spesifisere hvilke disker man ikke vil overvåke. Denne 
      heter diskException.conf og ligger under nav rota.
@@ -272,7 +276,7 @@ Oversikt
      interfaces.ifTable.ifEntry.ifDescr.1 = MS TCP Loopback interface
      interfaces.ifTable.ifEntry.ifDescr.2 = Intel 8255x-based Integrated Fast Ethernet
 
-     Dette vises ok men i all hemmeliget legger Windows ved en hex-NULL på slutten av begge 
+     Dette vises ok men i all hemmliget legger Windows ved en hex-NULL på slutten av begge 
      disse strengene som ikke vises. Denne må siles ut slik at det ikke
      blir tull i konfig-filene til cricket. Derfor er det gjort et lite
      hack på cricket sin Map.pm slik at vi kan hente ut interface på
@@ -346,25 +350,26 @@ Oversikt
    * tilgangskontroll  
    * Ny parallellisert innsamler
    * Vi må få hentet inn diskIO på boksene:
-   	Dette kan gjøres på en enkel måte , i Default fila til cricket ligger 
-	alt til rette for dette (trenger ikke gjøre noen forandring) men man 
-	må kommentere inn noen linjer i makeconfig scriptet (kommenter inn linjene 
-	i disk angående disksolaris). I tillegg må det legges inn støtte for dette 
-	i diskDevice.java og jython plugin scriptet. Tilslutt så må det seff opprettes
-	en tabell for diskIO
+   	  Dette kan gjøres på en enkel måte , i Default fila til cricket ligger 
+	    alt til rette for dette (trenger ikke gjøre noen forandring) men man 
+	    må kommentere inn noen linjer i makeconfig scriptet (kommenter inn linjene 
+	    i disk angående disksolaris). I tillegg må det legges inn støtte for dette 
+	    i diskDevice.java og jython plugin scriptet. Tilslutt så må det seff opprettes
+	    en tabell for diskIO
 
 9) Linker
    cricket sin hjemmeside:
-   	http://cricket.sourceforge.net
+   	    http://cricket.sourceforge.net
    net-snmp:
-   	http://net-snmp.sourceforge.net
+   	    http://net-snmp.sourceforge.net
    patch til net-snmp:
         http://sourceforge.net/tracker/index.php?func=detail&aid=577439&group_id=12694&atid=112694
    win-snmp hjelp:
-   	http://snmpboy.msft.net (win 2k)
-	http://www.wtcs.org/snmp4tpc/ (win 2k og NT)
+   	    http://snmpboy.msft.net (win 2k)
+	      http://www.wtcs.org/snmp4tpc/ (win 2k og NT)
    mib-hjelp:
         http://www.mibcentral.com
-	http://www.intermapper.com/contrib/mibs/UCD-SNMP(net-snmp)-MIB
-	
+	      http://www.intermapper.com/contrib/mibs/UCD-SNMP(net-snmp)-MIB
+	 jython:
+        http://www.jython.org
    	
