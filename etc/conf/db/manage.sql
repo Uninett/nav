@@ -7,6 +7,7 @@ DROP TABLE swportvlan CASCADE;
 DROP TABLE gwport CASCADE;
 DROP TABLE vlan CASCADE;
 DROP TABLE prefix CASCADE;
+DROP TABLE gwportprefix CASCADE;
 DROP TABLE swport CASCADE;
 DROP TABLE module CASCADE;
 DROP TABLE netboxcategory;
@@ -30,9 +31,6 @@ DROP TABLE org CASCADE;
 DROP TABLE port2off CASCADE;
 
 DROP TABLE swp_netbox CASCADE;
-
-DROP TABLE netboxdisk CASCADE;
-DROP TABLE netboxinterface CASCADE;
 
 -------VP - fingra fra fatet, Sigurd:
 DROP TABLE vp_netbox_xy CASCADE;
@@ -135,11 +133,6 @@ CREATE TABLE vendor (
   vendorid VARCHAR(15) PRIMARY KEY
 );
 
-CREATE TABLE typegroup (
-  typegroupid VARCHAR(15) PRIMARY KEY,
-  descr VARCHAR
-);
-
 CREATE TABLE cat (
   catid VARCHAR(8) PRIMARY KEY,
   descr VARCHAR
@@ -172,6 +165,7 @@ CREATE TABLE type (
   sysObjectID VARCHAR NOT NULL,
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
+  cs_at_vlan BOOL,
   frequency INT4,
   uptodate BOOLEAN NOT NULL DEFAULT 'f',
   descr VARCHAR,
@@ -233,20 +227,6 @@ CREATE TABLE netboxinfo (
 	UNIQUE(netboxid, key, var, val)
 );
 
--- netboxdisk and netboxinterface should be obsoleted by netboxinfo
---
---CREATE TABLE netboxdisk (
---  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
---  path VARCHAR NOT NULL,
---  blocksize INT4 NOT NULL DEFAULT 1024,
---  PRIMARY KEY (netboxid, path)
---);
---CREATE TABLE netboxinterface (
---  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
---  interf VARCHAR NOT NULL,
---  PRIMARY KEY (netboxid, interf)
---);
-
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
@@ -271,20 +251,19 @@ CREATE TABLE mem (
 CREATE TABLE swp_netbox (
   swp_netboxid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  module INT4 NOT NULL,
-  port INT4 NOT NULL,
+  ifindex INT4 NOT NULL,
   to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_module INT4,
-  to_port INT4,
+  to_ifindex INT4,
   misscnt INT4 NOT NULL DEFAULT '0',
-  UNIQUE(netboxid, module, port, to_netboxid)
+  UNIQUE(netboxid, ifindex, to_netboxid)
 );
 
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
-  port INT4,
   ifindex INT4 NOT NULL,
+  port INT4,
+  interface VARCHAR,
   link CHAR(1) CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   speed DOUBLE PRECISION,
   duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
@@ -341,13 +320,12 @@ CREATE TABLE swportblocked (
 
 
 CREATE TABLE port2off (
-  swportid INTEGER REFERENCES swport(swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  roomid VARHCAR(10) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
+  swportid INT4 REFERENCES swport(swportid) ON UPDATE CASCADE ON DELETE SET NULL,
+  roomid VARCHAR(10) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
   socket VARCHAR NOT NULL,
   office VARCHAR,
-  PRIMARY KEY(roomid,socket)
+  PRIMARY KEY(roomid, socket)
 );
-
 
 
 GRANT ALL ON org TO navall;
@@ -359,9 +337,6 @@ GRANT ALL ON type TO navall;
 GRANT ALL ON netbox TO navall;
 GRANT ALL ON netboxinfo TO navall;
 GRANT ALL ON netboxinfo_netboxinfoid_seq TO navall;
-GRANT ALL ON service TO navall;
-GRANT ALL ON serviceproperty TO navall;
-GRANT ALL ON service_serviceid_seq TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
@@ -373,7 +348,6 @@ GRANT ALL ON vendor TO navall;
 GRANT ALL ON product TO navall;
 GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
-GRANT ALL ON typegroup TO navall;
 GRANT ALL ON vlan TO navall;
 GRANT ALL ON port2off TO navall;
 
@@ -432,8 +406,9 @@ CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   sysname VARCHAR NOT NULL,
-  module VARCHAR(4) NOT NULL,
-  port INT4 NOT NULL,
+	ifindex INT4 NOT NULL,
+  module VARCHAR(4),
+  port INT4,
   mac CHAR(12) NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity',
@@ -539,6 +514,8 @@ GRANT SELECT ON swportblocked TO navadmin;
 
 GRANT SELECT ON netbox TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
+GRANT SELECT ON typesnmpoid TO getboksmacs;
+GRANT SELECT ON snmpoid TO getboksmacs;
 GRANT SELECT ON module TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
 GRANT SELECT ON vlan TO getBoksMacs;
@@ -559,8 +536,6 @@ GRANT SELECT,UPDATE ON netbox TO getDeviceData;
 GRANT ALL    ON netboxinfo TO getDeviceData;
 GRANT ALL    ON netboxinfo_netboxinfoid_seq TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
-GRANT ALL    ON netboxdisk TO getDeviceData;
-GRANT ALL    ON netboxinterface TO getDeviceData;
 GRANT ALL    ON cat TO getDeviceData;
 GRANT ALL    ON module TO getDeviceData;
 GRANT ALL    ON module_moduleid_seq TO getDeviceData;
@@ -869,6 +844,9 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
 -- GRANTS AND GRUNTS
 ------------------------------------------------------------------------------------------
 
+GRANT ALL ON service TO navall;
+GRANT ALL ON serviceproperty TO navall;
+GRANT ALL ON service_serviceid_seq TO navall;
 GRANT ALL ON alerthist TO navall;
 GRANT ALL ON alerthistvar TO navall;
 GRANT ALL ON alertq TO navall;
@@ -892,7 +870,7 @@ GRANT ALL ON eventq_eventqid_seq TO eventengine;
 GRANT ALL ON eventqvar TO eventengine;
 GRANT ALL ON alertq TO eventengine;
 GRANT ALL ON alertq_alertqid_seq TO eventengine;
-GRANT ALL ON alertqvar TO eventengine;
+GRANT ALL ON alertqmsg TO eventengine;
 GRANT ALL ON alerthist TO eventengine;
 GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
 GRANT ALL ON alerthistmsg TO eventengine;
