@@ -223,7 +223,7 @@ public class MibIISw implements DeviceHandler
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
 			long ticks = Long.parseLong(s[1]);
-			if (ticks > 0) {
+			if (ticks > 0 && ticks != 4294967295l) {
 				nc.netboxDataFactory(nb).setUptimeTicks(ticks);
 				nc.commit();
 			}
