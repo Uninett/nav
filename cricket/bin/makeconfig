@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.14 2002/06/17 09:10:57 stain Exp $
+# $Id: makeconfig,v 1.15 2002/06/17 10:35:36 stain Exp $
 
 use strict;
 
@@ -149,7 +149,7 @@ sub Servers {
                 print FIL "\ttarget-type = processes\n";
                 print FIL "\n";
 
-                if($ostype=="unix") {
+                if($ostype eq "unix") {
                   print FIL "target \"load\"\n";
                   print FIL "\ttarget-type = loadnix\n";
                   print FIL "\n";
