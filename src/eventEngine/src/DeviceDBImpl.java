@@ -94,15 +94,22 @@ class DeviceDBImpl implements DeviceDB
 		return deviceMap;
 	}
 
+	public void updateFromDB()
+	{
+		if (!updateMode && (System.currentTimeMillis()-lastDBUpdate > MIN_UPDATE_INTERVAL)) {
+			// Update from DB
+			mp.updateFromDB();
+			lastDBUpdate = System.currentTimeMillis();
+		}
+	}
+
 	public Device getDevice(int deviceid)
 	{
 		Integer id = new Integer(deviceid);
-		if (!updateMode && !deviceMap.containsKey(id) && (System.currentTimeMillis()-lastDBUpdate > MIN_UPDATE_INTERVAL)) {
-			// Update from DB
-			Log.d("DEVICEDB_IMPL", "GET_DEVICE", "Device not found, forcing DB update: " + deviceid);
-			System.err.println("Device not found, forcing DB update: " + deviceid);
-			mp.updateFromDB();
-			lastDBUpdate = System.currentTimeMillis();
+		if (!updateMode && !deviceMap.containsKey(id)) {
+			Log.d("DEVICEDB_IMPL", "GET_DEVICE", "Device not found, trying DB update: " + deviceid);
+			System.err.println("Device not found, trying DB update: " + deviceid);
+			updateFromDB();
 		}
 		return (Device)deviceMap.get(id);
 	}

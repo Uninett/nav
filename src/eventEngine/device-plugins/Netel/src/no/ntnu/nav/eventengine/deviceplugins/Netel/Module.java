@@ -22,20 +22,25 @@ public class Module extends Device
 
 	protected Module() { }
 
+	/*
 	public Module(DeviceDB devDB, ResultSet rs) throws SQLException
 	{
 		this(devDB, rs, null);
 	}
+	*/
 
-	public Module(DeviceDB devDB, ResultSet rs, Device d) throws SQLException
+	public Module(DeviceDB devDB, ResultSet rs, Netel parent) throws SQLException
 	{
-		super(devDB, rs, d);
+		super(devDB, rs, null);
 		update(rs);
 
+		this.parent = parent;
+		/*
 		if (d instanceof Module) {
 			Module m = (Module)d;
 			status = m.status;
 		}
+		*/
 	}
 
 	protected void update(ResultSet rs) throws SQLException
@@ -67,6 +72,18 @@ public class Module extends Device
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
 
+			Device p = (Device)ddb.getDevice(rs.getInt("parent_Deviceid"));
+			if (p instanceof Netel) {
+				Netel np = (Netel)p;
+				Module m = np.getModule(rs.getInt("deviceid"));
+				if (m != null) {
+					m.update(rs);
+				} else {
+					m = new Module(ddb, rs, np);
+					np.addModule(m);
+				}
+			}
+
 			//outld("new Module("+deviceid+")");
 			/*
 			if (rs.getInt("parent_deviceid") == 278) {
@@ -78,6 +95,7 @@ public class Module extends Device
 			}
 			*/
 
+			/*
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
 				Module m = new Module(ddb, rs);
@@ -95,9 +113,11 @@ public class Module extends Device
 					ddb.putDevice(m);
 				}
 			}
+			*/
 		}
 	}
 
+	/*
 	public void init(DeviceDB ddb)
 	{
 		Device d = (Device)ddb.getDevice(parentDeviceid);
@@ -109,6 +129,7 @@ public class Module extends Device
 			return;
 		}
 	}
+	*/
 
 	/**
 	 * Return the deviceid of the box this module is part of.

@@ -129,7 +129,7 @@ public class Box extends Device
 		return downMap.size();
 	}
 
-	public int boxidToDeviceid(int boxid)
+	public static int boxidToDeviceid(int boxid)
 	{
 		Integer i;
 		if ( (i=(Integer)boxidToDeviceid.get(new Integer(boxid))) != null) return i.intValue();
@@ -143,7 +143,7 @@ public class Box extends Device
 
 	/**
 	 * Update status; basically check if this box is in shadow if it is down. The default is to
-	 * to nothing, it is up to subclasses to do something useful here.
+	 * do nothing, it is up to subclasses to do something useful here.
 	 *
 	 */
 	public void updateStatus()

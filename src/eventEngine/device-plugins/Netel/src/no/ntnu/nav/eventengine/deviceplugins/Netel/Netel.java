@@ -116,13 +116,21 @@ public class Netel extends Box
 	protected void addModule(Module m)
 	{
 		modules.put(m.getDeviceidI(), m);
-		if (!m.isUp()) moduleDown(m);
+		//if (!m.isUp()) moduleDown(m);
 	}
 	protected void removeModule(Module m)
 	{
 		// If it is down, bring it up first
-		moduleUp(m);
-		modules.remove(m);
+		//moduleUp(m);
+		modules.remove(m.getDeviceidI());
+	}
+	public Module getModule(int deviceid)
+	{
+		return (Module)modules.get(new Integer(deviceid));
+	}
+	protected Set getModuleIdSet()
+	{
+		return modules.keySet();
 	}
 	protected void moduleDown(Module m)
 	{
@@ -151,7 +159,7 @@ public class Netel extends Box
 		return modulesDown.values().iterator();
 	}
 
-	// Override to avoid box going up if there is still modules down
+	// Override to avoid box going up if there are still modules down
 	public void up()
 	{
 		super.up();

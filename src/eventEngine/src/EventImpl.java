@@ -367,7 +367,7 @@ class AlertmsgParser
 			while ( (i=msg.indexOf("$", i)) != -1) {
 				if (++i == msg.length()) break;
 				int e = i;
-				while (e < msg.length() && (Character.isLetterOrDigit(msg.charAt(e)) || e == ';' || e == '_')  ) e++;
+				while (e < msg.length() && (Character.isLetterOrDigit(msg.charAt(e)) || msg.charAt(e) == ';' || msg.charAt(e) == '_')  ) e++;
 				String var = msg.substring(i, e).trim();
 				if (var.length() == 0) continue;
 				if (varMap.containsKey(var) || varMap.containsKey(var.toLowerCase())) {

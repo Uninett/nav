@@ -10,6 +10,11 @@ public interface DeviceDB
 {
 
 	/**
+	 * Reload data from database.
+	 */
+	public void updateFromDB();
+
+	/**
 	 * Get the device with the given deviceid.
 	 *
 	 * @param deviceid Deviceid of device to get

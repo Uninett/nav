@@ -19,6 +19,7 @@ import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
 public class BoxState implements EventHandler, EventCallback
 {
 	private Map startEventMap = new HashMap();
+	private Set sentAlertSet = new HashSet();
 	private int lastDownCount;
 
 	public static final int SHADOW_SEVERITY_DEDUCTION = 20;
@@ -33,23 +34,17 @@ public class BoxState implements EventHandler, EventCallback
 		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
 		Log.d("HANDLE", "Event: " + e);
 
-		Device d = ddb.getDevice(e.getDeviceid());
-		if (d == null) {
-			Log.w("HANDLE", "Device with deviceid="+e.getDeviceid()+" not found!");
-			return;
-		}
-
 		String eventtype = e.getEventtypeid();
 		boolean callback = false;
 
-		if (eventtype.equals("boxState") || eventtype.equals("moduleState") || eventtype.equals("linkState")) {
+		if (eventtype.equals("boxState")) {
+			Device d = ddb.getDevice(e.getDeviceid());
+			if (d == null) {
+				Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found! (boxState)");
+				return;
+			}
+
 			if (d instanceof Box) {
-				if (eventtype.equals("moduleState")) {
-					Log.d("HANDLE", "Ignoring moduleState event for the box itself!");
-					e.dispose();
-					return;
-				}
-					
 				Box b = (Box)d;
 
 				if (e.getState() == Event.STATE_START) {
@@ -97,6 +92,7 @@ public class BoxState implements EventHandler, EventCallback
 
 						try {
 							ddb.postAlert(a);
+							sentAlertSet.remove(e.getDeviceidI());
 						} catch (PostAlertException exp) {
 							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 						}
@@ -106,15 +102,31 @@ public class BoxState implements EventHandler, EventCallback
 					}
 					b.up();
 				}
+			}
+		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
+			// Get parent netbox
+			int parentDeviceid = Box.boxidToDeviceid(e.getNetboxid());
+			Device d = ddb.getDevice(parentDeviceid);
+			if (d instanceof Netel) {
+				if (!d.isUp()) {
+					// Ignore event since box itself is down
+					Log.d("HANDLE", "Box " + d + " is down, ignoring " + eventtype + " ("+e.getDeviceid()+")");
+					e.dispose();
+					return;
+				}
 
-			} else if (d instanceof Module) {
-				Module m = (Module)d;
-				Device pd = ddb.getDevice(m.getParentDeviceid());
-				Box pb = null;
-				if (d instanceof Box) {
-					pb = (Box)pd;
-				} else {
-					Log.w("HANDLE", "Module " + m + " does not have a valid parent device (id="+m.getParentDeviceid()+"): " + d);
+				Netel parent = (Netel)d;
+				Module m = parent.getModule(e.getDeviceid());
+				if (m == null) {
+					Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box " + d);
+					ddb.updateFromDB();
+					m = parent.getModule(e.getDeviceid());
+					if (m == null) {
+						Log.d("HANDLE", "Module " + e.getDeviceid() + " not found on box after updateFromDB " + d);
+						System.err.println("Module " + e.getDeviceid() + " not found on box after updateFromDB" + d);
+						e.dispose();
+						return;
+					}
 				}
 				if (eventtype.equals("linkState")) {
 					Port p = m.getPort(Integer.parseInt(e.getSubid()));
@@ -129,28 +141,28 @@ public class BoxState implements EventHandler, EventCallback
 					Log.d("HANDLE", "Port: " + p);
 				} else {
 					if (e.getState() == Event.STATE_START) {
-						if (!m.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
+						if (!m.isUp() && startEventMap.containsKey("m"+e.getDeviceidI())) {
 							Log.d("HANDLE", "Ignoring duplicate down event for Module");
 							e.dispose();
 							return;
 						}
 						Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
 						m.down();
-						startEventMap.put(e.getDeviceidI(), e);
+						startEventMap.put("m"+e.getDeviceidI(), e);
 						callback = true;
 					} else if (e.getState() == Event.STATE_END) {
 						// Get the down alert
 						Alert a = ddb.getDownAlert(e);
 						if (a == null) {
 							// The down event could be in the startEventMap queue
-							Event se = (Event)startEventMap.get(e.getDeviceidI());
+							Event se = (Event)startEventMap.get("m"+e.getDeviceidI());
 							if (se == null) {
 								Log.d("HANDLE", "Ignoring module up event as no down event was found!");
 								e.dispose();
 								return;
 							}
 							// For now ignore transient events
-							startEventMap.remove(e.getDeviceidI());
+							startEventMap.remove("m"+e.getDeviceidI());
 							se.dispose();
 							e.dispose();
 							Log.d("HANDLE", "Ignoring transient moduleState");
@@ -161,33 +173,35 @@ public class BoxState implements EventHandler, EventCallback
 							a = ddb.alertFactory(e, "moduleUp");
 							a.addEvent(e);
 
-							if (pb != null && pb.onMaintenance()) {
+							if (parent != null && parent.onMaintenance()) {
 								// Do not post to alertq if box is on maintenace
 								a.setPostAlertq(false);
 							}
 
 							try {
 								ddb.postAlert(a);
+								sentAlertSet.remove("m"+e.getDeviceidI());
 							} catch (PostAlertException exp) {
 								Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 							}
 
 							// Clean up
-							startEventMap.remove(e.getDeviceidI());
+							startEventMap.remove("m"+e.getDeviceidI());
 						}
 						m.up();
 					}
-
 					//outld("BoxState  Module: " + m);
 				}
-				
-			} else {
-				Log.w("HANDLE", "Device " + d + " not Box, Module or sub-class: " + d.getClassH());
-				e.defer("Device not Box, Module or sub-class: " + d.getClassH());
-				return;
 			}
 		} else if (eventtype.equals("boxRestart")) {
 			// Simply post on alertq
+			Device d = ddb.getDevice(e.getDeviceid());
+			if (d == null) {
+				Log.w("HANDLE", "Box with deviceid="+e.getDeviceid()+" not found (boxRestart)!");
+				e.dispose();
+				return;
+			}
+
 			String alerttype = e.getVar("alerttype");
 			Alert a = ddb.alertFactory(e, alerttype);
 			a.addEvent(e);
@@ -217,7 +231,7 @@ public class BoxState implements EventHandler, EventCallback
 		if (callback && !scheduledCB) {
 			lastDownCount = downCount;
 
-			int alertTickLength = 60;
+			int alertTickLength = 5;
 			int alertTicks = 4;
 
 			try {
@@ -255,9 +269,11 @@ public class BoxState implements EventHandler, EventCallback
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
 				Box b = (Box)i.next();
-				Log.d("CALLBACK", "Box down: " + b.getSysname() + " up: " + b.isUp());
+				if (sentAlertSet.contains(b.getDeviceidI())) continue;
 
 				if (!b.isUp()) {
+					Log.d("CALLBACK", "Box down: " + b.getSysname());
+
 					// The box iself is down, this means we don't report modules down if any
 					// Find the down event
 					Event e = (Event)startEventMap.get(b.getDeviceidI());
@@ -319,6 +335,7 @@ public class BoxState implements EventHandler, EventCallback
 					// Post the alert
 					try {
 						ddb.postAlert(a);
+						if (sentWarning) sentAlertSet.add(e.getDeviceidI());
 					} catch (PostAlertException exp) {
 						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
 					}
@@ -331,9 +348,12 @@ public class BoxState implements EventHandler, EventCallback
 						for (Iterator md = n.getModulesDown(); md.hasNext();) {
 							Module m = (Module)md.next();
 							if (m.isUp()) continue;
+							if (sentAlertSet.contains("m"+m.getDeviceidI())) continue;
+
+							Log.d("CALLBACK", "Module down on: " + b.getSysname() + ", " + m.getModule());
 							
 							// Find the down event
-							Event e = (Event)startEventMap.get(m.getDeviceidI());
+							Event e = (Event)startEventMap.get("m"+m.getDeviceidI());
 							if (e == null) {
 								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found! " + startEventMap.keySet());
 								continue;
@@ -365,6 +385,7 @@ public class BoxState implements EventHandler, EventCallback
 							// Post the alert
 							try {
 								ddb.postAlert(a);
+								if (sentWarning) sentAlertSet.add("m"+m.getDeviceidI());
 							} catch (PostAlertException exp) {
 								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
 							}

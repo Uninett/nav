@@ -569,8 +569,8 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 1673
 
 BEGIN;
-INSERT INTO eventq (source,target,netboxid,eventtypeid,state,severity) VALUES ('pping','getDeviceData',659,'notification','x',0);
-INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData' AND netboxid=659),'command','runNetbox');
+INSERT INTO eventq (source,target,netboxid,eventtypeid,state,severity) VALUES ('pping','getDeviceData',1022,'notification','x',0);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData' AND netboxid=1022),'command','runNetbox');
 COMMIT;
 
 BEGIN;
@@ -597,13 +597,22 @@ BEGIN;
 INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'voll-sby-980-h.%'),'boxState','e',100);
 COMMIT;
 
---test modul
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','s',100);
+INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),'boxState','s',100);
 COMMIT;
 
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
+INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),'boxState','e',100);
+COMMIT;
+
+
+--test modul
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module ASC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module ASC LIMIT 1),'moduleState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
 COMMIT;
 
 
