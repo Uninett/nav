@@ -102,11 +102,17 @@ $showBody($body)
 ## which entries to edit, or delete
 #def showList($list)
     <H3>$list.title</H3>
-#if $list.error
-    <P class='error'>$list.error</P>
-#end if
 #if $list.status
-    <P class='status'>$list.status</P>
+    <P class="status">
+#for $message in $list.status.messages
+        $message<BR>
+#end for
+    </P>
+    <P class="error">
+#for $error in $list.status.errors
+        $error<BR>
+#end for
+    </P>
 #end if
     <FORM method="$list.method" action="$list.action">
 #if $list.hiddenIdValue
@@ -186,11 +192,17 @@ $showBody($body)
 ## Template function for displaying a form for adding or editing
 #def showForm($form)
     <H3>$form.title</H3>
-#if $form.error
-    <P class='error'>$form.error</P>
-#end if
-#if $form.status 
-    <P class='status'>$form.status</P>
+#if $form.status
+    <P class="status">
+#for $message in $form.status.messages
+        $message<BR>
+#end for
+    </P>
+    <P class="error">
+#for $error in $form.status.errors
+        $error<BR>
+#end for
+    </P>
 #end if
     <FORM method="$form.method" action="$form.action" enctype="$form.enctype">
 #for $editbox in $form.editboxes
@@ -239,6 +251,9 @@ $showBody($body)
         <TABLE>
             <TR>
                 <TD><INPUT type="submit" name="$form.cnameConfirm" value="$form.textConfirm"></TD>
+#if $form.showCancel
+             <TD><INPUT type="submit" name="$form.cnameCancel" value="$form.textCancel"></TD>
+#end if 
             </TR>
         </TABLE>
     </FORM>

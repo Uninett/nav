@@ -8,9 +8,8 @@ from mod_python import util,apache
 from editdbSQL import *
 from socket import gethostbyaddr
 
-import editTables,nav.Snmp,sys,re,copy,initBox
+import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
 from nav.web.serviceHelper import getCheckers,getDescription
-from nav.Snmp import TimeOutException
 
 #################################################
 ## Constants
@@ -23,8 +22,17 @@ ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
 IGNORE_BOX = 'ignore_this_box'
 
-IMG_SYNTAXOK = '/images/lys/green.png'
-IMG_SYNTAXERROR = '/images/lys/red.png'
+# Bulk import images
+BULK_IMG_GREEN = '/images/lys/green.png'
+BULK_IMG_YELLOW = '/images/lys/yellow.png'
+BULK_IMG_RED = '/images/lys/red.png'
+
+# Bulk import status
+BULK_STATUS_OK = 1
+BULK_STATUS_YELLOW_ERROR = 2
+BULK_STATUS_RED_ERROR = 3
+# Bulk fieldname for unspecified fields
+BULK_UNSPECIFIED_FIELDNAME = 'excess'
 
 # REQ_TRUE: a required field
 # REQ_FALSE: not required
@@ -72,6 +80,14 @@ def handler(req):
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
+
+# A general class for html tables (used by the index)
+class Table:
+    def __init__(self,title,infotext,headings,rows):
+        self.title = title
+        self.infotext = infotext
+        self.headings = headings
+        self.rows = rows
 
 def index(req,showHelp=False):
     " Shows the index page "
@@ -191,13 +207,6 @@ def index(req,showHelp=False):
                      ('Edit database',None)]
     return template.respond()
 
-# A general class for html tables
-class Table:
-    def __init__(self,title,infotext,headings,rows):
-        self.title = title
-        self.infotext = infotext
-        self.headings = headings
-        self.rows = rows
 
 # Function for handling all submits
 def handleSubmit(req, table, action, editid):
@@ -206,6 +215,10 @@ def handleSubmit(req, table, action, editid):
         selected = [editid]
     else:
         selected = []
+   
+    # Cancel button redirect
+    if req.form.has_key(editForm.cnameCancel):
+        nav.web.redirect(req, BASEPATH, seeOther=True)
     
     # Make a list of selected entries (list of ids)
     if req.form.has_key(selectList.cnameChk):
@@ -277,53 +290,77 @@ def bulkImportParse(input,bulkdef,separator):
         elif len(line) > 0:
             fields = re.split(separator,line)
             data = {}
-            if not len(fields) == bulkdef.num_fields:
-                status = False
-                remark = 'Incorrect number of fields'
+            if (bulkdef.enforce_max_fields) and \
+               (len(fields) >  bulkdef.max_num_fields):
+                # len(fields) > max_num_fields
+                # and enforce_max_fields == True
+                status = BULK_STATUS_RED_ERROR
+                remark = 'Too many fields'
+            elif len(fields) < bulkdef.min_num_fields:
+                status = BULK_STATUS_RED_ERROR
+                remark = 'Missing one or more required fields'
             else:
-                status = True
-                for i in range(0,len(bulkdef.fields)):
-                    # fieldname,maxlen,required,use
-                    fn,ml,req,use = bulkdef.fields[i]
-                    # missing required field?
-                    if req and not len(fields[i]):
-                        status = False
-                        remark = "Syntax error: Required field '" + fn + \
-                                 "' missing"
-                        break
-                    # max field length exceeded?
-                    if ml and (len(fields[i]) > ml):
-                        status = False
-                        remark = "Syntax error: Field '" + fn + \
-                                 "' exceeds max field length"
-                        break
-                    # if this is the id field, check if it's unique in the db
-                    if fn == bulkdef.uniqueField:
-                        where = bulkdef.uniqueField + "='" + fields[i] + "'"
-                        result = bulkdef.table.getAllIDs(where=where)
-                        if result:
-                            status = False
-                            remark = "Not unique: An entry with " + fn + \
-                                     "=" + fields[i] + " already exists"
+                status = BULK_STATUS_OK
+                for i in range(0,len(fields)):
+                    # Is this one of the predefined fields?
+                    # ie. where i < max_fields
+                    # if not, it is eg. a subcatfield
+                    if i <= bulkdef.max_num_fields:
+                        # fieldname,maxlen,required,use
+                        fn,ml,req,use = bulkdef.fields[i]
+                        # missing required field?
+                        if req and not len(fields[i]):
+                            status = BULK_STATUS_RED_ERROR
+                            remark = "Syntax error: Required field '"+ fn + \
+                                     "' missing"
                             break
+                        # max field length exceeded?
+                        if ml and (len(fields[i]) > ml):
+                            status = BULK_STATUS_RED_ERROR
+                            remark = "Syntax error: Field '" + fn + \
+                                     "' exceeds max field length"
+                            break
+                        # if this is the id field, 
+                        # check if it's unique in the db
+                        if fn == bulkdef.uniqueField:
+                            where = bulkdef.uniqueField+"='"+fields[i] + "'"
+                            result = bulkdef.table.getAllIDs(where=where)
+                            if result:
+                                status = BULK_STATUS_YELLOW_ERROR
+                                remark = "Not unique: An entry with " +fn + \
+                                         "=" + fields[i] + " already exists"
+                                break
+                    else:
+                        # This field isn't specified in the bulkdef
+                        # Used by netbox for adding any number of subcats
+                        fn = BULK_UNSPECIFIED_FIELDNAME
+
                     # check the validity of this field with the bulkdefs 
                     # checkValidity function this is for checking things 
                     # like: do ip resolve to a hostname for netbox?
                     (status,validremark) = bulkdef.checkValidity(fn,fields[i])
                     if validremark:
                         remark = validremark
-                    if status == False:
+                    if status != BULK_STATUS_OK:
                         break
-                    # use this field if no syntax error (status==true)
+                    # use this field if no error (status==BULK_STATUS_OK)
                     # and if it's marked to be used (use == true)                    
-                    if (status == True) and (use == True):
+                    if (status == BULK_STATUS_OK) and (use == True):
                         data[fn] = fields[i] 
             parsed.append((status,data,remark,line,linenr))
     return parsed
-            
+
+
 def bulkImport(req,action):
+    # Cnames for hidden inputs
+    BULK_HIDDEN_DATA = 'blk_hd'
+    BULK_TABLENAME = 'blk_tbl'
+    BULK_SEPARATOR = 'blk_sep'
+
+    status = editdbStatus()
     # form
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'bulk/'
     form.title = 'Bulk import'
     form.textConfirm = 'Preview import'
@@ -377,13 +414,18 @@ def bulkImport(req,action):
         rows = []
         for p in parsed:
             status,data,remark,line,linenr = p
-            if status:
-                row = [(['<IMG src="' + IMG_SYNTAXOK + '">'],False),
+            if status == BULK_STATUS_OK:
+                row = [(['<IMG src="' + BULK_IMG_GREEN + '">'],False),
                        ([linenr],False),
                        ([line],False),
                        ([remark],False)]
-            else:
-                row = [(['<IMG src="' + IMG_SYNTAXERROR + '">'],False),
+            elif status == BULK_STATUS_YELLOW_ERROR:
+                row = [(['<IMG src="' + BULK_IMG_YELLOW + '">'],False),
+                       ([linenr],False),
+                       ([line],False),
+                       ([remark],False)]
+            elif status == BULK_STATUS_RED_ERROR:
+                row = [(['<IMG src="' + BULK_IMG_RED + '">'],False),
                        ([linenr],False),
                        ([line],False),
                        ([remark],False)]
@@ -393,20 +435,22 @@ def bulkImport(req,action):
         list = selectList()
         list.isBulkList = True
         list.title = 'Preview import'
-        list.hiddenIdValue = req.form['table']
         list.hiddenData = []
+        list.hiddenData.append((BULK_TABLENAME,req.form['table']))
+        list.hiddenData.append((BULK_SEPARATOR,req.form['separator']))
         for p in parsed:
             status,data,remark,line,linenr = p
-            if status:
-                list.hiddenData.append(line)
+            if status == BULK_STATUS_OK:
+                list.hiddenData.append((BULK_HIDDEN_DATA,line))
         list.headings = ['','Line','Input','Remark']
         list.rows = rows
         form = None
     elif req.form.has_key(selectList.cnameBulkConfirm):
         # import confirmed after preview
-        table = req.form[selectList.cnameHiddenId]
-        data = req.form[selectList.cnameHiddenData]
-        result = bulkInsert(data,bulkdef[table])
+        table = req.form[BULK_TABLENAME]
+        separator = req.form[BULK_SEPARATOR]
+        data = req.form[BULK_HIDDEN_DATA]
+        result = bulkInsert(data,bulkdef[table],separator)
         form.status = 'Inserted ' + str(result) + ' rows'
 
     nameSpace = {'editList': list, 'editForm': form}
@@ -415,11 +459,8 @@ def bulkImport(req,action):
     return template.respond()
 
 #Function for bulk inserting
-def bulkInsert(data,bulkdef):
+def bulkInsert(data,bulkdef,separator):
     prerowlist = []
-    # FIX:
-    # THIS IS NOT NECESSARILY ':' !!
-    separator = ':'
 
     if not type(data) is list:
         data = [data]
@@ -428,7 +469,7 @@ def bulkInsert(data,bulkdef):
         fields = re.split(separator,line)
 
         row = {}
-        for i in range(0,len(bulkdef.fields)):
+        for i in range(0,len(fields)):
             # fieldname,maxlen,required,use
             field,ml,req,use = bulkdef.fields[i]
             row[field] = fields[i] 
@@ -455,11 +496,17 @@ def editRoom(req,selected,action,error=None):
     table = 'room'
     idfield = 'roomid'
     templatebox = editboxRoom()
+    deleteDef = deletedefRoom()
     # Form definition
     form = editForm()
     form.action = BASEPATH + 'room/edit/'
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
+    form.status = status
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbRoom
     editList.tablename = 'room'
     editList.orderBy = 'roomid'
@@ -479,29 +526,29 @@ def editRoom(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='roomid')
                 if not error:
-                    editList.status = "Added room '" + req.form['roomid'] + "'"
+                    status.messages.append("Added room '" + \
+                                           req.form['roomid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='roomid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Room(s).roomid + ' ' 
-                    editList.status = status
+                        message += editTables.Room(s).roomid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected room(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -531,7 +578,6 @@ def editRoom(req,selected,action,error=None):
         path = EDITPATH + [('Rooms',False)]
         editList.title = 'Edit rooms'
         editList.action = BASEPATH + 'room/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -547,12 +593,18 @@ def editLocation(req,selected,action,error=None):
     table = 'location'
     idfield = 'locationid'
     templatebox = editboxLocation()
+    deleteDef = deletedefLocation()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Define form
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'location/edit/'
 
     # Define list
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbLocation
     editList.tablename = 'location'
     editList.orderBy = 'locationid'
@@ -567,30 +619,29 @@ def editLocation(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='locationid')
                 if not error:
-                    editList.status = "Added location '" + \
-                                  req.form['locationid'] + "'"
+                    status.messages.append("Added location '" + \
+                                           req.form['locationid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='locationid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Location(s).locationid + ' ' 
-                    editList.status = status
+                        message += editTables.Location(s).locationid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected location(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -621,7 +672,6 @@ def editLocation(req,selected,action,error=None):
         path = EDITPATH + [('Locations',False)]
         editList.title = 'Edit locations'
         editList.action = BASEPATH + 'location/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -637,11 +687,17 @@ def editOrg(req,selected,action,error=None):
     table = 'org'
     idfield = 'orgid'
     templatebox = editboxOrg()
+    deleteDef = deletedefOrg()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'org/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.Org
     editList.tablename = 'org'
     editList.orderBy = 'orgid'
@@ -660,29 +716,29 @@ def editOrg(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='orgid')
                 if not error:
-                    editList.status = "Added org '" + req.form['orgid'] + "'"
+                    status.messages.append("Added org '" + \
+                                           req.form['orgid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='orgid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Org(s).orgid + ' ' 
-                    editList.status = status
+                        message += editTables.Org(s).orgid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected organisation(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -713,7 +769,6 @@ def editOrg(req,selected,action,error=None):
         path = EDITPATH + [('Organisations',False)]
         editList.title = 'Edit organisations'
         editList.action = BASEPATH + 'org/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -729,11 +784,17 @@ def editType(req,selected,action,error=None):
     table = 'type'
     idfield = 'typeid'
     templatebox = editboxType()
+    deleteDef = deletedefType()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'type/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.Type
     editList.tablename = 'type'
     editList.orderBy = ['vendor','typename']
@@ -754,31 +815,30 @@ def editType(req,selected,action,error=None):
                 error = addEntry(req,templatebox,table,
                                  unique=['vendorid','typename'])
                 if not error:
-                    editList.status = "Added type '" + \
-                                  req.form['typename'] + "'"
+                    status.messages.append("Added type '" + \
+                                           req.form['typename'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              staticid=True,
                                              unique=['vendorid','typename'])
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Type(s).typename + ' ' 
-                    editList.status = status
+                        message += editTables.Type(s).typename + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected type(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -809,7 +869,6 @@ def editType(req,selected,action,error=None):
         path = EDITPATH + [('Types',False)]
         editList.title = 'Edit types'
         editList.action = BASEPATH + 'type/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -825,11 +884,17 @@ def editProduct(req,selected,action,error=None):
     table = 'product'
     idfield = 'productid'
     templatebox = editboxProduct()
+    deleteDef = deletedefProduct()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'product/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbProduct
     editList.tablename = 'product'
     editList.orderBy = 'vendorid'
@@ -846,31 +911,30 @@ def editProduct(req,selected,action,error=None):
                 error = addEntry(req,templatebox,table,
                                  unique=['productno','vendorid'])
                 if not error:
-                    editList.status = "Added product '" + \
-                                  req.form['productno'] + "'"
+                    status.messages.append("Added product '" + \
+                                           req.form['productno'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              staticid=True,
                                              unique=['productno','vendorid'])
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Product(s).productno + ' '  
-                    editList.status = status
+                        message += editTables.Product(s).productno + ' '  
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")   
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected product(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -901,7 +965,6 @@ def editProduct(req,selected,action,error=None):
         path = EDITPATH + [('Products',False)]
         editList.title = 'Edit products'
         editList.action = BASEPATH + 'product/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -917,11 +980,17 @@ def editVendor(req,selected,action,error=None):
     table = 'vendor'
     idfield = 'vendorid'
     templatebox = editboxVendor()
+    deleteDef = deletedefVendor()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'vendor/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbVendor
     editList.tablename = 'vendor'
     editList.orderBy = 'vendorid'
@@ -935,30 +1004,29 @@ def editVendor(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='vendorid')
                 if not error:
-                    editList.status = "Added vendor '" + \
-                                  req.form['vendorid'] + "'"
+                    status.messages.append("Added vendor '" + \
+                                           req.form['vendorid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              unique='vendorid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Vendor(s).vendorid + ' ' 
-                    editList.status = status
+                        message += editTables.Vendor(s).vendorid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected vendor(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -989,7 +1057,6 @@ def editVendor(req,selected,action,error=None):
         path = EDITPATH + [('Vendors',False)]
         editList.title = 'Edit vendors'
         editList.action = BASEPATH + 'vendor/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -1107,11 +1174,17 @@ def editPrefix(req,selected,action,error=None):
     table = 'prefix'
     idfield = 'prefixid'
     templatebox = editboxPrefix()
+    deleteDef = deletedefPrefix()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'prefix/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbPrefixVlan
     editList.tablename = 'prefix'
     editList.orderBy = 'netaddr'
@@ -1134,29 +1207,28 @@ def editPrefix(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addPrefix(req)
                 if not error:
-                    editList.status = "Added prefix '" + \
-                                  req.form['netaddr'] + "'"
+                    status.messages.append("Added prefix '" + \
+                                           req.form['netaddr'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updatePrefix(req)
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Prefix(s).netaddr + ' ' 
-                    editList.status = status
+                        message += editTables.Prefix(s).netaddr + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected prefix(es) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -1188,7 +1260,6 @@ def editPrefix(req,selected,action,error=None):
         path = EDITPATH + [('Prefixes',False)]
         editList.title = 'Edit prefixes'
         editList.action = BASEPATH + 'prefix/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -1204,11 +1275,17 @@ def editVlan(req,selected,action,error=None):
     table = 'vlan'
     idfield = 'vlanid'
     templatebox = editboxVlan()
+    deleteDef = deletedefVlan()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'vlan/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbVlan
     editList.tablename = 'vlan'
     editList.orderBy = ['vlan', 'nettype']
@@ -1231,20 +1308,19 @@ def editVlan(req,selected,action,error=None):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              staticid=True)
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += 'vlan ' + str(editTables.Vlan(s).vlan) + ' ' 
-                    editList.status = status
+                        message += 'vlan ' + str(editTables.Vlan(s).vlan) + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected prefix(es) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -1276,7 +1352,6 @@ def editVlan(req,selected,action,error=None):
         path = EDITPATH + [('Vlans',False)]
         editList.title = 'Edit vlans'
         editList.action = BASEPATH + 'vlan/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -1285,7 +1360,6 @@ def editVlan(req,selected,action,error=None):
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
-
 
 def insertNetbox(ip,sysname,catid,roomid,orgid,
                  ro,rw,deviceid,serial,
@@ -1416,7 +1490,7 @@ def updateNetbox(req,templateform,selected):
                 box = None
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
-                except TimeOutException:
+                except nav.Snmp.TimeOutException:
                     # No SNMP answer
                     templateform.error = 'No SNMP response, check RO community'
                     templateform.add(editboxNetbox(editId=selected,
@@ -1469,7 +1543,7 @@ def updateNetbox(req,templateform,selected):
                 box = None
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
-                except TimeOutException:
+                except namp.Snmp.TimeOutException:
                     templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(editId=selected,
@@ -1540,17 +1614,26 @@ def updateNetbox(req,templateform,selected):
         else:
             newSerial = form['serial']
 
-        if serial != newSerial:
-            # Any other devices in the database with this serial?
-            where = "serial = '" + str(newSerial) + "'"
-            device = editTables.Device.getAll(where)
-            if device:
-                message = 'Can\'t update the serialnumber since another '+\
-                          'device with this serial exists in ' + \
-                          'the database.'
-                templateform.add(editboxHiddenOrMessage(message))
-                templateform.showConfirm = False
-                return (status,action,templateform)
+        if len(newSerial):
+            if serial != newSerial:
+                # Any other devices in the database with this serial?
+                where = "serial = '" + str(newSerial) + "'"
+                device = editTables.Device.getAll(where)
+                if device:
+                    message = 'Can\'t update the serialnumber since another '+\
+                              'device with this serial exists in ' + \
+                              'the database.'
+                    templateform.add(editboxHiddenOrMessage(message))
+                    templateform.showConfirm = False
+                    return (status,action,templateform)
+        else:
+            # Empty serial specified, not allowed
+            nextStep = STEP_2
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+
+            message = 'You must enter a serial'
+            templateform.add(editboxHiddenOrMessage(message))
+            return (status,action,templateform)
 
         # Show subcategory/function editbox 
         # If category has changed, then don't load the old subcatinfo
@@ -1579,7 +1662,8 @@ def updateNetbox(req,templateform,selected):
             snmpversion = form['snmpversion']
             # Only use first char of snmpversion, don't insert things like
             # '2c'
-            snmpversion = snmpversion[0]
+            if len(snmpversion):
+                snmpversion = snmpversion[0]
 
         # Update netbox
         fields = {'ip': form['ip'],
@@ -1595,7 +1679,7 @@ def updateNetbox(req,templateform,selected):
         updateEntryFields(fields,'netbox','netboxid',selected)
 
         # Update device
-        if form['serial'] != oldBox.device.serial:
+        if len(form['serial']) and form['serial'] != oldBox.device.serial:
             # Set new serial, if it has changed
             fields = {'serial': form['serial']}
             deviceId = str(oldBox.device.deviceid)
@@ -1695,7 +1779,7 @@ def addNetbox(req,templateform):
                 box = None
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
-                except TimeOutException:
+                except nav.Snmp.TimeOutException:
                     # No SNMP answer
                     templateform.error = 'No SNMP response, check RO community'
                     templateform.add(editboxNetbox(formData=form))
@@ -1740,7 +1824,7 @@ def addNetbox(req,templateform):
                 box = None
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
-                except TimeOutException:
+                except nav.Snmp.TimeOutException:
                     templateform.error = 'No SNMP response, check RO community'
                     templateform.add(editboxNetbox(formData=form))
                     return (action,templateform)
@@ -1818,8 +1902,14 @@ def addNetbox(req,templateform):
                 # Not found, make new device
                 deviceId = None
         else:
-            # No serial specified
-            deviceId = None
+            # Empty serial specified, not allowed
+            nextStep = STEP_2
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+
+            message = 'You must enter a serial'
+            templateform.add(editboxHiddenOrMessage(message))
+            return (status,action,templateform)
+
         editboxHidden.addHidden('deviceid',deviceId)
 
         # Show subcategory/function editbox 
@@ -1862,11 +1952,17 @@ def editNetbox(req,selected,action,error=None):
     table = 'netbox'
     idfield = 'netboxid'
     templatebox = editboxNetbox()
+    deleteDef = deletedefNetbox()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'netbox/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbNetbox
     editList.tablename = 'netbox'
     editList.orderBy = ['roomid','sysname']
@@ -1885,20 +1981,19 @@ def editNetbox(req,selected,action,error=None):
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
                 # add new netbox
-                (status,action,form) = addNetbox(req,form)
+                (message,action,form) = addNetbox(req,form)
                 if action == 'list':
-                    editList.status = status
+                    status.messages.append(message)
             elif req.form.has_key(UPDATE_ENTRY):
                 selected = selected[0]
-                (status,action,form) = updateNetbox(req,form,selected)
+                (message,action,form) = updateNetbox(req,form,selected)
                 if action == 'list':
-                    editList.status = status
+                    status.messages.append(message)
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected box(es) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -1933,7 +2028,6 @@ def editNetbox(req,selected,action,error=None):
         path = EDITPATH + [('Boxes',False)]
         editList.title = 'Edit boxes'
         editList.action = BASEPATH + 'netbox/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -1950,11 +2044,17 @@ def editUsage(req,selected,action,error=None):
     table = 'usage'
     idfield = 'usageid'
     templatebox = editboxUsage()
+    deleteDef = deletedefUsage()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'usage/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.Usage
     editList.tablename = 'usage'
     editList.orderBy = 'usageid'
@@ -1969,30 +2069,29 @@ def editUsage(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='usageid')
                 if not error:
-                    editList.status = "Added usage category '" + \
-                                  req.form['usageid'] + "'"
+                    status.messages.append("Added usage category '" + \
+                                           req.form['usageid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,idfield,
                                              unique='usageid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Usage(s).usageid + ' ' 
-                    editList.status = status
+                        message += editTables.Usage(s).usageid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected usage categories deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -2027,7 +2126,6 @@ def editUsage(req,selected,action,error=None):
         path = EDITPATH + [('Usage categories',False)]
         editList.title = 'Edit usage categories'
         editList.action = BASEPATH + 'usage/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -2144,11 +2242,17 @@ def editService(req,selected,action,error=None):
     table = 'service'
     idfield = 'serviceid'
     templatebox = editboxService()
+    deleteDef = deletedefService()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'service/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.Service
     editList.tablename = 'service'
     editList.orderBy = 'handler'
@@ -2180,20 +2284,19 @@ def editService(req,selected,action,error=None):
                 else:
                     # No properties needed, so just add the service
                     addService(req,form)
-                    editList.status = 'Added service'
+                    status.messages.append('Added service')
                     action = 'list'
             elif req.form.has_key(UPDATE_ENTRY):
                 action,form,selected = updateService(req,form)
                 if action == 'list':
-                    editList.status = 'Updated service'
+                    status.messages.append('Updated service')
                 else:
                     editList = None
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected service(s) deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show
@@ -2232,7 +2335,6 @@ def editService(req,selected,action,error=None):
         path = EDITPATH + [('Services',False)]
         editList.title = 'Edit services'
         editList.action = BASEPATH + 'service/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -2248,11 +2350,17 @@ def editSubcat(req,selected,action,error=None):
     table = 'subcat'
     idfield = 'subcatid'
     templatebox = editboxSubcat()
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
+    deleteDef = deletedefSubcat()
     # Form definition
     form = editForm()
+    form.status = status
     form.action = BASEPATH + 'subcat/edit/'
     # List definition
     editList = selectList()
+    editList.status = status
     editList.table = editTables.editdbSubcat
     editList.tablename = 'subcat'
     editList.orderBy = ['catid','subcatid']
@@ -2268,30 +2376,29 @@ def editSubcat(req,selected,action,error=None):
             if req.form.has_key(ADDNEW_ENTRY):
                 error = addEntry(req,templatebox,table,unique='subcatid')
                 if not error:
-                    editList.status = "Added subcategory '" + \
-                                  req.form['subcatid'] + "'"
+                    status.messages.append("Added subcategory '" + \
+                                           req.form['subcatid'] + "'")
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'add'
             elif req.form.has_key(UPDATE_ENTRY):
                 selected,error = updateEntry(req,templatebox,table,
                                              idfield,unique='subcatid')
                 if not error:
-                    status = 'Updated '
+                    message = 'Updated '
                     for s in selected:
-                        status += editTables.Subcat(s).subcatid + ' ' 
-                    editList.status = status
+                        message += editTables.Subcat(s).subcatid + ' ' 
+                    status.messages.append(message)
                     action = 'list'
                 else:
-                    form.error = error
+                    status.errors.append(error)
                     action = 'edit'
         else:
-            form.error = "Required field '" + missing + "' missing"    
+            status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
     if req.form.has_key(selectList.cnameDeleteConfirm):
-        deleteEntry(selected,table,idfield)
-        editList.status = 'Selected subcategory deleted'
+        status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
@@ -2310,7 +2417,7 @@ def editSubcat(req,selected,action,error=None):
         path = EDITPATH + [('Subcategories',BASEPATH+'subcat/list'),
                            ('Add',False)]
         form.title = 'Add new subcategory'
-        form.textConfirm = 'Add'
+        form.textConfirm = 'Add subcat'
         form.add(editboxSubcat(formData=req.form))
         editList = None
     elif action == 'delete':
@@ -2326,7 +2433,6 @@ def editSubcat(req,selected,action,error=None):
         path = EDITPATH + [('Subcategories',False)]
         editList.title = 'Edit subcategories'
         editList.action = BASEPATH + 'subcat/edit/'
-        editList.error = error
         editList.fill()
         # don't display the form
         form = None
@@ -2352,6 +2458,11 @@ class editForm:
     textConfirm = None
     cnameConfirm = 'form_confirm'
     showConfirm = True
+
+    textCancel = 'Cancel'
+    cnameCancel = 'form_cancel'
+    showCancel = True
+    actionCancel = BASEPATH
 
     # Used by edit netbox in the intermediate
     CNAME_CONTINUE = 'cname_continue'
@@ -2608,7 +2719,12 @@ class editboxRoom(editbox):
             
     def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'roomid': [inputText(),REQ_TRUE],
+
+        disabled = False
+        if editId:
+            disabled = True
+
+        f = {'roomid': [inputText(disabled=disabled),REQ_TRUE],
              'locationid': [inputSelect(table=editTables.editdbLocation),REQ_TRUE],
              'descr': [inputText(),REQ_FALSE],
              'opt1': [inputText(),REQ_FALSE],
@@ -2631,7 +2747,11 @@ class editboxLocation(editbox):
             
     def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'locationid': [inputText(),REQ_TRUE],
+        disabled = False
+        if editId:
+            disabled = True
+
+        f = {'locationid': [inputText(disabled=disabled),REQ_TRUE],
              'descr': [inputText(),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
@@ -2651,7 +2771,7 @@ class editboxOrg(editbox):
         # Field definitions {field name: [input object, required]}
         o = [('','No parent')]
 
-        for org in self.table.getAllIterator():
+        for org in self.table.getAllIterator(orderBy='orgid'):
             o.append((org.orgid,org.orgid + \
                       ' (' + str(org.descr) + ')'))
 
@@ -2865,18 +2985,14 @@ class editboxNetboxSerial(editbox):
             else:
                 self.help = 'Unable to retrieve serialnumber for this ' + \
                             'device by SNMP. ' + \
-                            'Enter a serialnumber, or leave blank ' + \
-                            'if you don\'t want to register a serial ' +\
-                            'for this device.'
+                            'Enter a serialnumber'
         else:
             if serial:
                 # Serial was entered manually
                 self.help = ''
                 disabled = True
             else:   
-                self.help = 'Enter a serialnumber, or leave ' +\
-                            'blank if you don\'t want to register ' + \
-                            'a serial for this device.'
+                self.help = 'Enter a serialnumber'
 
         # If editSerial = True, override help text and always enable editing
         if editSerial:
@@ -3082,16 +3198,171 @@ class editboxBulk(editbox):
         self.fields = f
         self.setControlNames()
 
+# Classes for deleting
+class deletedef:
+    def delete(self,idList,status):
+        self.status = status
+        for id in idList:
+            try:
+                deleteEntry([id],self.table,self.idfield)
+                self.status.messages.append("Deleted %s '%s'" % \
+                                           (self.name,str(id)))
+            except psycopg.IntegrityError:
+                # Got integrity error while deleting, must check what
+                # dependencies are blocking
+                self.checkDependency(id)
+        return self.status
+
+    def checkDependency(self,id):
+        error = "Error while deleting %s '%s': " % (self.name,str(id))
+        errorState = False
+        for (table,other,key,url) in self.dependencies:
+            where = "%s='%s'" % (key,str(id))
+            if table.getAll(where):
+                errorState = True
+                # UGLY HTML
+                error += "%s is referenced in " % (self.name,) + \
+                         "one or more %s " % (other,) + \
+                         "<a href=\"%s%s\">" % (url,id) + \
+                         "(view report)</a>." 
+                break
+        if not errorState:
+            # Couldn't find the reference, maybe the tables are changed and
+            # the dependencies array must be updated? Give general error
+            error += '%s is referenced in another table' % (self.name,)
+        self.status.errors.append(error) 
+
+class deletedefRoom(deletedef):
+    table = 'room'
+    idfield = 'roomid'
+   
+    dependencies = [(editTables.Netbox,
+                     'boxes',
+                     'roomid',
+                     '/report/netbox/?roomid=')]
+    name = 'room'
+
+class deletedefLocation(deletedef):
+    table = 'location'
+    idfield = 'locationid'
+   
+    dependencies = [(editTables.Room,
+                     'rooms',
+                     'locationid',
+                     '/report/room/?locationid=')]
+    name = 'location'
+
+class deletedefSubcat(deletedef):
+    table = 'subcat'
+    idfield = 'subcatid'
+   
+    dependencies = []
+    name = 'subcategory'
+
+class deletedefOrg(deletedef):
+    table = 'org'
+    idfield = 'orgid'
+   
+    dependencies = [(editTables.Org,
+                    'organisations',
+                    'parent',
+                    '/report/org/?parent='),
+                    (editTables.Netbox,
+                    'boxes',
+                    'orgid',
+                    '/report/netbox/?orgid=')]
+    name = 'organisation'
+
+class deletedefUsage(deletedef):
+    table = 'usage'
+    idfield = 'usageid'
+   
+    dependencies = []
+    name = 'usage category'
+
+class deletedefType(deletedef):
+    table = 'type'
+    idfield = 'typeid'
+   
+    dependencies = []
+    name = 'type'
+
+class deletedefProduct(deletedef):
+    table = 'product'
+    idfield = 'productid'
+   
+    dependencies = []
+    name = 'product'
+
+class deletedefVendor(deletedef):
+    table = 'vendor'
+    idfield = 'vendorid'
+   
+    dependencies = [(editTables.Type,
+                    'types',
+                    'vendorid',
+                    '/report/type/?vendorid='),
+                    (editTables.Product,
+                    'products',
+                    'vendorid',
+                    '/report/product/?vendorid=')]
+
+    name = 'vendor'
+
+class deletedefVlan(deletedef):
+    table = 'vlan'
+    idfield = 'vlanid'
+   
+    dependencies = []
+    name = 'vlan'
+
+class deletedefPrefix(deletedef):
+    table = 'prefix'
+    idfield = 'vlanid'
+   
+    dependencies = []
+    name = 'prefix'
+ 
+class deletedefService(deletedef):
+    table = 'service'
+    idfield = 'serviceid'
+   
+    dependencies = []
+    name = 'service'
+
+class deletedefNetbox(deletedef):
+    table = 'netbox'
+    idfield = 'netboxid'
+   
+    dependencies = []
+    name = 'netbox'
+ 
+
+
+# Class for the template, holds status and error messages
+class editdbStatus:
+    # List of status messages, one line per message
+    messages = []
+    # List of error messages, one line per message
+    errors = []
+
+    def __init__(self):
+        self.messages = []
+        self.errors = []
+
+
 # Classes describing the fields for bulk import
 class bulkdefLocation:
     # number of fields
     tablename = 'location'
     table = editTables.Location
     uniqueField = 'locationid'
-    num_fields = 2
+    enofrce_max_fields = True
+    max_num_fields = 2
+    min_num_fields = 2
 
     process = False
-    syntax = '#locationid:descr'
+    syntax = '#locationid:descr\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('locationid',12,True,True),
@@ -3103,16 +3374,17 @@ class bulkdefLocation:
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
-
 class bulkdefRoom:
     # number of fields
     tablename = 'room'
     table = editTables.Room
     uniqueField = 'roomid'
-    num_fields = 7
+    enforce_max_fields = True
+    max_num_fields = 7
+    min_num_fields = 1
 
     process = False
-    syntax = '#roomid:locationid:descr:opt1:opt2:opt3:opt4'
+    syntax = '#roomid[:locationid:descr:opt1:opt2:opt3:opt4]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',10,True,True),
@@ -3124,8 +3396,15 @@ class bulkdefRoom:
               ('opt4',0,False,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
+        # locationid must exist in Location
+        if field == 'locationid':
+            try:
+                editTables.Location(data).load()
+            except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Location '" + data + "' not found in database"
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3133,10 +3412,12 @@ class bulkdefOrg:
     tablename = 'org'
     table = editTables.Org
     uniqueField = 'orgid'
-    num_fields = 6
+    enforce_max_fields = True
+    max_num_fields = 6
+    min_num_fields = 1
 
     process = False
-    syntax = '#orgid:parent:description:optional1:optional2:optional3'
+    syntax = '#orgid[:parent:description:optional1:optional2:optional3]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('orgid',10,True,True),
@@ -3147,8 +3428,14 @@ class bulkdefOrg:
               ('opt3',0,False,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
+        if field == 'parent':
+             try:
+                editTables.Org(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Parent '" + data + "' not found in database"  
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3157,17 +3444,19 @@ class bulkdefUsage:
     tablename = 'usage'
     table = editTables.Usage
     uniqueField = 'usageid'
-    num_fields = 2
+    enforce_max_fields = True
+    max_num_fields = 2
+    min_num_fields = 2
 
     process = False
-    syntax = '#usageid:descr'
+    syntax = '#usageid:descr\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('usageid',10,True,True),
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
@@ -3177,16 +3466,18 @@ class bulkdefVendor:
     tablename = 'vendor'
     table = editTables.Vendor
     uniqueField = 'vendorid'
-    num_fields = 1
+    enforce_max_fields = True
+    max_num_fields = 1
+    min_num_fields = 1
 
     process = False
-    syntax = '#vendorid'
+    syntax = '#vendorid\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
@@ -3195,10 +3486,12 @@ class bulkdefSubcat:
     tablename = 'subcat'
     table = editTables.Subcat
     uniqueField = 'subcatid'
-    num_fields = 3
+    enforce_max_fields = True
+    max_num_fields = 3
+    min_num_fields = 3
 
     process = False
-    syntax = '#subcatid:catid:description'
+    syntax = '#subcatid:catid:description\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('subcatid',0,True,True),
@@ -3206,7 +3499,7 @@ class bulkdefSubcat:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
@@ -3217,10 +3510,12 @@ class bulkdefType:
     tablename = 'type'
     table = editTables.Type
     uniqueField = 'typename'
-    num_fields = 7
+    enforce_max_fields = True
+    max_num_fields = 7
+    min_num_fields = 3
 
     process = False
-    syntax = '#vendorid:typename:sysoid:description:frequency:cdp:tftp'
+    syntax = '#vendorid:typename:sysoid[:description:frequency:cdp:tftp]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
@@ -3232,7 +3527,7 @@ class bulkdefType:
               ('tftp',0,False,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
@@ -3242,10 +3537,12 @@ class bulkdefProduct:
     tablename = 'product'
     table = editTables.Product
     uniqueField = 'productno'
-    num_fields = 4
+    enforce_max_fields = True
+    max_num_fields = 3
+    min_num_fields = 2
 
     process = True
-    syntax = '#vendorid:productno:description'
+    syntax = '#vendorid:productno[:description]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
@@ -3253,8 +3550,15 @@ class bulkdefProduct:
               ('descr',0,False,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
+
+        if field == 'vendorid':
+             try:
+                editTables.Vendor(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Vendor '" + data + "' not found in database"  
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3274,36 +3578,73 @@ class bulkdefNetbox:
     table = editTables.Netbox
     uniqueField = 'ip'
     # number of fields
-    num_fields = 7
+    enforce_max_fields = False
+    max_num_fields = 8
+    min_num_fields = 4
 
     process = True
-    syntax = '#roomid:ip:orgid:catid:ro:rw:serial'
+    syntax = '#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
               ('ip',0,True,True),
               ('orgid',10,True,True),
               ('catid',8,True,True),
+              ('serial',0,False,False),
               ('ro',0,False,True),
               ('rw',0,False,True),
-              ('serial',0,False,False)]
+              ('function',0,False,False)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
+                 
         if field == 'ip':
             try:
                 sysname = gethostbyaddr(data)[0]
             except:
                 remark = "DNS lookup failed, using '" + data + "' as sysname"
-
+        if field == 'roomid':
+             try:
+                editTables.Room(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Room '" + data + "' not found in database"  
+        if field == 'orgid':
+             try:
+                editTables.Org(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Organisation '" + data + "' not found in database"
+        if field == 'catid':
+             try:
+                editTables.Cat(data).load()
+             except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Invalid category '" + data + "'"
         if field == 'serial':
             if len(data):
-                where = "serial='" + data + "'"
+                where = "serial='%s'" % (data,)
                 device = editTables.Device.getAll(where)
                 if device:
-                    remark = "Duplicate serialnumber '" + data + "', skipping"
-                    status = False
+                    # There exists a device with this serial,
+                    # must check if any netbox is connected with this
+                    # device
+                    where = "deviceid='%s'" % (device[0].deviceid,)
+                    netbox = editTables.Netbox.getAll(where)
+                    if netbox:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "A box with the serial '" + data + \
+                                 "', already exists"
+        if field == BULK_UNSPECIFIED_FIELDNAME:
+            # These are subcats
+            # Need to check not only if the subcat exists, but
+            # also if the cat is correct
+            try:
+                editTables.Subcat(data).load()
+            except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Invalid subcat '" + data + "'"
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3335,8 +3676,8 @@ class bulkdefNetbox:
             if len(row['serial']):
                 fields = {'serial': row['serial']}
             else:
-                # Don't insert an empty serialnumber (as serialnumbers must be
-                # unique in the database)
+                # Don't insert an empty serialnumber
+                # (as serialnumbers must be unique in the database)
                 fields = {}
             deviceid = addEntryFields(fields,
                                       'device',
@@ -3349,18 +3690,25 @@ class bulkdefService:
     tablename = 'service'
     table = editTables.Service
     uniqueField = None
-    num_fields = 2
+    enforce_max_fields = True
+    max_num_fields = 2
+    min_num_fields = 2
 
     process = False
-    syntax = '#sysname/ip:handler'
+    syntax = '#sysname/ip:handler\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netboxid',0,True,True),
               ('handler',0,True,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
+       
+        if field == 'handler': 
+            if not data in getCheckers():
+                remark = "Invalid handler '" + data + "'"
+                status = BULK_STATUS_RED_ERROR
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3368,26 +3716,55 @@ class bulkdefPrefix:
     tablename = 'prefix'
     table = editTables.Prefix
     uniqueField = 'prefixid'
-    num_fields = 7
+    enforce_max_fields = True
+    max_num_fields = 6
+    min_num_fields = 1
 
     process = False
-    syntax = '#prefix/mask:nettype:org:netident:usage:description'
+    syntax= '#prefix/mask:nettype[:org:netident:usage:description:vlan]\n'
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netaddr',0,True,True),
-              ('nettype',0,False,True),
+              ('nettype',0,True,True),
               ('org',0,False,True),
               ('netident',0,False,True),
               ('usage',0,False,True),
-              ('description',0,False,True)]
+              ('description',0,False,True),
+              ('vlan',0,False,True)]
 
     def checkValidity(cls,field,data):
-        status = True
+        status = BULK_STATUS_OK
         remark = None
-        # check if cidr is valid here
+        if field == 'netaddr':
+            # Valid CIDR?
+            try:
+                sql = "SELECT '%s'::inet::cidr" % (data,) 
+                executeSQL([sql])
+            except psycopg.ProgrammingError:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Invalid CIDR '" + data + "'"
+        if field == 'nettype':
+            # Only add nettypes we're allowed to
+            where = "nettypeid='%s' and edit='t'" % (data,)
+            result = editTables.Nettype.getAll(where)
+            if not result:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Invalid nettype '" + data + "'"
+        if field == 'org':
+            try:
+                editTables.Org(data).load()
+            except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Organisation '" + data + "' not found in database"
+        if field == 'usage':
+            try:
+                editTables.Usage(data).load()
+            except forgetSQL.NotFound:
+                status = BULK_STATUS_RED_ERROR
+                remark = "Usage '" + data + "' not found in database"
+ 
         return (status,remark)
     checkValidity = classmethod(checkValidity)
-
 
 # Class representing a list of entries, used by the template
 class selectList:
@@ -3478,3 +3855,91 @@ class selectList:
                             text.append(getattr(i,sectextfield)) 
                     row.append((text,None))
             self.rows.append((id,row))
+
+
+
+# Class representing a list of entries, used by the template
+#class selectList:
+#    # Text and controlnames for the action bar
+#    textAdd = 'Add new'
+#    textEdit = 'Edit selected'
+#    textDelete = 'Delete selected'
+#    cnameAdd = 'submit_add'
+#    cnameEdit = 'submit_edit'
+#    cnameDelete = 'submit_delete'
+#    cnameChk = 'checkbox_id'
+#    # Delete controls
+#    cnameDeleteConfirm = 'confirm_delete'
+#    textDeleteConfirm = 'Delete'
+#    # Bulk controls
+#    cnameBulkConfirm = 'confirm_bulk'
+#    textBulkConfirm = 'Import'
+#    # List rows where
+#    where = None
+
+#    def __init__(self):
+#        # bulk confirm list?
+#        self.isBulkList = False
+#        # is this a confirm delete list?
+#        self.isDeleteList = False
+#        # list of entries to delete
+#        self.deleteList = []
+#        # For the template
+#        self.method = 'post'
+#        self.action = None
+#        self.error = None
+#        self.status = None
+#        self.backlink = None
+#
+#        # Variables that must be filled before passing to the template
+#        self.title = None
+#        self.headings = []
+#        self.rows = []
+
+#        # Variables used by fill()
+#        self.table = None
+#        self.idcol = None
+#        self.orderBy = None
+#        self.tablename = ''
+#
+#    def fill(self):
+#        " Fill the headings and rows lists "
+#    
+#        # fill headings
+#        self.headings = []
+#        if not self.isDeleteList:
+#            self.headings = ['Select']
+#        for heading,column,link in self.columns:    
+#            self.headings.append(heading)
+#
+#        # fill rows
+#        entries = []
+#        if not self.isDeleteList:
+#            entries = self.table.getAllIterator(orderBy=self.orderBy,
+#                                                where=self.where)
+#        else:
+#            for id in self.deleteList:
+#                entries.append(self.table(id))
+#
+#        for entry in entries:
+#            id = getattr(entry,self.idcol)
+#
+#            row = []
+#            for heading,column,link in self.columns:
+#                if link:
+#                    eid = id
+#                    if not type(eid) is str:
+#                        eid = str(id)
+#                    row.append(([getattr(entry,column)],BASEPATH + self.tablename + '/edit/' + eid))
+#                else:
+#                    text = []
+#                    if type(column) is str:
+#                        text = [getattr(entry,column)]
+#                    else:
+#                        sectable,secidfield,sectextfield = column
+#                        iter = sectable.getAllIterator(where=secidfield + \
+#                                        "='" + eid + "'")
+#                        for i in iter:
+#                            text.append(getattr(i,sectextfield)) 
+#                    row.append((text,None))
+#            self.rows.append((id,row))
