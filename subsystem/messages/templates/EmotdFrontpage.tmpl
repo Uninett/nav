@@ -44,12 +44,12 @@ $makeMenu()
       <td style="padding: 0px 10px;">&nbsp;</td>      
 #end if
 
-##if $message.new
-##          	Edited: $message.last_changed by $message.author<br />
-##	        Description: $message.description<br />
-##		Units on maintenance: $message.units<br />
-##		Is this a new message: $message.new
-##end if
+#if $message.new
+          	Edited: $message.last_changed by $message.author<br />
+	        Description: $message.description<br />
+		Units on maintenance: $message.units<br />
+		Is this a new message: $message.new
+#end if
 
 #if $farge == "white":
 #set $farge = "#eeeeee"

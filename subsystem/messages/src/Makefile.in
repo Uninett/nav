@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-files = conf.py  main.py  lib.py  menu.py  .htaccess
+files = main.py .htaccess
 
 .PHONY: all install install-web clean distclean
 

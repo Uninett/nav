@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-files = EmotdSelect.py
+files = __init__.py lib.py menu.py conf.py
 
 .PHONY: all install install-lib clean distclean
 
@@ -22,7 +22,7 @@ install: install-lib
 
 install-lib:
 	for file in $(files); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/web/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/web/messages/$$file || exit 1; \
 	done
 
 clean:

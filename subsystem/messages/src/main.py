@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
+# $Id$
 # Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
 #          Sigurd Gartmann <sigurd-nav@brogar.org>
 #
@@ -34,11 +34,11 @@ import re
 from nav import db
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox,EmotdSelect,redirect,shouldShow
-from lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime
-from menu import Menu
+from nav.web.messages.lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime
+from nav.web.messages.menu import Menu
 
 ## Configuration
-from conf import DATEFORMAT, BASEPATH, LANG1, LANG2, connection, database
+from nav.web.messages.conf import DATEFORMAT, BASEPATH, LANG1, LANG2, connection, database
 
 ## Templates
 from nav.web.templates.EmotdTemplate import EmotdTemplate
