@@ -57,13 +57,17 @@
 
     <mkdir dir="${DESTDIR}${warinstdir}"/>
     <copy file="${dist}/${war}" todir="${DESTDIR}${warinstdir}"/>
+    <!-- The navAdmin tool does not yet exist
     <mkdir dir="${DESTDIR}${tooldir}"/>
     <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
+    -->
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${jarinstdir}/${jar}"/>
     <delete file="${DESTDIR}${warinstdir}/${war}"/>
+    <!-- The navAdmin tool does not yet exist
     <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
+    -->
   </target>
 
   <target name="dist_debug" depends="dist"
