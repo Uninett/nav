@@ -65,7 +65,7 @@ class Packet:
 	if cksum:
 	    self.cksum = inet.cksum(packet)
 	    packet = chr(self.type) + chr(self.code) \
-		     + struct.pack('h', self.cksum) + idseq + self.data
+		     + struct.pack('H', self.cksum) + idseq + self.data
 	# Don't need to do any byte-swapping, because idseq is
 	# appplication defined and others are single byte values.
 	self.__packet = packet
