@@ -117,6 +117,8 @@ public class MibIISw implements DeviceHandler
 			for (Iterator it = operStatusMap.keySet().iterator(); it.hasNext();) {
 				String ifindex = (String)it.next();
 				if (skipIfindexSet.contains(ifindex)) continue;
+				// Some 3Com units doesn't give all us all every time
+				if (!admStatusMap.containsKey(ifindex) || !operStatusMap.containsKey(ifindex)) continue;
 				Swport swp = sc.swportFactory(ifindex);
 
 				try {
