@@ -18,13 +18,13 @@ import java.sql.*;
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.Path;
 
 
 class NavUtils
 {
-	public static final String navRoot = "/usr/local/nav/";
-	public static final String dbConfigFile = "local/etc/conf/db.conf";
-	public static final String configFile = "local/etc/conf/getPortData.conf";
+	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);;
+	public static final String configFile = (Path.sysconfdir + "/getPortData.conf").replace('/', File.separatorChar);;
 	public static final String scriptName = "navAdmin";
 
 	private Com com;
@@ -59,13 +59,13 @@ class NavUtils
 		try {
 			cp = new ConfigParser(configFile);
 		} catch (IOException e) {
-			nu.outl("Error, could not read config file: " + navRoot + configFile);
+			nu.outl("Error, could not read config file: " + configFile);
 			return;
 		}
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			nu.outl("Error, could not read config file: " + navRoot + dbConfigFile);
+			nu.outl("Error, could not read config file: " + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {

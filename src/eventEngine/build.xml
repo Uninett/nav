@@ -8,12 +8,10 @@
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 
-  <property name="prefix" location="/usr/local/nav"/>
-  <property name="bindir" location="${prefix}/bin"/>
-  <property name="libdir" location="${prefix}/lib"/>
-  <property name="javalibdir" location="${libdir}/java"/>
-  <property name="sysconfdir" location="${prefix}/etc"/>
-  <property name="localstatedir" location="${prefix}/var"/>
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../build.properties"/>
 
   <property name="instdir"  location="${bindir}/eventEngine"/>
 	<property name="debug" value="yes"/>
@@ -56,30 +54,30 @@
   </target>
 
   <target name="install" depends="dist">
-    <mkdir dir="${instdir}"/>
-    <copy file="${dist}/${jar}" todir="${instdir}"/>
+    <mkdir dir="${DESTDIR}${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
 
-    <mkdir dir="${instdir}/device-plugins"/>
-    <copy todir="${instdir}/device-plugins">
+    <mkdir dir="${DESTDIR}${instdir}/device-plugins"/>
+    <copy todir="${DESTDIR}${instdir}/device-plugins">
       <fileset dir="device-plugins" includes="*.jar"/>
     </copy>
 
-    <mkdir dir="${instdir}/handler-plugins"/>
-    <copy todir="${instdir}/handler-plugins">
+    <mkdir dir="${DESTDIR}${instdir}/handler-plugins"/>
+    <copy todir="${DESTDIR}${instdir}/handler-plugins">
       <fileset dir="handler-plugins" includes="*.jar"/>
     </copy>
 
     <!-- Place init script and default configuration files -->
-    <mkdir dir="${sysconfdir}/init.d" />
-    <copy file="eventengine" todir="${sysconfdir}/init.d" />
-    <copy file="eventEngine.conf" todir="${sysconfdir}" />
-    <copy file="alertmsg.conf" todir="${sysconfdir}" />
+    <mkdir dir="${DESTDIR}${sysconfdir}/init.d" />
+    <copy file="eventengine" todir="${DESTDIR}${sysconfdir}/init.d" />
+    <copy file="eventEngine.conf" todir="${DESTDIR}${sysconfdir}" />
+    <copy file="alertmsg.conf" todir="${DESTDIR}${sysconfdir}" />
   </target>
 
   <target name="uninstall">
-    <delete file="${instdir}/${jar}"/>
-    <delete dir="${instdir}/device-plugins"/>
-    <delete dir="${instdir}/handler-plugins"/>
+    <delete file="${DESTDIR}${instdir}/${jar}"/>
+    <delete dir="${DESTDIR}${instdir}/device-plugins"/>
+    <delete dir="${DESTDIR}${instdir}/handler-plugins"/>
   </target>
 
   <target name="dist_debug" depends="dist"

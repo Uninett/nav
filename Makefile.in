@@ -36,7 +36,8 @@ subdirs = src \
 	subsystem/thresholdMon \
 	subsystem/webFront
 
-
+# Make sure we export make variables to the environment
+export
 .PHONY: all install clean distclean
 
 all:

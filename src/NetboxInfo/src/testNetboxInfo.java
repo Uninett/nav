@@ -5,14 +5,14 @@ import java.sql.ResultSet;
 import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.Path;
 
 /**
  * Tests the NetboxInfo class.
  */
 
 class testNetboxInfo {
-	public static final String navRoot = "/usr/local/nav/";
-	public static final String dbConfigFile = "local/etc/conf/db.conf";
+	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getDeviceData";
 
 	public static void main(String[] args) throws Exception {
@@ -63,9 +63,9 @@ class testNetboxInfo {
 	private static boolean connectDb() throws Exception {
 		ConfigParser dbCp;
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + navRoot + dbConfigFile);
+			errl("Error, could not read config file: " + dbConfigFile);
 			return false;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {

@@ -20,16 +20,16 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.Path;
 
 
 class getBoksMacs
 {
-	public static final String navRoot = "/usr/local/nav/";
-	public static final String dbConfigFile = "local/etc/conf/db.conf";
-	public static final String configFile = "local/etc/conf/getBoksMacs.conf";
-	public static final String watchMacsFile = "local/etc/conf/watchMacs.conf";
+	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
+	public static final String configFile = (Path.sysconfdir + "/getBoksMacs.conf").replace('/', File.separatorChar);
+	public static final String watchMacsFile = (Path.sysconfdir + "/watchMacs.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getBoksMacs";
-	public static final String logFile = "local/log/getBoksMacs.log";
+	public static final String logFile = (Path.localstatedir + "/getBoksMacs.log").replace('/', File.separatorChar);
 
 	public static int NUM_THREADS = 24;
 	public static final int SHOW_TOP = 25;
@@ -69,15 +69,15 @@ class getBoksMacs
 	{
 		ConfigParser cp, dbCp;
 		try {
-			cp = new ConfigParser(navRoot + configFile);
+			cp = new ConfigParser(configFile);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + navRoot + configFile);
+			errl("Error, could not read config file: " + configFile);
 			return;
 		}
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + navRoot + dbConfigFile);
+			errl("Error, could not read config file: " + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
@@ -113,7 +113,7 @@ class getBoksMacs
 		}
 
 		// Init logger
-		Log.init(navRoot + logFile, "getBoksData");
+		Log.init(logFile, "getBoksData");
 
 		Log.i("INIT", "============ getBoksData starting ============");
 		Log.i("INIT", "Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
@@ -121,7 +121,7 @@ class getBoksMacs
 		// Load watchMacs
 		try {
 			int wmcnt=0;
-			BufferedReader bf = new BufferedReader(new FileReader(navRoot+watchMacsFile));
+			BufferedReader bf = new BufferedReader(new FileReader(watchMacsFile));
 			String s;
 			while ( (s=bf.readLine()) != null) {
 				s = s.trim();

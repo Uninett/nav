@@ -4,18 +4,23 @@
 SHELL = @SHELL@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+sysconfdir = @sysconfdir@
+initdir = @initdir@
 bindir = @bindir@
 libdir = @libdir@
 javalibdir = @javalibdir@
-sysconfdir = @sysconfdir@
 localstatedir = @localstatedir@
-tooldir = @tooldir@
 webroot = @webroot@
+tooldir = @tooldir@
 
-BUILDARGS = -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir) -Dtooldir=$(tooldir) -Dwebroot=$(webroot)
-INSTALLARGS = -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir) -Dtooldir=$(DESTDIR)$(tooldir) -Dwebroot=$(DESTDIR)$(webroot)
+top_srcdir = @top_srcdir@
+
+#BUILDARGS = -Dtop_srcdir=$(top_srcdir)/.. -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir) -Dtooldir=$(tooldir) -Dwebroot=$(webroot)
+#INSTALLARGS = -Dtop_srcdir=$(top_srcdir)/.. -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir) -Dtooldir=$(DESTDIR)$(tooldir) -Dwebroot=$(DESTDIR)$(webroot)
+INSTALLARGS = -DDESTDIR=$(DESTDIR)
 
 subdirs = \
+	Util \
 	ConfigParser \
 	Database \
 	Event \
@@ -25,10 +30,13 @@ subdirs = \
 	Logger \
 	NetboxInfo \
 	SimpleSnmp \
-	Util \
 	webapps/navAdmin
 
 ANT = @ANT@
+
+# Make sure we export make variables to the environment
+export
+.PHONY = all install clean distclean
 
 all: $(subdirs)
 
@@ -54,3 +62,4 @@ clean:
 
 distclean:
 	@echo Target distclean is not supported in the java projects, but should be...
+	rm -f build.properties

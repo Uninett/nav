@@ -1,0 +1,28 @@
+package no.ntnu.nav;
+/*
+ * $Id: $
+ * 
+ * This file is part of the NAV project.
+ * Defines the system paths of the NAV installation.
+ *
+ * The actual source of this file has a .source extension, and will be
+ * processed by Ant to have property references expanded (sort of
+ * preprocessing of the code)
+ *
+ * Copyright (C) 2003 NTNU ITEA
+ * Authors: Morten Vold <morten.vold@itea.ntnu.no>
+ *
+ */
+
+public class Path {
+    public static final String prefix        = "${prefix}";
+    public static final String exec_prefix   = "${exec_prefix}";
+    public static final String sysconfdir    = "${sysconfdir}";
+    public static final String initdir       = "${initdir}";
+    public static final String bindir        = "${bindir}";
+    public static final String libdir        = "${libdir}";
+    public static final String javalibdir    = "${javalibdir}";
+    public static final String localstatedir = "${localstatedir}";
+    public static final String webroot       = "${webroot}";
+    public static final String tooldir       = "${tooldir}";
+}

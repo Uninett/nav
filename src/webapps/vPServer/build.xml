@@ -8,8 +8,13 @@
   <property name="lib" location="lib"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-	<property name="prefix" location="../../../"/>
-  <property name="warinstdir"  location="${prefix}/webapps"/>
+
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../../build.properties"/>
+
+  <property name="warinstdir"  location="${prefix}/apache/webapps"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
@@ -39,11 +44,11 @@
   </target>
 
   <target name="install" depends="dist,dist_navutils">
-    <mkdir dir="${warinstdir}"/>
-    <copy file="${dist}/${war}" todir="${warinstdir}"/>
+    <mkdir dir="${DESTDIR}${warinstdir}"/>
+    <copy file="${dist}/${war}" todir="${DESTDIR}${warinstdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="${warinstdir}/${war}"/>
+    <delete file="${DESTDIR}${warinstdir}/${war}"/>
   </target>
 
   <target name="dist_debug" depends="dist"

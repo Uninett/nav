@@ -10,13 +10,10 @@
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 
-  <property name="prefix" location="/usr/local/nav"/>
-  <property name="bindir" location="${prefix}/bin"/>
-  <property name="libdir" location="${prefix}/lib"/>
-  <property name="javalibdir" location="${libdir}/java"/>
-  <property name="sysconfdir" location="${prefix}/etc"/>
-  <property name="localstatedir" location="${prefix}/var"/>
-  <property name="tooldir" location="${prefix}/apache/tools"/>
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../../build.properties"/>
 
   <property name="jarinstdir"  location="${bindir}/navAdmin"/>
   <property name="warinstdir"  location="${prefix}/apache/webapps"/>
@@ -60,18 +57,18 @@
   </target>
 
   <target name="install" depends="dist,dist_navutils">
-    <mkdir dir="${jarinstdir}"/>
-    <copy file="${dist}/${jar}" todir="${jarinstdir}"/>
+    <mkdir dir="${DESTDIR}${jarinstdir}"/>
+    <copy file="${dist}/${jar}" todir="${DESTDIR}${jarinstdir}"/>
 
-    <mkdir dir="${warinstdir}"/>
-    <copy file="${dist}/${war}" todir="${warinstdir}"/>
-    <mkdir dir="${tooldir}"/>
-    <copy file="navAdmin.tool" todir="${tooldir}" />
+    <mkdir dir="${DESTDIR}${warinstdir}"/>
+    <copy file="${dist}/${war}" todir="${DESTDIR}${warinstdir}"/>
+    <mkdir dir="${DESTDIR}${tooldir}"/>
+    <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
   </target>
   <target name="uninstall">
-    <delete file="${jarinstdir}/${jar}"/>
-    <delete file="${warinstdir}/${war}"/>
-    <delete file="${tooldir}/navAdmin.tool" />
+    <delete file="${DESTDIR}${jarinstdir}/${jar}"/>
+    <delete file="${DESTDIR}${warinstdir}/${war}"/>
+    <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
   </target>
 
   <target name="dist_debug" depends="dist,dist_navutils"

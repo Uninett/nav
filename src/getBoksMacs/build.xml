@@ -8,12 +8,10 @@
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 
-  <property name="prefix" location="/usr/local/nav"/>
-  <property name="bindir" location="${prefix}/bin"/>
-  <property name="libdir" location="${prefix}/lib"/>
-  <property name="javalibdir" location="${libdir}/java"/>
-  <property name="sysconfdir" location="${prefix}/etc"/>
-  <property name="localstatedir" location="${prefix}/var"/>
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../build.properties"/>
 
   <property name="instdir"  location="${bindir}/getBoksMacs"/>
 	<property name="debug" value="yes"/>
@@ -42,15 +40,15 @@
   </target>
 
   <target name="install" depends="dist">
-    <mkdir dir="${instdir}"/>
-    <copy file="${dist}/${jar}" todir="${instdir}"/>
-    <copy file="arplogger.pl" todir="${bindir}"/>
+    <mkdir dir="${DESTDIR}${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
+    <copy file="arplogger.pl" todir="${DESTDIR}${bindir}"/>
 
-    <mkdir dir="${sysconfdir}"/>
-    <copy file="getBoksMacs.conf" todir="${sysconfdir}"/>
+    <mkdir dir="${DESTDIR}${sysconfdir}"/>
+    <copy file="getBoksMacs.conf" todir="${DESTDIR}${sysconfdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${instdir}/${jar}"/>
   </target>
 
   <target name="dist_debug" depends="dist"

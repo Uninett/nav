@@ -18,18 +18,17 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
+import no.ntnu.nav.Path;
 
 class eventEngine
 {
-	public static final String realNavRoot = "/usr/local/nav/";
 	//public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
 	//public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
-	public static final String navRoot = realNavRoot.replace('/', File.separatorChar);
-	public static final String dbConfigFile = "local/etc/conf/db.conf".replace('/', File.separatorChar);
-	public static final String configFile = "local/etc/conf/eventEngine.conf".replace('/', File.separatorChar);
-	public static final String alertmsgFile = realNavRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
+	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
+	public static final String configFile = (Path.sysconfdir + "/eventEngine.conf").replace('/', File.separatorChar);
+	public static final String alertmsgFile = (Path.sysconfdir + "/alertmsg.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "eventEngine";
-	public static final String logFile = "local/log/eventEngine.log";
+	public static final String logFile = (Path.localstatedir + "/log/eventEngine.log").replace('/', File.separatorChar);
 
 	public static final boolean ERROR_OUT = true;
 	public static final boolean VERBOSE_OUT = true;
@@ -60,9 +59,9 @@ class eventEngine
 
 		ConfigParser dbCp;
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			System.err.println("Error, could not read config file: " + navRoot + dbConfigFile);
+			System.err.println("Error, could not read config file: " + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
@@ -71,13 +70,13 @@ class eventEngine
 		}
 
 		// Init logger
-		Log.init(navRoot + logFile, "eventEngine");
+		Log.init(logFile, "eventEngine");
 
 		// Deamon timer
 		timer = new Timer(false);
 
 		// Set up the config file monitor
-		if (cf == null) cf = navRoot + configFile;
+		if (cf == null) cf = configFile;
 		ConfigFileMonitorTask cfmt = new ConfigFileMonitorTask(cf);
 		if (cfmt.cfNotFound()) {
 			System.err.println("Error, could not read config file: " + cf);

@@ -19,6 +19,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
+import no.ntnu.nav.Path;
 
 // select swportid,boksid,sysname,typeid,ifindex,modul,port,status,speed,duplex,media,trunk from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f' order by boksid,modul,port;
 // select count(*) from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f';
@@ -30,11 +31,10 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 
 class getDeviceData
 {
-	public static final String navRoot = "/usr/local/nav/";
-	public static final String dbConfigFile = "local/etc/conf/db.conf";
-	public static final String configFile = "local/etc/conf/getDeviceData.conf";
+	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
+	public static final String configFile = (Path.sysconfdir + "/getDeviceData.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getDeviceData";
-	public static final String logFile = "local/log/getDeviceData.log";
+	public static final String logFile = (Path.localstatedir + "/log/getDeviceData.log").replace('/', File.separatorChar);
 
 	public static int NUM_THREADS = 16;
 	public static final int SHOW_TOP = 25;
@@ -85,7 +85,7 @@ class getDeviceData
 		}
 
 		// Init logger
-		Log.init(navRoot + logFile, "getDeviceData");
+		Log.init(logFile, "getDeviceData");
 		Log.setDefaultSubsystem("MAIN");
 
 		Log.i("INIT", "============ getDeviceData starting ============");
@@ -93,16 +93,16 @@ class getDeviceData
 
 		ConfigParser cp, dbCp;
 		try {
-			if (cf == null) cf = navRoot + configFile;
+			if (cf == null) cf = configFile;
 			cp = new ConfigParser(cf);
 		} catch (IOException e) {
 			Log.e("INIT", "Could not read config file: " + cf);
 			return;
 		}
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
-			Log.e("INIT", "Could not read config file: " + navRoot + dbConfigFile);
+			Log.e("INIT", "Could not read config file: " + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {

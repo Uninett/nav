@@ -7,16 +7,30 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-	<property name="prefix" location="../../"/>
-  <property name="instdir"  location="${prefix}/lib/java"/>
+
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../build.properties"/>
+  
+  <property name="instdir"  location="${javalibdir}" />
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
+  <property name="path.module" value="src/no/ntnu/nav/Path.java" />
 
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
+
+    <!-- Output source code for the Path class by expanding references to
+    properties in the raw file -->
+    <copy file="${path.module}.source" tofile="${path.module}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
   </target>
 
   <target name="compile" depends="init"
@@ -47,5 +61,6 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete file="${path.module}"/>
   </target>
 </project>

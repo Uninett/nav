@@ -44,6 +44,7 @@ initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
 
 AC_OUTPUT(Makefile
+	src/build.properties
 	src/eventEngine/eventengine
 	src/getDeviceData/getDeviceData
 	bin/getDeviceData/getDeviceData.sh
