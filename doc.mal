@@ -1,0 +1,53 @@
+FILNAVN
+<skriv filnavn her med katalogstruktur>
+/usr/local/nav/navme/doc.mal
+
+REVISJONER OG ANSVARLIG PROGRAMMERER	
+<liste med dato og programmerer eget navn kommer ikke flere ganger>
+02.08.01 Sigurd Gartmann
+
+MERKNAD
+<det er sikkert noe veldig viktig du vil si til verden>
+Overskrifter tas bare med dersom avsnittet eksisterer.
+
+BAKGRUNN
+<bakgrunn for hvorfor skriptet ble laget>
+Et forsøk på en standard bør være dokumentert.
+
+BESKRIVELSE
+<en mer nøyaktig beskrivelse av funksjonaliteten sett utenfra>
+Ja, her kunne det stått mye, men ikke alt er like interessant.
+
+MODULER
+<alt som kommer etter use, også strict>
+strict
+
+FILER
+<hvis noen>
+
+DATABASETABELLER
+<dersom de eksisterer>
+database.tabell
+
+MIBER
+<snmp-ting>
+1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16
+
+KJENTE FEIL
+<ja, det er sikkert en liten bakdel med skriptet som du skulle ønske var annerledes>
+
+DOKUMENTASJON
+<hvor ligger dette dokumentet>
+/usr/local/nav/navme/doc.mal
+
+DOKUMENTASJONSHISTORIE
+<hvem og når gjorde det siste på dette dokumentet>
+02.08.01 Sigurd Gartmann
+
+
+
+
+
+
+
+
