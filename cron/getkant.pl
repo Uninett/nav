@@ -163,28 +163,37 @@ sub hent_data
 #	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
     }
 
-
 #prefiksid
     my $prefiksid;
-
-    
-    $ip2NetMask2= $ip2NetMask.'.'.$ip;
-
-    @lines = &snmpget("$ro\@$ip",$ip2NetMask2);
-    foreach $netmask (@lines)
+    @lines = &snmpget("$ro\@$ip","$ip2NetMask.$ip");
+    my $nettadr;
+    my $maske;
+    foreach $line (@lines)
     {
-	my $nettadr = &and_ip($ip,$netmask);
-	my $maske = &mask_bits($netmask);
-	$prefiksid = $prefiksid{$nettadr}{$maske};
-
-	print "$ip\t$gwip:$netmask\t$nettadr/$maske\t*$prefiksid*\n";
-
+        ($gwip,$netmask) = split(/:/,$line);
+	$nettadr = &and_ip($gwip,$netmask);
+	$maske = &mask_bits($netmask);
     }
+    print $prefiksid = $prefiksid{$nettadr}{$maske};
+    unless ($prefiksid){
+	@lines = &snmpwalk("$ro\@$ip",$ip2NetMask);
+	foreach $line (@lines)
+	{
+	    ($gwip,$netmask) = split(/:/,$line);
+	    $nettadr = &and_ip($gwip,$netmask);
+	    $maske = &mask_bits($netmask);
+	    unless ($prefiksid = $prefiksid{$nettadr}{$maske}) {
+		$prefiksid = &finn_prefiks($ip);
+	    }
+	    print "prefiksid = $prefiksid\n";
+	}
+    }
+    print "ytre prefiksid  +++++++++ = $prefiksid\n";
     unless ($boks{$id}{prefiksid} =~ /$prefiksid/){
 	$boks{$id}{prefiksid}= $prefiksid;
 	&oppdater_en("boks","prefiksid",$prefiksid,$felt[0],$id);
     }
-    
+
     #ais og software
     my ($SV,$ais) = &finn_sv($id,$ip);
 
@@ -341,6 +350,30 @@ sub mask_bits {
     {
         return 0;
     }
+}
+sub finn_prefiks
+{
+    my $ip = $_[0];
+    my $prefiksid = 0;
+    if (exists $prefiksid{&and_ip($ip & 255.255.255.252)}{&mask_bits(255.255.255.252)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske};
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.248)}{&mask_bits(255.255.255.248)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske};
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.240)}{&mask_bits(255.255.255.240)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske};
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.224)}{&mask_bits(255.255.255.224)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske}; 
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.192)}{&mask_bits(255.255.255.192)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske}; 
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.128)}{&mask_bits(255.255.255.128)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske}; 
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.255.0)}{&mask_bits(255.255.255.0)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske};
+    } elsif (exists $prefiksid{&and_ip($ip & 255.255.254.0)}{&mask_bits(255.255.254.0)}){
+	$prefiksid = $prefiksid{$nettadr}{$maske};
+    } 
+    print "indre prefiksid = $prefiksid\n";
+    return $prefiksid;
 }
 ########################
 sub hent_prefiksid {
