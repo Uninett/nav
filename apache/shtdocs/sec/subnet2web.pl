@@ -131,11 +131,6 @@ sub skriv_adresserom
 	    if ($line[2] =~ /23|24|25|26|27/)
 	    {
 
-		if ($line[2] == 27)
-		{
-		    print "27 bits: $line[1]<br>";
-		}
-
 		$subnet{$tip[2]}{$tip[3]}{bits} = $line[2];
 		$subnet{$tip[2]}{$tip[3]}{vlan} = $line[3];
 		$subnet{$tip[2]}{$tip[3]}{mask} = $line[4]||0;
