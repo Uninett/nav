@@ -101,24 +101,30 @@ def login(req, login='', password='', origin=''):
         if account is None:
             # If we did not find the account in the NAVdb, we try to
             # find the account through LDAP, if available.
-            if ldapAuth.available and ldapAuth.authenticate(login, password):
-                authenticated = True
-                apache.log_error('Account %s authenticated through LDAP' % login,
-                                 apache.APLOG_INFO, req.server)
-                # The login name was authenticated through our LDAP
-                # setup, so we create a new account in the NAVdb for
-                # this user.
-                fullName = ldapAuth.getUserName(login)
-                
-                account = Account()
-                account.login = login
-                account.name = fullName
-                account.setPassword(password)
-                account.ext_sync = 'ldap'
-                account.save()
-
-                # Later, we should allow configuration of default
-                # groups and such
+            if ldapAuth.available:
+                try:
+                    authenticated = ldapAuth.authenticate(login, password)
+                except ldapAuth.NoAnswerError, e:
+                    return _getLoginPage(origin, "Login failed<br>(Unable to make contact with the LDAP server)")
+                else:
+                    if not authenticated:
+                        return _getLoginPage(origin, "Login failed")
+                    apache.log_error('Account %s authenticated through LDAP' % login,
+                                     apache.APLOG_INFO, req.server)
+                    # The login name was authenticated through our LDAP
+                    # setup, so we create a new account in the NAVdb for
+                    # this user.
+                    fullName = ldapAuth.getUserName(login)
+                    
+                    account = Account()
+                    account.login = login
+                    account.name = fullName
+                    account.setPassword(password)
+                    account.ext_sync = 'ldap'
+                    account.save()
+    
+                    # Later, we should allow configuration of default
+                    # groups and such
             else:
                 # If no alternative account retrieval methods were
                 # available, we fail the login

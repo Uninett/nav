@@ -1,5 +1,5 @@
 """
-$Id: Not checked in yet$
+$Id:$
 
 This file is part of the NAV project.
 
