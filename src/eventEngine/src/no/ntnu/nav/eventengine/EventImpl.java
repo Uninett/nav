@@ -273,6 +273,8 @@ class AlertmsgParser
 			outld("IOException when parsing alertmsg file: " + e.getMessage());
 		}
 
+		outld("formatMsgs, varMap: " + varMap);
+
 		Map m = (Map)eventtypeidMap.get(eventtypeid);
 		if (m == null) {
 			outld("Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
@@ -299,11 +301,6 @@ class AlertmsgParser
 				String var = msg.substring(i, e).trim();
 				if (var.length() == 0) continue;
 				if (varMap.containsKey(var)) {
-
-					Object o = varMap.get(var);
-					if (!(o instanceof String)) {
-						outld("formatMsgs: Unknown object: " + o);
-					}
 					msg.replace(i-1, e, (String)varMap.get(var));
 				}
 			}
