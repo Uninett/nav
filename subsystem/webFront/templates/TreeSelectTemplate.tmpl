@@ -1,0 +1,56 @@
+## $Id: $
+##
+## This file is part of the NAV project.
+##
+## TreeSelectTemplate.tmpl is used by TreeSelect to render the 
+## select boxes the template function treeselect() takes a 
+## TreeSelect.TreeSelect instance as it's argument. For more 
+## information, see the TreeSelect module
+##  
+## Last changed: 2003.09.10
+## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+##
+
+#def treeselect(selectbox)
+<div style="overflow: scroll">
+    <table>
+        <tr>
+#for select in $selectbox.elementList:
+#if len($select.options)
+            <th>$select.title</th>
+#end if
+#end for
+        </tr>
+        <tr>
+#set optgroup_end = False
+#for select in $selectbox.elementList:
+            <td>
+#if len($select.options)
+                <select style="min-width: ${selectbox.defaultWidth}px;" name="$select.elementName" onchange="$select.onchange" $select.getAttribs()>
+#for option in $select.options
+#if $option.optgroup
+#if $optgroup_end
+                    </optgroup>
+#set optgroup_end = False
+#end if
+                    <optgroup label="$option.value">
+#set optgroup_end = True
+#else
+#if $option.selected
+                        <option value="$option.value" selected>$option.text</option>
+#elif $option.disabled
+                        <option value="$option.value" disabled>$option.text</option>
+#else
+                        <option value="$option.value">$option.text</option>
+#end if
+#end if
+#end for
+                </select>
+$select.lastKeys()
+            </td>
+#end if
+#end for
+        </tr>
+    </table>
+</div>
+#end def
