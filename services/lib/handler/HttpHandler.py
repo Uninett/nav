@@ -1,5 +1,5 @@
 """
-$Id: HttpHandler.py,v 1.5 2002/07/08 14:13:33 magnun Exp $
+$Id: HttpHandler.py,v 1.6 2002/07/15 20:16:35 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/HttpHandler.py,v $
 """
 from job import Event, JobHandler
@@ -13,9 +13,9 @@ class HTTPConnection(httplib.HTTPConnection):
 		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
-	def __init__(self,serviceid,boksid,ip,args,version,db=None):
+	def __init__(self,serviceid,boksid,ip,args,version):
 		port = args.get('port',80)
-		JobHandler.__init__(self,'http',serviceid,boksid,(ip,port),args,version,db=db)
+		JobHandler.__init__(self,'http',serviceid,boksid,(ip,port),args,version)
 	def execute(self):
 		i = HTTPConnection(self.getTimeout(),*self.getAddress())
 		path = self.getArgs().get('path',['/'])[0]

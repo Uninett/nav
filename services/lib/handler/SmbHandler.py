@@ -1,5 +1,5 @@
 """
-$Id: SmbHandler.py,v 1.5 2002/07/08 14:13:33 magnun Exp $
+$Id: SmbHandler.py,v 1.6 2002/07/15 20:16:35 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmbHandler.py,v $
 """
 import os,re
@@ -12,9 +12,9 @@ class SmbHandler(JobHandler):
 		'password'
 		'port'
 	"""
-	def __init__(self, serviceid, boksid, ip, args, version,db=None):
+	def __init__(self, serviceid, boksid, ip, args, version):
 		address = (ip,args.get('port',139))
-		JobHandler.__init__(self,'smb',serviceid,boksid,address,args,version,db=db)
+		JobHandler.__init__(self,'smb',serviceid,boksid,address,args,version)
 	def execute(self):
 		args = self.getArgs()
 		username = args.get('username','')

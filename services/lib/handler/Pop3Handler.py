@@ -1,5 +1,5 @@
 """
-$Id: Pop3Handler.py,v 1.2 2002/07/08 14:13:33 magnun Exp $
+$Id: Pop3Handler.py,v 1.3 2002/07/15 20:16:35 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/Pop3Handler.py,v $
 """
 from job import JobHandler, Event
@@ -22,9 +22,9 @@ class Pop3Handler(JobHandler):
 	password
 	port
 	"""
-	def __init__(self, serviceid, boksid, ip, args, version,db=None):
+	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get("port", 110)
-		JobHandler.__init__(self, "pop3", serviceid, boksid, (ip, port), args, version,db=db)
+		JobHandler.__init__(self, "pop3", serviceid, boksid, (ip, port), args, version)
 
 	def execute(self):
 		args = self.getArgs()
