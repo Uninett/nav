@@ -5542,7 +5542,8 @@ def bulkInsert(data,bulkdef,separator):
                 # fieldname,maxlen,required,use
                 field,ml,req,use = bulkdef.fields[i]
                 # Escape special characters
-                row[field] = row[field].replace("'","\\'")
+                if row.has_key(field):
+                    row[field] = row[field].replace("'","\\'")
                 #row[field] = row[field].replace('"','\\"')
                 if not use:
                     if row.has_key(field):
