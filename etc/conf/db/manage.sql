@@ -209,10 +209,9 @@ CREATE TABLE service (
 
 CREATE TABLE serviceproperty (
 serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
-  index INT2 NOT NULL DEFAULT 1,
   property VARCHAR(64) NOT NULL,
   value VARCHAR(64),
-  PRIMARY KEY(serviceid, index, property)
+  PRIMARY KEY(serviceid, property)
 );
 
 CREATE TABLE mem (
