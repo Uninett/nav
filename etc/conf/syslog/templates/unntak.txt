@@ -1,0 +1,19 @@
+# unntaksfil
+#
+# oppsett:
+# ny_prioritet:meldingstype:boksnavn:kommentar
+#
+# forklaring:
+# ny_prioritet er et tall fra 0 til 6 som angir det nye prioritetsnivået
+# meldingstype må være på cisco-format.
+# boksnavnet må være fullt boksnavn (med installasjon.no).
+# kommentar er en tekstlig kommentar som ikke blir tatt hensyn til av skript
+# åpne felter for boks- eller type-felt, blir tolket som ALLE.
+#
+# eksempel:
+# 1:SEC-6-IPACCESSLOGDP:mtfs-gw.ntnu.no:veldig viktig melding
+# 3:OSPF-5-ADJCHG::ny prioritet til alle ospf-5-adjchg
+#
+#---------------------------------------------------------------------------
+3:OSPF-5-ADJCHG::ny pri
+6::trolla-gw.ntnu.no:Trolla er litt gal
