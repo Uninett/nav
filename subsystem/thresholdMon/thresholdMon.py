@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-##################################################
-# thresholdmon.py
-#
-# Author: John Magne Bredal, ITEA / NTNU © 2003
-##################################################
+"""
+$Id$
+
+This file is part of the NAV project.
+
+This is a python script that walks through the rrd-files in
+the nav-database and reports if the threshold is surpassed.
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: John Magne Bredal <bredal@itea.ntnu.no>
+"""
 
 import time
 

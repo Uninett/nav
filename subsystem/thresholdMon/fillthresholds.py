@@ -1,9 +1,17 @@
 #!/usr/bin/env python
-##################################################
-# fillthreshold.py
-#
-# Author: John Magne Bredal, ITEA / NTNU © 2003
-##################################################
+"""
+$Id$
+
+This file is part of the NAV project.
+
+This python script sets the initial thresholds on some of 
+the rrd-datasources. This is only meant to be done at install
+of NAV-v3, but may be done several times if there is a reason
+for that. The script will not overwrite any set thresholds.
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: John Magne Bredal <bredal@itea.ntnu.no>
+"""
 
 import psycopg
 import forgetSQL
