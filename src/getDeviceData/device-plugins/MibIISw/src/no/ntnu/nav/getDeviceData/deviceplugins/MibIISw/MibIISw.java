@@ -9,6 +9,7 @@ import no.ntnu.nav.util.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
@@ -25,6 +26,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
  * <ul>
  *  <li>From MIB-II</li>
  *  <ul>
+ *   <li>sysname</li>
+ *   <li>sysUptime</li>
  *   <li>ifIndex (not used)</li>
  *   <li>ifSpeed</li>
  *   <li>ifAdminStatus</li>
@@ -40,6 +43,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
 public class MibIISw implements DeviceHandler
 {
 	private static String[] canHandleOids = {
+		"sysname",
+		"sysUptime",
 		"ifSpeed",
 		"ifAdminStatus",
 		"ifOperStatus",
@@ -59,10 +64,22 @@ public class MibIISw implements DeviceHandler
 	{
 		Log.setDefaultSubsystem("MIB_II_SW_DEVHANDLER");
 		
+		NetboxContainer nc;
 		SwportContainer sc;
 		ModuleMonContainer mmc;
 		{
-			DataContainer dc = containers.getContainer("SwportContainer");
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+
+			dc = containers.getContainer("SwportContainer");
 			if (dc == null) {
 				Log.w("NO_CONTAINER", "No SwportContainer found, plugin may not be loaded");
 				return;
@@ -93,13 +110,13 @@ public class MibIISw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processMibII(nb, netboxid, ip, cs_ro, type, sc, mmc);
+		processMibII(nb, netboxid, ip, cs_ro, type, nc, sc, mmc);
 
 		// Commit data
 		sc.commit();
 	}
 
-	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
+	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
 	{
 		if (nb.getNumInStack() > 1) {
 			// Do moduleMon
@@ -123,6 +140,21 @@ public class MibIISw implements DeviceHandler
 				}
 				sSnmp.onlyAskModule(null);
 			}
+		}
+
+		// Collect sysname and uptime
+		List l;
+
+		l = sSnmp.getNext(nb.getOid("sysname"), 1, true, false);
+		if (l != null && !l.isEmpty()) {
+			String[] s = (String[])l.get(0);
+			nc.netboxDataFactory(nb).setSysname(s[1]);			
+		}
+
+		l = sSnmp.getNext(nb.getOid("sysUptime"), 1, false, false);
+		if (l != null && !l.isEmpty()) {
+			String[] s = (String[])l.get(0);
+			nc.netboxDataFactory(nb).setUptime(Double.parseDouble(s[1]));
 		}
 
 		Set skipIfindexSet = new HashSet();
