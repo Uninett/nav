@@ -410,11 +410,29 @@ class getBoksMacs
 		if (DUMP_CAM) {
 			out("  cam...");
 			dumpBeginTime = System.currentTimeMillis();
-			rs = Database.query("SELECT camid,netboxid,ifindex,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL");
+			rs = Database.query("SELECT camid,netboxid,ifindex,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL ORDER BY end_time");
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("mac");
-				if (unclosedCam.put(key, new String[] { rs.getString("camid"), rs.getString("misscnt") } ) != null) {
-					errl("Error, found duplicate in cam for key: " + key);
+				String[] oldkey;
+				if ( (oldkey=(String[])unclosedCam.put(key, new String[] { rs.getString("camid"), rs.getString("misscnt") } )) != null) {
+					// Set misscnt = NULL
+					String camid = oldkey[0];
+					Database.update("UPDATE cam SET misscnt = NULL, end_time = CASE end_time WHEN 'infinity' THEN now() ELSE end_time END WHERE camid='"+camid+"'");
+					errl("Error, found duplicate in cam for key: " + key + " (camid: " + camid + ")");
+
+/*
+DELETE FROM cam WHERE end_time='infinity' AND (netboxid,ifindex,mac) IN (SELECT netboxid,ifindex,mac FROM cam WHERE end_time='infinity' GROUP BY netboxid,ifindex,mac HAVING COUNT(camid) > 1) AND start_time NOT IN (SELECT MIN(start_time) AS start_time FROM cam WHERE end_time='infinity' GROUP BY netboxid,ifindex,mac HAVING COUNT(camid) > 1)
+
+SELECT * FROM cam WHERE end_time='infinity' AND (netboxid,ifindex,mac) IN (SELECT netboxid,ifindex,mac FROM cam WHERE end_time='infinity' GROUP BY netboxid,ifindex,mac HAVING COUNT(camid) > 1) AND start_time NOT IN (SELECT MIN(start_time) AS start_time FROM cam WHERE end_time='infinity' GROUP BY netboxid,ifindex,mac HAVING COUNT(camid) > 1)
+
+if duplikat
+  if ny record har end_time=infinity
+     sett misscnt = NULL for eksisterende record
+     legg ny record i hash
+  else
+     sett misscnt = NULL for record som har eldst end_time
+
+*/
 				}
 			}
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;

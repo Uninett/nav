@@ -351,6 +351,9 @@ public class QueryBoks extends Thread
 							swp_boksid = (String)hm.get("swp_netboxid");
 							misscnt = Integer.parseInt((String)hm.get("misscnt"));
 							to_swportid = (String)hm.get("to_swportid");
+						} else {
+							// Dup
+							continue;
 						}
 					}
 					if (swp_boksid != null && misscnt > 0) {
@@ -374,6 +377,9 @@ public class QueryBoks extends Thread
 						// Nå må vi sjekke om ifindex feltet har endret seg
 						if (!new_to_swportid.equals(to_swportid)) {
 							try {
+								if (swp_boksid == null || swp_boksid.length() == 0) {
+									System.err.println("swp_boksid null for " + key + " swp: " + swp.contains(key) + " swp_d: " + swp_d.get(key));
+								}
 								String[] upd = {
 									"to_swportid", new_to_swportid
 								};
@@ -383,7 +389,8 @@ public class QueryBoks extends Thread
 								Database.update("swp_netbox", upd, where);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								//Log.d("RUN", "Update modulbak/portbak in swp_boks, swp_boksid: " + swp_boksid + ", modulbak: " + pm.getRemoteModul() + ", portbak: " + pm.getRemotePort() + "\n  SQLException: " + e.getMessage() );
+								System.err.println("Update modulbak/portbak in swp_boks, swp_boksid: " + swp_boksid + ", to_ifindex: " + pm.getRemoteIf() + "\n  SQLException: " + e.getMessage() );
+								e.printStackTrace(System.err);
 							}
 						}
 					}
@@ -862,9 +869,13 @@ public class QueryBoks extends Thread
 							String swportid = (String)me.getKey();
 							String ifindex = (String)me.getValue();
 							String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-							Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
 							String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
-							sql += " AND vlan='"+dbVlan+"'";
+							if (dbVlan == null) {
+								Log.d("MAC_ENTRY", "swportid: " + swportid + " (vlan not found, ifindex: " + ifindex+") is no longer in blocking mode.");
+							} else {
+								sql += " AND vlan='"+dbVlan+"'";
+							}
+							Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
 							try {
 								Database.update(sql);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
