@@ -10,6 +10,8 @@ class dbinit {
     
     // Constructor
     function dbinit() {
+        //dl("pgsql.so");
+        
         $this->dbh = null;
         $this->dbh_dbcon = null;
         
@@ -27,8 +29,8 @@ class dbinit {
             // Init variables, in case they dont exist in config file...
             $dhost = "localhost";
             $dport = "5432";
-            $ddb = "navprofiles";
-            $duser = "navprofile";
+            $ddb = "navprofiles_";
+            $duser = "navprofile_";
             $dpass = "";
             
             foreach ($conffile as $confline) {

@@ -258,10 +258,13 @@ sms		Is the user allowed to get alerts on sms.
 */
 CREATE TABLE Preference (
     accountid integer NOT NULL,
-    queuelength integer NOT NULL DEFAULT 50,
+    queuelength interval,
     admin integer NOT NULL DEFAULT 1,       
     activeprofile integer,
     sms boolean NOT NULL DEFAULT true, 
+    
+    lastsentday timestamp,
+    lastsentweek timestamp,
 
     CONSTRAINT account_Exist
         FOREIGN KEY(accountid) REFERENCES Account(id)
@@ -509,7 +512,7 @@ CREATE TABLE MatchField (
     valuecategory varchar,
     valuesort varchar,
     listlimit integer DEFAULT 300,
-    datatype integer,
+    datatype integer NOT NULL DEFAULT 0,
     showlist boolean,
     
     CONSTRAINT matchfield_pk PRIMARY KEY(matchfieldid)
@@ -613,8 +616,45 @@ CREATE TABLE Logg (
 );
 
 
+/*
+-- 20 SMSQ
+
+SMSQ Description
+
+*/
+CREATE TABLE smsq (
+    id serial primary key, 
+    accountid int references
+        account(id) on update cascade on delete cascade, 
+        
+    time timestamp not null,
+    phone varchar(15) not null,
+    msg varchar(145) not null, 
+    sent char(1) not null default 'N' 
+        check (sendt='Y' or sendt='N' or sendt='I'), 
+    smsid int, 
+    timesent timestamp, 
+    severity int
+);
 
 
+/*
+-- 21 Queue
+
+QUEUE Description
+
+*/
+CREATE TABLE queue (
+    id serial primary key, 
+    accountid int references
+        account(id) on update cascade on delete cascade, 
+        
+    addrid int references
+        alarmadresse(id) on update cascade on delete cascade, 
+        
+    alertid int,
+    time timestamp not null    
+);
 
 
 
