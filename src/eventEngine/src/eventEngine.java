@@ -24,6 +24,7 @@ class eventEngine
 	public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
 	public static final String dbConfigFile = "local/etc/conf/db.conf".replace('/', File.separatorChar);
 	public static final String configFile = "local/etc/conf/eventEngine.conf".replace('/', File.separatorChar);
+	public static final String alertmsgFile = navRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
 	public static final String scriptName = "eventEngine";
 
 	public static final boolean ERROR_OUT = true;
@@ -80,7 +81,17 @@ class eventEngine
 
 		HashMap handlerClassMap = new HashMap();
 		HashMap deviceMap = new HashMap();
-		DeviceDB devDB = new DeviceDB(deviceMap, timer);
+
+		DeviceDB devDB;
+		try {
+			devDB = new DeviceDB(deviceMap, timer, alertmsgFile);
+		} catch (ParseException e) {
+			errl("While reading " + alertmsgFile + ":");
+			errl("  " + e.getMessage());
+			return;
+		}
+		errl("parsing of " + alertmsgFile + " ok!");
+		if (true) return;
 
 		// The eventq monitor
 		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB);
@@ -566,6 +577,11 @@ COMMIT;
 - Hvordan skal coldStart og warmStart behandles?
 - linkState events går ikke til alertq/alerthist
 - Dersom en boks går ned, skal moduleDown rapporteres til alertq, evt. med skygge?
+
+---
+Algoritmen for down|shadow sjekker ikke om en ruter er nåbar hvis alt er oppe, dvs.
+har ikke topologiavlederen funnet all info så vil boksen alltid være i skygge uansett.
+---
 
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','t',100);

@@ -3,6 +3,7 @@ package no.ntnu.nav.eventengine;
 import no.ntnu.nav.Database.*;
 
 import java.util.*;
+import java.io.*;
 import java.text.*;
 import java.sql.SQLException;
 
@@ -19,6 +20,8 @@ class EventImpl implements Event, Alert
 	private int value;
 	private int severity;
 	private Map varMap;
+
+	private String alerttype;
 
 	private List eventList = new ArrayList();
 
@@ -117,6 +120,8 @@ class EventImpl implements Event, Alert
 		s.add(val);
 	}
 
+	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
+
 	public void addEvent (Event e) { eventList.add(e); }
 
 	public List getEventList() { return eventList; }
@@ -183,7 +188,200 @@ class EventImpl implements Event, Alert
 	}
 
 
+	public static boolean setAlertmsgFile(String s) throws ParseException
+	{
+		return AlertmsgParser.setAlertmsgFile(s);
+	}
+
 	private static void outd(Object o) { System.out.print(o); }
+	private static void outld(Object o) { System.out.println(o); }
+
+	private static void err(Object o) { System.err.print(o); }
+	private static void errl(Object o) { System.err.println(o); }
+}
+
+class AlertmsgParser
+{
+	private static File alertmsgFile;
+	private static long alertmsgLastModified;
+	private static Map eventtypeidMap = new HashMap();
+
+	public static boolean setAlertmsgFile(String s) throws ParseException
+	{
+		File f = new File(s);
+		if (!f.exists()) return false;
+		if (alertmsgFile != null && alertmsgFile.equals(f)) return true;
+
+		alertmsgFile = f;
+		alertmsgLastModified = 0;
+
+		try {
+			parseAlertmsg();
+		} catch (IOException e) {
+			outld("IOException when parsing alertmsg file: " + e.getMessage());
+		}
+		return true;
+	}
+
+	public static Iterator formatMsgs(String eventtypeid, String alerttype, Map varMap) throws ParseException
+	{
+
+		return null;
+	}
+
+	private static final int EXP_EVENTTYPEID = 0;
+	private static final int EXP_ALERTTYPE = 1;
+	private static final int EXP_MEDIA = 2;
+	private static final int EXP_LANG = 3;
+	private static final int EXP_MSG = 4;
+
+	private static void parseAlertmsg() throws ParseException, IOException
+	{
+		if (alertmsgFile == null || alertmsgFile.lastModified() == alertmsgLastModified) return;
+
+		BufferedReader in = new BufferedReader(new FileReader(alertmsgFile));
+
+		int lineno = 0;
+		int state = EXP_EVENTTYPEID;
+		boolean exp_begin_block = false;
+		boolean allow_colon_block = false;
+		boolean is_colon_block = false;
+
+		String eventtypeid = null;
+		String alerttype = null;
+		String media = null;
+		String lang = null;
+
+		while (in.ready()) {
+			lineno++;
+			String line = in.readLine();
+			String lineT = line.trim();
+			if (lineT.length() == 0) continue;
+
+			switch (lineT.charAt(0)) {
+				case ';':
+				case '#':
+				break;
+
+				default:
+				StringTokenizer st = new StringTokenizer(line);
+				while (st.hasMoreTokens()) {
+					String t = (state == EXP_MSG ? st.nextToken("") : st.nextToken());
+					if (exp_begin_block) {
+						if (allow_colon_block) {
+							allow_colon_block = false;
+							if (t.equals(":")) is_colon_block = true;
+						}
+						if (!is_colon_block && !t.equals("{")) {
+							throw new ParseException("Parse error on line " + lineno + ": Expected {, got " + t, 0);
+						}
+						exp_begin_block = false;
+						state++;
+						continue;
+					}
+
+					if (t.equals("}")) {
+						state--;
+						continue;
+					}
+
+					switch (state) {
+						case EXP_EVENTTYPEID:
+						eventtypeid = t;
+						exp_begin_block = true;
+						break;
+
+						case EXP_ALERTTYPE:
+						alerttype = t;
+						exp_begin_block = true;
+						break;
+
+						case EXP_MEDIA:
+						media = t;
+						exp_begin_block = true;
+						break;
+
+						case EXP_LANG:
+						lang = t;
+						if (lang.endsWith(":")) {
+							state++;
+							is_colon_block = true;
+							continue;
+						} else {
+							exp_begin_block = true;
+							allow_colon_block = true;
+						}
+						break;
+
+						case EXP_MSG:
+						String msg;
+						if (is_colon_block) {
+							msg = t.trim();
+							is_colon_block = false;
+						} else {
+							List l = new ArrayList();
+							int margin=Integer.MAX_VALUE;
+							{
+								int m = line.lastIndexOf(t);
+								StringBuffer sb = new StringBuffer();
+								for (int i=0; i < m; i++) sb.append(" ");
+								sb.append(t);
+								t = sb.toString();
+							}
+
+							int i;
+							while ( (i=t.indexOf("}")) == -1) {
+								l.add(t);
+								margin = Math.min(blanksAtStart(t), margin);
+								t = in.readLine();
+								lineno++;
+							}
+							String s = t.substring(0, i);
+							l.add(s);
+							margin = Math.min(blanksAtStart(s), margin);
+
+							st = new StringTokenizer(t.length()>i+1 ? t.substring(i+1, t.length()) : "");
+
+							StringBuffer sb = new StringBuffer();
+							for (Iterator it = l.iterator(); it.hasNext();) {
+								s = (String)it.next();
+								sb.append((s.length() > margin ? s.substring(margin, s.length()) : "")+"\n");
+							}
+							sb.deleteCharAt(sb.length()-1);
+							if (sb.length() > 0 && sb.charAt(sb.length()-1) == '\n') {
+								sb.deleteCharAt(sb.length()-1);
+							}
+							msg = sb.toString();
+
+						}
+						state--;
+
+						outld("Eventtypeid: " + eventtypeid + " Alerttype: " + alerttype + " Media: " + media + " Lang: " + lang + " Msg:");
+						outld(msg);
+						outld("---");
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (state != 0) {
+			throw new ParseException("Parse error on line " + lineno + ": " + state + " unterminated blocks.", 0);
+		}
+
+	}
+
+	private static int blanksAtStart(String s)
+	{
+		String ss = s.trim();
+		if (ss.length() == 0) return Integer.MAX_VALUE;
+		return s.indexOf(ss);
+	}
+
+
+	private static void outd(Object o) { System.out.print(o); }
+	private static void outld() { System.out.println(); }
 	private static void outld(Object o) { System.out.println(o); }
 
 	private static void err(Object o) { System.err.print(o); }

@@ -19,10 +19,12 @@ public class DeviceDB
 	 */
 	private Map downAlertMap = new HashMap();
 
-	public DeviceDB(HashMap deviceMap, Timer timer)
+	public DeviceDB(HashMap deviceMap, Timer timer, String alertmsgFile) throws java.text.ParseException
 	{
 		this.deviceMap = deviceMap;
 		this.timer = timer;
+
+		EventImpl.setAlertmsgFile(alertmsgFile);
 
 		// Fetch all unclosed alerthist records
 		try {
