@@ -8,8 +8,8 @@ import java.util.*;
 import java.text.*;
 import javax.servlet.http.*;
 
-import com.oreilly.servlet.MultipartRequest;
-import com.oreilly.servlet.ParameterParser;
+//import com.oreilly.servlet.MultipartRequest;
+//import com.oreilly.servlet.ParameterParser;
 
 
 public class Input
