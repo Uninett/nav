@@ -1,9 +1,9 @@
 
 """
-Overvåker
+Overvåkeren
 
-$Author: magnun $
-$Id: job.py,v 1.21 2002/06/18 15:17:34 magnun Exp $
+$Author: stain $
+$Id: job.py,v 1.22 2002/06/18 15:21:17 stain Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
