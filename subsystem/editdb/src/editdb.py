@@ -3822,14 +3822,15 @@ class bulkdefNetbox:
 
         deviceid = None
         box = None
-        if len(row['ro']):
-            try:
-                box = initBox.Box(row['ip'],row['ro'])
-                # getDeviceId() Returns a list (of ints, so str())
-                deviceid = str(box.getDeviceId()[0])
-            except:
-                # If initBox fails, always make a new device
-                deviceid = None
+        if row.has_key('ro'):
+            if len(row['ro']):
+                try:
+                    box = initBox.Box(row['ip'],row['ro'])
+                    # getDeviceId() Returns a list (of ints, so str())
+                    deviceid = str(box.getDeviceId()[0])
+                except:
+                    # If initBox fails, always make a new device
+                    deviceid = None
 
         if deviceid:
             row['deviceid'] = deviceid
@@ -3842,13 +3843,27 @@ class bulkdefNetbox:
             if row.has_key('serial'):
                 if len(row['serial']):
                     fields = {'serial': row['serial']}
+                    # serial shouldn't be inserted into Netbox table
+                    # so remove it from the row
+                    del(row['serial'])
                 else:
                     # Don't insert an empty serialnumber
                     # (as serialnumbers must be unique in the database)
                     fields = {}
-                deviceid = addEntryFields(fields,
-                                          'device',
-                                          ('deviceid','device_deviceid_seq'))
+                # Must check if a device with this serial is already present
+                if fields.has_key('serial'):
+                    where = "serial='%s'" % (fields['serial'])
+                    device = editTables.Device.getAll(where)
+                    if device:
+                        # Found device, and it is unique (serial must be unique)
+                        # Doesn't check if this device is already in use!
+                        # Must be done.
+                        deviceid = str(device[0].deviceid)
+                    else:
+                        # Make new device
+                        deviceid = addEntryFields(fields,
+                                                  'device',
+                                                  ('deviceid','device_deviceid_seq'))
                 row['deviceid'] = deviceid
             else:
                 # No serial given, and got no serial from snmp,
