@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: ISO-8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -20,7 +21,7 @@
 #
 #
 # $Id: main.py 2774 2004-06-04 18:50:41Z gartmann $
-# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
 #
 
 
@@ -243,79 +244,87 @@ if __name__ == '__main__':
     ## the new records are read from the cisco syslog file specified 
     ## by the syslog path in the logger.conf configuration file
 
+    f = None
     ## open log
-    f = open(logfile, "r+")
-    ## lock logfile
-    fcntl.flock(f, fcntl.LOCK_EX)
+    try:
+        f = open(logfile, "r+")
+    except:
+        pass
 
-    ## read log
-    fcon = f.readlines()
+    ## if the file exists
+    if f:
+        
+        ## lock logfile
+        fcntl.flock(f, fcntl.LOCK_EX)
 
-    ## truncate logfile
-    f.truncate(0)
+        ## read log
+        fcon = f.readlines()
 
-    ## unlock logfile
-    fcntl.flock(f, fcntl.LOCK_UN)
-    ##close log
-    f.close()
+        ## truncate logfile
+        f.truncate(0)
 
-    for line in fcon:
+        ## unlock logfile
+        fcntl.flock(f, fcntl.LOCK_UN)
+        ##close log
+        f.close()
 
-        message = createMessage(line)
-        if message:
+        for line in fcon:
 
-            ## check origin (host)
-            if origins.has_key(message.origin):
-                originid = origins[message.origin]
+            message = createMessage(line)
+            if message:
 
-            else:
-                ## update category database table
-                if not categories.has_key(message.category):
-                    database.execute("insert into category (category) values ('%s')" % message.category)
-                    categories[message.category] = message.category
+                ## check origin (host)
+                if origins.has_key(message.origin):
+                    originid = origins[message.origin]
 
-                ## update origin database table
-                database.execute("select nextval('origin_origin_seq')")
-                originid = database.fetchone()[0]
-                database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
-                origins[message.origin] = originid
+                else:
+                    ## update category database table
+                    if not categories.has_key(message.category):
+                        database.execute("insert into category (category) values ('%s')" % message.category)
+                        categories[message.category] = message.category
 
-            ## check type
-            if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
-                typeid = types[message.facility][message.mnemonic]
+                    ## update origin database table
+                    database.execute("select nextval('origin_origin_seq')")
+                    originid = database.fetchone()[0]
+                    database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
+                    origins[message.origin] = originid
 
-            else:
-                ## update type database table
-                database.execute("select nextval('type_type_seq')")
-                typeid = int(database.fetchone()[0])
+                ## check type
+                if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
+                    typeid = types[message.facility][message.mnemonic]
 
-                database.execute("insert into type (type, facility, mnemonic, priority) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priorityid))
-                if not types.has_key(message.facility):
-                    types[message.facility] = {}
-                types[message.facility][message.mnemonic] = typeid
+                else:
+                    ## update type database table
+                    database.execute("select nextval('type_type_seq')")
+                    typeid = int(database.fetchone()[0])
 
-            ## overload priority if exceptions are set
-            if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
-                try:
-                    message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
-                except:
-                    pass
+                    database.execute("insert into type (type, facility, mnemonic, priority) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priorityid))
+                    if not types.has_key(message.facility):
+                        types[message.facility] = {}
+                    types[message.facility][message.mnemonic] = typeid
 
-            elif exceptionorigin.has_key(message.origin.lower()):
-                try:
-                    message.priorityid = int(exceptionorigin[message.origin.lower()])
-                except:
-                    pass
+                ## overload priority if exceptions are set
+                if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
+                    try:
+                        message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
+                    except:
+                        pass
 
-            elif exceptiontype.has_key(message.type.lower()):
-                try:
-                    message.priorityid = int(exceptiontype[message.type.lower()])
-                except:
-                    pass
+                elif exceptionorigin.has_key(message.origin.lower()):
+                    try:
+                        message.priorityid = int(exceptionorigin[message.origin.lower()])
+                    except:
+                        pass
 
-            ## insert message into database
-            database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, %s)"% (message.time, originid, message.priorityid, typeid, message.description))
+                elif exceptiontype.has_key(message.type.lower()):
+                    try:
+                        message.priorityid = int(exceptiontype[message.type.lower()])
+                    except:
+                        pass
 
-    connection.commit()
+                ## insert message into database
+                database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, %s)"% (message.time, originid, message.priorityid, typeid, message.description))
+
+        connection.commit()
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: ISO-8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -20,8 +21,8 @@
 #
 #
 # $Id$
-# Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
-#          Sigurd Gartmann <sigurd-nav@brogar.org>
+# Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>, 2003
+#          Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
 #
 """
 This module contains functionality related to eMotd and maintenance.

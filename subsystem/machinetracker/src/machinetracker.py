@@ -64,7 +64,7 @@ def handler(req):
 			database.execute(sql)
 			(host,mask) = database.fetchone()[0].split("/")
 			from_ip = IP(host).toIP()
-			to_ip = IP(IP(host)+pow(2,32-int(mask))-1).toIP()
+			to_ip = IP(IP(host)+pow(2,32-int(mask)+1)-1).toIP()
 			
 		else:
 			from_ip = args.get("from_ip")
@@ -109,7 +109,7 @@ class MachineTrackerSQLQuery:
 			days = 7
 	      	fra = DateTime.today()-(int(days)*DateTime.oneDay)
       		fra = fra.strftime("%Y-%m-%d")
-	      	tidstreng = "((cam.end_time > '" + fra + "' or cam.end_time='infinity') or (arp.end_time > '" + fra + "' or arp.end_time='infinity'))"  
+	      	tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"  
 	
 		if extra:
 			extra = "and " + extra
@@ -120,7 +120,7 @@ class MachineTrackerSQLQuery:
 			
 #		self.sql = "select distinct arp.ip,cam.mac,cam.sysname,module,port,cam.start_time,cam.end_time from arp left join cam using (mac),netbox where " + tidstreng + " and netbox.prefixid=arp.prefixid " + extra + " order by start_time"
 			
-                self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,coalesce(cam.start_time,arp.start_time) as start, coalesce(cam.end_time,arp.end_time) as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
+                self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,arp.start_time as start, arp.end_time as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
 
 
 	def getTable(self, dns="",aip="",naip=""):

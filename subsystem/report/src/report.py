@@ -114,25 +114,24 @@ def handler(req):
             
         else:
 
-            ##could have been sourced out in its own python-file
-            
-            page = MatrixScopesTemplate()
-            ## print all scopes
             from nav import db
             import psycopg
             connection = db.getConnection('webfront','manage')
             database = connection.cursor()
             database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
 
-            page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
-            page.scopes = []
             databasescopes = database.fetchall()
             if len(databasescopes) == 1:
                 matrix = Matrix(databasescopes[0][0])
                 req.write(matrix.makeMatrix())
 
             else:
-                for scope in database.fetchall():
+                ## print all scopes or error message
+
+                page = MatrixScopesTemplate()
+                page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+                page.scopes = []
+                for scope in databasescopes:
                     page.scopes.append(scope[0])
 
                 req.write(page.respond())
