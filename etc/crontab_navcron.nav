@@ -1,6 +1,6 @@
 # This is the crontab of the user navcron.
 # No proprietary jobs are supposed to be here.
-# $Id: crontab_navcron.nav,v 1.5 2003/06/23 11:32:27 mortenv Exp $
+# $Id$
 
 # Grouped by subsystems for easier add and
 # removal.
@@ -32,7 +32,7 @@ CRICKETDIR=/usr/local/nav/cricket
 
 */5 * * * * $CRICKETDIR/cricket/collect-subtrees normal
 * * * * * $CRICKETDIR/cricket/collect-subtrees giga
-12 5 * * * $CRICKETDIR/bin/makecricketconfig.pl
+12 5 * * * $BDIR/makecricketconfig.pl
 # </cricket>
 
 # <collect>
