@@ -206,6 +206,8 @@ CREATE TABLE snmpoid (
   match_regex VARCHAR,
   uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
+  oidname VARCHAR,
+  mib VARCHAR,
   UNIQUE(oidkey)
 );
 
