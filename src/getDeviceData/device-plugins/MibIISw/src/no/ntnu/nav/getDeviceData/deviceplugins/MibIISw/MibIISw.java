@@ -27,6 +27,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *   <li>ifSpeed</li>
  *   <li>ifAdminStatus</li>
  *   <li>ifOperStatus</li>
+ *   <li>ifDescr</li>
  *  </ul>
  * </ul>
  * </p>
@@ -38,7 +39,8 @@ public class MibIISw implements DeviceHandler
 	private static String[] canHandleOids = {
 		"ifSpeed",
 		"ifAdminStatus",
-		"ifOperStatus",
+		"ifOperStatus"
+		"ifDescr"
 	};
 
 	private SimpleSnmp sSnmp;
@@ -133,6 +135,20 @@ public class MibIISw implements DeviceHandler
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatusMap.get(ifindex));
 				}
+			}
+		}
+
+		// Set ifDescr
+		Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
+		if (ifdescrMap != null) {
+			for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String ifindex = me.getKey();
+				if (skipIfindexSet.contains(ifindex)) continue;
+				String ifdescr = me.getValue();
+
+				Swport swp = sc.swportFactory(ifindex);
+				swp.setInterface(ifdescr);
 			}
 		}
 
