@@ -578,7 +578,7 @@ CREATE TABLE eventq (
   subid INT4,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' or state='t' or state='f'), -- x = stateless, t = start, f = end
+  state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
   value INT4 NOT NULL DEFAULT '100',
   severity INT4 NOT NULL DEFAULT '50'
 );
