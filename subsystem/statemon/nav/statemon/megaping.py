@@ -29,7 +29,6 @@ import time
 import socket
 import select
 import os
-import profile
 import random
 import struct
 import circbuf
