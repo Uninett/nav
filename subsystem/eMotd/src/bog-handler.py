@@ -18,7 +18,6 @@ from nav.web import SearchBox,EmotdSelect
 ## Templates
 
 from nav.web.templates.EmotdTemplate import EmotdTemplate
-from nav.web.templates.EmotdStandardTemplate import EmotdStandardTemplate
 from nav.web.templates.EmotdFrontpage import EmotdFrontpage
 from nav.web.templates.MaintenanceTemplate import MaintenanceTemplate
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
@@ -30,85 +29,60 @@ title = 'Massage of the day'
 menu = ''
 
 EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd")]
-DATEFORMAT = "%Y-%m-%d %H:%M"
-BASEPATH = '/emotd/'
-LANG1 = "Norwegian"
-LANG2 = "English"
 
 #################################################
 # Elements 
  
 def handler(req):
+    path = req.uri
+    filename = re.search('/([^/]+)$',path).group(1)
     keep_blank_values = True
     req.form = util.FieldStorage(req,keep_blank_values)
-    path = req.uri.split(BASEPATH)[1]
-    path = path.split('/')
-
-    if path[0] == 'search':
-        output = search(req)
-    elif path[0] == 'edit':
+    if filename == 'index':
+        output = show_active(req)
+    elif filename == 'edit':
         output = edit(req)
-    elif path[0] == 'view':
+    elif filename == 'search':
+        output = search(req)
+    elif filename == 'view':
         output = view(req)
-    elif path[0] == 'viewall':
+    elif filename == 'viewall':
         output = viewall(req)
-    elif path[0] == 'maintenance':
+    elif filename == 'show_active':
+        output = show_active(req)
+    elif filename == 'commit':
+        output = commit(req)
+    elif filename == 'rssfeed':
+        output = feed(req)
+    elif filename == 'maintenance':
         output = maintenance(req)
     else:
         output = show_active(req)
-
     if output:
         req.write(output)
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
 
-## def handler(req):
-##     path = req.uri
-##     filename = re.search('/([^/]+)$',path).group(1)
-##     keep_blank_values = True
-##     req.form = util.FieldStorage(req,keep_blank_values)
-##     if filename == 'index':
-##         output = show_active(req)
-##     elif filename == 'edit':
-##         output = edit(req)
-##     elif filename == 'search':
-##         output = search(req)
-##     elif filename == 'view':
-##         output = view(req)
-##     elif filename == 'viewall':
-##         output = viewall(req)
-##     elif filename == 'show_active':
-##         output = show_active(req)
-##     elif filename == 'commit':
-##         output = commit(req)
-##     elif filename == 'rssfeed':
-##         output = feed(req)
-##     elif filename == 'maintenance':
-##         output = maintenance(req)
-##     else:
-##         output = show_active(req)
-##     if output:
-##         req.write(output)
-##         return apache.OK
-##     else:
-##         return apache.HTTP_NOT_FOUND
 
-class MenuItem:
-
-    def __init__(self,link,text):
-        self.link = link
-        self.text = text
-        
 def getMenu(req):
     # Only show menu if logged in user
     # Should have some fancy icons and shit
-    menu = []
     if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
-        menu.append(MenuItem("edit","New"))
-    menu.append(MenuItem("show_active","Active"))
-    menu.append(MenuItem("viewall","History"))
-    menu.append(MenuItem("maintenance?list=active","Maintenance"))
+        menu = '''
+        <b>Administration mode</b> <br><br>
+        <a href="edit">Compose</a><br>
+        <a href="show_active">Show active MOTDs</a><br>
+        <a href="viewall">View all previos MOTDs</a><br>
+        <a href="maintenance?list=active">Current maintenance</a><br>
+        '''
+    else:
+        # do we have a menu for anonymous users? Maybe search, view, show_last_n etc
+        menu = '''
+                 <a href="show_active">Show active MOTDs</a><br>
+                 <a href="viewall">View all previos MOTDs</a><br>  
+                 <a href="maintenance?list=active">Current maintenance</a><br>
+                '''
     return menu
 
 def editlinks(req,id):
@@ -135,7 +109,7 @@ def search(req):
     motd = None
     searchBox = None
     nameSpace = {'title': title,'motd': motd,'menu': menu, 'searchBox': searchBox,'body': body , 'form': ''}
-    page = EmotdStandardTemplate(searchList=[nameSpace])
+    page = EmotdTemplate(searchList=[nameSpace])
     return page.respond()
 
 
@@ -163,39 +137,6 @@ def show_active(req):
     #if access:
     #    page.access = True
     return page.respond()
-
-def maintparse(maintdict):
-    maints = []
-    for maint in maintdict.keys():
-        mstart = maintdict[maint][0]['maint_start'].strftime(DATEFORMAT)
-        mend   = maintdict[maint][0]['maint_end'].strftime(DATEFORMAT)
-        emotdid = maintdict[maint][0]['emotdid']
-        title = Emotd(emotdid).title
-        ##emotdurl = "<a href=/emotd/view?id=%s> %s </a>" % (emotdid,title) 
-        for f in range(len(maintdict[maint])):
-            # One maintenance, can keep severel rooms,netbox,services
-            entry = maintdict[maint][f]
-            if entry['key'] == 'room':
-                entry['roomid'] = Room(entry['value']).roomid 
-                entry['roomdesc'] = Room(entry['value']).descr
-                entry['netboxid'] = None
-                entry['serviceid'] = None
-            if entry['key'] == 'netbox':
-                entry['roomid'] = Netbox(entry['value']).room.roomid
-                entry['roomdesc'] = Netbox(entry['value']).room.descr         
-                entry['netboxid'] = Netbox(entry['value']).sysname
-                entry['serviceid'] = None
-            if entry['key'] == 'service':
-                entry['roomid'] = Service(entry['value']).netbox.room.roomid
-                entry['roomdesc'] = Service(61).netbox.room.descr ##Service(entry['value']).handler??
-                entry['netboxid'] = Service(entry['value']).netbox.sysname
-                entry['serviceid'] = Service(entry['value']).handler
-            entry['mstart'] = mstart
-            entry['mend'] = mend
-            entry['title'] = title
-            entry['emotdid'] = emotdid
-            maints.append(entry)
-    return maints
 
 def wrap(s,lines=None,cols=74):
     ''' Wrap object of string for pretty printing
@@ -282,207 +223,18 @@ def maintenance(req):
         alerts being sent while doing maintenance. Also views current/ongoing 
         maintenance.
     '''
-    args = {}
     form = ''
     body = ''
-    title = 'Put on maintenance'
+    title = ''
     menu = getMenu(req)
-
-    args['path'] = [('Frontpage','/'),
-                    ('Tools','/toolbox'),
-                    ('Messages',BASEPATH)]
+    searchBox = None
+    selectBox = None
+    MaintenanceTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Maintenance","")]
 
     searchBox = SearchBox.SearchBox(req,'Type a room id, an ip,a (partial) sysname or servicename')
+    ts = TreeSelectTemplate()
     selectBox = TreeSelect()
     # search
-    # Make the searchbox
-    searchbox = SearchBox.SearchBox(req,
-                'Type a room id, an ip or a (partial) sysname')
-    searchbox.addSearch('host',
-                        'ip or hostname',
-                        'Netbox',
-                        {'rooms': ['room','roomid'],
-                         'locations': ['room','location','locationid'],
-                         'netboxes': ['netboxid']},
-                        call = SearchBox.checkIP)
-    searchbox.addSearch('room',
-                        'room id',
-                        'Room',
-                        {'rooms': ['roomid'],
-                         'locations': ['location','locationid']},
-                        where = "roomid = '%s'")
-    searchBox.addSearch('service',
-                        'serviceid or partial servicename',
-                        'Service',
-                        {'rooms':['netbox','room','roomid'],
-                         'netboxes':['netbox','netboxid'],
-                         'locations': ['netbox','room','location','locationid'],
-                         'services':['serviceid']},
-                        where = "serviceid ='%s'")
-
-    args['searchbox'] = searchbox
-    sr = searchbox.getResults(req)
-    
-    args['action'] = BASEPATH + 'maintenance/'# + path + '/'
-    args['returnpath'] = {'url': BASEPATH,
-                          'text': 'Return'}
-    #if path == 'rma':
-    #    args['returnpath'] = {'url': BASEPATH + 'rma/',
-    #                          'text': 'Return'}
- 
-    args['error'] = None
-    selectbox = TreeSelect()
-    args['formname'] = selectbox.formName
-
-    multiple = True
-
-    select = Select('cn_location',
-                    'Location',
-                    multiple = True,
-                    multipleSize = 10,
-                    initTable='Location', 
-                    initTextColumn='descr',
-                    initIdColumn='locationid',
-                    preSelected = sr['locations'],
-                    optionFormat = '$v ($d)',
-                    orderByValue = True)
-
-    select2 = UpdateableSelect(select,
-                               'cn_room',
-                               'Room',
-                               'Room',
-                               'descr',
-                               'roomid',
-                               'locationid',
-                               multiple=True,
-                               multipleSize=10,
-                               preSelected = sr['rooms'],
-                               optionFormat = '$v ($d)',
-                               orderByValue = True)
-
-    select3 = UpdateableSelect(select2,
-                               'cn_netbox',
-                               'Box',
-                               'Netbox',
-                               'sysname',
-                               'netboxid',
-                               'roomid',
-                               multiple=True,
-                               multipleSize=10,
-                               preSelected = sr['netboxes'])
-
-    select4 = UpdateableSelect(select3,
-                               'cn_service',
-                               'Module/Service',
-                               'Service',
-                               'handler',
-                               'serviceid',
-                               'netboxid',
-                               multiple = True,
-                               multipleSize=10,
-                               onchange='',
-                               optgroupFormat = '$d') 
-    #                           preSelected = sr['services'])
-
-
-    selectbox.addSelect(select)
-    selectbox.addSelect(select2)
-    selectbox.addSelect(select3)
-    selectbox.addSelect(select4)
-
-    validSelect = False
-    
-    # Update the selectboxes based on form data
-    selectbox.update(req.form)
-    # Not allowed to go on, unless at least a netbox is selected
-    if len(select3.selectedList):
-        validSelect = True
-
-    # View history clicked?
-    deviceHistList = []
-    if req.form.has_key('cn_submit_history'):
-        if req.form.has_key('cn_module'):
-            # one or more modules selected
-            if len(req.form['cn_module']):
-                modules = req.form['cn_module']
-                if type(modules) is str:
-                    # only one selected, convert str to list
-                    modules = [modules] 
-                # get deviceid for these modules
-                for moduleid in modules:
-                    deviceid = dtTables.Module(moduleid).device.deviceid
-                    deviceHistList.append(History(deviceid,moduleId=moduleid))
-                args['returnpath'] = {'url': BASEPATH + 'history/',
-                                      'text': 'Return'}
-        elif req.form.has_key('cn_netbox'):
-            # one or more netboxes selected            
-            if len(req.form['cn_netbox']):
-                netboxes = req.form['cn_netbox']
-                if type(netboxes) is str:
-                    # only one selected, convert str to list
-                    netboxes = [netboxes] 
-                # get deviceid for these netboxes
-                for netboxid in netboxes:
-                    deviceid = dtTables.Netbox(netboxid).device.deviceid
-                    deviceHistList.append(History(deviceid,netboxId=netboxid))
-                args['returnpath'] = {'url': BASEPATH + 'history/',
-                                      'text': 'Return'}
-    # Register error clicked?
-    errorDevice = None
-    if req.form.has_key('cn_submit_error'):
-        if req.form.has_key('cn_module'):
-            if len(req.form['cn_module']):
-                moduleid = req.form['cn_module']
-                deviceid = dtTables.Module(moduleid).device.deviceid
-                # Uses History(), should have been a Device() class
-                # (subclass of forgetSQL.Device())
-                errorDevice = History(deviceid,moduleId=moduleid)
-        elif req.form.has_key('cn_netbox'):
-            if len(req.form['cn_netbox']):
-                netboxid = req.form['cn_netbox']
-                deviceid = dtTables.Netbox(netboxid).device.deviceid
-                errorDevice = History(deviceid,netboxId=netboxid)
-        args['action'] = BASEPATH + 'error/device/' + str(deviceid)
-       
-    rmaDevice = None 
-    # Register rma clicked?
-    if req.form.has_key('cn_submit_rma'):
-        if req.form.has_key('cn_module'):
-            moduleid = req.form['cn_module']
-            deviceid = dtTables.Module(moduleid).device.deviceid
-            rmaDevice = History(deviceid,moduleId=moduleid)
-        elif req.form.has_key('cn_netbox'):
-            netboxid = req.form['cn_netbox']
-            deviceid = dtTables.Netbox(netboxid).device.deviceid
-            rmaDevice = History(deviceid,netboxId=netboxid)
-        args['action'] = BASEPATH + 'rma/device/' + str(deviceid)
-
-    # Submit buttons, title and path for the different views
-##     if path == 'history':
-##         args['path'].append(('View history',False))
-##         args['title'] = 'View history - select a box or a module'
-##         args['submit'] = {'control': 'cn_submit_history',
-##                           'value': 'View history',
-##                           'enabled': validSelect}
-##     elif path == 'error':
-##    args['path'].append(('Register error',False))
-##    args['title'] = 'Register error - select a box or a module'
-    args['submit'] = {'control': 'cn_submit_error',
-                      'value': 'Register error',
-                      'enabled': validSelect}
-##     elif path == 'rma':
-##         args['path'].append(('Register RMA',False))
-##         args['title'] = 'Register RMA - select a box or a module'
-##         args['submit'] = {'control': 'cn_submit_rma',
-##                           'value': 'Register RMA',
-##                           'enabled': validSelect}
-
-    args['selectbox'] = selectbox
-    args['deviceHistList'] = deviceHistList
-    args['errorDevice'] = errorDevice
-    args['rmaDevice'] = rmaDevice
-
-
     searchBox.addSearch('host',
                         'ip or hostname',
                         'Netbox',
@@ -496,6 +248,68 @@ def maintenance(req):
                         {'rooms': ['roomid'],
                          'locations': ['location','locationid']},
                          where = "roomid = '%s'")
+    searchBox.addSearch('service',
+                        'serviceid or partial sercicename',
+                        'Service',
+                        {'rooms':['netbox','room','roomid'],
+                         'netboxes':['netbox','netboxid'],
+                         'locations': ['netbox','room','location','locationid'],
+                         'services':['serviceid']},
+                        where = "handler ='%s'")
+
+    sr = searchBox.getResults(req)
+    select = Select('cn_location',
+                    'Location',
+                    multiple = True,
+                    multipleSize = 10,
+                    initTable='Location',
+                    initTextColumn='descr',
+                    initIdColumn='locationid',
+                    preSelected = sr['locations'],
+                    optionFormat = '$v ($d)',
+                    orderByValue = True)
+    select2 = UpdateableSelect(select,
+                              'cn_room',
+                              'Room',
+                              'Room',
+                              'descr',
+                              'roomid',
+                              'locationid',
+                              multiple=True,
+                              multipleSize=10,
+                              preSelected = sr['rooms'],
+                              optionFormat = '$v ($d)',
+                              orderByValue = True)
+
+    select3 = UpdateableSelect(select2,
+                               'cn_netbox',
+                               'Box',
+                               'Netbox',
+                               'sysname',
+                               'netboxid',
+                               'roomid',
+                               multiple = True,
+                               multipleSize=10,
+                               preSelected = sr['netboxes'])
+
+    select4 = UpdateableSelect(select3,
+                               'cn_service',
+                               'Module/Service',
+                               'Service',
+                               'handler',
+                               'serviceid',
+                               'netboxid',
+                               multiple = True,
+                               multipleSize=10,
+                               preSelected = sr['services'])
+    # onchange=''
+    selectBox.addSelect(select) # Location
+    selectBox.addSelect(select2)# Room
+    selectBox.addSelect(select3)# Netbox
+    selectBox.addSelect(select4)# Module or Service
+    ts.selectbox = selectBox
+    raise(repr(ts.respond()))
+    treeselect = ts.respond()
     
     # Maintenance start<->end
     oneweek = str(DateTime.now() + DateTime.oneWeek)
@@ -572,76 +386,114 @@ def maintenance(req):
     form += '</select>'
     form += '</td></tr></table>'
     
-    #if req and req.form.has_key('list'): ##alltid med nå
-    body = ""
-    #if req.form['list'] == 'current' or req.form['list'] == 'active':
-    activedict = EmotdSelect.getMaintenance(state='active',access=True)
-    #if req.form['list'] == 'scheduled':
-    scheduleddict = {}
-    #scheduleddict = EmotdSelect.getMaintenance(state='scheduled',access=True)
-    #body += '<table width=800><tr><th>Room</th><th>Sysname</th><th>Service</th><th>Start time</th><th>End time</th><th>Title</th></tr>\n'
-    #maints = [] # store each room,netbox,service in each its own row
-
+    if req and req.form.has_key('list'): 
+        body = '<p>Current maintenance:</p>\n'
+        maintdict = {}
+        if req.form['list'] == 'current' or req.form['list'] == 'active':
+            maintdict = EmotdSelect.getMaintenance(state='active',access=True)
+        if req.form['list'] == 'scheduled':
+            maintdict = EmotdSelect.getMaintenance(state='scheduled',access=True)
+        #body += '<table width=800><tr><th>Room</th><th>Sysname</th><th>Service</th><th>Start time</th><th>End time</th><th>Title</th></tr>\n'
+        maints = [] # store each room,netbox,service in each its own row
+        for maint in maintdict.keys():
+            mstart = maintdict[maint][0]['maint_start']
+            mend   = maintdict[maint][0]['maint_end']
+            emotdid = maintdict[maint][0]['emotdid']
+            title = Emotd(emotdid).title
+            emotdurl = "<a href=/emotd/view?id=%s> %s </a>" % (emotdid,title) 
+            for f in range(len(maintdict[maint])):
+                # One maintenance, can keep severel rooms,netbox,services
+                entry = maintdict[maint][f]
+                if entry['key'] == 'room':
+                    room = Room(entry['value']).roomid 
+                    roomdesc = Room(entry['value']).descr
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
+                    #body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,mstart,mend,emotdurl)
+                    entry['roomurl'] = roomurl
+                    entry['netboxurl'] = None
+                    entry['serviceurl'] = None
+                if entry['key'] == 'netbox':
+                    room = Netbox(entry['value']).room.roomid  
+                    roomdesc = Netbox(entry['value']).room.descr 
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s (%s) </a>" % (room,room,roomdesc) 
+                    netbox = Netbox(entry['value']).sysname 
+                    netboxurl = "<a href=/browse/%s> %s </a>" % (netbox,netbox) 
+                    #body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,netboxurl,mstart,mend,emotdurl)
+                    entry['roomurl'] = roomurl
+                    entry['netboxurl'] = netboxurl
+                    entry['serviceurl'] = None
+                if entry['key'] == 'service':
+                    netbox = Service(entry['value']).netbox.sysname
+                    room = Service(entry['value']).netbox.room.roomid 
+                    roomdesc = Service(61).netbox.room.descr
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s (%s)</a>" % (room,room,roomdesc) 
+                    service = Service(entry['value']).handler
+                    serviceurl = "<a href=/browse/service/%s> %s </a>" % (service,service) 
+                    #body += '<tr><td>%s</td><td>%s</td><td><b>&s</b></td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,netboxurl,serviceurl,mstart,mend,emotdurl)
+                    entry['roomurl'] = roomurl
+                    entry['netboxurl'] = netboxurl
+                    entry['serviceurl'] = serviceurl
+                entry['mstart'] = mstart
+                entry['mens'] = mend
+                entry['titleurl'] = emotdurl
+                maints.append(entry)
             # end view of maintenance with this id
-        #body += '</table>\n'
+        body += '</table>\n'
         # For listing ongoing or scheduled maintenances, we don't show searchBox and selectBox.. present a link maybe?
-    #    searchBox = None
-    #    selectBox = None     
-    #    maints = None
-    #elif req and not req.form.has_key('submitbutton') and not req.form.has_key('list'):
+        searchBox = None
+        selectBox = None     
+        maints = None
+    elif req and not req.form.has_key('submitbutton') and not req.form.has_key('list'):
         # Run update every time the form is submitted,
         # unless the submit button has been pressed
-        #maints = ['',]
-    #    selectBox.update(req.form)
-    #elif req and req.form.has_key('submitbutton') and req.form.has_key('id'):
-##         searchBox = None
-##         selectBox = None
-##         maints = None
-##         form = ''
-##         #raise repr(req.form.list)
-##         if req.form.has_key('cn_netbox'):
-##             services = {}
-##             boxes = {}
-##             boxes['cn_netbox'] = []
-##             if type(req.form['cn_netbox']).__name__ == 'str':
-##                 boxes['cn_netbox'].append(req.form['cn_netbox'])
-##             else:
-##                 boxes['cn_netbox'] = [] # empty list to put multiple boxes into
-##                 for netbox in req.form['cn_netbox']:
-##                     boxes['cn_netbox'].append(netbox)
-##             body += '<p>Netboxes set on maintenance:<br>\n'
-##             maint = Maintenance()
-##             maint.emotd = int(req.form['id'])
-##             if req.form.has_key('maint_year_start'):
-##                 year_start = int(req.form['maint_year_start'])
-##                 month_start = int(req.form['maint_month_start'])
-##                 day_start = int(req.form['maint_day_start'])
-##                 hour_start = int(req.form['maint_hour_start'])
-##                 year_end = int(req.form['maint_year_end'])
-##                 month_end = int(req.form['maint_month_end'])
-##                 day_end = int(req.form['maint_day_end'])
-##                 hour_end = int(req.form['maint_hour_end'])
-##                 maint_start=DateTime.Date(year_start,month_start,day_start,hour_start)
-##                 maint_stop=DateTime.Date(year_end,month_end,day_end,hour_end)
-##                 maint.maint_start = maint_start
-##                 maint.maint_end = maint_stop
-##                 maint.state = "scheduled"
-##                 maint.save()
-##             for blapp in boxes['cn_netbox']:
-##                 body += '<li> %s ' % Netbox(blapp).sysname 
-##                 try:
-##                     related = Emotd_related()
-##                     related.emotd = req.form['id']
-##                     related.key = 'netbox'
-##                     related.value = blapp
-##                 except:
-##                     body += '<p><font color=red>An error occured!</font>'
-##         else:
-##             body = '<font color=red><p>No netbox or service/module chosen</font>'
+        maints = ['',]
+        selectBox.update(req.form)
+    elif req and req.form.has_key('submitbutton') and req.form.has_key('id'):
+        searchBox = None
+        selectBox = None
+        maints = None
+        form = ''
+        #raise repr(req.form.list)
+        if req.form.has_key('cn_netbox'):
+            services = {}
+            boxes = {}
+            boxes['cn_netbox'] = []
+            if type(req.form['cn_netbox']).__name__ == 'str':
+                boxes['cn_netbox'].append(req.form['cn_netbox'])
+            else:
+                boxes['cn_netbox'] = [] # empty list to put multiple boxes into
+                for netbox in req.form['cn_netbox']:
+                    boxes['cn_netbox'].append(netbox)
+            body += '<p>Netboxes set on maintenance:<br>\n'
+            maint = Maintenance()
+            maint.emotd = int(req.form['id'])
+            if req.form.has_key('maint_year_start'):
+                year_start = int(req.form['maint_year_start'])
+                month_start = int(req.form['maint_month_start'])
+                day_start = int(req.form['maint_day_start'])
+                hour_start = int(req.form['maint_hour_start'])
+                year_end = int(req.form['maint_year_end'])
+                month_end = int(req.form['maint_month_end'])
+                day_end = int(req.form['maint_day_end'])
+                hour_end = int(req.form['maint_hour_end'])
+                maint_start=DateTime.Date(year_start,month_start,day_start,hour_start)
+                maint_stop=DateTime.Date(year_end,month_end,day_end,hour_end)
+                maint.maint_start = maint_start
+                maint.maint_end = maint_stop
+                maint.state = "scheduled"
+                maint.save()
+            for blapp in boxes['cn_netbox']:
+                body += '<li> %s ' % Netbox(blapp).sysname 
+                try:
+                    related = Emotd_related()
+                    related.emotd = req.form['id']
+                    related.key = 'netbox'
+                    related.value = blapp
+                except:
+                    body += '<p><font color=red>An error occured!</font>'
+        else:
+            body = '<font color=red><p>No netbox or service/module chosen</font>'
 
-    #args['searchbox'] = searchBox
-    #args['selectbox'] = selectBox
-    
     s = {}
     s['roomurl'] = '/devicebrowser/482s'
     s['netboxurl'] = '/devicebrowser/129.241.93.17'
@@ -649,16 +501,9 @@ def maintenance(req):
     s['mstart'] = '06.12.03 08:00'
     s['mend'] = '16.12.03 08:00'
     s['emotdurl'] = '/emotd/view?id=3'
-    #maints = [maintparse(activedict),maintparse(scheduleddict)]
-    maints = maintparse(activedict)
-    ##maints = [s,]
-    args['title'] = title
-#    nameSpace = {'title': title, 'motd': None, 'maints': maints, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
-    nameSpace = {'title': title,'page': 'browse', 'body': body, 'args': args, 'form':form, 'menu': menu,'maints': maints}
+    maints = [s,]
+    nameSpace = {'title': title, 'motd': None, 'maints': maints, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
     page = MaintenanceTemplate(searchList=[nameSpace])
-#    return page.respond()
-    #template = deviceManagementTemplate(searchList=[nameSpace])
-    page.path = args['path']
     return page.respond()
 
 def formatEmotd(emotd):
@@ -730,7 +575,6 @@ def edit(req):
     now = DateTime.now()
     week = now + DateTime.oneWeek
     parent_id = None
-    form=None
     if req.form.has_key('action'):
         # action can be either followup or change
         action = req.form['action']
@@ -787,16 +631,14 @@ def edit(req):
         detail = ''
     if detail_en == None:
         detail_en = ''
-    now = str(DateTime.now())
-    muststar = '<span style="color:red;">*</span>'
     body += '<form action=commit method=post>\n'
-    #body += '<table border=0>\n'
+    body += '<table border=0>\n'
     body += '<input type=hidden name=author value=%s>\n' % author
     body += '<input type=hidden name=date_change value=%s>\n' % now
-    #body += '<tr><td colspan=2 bgcolor=lightgrey>Put on maintenance: '
-    #body += '<i>Set netbox/service/module on maintenance? </i><input type="checkbox" name=maintenance></td></tr>'
-    #body += '<tr><td>Active from : <i>Defaults to 1 week</i></td><td>' 
-    body += '<ul style="list-style-type:none;marin=0;padding:0;"><li>Active from: ' 
+    body += '<tr><td colspan=2 bgcolor=lightgrey>Put on maintenance: '
+    body += '<i>Set netbox/service/module on maintenance? </i><input type="checkbox" name=maintenance></td></tr>'
+    now = str(DateTime.now())
+    body += '<tr><td>Active from : <i>Defaults to 1 week</i></td><td>' 
     body += ' Year: <select name=year_start>\n'
     for year in range(2003,2020):
         body += '<option value=' + str(year) 
@@ -826,10 +668,8 @@ def edit(req):
             body += ' selected=selected '
         body += '>' + str(hour) + '</option>\n'
     body += '</select>\n'
-    #body += '</td></tr>'
-    body += '</li>'
-    #body += '<td>Active to:</td><td>'
-    body += '<li>Active to:'
+    body += '</td></tr>'
+    body += '<td>Active to:</td><td>'
     oneweek = str(DateTime.now() + DateTime.oneWeek)
     body += ' Year: <select name=year_end>\n'
     for year in range(2003,2020):
@@ -860,56 +700,38 @@ def edit(req):
             body += ' selected=selected '
         body += '>' + str(hour) + '</option>\n'
     body += '</select>\n'
-    #body += '</td></tr>\n'
-    body += ' <i>Defaults to 1 week</i></li>\n'
+    body += '</td></tr>\n'
     # type-values should be fetched from a table... leave that for later... 
-    #body += '<tr><td colspan=2 bgcolor=lightgrey>MOTD type: <font color="red">*</font> <select name=type>\n'
-    body += '<li><label>Type</label>%s<select name=type>\n' % muststar
+    body += '<tr><td colspan=2 bgcolor=lightgrey>MOTD type: <font color="red">*</font> <select name=type>\n'
     body += '<option value=info>Informational</option>\n'
     body += '<option value=error>Error</option>\n'
     body += '<option value=internal>Internal </option>\n'
     body += '<option value=scheduled>Scheduled outage</option>\n'
-    #body += '</select> <i>Internal will not be publically available - e.g. for NAV users only. </i></td></tr>\n'
-    body += '</select> <i>Internal will not be publically available - e.g. for NAV users only. </i></li>\n'
-    #body += '<tr>'
-    #body += '<td>Title: <font color="red">*</font><input type=text name=title size=20 maxlength=100 value="%s"><i>(Norwegian)</i></td>' % title
-    #<li><div><ul>
-    body += '<li><table><tr><td><h2>%s</h2><ul style="list-style-type:none;marin=0;padding:0;">' % LANG1
-    body += '<li><label>Title</label><font color="red">*</font><input type=text name=title size=20 maxlength=100 value="%s">' % title
-    body += '<li><label>Estimated downtime</label><textarea wrap="hard" name="downtime" rows=2 cols=30>%s</textarea></li>'
-    body += '<li><label>Affected end users</label><textarea wrap="hard" name="affected" rows=2 cols=30>%s</textarea></li>'
-    body += '<li><label>Description</label>%s<textarea wrap="hard" name="detail" rows=8 cols=30>%s</textarea></li>\n' % (muststar,detail)
-    body += '<li><label>Details</label><textarea wrap="hard" name="detail" rows=8 cols=30>%s</textarea></li>\n' % detail
-    body += '</ul></td><td><h2>%s</h2><ul style="list-style-type:none;marin=0;padding:0;">' % LANG2
-    body += '<li><label>Title</label><input type=text name=title_en size=20 maxlength=100 value="%s"></li>' % title_en
-    body += '<li><label>Estimated downtime</label><textarea wrap="hard" name="downtime_en" rows=2 cols=30>%s</textarea></li></li>'
-    body += '<li><label>Affected end users</label><textarea wrap="hard" name="affected_en" rows=2 cols=30>%s</textarea></li>'
-    body += '<li><label>Description</label><textarea wrap="hard" name="description_en" rows=8 cols=30>%s</textarea></li>\n' % description_en
-    body += '<li><label>Details</label><textarea wrap="hard" name="detail_en" rows=8 cols=30>%s</textarea></li>\n' % detail_en
-    body += '</ul></td></tr></table></li>'
-     
-##     body += '<td><input type=text name=title_en size=20 maxlength=100 value="%s"><i>(English)</i></td>' % title_en
-##     body += '</tr>'
-##     body += '<tr><td align=right>Estimated downtime: <i>(freetext)</i> <input type=text name=downtime size=20 maxlength=100> <i>(Norwegian)</i></td>'
-##     body += '<td><input type=text name=downtime_en size=20 maxlength=100> <i>(English)</i></td></tr>'
-##     body += '<tr><td align=right>Affected end users: <i>(freetext)</i> <input type=text name=affected size=20 maxlength=100> <i>(Norwegian)</i></td>'
-##     body += '<td><input type=text name=affected_en size=20 maxlength=100> <i>(English)</i></td></tr>'
-##     body += '<tr>'
-##     body += '<td>Norwegian Description: <font color="red">*</font> </td>\n'
-##     body += '<td>English Description:</td>\n'
-##     body += '</tr>'
-##     body += '<tr>'
-##     body += '<td><textarea wrap="hard" name="description" rows=8 cols=30>%s</textarea></td>\n' % description
-##     body += '<td><textarea wrap="hard" name="description_en" rows=8 cols=30>%s</textarea></td>\n' % description_en
-##     body += '</tr>'
-##     body += '<tr>'
-##     body += '<td>Details in Norwegian:</td>\n'
-##     body += '<td>Details in English:</td>\n'
-##     body += '</tr>'
-##     body += '<tr>'
-##     body += '<td><textarea wrap="hard" name="detail" rows=8 cols=30>%s</textarea></td>\n' % detail
-##     body += '<td><textarea wrap="hard" name="detail_en" rows=8 cols=30>%s</textarea></td>\n' % detail_en
-##     body += '</tr>'
+    body += '</select> <i>Internal will not be publically available - e.g. for NAV users only. </i></td></tr>\n'
+    body += '<tr>'
+    body += '<td>Title: <font color="red">*</font><input type=text name=title size=20 maxlength=100 value="%s"><i>(Norwegian)</i></td>' % title
+    body += '<td><input type=text name=title_en size=20 maxlength=100 value="%s"><i>(English)</i></td>' % title_en
+    body += '</tr>'
+    body += '<tr><td align=right>Estimated downtime: <i>(freetext)</i> <input type=text name=downtime size=20 maxlength=100> <i>(Norwegian)</i></td>'
+    body += '<td><input type=text name=downtime_en size=20 maxlength=100> <i>(English)</i></td></tr>'
+    body += '<tr><td align=right>Affected end users: <i>(freetext)</i> <input type=text name=affected size=20 maxlength=100> <i>(Norwegian)</i></td>'
+    body += '<td><input type=text name=affected_en size=20 maxlength=100> <i>(English)</i></td></tr>'
+    body += '<tr>'
+    body += '<td>Norwegian Description: <font color="red">*</font> </td>\n'
+    body += '<td>English Description:</td>\n'
+    body += '</tr>'
+    body += '<tr>'
+    body += '<td><textarea wrap="hard" name="description" rows=8 cols=50>%s</textarea></td>\n' % description
+    body += '<td><textarea wrap="hard" name="description_en" rows=8 cols=50>%s</textarea></td>\n' % description_en
+    body += '</tr>'
+    body += '<tr>'
+    body += '<td>Details in Norwegian:</td>\n'
+    body += '<td>Details in English:</td>\n'
+    body += '</tr>'
+    body += '<tr>'
+    body += '<td><textarea wrap="hard" name="detail" rows=8 cols=50>%s</textarea></td>\n' % detail
+    body += '<td><textarea wrap="hard" name="detail_en" rows=8 cols=50>%s</textarea></td>\n' % detail_en
+    body += '</tr>'
     if id != "None":
         body += '<input type=hidden name=emotdid value=%s>' % id
     #if req.form.has_key('parent_id'):
@@ -918,17 +740,15 @@ def edit(req):
         buttonValue = 'Add'
     else:
         buttonValue = 'Submit'
-    #body += '<tr><td colspan=2 align=center><input type=submit name=submitbutton value=%s></td></tr>\n' % buttonValue
-    body += '<li><input type=submit name=submitbutton value=%s></li>\n' % buttonValue
+    body += '<tr><td colspan=2 align=center><input type=submit name=submitbutton value=%s></td></tr>\n' % buttonValue
     body += '</form>\n'
-    body += '</ul>'
-    #body += '</table>'
+    body += '</table>'
 
     selectBox = None
     searchBox = None
     motd = None 
-    nameSpace = {'title': title, 'motd': motd, 'selectBox': selectBox, 'searchBox': searchBox,'menu': menu, 'body': body,'form':form}
-    page = EmotdStandardTemplate(searchList=[nameSpace])
+    nameSpace = {'title': title, 'motd': motd, 'selectBox': selectBox, 'searchBox': searchBox,'menu': menu, 'body': body}
+    page = EmotdTemplate(searchList=[nameSpace])
     return page.respond()
 
 def commit(req):
