@@ -8,14 +8,18 @@ import no.ntnu.nav.eventengine.*;
 
 public class Box extends Device
 {
+	static Map downMap = new HashMap();
+
 	int boxid;
 	boolean status;
 
-	public Box(int deviceid, int boxid) {
+	public Box(int deviceid, int boxid)
+	{
 		super(deviceid);
 		this.boxid = boxid;
 	}
-	public Box(Device d) {
+	public Box(Device d)
+	{
 		super(d);
 		if (d instanceof Box) {
 			Box b = (Box)d;
@@ -24,7 +28,8 @@ public class Box extends Device
 		}
 	}
 
-	public static void updateFromDB(DeviceDB ddb) throws SQLException {
+	public static void updateFromDB(DeviceDB ddb) throws SQLException
+	{
 		System.out.println("Box.updateFromDB");
 		ResultSet rs = Database.query("SELECT boksid FROM boks");
 
@@ -45,15 +50,25 @@ public class Box extends Device
 		}
 	}
 
-	public void down() {
+	public static Iterator findBoxesDown()
+	{
+		return downMap.values().iterator();
+	}
+
+	public void down()
+	{
+		downMap.put(new Integer(boxid), this);
 		status = false;
 	}
 
-	public void up() {
+	public void up()
+	{
+		downMap.remove(new Integer(boxid));
 		status = true;
 	}
 
-	public boolean isUp() {
+	public boolean isUp()
+	{
 		return status;
 	}
 
