@@ -108,12 +108,20 @@ def login(req, login='', password='', origin=''):
         else:
             return _getLoginPage(origin, "Login failed")
     else:
+        if req.session.has_key('message'):
+            # Whatever sent us here has left a message for the user in
+            # the session dictionary (probably an expired session)
+            message = "%s<br>" % req.session['message']
+            del req.session['message']
+            req.session.save()
+        else:
+            message = ''
         # The user requested only the login page
         if origin:
             return _getLoginPage(origin,
-                                 """You are not authorized to access<br>%s""" % origin)
+                                 """%sYou are not authorized to access<br>%s""" % (message, origin))
         else:
-            return _getLoginPage('')
+            return _getLoginPage(message)
 
 def _getLoginPage(origin, message=''):
     from nav.web.templates.LoginTemplate import LoginTemplate

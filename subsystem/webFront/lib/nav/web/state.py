@@ -19,11 +19,13 @@ import os
 from os import path
 import sys
 import fcntl
+import nav.errors
 
 sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
 serialPrefix = '%s_' % sessionCookieName
 maxAge = 3600 # Sessions time out after this amount of seconds
+_timestamp = 0
 
 
 def getUniqueString(entropy=''):
@@ -49,16 +51,38 @@ def setupSession(req):
     client.
     """
     req.session = None
+    message = None
+    global _timestamp
+    
+    # First, we periodically delete expired sessions.  The expiry
+    # isn't necessarily accurate, but what the heck...
+    timenow = int(time.time())
+    if timenow > (_timestamp + 5*60):
+        expireCount = cleanup()
+        if (expireCount > 0):
+            print >> sys.stderr, "NAV-DEBUG: Expired %d sessions" % expireCount
+        _timestamp = timenow
 
     cookieValue = getSessionCookie(req)
     if (cookieValue):
         try:
             req.session = Session(cookieValue)
         except cPickle.UnpicklingError:
+            # Some weird unpickling error took place, we'll silently
+            # create a new session after this
             req.session = None
+        except NoSuchSessionError, e:
+            # The session didn't exist, it probably expired.  We make
+            # sure to set a warning about this inside the new session
+            # that is generated, and re-authentication is necessary,
+            # the login page will display this warning message.
+            message = "Your login session expired"
 
     if req.session is None:
         req.session = Session()
+        if message is not None:
+            req.session['message'] = message
+            req.session.save()
         setSessionCookie(req, req.session.id)
 
 
@@ -115,9 +139,12 @@ def cleanup():
     counter = 0
     for file in old:
         try:
+            # Unlink the expired session file
             os.unlink(file)
             counter += 1
         except:
+            # We failed; maybe another process removed the file before
+            # us.  Oh well, we don't care.
             pass
     return counter
 
@@ -139,8 +166,9 @@ class Session(dict):
         try:
             file = open(filename, 'r')
         except IOError:
-            # If the session does not exist, create a new one using the given id.
-            return dict.__new__(cls, sessionId)
+            # If the session does  not exist, it has probably expired,
+            # and we raise an error
+            raise NoSuchSessionError, sessionId
 
         fcntl.lockf(file, fcntl.LOCK_SH) # Shared read lock
         unpickler = cPickle.Unpickler(file)
@@ -193,3 +221,8 @@ class Session(dict):
         if self._changed:
             self.save()
         
+class StateError(nav.errors.GeneralException):
+    "State error"
+
+class NoSuchSessionError(StateError):
+    "No such session error"
