@@ -15,11 +15,11 @@ ConfigParser: Logger
 Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
-getBoksMacs: ConfigParser Database Event Logger SimpleSnmp
+getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 getDeviceData: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 Logger: 
-NetboxInfo: Database Logger
+NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
 Util: Database Logger
 vlanPlot: 
-webapps: ConfigParser Database Logger
+webapps: ConfigParser Database Event Logger
