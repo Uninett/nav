@@ -15,7 +15,7 @@
 ####################
 
 # Dette er en sms-demon som henter sms meldinger i fra
-# databasen på bigbud og sender dem ved hjelp av 
+# databasen og sender dem ved hjelp av 
 # mobiltelefon koblet til com-porten.
 #
 # Hvis det ligger flere sms i ut køen som skal til 
@@ -87,7 +87,7 @@ justme();				# sjekker om smsd kjøres fra før.
 
 # Lager bare en connection mot databasen, som er konstant.
 my %dbconf = &db_readconf();
-my $dbname = $dbconf{db_trapdetect};
+my $dbname = $dbconf{db_navprofile};
 my $dbuser = $dbconf{script_smsd};
 my $userpw = $dbconf{'userpw_' . $dbuser};
 my $conn = &db_connect($dbname, $dbuser, $userpw);
@@ -95,7 +95,7 @@ my $conn = &db_connect($dbname, $dbuser, $userpw);
 # Sletter utkøen i databasen
 if ($opt_c) {
     
-    my $sql = "UPDATE smsutko SET sendt=\'I\', tidsendt=NOW() WHERE sendt=\'N\'";
+    my $sql = "UPDATE smsq SET sent=\'I\', timesent=NOW() WHERE sent=\'N\'";
     
     my $ok = &db_execute($conn,$sql);
 }
@@ -110,7 +110,7 @@ if ($opt_d) {
 # Henter ut antall sms vi har sendt.
 
 
-my $sql = "SELECT max(smsid) FROM smsutko";
+my $sql = "SELECT max(smsid) FROM smsq";
 
 &sjekk_conn;
 $maxidsok = &db_select($conn,$sql);
@@ -127,7 +127,7 @@ else
     $smsid=0;
 }
 
-my $sql = "SELECT tlf,smsutko.id,melding FROM smsutko,bruker WHERE bruker.id = smsutko.brukerid AND sendt=\'N\'";
+my $sql = "SELECT phone,id,msg FROM smsq WHERE sent=\'N\'";
 
 chdir('/');
 # Disconnect from terminal, STD(OUT|ERR|IN)
@@ -195,7 +195,7 @@ sub sorter_sms {
 
 	# Henter på nytt alle meldingen til denne personen
 
-	$ko = "SELECT smsutko.id,melding FROM smsutko,bruker WHERE bruker.id=smsutko.brukerid AND sendt=\'N\' AND tlf=\'$user\'"; 
+	$ko = "SELECT id,msg FROM smsq WHERE sent=\'N\' AND phone=\'$user\'"; 
 
 	&sjekk_conn;
 	$ok = &db_select($conn,$ko);
@@ -242,12 +242,16 @@ sub sorter_sms {
 
 	# Hvis der er flere en 1 melding til persone
 	if ($ant_ignored > 0) {
-	    $respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
+#	    $respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
+	    print "$tlf_\t$text_ +$ant_ignored se web";
+	    $respons_ = 0;
 	}
 
 	# Hvis der kun er en melding til personen
 	else {
-	    $respons_ = &send_sms($tlf_, $text_);
+#	    $respons_ = &send_sms($tlf_, $text_);
+	    print "$tlf_\t$text_";
+	    $respons_ = 0;
 	}
 
 
@@ -275,7 +279,7 @@ sub sorter_sms {
 	    while (@sendt_id) {
 		$id_ = pop @sendt_id;
 
-		$ko2 = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+		$ko2 = "UPDATE smsq SET sent=\'Y\',smsid=\'$smsid\',timesent=NOW() WHERE id=\'$id_\'";
 
 		&sjekk_conn;
 		$ga = &db_execute($conn,$ko2);
@@ -301,7 +305,7 @@ sub sorter_sms {
 	    while (@ignored_id) {
 		$id_ = pop @ignored_id;
 
-		$ko2 = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+		$ko2 = "UPDATE smsq SET sent=\'I\',smsid=\'$smsid\',timesent=NOW() WHERE id=\'$id_\'";
 		&sjekk_conn;
 		$ga = &db_execute($conn,$ko2);
 
