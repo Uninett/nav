@@ -12,10 +12,12 @@ package no.ntnu.nav.Database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Date;
 
 public class Database
@@ -70,7 +72,7 @@ public class Database
 			//connection = DriverManager.getConnection("jdbc:"+dbName+"://" + serverName + "/" + dbName, user, pw);
 			//connection = DriverManager.getConnection("jdbc:mysql://"+serverName+"/"+dbName+"?user="+user+"&password="+pw);
 
-			connection.setAutoCommit(true);
+			connection.setAutoCommit(false);
 			stUpdate = connection.createStatement();
 			return true;
 		} catch (ClassNotFoundException e) {
@@ -258,6 +260,23 @@ public class Database
 		stUpdate = connection.createStatement();
 		return stUpdate.executeUpdate(query);
 	}
+
+	/**
+	 * Return all columns from the current row in rs in a HashMap
+	 *
+	 * @param rs ResultSet to fetch row from
+	 * @param md Get column names from this object
+	 * @return HashMap with all columns from the current row in rs
+	 */
+	public static HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md) throws SQLException
+	{
+		HashMap hm = new HashMap();
+		for (int i=md.getColumnCount(); i > 0; i--) {
+			hm.put(md.getColumnName(i), rs.getString(i));
+		}
+		return hm;
+	}
+
 
 	/**
 	 * Escape any special characters in the given string (e.g. ' and \)
