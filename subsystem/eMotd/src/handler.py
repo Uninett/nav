@@ -78,12 +78,14 @@ def getMenu(req):
         <a href="edit">Compose</a><br>
         <a href="show_active">Show active MOTDs</a><br>
         <a href="viewall">View all previos MOTDs</a><br>
+        <a href="maintenance?list=active">Current maintenance</a><br>
         '''
     else:
         # do we have a menu for anonymous users? Maybe search, view, show_last_n etc
         menu = '''
                  <a href="show_active">Show active MOTDs</a><br>
                  <a href="viewall">View all previos MOTDs</a><br>  
+                 <a href="maintenance?list=active">Current maintenance</a><br>
                 '''
     return menu
 
