@@ -88,7 +88,7 @@ class LdapChecker(AbstractChecker):
 			try:
 				result = l.compare_s(dn,attribute,value)
 				if result:
-					return Event.UP
+					return Event.UP, "Ok"
 				else:
 					return Event.DOWN, "compare failed: %s:%s" % (attribute,value)
 			except Exception,e:
