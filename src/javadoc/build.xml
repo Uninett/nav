@@ -30,6 +30,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/data-plugins/ModuleMon/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/data-plugins/Device/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
