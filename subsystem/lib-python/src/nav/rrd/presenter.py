@@ -55,6 +55,7 @@ import random
 import glob
 import os
 import warnings
+import operator
 from mx import DateTime
 from os import path
 
@@ -75,7 +76,6 @@ class rrd_file:
         self.value    = result['value']
         self.subsystem= result['subsystem']
         self.sysname  = result['sysname']
-        #cursor.close()
         
     def fullPath(self):
         rrd_file_path = path.join(self.path,self.filename)
@@ -213,17 +213,17 @@ class presentation:
     
     def average(self):
         """Returns the average of the valid rrd-data"""
-        sumList = []
+        averages = []
         dataList = self.fetchValid()        
         for data in dataList:
             sum = 0
-            for i in data['data']:
-                sum += i
-            sumList.append(sum)
-        try:
-            return map(lambda x,y:x/y['data'].__len__(),sumList,dataList)
-        except ZeroDivisionError:
-            return 0
+            if not data['data']:
+                average=0
+            else:
+                sum = reduce(operator.add, data['data'])
+                average = sum / len(data['data'])
+            averages.append(average)
+        return averages    
         
     def max(self):
         """Returns the local maxima of the valid rrd-data"""
@@ -295,7 +295,12 @@ class presentation:
         """Generates an url to a image representing the current presentation"""
         url = 'graph.py'
         index = 0
-        params = ['-w'+str(self.graphWidth),'-h'+str(self.graphHeight),'-s'+self.fromTime,'-e'+self.toTime,'--no-minor']
+        params = ['-w' + str(self.graphWidth),
+                  '-h' + str(self.graphHeight),
+                  '-s' + self.fromTime,
+                  '-e' + self.toTime,
+                  '--no-minor',
+                  ]
         try:
             params.append('-t %s' % self.title)
         except NameError:

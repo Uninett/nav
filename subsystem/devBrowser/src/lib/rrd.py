@@ -104,7 +104,18 @@ def process(request):
         zoom(session, id, value)
         raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "save":
-        return save(session)
+        try:
+            name = query['name'][0]
+        except:
+            name = 'ingenting'
+        return save(session, name)
+    if args[0] == 'load':
+        try:
+            name = query['name'][0]
+        except:
+            name = 'ingenting'
+        load(session, name)
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
         
     return html.Division("args: %s, query: %s " %(str(args), str(query)))
 
@@ -405,8 +416,61 @@ def graph(req,id):
     req.write(f.read())
     f.close()
                                 
-def save(session):
+def save(session, name):
     conn = nav.db.getConnection('navprofile', 'navprofile')
     navprofiles.setCursorMethod(conn.cursor)
+    key="rrdPage"
     user = session['user']
-    return html.Division("user: %s " %user)
+    result = html.Division("user: %s " %user)
+    property = navprofiles.Accountproperty.getAll(where="accountid=%s AND property='%s'" % (user, key))
+    result.append(html.Division("len(prop) = %s" % len(property)))
+    if property:
+        oldPages = property[0]
+        try:
+            value = eval(oldPages.value)
+        except:
+            value = []
+    else:
+        result.append(html.Division("Creating new row"))
+        oldPages = navprofiles.Accountproperty()
+        oldPages.account = user
+        oldPages.property = key
+        value = []
+    newPages = session['rrd']
+    newPages.name = name
+    result.append(html.Division("New pages: %s" % newPages.serialize()))
+    oldValue = value
+    result.append(html.Division("Old pages: %s" % value))
+    result.append(html.Division("Name: %s" % name))
+    value.append(newPages.serialize())
+    oldPages.value = str(value)
+    a = oldPages.save()
+    oldPages._saveDB()
+    result.append(html.Division("hei %s" % a))
+    result.append(html.Division("To save: %s" % value))
+    sql = """UPDATE accountproperty set accountid=%s, property='%s', value=%s
+             WHERE accountid=%s AND property='%s'""" \
+    % (user, key, nav.db.escape(str(value)), user, key)
+    result.append(sql)
+    cursor= conn.cursor()
+    cursor.execute(sql)
+    return result
+
+def load(session, name):
+    user = session['user']
+    key="rrdPage"
+    conn = nav.db.getConnection('navprofile', 'navprofile')
+    navprofiles.setCursorMethod(conn.cursor)
+    property = navprofiles.Accountproperty.getAll(where="accountid=%s AND property='%s'" % (user, key))
+    if property:
+        property = property[0]
+    else:
+        raise "hei"
+    pages = eval(property.value)
+    #raise str(property.value)
+    for page in pages:
+        if page['name'] == name:
+            session['rrd'] = presenter.page(page)
+            session.save()
+            return
+    raise "hmm: %s" % len(pages)

@@ -167,6 +167,9 @@ def _customizeTables():
     # Fix Preference
     Preference._sqlPrimary = ('account',)
 
+    # Fix Accountproperty
+    Accountproperty._sqlPrimary = ('account','property','value',)
+
 def setCursorMethod(cursor):
     import forgotten.navprofiles
     forgotten.navprofiles._Wrapper.cursor = cursor
