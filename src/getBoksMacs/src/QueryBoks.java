@@ -1,8 +1,8 @@
 /*******************
 *
-* $Id: QueryBoks.java,v 1.4 2002/11/22 22:20:30 kristian Exp $
+* $Id: QueryBoks.java,v 1.5 2002/11/23 00:32:01 kristian Exp $
 * This file is part of the NAV project.
-* Logging of CAM/CDP data
+* Loging of CAM/CDP data
 *
 * Copyright (c) 2002 by NTNU, ITEA nettgruppen
 * Authors: Kristian Eide <kreide@online.no>
@@ -442,7 +442,8 @@ public class QueryBoks extends Thread
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						newCnt++;
 					} catch (SQLException e) {
-						errl("ERROR, Insert into swp_netbox, SQLException: " + e.getMessage() );
+						errl("ERROR, Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
+
 					}
 				} else {
 					newCnt++;

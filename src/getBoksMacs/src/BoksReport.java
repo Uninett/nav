@@ -1,8 +1,8 @@
 /*******************
 *
-* $Id: BoksReport.java,v 1.2 2002/11/22 21:33:59 kristian Exp $
+* $Id: BoksReport.java,v 1.3 2002/11/23 00:32:01 kristian Exp $
 * This file is part of the NAV project.
-* Logging of CAM/CDP data
+* Loging of CAM/CDP data
 *
 * Copyright (c) 2002 by NTNU, ITEA nettgruppen
 * Authors: Kristian Eide <kreide@online.no>

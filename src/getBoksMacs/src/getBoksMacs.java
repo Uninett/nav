@@ -1,8 +1,8 @@
 /*******************
 *
-* $Id: getBoksMacs.java,v 1.4 2002/11/22 21:37:33 kristian Exp $
+* $Id: getBoksMacs.java,v 1.5 2002/11/23 00:32:01 kristian Exp $
 * This file is part of the NAV project.
-* Logging of CAM/CDP data
+* Loging of CAM/CDP data
 *
 * Copyright (c) 2002 by NTNU, ITEA nettgruppen
 * Authors: Kristian Eide <kreide@online.no>
@@ -245,7 +245,7 @@ class getBoksMacs
 		ResultSetMetaData rsmd = rs.getMetaData();
 		//rs = Database.query("SELECT swp_boksid,boksid,modul,port,boksbak FROM swp_boks JOIN boks USING (boksid) WHERE sysName='sb-sw'");
 		while (rs.next()) {
-			String key = rs.getString("netboxid")+":"+rs.getString("to_module")+":"+rs.getString("to_port")+":"+rs.getString("to_netboxid");
+			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port")+":"+rs.getString("to_netboxid");
 			swp.add(key);
 
 			HashMap hm = getHashFromResultSet(rs, rsmd, false);
