@@ -110,6 +110,23 @@ public class DeviceHandler implements DataHandler {
 					deviceid = Database.insert("device", ins, null);
 				} else {
 					deviceid = olddev.getDeviceidS();
+					int devid = olddev.getDeviceid();
+					int nbid = nb.getDeviceid();
+
+					// If the serial changes we need to recreate the netbox
+					// If devids don't match it means that we are dealing with an existing device moved
+					// If serials don't match we have a new serial to an existing deviceid
+					if (dev.getDeviceid() != olddev.getDeviceid() || !dev.getSerial().equals(olddev.getSerial())) {
+						NetboxUpdatable nu = (NetboxUpdatable)nb;
+						nu.recreate();
+						Map varMap = new HashMap();
+						varMap.put("old_deviceid", String.valueOf(olddev.getDeviceid()));
+						varMap.put("new_deviceid", String.valueOf(dev.getDeviceid()));
+						varMap.put("old_serial", String.valueOf(olddev.getSerial()));
+						varMap.put("new_serial", String.valueOf(dev.getSerial()));
+						EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+					}
+
 					if (!dev.equalsDevice(olddev)) {
 						// Device needs to be updated
 						Log.i("UPDATE_DEVICE", "Update deviceid="+deviceid+" serial="+dev.getSerial()+" hw_ver="+dev.getHwVer()+" sw_ver="+dev.getSwVer());
@@ -124,30 +141,21 @@ public class DeviceHandler implements DataHandler {
 						};
 						Database.update("device", set, where);
 
-						// If the serial changes we need to recreate the netbox
-						int devid = olddev.getDeviceid();
-						if (!dev.getSerial().equals(olddev.getSerial())) {
-							NetboxUpdatable nu = (NetboxUpdatable)nb;
-							nu.recreate();
-							Map varMap = new HashMap();
-							varMap.put("old_serial", String.valueOf(olddev.getSerial()));
-							varMap.put("new_serial", String.valueOf(dev.getSerial()));
-							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
-						}
-
 						// Now we need to send events if hw_ver or sw_ver changed
 						if (!dev.getHwVer().equals(olddev.getHwVer())) {
 							Map varMap = new HashMap();
+							varMap.put("deviceid", String.valueOf(devid));
 							varMap.put("old_hwver", String.valueOf(olddev.getHwVer()));
 							varMap.put("new_hwver", String.valueOf(dev.getHwVer()));
-							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
 						}
 						
 						if (!dev.getSwVer().equals(olddev.getSwVer())) {
 							Map varMap = new HashMap();
+							varMap.put("deviceid", String.valueOf(devid));
 							varMap.put("old_swver", String.valueOf(olddev.getSwVer()));
 							varMap.put("new_swver", String.valueOf(dev.getSwVer()));
-							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceSwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceSwUpgrade", Event.STATE_NONE, 0, 0, varMap);
 						}
 					}
 				}
