@@ -17,21 +17,22 @@ DROP TABLE device CASCADE;
 DROP TABLE product CASCADE;
 DROP TABLE vendor CASCADE;
 DROP TABLE type CASCADE;
-DROP TABLE typegroup;
+DROP TABLE snmpoid CASCADE
+DROP TABLE typegroup CASCADE;
 DROP TABLE room CASCADE;
 DROP TABLE location CASCADE;
 DROP TABLE usage CASCADE;
 DROP TABLE org CASCADE;
 
-DROP TABLE swp_netbox;
+DROP TABLE swp_netbox CASCADE;
 
-DROP TABLE netboxdisk;
-DROP TABLE netboxinterface;
+DROP TABLE netboxdisk CASCADE;
+DROP TABLE netboxinterface CASCADE;
 
 -------VP - fingra fra fatet, Sigurd:
-DROP TABLE vp_netbox_xy;
-DROP TABLE vp_netbox_grp;
-DROP TABLE vp_netbox_grp_info;
+DROP TABLE vp_netbox_xy CASCADE;
+DROP TABLE vp_netbox_grp CASCADE;
+DROP TABLE vp_netbox_grp_info CASCADE;
 
 -- Slette alle sekvenser
 DROP SEQUENCE netbox_netboxid_seq;
@@ -51,7 +52,7 @@ DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
 
 -- Slette alle indekser
 
-DROP TABLE status;
+DROP TABLE status CASCADE;
 DROP SEQUENCE status_statusid_seq;
 
 CREATE TABLE status (
@@ -177,11 +178,11 @@ CREATE TABLE snmpoid (
 	descr VARCHAR
 );
 
-CREATE TABLE typeoid (
+CREATE TABLE typesnmpoid (
 	typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-	snmpoidid INT4 REFERENCES objectid ON UPDATE CASCADE ON DELETE CASCADE,
+	snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
 	frequency INT4,
-	UNIQUE(typeid, oidid)
+	UNIQUE(typeid, snmpoidid)
 );  
 
 CREATE TABLE netbox (
@@ -354,10 +355,10 @@ GRANT ALL ON type_typeid_seq TO navall;
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 
-DROP TABLE arp;
-DROP TABLE cam; 
-DROP VIEW netboxmac;
-DROP TABLE eventtype;
+DROP TABLE arp CASCADE;
+DROP TABLE cam CASCASE;
+DROP VIEW netboxmac CASCADE;
+DROP TABLE eventtype CASCADE;
 
 DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
@@ -534,9 +535,9 @@ GRANT ALL    ON swportallowedvlan TO getDeviceData;
 -- rrd metadb tables
 ------------------------------------------------------------------------------------------
 
-DROP TABLE subsystem;
-DROP TABLE rrd_file;
-DROP TABLE rrd_datasource;
+DROP TABLE subsystem CASCADE;
+DROP TABLE rrd_file CASCADE;
+DROP TABLE rrd_datasource CASCADE;
 
 DROP SEQUENCE rrd_file_seq;
 DROP SEQUENCE rrd_datasource_seq;
@@ -617,9 +618,9 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('info','Basic information','n');
 
-DROP TABLE eventq;
+DROP TABLE eventq CASCADE;
 DROP SEQUENCE eventq_eventqid_seq;
-DROP TABLE eventqvar;
+DROP TABLE eventqvar CASCADE;
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -643,9 +644,9 @@ CREATE TABLE eventqvar (
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
 -- alert tables
-DROP TABLE alertq;
+DROP TABLE alertq CASCADE;
 DROP SEQUENCE alertq_alertqid_seq;
-DROP TABLE alertqvar;
+DROP TABLE alertqvar CASCADE;
 
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
@@ -667,9 +668,9 @@ CREATE TABLE alertqvar (
   UNIQUE(alertqid, msgtype, language)
 );
 
-DROP TABLE alerthist;
+DROP TABLE alerthist CASCADE;
 DROP SEQUENCE alerthist_alerthistid_seq;
-DROP TABLE alerthistvar;
+DROP TABLE alerthistvar CASCADE;
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
@@ -697,8 +698,8 @@ CREATE TABLE alerthistvar (
 -- servicemon tables
 ------------------------------------------------------------------------------------------
 
-DROP TABLE service;
-DROP TABLE serviceproperty;
+DROP TABLE service CASCADE;
+DROP TABLE serviceproperty CASCADE;
 DROP SEQUENCE service_serviceid_seq;
 
 CREATE TABLE service (
