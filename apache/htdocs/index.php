@@ -1,8 +1,10 @@
 <?php
 
+/* $Id: index.php,v 1.2 2002/08/05 11:38:13 mortenv Exp $  */
+
 require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
-$htpasswd = '/usr/local/nav/navme/apache/htpasswd';
+$htpasswd = '/usr/local/nav/local/apache/htpasswd';
 $passwdfil = "$htpasswd/.htpasswd-sroot";
 
 $navme = '/usr/local/nav/navme/apache/vhtdocs';
