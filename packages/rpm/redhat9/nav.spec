@@ -1,10 +1,10 @@
-%define version 3.0_beta3
+%define version 3.0_devel
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 2
+Release: 1
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
@@ -17,8 +17,11 @@ Prefix: %{_prefix}
 Requires: bind-utils, postgresql >= 7.3, python >= 2.2, perl >= 5.6, j2re >= 1.4
 
 %description
-This package contains Network Administration Visualized.
-This space should contain an interesting description of NAV
+This package contains Network Administration Visualized, an advanced
+software suite to monitor large computer networks. It automatically
+discovers network topology, monitors network load and outages, and can
+send alerts on network events by e-mail and SMS, allowing for flexible
+configuration of alert profiles.
 
 %prep
 %setup -q
@@ -100,6 +103,15 @@ fi
 
 
 %changelog
+* Thu May 27 2004  <kreide@online.no>
+
+- Grabbed new version 3.0_beta5.
+- Updated NAV description
+
+* Tue May 11 2004  <morten.vold@itea.ntnu.no>
+
+- (Finally) Grabbed new version 3.0_beta4.
+
 * Wed Mar 24 2004  <morten.vold@itea.ntnu.no>
 
 - Grabbed new version 3.0_beta3.
