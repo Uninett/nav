@@ -89,7 +89,10 @@ def getVlanInfo(port):
         for vlanlink in vlans:
             vlan = manage.Vlan(vlanlink.vlan)
             line = html.Division()
-            line.append(urlbuilder.createLink(vlan))
+            try:
+                line.append(urlbuilder.createLink(vlan))
+            except:
+                raise str(vlan)
             if vlanlink.direction is not None:
                 line.append("(direction %s)" % 
                     _directions.get(vlanlink.direction, 
@@ -100,7 +103,10 @@ def getVlanInfo(port):
         for vlanlink in blocked:
             vlan = manage.Vlan(vlanlink.vlan)
             div = html.Division()
-            div.append(urlbuilder.createLink(vlan))
+            try:
+                div.append(urlbuilder.createLink(vlan))
+            except:
+                raise str(vlan.vlanid)
             vlanInfo.append(div)
 
     # This is no useful information. I remove it for now...

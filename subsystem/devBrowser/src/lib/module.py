@@ -21,7 +21,6 @@ def process(request):
     result.append(moduleInfo.showModule())               
     return result               
     
-
 def findModule(netbox, moduleName):
     moduleName = moduleName.replace("module", "")
     try:
@@ -100,7 +99,7 @@ class ModuleInfo(manage.Module):
                     portView['class'] += 'disabled'
                 elif port.link <> 'y':
                     portView['class'] += 'passive'
-                    titles.append('not active')
+                    titles.append('inactive')
                 if port.trunk:
                     portView['class'] += ' trunk'
                     titles.append(", trunk")
@@ -113,6 +112,8 @@ class ModuleInfo(manage.Module):
                     titles.append(port.media)
                 vlans = port.getChildren(manage.Swportvlan)
                 if vlans:
+                    vlans = [x.vlan for x in vlans]
+                    vlans = map(lambda x: manage.Vlan(x), vlans)
                     vlans = [str(x.vlan) for x in vlans]
                     titles.append('Vlan ' + ','.join(vlans))
                 blocked = port.getChildren(manage.Swportblocked)

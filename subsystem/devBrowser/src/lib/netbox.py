@@ -18,11 +18,41 @@ _statusTranslator = {'y':'Up',
                      's':'Shadow'
                      }
 
-def findNetbox(hostname):
+def findNetboxes(hostname):
+    """
+    Finds a netbox from sysname or partial sysname. Returns
+    a list of netboxes in which hostname is a substring of
+    their sysname. huh
+    """
     netbox = manage.getNetbox(hostname)
-    if not netbox:
-        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
-    return netbox    
+    if netbox:
+        return [netbox]
+    # Now we can try to see if hostname is a substing of
+    # a real sysname
+    netboxes = manage.Netbox.getAll()
+    sysnames = [nb.sysname for nb in netboxes]
+    matches = []
+    for sysname in sysnames:
+        if sysname.find(hostname) >= 0:
+            matches.append(manage.getNetbox(sysname))
+
+    if len(matches) == 1:
+        raise RedirectError, urlbuilder.createUrl(matches[0])
+    elif matches:
+        return matches
+    
+    raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+    
+def showMatches(netboxes):
+    result = html.Division()
+    heading = html.Header("Found %s netboxes matching your query" % len(netboxes),
+                          level=2)
+    result.append(heading)
+    for netbox in netboxes:
+        line = html.Division()
+        line.append(urlbuilder.createLink(netbox))
+        result.append(line)
+    return result    
 
 def process(request):
     args = request['args']
@@ -41,7 +71,11 @@ def process(request):
     if not hostname:
         # How did we get here?
         return showIndex()
-    netbox = findNetbox(hostname)
+    netboxes = findNetboxes(hostname)
+    if len(netboxes) > 1:
+        return showMatches(netboxes)
+    else:
+        netbox = netboxes[0]
     request['templatePath'].append((str(netbox), None))
 
     #for i in netbox._sqlFields.keys():
