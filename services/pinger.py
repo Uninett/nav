@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.6 2002/12/09 15:42:55 magnun Exp $
+$Id: pinger.py,v 1.7 2002/12/13 20:14:15 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -36,9 +36,10 @@ class pinger:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-
+        self.debug.log("Getting hosts from database...",7)
         hosts = self.db.hostsToPing()
         self.hosts = map(lambda x:x[0], hosts)
+        self.debug.log("We now got %i hosts in our list to ping" % len(self.hosts),7)
 
     def main(self):
         """
@@ -50,17 +51,22 @@ class pinger:
             start=time.time()
             self.getJobs()
             self.pinger.setHosts(self.hosts)
+            self.debug.log("Starts pinging....",7)
             elapsedtime=self.pinger.start()
+            self.debug.log("Checks which hosts didn't answer",7)
             down = self.pinger.noAnswers()
+            self.debug.log("No answer from %i hosts" %len(down),7)
             reportdown = filter(lambda x: x not in self.down, down)
             reportup = filter(lambda x: x not in down, self.down)
             self.down = down
 
             #Rapporter bokser som har gått ned
+            self.debug.log("Starts reporting %i hosts as down" % len(reportdown),7)
             for each in reportdown:
                 self.db.pingEvent(each, 'DOWN')
                 self.debug.log("%s marked as down." % each)
             #Rapporter bokser som har kommet opp
+            self.debug.log("Starts reporting %i hosts as up" % len(reportup),7)
             for each in reportup:
                 self.db.pingEvent(each, 'UP')
                 self.debug.log( "%s marked as up." % each)
