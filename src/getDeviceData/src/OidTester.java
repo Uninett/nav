@@ -12,7 +12,6 @@ import no.ntnu.nav.SimpleSnmp.*;
 
 public class OidTester
 {
-	private static final int CHECK_NETBOX_CNT = 2;
 	private static final int DEFAULT_FREQ = 3600;
 
 	private static Map lockMap = new HashMap();
@@ -61,17 +60,17 @@ public class OidTester
 
 		try {
 			// Get a netbox to test against
-			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' LIMIT " + CHECK_NETBOX_CNT);
+			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"'");
 		
 			while (rs.next()) {
+				boolean supported = false;
+
 				// Check that not someone else is testing against this netbox
 				String ip = rs.getString("ip");
 				synchronized(lock(ip)) {
 
 					// Do the test
 					sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
-
-					boolean supported = false;
 
 					try {
 						List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
@@ -110,6 +109,11 @@ public class OidTester
 
 				}
 				unlock(ip);
+
+				if (supported) {
+					// No need to test further
+					break;
+				}
 			}
 		} catch (SQLException e) {
 			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
