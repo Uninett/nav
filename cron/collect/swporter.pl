@@ -107,7 +107,6 @@ for my $boks (keys %swportallowedvlantemp) {
 
 #################################################################
 sub snmp_svitsj{
-    print "hei";
     my $ip = $_[0];
     my $ro = $_[1];
     my $boksid = $_[2];
