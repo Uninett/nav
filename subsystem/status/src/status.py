@@ -17,7 +17,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 import StatusTables,mx.DateTime,re
 
 from mod_python import util,apache
-from StatusTemplate import StatusTemplate
+from nav.web.templates.StatusTemplate import StatusTemplate
 
 from nav.web import urlbuilder
 

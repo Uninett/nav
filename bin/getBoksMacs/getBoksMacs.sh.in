@@ -20,7 +20,7 @@ fi
 CUR_DIR=${bindir}/getBoksMacs
 LOG_DIR="${localstatedir}/log"
 PIDFILE=${localstatedir}/run/getBoksMacs.pid
-JOB_FINISHED=$CUR_DIR/job-finished
+JOB_FINISHED=${localstatedir}/run/boksmacs-finished.flag
 
 
 getpid() {
@@ -44,7 +44,7 @@ if [ -z `getpid` ] || [ -f $JOB_FINISHED ]; then
     # Check again that getBoksMacs is not already running
     if [ -z `getpid` ]; then
         # Now run script
-	$JAVA_HOME/bin/java -jar getBoksMacs.jar $1 >> "$LOG_DIR/getBoksMacs.log" &
+	$JAVA_HOME/bin/java -cp "getBoksMacs.jar:$CLASSPATH" getBoksMacs $1 >> "$LOG_DIR/getBoksMacs.log" &
 	pidno="$!"
 	echo $pidno >$PIDFILE
 	wait $pidno

@@ -489,9 +489,8 @@ class getBoksMacs
 
 		// Create a job-finished file
 		try {
-			String curDir = System.getProperty("user.dir");
 			char sep = File.separatorChar;
-			File f = new File(curDir+sep+"job-finished");
+			File f = new File(Path.localstatedir+sep+"run"+sep+"boksmacs-finished.flag");
 			f.createNewFile() ;
 		} catch (SecurityException e) {
 			errl("Error, cannot write to user.dir: " + e.getMessage() );

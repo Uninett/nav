@@ -4,7 +4,7 @@ from pprint import pprint,pformat
 from mx import DateTime
 from nav import db
 from nav.web.URI import URI
-from MachineTrackerTemplate import MachineTrackerTemplate
+from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
 from socket import gethostbyaddr,gethostbyname,herror
 
 import re

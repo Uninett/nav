@@ -15,14 +15,14 @@ package no.ntnu.nav;
  */
 
 public class Path {
-    public static final String prefix        = "${prefix}";
-    public static final String exec_prefix   = "${exec_prefix}";
-    public static final String sysconfdir    = "${sysconfdir}";
-    public static final String initdir       = "${initdir}";
-    public static final String bindir        = "${bindir}";
-    public static final String libdir        = "${libdir}";
-    public static final String javalibdir    = "${javalibdir}";
-    public static final String localstatedir = "${localstatedir}";
-    public static final String webroot       = "${webroot}";
-    public static final String tooldir       = "${tooldir}";
+    public static String prefix        = "${prefix}";
+    public static String exec_prefix   = "${exec_prefix}";
+    public static String sysconfdir    = "${sysconfdir}";
+    public static String initdir       = "${initdir}";
+    public static String bindir        = "${bindir}";
+    public static String libdir        = "${libdir}";
+    public static String javalibdir    = "${javalibdir}";
+    public static String localstatedir = "${localstatedir}";
+    public static String webroot       = "${webroot}";
+    public static String tooldir       = "${tooldir}";
 }

@@ -37,6 +37,7 @@ install-lib: $(templates)
 	@for file in $(templates); do \
 	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)/$(templatedir)/$$file || exit 1; \
 	done
+	touch $(DESTDIR)$(templatedir)/__init__.py
 	@$(INSTALL) -D -v -m 644 useradmin/__init__.py $(DESTDIR)/$(templatedir)/useradmin/__init__.py
 
 clean:

@@ -44,7 +44,7 @@ REQ_NONEMPTY = 3
 #################################################
 ## Templates
 
-from editdbTemplate import editdbTemplate
+from nav.web.templates.editdbTemplate import editdbTemplate
 
 #################################################
 ## Functions

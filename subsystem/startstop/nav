@@ -10,7 +10,6 @@
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
-use strict;
 use English;
 
 use constant SUB_NONE    => 0;

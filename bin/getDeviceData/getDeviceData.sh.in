@@ -26,6 +26,6 @@ fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -jar getDeviceData.jar $1 > "$LOG_DIR/getDeviceData-`/bin/date +%Y-%m-%d_%H-%M`.log" &
+$JAVA_HOME/bin/java -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 > "$LOG_DIR/getDeviceData-`/bin/date +%Y-%m-%d_%H-%M`.log" &
 pidno="$!"
 echo $pidno > $PIDFILE

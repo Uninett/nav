@@ -4,7 +4,7 @@
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 1
+Release: 4
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
@@ -68,31 +68,42 @@ fi
 %dir %{_prefix}/etc/report
 %dir %{_prefix}/etc/webfront
 %defattr(0664,root,nav)
-%config %{_prefix}/etc/nav.conf
-%config %{_prefix}/etc/db.conf
-%config %{_prefix}/etc/crontab_navcron.nav
-%config %{_prefix}/etc/alertengine.cfg
-%config %{_prefix}/etc/alertmsg.conf
-%config %{_prefix}/etc/cricketoids.txt
-%config %{_prefix}/etc/devbrowser.conf
-%config %{_prefix}/etc/eventEngine.conf
-%config %{_prefix}/etc/getBoksMacs.conf
-%config %{_prefix}/etc/getDeviceData.conf
-%config %{_prefix}/etc/machinetracker.conf
-%config %{_prefix}/etc/pping.conf
-%config %{_prefix}/etc/report/front.html
-%config %{_prefix}/etc/report/report.conf
-%config %{_prefix}/etc/servicemon.conf
-%config %{_prefix}/etc/smsd.conf
-%config %{_prefix}/etc/webfront/contact-information.txt
-%config %{_prefix}/etc/webfront/external-links.txt
-%config %{_prefix}/etc/webfront/nav-links.conf
-%config %{_prefix}/etc/webfront/webfront.conf
-%config %{_prefix}/etc/webfront/welcome-anonymous.txt
-%config %{_prefix}/etc/webfront/welcome-registered.txt
+%config(noreplace) %{_prefix}/etc/nav.conf
+%config(noreplace) %{_prefix}/etc/db.conf
+%config(noreplace) %{_prefix}/etc/crontab_navcron.nav
+%config(noreplace) %{_prefix}/etc/alertengine.cfg
+%config(noreplace) %{_prefix}/etc/alertmsg.conf
+%config(noreplace) %{_prefix}/etc/cricketoids.txt
+%config(noreplace) %{_prefix}/etc/devbrowser.conf
+%config(noreplace) %{_prefix}/etc/eventEngine.conf
+%config(noreplace) %{_prefix}/etc/getBoksMacs.conf
+%config(noreplace) %{_prefix}/etc/getDeviceData.conf
+%config(noreplace) %{_prefix}/etc/machinetracker.conf
+%config(noreplace) %{_prefix}/etc/pping.conf
+%config(noreplace) %{_prefix}/etc/report/front.html
+%config(noreplace) %{_prefix}/etc/report/report.conf
+%config(noreplace) %{_prefix}/etc/servicemon.conf
+%config(noreplace) %{_prefix}/etc/smsd.conf
+%config(noreplace) %{_prefix}/etc/webfront/contact-information.txt
+%config(noreplace) %{_prefix}/etc/webfront/external-links.txt
+%config(noreplace) %{_prefix}/etc/webfront/nav-links.conf
+%config(noreplace) %{_prefix}/etc/webfront/webfront.conf
+%config(noreplace) %{_prefix}/etc/webfront/welcome-anonymous.txt
+%config(noreplace) %{_prefix}/etc/webfront/welcome-registered.txt
 
 
 %changelog
+* Fri Jan 30 2004  <morten.vold@itea.ntnu.no>
+
+- Another release to fix bugs.  Some web systems were importing
+  templates from the wrong places, and maintengine.py did not identify
+  itself as a python script.  Configuration files are now tagged with
+  the noreplace option.
+
+* Thu Jan 29 2004  <morten.vold@itea.ntnu.no>
+
+- Fixed several problems that only appeared on a clean install.
+
 * Wed Jan 28 2004  <morten.vold@itea.ntnu.no>
 
 - Initial build.

@@ -16,7 +16,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 import nav.db,deviceManagementTables,mx.DateTime,re,forgetSQL
 
 from mod_python import util,apache
-from deviceManagementTemplate import deviceManagementTemplate
+from nav.web.templates.deviceManagementTemplate import deviceManagementTemplate
 #from miscUtils import memberoforg
 from nav.web.TreeSelect import TreeSelect,Select,UpdateableSelect,Option
 from nav.web import urlbuilder,SearchBox

@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 """
-$Id:
+$Id:$
 
 This file is part of the NAV project.
 

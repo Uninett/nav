@@ -50,7 +50,7 @@ case "$1" in
 		$0 start
 		;;
 	status)
-	        status servicemon
+	        status servicemon.py
 		exit $?
 		;;
 	*)
