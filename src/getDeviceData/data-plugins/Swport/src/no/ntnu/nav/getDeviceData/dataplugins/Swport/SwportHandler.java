@@ -24,7 +24,7 @@ public class SwportHandler implements DataHandler {
 	/**
 	 * Fetch initial data from swport table.
 	 */
-	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -98,7 +98,7 @@ public class SwportHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids) {
 		if (!(dc instanceof SwportContainer)) return;
 		SwportContainer sc = (SwportContainer)dc;
 		if (!sc.isCommited()) return;
@@ -164,7 +164,7 @@ public class SwportHandler implements DataHandler {
 							"portname", Database.addSlashes(sd.getPortname())
 						};
 						Database.insert("swport", inss);
-						changedDeviceids.add(md.getDeviceidS());
+						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 						newcnt++;
 
 					} else {
@@ -190,7 +190,7 @@ public class SwportHandler implements DataHandler {
 								"swportid", swportid
 							};
 							Database.update("swport", set, where);
-							changedDeviceids.add(md.getDeviceidS());
+							changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 							updcnt++;
 						}
 					}

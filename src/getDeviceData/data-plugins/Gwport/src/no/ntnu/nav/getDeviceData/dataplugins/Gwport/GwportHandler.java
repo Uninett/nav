@@ -36,7 +36,7 @@ public class GwportHandler implements DataHandler {
 	/**
 	 * Fetch initial data from module/gwport/prefix/vlan tables.
 	 */
-	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -150,7 +150,7 @@ public class GwportHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids) {
 		if (!(dc instanceof GwportContainer)) return;
 		GwportContainer gc = (GwportContainer)dc;
 		if (!gc.isCommited()) return;
@@ -217,7 +217,7 @@ public class GwportHandler implements DataHandler {
 							};
 							gwportid = Database.insert("gwport", ins, null);
 							gwportidMap.put(gwportid, new String[] { nb.getSysname(), gwp.getInterf(), (gwp.hsrpCount()>0?"true":"false"), gwp.getIfindex() });
-							changedDeviceids.add(gwm.getDeviceidS());							
+							changedDeviceids.put(gwm.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));							
 							newcnt++;
 
 						} else {
@@ -242,7 +242,7 @@ public class GwportHandler implements DataHandler {
 									"gwportid", gwportid
 								};
 								Database.update("gwport", set, where);
-								changedDeviceids.add(gwm.getDeviceidS());							
+								changedDeviceids.put(gwm.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 								updcnt++;
 							}
 

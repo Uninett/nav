@@ -24,7 +24,7 @@ public class DeviceHandler implements DataHandler {
 	/**
 	 * Fetch initial data from device and module tables.
 	 */
-	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -103,7 +103,7 @@ public class DeviceHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids) {
 		if (!(dc instanceof DeviceContainer)) return;
 		DeviceContainer devc = (DeviceContainer)dc;
 		if (!devc.isCommited()) return;
@@ -133,7 +133,7 @@ public class DeviceHandler implements DataHandler {
 						"sw_ver", dev.getSwVer()
 					};
 					deviceid = Database.insert("device", ins, null);
-					changedDeviceids.add(deviceid);
+					changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
 				} else {
 					deviceid = olddev.getDeviceidS();
 					int devid = olddev.getDeviceid();
@@ -145,7 +145,7 @@ public class DeviceHandler implements DataHandler {
 					if ((dev.getDeviceid() > 0 && dev.getDeviceid() != olddev.getDeviceid()) || !equals(dev.getSerial(), olddev.getSerial())) {
 						NetboxUpdatable nu = (NetboxUpdatable)nb;
 						nu.recreate();
-						changedDeviceids.add(deviceid);
+						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_DELETED));
 						Map varMap = new HashMap();
 						varMap.put("old_deviceid", String.valueOf(olddev.getDeviceid()));
 						varMap.put("new_deviceid", String.valueOf(dev.getDeviceid()));
@@ -167,7 +167,7 @@ public class DeviceHandler implements DataHandler {
 							"deviceid", deviceid,
 						};
 						Database.update("device", set, where);
-						changedDeviceids.add(deviceid);
+						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
 
 						// Now we need to send events if hw_ver or sw_ver changed
 						if (!equals(dev.getHwVer(), olddev.getHwVer())) {

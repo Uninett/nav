@@ -25,7 +25,7 @@ public class ModuleHandler implements DataHandler {
 	/**
 	 * Fetch initial data from device and module tables.
 	 */
-	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -82,7 +82,7 @@ public class ModuleHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids) {
 		if (!(dc instanceof ModuleContainer)) return;
 		ModuleContainer mc = (ModuleContainer)dc;
 		if (!mc.isCommited()) return;
@@ -128,7 +128,7 @@ public class ModuleHandler implements DataHandler {
 						"descr", md.getDescr()
 					};
 					moduleid = Database.insert("module", ins, null);
-					changedDeviceids.add(md.getDeviceidS());
+					changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 					if ("0".equals(moduleid)) {
 						Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
 					}
@@ -152,7 +152,7 @@ public class ModuleHandler implements DataHandler {
 							"moduleid", moduleid
 						};
 						Database.update("module", set, where);
-						changedDeviceids.add(md.getDeviceidS());
+						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 					}
 				}
 				md.setModuleid(moduleid);

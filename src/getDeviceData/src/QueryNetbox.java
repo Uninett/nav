@@ -691,7 +691,7 @@ public class QueryNetbox extends Thread
 				if (!timeout && !nb.isRemoved() && !nb.needRecreate()) {
 					// Call the data handlers for all data plugins
 					try { 
-						Set changedDeviceids = containers.callDataHandlers(nb);
+						Map changedDeviceids = containers.callDataHandlers(nb);
 						if (!changedDeviceids.isEmpty()) getDataContainers(changedDeviceids);
 						
 					} catch (Exception exp) {
@@ -770,8 +770,8 @@ public class QueryNetbox extends Thread
 
 	}
 
-	private DataContainersImpl getDataContainers(Set changedDeviceids) {
-		if (changedDeviceids == null) changedDeviceids = new HashSet();
+	private DataContainersImpl getDataContainers(Map changedDeviceids) {
+		if (changedDeviceids == null) changedDeviceids = new HashMap();
 		DataContainersImpl dcs = new DataContainersImpl();
 
 		try {

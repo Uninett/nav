@@ -64,14 +64,18 @@ import no.ntnu.nav.getDeviceData.Netbox;
 
 public interface DataHandler {
 
+	public static final int DEVICE_ADDED = 0;
+	public static final int DEVICE_UPDATED = 10;
+	public static final int DEVICE_DELETED = 20;
+
 	/**
 	 * Do init. Usually used for fetching initial data from the database and
 	 * store it in the given persistent storage object.
 	 *
 	 * @param persistentStorage A map the plugin can use for storing data between succesive calls
-	 * @param changedDeviceids Set of deviceids which have changed (been added)
+	 * @param changedDeviceids Map of deviceids which have changed (been added)
 	 */
-	public void init(Map persistentStorage, Set changedDeviceids);
+	public void init(Map persistentStorage, Map changedDeviceids);
 
 	/**
 	 * Return a DataContainer object used to return data to this
@@ -86,8 +90,8 @@ public interface DataHandler {
 	 *
 	 * @param nb The Netbox the data was collected from
 	 * @param dc The collected data
-	 * @param changedDeviceids set of new/changed deviceids by this DataHandler
+	 * @param changedDeviceids map of new/changed/deleted deviceids by this DataHandler
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids);
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids);
 
 }

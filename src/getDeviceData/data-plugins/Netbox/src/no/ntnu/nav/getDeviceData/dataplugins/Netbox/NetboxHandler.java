@@ -27,7 +27,7 @@ public class NetboxHandler implements DataHandler {
 	/**
 	 * Fetch initial data from device and netbox tables.
 	 */
-	public synchronized void init(Map persistentStorage, Set changedDeviceids) {
+	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -81,7 +81,7 @@ public class NetboxHandler implements DataHandler {
 	/**
 	 * Store the data in the DataContainer in the database.
 	 */
-	public void handleData(Netbox nb, DataContainer dc, Set changedDeviceids) {
+	public void handleData(Netbox nb, DataContainer dc, Map changedDeviceids) {
 		if (!(dc instanceof NetboxContainer)) return;
 		NetboxContainer nc = (NetboxContainer)dc;
 		if (!nc.isCommited()) return;
@@ -96,7 +96,7 @@ public class NetboxHandler implements DataHandler {
 			oldn = (NetboxData)netboxMap.get(netboxid);
 			if (oldn == null) {
 				// Time to update the netboxMap
-				init(new HashMap(), new HashSet());
+				init(new HashMap(), new HashMap());
 				oldn = (NetboxData)netboxMap.get(netboxid);
 			}
 			netboxMap.put(netboxid, n);
