@@ -377,6 +377,119 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='hpSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('hpSerial','1.3.6.1.2.1.47.1.1.1.1.11.1','Serial number for HP','hp','0',NULL,'0');
 
+
+--############################################
+--###   __   ____  ____          ____  ____
+--###  /  \  |     |   \ \    |  |     |   \
+--###  \__   |     |   |  \   |  |     |   |
+--###     \  |---  |---    \  |  |---  |---
+--###      | |     | \      \ |  |     | \
+--###  \__/  |____ |   \     \|  |____ |   \
+--###
+--###   OID's for servers - used by Cricket
+--### 
+--############################################
+
+DELETE FROM snmpoid WHERE oidkey='StorageDescription';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('StorageDescription','1.3.6.1.2.1.25.2.3.1.3','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='storageSize';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('storageSize','1.3.6.1.2.1.25.2.3.1.5','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='StorageUsed';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('StorageUsed','1.3.6.1.2.1.25.2.3.1.6','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='StorageBlockSize';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('StorageBlockSize','1.3.6.1.2.1.25.2.3.1.4','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='numOfPros';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('numOfPros','1.3.6.1.2.1.25.1.6.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ifDescription';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifDescription','1.3.6.1.2.1.2.2.1.2','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceInBit';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceInBit','1.3.6.1.2.1.2.2.1.10','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceOutBit';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceOutBit','1.3.6.1.2.1.2.2.1.16','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceInUcastPackage';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceInUcastPackage','1.3.6.1.2.1.2.2.1.11','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceOutUcastPackage';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceOutUcastPackage','1.3.6.1.2.1.2.2.1.17','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceInError';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceInError','1.3.6.1.2.1.2.2.1.14','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='interfaceOutError';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('interfaceOutError','1.3.6.1.2.1.2.2.1.20','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ifInDiscards';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifInDiscards','1.3.6.1.2.1.2.2.1.13','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ifOutDiscards';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifOutDiscards','1.3.6.1.2.1.2.2.1.19','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='mailq';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('mailq','1.3.6.1.2.1.28.1.1.1','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='totalMem';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('totalMem','1.3.6.1.2.1.25.2.2.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='loadnix';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('loadnix','1.3.6.1.4.1.2021.10.1.5.1','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='memFreenix';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('memFreenix','1.3.6.1.4.1.2021.4.6.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ssCpuRawUser';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ssCpuRawUser','1.3.6.1.4.1.2021.11.50.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ssCpuRawSystem';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ssCpuRawSystem','1.3.6.1.4.1.2021.11.52.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='ssCpuRawIdle';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ssCpuRawIdle','1.3.6.1.4.1.2021.11.53.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='numOfUsersnix';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('numOfUsersnix','1.3.6.1.2.1.25.1.5.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='memShared';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('memShared','1.3.6.1.4.1.2021.4.13.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='memBuffer';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('memBuffer','1.3.6.1.4.1.2021.4.14.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='memCached';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('memCached','1.3.6.1.4.1.2021.4.15.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='sessionTotalwin';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('sessionTotalwin','1.3.6.1.4.1.311.1.1.3.1.1.21.1.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='sessionActivewin';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('sessionActivewin','1.3.6.1.4.1.311.1.1.3.1.1.21.2.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='sessionInactivewin';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('sessionInactivewin','1.3.6.1.4.1.311.1.1.3.1.1.21.3.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='servErrorsLogon';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('servErrorsLogon','1.3.6.1.4.1.311.1.1.3.1.1.8.8.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='servErrorsAccessPermissions';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('servErrorsAccessPermissions','1.3.6.1.4.1.311.1.1.3.1.1.8.9.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='servErrorsSystem';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('servErrorsSystem','1.3.6.1.4.1.311.1.1.3.1.1.8.11.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='freeMemwin';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('freeMemwin','1.3.6.1.4.1.311.1.1.3.1.1.1.2.0','servers','');
+
+DELETE FROM snmpoid WHERE oidkey='cpuwin';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('cpuwin','1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.1.0','servers','');
+
+
 COMMIT;
 
 
@@ -504,5 +617,4 @@ INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmp
 --#SW9300
 INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='3c9300Serial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.43.1.16.2.2.2.1'));
 
---############################################
-
+--#############################################################
