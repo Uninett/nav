@@ -1142,6 +1142,16 @@ function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde
 
 }
 
+// Endre passord
+function endrepassord($brukernavn, $passwd) {
+	$querystr = "UPDATE Bruker SET passord = '" . addslashes($passwd) . 
+		"' WHERE brukernavn = '" . addslashes($brukernavn) . "'";
+	@pg_exec($this->connection, $querystr);
+
+
+}
+
+
 // Legge til eller endre en varslingsadresse for en periode
 function endreVarsleadresse($tid, $adresseid, $utstyrgruppeid, $type) {
 

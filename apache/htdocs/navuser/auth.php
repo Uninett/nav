@@ -24,7 +24,7 @@ class Error {
   var $type_name;
   
   function Error ($errtype) {
-    $this->type_name = array('Ukjent Feil', 'Feil under innlogging', 'Databasefeil');
+    $this->type_name = array('Ukjent Feil', 'Feil under innlogging', 'Databasefeil', 'Sikkerhetsfeil', 'Lese/Skrive feil');
     $this->type = $errtype;
   }
 
@@ -46,54 +46,7 @@ class Error {
 
 }
 
-/*
- *	FUNKSJONER for sesjonshåndtering.
- */
-function session_set($var, $par) {
-	$varname = "SeSsIoN_" . $var;
-	$_SESSION[$varname] = $par;
-}
 
-function session_get($var) {
-	$varname = 'SeSsIoN_' . $var;
-	return $_SESSION[$varname];
-}
-
-function session_delete($var) {
-	unset( $_SESSION[$var] );
-}
-
-function session_exist($var) {
-	return array_key_exists($var, $_SESSION); 
-}
-
-function get_get($var) {
-	if (get_exist($var) )
-		return $_GET[$var] ;
-	else
-		return false;
-}
-
-function get_exist($var) {
-	return array_key_exists($var, $_GET); 
-}
-
-function post_get($var) {
-	if (post_exist($var))
-		return $_POST[$var] ;
-	else
-		return undef;
-}
-
-function post_exist($var) {
-	if ( array_key_exists($var, $_POST) )
-		return (strlen($_POST{$var}) > 0);
-	else return false;
-}
-
-
-// Starter sesjonshåndtering...
-session_start();
 global $login;
 $login = false;
 

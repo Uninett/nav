@@ -1,10 +1,11 @@
 <?php 
-include("dbinit.php"); 
-include("auth.php");
+require("session.php");
+require("dbinit.php");
+require("auth.php");
 
 header("Content-Type: text/html; charset=utf-8");
 
-include("listing.php");
+require("listing.php");
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -43,16 +44,72 @@ print "<br>visoversikt:" . session_get('visoversikt');
 print "<br>Nlogin:" . $login;
 */
 
-function menyOption($name, $action, $level, $login) {
-	$adm = 0;
-	if ($login) { 
-		$adm = session_get('admin'); 
-	} 
-	if ($adm >= $level) {
-		print "<A href=\"index.php?action=" . $action . "\">";
-		print $name;
-		print "</A><BR>\n";
+
+/* 
+ * Dette er en generell feilmeldingsklasse. 
+ */
+class Meny {
+	var $level;
+	var $files;
+	var $login;
+	var $adm;
+
+
+	// Constructor
+	function Meny($login) {
+		$this->login = false;
+		$this->adm = 0;
+		if ($login) { 
+			$this->login = $login;
+			$this->adm = session_get('admin'); 
+		} 	
 	}
+
+	function newOption($name, $action, $level, $files) {
+
+		if ($this->adm >= $level) {
+			print "<A href=\"index.php?action=" . $action . "\">";
+			print $name;
+			print "</A><BR>\n";
+		}
+		
+		$this->level{$action} = $level;
+		$this->files{$action} = $files;
+	}
+	
+	function newModule($action, $level, $files) {
+		$this->level{$action} = $level;
+		$this->files{$action} = $files;
+	}	
+	
+	
+	function fileInclude($action) {
+		
+		//return array('jalla.php', 'jalla2.php');
+		
+		if ($this->login) { // Er man innlogget?
+
+			// Har man tilgang til modulen man skal laste?
+			if (isset($this->level{$action}) ) {
+				if ($this->adm >= $this->level{$action} ) {
+					return $this->files{$action};
+
+
+				} else {
+					$error = new Error(3);
+					$error->message = "Du forsøkte å hente inn en submodul som din bruker ikke har tilgang til. Forsøk å logge ut og inn igjen, og hvis det fortsatt ikke fungerer varsle systemadministrator.";
+					print $error->getHTML();
+				}
+			} else { // Vises som default...
+				return array('oversikt.php', 'velkommen.php');
+			}
+		} 
+		// Vises til de som ikke er innlogget.
+		return array('velkommen.php');
+
+	}
+	
+
 }
 
 ?>
@@ -69,24 +126,32 @@ if ( get_get('action')  ) {
 	session_set('action', get_get('action') );
 }
 
+$meny = NEW Meny($login);
+
 print "<P>";
-menyOption("Oversikt", "oversikt", 0, $login);
-menyOption("Adresser", "adress", 1, $login);
-menyOption("Profiler", "profil", 1, $login);
-menyOption("Utstyrsgrupper", "utstyr", 1, $login);
-menyOption("Utstyrsfiltre", "filter", 1, $login);
-menyOption("Hjelp", "hjelp", 1, $login);
+$meny->newOption("Oversikt", "oversikt", 0, array('oversikt.php', 'velkommen.php') );
+$meny->newOption("Adresser", "adress", 1,array('adress.php') );
+$meny->newOption("Profiler", "profil", 1, array('profil.php') );
+$meny->newOption("Utstyrsgrupper", "utstyr", 1, array('utstyr.php') );
+$meny->newOption("Utstyrsfiltre", "filter", 1, array('filter.php') );
+$meny->newOption("Hjelp", "hjelp", 1, array('hjelp.php') );
 
 print "<p>";
-menyOption("WAP-oppsett", "wap", 1, $login);
-menyOption("Endre passord", "passord", 1, $login);
+$meny->newOption("WAP-oppsett", "wap", 1, array('wap.php') );
+$meny->newOption("Endre passord", "passord", 1, array('endrepassord.php') );
 
 print "<p>";
-menyOption("Brukere", "admin", 50, $login);
-menyOption("Brukergrupper", "gruppe", 100, $login);
-menyOption("Felles Utstgrp.", "futstyr", 100, $login);
-menyOption("Logg", "logg", 20, $login);
+$meny->newOption("Brukere", "admin", 50, array('admin.php') );
+$meny->newOption("Brukergrupper", "gruppe", 100, array('gruppe.php') );
+$meny->newOption("Felles Utst.grp.", "futstyr", 100, array('fellesutstyr.php') );
+$meny->newOption("Felles Utst.filter", "ffilter", 100, array('fellesfilter.php') );
+$meny->newOption("Logg", "logg", 20, array('logg.php') );
 
+
+$meny->newModule('periode', 1, array('periode.php') );
+$meny->newModule('utstyrgrp', 1, array('utstyrgrp.php') );
+$meny->newModule('match', 1, array('match.php') );
+$meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 ?>
 
 </td></tr>
@@ -204,32 +269,29 @@ if ( $error != null ) {
  * Hovedmeny. Her velger man alle undersidene..
  * variablen action settes i URL'en.
  */
-switch( session_get('action') ) {
-  case 'admin' : include('admin.php'); break;
-  case 'profil' : include('profil.php'); break;
-  case 'adress' : include('adress.php'); break;
-  case 'utstyr' : include('utstyr.php'); break;
-  case 'futstyr' : include('fellesutstyr.php'); break;  
-  case 'utstyrgrp' : include('utstyrgrp.php'); break;
-  case 'periode' : include('periode.php'); break;
-  case 'filter' : include('filter.php'); break; 
-  case 'match' : include('match.php'); break;
-  case 'brukertilgruppe' : include('velgbrukergrupper.php'); break;
-  case 'gruppe' : include('gruppe.php'); break;
-  case 'wap' : include('wap.php'); break;  
-  case 'hjelp' : include('hjelp.php'); break;    
-  default :
-  if ($login) include('oversikt.php');
-  	include('velkommen.php');
+
+$filer = $meny->fileInclude(session_get('action') );
+foreach($filer as $incfile) {
+
+	if( file_exists($incfile)) {
+		require($incfile);
+	} else {
+		$error = new Error(4);
+		$error->message = "Kan ikke lese filen &lt;" . $incfile . "&gt;";
+		print $error->getHTML();
+		$error = null;
+	}
 }
 
-// Viser feilmelding om det har oppstÂtt en feil.
+// Viser feilmelding om det har oppstått en feil.
 if ( $error != null ) {
-  print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-  print $error->GetHeader();
-  print "</h2></td></tr>";
-  print "<tr><td><p>" . $error->message . "</td></tr></table>";
+	print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+	print $error->GetHeader();
+	print "</h2></td></tr>";
+	print "<tr><td><p>" . $error->message . "</td></tr></table>";
 }
+
+
 
 ?>
 
