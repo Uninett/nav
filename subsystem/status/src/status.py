@@ -70,6 +70,7 @@ def handler(req):
         output = indexInternal(req)
     
     if output:
+        req.content_type = "text/html"
         req.write(output)
         return apache.OK
     else:

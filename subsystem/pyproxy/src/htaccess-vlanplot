@@ -1,5 +1,4 @@
-SetHandler none
-AddHandler python-program .py
+SetHandler python-program
 PythonHandler nav.web.pyproxy.vlanPlot
 DirectoryIndex index.py
 

@@ -76,6 +76,7 @@ def handler(req):
         output = history(req)
 
     if output:
+        req.content_type = "text/html"
         req.write(output)
         return apache.OK
     else:

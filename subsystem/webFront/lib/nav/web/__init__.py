@@ -25,7 +25,7 @@
 """
 This module encompasses modules with web functionality for NAV.
 """
-import auth
+import nav.web.auth
 import nav
 import time
 import ConfigParser
@@ -49,10 +49,10 @@ def headerparserhandler(req):
     # We automagically redirect users to the index page if they
     # request the root.
     if req.uri == '/':
-        redirect(req, '/index.py/index')
+        redirect(req, '/index/index')
 
     state.setupSession(req)
-    auth.authenticate(req)
+    nav.web.auth.authenticate(req)
 
     # Make sure the user's session file has its mtime updated every
     # once in a while, even though no new data is saved to the session

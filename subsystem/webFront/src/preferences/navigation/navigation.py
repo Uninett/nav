@@ -63,7 +63,7 @@ def _find_user_preferences(user, req):
         user.preferences.qlink2.append(Link(link.name, link.uri))
     req.session.save() # remember this to next time
 
-def handler(req):
+def index(req):
   from nav.web.templates.NavbarPreferencesTemplate import NavbarPreferencesTemplate
   template = NavbarPreferencesTemplate()
   template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
@@ -139,7 +139,7 @@ def deletelink(req, id):
   if link.account == user.id or link.account.id == user.id:
     link.delete()
     _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def saveprefs(req):
   conn = nav.db.getConnection('navprofile', 'navprofile')
@@ -176,7 +176,7 @@ def savenewlink(req, name, url, usein):
     newuse.positions = usein
     newuse.save()
   _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def updatelink(req, id, name, url):
   conn = nav.db.getConnection('navprofile', 'navprofile')
@@ -189,4 +189,4 @@ def updatelink(req, id, name, url):
     changedlink.uri = url
     changedlink.save()
     _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)

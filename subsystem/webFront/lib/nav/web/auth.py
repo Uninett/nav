@@ -53,7 +53,7 @@ def redirectToLogin(req):
     Takes the supplied request and redirects it to the NAV login page.
     """
     from nav import web
-    web.redirect(req, '/index.py/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
+    web.redirect(req, '/index/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
 
 def _find_user_preferences(user, req):
     if not hasattr(user, "preferences"):

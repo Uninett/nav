@@ -210,7 +210,7 @@ def view(req, view = None, offset="0", lang = None):
     if not access:
         if len(where):
             # må koordineres med view == "all" lenger opp
-            where += " and type != 'internal'"
+            where += " and emotd.type != 'internal'"
             
     where = "where " + where
 

@@ -199,7 +199,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
 
 #end if  
 
-  <form method="post" action="navigation.py/saveprefs">    <td colspan=2></td>
+  <form method="post" action="navigation/saveprefs">    <td colspan=2></td>
     <table width="100%" cellspacing="5" cellpadding="0" border="0">
       <tr>
         <td width="33%">
@@ -354,8 +354,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation.py/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation.py/editlink?id=$id" title="Edit link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
+            <a href="navigation/editlink?id=$id" title="Edit link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
           </td>
         </tr></table>
       </td>
@@ -384,8 +384,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation.py/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation.py/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
           </td>
         </tr></table>
       </td>
@@ -414,8 +414,8 @@ The navigation-bar has been temporarily changed, so you can see the changes like
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;"><tr>
           <td width="0%" nowrap>$link.name</td>
           <td width="100%" align="right">
-            <a href="navigation.py/deletelink?id=$id" title="Delete $type link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
-            <a href="navigation.py/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
+            <a href="navigation/deletelink?id=$id" title="Delete $type link" onClick="dontClickBox = true; return confirm('This will delete $type link $link.name!');"><img border="" alt="Delete" src="/images/form/deleteicon.gif"></a>
+            <a href="navigation/editlink?id=$id" title="Edit $type link" onClick="dontClickBox = true;"><img border="" alt="Edit" src="/images/form/editicon.gif"></a>
           </td>
         </tr></table>
       </td>
@@ -434,7 +434,7 @@ The navigation-bar has been temporarily changed, so you can see the changes like
       <input type="button" value="Cancel" onclick="window.location='/preferences/'">
     </td>
     <td colspan=2 align=right>
-      <input type="button" value="Add $type link" onClick="window.location='navigation.py/newlink';" style="font-size: 13" />
+      <input type="button" value="Add $type link" onClick="window.location='navigation/newlink';" style="font-size: 13" />
       <input type="submit" value="Save preferences" style="font-size: 13" />
     </td>
   </tr>

@@ -89,8 +89,12 @@ FIELD_INTEGER = 2
 def handler(req):
     ''' mod_python handler '''
     path = req.uri
-    request = re.search('editdb/(.+)$',path).group(1)
-    request = request.split('/')
+    match = re.search('editdb/(.+)$',path)
+    if match:
+        request = match.group(1)
+        request = request.split('/')
+    else:
+        request = ""
 
     # Get form from request object
     keep_blank_values = True
@@ -138,6 +142,7 @@ def handler(req):
             output = editPage(req,pageList[table](),request)
 
     if output:
+        req.content_type = "text/html"
         req.write(output)
         return apache.OK
     else:
@@ -4665,7 +4670,7 @@ def bulkImportParse(input,bulkdef,separator):
             # This line is a comment
             pass
         elif len(line) > 0:
-            fields = re.split(separator,line)
+            fields = line.split(separator)
             data = {}
             if (bulkdef.enforce_max_fields) and \
                (len(fields) >  bulkdef.max_num_fields):
@@ -4895,7 +4900,7 @@ def bulkInsert(data,bulkdef,separator):
 
     prerowlist = []
     for line in data:
-        fields = re.split(separator,line)
+        fields = line.split(separator)
 
         row = {}
         inputLen = len(fields)
