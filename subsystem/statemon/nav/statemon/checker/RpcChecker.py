@@ -16,27 +16,37 @@ class RpcChecker(AbstractChecker):
 		# This handler doesn't obey port argument
 	def execute(self):
 		args = self.getArgs()
-		default = ['nfs', 'nlockmgr', 'mountd']
-		required = args.get('required','').split(',')
+		# map service to t=tcp or u=udp
+		mapper = {'nfs':'t',
+			  'status':'t',
+			  'nlockmgr':'u',
+			  'mountd':'t',
+			  'ypserv':'u',
+			  'nfs':'u',
+			  'ypbind':'u'
+			  }
+		default = ['nfs', 'nlockmgr', 'mountd', 'status']
+		required = args.get('required','')
 		if not required:
-			required= default
+			required = default
+		else:
+			required = required.split(',')
 
 		ip, port = self.getAddress()
+		for service in required:
+			protocol = mapper.get(service, '')
+			if not protocol:
+				return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
+			output = os.popen('/usr/sbin/rpcinfo -%s %s %s' % (protocol,ip,service))
+			output = output.read()
+			if "ready" in output:
+				continue
+			if "not available" in output:
+				return Event.DOWN, "%s not avail" % service
+			if not output:
+				return Event.DOWN,'timeout'
 
-		output = os.popen('/usr/sbin/rpcinfo -p %s' % ip)
-		output = output.read()
-		if not output:
-			return Event.DOWN,'timeout'
-
-		missing = []
-		for i in required:
-			i = i.strip()
-			if output.find(i) == -1:
-				missing += [i]
-		if missing:
-			return Event.DOWN,'missing: ' + ', '.join(missing)
-		else:
-			return Event.UP, "Ok"
+		return Event.UP, "Ok"
 
 def getRequiredArgs():
 	"""
