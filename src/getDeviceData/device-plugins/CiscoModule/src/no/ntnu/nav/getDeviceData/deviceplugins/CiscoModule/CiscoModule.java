@@ -339,7 +339,7 @@ public class CiscoModule implements DeviceHandler
 			MultiMap classMap = util.reverse(physClass);
 			
 			// chassis
-			for (Iterator it = classMap.get("3").iterator(); it.hasNext();) {
+			for (Iterator it = util.intSortedSetFactory(classMap.get("3")).iterator(); it.hasNext();) {
 				String id = (String)it.next();
 				NetboxData nd = nc.netboxDataFactory(nb);
 				if (nd.getSerial() == null && physSerial != null && physSerial.containsKey(id)) nd.setSerial((String)physSerial.get(id));
