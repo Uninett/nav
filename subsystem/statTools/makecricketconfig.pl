@@ -99,7 +99,7 @@ if ($opt_h) {
 my $cricketconfigdir = "$cricketdir/cricket-config";
 my $compiledir = "$cricketdir/cricket";
 my $configfile = ".nav";
-my $changelog = "changelog";
+my $changelog = "$cricketdir/cricket-logs/changelog";
 
 my %config; # stores navconfig for the configtree
 my %dshash; # stores the mapping between ds and ds-type
@@ -178,6 +178,10 @@ print "Done\n" if $ll >= 3;
 # Lets start working.
 
 # Rotating changelogs
+unless (-e $changelog) {
+    `touch $changelog`;
+}
+
 for (my $counter = 8; $counter > 0;$counter--) {
     if (-e $changelog.".".$counter) {
 	my $tmp = $counter+1;
@@ -268,12 +272,12 @@ sub parseMainConfig {
     print "\n=> Running $me <=\n" if $ll >= 2;
 
     unless (-e $configfile) {
-	printf "Could not find nav-configfile in %s, exiting.\n", $cricketconfigdir if $ll >= 3;
+	printf "Could not find nav-configfile in %s, exiting.\n", $cricketconfigdir if $ll >= 2;
 	exit(0);
     }
 
     unless (-r $configfile) {
-	printf "nav-configfile is not readable in %s, exiting.\n", $cricketconfigdir if $ll >= 3;
+	printf "nav-configfile is not readable in %s, exiting.\n", $cricketconfigdir if $ll >= 2;
 	exit(0);
     }
 
@@ -496,7 +500,7 @@ sub createTargetTypes {
 		print "- skipping because it is an interface oid.\n" if $ll >= 3;
 		next;
 	    } else {
-		print "\n";
+		print "\n" if $ll >= 3;
 	    }
 
 	    # if the oid is not in the config-file we cannot collect data from it	    
@@ -1118,10 +1122,11 @@ sub fillRRDdatabase {
 		    # Finding the datasource-type used
 		    my $dsRef = $gCT->configHash($purepath, 'datasource', lc($interfacearr[$i]));
 		    my $dstype = $dsRef->{'rrd-ds-type'};
-		    print "$dstype\n";
 
 		    # if there is some critical error, do this, but this should really never happen
 		    $dstype = 'DERIVE' unless $dstype;
+
+		    print "$dstype\n";
 
 		    my $dsq;
 		    if ($units) {
