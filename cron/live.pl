@@ -165,7 +165,6 @@ while(@svar = $resultat->fetchrow)
 
 # Sjekker også andre veien for bokser med kat=KANT, men retning n har rangen :)
 
-#$sql = "SELECT distinct boksid,boksbak FROM swport JOIN swportvlan USING (swportid) WHERE retning !=\'o\' AND boksbak IS NOT NULL"; 
 
 $sql = "SELECT distinct s.boksid,s.boksbak FROM swport s JOIN swportvlan USING (swportid),boks b where s.boksbak=b.boksid AND retning !=\'o\' AND (b.kat=\'SRV\' OR b.kat=\'KANT\')";
 
@@ -210,14 +209,8 @@ foreach $id (keys %boks)
     if ($ip =~ /^\d/)
     {
 #	print "Pinger $boks{$id}{sysName}  nå :)\n" if ($boks{$id}{sysName} eq 'itea-nettel-230-h');
-
 #	print "Ping: $boks{$id}{sysName}\tvia2:$boks{$boks{$id}{via2}}{sysName}\tvia3:$boks{$boks{$id}{via3}}{sysName}\n";
 
-	if ($boks{$id}{kat} eq 'SRV')
-	{
-	    $ip = $boks{$id}{sysName};
-	}
-	
 	unless ($p->ping($ip, 2))
 	{
 	    ## Pinger nok en gang.
