@@ -26,7 +26,7 @@
 
 import sys
 from mod_python import apache
-import forgetHTML as html
+from nav.web.templates.MainTemplate import MainTemplate
 
 def handler(req):
     user = None
@@ -37,8 +37,6 @@ def handler(req):
                    443:'https',
                    }
     protocol = protocolmap.get(req.connection.local_addr[1], 'http')
-    doc = html.SimpleDocument()
-    body = doc.body
     applet = '<APPLET ARCHIVE="vlanPlot.jar" CODE="vlanPlot.class" CODEBASE="." WIDTH=800 HEIGHT=600>\n'
        
     args = {}
@@ -68,11 +66,13 @@ def handler(req):
         params += '<PARAM NAME="user" VALUE="%s"> \n' % user
     applet += params
     applet +="</APPLET>"
-    body.append(applet)
     
+    page = MainTemplate()
+    page.content = lambda: applet
+    page.path = [('Home', '/'), ('vlanPlot','')]
     req.content_type = "text/html; charset=utf-8"
     req.send_http_header()
-    req.write(str(doc))
+    req.write(page.respond())
     return apache.OK
 
     
