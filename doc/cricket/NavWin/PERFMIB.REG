@@ -1,0 +1,13 @@
+\Registry\Machine
+        Software
+            Microsoft
+                PerformanceAgent
+                    CurrentVersion
+                        Pathname = REG_EXPAND_SZ %SystemRoot%\System32\perfmib.dll
+        System
+            CurrentControlSet
+                Services
+                    SNMP
+                        Parameters
+                            ExtensionAgents
+                               perfagent = SOFTWARE\Microsoft\PerformanceAgent\CurrentVersion
