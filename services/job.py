@@ -2,8 +2,8 @@
 """
 Overvåker
 
-$Author: erikgors $
-$Id: job.py,v 1.17 2002/06/17 17:38:10 erikgors Exp $
+$Author: magnun $
+$Id: job.py,v 1.18 2002/06/18 12:19:25 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -257,6 +257,7 @@ class SshHandler(JobHandler):
 import DNS
 class DnsHandler(JobHandler):
 	"""
+	Valid argument(s): request
 	"""
 
 	def __init__(self, id, ip, args, version):
@@ -268,26 +269,32 @@ class DnsHandler(JobHandler):
 		d = DNS.DnsRequest(server=server[0], timeout=self.getTimeout())
 		args = self.getArgs()
 		request = args.get("request","").split(",")
-		timeout = 0
-		answer  = 0
-		for i in range(len(request)):
-			print "request: %s"%request[i]
-			try:
-				reply = d.req(name=request[i].strip())
-			except DNS.Error:
-				timeout = 1
-				print "%s timed out..." %request[i]
-
-			if not timeout and len(reply.answers) > 0 :
-				answer = 1
-				print "%s -> %s"%(request[i], reply.answers[0]["data"])
-				
-		if not timeout and answer:
-			return Event.UP, "Ok"
-		elif not timeout and not answer:
-			return Event.UP, "No record found"
+		if not request:
+			# Print valid debug message :)
+			return
 		else:
-			return Event.DOWN, "Timeout"
+			timeout = 0
+			answer  = []
+			for i in range(len(request)):
+				print "request: %s"%request[i]
+				try:
+					reply = d.req(name=request[i].strip())
+				except DNS.Error:
+					timeout = 1
+					print "%s timed out..." %request[i]
+					
+				if not timeout and len(reply.answers) > 0 :
+					answer.append(1)
+					print "%s -> %s"%(request[i], reply.answers[0]["data"])
+				elif not timeout and len(reply.answers)==0:
+					answer.append(0)
+				
+			if not timeout and 0 not in answer:
+				return Event.UP, "Ok"
+			elif not timeout and 0 in answer:
+				return Event.UP, "No record found"
+			else:
+				return Event.DOWN, "Timeout"
 
 class MysqlHandler(JobHandler):
 	def __init__(self, id, ip, args, version):
