@@ -156,6 +156,14 @@ CREATE TABLE cat (
   req_snmp BOOLEAN NOT NULL
 );
 
+INSERT INTO cat values ('GW','Routers (layer 3 device)','t');
+INSERT INTO cat values ('GSW','A layer 2 and layer 3 device','t');
+INSERT INTO cat values ('SW','Core switches (layer 2), typically with many vlans','t');
+INSERT INTO cat values ('EDGE','Edge switch without vlans (layer 2)','t');
+INSERT INTO cat values ('WLAN','Wireless equipment','t');
+INSERT INTO cat values ('SRV','Server','f');
+INSERT INTO cat values ('OTHER','Other equipment','f');
+
 CREATE TABLE product (
   productid SERIAL PRIMARY KEY,
   vendorid VARCHAR(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
@@ -225,11 +233,12 @@ CREATE TABLE netbox (
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 1,
   snmp_agent VARCHAR,
+  upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE(ip)
 );
 
 CREATE TABLE subcat (
-    subcatid VARCHAR NOT NULL,
+    subcatid VARCHAR PRIMARY KEY,
     descr VARCHAR NOT NULL,
     catid VARCHAR(8) NOT NULL REFERENCES cat(catid)
 );
@@ -244,8 +253,7 @@ INSERT INTO subcat (subcatid,descr,catid) VALUES ('NOTES','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('STORE','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('TEST','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX','Description','SRV');
-INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX-STUD','Description','SRV
-');
+INSERT INTO subcat (subcatid,descr,catid) VALUES ('UNIX-STUD','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('WEB','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
@@ -253,7 +261,7 @@ INSERT INTO subcat (subcatid,descr,catid) VALUES ('WIN-STUD','Description','SRV'
 
 CREATE TABLE netboxcategory (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR NOT NULL REFERENCES subcat(subcatid) ON UPDATE CASCADE ON DELETE CASCADE,
+  category VARCHAR NOT NULL REFERENCES subcat ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(netboxid, category)
 );
 GRANT ALL ON netboxcategory TO navall;
