@@ -176,7 +176,7 @@ public class Event
 		this.state = state;
 		this.value = value;
 		this.severity = severity;
-		this.varMap = varMap;
+		this.varMap = (varMap == null ? new HashMap() : varMap);
 	}
 
 	String getSourceSql() { return source; }

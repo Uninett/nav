@@ -61,7 +61,7 @@ public class EventQ {
 	 * there is no filtering on source.
 	 *
 	 * @param target The target the EventQListener should process events for
-	 * @param sql The object which should receive the events
+	 * @param eql The object which should receive the events
 	 */
 	public static void addEventQListener(String target, EventQListener eql) {
 		addEventQListener(null, target, eql);
@@ -72,7 +72,7 @@ public class EventQ {
 	 *
 	 * @param source The source the EventQListener should process events for
 	 * @param target The target the EventQListener should process events for
-	 * @param sql The object which should receive the events
+	 * @param eql The object which should receive the events
 	 */
 	public static void addEventQListener(String source, String target, EventQListener eql) {
 		synchronized (listenerMap) {
@@ -90,6 +90,7 @@ public class EventQ {
 	 * (null) values will be used for the eventq. If any of value and
 	 * severity are &lt; 0 default values will be used.  </p>
 	 *
+	 * @param varMap variable/value mappings; use null for no mappings
 	 * @return the Event
 	 */
 	public static Event eventFactory(String source, String target, int deviceid, int netboxid, int subid, String eventtypeid, int state, int value, int severity, Map varMap) {
