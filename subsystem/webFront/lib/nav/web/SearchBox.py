@@ -24,7 +24,7 @@ class SearchBox:
     title = 'Search'
     inputSize = '10'
 
-    def __init__(self,req,help,title=None):
+    def __init__(self,req,help,title=None,form=True):
         if title:
             self.title = title
 
@@ -32,6 +32,7 @@ class SearchBox:
         self.error = None
         self.result = None
         self.searches = {}
+        self.form = form
     
         self.selected = None
         if req.form.has_key(self.typeCname):
