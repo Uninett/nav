@@ -1,17 +1,40 @@
 #!/usr/bin/perl
+####################
+#
+# $Id: swporter.pl,v 1.13 2002/11/26 11:14:07 gartmann Exp $
+# This file is part of the NAV project.
+# swporter gets a list of devices from the database. If the devices are central
+# switches, plugin-scripts which aquire SNMP-information are started according
+# to the switch's typegroup. The results from these plugins are used when
+# updating the database.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
+#
+####################
 
 use strict;
 require '/usr/local/nav/navme/lib/NAV.pm';
-import NAV qw(:DEFAULT :collect);
+import NAV qw(:DEFAULT :collect :snmp);
 
-my $lib = get_path("path_lib");
 my $path_collect = get_path("path_collect");
-require $lib."snmplib.pl";
-require $lib."iplib.pl";
 
 &log_open;
 
-my $debug;
+my $debug =1;
+
+# tar inn en parameter som er en ip-adresse på formen bokser.pl ip=123.456.789.0
+my $one_and_only = shift;
+
+if($one_and_only){ #har sann verdi
+    if($one_and_only =~ /^(\d+\.\d+\.\d+\.\d+)$/i){
+	$one_and_only = $1;
+    } else {
+	die("Invalid ip-address: $one_and_only\n");
+	$one_and_only = "no";
+    }
+}
+print $one_and_only."\n" if $debug;
 
 my $db = &db_get("swporter");
 
@@ -20,16 +43,30 @@ my @felt_swport = ("moduleid","port","ifindex","link","speed","duplex","trunk","
 my @felt_swportvlan = ("swportid","vlan");
 my @felt_swportallowedvlan = ("swportid","hexstring");
 
-my %boks = &db_hent_hash($db,"SELECT netboxid,ip,sysname,typegroupid,up,ro FROM netbox join type using (typeid) WHERE catid=\'SW\'");
-my %swport;
-my %db_swport = &db_select_hash($db,"swport join module using (moduleid) join netbox using (netboxid) where catid=\'SW\' AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw'))",\@felt_swport,0,1);
+my %boks;
+if($one_and_only){
+    %boks = &db_hent_hash($db,"SELECT netboxid,ip,sysname,typegroupid,up,ro FROM netbox join type using (typeid) WHERE (catid=\'SW\' OR catid=\'GSW\' OR catid=\'KANT\') AND up='y' AND ip='$one_and_only' AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw','hpsw'))");
+} else {
+    %boks = &db_hent_hash($db,"SELECT netboxid,ip,sysname,typegroupid,up,ro FROM netbox join type using (typeid) WHERE (catid='SW' OR catid='GSW' OR catid='KANT') AND up='y' AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw','hpsw'))");
+}
+my (%swport,%db_swport,%swportvlan,%db_swportvlan,%swportallowedvlan,%db_swportallowedvlan,%swportvlantemp,%swportallowedvlantemp);
 
-my %swportvlan;
-my %swportvlantemp;
-my %db_swportvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportvlan)." FROM swportvlan");
-my %swportallowedvlan;
-my %swportallowedvlantemp;
-my %db_swportallowedvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportallowedvlan)." FROM swportallowedvlan");
+if($one_and_only){
+    %db_swport = &db_select_hash($db,"swport join module using (moduleid) join netbox using (netboxid) WHERE (catid=\'SW\' OR catid=\'GSW\' OR catid=\'KANT\') AND ip='$one_and_only' AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw','hpsw'))",\@felt_swport,0,1);
+
+    %db_swportvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportvlan)." FROM swportvlan join swport using (swportid) join module using (moduleid) join netbox using (netboxid) WHERE ip='$one_and_only'");
+
+    %db_swportallowedvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportallowedvlan)." FROM swportallowedvlan join swport using (swportid) join module using (moduleid) join netbox using (netboxid) WHERE ip='$one_and_only'");
+    
+
+} else {
+    %db_swport = &db_select_hash($db,"swport join module using (moduleid) join netbox using (netboxid) WHERE (catid=\'SW\' OR catid=\'GSW\' OR catid=\'KANT\') AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw','hpsw'))",\@felt_swport,0,1);
+
+    %db_swportvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportvlan)." FROM swportvlan");
+
+    %db_swportallowedvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportallowedvlan)." FROM swportallowedvlan");
+
+}
 
 foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
     if($boks{$boksid}[4] =~ /n|f/i) {
@@ -40,6 +77,24 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
 	}
     }
 }
+my $teller = 0;
+for my $t (keys %boks){
+    $teller++;
+}
+print "bokser $teller\n" if $debug;
+#$teller = 0;
+#for my $t (keys %db_module){
+#    $teller++;
+#}
+#print "moduler $teller\n" if $debug;
+$teller = 0;
+for my $t (keys %db_swport){
+    $teller++;
+}
+print "swport $teller\n" if $debug;
+
+
+
 ### MODULE
 my %db_module = &get_module;
 my %module;
@@ -113,7 +168,10 @@ sub snmp_svitsj{
     my $typegruppe = $_[3];
     my $sysname = $_[4];
 
+    print $ip." får samlet data\n";
+
     my $includefile = $path_collect."typer/".$typegruppe.".pl";
+    print $includefile."\n";
     if(-r $includefile){
 
 	do $includefile ||  print $!;

@@ -1,34 +1,54 @@
 #!/usr/bin/perl
+####################
+#
+# $Id: bokser.pl,v 1.13 2002/11/26 11:14:07 gartmann Exp $
+# This file is part of the NAV project.
+# bokser reads the files nettel.txt (containing network devices) and server.txt
+# and does SNMPget to require information. This information is updated in the 
+# database, where devices are added, updated or deleted.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
+#
+####################
 
 use SNMP_util;
 use strict;
 
 require '/usr/local/nav/navme/lib/NAV.pm';
-import NAV qw(:DEFAULT :collect);;
+import NAV qw(:DEFAULT :collect :snmp);
+
+my $debug = 0;
 
 my $localkilde = get_path("path_localkilde");
 my $localconf = get_path("path_localconf");
 my $lib = get_path("path_lib");
 
-require $lib."snmplib.pl";
+my %nav_conf = &hash_conf($localconf."nav.conf");
+
+# tar inn en parameter som er en ip-adresse på formen bokser.pl ip=123.456.789.0
+my $one_and_only = shift;
+
+if($one_and_only){ #har sann verdi
+    if($one_and_only =~ /^(\d+\.\d+\.\d+\.\d+)$/i){
+	$one_and_only = $1;
+    } else {
+	die("Invalid ip-address: $one_and_only\n");
+	$one_and_only = "no";
+    }
+}
+print $one_and_only."\n" if $debug;
 
 &log_open;
 
 my $conn = &db_get("bokser");
 
-my $mib_sysname = ".1.3.6.1.2.1.1.5.0";
-my $mib_type =     ".1.3.6.1.2.1.1.2.0";
-
 my (%sysnamehash,%server,%db_server,%nettel,%db_nettel,%alle,%db_alle);
-
-#unntak: bokser på watch
-my %db_unntak = ();#&db_hent_enkel($conn,"select ip,watch from boks where watch='y' or watch='t'");
 
 #sysname-endelser
 #leses inn fra fil og legges i kolonseparert skalar
-    my $fil_endelser = "$localconf/endelser.txt";
-    my $endelser = &fil_endelser($fil_endelser);
-    my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
+my $endelser = $nav_conf{"DOMAIN_SUFFIX"};
+my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
 #-----------------------
 #FILLESING: server.txt
 my @felt_server = ("ip","sysname","roomid","orgid","catid","subcat","ro");
@@ -48,18 +68,20 @@ for my $a (keys %db_server) {
 #&db_device($conn,"netbox",\@felt_server,[0],[0,1,2,3,4,5,6],\%server,\%db_server,0);
 &db_safe(connection => $conn,table => "netbox",fields => \@felt_server, new => \%server, old => \%db_server,delete => 0,insert => "device");
 
-
 #------------------------------
 #FILLESING: nettel.txt
 my @felt_nettel = ("ip","sysname","typeid","roomid","orgid","catid","subcat","ro","rw");
 my $fil_nettel = "$localkilde/nettel.txt";
-%nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%db_unntak,\%sysnamehash);
+%nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%sysnamehash);
+
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
-
-%db_nettel = &db_hent_hash($conn,"SELECT ".join(",", @felt_nettel )." FROM netbox where catid <> 'SRV'");
-
+if($one_and_only){
+    %db_nettel = &db_hent_hash($conn,"SELECT ".join(",", @felt_nettel )." FROM netbox where catid <> 'SRV' and ip='$one_and_only'");
+} else {
+    %db_nettel = &db_hent_hash($conn,"SELECT ".join(",", @felt_nettel )." FROM netbox where catid <> 'SRV'");
+}
 #legge til i alle
 for my $a (keys %db_nettel) {
     my $ip = $db_nettel{$a}[0];
@@ -92,13 +114,13 @@ sub fil_endelser {
 }
 sub fil_nettel{
     my ($fil,$felt,$endelser) = @_[0..2];
-    my %unntak = %{$_[3]};
-    my %sysnamehash = %{$_[4]};
+    my %sysnamehash = %{$_[3]};
+    my $one_and_only = $_[4];
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     while (<FIL>) {
-	@_ = &fil_hent_linje($felt,$_);
+	@_ = &fil_hent_linje($felt+1,$_);
 	my $ip = $_[1];
-	if($ip&&!exists($unntak{$ip})){
+	if((!$one_and_only && $ip)||($one_and_only && $ip eq $one_and_only)){
 	    my $ro = $_[5];
 	    if (my @passerr = $ro =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
 		my $passerr = join "",@passerr;
@@ -110,7 +132,6 @@ sub fil_nettel{
 	    }
 	    my $temptype;
 	    my $sysname;
-# gammel    ($sysname,$temptype) = &snmp_system(1,$ip,$ro,$endelser);
 	    ($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
 	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
 	    my $type = $type{$temptype};
@@ -151,6 +172,7 @@ sub fil_server{
 	    @_ = map rydd($_), @_;
 	    my $sysname = &fjern_endelse($_[2],$endelser);
 	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
+	    &skriv("DEVICE-COLLECT","ip=$sysname");
 	    unless (exists($alle{$ip})){
 		$server{$ip} = [ $ip,$sysname,$_[1],@_[3..6] ];
 	    }
