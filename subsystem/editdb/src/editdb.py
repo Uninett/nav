@@ -308,11 +308,12 @@ def bulkImportParse(input,bulkdef,separator):
                 remark = 'Missing one or more required fields'
             else:
                 status = BULK_STATUS_OK
+                excessCounter = 0
                 for i in range(0,len(fields)):
                     # Is this one of the predefined fields?
                     # ie. where i < max_fields
                     # if not, it is eg. a subcatfield
-                    if i <= bulkdef.max_num_fields:
+                    if i < bulkdef.max_num_fields:
                         # fieldname,maxlen,required,use
                         fn,ml,req,use = bulkdef.fields[i]
                         # missing required field?
@@ -340,7 +341,8 @@ def bulkImportParse(input,bulkdef,separator):
                     else:
                         # This field isn't specified in the bulkdef
                         # Used by netbox for adding any number of subcats
-                        fn = BULK_UNSPECIFIED_FIELDNAME
+                        fn = BULK_UNSPECIFIED_FIELDNAME + str(excessCounter)
+                        excessCounter += 1
 
                     # check the validity of this field with the bulkdefs 
                     # checkValidity function this is for checking things 
@@ -420,6 +422,7 @@ def bulkImport(req,action):
         fileName = req.form['file']
         if len(fileName.value):
             input = fileName.value
+            #input.decode('utf-8')
             input = input.split('\n')
         else:
             input = req.form['textarea']
@@ -502,10 +505,24 @@ def bulkInsert(data,bulkdef,separator):
         fields = re.split(separator,line)
 
         row = {}
-        for i in range(0,len(fields)):
+        inputLen = len(fields)
+        # If we've got additional arguments (service or netbox)
+        # make sure we don't exceed number of arguments specified
+        # by bulkdef.fields
+        if inputLen > len(bulkdef.fields):
+            inputLen = len(bulkdef.fields)
+        for i in range(0,inputLen):
             # fieldname,maxlen,required,use
             field,ml,req,use = bulkdef.fields[i]
             row[field] = fields[i] 
+        # Add extra arguments
+        excessCount = 0        
+        if len(fields) > len(bulkdef.fields):
+            while(i < (len(fields))):
+                field = BULK_UNSPECIFIED_FIELDNAME + str(excessCount)
+                row[field] = fields[i]
+                excessCount += 1
+                i += 1
         prerowlist.append(row)
 
     # Do table specific things with the data before insterting
@@ -522,15 +539,16 @@ def bulkInsert(data,bulkdef,separator):
 
     # Remove all fields
     # where use = False
-    for row in rowlist:
-        for i in range(0,len(fields)):
-            # fieldname,maxlen,required,use
-            field,ml,req,use = bulkdef.fields[i]
-            if not use:
-                if row.has_key(field):
-                    del(row[field])
+    if not bulkdef.onlyProcess:
+        for row in rowlist:
+            for i in range(0,len(fields)):
+                # fieldname,maxlen,required,use
+                field,ml,req,use = bulkdef.fields[i]
+                if not use:
+                    if row.has_key(field):
+                        del(row[field])
 
-    addEntryBulk(rowlist,bulkdef.tablename)
+        addEntryBulk(rowlist,bulkdef.tablename)
     return len(rowlist)
 
 # Function for handling listing and editing of rooms
@@ -1853,7 +1871,7 @@ def updateService(req,form):
                             action = 'list'
     else:
         form.error = "Missing required property '" + missing + "'"
-        action = 'edit'
+        action = 'list'
     selected = [editId]
     return action,form,selected
 
@@ -2582,7 +2600,7 @@ class editboxRoom(editbox):
         if editId:
             disabled = True
 
-        f = {'roomid': [inputText(disabled=disabled),REQ_TRUE],
+        f = {'roomid': [inputText(disabled=disabled,maxlength=30),REQ_TRUE],
              'locationid': [inputSelect(table=editTables.editdbLocation),REQ_TRUE],
              'descr': [inputText(),REQ_FALSE],
              'opt1': [inputText(),REQ_FALSE],
@@ -2614,7 +2632,7 @@ class editboxLocation(editbox):
         if editId:
             disabled = True
 
-        f = {'locationid': [inputText(disabled=disabled),REQ_TRUE],
+        f = {'locationid': [inputText(disabled=disabled,maxlength=30),REQ_TRUE],
              'descr': [inputText(),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
@@ -2641,7 +2659,7 @@ class editboxOrg(editbox):
             o.append((org.orgid,org.orgid + \
                       ' (' + str(org.descr) + ')'))
 
-        f = {'orgid': [inputText(maxlength=10),REQ_TRUE],
+        f = {'orgid': [inputText(maxlength=30),REQ_TRUE],
              'parent': [inputSelect(options=o),REQ_NONEMPTY],
              'descr': [inputText(),REQ_FALSE],
              'opt1': [inputText(),REQ_FALSE],
@@ -2725,7 +2743,7 @@ class editboxUsage(editbox):
             
     def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'usageid': [inputText(),REQ_TRUE],
+        f = {'usageid': [inputText(maxlength=30),REQ_TRUE],
              'descr': [inputText(),REQ_TRUE]}
         self.fields = f
         self.setControlNames()
@@ -2983,7 +3001,7 @@ class structNetbox:
         idfield = 'netboxid'
        
         dependencies = []
-        name = 'netbox'
+        name = 'box'
 
     class editbox(editbox):
         type = 'netbox'
@@ -3850,11 +3868,10 @@ class deletedefPrefix(deletedef):
 class deletedefService(deletedef):
     table = 'service'
     idfield = 'serviceid'
-   
+ 
+    getNameFromId = (editTables.Service,'handler')
     dependencies = []
     name = 'service'
-
-
 
 # Class for the template, holds status and error messages
 class editdbStatus:
@@ -3879,12 +3896,13 @@ class bulkdefLocation:
     min_num_fields = 2
 
     process = False
+    onlyProcess = False
     syntax = '#locationid:descr\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('locationid',12,True,True),
+    fields = [('locationid',30,True,True),
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
@@ -3903,13 +3921,14 @@ class bulkdefRoom:
     min_num_fields = 1
 
     process = False
+    onlyProcess = False
     syntax = '#roomid[:locationid:descr:opt1:opt2:opt3:opt4]\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('roomid',10,True,True),
-              ('locationid',12,False,True),
+    fields = [('roomid',30,True,True),
+              ('locationid',30,False,True),
               ('descr',0,False,True),
               ('opt1',0,False,True),
               ('opt2',0,False,True),
@@ -3940,13 +3959,14 @@ class bulkdefOrg:
     min_num_fields = 1
 
     process = False
+    onlyProcess = False
     syntax = '#orgid[:parent:description:optional1:optional2:optional3]\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('orgid',10,True,True),
-              ('parent',10,False,True),
+    fields = [('orgid',30,True,True),
+              ('parent',30,False,True),
               ('descr',0,False,True),
               ('opt1',0,False,True),
               ('opt2',0,False,True),
@@ -3974,12 +3994,13 @@ class bulkdefUsage:
     min_num_fields = 2
 
     process = False
+    onlyProcess = False
     syntax = '#usageid:descr\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('usageid',10,True,True),
+    fields = [('usageid',30,True,True),
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
@@ -3998,6 +4019,7 @@ class bulkdefVendor:
     min_num_fields = 1
 
     process = False
+    onlyProcess = False
     syntax = '#vendorid\n'
 
     postCheck = False
@@ -4020,6 +4042,7 @@ class bulkdefSubcat:
     min_num_fields = 3
 
     process = False
+    onlyProcess = False
     syntax = '#subcatid:catid:description\n'
 
     postCheck = False
@@ -4054,6 +4077,7 @@ class bulkdefType:
     min_num_fields = 3
 
     process = False
+    onlyProcess = False
     syntax = '#vendorid:typename:sysoid[:description:frequency:cdp:tftp]\n'
 
     postCheck = False
@@ -4083,6 +4107,7 @@ class bulkdefProduct:
     min_num_fields = 2
 
     process = True
+    onlyProcess = False
     syntax = '#vendorid:productno[:description]\n'
 
     postCheck = False
@@ -4126,6 +4151,7 @@ class bulkdefNetbox:
     min_num_fields = 4
 
     process = True
+    onlyProcess = False
     syntax = '#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]\n'
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
@@ -4333,24 +4359,32 @@ class bulkdefService:
     tablename = 'service'
     table = editTables.Service
     uniqueField = None
-    enforce_max_fields = True
+    enforce_max_fields = False
     max_num_fields = 2
     min_num_fields = 2
 
     process = True
+    onlyProcess = True
     syntax = '#sysname/ip:handler\n'
 
     postCheck = False
+    # Seperator for optargs arguments
+    optSep = '='
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netboxid',0,True,True),
               ('handler',0,True,True)]
+
+    def insert(cls,row):
+        raise(repr(row))
+    insert = classmethod(insert)
 
     def postCheck(cls,data):
         status = BULK_STATUS_OK
         remark = None
 
         try:
+            # Check sysname/ip
             ip = gethostbyname(data['netboxid'])
             where = "ip='%s'" % (ip,)
             box = editTables.Netbox.getAll(where)
@@ -4358,14 +4392,46 @@ class bulkdefService:
                 data['netboxid'] = str(box[0].netboxid)
             else:
                 raise("No box with sysname or ip '" + data['netboxid'] + \
-                      "found in database.")
+                      "' found in database.")
+
+            # Check validity of additional arguments
+            properties = getDescription(data['handler'])
+            optargs = []
+            args = []
+            if properties:
+                if properties.has_key('optargs'):
+                    for optarg in properties['optargs']:
+                        optargs.append(optarg)
+                if properties.has_key('args'):
+                    for arg in properties['args']:
+                        args.append(arg)
+
+            seperator = bulkdefService.optSep
+            excessCount = 0
+            excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+            argsData = {}
+            while(data.has_key(excessField)):
+                splitted = data[excessField].split('=',1)
+                if len(splitted) == 2:
+                    if len(splitted[1]):
+                        argsData[splitted[0]] = splitted[1]
+                excessCount += 1
+                excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+
+            for arg in args:
+                if not argsData.has_key(arg):
+                    raise("Missing required argument '" + arg +"'")
+                del(argsData[arg])
+            for key in argsData.keys():
+                if not key in optargs:
+                    raise("Invalid argument '" + key + "'")
+            
         except:
             status = BULK_STATUS_YELLOW_ERROR
-            remark = sys.exc_info()[1]
+            remark = sys.exc_info()[0]
 
         return (status,remark,data)
     postCheck = classmethod(postCheck)
-
            
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
@@ -4390,6 +4456,33 @@ class bulkdefService:
         except:
             data = None
 
+        if data:
+            fields = {'netboxid': data['netboxid'],
+                  'handler': data['handler']}
+            serviceid = addEntryFields(fields,
+                                      'service',
+                                      ('serviceid','service_serviceid_seq'))
+
+            # Check validity of additional arguments
+            seperator = bulkdefService.optSep
+            excessCount = 0
+            excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+            argsData = {}
+            while(data.has_key(excessField)):
+                splitted = data[excessField].split('=',1)
+                if len(splitted) == 2:
+                    if len(splitted[1]):
+                        argsData[splitted[0]] = splitted[1]
+                excessCount += 1
+                excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+
+        
+            for property,value in argsData.items():
+                fields = {'serviceid': serviceid,
+                          'property': property,
+                          'value': value}
+                addEntryFields(fields,
+                               'serviceproperty')
         return data
     preInsert = classmethod(preInsert)
 
@@ -4403,6 +4496,7 @@ class bulkdefPrefix:
     min_num_fields = 1
 
     process = True
+    onlyProcess = False
     syntax= '#prefix/mask:nettype[:orgid:netident:usage:description:vlan]\n'
 
     postCheck = False
