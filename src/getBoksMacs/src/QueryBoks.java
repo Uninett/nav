@@ -98,7 +98,7 @@ public class QueryBoks extends Thread
 	HashMap swp_d;
 	HashSet foundCDPMp = new HashSet();
 
-	SimpleSnmp sSnmp = new SimpleSnmp();
+	SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory();
 
 	// Konstruktør
 	public QueryBoks(int num, String id, Stack bdStack, int antBd, HashSet swp, HashMap swp_d)
