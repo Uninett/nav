@@ -87,6 +87,7 @@ class NetboxInfo(manage.Netbox):
         info.add('Ip address', self.showIp())
         info.add('Vlan', self.showVlan())
         info.add('Gateway', self.showGw())
+        info.add('Switch', self.showSw())
         info.add('Category', urlbuilder.createLink(self.cat,
             subsystem="report"))
         if self.type:
@@ -126,7 +127,18 @@ class NetboxInfo(manage.Netbox):
         else:
             vlan = 'Unknown'
         return vlan
-        
+
+    def showSw(self):
+        sw = self.getChildren(manage.Swport)
+        if not sw:
+            return
+        sw = sw[0]
+        swNetbox = sw.module.netbox
+        swPort = sw.port
+        swModule = sw.module.module
+        swLink = urlbuilder.createLink(swNetbox)
+        swLink.append('(Module %s, Port %s)' % (swModule, swPort))
+        return swLink
         
         
     def showIp(self):
