@@ -9,8 +9,16 @@
   <property name="lib" location="lib"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-	<property name="prefix" location="../../../"/>
-  <property name="jarinstdir"  location="${prefix}/bin/navAdmin"/>
+
+  <property name="prefix" location="/usr/local/nav"/>
+  <property name="bindir" location="${prefix}/bin"/>
+  <property name="libdir" location="${prefix}/lib"/>
+  <property name="javalibdir" location="${libdir}/java"/>
+  <property name="sysconfdir" location="${prefix}/etc"/>
+  <property name="localstatedir" location="${prefix}/var"/>
+  <property name="tooldir" location="${prefix}/apache/tools"/>
+
+  <property name="jarinstdir"  location="${bindir}/navAdmin"/>
   <property name="warinstdir"  location="${prefix}/apache/webapps"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
@@ -57,10 +65,13 @@
 
     <mkdir dir="${warinstdir}"/>
     <copy file="${dist}/${war}" todir="${warinstdir}"/>
+    <mkdir dir="${tooldir}"/>
+    <copy file="navAdmin.tool" todir="${tooldir}" />
   </target>
   <target name="uninstall">
     <delete file="${jarinstdir}/${jar}"/>
     <delete file="${warinstdir}/${war}"/>
+    <delete file="${tooldir}/navAdmin.tool" />
   </target>
 
   <target name="dist_debug" depends="dist,dist_navutils"

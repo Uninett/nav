@@ -7,10 +7,12 @@ exec_prefix = @exec_prefix@
 libdir = @libdir@
 
 webroot = @webroot@
+tooldir = @tooldir@
 
 # Just grab all files, except SVN administrative areas, and a few
 # other source tree-only files.
 files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' -or -name '*.tool' \) )
+tool = alertprofiles.tool
 
 .PHONY: all install
 
@@ -24,6 +26,7 @@ install:
 	for file in $(files); do \
 	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)/$(webroot)/alertprofiles/$$file || exit 1; \
 	done
+	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 clean:
 	find -name '*~' -print0 | xargs --null rm -f

@@ -39,7 +39,7 @@ install-lib: lib
 	for file in $(WEBLIBS); do $(INSTALL) -m 644 src/lib/$$file $(DESTDIR)$(WEBLIB)/devBrowser/; done
 install-web: web
 	$(INSTALL) -d $(DESTDIR)$(WEBDIR)
-	$(INSTALL) -m 644 src/htaccess $(DESTDIR)$(WEBDIR)/.htaccess
+	$(INSTALL) -m 644 src/.htaccess $(DESTDIR)$(WEBDIR)/.htaccess
 # Apache is lame and needs an EXISTING FILE to use 
 # DirectoryIndex...... so let's create an empty one
 	touch $(DESTDIR)$(WEBDIR)/index

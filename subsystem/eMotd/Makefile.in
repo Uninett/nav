@@ -1,15 +1,25 @@
 SHELL = @SHELL@
 INSTALL = @INSTALL@
 
-subdirs = templates src lib bin
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+tooldir = @tooldir@
 
+tool = emotd.tool
+subdirs = templates src lib bin
 
 .PHONY: all install clean distclean
 
-all install:
+all:
 	for dir in $(subdirs); do \
-	$(MAKE) -C $$dir $@ || exit 1; \
+	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
+
+install:
+	for dir in $(subdirs); do \
+	  $(MAKE) -C $$dir $@ || exit 1; \
+	done
+	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 clean:
 	for dir in $(subdirs); do \

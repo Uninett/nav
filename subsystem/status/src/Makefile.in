@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = StatusTemplate.py
-files = StatusPrefs.py  status.py  StatusSections.py  StatusTables.py
+files = StatusPrefs.py  status.py  StatusSections.py  StatusTables.py .htaccess
 
 .PHONY: all install install-lib install-bin install-web clean distclean
 

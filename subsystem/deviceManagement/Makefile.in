@@ -1,10 +1,21 @@
 SHELL = @SHELL@
 INSTALL = @INSTALL@
 
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+tooldir = @tooldir@
+
+tool = devicemanagement.tool
+
 .PHONY: all install clean distclean
 
-all install:
+all:
 	$(MAKE) -C src $@
+
+install:
+	$(MAKE) -C src $@
+	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
+
 
 clean:
 	$(MAKE) -C src $@

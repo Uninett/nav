@@ -11,15 +11,17 @@ bindir = @bindir@
 sysconfdir = @sysconfdir@
 
 webroot = @webroot@
+tooldir = @tooldir@
 
 binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
 conffiles = cricketoids.txt
+tool = cricket.tool
 
 .PHONY: all install install-lib install-bin install-conf install-web clean distclean
 
 all: 
 
-install: install-bin install-conf
+install: install-bin install-conf install-web
 
 install-bin:
 	@for file in $(binaries); do \
@@ -35,6 +37,9 @@ install-conf:
 	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
 	  fi;                                                  \
 	done
+
+install-web:
+	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 clean:
 	rm -f *~

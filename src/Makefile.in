@@ -9,9 +9,11 @@ libdir = @libdir@
 javalibdir = @javalibdir@
 sysconfdir = @sysconfdir@
 localstatedir = @localstatedir@
+tooldir = @tooldir@
+webroot = @webroot@
 
-BUILDARGS = -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir)
-INSTALLARGS = -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir)
+BUILDARGS = -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir) -Dtooldir=$(tooldir) -Dwebroot=$(webroot)
+INSTALLARGS = -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir) -Dtooldir=$(DESTDIR)$(tooldir) -Dwebroot=$(DESTDIR)$(webroot)
 
 subdirs = \
 	ConfigParser \

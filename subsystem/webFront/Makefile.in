@@ -10,6 +10,9 @@ sysconfdir = @sysconfdir@
 
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
+tooldir = @tooldir@
+
+tools = help.tool
 
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
@@ -36,6 +39,9 @@ install-web: install-images
 	installable=`find . -name '*.py'; find . -name '.htaccess'; find . -name '*.html'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
+	done
+	for file in $(tools); do \
+	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
 
 install-images:

@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = editdbTemplate.py
-files = editdb.py editdbSQL.py editTables.py initBox.py
+files = editdb.py editdbSQL.py editTables.py initBox.py .htaccess
 
 .PHONY: all install install-lib install-bin install-web clean distclean
 

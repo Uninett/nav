@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = deviceManagementTemplate.py
-files = deviceManagement.py deviceManagementTables.py
+files = deviceManagement.py deviceManagementTables.py .htaccess
 
 .PHONY: all install install-lib install-web clean distclean
 

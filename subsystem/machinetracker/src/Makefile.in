@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = MachineTrackerTemplate.py
-files = machinetracker.py
+files = machinetracker.py .htaccess
 
 .PHONY: all install install-lib install-web clean distclean
 
