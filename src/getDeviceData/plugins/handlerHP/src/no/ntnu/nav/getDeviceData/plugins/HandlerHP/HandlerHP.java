@@ -10,9 +10,9 @@ public class HandlerHP implements DeviceHandler
 
 	private SimpleSnmp sSnmp;
 
-	public boolean canHandleDevice(BoksData bd)
+	public int canHandleDevice(BoksData bd)
 	{
-		return bd.getTypegruppe().equals("hpsw");
+		return bd.getTypegruppe().equals("hpsw") ? 1 : 0;
 	}
 
 	public void handle(BoksData bd, SimpleSnmp sSnmp, DeviceDataList ddList) throws TimeoutException
@@ -27,7 +27,7 @@ public class HandlerHP implements DeviceHandler
 		this.sSnmp = sSnmp;
 
 		// Just to be sure...
-		if (!canHandleDevice(bd)) return;
+		if (canHandleDevice(bd) <= 0) return;
 
 		List swportDataList = processHP(boksid, ip, cs_ro, boksTypegruppe, boksType);
 

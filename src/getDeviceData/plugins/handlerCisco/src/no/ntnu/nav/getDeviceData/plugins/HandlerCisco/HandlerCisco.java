@@ -13,21 +13,23 @@ public class HandlerCisco implements DeviceHandler
 
 	public HandlerCisco()
 	{
-		synchronized (canHandle) {
-			if (canHandle.size() == 0) {
-				canHandle.add("cgw-nomem");
-				canHandle.add("cgw");
-				canHandle.add("ios-sw");
-				canHandle.add("cat-sw");
-				canHandle.add("cat1900-sw");
-				canHandle.add("catmeny-sw");
+		if (canHandle.size() == 0) {
+			synchronized (canHandle) {
+				if (canHandle.size() == 0) {
+					canHandle.add("cgw-nomem");
+					canHandle.add("cgw");
+					canHandle.add("ios-sw");
+					canHandle.add("cat-sw");
+					canHandle.add("cat1900-sw");
+					canHandle.add("catmeny-sw");
+				}
 			}
 		}
 	}
 
-	public boolean canHandleDevice(BoksData bd)
+	public int canHandleDevice(BoksData bd)
 	{
-		return (canHandle.contains(bd.getTypegruppe()));
+		return (canHandle.contains(bd.getTypegruppe())) ? 1 : 0;
 	}
 
 	public void handle(BoksData bd, SimpleSnmp sSnmp, DeviceDataList ddList) throws TimeoutException

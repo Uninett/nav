@@ -10,11 +10,11 @@ public class Handler3Com implements DeviceHandler
 
 	private SimpleSnmp sSnmp;
 
-	public boolean canHandleDevice(BoksData bd)
+	public int canHandleDevice(BoksData bd)
 	{
 		return (bd.getTypegruppe().equals("3hub") ||
 				bd.getTypegruppe().equals("3ss") ||
-				bd.getTypegruppe().equals("3ss9300"));
+				bd.getTypegruppe().equals("3ss9300")) ? 1 : 0;
 	}
 
 	public void handle(BoksData bd, SimpleSnmp sSnmp, DeviceDataList ddList) throws TimeoutException
@@ -29,7 +29,7 @@ public class Handler3Com implements DeviceHandler
 		this.sSnmp = sSnmp;
 
 		// Just to be sure...
-		if (!canHandleDevice(bd)) return;
+		if (canHandleDevice(bd) <= 0) return;
 
 		List swportDataList = process3Com(boksid, ip, cs_ro, boksTypegruppe, boksType);
 
