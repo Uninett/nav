@@ -51,6 +51,7 @@ def _customizeTables():
     Emotd_related._sqlPrimary = ('emotd', 'key', 'value')
     Netboxinfo._sqlPrimary = ('key', 'var', 'val')
     Gwportprefix._sqlPrimary = ('gwip',)
+    Serviceproperty._sqlPrimary = ('service', 'property')
 
     # connection with database
     forgotten.manage._Wrapper.cursor = nav.db.cursor
