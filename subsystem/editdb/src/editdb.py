@@ -3481,9 +3481,9 @@ class pagePrefix(editdbPage):
                                       ('Description',True,None),
                                       ('Vlan',True,None)]
 
-            where = "(vlan.nettype='static' or " + \
-                    "vlan.nettype='reserved' or " + \
-                    "vlan.nettype='scope')"
+            where = "(vlan.nettype in (SELECT nettypeid " + \
+                    "                  FROM nettype " + \
+                    "                  WHERE edit='t'))"
 
             self.cellDefinition = [(('prefix.prefixid,netaddr,vlan.nettype,' +\
                                      'vlan.orgid,vlan.netident,vlan.usageid,' +\
