@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use SNMP;
+use Net::SNMP;
 #&bulk("rfb-418-sw","gotcha","404");
 
 sub bulk{

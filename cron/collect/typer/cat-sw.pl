@@ -2,7 +2,7 @@
 
 use strict;
 
-use SNMP;
+use Net::SNMP;
 #&bulk("blasal-sw2","gotcha","821");
 
 sub bulk{
