@@ -248,7 +248,7 @@ public class _3Com implements DeviceHandler
 		}
 
 		// Fetch ifDescr
-		List ifDescrList = sSnmp.getAll(nb.getOid("ifDescr"));
+		List ifDescrList = sSnmp.getAll(nb.getOid("ifDescr"), true, true);
 		if (ifDescrList != null) {
 			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -258,11 +258,11 @@ public class _3Com implements DeviceHandler
 				// Use regex for extracting unit and port
 				Matcher m = Pattern.compile("Port (\\d+)\\b").matcher(ifdescr);
 				if (!m.find()) continue;
-				String port = m.group();
+				String port = m.group(1);
 
 				String module = "1";
 				m = Pattern.compile("Unit (\\d+)\\b").matcher(ifdescr);
-				if (m.find()) module = m.group();
+				if (m.find()) module = m.group(1);
 
 				SwModule swm = sc.swModuleFactory(module);
 				Swport swp = swm.swportFactory(ifindex);
