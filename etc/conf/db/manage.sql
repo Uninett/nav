@@ -590,7 +590,11 @@ CREATE TABLE rrd_datasource (
   name          VARCHAR, -- name of the datasource in the file
   descr         VARCHAR, -- human-understandable name of the datasource
   dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
-  units         VARCHAR -- textual decription of the y-axis (percent, kilo, giga, etc.)
+  units         VARCHAR, -- textual decription of the y-axis (percent, kilo, giga, etc.)
+  threshold	VARCHAR,
+  max		VARCHAR,
+  delimiter	CHAR(1) CHECK (delimiter='>' OR delimiter='<'),
+  thresholdstate VARCHAR CHECK (thresholdstate='active' OR thresholdstate='inactive')
 );
 
 GRANT ALL ON rrd_file TO rrduser;
