@@ -509,6 +509,15 @@ GRANT ALL    ON swportallowedvlan TO getPortData;
 -- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
+GRANT SELECT,UPDATE ON boks TO getDeviceData;
+GRANT SELECT ON type TO getDeviceData;
+GRANT ALL    ON boksdisk TO getDeviceData;
+GRANT ALL    ON boksinterface TO getDeviceData;
+GRANT ALL    ON swport TO getDeviceData;
+GRANT ALL    ON swport_swportid_seq TO getDeviceData;
+GRANT ALL    ON swportvlan TO getDeviceData;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
+GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- vlanPlot end ------
 
