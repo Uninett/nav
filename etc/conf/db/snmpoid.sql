@@ -292,3 +292,7 @@ INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifName','1.3.6.1.2
 DELETE FROM snmpoid WHERE oidkey='moduleMon';
 INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('moduleMon','1.3.6.1.2.1.2.2.1.1','mib-II','Used by the module monitor; is identical to ifIndex');
 
+-- used by initBox (editdb)
+
+DELETE FROM snmpoid WHERE oidkey='typeoid';
+INSERT INTO snmpoid (oidkey,snmpoid,descr,getnext,decodehex) VALUES ('typeoid','1.3.6.1.2.1.1.2.0','all','t','f');
