@@ -65,6 +65,8 @@ public class SimpleSnmp
 
 	private Map cache = new HashMap();
 
+	protected Set ignoredModules = new HashSet();
+
 	/**
 	 * Construct an empty SimpleSnmp class.
 	 */
@@ -141,6 +143,19 @@ public class SimpleSnmp
 	 */
 	public void onlyAskModule(String module) {
 
+	}
+
+	/**
+	 * Use this method to specify that the given module should be
+	 * ignored and not collected data for. This is useful if the
+	 * module is down and would only give timeout exceptions. Note
+	 * that this information is only respected if this class is
+	 * subclassed; the default is to do nothing.
+	 *
+	 * @param module The number of the module to ignore.
+	 */
+	public void ignoreModule(String module) {
+		ignoredModules.add(module);
 	}
 
 	/**
@@ -592,7 +607,7 @@ public class SimpleSnmp
 						pdu.addOid(oid);
 						if (getNextDelay > 0) {
 							try {
-								System.err.println("Sleeping " + getNextDelay + " ms.");
+								//System.err.println("Sleeping " + getNextDelay + " ms.");
 								Thread.currentThread().sleep(getNextDelay);
 							} catch (InterruptedException e) {
 							}

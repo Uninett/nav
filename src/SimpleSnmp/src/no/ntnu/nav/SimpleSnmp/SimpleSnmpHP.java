@@ -185,11 +185,12 @@ public class SimpleSnmpHP extends SimpleSnmp
 		for (Iterator stackIt = stackList.iterator(); stackIt.hasNext();) {
 			String[] s = (String[])stackIt.next();
 			if (askOnlyModule != null && !askOnlyModule.equals(s[1])) continue;
+			if (ignoredModules.contains(s[1])) continue;
 			
 			setCs_ro(cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""));
 			String module = s[1];
 			//String modulePrepend = s[1].equals("0") ? "" : s[1];
-			
+
 			List pl = super.getAll(baseOid, getCnt, decodeHex, getNext, stripCnt);
 			for (Iterator it = pl.iterator(); it.hasNext();) {
 				s = (String[])it.next();
