@@ -109,14 +109,15 @@ public class CiscoSwCAT implements DeviceHandler
 
 					// Determine and create the module
 					int module = 0;
-					String modulePattern = ".*(\\d+)/.*";
+					String modulePattern = "(\\d+)/.*";
 					if (portif.matches(modulePattern)) {
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);
 						m.matches();
 						module = Integer.parseInt(m.group(1));
 					}
 					SwModule swm = sc.swModuleFactory(module);
-					swm.setDescr(portif.split("/")[0]);
+					swm.swportFactory(ifindex); // Create module <-> ifindex mapping
+					//swm.setDescr(portif.split("/")[0]);
 				}
 			}
 			for (Iterator it = o.iterator(); it.hasNext();) {
@@ -127,7 +128,7 @@ public class CiscoSwCAT implements DeviceHandler
 				String[] s2 = s[0].split("\\.");
 				modPortIfindex.put(s[0],s[1]);
 			
-				Integer port = (Integer)Integer.getInteger(s2[1]);
+				Integer port = (Integer)Integer.valueOf(s2[1]);
 				sc.swportFactory(ifindex).setPort(port);
 			}
 			
