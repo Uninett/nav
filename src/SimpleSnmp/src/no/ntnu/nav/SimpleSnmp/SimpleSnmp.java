@@ -87,6 +87,18 @@ public class SimpleSnmp
 		timeoutLimit = DEFAULT_TIMEOUT_LIMIT;
 	}
 
+	/**
+	 * Use this method to specify that only the module with the given
+	 * module number should be asked for data. Note that this
+	 * information is only respected if this class is subclassed; the
+	 * default is to do nothing.
+	 *
+	 * @param module The number of the module to ask; use null to again ask all modules
+	 */
+	public void onlyAskModule(String module) {
+
+	}
+
 	/*
 	public boolean resetGotTimeout() {
 		boolean b = gotTimeout;
@@ -138,7 +150,7 @@ public class SimpleSnmp
 	 * OIDs.  </p>
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
-	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param getCnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
 	 * @return an ArrayList containing String arrays of two elements; OID and value

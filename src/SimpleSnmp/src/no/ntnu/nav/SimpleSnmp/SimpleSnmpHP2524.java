@@ -29,6 +29,7 @@ import no.ntnu.nav.Database.*;
 public class SimpleSnmpHP2524 extends SimpleSnmp
 {
 	private List stackList;
+	private String askOnlyModule;
 
 	// Constructor
 	SimpleSnmpHP2524() { 
@@ -58,6 +59,10 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 		return ifindex;
 	}
 
+	// Doc in parent
+	public void onlyAskModule(String module) {
+		this.askOnlyModule = module;
+	}
 
 	// Doc in parent
 	public ArrayList getAll(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
@@ -101,6 +106,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 		ArrayList l = new ArrayList();
 		for (int i=stackList.size()-1; i >= 0; i--) {
 			String[] s = (String[])stackList.get(i);
+			if (askOnlyModule != null && !askOnlyModule.equals(s[1])) continue;
 			
 			setCs_ro(cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""));
 			String module = s[1];
