@@ -13,7 +13,7 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 
 import os, re
 
-CONFIGFILEPATH=['/usr/local/nav/navme/etc/conf/','.']
+CONFIGFILEPATH=['/usr/local/nav/local/etc/conf/','.']
 
 class Conf(dict):
     def __init__(self, *args, **kwargs):
