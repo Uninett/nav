@@ -434,25 +434,26 @@ class SimpleSelect(Select):
         if self.orderByValue:
             ob = self.initIdColumn
 
-        where = ''
-        for id in self.initIdList:
-            if where:
-                where += " OR "
-            where += self.initIdColumn + "='%s' " % (id,)
+        if len(self.initIdList):
+            where = ''
+            for id in self.initIdList:
+                if where:
+                    where += " OR "
+                where += self.initIdColumn + "='%s' " % (id,)
 
-        for row in table.getAllIterator(orderBy=ob,where=where):
-            descr = getattr(row, self.initTextColumn)
-            value = getattr(row, self.initIdColumn)
+            for row in table.getAllIterator(orderBy=ob,where=where):
+                descr = getattr(row, self.initTextColumn)
+                value = getattr(row, self.initIdColumn)
 
-            if self.optionFormat:
-                text = self.optionFormat
-                text = text.replace('$v',str(value))
-                text = text.replace('$d',str(descr))
-            else:
-                text = descr
-            selected = False
-            
-            self.options.append(Option(text,value,selected)) 
+                if self.optionFormat:
+                    text = self.optionFormat
+                    text = text.replace('$v',str(value))
+                    text = text.replace('$d',str(descr))
+                else:
+                    text = descr
+                selected = False
+                
+                self.options.append(Option(text,value,selected)) 
         return
     
     def lastKeys(self):
