@@ -2,13 +2,12 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.9 2002/06/13 09:57:58 erikgors Exp $
+$Id: job.py,v 1.10 2002/06/13 13:08:03 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
 from select import select
 from errno import errorcode
-import database
 
 class Timeout(Exception):
 	pass
@@ -20,6 +19,7 @@ class Event:
 		self.id = id
 		self.info = info
 
+import database
 class Socket:
 	def __init__(self,timeout=5):
 		self.timeout = timeout
@@ -188,3 +188,31 @@ class HttpHandler(JobHandler):
 			status = Event.DOWN
 			info = 'ERROR (' +  str(response.status) + ')'
 		return status,info
+import ftplib
+class FTP(ftplib.FTP):
+	def __init__(self):
+		ftplib.FTP.__init__(self)
+	def connect(self, host = '', port = 0):
+		'''Connect to host.  Arguments are:
+		- host: hostname to connect to (string, default previous host)
+		- port: port to connect to (integer, default previous port)'''
+		if host: self.host = host
+		if port: self.port = port
+		msg = "getaddrinfo returns an empty list"
+		for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
+			af, socktype, proto, canonname, sa = res
+			try:
+				self.sock = Socket()
+				self.sock.connect(sa)
+			except socket.error, msg:
+				if self.sock:
+					self.sock.close()
+				self.sock = None
+				continue
+			break
+		if not self.sock:
+			raise socket.error, msg
+		self.af = af
+		self.file = self.sock.makefile('rb')
+		self.welcome = self.getresp()
+		return self.welcome
