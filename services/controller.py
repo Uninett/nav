@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.12 2002/06/15 21:49:51 magnun Exp $
+$Id: controller.py,v 1.13 2002/06/15 22:08:41 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -20,8 +20,8 @@ class controller:
         self._looptime=60
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
-        self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], "manage" self.config["db_nav"], self.config["userpw_manage"]))
-        self.db.run()
+        #self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], "manage", self.config["db_nav"], self.config["userpw_manage"]))
+        #self.db.run()
                       
 #host = localhost user = manage dbname = manage password = eganam')
     def getJobs(self):
@@ -29,8 +29,8 @@ class controller:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-#        newjobs = database.getJobs()
-        newjobs = self.db.getJobs()
+        newjobs = database.getJobs()
+        #newjobs = self.db.getJobs()
 
 
         s=[]    
@@ -79,7 +79,7 @@ class controller:
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
-	#database.startup('host = localhost user = manage dbname = manage password = eganam')
+        database.startup('host = localhost user = manage dbname = manage password = eganam')
         while self._isrunning:
             start=time.time()
             self.getJobs()
