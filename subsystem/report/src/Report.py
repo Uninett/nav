@@ -354,7 +354,8 @@ class Report:
         
         for no,field in self.fieldName.items():
             f = None
-            if not self.extra.count(field):
+            ## does not use aggregate function elements
+            if not self.extra.count(field) and not self.sql_fields[no].count("("):
                 f = Field()
                 f.raw = self.sql_fields[no]
                 if name.has_key(field):

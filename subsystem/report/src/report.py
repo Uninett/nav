@@ -28,6 +28,8 @@ import re,string,copy,pprint,urllib
 import os.path, nav.path
 from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
 from nav.web.templates.MatrixScopesTemplate import MatrixScopesTemplate
+from nav.web.URI import URI
+from nav.web import redirect
 
 from Generator import Generator,ReportList
 from Matrix import Matrix
@@ -38,6 +40,29 @@ frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 def handler(req):
     uri = req.unparsed_uri
     args = req.args
+    nuri = URI(uri)
+
+    remo = [] # these arguments and their friends will be deleted
+
+    for key,val in nuri.args.items():
+        if val == "" or key=="r4g3n53nd":
+            remo.append(key)
+
+    for r in remo:
+        if nuri.args.has_key(r):
+            del(nuri.args[r])
+        if nuri.args.has_key(r+"_op"):
+            del(nuri.args[r+"_op"])
+        if nuri.args.has_key(r+"_not"):
+            del(nuri.args[r+"_not"])
+
+    if len(remo):
+        #join the valid arguments
+        newargs = "&".join([key+"="+value for key,value in nuri.args.items()])
+
+        redirect(req, nuri.path+"?"+newargs)
+
+    #else
 
     r = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
     reportName = r.group(1)
@@ -158,34 +183,9 @@ def handler(req):
             page.old_uri = old_uri
 
             if adv:
-##                req.write("<a href=\""+old_uri+"adv=\">Close Search</a>")
-##                req.write('<h2>Advanced Search</h2><form action="" method="get"><table>')
                 page.operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
                 page.operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
                 page.descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
-##                 for a in report.form:
-##                     operators = {"eq":"=","like":"~","gt":"&gt;","lt":"&lt;","geq":"&gt;=","leq":"&lt;=","between":"[:]","in":"(,,)"}
-##                     operatorlist = ["eq","like","gt","lt","geq","leq","between","in"]
-##                     descriptions = {"eq":"equals","like":"contains substring (case-insensitive)","gt":"greater than","lt":"less than","geq":"greater than or equals","leq":"less than or equals","between":"between (colon-separated)","in":"is one of (comma separated)"}
-##                     value = ""
-##                     nott = ""
-##                     operat = ""
-##                     if contents.has_key(a.raw):
-##                         value = contents[a.raw]
-##                         if operator.has_key(a.raw):
-##                             operat = operator[a.raw]
-##                         if neg.has_key(a.raw):
-##                             nott = 'checked="1"'
-##                     select = selectoptiondraw(a.raw+"_op",operatorlist,operators,operat,descriptions)
-##                     req.write('<tr><td><label for="%s">%s</label></td><td><input type="checkbox" name="%s_not" id="%s_not" %s></td><td><label for="%s_not">not</label></td><td>%s</td><td><input type="text" name="%s" id="%s" value="%s"></td></tr>'%(a.raw,a.title,a.raw,a.raw,nott,a.raw,select,a.raw,a.raw,value))
-
-##                 req.write('<tr><td></td><td></td><td><input type="hidden" name="adv" value="1"/></td><td><input type="submit" name="r4g3n53nd" value="Send"/></table></form>')
-
-##                 req.write("<font size=1>The operators are used like this")
-##                 req.write('<ul><li>= : "equals" (enter null for empty string)</li><li>~ : "case insensitive search (* wildcards)"</li><li>[:] : "between", takes two colon-separated arguments</li><li>(,,) : "is one of", takes a comma-separated list of any size as argument. </li></ul><p><,>,<= and >= needs no explanation. </p><p> All these operators may be negated by clicking the "not" checkbox.</p></font>')
-##             else:
-##                 req.write("<a href=\""+old_uri+"adv=1\">Advanced Search</a>")
-##                 #req.write("<a href=\"javascript:openpopup()\">Advanced Search 2</a>")
 
         req.write(page.respond())
 
