@@ -268,7 +268,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				String interf = (String)ifDescrMap.get(ifindex);
 				if (!masterinterfSet.contains(interf) &&
-						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0"))) continue;
+						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
+						 !prefixMap.containsKey(ifindex))) continue;
 
 				// Parse the description (ifAlias)
 				System.err.println("Parsing ifAlias: " + descr);
