@@ -1,15 +1,17 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.6 2003/06/20 09:34:44 magnun Exp $                                                                                                                              
-This file is part of the NAV project.                                                                                             
-                                                                                                                                 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+$Id: servicemon.py,v 1.6 2003/06/20 09:34:44 magnun Exp $
+This file is part of the NAV project.
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen
+
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
-LIBDIR="/usr/local/nav/navme/lib/python"
+
+#LIBDIR="/usr/local/nav/navme/lib/python"
 import os
-if LIBDIR not in os.sys.path:
-    os.sys.path.append(LIBDIR)
+#if LIBDIR not in os.sys.path:
+#    os.sys.path.append(LIBDIR)
 
 import types
 import time
@@ -117,7 +119,7 @@ class controller:
                 self._runqueue.enq(checker)
                 time.sleep(pause)
 
-            self.createStatusFile()
+            # self.createStatusFile()
 
             # extensive debugging
             dbgthreads=[]
