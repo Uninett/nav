@@ -115,7 +115,7 @@ public class NetboxHandler implements DataHandler {
 				rs.next();
 				n.setUpsince(rs.getString("upsince"));
 
-				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+netboxid+"), uptime ticks = "+n.getUptime() + " (" + n.getUpsince()+")");
+				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+n.getSysname()+") ("+netboxid+"), uptime ticks = "+n.getUptime() + " (" + n.getUpsince()+")");
 
 				// Send event if uptime changed
 				if (!oldn.equalsUptime(n)) {
