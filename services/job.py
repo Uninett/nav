@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.34 2002/06/21 12:02:51 erikgors Exp $
+$Id: job.py,v 1.35 2002/06/24 17:11:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -430,6 +430,31 @@ class SmbHandler(JobHandler):
 			return Event.DOWN,'error %i' % status
 		else:
 			return Event.UP,'OK'
+
+import os
+class DcHandler(JobHandler):
+	"""
+	Required argument:
+	username
+	"""
+	def __init__(self, serviceid, boksid, ip, args, version):
+		address = (ip, 0)
+		JobHandler.__init__(self, 'dc', serviceid, boksid, address, args, version)
+
+	def execute(self):
+		args = self.getArgs()
+		username = args.get('username','')
+		if not username:
+			return Event.DOWN, "Missing required argument: username"
+		ip, host = self.getAddress()
+		command = "/usr/local/samba/bin/rpcclient -U %% -c 'lookupnames %s' %s  2>/dev/null" % (username, ip)
+		result = os.popen(command).readlines()[-1]
+		if result.split(" ")[0] == username:
+			return Event.UP, 'Ok'
+		else:
+			return Event.DOWN, result
+		
+
 import smtplib
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):
@@ -473,5 +498,6 @@ jobmap = {'http':HttpHandler,
 	  'mysql':MysqlHandler,
 	  'smb':SmbHandler,
 	  'smtp':SmtpHandler,
-	  'pop':PopHandler
+	  'pop':PopHandler,
+	  'dc':DcHandler
 	  }
