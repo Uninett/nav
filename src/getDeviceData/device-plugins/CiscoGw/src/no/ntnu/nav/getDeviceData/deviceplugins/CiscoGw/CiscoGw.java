@@ -264,7 +264,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Ignore any admDown interfaces
 				String link = (String)admStatusMap.get(ifindex);
-				if ("1".equals(link)) continue;
+				if (!"1".equals(link)) continue;
 
 				String interf = (String)ifDescrMap.get(ifindex);
 				if (!masterinterfSet.contains(interf) &&
@@ -341,7 +341,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					String gwip = (String)prefixIt.next();
 					String mask = (String)netmaskMap.get(gwip);
 
-					boolean hsrp = hsrpIpMap.containsKey(ifindex);
+					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(ifindex);
 					Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
 
 				}
