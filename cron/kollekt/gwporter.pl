@@ -51,6 +51,10 @@ for my $nettadr ( keys %prefiks ) {
 #    print "\nboks".$boks;
     for my $maske (keys %{$prefiks{$nettadr}}) {
 #	print "\nifindex".$ifindex;
+	    foreach my $r (0..5) {
+		print " - ".$prefiks{$nettadr}{$maske}[$r];
+	    }
+	    print "\n";
 	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
     }
 }
@@ -310,7 +314,7 @@ sub fil_vlan{
 
     open VLAN, "</usr/local/nav/etc/vlan.txt";
     foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
-	if(/^(\d+)\:lan\,(\S+?)\d*\,(\S+?)\d*$/) {
+	if(/^(\d+)\:lan\,(\S+?)\,(\S+?)$/) {
 	    $lan{$2}{$3} = $1;
 	} elsif (/^(\d+)\:stam\,(\S+?)$/) {
 	    $stam{$2} = $1;
@@ -319,7 +323,8 @@ sub fil_vlan{
 	} else {
 #	    print "\ngikk feil: $_";
 	}
-#	print "\n$1:$2:$3";    
+	print "\n$1:$2:$3";    
+	print "\n$lan{$2}{$3}";
     }
     close VLAN;
 }
@@ -327,14 +332,16 @@ sub finn_vlan
 {
     my $vlan = "";
     my ($boks,undef) = split /\./,$boks{$_[1]}[2],2;
-    $_ = $_[0];
+    print "boksting: $boks\n";
+    print $_[0]."\n";
+    $_ = lc($_[0]);
     if(/^lan\d*\,(\S+?)\,(\S+?)(?:\,|$)/i) {
-	$vlan = $lan{$1}{$2};
+	print $vlan = $lan{$1}{$2};
     } elsif(/^stam\,(\S+?)$/i) {
-	$vlan = $stam{$1};
+	print $vlan = $stam{$1};
     }elsif(/^link\,(\S+?)(?:\,|$)/i) {
 	if (defined($boks)){
-	    $vlan = $link{$1}{$boks} || $link{$boks}{$1};
+	    print $vlan = $link{$1}{$boks} || $link{$boks}{$1};
 #	    print "\n:$vlan:$1:$boks";
 	}
     }
@@ -374,7 +381,7 @@ sub oppdater_prefiks{
     foreach my $ip (keys %iper) {
 	my $prefiksid = &finn_prefiksid($ip);
 #	print "$iper{$ip} eq $prefiksid\n";
-	unless ($iper{$ip} eq $prefiksid ){#|| $iper{$ip} == 0) {
+	unless ($iper{$ip} eq $prefiksid || $iper{$ip} == 0) {
 #	    print "$tabell - $felt_endres - $iper{$ip} - $prefiksid - $felt_fast - $ip\n";
 	     &db_oppdater($db,$tabell,$felt_endres,$iper{$ip},$prefiksid,$felt_fast,$ip);
 	 }
