@@ -676,7 +676,7 @@ public class QueryBoks extends Thread
 					}
 
 					// Hent macadresser på dette vlan
-					List macVlan = sSnmp.getAll(getOid("macEntry"));
+					List macVlan = sSnmp.getAll(getOid("macPortEntry"));
 
 					if (mpBlocked.isEmpty() && (macVlan == null || macVlan.isEmpty())) continue;
 						

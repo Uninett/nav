@@ -358,7 +358,7 @@ class getBoksMacs
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='KANT' or kat='SW') ORDER BY boksid");
 		} else
 		if (qNettel.equals("_all")) {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','KANT','GW','GSW') AND up='y' AND ro IS NOT NULL");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','KANT','GW','GSW') AND up='y' AND ro IS NOT NULL");
 		} else
 		if (qNettel.equals("_gw")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='GW'");
@@ -385,6 +385,7 @@ class getBoksMacs
 			bd.sysName = rs.getString("sysname");
 			bd.kat = rs.getString("catid");
 			bd.vendor = rs.getString("vendorid");
+			bd.cdp = rs.getBoolean("cdp");
 			bd.csAtVlan = rs.getBoolean("cs_at_vlan");
 			bdStack.push(bd);
 		}
