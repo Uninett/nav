@@ -145,20 +145,24 @@ sub switchports {
     my $id = $hentsvitsjer->fetchrow;
 
     # Diverse omformateringer på filnavnene... :(
-    my $tempmp = $mp;
-    $tempmp = uc $mp;
-    $tempmp =~ s/FA/FE/;
-    $tempmp =~ s/GI/GE/;
-    $tempmp =~ s/_/\./;
+    my ($modul,$port) = split /_/,$mp;
 
-    my $sporring = "SELECT speed FROM swport WHERE swportid=$id AND mp=$tempmp";
+    my $sporring = "SELECT speed FROM swport WHERE boksid=$id AND modul='$modul' AND port=$port";
     print "$sporring\n";
     my $hentporter = &db_select($sporring,$dbh);
-    my ($portname, $speed) = $hentporter->fetchrow;
+    my ($speed) = $hentporter->fetchrow;
 
+    my $path;
+    if ($speed == 1000) {
+	$path = "/home/cricket/cricket-data/giga-switch-ports";
+    } else {
+	$path = "/home/cricket/cricket-data/switch-ports";
+    }
+
+    $mp = lc $mp;
     my $verdi;
-    if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
-	my $RRD = "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd";
+    if (-e "$path/$sysname/$mp.rrd") {
+	my $RRD = "$path/$sysname/$mp.rrd";
 
 	my($graphret) = RRDs::graph "/dev/null",
 	"--start","$fra",
@@ -181,14 +185,14 @@ sub switchports {
 	    
 	    # Skriver ut interessant info
 	    if ($belastning > $limit) {
-		#print "Belastning holder seg\n";
+		print "Belastning holder seg\n";
 	    } else {
-		#print "Belastning er gått ned. Sender off-trap\n";
+		print "Belastning er gått ned. Sender off-trap\n";
 		$belastning = int($belastning);
 
 		# Sender trap
 		my $temp1 = "$sysname/$mp";
-		&sendtrap($temp1, $id, "$belastning%");
+		#&sendtrap($temp1, $id, "$belastning%");
 
 		# Sender mail.
 		my $body = "port: $sysname/$mp\n";
@@ -202,7 +206,7 @@ sub switchports {
 	    }
 	}
     } else {
-	#print "Finner ikke $sysname: $mp.rrd\n\n";
+	print "Finner ikke $sysname: $mp.rrd\n\n";
     }
     return $returverdi;
 

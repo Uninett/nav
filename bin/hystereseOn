@@ -26,7 +26,7 @@ use SNMP_util;
 
 # "Globale" variable
 # Hvor stor belastning den skal kicke på (i prosent).
-my $limit = 2;
+my $limit = 87;
 
 # Tidsrom (i sekunder bakover i tid)
 my $fra = -900;
@@ -46,9 +46,9 @@ my $dbh = &db_connect("manage", "manage", "eganam");
 
 # Kjører subrutinene
 &switches;
-#&routers;
+&routers;
 &switchports;
-#&routerinterfaces;
+&routerinterfaces;
 
 sub switches {
 
@@ -133,7 +133,7 @@ sub routers {
 		}
 	    }
 	} else {
-	    #print "Kan ikke finne $sysname.rrd\n";
+	    print "Kan ikke finne $sysname.rrd\n";
 	}
     }
 
@@ -145,7 +145,7 @@ sub switchports {
 
     while (($id, $sysname) = each %svitsjliste) {
 	my $sporring = "SELECT modul,port,portnavn,speed FROM swport WHERE boksid=$id AND portnavn!=''";
-	print "$sporring\n";
+	#print "$sporring\n";
 	my $hentporter = &db_select($sporring,$dbh);
 
 	while (my ($modul,$port,$portnavn,$speed) = $hentporter->fetchrow) {
@@ -156,10 +156,17 @@ sub switchports {
 	    $modul =~ s/ge/gi/;
 	    my $mp = $modul."_".$port;
 	    my $org_mp = $org_modul."_".$port;
-	    
+
+	    my $path;
+	    if ($speed == 1000) {
+		$path = "/home/cricket/cricket-data/giga-switch-ports";
+	    } else {
+		$path = "/home/cricket/cricket-data/switch-ports";
+	    }
+
 	    my $verdi;
-	    if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
-		my $RRD = "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd";
+	    if (-e "$path/$sysname/$mp.rrd") {
+		my $RRD = "$path/$sysname/$mp.rrd";
 
 		my($graphret) = RRDs::graph "/dev/null",
 		"--start","$fra",
@@ -227,7 +234,7 @@ sub routerinterfaces{
     my ($id,$sysname);
 
     while (($id,$sysname) = each %ruterliste) {
-	my $hentporter = &db_select("SELECT g.interf,g.speed FROM gwport g WHERE g.boksid=$id",$dbh);
+	my $hentporter = &db_select("SELECT g.interf,g.speed FROM gwport g WHERE g.boksid=$id AND g.masterindex=''",$dbh);
 
 	while (my ($interf, $speed,$type,$org,$kat,$samband) = $hentporter->fetchrow) {
 	    unless ($interf =~ /Loopback0/) {
@@ -238,10 +245,17 @@ sub routerinterfaces{
 		
 		my @portarray = ($type, $org, $kat, $samband);
 
+		my $path;
+		if ($speed == 1000) {
+		    $path = "/home/cricket/cricket-data/giga-router-interfaces";
+		} else {
+		    $path = "/home/cricket/cricket-data/router-interfaces";
+		}
+
 		# Henter lastdata
 		my $verdi;
-		if (-e "/home/cricket/cricket-data/router-interfaces/$sysname/$interf.rrd") {
-		    my $RRD = "/home/cricket/cricket-data/router-interfaces/$sysname/$interf.rrd";
+		if (-e "$path/$sysname/$interf.rrd") {
+		    my $RRD = "$path/$sysname/$interf.rrd";
 
 		    my($graphret) = RRDs::graph "/dev/null",
 		    "--start","$fra",
@@ -293,7 +307,7 @@ sub routerinterfaces{
 			}
 		    }
 		} else {
-		    #print "Finner ikke $sysname: $interf.rrd\n\n";
+		    print "Finner ikke $sysname: $interf.rrd\n\n";
 		}
 	    }
 	}
