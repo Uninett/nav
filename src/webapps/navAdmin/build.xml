@@ -35,6 +35,7 @@
         <include name="html/**"/>
       </webinf>
       <zipfileset dir="gfx" prefix="gfx"/>
+      <zipfileset dir="tooltips" prefix="tooltips"/>
     </war>
   </target>
 
@@ -58,7 +59,7 @@
   <target name="dist_debug" depends="dist,dist_navutils"
         description="Upload dist to server">
     <exec dir="${dist}" executable="scp" os="Windows 2000">
-      <arg line="navAdmin.war bb.itea.ntnu.no:devel/navme/webapps"/>
+      <arg line="navAdmin.war bigbud.itea.ntnu.no:devel/navme/webapps"/>
     </exec>
     <exec executable="ssh" os="Windows 2000">
       <arg line="bigbud.itea.ntnu.no mkdir -p devel/navme/webapps/navAdmin ; cd devel/navme/webapps/navAdmin ; jar xf ../navAdmin.war"/>
