@@ -909,10 +909,13 @@ class NavUtils
 		ResultSet rs = Database.query("SELECT netboxid,sysname FROM netbox");
 		while (rs.next()) boksName.put(rs.getString("netboxid"), rs.getString("sysname"));
 
-		// Brukes bare for debug output
 		Map vlanidVlan = new HashMap();
-		rs = Database.query("SELECT vlanid,vlan FROM vlan");
-		while (rs.next()) vlanidVlan.put(rs.getString("vlanid"), rs.getString("vlan"));
+		Map vlanidNettype = new HashMap();
+		rs = Database.query("SELECT vlanid,vlan,nettype FROM vlan");
+		while (rs.next()) {
+			if (rs.getString("vlan") != null) vlanidVlan.put(rs.getString("vlanid"), rs.getString("vlan"));
+			vlanidNettype.put(rs.getString("vlanid"), rs.getString("nettype"));
+		}
 
 		// Trenger å vite hva som er GW, alle linker til slike er nemlig 'o' og de skal ikke traverseres
 		HashSet boksGwSet = new HashSet();
@@ -921,13 +924,13 @@ class NavUtils
 
 		// Oversikt over hvilke vlan som kjører på en swport mot gw
 		Map swportGwVlanMap = new HashMap();
-		rs = Database.query("SELECT DISTINCT to_swportid,vlan,gwportid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module WHERE to_swportid IS NOT NULL AND vlan IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT to_swportid,vlan,gwportid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module USING(moduleid) WHERE to_swportid IS NOT NULL AND vlan IS NOT NULL");
 		while (rs.next()) swportGwVlanMap.put(rs.getString("to_swportid")+":"+rs.getString("vlan"), rs.getString("gwportid"));
 
 		// Mapping from gwportid to the running vlanid and prefixid (needed for updating)
 		Map gwportVlanidMap = new HashMap();
 		rs = Database.query("SELECT DISTINCT gwportid,vlanid,netboxid FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module USING(moduleid) WHERE to_swportid IS NOT NULL");
-		while (rs.next()) gwportVlanidMap.put(rs.getString("gwportid"), new String[] { rs.getString("vlanid"), rs.getString("moduleid") } );
+		while (rs.next()) gwportVlanidMap.put(rs.getString("gwportid"), new String[] { rs.getString("vlanid"), rs.getString("netboxid") } );
 
 		// Oversikt over hvilke linker:vlan som er blokkert av spanning tree
 		HashSet spanTreeBlocked = new HashSet();
@@ -1003,7 +1006,7 @@ class NavUtils
 		// Så henter vi ut alle vlan og hvilken switch vlanet "starter på"
 		outl("<pre>");
 		//rs = Database.query("SELECT module.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN gwport ON (rootgwid=gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT DISTINCT module.netboxid,vlanid,vlan.vlan,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
+		rs = Database.query("SELECT DISTINCT gwportid,module.netboxid,vlanid,vlan.vlan,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
 
 		ArrayList trunkVlan = new ArrayList();
 		ArrayList vlanRename = new ArrayList();
@@ -1015,6 +1018,7 @@ class NavUtils
 			int vlan = rs.getInt("vlan");
 			int vlanid = rs.getInt("vlanid");
  			String boksid = rs.getString("netboxid");
+			String nettype = (String)vlanidNettype.get(""+vlanid);
 
 			if (!doneVlan.add(new Integer(vlanid))) {
 				// Duplicate vlanid, check if we already found this gw
@@ -1023,10 +1027,14 @@ class NavUtils
 				String[] ins = {
 					"vlanid", "",
 					"vlan", rs.getString("vlan"),
-					"nettype", rs.getString("nettype")
+					"nettype", nettype
 				};
+				int oldVlanid = vlanid;
 				vlanid = Integer.parseInt(Database.insert("vlan", ins, null));
+				System.err.println("Splitting vlan: " + rs.getString("vlan") + " ("+oldVlanid+"), new vlanid: " + vlanid);
+				Database.update("UPDATE prefix SET vlanid="+vlanid+" WHERE prefixid IN (SELECT prefixid FROM gwportprefix WHERE gwportid="+rs.getString("gwportid")+")");
 			}
+			visitedNodeSet.clear();
 
 			//String netaddr = rs.getString("netaddr");
 			String netaddr = "NA";
@@ -1188,7 +1196,7 @@ class NavUtils
 			String vlanid = s[1];
 			String vlan = (String)vlanidVlan.get(vlanid);
 			String direction = s[2];
-			String key = swportid+":"+vlan;
+			String key = swportid+":"+vlanid;
 
 			if (swportvlanDupe.containsKey(key)) {
 				// Elementet eksisterer i databasen fra før, så vi skal ikke sette det inn
@@ -1254,6 +1262,10 @@ class NavUtils
 				activeVlanOnTrunk = new HashSet();
 				activeOnTrunk.put(swportid, activeVlanOnTrunk);
 			}
+			if (vlan == null) {
+				System.err.println("WARNING: vlan is null for vlanid: " + vlanid);
+				vlan = "-1";
+			}
 			activeVlanOnTrunk.add(vlan);
 		}
 
@@ -1290,8 +1302,10 @@ class NavUtils
 			renamecnt++;
 		}
 
-		if (newcnt > 0 || updcnt > 0 || remcnt > 0 || renamecnt > 0) if (DB_COMMIT) Database.commit(); else Database.rollback();
-		outl("New count: <b>"+newcnt+"</b>, Update count: <b>"+updcnt+"</b> Dup count: <b>"+dupcnt+"</b>, Rem count: <b>"+remcnt+"</b> Rename vlan count: <b>"+renamecnt+"</b><br>");
+		// Then we delete all vlans without either prefices or swports
+		int unusedCnt = Database.update("DELETE FROM vlan WHERE vlanid NOT IN ((SELECT vlanid FROM prefix) UNION (SELECT vlanid FROM swportvlan))");
+		if (newcnt > 0 || updcnt > 0 || remcnt > 0 || renamecnt > 0 || unusedCnt > 0) if (DB_COMMIT) Database.commit(); else Database.rollback();
+		outl("New count: <b>"+newcnt+"</b>, Update count: <b>"+updcnt+"</b> Dup count: <b>"+dupcnt+"</b>, Rem count: <b>"+remcnt+"</b> Unused count: <b>"+unusedCnt+"</b>, Rename vlan count: <b>"+renamecnt+"</b><br>");
 
 		//if (!DB_COMMIT) Database.rollback();
 
