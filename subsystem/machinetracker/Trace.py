@@ -75,10 +75,13 @@ class PortForm:
 
     def __init__(self,netbox="",module="",port="",days="7",justme=""):
         if not module or module == "*":
-            module = "%"
+            module = "All"
             
         if not port or port == "*":
-            port = "%"
+            port = "All"
+
+        
+
 
 	if not days:
 	    days = "7"
@@ -412,12 +415,12 @@ class PortTrace:
         sql = sql+"netbox.sysName = '"+form.netbox+"' "
 
 
-        if form.module == "%":
+        if form.module.lower() == "all":
             sql = sql+"AND cam.module = module.module "
         else:
             sql = sql+"AND cam.module='"+form.module+"' AND module.module='"+form.module+"' "
             
-        if form.port == "%":
+        if form.port.lower() == "all":
             sql = sql+"AND cam.port = swport.port "
         else:
             sql = sql+"AND cam.port='"+form.port+"' AND swport.port='"+form.port+"' "
