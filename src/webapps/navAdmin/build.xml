@@ -3,10 +3,16 @@
         build file for navAdmin
     </description>
   <!-- set global properties for this build -->
+  <property name="jar" value="NavUtils.jar"/>
+  <property name="war" value="navAdmin.war"/>
   <property name="src" location="src"/>
   <property name="lib" location="lib"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+	<property name="prefix" location="../../../"/>
+  <property name="jarinstdir"  location="${prefix}/subsystem/navAdmin"/>
+  <property name="warinstdir"  location="${prefix}/webapps"/>
+	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -19,7 +25,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" debug="yes" classpath="${lib}/jsdk22.jar"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}" classpath="${lib}/jsdk22.jar"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -42,18 +48,19 @@
   <target name="dist_navutils" depends="compile"
         description="Make NavUtils.jar">
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/NavUtils.jar" basedir="${build}" manifest="Main-Class"/>
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Main-Class"/>
   </target>
 
   <target name="install" depends="dist,dist_navutils">
-    <mkdir dir="../../../webapps"/>
-    <copy file="${dist}/navAdmin.war" todir="../../../webapps"/>
-    <mkdir dir="../../../subsystem/navAdmin"/>
-    <copy file="${dist}/NavUtils.jar" todir="../../../subsystem/navAdmin"/>
+    <mkdir dir="${jarinstdir}"/>
+    <copy file="${dist}/${jar}" todir="${jarinstdir}"/>
+
+    <mkdir dir="${warinstdir}"/>
+    <copy file="${dist}/${war}" todir="${warinstdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="../../../webapps/navAdmin.war"/>
-    <delete file="../../../subsystem/navAdmin/NavUtils.jar"/>
+    <delete file="${jarinstdir}/${jar}"/>
+    <delete file="${warinstdir}/${war}"/>
   </target>
 
   <target name="dist_debug" depends="dist,dist_navutils"
