@@ -75,6 +75,33 @@ Some tips if you wish to configure Apache from scratch:
   your web server redirect all http requests to https urls.
 
 
+Configuring Tomcat
+==================
+NAV comes with two Java servlets, Network Explorer and vlanPlot (the
+interactive traffic map).  The Tomcat servlet engine is the
+recommended container for these servlets.  A Python module will
+forward Apache requests to these to servlets directly to a Tomcat
+server running on the local host.
+
+You need to install and configure Tomcat on your NAV host, and make
+sure the two servlets (.war files) are in its webapps directory.
+The Python forwarding module will expect to find the Tomcat server
+listening on port 8080 (which is the Tomcat configuration default).
+
+Also, these servlets may use large amounts of memory while processing
+some requests (especially if your port count is high, such as it is at
+NTNU); therefore it is recommended to increase the amount of memory
+available to the Java Virtual Machine running the Tomcat server.  The
+Sun JVM usually reserves a maxium of 64MB for a Java program, but this
+can be changed using the -Xmx<size> option of java.  This can be
+passed through to the JVM when starting Tomcat, e.g.:
+
+  JAVA_OPTS="-Xmx128M" ./startup.sh
+
+This should start Tomcat with a maximum heap memory size of 128MB.
+
+
+
 Integrating Cricket with NAV
 ============================
 This section assumes your cricket installation has been placed in
