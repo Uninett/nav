@@ -29,11 +29,11 @@
 
 #block content
 
-<table><tr><td style="font-size: 13px;">
+<div id="machinetracker" style="font-size: 13px;">
 
-<br>
+
 <p>Machine tracker: <a href="ip">IP Search</a> | <a href="mac">MAC Search</a> | <a href="swp">Switch Search</a></p>
-
+<div id="forms">
 #if $form.dns=="on"
 #set $checked="checked"
 #else
@@ -51,38 +51,38 @@
 #end if 
 
 #if $form.search=="mac"
-<form action="" method="get">
+<form id="macform" action="" method="get">
 	<label>MAC </label><input type=text name=mac value=$form.mac>
-	<input type=checkbox name=aip $activechecked><label>active</label>
-	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
+##	<input type=checkbox name=aip $activechecked><label>active</label>
+##	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
 	<input type=checkbox name=dns $checked><label>dns</label>
 #if $form.days
 	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
 #else
 	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
 #end if
-	<input type=submit name=send value="Send">
+	<input type=submit name=send value="Search">
 </form>
 
 #elif $form.search=="swp"
-<form action="" method="get">
+<form id="swpform" action="" method="get">
 	<label>Switch </label><input type=text name=switch value=$form.switch>
 	<label>Module </label><input type=text name=module size=3 value=$form.module>
 	<label>Port </label><input type=text name=port size=3 value=$form.port>
-	<input type=checkbox name=aip $activechecked><label>active</label>
-	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
+##	<input type=checkbox name=aip $activechecked><label>active</label>
+##	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
 	<input type=checkbox name=dns $checked><label>dns</label>
 #if $form.days
 	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
 #else
 	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
 #end if
-	<input type=submit name=send value="Send">
+	<input type=submit name=send value="Search">
 </form>
 
 #else
 
-<form action="" method="get">
+<form id="ipform" action="" method="get">
 	<label>IP from </label><input type=text name=from_ip value=$form.ip_from>
 	<label>to </label><input type=text name=to_ip value=$form.ip_to>
 	<input type=checkbox name=aip $activechecked><label>active</label>
@@ -93,123 +93,203 @@
 #else
 	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
 #end if
-	<input type=submit name=send value="Send">
+	<input type=submit name=send value="Search">
 </form>
 
 #end if
+</div> <!-- forms -->
 
-#if $table
+#def tableTitle($title, $hits, $columnCount)
+  #set $columnCount += 1
 <p>
-<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<table cellspacing="0" cellpadding="0" border="0">
 <!------------------------- TITLE  ---->
-#set $rows = len($table)
     <tr class="title">
-#if $form.dns=="on":
-      <td class="title" align="center" colspan="9" style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
-#else
-      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
-#end if
+      <th class="title" align="center" colspan="$columnCount"
+          style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="current">
-              <div class="title"><font color="black">Your Search</font></div>
-              $rows hits
+              <p class="title"><font color="black">$title</font></p>
+              $hits hits
             </td>
           </tr>
         </table>
-      </td>
+      </th>
       <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
     </tr>
-<!------------------------- HEADER ---->
-#set $rows = len($table) + 2
-    <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
-#if $form.dns=="on":
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          DNS &nbsp;
-      </td>
-#end if
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          IP &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          MAC &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Switch &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Module &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Port &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Start time &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          End time &nbsp;
-      </td>
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
-    </tr>
+#end def
 
-#set $rowtype = "evenrow"
-#for row in $table
-#if $row.ipaddr
-   #if $rowtype == "evenrow"
-      #set $rowtype = "oddrow"
-   #else
-      #set $rowtype = "evenrow"
-   #end if
-#end if
+#def tableHeader($rowCount, $columns)
+  #set $rowCount = $rowCount + 2
+    <tr class="header">
+      <th bgcolor="white"
+          style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px"
+          rowspan="$rowCount">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </th>
+  #for $column in $columns
+      <th class="header" valign="top" bgcolor="white" nowrap >
+          $column &nbsp;
+      </th>
+  #end for
+
+      <th bgcolor="white"
+          style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;"
+          rowspan="$rowCount">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </th>
+    </tr>
+#end def
+
+#def arpTable($table)
+  #if $form.dns == "on":
+    #set $columns = ('DNS', 'IP', 'MAC', 'Start time', 'End time')
+  #else 
+    #set $columns = ('IP', 'MAC', 'Start time', 'End time')
+  #end if
+  #set $columnCount = len($columns)
+
+  $tableTitle("IP Search results", len($table), $columnCount)
+  $tableHeader(len($table), $columns)
+
+  #set $rowtype = "evenrow"
+  #for $row in $table
+    #if $row.ipaddr
+      #if $rowtype == "evenrow"
+        #set $rowtype = "oddrow"
+      #else
+        #set $rowtype = "evenrow"
+      #end if
+    #end if
+
         <tr class="$rowtype">
-##for cell in $row
-#if $form.dns=="on":
+    #if $form.dns=="on":
 		<td nowrap>$row.dnsname &nbsp;</td>
-#end if
-##                <td>$cell </td>
-		<td nowrap><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns">$row.ipaddr</a> &nbsp;</td>
-		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns">$row.mac</a> &nbsp;</td>
-		<td nowrap><a href="/browse/$row.switch">$row.switch</a> &nbsp;</td>
-		<td nowrap align="center">$row.module &nbsp;</td>
-		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a> &nbsp;</td>
+    #end if
+		<td nowrap><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns" title="Search again for this IP address">$row.ipaddr</a> &nbsp;</td>
+		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$row.mac</a> &nbsp;</td>
+##		<td nowrap><a href="/browse/$row.switch">$row.switch</a> &nbsp;</td>
+##		<td nowrap align="center">$row.module &nbsp;</td>
+##		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a> &nbsp;</td>
 		<td nowrap >$row.start_time &nbsp;</td>
 		<td nowrap >$row.end_time &nbsp;</td>
-##end for
         </tr>
-#end for
-</table>
-#else
-#set $noresults = 0
-#if $form.search == "mac"
-#if $form.mac
-#set $noresults = 1
+  #end for
+  </table>
+#end def
+
+#def camTable($table)
+  #set $columns = ('MAC', 'Switch', 'Module', 'Port', 'Start time', 'End time')
+  #set $columnCount = len($columns)
+
+  $tableTitle("MAC Search results", len($table), $columnCount)
+  $tableHeader(len($table), $columns)
+
+  #set $rowtype = "evenrow"
+  #for $row in $table
+    #if $row.mac
+      #if $rowtype == "evenrow"
+        #set $rowtype = "oddrow"
+      #else
+        #set $rowtype = "evenrow"
+      #end if
+    #end if
+
+        <tr class="$rowtype">
+		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a> &nbsp;</td>
+		<td nowrap><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a> &nbsp;</td>
+		<td nowrap align="center">$row.module &nbsp;</td>
+		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a> &nbsp;</td>
+		<td nowrap >$row.start_time &nbsp;</td>
+		<td nowrap >$row.end_time &nbsp;</td>
+        </tr>
+  #end for
+  </table>
+#end def
+
+<div id="results">
+#if $tableCam
+    $camTable($tableCam.table)
 #end if
-#elif $form.search == "swp"
-#if $form.switch
-#set $noresults = 1
+#if $tableArp
+    $arpTable($tableArp.table)
 #end if
-#else
-#if $form.ip_from
-#set $noresults = 1
-#end if
+#if $tableSwp
+    $camTable($tableSwp.table)
 #end if
 
-#if $noresults
+#if not $tableCam and not $tableArp and not $tableSwp
+  #set $noresults = 0
+  #if $form.search == "mac"
+    #if $form.mac
+      #set $noresults = 1
+    #end if
+  #elif $form.search == "swp"
+    #if $form.switch
+      #set $noresults = 1
+    #end if
+  #else
+    #if $form.ip_from
+      #set $noresults = 1
+    #end if
+  #end if
+
+  #if $noresults
 <p>Your search did not return any results</p>
-#else
-<p>The NAV system collects arp and cam information from all registered net devices. Arp data from all routers are inserted into the NAV database every 30. minutes, and mac address tables from all layer2-equipment are collected and inserted every X. minutes.</p><p> Machine tracker gives you the opportunity to search these data, to trace the whereabouts of a mac address or an IP address. The reverse search is also possible; to find which mac/ip was registered on a specified switchport in the last days.</p>
-#end if
-#end if
+  #else
+<div class="infobox">
+<h5>Machine tracker search hints</h5>
+<ul>
+  <li>MAC search allows wildcard searching, e.g. you can search for
+      &quot;<tt>00aabbcc*</tt>&quot;</li>
 
-</td></tr></table></p>
+  <li>Switch search will search for switches having a sysname that
+      starts with whatever you enter as switch name.  E.g. searching
+      for &quot;<tt>blapp-sw</tt>&quot; will retrieve both
+      &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
+      &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;</li>
+
+  <li>Leaving the <i>module</i> or <i>port</i> fields empty in the
+      switch search will find any module or port that have matching
+      records for your selected switch.</li>
+
+</ul>
+</div>
+
+  #end if
+#end if
+</div> <!-- results -->
+
+
+</div> <!-- machinetracker -->
 
 #end block content
 
 #block additionalCSS
 $default_table_CSS
+th.header { 
+  text-align: left;
+  font-size: 13;
+  font-weight: normal;
+}
+p.title {
+  font-size: 15;
+  font-weight: bold;
+  text-align: center;
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+}
+.infobox {
+  background-color: #eeeeee;
+  padding: 0.5em;
+  border: 1px solid #cccccc;
+  -moz-border-radius: 12px;
+}
+.infobox h5 { 
+  display: inline;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border-bottom: 1px solid rgb(51, 102, 153); 
+}
 #end block additionalCSS
