@@ -52,6 +52,8 @@ def process(request):
     info = NetboxInfo(netbox)
     result = html.Division()
     result.append(info.showInfo())
+    result.append(urlbuilder.createLink(netbox, 
+                            subsystem='editdb', content="[Edit]"))
     services = info.showServices(sortBy)
     if services:
         result.append(services)
@@ -288,7 +290,7 @@ class NetboxInfo(manage.Netbox):
         result.append(html.Header("Statistics", level=3))
         for rrd in rrdfiles:
             info = "%s: %s" % (rrd.key, rrd.value)
-            if rrd.key == 'swport':
+            if rrd.key == 'swport' or rrd.key == 'gwport':
                 continue # skip swports for now
                 port = manage.Swport(rrd.value)
                 try:
@@ -320,7 +322,7 @@ class NetboxInfo(manage.Netbox):
         modules = self.getChildren(module.ModuleInfo)
         if not modules:
             return None
-        isNum = lambda x: re.match("^[0-9]+$",x)
+        isNum = lambda x: x and re.match("^[0-9]+$",str(x))
         # høhø
         modules.sort(lambda a,b:
             # sort by number - if possible
