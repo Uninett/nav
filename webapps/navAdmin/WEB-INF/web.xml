@@ -55,7 +55,7 @@
       <param-name>dbConfigFile</param-name>
       <param-value>local/etc/conf/db.conf</param-value>
       <description>
-        Location of the config file within the NAV root
+        Location of the database config file within the NAV root
       </description>
     </context-param>
 
