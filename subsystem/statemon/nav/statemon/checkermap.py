@@ -1,14 +1,17 @@
 """
-$Id: checkermap.py,v 1.1 2003/06/19 12:51:14 magnun Exp $                                                                                                                              
+$Id: checkermap.py,v 1.1 2003/06/19 12:51:14 magnun Exp $
 This file is part of the NAV project.
 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Copyright (c) 2002 by NTNU, ITEA nettgruppen
+
+
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 import os, re, debug
 from debug import debug
 checkers = {}
+dirty = []  # store failed imports here
 checkerdir = os.path.join(os.path.dirname(__file__), "checker")
 if checkerdir not in os.sys.path:
     os.sys.path.append(checkerdir)
@@ -18,6 +21,8 @@ def register(key, module):
         checkers[key] = module
 
 def get(checker):
+    if checker in dirty:
+        return
     if not checker in checkers.keys():
         parsedir()
     module = checkers.get(checker.lower(),'')
@@ -25,8 +30,9 @@ def get(checker):
         return
     try:
         exec( "import "+ module)
-    except:
-        debug("Failed to import %s" % module)
+    except Exception, e:
+        debug("Failed to import %s, %s" % (module, str(e)))
+        dirty.append(checker)
         return
     return eval(module+'.'+module)
 
