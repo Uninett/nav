@@ -606,22 +606,35 @@ public class SimpleSnmp
 	protected boolean checkSnmpContext() throws IOException {
 		if (context == null || !context.getHost().equals(host)) {
 			if (context != null) context.destroy();
+			//Exception e = new Exception("["+super.toString()+"] ["+Integer.toHexString(Thread.currentThread().hashCode())+"]");
+			//e.printStackTrace(System.err);
 			context = new SnmpContext(host, 161);
+			//System.err.println("+++Creating context: " + context);
 			context.setCommunity(cs_ro);
 			timeoutCnt = 0;
 			return true;
 		} else if (!context.getCommunity().equals(cs_ro)) {
-				context.setCommunity(cs_ro);
+			context.setCommunity(cs_ro);
 		}
 		return false;
 	}
 
-	public void finalize()
-	{
+	/**
+	 * Deallocate any resources used.
+	 */
+	public void destroy() {
+		//Exception e = new Exception("["+super.toString()+"] ["+Integer.toHexString(Thread.currentThread().hashCode())+"]: " + context);
+		//e.printStackTrace(System.err);
 		if (context != null) {
+			//System.err.println("---Destroying context: " + context);
 			context.destroy();
 			context = null;
 		}
+	}
+
+
+	public void finalize() {
+		destroy();
 	}
 
 	private static void out(String s) { System.out.print(s); }
