@@ -113,6 +113,8 @@ def createUrl(object=None, id=None, division=None,
             id = object._getID()[0]
         url += '%s/edit/%s' % (division, id)
     elif subsystem == 'report':
+        if object:
+            id = object._getID()[0]
         if division=="vlan":
             url += 'swportv?vlan=%s' % id
         elif division=='room':
