@@ -626,7 +626,32 @@ DELETE FROM snmpoid WHERE oidkey='vtpVlanState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('vtpVlanState','1.3.6.1.4.1.9.9.46.1.3.1.1.2','The state of this VLAN','cisco','0',NULL,'0','vtpVlanState','CISCO-VTP-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='memName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('memName','1.3.6.1.4.1.9.9.48.1.1.1.2','Mem name','cisco',true,NULL,'0','ciscoMemoryPoolName','CISCO-MEMORY-POOL-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='memUsed';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('memUsed','1.3.6.1.4.1.9.9.48.1.1.1.5','Mem used','cisco',true,NULL,'0','ciscoMemoryPoolUsed','CISCO-MEMORY-POOL-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='memFree';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('memFree','1.3.6.1.4.1.9.9.48.1.1.1.6','Mem free','cisco',true,NULL,'0','ciscoMemoryPoolFree','CISCO-MEMORY-POOL-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='flashName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('flashName','1.3.6.1.4.1.9.9.10.1.1.4.1.1.10','Flash name','cisco',true,NULL,'0',' ciscoFlashPartitionName','CISCO-FLASH-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='flashSize';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('flashSize','1.3.6.1.4.1.9.9.10.1.1.4.1.1.4','Flash size','cisco',true,NULL,'0','ciscoFlashPartitionSize','CISCO-FLASH-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='flashFree';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('flashFree','1.3.6.1.4.1.9.9.10.1.1.4.1.1.5','Flash free','cisco',true,NULL,'0','ciscoFlashPartitionFreeSpace','CISCO-FLASH-MIB');
+
+
+UPDATE snmpoid SET getnext=true;
 UPDATE snmpoid SET uptodate=true;
 UPDATE netbox SET uptodate=false;
 
