@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.9 2003/06/25 14:56:16 kristian Exp $
+* $Id: NavUtils.java,v 1.10 2003/06/25 15:09:25 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
@@ -170,13 +170,13 @@ class NavUtils
 		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) JOIN gwport ON rootgw=gwip ORDER BY boksid,modul,port
 
 		HashSet gwUplink = new HashSet();
-		rs = Database.query("SELECT DISTINCT ON (to_netboxid) netboxid,to_netboxid FROM gwport WHERE to_netboxid IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT ON (to_netboxid) to_netboxid FROM gwport WHERE to_netboxid IS NOT NULL");
 		while (rs.next()) {
 			gwUplink.add(rs.getString("to_netboxid"));
 		}
 
 		// Endret for å få med GSW
-		rs = Database.query("SELECT swp_netbox.netboxid,catid,module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,gwport.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
+		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
 
 		HashMap bokser = new HashMap();
 		ArrayList boksList = new ArrayList();
@@ -1022,7 +1022,7 @@ class NavUtils
 		//rs = Database.query("SELECT DISTINCT ON (vlan) gwport.boksid,vlan,sysname,gwport.boksbak,swportid,hexstring FROM (prefiks JOIN gwport ON (rootgwid=gwportid)) JOIN boks USING (boksid) LEFT JOIN swport ON (gwport.boksbak=swport.boksid AND swport.boksbak=gwport.boksid AND trunk='t') LEFT JOIN swportallowedvlan USING (swportid) WHERE gwport.boksbak IS NOT NULL AND vlan IS NOT NULL ORDER BY vlan");
 		//rs = Database.query("SELECT DISTINCT ON (vlan) gwport.boksid,vlan,sysname,gwport.boksbak,gwport.swportbak,trunk,hexstring FROM (prefiks JOIN gwport ON (rootgwid=gwportid)) JOIN boks USING (boksid) JOIN swport ON (gwport.swportbak=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE gwport.boksbak IS NOT NULL AND vlan IS NOT NULL ORDER BY vlan");
 		//rs = Database.query("SELECT DISTINCT ON (vlan) gwport.boksid,vlan,sysname,gwport.boksbak,gwport.swportbak,trunk,hexstring FROM (prefiks JOIN gwport ON (rootgwid=gwportid)) JOIN boks USING (boksid) LEFT JOIN swport ON (gwport.swportbak=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.boksbak IS NOT NULL OR kat='GSW') AND vlan IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT gwport.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM (prefix JOIN gwport ON (rootgwid=gwportid)) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
+		rs = Database.query("SELECT module.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN gwport ON (rootgwid=gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
 
 		// Newer
 		// SELECT DISTINCT ON (vlan) gwport.boksid,vlan,sysname,gwport.boksbak,swportbak,trunk,hexstring FROM (prefiks JOIN gwport ON (rootgwid=gwportid)) JOIN boks USING (boksid) JOIN swport ON (swportbak=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE gwport.boksbak IS NOT NULL AND vlan IS NOT NULL ORDER BY vlan
@@ -1127,7 +1127,7 @@ class NavUtils
 		// SELECT DISTINCT ON (vlan,boksid) boksid,modul,port,boksbak,vlan,trunk FROM swport NATURAL JOIN swportvlan WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan,boksid
 		if (DEBUG_OUT) outl("\n<b>VLANs with no router to start from:</b><br>");
 		//rs = Database.query("SELECT DISTINCT ON (vlan,boksid) vlan,sysname,boksbak FROM swport NATURAL JOIN swportvlan JOIN boks USING (boksid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT DISTINCT ON (vlan,module.netboxid) vlan,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefix JOIN gwport USING (prefixid)) JOIN netbox USING (netboxid) WHERE to_netboxid IS NOT NULL AND vlan IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlan");
+		rs = Database.query("SELECT DISTINCT ON (vlan,module.netboxid) vlan,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM prefix JOIN gwport USING (prefixid) WHERE to_netboxid IS NOT NULL AND vlan IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlan");
 		HashSet visitNode = null;
 		int prevVlan=-1;
 		while (rs.next()) {
