@@ -12,6 +12,7 @@ from nav import users
 import base64
 import re
 import sys
+import os
 
 def checkAuthorization(user, uri):
     """Check whether the given user object is authorized to access the
@@ -64,6 +65,10 @@ def authenticate(req):
     if not checkAuthorization(user, req.uri):
         redirectToLogin(req)
     else:
+        if user:
+            os.environ['REMOTE_USER'] = user.login
+        elif os.environ.has_key('REMOTE_USER'):
+            del os.environ['REMOTE_USER']
         return True
 
 # For fun, we give the authenticate function an alternative name.
