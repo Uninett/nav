@@ -1,23 +1,3 @@
-
---------------------------------------------------------
--- system
--- Hvilket delsystem av nav som er avsender av meldingen
---------------------------------------------------------
-
---DROP TABLE system;
---DROP SEQUENCE system_id_seq;
-
---CREATE TABLE system (
---  id SERIAL PRIMARY KEY,
---  name VARCHAR(20) UNIQUE NOT NULL,
---  description VARCHAR(50)
---);
-
---GRANT ALL ON system TO navlogadmin;
---GRANT ALL ON system_id_seq TO navlogadmin;
---GRANT SELECT ON system TO navlogweb;
---GRANT SELECT ON system_id_seq TO navlogweb;
-
 --------------------------------------------------------
 -- priority
 -- Prioritetsnivå og beskrivelser
@@ -28,12 +8,9 @@ DROP TABLE priority;
 CREATE TABLE priority (
   id INTEGER PRIMARY KEY,
   priority INTEGER NOT NULL,
-  keyword VARCHAR(20) UNIQUE NOT NULL,
-  description VARCHAR(50)
+  keyword VARCHAR UNIQUE NOT NULL,
+  description VARCHAR
 );
-
-GRANT ALL ON priority TO navlogadmin;
-GRANT SELECT ON priority TO navlogweb;
 
 --------------------------------------------------------
 -- type
@@ -45,19 +22,11 @@ DROP SEQUENCE type_id_seq;
 
 CREATE TABLE type (
   id SERIAL PRIMARY KEY,
---  systemid INTEGER NOT NULL REFERENCES system (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  facility VARCHAR(20) NOT NULL,
-  mnemonic VARCHAR(30) NOT NULL,
+  facility VARCHAR NOT NULL,
+  mnemonic VARCHAR NOT NULL,
   priorityid INTEGER REFERENCES priority (id) ON DELETE SET NULL ON UPDATE CASCADE,
-  defaultmessage VARCHAR(250),
---  UNIQUE(systemid,facility,mnemonic)
   UNIQUE(facility,mnemonic)
 );
-
-GRANT ALL ON type TO navlogadmin;
-GRANT ALL ON type_id_seq TO navlogadmin;
-GRANT SELECT ON type TO navlogweb;
-GRANT SELECT ON type_id_seq TO navlogweb;
 
 --------------------------------------------------------
 -- origin
@@ -73,15 +42,9 @@ DROP SEQUENCE origin_id_seq;
 
 CREATE TABLE origin (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(30) UNIQUE NOT NULL,
---  systemid INTEGER NOT NULL REFERENCES system(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR(5)
+  name VARCHAR UNIQUE NOT NULL,
+  category VARCHAR
 );
-
-GRANT ALL ON origin TO navlogadmin;
-GRANT ALL ON origin_id_seq TO navlogadmin;
-GRANT SELECT ON origin TO navlogweb;
-GRANT SELECT ON origin_id_seq TO navlogweb;
 
 --------------------------------------------------------
 -- message
@@ -98,13 +61,8 @@ CREATE TABLE message (
   originid INTEGER NOT NULL REFERENCES origin (id) ON UPDATE CASCADE ON DELETE SET NULL,
   priority INTEGER REFERENCES priority (id) ON UPDATE CASCADE ON DELETE SET NULL,
   typeid INTEGER NOT NULL REFERENCES type (id) ON UPDATE CASCADE ON DELETE SET NULL,
-  message VARCHAR(250)
+  message VARCHAR
 );
-
-GRANT ALL ON message TO navlogadmin;
-GRANT ALL ON message_id_seq TO navlogadmin;
-GRANT SELECT ON message TO navlogweb;
-GRANT SELECT ON message_id_seq TO navlogweb;
 
 --------------------------------------------------------
 -- errorerror
@@ -117,13 +75,8 @@ DROP SEQUENCE errorerror_id_seq;
 
 CREATE TABLE errorerror (
   id SERIAL PRIMARY KEY,
-  message VARCHAR(250)
+  message VARCHAR
 );
-
-GRANT ALL ON errorerror TO navlogadmin;
-GRANT ALL ON errorerror_id_seq TO navlogadmin;
-GRANT SELECT ON errorerror TO navlogweb;
-GRANT SELECT ON errorerror_id_seq TO navlogweb;
 
 --------------------------------------------------------
 -- Oppretter indeksering
@@ -139,12 +92,8 @@ CREATE INDEX message_time_btree ON message USING btree (time);
 DROP VIEW message_view;
 
 CREATE VIEW message_view AS
---SELECT originid,typeid,type.systemid,message.priority,category,time FROM origin
 SELECT originid,typeid,message.priority,category,time FROM origin
 JOIN message ON originid=origin.id JOIN type ON typeid=type.id;
-
-GRANT ALL ON message_view TO navlogadmin;
-GRANT SELECT ON message_view TO navlogweb;
 
 --------------------------------------------------------
 -- Setter inn alle prioritetene
@@ -158,3 +107,54 @@ insert into priority(id, priority, keyword, description) values (5, 4,'warnings'
 insert into priority(id, priority, keyword, description) values (6, 5,'notifications','Normal but significant condition');
 insert into priority(id, priority, keyword, description) values (7, 6,'informational','Informational messages only');
 insert into priority(id, priority, keyword, description) values (8, 7,'debugging','Debugging messages');
+
+
+------------------------------------------------------------------------------------------
+-- GRANTS AND GRUNTS
+------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION nav_grant(TEXT, BOOL) RETURNS INTEGER AS '
+  DECLARE
+    tables_rec   RECORD;
+    counter      INTEGER;
+    user_name    ALIAS FOR $1;
+    write_access ALIAS FOR $2;
+    use_priv     TEXT := ''SELECT'';
+  BEGIN
+    counter := 0;
+    IF write_access THEN
+      use_priv := ''ALL'';
+    END IF;
+
+    FOR tables_rec IN SELECT * FROM pg_tables WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.tablename)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_views WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.viewname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_statio_all_sequences WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.relname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    RETURN counter;
+  END;
+' LANGUAGE 'plpgsql';
+
+
+SELECT nav_grant('navread', false);
+SELECT nav_grant('navwrite', true);

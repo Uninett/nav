@@ -7,7 +7,7 @@ Files
 =====
 manage.sql       - Creates the manage database
 snmpoid.sql      - Initializes the SNMP OID registry of the manage database
-navlog.sql       - Creates the navlog database
+logger.sql       - Creates the navlog database
 navprofiles.sql  - Creates the navprofiles database
 
 
@@ -19,14 +19,15 @@ passwords):
 export PGUSER=postgres PGPASSWORD=*******
 createdb --encoding UTF-8 manage
 createdb --encoding UTF-8 navprofiles
-createdb --encoding UTF-8 navlog
+createdb --encoding UTF-8 logger
 createlang plpgsql manage
 createlang plpgsql navprofiles
+createlang plpgsql logger
 createuser navread
 createuser navwrite
 psql -f manage.sql manage
 psql -f navprofiles.sql navprofiles
-psql -f navlog.sql navlog 
+psql -f logger.sql logger 
 psql -f snmpoid.sql manage
 unset PGUSER PGPASSWORD
 
