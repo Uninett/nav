@@ -14,13 +14,13 @@ public class Module extends Device implements Comparable
 {
 	private int moduleid;
 
-	private String module;
-	private String submodule;
+	private int module;
+	private String descr;
 
 	/**
 	 * Constructor.
 	 */
-	protected Module(String module) {
+	protected Module(int module) {
 		super();
 		this.module = module;
 	}
@@ -28,7 +28,7 @@ public class Module extends Device implements Comparable
 	/**
 	 * Constructor.
 	 */
-	protected Module(String serial, String hwVer, String swVer, String module) {
+	protected Module(String serial, String hwVer, String swVer, int module) {
 		super(serial, hwVer, swVer);
 		this.module = module;
 	}
@@ -55,44 +55,40 @@ public class Module extends Device implements Comparable
 
 	void setModuleid(String s) { moduleid = Integer.parseInt(s); }
 
-	String getModule() { return module; }
-	String getModuleS() { return ((module.length()==1)?" ":"")+getModule(); }
+	int getModule() { return module; }
+	String getModuleS() { return ((module < 10)?" ":"")+getModule(); }
 
-	String getSubmodule() { return submodule; }
+	String getDescr() { return descr; }
 
 	/**
-	 * Set the submodule number of this module.
+	 * Set the description of this module.
 	 */
-	public void setSubmodule(String s) { submodule = s; }
+	public void setDescr(String s) { descr = s; }
 
 	/**
 	 * Return a key which identifies this module (currently the module number is returned).
 	 */
 	protected String getKey() {
-		return module;
+		return ""+module;
 	}
 
 	protected boolean hasEmptySerial() { return super.hasEmptySerial(); }
 
 	public boolean equalsModule(Module m) {
 		return (getDeviceid() == m.getDeviceid() &&
-						module.equals(m.module) &&
-						(submodule == null || submodule.equals(m.submodule)));
+						module == m.module &&
+						(descr == null || descr.equals(m.descr)));
 	}
 	
 	public boolean equals(Object o) {
 		return (o instanceof Module &&
-						module != null &&
-						module.equals(((Module)o).module));
+						module == (((Module)o).module));
 	}
 
 
 	public int compareTo(Object o) {
 		Module m = (Module)o;
-		try {
-			return new Integer(module).compareTo(new Integer(m.getModule()));
-		} catch (NumberFormatException e) {}
-		return module.compareTo(m.getModule());
+		return new Integer(module).compareTo(new Integer(m.getModule()));
 	}
-	public String toString() { return getModuleS(); }
+	public String toString() { return super.toString() + ", " + getModuleS() + " descr="+descr; }
 }

@@ -15,8 +15,11 @@ public class GwModule extends Module implements Comparable
 
 	private Map gwports = new HashMap();
 
-	GwModule(String serial, String hw_ver, String sw_ver, String module)
-	{
+	GwModule(int module) {
+		super(module);
+	}
+
+	GwModule(String serial, String hw_ver, String sw_ver, int module) {
 		super(serial, hw_ver, sw_ver, module);
 	}
 

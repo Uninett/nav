@@ -193,6 +193,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 		// Check for OID support
 		if (!nb.isSupportedAllOids(new String[] {
+			"cCardIndex",
+			"cCardDescr",
+			"cCardSerial",
+			"cCardHwVersion",
+			"cCardSwVersion",
+			"cCardSlotNumber",
 			"ipAdEntIfIndex",
 			"ipAdEntIfNetMask",
 			"ifSpeed",
@@ -205,7 +211,13 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			Log.w("PROCESS_CGW", "One or more required OIDs are not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			return;
 		}
-				
+		
+		// The card OIDs
+		Map cardDescr = sSnmp.getAllMap(nb.getOid("cCardDescr"), true);
+		Map cardSerial = sSnmp.getAllMap(nb.getOid("cCardSerial"), true);
+		Map cardHwVer = sSnmp.getAllMap(nb.getOid("cCardHwVersion"), true);
+		Map cardSwVer = sSnmp.getAllMap(nb.getOid("cCardSwVersion"), true);
+		MultiMap cardSlotNum = util.reverse(sSnmp.getAllMap(nb.getOid("cCardSlotNumber")));
 
 		// Fetch HSRP
 		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
@@ -231,9 +243,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					   elink,$tilruter,$tilorg[,$kommentar,$vlan] 
 					$netttype = 'loopback' utgår, ingen description her.
 			*/
-
-			GwModule gwm = gwc.gwModuleFactory(null, null, null, "1");
-
 
 			String nettype;
 			String netident = null;
@@ -286,6 +295,30 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				if (!masterinterfSet.contains(interf) &&
 						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0") ||
 						 !prefixMap.containsKey(ifindex))) continue;
+
+				// Determine and create the module
+				int module = 0;
+				String modulePattern = ".*(\\d+)/.*";
+				if (interf.matches(modulePattern)) {
+					Matcher m = Pattern.compile(modulePattern).matcher(interf);
+					m.matches();
+					module = Integer.parseInt(m.group(1));
+				}
+				GwModule gwm = gwc.gwModuleFactory(module);
+
+				// Fill in extra info
+				Set slotSet = cardSlotNum.get(""+module);
+				String slot = (String) (slotSet.size() > 0 ? slotSet.iterator().next() : null);
+				if (slot == null && cardSlotNum.numKeys() > 0) {
+					// Just pick one
+					slot = (String)cardSlotNum.values().iterator().next();
+				}
+				if (slot != null) {
+					gwm.setSerial((String)cardSerial.get(slot));
+					gwm.setHwVer((String)cardHwVer.get(slot));
+					gwm.setSwVer((String)cardSwVer.get(slot));
+					gwm.setDescr((String)cardDescr.get(slot));
+				}
 
 				// Parse the description (ifAlias)
 				try {

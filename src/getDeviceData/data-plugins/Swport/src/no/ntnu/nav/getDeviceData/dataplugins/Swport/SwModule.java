@@ -15,12 +15,12 @@ public class SwModule extends Module implements Comparable
 	private Map swports = new HashMap();
 	private SwportContainer sc;
 
-	SwModule(String module, SwportContainer sc) {
+	SwModule(int module, SwportContainer sc) {
 		super(module);
 		this.sc = sc;
 	}
 
-	SwModule(String serial, String hwVer, String swVer, String module, SwportContainer sc) {
+	SwModule(String serial, String hwVer, String swVer, int module, SwportContainer sc) {
 		super(serial, hwVer, swVer, module);
 		this.sc = sc;
 	}

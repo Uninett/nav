@@ -50,10 +50,42 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	/**
 	 * Return an GwModule object which is used to describe one router module.
 	 */
-	public GwModule gwModuleFactory(String serial, String hw_ver, String sw_ver, String module) {
-		GwModule m = new GwModule(serial, hw_ver, sw_ver, module);
-		gwModuleList.add(m);
+	public GwModule gwModuleFactory(int module) {
+		GwModule m = new GwModule(module);
+		int k;
+		if ( (k=gwModuleList.indexOf(m)) >= 0) {
+			m = (GwModule)gwModuleList.get(k);
+		} else {
+			addGwModule(m);
+		}
 		return m;
+	}
+
+	/**
+	 * Return an GwModule object which is used to describe one router
+	 * module. Note that serial, hw_ver and sw_ver are ignored if the
+	 * module already exists.
+	 */
+	public GwModule gwModuleFactory(String serial, String hw_ver, String sw_ver, int module) {
+		GwModule m = new GwModule(serial, hw_ver, sw_ver, module);
+		int k;
+		if ( (k=gwModuleList.indexOf(m)) >= 0) {
+			m = (GwModule)gwModuleList.get(k);
+		} else {
+			addGwModule(m);
+		}
+		return m;
+	}
+
+	/**
+	 * Add the router module to the internal router module list.
+	 *
+	 * @param m The router module to add
+	 */
+	protected void addGwModule(GwModule m) {
+		// Also add it to the parent
+		addModule(m);
+		gwModuleList.add(m);
 	}
 
 	// Doc in parent

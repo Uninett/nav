@@ -83,6 +83,6 @@ public class Device
 						serial.equals(((Device)o).serial));
 	}
 
-	public String toString() { return "Device deviceid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" sw_ver="+sw_ver; }
+	public String toString() { return "serial="+serial+" hw_ver="+hw_ver+" sw_ver="+sw_ver; }
 
 }
