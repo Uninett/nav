@@ -21,7 +21,7 @@ def register(key, module):
 def get(checker):
     if not checker in checkers.keys():
         parsedir()
-    module = checkers.get(checker,'')
+    module = checkers.get(checker.lower(),'')
     if not module:
         return
     exec( "import "+ module)
