@@ -308,7 +308,9 @@ public class _3Com implements DeviceHandler
 					nc.netboxDataFactory(nb).setSerial(serial);
 					nc.commit();
 				}
-				sc.swModuleFactory(Integer.parseInt(module)).setSerial(serial);
+				if (!(nb.getNumInStack() == 2 && l.size() == 1)) {
+					sc.swModuleFactory(Integer.parseInt(module)).setSerial(serial);
+				}
 				Log.d("PROCESS_3COM", "Module: " + module + " Serial: " + serial);
 			}
 		}
