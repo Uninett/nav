@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.22 2002/07/01 15:45:38 cricket Exp $
+# $Id: makeconfig,v 1.23 2002/07/03 12:01:06 cricket Exp $
 
 use strict;
 
@@ -57,34 +57,31 @@ print "Kopierer over default verdier\n";
 
 print "Skriver servere\n";
 &Servers;
-#rm -R /home/cricket/navme/cricket/cricket-config/servers/[abce-jl-z]*`;
-#`rm -R /home/cricket/navme/cricket/cricket-config/servers/[be-z]*`;
-
 print "OK!\n";
 
 print "Skriver routere\n";
-#&Routers;
+&Routers;
 print "OK!\n";
 
 
 print "Skriver ruter-interfaces\n";
-#&Routerinterfaces;
+&Routerinterfaces;
 print "OK!\n";
 
 print "Skriver switcher\n";
-#&Switches;
+&Switches;
 print "OK!\n";
 
 print "Skriver switcheporter\n";
-#&Switchports;
+&Switchports;
 print "OK!\n";
 
 print "Skriver gigarouterinterfaces\n";
-#&gigarouterinterfaces;
+&gigarouterinterfaces;
 print "OK!\n";
 
 print "Skriver gigaswitchports\n";
-#&gigaswitchports;
+&gigaswitchports;
 print "OK!\n";
 
 print "Kompilerer nytt config-tre\n";
@@ -115,14 +112,18 @@ sub Servers {
     my $getservers = &db_select($query,$dbh);
 
     while (my @temp = $getservers->fetchrow) {
-      my ($id, $sysname,$ip,$type,$romid,$community,$ostype) = @temp;
+      my ($id, $sysname,$ip,$type,$romid,$community,$snmpagent) = @temp;
             # Avoid severe errors in the database
       if ($sysname) {
           if ($community) {
 
                 my $win32 = 0;
-                if($ostype && $ostype =~ /^1\.3\.6\.1\.4\.1\.311\./) {
+                if($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.311\./) {
                   $win32 = 1;
+                }
+                my $linux = 0;
+                if ($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.8072\./) {
+                  $linux = 1;
                 }
                 my $server = $sysname;
                 my $sysname = $sysname . '.ntnu.no';
@@ -168,7 +169,11 @@ sub Servers {
                 print FIL "target \"memory\"\n";
                 if($win32) {
                   print FIL "\ttarget-type = memwin\n";
-                } else { 
+                }
+                elsif($linux) {
+                  print FIL "\ttarget-type = memlin\n";
+                }
+                else { 
                   print FIL "\ttarget-type = memnix\n";
                 }
                 print FIL "\n";
@@ -223,7 +228,7 @@ sub Servers {
                 close FIL;
 
                 # Then all the disks
-		            mkdir ("$path/servers/$sysname/disk",0775);
+                mkdir ("$path/servers/$sysname/disk",0775);
                 $fil = "$path/servers/$sysname/disk/disks";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT path,blocksize FROM boksdisk WHERE boksid=$id";
