@@ -17,7 +17,7 @@ from nav.db import manage
 _subsystems = {
     'devbrowser': '/browse', 
     'report': '/report',
-    'rrd': '/rrd/rrdBrowser',
+    'rrd': '/browse/rrd',
 }
 
 _divisionClasses = {
@@ -28,6 +28,8 @@ _divisionClasses = {
     'cat': manage.Cat,
     'type': manage.Type,
     'location': manage.Location,
+    'port': manage.Swport,
+    'module': manage.Module,
 }
 
 def _getObjectByDivision(division, id):
@@ -67,7 +69,8 @@ def createUrl(object=None, id=None, division=None,
             except:
                 raise "Unknown object type"
         if division:
-            if not (subsystem == 'devbrowser' and division=='netbox'):
+            if not (subsystem == 'devbrowser' and 
+                division in 'netbox port module'.split()):
                 url += division + '/'
             if id and subsystem=='devbrowser' and division=='service':
                url += id + '/'
@@ -78,9 +81,17 @@ def createUrl(object=None, id=None, division=None,
                     object.load()
                 except forgetSQL.NotFound, e:
                     raise "Unknown id %s" % e
-                if division=="netbox":    
-                    # We skip the redirect
+                if division=="netbox":
+                    # nice url
                     url += object.sysname
+                elif division=="port":
+                    module = object.module
+                    url += module.netbox.sysname
+                    url += '/module%s' % module.module   
+                    url += '/port%s' % object.ifindex
+                elif division=="module":
+                    url += object.netbox.sysname
+                    url += '/module%s' % object.module   
                 else:
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
@@ -118,6 +129,5 @@ def createLink(object=None, content=None, id=None, division=None,
     url = createUrl(id=id, division=division, subsystem=subsystem,
                     mode=mode, object=object, **kwargs)
     return html.Anchor(content, href=url)                
-           
             
         
