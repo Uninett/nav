@@ -37,7 +37,7 @@ DROP SEQUENCE swp_netbox_swp_netboxid_seq;
 DROP SEQUENCE module_moduleid_seq;
 DROP SEQUENCE mem_memid_seq;
 -------------
-DROP SEQUENCE vp_netbox_grp_info_vp_netbox_grp_infoid_seq;
+DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
 DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
 
 -- Slette alle indekser
