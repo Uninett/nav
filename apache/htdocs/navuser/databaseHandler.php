@@ -1816,7 +1816,34 @@ class DBHK {
   }      
   
   
-  
+function listEventtypes($sort) {
+
+    $typer = NULL;
+
+    $sorts = array ('brukernavn',
+                    'navn',
+                    'admin, navn',
+                    'sms, navn',
+                    'pa, navn',
+                    'aa, navn');
+
+    $querystring = "SELECT eventtypeid FROM eventtype ORDER BY
+    eventtypeid";
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+                $tot = pg_numrows($query); $row = 0;
+
+        while ( $row < $tot) {
+                $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+                $typer[$row][0] = $data["eventtypeid"];
+                $row++;
+      }
+    }  else {
+      $error = new Error(2);
+    }
+
+    return $typer;
+  }  
   
   
 }

@@ -14,7 +14,7 @@ Hvis en eller flere av match'ene ikke slår til vil en hendelse altså ikke vær
 
 <?php
 
-if (! $dbkcon = @pg_connect("user=andrs dbname=kunnskap") ) {
+if (! $dbkcon = @pg_connect("user=manage dbname=manage password=eganam") ) {
   $error = new Error(2);
   $error->message = "Kunne ikke koble til database.";
 }
@@ -31,18 +31,31 @@ if ( get_exist('fid') ) {
 	session_set('match_fid', get_get('fid') );
 }
 
+define("ORG",0);
+define("PLASS",1);
+define("OMRADE",2);
+define("UTSTYRSTYPE",3);
+define("GRUPPE",4);
+define("VIKTIG",5);
+define("IP",6);
+define("UTSTYRSNAVN",7);
+define("PORTNUMMER",8);
+define("TJENESTE",9);
+define("KILDE",10);
+define("HENDELSE",11);
 
-$felt[0] = 'Organisasjon';
-$felt[1] = 'Sted (plass)';
-$felt[2] = 'Sted (område)';
-$felt[3] = 'Utstyrtype';
-$felt[4] = 'Gruppe av utstyrstyper';
-$felt[5] = 'Grad av viktighet';
-$felt[6] = 'IP adresse';
-$felt[7] = 'DNS adresse';
-$felt[8] = 'Portnummer';
-$felt[9] = 'Tjeneste';
-
+//$felt[ORG] = 'Organisasjon';
+//$felt[PLASS] = 'Sted (plass)';
+//$felt[OMRADE] = 'Sted (område)';
+$felt[UTSTYRSTYPE] = 'Utstyrtype';
+//$felt[GRUPPE] = 'Gruppe av utstyrstyper';
+$felt[VIKTIG] = 'Grad av viktighet';
+$felt[IP] = 'IP adresse';
+$felt[UTSTYRSNAVN] = 'Utstyrsnavn';
+//$felt[PORTNUMMER] = 'Portnummer';
+//$felt[TJENESTE] = 'Tjeneste';
+$felt[KILDE] = 'Kilde';
+$felt[HENDELSE] = 'Hendelse';
 
 $type[0] = 'er lik';
 $type[1] = 'er større enn';
@@ -56,16 +69,18 @@ $type[8] = 'inneholder';
 $type[9] = 'regexp';
 $type[10] = 'wildcard (? og *)';
 
-$velgtype[0] = array();
-$velgtype[1] = array();
-$velgtype[2] = array();
-$velgtype[3] = array();
-$velgtype[4] = array();
-$velgtype[5] = array(2, 4);
-$velgtype[6] = array(0, 2, 4, 5, 6, 7, 9, 10);
-$velgtype[7] = array(0, 5, 6, 7, 9, 10);
-$velgtype[8] = array(0, 2, 4, 5);
-$velgtype[9] = array();
+$velgtype[ORG] = array();
+$velgtype[PLASS] = array();
+$velgtype[OMRADE] = array();
+$velgtype[UTSTYRSTYPE] = array(0,5);
+$velgtype[GRUPPE] = array();
+$velgtype[VIKTIG] = array(0,1,2, 4,5);
+$velgtype[IP] = array(0, 5);
+$velgtype[UTSTYRSNAVN] = array(0, 5);
+$velgtype[PORTNUMMER] = array(0, 2, 4, 5);
+$velgtype[TJENESTE] = array();
+$velgtype[KILDE] = array(0, 5);
+$velgtype[HENDELSE] = array(0, 5);
 
 if ($subaction == 'slett') {
 
@@ -171,11 +186,11 @@ print '<form name="form1" method="post" action="index.php?subaction=' . $sa . '"
     	<td width="70%">
     	<select name="matchfelt" id="select" onChange="this.form.submit()">
 <?php
-for ($t = 0; $t < sizeof($felt); $t++) {
+foreach ($felt as $t => $value) {
 	if (isset($matchfelt) && ($matchfelt != $t)) { continue; };
 	$sel = "";
 	if ($t == $matchfelt) { $sel = " selected"; }
-	print '<option value="' . $t . '"' . $sel . '>' . $felt[$t] . '</option>';
+	print '<option value="' . $t . '"' . $sel . '>' . $value . '</option>';
 }
 ?>   	            
         </select>
@@ -225,13 +240,13 @@ if ( isset($matchfelt) ) {
 
 
 	switch ($matchfelt) {
-		case 0: 
+		case ORG: 
 			print '<select name="verdi" id="select">';
 			print '<option value="uninett">Uninett</option>';
 			print '<option value="ntnu">NTNU</option>';			
 			print '</select>';
 			break;
-		case 1: 
+		case PLASS: 
 			$steder = $dbhk->listSted($sort);		
 			print '<select name="verdi" id="select">';
 			
@@ -240,7 +255,7 @@ if ( isset($matchfelt) ) {
 			}
 			print '</select>';
 			break;
-		case 2: 
+		case OMRADE: 
 			$steder = $dbhk->listOmraade($sort);	
 			print '<select name="verdi" id="select">';
 
@@ -249,7 +264,7 @@ if ( isset($matchfelt) ) {
 			}								
 			print '</select>';
 			break;
-		case 3: 
+		case UTSTYRSTYPE: 
 			$typer = $dbhk->listType($sort);	
 			print '<select name="verdi" id="select">';
 
@@ -258,7 +273,7 @@ if ( isset($matchfelt) ) {
 			}	
 			print '</select>';
 			break;
-		case 4: 
+		case GRUPPE: 
 			$typer = $dbhk->listTypegruppe($sort);	
 			print '<select name="verdi" id="select">';
 
@@ -268,13 +283,29 @@ if ( isset($matchfelt) ) {
 			print '</select>';
 			break;
 			break;
-		case 8: 
+		case PORTNUMMER: 
 			print '<select name="verdi" id="select">';
 			print '<option value="dns">DNS</option>';
 			print '<option value="www">WWW</option>';
 			print '<option value="dhcp">DHCP</option>';						
 			print '</select>';
 			break;
+
+		case KILDE:
+                       print '<select name="verdi" id="select">';
+                       print '<option value="pping">pping</option>';
+                       print '<option value="serviceping">serviceping</option>';
+                       print '</select>';
+                       break;
+               case HENDELSE:
+                         $typer = $dbhk->listEventtypes($sort);
+                       print '<select name="verdi" id="select">';
+
+                       for ($i = 0; $i < sizeof($typer); $i++) {
+                               print '<option value="'. $typer[$i][0] . '">'. $typer[$i][0]. '</option>' . "\n";
+                       }
+                       print '</select>';
+                       break;
 						
 		default:
 			print '<input name="verdi" id="select" size="40">';
