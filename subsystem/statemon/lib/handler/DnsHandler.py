@@ -1,17 +1,18 @@
 """
-$Id: DnsHandler.py,v 1.2 2003/05/26 17:47:14 magnun Exp $
+$Id: DnsHandler.py,v 1.3 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/DnsHandler.py,v $
 """
-from job import JobHandler, Event
+from job import JobHandler
+from event import Event
 import DNS
 class DnsHandler(JobHandler):
 	"""
 	Valid argument(s): request
 	"""
-	def __init__(self,service):
-		port = service['args'].get('port',42)
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self,"dns",service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self,"dns",service, **kwargs)
+		# Please note that this handler doesn't obey the port directive
+		self.setPort(self.getPort() or 42)
 
 	def execute(self):
 		ip, port = self.getAddress()

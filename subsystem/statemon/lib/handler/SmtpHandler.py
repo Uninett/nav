@@ -1,9 +1,10 @@
 """
-$Id: SmtpHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: SmtpHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/SmtpHandler.py,v $
 """
 
-from job import JobHandler, Event
+from job import JobHandler
+from event import Event
 import smtplib, Socket
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):
@@ -15,10 +16,9 @@ class SMTP(smtplib.SMTP):
 		return self.getreply()
 
 class SmtpHandler(JobHandler):
-	def __init__(self,service):
-		port = service['args'].get('port', 25)
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self, "smtp", service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "smtp", service, **kwargs)
+		self.setPort(self.getPort() or 25)
 	def execute(self):
 		ip,port = self.getAddress()
 		s = SMTP(self.getTimeout())

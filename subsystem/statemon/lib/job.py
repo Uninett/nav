@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.2 2003/06/01 12:17:25 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -7,43 +7,29 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
         Erik Gorset     <erikgors@stud.ntnu.no>
 """
 import time,socket,sys,types,config,debug,mailAlert, RunQueue
+import event
+import db
+import rrd
 from select import select
 from errno import errorcode
 from Socket import Socket
 
 TIMEOUT = 5 #default, hardcoded timeout :)
 DEBUG=0
-class Event:
-	UP = 'UP'
-	DOWN = 'DOWN'
-
-	def __init__(self,serviceid,netboxid,type,status,info,eventtype='serviceState', version=''):
-		self.serviceid = serviceid
-		self.netboxid = netboxid
-		self.type = type
-		self.status = status
-		self.info = info
-		self.eventtype = eventtype
-		self.version = version
-		self.sysname = ""
-		self.handler = ""
-		self.time = time.strftime('%H:%M:%S')
-
-	def setSysname(self, name):
-		self.sysname=name
-
 
 class JobHandler:
-	def __init__(self,type,service,status=Event.UP):
-		import db
+	def __init__(self,type,service,status=event.Event.UP):
 		self._conf=config.serviceconf()
 		self.setType(type)
 		self.setServiceid(service['id'])
 		self.setBoksid(service['netboxid'])
-		self.setAddress(service['ip'])
+		self._ip = service['ip']
+		#self.setAddress(service['ip'])
 		self.setArgs(service['args'])
 		self.setVersion(service['version'])
 		self.setSysname(service['sysname'])
+		# This is (and should be) used by all subclasses
+		self.setPort(int(service['args'].get('port', 0)))
 		self.setStatus(status)
 		self.setTimestamp(0)
 		timeout = self.getArgs().get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
@@ -56,7 +42,6 @@ class JobHandler:
 		self.rq=RunQueue.RunQueue()
 		
 	def run(self):
-		import rrd, db
 		version = self.getVersion()
 		status, info = self.executeTest()
 		service="%s:%s" % (self.getSysname(), self.getType())
@@ -78,7 +63,7 @@ class JobHandler:
 
 		if status != self.getStatus():
 			self.debug.log("%-20s -> %s, %s" % (service, status, info),1)
-			newEvent=Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info)
+			newEvent=event.Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info)
 			newEvent.setSysname(self.getSysname())
 			# Post to the NAV alertq
 			self.db.newEvent(newEvent)
@@ -89,7 +74,10 @@ class JobHandler:
 			self.setStatus(status)
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
-			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(), self.getType(), status, info, eventtype="version", version=self.getVersion()))
+			newEvent=event.Event(self.getServiceid(),self.getBoksid(),
+					     self.getType(), status, info,
+					     eventtype="version", version=self.getVersion())
+			self.db.newEvent(newEvent)
 
 		try:
 			rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
@@ -104,7 +92,7 @@ class JobHandler:
 		try:
 			status,info = self.execute()
 		except Exception,info:
-			status = Event.DOWN
+			status = event.Event.DOWN
 			info = str(info)
 		self.setResponsetime(time.time()-start)
 		return status, info
@@ -150,8 +138,13 @@ class JobHandler:
 		self._type = type
 	def getType(self):
 		return self._type
+	def setPort(self, port):
+		self._port = port
+	def getPort(self):
+		return self._port
 	def getAddress(self):
-		return self._address
+		#return self._address
+		return (self._ip, self._port)
 	def setAddress(self,address):
 		self._address = address
 	def setVersion(self,version):

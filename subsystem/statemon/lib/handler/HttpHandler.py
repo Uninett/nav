@@ -1,8 +1,9 @@
 """
-$Id: HttpHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: HttpHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/HttpHandler.py,v $
 """
-from job import Event, JobHandler
+from event import Event
+from job import JobHandler
 import httplib
 import Socket
 class HTTPConnection(httplib.HTTPConnection):
@@ -13,15 +14,14 @@ class HTTPConnection(httplib.HTTPConnection):
 		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
-	def __init__(self,service):
-		port = service['args'].get('port', 80)
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self, "http", service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "http", service, **kwargs)
+		self.setPort(self.getPort() or 80)
 	def execute(self):
-		i = HTTPConnection(self.getTimeout(),*self.getAddress())
+		ip, port = self.getAddress()
+		i = HTTPConnection(self.getTimeout(), ip, port)
 		vhost = self.getArgs().get('vhost','')
 		path  = self.getArgs().get('path','')
-		ip, port = (self.getAddress()[0],self.getAddress()[1])
 		if vhost:
 			url = "http://%s/%s" % (vhost, path)
 		else:

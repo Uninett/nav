@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.2 2003/05/26 17:49:03 magnun Exp $                                                                                                                              
+$Id: servicemon.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -32,6 +32,7 @@ class controller:
         self.db.start()
         self.alerter=mailAlert.mailAlert()
         self.alerter.start()
+        self.dirty = 1
 
 
     def createStatusFile(self):
@@ -59,7 +60,8 @@ class controller:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-        newjobs = self.db.getJobs()
+        newjobs = self.db.getJobs(self.dirty)
+        self.dirty=0
 
 
         s=[]    

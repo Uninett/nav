@@ -1,9 +1,10 @@
 """
-$Id: ImapHandler.py,v 1.2 2003/06/01 12:15:40 magnun Exp $
+$Id: ImapHandler.py,v 1.3 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/ImapHandler.py,v $
 """
 
-from job import JobHandler, Event
+from job import JobHandler
+from event import  Event
 import imaplib, Socket
 class IMAPConnection(imaplib.IMAP4):
 	def __init__(self, timeout, host, port):
@@ -26,13 +27,9 @@ class ImapHandler(JobHandler):
 	username
 	password
 	"""
-	def __init__(self,service):
-		# this probably should be moved up to the superclass as
-		# we use port in almost every subclass...
-		port = int(service['args'].get('port', 143))
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self, "imap", service)
-	
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "imap", service, **kwargs)
+		self.setPort(self.getPort() or 143)
 	def execute(self):
 		args = self.getArgs()
 		user = args.get("username","")
@@ -40,8 +37,9 @@ class ImapHandler(JobHandler):
 		passwd = args.get("password","")
 		m = IMAPConnection(self.getTimeout(), ip, port)
 		ver = m.welcome
-		m.login(user, passwd)
-		m.logout()
+		if user:
+			m.login(user, passwd)
+			m.logout()
 		version=''
 		ver=ver.split(' ')
 		if len(ver) >= 2:

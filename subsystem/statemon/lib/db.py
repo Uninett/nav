@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.2 2003/05/26 17:47:56 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -13,7 +13,7 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 
-import threading, jobmap, psycopg, Queue, job, debug, time
+import threading, jobmap, psycopg, Queue, job, debug, time, event
 from setup import Service
 
 
@@ -165,7 +165,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		query="""SELECT DISTINCT ip FROM netbox """
 		return self.query(query)
 
-	def getJobs(self, onlyactive = 1):
+	def getJobs(self, useDbStatus, onlyactive = 1):
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
 		order by serviceid"""
@@ -178,14 +178,14 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 
 		fromdb = []
 		query = """SELECT serviceid ,service.netboxid, service.active,
-		handler, version, ip, sysname FROM service JOIN netbox ON
+		handler, version, ip, sysname, service.up FROM service JOIN netbox ON
 		(service.netboxid=netbox.netboxid) order by serviceid"""
 		map(fromdb.append, self.query(query))
 		
 		jobs = []
 		for each in fromdb:
-			if len(each) == 7:
-				serviceid,netboxid,active,handler,version,ip,sysname = each
+			if len(each) == 8:
+				serviceid,netboxid,active,handler,version,ip,sysname,up = each
 			else:
 				self.debug("Invalid job: %s" % each,2)
 				continue
@@ -200,7 +200,14 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 				 'args':property.get(serviceid,{}),
 				 'version':version
 				 }
-			newJob = job(service)
+			if useDbStatus:
+				if up == 'y':
+					up=event.Event.UP
+				else:
+					event.up=Event.DOWN
+				newJob = job(service, status=up)
+			else:
+				newJob = job(service)
 			if onlyactive and not active:
 				continue
 			else:

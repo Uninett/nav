@@ -1,5 +1,5 @@
 """
-$Id: rrd.py,v 1.1 2003/03/26 16:01:44 magnun Exp $                                                                                                                              
+$Id: rrd.py,v 1.2 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 Module for creating and updating rrd-objects
@@ -10,8 +10,8 @@ Author: Erik Gorset	<erikgors@stud.ntnu.no>
 
 
 import os
+import event
 from RRDtool import RRDtool
-from job import Event
 rrd = RRDtool()
 RRDDIR = '/var/rrd'
 def create(serviceid):
@@ -27,7 +27,7 @@ def update(serviceid,time,status,responsetime):
 	"""
 	filename = '%s/%s.rrd' % (RRDDIR,serviceid)
 	os.path.exists(filename) or create(serviceid)
-	if status == Event.UP:
+	if status == event.Event.UP:
 		rrdstatus=0
 	else:
 		rrdstatus = 1

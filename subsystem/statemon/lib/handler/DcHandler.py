@@ -1,9 +1,10 @@
 """
-$Id: DcHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: DcHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/DcHandler.py,v $
 """
 
-from job import JobHandler, Event
+from job import JobHandler
+from event import Event
 import os
 
 class DcHandler(JobHandler):
@@ -11,9 +12,8 @@ class DcHandler(JobHandler):
 	Required argument:
 	username
 	"""
-	def __init__(self,service):
-		service['ip']=(service['ip'], 0)
-		JobHandler.__init__(self, "dc", service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "dc", service, **kwargs)
 
 	def execute(self):
 		args = self.getArgs()

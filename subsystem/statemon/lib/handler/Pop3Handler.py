@@ -1,8 +1,9 @@
 """
-$Id: Pop3Handler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: Pop3Handler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/Pop3Handler.py,v $
 """
-from job import JobHandler, Event
+from job import JobHandler
+from event import Event
 import poplib, Socket
 class PopConnection(poplib.POP3):
 	def __init__(self, timeout, ip, port):
@@ -22,10 +23,9 @@ class Pop3Handler(JobHandler):
 	password
 	port
 	"""
-	def __init__(self,service):
-		port = service['args'].get('port', 110)
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self, "pop3", service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "pop3", service, **kwargs)
+		self.setPort(self.getPort() or 110)
 	def execute(self):
 		args = self.getArgs()
 		user = args.get("username","")
@@ -33,10 +33,11 @@ class Pop3Handler(JobHandler):
 		ip, port = self.getAddress()
 		p = PopConnection(self.getTimeout(), ip, port)
 		ver = p.getwelcome()
-		p.user(user)
-		p.pass_(passwd)
-		nummessages = len(p.list()[1])
-		p.quit()
+		if user:
+			p.user(user)
+			p.pass_(passwd)
+			nummessages = len(p.list()[1])
+			p.quit()
 		version = ''
 		ver=ver.split(' ')
 		if len(ver) >= 1:

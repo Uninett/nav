@@ -1,9 +1,10 @@
 """
-$Id: SmbHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: SmbHandler.py,v 1.2 2003/06/13 12:52:37 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/SmbHandler.py,v $
 """
 import os,re
-from job import JobHandler, Event
+from job import JobHandler
+from event import Event
 pattern = re.compile(r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]',re.I) #tihihi
 class SmbHandler(JobHandler):
 	"""
@@ -13,10 +14,9 @@ class SmbHandler(JobHandler):
 		'password'
 		'port'
 	"""
-	def __init__(self,service):
-		port = service['args'].get('port', 139)
-		service['ip']=(service['ip'],port)
-		JobHandler.__init__(self, "smb", service)
+	def __init__(self,service, **kwargs):
+		JobHandler.__init__(self, "smb", service, **kwargs)
+		self.setPort(self.getPort() or 139)
 	def execute(self):
 		ip,port = self.getAddress()
 		args = self.getArgs()
