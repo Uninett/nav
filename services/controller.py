@@ -1,7 +1,8 @@
+
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.28 2002/11/28 22:07:34 magnun Exp $
+$Id: controller.py,v 1.29 2002/12/09 15:41:15 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -9,7 +10,8 @@ import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 
-import RunQueue, types, time, job, getopt, signal, config, db, debug, mailAlert
+import RunQueue, types, time, job, getopt, signal, config, db, debug, mailAlert, random
+import gc, threading
 
 class controller:
     def __init__(self, **kwargs):
@@ -40,15 +42,12 @@ class controller:
         try:
             outputfile = open('/var/www/html/services/status.txt','w')
         except:
-            print "Failed to open outputfile"
+            self.debug("Failed to open outputfile: %s" % outputfile,2)
+            return
 
                                                                 
         for each in self._jobs:
-            try:
-                host=self.db.netboxid[each.getBoksid()]
-            except KeyError:
-                host = "Unspecified host"
-            outputfile.write("%-25s %-5s %-5s %s\n" % (host, each.getType(), each.getStatus(), each.getVersion()) )
+            outputfile.write("%-25s %-5s %-5s %s\n" % (each.getSysname(), each.getType(), each.getStatus(), each.getVersion()) )
 
         outputfile.write("\n\nLast updated: %s" % time.asctime())
         outputfile.close()
@@ -70,16 +69,20 @@ class controller:
                 s.append(i)
 
         self._jobs=s
+        #randomiserer rekkefølgen på jobbene
+        for i in self._jobs:
+            self._jobs.append(self._jobs.pop(int(len(self._jobs)*random.random())))
                     
     def main(self):
         """
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
+
         while self._isrunning:
             start=time.time()
             self.getJobs()
-            #filter(self._runqueue.enq, self._jobs)
+
             wait=self._looptime - (time.time() - start)
             if self._jobs:
                 pause=wait/(len(self._jobs)*2)
@@ -88,11 +91,21 @@ class controller:
             for each in self._jobs:
                 self._runqueue.enq(each)
                 time.sleep(pause)
+
+            self.createStatusFile()
+
+            # extensive debugging
+            dbgthreads=[]
+            for i in gc.get_objects():
+                if isinstance(i, threading.Thread):
+                    dbgthreads.append(i)
+            self.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
+
             wait=self._looptime - (time.time() - start)
             self.debug("Waiting %i seconds." % wait)
-            self.createStatusFile()
             if wait <= 0:
-                self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait)
+                self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait,2)
+                time.sleep(self._looptime + wait)
             else:
                 time.sleep(wait)
 
