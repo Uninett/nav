@@ -48,6 +48,9 @@ def sci(number, long=False):
     number = float(number)
     try:
         exponent = int(math.log10(number) / 3)*3
+        if number < 1:
+            # We want 311m - not 0.311 
+            exponent -= 3
         if abs(exponent) > 24:
           exponent = 24 * (exponent/abs(exponent))
         factor = number / 10**exponent
