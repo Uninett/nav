@@ -22,6 +22,8 @@ public class ServiceState implements EventHandler
 {
 	private static final boolean DEBUG_OUT = true;
 
+	public static final int BOX_DOWN_SEVERITY_DEDUCTION = 30;
+
 	public String[] handleEventTypes()
 	{
 		return new String[] { "serviceState" };
@@ -38,23 +40,20 @@ public class ServiceState implements EventHandler
 
 		Log.d("HANDLE", "Added alert: " + a);
 
+		boolean onMaint = false;
+
 		// Lookup the server
 		Device d = ddb.getDevice(e.getDeviceid());
 		if (d != null) {
 			if (d instanceof Box) {
 				Box b = (Box)d;
-				if (b.onMaintenance()) {
-					// We simply ignore any events from boxes on maintenance
-					Log.d("HANDLE", "Ignoring event as the box is on maintenance");
-					e.dispose();
-					return;
-				}
+				onMaint = b.onMaintenance();
 			}
 				
 			String deviceup;
 			if (!d.isUp()) {
-				// Lower the severity by 30 points, but not below zero
-				a.setSeverity(Math.max(e.getSeverity()-30,0));
+				// Lower the severity by BOX_DOWN_SEVERITY_DEDUCTION, but not below zero
+				a.setSeverity(Math.max(e.getSeverity()-BOX_DOWN_SEVERITY_DEDUCTION,0));
 				deviceup = "No";
 			} else {
 				deviceup = "Yes";
@@ -95,6 +94,12 @@ public class ServiceState implements EventHandler
 			}
 		} catch (SQLException exp) {
 			Log.w("HANDLE", "SQLException when fetching data from serviceproperty("+e.getSubid()+"): " + exp.getMessage());
+		}
+
+		if (onMaint) {
+			// Do not post to alertq if box is on maintenace
+			Log.d("HANDLE", "Not posting alert to alertq as the box is on maintenance");
+			a.setPostAlertq(false);
 		}
 
 		// Post the alert

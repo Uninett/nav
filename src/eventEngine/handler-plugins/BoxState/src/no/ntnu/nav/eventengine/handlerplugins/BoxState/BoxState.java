@@ -19,6 +19,8 @@ public class BoxState implements EventHandler, EventCallback
 	private Map startEventMap = new HashMap();
 	private int lastDownCount;
 
+	public static final int SHADOW_SEVERITY_DEDUCTION = 30;
+
 	public String[] handleEventTypes()
 	{
 		return new String[] { "boxState", "moduleState", "linkState", "coldStart", "warmStart" };
@@ -41,13 +43,6 @@ public class BoxState implements EventHandler, EventCallback
 		if (eventtype.equals("boxState")) {
 			if (d instanceof Box) {
 				Box b = (Box)d;
-
-				if (b.onMaintenance()) {
-					// We simply ignore any events from boxes on maintenance
-					Log.d("HANDLE", "Ignoring event as the box is on maintenance");
-					e.dispose();
-					return;
-				}
 
 				if (e.getState() == Event.STATE_START) {
 					if (!b.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
@@ -80,7 +75,17 @@ public class BoxState implements EventHandler, EventCallback
 
 						// Post alert
 						a = ddb.alertFactory(e, "boxUp");
+						if (b.getStatus() == Box.STATUS_SHADOW) {
+							a.setAlerttype("boxSunny");
+							a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
+						}
 						a.addEvent(e);
+
+						if (b.onMaintenance()) {
+							// Do not post to alertq if box is on maintenace
+							Log.d("HANDLE", "Not posting alert to alertq as the box is on maintenance");
+							a.setPostAlertq(false);
+						}
 
 						try {
 							ddb.postAlert(a);
@@ -101,6 +106,13 @@ public class BoxState implements EventHandler, EventCallback
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
 			if (d instanceof Module) {
 				Module m = (Module)d;
+				Device pd = ddb.getDevice(m.getParentDeviceid());
+				Box pb = null;
+				if (d instanceof Box) {
+					pb = (Box)pd;
+				} else {
+					Log.w("HANDLE", "Module " + m + " does not have a valid parent device (id="+m.getParentDeviceid()+")");
+				}
 				if (eventtype.equals("linkState")) {
 					Port p = m.getPort(e.getSubid());
 					if (p == null) {
@@ -145,6 +157,12 @@ public class BoxState implements EventHandler, EventCallback
 							// Post alert
 							a = ddb.alertFactory(e, "moduleUp");
 							a.addEvent(e);
+
+							if (pb != null && pb.onMaintenance()) {
+								// Do not post to alertq if box is on maintenace
+								a.setPostAlertq(false);
+							}
+
 							try {
 								ddb.postAlert(a);
 							} catch (PostAlertException exp) {
@@ -241,6 +259,7 @@ public class BoxState implements EventHandler, EventCallback
 					String alerttype = "";
 					if (b.getStatus() == Box.STATUS_SHADOW) {
 						alerttype = "boxShadow";
+						a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
 					} else if (b.getStatus() == Box.STATUS_DOWN) {
 						alerttype = "boxDown";
 					}
@@ -257,6 +276,12 @@ public class BoxState implements EventHandler, EventCallback
 					a.setAlerttype(alerttype);
 
 					Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added alert: " + a);
+
+					if (b.onMaintenance()) {
+						// Do not post to alertq if box is on maintenace
+						Log.d("HANDLE", "Not posting " + alerttype + " alert to alertq as the box is on maintenance");
+						a.setPostAlertq(false);
+					}
 
 					// Post the alert
 					try {
