@@ -42,7 +42,6 @@ class URI:
         
         parsed_uri = urlsplit(uri)
         args_array = parsed_uri[3].split("&")
-
         if args_array:
             args = {}
             for arg in args_array:
