@@ -1,6 +1,6 @@
 #
 # This file contains general NAV configuration.
-# $Id: nav.conf.template,v 1.1 2002/06/03 07:30:54 mortenv Exp $
+# $Id: nav.conf.template,v 1.2 2002/06/26 13:38:42 mortenv Exp $
 #
 
 # The e-mail address of the NAV system administrator. All cron error
@@ -11,3 +11,7 @@ ADMIN_MAIL=§§ADMIN_MAIL§§
 # The root of the NAV installation. This is for informational purposes
 # mostly.
 NAVROOT=/usr/local/nav
+
+# JAVA_HOME should point to the base JDK directory (i.e. containing
+# bin/java)
+JAVA_HOME = §§JAVA_HOME§§
