@@ -138,7 +138,7 @@ def handler(req):
 
     if output:
         req.content_type = "text/html" #maybe unneccesarry
-        req.write(output+repr(req.session))
+        req.write(output)
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
@@ -151,7 +151,10 @@ def feed(req):
     '''
 
     page = FeederTemplate()
-    database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc") 
+    database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc")
+    page.title = "NAV Messages of the Day"
+    page.link = BASEPATH
+    page.description = "NAV Messages of the Day is the place to find messages from the Network Administrators."
     page.messages = database.fetchall()
 
     page.server = req.server.server_hostname
