@@ -109,7 +109,7 @@ CREATE TABLE prefiks (
   prefiksid SERIAL PRIMARY KEY,
   nettadr VARCHAR(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
-  vlan VARCHAR(4),
+  vlan INT2,
   antmask INT2,
   maxhosts INT2,
   nettype VARCHAR(10) NOT NULL,
@@ -260,6 +260,9 @@ GRANT SELECT ON vpBoksGrpInfo TO vPServer;
 GRANT SELECT ON vpBoksXY TO vPServer;
 
 GRANT SELECT ON boks TO getBoksMacs;
+GRANT SELECT ON type TO getBoksMacs;
+GRANT SELECT ON swport TO getBoksMacs;
+GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
 GRANT SELECT ON community TO getBoksMacs;
