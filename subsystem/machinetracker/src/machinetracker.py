@@ -252,6 +252,8 @@ class ResultRow:
 class MACSQLQuery (MachineTrackerSQLQuery):
 
 	def __init__(self,mac,days="7",sigurd=""):
+		mac = mac.replace(":", "")
+		mac = mac.lower()
 		if mac.startswith("*") or mac.endswith("*"):
 			extra = "mac ilike '%s'"%mac.replace("*","%")
 		else:
