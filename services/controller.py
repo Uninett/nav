@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.16 2002/06/17 10:22:54 magnun Exp $
+$Id: controller.py,v 1.17 2002/06/25 23:51:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -137,5 +137,5 @@ if __name__=='__main__':
         help()
         os.sys.exit(2)
                                
-    controller=controller()
-    controller.start(nofork)
+    myController=controller()
+    myController.start(nofork)

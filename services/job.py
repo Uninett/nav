@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.35 2002/06/24 17:11:33 magnun Exp $
+$Id: job.py,v 1.36 2002/06/25 23:51:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -269,11 +269,11 @@ class DnsHandler(JobHandler):
 
 	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get("port", 42)
-		JobHandler.__init__(self, "dns", serviceid, boksid, self.getAddress(), args, version)
+		JobHandler.__init__(self, "dns", serviceid, boksid, (ip, port), args, version)
 
 	def execute(self):
-		server=self.getAddress()
-		d = DNS.DnsRequest(server=server[0], timeout=self.getTimeout())
+		ip, port =self.getAddress()
+		d = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
 		args = self.getArgs()
 		request = args.get("request","").split(",")
 		if request == [""]:

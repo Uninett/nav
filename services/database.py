@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.12 2002/06/20 14:41:29 magnun Exp $
+$Id: database.py,v 1.13 2002/06/25 23:51:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -42,6 +42,7 @@ def getJobs():
 	order by serviceid"""
 	c.execute(query)
 
+	property = {}
 	for serviceid,prop,value in c.fetchall():
 		if serviceid not in property:
 			property[serviceid] = {}
