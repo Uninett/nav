@@ -1,0 +1,9 @@
+# Dette er root sin crontab.
+
+CDIR=/usr/local/nav/navme/cron
+
+MAILTO=grohi@itea.ntnu.no
+
+# live.pl startes hvert 4. minutt.
+
+01,05,09,13,17,21,25,29,33,37,41,45,49,53,57 * * * * $CDIR/live.pl
