@@ -740,6 +740,9 @@ sub makeTargets {
 	} else {
 	    $descr = $typedescr;
 	}
+	
+	# Make sure " in for instance url's don't mess up the config
+	$descr =~ s/\"/\\\"/g;
 	$descr = "\"$descr\"";
 
 	# Storing info that we need later when we are going to 
