@@ -4,6 +4,7 @@
  */
 
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.util.util;
 
 import java.io.*;
 import java.util.*;
@@ -298,7 +299,7 @@ class HandlerNettinfo
 
 			// NAVv2 SQL: "SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,ip,kat,romid,main_sw,serial,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks LEFT JOIN boksinfo USING (boksid) JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf"
 
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlanid) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.ifindex,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlanid,gwport.interface");
+			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlanid) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.ifindex,gwport.interface,vlan.vlan,netaddr,prefix.prefixid,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlanid,gwport.interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -333,6 +334,7 @@ class HandlerNettinfo
 				hm.put("to_port", rs.getString("to_port"));
 				hm.put("to_catid", "gwport");
 				hm.put("netaddr", rs.getString("netaddr"));
+				hm.put("prefixid", rs.getString("prefixid"));
 				hm.put("nettype", rs.getString("nettype"));
 				hm.put("netident", rs.getString("netident"));
 				//hm.put("boksbak", rs.getString("boksbak"));
@@ -630,9 +632,20 @@ class HandlerNettinfo
 		if (com.getp("searchField") != null && com.getp("searchFor").length() > 0) {
 			String searchF = com.getp("searchField");
 			String searchFor = com.getp("searchFor");
+			if (searchFor != null) searchFor = searchFor.trim();
 
 			// Remove leading number in searchField
 			searchF = searchF.substring(searchF.indexOf(".")+1, searchF.length());
+
+			// Convert MAC
+			if ("mac".equals(searchF)) {
+ 				if (searchFor != null) {
+					if (searchFor.split(":").length == 6) searchFor = util.remove(searchFor, ":");
+					if (searchFor.split("\\.").length == 6) searchFor = util.remove(searchFor, ".");
+				}
+				searchF = "portname";
+			}
+
 
 			StringTokenizer st = new StringTokenizer(searchF, "|");
 			String[] searchField = new String[st.countTokens()];
@@ -737,9 +750,9 @@ class HandlerNettinfo
 				//String searchKey = ((boksbak==null||boksbak.length()==0)?swrec.get("swportid"):boksbak)+":"+vlan;
 				//com.outl("search field: " + searchField[i] + " match: |" + s + "|" + searchFor + "| ("+swrec.get("sysname")+","+swrec.get("to_sysname")+","+searchKey+")<br>");
 				if (searchexact) {
-					if (s != null && s.equals(searchFor)) searchFound = true;
+					if (s != null && s.equalsIgnoreCase(searchFor)) searchFound = true;
 				} else {
-					if (s != null && s.indexOf(searchFor) != -1) searchFound = true;
+					if (s != null && s.toLowerCase().indexOf(searchFor.toLowerCase()) != -1) searchFound = true;
 					//if (s != null && s.indexOf(searchFor) != -1) {
 					//	com.outl("  Found match at " + swrec.get("sysname") + ", s="+s+" searchFor="+searchFor+" sf="+searchField[i]);
 					//}
@@ -1080,7 +1093,8 @@ class HandlerNettinfo
 
 		String netaddr = "";
 		if (showdetails && swrec.containsKey("netaddr")) {
-			netaddr = " ("+swrec.get("netaddr")+", " + swrec.get("nettype") + ", " + swrec.get("netident")+")";
+			String prefixLink = "/report/prefix?prefix.prefixid=" + swrec.get("prefixid");
+			netaddr = " (<a target=\"_new\" href=\""+prefixLink+"\">"+swrec.get("netaddr")+"</a>, " + swrec.get("nettype") + ", " + swrec.get("netident")+")";
 		}
 
 		//com.outl("boksbak is: " + boksbak + " portn: " + swrec.get("portname"));
@@ -1092,6 +1106,13 @@ class HandlerNettinfo
 		String parentSysname = (String)parentrec.get("to_netboxid");
 		parentSysname = (String)sysnameMap.get(parentSysname);
 		if (nodeType.equals("cam")) parentSysname = (String)swrec.get("ip");
+
+		// Add sysname links
+		{
+			String sysnameLink = "/browse/";
+			parentSysname = "<a target=\"_new\" href=\""+sysnameLink+parentSysname+"\">"+parentSysname+"</a>";
+			if (sysname.length() > 0) sysname = "<a target=\"_new\" href=\""+sysnameLink+sysname+"\">"+sysname+"</a>";
+		}
 
 		// Evt. modul/port
 		//if (!kat.equals("gw") && !kat.equals("gsw") && !swrec.containsKey("rootRec")) {
