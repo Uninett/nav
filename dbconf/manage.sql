@@ -304,7 +304,10 @@ GRANT SELECT ON swport TO vPServer;
 GRANT SELECT ON swportvlan TO vPServer;
 GRANT SELECT ON vpBoksGrp TO vPServer;
 GRANT SELECT ON vpBoksGrpInfo TO vPServer;
-GRANT SELECT ON vpBoksXY TO vPServer;
+GRANT ALL    ON vpboksgrp TO vPServer;
+GRANT ALL    ON vpboksgrp_vpboksgrpid_seq TO vPServer;
+GRANT ALL    ON vpBoksXY TO vPServer;
+GRANT ALL    ON vpboksxy_vpboksxyid_seq TO vPServer;
 
 GRANT SELECT ON boks TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
