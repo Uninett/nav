@@ -8,11 +8,12 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
+os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/ping")
 
 import megaping, db, config, signal, getopt, time, pwd
 import debug
+from netbox import Netbox
 from output import color
 
 class pinger:
@@ -41,7 +42,11 @@ class pinger:
         """
         debug.debug("Getting hosts from database...",7)
         hosts = self.db.hostsToPing()
-        self.hosts = map(lambda x:x[0], hosts)
+        self.hosts = []
+        for host in hosts:
+            netbox = Netbox(*host)
+            self.hosts.append(netbox)
+        #self.hosts = map(lambda x:x[0], hosts)
         debug.debug("We now got %i hosts in our list to ping" % len(self.hosts),7)
 
     def main(self):
@@ -49,7 +54,6 @@ class pinger:
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
-
         while self._isrunning:
             start=time.time()
             self.getJobs()
@@ -103,7 +107,7 @@ def help():
 
     #Written by Stian Søiland and Magnus Nordseth, 2002
     #"""  % os.path.basename(os.sys.argv[0]))
-    print color("Paralell pinger for NAV (Network Administration Visualized).","white")
+    print color("Parallel pinger for NAV (Network Administration Visualized).","white")
     print
     print "Usage : %s [OPTIONS]" % os.path.basename(os.sys.argv[0])
     print color("-h  --help   ", "green"), "Displays this message"

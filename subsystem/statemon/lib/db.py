@@ -13,9 +13,9 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 
-import threading, checkermap, psycopg, Queue, abstractChecker, time
+import threading, checkermap, psycopg, Queue,  time
 from event import Event
-from setup import Service
+from service import Service
 from debug import debug
 
 
@@ -179,7 +179,8 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 
 	def hostsToPing(self):
-		query="""SELECT ip,sysname FROM netbox """
+		#query="""SELECT ip,sysname FROM netbox """
+		query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
 		return self.query(query)
 
 	def getCheckers(self, useDbStatus, onlyactive = 1):
@@ -208,7 +209,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 				continue
 			checker = checkermap.get(handler)
 			if not checker:
-				debug("no such checker: %s",handler,2)
+				debug("no such checker: %s" % handler,2)
 				continue
 			service={'id':serviceid,
 				 'netboxid':netboxid,

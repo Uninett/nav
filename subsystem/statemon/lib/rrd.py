@@ -77,4 +77,4 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
 	
 	rrdParam = (os.path.join(RRDDIR,filename),'%s:%i:%s' % (time, rrdstatus, responsetime))
 	rrd.update(*rrdParam)
-	debug("Updated %s" % filename)
+	debug("Updated %s" % filename, 7)

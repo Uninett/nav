@@ -8,6 +8,7 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,config
 from debug import debug
+from netbox import Netbox
 # From our friend:
 import ip,icmp,rrd
 
@@ -34,15 +35,16 @@ def makeSocket():
   return sock
 
 class Host:
-  def __init__(self, ip):
+  def __init__(self, netbox):
     self.rnd = random.randint(0,2**16)
     self.certain = 0
-    self.ip = ip
+    self.ip = netbox.ip
     self.pkt = icmp.Packet()
     self.pkt.type = icmp.ICMP_ECHO
     self.pkt.id = os.getpid()
     self.pkt.seq = 0
     self.replies = circbuf.CircBuf()
+    self.netbox = netbox
 
   def makePacket(self, pingstring=PINGSTRING):
     self.pkt.data = pingstring
@@ -50,7 +52,7 @@ class Host:
 
   def nextseq(self):
     self.pkt.seq = (self.pkt.seq + 1) % 2**16
-    if self.pkt.seq > 2 and not self.certain:
+    if not self.certain and self.pkt.seq > 2:
       self.certain = 1
 
   def __hash__(self):
@@ -63,11 +65,14 @@ class Host:
       return self.ip == obj.ip
 
   def logPingTime(self, pingtime):
+    netbox = self.netbox
     if pingtime:
-      rrd.update(self.ip,'N','UP',pingtime)
+      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'UP', pingtime)
+      #rrd.update(self.ip,'N','UP',pingtime)
     else:
       # Dette er litt grisete og bør endres
-      rrd.update(self.ip,'N','DOWN',5)
+      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN', 5)
+      #rrd.update(self.ip,'N','DOWN',5)
 
   def getState(self, nrping=3):
     if self.certain:
@@ -102,14 +107,19 @@ class MegaPing(RotaterPlugin):
     else:
       self.socket = socket
 
-  def setHosts(self,hosts):
+  def setHosts(self,netboxes):
     """
     Specify a list of hosts to ping. If we alredy have the host
     in our list, we reuse that  host object
     """
-    newhosts = filter(lambda x: x not in self.hosts, hosts)
-    for ip in newhosts:
-      self.hosts.append(Host(ip))
+    # add new hosts
+    newhosts = filter(lambda x: x.ip not in self.hosts, netboxes)
+    for netbox in newhosts:
+      self.hosts.append(Host(netbox))
+    # remove outdated hosts...
+    oldhosts = filter(lambda x: x.netbox not in netboxes, self.hosts)
+    for netbox in oldhosts:
+      self.hosts.remove(Host(netbox))
 
   def reset(self):
     self.requests = {}
