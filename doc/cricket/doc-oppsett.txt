@@ -96,11 +96,15 @@ Oversikt
      Denne sjekker antall mail i kø.
 
      b) Anbefalte patcher
-     Det er en feil i ucd-snmp 4.x og net-snmp 5.0.1 som fører til at
-     ledig minne (snmpwalk 1.3.6.1.4.1.2021.4) rapporteres som -1.
+     i) Det er en feil i ucd-snmp 4.x og net-snmp 5.0.1 som fører til at
+        ledig minne (snmpwalk 1.3.6.1.4.1.2021.4) rapporteres som -1.
 
-     Patchen er i cvs:contrib/net-snmp-memory.patch
+        Patchen er i cvs:contrib/net-snmp-memory.patch
      
+     ii) net-snmp rapp. feil i system.sysObjectID.0
+         dette ble fikset med en patch , se pkt 7 v) og
+	 pkt 9 der vi har mer forklaring og link til patchen
+      
 
 3)databaseformat
   Følgende endringer er gjort i nav-databasen:
@@ -317,8 +321,9 @@ Oversikt
     I net snmp skal det være mulig å hente ut hvilket os boksen har ,
     feks solaris , linux. Dette er ikke mulig da feltet
     system.sysObjectID.0 alltid gir ut samme verdi (1.3.6.1.4.1.8072.3.2)
-    for solaris og linux. Dette medførte at vi skrev litt statisk kode
-    i jython scriptet.
+    for solaris og linux. Det kom imidlertid ut en patch siste arbeidsdag
+    som vi benyttet for å fikse feilen. Se pkt 9 der vi har link.
+    
 
 8) Vyer
    * hente info fra salmaskiner
@@ -346,6 +351,8 @@ Oversikt
    	http://cricket.sourceforge.net
    net-snmp:
    	http://net-snmp.sourceforge.net
+   patch til net-snmp:
+        http://sourceforge.net/tracker/index.php?func=detail&aid=577439&group_id=12694&atid=112694
    win-snmp hjelp:
    	http://snmpboy.msft.net (win 2k)
 	http://www.wtcs.org/snmp4tpc/ (win 2k og NT)
