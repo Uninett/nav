@@ -354,15 +354,13 @@ GRANT ALL ON type_typeid_seq TO navall;
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 
-DROP TABLE arp; 
+DROP TABLE arp;
 DROP TABLE cam; 
 DROP VIEW netboxmac;
 DROP TABLE eventtype;
 
 DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
-DROP SEQUENCE port2pkt_id_seq; 
-DROP SEQUENCE pkt2rom_id_seq;
 
 DROP FUNCTION netboxid_null_upd_end_time();
 
@@ -532,8 +530,71 @@ GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- vlanPlot end ------
 
+------------------------------------------------------------------------------------------
+-- rrd metadb tables
+------------------------------------------------------------------------------------------
 
--------- event system tables --------
+DROP TABLE subsystem;
+DROP TABLE rrd_file;
+DROP TABLE rrd_datasource;
+
+DROP SEQUENCE rrd_file_seq;
+DROP SEQUENCE rrd_datasource_seq;
+
+-- This table contains the different systems that has rrd-data.
+-- Replaces table eventprocess
+CREATE TABLE subsystem (
+  name      VARCHAR PRIMARY KEY, -- name of the system, e.g. Cricket
+  descr     VARCHAR  -- description of the system
+);
+
+INSERT INTO subsystem (name) VALUES ('eventEngine');
+INSERT INTO subsystem (name) VALUES ('pping');
+INSERT INTO subsystem (name) VALUES ('serviceping');
+INSERT INTO subsystem (name) VALUES ('moduleMon');
+INSERT INTO subsystem (name) VALUES ('thresholdMon');
+INSERT INTO subsystem (name) VALUES ('trapParser');
+INSERT INTO subsystem (name) VALUES ('cricket');
+
+-- Each rrdfile should be registered here. We need the path to find it,
+-- and also a link to which unit or service it has data about to easily be
+-- able to select all relevant files to a unit or service. Key and value
+-- are meant to be combined and thereby point to a specific row in the db.
+CREATE TABLE rrd_file (
+  rrd_fileid    SERIAL PRIMARY KEY,
+  path      VARCHAR NOT NULL, -- complete path to the rrdfile
+  filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
+  step      INT, -- the number of seconds between each update
+  subsystem INT REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
+  deviceid  INT REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
+  key       VARCHAR,
+  value     VARCHAR
+);
+
+-- Each datasource for each rrdfile is registered here. We need the name and
+-- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
+-- to understand what that is for humans we need the descr.
+CREATE TABLE rrd_datasource (
+  rrd_datasourceid  SERIAL PRIMARY KEY,
+  rrd_fileid        INT REFERENCES rrd_file ON UPDATE CASCADE ON DELETE CASCADE,
+  name          VARCHAR, -- name of the datasource in the file
+  descr         VARCHAR, -- human-understandable name of the datasource
+  dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
+  units         VARCHAR -- textual decription of the y-axis (percent, kilo, giga, etc.)
+);
+
+GRANT ALL ON rrd_file TO rrduser;
+GRANT ALL ON rrd_file TO manage;
+GRANT ALL ON rrd_datasource TO rrduser;
+GRANT ALL ON rrd_datasource TO manage;
+GRANT SELECT ON subsystem TO rrduser;
+GRANT ALL ON subsystem TO manage;
+
+------------------------------------------------------------------------------------------
+-- event system tables
+------------------------------------------------------------------------------------------
+
+-- event tables
 CREATE TABLE eventtype (
   eventtypeid VARCHAR(32) PRIMARY KEY,
   eventtypedesc VARCHAR,
@@ -555,7 +616,6 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('warmStart','Tells us that a network-unit has done a warmstart','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('info','Basic information','n');
-
 
 DROP TABLE eventq;
 DROP SEQUENCE eventq_eventqid_seq;
@@ -656,66 +716,6 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   value VARCHAR,
   PRIMARY KEY(serviceid, property)
 );
-
-------------------------------------------------------------------------------------------
--- rrd metadb tables
-------------------------------------------------------------------------------------------
-
-DROP TABLE subsystem;
-DROP TABLE rrd_file;
-DROP TABLE rrd_datasource;
-
-DROP SEQUENCE rrd_file_seq;
-DROP SEQUENCE rrd_datasource_seq;
-
--- This table contains the different systems that has rrd-data.
--- Replaces table eventprocess
-CREATE TABLE subsystem (
-  name      VARCHAR PRIMARY KEY, -- name of the system, e.g. Cricket
-  descr     VARCHAR  -- description of the system
-);
-
-INSERT INTO subsystem (name) VALUES ('eventEngine');
-INSERT INTO subsystem (name) VALUES ('pping');
-INSERT INTO subsystem (name) VALUES ('serviceping');
-INSERT INTO subsystem (name) VALUES ('moduleMon');
-INSERT INTO subsystem (name) VALUES ('thresholdMon');
-INSERT INTO subsystem (name) VALUES ('trapParser');
-INSERT INTO subsystem (name) VALUES ('cricket');
-
--- Each rrdfile should be registered here. We need the path to find it,
--- and also a link to which unit or service it has data about to easily be
--- able to select all relevant files to a unit or service. Key and value
--- are meant to be combined and thereby point to a specific row in the db.
-CREATE TABLE rrd_file (
-  rrd_fileid    SERIAL PRIMARY KEY,
-  path      VARCHAR NOT NULL, -- complete path to the rrdfile
-  filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
-  step      INT, -- the number of seconds between each update
-  subsystem INT REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid  INT REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
-  key       VARCHAR,
-  value     VARCHAR
-);
-
--- Each datasource for each rrdfile is registered here. We need the name and
--- desc for instance in Cricket. Cricket has the name ds0, ds1 and so on, and
--- to understand what that is for humans we need the descr.
-CREATE TABLE rrd_datasource (
-  rrd_datasourceid  SERIAL PRIMARY KEY,
-  rrd_fileid        INT REFERENCES rrd_file ON UPDATE CASCADE ON DELETE CASCADE,
-  name          VARCHAR, -- name of the datasource in the file
-  descr         VARCHAR, -- human-understandable name of the datasource
-  dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
-  units         VARCHAR -- textual decription of the y-axis (percent, kilo, giga, etc.)
-);
-
-GRANT ALL ON rrd_file TO rrduser;
-GRANT ALL ON rrd_file TO manage;
-GRANT ALL ON rrd_datasource TO rrduser;
-GRANT ALL ON rrd_datasource TO manage;
-GRANT SELECT ON subsystem TO rrduser;
-GRANT ALL ON subsystem TO manage;
 
 ------------------------------------------------------------------------------------------
 -- GRANTS AND GRUNTS
