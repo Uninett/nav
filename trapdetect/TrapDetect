@@ -1,45 +1,29 @@
 #!/usr/bin/perl -w
 ############################################################
-# Versjon 0.1 ferdig 12-07-2000
-# John Magne Bredal
-#
-# Stakkar akkar den som skal sette seg inn i dette!
-#
-# Etter ufattelig mange bug-fixes:
-# Versjon 0.2 ferdig 14-07-2000
-#
-# Versjon 0.3 ferdig 21-07-2000
-# Forbedret det generelle konfigurasjons-systemet
-# Fullstendig funksjonell versjon.
-#
-# Versjon 0.4 ferdig 25-07-2000
-# Forbedret statistikk
-# 
-# Versjon 0.51 09-03-2001
-# Bruker database til skriving av status og sending 
-# av beskjeder.
-# 
-# Versjon 0.6 23-03-2001
-# Skriver ikke lenger til fil. Beskjedformatering ferdig.
-#
-# Versjon 0.7 01-06-01
-# Mange mindre fikser og tillegg laget.
-# Bruker nå kun statistikk fra databasen
-# 
-# Versjon 0.8 29.06.01
-# Forbedret formatering av sms-meldnger.
-# Har nå egen conf-fil for det (smsconfig), med et
-# lett system for formatering
+# Innholdsfortegnelse:
+# sub main
+# sub hentInfo - change - done
+# sub leggInnService
+# sub sjekkService
+# sub sendAlarm - change - done
+# sub sjekkDB
+# sub hentsuboid - change - done
+# sub leggInnStatus
+# sub slettFraDB
+# sub friskmeld
+# sub send_mail
+# sub send_sms
+# sub finn_nettelid
+# sub format_sms
 ############################################################
 
 use strict;
 use DBI;
 
 # Filene som brukes av programmet
-my $logfil = "/home/trapdet/log/traplog";
-my $conf_fil = "/home/trapdet/etc/TrapDetect.conf";
+my $logfil = "/home/trapdet/log/traplog_ny";
 my $servicefil = "/home/trapdet/etc/serviceList";
-my $delayedGSMfil = "/home/trapdet/delayedMessages";
+my $smsconfig = "/home/trapdet/etc/smsconfig";
 
 # Nye variable som brukes etter nytt system
 my $input_oid;
@@ -60,11 +44,13 @@ my @input;
 # Loggfilen som det skrives til. Brukes av blant annet websiden.
 open (LOG, ">>$logfil") or die "Kunne ikke åpne $logfil $!\n";
 my $dbh = DBI->connect("manage","nett","stotte","mysql");
+my $dbh_t = DBI->connect("trapdetect","nett","stotte","mysql");
 
 # Kjører hovedprogrammet
 &main();
 
 # Avslutter, skriver litt logg-mat.
+$dbh_t->disconnect;
 $dbh->disconnect;
 print LOG "--------------------------------------------------------------------------------\n";
 close LOG;
@@ -123,12 +109,12 @@ sub main {
 	    print LOG "Uptime: $uptime\n";
 
 	    # Sjekker service-fil.
-	    if (&sjekkService($ip, $date)) {
-		print LOG "$name, $ip er under service\n";
-		print LOG "--------------------------------------------------------------------------------\n";
-		close LOG;
-		exit(0);
-	    }
+#	    if (&sjekkService($ip, $date)) {
+#		print LOG "$name, $ip er under service\n";
+#		print LOG "--------------------------------------------------------------------------------\n";
+#		close LOG;
+#		exit(0);
+#	    }
 	    print LOG "Enhet $name, $ip er ikke på service\n"; 
 
 	    print LOG "OID $OID mottatt: ";
@@ -145,7 +131,7 @@ sub main {
 
 	    # Globale variable settes
 	    $input_name = $name;
-	    $sykoid = $OIDliste[0][1];
+	    $sykoid = $OIDliste[0][0];
 
 	    if ($kat == 1) {
 		$input_oid = $OIDliste[0][1];
@@ -156,7 +142,7 @@ sub main {
 		    push @message, "$OIDliste[0][1] fra $name";
 		    push @verdiListe, [$name, $ip, $sykid, $syk, $alarm];
 
-		    &leggInnService($ip, $date);
+#		    &leggInnService($ip, $date);
 
 		} else {
 		    $scriptbool = 1;
@@ -389,55 +375,31 @@ sub hentInfo {
     # Må finne ut hvilken type melding det er.
     my $oid = shift;
 
-    my $kat = 0;
-    my ($sykid, $syk, $friskid, $frisk, $alarm, $script) = (0,0,0,0,0,0);
-    my ($linje, $lengde, @liste, @OIDliste);
-    my ($funnet,$teller) = (0,0);
+    my ($sykid, $syk, $friskid, $frisk);
+    my @OIDliste = ();
 
-    open (HANDLE, $conf_fil) or die "Kunne ikke åpne $conf_fil\n";
-    while (<HANDLE>) {
-	unless (/^\#/) { # Skipper kommentarer
-	    if ((/^kat(\d)/i) && !($funnet)) {
-		$kat = $1;
-	    } elsif (/$oid/) {
-		$funnet = 1;
-		if ($kat == 1) {
-		    ($sykid, $syk, $alarm, $script) = split /\s/, $_;
-		    chomp $alarm;
-		    push @OIDliste, [$sykid, $syk, $alarm, $script];
+    # Henter inn hovedtrap
+    my $henttrap = $dbh_t->prepare("select id,type,sykoid,syknavn,friskoid,frisknavn from trap where sykoid='$oid' or friskoid='$oid'");
+    $henttrap->execute;
 
-		    $teller = 0;
-		    until (($linje = <HANDLE>) =~ /^-/) {
-			$teller++;
-			chomp $linje;
-			@liste = split /\s/, $linje;
-			push @OIDliste, [@liste];
-			if ($teller > 100) { die "Uendelig loop!\n"; }
-		    }
-		} else {
-		    ($sykid, $syk, $friskid, $frisk, $alarm, $script) = split /\s/, $_;
-		    push @OIDliste, [$sykid, $syk, $friskid, $frisk, $alarm, $script];
-		    $teller = 0;
-		    # Henter ut resten av info som ligger under hovedOID'en
-		    until (($linje = <HANDLE>) =~ /^-/) {
-			$teller++;
-			chomp $linje;
-			@liste = split /\s/, $linje;
-			push @OIDliste, [@liste];
-			if ($teller > 100) { die "Uendelig loop!\n"; }
-		    }
-		}
-	    }
-	}
-    }
-    
-    if ($funnet) {
-	return ($kat,@OIDliste);
+    my @res = $henttrap->fetchrow_array;
+    my $trapid = shift @res;
+    my $kat = shift @res;
+
+    if ($res[2] && $res[3]) {
+	push @OIDliste, [@res];
     } else {
-	return $funnet;
+	push @OIDliste, [$res[0],$res[1]];
     }
- 
-    close HANDLE;
+
+    # Henter suboider
+    my $hentsuboid = $dbh_t->prepare("select suboid,navn from subtrap where trapid=$trapid");
+    $hentsuboid->execute;
+    while (my @res = $hentsuboid->fetchrow_array) {
+	push @OIDliste, [$res[0],$res[1]];
+    }
+
+    return ($kat, @OIDliste);
 }
 
 ##################################################
@@ -511,9 +473,8 @@ sub sjekkService {
 }
 
 ##################################################
-# Tar i mot en alarm og en melding, slår opp i 
-# alarmList-fila for å finne passende 
-# alarm og sender så til denne adressen.
+# Slår opp i databasen for å finne de personer 
+# som skal ha varsel på denne trap-en.
 ##################################################
 sub sendAlarm {
     # Vi har disse variablene:
@@ -528,83 +489,157 @@ sub sendAlarm {
 	$nettelid =~ s/\D//g;
     }
 
-    my $beskjedbool = 0;
-    my $gruppeid;
-    my (@mail_liste, @sms_liste, @delay_liste);
-
-    my $finn_info = $dbh->prepare("SELECT kat, underkat, eier, ip, active FROM nettel where id=$nettelid");
-    unless ($finn_info->execute) {
-	print LOG "Finner ikke enhet med nettelid $nettelid\n";
+    # Henter inn alle varseltyper og legger dem i et array
+    my %varseltype;
+    my $sporring = "select id,navn from varseltype";
+    my $finn_varseltyper = $dbh_t->prepare($sporring);
+    $finn_varseltyper->execute;
+    while (my @res = $finn_varseltyper->fetchrow_array) {
+	$varseltype{$res[0]} = $res[1];
     }
-    
-    my @enhet_liste = $finn_info->fetchrow_array;
-    my $active = pop @enhet_liste;
+    $finn_varseltyper->finish;
 
-    # Hvis enheten er på service skal vi ikke sende beskjed.
+    # Henter inn kategori og underkategori for denne enhet.
+    # Hvis den ikke finnes i nettel, antas begge som null-verdier.
+    my ($kat,$ukat,$active,$eier);
+    my $finn_info = $dbh->prepare("SELECT kat,underkat,active,eier FROM nettel where id=$nettelid");
+    $finn_info->execute;
+    if (($kat,$ukat,$active,$eier) = $finn_info->fetchrow_array) {
+	if (!$kat) {
+	    $kat = "kat is null";
+	} else {
+	    $kat = "varsel.kat='$kat'";
+	}
+	if (!$ukat) {
+	    $ukat ="ukat is null";
+	} else {
+	    $ukat = "varsel.ukat='$ukat'";
+	}
+    } else {
+	print "Finner ikke enhet med nettelid $nettelid\n";
+	$kat = "kat is null";
+	$ukat= "ukat is null";
+	undef $active;
+    }
+    $finn_info->finish;
+
     if ((not defined($active)) || $active =~ /Y/i) {
-	$input_ip = pop @enhet_liste;
-	# Setter tomme variable til NULL
-	for (@enhet_liste) {
-	    unless ($_) { $_ = "NULL"; }
+
+	# Sjekker om trap er anhengig av enheter
+	my $avhengig = 0;
+	$sporring = "select trapkat.kat from trapkat,trap where trap.sykoid='$sykoid' and trap.id=trapkat.trapid";
+	my $finn_tilstand = $dbh_t->prepare($sporring);
+	$finn_tilstand->execute;
+	my @res = $finn_tilstand->fetchrow_array;
+	if ($res[0]) {
+	    $avhengig = 1;
 	}
+	
+	# Spør etter innlegg i varsel-tabellen som tilsvarer innkommet data
+	if ($avhengig) {
+	    $sporring = "select userid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and $kat and $ukat";
+	} else {
+	    $sporring = "select userid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0";	
+	}
+	my $finn_varsel = $dbh_t->prepare($sporring);
+	print "$sporring\n";
+	$finn_varsel->execute;
 
-	print LOG "Enhet_liste: @enhet_liste\n";
-
-	# Sjekker om vi skal sende beskjed i det hele tatt.
-	my $finn_gruppe = $dbh->prepare("SELECT id,trap,kat,ukat,eier FROM vgruppe");
-	$finn_gruppe->execute;
-
-	while (my @gruppe_liste = $finn_gruppe->fetchrow_array) {
-	    # Setter tomme variable til NULL
-	    for (@gruppe_liste) {
-		unless ($_) { $_ = "NULL"; }
+	# Legger resultat i bruker-hash
+	my %bruker = ();
+	while (my ($brukerid,$varselid) = $finn_varsel->fetchrow_array) {
+	    my @unntak = ();
+	    
+	    # Finner unntak som ikke skal legges inn.
+	    my $finn_unntak = $dbh_t->prepare("select unntak.id from unntak,trap where userid=$brukerid and unntak.trapid=trap.id and trap.sykoid='$sykoid' and status='minus' and nettelid=$nettelid");
+	    $finn_unntak->execute;
+	    @unntak = $finn_unntak->fetchrow_array;
+	    if (defined($unntak[0])) {
+		print "$unntak[0]\n";
+	    } else {
+		print "Setter $brukerid\n";
+		$bruker{$brukerid} = $varselid;
 	    }
-	    #print LOG "Gruppe_liste: @gruppe_liste\n";
-	    # Hvis trap'en er den samme må vi sjekke videre
-	    if ($gruppe_liste[1] =~ /$sykoid/i) {
-		if ($gruppe_liste[2] =~ /$enhet_liste[0]|null/i && $gruppe_liste[3] =~ /$enhet_liste[1]|null/i && $gruppe_liste[4] =~ /$enhet_liste[2]|null/i) {
-		    print LOG "Alle sjekkene gikk gjennom, skal sende beskjed til gruppe $gruppe_liste[0]\n";
-		    $beskjedbool = 1;
-		    $gruppeid = $gruppe_liste[0];
-		    last;
+	}
+	$finn_varsel->finish;
+
+	# Spør etter innlegg i unntak-tabellen som tilsvarer innkommet data
+	$sporring = "select userid,vtypeid from unntak,trap where unntak.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and status='pluss' and nettelid=$nettelid";
+	$finn_varsel = $dbh_t->prepare($sporring);
+	print "$sporring\n";
+	$finn_varsel->execute;
+
+	while (my ($brukerid,$varselid) = $finn_varsel->fetchrow_array) {
+	    $bruker{$brukerid} = $varselid;
+	}
+	$finn_varsel->finish;
+
+	my %mail_liste;
+	my %sms_liste;
+	my %delay_liste;
+
+	my @brukere = keys(%bruker);
+	for (@brukere) {
+	    my $orgrett = 0;
+	    my $brukerid = $_;
+	    my $varselid = $bruker{$_};
+	    print "$brukerid,$varselid\n";
+
+	    # Hvis eier eksisterer, henter alle org som bruker er med i og sender beskjed
+	    # hvis han er med i en, hvis ikke gjør ingenting.
+	    if ($eier) {
+		# Hent alle org bruker er med i
+		my $hent_useriorg = $dbh_t->prepare("select orgid,navn from useriorg,org where userid=$brukerid and orgid=id");
+		$hent_useriorg->execute;
+		while (my $res = $hent_useriorg->fetchrow_hashref) {
+		    if ($res->{navn} eq $eier) {
+			print "$brukerid er med i $eier: $res->{navn}\n";
+			$orgrett = 1;
+		    } else {
+			print "$brukerid er IKKE med i $eier: $res->{navn}\n";
+		    }
+		}
+	    }
+
+	    # Hvis bruker har rett org-tilhørighet til denne enhet, eller
+	    # trap er uavhengig av enheter (mao vi bryr oss ikke om eier)
+	    if (!$eier || $orgrett || !$avhengig) {
+		# Henter info om bruker NB!!!! husk databasene
+		my $hent_brukerinfo = $dbh_t->prepare("select * from user where id=$brukerid");
+		$hent_brukerinfo->execute;
+		my $brukerinfo = $hent_brukerinfo->fetchrow_hashref;
+
+		# Legger varslet i den riktige listen
+		my $status = $brukerinfo->{status};
+		my $mail = $brukerinfo->{mail};
+		unless ($varseltype{$varselid} =~ /fri/i || $status =~ /fri/i) {
+		    if ($varseltype{$varselid} =~ /mail/i) {
+			$mail_liste{$brukerid} = $mail;
+		    }
+		    if ($varseltype{$varselid} =~ /dsms/i) {
+			$delay_liste{$brukerid}++;
+		    } elsif ($varseltype{$varselid} =~ /sms/i) {
+			$sms_liste{$brukerid}++;
+		    }
 		}
 	    }
 	}
-    }
+	$finn_varsel->finish;
 
-    # Hvis vi skal sende beskjeder kjøres denne.
-    if ($beskjedbool) {
-	print LOG "\nFinner ut hvem vi skal sende beskjed til...\n";
-	# Må finne ut til hvem vi skal sende beskjed
-	my $finn_brukere = $dbh->prepare("SELECT id,varseltype,mail,tlf,status from user,varsel where gruppeid=$gruppeid AND varsel.userid=user.id");
-	$finn_brukere->execute;
-
-	while (my($brukerid,$varseltype,$mail,$tlf,$status) = $finn_brukere->fetchrow_array) {
-	    unless ($varseltype =~ /fri/i || $status =~ /fri/i) {
-		if ($varseltype =~ /mail/i) {
-		    push @mail_liste, $mail;
-		}
-		if ($varseltype =~ /dsms/i) {
-		    push @delay_liste, $brukerid;
-		} elsif ($varseltype =~ /sms/i) {
-		    push @sms_liste, $brukerid;
-		}
-	    }
-	} # while
-
-	# Traverserer alle lister og sender tilhørende beskjeder
-	for (@mail_liste) {
+	for (keys (%mail_liste)) {
 	    # Sender mail
-	    &send_mail($_);
+#	    &send_mail($mail_liste{$_});
+	    print "Sender mail til $mail_liste{$_}\n";
 	}
-	for (@sms_liste) {
+	for (keys (%sms_liste)) {
 	    # Sender sms, dvs. legger melding inn i database
-	    &send_sms($_);
+#	    &send_sms($_);
+	    print "Sender sms til $_\n";
 	}
-	for (@delay_liste) {
+	for (keys (%delay_liste)) {
 	    # Sender delayed melding.
 	    # Må sjekke for hver bruker hva han er satt opp på
-	    my $sporring = $dbh->prepare("Select dsms_fra,dsms_til from user where id=?");
+	    my $sporring = $dbh_t->prepare("Select dsms_fra,dsms_til from user where id=?");
 	    $sporring->execute($_);
 	    
 	    my ($fra,$til) = $sporring->fetchrow_array;
@@ -622,16 +657,13 @@ sub sendAlarm {
 	    chomp (my $tid=`date +%H%M%S`);
 
 	    if (($fra > $tid) && ($til < $tid)) {
-		print LOG "Sender beskjed til $_\n";
-		&send_sms($_);
+#		&send_sms($_);
+		print "Sender sms til $_\n";
 	    } else {
-		print LOG "Sender ikke sms-beskjed til $_: $fra > $tid > $til\n";
+		print "Sender ikke sms-beskjed til $_: $fra > $tid > $til\n";
 	    }
-
 	    $sporring->finish;
 	}
-    } else {
-	# Gjør ingenting hvis ikke beskjedbool er satt.
     }
 
 }
@@ -752,23 +784,14 @@ sub sjekkDB {
 sub hentsuboid {
     
     my $oid = shift @_;
-    my $funnet = 0;
-    my @temparray;
     my @liste;
     
-    open (FIL, "/home/trapdet/etc/TrapDetect.conf") || die "Kunne ikke aapne fil\n$!\n";
-    while (<FIL>) {
-	if (/$oid/gi) {
-	    $funnet = 1;
-	} elsif ($funnet && $_ !~ /^-/) {
-	    @temparray = split;
-	    push @liste, $temparray[1];
-	} elsif (/^-/ && $funnet) {
-	    last;
-	}
+    my $hent_suboid = $dbh_t->prepare("select navn from subtrap,trap where trapid=trap.id and trap.syknavn='$oid'");
+    $hent_suboid->execute;
+    while (my @res = $hent_suboid->fetchrow_array) {
+	push @liste,$res[0];
     }
-    
-    close FIL;
+    $hent_suboid->finish;
     
     return @liste;
 }
@@ -819,7 +842,8 @@ sub leggInnStatus {
 	print LOG "$trapsource\n$trap\n$trapdescr\n$nettelid\n";
     }
 
-    my $ok = $dbh->do("insert into status (trapsource,trap,trapdescr,tilstandsfull,nettelid,fra) values ('$trapsource','$trap','$trapdescr','$tilstandsfull',$nettelid,now())");
+    my $ok = 1;
+#    my $ok = $dbh->do("insert into status (trapsource,trap,trapdescr,tilstandsfull,nettelid,fra) values ('$trapsource','$trap','$trapdescr','$tilstandsfull',$nettelid,now())");
 
     if ($ok) {
 	print LOG "Innlegg lagt i DB\n";
@@ -835,7 +859,7 @@ sub leggInnStatus {
 sub slettFraDB {
 
     my $id = shift;
-    $dbh->do("DELETE FROM status WHERE id=$id");
+#    $dbh->do("DELETE FROM status WHERE id=$id");
 
 }
 
@@ -846,7 +870,7 @@ sub slettFraDB {
 sub friskmeld {
 
     my $id = shift;
-    $dbh->do("UPDATE status SET til=now() WHERE id=$id");
+#    $dbh->do("UPDATE status SET til=now() WHERE id=$id");
 
 }
 
@@ -877,9 +901,10 @@ sub send_mail {
     
     $mail{'from'} = "TrapDetect <nettstotte\@itea.ntnu.no>";
     $mail{'smtp'} = 'bigbud.itea.ntnu.no';
-    
-    if (sendmail %mail) { print "Mail sent OK.\n" }
-    else { print "Error sending mail: $Mail::Sendmail::error \n" }
+
+    print LOG "Mail sent, OK\n";
+#    if (sendmail %mail) { print LOG "Mail sent OK.\n" }
+#    else { print LOG "Error sending mail: $Mail::Sendmail::error \n" }
 }
 
 ##################################################
@@ -906,7 +931,8 @@ sub send_sms {
     # Legger meldingen inn i databasen
     print LOG "Legger meldingen inn i databasen...";
 
-    my $ok = $dbh->do("INSERT INTO smsutko (userid, tidspunkt, melding, sendt) VALUES ('$brukerid', now(), '$formatert_melding', 'N')");
+    my $ok = 1;
+#    my $ok = $dbh->do("INSERT INTO smsutko (userid, tidspunkt, melding, sendt) VALUES ('$brukerid', now(), '$formatert_melding', 'N')");
 
     if ($ok) {
 	print LOG "\tFERDIG\n";
@@ -958,7 +984,7 @@ sub format_sms {
     my $innlegg = "";
 
     # Leser inn formateringsinfo fra fil.
-    open (FIL, "/home/trapdet/etc/smsconfig") or die "Kunne ikke åpne fil $!\n";
+    open (FIL, "$smsconfig") or die "Kunne ikke åpne fil $!\n";
     while (<FIL>) {
 	# Hopper over kommentarer
 	unless (/^\#/) {
