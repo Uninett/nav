@@ -1,13 +1,11 @@
 """
-$Id: rrd.py,v 1.5 2003/06/25 15:04:44 magnun Exp $
+$Id: rrd.py,v 1.5 2003/06/25 15:04:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 Module for creating and updating rrd-objects
 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen
-
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
 Author: Erik Gorset	<erikgors@stud.ntnu.no>
-        Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
 
@@ -79,15 +77,13 @@ def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
 	else:
 		filename = '%s.rrd' % (sysname)
 		# typically ludvig.ntnu.no.rrd
-
-	filename = os.path.join(RRDDIR, filename)
-	os.path.exists(filename) or create(filename, netboxid, serviceid,handler)
+	
+	os.path.exists(os.path.join(RRDDIR, filename)) or create(filename, netboxid, serviceid,handler)
 	if status == event.Event.UP:
 		rrdstatus = 0
 	else:
 		rrdstatus = 1
-		responsetime = ''
 	
-	rrdParam = (filename,'%s:%i:%s' % (time, rrdstatus, responsetime))
+	rrdParam = (os.path.join(RRDDIR,filename),'%s:%i:%s' % (time, rrdstatus, responsetime))
 	rrd.update(*rrdParam)
 	debug("Updated %s" % filename, 7)

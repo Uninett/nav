@@ -69,6 +69,7 @@ class AbstractChecker:
 		self.setArgs(service['args'])
 		self.setVersion(service['version'])
 		self.setSysname(service['sysname'])
+		self.setDeviceid(service['deviceid'])
 		# This is (and should be) used by all subclasses
 		self.setPort(int(service['args'].get('port', port)))
 		self.setStatus(status)
@@ -110,26 +111,40 @@ class AbstractChecker:
 
 		if status != self.getStatus():
 			debug("%-20s -> %s, %s" % (service, status, info),1)
-			newEvent=event.Event(self.getServiceid(),self.getNetboxid(),self.getType(),status,info)
-			newEvent.setSysname(self.getSysname())
+			newEvent=event.Event(self.getServiceid(),
+					     self.getNetboxid(),
+					     self.getDeviceid(),
+					     event.Event.serviceState,
+					     "serviceping",
+					     status,
+					     info
+					     )
+
 			# Post to the NAV alertq
 			self.db.newEvent(newEvent)
-
-			# Send an mail while we are waiting for the
-			# NAV alertengine to function properly
-			# self.alerter.put(newEvent)
 			self.setStatus(status)
 		
 		if version != self.getVersion() and self.getStatus() == event.Event.UP:
-			newEvent=event.Event(self.getServiceid(),self.getNetboxid(),
-					     self.getType(), status, info,
-					     eventtype="version", version=self.getVersion())
+			newEvent=event.Event(self.getServiceid(),
+					     self.getNetboxid(),
+					     self.getDeviceid(),
+					     "version",
+					     "serviceping",
+					     status,
+					     info,
+					     version=self.getVersion()
+					     )
 			self.db.newEvent(newEvent)
 
 		try:
-			rrd.update(self.getNetboxid(), self.getSysname(), 'N',
-				   self.getStatus(), self.getResponsetime(), self.getServiceid(),
-				   self.getType())
+			rrd.update(self.getNetboxid(),
+				   self.getSysname(),
+				   'N',
+				   self.getStatus(),
+				   self.getResponsetime(),
+				   self.getServiceid(),
+				   self.getType()
+				   )
 		except Exception,e:
 			debug("rrd update failed for %s [%s]" % (service,e),3)
 		self.setTimestamp()
@@ -157,12 +172,17 @@ class AbstractChecker:
 	def getServiceid(self):
 		"""Returns the serviceid """
 		return self._serviceid
-	def setNetboxid(self,boksid):
+	def setNetboxid(self,netboxid):
 		"""Sets the netboxid according to the database """
-		self._boksid = boksid
+		self._netboxid = netboxid
 	def getNetboxid(self):
 		"""Returns the netboxid """
-		return self._boksid
+		return self._netboxid
+	def setDeviceid(self, deviceid):
+		"""Sets the deviceid"""
+		self._deviceid=deviceid
+	def getDeviceid(self):
+		return self._deviceid
 	def getResponsetime(self):
 		"""Returns the responsetime of this service """
 		return self._usage

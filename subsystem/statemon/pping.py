@@ -9,11 +9,7 @@ Copyright (c) 2002 by NTNU, ITEA
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
-#LIBDIR="/usr/local/nav/navme/lib/python"
 import os
-#if LIBDIR not in os.sys.path:
-#    os.sys.path.append(LIBDIR)
-
 import signal
 import getopt
 import time
@@ -25,9 +21,9 @@ from nav.statemon import db
 from nav.statemon import config
 from nav.statemon import circbuf
 from nav.statemon import debug
+from nav.statemon.event import Event
 from nav.statemon.netbox import Netbox
 from nav.statemon.output import color
-
 
 class pinger:
     def __init__(self, **kwargs):
@@ -117,7 +113,14 @@ class pinger:
         debug.debug("Starts reporting %i hosts as down" % len(reportDown),7)
         for netboxid in reportDown:
             netbox = self.netboxmap[netboxid]
-            self.db.pingEvent(netbox, "DOWN")
+            newEvent = Event(0,
+                             netbox.netboxid,
+                             netbox.deviceid,
+                             Event.boxState,
+                             "pping",
+                             Event.DOWN
+                             )
+            self.db.newEvent(newEvent)
             debug.debug("%s marked as down." % netbox)
         #Rapporter bokser som har kommet opp
         debug.debug("Starts reporting %i hosts as up" % len(reportUp),7)
@@ -127,7 +130,14 @@ class pinger:
             except:
                 debug.debug("Netbox %s is no longer with us..." % netboxid)
                 continue
-            self.db.pingEvent(netbox, "UP")
+            newEvent = Event(0,
+                             netbox.netboxid,
+                             netbox.deviceid,
+                             Event.boxState,
+                             "pping",
+                             Event.UP
+                             )
+            #self.db.newEvent(newEvent, "pping")
             debug.debug( "%s marked as up." % netbox)
 
     def main(self):

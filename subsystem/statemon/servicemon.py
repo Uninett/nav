@@ -7,12 +7,7 @@ Copyright (c) 2002 by NTNU, ITEA nettgruppen
 
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
-
-#LIBDIR="/usr/local/nav/navme/lib/python"
-import os, os.path, nav.path
-#if LIBDIR not in os.sys.path:
-#    os.sys.path.append(LIBDIR)
-
+import os
 import types
 import time
 import getopt
@@ -21,6 +16,11 @@ import gc
 import threading
 import signal
 
+try:
+    import nav.path
+except:
+    # Not properly installed
+    pass
 
 from nav.statemon import RunQueue
 from nav.statemon import abstractChecker
@@ -55,7 +55,6 @@ class controller:
         Dumps the current status to a file.
         """
         filename = os.path.join(nav.path.webroot, "services/status.txt")
-        #filename = "/var/www/html/services/status.txt"
         try:
             outputfile = open(filename, 'w')
         except:
