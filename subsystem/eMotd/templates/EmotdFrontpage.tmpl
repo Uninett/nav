@@ -1,123 +1,36 @@
-
 #extends nav.web.templates.EmotdTemplate
 
 #attr numberOfMessagesShown = 15
 
+#def $makeMenu
+<div>
+	<ul style="list-style-type:none;marin=0;padding:0;">
+#for $item in $menu:
+#if $item.this:
+		<li style="display: block;float: left;text-align: center;padding: 0;margin: 0; width:100px;">$item.text</li>
+#else:
+		<li style="display: block;float: left;text-align: center;padding: 0;margin: 0; width:100px;"><a href="$item.link">$item.text</a></li>
+#end if
+#end for
+	</ul>
+</div>
+#end def
 
 #block content
 $makeMenu()
-#set $antemotds = len($emotds)
 	<h1>$title</h1>
-#if $antemotds == 0
-#set $m = "messages"
-#set $n = "No"
-#elif $antemotds == 1
-#set $m = "message"
-#set $n = $antemotds
-#else
-#set $m = "messages"
-#set $n = $antemotds
-#end if
-               <p>$n $statustype $m</p>
+
 ##block errormessage
 ##end block
 
 <ul style="list-style-type:none;margin:0px;padding:0px;">
-  #for $message in $emotds
-	<li style="margin-bottom:8px"><table>
-      <tr>
-        <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
-          <a href="/emotd/view/$message.emotdid">$message.title</a>
-        </td>
-        <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
-          $message.last_changed by $message.author
-        </td>
-      </tr>
-#if $message.replaces_emotd>0
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-#if $message.replaces_title:
-        	Replaces message: <a href="/emotd/view/$message.replaces_emotd">$message.replaces_title</a>
-#else
-		Replaces message: <a href="/emotd/view/$message.replaces_emotd">$message.replaces_emotd</a>
-#end if
-        </td>
-      </tr>
-#end if
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-          Description: <br>$message.description
-#set $eq = $message.equipment
-$equipmentList($eq)
-        </td>
-      </tr>
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;background-color: #eee;">
-###if $message.own
-##	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Change</a> | <a href="/emotd/time/$message.emotdid">Maint. window</a> | <a href="/emotd/add/$message.emotdid">Add equipment</a>]</span>
-###else
-##	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Followup</a> ]</span>
-
-
-###end if
-        </td>
-      </tr>
-	</table></li>
+  #for $message in $messages
+	<li style="margin-bottom:8px">
+        	Title: <a href="/emotd/view/$message.id">$message.title</a><br />
+          	Edited: $message.last_changed by $message.author<br />
+	        Description: $message.description<br />
+		Units on maintenance: $message.units
+	</li>
   #end for
-	</ul>
+</ul>
 #end block
-
-#def $emotdlinksbox
-  $sideboxstart('EMOTD')
-  $motdlinks
-  $sideboxend()
-#end def
-
-#def motdlinks
-  $menu
-#end def
-
-#def sideboxstart($title)
-  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
-    <tr>
-      <td class="sideboxtitle">
-        $title
-      </td>
-    </tr>
-    <tr>
-      <td class="sideboxlinks">
-#end def
-
-#def sideboxend
-      </td>
-    </tr>
-  </table>
-#end def
-
-
-#block additionalCSS
-      td {
-      font-family: verdana, arial, helvetica, sans-serif;
-      font-size: 13;
-      }
-
-      td.smallfont {
-      font-size: 11;
-      }
-     
-      td.sideboxlinks {
-      font-size: 11;
-      border: 1px solid #ccc;
-      }
-
-      td.sideboxtitle {
-      font-size: 13;
-      border: 1px solid #000;
-      text-align: center;
-      background-image:url('/images/form/fill-active.gif');
-      background-color:#ccf;
-      }
-      
-$default_table_CSS
-#end block
-

@@ -72,6 +72,14 @@ def handler(req):
             output = maintenance(req,path[1])
         else:
             output = maintenance(req)
+
+    elif path[0] == 'active':
+        output = home(req,"active")   
+    elif path[0] == 'historic':
+        output = home(req,"historic")   
+    elif path[0] == 'planned':
+        output = home(req,"planned")   
+            
     elif path[0] == 'commit':
         output = commit(req)        
     elif path[0] == 'committime':
@@ -91,7 +99,7 @@ def handler(req):
     elif path[0] == 'set':
         output = placemessage(req)
     else:
-        output = view(req,"active")
+        output = home(req,"active")
 
     if output:
         req.content_type = "text/html"
@@ -102,23 +110,27 @@ def handler(req):
 
 class MenuItem:
 
-    def __init__(self,link,text):
+    def __init__(self,link,text,this=""):
         self.link = BASEPATH+link
         self.text = text
+        if this == link:
+            self.this = 1
+        else:
+            self.this = 0
         
-def getMenu(req):
+def getMenu(user,this):
     # Only show menu if logged in user
     # Should have some fancy icons and shit
     menu = []
-    menu.append(MenuItem("view/active","Active"))
-    if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
-        menu.append(MenuItem("view/scheduled","Scheduled"))
-        menu.append(MenuItem("view/old","Old"))
+    menu.append(MenuItem("active","Active messages",this))
+    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+        menu.append(MenuItem("planned","Planned messages",this))
+        menu.append(MenuItem("historic","Historic messages",this))
 
-    menu.append(MenuItem("maintenance","Maintenance"))
-    if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
-        menu.append(MenuItem("edit","New Message"))
-        #menu.append(MenuItem("maintenance","Set on maintenance"))
+    menu.append(MenuItem("maintenance","Maintenance list"))
+    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+        menu.append(MenuItem("edit","Compose new message",this))
+        menu.append(MenuItem("add","Set on maintenance",this))
     return menu
 
 def search(req):
@@ -302,6 +314,47 @@ def messageList(view, user, menu = ""):
     return page.respond()
     #return emotds
 
+class MessageListMessage:
+    def __init__(self,id,title,description,last_changed,author,type,units):
+        self.id = int(id)
+        self.title = title
+        self.description = description
+        self.last_changed = last_changed.strftime(DATEFORMAT)
+        self.author = author
+        self.type = type
+        self.units = units
+
+def home(req,view="active"):
+    page = EmotdFrontpage()
+    user = req.session['user']
+    page.title = "%s Messages" % view.capitalize()
+    page.menu = getMenu(user,view)
+    page.messages = messagelist(user,view)
+    return page.respond()
+
+def messagelist(user,view="active"):
+    access = False
+    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+        access = True
+        
+    if access and view == "planned":
+        time = "publish_start > now()"
+    elif access and view == "historic":
+        time = "publish_end < now()"
+    else:
+        time = "publish_end > now() and publish_start < now()"
+
+    if access:
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type order by last_changed desc" % time)
+    else:
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type order by last_changed desc" % time)
+
+    messages = []
+    for (id, titile, description, last_changed, author, type, units) in database.fetchall():
+        messages.append(MessageListMessage(id, titile, description, last_changed, author, type, units))
+        
+    return messages
+    
 def equipmentlist(emotdid):
 
     sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) where emotdid=%d order by publish_end desc" % int(emotdid)
