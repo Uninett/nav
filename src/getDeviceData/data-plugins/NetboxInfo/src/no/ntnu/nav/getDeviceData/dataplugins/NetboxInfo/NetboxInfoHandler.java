@@ -5,8 +5,8 @@ import java.sql.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
 
 /**
  * DataHandler plugin for getDeviceData; provides an interface for storing
@@ -87,7 +87,7 @@ public class NetboxInfoHandler implements DataHandler {
 
 		Log.setDefaultSubsystem("NetboxInfoHandler");
 
-		String netboxid = nb.getNetboxid();
+		String netboxid = nb.getNetboxidS();
 		Map keyMap;
 		if ( (keyMap = (Map)netboxMap.get(netboxid)) == null) netboxMap.put(netboxid, keyMap = new HashMap());
 

@@ -5,9 +5,9 @@ import java.sql.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
-import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
 
 /**
  * DataHandler plugin for getDeviceData; provides an interface for storing
@@ -98,12 +98,8 @@ public class SwportHandler implements DataHandler {
 
 		try {
 
-			Iterator modules = sc.getModules();
-			// Process returned swports
-			//outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
-
-			while (modules.hasNext()) {
-				SwModule md = (SwModule)modules.next();
+			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
+				SwModule md = (SwModule)swModules.next();
 				
 				// OK, først sjekk om denne porten er i swport fra før
 				String moduleKey = nb.getNetboxid()+":"+md.getKey();

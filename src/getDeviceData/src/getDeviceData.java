@@ -16,6 +16,7 @@ import no.ntnu.nav.logger.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 
@@ -38,30 +39,13 @@ class getDeviceData
 	public static int NUM_THREADS = 16;
 	public static final int SHOW_TOP = 25;
 
-	public static final boolean ERROR_OUT = true;
-	public static final boolean VERBOSE_OUT = true;
-	public static final boolean DEBUG_OUT = true;
-
-	public static final boolean DB_UPDATE = true;
 	public static final boolean DB_COMMIT = true;
 
 	// END USER CONFIG //
 
 	// Felles datastrukturer som bare skal leses fra
-	//static HashMap macBoksid = new HashMap();
-	//static HashMap boksidName = new HashMap();
-	//static HashMap boksidKat = new HashMap();
-	//static HashMap sysnameMap = new HashMap();
 	static LinkedList bdFifo = new LinkedList();
 	static Map bdMap = new HashMap();
-
-	// Boksdisk / boksinterface
-	static HashMap boksDiskMap;
-	static HashMap boksInterfaceMap;
-
-	// module / swport
-	static HashMap moduleMap;
-	static HashMap deviceMap = new HashMap();
 
 	static int threadNumDigits = String.valueOf(NUM_THREADS-1).length();
 
@@ -82,28 +66,27 @@ class getDeviceData
 			try {
 				NUM_THREADS = Integer.parseInt(args[0]);
 			} catch (NumberFormatException e) {
-				// Assume this argument is the config file
-				File f = new File(args[0]);
-				if (f.exists() && !f.isDirectory()) {
-					cf = f.getAbsolutePath();
-					outl("Using configfile: " + f.getAbsolutePath());
-				}
-
+				// Assume this argument is a netbox name
+				qBoks = args[1].trim();
+				System.out.println("Overriding netbox: " + qBoks);
 				// Is next arg number of threads?
 				if (args.length > 1) {
 					try {
 						NUM_THREADS = Integer.parseInt(args[1]);
 					} catch (NumberFormatException ee) {
-						// Assume this argument is a boksname
-						qBoks = args[1].trim();
-						outl("Querying netbox: " + qBoks);
-
+						// Assume this argument is the name of the config file
+						File f = new File(args[0]);
+						if (f.exists() && !f.isDirectory()) {
+							cf = f.getAbsolutePath();
+							System.out.println("Overriding configfile: " + f.getAbsolutePath());
+						}
 						// Is next arg number of threads?
 						if (args.length > 2) {
 							try {
 								NUM_THREADS = Integer.parseInt(args[2]);
+								System.out.println("Overriding number of threads: " + NUM_THREADS);
 							} catch (NumberFormatException eee) {
-								outl("Error, unrecognized argument: " + args[2]);
+								System.out.println("Error, unrecognized argument: " + args[2]);
 								return;
 							}
 						}
@@ -111,31 +94,33 @@ class getDeviceData
 				}
 			}
 			if (NUM_THREADS > 128) {
-				outl("Error, more than 128 threads not recommended, re-compile needed.");
+				System.out.println("Error, more than 128 threads not recommended, re-compile needed.");
 				return;
 			}
 		}
-		outl("Running with " + NUM_THREADS + " threads max.");
 
 		// Init logger
 		Log.init(navRoot + logFile, "getDeviceData");
+		Log.setDefaultSubsystem("INIT");
+
+		Log.d("INIT", "Running with " + NUM_THREADS + " threads max.");
 
 		ConfigParser cp, dbCp;
 		try {
 			if (cf == null) cf = navRoot + configFile;
 			cp = new ConfigParser(cf);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + cf);
+			Log.e("INIT", "Could not read config file: " + cf);
 			return;
 		}
 		try {
 			dbCp = new ConfigParser(navRoot + dbConfigFile);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + navRoot + dbConfigFile);
+			Log.e("INIT", "Could not read config file: " + navRoot + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
-			errl("Error, could not connect to database!");
+			Log.e("INIT", "Could not connect to database!");
 			return;
 		}
 
@@ -146,8 +131,6 @@ class getDeviceData
 			QueryNetbox.minBoksRunInterval = 60; // Default is every 60 minutes
 		}
 		QueryNetbox.minBoksRunInterval *= 60 * 1000; // Convert from minutes to milliseconds
-		// DEBUG
-		QueryNetbox.minBoksRunInterval = 15000; // Every 15 secs
 
 		int loadDataInterval;
 		try {
@@ -165,43 +148,19 @@ class getDeviceData
 
 
 		// Sett datastrukturer for alle tråder
-		QueryNetbox.ERROR_OUT = ERROR_OUT;
-		QueryNetbox.VERBOSE_OUT = VERBOSE_OUT;
-		QueryNetbox.DEBUG_OUT = DEBUG_OUT;
-		QueryNetbox.DB_UPDATE = DB_UPDATE;
 		QueryNetbox.DB_COMMIT = DB_COMMIT;
-
-		QueryNetbox.setConfigParser(cp);
-
-		QueryNetbox.setModuleMap(moduleMap);
-		QueryNetbox.setDeviceMap(deviceMap);
-		//QueryNetbox.setSwportDataMap(swportDataMap);
-		QueryNetbox.setBoksDiskMap(boksDiskMap);
-		QueryNetbox.setBoksInterfaceMap(boksInterfaceMap);
 
 		QueryNetbox.setBdFifo(bdFifo);
 		QueryNetbox.setBdMap(bdMap);
 
-		// Indikerer om en tråd er ferdig
-		QueryNetbox.initThreadDone(NUM_THREADS);
-
-		// Lag trådene
-		//long beginTime = System.currentTimeMillis();
-
 		threads = new Thread[NUM_THREADS];
-		//int digits = String.valueOf(NUM_THREADS-1).length();
-
-		idleThreads = new Stack();
-		QueryNetbox.setIdleThreads(idleThreads);
-		for (int i=NUM_THREADS-1; i >= 0; i--) {
-			idleThreads.push(new Integer(i));
-		}
 
 		// Set up the plugin monitor
 		Map dataClassMap = new HashMap();
 		Map deviceClassMap = new HashMap();
-		QueryNetbox.setDataClassMap(dataClassMap);
-		QueryNetbox.setDeviceClassMap(deviceClassMap);
+
+		QueryNetbox.init(NUM_THREADS, cp, dataClassMap, deviceClassMap);
+
 		Timer pluginTimer = new Timer(true);
 		PluginMonitorTask pmt = new PluginMonitorTask("data-plugins", dataClassMap, "device-plugins", deviceClassMap);
 		// Load all plugins
@@ -209,93 +168,9 @@ class getDeviceData
 		// Check for new plugin every 5 seconds
 		pluginTimer.schedule(pmt, 5 * 1000, 5 * 1000);
 
-		outld("Starting timer for boks query scheduling...");
+		Log.d("INIT", "Starting timer for boks query scheduling");
 		timer = new Timer();
 		timer.schedule( netboxTimer = new NetboxTimer(), 0);
-
-		/*
-		// Sleep forever
-		while (true) {
-			try {
-				Thread.currentThread().sleep(5000);
-			} catch (InterruptedException e) {
-			}
-		}
-		*/
-
-
-
-		/*
-		for (int i=0; i < NUM_THREADS; i++) {
-			threads[i] = new QueryNetbox(i, format(i, digits));
-			threads[i].start();
-		}
-
-		for (int i=0; i < NUM_THREADS; i++) {
-			try {
-				threads[i].join();
-			} catch (InterruptedException e) {
-				errl("Error, got InterruptedException: " + e.getMessage() );
-			}
-		}
-		*/
-		//long usedTime = System.currentTimeMillis() - beginTime;
-
-		// Sjekk om det er port-innslag som ikke lenger er tilstedet
-		/*
-		Iterator iter = swportDataMap.values().iterator();
-		int remcnt=0;
-		while (iter.hasNext()) {
-			HashMap hm = (HashMap)iter.next();
-			String boksid = (String)hm.get("boksid");
-			if (!safeCloseBoksid.contains(boksid)) continue;
-
-			String typegruppe = (String)boksidTypegruppe.get(boksid);
-
-			if (typegruppe.startsWith("3") || typegruppe.equals("catmeny-sw") || typegruppe.equals("cat1900-sw")) {
-				// Slett enheten
-				remcnt++;
-				//System.err.println("Want to delete: " + hm.get("boksid") + " Modul: " + hm.get("modul") + " Port: " + hm.get("port") + " Vlan: " + hm.get("vlan"));
-
-			}
-
-		}
-		outl("Missing data from " + remcnt + " ports");
-		*/
-
-		/*
-		// Lag rapport på tid brukt på de forskjellige boksene
-		ArrayList boksReport = QueryNetbox.boksReport;
-		Collections.sort(boksReport);
-
-		digits = String.valueOf(Math.min(SHOW_TOP, boksReport.size())).length();
-		for (int i=0; i < SHOW_TOP && i < boksReport.size(); i++) {
-			BoksReport br = (BoksReport)boksReport.get(i);
-			outl(format(i+1, digits)+": " + formatTime(br.getUsedTime()) + ", " + br.getBoksData().sysName + " (" + br.getBoksData().boksType + ") (" + br.getBoksData().ip + ")");
-		}
-		*/
-
-		/*
-		Database.closeConnection();
-		//outl("All done, time used: " + formatTime(usedTime) + ".");
-
-		// Create a job-finished file
-		try {
-			String curDir = System.getProperty("user.dir");
-			char sep = File.separatorChar;
-			File f = new File(curDir+sep+"job-finished");
-			f.createNewFile() ;
-		} catch (SecurityException e) {
-			errl("Error, cannot write to user.dir: " + e.getMessage() );
-		} catch (IOException e) {
-			errl("Error, got IOException: " + e.getMessage() );
-		}
-
-		outflush();
-		errflush();
-		System.exit(0);
-		*/
-
 
 	}
 
@@ -315,26 +190,30 @@ class getDeviceData
 
 	public static void checkBdQ()
 	{
-		outld("Checking queue for ripe boksDatas");
+		//outld("Checking queue for ripe boksDatas");
 		synchronized (bdFifo) {
-			outld("  Elements in queue: " + bdFifo.size());
+			//outld("  Elements in queue: " + bdFifo.size());
 			if (bdFifo.size() == 0) return;
 			NetboxImpl nb = (NetboxImpl)bdFifo.getFirst();
 			if (nb.nextRun() > System.currentTimeMillis()) {
 				// Not yet ripe
-				outld("  Head of queue not yet ripe, next run in: " + (nb.nextRun() - System.currentTimeMillis()) + " ms");
+				//outld("  Head of queue not yet ripe, next run in: " + (nb.nextRun() - System.currentTimeMillis()) + " ms");
 				timerSched(nb.nextRun() - System.currentTimeMillis());
 				return;
 			}
 
 			// Start a new thread to handle this
-			outd("  Head of queue ripe, starting new thread to handle this...");
+			//outd("  Head of queue ripe, starting new thread to handle this...");
 			int tnum;
 			synchronized (idleThreads) {
-				if (idleThreads.empty()) { outld("no idle threads"); return; } // No available threads
+				if (idleThreads.empty()) {
+					// No available threads
+					Log.d("CHECK_BDQ", "Head of queue ripe, but no idle threads");
+					return;
+				} 
 				tnum = ((Integer)idleThreads.pop()).intValue();
 			}
-			outld("started thread #"+tnum);
+			//outld("started thread #"+tnum);
 
 			bdFifo.removeFirst();
 			threads[tnum] = new QueryNetbox(tnum, format(tnum, threadNumDigits), nb);
@@ -343,7 +222,7 @@ class getDeviceData
 			// Schedule next task if there is one
 			if (bdFifo.size() > 0) {
 				nb = (NetboxImpl)bdFifo.getFirst();
-				outld("  Scheduling next task, ripe in: " + (Math.max(0, nb.nextRun() - System.currentTimeMillis())) + " ms");
+				//outld("  Scheduling next task, ripe in: " + (Math.max(0, nb.nextRun() - System.currentTimeMillis())) + " ms");
 				timerSched(Math.max(0, nb.nextRun() - System.currentTimeMillis()) );
 			}
 		}
@@ -355,102 +234,15 @@ class getDeviceData
 		loadReloadableData();
 	}
 
-	/*
-	private static void loadPermanentData() throws SQLException
-	{
-		ResultSet rs;
-		long dumpBeginTime,dumpUsedTime;
-		outl("Loading permanent data from tables...");
-
-		out("  swport...");
-		moduleMap = new HashMap();
-		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
-		//ResultSetMetaData rsmd = rs.getMetaData();
-		while (rs.next()) {
-
-			ModuleData md = new ModuleData(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
-			md.setDeviceid(rs.getInt("deviceid"));
-			md.setModuleid(rs.getInt("moduleid"));
-			md.setSubmodule(rs.getString("submodule"));
-
-			int moduleid = rs.getInt("moduleid");
-			if (rs.getString("port") != null && rs.getString("port").length() > 0) {
-				do {
-					SwportData sd = new SwportData(rs.getString("port"), rs.getString("ifindex"), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
-					sd.setSwportid(rs.getInt("swportid"));
-					sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
-					sd.setHexstring(rs.getString("hexstring"));
-					md.addSwportData(sd);
-				} while (rs.next() && rs.getInt("moduleid") == moduleid);
-				rs.previous();
-			}
-
-			String key = rs.getString("netboxid")+":"+md.getKey();
-			moduleMap.put(key, md);
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		outl(dumpUsedTime + " ms.");
-
-		out("  netboxdisk...");
-		boksDiskMap = new HashMap();
-		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT netboxid,path,blocksize FROM netboxdisk");
-		while (rs.next()) {
-			String key = rs.getString("netboxid");
-			Map m;
-			if ( (m=(Map)boksDiskMap.get(key)) == null) boksDiskMap.put(key, m = new HashMap());
-			m.put(rs.getString("path"), new String[] { rs.getString("blocksize") } );
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		outl(dumpUsedTime + " ms.");
-
-		out("  netboxinterface...");
-		boksInterfaceMap = new HashMap();
-		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT netboxid,interf FROM netboxinterface");
-		while (rs.next()) {
-			String key = rs.getString("netboxid");
-			Set s;
-			if ( (s=(Set)boksInterfaceMap.get(key)) == null) boksInterfaceMap.put(key, s = new HashSet());
-			s.add(rs.getString("interf"));
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		outl(dumpUsedTime + " ms.");
+	private static void loadNetbox() throws SQLException {
 
 	}
-	*/
 
 	private static void loadReloadableData() throws SQLException
 	{
 		ResultSet rs;
 		long dumpBeginTime,dumpUsedTime;
-		outl("Re-loading data from tables...");
-
-		/*
-		// Hent kobling mellom boksid<->typegruppe
-		out("  boks...");
-		HashMap boksidTypegruppe = new HashMap();
-		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT boksid,typegruppe FROM boks JOIN type USING (typeid)");
-		while (rs.next()) {
-			boksidTypegruppe.put(rs.getString("boksid"), rs.getString("typegruppe"));
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		outl(dumpUsedTime + " ms.");
-		*/
-
-		// device
-		/*
-		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT deviceid,serial FROM device");
-		while (rs.next()) {
-			deviceMap.put(rs.getString("serial"), rs.getString("deviceid"));
-		}
-		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-		*/
-
-
+		Log.d("LOAD_RELOADABLE_DATA", "Re-loading data from tables");
 
 		String qNettel;
 
@@ -579,6 +371,7 @@ class getDeviceData
 
 		return format(h,2)+":"+format(m,2)+":"+format(s,2)+"."+format(ms,3);
 	}
+
 	private static HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md, boolean convertNull) throws SQLException {
 		HashMap hm = new HashMap();
 		for (int i=md.getColumnCount(); i > 0; i--) {
@@ -588,66 +381,31 @@ class getDeviceData
 		return hm;
 	}
 
-	private static void out(Object o) { System.out.print(o); }
-	private static void outl(Object o) { System.out.println(o); }
-	private static void outflush() { System.out.flush(); }
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
-	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
 }
 
 class QueryNetbox extends Thread
 {
-	public static boolean ERROR_OUT = true;
-	public static boolean VERBOSE_OUT = false;
-	public static boolean DEBUG_OUT = false;
-	public static boolean DB_UPDATE = false;
 	public static boolean DB_COMMIT = false;
 
+	private static ConfigParser navCp;
+	private static SortedMap nbQ;
+	private static Stack idleThreads;
+
+
+
+
 	// Felles datastrukturer som bare skal leses fra
-	/*
-	public static HashMap macBoksId;
-	public static HashMap boksIdName;
-	public static HashMap boksidKat;
-	public static HashMap sysnameMap;
-	*/
-
-	static ConfigParser navCp;
 	public static void setConfigParser(ConfigParser cp) { navCp = cp; }
-
-	static HashMap moduleMap;
-	public static void setModuleMap(HashMap h) { moduleMap=h; }
-	static HashMap deviceMap;
-	public static void setDeviceMap(HashMap h) { deviceMap=h; }
-	/*
-	static HashMap swportDataMap;
-	public static void setSwportDataMap(HashMap h) { swportDataMap=h; }
-	*/
-
-	static HashMap boksDiskMap;
-	public static void setBoksDiskMap(HashMap h) { boksDiskMap = h; }
-	static HashMap boksInterfaceMap;
-	public static void setBoksInterfaceMap(HashMap h) { boksInterfaceMap = h; }
-
-	//static HashSet safeCloseBoksid;
-	//public static void setSafeCloseBoksid(HashSet h) { safeCloseBoksid=h; }
 
 	// Køen som inneholder alle boksene, delt mellom trådene
 	static LinkedList bdFifo;
 	public static void setBdFifo(LinkedList l) { bdFifo = l; }
 	static Map bdMap;
 	public static void setBdMap(Map h) { bdMap = h; }
-	static Stack idleThreads;
-	public static void setIdleThreads(Stack s) { idleThreads = s; }
 
 	// Minimum delay mellom hver gang vi spør en boks
 	public static long minBoksRunInterval = 15 * 60 * 1000; // Default is every 15 mins.
 	//public static void setMinBoksRunInterval(long l) { minBoksRunInterval = l; }
-
-	// Hvilke tråder som er ferdig
-	static boolean[] threadDone;
 
 	// Rapport når en boks er ferdigbehandlet
 	static ArrayList boksReport = new ArrayList();
@@ -676,6 +434,20 @@ class QueryNetbox extends Thread
 
 	SimpleSnmp sSnmp = new SimpleSnmp();
 
+	public static void init(int NUM_THREADS, ConfigParser cp, Map dataCM, Map deviceCM) {
+		navCp = cp;
+		dataClassMap = dataCM;
+		deviceClassMap = deviceCM;
+
+		//threads = new Thread[NUM_THREADS];
+
+		idleThreads = new Stack();
+		for (int i=NUM_THREADS-1; i >= 0; i--) {
+			idleThreads.push(new Integer(i));
+		}
+
+	}
+
 	// Konstruktør
 	public QueryNetbox(int tnum, String id, NetboxImpl initialNb)
 	{
@@ -683,15 +455,6 @@ class QueryNetbox extends Thread
 		this.id = id;
 		this.nb = initialNb;
 	}
-
-	public static void initThreadDone(final int NUM_THREADS)
-	{
-		threadDone = new boolean[NUM_THREADS];
-		for (int i=0; i < threadDone.length; i++) {
-			threadDone[i] = false;
-		}
-	}
-
 
 	/*
 	private static String[] modulNameShorts = {
@@ -710,6 +473,8 @@ class QueryNetbox extends Thread
 
 	public void run()
 	{
+		Log.setDefaultSubsystem("QUERY_NETBOX_"+id);
+
 		long beginTime = System.currentTimeMillis();
 
 		while (true) {
@@ -720,7 +485,7 @@ class QueryNetbox extends Thread
 				if (++curBd > antBd) curBd = 0;
 			}
 
-			String netboxid = nb.getNetboxid();
+			String netboxid = nb.getNetboxidS();
 			String ip = nb.getIp();
 			String cs_ro = nb.getCommunityRo();
 			String typegroup = nb.getTypegroup();
@@ -729,7 +494,7 @@ class QueryNetbox extends Thread
 			String cat = nb.getCat();
 			int snmpMajor = nb.getSnmpMajor();
 
-			outla("T"+id+": Now working with("+netboxid+"): " + sysName + ", type="+type+", typegroup="+typegroup+", ip="+ip+" (device "+ curBd +" of "+ antBd+")");
+			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", typegroup="+typegroup+", ip="+ip+" (device "+ curBd +" of "+ antBd+")");
 			long boksBeginTime = System.currentTimeMillis();
 
 			try {
@@ -742,7 +507,7 @@ class QueryNetbox extends Thread
 				if (deviceHandler == null) {
 					throw new NoDeviceHandlerException("T"+id+":   No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + " typegroup: " + typegroup);
 				}
-				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type + " typegroup: " + typegroup);
+				Log.d("RUN", "Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type + " typegroup: " + typegroup);
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
@@ -750,8 +515,8 @@ class QueryNetbox extends Thread
 						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
 
 					} catch (TimeoutException te) {
-						outl("T"+id+":   *ERROR*, TimeoutException: " + te.getMessage());
-						outla("T"+id+":   *** GIVING UP ON: " + sysName + ", typeid: " + type + " ***");
+						Log.d("RUN", "TimeoutException: " + te.getMessage());
+						Log.w("RUN", "GIVING UP ON: " + sysName + ", typeid: " + type );
 						continue;
 					}
 
@@ -903,9 +668,9 @@ class QueryNetbox extends Thread
 					}
 					********************************/
 			} catch (NoDeviceHandlerException exp) {
-				outld(exp.getMessage());
+				Log.d("RUN", exp.getMessage());
 			} catch (Exception exp) {
-				outle("T"+id+":   QueryNetbox.run(): Fatal error, aborting. Exception: " + exp.getMessage());
+				Log.w("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
 			}
 
@@ -920,7 +685,7 @@ class QueryNetbox extends Thread
 				// Find the next boks still in our list
 				nb = (NetboxImpl)bdFifo.getFirst();
 				synchronized (bdMap) {
-					while (!bdMap.containsKey(nb.getNetboxid())) {
+					while (!bdMap.containsKey(nb.getNetboxidS())) {
 						bdFifo.removeFirst();
 						nb = (bdFifo.size() == 0) ? null : (NetboxImpl)bdFifo.getFirst();
 					}
@@ -949,7 +714,7 @@ class QueryNetbox extends Thread
 			synchronized (idleThreads) {
 				idleThreads.push(new Integer(id));
 			}
-			outld("T"+id+": Thread idle, exiting...");
+			Log.d("RUN", "Thread idle, exiting...");
 			getDeviceData.threadIdle();
 			
 			/*
@@ -983,9 +748,9 @@ class QueryNetbox extends Thread
 				}
 			}
 		} catch (InstantiationException e) {
-			outle("QueryNetbox.findHandler(): Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+			Log.w("GET_DATA_CONTAINERS", "GET_DATA_CONTAINERS", "Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		} catch (IllegalAccessException e) {
-			outle("QueryNetbox.findHandler(): IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+			Log.w("GET_DATA_CONTAINERS", "GET_DATA_CONTAINERS", "IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		}
 
 		return dcs;		
@@ -995,7 +760,7 @@ class QueryNetbox extends Thread
 		try {
 			synchronized (deviceNetboxCache) {
 				Class[] c;
-				if ( (c=(Class[])deviceNetboxCache.get(nb.getNetboxid() )) != null) {
+				if ( (c=(Class[])deviceNetboxCache.get(nb.getNetboxidS() )) != null) {
 					DeviceHandler[] dh = new DeviceHandler[c.length];
 					for (int i=0; i < c.length; i++) dh[i] = (DeviceHandler)c[i].newInstance();
 					return dh;
@@ -1035,63 +800,20 @@ class QueryNetbox extends Thread
 					j = c.length - 1;
 					for (Iterator i=alwaysHandleList.iterator(); i.hasNext(); j--) c[j] = (Class)i.next();
 					
-					synchronized (deviceNetboxCache) { deviceNetboxCache.put(nb.getNetboxid(), c); }
+					synchronized (deviceNetboxCache) { deviceNetboxCache.put(nb.getNetboxidS(), c); }
 
 					// Call ourselves; this avoids duplicating the code for instatiating objects from the classes
 					return findDeviceHandlers(nb);
 				}
 			}
 		} catch (InstantiationException e) {
-			outle("QueryNetbox.findHandler(): Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+			Log.w("FIND_DEVICE_HANDLERS", "FIND_DEVICE_HANDLERS", "Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		} catch (IllegalAccessException e) {
-			outle("QueryNetbox.findHandler(): IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+			Log.w("FIND_DEVICE_HANDLERS", "FIND_DEVICE_HANDLERS", "IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		}
 
 		return null;
 	}
-
-	private String getThreadsNotDone()
-	{
-		StringBuffer sb = new StringBuffer();
-		int startRange=0;
-		boolean markLast=false;
-
-		for (int i=0; i < threadDone.length+1; i++) {
-			if (i != threadDone.length && !threadDone[i]) {
-				if (!markLast) {
-					startRange=i;
-					markLast = true;
-				}
-			} else if (markLast) {
-				String range = (startRange==i-1) ? String.valueOf(i-1) : startRange+"-"+(i-1);
-				sb.append(","+range);
-				markLast=false;
-			}
-		}
-		if (sb.length() > 0) {
-			sb.setCharAt(0, '[');
-		} else {
-			sb.insert(0, "[");
-		}
-		sb.append("]");
-		return sb.toString();
-	}
-
-	private static void outa(String s) { System.out.print(s); }
-	private static void outla(String s) { System.out.println(s); }
-
-	private static void oute(Object s) { if (ERROR_OUT) System.out.print(s); }
-	private static void outle(Object s) { if (ERROR_OUT) System.out.println(s); }
-
-	private static void out(String s) { if (VERBOSE_OUT) System.out.print(s); }
-	private static void outl(String s) { if (VERBOSE_OUT) System.out.println(s); }
-
-	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
 
 }
 
@@ -1215,6 +937,8 @@ class PluginMonitorTask extends TimerTask
 
 	private boolean update(File pluginDir, Map fileMap, Map classMap, File[] dependFiles)
 	{
+		Log.setDefaultSubsystem("PLUGIN_MONITOR");
+
 		// The cloneMap is used to remove plugins whose .jar file is deleted
 		Map cloneMap;
 		synchronized (classMap) {
@@ -1249,10 +973,10 @@ class PluginMonitorTask extends TimerTask
 					Manifest mf = jf.getManifest();
 					Attributes attr = mf.getMainAttributes();
 					String cn = attr.getValue("Plugin-Class");
-					outld("PluginMonitorTask: New or modified jar, trying to load " + fileList[i].getName());
+					Log.d("UPDATE", "New or modified jar, trying to load " + fileList[i].getName());
 
 					if (cn == null) {
-						outld("PluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
+						Log.w("UPDATE", "Jar is missing Plugin-Class manifest, skipping...");
 						continue;
 					}
 
@@ -1263,10 +987,10 @@ class PluginMonitorTask extends TimerTask
 
 						c = cl.loadClass(cn);
 					} catch (ClassNotFoundException e) {
-						errl("PluginMonitorTask:   Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						Log.w("UPDATE", "Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					} catch (NoClassDefFoundError e) {
-						errl("PluginMonitorTask:   NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						Log.w("UPDATE", "NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					}
 
@@ -1276,20 +1000,20 @@ class PluginMonitorTask extends TimerTask
 							classMap.put(fileList[i].getName(), c);
 						}
 						hasChanged = true;
-						outld("PluginMonitorTask:   OK! Loaded and added to classMap");
+						Log.d("UPDATE", "Plugin " + fileList[i].getName() + " loaded and added to classMap");
 					} else {
-						outld("PluginMonitorTask:   Failed! class " + cn + " is not an event engine plugin");
+						Log.w("UPDATE", "Failed to load plugin! Class " + cn + " is not a gDD plugin");
 					}
 				}
 			} catch (IOException e) {
-				errl("PluginMonitorTask:   IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+				Log.w("UPDATE", "IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 			}
 		}
 
 		Iterator i = cloneMap.keySet().iterator();
 		while (i.hasNext()) {
 			String fn = (String)i.next();
-			outld("PluginMonitorTask: Removing jar " + fn + " from classMap");
+			Log.d("UPDATE", "Removing jar " + fn + " from classMap");
 			synchronized (classMap) {
 				classMap.remove(fn);
 			}
@@ -1299,91 +1023,6 @@ class PluginMonitorTask extends TimerTask
 		return hasChanged;
 	}
 
-	/*
-	public void run()
-	{
-		if (!pluginDir.isDirectory()) {
-			outld("pluginMonitorTask: Error, plugins/ directory not found, exiting...");
-			System.exit(0);
-		}
-
-		Map cloneMap;
-		synchronized (deviceHandlerMap) {
-			cloneMap = (Map) ((HashMap)deviceHandlerMap).clone();
-		}
-
-		boolean clearCache = false;
-		File[] fileList = pluginDir.listFiles();
-		for (int i=0; i < fileList.length; i++) {
-			if (!fileList[i].getName().toLowerCase().endsWith(".jar")) continue;
-			cloneMap.remove(fileList[i].getName());
-
-			//if (fileList[i].getName().equals("HandleCisco.jar")) continue;
-			//outld("pluginMonitorTask: Found jar: " + fileList[i].getName());
-
-			try {
-				Long lastMod;
-				if ( (lastMod=(Long)fileMap.get(fileList[i].getName())) == null || !lastMod.equals(new Long(fileList[i].lastModified())) ) {
-					fileMap.put(fileList[i].getName(), new Long(fileList[i].lastModified()));
-
-					// Ny eller modifisert device handler
-					URL[] plugin_path = new URL[1];
-					plugin_path[0] = fileList[i].toURL();
-					URLClassLoader cl = new URLClassLoader(plugin_path);
-
-					JarFile jf = new JarFile(fileList[i]);
-					Manifest mf = jf.getManifest();
-					Attributes attr = mf.getMainAttributes();
-					String cn = attr.getValue("Plugin-Class");
-					outld("pluginMonitorTask: New or modified jar, trying to load jar " + fileList[i].getName());
-
-					if (cn == null) {
-						outld("pluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
-						continue;
-					}
-
-					Class c, deviceHandlerInterface;
-					try {
-						deviceHandlerInterface = Class.forName("no.ntnu.nav.getDeviceData.plugins.DeviceHandler");
-
-						c = cl.loadClass(cn);
-					} catch (ClassNotFoundException e) {
-						errl("PluginMonitorTask:   Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
-						continue;
-					} catch (NoClassDefFoundError e) {
-						errl("PluginMonitorTask:   NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
-						continue;
-					}
-
-					if (deviceHandlerInterface.isAssignableFrom(c)) {
-						// OK, add to list
-						synchronized (deviceHandlerMap) {
-							deviceHandlerMap.put(fileList[i].getName(), c);
-							clearCache = true;
-							outld("PluginMonitorTask:   OK! Loaded and added to deviceHandlerMap");
-						}
-					} else {
-						outld("PluginMonitorTask:   Failed! class " + cn + " does not implement DeviceHandler");
-					}
-				}
-			} catch (IOException e) {
-				errl("PluginMonitorTask:   IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
-			}
-		}
-
-		synchronized (deviceHandlerMap) {
-			Iterator i = cloneMap.keySet().iterator();
-			while (i.hasNext()) {
-				String fn = (String)i.next();
-				outld("PluginMonitorTask: Removing jar " + fn + " from deviceHandlerMap");
-				deviceHandlerMap.remove(fn);
-				fileMap.remove(fn);
-				clearCache = true;
-			}
-		}
-		if (clearCache) QueryNetbox.clearDeviceHandlerBdCache();
-	}
-	*/
 
 	class DynamicURLClassLoader extends URLClassLoader {
 		Set urlSet = new HashSet();
@@ -1397,12 +1036,6 @@ class PluginMonitorTask extends TimerTask
 			}
 		}
 	}
-
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 
 }
 

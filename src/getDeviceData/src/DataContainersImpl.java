@@ -7,6 +7,7 @@
 import java.util.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 

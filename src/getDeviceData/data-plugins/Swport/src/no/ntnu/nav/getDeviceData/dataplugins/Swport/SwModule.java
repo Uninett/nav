@@ -25,10 +25,8 @@ public class SwModule extends Module implements Comparable
 	protected String getModuleidS() { return super.getModuleidS(); }
 	protected void setModuleid(int i) { super.setModuleid(i); }
 
-	protected String getKey() {
-		return super.getKey();
-	}
-
+	// Doc in parent
+	protected String getKey() { return super.getKey(); }
 
 	void addSwport(Swport sd) { swports.put(sd.getPort(), sd); }
 	Iterator getSwports() { return swports.values().iterator(); }

@@ -5,8 +5,10 @@ import java.sql.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
+import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
+
 
 /**
  * DataHandler plugin for getDeviceData; provides an interface for storing
@@ -89,41 +91,30 @@ public class ModuleHandler implements DataHandler {
 		ModuleContainer mc = (ModuleContainer)dc;
 		if (!mc.isCommited()) return;
 
+		// Because it's possible for serial to be empty, but we can still
+		// identify the device by deviceid in module, we need to loop over
+		// all modules and check the deviceid if serial is empty.
+		for (Iterator modules = mc.getModules(); modules.hasNext();) {
+			Module md = (Module)modules.next();
+			String moduleKey = nb.getNetboxid()+":"+md.getKey();
+			Module oldmd = (Module)moduleMap.get(moduleKey);
+			if (md.hasEmptySerial()) {
+				md.setDeviceid(oldmd.getDeviceid());
+			}
+		}
+
+		// Let DeviceHandler update the device table first
+		DeviceHandler dh = new DeviceHandler();
+		dh.handleData(nb, dc);
+
 		Log.setDefaultSubsystem("ModuleHandler");
 
 		try {
 
-			Iterator modules = mc.getModules();
-			//outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
-
-			while (modules.hasNext()) {
+			for (Iterator modules = mc.getModules(); modules.hasNext();) {
 				Module md = (Module)modules.next();
 
-				// Er dette serienummeret i device-tabellen?
-				String deviceid = (String)deviceMap.get(md.getSerial());
-				boolean insertedDevice = false;
-				if (deviceid == null) {
-					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
-					// Først oppretter vi device
-					Log.i("NEW_DEVICE", "New device with serial: " + md.getSerial());
-
-					ResultSet rs = Database.query("SELECT nextval('device_deviceid_seq') AS deviceid");
-					rs.next();
-					deviceid = rs.getString("deviceid");
-
-					String[] insd = {
-						"deviceid", deviceid,
-						"serial", md.getSerial(),
-						"hw_ver", md.getHwVer(),
-						"sw_ver", md.getSwVer()
-					};
-					if (DB_UPDATE) Database.insert("device", insd);
-					insertedDevice = true;
-					deviceMap.put(md.getSerial(), deviceid);
-				}
-				md.setDeviceid(deviceid);
-
-				// OK, først sjekk om denne porten er i module fra før
+				// Check if the module is new
 				String moduleKey = nb.getNetboxid()+":"+md.getKey();
 				String moduleid;
 				Module oldmd = (Module)moduleMap.get(moduleKey);
@@ -131,29 +122,25 @@ public class ModuleHandler implements DataHandler {
 
 				if (oldmd == null) {
 					// Sett inn i module
-					Log.i("NEW_MODULE", "New module: " + md.getModule());
+					Log.i("NEW_MODULE", "deviceid="+md.getDeviceidS()+" netboxid="+nb.getNetboxid()+" module="+md.getModule()+" submodule="+md.getSubmodule());
 
-					ResultSet rs = Database.query("SELECT nextval('module_moduleid_seq') AS moduleid");
-					rs.next();
-					moduleid = rs.getString("moduleid");
-
-					String[] insm = {
-						"moduleid", moduleid,
-						"deviceid", deviceid,
-						"netboxid", nb.getNetboxid(),
+					String[] ins = {
+						"moduleid", "",
+						"deviceid", md.getDeviceidS(),
+						"netboxid", nb.getNetboxidS(),
 						"module", md.getModule(),
 						"submodule", md.getSubmodule()
 					};
-					if (DB_UPDATE) Database.insert("module", insm);
+					moduleid = Database.insert("module", ins, null);
 
 				} else {
 					moduleid = oldmd.getModuleidS();
-					if (!oldmd.equals(md)) {
+					if (!oldmd.equalsModule(md)) {
 						// Vi må oppdatere module
-						Log.i("UPDATE_MODULE", "Update moduleid: " + moduleid + " deviceid="+deviceid+" module="+md.getModule());
+						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" submodule="+md.getSubmodule());
 
 						String[] set = {
-							"deviceid", deviceid,
+							"deviceid", md.getDeviceidS(),
 							"module", md.getModule(),
 							"submodule", md.getSubmodule()
 						};
@@ -164,22 +151,6 @@ public class ModuleHandler implements DataHandler {
 					}
 				}
 				md.setModuleid(moduleid);
-
-				if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
-					// Oppdater device
-					Log.i("UPDATE_DEVICE", "Update deviceid: " + deviceid + " hw_ver="+md.getHwVer()+" sw_ver="+md.getSwVer());
-
-					String[] set = {
-						"hw_ver", md.getHwVer(),
-						"sw_ver", md.getSwVer()
-					};
-					String[] where = {
-						"deviceid", deviceid
-					};
-					if (DB_UPDATE) Database.update("device", set, where);
-				}
-
-				//outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
 
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 

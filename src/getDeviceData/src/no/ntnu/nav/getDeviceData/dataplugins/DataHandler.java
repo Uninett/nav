@@ -2,7 +2,7 @@ package no.ntnu.nav.getDeviceData.dataplugins;
 
 import java.util.*;
 
-import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
+import no.ntnu.nav.getDeviceData.Netbox;
 
 /**
  * <p> The DataHandler interface must be implemented by all data

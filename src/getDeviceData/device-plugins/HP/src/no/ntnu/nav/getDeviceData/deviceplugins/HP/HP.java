@@ -5,6 +5,7 @@ import java.util.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
@@ -45,7 +46,7 @@ public class HP implements DeviceHandler
 			sc = (SwportContainer)dc;
 		}
 
-		String netboxid = nb.getNetboxid();
+		String netboxid = nb.getNetboxidS();
 		String ip = nb.getIp();
 		String cs_ro = nb.getCommunityRo();
 		String typegroup = nb.getTypegroup();

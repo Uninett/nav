@@ -35,7 +35,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 public class SwportContainer extends ModuleContainer implements DataContainer {
 
 	private SwportHandler swh;
-	private List moduleList = new ArrayList();
+	private List swModuleList = new ArrayList();
 
 	protected SwportContainer(SwportHandler swh) {
 		super(null);
@@ -62,17 +62,18 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 */
 	public SwModule swModuleFactory(String serial, String hw_ver, String sw_ver, String module) {
 		SwModule m = new SwModule(serial, hw_ver, sw_ver, module);
-		addModule(m);
+		swModuleList.add(m);
 		return m;
 	}
 
+	// Doc in parent
 	protected boolean isCommited() {
 		return super.isCommited();
 	}
 
-	Iterator getModules() {
-		Collections.sort(moduleList);
-		return moduleList.iterator();
+	Iterator getSwModules() {
+		Collections.sort(swModuleList);
+		return swModuleList.iterator();
 	}
 
 

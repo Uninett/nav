@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.deviceplugins;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
 
 /**

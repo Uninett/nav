@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Module;
 import java.util.*;
 
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceContainer;
 
 /**
  * <p>
@@ -23,13 +24,14 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
  * @see ModuleHandler
  */
 
-public class ModuleContainer implements DataContainer {
+public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
 	private boolean commit = false;
 
 	protected ModuleContainer(ModuleHandler mh) {
+		super(null);
 		this.mh = mh;
 	}
 
@@ -38,14 +40,6 @@ public class ModuleContainer implements DataContainer {
 	 */
 	public String getName() {
 		return "ModuleContainer";
-	}
-
-	/**
-	 * Get a data-handler for this container; this is a reference to the
-	 * ModuleHandler object which created the container.
-	 */
-	public DataHandler getDataHandler() {
-		return mh;
 	}
 
 	/**
@@ -61,20 +55,11 @@ public class ModuleContainer implements DataContainer {
 		commit = true;		
 	}
 
-	/**
-	 * Return if the data in this container is commited.
-	 */
+	// Doc in parent
 	protected boolean isCommited() {
 		return commit;
 	}
 	
-	/**
-	 * Add a module to the internal module list.
-	 */
-	protected void addModule(Module m) {
-		moduleList.add(m);
-	}
-
 	Iterator getModules() {
 		Collections.sort(moduleList);
 		return moduleList.iterator();
