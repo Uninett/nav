@@ -1,8 +1,8 @@
 """
 database
 
-$Author: erikgors $
-$Id: database.py,v 1.11 2002/06/19 10:02:54 erikgors Exp $
+$Author: magnun $
+$Id: database.py,v 1.12 2002/06/20 14:41:29 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread
@@ -24,12 +24,12 @@ def run():
 		statement = queue.get()
 		c.execute(statement)
 def newEvent(event):
-	print "New event. Id: %i Status: %s Info: %s"% (event.id, event.status, event.info)
+	print "New event. Id: %i Status: %s Info: %s"% (event.serviceid, event.status, event.info)
 	if event.status == event.UP:
 		value = 100
 	else:
 		value = 0
-	statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr)" % (event.serviceid, event.boksid, event.type, 't',value,event.info)
+	statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr) values (%i, %i, %s, '%s', %i, '%s' " % (event.serviceid, event.boksid, event.type, 't',value,event.info)
 	queue.put(statement)
 def newVersion(serviceid,version):
 	print "New version. Id: %i Version: " % (serviceid,version)

@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: magnun $
-$Id: job.py,v 1.28 2002/06/20 14:09:51 magnun Exp $
+$Id: job.py,v 1.29 2002/06/20 14:41:29 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -105,7 +105,7 @@ class JobHandler:
 	def setServiceid(self,serviceid):
 		self._serviceid = serviceid
 	def getServiceid(self):
-		return self._id
+		return self._serviceid
 	def setBoksid(self,boksid):
 		self._boksid = boksid
 	def getBoksid(self):
@@ -271,7 +271,7 @@ class DnsHandler(JobHandler):
 
 	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get("port", 42)
-		JobHandler.__init__(self, "dns", serviceid, boksid, (ip, port), args, version)
+		JobHandler.__init__(self, "dns", serviceid, boksid, self.getAddress(), args, version)
 
 	def execute(self):
 		server=self.getAddress()
@@ -347,10 +347,10 @@ class ImapHandler(JobHandler):
 		
 	def execute(self):
 		args = self.getArgs()
-		port = args.get("port",143)
 		user = args.get("username","")
+		ip, port = self.getAddress()
 		passwd = args.get("password","")
-		m = IMAPConnection(self.timeout, self.getAddress(), port)
+		m = IMAPConnection(self.getTimeout(), ip, port)
 		m.login(user, passwd)
 		m.logout()
 		return Event.UP, "Ok"
