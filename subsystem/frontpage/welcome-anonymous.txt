@@ -1,0 +1,7 @@
+  <font size=+2>
+     Welcome to NAV at NTNU!  
+  </font><br>
+
+Her ser jeg for meg at det st&aring;r litt om nav generelt,
+samt noe informasjon om hvem som kan f&aring; seg bruker
+og hvordan disse kan gj&oslash;re det.

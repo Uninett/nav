@@ -1,0 +1,6 @@
+<a href="http://www.ntnu.no/telefonkat/finn/">Telefoni</a><br>
+<a href="http://www.itea.ntnu.no/nett/">Nettgruppe-lenker</a><br>
+<a href="http://www.itea.ntnu.no/">Felles IT-tjenester</a><br>
+<a href="http://www.orakel.ntnu.no/">Orakeltjenesten</a><br>
+<a href="http://www.ntnu.no/kart">Bygg & romplan</a><br>
+<a href="http://www.google.com">Google</a><br>
