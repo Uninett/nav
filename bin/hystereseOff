@@ -14,7 +14,7 @@
 # 02-02-2001 Sender med nettelid for de ulike enhetene - JM
 ############################################################
 
-use DBI;
+use Pg;
 use strict;
 use RRDs;
 use Mail::Mailer;
@@ -28,19 +28,19 @@ my $limit = 70;
 my $fra = -900;
 
 # SNMP-variable
-my $ipadresse = "129.241.190.200";
+my $ipadresse = "129.242.5.182";
+my $hostname = "po";
 my $prefix = '.1.3.6.1.4.1.2595.1.1';
 
 my $fil = "/home/cricket/bin/alarm";
 my $enhet = "/home/cricket/bin/alarm2";
 my $to = "bredal\@stud.ntnu.no";
 
-my $dbh = DBI->connect("manage","nett","stotte","mysql");
+my $dbh = &db_connect("manage", "manage", "eganam");
 my %ruterliste;
 
 # Kjører subrutinene
 &main;
-$dbh->disconnect;
 
 sub main {
     open (FIL, $fil) or die "Kunne ikke åpne $fil for lesing$!\n";
@@ -99,10 +99,9 @@ sub routers {
 	print "$sysname skifter navn til $dbsysname\n";
     }
 
-    my $hentnettelid = $dbh->prepare("SELECT id FROM nettel WHERE sysname='$dbsysname'");
-    $hentnettelid->execute;
+    my $hentnettelid = &db_select("SELECT boksid FROM boks WHERE sysname='$dbsysname'",$dbh);
 
-    my $nettelid = $hentnettelid->fetchrow_array;
+    my $nettelid = $hentnettelid->fetchrow;
     print "Nettelid: $nettelid\n";
 
     my $verdi;
@@ -141,10 +140,9 @@ sub switchports {
     my ($sysname, $mp) = @_;
 
     # Henter id fra nettel
-    my $hentsvitsjer = $dbh->prepare("SELECT id FROM nettel WHERE sysName='$sysname'");
-    $hentsvitsjer->execute;
+    my $hentsvitsjer = &db_select("SELECT boksid FROM boks WHERE sysName='$sysname'",$dbh);
 
-    my $id = $hentsvitsjer->fetchrow_array;
+    my $id = $hentsvitsjer->fetchrow;
 
     $hentsvitsjer->finish;
     
@@ -157,17 +155,10 @@ sub switchports {
 
 #    print "Tempmp: $tempmp\n";
 
-    my $hentporter = $dbh->prepare("SELECT portname,speed FROM swport WHERE swid=$id AND mp=$tempmp");
-    $hentporter->execute;
-    my ($portname, $speed) = $hentporter->fetchrow_array;
+    my $hentporter = &db_select("SELECT portname,speed FROM swport WHERE swportid=$id AND mp=$tempmp",$dbh);
+    my ($portname, $speed) = $hentporter->fetchrow;
 
 #    print "Hentet $portname, $speed\n";
-
-#		$mp = lc $mp;
-#		$mp =~ s/fe/fa/;
-#		$mp =~ s/ge/gi/;
-#		$mp =~ s/\./_/;
-
 
     my $verdi;
     if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
@@ -238,12 +229,11 @@ sub routerinterfaces{
 	$name =~ s/-trlos//;
     }
     
-    my $hentrutere = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='GW'");
-    $hentrutere->execute;
+    my $hentrutere = &db_select("SELECT boksid,sysName FROM boks WHERE kat='GW'",$dbh);
 
     my ($id,$sysname,$ruterid);
 
-    while (($id, $sysname) = $hentrutere->fetchrow_array) {
+    while (($id, $sysname) = $hentrutere->fetchrow) {
 	unless ($sysname =~ /psykiatri|ringve|erke/) {
 	    if ($sysname eq $name) {
 		$ruterid = $id;
@@ -260,10 +250,9 @@ sub routerinterfaces{
     $tempinterf =~ s(_)(/)g;
 
     # Henter variable brukt til sammensetning av beskrivelse.
-    my $hentporter = $dbh->prepare("SELECT speed,type,ruter,tilruter,org,kat,samband FROM subnet WHERE ruter=$ruterid AND interf='$tempinterf'");
-    $hentporter->execute;
+    my $hentporter = &db_select("SELECT g.speed,g.nettype,p.orgid,p.anvid,p.samband FROM gwport g, prefiks p WHERE boksid=$ruterid AND interf='$tempinterf'",$dbh);
 
-    my ($speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow_array;
+    my ($speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow;
 
     my @portarray = ($type, $ruterliste{$ruter}, $ruterliste{$tilruter}, $org, $kat, $samband);
 
@@ -383,7 +372,7 @@ sub sendtrap {
     push(@data, "$newprefix.4", 'string', "$nettelid");
     push(@data, "$newprefix.5", 'string', "$portname");
 
-    &snmptrap($ipadresse, $prefix, "bigbud", 6, 5, @data);
+    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
 
 }
 
@@ -402,7 +391,36 @@ sub sendtrap2 {
     push(@data, "$newprefix.3", 'string', "$sysname");
     push(@data, "$newprefix.4", 'string', "$nettelid");
 
-    &snmptrap($ipadresse, $prefix, "bigbud", 6, 5, @data);
+    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
 
     
+}
+
+sub db_connect {
+    my $db = $_[0];
+    my $user = $_[1];
+    my $pass = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
+
+sub db_select {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    return $resultat;
+}
+
+sub db_execute {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
+#die er byttet med print
+
+    return $resultat;
 }
