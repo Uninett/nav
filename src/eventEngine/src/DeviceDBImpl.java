@@ -236,7 +236,7 @@ class DeviceDBImpl implements DeviceDB
 			Database.commit();
 
 			if (noDownAlertExp) {
-				throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
+				throw new PostAlertException("DeviceDB.postAlert: DownAlert not found for: " + e);
 			}
 
 			if (removeDownAlert) removeDownAlert(e);
