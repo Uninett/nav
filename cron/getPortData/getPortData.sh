@@ -12,7 +12,7 @@ if [ "$JAVA_HOME" == "" ]; then
         JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
 
-CLASSPATH=./getBoksMacs.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
+CLASSPATH=./getPortData.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
 
 CUR_DIR=$NAV_ROOT/navme/cron/getPortData
 JOB_FINISHED=$CUR_DIR/job-finished
