@@ -5,6 +5,8 @@ exec_prefix=@exec_prefix@
 bindir=@bindir@
 localstatedir=@localstatedir@
 sysconfdir=@sysconfdir@
+libdir=@libdir@
+javalibdir=@javalibdir@
 
 NAV_CONF="${sysconfdir}/nav.conf"
 
@@ -12,20 +14,20 @@ if test -z "$JAVA_HOME"; then
     JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
 
-CUR_DIR=${bindir}/eventEngine
-LOG_DIR="${localstatedir}/log/eventEngine"
-PIDFILE=${localstatedir}/run/eventEngine.pid
+CUR_DIR=${javalibdir}/getDeviceData
+LOG_DIR="${localstatedir}/log/getDeviceData"
+PIDFILE=${localstatedir}/run/getDeviceData.pid
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
     if test -d /proc/$pidnum; then
-	echo "eventEngine already running!"
+	echo "getDeviceData already running!"
 	exit 1
     fi
 fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -cp "eventEngine.jar:$CLASSPATH" eventEngine $1 >> "$LOG_DIR/eventEngine-stdout.log" 2> error-log &
+$JAVA_HOME/bin/java -Xmx268435456 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 > "$LOG_DIR/getDeviceData-`/bin/date +%Y-%m-%d_%H-%M`.log" &
 pidno="$!"
 echo $pidno > $PIDFILE

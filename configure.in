@@ -52,13 +52,11 @@ AC_OUTPUT(Makefile
 	src/build.properties
 	src/eventEngine/eventengine
 	src/getDeviceData/getDeviceData
-	bin/getDeviceData/getDeviceData.sh
-	bin/getDeviceData/stop.sh
-	bin/eventEngine/eventEngine.sh
-	bin/eventEngine/stop.sh
-	bin/getBoksMacs/getBoksMacs.sh
-	bin/navAdmin/runAvledTopologi.sh
-	bin/navAdmin/runAvledVlan.sh
+	src/getDeviceData/getDeviceData.sh
+	src/eventEngine/eventEngine.sh
+	src/getBoksMacs/getBoksMacs.sh
+	src/webapps/navAdmin/runAvledTopologi.sh
+	src/webapps/navAdmin/runAvledVlan.sh
 	src/Makefile
 	subsystem/backup/Makefile
 	subsystem/lib-perl/Makefile

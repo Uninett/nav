@@ -15,7 +15,7 @@
   always be prepended -->
   <property file="../../build.properties"/>
 
-  <property name="jarinstdir"  location="${bindir}/navAdmin"/>
+  <property name="jarinstdir"  location="${javalibdir}/navAdmin"/>
   <property name="warinstdir"  location="${prefix}/apache/webapps"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
@@ -61,6 +61,11 @@
     <mkdir dir="${DESTDIR}${tooldir}"/>
     <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
     -->
+
+    <mkdir dir="${DESTDIR}${bindir}" />
+    <copy file="runAvledTopologi.sh" todir="${DESTDIR}${bindir}" />
+    <copy file="runAvledVlan.sh" todir="${DESTDIR}${bindir}" />
+
     <mkdir dir="${DESTDIR}${crondir}"/>
     <copy file="collect" todir="${DESTDIR}${crondir}" />
   </target>
@@ -70,6 +75,8 @@
     <!-- The navAdmin tool does not yet exist
     <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
     -->
+    <delete file="${DESTDIR}${bindir}/runAvledTopologi.sh" />
+    <delete file="${DESTDIR}${bindir}/runAvledVlan.sh" />
     <delete file="${DESTDIR}${crondir}/collect" />
   </target>
 

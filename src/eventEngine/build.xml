@@ -13,7 +13,7 @@
   always be prepended -->
   <property file="../build.properties"/>
 
-  <property name="instdir"  location="${bindir}/eventEngine"/>
+  <property name="instdir"  location="${javalibdir}/eventEngine"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
@@ -67,7 +67,10 @@
       <fileset dir="handler-plugins" includes="*.jar"/>
     </copy>
 
-    <!-- Place init script and default configuration files -->
+    <!-- Place shell scripts and default configuration files -->
+    <mkdir dir="${DESTDIR}${bindir}"/>
+    <copy file="eventEngine.sh" todir="${DESTDIR}${bindir}"/>
+
     <mkdir dir="${DESTDIR}${sysconfdir}/init.d" />
     <copy file="eventengine" todir="${DESTDIR}${sysconfdir}/init.d" />
     <copy file="eventEngine.conf" todir="${DESTDIR}${sysconfdir}" />
@@ -76,6 +79,7 @@
 
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${bindir}/eventEngine.sh"/>
     <delete dir="${DESTDIR}${instdir}/device-plugins"/>
     <delete dir="${DESTDIR}${instdir}/handler-plugins"/>
   </target>

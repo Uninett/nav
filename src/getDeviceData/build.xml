@@ -13,7 +13,7 @@
   always be prepended -->
   <property file="../build.properties"/>
 
-  <property name="instdir"  location="${bindir}/getDeviceData"/>
+  <property name="instdir"  location="${javalibdir}/getDeviceData"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
@@ -81,6 +81,9 @@
       <fileset dir="device-plugins" includes="*.jar"/>
     </copy>
 
+    <mkdir dir="${DESTDIR}${bindir}"/>
+    <copy file="getDeviceData.sh" todir="${DESTDIR}${bindir}"/>
+
     <mkdir dir="${DESTDIR}${sysconfdir}/init.d"/>
     <copy file="getDeviceData" todir="${DESTDIR}${sysconfdir}/init.d"/>
     <copy file="getDeviceData.conf" todir="${DESTDIR}${sysconfdir}"/>
@@ -88,6 +91,7 @@
 
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${bindir}/getDeviceData.sh"/>
     <delete dir="${DESTDIR}${instdir}/data-plugins"/>
     <delete dir="${DESTDIR}${instdir}/device-plugins"/>
   </target>
