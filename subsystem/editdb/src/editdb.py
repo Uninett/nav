@@ -2709,7 +2709,7 @@ class editboxType(editbox):
             
     def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'typename': [inputText(maxlength=10),REQ_TRUE],
+        f = {'typename': [inputText(),REQ_TRUE],
              'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
              'descr': [inputText(),REQ_TRUE],
              'sysobjectid': [inputText(),REQ_TRUE],
@@ -3251,14 +3251,26 @@ class structNetbox:
 
         if step == STEP_1:
             # Look up sysname in DNS
-            try:
-                sysname = gethostbyaddr(form['ip'])[0]
-            except:
-                sysname = form['ip']
+            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
+                              form['ip'])
+            ip = form['ip']
+            if result:
+                # This is an IP
+                try:
+                    sysname = gethostbyaddr(ip)[0]
+                except:
+                    sysname = ip
+            else:
+                # Not an IP, possibly a hostname
+                try:
+                    ip = gethostbyname(form['ip'])
+                    sysname = form['ip']
+                except:
+                    error = 'Invalid IP or hostname'
 
             # Check if sysname or ip is already present in db
             error = None
-            where = "ip = '" + form['ip'] + "'"
+            where = "ip = '" + ip + "'"
             box = editTables.Netbox.getAll(where)
             if box:
                 error = 'IP already exists in database'
@@ -3267,7 +3279,7 @@ class structNetbox:
                 where = "sysname = '" + sysname + "'"
                 box = editTables.Netbox.getAll(where)
                 if box:
-                    error = 'Sysname ' + sysname + ' (' + form['ip'] + \
+                    error = 'Sysname ' + sysname + ' (' + ip + \
                             ') already exists in database'
 
             if error:
@@ -3281,7 +3293,7 @@ class structNetbox:
                     # RO specified, check SNMP
                     box = None
                     try:
-                        box = initBox.Box(form['ip'],form['ro'])
+                        box = initBox.Box(ip,form['ro'])
                     except nav.Snmp.TimeOutException:
                         # No SNMP answer
                         status.errors.append('No SNMP response, check RO community')
@@ -3322,11 +3334,21 @@ class structNetbox:
                     nextStep = STEP_1
             else:
                 # SNMP not required by cat
+                message = "Got SNMP response, but can't find type in " + \
+                          "database. Type is not required for this " +\
+                          "category, but if you want you can "+\
+                          "<a href=\"" + ADD_TYPE_URL + \
+                          "?sysobjectid=%s\" " + \
+                          "target=\"_blank\">" + \
+                          "add this type to the database</a>. " +\
+                          "After adding the type, start the registration " +\
+                          "again to set correct type on box."
+
                 if len(form['ro']):
                     # RO specified, check SNMP anyway
                     box = None
                     try:
-                        box = initBox.Box(form['ip'],form['ro'])
+                        box = initBox.Box(ip,form['ro'])
                     except nav.Snmp.TimeOutException:
                         status.errors.append('No SNMP response, check RO community')
                         templateform.add(structNetbox.editbox(formData=form))
@@ -3340,23 +3362,21 @@ class structNetbox:
 
                     box.getDeviceId()
                     templateform.add(structNetbox.editbox(formData=form,disabled=True))
-                    if box.typeid:
-                        # Got type
-                        templateform.add(structNetbox.editboxSerial(gotRo=True,
-                                         serial=box.serial,
-                                         sysname=sysname,
-                                         typeid=box.typeid,
-                                         snmpversion=box.snmpversion))
-                        if box.serial:
-                            # Got serial, go directly to step 2
-                            step = STEP_2
-                        else:
-                            nextStep = STEP_2
-                    else:
-                        # Unknown type, ask user to add
+                    if not box.typeid:
+                        # Unknown type. Type is not required
                         message = message % (box.sysobjectid,)
                         templateform.add(editboxHiddenOrMessage(message))
-                        nextStep = STEP_1
+
+                    templateform.add(structNetbox.editboxSerial(gotRo=True,
+                                     serial=box.serial,
+                                     sysname=sysname,
+                                     typeid=box.typeid,
+                                     snmpversion=box.snmpversion))
+                    if box.serial:
+                        # Got serial, go directly to step 2
+                        step = STEP_2
+                    else:
+                        nextStep = STEP_2
                 else:
                     # RO blank, don't check SNMP, ask for serial
                     templateform.add(structNetbox.editbox(formData=form,disabled=True))
@@ -3433,7 +3453,25 @@ class structNetbox:
             if form.has_key('snmpversion'):
                 snmpversion = form['snmpversion']
 
-            insertNetbox(form['ip'],form['sysname'],
+            # Look up sysname in DNS
+            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
+                              form['ip'])
+            ip = form['ip']
+            if result:
+                # This is an IP
+                try:
+                    sysname = gethostbyaddr(ip)[0]
+                except:
+                    sysname = ip
+            else:
+                # Not an IP, possibly a hostname
+                try:
+                    ip = gethostbyname(form['ip'])
+                    sysname = form['ip']
+                except:
+                    error = 'Invalid IP or hostname'
+
+            insertNetbox(ip,form['sysname'],
                          form['catid'],form['roomid'],
                          form['orgid'],form['ro'],
                          form['rw'],form['deviceid'],
@@ -3442,7 +3480,7 @@ class structNetbox:
                          function)
             action = 'list'
             status.messages.append('Added box ' + form['sysname'] + ' (' + \
-                     form['ip'] + ')')
+                                   ip + ')')
 
         if not step == STEP_3: 
             # Unless this is the last step, set the nextStep
@@ -4112,7 +4150,7 @@ class bulkdefType:
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
-              ('typename',10,True,True),
+              ('typename',0,True,True),
               ('sysobjectid',0,True,True),
               ('descr',0,False,True),
               ('frequency',0,False,True),
