@@ -4,7 +4,7 @@
     SQL Initialization script
     
     Run the command:
-    psql navprofiles -f nav.sql
+    psql navprofiles -f navprofiles.sql
 =============================================
 */
 
@@ -638,7 +638,7 @@ CREATE TABLE smsq (
     phone varchar(15) not null,
     msg varchar(145) not null, 
     sent char(1) not null default 'N' 
-        check (sendt='Y' or sendt='N' or sendt='I'), 
+        check (sent='Y' or sent='N' or sent='I'), 
     smsid int, 
     timesent timestamp, 
     severity int
@@ -790,6 +790,8 @@ INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
 INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
 (2, '^/images/.*');
 INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
+(2, '^/wap/.*');
+INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
 (2, '^/$');
 INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
 (2, '^/index.py/index$');
@@ -859,10 +861,6 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 18);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (6, 18);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 18);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
-
-
-
-
 
 
 
