@@ -154,7 +154,7 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-			swm.setDescr(moduleName);
+			if (moduleName != null) swm.setDescr(moduleName);
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
