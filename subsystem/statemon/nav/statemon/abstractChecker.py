@@ -93,17 +93,21 @@ class AbstractChecker:
 		service="%s:%s" % (self.getSysname(), self.getType())
 		debug("%-20s -> %s" % (service, info), 6)
 
+		if status == event.Event.UP:
+			# Dirty hack to check if we timed out...
+			# this is needed as ssl-socket calls may hang
+			# in python < 2.3
+			if self.getResponsetime() > 2 * self.getTimeout():
+				debug("Adjusting status due to high responsetime (%s, %s)" % (service, self.getResponsetime()))
+				status = event.Event.DOWN
+				self.setResponsetime(2 * self.getTimeout())
+
 		if status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
 			delay = int(self._conf.get('retry delay',5))
 			self.runcount+=1
 			debug("%-20s -> State changed. New check in %i sec. (%s, %s)" % (service, delay, status, info))
 			# Updates rrd every time to get proper 'uptime' for the service
-			try:
-				rrd.update(self.getNetboxid(), self.getSysname(), 'N',
-					   status, self.getResponsetime(), self.getServiceid(),
-					   self.getType())
-			except Exception,e:
-				debug("rrd update failed for %s [%s]" % (service,e),3)
+			self.updateRrd()
 			priority=delay+time.time()
 			# Queue ourself
 			self.rq.enq((priority,self))
@@ -135,7 +139,11 @@ class AbstractChecker:
 					     version=self.getVersion()
 					     )
 			self.db.newEvent(newEvent)
+		self.updateRrd()	
+		self.setTimestamp()
+		self.runcount=0
 
+	def updateRrd(self):
 		try:
 			rrd.update(self.getNetboxid(),
 				   self.getSysname(),
@@ -147,9 +155,7 @@ class AbstractChecker:
 				   )
 		except Exception,e:
 			debug("rrd update failed for %s [%s]" % (service,e),3)
-		self.setTimestamp()
-		self.runcount=0
-
+		
 
 	def executeTest(self):
 		"""
