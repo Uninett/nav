@@ -2,7 +2,7 @@
 #
 # Create local directory structure for NAV
 # Should be run from /usr/local/nav
-# $Id: mklocal.sh,v 1.3 2002/07/23 10:04:53 mortenv Exp $
+# $Id: mklocal.sh,v 1.4 2002/08/27 09:55:23 mortenv Exp $
 #
 mkdir -p local/
 mkdir -p local/apache
@@ -16,7 +16,6 @@ mkdir -p local/apache/vhtdocs
 mkdir -p local/apache/htpasswd
 mkdir -p local/etc
 mkdir -p local/etc/conf
-mkdir -p local/etc/conf/live
 mkdir -p local/etc/conf/varsel
 mkdir -p local/etc/conf/syslog
 mkdir -p local/etc/conf/ragen
@@ -46,3 +45,4 @@ touch local/log/varsel/servicelog
 touch local/log/alarm
 touch local/log/alarm2
 touch local/log/syslog/cisco.log
+touch local/log/trapdetect/traplog
