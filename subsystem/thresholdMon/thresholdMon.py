@@ -111,6 +111,7 @@ def sendEvent (var, val, netbox, state, subid):
 
     query = "INSERT INTO eventqvar (eventqid, var, val) VALUES (%s, '%s', '%s')" %(eventq.eventqid, var, val)
     cur.execute(query)
+    conn.commit();
 
     if ll >= 2: print "Eventvar object saved"
     
