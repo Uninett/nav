@@ -36,6 +36,7 @@ Authors: Erlend Mjaavatten <mjaavatt@itea.ntnu.no>
 configfile = 'rrdBrowser.conf'
 import nav.db
 import nav.config
+from nav.web import urlbuilder
 import time
 import rrdtool
 import random
@@ -44,6 +45,10 @@ import os
 import warnings
 from mx import DateTime
 from os import path
+
+unitmap = {'s' : 'Seconds',
+           '%' : 'Percent',
+           }
 
 class rrd_file:
     """Class representing an rrd-file"""
@@ -58,7 +63,7 @@ class rrd_file:
         self.value    = result['value']
         self.subsystem= result['subsystem']
         self.sysname  = result['sysname']
-        cursor.close()
+        #cursor.close()
         
     def fullPath(self):
         rrd_file_path = path.join(self.path,self.filename)
@@ -68,7 +73,7 @@ class datasource:
     """ Class representing a datasource.
     Can perform simple calculations on the datasource"""
 
-    def __init__(self,rrd_datasourceid,linetype='LINE2'):
+    def __init__(self,rrd_datasourceid,linetype='LINE1'):
         cursor = nav.db.getConnection('rrdpresenter').cursor()    
         cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
         result = cursor.dictfetchone()
@@ -83,11 +88,11 @@ class datasource:
         self.legend = '%s - %s' % (self.rrd_fileobj.sysname,self.descr)
         cursor.close()
 
-
+    def getId(self):
+        return self.rrd_datasourceid
+    
     def __eq__(self,obj):
         return obj.rrd_datasourceid == self.rrd_datasourceid
-
-
     
     def __str__(self):
         return "%s - %s" % (self.name, self.descr)
@@ -100,21 +105,31 @@ class datasource:
     
 
 class presentation:
-    def __init__(self,ds=''):
+    def __init__(self, tf='day', ds=''):
         self.datasources = []
         self.none = None
-        self.graphHeight = 195
+        self.graphHeight = 150
         self.graphWidth  = 500
         self.title = ''
-        self.timeLast('day')
+        self.timeLast(tf)
+        self.timeframe = tf
+        self.showmax = 0
+        self.yaxis = 0
         if ds != '':
             self.addDs(ds)
         
 
+    def serialize(self):
+        repr = {}
+        repr['datasources'] = []
+        for ds in self.datasources:
+            repr['datasources'].append(ds.getId())
+        repr['timeframe'] = self.timeframe
+        return repr
+        
     def _updateTitle():
         for i in self.datasources:
             blapp
-
 
     def units(self):
         """Returns the units of the rrd_datasources contained in the presentation object"""
@@ -137,7 +152,10 @@ class presentation:
         return str(self.datasources)
 
     def fetchValid(self):
-        """Return the raw rrd-data as a list of dictionaries {'start':starttime in unixtime,'stop':stoptime in unixtime,'data':[data,as,list]}"""
+        """Return the raw rrd-data as a list of dictionaries
+        {'start':starttime in unixtime,
+        'stop':stoptime in unixtime,
+        'data':[data,as,list]}"""
         returnList = []
         for datasource in self.datasources:
             try:
@@ -191,7 +209,6 @@ class presentation:
                 sum += i
             sumList.append(sum)
 
-            
         try:
             return map(lambda x,y:x/y['data'].__len__(),sumList,dataList)
         except ZeroDivisionError:
@@ -223,69 +240,32 @@ class presentation:
             valid.append(ret)
         return valid
             
-    def timeLastYear(self):
-        """Set the timeframe. DEPRECATED Use timeLast('year') instead!"""
-        self.toTime   = 'now'
-        self.fromTime = 'now-1Y'
-        self.timeFrame = 'year'        
-        warnings.warn( "DEPRECATED Use timeLast('year') instead!")
-
-    def timeLastMonth(self):
-        """Set the timeframe. DEPRECATED Use timeLast('month') instead!"""        
-        self.toTime   = 'now'
-        self.fromTime = 'now-1m'
-        self.timeFrame = 'month'
-        warnings.warn( "DEPRECATED Use timeLast('month') instead!")
-    
-    def timeLastWeek(self):
-        """Set the timeframe. DEPRECATED Use timeLast('week') instead! """        
-        self.toTime   = 'now'
-        self.fromTime = 'now-1w'
-        self.timeFrame = 'week'        
-        warnings.warn( "DEPRECATED Use timeLast('week') instead!")    
-
-
-    def timeLastDay(self):
-        """Set the timeframe. DEPRECATED Use timeLast('day') instead!"""        
-        self.toTime   = 'now'
-        self.fromTime = 'now-1d'
-        self.timeFrame = 'day'        
-        warnings.warn( "DEPRECATED Use timeLast('day') instead!")    
-    
-        
-    def timeLastHour(self):
-        """Set the timeframe. DEPRECATED! Use timeLast('hour') instead!"""        
-        self.toTime   = 'now'
-        self.fromTime = 'now-1h'
-        self.timeFrame = 'hour'        
-        warnings.warn( "DEPRECATED Use timeLast('hour') instead!")    
-
-    def timeLast(self,timeframe='day'):
+    def timeLast(self,timeframe='day', value=1):
         """Sets the timeframe of the presentation
         Currently valid timeframes: year,month,week,hour,day"""
         self.toTime = 'now'
         if timeframe   == 'year':
-            self.fromTime = 'now-1Y'
+            self.fromTime = 'now-%sY' % value
             self._timeFrame = 'year'
             
         elif timeframe == 'month':
-            self.fromTime = 'now-1m'
+            self.fromTime = 'now-%sm' % value
             self._timeFrame = 'month'
 
         elif timeframe == 'week':
-            self.fromTime = 'now-1w'
+            self.fromTime = 'now-%sw' % value
             self._timeFrame = 'week'
             
         elif timeframe == 'day':
-            self.fromTime = 'now-1d'
+            self.fromTime = 'now-%sd' % value
             self._timeFrame = 'day'
             
         elif timeframe == 'hour':
-            self.fromTime = 'now-1h'
+            self.fromTime = 'now-%sh' % value
             self._timeFrame = 'hour'
             
         else:
-            self.fromTime = 'now-1d'
+            self.fromTime = 'now-%sd' % value
             self._timeFrame = 'day'            
              
     def removeAllDs(self):
@@ -297,6 +277,8 @@ class presentation:
         ds = datasource(ds_id)
         self.datasources.remove(ds)
 
+    def setYAxis(self, y):
+        self.yaxis = y
     
     def graphUrl(self):
         """Generates an url to a image representing the current presentation"""
@@ -307,10 +289,32 @@ class presentation:
             params.append('-t %s' % self.title)
         except NameError:
             pass
-        
+
+        if self.yaxis:
+            params.append('--rigid')  # Rigid boundry mode
+            params.append('--upper-limit')
+            params.append(str(self.yaxis)) # allows 'zooming'
+        units = []    
+       
         for ds in self.datasources:
-            color_max = {0:'#6b69e1',1:'#007F00',2:'#7F0000',3:'#007F7F',4:'#7F7F00',5:'#7F007F',6:'#000022',7:'#002200',8:'#220000'}            
-            color = {0:'#0F0CFF',1:'#00FF00',2:'#FF0000',3:'#00FFFF',4:'#FFFF00',5:'#FF00FF',6:'#000044',7:'#004400',8:'#440000'}
+            color_max = {0:'#6b69e1',
+                         1:'#007F00',
+                         2:'#7F0000',
+                         3:'#007F7F',
+                         4:'#7F7F00'
+                         ,5:'#7F007F'
+                         ,6:'#000022'
+                         ,7:'#002200'
+                         ,8:'#220000'}            
+            color = {0:'#0F0CFF',
+                     1:'#00FF00',
+                     2:'#FF0000',
+                     3:'#00FFFF',
+                     4:'#FFFF00',
+                     5:'#FF00FF',
+                     6:'#000044',
+                     7:'#004400',
+                     8:'#440000'}
             rrd_variable = 'avg'+str(index)
             rrd_max_variable = 'max'+str(index)
             rrd_filename = ds.fullPath()
@@ -329,7 +333,10 @@ class presentation:
                 # availability is flipped up-side down, revert
                 # and show as percentage
                 virtual += '1,%s,-' % rrd_variable
+                units.append(ds.units[1:])
             else:
+                if ds.units:
+                    units.append(ds.units)
                 virtual += rrd_variable
             if ds.units and ds.units.count("%"):
                 virtual += ',100,*'
@@ -338,7 +345,7 @@ class presentation:
 
             a = rrdtool.info(rrd_filename)
             # HVA I HELVETE SKJER HER!?!?!??!?!
-            if 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))]:
+            if self.showmax and 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))] :
                 legend += ' - MAX'
                 params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
                 virtual = 'CDEF:v_'+rrd_max_variable+'='
@@ -357,12 +364,25 @@ class presentation:
             
         if index == 0:
             params += ["COMMENT:''"]
-        #raise ' '.join(params)    
+        if units:
+            params.insert(0,'-v')
+            # Ok, join together with / if there is several
+            # different units
+            def uniq(list):
+                a = {}
+                return [x for x in list
+                        if not a.has_key(x) and a.setdefault(x,True)]
+            units = uniq(units)
+            unitStrings = []
+            for unit in units:
+                unitStrings.append(unitmap.get(unit, unit))
+            params.insert(1, '/'.join(unitStrings))
         id = self.genImage(*params)
-        return 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id='+id
+        #raise str(params)
+        #return '/browse/rrd/graph?id=%s' % id
+        return urlbuilder.createUrl(division='grapher', id=id)
 
     def genImage (self,*rrd_params):
-
         conf = nav.config.readConfig(configfile)
         id = str(random.randint(1,10**9))
         imagefilename = conf['fileprefix'] + id + conf['filesuffix']
@@ -373,7 +393,6 @@ class presentation:
             pass
         deadline = 60*10
         for i in glob.glob('/tmp/rrd*'):
-
             if os.path.getmtime(i) <  (time.time() - deadline):
                 try:
                     os.unlink(i)
@@ -383,10 +402,35 @@ class presentation:
 
 
 class page:
-    def __init__(self):
+    def __init__(self, repr=None):
+        """
+        repr must be a dict as created by serialize()
+        """
         self.presentations = []
+        self.timeframe = "day"
         self.name = ''
+        self.timeframeIndex = 1
+        if repr:
+            self.deSerialize(repr)
 
+    def deSerialize(self, repr):
+        if type(repr) != dict:
+            return
+        presentations = repr['presentations']
+        self.timeframe = repr['timeframe']
+        for pres in presentations:
+            newPres = presentation(tf=self.timeframe)
+            for ds in pres['datasources']:
+                newPres.addDs(ds)
+            self.presentations.append(newPres)
+    def serialize(self):
+        repr = {}
+        repr['presentations'] = []
+        for i in self.presentations:
+            repr['presentations'].append(i.serialize())
+        repr['timeframe'] = self.timeframe
+        repr['name'] = self.name
+        return repr
     def __repr__(self):
         return self.name
 
@@ -403,6 +447,3 @@ def graph(req,id):
     f = open(filename)
     req.write(f.read())
     f.close()
-#    f.unlink(filename)
-    
-    
