@@ -26,11 +26,11 @@ import java.net.SocketException;
 import no.ntnu.nav.logger.Log;
 
 /**
- * Wrapper around the JDBC API to simplify working with the
+ * <p> Wrapper around the JDBC API to simplify working with the
  * database. This class contains only static methods any may thus be
  * used without needing a reference to it. It is also
  * thread-safe. However, it only supports connecting to one database
- * at a time.
+ * at a time.  * </p>
  */
 public class Database
 {
@@ -68,11 +68,11 @@ public class Database
 	}
 
 	/**
-	 * Open a connection to the database. Note that simultanious
+	 * <p> Open a connection to the database. Note that simultanious
 	 * connections to different databases are not supported; if a
 	 * connection is already open when this method is called a
 	 * connection will be opened to the same database which is already
-	 * connected.
+	 * connected.  </p>
 	 *
 	 * @param serverName Name of server to connect to
 	 * @param serverPort Network port on server to connect to
@@ -115,12 +115,12 @@ public class Database
 	}
 
 	/**
-	 * When returnOnReconnectFail is true and the connection to the
+	 * <p> When returnOnReconnectFail is true and the connection to the
 	 * database is lost, only a single reconnect is tried. If it fails
-	 * control is returned to the calling method with an error.
+	 * control is returned to the calling method with an error.  </p>
 	 *
 	 * If returnOnReconnectFail is false (default) a reconnect will be
-	 * tried every few seconds until the connection is restored.
+	 * tried every few seconds until the connection is restored.  </p>
 	 *
 	 * @param b New value for returnOnReconnectFail
 	 */
@@ -146,16 +146,16 @@ public class Database
 	}
 
 	/**
-	 * Return the number of database connections. Note that this may not
-	 * reflect the number of actual connections to the database, as they
-	 * may be shared.
+	 * <p> Return the number of database connections. Note that this may
+	 * not reflect the number of actual connections to the database, as
+	 * they may be shared.  </p>
 	 *
 	 * @return the number of database connections
 	 */
 	public static synchronized int getConnectionCount() { return connectionCount; }
 
 	/**
-	 * Close the connection to the database.
+	 * <p> Close the connection to the database.  </p>
 	 */
 	public static synchronized void closeConnection() {
 		if (connectionCount == 0) return; // Ingen connection å lukke
@@ -174,10 +174,11 @@ public class Database
 	}
 
 	/**
-	 * This class keeps a buffer of Statment objects (currently 40), and when the
-	 * buffer is full the first Statment (and its ResultSet) object is closed. Use this method to
-	 * specify that the returned ResultSet for all subsequent query requests should
-	 * never be closed.
+	 * <p> This class keeps a buffer of Statment objects (currently 40),
+	 * and when the buffer is full the first Statment (and its
+	 * ResultSet) object is closed. Use this method to specify that the
+	 * returned ResultSet for all subsequent query requests should never
+	 * be closed.  </p>
 	 *
 	 * @param def specifies if the ResultSet returned for subsequent querys should never be closed.
 	 */
@@ -187,7 +188,7 @@ public class Database
 	}
 
 	/**
-	 * Execute the given query.
+	 * <p> Execute the given query.  </p>
 	 *
 	 * @param statement The SQL query statement to exectute
 	 * @return the result of the query
@@ -198,7 +199,7 @@ public class Database
 	}
 
 	/**
-	 * Execute the given query.
+	 * <p> Execute the given query.  </p>
 	 *
 	 * @param statement The SQL query statement to exectute
 	 * @param keepOpen If true, never close the returned ResultSet object
@@ -267,8 +268,8 @@ public class Database
 	}
 
 	/**
-	 * Begin a transaction. The database will not be changed until
-	 * either commit() or rollback() is called.
+	 * <p> Begin a transaction. The database will not be changed until
+	 * either commit() or rollback() is called.  </p>
 	 */
 	public static synchronized void beginTransaction() {
 		try {
@@ -279,13 +280,12 @@ public class Database
 	}
 
 	/**
-	 * If a transaction is in progress, commit it, then go back to
+	 * <p> If a transaction is in progress, commit it, then go back to
 	 * autocommit mode. Use beginTransaction() to start a new
-	 * transaction.
+	 * transaction.  </p>
 	 */
 	public static synchronized void commit() {
 		try {
-			//System.out.println("########## -COMMIT ON DATABASE- ##########");
 			connection.commit();
 			connection.setAutoCommit(true);
 		} catch (SQLException e) {
@@ -294,13 +294,12 @@ public class Database
 	}
 
 	/**
-	 * If a transaction is in progress, roll back any changes, then go
-	 * back to autocommit mode. Use beginTransaction() to start a new
-	 * transaction.
+	 * <p> If a transaction is in progress, roll back any changes, then
+	 * go back to autocommit mode. Use beginTransaction() to start a new
+	 * transaction.  </p>
 	 */
 	public static synchronized void rollback() {
 		try {
-			//System.out.println("########## -ROLLBACK ON DATABASE- ##########");
 			connection.rollback();
 			connection.setAutoCommit(true);
 		} catch (SQLException e) {
@@ -309,15 +308,16 @@ public class Database
 	}
 
 	/**
-	 * Insert a row in the database and return the sequence number used
-	 * for the row.
+	 * <p> Insert a row in the database and return the sequence number
+	 * used for the row.  </p>
 	 *
-	 * Currently this only works for the PostgreSQL database.  This
+	 * <p> Currently this only works for the PostgreSQL database.  This
 	 * method assumes that the first two elements of the fieldValues
 	 * argument are the name of the id-column which is to be assigned
-	 * the sequence number and a dummy value respectably.
+	 * the sequence number and a dummy value respectably.  </p>
 	 *
-	 * If the given seqName is null, it is assumed to be "tablename_idfieldname_seq".
+	 * <p> If the given seqName is null, it is assumed to be
+	 * "tablename_idfieldname_seq".  </p>
 	 *
 	 * @param table The name of the table in which the row is to be inserted
 	 * @param fieldValues The names of columns and the values to be inserted
@@ -339,12 +339,12 @@ public class Database
 	}
 
 	/**
-	 * Insert a row in the specified table.
+	 * <p> Insert a row in the specified table.  </p>
 	 *
-	 * The fieldValues argument must contain an even number of elements,
-	 * and each pair of consecutive elements must specify the name of
-	 * the column and the value to be inserted in said column
-	 * respectably.
+	 * <p> The fieldValues argument must contain an even number of
+	 * elements, and each pair of consecutive elements must specify the
+	 * name of the column and the value to be inserted in said column
+	 * respectably.  </p>
 	 *
 	 * @param table The name of the table in which the row is to be inserted
 	 * @param fieldValues The names of columns and the values to be inserted
@@ -353,14 +353,12 @@ public class Database
 	 */
 	public static int insert(String table, String[] fieldValues) throws SQLException
 	{
-
 		if ((fieldValues.length & 0x1) == 1)
 			return -1;
 
 		String query = "INSERT INTO " + table + " (";
 		for (int i = 0; i < fieldValues.length; i += 2) {
 			if (i != 0) query += ",";
-
 			query += fieldValues[i];
 		}
 
@@ -373,7 +371,7 @@ public class Database
 					fieldValues[i].equals("null")) {
 				fnutt = "";
 			}
-
+			
 			query += fnutt + fieldValues[i] + fnutt;
 		}
 		query += ")";
@@ -381,18 +379,18 @@ public class Database
 	}
 
 	/**
-	 * Update rows in the specified table.
+	 * <p> Update rows in the specified table.  </p>
 	 *
-	 * The fieldValues argument must contain an even number of elements,
-	 * and each pair of consecutive elements must specify the name of
-	 * the column and the new value to be set in said column
-	 * respectably.
+	 * <p> The fieldValues argument must contain an even number of
+	 * elements, and each pair of consecutive elements must specify the
+	 * name of the column and the new value to be set in said column
+	 * respectably.  </p>
 	 *
-	 * The keyFieldValues specifies which rows to update; it must
+	 * <p> The keyFieldValues specifies which rows to update; it must
 	 * contain an even number of elements, and each pair of consecutive
 	 * elements must specify the name of the column and the value said
 	 * column must have for the row to be included in the update
-	 * respectable.
+	 * respectable.  </p>
 	 *
 	 * @param table The name of the table in which the row is to be inserted
 	 * @param fieldValues The names of columns and the values to be inserted
@@ -405,15 +403,20 @@ public class Database
 			return -1;
 
 		String query = "UPDATE " + table + " SET ";
+		boolean noUpdate = true;
 		for (int i = 0; i < fieldValues.length; i += 2) {
-			if (i != 0) query += ",";
+			if (fieldValues[i+1] != null) {
+				if (i != 0) query += ",";
 
-			String fnutt = "'";
-			if (fieldValues[i+1].equals("NOW()")) fnutt = "";
-			else if (fieldValues[i+1].equals("null")) fnutt = "";
+				noUpdate = false;
+				String fnutt = "'";
+				if (fieldValues[i+1].equals("NOW()")) fnutt = "";
+				else if (fieldValues[i+1].equals("null")) fnutt = "";
 
-			query += fieldValues[i] + "=" + fnutt + addSlashes(fieldValues[i+1]) + fnutt;
+				query += fieldValues[i] + "=" + fnutt + addSlashes(fieldValues[i+1]) + fnutt;
+			}
 		}
+		if (noUpdate) return 0;
 
 		query += " WHERE ";
 		for (int i = 0; i < keyFieldValues.length; i += 2) {
@@ -425,7 +428,8 @@ public class Database
 	}
 
 	/**
-	 * Execute the given statement, and return the number of rows updated.
+	 * <p> Execute the given statement, and return the number of rows
+	 * updated.  </p>
 	 *
 	 * @param statement The statement to execute
 	 * @return the number of rows updated
@@ -443,7 +447,8 @@ public class Database
 	}
 
 	/**
-	 * Return all columns from the current row in rs in a HashMap
+	 * <p> Return all columns from the current row in rs in a HashMap
+	 * </p>
 	 *
 	 * @param rs ResultSet to fetch row from
 	 * @param md Get column names from this object
@@ -460,15 +465,17 @@ public class Database
 
 
 	/**
-	 * Escape any special characters in the given string (e.g. ' and \)
+	 * <p> Escape any special characters in the given string (e.g. ' and
+	 * \) </p>
 	 *
-	 * @param tekst The string to escape
+	 * @param s The string to escape
 	 * @return the string with special characters escaped
 	 */
-	public static String addSlashes(String tekst) {
-		tekst = insertBefore(tekst, "\\", "\\");
-		tekst = insertBefore(tekst, "'", "\\");
-		return tekst;
+	public static String addSlashes(String s) {
+		if (s == null) return null;
+		s = insertBefore(s, "\\", "\\");
+		s = insertBefore(s, "'", "\\");
+		return s;
 	}
 
 	private static String insertBefore(String tekst, String oldS, String newS) {
@@ -485,77 +492,4 @@ public class Database
 		return b.toString();
 	}
 
-
-	/*
-    public static boolean isDouble(String s) {
-		return isDoubleStrict(cleanString(s));
-    }
-
-    public static boolean isDoubleStrict(String s) {
-		try {
-		Double.parseDouble(s);
-		boolean bool = true;
-		return bool;
-		} catch (NumberFormatException numberformatexception) {
-		return false;
-		}
-    }
-
-    public static boolean isInt(String s) {
-		return isIntStrict(cleanString(s));
-    }
-
-    public static boolean isIntStrict(String s) {
-		try {
-		Integer.parseInt(s);
-		boolean bool = true;
-		return bool;
-		} catch (NumberFormatException numberformatexception) {
-		return false;
-		}
-    }
-
-    protected static String cleanString(String s) {
-		s = removeString(s, "*");
-		return s;
-    }
-
-    protected static String removeString(String s, String rem) {
-		StringBuffer b = new StringBuffer(s);
-		for (int pos = b.toString().indexOf(rem); pos != -1; pos = b.toString().indexOf(rem))
-		b = b.replace(pos, pos + rem.length(), "");
-		return b.toString();
-    }
-
-    protected static String sqlMatch(String feltnavn, String søkeverdi) {
-		if (søkeverdi.length() == 0)
-		return "";
-		return String.valueOf(new StringBuffer(" AND ").append(feltnavn).append(" like '").append(stjerneTilProsent(søkeverdi)).append("'"));
-    }
-
-    private static String stjerneTilProsent(String tekst) {
-		return tekst.replace('*', '%');
-    }
-
-    protected static Date parseDate(String sqlDate) {
-		if (sqlDate != null) {
-		try {
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date date = sf.parse(sqlDate);
-		return date;
-		} catch (ParseException e) {
-		System.err.println("parseDate Error: ".concat(e.getMessage()));
-		}
-		}
-		return null;
-    }
-
-    protected static String formatDate(Date dato) {
-		if (dato != null) {
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return sf.format(dato);
-		}
-		return null;
-    }
-	*/
 }
