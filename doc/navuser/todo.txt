@@ -1,11 +1,11 @@
 TODO
 ...............
 [x] [bug] Visning av rett profil på oversikten på forsiden.
-[ ] [add] Endring av passord
+[x] [add] Endring av passord
 [x] [add] oppmelding i grupper når man oppretter ny bruker
 [x] [add] menyikon for å direkte sette opp grupper fra brukeroversikten
 [x] [change] Flyttet administreringen av felles utstyrsgrupper til eget valg.
-[ ] [add] Administrering av felles utstyrsfilter
+[x] [add] Administrering av felles utstyrsfilter
 [x] [bug] Telle riktig antall filtre på felles utstyrsgruppe
 [x] [bug] Telle riktig antall filtre på egen utstyrsgruppe
 [x] [bug] Telle riktig antall perioder på felles utstyrsgruppe
@@ -16,4 +16,4 @@ TODO
 [x] [change] oppdatert dokumentasjon
 [x] [bug] fikset sql initialiserings-skript
 [x] [add] laget testdata og sqldump til navdata.sql
-[ ] [add] ekstra sikkerhetssjekk i tilgang til forskjellige meny-moduler mot adminnivå
+[x] [add] ekstra sikkerhetssjekk i tilgang til forskjellige meny-moduler mot adminnivaa

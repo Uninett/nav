@@ -919,6 +919,65 @@ ORDER BY navn";
   }
 
 
+
+	// Denne funksjonen returnerer alle filtrene som hører til administratorene.
+  function listFiltreAdm($sort) {
+    $filtre = NULL;
+    
+#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+
+    $querystring = "SELECT MineFilter.id, MineFilter.navn, match.am, grupper.ag
+FROM (
+	SELECT id, navn
+	FROM Utstyrfilter 
+	WHERE (Utstyrfilter.brukerid is null) 
+) AS MineFilter LEFT OUTER JOIN (
+     SELECT count(mid) AS am,  uid
+     FROM (
+          SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
+          FROM Utstyrfilter, FilterMatch
+          WHERE (Utstyrfilter.brukerid is null) AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
+     ) AS Mcount 
+     GROUP BY uid 
+) AS match 
+ON (MineFilter.id = match.uid) 
+LEFT OUTER JOIN (
+     SELECT count(gid) AS ag, uid
+     FROM (
+          SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
+          FROM Utstyrfilter, GruppeTilFilter
+          WHERE (Utstyrfilter.brukerid is null) AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+     ) AS Gcount 
+     GROUP BY uid 
+) AS grupper 
+ON (MineFilter.id = grupper.uid) 
+ORDER BY navn";
+    
+
+//  print "<p>$querystring";
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$filtre[$row][0] = $data["id"]; 
+		$filtre[$row][1] = $data["navn"];
+		$filtre[$row][2] = $data["am"];
+		$filtre[$row][3] = $data["ag"];
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    return $filtre;
+  }
+
+
+
+
 	// Denne funksjonen returnerer alle filtrene som hører til en bestemt bruker uten unødig krimskrams. untatt de som allerede er valgt.
   function listFiltreFast($uid, $gid, $sort) {
     $filtre = NULL;
@@ -949,6 +1008,38 @@ ORDER BY navn";
     return $filtre;
   }
 
+
+
+	// Denne funksjonen returnerer alle filtrene som hører til admin bruker 
+	// uten unødig krimskrams. untatt de som allerede er valgt.
+  function listFiltreFastAdm($gid, $sort) {
+    $filtre = NULL;
+
+    $querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn 
+FROM Utstyrfilter 
+WHERE brukerid is null 
+EXCEPT SELECT Utstyrfilter.id, Utstyrfilter.navn 
+FROM Utstyrfilter, GruppeTilFilter 
+WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) 
+	AND (GruppeTilFilter.utstyrgruppeid = " . $gid . ")
+ORDER BY navn";
+    
+//  print "<p>Spørring fast: $querystring";
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$filtre[$row][0] = $data["id"]; 
+		$filtre[$row][1] = $data["navn"];
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    return $filtre;
+  }
 
 
 
@@ -1459,6 +1550,34 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
     }
 
   }
+
+
+
+  // opprette nytt adm- filter
+  function nyttFilterAdm($navn) {
+
+    // Spxrring som legger inn i databasen
+    $querystring = "INSERT INTO Utstyrfilter (id, brukerid, navn) VALUES (" . 
+      "nextval('utstyrfilterid'), null, '" . 
+      addslashes($navn) ."' )";
+    
+#    print "<p>query: $querystring";
+    if ( $query = pg_exec( $this->connection, $querystring)) {
+      
+      // Henter ut object id`n til raden.
+      $oid = pg_getlastoid($query);
+      
+      // Henter ut id`n til raden og returnerer den.
+      $idres = pg_exec( $this->connection, "SELECT id FROM Utstyrfilter WHERE oid = $oid");
+      $idrow = pg_fetch_row($idres, 0);
+      return $idrow[0];
+    } else {
+      // fikk ikke til e legge i databasen
+      return 0;
+    }
+
+  }
+
 
 
   // legge til eksisterende filter til utstyrsgruppe

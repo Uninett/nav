@@ -153,8 +153,10 @@ $meny->newOption("Logg", "logg", 20, array('logg.php') );
 
 $meny->newModule('periode', 1, array('periode.php') );
 $meny->newModule('utstyrgrp', 1, array('utstyrgrp.php') );
+$meny->newModule('futstyrgrp', 100, array('fellesutstyrgrp.php') );
 $meny->newModule('match', 1, array('match.php') );
 $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
+
 ?>
 
 </td></tr>
