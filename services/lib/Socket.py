@@ -1,9 +1,9 @@
 """
-$Id: Socket.py,v 1.4 2002/08/26 20:55:02 magnun Exp $
+$Id: Socket.py,v 1.5 2002/08/29 11:04:55 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Socket.py,v $
 """
 
-import time,socket,sys,types
+import time,socket,sys,types,string
 from select import select
 from errno import errorcode
 
@@ -27,7 +27,6 @@ class Socket:
 		if not w:
 			raise Timeout('Timeout in connect after %i sec' % self.timeout)
 	def recv(self,*args):
-		print "I Socket.recv()"
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
 			raise Timeout('Timeout in recv after %i sec' % self.timeout)
@@ -40,7 +39,6 @@ class Socket:
 			if '\n' in line or not s:
 				return line
 	def send(self,*args):
-		print "I Socket.send()"
 		r,w,e = select([],[self.s],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in write after %i sec' % self.timeout)
@@ -52,15 +50,109 @@ class Socket:
 		self.send(line)
 	def close(self):
 		self.s.close()
-	def makefile(self,*args):
-		return self.s.makefile(*args)
+	def makefile(self, flags="r", bufsize=-1):
+		#self._copies = self._copies +1
+		return TimeoutFile(self, flags, bufsize)
+		    
+
+	#def makefile(self,*args):
+	#	return self.s.makefile(*args)
 	def fileno(self):
 		return self.s.fileno()
 	def sendall(self,*args):
-		print "I sendall"
 		r,w,e = select([],[self.s],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in write after %i sec' % self.timeout)
 		return self.s.sendall(*args)
 	
 
+class TimeoutFile:
+    """TimeoutFile object
+    Implements a file-like object on top of TimeoutSocket.
+    This is a slightly modified version of the TimeoutFile ovject
+    in Timothy O'Malley's TimeoutSocket.py.
+
+    """
+    
+    def __init__(self, sock, mode="r", bufsize=4096):
+        self._sock          = sock
+        self._bufsize       = 4096
+        if bufsize > 0: self._bufsize = bufsize
+        if not hasattr(sock, "_inqueue"): self._sock._inqueue = ""
+
+    def __getattr__(self, key):
+        return getattr(self._sock, key)
+
+    def close(self):
+        self._sock.close()
+        self._sock = None
+    
+    def write(self, data):
+        self.send(data)
+
+    def read(self, size=-1):
+        _sock = self._sock
+        _bufsize = self._bufsize
+        while 1:
+            datalen = len(_sock._inqueue)
+            if datalen >= size >= 0:
+                break
+            bufsize = _bufsize
+            if size > 0:
+                bufsize = min(bufsize, size - datalen )
+            buf = self.recv(bufsize)
+            if not buf:
+                break
+            _sock._inqueue = _sock._inqueue + buf
+        data = _sock._inqueue
+        _sock._inqueue = ""
+        if size > 0 and datalen > size:
+            _sock._inqueue = data[size:]
+            data = data[:size]
+        return data
+
+    def readline(self, size=-1):
+        _sock = self._sock
+        _bufsize = self._bufsize
+        while 1:
+            idx = string.find(_sock._inqueue, "\n")
+            if idx >= 0:
+                break
+            datalen = len(_sock._inqueue)
+            if datalen >= size >= 0:
+                break
+            bufsize = _bufsize
+            if size > 0:
+                bufsize = min(bufsize, size - datalen )
+            buf = self.recv(bufsize)
+            if not buf:
+                break
+            _sock._inqueue = _sock._inqueue + buf
+
+        data = _sock._inqueue
+        _sock._inqueue = ""
+        if idx >= 0:
+            idx = idx + 1
+            _sock._inqueue = data[idx:]
+            data = data[:idx]
+        elif size > 0 and datalen > size:
+            _sock._inqueue = data[size:]
+            data = data[:size]
+        return data
+
+    def readlines(self, sizehint=-1):
+        result = []
+        data = self.read()
+        while data:
+            idx = string.find(data, "\n")
+            if idx >= 0:
+                idx = idx + 1
+                result.append( data[:idx] )
+                data = data[idx:]
+            else:
+                result.append( data )
+                data = ""
+        return result
+
+    def flush(self):  pass
+	    
