@@ -298,6 +298,7 @@ GRANT SELECT ON vpBoksXY TO vPServer;
 GRANT SELECT ON boks TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
+GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
