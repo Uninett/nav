@@ -30,8 +30,7 @@ subdirs = src \
 	subsystem/lib-python \
 	subsystem/alertEngine \
 	subsystem/alertprofiles \
-	subsystem/backup \
-	subsystem/dump \
+	subsystem/dbTools \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
 	subsystem/editdb \

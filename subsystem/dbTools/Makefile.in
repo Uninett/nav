@@ -1,5 +1,5 @@
 ##
-## This is the makefile for startstop
+## This is the makefile for dbTools
 ##
 
 SHELL = @SHELL@
@@ -12,15 +12,17 @@ sysconfdir = @sysconfdir@
 initdir = @initdir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
+crondir = @crondir@
 
-binaries = dump.py
+binaries = dump.py pg_backup.pl navclean.py
 libraries = dump.py
+cronfiles = backup
 
-.PHONY: all install install-bin install-lib clean distclean install-lib
+.PHONY: all install install-bin install-lib clean distclean install-lib install-cron
 
 all: 
 
-install: install-bin install-lib
+install: install-bin install-lib install-cron
 
 install-bin:
 	@for file in $(binaries); do \
@@ -30,6 +32,11 @@ install-bin:
 install-lib:
 	@for file in $(libraries); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/$$file || exit 1; \
+	done
+
+install-cron:
+	@for file in $(cronfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(crondir)/$$file || exit 1; \
 	done
 
 clean:

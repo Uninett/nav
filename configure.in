@@ -57,8 +57,7 @@ AC_OUTPUT(Makefile
 	src/networkDiscovery/networkDiscovery.sh
 	src/getBoksMacs/getBoksMacs.sh
 	src/Makefile
-	subsystem/backup/Makefile
-	subsystem/dump/Makefile
+	subsystem/dbTools/Makefile
 	subsystem/pyproxy/Makefile
 	subsystem/lib-perl/Makefile
 	subsystem/lib-python/Makefile
