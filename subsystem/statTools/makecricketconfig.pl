@@ -148,6 +148,16 @@ print "Done\n" if $ll >= 3;
 
 
 # Lets start working.
+
+
+# Rotating changelogs
+for (my $counter = 8; $counter > 0;$counter--) {
+    if (-e $changelog.".".$counter) {
+	my $tmp = $counter+1;
+	`mv $changelog.$counter $changelog.$tmp`;
+    }
+}
+`mv $changelog $changelog.1`;
 open (CHANGELOG, ">$changelog") or warn ("Could not open $changelog for writing: $!\n");
 
 chdir ($cricketconfigdir);
@@ -190,7 +200,6 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 # making targets and so on. Now lets fill the rrd-database
 # with the new info we have gathered. For this we use the
 # rrdhash that we have built.
-
 
 
 &fillRRDdatabase();
@@ -383,36 +392,6 @@ sub parseDefaults {
 	    $targettypehash{$tt} = [@dsarr];
 	    @dsarr = ();
 
-	}
-
-	# Then we have the datasource part
-	# --------------------------------
-
-	# We find the datasource
-	if (m/^\s*datasource\s+(\S+)\s*/i) {
-	    print "Located datasource $1\n" if $ll >= 3;
-	    if ($1 =~ /--default--/i) {
-		$default = 1;
-		print "Setting default-bool to 1\n" if $ll >= 3;
-	    } else {
-		$datasource = $1;
-		$dshash{$datasource} = $dstype if $dstype;
-		$default = 0;
-		print "Setting datasource to $1, default to 0, and dshash $datasource to >$dstype< \n" if $ll >= 3;
-	    }
-	}
-
-	# The var that tells us what ds-type is in use...lets store that
-	if (m/^\s*rrd-ds-type\s*=\s*(\S+)\s*$/i) {
-	    print "Located rrd-ds-type >$1< \n" if $ll >= 3;
-	    $dstype = $1;
-	    if ($default) {
-		$dshash{$dir} = $dstype;
-		print "Setting dshash $dir to $dstype\n" if $ll >= 3;
-	    } else {
-		$dshash{$datasource} = $dstype;
-		print "Setting dshash $datasource to $dstype\n" if $ll >= 3;
-	    }
 	}
 
     }
@@ -730,12 +709,12 @@ sub makeinterfaceTargets {
 	$type = "catid='$type'";
     }
 
-    my $query = "SELECT netboxid,ip,sysname,ro FROM netbox WHERE (". join ( " OR " , @types ) . ") AND up='y' ORDER BY sysname";
+    my $query = "SELECT netboxid,ip,sysname,ro,vendorid FROM netbox LEFT JOIN type USING (typeid) WHERE (". join ( " OR " , @types ) . ") AND up='y' ORDER BY sysname";
     my $res = $dbh->exec($query);
 
     # For each unit, check if it has any interfaces to gather data from, make
     # a subdir for it and place the targets there.
-    while (my($netboxid,$ip,$sysname,$ro) = $res->fetchrow) {
+    while (my($netboxid,$ip,$sysname,$ro,$vendor) = $res->fetchrow) {
 	my %ifindexhash = (); # to make sure we don't create a target for the same if twice
 	my @changes = ();
 
@@ -775,12 +754,17 @@ sub makeinterfaceTargets {
 	$filetext .= "\tsnmp-community\t=\t$ro\n\n";
 
 	my $numberofports = $r->ntuples;
+	my $numtargets = $numberofports+1;
 	
 	# While there are more interfaces left, fetch them, make a target out of it.
 	while (my @params = $r->fetchrow) {
 	    my $id = $params[0];
 	    my $ifindex = $params[1];
+	    if ($vendor eq 'hp') {
+		$ifindex =~ s/^\d0?(.*)/$1/;
+	    }
 
+	    # Some interfaces exists more than once in the database, lets skip them
 	    next if $ifindexhash{$ifindex};
 	    $ifindexhash{$ifindex}++;
 
@@ -839,6 +823,13 @@ sub makeinterfaceTargets {
 
 	    push @changes, $name;
 	}
+
+	my @targets = @changes;
+	@targets = map lc($_), @targets;
+	# Adding the all-target
+	$filetext .= "target all\n";
+	$filetext .= "\torder\t=\t$numtargets\n";
+	$filetext .= "\ttargets\t=\t".join(";",@targets)."\n\n";
 
 	$changes{"$cricketconfigdir/$dir/$sysname"} = [@changes];
 
@@ -946,6 +937,7 @@ sub checkChanges {
 	    printf CHANGELOG "Added %s new targets to %s/targets:\n", $numadded, $dir;
 	    foreach my $target (@changearr) {
 		print "\t$target\n" if $ll >= 2;
+		print CHANGELOG "\t$target\n";
 	    }
 	}
 
@@ -990,20 +982,6 @@ sub fillRRDdatabase {
 
     my $me = "fillRRDdatabase";
     print "=> Running $me <=\n" if $ll >= 2;
-
-
-    # First of all we must parse the default-files to check
-    # what rrd-ds-types that exist. Luckily we have already 
-    # done that! It only lacks on the main defaults-file.
-
-    &parseDefaults($cwd);
-
-    # Ok, now it should be there. Lets check what we have:
-
-    print "\nPrinting dshash:\n" if $ll >= 3;
-    foreach my $key (keys %dshash) {
-	print "$key -> $dshash{$key}\n" if $ll >= 3;
-    }
 
     # We now have some global hashes - summary follows: 
 
@@ -1073,7 +1051,6 @@ sub fillRRDdatabase {
 	    # TEMP
 	    $path =~ m,$cricketconfigdir(/.*)$,;
 	    my $purepath = $1;
-	    my ($ttRef);
 
 	    # IF it's an interface, we have some static things to do
 	    if ($rrdhash{$path}{$filename}{'interface'}) {
@@ -1084,16 +1061,24 @@ sub fillRRDdatabase {
 
 		    # finding the units variable
 		    my $units = 0;
-		    $ttRef = $gCT->configHash($purepath, 'graph', lc($interfacearr[$i]));
+		    my $ttRef = $gCT->configHash($purepath, 'graph', lc($interfacearr[$i]));
 		    if ($ttRef->{'units'}) {
 			$units = $ttRef->{'units'};
 		    }
 
+		    # Finding the datasource-type used
+		    my $dsRef = $gCT->configHash($purepath, 'datasource', lc($interfacearr[$i]));
+		    my $dstype = $dsRef->{'rrd-ds-type'};
+		    print "$dstype\n";
+
+		    # if there is some critical error, do this, but this should really never happen
+		    $dstype = 'DERIVE' unless $dstype;
+
 		    my $dsq;
 		    if ($units) {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$interfaceds','".$units."')";
+			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype','$units')";
 		    } else {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$interfaceds')";
+			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype')";
 		    }
 		    
 		    my $r = $dbh->exec($dsq);
@@ -1111,17 +1096,22 @@ sub fillRRDdatabase {
 		for my $i (0 .. $#{ $rrdhash{$path}{$filename}{'ds'} } ) {
 		    my $datasource = $oidhash{ @{ $rrdhash{$path}{$filename}{'ds'} }[$i] };
 
+		    # Finding the units-value to give a hint for the graph
 		    my $units = 0;
-		    $ttRef = $gCT->configHash($purepath, 'graph', lc($datasource));
+		    my $ttRef = $gCT->configHash($purepath, 'graph', lc($datasource));
 		    if ($ttRef->{'units'}) {
 			$units = $ttRef->{'units'};
 		    }
 
+		    # Finding the datasource-type used
+		    my $dsRef = $gCT->configHash($purepath, 'datasource', lc($datasource));
+		    my $dstype = $dsRef->{'rrd-ds-type'};
+
 		    my $dsq;
 		    if ($units) {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$datasource','".$dshash{$datasource}."','".$units."')";
+			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype','$units')";
 		    } else {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$datasource','".$dshash{$datasource}."')";
+			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype')";
 		    }
 
 		    my $r = $dbh->exec($dsq);
