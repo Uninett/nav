@@ -23,4 +23,4 @@ NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
 Util: Database Logger
 vlanPlot: 
-webapps: ConfigParser Database Event Logger
+webapps: ConfigParser Database Event Logger Util
