@@ -263,6 +263,7 @@
   <target name="all" depends="clean,compile"
    description="Clean build and dist directories, then compile"/>
 
+<!-- ==================== Install Target ================================== -->
 
   <target name="install" depends="dist">
     <!-- The point of the following is to set the isUnix property to
@@ -274,10 +275,8 @@
 
     <mkdir dir="${DESTDIR}${warinstdir}"/>
     <copy file="${dist.home}/${app.name}.war" todir="${DESTDIR}${warinstdir}"/>
-    <!-- The navAdmin tool does not yet exist
     <mkdir dir="${DESTDIR}${tooldir}"/>
     <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
-    -->
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${warinstdir}/${war}"/>
@@ -356,15 +355,8 @@
   <target name="dist" depends="compile"
    description="Create binary distribution">
 
-    <!-- Copy documentation subdirectories -->
-    <mkdir   dir="${dist.home}/docs"/>
-    <!-- Commented out, becase they don't exist
-    <copy    todir="${dist.home}/docs">
-      <fileset dir="${docs.home}"/>
-    </copy>
-    -->
-
     <!-- Create application JAR file -->
+    <mkdir dir="${dist.home}"/>
     <war destfile="${dist.home}/${app.name}.war"
          webxml="metadata/web.xml">
       <classes dir="${build.home}"/>
@@ -379,11 +371,11 @@
 
 
 
-<!-- ==================== Install Target ================================== -->
+<!-- ==================== Deploy Target ==================================== -->
 
 <!--
 
-  The "install" target tells the specified Tomcat 5 installation to dynamically
+  The "deploy" target tells the specified Tomcat 5 installation to dynamically
   install this web application and make it available for execution.  It does
   *not* cause the existence of this web application to be remembered across
   Tomcat restarts; if you restart the server, you will need to re-install all
@@ -410,31 +402,6 @@
             war="file://${dist.home}/${app.name}.war"/>
 
   </target>
-
-
-<!-- ==================== Javadoc Target ================================== -->
-
-<!--
-
-  The "javadoc" target creates Javadoc API documentation for the Java
-  classes included in your application.  Normally, this is only required
-  when preparing a distribution release, but is available as a separate
-  target in case the developer wants to create Javadocs independently.
-
--->
-
-  <target name="javadoc" depends="compile"
-   description="Create Javadoc API documentation">
-
-    <mkdir          dir="${dist.home}/docs/api"/>
-    <javadoc sourcepath="${src.home}"
-                destdir="${dist.home}/docs/api"
-           packagenames="*">
-      <classpath refid="compile.classpath"/>
-    </javadoc>
-
-  </target>
-
 
 
 <!-- ====================== List Target =================================== -->
@@ -531,7 +498,7 @@
   The "remove" target tells the specified Tomcat 5 installation to dynamically
   remove this web application from service.
 
-  NOTE:  This is the logical opposite of the "install" target.
+  NOTE:  This is the logical opposite of the "deploy" target.
 
 -->
 
