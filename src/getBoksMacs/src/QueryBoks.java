@@ -626,6 +626,10 @@ public class QueryBoks extends Thread
 		Set vlanSet;
 		if (csAtVlan) {
 			vlanSet = (Set)vlanBoksid.get(netboxid);
+			if (vlanSet == null) {
+				Log.d("PROCESS_MAC", "Missing vlanSet for netboxid: " + netboxid + ", aborting");
+				return l;
+			}
 		} else {
 			vlanSet = new HashSet();
 			vlanSet.add("");
