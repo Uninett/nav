@@ -127,4 +127,26 @@ public class util {
 		return a;
 	}
 
+	public static Comparator intComparatorFactory() {
+		return new Comparator() {
+				public int compare (Object o1, Object o2) {
+					try {
+						return new Integer(""+o1).compareTo(new Integer(""+o2));
+					} catch (Exception e) {
+					}
+					return o1.toString().compareTo(o2.toString());
+				}
+
+				public boolean equals(Object o1, Object o2) {
+					return compare(o1, o2) == 0;
+				}
+			};
+	}
+
+	public static SortedSet intSortedSetFactory(Collection c) {
+		SortedSet s = new TreeSet(intComparatorFactory());
+		s.addAll(c);
+		return s;
+	}
+
 }
