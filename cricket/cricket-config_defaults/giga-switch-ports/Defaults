@@ -4,12 +4,12 @@
 # much everything we need, since it's in the root Default file.
 
 Target	--default--
-	inst            = map(switch-port-name) 
-	rrd-datafile	=	%dataDir%/%auto-target-name%-%inst%.rrd
-	switch			=	%auto-target-name%
-	snmp-host		=	%switch%
-	target-type		=	switch-port
-	directory-desc  	=       "Stats for %auto-target-name%"
+	inst            = map(switch-port-name)
+	rrd-datafile    = %dataDir%/%auto-target-name%.rrd
+	switch          = %auto-target-name%
+	snmp-host       = %switch%
+	target-type     = switch-port
+	short-desc      = ""
 
 dataSource ifInOctets
     ds-source = snmp://%snmp%/ifInOctets.%inst%
@@ -35,3 +35,7 @@ targetType switch-port
     ds = "ifInOctets, ifOutOctets, ifInErrors, ifOutErrors"
     view = "Octets: ifInOctets ifOutOctets, Errors: ifInErrors ifOutErrors"
 
+html    page-header
+    <!-- you could put your company logo on every page here: -->
+    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+    <br clear=left>

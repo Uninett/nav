@@ -15,6 +15,7 @@ Target	--default--
 	# and if we want to specify each model explicitly, or
 	# get a warning.
 	target-type		= standard-router
+	short-desc      	=       ""
 	directory-desc  	= "Stats for %auto-target-name%"
 
 # OID's we'll be using in this tree
@@ -40,18 +41,6 @@ datasource	tempState	ds-source	=	snmp://%snmp%/tempState
 datasource	mem5minUsed	ds-source	=	snmp://%snmp%/mem5minUsed
 datasource	mem5minFree	ds-source	=	snmp://%snmp%/mem5minFree
 
-targetType	Cisco-7200-Router
-	ds	=	"cpu1min, cpu5min, tempInlet, tempOutlet, mem5minUsed, mem5minFree"
-	view	=	"cpu: cpu1min cpu5min,
-					temperature: tempInlet tempOutlet,
-					memory: mem5minUsed mem5minFree"
-
-targetType	Cisco-7500-Router
-    ds  =   "cpu1min, cpu5min, tempInlet, tempOutlet, mem5minUsed, mem5minFree"
-    view    =   "cpu: cpu1min cpu5min,
-                    temperature: tempInlet tempOutlet,
-                    memory: mem5minUsed mem5minFree"
-
 # 3600 routers do not report temperature -- they only
 # report tempterature states:
 #               normal(1),
@@ -60,41 +49,19 @@ targetType	Cisco-7500-Router
 #               shutdown(4),
 #               notPresent(5) 
 
-targetType	Cisco-3600-Router
-	ds	=	"cpu1min, cpu5min, tempState, mem5minUsed, mem5minFree"
-    view	=	"cpu: cpu1min cpu5min,
-					tempAlarm: tempState,
-					memory: mem5minUsed mem5minFree"
+targetType cgw 
+        ds      =       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
+        view    =       "cpu: cpu1min cpu5min,
+	                memory: mem5minUsed mem5minFree"
 
-targetType Standard-Router
-	ds	=       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
-	view	=       "cpu: cpu1min cpu5min,
-			memory: mem5minUsed mem5minFree"
-
+targetType cts
+        ds      =       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
+        view    =       "cpu: cpu1min cpu5min,
+	                memory: mem5minUsed mem5minFree"
 #
 #Rutere som ikke rapporterer minne..
 #
-targetType IGS-Router
-	ds	=       "cpu1min, cpu5min"
-	view	=       "cpu: cpu1min cpu5min"
-
-targetType AGS-Router
-	ds	=       "cpu1min, cpu5min"
-	view    =       "cpu: cpu1min cpu5min"
-
-targetType C2500-Router
-	ds      =       "cpu1min, cpu5min"
-	view    =       "cpu: cpu1min cpu5min"
-
-targetType C4000-Router
-	ds      =       "cpu1min, cpu5min"
-	view    =       "cpu: cpu1min cpu5min"
-
-targetType C4700-Router
-	ds      =       "cpu1min, cpu5min"
-	view    =       "cpu: cpu1min cpu5min"
-
-targetType C1000-Router
+targetType cgw-nomem
 	ds      =       "cpu1min, cpu5min"
 	view    =       "cpu: cpu1min cpu5min" 
 
@@ -147,3 +114,7 @@ graph   mem5minFree
     y-axis  =   "Bytes"
     legend  =   "5 minute free memory"
 
+html    page-header
+    <!-- you could put your company logo on every page here: -->
+    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+    <br clear=left>

@@ -9,6 +9,7 @@ Target	--default--
 	# snmp-community	=	secret
 	snmp-host	=	%router%
 	target-type	=	standard-interface
+	short-desc      =       ""
 	directory-desc	=	"Stats for %auto-target-name%"
 
 # ifInOctets and ifOutOctets come from above, since they
@@ -61,4 +62,7 @@ graph   ifOutErrors
     legend      =   "Average Errors Out"
     units       =   "err/sec"
 
-
+html    page-header
+    <!-- you could put your company logo on every page here: -->
+    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+    <br clear=left>
