@@ -1,7 +1,16 @@
 #!/bin/sh
+####################
 #
-# Source function library.
+# $Id: smsd,v 1.3 2003/05/26 12:19:36 mortenv Exp $
+# This file is part of the NAV project.
+# This script controls start/stop/status of the NAV SMS Daemon.
+#
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Morten Vold <morten.vold@itea.ntnu.no>
+#
+####################
 
+# Source function library.
 . /usr/local/nav/navme/etc/init.d/functions
 
 [ -x /usr/local/nav/navme/bin/smsd.pl ] || exit 1
@@ -20,7 +29,7 @@ case "$1" in
 		echo -n "Shutting down smsd.pl: "
 		if killproc smsd.pl; then
 		# Make sure the pidfile is gone when stopping normal
-		    rm /usr/local/nav/local/var/run/smsd.pl
+		    rm -f /usr/local/nav/local/var/run/smsd.pl.pid
 		    echo
 		    exit 0
 		else

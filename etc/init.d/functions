@@ -1,13 +1,16 @@
 #!/bin/sh
+####################
 #
-# functions	This file contains functions to be used by most or all
-#		shell scripts in the navme/bin/init directory.
+# $Id: functions,v 1.4 2003/05/26 12:19:36 mortenv Exp $
+# This file is part of the NAV project.
+# This file contains functions to be used by most or all shell scripts
+# in the navme/bin/init directory.
 #
-# Version:	$Id: functions,v 1.3 2002/08/20 09:05:55 mortenv Exp $
+# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Authors: Morten Vold <morten.vold@itea.ntnu.no>
+# Credits: Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
 #
-# Author:	Morten Vold <mortenv@tihlde.org>
-# Ideas from:	functions script from Mandrake Linux
-
+####################
 daemon() {
     $1
     rc=$?
@@ -23,28 +26,28 @@ daemon() {
 killproc() {
     pid=`pidofproc $1`
     if [ -z "$pid" ] ; then
-	return 0
+	return 1
     fi
     if checkpid $pid 2>&1; then
 	kill $pid
 	usleep 10000
 	if checkpid $pid 2>&1; then
 	    echo -n "Unable to terminate the process ($pid)"
-	    return 0
+	    return 1
 	else
 	    echo -n "Ok"
-	    return 1
+	    return 0
 	fi
     else
 	echo -n "$1 is not running"
-	return 1
+	return 0
     fi
 }
 
 status() {
     local base=${1##*/}
     pid=`pidof -o $$ -o $PPID -o %PPID -x $1 || pidof -o $$ -o $PPID -o %PPID -x ${base}`
-    if [ -n $pid ] ; then
+    if [ "$pid" != "" ] ; then
 	echo "$1 (pid $pid) is running...";
     else
 	echo "$1 does not seem to be running...";
