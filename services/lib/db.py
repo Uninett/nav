@@ -1,14 +1,25 @@
 """
-$Id: db.py,v 1.2 2002/07/10 17:20:40 magnun Exp $
+$Id: db.py,v 1.3 2002/07/15 19:48:11 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
+
+This class is an abstraction of the database operations needed
+by the service monitor.
+
+It implements the singleton pattern, ensuring only one instance
+is used at a time.
 """
-import threading, jobmap, psycopg, Queue
-from job import Event
+import threading, jobmap, psycopg, Queue, job
 from setup import Service
 
-db = None
 
-class db(threading.Thread):
+def db(conf):
+	if _db._instance is None:
+		_db._instance=_db(conf)
+
+	return _db._instance
+
+class _db(threading.Thread):
+	_instance=None
 	def __init__(self, conf):
 		threading.Thread.__init__(self)
 		self.mapper=jobmap.jobmap()
@@ -16,7 +27,7 @@ class db(threading.Thread):
 		self.db.autocommit(1)
 		self.cursor=self.db.cursor()
 		self.sysboks()
-		self.setDaemon()
+		self.setDaemon(1)
 		self.queue = Queue.Queue()
 
 	def run(self):
@@ -29,11 +40,17 @@ class db(threading.Thread):
 		self.boks = dict(s)
 						
 	def query(self, statement):
-		self.cursor.execute(statement)
-		return self.cursor.fetchall()
+		try:
+			self.cursor.execute(statement)
+			return self.cursor.fetchall()
+		except DatabaseError, InterfaceError:
+			return []
 
 	def execute(self, statement):
-		self.cursor.execute(statement)
+		try:
+			self.cursor.execute(statement)
+		except DatabaseError, InterfaceError:
+			pass
 
 	def newEvent(self, event):
 		self.queue.put(event)
@@ -67,7 +84,6 @@ class db(threading.Thread):
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
 		order by serviceid"""
-		#self.execute(query)
 		
 		property = {}
 		for serviceid,prop,value in self.query(query):
@@ -77,20 +93,20 @@ class db(threading.Thread):
 
 		query = """SELECT serviceid ,service.boksid, service.active, handler, version, ip
 		FROM service JOIN boks ON (service.boksid=boks.boksid) order by serviceid"""
-		#self.execute(query)
+
 		jobs = []
 		for serviceid,boksid,active,handler,version,ip in self.query(query):
 			job = self.mapper.get(handler)
 			if not job:
 				print 'no such handler:',handler
-			newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version,db=self)
+			newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
 			if onlyactive and not active:
 				continue
 			else:
 				setattr(newJob,'active',active)
 
 			jobs += [newJob]
-		#db.commit()
+
 		return jobs
 
 
