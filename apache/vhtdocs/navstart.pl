@@ -2,18 +2,18 @@
 
 $menybredde = "100%";
 
-$vhtdocs = '/usr/local/nav/navme/apache/vhtdocs';
 $htpasswd = '/usr/local/nav/navme/apache/htpasswd';
-$local_dir = '/usr/local/nav/etc/vhtdocs';
 
+$local_dir = '/usr/local/nav/local/apache/vhtdocs';
+$vhtdocs = '/usr/local/nav/navme/apache/vhtdocs';
 
 $header     = "$vhtdocs/header.html";
-$meny       = "$local_dir/meny.html";
-$kontakt    = "$vhtdocs/kontakt.html";
+$nav        = "$vhtdocs/nav.html";
 $bruker     = "$vhtdocs/bruker.html";
-$passwdfil   = "$htpasswd/.htpasswd-sroot";
+$meny       = "$local_dir/linker.html";
+$kontakt    = "$local_dir/kontakt.html";
 
-$nav = "$local_dir/nav.html";
+$passwdfil  = "$htpasswd/.htpasswd-sroot";
 
 $remote_user = $ARGV[0];
 
