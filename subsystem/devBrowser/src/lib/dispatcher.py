@@ -98,8 +98,8 @@ def classifyUri(uri):
         # We're requesting the index, return empty {}
         return request
     
-    # handle empty string or my own script (called by apaches 'index' feature)
-    if not name or name == os.path.basename(script.replace(".pyc", ".py")):
+    # handle empty string or 'topdir' (called 'index' by # DirectoryIndex)
+    if not name or name == 'index':
         return request
 
     # Clean this up in some way

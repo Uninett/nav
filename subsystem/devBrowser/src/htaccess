@@ -1,4 +1,4 @@
 SetHandler python-program
 PythonHandler nav.web.devBrowser.dispatcher
 PythonDebug On
-DirectoryIndex dispatcher.py
+DirectoryIndex index

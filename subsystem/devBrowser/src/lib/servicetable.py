@@ -1,14 +1,3 @@
-"""
-$Id$
-
-This file is part of the NAV project.
-
-Copyright (c) 2003 by NTNU, ITEA nettgruppen
-Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-         Stian Søiland <stain@itea.ntnu.no> 
-
-"""
-
 from mod_python import apache
 import random
 import time
@@ -16,7 +5,7 @@ import forgetHTML as html
 
 from nav.db import manage
 from nav.errors import *
-from nav import database
+from nav import db
 from nav.web import tableview
 from nav.web import urlbuilder
 from nav.rrd import presenter
@@ -41,15 +30,17 @@ def _getServiceState(service):
         return "Service"
     return _serviceStates.get(service.up, "Unknown")
 
+
+
 class ServiceTable:
-    def __init__(self, servicenames=[], netboxes=[], sort=0):
+    def __init__(self, servicenames=[], netboxes=[], sort=2):
         where = []
         if servicenames:
-            handlers = [database.escape(h) for h in servicenames]
+            handlers = [db.escape(h) for h in servicenames]
             handlers = ','.join(handlers)
             where.append('handler in (%s)' % handlers)
         if netboxes:
-            netboxids = [str(nbox.netboxid) for nbox in netboxes]
+            netboxids = [str(nbox._getID()[0]) for nbox in netboxes]
             netboxids = ','.join(netboxids)
             where.append('netboxid in (%s)' % netboxids)
             
@@ -59,11 +50,11 @@ class ServiceTable:
         self.netboxes = netboxes
         self.servicenames = servicenames
         self.sort = sort
-        self.includeRrdStatus = 1
-        self.includeResponsetime = 1
         self.datasources = {"STATUS":"Availability",
-                            "RESPONSETIME":"Responsetime"
+                            "RESPONSETIME":"Responsetime",
                             }
+        self.includeRrdStatus = self.datasources.has_key('STATUS')
+        self.includeResponsetime = False
         self.timeframes = ['Day', 'Week', 'Month']
         self.rrdpresenter = presenter.presentation()
         self._findDataSources()
@@ -83,7 +74,7 @@ class ServiceTable:
             FROM rrd_datasource JOIN rrd_file ON
                 (rrd_file.rrd_fileid=rrd_datasource.rrd_fileid) 
             WHERE key='serviceid' and value IN (%s)""" % serviceIDs
-        cursor = database.cursor()
+        cursor = db.cursor()
         cursor.execute(allDataSourcesSQL)
         result = cursor.fetchall()
         for row in result:
@@ -103,6 +94,7 @@ class ServiceTable:
     def createHeader(self):
         """Creates the table heading """
         headers = []
+        headers.append('') #this is quite logically
         if len(self.netboxes) != 1 :
             # If we only have one netbox, there will be no need
             # to show it's name
@@ -116,17 +108,19 @@ class ServiceTable:
             headers.extend(self.timeframes)
         if self.includeResponsetime:
             headers.extend(self.timeframes)
+            
         #self.html = tableview.TableView(*headers, baseurl="all", sortBy=self.sort)
         self.html = tableview.TableView(*headers)
     def createTableBody(self):
         for service in self.services:
             row = []
             if service.up == 'y':
-                status = ""
+                statusLight = ""
             elif service.up == 'n':
-                status = html.Image(href="/images/lys/red.png", alt="")
+                statusLight = html.Image(src="/images/lys/red.png", alt="")
             elif service.up == 's':
-                status = html.Image(href="/images/lys/yellow.png", alt="")
+                statusLight = html.Image(src="/images/lys/yellow.png", alt="")
+            row.append(statusLight)
             if len(self.netboxes) != 1:
                 netbox = urlbuilder.createLink(service.netbox)
                 row.append(netbox)
@@ -141,6 +135,9 @@ class ServiceTable:
                 status = html.TableCell(status, title="since %s" % since)
             row.append(status)
             for ds in self.datasources.keys():
+                if not self.includeResponsetime and \
+                    ds == 'RESPONSETIME':
+                        continue
                 for timeframe in self.timeframes:
                     stat = self.getServiceRrds(service, timeframe, ds)
                     row.append(stat)
@@ -151,14 +148,7 @@ class ServiceTable:
         rrd = self.rrdpresenter
         rrd.removeAllDs()
         timeframe = timeframe.lower()
-        if timeframe == 'day':
-            rrd.timeLastDay()
-        elif timeframe == 'week':
-            rrd.timeLastWeek()
-        elif timeframe == 'month':
-            rrd.timeLastMonth()
-        else:
-            raise "Unknown timeframe: %s" % timeframe
+        rrd.timeLast(timeframe)
     
         try:
             dsID = service.datasources[ds]
@@ -171,18 +161,22 @@ class ServiceTable:
             return ""
         else:
             value = value[0]
+        
 
         if ds == "STATUS":
             # convert to availability percent.
             # only your boss understands this
             # number :)
             value = (1-value)*100
-            result = tableview.ValueCell(value, "%")
+            result = tableview.Value(value, "%")
         else:
-            result = tableview.ValueCell(value, decimals=3)
+            result = tableview.Value(value, decimals=3)
 
         # Just for fun, could be some real numbers on certainty
-        result['title'] = "&Sigma;%0.2f" % random.random()
-
-        return result    
+        link = urlbuilder.createLink(subsystem="rrd",
+                division="datasources",
+                id=service.datasources.values(),
+                tf=timeframe, content=result)
+        link['title'] = "&sigma;%0.2f" % random.random()
+        return link        
    
