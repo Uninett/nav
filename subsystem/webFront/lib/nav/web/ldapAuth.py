@@ -18,7 +18,7 @@ import nav.errors
 try:
     import ldap
     available = 1
-except Exception,e:
+except ImportError,e:
     available = 0
     ldap = None
     apache.log_error("Python LDAP module is not available - " + str(e),
