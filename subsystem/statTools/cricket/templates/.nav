@@ -1,0 +1,3 @@
+# Configfile for NAV
+
+dirs = routers,switches,switch-ports,router-interfaces,giga-switch-ports,giga-router-interfaces
