@@ -1,3 +1,17 @@
+/**
+ * Retrieves SNMP Agent sysObjectID.
+ *
+ * $Id: HandlerSnmpAgent.java,v 1.2 2002/10/18 09:26:30 stain Exp $
+ * This file is part of the NAV project.
+ * 
+ * This small plugin is non-exclusive and retrieves the sysObjectID from
+ * all devices that handles SNMP.
+ *
+ * Copyright (c) 2002 by NTNU, ITEA nettgruppen
+ * Author: Stian Soiland <stain@itea.ntnu.no>
+ * 
+ */
+
 package no.ntnu.nav.getDeviceData.plugins.HandlerSnmpAgent;
 
 import no.ntnu.nav.SimpleSnmp.*;
@@ -6,13 +20,6 @@ import no.ntnu.nav.getDeviceData.plugins.*;
 import java.util.ArrayList;
 
 public class HandlerSnmpAgent implements DeviceHandler
-/**
- * Retrieves SNMP Agent sysObjectID.
- *
- * This small plugin is non-exclusive and retrieves the sysObjectID from
- * all devices that handles SNMP.
- * 
- */
 {
 	public int canHandleDevice(BoksData bd)
 	{
