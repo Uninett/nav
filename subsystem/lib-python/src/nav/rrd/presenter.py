@@ -86,7 +86,7 @@ class datasource:
     """ Class representing a datasource.
     Can perform simple calculations on the datasource"""
 
-    def __init__(self,rrd_datasourceid,linetype='LINE1'):
+    def __init__(self,rrd_datasourceid,linetype='LINE2'):
         cursor = nav.db.getConnection('rrdpresenter').cursor()    
         cursor.execute("select * from rrd_datasource where rrd_datasourceid=%s"% rrd_datasourceid)
         result = cursor.dictfetchone()
@@ -172,7 +172,9 @@ class presentation:
         returnList = []
         for datasource in self.datasources:
             try:
-                raw = rrdtool.fetch(datasource.fullPath(),'AVERAGE','-s '+self.fromTime,'-e '+self.toTime)
+                raw = rrdtool.fetch(datasource.fullPath(),
+                                    'AVERAGE','-s '+self.fromTime,
+                                    '-e '+self.toTime)
 
                 returnDict = {}
                 returnDict['start']  = raw[0][0]
@@ -182,6 +184,7 @@ class presentation:
                 row = list(raw [1]).index(datasource.name)
                 invalid = 0
                 data = []
+                
                 for i in raw[2]:
                     if type(i[row]) == type(None):
                         #                    data.append(self.none)
