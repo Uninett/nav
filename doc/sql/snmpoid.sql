@@ -294,6 +294,10 @@ DELETE FROM snmpoid WHERE oidkey='hpVlan';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('hpVlan','1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1','Vlan for each port','hp','0',NULL,'0',NULL,NULL);
 
+DELETE FROM snmpoid WHERE oidkey='hpStackStatsMemberOperStatus';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('hpStackStatsMemberOperStatus','1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.5','HP stack member status','hp','0',NULL,'0','hpStackStatsMemberOperStatus','HP-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='ifAdminStatus';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifAdminStatus','1.3.6.1.2.1.2.2.1.7','standard','mib-II','0',NULL,'0','ifAdminStatus','IF-MIB');
@@ -412,7 +416,7 @@ VALUES ('ifSpeed','1.3.6.1.2.1.2.2.1.5','standard','mib-II','0',NULL,'0','ifSpee
 
 DELETE FROM snmpoid WHERE oidkey='ifTrunk';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('ifTrunk','1.3.6.1.4.1.9.9.46.1.6.1.1.13','cL3-sw',NULL,'0',NULL,'0','vlanTrunkPortDynamicState','CISCO-VTP-MIB');
+VALUES ('ifTrunk','1.3.6.1.4.1.9.9.46.1.6.1.1.14','cL3-sw',NULL,'0',NULL,'0','vlanTrunkPortDynamicStatus','CISCO-VTP-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='ifType';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
