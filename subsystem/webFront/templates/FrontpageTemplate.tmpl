@@ -172,7 +172,9 @@
          <a href="/emotd/view?id=$emotd.emotdid">$emotd.title</a>
        </td>
        <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
-         00/00/2000
+	  #set $last = $emotd.last_changed
+          #set $date = $last[-2:] + "/" + $last[5:7] + "/" + $last[0:4]
+          $date
        </td>
      </tr>
      <tr>
