@@ -3638,7 +3638,7 @@ class structNetbox:
                     box = None
                     try:
                         box = initBox.Box(form['ip'],form['ro'])
-                    except namp.Snmp.TimeOutException:
+                    except nav.Snmp.TimeOutException:
                         status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                              ': ' + str(sys.exc_info()[1]))
                         templateform.add(structNetbox.editbox(editId=selected,
