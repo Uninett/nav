@@ -2,15 +2,24 @@
 
 use strict;
 
-my $intern_userlist = "../../htpasswd/intern_user";
-my $nettass_userlist = "../../htpasswd/nettass_user"; 
-my $stat_userlist  = "../../htpasswd/stat_user";
-my $bdb_userlist = "../../htpasswd/passwd";
+#denne skal hentes i fra den generelle config
+my $nav_sti = "/usr/local/nav";
 
-my $htpasswd_sroot = "../apache/htpasswd/.htpasswd-sroot";
-my $htpasswd_sec = "../apache/htpasswd/.htpasswd-sec";
-my $htpasswd_res = "../apache/htpasswd/.htpasswd-res";
-my $htpasswd_sby = "../apache/htpasswd/.htpasswd-sby"; 
+my $apache_htpasswd = "$nav_sti/local/apache/htpasswd";
+my $nav_htpasswd_conf = "$nav_sti/local/etc/htpasswd";
+
+# Må oppdateres etter instalasjonen
+my $brukerdb = "$nav_htpasswd_conf/passwd";
+
+
+my $intern_userlist = "$nav_htpasswd_conf/intern_user";
+my $nettass_userlist = "$nav_htpasswd_conf/nettass_user"; 
+my $stat_userlist  = "$nav_htpasswd_conf/stat_user";
+
+my $htpasswd_sroot = "$apache_htpasswd/.htpasswd-sroot";
+my $htpasswd_sec = "$apache_htpasswd/.htpasswd-sec";
+my $htpasswd_res = "$apache_htpasswd/.htpasswd-res";
+my $htpasswd_sby = "$apache_htpasswd/.htpasswd-sby"; 
 
 
 my (%sroot, %sec, %res, %sby);
@@ -86,9 +95,9 @@ open (STAT_FIL, "<$stat_userlist") || die "Får ikke åpnet filen med de statiske 
 close (STAT_FIL);
 
 
-open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene: $bdb_userlist $!\n";
+open (DB_FIL, "<$brukerdb") || die "Får ikke åpnet filen med brukerene: $brukerdb $!\n";
 
-  while (<BDB_FIL>) {
+  while (<DB_FIL>) {
     
     next if (/^\W/);
 
@@ -102,7 +111,7 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
 
 	$sec{$user}{passwd} = $passwd;
 	$sec{$user}{navn}   = $navn;
-	$sec{$user}{info}   = 'henta fra passwd';
+	$sec{$user}{info}   = 'autogenerert';
 	$sec{$user}{adgang} = 'intern';
     }
 
@@ -114,7 +123,7 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
  
 	$sby{$user}{passwd} = $passwd;
 	$sby{$user}{navn}   = $navn;
-	$sby{$user}{info}   = 'henta fra passwd';
+	$sby{$user}{info}   = 'autogenerert';
 	$sby{$user}{adgang} = 'nettass';
     }                                    
 
@@ -126,13 +135,13 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
 
 	$res{$user}{passwd} = $passwd;
 	$res{$user}{navn}   = $navn;
-	$res{$user}{info}   = 'henta fra passwd';
+	$res{$user}{info}   = 'autogenerert';
 	$res{$user}{adgang} = 'begrenset';
     }
 
   }
 
-close (BDB_FIL);
+close (DB_FIL);
 
 
 
