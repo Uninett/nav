@@ -158,6 +158,9 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='macPortEntry';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('macPortEntry','1.3.6.1.2.1.17.4.3.1.2','Bridge table for various switches','bridge-mib','0',NULL,'0');
 
+DELETE FROM snmpoid WHERE oidkey='ipNetToMediaPhysAddress';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ipNetToMediaPhysAddress','1.3.6.1.2.1.4.22.1.2','Ifindex and IP to MAC mapping',NULL,'0',NULL,'0');
+
 DELETE FROM snmpoid WHERE oidkey='portDuplex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('portDuplex','1.3.6.1.4.1.9.5.1.4.1.1.10','cat-sw',NULL,'0',NULL,'0');
 
