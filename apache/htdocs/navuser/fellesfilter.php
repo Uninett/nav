@@ -22,7 +22,7 @@ if ($subaction == 'endret') {
 	if ($fid > 0) { 
 	
 		$dbh->endreFilter($fid, $navn);
-
+		$dbh->nyLogghendelse($uid, 8, "Endret navn på felles utstyrsfilter (" . $navn . ")");
 		
 		print "<p><font size=\"+3\">OK</font>, filternavnet er endret.";
 		$navn='';
@@ -39,6 +39,7 @@ if ($subaction == 'slett') {
 	if ($fid > 0) { 
 	
 		$foo = $dbh->slettFilter($fid);
+		$dbh->nyLogghendelse($uid, 7, "Slettet felles utstyrsfilter (id=" . $fid . ")");		
 		$navn = '';
 		
 		print "<p><font size=\"+3\">OK</font>, filteret er slettet fra databasen.";
@@ -65,6 +66,7 @@ if ($subaction == "nyttfilter") {
   if ($uid > 0) { 
     
     $filterid = $dbh->nyttFilterAdm($navn);
+	$dbh->nyLogghendelse($uid, 6, "Nytt felles utstyrsfilter (" . $navn . ")");    
     
     print "<p><font size=\"+3\">OK</font>, et nytt filter er opprettet. Åpne filteret for å legge til betingelser og begrensninger.";
     

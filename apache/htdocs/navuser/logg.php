@@ -44,20 +44,22 @@ for ($i = 0; $i < sizeof($logg); $i++) {
 
 	$type = $logg[$i][0];
 	$descr = $logg[$i][1];		
-	$tid = strftime ("%H:%M, %a %e %b %y", $logg[$i][2] );
+	$tid =   htmlentities (strftime ("%H:%M, %a %e %b %y", $logg[$i][2] ) );
 	$navn = $logg[$i][3];
 
+	$hikon[1] = 'in.gif';
+	$hikon[2] = 'out.gif';
+	$hikon[3] = 'logg_new.gif';
+	$hikon[4] = 'logg_del.gif';
+	$hikon[5] = 'logg_edit.gif';
+	$hikon[6] = 'logg_new.gif';
+	$hikon[7] = 'logg_del.gif';
+	$hikon[8] = 'logg_edit.gif';
 
-  if ($type == 1) { 
-    $hi = '<img alt="Inn" src="icons/in.gif">';
-  } else if ($type == 2) {
-    $hi = '<img alt="Out" src="icons/out.gif">';
-  } else {
-  	$hi = 'NA';
-  }
+	$hi = '<img alt="Hendelse" src="icons/' . $hikon[$type] . '">';
 
 
-  $l->addElement( array($hi, $navn,  $tid, $descr
+  $l->addElement( array($hi, $navn, $tid,  $descr
 			) 
 		  );
 }
