@@ -169,3 +169,30 @@ interface toolbox and select editdb.
 Fortunately for you, editdb has the ability to bulk import data from
 text files that are mostly the same format as the old seed text files
 of NAV v2.
+
+Tips for bulk importing:
+
+- Due to dependencies within the database, it is recommended that you
+  bulk import the seed files in the following order: Locations, Rooms,
+  Vendors, Types, Organizations, User categories, Boxes, Services.
+  The format of each bulk import type is documented in the bulk import
+  forms of editdb.
+
+- When bulk importing boxes, it is a good idea to split the seed files
+  into smaller pieces.  Bulk importing triggers a burst of SNMP
+  queries, and if you are importing a large amount of boxes, your web
+  browser may time out waiting for the web server's reply.
+
+- Some vendors and types are already defined in the initial
+  database. Before importing these, you can check which ones exist by
+  looking at /editdb/vendor/list and /editdb/type/list
+
+- If you are trying to import a nested organizational structure, it
+  may be neccesary to import the organization file several times.
+
+- Note that NAVv3 supports only these categories:
+  GSW,GW,SW,EDGE,WLAN,SRV,OTHER.  Equipment of all categories, except
+  SRV and OTHER, is required to respond to SNMP queries, or it will
+  not be allowed into the database.
+
+- Subcategories can be defined for all main categories.

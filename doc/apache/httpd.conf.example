@@ -29,6 +29,7 @@ Group httpd
 #
 # Load some modules
 #
+LoadModule cgi_module         libexec/mod_cgi.so
 LoadModule mime_magic_module  libexec/mod_mime_magic.so
 LoadModule mime_module        libexec/mod_mime.so
 LoadModule access_module      libexec/mod_access.so
