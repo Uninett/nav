@@ -5,6 +5,7 @@ import java.sql.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.event.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 
@@ -122,6 +123,32 @@ public class DeviceHandler implements DataHandler {
 							"deviceid", deviceid,
 						};
 						Database.update("device", set, where);
+
+						// If the serial changes we need to recreate the netbox
+						int devid = olddev.getDeviceid();
+						if (!dev.getSerial().equals(olddev.getSerial())) {
+							NetboxUpdatable nu = (NetboxUpdatable)nb;
+							nu.recreate();
+							Map varMap = new HashMap();
+							varMap.put("old_serial", String.valueOf(olddev.getSerial()));
+							varMap.put("new_serial", String.valueOf(dev.getSerial()));
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+						}
+
+						// Now we need to send events if hw_ver or sw_ver changed
+						if (!dev.getHwVer().equals(olddev.getHwVer())) {
+							Map varMap = new HashMap();
+							varMap.put("old_hwver", String.valueOf(olddev.getHwVer()));
+							varMap.put("new_hwver", String.valueOf(dev.getHwVer()));
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+						}
+						
+						if (!dev.getSwVer().equals(olddev.getSwVer())) {
+							Map varMap = new HashMap();
+							varMap.put("old_swver", String.valueOf(olddev.getSwVer()));
+							varMap.put("new_swver", String.valueOf(dev.getSwVer()));
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", devid, 0, 0, "deviceSwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+						}
 					}
 				}
 				dev.setDeviceid(deviceid);
