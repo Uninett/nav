@@ -25,10 +25,7 @@ echo '</a>';
 
 
 $dbhk = $dbinit->get_dbhk();
-
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
-
-
 
 if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
 	echo "<h2>Security violation</h2>";
@@ -37,37 +34,42 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get
 
 
 if (isset($subaction) && $subaction == 'slett') {
-
 	if (session_get('match_fid') > 0) { 
-	
 		$dbh->slettFiltermatch(session_get('match_fid'), get_get('mid') );
-
 		print "<p><font size=\"+3\">" . gettext("OK</font>, the condition is removed from the filter.");
-
 	} else {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the match is <b>not</b> removed.");
 	}
-
-  
 }
+
 
 if (isset($subaction) && $subaction == "nymatch") {
 	print "<h3>" . gettext("Registering new condition...") . "</h3>";
 	
-	//if ($navn == "") $navn = gettext("No name");
-	if ($uid > 0) { 
+	if ($uid > 0) {
 	
-		$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
-		post_get('verdi'), session_get('match_fid') );
+		if (post_get('matchtype') == 11) {
+
+			if (post_exist('mverdi')) {
+				$tval = implode('|', post_get('mverdi'));
+				//print "<p>Values:$tval";
+				$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
+				$tval, session_get('match_fid') );				
+			} else {
+				print "<p><font size=\"+3\">" . gettext("No values selected, a new match is <b>not</b> added.");
+			}
+					
+		} else {
+			$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
+			post_get('verdi'), session_get('match_fid') );
+		}
 		print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
 	
 	} else {
 		print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
 	}
-	
 	$subaction = "";
 	unset($matchfelt);
-  
 }
 
 
@@ -88,12 +90,10 @@ if ( get_exist('sortid') )
 $match = $dbh->listMatch(session_get('match_fid'), $l->getSort() );
 
 for ($i = 0; $i < sizeof($match); $i++) {
-
 	$valg = '<a href="index.php?action=match&subaction=slett&mid=' . 
 		$match[$i][0] . '">' .
 		'<img alt="Delete" src="icons/delete.gif" border=0>' .
 		'</a>';
-	
 	
 	$l->addElement( array(
 		$match[$i][1],  // felt
@@ -109,7 +109,7 @@ print "<p>[ <a href=\"index.php?action=match\">" . gettext("update") . " <img sr
 print "Antall filtermatcher: " . sizeof($match);
 
 
-echo '<a name="nymatch"></a><p><h3>';
+echo '<a name="nymatch"></a><div class="newelement"><h3>';
 echo gettext("Add new condition");
 echo '</h3>';
 
@@ -139,7 +139,7 @@ foreach ($matchfields AS $matchfield) {
 echo '</select></td></tr>';
 
 
-echo '</form><form name="nymatch" method="post" action="index.php?action=match&subaction=nymatch">';
+echo '</form><form name="nymatch" method="post" action="index.php?action=match&subaction=velgoperator">';
 
 if ( post_exist('matchfelt') ) {
 	$valgt_matchfelt = post_get('matchfelt');
@@ -165,10 +165,21 @@ echo '<tr><td colspan="2"><small><p>';
 echo $matchfieldinfo[1];
 echo '</small></td></tr>';
 
+
+
 echo '<tr>';
 
 
 // Valg av operator ----------------------------------------
+
+
+if ( post_exist('matchtype') ) {
+	$valgt_matchtype = post_get('matchtype');
+} else {
+	$valgt_matchtype = $matchfieldinfo[9][0];
+}
+//echo '<p>Valg matchtype er: ' . $valgt_matchtype . ' postverdi er:' .  post_get('matchtype');
+
 
 echo '<td width="30%"><p>';
 echo gettext("Choose condition");
@@ -176,11 +187,13 @@ echo '</p></td><td width="70%">';
 
 echo '<input type="hidden" name="matchfelt" value="' . $valgt_matchfelt . '">';
 
-print '<select name="matchtype" id="select">';
+print '<select name="matchtype" id="select" onChange="this.form.submit()">';
 
 if ( sizeof($matchfieldinfo[9]) > 0) {
 	foreach ($matchfieldinfo[9] as $matchtype) {
-		print '<option value="' . $matchtype . '">' . $type[$matchtype] . '</option>';
+		$selected = "";
+		if ($matchtype == $valgt_matchtype) { $selected = " selected";   }
+		print '<option value="' . $matchtype . '"' . $selected . '>' . $type[$matchtype] . '</option>';
 	}
 } else {
 	print '<option value="0" selected>' . gettext("equals") . '</option>';	
@@ -192,6 +205,15 @@ echo $matchfieldinfo[2];
 echo '</small></td></tr>';
 
 
+
+
+
+
+
+
+echo '</form><form name="nymatch" method="post" action="index.php?action=match&subaction=nymatch">';
+echo '<input type="hidden" name="matchfelt" value="' . $valgt_matchfelt . '">';
+echo '<input type="hidden" name="matchtype" value="' . $valgt_matchtype . '">';
 ?>
    	
     <tr>     
@@ -202,12 +224,10 @@ echo '</small></td></tr>';
 
 
 
+// Valg av verdi ----------------------------------------	
 
 if ($matchfieldinfo[8] == 't' ) {
-  
-	// Valg av verdi ----------------------------------------	
-	
-		
+
 	$verdier = $dbhk->listVerdier(
 		$matchfieldinfo[3],
 		$matchfieldinfo[4],
@@ -217,20 +237,33 @@ if ($matchfieldinfo[8] == 't' ) {
 	);  
   
   
-	echo '<select name="verdi" id="select">';    
-
-	ksort($verdier);
-
-	// Traverser kategorier
-	foreach ($verdier AS $cat => $catlist) {
-		if ($cat != "") echo '<optgroup label="' . $cat . '">';
-		foreach ($catlist AS $catelem) {
-			echo ' <option value="' . $catelem[0] . '">' . $catelem[1] . '</option>' . "\n";
+	if ($valgt_matchtype == 11) {
+		echo '<select name="mverdi[]" id="select" style="width: 100%" size="15" multiple>';    
+		ksort($verdier);
+		// Traverser kategorier
+		foreach ($verdier AS $cat => $catlist) {
+			if ($cat != "") echo '<optgroup label="' . $cat . '">';
+			foreach ($catlist AS $catelem) {
+				echo ' <option value="' . $catelem[0] . '">' . $catelem[1] . '</option>' . "\n";
+			}
+			if ($cat != "") echo '</optgroup>';
 		}
-		if ($cat != "") echo '</optgroup>';
-	}
-				
-	echo '</select>';
+		echo '</select>';	
+	} else {	
+		echo '<select name="verdi" id="select">';    
+		ksort($verdier);
+		// Traverser kategorier
+		foreach ($verdier AS $cat => $catlist) {
+			if ($cat != "") echo '<optgroup label="' . $cat . '">';
+			foreach ($catlist AS $catelem) {
+				echo ' <option value="' . $catelem[0] . '">' . $catelem[1] . '</option>' . "\n";
+			}
+			if ($cat != "") echo '</optgroup>';
+		}
+		echo '</select>';
+	}		
+	
+	
 	
 } else {
 	echo '<input name="verdi" size="40">';
@@ -249,7 +282,7 @@ if ($matchfieldinfo[8] == 't' ) {
 
 $tekst = gettext("Add condition");
 
-print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';
+print '<td><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 
 
 
@@ -257,12 +290,12 @@ print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . 
     </tr>
   </table>
 
-</form>
+</form></div>
 
 <?php
-	echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
+	echo '<div align="right"><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
 	echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter') . '">';
-	echo '</form>';
+	echo '</form></div>';
 ?>
 
 </td></tr>

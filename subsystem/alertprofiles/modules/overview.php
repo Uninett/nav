@@ -28,6 +28,67 @@ function helgdescr($helg) {
 
 
 /*
+ * the function easysetup() prints an easy form to create a default alert profile.
+ *
+ */
+function easysetup($dbh) {
+	echo '<p>
+	<table width="100%">
+		<tr><td>
+			<img alt="Warning" align="top" src="images/warning.png">
+		</td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. 
+						Choose profiles from the menu at the left margin and create a new profile.");
+	echo '</td></tr>';
+	echo '<tr><td colspan="2">';
+	
+	echo '<div class="newelement"><h3>Easy setup your first alert profile</h3>';
+	echo '<form method="post" action="index.php?action=oversikt&subaction=easysetup">';
+	echo '<p>Enter a profile name: <input name="name" size="35" value="Standard">';
+	echo '<br>Choose a default profile template:<br><select name="template">';
+	echo '
+		<option value="1">Empty profile, no time periods</option>	
+		<option value="2">One timeperiod, all week</option>
+		<option value="3" selected>Three timeperiods, workhours (8-16), evening and weekend</option>
+		<option value="4">Five timeperiods, Weekdays (work,evening,night), Weekend (day,night)</option>
+
+	';
+	echo '</select><br><input type="submit" value="Create profile">';
+	echo '</form></div></td></tr>	
+	</table>'; 
+	
+}
+
+if (isset($subaction) && $subaction == 'easysetup') {
+	
+
+	$profilid = $dbh->nyProfil(post_get('name'), session_get('uid'), 0, "09", "00", "07", "30" );
+
+	switch(post_get('template') ) {
+		case 2: 
+			$tidsid = $dbh->nyTidsperiode(1, '08:00', $profilid);
+		break;
+		case 3:
+			$tidsid = $dbh->nyTidsperiode(2, '08:00', $profilid);
+			$tidsid = $dbh->nyTidsperiode(2, '16:00', $profilid);
+
+			$tidsid = $dbh->nyTidsperiode(3, '09:00', $profilid);
+		break;		
+		case 4:
+			$tidsid = $dbh->nyTidsperiode(2, '08:00', $profilid);
+			$tidsid = $dbh->nyTidsperiode(2, '16:00', $profilid);
+			$tidsid = $dbh->nyTidsperiode(2, '22:30', $profilid);
+
+			$tidsid = $dbh->nyTidsperiode(3, '09:00', $profilid);
+			$tidsid = $dbh->nyTidsperiode(3, '23:30', $profilid);
+		break;
+	}
+	$dbh->aktivProfil(session_get('uid'), $profilid );
+	print "<p><font size=\"+3\">" . gettext("Congratulations</font>, your first profile is successfully created.");
+
+}
+
+
+/*
  * the function eqgroupview() prints out a nice html table showing the requested 
  * equipment group in i hiearchy, with all equipment filters in detail.
  *
@@ -185,16 +246,19 @@ if (isset($subaction) && $subaction == 'settaktiv') {
 
 $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 $profiler = $dbh->listProfiler( session_get('uid'), 1);
-
+$grupperettighet = $dbh->listUtstyrRettighet(session_get('uid'), 1);
 
     
 $acprofilename = "No active profile";
-if (sizeof($profiler) < 1) {
-	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. Choose profiles from the menu at the left margin and create a new profile.") . '</td></tr></table>'; 
+
+
+if (sizeof($grupperettighet) < 1) {
+		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You do not have permission to <b>any</b> alerts. Please ask your administrator to setup your alert permissions.") . '</td></tr></table>'; 	
+} elseif (sizeof($profiler) < 1) {
+	easysetup($dbh);
 } elseif ($brukerinfo[4] < 1) { 
 		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("No alert profile is active for the moment. That means no alerts will be sent.") . '</td></tr></table>'; 
 } else {
-
 	foreach ($profiler AS $p) {
 		if ($brukerinfo[4] == $p[0]) {
 			$acprofilename = $p[1];

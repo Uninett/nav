@@ -39,7 +39,8 @@ $type = array (
 	7 => gettext('ends with'),
 	8 => gettext('contains'),
 	9 => gettext('regexp'),
-	10=> gettext('wildcard (? og *)')
+	10=> gettext('wildcard (? og *)'),
+	11=> gettext('in')	
 );
 
 

@@ -204,21 +204,34 @@ require("listing.php");
 <?php
 $interpreter = $_ENV['PYTHONHOME'] ? $_ENV['PYTHONHOME'] . '/bin/python' : "";
 $cmd = $interpreter . ' ' . PATH_BIN . 'navTemplate.py user=' . session_get('bruker') . 
-	' content=%%% path=AlertProfiles:/alertprofiles ';
+	' content=%%% path=AlertProfiles:/alertprofiles 2>&1';
 
 exec($cmd, $out, $retval );
 
 /* exec('export', $aaa); echo '<pre>' . implode("\n", $aaa) . '</pre>'; */
 
-$pyhtml = implode(" ",$out);
-//echo '<h1>' . `which python`. ":::::" .$cmd . 'RetVAL:' . $retval . '</h1><pre>' . $pyhtml . '</pre>';
+$pyhtml = implode("\n",$out);
 
+if ($retval == 0) {
+	//echo '<h1>' . `which python`. ":::::" .$cmd . 'RetVAL:' . $retval . '</h1><pre>' . $pyhtml . '</pre>';
+	
+	if (preg_match('/<(body|BODY).*?>(.*?)%%%/s', $pyhtml, $header) and
+		preg_match('/%%%(.*?)<\/(body|BODY)>/s', $pyhtml, $footer) ) {
+			echo $header[2];
+		
+	} else {
+		print '<div style="background: #ffffff; border: thin solid black; width: 100%"><h3>Error creating header. navTemplate.py returns bad content:</h3><textarea style="width: 100%; height: 20%">' . 
+		$pyhtml . 
+		'</textarea></div>';	
+	}
+	
+	
 
-preg_match('/<(body|BODY).*?>(.*?)%%%/', $pyhtml, $header);
-preg_match('/%%%(.*?)<\/(body|BODY)>/', $pyhtml, $footer);
-
-
-echo $header[2];
+} else {
+	print '<div style="background: #ffffff; border: thin solid black; width: 100%"><h3>Error creating header. navTemplate.py throws errors:</h3><pre>' . 
+		$pyhtml . 
+		'</pre></div>';
+}
 
 ?>
 <!-- /INCLUDE HEADER -->
@@ -329,8 +342,8 @@ if ( get_get('action')  ) {
 $meny = NEW Meny($login);
 
 echo "<p>";
-$meny->newOption(gettext("Overview"), "oversikt", 0, array('modules/overview.php') );
-$meny->newOption(gettext("Alert profiles"), "profil", 1, array('modules/alert-profile.php') );
+$meny->newOption(gettext("My active profile"), "oversikt", 0, array('modules/overview.php') );
+$meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profile.php') );
 $meny->newOption(gettext("Filter groups"), "utstyr", 1, array('modules/equipment-group-private.php') );
 $meny->newOption(gettext("Filters"), "filter", 1, array('modules/equipment-filter-private.php') );
 
@@ -346,7 +359,7 @@ $meny->newOption(gettext("Log"), "logg", 20, array('modules/log.php') );
 
 
 echo "<p>";
-$meny->newOption(gettext("Account info"), "account-info", 1, array('modules/account-info.php') );
+$meny->newOption(gettext("My permissions"), "account-info", 1, array('modules/account-info.php') );
 $meny->newOption(gettext("Addresses"), "adress", 1,array('modules/address.php') );
 $meny->newOption(gettext("Alert language"), "language", 1, array('modules/language-settings.php') );
 $meny->newOption(gettext("WAP setup"), "wap", 1, array('modules/wap-setup.php') );

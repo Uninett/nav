@@ -23,40 +23,18 @@ if (isset($subaction) && $subaction == 'settaktiv') {
 $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 $profiler = $dbh->listProfiler( session_get('uid'), 1);
 
-
-// Lag en dropdown meny for å velge aktiv profil
-print '<form name="form1" method="post" action="index.php?action=account-info&subaction=settaktiv">';
-
-print gettext('Set active alert profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
-
-
-if ($brukerinfo[4] < 1) { 
-	echo '<option value="0">' . gettext("Choose alert profile") . '</option>'; 
-}
-for ($i = 0; $i < sizeof($profiler); $i++) {
-	print '<option value="' . $profiler[$i][0] . '" '; 
-	if ($brukerinfo[4] == $profiler[$i][0]) echo 'selected'; 
-	echo '>' . $profiler[$i][1] . '&nbsp;&nbsp;</option>';
-}
-
-if (sizeof($profiler) < 1) {
-	echo '<option value="0">' . gettext("No profiles exists...") . '</option>';
-}
-echo '</select>';
-
-if ($brukerinfo[4] < 1) { 
-	echo "<p>" . gettext("No alert profile is active. Activate a profile from the menu above."); 
-}
-echo '</form>';
+$grupperettighet = $dbh->listUtstyrRettighet(session_get('uid'), 1);
+$grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
 
 
 
-    
-if ($brukerinfo[4] < 1) { 
+
+
+if (sizeof($grupperettighet) < 1) {
+		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You do not have permission to <b>any</b> alerts. Please ask your administrator to setup your alert permissions.") . '</td></tr></table>'; 	
+} elseif ($brukerinfo[4] < 1) { 
 		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("No alert profile is active for the moment. That means no alerts will be sent.") . '</td></tr></table>'; 
-}
-    
-if (sizeof($profiler) < 1) {
+} elseif (sizeof($profiler) < 1) {
 	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. Choose profiles from the menu at the left margin and create a new profile.") . '</td></tr></table>'; 
 }
     
@@ -97,9 +75,32 @@ echo '</td></tr></table>';
 echo '<table width="100%"><tr>';
 echo '<td width="50%" valign="top" class="oversikt">';
 
+
+echo '<h2>' . gettext("Permissions") . '</h2>';
+
+if (sizeof($grupperettighet) < 1) {
+		echo gettext('<p>You have <b>not</b> permissions to any filter groups.');
+} else {
+		echo gettext('<p style="font-size:x-small">You have permissions to ') . sizeof($grupperettighet) . gettext(' equipment groups:');
+}
+	
+for ($i = 0; $i < sizeof($grupperettighet); $i++) {
+		echo '<p class="nop"><img src="icons/chip.gif"><b>' . $grupperettighet[$i][1] . '</b></p>';
+		echo '<p class="descr">' . $grupperettighet[$i][2]. '</p>';
+}
+
+
+
+echo '</td><td width="50%" valign="top" class="oversikt">';
+
 echo '<h2>' . gettext("User groups") . '</h2>';
 
-$grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
+
+if (sizeof($grupper) < 1) {
+		echo gettext('<p>You are <b>not</b> member of any user groups.');
+} else {
+		echo gettext('<p style="font-size:x-small">You are member of ') . sizeof($grupper) . gettext(' user groups:');
+}
 
 		
 for ($i = 0; $i < sizeof($grupper); $i++) {
@@ -107,28 +108,8 @@ for ($i = 0; $i < sizeof($grupper); $i++) {
 		echo '<p class="descr">' . $grupper[$i][2]. '</p>';
 }
 
-if (sizeof($grupper) < 1) {
-		echo gettext('<p>You are <b>not</b> member of any user groups.');
-} else {
-		echo gettext('<p>You are member of ') . sizeof($grupper) . gettext(' user groups.');
-}
 
-echo '</td><td width="50%" valign="top" class="oversikt">';
 
-echo '<h2>' . gettext("Permissions") . '</h2>';
-$grupper = $dbh->listUtstyrRettighet(session_get('uid'), 1);
-
-		
-for ($i = 0; $i < sizeof($grupper); $i++) {
-		echo '<p class="nop"><img src="icons/chip.gif"><b>' . $grupper[$i][1] . '</b></p>';
-		echo '<p class="descr">' . $grupper[$i][2]. '</p>';
-}
-
-if (sizeof($grupper) < 1) {
-		echo gettext('<p>You have <b>not</b> permissions to any equipment groups.');
-} else {
-		echo gettext('<p>You have permissions to ') . sizeof($grupper) . gettext(' equipment groups.');
-}
 
 echo '</td></tr></table>';
 

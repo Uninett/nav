@@ -37,13 +37,17 @@ if (!isset($_ENV['REMOTE_USER'])) {
 *	THEN Alert Profiles will recheck and create session information, permissions etc.
 *
 */
+
+
+if (session_exist('login')) { echo "Sesison exist..."; }
+
 if (isset($_ENV['REMOTE_USER'] ) AND
-	( session_get('login') == false  OR 
-		(session_get('login') AND (session_get('bruker') != $_ENV['REMOTE_USER']) 
-		)
+	( session_get('login') === false  OR 
+		(session_get('bruker') != $_ENV['REMOTE_USER']) 
 	) ) {
 
-	// echo "Bruker:" . session_get('bruker') . ":   ENV:" . $_ENV['REMOTE_USER'] . ":";
+
+
 
     $username = $_ENV['REMOTE_USER'];
 
@@ -57,7 +61,7 @@ FROM Preference, Account
 WHERE (Account.login = '$username') AND 
     (Account.id = Preference.accountid) ";
 
-   //echo "<p>Query: " . $querystring;
+
 
     if (! $query = pg_exec($dbh->connection, $querystring)  ) {
         $nerror = new Error(2);
@@ -102,18 +106,28 @@ WHERE (Account.login = '$username') AND
                 $nerror = new Error(2, 1);
                 $nerror->message = gettext("Something bad happened when trying to fetch the user ID from the database.");
 				$error[] = $nerror;
+/* 				session_delete('uid'); */
+/* 				session_delete('admin'); */
+/* 				session_delete('lang'); */
+/* 				session_delete('bruker'); */
+/* 				session_delete('login'); */
+/* 				session_delete('action'); */
+/* 				session_delete('subaction');				 */
+/*                 session_set('login', false); */				
             }
         } else {
             $nerror = new Error(1, 1);
             $nerror->message = gettext("Database inconsistency. You are correctly logged in, but your user is not correctly configured to work with NAV Alert Profiles. Contact your system administrator.");
+			$error[] = $nerror;
 
-/* 		print '<pre>DEBUG ERRORS'; */
-/* 		print_r($error); */
-/* 		print_r($nerror); */
-/* 		print '</pre>'; */
-			global $error;
-			array_push($error, $nerror);
-/* 			$error[] = $nerror; */
+/* 			session_delete('uid'); */
+/* 			session_delete('admin'); */
+/* 			session_delete('lang'); */
+/* 			session_delete('bruker'); */
+/* 			session_delete('login'); */
+/* 			session_delete('action'); */
+/* 			session_delete('subaction'); */
+/* 			session_set('login', false); */
         }
     }
 }
