@@ -1,0 +1,44 @@
+Version 3.0_beta7 (released xx July 2004, revision yyyy)
+
+ Changelog for version 3 first created.  This entry contains changes
+ since 3.0_beta6.  
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. For information ##
+## on how to upgrade the database schema, please take a look in    ##
+## doc/sql/upgrades for more information.                          ##
+##                                                                 ##
+#####################################################################
+
+ User-visible changes:
+ * Several fixes to the web interface makes it compatible with Apache
+   2 and mod_python 3.  Example config for Apache 2 included in
+   doc/apache.
+ * Syslog Analyzer ported/rewritten from NAV v2 (then known as navlog).
+ * Subnet usage matrix ported/rewritten from NAV v2.
+ * editDB can now edit cabling and patch information.
+ * Improvements to the editDB interface:
+   - Fixed typos.
+   - Simplified a few procedures.
+   - Clarified cryptic field names.
+   - Red asterisks mark required form fields.
+   - Can control groupings used in vlanPlot.
+ * Improvements to the messages interface.
+ * References to the eMotd subsystem have been changed to messages.
+ * vlanPlot applet is now displayed inside the NAV web framework
+   template.
+ * The nav command will complain verbosely if it cannot import the
+   nav.startstop module.
+ * Lots of "hehe" fixes by stain.
+ * The following utilities have been added:
+   - dump.py to dump live database content into bulk import-ready text
+     files.
+   - navclean.py to delete old/expired cam- and arp records from the
+     database.
+ * pg_backup.pl translated to English and rewritten to work with NAV
+   v3.  Example config included.
+ * The user adminstration panel now has it's own entry in the toolbox.
+ * Visibility improvements to vlanPlot and Network Explorer.
