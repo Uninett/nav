@@ -355,6 +355,7 @@ class SqlBoks
 				// Ny prefiksid oppdaget, lag tom liste for den og legg til enheten
 				pRouters.put(prefiksid, new ArrayList() );
 
+				if ("static".equals(nettype)) continue;
 				if (!nettype.equals("link")) {
 					String nettident = rs.getString("netident");
 					if (nettident == null || nettident.length() == 0) nettident = "unknown_netident";
@@ -1724,7 +1725,10 @@ class SqlAdmin
 		// Vi må være sikker på at gruppeid er et tall
 		try {
 			Integer.parseInt(gruppeid);
-		} catch (NumberFormatException e) { }
+		} catch (NumberFormatException e) {
+			//outl("false: Gruppeid is not a valid number: " + gruppeid);
+			return;
+		}
 
 		HashMap boksXYMap = new HashMap();
 		ResultSet rs = Database.query("SELECT pnetboxid,x,y FROM vp_netbox_xy WHERE vp_netbox_grp_infoid='"+gruppeid+"'");
@@ -1780,7 +1784,10 @@ class SqlAdmin
 			//Database.update(sql);
 			//remcnt++;
 		}
-		if (newcnt > 0 || updcnt > 0 || remcnt > 0) Database.commit();
+		if (newcnt > 0 || updcnt > 0 || remcnt > 0) {
+			//outl("true: New: " + newcnt + " Upd: " +updcnt + " Rem: " + remcnt);
+			Database.commit();
+		}
 
 		if (gruppeid.equals("0")) {
 			int grpcnt=0;
