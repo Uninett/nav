@@ -74,10 +74,8 @@ class TreeSelect:
 
                     # if only one row is selected, the mod_python FieldObject
                     # returns a string, not a list. Checks and makes a list. 
-                    if type(maybe_selected) is str:
-                        string = maybe_selected
-                        maybe_selected = []
-                        maybe_selected.append(string)
+                    if not type(maybe_selected) is list:
+                        maybe_selected = [maybe_selected]
 
                 if select.prevElement:
                     # does this select have a previous select element?
