@@ -57,9 +57,11 @@ class editdbNetbox(Netbox):
                    'subcat': 'subcat',
                    'sysname': 'sysname',
                    'type': 'typeid',
+                   'typename': 'type.typename',
                    'up': 'up',
                    'serial': 'device.serial'}
-    _sqlLinks =  (('deviceid', 'device.deviceid'),)
+    _sqlLinks =  (('deviceid', 'device.deviceid'),
+                  ('typeid', 'type.typeid'))
     _userClasses =  {'cat': Cat,
                     'device': Device,
                     'org': Org,

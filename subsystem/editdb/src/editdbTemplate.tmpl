@@ -108,11 +108,13 @@ $showBody($body)
 #end if
     <form method="$selectList.formMethod" action="$selectList.formAction">
 ## Top buttons
+#if $selectList.buttonsTop
         <p>
 #for $cname,$value in $selectList.buttonsTop
             <input type="submit" name="$cname" value="$value">
 #end for
         </p>
+#end if
         <table border="0" cellspacing="0" cellpadding="0">
 ## Show headings
             <tr class="header">
@@ -200,11 +202,13 @@ $showBody($body)
 #end for
         </table>
 ## Bottom buttons
+#if $selectList.buttonsBottom
         <p>
 #for $cname,$value in $selectList.buttonsBottom
             <input type="submit" name="$cname" value="$value">
 #end for
         </p>
+#end if
     </form>
 #end def
 

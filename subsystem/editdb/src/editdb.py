@@ -14,7 +14,7 @@ from nav.web.serviceHelper import getCheckers,getDescription
 #################################################
 ## Constants
 
-BASEPATH = '/editdb/'
+BASEPATH = '/~hansjorg/editdb/'
 
 EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database','/editdb')]
 
@@ -44,7 +44,7 @@ REQ_NONEMPTY = 3
 #################################################
 ## Templates
 
-from nav.web.templates.editdbTemplate import editdbTemplate
+from editdbTemplate import editdbTemplate
 
 #################################################
 ## Functions
@@ -348,12 +348,23 @@ def bulkImportParse(input,bulkdef,separator):
                     (status,validremark) = bulkdef.checkValidity(fn,fields[i])
                     if validremark:
                         remark = validremark
+
                     if status != BULK_STATUS_OK:
                         break
                     # use this field if no error (status==BULK_STATUS_OK)
-                    # and if it's marked to be used (use == true)                    
+                    # and if it's marked to be used (use == true)                   
+                    if fn=='serial' and status==BULK_STATUS_OK:
+                        data[fn] = fields[i] 
                     if (status == BULK_STATUS_OK) and (use == True):
                         data[fn] = fields[i] 
+            # postCheck
+            if bulkdef.postCheck:
+                (status,validremark,data) = bulkdef.postCheck(data)
+                if data.has_key('serial'):
+                    del(data['serial'])
+            if validremark:
+                remark = validremark
+
             parsed.append((status,data,remark,line,linenr))
     return parsed
 
@@ -402,9 +413,9 @@ def bulkImport(req,action):
 
     # form  submitted?
     if req.form.has_key(form.cnameConfirm) and len(req.form['table']):
-        if len(req.form['file'].value):
-            input = req.form['file'].value
-            input = input.split('\n')
+        if len(req.form['file']):
+                input = req.form['file']
+                input = input.split('\n')
         else:
             input = req.form['textarea']
             input = input.split('\n')
@@ -1531,637 +1542,84 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
                   'val': function}
         addEntryFields(fields,'netboxinfo')
 
-
-def updateNetbox(req,templateform,selected):
-    ADD_TYPE_URL = BASEPATH + 'type/edit/'
-    STEP_1 = 1
-    STEP_2 = 2
-    STEP_3 = 3
-    CNAME_STEP = 'step' 
-    # Step0: ask for ip,ro,rw,catid,org,room
-    # Step1: ask for serial (and sysname,snmpversion and typeid)
-    # Step2: ask for subcategory and function
-    # Step3: add the box
-    message = "Got SNMP response, but can't find type in " + \
-              "database. You must <a href=\"" + ADD_TYPE_URL + \
-              "?sysobjectid=%s\" " + \
-              "target=\"_blank\">add the " + \
-              "type</a>  before proceeding (a new window will " + \
-              "open, when the new type is added, press " + \
-              "Continue to proceed)."
-
-    box = None
-    status = editdbStatus()
-    action = 'predefined'
-    form = req.form
-    templateform.title = 'Edit box'
-    # Preserve the URL
-    templateform.action = BASEPATH + 'netbox/edit/' + selected
-
-    # Add editbox with hidden values for step (and deviceid)
-    editboxHidden = editboxHiddenOrMessage()
-    templateform.add(editboxHidden)
-    # What step are we in?
-    step = STEP_1
-    if form.has_key(CNAME_STEP):
-        step = int(form[CNAME_STEP])
-    nextStep = step + 1
-
-    oldBox = editTables.editdbNetbox(selected)
-
-    if step == STEP_1:
-        # Look up sysname in DNS
-        try:
-            sysname = gethostbyaddr(form['ip'])[0]
-        except:
-            sysname = form['ip']
-
-        # Check if (edited) ip is already present in db
-        #if (oldBox.ip != form['ip']) or (oldBox.sysname != sysname):
-        if oldBox.ip != form['ip']:
-            # If IP differs from the old, then check for uniqueness
-            error = None
-            where = "ip = '" + form['ip'] + "'"
-            box = editTables.Netbox.getAll(where)
-            if box:
-                error = 'IP already exists in database'
-            if not error:
-                # If IP isn't duplicate, check if (new) sysname is unique
-                where = "sysname = '" + sysname + "'"
-                box = editTables.Netbox.getAll(where)
-                if box:
-                    error = 'Sysname ' + sysname + ' (' + form['ip'] + \
-                            ') already exists in database'
-            if error:
-                status.errors.append(error)
-                templateform.add(structNetbox.editbox(editId=selected,formData=form))
-                return (status,action,templateform)
-
-        if editTables.Cat(form['catid']).req_snmp == True:
-            # SNMP required by cat
-            if len(form['ro']):
-                # RO specified, check SNMP
-                box = None
-                try:
-                    box = initBox.Box(form['ip'],form['ro'])
-                except nav.Snmp.TimeOutException:
-                    # No SNMP answer
-                    status.errors.append('No SNMP response, check RO community')
-                    templateform.add(structNetbox.editbox(editId=selected,
-                                                   formData=form))
-                    return (status,action,templateform)
-                except Exception, e:
-                    # Other error (no route to host for example)
-                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1]))
-                    templateform.add(structNetbox.editbox(editId=selected,
-                                                   formData=form))
-                    return (status,action,templateform)
-     
-                box.getDeviceId()
-                templateform.add(structNetbox.editbox(editId=selected,
-                                               formData=form,disabled=True))
-
-                if box.typeid:
-                    # Got type
-                    if box.serial:
-                        serial = box.serial
-                    else:
-                        serial = oldBox.device.serial
-                    templateform.add(structNetbox.editboxSerial(
-                                     gotRo=True,
-                                     serial=serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion,
-                                     editSerial=False))
-                    if box.serial:
-                        # Got serial, go directly to step 2
-                        step = STEP_2
-                    else:
-                        nextStep = STEP_2
-                else:
-                    # Couldn't find type, ask user to add
-                    message = message % (box.sysobjectid,)
-                    templateform.add(editboxHiddenOrMessage(message))
-            else:
-                # RO blank, return error
-                status.errors.append('Category ' + form['catid'] + \
-                                     ' requires a RO community')
-                templateform.add(structNetbox.editbox(editId=selected,formData=form))
-                nextStep = STEP_1
-        else:
-            # SNMP not required by cat
-            if len(form['ro']):
-                # RO specified, check SNMP anyway
-                box = None
-                try:
-                    box = initBox.Box(form['ip'],form['ro'])
-                except namp.Snmp.TimeOutException:
-                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1]))
-                    templateform.add(structNetbox.editbox(editId=selected,
-                                                   formData=form))
-                    return (action,templateform)
-                except Exception, e:
-                    # Other error (no route to host for example)
-                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1]))
-                    templateform.add(structNetbox.editbox(editId=selected,
-                                                   formData=form))
-                    return (action,templateform)
-
-                box.getDeviceId()
-                templateform.add(structNetbox.editbox(editId=selected,
-                                               formData=form,
-                                               disabled=True))
-                if box.typeid:
-                    # Got type
-                    if box.serial:
-                        serial = box.serial
-                    else:
-                        serial = oldBox.device.serial
-                    templateform.add(structNetbox.editboxSerial(gotRo=True,
-                                     serial=serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion,
-                                     editSerial=False))
-                    if box.serial:
-                        # Got serial, go directly to step 2
-                        step = STEP_2
-                    else:
-                        nextStep = STEP_2
-                else:
-                    # Unknown type, ask user to add
-                    message = message % (box.sysobjectid,)
-                    templateform.add(editboxHiddenOrMessage(message))
-                    nextStep = STEP_1
-            else:
-                # RO blank, don't check SNMP, ask for serial
-                templateform.add(structNetbox.editbox(editId=selected,
-                                               formData=form,
-                                               disabled=True))
-                serial = oldBox.device.serial
-                templateform.add(structNetbox.editboxSerial(gotRo=False,
-                                                     serial = serial,
-                                                     sysname=sysname,
-                                                     editSerial=True))
-                nextStep = STEP_2
-    if step == STEP_2:
-        # Always use the old serial
-        serial = oldBox.device.serial
-            
-        if nextStep == STEP_3:
-            # We didn't get here by skipping a step (ie. we didn't get
-            # serialnumber by SNMP), so we must add the first two boxes
-            templateform.add(structNetbox.editbox(editId=selected,
-                                           formData=form,disabled=True))
-            templateform.add(structNetbox.editboxSerial(gotRo=False,
-                             serial=req.form['serial'],
-                             sysname=req.form['sysname'],
-                             typeid=req.form['typeid'],
-                             snmpversion=req.form['snmpversion']))
-        # If the serial was changed we have to check if it's unique
-        if box:
-            newSerial = box.serial
-        else:
-            newSerial = form['serial']
-
-        if len(newSerial):
-            if serial != newSerial:
-                # Any other devices in the database with this serial?
-                where = "serial = '" + str(newSerial) + "'"
-                device = editTables.Device.getAll(where)
-                if device:
-                    message = 'Can\'t update the serialnumber since another '+\
-                              'device with this serial exists in ' + \
-                              'the database.'
-                    templateform.add(editboxHiddenOrMessage(message))
-                    templateform.showConfirm = False
-                    return (status,action,templateform)
-        else:
-            # Empty serial specified, not allowed
-            nextStep = STEP_2
-            editboxHidden.addHidden(CNAME_STEP,nextStep) 
-
-            message = 'You must enter a serial'
-            templateform.add(editboxHiddenOrMessage(message))
-            return (status,action,templateform)
-
-        # Show subcategory/function editbox 
-        # If category has changed, then don't load the old subcatinfo
-        if oldBox.catid != form['catid']:
-            templateform.add(structNetbox.editboxCategory(req.form['catid'],
-                                                   showHelp=False))
-        else:
-            templateform.add(structNetbox.editboxCategory(req.form['catid'],
-                                                   selected))
-        nextStep = STEP_3
-
-    if step == STEP_3:
-        subcatlist = None
-        if form.has_key('subcat'):
-            subcatlist = form['subcat']
-            if not type(subcatlist) is list:
-                subcatlist = [subcatlist]
-        function = None
-        if form.has_key('function'):
-            function = req.form['function']
-        typeId = None
-        if form.has_key('typeid'):
-            typeId = req.form['typeid']
-        snmpversion = None
-        if form.has_key('snmpversion'):
-            snmpversion = form['snmpversion']
-            # Only use first char of snmpversion, don't insert things like
-            # '2c'
-            if len(snmpversion):
-                snmpversion = snmpversion[0]
-
-        # Update netbox
-        fields = {'ip': form['ip'],
-                  'sysname': form['sysname'],
-                  'catid': form['catid'],
-                  'roomid': form['roomid'],
-                  'orgid': form['orgid'],
-                  'ro': form['ro'],
-                  'rw': form['rw']}
-
-        if typeId:
-            fields['typeid'] = typeId
-        updateEntryFields(fields,'netbox','netboxid',selected)
-
-        # Update device
-        if len(form['serial']) and form['serial'] != oldBox.device.serial:
-            # Set new serial, if it has changed
-            fields = {'serial': form['serial']}
-            deviceId = str(oldBox.device.deviceid)
-            updateEntryFields(fields,'device','deviceid',deviceId)
-
-        # Remove old subcat and function entries
-        netboxId = oldBox.netboxid
-        deleteEntry([netboxId],'netboxcategory','netboxid')
-        deleteEntry([netboxId],'netboxinfo','netboxid')
-
-        # If subcatlist and function is given, insert them
-        if subcatlist:
-            for sc in subcatlist:
-                fields = {'netboxid': netboxId,
-                          'category': sc}
-                addEntryFields(fields,'netboxcategory')
-
-        if function:
-            fields = {'netboxid': netboxId,
-                      'key': '',
-                      'var': 'function',
-                      'val': function}
-            addEntryFields(fields,'netboxinfo')
-
-        action = 'list'
-        status.messages.append('Updated box ' + form['sysname'] + ' (' + \
-                               form['ip'] + ')')
-
-    if not step == STEP_3: 
-        # Unless this is the last step, set the nextStep
-        editboxHidden.addHidden(CNAME_STEP,nextStep) 
-    return (status,action,templateform)
-
-def addNetbox(req,templateform):
-    ADD_TYPE_URL = BASEPATH + 'type/edit/'
-    STEP_1 = 1
-    STEP_2 = 2
-    STEP_3 = 3
-    CNAME_STEP = 'step' 
-    # Step0: ask for ip,ro,rw,catid,org,room
-    # Step1: ask for serial (and sysname,snmpversion and typeid)
-    # Step2: ask for subcategory and function
-    # Step3: add the box
-    message = "Got SNMP response, but can't find type in " + \
-              "database. You must <a href=\"" + ADD_TYPE_URL + \
-              "?sysobjectid=%s\" " + \
-              "target=\"_blank\">add the " + \
-              "type</a>  before proceeding (a new window will " + \
-              "open, when the new type is added, press " + \
-              "Continue to proceed)."
-
-    box = None
-    status = editdbStatus()
-    action = 'predefined'
-    form = req.form
-    templateform.title = 'Add box'
-
-    # Add editbox with hidden values for step (and deviceid)
-    editboxHidden = editboxHiddenOrMessage()
-    templateform.add(editboxHidden)
-    # What step are we in?
-    step = STEP_1
-    if form.has_key(CNAME_STEP):
-        step = int(form[CNAME_STEP])
-    nextStep = step + 1
-
-    if step == STEP_1:
-        # Look up sysname in DNS
-        try:
-            sysname = gethostbyaddr(form['ip'])[0]
-        except:
-            sysname = form['ip']
-
-        # Check if sysname or ip is already present in db
-        error = None
-        where = "ip = '" + form['ip'] + "'"
-        box = editTables.Netbox.getAll(where)
-        if box:
-            error = 'IP already exists in database'
-        if not error:
-            # If IP isn't duplicate, check sysname
-            where = "sysname = '" + sysname + "'"
-            box = editTables.Netbox.getAll(where)
-            if box:
-                error = 'Sysname ' + sysname + ' (' + form['ip'] + \
-                        ') already exists in database'
-
-        if error:
-            status.errors.append(error)
-            templateform.add(structNetbox.editbox(formData=form))
-            return (status,action,templateform)
-
-        if editTables.Cat(form['catid']).req_snmp == True:
-            # SNMP required by cat
-            if len(form['ro']):
-                # RO specified, check SNMP
-                box = None
-                try:
-                    box = initBox.Box(form['ip'],form['ro'])
-                except nav.Snmp.TimeOutException:
-                    # No SNMP answer
-                    status.errors.append('No SNMP response, check RO community')
-                    templateform.add(structNetbox.editbox(formData=form))
-                    return (status,action,templateform)
-                except Exception, e:
-                    # Other error (no route to host for example)
-                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1]))
-                    templateform.add(structNetbox.editbox(formData=form))
-                    return (status,action,templateform)
-     
-                box.getDeviceId()
-                templateform.add(structNetbox.editbox(formData=form,disabled=True))
-                if box.typeid:
-                    # Got type
-                    templateform.add(structNetbox.editboxSerial(
-                                     gotRo=True,
-                                     serial=box.serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion))
-                    if box.serial:
-                        # Got serial, go directly to step 2
-                        step = STEP_2
-                    else:
-                        nextStep = STEP_2
-                else:
-                    # Couldn't find type, ask user to add
-                    message = message % (box.sysobjectid,)
-                    templateform.add(editboxHiddenOrMessage(message))
-                    nextStep = STEP_1
-            else:
-                # RO blank, return error
-                status.errors.append('Category ' + form['catid'] + \
-                                     ' requires a RO community')
-                templateform.add(structNetbox.editbox(formData=form))
-                nextStep = STEP_1
-        else:
-            # SNMP not required by cat
-            if len(form['ro']):
-                # RO specified, check SNMP anyway
-                box = None
-                try:
-                    box = initBox.Box(form['ip'],form['ro'])
-                except nav.Snmp.TimeOutException:
-                    status.errors.append('No SNMP response, check RO community')
-                    templateform.add(structNetbox.editbox(formData=form))
-                    return (action,templateform)
-                except Exception, e:
-                    # Other error (no route to host for example)
-                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1]))
-                    templateform.add(structNetbox.editbox(formData=form))
-                    return (action,templateform)
-
-                box.getDeviceId()
-                templateform.add(structNetbox.editbox(formData=form,disabled=True))
-                if box.typeid:
-                    # Got type
-                    templateform.add(structNetbox.editboxSerial(gotRo=True,
-                                     serial=box.serial,
-                                     sysname=sysname,
-                                     typeid=box.typeid,
-                                     snmpversion=box.snmpversion))
-                    if box.serial:
-                        # Got serial, go directly to step 2
-                        step = STEP_2
-                    else:
-                        nextStep = STEP_2
-                else:
-                    # Unknown type, ask user to add
-                    message = message % (box.sysobjectid,)
-                    templateform.add(editboxHiddenOrMessage(message))
-                    nextStep = STEP_1
-            else:
-                # RO blank, don't check SNMP, ask for serial
-                templateform.add(structNetbox.editbox(formData=form,disabled=True))
-                templateform.add(structNetbox.editboxSerial(gotRo=False,
-                                                     sysname=sysname))
-                nextStep = STEP_2
-    if step == STEP_2:
-        if box:
-            # If we got here by skipping a step (ie. got serial by SNMP)
-            # the serial isn't posted yet, but we still got the box object
-            serial = box.serial
-        else:
-            serial = req.form['serial']
-            
-        if nextStep == STEP_3:
-            # We didn't get here by skipping a step (ie. we didn't get
-            # serialnumber by SNMP), so we must add the first two boxes
-            templateform.add(structNetbox.editbox(formData=form,disabled=True))
-            templateform.add(structNetbox.editboxSerial(gotRo=False,
-                             serial=req.form['serial'],
-                             sysname=req.form['sysname'],
-                             typeid=req.form['typeid'],
-                             snmpversion=req.form['snmpversion'],
-                             formData=form))
-        if len(serial):
-            # Any devices in the database with this serial?
-            where = "serial = '" + str(serial) + "'"
-            device = editTables.Device.getAll(where)
-            if device:
-                # Found a device with this serial
-                deviceId = device[0].deviceid
-                # Must check if there already is a box with this serial
-                where = "deviceid = '" + str(deviceId) + "'"
-                box = editTables.Netbox.getAll(where)
-                if box:
-                    box = box[0]
-                    message = 'A box with this serial already exists ' + \
-                              '(' + box.sysname + ')'
-                    templateform.add(editboxHiddenOrMessage(message))
-                    #This doesn't work for some reason:
-                    #templateform.add(editboxNetbox(box.netboxid,
-                    #                               disabled=True))
-                    templateform.showConfirm = False
-                    return (status,action,templateform)
-            else:
-                # Not found, make new device
-                deviceId = None
-        else:
-            # Empty serial specified, not allowed
-            nextStep = STEP_2
-            editboxHidden.addHidden(CNAME_STEP,nextStep) 
-
-            message = 'You must enter a serial'
-            templateform.add(editboxHiddenOrMessage(message))
-            return (status,action,templateform)
-
-        editboxHidden.addHidden('deviceid',deviceId)
-
-        # Show subcategory/function editbox 
-        templateform.add(structNetbox.editboxCategory(req.form['catid']))
-        nextStep = STEP_3
-
-    if step == STEP_3:
-        subcatlist = None
-        if form.has_key('subcat'):
-            subcatlist = form['subcat']
-        function = None
-        if form.has_key('function'):
-            function = form['function']
-        typeId = None
-        if form.has_key('typeid'):
-            typeId = form['typeid']
-        snmpversion = None
-        if form.has_key('snmpversion'):
-            snmpversion = form['snmpversion']
-
-        insertNetbox(form['ip'],form['sysname'],
-                     form['catid'],form['roomid'],
-                     form['orgid'],form['ro'],
-                     form['rw'],form['deviceid'],
-                     form['serial'],typeId,
-                     snmpversion,subcatlist,
-                     function)
-        action = 'list'
-        status.messages.append('Added box ' + form['sysname'] + ' (' + \
-                 form['ip'] + ')')
-
-    if not step == STEP_3: 
-        # Unless this is the last step, set the nextStep
-        editboxHidden.addHidden(CNAME_STEP,nextStep) 
-    return (status,action,templateform)
-
 # Function for handling listing and editing of netboxes
 def editNetbox(req,selected,action,error=None):
-    path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
-    table = 'netbox'
-    idfield = 'netboxid'
-    templatebox = structNetbox.editbox()
-    deleteDef = deletedefNetbox()
+    struct = structNetbox()
+    path = struct.pathAdd
+
+    templatebox = struct.editbox()
+
+    # Make a status object
     status = editdbStatus()
     if error:
         status.errors.append(error)
+
     # Form definition
-    form = editForm()
-    form.status = status
-    form.action = BASEPATH + 'netbox/edit/'
+    outputForm = editForm()
+    outputForm.status = status
+    outputForm.action = struct.basePath + 'edit/'
+
     # List definition
     sort = None
     if req.form.has_key('sort'):
         sort = req.form['sort']
-    listView = structNetbox.listDef(sort)
+    listView = struct.listDef(struct,sort)
     
-    editList = selectList()
-    editList.status = status
-    editList.table = editTables.editdbNetbox
-    editList.tablename = 'netbox'
-    editList.orderBy = ['roomid','sysname']
-    editList.idcol = 'netboxid'
-    editList.columns = [('Room','roomid',False),
-                        ('Sysname','sysname',True),
-                        ('IP','ip',False),
-                        ('Category','catid',False),
-                        ('Organisation','orgid',False),
-                        ('RO','ro',False),
-                        ('RW','rw',False),
-                        ('Type','typename',False),
-                        ('Serial','serial',False)]
-
     # Check if the confirm button has been pressed
-    if req.form.has_key(form.cnameConfirm):
+    if req.form.has_key(outputForm.cnameConfirm):
         missing = templatebox.hasMissing(req) 
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
                 # add new netbox
-                (status,action,form) = addNetbox(req,form)
-                form.status = status
-                #if action == 'list':
-                #    status.messages.append(message)
+                (status,action,outputForm) = struct.add(req,outputForm)
+                outputForm.status = status
             elif req.form.has_key(UPDATE_ENTRY):
-                # Only edit one box at a time
-                selected = selected[0]
-                (status,action,form) = updateNetbox(req,form,selected)
-                form.status = status
-                #if action == 'list':
-                #    status.messages.append(message)
+                (status,action,outputForm) = struct.update(req,
+                                             outputForm,selected)
+                outputForm.status = status
         else:
-            status.errors.append("Required field '" + missing + "' missing")    
+            status.errors.append("Required field '" + missing + "' missing") 
     # Confirm delete pressed?
-    if req.form.has_key(selectList.cnameDeleteConfirm):
+    elif req.form.has_key(selectList.cnameDeleteConfirm):
+        deleteDef = struct.deleteDef()
         status = deleteDef.delete(selected,status)
         action = 'list' 
     
     # Decide what to show 
     if action == 'predefined':
         # Action is predefined by addNetbox() or updateNetbox()
-        form.textConfirm = 'Continue'
+        outputForm.textConfirm = 'Continue'
         listView = None
-        editList = None
     elif action == 'edit':
-        path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
-        form.title = 'Edit box'
-        form.textConfirm = 'Continue'
-        # can only edit one
-        selected = selected[0]
-        form.add(structNetbox.editbox(selected))
+        path = struct.pathEdit
+        title = 'Edit '
+        if len(selected) > 1:
+            title += struct.plural
+        else:
+            title += struct.singular
+        outputForm.title = title
+        outputForm.textConfirm = 'Continue'
+        outputForm.add(struct.editbox(selected))
         # preserve path
-        form.action = BASEPATH + 'netbox/edit/' + selected
+        outputForm.action = struct.basePath + 'edit/' + selected[0]
         listView = None
-        editList = None
     elif action == 'add':
-        path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
-        form.title = 'Add box'
-        form.textConfirm = 'Continue'
-        form.add(structNetbox.editbox(formData=req.form))
+        path = struct.pathAdd
+        outputForm.title = 'Add ' + struct.singular
+        outputForm.textConfirm = 'Continue'
+        outputForm.add(struct.editbox(formData=req.form))
         listView = None
-        editList = None
     elif action == 'delete':
-        path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Delete',False)]
-        editList.isDeleteList = True
-        editList.deleteList = selected
-        editList.title = 'Are you sure you want to delete the selected box(es)?'
-        editList.action = BASEPATH + 'netbox/edit/'
-        editList.fill()
-        listView = None
-    elif action == 'list':
-        path = EDITPATH + [('Boxes',False)]
-        editList.title = 'Edit boxes'
-        editList.action = BASEPATH + 'netbox/edit/'
-        #editList.fill()
-        # don't display the form
+        path = struct.pathDelete
+        listView = struct.listDef(struct,sort,selected)
         listView.fill()
-        form = None
+        outputForm = None
+    elif action == 'list':
+        path = struct.pathList
+        listView.fill()
+        outputForm = None
 
-    nameSpace = {'entryList': listView, 'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': listView,'editList': None,'editForm': outputForm}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -2590,6 +2048,7 @@ class entryList:
     CNAME_ADD = 'submit_add'
     CNAME_EDIT = 'submit_edit'
     CNAME_DELETE = 'submit_delete'
+    CNAME_CONFIRM_DELETE = 'confirm_delete'
     
     # Class variables used by the template
     title = None
@@ -2606,20 +2065,42 @@ class entryList:
     rows = []                 # tuples of (sortstring,id,cell object)
 
     # Variables for filling the list
-    basePath = None
-    sortBy = None
-    defaultSortBy = None
-    headingDefinition = None
-    cellDefintion = None
+    tableName = None
+    basePath = None                 
+    sortBy = None                   # Sort by columnumber
+    defaultSortBy = None            # Default columnnumber sorted by
+    headingDefinition = None        # list of tuples (heading,show sort link)
+    cellDefintion = None            # cellDefinition list
+    where = None                    # List of id's (strings)
+    sortingOn = True                # Show links for sorting the list
+
+    def __init__(self,struct,sort,deleteWhere=None):
+        self.headings = []
+        self.rows = []
+
+        self.sortBy = sort
+        self.tableName = struct.tableName
+        self.tableIdKey = struct.tableIdKey
+        self.basePath = struct.basePath
+        self.formAction = self.basePath + 'edit/'
+
+        if deleteWhere:
+            self.where = deleteWhere
+            title = 'Are you sure you want to delete the ' + \
+                    'selected '
+            if len(deleteWhere) > 1:
+                title += struct.plural
+            else:
+                title += struct.singular
+            self.title = title + '?'
+            self.sortingOn = False
+            self.buttonsTop = None
+            self.buttonsBottom = [(self.CNAME_CONFIRM_DELETE,'Delete')]
+        else:
+            self.title = 'Edit ' + struct.plural
+            self.sortingOn = True
 
     def fill(self):
-        # Prepare sorting
-        if self.sortBy:
-            try:
-                self.sortBy = int(self.sortBy)
-            except:
-                self.sortBy = None
-
         # Make headings
         i = 0
         for heading,sortlink in self.headingDefinition:
@@ -2632,7 +2113,7 @@ class entryList:
                 # Reverse sort?
                 s = -i
             url = self.basePath + 'list/?sort=' + str(s)
-            if sortlink:
+            if sortlink and self.sortingOn:
                 self.headings.append(selectListCell(heading,
                                                     url))
             else:
@@ -2662,7 +2143,31 @@ class entryList:
                 self.sortBy = self.sortBy * -1
                 reverseSort = True
 
-        for sqlQuery,definition in self.cellDefinition:
+        for sqlTuple,definition in self.cellDefinition:
+            # Create SQL query from tuple
+            columns,where,orderBy = sqlTuple
+            sqlQuery = 'SELECT ' + columns + ' FROM ' + self.tableName
+            if where:
+                sqlQuery += ' WHERE ' + where
+            # Add where clause if self.where is present
+            if self.where:
+                if not where:
+                    # No where defined in sqlTuple, so add it now
+                    sqlQuery += ' WHERE '
+                else:
+                    # Else, these are additional so add AND
+                    sqlQuery += ' AND '
+                first = True
+                sqlQuery += ' ('
+                for id in self.where:
+                    if not first:
+                        sqlQuery += 'OR'
+                    sqlQuery += " %s='%s' " % (self.tableIdKey,id)
+                    if first:
+                        first = False
+                sqlQuery += ') '
+            if orderBy:
+                sqlQuery += ' ORDER BY ' + orderBy                                
             fetched = executeSQLreturn(sqlQuery)
             for row in fetched:
                 id = row[0]
@@ -3284,9 +2789,44 @@ class editboxSubcat(editbox):
         if formData:
             self.formFill(formData) 
 
+# Classes for deleting
+class deletedef:
+    def delete(self,idList,status):
+        self.status = status
+        for id in idList:
+            try:
+                deleteEntry([id],self.table,self.idfield)
+                self.status.messages.append("Deleted %s '%s'" % \
+                                           (self.name,str(id)))
+            except psycopg.IntegrityError:
+                # Got integrity error while deleting, must check what
+                # dependencies are blocking
+                self.checkDependency(id)
+        return self.status
+
+    def checkDependency(self,id):
+        error = "Error while deleting %s '%s': " % (self.name,str(id))
+        errorState = False
+        for (table,other,key,url) in self.dependencies:
+            where = "%s='%s'" % (key,str(id))
+            if table.getAll(where):
+                errorState = True
+                # UGLY HTML
+                error += "%s is referenced in " % (self.name,) + \
+                         "one or more %s " % (other,) + \
+                         "<a href=\"%s%s\">" % (url,id) + \
+                         "(view report)</a>." 
+                break
+        if not errorState:
+            # Couldn't find the reference, maybe the tables are changed and
+            # the dependencies array must be updated? Give general error
+            error += '%s is referenced in another table' % (self.name,)
+        self.status.errors.append(error) 
+
 ##
 ## class structNetbox
 ##         |+-- class listDef
+##         |+-- class deleteDef
 ##         |+-- class editbox
 ##         |+-- class editboxSerial
 ##         |+-- class editboxCategory
@@ -3294,16 +2834,23 @@ class editboxSubcat(editbox):
 
 class structNetbox:
 
-    class listDef(entryList):
-        def __init__(self,sort):
-            self.headings = []
-            self.rows = []
+    basePath = BASEPATH + 'netbox/'
+    tableName = 'netbox'
+    tableIdKey = 'netboxid'
+    singular = 'box'
+    plural = 'boxes'
 
-            self.sortBy = sort
-            self.title = 'Edit boxes'
-            self.basePath = BASEPATH + 'netbox/'
-            self.formAction = BASEPATH + 'netbox/edit'
-        
+    pathAdd = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
+    pathEdit = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Delete',False)]
+    pathList = EDITPATH + [('Boxes',False)]
+
+    class listDef(entryList):
+        def __init__(self,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,struct,sort,deleteWhere)
+            
+            # Specific init
             # 1 = roomid
             self.defaultSortBy = 1
 
@@ -3327,12 +2874,12 @@ class structNetbox:
                              ('Function:','{$1}'),None]]
 
 
-            self.cellDefinition = [('SELECT netboxid,roomid,sysname,ip,' + \
-                                    'catid,orgid,ro,rw,type.typename,' + \
-                                    'device.serial FROM netbox WHERE ' + \
-                                    '(deviceid=device.deviceid) ' + \
-                                    'AND (typeid=type.typeid) ' + \
-                                    'ORDER BY roomid,sysname',
+            self.cellDefinition = [(('netboxid,roomid,sysname,ip,' + \
+                                     'catid,orgid,ro,rw,type.typename,' + \
+                                     'device.serial',
+                                     '(deviceid=device.deviceid) ' + \
+                                     'AND (typeid=type.typeid) ',
+                                     'roomid,sysname'),
                                     [(None,None,True,False,None,None),
                                      (1,None,False,False,None,None),
                                      (2,'{p}edit/{id}',False,False,None,None),
@@ -3343,12 +2890,11 @@ class structNetbox:
                                      (7,None,False,False,None,None),
                                      (8,None,False,False,None,None),
                                      (9,None,False,False,None,None)]),
-                                    ('SELECT netboxid,roomid,sysname,ip,' + \
-                                    'catid,orgid,ro,rw,' + \
-                                    'device.serial FROM netbox WHERE ' + \
-                                    '(deviceid=device.deviceid) ' + \
-                                    'AND (typeid IS NULL) ' + \
-                                    'ORDER BY roomid,sysname',
+                                    (('netboxid,roomid,sysname,ip,' + \
+                                      'catid,orgid,ro,rw,device.serial',
+                                      '(deviceid=device.deviceid) ' + \
+                                      'AND (typeid IS NULL) ',
+                                      'roomid,sysname'),
                                     [(None,None,True,False,None,None),
                                      (1,None,False,False,None,None),
                                      (2,'{p}edit/{id}',False,False,None,None),
@@ -3360,6 +2906,14 @@ class structNetbox:
                                      ('No type',None,False,False,None,None),
                                      (8,None,False,False,None,None)])]
 
+
+    class deleteDef(deletedef):
+        table = 'netbox'
+        idfield = 'netboxid'
+       
+        dependencies = []
+        name = 'netbox'
+
     class editbox(editbox):
         type = 'netbox'
         table = editTables.editdbNetbox
@@ -3368,6 +2922,8 @@ class structNetbox:
         def __init__(self,editId=None,formData=None,disabled=False):
             self.hiddenFields = {}
             if editId:
+                # We only edit one box at a time
+                editId = editId[0]
                 # Preserve the selected id
                 self.addHidden(selectList.cnameChk,editId)
                 self.sysname = editTables.Netbox(editId).sysname
@@ -3544,6 +3100,537 @@ class structNetbox:
             # don't need to repeat it here 
             self.boxName = IGNORE_BOX
 
+    # Overrides default add function
+    def add(self,req,templateform):
+        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        STEP_1 = 1
+        STEP_2 = 2
+        STEP_3 = 3
+        CNAME_STEP = 'step' 
+        # Step0: ask for ip,ro,rw,catid,org,room
+        # Step1: ask for serial (and sysname,snmpversion and typeid)
+        # Step2: ask for subcategory and function
+        # Step3: add the box
+        message = "Got SNMP response, but can't find type in " + \
+                  "database. You must <a href=\"" + ADD_TYPE_URL + \
+                  "?sysobjectid=%s\" " + \
+                  "target=\"_blank\">add the " + \
+                  "type</a>  before proceeding (a new window will " + \
+                  "open, when the new type is added, press " + \
+                  "Continue to proceed)."
+
+        box = None
+        status = editdbStatus()
+        action = 'predefined'
+        form = req.form
+        templateform.title = 'Add box'
+
+        # Add editbox with hidden values for step (and deviceid)
+        editboxHidden = editboxHiddenOrMessage()
+        templateform.add(editboxHidden)
+        # What step are we in?
+        step = STEP_1
+        if form.has_key(CNAME_STEP):
+            step = int(form[CNAME_STEP])
+        nextStep = step + 1
+
+        if step == STEP_1:
+            # Look up sysname in DNS
+            try:
+                sysname = gethostbyaddr(form['ip'])[0]
+            except:
+                sysname = form['ip']
+
+            # Check if sysname or ip is already present in db
+            error = None
+            where = "ip = '" + form['ip'] + "'"
+            box = editTables.Netbox.getAll(where)
+            if box:
+                error = 'IP already exists in database'
+            if not error:
+                # If IP isn't duplicate, check sysname
+                where = "sysname = '" + sysname + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    error = 'Sysname ' + sysname + ' (' + form['ip'] + \
+                            ') already exists in database'
+
+            if error:
+                status.errors.append(error)
+                templateform.add(structNetbox.editbox(formData=form))
+                return (status,action,templateform)
+
+            if editTables.Cat(form['catid']).req_snmp == True:
+                # SNMP required by cat
+                if len(form['ro']):
+                    # RO specified, check SNMP
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        # No SNMP answer
+                        status.errors.append('No SNMP response, check RO community')
+                        templateform.add(structNetbox.editbox(formData=form))
+                        return (status,action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(structNetbox.editbox(formData=form))
+                        return (status,action,templateform)
+         
+                    box.getDeviceId()
+                    templateform.add(structNetbox.editbox(formData=form,disabled=True))
+                    if box.typeid:
+                        # Got type
+                        templateform.add(structNetbox.editboxSerial(
+                                         gotRo=True,
+                                         serial=box.serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion))
+                        if box.serial:
+                            # Got serial, go directly to step 2
+                            step = STEP_2
+                        else:
+                            nextStep = STEP_2
+                    else:
+                        # Couldn't find type, ask user to add
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                        nextStep = STEP_1
+                else:
+                    # RO blank, return error
+                    status.errors.append('Category ' + form['catid'] + \
+                                         ' requires a RO community')
+                    templateform.add(structNetbox.editbox(formData=form))
+                    nextStep = STEP_1
+            else:
+                # SNMP not required by cat
+                if len(form['ro']):
+                    # RO specified, check SNMP anyway
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        status.errors.append('No SNMP response, check RO community')
+                        templateform.add(structNetbox.editbox(formData=form))
+                        return (action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(structNetbox.editbox(formData=form))
+                        return (action,templateform)
+
+                    box.getDeviceId()
+                    templateform.add(structNetbox.editbox(formData=form,disabled=True))
+                    if box.typeid:
+                        # Got type
+                        templateform.add(structNetbox.editboxSerial(gotRo=True,
+                                         serial=box.serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion))
+                        if box.serial:
+                            # Got serial, go directly to step 2
+                            step = STEP_2
+                        else:
+                            nextStep = STEP_2
+                    else:
+                        # Unknown type, ask user to add
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                        nextStep = STEP_1
+                else:
+                    # RO blank, don't check SNMP, ask for serial
+                    templateform.add(structNetbox.editbox(formData=form,disabled=True))
+                    templateform.add(structNetbox.editboxSerial(gotRo=False,
+                                                         sysname=sysname))
+                    nextStep = STEP_2
+        if step == STEP_2:
+            if box:
+                # If we got here by skipping a step (ie. got serial by SNMP)
+                # the serial isn't posted yet, but we still got the box object
+                serial = box.serial
+            else:
+                serial = req.form['serial']
+                
+            if nextStep == STEP_3:
+                # We didn't get here by skipping a step (ie. we didn't get
+                # serialnumber by SNMP), so we must add the first two boxes
+                templateform.add(structNetbox.editbox(formData=form,disabled=True))
+                templateform.add(structNetbox.editboxSerial(gotRo=False,
+                                 serial=req.form['serial'],
+                                 sysname=req.form['sysname'],
+                                 typeid=req.form['typeid'],
+                                 snmpversion=req.form['snmpversion'],
+                                 formData=form))
+            if len(serial):
+                # Any devices in the database with this serial?
+                where = "serial = '" + str(serial) + "'"
+                device = editTables.Device.getAll(where)
+                if device:
+                    # Found a device with this serial
+                    deviceId = device[0].deviceid
+                    # Must check if there already is a box with this serial
+                    where = "deviceid = '" + str(deviceId) + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        box = box[0]
+                        message = 'A box with this serial already exists ' + \
+                                  '(' + box.sysname + ')'
+                        templateform.add(editboxHiddenOrMessage(message))
+                        #This doesn't work for some reason:
+                        #templateform.add(editboxNetbox(box.netboxid,
+                        #                               disabled=True))
+                        templateform.showConfirm = False
+                        return (status,action,templateform)
+                else:
+                    # Not found, make new device
+                    deviceId = None
+            else:
+                # Empty serial specified, not allowed
+                nextStep = STEP_2
+                editboxHidden.addHidden(CNAME_STEP,nextStep) 
+
+                message = 'You must enter a serial'
+                templateform.add(editboxHiddenOrMessage(message))
+                return (status,action,templateform)
+
+            editboxHidden.addHidden('deviceid',deviceId)
+
+            # Show subcategory/function editbox 
+            templateform.add(structNetbox.editboxCategory(req.form['catid']))
+            nextStep = STEP_3
+
+        if step == STEP_3:
+            subcatlist = None
+            if form.has_key('subcat'):
+                subcatlist = form['subcat']
+            function = None
+            if form.has_key('function'):
+                function = form['function']
+            typeId = None
+            if form.has_key('typeid'):
+                typeId = form['typeid']
+            snmpversion = None
+            if form.has_key('snmpversion'):
+                snmpversion = form['snmpversion']
+
+            insertNetbox(form['ip'],form['sysname'],
+                         form['catid'],form['roomid'],
+                         form['orgid'],form['ro'],
+                         form['rw'],form['deviceid'],
+                         form['serial'],typeId,
+                         snmpversion,subcatlist,
+                         function)
+            action = 'list'
+            status.messages.append('Added box ' + form['sysname'] + ' (' + \
+                     form['ip'] + ')')
+
+        if not step == STEP_3: 
+            # Unless this is the last step, set the nextStep
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+        return (status,action,templateform)
+
+    # Overloads default update function
+    def update(self,req,templateform,selected):
+        selected = selected[0]
+        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        STEP_1 = 1
+        STEP_2 = 2
+        STEP_3 = 3
+        CNAME_STEP = 'step' 
+        # Step0: ask for ip,ro,rw,catid,org,room
+        # Step1: ask for serial (and sysname,snmpversion and typeid)
+        # Step2: ask for subcategory and function
+        # Step3: add the box
+        message = "Got SNMP response, but can't find type in " + \
+                  "database. You must <a href=\"" + ADD_TYPE_URL + \
+                  "?sysobjectid=%s\" " + \
+                  "target=\"_blank\">add the " + \
+                  "type</a>  before proceeding (a new window will " + \
+                  "open, when the new type is added, press " + \
+                  "Continue to proceed)."
+
+        box = None
+        status = editdbStatus()
+        action = 'predefined'
+        form = req.form
+        templateform.title = 'Edit box'
+        # Preserve the URL
+        templateform.action = BASEPATH + 'netbox/edit/' + selected
+
+        # Add editbox with hidden values for step (and deviceid)
+        editboxHidden = editboxHiddenOrMessage()
+        templateform.add(editboxHidden)
+        # What step are we in?
+        step = STEP_1
+        if form.has_key(CNAME_STEP):
+            step = int(form[CNAME_STEP])
+        nextStep = step + 1
+
+        oldBox = editTables.editdbNetbox(selected)
+
+        if step == STEP_1:
+            # Look up sysname in DNS
+            try:
+                sysname = gethostbyaddr(form['ip'])[0]
+            except:
+                sysname = form['ip']
+
+            # Check if (edited) ip is already present in db
+            #if (oldBox.ip != form['ip']) or (oldBox.sysname != sysname):
+            if oldBox.ip != form['ip']:
+                # If IP differs from the old, then check for uniqueness
+                error = None
+                where = "ip = '" + form['ip'] + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    error = 'IP already exists in database'
+                if not error:
+                    # If IP isn't duplicate, check if (new) sysname is unique
+                    where = "sysname = '" + sysname + "'"
+                    box = editTables.Netbox.getAll(where)
+                    if box:
+                        error = 'Sysname ' + sysname + ' (' + form['ip'] + \
+                                ') already exists in database'
+                if error:
+                    status.errors.append(error)
+                    templateform.add(structNetbox.editbox(editId=selected,formData=form))
+                    return (status,action,templateform)
+
+            if editTables.Cat(form['catid']).req_snmp == True:
+                # SNMP required by cat
+                if len(form['ro']):
+                    # RO specified, check SNMP
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except nav.Snmp.TimeOutException:
+                        # No SNMP answer
+                        status.errors.append('No SNMP response, check RO community')
+                        templateform.add(structNetbox.editbox(editId=selected,
+                                                       formData=form))
+                        return (status,action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(structNetbox.editbox(editId=selected,
+                                                       formData=form))
+                        return (status,action,templateform)
+         
+                    box.getDeviceId()
+                    templateform.add(structNetbox.editbox(editId=selected,
+                                                   formData=form,disabled=True))
+
+                    if box.typeid:
+                        # Got type
+                        if box.serial:
+                            serial = box.serial
+                        else:
+                            serial = oldBox.device.serial
+                        templateform.add(structNetbox.editboxSerial(
+                                         gotRo=True,
+                                         serial=serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion,
+                                         editSerial=False))
+                        if box.serial:
+                            # Got serial, go directly to step 2
+                            step = STEP_2
+                        else:
+                            nextStep = STEP_2
+                    else:
+                        # Couldn't find type, ask user to add
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                else:
+                    # RO blank, return error
+                    status.errors.append('Category ' + form['catid'] + \
+                                         ' requires a RO community')
+                    templateform.add(structNetbox.editbox(editId=selected,formData=form))
+                    nextStep = STEP_1
+            else:
+                # SNMP not required by cat
+                if len(form['ro']):
+                    # RO specified, check SNMP anyway
+                    box = None
+                    try:
+                        box = initBox.Box(form['ip'],form['ro'])
+                    except namp.Snmp.TimeOutException:
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(structNetbox.editbox(editId=selected,
+                                                       formData=form))
+                        return (action,templateform)
+                    except Exception, e:
+                        # Other error (no route to host for example)
+                        status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                             ': ' + str(sys.exc_info()[1]))
+                        templateform.add(structNetbox.editbox(editId=selected,
+                                                       formData=form))
+                        return (action,templateform)
+
+                    box.getDeviceId()
+                    templateform.add(structNetbox.editbox(editId=selected,
+                                                   formData=form,
+                                                   disabled=True))
+                    if box.typeid:
+                        # Got type
+                        if box.serial:
+                            serial = box.serial
+                        else:
+                            serial = oldBox.device.serial
+                        templateform.add(structNetbox.editboxSerial(gotRo=True,
+                                         serial=serial,
+                                         sysname=sysname,
+                                         typeid=box.typeid,
+                                         snmpversion=box.snmpversion,
+                                         editSerial=False))
+                        if box.serial:
+                            # Got serial, go directly to step 2
+                            step = STEP_2
+                        else:
+                            nextStep = STEP_2
+                    else:
+                        # Unknown type, ask user to add
+                        message = message % (box.sysobjectid,)
+                        templateform.add(editboxHiddenOrMessage(message))
+                        nextStep = STEP_1
+                else:
+                    # RO blank, don't check SNMP, ask for serial
+                    templateform.add(structNetbox.editbox(editId=selected,
+                                                   formData=form,
+                                                   disabled=True))
+                    serial = oldBox.device.serial
+                    templateform.add(structNetbox.editboxSerial(gotRo=False,
+                                                         serial = serial,
+                                                         sysname=sysname,
+                                                         editSerial=True))
+                    nextStep = STEP_2
+        if step == STEP_2:
+            # Always use the old serial
+            serial = oldBox.device.serial
+                
+            if nextStep == STEP_3:
+                # We didn't get here by skipping a step (ie. we didn't get
+                # serialnumber by SNMP), so we must add the first two boxes
+                templateform.add(structNetbox.editbox(editId=selected,
+                                               formData=form,disabled=True))
+                templateform.add(structNetbox.editboxSerial(gotRo=False,
+                                 serial=req.form['serial'],
+                                 sysname=req.form['sysname'],
+                                 typeid=req.form['typeid'],
+                                 snmpversion=req.form['snmpversion']))
+            # If the serial was changed we have to check if it's unique
+            if box:
+                newSerial = box.serial
+            else:
+                newSerial = form['serial']
+
+            if len(newSerial):
+                if serial != newSerial:
+                    # Any other devices in the database with this serial?
+                    where = "serial = '" + str(newSerial) + "'"
+                    device = editTables.Device.getAll(where)
+                    if device:
+                        message = 'Can\'t update the serialnumber since another '+\
+                                  'device with this serial exists in ' + \
+                                  'the database.'
+                        templateform.add(editboxHiddenOrMessage(message))
+                        templateform.showConfirm = False
+                        return (status,action,templateform)
+            else:
+                # Empty serial specified, not allowed
+                nextStep = STEP_2
+                editboxHidden.addHidden(CNAME_STEP,nextStep) 
+
+                message = 'You must enter a serial'
+                templateform.add(editboxHiddenOrMessage(message))
+                return (status,action,templateform)
+
+            # Show subcategory/function editbox 
+            # If category has changed, then don't load the old subcatinfo
+            if oldBox.catid != form['catid']:
+                templateform.add(structNetbox.editboxCategory(req.form['catid'],
+                                                       showHelp=False))
+            else:
+                templateform.add(structNetbox.editboxCategory(req.form['catid'],
+                                                       selected))
+            nextStep = STEP_3
+
+        if step == STEP_3:
+            subcatlist = None
+            if form.has_key('subcat'):
+                subcatlist = form['subcat']
+                if not type(subcatlist) is list:
+                    subcatlist = [subcatlist]
+            function = None
+            if form.has_key('function'):
+                function = req.form['function']
+            typeId = None
+            if form.has_key('typeid'):
+                typeId = req.form['typeid']
+            snmpversion = None
+            if form.has_key('snmpversion'):
+                snmpversion = form['snmpversion']
+                # Only use first char of snmpversion, don't insert things like
+                # '2c'
+                if len(snmpversion):
+                    snmpversion = snmpversion[0]
+
+            # Update netbox
+            fields = {'ip': form['ip'],
+                      'sysname': form['sysname'],
+                      'catid': form['catid'],
+                      'roomid': form['roomid'],
+                      'orgid': form['orgid'],
+                      'ro': form['ro'],
+                      'rw': form['rw']}
+
+            if typeId:
+                fields['typeid'] = typeId
+            updateEntryFields(fields,'netbox','netboxid',selected)
+
+            # Update device
+            if len(form['serial']) and form['serial'] != oldBox.device.serial:
+                # Set new serial, if it has changed
+                fields = {'serial': form['serial']}
+                deviceId = str(oldBox.device.deviceid)
+                updateEntryFields(fields,'device','deviceid',deviceId)
+
+            # Remove old subcat and function entries
+            netboxId = oldBox.netboxid
+            deleteEntry([netboxId],'netboxcategory','netboxid')
+            deleteEntry([netboxId],'netboxinfo','netboxid')
+
+            # If subcatlist and function is given, insert them
+            if subcatlist:
+                for sc in subcatlist:
+                    fields = {'netboxid': netboxId,
+                              'category': sc}
+                    addEntryFields(fields,'netboxcategory')
+
+            if function:
+                fields = {'netboxid': netboxId,
+                          'key': '',
+                          'var': 'function',
+                          'val': function}
+                addEntryFields(fields,'netboxinfo')
+
+            action = 'list'
+            status.messages.append('Updated box ' + form['sysname'] + ' (' + \
+                                   form['ip'] + ')')
+
+        if not step == STEP_3: 
+            # Unless this is the last step, set the nextStep
+            editboxHidden.addHidden(CNAME_STEP,nextStep) 
+        return (status,action,templateform)
+
 
 class editboxBulk(editbox):
     type = 'bulk'
@@ -3577,40 +3664,6 @@ class editboxBulk(editbox):
              'textarea': [inputTextArea(),REQ_FALSE]}
         self.fields = f
         self.setControlNames()
-
-# Classes for deleting
-class deletedef:
-    def delete(self,idList,status):
-        self.status = status
-        for id in idList:
-            try:
-                deleteEntry([id],self.table,self.idfield)
-                self.status.messages.append("Deleted %s '%s'" % \
-                                           (self.name,str(id)))
-            except psycopg.IntegrityError:
-                # Got integrity error while deleting, must check what
-                # dependencies are blocking
-                self.checkDependency(id)
-        return self.status
-
-    def checkDependency(self,id):
-        error = "Error while deleting %s '%s': " % (self.name,str(id))
-        errorState = False
-        for (table,other,key,url) in self.dependencies:
-            where = "%s='%s'" % (key,str(id))
-            if table.getAll(where):
-                errorState = True
-                # UGLY HTML
-                error += "%s is referenced in " % (self.name,) + \
-                         "one or more %s " % (other,) + \
-                         "<a href=\"%s%s\">" % (url,id) + \
-                         "(view report)</a>." 
-                break
-        if not errorState:
-            # Couldn't find the reference, maybe the tables are changed and
-            # the dependencies array must be updated? Give general error
-            error += '%s is referenced in another table' % (self.name,)
-        self.status.errors.append(error) 
 
 class deletedefSnmpoid(deletedef):
     # This class isn't in use. Must define dependencies to use it.
@@ -3719,13 +3772,7 @@ class deletedefService(deletedef):
     dependencies = []
     name = 'service'
 
-class deletedefNetbox(deletedef):
-    table = 'netbox'
-    idfield = 'netboxid'
-   
-    dependencies = []
-    name = 'netbox'
- 
+
 
 # Class for the template, holds status and error messages
 class editdbStatus:
@@ -3752,6 +3799,8 @@ class bulkdefLocation:
     process = False
     syntax = '#locationid:descr\n'
 
+    postCheck = False
+
     # list of (fieldname,max length,not null,use field)
     fields = [('locationid',12,True,True),
               ('descr',0,True,True)]
@@ -3773,6 +3822,8 @@ class bulkdefRoom:
 
     process = False
     syntax = '#roomid[:locationid:descr:opt1:opt2:opt3:opt4]\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',10,True,True),
@@ -3807,6 +3858,8 @@ class bulkdefOrg:
     process = False
     syntax = '#orgid[:parent:description:optional1:optional2:optional3]\n'
 
+    postCheck = False
+
     # list of (fieldname,max length,not null,use field)
     fields = [('orgid',10,True,True),
               ('parent',10,False,True),
@@ -3818,7 +3871,7 @@ class bulkdefOrg:
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
         remark = None
-        if field == 'parent':
+        if field == 'parent' and len(data):
              try:
                 editTables.Org(data).load()
              except forgetSQL.NotFound:
@@ -3838,6 +3891,8 @@ class bulkdefUsage:
 
     process = False
     syntax = '#usageid:descr\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('usageid',10,True,True),
@@ -3861,6 +3916,8 @@ class bulkdefVendor:
     process = False
     syntax = '#vendorid\n'
 
+    postCheck = False
+
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True)]
 
@@ -3880,6 +3937,8 @@ class bulkdefSubcat:
 
     process = False
     syntax = '#subcatid:catid:description\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('subcatid',0,True,True),
@@ -3904,6 +3963,8 @@ class bulkdefType:
 
     process = False
     syntax = '#vendorid:typename:sysoid[:description:frequency:cdp:tftp]\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
@@ -3931,6 +3992,8 @@ class bulkdefProduct:
 
     process = True
     syntax = '#vendorid:productno[:description]\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('vendorid',15,True,True),
@@ -3972,7 +4035,6 @@ class bulkdefNetbox:
 
     process = True
     syntax = '#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]\n'
-
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
               ('ip',0,True,True),
@@ -3982,6 +4044,45 @@ class bulkdefNetbox:
               ('serial',0,False,False),
               ('rw',0,False,True),
               ('function',0,False,False)]
+
+    def postCheck(cls,data):
+        status = BULK_STATUS_OK
+        remark = None
+
+        try:
+            hasRO = False
+            if data.has_key('ro'):
+                if len(data['ro']):
+                    hasRO = True
+            hasSerial = False
+            if data.has_key('serial'):
+                if len(data['serial']):
+                   hasSerial = True
+
+            if not (hasRO or hasSerial):
+                status = BULK_STATUS_RED_ERROR
+                raise("Neither RO, nor serial specified")
+
+            if hasRO:
+                error = False
+                try:
+                    box = initBox.Box(data['ip'],data['ro'])
+                    if (not hasSerial) and (not box.serial):
+                        error = "No serial returned by SNMP, and no serial given"
+                    if (not box.typeid):
+                        error = "Unknown type, add this box manually"
+                except:
+                    status = BULK_STATUS_YELLOW_ERROR
+                    raise("RO given, but failed to contact box by SNMP")
+                if error:
+                    status = BULK_STATUS_YELLOW_ERROR
+                    raise(error)
+        except:
+            remark = sys.exc_info()[0]
+
+
+        return (status,remark,data)
+    postCheck = classmethod(postCheck)
 
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
@@ -4061,7 +4162,7 @@ class bulkdefNetbox:
             if box:
             # if we got serial from initbox, set this
                 if box.serial:
-                    row['serial'] = box.serial
+                    row['serial'] = str(box.serial)
             # Make new device
             if row.has_key('serial'):
                 if len(row['serial']):
@@ -4106,6 +4207,8 @@ class bulkdefService:
     process = False
     syntax = '#sysname/ip:handler\n'
 
+    postCheck = False
+
     # list of (fieldname,max length,not null,use field)
     fields = [('netboxid',0,True,True),
               ('handler',0,True,True)]
@@ -4131,6 +4234,8 @@ class bulkdefPrefix:
 
     process = False
     syntax= '#prefix/mask:nettype[:org:netident:usage:description:vlan]\n'
+
+    postCheck = False
 
     # list of (fieldname,max length,not null,use field)
     fields = [('netaddr',0,True,True),
