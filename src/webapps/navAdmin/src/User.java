@@ -29,9 +29,10 @@ public class User
 
 	private void getInfo()
 	{
-		String cname = get("login");
+		name = "admin";
 		//String cpw = get("pass");
 
+		/*
 		if (name == null) {
 			name = req.getRemoteUser();
 		}
@@ -63,7 +64,7 @@ public class User
 			loginParam = false;
 			cookieSet = false;
 		}
-
+		*/
 	}
 
 	// henter typen String

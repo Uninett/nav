@@ -18,6 +18,7 @@ import java.sql.*;
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.event.*;
 import no.ntnu.nav.Path;
 
 
@@ -1441,6 +1442,12 @@ class NavUtils
 		}
 
 		outl("A total of <b>"+allowedcnt+"</b> / <b>"+totcnt+"</b> trunks have allowed VLANs that are not active.<br>");
+
+		// Send event to eventengine
+		Map varMap = new HashMap();
+		varMap.put("command", "updateFromDB");
+		EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "notification", Event.STATE_NONE, 0, 0, varMap);
+
 		outl("All done.<br>");
 	}
 
