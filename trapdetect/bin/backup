@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+# Tar backup av alle filer.
+
+$date = `date +%D`;
+@date = split /\//, $date;
+$date = $date[1].$date[0].$date[2];
+
+print "$date";
+chomp $date;
+
+`mkdir /tmp/backup/TrapDetect$date/`;
+`cp -r * /tmp/backup/TrapDetect$date/`;
