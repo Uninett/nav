@@ -105,7 +105,7 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	}
 
 	// Doc in parent
-	protected boolean isCommited() {
+	public boolean isCommited() {
 		return commit;
 	}
 	
