@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 import java.util.*;
 
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 
 /**
  * <p>
@@ -21,9 +22,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
  * </ul>
  * </p>
  *
- * <p> For storing data the device plugin should request a {@link
- * Module Module} from the {@link #moduleFactory moduleFactory} method
- * for each Module, giving the module number, serial number, and, if
+ * <p> For storing data the device plugin should request an {@link
+ * SwModule SwModule} from the {@link #swModuleFactory swModuleFactory} method
+ * for each module, giving the module number, serial number, and, if
  * available, the hardware and software version. For each switch port
  * on the module an {@link Swport Swport} object should be
  * requested.</p>
@@ -31,12 +32,13 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
  * @see SwportHandler
  */
 
-public class SwportContainer implements DataContainer {
+public class SwportContainer extends ModuleContainer implements DataContainer {
 
 	private SwportHandler swh;
 	private List moduleList = new ArrayList();
 
-	SwportContainer(SwportHandler swh) {
+	protected SwportContainer(SwportHandler swh) {
+		super(null);
 		this.swh = swh;
 	}
 
@@ -56,12 +58,16 @@ public class SwportContainer implements DataContainer {
 	}
 
 	/**
-	 * Return a Module object which is used to describe one switch module
+	 * Return an SwModule object which is used to describe one switch module.
 	 */
-	public Module moduleFactory(String serial, String hw_ver, String sw_ver, String module) {
-		Module m = new Module(serial, hw_ver, sw_ver, module);
-		moduleList.add(m);
+	public SwModule swModuleFactory(String serial, String hw_ver, String sw_ver, String module) {
+		SwModule m = new SwModule(serial, hw_ver, sw_ver, module);
+		addModule(m);
 		return m;
+	}
+
+	protected boolean isCommited() {
+		return super.isCommited();
 	}
 
 	Iterator getModules() {

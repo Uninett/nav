@@ -1,11 +1,11 @@
-package no.ntnu.nav.getDeviceData.dataplugins.Swport;
+package no.ntnu.nav.getDeviceData.dataplugins.Module;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Contain Swport-objects
+ * Describes a single module. Normally this class will be inherited.
  */
 
 public class Module implements Comparable
@@ -20,9 +20,10 @@ public class Module implements Comparable
 	private String module;
 	private String submodule;
 
-	private Map swports = new HashMap();
-
-	Module(String serial, String hw_ver, String sw_ver, String module)
+	/**
+	 * Constructor.
+	 */
+	protected Module(String serial, String hw_ver, String sw_ver, String module)
 	{
 		this.serial = serial;
 		this.hw_ver = hw_ver;
@@ -32,13 +33,30 @@ public class Module implements Comparable
 	}
 
 	int getDeviceid() { return deviceid; }
-	void setDeviceid(int i) { deviceid = i; }
+
+	/**
+	 * Set the deviceid of the physical device which this module represents.
+	 */
+	protected void setDeviceid(int i) { deviceid = i; }
+
 	void setDeviceid(String s) { deviceid = Integer.parseInt(s); }
 	
-	int getModuleid() { return moduleid; }
-	String getModuleidS() { return String.valueOf(moduleid); }
-	public void setModuleid(int i) { moduleid = i; }
-	public void setModuleid(String s) { moduleid = Integer.parseInt(s); }
+	/**
+	 * Return the moduleid.
+	 */
+	protected int getModuleid() { return moduleid; }
+
+	/**
+	 * Return the moduleid as a String.
+	 */
+	protected String getModuleidS() { return String.valueOf(moduleid); }
+
+	/**
+	 * Set the moduleid of this module.
+	 */
+	protected void setModuleid(int i) { moduleid = i; }
+
+	void setModuleid(String s) { moduleid = Integer.parseInt(s); }
 
 	String getSerial() { return serial; }
 	String getHwVer() { return hw_ver; }
@@ -48,27 +66,16 @@ public class Module implements Comparable
 	String getModuleS() { return ((module.length()==1)?" ":"")+getModule(); }
 
 	String getSubmodule() { return submodule; }
+
+	/**
+	 * Set the submodule number of this module.
+	 */
 	public void setSubmodule(String s) { submodule = s; }
 
-	void addSwport(Swport sd) { swports.put(sd.getPort(), sd); }
-	Iterator getSwports() { return swports.values().iterator(); }
-	int getSwportCount() { return swports.size(); }
-	Swport getSwport(Integer port) { return (Swport)swports.get(port); }
-
-	public Swport swportFactory(Integer port, String ifindex) {
-		Swport sw = new Swport(port, ifindex);
-		swports.put(port, sw);
-		return sw;
-	}
-
-	public Swport swportFactory(Integer port, String ifindex, char link, String speed, char duplex, String media, boolean trunk, String portname) {
-		Swport sw = new Swport(port, ifindex, link, speed, duplex, media, trunk, portname);
-		swports.put(port, sw);
-		return sw;
-	}
-
-
-	String getKey() {
+	/**
+	 * Return a key which identifies this module (currently the module number is returned).
+	 */
+	protected String getKey() {
 		return module;
 	}
 

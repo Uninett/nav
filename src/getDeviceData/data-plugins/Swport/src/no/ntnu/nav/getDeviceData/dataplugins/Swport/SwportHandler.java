@@ -6,6 +6,7 @@ import java.sql.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
 import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
 
 /**
@@ -20,12 +21,11 @@ public class SwportHandler implements DataHandler {
 	private static final boolean DB_UPDATE = true;
 	private static final boolean DB_COMMIT = true;
 
-	private static Map deviceMap;
 	private static Map moduleMap;
 	
 
 	/**
-	 * Fetch initial data from device, module and swport tables.
+	 * Fetch initial data from swport table.
 	 */
 	public synchronized void init(Map persistentStorage) {
 		if (persistentStorage.containsKey("initDone")) return;
@@ -39,23 +39,12 @@ public class SwportHandler implements DataHandler {
 
 		try {
 		
-			// device
-			dumpBeginTime = System.currentTimeMillis();
-			m  = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial FROM device");
-			while (rs.next()) {
-				m.put(rs.getString("serial"), rs.getString("deviceid"));
-			}
-			deviceMap = m;
-			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-			Log.d("INIT", "Dumped device in " + dumpUsedTime + " ms");
-
 			// module, swport
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
 			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
 			while (rs.next()) {
-				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
 				md.setDeviceid(rs.getInt("deviceid"));
 				md.setModuleid(rs.getInt("moduleid"));
 				md.setSubmodule(rs.getString("submodule"));
@@ -99,6 +88,11 @@ public class SwportHandler implements DataHandler {
 	public void handleData(Netbox nb, DataContainer dc) {
 		if (!(dc instanceof SwportContainer)) return;
 		SwportContainer sc = (SwportContainer)dc;
+		if (!sc.isCommited()) return;
+
+		// Let ModuleHandler update the module table first
+		ModuleHandler mh = new ModuleHandler();
+		mh.handleData(nb, dc);
 
 		Log.setDefaultSubsystem("SwportHandler");
 
@@ -109,89 +103,13 @@ public class SwportHandler implements DataHandler {
 			//outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
 
 			while (modules.hasNext()) {
-				Module md = (Module)modules.next();
-
-				// Er dette serienummeret i device-tabellen?
-				String deviceid = (String)deviceMap.get(md.getSerial());
-				boolean insertedDevice = false;
-				if (deviceid == null) {
-					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
-					// Først oppretter vi device
-					Log.i("NEW_DEVICE", "New device with serial: " + md.getSerial());
-
-					ResultSet rs = Database.query("SELECT nextval('device_deviceid_seq') AS deviceid");
-					rs.next();
-					deviceid = rs.getString("deviceid");
-
-					String[] insd = {
-						"deviceid", deviceid,
-						"serial", md.getSerial(),
-						"hw_ver", md.getHwVer(),
-						"sw_ver", md.getSwVer()
-					};
-					if (DB_UPDATE) Database.insert("device", insd);
-					insertedDevice = true;
-					deviceMap.put(md.getSerial(), deviceid);
-				}
-				md.setDeviceid(deviceid);
-
+				SwModule md = (SwModule)modules.next();
+				
 				// OK, først sjekk om denne porten er i swport fra før
 				String moduleKey = nb.getNetboxid()+":"+md.getKey();
-				String moduleid;
-				Module oldmd = (Module)moduleMap.get(moduleKey);
+				String moduleid = md.getModuleidS();
+				SwModule oldmd = (SwModule)moduleMap.get(moduleKey);
 				moduleMap.put(moduleKey, md);
-
-				if (oldmd == null) {
-					// Sett inn i module
-					Log.i("NEW_MODULE", "New module: " + md.getModule());
-
-					ResultSet rs = Database.query("SELECT nextval('module_moduleid_seq') AS moduleid");
-					rs.next();
-					moduleid = rs.getString("moduleid");
-
-					String[] insm = {
-						"moduleid", moduleid,
-						"deviceid", deviceid,
-						"netboxid", nb.getNetboxid(),
-						"module", md.getModule(),
-						"submodule", md.getSubmodule()
-					};
-					if (DB_UPDATE) Database.insert("module", insm);
-
-				} else {
-					moduleid = oldmd.getModuleidS();
-					if (!oldmd.equals(md)) {
-						// Vi må oppdatere module
-						Log.i("UPDATE_MODULE", "Update moduleid: " + moduleid + " deviceid="+deviceid+" module="+md.getModule());
-
-						String[] set = {
-							"deviceid", deviceid,
-							"module", md.getModule(),
-							"submodule", md.getSubmodule()
-						};
-						String[] where = {
-							"moduleid", moduleid
-						};
-						if (DB_UPDATE) Database.update("module", set, where);
-					}
-				}
-				md.setModuleid(moduleid);
-
-				if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
-					// Oppdater device
-					Log.i("UPDATE_DEVICE", "Update deviceid: " + deviceid + " hw_ver="+md.getHwVer()+" sw_ver="+md.getSwVer());
-
-					String[] set = {
-						"hw_ver", md.getHwVer(),
-						"sw_ver", md.getSwVer()
-					};
-					String[] where = {
-						"deviceid", deviceid
-					};
-					if (DB_UPDATE) Database.update("device", set, where);
-				}
-
-				//outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
 
 				// Så alle swportene
 				for (Iterator j = md.getSwports(); j.hasNext();) {
