@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: erikgors $
-$Id: job.py,v 1.25 2002/06/20 10:04:02 erikgors Exp $
+$Id: job.py,v 1.26 2002/06/20 11:27:34 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -347,7 +347,29 @@ class SmbHandler(JobHandler):
 			return Event.DOWN,'error %i' % status
 		else:
 			return Event.UP,'OK'
-		
+import smtplib
+class SMTP(smtplib.SMTP):
+	def __init__(self,timeout, host = '',port = 25):
+		self.timeout = timeout
+		smtplib.SMTP.__init__(self,host,port)
+	def connect(self, host='localhost', port = 25):
+		self.sock = Socket(self.timeout)
+		self.sock.connect((host,port))
+		return self.getreply()
+
+class SmtpHandler(JobHandler):
+	def __init__(self, serviceid, boksid, ip, args, version):
+		address = (ip,args.get('port',25))
+		JobHandler.__init__(self,'smtp',serviceid,boksid,address,args,version)
+	def execute(self):
+		ip,port = self.getAddress()
+		s = SMTP(self.getTimeout())
+		code,msg = s.connect(ip,port)
+		if code != 220:
+			return Event.DOWN,msg
+		else:
+			return Event.UP,msg
+
 
 jobmap = {'http':HttpHandler,
 	  'port':PortHandler,
@@ -355,5 +377,6 @@ jobmap = {'http':HttpHandler,
 	  'ssh':SshHandler,
 	  'dns':DnsHandler,
 	  'mysql':MysqlHandler,
-	  'smb':SmbHandler
+	  'smb':SmbHandler,
+	  'SmtpHandler':SmtpHandler
 	  }
