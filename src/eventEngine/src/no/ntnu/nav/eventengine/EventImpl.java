@@ -289,7 +289,7 @@ class AlertmsgParser
 				if (var.length() == 0) continue;
 				if (varMap.containsKey(var)) {
 					Object o = varMap.get(var);
-					if (!o instanceof String) {
+					if (!(o instanceof String)) {
 						outld("formatMsgs: Unknown object: " + o);
 					}
 					msg.replace(i-1, e, (String)varMap.get(var));
