@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: swporter.pl,v 1.13 2002/11/26 11:14:07 gartmann Exp $
+# $Id: swporter.pl,v 1.14 2002/12/19 16:33:14 gartmann Exp $
 # This file is part of the NAV project.
 # swporter gets a list of devices from the database. If the devices are central
 # switches, plugin-scripts which aquire SNMP-information are started according
@@ -131,8 +131,9 @@ for my $boks (keys %swportvlantemp) {
     for my $modul (keys %{$swportvlantemp{$boks}}){
 	for my $port (keys %{$swportvlantemp{$boks}{$modul}}){
 	    my $nyid = $swport2swportid{$boks}{$modul}{$port};
-	    if($modul&&$port&&$nyid){
-		$swportvlan{$nyid} = [$nyid,$swportvlantemp{$boks}{$modul}{$port}];
+	    my $vlan = $swportvlantemp{$boks}{$modul}{$port};
+	    if($modul&&$port&&$nyid&&defined($vlan)){
+		$swportvlan{$nyid} = [$nyid,$vlan];
 	    } else {
 		&skriv("DEBUG-NOID","ip=$boks","module=$modul","port=$port");
 	    }
@@ -143,9 +144,9 @@ for my $boks (keys %swportallowedvlantemp) {
     for my $modul (keys %{$swportallowedvlantemp{$boks}}){
 	for my $port (keys %{$swportallowedvlantemp{$boks}{$modul}}){
 	    my $nyid = $swport2swportid{$boks}{$modul}{$port};
-	    if($modul&&$port&&$nyid){
-#		print $nyid."+".$swportallowedvlantemp{$boks}{$modul}{$port}."\n";
-		$swportallowedvlan{$nyid} = [$nyid,$swportallowedvlantemp{$boks}{$modul}{$port}];
+	    my $vstr = $swportallowedvlantemp{$boks}{$modul}{$port};
+	    if($modul&&$port&&$nyid&&defined($vstr)){
+		$swportallowedvlan{$nyid} = [$nyid,$vstr];
 	    } else {
 		&skriv("DEBUG-NOID","ip=$boks","module=$modul","port=$port");
 	    }

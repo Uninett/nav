@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: gwporter.pl,v 1.15 2002/12/19 10:12:37 gartmann Exp $
+# $Id: gwporter.pl,v 1.16 2002/12/19 16:33:14 gartmann Exp $
 # This file is part of the NAV project.
 # gwporter uses the SNMP-protocol to aquire information about the routers and
 # their interfaces. Information about the subnets (prefices) are also aquired.
