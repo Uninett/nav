@@ -59,6 +59,26 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 		return ifindex;
 	}
 
+	/**
+	 * Remove the module part from the ifindex.
+	 */
+	public String extractIfIndexOID(String ifindex) {
+		if (ifindex.length() >= 3) ifindex = ifindex.substring(1, ifindex.length());
+		if (ifindex.startsWith("0")) ifindex = ifindex.substring(1, ifindex.length());
+		return ifindex;
+	}
+
+	/**
+	 * HP adds -# to the name of modules other than the master, which
+	 * this method removes.
+	 */
+	public String extractSysname(String sysname, String module) {
+		if (sysname == null || module == null) return null;
+		if (sysname.endsWith("-"+module)) sysname = sysname.substring(0, sysname.length()-2);
+		return sysname;
+	}
+
+
 	// Doc in parent
 	public void onlyAskModule(String module) {
 		this.askOnlyModule = module;
@@ -99,13 +119,14 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			stackList = super.getAll(hpStackOid, 0, false, true, 0);
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
+
 			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
 		}
 
 		String cs_ro = getCs_ro();
 		ArrayList l = new ArrayList();
-		for (int i=stackList.size()-1; i >= 0; i--) {
-			String[] s = (String[])stackList.get(i);
+		for (Iterator stackIt = stackList.iterator(); stackIt.hasNext();) {
+			String[] s = (String[])stackIt.next();
 			if (askOnlyModule != null && !askOnlyModule.equals(s[1])) continue;
 			
 			setCs_ro(cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""));

@@ -51,12 +51,12 @@ public class SimpleSnmp
 	}
 
 	public static SimpleSnmp simpleSnmpFactory(String type) {
-		if ("2524".equals(type)) return new SimpleSnmpHP2524();
+		if ("hp2524".equals(type)) return new SimpleSnmpHP2524();
 		return new SimpleSnmp();
 	}
 
 	public static SimpleSnmp simpleSnmpFactory(String type, String host, String cs_ro, String baseOid) {
-		if ("2524".equals(type)) return new SimpleSnmpHP2524(host, cs_ro, baseOid);
+		if ("hp2524".equals(type)) return new SimpleSnmpHP2524(host, cs_ro, baseOid);
 		return new SimpleSnmp(host, cs_ro, baseOid);
 	}
 
@@ -305,6 +305,22 @@ public class SimpleSnmp
 	 */
 	protected String convertToIfIndex(String[] s) {
 		return s[0];
+	}
+
+	/**
+	 * Extract the OID part of the ifindex; this value should be
+	 * suitable for adding to an OID for collecting data for a specific
+	 * ifindex.
+	 */
+	public String extractIfIndexOID(String ifindex) {
+		return ifindex;
+	}
+
+	/**
+	 * Remove any module-specific parts from the sysname.
+	 */
+	public String extractSysname(String sysname, String module) {
+		return sysname;
 	}
 
 	/**
