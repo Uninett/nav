@@ -492,10 +492,19 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 		if ("updateFromDB".equals(cmd)) {
 			mp.updateFromDB();
 			e.dispose();
+		} else
+		if ("dumpDeviceList".equals(cmd)) {
+			List devL = new ArrayList();
+			for (Iterator it=devDB.getDeviceMap().keySet().iterator(); it.hasNext();) {
+				devL.add(it.next());
+			}
+			Collections.sort(devL);
+			Log.d("EVENTQ_MONITOR_TASK", "DUMP_DEVICE_LIST", "Devices known: " + devL);
+			e.dispose();
 		} else {
 			Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown notification command: " + cmd);
 			e.defer("Unknown notification command: " + cmd);
-		}		
+		}
 	}
 
 	public void run()
@@ -568,6 +577,35 @@ BEGIN;
 INSERT INTO eventq (source,target,eventtypeid,state,severity) VALUES ('pping','getDeviceData','notification','x',0);
 INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData'),'command','updateFromDB');
 COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,subid,eventtypeid,state,severity) VALUES ('eventEngine','eventEngine',65432,'notification','x',0);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE subid=65432),'command','updateFromDB');
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,subid,eventtypeid,state,severity) VALUES ('eventEngine','eventEngine',76543,'notification','x',0);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE subid=76543),'command','dumpDeviceList');
+COMMIT;
+
+--voll-sby-980-h
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'voll-sby-980-h.%'),'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'voll-sby-980-h.%'),'boxState','e',100);
+COMMIT;
+
+--test modul
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
+COMMIT;
+
 
 --kjemi-384-sw
 BEGIN;

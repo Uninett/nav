@@ -90,6 +90,10 @@ class DeviceDBImpl implements DeviceDB
 		return ((EventImpl)e).isDisposed();
 	}
 
+	Map getDeviceMap() {
+		return deviceMap;
+	}
+
 	public Device getDevice(int deviceid)
 	{
 		Integer id = new Integer(deviceid);
