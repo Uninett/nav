@@ -221,7 +221,7 @@ public class BoxState implements EventHandler, EventCallback
 			try {
 				alertTicks = Integer.parseInt(cp.get("alertTicks"));
 			} catch (Exception exp) { }
-			alertTickLength = 6; // debug
+			//alertTickLength = 6; // debug
 
 			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
