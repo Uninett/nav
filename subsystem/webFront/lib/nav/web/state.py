@@ -18,10 +18,12 @@ import cPickle
 import os
 from os import path
 import sys
+import fcntl
 
 sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
 serialPrefix = '%s_' % sessionCookieName
+maxAge = 3600 # Sessions time out after this amount of seconds
 
 
 def getUniqueString(entropy=''):
@@ -83,6 +85,38 @@ def deleteSessionCookie(req):
     """
     setSessionCookie(req, '')
 
+def _sessionFilter(file):
+    """Just a filter for filter() to filter out session files"""
+    prefixLength = len(serialPrefix)
+    return file[:prefixLength] == serialPrefix
+
+def _oldFilter(file):
+    """Filters expired (too old) session files"""
+    name = path.join(tempDir, file)
+    try:
+        mtime = os.stat(name)[8]
+        nowtime = int(time.time())
+        return (nowtime-mtime > maxAge)
+    except:
+        return False
+
+def getExpired():
+    """Returns a list of expired session files"""
+    sessions = filter(_sessionFilter, os.listdir(tempDir))
+    old = filter(_oldFilter, sessions)
+    return map(lambda f: path.join(tempDir, f), old)
+
+def cleanup():
+    """Deletes expired session files"""
+    old = getExpired()
+    counter = 0
+    for file in old:
+        try:
+            os.unlink(file)
+            counter += 1
+        except:
+            pass
+    return counter
 
 class Session(dict):
     def __init__(self, id=None):
@@ -105,11 +139,17 @@ class Session(dict):
             # If the session does not exist, create a new one using the given id.
             return dict.__new__(cls, sessionId)
 
+        fcntl.lockf(file, fcntl.LOCK_SH) # Shared read lock
         unpickler = cPickle.Unpickler(file)
         try:
             session = unpickler.load()
-        except:
-            return dict.__new__(cls)
+        except Exception, e:
+            # Make sure we unlock before reraising the exception
+            fcntl.lockf(file, fcntl.LOCK_UN)
+            raise e
+        else:
+            fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
+        
         session._changed = False
         return session
 
@@ -118,8 +158,10 @@ class Session(dict):
         filename = path.join(tempDir, '%s%s' % (serialPrefix, self.id))
         file = open(filename, 'w')
 
+        fcntl.lockf(file, fcntl.LOCK_EX) # Exclusive write lock
         pickler = cPickle.Pickler(file, False)
         pickler.dump(self)
+        fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
         file.close()
         self._changed = False
 
