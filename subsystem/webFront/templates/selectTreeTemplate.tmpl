@@ -1,5 +1,5 @@
 #
-# $Id: treeSelect.py 2773 2004-06-04 18:00:00Z hansjorg $
+# $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -24,7 +24,11 @@
 #
 
 #def renderLayoutBox($layoutBox)
-<table cellspacing="10">
+#set $htmlId = ''
+#if $layoutBox.htmlId
+#set $htmlId = $layoutBox.htmlId
+#end if
+<table id="$htmlId" cellspacing="10">
 #if $layoutBox.showTitles
     <tr>
 #if $layoutBox.showTitles
