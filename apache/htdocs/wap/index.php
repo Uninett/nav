@@ -10,7 +10,7 @@
 
 <?php
 
-if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navuser") ) {
+if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navprofiles") ) {
 	print "<p>Kunne ikke koble til databasen.</p></card></wml>";
 	exit(0);
 } 
@@ -22,7 +22,7 @@ $dbh = new WDBH($dbcon);
 
 
 /*
- *	OVERSIKT OVER VAIABLER
+ *	OVERSIKT OVER VARIABLER
  *		k wapkey
  *		p profilid på brukerprofil det byttes til..
  *		

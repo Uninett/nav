@@ -278,14 +278,14 @@ ORDER BY name ";
 		    'ar, name',
 		    'ad, name');
 		    
-	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, (Medlem.gruppeid > 0) AS medl 
+	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, (Medlem.groupid > 0) AS medl 
 FROM AccountGroup 
 LEFT OUTER JOIN (
-	SELECT count(accountid) AS ab, gruppeid
+	SELECT count(accountid) AS ab, groupid
 	FROM AccountInGroup
-	GROUP BY gruppeid
+	GROUP BY groupid
 ) AS BCount 
-ON (id = BCount.gruppeid)
+ON (id = BCount.groupid)
 LEFT OUTER JOIN (
 	SELECT count(utstyrgruppeid) AS ar, accountgroupid 
 	FROM Rettighet 
@@ -299,10 +299,10 @@ LEFT OUTER JOIN (
 ) AS DCount 
 ON (id = DCount.accountgroupid) 
 LEFT OUTER JOIN (
-	SELECT accountid, gruppeid FROM AccountInGroup 
+	SELECT accountid, groupid FROM AccountInGroup 
 	WHERE (accountid = " . addslashes($uid) . ") 
 ) AS Medlem 
-ON (id = Medlem.gruppeid) 
+ON (id = Medlem.groupid) 
 ORDER BY " . $sorts[$sort];
 
 	//print "<pre>" . $querystring . "</pre>";
@@ -1291,13 +1291,14 @@ function periodeInfo($tid) {
 // Henter ut informasjon om en periode..
 function hentwapkey($uid) {
     
-    $querystring = "SELECT key FROM wapkey WHERE (accountid = " . addslashes($uid) . ")"; 
+    $querystring = "SELECT value FROM AccountProperty 
+WHERE (accountid = " . addslashes($uid) . ") AND (property = 'wapkey')"; 
 
 //    print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$key[0] = $data["key"];
+		$key[0] = $data["value"];
     } else {
     	$key = null;
     }
@@ -1310,11 +1311,11 @@ function settwapkey($uid, $key) {
 //	$oldkey = "null";
 	if ($oldkey == null) {
 	    // Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Wapkey (accountid, key) VALUES (" . addslashes($uid) . ", '" . addslashes($key) . "')";    
+		$querystring = "INSERT INTO AccountProperty (accountid, property, value) VALUES (" . addslashes($uid) . ", 'wapkey', '" . addslashes($key) . "')";    
 		$query = pg_exec( $this->connection, $querystring);
 
     } else {
-		$querystr = "UPDATE wapkey SET key = '" . addslashes($key) . "' WHERE accountid = " . addslashes($uid);
+		$querystr = "UPDATE AccountProperty SET value = '" . addslashes($key) . "' WHERE accountid = " . addslashes($uid) . " AND property = 'wapkey' ";
 		@pg_exec($this->connection, $querystr);
     }
 
@@ -1322,7 +1323,7 @@ function settwapkey($uid, $key) {
 
 function slettwapkey($uid) {
     // Spxrring som legger inn i databasen
-    $querystring = "DELETE FROM Wapkey WHERE ( accountid = " . addslashes($uid) . " )";
+    $querystring = "DELETE FROM AccountProperty WHERE ( accountid = " . addslashes($uid) . " AND property = 'wapkey')";
 #    print "<p>QUERY:$querystring:";
     
 	#print "<p>query: $querystring\n brukerid: $brukerid";
@@ -1397,7 +1398,7 @@ function endreUtstyrgruppe($gid, $navn, $descr) {
 
 // Endre detaljer om en brukergruppe
 function endreBrukergruppe($gid, $navn, $descr) {
-	$querystr = "UPDATE AccountGroup SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
+	$querystr = "UPDATE AccountGroup SET name = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
 	$querystr = "UPDATE AccountGroup SET descr = '" . addslashes($descr) . "' WHERE id = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
@@ -1417,22 +1418,22 @@ function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde
 	$querystr = "UPDATE Account SET login = '" . addslashes($brukernavn) . "' WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
-	$querystr = "UPDATE Account SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET name = '" . addslashes($navn) . "' WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
- 	$querystr = "UPDATE Account SET passord = '" . addslashes($passord) . "' WHERE id = " . addslashes($uid);
+ 	$querystr = "UPDATE Account SET password = '" . addslashes($passord) . "' WHERE id = " . addslashes($uid);
 	if ($passord != undef && strlen($passord) > 0) {
 		@pg_exec($this->connection, $querystr);
 	}	
 	
 	if ($sms == 1) $s = "true"; else $s = "false";
-	$querystr = "UPDATE Account SET sms = " . addslashes($s) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Preference SET sms = " . addslashes($s) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
-	$querystr = "UPDATE Account SET admin = " . addslashes($admin) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Preference SET admin = " . addslashes($admin) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);	
 	
-	$querystr = "UPDATE Account SET kolengde = " . addslashes($kolengde) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Preference SET queuelength = " . addslashes($kolengde) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 
 }
@@ -1479,12 +1480,12 @@ function endreVarsleadresse($tid, $adresseid, $utstyrgruppeid, $type) {
 // Legge til eller endre en brukertilgruppe
 function endreBrukerTilGruppe($uid, $gid, $type) {
 	
-	$querystr = "DELETE FROM AccountInGroup WHERE accountid = " . addslashes($uid) . " AND gruppeid = " . addslashes($gid);
+	$querystr = "DELETE FROM AccountInGroup WHERE accountid = " . addslashes($uid) . " AND groupid = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
 	
 //	print "<p>Query: $querystr";
 	if ( $type ) {
-		$querystr = "INSERT INTO AccountInGroup (accountid, gruppeid) VALUES (" . addslashes($uid) . ", " . addslashes($gid) . ") ";
+		$querystr = "INSERT INTO AccountInGroup (accountid, groupid) VALUES (" . addslashes($uid) . ", " . addslashes($gid) . ") ";
 //	print "<p>Query: $querystr<p>&npsp;$gid ---";		
 		@pg_exec($this->connection, $querystr);
 	}

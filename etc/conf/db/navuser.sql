@@ -112,7 +112,7 @@ password	password for local authentication
 ext_sync	external syncronization, reserved for future use, 
             null means local authentication
 */
-CREATE SEQUENCE accountids;
+CREATE SEQUENCE accountids START 1000;
 CREATE TABLE Account (
     id integer NOT NULL DEFAULT nextval('accountids'),
     login varchar CONSTRAINT brukernavn_uniq UNIQUE,
@@ -133,7 +133,7 @@ Table for usergroup
 name		Name of usergroup
 descr		Longer description
 */
-CREATE SEQUENCE accountgroupids;
+CREATE SEQUENCE accountgroupids START 1000;
 CREATE TABLE AccountGroup (
        id integer NOT NULL DEFAULT nextval('accountgroupids'),
        name varchar DEFAULT 'Noname',
@@ -196,7 +196,7 @@ type		Specifies what kind of address this is.
                     4 icq 123456789
 adrese		The address
 */
-CREATE SEQUENCE alarmadresseid;
+CREATE SEQUENCE alarmadresseid START 1000;
 CREATE TABLE Alarmadresse (
        id integer NOT NULL DEFAULT nextval('alarmadresseid'),
        accountid integer NOT NULL,
@@ -225,7 +225,7 @@ uketid		Related to queueing. When weekly queueing is selected, this attribute sp
             on the day enqueued alerts will be sent.
 
 */
-CREATE SEQUENCE brukerprofilid;
+CREATE SEQUENCE brukerprofilid START 1000;
 CREATE TABLE Brukerprofil (
        id integer NOT NULL DEFAULT nextval('brukerprofilid'),
        accountid integer NOT NULL,
@@ -287,7 +287,7 @@ starttid	this attribute speficies the start time of this time period. The time p
             
 helg		Speficies wether this time period is for weekdays or weekend or both.
 */
-CREATE SEQUENCE tidsperiodeid;
+CREATE SEQUENCE tidsperiodeid START 1000;
 CREATE TABLE Tidsperiode (
        id integer NOT NULL DEFAULT nextval('tidsperiodeid'),
        brukerprofilid integer NOT NULL,
@@ -311,7 +311,7 @@ navn	The name of the equipment group
 descr	Longer description
 
 */
-CREATE SEQUENCE utstyrgruppeid;
+CREATE SEQUENCE utstyrgruppeid START 1000;
 CREATE TABLE Utstyrgruppe (
     id integer NOT NULL DEFAULT nextval('utstyrgruppeid'),
     accountid integer,
@@ -439,7 +439,7 @@ The equipment filter could either be owned by an user, or shared among administr
 
 navn		The name of the equipmentfilter
 */
-CREATE SEQUENCE utstyrfilterid;
+CREATE SEQUENCE utstyrfilterid START 1000;
 CREATE TABLE Utstyrfilter (
        id integer NOT NULL DEFAULT nextval('utstyrfilter'),
        accountid integer,
@@ -498,7 +498,7 @@ listlimit	Max number of values shown in the drop down list.
 datatype	Defining the datatype, this is a helper attribute for the alertengine.
 showlist	boolean, true: show list of values from manage. false: show html input field.
 */
-CREATE SEQUENCE matchfieldids;
+CREATE SEQUENCE matchfieldids START 1000;
 CREATE TABLE MatchField (
     matchfieldid integer NOT NULL DEFAULT nextval('matchfieldids'),
     name varchar,
@@ -536,7 +536,7 @@ matchtype	This specifies the operator used. This a static list.
                     $type[10] = gettext('wildcard (? og *)');
 verdi		The value
 */
-CREATE SEQUENCE filtermatchid;
+CREATE SEQUENCE filtermatchid START 1000;
 CREATE TABLE FilterMatch (
        id integer NOT NULL DEFAULT nextval('filtermatchid'),
        utstyrfilterid integer NOT NULL,
@@ -563,7 +563,7 @@ Operator, this is a list related to each matchfield, specifying which operator s
 choose from, form the given matchfield.
 
 */
-CREATE SEQUENCE operatorids;
+CREATE SEQUENCE operatorids START 1000;
 CREATE TABLE Operator (
     operatorid integer NOT NULL DEFAULT nextval('operatorids'),
     matchfieldid integer NOT NULL,
@@ -596,7 +596,7 @@ tid	the time when event took place
 descr	a general textstring, could be used to describe the event
 
 */
-CREATE SEQUENCE loggid;
+CREATE SEQUENCE loggid START 1000;
 CREATE TABLE Logg (
     id integer NOT NULL DEFAULT nextval('loggid'),
        accountid integer NOT NULL,
@@ -696,6 +696,22 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 
 
 
+
+
+
+
+/*
+------------------------------------------------------
+ GRANT PERMISSIONS
+------------------------------------------------------
+*/
+
+
+-- giving away permission to select from sequences..
+GRANT SELECT ON accountids, accountgroupids, alarmadresseid, brukerprofilid, tidsperiodeid, utstyrgruppeid, utstyrfilterid, matchfieldids, filtermatchid, operatorids,loggid TO navprofile;
+
+-- giving away permissions to add change and delete from tables...
+GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg TO navprofile;
 
 
 /*

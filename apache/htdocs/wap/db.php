@@ -21,17 +21,18 @@ class WDBH {
 	// Henter ut informasjon om en periode..
 	function sjekkwapkey($wapkey) {
     
-    	$uid = 0;
-		$querystring = "SELECT brukernavn, wapkey.brukerid, bruker.navn FROM wapkey, bruker WHERE (key = '" . addslashes($wapkey) . "') " .
-			"AND (bruker.id = wapkey.brukerid) "; 
+            $uid = 0;
+            $querystring = "SELECT Account.login as al, Account.id as aid, Accountproperty.value, account.name as aname FROM AccountProperty WHERE (property = 'wapkey') AND 
+(value = '" . addslashes($wapkey) . "') AND 
+(account.id = accountproperty.accountid) ";
 
 		#print "<p> " . $querystring . "</p>";
 
 		if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1) {
 			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-			$uid = $data["brukerid"];
-			$brukernavn = $data["brukernavn"];
-			$navn = $data["navn"];
+			$uid = $data["aid"];
+			$brukernavn = $data["al"];
+			$navn = $data["aname"];
 		}
     
 	 	return array($uid, $brukernavn, $navn);
@@ -49,19 +50,22 @@ class WDBH {
    		'Brukerprofil.navn', 
    		'Q.antall, aktiv DESC, Brukerprofil.navn');
 
-  	$querystring = "SELECT (Bruker.aktivprofil = Brukerprofil.id) AS aktiv, " .
-      "Brukerprofil.id, Brukerprofil.navn, Q.antall " .
-  	  "FROM Bruker, Brukerprofil LEFT OUTER JOIN " .
-      "(SELECT pid, count(tid) AS antall FROM " .
-      "(SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil " .
-      "WHERE (Brukerprofil.brukerid = " . addslashes($uid) . 
-      ") AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder " .
-      "GROUP BY Perioder.pid ) AS Q " .
-      "ON (Brukerprofil.id = Q.pid) " .
-      "WHERE (Brukerprofil.brukerid = " . addslashes($uid) . ") AND (Bruker.id = Brukerprofil.brukerid)" .
-      "ORDER BY aktiv DESC, Brukerprofil.navn" ;
+  	$querystring = "
+SELECT (Preference.activeProfile = Brukerprofil.id) AS aktiv, 
+    Brukerprofil.id, Brukerprofil.navn, Q.antall 
+FROM Account, Preference, Brukerprofil LEFT OUTER JOIN 
+(SELECT pid, count(tid) AS antall FROM 
+    (SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil 
+        WHERE (Brukerprofil.accountid = " . addslashes($uid) . "
+        ) AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder 
+    GROUP BY Perioder.pid ) AS Q 
+    ON (Brukerprofil.id = Q.pid) 
+WHERE (Brukerprofil.accountid = " . addslashes($uid) . ") AND 
+(Account.id = Brukerprofil.accountid) AND 
+(Account.id = Preference.accountid) 
+ORDER BY aktiv DESC, Brukerprofil.navn" ;
 
-#    print "<p>$querystring";
+    //print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
@@ -74,9 +78,6 @@ class WDBH {
 	$profiler[$row][3] = $data["aktiv"];
 	$row++;
       } 
-    }  else {
-      $error = new Error(2);
-      $bruker{'errmsg'}= "Feil med datbasespørring.";
     }
     
     return $profiler;
@@ -86,7 +87,7 @@ class WDBH {
   function nyLogghendelse($brukerid, $type, $descr) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Logg (brukerid, type, descr, tid) VALUES (" . 
+    $querystring = "INSERT INTO Logg (accountid, type, descr, tid) VALUES (" . 
     	addslashes($brukerid) . ", " . addslashes($type) .", '" . 
     	addslashes($descr) . "', current_timestamp )";
     
@@ -105,8 +106,8 @@ class WDBH {
   function aktivProfil($uid, $profilid) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "UPDATE Bruker SET aktivProfil = " . addslashes($profilid) . " WHERE " .
-      " id = " . addslashes($uid) . "  ";
+    $querystring = "UPDATE Preference SET activeProfile = " . addslashes($profilid) . " WHERE " .
+      " accountid = " . addslashes($uid) . "  ";
     
    #print "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring) ) {

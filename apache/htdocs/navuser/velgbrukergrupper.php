@@ -35,7 +35,7 @@ if (session_get('subaction') == "valgt") {
 	}
 
 	print '<p>' . gettext("Brukeren er nå påmeldt valgte brukergrupper.") . "<p>" . 
-	gettext("Gå til") .  '<a href="index.php?action=admin">' . gettext("administrering av brukere") . '</a>.';	
+	gettext("Gå til ") .  '<a href="index.php?action=admin">' . gettext("administrering av brukere") . '</a>.';	
 }
 
 if (session_get('subaction') == 'velge') {
