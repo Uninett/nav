@@ -152,7 +152,7 @@ class NavUtils
 
 		// Endret for å få med GSW
 		//rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
-		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swp_netbox.to_swportid,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwportprefix USING(prefixid) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
+		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swport.ifindex AS to_ifindex,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwportprefix USING(prefixid) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) LEFT JOIN swport ON (swp_netbox.to_swportid=swport.swportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
 
 		Map bokser = new HashMap();
 		List boksList = new ArrayList();
