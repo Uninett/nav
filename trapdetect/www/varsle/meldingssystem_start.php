@@ -1,14 +1,14 @@
-<html><head><title>Varslingsiden for ITEA</title>
-<?php require('meldingssystem.inc');
+<?php 
 
-#html_topp("Varslingssiden for ITEA");
-
-print "<table width=600><tr><td>\n";
+require('meldingssystem.inc');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 if (!$bruker) {
   $bruker = $REMOTE_USER;
 }
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+
+navstart("Varslingsiden for ITEA",$bruker);
 
 ?>
 
@@ -25,10 +25,6 @@ function popup(url, name, width, height)
 
 -->
 </script>
-</head>
-
-<body bgcolor=white>
-
 
 <?php
 #$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
@@ -171,16 +167,20 @@ if (pg_numrows($res) == 0 && !$admin) {
 	  $row=pg_fetch_array($res,$i);
 	  $sporring = "select sysname from boks where boksid=$row[boksid]";
 	  $hent_sysname = pg_exec($dbh_m,$sporring);
-	  $row_manage = pg_fetch_array($hent_sysname,0);
-	  $row[sysname] = $row_manage[sysname];
-        # Hvis det er en pluss så skal det kunne velges varseltype
-	  if ($row[status] == "pluss") {
-	    print "<tr><td>&nbsp;</td><td>$row[sysname]</td><td>&nbsp;</td><td>\n";
-	    lagDropDown($type,"$key:enhet:$row[sysname]",$row[vtypeid]);
-	    print "</tr>\n";
-	  } else {
-          # Lagrer alle unntakene.
-	    array_push($unntak,$row[sysname]);
+	  $hent_sysname_ant = pg_numrows($hent_sysname);
+	  # Hvis sysname finnes i databasen, kan være slettet i løpet av natten.
+	  if ($hent_sysname_ant > 0) {
+	    $row_manage = pg_fetch_array($hent_sysname,0);
+	    $row[sysname] = $row_manage[sysname];
+            # Hvis det er en pluss så skal det kunne velges varseltype
+	    if ($row[status] == "pluss") {
+	      print "<tr><td>&nbsp;</td><td>$row[sysname]</td><td>&nbsp;</td><td>\n";
+	      lagDropDown($type,"$key:enhet:$row[sysname]",$row[vtypeid]);
+	      print "</tr>\n";
+	    } else {
+            # Lagrer alle unntakene.
+	      array_push($unntak,$row[sysname]);
+	    }
 	  }
 	}
 	$unntak_alle[$key] = $unntak;
@@ -242,7 +242,6 @@ if (pg_numrows($res) == 0 && !$admin) {
   }
 }
 
-print "</td></tr></table>\n";
 
 ########################################
 # Skriver ut meny for ny varsling
@@ -295,5 +294,8 @@ function lagSlettBoks($trapid,$trapname) {
   print "\t<input type=hidden name=brukerid value=$brukerid[0]>\n";
   print "\t</form>\n";
 }
+
+navslutt();
+
 ?>
-</body></html>
+

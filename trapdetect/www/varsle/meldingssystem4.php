@@ -1,9 +1,14 @@
 <?php
 require ('meldingssystem.inc');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
+
 html_topp("Varslingsregistrering - legg inn i databasen");
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 if ($admin && $REMOTE_USER != $bruker) {
   print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+  navstart("Varslingsregistrering - legg inn i databasen",$REMOTE_USER);
+} else {
+  navstart("Varslingsregistrering - legg inn i databasen",$bruker);
 }
 
 # Kobler til database.
@@ -84,7 +89,7 @@ function legginn($trapid,$variable) {
     foreach ($variable["unntak"] as $element) {
       if (preg_match("/(.+),(.+)/",$element,$matches)) {
 # Dette er et underkategoriunntak
-	$sporring = "insert into varsel (brukerid,trapid,kat,ukat,vtypeid) values ($userid[0],$trapid,'$matches[1]','$matches[2]',0)";
+	$sporring = "insert into varsel (brukerid,trapid,kat,ukat) values ($userid[0],$trapid,'$matches[1]','$matches[2]')";
 	array_push($ukatunntak,$sporring);
       } else { 
 # Dette er en enhet
@@ -169,5 +174,6 @@ echo "<p>Innleggene er lagt i databasen.</p>";
 
 knapp_hovedside($bruker,'Til varslingssiden');
 
+navslutt();
+
 ?>
-</body></html>

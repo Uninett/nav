@@ -1,12 +1,14 @@
-<?php require('meldingssystem.inc');
-
-html_topp("Varslingssiden for ITEA");
-
-print "<table width=600><tr><td>\n";
+<?php 
+require('meldingssystem.inc');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 if (!$bruker) {
   $bruker = $REMOTE_USER;
+  navstart('Varslingssiden for ITEA',$REMOTE_USER);
+} else {
+  navstart('Varslingssiden for ITEA',$bruker);
 }
+
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 
 if ($admin) {
@@ -66,6 +68,6 @@ if ($admin) {
   print "Du har ikke admin-rettigheter. Kom deg vekk!<br>\n";
 }
 
-print "</table>";
+navslutt();
 
 ?>

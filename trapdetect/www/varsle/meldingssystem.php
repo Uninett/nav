@@ -1,12 +1,15 @@
 <?php
 require ('meldingssystem.inc');
-
-html_topp("Varslingsregistrering - Steg 1");
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 if ($admin && $REMOTE_USER != $bruker) {
   print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+  navstart('Varslingsregistrering - Steg 1',$REMOTE_USER);
+} else {
+  navstart('Varslingsregistrering - Steg 1',$bruker);
 }
+
 echo "<p>Velkommen til varslingsregistrering. Dette er en 3-stegsprosess der
 du må gjennom følgende punkter:";
 
@@ -82,7 +85,7 @@ $result = pg_exec($dbh,$sporring);
 $rows = pg_numrows($result);
 
 echo "<form action=meldingssystem2.php method=\"POST\">";
-echo "Velg trap: <select name=trap>\n";
+echo "Velg hendelse: <select name=trap>\n";
 
 $besk = array();
 
@@ -118,6 +121,6 @@ foreach ($keys as $key) {
 
 knapp_hovedside($bruker,"Angre");
 
-echo "</body></html>";
+navslutt();
 
 ?>

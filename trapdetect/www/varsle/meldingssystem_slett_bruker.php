@@ -23,14 +23,14 @@ $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
   $sporring = "delete from unntak where brukerid=$svar[id]";
   pg_exec($sporring);
 
-  print "$bruker slettet, gå tilbake til hovedsiden<br>\n";
-  knapp_hovedside($REMOTE_USER);
+  print "$bruker slettet, gå tilbake til varslingssiden<br>\n";
+  knapp_hovedside($REMOTE_USER,'Varslingsside');
 } elseif ($admin) {
   print "Du må trykke på begge knappene for å verifisere slettingen<br>\n";
-  knapp_hovedside($bruker);
+  knapp_hovedside($bruker,'Varslingsside');
 } else {
-  print "Du har ikke rettigheter til denne operasjonen, gå tilbake til hovedsiden<br>\n";
-  knapp_hovedside($bruker);
+  print "Du har ikke rettigheter til denne operasjonen, gå tilbake til varslingssiden<br>\n";
+  knapp_hovedside($bruker,'Varlsingsside');
 }
 
 print "</body></html>\n";

@@ -1,7 +1,7 @@
 <?php 
 
 require('meldingssystem.inc');
-html_topp("Endringen er lagret");
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 $vars = $HTTP_POST_VARS;
 if ($vars[sms] == 'on') {
@@ -12,6 +12,7 @@ if ($vars[sms] == 'on') {
 #skrivpost($vars);
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+navstart("Endringen er lagret ",$bruker);
 
 # Oppretter kontakt med databasen.
 $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
@@ -67,6 +68,6 @@ if ($done) {
 # Skriver tilbake-til-hovedsidenknapp
 knapp_hovedside($REMOTE_USER,'Til varslingssiden');
 
-?>
+navslutt();
 
-</body></html>
+?>

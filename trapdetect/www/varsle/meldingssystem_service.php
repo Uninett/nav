@@ -1,6 +1,6 @@
 <?php
 require ('meldingssystem.inc');
-html_topp('Sett på service');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 #if ($admin && $REMOTE_USER != $bruker) {
@@ -10,6 +10,8 @@ list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 $bruker=$REMOTE_USER;
 $border=0;
 $temp = $HTTP_POST_VARS;
+
+navstart('Sett på service',$bruker);
 
 $enheterav = finn_enheter('t', $REMOTE_USER);
 $enheterpa = finn_enheter('f', $REMOTE_USER);
@@ -131,7 +133,6 @@ function finn_enheter($bol, $bruker) {
   return $array;
 }
 
+navslutt();
 
 ?>
-
-</body></html>

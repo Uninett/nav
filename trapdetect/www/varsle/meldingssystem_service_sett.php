@@ -1,16 +1,13 @@
-<!-- Får inn disse variable:
-bruker: brukernavn på han som er på
-enheter: alle enheter som er valgt som skal på service
--->
-
 <?php
 require ('meldingssystem.inc');
-html_topp('Sett på service');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 #if ($admin && $REMOTE_USER != $bruker) {
 #  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
 #}
+
+navstart('Service oppdatert',$bruker);
 
 $postvars = $HTTP_POST_VARS;
 #skrivpost($HTTP_POST_VARS);
@@ -55,6 +52,8 @@ fclose ($file);
 
 knapp_serviceside($bruker);
 
+navslutt();
+
 ?>
-</body></html>
+
 

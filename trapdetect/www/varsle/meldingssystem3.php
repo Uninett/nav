@@ -1,14 +1,15 @@
 <?php
 
 require ('meldingssystem.inc');
-html_topp("Varslingsregistrering - Steg 3");
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 if ($admin && $REMOTE_USER != $bruker) {
   print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+  navstart("Varslingsregistrering - Steg 3",$REMOTE_USER);
+} else {
+  navstart("Varslingsregistrering - Steg 3",$bruker);
 }
-
-#skrivpost($HTTP_POST_VARS);
 
 $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
 $dbh_m = pg_Connect ("dbname=manage user=navall password=uka97urgf");
@@ -440,6 +441,6 @@ function lagDropDown2($array,$name,$vtype) {
   echo "</select>\n";
 }
 
-?>
+navslutt();
 
-</body></html>
+?>

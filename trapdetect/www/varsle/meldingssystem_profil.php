@@ -1,5 +1,6 @@
 <?php 
 require('meldingssystem.inc');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
 html_topp("Endring av profil");
 
@@ -16,11 +17,13 @@ if ($bruker == "<brukernavn>") {
   print "Du må sette brukernavn på den nye brukeren før du går hit. Gå tilbake til hovedsiden.";
   $bruker = $REMOTE_USER;
   knapp_adminside($bruker);
+  navstart("Endring av profil",$bruker);
 } else {
   list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-
+  navstart("Endring av profil",$bruker);
+  
   $dbh = pg_Connect ("dbname=trapdetect user=varsle password=lgagikk5p");
-
+  
 # Henter all info om bruker
   $sporring = "select * from bruker where bruker='$bruker'";
   $res = pg_exec($dbh,$sporring);
@@ -40,7 +43,7 @@ if ($bruker == "<brukernavn>") {
     $res = pg_fetch_array($hent_org,$i);
     $org[$res[id]] = $res[navn];
   }
-
+  
   if (!$ny) {
 # Henter alle org som bruker er med i
     $hent_useriorg = pg_exec("select * from brukeriorg where brukerid=$brukerinfo[id]");
@@ -130,7 +133,7 @@ if ($bruker == "<brukernavn>") {
     print "<input type=hidden name=ny value=1>\n";
   }
   echo "<input type=hidden name=bruker value=$bruker>\n";
-  print "<p><input type=submit value=\"Lagre endringer\"></p>";
+  print "<input type=submit value=\"Lagre endringer\">";
   print "</form>\n";
 }
 
@@ -158,6 +161,6 @@ function delayedsms($tid,$array,$type) {
   print "</select>\n";
 }
 
-?>
+navslutt();
 
-</body></html>
+?>

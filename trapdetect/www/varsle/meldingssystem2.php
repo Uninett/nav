@@ -1,9 +1,12 @@
-<html><head><title>Varslingsregistrering - Steg 2</title>
 <?php
 require ('meldingssystem.inc');
+require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 if ($admin && $REMOTE_USER != $bruker) {
   print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+  navstart("Varslingsregistrering - Steg 2",$REMOTE_USER);
+} else {
+  navstart("Varslingsregistrering - Steg 2",$bruker);
 }
 
 ?>
@@ -21,9 +24,6 @@ function popup(url, name, width, height)
 
 -->
 </script>
-</head>
-
-<body bgcolor=white>
 
 <?php
 
@@ -402,7 +402,6 @@ function finn_enheter($bruker,$trapid) {
   return $array;
 }
 
+navslutt();
+
 ?>
-
-
-</body></html>
