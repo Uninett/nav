@@ -28,6 +28,7 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 
 	private GwportHandler gwh;
 	private List gwModuleList = new ArrayList();
+	private boolean staticCommited = false;
 
 	protected GwportContainer(GwportHandler gwh) {
 		super(null);
@@ -93,6 +94,14 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 		// Also add it to the parent
 		addModule(m);
 		gwModuleList.add(m);
+	}
+
+	public void commitStatic() {
+		staticCommited = true;
+	}
+
+	protected boolean isStaticCommited() {
+		return staticCommited;
 	}
 
 	// Doc in parent

@@ -16,6 +16,8 @@ public class Prefix implements Comparable
 	private int masklen;
 	private Vlan vlan;
 
+	private String nexthop;
+
 	private Set gwportidSet = new HashSet();
 
 	Prefix(String netaddr, int masklen, Vlan vlan) {
@@ -92,6 +94,13 @@ public class Prefix implements Comparable
 	int getMasklen() { return masklen; }
 	String getCidr() { return netaddr+"/"+masklen; }
 	Vlan getVlan() { return vlan; }
+
+	public void setNexthop(String s) {
+		nexthop = s;
+	}
+	String getNexthop() {
+		return nexthop;
+	}
 
 	/*
 	public void setRootgwid(int rootgwid) {
