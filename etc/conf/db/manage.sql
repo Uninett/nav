@@ -567,7 +567,7 @@ INSERT INTO eventprocess (eventprocessid) VALUES ('trapParser');
 
 DROP TABLE eventq;
 DROP SEQUENCE eventq_eventqid_seq;
-DROP TABLE evertqvar;
+DROP TABLE eventqvar;
 
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
@@ -582,10 +582,12 @@ CREATE TABLE eventq (
   value INT4 NOT NULL DEFAULT '100',
   severity INT4 NOT NULL DEFAULT '50'
 );
+CREATE INDEX eventq_target_btree ON eventq USING btree (target);
+CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR(32) NOT NULL,
-  value TEXT NOT NULL
+  val TEXT NOT NULL
 );
 
 -- alert tables
@@ -608,7 +610,7 @@ CREATE TABLE alertq (
 CREATE TABLE alertqvar (
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR(32) NOT NULL,
-  value TEXT NOT NULL
+  val TEXT NOT NULL
 );
 
 DROP TABLE alerthist;
@@ -622,15 +624,16 @@ CREATE TABLE alerthist (
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   start_t TIMESTAMP NOT NULL,
-  end_t TIMESTAMP NOT NULL,
+  end_t TIMESTAMP DEFAULT 'infinity',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
+CREATE INDEX alerthist_end_t_btree ON alerthist USING btree (end_t);
 CREATE TABLE alerthistvar (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR(32) NOT NULL,
-  value TEXT NOT NULL
+  val TEXT NOT NULL
 );
 
 GRANT SELECT ON eventtype TO eventengine;
