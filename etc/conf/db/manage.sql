@@ -163,8 +163,8 @@ CREATE TABLE boks (
   static BOOL DEFAULT false,
   watch BOOL DEFAULT false,
   skygge BOOL DEFAULT false,
-  snmp CHAR(1) DEFAULT '2'
-  snmpagent VARCHAR(20),
+  snmp_major INT4 NOT NULL DEFAULT 1,
+  snmpagent VARCHAR(30),
 );
 
 
