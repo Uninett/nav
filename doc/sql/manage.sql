@@ -72,12 +72,6 @@ CREATE TABLE status (
   til TIMESTAMP
 );
 
-------------------------------------------
-
--- Definerer gruppe nav:
-DROP GROUP nav;
-CREATE GROUP nav;
-
 ------------------------------------------------------------------------------------------
 
 CREATE TABLE org (
