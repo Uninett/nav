@@ -1,27 +1,28 @@
 -- Slette alle tabeller
+
+DROP TABLE mem;
 DROP TABLE swportblocked;
 DROP TABLE swportallowedvlan;
 DROP TABLE swportvlan;
-DROP TABLE swport;
 DROP TABLE gwport;
-
-DROP TABLE swp_netbox;
-
-DROP TABLE vendor;
-DROP TABLE product;
-DROP TABLE device;
-DROP TABLE cat;
+DROP TABLE prefix;
+DROP TABLE swport;
 DROP TABLE module;
-DROP TABLE mem;
+DROP TABLE netboxcategory;
 DROP TABLE netboxinfo;
 DROP TABLE netbox;
-DROP TABLE typegroup;
+DROP TABLE cat;
+DROP TABLE device;
+DROP TABLE product;
+DROP TABLE vendor;
 DROP TABLE type;
-DROP TABLE prefix;
+DROP TABLE typegroup;
 DROP TABLE room;
 DROP TABLE location;
 DROP TABLE usage;
 DROP TABLE org;
+
+DROP TABLE swp_netbox;
 
 DROP TABLE netboxdisk;
 DROP TABLE netboxinterface;
@@ -230,7 +231,7 @@ CREATE TABLE netbox (
   UNIQUE(ip)
 );
 CREATE TABLE netboxcategory (
-  netboxid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   category VARCHAR NOT NULL,
   PRIMARY KEY(netboxid, category)
 );
