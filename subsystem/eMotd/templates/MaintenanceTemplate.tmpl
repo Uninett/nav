@@ -8,6 +8,7 @@
 ##$body
 ##end if
 ##$makeMenu()
+$information()
 $maint()
 ##$maintList()
 #if $emotdid
@@ -18,6 +19,15 @@ $equipmentList($equipment)
 #end if
 #end block
 
+
+#def information
+#if $emotdid
+<h2>$messagetitle</h2>
+#if $maintstart and $maintend
+<p>$maintstart - $maintend</p>
+#end if
+#end if
+#end def
 
 #def maint
 $args['selectbox']

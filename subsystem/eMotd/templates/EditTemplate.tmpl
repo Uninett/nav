@@ -25,15 +25,16 @@ $makeFormField("hidden","parent_id",$parent_id)
 <i>Internal will not be published in public</i>
 </li>
 
-<li><table><tr><td>
+#*<li>
+<table><tr><td>
 <h2>$primary_language</h2>
-<ul style="list-style-type:none;margin=0;padding:0;">
+<ul style="list-style-type:none;margin=0;padding:0;">*#
 <li>$makeFormField("text","title",$title,"Title",1)</li>
 <li>$makeFormField("tinyshorttextarea","downtime",$downtime,"Estimated downtime")</li>
 <li>$makeFormField("tinyshorttextarea","affected",$affected,"Affected end users")</li>
 <li>$makeFormField("tinytextarea","description",$description,"Description",1)</li>
 <li>$makeFormField("tinytextarea","detail",$detail,"Details")</li>
-#if $secondary_language
+#* #if $secondary_language
 </ul></td><td>
 <h2>$secondary_language</h2>
 <ul style="list-style-type:none;margin=0;padding:0;">
@@ -43,7 +44,7 @@ $makeFormField("hidden","parent_id",$parent_id)
 <li>$makeFormField("tinytextarea","description_en",$description_en,"Description",1)</li>
 <li>$makeFormField("tinytextarea","detail_en",$detail_en,"Details")</li>
 #end if
-</ul></td></tr></table></li>
+</ul></td></tr></table></li>*#
 
 <li><input type="submit" name="cn_save" value="Save this message" /></li>
 <li><input type="submit" name="cn_save_and_add" value="Save and add equipment to this message" /></li>

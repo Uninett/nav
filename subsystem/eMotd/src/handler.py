@@ -35,7 +35,7 @@ from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 title = 'Message of the day'
 menu = ''
 
-EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd")]
+EmotdTemplate.path =  [("Home", "/"), ("Messages", "/emotd")]
 DATEFORMAT = "%Y-%m-%d %H:%M"
 BASEPATH = '/emotd/'
 LANG1 = "Norwegian"
@@ -117,14 +117,14 @@ def getMenu(req):
 
     menu.append(MenuItem("maintenance","Maintenance"))
     if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
-        menu.append(MenuItem("edit","New message"))
+        menu.append(MenuItem("edit","New Message"))
         #menu.append(MenuItem("maintenance","Set on maintenance"))
     return menu
 
 def search(req):
     ''' Free-text search in MOTD-db '''
     title = 'MOTD freetext search'
-    EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd"),("Search","")]
+    EmotdTemplate.path =  [("Home", "/"), ("Messages", "/emotd"),("Search","")]
     menu = getMenu(req)
     body = None
     motd = None
@@ -232,6 +232,7 @@ def messageView(view, user, lang = None):
         page.description = textpara(page.description)
     if page.detail:
         page.detail = textpara(page.detail)
+    page.replaces_title = ""
     if page.replaces_emotd:
         database.execute("select title from emotd where emotdid=%d" % int(page.replaces_emotd))
         row = database.fetchone()
@@ -263,7 +264,7 @@ def messageList(view, user, menu = ""):
     else:
         where = "publish_end > now() and publish_start < now()"
         page.statustype = "active"
-    page.title = "View %s messages" % page.statustype
+    page.title = "%s Messages" % page.statustype.capitalize()
             
     emotds = []
     if not access:
@@ -294,7 +295,7 @@ def messageList(view, user, menu = ""):
             eq = equipment[emotdid]
         emotds.append(Message(emotd,user.login,equipmentformat(eq)))
         
-    page.path =  [("Home", "/"), ("eMotd", "/emotd"),(page.title,"")]
+    page.path =  [("Home", "/"), ("Messages", "/emotd"),(page.title,"")]
     page.menu = menu
 
     page.emotds = emotds
@@ -429,7 +430,6 @@ def maintlist(req):
     page.maints = maintlist
     page.title = 'Maintenance List'
     page.path = [('Frontpage','/'),
-                 ('Tools','/toolbox'),
                  ('Messages',BASEPATH),
                  (page.title,'')]
     return page.respond()
@@ -542,9 +542,9 @@ def maintenance(req, id = None):
     title = 'Set on maintenance'
     ##menu = getMenu(req)
 
-    args['path'] = [('Frontpage','/'),
-                    ('Tools','/toolbox'),
-                    ('Messages',BASEPATH)]
+    args['path'] = [('Home','/'),
+                    ('Messages',BASEPATH),
+                    ('Affected Equipment', None)]
     if not hasattr(req,"emotdid"):
         req.emotdid = 0
         if id:
@@ -809,9 +809,20 @@ def maintenance(req, id = None):
     else:
         page = MaintenanceTemplate(searchList=[nameSpace])
         page.remove = 0
+        page.maintstart = ""
+        page.maintend = ""
+        page.messagetitle = ""
+
         if emotdid:
             page.remove = 1
             page.equipment = equipmentlist(emotdid)
+            sql = "select title, maint_start, maint_end from emotd left outer join maintenance using (emotdid) where emotdid=%d" % emotdid
+            database.execute(sql)
+            (page.messagetitle,page.maintstart,page.maintend) = database.fetchone()
+            if page.maintstart:
+                page.maintstart = page.maintstart.strftime(DATEFORMAT)
+            if page.maintend:
+                page.maintend = page.maintend.strftime(DATEFORMAT)
         else:
             emotdid = 0
             if req.session.has_key('equipment'):
@@ -859,8 +870,8 @@ def isdefault(a,b):
 def placemessage(req, lang = None):
 
     page = EmotdMessageTemplate()
-    page.title = "Add equipment to message"
-    page.path = [("Home", "/"), ("eMotd", BASEPATH),("Add to message","")]
+    page.title = "Add to message"
+    page.path = [("Home", "/"), ("Messages", BASEPATH),("Add to message","")]
     #page.menu = getMenu(req)
     type = None
     eql = {}
@@ -903,8 +914,8 @@ def edit(req, id = None):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
     page = EditTemplate()
     #title = 'Editing as %s ' % (req.session['user'].login)
-    page.path =  [("Home", "/"), ("eMotd", "/emotd"),("Edit","")]
-    page.pagetitle = "Edit eMotD"
+    page.path =  [("Home", "/"), ("Messages", "/emotd"),("Edit Message","")]
+    page.pagetitle = "Edit Message"
     page.menu = getMenu(req)
     page.parent_id = None
     page.emotdid = None
@@ -912,22 +923,24 @@ def edit(req, id = None):
     if id:
         #finnes fra før
         page.emotdid = int(id)
-        sql = "select author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end from emotd where emotdid=%d" % page.emotdid
+        #sql = "select author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end from emotd where emotdid=%d" % page.emotdid
+        sql = "select author, description, detail, title, affected, downtime, type, publish_start, publish_end from emotd where emotdid=%d" % page.emotdid
         database.execute(sql)
-        (page.author, page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en, page.type, page.publish_start, page.publish_end) = database.fetchone()
+        #(page.author, page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en, page.type, page.publish_start, page.publish_end) = database.fetchone()
+        (page.author, page.description, page.detail, page.title, page.affected, page.downtime, page.type, page.publish_start, page.publish_end) = database.fetchone()
 
         change = 0
         if req.session['user'].login == page.author:
             # change
             change = 1
-            page.pagetitle = "Change eMotD Message"
+            page.pagetitle = "Edit Message"
         else:
             # followup
             page.author = req.session['user'].login
             if not page.title.startswith('Re:'):
-                page.title = 'Re:' + title
-            if page.title_en.startswith('Re:'):
-                page.title_en = 'Re:' + title_en
+                page.title = 'Re:' + page.title
+#            if page.title_en.startswith('Re:'):
+#                page.title_en = 'Re:' + page.title_en
             page.parent_id = page.emotdid
             page.emotdid = None
             page.pagetitle = "Make Followup Message"
@@ -936,11 +949,13 @@ def edit(req, id = None):
         page.author = req.session['user'].login
         page.publish_start = DateTime.now()
         page.publish_end = DateTime.now() + DateTime.RelativeDateTime(days=+7)
-        (page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en) = [""] * 10
-        page.pagetitle = "Make new eMotD"
+        #(page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en) = [""] * 10
+        (page.description, page.detail, page.title, page.affected, page.downtime) = [""] * 5
+        page.pagetitle = "Make New Message"
 
     page.last_changed = str(DateTime.now())
-    for a in (page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en):
+    #for a in (page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en):
+    for a in (page.description, page.detail, page.title, page.affected, page.downtime):
         if a == None:
             a = ""
             
@@ -998,22 +1013,16 @@ def commit(req):
     # error or informational?
     type = req.form['type']   
     affected = req.form['affected']
-    affected_en = req.form['affected']
+    #affected_en = req.form['affected']
     downtime = req.form['downtime']
-    downtime_en = req.form['downtime']
+    #downtime_en = req.form['downtime']
     title = req.form['title'] # must have local title
-    title_en = req.form['title_en'] or ""
+    #title_en = req.form['title_en'] or ""
     author = req.form['author']
-#    desc = ""
-#    for line in req.form['description']:
-#        desc += line + ' \n ' 
-#    desc_en = ""
-#    for line in req.form['description_en']:
-#        desc_en += line + ' \n '
     description = req.form['description']
-    description_en = req.form['description_en']
+    #description_en = req.form['description_en']
     detail = req.form['detail']
-    detail_en = req.form['detail_en']
+    #detail_en = req.form['detail_en']
 
     # Save new or existing MOTD
     if req.form.has_key("parent_id") and req.form["parent_id"]:
@@ -1022,18 +1031,21 @@ def commit(req):
         database.execute("update emotd set publish_end='%s' where emotdid=%d" % (DateTime.now(),replaces))
         #lag ny
         database.execute("select nextval('emotd_emotdid_seq')")
-        emotid = int(database.fetchone()[0])
-        database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, parent_id, last_changed))
+        emotdid = int(database.fetchone()[0])
+        #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, parent_id, last_changed))
+        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, detail, title, affected, downtime, type, start, end, replaces, last_changed))
     
     elif req.form.has_key('emotdid') and req.form["emotdid"]:
         emotdid = int(req.form["emotdid"])
-        database.execute("update emotd set description='%s', description_en='%s', detail='%s', detail_en='%s', title='%s', title_en='%s', affected='%s', affected_en='%s', downtime='%s', downtime_en='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed, emotdid))
+        #database.execute("update emotd set description='%s', description_en='%s', detail='%s', detail_en='%s', title='%s', title_en='%s', affected='%s', affected_en='%s', downtime='%s', downtime_en='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed, emotdid))
+        database.execute("update emotd set description='%s', detail='%s', title='%s', affected='%s', downtime='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, detail, title, affected, downtime, type, start, end, last_changed, emotdid))
         
     else:
         # if no id, make a new MOTD
         database.execute("select nextval('emotd_emotdid_seq')")
         emotdid = int(database.fetchone()[0])
-        database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
+        #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
+        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, detail, title, affected, downtime, type, start, end, last_changed))
     connection.commit()
     if req.form.has_key("cn_save"):
         redirect(req,"%sview/%s" % (BASEPATH, emotdid))

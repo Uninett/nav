@@ -53,13 +53,13 @@ $equipmentList($eq)
       </tr>
       <tr>
         <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;background-color: #eee;">
-#if $message.own
-	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Change</a> | <a href="/emotd/time/$message.emotdid">Maint. window</a> | <a href="/emotd/add/$message.emotdid">Add equipment</a>]</span>
-#else
-	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Followup</a> ]</span>
+###if $message.own
+##	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Change</a> | <a href="/emotd/time/$message.emotdid">Maint. window</a> | <a href="/emotd/add/$message.emotdid">Add equipment</a>]</span>
+###else
+##	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Followup</a> ]</span>
 
 
-#end if
+###end if
         </td>
       </tr>
 	</table></li>
