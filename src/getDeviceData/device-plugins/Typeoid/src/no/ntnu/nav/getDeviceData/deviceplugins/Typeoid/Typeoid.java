@@ -71,14 +71,16 @@ public class Typeoid implements DeviceHandler
 				// Type has changed!
 				{
 					// Send event
+					Log.d("HANDLE_DEVICE", "Type changed from " + nb.getType() + "("+nu.getTypeid()+") to " + rs.getString("typename") + "("+typeid+")");
 					Map varMap = new HashMap();
-					varMap.put("oldType", (nb.getType()==null?"unknownType":nb.getType()));
-					varMap.put("newType", rs.getString("typename"));
-					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+					varMap.put("alerttype", "netboxTypeChanged");
+					varMap.put("old_typename", (nb.getType()==null?"unknownType":nb.getType()));
+					varMap.put("new_typename", rs.getString("typename"));
+					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 				}
 				
 				// Delete the netbox and insert new netbox with correct type
-				rs = Database.query("SELECT ip,roomid,sysname,catid,orgid,ro,rw,prefixid,up FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
+				rs = Database.query("SELECT ip,roomid,deviceid,sysname,catid,orgid,ro,rw,prefixid,up FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 				rs.next();
 
 				Log.i("HANDLE_DEVICE", "Deleting netbox from database: " + nb);
@@ -86,16 +88,19 @@ public class Typeoid implements DeviceHandler
 				// FIXME
 				//Database.beginTransaction();
 				Database.update("DELETE FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
+
+				/*
 				String[] insDev = {
 					"deviceid", "",
 				};
 				String deviceid = Database.insert("device", insDev, null);
+				*/
 				
 				String[] insNb = {
 					"ip", rs.getString("ip"),
 					"roomid", rs.getString("roomid"),
 					"typeid", typeid,
-					"deviceid", deviceid,
+					"deviceid", rs.getString("deviceid"),
 					"sysname", rs.getString("sysname"),
 					"catid", rs.getString("catid"),
 					"orgid", rs.getString("orgid"),

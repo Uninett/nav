@@ -9,6 +9,7 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
@@ -57,6 +58,20 @@ public class _3Com implements DeviceHandler
 	{
 		Log.setDefaultSubsystem("3COM_DEVHANDLER");
 		
+		NetboxContainer nc;
+		{
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+		}
+
 		SwportContainer sc;
 		{
 			DataContainer dc = containers.getContainer("SwportContainer");
@@ -79,7 +94,7 @@ public class _3Com implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		process3Com(nb, netboxid, ip, cs_ro, type, sc);
+		process3Com(nb, netboxid, ip, cs_ro, type, nc, sc);
 
 		// Commit data
 		sc.commit();
@@ -90,7 +105,7 @@ public class _3Com implements DeviceHandler
 	 * 3COM
 	 *
 	 */
-	private void process3Com(Netbox nb, String netboxid, String ip, String cs_ro, String type, SwportContainer sc) throws TimeoutException {
+	private void process3Com(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, SwportContainer sc) throws TimeoutException {
 		type = type.toLowerCase();
 
 		/*
@@ -229,6 +244,7 @@ public class _3Com implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+				if (nc.netboxDataFactory(nb).getSerial() == null) nc.netboxDataFactory(nb).setSerial(s[1]);
 				sc.swModuleFactory(Integer.parseInt(s[0])).setSerial(s[1]);
 				Log.d("PROCESS_3COM", "Module: " + s[0] + " Serial: " + s[1]);
 			}

@@ -19,8 +19,8 @@ public class GwModule extends Module implements Comparable
 		super(module);
 	}
 
-	GwModule(String serial, String hw_ver, String sw_ver, int module) {
-		super(serial, hw_ver, sw_ver, module);
+	GwModule(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		super(serial, hw_ver, fw_ver, sw_ver, module);
 	}
 
 	protected void setDeviceid(int i) { super.setDeviceid(i); }

@@ -24,6 +24,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class DeviceContainer implements DataContainer {
 
+	public static final int PRIORITY_DEVICE = 30;
+
 	private DeviceHandler dh;
 	private List deviceList = new ArrayList();
 	private boolean commit = false;
@@ -39,6 +41,11 @@ public class DeviceContainer implements DataContainer {
 		return "DeviceContainer";
 	}
 
+	// Doc in interface
+	public int getPriority() {
+		return PRIORITY_DEVICE;
+	}
+
 	/**
 	 * Get a data-handler for this container; this is a reference to the
 	 * ModuleHandler object which created the container.
@@ -50,8 +57,8 @@ public class DeviceContainer implements DataContainer {
 	/**
 	 * Return a Device object which is used to describe a single physical device
 	 */
-	public Device deviceFactory(String serial, String hw_ver, String sw_ver) {
-		Device d = new Device(serial, hw_ver, sw_ver);
+	public Device deviceFactory(String serial, String hw_ver, String fw_ver, String sw_ver) {
+		Device d = new Device(serial, hw_ver, fw_ver, sw_ver);
 		int k;
 		if ( (k=deviceList.indexOf(d)) >= 0) {
 			d = (Device)deviceList.get(k);

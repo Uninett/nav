@@ -24,6 +24,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 
 public class GwportContainer extends ModuleContainer implements DataContainer {
 
+	public static final int PRIORITY_GWPORT = 22;
+
 	private GwportHandler gwh;
 	private List gwModuleList = new ArrayList();
 
@@ -37,6 +39,11 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	 */
 	public String getName() {
 		return "GwportContainer";
+	}
+
+	// Doc in parent
+	public int getPriority() {
+		return PRIORITY_GWPORT;
 	}
 
 	/**
@@ -66,8 +73,8 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	 * module. Note that serial, hw_ver and sw_ver are ignored if the
 	 * module already exists.
 	 */
-	public GwModule gwModuleFactory(String serial, String hw_ver, String sw_ver, int module) {
-		GwModule m = new GwModule(serial, hw_ver, sw_ver, module);
+	public GwModule gwModuleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		GwModule m = new GwModule(serial, hw_ver, fw_ver, sw_ver, module);
 		int k;
 		if ( (k=gwModuleList.indexOf(m)) >= 0) {
 			m = (GwModule)gwModuleList.get(k);

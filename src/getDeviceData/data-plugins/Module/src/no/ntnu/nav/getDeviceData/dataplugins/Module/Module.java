@@ -28,8 +28,8 @@ public class Module extends Device implements Comparable
 	/**
 	 * Constructor.
 	 */
-	protected Module(String serial, String hwVer, String swVer, int module) {
-		super(serial, hwVer, swVer);
+	protected Module(String serial, String hwVer, String fwVer, String swVer, int module) {
+		super(serial, hwVer, fwVer, swVer);
 		this.module = module;
 	}
 
@@ -55,10 +55,10 @@ public class Module extends Device implements Comparable
 
 	void setModuleid(String s) { moduleid = Integer.parseInt(s); }
 
-	int getModule() { return module; }
+	public int getModule() { return module; }
 	String getModuleS() { return ((module < 10)?" ":"")+getModule(); }
 
-	String getDescr() { return descr; }
+	public String getDescr() { return descr; }
 
 	boolean getIgnore() { return ignore; }
 

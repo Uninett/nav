@@ -10,7 +10,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	private int netboxid;
 	private String ip;
 	private String cs_ro;
-	private String type;
+	//private String type;
 	private String sysName;
 	private String cat;
 	private int snmpMajor;
@@ -55,8 +55,13 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	public String getCommunityRo() { return cs_ro; }
 	public void setCommunityRo(String s) { cs_ro = s; }
 
+	/*
 	public String getType() { return type; }
 	public void setType(String s) { type = s; }
+	*/
+
+	public String getType() { return t.getTypename(); }
+	//public void setType(String s) { type = s; }
 
 	public String getSysname() { return sysName; }
 	public void setSysname(String s) { sysName = s; }

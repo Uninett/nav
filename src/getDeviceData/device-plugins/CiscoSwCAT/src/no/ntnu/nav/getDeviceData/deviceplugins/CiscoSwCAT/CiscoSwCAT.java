@@ -60,7 +60,21 @@ public class CiscoSwCAT implements DeviceHandler
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
 		Log.setDefaultSubsystem("CAT_DEVHANDLER");
-		
+
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
+		}
+
 		SwportContainer sc;
 		{
 			DataContainer dc = containers.getContainer("SwportContainer");
@@ -81,13 +95,13 @@ public class CiscoSwCAT implements DeviceHandler
 		String type = nb.getType();
 		this.sSnmp = sSnmp;
 
-		processCAT(nb, netboxid, ip, cs_ro, type, sc);
+		processCAT(nb, netboxid, ip, cs_ro, type, mc, sc);
 
 		// Commit data
 		sc.commit();
 	}
 	
-	private void processCAT(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
+	private void processCAT(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
 		typeid = typeid.toLowerCase();
 
@@ -113,6 +127,12 @@ public class CiscoSwCAT implements DeviceHandler
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);
 						m.matches();
 						int module = Integer.parseInt(m.group(1));
+
+						if (mc.getModule(module) == null) {
+							// Not allowed to create module
+							Log.w("PROCESS_CAT", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
+							continue;
+						}
 
 						SwModule swm = sc.swModuleFactory(module);
 						swm.swportFactory(ifindex); // Create module <-> ifindex mapping

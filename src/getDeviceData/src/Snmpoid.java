@@ -41,6 +41,10 @@ public class Snmpoid
 		return getnext;
 	}
 
+	public void setGetnext(boolean getnext) {
+		this.getnext = getnext;
+	}
+
 	public boolean getDecodehex() {
 		return decodehex;
 	}

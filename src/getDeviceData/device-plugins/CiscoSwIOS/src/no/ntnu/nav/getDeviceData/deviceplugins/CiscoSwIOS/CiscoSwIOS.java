@@ -57,6 +57,20 @@ public class CiscoSwIOS implements DeviceHandler
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
 		Log.setDefaultSubsystem("IOS_DEVHANDLER");
+
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
+		}
 		
 		SwportContainer sc;
 		{
@@ -80,13 +94,13 @@ public class CiscoSwIOS implements DeviceHandler
 		//String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processIOS(nb, netboxid, ip, cs_ro, type, sc);
+		processIOS(nb, netboxid, ip, cs_ro, type, mc, sc);
 
 		// Commit data
 		sc.commit();
 	}
 
-	private void processIOS(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
+	private void processIOS(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
 		typeid = typeid.toLowerCase();
 
@@ -172,9 +186,15 @@ public class CiscoSwIOS implements DeviceHandler
 					module = Integer.parseInt(module + submod);
 				}
 			}
+
+			if (mc.getModule(module) == null) {
+				// Not allowed to create module
+				Log.w("PROCESS_IOS", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
+				continue;
+			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-			if (moduleName != null) swm.setDescr(moduleName);
+			if (mc.getModule(module).getDescr() == null && moduleName != null) swm.setDescr(moduleName);
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
@@ -205,7 +225,7 @@ public class CiscoSwIOS implements DeviceHandler
 				try{
 					vlan = Integer.parseInt(s[1]);
 				} catch	 (NumberFormatException e) {
-					Log.w("PROCESS_CAT", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
+					Log.w("PROCESS_IOS", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
 				}
 				sc.swportFactory(ifindex).setVlan(vlan);
 			}

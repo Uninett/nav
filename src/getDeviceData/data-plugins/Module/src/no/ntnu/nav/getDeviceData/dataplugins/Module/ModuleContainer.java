@@ -2,6 +2,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Module;
 
 import java.util.*;
 
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceContainer;
 
@@ -26,6 +27,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceContainer;
 
 public class ModuleContainer extends DeviceContainer implements DataContainer {
 
+	public static final int PRIORITY_MODULE = 25;
+
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
 	private boolean commit = false;
@@ -42,6 +45,11 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		return "ModuleContainer";
 	}
 
+	// Doc in parent
+	public int getPriority() {
+		return PRIORITY_MODULE;
+	}
+
 	/**
 	 * Get a data-handler for this container; this is a reference to the
 	 * ModuleHandler object which created the container.
@@ -51,10 +59,25 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	/**
-	 * Return a Module object which is used to describe a single module
+	 * Return a Module object which is used to describe a single
+	 * module. If the argument is not a valid number an empty Module
+	 * will be returned and the error logged.
 	 */
-	public Module moduleFactory(String serial, String hw_ver, String sw_ver, int module) {
-		Module m = new Module(serial, hw_ver, sw_ver, module);
+	public Module moduleFactory(String module) {
+		try {
+			int m = Integer.parseInt(module);
+			return moduleFactory(m);
+		} catch (NumberFormatException e) {
+			Log.w("ModuleHandler", "MODULE-FACTORY", "Not a valid module number: " + module);
+		}
+		return new Module(0);
+	}
+
+	/**
+	 * Return a Module object which is used to describe a single module.
+	 */
+	public Module moduleFactory(int module) {
+		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
 			m = (Module)moduleList.get(k);
@@ -62,6 +85,35 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 			addModule(m);
 		}
 		return m;
+	}
+
+	/**
+	 * Return a Module object which is used to describe a single
+	 * module. Note that serial, hw_ver and sw_ver are ignored if the
+	 * module already exists.
+	 */
+	public Module moduleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		Module m = new Module(serial, hw_ver, fw_ver, sw_ver, module);
+		int k;
+		if ( (k=moduleList.indexOf(m)) >= 0) {
+			m = (Module)moduleList.get(k);
+		} else {
+			addModule(m);
+		}
+		return m;
+	}
+
+	/**
+	 * Get the module if it has been created with a previous call to
+	 * moduleFactory, or return null if the module does not exist.
+	 */
+	public Module getModule(int module) {
+		Module m = new Module(module);
+		int k;
+		if ( (k=moduleList.indexOf(m)) >= 0) {
+			return (Module)moduleList.get(k);
+		}
+		return null;
 	}
 
 	/**
@@ -93,7 +145,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		}
 	}
 	
-	Iterator getModules() {
+	public Iterator getModules() {
 		Collections.sort(moduleList);
 		return moduleList.iterator();
 	}

@@ -20,8 +20,8 @@ public class SwModule extends Module implements Comparable
 		this.sc = sc;
 	}
 
-	SwModule(String serial, String hwVer, String swVer, int module, SwportContainer sc) {
-		super(serial, hwVer, swVer, module);
+	SwModule(String serial, String hwVer, String fwVer, String swVer, int module, SwportContainer sc) {
+		super(serial, hwVer, fwVer, swVer, module);
 		this.sc = sc;
 	}
 

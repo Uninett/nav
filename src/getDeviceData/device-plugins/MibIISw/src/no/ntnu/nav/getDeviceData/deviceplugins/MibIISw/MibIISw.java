@@ -44,6 +44,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
 
 public class MibIISw implements DeviceHandler
 {
+	public static final int HANDLE_PRI_MIB_II_SW = -30;
+
 	private static String[] canHandleOids = {
 		"sysname",
 		"sysUpTime",
@@ -57,7 +59,7 @@ public class MibIISw implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
+		int v = nb.isSupportedOids(canHandleOids) ? HANDLE_PRI_MIB_II_SW : NEVER_HANDLE;
 		Log.d("MIB_II_SW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
@@ -167,9 +169,16 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
-		// Collect sysname and uptime
 		List l;
 
+		// Collect serial for chassis
+		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
+		if (l != null && !l.isEmpty()) {
+			String[] s = (String[])l.get(0);
+			nc.netboxDataFactory(nb).setSerial(s[1]);
+		}
+
+		// Collect sysname and uptime
 		l = sSnmp.getNext(nb.getOid("sysname"), 1, true, false);
 		if (l != null && !l.isEmpty()) {
 			// sysname (dnsname) should start with the collected sysname

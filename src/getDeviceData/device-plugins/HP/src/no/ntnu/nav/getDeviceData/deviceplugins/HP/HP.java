@@ -9,6 +9,7 @@ import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
@@ -57,7 +58,21 @@ public class HP implements DeviceHandler
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
 		Log.setDefaultSubsystem("HP_DEVHANDLER");
-		
+
+		NetboxContainer nc;
+		{
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+		}
+
 		SwportContainer sc;
 		{
 			DataContainer dc = containers.getContainer("SwportContainer");
@@ -80,7 +95,7 @@ public class HP implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processHP(nb, netboxid, ip, cs_ro, type, sc);
+		processHP(nb, netboxid, ip, cs_ro, type, nc, sc);
 
 		// Commit data
 		sc.commit();
@@ -90,7 +105,7 @@ public class HP implements DeviceHandler
 	 * HP
 	 *
 	 */
-	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String type, SwportContainer sc) throws TimeoutException {
+	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, SwportContainer sc) throws TimeoutException {
 
 		/*
 		HP 2524:
@@ -222,6 +237,7 @@ public class HP implements DeviceHandler
 					//return;
 				}
 				
+				if (nc.netboxDataFactory(nb).getSerial() == null) nc.netboxDataFactory(nb).setSerial(s[1]);
 				sc.swModuleFactory(Integer.parseInt(module)).setSerial(s[1]);
 				Log.d("PROCESS_HP", "Module: " + module + " Serial: " + s[1]);
 			}

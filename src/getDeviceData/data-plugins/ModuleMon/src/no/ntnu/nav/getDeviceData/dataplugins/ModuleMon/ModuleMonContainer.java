@@ -15,6 +15,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class ModuleMonContainer implements DataContainer {
 
+	public static final int PRIORITY_MODULE_MON = PRIORITY_NORMAL;
+
 	private ModuleMonHandler mmh;
 	private boolean commit = false;
 
@@ -31,6 +33,11 @@ public class ModuleMonContainer implements DataContainer {
 	 */
 	public String getName() {
 		return "ModuleMonContainer";
+	}
+
+	// Doc in interface
+	public int getPriority() {
+		return PRIORITY_MODULE_MON;
 	}
 
 	/**

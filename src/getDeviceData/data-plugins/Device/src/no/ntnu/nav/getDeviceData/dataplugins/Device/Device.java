@@ -10,6 +10,7 @@ public class Device
 
 	private String serial;
 	private String hw_ver;
+	private String fw_ver;
 	private String sw_ver;
 
 	protected boolean ignore;
@@ -23,9 +24,10 @@ public class Device
 	/**
 	 * Constructor.
 	 */
-	protected Device(String serial, String hwVer, String swVer) {
+	protected Device(String serial, String hwVer, String fwVer, String swVer) {
 		setSerial(serial);
 		this.hw_ver = hwVer;
+		this.fw_ver = fwVer;
 		this.sw_ver = swVer;
 	}
 
@@ -44,11 +46,14 @@ public class Device
 	 */
 	protected void setDeviceid(int i) { deviceid = i; }
 
-	void setDeviceid(String s) { deviceid = Integer.parseInt(s); }
+	void setDeviceid(String s) {
+		deviceid = Integer.parseInt(s.trim());
+	}
 	
-	String getSerial() { return serial; }
-	String getHwVer() { return hw_ver; }
-	String getSwVer() { return sw_ver; }
+	public String getSerial() { return serial; }
+	public String getHwVer() { return hw_ver; }
+	public String getFwVer() { return fw_ver; }
+	public String getSwVer() { return sw_ver; }
 
 	boolean getIgnore() { return ignore; }
 
@@ -69,6 +74,11 @@ public class Device
 	public void setHwVer(String hwVer) { this.hw_ver = hwVer; }
 
 	/**
+	 * Set the the firmware version number of the physical device.
+	 */
+	public void setFwVer(String fwVer) { this.fw_ver = fwVer; }
+
+	/**
 	 * Set the the software version number of the physical device.
 	 */
 	public void setSwVer(String swVer) { this.sw_ver = swVer; }
@@ -84,6 +94,7 @@ public class Device
 	public boolean equalsDevice(Device d) {
 		return ((serial == null || serial.equals(d.serial)) &&
 						(hw_ver == null || hw_ver.equals(d.hw_ver)) &&
+						(fw_ver == null || fw_ver.equals(d.fw_ver)) &&
 						(sw_ver == null || sw_ver.equals(d.sw_ver)));
 	}
 
@@ -93,6 +104,6 @@ public class Device
 						serial.equals(((Device)o).serial));
 	}
 
-	public String toString() { return "serial="+serial+" hw_ver="+hw_ver+" sw_ver="+sw_ver; }
+	public String toString() { return "serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver; }
 
 }

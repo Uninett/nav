@@ -12,6 +12,7 @@ public class Type
 	private String typename;
 	private String vendor;
 	private int csAtVlan;
+	private boolean chassis;
 	private boolean uptodate;
 	private boolean dirty;
 
@@ -21,11 +22,12 @@ public class Type
 	// Maps an OID key to Snmpoid
 	private Map keyMap;
 
-	Type(String typeid, String typename, String vendor, int csAtVlan, boolean uptodate, Map keyFreqMap, Map keyMap) {
+	Type(String typeid, String typename, String vendor, int csAtVlan, boolean chassis, boolean uptodate, Map keyFreqMap, Map keyMap) {
 		this.typeid = typeid;
 		this.typename = typename;
 		this.vendor = vendor;
 		this.csAtVlan = csAtVlan;
+		this.chassis = chassis;
 		this.uptodate = uptodate;
 		this.keyFreqMap = keyFreqMap;
 		this.keyMap = keyMap;
@@ -82,6 +84,14 @@ public class Type
 
 	static int csAtVlan(boolean b) {
 		return b ? CS_AT_VLAN_TRUE : CS_AT_VLAN_FALSE;
+	}
+
+	boolean getChassis() {
+		return chassis;
+	}
+
+	void setChassis(boolean chassis) {
+		this.chassis = chassis;
 	}
 
 	boolean getUptodate() {

@@ -14,6 +14,11 @@ package no.ntnu.nav.getDeviceData.dataplugins;
  */
 
 public interface DataContainer {
+
+	public static final int PRIORITY_LOW = -100;
+	public static final int PRIORITY_NORMAL = 0;
+	public static final int PRIORITY_MEDIUM = 50;
+	public static final int PRIORITY_HIGH = 100;
 	
 	/**
 	 * Get the name of the container. This must be unique, and is used by device plugins
@@ -22,6 +27,13 @@ public interface DataContainer {
 	 * @return the name of this DataContainer
 	 */
 	public String getName();
+
+	/**
+	 * Get the priority of the container. A lower value means lower
+	 * priority, and data handlers are called in order from higher to
+	 * lower priority, with arbitrary order for equal priorities.
+	 */
+	public int getPriority();
 
 	/**
 	 * Get a {@link DataHandler DataHandler} for this container; this is typically a reference

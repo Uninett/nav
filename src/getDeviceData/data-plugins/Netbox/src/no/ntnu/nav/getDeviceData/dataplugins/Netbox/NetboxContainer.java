@@ -29,6 +29,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceContainer;
 
 public class NetboxContainer extends DeviceContainer implements DataContainer {
 
+	public static final int PRIORITY_NETBOX = PRIORITY_DEVICE - 1;
+
 	private NetboxHandler nh;
 	private NetboxData nd;
 	private boolean commit = false;
@@ -43,6 +45,11 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	 */
 	public String getName() {
 		return "NetboxContainer";
+	}
+
+	// Doc in parent
+	public int getPriority() {
+		return PRIORITY_NETBOX;
 	}
 
 	/**
@@ -65,9 +72,9 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	 * called. This information is required by other device
 	 * plugins. </p>
 	 */
-	public NetboxData netboxDataFactory(String serial, String hw_ver, String sw_ver, Netbox nb) {
+	public NetboxData netboxDataFactory(String serial, String hw_ver, String fw_ver, String sw_ver, Netbox nb) {
 		if (nd == null) {
-			nd = new NetboxData(serial, hw_ver, sw_ver, nb);
+			nd = new NetboxData(serial, hw_ver, fw_ver, sw_ver, nb);
 		}
 		return nd;
 	}
@@ -82,7 +89,7 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	 * </code>
 	 */
 	public NetboxData netboxDataFactory(Netbox nb) {
-		return netboxDataFactory(null, null, null, nb);
+		return netboxDataFactory(null, null, null, null, nb);
 	}
 
 	public void commit() {

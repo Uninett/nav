@@ -40,14 +40,15 @@ public class DeviceHandler implements DataHandler {
 			devidMap = Collections.synchronizedMap(new HashMap());
 			devserialMap = Collections.synchronizedMap(new HashMap());
 			//rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver FROM device");
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver FROM device");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver FROM device");
 			while (rs.next()) {				
 				String deviceid = rs.getString("deviceid");
 				String serial = rs.getString("serial");
 				String hw_ver = rs.getString("hw_ver");
+				String fw_ver = rs.getString("fw_ver");
 				String sw_ver = rs.getString("sw_ver");
 
-				Device d = new Device(serial, hw_ver, sw_ver);
+				Device d = new Device(serial, hw_ver, fw_ver, sw_ver);
 				d.setDeviceid(deviceid);
 
 				devidMap.put(deviceid, d);
@@ -65,7 +66,7 @@ public class DeviceHandler implements DataHandler {
 	// Check if the serial is in use in the DB, and if it is, update devidMap
 	private Device getOldDevice(Device dev) throws SQLException {
 		String serial = dev.getSerial();
-		String deviceid = dev.getDeviceidS();
+		String deviceid = String.valueOf(dev.getDeviceid());
 
 		// Try to look up device by serial first
 		if (devserialMap.containsKey(serial)) return (Device)devserialMap.get(serial);
@@ -75,13 +76,14 @@ public class DeviceHandler implements DataHandler {
 
 		// Check if we find the device in the DB
 		if (serial != null && serial.length() > 0) {
-			ResultSet rs = Database.query("SELECT deviceid,hw_ver,sw_ver FROM device WHERE serial = '" + serial + "'");
+			ResultSet rs = Database.query("SELECT deviceid,hw_ver,fw_ver,sw_ver FROM device WHERE serial = '" + serial + "'");
 			if (rs.next()) {				
 				deviceid = rs.getString("deviceid");
 				String hw_ver = rs.getString("hw_ver");
+				String fw_ver = rs.getString("fw_ver");
 				String sw_ver = rs.getString("sw_ver");
 
-				Device d = new Device(serial, hw_ver, sw_ver);
+				Device d = new Device(serial, hw_ver, fw_ver, sw_ver);
 				d.setDeviceid(deviceid);
 
 				devidMap.put(deviceid, d);
@@ -130,6 +132,7 @@ public class DeviceHandler implements DataHandler {
 						"deviceid", "",
 						"serial", dev.getSerial(),
 						"hw_ver", dev.getHwVer(),
+						"fw_ver", dev.getFwVer(),
 						"sw_ver", dev.getSwVer(),
 						"auto", "t",
 					};
@@ -137,31 +140,14 @@ public class DeviceHandler implements DataHandler {
 					changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_ADDED));
 				} else {
 					deviceid = olddev.getDeviceidS();
-					int devid = olddev.getDeviceid();
-					int nbid = nb.getDeviceid();
-
-					// If the serial changes we need to recreate the netbox
-					// If devids don't match it means that we are dealing with an existing device which has moved
-					// If serials don't match we have a new serial to an existing deviceid
-					if ((dev.getDeviceid() > 0 && dev.getDeviceid() != olddev.getDeviceid()) || !equals(dev.getSerial(), olddev.getSerial())) {
-						NetboxUpdatable nu = (NetboxUpdatable)nb;
-						nu.recreate();
-						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_DELETED));
-						Map varMap = new HashMap();
-						varMap.put("old_deviceid", String.valueOf(olddev.getDeviceid()));
-						varMap.put("new_deviceid", String.valueOf(dev.getDeviceid()));
-						varMap.put("old_serial", String.valueOf(olddev.getSerial()));
-						varMap.put("new_serial", String.valueOf(dev.getSerial()));
-						EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
-					}
-
 					if (!dev.equalsDevice(olddev)) {
 						// Device needs to be updated
-						Log.i("UPDATE_DEVICE", "Update deviceid="+deviceid+" serial="+dev.getSerial()+" hw_ver="+dev.getHwVer()+" sw_ver="+dev.getSwVer());
-
+						Log.i("UPDATE_DEVICE", "Update deviceid="+deviceid+" serial="+dev.getSerial()+" hw_ver="+dev.getHwVer()+" fw_ver="+dev.getFwVer()+" sw_ver="+dev.getSwVer());
+						
 						String[] set = {
 							"serial", dev.getSerial(),
 							"hw_ver", dev.getHwVer(),
+							"fw_ver", dev.getFwVer(),
 							"sw_ver", dev.getSwVer()
 						};
 						String[] where = {
@@ -169,22 +155,33 @@ public class DeviceHandler implements DataHandler {
 						};
 						Database.update("device", set, where);
 						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
-
-						// Now we need to send events if hw_ver or sw_ver changed
+						
+						// Now we need to send events if hw_ver, fw_ver or sw_ver changed
 						if (!equals(dev.getHwVer(), olddev.getHwVer())) {
 							Map varMap = new HashMap();
-							varMap.put("deviceid", String.valueOf(devid));
+							varMap.put("alerttype", "deviceHwVerChanged");
+							varMap.put("deviceid", deviceid);
 							varMap.put("old_hwver", String.valueOf(olddev.getHwVer()));
 							varMap.put("new_hwver", String.valueOf(dev.getHwVer()));
-							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
+						}
+						
+						if (!equals(dev.getFwVer(), olddev.getFwVer())) {
+							Map varMap = new HashMap();
+							varMap.put("alerttype", "deviceFwVerChanged");
+							varMap.put("deviceid", deviceid);
+							varMap.put("old_fwver", String.valueOf(olddev.getFwVer()));
+							varMap.put("new_fwver", String.valueOf(dev.getFwVer()));
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 						
 						if (!equals(dev.getSwVer(), olddev.getSwVer())) {
 							Map varMap = new HashMap();
-							varMap.put("deviceid", String.valueOf(devid));
+							varMap.put("alerttype", "deviceSwVerChanged");
+							varMap.put("deviceid", deviceid);
 							varMap.put("old_swver", String.valueOf(olddev.getSwVer()));
 							varMap.put("new_swver", String.valueOf(dev.getSwVer()));
-							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceSwUpgrade", Event.STATE_NONE, 0, 0, varMap);
+							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 					}
 				}

@@ -56,6 +56,8 @@ public class OidTester
 	}
 
 	private void doTest(Type t, Snmpoid snmpoid) {
+		boolean dupeType = dupeMap.containsKey(t.getKey());
+
 		// Return if this has already been checked
 		if (!checkDupe(t, snmpoid)) return;
 
@@ -126,7 +128,7 @@ public class OidTester
 					} catch (TimeoutException e) {
 						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
 					} catch (Exception e) {
-						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + "with netbox: " + ip + ", assuming not supported: " + e.getMessage());
+						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip + ", assuming not supported: " + e.getMessage());
 					}
 						
 					if (!supported) {
@@ -136,8 +138,46 @@ public class OidTester
 				}
 				unlock(ip);
 
-				// Check if we need to test for csAtVlan
+				// Check if we need to test for csAtVlan and chassis
 				synchronized(lock(t.getTypeid())) {
+					// Chassis first, using chassisId and exception for cat2924 (FIXME!)
+					try {
+						boolean chassis = true;
+						if (!"cisco".equals(t.getVendor())) {
+							chassis = false;
+						} else if (t.getTypename().startsWith("cat2924") || t.getTypename().startsWith("cat2950")) {
+							chassis = false;
+						} else {
+							// Check if cChassisSlots is 1
+							List chassisSlotsList = sSnmp.getAll(t.getOid("cChassisSlots"));
+							if (chassisSlotsList != null) {
+								String[] s = (String[])chassisSlotsList.get(0);
+								try {
+									int slots = Integer.parseInt(s[1]);
+									if (slots == 0 || slots == 1) {
+										chassis = false;
+									}
+								} catch (NumberFormatException exp) { }
+							}
+						}
+						
+						if (chassis != t.getChassis()) {
+							// Change status of chassis
+							String[] set = {
+								"chassis", (chassis?"t":"f"),
+							};
+							String[] where = {
+								"typeid", t.getTypeid(),
+							};
+							Database.update("type", set, where);
+							t.setChassis(chassis);
+						}
+					} catch (TimeoutException exp) {
+						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing cChassisSlots with netbox: " + ip);
+					} catch (Exception e) {
+						Log.d("OID_TESTER", "DO_TEST", "Got exception testing cChassisSlots with netbox: " + ip + ": " + e.getMessage());
+					}
+						
 					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
 						if ("3com".equals(t.getVendor())) {
 							t.setCsAtVlan(t.CS_AT_VLAN_FALSE);

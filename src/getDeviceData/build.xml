@@ -26,7 +26,7 @@
 
 	<!-- Data plugins -->
   <target name="data-plugins">
-    <ant inheritAll="false" dir="data-plugins/NetboxInfo"/>
+    <!-- <ant inheritAll="false" dir="data-plugins/NetboxInfo"/> -->
     <ant inheritAll="false" dir="data-plugins/ModuleMon"/>
     <ant inheritAll="false" dir="data-plugins/Device"/>
     <ant inheritAll="false" dir="data-plugins/Netbox"/>
@@ -38,6 +38,7 @@
 	<!-- Device plugins -->
   <target name="device-plugins">
     <ant inheritAll="false" dir="device-plugins/3Com"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoModule"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSw1900"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwMenu"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCAT"/>
@@ -121,7 +122,7 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
-    <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/>
+    <!-- <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/> -->
     <ant inheritAll="false" dir="data-plugins/ModuleMon" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Device" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Netbox" target="clean"/>
@@ -130,6 +131,7 @@
     <ant inheritAll="false" dir="data-plugins/Swport" target="clean"/>
 
     <ant inheritAll="false" dir="device-plugins/3Com" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoModule" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSw1900" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwMenu" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCAT" target="clean"/>

@@ -54,6 +54,20 @@ public class CiscoGw implements DeviceHandler
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
 		Log.setDefaultSubsystem("CGW_DEVHANDLER");
+
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
+		}
 		
 		GwportContainer gwc;
 		{
@@ -92,12 +106,11 @@ public class CiscoGw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, gwc, sc);
+		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, mc, gwc, sc);
 			
 		// Commit data
 		if (fetch) {
 			gwc.commit();
-			sc.commit();
 		}
 	}
 
@@ -105,7 +118,7 @@ public class CiscoGw implements DeviceHandler
 	 * CiscoGw
 	 *
 	 */
-	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
+	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
 
 		/*
 
@@ -235,36 +248,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			return false;
 		}
 
-		/*
-			"cCardIndex",
-			"cCardDescr",
-			"cCardSerial",
-			"cCardSlotNumber",
-		*/
-
-		/*
-			"cL3Serial"
-			"cL3Model"
-			"cl3HwVer"
-			"cl3SwVer"
-		*/
-		
-		// The card OIDs
-		MultiMap cardSlotNum = util.reverse(sSnmp.getAllMap(nb.getOid("cCardSlotNumber")));
-		Map cardDescr = sSnmp.getAllMap(nb.getOid("cCardDescr"), true);
-		Map cardSerial = sSnmp.getAllMap(nb.getOid("cCardSerial"), true);
-		Map cardHwVer = sSnmp.getAllMap(nb.getOid("cCardHwVersion"), true);
-		Map cardSwVer = sSnmp.getAllMap(nb.getOid("cCardSwVersion"), true);
-
-		// The cL3 OIDs
-		Map cl3Serial = sSnmp.getAllMap(nb.getOid("cL3Serial"), true);
-		Map cl3Model = sSnmp.getAllMap(nb.getOid("cL3Model"), true);
-		Map cl3HwVer = sSnmp.getAllMap(nb.getOid("cL3HwVer"), true);
-		Map cl3SwVer = sSnmp.getAllMap(nb.getOid("cL3SwVer"), true);
-
 		// Fetch HSRP
 		MultiMap hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
-
 
 		// Prefices and mapping to ifindex
 		MultiMap prefixMap = util.reverse(sSnmp.getAllMap(nb.getOid("ipAdEntIfIndex")));
@@ -333,35 +318,33 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						 !prefixMap.containsKey(ifindex))) continue;
 
 				// Determine and create the module
-				int module = 0;
+				int module = 1;
 				String modulePattern = ".*?(\\d+)/.*";
 				if (interf.matches(modulePattern)) {
 					Matcher m = Pattern.compile(modulePattern).matcher(interf);
 					m.matches();
 					module = Integer.parseInt(m.group(1));
+				} else {
+					boolean sup = false;
+					for (Iterator modIt = mc.getModules(); modIt.hasNext();) {
+						Module mod = (Module)modIt.next();
+						String modDescr = mod.getDescr();
+						if (modDescr != null && modDescr.toLowerCase().indexOf("supervisor") >= 0) {
+							module = mod.getModule();
+							sup = true;
+							break;
+						}
+					}
+					if (!sup) {
+						Log.w("MATCH-MODULE", "Supervisor not found and could not match module pattern to if: " + interf);
+					}
+				}
+				if (mc.getModule(module) == null) {
+					// Not allowed to create module
+					Log.w("MATCH-MODULE", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
+					continue;
 				}
 				GwModule gwm = gwc.gwModuleFactory(module);
-
-				// Fill in extra info
-				if (cardSlotNum != null) {
-					Set slotSet = cardSlotNum.get(""+module);
-					String slot = (String) (slotSet.size() > 0 ? slotSet.iterator().next() : null);
-					if (slot == null && cardSlotNum.numKeys() > 0) {
-						// Just pick one
-						slot = (String)cardSlotNum.values().iterator().next();
-					}
-					if (slot != null) {
-						if (cardDescr != null) gwm.setDescr((String)cardDescr.get(slot));
-						if (cardSerial != null) gwm.setSerial((String)cardSerial.get(slot));
-						if (cardHwVer != null) gwm.setHwVer((String)cardHwVer.get(slot));
-						if (cardSwVer != null) gwm.setSwVer((String)cardSwVer.get(slot));
-					}
-				}
-
-				if (cl3Serial != null && cl3Serial.containsKey(module+"000")) gwm.setSerial((String)cl3Serial.get(module+"000"));
-				if (cl3Model != null && cl3Model.containsKey(module+"000")) gwm.setDescr((String)cl3Model.get(module+"000"));
-				if (cl3HwVer != null && cl3HwVer.containsKey(module+"000")) gwm.setHwVer((String)cl3HwVer.get(module+"000"));
-				if (cl3SwVer != null && cl3SwVer.containsKey(module+"000")) gwm.setSwVer((String)cl3SwVer.get(module+"000"));
 
 				String nettype = "null";
 				String netident = "null";

@@ -28,6 +28,24 @@ public class NetboxHandler implements DataHandler {
 	 * Fetch initial data from device and netbox tables.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
+		// Remove any devices no longer present
+		if (!changedDeviceids.isEmpty()) {
+			for (Iterator it = changedDeviceids.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				if (((Integer)me.getValue()).intValue() == DataHandler.DEVICE_DELETED) {
+					// Lookup netbox
+					try {
+						ResultSet rs = Database.query("SELECT netboxid FROM netbox WHERE deviceid = '" + me.getKey() + "'");
+						if (rs.next()) {
+							netboxMap.remove(rs.getString("netboxid"));
+						}
+					} catch (SQLException exp) {
+						System.err.println("SQLException: " + exp.getMessage());
+						exp.printStackTrace(System.err);
+					}
+				}
+			}
+		}
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 
@@ -44,10 +62,11 @@ public class NetboxHandler implements DataHandler {
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
 			set = Collections.synchronizedSet(new HashSet());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime FROM device JOIN netbox USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime FROM device JOIN netbox USING (deviceid)");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
 																			rs.getString("hw_ver"),
+																			rs.getString("fw_ver"),
 																			rs.getString("sw_ver"),
 																			null);
 				n.setDeviceid(rs.getInt("deviceid"));
@@ -99,6 +118,11 @@ public class NetboxHandler implements DataHandler {
 				init(new HashMap(), new HashMap());
 				oldn = (NetboxData)netboxMap.get(netboxid);
 			}
+			if (oldn == null) {
+				// Cannot happen!
+				Log.e("UPDATE_NETBOX", "Cannot find old netbox from netboxid("+netboxid+"), cannot happen, contact nav support!");
+				return;
+			}
 			netboxMap.put(netboxid, n);
 			if (n.hasEmptySerial()) {
 				n.setDeviceid(oldn.getDeviceid());
@@ -112,6 +136,23 @@ public class NetboxHandler implements DataHandler {
 		Log.setDefaultSubsystem("NetboxHandler");
 
 		try {
+			// Check if the serial has changed
+			if (oldn.getSerial() != null && n.getSerial() != null && !n.getSerial().equals(oldn.getSerial())) {
+				// New serial, we need to recreate the netbox
+				NetboxUpdatable nu = (NetboxUpdatable)nb;
+				nu.recreate();
+				changedDeviceids.put(String.valueOf(nb.getDeviceid()), new Integer(DataHandler.DEVICE_DELETED));
+				Map varMap = new HashMap();
+				varMap.put("alerttype", "deviceRecreated");
+				varMap.put("old_deviceid", String.valueOf(oldn.getDeviceid()));
+				varMap.put("new_deviceid", String.valueOf(n.getDeviceid()));
+				varMap.put("old_serial", String.valueOf(oldn.getSerial()));
+				varMap.put("new_serial", String.valueOf(n.getSerial()));
+				EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
+				netboxMap.remove(netboxid);
+				return;
+			}
+
 			String deltaS = oldn != null ? " delta = " + util.format(n.uptimeDelta(oldn),1) + "s" : "";
 			
 			/*
@@ -129,9 +170,9 @@ public class NetboxHandler implements DataHandler {
 				System.err.println();
 			}
 			*/
-
+					
 			Log.d("UPDATE_NETBOX", "devid="+n.getDeviceidS()+" "+n.getSysname() + " ("+netboxid+") ticks=" + n.getTicks() + deltaS);
-				// Check if we need to update netbox
+			// Check if we need to update netbox
 			if (oldn == null || !n.equalsNetboxData(oldn)) {
 				// We need to update netbox
 				if (oldn != null) sysnameSet.remove(oldn.getSysname());

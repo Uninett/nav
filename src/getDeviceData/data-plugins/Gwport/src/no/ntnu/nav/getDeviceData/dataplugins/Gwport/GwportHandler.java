@@ -94,10 +94,10 @@ public class GwportHandler implements DataHandler {
 			// Fill moduleMap from module, gwport
 			dumpBeginTime = System.currentTimeMillis();
 			Map m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,netboxid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,gwip FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) ORDER BY moduleid,gwportid");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,netboxid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,gwip FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
-				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
+				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
 				gwm.setDeviceid(rs.getInt("deviceid"));
 				gwm.setModuleid(rs.getInt("moduleid"));
 				gwm.setDescr(rs.getString("descr"));
@@ -444,8 +444,9 @@ public class GwportHandler implements DataHandler {
 						
 					if (numGwp == 0) {
 						// This can't happen
-						System.err.println("Prefix without any gwports, this cannot happen, contact nav support!");
+						System.err.println("Prefix without any gwports: " + p);
 						Log.e("HANDLE", "Prefix without any gwports, this cannot happen, contact nav support!");
+						Log.d("HANDLE", "Prefix without any gwports: " + p + ", vlan: " + vl);
 						continue;
 					}
 					// Only one gwport = loopback, elink or lan (default)

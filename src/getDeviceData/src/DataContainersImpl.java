@@ -36,7 +36,24 @@ public class DataContainersImpl implements DataContainers {
 	 */
 	Map callDataHandlers(Netbox nb) {
 		Map changedDeviceids = new HashMap();
-		for (Iterator i = containers.values().iterator(); i.hasNext();) {
+
+		// Make sure we call the containers in the correct order
+		List containersSorted = new ArrayList(containers.values());
+		Collections.sort(containersSorted, new Comparator() {
+				public int compare(Object o1, Object o2) {
+					if (!(o1 instanceof DataContainer) || !(o2 instanceof DataContainer)) return 0;
+					return new Integer(((DataContainer)o2).getPriority()).compareTo(new Integer(((DataContainer)o1).getPriority()));
+				}
+			});
+
+		// Print for debug
+		String order = "";
+		for (Iterator i = containersSorted.iterator(); i.hasNext();) {
+			order += ((DataContainer)i.next()).getName()+(i.hasNext()?",":"");
+		}
+		Log.d("DataContainers", "CALL_DATA_HANDLERS", "Calling data handlers: " + order.substring(0,order.length()-1));
+
+		for (Iterator i = containersSorted.iterator(); i.hasNext();) {
 			DataContainer dc = (DataContainer)i.next();
 			DataHandler dh = dc.getDataHandler();
 			if (dh == null) {

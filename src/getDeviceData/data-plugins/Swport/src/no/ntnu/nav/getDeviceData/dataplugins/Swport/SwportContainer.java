@@ -33,6 +33,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 
 public class SwportContainer extends ModuleContainer implements DataContainer {
 
+	public static final int PRIORITY_SWPORT = 20;
+
 	private SwportHandler swh;
 	private List swModuleList = new ArrayList();
 	private Map swportMap = new HashMap();
@@ -48,6 +50,11 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 */
 	public String getName() {
 		return "SwportContainer";
+	}
+
+	// Doc in parent
+	public int getPriority() {
+		return PRIORITY_SWPORT;
 	}
 
 	/**

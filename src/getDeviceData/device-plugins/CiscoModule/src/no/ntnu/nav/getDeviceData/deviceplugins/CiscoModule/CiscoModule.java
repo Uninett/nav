@@ -1,0 +1,306 @@
+package no.ntnu.nav.getDeviceData.deviceplugins.CiscoModule;
+
+import java.util.*;
+import java.util.regex.*;
+
+import no.ntnu.nav.logger.*;
+import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.util.*;
+import no.ntnu.nav.getDeviceData.Netbox;
+import no.ntnu.nav.getDeviceData.deviceplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
+
+/**
+ * <p>
+ * DeviceHandler for collecting Cisco module info.
+ * </p>
+ *
+ * <p>
+ * This plugin handles the following OID keys:
+ * </p>
+ *
+ * <p>
+ * <ui>
+ *  <li>cCard*</li>
+ *  <li>cL3*</li>
+ *  <li>catModule*</li>
+ * </ul>
+ * </p>
+ */
+
+public class CiscoModule implements DeviceHandler
+{
+	public static final int HANDLE_PRI_MODULE = -20;
+
+	private static String[] canHandleOids = {
+		"cChassisId",
+		"cCardSlotNumber",
+		"cL3Serial",
+		"cL3Model",
+		"cL3HwVer",
+		"cL3FwVer",
+		"cL3SwVer",
+		"catModuleModel",
+		"catModuleHwVer",
+		"catModuleFwVer",
+		"catModuleSwVer",
+		"catModuleSerial",
+	};
+
+	private SimpleSnmp sSnmp;
+
+	public int canHandleDevice(Netbox nb) {
+		int v = nb.isSupportedOids(canHandleOids) ? HANDLE_PRI_MODULE : NEVER_HANDLE;
+		Log.d("CGW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
+		return v;
+	}
+
+	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
+	{
+		Log.setDefaultSubsystem("CMOD_DEVHANDLER");
+		
+		NetboxContainer nc;
+		{
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+		}
+
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
+		}
+
+		String netboxid = nb.getNetboxidS();
+		String ip = nb.getIp();
+		String cs_ro = nb.getCommunityRo();
+		String type = nb.getType();
+		String sysName = nb.getSysname();
+		String cat = nb.getCat();
+		this.sSnmp = sSnmp;
+
+		boolean fetch = processCiscoModule(nb, netboxid, ip, cs_ro, type, nc, mc);
+			
+		// Commit data
+		if (fetch) {
+			mc.commit();
+		}
+	}
+
+	/*
+	 * CiscoGw
+	 *
+	 */
+	private boolean processCiscoModule(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc) throws TimeoutException {
+
+		/*
+			"catModuleModel",
+			"catModuleHwVer",
+			"catModuleFwVer",
+			"catModuleSwVer",
+			"catModuleSerial",
+		*/
+
+		/*
+			"cCardIndex",
+			"cCardDescr",
+			"cCardSerial",
+			"cCardSlotNumber",
+			"cCardContainedByIndex",
+		*/
+
+		/*
+			"cL3Serial"
+			"cL3Model"
+			"cl3HwVer"
+			"cl3SwVer"
+		*/
+
+		// Try to fetch the serial for the chassis
+		if (nc.netboxDataFactory(nb).getSerial() == null) {
+			List chassisIdList = sSnmp.getAll(nb.getOid("cChassisId"), true);
+			if (chassisIdList != null) {
+				String[] s = (String[])chassisIdList.get(0);
+				nc.netboxDataFactory(nb).setSerial(s[1]);
+			}
+		}
+
+		// HwVer for the chassis
+		List chassisVerList = sSnmp.getAll(nb.getOid("cChassisVersion"), true);
+		if (chassisVerList != null) {
+			String[] s = (String[])chassisVerList.get(0);
+			nc.netboxDataFactory(nb).setHwVer(s[1]);
+		}
+		
+
+		// The card OIDs
+		Map cardSlotNum = sSnmp.getAllMap(nb.getOid("cCardSlotNumber"));
+
+		// The cL3 OIDs
+		Map cl3Serial = sSnmp.getAllMap(nb.getOid("cL3Serial"), true);
+		Map cl3Model = sSnmp.getAllMap(nb.getOid("cL3Model"), true);
+		Map cl3HwVer = sSnmp.getAllMap(nb.getOid("cL3HwVer"), true);
+		Map cl3FwVer = sSnmp.getAllMap(nb.getOid("cL3FwVer"), true);
+		Map cl3SwVer = sSnmp.getAllMap(nb.getOid("cL3SwVer"), true);
+
+		// The catModule OIDs
+		Map catModModel = sSnmp.getAllMap(nb.getOid("catModuleModel"), true);
+		Map catModHwVer = sSnmp.getAllMap(nb.getOid("catModuleHwVer"), true);
+		Map catModFwVer = sSnmp.getAllMap(nb.getOid("catModuleFwVer"), true);
+		Map catModSwVer = sSnmp.getAllMap(nb.getOid("catModuleSwVer"), true);
+		Map catModSerial = sSnmp.getAllMap(nb.getOid("catModuleSerial"), true);
+
+		// catModule*
+		if (catModModel != null) {
+			for (Iterator it = catModModel.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				mc.moduleFactory(module).setDescr((String)me.getValue());
+			}
+		}
+
+		if (catModHwVer != null) {
+			for (Iterator it = catModHwVer.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				mc.moduleFactory(module).setHwVer((String)me.getValue());
+			}
+		}
+
+		if (catModFwVer != null) {
+			for (Iterator it = catModFwVer.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				mc.moduleFactory(module).setFwVer((String)me.getValue());
+			}
+		}
+
+		if (catModSwVer != null) {
+			for (Iterator it = catModSwVer.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				mc.moduleFactory(module).setSwVer((String)me.getValue());
+			}
+		}
+
+		if (catModSerial != null) {
+			for (Iterator it = catModSerial.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				mc.moduleFactory(module).setSerial((String)me.getValue());
+			}
+		}
+
+		// cCard*
+		if (cardSlotNum != null) {
+			Map cardDescr = sSnmp.getAllMap(nb.getOid("cCardDescr"), true);
+			Map cardSerial = sSnmp.getAllMap(nb.getOid("cCardSerial"), true);
+			Map cardHwVer = sSnmp.getAllMap(nb.getOid("cCardHwVersion"), true);
+			Map cardSwVer = sSnmp.getAllMap(nb.getOid("cCardSwVersion"), true);
+			Map cardContainedByIndex = sSnmp.getAllMap(nb.getOid("cCardContainedByIndex"));
+
+			for (Iterator it = cardSlotNum.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String cardIndex = (String)me.getKey();
+				String module = (String)me.getValue();
+
+				// We only include modules directly in the chassis, ie. containedByIndex=0
+				if (cardContainedByIndex != null) {
+					String containedBy = (String)cardContainedByIndex.get(cardIndex);
+					if (containedBy != null && !"0".equals(containedBy)) continue;
+				}
+
+				Module m = mc.moduleFactory(module);
+				
+				if (cardDescr != null) m.setDescr((String)cardDescr.get(cardIndex));
+				if (cardSerial != null) m.setSerial((String)cardSerial.get(cardIndex));
+				if (cardHwVer != null) m.setHwVer((String)cardHwVer.get(cardIndex));
+				if (cardSwVer != null) m.setSwVer((String)cardSwVer.get(cardIndex));
+			}
+		}
+
+		// cL3*
+		{
+			Set valid;
+			if (cl3Serial != null && !(valid = getValidCL3Modules(cl3Serial)).isEmpty()) {
+				for (Iterator it = valid.iterator(); it.hasNext();) {
+					String module = (String)it.next();
+					mc.moduleFactory(module).setSerial((String)cl3Serial.get(module+"000"));
+				}
+			}
+
+			if (cl3Model != null && !(valid = getValidCL3Modules(cl3Model)).isEmpty()) {
+				for (Iterator it = valid.iterator(); it.hasNext();) {
+					String module = (String)it.next();
+					mc.moduleFactory(module).setDescr((String)cl3Model.get(module+"000"));
+				}
+			}
+
+			if (cl3HwVer != null && !(valid = getValidCL3Modules(cl3HwVer)).isEmpty()) {
+				for (Iterator it = valid.iterator(); it.hasNext();) {
+					String module = (String)it.next();
+					mc.moduleFactory(module).setHwVer((String)cl3HwVer.get(module+"000"));
+				}
+			}
+
+			if (cl3FwVer != null && !(valid = getValidCL3Modules(cl3FwVer)).isEmpty()) {
+				for (Iterator it = valid.iterator(); it.hasNext();) {
+					String module = (String)it.next();
+					mc.moduleFactory(module).setFwVer((String)cl3FwVer.get(module+"000"));
+				}
+			}
+
+			if (cl3SwVer != null && !(valid = getValidCL3Modules(cl3SwVer)).isEmpty()) {
+				for (Iterator it = valid.iterator(); it.hasNext();) {
+					String module = (String)it.next();
+					mc.moduleFactory(module).setSwVer((String)cl3SwVer.get(module+"000"));
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private Set getValidCL3Modules(Map m) {
+		Set valid = new HashSet();
+		for (Iterator it = m.entrySet().iterator(); it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String module = (String)me.getKey();
+			try {
+				int i = Integer.parseInt(module);
+				if ((i % 1000) == 0) valid.add(Integer.toString(i / 1000));
+			} catch (NumberFormatException e) {
+			}
+		}
+		return valid;
+	}
+
+	private static boolean isNumber(String s) {
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
+
+}

@@ -27,14 +27,14 @@ public class NetboxData extends Device
 	//private long curTime;
 	//private long baseTime;
 
-	public long u1,u2;
+	//public long u1,u2;
 
 	/**
 	 * Constructor.
 	 */
-	protected NetboxData(String serial, String hw_ver, String sw_ver, Netbox nb)
+	protected NetboxData(String serial, String hw_ver, String fw_ver, String sw_ver, Netbox nb)
 	{
-		super(serial, hw_ver, sw_ver);
+		super(serial, hw_ver, fw_ver, sw_ver);
 		this.nb = nb;
 		//curTime = System.currentTimeMillis();
 	}

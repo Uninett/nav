@@ -118,6 +118,7 @@ public class QueryNetbox extends Thread
 		String typename = "unknownType";
 		String vendorid = "unknownVendor";
 		int csAtVlan = Type.CS_AT_VLAN_UNKNOWN;
+		boolean chassis = true;
 		boolean uptodate = true;
 		Map keyFreqMap = new HashMap();
 		Map keyMap = new HashMap();
@@ -128,7 +129,7 @@ public class QueryNetbox extends Thread
 		// Add the 'dnscheck' oidkey
 		addOid("dnscheck", keyFreqMap, keyMap);
 
-		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
+		Type t = new Type(typeid, typename, vendorid, csAtVlan, chassis, uptodate, keyFreqMap, keyMap);
 		typeidMapL.put(typeid, t);
 
 	}
@@ -224,7 +225,7 @@ public class QueryNetbox extends Thread
 
 		// First fetch new types from the database
 		try {
-			ResultSet rs = Database.query("SELECT typeid, typename, vendorid, type.frequency AS typefreq, cs_at_vlan, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
+			ResultSet rs = Database.query("SELECT typeid, typename, vendorid, type.frequency AS typefreq, cs_at_vlan, chassis, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
 			String prevtypeid = null;
 			//boolean prevuptodate;
 			//boolean dirty = false;
@@ -244,9 +245,10 @@ public class QueryNetbox extends Thread
 					keyMap = new HashMap();
 					String typename = rs.getString("typename");
 					int csAtVlan = rs.getString("cs_at_vlan") == null ? Type.CS_AT_VLAN_UNKNOWN : Type.csAtVlan(rs.getBoolean("cs_at_vlan"));
+					boolean chassis = rs.getBoolean("chassis");
 					boolean uptodate = rs.getBoolean("uptodate");
 
-					t = new Type(typeid, typename, rs.getString("vendorid"), csAtVlan, uptodate, keyFreqMap, keyMap);
+					t = new Type(typeid, typename, rs.getString("vendorid"), csAtVlan, chassis, uptodate, keyFreqMap, keyMap);
 					if (!uptodate) {
 						OidTester.clearDupe(t);
 						synchronized (oidQ) {
@@ -360,7 +362,8 @@ public class QueryNetbox extends Thread
 			ResultSet rs = Database.query("SELECT netboxid,COUNT(*) AS numInStack FROM module GROUP BY netboxid HAVING COUNT(*) > 1");
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
-			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
+			//String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
+			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid FROM netbox WHERE up='y' AND ro IS NOT NULL";
 			boolean randomize = true;
 			if (qNetbox != null) {
 				String qn = qNetbox;
@@ -428,7 +431,7 @@ public class QueryNetbox extends Thread
 				nb.setNetboxid(netboxid);
 				nb.setIp(rs.getString("ip"));
 				nb.setCommunityRo(rs.getString("ro"));
-				nb.setType(rs.getString("typename"));
+				//nb.setType(rs.getString("typename"));
 				nb.setSysname(rs.getString("sysname"));
 				nb.setCat(rs.getString("catid"));
 				int numInStack = 1;
@@ -720,9 +723,6 @@ public class QueryNetbox extends Thread
 				EventQ.createAndPostEvent("getDeviceData", target, nb.getDeviceid(), nb.getNetboxid(), Integer.parseInt(subid), "notification", Event.STATE_NONE, 0, 0, varMap);
 			}
 
-			// Store last collect time in netboxinfo
-			NetboxInfo.put(nb.getNetboxidS(), null, "lastUpdated", String.valueOf(System.currentTimeMillis()));
-
 			// If we need to recreate the netbox, set the unknown type
 			if (nb.needRecreate()) {
 				Log.d("RUN", "Recreating netbox: " + nb);
@@ -731,6 +731,14 @@ public class QueryNetbox extends Thread
 
 			// If netbox is removed, don't add it to the RunQ
 			if (!nb.isRemoved()) {
+
+				// Store last collect time in netboxinfo
+				try {
+					NetboxInfo.put(nb.getNetboxidS(), null, "lastUpdated", String.valueOf(System.currentTimeMillis()));
+				} catch (RuntimeException rte) {
+					Log.w("RUN", "Database error while updating lastUpdated for " + nb.getSysname() + ", contact NAV support.");
+					Log.d("RUN", "Got exception while setting lastUpdated: " + rte.getMessage());
+				}
 
 				// Don't reschedule if we just set the unknown type for this netbox as we want it to run immediately
 				if (!nb.needRecreate()) {
