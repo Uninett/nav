@@ -908,7 +908,7 @@ CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCE
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (1, 0, 'Preferences', '/preferences');
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/toolbox');
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/index');
-INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/useradmin/userinfo');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/index/userinfo');
 
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
