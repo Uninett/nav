@@ -229,13 +229,15 @@ foreach $id (keys %boks)
 		}
     
 		# For tilfeller der en boks er i skygge, men fortsetter
-		# å være nede etter at "det som skygger har kommet opp": Setter boksen i sunny,
+		# å være nede etter at "det som skygger har kommet opp":
+		# Verken via2 eller via 3 er på watch lengre.
+		# Setter boksen i sunny,
 		# og så har den litt tid på seg til å komme opp før den blir rapportert down.
 
 		if (($boks{$id}{skygge} eq 't') && 
 		    ($boks{$id}{nede} eq 't') && 
-		    (($boks{$boks{$id}{via2}}{watch} eq 'f') ||
-		    ($boks{$boks{$id}{via3}}{watch} eq 'f')))
+		    ($boks{$boks{$id}{via2}}{watch} eq 'f') &&
+		    ($boks{$boks{$id}{via3}}{watch} eq 'f'))
 		{
 		    &sett_boks_ok($id);
 		}
