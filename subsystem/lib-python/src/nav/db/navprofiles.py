@@ -122,10 +122,9 @@ def _customizeTables():
     Accountorg._sqlPrimary = ('account', 'orgid')
 
     # Fix Accountnavbar
-    Accountnavbar._sqlPrimary  =('account', 'navbar')
+    Accountnavbar._sqlPrimary  =('account', 'navbarlink')
 
     # Fix Navbarlink
-    Accountnavbar._sqlPrimary  =('account', 'navbar')
     Navbarlink._sqlPrimary = ('id',)
 
 def setCursorMethod(cursor):
