@@ -226,8 +226,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			String vlan = null;
 			String description = null;
 
-			Map ifDescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"));
-
+			Map ifDescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
 
 			// Masterindex
 			Set masterinterfSet = new HashSet();
@@ -257,7 +256,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			}
 
 
-			List l = sSnmp.getAll(nb.getOid("ifAlias"));
+			List l = sSnmp.getAll(nb.getOid("ifAlias"), true);
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
