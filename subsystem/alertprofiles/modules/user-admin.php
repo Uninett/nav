@@ -1,4 +1,4 @@
-﻿<table width="100%" class="mainWindow">
+<table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
 <p><?php echo gettext("User administration"); ?></p>
 </td></tr>
