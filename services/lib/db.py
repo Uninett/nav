@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.9 2002/11/28 22:07:34 magnun Exp $
+$Id: db.py,v 1.10 2002/12/09 15:36:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -82,15 +82,18 @@ class _db(threading.Thread):
 		else:
 			pass
 
+		query = "SELECT deviceid FROM netbox WHERE netboxid='%s' "%event.netboxid
+		deviceid=self.query(query)[0][0]
+		
 		nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
 		if not event.netboxid:
 			statement = """INSERT INTO eventq
-(eventqid, subid, netboxid, eventtypeid, state, value, source, target)
-values (%i, %i, %s, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, 'NULL', event.eventtype, state, value,  "serviceping","eventEngine")
+(eventqid, subid, netboxid, deviceid, eventtypeid, state, value, source, target)
+values (%i, %i, %s, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, 'NULL', deviceid, event.eventtype, state, value,  "serviceping","eventEngine")
 		else:
 			statement = """INSERT INTO eventq
-(eventqid, subid, netboxid, eventtypeid, state, value, source, target)
-values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, event.netboxid, event.eventtype, state, value,  "serviceping","eventEngine")
+(eventqid, subid, netboxid, deviceid, eventtypeid, state, value, source, target)
+values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, event.netboxid, deviceid, event.eventtype, state, value,  "serviceping","eventEngine")
 		self.execute(statement)
 		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
 		self.execute(statement)
@@ -124,7 +127,7 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 		# Update our netboxid <-> sysname hash first. It
 		# is used by job.py to do some more userfriendly
 		# logging.
-		self.getnetboxid()
+		#self.getnetboxid()
 
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
@@ -138,27 +141,22 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 
 		fromdb = []
 		query = """SELECT serviceid ,service.netboxid, service.active,
-		handler, version, ip FROM service JOIN netbox ON
+		handler, version, ip, sysname FROM service JOIN netbox ON
 		(service.netboxid=netbox.netboxid) order by serviceid"""
 		map(fromdb.append, self.query(query))
-		query = """SELECT serviceid, netboxid, active, handler, version
-		FROM service WHERE netboxid is NULL"""
-		map(fromdb.append, self.query(query))
-
+		
 		jobs = []
 		for each in fromdb:
-			if len(each) == 6:
-				serviceid,netboxid,active,handler,version,ip = each
-			elif len(each) == 5:
-				serviceid,netboxid,active,handler,version = each
-				ip = ''
+			if len(each) == 7:
+				serviceid,netboxid,active,handler,version,ip,sysname = each
 			else:
-				print "Each: %s" % each
-				
+				self.debug("Invalid job: %s" % each,2)
+				continue
 			job = self.mapper.get(handler)
 			if not job:
-				print 'no such handler:',handler
-			newJob = job(serviceid,netboxid,ip,property.get(serviceid,{}),version)
+				self.debug("no such handler: %s",handler,2)
+				continue
+			newJob = job(serviceid,netboxid,ip,property.get(serviceid,{}),version,sysname=sysname)
 			if onlyactive and not active:
 				continue
 			else:

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.21 2002/11/28 22:07:34 magnun Exp $
+$Id: RunQueue.py,v 1.22 2002/12/09 15:36:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -103,6 +103,7 @@ class RunQueue:
     def enq(self,*r):
         self.lock.acquire()
         self.rq.put(*r)
+
         #self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
