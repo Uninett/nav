@@ -295,6 +295,13 @@ public class QueryNetbox extends Thread
 			// Then update all netboxes with the new types
 			if (updateNetboxes) updateNetboxesWithNewTypes();
 
+			// Check the run queue in case we have any new OIDs to check
+			synchronized (oidQ) {
+				if (!oidQ.isEmpty()) {
+					scheduleCheckRunQ(0);
+				}
+			}
+
 		} catch (SQLException e) {
 			Log.e("UPDATE_TYPES", "SQLException: " + e);			
 		}
