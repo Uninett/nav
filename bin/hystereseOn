@@ -18,7 +18,7 @@
 # 02-02-2001 - Sender med nettelid for de ulike enhetene - JM
 ############################################################
 
-use DBI;
+use Pg;
 use strict;
 use RRDs;
 use Mail::Mailer;
@@ -26,13 +26,14 @@ use SNMP_util;
 
 # "Globale" variable
 # Hvor stor belastning den skal kicke på (i prosent).
-my $limit = 87;
+my $limit = 5;
 
 # Tidsrom (i sekunder bakover i tid)
 my $fra = -900;
 
 # SNMP-variable
-my $ipadresse = "129.241.190.200";
+my $ipadresse = "129.242.5.182";
+my $hostname = "po";
 my $prefix = '.1.3.6.1.4.1.2595.1.1';
 
 my $fil = "/home/cricket/bin/alarm";
@@ -41,7 +42,7 @@ my $to = "bredal\@stud.ntnu.no";
 my %svitsjliste;
 my %ruterliste;
 
-my $dbh = DBI->connect("manage","nett","stotte","mysql");
+my $dbh = &db_connect("manage", "manage", "eganam");
 
 # Kjører subrutinene
 #&switches;
@@ -49,17 +50,14 @@ my $dbh = DBI->connect("manage","nett","stotte","mysql");
 &switchports;
 &routerinterfaces;
 
-$dbh->disconnect;
-
 sub switches {
 
     my ($id, $sysname);
 
     # Henter ut alle svitsjer og svitsjeporter
-    my $hentsvitsjer = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='SW' ORDER BY sysName");
-    $hentsvitsjer->execute;
+    my $hentsvitsjer = &db_select("SELECT boksid,sysName FROM boks WHERE kat='SW' ORDER BY sysName",$dbh);
 
-    while (($id, $sysname) = $hentsvitsjer->fetchrow_array) {
+    while (($id, $sysname) = $hentsvitsjer->fetchrow) {
 	$svitsjliste{$id} = $sysname;
     }
     $hentsvitsjer->finish;
@@ -93,17 +91,15 @@ sub routers {
 
     my ($id,$sysname);
 
-    my $hentrutere = $dbh->prepare("SELECT id,sysName FROM nettel WHERE kat='GW'");
-    $hentrutere->execute;
+    my $hentrutere = &db_select("SELECT boksid,sysName FROM boks WHERE kat='GW'",$dbh);
 
-    while (($id, $sysname) = $hentrutere->fetchrow_array) {
+    while (($id, $sysname) = $hentrutere->fetchrow) {
 	unless ($sysname =~ /psykiatri|ringve|erke/) {
 	    $ruterliste{$id} = $sysname;
 	} else {
 	    $ruterliste{$id} = "$sysname-trlos";
 	}
     }
-    $hentrutere->finish;
 
     while (($id, $sysname) = each %ruterliste) {
 	my $verdi;
@@ -147,17 +143,17 @@ sub switchports {
     my ($id, $sysname);
 
     while (($id, $sysname) = each %svitsjliste) {
-	my $hentporter = $dbh->prepare("SELECT mp,portname,speed FROM swport WHERE swid=$id");
-	$hentporter->execute;
+	my $hentporter = &db_select("SELECT modul,port,portnavn,speed FROM swport WHERE boksid=$id",$dbh);
 
-	while (my ($mp, $portname, $speed) = $hentporter->fetchrow_array) {
+	while (my ($modul,$port,$portname,$speed) = $hentporter->fetchrow) {
+#	while (my ($modul, $port, $portname, $speed) = $hentporter->fetchrow) {
 	    unless ($portname =~ /(udef|undef)/) {
 		# Diverse omformateringer på filnavnene... :(
-		$mp = lc $mp;
-		$mp =~ s/fe/fa/;
-		$mp =~ s/ge/gi/;
-		$mp =~ s/\./_/;
-		
+		$modul = lc $modul;
+		$modul =~ s/fe/fa/;
+		$modul =~ s/ge/gi/;
+		my $mp = $modul."_".$port;
+				
 		my $verdi;
 		if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
 		    my $RRD = "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd";
@@ -217,10 +213,11 @@ sub switchports {
 			    &sendmail($body);
 			}
 		    }
+		} else {
+		    print "Finner ikke $sysname/$mp\n";
 		}
 	    }
 	}
-	$hentporter->finish;
     }
 } #sub switchports
 
@@ -230,16 +227,15 @@ sub routerinterfaces{
     my ($id,$sysname);
 
     while (($id,$sysname) = each %ruterliste) {
-	my $hentporter = $dbh->prepare("SELECT interf,speed,type,ruter,tilruter,org,kat,samband FROM subnet WHERE ruter=$id");
-	$hentporter->execute;
+	my $hentporter = &db_select("SELECT g.interf,g.speed,p.nettype,p.orgid,p.anvid,p.samband FROM gwport g, prefiks p WHERE g.boksid=$id",$dbh);
 
-	while (my ($interf, $speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow_array) {
+	while (my ($interf, $speed,$type,$org,$kat,$samband) = $hentporter->fetchrow) {
 	    unless ($interf =~ /Loopback0/) {
 		# Omforming på filnavn
 		$interf = lc $interf;
 		$interf =~ s(/)(_)g;
 		
-		my @portarray = ($type, $ruterliste{$ruter}, $ruterliste{$tilruter}, $org, $kat, $samband);
+		my @portarray = ($type, $org, $kat, $samband);
 
 		# Henter lastdata
 		my $verdi;
@@ -308,7 +304,6 @@ sub routerinterfaces{
 		}
 	    }
 	}
-	$hentporter->finish;
     }
 }
 
@@ -379,7 +374,7 @@ sub sendtrap {
     push(@data, "$newprefix.5", 'string', "$portname");
     push(@data, "$newprefix.6", 'string', "$belastning");
 
-    &snmptrap($ipadresse, $prefix, "bigbud", 6, 4, @data);
+    &snmptrap($ipadresse, $prefix, $hostname, 6, 4, @data);
 
 }
 
@@ -399,7 +394,34 @@ sub sendtrap2 {
 
     push(@data, "$newprefix.6", 'string', "$belastning");
 
-    &snmptrap($ipadresse, $prefix, "bigbud", 6, 4, @data);
+    &snmptrap($ipadresse, $prefix, $hostname, 6, 4, @data);
+}
 
+sub db_connect {
+    my $db = $_[0];
+    my $user = $_[1];
+    my $pass = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
 
+sub db_select {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    return $resultat;
+}
+
+sub db_execute {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
+#die er byttet med print
+
+    return $resultat;
 }
