@@ -441,6 +441,10 @@ class updateSelect(simpleSelect):
             for entry in self.addEntryList:
                 if (s == entry[0]):
                     # This is the right optgroup for this entry
+                    # Save row for optgroupformat in next select
+                    # NB: only works with default optgroupformat! FIX
+                    self.rows.append((entry[1],entry[2]))
+
                     if not entry[1] in self.values:
                         # Value (id) isn't already present
                         state = entry[3]
@@ -454,6 +458,8 @@ class updateSelect(simpleSelect):
                             state = True
                         option = selectOption(entry[2],entry[1],state)
                         self.options.append(option)
+                        if state == True:
+                            confirmedSelected.append(entry[1])
             # Add end of optgroup tag to list of options
             optgroup = selectOption('','',optgroupEnd=True)
             self.options.append(optgroup)
