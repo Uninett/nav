@@ -12,6 +12,7 @@ $fil = les_fil("ragen.conf","r");
 list($filparam,$urlparam,$navnparam) = tolk_fil($fil,$rapport);
 
 //print $filparam[skjul];
+    print $QUERY_STRING;
 
 $sql = $filparam[sql];
 if(!$sql){
@@ -38,7 +39,7 @@ if(preg_match("/SELECT(.*)FROM/is",$sql,$sel)) {
 	if($$urlselect[$i]){
 	    //print $$urlselect[$i];
 	    $verdi =  $$urlselect[$i];
-	    array_push($ar_where,"$select[$i]='$verdi'");
+	    array_push($ar_where,"$select[$i] like '$verdi'");
 	//print $urlselect[$i];
 	}
     }
@@ -140,15 +141,33 @@ if(!$overskrift){
 }
 $overskrift = urlencode($overskrift);
 print "<img src=\"overskrift.php?overskrift=$overskrift\">";
-print "</td><td background=\"bakgrunn_nav.php\" valign=\"top\" align=\"right\"><font color=\"#ffffff\">".date("j.n.Y")."</font></td></tr></table>";
+print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\"><font color=\"#ffffff\">".date("j.n.Y")."</font><br>";
+
+## husker gammel querystring
+$peker = lag_peker($urlselect,$QUERY_STRING);
+if($begrenset){
+        print "<form action=\"?$peker&begrenset=0\" method=\"post\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema for å begrense søket\"></form>";
+} else {
+print "<form action=\"?$peker&begrenset=1\" method=\"post\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Vis skjema for å begrense søket\"></form>";
+}
+print "</td></tr></table>";
 
 //print "<p>$sql</p>";
+
+if($begrenset){
+//skriv_skjemainnhold
+//kan ikke kommenteres bort, da ingen vet hva variablene heter
+
+    skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner);
+}
+
+lag_peker($urlselect,$QUERY_STRING);
 
 $neste = $ar_limit[1]+100;
 $forrige = $ar_limit[1]-100;
 print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td align=\"left\" width=\"100\">";
 if($ar_limit[1]!=0){ 
-print "<a href=\"rapportgenerator.php?rapport=$rapport&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
+print "<a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
 } else {
     print "&nbsp;";
 }
@@ -157,7 +176,7 @@ $til = $ar_limit[1] + $ar_limit[0];
 print "</td><td align=\"center\">Viser nå treff $fra til $til av totalt $antall_treff treff i databasen</td><td align=\"right\" width=\"100\">";
 
 if($antall_rader == $ar_limit[0]){
-    print " <a href=\"rapportgenerator.php?rapport=$rapport&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
+    print " <a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
 } else {
     print "&nbsp;";
 }
@@ -181,6 +200,9 @@ skrivhash($where);
 skrivhash($from);
 skrivhash($order_by);
 */
+
+
+
 function skrivhash($hash){
 ########
 ## Tar inn en hash og skriver den som en htmltabell
@@ -245,12 +267,25 @@ function db_2d_array($db,$sql){
     }
     return array($rader,$resultat);
 }
-function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner) {
-    print "<tr>";
+function lag_peker($urlselect,$querystring){
+    $peker = $querystring;
     for($i=0;$i<sizeof($urlselect);$i++) {
-	    if(!$skjulte_kolonner[$i]){
 		$this = $urlselect[$i];
-		print "<td bgcolor=\"#486591\"><a href=\"rapportgenerator.php?rapport=$rapport&order_by=$this\"><img src=\"bildetekst.php?tekst=";
+		global $$this;
+		$that = $$this;
+		if($that){
+		    $peker .= "&$this=$that";
+		}
+	    }
+    return $peker;
+}
+
+function skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner){
+    print "<form action=\"?rapport=$rapport\" method=\"post\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+    for($i=0;$i<sizeof($urlselect);$i++) {
+	//if(!$skjulte_kolonner[$i]){
+		$this = $urlselect[$i];
+		print "<tr><td background=\"bakgrunn_nav.php\"><img src=\"bildetekst.php?tekst=";
 //<font color=\"#ffffff\">";
 		if($navnparam[$this]){
 		    print $navnparam[$this];
@@ -258,7 +293,33 @@ function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner
 		    print $this;
 		}
 //		print "</font>";
-		print "\" border=\"0\"></a></td>";
+		print "\" border=\"0\"></td>";
+	   // }
+	global $$this;
+	$skjemaverdi = $$this;
+	
+	 print "<td><input type=\"text\" name=\"$this\" value=\"$skjemaverdi\"></td></tr>";
+    }
+    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk\" name=\"send\" value=\"Send\"></td></tr></table></form><p>Du kan bruke % i skjemaet også.</p>";
+}
+
+
+function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner) {
+    print "<tr>";
+    for($i=0;$i<sizeof($urlselect);$i++) {
+	    if(!$skjulte_kolonner[$i]){
+		$this = $urlselect[$i];
+		global $QUERY_STRING;
+		$peker = lag_peker($urlselect,$QUERY_STRING);
+		print "<td bgcolor=\"#486591\"><form action=\"?$peker&order_by=$this\" method=\"post\"><input type=\"image\" src=\"bildetekst.php?tekst=";
+//<font color=\"#ffffff\">";
+		if($navnparam[$this]){
+		    print $navnparam[$this];
+		} else {
+		    print $this;
+		}
+//		print "</font>";
+		print "\"></form></td>";
 	    }
     }
     print "</tr>";
