@@ -59,7 +59,7 @@ def showInfo(port):
         if field == 'duplex':
             value = _duplex.get(value, 'Unknown %s' % value)
         table.add(field.capitalize(), value)
-    for field in 'to_cat', 'to_netbox', 'to_swport':
+    for field in 'to_netbox', 'to_swport':
         value = getattr(port, field)
         if value is None:
             continue
