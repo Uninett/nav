@@ -41,7 +41,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 		echo '<td class="clock">';
 		echo '<a class="tt" href="?action=periode&amp;subaction=endre&amp;tid=' . $t_p[0] . '&amp;pid=' . $brukerinfo[4] . '#endre">';
 		echo leading_zero($t_p[2],2) . ":" . leading_zero($t_p[3],2) . 
-			'</a><br><img src="http://jimmac.musichall.cz/ikony/i12/appointment-reminder.png">' . "</td>";
+			'</a><br><img src="icons/clock.png">' . "</td>";
 			
 		echo '<td class="helg">' . helgdescr($t_p[1]) . '</td>'; // <br><small>(' . $t_p[0] . ')</small>
 		echo '<td class="eqg">';
