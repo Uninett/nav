@@ -7,15 +7,15 @@ ROTATION=r"/-\|"
 PINGSTRING="Stian og Magnus ruler verden"
 
 class RotaterPlugin:
-  def __init__(self, delay=0.1):
+  def __init__(self, rotdelay=0.1):
     self.rotation = 0
-    self.delay = delay
+    self.rotatedelay = rotdelay
   def rotate(self, noDelay=None):
     self.rotation = (self.rotation + 1) % len(ROTATION)
     sys.stdout.write("\010" + ROTATION[self.rotation])
     sys.stdout.flush()
     if(not noDelay):
-      time.sleep(self.delay)
+      time.sleep(self.rotatedelay)
   
 def makeSocket():
   sock = socket.socket(socket.AF_INET, socket.SOCK_RAW,
@@ -24,42 +24,41 @@ def makeSocket():
   return sock
 
 class MegaPing(RotaterPlugin):
-  def __init__(self, hosts, timeout=5):
+  def __init__(self, hosts, timeout=5, delay=0.01):
     RotaterPlugin.__init__(self)
+    self.delay=delay
     self.hosts = hosts
-    self.requests = {}
-    self.responses = {}
-    self.senderFinished = 0
-    
     self.timeout = timeout
     self.sent = 0
     self.pid = os.getpid()
     # Create our common socket
     self.socket = makeSocket()
-    self.makeIcmpPackage()
+
+  def reset(self):
+    self.requests = {}
+    self.responses = {}
+    self.senderFinished = 0
+    
 
   def start(self):
     # Start working
-    self.sender = threading.Thread(target=self._sendRequests, name="sender")
-    self.getter = threading.Thread(target=self._getResponses, name="getter")
-    self.rotater = threading.Thread(target=self.rotateThread, name="rotater")
+    self.reset()
+    self.sender = threading.Thread(target=self.sendRequests, name="sender")
+    self.getter = threading.Thread(target=self.getResponses, name="getter")
     self.sender.start()
     self.getter.start()
-    self.rotater.start()
-  
-  def rotateThread(self):
-    # While we wait
     while(self.getter.isAlive()):
-      self.rotate()
+      self.rotate()    
+    
   
-  def makeIcmpPackage(self):
-    # We use the same icmp-package to them all!
+  def makeIcmpPacket(self, pingstring=PINGSTRING):
+    # We use the same icmp-packet to them all!
     pkt = icmp.Packet()
     pkt.type = icmp.ICMP_ECHO
     pkt.id = self.pid
     pkt.seq = 0 # Always sequence number 0..
-    pkt.data = PINGSTRING
-    self.package = pkt.assemble()
+    pkt.data = pingstring
+    return pkt.assemble()
 
   def _getResponses(self):
     profiler = profile.Profile()
@@ -74,7 +73,7 @@ class MegaPing(RotaterPlugin):
       if rd:
         # okay to use time here, because select has told us
         # there is data and we don't care to measure the time
-        # it takes the system to give us the package.
+        # it takes the system to give us the packet.
         arrival = time.time()
         try:
           (pkt, (host, blapp)) = self.socket.recvfrom(4096)
@@ -86,16 +85,29 @@ class MegaPing(RotaterPlugin):
           reply = icmp.Packet(repip.data)
         except ValueError:
           continue
-        if reply.id == self.pid and reply.data == PINGSTRING:
-          try:
-            pingtime = time.time() - self.requests[host]
-            self.responses[host] = pingtime
-            # print "Response from %-16s in %03.3f secs" % (host, pingtime)
-          except KeyError:
-            continue
-          del self.requests[host]  
+        if reply.id <> self.pid:
+          continue
+        
+        try:
+          (host, sent, pingstring) = reply.data.split('|')
+        except:
+          continue # It's not our packet
+        if pingstring <> PINGSTRING:
+          continue
+          
+        try:
+          if str(self.requests[host]) <> sent:
+            continue # Not sent at our time
+        except KeyError:
+          continue # unknown host
+
+        # Puuh.. OK, it IS our package <--- Stain, you're a moron
+        pingtime = time.time() - self.requests[host]
+        self.responses[host] = pingtime
+          # print "Response from %-16s in %03.3f secs" % (host, pingtime)
+        del self.requests[host]  
       elif self.senderFinished:
-        break
+          break
 
     # Everything else timed out
     for host in self.requests.keys():
@@ -109,7 +121,7 @@ class MegaPing(RotaterPlugin):
     profiler.runcall(self.sendRequests, *args)
     print "sendRequests stats:"
     print profiler.print_stats()
-  def multiSendRequests(self, threads=2):
+  def multiSendRequests(self, threads=10):
     """Split the hosts between several threads, each with their own
     socket"""
     partitionSize = len(self.hosts) / threads
@@ -120,10 +132,9 @@ class MegaPing(RotaterPlugin):
       else:  
         stop = partitionSize*(threadNr+1)
       args = (makeSocket(), self.hosts[start:stop])
-      thread = threading.Thread(target=self._sendRequests, args=args)
+      thread = threading.Thread(target=self.sendRequests, args=args)
       thread.start()
-      time.sleep(0.01)
-    
+
   def sendRequests(self, mySocket=None, hosts=None):
     if(mySocket is None):
       mySocket = self.socket
@@ -135,6 +146,17 @@ class MegaPing(RotaterPlugin):
       except socket.error:
         hosts.remove(host)
         continue # Fuck you!
-      self.requests[host] = time.time()
-      mySocket.sendto(self.package, (host, 0))
-    self.senderFinished = 1  
+      now = time.time()
+      self.requests[host] = now
+      identifier = '|'.join([host, str(now), PINGSTRING])
+      # 129.241.190.190|0x19831983|BLAPPidentifier
+      packet=self.makeIcmpPacket(identifier)
+      mySocket.sendto(packet, (host, 0))
+      time.sleep(self.delay)
+      self.senderFinished = 1
+      
+  def noAnswers(self):
+    return [host for (host, ping) in self.responses.items() if not ping]
+
+  def answers(self):
+    return [host for (host, ping) in self.responses.items() if ping]

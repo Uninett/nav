@@ -14,7 +14,7 @@ from socket import htons, ntohs
 def cksum(s):
     if len(s) & 1:
 	s = s + '\0'
-    words = array.array('h', s)
+    words = array.array('H', s)
     sum = 0
     for word in words:
 	sum = sum + (word & 0xffff)
@@ -31,10 +31,10 @@ def cksum(s):
 # as a u_short.
 
 def gets(s):
-    return struct.unpack('h', s)[0] & 0xffff
+    return struct.unpack('H', s)[0] & 0xffff
 
 def mks(h):
-    return struct.pack('h', h)
+    return struct.pack('H', h)
 
 def iph2net(s):
     len = htons(gets(s[2:4]))
