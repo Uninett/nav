@@ -15,11 +15,8 @@ echo '<p><a href="#nyprofil">';
 echo gettext("Legg til ny profil"); 
 echo "</a>";
 
-
-
-
 if (get_get('subaction') == 'settaktiv') {
-	$dbh->aktivProfil(session_get('bruker'), get_get('pid') );
+	$dbh->aktivProfil(session_get('uid'), get_get('pid') );
         if (get_get('pid') > 0) {
             echo "<p><font size=\"+3\">" . gettext('Aktivisert</font>. Du har nå byttet aktiv profil.');
         } else {
@@ -68,7 +65,7 @@ if (get_get('subaction') == "nyprofil") {
     	post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
     $tidsid = $dbh->nyTidsperiode(1, '08:00', $profilid);
     
-    print "<p><font size=\"+3\">" . gettext("OK</font>, En ny profil er opprettet for brukeren $brukernavn, denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, En ny profil er opprettet for brukeren " . session_get('bruker') . ", denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.");
     
   } else {
     print "<p><font size=\"+3\">" . gettext("Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.");

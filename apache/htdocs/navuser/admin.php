@@ -74,7 +74,7 @@ if (get_get('subaction') == "nybruker") {
     $profilid = $dbh->nyProfil('Standard', $uid, 0, 8, 0, 7,30 );
     $tidsid = $dbh->nyTidsperiode(1, '08:00', $profilid);
     
-    $dbh->aktivProfil($nybruker, $profilid);
+    $dbh->aktivProfil($uid, $profilid);
     if (isset($epost)) {
     	$dbh->nyAdresse(post_get('epost'), 1, $uid);
     }

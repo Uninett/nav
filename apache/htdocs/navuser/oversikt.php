@@ -100,7 +100,7 @@ if (session_get('visoversikt') == 1) {
     
     if ($subaction == 'settaktiv') {
             print "<p>" . gettext("Aktiv profil er endret til") . " : ";
-            $dbh->aktivProfil(session_get('bruker'), $pid);
+            $dbh->aktivProfil(session_get('uid'), $pid);
     }
     
     // Lag en dropdown meny for å velge aktiv profil

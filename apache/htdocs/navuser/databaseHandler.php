@@ -22,36 +22,38 @@ class DBH {
     
     $brukere = NULL;
     
-    $sorts = array ('brukernavn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'kolengde, navn',
-		    'pa, navn',
-		    'aa, navn');
+    $sorts = array ('login',
+		    'name',
+		    'admin, name',
+		    'sms, name',
+		    'queuelength, name',
+		    'pa, name',
+		    'aa, name');
 		    
-    $querystring = "SELECT Bruker.id, Bruker.brukernavn, Bruker.navn, Bruker.admin, Bruker.sms, Bruker.kolengde, " .
-      "profiler.pa, adresser.aa FROM Bruker LEFT OUTER JOIN " .
-      "(SELECT count(Brukerprofil.id) AS pa, Brukerprofil.brukerid AS uid " . 
-      "FROM Brukerprofil GROUP BY (Brukerprofil.brukerid)) AS profiler ON (Bruker.id = profiler.uid) " .
+    $querystring = "SELECT Account.id, Account.login, Account.name, Preference.admin, Preference.sms, Preference.queuelength, " .
+      "profiler.pa, adresser.aa FROM Preference, Account LEFT OUTER JOIN " .
+      "(SELECT count(Brukerprofil.id) AS pa, Brukerprofil.accountid AS uid " . 
+      "FROM Brukerprofil GROUP BY (Brukerprofil.accountid)) AS profiler ON (Account.id = profiler.uid) " .
       "LEFT OUTER JOIN " .
-      "(SELECT count(Alarmadresse.id) AS aa, Alarmadresse.brukerid AS uid " .
-      "FROM Alarmadresse GROUP BY (Alarmadresse.brukerid)) AS adresser ON (Bruker.id = adresser.uid) " .
+      "(SELECT count(Alarmadresse.id) AS aa, Alarmadresse.accountid AS uid " .
+      "FROM Alarmadresse GROUP BY (Alarmadresse.accountid)) AS adresser ON (Account.id = adresser.uid) " .
+        "WHERE (Preference.accountid = Account.id) " .
       "ORDER BY " . $sorts[$sort];
 
+    //echo "<p>Query: " . $querystring;
     if ( $query = @pg_exec($this->connection, $querystring) ) {
 		$tot = pg_numrows($query); $row = 0;
 
 	while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$brukere[$row][0] = $data["id"];
-		$brukere[$row][1] = $data["brukernavn"];
-		$brukere[$row][2] = $data["navn"];
+		$brukere[$row][1] = $data["login"];
+		$brukere[$row][2] = $data["name"];
 		$brukere[$row][3] = $data["admin"];
 		$brukere[$row][4] = $data["sms"];
 		$brukere[$row][5] = $data["pa"];
 		$brukere[$row][6] = $data["aa"];
-		$brukere[$row][7] = $data["kolengde"];
+		$brukere[$row][7] = $data["queuelength"];
 		$row++;
       } 
     }  else {
@@ -68,21 +70,20 @@ class DBH {
     
     	$brukere = NULL;
     
-   		$sorts = array ('brukernavn',
-			'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
+   		$sorts = array ('login',
+			'name',
+		    'name, login');
 		    
-    	$querystring = "SELECT id, brukernavn, navn, (Medlem.gruppeid > 0) AS medlem 
-FROM Bruker LEFT OUTER JOIN ( 
-	SELECT gruppeid, brukerid 
-	FROM BrukerTilGruppe 
-	WHERE (gruppeid = " . addslashes($gid) . ") 
+    	$querystring = "SELECT id, login, name, (Medlem.groupid > 0) AS medlem 
+FROM Account LEFT OUTER JOIN ( 
+	SELECT groupid, accountid 
+	FROM AccountInGroup 
+	WHERE (groupid = " . addslashes($gid) . ") 
 ) AS Medlem 
-ON (Bruker.id = Medlem.brukerid) 
+ON (Account.id = Medlem.accountid) 
 ORDER BY " . $sorts[$sort];
+
+    //echo "<p>Query: " . $querystring;
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
 		$tot = pg_numrows($query); $row = 0;
@@ -90,8 +91,8 @@ ORDER BY " . $sorts[$sort];
 	while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$brukere[$row][0] = $data["id"];
-		$brukere[$row][1] = $data["brukernavn"];
-		$brukere[$row][2] = $data["navn"];
+		$brukere[$row][1] = $data["login"];
+		$brukere[$row][2] = $data["name"];
 		$brukere[$row][3] = $data["medlem"];
 		$row++;
       } 
@@ -113,13 +114,13 @@ ORDER BY " . $sorts[$sort];
     $logg = NULL;
     
     $sorts = array ('Logg.type, tid DESC',
-		    'Bruker.navn, tid DESC',
+		    'Account.name, tid DESC',
 		    'tid DESC',
 		    'Logg.descr, tid DESC');
 		    
-	$querystring = "SELECT Logg.type, Logg.descr, date_part('epoch', Logg.tid) AS tid, Bruker.navn 
-FROM Bruker, Logg 
-WHERE (	Bruker.id = Logg.brukerid ) 
+	$querystring = "SELECT Logg.type, Logg.descr, date_part('epoch', Logg.tid) AS tid, Account.name 
+FROM Account, Logg 
+WHERE (	Account.id = Logg.accountid ) 
 ORDER BY " . $sorts[$sort] . " LIMIT 100";
 
 	//print "<pre>" . $querystring . "</pre>";
@@ -132,7 +133,7 @@ ORDER BY " . $sorts[$sort] . " LIMIT 100";
 		$logg[$row][0] = $data["type"];
 		$logg[$row][1] = $data["descr"];
 		$logg[$row][2] = $data["tid"];
-		$logg[$row][3] = $data["navn"];
+		$logg[$row][3] = $data["name"];
 		$row++;
       } 
     } 
@@ -179,31 +180,31 @@ ORDER BY " . $sorts[$sort];
     
     $brukere = NULL;
     
-    $sorts = array ('navn',
-		    'ab, navn',
-		    'ar, navn',
-		    'ad, navn');
+    $sorts = array ('name',
+		    'ab, name',
+		    'ar, name',
+		    'ad, name');
 		    
-	$querystring = "SELECT id, navn, descr, BCount.ab, Rcount.ar, Dcount.ad 
-FROM Brukergruppe 
+	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad 
+FROM Accountgroup 
 LEFT OUTER JOIN (
-	SELECT count(brukerid) AS ab, gruppeid
-	FROM BrukerTilGruppe
-	GROUP BY gruppeid
+	SELECT count(accountid) AS ab, groupid
+	FROM AccountInGroup
+	GROUP BY groupid
 ) AS BCount 
-ON (id = BCount.gruppeid)
+ON (id = BCount.groupid)
 LEFT OUTER JOIN (
-	SELECT count(utstyrgruppeid) AS ar, brukergruppeid 
+	SELECT count(utstyrgruppeid) AS ar, accountgroupid 
 	FROM Rettighet 
-	GROUP BY brukergruppeid 
+	GROUP BY accountgroupid 
 ) AS RCount 
-ON (id = RCount.brukergruppeid) 
+ON (id = RCount.accountgroupid) 
 LEFT OUTER JOIN (
-	SELECT count(utstyrgruppeid) AS ad, brukergruppeid
+	SELECT count(utstyrgruppeid) AS ad, accountgroupid
 	FROM DefaultUtstyr 
-	GROUP BY brukergruppeid 
+	GROUP BY accountgroupid 
 ) AS DCount 
-ON (id = DCount.brukergruppeid) 		    
+ON (id = DCount.accountgroupid) 		    
 ORDER BY " . $sorts[$sort];
 
 	//print "<pre>" . $querystring . "</pre>";
@@ -214,7 +215,7 @@ ORDER BY " . $sorts[$sort];
 	while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$brukere[$row][0] = $data["id"];
-		$brukere[$row][1] = $data["navn"];
+		$brukere[$row][1] = $data["name"];
 		$brukere[$row][2] = $data["descr"];
 		$brukere[$row][3] = $data["ab"];
 		$brukere[$row][4] = $data["ar"];
@@ -230,23 +231,23 @@ ORDER BY " . $sorts[$sort];
   }
 
 
-	// list alle gruppene en bruker er medlem av.
+	// list alle gruppene en Account er medlem av.
   function listBrukersGrupper($uid, $sort) {
     
     $bruker = NULL;
     
-    $sorts = array ('navn',
-		    'navn',
-		    'admin, navn',
-		    'sms, navn',
-		    'pa, navn',
-		    'aa, navn');
+    $sorts = array ('name',
+		    'name',
+		    'admin, name',
+		    'sms, name',
+		    'pa, name',
+		    'aa, name');
 		    
-	$querystring = "SELECT id, navn, descr 
-FROM Brukergruppe, BrukerTilGruppe 
-WHERE (BrukerTilGruppe.gruppeid = Brukergruppe.id) AND 
-(BrukerTilGruppe.brukerid = " . $uid . ") 
-ORDER BY navn ";
+	$querystring = "SELECT id, name, descr 
+FROM AccountGroup, AccountInGroup 
+WHERE (AccountInGroup.groupid = Accountgroup.id) AND 
+(AccountInGroup.accountid = " . $uid . ") 
+ORDER BY name ";
 
     if ( $query = pg_exec($this->connection, $querystring) ) {
 		$tot = pg_numrows($query); $row = 0;
@@ -254,7 +255,7 @@ ORDER BY navn ";
 		while ( $row < $tot) {
 			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 			$grupper[$row][0] = $data["id"];
-			$grupper[$row][1] = $data["navn"];
+			$grupper[$row][1] = $data["name"];
 			$grupper[$row][2] = $data["descr"];
 			$row++;
       	}	 
@@ -267,39 +268,39 @@ ORDER BY navn ";
   }
 
 
-	// Lister alle gruppene en bruker er medlem av med avansert visning (tellere)
+	// Lister alle gruppene en Account er medlem av med avansert visning (tellere)
   function listBrukersGrupperAdv($sort, $uid) {
     
     $brukere = NULL;
     
-    $sorts = array ('navn',
-		    'ab, navn',
-		    'ar, navn',
-		    'ad, navn');
+    $sorts = array ('name',
+		    'ab, name',
+		    'ar, name',
+		    'ad, name');
 		    
-	$querystring = "SELECT id, navn, descr, BCount.ab, Rcount.ar, Dcount.ad, (Medlem.gruppeid > 0) AS medl 
-FROM Brukergruppe 
+	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, (Medlem.gruppeid > 0) AS medl 
+FROM AccountGroup 
 LEFT OUTER JOIN (
-	SELECT count(brukerid) AS ab, gruppeid
-	FROM BrukerTilGruppe
+	SELECT count(accountid) AS ab, gruppeid
+	FROM AccountInGroup
 	GROUP BY gruppeid
 ) AS BCount 
 ON (id = BCount.gruppeid)
 LEFT OUTER JOIN (
-	SELECT count(utstyrgruppeid) AS ar, brukergruppeid 
+	SELECT count(utstyrgruppeid) AS ar, accountgroupid 
 	FROM Rettighet 
-	GROUP BY brukergruppeid 
+	GROUP BY accountgroupid 
 ) AS RCount 
-ON (id = RCount.brukergruppeid) 
+ON (id = RCount.accountgroupid) 
 LEFT OUTER JOIN (
-	SELECT count(utstyrgruppeid) AS ad, brukergruppeid
+	SELECT count(utstyrgruppeid) AS ad, accountgroupid
 	FROM DefaultUtstyr 
-	GROUP BY brukergruppeid 
+	GROUP BY accountgroupid 
 ) AS DCount 
-ON (id = DCount.brukergruppeid) 
+ON (id = DCount.accountgroupid) 
 LEFT OUTER JOIN (
-	SELECT brukerid, gruppeid FROM BrukerTilGruppe 
-	WHERE (brukerid = " . addslashes($uid) . ") 
+	SELECT accountid, gruppeid FROM AccountInGroup 
+	WHERE (accountid = " . addslashes($uid) . ") 
 ) AS Medlem 
 ON (id = Medlem.gruppeid) 
 ORDER BY " . $sorts[$sort];
@@ -312,7 +313,7 @@ ORDER BY " . $sorts[$sort];
 	while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$brukere[$row][0] = $data["id"];
-		$brukere[$row][1] = $data["navn"];
+		$brukere[$row][1] = $data["name"];
 		$brukere[$row][2] = $data["descr"];
 		$brukere[$row][3] = $data["ab"];
 		$brukere[$row][4] = $data["ar"];
@@ -337,7 +338,7 @@ ORDER BY " . $sorts[$sort];
 
     $querystring = "SELECT id, adresse, type " .
     	"FROM Alarmadresse " .
-    	"WHERE (brukerid = " . addslashes($uid) . ") " .
+    	"WHERE (accountid = " . addslashes($uid) . ") " .
     	"ORDER BY " . $sorts[$sort];
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
@@ -373,7 +374,7 @@ ORDER BY " . $sorts[$sort];
 		FROM (
      		SELECT adresse, id, type 
      		FROM Alarmadresse
-     		WHERE (brukerid = " . addslashes($uid) . ")
+     		WHERE (accountid = " . addslashes($uid) . ")
      	) AS adr LEFT OUTER JOIN (
      		SELECT vent, alarmadresseid 
      		FROM Varsle
@@ -502,17 +503,19 @@ WHERE matchfieldid = " . addslashes($mid) ;
    		'Brukerprofil.navn', 
    		'Q.antall, aktiv DESC, Brukerprofil.navn');
 
-  	$querystring = "SELECT (Bruker.aktivprofil = Brukerprofil.id) AS aktiv, " .
-      "Brukerprofil.id, Brukerprofil.navn, Q.antall " .
-  	  "FROM Bruker, Brukerprofil LEFT OUTER JOIN " .
-      "(SELECT pid, count(tid) AS antall FROM " .
-      "(SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil " .
-      "WHERE (Brukerprofil.brukerid = " . addslashes($uid) . 
-      ") AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder " .
-      "GROUP BY Perioder.pid ) AS Q " .
-      "ON (Brukerprofil.id = Q.pid) " .
-      "WHERE (Brukerprofil.brukerid = " . addslashes($uid) . ") AND (Bruker.id = Brukerprofil.brukerid)" .
-      "ORDER BY " . $sorts[$sort];
+  	$querystring = "
+SELECT (Preference.activeprofile = Brukerprofil.id) AS aktiv,
+Brukerprofil.id, Brukerprofil.navn, Q.antall
+FROM Preference, Account, Brukerprofil LEFT OUTER JOIN 
+    (SELECT pid, count(tid) AS antall FROM 
+        (SELECT Tidsperiode.id AS tid, Brukerprofil.id AS pid FROM Tidsperiode, Brukerprofil 
+        WHERE (Brukerprofil.accountid = " . addslashes($uid) . "
+            ) AND (Brukerprofil.id = Tidsperiode.brukerprofilid) ) AS Perioder 
+        GROUP BY Perioder.pid ) AS Q 
+    ON (Brukerprofil.id = Q.pid) 
+WHERE (Brukerprofil.accountid = " . addslashes($uid) . ") AND (Account.id = Brukerprofil.accountid) AND
+    (Account.id = Preference.accountid) 
+ORDER BY " . $sorts[$sort];
 
 #    print "<p>$querystring";
 
@@ -598,7 +601,7 @@ ORDER BY time, minutt";
 
 
 
-	// Denne funksjonen returnerer alle utstyrgrupper som en bruker har tilgang til, 
+	// Denne funksjonen returnerer alle utstyrgrupper som en Account har tilgang til, 
 	// enten man har laget den selv eller den er arvet gjennom DefaultUtstyr.
   function listUtstyr($uid, $sort) {
     $uts = NULL;
@@ -612,13 +615,13 @@ ORDER BY time, minutt";
     $querystring = "SELECT * FROM (SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af 
 FROM (SELECT id, navn, descr, true AS min
      FROM Utstyrgruppe
-     WHERE (brukerid = " . addslashes($uid) . ")
+     WHERE (accountid = " . addslashes($uid) . ")
      UNION
-     SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.brukerid = " . addslashes($uid). ") AS min
-     FROM Utstyrgruppe, DefaultUtstyr, Brukergruppe, BrukerTilGruppe
-     WHERE (BrukerTilGruppe.brukerid = " . addslashes($uid) . ")
-           AND (BrukerTilGruppe.gruppeid = Brukergruppe.id)
-           AND (Brukergruppe.id = DefaultUtstyr.brukergruppeid)
+     SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.accountid = " . addslashes($uid). ") AS min
+     FROM Utstyrgruppe, DefaultUtstyr, AccountGroup, AccountInGroup
+     WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
+           AND (AccountInGroup.groupid = AccountGroup.id)
+           AND (AccountGroup.id = DefaultUtstyr.accountgroupid)
            AND (DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id)
      ) AS Tilgjengelig LEFT OUTER JOIN
      (    SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
@@ -628,7 +631,7 @@ FROM (SELECT id, navn, descr, true AS min
                  	SELECT Varsle.utstyrgruppeid, Varsle.tidsperiodeid FROM Varsle, Tidsperiode, Brukerprofil 
                  	WHERE (Varsle.tidsperiodeid = Tidsperiode.id) AND
                  		(Tidsperiode.brukerprofilid = Brukerprofil.id) AND
-                 		(Brukerprofil.brukerid = " . addslashes($uid) . ")
+                 		(Brukerprofil.accountid = " . addslashes($uid) . ")
                  ) AS MinVarsle, Utstyrgruppe
                  WHERE (Utstyrgruppe.id = MinVarsle.utstyrgruppeid)
             ) AS X
@@ -640,7 +643,7 @@ FROM (SELECT id, navn, descr, true AS min
           FROM (
                SELECT utstyrfilterid, utstyrgruppeid
                FROM GruppeTilFilter, Utstyrgruppe
-               WHERE ((Utstyrgruppe.brukerid = " . addslashes($uid) . ") OR (Utstyrgruppe.brukerid is null) )
+               WHERE ((Utstyrgruppe.accountid = " . addslashes($uid) . ") OR (Utstyrgruppe.accountid is null) )
                      AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
           ) AS Y
           GROUP BY utstyrgruppeid
@@ -673,17 +676,17 @@ FROM (SELECT id, navn, descr, true AS min
     }
     
     
-	// Denne funksjonen returnerer alle utstyrgrupper som en bruker har rettighet til, 
+	// Denne funksjonen returnerer alle utstyrgrupper som en Account har rettighet til, 
   function listUtstyrRettighet($uid, $sort) {
     $uts = NULL;
     
 #    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
 
     $querystring = "SELECT DISTINCT ON (id) id, navn, descr 
-FROM BrukerTilGruppe, Rettighet, Utstyrgruppe 
-WHERE (BrukerTilGruppe.brukerid = " . addslashes($uid) . ") AND 
-	(BrukerTilGruppe.gruppeid = Brukergruppe.id) AND 
-	(Brukergruppe.id = Rettighet.brukergruppeid) AND 
+FROM accountingroup, Rettighet, Utstyrgruppe 
+WHERE (AccountInGroup.accountid = " . addslashes($uid) . ") AND 
+	(AccountInGroup.groupid = AccountGroup.id) AND 
+	(AccountGroup.id = Rettighet.accountgroupid) AND 
 	(Rettighet.utstyrgruppeid = Utstyrgruppe.id)";
 
  //print "<p>$querystring";
@@ -719,13 +722,13 @@ WHERE (BrukerTilGruppe.brukerid = " . addslashes($uid) . ") AND
     $querystring = "SELECT * FROM (SELECT DISTINCT ON (id) id, navn, descr, min, Pcount.ap, FCount.af
 FROM (SELECT id, navn, descr, true AS min
      FROM Utstyrgruppe
-     WHERE (brukerid is null)
+     WHERE (accountid is null)
      ) AS Tilgjengelig LEFT OUTER JOIN
      (    SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
             FROM (
                  SELECT DISTINCT ON (utstyrgruppeid,tidsperiodeid) tidsperiodeid, utstyrgruppeid
                  FROM Varsle, Utstyrgruppe
-                 WHERE (Utstyrgruppe.brukerid is null)
+                 WHERE (Utstyrgruppe.accountid is null)
                        AND (Utstyrgruppe.id = Varsle.utstyrgruppeid)
             ) AS X
             GROUP BY utstyrgruppeid
@@ -736,7 +739,7 @@ FROM (SELECT id, navn, descr, true AS min
           FROM (
                SELECT utstyrfilterid, utstyrgruppeid
                FROM GruppeTilFilter, Utstyrgruppe
-               WHERE (Utstyrgruppe.brukerid is null)
+               WHERE (Utstyrgruppe.accountid is null)
                      AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
           ) AS Y
           GROUP BY utstyrgruppeid
@@ -778,13 +781,13 @@ FROM (SELECT id, navn, descr, true AS min
     $querystring = "SELECT DISTINCT ON (id) id, navn, min, Pcount.ap, FCount.af 
 FROM ( SELECT id, navn, descr, true AS min 
 	FROM Utstyrgruppe
-	WHERE (brukerid = " . addslashes($uid) . ")
+	WHERE (accountid = " . addslashes($uid) . ")
 	UNION 
-	SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.brukerid = " . addslashes($uid) . ") AS min 
-	FROM Utstyrgruppe, DefaultUtstyr, Brukergruppe, BrukerTilGruppe
-	WHERE (BrukerTilGruppe.brukerid = " . addslashes($uid) . ")
-		AND (BrukerTilGruppe.gruppeid = Brukergruppe.id)
-		AND (Brukergruppe.id = DefaultUtstyr.brukergruppeid)
+	SELECT Utstyrgruppe.id, Utstyrgruppe.navn, Utstyrgruppe.descr, (Utstyrgruppe.accountid = " . addslashes($uid) . ") AS min 
+	FROM Utstyrgruppe, DefaultUtstyr, AccountGroup, AccountInGroup
+	WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
+		AND (AccountInGroup.groupid = AccountGroup.id)
+		AND (AccountGroup.id = DefaultUtstyr.accountgroupid)
 		AND (DefaultUtstyr.utstyrgruppeid = Utstyrgruppe.id) 
 ) AS Tilgjengelig LEFT OUTER JOIN ( 
 	SELECT count(tidsperiodeid) AS ap, utstyrgruppeid
@@ -793,7 +796,7 @@ FROM ( SELECT id, navn, descr, true AS min
 		FROM Varsle, Tidsperiode, Brukerprofil 
 		WHERE (Varsle.tidsperiodeid = Tidsperiode.id) 
 			AND (Tidsperiode.brukerprofilid = Brukerprofil.id) 
-			AND (Brukerprofil.brukerid = " . addslashes($uid) . ") 
+			AND (Brukerprofil.accountid = " . addslashes($uid) . ") 
 	) AS X
 	GROUP BY utstyrgruppeid
 ) AS PCount
@@ -803,7 +806,7 @@ LEFT OUTER JOIN (
 	FROM (
 		SELECT utstyrfilterid, utstyrgruppeid
 		FROM GruppeTilFilter, Utstyrgruppe
-		WHERE (Utstyrgruppe.brukerid = " . addslashes($uid) . ")
+		WHERE (Utstyrgruppe.accountid = " . addslashes($uid) . ")
 			AND (Utstyrgruppe.id = GruppeTilFilter.utstyrgruppeid)
 	) AS Y
 	GROUP BY utstyrgruppeid
@@ -850,18 +853,18 @@ ON (id = FCount.utstyrgruppeid)";
 FROM (
 	SELECT id, navn, descr 
 	FROM Utstyrgruppe 
-	WHERE brukerid is null 
+	WHERE accountid is null 
 ) AS grupper 
 LEFT OUTER JOIN (
 	SELECT utstyrgruppeid 
 	FROM Rettighet 
-	WHERE brukergruppeid = " . addslashes($gid) . "
+	WHERE accountgroupid = " . addslashes($gid) . "
 ) AS rett 
 ON (grupper.id = rett.utstyrgruppeid) 
 LEFT OUTER JOIN (
 	SELECT utstyrgruppeid 
 	FROM DefaultUtstyr 
-	WHERE brukergruppeid = " . addslashes($gid) . "
+	WHERE accountgroupid = " . addslashes($gid) . "
 ) AS def 
 ON (grupper.id = def.utstyrgruppeid) 
 ORDER BY navn";
@@ -894,17 +897,17 @@ ORDER BY navn";
   function brukerInfo($uid) {
     $br = NULL;
 
-    $querystring = "SELECT brukernavn, navn, admin, sms, aktivProfil  
-FROM Bruker 
-WHERE id = " . addslashes($uid) ;
+    $querystring = "SELECT login, name, admin, sms, activeprofile  
+FROM Account, Preference  
+WHERE id = " . addslashes($uid) . " AND account.id = preference.accountid";
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$br[0] = $data["brukernavn"];
-		$br[1] = $data["navn"];
+		$br[0] = $data["login"];
+		$br[1] = $data["name"];
 		$br[2] = $data["admin"];
 		$br[3] = $data["sms"];
-		$br[4] = $data["aktivprofil"];
+		$br[4] = $data["activeprofile"];
     }  else {
       $error = new Error(2);
       $bruker{'errmsg'}= "Feil med datbasespørring.";
@@ -917,13 +920,13 @@ WHERE id = " . addslashes($uid) ;
   function brukergruppeInfo($gid) {
     $gr = NULL;
 
-    $querystring = "SELECT navn, descr 
-FROM Brukergruppe 
+    $querystring = "SELECT name, descr 
+FROM AccountGroup 
 WHERE id = " . addslashes($gid) ;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$gr[0] = $data["navn"]; 
+		$gr[0] = $data["name"]; 
 		$gr[1] = $data["descr"];		
     }  else {
       $error = new Error(2);
@@ -960,7 +963,7 @@ WHERE id = " . addslashes($gid) ;
   function utstyrgruppeInfoAdv($gid, $uid) {
     $gr = NULL;
 
-    $querystring = "SELECT navn, descr, (brukerid = " . $uid . ") AS min 
+    $querystring = "SELECT navn, descr, (accountid = " . $uid . ") AS min 
 FROM Utstyrgruppe WHERE id = " . addslashes($gid) ;
 
 //	print "<p>" . $querystring;
@@ -1010,7 +1013,7 @@ WHERE id = " . addslashes($pid) ;
 
 
 
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt bruker.
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account.
   function listFiltre($uid, $sort) {
     $filtre = NULL;
     
@@ -1020,13 +1023,13 @@ WHERE id = " . addslashes($pid) ;
 FROM (
 	SELECT id, navn
 	FROM Utstyrfilter 
-	WHERE (Utstyrfilter.brukerid = " . addslashes($uid) . ") 
+	WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") 
 ) AS MineFilter LEFT OUTER JOIN (
      SELECT count(mid) AS am,  uid
      FROM (
           SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
           FROM Utstyrfilter, FilterMatch
-          WHERE (Utstyrfilter.brukerid = " . addslashes($uid) . ") AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
+          WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
      ) AS Mcount 
      GROUP BY uid 
 ) AS match 
@@ -1036,7 +1039,7 @@ LEFT OUTER JOIN (
      FROM (
           SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
           FROM Utstyrfilter, GruppeTilFilter
-          WHERE (Utstyrfilter.brukerid = " . addslashes($uid) . ") AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+          WHERE (Utstyrfilter.accountid = " . addslashes($uid) . ") AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
      ) AS Gcount 
      GROUP BY uid 
 ) AS grupper 
@@ -1077,13 +1080,13 @@ ORDER BY navn";
 FROM (
 	SELECT id, navn
 	FROM Utstyrfilter 
-	WHERE (Utstyrfilter.brukerid is null) 
+	WHERE (Utstyrfilter.accountid is null) 
 ) AS MineFilter LEFT OUTER JOIN (
      SELECT count(mid) AS am,  uid
      FROM (
           SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
           FROM Utstyrfilter, FilterMatch
-          WHERE (Utstyrfilter.brukerid is null) AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
+          WHERE (Utstyrfilter.accountid is null) AND (Utstyrfilter.id = FilterMatch.utstyrfilterid)
      ) AS Mcount 
      GROUP BY uid 
 ) AS match 
@@ -1093,7 +1096,7 @@ LEFT OUTER JOIN (
      FROM (
           SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
           FROM Utstyrfilter, GruppeTilFilter
-          WHERE (Utstyrfilter.brukerid is null) AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+          WHERE (Utstyrfilter.accountid is null) AND (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
      ) AS Gcount 
      GROUP BY uid 
 ) AS grupper 
@@ -1125,13 +1128,13 @@ ORDER BY navn";
 
 
 
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt bruker uten unødig krimskrams. untatt de som allerede er valgt.
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account uten unødig krimskrams. untatt de som allerede er valgt.
   function listFiltreFast($uid, $gid, $sort) {
     $filtre = NULL;
 
     $querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn 
 FROM Utstyrfilter 
-WHERE brukerid = " . addslashes($uid) . " 
+WHERE accountid = " . addslashes($uid) . " 
 EXCEPT SELECT Utstyrfilter.id, Utstyrfilter.navn 
 FROM Utstyrfilter, GruppeTilFilter 
 WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) 
@@ -1157,14 +1160,14 @@ ORDER BY navn";
 
 
 
-	// Denne funksjonen returnerer alle filtrene som hører til admin bruker 
+	// Denne funksjonen returnerer alle filtrene som hører til admin Account 
 	// uten unødig krimskrams. untatt de som allerede er valgt.
   function listFiltreFastAdm($gid, $sort) {
     $filtre = NULL;
 
     $querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn 
 FROM Utstyrfilter 
-WHERE brukerid is null 
+WHERE accountid is null 
 EXCEPT SELECT Utstyrfilter.id, Utstyrfilter.navn 
 FROM Utstyrfilter, GruppeTilFilter 
 WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) 
@@ -1288,7 +1291,7 @@ function periodeInfo($tid) {
 // Henter ut informasjon om en periode..
 function hentwapkey($uid) {
     
-    $querystring = "SELECT key FROM wapkey WHERE (brukerid = " . addslashes($uid) . ")"; 
+    $querystring = "SELECT key FROM wapkey WHERE (accountid = " . addslashes($uid) . ")"; 
 
 //    print "<p>$querystring";
 
@@ -1307,11 +1310,11 @@ function settwapkey($uid, $key) {
 //	$oldkey = "null";
 	if ($oldkey == null) {
 	    // Spxrring som legger inn i databasen
-		$querystring = "INSERT INTO Wapkey (brukerid, key) VALUES (" . addslashes($uid) . ", '" . addslashes($key) . "')";    
+		$querystring = "INSERT INTO Wapkey (accountid, key) VALUES (" . addslashes($uid) . ", '" . addslashes($key) . "')";    
 		$query = pg_exec( $this->connection, $querystring);
 
     } else {
-		$querystr = "UPDATE wapkey SET key = '" . addslashes($key) . "' WHERE brukerid = " . addslashes($uid);
+		$querystr = "UPDATE wapkey SET key = '" . addslashes($key) . "' WHERE accountid = " . addslashes($uid);
 		@pg_exec($this->connection, $querystr);
     }
 
@@ -1319,7 +1322,7 @@ function settwapkey($uid, $key) {
 
 function slettwapkey($uid) {
     // Spxrring som legger inn i databasen
-    $querystring = "DELETE FROM Wapkey WHERE ( brukerid = " . addslashes($uid) . " )";
+    $querystring = "DELETE FROM Wapkey WHERE ( accountid = " . addslashes($uid) . " )";
 #    print "<p>QUERY:$querystring:";
     
 	#print "<p>query: $querystring\n brukerid: $brukerid";
@@ -1394,9 +1397,9 @@ function endreUtstyrgruppe($gid, $navn, $descr) {
 
 // Endre detaljer om en brukergruppe
 function endreBrukergruppe($gid, $navn, $descr) {
-	$querystr = "UPDATE Brukergruppe SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
+	$querystr = "UPDATE AccountGroup SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
-	$querystr = "UPDATE Brukergruppe SET descr = '" . addslashes($descr) . "' WHERE id = " . addslashes($gid);
+	$querystr = "UPDATE AccountGroup SET descr = '" . addslashes($descr) . "' WHERE id = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
 }
 
@@ -1411,33 +1414,33 @@ function endreAdresse($aid, $type, $adr) {
 
 // Endre brukerinfo
 function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde) {
-	$querystr = "UPDATE Bruker SET brukernavn = '" . addslashes($brukernavn) . "' WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET login = '" . addslashes($brukernavn) . "' WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
-	$querystr = "UPDATE Bruker SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET navn = '" . addslashes($navn) . "' WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
- 	$querystr = "UPDATE Bruker SET passord = '" . addslashes($passord) . "' WHERE id = " . addslashes($uid);
+ 	$querystr = "UPDATE Account SET passord = '" . addslashes($passord) . "' WHERE id = " . addslashes($uid);
 	if ($passord != undef && strlen($passord) > 0) {
 		@pg_exec($this->connection, $querystr);
 	}	
 	
 	if ($sms == 1) $s = "true"; else $s = "false";
-	$querystr = "UPDATE Bruker SET sms = " . addslashes($s) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET sms = " . addslashes($s) . " WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 	
-	$querystr = "UPDATE Bruker SET admin = " . addslashes($admin) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET admin = " . addslashes($admin) . " WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);	
 	
-	$querystr = "UPDATE Bruker SET kolengde = " . addslashes($kolengde) . " WHERE id = " . addslashes($uid);
+	$querystr = "UPDATE Account SET kolengde = " . addslashes($kolengde) . " WHERE id = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 
 }
 
 // Endre passord
 function endrepassord($brukernavn, $passwd) {
-	$querystr = "UPDATE Bruker SET passord = '" . addslashes($passwd) . 
-		"' WHERE brukernavn = '" . addslashes($brukernavn) . "'";
+	$querystr = "UPDATE Account SET passord = '" . addslashes($passwd) . 
+		"' WHERE login = '" . addslashes($brukernavn) . "'";
 	@pg_exec($this->connection, $querystr);
 
 
@@ -1445,11 +1448,13 @@ function endrepassord($brukernavn, $passwd) {
 
 
 // Endre språk
-function setlang($brukernavn, $lang) {
-	$querystr = "UPDATE Bruker SET lang = '" . addslashes($lang) . 
-		"' WHERE brukernavn = '" . addslashes($brukernavn) . "'";
+function setlang($brukerid, $lang) {
+	$querystr = "DELETE FROM AccountProperty WHERE property = 'language' AND accountid = '" . addslashes($brukerid) . "'";
 	@pg_exec($this->connection, $querystr);
 
+	$querystr = "INSERT INTO AccountProperty (accountid, property, value) VALUES (" . 
+            addslashes($brukerid) . ", 'language', '" . addslashes($lang) . "')";
+	@pg_exec($this->connection, $querystr);
 
 }
 
@@ -1474,12 +1479,12 @@ function endreVarsleadresse($tid, $adresseid, $utstyrgruppeid, $type) {
 // Legge til eller endre en brukertilgruppe
 function endreBrukerTilGruppe($uid, $gid, $type) {
 	
-	$querystr = "DELETE FROM BrukerTilGruppe WHERE brukerid = " . addslashes($uid) . " AND gruppeid = " . addslashes($gid);
+	$querystr = "DELETE FROM AccountInGroup WHERE accountid = " . addslashes($uid) . " AND gruppeid = " . addslashes($gid);
 	@pg_exec($this->connection, $querystr);
 	
 //	print "<p>Query: $querystr";
 	if ( $type ) {
-		$querystr = "INSERT INTO BrukerTilGruppe (brukerid, gruppeid) VALUES (" . addslashes($uid) . ", " . addslashes($gid) . ") ";
+		$querystr = "INSERT INTO AccountInGroup (accountid, gruppeid) VALUES (" . addslashes($uid) . ", " . addslashes($gid) . ") ";
 //	print "<p>Query: $querystr<p>&npsp;$gid ---";		
 		@pg_exec($this->connection, $querystr);
 	}
@@ -1490,11 +1495,11 @@ function endreBrukerTilGruppe($uid, $gid, $type) {
 function endreRettighet($gid, $ugid, $type) {
 
 	
-	$querystr = "DELETE FROM Rettighet WHERE brukergruppeid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
+	$querystr = "DELETE FROM Rettighet WHERE accountgroupid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
 	@pg_exec($this->connection, $querystr);
 //	print "<p>Query: $querystr";	
 	if ( $type ) {
-		$querystr = "INSERT INTO Rettighet (brukergruppeid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";		
+		$querystr = "INSERT INTO Rettighet (accountgroupid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";		
 		@pg_exec($this->connection, $querystr);
 	}
 
@@ -1504,11 +1509,11 @@ function endreRettighet($gid, $ugid, $type) {
 function endreDefault($gid, $ugid, $type) {
 
 	
-	$querystr = "DELETE FROM DefaultUtstyr WHERE brukergruppeid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
+	$querystr = "DELETE FROM DefaultUtstyr WHERE accountgroupid = " . addslashes($gid) . " AND utstyrgruppeid = " . addslashes($ugid);
 	@pg_exec($this->connection, $querystr);
 //	print "<p>Query: $querystr";	
 	if ( $type ) {
-		$querystr = "INSERT INTO DefaultUtstyr (brukergruppeid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";
+		$querystr = "INSERT INTO DefaultUtstyr (accountgroupid, utstyrgruppeid) VALUES (" . addslashes($gid) . ", " . addslashes($ugid) . " )";
 //	print "<p>Query: $querystr";			
 		@pg_exec($this->connection, $querystr);
 	}
@@ -1543,9 +1548,9 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
     if ( $sms   == 1 ) { $sms = 'true'; } else { $sms = 'false'; }
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Bruker (id, navn, brukernavn, passord, admin, sms, kolengde) VALUES (" . 
-      "nextval('brukerid'), '" . addslashes($navn) . "', '" . addslashes($brukernavn) . "', '" .
-      addslashes($passord) . "', " . addslashes($admin) . ", " . addslashes($sms) . ", " . addslashes($kolengde) . ") ";
+    $querystring = "INSERT INTO Account (name, login, password) VALUES ('" . 
+       addslashes($navn) . "', '" . addslashes($brukernavn) . "', '" .
+      addslashes($passord) . "') ";
     
 #    print "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -1554,8 +1559,15 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       $oid = pg_getlastoid($query);
       
       // Henter ut id`n til raden og returnerer den.
-      $idres = pg_exec( $this->connection, "SELECT id FROM Bruker WHERE oid = $oid");
+      $idres = pg_exec( $this->connection, "SELECT id FROM Account WHERE oid = $oid");
       $idrow = pg_fetch_row($idres, 0);
+      
+          // Spxrring som legger inn i databasen
+        $querystring = "INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES (" . 
+            $idrow[0] . ", " . addslashes($admin) . ", " . $sms . ", " . addslashes($kolengde) . ") ";
+            
+        pg_exec( $this->connection, $querystring);
+
       return $idrow[0];
     } else {
       // fikk ikke til e legge i databasen
@@ -1572,8 +1584,8 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyBrukerGruppe( $navn, $descr ) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO BrukerGruppe (id, navn, descr) VALUES (" . 
-      "nextval('brukergruppeid'), '" . addslashes($navn) . "', '" . addslashes($descr) . "') ";
+    $querystring = "INSERT INTO AccountGroup (name, descr) VALUES ('" . 
+        addslashes($navn) . "', '" . addslashes($descr) . "') ";
     
 #    print "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -1582,7 +1594,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       $oid = pg_getlastoid($query);
       
       // Henter ut id`n til raden og returnerer den.
-      $idres = pg_exec( $this->connection, "SELECT id FROM BrukerGruppe WHERE oid = $oid");
+      $idres = pg_exec( $this->connection, "SELECT id FROM AccountGroup WHERE oid = $oid");
       $idrow = pg_fetch_row($idres, 0);
       return $idrow[0];
     } else {
@@ -1624,7 +1636,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyAdresse($adresse, $adressetype, $brukerid) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Alarmadresse (id, brukerid, adresse, type) VALUES (" . 
+    $querystring = "INSERT INTO Alarmadresse (id, accountid, adresse, type) VALUES (" . 
       "nextval('alarmadresseid'), " . addslashes($brukerid) . ", '" . 
       addslashes($adresse) ."', " . addslashes($adressetype) . " )";
     
@@ -1651,7 +1663,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyLogghendelse($brukerid, $type, $descr) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Logg (brukerid, type, descr, tid) VALUES (" . 
+    $querystring = "INSERT INTO Logg (accountid, type, descr, tid) VALUES (" . 
     	addslashes($brukerid) . ", " . addslashes($type) .", '" . 
     	addslashes($descr) . "', current_timestamp )";
     
@@ -1673,14 +1685,15 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyProfil($navn, $brukerid, $ukedag, $uketidh, $uketidm, $tidh, $tidm) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Brukerprofil (id, brukerid, navn, ukedag, uketid, tid) VALUES (" . 
+    $querystring = "INSERT INTO Brukerprofil (id, accountid, navn, ukedag, uketid, tid) VALUES (" . 
       "nextval('brukerprofilid'), " . $brukerid . ", '" . 
       addslashes($navn) ."', " . addslashes($ukedag) . ", '" . 
       addslashes($uketidh) . ":" . addslashes($uketidm) . "', '" .
       addslashes($tidh) . ":" . addslashes($tidm) . "' " .
       " )";
-    
-    #print "<p>query: $querystring";
+      
+      
+    //echo "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {
       
       // Henter ut object id`n til raden.
@@ -1703,7 +1716,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   function nyttFilter($navn, $brukerid) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Utstyrfilter (id, brukerid, navn) VALUES (" . 
+    $querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
       "nextval('utstyrfilterid'), " . addslashes($brukerid) . ", '" . 
       addslashes($navn) ."' )";
     
@@ -1725,13 +1738,12 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   }
 
 
-
-  // opprette nytt filter
-  function nyttFilter($navn, $brukerid) {
+  // opprette nytt adm- filter
+  function nyttFilterAdm($navn) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Utstyrfilter (id, brukerid, navn) VALUES (" . 
-      "nextval('utstyrfilterid'), " . addslashes($brukerid) . ", '" . 
+    $querystring = "INSERT INTO Utstyrfilter (id, accountid, navn) VALUES (" . 
+      "nextval('utstyrfilterid'), null, '" . 
       addslashes($navn) ."' )";
     
 #    print "<p>query: $querystring";
@@ -1750,7 +1762,8 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
     }
 
   }
-
+  
+  
     function extrval($value) {
         if ($value == "." || $value == 'undef') {
             return "null";
@@ -1863,7 +1876,7 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
     // Legg inn ny utstyrsgruppe i databasen
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Utstyrgruppe (id, brukerid, navn, descr) VALUES (" . 
+    $querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
     "nextval('filtermatchid'), " . addslashes($uid) . ", '" . 
     addslashes($navn) ."', '" . addslashes($descr) . "' )";
     
@@ -1976,7 +1989,7 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
   function nyUtstyrgruppeAdm($navn, $descr) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO Utstyrgruppe (id, brukerid, navn, descr) VALUES (" . 
+    $querystring = "INSERT INTO Utstyrgruppe (id, accountid, navn, descr) VALUES (" . 
       "nextval('filtermatchid'), null, '" . 
       addslashes($navn) ."', '" . addslashes($descr) . "' )";
     
@@ -2037,7 +2050,7 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
   function slettBruker($uid) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "DELETE FROM Bruker WHERE ( id = " . addslashes($uid) . " )";
+    $querystring = "DELETE FROM Account WHERE ( id = " . addslashes($uid) . " )";
     
 	#print "<p>query: $querystring\n brukerid: $brukerid";
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -2054,7 +2067,7 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
   function slettBrukergruppe($gid) {
 
     // Spxrring som legger inn i databasen
-    $querystring = "DELETE FROM Brukergruppe WHERE ( id = " . addslashes($gid) . " )";
+    $querystring = "DELETE FROM AccountGroup WHERE ( id = " . addslashes($gid) . " )";
     
 	#print "<p>query: $querystring\n brukerid: $brukerid";
     if ( $query = pg_exec( $this->connection, $querystring)) {
@@ -2154,12 +2167,12 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
   }
 
   // sett en profil som aktiv for en bestemt bruker
-  function aktivProfil($brukernavn, $profilid) {
+  function aktivProfil($brukerid, $profilid) {
 
     if ($profilid == 0) { $profilid = "null"; }
     // Spxrring som legger inn i databasen
-    $querystring = "UPDATE Bruker SET aktivProfil = " . addslashes($profilid) . " WHERE " .
-      " brukernavn = '" . addslashes($brukernavn) . "'  ";
+    $querystring = "UPDATE Preference SET activeprofile = " . addslashes($profilid) . " WHERE " .
+      "accountid = " . addslashes($brukerid) . "  ";
     
    #print "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring) ) {

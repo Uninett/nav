@@ -58,51 +58,60 @@ $login = false;
    */
 
 
-	if ( session_get('login') ) {
-		$login = true;	
-	}
-    
-  /*
-   * Denne seksjonen omhandler innlogging for første gang
-   */
-  if (isset($username)) {
-    
-	$username = addslashes($username);
-	$passwd = addslashes($passwd);
-    
-	if (! $query = @pg_exec($dbcon, "SELECT id, admin, lang FROM bruker WHERE brukernavn = '$username' AND passord = '$passwd'")  ) {
-		$error = new Error(2);
-		$error->message = gettext("Feil med datbasespørring.");
-    } else {
-		if (pg_numrows($query) == 1) {
-			if ( $data = pg_fetch_array($query, $row) ) {
-				// INNLOGGING OK!!
-				$foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
-				$dbh->nyLogghendelse($data["id"], 1, gettext("Logget inn fra ") . $foo);
-				session_set('uid', $data["id"]);
-				session_set('admin', $data["admin"]);
-				session_set('lang', $data["lang"]);
-				session_set('bruker', $username);
-				session_set('login', true);
-				$login = true;
-			} else {
-				$error = new Error(2);
-				$error->message = gettext("Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen.");
-			}
-    	} else {
-			$error = new Error(1);
-			$error->message = gettext("Du skrev inn feil brukernavn eller passord, forsøk igjen...");
-    	}
-    
-  	}
+if ( session_get('login') ) {
+        $login = true;	
+}
 
-  }
+/*
+* Denne seksjonen omhandler innlogging for første gang
+*/
+if (isset($username)) {
+
+    $username = addslashes($username);
+    $passwd = addslashes($passwd);
+
+    $querystring = "
+SELECT Account.id AS aid, Preference.admin, ap.value 
+FROM Preference, Account LEFT OUTER JOIN (
+SELECT accountid, property, value FROM AccountProperty WHERE property = 'language' 
+) AS ap ON 
+    (Account.id = ap.accountid) 
+WHERE (Account.login = '$username' AND password = '$passwd') AND 
+    (Account.id = Preference.accountid) ";
+
+   //echo "<p>Query: " . $querystring;
+
+    if (! $query = @pg_exec($dbcon, $querystring)  ) {
+        $error = new Error(2);
+        $error->message = gettext("Feil med datbasespørring.");
+    } else {
+        if (pg_numrows($query) == 1) {
+            if ( $data = pg_fetch_array($query, $row) ) {
+                // INNLOGGING OK!!
+                $foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
+                $dbh->nyLogghendelse($data["aid"], 1, gettext("Logget inn fra ") . $foo);
+                session_set('uid', $data["aid"]);
+                session_set('admin', $data["admin"]);
+                session_set('lang', $data["value"]);
+                session_set('bruker', $username);
+                session_set('login', true);
+                $login = true;
+            } else {
+                $error = new Error(2);
+                $error->message = gettext("Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen.");
+            }
+        } else {
+            $error = new Error(1);
+            $error->message = gettext("Du skrev inn feil brukernavn eller passord, forsøk igjen...");
+        }
+    }
+}
 
 
 if ($action == "logout") {
-	$dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
-	$login = false;
-	session_set('login', false);
+    $dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
+    $login = false;
+    session_set('login', false);
 }
 
 ?>

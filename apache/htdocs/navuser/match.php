@@ -73,7 +73,7 @@ if ($subaction == "nymatch") {
   if ($navn == "") $navn = gettext("Uten navn");
   if ($uid > 0) { 
     
-    $matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
+    $matchid = $dbh->nyMatch(post_get('matchfelt2'), post_get('matchtype'), 
     	post_get('verdi'), session_get('match_fid') );
     print "<p><font size=\"+3\">" . gettext("OK</font>, en ny betingelse (match) er lagt til for dette filteret.");
     
@@ -302,7 +302,7 @@ if ( post_exist('matchfelt') ) {
 }
 
 if (post_exist('matchfelt')) {
-    echo '<input type="hidden" name="matchfelt" value="' . post_get('matchfelt') . '">';
+    echo '<input type="hidden" name="matchfelt2" value="' . post_get('matchfelt') . '">';
 }
 print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 

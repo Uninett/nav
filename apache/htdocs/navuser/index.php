@@ -16,7 +16,7 @@ if ($login) {
 }
 
 if (get_exist('langset') && $login) {
-	$dbh->setlang(session_get('bruker'), get_get('langset'));
+	$dbh->setlang(session_get('uid'), get_get('langset'));
 	session_set('lang', get_get('langset'));
 	$language = session_get('lang');
 }
@@ -26,7 +26,7 @@ putenv("LANGUAGE=$language");
 setlocale(LC_ALL, $language);
 
 // Set the text domain as 'messages'
-$domain = 'messages5';
+$domain = 'messages';
 bindtextdomain($domain, "./locale/");
 textdomain($domain);
 
@@ -49,7 +49,6 @@ require("listing.php");
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
-
 <table width="100%">
 <tr><td align="left">
 <a href="index.php">
