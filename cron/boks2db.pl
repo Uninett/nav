@@ -20,7 +20,7 @@ my $conn = db_connect($db);
 my $fil;
 
 #databaseting
-my @felt;
+#my @felt;
 my $sql;
 my $resultat;
 
@@ -38,9 +38,11 @@ my $ip;
 #blir hentet via snmp
 my $type;
 
+my $mib_sysname = ".1.3.6.1.2.1.1.5.0";
 #midlertidig array av bestemt, generelt format
 my @gen;
 
+my (%server,%db_server,%nettel,%db_nettel,%alle,%db_alle,@felt_nettel,@felt_server);
 #kommenter ut =cut i hent_type for å hente ut typer
 #tar så lang tid, så det er ikke like gøy hver gang
 
@@ -57,19 +59,40 @@ while (<FIL>) {
 
     @_ = map rydd($_), @_;
 
-    if($ip = hent_ip($_[1])){
-	@gen = ($ip,undef,@_[0..5],undef);
-	
-#fjerner "whitespace"-tegn
-	@gen = map rydd($_), @gen;
-	
+    if($ip = hent_ip($_[1])) {
+	@_ = ($ip,@_[0..5]);
+	@_ = map rydd($_), @_;
+
 #lagrer array i hash
-	$fil{$gen[0]} = [ @gen ];
-    } else {
-	print "DNS-feil\n";
+	$server{$_[0]} = [ @_ ];
+	map print($_), @{$server{$_[0]}};
+	print "\n";
+	$alle{$_[0]} = 1;
     }
 }
 close FIL;
+
+#----------------------------------
+#DATABASELESING
+#felter som skal leses ut av databasen
+@felt_server = ("ip","romid","sysname","orgid","kat","kat2","ro");
+
+#select 
+$sql = "SELECT ".join(",", @felt_server )." FROM boks";
+$resultat = db_select($sql,$conn);
+while(@_ = $resultat->fetchrow) {
+#fjerner whitespace"-tegn og andre ekle ting
+    @_ = map rydd($_), @_;
+
+#lagrer array i hashen db
+    $db_server{$_[0]} = [ @_ ];
+    $db_alle{$_[0]} = 1;
+}
+
+for my $it (keys %server) {
+    print "$it\n";
+    &sammenlikn(\%server,\%db_server,\@felt_server,"boks",$it);
+}
 
 #------------------------------
 #FILLESING: nettel.txt
@@ -80,17 +103,24 @@ while (<FIL>) {
     next unless /^\w+?\:\S+?\:/; 
 #splitter resten av linja
     (@_,undef) = split /:/, $_,$les+2;
-#rydder før bruk av ip og ro
+
     @_ = map rydd($_), @_;
+
 #setter opp gen
     $ip = $_[1];
-    $type = hent_type($ip,$_[5]);
-    @gen = ($ip,$type,$_[0],undef,@_[2..6]);
-#rydder i gen
-    @gen = map rydd($_), @gen;
+    my $ro = $_[5];
+    $type = hent_type($ip,$ro);
+    my $sysname = hent_sysname($ip,$ro);
+    if($type) {
+	@_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
+	@_ = map rydd($_), @_;
 
 #lagrer array i hashen fil
-    $fil{$gen[0]} = [ @gen ];
+	$nettel{$_[0]} = [ @_ ];
+	map print($_), @{$nettel{$_[0]}};
+	print "\n";
+	$alle{$_[0]} = 1;
+    }
 
 }
 close FIL;
@@ -98,19 +128,24 @@ close FIL;
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
-@felt = ("ip","typeid","romid","sysname","orgid","kat","kat2","ro","rw");
+@felt_nettel = ("ip","typeid","romid","sysname","orgid","kat","kat2","ro","rw");
 
 #select 
-$sql = "SELECT ".join(",", @felt )." FROM boks ORDER BY $felt[0]";
+$sql = "SELECT ".join(",", @felt_nettel )." FROM boks";
 $resultat = db_select($sql,$conn);
 while(@_ = $resultat->fetchrow) {
 #fjerner whitespace"-tegn og andre ekle ting
     @_ = map rydd($_), @_;
 
 #lagrer array i hashen db
-    $db{$_[0]} = [ @_ ];
+    $db_nettel{$_[0]} = [ @_ ];
+    $db_alle{$_[0]} = 1;
+}
+for my $it (keys %nettel) {
+    &sammenlikn(\%nettel,\%db_nettel,\@felt_nettel,"boks",$it);
 }
 
+=cut
 #----------------------------------------
 #ENDRINGER
 
@@ -142,28 +177,79 @@ for my $f (keys %fil) {
 #INSERT
 	print "\nSetter inn $fil{$f}[0]";
 	my @val;
-	foreach my $i (0..@felt-1) {
-	    if (defined($fil{$f}[$i])){
+	my @key;
+	foreach my $i (0..$#felt) {
+	    if (defined($fil{$f}[$i]) && $fil{$f}[$i] ne ""){
 		push(@val, "\'".$fil{$f}[$i]."\'");
-	    } else {
-#		push(@val, "\'\'");
+		push(@key, $felt[$i]);
 	    }
 	}
 	
-	$sql = "INSERT INTO boks (".join(",",@felt ).") VALUES (".join(",",@val).")";
+	$sql = "INSERT INTO boks (".join(",",@key ).") VALUES (".join(",",@val).")";
 	print $sql;
 	db_execute($sql,$conn);
     }
     
 }
+=cut
 #-----------------------------------
 #DELETE
-for my $f (keys %db) {
-    unless(exists($fil{$f})) {
+for my $f (keys %db_alle) {
+    unless(exists($alle{$f})) {
 	print "sletter ".$f;
-	$sql = "DELETE FROM boks WHERE $felt[0]=\'$f\'";
+	print $sql = "DELETE FROM boks WHERE ip =\'$f\'";
 	db_execute($sql,$conn);
     }
+}
+
+sub sammenlikn {
+
+    my %ny = %{$_[0]};
+    my %gammel = %{$_[1]};
+    my @felt = @{$_[2]};
+    my $tabell = $_[3];
+    my $f = $_[4];
+
+
+#eksisterer i databasen?
+    if($gammel{$f}[0]) {
+#-----------------------
+#UPDATE
+	for my $i (0..$#felt ) {
+	    unless($ny{$f}[$i] eq $gammel{$f}[$i]) {
+#oppdatereringer til null må ha egen spørring
+		if ($ny{$f}[$i] eq "" && $gammel{$f}[$i] ne ""){
+		    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"NULL\"";
+		    $sql = "UPDATE $tabell SET $felt[$i]=null WHERE $felt[0]=\'$f\'";
+		    db_execute($sql,$conn);
+		    print $sql;
+		} else {
+#normal oppdatering
+		    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"$ny{$f}[$i]\"";
+		    $sql = "UPDATE $tabell SET $felt[$i]=\'$ny{$f}[$i]\' WHERE $felt[0]=\'$f\'";
+		    print $sql;
+		    db_execute($sql,$conn);
+		}
+	    }
+	}
+    }else{
+#-----------------------
+#INSERT
+	print "\nSetter inn $ny{$f}[0]";
+	my @val;
+	my @key;
+	foreach my $i (0..$#felt) {
+	    if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
+		push(@val, "\'".$ny{$f}[$i]."\'");
+		push(@key, $felt[$i]);
+	    }
+	}
+	
+	$sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
+	print $sql;
+	db_execute($sql,$conn);
+    }
+    
 }
 
 sub hent_ip{
@@ -191,6 +277,16 @@ sub hent_type{
 	$resultat = $resultat->fetchrow;
 	print "OK:\t$ro\@$ip = $resultat \n";
 	
+    }
+    return $resultat;
+}
+
+sub hent_sysname{
+    my $ip = $_[0];
+    my $ro = $_[1];
+    my $resultat = "";
+    if ($ro) {
+	($resultat) = &snmpget("$ro\@$ip:161:1:2:4",$mib_sysname);
     }
     return $resultat;
 }
