@@ -264,10 +264,10 @@ class MACSQLQuery (MachineTrackerSQLQuery):
 		#mac = mac.replace(":", "")
 		mac = mac.lower()
 		if mac.startswith("*") or mac.endswith("*"):
-			extra = "mac ilike '%s'"%mac.replace("*","%")
+			extra = "arp.mac ilike '%s'"%mac.replace("*","%")
 		else:
-			extra = "mac='%s'"%mac
-		order_by = "mac,cam.sysname,module,port,arp.ip,start"
+			extra = "arp.mac='%s'"%mac
+		order_by = "arp.mac,cam.sysname,module,port,arp.ip,start"
 		MachineTrackerSQLQuery.__init__(self,days,extra,order_by)
 
 class IPSQLQuery (MachineTrackerSQLQuery):
@@ -277,7 +277,7 @@ class IPSQLQuery (MachineTrackerSQLQuery):
 		ip_to = re.sub("[^0-9.]+","",ip_to)
 		self.ip_from = ip_from
 		self.ip_to = ip_to
-		order_by = "arp.ip,cam.sysname,module,mac,port,start"
+		order_by = "arp.ip,arp.mac,cam.sysname,module,port,start"
 		extra = "ip between '%s' and '%s'"%(ip_from,ip_to)
 		MachineTrackerSQLQuery.__init__(self,days,extra,order_by)
 
@@ -291,7 +291,7 @@ class SwPortSQLQuery (MachineTrackerSQLQuery):
 		#except:
 		#	pass
 
-		order_by = "cam.sysname,module,port,arp.ip,mac,start"
+		order_by = "cam.sysname,module,port,arp.ip,arp.mac,start"
 		
 		if not module or module=="*":
 			modulesql = "cam.module like '%'"
