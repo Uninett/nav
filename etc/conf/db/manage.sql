@@ -113,7 +113,8 @@ CREATE TABLE room (
 );
 
 CREATE TABLE vlan (
-  vlan INT4 PRIMARY KEY,
+  vlanid SERIAL PRIMARY KEY,
+  vlan INT4,
   nettype VARCHAR NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
   usageid VARCHAR(10) REFERENCES usage,
@@ -128,7 +129,7 @@ CREATE TABLE prefix (
   active_ip_cnt INT4,
   max_ip_cnt INT4,
   to_gw VARCHAR,
-  vlan INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
+  vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE vendor (
@@ -311,7 +312,7 @@ CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  vlan INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
+  vlanid INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
   UNIQUE (swportid, vlan)
 );
