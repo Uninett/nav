@@ -1,5 +1,5 @@
 """
-$Id: RunQueue.py,v 1.26 2003/01/08 22:21:49 magnun Exp $                                                                                                                              
+$Id: RunQueue.py,v 1.27 2003/01/12 02:37:01 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -105,7 +105,7 @@ class _RunQueue:
         # This is quite dirty, but I really need to know how many
         # threads are waiting for jobs.
         numWaiters=len(self.awaitWork._Condition__waiters)
-        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters))
+        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers), numWaiters), 7)
         if numWaiters > 0:
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:
