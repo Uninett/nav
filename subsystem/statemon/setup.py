@@ -3,7 +3,7 @@ $Id: setup.py,v 1.2 2003/06/19 12:50:34 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
+os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
 import abstractChecker
 import re,getopt,sys,config,psycopg,checkermap,string,db
 from service import Service
