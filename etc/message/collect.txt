@@ -1,0 +1,29 @@
+# Filename: collect.txt
+#
+# Purpose: Lists all NAV messagetypes with the corresponding description.
+# Variables in the description are prefixed woth a dollar ($)
+#
+# Syntax: 	messagetype:messagedescription
+# -----------------------------------------------------------------------
+DATABASE-3-ALREADY: Database record already exists. Could not "$sql".
+DATABASE-3-REFERENCE: Key referenced from table $child $field not found in parent table $parent. $sql.
+DATABASE-4-ERROR: Database could not do "$message" in "$sql".
+DATABASE-4-NOTNULL: Cannot insert null-value in not-null attribute "$value", in "$sql".
+DATABASE-6-INSERT: Inserting "$tuple" into "$table".
+DATABASE-6-UPDATE: Updating "$table" field "$field" where "$where" from "$from" to "$to".
+DATABASE-6-DELETE: Deleting from table "$table" where "$where".
+DEBUG-7-NOOVRWRT: Not overwriteing prefix "$prefix".
+DEBUG-7-NOID: Could not resolve new identity for $ip, $module, $port.
+DEVICE-5-WATCH: $ip is on watch. Data will not be collected for this device.
+DEVICE-5-BOXDOWN: Could not collect data for $ip. Device possibly down.
+DEVICE-7-COLLECT: Collecting data for $ip.
+DNS-6-NAMECHAOS: Sysname ($sysname) and dnsname ($dns) are different for $ip.
+RUN-7-START: Started running program "$program".
+RUN-7-END: Ended running program "$program".
+SNMP-4-TIMEOUT: Timeout on snmp-request on $ip, box possibly down og lazy.
+SNMP-5-ERROR: Error for $ip - $message.
+SNMP-5-DNSNAME: Sysname for $ip based on dns ($dns), device not configured.
+SWITCH-7-TYPEGRP: Unknown typegroup ($typegroup) for $ip.
+TEXT-3-COMMUNITY: Community string for $ip contains illegal characters "$illegal".
+TEXT-4-TYPE: Type ($type) not defined for $ip in type definition file.
+TEXT-4-TOOLONG: Field $field in table $table can only contain $length characters. $value is therefore too long.
