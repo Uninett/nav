@@ -197,7 +197,7 @@ def equipmentformat(eqdict):
 
 def textpara(text):
     """ Formats the paragraphed text according to html syntax."""
-    text = re.sub("(?:\n\r?)+", "</p><p>", text)
+    text = re.sub("(?:\r?\n)+", "</p><p>", text)
     return "<p>" + text + "</p>"
 
 class MaintListElement:
