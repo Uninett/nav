@@ -127,8 +127,6 @@ CREATE TABLE prefix (
   netaddr CIDR NOT NULL,
 --  rootgwid INT4,
   vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
-  active_ip_cnt INT4,
-  max_ip_cnt INT4,
   UNIQUE(netaddr)
 --  UNIQUE(rootgwid)
 );
@@ -273,10 +271,10 @@ CREATE TABLE mem (
 CREATE TABLE swp_netbox (
   swp_netboxid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  module VARCHAR(4) NOT NULL,
+  module INT4 NOT NULL,
   port INT4 NOT NULL,
   to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_module VARCHAR(4),
+  to_module INT4,
   to_port INT4,
   misscnt INT4 NOT NULL DEFAULT '0',
   UNIQUE(netboxid, module, port, to_netboxid)
@@ -291,7 +289,7 @@ CREATE TABLE swport (
   speed DOUBLE PRECISION,
   duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR,
-  vlan INT NOT NULL,
+  vlan INT,
   trunk BOOL,
   portname VARCHAR,
   to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -319,14 +317,14 @@ CREATE TABLE gwportprefix (
   gwip INET,
   hsrp BOOL NOT NULL DEFAULT 'f',
 	UNIQUE(gwip)
-)
+);
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlanid INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
-  UNIQUE (swportid, vlan)
+  UNIQUE (swportid, vlanid)
 );
 
 CREATE TABLE swportallowedvlan (
@@ -395,6 +393,8 @@ GRANT ALL ON type_typeid_seq TO navall;
 DROP TABLE arp CASCADE;
 DROP TABLE cam CASCADE;
 DROP VIEW netboxmac CASCADE;
+DROP VIEW prefix_active_ip_cnt CASCADE;
+DROP VIEW prefix_max_ip_cnt CASCADE;
 DROP TABLE eventtype CASCADE;
 
 DROP SEQUENCE arp_arpid_seq; 
@@ -459,10 +459,23 @@ CREATE VIEW netboxmac AS
 UNION
 (SELECT DISTINCT ON (mac) module.netboxid,mac
  FROM arp
- JOIN gwport ON (arp.ip=gwport.gwip)
+ JOIN gwportprefix ON (arp.ip=gwportprefix.gwip)
+ JOIN gwport USING(gwportid)
  JOIN module USING (moduleid)
  WHERE arp.end_time='infinity');
 
+CREATE VIEW prefix_active_ip_cnt AS
+(SELECT prefixid,COUNT(*) AS active_ip_cnt
+ FROM arp
+ WHERE end_time='infinity'
+ GROUP BY prefixid);
+
+CREATE VIEW prefix_max_ip_cnt AS
+(SELECT prefixid,
+  CASE POW(2,32-MASKLEN(netaddr))-2 WHEN -1 THEN 0
+   ELSE
+  POW(2,32-MASKLEN(netaddr))-2 END AS max_ip_cnt
+ FROM prefix);
 
 -------- vlanPlot tabeller ------
 CREATE TABLE vp_netbox_grp_info (
@@ -513,6 +526,7 @@ GRANT SELECT ON netbox TO navadmin;
 GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON netboxmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
+GRANT SELECT ON gwportprefix TO navadmin;
 GRANT SELECT ON vlan TO navadmin;
 GRANT SELECT ON prefix TO navadmin;
 GRANT SELECT ON module TO navadmin;
@@ -542,8 +556,8 @@ GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 GRANT ALL    ON device TO getDeviceData;
 GRANT ALL    ON device_deviceid_seq TO getDeviceData;
 GRANT SELECT,UPDATE ON netbox TO getDeviceData;
-GRANT SELECT,UPDATE,INSERT ON netboxinfo TO getDeviceData;
-GRANT ALL ON netboxinfo_netboxinfoid_seq TO getDeviceData;
+GRANT ALL    ON netboxinfo TO getDeviceData;
+GRANT ALL    ON netboxinfo_netboxinfoid_seq TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
 GRANT ALL    ON netboxdisk TO getDeviceData;
 GRANT ALL    ON netboxinterface TO getDeviceData;
@@ -554,7 +568,16 @@ GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
 GRANT ALL    ON swportallowedvlan TO getDeviceData;
+GRANT ALL    ON gwport TO getDeviceData;
+GRANT ALL    ON gwport_gwportid_seq TO getDeviceData;
+GRANT ALL    ON gwportprefix TO getDeviceData;
+GRANT ALL    ON prefix TO getDeviceData;
+GRANT ALL    ON prefix_prefixid_seq TO getDeviceData;
+GRANT ALL    ON vlan TO getDeviceData;
+GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
+
 
 -------- vlanPlot end ------
 
