@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.4 2002/06/28 01:06:40 magnun Exp $
+$Id: setup.py,v 1.5 2002/06/28 09:36:54 erikgors Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -55,7 +55,6 @@ def fromFile(file):
 		if i:
 			service = parseLine(i)
 			new += [service]
-	print "New: %i" % len(new)
 	return new
 class DB:
 	def __init__(self,conf):
@@ -76,10 +75,10 @@ class DB:
 	def fromDB(self):
 		services = []
 
-		for i in database.getJobs():
+		for i in database.getJobs(0):
 			serviceid = i.getServiceid()
-			#active = (i.active and 'true') or 'false'
-			active = 'true'
+			active = (i.active and 'true') or 'false'
+			#active = 'true'
 			boksid = i.getBoksid()
 			for j in self.boks:
 				if self.boks[j] == boksid:
@@ -106,10 +105,10 @@ class DB:
 			raise Exception('EASDFG reality disfunction!!112')
 		s = self.db.cursor()
 		next = self.query("select nextval('service_serviceid_seq')")[0][0]
-		try:
-			s.execute("INSERT INTO service (serviceid,boksid,active,handler) VALUES (%s,%s,%s,'%s')" % (next, self.boks[service.sysname], service.active, service.handler))
-		except KeyError:
-			print "Boksen er sikkert ikke registrert: %s" % service.sysname
+#		try:
+		s.execute("INSERT INTO service (serviceid,boksid,active,handler) VALUES (%s,%s,%s,'%s')" % (next, self.boks[service.sysname], service.active, service.handler))
+#		except KeyError: # dette skal ikke kunne skje
+#			print "Boksen er sikkert ikke registrert: %s" % service.sysname
 		service.id = next
 		self.insertargs(service)
 		#return next
@@ -146,11 +145,12 @@ def main(file,conf):
 		else:
 			new[i.id] = i
 	
-	print "New: %i" % len(new)
+	print "in file: %i" % (len(new) + len(newentries))
 	print "Newentries: %i" % len(newentries)
 	print 'fetching services from db'
 	db.connect()
 	result = db.fromDB()
+	print "in db: %i" % len(result)
 
 	delete = []
 	for i in result:
@@ -163,14 +163,13 @@ def main(file,conf):
 		if i.sysname not in db.boks:
 			msg = 'sysname not found: (%s)' % i.sysname
 			raise TypeError(msg)
-	print "New: %i" % len(new)
 	if delete:
 		print 'to be deleted:'
 		for i in delete:
 			print i
 		s = 0
 		while s not in ('yes','no'):
-			print '\nare you sure? (yes/no)'
+			print '\nare you sure you want to delete? (yes/no)'
 			s = raw_input()
 		if s == 'no':
 			print 'quitting'
@@ -180,7 +179,7 @@ def main(file,conf):
 	print 'updating db'
 
 	for i in new.values():
-		print "updateing: %s" % i
+#		print "updateing: %s" % i
 		if i.id == 'new':
 			print "This shouldn't happen"
 		else:
