@@ -32,7 +32,7 @@ DROP SEQUENCE prefiks_prefiksid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
 DROP SEQUENCE swp_boks_swp_boksid_seq;
-
+-------------
 DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
 DROP SEQUENCE vpboksxy_vpboksxyid_seq;
@@ -77,34 +77,6 @@ ALTER GROUP nav add user gartmann;
 -- Fjerner gartmann fra nav:
 ALTER GROUP nav drop user gartmann;
 
-
--- org: descr fra 60 til 80
--- boks: type ikke NOT NULL fordi ikke definert i nettel.txt
-
---community har blitt fjernet!
---CREATE TABLE community (
---  communityid SERIAL PRIMARY KEY,
---  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
---  ro CHAR(10),
---  rw CHAR(10)
---);
-
---GRANT ALL ON community TO group nav;
-
---ro og rw går inn i boks
---tabellen type lagt til
---boks:sysname 20->30 dns er for lange for 20
---boks:type er ute av drift inntil bruk
---prefiks: vlan ikke NOT NULL
---prefiksid REFERENCES prefiks ikke boks overalt
---swport: lagt til port(nummer) og modul
---boksinfo:sysCon fra 30 til 40
---fremmednøkler til prefiksid peker på prefiks, ikke boks
---boksinfo:sysType CHAR(30):fjernet
---gwport og swport: speed endret til CHAR(10) for å kunne godta opptil 10 000 Tbps eller ned 0.000001 bps. (overkill?);
---alle char endret til varchar
---NOT NULL fjernet fra duplex i swport
---NOT NULL fjernet fra descr i rom
 ------------------------------------------------------------------------------------------
 
 CREATE TABLE org (
@@ -235,7 +207,7 @@ CREATE TABLE swport (
   portnavn VARCHAR(30),
   vpkatbak VARCHAR(5),
   boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
-  UNIQUE(boksid, modul, port)
+  UNIQUE(boksid, ifindex)
 );
 
 
