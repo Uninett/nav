@@ -1,5 +1,5 @@
 """
-$Id: OracleChecker.py,v 1.1 2003/06/25 15:41:13 magnun Exp $
+$Id: OracleChecker.py,v 1.2 2003/06/27 12:01:39 arveva Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/OracleChecker.py,v $
 
 
@@ -18,16 +18,31 @@ os.environ['ORACLE_HOME']='/ora01/OraHome1'
 
 class OracleChecker(AbstractChecker):
     """
-    Handle Oracle databases.
 
-    Arguments to this handler:
-
+    Description:
+    ------------
+    This checker tries to connect to a given Oracle database.
+    
+    Arguments:
+    ----------
+    hostname: Accessible from self.getAddress() as pure FQDN hostname
     port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
     sid     : Database SID
-    hostname: Accessible from self.getAddress() as pure FQDN hostname
-    username: Default is nav_agent
-    password: Default is ag3gva_r
+    username: An Oracle database account with the following permissions:
+              - CREATE SESSION 
+              - ALTER SESSION
+              - select on sys.v_$instance
+    password: Password for the Oracle database account.
+
+    Return values:
+    --------------
+    Succesful connection:
+        return Event.UP, "Oracle " + version
+    Failure to connect:
+        return Event.DOWN, str(sys.exc_value)
+
     """
+
     def __init__(self, *args):
         AbstractChecker.__init__(self,'oracle',port=1521, *args)
     def execute(self):
@@ -50,7 +65,7 @@ class OracleChecker(AbstractChecker):
             connection.close()
         except:
             return Event.DOWN, str(sys.exc_value) 
-        return Event.UP, "OK, Oracle" + version
+        return Event.UP, "Oracle " + version
 
 def getRequiredArgs():
 	"""
