@@ -2,8 +2,8 @@
 """
 Overvåker
 
-$Author: magnun $
-$Id: job.py,v 1.15 2002/06/17 17:15:10 magnun Exp $
+$Author: erikgors $
+$Id: job.py,v 1.16 2002/06/17 17:18:23 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -81,6 +81,7 @@ class JobHandler:
 		self.setVersion(version)
 		self.setTimeout(args.get('timeout',TIMEOUT))
 	def run(self):
+		import database
 		start = time.time()
 		version = self.getVersion()
 		try:
@@ -300,4 +301,3 @@ jobmap = {'http':HttpHandler,
 	  'ssh':SshHandler,
 	  'dns':DnsHandler
 	  }
-import database
