@@ -1385,27 +1385,25 @@ def updateNetbox(req,templateform,selected):
         except:
             sysname = form['ip']
 
-        # Check if (edited) sysname or ip is already present in db
-        if (oldBox.ip != form['ip']) or (oldBox.sysname != sysname):
-            # If IP or sysname differs from the old, then check them
+        # Check if (edited) ip is already present in db
+        #if (oldBox.ip != form['ip']) or (oldBox.sysname != sysname):
+        if oldBox.ip != form['ip']:
+            # If IP differs from the old, then check for uniqueness
             error = None
             where = "ip = '" + form['ip'] + "'"
             box = editTables.Netbox.getAll(where)
             if box:
                 error = 'IP already exists in database'
-                nextStep = STEP_1
             if not error:
-                # If IP isn't duplicate, check sysname
+                # If IP isn't duplicate, check if (new) sysname is unique
                 where = "sysname = '" + sysname + "'"
                 box = editTables.Netbox.getAll(where)
                 if box:
                     error = 'Sysname ' + sysname + ' (' + form['ip'] + \
                             ') already exists in database'
-                    nextStep = STEP_1
             if error:
                 templateform.error = error
                 templateform.add(editboxNetbox(editId=selected,formData=form))
-                editboxHidden.addHidden(CNAME_STEP,nextStep)
                 return (status,action,templateform)
 
         if editTables.Cat(form['catid']).req_snmp == True:
@@ -1423,7 +1421,8 @@ def updateNetbox(req,templateform,selected):
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error:' + repr(e)
+                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (status,action,templateform)
@@ -1458,6 +1457,7 @@ def updateNetbox(req,templateform,selected):
                 templateform.error = 'Category ' + form['catid'] + \
                                      ' requires a RO community'
                 templateform.add(editboxNetbox(editId=selected,formData=form))
+                nextStep = STEP_1
         else:
             # SNMP not required by cat
             if len(form['ro']):
@@ -1466,13 +1466,15 @@ def updateNetbox(req,templateform,selected):
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
                 except TimeOutException:
-                    templateform.error = 'No SNMP response, check RO community'
+                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error:' + repr(e)
+                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
@@ -1502,6 +1504,7 @@ def updateNetbox(req,templateform,selected):
                     # Unknown type, ask user to add
                     message = message % (box.sysobjectid,)
                     templateform.add(editboxHiddenOrMessage(message))
+                    nextStep = STEP_1
             else:
                 # RO blank, don't check SNMP, ask for serial
                 templateform.add(editboxNetbox(editId=selected,
@@ -1658,7 +1661,6 @@ def addNetbox(req,templateform):
         box = editTables.Netbox.getAll(where)
         if box:
             error = 'IP already exists in database'
-            nextStep = STEP_1
         if not error:
             # If IP isn't duplicate, check sysname
             where = "sysname = '" + sysname + "'"
@@ -1666,11 +1668,10 @@ def addNetbox(req,templateform):
             if box:
                 error = 'Sysname ' + sysname + ' (' + form['ip'] + \
                         ') already exists in database'
-                nextStep = STEP_1
+
         if error:
             templateform.error = error
             templateform.add(editboxNetbox(formData=form))
-            editboxHidden.addHidden(CNAME_STEP,nextStep)
             return (status,action,templateform)
 
         if editTables.Cat(form['catid']).req_snmp == True:
@@ -1687,7 +1688,8 @@ def addNetbox(req,templateform):
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error:' + repr(e)
+                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(formData=form))
                     return (status,action,templateform)
      
@@ -1710,11 +1712,13 @@ def addNetbox(req,templateform):
                     # Couldn't find type, ask user to add
                     message = message % (box.sysobjectid,)
                     templateform.add(editboxHiddenOrMessage(message))
+                    nextStep = STEP_1
             else:
                 # RO blank, return error
                 templateform.error = 'Category ' + form['catid'] + \
                                      ' requires a RO community'
                 templateform.add(editboxNetbox(formData=form))
+                nextStep = STEP_1
         else:
             # SNMP not required by cat
             if len(form['ro']):
@@ -1728,7 +1732,8 @@ def addNetbox(req,templateform):
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error:' + repr(e)
+                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1])
                     templateform.add(editboxNetbox(formData=form))
                     return (action,templateform)
 
@@ -1750,6 +1755,7 @@ def addNetbox(req,templateform):
                     # Unknown type, ask user to add
                     message = message % (box.sysobjectid,)
                     templateform.add(editboxHiddenOrMessage(message))
+                    nextStep = STEP_1
             else:
                 # RO blank, don't check SNMP, ask for serial
                 templateform.add(editboxNetbox(formData=form,disabled=True))
@@ -1899,8 +1905,8 @@ def editNetbox(req,selected,action,error=None):
     elif action == 'add':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
         form.title = 'Add box'
-        form.textConfirm = 'Add'
-        form.add(editboxNetbox())
+        form.textConfirm = 'Continue'
+        form.add(editboxNetbox(formData=req.form))
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Delete',False)]
@@ -2436,7 +2442,9 @@ class editbox:
         self.boxId = self.editId
 
         for fieldname,desc in self.fields.items():
-            desc[0].value = str(getattr(entry,fieldname))
+            value = getattr(entry,fieldname)
+            if value:
+                desc[0].value = str(value)
 
     def setControlNames(self,controlList=None):
         " Set controlnames for the inputs to the fieldnames "
