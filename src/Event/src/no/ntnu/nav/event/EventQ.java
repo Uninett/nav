@@ -146,7 +146,7 @@ public class EventQ {
 				Database.insert("eventqvar", insv);
 			}
 			Database.commit();
-			Log.d("EVENTQ", "POST_EVENT", "Posted event from " + source + " to " + target + " on eventq");
+			Log.d("EVENTQ", "POST_EVENT", "Posted event from " + e.getSourceSql() + " to " + e.getTargetSql() + " on eventq");
 			return true;
 
 		} catch (SQLException exp) {
