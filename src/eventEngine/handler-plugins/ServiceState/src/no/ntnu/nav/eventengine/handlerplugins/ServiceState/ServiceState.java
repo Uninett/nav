@@ -31,6 +31,18 @@ public class ServiceState implements EventHandler
 
 		outld("  added alert: " + a);
 
+		// Lookup the server
+		Device d = ddb.getDevice(e.getDeviceid());
+		String deviceup;
+		if (!d.isUp()) {
+		    // Lower the severity by 30 points, but not below zero
+		    a.setSeverity(Math.max(e.getSeverity()-30,0));
+		    deviceup = "No";
+		} else {
+		    deviceup = "Yes";
+		}
+		a.addVar("deviceup", deviceup);
+
 		// Set time
 		a.addVar("time", e.getTimeS());
 
