@@ -2,33 +2,16 @@
 $test = fopen("test.txt","w");
 fwrite($test,date("i:s "));
 
-function topp($rapport="") {
-    return "<html><head><link rel=\"STYLESHEET\" type=\"text/css\" href=\"stil.css\"><title>NAV::ragen::$rapport</title></head><body topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" bgcolor=\"#ffffff\" text=\"#000000\" link=\"#000099\" alink=\"#0000ff\" vlink=\"#000099\">";
-    }
-function verify(){
-    global $PHP_AUTH_USER;
-    $passordfil = "/usr/local/nav/local/apache/htpasswd/.htpasswd-sec";
-    $fd = fopen ($passordfil,"r");
-    $funnet = 0;
-    while (!$funnet&&!feof($fd)) {
-	$buffer = fgets($fd, 4096);
-	if(preg_match("/^$PHP_AUTH_USER\:/i",$buffer)){
-	    $funnet = 1;
-	}
-    }
-    fclose ($fd);
-    return $funnet;
-}
-
-
 ############
 ## Databasetilkobling
 ############
     $db = pg_Connect("dbname=manage user=navall password=uka97urgf");
-$fil = les_fil("/usr/local/nav/navme/etc/conf/ragen/ragen.conf","r");
+
+$fil = les_fil("/usr/local/nav/local/etc/conf/ragen/ragen.conf","r");
+$fil .= les_fil("/usr/local/nav/navme/etc/conf/ragen/ragen.conf","r");
 
 $allowed = verify();
-list($filparam,$urlparam,$navnparam) = tolk_fil($fil,$rapport,$allowed);
+list($filparam,$urlparam,$navnparam,$forklar) = tolk_fil($fil,$rapport,$allowed);
 
 //print $filparam[skjul];
 //    print $QUERY_STRING;
@@ -84,20 +67,26 @@ if(preg_match("/ORDER\ BY(.*?)(?:GROUP|LIMIT|$)/is",$sql,$sel)) {
 if($limit){
 #	     print "hadde limit fra før";
     $ar_limit = split(",",$limit);
-//    @limit = map rydd($_),@limit;
 } elseif(preg_match("/LIMIT(.*?)$/is",$sql,$sel)){
     $ar_limit = split(",",$sel[1]);
 }
 
-$sql2 = "SELECT ".join(",",$select)." FROM ".join(",",$ar_from);
-$sql_antall = "SELECT $select[0] FROM ".join(",",$ar_from);
+$har_from = join(",",$ar_from);
+$sql2 = "SELECT ".join(",",$select)." FROM ".$har_from;
+$sql_antall = "SELECT $select[0] FROM ".$har_from;
 if($ar_where){
-    $sql2 .= " WHERE ".join(" AND ",$ar_where);
-    $sql_antall .= " WHERE ".join(" AND ",$ar_where);
+    $har_where = " WHERE ".join(" AND ",$ar_where);
+    $sql2 .= $har_where;
+    $sql_antall .= $har_where;
+} else {
+    $har_where = " ";
 }
 if($ar_group_by){
-    $sql2 .= " GROUP BY ".join(",",$ar_group_by);
-    $sql_antall .= " GROUP BY ".join(",",$ar_group_by);
+    $har_group_by = " GROUP BY ".join(",",$ar_group_by);
+    $sql2 .= $har_group_by;
+    $sql_antall .= $har_group_by;
+} else {
+    $har_group_by = " ";
 }
 
 if(!$ar_order_by){
@@ -126,8 +115,8 @@ $sql = $sql2;
 
 fwrite($test,"\nlimit ".date("i:s "));
 
-list($antall_rader,$tabell) = db_2d_array($db,$sql);
-$antall_treff = db_antall($db,$sql_antall);
+$tabell = db_2d_array($db,$sql);
+$antall_rader = db_antall($db,$sql_antall);
 
 if($filparam[ekstra]) {
     $ekstra_kolonner = split(",",$filparam[ekstra]);
@@ -149,6 +138,38 @@ if($filparam[skjul]) {
 	}
     }
 }
+if($filparam[count]){
+    $opptelling = split(",",$filparam[count]);
+    foreach(array_keys($opptelling) as $o){
+	$opptell[$o] = "count(".$opptelling[$o].")";
+    }
+    $sql_count = "select ".join(", ",$opptell)." from ".$har_from.$har_where.$har_group_by;
+    $resultatet = db_1d_array($db,$sql_count);
+    foreach(array_keys($urlselect) as $u) {
+	if($resultatet[$u]){
+	    $count_cols[$fraselect[$opptelling[$u]]] = $resultatet[$u];
+	}
+    }
+}
+if($filparam[sum]){
+    $opptelling = split(",",$filparam[sum]);
+    foreach(array_keys($opptelling) as $o){
+	$opptell[$o] = "sum(".$opptelling[$o].")";
+    }
+    $sql_sum = "select ".join(", ",$opptell)." from ".$har_from.$har_where.$har_group_by;
+    $resultatet = db_1d_array($db,$sql_sum);
+    foreach(array_keys($urlselect) as $u) {
+	if($resultatet[$u]){
+	    $sum_cols[$fraselect[$opptelling[$u]]] = $resultatet[$u];
+	}
+    }
+}
+if(count($forklar)){
+    foreach(array_keys($forklar) as $key){
+	$forklartekst.="| &quot;".$key."&quot; = ".$forklar[$key]." ";
+    }
+$forklartekst = "<font size=\"1\">".$forklartekst." |</font>";
+}
 
 } //close if $sql
 
@@ -164,21 +185,22 @@ if(!$overskrift){
 if(!$overskrift){
     $overskrift = $rapport;
 }
-$overskrift = urlencode($overskrift);
+$overskrift = $overskrift;
 $peker = lag_peker($urlselect,$QUERY_STRING); // tar vare på sidevariablene til neste side
 
-print "<img src=\"overskrift.php?overskrift=$overskrift\" border=\"0\">";
+print "<img ".skriv_bilde($overskrift,"overskrift")." border=\"0\">";
+//src=\"overskrift.php?overskrift=$overskrift\"
 print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\"><font color=\"#ffffff\"><img src=\"bildetekst.php?tekst=".date("j.n.Y")."\"  border=\"0\"></font>";
 
 
 
 ## husker gammel querystring
 if($begrenset){
-    $skjemalink = "<form action=\"?$peker&begrenset=0\" method=\"post\"><td valign=\"top\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema\" border=\"0\"></td></form>";
+    $skjemalink = "<form action=\"?$peker&begrenset=0\" method=\"post\"><td valign=\"top\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" ".skriv_bilde("Skjul_skjema")." border=\"0\"></td></form>";
 } else {
-    $skjemalink = "<form action=\"?$peker&begrenset=1\" method=\"post\"><td valign=\"top\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Søkeskjema\" border=\"0\"></td></form>";
+    $skjemalink = "<form action=\"?$peker&begrenset=1\" method=\"post\"><td valign=\"top\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" ".skriv_bilde("Søkeskjema")." border=\"0\"></td></form>";
 }
-print "<table><tr><td valign=\"top\"><a href=\"../reports.php\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td>".$skjemalink."</tr></table></td></tr></table>";
+print "<table><tr><td valign=\"top\"><a href=\"reports.php\"><img ".skriv_bilde("Hjem"). "border=\"0\"\"></a></td>".$skjemalink."</tr></table></td></tr></table>";
 
 if($begrenset){
 //skriv_skjemainnhold
@@ -187,53 +209,16 @@ if($begrenset){
     skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner);
 }
 
-
-
-
-## bla
-if(!$grense){
-    $grense = 200;
-}
-$neste = $ar_limit[1]+$grense;
-$forrige = $ar_limit[1]-$grense;
-print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td align=\"left\" width=\"100\">";
-if($ar_limit[1]!=0){ 
-print "<a href=\"?$peker&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
-} else {
-    print "&nbsp;";
-}
-
-$fra = $ar_limit[1] +1;
-$til = $ar_limit[1] + $ar_limit[0];
-print "</td><td align=\"center\">";
-if($antall_treff){
-    if($grense>$antall_treff){
-	print "Totalt $antall_treff treff i databasen";
-    } elseif ($til>$antall_treff){
-	print "Viser nå treff $fra til $antall_treff av totalt $antall_treff treff i databasen";
-    } else {
-	print "Viser nå treff $fra til $til av totalt $antall_treff treff i databasen";
-    }
-} else {
-    print "Dette ga null treff i databasen";
-}
-print "</td><td align=\"right\" width=\"100\">";
-
-if($antall_rader == $ar_limit[0]){
-    print " <a href=\"?$peker&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
-} else {
-    print "&nbsp;";
-}
-print "</td></tr></table>";
-## bla slutt
+print forrigeneste($ar_limit,$peker,$antall_rader,$grense);
+print $forklartekst;
 
 if($antall_rader){
-    skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rapport,$skjulte_kolonner);
+    skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rapport,$skjulte_kolonner,$count_cols,$sum_cols);
 }
-print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td background=\"bakgrunn_nav.php\" align=\"right\">";
-print "<font color=\"#ffffff\"><a href=\"mailto:gartmann@stud.ntnu.no\"><font color=\"#ffffff\">Sigurd Gartmann</font></a>, ITEA, NTNU</font>";
-print "</td></tr></table></td></tr></table>";
-print "<p><font color=\"#ffffff\">$sql</font></p>";
+
+print tabell_bunn();
+print forrigeneste($ar_limit,$peker,$antall_rader,$grense);
+print debug_sql($sql);
 pg_close($db);
 
 /*
@@ -246,8 +231,26 @@ skrivhash($from);
 skrivhash($order_by);
 */
 
-    print "</html>";
+    print "</td></tr></table></html>";
 fwrite($test,"etter skjerm ".date("i:s "));
+
+function topp($rapport="") {
+    return "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"><html><head><link rel=\"STYLESHEET\" type=\"text/css\" href=\"stil.css\"><title>NAV::ragen::$rapport</title></head><body  bgcolor=\"#ffffff\" text=\"#000000\" link=\"#000099\" alink=\"#0000ff\" vlink=\"#000099\">";
+    }
+function verify(){
+    global $PHP_AUTH_USER;
+    $passordfil = "/usr/local/nav/local/apache/htpasswd/.htpasswd-sec";
+    $fd = fopen ($passordfil,"r");
+    $funnet = 0;
+    while (!$funnet&&!feof($fd)) {
+	$buffer = fgets($fd, 4096);
+	if(preg_match("/^$PHP_AUTH_USER\:/i",$buffer)){
+	    $funnet = 1;
+	}
+    }
+    fclose ($fd);
+    return $funnet;
+}
 
 
 function skrivhash($hash){
@@ -272,37 +275,42 @@ fwrite($test,"1: ".date("i:s "));
 	if(preg_match("/^\s*$rapport(?:\_sec)?\s*{(.*?)}/sm",$fil,$regs)){
 	    $var = $regs[1];
 	    //print $var;
-	    preg_match_all("/\W*\\\$(\w+?)\W*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
+	    preg_match_all("/^\#{0}\s*\\\$(\S+?)\s*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
 	    for ($i = 0; $i<sizeof($para[0]); $i++) {
 		$key = $para[1][$i];
 		$value = $para[2][$i];
 		$filparam[$key] = $value;
 		//echo "<br>".$key." = ".$value;
-		if(preg_match("/url_(\w+)/i",$key,$newkey)){
+		if(preg_match("/url_(\S+)/i",$key,$newkey)){
 		    $urlparam[$newkey[1]] = $value;
 		    //print $newkey[1];
-		} elseif(preg_match("/navn_(\w+)/i",$key,$newkey)) {
+		} elseif(preg_match("/navn_(\S+)/i",$key,$newkey)) {
 		    $navnparam[$newkey[1]] = $value;
 		    //print $newkey[1];
+		} elseif(preg_match("/forklar_(\S+)/i",$key,$newkey)) {
+		    $forklar[$newkey[1]] = $value;
 		}
+
 	    }
 	}
     } else {
 	if(preg_match("/^\s*$rapport\s*{(.*?)}/sm",$fil,$regs)){
 	    $var = $regs[1];
 	    //print $var;
-	    preg_match_all("/\W*\\\$(\w+?)\W*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
+	    preg_match_all("/\#{0}\s*\\\$(\S+?)\s*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
 	    for ($i = 0; $i<sizeof($para[0]); $i++) {
 		$key = $para[1][$i];
 		$value = $para[2][$i];
 		$filparam[$key] = $value;
 		//echo "<br>".$key." = ".$value;
-		if(preg_match("/url_(\w+)/i",$key,$newkey)){
+		if(preg_match("/url_(\S+)/i",$key,$newkey)){
 		    $urlparam[$newkey[1]] = $value;
 		    //print $newkey[1];
-		} elseif(preg_match("/navn_(\w+)/i",$key,$newkey)) {
+		} elseif(preg_match("/navn_(\S+)/i",$key,$newkey)) {
 		    $navnparam[$newkey[1]] = $value;
 		    //print $newkey[1];
+		} elseif(preg_match("/forklar_(\S+)/i",$key,$newkey)) {
+		    $forklar[$newkey[1]] = $value;
 		}
 	    }
 	    
@@ -310,23 +318,72 @@ fwrite($test,"1: ".date("i:s "));
     }
 fwrite($test,"3: ".date("i:s "));
 
-    return array($filparam,$urlparam,$navnparam);
+    return array($filparam,$urlparam,$navnparam,$forklar);
 }
+
+function forrigeneste($sql_limit,$peker,$antall,$grense=200){
+    /*
+	sql_limit = limit-delen av sql-kallet (array)
+	peker     = generell peker som alltid må bli lagt til lenkene til ragen
+	antall    = antall rader returnert fra databasen
+	grense    = forhåndsdefinert grense for hvor mange treff som skal vises per side
+	    */
+
+    $neste = $sql_limit[1]+$grense;
+    $forrige = $sql_limit[1]-$grense;
+    $fra = $sql_limit[1] +1;
+    $til = $sql_limit[1] + $sql_limit[0];
+    
+    if($sql_limit[1]){ 
+	$forrigelink = "<a href=\"?$peker&limit=".$sql_limit[0]."%2c".$forrige."\">Forrige</a> ";
+    } else {
+	$forrigelink = "&nbsp;";
+    }
+    
+    if($sql_limit[0]+$sql_limit[1]<$antall){
+	$nestelink = " <a href=\"?$peker&limit=".$sql_limit[0]."%2c".$neste."\">Neste</a>";
+    } else {
+	$nestelink = "&nbsp;";
+    }
+    
+    if($antall){
+	if($grense>$antall){
+	    $treff = "Totalt $antall treff i databasen";
+	} elseif ($til>$antall){
+	    $treff = "Viser nå treff $fra til $antall av totalt $antall treff i databasen";
+	} else {
+	    $treff = "Viser nå treff $fra til $til av totalt $antall treff i databasen";
+	}
+    } else {
+	$treff = "Dette ga null treff i databasen";
+    }
+    
+    return "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td align=\"left\" width=\"100\">".$forrigelink."</td><td align=\"center\">".$treff."</td><td align=\"right\" width=\"100\">".$nestelink."</td></tr></table>";
+
+}
+
+//phpinfo();
+
 function les_fil($fil,$var){
 ##############
 ## Leser fra fil til en lang tekstreng
 ##############
-
-    $fp = fopen($fil,$var);
-    $fil = fread($fp,filesize($fil));
-    fclose($fp);
-    return $fil;
+    $filinnhold = "";
+    if(is_readable($fil)){
+	$fp = fopen($fil,$var);
+	$filinnhold = fread($fp,filesize($fil));
+	fclose($fp);
+    }
+    return $filinnhold;
 }
 
 function db_antall($db,$sql) {
     $res = pg_exec($db,$sql);
-//    $rad = pg_numrows($res);
     return pg_numrows($res);
+}
+function db_1d_array($db,$sql){
+    $res = pg_exec($db,$sql);
+    return pg_fetch_row($res,0);
 }
 
 function db_2d_array($db,$sql){
@@ -334,10 +391,9 @@ function db_2d_array($db,$sql){
     $rader = pg_numrows($res);
     $resultat = array();
     for ($i=0;$i<$rader;$i++){
-	$rad = pg_fetch_row($res,$i);
-	$resultat[$i] = $rad;
+	$resultat[$i] = pg_fetch_row($res,$i);
     }
-    return array($rader,$resultat);
+    return $resultat;
 }
 function lag_peker($urlselect,$querystring){
     $peker = $querystring;
@@ -353,51 +409,59 @@ function lag_peker($urlselect,$querystring){
 }
 
 function skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner){
-    print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"600\" align=\"center\"><tr><td><form action=\"?rapport=$rapport\" method=\"post\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+    print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"600\" align=\"center\"><tr><td><form action=\"?rapport=$rapport\" method=\"get\"><input type=\"hidden\" name=\"rapport\" value=\"".$rapport."\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
     for($i=0;$i<sizeof($urlselect);$i++) {
 	//if(!$skjulte_kolonner[$i]){
 		$this = $urlselect[$i];
-		print "<tr><td background=\"bakgrunn_nav.php\"><img src=\"bildetekst.php?tekst=";
+		print "<tr><td background=\"bakgrunn_nav.php\">";
 //<font color=\"#ffffff\">";
 		if($navnparam[$this]){
-		    print $navnparam[$this];
+		    $tekst = $navnparam[$this];
 		} else {
-		    print $this;
+		    $tekst = $this;
 		}
-//		print "</font>";
-		print "\" border=\"0\"></td>";
+		print "<img ".skriv_bilde($tekst)." border=\"0\"></td>";
+
 	   // }
 	global $$this;
 	$skjemaverdi = $$this;
 	
 	 print "<td><input type=\"text\" name=\"$this\" value=\"$skjemaverdi\"></td></tr>";
     }
-    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk >>\" border=\"0\" name=\"send\" value=\"Send\"></td></tr></table></form></td><td><p>Fyll inn det du vil søke etter i ønskede felt. Du kan bruke % for wildcard.</p></td></tr></table>";
+    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" ".skriv_bilde("Søk>>")." border=\"0\" name=\"send\" value=\"Send\"></td></tr></table></form></td><td><p>Fyll inn det du vil søke etter i ønskede felt. Du kan bruke % for wildcard.</p></td></tr></table>";
 }
 
 
-function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner) {
+function skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner,$count_cols=0,$sum_cols=0) {
     print "<tr>";
     for($i=0;$i<sizeof($urlselect);$i++) {
 	    if(!$skjulte_kolonner[$i]){
 		$this = $urlselect[$i];
 		global $QUERY_STRING;
 		$peker = lag_peker($urlselect,$QUERY_STRING);
-		print "<td bgcolor=\"#486591\"><form action=\"?$peker&order_by=$this\" method=\"post\"><input type=\"image\" src=\"bildetekst.php?tekst=";
+		print "<form action=\"?$peker&order_by=$this\" method=\"post\"><td bgcolor=\"#486591\">";
 		if($navnparam[$this]){
-		    print $navnparam[$this];
+		    $tekst = $navnparam[$this];
 		} else {
-		    print $this;
+		    $tekst = $this;
 		}
-		print "\" border=\"0\"></form></td>";
+		print "<input type=\"image\" ".skriv_bilde($tekst)." border=\"0\">";
+		
+		if($count_cols[$i]){
+		    print " ".$count_cols[$i];
+		}
+		if($sum_cols[$i]){
+		    print " ".$sum_cols[$i];
+		}
+		print "</td></form>";
 	    }
     }
     print "</tr>";
 }
-function skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rapport,$skjulte_kolonner){
+function skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rapport,$skjulte_kolonner,$count_cols=0,$sum_cols=0){
     print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">";
     $teller = 0;
-    skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner);
+    skriv_tabelloverskrift($urlselect,$navnparam,$rapport,$skjulte_kolonner,$count_cols,$sum_cols);
 
     for($i=0;$i<sizeof($tabell);$i++){
 	$rad = $tabell[$i];
@@ -410,13 +474,20 @@ function skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rappor
 		if($link = $urlparam[$urlselect[$rute]]){
 		    //print $link;
 		    //$link = $urlparam[$urlselect[$rute]];
-		    preg_match("/\\\$(\w+)/",$link,$res);
-/*
-		    print $res[1];
-		    print $fraselect[$res[1]];
-		    print $rad[$fraselect[$res[1]]];
-*/
-		    $link = preg_replace("/(\\\$\w+)/",$rad[$fraselect[$res[1]]],$link);
+		    $res_size = preg_match_all("/\\\$(\w+)/",$link,$res);
+
+//		    print $res[1][1];
+//		    print $fraselect[$res[1][1]];
+//		    print $rad[$fraselect[$res[1][1]]];
+
+		    for($r=0;$r<$res_size+1;$r++){
+			$link = str_replace("\$".$res[1][$r],$rad[$fraselect[$res[1][$r]]],$link);
+
+		    }
+
+//    $link = preg_replace("/(\\\$(\w+))/",$rad[$fraselect["$1"]],$link);
+
+
 		    //		$link = $rad[$fraselect[$res[1]]];
 		    if($link){
 			print "<a href=\"$link\">";
@@ -429,8 +500,8 @@ function skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rappor
 		} else {
 		    skriv_rute($rad[$rute]);
 		}
+		print "</td>";
 	    }	    
-	    print "</td>";
 	}
 	print "</tr>";
     }
@@ -440,7 +511,7 @@ function skriv_rute($innhold){
     if ($innhold) {
 	print $innhold;
     } else {
-	print "&nbsp";
+	print "&nbsp;";
     }
 }
 function farge($teller) {
@@ -450,5 +521,56 @@ function farge($teller) {
 	return array(0,"#efefef");
     }
 }
+function tabell_bunn(){
+    return "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td background=\"bakgrunn_nav.php\" align=\"right\"><font color=\"#ffffff\"><a href=\"mailto:gartmann@stud.ntnu.no\"><font color=\"#ffffff\">Sigurd Gartmann</font></a>, ITEA, NTNU</font></td></tr></table>";
+}
 
+function debug_sql($sql=""){
+    return "<p><font color=\"#ffffff\">".$sql."</font></p>";
+}
+
+function skriv_bilde($tekst="",$storrelse="bildetekst"){
+// overskrift.php
+// bildetekst.php	
+    $filbase = "/pic/ragen/".$storrelse."/".$tekst.".png";
+$filurl = "../local/".$filbase;
+$filnavn = "/usr/local/nav/local/apache/res/".$filbase;
+
+if(!file_exists($filnavn)){
+
+    $font = "kulfont.ttf";
+
+    if($storrelse=="overskrift"){
+	$tsize = imagettfbbox(32,0,$font,$tekst);
+	$dx = abs($tsize[2]-$tsize[0]);
+	$dy = abs($tsize[5]-$tsize[3]);
+	$im = imagecreate ($dx+80,48); 
+	$black = ImageColorAllocate ($im, 0, 0, 0); 
+	$color_nav = ImageColorAllocate ($im, 71, 100, 144); 
+	$color_white = ImageColorAllocate ($im, 255, 255, 255);
+	imagefill($im,0,0,$color_nav);
+	ImageTTFText ($im, 32, 0, 0,35, $color_white,$font,$tekst); 
+	ImageTTFText ($im, 12, 0, $dx+40,$dy+5, $color_white,$font,NAV); 
+	
+    } else {
+	$tsize = imagettfbbox(12,0,$font,$tekst);
+	$dx = abs($tsize[2]-$tsize[0]);
+	$dy = abs($tsize[5]-$tsize[3]);
+	$im = imagecreate ($dx+3,$dy+4); 
+	$black = ImageColorAllocate ($im, 0, 0, 0); 
+	$color_nav = ImageColorAllocate ($im, 71, 100, 144); 
+	$color_white = ImageColorAllocate ($im, 255, 255, 255);
+	$tekst = ucfirst($tekst);
+	imagefill($im,0,0,$color_nav);
+	ImageTTFText ($im, 12, 0, 0,12, $color_white,$font,$tekst); 
+	//ImageTTFText ($im, 12, 0, $dx+40,$dy+5, $color_white,$font,NAV); 
+    }
+
+    Imagepng($im,$filnavn); 
+    ImageDestroy ($im);
+
+    //    return "src=\"".$storrelse.".php?tekst=".urlencode($tekst)."\" alt=\"$tekst\"";
+}
+return "src=\"$filurl\" alt=\"$tekst\"";
+}    
 ?>
