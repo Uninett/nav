@@ -3,7 +3,12 @@
 
 import os
 import re
-_checkerDir = "/usr/local/nav/navme/subsystem/statemon/lib/checker"
+try:
+    import nav.path
+    _checkerDir = os.path.join(nav.path.pythonlibdir, "nav/statemon/checker")
+except:
+    # not properly installed
+    _checkerDir = "/usr/local/nav/navme/subsystem/statemon/lib/checker"
 _checkerPattern = "Checker.py"
 _descrPattern = 'Checker.descr'
 _defaultArgs = ['port', 'timeout']
