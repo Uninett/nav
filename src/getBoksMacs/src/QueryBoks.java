@@ -187,11 +187,15 @@ public class QueryBoks extends Thread
 						if (boksGwSet.contains(pm.getToNetboxid())) continue;
 						
 						String to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
-						if (to_swportid == null) {
-							Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + remoteIf + " (" + boksId + ")");
+						if (pm.getRemoteIf() != null && to_swportid == null) {
+							if (swportNetboxSet.contains(pm.getToNetboxid())) {
+								Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
+							} else {
+								Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
+							}
 							continue;
 						}
-					
+
 						// OK, da er vi klar, oppdater gwport!
 						if (boksType.equals("MSFC") ||
 								boksType.equals("MSFC1") ||
@@ -284,6 +288,10 @@ public class QueryBoks extends Thread
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
 				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
+
+				// En enhet kan ikke ha link til seg selv
+				if (boksId.equals(pm.getToNetboxid())) continue;
+
 				if (pm.getRemoteIf() != null && new_to_swportid == null) {
 					if (swportNetboxSet.contains(pm.getToNetboxid())) {
 						Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
@@ -291,9 +299,6 @@ public class QueryBoks extends Thread
 						Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 					}
 				}
-
-				// En enhet kan ikke ha link til seg selv
-				if (boksId.equals(pm.getToNetboxid())) continue;
 
 				// Sjekk om dette er en duplikat
 				if (swp.contains(key)) {
