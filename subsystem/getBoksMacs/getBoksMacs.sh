@@ -12,10 +12,10 @@ if [ "$JAVA_HOME" == "" ]; then
 	JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
 
-CUR_DIR=$NAV_ROOT/navme/cron/getBoksMacs
+CUR_DIR=$NAV_ROOT/navme/subsystem/getBoksMacs
 JOB_FINISHED=$CUR_DIR/job-finished
 
-LOG_DIR="$NAV_ROOT/local/log/cam"
+LOG_DIR="$NAV_ROOT/local/log"
 #LOG_DIR=$CUR_DIR
 
 COUNT=`ps wwwwx|grep "getBoksMacs"|grep -v getBoksMacs.sh|grep -v grep|wc -l|sed s/" "//g`
