@@ -171,7 +171,9 @@ class DeviceDBImpl implements DeviceDB
 			Database.beginTransaction();
 
 			// Insert into alertq
-			insertAlert(e, false, null);
+			if (e.getPostAlertq()) {
+				insertAlert(e, false, null);
+			}
 
 			// Update alertqhist
 			boolean removeDownAlert = false;

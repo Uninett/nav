@@ -30,6 +30,7 @@ class EventImpl implements Event, Alert
 	private Map historyVarMap = new HashMap();
 
 	private String alerttype;
+	private boolean postAlertq = true;
 
 	private List eventList = new ArrayList();
 
@@ -124,6 +125,11 @@ class EventImpl implements Event, Alert
 	public void setSeverity(int severity) { this.severity = severity; }
 
 	// Doc in interface
+	public void setPostAlertq(boolean postAlertq) {
+		this.postAlertq = postAlertq;
+	}
+
+	// Doc in interface
 	public void addVar(String key, String val) {
 		varMap.put(key, val);
 	}
@@ -186,6 +192,7 @@ class EventImpl implements Event, Alert
 
 	public List getEventList() { return eventList; }
 
+	public boolean getPostAlertq() { return postAlertq; }
 
 	public String getSourceSql() { return source; }
 	public String getDeviceidSql() { return deviceid>0 ? String.valueOf(deviceid) : "null"; }

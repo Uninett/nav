@@ -49,6 +49,15 @@ public interface Alert
 	public void setAlerttype(String alerttype);
 
 	/**
+	 * Controls if the alert should be posted to the alertq; all alerts
+	 * are posted to alerthist, but it may be desirable to not actually
+	 * send out some alerts.
+	 *
+	 * @param postAlertq true if the alert should be posted to alertq; false otherwise
+	 */
+	public void setPostAlertq(boolean postAlertq);
+
+	/**
 	 * Normally the event will be assosiated with the alert when it is
 	 * created, but in the case where more than one event should be
 	 * assosiated with an alert this method can be used. All events
