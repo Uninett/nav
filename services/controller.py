@@ -1,13 +1,13 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.14 2002/06/15 22:12:16 magnun Exp $
+$Id: controller.py,v 1.15 2002/06/17 10:00:06 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
 
-import RunQueue, types, os, time, job, getopt, signal, database, config
-#import RunQueue, types, os, time, job, getopt, signal, db, config
+#import RunQueue, types, os, time, job, getopt, signal, database, config
+import RunQueue, types, os, time, job, getopt, signal, db, config
 
 class controller:
     def __init__(self, **kwargs):
@@ -20,8 +20,11 @@ class controller:
         self._looptime=60
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
-        #self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], "manage", self.config["db_nav"], self.config["userpw_manage"]))
+        print "Oppretter db-objekt"
+        self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], "manage", self.config["db_nav"], self.config["userpw_manage"]))
+        #print "Starter db-tråd"
         #self.db.run()
+        print "__init__() ferdig"
                       
 #host = localhost user = manage dbname = manage password = eganam')
     def getJobs(self):
@@ -29,8 +32,8 @@ class controller:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-        newjobs = database.getJobs()
-        #newjobs = self.db.getJobs()
+        #newjobs = database.getJobs()
+        newjobs = self.db.getJobs()
 
 
         s=[]    
@@ -79,7 +82,10 @@ class controller:
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
-        database.startup('host = localhost user = manage dbname = manage password = eganam')
+
+        #database.startup('host = localhost user = manage dbname = manage password = eganam')
+        
+        #self.db.run()
         while self._isrunning:
             start=time.time()
             self.getJobs()
