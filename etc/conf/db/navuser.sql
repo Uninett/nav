@@ -119,9 +119,9 @@ password	password for local authentication
 ext_sync	external syncronization, reserved for future use, 
             null means local authentication
 */
-CREATE SEQUENCE accountids START 1000;
+CREATE SEQUENCE account_id_seq START 1000;
 CREATE TABLE Account (
-    id integer NOT NULL DEFAULT nextval('accountids'),
+    id integer NOT NULL DEFAULT nextval('account_id_seq'),
     login varchar CONSTRAINT brukernavn_uniq UNIQUE,
     name varchar DEFAULT 'Noname',
     password varchar,
@@ -140,9 +140,9 @@ Table for usergroup
 name		Name of usergroup
 descr		Longer description
 */
-CREATE SEQUENCE accountgroupids START 1000;
+CREATE SEQUENCE accountgroup_id_seq START 1000;
 CREATE TABLE AccountGroup (
-       id integer NOT NULL DEFAULT nextval('accountgroupids'),
+       id integer NOT NULL DEFAULT nextval('accountgroup_id_seq'),
        name varchar DEFAULT 'Noname',
        descr varchar,
 
@@ -203,9 +203,9 @@ type		Specifies what kind of address this is.
                     4 icq 123456789
 adrese		The address
 */
-CREATE SEQUENCE alarmadresseid START 1000;
+CREATE SEQUENCE alarmadresse_id_seq START 1000;
 CREATE TABLE Alarmadresse (
-       id integer NOT NULL DEFAULT nextval('alarmadresseid'),
+       id integer NOT NULL DEFAULT nextval('alarmadresse_id_seq'),
        accountid integer NOT NULL,
        type integer NOT NULL,
        adresse varchar,
@@ -232,9 +232,9 @@ uketid		Related to queueing. When weekly queueing is selected, this attribute sp
             on the day enqueued alerts will be sent.
 
 */
-CREATE SEQUENCE brukerprofilid START 1000;
+CREATE SEQUENCE brukerprofil_id_seq START 1000;
 CREATE TABLE Brukerprofil (
-       id integer NOT NULL DEFAULT nextval('brukerprofilid'),
+       id integer NOT NULL DEFAULT nextval('brukerprofil_id_seq'),
        accountid integer NOT NULL,
        navn varchar,
        tid time NOT NULL DEFAULT '08:00:00',
@@ -297,9 +297,9 @@ starttid	this attribute speficies the start time of this time period. The time p
             
 helg		Speficies wether this time period is for weekdays or weekend or both.
 */
-CREATE SEQUENCE tidsperiodeid START 1000;
+CREATE SEQUENCE tidsperiode_id_seq START 1000;
 CREATE TABLE Tidsperiode (
-       id integer NOT NULL DEFAULT nextval('tidsperiodeid'),
+       id integer NOT NULL DEFAULT nextval('tidsperiode_id_seq'),
        brukerprofilid integer NOT NULL,
        starttid time NOT NULL,
        helg integer NOT NULL,
@@ -321,9 +321,9 @@ navn	The name of the equipment group
 descr	Longer description
 
 */
-CREATE SEQUENCE utstyrgruppeid START 1000;
+CREATE SEQUENCE utstyrgruppe_id_seq START 1000;
 CREATE TABLE Utstyrgruppe (
-    id integer NOT NULL DEFAULT nextval('utstyrgruppeid'),
+    id integer NOT NULL DEFAULT nextval('utstyrgruppe_id_seq'),
     accountid integer,
     navn varchar,
     descr varchar,
@@ -449,9 +449,9 @@ The equipment filter could either be owned by an user, or shared among administr
 
 navn		The name of the equipmentfilter
 */
-CREATE SEQUENCE utstyrfilterid START 1000;
+CREATE SEQUENCE utstyrfilter_id_seq START 1000;
 CREATE TABLE Utstyrfilter (
-       id integer NOT NULL DEFAULT nextval('utstyrfilter'),
+       id integer NOT NULL DEFAULT nextval('utstyrfilter_id_seq'),
        accountid integer,
        navn varchar,
 
@@ -508,9 +508,9 @@ listlimit	Max number of values shown in the drop down list.
 datatype	Defining the datatype, this is a helper attribute for the alertengine.
 showlist	boolean, true: show list of values from manage. false: show html input field.
 */
-CREATE SEQUENCE matchfieldids START 1000;
+CREATE SEQUENCE matchfield_id_seq START 1000;
 CREATE TABLE MatchField (
-    matchfieldid integer NOT NULL DEFAULT nextval('matchfieldids'),
+    matchfieldid integer NOT NULL DEFAULT nextval('matchfield_id_seq'),
     name varchar,
     descr varchar,
     valuehelp varchar,
@@ -546,9 +546,9 @@ matchtype	This specifies the operator used. This a static list.
                     $type[10] = gettext('wildcard (? og *)');
 verdi		The value
 */
-CREATE SEQUENCE filtermatchid START 1000;
+CREATE SEQUENCE filtermatch_id_seq START 1000;
 CREATE TABLE FilterMatch (
-       id integer NOT NULL DEFAULT nextval('filtermatchid'),
+       id integer NOT NULL DEFAULT nextval('filtermatch_id_seq'),
        utstyrfilterid integer NOT NULL,
        matchfelt integer NOT NULL,
        matchtype integer,
@@ -573,9 +573,9 @@ Operator, this is a list related to each matchfield, specifying which operator s
 choose from, form the given matchfield.
 
 */
-CREATE SEQUENCE operatorids START 1000;
+CREATE SEQUENCE operator_id_seq START 1000;
 CREATE TABLE Operator (
-    operatorid integer NOT NULL DEFAULT nextval('operatorids'),
+    operatorid integer NOT NULL DEFAULT nextval('operator_id_seq'),
     matchfieldid integer NOT NULL,
     
     CONSTRAINT operator_pk PRIMARY KEY (operatorid, matchfieldid),
@@ -606,9 +606,9 @@ tid	the time when event took place
 descr	a general textstring, could be used to describe the event
 
 */
-CREATE SEQUENCE loggid START 1000;
+CREATE SEQUENCE logg_id_seq START 1000;
 CREATE TABLE Logg (
-    id integer NOT NULL DEFAULT nextval('loggid'),
+    id integer NOT NULL DEFAULT nextval('logg_id_seq'),
        accountid integer NOT NULL,
        type integer,
        tid timestamptz,       
@@ -675,9 +675,9 @@ Explorer
 uri                address of the link, eg. /vlanplot/index.html
 
 */
-CREATE SEQUENCE navbarlinkids START 1000;
+CREATE SEQUENCE navbarlink_id_seq START 1000;
 CREATE TABLE NavbarLink (
-    id integer NOT NULL DEFAULT nextval('navbarlinkids'),
+    id integer NOT NULL DEFAULT nextval('navbarlink_id_seq'),
     accountid integer NOT NULL DEFAULT 0,
     name varchar,
     uri varchar,
