@@ -143,6 +143,21 @@ class EventImpl implements Event, Alert
 		historyVarMap.putAll(vm);
 	}
 
+	// Doc in interface
+	public void copyHistoryVar(Event e, String key) {
+		String s = e.getVar(key);
+		if (s != null) addHistoryVar(key, s);
+	}
+
+	// Doc in interface
+	public void copyHistoryVars(Event e, String[] keys) {
+		for (Iterator it = Arrays.asList(keys).iterator(); it.hasNext();) {
+			String key = (String)it.next();
+			String s = e.getVar(key);
+			if (s != null) addHistoryVar(key, s);
+		}
+	}
+
 	Iterator historyVarIterator() {
 		return historyVarMap.entrySet().iterator();
 	}

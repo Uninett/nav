@@ -80,4 +80,24 @@ public interface Alert
 	 */
 	public void addHistoryVars(Map varMap);
 
+	/**
+	 * Copies the specified variable, if present, from the event to be
+	 * saved togheter with the alert in the alert history table in the
+	 * database.
+	 *
+	 * @param e The event to copy from
+	 * @param key The key to copy
+	 */
+	public void copyHistoryVar(Event e, String key);
+
+	/**
+	 * Copies the specified variables, if present, from the event to be
+	 * saved togheter with the alert in the alert history table in the
+	 * database.
+	 *
+	 * @param e The event to copy from
+	 * @param keys The keys to copy
+	 */
+	public void copyHistoryVars(Event e, String[] keys);
+
 }
