@@ -7,15 +7,22 @@ use strict;
 my $db = "manage";
 my $conn = db_connect($db);
 my ($fil,$tabell,@felt);
-
 #--------------ANV-------------
-$tabell = "anv";
 $fil = "/usr/local/NAV/etc/kilde/anv.txt";
+$tabell = "anv";
 @felt = ("id","descr");
 &db_endring($fil,$tabell,\@felt);
-#--------------ANV_SLUTT-------
-
-
+#--------------STED------------
+$fil = "/usr/local/NAV/etc/kilde/sted.txt";
+$tabell = "sted";
+@felt = ("sted","descr");
+&db_endring($fil,$tabell,\@felt);
+#--------------ROM-------------
+$fil = "/usr/local/NAV/etc/kilde/rom.txt";
+$tabell = "rom";
+@felt = ("id","sted","descr","rom2","rom3","rom4","rom5");
+&db_endring($fil,$tabell,\@felt);
+#--------------FELLES_KODE-----
 sub db_endring {
     my @gen = (); my $sql = ""; my $resultat = ""; my %fil = (); my %db = ();
 
