@@ -656,7 +656,6 @@ def addOrder(req):
                     de.addVars(vars)
                     de.postEvent()
 
-                connection.close()
                 redirect(req,BASEPATH + 'order/')
             else:
                 args['error'] = 'Number must be larger than zero'
@@ -933,7 +932,6 @@ class DeviceEvent:
             database.execute(sql)
 
         connection.commit()
-        connection.close()
 
     def addVar(self, key, value):
         self.vars[key] = value
