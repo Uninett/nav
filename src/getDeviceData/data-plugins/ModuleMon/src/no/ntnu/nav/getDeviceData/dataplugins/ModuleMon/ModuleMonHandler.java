@@ -57,27 +57,32 @@ public class ModuleMonHandler implements DataHandler {
 				Map moduleToIfindexL = Collections.synchronizedMap(new HashMap());
 				Set queryDupe = new HashSet();
 				Set nullPortSet = new HashSet();
-				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module,port FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
+				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module,swportid,port FROM module LEFT JOIN swport USING(moduleid) ORDER BY RANDOM()");
 				while (rs.next()) {
 					String netboxid = rs.getString("netboxid");
 					moduleMapL.put(rs.getString("netboxid")+":"+rs.getString("module"), rs.getString("moduleid"));
 					modidMapL.put(rs.getString("moduleid"), rs.getString("deviceid"));
 					modulesL.put(rs.getString("netboxid"), rs.getString("moduleid"));
 
-					String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
-					if (rs.getString("port") == null && !queryDupe.contains(k)) {
-						nullPortSet.add(k);
-					} else {
-						if (nullPortSet.remove(k)) {
-							queryDupe.remove(k);
+					if (rs.getString("swportid") != null) {
+						String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
+						if (rs.getString("port") == null && !queryDupe.contains(k)) {
+							//System.err.println("add null: " + k);
+							nullPortSet.add(k);
+						} else {
+							if (nullPortSet.remove(k)) {
+								//System.err.println("remove dupe: " + k);
+								queryDupe.remove(k);
+							}
 						}
-					}
-					if (queryDupe.add(k)) {
-						queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
-
-						Map mm;
-						if ( (mm=(Map)moduleToIfindexL.get(netboxid)) == null) moduleToIfindexL.put(netboxid, mm = new HashMap());
-						mm.put(rs.getString("module"), rs.getString("ifindex"));
+						if (queryDupe.add(k)) {
+							//System.err.println("add final: " + rs.getString("ifindex") + ", " + rs.getString("port"));
+							queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
+							
+							Map mm;
+							if ( (mm=(Map)moduleToIfindexL.get(netboxid)) == null) moduleToIfindexL.put(netboxid, mm = new HashMap());
+							mm.put(rs.getString("module"), rs.getString("ifindex"));
+						}
 					}
 				}
 
