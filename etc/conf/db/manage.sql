@@ -315,12 +315,11 @@ CREATE TABLE cam (
   port INT2 NOT NULL,
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
-  til TIMESTAMP,
+  til TIMESTAMP NOT NULL DEFAULT 'infinity',
   UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
 CREATE INDEX cam_mac_hash ON cam USING hash (mac);
 CREATE INDEX cam_til_hash ON cam USING hash (til);
-CREATE INDEX cam_til_btree ON cam USING btree (til);
  
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
