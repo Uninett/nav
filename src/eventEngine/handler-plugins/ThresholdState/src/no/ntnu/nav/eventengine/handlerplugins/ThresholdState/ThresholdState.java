@@ -30,7 +30,7 @@ public class ThresholdState implements EventHandler
 		if (e.getState() == Event.STATE_START) {
 			a.setAlerttype("exceededThreshold");
 		} else if (e.getState() == Event.STATE_END) {
-			a.setAlerttype("underThreshold");
+			a.setAlerttype("belowThreshold");
 		}
 
 		try {
