@@ -85,7 +85,7 @@ sub fil_nettel{
 	    my $temptype;
 	    if($temptype = &snmp_type($ip,$ro,$mib_type)) {
 		my $type = $type{$temptype};
-		my $sysname = &snmp_sysname($ip,$ro,$mib_sysname,$endelser);
+		my $sysname = &snmp_sysname(1,$ip,$ro,$mib_sysname,$endelser);
 #		if($type) {
 		    @_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
 		    @_ = map rydd($_), @_;
