@@ -1,20 +1,21 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Konfigurerering av WAP</p>
+<p><?php echo gettext("Konfigurerering av WAP"); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her kan du sett opp og skru av muligheten for å 
-administrere din konto via en WAP-portal. Husk at du alltid må holde wapkey'en hemmelig, 
+
+echo "<p>";
+echo gettext('Her kan du sett opp og skru av muligheten for å 
+administrere din konto via en WAP-portal. Husk at du alltid må holde wapkeyen hemmelig, 
 og hvis du har misstanke om at noen kan ha fått tak i den kan du generere ny wapkey her. 
-Men da må du huske å oppdatere bokmerke på mobilen din.
+Men da må du huske å oppdatere bokmerke på mobilen din.');
 
-<?php
+
 
 $uid = session_get('uid');
 
@@ -34,18 +35,18 @@ if ($subaction == 'slettkey') {
 
 
 $k = $dbh->hentwapkey($uid);
-print "<h2>Wapkey</h2>";
+print "<h2>" . gettext("Wapkey") . "</h2>";
 
 if ($k[0] == null) {
-	print "<p>Du har ingen wapkey. Du må generere en for å bruke WAP.";
-	print "<p>[ <a href=\"index.php?subaction=nykey\">Generer wapkey</a> ]";	
+	print "<p>" . gettext("Du har ingen wapkey. Du må generere en for å bruke WAP.");
+	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generer wapkey") . "</a> ]";	
 } else {
-	print "<p>Din wapkey er: <b>" . $k[0] . "</b>.";
-	print "<p>Det betyr at du kan nå din brukerprofil fra denne wapsiden:<br>";
-	print "<pre>http://pot.uninett.no/~andrs/nav-frontend/www/wap.php?" . $k[0] . "</pre>";
+	print "<p>" . gettext("Din wapkey er: ") ."<b>" . $k[0] . "</b>.";
+	print "<p>" . gettext("Det betyr at du kan nå din brukerprofil fra denne wapsiden:") . "<br>";
+	print "<pre>http://bigbud.itea.ntnu.no/navuser/wap/?k=" . $k[0] . "</pre>";
 
-	print "<p>[ <a href=\"index.php?subaction=nykey\">Generer ny key</a> | 
-<a href=\"index.php?action=wap&subaction=slettkey\">Fjern wapkey</a> ]";
+	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generer ny key") . "</a> | 
+<a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Fjern wapkey") . "</a> ]";
 
 }
 ?>

@@ -1,23 +1,26 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Mine profiler</p>
+<p><?php echo gettext("Mine profiler"); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her kan du endre og opprette nye profiler.
-<p><a href="#nyprofil">Legg til ny profil</a>
 
-<?php
+echo "<p>";
+echo gettext("Her kan du endre og opprette nye profiler.");
+echo '<p><a href="#nyprofil">';
+echo gettext("Legg til ny profil"); 
+echo "</a>";
+
+
 
 
 if (get_get('subaction') == 'settaktiv') {
 	$dbh->aktivProfil(session_get('bruker'), get_get('pid') );
-	print "<p><font size=\"+3\">Aktivisert</font>. Du har nå byttet aktiv profil.";
+	print "<p><font size=\"+3\">" . gettext('Aktivisert</font>. Du har nå byttet aktiv profil.');
 }
 
 if (get_get('subaction') == 'endret') {
@@ -28,11 +31,11 @@ if (get_get('subaction') == 'endret') {
 			post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
 		$navn='';
 		
-		print "<p><font size=\"+3\">OK</font>, profilnavnet er endret.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, profilnavnet er endret.");
 
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font> oppstod, profilen er <b>ikke</b> endret.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, profilen er <b>ikke</b> endret.");
 	}
 }
 
@@ -44,22 +47,22 @@ if (get_get('subaction') == 'slett') {
 		$foo = $dbh->slettProfil($pid);
 		$navn = '';
 		
-		print "<p><font size=\"+3\">OK</font>, profilen er slettet fra databasen.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, profilen er slettet fra databasen.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, profilen er <b>ikke</b> slettet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, profilen er <b>ikke</b> slettet.");
 	}
 
 }
 
 
 if (get_get('subaction') == "nyprofil") {
-  print "<h3>Registrerer ny profil...</h3>";
+  print "<h3>" . gettext("Registrerer ny profil...") . "</h3>";
   
   $error = NULL;
 	
 	$navn = "";
-  if (post_get('navn') == "") $navn = "Uten navn"; else $navn = post_get('navn');
+  if (post_get('navn') == "") $navn = gettext("Uten navn"); else $navn = post_get('navn');
 
   if (session_get('uid') > 0) { 
     
@@ -67,23 +70,23 @@ if (get_get('subaction') == "nyprofil") {
     	post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
     $tidsid = $dbh->nyTidsperiode(1, '08:00', $profilid);
     
-    print "<p><font size=\"+3\">OK</font>, En ny profil er opprettet for brukeren $brukernavn, denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.";
+    print "<p><font size=\"+3\">" . gettext("OK</font>, En ny profil er opprettet for brukeren $brukernavn, denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.");
     
   } else {
-    print "<p><font size=\"+3\">Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.");
   }
 
 
 }
 
 $l = new Lister( 106,
-	array('Aktiv', 'Navn', '#perioder', 'Valg..'),
+	array(gettext('Aktiv'), gettext('Navn'), gettext('#perioder'), gettext('Valg..')),
 	array(10, 50, 15, 25),
 	array('left', 'left', 'right', 'right'),
 	array(true, true, true, false),
 	1);
 
-print "<h3>Dine profiler</h3>";
+print "<h3>" . gettext("Dine profiler") . "</h3>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -99,9 +102,9 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
       "\"><img alt=\"Aktiv\" src=\"icons/stop.gif\" border=0></a>";
   }
   if ($profiler[$i][4] == 't') { 
-    $sms = '<img alt="Ja" src="icons/ok.gif">';
+    $sms = '<img alt="' . gettext("Ja") . '" src="icons/ok.gif">';
   } else {
-    $sms = '<img alt="Nei" src="icons/cancel.gif">';
+    $sms = '<img alt="' . gettext("Nei") . '" src="icons/cancel.gif">';
   }
   $valg = '<a href="index.php?action=periode&pid=' . $profiler[$i][0] . 
     '"><img alt="Open" src="icons/open2.gif" border=0></A>&nbsp;' .
@@ -124,14 +127,14 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 print $l->getHTML();
 
 print "<p>[ <a href=\"index.php\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
-print "Antall profiler: " . sizeof($profiler);
+print gettext("Antall profiler: ") . sizeof($profiler);
 
 print '<a name="nyprofil"></a><p>';
 
 if ($subaction == 'endre') {
-	print '<h2>Endre navn på profil</h2>';
+	print '<h2>' . gettext("Endre navn på profil") . '</h2>';
 } else {
-	print '<h2>Legg til ny profil</h2>';
+	print '<h2>' . gettext("Legg til ny profil") . '</h2>';
 }
 
 ?>
@@ -170,27 +173,32 @@ if (get_get('subaction') == "endre")  {
 	$tidm = "30";
 }
 
-$dagnavn[0] = "Mandag";
-$dagnavn[1] = "Tirsdag";
-$dagnavn[2] = "Onsdag";
-$dagnavn[3] = "Torsdag";
-$dagnavn[4] = "Fredag";
-$dagnavn[5] = "Lørdag";
-$dagnavn[6] = "Søndag";
+$dagnavn[0] = gettext("Mandag");
+$dagnavn[1] = gettext("Tirsdag");
+$dagnavn[2] = gettext("Onsdag");
+$dagnavn[3] = gettext("Torsdag");
+$dagnavn[4] = gettext("Fredag");
+$dagnavn[5] = gettext("Lørdag");
+$dagnavn[6] = gettext("Søndag");
 
 ?>
     
-      <td><p>Navn</p></td>
+      <td><p><?php echo gettext("Navn"); ?></p></td>
       <td><input name="navn" type="text" size="40" 
 value="<?php echo $navn; ?>"></td>
       <td align="right"><input type="submit" name="Submit" value="<?php
-if ($subaction == 'endre') echo "Lagre endringer"; else echo "Legg til ny profil";
+if ($subaction == 'endre') echo gettext("Lagre endringer"); else 
+	echo gettext("Legg til ny profil");
 ?>"></td>
     </tr>
 	<tr>
-		<td>Ukevarsling</td>
-		<td><select name="ukedag">
 <?php
+echo "<td>";
+echo gettext("Ukevarsling");
+echo "</td>";
+
+echo '<td><select name="ukedag">';
+
 	for ($i = 0; $i < 7; $i++) {
 		print '<option value="' . $i . '"';
 		if ($i == $ukedag) print " selected";
@@ -205,7 +213,7 @@ if ($subaction == 'endre') echo "Lagre endringer"; else echo "Legg til ny profil
 	</tr>
 	
 	<tr>
-		<td>Dagvarsling</td>
+<?php echo "<td>"; echo gettext("Dagvarsling") . "</td>"; ?>
 		<td><input name="tidh" type="text" value="<?php echo $tidh; ?>" size="2">&nbsp;:&nbsp;
 			<input name="tidm" type="text" value="<?php echo $tidm; ?>" size="2">
 		</td>

@@ -160,7 +160,7 @@ class Lister {
 			}
       	}
     } else {
-    	$s .= "<tr><td colspan=\"". sizeof($this->labels) . "\">Ingen elementer funnet.</td></tr>\n";
+    	$s .= "<tr><td colspan=\"". sizeof($this->labels) . "\">" . gettext("Ingen elementer funnet") . ".</td></tr>\n";
     }
     $s .= "</table>";
 

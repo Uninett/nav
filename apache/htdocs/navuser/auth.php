@@ -24,7 +24,8 @@ class Error {
   var $type_name;
   
   function Error ($errtype) {
-    $this->type_name = array('Ukjent Feil', 'Feil under innlogging', 'Databasefeil', 'Sikkerhetsfeil', 'Lese/Skrive feil');
+    $this->type_name = array(gettext('Ukjent Feil'), gettext('Feil under innlogging'), 
+    	gettext('Databasefeil'), gettext('Sikkerhetsfeil'), gettext('Lese/Skrive feil') );
     $this->type = $errtype;
   }
 
@@ -71,13 +72,13 @@ $login = false;
     
 	if (! $query = @pg_exec($dbcon, "SELECT id, admin FROM bruker WHERE brukernavn = '$username' AND passord = '$passwd'")  ) {
 		$error = new Error(2);
-		$error->message = "Feil med datbasespørring.";
+		$error->message = gettext("Feil med datbasespørring.");
     } else {
 		if (pg_numrows($query) == 1) {
 			if ( $data = pg_fetch_array($query, $row) ) {
 				// INNLOGGING OK!!
 				$foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
-				$dbh->nyLogghendelse($data["id"], 1, "Logget inn fra " . $foo);
+				$dbh->nyLogghendelse($data["id"], 1, gettext("Logget inn fra ") . $foo);
 				session_set('uid', $data["id"]);
 				session_set('admin', $data["admin"]);
 				session_set('bruker', $username);
@@ -85,11 +86,11 @@ $login = false;
 				$login = true;
 			} else {
 				$error = new Error(2);
-				$error->message = "Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen.";
+				$error->message = gettext("Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen.");
 			}
     	} else {
 			$error = new Error(1);
-			$error->message = "Du skrev inn feil brukernavn eller passord, forsøk igjen...";
+			$error->message = gettext("Du skrev inn feil brukernavn eller passord, forsøk igjen...");
     	}
     
   	}
@@ -98,7 +99,7 @@ $login = false;
 
 
 if ($action == "logout") {
-	$dbh->nyLogghendelse(session_get('uid'), 2, "Logget ut");
+	$dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
 	$login = false;
 	session_set('login', false);
 }

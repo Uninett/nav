@@ -1,19 +1,21 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Endre utstyrsgrupper</p>
+<p><?php echo gettext("Endre utstyrsgrupper"); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
+
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her velger du filtre som tilsammen danner denne utstyrsgruppen. 
+echo "<p>";
+echo gettext("Her velger du filtre som tilsammen danner denne utstyrsgruppen."); 
+echo '<p><a href="#nyttfilter">';
+echo gettext("Legg til nytt filter"); 
+echo "</a>";
 
-<p><a href="#nyttfilter">Legg til nytt filter</a>
 
-<?php
 
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
@@ -26,10 +28,10 @@ if ($subaction == 'slett') {
 	
 		$dbh->slettGrpFilter(session_get('grp_gid'), get_get('fid') );
 		$adresse='';
-		print "<p><font size=\"+3\">OK</font>, filteret er fjernet fra gruppen.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, filteret er fjernet fra gruppen.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, filteret er <b>ikke</b> fjernet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, filteret er <b>ikke</b> fjernet.");
 	}
 
 	// Viser feilmelding om det har oppstått en feil.
@@ -46,7 +48,7 @@ if ($subaction == "nyttfilter") {
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
     	post_get('inkluder'), post_get('invers') );
   } else {
-    print "<p><font size=\"+3\">Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen.");
   }
 
   // Viser feilmelding om det har oppstått en feil.
@@ -62,7 +64,7 @@ if ($subaction == "swap") {
 }
 
 $l = new Lister( 114,
-		array('Inkl', 'Neg', 'Utstyrfilter', 'Flytt', 'Valg..'),
+		array(gettext('Inkl'), gettext('Neg'), gettext('Utstyrfilter'), gettext('Flytt'), gettext('Valg..') ),
 		array(10, 10, 50, 15, 15),
 		array('center', 'center', 'left', 'center', 'right'),
 		array(false, false, false, false, false),
@@ -70,7 +72,7 @@ $l = new Lister( 114,
 );
 
 
-print "<h3>Utstyrsfiltre</h3>";
+print "<h3>" . gettext("Utstyrsfiltre") . "</h3>";
 
 $filtre = $dbh->listFiltreGruppe(session_get('grp_gid'), 1);
 
@@ -90,26 +92,26 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 	$flytt = "";
 	if ($up) $flytt .= '<a href="index.php?subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i-1][0] .'&ap=' .
 		$filtre[$i][2] . '&bp=' . $filtre[$i-1][2] . '">' . 
-		'<img alt="Flytt opp" src="icons/arrowup.gif" border="0"></a>';
+		'<img alt="' . gettext("Flytt opp") . '" src="icons/arrowup.gif" border="0"></a>';
 	
 	if ($down) $flytt .= '<a href="index.php?subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i+1][0] . '&ap=' . 
 		$filtre[$i][2] . '&bp=' . $filtre[$i+1][2] . '">' . 
-		'<img alt="Flytt ned" src="icons/arrowdown.gif" border="0"></a>';
+		'<img alt="' . gettext("Flytt ned") . '" src="icons/arrowdown.gif" border="0"></a>';
 		
   	$valg = '<a href="index.php?action=utstyrgrp&subaction=slett&fid=' . 
   		$filtre[$i][0] . '">' . 
   		'<img alt="Delete" src="icons/delete.gif" border=0></a>';	
   	
   	if ($filtre[$i][3] == 't') {
-		$inkicon = '<img src="icons/pluss.gif" border="0" alt="Inkluder">';
+		$inkicon = '<img src="icons/pluss.gif" border="0" alt="' . gettext("Inkluder") . '">';
 	} else {
-		$inkicon = '<img src="icons/minus.gif" border="0" alt="Ekskluder">';
+		$inkicon = '<img src="icons/minus.gif" border="0" alt="' . gettext("Ekskluder") . '">';
 	}
 	
 	if ($filtre[$i][4] == 't') {
-		$negicon = '<img src="icons/pos.gif" border="0" alt="Normal">';
+		$negicon = '<img src="icons/pos.gif" border="0" alt="' . gettext("Normal") . '">';
 	} else {
-		$negicon = '<img src="icons/neg.gif" border="0" alt="Omvendt">';
+		$negicon = '<img src="icons/neg.gif" border="0" alt="' . gettext("Omvendt") . '">';
 	}
 
   $l->addElement( array($inkicon, // inkluder
@@ -123,12 +125,12 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
-print "Antall filtre: " . sizeof($filtre);
+print "<p>[ <a href=\"index.php\">" . gettext("Refresh") . " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
+print gettext("Antall filtre: ") . sizeof($filtre);
 
 ?>
 
-<a name="nyttfilter"></a><p><h3>Legg til nytt filter</h3>
+<a name="nyttfilter"></a><p><h3><?php echo gettext("Legg til nytt filter"); ?></h3>
 <form name="form1" method="post" action="index.php?subaction=nyttfilter">
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     
@@ -141,7 +143,7 @@ $filtervalg = $dbh->listFiltreFast($uid, session_get('grp_gid'), $sort);
 for ($i = 0; $i < sizeof($filtervalg); $i++)
 	print "<option value=\"" . $filtervalg[$i][0]. "\">" . $filtervalg[$i][1]. "</option>\n";
 	if ($i == 0) {
-		print "<option value\"empty\">Ingen filtre tilgjengelig...</option>";
+		print "<option value\"empty\">" . gettext("Ingen filtre tilgjengelig...") . "</option>";
 	}
 print '</select>';
 ?>    	
@@ -152,19 +154,19 @@ print '</select>';
 <td align="left" valign="center" width="20%">
 <p>
 <img src="icons/pluss.gif" border="0" alt="Inkluder">
-<input name="inkluder" type="radio" value="1" checked>Inkluder<br>
+<input name="inkluder" type="radio" value="1" checked><?php echo gettext("Inkluder"); ?><br>
 <img src="icons/minus.gif" border="0" alt="Ekskluder">
-<input name="inkluder" type="radio" value="0">Eksluder
+<input name="inkluder" type="radio" value="0"><?php echo gettext("Eksluder"); ?>
 </td>
  
 
 <td align="left" valign="center" width="20%">
 <p>
 <img src="icons/pos.gif" border="0" alt="Vanlig" vspace="0">
-<input type="radio" name="invers" value="1" checked>Vanlig<br>
+<input type="radio" name="invers" value="1" checked><?php echo gettext("Vanlig"); ?><br>
 
 <img src="icons/neg.gif" border="0" alt="Invers">
-<input type="radio" name="invers" value="0">Motsatt
+<input type="radio" name="invers" value="0"><?php echo gettext("Motsatt"); ?>
 </td>
 
 
@@ -174,9 +176,9 @@ print '</select>';
    	<td>&nbsp;</td>
    	<td><?php
 if ($i > 0 ) { 
-      print '<input type="submit" name="Submit" value="Legg til"></td>';
+      print '<input type="submit" name="Submit" value="' . gettext("Legg til") . '"></td>';
  } else {
- 	print "<p>Legg til";
+ 	print "<p>" . gettext("Legg til");
  }
 ?></td>   	   	   	
    	</tr>

@@ -1,20 +1,19 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Brukeradministrasjon</p>
+<p><?php echo gettext("Brukeradministrasjon"); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her kan du endre og opprette nye brukere, og deres rettigheter.
 
-<p><a href="#nybruker">Legg til ny bruker</a>
+echo "<p>" . gettext("Her kan du endre og opprette nye brukere, og deres rettigheter.");
 
-<p>
-<?php
+echo '<p><a href="#nybruker">';
+echo gettext("Legg til ny bruker") . "</a>";
+echo "<p>";
 
 if (get_get('subaction') == 'endre') {
 	session_set('endrebrukerid', get_get('cuid'));
@@ -27,16 +26,16 @@ if (get_get('subaction') == 'endret' ) {
 		$dbh->endreBruker(session_get('endrebrukerid'), post_get('brukernavn'), post_get('navn'), 
 			post_get('passord'), post_get('admin'), post_get('sms'), post_get('kolengde') );
 
-		print "<p><font size=\"+3\">OK</font>, brukeren er endret.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, brukeren er endret.");
 
     	if (post_exist('epost')) {
     		$dbh->nyAdresse(post_get('epost'), 1, session_get('endrebrukerid') );
-    		print " Og ny epostadresse er lagt til brukeren.";
+    		print gettext(" Og ny epostadresse er lagt til brukeren.");
    		}
     
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font> oppstod, brukeren er <b>ikke</b> endret.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, brukeren er <b>ikke</b> endret.");
 	}
 	
 }
@@ -47,17 +46,17 @@ if (get_get('subaction') == "slett") {
 	
 		$dbh->slettBruker(get_get('cuid') );
 
-		print "<p><font size=\"+3\">OK</font>, brukeren er slettet fra databasen.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, brukeren er slettet fra databasen.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, brukeren er <b>ikke</b> slettet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, brukeren er <b>ikke</b> slettet.");
 	}
 
 
 }
 
 if (get_get('subaction') == "nybruker") {
-  print "<h3>Registrerer ny bruker...</h3>";
+  print "<h3>" . gettext("Registrerer ny bruker...") . "</h3>";
   
   $error = NULL;
   
@@ -80,18 +79,19 @@ if (get_get('subaction') == "nybruker") {
     	$dbh->nyAdresse(post_get('epost'), 1, $uid);
     }
     
-    print "<p><font size=\"+3\">OK</font>, ny bruker med brukernavn $brukernavn er lagt til i databasen med brukerid $uid. En ny standard profil er opprettet for brukeren, denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.";
+    print "<p><font size=\"+3\">" . gettext("OK</font>, ny bruker med brukernavn $brukernavn er lagt til i databasen med brukerid $uid. En ny standard profil er opprettet for brukeren, denne har id $profilid. Profilen har bare en tidsperiode, fra 08:00 til 08:00 alle dager.");
 	print '<p>Du vil ofte <a href="index.php?action=brukertilgruppe&subaction=velge&vbuid=' . $uid . '">melde brukeren opp i noen brukergrupper</a>.';
 
   } else {
-    print "<p><font size=\"+3\">Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen.");
   }
 
 
 }
 
 $l = new Lister( 102,
-	array('Brukernavn', 'Navn', 'Admin', 'SMS', 'Kø','#prof', '#adr', 'Valg..'),
+	array(gettext('Brukernavn'), gettext('Navn'), gettext('Admin'), gettext('SMS'), 
+		gettext('Kø'),gettext('#prof'), gettext('#adr'), gettext('Valg..') ),
 	array(15, 25, 10, 10, 5, 10, 10, 15),
 	array('left', 'left', 'right', 'center', 'center', 'right', 'right', 'right'),
 	array(true, true, true, true, true, true, true, false),
@@ -99,7 +99,7 @@ $l = new Lister( 102,
 );
 
 
-print "<h3>Lokale brukere</h3>";
+print "<h3>" . gettext("Lokale brukere") . "</h3>";
 
 
 if ( get_exist('sortid') )
@@ -151,7 +151,7 @@ for ($i = 0; $i < sizeof($brukere); $i++) {
   	break;
   	case 100: $adm = "<img alt=\"Admin\" src=\"icons/person100.gif\">";
   	break;
-  	default: $adm = "<p>Ukjent";  	
+  	default: $adm = "<p>" . gettext("Ukjent");  	
   }
 
   $l->addElement( array($brukere[$i][1],  // brukernavn
@@ -168,15 +168,15 @@ for ($i = 0; $i < sizeof($brukere); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
-print "Antall brukere: " . sizeof($brukere);
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("Refresh") . " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
+print gettext("Antall brukere: ") . sizeof($brukere);
 ?>
 <a name="nybruker"></a><p><h3>
 <?php
 if (get_get('subaction') == 'endre') {
-	echo "Endre brukerinfo";
+	echo gettext("Endre brukerinfo");
 } else {
-	echo "Legg til ny bruker";
+	echo gettext("Legg til ny bruker");
 }
 ?></h3>
 <form name="form1" method="post" action="index.php?action=admin&subaction=<?php
@@ -187,33 +187,33 @@ if (get_get('subaction') == 'endre') echo "endret"; else echo "nybruker";
 
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     <tr>
-      <td width="30%"><p>Navn</p></td>
+      <td width="30%"><p><?php echo gettext("Navn"); ?></p></td>
       <td width="70%"><input name="navn" type="text" size="40" 
 value="<?php echo $navn; ?>"></td>
     </tr>
     <tr>
-      <td>E-post</td>
+      <td><?php echo gettext("E-post"); ?></td>
       <td><input size="50" name="epost" type="text" 
 value="<?php 
 if ($subaction == 'endre') {
 	echo $epost;
 } else {
-	echo "bruker@uninett.no";
+	echo gettext("bruker@uninett.no");
 } ?>"><?php
 if (get_get('subaction') == 'endre') {
-	echo '&nbsp;<b>Legg til ny epost?</b>';
+	echo '&nbsp;<b>' . gettext("Legg til ny epost?") . '</b>';
 }
 ?>
 </td>
     </tr>    
     <tr>
-      <td>Brukernavn</td>
+      <td><?php echo gettext("Brukernavn"); ?></td>
       <td><input name="brukernavn" type="text" 
 value="<?php echo $brukernavn; ?>"></td>
     </tr>
 
     <tr>
-      <td>Passord </td>
+      <td><?php echo gettext("Passord"); ?></td>
       <td><input type="password" name="passord">
 </td>
     </tr>
@@ -229,11 +229,11 @@ switch($admin) {
 		
 ?>    
     
-      <td>Administrator niv&aring;</td>
+      <td><?php echo gettext("Administrator niv&aring;"); ?></td>
       <td align="center"><select name="admin" id="select">
-          <option value="0"<?php echo $ta[0]; ?> >0 Konto avsl&aring;tt</option>
-          <option value="1"<?php echo $ta[1]; ?> >1 Vanlig bruker</option>
-          <option value="100"<?php echo $ta[2]; ?> >100 Administrator</option>
+          <option value="0"<?php echo $ta[0] . ">" . gettext("0 Konto avsl&aring;tt"); ?> </option>
+          <option value="1"<?php echo $ta[1] . ">" . gettext("1 Vanlig bruker"); ?> </option>
+          <option value="100"<?php echo $ta[2] . ">" . gettext("100 Administrator"); ?> </option>
         </select></td>
     </tr>
     <tr>
@@ -251,26 +251,26 @@ switch($kolengde) {
 		
 ?>       
 
-      <td>Maks alarmkølengde</td>
+      <td><?php echo gettext("Maks alarmkølengde"); ?></td>
       <td align="center"><select name="kolengde" id="select">
-          <option value="0"<?php echo $ta[0]; ?> >Ingen kø</option>
-          <option value="7"<?php echo $ta[1]; ?> >En uke</option>
-          <option value="14"<?php echo $ta[2]; ?> >To uker</option>          
-          <option value="30"<?php echo $ta[3]; ?> >En måned</option>
-          <option value="60"<?php echo $ta[4]; ?> >To måneder</option>          
+          <option value="0"<?php echo $ta[0] . ">" . gettext("Ingen kø"); ?></option>
+          <option value="7"<?php echo $ta[1] . ">" . gettext("En uke"); ?></option>
+          <option value="14"<?php echo $ta[2] . ">" . gettext("To uker"); ?></option>          
+          <option value="30"<?php echo $ta[3] . ">" . gettext("En måned"); ?></option>
+          <option value="60"<?php echo $ta[4] . ">" . gettext("To måneder"); ?></option>          
         </select></td>
     </tr>    
     <tr>
       <td><input name="sms" type="checkbox" 
 <?php 
 	  if ($csms == 't') echo "checked";
-?> value="1">Tilgang til SMS alarm</td>
+?> value="1"><?php echo gettext("Tilgang til SMS alarm"); ?></td>
       <td align="right"><input type="submit" name="Submit" 
 <?php
 if ($subaction == 'endre') {
-	echo 'value="Lagre endringer"';
+	echo 'value="' . gettext("Lagre endringer") . '"';
 } else {
-	echo 'value="Legg til bruker"';
+	echo 'value="' . gettext("Legg til bruker") . '"';
 }
 ?>
 ></td>

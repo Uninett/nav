@@ -1,18 +1,21 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Mine adresser</p>
+<p><?php echo gettext('Mine adresser'); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her kan du administrere dine varlingsadresser. 
-<a href="#nyadresse">Legg til ny adresse</a>
 
-<?php
+echo "<p>";
+echo gettext("Her kan du administrere dine varlingsadresser.");
+echo '<a href="#nyadresse">';
+echo " " . gettext("Legg til ny adresse"); 
+echo "</a>";
+
+
 
 if (get_get('subaction') == 'endret') {
 
@@ -20,10 +23,10 @@ if (get_get('subaction') == 'endret') {
 	
 		$aid = $dbh->endreAdresse(post_get('aid'), post_get('adressetype'), post_get('adresse') );
 		$adresse=0;
-		print "<p><font size=\"+3\">OK</font>, adressen er endret.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, adressen er endret.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font> oppstod, adressen er <b>ikke</b> endret.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, adressen er <b>ikke</b> endret.");
 	}
 
 
@@ -37,10 +40,10 @@ if (get_get('subaction') == 'slett') {
 	
 		$dbh->slettAdresse(get_get('aid') );
 		$adresse='';
-		print "<p><font size=\"+3\">OK</font>, adressen er slettet fra databasen.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, adressen er slettet fra databasen.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, adressen er <b>ikke</b> slettet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, adressen er <b>ikke</b> slettet.");
 	}
 
   
@@ -52,21 +55,21 @@ if (get_get('subaction') == 'nyadresse') {
   if ($aid > 0) { 
     $adresse=0;
     
-    print "<p><font size=\"+3\">OK</font>, ny adresse er lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("OK</font>, ny adresse er lagt til i databasen.");
 
   } else {
-    print "<p><font size=\"+3\">Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen.");
   }
 
 
   
 }
 
-print "<h3>Mine adresser</h3>";
+print "<h3>" . gettext("Mine adresser") . "</h3>";
 
 //	function Lister($id, $labels, $c, $align, $isorts, $defaultsort) {
 $l = new Lister( 101,
-		array('Type', 'Adresse', 'Valg..'),
+		array(gettext('Type'), gettext('Adresse'), gettext('Valg..') ),
 		array(20, 60, 20),
 		array('left', 'left', 'right'),
 		array(true, true, false),
@@ -82,11 +85,11 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 
 	switch($adr[$i][2]) {
-		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;E-post'; break;
-		case 2 : $type = '<img alt="sms" src="icons/mobil.gif" border=0>&nbsp;SMS'; break;
-		case 3 : $type = '<img alt="irc" src="icons/irc.gif" border=0>&nbsp;IRC'; break;
-		case 4 : $type = '<img alt="icq" src="icons/icq.gif" border=0>&nbsp;ICQ'; break;				
-		default : $type = '<img alt="ukjent" src="" border=0>&nbsp;Ukjent'; break;				
+		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("E-post"); break;
+		case 2 : $type = '<img alt="sms" src="icons/mobil.gif" border=0>&nbsp;' . gettext("SMS"); break;
+		case 3 : $type = '<img alt="irc" src="icons/irc.gif" border=0>&nbsp;' . gettext("IRC"); break;
+		case 4 : $type = '<img alt="icq" src="icons/icq.gif" border=0>&nbsp;' . gettext("ICQ"); break;				
+		default : $type = '<img alt="ukjent" src="" border=0>&nbsp;' . gettext("Ukjent"); break;				
 	}
 
   $valg = '<a href="index.php?action=' . $action . '&subaction=endre&aid=' . $adr[$i][0] . 
@@ -103,15 +106,15 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=\"0\"> ]</a> ";
-print "Antall adresser: " . sizeof($adr);
+print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("Refresh") . " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=\"0\"> ]</a> ";
+print gettext("Antall adresser: ") . sizeof($adr);
 
 print '<a name="nyadresse"></a><p>';
 
 if (get_get('subaction') == 'endre') {
-	print '<h2>Endre adresse</h2>';
+	print '<h2>' . gettext("Endre adresse") . '</h2>';
 } else {
-	print '<h2>Legg til ny adresse</h2>';
+	print '<h2>' . gettext("Legg til ny adresse") . '</h2>';
 }
 
 ?>
@@ -129,7 +132,7 @@ if (get_get('subaction') == 'endre') {
 ?>
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     <tr>
-      <td width="30%">Adressetype</td>
+      <td width="30%"><?php echo gettext("Adressetype"); ?></td>
       <td width="70%">
       	<select name="adressetype" id="selectadr">
 <?php
@@ -140,10 +143,10 @@ if (get_get('subaction') == 'endre') {
 	$adresse = '';
 }
 
-print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>E-post</option>';
-print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>SMS</option>';
-print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>IRC</option>';
-print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>ICQ</option>';
+print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-post") . '</option>';
+print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>' . gettext("SMS") . '</option>';
+print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>' . gettext("IRC") . '</option>';
+print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>' . gettext("ICQ") . '</option>';
 
 ?>
 		</select>
@@ -152,11 +155,11 @@ print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>ICQ</optio
     
     
     <tr>
-      <td valign="top">Adresse</td>
+      <td valign="top"><?php echo gettext("Adresse"); ?></td>
       <td>
       <input name="adresse" type="text" size="50" value="<?php echo $adresse; ?>">
-      <p>Kan være f.eks:<br>
-      epost: <i>bruker@uninett.no</i><br>
+      <p><?php echo gettext("Kan være f.eks:"); ?><br>
+      mail: <i>bruker@uninett.no</i><br>
       sms: <i>99372612</i><br>
       irc: <i>nick@irc.homelien.no</i><br>
       icq: <i>123456789</i>
@@ -166,7 +169,7 @@ print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>ICQ</optio
 
     <tr>
       <td align="right" colspan="2"><input type="submit" name="Submit" value="<?php
-if ($subaction == 'endre') echo "Lagre endringer"; else echo "Legg til ny adresse";
+if ($subaction == 'endre') echo gettext("Lagre endringer"); else echo gettext("Legg til ny adresse");
 ?>"></td>
     </tr>
     

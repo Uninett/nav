@@ -1,9 +1,8 @@
 <?php
 
 if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navuser") ) {
-	print "<h1>Databasefeil</h1>";
-	print "<p>Hele portalen blir sperret når ikke databasen er tiljgenglig.";
-	print "<p>Dette av sikkerhetsmessige årsaker";
+	print "<h1>" . gettext("Databasefeil") . "</h1>";
+	print "<p>" . gettext("Hele portalen blir sperret når ikke databasen er tilgjenglig.");
 	exit(0);
 } 
 

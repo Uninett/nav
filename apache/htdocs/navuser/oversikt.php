@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Oversikt</p>
+<p><?php echo gettext('Oversikt'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -15,12 +15,12 @@ if (get_exist('vis') )
 
 print '<table width="100%"><tr><td>';
 print '<h2>' . $brukerinfo[1] . '</h2>';
-print '<p>Du er logget inn på NAV med brukernavn <b>' . $brukerinfo[0] . '</b>.<br>';
+print '<p>' . gettext("Du er logget inn på NAV med brukernavn") . ' <b>' . $brukerinfo[0] . '</b>.<br>';
 print '</td><td>';
 if (session_get('visoversikt') == 0) {
-	print '<p>[ <a href="index.php?vis=1">Vis mer info...</a> ]';
+	print '<p>[ <a href="index.php?vis=1">' . gettext("Vis mer info...") . '</a> ]';
 } else {
-	print '<p>[ <a href="index.php?vis=0">Vis mindre info...</a> ]';
+	print '<p>[ <a href="index.php?vis=0">' . gettext("Vis mindre info...") . '</a> ]';
 }
 print '</td></tr></table>';
 
@@ -29,30 +29,30 @@ if (session_get('visoversikt') == 1) {
 print '<p>&nbsp;';
 
 print '<table width="100%"><tr width="30%" valign="top"><td>';
-print '<h3>Kontotype</h3>';
+print '<h3>' . gettext('Kontotype') . '</h3>';
 
 switch ($brukerinfo[2]) {
 	case (100) :
-		print '<p><img alt="Administrator" src="icons/person100.gif">&nbsp;';
-		print 'Administrator';
+		print '<p><img alt="'. gettext('Administrator') . " src="icons/person100.gif">&nbsp;';
+		print gettext('Administrator');
 		break;
 	case (1) :
-		print '<p><img alt="Vanlig bruker" src="icons/person1.gif">&nbsp;';
-		print 'Vanlig bruker';
+		print '<p><img alt="' . gettext('Vanlig bruker') . '" src="icons/person1.gif">&nbsp;';
+		print gettext('Vanlig bruker');
 		break;
 	default: 
-		print "<p>Ukjent administrator nivå.";
+		print "<p>" . gettext("Ukjent administrator nivå.");
 }
 
 print '</td><td width="70%" valign="top">';
-print '<h3>Tilgang til SMS</h3>';
+print '<h3>' . gettext("Tilgang til SMS") . '</h3>';
 
 if ($brukerinfo[3] == 't') {
-	print '<p><img alt="Ja" src="icons/ok.gif">&nbsp;';
-	print 'Ja, du har tilgang til å sette opp SMS alarmer.';
+	print '<p><img alt="' . gettext('Ja') . '" src="icons/ok.gif">&nbsp;';
+	print gettext('Ja, du har tilgang til å sette opp SMS alarmer.');
 } else {
 	print '<p><img alt="Nei" src="icons/cancel.gif">&nbsp;';
-	print 'Nei, du har ikke lov til å sette opp SMS alarmer.';
+	print gettext('Nei, du har ikke lov til å sette opp SMS alarmer.');
 }
 
 print '</td></tr></table>';
@@ -61,7 +61,7 @@ print '</td></tr></table>';
 print '<table width="100%"><tr>';
 print '<td width="50%" valign="top" class="oversikt">';
 
-print '<h2>Brukergrupper</h2>';
+print '<h2>' . gettext("Brukergrupper") . '</h2>';
 
 $grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
 
@@ -72,14 +72,14 @@ for ($i = 0; $i < sizeof($grupper); $i++) {
 }
 
 if (sizeof($grupper) < 1) {
-	print '<p>Du er <b>ikke</b> medlem av noen brukergrupper.';
+	print gettext('<p>Du er <b>ikke</b> medlem av noen brukergrupper.');
 } else {
-	print '<p>Du er medlem av ' . sizeof($grupper) . ' brukergrupper.';
+	print gettext('<p>Du er medlem av ') . sizeof($grupper) . gettext(' brukergrupper.');
 }
 
 print '</td><td width="50%" valign="top" class="oversikt">';
 
-print '<h2>Rettigheter</h2>';
+print '<h2>' . gettext("Rettigheter") . '</h2>';
 $grupper = $dbh->listUtstyrRettighet(session_get('uid'), 1);
 
 	
@@ -89,17 +89,17 @@ for ($i = 0; $i < sizeof($grupper); $i++) {
 }
 
 if (sizeof($grupper) < 1) {
-	print '<p>Du har <b>ikke</b> rettighet til noen utstyrsgrupper.';
+	print gettext('<p>Du har <b>ikke</b> rettighet til noen utstyrsgrupper.');
 } else {
-	print '<p>Du har rettighet til ' . sizeof($grupper) . ' utstyrsgrupper.';
+	print gettext('<p>Du har rettighet til ') . sizeof($grupper) . gettext(' utstyrsgrupper.');
 }
 
 print '</td></tr></table>';
 
-print '<h2>Aktiv profil</h2>';
+print '<h2>' . gettext("Aktiv profil") . '</h2>';
 
 if ($subaction == 'settaktiv') {
-	print "<p>Aktiv profil er endret til : ";
+	print "<p>" . gettext("Aktiv profil er endret til") . " : ";
 	$dbh->aktivProfil(session_get('bruker'), $pid);
 
 }
@@ -120,7 +120,7 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 }
 
 if (sizeof($profiler) < 1) {
-	print '<option value="0">Ingen profiler opprettet...</option>';
+	print '<option value="0">' . gettext("Ingen profiler opprettet...") . '</option>';
 }
 print '</select>';
 

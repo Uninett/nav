@@ -8,13 +8,31 @@ require("auth.php");
 
 header("Content-Type: text/html; charset=utf-8");
 
+
+// I18N support information here
+$language = 'en';
+
+putenv("LANG=$language");
+putenv("LANGUAGE=$language");
+setlocale(LC_ALL, $language);
+
+// Set the text domain as 'messages'
+$domain = 'messages';
+bindtextdomain($domain, "./locale/");
+textdomain($domain);
+
+
+
+
+
 require("listing.php");
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
+
 <head>
-<title>Uninett NAV</title>
+<title><?php echo gettext('Uninett NAV'); ?></title>
 <style type="text/css" media="all">@import "css/stil.css";</style>
 <style type="text/css" media="all">@import "css/listing.css";</style>
 <link rel="stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
@@ -87,9 +105,7 @@ class Meny {
 	
 	
 	function fileInclude($action) {
-		
-		//return array('jalla.php', 'jalla2.php');
-		
+
 		if ($this->login) { // Er man innlogget?
 
 			// Har man tilgang til modulen man skal laste?
@@ -100,7 +116,7 @@ class Meny {
 
 				} else {
 					$error = new Error(3);
-					$error->message = "Du forsøkte å hente inn en submodul som din bruker ikke har tilgang til. Forsøk å logge ut og inn igjen, og hvis det fortsatt ikke fungerer varsle systemadministrator.";
+					$error->message = gettext("Du forsøkte å hente inn en submodul som din bruker ikke har tilgang til. Forsøk å logge ut og inn igjen, og hvis det fortsatt ikke fungerer varsle systemadministrator.");
 					print $error->getHTML();
 				}
 			} else { // Vises som default...
@@ -119,7 +135,7 @@ class Meny {
 
 <table class="meny">
 <tr class="menyHead"><td>
-<p>NAV Meny
+<p><?php echo gettext('NAV Meny'); ?>
 </td></tr>
 
 <tr><td>
@@ -132,23 +148,23 @@ if ( get_get('action')  ) {
 $meny = NEW Meny($login);
 
 print "<P>";
-$meny->newOption("Oversikt", "oversikt", 0, array('oversikt.php', 'velkommen.php') );
-$meny->newOption("Adresser", "adress", 1,array('adress.php') );
-$meny->newOption("Profiler", "profil", 1, array('profil.php') );
-$meny->newOption("Utstyrsgrupper", "utstyr", 1, array('utstyr.php') );
-$meny->newOption("Utstyrsfiltre", "filter", 1, array('filter.php') );
-$meny->newOption("Hjelp", "hjelp", 1, array('hjelp.php') );
+$meny->newOption(gettext("Oversikt"), "oversikt", 0, array('oversikt.php', 'velkommen.php') );
+$meny->newOption(gettext("Adresser"), "adress", 1,array('adress.php') );
+$meny->newOption(gettext("Profiler"), "profil", 1, array('profil.php') );
+$meny->newOption(gettext("Utstyrsgrupper"), "utstyr", 1, array('utstyr.php') );
+$meny->newOption(gettext("Utstyrsfiltre"), "filter", 1, array('filter.php') );
+$meny->newOption(gettext("Hjelp"), "hjelp", 1, array('hjelp.php') );
 
 print "<p>";
-$meny->newOption("WAP-oppsett", "wap", 1, array('wap.php') );
-$meny->newOption("Endre passord", "passord", 1, array('endrepassord.php') );
+$meny->newOption(gettext("WAP-oppsett"), "wap", 1, array('wap.php') );
+$meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
 
 print "<p>";
-$meny->newOption("Brukere", "admin", 50, array('admin.php') );
-$meny->newOption("Brukergrupper", "gruppe", 100, array('gruppe.php') );
-$meny->newOption("Felles Utst.grp.", "futstyr", 100, array('fellesutstyr.php') );
-$meny->newOption("Felles Utst.filter", "ffilter", 100, array('fellesfilter.php') );
-$meny->newOption("Logg", "logg", 20, array('logg.php') );
+$meny->newOption(gettext("Brukere"), "admin", 50, array('admin.php') );
+$meny->newOption(gettext("Brukergrupper"), "gruppe", 100, array('gruppe.php') );
+$meny->newOption(gettext("Felles Utst.grp."), "futstyr", 100, array('fellesutstyr.php') );
+$meny->newOption(gettext("Felles Utst.filter"), "ffilter", 100, array('fellesfilter.php') );
+$meny->newOption(gettext("Logg"), "logg", 20, array('logg.php') );
 
 
 $meny->newModule('periode', 1, array('periode.php') );
@@ -178,7 +194,7 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 
 <table class="meny">
 <tr class="menyHead"><td>
-<p>Innlogging
+<p><?php echo gettext('Innlogging'); ?>
 </td></tr>
 
 <tr><td>
@@ -190,17 +206,17 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
  */
 
 if ( $login) {
-  print "<p>Du er logget inn som " . session_get('bruker');
-  print "<p><a href=\"index.php?action=logout\">Logg ut</a>";
+  print "<p>" . gettext("Du er logget inn som ") . session_get('bruker');
+  print "<p><a href=\"index.php?action=logout\">" . gettext("Logg ut") . "</a>";
 } else {
-  print "<p>Du er <b>ikke</b> logget inn.";
+  print "<p>" . gettext("Du er <b>ikke</b> logget inn.");
   print "<p class=\"field\">";
   print "<form method=\"post\" action=\"index.php\">";
   print "<INPUT type=\"text\" class=\"fieldOne\" name=\"username\" value=\"";
   if (isset($username)) print $username; else print "bruker";
   print "\"><br>";
   print "<INPUT type=\"password\" class=\"fieldOne\" name=\"passwd\"><br>";
-  print "<INPUT type=\"submit\" class=\"subm\" name=\"submit\" value=\"Logg inn\">";
+  print "<INPUT type=\"submit\" class=\"subm\" name=\"submit\" value=\"" . gettext("Logg inn") . "\">";
   print "</FORM>";
 }
   
@@ -212,7 +228,7 @@ if ( $login) {
 
 <table class="meny">
 <tr class="menyHead"><td>
-<p>Kontakt
+<p><?php echo gettext('Kontakt'); ?>
 </td></tr>
 
 <tr><td>
@@ -223,9 +239,14 @@ Teknobyen<br>
 Abelsgate 5<br>
 7030 Trondheim
 <p>
-Tlf: 73 55 79 00<br>
-Fax: 73 55 79 01
-<p>Epost: <br>
+<?php 
+echo gettext("Tlf: 73 55 79 00"); 
+echo "<br>";
+echo gettext("Fax: 73 55 79 01");
+echo "<p>"; 
+echo gettext("Epost:");
+echo "<br>";
+?>
 <small><a href=mailto:info@uninett.no>info@uninett.no</a></small>
 
 </td></tr>
@@ -233,7 +254,9 @@ Fax: 73 55 79 01
 
 <table class="meny">
 <tr class="menyHead"><td>
-<p>HTML og CSS
+<p><?php
+	echo gettext("HTML og CSS");
+?>
 </td></tr>
 
 <tr><td>
@@ -246,11 +269,15 @@ Fax: 73 55 79 01
 
 <div class="noCSS">
 <table class="meny">
-<tr class="menyHead"><td><p><b>StyleSheets</b>
-</td></tr>
-<tr><td>
-<p>Du har en nettleser som ikke støtter stylesheets. 
-Vi anbefaler bruk av en nettleser som støtter stylesheets.
+<tr class="menyHead"><td>
+<?php
+echo '<p><b>' . gettext('StyleSheets') . '</b>';
+echo '</td></tr>';
+echo '<tr><td>';
+echo '<p>';
+echo gettext("Du har en nettleser som ikke støtter stylesheets. 
+Vi anbefaler bruk av en nettleser som støtter stylesheets.");
+?>
 </td></tr>
 </table>
 </div>
@@ -282,7 +309,7 @@ foreach($filer as $incfile) {
 		require($incfile);
 	} else {
 		$error = new Error(4);
-		$error->message = "Kan ikke lese filen &lt;" . $incfile . "&gt;";
+		$error->message = gettext("Kan ikke lese filen") . " &lt;" . $incfile . "&gt;";
 		print $error->getHTML();
 		$error = null;
 	}

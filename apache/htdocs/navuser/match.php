@@ -1,22 +1,24 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Oppsett av filter</p>
+<p><?php echo gettext('Oppsett av filter'); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
-<p>Her lager du et sett med betingelser som alle må være oppfylt for at en bestemt hendelse skal inkluderes av filteret. 
-Hvis en eller flere av match'ene ikke slår til vil en hendelse altså ikke være med.
-<p><a href="#nymatch">Legg til ny betingelse</A>
 
-<?php
+echo "<p>";
+echo gettext("Her lager du et sett med betingelser som alle må være oppfylt for at en bestemt hendelse skal inkluderes av filteret. 
+Hvis en eller flere av match'ene ikke slår til vil en hendelse altså ikke være med.");
+echo '<p><a href="#nymatch">';
+echo gettext("Legg til ny betingelse");
+echo '</a>';
+
 
 if (! $dbkcon = @pg_connect("user=manage dbname=manage password=eganam") ) {
   $error = new Error(2);
-  $error->message = "Kunne ikke koble til database.";
+  $error->message = gettext("Kunne ikke koble til database.");
 }
 
 $dbhk = new DBHK($dbkcon);
@@ -40,30 +42,30 @@ define("TJENESTE",9);
 define("KILDE",10);
 define("HENDELSE",11);
 
-//$felt[ORG] = 'Organisasjon';
-//$felt[PLASS] = 'Sted (plass)';
-//$felt[OMRADE] = 'Sted (område)';
-$felt[UTSTYRSTYPE] = 'Utstyrtype';
-//$felt[GRUPPE] = 'Gruppe av utstyrstyper';
-$felt[VIKTIG] = 'Grad av viktighet';
-$felt[IP] = 'IP adresse';
-$felt[UTSTYRSNAVN] = 'Utstyrsnavn';
-//$felt[PORTNUMMER] = 'Portnummer';
-//$felt[TJENESTE] = 'Tjeneste';
-$felt[KILDE] = 'Kilde';
-$felt[HENDELSE] = 'Hendelse';
+//$felt[ORG] = gettext('Organisasjon');
+//$felt[PLASS] = gettext('Sted (plass)');
+//$felt[OMRADE] = gettext('Sted (område)');
+$felt[UTSTYRSTYPE] = gettext('Utstyrtype');
+//$felt[GRUPPE] = gettext('Gruppe av utstyrstyper');
+$felt[VIKTIG] = gettext('Grad av viktighet');
+$felt[IP] = gettext('IP adresse');
+$felt[UTSTYRSNAVN] = gettext('Utstyrsnavn');
+//$felt[PORTNUMMER] = gettext('Portnummer');
+//$felt[TJENESTE] = gettext('Tjeneste');
+$felt[KILDE] = gettext('Kilde');
+$felt[HENDELSE] = gettext('Hendelse');
 
-$type[0] = 'er lik';
-$type[1] = 'er større enn';
-$type[2] = 'er større eller lik';
-$type[3] = 'er mindre enn';
-$type[4] = 'er mindre eller lik';
-$type[5] = 'er ulik';
-$type[6] = 'starter med';
-$type[7] = 'slutter med';
-$type[8] = 'inneholder';
-$type[9] = 'regexp';
-$type[10] = 'wildcard (? og *)';
+$type[0] = gettext('er lik');
+$type[1] = gettext('er større enn');
+$type[2] = gettext('er større eller lik');
+$type[3] = gettext('er mindre enn');
+$type[4] = gettext('er mindre eller lik');
+$type[5] = gettext('er ulik');
+$type[6] = gettext('starter med');
+$type[7] = gettext('slutter med');
+$type[8] = gettext('inneholder');
+$type[9] = gettext('regexp');
+$type[10] = gettext('wildcard (? og *)');
 
 $velgtype[ORG] = array();
 $velgtype[PLASS] = array();
@@ -84,10 +86,10 @@ if ($subaction == 'slett') {
 	
 		$dbh->slettFiltermatch(session_get('match_fid'), get_get('mid') );
 
-		print "<p><font size=\"+3\">OK</font>, matchen er fjernet fra filteret.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, matchen er fjernet fra filteret.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, matchen er <b>ikke</b> fjernet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, matchen er <b>ikke</b> fjernet.");
 	}
 
 	// Viser feilmelding om det har oppstått en feil.
@@ -99,18 +101,18 @@ if ($subaction == 'slett') {
 }
 
 if ($subaction == "nymatch") {
-  print "<h3>Registrerer ny match...</h3>";
+  print "<h3>" . gettext("Registrerer ny match...") . "</h3>";
   
   $error = NULL;
-  if ($navn == "") $navn = "Uten navn";
+  if ($navn == "") $navn = gettext("Uten navn");
   if ($uid > 0) { 
     
     $matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
     	post_get('verdi'), session_get('match_fid') );
-    print "<p><font size=\"+3\">OK</font>, en ny betingelse (match) er lagt til for dette filteret.";
+    print "<p><font size=\"+3\">" . gettext("OK</font>, en ny betingelse (match) er lagt til for dette filteret.");
     
   } else {
-    print "<p><font size=\"+3\">Feil</font>, ny match er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, ny match er <b>ikke</b> lagt til i databasen.");
   }
 
   // Viser feilmelding om det har oppstått en feil.
@@ -125,7 +127,7 @@ if ($subaction == "nymatch") {
 
 
 $l = new Lister(111,
-		array('Felt', 'Betingelse', 'Verdi', 'Valg..'),
+		array(gettext('Felt'), gettext('Betingelse'), gettext('Verdi'), gettext('Valg..') ),
 		array(40, 15, 25, 20),
 		array('left', 'left', 'left', 'right'),
 		array(true, true, true, false),
@@ -133,7 +135,7 @@ $l = new Lister(111,
 );
 
 
-print "<h3>Filtermatcher</h3>";
+print "<h3>" . gettext("Filtermatcher") . "</h3>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -160,11 +162,11 @@ print $l->getHTML();
 print "<p>[ <a href=\"index.php\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
 print "Antall filtermatcher: " . sizeof($match);
 
-?>
 
-<a name="nymatch"></a><p><h3>Legg til ny betingelse</h3>
+echo '<a name="nymatch"></a><p><h3>';
+echo gettext("Legg til ny betingelse");
+echo '</h3>';
 
-<?php
 if (isset($matchfelt)) {
 	$sa = "nymatch";
 } else {
@@ -178,7 +180,7 @@ print '<form name="form1" method="post" action="index.php?subaction=' . $sa . '"
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
 
     <tr>
-    	<td width="30%"><p>Velg felt</p></td>
+    	<td width="30%"><p><?php echo gettext('Velg felt'); ?></p></td>
     	<td width="70%">
     	<select name="matchfelt" id="select" onChange="this.form.submit()">
 <?php
@@ -195,11 +197,11 @@ foreach ($felt as $t => $value) {
 
 
     <tr>
-    	<td width="30%"><p>Velg betingelse</p></td>
-    	<td width="70%">
 
-    	
 <?php
+echo '<td width="30%"><p>';
+echo gettext("Velg betingelse");
+echo '</p></td><td width="70%">';
 
 if ( isset($matchfelt) ) {
 
@@ -210,8 +212,8 @@ if ( isset($matchfelt) ) {
 			print '<option value="' . $matchtype . '">' . $type[$matchtype] . '</option>';
 		}
 	} else {
-		print '<option value="0" selected>er lik</option>';
-		print '<option value="5">er ulik</option>';		
+		print '<option value="0" selected>' . gettext("er lik") . '</option>';
+		print '<option value="5">' . gettext("er ulik") . '</option>';		
 	}
 	print '</select>';
 	
@@ -228,7 +230,7 @@ if ( isset($matchfelt) ) {
    	</tr>
    	
     <tr>     
-    	<td width="30%"><p>Sett verdi</p></td>
+    	<td width="30%"><p><?php echo gettext('Sett verdi'); ?></p></td>
     	<td width="70%">
 <?php    	
 if ( isset($matchfelt) ) {
@@ -330,9 +332,9 @@ if ( isset($matchfelt) ) {
 <?php
 
 if ( isset($matchfelt) ) {
-	$tekst = "Legg til betingelse";
+	$tekst = gettext("Legg til betingelse");
 } else {
-	$tekst = "Velg matchefelt";
+	$tekst = gettext("Velg matchefelt");
 }
 
 print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';

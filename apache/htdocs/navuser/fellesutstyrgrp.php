@@ -1,19 +1,19 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p>Endre felles utstyrsgrupper</p>
+<p><?php echo gettext('Endre felles utstyrsgrupper'); ?></p>
 </td></tr>
 
 <tr><td>
 <?php
 include("loginordie.php");
 loginOrDie();
-?>
 
-<p>Her velger du filtre som tilsammen danner denne utstyrsgruppen. 
 
-<p><a href="#nyttfilter">Legg til nytt filter</a>
+echo "<p>" . gettext("Her velger du filtre som tilsammen danner denne utstyrsgruppen. ");
 
-<?php
+echo '<p><a href="#nyttfilter">' . gettext("Legg til nytt filter") . "</a>";
+
+
 
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
@@ -26,10 +26,10 @@ if ($subaction == 'slett') {
 	
 		$dbh->slettGrpFilter(session_get('grp_gid'), get_get('fid') );
 		$adresse='';
-		print "<p><font size=\"+3\">OK</font>, filteret er fjernet fra gruppen.";
+		print "<p><font size=\"+3\">" . gettext("OK</font>, filteret er fjernet fra gruppen.");
 
 	} else {
-		print "<p><font size=\"+3\">Feil</font>, filteret er <b>ikke</b> fjernet.";
+		print "<p><font size=\"+3\">" . gettext("Feil</font>, filteret er <b>ikke</b> fjernet.");
 	}
 
 	// Viser feilmelding om det har oppstått en feil.
@@ -46,7 +46,7 @@ if ($subaction == "nyttfilter") {
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
     	post_get('inkluder'), post_get('invers') );
   } else {
-    print "<p><font size=\"+3\">Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen.";
+    print "<p><font size=\"+3\">" . gettext("Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen.");
   }
 
   // Viser feilmelding om det har oppstått en feil.
@@ -62,7 +62,7 @@ if ($subaction == "swap") {
 }
 
 $l = new Lister( 114,
-		array('Inkl', 'Neg', 'Utstyrfilter', 'Flytt', 'Valg..'),
+		array(gettext('Inkl'), gettext('Neg'), gettext('Utstyrfilter'), gettext('Flytt'), gettext('Valg..') ),
 		array(10, 10, 50, 15, 15),
 		array('center', 'center', 'left', 'center', 'right'),
 		array(false, false, false, false, false),
@@ -70,7 +70,7 @@ $l = new Lister( 114,
 );
 
 
-print "<h3>Utstyrsfiltre</h3>";
+print "<h3>" . gettext("Utstyrsfiltre") . "</h3>";
 
 $filtre = $dbh->listFiltreGruppe(session_get('grp_gid'), 1);
 
@@ -124,11 +124,11 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 print $l->getHTML();
 
 print "<p>[ <a href=\"index.php\">Refresh <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> ";
-print "Antall filtre: " . sizeof($filtre);
+print gettext("Antall filtre: ") . sizeof($filtre);
 
 ?>
 
-<a name="nyttfilter"></a><p><h3>Legg til nytt filter</h3>
+<a name="nyttfilter"></a><p><h3><?php echo gettext("Legg til nytt filter"); ?></h3>
 <form name="form1" method="post" action="index.php?subaction=nyttfilter">
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     
@@ -141,7 +141,7 @@ $filtervalg = $dbh->listFiltreFastAdm(session_get('grp_gid'), $sort);
 for ($i = 0; $i < sizeof($filtervalg); $i++)
 	print "<option value=\"" . $filtervalg[$i][0]. "\">" . $filtervalg[$i][1]. "</option>\n";
 	if ($i == 0) {
-		print "<option value\"empty\">Ingen filtre tilgjengelig...</option>";
+		print "<option value\"empty\">" . gettext("Ingen filtre tilgjengelig...") . "</option>";
 	}
 print '</select>';
 ?>    	
@@ -152,19 +152,19 @@ print '</select>';
 <td align="left" valign="center" width="20%">
 <p>
 <img src="icons/pluss.gif" border="0" alt="Inkluder">
-<input name="inkluder" type="radio" value="1" checked>Inkluder<br>
+<input name="inkluder" type="radio" value="1" checked><?php echo gettext("Inkluder"); ?><br>
 <img src="icons/minus.gif" border="0" alt="Ekskluder">
-<input name="inkluder" type="radio" value="0">Eksluder
+<input name="inkluder" type="radio" value="0"><?php echo gettext("Eksluder"); ?>
 </td>
  
 
 <td align="left" valign="center" width="20%">
 <p>
 <img src="icons/pos.gif" border="0" alt="Vanlig" vspace="0">
-<input type="radio" name="invers" value="1" checked>Vanlig<br>
+<input type="radio" name="invers" value="1" checked><?php echo gettext("Vanlig"); ?><br>
 
 <img src="icons/neg.gif" border="0" alt="Invers">
-<input type="radio" name="invers" value="0">Motsatt
+<input type="radio" name="invers" value="0"><?php echo gettext("Motsatt"); ?>
 </td>
 
 
@@ -174,9 +174,9 @@ print '</select>';
    	<td>&nbsp;</td>
    	<td><?php
 if ($i > 0 ) { 
-      print '<input type="submit" name="Submit" value="Legg til"></td>';
+      print '<input type="submit" name="Submit" value="' . gettext("Legg til") . '"></td>';
  } else {
- 	print "<p>Legg til";
+ 	print "<p>" . gettext("Legg til");
  }
 ?></td>   	   	   	
    	</tr>
