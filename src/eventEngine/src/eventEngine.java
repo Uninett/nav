@@ -293,8 +293,11 @@ class PluginMonitorTask extends TimerTask
 			// Now call 'init' for all devices
 			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
 
-			//Device d = (Device)devDB.getDevice(678);
-			//errl("Found:\n"+d);
+			Device d = (Device)devDB.getDevice(237);
+			errl("Found:\n"+d);
+
+			d = (Device)devDB.getDevice(707);
+			errl("Found:\n"+d);
 
 		}
 
@@ -472,6 +475,7 @@ class EventqMonitorTask extends TimerTask
 		try {
 			//outld("Last lastEventqid is: " + lastEventqid);
 			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,boksid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
+			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,boksid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' and source='pping' ORDER BY eventqid");
 			if (rs.getFetchSize() > 0) outld("Fetched " + rs.getFetchSize() + " events from eventq");
 
 			while (rs.next()) {
@@ -535,6 +539,25 @@ BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1253,1253,'boxState','e',100);
 COMMIT;
 
+- Prøv noe enkelt, voll-sby-980-h (238) står i skygge for voll-sw (237)
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',238,238,'boxState','s',100);
+COMMIT;
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',237,237,'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',238,238,'boxState','e',100);
+COMMIT;
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',237,237,'boxState','e',100);
+COMMIT;
+
+
+
+- sb-351-sw
 
 
 - Hva gjøres i tilfellet der man har f.eks to like etterfølgende info-events, skal event engine ignorere den siste?
