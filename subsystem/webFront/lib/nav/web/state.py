@@ -76,7 +76,7 @@ def setupSession(req):
             # sure to set a warning about this inside the new session
             # that is generated, and re-authentication is necessary,
             # the login page will display this warning message.
-            message = "Your login session expired"
+            message = "Your previous login session expired"
 
     if req.session is None:
         req.session = Session()

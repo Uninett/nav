@@ -121,7 +121,7 @@ def login(req, login='', password='', origin=''):
             return _getLoginPage(origin,
                                  """%sYou are not authorized to access<br>%s""" % (message, origin))
         else:
-            return _getLoginPage(message)
+            return _getLoginPage('', message)
 
 def _getLoginPage(origin, message=''):
     from nav.web.templates.LoginTemplate import LoginTemplate
