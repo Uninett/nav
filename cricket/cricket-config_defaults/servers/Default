@@ -302,7 +302,7 @@ graph ssCpuRawIdle
      legend   = "System CPU Idle "
      si-units = false
 
-grap  cpuwin
+graph  cpuwin
      units  = "%"
      si-units = false
      color  = dark-green
