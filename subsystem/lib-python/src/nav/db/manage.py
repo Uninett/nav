@@ -51,6 +51,9 @@ def _customizeTables():
     Alerthistvar._sqlPrimary = ('alerthist', 'var', 'val','state')
     Module._sqlPrimary = ('moduleid',)
     Swportallowedvlan._sqlPrimary = ('swport', 'hexstring')
+    Emotd_related._sqlPrimary = ('emotd', 'key', 'value')
+    Netboxinfo._sqlPrimary = ('key', 'var', 'val')
+
 
     # connection with database
     forgotten.manage._Wrapper.cursor = nav.db.cursor
