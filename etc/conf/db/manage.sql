@@ -356,8 +356,6 @@ GRANT ALL ON type_typeid_seq TO navall;
 
 DROP TABLE arp; 
 DROP TABLE cam; 
-DROP TABLE port2pkt; 
-DROP TABLE pkt2rom;  
 DROP VIEW netboxmac;
 DROP TABLE eventtype;
 
@@ -369,7 +367,7 @@ DROP SEQUENCE pkt2rom_id_seq;
 DROP FUNCTION netboxid_null_upd_end_time();
 
 -- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
--- Merk at "createlang -U manage -d manage plpgsql" må kjøres først
+-- Merk at "createlang -U manage -d manage plpgsql" må kjøres først (passord må skrives inn flere ganger!!)
 CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
   'BEGIN
      IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
@@ -413,33 +411,9 @@ CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
-CREATE TABLE port2pkt (
-  id SERIAL PRIMARY KEY,
-  boks VARCHAR NOT NULL,
-  unit VARCHAR(2) NOT NULL,
-  port VARCHAR(2) NOT NULL,
-  trom VARCHAR(10) NOT NULL,
-  pkt VARCHAR(4) NOT NULL
-);
-
-
-CREATE TABLE pkt2rom (
-  id SERIAL PRIMARY KEY,
-  trom VARCHAR(10) NOT NULL,
-  pkt VARCHAR(4) NOT NULL,
-  bygg VARCHAR(15) NOT NULL,
-  rom VARCHAR(10) NOT NULL
-);
-
-
 GRANT all ON arp TO navall;
 GRANT all ON arp_arpid_seq TO navall;
 GRANT SELECT ON cam TO navall;
-GRANT all ON port2pkt TO navall;
-GRANT all ON port2pkt_id_seq TO navall;
-GRANT all ON pkt2rom TO navall;
-GRANT all ON pkt2rom_id_seq TO navall;
-
 
 -- VIEWs -----------------------
 CREATE VIEW netboxmac AS  
