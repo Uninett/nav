@@ -24,7 +24,7 @@ if (open PIDFIL, "<$pidfil") {
 
 	unless (kill(0, $pid)) { 
 
-		$res = `/etc/rc.d/init.d/smsd start`;
+		$res = `/etc/rc.d/init.d/smsd restart`;
 
 		# Send mail
     	open(MAIL, "|mail -s 'Restartet smsd' $MAILDRIFT");
