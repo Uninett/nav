@@ -24,16 +24,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.Gwport.*;
  *
  * <p>
  * <ui>
- *  <li>hpSerial</li>
- *  <li>hpHwVer</li>
- *  <li>hpSwVer</li>
- *  <li>hpPortType</li>
- *  <li>hpVlan</li>
+ *  <li>ipAdEntIfIndex</li>
+ *  <li>...</li>
  * </ul>
- * </p>
- *
- * <p>
- * <b>Note:</b> Both hpSerial and hpPortType are required for any OID fetching to take place.
  * </p>
  */
 
