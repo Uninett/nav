@@ -25,29 +25,29 @@ import java.util.Date;
 public class Database
 {
 	private static final int ST_BUFFER = 40;
-    private static final String dbDriverOracle = "oracle.jdbc.driver.OracleDriver";
-    private static final String dbDriverPostgre = "org.postgresql.Driver";
-    private static final String dbDriverMysql = "org.gjt.mm.mysql.Driver";
+	private static final String dbDriverOracle = "oracle.jdbc.driver.OracleDriver";
+	private static final String dbDriverPostgre = "org.postgresql.Driver";
+	private static final String dbDriverMysql = "org.gjt.mm.mysql.Driver";
 
-    private static final String dbName = "postgresql";
-    //private static final String dbName = "mysql";
+	private static final String dbName = "postgresql";
+	//private static final String dbName = "mysql";
 
-    private static final String dbDriver = dbDriverPostgre;
+	private static final String dbDriver = dbDriverPostgre;
 
-    private static Connection connection;
+	private static Connection connection;
 
-    private static Statement[] stQuery = new Statement[ST_BUFFER];
-    private static boolean[] stKeepOpen = new boolean[ST_BUFFER];
-    private static boolean defaultKeepOpen = false;
+	private static Statement[] stQuery = new Statement[ST_BUFFER];
+	private static boolean[] stKeepOpen = new boolean[ST_BUFFER];
+	private static boolean defaultKeepOpen = false;
 
-    private static Statement stUpdate;
-    private static int queryCount;
-    private static int queryPos;
-    private static boolean queryQFull = false;
+	private static Statement stUpdate;
+	private static int queryCount;
+	private static int queryPos;
+	private static boolean queryQFull = false;
 
-    private static int connectionCount = 0;
+	private static int connectionCount = 0;
 
-    public static synchronized boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
+	public static synchronized boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
 		boolean ret = false;
 		if (serverName == null) { ret=true; System.err.println("Database.openConnection(): Error, serverName is null"); }
 		if (serverPort == null) { ret=true; System.err.println("Database.openConnection(): Error, serverPort is null"); }
@@ -84,12 +84,12 @@ public class Database
 			System.err.println("openConnection error: ".concat(e.getMessage()));
 		}
 		return false;
-    }
+	}
 
-    public static synchronized int getConnectionCount() { return connectionCount; }
+	public static synchronized int getConnectionCount() { return connectionCount; }
 
-    public static synchronized void closeConnection() {
-	if (connectionCount == 0) return; // Ingen connection å lukke
+	public static synchronized void closeConnection() {
+		if (connectionCount == 0) return; // Ingen connection å lukke
 		connectionCount--;
 		if (connectionCount > 0) {
 			// En connection er fortsatt åpen
@@ -102,27 +102,27 @@ public class Database
 		} catch (SQLException e) {
 			System.err.println("closeConnection error: ".concat(e.getMessage()));
 		}
-    }
+	}
 
-    /**
-     * This class keeps a buffer of Statment objects (currently 40), and when the
-     * buffer is full the first Statment (and its ResultSet) object is closed. Use this method to
-     * specify that the returned ResultSet for all subsequent query requests should
-     * never be closed.
-     *
-     * @param def specifies if the ResultSet returned for subsequent querys should never be closed.
-     */
-    public static void setDefaultKeepOpen(boolean def)
-    {
+	/**
+	 * This class keeps a buffer of Statment objects (currently 40), and when the
+	 * buffer is full the first Statment (and its ResultSet) object is closed. Use this method to
+	 * specify that the returned ResultSet for all subsequent query requests should
+	 * never be closed.
+	 *
+	 * @param def specifies if the ResultSet returned for subsequent querys should never be closed.
+	 */
+	public static void setDefaultKeepOpen(boolean def)
+	{
 		defaultKeepOpen = def;
 	}
 
-    public static ResultSet query(String statement) throws SQLException
-    {
+	public static ResultSet query(String statement) throws SQLException
+	{
 		return query(statement, defaultKeepOpen);
 	}
-    public static synchronized ResultSet query(String statement, boolean keepOpen) throws SQLException
-    {
+	public static synchronized ResultSet query(String statement, boolean keepOpen) throws SQLException
+	{
 		if (!findNotOpen()) throw new SQLException("There are no open statements left!");
 
 		if (queryPos==stQuery.length) {
@@ -138,7 +138,7 @@ public class Database
 		queryPos++;
 		ResultSet resultset = st.executeQuery(statement);
 		return resultset;
-    }
+	}
 	private static boolean findNotOpen()
 	{
 		// Find a 'free' statement
@@ -159,7 +159,7 @@ public class Database
 		}
 	}
 
-    public static synchronized void commit() {
+	public static synchronized void commit() {
 		try {
 			//System.out.println("########## -COMMIT ON DATABASE- ##########");
 			connection.commit();
@@ -167,9 +167,9 @@ public class Database
 		} catch (SQLException e) {
 			System.err.println("Commit error: ".concat(e.getMessage()));
 		}
-    }
+	}
 
-    public static synchronized void rollback() {
+	public static synchronized void rollback() {
 		try {
 			//System.out.println("########## -ROLLBACK ON DATABASE- ##########");
 			connection.rollback();
@@ -177,34 +177,77 @@ public class Database
 		} catch (SQLException e) {
 			System.err.println("Rollback error: ".concat(e.getMessage()));
 		}
-    }
+	}
 
-    public static int insert(String table, String[] feltVerdi) throws SQLException
-    {
-		if ((feltVerdi.length & 0x1) == 1)
+	/**
+	 * Insert a row in the database and return the sequence number used
+	 * for the row. Currently this only works for the PostgreSQL
+	 * database.  This method assumes that the first two elements of the
+	 * fieldValues argument are the name of the id-column which is to be
+	 * assigned the sequence number and a dummy value respectably.
+	 *
+	 * If the given seqName is null, it is assumed to be "tablename_idfieldname_seq".
+	 *
+	 * @param table The name of the table in which the row is to be inserted
+	 * @param fieldValues The names of columns and the values to be inserted
+	 * @param seqName The name of the sequence from which to obtain the sequence number, or null
+	 *
+	 * @return the sequence number for the row
+	 */
+	public static String insert(String table, String[] fieldValues, String seqName) throws SQLException {
+		if (seqName == null) seqName = table + "_" + fieldValues[0] + "_seq";
+
+		ResultSet rs = Database.query("SELECT nextval('" + seqName + "') AS seqnum");
+		if (!rs.next()) throw new SQLException("Failed to get a sequence number from " + seqName);
+
+		String seqNum = rs.getString("seqnum");
+		fieldValues[1] = seqNum;
+
+		insert(table, fieldValues);
+		return seqNum;
+	}
+
+	/**
+	 * Insert a row in the specified table. The fieldValues argument must contain
+	 * an even number of elements, and each pair of consecutive elements must
+	 * specify the name of the column and the value to be inserted in said column
+	 * respectably.
+	 *
+	 * @param table The name of the table in which the row is to be inserted
+	 * @param fieldValues The names of columns and the values to be inserted
+	 *
+	 * @return the number of inserted rows, which is always 1 
+	 */
+	public static int insert(String table, String[] fieldValues) throws SQLException
+	{
+		if ((fieldValues.length & 0x1) == 1)
 			return -1;
-		String query = String.valueOf(new StringBuffer("INSERT INTO ").append(table).append(" ("));
-		for (int i = 0; i < feltVerdi.length; i += 2) {
+
+		String query = "INSERT INTO " + table + " (";
+		for (int i = 0; i < fieldValues.length; i += 2) {
 			if (i != 0) query += ",";
 
-			query += feltVerdi[i];
+			query += fieldValues[i];
 		}
+
 		query += ") VALUES (";
-		for (int i = 1; i < feltVerdi.length; i += 2) {
+		for (int i = 1; i < fieldValues.length; i += 2) {
 			if (i != 1) query += ",";
 
 			String fnutt = "'";
-			if (feltVerdi[i].equals("NOW()")) fnutt = "";
-			else if (feltVerdi[i].equals("null")) fnutt = "";
+			if (fieldValues[i].equals("NOW()") ||
+					fieldValues[i].equals("null")) {
+				fnutt = "";
+			}
 
-			query += fnutt + feltVerdi[i] + fnutt;
+			query += fnutt + fieldValues[i] + fnutt;
 		}
-		query = query.concat(")");
+		query += ")";
 		return update(query);
-    }
+	}
 
-    public static int update(String table, String[] feltVerdi, String[] keyNavnVerdi) throws SQLException
-    {
+	public static int update(String table, String[] feltVerdi, String[] keyNavnVerdi) throws SQLException
+	{
 		if ((feltVerdi.length & 0x1) == 1 || (keyNavnVerdi.length & 0x1) == 1)
 			return -1;
 		String query = String.valueOf(new StringBuffer("UPDATE ").append(table).append(" SET "));
@@ -224,7 +267,7 @@ public class Database
 			query += keyNavnVerdi[i] + "='" + addSlashes(keyNavnVerdi[i+1]) + "'";
 		}
 		return update(query);
-    }
+	}
 
 	public static synchronized int update(String query) throws SQLException
 	{
@@ -261,13 +304,13 @@ public class Database
 	 * @param tekst The string to escape
 	 * @return the string with special characters escaped
 	 */
-    public static String addSlashes(String tekst) {
+	public static String addSlashes(String tekst) {
 		tekst = insertBefore(tekst, "\\", "\\");
 		tekst = insertBefore(tekst, "'", "\\");
 		return tekst;
-    }
+	}
 
-    private static String insertBefore(String tekst, String oldS, String newS) {
+	private static String insertBefore(String tekst, String oldS, String newS) {
 		if (tekst.indexOf(oldS) == -1)
 			return tekst;
 		StringBuffer b = new StringBuffer(tekst);
@@ -275,11 +318,11 @@ public class Database
 		for (;;) {
 			pos = b.toString().indexOf(oldS, pos + 1 + newS.length());
 			if (pos == -1)
-			break;
+				break;
 			b.insert(pos, newS);
 		}
 		return b.toString();
-    }
+	}
 
 
 	/*
@@ -289,11 +332,11 @@ public class Database
 
     public static boolean isDoubleStrict(String s) {
 		try {
-			Double.parseDouble(s);
-			boolean bool = true;
-			return bool;
+		Double.parseDouble(s);
+		boolean bool = true;
+		return bool;
 		} catch (NumberFormatException numberformatexception) {
-			return false;
+		return false;
 		}
     }
 
@@ -303,11 +346,11 @@ public class Database
 
     public static boolean isIntStrict(String s) {
 		try {
-			Integer.parseInt(s);
-			boolean bool = true;
-			return bool;
+		Integer.parseInt(s);
+		boolean bool = true;
+		return bool;
 		} catch (NumberFormatException numberformatexception) {
-			return false;
+		return false;
 		}
     }
 
@@ -319,13 +362,13 @@ public class Database
     protected static String removeString(String s, String rem) {
 		StringBuffer b = new StringBuffer(s);
 		for (int pos = b.toString().indexOf(rem); pos != -1; pos = b.toString().indexOf(rem))
-			b = b.replace(pos, pos + rem.length(), "");
+		b = b.replace(pos, pos + rem.length(), "");
 		return b.toString();
     }
 
     protected static String sqlMatch(String feltnavn, String søkeverdi) {
 		if (søkeverdi.length() == 0)
-			return "";
+		return "";
 		return String.valueOf(new StringBuffer(" AND ").append(feltnavn).append(" like '").append(stjerneTilProsent(søkeverdi)).append("'"));
     }
 
@@ -335,23 +378,23 @@ public class Database
 
     protected static Date parseDate(String sqlDate) {
 		if (sqlDate != null) {
-			try {
-			SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date date = sf.parse(sqlDate);
-			return date;
-			} catch (ParseException e) {
-			System.err.println("parseDate Error: ".concat(e.getMessage()));
-			}
+		try {
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date = sf.parse(sqlDate);
+		return date;
+		} catch (ParseException e) {
+		System.err.println("parseDate Error: ".concat(e.getMessage()));
+		}
 		}
 		return null;
     }
 
     protected static String formatDate(Date dato) {
 		if (dato != null) {
-			SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			return sf.format(dato);
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return sf.format(dato);
 		}
 		return null;
     }
-    */
+	*/
 }
