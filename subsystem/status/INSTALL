@@ -1,0 +1,20 @@
+Status
+
+Dependencies
+------------
+
+Imports forgetSQL
+
+All other imports are either python builtins or modules located in
+the devicemanagement directory.
+
+
+Installation
+------------
+
+All the files should be placed in a directory 'status'' in the
+webroot.
+
+The file 'htaccess' must be renamed to '.htaccess'. The path directive in
+the htaccess file must possibly be edited. The last element points to the
+status directory in the webroot.
