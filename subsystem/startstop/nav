@@ -106,25 +106,37 @@ def c_list(queryList):
 
 def c_start(queryList):
     def helper(service):
-        service.start()
+        try:
+            service.start()
+        except CommandFailedError, e:
+            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
     serviceIterator(queryList, helper)
         
 def c_stop(queryList):
     def helper(service):
-        service.stop()
+        try:
+            service.stop()
+        except CommandFailedError, e:
+            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
     serviceIterator(queryList, helper)
 
 def c_restart(queryList):
     def helper(service):
-        service.restart()
+        try:
+            service.restart()
+        except CommandFailedError, e:
+            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
     serviceIterator(queryList, helper)
         
 def c_status(queryList):
     def helper(service):
-        service.isUp()
+        try:
+            service.isUp()
+        except CommandFailedError, e:
+            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
     serviceIterator(queryList, helper)
 
