@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.8 2003/06/06 16:20:20 kristian Exp $
+* $Id: NavUtils.java,v 1.9 2003/06/25 14:56:16 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
