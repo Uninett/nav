@@ -18,6 +18,7 @@ public class Port
 	public final static int DIRECTION_UNKNOWN = 4;
 
 
+	protected int ifindex;
 	protected int port;
 	protected int boxidBehind;
 	protected boolean status;
@@ -75,6 +76,7 @@ public class Port
 		int parentDeviceid = rs.getInt("parent_deviceid");
 		String module = rs.getString("module");
 
+		ifindex = rs.getInt("ifindex");
 		port = rs.getInt("port");
 		boxidBehind = rs.getInt("to_netboxid");
 
@@ -83,7 +85,7 @@ public class Port
 			char dir = rs.getString("direction") == null ? 'x' : rs.getString("direction").charAt(0);
 			vl.add(new Vlan(rs.getInt("vlan"), dir));
 			//errl("Debug   Port: New vlan: " + vl.get(vl.size()-1));
-		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module) && rs.getInt("port") == port);
+		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module) && rs.getInt("ifindex") == ifindex);
 		rs.previous();
 
 		vlan = new Vlan[vl.size()];
@@ -92,13 +94,21 @@ public class Port
 
 	Integer getKey()
 	{
-		return new Integer(port);
+		return new Integer(ifindex);
 	}
 	static Integer getKey(ResultSet rs) throws SQLException
 	{
-		return new Integer(rs.getInt("port"));
+		return new Integer(rs.getInt("ifindex"));
 	}
 
+	public int getIfindex()
+	{
+		return ifindex;
+	}
+	public Integer getIfindexI()
+	{
+		return new Integer(ifindex);
+	}
 	public int getPort()
 	{
 		return port;
@@ -138,7 +148,7 @@ public class Port
 
 	public String toString()
 	{
-		StringBuffer sb = new StringBuffer("Port [port="+port+", boxidBehind="+boxidBehind);
+		StringBuffer sb = new StringBuffer("Port [ifindex="+ifindex+", port="+port+", boxidBehind="+boxidBehind);
 		if (vlan.length > 0) sb.append(", vlans=");
 		for (int i=0; i < vlan.length; i++) {
 			sb.append(vlan[i]+",");

@@ -235,7 +235,7 @@ public class Netel extends Box
 			if (!m.isUp()) outld("  Skip module.");
 			if (!m.isUp()) continue;
 
-			outld("  Scan for uplink..., module: " + m.getModule());
+			outld("  Scan for uplink..., module: " + m.getModule() + " (" + m.getPortCount()+" ports)");
 
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); j.hasNext();) {
@@ -245,7 +245,7 @@ public class Netel extends Box
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
 					if (d instanceof Netel) {
 						Netel n = (Netel)d;
-						outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
+						outld("    Ifindex: " + p.getIfindex() + " Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
 					} else {
 						System.err.println("    Device is not instance of Netel: " + d);
 					}
@@ -261,12 +261,12 @@ public class Netel extends Box
 							int r = n.reachableFrom(this, vlan, visited);
 							if (r == REACHABLE_YES) {
 								outld("  Yes.");
-							    reachable = r;
-							    break;
+								reachable = r;
+								break;
 							}
 							if (r == REACHABLE_NO) {
 								outld("  No.");
-							    reachable = r;
+								reachable = r;
 							} else {
 								outld("  Unknown.");
 							}
@@ -286,7 +286,8 @@ public class Netel extends Box
 		return reachable;
 	}
 
-	static void outld(String s) { /*System.err.println(s);*/ }
-
+	static void outld(String s) {
+		//System.err.println(s);
+	}
 
 }
