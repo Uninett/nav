@@ -8,10 +8,10 @@ from mx import DateTime
 import sys,os,re,copy,string
 import nav
 import nav.db.manage 
-from nav.db.manage import Emotd, Emotd_related, Maintenance, Room, Service, Netbox 
-from nav.web import EmotdSelect
+from nav.db.manage import Emotd, Emotd_related, Maintenance 
+from nav.db.manage import Room, Service, Netbox 
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
-from nav.web import SearchBox
+from nav.web import SearchBox,EmotdSelect
 
 #################################################
 ## Templates
