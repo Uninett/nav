@@ -7,14 +7,14 @@
 <td><input type=submit value=Find></td>
 </form></tr>
 
-<tr><td><form action=netbox/>Equipment in a room</td>
+<tr><td><form action=netbox>Equipment in a room</td>
 <td><input type=text name=roomid size=10><br><font size=1 color=gray>room</font></td>
 <td><input type=submit value=Find></td>
 </form></tr>
 
 
-<tr><td><form action=swportv/>Switchports with vlan</td>
-<td><input type=text name=vlan size=10><br><font size=1 color=gray>vlan number</font></td>
+<tr><td><form action=swportv>Switchports with vlan</td>
+<td><input type=text name="vlan.vlan" size=10><br><font size=1 color=gray>vlan number</font></td>
 <td><input type=submit value=Find></td>
 </form></tr>
 </table>
@@ -35,23 +35,23 @@
 <dt><a href=gw>Routers</a>
 <dd><a href=prefixmgw>Subnets grouped by router</a>
 <dd><a href=gwport>Router ports</a>
-<dd><a href=prefix>Prefices</a>
+<dd><a href=prefix>Prefixes</a>
 
 
 <dt><a href=sw>Core Switches</a>
-<dd><a href=swport>Core switch ports</a></li>
-<dd><a href=coreswportt>Trunked core switch ports</a></li>
-<dd><a href=coreswportv>Core switch ports (expand trunks to vlan)</a></li>
+<dd><a href=swport?b1.catid=SW>Core switch ports</a></li>
+<dd><a href=swport?b1.catid=SW&s1.trunk=1>Trunked core switch ports</a></li>
+<dd><a href=swportv?b1.catid=SW>Core switch ports (expand trunks to vlan)</a></li>
 
-<dt><a href=kant>Edge Switches and Hubs</a>
-<dd><a href=egdeswportv>Edge switch ports</a></li>
+<dt><a href=edge>Edge Switches and Hubs</a>
+<dd><a href=swportv?b1.catid=EDGE>Edge switch ports</a></li>
 
 <dt><a href=wlan>Wireless</a>
 
 <dt><a href=srv>Servers</a>
 <dd><a href=servicemon>Services</a>
 
-<dt><a href=oppsop>Other devices</a>
+<dt><a href=other>Other devices</a>
 
 
 </td>
