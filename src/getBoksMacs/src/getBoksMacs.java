@@ -256,7 +256,7 @@ class getBoksMacs
 		dumpBeginTime = System.currentTimeMillis();
 		HashSet swp = new HashSet();
 		HashMap swp_d = new HashMap();
-		rs = Database.query("SELECT swp_netboxid,netboxid,ifindex,to_netboxid,to_ifindex,misscnt FROM swp_netbox");
+		rs = Database.query("SELECT swp_netboxid,netboxid,ifindex,to_netboxid,to_swportid,misscnt FROM swp_netbox");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		//rs = Database.query("SELECT swp_boksid,boksid,modul,port,boksbak FROM swp_boks JOIN boks USING (boksid) WHERE sysName='sb-sw'");
 		while (rs.next()) {
