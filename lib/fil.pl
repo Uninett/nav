@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 #
-# $Id: fil.pl,v 1.10 2002/07/23 10:04:53 mortenv Exp $
+# $Id: fil.pl,v 1.11 2002/08/05 14:16:37 gartmann Exp $
 #
 
 #Lagt inn av KH & JM 18.06.02
-require "/usr/local/nav/navme/lib/database.pl";
+#require "/usr/local/nav/navme/lib/database.pl";
 
 #use strict;
 sub log_open {
@@ -27,6 +27,23 @@ sub fil_hent_linje {
 	return @linje;
 #    } else {
 #	return 0;
+    }
+}    
+sub file_get_line {
+    my $l = $_[0];
+    #tar med linjer som begynner med ord før kolon bestående av 
+    #tall,bokstaver,lavstrek,bindestrek,punktum
+    if ($l =~ /^([a-zA-Z0-9_\-\.]+):?/) {
+	if($1){
+	#sletter ting som er ekstra i stedet for å slå 
+	#sammen med seinere feilkolonner.
+	(my @line) = split(/:/,$l); 
+#	for(@line){print};
+#	@line = map rydd($_), @line; #rydder opp
+	return @line;
+    }
+    } else {
+	return 0;
     }
 }    
 
@@ -58,19 +75,15 @@ sub fil_hent_hash {
     return %resultat;
 }
 
-sub fil_prefiks {
-    my ($fil,$felt) = @_;
-    my %resultat;
-#    my @linje = ();
-    open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
-    foreach (<FIL>) {
-	if(my @linje = &fil_hent_linje($felt,$_)){
-	    $resultat{$linje[0]}{$linje[1]} = [ undef,$linje[0],$linje[1],undef,undef,$linje[2],$linje[3],undef,undef,undef,$linje[4] ]; #legger inn i hash
-	}
+sub fil_netaddr{
+    my $netaddr = $_[0];
+    my $mask = $_[1];
+    unless($mask == 32){
+	$netaddr .= "/".$mask;
     }
-    close FIL;
-    return %resultat;
+    return $netaddr;
 }
+
 
 my %types = &get_types("collect");
 
@@ -88,6 +101,55 @@ sub get_types {
 }
 
 
+sub device_endring {
+#helt lik
+    my $db = $_[0];
+    my %ny = %{$_[1]};
+    my %gammel = %{$_[2]};
+    my @felt = @{$_[3]};
+    my $tabell = $_[4];
+    for my $feltnull (keys %ny) {
+	&device_endring_per_linje($db,\@{$ny{$feltnull}},\@{$gammel{$feltnull}},\@felt,$tabell,$feltnull);
+    }
+}
+
+sub device_endring_per_linje {
+    my $db = $_[0];
+    my @ny = @{$_[1]};
+    my @gammel = @{$_[2]};
+    my @felt = @{$_[3]};
+    my $tabell = $_[4];
+    my $id = $_[5];
+    my $niv = $_[6]||0;
+    
+    #eksisterer i databasen?
+    if($gammel[0]) {
+#-----------------------
+#UPDATE
+	for my $i (0..$#felt ) {
+	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
+#		print "NY: $ny[$i] GAMMEL: $gammel[$i]\n";
+		unless($ny[$i] eq $gammel[$i]) {
+		    #oppdatereringer til null må ha egen spørring
+		    if ($ny[$i] eq "" && $gammel[$i] ne ""){
+			&db_oppdater($db,$tabell,$felt[$i],$gammel[$i],"null",$felt[0],$id);
+		    } else {
+			
+			&db_oppdater($db,$tabell,$felt[$i],"\'$gammel[$i]\'","\'$ny[$i]\'",$felt[0],$id);
+		    }
+		}
+	    }
+	}
+    }else{
+#-----------------------
+#INSERT
+### legger til deviceid til bokslinja.
+	my $seq = &finn_og_bruk_deviceid();
+	push(@felt, "deviceid");
+	push(@ny, $seq);
+	&db_logg_insert($db,$tabell,\@felt,\@ny);
+    }
+}
 sub skriv {
 
     my ($identificator,@parameters) = @_;
@@ -103,8 +165,8 @@ sub skriv {
 
     }
 
-    my $newidentificator = $types{$identificator}[1];
-    my $message = $types{$identificator}[2];
+    my $newidentificator = $types{$identificator}[1]||"";
+    my $message = $types{$identificator}[2]||"";
 
 #    print $message."\n";
 
@@ -131,15 +193,20 @@ sub skriv {
     print $tekst unless fileno($handle);
 =cut
 
-    &printlog($text);
-
+ #   &printlog($text);
+    my $time = scalar localtime;
+    if(my $i = $_[0]){
+#	print COLLECTLOG $time." ".'%'.$i;
+    }
     return 1;
 
 }
 
 sub printlog{
     my $time = scalar localtime;
-    print COLLECTLOG $time." ".'%'.$_[0];
+    if(my $i = $_[0]||0){
+	print COLLECTLOG $time." ".'%'.$i;
+    }
     return 1;
 }
 
