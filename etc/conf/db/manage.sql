@@ -738,4 +738,7 @@ GRANT SELECT ON prefix TO eventengine;
 GRANT SELECT ON service TO eventengine;
 GRANT SELECT ON serviceproperty TO eventengine;
 
-
+-- adding grant select for NAVprofiles.....
+GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
+-- skal inneholde alle tabeller i manage til en hver tid.
+-- -Andreas-
