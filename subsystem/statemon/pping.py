@@ -39,6 +39,7 @@ class pinger:
         self._debuglevel=0
         self.dbconf=config.dbconf()
         self.db=db.db(self.dbconf)
+        self.db.start()
         sock = kwargs.get("socket",None)
         self.pinger=megaping.MegaPing(sock)
         self._nrping = 3 
@@ -137,7 +138,7 @@ class pinger:
                              "pping",
                              Event.UP
                              )
-            #self.db.newEvent(newEvent, "pping")
+            self.db.newEvent(newEvent, "pping")
             debug.debug( "%s marked as up." % netbox)
 
     def main(self):
