@@ -43,7 +43,7 @@ public class ServiceState implements EventHandler
 			deviceup = "Yes";
 		    }
 		    a.addVar("deviceup", deviceup);
-		} else  {
+		} else {
 		    outld("  warning: device for deviceid("+e.getDeviceid()+") not found!");
 		}
 
