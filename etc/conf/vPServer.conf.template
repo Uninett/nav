@@ -1,0 +1,8 @@
+# Config-file for vPServer Java-servlet
+
+# passwd file
+htpasswd = /usr/local/nav/local/apache/htpasswd/.htpasswd-sroot
+
+## VP config
+vpNetName = NTNU
+vpNetLink = http://www.nav.ntnu.no
