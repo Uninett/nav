@@ -1,7 +1,15 @@
 package no.ntnu.nav.eventengine.handlerplugins.Info;
 
-import no.ntnu.nav.eventengine.*;
+/**
+ * Info plugin for eventengine; forwards all events as-is directly to alertengine. This plugin
+ * is used for informal events which need no processing.
+ */
+
 import java.util.*;
+
+import no.ntnu.nav.ConfigParser.*;
+
+import no.ntnu.nav.eventengine.*;
 
 public class Info implements EventHandler
 {
@@ -12,7 +20,7 @@ public class Info implements EventHandler
 		return new String[] { "info" };
 	}
 
-	public void handle(DeviceDB ddb, Event e)
+	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
 	{
 		outld("Info plugin handling event: " + e);
 
