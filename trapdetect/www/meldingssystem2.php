@@ -134,12 +134,13 @@ if ($antall == 0) {
     for ($i=0;$i<sizeof($eier);$i++) {
       
       if ($i<(sizeof($eier)-1)) {
-	$sporring .= "drifter='".$eier[$i]."' or ";
+	$sporring .= "orgid='".strtolower($eier[$i])."' or ";
       } else {
-	$sporring .= "drifter='".$eier[$i]."'";
+	$sporring .= "orgid='".strtolower($eier[$i])."'";
       }
     }
     $sporring .= ") group by kat2";
+    print "$sporring<br>\n";
     $result = pg_exec($dbh_m,$sporring);
     $antall = pg_numrows($result);
 
@@ -201,9 +202,9 @@ if ($antall == 0) {
       $sporring = "select sysname from boks where kat='$key' and kat2='$element' and (";
       for ($i=0;$i<sizeof($eier);$i++) {
 	if ($i<(sizeof($eier)-1)) {
-	  $sporring .= "drifter='".$eier[$i]."' or ";
+	  $sporring .= "orgid='".strtolower($eier[$i])."' or ";
 	} else {
-	  $sporring .= "drifter='".$eier[$i]."' ";
+	  $sporring .= "orgid='".strtolower($eier[$i])."' ";
 	}
       }
       $sporring .= ") order by sysname";
@@ -246,9 +247,9 @@ if ($antall == 0) {
   $sporring = "select sysname from boks where kat='$key' and (kat2 is null or kat2='') and (";
   for ($i=0;$i<sizeof($eier);$i++) {
     if ($i<(sizeof($eier)-1)) {
-      $sporring .= "drifter='".$eier[$i]."' or ";
+      $sporring .= "orgid='".strtolower($eier[$i])."' or ";
     } else {
-      $sporring .= "drifter='".$eier[$i]."' ";
+      $sporring .= "orgid='".strtolower($eier[$i])."' ";
     }
   }
   $sporring .= ") order by sysname";
