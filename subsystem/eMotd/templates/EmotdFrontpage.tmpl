@@ -27,7 +27,7 @@ $makeMenu()
 	<li style="margin-bottom:8px"><table>
       <tr>
         <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
-          <a href="/emotd/view?id=$message.emotdid">$message.title</a>
+          <a href="/emotd/view/$message.emotdid">$message.title</a>
         </td>
         <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
           $message.last_changed by $message.author
@@ -37,9 +37,9 @@ $makeMenu()
       <tr>
         <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
 #if $message.replaces_title:
-        	Replaces message: <a href="/emotd/view?id=$message.replaces_emotd">$message.replaces_title</a>
+        	Replaces message: <a href="/emotd/view/$message.replaces_emotd">$message.replaces_title</a>
 #else
-		Replaces message: <a href="/emotd/view?id=$message.replaces_emotd">$message.replaces_emotd</a>
+		Replaces message: <a href="/emotd/view/$message.replaces_emotd">$message.replaces_emotd</a>
 #end if
         </td>
       </tr>
@@ -54,9 +54,9 @@ $equipmentList($eq)
       <tr>
         <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;background-color: #eee;">
 #if $message.own
-	<span style="font-size:11px">[ <a href="/emotd/edit?action=change&id=$message.emotdid">Change</a> | <a href="/emotd/mainttime?id=$message.emotdid">Maint. window</a> | <a href="/emotd/add?id=$message.emotdid">Add equipment</a>]</span>
+	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Change</a> | <a href="/emotd/time/$message.emotdid">Maint. window</a> | <a href="/emotd/add/$message.emotdid">Add equipment</a>]</span>
 #else
-	<span style="font-size:11px">[ <a href="/emotd/edit?action=followup&id=$message.emotdid">Followup</a> ]</span>
+	<span style="font-size:11px">[ <a href="/emotd/edit/$message.emotdid">Followup</a> ]</span>
 
 
 #end if

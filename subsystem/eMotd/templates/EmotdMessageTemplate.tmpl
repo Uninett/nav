@@ -1,41 +1,53 @@
 #extends nav.web.templates.EmotdTemplate
 
 #block content
-$makeMenu()
+##$makeMenu()
 <h1>$title</h1>
-<form action="" method="post">
-$listEquipment()
-<input type="submit" name="newmessage" value="Add this equipment to a new message" />
-<input type="submit" name="placemessage" value="Add this equipment to the selected message from below" />
+<form action="commitplacement" method="post">
+##$listEquipment()
+$equipmentList($equipment_list,$emotdid)
+##<input type="submit" name="placemessage" value="Add this equipment to the selected message from below" />
 $listMessages()
+
+<h2>Add equipment to new message</h2>
+<input type="submit" name="newmessage" value="Add to new" />
 </form>
 #end block
 
 #def listEquipment
-<h2>$type to add to message</h2>
-<input type="hidden" name="type" value="$type"/>
+#if $equipment_list
 <ul>
 #for e in $equipment_list
 #if $type=="netbox":
-	<input type="hidden" name="netbox_$e.netboxid" value="0" />
+##	<input type="hidden" name="netbox_$e.netboxid" value="0" />
 	<li>$e.sysname</li>
 #elif $type=="room":
-	<input type="hidden" name="room_$e.roomid" value="0" />
+##	<input type="hidden" name="room_$e.roomid" value="0" />
 	<li>$e.roomid</li>
 #elif $type=="location":
-	<input type="hidden" name="location_$e.locationid" value="0" />
+##	<input type="hidden" name="location_$e.locationid" value="0" />
 	<li>$e.locationid</li>
 #end if
 #end for
 </ul>
+#end if
 #end def
 
 #def listMessages
-<h2>Pick the right message</h2>
-<table>
-#for e in $emotds
-<tr><td>$e.emotdid</td><td>$e.title</td></tr>
-<tr><td><input type="radio" name="emotdid" value="$e.emotdid"/></td><td>$e.description</td></tr>
+<h2>Add equipment to existing message</h2>
+
+<select name="id">
+#for $b in $emotds
+#set $c = "["+$b[1]+"] "+$b[2]
+#set $d = $c[0:80]
+	<option value="$b[0]">$d ...</option>
 #end for
-</table>
+</select><br/>
+<input type="submit" name="cn_placemessage" value="Add equipment to message" />
+##<table>
+###for e in $emotds
+##<tr><td>$e.emotdid</td><td>$e.title</td></tr>
+##<tr><td><input type="radio" name="emotdid" value="$e.emotdid"/></td><td>$e.description</td></tr>
+###end for
+##</table>
 #end def

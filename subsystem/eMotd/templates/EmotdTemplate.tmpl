@@ -2,6 +2,8 @@
 
 #attr numberOfMessagesShown = 15
 
+#block errormessage
+#end block
 
 #def $makeMenu
 <div style="float:left">
@@ -15,18 +17,22 @@
 #end def
 
 
-#def $makeFormField($type,$name,$value="",$label=None,$star=None)
+#def $makeFormField($type,$name,$val="",$label=None,$star=None)
 
 #if $label
 <label>$label</label>#slurp
 #end if
 #if $star
-<span style="color:red;">*</span>
+<span style="color:red;">*</span>#slurp
 #end if
-#if $type == "textarea"
-<textarea name="$name" cols="50" rows="5">$value</textarea>
+#if $type == "tinytextarea"
+<textarea name="$name" cols="30" rows="5">$val</textarea>
+#elif $type == "tinyshorttextarea"
+<textarea name="$name" cols="30" rows="2">$val</textarea>
+#elif $type == "textarea"
+<textarea name="$name" cols="50" rows="5">$val</textarea>
 #else
-<input type="$type" name="$name" value="$value" />
+<input type="$type" name="$name" value="$val" />
 #end if
 
 #end def
@@ -93,12 +99,18 @@ selected="1" #slurp
 
 #end def
 
-#def equipmentList($eq)
-#if len($eq.keys()):
+#def equipmentList($eq,$emotdid=0,$session=0)
+#if len($eq) and len($eq.keys()):
 	<ul>
 #for a,b in $eq.items():
 #for c in $b:
-	<li>$a $c</li>
+	<li>$a $c[1] #slurp
+#if $emotdid
+(<a href="/emotd/remove/$emotdid/?$a=$c[0]">remove</a>)#slurp
+#elif $session
+(<a href="/emotd/remove/?$a=$c">remove</a>)#slurp
+#end if
+</li>
 #end for
 #end for
 	</ul>
@@ -114,10 +126,10 @@ No maintenance info.
   <!-- Here comes the actual information regarding maintenance information -->
   <table>
   <tr>
-    <th><b>On Service</b></th>
-    <th><b>Start</b></th>
-    <th><b>End</b></th>
-    <th><b>Title</b></th>
+    <th>On Maintenance</th>
+    <th>Title</th>
+    <th>Start</th>
+    <th>End</th>
   </tr>
   #for $message in $maints
   <tr>
@@ -138,9 +150,9 @@ No maintenance info.
 #elif $message.key == 'service'
     <td><a href="/browse/service/$message.value">$message.description</a></td>
 #end if
+    <td><a href="/emotd/view/$message.emotdid">$message.title</a></td>
     <td>$message.start</td>
     <td>$message.end</td>
-    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
   </tr>
   #end for
   </table>

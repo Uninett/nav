@@ -11,8 +11,8 @@ $makeFormField("hidden","last_changed",$last_changed)
 $makeFormField("hidden","emotdid",$emotdid)
 $makeFormField("hidden","parent_id",$parent_id)
 <ul style="list-style-type:none;margin=0;padding:0;">
-<li>$makeDateTime("Active From","published_start",$published_start[0],$published_start[1],$published_start[2],$published_start[3],$published_start[4])</li>
-<li>$makeDateTime("Active To","published_end",$published_end[0],$published_end[1],$published_end[2],$published_end[3],$published_end[4]) <i>Defaults to one week</i></li>
+<li>$makeDateTime("Active From","publish_start",$publish_start[0],$publish_start[1],$publish_start[2],$publish_start[3],$publish_start[4])</li>
+<li>$makeDateTime("Active To","publish_end",$publish_end[0],$publish_end[1],$publish_end[2],$publish_end[3],$publish_end[4]) <i>Defaults to one week</i></li>
 
 <li>
 <label>Type</label>
@@ -28,20 +28,20 @@ $makeFormField("hidden","parent_id",$parent_id)
 <li><table><tr><td>
 <h2>$primary_language</h2>
 <ul style="list-style-type:none;margin=0;padding:0;">
-<li>$makeFormField("text","title","$title","Title",1)</li>
-<li>$makeFormField("textarea","downtime","$downtime","Estimated downtime")</li>
-<li>$makeFormField("textarea","affected","$affected","Affected end users")</li>
-<li>$makeFormField("textarea","description","$description","Description",1)</li>
-<li>$makeFormField("textarea","detail","$detail","Details")</li>
+<li>$makeFormField("text","title",$title,"Title",1)</li>
+<li>$makeFormField("tinyshorttextarea","downtime",$downtime,"Estimated downtime")</li>
+<li>$makeFormField("tinyshorttextarea","affected",$affected,"Affected end users")</li>
+<li>$makeFormField("tinytextarea","description",$description,"Description",1)</li>
+<li>$makeFormField("tinytextarea","detail",$detail,"Details")</li>
 #if $secondary_language
 </ul></td><td>
 <h2>$secondary_language</h2>
 <ul style="list-style-type:none;margin=0;padding:0;">
-<li>$makeFormField("text","title_en","$title_en","Title",1)</li>
-<li>$makeFormField("textarea","downtime_en","$downtime_en","Estimated downtime")</li>
-<li>$makeFormField("textarea","affected_en","$affected_en","Affected end users")</li>
-<li>$makeFormField("textarea","description_en","$description_en","Description",1)</li>
-<li>$makeFormField("textarea","detail_en","$detail_en","Details")</li>
+<li>$makeFormField("text","title_en",$title_en,"Title",1)</li>
+<li>$makeFormField("tinyshorttextarea","downtime_en",$downtime_en,"Estimated downtime")</li>
+<li>$makeFormField("tinyshorttextarea","affected_en",$affected_en,"Affected end users")</li>
+<li>$makeFormField("tinytextarea","description_en",$description_en,"Description",1)</li>
+<li>$makeFormField("tinytextarea","detail_en",$detail_en,"Details")</li>
 #end if
 </ul></td></tr></table></li>
 

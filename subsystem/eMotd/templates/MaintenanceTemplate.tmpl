@@ -3,14 +3,19 @@
 #from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #block content
+<h1>$title</h1>
 ##if $body
 ##$body
 ##end if
-$makeMenu()
+##$makeMenu()
 $maint()
 ##$maintList()
+#if $emotdid
 #set $eq = $equipment[int($emotdid)]
-$equipmentList($eq)
+$equipmentList($eq,$emotdid)
+#elif $emotdid == 0:
+$equipmentList($equipment)
+#end if
 #end block
 
 
@@ -22,18 +27,21 @@ $args['selectbox']
     $qs.searchbox($args['searchbox'])
 <form action="$args['action']" method="post">
     $ts.treeselect($args['selectbox'])
-    <table>
-        <tr>
 #if $args['submit']['enabled']
-            <td><input type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+            <input type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
 #else
-            <td><input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+            <input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
 #end if
-        </tr>
-    </table>
 <input type="hidden" name="id" value="$emotdid"/>
 </form>
-
+<form action="$args['doneaction']" method="post">
+<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
+</form>
+#if not $emotdid
+<form action="$args['cancelaction']" method="post">
+<input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
+</form>
+#end if
 #end def
 
 #block additionalCSS
