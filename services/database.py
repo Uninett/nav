@@ -2,7 +2,7 @@
 database
 
 $Author: erikgors $
-$Id: database.py,v 1.16 2002/06/26 14:48:41 erikgors Exp $
+$Id: database.py,v 1.17 2002/06/27 13:04:21 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -49,8 +49,8 @@ def getJobs(onlyactive = 1):
 			property[serviceid] = {}
 		property[serviceid][prop] = value
 
-	query = """SELECT serviceid ,boksid, active, handler, version, ip
-	FROM service NATURAL JOIN boks order by serviceid"""
+	query = """SELECT serviceid ,service.boksid, service.active, handler, version, ip
+	FROM service JOIN boks ON (service.boksid=boks.boksid) order by serviceid"""
 	c.execute(query)
 	jobs = []
 	for serviceid,boksid,active,handler,version,ip in c.fetchall():
