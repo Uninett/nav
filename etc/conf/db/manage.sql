@@ -7,11 +7,11 @@ DROP TABLE swportvlan;
 DROP TABLE swport;
 DROP TABLE gwport;
 
-DROP TABLE swp_boks;
+DROP TABLE swp_netbox;
 
 DROP TABLE module;
 DROP TABLE mem;
-DROP TABLE boksinfo;
+DROP TABLE netboxinfo;
 DROP TABLE netbox;
 
 DROP TABLE type;
@@ -23,9 +23,9 @@ DROP TABLE org;
 
 -------VP - fingra fra fatet, Sigurd:
 
-DROP TABLE vpBoksXY;
-DROP TABLE vpBoksGrp;
-DROP TABLE vpBoksGrpInfo;
+DROP TABLE vp_netbox_xy;
+DROP TABLE vp_netbox_grp;
+DROP TABLE vp_netbox_grp_info;
 
 -- Slette alle sekvenser
 DROP SEQUENCE netbox_netboxid_seq;
@@ -33,13 +33,12 @@ DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefix_prefixid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
-DROP SEQUENCE swp_boks_swp_boksid_seq;
+DROP SEQUENCE swp_netbox_swp_netboxid_seq;
 DROP SEQUENCE module_moduleid_seq;
 DROP SEQUENCE mem_memid_seq;
 -------------
-DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
-DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
-DROP SEQUENCE vpboksxy_vpboksxyid_seq;
+DROP SEQUENCE vp_netbox_grp_info_vp_netbox_grp_infoid_seq;
+DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
 
 -- Slette alle indekser
 
@@ -129,11 +128,11 @@ CREATE TABLE prefix (
 --  maske VARCHAR(3) NOT NULL,
 --fjernet under nav2 uten oppdatering av nav3
   netaddr inet NOT NULL,
-  rootgwid INT2 UNIQUE,
-  vlan INT2,
+  rootgwid INT4 UNIQUE,
+  vlan INT4,
 --  antmask INT2,
-  active_ip_cnt INT2,
-  maxhosts INT2,
+  active_ip_cnt INT4,
+  max_ip_cnt INT4,
   nettype VARCHAR(10) NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
 --  anvid VARCHAR(10) REFERENCES anv,
@@ -147,49 +146,48 @@ CREATE TABLE prefix (
 );
 
 CREATE TABLE vendor (
-       vendorid varchar(15) primary key
+  vendorid varchar(15) primary key
 );
 
 CREATE TABLE typegroup (
-       typegroupid varchar(15) primary key,
-       descr varchar(60)
+  typegroupid varchar(15) primary key,
+  descr varchar(60)
 );
 
 CREATE TABLE cat (
-       catid varchar(8) primary key,
-       descr varchar(50)
+  catid varchar(8) primary key,
+  descr varchar(50)
 );
 
 CREATE TABLE product (
-       productid SERIAL PRIMARY KEY,
-       vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-       productno VARCHAR(15) NOT NULL,
-       descr VARCHAR(50),
-       UNIQUE (vendorid,productno)
+  productid SERIAL PRIMARY KEY,
+  vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
+  productno VARCHAR(15) NOT NULL,
+  descr VARCHAR(50),
+  UNIQUE (vendorid,productno)
 );
 
 
 CREATE TABLE device (
-       deviceid SERIAL PRIMARY KEY,
-       productid INT4 NOT NULL REFERENCES product ON UPDATE CASCADE ON DELETE CASCADE,
-       serial VARCHAR(15),
-       sw VARCHAR(10),
-       hw VARCHAR(10),
-       function VARCHAR(50),
-       UNIQUE(serial)
+  deviceid SERIAL PRIMARY KEY,
+  productid INT4 NOT NULL REFERENCES product ON UPDATE CASCADE ON DELETE CASCADE,
+  serial VARCHAR(15),
+  sw VARCHAR(10),
+  hw VARCHAR(10),
+  UNIQUE(serial)
 );
 -- tror ikke uniquene jeg har lagt inn skader.
 
 CREATE TABLE type (
-typeid SERIAL PRIMARY KEY,
-vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-typename VARCHAR(10) NOT NULL,
-typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
-sysObjectID VARCHAR(30) NOT NULL,
-cdp BOOL DEFAULT false,
-tftp BOOL DEFAULT false,
-descr VARCHAR(50),
-UNIQUE (vendorid,typename)
+  typeid SERIAL PRIMARY KEY,
+  vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
+  typename VARCHAR(10) NOT NULL,
+  typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
+  sysObjectID VARCHAR(30) NOT NULL,
+  cdp BOOL DEFAULT false,
+  tftp BOOL DEFAULT false,
+  descr VARCHAR(50),
+  UNIQUE (vendorid,typename)
 );
 
 --CREATE TABLE boks (
@@ -216,11 +214,9 @@ CREATE TABLE netbox (
 --  static BOOL DEFAULT false,
 --  watch BOOL DEFAULT false,
 --  skygge BOOL DEFAULT false
-    up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='s'),
-    UNIQUE(ip)
+  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='s'), -- y=up, n=down, s=shadow
+  UNIQUE(ip)
 );
--- trenger constraints, det finnes ingen i denne fila jeg kan kopiere.
-
 
 CREATE TABLE netboxinfo (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
@@ -233,38 +229,36 @@ CREATE TABLE netboxdisk (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   path VARCHAR(255) NOT NULL,
   blocksize INT4 NOT NULL DEFAULT 1024,
-  PRIMARY KEY (boksid, path)
+  PRIMARY KEY (netboxid, path)
 );
 
 
 CREATE TABLE netboxinterface (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   interf VARCHAR(50) NOT NULL,
-  PRIMARY KEY (boksid, interf)
+  PRIMARY KEY (netboxid, interf)
 );
 
 CREATE TABLE module (
-       moduleid SERIAL PRIMARY KEY,
-       deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
-       netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-       module VARCHAR(4) NOT NULL,
-       submodule VARCHAR(8),
-       up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n'),
-       lastseen VARCHAR(8),
-       UNIQUE (netboxid,module)
+  moduleid SERIAL PRIMARY KEY,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  module VARCHAR(4) NOT NULL,
+  submodule VARCHAR(8),
+  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n'), -- y=up, n=down
+  lastseen TIMESTAMP NOT NULL DEFAULT 'NOW()',
+  UNIQUE (netboxid,module)
 );
--- LITT I TVIL OM DATOFORMAT LASTSEEN, KOMMER TILBAKE TIL DETTE SEINERE.
--- UP TRENGER CONSTRAINT
 -- HVA ER SUBMODULE?
--- DEVICEID BØR IKKE VÆRE NOT NULL
+-- DEVICEID BØR VÆRE NOT NULL
 
 CREATE TABLE mem (
-memid SERIAL PRIMARY KEY,
-boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-memtype VARCHAR(10) NOT NULL,
-device VARCHAR(15) NOT NULL,
-size INTEGER NOT NULL,
-used INTEGER
+  memid SERIAL PRIMARY KEY,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  memtype VARCHAR(10) NOT NULL,
+  device VARCHAR(15) NOT NULL,
+  size INT4 NOT NULL,
+  used INT4
 );
 
 
@@ -272,12 +266,12 @@ CREATE TABLE swp_netbox (
   swp_netboxid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
-  port INT2 NOT NULL,
+  port INT4 NOT NULL,
   to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   to_module VARCHAR(4),
-  to_port INT2,
-  misscnt INT2 NOT NULL DEFAULT '0',
-  UNIQUE(boksid,modul,port,boksbak)
+  to_port INT4,
+  misscnt INT4 NOT NULL DEFAULT '0',
+  UNIQUE(netboxid,module,port,to_netboxid)
 );
 
 CREATE TABLE swport (
@@ -286,7 +280,7 @@ CREATE TABLE swport (
 --  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
 --  modul VARCHAR(4) NOT NULL,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
-  port INT2 NOT NULL,
+  port INT4 NOT NULL,
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
     link CHAR(1) NOT NULL DEFAULT 'n' CHECK (state='y' OR state='n' OR state='d'),
@@ -299,6 +293,7 @@ CREATE TABLE swport (
   portname VARCHAR(30),  
 --  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
 --  vpkatbak VARCHAR(5),
   to_catid VARCHAR(8),
   UNIQUE(moduleid, port)
@@ -310,21 +305,19 @@ CREATE TABLE gwport (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
 --  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
-  ifindex INT2 NOT NULL,
-  masterindex INT2,
+  ifindex INT4 NOT NULL,
+  masterindex INT4,
 --  interf VARCHAR(30),
   interface VARCHAR(30),
   gwip inet,
   speed VARCHAR(10),
-  ospf INT2,
+  ospf INT4,
 --  static BOOL DEFAULT false,
 --  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
 --  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
-    to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
 );
-
-
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
@@ -332,21 +325,19 @@ CREATE TABLE swportvlan (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
 --  retning CHAR(1) NOT NULL DEFAULT 'x',
-  direction CHAR(1) NOT NULL DEFAULT 'x',
+  direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
   UNIQUE (swportid,vlan)
 );
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256)
---  static BOOL NOT NULL DEFAULT false
 );
--- hva ble det til med static her?
 
 
 CREATE TABLE swportblocked (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  vlan INT2 NOT NULL DEFAULT '-1',
+  vlan INT4 NOT NULL DEFAULT '-1',
   PRIMARY KEY(swportid, vlan)
 );
 
@@ -358,7 +349,7 @@ GRANT ALL ON room TO navall;
 GRANT ALL ON prefix TO navall;
 GRANT ALL ON type TO navall;
 GRANT ALL ON netbox TO navall;
-GRANT ALL ON boksinfo TO navall;
+GRANT ALL ON netboxinfo TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
@@ -395,47 +386,46 @@ DROP SEQUENCE port2pkt_id_seq;
 DROP SEQUENCE pkt2rom_id_seq;
 
 -- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
-CREATE FUNCTION boksid_null_upd_til () RETURNS opaque AS
+CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
   'BEGIN
-     IF old.boksid IS NOT NULL AND new.boksid IS NULL THEN
-       new.til = current_timestamp;
+     IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
+       new.end_time = current_timestamp;
      END IF;
      RETURN new;
    end' LANGUAGE plpgsql;
 
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
-  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET NULL,
-  kilde VARCHAR(20) NOT NULL,
-  ip VARCHAR(15) NOT NULL,
-  ip_inet INET NOT NULL,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+  prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET NULL,
+  sysname VARCHAR(30) NOT NULL,
+  ip INET NOT NULL,
   mac VARCHAR(12) NOT NULL,
-  fra TIMESTAMP NOT NULL,
-  til TIMESTAMP NOT NULL DEFAULT 'infinity'
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
-CREATE TRIGGER update_arp BEFORE UPDATE ON arp FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
+CREATE TRIGGER update_arp BEFORE UPDATE ON arp FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX arp_mac_btree ON arp USING btree (mac);
-CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
-CREATE INDEX arp_fra_btree ON arp USING btree (fra); 
-CREATE INDEX arp_til_btree ON arp USING btree (til);
+CREATE INDEX arp_ip_btree ON arp USING btree (ip);
+CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
+CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
-  sysName VARCHAR(30) NOT NULL,
-  modul VARCHAR(4) NOT NULL,
-  port INT2 NOT NULL,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+  sysname VARCHAR(30) NOT NULL,
+  module VARCHAR(4) NOT NULL,
+  port INT4 NOT NULL,
   mac VARCHAR(12) NOT NULL,
-  fra TIMESTAMP NOT NULL,
-  til TIMESTAMP NOT NULL DEFAULT 'infinity',
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL DEFAULT 'infinity',
   misscnt INT4 DEFAULT '0',
-  UNIQUE(boksid,sysName,modul,port,mac,fra)
+  UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
+CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
-CREATE INDEX cam_fra_btree ON cam USING btree (fra);
-CREATE INDEX cam_til_btree ON cam USING btree (til);
+CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
+CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
 CREATE TABLE port2pkt (
@@ -467,44 +457,43 @@ GRANT all ON pkt2rom_id_seq TO navall;
 
 
 -- VIEWs -----------------------
-CREATE VIEW boksmac AS  
-(SELECT DISTINCT ON (mac) boks.boksid,mac
+CREATE VIEW netboxmac AS  
+(SELECT DISTINCT ON (mac) netbox.netboxid,mac
  FROM arp
- JOIN boks USING (ip)
- WHERE arp.til='infinity')
+ JOIN netbox USING (ip)
+ WHERE arp.end_time='infinity')
 UNION
-(SELECT DISTINCT ON (mac) gwport.boksid,mac
+(SELECT DISTINCT ON (mac) gwport.netboxid,mac
  FROM arp
  JOIN gwport ON (arp.ip=gwport.gwip)
- WHERE arp.til='infinity');
+ WHERE arp.end_time='infinity');
 
 
 -------- vlanPlot tabeller ------
-CREATE TABLE vpBoksGrpInfo (
-  gruppeid SERIAL PRIMARY KEY,              
+CREATE TABLE vp_netbox_grp_info (
+  vp_netbox_grp_infoid SERIAL PRIMARY KEY,
   name VARCHAR(16) NOT NULL,
-  x INT2 NOT NULL DEFAULT '0',
-  y INT2 NOT NULL DEFAULT '0'
+  x INT4 NOT NULL DEFAULT '0',
+  y INT4 NOT NULL DEFAULT '0'
 );
 -- Default nett
-INSERT INTO vpboksgrpinfo (gruppeid,name) VALUES (0,'Bynett');
-INSERT INTO vpboksgrpinfo (name) VALUES ('Kjernenett');
-INSERT INTO vpboksgrpinfo (name) VALUES ('Testnett');
+INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name) VALUES (0,'Bynett');
+INSERT INTO vp_netbox_grp_info (name) VALUES ('Kjernenett');
+INSERT INTO vp_netbox_grp_info (name) VALUES ('Testnett');
 
-CREATE TABLE vpBoksGrp (
-  vpBoksGrpId SERIAL PRIMARY KEY,
-  gruppeid INT4 REFERENCES vpBoksGrpInfo ON UPDATE CASCADE ON DELETE CASCADE,
-  pboksid INT4 NOT NULL,
-  UNIQUE(gruppeid, pboksid)
+CREATE TABLE vp_netbox_grp (
+  vp_netbox_grp_infoid INT4 REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
+  pnetboxid INT4 NOT NULL,
+  UNIQUE(vp_netbox_grp_infoid, pnetboxid)
 );
 
-CREATE TABLE vpBoksXY (
-  vpBoksXYId SERIAL PRIMARY KEY, 
-  pboksid INT4 NOT NULL,
-  x INT2 NOT NULL,
-  y INT2 NOT NULL,
-  gruppeid INT4 NOT NULL REFERENCES vpBoksGrpInfo ON UPDATE CASCADE ON DELETE CASCADE,
-  UNIQUE(pboksid, gruppeid)
+CREATE TABLE vp_netbox_xy (
+  vp_netbox_xyid SERIAL PRIMARY KEY, 
+  pnetboxid INT4 NOT NULL,
+  x INT4 NOT NULL,
+  y INT4 NOT NULL,
+  vp_netbox_grp_infoid INT4 NOT NULL REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
+  UNIQUE(pnetboxid, vp_netbox_grp_infoid)
 );
 -- vPServer bruker
 -- CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
@@ -512,64 +501,62 @@ CREATE TABLE vpBoksXY (
 -- CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 -- CREATE USER getportdata WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 
-GRANT SELECT ON boks TO vPServer;
-GRANT SELECT ON boksinfo TO vPServer;
+GRANT SELECT ON netbox TO vPServer;
+GRANT SELECT ON netboxinfo TO vPServer;
 GRANT SELECT ON gwport TO vPServer;
-GRANT SELECT ON prefiks TO vPServer;
+GRANT SELECT ON prefix TO vPServer;
 GRANT SELECT ON swport TO vPServer;
 GRANT SELECT ON swportvlan TO vPServer;
-GRANT SELECT ON vpBoksGrp TO vPServer;
-GRANT SELECT ON vpBoksGrpInfo TO vPServer;
-GRANT ALL    ON vpBoksGrp TO vPServer;
-GRANT ALL    ON vpBoksGrp_vpboksgrpid_seq TO vPServer;
-GRANT UPDATE ON vpBoksGrpInfo TO vPServer;
-GRANT ALL    ON vpBoksXY TO vPServer;
-GRANT ALL    ON vpboksxy_vpboksxyid_seq TO vPServer;
+GRANT SELECT,UPDATE ON vp_netbox_grp_info TO vPServer;
+GRANT ALL    ON vp_netbox_grp TO vPServer;
+GRANT ALL    ON vp_netbox_grp_vp_netbox_grpid_seq TO vPServer;
+GRANT ALL    ON vp_netbox_xy TO vPServer;
+GRANT ALL    ON vp_netbox_xy_vp_netbox_xyid_seq TO vPServer;
 
-GRANT SELECT ON boks TO navadmin;
+GRANT SELECT ON netbox TO navadmin;
 GRANT SELECT ON type TO navadmin;
-GRANT SELECT ON boksmac TO navadmin;
+GRANT SELECT ON netboxmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON prefiks TO navadmin; 
+GRANT SELECT ON prefix TO navadmin; 
 GRANT ALL    ON swport TO navadmin;
 GRANT ALL    ON swport_swportid_seq TO navadmin;
 GRANT ALL    ON swportvlan TO navadmin;
 GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
-GRANT SELECT,DELETE ON swp_boks TO navadmin;
+GRANT SELECT,DELETE ON swp_netbox TO navadmin;
 GRANT ALL    ON swportallowedvlan TO navadmin;
 GRANT SELECT ON swportblocked TO navadmin;
 
-GRANT SELECT ON boks TO getBoksMacs;
+GRANT SELECT ON netbox TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
 GRANT ALL    ON swportvlan TO getBoksMacs;
 GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
-GRANT SELECT ON prefiks TO getBoksMacs;
-GRANT SELECT ON boksmac TO getBoksMacs;
-GRANT ALL    ON swp_boks TO getBoksMacs;
-GRANT ALL    ON swp_boks_swp_boksid_seq TO getBoksMacs;
+GRANT SELECT ON prefix TO getBoksMacs;
+GRANT SELECT ON netboxmac TO getBoksMacs;
+GRANT ALL    ON swp_netbox TO getBoksMacs;
+GRANT ALL    ON swp_netbox_swp_netboxid_seq TO getBoksMacs;
 GRANT ALL    ON swportblocked TO getBoksMacs;
 GRANT ALL    ON cam TO getBoksMacs;
 GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 
-GRANT SELECT ON boks TO getPortData;
-GRANT SELECT ON type TO getPortData;
-GRANT ALL    ON swport TO getPortData;
-GRANT ALL    ON swport_swportid_seq TO getPortData;
-GRANT ALL    ON swportvlan TO getPortData;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO getPortData;
-GRANT ALL    ON swportallowedvlan TO getPortData;
--- GRANT ALL    ON gwport TO getPortData;
+-- GRANT SELECT ON netbox TO getPortData;
+-- GRANT SELECT ON type TO getPortData;
+-- GRANT ALL    ON swport TO getPortData;
+-- GRANT ALL    ON swport_swportid_seq TO getPortData;
+-- GRANT ALL    ON swportvlan TO getPortData;
+-- GRANT ALL    ON swportvlan_swportvlanid_seq TO getPortData;
+-- GRANT ALL    ON swportallowedvlan TO getPortData;
+-- GRANT SELECT,UPDATE ON gwport TO getPortData;
 -- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
-GRANT SELECT,UPDATE ON boks TO getDeviceData;
-GRANT SELECT,UPDATE ON boksinfo TO getDeviceData;
+GRANT SELECT,UPDATE ON netbox TO getDeviceData;
+GRANT SELECT,UPDATE ON netboxinfo TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
-GRANT ALL    ON boksdisk TO getDeviceData;
-GRANT ALL    ON boksinterface TO getDeviceData;
-GRANT ALL    ON bokscategory TO getDeviceData;
+GRANT ALL    ON netboxdisk TO getDeviceData;
+GRANT ALL    ON netboxinterface TO getDeviceData;
+GRANT ALL    ON netboxcategory TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
@@ -660,13 +647,13 @@ CREATE TABLE alerthist (
   deviceid INT4,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
-  start_t TIMESTAMP NOT NULL,
-  end_t TIMESTAMP DEFAULT 'infinity',
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP DEFAULT 'infinity',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
-CREATE INDEX alerthist_end_t_btree ON alerthist USING btree (end_t);
+CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 CREATE TABLE alerthistvar (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR(32) NOT NULL,
