@@ -26,7 +26,7 @@ public class DeviceTracker implements EventHandler
 
 	public String[] handleEventTypes()
 	{
-		return new String[] { "deviceChanged", "deviceNotice" };
+		return new String[] { "deviceActive", "deviceState", "deviceNotice" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
@@ -36,35 +36,48 @@ public class DeviceTracker implements EventHandler
     		Log.d("HANDLE","DeviceTracker plugin handling event: " + e);
 
         String eventtype = e.getEventtypeid();
-        // Variable alerttype must always be present for either event
         String alerttype = e.getVar("alerttype");
 
 		// Create alert
 		Alert a = ddb.alertFactory(e);
 		a.addEvent(e);
-    	a.setAlerttype(alerttype);
+        if(alerttype != null) {
+        	a.setAlerttype(alerttype);
+        }
+        // Don't post alert to alertq
+        a.setPostAlertq(false);
     	
         if (DEBUG_OUT)
     		Log.d("HANDLE","Added alert: " + a);
 
-        if (eventtype.equals("deviceChanged")) {
-            // deviceChanged event (stateful)
-            if (alerttype.equals("deviceOrdered")) {
-                a.copyHistoryVar(e, "username");
-                if (e.getState() == Event.STATE_START) {
-                    a.copyHistoryVars(e, new String[] { "orgid", "orderid", "retailer" });
-                }
-            } else if (alerttype.equals("deviceInOperation")) {
-                // If there is already a deviceInOperation event for this device
-                // which hasn't ended yet, set the end_time for that event to 
-                // the start_time for this one (minus one minute, to avoid confusion)
+        if (eventtype.equals("deviceActive")) {
+            // deviceActive is the main "lifecycle of a device" event
+            if (e.getState() == Event.STATE_START) {
+                // Sent when a device is made active
+                a.copyHistoryVar(e, "serial");
+                // Set device.active = True
+                Database.update("UPDATE device SET active = 'TRUE' WHERE deviceid = " + e.getDeviceid());
+                Database.commit(); 
+            } elif (e.getState() == Event.STATE_END) {
+                // Sent when a device reaches it's end of life
+                // Set device.active = False
+                Database.update("UPDATE device SET active = 'FALSE' WHERE deviceid = " + e.getDeviceid());
+                Database.commit(); 
+            }
+        } else if (eventtype.equals("deviceState")) {
+            // deviceState event (stateful)
+            if (alerttype.equals("deviceInIPOperation")) {
+                // If there is already a deviceInIPOperation event for this 
+                // device which hasn't ended yet, set the end_time for that 
+                // event to the start_time for this one (minus one minute, 
+                // to avoid confusion)
                 if (e.getState() == Event.STATE_START) {
                     try {
-                        ResultSet rs = Database.query("SELECT alerthist.alerthistid FROM alerthist,alerttype WHERE alerthist.alerttypeid = alerttype.alerttypeid AND alerttype.alerttype = 'deviceInOperation' AND alerthist.deviceid = " + e.getDeviceid() + " AND alerthist.eventtypeid = 'deviceChanged' AND alerthist.end_time = 'infinity'");
+                        ResultSet rs = Database.query("SELECT alerthist.alerthistid FROM alerthist,alerttype WHERE alerthist.alerttypeid = alerttype.alerttypeid AND alerttype.alerttype = 'deviceInIPOperation' AND alerthist.deviceid = " + e.getDeviceid() + " AND alerthist.eventtypeid = 'deviceState' AND alerthist.end_time = 'infinity'");
                         ResultSetMetaData rsmd = rs.getMetaData();
                         if (rs.next()) {
                             // There should be only one result from this query as it
-                            // is run every time a new deviceInOperation-start event
+                            // is run every time a new deviceInIPOperation-start event
                             // is posted 
                             try {
                                 // subtract one minute, ugly
@@ -73,11 +86,11 @@ public class DeviceTracker implements EventHandler
                                 Database.update("UPDATE alerthist SET end_time = '" + end_time + "' WHERE alerthistid = " + rs.getString("alerthistid"));
                                 Database.commit(); 
                             } catch (SQLException exp) {
-                                Log.e("HANDLE","Unable to update end_time of old deviceChanged (deviceInOperation) event: " + exp.getMessage());
+                                Log.e("HANDLE","Unable to update end_time of old deviceState (deviceInIPOperation) event: " + exp.getMessage());
                             }
                         }
                     } catch (SQLException exp) {
-                        Log.e("HANDLE","Error while looking for old deviceChanged (deviceInOperation) event: " + exp.getMessage());
+                        Log.e("HANDLE","Error while looking for old deviceState (deviceInIPOperation) event: " + exp.getMessage());
                     }
                     a.copyHistoryVars(e, new String[] { "username", "sysname", "moduleid", "roomid", "orgid", "catid" });
                 } else if (e.getState() == Event.STATE_END) {
@@ -90,14 +103,12 @@ public class DeviceTracker implements EventHandler
                     a.copyHistoryVars(e, new String[] { "rmanumber", "comment" });
                 }
             } else {
-                Log.e("HANDLE","Unknown alerttype '" + alerttype + "' for deviceChanged event.");
+                Log.e("HANDLE","Unknown alerttype '" + alerttype + "' for deviceState event.");
             }
         } else if (eventtype.equals("deviceNotice")) {
             // deviceNotice event (stateless)
-            if (alerttype.equals("deviceRegistered")) {
-                a.copyHistoryVars(e, new String[] { "username", "serial" });
-            } else if (alerttype.equals("deviceError")) {
-                a.copyHistoryVars(e, new String[] { "username", "description", "moduleid", "serviceid" });
+            if (alerttype.equals("deviceError")) {
+                a.copyHistoryVars(e, new String[] { "username", "comment", "unittype", "roomid", "locationid" });
             } else if (alerttype.equals("deviceHwUpgrade")) {
                 a.copyHistoryVar(e, "description");
             } else if (alerttype.equals("deviceSwUpgrade")) {
