@@ -1,5 +1,5 @@
 import math
-factors = {
+units = {
      # f   short  long
      -24: ('y', 'yocto'),
      -21: ('z', 'zepto'),
@@ -20,28 +20,27 @@ factors = {
      24 : ('Y', 'yotta'),
  }
      
-def sci(foo, long=False):
-    foo = float(foo)
+def sci(number, long=False):
+    number = float(number)
     try:
-        exp = int(math.log10(foo) / 3)*3
-        if abs(exp) > 24:
-          exp = 24 * (exp/abs(exp))
-        bar = foo / 10**exp
+        exponent = int(math.log10(number) / 3)*3
+        if abs(exponent) > 24:
+          exponent = 24 * (exponent/abs(exponent))
+        factor = number / 10**exponent
         # note - long means column 1, short is col 0 =)
-        ret = (bar,factors[exp][long])        
+        return (factor,units[exponent][long])        
     except OverflowError:
-        ret = (0,'')
-    return ret
+        return (0,'')
 
-def sciShort(foo):
-    return sci(foo, long=False)
+def sciShort(number):
+    return sci(number, long=False)
     
-def sciLong(foo):
-    return sci(foo, long=True)
+def sciLong(number):
+    return sci(number, long=True)
     
-def printe(f):
+def printe(number):
     import sci_exp
-    a = sci_exp.sciShort(f)
+    a = sci_exp.sciShort(number)
     return '%0.3f%s' % a
 
 
