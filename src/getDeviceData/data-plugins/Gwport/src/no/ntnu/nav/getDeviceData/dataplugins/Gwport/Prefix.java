@@ -79,6 +79,8 @@ public class Prefix implements Comparable
 	void setPrefixid(String s) { prefixid = Integer.parseInt(s); }
 
 	String getNetaddr() { return netaddr; }
+	int getMasklen() { return masklen; }
+	String getCidr() { return netaddr+"/"+masklen; }
 	Vlan getVlan() { return vlan; }
 
 	/*

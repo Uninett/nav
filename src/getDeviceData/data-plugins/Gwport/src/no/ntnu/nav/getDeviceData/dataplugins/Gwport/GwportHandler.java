@@ -347,7 +347,7 @@ public class GwportHandler implements DataHandler {
 							
 							String[] ins = {
 								"prefixid", "",
-								"netaddr", p.getNetaddr(),
+								"netaddr", p.getCidr(),
 								"vlanid", vlanid
 							};
 							prefixid = Database.insert("prefix", ins, null);
