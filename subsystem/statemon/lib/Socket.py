@@ -14,7 +14,7 @@ from errno import errorcode
 class Timeout(Exception):
 	pass
 
-def ssl(sock, sock, keyfile=None, certfile=None):
+def ssl(sock, timeout, keyfile=None, certfile=None):
 	"""
 	Returns an sslsocket with timeout support.
 	"""
