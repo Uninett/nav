@@ -21,7 +21,7 @@ LOG_DIR="$NAV_ROOT/local/log/cam"
 #LOG_DIR=$CUR_DIR
 
 COUNT=`ps wwwwx|grep "getBoksMacsMulti"|grep -v getBoksMacs.sh|grep -v grep|wc -l|sed s/" "//g`
-if [ "$COUNT" = "0" ] || [ -a $JOB_FINISHED ]; then
+if [ "$COUNT" == "0" ] || [ -a $JOB_FINISHED ]; then
         cd $CUR_DIR
         if [ -a $JOB_FINISHED ]; then
                 # Must kill old script
