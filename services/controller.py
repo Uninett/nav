@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """
 $Author: magnun $
-$Id: controller.py,v 1.4 2002/06/10 13:26:37 magnun Exp $
+$Id: controller.py,v 1.5 2002/06/10 13:27:08 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
 
 import RunQueue, types, os, time, job, getopt
 
-__version__ = """$Version: $"""
+__version__ = """$Revision: 1.5 $"""
 
 class controller:
     def __init__(self, **kwargs):
