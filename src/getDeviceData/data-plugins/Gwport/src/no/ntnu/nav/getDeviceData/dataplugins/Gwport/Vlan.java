@@ -10,6 +10,10 @@ import java.util.ArrayList;
 
 public class Vlan implements Comparable
 {
+	public static final int CONVENTION_NTNU = 0;
+	public static final int CONVENTION_UNINETT = 10;
+	public static final int CONVENTION_UNKNOWN = 20;
+
 	public static final String UNKNOWN_NETTYPE = "unknown";
 
 	private int vlanid;
@@ -20,6 +24,7 @@ public class Vlan implements Comparable
 	private String usageid;
 	private String netident;
 	private String description;
+	private int convention = CONVENTION_NTNU;
 
 	Vlan(String netident) {
 		this.netident = netident;
@@ -29,6 +34,9 @@ public class Vlan implements Comparable
 		this(netident);
 		setVlan(vlan);
 	}
+
+	public int getConvention() { return convention; }
+	public void setConvention(int c) { convention = c; }
 
 	int getVlanid() { return vlanid; }
 	String getVlanidS() { return ""+vlanid; }
@@ -54,6 +62,7 @@ public class Vlan implements Comparable
 		usageid = vl.usageid;
 		netident = vl.netident;
 		description = vl.description;
+		convention = vl.convention;
 	}
 
 	/**

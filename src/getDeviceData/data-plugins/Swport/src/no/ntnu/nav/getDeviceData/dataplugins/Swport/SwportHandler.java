@@ -67,12 +67,13 @@ public class SwportHandler implements DataHandler {
 						sd.setHexstring(rs.getString("hexstring"));
 
 						md.addSwport(sd);
-						String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
+						//String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
+						String key = rs.getString("moduleid")+":"+rs.getString("ifindex");
 						if (swpMap.containsKey(key)) {
 							System.err.println("ERROR! Non-unique ifindex, deleting...");
 							Database.update("DELETE FROM swport WHERE swportid="+rs.getString("swportid"));
 						} else {
-							swpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), md);
+							swpMap.put(key, md);
 						}
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
@@ -120,6 +121,9 @@ public class SwportHandler implements DataHandler {
 			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
 				SwModule md = (SwModule)swModules.next();
 				String moduleid = md.getModuleidS();
+				if ("0".equals(moduleid)) {
+					System.err.println("Moduleid is null!! " + md);
+				}
 
 				// OK, først sjekk om denne porten er i swport fra før
 				/*
@@ -139,7 +143,8 @@ public class SwportHandler implements DataHandler {
 
 					// Finn evt. gammel
 					String swportid;
-					String swportKey = nb.getNetboxid()+":"+sd.getIfindex();
+					//String swportKey = nb.getNetboxid()+":"+sd.getIfindex();
+					String swportKey = moduleid+":"+sd.getIfindex();
 
 					SwModule oldmd = (SwModule)swportMap.get(swportKey);
 					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());

@@ -45,6 +45,13 @@ public class NetboxData extends Device
 		this.sysname = sysname;
 	}
 
+	/*
+	public void setSerial(String serial) {
+		super.setSerial(serial);
+		new RuntimeException("Setting serial: " + serial + " (devid: " + getDeviceid()+ ")").printStackTrace(System.err);
+	}
+	*/
+
 	/**
 	 * Set the uptime in timerticks (100 ticks per second).
 	 */

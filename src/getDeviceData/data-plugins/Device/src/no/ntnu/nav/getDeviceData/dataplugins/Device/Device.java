@@ -1,11 +1,21 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Device;
 
+import java.util.*;
+
 /**
  * Describes a single device. Normally this class will be inherited.
  */
 
 public class Device
 {
+	private static String[] badSerial = {
+		"0",
+		"0x0E",
+		"0x12",
+		"1234",
+	};
+	private static Set badSerials = new HashSet(Arrays.asList(badSerial));
+
 	private int deviceid;
 
 	private String serial;
@@ -57,11 +67,19 @@ public class Device
 
 	boolean getIgnore() { return ignore; }
 
+	private boolean isValidSerial(String serial) {
+		if (serial == null || serial.length() == 0) return false;
+		if (serial.length() <= 4) return false;
+		if (badSerials.contains(serial)) return false;
+
+		return true;		
+	}
+
 	/**
 	 * Set the the serial number of the physical device.
 	 */
 	public void setSerial(String serial) {
-		if (serial != null && serial.length() > 0 && !serial.equals("0")) {
+		if (isValidSerial(serial)) {
 			this.serial = serial;
 		} else {
 			this.serial = null;

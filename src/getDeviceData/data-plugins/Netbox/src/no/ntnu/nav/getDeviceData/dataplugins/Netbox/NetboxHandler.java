@@ -161,6 +161,13 @@ public class NetboxHandler implements DataHandler {
 				NetboxUpdatable nu = (NetboxUpdatable)nb;
 				nu.recreate();
 				changedDeviceids.put(String.valueOf(nb.getDeviceid()), new Integer(DataHandler.DEVICE_DELETED));
+				// Also all modules
+				{
+					ResultSet rs = Database.query("SELECT deviceid FROM module WHERE netboxid = '"+netboxid+"'");
+					while (rs.next()) {
+						changedDeviceids.put(rs.getString("deviceid"), new Integer(DataHandler.DEVICE_DELETED));
+					}
+				}
 				Map varMap = new HashMap();
 				varMap.put("alerttype", "deviceRecreated");
 				varMap.put("old_deviceid", String.valueOf(oldn.getDeviceid()));

@@ -144,6 +144,10 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 			if (((Module)it.next()).getIgnore()) it.remove();
 		}
 	}
+
+	int getNumModules() {
+		return moduleList.size();
+	}
 	
 	public Iterator getModules() {
 		Collections.sort(moduleList);

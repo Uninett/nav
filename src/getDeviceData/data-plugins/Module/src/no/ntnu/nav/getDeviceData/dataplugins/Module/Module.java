@@ -54,7 +54,7 @@ public class Module extends Device implements Comparable
 	 */
 	protected void setModuleid(int i) { moduleid = i; }
 
-	void setModuleid(String s) { moduleid = Integer.parseInt(s); }
+	void setModuleid(String s) { setModuleid(Integer.parseInt(s)); }
 
 	public int getModule() { return module; }
 	String getModuleS() { return ((module < 10)?" ":"")+getModule(); }
@@ -62,7 +62,7 @@ public class Module extends Device implements Comparable
 	public String getModel() { return model; }
 	public String getDescr() { return descr; }
 
-	boolean getIgnore() { return ignore; }
+	public boolean getIgnore() { return ignore; }
 
 	/**
 	 * Set the model of this module.

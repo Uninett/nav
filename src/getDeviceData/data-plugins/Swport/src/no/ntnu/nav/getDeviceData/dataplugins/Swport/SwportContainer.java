@@ -144,6 +144,15 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		return super.isCommited();
 	}
 
+	// Doc in parent
+	protected void removeIgnoredModules() {
+		// Remove any ignored modules
+		super.removeIgnoredModules();
+		for (Iterator it=swModuleList.iterator(); it.hasNext();) {
+			if (((SwModule)it.next()).getIgnore()) it.remove();
+		}
+	}
+
 	// Assign any module-less swports to module 1
 	void assignSwportsWithoutModule() {
 		List l = new ArrayList();

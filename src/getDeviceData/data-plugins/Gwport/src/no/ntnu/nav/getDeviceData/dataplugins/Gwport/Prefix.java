@@ -117,7 +117,7 @@ public class Prefix implements Comparable
 	}
 
 	public String toString() {
-		return netaddr + "/" + masklen;
+		return netaddr + "/" + masklen + " ("+prefixid+")";
 	}
 
 }

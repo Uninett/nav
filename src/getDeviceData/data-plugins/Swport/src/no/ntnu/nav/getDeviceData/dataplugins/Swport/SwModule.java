@@ -25,6 +25,10 @@ public class SwModule extends Module implements Comparable
 		this.sc = sc;
 	}
 
+	public void setSerial(String s) {
+		super.setSerial(s);
+	}
+
 	protected void setDeviceid(int i) { super.setDeviceid(i); }
 
 	protected int getModuleid() { return super.getModuleid(); }

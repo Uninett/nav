@@ -157,7 +157,7 @@ public class DeviceHandler implements DataHandler {
 						};
 						Database.update("device", set, where);
 						changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
-						
+
 						// Now we need to send events if hw_ver, fw_ver or sw_ver changed
 						if (!equals(dev.getHwVer(), olddev.getHwVer())) {
 							Map varMap = new HashMap();
@@ -189,7 +189,6 @@ public class DeviceHandler implements DataHandler {
 					dev.setEqual(olddev);
 				}
 				dev.setDeviceid(deviceid);
-
 				devidMap.put(deviceid, dev);
 				if (serial != null) devserialMap.put(serial, dev);
 
