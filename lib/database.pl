@@ -1,9 +1,14 @@
 #!/usr/bin/perl -w
+#
+# $Id: database.pl,v 1.11 2002/07/23 10:04:53 mortenv Exp $
+#
 
 use Pg;
 use strict;
+require "/usr/local/nav/navme/lib/fil.pl";
 
 my $debug=1;
+my $navdir = "/usr/local/nav/";
 
 sub db_hent {
     my ($db,$sql) = @_;
@@ -364,7 +369,18 @@ sub db_manipulate {
 sub db_endring_med_sletting {
     my ($db,$fil,$tabell,$felt) = @_;
     my @felt = split(/:/,$felt);
-    my %ny = &fil_hent($fil,scalar(@felt));
+
+    my $localfil = $navdir."local/".$fil;
+    my $navmefil = $navdir."navme/".$fil;
+	
+    my %ny;
+    if(-r $navmefil){
+	%ny = &fil_hent_hash($navmefil,scalar(@felt),\%ny);
+    }
+    if(-r $localfil){
+	%ny = &fil_hent_hash($localfil,scalar(@felt),\%ny);
+    }
+
     #leser fra database
     my %gammel = &db_hent_hash($db,"SELECT ".join(",", @felt )." FROM $tabell ORDER BY $felt[0]");
     &db_endring($db,\%ny,\%gammel,\@felt,$tabell);
@@ -692,32 +708,21 @@ sub db_connect {
 }
 
 sub db_readconf {
-    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
-
-    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
-    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
-    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
-    close(IN);
-
-    return %hash;
+    return &hash_conf('/usr/local/nav/local/etc/conf/db.conf');
 }
 
 sub db_get {
     my $myself = $_[0];
-    my $filename = "/usr/local/nav/local/etc/conf/db.conf";
 
-    open(IN, $filename) || die "Could not open $filename: $!\n";
-    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
-    grep { !/^(\s*\#|\s+$)/ && /.+=.*/ } <IN>;
-	   close(IN);
+    my %hash = &db_readconf();
 			
-	   my $db_user = $hash{'script_'.$myself};
-	   my $db_passwd = $hash{'userpw_'.$db_user};
-	   my $db_db = $hash{'db_'.$db_user};
-	   my $db_host = $hash{'dbhost'};
-	   my $db_port = $hash{'dbport'};
+    my $db_user = $hash{'script_'.$myself};
+    my $db_passwd = $hash{'userpw_'.$db_user};
+    my $db_db = $hash{'db_'.$db_user};
+    my $db_host = $hash{'dbhost'};
+    my $db_port = $hash{'dbport'};
 						    
-	   my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
+    my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }

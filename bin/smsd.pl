@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+# $Id: smsd.pl,v 1.4 2002/07/23 10:04:53 mortenv Exp $
+#
 # Dette er en sms-demon som henter sms meldinger i fra
 # databasen på bigbud og sender dem ved hjelp av 
 # mobiltelefon koblet til com-porten.
@@ -28,6 +30,9 @@
 # Gro-Anita Vindheim
 # ITEA Nettgruppen
 
+# Modifisert til å kjøre som navcron for NAVRun 18/07-2002 av
+# Morten Vold
+# ITEA Nettgruppen
  
 use POSIX qw(strftime);
 use strict;
@@ -42,37 +47,18 @@ require "$vei/database.pl";
 
 
 
-my $pidfil = "/var/run/smsd.pl.pid";
+my $pidfil = '/usr/local/nav/local/var/run/smsd.pl.pid';
 my $conffil= '/usr/local/nav/local/etc/conf/smsd.conf';
 
 justme();				# sjekker om smsd kjøres fra før.
-fork && exit;           # background ourself and go away
-
-# Skriver pid til fil
-open (PIDFIL, ">$pidfil");
-print PIDFIL $PID;
-close (PIDFIL);
-
+switchuser(); # Sørg for at vi kjører som brukeren navcron
 
 getopt('dt'); 
 
-my ($dummy,$logfil,$MAILDRIFT);
-
-open (CONF,$conffil);
-while (<CONF>)
-{
-    if (/^logfil/)
-    {
-	($dummy,$logfil) = split(/=/);
-	chomp($logfil);
-    }
-    
-    if (/^maildrift/)
-    {
-	($dummy,$MAILDRIFT) = split(/=/);
-	chomp($MAILDRIFT);
-    }
-}
+my %conf = &hash_conf($conffil);
+my $logfil = $conf{logfil} || '/usr/local/nav/local/log/smsd.log';
+my %navconf = &read_navconf();
+my $MAILDRIFT = $navconf{ADMIN_MAIL};
 
 
 my $temp;
@@ -99,8 +85,11 @@ if ($opt_t) {
 
 
 # Lager bare en connection mot databasen, som er konstant. Håper det ikke krasjer alt...
-
-my $conn = &db_connect('trapdetect','varsle','lgagikk5p');
+my %dbconf = &db_readconf();
+my $dbname = $dbconf{db_trapdetect};
+my $dbuser = $dbconf{script_smsd};
+my $userpw = $dbconf{'userpw_' . $dbuser};
+my $conn = &db_connect($dbname, $dbuser, $userpw);
 
 # Sletter utkøen i databasen
 if ($opt_c) {
@@ -138,6 +127,19 @@ else
 }
 
 my $sql = "SELECT tlf,smsutko.id,melding FROM smsutko,bruker WHERE bruker.id = smsutko.brukerid AND sendt=\'N\'";
+
+# background ourself and go away only if we get this far..
+close(STDOUT); # Disconnect from terminal...
+my $pid = fork();
+if ($pid) {
+    # Skriver pid til fil
+    open (PIDFIL, ">$pidfil");
+    print PIDFIL $pid;
+    close (PIDFIL);
+    exit(0);
+}
+
+$0 = 'smsd.pl: NAV SMS daemon ready...';
 
 # Kjører en uendelig løkke her
 while ($v=2) {
@@ -180,280 +182,150 @@ sub sorter_sms {
     
     # Bruk 'sort keys' vist en vist en ønsker at lavest mobil-nummer skal komme først 
     foreach $user (sort keys %hash_ko) {
-	
+
 	@sendt_id = ();
 	@ignored_id = ();
-	
-	# Henter alle meldingen til den første personen i fra hash'en
-#	if ($nr1_user) {
-#	    $meld_nr = 1;
-#	    $ant_ignored = 0;
-#	    $text_ = "";
-#	    $nr1_user = 0;	    
-#	    
-#	    foreach $id (keys %{$hash_ko{$user}}) {
-#		
-#		# Meldinger som sendes til personen
-#		
-#		if ((length($text_) + length($hash_ko{$user}{$id})) < 136) {
-#		    if ($meld_nr eq '1') {
-#			$text_ = $hash_ko{$user}{$id};
-#		    }
-#		    elsif ($meld_nr eq '2') {
-#			$text_ = "1:".$text_."\\;  2:".$hash_ko{$user}{$id};
-#		    }
-#		    else {
-#			$text_ = $text_."\\; $meld_nr:".$hash_ko{$user}{$id};
-#		    }
-#		    
-#		    $tlf_ = $user;
-#		    push @sendt_id, $id; 
-#		    
-#		    $meld_nr++;
-#		}
-#		
-#		# Meldinger som ignoreres, en teller dem opp
-#		else {
-#		    push @ignored_id, $id;
-#		    $ant_ignored++;
-#		}
-#		
-#	    }
-#	    
-#	    
-#	    # Hvis det er flere en 1 melding til personen
-#	    if ($ant_ignored > 0) {
-#		$respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
-#	    }
-#	    
-#	    # Hvis det kun er en melding til personen
-#	    else {
-#		$respons_ = &send_sms($tlf_, $text_);
-#	    }
-#	    
-#	    # Sjekker om sendingen var vellykket
-#	    if ($respons_ =~ /Sent/) {
-#		
-#		if ($smssyk) {
-#		    $smssyk = 0;
-#		    
-#		    # Skriv logg
-#                    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-#                    print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
-#		    
-#                    # Send mail
-#                    open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
-#                    print MAIL "\nsmsd_ok: $dato\t$respons_\n";
-#                    close(MAIL);
-#		    
-#                }
-#		
-#		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-#		
-#		# Teller antall velykkede sendte meldinger
-#		$smsid++;
-#		
-#		# Setter meldingen lik sendt i databasen
-#		$nr1 = $#sendt_id - 1;
-#		while (@sendt_id) {
-#		    $id_ = pop @sendt_id;
-#		    
-#		    my $sendt_ok = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
-#
-#		    &sjekk_conn;
-#		    my $ga = &db_execute($conn,$sendt_ok);
-#		    
-#		    # Skriv til logg
-#		    if ($nr1 == $#sendt_id) {
-#			print LOGFIL "Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-#		    }
-#		    else {
-#			print LOGFIL "  Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-#		    }
-#		}
-#		# Setter meldingen lik ignored i databasen
-#		while (@ignored_id) {
-#		    $id_ = pop @ignored_id;
-#		    
-#		    my $sendt_ign = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
-#
-#		    &sjekk_conn;
-#		    $ga = &db_execute($conn,$sendt_ign);
-#		    
-#		    # Skriv til logg
-#		    print LOGFIL "  Ignored: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-#		}
-#	    }
-#	    else {
-#		
-#		unless ($smssyk) {
-#		    
-#		    $smssyk = 1;
-#		    
-#		    # Skriv logg
-#		    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-#		    print LOGFIL "\nError: $dato\t$respons_\n";
-#		    
-#		    # Send mail
-#		    open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
-#		    print MAIL "\nError: $dato\t$respons_\n";
-#		    close(MAIL);
-#		    
-#		    # Resetter gnokii programmet
-#		    $respons_ = `killall gnokii`;
-#		    
-#		}		
-#		
-#		sleep 60;
-#	    }
-#	    
-#	}
-#	
-#	
-#	
-	# Resten av brukerene i hash'en
-#	else {
-	    
-	    # Clear hash for ny bruker
-	    %hash_ko2_ = (); 
-	    
-	    # Henter på nytt alle meldingen til denne personen
-	    
-	    $ko = "SELECT smsutko.id,melding FROM smsutko,bruker WHERE bruker.id=smsutko.brukerid AND sendt=\'N\' AND tlf=\'$user\'"; 
 
-	    &sjekk_conn;
-	    $ok = &db_select($conn,$ko);
-	    
-	    # Hvis der var noe flere meldinger legges de i en hash
-	    if ($ok->ntuples) {
-		while ( @line = $ok->fetchrow) {
-		    $hash_ko2_{$line[0]} = $line[1];
-		}
+
+	# Clear hash for ny bruker
+	%hash_ko2_ = (); 
+
+	# Henter på nytt alle meldingen til denne personen
+
+	$ko = "SELECT smsutko.id,melding FROM smsutko,bruker WHERE bruker.id=smsutko.brukerid AND sendt=\'N\' AND tlf=\'$user\'"; 
+
+	&sjekk_conn;
+	$ok = &db_select($conn,$ko);
+
+	# Hvis der var noe flere meldinger legges de i en hash
+	if ($ok->ntuples) {
+	    while ( @line = $ok->fetchrow) {
+		$hash_ko2_{$line[0]} = $line[1];
 	    }
-	    
-	    
-	    $meld_nr = 1;
-	    $ant_ignored = 0;
-	    $text_ = "";
-	    
-	    foreach $id (keys %hash_ko2_) {
-		
-		# Meldinger som sendes til personen
-		if ((length($text_) + length($hash_ko2_{$id})) < 136) {
-		    if ($meld_nr eq '1') {
-			$text_ = $hash_ko2_{$id};
-		    }
-		    elsif ($meld_nr eq '2') {
-			$text_ = "1:".$text_."\\;  2:".$hash_ko2_{$id};
-		    }
-		    else {
-			$text_ = $text_."\\; $meld_nr:".$hash_ko2_{$id};
-		    }
-		    
-		    $tlf_ = $user;
-		    push @sendt_id, $id; 
-		    
-		    $meld_nr++;
+	}
+
+
+	$meld_nr = 1;
+	$ant_ignored = 0;
+	$text_ = "";
+
+	foreach $id (keys %hash_ko2_) {
+
+	    # Meldinger som sendes til personen
+	    if ((length($text_) + length($hash_ko2_{$id})) < 136) {
+		if ($meld_nr eq '1') {
+		    $text_ = $hash_ko2_{$id};
 		}
-		
-		# Meldinger som ignoreres, en teller dem opp
+		elsif ($meld_nr eq '2') {
+		    $text_ = "1:".$text_."\\;  2:".$hash_ko2_{$id};
+		}
 		else {
-		    push @ignored_id, $id;
-		    $ant_ignored++;
+		    $text_ = $text_."\\; $meld_nr:".$hash_ko2_{$id};
 		}
-		
+
+		$tlf_ = $user;
+		push @sendt_id, $id; 
+
+		$meld_nr++;
 	    }
-	    
-	    # Hvis der er flere en 1 melding til persone
-	    if ($ant_ignored > 0) {
-		$respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
-	    }
-	    
-	    # Hvis der kun er en melding til personen
+
+	    # Meldinger som ignoreres, en teller dem opp
 	    else {
-		$respons_ = &send_sms($tlf_, $text_);
+		push @ignored_id, $id;
+		$ant_ignored++;
 	    }
-	    
-	    
-	    # Sjekker om sendingen var vellykket
-	    if ($respons_ =~ /Sent/) {
-		
-		if ($smssyk) {
-                    $smssyk = 0;
-		    
-                    # Skriv logg
-                    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-                    print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
-		    
-                    # Send mail
-                    open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
-                    print MAIL "\nsmsd_ok: $dato\t$respons_\n";
-                    close(MAIL);
-                }
-		
+
+	}
+
+	# Hvis der er flere en 1 melding til persone
+	if ($ant_ignored > 0) {
+	    $respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
+	}
+
+	# Hvis der kun er en melding til personen
+	else {
+	    $respons_ = &send_sms($tlf_, $text_);
+	}
+
+
+	# Sjekker om sendingen var vellykket
+	if ($respons_ =~ /\bsent\b/im) {
+
+	    if ($smssyk) {
+		$smssyk = 0;
+
+		# Skriv logg
 		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		
-                # Teller antall velykkede sendte meldinger
-                $smsid++;
-		
-		# Setter meldingen lik sendt i databasen
-		$nr1 = $#sendt_id - 1;
-		while (@sendt_id) {
-		    $id_ = pop @sendt_id;
-		    
-		    $ko2 = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+		print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
 
-		    &sjekk_conn;
-		    $ga = &db_execute($conn,$ko2);
-		    
-		    # Skriv til logg
-		    if ($nr1 == $#sendt_id) {
-			print LOGFIL "Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
-		    }
-		    else {
-			print LOGFIL "  Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
-		    }
-		    
-		}
-		
-		# Setter meldingen lik ignored i databasen
-		while (@ignored_id) {
-		    $id_ = pop @ignored_id;
-		    
-		    $ko2 = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
-		    &sjekk_conn;
-		    $ga = &db_execute($conn,$ko2);
-		    
-		    # Skriv til logg
-		    print LOGFIL "  Ignored: $dato\t$user\t$hash_ko2_{$id_}\n";
-		}
-		
+		# Send mail
+		open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
+		print MAIL "\nsmsd_ok: $dato\t$respons_\n";
+		close(MAIL);
 	    }
-	    else {
-		
-		unless ($smssyk) {
-		    
-                    $smssyk = 1;
-		    
-		    # Skriv logg
-		    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		    print LOGFIL "\nError: $dato\t$respons_\n";
-		    
-		    # Send mail
-		    open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
-		    print MAIL "\nError: $dato\t$respons_\n";
-		    close(MAIL);
-		    
-		    # Resetter gnokii programmet
-		    $respons_ = `killall gnokii`;
 
-		}		
-		
-		sleep 60;
+	    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+
+	    # Teller antall velykkede sendte meldinger
+	    $smsid++;
+
+	    # Setter meldingen lik sendt i databasen
+	    $nr1 = $#sendt_id - 1;
+	    while (@sendt_id) {
+		$id_ = pop @sendt_id;
+
+		$ko2 = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+
+		&sjekk_conn;
+		$ga = &db_execute($conn,$ko2);
+
+		# Skriv til logg
+		if ($nr1 == $#sendt_id) {
+		    print LOGFIL "Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
+		}
+		else {
+		    print LOGFIL "  Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
+		}
+
 	    }
-	    
-#	}
-	
+
+	    # Setter meldingen lik ignored i databasen
+	    while (@ignored_id) {
+		$id_ = pop @ignored_id;
+
+		$ko2 = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+		&sjekk_conn;
+		$ga = &db_execute($conn,$ko2);
+
+		# Skriv til logg
+		print LOGFIL "  Ignored: $dato\t$user\t$hash_ko2_{$id_}\n";
+	    }
+
+	}
+	else {
+
+	    unless ($smssyk) {
+
+		$smssyk = 1;
+
+		# Skriv logg
+		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+		print LOGFIL "\nError: $dato\t$respons_\n";
+
+		# Send mail
+		open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
+		print MAIL "\nError: $dato\t$respons_\n";
+		close(MAIL);
+
+		# Resetter gnokii programmet
+		$respons_ = `killall gnokii`;
+
+	    }		
+
+	    sleep 60;
+	}
+
+
     }
     
     close(LOGFIL);
@@ -480,9 +352,9 @@ sub send_sms {
 	$dato = strftime " %d\/%m %H:%M", localtime; 
 	$text = $text.$dato;
 
-    @respons = `echo $text | /usr/local/bin/gnokii --sendsms $tlf`;
+    my $respons = `echo $text | /usr/local/bin/gnokii --sendsms $tlf`;
     
-    return $respons[0];
+    return $respons;
     
 }
 
@@ -518,5 +390,44 @@ sub justme {
     }
 }
 
+##################################
+
+# Finn alle de ekstra gruppene en navngitt bruker er medlem av.
+sub usergroups
+{
+    my $uname = shift;
+    my @gids;
+
+    while (my($name, $passwd, $gid, $members) = getgrent()) {
+	push(@gids, $gid) if ($members =~ /\b$uname\b/);
+    }
+
+    return "@gids";
+}
+
+# Dersom vi kjører som noen andre enn navcron-brukeren, prøver vi å
+# tvinge oss selv til å kjøre som denne. Dette vil kun fungere dersom
+# root er den som kjører scriptet.
+sub switchuser
+{
+    if (getpwnam('navcron')) {
+	my ($name,$passwd,$uid,$gid,
+	    $quota,$comment,$gcos,$dir,$shell,$expire) = getpwnam('navcron');
+	if ($UID != $uid) {
+	    my $gids = usergroups('navcron');
+	    $GID = "$gid $gids";
+	    $UID = $uid;
+	    $EGID = "$gid $gids";
+	    $EUID = $uid;
+
+	    #print "DEBUG: UID=$UID,GID=$GID,EUID=$EUID,EGID=$EGID\n";
+
+	    $UID == $uid or die "Kan ikke skifte til bruker navcron!";
+	}
+    } else {
+	# Dersom navcron ikke eksisterer på systemet:
+	print STDERR "Advarsel! Kjører med root-privilegier!\n";
+    }
+}
 
 exit(0);

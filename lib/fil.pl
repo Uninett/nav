@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+#
+# $Id: fil.pl,v 1.10 2002/07/23 10:04:53 mortenv Exp $
+#
 
 #Lagt inn av KH & JM 18.06.02
 require "/usr/local/nav/navme/lib/database.pl";
@@ -30,6 +33,20 @@ sub fil_hent_linje {
 sub fil_hent {
     my ($fil,$felt) = @_;
     my %resultat = ();
+    my @linje = ();
+    open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
+    foreach (<FIL>) {
+	if(@linje = &fil_hent_linje($felt,$_)){
+	    $resultat{$linje[0]} = [ @linje ]; #legger inn i hash
+	}
+    }
+    close FIL;
+    return %resultat;
+}
+sub fil_hent_hash {
+    my $fil = $_[0];
+    my $felt = $_[1];
+    my %resultat = %{$_[2]};
     my @linje = ();
     open (FIL, "<$fil") || die ("KUNNE IKKE ÅPNE FILA: $fil");
     foreach (<FIL>) {
@@ -124,6 +141,26 @@ sub printlog{
     my $time = scalar localtime;
     print COLLECTLOG $time." ".'%'.$_[0];
     return 1;
+}
+
+# Leser inn en config-fil i en hash. Config-filen må være av type
+# "navn=verdi". Denne kan brukes til å lese nav.conf, db.conf og andre
+# filer etter samme lest.
+sub hash_conf
+{
+    my $conffile = shift or return undef;
+
+    open(my $FD, $conffile) || die "Could not open $conffile: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <$FD>;
+    close($FD);
+
+    return %hash;
+}
+
+sub read_navconf 
+{
+    return hash_conf('/usr/local/nav/local/etc/conf/nav.conf');
 }
 
 return 1;

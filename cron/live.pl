@@ -1,5 +1,6 @@
 #!/usr/bin/perl 
 
+# $Id: live.pl,v 1.7 2002/07/23 10:04:53 mortenv Exp $
 #####################################
 #
 # live.pl pinger boksene som finnes i tabellen manage.boks, og sender traps ved endringer i status.
@@ -15,7 +16,9 @@ require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
 require "$lib/fil.pl";
 
-
+# De-taint:
+$ENV{'PATH'} = '/bin:/usr/bin';
+delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 # 1) Lese config-fil
 # 2) Sjekker at den selv har kontakt med verden (pinger seg ut.)
 # 3) Henter ut ip'er som skal pinges fra database, legges i hash
@@ -28,18 +31,7 @@ require "$lib/fil.pl";
 
 $conf = '/usr/local/nav/local/etc/conf/live/live.conf';
 
-open(CONF,$conf);
-while (<CONF>)
-{
-    unless (/^\#|^\s+/)
-    {
-	($key,$string) = split(/=/);
-	chomp($string);
-	$config{$key}=$string;
-    }
-}
-
-close(CONF);
+my %config = &hash_conf($conf);
 
 ############################################################
 
@@ -197,7 +189,7 @@ while(@svar = $resultat->fetchrow)
 #####################################################
 # Hent watch-fil (dbmfil)
 
-dbmopen (%extwatch, "$extfil", 0664);
+dbmopen (%extwatch, "$config{extfil}", 0664);
 
 #####################################################
 
@@ -264,7 +256,7 @@ foreach $id (@pingarray)
     ## Prøver å ping enda gang, med lengre timeout.
     unless ($p->ping($ip, 5))
     {
-	if ($boks{$id}{watch} eq 't' && ($extbokser =~ /:$boks{$id}{type}:/) && !$extwatch{$id})
+	if ($boks{$id}{watch} eq 't' && ($config{extbokser} =~ /:$boks{$id}{type}:/) && !$extwatch{$id})
 	{
 	    $extwatch_new{$id}++;
 	    $tid = scalar localtime;
@@ -470,11 +462,14 @@ sub justme
 {
     my $pid;
     
-    if (open PIDFIL, "<$pidfil") 
+    if (open PIDFIL, "<$config{pidfil}") 
     {
         $pid = <PIDFIL>;
+	close(PIDFIL);
+	if ($pid =~ /([0-9]+)/) { # De-taint
+	    $pid = $1;
+	}
         kill(0, $pid) and die "$0 already running (pid $pid), bailing out";
-        close (PIDFIL);
 
 	$tid = scalar localtime;
 	open (LOG,">>$config{avbruttlog}");

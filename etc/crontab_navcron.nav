@@ -12,7 +12,6 @@ MAILTO=§§ADMIN_MAIL§§
 # live.pl startes hvert 4. minutt.
 01,05,09,13,17,21,25,29,33,37,41,45,49,53,57 * * * * $CDIR/live.pl
 
-*/5 * * * * /usr/local/nav/navme/cron/safe_smsd.pl
 58 4 * * * /usr/local/nav/navme/cron/pg_backup.pl 2>/dev/null
 
 #### Slutt på SUID script #########
@@ -22,6 +21,10 @@ MAILTO=§§ADMIN_MAIL§§
 
 CDIR=/usr/local/nav/navme/cron
 LDIR=/usr/local/nav/local/cron
+
+# Knut-Helge sine script
+
+*/5 * * * * /usr/local/nav/navme/cron/safe_smsd.pl
 
 # Gro-Anita sine script
 

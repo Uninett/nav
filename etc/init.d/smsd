@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Source function library.
+
+. /usr/local/nav/navme/etc/init.d/functions
+
+[ -x /usr/local/nav/navme/bin/smsd.pl ] || exit 1
+
+# See how we were called.
+case "$1" in
+	start)
+		# Start daemons.
+		echo -n "Starting smsd.pl: "
+		rc= daemon /usr/local/nav/navme/bin/smsd.pl
+		echo
+		exit $rc
+		;;
+	stop)
+		# Stop daemons.
+		echo -n "Shutting down smsd.pl: "
+		if killproc smsd.pl; then
+		# Make sure the pidfile is gone when stopping normal
+		    rm /usr/local/nav/local/var/run/smsd.pl
+		    echo
+		    exit 0
+		else
+		    echo
+		    exit 1
+		fi
+        	;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+	        status smsd.pl
+		exit $?
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
+
+exit 0
+
+# === End of File ===

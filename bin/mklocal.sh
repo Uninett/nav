@@ -2,7 +2,7 @@
 #
 # Create local directory structure for NAV
 # Should be run from /usr/local/nav
-# $Id: mklocal.sh,v 1.2 2002/07/12 06:45:23 mortenv Exp $
+# $Id: mklocal.sh,v 1.3 2002/07/23 10:04:53 mortenv Exp $
 #
 mkdir -p local/
 mkdir -p local/apache
@@ -40,8 +40,9 @@ mkdir -p local/cron
 mkdir -p local/bin
 mkdir -p local/pg_backup
 mkdir -p local/log/varsel
+mkdir -p local/var/run
 
 touch local/log/varsel/servicelog
 touch local/log/alarm
 touch local/log/alarm2
-touch local/log/cisco.log
+touch local/log/syslog/cisco.log

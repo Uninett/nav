@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# functions	This file contains functions to be used by most or all
+#		shell scripts in the navme/bin/init directory.
+#
+# Version:	$Id: functions,v 1.2 2002/07/23 10:04:53 mortenv Exp $
+#
+# Author:	Morten Vold <mortenv@tihlde.org>
+# Ideas from:	functions script from Mandrake Linux
+
+daemon() {
+    $1
+    rc=$?
+    if [ $rc = 0 ]; then
+	echo -n "Ok"
+	return 1
+    else
+	echo -n "Failed"
+	return 0
+    fi
+}
+
+killproc() {
+    pid=`pidof $1`
+    if [ "$pid" == "" ] ; then
+	pidfile="/usr/local/nav/local/var/run/$1.pid";
+	if [ -f $pidfile ]; then
+	    pid=`cat $pidfile`
+	else
+	    echo -n "$1 is not running"
+	    return 1
+	fi
+    fi
+    if checkpid $pid 2>&1; then
+	kill $pid
+	usleep 10000
+	if checkpid $pid 2>&1; then
+	    echo -n "Unable to terminate the process ($pid)"
+	    return 0
+	else
+	    echo "Ok"
+	    return 1
+	fi
+    else
+	echo -n "$1 is not running"
+	return 1
+    fi
+}
+
+status() {
+    pid=`pidof $1`
+    if [ "$pid" != "" ] ; then
+	echo "$1 (pid $pid) is running...";
+    else
+	echo "$1 does not seem to be running...";
+    fi
+}
+
+# Check if $pid (could be plural) are running
+checkpid() {
+	while [ "$1" ]; do
+	   [ -d /proc/$1 ] && return 0
+	   shift
+	done
+	return 1
+}

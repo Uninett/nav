@@ -10,27 +10,27 @@
 
 use strict;
 use POSIX qw(strftime);
+require '/usr/local/nav/navme/lib/fil.pl';
 
-my $MAILDRIFT = "knutvi\@itea.ntnu.no";
-my $pidfil = "/var/run/smsd.pl.pid";
+my %navconf = &read_navconf();
+my $MAILDRIFT = $navconf{ADMIN_MAIL} || 'postmaster@localhost';
+my $pidfil = '/usr/local/nav/local/var/run/smsd.pl.pid';
 my $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime; 
 my ($pid, $res); 
-
 
 # Mangler pid filen sjekkes det ikke at smsd kjører. 
 if (open PIDFIL, "<$pidfil") {
   	$pid = <PIDFIL>;
-
+	close($pid);
 
 	unless (kill(0, $pid)) { 
 
-		$res = `/etc/rc.d/init.d/smsd restart`;
-
-		# Send mail
-    	open(MAIL, "|mail -s 'Restartet smsd' $MAILDRIFT");
-    	print MAIL "$dato\tstartet smsd på nytt\n";
-		print MAIL "$res\n";
-    	close(MAIL);
+	    $res = `/usr/local/nav/navme/etc/init.d/smsd restart` || die $!;
+	    # Send mail
+	    open(MAIL, "|mail -s 'Restartet smsd' $MAILDRIFT");
+	    print MAIL "$dato\tstartet smsd på nytt\n";
+	    print MAIL "$res\n";
+	    close(MAIL);
 	}
 
 } 
