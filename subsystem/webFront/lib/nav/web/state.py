@@ -153,7 +153,9 @@ class Session(dict):
         if id:
             self.id = id
         else:
-            self.id = getUniqueString()
+            # overparanoid entropy =) 
+            entropy = str(hash(self))
+            self.id = getUniqueString(entropy)
         dict.__init__(self)
         self.created = time.time()
         self._changed = False
