@@ -130,10 +130,10 @@ def timeframe(session, query):
 def showIndex(req, session):
     try:
         presentations = session['rrd'].presentations
-    except Exception, e:
-        result = html.Division()
-        result.append(str(e))
-        return result
+    except KeyError:
+        # session contains no rrd info.
+        # poor user, but sure we can help
+        presentations = 0
     if len(presentations):
         return showGraphs(session)
     return treeselect(req, session)
