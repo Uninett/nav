@@ -211,8 +211,8 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setSerial(s[1]);
-				Log.d("PROCESS_HP", "Module: " + s[0] + " Serial: " + s[1]);
+				sc.swModuleFactory(s[2]).setSerial(s[1]);
+				Log.d("PROCESS_HP", "Module: " + s[2] + " Serial: " + s[1]);
 			}
 		}
 
@@ -220,7 +220,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setHwVer(s[1]);
+				sc.swModuleFactory(s[2]).setHwVer(s[1]);
 			}
 		}
 
@@ -228,7 +228,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setSwVer(s[1]);
+				sc.swModuleFactory(s[2]).setSwVer(s[1]);
 			}
 		}
 
@@ -237,16 +237,18 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] portType = (String[])it.next();
-				if (portType.length < 3) {
-					Log.w("PROCESS_HP", "netboxid: " + netboxid + " Module number missing");
+				if (portType.length < 4) {
+					Log.w("PROCESS_HP", "netboxid: " + netboxid + " Module/port number missing");
 					continue;
 				}
-					
+				
 				String ifindex = portType[0];
 				Swport swp = sc.swModuleFactory(portType[2]).swportFactory(ifindex);
 
+				//System.err.println("ifindex: " + ifindex + ", p0: " + portType[0] + ", p1: " + portType[1] + ", p2: " + portType[2]);
+
 				try {
-					swp.setPort(new Integer(Integer.parseInt(ifindex)));
+					swp.setPort(new Integer(Integer.parseInt(portType[3])));
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " NumberFormatException on ifindex: " + ifindex);
 				}
