@@ -1,7 +1,7 @@
 """
 database
 
-$Id: database.py,v 1.18 2002/07/02 18:44:33 magnun Exp $
+$Id: database.py,v 1.19 2002/07/04 14:57:12 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread, jobmap
@@ -28,13 +28,23 @@ def run():
 def newEvent(event):
 	if event.status == event.UP:
 		value = 100
+		state = 'f'
 	elif event.status == event.DOWN:
 		value = 0
+		state = 'f'
 	else:
-		raise "RealityError. Value should be Event.UP or Event.DOWN"
-	
-	statement = "INSERT INTO eventq (deviceid, boksid, eventtypeid, statefull, value, descr) values (%i, %i, '%s','t', %i, '%s' )" % (event.serviceid, event.boksid, event.TYPE, value, event.info.replace("'","\\'") )
-	queue.put(statement)
+		pass
+
+	s = db.cursor()
+	s.execute("SELECT nextval('eventq_eventqid_seq')")
+	nextid = s.fetchall()[0][0]
+	print "Nextid: ", nextid
+	statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value) values (%i, %i, %i, '%s','%s', %i )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value)
+	#queue.put(statement)
+	s.execute(statement)
+	statement = "INSERT INTO eventqvar (eventqid, var, value) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
+	s.execute(statement)
+											     
 
 
 def newVersion(serviceid,version):
