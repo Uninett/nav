@@ -83,7 +83,7 @@ public class OidTester
 					String regex = snmpoid.getMatchRegex();
 					for (Iterator i = l.iterator(); i.hasNext();) {
 						String[] s = (String[])i.next();
-						if (s[1] != null && s[1].matches(regex)) {
+						if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
 							// Update db
 							rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 							if (!rs.next()) {
