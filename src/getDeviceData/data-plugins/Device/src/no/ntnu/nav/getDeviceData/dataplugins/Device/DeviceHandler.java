@@ -109,7 +109,7 @@ public class DeviceHandler implements DataHandler {
 					deviceid = Database.insert("device", ins, null);
 				} else {
 					deviceid = olddev.getDeviceidS();
-					if (!olddev.equalsDevice(dev)) {
+					if (!dev.equalsDevice(olddev)) {
 						// Device needs to be updated
 						Log.i("UPDATE_DEVICE", "Update deviceid="+deviceid+" serial="+dev.getSerial()+" hw_ver="+dev.getHwVer()+" sw_ver="+dev.getSwVer());
 

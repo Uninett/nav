@@ -22,6 +22,7 @@ public class SwportHandler implements DataHandler {
 	private static final boolean DB_COMMIT = true;
 
 	private static Map moduleMap;
+	private static Map swportMap;
 	
 
 	/**
@@ -32,6 +33,7 @@ public class SwportHandler implements DataHandler {
 		persistentStorage.put("initDone", null);
 
 		Map m;
+		Map swpMap;
 		ResultSet rs;
 		long dumpBeginTime,dumpUsedTime;
 
@@ -42,6 +44,7 @@ public class SwportHandler implements DataHandler {
 			// module, swport
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
+			swpMap = Collections.synchronizedMap(new HashMap());
 			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
 			while (rs.next()) {
 				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"), null);
@@ -58,6 +61,7 @@ public class SwportHandler implements DataHandler {
 						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
 						sd.setHexstring(rs.getString("hexstring"));
 						md.addSwport(sd);
+						swpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), md);
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
 				}
@@ -66,6 +70,7 @@ public class SwportHandler implements DataHandler {
 				m.put(key, md);
 			}
 			moduleMap = m;
+			swportMap = swpMap;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
 
@@ -91,6 +96,9 @@ public class SwportHandler implements DataHandler {
 		SwportContainer sc = (SwportContainer)dc;
 		if (!sc.isCommited()) return;
 
+		// Assign any module-less swports to module 1
+		sc.assignSwportsWithoutModule();
+
 		// Let ModuleHandler update the module table first
 		ModuleHandler mh = new ModuleHandler();
 		mh.handleData(nb, dc);
@@ -101,12 +109,14 @@ public class SwportHandler implements DataHandler {
 
 			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
 				SwModule md = (SwModule)swModules.next();
+				String moduleid = md.getModuleidS();
 				
 				// OK, først sjekk om denne porten er i swport fra før
+				/*
 				String moduleKey = nb.getNetboxid()+":"+md.getKey();
-				String moduleid = md.getModuleidS();
 				SwModule oldmd = (SwModule)moduleMap.get(moduleKey);
 				moduleMap.put(moduleKey, md);
+				*/
 
 				// Så alle swportene
 				for (Iterator j = md.getSwports(); j.hasNext();) {
@@ -114,7 +124,12 @@ public class SwportHandler implements DataHandler {
 
 					// Finn evt. gammel
 					String swportid;
+					//Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
+
+					SwModule oldmd = (SwModule)swportMap.get(nb.getNetboxid()+":"+sd.getIfindex());
 					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
+					swportMap.put(sd.getIfindex(), md);
+					
 					if (oldsd == null) {
 						// Sett inn ny
 						Log.i("NEW_SWPORT", "New swport: " + sd);
@@ -141,11 +156,13 @@ public class SwportHandler implements DataHandler {
 
 					} else {
 						swportid = oldsd.getSwportidS();
-						if (!oldsd.equalsSwport(sd)) {
+						if (!sd.equalsSwport(oldsd) || md.getModuleid() != oldmd.getModuleid()) {
 							// Vi må oppdatere
 							Log.i("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							String[] set = {
+								"moduleid", md.getModuleidS(),
 								"ifindex", sd.getIfindex(),
+								"port", sd.getPortS(),
 								"link", sd.getLinkS(),
 								"speed", sd.getSpeed(),
 								"duplex", sd.getDuplexS(),

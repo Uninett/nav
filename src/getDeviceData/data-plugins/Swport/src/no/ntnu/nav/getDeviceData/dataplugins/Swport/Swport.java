@@ -161,11 +161,15 @@ public class Swport implements Comparable
 	/**
 	 * Set the vlan; only use this for non-trunking ports.
 	 */
-	public void setVlan(int i) { vlan = new Integer(i); }
+	public void setVlan(int i) {
+		setTrunk(false);
+		vlan = new Integer(i);
+	}
 
 	/**
-	 * Used for trunking ports; call this method to add
-	 * the VLANs allowed on the port.
+	 * Used for trunking ports; call this method to add the VLANs
+	 * allowed on the port. setTrunk(true) must be called before this
+	 * method.
 	 */
 	public void addTrunkVlan(String vlan) {
 		if (!getTrunkB()) return;
@@ -257,7 +261,9 @@ public class Swport implements Comparable
 			" Link: " + getLink() +
 			" Speed: " + speed +
 			" Duplex: " + duplex +
-			" Media: " + media; 
+			" Media: " + media +
+			" Trunk: " + trunk +
+			" Portname: " + portname;
 	}
 
 	private String trim(String s) {
