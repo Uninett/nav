@@ -102,7 +102,7 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
 
 	$sec{$user}{passwd} = $passwd;
 	$sec{$user}{navn}   = $navn;
-	$sec{$user}{info}   = 'bdb nettinfo';
+	$sec{$user}{info}   = 'henta fra passwd';
 	$sec{$user}{adgang} = 'intern';
     }
 
@@ -114,7 +114,7 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
  
 	$sby{$user}{passwd} = $passwd;
 	$sby{$user}{navn}   = $navn;
-	$sby{$user}{info}   = 'bdb nettinfo';
+	$sby{$user}{info}   = 'henta fra passwd';
 	$sby{$user}{adgang} = 'nettass';
     }                                    
 
@@ -126,7 +126,7 @@ open (BDB_FIL, "<$bdb_userlist") || die "Får ikke åpnet filen med bdb-brukerene:
 
 	$res{$user}{passwd} = $passwd;
 	$res{$user}{navn}   = $navn;
-	$res{$user}{info}   = 'bdb nettinfo';
+	$res{$user}{info}   = 'henta fra passwd';
 	$res{$user}{adgang} = 'begrenset';
     }
 

@@ -23,6 +23,8 @@ close(HTPASSWD);
 $remote_user = $ENV{'REMOTE_USER'};
 $remote_host = $ENV{'REMOTE_HOST'};
 $remote_ip = $ENV{'REMOTE_ADDR'};
+$servername = $ENV{'SERVER_NAME'};
+
 
 print "<body bgcolor=\#ffffff text=\#000000>";
 
@@ -45,7 +47,7 @@ print "
 ";
 
 #print "<a href=https://www.nav.ntnu.no/restricted/>Logg inn</a>
-print "<a href=../shtdocs/>Logg inn</a>
+print "<a href=https://$servername/>Logg inn</a>
 <a href=/doc/hjelp.html>Hjelp</a>" if
 (lc($user_data{$remote_user}{'omraade'}) eq 'aapen');
 print "<a href=/sec/>Logg inn</a>" if (lc($user_data{$remote_user}{'omraade'}) eq 'begrenset');
