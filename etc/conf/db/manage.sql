@@ -305,10 +305,11 @@ CREATE TABLE arp (
   ip_inet INET NOT NULL,
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
-  til TIMESTAMP
+  til TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
 CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
 CREATE INDEX arp_fra_btree ON arp USING btree (fra); 
+CREATE INDEX arp_til_btree ON arp USING btree (til);
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
