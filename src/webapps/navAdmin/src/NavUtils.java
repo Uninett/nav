@@ -982,15 +982,15 @@ class NavUtils
 		// Bruker da en HashMap av HashSets
 		HashMap activeVlan = new HashMap();
 		// vlan er aktivt på port selv om den er nede, og vi må ta med vlan'et IP'en på selve boksen er på
-		rs = Database.query("(SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL) UNION (SELECT DISTINCT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL)");
-		while (rs.next()) {
-			HashSet hs;
-			String boksid = rs.getString("netboxid");
-			if ( (hs = (HashSet)activeVlan.get(boksid)) == null) {
-				hs = new HashSet();
-				activeVlan.put(boksid, hs);
-			}
-			hs.add(new Integer(rs.getInt("vlan")));
+		//rs = Database.query("(SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL) UNION (SELECT DISTINCT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL)");
+		rs = Database.query("(SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");		while (rs.next()) {
+			Map m;
+			String netboxid = rs.getString("netboxid");
+			if ((m = (Map)activeVlan.get(netboxid)) == null) activeVlan.put(netboxid, m = new HashMap());
+			
+			Set s;
+			if ((s = (Set)m.get(new Integer(rs.getInt("vlan")))) == null) m.put(new Integer(rs.getInt("vlan")), s = new HashSet());
+			s.add(rs.getString("swportid"));
 		}
 
 		// Mapping over hvilken swport from befinner seg bak en swport
@@ -1430,27 +1430,27 @@ class NavUtils
 		if (nontrunkVlan.containsKey(boksid+":"+vlan)) {
 			String key = boksid+":"+vlan;
 			HashMap nontrunkMap = (HashMap)nontrunkVlan.get(key);
-
+			
 			Iterator iter = nontrunkMap.values().iterator();
 			while (iter.hasNext()) {
 				HashMap hm = (HashMap)iter.next();
 				String toid = (String)hm.get("to_netboxid");
 				String swportid = (String)hm.get("swportid");
 				String swportidBack = null;
-
+				
 				// Linken tilbake skal vi ikke følge uansett
 				if (toid.equals(fromid)) continue;
-
+				
 				//select swportbak,vlan,boksid,interf from gwport join prefiks using(prefiksid) where swportbak is not null order by swportbak,vlan,boksid,interf;
 				//select swportbak,vlan from gwport join prefiks using(prefiksid) where swportbak is not null and vlan is not null order by vlan,swportbak;
-
+				
 				if (boksGwSet.contains(toid)) {
 					/*
-					if (foundGwUplinkSet.contains(toid)) {
+						if (foundGwUplinkSet.contains(toid)) {
 						// Hmm, vi har visst funnet denne før, dette kan egentlig ikke skje
 						if (DEBUG_OUT) outl(pad+"--><font color=\"red\">[DUP-GW]</font> Error, found two non-trunk uplinks to gw, should not happen. boksid("+boksid+"): " + boksName.get(boksid) + ", to("+toid+"): " + boksName.get(toid) + ", vlan: " + vlan + ", level: <b>" + level + "</b> (<b>"+swportid+"</b>)");
 						continue;
-					}
+						}
 					*/
 					// Link til GW, vi skal ikke traversere, sjekk om dette vlanet går på denne swporten
 					if (swportGwVlanMap.containsKey(swportid+":"+vlan)) {
@@ -1468,9 +1468,9 @@ class NavUtils
 					}
 					continue;
 				}
-
+				
 				String vlanBack = "1";
-
+				
 				//if ( (swportidBack=(String)swportidMap.get(swportid)) != null) {
 				if (swportidMap.containsKey(swportid)) {
 					// Vi vet nå swportid'en på linken tilbake, og kan derfor enkelt sjekke vlanet
@@ -1490,10 +1490,9 @@ class NavUtils
 						nontrunkVlan.put(toid+":"+vlan, nontrunkMapBack);
 
 						// Også bytt ut i activeVlan
-						HashSet hs = (HashSet)activeVlan.get(toid);
-						if (hs != null && hs.contains(new Integer(vlanBack))) {
-							hs.remove(new Integer(vlanBack));
-							hs.add(new Integer(vlan));
+						Map map = (Map)activeVlan.get(toid);
+						if (map != null && map.containsKey(new Integer(vlanBack))) {
+							map.put(new Integer(vlan), map.remove(new Integer(vlanBack)));
 						}
 
 						HashMap vlanRenameEntry = new HashMap();
@@ -1529,17 +1528,17 @@ class NavUtils
 						if (DEBUG_OUT) outl(pad+"---->ERROR! No non-trunk links found for vlan: " + vlan + ", toid("+toid+"): " + boksName.get(toid) + ", level: " + level + "");
 						continue;
 					}
-
+					
 					HashMap hmBack = (HashMap)nontrunkMapBack.get(boksid);
 					if (hmBack == null) {
 						// Linken tilbake mangler
 						if (DEBUG_OUT) outl(pad+"---->ERROR! Link back not found for vlan: " + vlan + ", toid("+toid+"): " + boksName.get(toid) + ", level: " + level + "");
 						continue;
 					}
-
+					
 					swportidBack = (String)hmBack.get("swportid");
 				}
-
+				
 				// Nå kan vi markere at vlanet kjører også på linken tilbake
 				String[] rVlanBack = {
 					swportidBack,
@@ -1554,9 +1553,19 @@ class NavUtils
 		if (!isActiveVlan) {
 			// Ikke aktivt på noen av portene med boks bak, sjekk om det er
 			// aktivt på noen ikke-trunk porter i det hele tatt
-			HashSet hs = (HashSet)activeVlan.get(boksid);
-			if (hs != null && hs.contains(new Integer(vlan)) ) {
+			Map map = (Map)activeVlan.get(boksid);
+			if (map != null && map.containsKey(new Integer(vlan)) ) {
 				isActiveVlan = true;
+				// Create trunkVlan records for all ports
+				for (Iterator it = ((Collection)map.get(new Integer(vlan))).iterator(); it.hasNext();) {
+					String swportid = (String)it.next();
+					String[] rVlan = {
+						swportid,
+						String.valueOf(vlanid),
+						(setDirection)?"n":"u"
+					};
+					trunkVlan.add(rVlan);
+				}
 			}
 		}
 
