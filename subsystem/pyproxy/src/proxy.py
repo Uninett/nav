@@ -58,7 +58,8 @@ def handler(req):
                          user=user, session=req.session.id)
     remoteanswer = response.read()
     req.content_type = response.msg.dict['content-type']
-    if not req.content_type.startswith('text'):
+    if not req.content_type.startswith('text') or \
+           req.uri.startswith("/vPServer"):
         req.send_http_header()
         req.write(remoteanswer)
         return apache.OK

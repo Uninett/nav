@@ -38,7 +38,7 @@ WEBLIB=$(pythonlibdir)/nav/web/pyproxy
 WEBNAMES=navAdmin vPServer
 
 #WEBDIR=$(webroot)/$(WEBNAME)
-WEBLIBS=proxy.py
+WEBLIBS=proxy.py vlanPlot.py
 
 
 .PHONY: all lib web install install-lib install-web clean distclean
@@ -57,9 +57,12 @@ install-lib: lib
 install-web: web
 	for dir in $(WEBNAMES); do \
 		$(INSTALL) -d $(DESTDIR)$(webroot)/$$dir; \
-		$(INSTALL) -m 644 src/.htaccess $(DESTDIR)$(webroot)/$$dir/.htaccess;\
+		$(INSTALL) -m 644 src/htaccess-proxy $(DESTDIR)$(webroot)/$$dir/.htaccess;\
 		touch $(DESTDIR)$(webroot)/$$dir/index; \
 	 done
+	$(INSTALL) -d $(DESTDIR)$(webroot)/vlanPlot;
+	$(INSTALL) -m 644 src/htaccess-vlanplot $(DESTDIR)$(webroot)/vlanPlot/.htaccess;
+	touch $(DESTDIR)$(webroot)/vlanPlot/index.py;
 
 clean:
 	find -name *.pyc -print0 | xargs --null rm -f
