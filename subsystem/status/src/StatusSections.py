@@ -51,12 +51,14 @@ class SectionBox:
         self.maxHeight = maxHeight
         self.columns = []
         self.title = title
-        return
 
     def addColumn(self,heading,table,field,orderBy,whereClause=None,show=True):
         self.columns.append(SectionColumn(heading,table,field,orderBy,\
         whereClause,show))
-        return
+
+    def addColumnPrefilled(self,heading,columnData,show=True):
+        self.columns.append(SectionColumnPrefilled(heading,columnData,show))
+
 
     def sort(self, columnNumber):
         columnNumber -= 1
@@ -69,7 +71,6 @@ class SectionBox:
 
         # refill
         self.fill()
-        return 
 
     def sortReverse(self, columnNumber):
 
@@ -83,14 +84,12 @@ class SectionBox:
 
         # refill
         self.fill()
-        return
 
 
     def fill(self):
         " Fill columns with data from database "
         for column in self.columns:
             column.fill()  
-        return
 
     def addHeadings(self):
         i = 1
@@ -217,6 +216,86 @@ class SectionColumn:
         self.rows = sortedList
         return
 
+class SectionColumnPrefilled:
+    " A prefilled column in a SectionBox "
+
+    # constants
+    SORT_BY_THIS = 0 
+    SORTED_BY_THIS = 1
+    SORTED_BY_OTHER = 2
+    SORTED_BY_THIS_REVERSE = 3
+
+    sortState = None
+
+    heading = None
+    table = None
+    field = []
+    whereClause = None
+    show = True
+
+    orderBy = ''
+    rows = []
+
+    def __init__(self,heading,columnData,show):
+        # rows: [(data,rownumber),..]
+        self.columnData = columnData
+
+        self.show = show
+        self.sortState = self.SORTED_BY_OTHER
+        self.heading = heading
+        return
+
+    def fill(self):
+        # prefilled
+        self.rows = self.columnData
+
+    def sort(self):
+        " Sort section by this column "
+        self.sortState = self.SORTED_BY_THIS
+
+        self.rows.sort()
+
+        permutation = []
+
+        for row in self.rows:
+            data,counter = row
+            permutation.append(counter)
+            
+        return permutation
+
+    def sortReverse(self):
+        " Sort section by this column, descending "
+        self.sortState = self.SORTED_BY_THIS_REVERSE
+
+        self.rows.sort()
+        self.rows.reverse()
+
+        permutation = []
+
+        for row in self.rows:
+            data,counter = row
+            permutation.append(counter)
+            
+        return permutation
+
+    def sortBy(self,permutation):
+        " Sort this column by another column "
+        self.sortState = self.SORTED_BY_OTHER
+
+        # Make an empty list of the same length
+        sortedList = []
+
+        counter = 0
+        for index in permutation:
+            data,counterOld = self.rows[index]
+            sortedList.append((data,counter))
+            counter += 1
+
+        self.rows = sortedList
+        return
+
+
+
 
 #################################################
 ## Sections that inherits from SectionBox
@@ -313,7 +392,6 @@ class ServiceSectionBox(SectionBox):
         if self.maxHeight:
             if height > self.maxHeight:
                 height = self.maxHeight
-
 
         servicesDown = 0
         servicesShadow = 0
@@ -568,7 +646,6 @@ class NetboxSectionBox(SectionBox):
         ('s','Shadow',False)]))
         return (filterHeadings,filterSelects)
     getFilters = staticmethod(getFilters)
-
 
 
 class ModuleSectionBox(SectionBox):

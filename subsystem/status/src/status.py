@@ -244,19 +244,35 @@ class NetboxHistoryBox(SectionBox):
             where_clause += " and netboxid = '%s'" % (boxid,)
  
         orderBy = 'start_time'
-        self.addColumn('Sysname','AlerthistStatusNetbox',['sysname'],\
-        'start_time',where_clause)
-        self.addColumn('From','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('To','AlerthistStatusNetbox',['end_time'],\
-        'end_time',where_clause,show=True)
-        self.addColumn('Downtime','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('Shadow','AlerthistStatusNetbox',['up'],\
-        'start_time',where_clause,show=False)
+        entries = StatusTables.AlerthistStatusNetbox.getAll(where_clause,
+                                                            orderBy=orderBy)
+        counter = 1
+        sysnames = []
+        ips = []
+        froms = []
+        tos = []
+        downtimes = []
+        shadows = []
+        ups2 = []
+        for row in entries:
+            sysnames.append((row.sysname,counter))
+            ips.append((row.ip,counter))
+            froms.append((row.start_time,counter))
+            tos.append((row.end_time,counter))
+            downtimes.append((row.start_time,counter))
+            shadows.append((row.up,counter))
+            ups2.append((row.up,counter))
+            counter += 1
+
+        self.addColumnPrefilled('Sysname',sysnames)
+        self.addColumnPrefilled('Ip',ips)
+        self.addColumnPrefilled('From',froms)
+        self.addColumnPrefilled('To',tos)
+        self.addColumnPrefilled('Downtime',downtimes)
+        self.addColumnPrefilled('Shadow',shadows,show=False)
+         
         if not boxid:
-            self.addColumn('','AlerthistStatusService',\
-            ['up'],orderBy,where_clause,show=True)
+            self.addColumnPrefilled('',ups2)
 
         for column in self.columns:
             column.fill() 
@@ -292,12 +308,16 @@ class NetboxHistoryBox(SectionBox):
             row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
                                                   style))
  
+            # IP
+            ip,counter = self.columns[1].rows[i]
+            row.append((ip,'',None))
+
             # From
-            start,counter = self.columns[1].rows[i]
+            start,counter = self.columns[2].rows[i]
             row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
 
             # To
-            end,counter = self.columns[2].rows[i]
+            end,counter = self.columns[3].rows[i]
             if not end or end == INFINITY:
                 row.append(('Still down','',None))
             else:
