@@ -1006,7 +1006,8 @@ class NavUtils
 		// Så henter vi ut alle vlan og hvilken switch vlanet "starter på"
 		outl("<pre>");
 		//rs = Database.query("SELECT module.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN gwport ON (rootgwid=gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT DISTINCT gwportid,module.netboxid,vlanid,vlan.vlan,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
+
+		rs = Database.query("SELECT DISTINCT module.netboxid,vlanid,vlan.vlan,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
 
 		ArrayList trunkVlan = new ArrayList();
 		ArrayList vlanRename = new ArrayList();
@@ -1031,7 +1032,7 @@ class NavUtils
 				};
 				int oldVlanid = vlanid;
 				vlanid = Integer.parseInt(Database.insert("vlan", ins, null));
-				System.err.println("Splitting vlan: " + rs.getString("vlan") + " ("+oldVlanid+"), new vlanid: " + vlanid);
+				System.err.println("Splitting vlan: " + rs.getString("vlan") + " ("+oldVlanid+"), new vlanid: " + vlanid + ", gwportid: " + rs.getString("gwportid"));
 				Database.update("UPDATE prefix SET vlanid="+vlanid+" WHERE prefixid IN (SELECT prefixid FROM gwportprefix WHERE gwportid="+rs.getString("gwportid")+")");
 			}
 			visitedNodeSet.clear();
