@@ -21,7 +21,8 @@
 # Some code from Timothy O'Malley's TimeoutSocket.py
 #
 # $Id: $
-# Authors: Erik Gorset	<erikgors@stud.ntnu.no>
+# Authors: Erik Gorset	   <erikgors@stud.ntnu.no>
+#          Magnus Nordseth <magnun@stud.ntnu.no>
 #
 """
 Socket module with timeout.
@@ -37,7 +38,20 @@ class socketwrapper(socket.socket):
 	def __init__(self, timeout):
 		socket.socket.__init__(self, socket.AF_INET, socket.SOCK_STREAM)
 		self.settimeout(timeout)
-	
+		self.s = self  # to handle ssl properly
+
+	def readline(self):
+		line = ''
+		while 1:
+			s = self.recv(1024)
+			line += s
+			if '\n' in line or not s:
+				return line
+	def write(self,line):
+		if line[-1] != '\n':
+			line += '\n'
+		self.send(line)
+
 
 
 class timeoutsocket:
