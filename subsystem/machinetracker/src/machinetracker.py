@@ -49,18 +49,24 @@ def handler(req):
     tracker = None
 
     if section.lower() == "mac":
-        page.form = MACForm(args.get("mac"),args.get("days"),args.get("dns"),args.get("aip"),args.get("naip"))
+        page.form = MACForm(args.get("mac"), args.get("days"), args.get("dns"),
+                            args.get("aip"), args.get("naip"))
         if args.get("mac"):
-            tracker = MACSQLQuery(args.get("mac"),args.get("days"))
-    elif section.lower() == "switchports" or section.lower() == "switchport" or section.lower() == "swport" or section.lower() == "port" or section.lower() == "swp": 
-        page.form = SwPortForm(args.get("switch"),args.get("module"),args.get("port"),args.get("days"),args.get("dns"),args.get("aip"),args.get("naip"))
+            tracker = MACSQLQuery(args.get("mac"), args.get("days"))
+    elif section.lower() == "switchports" or \
+         section.lower() == "switchport"  or section.lower() == "swport" or \
+         section.lower() == "port" or section.lower() == "swp":
+        page.form = SwPortForm(args.get("switch"), args.get("module"),
+                               args.get("port"), args.get("days"),
+                               args.get("dns"), args.get("aip"),
+                               args.get("naip"))
         if args.get("switch"):
-            tracker = SwPortSQLQuery(args.get("switch"),args.get("module"),args.get("port"),args.get("days"))
+            tracker = SwPortSQLQuery(args.get("switch"), args.get("module"),
+                                     args.get("port"), args.get("days"))
     else:
-        
         prefixid = args.get("prefixid")
         if prefixid:
-            sql = "select netaddr from prefix where prefixid=%s"%prefixid
+            sql = "select netaddr from prefix where prefixid=%s" % prefixid
             database.execute(sql)
             (host,mask) = database.fetchone()[0].split("/")
             from_ip = IP(host).toIP()
@@ -70,26 +76,26 @@ def handler(req):
             from_ip = args.get("from_ip")
             to_ip = args.get("to_ip")
 
-        page.form = IPForm(from_ip,to_ip,args.get("days"),args.get("dns"),args.get("aip"),args.get("naip"))
+        page.form = IPForm(from_ip, to_ip, args.get("days"), args.get("dns"),
+                           args.get("aip"), args.get("naip"))
                 
         if from_ip or to_ip:
             if from_ip and not to_ip:#ved bare en ip, sett ip2 lik ip1
                 to_ip = from_ip
             elif to_ip and not from_ip:#vice versa
                 from_ip = to_ip
-            elif IP(from_ip)>IP(to_ip):#snur hvis fra_ip er større enn til_ip
+            elif IP(from_ip) > IP(to_ip):#snur hvis fra_ip er større enn til_ip
                 temp_ip = to_ip
                 to_ip = from_ip
                 from_ip = temp_ip
                 temp_ip = None
             
-            tracker = IPSQLQuery(from_ip,to_ip,args.get("days"))
+            tracker = IPSQLQuery(from_ip, to_ip, args.get("days"))
 
     if tracker:
-        result = tracker.getTable(args.get("dns"),args.get("aip"),args.get("naip"))
-
+        result = tracker.getTable(args.get("dns"), args.get("aip"),
+                                  args.get("naip"))
         perty = pformat(result)
-
         page.table = result
 
     req.content_type = "text/html"
@@ -109,9 +115,8 @@ class MachineTrackerSQLQuery:
             days = 7
         fra = DateTime.today()-(int(days)*DateTime.oneDay)
         fra = fra.strftime("%Y-%m-%d")
-
         # the infinity part is not needed after kristian's rewrite
-            #tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"
+        #tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"
         tidstreng = "(arp.end_time  > '" + fra + "')"
     
         if extra:
@@ -121,16 +126,23 @@ class MachineTrackerSQLQuery:
             order_by = "arp.ip,arp.mac,cam.sysname,module,port,start"
         order_by = "order by " + order_by
             
-#       self.sql = "select distinct arp.ip,cam.mac,cam.sysname,module,port,cam.start_time,cam.end_time from arp left join cam using (mac),netbox where " + tidstreng + " and netbox.prefixid=arp.prefixid " + extra + " order by start_time"
-#               self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,arp.start_time as start, arp.end_time as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
-
-# kristian's rewrite
-        self.sql = "SELECT arp.ip, arp.mac, cam.sysname AS switch, module, port, arp.start_time AS start, arp.end_time AS end FROM arp LEFT JOIN cam ON (camid=(SELECT camid FROM cam WHERE arp.mac=cam.mac ORDER BY ABS(EXTRACT (epoch FROM (arp.start_time-cam.start_time))) LIMIT 1)) WHERE " + tidstreng + " " + extra + " " + order_by
-
-        #kristian's rewrite
-        #(arp.end_time > '2004-10-07')  AND ip BETWEEN '129.241.23.40' AND '129.241.23.50' ORDER BY arp.ip, cam.sysname, module, mac, port, start;
- 
-
+        # kristian's version of the SQL query
+        self.sql = """
+        SELECT arp.ip,
+               arp.mac,
+               cam.sysname AS switch,
+               module,
+               port,
+               arp.start_time AS start,
+               arp.end_time AS end
+        FROM arp
+        LEFT JOIN cam ON (camid = (SELECT camid
+                                   FROM cam
+                                   WHERE arp.mac = cam.mac
+                                   ORDER BY ABS(EXTRACT(epoch FROM
+                                     (arp.start_time-cam.start_time)))
+                                   LIMIT 1))
+        WHERE """ + tidstreng + " " + extra + " " + order_by
             
 
     def getTable(self, dns="",aip="",naip=""):
@@ -175,9 +187,11 @@ class MachineTrackerSQLQuery:
                     if naip:
                         if dns:
                             dnsname = self.hostname(ipt.toIP())
-                            newline = ResultRow(ipt.toIP(),None,None,None,None,None,None,dnsname)
+                            newline = ResultRow(ipt.toIP(), None, None, None,
+                                                None, None, None, dnsname)
                         else:
-                            newline = ResultRow(ipt.toIP(),None,None,None,None,None,None)
+                            newline = ResultRow(ipt.toIP(), None, None, None,
+                                                None, None, None)
 
                         newresult.append(newline)
 
@@ -191,15 +205,21 @@ class MachineTrackerSQLQuery:
 
                     if aip:
 
-                        #funker ikke så bra, nei datetime(ip,mac,netbox,module,port,start_time,end_time) = [str(l) for l in result[line][:4]]
+                        #funker ikke så bra, nei
+                        # datetime(ip, mac, netbox, module, port, start_time,
+                        #          end_time) = \
+                        #     [str(l) for l in result[line][:4]]
                         start_time = result[line][5].strftime("%Y-%m-%d %H:%M")
                         end_time = result[line][6]
                         if end_time.year>DateTime.now().year+1:
                             end_time = "infinity"
                         else:
                             end_time = end_time.strftime("%Y-%m-%d %H:%M")
-                        #start_time = result[line][5].strftime("%Y-%m-%d %H:%M:%S") #'2003-09-19 13:11:48
-                        #end_time = result[line][6].strftime("%Y-%m-%d %H:%M:%S")
+                        #start_time = \
+                        #    result[line][5].strftime("%Y-%m-%d %H:%M:%S")
+                        #'2003-09-19 13:11:48
+                        #end_time = \
+                        #    result[line][6].strftime("%Y-%m-%d %H:%M:%S")
                         ipaddr = ip.toIP()                  
                         mac = result[line][1]
                         switch = result[line][2]
@@ -207,7 +227,14 @@ class MachineTrackerSQLQuery:
                         port = result[line][4]
 
                         if line>0:
-                            if str(result[line-1][0]) == ip.toIP() and str(result[line][1]) == str(result[line-1][1]) and str(result[line][2]) == str(result[line-1][2]) and str(result[line][3]) == str(result[line-1][3]) and str(result[line][4]) == str(result[line-1][4]): 
+                            if str(result[line-1][0]) == ip.toIP() and \
+                               str(result[line][1]) == str(result[line-1][1]) \
+                               and (str(result[line][2]) == \
+                                    str(result[line-1][2]) and \
+                                    (str(result[line][3]) == \
+                                     str(result[line-1][3]) and \
+                                     (str(result[line][4]) == \
+                                      str(result[line-1][4])))): 
                                 ipaddr = None
                                 mac = None
                                 switch = None
@@ -220,9 +247,12 @@ class MachineTrackerSQLQuery:
                             else:
                                 dnsname = None
 
-                            newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time,dnsname)
+                            newline = ResultRow(ipaddr, mac, switch, module,
+                                                port, start_time, end_time,
+                                                dnsname)
                         else:
-                            newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time)
+                            newline = ResultRow(ipaddr, mac, switch, module,
+                                                port, start_time, end_time)
 
                         newresult.append(newline)
 
@@ -246,7 +276,9 @@ class MachineTrackerSQLQuery:
             return host[ip]
 
 class ResultRow:
-    def __init__(self,ipaddr,mac,switch,module,port,start_time,end_time,dnsname=""):
+    
+    def __init__(self, ipaddr, mac, switch, module, port, start_time, end_time,
+                 dnsname=""):
         self.ipaddr = ipaddr
         self.mac = mac
         self.switch = switch
@@ -336,7 +368,8 @@ class MACForm (MachineTrackerForm):
 
 class SwPortForm (MachineTrackerForm):
 
-    def __init__(self,switch,module="*",port="*",days="",dns="",aip="",naip=""):
+    def __init__(self, switch, module="*", port="*", days="", dns="", aip="",
+                 naip=""):
         MachineTrackerForm.__init__(self,days,dns,aip,naip)
         self.switch = switch
         self.module = module
