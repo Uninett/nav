@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.4 2002/06/28 02:35:01 magnun Exp $
+$Id: job.py,v 1.5 2002/07/02 13:13:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -47,17 +47,21 @@ class JobHandler:
 				host=host[0]
 			host = socket.getfqdn(host)
 			print "Info:  %-25s %-5s -> %s" % (host, self.getType(),info)
-		if status != self.getStatus():
+			
+		runcount = 0
+		while status != self.getStatus() and runcount < 4:
 			if DEBUG:
 				print "Info:  %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType())
 			time.sleep(5)
 			status, info = self.executeTest()
-		
+			runcount += 1
+
 		if status != self.getStatus():
-			if DEBUG:
-				print "Event: %-25s %-5s -> %s, %s" % (host, self.getType(), status, info)
 			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
 			self.setStatus(status)
+			if DEBUG:
+				print "Event: %-25s %-5s -> %s, %s" % (host, self.getType(), status, info)
+
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
 			database.newVersion(self.getServiceid(),self.getVersion())
