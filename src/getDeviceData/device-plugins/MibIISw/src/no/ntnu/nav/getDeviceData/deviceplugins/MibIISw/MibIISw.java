@@ -111,7 +111,7 @@ public class MibIISw implements DeviceHandler
 					String module = s[1];
 					try {
 						sSnmp.onlyAskModule(module);
-						List l = l = sSnmp.getNext(baseOid+"."+it.next(), 1, false, false);
+						List l = sSnmp.getNext(baseOid+"."+ifindex, 1, false, false);
 						if (l != null && !l.isEmpty()) {
 							// We got a response
 							mmc.ifindexActive(ifindex);
