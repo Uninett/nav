@@ -45,7 +45,7 @@ public class SwportHandler implements DataHandler {
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
 			swpMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,descr,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan.vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,descr,up,swport.swportid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY moduleid");
 			while (rs.next()) {
 				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getInt("module"), null);
 				md.setDeviceid(rs.getInt("deviceid"));
@@ -58,6 +58,7 @@ public class SwportHandler implements DataHandler {
 						Swport sd = new Swport(rs.getString("ifindex"));
 						sd.setData(rs.getString("port") == null ? new Integer(0) : new Integer(rs.getInt("port")), rs.getString("link") == null ? 'x' : rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex") == null ? 'x' : rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
 						sd.setSwportid(rs.getInt("swportid"));
+						sd.setInterface(rs.getString("interface"));
 						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
 						sd.setHexstring(rs.getString("hexstring"));
 						md.addSwport(sd);
@@ -111,6 +112,7 @@ public class SwportHandler implements DataHandler {
 		mh.handleData(nb, dc);
 
 		Log.setDefaultSubsystem("SwportHandler");
+		int newcnt = 0, updcnt = 0;
 
 		try {
 
@@ -139,7 +141,6 @@ public class SwportHandler implements DataHandler {
 					
 					if (oldsd == null) {
 						// Sett inn ny
-						Log.i("NEW_SWPORT", "New swport: " + sd);
 						ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
 						rs.next();
 						swportid = rs.getString("swportid");
@@ -152,28 +153,33 @@ public class SwportHandler implements DataHandler {
 							"moduleid", moduleid,
 							"port", sd.getPortS(),
 							"ifindex", sd.getIfindex(),
+							"interface", Database.addSlashes(sd.getInterface()),
 							"link", sd.getLinkS(),
 							"speed", sd.getSpeed(),
 							"duplex", sd.getDuplexS(),
 							"media", Database.addSlashes(sd.getMedia()),
+							"vlan", sd.getInterface(),
 							"trunk", sd.getTrunkS(),
 							"portname", Database.addSlashes(sd.getPortname())
 						};
 						if (DB_UPDATE) Database.insert("swport", inss);
+						newcnt++;
 
 					} else {
 						swportid = oldsd.getSwportidS();
 						if (!sd.equalsSwport(oldsd) || md.getModuleid() != oldmd.getModuleid()) {
 							// Vi må oppdatere
-							Log.i("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
+							Log.d("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							String[] set = {
 								"moduleid", md.getModuleidS(),
 								"ifindex", sd.getIfindex(),
 								"port", sd.getPortS(),
+								"interface", Database.addSlashes(sd.getInterface()),
 								"link", sd.getLinkS(),
 								"speed", sd.getSpeed(),
 								"duplex", sd.getDuplexS(),
 								"media", Database.addSlashes(sd.getMedia()),
+								"vlan", sd.getVlanS(),
 								"trunk", sd.getTrunkS(),
 								"portname", Database.addSlashes(sd.getPortname())
 							};
@@ -181,24 +187,12 @@ public class SwportHandler implements DataHandler {
 								"swportid", swportid
 							};
 							Database.update("swport", set, where);
+							updcnt++;
 						}
 					}
 					sd.setSwportid(swportid);
 
 					if (sd.getTrunk() != null && !sd.getTrunk().booleanValue()) {
-						if (oldsd != null && oldsd.getTrunk().booleanValue()) {
-							// Går fra trunk -> non-trunk, slett alle så nær som et vlan fra swportvlan
-							Database.update("DELETE FROM swportvlan WHERE swportid="+sd.getSwportid()+" AND vlanid!=(SELCT MIN(vlan) FROM swportvlan JOIN vlan USING(vlanid) WHERE swportid="+sd.getSwportid()+" GROUP BY swportid)");
-						}
-
-						// Også oppdater swportvlan
-						if (oldsd == null || (oldsd.getVlan() != null && oldsd.getVlan().intValue() == Integer.MIN_VALUE)) {
-							if (sd.getVlan() == null || sd.getVlan().intValue() <= 0) sd.setVlan(1);
-							Database.update("INSERT INTO swportvlan (swportid,vlanid) VALUES ('"+sd.getSwportid()+"',(SELECT vlanid FROM vlan WHERE vlan='" + sd.getVlan() + "' LIMIT 1))");
-						} else if (sd.getVlan() != null && sd.getVlan().intValue() > 0 && oldsd.getVlan() != null && oldsd.getVlan().intValue() != sd.getVlan().intValue()) {
-							Database.update("UPDATE swportvlan SET vlanid = (SELECT vlanid FROM vlan WHERE vlan='" + sd.getVlan() + "' LIMIT 1) WHERE swportid = '"+sd.getSwportid()+"'");
-						}
-
 						// Slett evt. fra swportallowedvlan
 						if (oldsd != null && oldsd.getHexstring().length() > 0) {
 							Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
@@ -225,6 +219,11 @@ public class SwportHandler implements DataHandler {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+
+		if (newcnt > 0 || updcnt > 0) {
+			Log.i("HANDLE", nb.getSysname() + ": New: " + newcnt + ", Updated: " + updcnt);
+		}
+
 	}
 
 }

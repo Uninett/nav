@@ -30,6 +30,7 @@ public class Swport implements Comparable
 	private Integer port;
 	private String ifindex;
 
+	private String interf;
 	private Character link;
 	private String speed;
 	private Character duplex;
@@ -73,6 +74,8 @@ public class Swport implements Comparable
 	String getIfindex() { return ifindex; }
 	String getIfindexS() { return ((ifindex.length()==1)?"0":"")+getIfindex(); }
 
+	String getInterface() { return interf; }
+
 	Character getLink() { return link; }
 	String getLinkS() { return string(link); }
 
@@ -98,6 +101,13 @@ public class Swport implements Comparable
 	 */
 	public void setPort(Integer port) {
 		this.port = port;
+	}
+
+	/**
+	 * Set the interface name (ifDescr).
+	 */
+	public void setInterface(String interf) {
+		this.interf = interf;
 	}
 
 	/**
@@ -157,6 +167,7 @@ public class Swport implements Comparable
 	public void setPortname(String s) { portname = trim(s); }
 
 	Integer getVlan() { return vlan; }
+	String getVlanS() { return string(vlan); }
 
 	/**
 	 * Set the vlan; only use this for non-trunking ports.
@@ -231,6 +242,7 @@ public class Swport implements Comparable
 	public boolean equalsSwport(Swport sw) {
 		return (ifindex.equals(sw.ifindex) &&
 						(port == null || port.equals(sw.port)) &&
+						(interf == null || intef.equals(sw.interf)) &&
 						(link == null || link.equals(sw.link)) &&
 						(speed == null || speed.equals(sw.speed)) &&
 						(duplex == null || duplex.equals(sw.duplex)) &&
@@ -258,6 +270,7 @@ public class Swport implements Comparable
 	public String toString() {
 		return getIfindexS() + "," +
 			" Port: " + getPort() +
+			" Interface: " + getInterface() +
 			" Link: " + getLink() +
 			" Speed: " + speed +
 			" Duplex: " + duplex +
