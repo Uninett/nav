@@ -30,6 +30,7 @@ import time
 import warnings
 import traceback
 import httplib
+import forgetHTML as html
 from mod_python import apache
 
 
@@ -65,6 +66,7 @@ def handler(req):
         message = "".join(trace)
         remoteanswer.append(html.Pre(message, _class="warning"))
         remoteanwser = str(remoteanswer)
+        req.content_type = "text/html"
     
     else:
         remoteanswer = response.read()
