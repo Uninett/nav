@@ -22,7 +22,11 @@ $brukernavn = session_get('bruker'); $uid = session_get('uid');
 if ($subaction == 'endret') {
 
 	if ($fid > 0) { 
-	
+            if (!$dbh->permissionEquipmentFilter( session_get('uid'), $fid ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }
+            
 		$dbh->endreFilter($fid, $navn);
 
 		
@@ -39,7 +43,10 @@ if ($subaction == 'endret') {
 if ($subaction == 'slett') {
 
 	if ($fid > 0) { 
-	
+            if (!$dbh->permissionEquipmentFilter( session_get('uid'), $fid ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }	
 		$foo = $dbh->slettFilter($fid);
 		$navn = '';
 		

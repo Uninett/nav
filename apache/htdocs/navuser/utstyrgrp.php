@@ -22,6 +22,11 @@ $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
 
+if (!$dbh->permissionEquipmentGroup( session_get('uid'), session_get('grp_gid') ) ) {
+    echo "<h2>Security violation</h2>";
+    exit(0);
+}
+
 
 if ($subaction == 'slett') {
 

@@ -18,6 +18,53 @@ class DBH {
     $this->connection = $connection;
   }
   
+  
+    function permissionAddress($uid, $aid) {
+        $querystring = "
+SELECT * FROM alarmadresse 
+WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($aid) . ")";
+//echo "<pre>" . $querystring . "</pre>";
+        if ( $query = @pg_exec($this->connection, $querystring) ) { 
+            if (pg_numrows($query) > 0 ) return true;
+        }
+        return false;
+    }
+  
+    function permissionProfile($uid, $pid) {
+        $querystring = "
+SELECT * FROM brukerprofil 
+WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($pid) . ")";
+//echo "<pre>" . $querystring . "</pre>";
+        if ( $query = @pg_exec($this->connection, $querystring) ) { 
+            if (pg_numrows($query) > 0 ) return true;
+        }
+        return false;
+    }
+    
+    function permissionEquipmentGroup($uid, $id) {
+        $querystring = "
+SELECT * FROM utstyrgruppe 
+WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($id) . ")";
+//echo "<pre>" . $querystring . "</pre>";
+        if ( $query = @pg_exec($this->connection, $querystring) ) { 
+            if (pg_numrows($query) > 0 ) return true;
+        }
+        return false;
+    }    
+    
+    
+    function permissionEquipmentFilter($uid, $id) {
+        $querystring = "
+SELECT * FROM utstyrfilter 
+WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($id) . ")";
+//echo "<pre>" . $querystring . "</pre>";
+        if ( $query = @pg_exec($this->connection, $querystring) ) { 
+            if (pg_numrows($query) > 0 ) return true;
+        }
+        return false;
+    }       
+    
+  
   function listBrukere($sort) {
     
     $brukere = NULL;

@@ -28,6 +28,12 @@ if (get_get('subaction') == 'endret') {
 
 	if ($pid > 0) { 
 	
+            if (!$dbh->permissionProfile( session_get('uid'), $pid ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }        
+        
+        
 		$dbh->endreProfil($pid, post_get('navn'), post_get('ukedag'), 
 			post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
 		$navn='';
@@ -40,7 +46,13 @@ if (get_get('subaction') == 'endret') {
 }
 
 if (get_get('subaction') == 'slett') {
-	if ($pid > 0) { 
+	if ($pid > 0) {
+        
+            if (!$dbh->permissionProfile( session_get('uid'), $pid ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }         
+        
 		$foo = $dbh->slettProfil($pid);
 		$navn = '';
 		

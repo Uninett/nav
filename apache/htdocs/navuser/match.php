@@ -24,6 +24,12 @@ if ( get_exist('fid') ) {
 	session_set('match_fid', get_get('fid') );
 }
 
+            if (!$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }
+
+
 $type[0] = gettext('er lik');
 $type[1] = gettext('er større enn');
 $type[2] = gettext('er større eller lik');

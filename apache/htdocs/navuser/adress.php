@@ -19,7 +19,12 @@ echo "</a>";
 
 if (get_get('subaction') == 'endret') {
 
+
 	if (post_get('aid') > 0) { 
+            if (!$dbh->permissionAddress( session_get('uid'), post_get('aid') ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }
 	
 		$aid = $dbh->endreAdresse(post_get('aid'), post_get('adressetype'), post_get('adresse') );
 		$adresse=0;
@@ -37,7 +42,11 @@ if (get_get('subaction') == 'slett') {
 
 	
 	if (get_get('aid') > 0) { 
-	
+            if (!$dbh->permissionAddress( session_get('uid'), get_get('aid') ) ) {
+                echo "<h2>Security violation</h2>";
+                exit(0);
+            }
+            	
 		$dbh->slettAdresse(get_get('aid') );
 		$adresse='';
 		print "<p><font size=\"+3\">" . gettext("OK</font>, adressen er slettet fra databasen.");
