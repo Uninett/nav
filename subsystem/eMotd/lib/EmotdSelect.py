@@ -111,7 +111,7 @@ def getMaintenance(state="active",orderby=None,where=None,access=False):
         if res.has_key(row['maintenanceid']):
             res[row['maintenanceid']].append(row)
         else:
-            res[row['maintenanceid']] = [row['maintenanceid']]
+            res[row['maintenanceid']] = [row]
     return res
 
 
