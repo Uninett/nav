@@ -169,11 +169,10 @@ class NetboxInfo(manage.Netbox):
     def rrdAverage(self, ds, timeframe):
         rrd = presenter.presentation()
         rrd.timeLast(timeframe)
-
         rrd.addDs(ds)
         value = rrd.average()
         if not value:
-            return ""
+            return 0
         else:
             value = value[0]
         return value
