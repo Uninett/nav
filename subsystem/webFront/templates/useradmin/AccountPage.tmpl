@@ -50,25 +50,27 @@ $add_orgtree($tree[$org], $level+1)
 
 
 #block useradmin
+<table border=0>
 <form method="POST" action="accountsubmit">
 #if not $newAccount
   <input type="hidden" name="id" value="$account.id">
 #end if
-  <b>Login:</b> $textfield('login', $account.login)<br>
-  <b>Name:</b> $textfield('name', $account.name, forceEditable=1)<br>
-  <b>External:</b> <i>
+  <tr><td><b>Login:</b></td><td>$textfield('login', $account.login)</td></tr>
+  <tr><td><b>Name:</b></td><td>$textfield('name', $account.name, forceEditable=1)</td></tr>
+  <tr><td><b>External:</b></td><td> <i>
 #if $account.ext_sync
 $account.ext_sync
 #else
 [None]
 #end if
-  </i><br>
+  </i></td></tr>
 #unless $account.ext_sync
-  <b>Password:</b> $textfield('password', '', password=True)<br>
-  <b>Confirm password:</b> $textfield('passwordConfirm', '', password=True)<br>
+  <tr><td><b>Password:</b></td><td>$textfield('password', '', password=True)</td></tr>
+  <tr><td><b>Confirm password:</b></td><td>$textfield('passwordConfirm', '', password=True)</td></tr>
 #end if
-  <input type="submit" value="Submit changes" />
+  <tr><td colspan="2"><input type="submit" value="Submit changes" /></td></tr>
 </form>
+</table>
 
 #if not $newAccount
 
