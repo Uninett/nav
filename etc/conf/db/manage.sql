@@ -153,16 +153,16 @@ CREATE TABLE prefix (
 );
 
 CREATE TABLE vendor (
-  vendorid varchar(15) primary key
+  vendorid varchar(15) PRIMARY KEY
 );
 
 CREATE TABLE typegroup (
-  typegroupid varchar(15) primary key,
+  typegroupid varchar(15) PRIMARY KEY,
   descr varchar
 );
 
 CREATE TABLE cat (
-  catid varchar(8) primary key,
+  catid varchar(8) PRIMARY KEY,
   descr varchar
 );
 
@@ -215,7 +215,7 @@ CREATE TABLE netbox (
 --  boksid SERIAL PRIMARY KEY,
   netboxid SERIAL PRIMARY KEY,
 --  ip varchar(15) NOT NULL, har vært inet en stund
-  ip inet NOT NULL,
+  ip INET NOT NULL,
 --  romid VARCHAR(10) NOT NULL REFERENCES rom,
   roomid VARCHAR(10) NOT NULL REFERENCES room,
   typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
@@ -277,8 +277,8 @@ CREATE TABLE module (
   module VARCHAR(4) NOT NULL,
   submodule VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
-  downsince TIMESTAMP NOT NULL DEFAULT 'NOW()',
-  UNIQUE (netboxid,module)
+  downsince TIMESTAMP,
+  UNIQUE (netboxid, module)
 );
 -- HVA ER SUBMODULE?
 -- DEVICEID BØR VÆRE NOT NULL
@@ -302,7 +302,7 @@ CREATE TABLE swp_netbox (
   to_module VARCHAR(4),
   to_port INT4,
   misscnt INT4 NOT NULL DEFAULT '0',
-  UNIQUE(netboxid,module,port,to_netboxid)
+  UNIQUE(netboxid, module, port, to_netboxid)
 );
 
 CREATE TABLE swport (
@@ -355,7 +355,7 @@ CREATE TABLE swportvlan (
   vlan INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
 --  retning CHAR(1) NOT NULL DEFAULT 'x',
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
-  PRIMARY KEY(swportid,vlan)
+  PRIMARY KEY(swportid, vlan)
 );
 
 CREATE TABLE swportallowedvlan (
@@ -366,7 +366,7 @@ CREATE TABLE swportallowedvlan (
 
 CREATE TABLE swportblocked (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  vlan INT4 NOT NULL DEFAULT '-1',
+  vlan INT4 NOT NULL,
   PRIMARY KEY(swportid, vlan)
 );
 
@@ -655,7 +655,7 @@ CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
   target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
@@ -680,7 +680,7 @@ DROP TABLE alertqvar;
 CREATE TABLE alertq (
   alertqid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   time TIMESTAMP NOT NULL,
@@ -704,7 +704,7 @@ DROP TABLE alerthistvar;
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
+  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   subid INT4,
   start_time TIMESTAMP NOT NULL,
@@ -733,7 +733,8 @@ CREATE TABLE service (
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   active BOOL DEFAULT true,
   handler VARCHAR,
-  version VARCHAR
+  version VARCHAR,
+  up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s') -- y=up, n=down, s=shadow
 );
 
 CREATE TABLE serviceproperty (
