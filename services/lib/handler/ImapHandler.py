@@ -1,10 +1,10 @@
 """
-$Id: ImapHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: ImapHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/ImapHandler.py,v $
 """
 
 from job import JobHandler, Event
-import imaplib
+import imaplib, Socket
 class IMAPConnection(imaplib.IMAP4):
 	def __init__(self, timeout, host, port):
 		self.timeout=timeout
@@ -15,7 +15,7 @@ class IMAPConnection(imaplib.IMAP4):
 		"""
 		Overload imaplib's method to connect to the server
 		"""
-		self.sock=Socket(self.timeout)
+		self.sock=Socket.Socket(self.timeout)
 		self.sock.connect((self.host, self.port))
 		self.file = self.sock.makefile("rb")
 

@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.14 2002/06/27 11:47:44 magnun Exp $
+$Id: database.py,v 1.15 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread, jobmap
@@ -13,12 +13,13 @@ from Queue import Queue
 db = None
 
 queue = Queue()
+global mapper
+mapper=jobmap.jobmap()
 
 def startup(dsn):
-	global mapper
-	mapper=jobmap.jobmap()
 	global db
 	db = connect(dsn)
+	db.autocommit(1)
 	thread.start_new_thread(run,())
 def run():
 	c = db.cursor()
@@ -31,13 +32,16 @@ def newEvent(event):
 		value = 100
 	else:
 		value = 0
-	statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr) values (%i, %i, %s, '%s', %i, '%s' " % (event.serviceid, event.boksid, event.type, 't',value,event.info)
-	queue.put(statement)
+
+	# Dette må fikses...
+	#statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr) values (%i, %i, '%s', '%s', %i, '%s'  ) " % (event.serviceid, event.boksid, event.type, 't',value, event.info.replace("'","\\'"))
+	#queue.put(statement)
+
 def newVersion(serviceid,version):
-	print "New version. Id: %i Version: " % (serviceid,version)
+	print "New version. Id: %i Version: %s" % (serviceid,version)
 	statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 	queue.put(statement)
-def getJobs():
+def getJobs(onlyactive = 1):
 	c = db.cursor()
 	query = """SELECT serviceid, property, value
 	FROM serviceproperty
@@ -50,16 +54,20 @@ def getJobs():
 			property[serviceid] = {}
 		property[serviceid][prop] = value
 
-	query = """SELECT serviceid ,boksid, handler, version, ip
-	FROM service NATURAL JOIN boks order by serviceid"""
+	query = """SELECT serviceid ,service.boksid, service.active, handler, version, ip
+	FROM service JOIN boks ON (service.boksid=boks.boksid) order by serviceid"""
 	c.execute(query)
 	jobs = []
-	for serviceid,boksid,handler,version,ip in c.fetchall():
+	for serviceid,boksid,active,handler,version,ip in c.fetchall():
+		if not active and onlyactive:
+			continue
 		job = mapper.get(handler)
 		if not job:
 			print 'no such handler:',handler
 		newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
-		print "Property: %s" % property
+		if not onlyactive:
+			setattr(newJob,'active',active)
+
 		jobs += [newJob]
 	db.commit()
 	return jobs

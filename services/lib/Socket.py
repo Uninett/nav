@@ -1,11 +1,14 @@
 """
-$Id: Socket.py,v 1.1 2002/06/26 09:04:45 magnun Exp $
+$Id: Socket.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Socket.py,v $
 """
 
 import time,socket,sys,types
 from select import select
 from errno import errorcode
+
+class Timeout(Exception):
+	pass
 
 class Socket:
 	def __init__(self,timeout):

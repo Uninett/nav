@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.18 2002/06/27 11:47:44 magnun Exp $
+$Id: controller.py,v 1.19 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -20,6 +20,7 @@ class controller:
         self._isrunning=1
         self._jobs=[]
         self._looptime=60
+        self._debuglevel=0
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
 
@@ -49,8 +50,9 @@ class controller:
         Provides simple debug support. Should we use syslog or
         a file?
         """
-        if type(msg)==types.StringType:
-            print (time.strftime('%d %b %Y %H:%M:%S ', time.localtime())) + msg
+        if self._debuglevel > 1:
+            if type(msg)==types.StringType:
+                print (time.strftime('%d %b %Y %H:%M:%S ', time.localtime())) + msg
 
     def start(self, nofork):
         """

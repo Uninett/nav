@@ -1,9 +1,9 @@
 """
-$Id: FtpHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: FtpHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/FtpHandler.py,v $
 """
 from job import JobHandler, Event
-import ftplib
+import ftplib, Socket
 class FTP(ftplib.FTP):
 	def __init__(self,timeout,host='',user='',passwd='',acct=''):
 		ftplib.FTP.__init__(self)
@@ -19,7 +19,7 @@ class FTP(ftplib.FTP):
 		if host: self.host = host
 		if port: self.port = port
 		msg = "getaddrinfo returns an empty list"
-		self.sock = Socket(self.timeout)
+		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 		self.file = self.sock.makefile('rb')
 		self.welcome = self.getresp()

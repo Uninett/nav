@@ -1,13 +1,12 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.12 2002/06/15 22:13:14 magnun Exp $
+$Id: RunQueue.py,v 1.13 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
 from threading import *
 import threading, DEQueue, sys, time, types, traceback
-
 
 class TerminateException(Exception):
     pass
@@ -112,8 +111,9 @@ class RunQueue:
         return r
 
     def debug(self, msg):
-        if type(msg)==types.StringType:
-            print msg
+        if DEBUG:
+            if type(msg)==types.StringType:
+                print msg
 
     def terminate(self):
         self.lock.acquire()

@@ -1,15 +1,15 @@
 """
-$Id: PopHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: PopHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/Attic/PopHandler.py,v $
 """
 from job import JobHandler, Event
-import poplib
+import poplib, Socket
 class PopConnection(poplib.POP3):
 	def __init__(self, timeout, ip, port):
 		self.ip=ip
 		self.port=port
 
-		self.sock=Socket(timeout)
+		self.sock=Socket.Socket(timeout)
 		self.sock.connect((self.ip, self.port))
 		self.file=self.sock.makefile('rb')
 		self._debugging=0

@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.2 2002/06/27 15:23:30 magnun Exp $
+$Id: job.py,v 1.3 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -10,8 +10,6 @@ from errno import errorcode
 from Socket import Socket
 
 TIMEOUT = 5 #default timeout
-class Timeout(Exception):
-	pass
 
 class Event:
 	UP = 'UP'
@@ -39,8 +37,10 @@ class JobHandler:
 		import database
 		import rrd
 
+		version = self.getVersion()
 		status, info = self.executeTest()
 
+		print "Info: %s" % info
 		if status != self.getStatus():
 			print "State changed. Trying again in 5 sec..."
 			time.sleep(5)
@@ -56,10 +56,9 @@ class JobHandler:
 		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		self.setTimestamp()
 
+
 	def executeTest(self):
 		start = time.time()
-		version = self.getVersion()
-
 		try:
 			status,info = self.execute()
 		except Exception,info:

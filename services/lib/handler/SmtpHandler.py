@@ -1,16 +1,16 @@
 """
-$Id: SmtpHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: SmtpHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmtpHandler.py,v $
 """
 
 from job import JobHandler, Event
-import smtplib
+import smtplib, Socket
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):
 		self.timeout = timeout
 		smtplib.SMTP.__init__(self,host,port)
 	def connect(self, host='localhost', port = 25):
-		self.sock = Socket(self.timeout)
+		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((host,port))
 		return self.getreply()
 

@@ -1,8 +1,9 @@
 """
-$Id: SshHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: SshHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SshHandler.py,v $
 """
 from job import JobHandler, Event
+import Socket
 class SshHandler(JobHandler):
 	"""
 	"""
@@ -10,7 +11,7 @@ class SshHandler(JobHandler):
 		port = args.get('port',22)
 		JobHandler.__init__(self,'ssh',serviceid,boksid,(ip,port),args,version)
 	def execute(self):
-		s = Socket(self.getTimeout())
+		s = Socket.Socket(self.getTimeout())
 		s.connect(self.getAddress())
 		version = s.readline().strip()
 		self.setVersion(version)
