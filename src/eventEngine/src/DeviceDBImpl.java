@@ -172,6 +172,14 @@ class DeviceDBImpl implements DeviceDB
 		if (alerttype != null) ei.setAlerttype(alerttype);
 		return ei;
 	}
+
+	public Event endEventFactory(Event e)
+	{
+		if (e == null) return null;
+		EventImpl ei = new EventImpl((EventImpl)e);
+		ei.setState(Event.STATE_END);
+		return ei;
+	}
 	
 	// Doc in interface
 	public void postAlert(Alert a) throws PostAlertException

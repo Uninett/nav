@@ -41,7 +41,7 @@ public interface DeviceDB
 	public boolean isTouchedDevice(Device d);
 
 	/**
-	 * Get the 'up' Alert to use for completing previous 'down' Alert.
+	 * Get the 'up' Alert to use for completing a previous 'down' Alert.
 	 *
 	 * @param e The 'up' event (STATE_END)
 	 * @return the 'up' alert
@@ -65,6 +65,16 @@ public interface DeviceDB
 	 * @return a new alert
 	 */
 	public Alert alertFactory(Event e, String alerttype);
+
+	/**
+	 * Create an 'end' event from a 'start' event. This is typically
+	 * used to finish a previous 'start' event without getting an actual
+	 * 'end' event.
+	 *
+	 * @param e The event to use as template; all key fields except for the state must match the previous 'start' event.
+	 * @return an 'end' event
+	 */
+	public Event endEventFactory(Event e);
 
 	/**
 	 * Post and commit the given alert to the alertq, then delete
