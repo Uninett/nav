@@ -2,8 +2,13 @@
 
 require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
 
-$prefix = '129.241.';
- 
+$prefixfil = file('/usr/local/nav/local/etc/conf/prefiks.txt');
+
+foreach ($prefixfil as $linje)
+{
+  $prefix = chop($linje);
+}
+
 if (!$bruker) {
   $bruker = $PHP_AUTH_USER;
 }
@@ -68,6 +73,7 @@ $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (t
   }
   else
   {
+    $dnsip='heisan';
     print "<TABLE>";
     print "<tr><th>IP</th>";
     if ($dns) { print "<th>dns</th>";}
@@ -79,14 +85,23 @@ $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (t
 
       $IPfra = ereg_replace ($prefix, "", $svar[0]); 
 
-      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&IPfra=$IPfra>$svar[0]</a></td>";
+      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&IPfra=$IPfra>$svar[0]</a></td>";
  
       if ($dns)
       {
-     #   $dnsname=ip2dns($line[0]);
-        print "<td><FONT COLOR=chocolate>*</td>";
-      }
 
+         if ($dnsip != $svar[0])
+         {
+           $dnsip = $svar[0];
+           $dnsname= gethostbyaddr($dnsip);
+           if ($dnsname == $dnsip)
+           {
+             $dnsname = '-';
+           }
+         } 
+	   
+         print "<td><FONT COLOR=chocolate>$dnsname</td>";
+       }
 
        ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[1],$regs);
        $svar[1] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
@@ -131,7 +146,7 @@ else
 
     print "<b>IP fra $IPfra til $IPtil siste $dager dager</b><br>"; 
 
-    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1)";
+    $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE (ip_inet BETWEEN '$IPfra' AND '$IPtil') AND (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by ip,fra";
 
     $result = pg_exec($dbh,$sql);
 
@@ -143,6 +158,7 @@ else
     }
     else
     {
+       $dnsip='heisan';
        print "<TABLE>";
        print "<tr><th>IP</th>";
        if ($dns) { print "<th>dns</th>";}
@@ -156,7 +172,17 @@ else
 
          if ($dns)
          {         
-           print "<td><FONT COLOR=chocolate>*</td>";
+	   if ($dnsip != $svar[0])
+           {
+             $dnsip = $svar[0];
+	     $dnsname= gethostbyaddr($dnsip);
+             if ($dnsname == $dnsip)
+             {
+               $dnsname = '-';
+             }
+           }
+	   
+           print "<td><FONT COLOR=chocolate>$dnsname</td>";
          }
 
         # Setter inn : i mac :)
@@ -164,7 +190,7 @@ else
         ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[1],$regs);
         $svar[1] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
 
-         print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dager=$dager&&mac=$svar[1]>$svar[1]</a></td><td><font color=green>$svar[2]</td><td><font color=red>$svar[3]</td></tr>";
+         print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[1]>$svar[1]</a></td><td><font color=green>$svar[2]</td><td><font color=red>$svar[3]</td></tr>";
        }
        print "</table>"; 
     }
@@ -239,19 +265,5 @@ print "</form>";
 
 }
 
-######
-
-function ip ()
-{
-
-}
-
-######
-
-function mac ()
-{
-
-
-}
 
 ?> 
