@@ -160,6 +160,20 @@ CREATE TABLE boksinfo (
 );
 
 
+CREATE TABLE boksmac (
+  boksmacid SERIAL PRIMARY KEY,
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  mac VARCHAR(12) NOT NULL
+);
+
+CREATE TABLE swp_boks ( 
+  swp_boksid SERIAL PRIMARY KEY,                                                                  
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  modul VARCHAR(4) NOT NULL,
+  port INT2 NOT NULL,
+  boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
@@ -190,7 +204,7 @@ CREATE TABLE swport (
   port INT2 NOT NULL,
   portnavn VARCHAR(30),
   vpkatbak VARCHAR(5),
-  boksbak INT2 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
+  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
 );
 
 
@@ -227,6 +241,26 @@ CREATE TABLE vpBoksXY (
   gruppeid INT4 NOT NULL REFERENCES vpBoksGrpInfo ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(pboksid, gruppeid)
 );
+# vPServer bruker
+CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
+CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
+
+GRANT SELECT ON boks TO vPServer;
+GRANT SELECT ON boksinfo TO vPServer;
+GRANT SELECT ON gwport TO vPServer;
+GRANT SELECT ON prefiks TO vPServer;
+GRANT SELECT ON swport TO vPServer;
+GRANT SELECT ON swportvlan TO vPServer;
+GRANT SELECT ON vpBoksGrp TO vPServer;
+GRANT SELECT ON vpBoksGrpInfo TO vPServer;
+GRANT SELECT ON vpBoksXY TO vPServer;
+
+GRANT SELECT ON boks TO getBoksMacs;
+GRANT SELECT ON boksmac TO getBoksMacs;
+GRANT ALL    ON swp_boks TO getBoksMacs;
+GRANT SELECT ON community TO getBoksMacs;
+
+
 ### vlanPlot end ###
 
 GRANT ALL ON org TO navall;
