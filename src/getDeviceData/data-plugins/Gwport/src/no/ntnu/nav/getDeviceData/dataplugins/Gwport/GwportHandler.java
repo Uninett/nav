@@ -251,6 +251,7 @@ public class GwportHandler implements DataHandler {
 						String masterindex = null;
 
 						String[] ins = {
+							"gwportid", "",
 							"moduleid", oldgwm.getModuleidS(),
 							"ifindex", gwp.getIfindex(),
 							"link", gwp.getLinkS(),
@@ -304,6 +305,7 @@ public class GwportHandler implements DataHandler {
 							Log.i("NEW_VLAN", "Creating vlan: " + vl);
 							
 							String[] ins = {
+								"vlanid", "",
 								"vlan", vl.getVlanS(),
 								"nettype", vl.getNettype(),
 								"orgid", vl.getOrgid(),
@@ -341,6 +343,7 @@ public class GwportHandler implements DataHandler {
 							Log.i("NEW_PREFIX", "Creating vlan: " + vl);
 							
 							String[] ins = {
+								"prefixid", "",
 								"netaddr", p.getNetaddr(),
 								"vlanid", vlanid
 							};
