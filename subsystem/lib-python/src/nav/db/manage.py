@@ -32,6 +32,8 @@ def _customizeTables():
     del Swport._sqlFields['to_catid']
     del Swport._sqlFields['to_netboxid']
     del Swport._sqlFields['to_swportid']
+    # this is not a reference to the Type-table =)
+    del Emotd._userClasses['type']
     
     # some nice descriptive fields
     Netbox._shortView = ('sysname',)
