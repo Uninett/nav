@@ -323,6 +323,9 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='cChassisVersion';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cChassisVersion','1.3.6.1.4.1.9.3.6.2','Cisco',NULL,'t',NULL,'0', 'chassisVersion', 'OLD-CISCO-CHASSIS-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='cChassisId';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cChassisId','1.3.6.1.4.1.9.3.6.3','Cisco',NULL,'t',NULL,'0', 'chassisId', 'OLD-CISCO-CHASSIS-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='cSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cSerial','1.3.6.1.4.1.9.3.6.3','cgw',NULL,'t',NULL,'0', 'chassisId', 'OLD-CISCO-CHASSIS-MIB');
 
