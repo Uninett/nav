@@ -1,0 +1,5 @@
+# Config-file for getDeviceData Java application
+
+# At least wait this long between querying a boks
+minBoksRunInterval = 15
+
