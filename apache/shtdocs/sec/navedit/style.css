@@ -1,0 +1,206 @@
+body {
+       text-decoration: none;
+       font-size:12px;
+       font-family: Verdana, Arial, Helvetica,sans-serif;
+       padding:0;
+       margin:50px 0px;
+       border-width:0;
+       text-align:center;
+	
+       }
+p,td,span,div{ 
+      font-size:12px;
+      vertical-align:top;
+      padding:0;
+      margin:0;
+      border-width:0;
+      }
+td{
+      padding:2px;
+}
+p{
+	margin-bottom:4px;
+}
+
+table{
+padding:0;
+margin:0;
+border:0;
+border-spacing:0px;
+border-collapse:collapse;
+
+
+}
+img{
+	border:0;
+}
+
+.idioti{
+	border-width:1px;
+	border-color:black;
+	border-style:solid;
+}
+.galskap{
+	border-width:1px;
+	border-color:#909090;
+	border-style:solid;
+}
+.comment{
+	color:#1e8c24;/*646ca7;	*/
+}
+.header{
+	background-color:#1e248c;
+	color:white;
+	font-weight:600;
+	border-color:#909090;
+	border-width:1px;
+	border-style:solid;
+
+}
+
+.from{
+	border-width:1px;
+	border-color:#909090;
+	border-style:solid;
+	padding:2px;
+	color:#8c1e24;
+}
+.to{
+	border-width:1px;
+	border-color:#909090;
+	border-style:solid;
+	padding:2px;
+	color:#1e8c24;
+}
+.warning{
+	font-weight:600;
+	color:#8c1e24;
+}
+
+h1{ 
+    font-size:16px;
+    margin: 4px 0 8px 0;
+ }
+
+h2{ 
+    font-size:14px;
+    margin: 2px 0 4px 0;
+ }
+
+h3{ 
+    font-size:12px;
+    margin: 0 0 0 2px;
+ }
+
+a{
+   text-decoration: none;
+   color:#0019a8;
+	border-width:1px;
+   }
+
+A:hover {
+          text-decoration: underline;
+          }
+
+select {
+         background-color:#ffffff;
+         color:#000000;
+         font-size: 8pt; 
+         border-color: #004080; 
+         border-width: 1px; 
+         border-style: solid; 
+         }
+input,textarea{ 
+        font-size: 12px; 
+        border-color: #004080; 
+        border-width: 1px; 
+        border-style: dotted; 
+	vertical-align:top;
+ padding:2px;
+        }
+
+
+#content {
+	width:740px;
+	margin:0px auto;
+	text-align:left;
+	padding:15px;
+	border:1px dashed #333;
+	background-color:#eee;
+	}
+#menulist {
+	width:440px;
+	margin:0px auto;
+	text-align:left;
+	padding:15px;
+	border:1px dashed #333;
+	background-color:#eee;
+	}
+#error {
+	width:440px;
+	margin:0px auto;
+	margin-bottom:10px;
+/*	text-align:left;*/
+	padding:15px;
+	font-size:14px;
+	font-weight:bold;
+/*	color:white;*/
+	border:2px solid #f00;
+	background-color:#eee;
+/*	vertical-align:top;*/
+	}
+
+#radio{
+	padding:0;
+	border:0;
+}
+#formsubmit{
+	padding:4;
+	text-align:right;
+	vertical-align:bottom;
+}
+
+.button{
+	border:0;
+}
+
+#popup {
+	width:500px;
+	margin:0px auto;
+	text-align:left;
+	padding:15px;
+	border:1px dashed #333;
+	background-color:#eee;
+	}
+
+table.excel{
+	border-collapse:collapse;
+	empty-cells:show;
+}
+
+td.excel{
+	height:12px;
+	border-color:#333;
+	border-width:1px;
+	border-style:solid;
+}
+.top{
+	vertical-align:top;
+}
+.bottom{
+	vertical-align:bottom;
+}
+.middle{
+	height:100%;
+}
+td.menu{
+	text-align:center;
+	width:50px;
+}
+div.menuitem{
+	border-color:#333;
+	border-width:1px;
+	border-style:solid;
+	padding:5px;
+	margin-bottom:10px;
+}
