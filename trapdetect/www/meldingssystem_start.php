@@ -10,8 +10,8 @@ if (!$bruker) {
 }
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 
-$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
-mysql_select_db("trapdetect", $dbh);
+#$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
+$dbh = pg_connect("dbname=trapdetect");
 
 ########################################
 # Skriver ut meny for administratorer
@@ -28,8 +28,8 @@ if ($admin) {
   print "Use the force... velg bruker som du skal administrere.<br>\n";
   print "<form action=meldingssystem_start.php method=POST>\n";
   print "<select name=bruker>\n";
-  $sporring = mysql_query("select user from user");
-  while ($res = mysql_fetch_array($sporring)) {
+  $sporring = pg_exec("select user from user");
+  while ($res = pg_fetch_array($sporring)) {
     if ($bruker == $res[user]) {
       print "<option value=$res[user] selected>$res[user]</option>\n";
     } else {
@@ -91,8 +91,8 @@ echo "<form action=meldingssystem2.php method=\"POST\">\n";
 # Henter alle varslingstyper fra databasen, 
 # legger de i et array for senere bruk.
 ##################################################
-$result = mysql_query("select * from varseltype");
-while ($svar = mysql_fetch_row($result)) {
+$result = pg_exec("select * from varseltype");
+while ($svar = pg_fetch_row($result)) {
   $varseltype[$svar[1]] = $svar[0];
 }
 $type = array_keys($varseltype);
@@ -100,26 +100,26 @@ $type = array_keys($varseltype);
 ##############################
 # Finner brukerid
 ##############################
-$res=mysql_query("select id,sms from user where user='$bruker'");
-$brukerid = mysql_fetch_row($res);
+$res=pg_exec("select id,sms from user where user='$bruker'");
+$brukerid = pg_fetch_row($res);
 $sms = $brukerid[1];
 
 ############################################################
 # Finner alle traps som brukeren abonnerer på varsling på
 ############################################################
 $sporring="select trapid,syknavn from varsel,trap where userid=$brukerid[0] and trapid=trap.id group by trapid order by syknavn";
-$res=mysql_query($sporring);
+$res=pg_exec($sporring);
 
-$res2=mysql_query("select trapid,syknavn from unntak,trap where userid=$brukerid[0] and trapid=trap.id group by trapid order by syknavn");
+$res2=pg_exec("select trapid,syknavn from unntak,trap where userid=$brukerid[0] and trapid=trap.id group by trapid order by syknavn");
 
-if (mysql_num_rows($res) == 0 and mysql_num_rows($res2) == 0) {
+if (pg_numrows($res) == 0 and pg_numrows($res2) == 0) {
   echo "Du abonnerer foreløpig ikke på noe\n";
 } else {
   echo "<select name=trap>";
-  while ($row=mysql_fetch_row($res)) {
+  while ($row=pg_fetch_row($res)) {
     $traps[$row[0]] = $row[1];
   }
-  while ($row=mysql_fetch_row($res2)) {
+  while ($row=pg_fetch_row($res2)) {
     $traps[$row[0]] = $row[1];
   }
 ##############################
@@ -172,10 +172,10 @@ if (mysql_num_rows($res) == 0 and mysql_num_rows($res2) == 0) {
 #    lagSlettBoks($key,$traps[$key]);
     print "</td></tr>\n";
     $sporring="select * from varsel where userid=$brukerid[0] and trapid=$key order by kat,ukat";
-    $res = mysql_query($sporring);
+    $res = pg_exec($sporring);
   
 # Henter alle innlegg som ligger under denne trap og brukerid
-    while ($row=mysql_fetch_array($res)) {
+    while ($row=pg_fetch_array($res)) {
 # Vi vil ikke liste underkategoriene som er unntak
       if ($row[vtypeid] != 0) {
 	print "<tr><td>&nbsp;</td><td>$row[kat]</td><td>$row[ukat]</td><td>\n";
@@ -196,9 +196,9 @@ if (mysql_num_rows($res) == 0 and mysql_num_rows($res2) == 0) {
     }
 
     $sporring="select manage.nettel.sysname,nettelid,vtypeid,status from manage.nettel,unntak where userid=$brukerid[0] and trapid=$key and manage.nettel.id=nettelid order by manage.nettel.sysname";
-    $res=mysql_query($sporring);
+    $res=pg_exec($sporring);
 # Henter alle innlegg som ligger i unntak-tabellen
-    while ($row=mysql_fetch_array($res)) {
+    while ($row=pg_fetch_array($res)) {
 # Hvis det er en pluss så skal det kunne velges varseltype
       if ($row[status] == "pluss") {
 	print "<tr><td>&nbsp;</td><td>$row[sysname]</td><td>&nbsp;</td><td>\n";
