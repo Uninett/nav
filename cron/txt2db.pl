@@ -31,121 +31,85 @@ $tabell = "org";
 &db_endring($fil,$tabell,\@felt);
 #--------------FELLES_KODE-----
 sub db_endring {
+    #lokale variabler
     my @gen = (); my $sql = ""; my $resultat = ""; my %ny = (); my %gammel = ();
-
+    #leser inn fra fil
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     foreach (<FIL>) {
-	if (/^[a-zA-Z0-9_\-]+?:/) {#bindestrek i itea-stud
-	    (@_,undef) = split(/:/,$_,scalar(@felt)+1); #sletter ting som er ekstra i stedet for å slå sammen med seinere feilkolonner.
+	#tar med linjer som begynner med ord før kolon bestående av 
+	#tall,bokstaver,lavstrek,bindestrek
+	if (/^[a-zA-Z0-9_\-]+?:/) {
+	    #sletter ting som er ekstra i stedet for å slå 
+	    #sammen med seinere feilkolonner.
+	    (@_,undef) = split(/:/,$_,scalar(@felt)+1); 
 	    @gen = map rydd($_), @_; #rydder opp
-	    $ny{$gen[0]} = [ @gen ];
+	    $ny{$gen[0]} = [ @gen ]; #legger inn i hash
 	}
 	close FIL;
     }
 
+    #leser fra database
     $sql = "SELECT ".join(",", @felt )." FROM $tabell ORDER BY $felt[0]";
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) {
 	@_ = map rydd($_), @_;
 	$gammel{$_[0]} = [ @_ ];
     }
+
+    #alle nøklene i hashen ny
     for my $f (keys %ny) {
 
-
-#eksisterer i databasen?
-    if($gammel{$f}[0]) {
+	#eksisterer i databasen?
+	if($gammel{$f}[0]) {
 #-----------------------
 #UPDATE
-	for my $i (0..$#felt ) {
-	    if(defined( $gammel{$f}[$i] ) && defined( $ny{$f}[$i] )){
-		unless($ny{$f}[$i] eq $gammel{$f}[$i]) {
-#oppdatereringer til null må ha egen spørring
-		    if ($ny{$f}[$i] eq "" && $gammel{$f}[$i] ne ""){
-			print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"NULL\"";
-			$sql = "UPDATE $tabell SET $felt[$i]=null WHERE $felt[0]=\'$f\'";
-			db_execute($sql,$conn);
-			print $sql;
-		    } else {
-#normal oppdatering
-			print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"$ny{$f}[$i]\"";
-			$sql = "UPDATE $tabell SET $felt[$i]=\'$ny{$f}[$i]\' WHERE $felt[0]=\'$f\'";
-			print $sql;
-			db_execute($sql,$conn);
-		    }
-		}
-	    }
-	}
-    }else{
-#-----------------------
-#INSERT
-	print "\nSetter inn $ny{$f}[0]";
-	my @val;
-	my @key;
-	foreach my $i (0..$#felt) {
-	    if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
-		push(@val, "\'".$ny{$f}[$i]."\'");
-		push(@key, $felt[$i]);
-	    } elsif (defined($ny{$f}[$i])) {
-		push(@val, "NULL");
-		push(@key, $felt[$i]);
-	    }
-	}
-	if(scalar(@key)){
-	    print scalar(@key);
-	    
-	    $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-	    print $sql;
-	    db_execute($sql,$conn);
-	}
-    }
-}
-=cut
-#eksisterer i databasen?
-	if($db{$f}[0]) {
-#-----------------------
-#UPDATE
-	    for my $i (0..$#{ $fil{$f} } ) {
-		#print $felt[$i];
-		unless($fil{$f}[$i] eq $db{$f}[$i]) {
-#oppdatereringer til null må ha egen spørring
-		    if ($fil{$f}[$i] eq "" && $db{$f}[$i] ne ""){
-			print "\nOppdaterer $f felt $felt[$i] fra \"$db{$f}[$i]\" til \"NULL\"";
-			$sql = "UPDATE $tabell SET $felt[$i]=null WHERE $felt[0]=\'$f\'";
-			db_execute($sql,$conn);
-			print $sql;
-		    } else {
-#normal oppdatering
-			print "\nOppdaterer $f felt $felt[$i] fra \"$db{$f}[$i]\" til \"$fil{$f}[$i]\"";
-			$sql = "UPDATE $tabell SET $felt[$i]=\'$fil{$f}[$i]\' WHERE $felt[0]=\'$f\'";
-			print $sql;
-			db_execute($sql,$conn);
+	    for my $i (0..$#felt ) {
+		if(defined( $gammel{$f}[$i] ) && defined( $ny{$f}[$i] )){
+		    unless($ny{$f}[$i] eq $gammel{$f}[$i]) {
+			#oppdatereringer til null må ha egen spørring
+			if ($ny{$f}[$i] eq "" && $gammel{$f}[$i] ne ""){
+			    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"NULL\"";
+			    $sql = "UPDATE $tabell SET $felt[$i]=null WHERE $felt[0]=\'$f\'";
+			    db_execute($sql,$conn);
+			    print $sql;
+			} else {
+			    #normal oppdatering
+			    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"$ny{$f}[$i]\"";
+			    $sql = "UPDATE $tabell SET $felt[$i]=\'$ny{$f}[$i]\' WHERE $felt[0]=\'$f\'";
+			    print $sql;
+			    db_execute($sql,$conn);
+			}
 		    }
 		}
 	    }
 	}else{
 #-----------------------
 #INSERT
-	    print "\nSetter inn $fil{$f}[0]";
-	    my @val = (); my @key = ();
+	    print "\nSetter inn $ny{$f}[0]";
+	    my @val;
+	    my @key;
 	    foreach my $i (0..$#felt) {
-		if (defined($fil{$f}[$i])){
-		    push(@val, "\'".$fil{$f}[$i]."\'");
+		if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
+		    #normal
+		    push(@val, "\'".$ny{$f}[$i]."\'");
+		    push(@key, $felt[$i]);
+		} elsif (defined($ny{$f}[$i])) {
+		    #null
+		    push(@val, "NULL");
 		    push(@key, $felt[$i]);
 		}
 	    }
-	    print scalar(@key);
-	    if(scalar(@key)){
+	    if(scalar(@key)){ #key eksisterer
 		print scalar(@key);
 		$sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
 		print $sql;
 		db_execute($sql,$conn);
 	    }
 	}
-	
     }
-=cut
 #-----------------------------------
 #DELETE
+    #hvis den ikke ligger i fila
     for my $f (keys %gammel) {
 	unless(exists($ny{$f})) {
 	    print "sletter ".$f;

@@ -106,15 +106,7 @@ for my $f (keys %fil) {
     }
     
 }
-#-----------------------------------
-#DELETE
-for my $f (keys %db) {
-    unless(exists($fil{$f})) {
-	print "sletter ".$f;
-	$sql = "DELETE FROM prefiks WHERE $felt[0]=\'$f\'";
-	db_execute($sql,$conn);
-    }
-}
+
 sub db_connect {
     my $db = $_[0];
     my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
@@ -139,7 +131,8 @@ sub db_execute {
 }
 #utvidet chomp som også tar tab. og andre \s
 #returnerer tom streng hvis ikke definert
-sub rydd {    if (defined $_[0]) {
+sub rydd {    
+    if (defined $_[0]) {
 	$_ = $_[0];
 	s/\s*$//;
 	s/^\s*//;

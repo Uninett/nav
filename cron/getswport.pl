@@ -82,50 +82,45 @@ my $trunk_iossw = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 
 
 #####################################
+#henter fra databaser
 &hent_db_boks;
-
 &hent_db_swport;
 
 #&hent_db_swportvlan;
 
-
+#henter snmp-data og legger dem i hashen swport
 foreach my $boksid (keys %boks) { #keys boks
     &hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
 }
 
-
+#swid består av boksid og ifindex
 foreach $swid (keys %swport) {
-
-   
     (my $boksid, my $ifindex) = split /:/,$swid;
-
     my $swportid = $sw2id{$boksid}{$ifindex};
-    
     if (defined($swportid) && $swportid ne ""){
 	if($swport{$swid}[7]) { #trunk
+	    #henter ut alle vlan og legger inn i hashen swportvlan
 	    &hent_snmpdata_vlan($swid,$swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
 	} else {
+	    #henter ut det ene, siden ikke trunk, og legger i swportvlan
 	    &hent_snmpdata_ett_vlan($swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
 	}
     }
-
     &sammenlikn(\%swport,\%db_swport,\@felt_swport,"swport",$swid,$swportid);
-
 }
 
-&hent_db_swport;
-
+#henter inn databaser
+&hent_db_swport; #ting er lagret her siden sist, så den leses inn på nytt
 &hent_db_swportvlan;
 
+#vlanid består av swtportid og vlan
 foreach my $vlanid (keys %swportvlan) {
     (my $swportid, my $vlan) = split /:/,$vlanid;
-
     my $swportvlanid = $spv2id{$swportid}{$vlan};
-
-   &sammenlikn(\%swportvlan,\%db_swportvlan,\@felt_swportvlan,"swportvlan",$vlanid,$swportvlanid);
+    &sammenlikn(\%swportvlan,\%db_swportvlan,\@felt_swportvlan,"swportvlan",$vlanid,$swportvlanid);
 }
 
-
+#se txt2db.pl for mer kommentarer. denne vil inngå i modul seinere
 sub sammenlikn {
 
     my %ny = %{$_[0]};
@@ -181,6 +176,7 @@ sub sammenlikn {
 }
     
 ###################################################
+# henter snmpdata avhengig av boksens typegruppe
 sub hent_snmpdata
 {
     print "hei";
@@ -199,7 +195,6 @@ sub hent_snmpdata
     elsif ($typegruppe eq 'ios-sw')
     {
 	print $typegruppe." er ios-sw\n";
-	print "TING SKJER GALT VED SNMP FOR DISSE. DERFOR IKKE TATT MED";
 	unless (&hent_iossw($boks{$id}{ip},$boks{$id}{ro},$id)) {
 	    print "FEIL: ".$boks{$id}{ip}.$boks{$id}{ro}.$id."\n";
 	}
@@ -226,6 +221,7 @@ sub hent_catsw
     my $temp;
     my $mp;
     my %vlan;
+#mp og temp bør sees på som midlertidige variabler, selv om mp noen ganger faktisk er modul.port.
 
     @temp = &snmpwalk($ro."\@".$ip,$IfIndex_catsw);
     unless ($temp[0]) {
@@ -438,7 +434,6 @@ sub hent_iossw {
     return 1;
 }
 
-
 sub hent_snmpdata_ett_vlan {
     my $swportid = $_[0];
     my $ip = $_[1];
@@ -460,6 +455,7 @@ sub hent_snmpdata_ett_vlan {
     foreach $line (@temp)    {
 	(undef,my $temp) = split(/:/,$line);
 	my $vlanid = join ":", ($swportid, $temp);
+	#legger inn i hashen swportvlan
 	$swportvlan{$vlanid} = [ $swportid, $temp ]; 
 	print "VLAN".$vlanid.":".$temp."\n";
 	
@@ -484,33 +480,35 @@ sub hent_snmpdata_vlan {
     } else {
 	return 0;
     }
-	$vlanhex = unpack "H*", $vlanhex;
+#kodebit kommer fra John Magne Bredals getTRUNK på bigbud
+
+    $vlanhex = unpack "H*", $vlanhex;
     my @vlanliste = &splittHex($resultat);
 
 
-	# Popper de 6 siste elementene fra liste (vlan 1000-1005), hvis de eksisterer.
-	# Må ta hensyn til en del unntak...ikke helt elegant.
-  	my($temp) = 2000;
-  	while ($temp >= 1000) {
-  	    $temp = pop @vlanliste;
-  	}
-  	push @vlanliste, $temp;
+    # Popper de 6 siste elementene fra liste (vlan 1000-1005), hvis de eksisterer.
+    # Må ta hensyn til en del unntak...ikke helt elegant.
+    my($temp) = 2000;
+    while ($temp >= 1000) {
+	$temp = pop @vlanliste;
+    }
+    push @vlanliste, $temp;
 
-	# Temporær løkke som fjerner alle snmp-spørringer som returnerer mer enn
-	# 100 vlan.
-	if ((@vlanliste+0) > 100 ) {
+    # Temporær løkke som fjerner alle snmp-spørringer som returnerer mer enn
+    # 100 vlan.
+    if ((@vlanliste+0) > 100 ) {
 #	    &leggInn($swportid, 9999);
-	} else {
+    } else {
 #	    &leggInn($swportid, @vlanliste);
-	    for (0..$#vlanliste) {
-		my $vlanid = join ":", ($swportid, $vlanliste[$_]);
-		$swportvlan{$vlanid} = [ $swportid, $vlanliste[$_] ];
-	    }
-
+	for (0..$#vlanliste) {
+	    my $vlanid = join ":", ($swportid, $vlanliste[$_]);
+	    $swportvlan{$vlanid} = [ $swportid, $vlanliste[$_] ];
 	}
+
+    }
     return 1;
 }
-	
+
 # Tar inn hex-strengen, splitter den opp i 32 bits verdier, og beregner vlan for hver av dem.
 # Bruker sub finnRutere til å tolke hex-verdiene.
 sub splittHex {
@@ -596,11 +594,10 @@ sub hent_db_swport
     {
 	@_ = map rydd($_), @_;
 
+	#lager entydig nøkkel og legger inn i hashen db_swport
 	my $id = join(":",$_[1],$_[4]);
 	$sw2id{$_[1]}{$_[4]} = $_[0];
-#	print $_[1].":".$_[4].":".$_[0];
 	$db_swport{$id} = [ @_[1..@felt_swport] ];
-#	print "@_\n";
     }    
 }
 ##########################
@@ -612,23 +609,16 @@ sub hent_db_swportvlan
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
     {
-
 	@_ = map rydd($_), @_;
+
+	#lager entydig nøkkel og legger inn i hashen db_swport
 	my $id = join(":",@_[1..2]);
 	$spv2id{$_[1]}{$_[2]} = $_[0];
 	$db_swportvlan{$id} = [ @_[1..2] ];
-#	print "@_\n";
     }    
 }
 
-
-
-
-##########################
-##########################
-##########################
-##########################
-
+#denne blir ikke bli brukt, og bør heller ikke bli det
 sub boksid {
     my $id = "";
     my @line;
@@ -642,15 +632,8 @@ sub boksid {
 	$id = $line[0];
     }
     return $id;
-   
-}
-##########################
-sub name2ip {
-    return inet_aton($_[0]);
 }
 
-
-##########################
 sub db_connect {     
 my $db = $_[0];     
     my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
