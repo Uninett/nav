@@ -181,11 +181,11 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         debug("Executed: %s" % statement)
 
     def hostsToPing(self):
+        query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
         try:
-            query = """SELECT netboxid, deviceid, sysname, ip, up FROM netbox """
+            self._hostsToPing = self.query(query)
         except dbError:
             return self._hostsToPing
-        self._hostsToPing = self.query(query)
         return self._hostsToPing
 
     def getCheckers(self, useDbStatus, onlyactive = 1):
