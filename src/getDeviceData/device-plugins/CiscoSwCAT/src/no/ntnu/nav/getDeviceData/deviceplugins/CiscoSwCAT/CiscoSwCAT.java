@@ -109,7 +109,7 @@ public class CiscoSwCAT implements DeviceHandler
 
 					// Determine and create the module
 					int module = 0;
-					String modulePattern = "(\\d+)/.*";
+					String modulePattern = ".*?(\\d+)/.*";
 					if (portif.matches(modulePattern)) {
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);
 						m.matches();

@@ -307,7 +307,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Determine and create the module
 				int module = 0;
-				String modulePattern = "(\\d+)/.*";
+				String modulePattern = ".*?(\\d+)/.*";
 				if (interf.matches(modulePattern)) {
 					Matcher m = Pattern.compile(modulePattern).matcher(interf);
 					m.matches();
