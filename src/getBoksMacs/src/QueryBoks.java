@@ -407,21 +407,23 @@ public class QueryBoks extends Thread
 				}
 				//outl("T"+id+":    ["+pm.getSource()+"] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId()) );
 
-				
-				String[] ins = {
-					"netboxid", boksId,
-					"ifindex", pm.getIfindex(),
-					"to_netboxid", pm.getToNetboxid(),
-					"to_swportid", new_to_swportid
-				};
 
-				try {
-					Database.insert("swp_netbox", ins);
-					if (DB_COMMIT) Database.commit(); else Database.rollback();
-					newCnt++;
-				} catch (SQLException e) {
-					Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
-					e.printStackTrace(System.err);
+				if (verifyNetboxid(boksId) && verifyNetboxid(pm.getToNetboxid())) {
+					String[] ins = {
+						"netboxid", boksId,
+						"ifindex", pm.getIfindex(),
+						"to_netboxid", pm.getToNetboxid(),
+						"to_swportid", new_to_swportid
+					};
+					
+					try {
+						Database.insert("swp_netbox", ins);
+						if (DB_COMMIT) Database.commit(); else Database.rollback();
+						newCnt++;
+					} catch (SQLException e) {
+						Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
+						e.printStackTrace(System.err);
+					}
 				}
 			}
 
@@ -447,6 +449,18 @@ public class QueryBoks extends Thread
 		threadDone[num] = true;
 		Log.freeThread();
 		Log.d("RUN", "** Thread done, time used: " + getBoksMacs.formatTime(usedTime) + ", waiting for " + getThreadsNotDone() + " **");
+	}
+
+	private boolean verifyNetboxid(String netboxid) {
+		try {
+			ResultSet rs = Database.query("SELECT netboxid FROM netbox WHERE netboxid='"+netboxid+"'");
+			if (rs.next()) return true;
+		} catch (SQLException e) {
+			Log.d("VERIFY_NETBOXID", "Verify netboxid ("+netboxid+"), SQLException: " + e.getMessage() );
+			e.printStackTrace(System.err);
+		}
+		Log.w("VERIFY_NETBOXID", "Netbox ("+netboxid+") " + boksIdName.get(netboxid) + " no longer exists!");
+		return false;
 	}
 	
 	private String getThreadsNotDone()
