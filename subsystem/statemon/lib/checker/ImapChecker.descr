@@ -1,0 +1,3 @@
+description=Internet mail application protocol
+args=username password
+optargs=port timeout
