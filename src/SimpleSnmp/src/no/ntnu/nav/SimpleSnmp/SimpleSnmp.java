@@ -165,7 +165,7 @@ public class SimpleSnmp
 	 */
 	public Map getAllMap(String baseOid) throws TimeoutException
 	{
-		return getAllMap(baseOid, false);
+		return getAllMap(baseOid, false, 0);
 	}
 
 	/**
@@ -177,10 +177,11 @@ public class SimpleSnmp
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
 	 * @param decodeHex try to decode returned hex to ASCII
+	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
 	 * @return a Map which maps the OIDs to their corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public Map getAllMap(String baseOid, boolean decodeHex) throws TimeoutException
+	public Map getAllMap(String baseOid, boolean decodeHex, int stripCnt) throws TimeoutException
 	{
 		List l = getAll(baseOid, decodeHex);
 		if (l == null) return null;
@@ -188,6 +189,7 @@ public class SimpleSnmp
 		Map m = new HashMap();
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
+			s[0] = strip(s[0], '.', stripCnt, true);
 			m.put(s[0], s[1]);
 		}
 		return m;
@@ -218,7 +220,7 @@ public class SimpleSnmp
 	 * OIDs.  </p>
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
-	 * @param stripCnt Strip this many elements (separated by .) from the OIDs
+	 * @param stripCnt Strip this many elements (separated by .) from the end OIDs
 	 * @return a Map which maps the OIDs to a List of corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
@@ -241,15 +243,7 @@ public class SimpleSnmp
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
 
-			if (stripCnt > 0) {
-				int p = 0, k = 0;
-				for (int i=0; i < stripCnt; i++) {
-					k = s[0].indexOf(".", p);
-					if (k < 0) break;
-					p = k+1;
-				}
-				s[0] = s[0].substring(p, s[0].length());
-			}
+			s[0] = strip(s[0], '.', stripCnt, false);
 			s[0] = convertToIfIndex(s);
 
 			List vl;
@@ -258,6 +252,25 @@ public class SimpleSnmp
 		}
 		return m;
 	}
+
+	// Strip elements from string s
+	private String strip(String s, char sep, int cnt, boolean front) {
+		if (cnt > 0) {
+			int p = 0, k = 0;
+			for (int i=0; i < cnt; i++) {
+				k = s.indexOf(sep, p);
+				if (k < 0) break;
+				p = k+1;
+			}
+			if (front) {
+				if (p > 0) s = s.substring(0, p-1);
+			} else {
+				s = s.substring(p, s.length());
+			}
+		}
+		return s;
+	}
+
 
 	/**
 	 * Get the ifIndex from the String array. Subclasses can override
@@ -330,6 +343,22 @@ public class SimpleSnmp
 	 * <p> Note: the baseOid prefix will be removed from any returned
 	 * OIDs.  </p>
 	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid, boolean decodeHex, int stripCnt) throws TimeoutException {
+		return getAll(baseOid, decodeHex, true, stripCnt);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
 	 * @return an ArrayList containing String arrays of two elements; OID and value
@@ -352,6 +381,23 @@ public class SimpleSnmp
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
+		return getAll(baseOid, decodeHex, getNext, 0);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
 		if (baseOid == null) return null;
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
@@ -403,6 +449,7 @@ public class SimpleSnmp
 							oid.length() == baseOid.length() ? "" : oid.substring(baseOid.length()+1, oid.length()),
 							data.trim()
 						};
+						s[0] = strip(s[0], '.', stripCnt, true);
 						l.add(s);
 
 						if (!getAll && --getCnt == 0) break;
