@@ -28,6 +28,7 @@ public class QueryNetbox extends Thread
 	private static Timer updateDataTimer;
 	private static int updateDataInterval;
 	private static CheckRunQTask checkRunQTask;
+	private static UpdateDataTask updateDataTask;
 
 	private static Map typeidMap;
 	private static Map oidkeyMap;
@@ -90,9 +91,9 @@ public class QueryNetbox extends Thread
 
 	private static void scheduleUpdateNetboxes(long l) {
 		synchronized (updateDataTimer) {
-			updateDataTimer.cancel();
-			updateDataTimer = new Timer();
-			updateDataTimer.schedule(new UpdateDataTask(), l, updateDataInterval);
+			if (updateDataTask != null) updateDataTask.cancel();
+			updateDataTask = new UpdateDataTask();
+			updateDataTimer.schedule(updateDataTask, l, updateDataInterval);
 			Log.d("QUERY_NETBOX", "SCHEDULE_UPDATE_NETBOXES", "Schedule for immediate execution");
 		}
 	}
@@ -125,7 +126,7 @@ public class QueryNetbox extends Thread
 	private static void scheduleCheckRunQ(long l)
 	{
 		synchronized (timer) {
-			checkRunQTask.cancel();
+			if (checkRunQTask != null) checkRunQTask.cancel();
 			checkRunQTask = new CheckRunQTask();
 			// Eh.. make sure we don't schedule anything negative =)
 			// If this happens it is a bug and should be fixed!
