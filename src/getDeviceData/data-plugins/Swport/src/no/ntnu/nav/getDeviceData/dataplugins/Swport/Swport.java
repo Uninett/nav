@@ -195,7 +195,13 @@ public class Swport implements Comparable
 	/**
 	 * Set the allowed VLANs as a hexstring (used on Cisco devices).
 	 */
-	public void setHexstring(String s) { hexstring = s; }
+	public void setHexstring(String s) {
+		hexstring = s;
+		if (hexstring != null) {
+			// Make the hexstring a bit nicer
+			hexstring = util.remove(hexstring, ":").toLowerCase();
+		}
+	}
 
 	String getVlanAllowHexString()
 	{

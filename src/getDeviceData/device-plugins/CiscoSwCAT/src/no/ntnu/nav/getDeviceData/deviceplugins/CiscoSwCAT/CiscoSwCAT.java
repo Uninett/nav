@@ -183,8 +183,6 @@ public class CiscoSwCAT implements DeviceHandler
 				for (Iterator it = l.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String ifindex = (String) modPortIfindex.get(s[0]);
-					// Make the hexstring a bit nicer
-					s[1] = util.remove(s[1], ":").toLowerCase();
 					sc.swportFactory(ifindex).setHexstring(s[1]);
 				}
 			}
