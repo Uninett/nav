@@ -33,7 +33,7 @@ $makeMenu("Maintenance list")
 #set $last_netbox = True
 #set $last_message = True
 #set $columns = ("message", "location", "room", "netbox", "service/module", "maintenance end")
-<table style="font-size:0.7em">
+<table style="font-size:0.7em;padding:0;margin:0;">
 <tr>#slurp
 #for $column in $columns
 <th>$column</th>#slurp
@@ -43,38 +43,38 @@ $makeMenu("Maintenance list")
 #for $element in $maintlist
 <tr>#slurp
 #if $element.message
-<td style="background-color:snow">#slurp
+<td style="background-color:#eeeeee">#slurp
 #else
 <td>#slurp
 #end if
 #if not $last_message==$element.message
-$element.message $element.title#slurp
+<a href="/messages/view/$element.message">$element.title</a>#slurp
 #else
 &nbsp;#slurp
 #end if
 </td>#slurp
 #if $element.category=="location"
-<td style="background-color:aqua">#slurp
+<td style="background-color:#AABBCC">#slurp
 #elif $element.locationid
-<td style="background-color:snow">#slurp
+<td style="background-color:#eeeeee">#slurp
 #else
 <td>#slurp
 #end if
-#if not $last_location==$element.locationid
-$element.locationid $element.locationdescr#slurp
+#if $element.locationid and not $last_location==$element.locationid
+<a href="/report/room?locationid=$element.locationid">$element.locationid, $element.locationdescr</a>#slurp
 #else
 &nbsp;#slurp
 #end if
 </td>#slurp
 #if $element.category=="room"
-<td style="background-color:aqua">#slurp
+<td style="background-color:#AABBCC">#slurp
 #elif $element.roomid
-<td style="background-color:snow">#slurp
+<td style="background-color:#eeeeee">#slurp
 #else
 <td>#slurp
 #end if
-#if not $last_room==$element.roomid
-$element.roomid $element.roomdescr#slurp
+#if $element.roomid and not $last_room==$element.roomid
+<a href="/report/netbox?roomid=$element.roomid">$element.roomid, $element.roomdescr</a>#slurp
 #else
 &nbsp;#slurp
 #end if
@@ -83,14 +83,14 @@ $element.roomid $element.roomdescr#slurp
 #set $last_room = $element.roomid
 #set $last_message = $element.message
 #if $element.category=="netbox"
-<td style="background-color:aqua">#slurp
+<td style="background-color:#AABBCC">#slurp
 #elif $element.netboxid
-<td style="background-color:snow">#slurp
+<td style="background-color:#eeeeee">#slurp
 #else
 <td>#slurp
 #end if
 #if not $last_netbox==$element.netboxid
-$element.sysname $element.netboxid#slurp
+<a href="/browse/$element.netboxid">$element.sysname</a>#slurp
 #else
 &nbsp;#slurp
 #end if
@@ -100,9 +100,9 @@ $element.sysname $element.netboxid#slurp
 ##go on with coloring
 <td>#slurp
 #if $element.serviceid
-$element.handler#slurp
+<a href="/report/servicemon?netboxid=$element.netboxid">$element.handler</a>#slurp
 #elif $element.module
-$element.module#slurp
+<a href="/report/swport?b1.sysname=$element.sysname&module=$element.module">$element.module</a>#slurp
 #end if
 </td><td>$element.end</td></tr>
 
