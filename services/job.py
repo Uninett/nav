@@ -1,9 +1,7 @@
-
 """
 Overvåkeren
 
-$Author: magnun $
-$Id: job.py,v 1.32 2002/06/20 23:59:33 magnun Exp $
+$Id: job.py,v 1.33 2002/06/21 10:09:25 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -441,8 +439,18 @@ class SmtpHandler(JobHandler):
 		code,msg = s.connect(ip,port)
 		if code != 220:
 			return Event.DOWN,msg
+		version = msg.split()[2:]
+		if len(version) >= 1:
+			s = version[0]
+			for i in version[1:]:
+				s += ' ' + i
+				if ';' in s:
+					break
+			version = s
 		else:
-			return Event.UP,msg
+			version = ''
+		self.setVersion(version)
+		return Event.UP,msg
 
 
 jobmap = {'http':HttpHandler,
@@ -453,5 +461,6 @@ jobmap = {'http':HttpHandler,
 	  'imap':ImapHandler,
 	  'mysql':MysqlHandler,
 	  'smb':SmbHandler,
-	  'SmtpHandler':SmtpHandler
+	  'smtp':SmtpHandler,
+	  'pop':PopHandler
 	  }
