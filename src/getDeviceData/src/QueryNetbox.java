@@ -156,7 +156,7 @@ public class QueryNetbox extends Thread
 
 		// First fetch new types from the database
 		try {
-			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
+			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, cs_at_vlan, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
 			String prevtypeid = null;
 			//boolean prevuptodate;
 			//boolean dirty = false;
@@ -170,33 +170,19 @@ public class QueryNetbox extends Thread
 
 			while (rs.next()) {
 				String typeid = rs.getString("typeid");
-				String typename = rs.getString("typename");
-				boolean uptodate = rs.getBoolean("uptodate");
 
 				if (!typeid.equals(prevtypeid)) {
 					keyFreqMap = new HashMap();
 					keyMap = new HashMap();
-					t = new Type(typeid, typename, uptodate, keyFreqMap, keyMap);
+					String typename = rs.getString("typename");
+					int csAtVlan = rs.getString("cs_at_vlan") == null ? Type.CS_AT_VLAN_UNKNOWN : Type.csAtVlan(rs.getBoolean("cs_at_vlan"));
+					boolean uptodate = rs.getBoolean("uptodate");
+
+					t = new Type(typeid, typename, csAtVlan, uptodate, keyFreqMap, keyMap);
 					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
 					typeidM.put(typeid, t);
 				}
 					
-				/*
-				if (rs.isFirst()) {
-					prevtypeid = typeid;
-					prevuptodate = uptodate;
-				}
-				if (!typeid.equals(prevtypeid)) {
-					Type t = new Type(prevtypeid, prevuptodate, keyFreqMap, keyMap);
-					t.setDirty(dirty);
-					dirty = false;
-					if (!prevuptodate) oidQ.add(t);
-					typeidM.put(prevtypeid, t);
-					keyFreqMap = new HashMap();
-					keyMap = new HashMap();
-				}
-				*/
-
 				if (rs.getBoolean("oiduptodate")) {
 					String snmpoidid = rs.getString("snmpoidid");
 					String oidkey = rs.getString("oidkey");

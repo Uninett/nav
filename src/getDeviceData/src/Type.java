@@ -2,9 +2,13 @@ import java.util.*;
 
 public class Type
 {
+	public static final int CS_AT_VLAN_TRUE = 0;
+	public static final int CS_AT_VLAN_FALSE = 1;
+	public static final int CS_AT_VLAN_UNKNOWN = 2;
 
 	private String typeid;
 	private String typename;
+	private int csAtVlan;
 	private boolean uptodate;
 	private boolean dirty;
 
@@ -14,9 +18,10 @@ public class Type
 	// Maps an OID key to Snmpoid
 	private Map keyMap;
 
-	Type(String typeid, String typename, boolean uptodate, Map keyFreqMap, Map keyMap) {
+	Type(String typeid, String typename, int csAtVlan, boolean uptodate, Map keyFreqMap, Map keyMap) {
 		this.typeid = typeid;
 		this.typename = typename;
+		this.csAtVlan = csAtVlan;
 		this.uptodate = uptodate;
 		this.keyFreqMap = keyFreqMap;
 		this.keyMap = keyMap;
@@ -54,6 +59,21 @@ public class Type
 
 	boolean getDirty() {
 		return dirty;
+	}
+
+	void setCsAtVlan(int i) {
+		csAtVlan = i;
+	}
+
+	int getCsAtVlan() {
+		return csAtVlan;
+	}
+	char getCsAtVlanC() {
+		return getCsAtVlan() == CS_AT_VLAN_TRUE ? 't' : 'f';
+	}
+
+	static int csAtVlan(boolean b) {
+		return b ? CS_AT_VLAN_TRUE : CS_AT_VLAN_FALSE;
 	}
 
 	boolean getUptodate() {

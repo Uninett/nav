@@ -110,6 +110,26 @@ public class OidTester
 				}
 				unlock(ip);
 
+				// Check if we need to test for csAtVlan
+				synchronized(lock(t.getTypeid())) {
+					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
+						// Do test
+						try {
+							sSnmp.setCs_ro(rs.getString("ro")+"@1");
+							sSnmp.getNext("1", 1, false, true);
+
+							// OK, supported
+							t.setCsAtVlan(t.CS_AT_VLAN_TRUE);
+
+						} catch (Exception e) {
+							// Not supported
+							t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
+						}
+						Database.update("UPDATE type SET cs_at_vlan = '" + t.getCsAtVlanC() + "' WHERE typeid = '"+t.getTypeid()+"'");
+					}
+				}
+				unlock(t.getTypeid());
+
 				if (supported) {
 					// No need to test further
 					break;
