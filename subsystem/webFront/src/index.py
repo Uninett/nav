@@ -11,15 +11,16 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 
 """
 from mod_python import apache
-import os
-import nav
+import os, os.path
+import nav, nav.path
 from nav import web
 
-welcomeFileAnonymous = "/usr/local/nav/navme/apache/webroot/frontpage/welcome-anonymous.txt"
-welcomeFileRegistered = "/usr/local/nav/navme/apache/webroot/frontpage/welcome-registered.txt"
-contactInformationFile = "/usr/local/nav/navme/apache/webroot/frontpage/contact-information.txt"
-externalLinksFile = "/usr/local/nav/navme/apache/webroot/frontpage/external-links.txt"
-navLinksFile = "/usr/local/nav/navme/apache/webroot/frontpage/nav-links.conf"
+webConfDir = os.path.join(nav.path.sysconfdir, "webfront")
+welcomeFileAnonymous = os.path.join(webConfDir, "welcome-anonymous.txt")
+welcomeFileRegistered = os.path.join(webConfDir, "welcome-registered.txt")
+contactInformationFile = os.path.join(webConfDir, "contact-information.txt")
+externalLinksFile = os.path.join(webConfDir, "external-links.txt")
+navLinksFile = os.path.join(webConfDir, "nav-links.conf")
 
 TIMES = [' seconds', ' minutes', ' hours', ' days', ' years']
 

@@ -14,6 +14,8 @@ tooldir = @tooldir@
 
 tools = help.tool
 
+config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external-links.txt webfront.conf welcome-registered.txt
+
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
 all: 
@@ -52,12 +54,15 @@ install-images:
 	done
 
 install-conf:
-	@target=$(DESTDIR)$(sysconfdir)/webfront.conf ;            \
-	if [ -f "$$target" ]; then                                 \
-	  echo Skipping installation of config file webfront.conf; \
-	else                                                       \
-	  $(INSTALL) -D -m 644 doc/webfront.conf.sample $$target;  \
-	fi
+	cd config;                                             \
+	for file in $(config); do                              \
+	  target=$(DESTDIR)$(sysconfdir)/webfront/$$file;      \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target;           \
+	  fi                                                   \
+	done
 
 clean:
 	@backups=`find lib bin src -name '*~'`; \

@@ -13,7 +13,7 @@ import os
 import os.path
 import nav.auth
 
-webfrontConfig = config.readConfig('webfront.conf')
+webfrontConfig = config.readConfig('webfront/webfront.conf')
 
 def _compareTools(x, y):
     """
