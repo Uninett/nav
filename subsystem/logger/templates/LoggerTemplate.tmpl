@@ -103,10 +103,8 @@ $prioritylist($priorities, $priorityresult, $link)
 <br />
 
 <input type="submit" name="send" value="Send" />
-<input type="reset" name="reset" value="Reset" />
-<input type="button" name="cancel" value="Cancel" onclick="window.location.href='/logger/'"/>
-(Magnar: Ta bort en av disse. Reset går tilbake til forrige submit, cancel er ment å nullstille helt)<br/ >
-· <a href="/logger/?error">parsing errors</a> · <a href="/logger/?exception">priority exceptions</a> ·
+<input type="button" name="reset" value="Reset" onclick="window.location.href='/logger/'"/>
+ · <a href="/logger/?error">parsing errors</a> · <a href="/logger/?exception">priority exceptions</a> ·
 </form>
 
 </div>
@@ -131,6 +129,8 @@ $prioritylist($priorities, $priorityresult, $link)
 #end def
 
 #def $statistics($typelist, $originlist, $total, $typedict, $origindict, $typeid, $originid, $priorityid, $categoryid, $link)
+<div style="text-align:center;width:100%">
+
 <p style="text-align:center;">Total $total matches
 #if $typeid
 of type $typeid
@@ -144,31 +144,32 @@ of category $categoryid
 #end if
 </p>
 
-<div style="float:left;">
+<div style="float:left;text-align:left;">
 #if len($originlist)
 <table>
 #for $o in $originlist
 #if $originid == $origindict[$o[0]]
-<tr><td>$origindict[$o[0]]</td><td>$o[1]</td></tr>
+<tr><td>$origindict[$o[0]]</td><td><a href="/logger/?$link&amp;log=1">$o[1]</a></td></tr>
 #else
-<tr><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]">$origindict[$o[0]]</a></td><td>$o[1]</td></tr>
+<tr><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]">$origindict[$o[0]]</a></td><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]&amp;log=1">$o[1]</a></td></tr>
 #end if
 #end for
 </table>
 #end if
 </div>
-<div style="float:left;">
+<div style="float:left;text-align:left;">
 #if len($typelist)
 <table>
 #for $t in $typelist
 #if $typeid == $typedict[$t[0]]
-<tr><td>$typedict[$t[0]]</td><td>$t[1]</td></tr>
+<tr><td>$typedict[$t[0]]</td><td><a href="/logger/?$link&amp;log=1">$t[1]</a></td></tr>
 #else
-<tr><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]">$typedict[$t[0]]</a></td><td>$t[1]</td></tr>
+<tr><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]">$typedict[$t[0]]</a></td><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]&amp;log=1">$t[1]</a></td></tr>
 #end if
 #end for
 </table>
 #end if
+</div>
 </div>
 #end def
 

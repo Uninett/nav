@@ -155,10 +155,12 @@ def handler(req):
         exception = 1
     else:
         exception = 0
+    if req.form.has_key("log"):
+        log = 1
+    else:
+        log = 0
         
-    log = 0
     if not error and not exception:
-
 
         if origin and type or origin and log or type and log:
             ## log

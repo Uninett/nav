@@ -129,8 +129,11 @@ def createMessage(line):
             #raise "this is a defined message, but it has no handler"
         
         else:
-            database.execute("insert into errorerror (message) values (%s)" , (line,))
-            connection.commit()
+            # if this message shows sign of cisco format, put it in the error log
+            typematch = re.search("\w+-\d+-?\S*:")
+            if typematch:
+                database.execute("insert into errorerror (message) values (%s)" , (line,))
+                connection.commit()
             #raise "this is an undefined message"+line
 
             return
