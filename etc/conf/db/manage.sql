@@ -607,6 +607,8 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('warmStart','Tells us that a network-unit has done a warmstart','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
 	('info','Basic information','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
 
 DROP TABLE eventq CASCADE;
 DROP SEQUENCE eventq_eventqid_seq;
