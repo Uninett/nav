@@ -50,6 +50,7 @@ public class StaticRoutes implements DeviceHandler
 	};
 
 	private SimpleSnmp sSnmp;
+	private long getNextDelay = 0;
 
 	public int canHandleDevice(Netbox nb) {
 		if (!new HashSet(Arrays.asList(supportedCatids)).contains(nb.getCat())) return NEVER_HANDLE;
@@ -61,6 +62,16 @@ public class StaticRoutes implements DeviceHandler
 	public void handleDevice(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, DataContainers containers) throws TimeoutException
 	{
 		Log.setDefaultSubsystem("SRT_DEVHANDLER");
+		{
+			String delay = cp.get("ipRouteGetNextDelay");
+			if (delay != null) {
+				try {
+					getNextDelay = Long.parseLong(delay);
+				} catch (NumberFormatException e) {
+					Log.w("PARSE_NUMBER", "ipRouteGetNextDelay in nav.conf is not a number: " + delay);
+				}
+			}
+		}
 
 		ModuleContainer mc;
 		{
@@ -157,6 +168,7 @@ o For hver ruter (GW/GSW)
 		*/
 
 		// Retain ipRouteType = indirect(4) & ipRouteProto = local(2)
+		if (getNextDelay > 0) sSnmp.setGetNextDelay(getNextDelay);
 		MultiMap routeType = util.reverse(sSnmp.getAllMap(nb.getOid("ipRouteType")));
 		Set routes = routeType.get("4");
 	  //System.err.println("Routes1: " + routes);
@@ -166,6 +178,7 @@ o For hver ruter (GW/GSW)
 	  //System.err.println("Routes2: " + routes);
 		routes.retainAll(routeProto.get("2"));
 		if (routes.isEmpty()) return false;
+		if (getNextDelay > 0) sSnmp.setGetNextDelay(0);
 
 		// Remove routeDest = 0.0.0.0 and ipRouteNextHop = Null0
 		Map routeDest = sSnmp.getAllMap(nb.getOid("ipRouteDest"));
