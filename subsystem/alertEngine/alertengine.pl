@@ -24,10 +24,11 @@
 
 use strict;
 
-use Engine;
+use NAV::AlertEngine::Engine;
+use NAV::AlertEngine::Log;
 
 my $tf = time();
-my $e = Engine->new($Log::cfg);
+my $e = NAV::AlertEngine::Engine->new($NAV::AlertEngine::Log::cfg);
 $e->checkAlerts();
 $e->disconnectDB();
 

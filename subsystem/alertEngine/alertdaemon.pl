@@ -36,7 +36,7 @@ use diagnostics;
 use POSIX qw(setsid);
 use IO::Handle;
 
-use Engine;
+use NAV::AlertEngine::Engine;
 
 #BEGIN {require "alertengine.cfg";}
 
@@ -47,7 +47,7 @@ use Engine;
 
 sub runEngine() {
 
-	my $e = Engine->new($Log::cfg);
+	my $e = NAV::AlertEngine::Engine->new($NAV::AlertEngine::Log::cfg);
 	$e->run();
 
 }

@@ -24,16 +24,16 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package QueuedAlerts;
+package NAV::AlertEngine::QueuedAlerts;
 
-require AlertsBase;
+use NAV::AlertEngine::AlertsBase;
 
 use strict;
 use Exporter;
-use Log;
+use NAV::AlertEngine::Log;
 
 use vars qw(@ISA);
-@ISA=qw(AlertsBase);
+@ISA=qw(NAV::AlertEngine::AlertsBase);
 
 sub new
 #Constructor
@@ -42,7 +42,7 @@ sub new
     my $this={};
     $this->{dbh_event}=shift;
     $this->{dbh_user}=shift;
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
     bless $this,$class;
     $this->collectInfo();
     return $this;
@@ -69,7 +69,7 @@ sub collectInfo()
 	  $this->{qas}{$q->[0]}[$num]->{week}=$q->[4];
 	  $this->{qas}{$q->[0]}[$num]->{max}=$q->[5];
 	  $this->{acount}[$num]++;
-	  $this->addAlert(Alert->new($this->{dbh_event},$q->[2]),$num);
+	  $this->addAlert(NAV::AlertEngine::Alert->new($this->{dbh_event},$q->[2]),$num);
 	  $num++;
       }
 }

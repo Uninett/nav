@@ -24,10 +24,10 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package UserGroups;
+package NAV::AlertEngine::UserGroups;
 
 use strict;
-use Log;
+use NAV::AlertEngine::Log;
 
 sub new
 #Constructor
@@ -36,7 +36,7 @@ sub new
     shift;
     $this->{dbh}=shift;
 
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
     bless $this;
 
     $this->collectInfo();

@@ -24,7 +24,7 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package AlertsBase;
+package NAV::AlertEngine::AlertsBase;
 
 use strict;
 

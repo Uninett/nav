@@ -24,11 +24,11 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package EquipmentGroups;
+package NAV::AlertEngine::EquipmentGroups;
 
 use strict;
 use IP;
-use Log;
+use NAV::AlertEngine::Log;
 
 #my $dbh;
 #my %info;
@@ -53,7 +53,7 @@ sub new
     $this->{type}{lesseq}=4;
     $this->{type}{neq}=5;
     $this->{type}{in}=11;
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
     bless $this;
     $this->collectInfo();
     return $this;

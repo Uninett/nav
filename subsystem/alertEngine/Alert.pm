@@ -24,8 +24,8 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package Alert;
-use Log;
+package NAV::AlertEngine::Alert;
+use NAV::AlertEngine::Log;
 use strict;
 
 sub new
@@ -35,7 +35,7 @@ sub new
     my $class=shift;
     $this->{dbh}=shift;
     $this->{id}=shift;
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
     bless $this,$class;
     $this->collectInfo();
     return $this;

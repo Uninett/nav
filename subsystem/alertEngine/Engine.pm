@@ -28,7 +28,7 @@
 #          Arne Øslebø, UNINETT
 #
 
-package Engine;
+package NAV::AlertEngine::Engine;
 
 #use lib '/home/arneos/perl/lib/perl5/site_perl/5.8.0/i386-linux-thread-multi';
 
@@ -36,13 +36,13 @@ use warnings;
 use strict 'vars';
 use diagnostics;
 use DBI;
-use UserGroups;
-use Alert;
-use QueuedAlerts;
-use EquipmentGroups;
-use NewAlerts;
-use User;
-use Log;
+use NAV::AlertEngine::UserGroups;
+use NAV::AlertEngine::Alert;
+use NAV::AlertEngine::QueuedAlerts;
+use NAV::AlertEngine::EquipmentGroups;
+use NAV::AlertEngine::NewAlerts;
+use NAV::AlertEngine::User;
+use NAV::AlertEngine::Log;
 
 # Konstruktor..
 sub new {
@@ -54,7 +54,7 @@ sub new {
 	$this->{dbh_alert} = DBI->connect("dbi:Pg:dbname='$cfg->{alertdb_name}';host='$cfg->{alertdb_host}'", $cfg->{alertdb_loginname}, $cfg->{alertdb_passwd}, undef) || die $DBI::errstr;
 
 	$this->{cfg}=$cfg;
-	$this->{log}=Log->new();
+	$this->{log}=NAV::AlertEngine::Log->new();
 
 	bless $this,$class;                                          
 
@@ -98,7 +98,7 @@ sub checkAlerts()
   {
     my $this=shift;
 
-    my $nA=NewAlerts->new($this->{dbh_alert},$this->{lastAlertID});
+    my $nA=NAV::AlertEngine::NewAlerts->new($this->{dbh_alert},$this->{lastAlertID});
     my $num=$nA->getAlertNum();
     my $uG=undef;
     my $eG=undef;
@@ -106,18 +106,18 @@ sub checkAlerts()
 	$num=0;
     }
 
-    $uG=UserGroups->new($this->{dbh_user});
-    $eG=EquipmentGroups->new($this->{dbh_user});
+    $uG=NAV::AlertEngine::UserGroups->new($this->{dbh_user});
+    $eG=NAV::AlertEngine::EquipmentGroups->new($this->{dbh_user});
   
     #Collect infor about queued alerts
-    my $qa=QueuedAlerts->new($this->{dbh_alert},$this->{dbh_user});
+    my $qa=NAV::AlertEngine::QueuedAlerts->new($this->{dbh_alert},$this->{dbh_user});
 
     #Get list of users
     my $users=$this->{dbh_user}->selectall_arrayref("select id from account a, preference p where a.id=p.accountid and p.activeprofile is not NULL") || $this->{log}->printlog("Engine","checkAlerts",$Log::error, "could not get list of active users");
 
    foreach my $userid (@$users)
       {
-	my $user=User->new($userid->[0],$this->{dbh_user},$this->{cfg});
+	my $user=NAV::AlertEngine::User->new($userid->[0],$this->{dbh_user},$this->{cfg});
 	$user->checkAlertQueue($qa,$eG);
 	if($num)
 	  #If there are new active alarts

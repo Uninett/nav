@@ -24,11 +24,11 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package User;
+package NAV::AlertEngine::User;
 
 use NAV::Path;
 use strict;
-use Log;
+use NAV::AlertEngine::Log;
 use diagnostics;
 
 $User::msgtype[1]="email";
@@ -46,7 +46,7 @@ sub new
     my $cfg=shift;
     $this->{email_from}=$cfg->{email_from};
     $this->{sendmail}=$cfg->{sendmail};
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
 
     $this->{DAILY}=1;
     $this->{WEEKLY}=2;

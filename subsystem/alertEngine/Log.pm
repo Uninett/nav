@@ -21,7 +21,7 @@
 #
 # Authors: Arne Øslebø, UNINETT
 #
-package Log;
+package NAV::AlertEngine::Log;
 use NAV::Path;
 use vars qw{%log};
 

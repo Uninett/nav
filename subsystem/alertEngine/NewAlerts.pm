@@ -24,16 +24,16 @@
 # Authors: Arne Øslebø, UNINETT
 #
 
-package NewAlerts;
+package NAV::AlertEngine::NewAlerts;
 
-require AlertsBase;
+use NAV::AlertEngine::AlertsBase;
 
 use strict;
 use Exporter;
-use Log;
+use NAV::AlertEngine::Log;
 
 use vars qw(@ISA);
-@ISA=qw(AlertsBase);
+@ISA=qw(NAV::AlertEngine::AlertsBase);
 
 sub new
 #Constructor
@@ -41,7 +41,7 @@ sub new
     my $class=shift;
     my $this={};
     $this->{dbh}=shift;
-    $this->{log}=Log->new();
+    $this->{log}=NAV::AlertEngine::Log->new();
     bless $this,$class;
     $this->collectInfo();
     return $this;
@@ -67,7 +67,7 @@ sub collectInfo()
     foreach my $id (@$ids)
       #Collect information about all alerts
       {
-	$this->addAlert(Alert->new($this->{dbh},$id->[0]),$num);
+	$this->addAlert(NAV::AlertEngine::Alert->new($this->{dbh},$id->[0]),$num);
 	$this->{lastid}=$id->[0];
 	$num++;
       }
