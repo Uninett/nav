@@ -1,31 +1,15 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.22 2002/12/09 15:36:30 magnun Exp $
+$Id: RunQueue.py,v 1.23 2003/01/02 21:59:10 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
 from threading import *
 import threading, DEQueue, sys, time, types, traceback, debug, config
-
+import prioqueunique
 class TerminateException(Exception):
     pass
-
-class observer:
-    def __init__(self, rq):
-        self._rq=rq
-        self.debug=debug.debug()
-
-    def run(self):
-        while not self._rq.stop:
-            for eachWorker in self._rq.workers[1:]:
-                
-                #if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
-                    #self.debug.log("%s has used more than 10 seconds running %s"% (eachWorker.getName(), eachWorker._job.getType(),2))
-
-                    time.sleep(20)
-
-
 
 class worker(threading.Thread):
     """
@@ -76,7 +60,13 @@ class worker(threading.Thread):
         self._timeStartExecute=0
 
 
-class RunQueue:
+def RunQueue(*args, **kwargs):
+    if _RunQueue._instance is None:
+        _RunQueue._instance=_RunQueue(*args,**kwargs)
+    return _RunQueue._instance
+
+class _RunQueue:
+    _instance=None
     def __init__(self,**kwargs):
         self.conf=config.serviceconf()
         self.debug=debug.debug()
@@ -89,20 +79,26 @@ class RunQueue:
         self.workers=[]
         self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
+        self.pq=prioqueunique.prioque()
         self.lock=RLock()
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
-        #self._observer=observer(self)
-        #self.enq(self._observer)
+        
 
 
     def getMaxRunCount(self):
         return self._maxRunCount
 
-    def enq(self,*r):
+    def enq(self, r):
         self.lock.acquire()
-        self.rq.put(*r)
+        # Jobs with priority is put in a seperate queue
+        if type(r) == types.TupleType:
+            pri,obj=r
+            self.pq.put(pri,obj)
+            self.debug.log("Got job with priority")
+        else:
+            self.rq.put(r)
 
         #self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
         if self.numThreadsWaiting>0:
@@ -122,18 +118,40 @@ class RunQueue:
 
     def deq(self):
         self.lock.acquire()
-        while len(self.rq)==0:
-            if self.stop:
+        while 1:
+            # wait if we have no jobs in queue
+            while len(self.rq)==0 and len(self.pq)==0:
+                if self.stop:
+                    self.lock.release()
+                    raise TerminateException
+                self.numThreadsWaiting+=1
+                self.awaitWork.wait()
+            if self.stop: 
                 self.lock.release()
                 raise TerminateException
-            self.numThreadsWaiting+=1
-            self.awaitWork.wait()
-        if self.stop: 
-            self.lock.release()
-            raise TerminateException
-        r=self.rq.get()
-        self.lock.release()
-        return r
+
+            if len(self.pq)>0:
+                scheduledTime, obj = self.pq.headPair()
+                scheduledTime=float(scheduledTime)
+                now=time.time()
+                wait=scheduledTime-now
+                #self.debug.log("Job scheduled in %s secs" % wait)
+                # Execute scheduled priority jobs if any
+                if wait <= 0:
+                    r=self.pq.get()
+                    self.lock.release()
+                    return r
+            # Execute unpriorited jobs if any
+            if len(self.rq) > 0:
+                r=self.rq.get()
+                self.lock.release()
+                return r
+            # Wait to execute priority job, break if new jobs arrive
+            else:
+                self.numThreadsWaiting+=1
+                self.debug.log("Thread waits for %s secs"%wait)
+                self.awaitWork.wait(wait)
+            
 
     def terminate(self):
         self.lock.acquire()
