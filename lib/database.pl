@@ -173,7 +173,7 @@ sub db_update {
     my ($db,$tabell,$felt,$fra,$til,$hvor) = @_;
     if(defined( $fra ) && defined( $til )){
     unless($til eq $fra) {
-	print "***IKKE LIKE\n";
+#	print "***IKKE LIKE\n";
 	if (!$til && $fra){
 	    my $sql = "UPDATE $tabell SET $felt=null WHERE $hvor";
 	    my $nql = "OPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null|\n";
@@ -212,7 +212,7 @@ sub db_oppdater_idant_to {
 sub db_delete {
     my ($db,$tabell,$hvor) = @_;
     my $nql =  "SLETTER FRA TABELL |$tabell| HVOR |$hvor|\n";
-    my $sql = "DELETE FROM $tabell $hvor";
+    my $sql = "DELETE FROM $tabell WHERE $hvor";
     print $nql;
     print &db_execute($db,$sql);
 #    print $sql;
@@ -275,7 +275,7 @@ sub db_manipulate {
 	$where[2] = "$felt[3] = \'$tre\' ";
     }
 
-    my $where = " WHERE ".join("AND ",@where);
+    my $where = " ".join("AND ",@where);
 
 #	print "til: $ny[3] & fra: $gammel[3] $where\n";
 
@@ -465,7 +465,9 @@ sub db_alt{
 		if($slett == 1){
 		    unless($ny{$key1}{$key2}[1]) {
 			my $where = &lag_where(\@felt,$key1,$key2);
-			&db_delete($db,$tabell,$where);
+			if($gammel{$key1}{$key2}[1]){
+			    &db_delete($db,$tabell,$where);
+			}
 		    }
 		}
 	    }
@@ -500,7 +502,7 @@ sub lag_where{
 	    $where[2] = "$felt[3] = \'$key3\' ";
 	}
     }
-    my $where = " WHERE ".join("AND ",@where);
+    my $where = " ".join("AND ",@where);
     return $where;
 }
 
