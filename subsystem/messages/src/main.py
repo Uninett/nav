@@ -33,7 +33,7 @@ from time import strftime
 import re
 from nav import db
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
-from nav.web import SearchBox,EmotdSelect,redirect,shouldShow
+from nav.web import SearchBox,redirect,shouldShow
 from nav.web.messages.lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime
 from nav.web.messages.menu import Menu
 
