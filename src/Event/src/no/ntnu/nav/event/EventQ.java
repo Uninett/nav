@@ -84,6 +84,19 @@ public class EventQ {
 	}
 
 	/**
+	 * <p>
+	 * Convenience method. Same as calling:
+	 * </p>
+	 *
+	 * <code>
+	 * postEvent(eventFactory(...))
+	 * </code>
+	 */
+	public static boolean createAndPostEvent(String source, String target, int deviceid, int netboxid, int subid, String eventtypeid, int state, int value, int severity, Map varMap) {
+		return postEvent(eventFactory(source, target, deviceid, netboxid, subid, eventtypeid, state, value, severity, varMap));
+	}
+
+	/**
 	 * <p> Create a new Event ready for posting to the eventq.  </p>
 	 *
 	 * <p> If any of deviceid, netboxid or subid are &lt;= 0 default
