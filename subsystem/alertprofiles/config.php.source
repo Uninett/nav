@@ -8,6 +8,20 @@
 
 define("PATH_DB", "@sysconfdir@");
 define("PATH_BIN", "@bindir@");
+define("PATH_LOG", "/tmp/");
+
+/*
+ * DEBBUG SETTINGS
+ */
+define("AP_DEBUG_FILE", 1);
+define("AP_DEBUG_INLINE", 2);
+
+// Choose where to print debug information
+define("AP_DEBUG_TYPE", AP_DEBUG_INLINE);
+// Choose the verbosity level of debug information.
+// 0: no logging, 1: fatal errors, 2: warnings..
+define("AP_DEBUG_LEVEL", 1);
+
 
 /*
  * Matchfield operators

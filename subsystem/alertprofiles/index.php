@@ -72,11 +72,13 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 	global $error;
 	switch ($errno) {
 		case E_ERROR:
-			echo "AlertProfiles error-handler:<b>FATAL</b> [$errno] $errstr<br />\n";
-			echo "  Fatal error in line $errline of file $errfile";
-			echo ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />
-			$errfile [$errline]\n";
-			echo "Aborting...<br />\n";
+			if (AP_DEBUG_LEVEL > 0) {
+				echo "AlertProfiles error-handler:<b>FATAL</b> [$errno] $errstr<br />\n";
+				echo "  Fatal error in line $errline of file $errfile";
+				echo ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />
+				$errfile [$errline]\n";
+				echo "Aborting...<br />\n";
+			}
 			exit(1);
 		break;
 		case E_ERROR:
@@ -107,11 +109,21 @@ function flusherrors() {
 /* 	print "</pre>"; */
 	while ($err = array_pop($error)) {
 
-		if ( $err->isSevere()  or isset($_GET['debug']) ) {
-			print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-			print $err->GetHeader();
-			print "</h2></td></tr>";
-			print "<tr><td><p>" . $err->message . "</td></tr></table>";
+		$errorlvl = isset($_GET['debug']) ? $_GET['debug'] : AP_DEBUG_LEVEL;
+		
+		if ( ($err->isSevere()  and $errorlvl > 0 ) or 
+			($errorlvl > 1) ) {
+			if (AP_DEBUG_TYPE == AP_DEBUG_INLINE) {
+				print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+				print $err->GetHeader();
+				print "</h2></td></tr>";
+				print "<tr><td><p>" . $err->message . "</td></tr></table>";
+			} elseif (AP_DEBUG_TYPE == AP_DEBUG_FILE)  {
+				print "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+				print "FILE";
+				print "</h2></td></tr>";
+				print "<tr><td><p>" . $err->message . "</td></tr></table>";
+			}
 		}
 		
 	}
