@@ -265,7 +265,7 @@ public class BoxState implements EventHandler, EventCallback
 						Log.w("CALLBACK", "Box " + b.getSysname() + " is down, but no start event found!");
 						continue;
 					}
-					if (sentWarning) startEventMap.remove(b.getDeviceidI());
+					//if (sentWarning) startEventMap.remove(b.getDeviceidI());
 
 					// Ask the Box to update its status
 					b.updateStatus();
@@ -338,7 +338,7 @@ public class BoxState implements EventHandler, EventCallback
 								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found! " + startEventMap.keySet());
 								continue;
 							}
-							if (sentWarning) startEventMap.remove(m.getDeviceidI());
+							//if (sentWarning) startEventMap.remove(m.getDeviceidI());
 							
 							// Create alert
 							Alert a = ddb.alertFactory(e);
