@@ -5,8 +5,8 @@ from nav.web import urlbuilder
 from nav.errors import *
 from nav.rrd import presenter
 
-from  nav.web import tableview
-import service
+from nav.web import tableview
+from nav.web.devBrowser import service
 import forgetHTML as html
 import random
 from mx import DateTime
