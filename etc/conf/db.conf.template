@@ -1,7 +1,7 @@
 #
 # This file contains database configuration setup for NAV.  Please be
 # aware that whitespace is allowed on each side of the = characters.
-# $Id: db.conf.template,v 1.3 2002/06/11 16:40:31 stain Exp $
+# $Id: db.conf.template,v 1.4 2002/07/04 06:25:13 mortenv Exp $
 #
 
 # Configure which host is running the postmaster.
@@ -15,6 +15,9 @@ db_nav=manage
 db_trapdetect=trapdetect
 db_syslog=syslog
 db_makeconfig=manage
+#may be on a per user basis.
+db_syslogadmin=syslog 
+db_navall=manage
 
 # This section tells each NAV script/program what username to use when
 # logging in to the postgresql server. Script author: Insert your
@@ -31,7 +34,26 @@ script_getBoksMacs = getboksmacs
 script_getPortData = getportdata
 script_navAdmin = navadmin
 script_vPServer = vpserver
+script_getDeviceData = getdevicedata
+script_eventEngine = eventengine
 script_makeconfig = makeconfig
+
+# SG - Do as you like: and document it!
+script_messagetemplate = syslogadmin
+script_syslogsettinn = syslogadmin
+script_syslogslett = syslogadmin
+script_syslog = syslogadmin # ikke OK (web)
+script_tekstfiler = navall
+script_bokser = navall
+script_gwporter = navall
+script_swporter = navall
+script_ragen = navall # stygt! hvem som helst kan endre dette til noe bedre (s)
+
+# SG på vegne av GA
+script_get_boksdata = navall
+
+# JM
+script_trapdetect=trapdetect,manage
 
 # Configure postgresql user passwords.
 # These are of the form: 
@@ -43,6 +65,7 @@ script_makeconfig = makeconfig
 # tokens in it.
 #
 userpw_manage=§§password§§
+userpw_trapdetect=§§password§§
 userpw_navall=§§password§§
 userpw_syslogadmin=§§password§§
 userpw_varsle=§§password§§
@@ -52,4 +75,7 @@ userpw_getboksmacs = §§password§§
 userpw_getportdata = §§password§§
 userpw_navadmin = §§password§§
 userpw_vpserver = §§password§§
+userpw_getdevicedata = §§password§§
+
+userpw_eventengine = §§password§§
 userpw_makeconfig=§§password§§
