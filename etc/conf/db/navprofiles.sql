@@ -912,7 +912,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 GRANT SELECT, UPDATE ON account_id_seq, accountgroup_id_seq, alarmadresse_id_seq, brukerprofil_id_seq, tidsperiode_id_seq, utstyrgruppe_id_seq, utstyrfilter_id_seq, matchfield_id_seq, filtermatch_id_seq, operator_id_seq, logg_id_seq, navbarlink_id_seq, privilege_id_seq, privilegebygroup TO navprofile;
 
 -- giving away permissions to add change and delete from tables...
-GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, privilege, accountgroupprivilege, accountorg TO navprofile;
+GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, privilege, accountgroupprivilege, accountorg, smsq TO navprofile;
 
 
 /*
