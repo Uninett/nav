@@ -433,7 +433,7 @@ CREATE TABLE arp (
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET NULL,
   sysname VARCHAR NOT NULL,
   ip INET NOT NULL,
-  mac VARCHAR(12) NOT NULL,
+  mac CHAR(12) NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity'
 );
@@ -449,7 +449,7 @@ CREATE TABLE cam (
   sysname VARCHAR NOT NULL,
   module VARCHAR(4) NOT NULL,
   port INT4 NOT NULL,
-  mac VARCHAR(12) NOT NULL,
+  mac CHAR(12) NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity',
   misscnt INT4 DEFAULT '0',
