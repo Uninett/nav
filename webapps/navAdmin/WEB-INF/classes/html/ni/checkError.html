@@ -1,0 +1,42 @@
+<!--#include virtual="head.inc" -->
+
+		<h1>
+			<center>
+				<font color=#000066>
+					navAdmin - nettInfo config - Sjekk for feil
+				</font>
+			</center>
+		</h1>
+
+		<form method="POST" action="[/main.servletPath]">
+			<input type="hidden" name="section" value="ni">
+			<input type="hidden" name="func" value="checkError">
+
+		<table>
+			<tr>
+				<td>
+				  Laveste niv&aring;
+				</td>
+				<td>
+					<select name="level">
+                                                [/ni.checkError.level]
+					</select>
+				</td>
+
+                                <!--
+				<td>
+				 <input type="checkbox" name="updateDb" value="ON"> Oppdater fra database
+				</td>
+                                -->
+
+			  <td>
+					<p><input type="submit" value="OK" name="B1"></p>
+				</td>
+			</tr>
+	  </table>
+		</form>
+
+
+[/ni.checkError]
+
+<!--#include virtual="foot.inc" -->

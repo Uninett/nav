@@ -1,0 +1,60 @@
+<!--#include virtual="head.inc" -->
+
+		<h1>
+			<center>
+				<font color=#000066>
+					navAdmin - vlanPlot config - Database config - nettel/link config
+				</font>
+			</center>
+		</h1>
+
+		<center>
+				<table border="0">
+				  <tr>
+						<td colspan=2>
+							<b>Skriv inn konfigurasjon for [/main.param.p2]</b><br>
+						</td>
+					</tr>
+
+					<form method="POST" action="[/main.servletPath]">
+						<input type="hidden" name="section" value="vp">
+						<input type="hidden" name="func" value="editText">
+						<input type="hidden" name="p1" value="save">
+						<input type="hidden" name="tekst" value="[/main.param.p1]">
+						<input type="hidden" name="keyword" value="[/main.param.p2]">
+
+				  <tr>
+						<td>
+						  <b>Fra tabell</b>
+						</td>
+						<td>
+						    <input type="text" name="tabell" value="[/vp.dbcnf.editField.tabell]"><br>
+						</td>
+					</tr>
+					<tr>
+						<td>
+						    <b>nettelId-felt i tabell</b>
+						</td>
+						<td>
+						    <input type="text" name="nettelid" value="[/vp.dbcnf.editField.nettelid]"><br>
+						</td>
+					</tr>
+					<tr>
+						<td>
+						    <b>Felt som skal inkluderes fra tabell</b>
+						</td>
+						<td>
+						    <input type="text" name="incfelt" value="[/vp.dbcnf.editField.incfelt]"><br>
+						</td>
+					</tr>
+					<tr>
+					  <td>
+							<p><input type="submit" value="Submit" name="B1"><input type="reset" value="Reset" name="B2"></p>
+						</td>
+					</tr>
+				</form>
+
+				</table>
+		</center>
+
+<!--#include virtual="foot.inc" -->

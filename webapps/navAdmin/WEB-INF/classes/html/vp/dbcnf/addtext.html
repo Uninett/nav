@@ -1,0 +1,41 @@
+<!--#include virtual="head.inc" -->
+
+		<h1>
+			<center>
+				<font color=#000066>
+					navAdmin - vlanPlot config - Database config - nettel/link config
+				</font>
+			</center>
+		</h1>
+
+		<center>
+				<table border="0">
+				  <tr>
+						<td colspan=2>
+							<b>Legg til ny tekst</b>
+						</td>
+					</tr>
+
+					<form method="POST" action="[/main.servletPath]">
+						<input type="hidden" name="section" value="vp">
+						<input type="hidden" name="func" value="addText">
+						<input type="hidden" name="p1" value="save">
+
+				  <tr>
+						<td>
+						  <b>Tekst</b>
+						</td>
+						<td>
+						    <input type="text" name="tekst" value=""><br>
+						</td>
+					<tr>
+					  <td>
+							<p><input type="submit" value="Submit" name="B1"><input type="reset" value="Reset" name="B2"></p>
+						</td>
+					</tr>
+				</form>
+
+				</table>
+		</center>
+
+<!--#include virtual="foot.inc" -->

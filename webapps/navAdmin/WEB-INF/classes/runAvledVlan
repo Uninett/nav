@@ -1,0 +1,1 @@
+java NavUtils /usr/local/nav/etc/navAdmin.conf -avledVlan > /home/kristian/devel/webapps/navAdmin/report/avledVlan.html
