@@ -273,7 +273,7 @@ public class GwportHandler implements DataHandler {
 
 							Gwportprefix oldgp = oldgwp == null ? null : oldgwp.getGwportprefix(gwip);
 							String prefixid;
-							if (oldgp == null && !prefixDbMap.containsKey(p.getCidr())) {
+							if (oldgp == null || !prefixDbMap.containsKey(p.getCidr())) {
 								// There is no old gwportprefix and prefix does not contains the netaddr
 								// Note: the gwpDbMap cannot contain getGwip now, so the next section will also match
 								Log.d("NEW_PREFIX", "Creating vlan: " + vl);
@@ -293,7 +293,7 @@ public class GwportHandler implements DataHandler {
 								newPrefixCnt++;
 							}
 
-							if (oldgp == null && !gwpDbMap.containsKey(gp.getGwip())) {
+							if (oldgp == null || !gwpDbMap.containsKey(gp.getGwip())) {
 								// The prefix exists, but there is no old gwportprefix with the same gwip
 								Log.d("NEW GWPORTPREFIX", "Gwportprefix: " + gp);
 								Prefix dbp = (Prefix)prefixDbMap.get(p.getCidr());
@@ -499,7 +499,7 @@ public class GwportHandler implements DataHandler {
 
 				if (newPrefixCnt > 0) {
 					// Update netbox with new prefixids
-					Database.update("UPDATE netbox SET prefixid = (SELECT prefixid FROM prefix JOIN vlan USING(vlanid) WHERE ip << netaddr AND nettype!='scope') WHERE prefixid IS NULL");
+					Database.update("UPDATE netbox SET prefixid = (SELECT prefixid FROM prefix JOIN vlan USING(vlanid) WHERE ip << netaddr AND nettype NOT IN ('scope','static')) WHERE prefixid IS NULL");
 				}
 
 			} catch (SQLException e) {
