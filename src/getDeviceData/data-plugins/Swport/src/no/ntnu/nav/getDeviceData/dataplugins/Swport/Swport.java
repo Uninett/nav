@@ -242,7 +242,7 @@ public class Swport implements Comparable
 	public boolean equalsSwport(Swport sw) {
 		return (ifindex.equals(sw.ifindex) &&
 						(port == null || port.equals(sw.port)) &&
-						(interf == null || intef.equals(sw.interf)) &&
+						(interf == null || interf.equals(sw.interf)) &&
 						(link == null || link.equals(sw.link)) &&
 						(speed == null || speed.equals(sw.speed)) &&
 						(duplex == null || duplex.equals(sw.duplex)) &&

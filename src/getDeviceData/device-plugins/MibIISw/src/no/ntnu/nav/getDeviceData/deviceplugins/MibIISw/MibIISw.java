@@ -39,7 +39,7 @@ public class MibIISw implements DeviceHandler
 	private static String[] canHandleOids = {
 		"ifSpeed",
 		"ifAdminStatus",
-		"ifOperStatus"
+		"ifOperStatus",
 		"ifDescr"
 	};
 
@@ -143,9 +143,9 @@ public class MibIISw implements DeviceHandler
 		if (ifdescrMap != null) {
 			for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
-				String ifindex = me.getKey();
+				String ifindex = (String)me.getKey();
 				if (skipIfindexSet.contains(ifindex)) continue;
-				String ifdescr = me.getValue();
+				String ifdescr = (String)me.getValue();
 
 				Swport swp = sc.swportFactory(ifindex);
 				swp.setInterface(ifdescr);
