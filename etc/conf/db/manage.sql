@@ -593,16 +593,26 @@ GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- event system tables --------
 CREATE TABLE eventtype (
-  eventtypeid VARCHAR(32) PRIMARY KEY
+  eventtypeid VARCHAR(32) PRIMARY KEY,
+  eventtypedesc VARCHAR(200),
+  statefull CHAR(1) NOT NULL CHECK (statefull='y' OR statefull='n')
 );
-INSERT INTO eventtype (eventtypeid) VALUES ('boxState');
-INSERT INTO eventtype (eventtypeid) VALUES ('serviceState');
-INSERT INTO eventtype (eventtypeid) VALUES ('moduleState');
-INSERT INTO eventtype (eventtypeid) VALUES ('thresholdState');
-INSERT INTO eventtype (eventtypeid) VALUES ('linkState');
-INSERT INTO eventtype (eventtypeid) VALUES ('coldStart');
-INSERT INTO eventtype (eventtypeid) VALUES ('warmStart');
-INSERT INTO eventtype (eventtypeid) VALUES ('info');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
+	('boxState','Tells us whether a network-unit is down or up.','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
+	('serviceState','Tells us whether a service on a server is up or down.','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('moduleState','Tells us whether a module in a device is working or not.','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('thresholdState','Tells us whether the load has passed a certain threshold.','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('linkState','Tells us whether a link is up or down.','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('coldStart','Tells us that a network-unit has done a coldstart','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('warmStart','Tells us that a network-unit has done a warmstart','n');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+	('info','Basic information','n');
 
 CREATE TABLE eventprocess (
   eventprocessid VARCHAR(32) PRIMARY KEY
