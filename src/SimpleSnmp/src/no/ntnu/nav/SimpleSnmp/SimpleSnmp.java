@@ -28,9 +28,12 @@ package no.ntnu.nav.SimpleSnmp;
 
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
-import uk.co.westhawk.snmp.stack.*;
-import uk.co.westhawk.snmp.pdu.*;
+//import uk.co.westhawk.snmp.stack.*;
+//import uk.co.westhawk.snmp.pdu.*;
+
+import snmp.*;
 
 /**
  * <p> Class for quering devices via SNMP. The aim of this class is to
@@ -58,10 +61,14 @@ public class SimpleSnmp
 	private String host = "127.0.0.1";
 	private String cs_ro = "community";
 	private String baseOid = "1.3";
-	private SnmpContext context = null;
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
 	private long getNextDelay = 0;
+
+	private SNMPv1CommunicationInterface comInterface = null;
+	private boolean valid = false;
+	//private SnmpContext context = null;
+
 
 	private Map cache = new HashMap();
 
@@ -98,8 +105,8 @@ public class SimpleSnmp
 		return new SimpleSnmp(host, cs_ro, baseOid);
 	}
 
-	public void setHost(String host) { this.host = host; }
-	public void setCs_ro(String cs_ro) { this.cs_ro = cs_ro; }
+	public void setHost(String host) { if (!this.host.equals(host)) valid=false; this.host = host; }
+	public void setCs_ro(String cs_ro) { if (!this.cs_ro.equals(cs_ro)) valid=false; this.cs_ro = cs_ro; }
 	protected String getCs_ro() { return cs_ro; }
 	public void setBaseOid(String baseOid) { this.baseOid = baseOid; }
 	public void setParams(String host, String cs_ro, String baseOid)
@@ -543,13 +550,105 @@ public class SimpleSnmp
 		if (baseOid == null) return null;
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
-		ArrayList l = new ArrayList();
 		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
 		if (cache.containsKey(cacheKey)) {
-			l.addAll((Collection)cache.get(cacheKey));
-			return l;
+			return new ArrayList((Collection)cache.get(cacheKey));
 		}
 
+		ArrayList l = getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripCnt);
+		cache.put(cacheKey, l);
+		return l;
+	}
+
+	private ArrayList getAllJavaSnmp(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+		ArrayList l = new ArrayList();
+
+		try {
+			checkSnmpContext();
+
+			// Should we get the entire subtree?
+			boolean getAll = getCnt == 0;
+
+			SNMPVarBindList	var = null;
+			boolean timeout = false;
+			try {
+				if (getNext) {
+					var = comInterface.retrieveMIBTable(baseOid);
+				} else {
+					var = comInterface.getMIBEntry(baseOid);
+				}
+			} catch (SocketException exp) {
+				timeout = true;
+			} catch (SNMPBadValueException exp) {
+				System.err.println("SNMPBadValueException: " + exp);
+				return l;
+			} catch (SNMPException exp) {
+				if (!(exp instanceof SNMPGetException && exp.getMessage() != null && exp.getMessage().indexOf("not available for retrieval") >= 0)) {
+					System.err.println("SNMPException: " + exp);
+				}
+				return l;
+			} catch (IOException exp) {
+				if (exp.getMessage() != null && exp.getMessage().indexOf("Receive timed out") >= 0) {
+					timeout = true;
+				} else {
+					throw exp;
+				}
+			}
+
+			if (timeout) {
+				timeoutCnt++;
+				if (timeoutCnt >= timeoutLimit) {
+					throw new TimeoutException("Too many timeouts, giving up");
+				} else {
+					// Re-try operation
+					return getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripCnt);
+				}
+			}
+			timeoutCnt = 0;
+
+			for (int i=0; i < var.size(); i++) {
+				SNMPSequence pair = (SNMPSequence)(var.getSNMPObjectAt(i));
+				SNMPObjectIdentifier snmpOID = (SNMPObjectIdentifier)pair.getSNMPObjectAt(0);
+				SNMPObject snmpValue = pair.getSNMPObjectAt(1);
+
+				String oid = snmpOID.toString();
+				String data;
+				if (!decodeHex && snmpValue instanceof SNMPOctetString) {
+					data = toHexString((byte[])snmpValue.getValue());					
+				} else {
+					data = snmpValue.toString();
+				}
+
+				String[] s = {
+					oid.length() == baseOid.length() ? "" : oid.substring(baseOid.length()+1, oid.length()),
+					data.trim()
+				};
+				s[0] = strip(s[0], '.', stripCnt, true);
+				l.add(s);
+				
+				if (!getAll && --getCnt == 0) break;
+
+			}
+
+		} catch (IOException e) {
+			outl("  *ERROR*: Host: " + host + " IOException: " + e.getMessage() );
+		}
+		getCnt = 0;
+		return l;
+	}
+
+	private String toHexString(byte[] bytes) {
+		StringBuffer sb = new StringBuffer();
+		int[] ints = new int[bytes.length];
+		for (int i=0; i < ints.length; i++) ints[i] = bytes[i] < 0 ? 256 + bytes[i] : bytes[i];
+		for (int i=0; i < ints.length; i++) sb.append((i>0?":":"")+(ints[i]<16?"0":"")+Integer.toString(ints[i], 16));
+		return sb.toString();
+	}
+
+	private ArrayList getAllWesthawk(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+		ArrayList l = new ArrayList();
+
+		/*
 		try {
 			checkSnmpContext();
 
@@ -646,8 +745,8 @@ public class SimpleSnmp
 		} catch (IOException e) {
 			outl("  *ERROR*: Host: " + host + " IOException: " + e.getMessage() );
 		}
+		*/
 		getCnt = 0;
-		cache.put(cacheKey, l);
 		return l;
 	}
 
@@ -657,6 +756,25 @@ public class SimpleSnmp
 	 * @return true if the SnmpContext was updated
 	 */
 	protected boolean checkSnmpContext() throws IOException {
+		if (comInterface == null || !valid) {
+			if (comInterface != null) comInterface.closeConnection();
+			InetAddress hostAddress = InetAddress.getByName(host);
+			int version = 0;    // SNMPv1
+			comInterface = new SNMPv1CommunicationInterface(version, hostAddress, cs_ro);
+			timeoutCnt = 0;
+			valid = true;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if the SnmpContext is still valid and update it if necessary.
+	 *
+	 * @return true if the SnmpContext was updated
+	 */
+	/*
+	protected boolean checkSnmpContext2() throws IOException {
 		if (context == null || !context.getHost().equals(host)) {
 			if (context != null) context.destroy();
 			//Exception e = new Exception("["+super.toString()+"] ["+Integer.toHexString(Thread.currentThread().hashCode())+"]");
@@ -671,11 +789,26 @@ public class SimpleSnmp
 		}
 		return false;
 	}
+	*/
 
 	/**
 	 * Deallocate any resources used.
 	 */
 	public void destroy() {
+		if (comInterface != null) {
+			try {
+				comInterface.closeConnection();
+			} catch (SocketException exp) {
+			}
+			comInterface = null;
+		}
+	}
+
+	/**
+	 * Deallocate any resources used.
+	 */
+	/*
+	public void destroy2() {
 		//Exception e = new Exception("["+super.toString()+"] ["+Integer.toHexString(Thread.currentThread().hashCode())+"]: " + context);
 		//e.printStackTrace(System.err);
 		if (context != null) {
@@ -684,6 +817,7 @@ public class SimpleSnmp
 			context = null;
 		}
 	}
+	*/
 
 
 	public void finalize() {
