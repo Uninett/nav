@@ -878,7 +878,7 @@ sub makeinterfaceTargets {
 	    my @tmp;
 	    foreach my $param (@nameparameters) {
 		my $a = $r->fnumber($param);
-		$params[$a] =~ s,/,_,;
+		$params[$a] =~ s,/,_,g;
 		push @tmp, $params[$a];
 	    }
 	    $name = join $joinparam, @tmp;
