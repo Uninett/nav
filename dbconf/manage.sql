@@ -1,3 +1,6 @@
+-- Slette alle views
+DROP VIEW boksmac
+
 -- Slette alle tabeller
 DROP TABLE swportallowedvlan;
 DROP TABLE swportvlan;
@@ -189,15 +192,6 @@ CREATE TABLE boksinfo (
   supVersion VARCHAR(10)
 );
 
-CREATE VIEW boksmac AS
-(SELECT DISTINCT ON (mac) boks.boksid,mac
- FROM arp
- JOIN boks USING (ip))
-UNION
-(SELECT DISTINCT ON (mac) gwport.boksid,mac
- FROM arp,gwport
- WHERE arp.ip=gwport.gwip);
-
 CREATE TABLE swp_boks ( 
   swp_boksid SERIAL PRIMARY KEY,                                                                  
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
@@ -247,6 +241,16 @@ CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256)
 );
+
+# VIEWs
+CREATE VIEW boksmac AS  
+(SELECT DISTINCT ON (mac) boks.boksid,mac
+ FROM arp
+ JOIN boks USING (ip))
+UNION
+(SELECT DISTINCT ON (mac) gwport.boksid,mac
+ FROM arp,gwport
+ WHERE arp.ip=gwport.gwip);
 
 
 --### vlanPlot tabeller ###
