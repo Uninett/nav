@@ -3,9 +3,13 @@
         build file for vlanPlot
     </description>
   <!-- set global properties for this build -->
+  <property name="jar" value="vlanPlot.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+	<property name="prefix" location="../../"/>
+  <property name="instdir"  location="${prefix}/apache/htdocs/vlanPlot/common"/>
+	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -18,7 +22,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" target="1.1"/>
+    <javac srcdir="${src}" destdir="${build}" target="1.1" debug="${debug}"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -26,15 +30,16 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <jar jarfile="${dist}/vlanPlot.jar" basedir="${build}"/>
+    <!-- Put everything in ${build} into the ${jar} file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}"/>
   </target>
 
   <target name="install" depends="dist">
-    <mkdir dir="../../apache/htdocs/vlanPlot/common"/>
-    <copy file="${dist}/vlanPlot.jar" todir="../../apache/htdocs/vlanPlot/common"/>
+    <mkdir dir="${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${instdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="../../apache/htdocs/vlanPlot/common/vlanPlot.jar"/>
+    <delete file="${instdir}/${jar}"/>
   </target>
 
   <target name="dist_debug" depends="dist"

@@ -7,7 +7,9 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-  <property name="instdir"  location="../../subsystem/getBoksMacs"/>
+	<property name="prefix" location="../../"/>
+  <property name="instdir"  location="${prefix}/subsystem/getBoksMacs"/>
+	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -20,7 +22,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" debug="yes"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"/>
   </target>
 
   <target name="dist" depends="compile"
