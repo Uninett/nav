@@ -1,55 +1,55 @@
 --------------------------------------------------------
 -- priority
--- Prioritetsnivå og beskrivelser
+-- PrioritY levels and descriptions
 --------------------------------------------------------
 
 DROP TABLE priority;
 
 CREATE TABLE priority (
-  id INTEGER PRIMARY KEY,
-  priority INTEGER NOT NULL,
+  priority VARCHAR PRIMARY KEY, -- like greit å la den vare tekst
   keyword VARCHAR UNIQUE NOT NULL,
   description VARCHAR
 );
 
 --------------------------------------------------------
 -- type
--- Typer meldinger, sterkt influert av syslog
+-- Types of messages, ala syslog
 --------------------------------------------------------
 
 DROP TABLE type;
-DROP SEQUENCE type_id_seq;
 
 CREATE TABLE type (
-  id SERIAL PRIMARY KEY,
-  facility VARCHAR NOT NULL,
-  mnemonic VARCHAR NOT NULL,
-  priorityid INTEGER REFERENCES priority (id) ON DELETE SET NULL ON UPDATE CASCADE,
-  UNIQUE(facility,mnemonic)
+  type VARCHAR PRIMARY KEY NOT NULL,
+  priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE,
+);
+
+--------------------------------------------------------
+-- category
+-- Categorising of origins
+--------------------------------------------------------
+
+DROP TABLE category;
+
+CREATE TABLE category (
+  category VARCHAR PRIMARY KEY NOT NULL
 );
 
 --------------------------------------------------------
 -- origin
--- Avsender av meldingene
--- Lurte på å legge category (bokstype) i egen tabell,
--- for å slippe å bruke distinct (som viser seg å være
--- for treg), men lot være fordi origin blir veldig
--- liten.
+-- Origins, senders of messages
 --------------------------------------------------------
 
 DROP TABLE origin;
-DROP SEQUENCE origin_id_seq;
 
 CREATE TABLE origin (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR UNIQUE NOT NULL,
+  name VARCHAR PRIMARY KEY NOT NULL,
   category VARCHAR
 );
 
 --------------------------------------------------------
 -- message
--- Selve meldingen. Består av timestamp, avsender, 
--- type, prioritet og meldingstekst.
+-- The messages 
+-- time, origin, priority, type and message text.
 --------------------------------------------------------
 
 DROP TABLE message;
@@ -58,9 +58,9 @@ DROP SEQUENCE message_id_seq;
 CREATE TABLE message (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  originid INTEGER NOT NULL REFERENCES origin (id) ON UPDATE CASCADE ON DELETE SET NULL,
-  priority INTEGER REFERENCES priority (id) ON UPDATE CASCADE ON DELETE SET NULL,
-  typeid INTEGER NOT NULL REFERENCES type (id) ON UPDATE CASCADE ON DELETE SET NULL,
+  origin INTEGER NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
+  priority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
+  type VARCHAR NOT NULL REFERENCES type (type) ON UPDATE CASCADE ON DELETE SET NULL,
   message VARCHAR
 );
 
@@ -82,8 +82,8 @@ CREATE TABLE errorerror (
 -- Oppretter indeksering
 --------------------------------------------------------
 
-CREATE INDEX message_typeid_hash ON message USING hash (typeid);
-CREATE INDEX message_originid_hash ON message USING hash (originid);
+CREATE INDEX message_type_hash ON message USING hash (type);
+CREATE INDEX message_origin_hash ON message USING hash (origin);
 CREATE INDEX message_time_btree ON message USING btree (time);
 
 --------------------------------------------------------
@@ -92,21 +92,21 @@ CREATE INDEX message_time_btree ON message USING btree (time);
 DROP VIEW message_view;
 
 CREATE VIEW message_view AS
-SELECT originid,typeid,message.priority,category,time FROM origin
-JOIN message ON originid=origin.id JOIN type ON typeid=type.id;
+SELECT origin,type,message.priority,category,time 
+FROM origin INNER JOIN message USING (origin) INNER JOIN type USING (type);
 
 --------------------------------------------------------
 -- Setter inn alle prioritetene
 --------------------------------------------------------
 
-insert into priority(id, priority, keyword, description) values (1, 0,'emergencies','System unusable');
-insert into priority(id, priority, keyword, description) values (2, 1,'alerts','Immediate action needed');
-insert into priority(id, priority, keyword, description) values (3, 2,'critical','Critical conditions');
-insert into priority(id, priority, keyword, description) values (4, 3,'errors','Error conditions');
-insert into priority(id, priority, keyword, description) values (5, 4,'warnings','Warning conditions');
-insert into priority(id, priority, keyword, description) values (6, 5,'notifications','Normal but significant condition');
-insert into priority(id, priority, keyword, description) values (7, 6,'informational','Informational messages only');
-insert into priority(id, priority, keyword, description) values (8, 7,'debugging','Debugging messages');
+insert into priority(priority, keyword, description) values (0,'emergencies','System unusable');
+insert into priority(priority, keyword, description) values (1,'alerts','Immediate action needed');
+insert into priority(priority, keyword, description) values (2,'critical','Critical conditions');
+insert into priority(priority, keyword, description) values (3,'errors','Error conditions');
+insert into priority(priority, keyword, description) values (4,'warnings','Warning conditions');
+insert into priority(priority, keyword, description) values (5,'notifications','Normal but significant condition');
+insert into priority(priority, keyword, description) values (6,'informational','Informational messages only');
+insert into priority(priority, keyword, description) values (7,'debugging','Debugging messages');
 
 
 ------------------------------------------------------------------------------------------
