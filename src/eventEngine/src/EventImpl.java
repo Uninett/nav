@@ -346,7 +346,7 @@ class AlertmsgParser
 
 			msgList = (List)m.get("default"+s);
 			if (msgList == null) {
-				Log.d("FORMAT_MSGS", "Alerttype: default"+s+" not found in alertmsg file! Giving up.");
+				Log.d("FORMAT_MSGS", "Alerttype: default"+s+" not found in alertmsg file! Giving up. " + m);
 				return l.iterator();
 			}
 		}
