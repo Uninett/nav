@@ -28,12 +28,13 @@ if ($vars[prefiksid])
 }
 else
 {
-  $sok   = $vars[sok];
-  $dager = $vars[dager];
-  $dns   = $vars[dns];
-  $mac   = $vars[mac];
-  $IPfra = $vars[IPfra];
-  $IPtil = $vars[IPtil];
+  $sok    = $vars[sok];
+  $dager  = $vars[dager];
+  $dns    = $vars[dns];
+  $mac    = $vars[mac];
+  $IPfra  = $vars[IPfra];
+  $IPtil  = $vars[IPtil];
+  $alleip = $vars[alleip];
 }
 
 navstart("Søk på IP/mac",$bruker);
@@ -41,15 +42,13 @@ navstart("Søk på IP/mac",$bruker);
  
 print "<h2>Søk på IP/mac</h2>";
 
-skjema($prefix,$sok,$dager,$dns,$mac,$IPfra,$IPtil);
+skjema($prefix,$sok,$dager,$dns,$mac,$IPfra,$IPtil,$alleip);
 
 print "<hr>";
 
-#$dbh = pg_Connect ("dbname=manage user=navall password=uka97urgf");
-
 if ($sok == 'IP')
 {
-  ip_sok($dbh,$prefix,$IPfra,$IPtil,$dns,$dager);
+  ip_sok($dbh,$prefix,$IPfra,$IPtil,$dns,$dager,$alleip);
 } 
 
 if ($sok == 'mac')
@@ -74,7 +73,7 @@ $mac = ereg_replace ("-", "", $mac);
 
 # # # # # Mac-soek: Oppslag i CAM # # # # #
 
-$sql = "SELECT boks.sysname,modul,port,mac,fra,til,vlan,boks.ip FROM cam JOIN boks USING (boksid) JOIN prefiks USING (prefiksid) WHERE mac LIKE '$mac%' and (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra DESC";
+$sql = "SELECT boks.sysname,modul,port,mac,fra,til,vlan,boks.ip FROM cam JOIN boks USING (boksid) JOIN prefiks USING (prefiksid) WHERE mac LIKE '$mac%' and (til='infinity' or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra DESC";
 
 $result = pg_exec($dbh,$sql);
 $rows = pg_numrows($result);
@@ -142,7 +141,7 @@ $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (til is n
 
       $IPfra = ereg_replace ($prefix, "", $svar[ip_inet]); 
 
-      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&IPfra=$IPfra>$svar[ip_inet]</a></td>";
+      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&alleip=$alleip&&IPfra=$IPfra>$svar[ip_inet]</a></td>";
  
       if ($dns)
       {
@@ -180,11 +179,11 @@ $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (til is n
 }
 ###### ###### ###### ###### ######
 
-function ip_sok($dbh,$prefix,$IPfra,$IPtil,$dns,$dager)
+function ip_sok($dbh,$prefix,$IPfra,$IPtil,$dns,$dager,$alleip)
 {
 
 if (!$IPfra) {print "Gi inn en gyldig fra-IP<br>"; }
-else
+else # ip-fra gyldig
 {
   list($a,$b) = split("\.",$IPfra,2);
   list($c,$d) = split("\.",$IPtil,2);
@@ -198,7 +197,7 @@ else
   { 
     print "<b>En eller begge IPadressene er ugyldige. Prøv på nytt!</b><br>";
   }
-  else
+  else # feil er false
   {
     $IPfra = $prefix.$IPfra;
     if  (!$IPtil)
@@ -218,60 +217,120 @@ else
     {
       print "<b>Ingen treff</b><br>";
     }
-    else
+    else # treff i ip-soek
     {
-       $dnsip='heisan';
-       print "<TABLE>";
-       print "<tr><th>IP</th>";
-       if ($dns) { print "<th>dns</th>";}
-       print "<th>mac</th><th>fra</th><th>til</th></tr>";
+      list ($start[0],$start[1],$start[2],$start[3]) = split("\.",$IPfra,4);
+      list ($slutt[0],$slutt[1],$slutt[2],$slutt[3]) = split("\.",$IPtil,4);
 
-       for ($i=0;$i < $rows; $i++) 
+      $ip = 'heidu';  
+      $dnsip = 'heisann';
+      for ($i=0;$i < $rows; $i++) 
+      {	
+        $svar = pg_fetch_array($result,$i);
+
+        if ($ip != $svar[0])
+        {
+          $ip = $svar[ip_inet];
+          $teller = 0;
+        }
+
+	$data[$svar[0]][$teller][mac] = $svar[mac];
+	$data[$svar[0]][$teller][fra] = $svar[fra];
+	$data[$svar[0]][$teller][til] = $svar[til];
+	$teller++;
+
+      }
+
+      # Skrive resultatet til skjerm!
+
+      print "<table>";
+      print "<tr><th>IP</th>";
+      if ($dns) { print "<th>dns</th>";}
+      print "<th>mac</th><th>fra</th><th>til</th></tr>";
+
+      for ($i1=$start[0];$i1 <= $slutt[0]; $i1++)
+      {
+       for ($i2=$start[1];$i2 <= $slutt[1]; $i2++)
        {
-         $svar = pg_fetch_array($result,$i);
+        for ($i3=$start[2];$i3 <= $slutt[2]; $i3++)
+        {
+         for ($i4=$start[3];$i4 <= $slutt[3]; $i4++)
+         {
+           $ip = "$i1.$i2.$i3.$i4";
 
-         print "<tr><td>$svar[ip_inet]</td>"; 
-
-         if ($dns)
-         {         
-	   if ($dnsip != $svar[ip_inet])
-           {
-             $dnsip = $svar[ip_inet];
-	     $dnsname= gethostbyaddr($dnsip);
-             if ($dnsname == $dnsip)
+           if ($dns)
+           {         
+	     if ($dnsip != $ip)
              {
-               $dnsname = '-';
+               $dnsip = $ip;
+      	       $dnsname= gethostbyaddr($dnsip);
+               if ($dnsname == $dnsip)
+               {
+                 $dnsname = '-';
+               }
              }
            }
-	   
-           print "<td><FONT COLOR=chocolate>$dnsname</td>";
-         }
-
-        # Setter inn : i mac :)
-
-        ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[mac],$regs);
-        $svar[mac] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
-
-         print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[mac]>$svar[mac]</a></td><td><font color=green>$svar[fra]</td><td><font color=red>$svar[til]</td>";
-
-        print "<td>";
-        print lenke('ip_arp',$svar);
-        print "</td>";
-
-	print "</tr>";
 
 
+           if ($data[$ip][0][mac])
+           {
+             $teller = 0;
+	     while ($data[$ip][$teller][mac])
+             {         
+               print "<tr><td>".$ip."</td><td>";
 
-       }
-       print "</table>"; 
-    }
+	       if ($dns)
+               {
+	         print "<FONT COLOR=chocolate>$dnsname";
+                 print "</td><td>";
+               }
+
+	       # Setter inn : i mac :)
+
+               ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$data[$ip][$teller][mac],$regs);
+               $mac = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
+
+               print "<font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$mac>";
+	       print $mac;
+	       print "</td><td>";
+	       print "<font color=green>";
+               print $data[$ip][$teller][fra];
+               print "</td><td>";
+               print "<font color=red>";
+               print $data[$ip][$teller][til];
+               print "</td><td>";
+               print lenke('ip_arp',$svar);
+               print "</td></tr>";  
+	       $teller++;
+             }
+           } 
+           else
+           {
+             if ($alleip)
+             {
+  	       print "<tr><td>$ip</td><td>";
+               if ($dns)
+               {
+	         print "<FONT COLOR=chocolate>$dnsname";
+                 print "</td><td>";
+               }
+               print "-</td></tr>";
+             }
+           }
+         } # for nr 4
+        }  # for nr 3
+       }   # for nr 2
+      }    # for nr 1
+      print "</table>";
+    }      # else treff i ip-soek
   }
-}
+ }
+}  # end function ip_sok
 
-}
+  
 ###### ###### ###### ###### ######
 
-function skjema ($prefix,$sok,$dager,$dns,$mac,$IPfra,$IPtil)
+function skjema ($prefix,$sok,$dager,$dns,$mac,$IPfra,$IPtil,$alleip)
 {
 
 $dagarray = array(1,2,3,4,5,6,7,10,15,20,25,30);
@@ -314,6 +373,13 @@ print "Vis DNS <input type=checkbox name=dns";
 if ($dns) { print " checked";}
 
 print "><br>";
+
+print "Vis alle IP <input type=checkbox name=alleip";
+
+if ($alleip) { print " checked";}
+
+print "><br>";
+
 
 print "Vis siste ";
 
