@@ -169,33 +169,64 @@ o For hver ruter (GW/GSW)
 
 		// Retain ipRouteType = indirect(4) & ipRouteProto = local(2)
 		if (getNextDelay > 0) sSnmp.setGetNextDelay(getNextDelay);
-		MultiMap routeType = util.reverse(sSnmp.getAllMap(nb.getOid("ipRouteType")));
-		Set routes = routeType.get("4");
-	  //System.err.println("Routes1: " + routes);
-		if (routes.isEmpty()) return false;
-
-		MultiMap routeProto = util.reverse(sSnmp.getAllMap(nb.getOid("ipRouteProto")));
-	  //System.err.println("Routes2: " + routes);
-		routes.retainAll(routeProto.get("2"));
-		if (routes.isEmpty()) return false;
+		MultiMap routeProto = util.reverse(sSnmp.getAllMap(nb.getOid("ipRouteProto"), true));
 		if (getNextDelay > 0) sSnmp.setGetNextDelay(0);
+		Set routes = routeProto.get("2");
+		if (routes.isEmpty()) return false;
+		//System.err.println("Routes1: " + routes);
+
+		// Fetch directly
+		String ipRouteType = nb.getOid("ipRouteType");
+		if (ipRouteType == null) return false;
+		for (Iterator it = routes.iterator(); it.hasNext();) {
+			String s = Prefix.hexToIp((String)it.next());
+			List l = sSnmp.getAll(ipRouteType+"."+s, false, false);
+			//System.err.println("s: " + s + ", " + ((String[])l.get(0))[1]);
+			if (l.isEmpty() || !"4".equals(((String[])l.get(0))[1])) it.remove();
+		}
+		//System.err.println("Routes2: " + routes);
+		if (routes.isEmpty()) return false;
 
 		// Remove routeDest = 0.0.0.0 and ipRouteNextHop = Null0
-		Map routeDest = sSnmp.getAllMap(nb.getOid("ipRouteDest"));
-		MultiMap routeDestMM = util.reverse(routeDest);
-	  //System.err.println("Routes3: " + routes);
-		routes.removeAll(routeDestMM.get("0.0.0.0"));
+		String ipRouteDest = nb.getOid("ipRouteDest");
+		Map routeDest = new HashMap();
+		for (Iterator it = routes.iterator(); it.hasNext();) {
+			String s = Prefix.hexToIp((String)it.next());
+			List l = sSnmp.getAll(ipRouteDest+"."+s, false, false);
+			//System.err.println("s: " + s + ", " + Prefix.hexToIp(((String[])l.get(0))[1]));
+			if (!l.isEmpty() && "0.0.0.0".equals(Prefix.hexToIp(((String[])l.get(0))[1]))) it.remove();
+			else routeDest.put(s, Prefix.hexToIp(((String[])l.get(0))[1]));
+		}
+		//System.err.println("Routes3: " + routes);
 		if (routes.isEmpty()) return false;
 
-		Map routeNextHop = sSnmp.getAllMap(nb.getOid("ipRouteNextHop"));
-		MultiMap routeNextHopMM = util.reverse(routeNextHop);
-	  //System.err.println("Routes4: " + routes);
-		routes.removeAll(routeNextHopMM.get("Null0"));
-	  //System.err.println("Routes5: " + routes);
+		String ipRouteNextHop = nb.getOid("ipRouteNextHop");
+		Map routeNextHop = new HashMap();
+		for (Iterator it = routes.iterator(); it.hasNext();) {
+			String s = Prefix.hexToIp((String)it.next());
+			List l = sSnmp.getAll(ipRouteNextHop+"."+s, false, false);
+			if (!l.isEmpty()) routeNextHop.put(s, Prefix.hexToIp(((String[])l.get(0))[1]));
+			/*
+			System.err.println("s: " + s + ", " + ((String[])l.get(0))[1]);
+			if (!l.isEmpty() && "Null0".equals(((String[])l.get(0))[1])) it.remove();
+			else routeNextHop.put(s, l.get(0));
+			*/
+		}
+		//System.err.println("Routes4: " + routes);
 		if (routes.isEmpty()) return false;
-	  //System.err.println("Routes6: " + routes);
 
-		Map routeMask = sSnmp.getAllMap(nb.getOid("ipRouteMask"));
+		// Remove mask <= 16
+		String ipRouteMask = nb.getOid("ipRouteMask");
+		Map routeMask = new HashMap();
+		for (Iterator it = routes.iterator(); it.hasNext();) {
+			String s = Prefix.hexToIp((String)it.next());
+			List l = sSnmp.getAll(ipRouteMask+"."+s, false, false);
+			//System.err.println("s: " + s + ", " + Prefix.hexToIp(((String[])l.get(0))[1]));
+			if (!l.isEmpty() && Prefix.masklen(((String[])l.get(0))[1]) <= 16) it.remove();
+			else routeMask.put(s, Prefix.hexToIp(((String[])l.get(0))[1]));
+		}
+		//System.err.println("Routes4: " + routes);
+		if (routes.isEmpty()) return false;
 
 		// Create net map
 		List gwipList = sSnmp.getAll(nb.getOid("ipAdEntIfIndex"));
