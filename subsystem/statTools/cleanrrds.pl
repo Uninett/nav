@@ -1,4 +1,6 @@
 #!/usr/bin/perl -w
+#############################################################
+# This file is part of the NAV project.
 #
 # The purpose of this script is to search the cricket-data
 # directory for rrd-files that are not in use anymore, and
@@ -10,9 +12,9 @@
 #
 # cleanrrds -h for help.
 #
-# Author: John Magne Bredal <bredal@itea.ntnu.no>
-#         ITEA Nettgruppa, NTNU
-#
+# Copyright (c) 2003 by NTNU, ITEA nettgruppen
+# Authors: John Magne Bredal <bredal@itea.ntnu.no>
+############################################################
 
 use vars qw($opt_l $opt_d $opt_t $opt_f $opt_h  $opt_p);
 use Getopt::Std;
@@ -30,14 +32,13 @@ my $usage = "
 cleanrrds finds rrd-files that has not been written to for a specified time,
 and lists them or deletes them according to your wishes.
 
-usage: cleanrrds [-hld] [-t days] [-f string] [-p path]
-
-h : this helpstring
-l : flag to list files
-d : flag to delete files (CAUTION! This will actually DELETE the files.)
-t days     : selects files that has not been written to in t days
-f string   : selects files that match the string
-p path     : sets the path where we start looking\n";
+usage: $0 [-hld] [-t days] [-f string] [-p path]
+\th : this helpstring
+\tl : flag to list files
+\td : flag to delete files (CAUTION! This will actually DELETE the files.)
+\tt days     : selects files that has not been written to in t days
+\tf string   : selects files that match the string
+\tp path     : sets the path where we start looking\n";
 
 getopts('hldt:f:p:');
 
