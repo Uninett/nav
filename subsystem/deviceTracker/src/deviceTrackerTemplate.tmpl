@@ -1,0 +1,427 @@
+## $Id: $
+##
+## This file is a part of the NAV project.
+##
+## Defines various functions for the different parts of the
+## deviceTrakcer, called based upon args['page']
+##
+## There should be more common objects to render for this template
+## for example, a common list/table object for all the tables
+##
+## Last changed: 2003.07.25
+## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+##
+
+#extends nav.web.templates.MainTemplate
+#from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
+
+#def content
+#if $page == 'index'
+<h1>Device Tracker</h1>
+$args['body']
+#end if
+#if $page == 'order'
+$order()
+#end if
+#if $page == 'addOrder'
+$addOrder()
+#end if
+#if $page == 'registerOrder'
+$registerOrder()
+#end if
+#if $page == 'register'
+$register()
+#end if
+#if $page == 'history'
+$history()
+#end if
+#if $page == 'error'
+$registerError($args['errordevice'])
+#end if
+#if $page == 'browse'
+$browse()
+#end if
+#if $page == 'delete'
+$delete()
+#end if
+#if $page == 'rma'
+$showRma()
+#end if
+#if $args['returnpath']:
+<p>
+    <a href="$args['returnpath']['url']">$args['returnpath']['text']</a>
+</p>
+#end if
+#end def
+
+#def additionalCSS
+#end def
+
+#def browse()
+#if not ($args['deviceHistList'] or $args['errorDevice'] or $args['rmaDevice'])
+<h2>Choose a netbox or a module</h2>
+#set ts = tsTemplate()
+<form action="$args['action']" method="post">
+    $ts.treeselect($args['selectbox'])
+    <table>
+        <tr>
+#if $args['submit']['enabled']
+            <td><input type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+#else
+            <td><input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+#end if
+        </tr>
+    </table>
+</form>
+#elif $args['deviceHistList']
+$deviceHistory($args['deviceHistList'])
+#elif $args['errorDevice']
+$registerError($args['errorDevice'])
+#elif $args['rmaDevice']
+$registerRma($args['rmaDevice'])
+#end if
+#end def
+
+#def order()
+<h3>Active orders <a href="$args['update']">(update)</a></h3>
+<table>
+    <tr>
+        <th>Order number</th>
+        <th>Product</th>
+        <th>Amount</th>
+        <th>Ordered</th>
+        <th>Dealer</th>
+        <th>Ordered by</th>
+        <th>Organisation</th>
+        <th>Arrival</th>
+    </tr>
+#for $order in $args['activeOrders']
+    <tr>
+        <td>$order.orderNumber</td>
+        <td>$order.product</td>
+        <td>$order.amount</td>
+        <td>$order.orderTime</td>
+        <td>$order.dealer</td>
+        <td>$order.orderedByPerson</td>
+        <td>$order.orderedByOrg</td>
+        <td><a href="register/$order.orderId">Register arrival</a></td>
+    </tr>
+#end for
+    <tr>
+        <td><a href="add">Add new order</a></td>
+        <td colspan="6"></td>
+    </tr>
+</table>
+<h3>Order history</h3>
+<table>
+    <tr>
+        <th>Order number</th>
+        <th>Product</th>
+        <th>Amount</th>
+        <th>Ordered</th>
+        <th>Arrived</th>
+        <th>Dealer</th>
+        <th>Ordered by</th>
+        <th>Organisation</th>
+    </tr>
+    <tr>
+    </tr>
+#for $order in $args['oldOrders']
+    <tr>
+        <td>$order.orderNumber</td>
+        <td>$order.product</td>
+        <td>$order.amount</td>
+        <td>$order.orderTime</td>
+        <td>$order.arrivedTime</td>
+        <td>$order.dealer</td>
+        <td>$order.orderedByPerson</td>
+        <td>$order.orderedByOrg</td>
+    </tr>
+#end for
+ 
+</table>
+#end def
+
+#def addOrder()
+<h2>Add order</h2>
+#if $args['error']
+<p style="color: #f00">$args['error']</p>
+#end if
+<form action="$args['action']" method="post">
+<table>
+    <tr>
+        <th>Product</th>
+        <th>Number</th>
+        <th>Organisation</th>
+        <th>Dealer</th>
+        <th>Ordernr</th>
+    </tr>
+    <tr>
+        <td>
+            <select name="cn_prodid">
+#for $id,$productno,$descr in $args['productList']
+                <option value="$id">$productno</option>
+#end for
+            </select>
+        </td>
+        <td><input type="text" name="cn_number" size="3"></td>
+        <td>
+            <select name="cn_org">
+#for $value,$option in $args['orgList']
+                <option value="$value">($value) $option</option>
+#end if
+            </select>
+        </td>
+        <td><input type="text" name="cn_dealer"></td>
+        <td><input type="text" name="cn_ordernr"></td>
+    </tr>
+    <tr>
+        <td colspan="5"><input type="submit" name="cn_submit" value="Add"></td>
+    </tr>
+</table>
+</form>
+#end def
+
+
+#def registerOrder()
+<h2>Register arrival of order $args['orderid']</h2>
+#if $args['error']
+<p style="color: #f00">$args['error']</p>
+#end if
+<form action="$args['action']" method="post">
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>State</th>
+            <th>Serial</th>
+        </tr>
+#set $taborder = 1
+#set $index = 0
+#for $event in $args['events']
+        <tr>
+            <td>$event.device.product.vendor.vendorid $event.device.product.productno</td>
+#if not $event.device.serial
+            <td>            
+                <select name="cn_state">
+#for $value,$option in $args['statelist']
+#if $value == $args['states'][$index]
+                    <option value="$value" selected>$option</option>
+#else
+                    <option value="$value">$option</option>                   
+#end if
+#end for
+                </select>
+            </td>
+            <td><input type="text" name="cn_serial" tabindex="$taborder"></td>
+#else
+            <td>Arrived</td>
+            <td>$event.device.serial</td>
+#end if
+        </tr>
+#set $index = $index + 1
+#set $taborder = $taborder + 1
+#end for
+        <tr>
+            <td colspan="3"><input type="submit" name="cn_submit" value="Register"></td>
+        </tr>
+    </table>
+</form>
+#end def
+
+#def register()
+<h2>Register new device</h2>
+#if $args['error']
+<p style="color: #f00">$args['error']</p>
+#end if
+<form action="$args['action']" method="post">
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Serial</th>
+        </tr>
+        <tr>
+            <td><select name="cn_prodid">
+#for $id,$productno,$descr in $args['productList']
+                <option value="$id">$productno</option>
+#end for
+            </select></td>
+            <td><input type="text" name="cn_serial"></td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <input type="submit" name="cn_submit" value="Register">
+            </td>
+        </tr>
+    </table>
+</form>
+#end def
+
+
+#def history()
+#if $args['deviceHistList']
+$deviceHistory($args['deviceHistList'])
+#end if
+#end def
+
+#def deviceHistory($deviceHistList)
+#for $device in $deviceHistList
+#if $device.netboxId
+<h3>Device history for netbox <a href="$device.url">$device.sysname</a></h3>
+#elif $device.moduleId
+<h3>Device history for module $device.module in netbox <a href="$device.url">$device.sysname</a></h3>
+#else
+<h3>Device history for device $device.deviceId</h3>
+#end if
+#if $device.error
+<p style="color: #f00">$device.error</p>
+#else
+<table>
+    <tr>
+        <th>Event</th>
+        <th>Time</th>
+        <th>Description</th>
+    </tr>
+#for $sort_key,$event in $device.events
+    <tr>
+        <td>$event['eventType']</td>
+        <td>$event['time']</td>
+        <td>$event['descr']</td>
+    </tr>
+#end for    
+</table>
+#if $device.moduleevents
+<h3>Module history for <a href="$device.url">$device.sysname</a></h3>
+<table>
+    <tr>
+        <th>Event</th>
+        <th>Time</th>
+        <th>Description</th>
+    </tr>
+#for $sort_key,$event in $device.moduleevents
+    <tr>
+        <td>$event['eventType']</td>
+        <td>$event['time']</td>
+        <td>$event['descr']</td>
+    </tr>
+#end for    
+</table>
+#end if
+#end for
+#end if
+#end def
+
+#def registerError($device)
+<h3>Register error situation</h3>
+<form action="$args['action']" method="post">
+    <table>
+        <tr>
+#if $device.netboxId
+            <th>Register error situation for netbox $device.sysname</th>
+#elif $device.moduleId
+            <th>Register error situation for module $device.module in netbox $device.sysname</th>
+#else
+            <th>Register error situation for device $device.deviceId</th>
+#end if
+        </tr>
+        <tr>
+            <td><input type="text" name="cn_error" size="60"></td>
+        </tr>
+        <tr>
+            <td><input type="submit" name="cn_submit" value="Submit"></td>
+        </tr>
+    </table>
+</form>
+#end def
+
+
+#def showRma()
+#if $args['rmaDevice']
+$registerRma($args['rmaDevice'])
+#else
+<h3>Active RMA events <a href="$args['update']">(update)</a></h3>
+#if len($args['rmaList'])
+<table>
+    <tr>
+        <th>Device</th>
+        <th>Date</th>
+        <th>Registered by</th>
+        <th>Comment</th>
+        <th></th>
+        <th></th>
+    </tr>
+#for $device,$date,$username,$comment,$deviceid in $args['rmaList']
+    <tr>
+        <td>$device</td>
+        <td>$date</td>
+        <td>$username</td>
+        <td>$comment</td>
+        <td><a href="$args['returned']['url']$deviceid">$args['returned']['text']</a></td>
+        <td><a href="$args['newreturned']['url']$deviceid">$args['newreturned']['text']</a></td>
+    </tr>
+#end for
+</table>
+#end if
+<p><a href="$args['addrma']['url']">$args['addrma']['text']</a></p>
+#end if
+#end def
+
+#def registerRma($device)
+<h3>Register RMA</h3>
+#if $args['error']
+<p style="color: #f00">$args['error']</p>
+#end if
+<form action="$args['action']" method="post">
+    <table>
+        <tr>
+#if $device.moduleId
+            <th>Module</th>
+#end if
+            <th>Netbox</th>
+            <th>RMA number</th>
+            <th>Comment</th>
+        </tr>
+        <tr>
+#if $device.moduleId
+            <td>$device.module</td>
+#end if
+            <td>$device.sysname</td>
+            <td><input type="text" name="cn_rma"></td>
+            <td><input type="text" name="cn_comment" size="60"></td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td><input type="submit" name="cn_submit" value="Register"></td>
+        </tr>
+    </table>
+</form>
+#end def
+
+
+#def delete()
+<h3>Modules that have been down more than $args['threshold'] hours</h3>
+<form method="post" action="$args['action']">
+    <table>
+        <tr>
+            <th>Select</th>
+            <th>Module</th>
+            <th>Sysname</th>
+            <th>Down since</th>
+        </tr>
+#for moduleid,module,sysname,downsince in $args['deleteList']
+        <tr>
+            <td><input type="radio" name="cn_moduleid" value="$moduleid"></td>
+            <td>$module</td>
+            <td>$sysname</td>
+            <td>$downsince</td>
+        </tr>
+#end for
+    </table>
+    <table>
+        <tr>
+            <td><input type="submit" name="cn_delete" value="Delete"></td>
+            <td><input type="submit" name="cn_rma" value="Register RMA"></td>
+        </tr>
+    </table>
+</form>
+#end def
