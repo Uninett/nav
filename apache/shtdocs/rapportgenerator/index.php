@@ -12,7 +12,7 @@ $fil = les_fil("ragen.conf","r");
 list($filparam,$urlparam,$navnparam) = tolk_fil($fil,$rapport);
 
 //print $filparam[skjul];
-    print $QUERY_STRING;
+//    print $QUERY_STRING;
 
 $sql = $filparam[sql];
 if(!$sql){
@@ -141,16 +141,19 @@ if(!$overskrift){
 }
 $overskrift = urlencode($overskrift);
 print "<img src=\"overskrift.php?overskrift=$overskrift\">";
-print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\"><font color=\"#ffffff\">".date("j.n.Y")."</font><br>";
+print "</td><td background=\"bakgrunn_nav.php\" valign=\"bottom\" align=\"right\"><font color=\"#ffffff\"><img src=\"bildetekst.php?tekst=".date("j.n.Y")."\"  border=\"0\"></font>";
 
+print "<table><tr><td>";
+
+print "<a href=\"main.html\"><img src=\"bildetekst.php?tekst=Hjem\" border=\"0\"\"></a></td><td>";
 ## husker gammel querystring
 $peker = lag_peker($urlselect,$QUERY_STRING);
 if($begrenset){
-        print "<form action=\"?$peker&begrenset=0\" method=\"post\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema for å begrense søket\"></form>";
+        print "<form action=\"?$peker&begrenset=0\" method=\"post\"><hidden name=\"begrenset\" value=\"0\"><input type=\"image\" src=\"bildetekst.php?tekst=Skjul skjema\"></form>";
 } else {
-print "<form action=\"?$peker&begrenset=1\" method=\"post\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Vis skjema for å begrense søket\"></form>";
+print "<form action=\"?$peker&begrenset=1\" method=\"post\"><hidden name=\"begrenset\" value=\"1\"><input type=\"image\" src=\"bildetekst.php?tekst=Søkeskjema\"></form>";
 }
-print "</td></tr></table>";
+print "</td></tr></table></td></tr></table>";
 
 //print "<p>$sql</p>";
 
@@ -163,17 +166,35 @@ if($begrenset){
 
 lag_peker($urlselect,$QUERY_STRING);
 
-$neste = $ar_limit[1]+100;
-$forrige = $ar_limit[1]-100;
+
+## bla
+if(!$grense){
+    $grense = 100;
+}
+$neste = $ar_limit[1]+$grense;
+$forrige = $ar_limit[1]-$grense;
 print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td align=\"left\" width=\"100\">";
 if($ar_limit[1]!=0){ 
 print "<a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$forrige."\">Forrige</a> ";
 } else {
     print "&nbsp;";
 }
+
 $fra = $ar_limit[1] +1;
 $til = $ar_limit[1] + $ar_limit[0];
-print "</td><td align=\"center\">Viser nå treff $fra til $til av totalt $antall_treff treff i databasen</td><td align=\"right\" width=\"100\">";
+print "</td><td align=\"center\">";
+if($antall_treff){
+    if($grense>$antall_treff){
+	print "Totalt $antall_treff treff i databasen";
+    } elseif ($til>$antall_treff){
+	print "Viser nå treff $fra til $antall_treff av totalt $antall_treff treff i databasen";
+    } else {
+	print "Viser nå treff $fra til $til av totalt $antall_treff treff i databasen";
+    }
+} else {
+    print "Dette ga null treff i databasen";
+}
+print "</td><td align=\"right\" width=\"100\">";
 
 if($antall_rader == $ar_limit[0]){
     print " <a href=\"?rapport=$rapport&limit=".$ar_limit[0]."%2c".$neste."\">Neste</a>";
@@ -181,6 +202,7 @@ if($antall_rader == $ar_limit[0]){
     print "&nbsp;";
 }
 print "</td></tr></table>";
+## bla slutt
 
 if($antall_rader){
     skriv_tabell($tabell,$urlparam,$urlselect,$fraselect,$navnparam,$rapport,$skjulte_kolonner);
@@ -281,7 +303,7 @@ function lag_peker($urlselect,$querystring){
 }
 
 function skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner){
-    print "<form action=\"?rapport=$rapport\" method=\"post\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
+    print "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"600\" align=\"center\"><tr><td><form action=\"?rapport=$rapport\" method=\"post\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">";
     for($i=0;$i<sizeof($urlselect);$i++) {
 	//if(!$skjulte_kolonner[$i]){
 		$this = $urlselect[$i];
@@ -300,7 +322,7 @@ function skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner){
 	
 	 print "<td><input type=\"text\" name=\"$this\" value=\"$skjemaverdi\"></td></tr>";
     }
-    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk\" name=\"send\" value=\"Send\"></td></tr></table></form><p>Du kan bruke % i skjemaet også.</p>";
+    print "<tr><td></td><td background=\"bakgrunn_nav.php\"><input type=\"image\" src=\"bildetekst.php?tekst=Søk\" name=\"send\" value=\"Send\"></td></tr></table></form></td><td><p>Fyll inn det du vil søke etter i ønskede felt. Du kan bruke % for wildcard.</p></td></tr></table>";
 }
 
 
