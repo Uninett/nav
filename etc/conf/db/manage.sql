@@ -51,8 +51,6 @@ DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
 
 -- Slette alle indekser
 
----------------------- JM - don't touch
-
 DROP TABLE status;
 DROP SEQUENCE status_statusid_seq;
 
@@ -67,17 +65,6 @@ fra timestamp not null,
 til timestamp
 );
 
--- smsutko er flyttet til trapdetect-databasen
---create table smsutko (
---id serial primary key,
---brukerid int2 not null,
---tidspunkt timestamp not null,
---melding varchar(145) not null,
---sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
---smsid int4,
---tidsendt timestamp
---); 
-
 ------------------------------------------
 
 -- Definerer gruppe nav:
@@ -88,8 +75,7 @@ CREATE GROUP nav;
 
 CREATE TABLE org (
   orgid VARCHAR(10) PRIMARY KEY,
---  forelder VARCHAR(10) REFERENCES org,
-  parent VARCHAR(10) REFERENCES org,
+  parent VARCHAR(10) REFERENCES org (orgid),
   descr VARCHAR,
   org2 VARCHAR,
   org3 VARCHAR,
@@ -97,59 +83,43 @@ CREATE TABLE org (
 );
 
 
---CREATE TABLE anv (
 CREATE TABLE usage (
---  anvid VARCHAR(10) PRIMARY KEY,
   usageid VARCHAR(10) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
 
 
---CREATE TABLE sted (
 CREATE TABLE location (
---  stedid VARCHAR(12) PRIMARY KEY,
   locationid VARCHAR(12) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
 
---CREATE TABLE rom (
 CREATE TABLE room (
---  romid VARCHAR(10) PRIMARY KEY,
   roomid VARCHAR(10) PRIMARY KEY,
---  stedid VARCHAR(12) REFERENCES sted,
   locationid VARCHAR(12) REFERENCES location,
   descr VARCHAR,
---  rom2 VARCHAR(30),
   room2 VARCHAR,
---  rom3 VARCHAR(30),
   room3 VARCHAR,
---  rom4 VARCHAR(30),
   room4 VARCHAR,
---  rom5 VARCHAR(30)
   room5 VARCHAR
 );
 
+CREATE TABLE vlan (
+  vlan INT4 PRIMARY KEY,
+  nettype VARCHAR NOT NULL,
+  orgid VARCHAR(10) REFERENCES org,
+  usageid VARCHAR(10) REFERENCES usage,
+  netident VARCHAR,
+  description VARCHAR
+);  
 
---CREATE TABLE prefiks (
 CREATE TABLE prefix (
---  prefiksid SERIAL PRIMARY KEY,
   prefixid SERIAL PRIMARY KEY,
---  nettadr varchar(15) NOT NULL,
---  maske VARCHAR(3) NOT NULL,
---fjernet under nav2 uten oppdatering av nav3
   netaddr CIDR NOT NULL,
   rootgwid INT4 UNIQUE,
---  vlan INT4,
---  antmask INT2,
   active_ip_cnt INT4,
   max_ip_cnt INT4,
---  nettype VARCHAR NOT NULL,
---  orgid VARCHAR(10) REFERENCES org,
---  usageid VARCHAR(10) REFERENCES usage,
---  netident VARCHAR,
-    to_gw VARCHAR,
---  komm VARCHAR(20)
---  descr VARCHAR
+  to_gw VARCHAR,
   vlan INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
 );
 
@@ -195,62 +165,38 @@ CREATE TABLE type (
   sysObjectID VARCHAR NOT NULL,
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
-	frequency INT4,
+  frequency INT4,
   descr VARCHAR,
   UNIQUE (vendorid,typename)
 );
 
-CREATE TABLE oid (
+CREATE TABLE objectid (
 	oidid SERIAL PRIMARY KEY,
 	oidkey VARCHAR NOT NULL,
-	oid VARCHAR NOT NULL,
+	objectid VARCHAR NOT NULL,
 	descr VARCHAR
-);	
-
-CREATE TABLE typeoid (
-  typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-	oidid INT4 REFERENCES oid ON UPDATE CASCADE ON DELETE CASCADE,
-	frequency INT4,
-	UNIQUE(typeid, oidid)
 );
 
-
-CREATE TABLE vlan (
-  vlan INT4 PRIMARY KEY,
---  vlan INT4 NOT NULL,
-  nettype VARCHAR NOT NULL,
-  orgid VARCHAR(10) REFERENCES org,
-  usageid VARCHAR(10) REFERENCES usage,
-  netident VARCHAR,
-  description VARCHAR
+CREATE TABLE typeoid (
+	typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
+	oidid INT4 REFERENCES objectid ON UPDATE CASCADE ON DELETE CASCADE,
+	frequency INT4,
+	UNIQUE(typeid, oidid)
 );  
-  
 
---CREATE TABLE boks (
 CREATE TABLE netbox (
---  boksid SERIAL PRIMARY KEY,
   netboxid SERIAL PRIMARY KEY,
---  ip varchar(15) NOT NULL, har vært inet en stund
   ip INET NOT NULL,
---  romid VARCHAR(10) NOT NULL REFERENCES rom,
   roomid VARCHAR(10) NOT NULL REFERENCES room,
   typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   sysname VARCHAR UNIQUE,
   catid VARCHAR(8) NOT NULL REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
---  kat2 VARCHAR(10),
   subcat VARCHAR,
   orgid VARCHAR(10) NOT NULL REFERENCES org,
   ro VARCHAR,
   rw VARCHAR,
---  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
---  boksvia2 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
---  boksvia3 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
---  active BOOL DEFAULT true,
---  static BOOL DEFAULT false,
---  watch BOOL DEFAULT false,
---  skygge BOOL DEFAULT false
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   snmp_version INT4 NOT NULL DEFAULT 1,
   snmp_agent VARCHAR,
@@ -323,53 +269,40 @@ CREATE TABLE swp_netbox (
 
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
---  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
---  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
---  modul VARCHAR(4) NOT NULL,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
   port INT4 NOT NULL,
   ifindex INT4 NOT NULL,
---  status VARCHAR(4) NOT NULL DEFAULT 'down',
   link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   speed DOUBLE PRECISION NOT NULL,
   duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR,
   trunk BOOL NOT NULL DEFAULT false,
---  static BOOL DEFAULT false,
---  portnavn VARCHAR(30),
   portname VARCHAR,
---  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
---  vpkatbak VARCHAR(5),
   to_catid VARCHAR(8),
   UNIQUE(moduleid, port)
 );
 
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
---  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT4 NOT NULL,
   masterindex INT4,
---  interf VARCHAR(30),
   interface VARCHAR,
   gwip INET,
   speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
---  static BOOL DEFAULT false,
---  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
---  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
 );
+
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
---  retning CHAR(1) NOT NULL DEFAULT 'x',
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
   PRIMARY KEY(swportid, vlan)
 );
@@ -406,9 +339,6 @@ GRANT ALL ON product TO navall;
 GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
 GRANT ALL ON typegroup TO navall;
-GRANT ALL ON alerthist TO navall;
-GRANT ALL ON eventtype TO navall;
-GRANT ALL ON service TO navall;
 GRANT ALL ON vlan TO navall;
 
 GRANT ALL ON netbox_netboxid_seq TO navall;
@@ -435,8 +365,6 @@ DROP SEQUENCE arp_arpid_seq;
 DROP SEQUENCE cam_camid_seq; 
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
---DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
---DROP SEQUENCE vp_netbox_xy_vp_netbox_xy_seq;
 
 DROP FUNCTION netboxid_null_upd_end_time();
 
@@ -478,6 +406,7 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
+
 CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
@@ -551,6 +480,7 @@ CREATE TABLE vp_netbox_xy (
   vp_netbox_grp_infoid INT4 NOT NULL REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(pnetboxid, vp_netbox_grp_infoid)
 );
+
 -- vPServer bruker
 -- CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 -- CREATE USER navadmin WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
@@ -799,10 +729,10 @@ CREATE TABLE rrd_file (
 -- to understand what that is for humans we need the descr.
 CREATE TABLE rrd_datasource (
   rrd_datasourceid  SERIAL PRIMARY KEY,
-  rrd_fileid        INT REFERENCES rrdfile ON UPDATE CASCADE ON DELETE CASCADE,
+  rrd_fileid        INT REFERENCES rrd_file ON UPDATE CASCADE ON DELETE CASCADE,
   name          VARCHAR, -- name of the datasource in the file
   descr         VARCHAR, -- human-understandable name of the datasource
-  dstype        VARCHAR CHECK (type='GAUGE' OR type='DERIVE' OR type='COUNTER' OR type='ABSOLUTE'),
+  dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
   units         VARCHAR -- textual decription of the y-axis (percent, kilo, giga, etc.)
 );
 
@@ -817,6 +747,9 @@ GRANT ALL ON subsystem TO manage;
 -- GRANTS AND GRUNTS
 ------------------------------------------------------------------------------------------
 
+GRANT ALL ON alerthist TO navall;
+GRANT ALL ON eventtype TO navall;
+GRANT ALL ON service TO navall;
 GRANT SELECT ON eventtype TO eventengine;
 GRANT SELECT ON subsystem TO eventengine;
 GRANT ALL ON eventq TO eventengine;
