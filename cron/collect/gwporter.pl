@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: gwporter.pl,v 1.16 2002/12/19 16:33:14 gartmann Exp $
+# $Id: gwporter.pl,v 1.17 2003/06/05 11:18:30 gartmann Exp $
 # This file is part of the NAV project.
 # gwporter uses the SNMP-protocol to aquire information about the routers and
 # their interfaces. Information about the subnets (prefices) are also aquired.
@@ -47,16 +47,22 @@ my $ifAlias        = ".1.3.6.1.2.1.31.1.1.1.18";
 my $hsrp_status    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
+my %netaddr;
+
 my $db = &db_get("gwporter");
 
 ## active_ip_cnt tatt ut
 my @felt_prefix =("netaddr","vlan","max_ip_cnt","nettype","orgid","usageid","netident","to_gw","descr");
 my @felt_gwport = ("netboxid","ifindex","gwip","interface","masterindex","speed","ospf");
 
-my (%lan, %stam, %link, %vlan, %hsrp, %undefined_prefices);
+my (%lan, %stam, %link, %hsrp, %undefined_prefices);
 
 #vlaninfo blir innlest fra vlan.txt
 &fil_vlan;
+
+my %db_vlan = &db_select_hash($db,"vlan",["vlan","netident","nettype","orgid","usageid","description"],0);
+my %vlan;
+my %vlan_prefix;
 
 #data fra org- og usage- tabellene
 my %db_usage = &db_select_hash($db,"usage",["usageid"],0);
@@ -112,7 +118,7 @@ foreach my $netaddr (keys %prefix){
 
     my $type = 0;
 
-    if($prefix{$netaddr}[3] eq "ukjent"){
+    if($vlan{$prefix{$netaddr}[1]}[2] eq "ukjent"){
 	if(exists $undefined_prefices{$netaddr}){
 	    my ($vlan,$writevlan);
 	    if($vlan = $undefined_prefices{$netaddr}[0]){
@@ -134,25 +140,27 @@ foreach my $netaddr (keys %prefix){
 		$usage = "";
 	    }
 
-	    $vlan = "" unless $vlan;
-	    $prefix{$netaddr}[1] = $vlan;
-	    $prefix{$netaddr}[3] = $nettype;
-	    $prefix{$netaddr}[4] = $org;
-	    $prefix{$netaddr}[5] = $usage;
-	    $prefix{$netaddr}[6] = $nettident;
-	    $prefix{$netaddr}[7] = $kommentar;
+	    if($vlan){
+		$vlan{$vlan} = [ $vlan, $netident, $nettype, $org, $usage, $kommentar] unless $vlan{$vlan};
+		$prefix{$netaddr}[1] = $vlan;
+	    }
+#	    $prefix{$netaddr}[3] = $nettype;
+#	    $prefix{$netaddr}[4] = $org;
+#	    $prefix{$netaddr}[5] = $usage;
+#	    $prefix{$netaddr}[6] = $nettident;
+#	    $prefix{$netaddr}[7] = $kommentar;
 	    
 	}
     }
 
 ### Automatisk tnettypeavledning, treffer bare inn hvis type=ukjent
-    if($prefix{$netaddr}[3] ne "ukjent"){
+    if($vlan{$prefix{$netaddr}[1]}[2] ne "ukjent"){
 ### ikke helt ideell:    if($prefix{$netaddr}[3] eq "tildelt" || $prefix{$netaddr}[3] eq "statisk" || $prefix{$netaddr}[3] eq "adresserom" || $prefix{$netaddr}[3] eq "elink") {
-	$type = $prefix{$netaddr}[3];
+	$type = $vlan{$prefix{$netaddr}[1]}[2];
     } elsif($hsrp){
 	$type = "lan";
     } elsif ($i==1){
-	if($prefix{$netaddr}[3] eq "loopback"){
+	if($vlan{$prefix{$netaddr}[1]}[2] eq "loopback"){
 	    $type = "loopback";
 	} else {
 	    $type = "lan";
@@ -172,9 +180,9 @@ foreach my $netaddr (keys %prefix){
 	}
     }
     print "$type\n" if $debug;
-    print "FEIL i følge kildefilene, som vil ha det til at dette er et\n".$prefix{$netaddr}[3]."\n" if $type ne $prefix{$netaddr}[3] && $debug;
+    print "FEIL i følge kildefilene, som vil ha det til at dette er et\n".$vlan{$prefix{$netaddr}[1]}[2]."\n" if $type ne $vlan{$prefix{$netaddr}[1]}[2] && $debug;
 
-    $prefix{$netaddr}[3] = $type;
+    $vlan{$prefix{$netaddr}[1]}[2] = $type;
 
 }
 
@@ -249,7 +257,10 @@ foreach my $prefixid (keys %db_active_ip_cnt) {
 	&db_update($db,"prefix","active_ip_cnt",$gammel,$ny,"prefixid=$prefixid");
     }
 }
-&slett_prefix($db);
+# Sletter prefiks som ikke hører hjemme lenger. Gjøres helt her nede for å være _helt_ sikker.
+unless($one_and_only){
+    &slett_prefix($db);
+}
 
 &log_close;
 
@@ -319,7 +330,7 @@ sub hent_snmpdata {
 	my $netaddr = &and_ip($gwip,$netmask);
 #	print "\n$gwip & $netmask = ".$gatewayip{$gwip}{netaddr};
 	$gatewayip{$gwip}{maske} = my $maske = &mask_bits($netmask);
-	$gatewayip{$gwip}{netaddr} = &fil_netaddr($netaddr,$maske);
+	$gatewayip{$gwip}{netaddr} = &concatenate_netaddr($netaddr,$maske);
 #	print "\n";
 #	print $gwip;
 #	print "\n";
@@ -427,12 +438,16 @@ sub hent_snmpdata {
 		$allerede_telt{$netaddr} = 1;
 		$netbox_cnt{$netaddr}++;
 	    }
-	    
+
 	    ### teller opp antall gwip per prefix.
 	    $gwip_cnt{$gatewayip{$gwip}{netaddr}}++;
 
+	    # fyller oversettelsestabell ip->netaddr
+	    $netaddr{$gwip} = $netaddr;
 	}
     }
+    # fyller oversettelsestabell ip->netaddr
+    $netaddr{$ip} = $netaddr unless $netaddr{$ip};
 
 
     foreach my $gwip (keys %gatewayip)
@@ -455,34 +470,37 @@ sub hent_snmpdata {
 	if(/^(?:lan|stam)/i) {
 		my %lanstam = %{&tolk_lanstam($_,$netboxid,$interf)};
 		$prefix{$netaddr} = [ $netaddr,
-				       $lanstam{'vlan'},  $maxhosts, 
-				       $lanstam{'nettype'},$lanstam{'org'},$lanstam{'usage'},
-				       $lanstam{'nettident'}, $lanstam{'kommentar'}];
+				       $lanstam{'vlan'},  $maxhosts];
+		$vlan{$lanstam{'vlan'}} = [ $lanstam{'vlan'}, $lanstam{'nettident'},
+					    $lanstam{'nettype'},$lanstam{'org'},
+					    $lanstam{'usage'},$lanstam{'kommentar'}] unless $vlan{$lanstam{'vlan'}};
+
 
 	    } elsif (/^link/i) {
 
 		my %link = %{&tolk_link($_,$netboxid,$interf)};
 		$prefix{$netaddr} = [ $netaddr,
-				       $link{'vlan'},  $maxhosts,
-				       $link{'nettype'}, undef, undef,
-				       $link{'nettident'}, $link{'kommentar'}];
+				       $link{'vlan'},  $maxhosts];
+		$vlan{$link{'vlan'}} = [ $link{'vlan'}, $link{'nettident'},
+					 $link{'nettype'},undef, undef,$link{'kommentar'}] unless $vlan{$link{'vlan'}};
 
 	    } elsif (/^elink/i) {
 
 		my %elink = %{&tolk_elink($_,$netboxid,$interf)};
 		$prefix{$netaddr} = [$netaddr, 
-				      $elink{'vlan'},  $maxhosts,
-				      $elink{'nettype'}, $elink{'org'}, undef,
-				      $elink{'nettident'}, $elink{'kommentar'}];
+				      $elink{'vlan'},  $maxhosts];
+		$vlan{$elink{'vlan'}} = [ $elink{'vlan'}, $elink{'nettident'},
+					  $elink{'nettype'}, $elink{'org'}, undef,
+					  $elink{'kommentar'}] unless $vlan{$elink{'vlan'}};
 
 	    } elsif ($interf =~ /loopback/i) {
 #	    print "har funnet loopback";
 		my $nettype = "loopback";
 		my $vlan = &riktig_vlan(0,$interf,$ip,$if);
 		$prefix{$netaddr} = [ $netaddr,
-				       $vlan,  $maxhosts,
-				       $nettype, undef, undef,
-				       undef, undef ];
+				      $vlan,  $maxhosts];
+		$vlan{$vlan} = [ $vlan, undef, $nettype, undef, undef, undef ] unless $vlan{$vlan};
+
 	    } else {
 #	    print "har funnet ukjent ".$interface{$if}{nettnavn}."\n";
 
@@ -562,15 +580,14 @@ sub finn_prefixid {
     #print "\nPrøver å finne prefix for ";
     my $ip = $_[0];
     #print $ip."\n";
-    my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0","255.255.248.0","255.255.240.0","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
-    foreach my $maske (@masker) {
-	my $netaddr = &and_ip($ip,$maske);
-	#print $netaddr;
-	my $mask = &mask_bits($maske);
-	$netaddr = &fil_netaddr($netaddr,$mask);
-	#print " $ip & $mask = $netaddr\n";
+#    my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0","255.255.248.0","255.255.240.0","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
+#    foreach my $maske (@masker) {
+#	my $netaddr = &and_ip($ip,$maske);
+#	my $mask = &mask_bits($maske);
+#	$netaddr = &fil_netaddr($netaddr,$mask);
+	$netaddr = $netaddr{$ip}
 	return $netaddr2prefixid{$netaddr} if (defined $netaddr2prefixid{$netaddr});
-    }
+#    }
     #print "Fant ikke prefixid for $ip\n";
     return 0;
 }

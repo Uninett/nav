@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: tekstfiler.pl,v 1.10 2002/11/26 11:14:07 gartmann Exp $
+# $Id: tekstfiler.pl,v 1.11 2003/06/05 11:18:30 gartmann Exp $
 # This file is part of the NAV project.
 # tekstfiler reads text-files containing basic NAV information / configuration,
 # and updates the database according to this.
@@ -38,7 +38,7 @@ $tabell = "org";
 &db_file_to_db(connection => $db,file => "etc/kilde/product.txt",table => "product",databasefields => ["vendorid","productno","descr"],index => ["vendorid","productno"]);
 &db_file_to_db(connection => $db,file => "etc/kilde/cat.txt",table => "cat",databasefields => ["catid","descr"],filefields => ["catid","descr"],index => ["catid"]);
 &db_file_to_db(connection => $db,file => "etc/kilde/typegroup.txt",table => "typegroup",databasefields => ["typegroupid","descr"],index => ["typegroupid"]);
-&db_file_to_db(connection => $db,file => "etc/kilde/type.txt",table => "type",databasefields => ["vendorid","typename","typegroupid","sysobjectid","cdp","tftp","descr"],index => ["vendorid","typename"],filefields=>["vendorid","typename","typegroupid","descr","sysobjectid","cdp","tftp"]);
+&db_file_to_db(connection => $db,file => "etc/kilde/type.txt",table => "type",databasefields => ["vendorid","typename","typegroupid","sysobjectid","cdp","tftp","descr"],index => ["sysobjectid"],filefields=>["vendorid","typename","typegroupid","descr","sysobjectid","cdp","tftp"]);
 
 #--------------SLUTT-----------
 &log_close;

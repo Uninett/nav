@@ -1,7 +1,7 @@
 package NAV;
 ####################
 #
-# $Id: NAV.pm,v 1.7 2002/11/25 12:27:38 gartmann Exp $
+# $Id: NAV.pm,v 1.8 2003/06/05 11:18:30 gartmann Exp $
 # This file is part of the NAV project.
 # NAV module contains the common methods / subroutines that NAV scripts are
 # using. It also does some initial work regarding the NAVlog system.
@@ -172,7 +172,9 @@ sub get_types {
 }
 
 sub log_open {
-    my $file = $_[0] || '/usr/local/nav/local/log/syslog/navmessage.log';
+    my $filein = $_[0] || 'navmessage.log';
+    my $file = '/usr/local/nav/local/log/syslog/'.$filein;
+    my $rawfile = '/usr/local/nav/local/log/navlograw/'.$filein;
     ### åpner loggfil for appending, lager ny hvis den ikke eksisterer.
     #sysopen fungerer ikke som jeg vil
     #sysopen(COLLECTLOG, $file, 'O_WRONLY' | 'O_APPEND'|'O_CREAT');
@@ -184,21 +186,26 @@ sub log_open {
 	$make = 1;
     }
     open(COLLECTLOG,'>>',$file);
+    open(RAWLOG,'>>',$rawfile);
     print "skal teste om jeg er root\n" if $debug;
     if($< == "0"){
 	print "jeg er visst root\n" if $debug;
 ### hvis fila blir opprettet nå (av root) blir nav eier.	
 	`chgrp nav $file;chmod 775 $file`;
+	`chgrp nav $rawfile;chmod 775 $rawfile`;
     }
     print "skal nå prøve å låse fila\n" if $debug;
     flock(COLLECTLOG, LOCK_EX) or die "klarte ikke å låse fila: $!";
+    flock(RAWLOG, LOCK_EX) or die "klarte ikke å låse fila: $!";
     print "har fått log\n" if $debug;
 }
 
 sub log_close {
     $|=1;
     flock(COLLECTLOG, LOCK_UN);
+    flock(RAWLOG, LOCK_UN);
     close(COLLECTLOG);
+    close(RAWLOG);
 }
 
 sub log_write {
@@ -277,6 +284,11 @@ sub printlog{
     my $text = $_[0];
     $text =~ s/\'//g;
 
+    if (fileno(RAWLOG)){
+	#hvis filehandle finnes, skriv til fil og stdout
+	print RAWLOG $time." ".$text;
+    }   
+    
     if (fileno(COLLECTLOG)){
 	#hvis filehandle finnes, skriv til fil og stdout
 	print COLLECTLOG $time." ".$text;
@@ -287,7 +299,6 @@ sub printlog{
     }
     return 1;
 }
-
 sub file_netaddr{
     my $netaddr = $_[0];
     my $mask = $_[1];
@@ -306,6 +317,15 @@ sub fil_netaddr{
     }
     return $netaddr;
 }
+sub concatenate_netaddr{
+    my $netaddr = $_[0];
+    my $mask = $_[1];
+    if($netaddr && $mask){
+	$netaddr .= "/".$mask;
+    }
+    return $netaddr;
+}   
+
 
 sub db_do{
     my %parameter = @_;
@@ -337,7 +357,7 @@ sub db_do{
 
 	$delete = 0 if $delete eq "no";
 	
-    my $niv = scalar(@index);
+	my $niv = scalar(@index);
 
 	if($niv == 3){ 
 	    if($delete){
@@ -788,7 +808,7 @@ sub file_get_line {
     my $l = $_[0];
     #tar med linjer som begynner med ord før kolon bestående av 
     #tall,bokstaver,lavstrek,bindestrek,punktum
-    if ($l =~ /^([\p{IsAlnum}_\-\.]+):?/) {
+    if ($l =~ /^([\w_\-\.]+):?/) {
 	if($1){
 	#sletter ting som er ekstra i stedet for å slå 
 	#sammen med seinere feilkolonner.
@@ -805,7 +825,7 @@ sub fil_hent_linje {
     (my $felt,$_) = @_;
     #tar med linjer som begynner med ord før kolon bestående av 
     #tall,bokstaver,lavstrek,bindestrek,punktum
-    if (/^[\p{IsAlnum}_\-\.]+?:/) {
+    if (/^([\w_\-\.]+):?/) {
 	#sletter ting som er ekstra i stedet for å slå 
 	#sammen med seinere feilkolonner.
 	(my @linje,undef) = split(/:/,$_,$felt+1); 
@@ -1218,7 +1238,7 @@ sub sigwalk{
     $min[0] = $mib;
     my $teller = 0;
     my @resultat = ();
-    while ($min[0] =~ /^$mib/) {
+    while ($min[0] =~ /^$mib/ && !$session->{ErrorNum}) {
 
 	if(exists $min[1]){
 	    $min[0] =~ /$mib\.(\S+)/;

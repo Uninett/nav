@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: bokser.pl,v 1.15 2003/01/10 11:57:25 gartmann Exp $
+# $Id: bokser.pl,v 1.16 2003/06/05 11:18:30 gartmann Exp $
 # This file is part of the NAV project.
 # bokser reads the files nettel.txt (containing network devices) and server.txt
 # and does SNMPget to require information. This information is updated in the 
@@ -87,7 +87,7 @@ my @fields_netboxcategory = ("netboxid","category");
 my @felt_nettel = ("ip","sysname","typeid","roomid","orgid","catid","subcat","ro","rw");
 my $fil_nettel = "$localkilde/nettel.txt";
 %nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%sysnamehash);
-
+my %up = &db_hent_hash($conn, "SELECT ip, up FROM netbox");
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
@@ -136,28 +136,30 @@ sub fil_nettel{
 	my $ip = $_[1];
 	if((!$one_and_only && $ip)||($one_and_only && $ip eq $one_and_only)){
 	    my $ro = $_[5];
-	    if (my @passerr = $ro =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
-		my $passerr = join "",@passerr;
-		&skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
-	    }
-	    if (my @passerr = $_[6] =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
-		my $passerr = join "",@passerr;
-		&skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
-	    }
-	    my $temptype;
-	    my $sysname;
-	    ($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
-	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
-	    my $type = $type{$temptype};
-	    if($sysname){
-		unless($type){
-		    &skriv("TEXT-TYPE","ip=$ip","type=$temptype");
+	    if($ro && $up{$ip}[1] == 'y'){
+		if (my @passerr = $ro =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
+		    my $passerr = join "",@passerr;
+		    &skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
 		}
-		@_ = ($ip,$sysname,$type,$_[0],$_[2],@_[3..6]);
-		@_ = map rydd($_), @_;
+		if (my @passerr = $_[6] =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
+		    my $passerr = join "",@passerr;
+		    &skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
+		}
+		my $temptype;
+		my $sysname;
+		($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
+		($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash,$ip);
+		my $type = $type{$temptype};
+		if($sysname){
+		    unless($type){
+			&skriv("TEXT-TYPE","ip=$ip","type=$temptype");
+		    }
+		    @_ = ($ip,$sysname,$type,$_[0],$_[2],@_[3..6]);
+		    @_ = map rydd($_), @_;
 
-		unless (exists($alle{$ip})){
-		    $nettel{$ip} = [ @_ ];
+		    unless (exists($alle{$ip})){
+			$nettel{$ip} = [ @_ ];
+		    }
 		}
 	    }
 	    # må legges inn så lenge den eksisterer i fila, uavhengig av snmp
@@ -190,8 +192,11 @@ sub fil_server{
 	    @_ = ($ip,@_[0..1],$_[2],uc($_[3]),@_[4..5]);
 	    @_ = map rydd($_), @_;
 	    my $sysname = &fjern_endelse($_[2],$endelser);
-	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
+	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash,$ip);
 	    &skriv("DEVICE-COLLECT","ip=$sysname");
+	    if($up{$ip} == 'y'){
+		&skriv("DEVICE-COLLECT","ip=$sysname");
+	    }
 	    unless (exists($alle{$ip})){
 		$server{$ip} = [ $ip,$sysname,$_[1],@_[3..6] ];
 	    }
@@ -207,8 +212,9 @@ sub fil_server{
 }
 
 sub sysnameuniqueify {
-    my $sysnameroot = $_[0];
+    my $sysnameroot = &sysnamereplace($_[0],$_[2]);
     my %sysnamehash = %{$_[1]};
+    my $ip = $_[2];
     
     my $ok = 0; #intern
     my $v = 1;
@@ -224,8 +230,27 @@ sub sysnameuniqueify {
 	    $sysname = $sysnameroot.",v".$v;
 	}
     }
-    &skriv("DEVICE-COLLECT","ip=$sysname");
+    unless($sysnameroot == $sysname){
+
+	&skriv("TEXT-SYSNAMEDUPL", "ip=$ip","old=$sysnameroot","new=$sysname");
+
+    }
+
     return ($sysname,\%sysnamehash);
 
+}
+sub sysnamereplace{
+    my $sysname = $_[0];
+    my $ip = $_[1];
+    my $oldsysname = $sysname;
+
+    $sysname =~ s/\s{1,}|\\|\/|\;|\:|\&|\$|\%|\¤|\<|\>|\"|\'|\#|\||\=|\*|\[|\]|\(|\)|\{|\}|\`|§|!|\?|\^|//g;
+
+    unless($oldsysname eq $sysname){
+	&skriv("TEXT-SYSNAMECHAR", "ip=$ip","old=$oldsysname","new=$sysname");
+	print "\nooo\n";
+    }
+
+    return $sysname;
 }
 
