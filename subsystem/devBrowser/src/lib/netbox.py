@@ -433,11 +433,9 @@ class NetboxInfo(manage.Netbox):
 
     def showPorts(self):
         div = html.Division(_class="ports")
-        # not sure why I can't use self.netboxid
-        netboxid = self.netboxid._getID()[0]
         link = urlbuilder.createLink(subsystem='report',
                                     division='swport',
-                                    id=netboxid,
+                                    id=self.netboxid.netboxid,
                                     content='Switchports')
         div.append(html.Header(link, level=2))
         div.append(module.showModuleLegend())
