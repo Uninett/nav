@@ -7,6 +7,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
@@ -67,6 +68,8 @@ public class CiscoSwBasic implements DeviceHandler
 			processCisco1Q(netboxid, ip, cs_ro, typegroup, type, sc);
 		}
 
+		// Commit data
+		sc.commit();
 	}
 
 	/*
@@ -81,7 +84,7 @@ public class CiscoSwBasic implements DeviceHandler
 		String sw_ver = "";
 		String module = "1";
 
-		Module m = sc.moduleFactory(serial, hw_ver, sw_ver, module);
+		SwModule m = sc.swModuleFactory(serial, hw_ver, sw_ver, module);
 
 		/*
 		Alle C1900*
@@ -194,7 +197,7 @@ public class CiscoSwBasic implements DeviceHandler
 		String sw_ver = "";
 		String module = "1";
 
-		Module m = sc.moduleFactory(serial, hw_ver, sw_ver, module);
+		SwModule m = sc.swModuleFactory(serial, hw_ver, sw_ver, module);
 
 		/*
 		Støtter C3000/C3100

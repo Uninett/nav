@@ -7,6 +7,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
@@ -58,6 +59,8 @@ public class HP implements DeviceHandler
 
 		processHP(netboxid, ip, cs_ro, typegroup, type, sc);
 
+		// Commit data
+		sc.commit();
 	}
 
 	/*
@@ -206,7 +209,7 @@ public class HP implements DeviceHandler
 			}
 			Log.d("PROCESS_HP", "Module: " + modul + " Serial: " + serial + " Hw_ver: " + hw_ver +  " Sw_ver: " + sw_ver);
 
-			Module m = sc.moduleFactory(serial, hw_ver, sw_ver, modul);
+			SwModule m = sc.swModuleFactory(serial, hw_ver, sw_ver, modul);
 
 			// Get data
 			sSnmp.setBaseOid(ifSpeedOid);

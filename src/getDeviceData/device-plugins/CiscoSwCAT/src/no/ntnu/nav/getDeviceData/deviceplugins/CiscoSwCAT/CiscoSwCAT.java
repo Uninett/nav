@@ -7,6 +7,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
@@ -58,6 +59,8 @@ public class CiscoSwCAT implements DeviceHandler
 
 		processCAT(netboxid, ip, cs_ro, typegroup, type, sc);
 
+		// Commit data
+		sc.commit();
 	}
 
 	/*
@@ -240,7 +243,7 @@ public class CiscoSwCAT implements DeviceHandler
 			    Log.d("PROCESS_CAT", "Module: " + modul + " Serial: " + serial + " Hw_ver: " + hw +  " Sw_ver: " + sw);
 
 			    // Create module
-			    Module m = sc.moduleFactory(serial, hw, sw, modul);
+			    SwModule m = sc.swModuleFactory(serial, hw, sw, modul);
 			    moduleMap.put(modul, m);
 
 			}
@@ -268,7 +271,7 @@ public class CiscoSwCAT implements DeviceHandler
 				String vlanHex = (String)vlanHexMap.get(portif);
 				String portname = (String)portNameMap.get(portif);
 
-				Module m = (Module)moduleMap.get(modul);
+				SwModule m = (SwModule)moduleMap.get(modul);
 				// helt sikkert ikke riktig måte å forsikre seg om modul, men nå ser vi at det skal være en sjekk der
 				if (m == null) {
 				    errl("  processCAT: netboxid: " + netboxid + " ifindex: " + ifindex + " Could not find module: " + modul);

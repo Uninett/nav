@@ -7,6 +7,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
@@ -58,6 +59,8 @@ public class CiscoSwIOS implements DeviceHandler
 
 		processIOS(netboxid, ip, cs_ro, typegroup, type, sc);
 
+		// Commit data
+		sc.commit();
 	}
 
 	/*
@@ -344,9 +347,9 @@ public class CiscoSwIOS implements DeviceHandler
 				String sw_ver = "";
 
 				// Create module
-				Module m = (Module)moduleMap.get(modul);
+				SwModule m = (SwModule)moduleMap.get(modul);
 				if (m == null) {
-					m = sc.moduleFactory(serial, hw_ver, sw_ver, modul);
+					m = sc.swModuleFactory(serial, hw_ver, sw_ver, modul);
 					moduleMap.put(modul, m);
 				}
 
