@@ -5621,7 +5621,7 @@ class bulkdefPrefix:
 
         if row.has_key('usage'):
             if len(row['usage']):
-                fields['usage'] = row['usage']
+                fields['usageid'] = row['usage']
             del(row['usage'])
 
         if row.has_key('description'):
