@@ -75,6 +75,7 @@ CREATE TABLE Bruker (
        id integer NOT NULL DEFAULT nextval('brukerid'),
        admin integer NOT NULL DEFAULT 1,
        brukernavn varchar CONSTRAINT brukernavn_uniq UNIQUE,
+       lang varchar DEFAULT 'no',
        aktivProfil integer,
        navn varchar,
        passord varchar,
