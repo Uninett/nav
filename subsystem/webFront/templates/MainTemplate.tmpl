@@ -1,6 +1,5 @@
-## $Id: $
-## 
-## This file is part of the NAV project.
+##
+## MainTemplate.tmpl
 ##
 ## Every other template extends this one. It contains the header-information,
 ## NAV-logo and navigation-bar. It also contains default_table_CSS and
@@ -15,6 +14,21 @@
 ##   page = MainTemplate()
 ##   page.content = lambda: "<h1>Foo</h1>Bar"
 ##
+## The navbar is built according to the users preferences, with data in this form:
+##
+## $user
+##   +-- preferences
+##        +-- hidelogo                 :: boolean: should the navlogo be hidden?
+##        +-- navbar                   :: array of links
+##        |    +-- name                ::
+##        |    +-- uri                 ::
+##        +-- qlink1                   :: array of links
+##        |    +-- name                ::
+##        |    +-- uri                 ::
+##        +-- qlink2                   :: array of links
+##             +-- name                ::
+##             +-- uri                 ::
+##
 ## The template uses images in $imagefolder/main/, where $imagefolder
 ## defaults to "/images".
 ##
@@ -22,18 +36,32 @@
 ## Author: Magnar Sveen (magnars@idi.ntnu.no)
 ##
 
+#from nav.web import linkchecker
+
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
+#attr $title = ""
+#attr $path = False
 
 <html>
   <head>
-    <meta HTTP-EQUIV="content-type" CONTENT="text/html; charset=ISO-8859-1">
-    <title></title>
+    <meta HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+    <title>
+#if $title
+      NAV - $title
+#else
+      NAV
+#end if
+    </title>
     <style type="text/css">
 #def standardCSS
       BODY { 
         font-family: verdana, arial, helvetica, sans-serif;
+#if $user.preferences.hidelogo
+        background-image:url('$imagefolder/main/background-fill-nologo.gif');
+#else
         background-image:url('$imagefolder/main/background-fill.gif');
+#end if
         background-repeat: repeat-x;
         background-color: white; 
       }
@@ -56,6 +84,15 @@ $additionalCSS()
     </style>
     <script language="JavaScript" type="text/javascript">
       <!-- begin
+
+      function jump(fe) {
+        var opt_key = fe.selectedIndex;
+        var uri_val = fe.options[opt_key].value;
+        if (uri_val) {
+          window.location = uri_val;
+        }
+        return false;
+      }
 #def additionalJavaScript
 #end def additionalJavaScript
 $additionalJavaScript()
@@ -63,38 +100,104 @@ $additionalJavaScript()
     </script>
   </head>
   <body $bodyOnLoad>
-    <div style="position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('$imagefolder/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
+#if $user.preferences.hidelogo
+    <div style="position:absolute; left: 30px; top: 0px; width: 95%; margin: 0px; padding: 0px">
+#else
+    <div onClick="window.location='/';" style="cursor: hand; position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('$imagefolder/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
     <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
+#end if
       <table cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
-          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Preferences</a></td>
+#set $separate = False
+#for $link in $user.preferences.navbar
+#if linkchecker.shouldShow($link.uri, $user)
+  #if $separate
           <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
-          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="/index.py/toolbox">Toolbox</a></td>
-          <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
-	  <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Useradmin</a></td>
+  #end if
+          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;" nowrap><a class="navbar" href="$link.uri">$link.name</a></td>
+  #set $separate = True
+#end if
+#end for
+#if $user.preferences.qlink1
           <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
           <td width="0%" valign="top" style="background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
-          <select>
-            <option> Choose a tool </option>
-            <option> Network Explorer </option>
-	    <option> VlanPlot </option>
-	    <option> RaGen </option>
-	    <option> Cricket </option>
-	    <option> Device Browser </option>
+          <select onChange="return jump(this);">
+            <option style="color: #669" selected> Quicklink #1 </option>
+  #for $link in $user.preferences.qlink1
+  #if linkchecker.shouldShow($link.uri, $user)
+            <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
 	  </select>
           </td>
           <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+#end if
+#if $user.preferences.qlink2
+          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+          <td width="0%" valign="top" style="background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
+          <select onChange="return jump(this);">
+            <option style="color: #669" selected> Quicklink #2 </option>
+  #for $link in $user.preferences.qlink2
+  #if linkchecker.shouldShow($link.uri, $user)
+            <option value="$link.uri"> $link.name </option>
+  #end if
+  #end for
+	  </select>
+          </td>
+          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+#end if
           <td width="100%" valign="top" align="right"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
-          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index.py/logout">Logout</a></td>
+#if $user.id > 0
+          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index.py/logout">Logout&nbsp;$user.login</a></td>
+#else
+          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index.py/login">Login</a></td>
+#end if          
       </tr>
     </table>
   </div>
 
-  <img src="$imagefolder/blank.gif" height="100" alt="" /><br/>
+#def showPath($absolute)
+#if $absolute
+  <div style="position:absolute; left: 5px; top: 97px; margin: 0px; padding: 0px; font-family: verdana, arial, helvetica, sans-serif; font-size: 11px;">
+#else
+  <div style="font-family: verdana, arial, helvetica, sans-serif; font-size: 11px;">
+#end if
+#if $path
+#set $separate = False
+<font color=#999999>Current path: </font>
+#for $step in $path
+#if $separate
+>
+#end if
+#if $step[1]
+    <a href="$step[1]">$step[0]</a>
+#else
+    $step[0]
+#end if
+#set $separate = True
+#end for
+  </div>
+#else
+#set $separate = False
+<font color=#FF000> No current path is set! Find out how here: </font>
+<font color=#FFFFF> template.path = [("Frontpage", "/"), ("Tools", "/toolbox/"), ("Status", False)] 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+</font>
+  </div>
+#end if
+#end def
+$showPath(True)
+
+#if $user.preferences.hidelogo
+  <img src="$imagefolder/blank.gif" height="19" alt="" /><br/>
+#else
+  <img src="$imagefolder/blank.gif" height="104" alt="" /><br/>
+#end if
 
 #def content
   <br/><center>
   <font size="2" color="#666">This space intentionally left blank.</font>
+<br>$user.name<br>$user.id
   </center>
 #end def content
 $content()
