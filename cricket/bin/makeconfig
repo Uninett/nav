@@ -15,22 +15,36 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.11 2002/06/06 14:44:39 stain Exp $
+# $Id: makeconfig,v 1.12 2002/06/11 16:39:59 stain Exp $
 
-use Pg;
 use strict;
 
-my $basepath = "/home/cricket";
 
+# Do some magic to find our real paths.
+use FindBin qw($Bin);
+my $basepath = "$Bin/.."; 
+use lib "$Bin/../../lib"; # Common NAVme-libraries
 my $path = "$basepath/cricket-config";
 my $default = "$basepath/cricket-config_defaults";
+my $myself = "makeconfig"; # For use with config-hash
+
+
+
+# Load configuration
+open(CONFIG, "$basepath/../etc/conf/db.conf") || die "Configfile error";
+my %config = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+             grep { !/^(\s*\#|\s+$)/ && /.+=.*/ } <CONFIG>;
+close(CONFIG);
+
+
+# Get a central database connection for our script.
+use Pg;
+my $dbh = db_connect();
+
 
 
 my @ruterliste;
 my @switchliste;
-
-my $dbh = &db_connect("manage", "manage", "eganam");
-
 # Sletter alt for å forhindre at det blir liggende feil igjen fra
 # forrige oppdatering.
 
@@ -604,10 +618,12 @@ sub gigaswitchports {
 }
 
 sub db_connect {
-    my $db = $_[0];
-    my $user = $_[1];
-    my $pass = $_[2];
-    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    my $db_user = $config{'script_'.$myself};
+    my $db_passwd = $config{'userpw_'.$db_user};
+    my $db_db = $config{'db_'.$db_user};
+    my $db_host = $config{'dbhost'};
+    my $db_port = $config{'dbport'};
+    my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
