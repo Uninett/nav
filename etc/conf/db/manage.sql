@@ -126,7 +126,7 @@ CREATE TABLE prefiks (
   nettype VARCHAR(10) NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
   anvid VARCHAR(10) REFERENCES anv,
-  nettident VARCHAR(20),
+  nettident VARCHAR(30),
   samband VARCHAR(20),
   komm VARCHAR(20)
 );
@@ -169,16 +169,16 @@ function VARCHAR(100)
 );
 
 CREATE TABLE module (
-moduleid SERIAL PRIMARY KEY,
-boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-modulenumber INT4 NOT NULL,
-model VARCHAR(10),
-descr VARCHAR(25),
-serial VARCHAR(15),
-hw VARCHAR(10),
-sw VARCHAR(10),
-ports INT4,
-portsUp INT4
+  moduleid SERIAL PRIMARY KEY,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  modulenumber INT4 NOT NULL,
+  model VARCHAR(15),
+  descr VARCHAR(50),
+  serial VARCHAR(15),
+  hw VARCHAR(10),
+  sw VARCHAR(10),
+  ports INT4,
+  portsUp INT4
 );
 
 CREATE TABLE mem (
@@ -232,6 +232,7 @@ CREATE TABLE gwport (
   boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null
   swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
+CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
 -- not null fjernet fra interf 
 
 CREATE TABLE swportvlan (
