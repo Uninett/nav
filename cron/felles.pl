@@ -126,8 +126,10 @@ sub rydd {
     }
 }
 sub db_connect {
-    my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
+    my $db = $_[0] || "manage";
+    my $user = $_[1] || "navall";
+    my $password = $_[2] || "uka97urgf";
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$password");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
