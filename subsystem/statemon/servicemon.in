@@ -13,8 +13,11 @@
 
 # Source function library.
 . /usr/local/nav/navme/etc/init.d/functions
-BIN=/usr/local/nav/navme/bin/servicemon.py
-PIDFILE=/usr/local/nav/local/var/run/servicemon.pid
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+BIN=@bindir@/servicemon.py
+PIDFILE=@vardir@/servicemon.pid
 
 [ -x $BIN ] || exit 1
 
