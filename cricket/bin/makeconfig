@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.19 2002/06/20 16:15:01 cricket Exp $
+# $Id: makeconfig,v 1.20 2002/06/25 08:19:33 cricket Exp $
 
 use strict;
 
@@ -57,16 +57,8 @@ print "Kopierer over default verdier\n";
 
 print "Skriver servere\n";
 &Servers;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/[abce-jl-z]*`;
+#rm -R /home/cricket/navme/cricket/cricket-config/servers/[abce-jl-z]*`;
 #`rm -R /home/cricket/navme/cricket/cricket-config/servers/[be-z]*`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/kamelon.stud.ntnu.no`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/kamel.stud.ntnu.no`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/kantstein.stud.ntnu.no`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/katla.stud.ntnu.no`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/kiwi.stud.ntnu.no`;
-`rm -R /home/cricket/navme/cricket/cricket-config/servers/kobra.stud.ntnu.no`;
-`rm -R /home/cricket/cricket-config/Defaults~`;
-`rm -R /home/cricket/cricket-config/servers/Default~`;
 
 print "OK!\n";
 
@@ -189,7 +181,17 @@ sub Servers {
                   print FIL "\ttarget-type = cpunix\n";
                 }
                 print FIL "\n";
-                close FIL;
+
+		#Get the category and insert into file
+		$query = "SELECT category FROM bokscategory WHERE boksid=$id";
+		my $getcategory = &db_select($query, $dbh);
+		while (my $category = $getcategory->fetchrow) {
+			print FIL "target \"$category\"\n";
+			print FIL "\ttarget-type = $category\n";
+			print FIL "\n";
+		}
+		print FIL "\n";
+		close FIL;
                 
                 # alle the interfaces
                 mkdir ("$path/servers/$sysname/interface",0775);
