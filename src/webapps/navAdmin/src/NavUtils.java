@@ -706,8 +706,7 @@ class NavUtils
 		outl("    <td><b>typeId</b></td>");
 		outl("    <td><b>Speed</b></td>");
 		outl("    <td><b>Duplex</b></td>");
-		outl("    <td><b>Modul</b></td>");
-		outl("    <td><b>Port</b></td>");
+		outl("    <td><b>Ifindex</b></td>");
 		outl("    <td><b>Portnavn</b></td>");
 		outl("    <td><b>Boksbak</b></td>");
 		outl("    <td><b>Change (vlan)</b></td>");
@@ -768,8 +767,7 @@ class NavUtils
 			outl("<td>"+color1+ boksType.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("speed") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("duplex") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("module") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("port") + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("ifindex") + color2+"</td>");
 			outl("<td>"+color1+ portnavn + color2+"</td>");
 			outl("<td>"+color1+ boksbak + color2+"</td>");
 
@@ -788,8 +786,7 @@ class NavUtils
 		outl("    <td><b>sysName</b></td>");
 		outl("    <td><b>Speed</b></td>");
 		outl("    <td><b>Duplex</b></td>");
-		outl("    <td><b>Modul</b></td>");
-		outl("    <td><b>Port</b></td>");
+		outl("    <td><b>Ifindex</b></td>");
 		outl("    <td><b>Portnavn</b></td>");
 		outl("    <td><b>Boksbak</b></td>");
 		outl("    <td><b>Change (vlan)</b></td>");
@@ -849,8 +846,7 @@ class NavUtils
 			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("speed") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("duplex") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("module") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("port") + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("ifindex") + color2+"</td>");
 			outl("<td>"+color1+ portnavn + color2+"</td>");
 			outl("<td>"+color1+ boksbak + color2+"</td>");
 
