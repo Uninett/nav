@@ -13,6 +13,8 @@ INITFILES=pping servicemon
 BINS=checkService.py pinger.py servicemon.py
 LIBS=
 CHECKERDIR=$(PYLIB)/checker
+CONFDIR=$(PREFIX)/etc/conf
+CONFFILES=servicemon.conf pinger.conf
 # programs to use for make
 INSTALL=install
 
@@ -20,10 +22,11 @@ INSTALL=install
 all: 
 lib:
 bin:
+conf:
 checker:
 
 # the install
-install: install-lib install-bin install-checker
+install: install-lib install-bin install-checker install-conf
 
 install-lib: lib
 	mkdir --parents $(PYLIB)
@@ -39,6 +42,9 @@ install-checker: checker
 	mkdir --parents $(CHECKERDIR)
 	for file in nav/statemon/checker/*.py; do $(INSTALL) -m 644 $$file $(CHECKERDIR)/; done
 	for file in nav/statemon/checker/*.descr; do $(INSTALL) -m 644 $$file $(CHECKERDIR)/; done
+install-conf: conf
+	mkdir --parents $(CONFDIR)
+	for file in $(CONFFILES); do $(INSTALL) -m 640 $$file $(CONFDIR)/; done
 uninstall:
 	for file in $(BINS); do rm -f $(BINDIR)/$$file; done	
 	rm -rf $(CHECKERDIR)
