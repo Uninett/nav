@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.2 2002/08/08 18:09:33 magnun Exp $
+$Id: pinger.py,v 1.3 2002/08/16 19:38:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -20,10 +20,11 @@ class pinger:
         self._looptime=60
         self._debuglevel=0
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
-        self.config=config.config("db.conf")
-        self.db=db.db(self.config)
+        self.dbconf=config.dbconf()
+        self.db=db.db(self.dbconf)
         self.down=[]
-        self.pinger=megaping.MegaPing()
+        sock = kwargs.get('socket',None)
+        self.pinger=megaping.MegaPing(sock)
                       
     def getJobs(self):
         """
@@ -103,7 +104,7 @@ def help():
     -h  --help      Displays this message
     -n  --nofork    Run in foreground
     -v  --version   Display version and exit
-
+    
     """  % os.path.basename(os.sys.argv[0])
 
 
@@ -126,6 +127,12 @@ if __name__=='__main__':
     except (getopt.error):
         help()
         os.sys.exit(2)
-                               
-    myPinger=pinger()
+
+    print "Creating socket"
+    sock = megaping.makeSocket()
+    print "Setting UID to navcron"
+    os.setegid(1000)
+    os.seteuid(518)
+    print "Now running as user navcron"
+    myPinger=pinger(socket=sock)
     myPinger.start(nofork)

@@ -1,4 +1,4 @@
-import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf
+import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,debug,config
 
 # From our friend:
 import ip,icmp
@@ -56,27 +56,35 @@ class Host:
 
   def getState(self, nrping=3):
     if self.certain:
-      #status =  None not in self.replies[:nrping]
       status = self.replies[:nrping] != [None]*nrping
       return status
     else:
       return 1
 
 class MegaPing(RotaterPlugin):
-  def __init__(self, timeout=5, packetsize=64, delay=0.002):
+  def __init__(self, socket=None, conf=None, packetsize=64):
     RotaterPlugin.__init__(self)
-    self.delay=delay
+    self.debug = debug.debug()
+    if conf is None:
+      self.conf=config.pingconf()
+    else:
+      self.conf=conf
+    self.delay=float(self.conf.get('delay',0.002))
+    self.timeout = int(self.conf.get('timeout', 5))
     self.hosts = []
-    self.timeout = timeout
     self.sent = 0
     if packetsize < 44:
       raise "Packetsize (%s) too small to create cookie. Must be at least 44."
     self.packetsize=packetsize
     self.totaltWait=0
     self.pid = os.getpid()
-    self.icmpPrototype()
+    self.elapsedtime=0
+    
     # Create our common socket
-    self.socket = makeSocket()
+    if socket is None:
+      self.socket = makeSocket()
+    else:
+      self.socket = socket
 
   def setHosts(self,hosts):
     """
@@ -108,21 +116,15 @@ class MegaPing(RotaterPlugin):
     #  self.rotate()    
     return self.elapsedtime
   
-  def icmpPrototype(self):
-    self.pkt = icmp.Packet()
-    self.pkt.type = icmp.ICMP_ECHO
-    self.pkt.id = self.pid
-    self.pkt.seq = 0 # Always sequence number 0..
+  #def icmpPrototype(self):
+  #  self.pkt = icmp.Packet()
+  #  self.pkt.type = icmp.ICMP_ECHO
+  #  self.pkt.id = self.pid
+  #  self.pkt.seq = 0 # Always sequence number 0..
   
-  def makeIcmpPacket(self, pingstring=PINGSTRING):
-    self.pkt.data = pingstring
-    return self.pkt.assemble()
-
-  def _getResponses(self):
-    profiler = profile.Profile()
-    profiler.runcall(self.getResponses)
-    print "getResponse stats:"
-    print profiler.print_stats()
+  #def makeIcmpPacket(self, pingstring=PINGSTRING):
+  #  self.pkt.data = pingstring
+  #  return self.pkt.assemble()
 
   def getResponses(self):
     start = time.time()
@@ -146,27 +148,26 @@ class MegaPing(RotaterPlugin):
         try:
           (pkt, (sender, blapp)) = self.socket.recvfrom(4096)
         except socket.error:
-          print "RealityError -2"
+          self.debug.log("RealityError -2", 1)
           continue
         # could also use the ip module to get the payload
 
         repip = ip.Packet(pkt)
         try:
-          #reply = icmp.Packet(pkt)
           reply = icmp.Packet(repip.data)
         except ValueError:
-          print "Recived illegeal packet from %s: %s" % (sender,repr(repip.data))
+          self.debug.log("Recived illegeal packet from %s: %s" % (sender,repr(repip.data)), 7)
           continue
         if reply.id <> self.pid:
-          #print "The id field of the packet does not match for %s"% sender
+          self.debug.log("The id field of the packet does not match for %s"% sender,7)
           continue
 
         cookie = reply.data[0:14]
         try:
           host = self.requests[cookie]
         except KeyError:
-          #print "The packet recieved from %s does not match any of the packets we sent." % repr(sender)
-          #print "Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie)
+          self.debug.log("The packet recieved from %s does not match any of the packets we sent." % repr(sender),7)
+          self.debug.log("Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie),7)
           continue
 
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
@@ -193,7 +194,7 @@ class MegaPing(RotaterPlugin):
       hosts = self.hosts
     for host in hosts:
       if self.requests.has_key(host):
-        print "Duplicate host %s ignored" % host
+        self.debug.log("Duplicate host %s ignored" % host,6)
         continue
 
       now = time.time()

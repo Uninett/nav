@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.10 2002/08/08 18:09:20 magnun Exp $
+$Id: job.py,v 1.11 2002/08/16 19:38:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types,config,debug
@@ -9,15 +9,15 @@ from select import select
 from errno import errorcode
 from Socket import Socket
 
-TIMEOUT = 7 #default timeout
+TIMEOUT = 5 #default, hardcoded timeout :)
 DEBUG=1
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
 
-	def __init__(self,serviceid,boksid,type,status,info,eventtype='serviceState', version=''):
+	def __init__(self,serviceid,netboxid,type,status,info,eventtype='serviceState', version=''):
 		self.serviceid = serviceid
-		self.boksid = boksid
+		self.netboxid = netboxid
 		self.type = type
 		self.status = status
 		self.info = info
@@ -27,6 +27,7 @@ class Event:
 class JobHandler:
 	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
 		import db
+		self._conf=config.serviceconf()
 		self.setServiceid(serviceid)
 		self.setBoksid(boksid)
 		self.setType(type)
@@ -35,8 +36,10 @@ class JobHandler:
 		self.setTimestamp(0)
 		self.setArgs(args)
 		self.setVersion(version)
-		self.setTimeout(args.get('timeout',TIMEOUT))
-		self.db=db.db(config.config())
+		timeout = args.get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
+		#print "timeout: %s "% timeout
+		self.setTimeout(int(timeout))
+		self.db=db.db(config.dbconf())
 		self.debug=debug.debug()
 		
 	def run(self):
@@ -57,7 +60,7 @@ class JobHandler:
 			self.debug.log("%-25s %-5s -> %s" % (host, self.getType(),info))
 			
 		runcount = 0
-		while status != self.getStatus() and runcount < 3:
+		while status != self.getStatus() and runcount < int(self._conf.get('retry',3)):
 			if DEBUG:
 				self.debug.log(" %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType()))
 			time.sleep(5)

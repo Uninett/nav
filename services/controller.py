@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.23 2002/07/15 23:01:45 magnun Exp $
+$Id: controller.py,v 1.24 2002/08/16 19:38:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -22,7 +22,7 @@ class controller:
         self._debuglevel=0
         self._runqueue=RunQueue.RunQueue(controller=self, maxthreads=20)
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
-        self.config=config.config("db.conf")
+        self.config=config.dbconf("db.conf")
         self.db=db.db(self.config)
         self.db.start()
 

@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.6 2002/08/08 18:09:20 magnun Exp $
+$Id: db.py,v 1.7 2002/08/16 19:38:30 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -27,7 +27,7 @@ class _db(threading.Thread):
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(1)
 		self.cursor=self.db.cursor()
-		self.sysboks()
+		self.sysnetbox()
 		self.setDaemon(1)
 		self.queue = Queue.Queue()
 
@@ -36,9 +36,9 @@ class _db(threading.Thread):
 			event = self.queue.get()
 			self.commitEvent(event)
 
-        def sysboks(self):
-		s = self.query('select sysname,boksid from boks')
-		self.boks = dict(s)
+        def sysnetbox(self):
+		s = self.query('select sysname,netboxid from netbox')
+		self.netbox = dict(s)
 						
 	def query(self, statement):
 		try:
@@ -73,22 +73,22 @@ class _db(threading.Thread):
 			pass
 
 		nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
-		if not event.boksid:
+		if not event.netboxid:
 			statement = """INSERT INTO eventq
-(eventqid, subid, boksid, eventtypeid, state, value, source, target)
+(eventqid, subid, netboxid, eventtypeid, state, value, source, target)
 values (%i, %i, %s, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, 'NULL', event.eventtype, state, value,  "serviceping","eventEngine")
 		else:
 			statement = """INSERT INTO eventq
-(eventqid, subid, boksid, eventtypeid, state, value, source, target)
-values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, event.boksid, event.eventtype, state, value,  "serviceping","eventEngine")
+(eventqid, subid, netboxid, eventtypeid, state, value, source, target)
+values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, event.netboxid, event.eventtype, state, value,  "serviceping","eventEngine")
 		self.execute(statement)
 		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
 		self.execute(statement)
 
 
 	def pingEvent(self, host, state):
-		query = "SELECT boksid FROM boks WHERE ip='%s'"%host
-		boksid=self.query(query)[0][0]
+		query = "SELECT netboxid FROM netbox WHERE ip='%s'"%host
+		netboxid=self.query(query)[0][0]
 
 		if state == 'UP':
 			state = 'e'
@@ -97,7 +97,7 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 			state = 's'
 			value = 0
 
-		statement = "INSERT INTO eventq (boksid, eventtypeid, state, value, source, target) values (%i, '%s','%s', %i, '%s','%s' )" % (boksid, "boxState", state, value,"pping","eventEngine")
+		statement = "INSERT INTO eventq (netboxid, eventtypeid, state, value, source, target) values (%i, '%s','%s', %i, '%s','%s' )" % (netboxid, "boxState", state, value,"pping","eventEngine")
 		self.execute(statement)
 
 	def newVersion(self, serviceid, version):
@@ -109,7 +109,8 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 		#self.db.autocommit(1)
 
 	def hostsToPing(self):
-		query="""SELECT DISTINCT ip FROM boks WHERE active='t' """
+		#query="""SELECT DISTINCT ip FROM netbox WHERE active='t' """
+		query="""SELECT DISTINCT ip FROM netbox """
 		return self.query(query)
 
 	def getJobs(self, onlyactive = 1):
@@ -124,20 +125,20 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 			property[serviceid][prop] = value
 
 		fromdb = []
-		query = """SELECT serviceid ,service.boksid, service.active,
-		handler, version, ip FROM service JOIN boks ON
-		(service.boksid=boks.boksid) order by serviceid"""
+		query = """SELECT serviceid ,service.netboxid, service.active,
+		handler, version, ip FROM service JOIN netbox ON
+		(service.netboxid=netbox.netboxid) order by serviceid"""
 		map(fromdb.append, self.query(query))
-		query = """SELECT serviceid, boksid, active, handler, version
-		FROM service WHERE boksid is NULL"""
+		query = """SELECT serviceid, netboxid, active, handler, version
+		FROM service WHERE netboxid is NULL"""
 		map(fromdb.append, self.query(query))
 
 		jobs = []
 		for each in fromdb:
 			if len(each) == 6:
-				serviceid,boksid,active,handler,version,ip = each
+				serviceid,netboxid,active,handler,version,ip = each
 			elif len(each) == 5:
-				serviceid,boksid,active,handler,version = each
+				serviceid,netboxid,active,handler,version = each
 				ip = ''
 			else:
 				print "Each: %s" % each
@@ -145,7 +146,7 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 			job = self.mapper.get(handler)
 			if not job:
 				print 'no such handler:',handler
-			newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
+			newJob = job(serviceid,netboxid,ip,property.get(serviceid,{}),version)
 			if onlyactive and not active:
 				continue
 			else:
@@ -162,12 +163,12 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 		for i in self.getJobs(0):
 			serviceid = i.getServiceid()
 			active = (i.active and 'true') or 'false'
-			boksid = i.getBoksid()
-			if not boksid:
+			netboxid = i.getBoksid()
+			if not netboxid:
 				sysname=''
 			else:
-				for j in self.boks:
-					if self.boks[j] == boksid:
+				for j in self.netbox:
+					if self.netbox[j] == netboxid:
 						sysname = j
 						break
 			handler = i.getType()
@@ -186,9 +187,9 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 	def insertService(self,service):
 		next = self.query("select nextval('service_serviceid_seq')")[0][0]
 		try:
-			self.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, self.boks[service.sysname], service.handler))
+			self.execute("INSERT INTO service (serviceid,netboxid,handler) VALUES (%s,%s,'%s')" % (next, self.netbox[service.sysname], service.handler))
 		except KeyError:
-			self.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, 'NULL', service.handler))
+			self.execute("INSERT INTO service (serviceid,netboxid,handler) VALUES (%s,%s,'%s')" % (next, 'NULL', service.handler))
 		service.id = next
 		self.insertServiceArgs(service)						
         def insertServiceArgs(self,service):
