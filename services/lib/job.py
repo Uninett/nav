@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.20 2003/01/12 00:20:20 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.21 2003/01/19 22:34:23 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -58,25 +58,25 @@ class JobHandler:
 		import rrd, db
 		version = self.getVersion()
 		status, info = self.executeTest()
-
-		self.debug.log("%-25s %-5s -> %s" % (self.getSysname(), self.getType(),info))
+		service="%s:%s" % (self.getSysname(), self.getType())
+		self.debug.log("%-20s -> %s" % (service, info), 6)
 
 		if status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
 			delay = int(self._conf.get('retry delay',5))
 			self.runcount+=1
-			self.debug.log(" %-25s %-5s -> State changed. Scheduling new check in %i sec..." % (self.getSysname(), self.getType(), delay))
+			self.debug.log("%-20s -> State changed. Scheduling new check in %i sec..." % (service, delay))
 			# Updates rrd every time to get proper 'uptime' for the service
 			try:
 				rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 			except Exception,e:
-				self.debug.log("rrd update failed for %s:%s [%s]" % (self.getSysname(),self.getType(),e),3)
+				self.debug.log("rrd update failed for %s [%s]" % (service,e),3)
 			priority=delay+time.time()
 			# Queue ourself
 			self.rq.enq((priority,self))
 			return
 
 		if status != self.getStatus():
-			self.debug.log("%-25s %-5s -> %s, %s" % (self.getSysname(), self.getType(), status, info),1)
+			self.debug.log("%-20s -> %s, %s" % (service, status, info),1)
 			newEvent=Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info)
 			newEvent.setSysname(self.getSysname())
 			# Post to the NAV alertq
@@ -93,7 +93,7 @@ class JobHandler:
 		try:
 			rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		except Exception,e:
-			self.debug.log("rrd update failed for %s:%s [%s]" % (self.getSysname(),self.getType(),e),3)
+			self.debug.log("rrd update failed for %s [%s]" % (service,e),3)
 		self.setTimestamp()
 		self.runcount=0
 
