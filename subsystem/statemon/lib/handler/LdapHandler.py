@@ -1,5 +1,5 @@
 """
-$Id: LdapHandler.py,v 1.1 2003/06/15 12:45:46 bgrotan Exp $
+$Id: LdapHandler.py,v 1.2 2003/06/15 13:25:16 bgrotan Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/LdapHandler.py,v $
 """
 
@@ -17,7 +17,13 @@ class LdapHandler(JobHandler):
 	def execute(self):
 
 		args = self.getArgs()
-		l = ldap.open(self.getAddress())
+		# we can connect in 2 ways. By hostname/ip (and portnumber)
+		# or by ldap-uri
+		if args.has_key("url"):
+			if is_ldap_url(args["url"]):
+				l = ldap.initialize(args["url"])
+		else:
+			l = ldap.open(self.getAddress())
 		username = ""
 		pwd = ""
 
@@ -30,12 +36,15 @@ class LdapHandler(JobHandler):
 					l.protocol_version = ldap.VERSION2
 				elif (version==3):
 					l.protocol_version = ldap.VERSION3
-				#else:
-				# unsupported version 
+				else:
+					return Event.DOWN, "unsupported protocol version"
 			else:
 				# default is protocol-version 3
-				if (version==3):
+				try:
 					l.protocol_version = ldap.VERSION3
+				except Exception,e:
+					return Event.DOWN, "unsupported protocol version"
+
 			if args.has_key("base"):
 				if args.has_key("scope"):
 					scope = args["scope"]
