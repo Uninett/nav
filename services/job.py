@@ -2,13 +2,58 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.6 2002/06/07 11:11:59 erikgors Exp $
+$Id: job.py,v 1.7 2002/06/11 14:07:10 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys
+from select import select
+from errno import errorcode
 
-FEIL = 0
-OK = 100
+class Timeout(Exception):
+	pass
+class Socket:
+	def __init__(self,timeout=5):
+		self.timeout = timeout
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	def connect(self,address):
+		self.s.setblocking(0)
+		try:
+
+			self.s.connect(address)
+		except socket.error, (number,info):
+			if not errorcode[number] == 'EINPROGRESS':
+				raise
+		self.s.setblocking(1)
+		r,w,e = select([],[self.s],[],self.timeout)
+		if not w:
+			raise Timeout('Timeout in connect')
+	def recv(self,*args):
+		r,w,e = select([self.s],[],[],self.timeout)
+		if not r:
+			raise Timeout('Timeout in recv')
+		return self.s.recv(*args)
+	def readline(self):
+		line = ''
+		while 1:
+			line += self.recv(1024)
+			if '\n' in line or not line:
+				return line
+	def send(self,*args):
+		r,w,e = select([],[self.s],[],self.timeout)
+		if not w:
+			raise Timeout('Timeout in write')
+		self.s.send(*args)
+	
+	def write(self,line):
+		if line[-1] != '\n':
+			line += '\n'
+		self.send(line)
+	def close(self):
+		self.s.close()
+	def makefile(self,*args):
+		return self.s.makefile(*args)
+
 
 class Job:
 	"""
@@ -37,21 +82,14 @@ class Job:
 			self.setState(state)
 		self.setTimestamp()
 	def execute(self):
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s = Socket()
 		try:
 			s.connect(self.getAddress())
-			txt = s.recv(1024)
-#			s.setblocking(0)
-#			while 1:
-#				i = s.recv(1024)
-#				if not i:
-#					break
-#				txt += i
-			state = OK
-			txt = txt.strip()
-		except:
-			state = FEIL
-			txt = str(sys.exc_type) + str(sys.exc_info()[1].args)
+			txt = s.readline()
+			state = 'UP'
+		except Exception,info:
+			state = 'DOWN'
+			txt = str(info)
 		s.close()
 
 		return state,txt
@@ -103,15 +141,15 @@ class Port(Job):
 		Job.__init__(self,address)
 		Job.setName(self,'portlive')
 	def execute(self):
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s = Socket()
 		try:
 			s.connect(self.getAddress())
-			state = OK
-			txt = 'alive'
-		except:
-			state = FEIL
-			txt = str(sys.exc_type) + str(sys.exc_info()[1].args)
+			state = 'UP'
+		except Exception,info:
+			state = 'DOWN'
+			txt = str(info)
 		s.close()
+
 		return state,txt
 class Dummy(Job):
 	def __init__(self,address):
@@ -120,34 +158,44 @@ class Dummy(Job):
 	def execute(self):
 		import random
 		time.sleep(random.random()*10)
-		return OK,'ok'
+		return 'UP','ok'
 
-class Url(Job):
-	def __init__(self,address,type,path = '/'):
-		Job.__init__(self,address)
-		Job.setName(self,'url')
-		self.url = '%s://%s:%i%s' % (type,address[0],address[1],path)
-	def execute(self):
-		import urllib
-		try:
-			txt = urllib.urlopen(self.url).read()
-			state = OK
-			txt = 'OK'
-		except:
-			state = FEIL
-			txt = str(sys.exc_type) + str(sys.exc_info()[1].strerror.args)
-		return state,txt
-class Http(Url):
+#class Url(Job):
+#	def __init__(self,address,type,path = '/'):
+#		Job.__init__(self,address)
+#		Job.setName(self,'url')
+#		self.url = '%s://%s:%i%s' % (type,address[0],address[1],path)
+#	def execute(self):
+#		import urllib
+#		try:
+#			txt = urllib.urlopen(self.url).read()
+#			state = 'UP'
+#			txt = 'UP'
+#		except Exception,info:
+#			state = 'DOWN'
+#			txt = str(info)
+#		return state,txt
+class Http(Job):
 	def __init__(self,address,path = '/'):
-		Url.__init__(self,address,'http',path)
+		Job.__init__(self,address)
 		Job.setName(self,'http')
+		self.path = path
 	def execute(self):
-		import urllib
+		import httplib
 		try:
-			i = urllib.urlopen(self.url)
-			state = OK
-			txt = i.headers.getheader('server')
-		except:
-			state = str(sys.exc_type)
-			txt = str(sys.exc_info()[1].strerror.args)
+			i = httplib.HTTPConnection('')
+			i.sock = Socket()
+			i.sock.connect(self.getAddress())
+			i.putrequest('GET','http://%s:%i%s' % (self.getAddress()[0],self.getAddress()[1],self.path))
+			i.endheaders()
+			response = i.getresponse()
+			if response.status >= 200 and response.status < 300:
+				state = 'UP'
+				txt = response.getheader('SERVER')
+			else:
+				state = 'DOWN'
+				txt = 'status == ' +  str(response.status)
+		except Exception,info:
+			state = 'DOWN'
+			txt = str(info)
 		return state,txt
