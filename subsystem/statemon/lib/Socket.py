@@ -10,47 +10,16 @@ Author: Erik Gorset	<erikgors@stud.ntnu.no>
 import time,socket,sys,types,string
 from select import select
 from errno import errorcode
-from OpenSSL import SSL
 
 class Timeout(Exception):
 	pass
 
-def ssl(host, port, timeout, keyfile=None, certfile=None):
-	"""
-	Returns an sslsocket with timeout support.
-	"""
-	return SslObject(timeout, host, port, keyfile, certfile)
-
-class SslObject:
-	def __init__(self, timeout, host, port, keyfile=None, certfile=None):
-		self.timeout = timeout
-		ctx = SSL.Context(SSL.SSLv23_METHOD)
-		self.sslsock = SSL.Connection(ctx, Socket(self.timeout))
-		self.sslsock.connect((host, port))
-	def read(self, *args):
-		#r,w,e = select([self.sslsock],[],[],self.timeout)
-		#if not r:
-		#	raise Timeout('Timeout in readafter %i sec' % self.timeout)
-		#if self.sslsock.pending():
-		#print "In SslObject.read" 
-		return self.sslsock.read(*args)
-		#else:
-			#raise Timeout('blippeti')
-	def write(self, *args):
-		#print "writing "
-		r,w,e = select([],[self.sslsock],[],self.timeout)
-		if not w:
-			raise Timeout('Timeout in write after %i sec' % self.timeout)
-		return self.sslsock.write(*args)
-	
-
 class Socket:
-	def __init__(self, timeout):
+	def __init__(self,timeout):
 		self.timeout = timeout
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	def connect(self,address):
-		#print "in socket.connect"
 		self.s.setblocking(0)
 		try:
 			self.s.connect(address)
@@ -61,11 +30,7 @@ class Socket:
 		r,w,e = select([],[self],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in connect after %i sec' % self.timeout)
-	def read(self, buf):
-		return self.recv(buf)
-
 	def recv(self,*args):
-		#print "in socket.recv"
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
 			raise Timeout('Timeout in recv after %i sec' % self.timeout)

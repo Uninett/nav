@@ -6,15 +6,22 @@ This file is part of the NAV project.
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
+LIBDIR="/usr/local/nav/navme/lib/python"
 import os
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/ping")
+if LIBDIR not in os.sys.path:
+    os.sys.path.append(LIBDIR)
+       
+from nav.statemon import megaping
+from nav.statemon import db
+from nav.statemon import config
+from nav.statemon import debug
+from nav.statemon.netbox import Netbox
+from nav.statemon.output import color
+import signal
+import getopt
+import time
+import pwd
 
-import megaping, db, config, signal, getopt, time, pwd
-import debug
-from netbox import Netbox
-from output import color
 
 class pinger:
     def __init__(self, **kwargs):

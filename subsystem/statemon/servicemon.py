@@ -6,13 +6,26 @@ This file is part of the NAV project.
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
+LIBDIR="/usr/local/nav/navme/lib/python"
 import os
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
+if LIBDIR not in os.sys.path:
+    os.sys.path.append(LIBDIR)
 
-import RunQueue, types, time, abstractChecker, getopt, signal, config, db, mailAlert, random
-import gc, threading
-import debug
+import types
+import time
+import getopt
+import random
+import gc
+import threading
+import signal
+
+
+from nav.statemon import RunQueue
+from nav.statemon import abstractChecker
+from nav.statemon import config
+from nav.statemon import db
+from nav.statemon import mailAlert
+from nav.statemon import debug
 
 class controller:
     def __init__(self, **kwargs):
@@ -33,10 +46,9 @@ class controller:
         self.db.start()
         debug.debug("Setting up runqueue")
         self._runqueue=RunQueue.RunQueue(controller=self)
-        self.alerter=mailAlert.mailAlert()
-        self.alerter.start()
+        #self.alerter=mailAlert.mailAlert()
+        #self.alerter.start()
         self.dirty = 1
-
 
     def createStatusFile(self):
         """
@@ -110,11 +122,11 @@ class controller:
             self.createStatusFile()
 
             # extensive debugging
-            #dbgthreads=[]
-            #for i in gc.get_objects():
-            #    if isinstance(i, threading.Thread):
-            #        dbgthreads.append(i)
-            #debug.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
+            dbgthreads=[]
+            for i in gc.get_objects():
+                if isinstance(i, threading.Thread):
+                    dbgthreads.append(i)
+            debug.debug("Garbage: %s Objects: %i Threads: %i" % (gc.garbage, len(gc.get_objects()), len(dbgthreads)))
 
             wait=(self._looptime - (time.time() - start))
             debug.debug("Waiting %i seconds." % wait)
@@ -190,8 +202,8 @@ Written by Erik Gorset and Magnus Nordseth, 2002
 
 if __name__=='__main__':
     # chdir into own dir
-    mydir, myname = os.path.split(os.sys.argv[0])
-    os.chdir(mydir)
+    #mydir, myname = os.path.split(os.sys.argv[0])
+    #os.chdir(mydir)
                                   
     try:
         opts, args = getopt.getopt(os.sys.argv[1:], 'hnv', ['help','nofork', 'version'])

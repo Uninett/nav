@@ -1,11 +1,11 @@
-import sys, os
-sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
-import debug
-debug.setDebugLevel(0)
-import abstractChecker
+import sys
+import os
 import getopt
-import checkermap
+
+from nav.statemon import debug
+debug.setDebugLevel(0)
+from nav.statemon import abstractChecker
+from nav.statemon import checkermap
 
 
 
