@@ -1,4 +1,5 @@
 <?php
-pg_close($dbcon);
+
+$dbinit->closeall();
 
 ?>

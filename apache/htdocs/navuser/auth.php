@@ -80,8 +80,13 @@ WHERE (Account.login = '$username' AND password = '$passwd') AND
     (Account.id = Preference.accountid) ";
 
    //echo "<p>Query: " . $querystring;
-
-    if (! $query = @pg_exec($dbcon, $querystring)  ) {
+   /*
+    echo "<pre>lsdkfjsdlkfj";
+    print_r($dbcon);
+    print_r($dbinit);
+    echo "</pre>\n";
+*/
+    if (! $query = pg_exec($dbh->connection, $querystring)  ) {
         $error = new Error(2);
         $error->message = gettext("Feil med datbasespørring.");
     } else {

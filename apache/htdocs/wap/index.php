@@ -6,15 +6,43 @@
 ?>
 
 <wml>
-<card id="main" title="Uninett NAV">
+<card id="main" title="NAVprofiles">
 
 <?php
 
-if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navprofiles") ) {
-	print "<p>Kunne ikke koble til databasen.</p></card></wml>";
-	exit(0);
-} 
+$filename = "/usr/local/nav/local/etc/conf/db.conf";
 
+// Get fileconfiglines            
+$conffile = file($filename);
+
+// Init variables, in case they dont exist in config file...
+$dhost = "localhost";
+$dport = "5432";
+$ddb = "navprofiles";
+$duser = "navprofile";
+$dpass = "";
+
+foreach ($conffile as $confline) {
+    $tvar = split('=', trim($confline));
+    $prop = trim($tvar[0]); $value = trim($tvar[1]);
+
+    switch ($prop) {
+        case 'dbhost'		: $dhost = $value; break;
+        case 'dbport'		: $dport = $value; break;
+        case 'db_navprofile'	: $ddb   = $value; break;
+        case 'script_navprofile' 	: $duser = $value; break;
+        case 'userpw_navprofile' 	: $dpass = $value; break;
+    }
+}
+
+$cstr = "user=$duser password=$dpass dbname=$ddb";         
+//echo "<p>" . $cstr;
+
+if (! $dbcon = pg_connect($cstr) ) {
+    print gettext("Hele portalen blir sperret når ikke databasen er tilgjenglig.");
+    exit(0);
+} 
+            
 require("db.php");
 require("varlib.php");
 

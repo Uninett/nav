@@ -16,16 +16,7 @@ echo gettext("Legg til ny betingelse");
 echo '</a>';
 
 
-if (! $dbkcon = @pg_connect("user=manage dbname=manage password=eganam") ) {
-  $error = new Error(2);
-  $error->message = gettext("Kunne ikke koble til database.");
-}
-  if ( $error != NULL ) {
-    print $error->getHTML();
-    $error = NULL;
-  }
-
-$dbhk = new DBHK($dbkcon);
+$dbhk = $dbinit->get_dbhk();
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
@@ -307,7 +298,6 @@ if (post_exist('matchfelt')) {
 print '<td align="right"><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 
 
-pg_close($dbkcon);
 
 ?>
     </tr>

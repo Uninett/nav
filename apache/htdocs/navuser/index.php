@@ -39,7 +39,7 @@ require("listing.php");
 <html>
 
 <head>
-<title><?php echo gettext('Uninett NAV'); ?></title>
+<title><?php echo gettext('NAVprofiles'); ?></title>
 <style type="text/css" media="all">@import "css/stil.css";</style>
 <style type="text/css" media="all">@import "css/listing.css";</style>
 <link rel="stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
