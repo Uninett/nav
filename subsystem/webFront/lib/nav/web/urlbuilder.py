@@ -18,6 +18,7 @@ _subsystems = {
     'devbrowser': '/browse', 
     'report': '/report',
     'rrd': '/browse/rrd',
+    'editdb': '/editdb',
 }
 
 _divisionClasses = {
@@ -52,13 +53,14 @@ def _getDivisionByObject(object):
     raise "Unknown division"        
 
 def createUrl(object=None, id=None, division=None, 
-              subsystem="devbrowser", mode="view", **kwargs):
+              subsystem="devbrowser", **kwargs):
     if id and object:
         raise "Ambiguous parameters, id and object cannot both be specified"
 
     if object:
         division = _getDivisionByObject(object)
-    if division in 'vlan room cat org type'.split():
+    # redirect, these things are done by report, not devbrowser    
+    if subsystem=='devbrowser' and division in 'vlan room cat org type'.split():
         subsystem = 'report'
         if object:
             id = object._getID()[0]
@@ -106,6 +108,10 @@ def createUrl(object=None, id=None, division=None,
                     url += ','.join(id)
                 url += '/' # make sure we have trailing /    
 
+    elif subsystem == 'editdb':
+        if object:
+            id = object._getID()[0]
+        url += '%s/edit/%s' % (division, id)
     elif subsystem == 'report':
         if division=="vlan":
             url += 'swportv?vlan=%s' % id
@@ -134,7 +140,7 @@ def createUrl(object=None, id=None, division=None,
             
     
 def createLink(object=None, content=None, id=None, division=None,
-               subsystem="devbrowser", mode="view", **kwargs):
+               subsystem="devbrowser", **kwargs):
     if content is None:
         if id and object:
             raise "Ambiguous parameters, id and object cannot both be specified"
@@ -146,7 +152,7 @@ def createLink(object=None, content=None, id=None, division=None,
         if object:    
             content = str(object)    
     url = createUrl(id=id, division=division, subsystem=subsystem,
-                    mode=mode, object=object, **kwargs)
+                    object=object, **kwargs)
     return html.Anchor(content, href=url)                
             
         
