@@ -97,6 +97,7 @@ umask 007;
 
 use strict;
 use NAV;
+use NAV::Path;
 
 my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
@@ -119,7 +120,7 @@ my $compiledir = "$cricketdir/cricket";
 my $configfile = ".nav";
 my $changelog = "$cricketdir/cricket-logs/changelog";
 
-my $viewfile = "$compiledir/view-groups";
+my $viewfile = $NAV::Path::sysconfdir."/cricket-views.conf";
 
 my %config; # stores navconfig for the configtree
 my %dshash; # stores the mapping between ds and ds-type
@@ -165,7 +166,7 @@ if (-e $viewfile) {
     }
     close VIEW;
 } else {
-    print "Could not find $viewfile, it should be in $compiledir...no views will be made.\n";
+    printf "Could not find $viewfile, it should be in %s...no views will be made.\n", $NAV::Path::sysconfdir;
 }
 
 ########################################
@@ -275,7 +276,7 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 # rrdhash that we have built.
 
 
-# &fillRRDdatabase();
+&fillRRDdatabase();
 
 #compiling
 umask 002;
@@ -653,7 +654,7 @@ sub makeTTs {
 	    }
 	    $write = 0;
 	    print HANDLE $line;
-	} elsif ($line =~ m/^\s*targettype\s*(\w+)/i) {
+	} elsif ($line =~ m/^\s*targettype\s*([a-zA-ZøæåØÆÅ\-\.]+)/i) {
 	    # if this targettype exists in the hash, delete it
 	    if ($input{$1}) {
 		print "Deleting targettype $1\n" if $ll >= 3;
@@ -1500,7 +1501,7 @@ sub makeView {
 
     my @strings;
 
-    foreach my $group (keys %viewarr) {
+    foreach my $group (sort keys %viewarr) {
 	my @temp = ();
 	foreach my $groupmember (@ { $viewarr{ $group } }) {
 	    foreach my $oid (@oids) {
