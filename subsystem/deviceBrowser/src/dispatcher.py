@@ -99,12 +99,12 @@ def classifyUri(uri):
         return request
 
     # Clean this up in some way
-    if name in 'device cat vlan room service sla notfound alert org'.split():
+    if name in 'netbox cat vlan room service sla notfound alert org'.split():
         request['type'] = name
     else:
         # Ok, it's a sysname.. split out to a seperate function that
         # checks out ip-addresses and so on
-        request['type'] = 'device'
+        request['type'] = 'netbox'
         if name.count(":"):
             (name, service) = name.split(":")[:2]
             request['service'] = service
