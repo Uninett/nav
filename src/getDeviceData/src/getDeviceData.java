@@ -156,6 +156,8 @@ class getDeviceData
 		QueryBoks.DB_UPDATE = DB_UPDATE;
 		QueryBoks.DB_COMMIT = DB_COMMIT;
 
+		QueryBoks.setConfigParser(cp);
+
 		QueryBoks.setSwportMap(swportMap);
 		QueryBoks.setSwportDataMap(swportDataMap);
 		QueryBoks.setBoksDiskMap(boksDiskMap);
@@ -582,6 +584,9 @@ class QueryBoks extends Thread
 	public static HashMap sysnameMap;
 	*/
 
+	static ConfigParser navCp;
+	public static void setConfigParser(ConfigParser cp) { navCp = cp; }
+
 	static HashMap swportMap;
 	public static void setSwportMap(HashMap h) { swportMap=h; }
 	static HashMap swportDataMap;
@@ -705,7 +710,7 @@ class QueryBoks extends Thread
 				outld("T"+id+":   Found deviceHandler for boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
 
 				DeviceDataListImpl dlist = new DeviceDataListImpl();
-				deviceHandler.handle(bd, sSnmp, dlist);
+				deviceHandler.handle(bd, sSnmp, navCp, dlist);
 				List swportDataList = dlist.getSwportDataList();
 
 				//if (!sSnmp.resetGotTimeout() && !portDataList.isEmpty()) synchronized (safeCloseBoksid) { safeCloseBoksid.add(boksid); }
