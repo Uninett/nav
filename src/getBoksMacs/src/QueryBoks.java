@@ -42,6 +42,7 @@ public class QueryBoks extends Thread
 
 	// Mapping fra boksid+ifindex swportid i swport
 	public static HashMap swportidMap;
+	public static Set swportNetboxSet;
 
 	// Denne inneholder alle "boksid:ifindex" fra swport som er trunk-porter
 	//public static HashSet boksIfindexTrunkSet;
@@ -284,7 +285,11 @@ public class QueryBoks extends Thread
 				String key = boksId+":"+pm;
 				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 				if (pm.getRemoteIf() != null && new_to_swportid == null) {
-					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
+					if (swportNetboxSet.contains(pm.getToNetboxid())) {
+						Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
+					} else {
+						Log.i("RUN", "Link, but no swports, for: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
+					}
 				}
 
 				// En enhet kan ikke ha link til seg selv

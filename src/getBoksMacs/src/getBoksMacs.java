@@ -195,10 +195,12 @@ class getBoksMacs
 		out("  swport...");
 		dumpBeginTime = System.currentTimeMillis();
 		QueryBoks.swportidMap = new HashMap();
+		QueryBoks.swportNetboxSet = new HashSet();
 		rs = Database.query("SELECT swportid,netboxid,ifindex FROM swport JOIN module USING(moduleid)");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
 			QueryBoks.swportidMap.put(key, rs.getString("swportid"));
+			QueryBoks.swportNetboxSet.add(rs.getString("netboxid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
