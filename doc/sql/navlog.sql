@@ -4,19 +4,19 @@
 -- Hvilket delsystem av nav som er avsender av meldingen
 --------------------------------------------------------
 
-DROP TABLE system;
-DROP SEQUENCE system_id_seq;
+--DROP TABLE system;
+--DROP SEQUENCE system_id_seq;
 
-CREATE TABLE system (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(20) UNIQUE NOT NULL,
-  description VARCHAR(50)
-);
+--CREATE TABLE system (
+--  id SERIAL PRIMARY KEY,
+--  name VARCHAR(20) UNIQUE NOT NULL,
+--  description VARCHAR(50)
+--);
 
-GRANT ALL ON system TO navlogadmin;
-GRANT ALL ON system_id_seq TO navlogadmin;
-GRANT SELECT ON system TO navlogweb;
-GRANT SELECT ON system_id_seq TO navlogweb;
+--GRANT ALL ON system TO navlogadmin;
+--GRANT ALL ON system_id_seq TO navlogadmin;
+--GRANT SELECT ON system TO navlogweb;
+--GRANT SELECT ON system_id_seq TO navlogweb;
 
 --------------------------------------------------------
 -- priority
@@ -45,12 +45,13 @@ DROP SEQUENCE type_id_seq;
 
 CREATE TABLE type (
   id SERIAL PRIMARY KEY,
-  systemid INTEGER NOT NULL REFERENCES system (id) ON DELETE CASCADE ON UPDATE CASCADE,
+--  systemid INTEGER NOT NULL REFERENCES system (id) ON DELETE CASCADE ON UPDATE CASCADE,
   facility VARCHAR(20) NOT NULL,
   mnemonic VARCHAR(30) NOT NULL,
   priorityid INTEGER REFERENCES priority (id) ON DELETE SET NULL ON UPDATE CASCADE,
   defaultmessage VARCHAR(250),
-  UNIQUE(systemid,facility,mnemonic)
+--  UNIQUE(systemid,facility,mnemonic)
+  UNIQUE(facility,mnemonic)
 );
 
 GRANT ALL ON type TO navlogadmin;
@@ -73,7 +74,7 @@ DROP SEQUENCE origin_id_seq;
 CREATE TABLE origin (
   id SERIAL PRIMARY KEY,
   name VARCHAR(30) UNIQUE NOT NULL,
-  systemid INTEGER NOT NULL REFERENCES system(id) ON UPDATE CASCADE ON DELETE CASCADE,
+--  systemid INTEGER NOT NULL REFERENCES system(id) ON UPDATE CASCADE ON DELETE CASCADE,
   category VARCHAR(5)
 );
 
@@ -138,7 +139,8 @@ CREATE INDEX message_time_btree ON message USING btree (time);
 DROP VIEW message_view;
 
 CREATE VIEW message_view AS
-SELECT originid,typeid,type.systemid,message.priority,category,time FROM origin
+--SELECT originid,typeid,type.systemid,message.priority,category,time FROM origin
+SELECT originid,typeid,message.priority,category,time FROM origin
 JOIN message ON originid=origin.id JOIN type ON typeid=type.id;
 
 GRANT ALL ON message_view TO navlogadmin;
