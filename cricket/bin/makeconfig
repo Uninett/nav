@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.20 2002/06/25 08:19:33 cricket Exp $
+# $Id: makeconfig,v 1.21 2002/06/26 08:41:18 cricket Exp $
 
 use strict;
 
@@ -109,9 +109,9 @@ sub Servers {
     # Iterates over all the servers in the database marked SNMP, and
     # writes them to various config files.    
     
-
+    # the phrase snmpagent ~'^1' = starts with 1
     $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,snmpagent FROM boks
-    WHERE kat='SRV' AND snmp_major > 0 ORDER BY sysname";
+    WHERE kat='SRV' AND snmp_major > 0 AND snmpagent ~'^.' ORDER BY sysname";
     my $getservers = &db_select($query,$dbh);
 
     while (my @temp = $getservers->fetchrow) {
