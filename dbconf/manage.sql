@@ -298,42 +298,42 @@ DROP SEQUENCE port2pkt_id_seq;
 DROP SEQUENCE pkt2rom_id_seq;
 
 CREATE TABLE arp (
-arpid serial primary key,
-boksid int4 references boks;
-prefiksid int4 references prefiks;
-ip varchar(15) not null,
-mac varchar(12) not null,
-fra timestamp not null,
-til timestamp
+  arpid SERIAL PRIMARY KEY,
+  boksid INT4 REFERENCES boks;
+  prefiksid INT4 REFERENCES prefiks;
+  ip VARCHAR(15) NOT NULL,
+  mac VARCHAR(12) NOT NULL,
+  fra TIMESTAMP NOT NULL,
+  til TIMESTAMP
 );
 
  
 CREATE TABLE cam (
-camid serial primary key,
-mac varchar(12) not null,
-boks varchar(15) not null,
-unit varchar(2) not null,
-port varchar(2) not null,
-fra timestamp not null,
-til timestamp
+  camid SERIAL PRIMARY KEY,
+  mac VARCHAR(12) NOT NULL,
+  boks VARCHAR(15) NOT NULL,
+  unit VARCHAR(2) NOT NULL,
+  port VARCHAR(2) NOT NULL,
+  fra TIMESTAMP NOT NULL,
+  til TIMESTAMP
 );
  
 CREATE TABLE port2pkt (
-id serial primary key,
-boks varchar(15) not null,
-unit varchar(2) not null,
-port varchar(2) not null,
-trom varchar(10) not null,
-pkt varchar(4) not null
+  id SERIAL PRIMARY KEY,
+  boks VARCHAR(15) NOT NULL,
+  unit VARCHAR(2) NOT NULL,
+  port VARCHAR(2) NOT NULL,
+  trom VARCHAR(10) NOT NULL,
+  pkt VARCHAR(4) NOT NULL
 );
 
 
 CREATE TABLE pkt2rom (
-id serial primary key,
-trom varchar(10) not null,
-pkt varchar(4) not null,
-bygg varchar(15) not null,
-rom varchar(10) not null
+  id SERIAL PRIMARY KEY,
+  trom VARCHAR(10) NOT NULL,
+  pkt VARCHAR(4) NOT NULL,
+  bygg VARCHAR(15) NOT NULL,
+  rom VARCHAR(10) NOT NULL
 );
 
 
