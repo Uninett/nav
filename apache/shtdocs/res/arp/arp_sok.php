@@ -25,7 +25,7 @@ $vars = $HTTP_GET_VARS;
 if ($vars[prefiksid])
 {
   $sok = 'IP';
-  $dager = 7;
+  $dager = 1;
 
   list($IPfra,$IPtil) = IPrange($dbh,$prefix,$vars[prefiksid]);
 }
@@ -43,12 +43,12 @@ else
   if (!$dager)
   { $dager = 7; }
 
-  $fra = date("Y-m-d G:i:sO",mktime (0,0,0,date("m")  ,date("d")-$dager,date("Y")));  
-
 }
+  
+$fra = date("Y-m-d G:i:sO",mktime (0,0,0,date("m")  ,date("d")-$dager,date("Y")));  
+
 
 navstart("Søk på IP/mac",$bruker);
- 
  
 print "<h2>Søk på IP/mac</h2>";
 
@@ -122,8 +122,8 @@ else
     $mac1 = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
 
     print "<tr><td><font color=blue><a href=$ego?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[mac]>$mac1</a></td>";
-    print "<td><a href=/ragen/?rapport=boks&sysname=$svar[sysname]>$svar[sysname]</a></td>";
-    print "<td align=center><a href=/ragen/?rapport=swport&sysname=$svar[sysname]>$svar[modul]:$svar[port]</a></td>";
+    print "<td><a href=/res/ragen/?rapport=boks&sysname=$svar[sysname]>$svar[sysname]</a></td>";
+    print "<td align=center><a href=/res/ragen/?rapport=swport&sysname=$svar[sysname]>$svar[modul]:$svar[port]</a></td>";
     print "<td><font color=green>$svar[fra]</td><td><font color=red>$svar[til]</td>";
 
     print "<td>";
