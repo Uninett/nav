@@ -11,6 +11,7 @@
 
 # The paths we use for the different scripts
 CDIR=/usr/local/nav/navme/cron
+BDIR=/usr/local/nav/navme/bin
 LDIR=/usr/local/nav/local/cron
 LOGDIR=/usr/local/nav/local/log
 
@@ -43,10 +44,9 @@ CRICKETDIR=/home/navcron/cricket
 7 2 * * * $CDIR/navlog/delete.pl > /dev/null
 9,29,49 * * * * $CDIR/navlog/insert.pl > /dev/null
 
-# 15 * * * *              $CDIR/navAdmin/runAvledTopologi.sh
-# 16 * * * *              $CDIR/navAdmin/runAvledVlan.sh
+35 * * * *              $BDIR/navAdmin/runAvledTopologi.sh
+36 * * * *              $BDIR/navAdmin/runAvledVlan.sh
 
-# 42 * * * *              $CDIR/getPortData/getPortData.sh
 # </collect>
 
 # <iptrace>
@@ -57,7 +57,8 @@ CRICKETDIR=/home/navcron/cricket
 # <mactrace>
 # Collects cam data from switches
 NUM_THREADS=24
-3,18,33,48 * * * *      $CDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS
+# Only collecte once an hour for testing purposes
+10 * * * *      $BDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS
 # </mactrace>
 
 # --- EOF ---
