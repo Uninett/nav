@@ -1,7 +1,7 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
 <?php
-echo '<p>Equipment filter setup</p>';
+echo '<p>Filter setup</p>';
 if ( get_exist('fid') ) {
 	session_set('match_fid', get_get('fid') );
 }
@@ -36,7 +36,7 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get
 }
 
 
-if ($subaction == 'slett') {
+if (isset($subaction) && $subaction == 'slett') {
 
 	if (session_get('match_fid') > 0) { 
 	
@@ -51,10 +51,10 @@ if ($subaction == 'slett') {
   
 }
 
-if ($subaction == "nymatch") {
+if (isset($subaction) && $subaction == "nymatch") {
 	print "<h3>" . gettext("Registering new condition...") . "</h3>";
 	
-	if ($navn == "") $navn = gettext("No name");
+	//if ($navn == "") $navn = gettext("No name");
 	if ($uid > 0) { 
 	
 		$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
@@ -89,7 +89,7 @@ $match = $dbh->listMatch(session_get('match_fid'), $l->getSort() );
 
 for ($i = 0; $i < sizeof($match); $i++) {
 
-	$valg = '<a href="index.php?subaction=slett&mid=' . 
+	$valg = '<a href="index.php?action=match&subaction=slett&mid=' . 
 		$match[$i][0] . '">' .
 		'<img alt="Delete" src="icons/delete.gif" border=0>' .
 		'</a>';
@@ -105,7 +105,7 @@ for ($i = 0; $i < sizeof($match); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=match\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
 print "Antall filtermatcher: " . sizeof($match);
 
 
@@ -115,7 +115,7 @@ echo '</h3>';
 
 
 
-print '<form name="form1" method="post" action="index.php?subaction=velgmatchfelt">';
+print '<form name="form1" method="post" action="index.php?action=match&subaction=velgmatchfelt">';
 
 ?>
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
@@ -132,14 +132,14 @@ $matchfields = $dbh->listMatchField(1);
 
 foreach ($matchfields AS $matchfield) {
 	$sel = "";
-	if ($matchfield[0] == $matchfelt) { $sel = " selected"; }
+	if ($matchfield[0] == best_get('matchfelt')) { $sel = " selected"; }
 	print '<option value="' . $matchfield[0] . '"' . $sel . '>' . $matchfield[1] . '</option>';
 }
 
 echo '</select></td></tr>';
 
 
-echo '</form><form name="nymatch" method="post" action="index.php?subaction=nymatch">';
+echo '</form><form name="nymatch" method="post" action="index.php?action=match&subaction=nymatch">';
 
 if ( post_exist('matchfelt') ) {
 	$valgt_matchfelt = post_get('matchfelt');
@@ -201,23 +201,21 @@ echo '</small></td></tr>';
 
 
 
-// Valg av verdi ----------------------------------------	
 
-    
-$verdier = $dbhk->listVerdier(
-	$matchfieldinfo[3],
-	$matchfieldinfo[4],
-	$matchfieldinfo[5],
-	$matchfieldinfo[6],
-	$matchfieldinfo[7]
-);
-/*
-echo "<pre>...\n";
-print_r($verdier);
-echo "</pre>";
-*/
 
 if ($matchfieldinfo[8] == 't' ) {
+  
+	// Valg av verdi ----------------------------------------	
+	
+		
+	$verdier = $dbhk->listVerdier(
+		$matchfieldinfo[3],
+		$matchfieldinfo[4],
+		$matchfieldinfo[5],
+		$matchfieldinfo[6],
+		$matchfieldinfo[7]
+	);  
+  
   
 	echo '<select name="verdi" id="select">';    
 

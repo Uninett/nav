@@ -69,7 +69,7 @@ for ($i = 0; $i < sizeof($logg); $i++) {
 
 print $l->getHTML(1);
 
-print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img class=\"refresh\" src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=logg\">" . gettext("update") . " <img class=\"refresh\" src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Number of shown events: ") . sizeof($logg);
 
 

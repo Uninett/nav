@@ -201,11 +201,6 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
     $aktiv = "<a href=\"index.php?action=profil&subaction=settaktiv&pid=". $profiler[$i][0] .
       "\"><img alt=\"Aktiv\" src=\"icons/selectoff.png\" border=0></a>";
   }
-  if ($profiler[$i][4] == 't') { 
-    $sms = '<img alt="' . gettext("Yes") . '" src="icons/ok.gif">';
-  } else {
-    $sms = '<img alt="' . gettext("No") . '" src="icons/cancel.png">';
-  }
   $valg = '<a href="index.php?action=periode&pid=' . $profiler[$i][0] . 
     '"><img alt="Open" src="icons/open2.gif" border=0></A>&nbsp;' .
     '<a href="index.php?action=profil&subaction=endre&pid=' . 
@@ -226,8 +221,8 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 
 print $l->getHTML();
 
-print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deactivate active profile") . '</a> | ' .  
-    "<a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0></a> ] ";
+print '<p>[ <a href="index.php?action=profil&subaction=settaktiv&pid=0">' . gettext("Deactivate active profile") . '</a> | ' .  
+    "<a href=\"index.php?action=profil\">" . gettext('update') . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0></a> ] ";
 print gettext("Number of profiles: ") . sizeof($profiler);
 
 

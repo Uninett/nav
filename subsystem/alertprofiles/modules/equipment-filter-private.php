@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Equipment filters'); ?></p>
+<p><?php echo gettext('Filters'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -9,8 +9,8 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo "<p>" . gettext("An equipment filter is a set of filtermatches, which constitutes a group of conditions for an quipment to be included. Equipment groups is created by several filters in an ordered list.
-<p>When creating an alert profile, you choose equipment groups to choose which equipment you want to supervise."); 
+echo "<p>" . gettext("A filter is a set of filtermatches, which constitutes a group of conditions for an quipment to be included. Equipment groups is created by several filters in an ordered list.
+<p>When creating an alert profile, you choose filter groups to choose which equipment you want to supervise."); 
 echo '<p><a href="?subaction=ny">' . gettext("Add a new filter") . '</A>';
 
 
@@ -46,7 +46,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	    <tr>
 	      <td width="30%"><p>' . gettext("Name") . '</p></td>
 	      <td width="70%"><input name="navn" type="text" size="40" 
-	value="' .  $navn . '"></td>
+	value="' .  best_get('navn') . '"></td>
 	    </tr>';
 	
 	echo '<tr>
@@ -66,7 +66,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 
 
 
-if ($subaction == 'endret') {
+if (isset($subaction) && $subaction == 'endret') {
 
 	if ($fid > 0) { 
             if (!$dbh->permissionEquipmentFilter( session_get('uid'), $fid ) ) {
@@ -87,7 +87,7 @@ if ($subaction == 'endret') {
   
 }
 
-if ($subaction == 'slett') {
+if (isset($subaction) && $subaction == 'slett') {
 
 	if ($fid > 0) { 
             if (!$dbh->permissionEquipmentFilter( session_get('uid'), $fid ) ) {
@@ -106,7 +106,7 @@ if ($subaction == 'slett') {
   
 }
 
-if ($subaction == "nyttfilter") {
+if (isset($subaction) && $subaction == "nyttfilter") {
   print "<h3>" . gettext("Registering a new profile...") . "</h3>";
   
 
@@ -171,7 +171,7 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" .gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=" . best_get('action'). "\">" .gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>

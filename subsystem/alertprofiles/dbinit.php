@@ -35,14 +35,16 @@ class dbinit {
             
             foreach ($conffile as $confline) {
                 $tvar = split('=', trim($confline));
-                $prop = trim($tvar[0]); $value = trim($tvar[1]);
-
-                switch ($prop) {
-                    case 'dbhost'		: $dhost = $value; break;
-                    case 'dbport'		: $dport = $value; break;
-                    case 'db_navprofile'	: $ddb   = $value; break;
-                    case 'script_navprofile' 	: $duser = $value; break;
-                    case 'userpw_' . $duser  	: $dpass = $value; break;
+                if (sizeof($tvar) > 1) {
+					$prop = trim($tvar[0]); $value = trim($tvar[1]);
+	
+					switch ($prop) {
+						case 'dbhost'		: $dhost = $value; break;
+						case 'dbport'		: $dport = $value; break;
+						case 'db_navprofile'	: $ddb   = $value; break;
+						case 'script_navprofile' 	: $duser = $value; break;
+						case 'userpw_' . $duser  	: $dpass = $value; break;
+					}
                 }
             }
             
@@ -79,15 +81,18 @@ class dbinit {
             
             foreach ($conffile as $confline) {
                 $tvar = split('=', trim($confline));
-                $prop = trim($tvar[0]); $value = trim($tvar[1]);
-
-                switch ($prop) {
-                    case 'dbhost'			: $dhost = $value; break;
-                    case 'dbport'			: $dport = $value; break;
-                    case 'db_navprofilemanage'		: $ddb   = $value; break;
-                    case 'script_navprofilemanage' 	: $duser = $value; break;
-                    case 'userpw_' . $duser 	: $dpass = $value; break;
-                }
+                if (sizeof($tvar) > 1) {
+					
+					$prop = trim($tvar[0]); $value = trim($tvar[1]);
+	
+					switch ($prop) {
+						case 'dbhost'			: $dhost = $value; break;
+						case 'dbport'			: $dport = $value; break;
+						case 'db_navprofilemanage'		: $ddb   = $value; break;
+						case 'script_navprofilemanage' 	: $duser = $value; break;
+						case 'userpw_' . $duser 	: $dpass = $value; break;
+					}
+				}
                 
             }
             

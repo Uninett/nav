@@ -65,7 +65,7 @@ WHERE (Account.login = '$username') AND
         $error[] = $nerror;
     } else {
         if (pg_numrows($query) == 1) {
-            if ( $data = pg_fetch_array($query, $row) ) {
+            if ( $data = pg_fetch_array($query, 0) ) {
                 // INNLOGGING OK!!
                 $foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
                 $dbh->nyLogghendelse($data["aid"], 1, gettext("Logged in from ") . $foo);

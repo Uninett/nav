@@ -49,7 +49,7 @@ if ($language == 'no') {
 }
 echo '</div>';
 
-if ($langset) {
+if (isset($langset) && $langset) {
 	echo gettext("<p>Your language of choice is saved, but at the moment it will only work for alert messages.");
 }
 

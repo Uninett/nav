@@ -1,13 +1,13 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
 <?php
-echo '<p>' . gettext("Equipment group overview") . '</p>';
+echo '<p>' . gettext("Filter group overview") . '</p>';
 
 if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
 
 $utstginfo = $dbh->utstyrgruppeInfo(session_get('grp_gid') );
 echo '<div class="subheader"><img src="icons/equipment.png"> ' . $utstginfo[0] . 
-	'<p style="font-size: x-small; font-weight: normal; margin: 2px; text-align: left"><img src="icons/gruppe.gif"> This is a public equipment group, owned by the administrators. You are free to use this equipment group to set up alert profiles, but you cannot change the equipment group composition.</div>';
+	'<p style="font-size: x-small; font-weight: normal; margin: 2px; text-align: left"><img src="icons/gruppe.gif"> This is a public filter group, owned by the administrators. You are free to use this filter group to set up alert profiles, but you cannot change the filter group composition.</div>';
 
 ?>
 
@@ -19,7 +19,7 @@ include("loginordie.php");
 loginOrDie();
 
 echo "<p>";
-echo gettext("Here is a read only overview of the requested equipment group. The composition of the equipment group, consisting of the include/exclude list of equipment filters is shown below.");
+echo gettext("Here is a read only overview of the requested filter group. The composition of the filter group, consisting of the include/exclude list of filters is shown below.");
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
@@ -32,12 +32,12 @@ $brukernavn = session_get('bruker'); $uid = session_get('uid');
  
 function eqgroupview($dbh, $eqid) {
 
-	echo '<h3>Equipment group overview</h3>';
+	echo '<h3>Filter group overview</h3>';
 
 	$filtre = $dbh->listFiltreGruppe($eqid, 0);
 	
 	$l = new Lister( 114,
-		array(gettext('Include'), gettext('Invert'), gettext('Equipment filter') ),
+		array(gettext('Include'), gettext('Invert'), gettext('Filter') ),
 		array(10, 15, 75 ),
 		array('left', 'center', 'left'),
 		array(false, false, false),
@@ -99,7 +99,7 @@ eqgroupview($dbh, session_get('grp_gid'));
 
 echo '<a href="?action=' . session_get('lastaction') . '">' . gettext('Return to ');
 switch (session_get('lastaction')) {
-	case 'utstyr' 	: echo gettext('equipment group list'); break;
+	case 'utstyr' 	: echo gettext('filter group list'); break;
 	case 'oversikt' : echo gettext('overview'); break;
 	default : echo gettext('previous page'); break;
 }

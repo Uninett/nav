@@ -24,7 +24,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 		print '<h2>' . gettext("Add new address") . '</h2>';
 	}
 	
-	echo '<form name="form1" method="post" action="index.php?subaction=';
+	echo '<form name="form1" method="post" action="index.php?action=adress&subaction=';
 	if ($subaction == 'endre') echo "endret"; else echo "nyadresse";
 	echo '">';
 	
@@ -176,10 +176,10 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 		default : $type = '<img alt="ukjent" src="" border=0>&nbsp;' . gettext("Unknown"); break;				
 	}
 
-  $valg = '<a href="index.php?action=' . $action . '&subaction=endre&aid=' . $adr[$i][0] . 
+  $valg = '<a href="index.php?action=' . best_get('action') . '&subaction=endre&aid=' . $adr[$i][0] . 
   		'&oldtype=' . $adr[$i][2] . '&adresse=' . $adr[$i][1] . '#nyadresse">' . 
   		'<img alt="Edit" src="icons/edit.gif" border=0></a>&nbsp;' .
-  		'<a href="index.php?action=' . $action . '&subaction=slett&aid=' . $adr[$i][0] .'">' . 
+  		'<a href="index.php?action=' . best_get('action') . '&subaction=slett&aid=' . $adr[$i][0] .'">' . 
   		'<img alt="Delete" src="icons/delete.gif" border=0></a>';
 
   $l->addElement( array($type,  // type
@@ -190,7 +190,7 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 echo $l->getHTML();
 
-echo "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
+echo "<p>[ <a href=\"index.php?action=" . best_get('action') . "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
 echo gettext("Number of addresses: ") . sizeof($adr);
 
 ?>

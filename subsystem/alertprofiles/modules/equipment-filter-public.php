@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Public equipment filters"); ?></p>
+<p><?php echo gettext("Public filters"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -9,7 +9,7 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo "<p>" . gettext("Public equipment filters is shared among administrators, and is used to create public equipment groups connected to user groups.");
+echo "<p>" . gettext("Public filters is shared among administrators, and is used to create public filter groups connected to user groups.");
 
 echo '<p><a href="?subaction=ny">'; 
 echo gettext("Add a new filter") . "</A>";
@@ -48,7 +48,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 	    <tr>
 	      <td width="30%"><p>' . gettext("Name") . '</p></td>
 	      <td width="70%"><input name="navn" type="text" size="40" 
-	value="' .  $navn . '"></td>
+	value="' .  best_get('navn') . '"></td>
 	    </tr>';
 	
 	echo '<tr>
@@ -66,12 +66,12 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 
 
 
-if ($subaction == 'endret') {
+if (isset($subaction) && $subaction == 'endret') {
 
 	if ($fid > 0) { 
 	
 		$dbh->endreFilter($fid, $navn);
-		$dbh->nyLogghendelse($uid, 8, gettext("Name changed on public equipment filter") . " (" . $navn . ")");
+		$dbh->nyLogghendelse($uid, 8, gettext("Name changed on public filter") . " (" . $navn . ")");
 		
 		print "<p><font size=\"+3\">" . gettext(" OK</font>, filter name is changed.");
 		$navn='';
@@ -83,12 +83,12 @@ if ($subaction == 'endret') {
   
 }
 
-if ($subaction == 'slett') {
+if (isset($subaction) && $subaction == 'slett') {
 
 	if ($fid > 0) { 
 	
 		$foo = $dbh->slettFilter($fid);
-		$dbh->nyLogghendelse($uid, 7, gettext("Public equipment filter is removed") . " (id=" . $fid . ")");		
+		$dbh->nyLogghendelse($uid, 7, gettext("Public filter is removed") . " (id=" . $fid . ")");		
 		$navn = '';
 		
 		print "<p><font size=\"+3\">" . gettext("OK</font>, the filter is removed from the database.");
@@ -100,7 +100,7 @@ if ($subaction == 'slett') {
   
 }
 
-if ($subaction == "nyttfilter") {
+if (isset($subaction) && $subaction == "nyttfilter") {
   print "<h3>" . gettext("Registering new filter...") . "</h3>";
   
 
@@ -109,7 +109,7 @@ if ($subaction == "nyttfilter") {
   if ($uid > 0) { 
     
     $filterid = $dbh->nyttFilterAdm($navn);
-	$dbh->nyLogghendelse($uid, 6, gettext("New public equipment filter") . " (" . $navn . ")");    
+	$dbh->nyLogghendelse($uid, 6, gettext("New public filter") . " (" . $navn . ")");    
     
     print "<p><font size=\"+3\">" . gettext("OK</font>, a new filter is created. Open the filter to add matchfields.");
     
@@ -129,7 +129,7 @@ $l = new Lister( 110,
 		0
 );
 
-print "<h3>" . gettext("Your equipment filters") . "</h3>";
+print "<h3>" . gettext("Public filters") . "</h3>";
 
 if (! isset($sort) ) { $sort = 1; }
 $filtre = $dbh->listFiltreAdm($sort);
@@ -166,7 +166,7 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=ffilter\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
 print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>

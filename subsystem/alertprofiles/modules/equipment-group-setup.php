@@ -1,7 +1,7 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
 <?php
-echo '<p>' . gettext("Setup equipment group") . '</p>';
+echo '<p>' . gettext("Setup filter group") . '</p>';
 
 if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
 
@@ -19,7 +19,7 @@ include("loginordie.php");
 loginOrDie();
 
 echo "<p>";
-echo gettext("Here you select equipment filters which make up the equipment group."); 
+echo gettext("Here you select filters which make up the filter group."); 
 echo '<p><a href="#nyttfilter">';
 echo gettext("Add new filter"); 
 echo "</a>";
@@ -37,7 +37,7 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentGroup( session_get(
 }
 
 
-if ($subaction == 'slett') {
+if (isset($subaction) && $subaction == 'slett') {
 
 	if (get_get('fid') > 0) { 
 	
@@ -52,7 +52,7 @@ if ($subaction == 'slett') {
   
 }
 
-if ($subaction == "nyttfilter") {  
+if (isset($subaction) && $subaction == "nyttfilter") {  
   if (($uid > 0) AND (isset($filterid))){ 
   	$neg = post_get('neg-check') == 1 ? 0 : 1;
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
@@ -63,13 +63,13 @@ if ($subaction == "nyttfilter") {
 
 }
 
-if ($subaction == "swap") {  
+if (isset($subaction) && $subaction == "swap") {  
 	$matchid = $dbh->swapFilter(session_get('grp_gid'), 
 		get_get('a'), get_get('b'), get_get('ap'), get_get('bp') );
 }
 
 $l = new Lister( 114,
-		array(gettext('Incl'), gettext('Neg'), gettext('Equipment filter'), gettext('Move'), gettext('Options..') ),
+		array(gettext('Incl'), gettext('Neg'), gettext('Filter'), gettext('Move'), gettext('Options..') ),
 		array(15, 10, 45, 15, 15),
 		array('center', 'center', 'left', 'center', 'right'),
 		array(false, false, false, false, false),
@@ -77,7 +77,7 @@ $l = new Lister( 114,
 );
 
 
-print "<h3>" . gettext("Equipment filters") . "</h3>";
+print "<h3>" . gettext("Filters") . "</h3>";
 
 $filtre = $dbh->listFiltreGruppe(session_get('grp_gid'), 1);
 
@@ -95,14 +95,16 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 	}
 
 	$flytt = "";
-	if ($up) $flytt .= '<a href="index.php?subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i-1][0] .'&ap=' .
+	if ($up) $flytt .= '<a href="index.php?action=utstyrgrp&subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i-1][0] .'&ap=' .
 		$filtre[$i][2] . '&bp=' . $filtre[$i-1][2] . '">' . 
 		'<img alt="' . gettext("Move up") . '" src="icons/arrowup.gif" border="0"></a>';
 	
-	if ($down) $flytt .= '<a href="index.php?subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i+1][0] . '&ap=' . 
+	if ($down) $flytt .= '<a href="index.php?action=utstyrgrp&subaction=swap&a=' . $filtre[$i][0] . '&b='. $filtre[$i+1][0] . '&ap=' . 
 		$filtre[$i][2] . '&bp=' . $filtre[$i+1][2] . '">' . 
 		'<img alt="' . gettext("Move down") . '" src="icons/arrowdown.gif" border="0"></a>';
-		
+	
+  	$flytt = strlen($flytt) > 0 ? $flytt : '&nbsp;';
+  	
   	$valg = '<a href="index.php?action=utstyrgrp&subaction=slett&fid=' . 
   		$filtre[$i][0] . '">' . 
   		'<img alt="Delete" src="icons/delete.gif" border=0></a>';	
@@ -149,13 +151,13 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
+print "<p>[ <a href=\"index.php?action=utstyrgrp\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>
 
 <a name="nyttfilter"></a><p><h3><?php echo gettext("Add new filter"); ?></h3>
-<form name="form1" method="post" action="index.php?subaction=nyttfilter">
+<form name="form1" method="post" action="index.php?action=utstyrgrp&subaction=nyttfilter">
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     
     <tr>
@@ -163,6 +165,7 @@ print gettext("Number of filters: ") . sizeof($filtre);
     	<td width="50%">
 <?php
 print '<select name="filterid">';
+$sort = isset($sort) ? $sort : 0;
 if (session_get('lastaction') == 'futstyr') {
     $filtervalg = $dbh->listFiltreFastAdm(session_get('grp_gid'), $sort);
 } else {
@@ -219,7 +222,7 @@ if ($i > 0 ) {
 <?php
     if (!post_exist('matchfelt') ) {
         echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
-        echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up equipment group') . '">';
+        echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter group') . '">';
         echo '</form>';
     }
 ?>

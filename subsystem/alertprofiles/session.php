@@ -22,6 +22,9 @@ function session_set($var, $par) {
 }
 
 function session_get($var) {
+/* 	if (!session_exist($var)){ */
+/* 		return null; */
+/* 	} */
 	$varname = 'SeSsIoN_' . $var;
 	return $_SESSION[$varname];
 }
@@ -37,6 +40,9 @@ function session_exist($var) {
 }
 
 function get_get($var) {
+/* 	if (!get_exist($var)){ */
+/* 		return null; */
+/* 	} */
 	if (get_exist($var) )
 		return $_GET[$var] ;
 	else
@@ -48,10 +54,13 @@ function get_exist($var) {
 }
 
 function post_get($var) {
+/* 	if (!post_exist($var)){ */
+/* 		return null; */
+/* 	} */
 	if (post_exist($var))
 		return $_POST[$var] ;
 	else
-		return undef;
+		return null;
 }
 
 function post_exist($var) {
@@ -60,6 +69,12 @@ function post_exist($var) {
 	else return false;
 }
 
+function best_get($var) {
+	if ( post_exist($var)) { return post_get($var); }
+	if ( get_exist($var)) { return get_get($var); }
+	if ( session_exist($var)) { return session_get($var); }
+	return null;
+}
 
 // Starter sesjonshåndtering...
 session_start();

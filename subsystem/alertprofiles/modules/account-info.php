@@ -13,7 +13,7 @@ loginOrDie();
 session_set('lastaction', 'oversikt');
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
-if ($subaction == 'settaktiv') {
+if (isset($subaction) && $subaction == 'settaktiv') {
 	print "<p>" . gettext("Active profile changed.");
 	$dbh->aktivProfil(session_get('uid'), $pid);
 }
@@ -25,9 +25,9 @@ $profiler = $dbh->listProfiler( session_get('uid'), 1);
 
 
 // Lag en dropdown meny for å velge aktiv profil
-print '<form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
+print '<form name="form1" method="post" action="index.php?action=account-info&subaction=settaktiv">';
 
-print gettext('Active profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
+print gettext('Set active alert profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
 
 
 if ($brukerinfo[4] < 1) { 

@@ -549,7 +549,7 @@ FROM MatchField
 WHERE matchfieldid = " . addslashes($mid) ;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-        $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+        $data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 	$mf[0] = $data["name"];
 	$mf[1] = $data["descr"];
 	$mf[2] = $data["valuehelp"];
@@ -617,7 +617,7 @@ WHERE (Brukerprofil.accountid = " . addslashes($uid) . ") AND (Account.id = Bruk
     (Account.id = Preference.accountid) 
 ORDER BY " . $sorts[$sort];
 
-#    print "<p>$querystring";
+    //print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
@@ -749,7 +749,7 @@ WHERE antall > 1
 	// Denne funksjonen returnerer alle utstyrgrupper som en Account har tilgang til, 
 	// enten man har laget den selv eller den er arvet gjennom DefaultUtstyr.
   function listUtstyr($uid, $sort) {
-    $uts = NULL;
+    $utst = NULL;
     
     $sorts = array (
     	'navn,id',
@@ -823,7 +823,7 @@ FROM (SELECT id, navn, descr, true AS min
     
 	// Denne funksjonen returnerer alle utstyrgrupper som en Account har rettighet til, 
   function listUtstyrRettighet($uid, $sort) {
-    $uts = NULL;
+    $utst = NULL;
     
 #    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
 
@@ -857,7 +857,7 @@ WHERE (AccountInGroup.accountid = " . addslashes($uid) . ") AND
 
 	// Denne funksjonen returnerer alle utstyrgrupper som administrator har rettigheter til 
   function listUtstyrAdm($sort) {
-    $uts = NULL;
+    $utst = NULL;
     
    $sorts = array (
     	'navn,id',
@@ -971,7 +971,7 @@ ON (id = FCount.utstyrgruppeid)";
 		$utst[$row][2] = $data["ap"];
 		$utst[$row][3] = $data["af"];
 		$utst[$row][4] = $data["min"];				
-		$utst[$row][5] = $data["ermed"];	
+		//$utst[$row][5] = $data["ermed"];	
 		$row++;
       } 
     }  else {
@@ -1047,7 +1047,7 @@ FROM Account, Preference
 WHERE id = " . addslashes($uid) . " AND account.id = preference.accountid";
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$br[0] = $data["login"];
 		$br[1] = $data["name"];
 		$br[2] = $data["admin"];
@@ -1070,7 +1070,7 @@ FROM AccountGroup
 WHERE id = " . addslashes($gid) ;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$gr[0] = $data["name"]; 
 		$gr[1] = $data["descr"];		
     }  else {
@@ -1091,7 +1091,7 @@ WHERE id = " . addslashes($gid) ;
 //	print "<p>" . $querystring;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$gr[0] = $data["navn"]; 
 		$gr[1] = $data["descr"];		
     }  else {
@@ -1112,7 +1112,7 @@ WHERE id = " . addslashes($fid) ;
 //	print "<p>" . $querystring;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$gr[0] = $data["navn"]; 
     }  else {
       $error = new Error(2);
@@ -1162,7 +1162,7 @@ WHERE id = " . addslashes($pid) ;
 //	print "<p>" . $querystring;
 
     if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$p[0] = $data["navn"]; 
 		$p[1] = $data["ukedag"];		
 		$p[2] = $data["uketidh"];		
@@ -1440,11 +1440,10 @@ function periodeInfo($tid) {
 //    print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$perioder[0] = $data["helg"];
 		$perioder[1] = $data["time"];
 		$perioder[2] = $data["minutt"];
-		$row++;
     }  else {
     	$error = new Error(2);
     	$bruker{'errmsg'}= "Feil med datbasesp&oslash;rring. Fant ikke periode.";
@@ -1462,7 +1461,7 @@ WHERE (accountid = " . addslashes($uid) . ") AND (property = 'wapkey')";
 //    print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1) {
-		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$data = pg_fetch_array($query, 0, PGSQL_ASSOC);
 		$key[0] = $data["value"];
     } else {
     	$key = null;
@@ -1782,6 +1781,8 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       "nextval('tidsperiode_id_seq'), " . addslashes($helg) . ", '" . 
       addslashes($tid) ."', " . addslashes($profilid) . ")";
     
+    //print '<p>Nytidsperiode:' . $querystring;
+    
     if ( $query = pg_exec( $this->connection, $querystring)) {
       
       // Henter ut object id`n til raden.
@@ -2074,7 +2075,8 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
 GruppeTilFilter (inkluder, positiv, prioritet, utstyrfilterid, utstyrgruppeid) 
 SELECT inkluder, positiv, prioritet, utstyrfilterid, " . $nyutstgrpid . "  
 FROM GruppeTilFilter WHERE (utstyrgruppeid = " . addslashes($basertpaa) . ")";
-echo "<pre>" . $querystring . "</pre>";
+
+//echo "<pre>" . $querystring . "</pre>";
             if ( $query = pg_exec( $this->connection, $querystring)) { 
                 //echo "<p>funka fint dette (12)...";
                 return 1;
@@ -2399,9 +2401,9 @@ class DBHK {
     $vid = $this->get_field($valueid);
     $vname = $this->get_field($vnamestr);
     $vsort = $this->get_field($valuesort);
-    $vcat = $this->get_field($valuecategory);
+    $vcat =  isset($valuecategory) ? $this->get_field($valuecategory) : null;
     
-    if ($valuecategory != "") {
+    if (isset($vcat) && $vcat ) {
         $vc = ", " . $vcat;
     } else {
         $vc = "";
@@ -2418,12 +2420,17 @@ class DBHK {
 
         while ( $row < $tot) {
             $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+            
+            $scat = (isset($vcat) && $vcat && isset($data[$vcat])) ? $data[$vcat] : 0;
+            
 			$namestring = $vntemplate;
 			$namestring = preg_replace('/(\[NAME\])/', $data[$vname], $namestring);
 			$namestring = preg_replace('/(\[ID\])/', $data[$vid], $namestring);
-			$namestring = preg_replace('/(\[GROUP\])/', $data[$vcat], $namestring);
-            $verdier[$data[$vcat]][$row][0] = $data[$vid];
-            $verdier[$data[$vcat]][$row][1] = $namestring;
+			$namestring = preg_replace('/(\[GROUP\])/', $scat, $namestring);
+			
+			
+			if (!isset($verdier[$scat] )) { $verdier[$scat] = null; }
+			$verdier[$scat][$row] = array($data[$vid], $namestring);
             $row++;
         }
         
@@ -2431,8 +2438,10 @@ class DBHK {
         $error = new Error(2);
         $bruker{'errmsg'}= "Feil med datbasespørring.";
     }
+/* 	echo '<pre>'; */
+/*     print_r($verdier); */
+/*    echo '</pre>'; */
 
-    
     return $verdier;  
   
   }

@@ -67,7 +67,7 @@ $fmlist = $dbh->listFilterMatchAdm($l->getSort() );
 
 for ($i = 0; $i < sizeof($fmlist); $i++) {
   
-  $valg = '<a href="index.php?subaction=slett&mfid=' . $fmlist[$i][0]. '">' .
+  $valg = '<a href="index.php?action=filtermatchadm&subaction=slett&mfid=' . $fmlist[$i][0]. '">' .
     '<img alt="Delete" src="icons/delete.gif" border=0></a>';
 
   $l->addElement( array($fmlist[$i][0],  // id
@@ -91,7 +91,7 @@ echo gettext("Add a new match field");
 
 <?php 
 
-echo '<form name="nymatch" method="post" action="index.php?subaction=nymatch">';
+echo '<form name="nymatch" method="post" action="index.php?action=filtermatchadm&subaction=nymatch">';
 
 echo '<table width="100%" border="0" cellspacing="0" cellpadding="3">';
 

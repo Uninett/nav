@@ -168,7 +168,7 @@ for ($i = 0; $i < sizeof($perioder); $i++) {
 
 print "<h3>" . gettext("Monday - Friday") . "</h3>";
 print "<table width=\"100%\"><tr><td>\n";
-print "<A HREF=\"index.php?action=periode-setup&subsaction=new&pid=$pid&coor1=\">\n";
+print "<A HREF=\"index.php?action=periode-setup&subsaction=new&pid=" . session_get('periode_pid') . "&coor1=\">\n";
 print "<img border=\"0\" class=\"ilink\" title=\"Create new time period here\" alt=\"Timeplan Man-Fre\" src=\"timeplan.php?";
 $c = 0;
 foreach ($kt[0] as $el) {
@@ -183,7 +183,7 @@ print "</td></tr></table>";
 
 print "<h3>" . gettext("Saturday and Sunday") . "</h3>";
 print '<table width="100%"><tr><td>';
-print "<A HREF=\"index.php?action=periode-setup&subaction=new&pid=$pid&coor2=\"><img border=\"0\" class=\"ilink\" alt=\"Timeplan Lør-Søn\" title=\"Create new time period here\" src=\"timeplan.php?";
+print "<A HREF=\"index.php?action=periode-setup&subaction=new&pid=" . session_get('periode_pid') . "&coor2=\"><img border=\"0\" class=\"ilink\" alt=\"Timeplan Lør-Søn\" title=\"Create new time period here\" src=\"timeplan.php?";
 $c = 0;
 foreach ($kt[1] as $el) {
      print "t[" . $c . "]=" . $kt[1][$c][0] . "&m[" . $c . "]=" . $kt[1][$c++][1] . "&";
@@ -192,7 +192,7 @@ print '" ISMAP></A></td><td valign="top">';
 print $l[1]->getHTML();
 print '</td></tr></table>';
 
-print "<p>[ <a href=\"index.php\">" . gettext("update") . "<img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
+print "<p>[ <a href=\"index.php?action=periode\">" . gettext("update") . "<img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
 print gettext("Number of periods: ") . sizeof($perioder);
 
 

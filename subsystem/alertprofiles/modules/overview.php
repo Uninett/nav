@@ -133,25 +133,27 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 			$p_adr = $dbh->listVarsleAdresser(session_get('uid'), $t_p[0], $t_u[0], 0);
 			$estring .= '<ul>';
 			$vcount = 0;
-			foreach ($p_adr AS $p_a) {
-				if (!is_null($p_a[3]) ) {
-					$vcount++;
-					$vstr = '<a class="tt" href="?action=adress">' . $p_a[1] . '</a>';
-					if ($p_a[3] == 0) {
-						$estring .= '<li class="direct">' . $vstr . "</li>";
-					} else if ($p_a[3] == 1) {
-						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Daily queue') . ")</li>";
-					} else if ($p_a[3] == 2) {
-						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Weekly queue') . ")</li>";
-					} else if ($p_a[3] == 3) {
-						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Queued until profile changes') . ")</li>";
-					} else if ($p_a[3] == 4) {
-						$estring .= '<li class="direct">' . $vstr . " (" . gettext('No alert') . ")</li>";
-					} else {
-						$estring .= '<li class="queue">' . $vstr . " (" . gettext('Uknown queue type') . ")</li>";
+			if (is_array($p_adr)) {
+				foreach ($p_adr AS $p_a) {
+					if (!is_null($p_a[3]) ) {
+						$vcount++;
+						$vstr = '<a class="tt" href="?action=adress">' . $p_a[1] . '</a>';
+						if ($p_a[3] == 0) {
+							$estring .= '<li class="direct">' . $vstr . "</li>";
+						} else if ($p_a[3] == 1) {
+							$estring .= '<li class="queue">' . $vstr . " (" . gettext('Daily queue') . ")</li>";
+						} else if ($p_a[3] == 2) {
+							$estring .= '<li class="queue">' . $vstr . " (" . gettext('Weekly queue') . ")</li>";
+						} else if ($p_a[3] == 3) {
+							$estring .= '<li class="queue">' . $vstr . " (" . gettext('Queued until profile changes') . ")</li>";
+						} else if ($p_a[3] == 4) {
+							$estring .= '<li class="direct">' . $vstr . " (" . gettext('No alert') . ")</li>";
+						} else {
+							$estring .= '<li class="queue">' . $vstr . " (" . gettext('Uknown queue type') . ")</li>";
+						}
 					}
 				}
-			}
+				}
 
 			$estring .= '</ul>';
 			$estring .= '</td></tr>';
@@ -175,8 +177,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 	
 }
 
-if ($subaction == 'settaktiv') {
-	print "<p>" . gettext("Active profile changed.");
+if (isset($subaction) && $subaction == 'settaktiv') {
 	$dbh->aktivProfil(session_get('uid'), $pid);
 }
 
@@ -186,12 +187,59 @@ $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 $profiler = $dbh->listProfiler( session_get('uid'), 1);
 
 
+    
+$acprofilename = "No active profile";
+if (sizeof($profiler) < 1) {
+	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. Choose profiles from the menu at the left margin and create a new profile.") . '</td></tr></table>'; 
+} elseif ($brukerinfo[4] < 1) { 
+		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("No alert profile is active for the moment. That means no alerts will be sent.") . '</td></tr></table>'; 
+} else {
+
+	foreach ($profiler AS $p) {
+		if ($brukerinfo[4] == $p[0]) {
+			$acprofilename = $p[1];
+			$acprofileid = $p[0];
+		}
+	}
+}
+    
+/*
+ * TIMEPLAN OVERSIKT OVER AKTIV PROFIL
+ 
+<li style="margin: 1px; list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder.png)"> 
+ <li style="border: thin solid black; background: #ebb; margin: 1px;
+		list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder-excl.png)">
+		echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i5/16_ethernet.png)">';		
+				echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i43/stock_jump-to-16.png)">';		
+ */
+
+//echo '<div style="border: thin #999 solid; margin: 2px; padding: 2px; background: ddd">';
+
+if ($brukerinfo[4] > 0) {
+	echo '<h1>' . $acprofilename . '</h1>';
+	if (session_get('tview') == 2) {
+		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ <a href="?tview=1">' . gettext('weekdays and weekend separate') . '</a> | ' . gettext('the whole week together in one view') . ' ]';
+		echo '<h3 style="margin-top: .6em; margin-bottom: 0px">' . gettext('Timetable whole week') . "</h3>";
+		echo '<p style="margin-top: 0px; margin-bottom: 1em">[ <a href="index.php?action=periode&pid=' . $acprofileid . '">Edit timetable</a> ]</p>';		
+		showTimeTable($dbh, $brukerinfo, array(1,2,3) );
+	} else {
+		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ ' . gettext('weekdays and weekend separate') . ' | <a href="?tview=2">' . gettext('the whole week together in one view') . '</a> ]';
+		echo '<h3 style="margin-top: .6em; margin-bottom: 0px">' . gettext('Timetable Monday to Friday') . "</h3>";
+		echo '<p style="margin-top: 0px; margin-bottom: 1em">[ <a href="index.php?action=periode&pid=' . $acprofileid . '">Edit timetable</a> ]</p>';
+		showTimeTable($dbh, $brukerinfo, array(1,2) );
+		
+		echo '<h3 style="margin-top: .6em; margin-bottom: 0px">' . gettext('Timetable Saturday and Sunday') . "</h3>";
+		echo '<p style="margin-top: 0px; margin-bottom: 1em">[ <a href="index.php?action=periode&pid=' . $acprofileid . '">Edit timetable</a> ]</p>';		
+		showTimeTable($dbh, $brukerinfo, array(1,3) );
+	}
+}
+
+
+
+
 // Lag en dropdown meny for å velge aktiv profil
-print '<form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
-
-print gettext('Active profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
-
-
+print '<div align="right"><form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
+print gettext('Change active profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
 if ($brukerinfo[4] < 1) { 
 	echo '<option value="0">' . gettext("Choose alert profile") . '</option>'; 
 }
@@ -209,47 +257,10 @@ print '</select>';
 if ($brukerinfo[4] < 1) { 
 	echo "<p>" . gettext("No alert profile is active. Activate a profile from the menu above."); 
 }
-print '</form>';
-
-
-
-    
-if ($brukerinfo[4] < 1) { 
-		echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("No alert profile is active for the moment. That means no alerts will be sent.") . '</td></tr></table>'; 
+if (isset($subaction) && $subaction == 'settaktiv') {
+	print "<p>" . gettext("Active profile changed.");
 }
-    
-if (sizeof($profiler) < 1) {
-	echo '<p><table width="100%"><tr><td><img alt="Warning" align="top" src="images/warning.png"></td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. Choose profiles from the menu at the left margin and create a new profile.") . '</td></tr></table>'; 
-}
-    
-    
-/*
- * TIMEPLAN OVERSIKT OVER AKTIV PROFIL
- 
-<li style="margin: 1px; list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder.png)"> 
- <li style="border: thin solid black; background: #ebb; margin: 1px;
-		list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder-excl.png)">
-		echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i5/16_ethernet.png)">';		
-				echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i43/stock_jump-to-16.png)">';		
- */
-
-//echo '<div style="border: thin #999 solid; margin: 2px; padding: 2px; background: ddd">';
-
-if ($brukerinfo[4] > 0) {
-	if (session_get('tview') == 2) {
-		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ <a href="?tview=1">' . gettext('weekdays and weekend separate') . '</a> | ' . gettext('the whole week together in one view') . ' ]';
-		echo "<h3>" . gettext('Timetable whole week') . "</h3>";
-		showTimeTable($dbh, $brukerinfo, array(1,2,3) );
-	} else {
-		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ ' . gettext('weekdays and weekend separate') . ' | <a href="?tview=2">' . gettext('the whole week together in one view') . '</a> ]';
-		echo "<h3>" . gettext('Timetable Monday to Friday') . "</h3>";
-
-		showTimeTable($dbh, $brukerinfo, array(1,2) );
-		
-		echo "<h3>" . gettext('Timetable Saturday and Sunday') . "</h3>";
-		showTimeTable($dbh, $brukerinfo, array(1,3) );
-	}
-}
+print '</form></div>';
 
 
 

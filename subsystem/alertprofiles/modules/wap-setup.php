@@ -17,7 +17,7 @@ Remember to keep your wap key secret. If compromised, you can generate a new key
 
 $uid = session_get('uid');
 
-if ($subaction == 'nykey') {
+if (isset($subaction) && $subaction == 'nykey') {
 	$nk = chr (rand(0, 25) + ord('A')) .
 		chr (rand(0, 25) + ord('A')) .
 		rand(0, 9) . rand(0,9) .
@@ -25,7 +25,7 @@ if ($subaction == 'nykey') {
 
 	$dbh->settwapkey(session_get('uid'), $nk);
 }
-if ($subaction == 'slettkey') {
+if (isset($subaction) && $subaction == 'slettkey') {
 	$dbh->slettwapkey($uid);
 }
 
@@ -37,13 +37,13 @@ print "<h2>" . gettext("WAP key") . "</h2>";
 
 if ($k[0] == null) {
 	print "<p>" . gettext("You have no WAP key. One must be generated to access Alert Profiles from WAP.");
-	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generate WAP key") . "</a> ]";	
+	print "<p>[ <a href=\"index.php?action=wap&subaction=nykey\">" . gettext("Generate WAP key") . "</a> ]";	
 } else {
 	print "<p>" . gettext("Your WAP key is: ") ."<b>" . $k[0] . "</b>.";
 	print "<p>" . gettext("You can now access Alert profiles from this WAP page :") . "<br>";
 	print '<pre>http://' . $_SERVER['SERVER_NAME'] . '/wap/?k=' . $k[0] . '</pre>';
 
-	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generate a new key") . "</a> | 
+	print "<p>[ <a href=\"index.php?action=wap&subaction=nykey\">" . gettext("Generate a new key") . "</a> | 
 <a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Deactivate WAP access") . "</a> ]";
 
 }
