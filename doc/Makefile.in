@@ -1,0 +1,22 @@
+#
+# Makefile for the top-level NAV documentation
+#
+SHELL = @SHELL@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+docdir = @docdir@
+
+INSTALL = @INSTALL@
+
+# File lists
+
+docsql = sql/README sql/manage.sql sql/navprofiles.sql sql/snmpoid.sql
+
+.PHONY: all install
+
+all:
+
+install:
+	@for file in $(docsql); do \
+	  $(INSTALL) -v -m 644 -D $$file $(DESTDIR)$(docdir)/$$file || exit 1; \
+	done

@@ -32,6 +32,7 @@ AC_SUBST(pythonlibdir)
 AC_SUBST(perllibdir)
 AC_SUBST(initdir)
 AC_SUBST(tooldir)
+AC_SUBST(docdir)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -39,11 +40,13 @@ webroot='${prefix}/apache/webroot'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
-dnl initdir='${sysconfdir}/init.d'
 initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
+docdir='${prefix}/doc'
+
 
 AC_OUTPUT(Makefile
+	doc/Makefile
 	src/build.properties
 	src/eventEngine/eventengine
 	src/getDeviceData/getDeviceData
