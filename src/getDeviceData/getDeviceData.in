@@ -28,7 +28,14 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting getDeviceData: "
-		rc= daemon "su ${user} -c ${bindir}/getDeviceData.sh"
+		# Only su to navcron if we aren't navcron already (to
+		# avoid password prompts)
+		if [ `whoami` == "${user}" ]; then
+		    SU=""
+		else
+		    SU="su ${user} -c "
+		fi
+		rc= daemon "${SU}${bindir}/getDeviceData.sh"
 		echo
 		exit $rc
 		;;
