@@ -10,4 +10,4 @@ MAILTO=grohi@itea.ntnu.no
 
 MAILTO=knutvi@itea.ntnu.no
 */5 * * * * /usr/local/nav/navme/cron/safe_smsd.pl
-58 4 * * * /usr/local/nav/navme/cron/pg_backup.pl
+58 4 * * * /usr/local/nav/navme/cron/pg_backup.pl 2>/dev/null
