@@ -38,6 +38,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOS"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoGw"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw"/>
     <ant inheritAll="false" dir="device-plugins/Server"/>
