@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Stian Søiland <stain@itea.ntnu.no>
+# Authors: Erlend Mjaavatten <mjaavatt@itea.ntnu.no>
 #
 import math
 units = {
@@ -66,7 +66,5 @@ def printe(number):
     import sci_exp
     a = sci_exp.sciShort(number)
     return '%0.3f%s' % a
-
-
         
     
