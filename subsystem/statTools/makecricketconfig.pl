@@ -31,7 +31,7 @@ BEGIN {
     getopts('hl:c:');
 
     # Checking for Cricket if c-option not set.
-    my @defaultcricketdirs = ("/home/navcron/cricket","/usr/local/cricket");
+    my @defaultcricketdirs = ("/home/navcron/cricket","/usr/local/cricket","/usr/local/nav/cricket");
     if ($opt_c) {
 	print "Setting cricketdir to $opt_c.\n";
 	$cricketdir = $opt_c;
@@ -78,13 +78,13 @@ if (! $gCT->init()) {
 umask 007;
 
 use strict;
-
 use NAV;
 
 my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
 \th: help, prints this
-\tc: location of Cricket, if not set we search in default directories (/usr/local/cricket/ /home/navcon/cricket) 
+\tc: location of Cricket, if not set we search in default directories
+\t\t(/usr/local/cricket /home/navcon/cricket /usr/local/nav/cricket) 
 \tl: loglevel (1 - silent, 2 - default, 3 - debug)
 
 Made by John Magne Bredal - ITEA NTNU 2003
