@@ -245,7 +245,7 @@ class NavUtils
 		ArrayList swport = new ArrayList();
 		HashMap swrecMap = new HashMap();
 		//rs = Database.query("SELECT swportid,boksid,status,speed,duplex,modul,port,portnavn,boksbak,static,trunk,hexstring FROM swport NATURAL LEFT JOIN swportallowedvlan WHERE status='up' ORDER BY boksid,modul,port");
-		rs = Database.query("SELECT swportid,boksid,status,speed,duplex,modul,port,portnavn,boksbak,static,trunk,hexstring FROM swport NATURAL LEFT JOIN swportallowedvlan ORDER BY boksid,modul,port");
+		rs = Database.query("SELECT swportid,boksid,status,speed,duplex,modul,port,portnavn,boksbak,static,trunk,hexstring FROM swport NATURAL LEFT JOIN swportallowedvlan ORDER BY boksid,ifindex");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			HashMap hm = getHashFromResultSet(rs, rsmd);
@@ -293,6 +293,7 @@ class NavUtils
 					}
 
 					String vlan = "non-s";
+					/*
 					if (swrec.get("static").equals("t")) {
 						if (swrec.get("trunk").equals("t")) {
 							// Vi har en static trunk, prøv å finn record for andre veien
@@ -344,11 +345,19 @@ class NavUtils
 							}
 						}
 					}
+					*/
 
 					swrec.put("boksbak", boksbak.toString());
 					swrec.put("change", "Updated ("+vlan+")");
 				}
 			} else {
+				// Dette er nå en feilsituasjon som ikke bør skje! :-)
+				outl("<font color=\"red\">ERROR:</font> Could not find record for other side of link! boks: " + boksNavn.get(new Integer(boksid)) + " Modul: " + modul + " Port: " + port + " boksBak: " + boksNavn.get(boksbak) + "<br>");
+
+			}
+
+			/*
+			else {
 				// Record eksister ikke, og må derfor settes inn
 
 				// Først må vi sjekke om andre siden er en trunk
@@ -455,6 +464,7 @@ class NavUtils
 				swport.add(swrec);
 				//swrecMap.put(key, swrec);
 			}
+			*/
 
 		}
 		if (DEBUG_OUT) outl("boksMp listing done.<br>");
@@ -1025,7 +1035,7 @@ class NavUtils
 			}
 		}
 
-		outl("A total of <b>"+allowedcnt+"</b> / <b>"+totcnt+"</b> have allowed VLANs that are not active.<br>");
+		outl("A total of <b>"+allowedcnt+"</b> / <b>"+totcnt+"</b> trunks have allowed VLANs that are not active.<br>");
 		outl("All done.<br>");
 	}
 

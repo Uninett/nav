@@ -53,7 +53,7 @@
 
     <context-param>
       <param-name>configFile</param-name>
-      <param-value>etc/vPServer.conf</param-value>
+      <param-value>local/etc/conf/vPServer.conf</param-value>
       <description>
         Location of the config file within the NAV root
       </description>
