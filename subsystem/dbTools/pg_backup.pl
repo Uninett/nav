@@ -20,19 +20,37 @@
 #
 #
 # $Id$
-# This file is part of the NAV project.
+#
 # Takes a full backup of the NAV database every
 #  * Day        Rotates once every week
 #  * Week       Rotates once every 5 weeks
 #  * Month      Rotates once a year
 #
+# Needs to have the username/password of a PostgreSQL superuser to do
+# a full database dump.  To avoid having a world-readable config file
+# containing this password, you could set the setuid bit of this
+# script (when owned by root), and make the config file owned by root
+# and having mode 0600 (the script should be taint-proof to allow this
+# behaviour).
+#
 # Authors: Knut-Helge Vindheim <knutvi@itea.ntnu.no>
 #          Morten Vold <morten.vold@itea.ntnu.no>
 #
 ####################
-use POSIX qw(strftime);
+use POSIX qw(strftime isatty);
 use NAV;
 use NAV::Path;
+use warnings;
+use strict;
+
+sub log {
+    my $logline = shift;
+    my @loglines = split(/\n/, $logline);
+    for $logline (@loglines) {
+	my $now_string = strftime "%a %d %b %Y %T", localtime;
+	print LOGFILE "$now_string $logline\n";
+    }
+}
 
 # De-taint:
 $ENV{'PATH'} = '/bin:/usr/bin:/usr/local/bin';
@@ -40,19 +58,26 @@ delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 my ($res, $filename);
 
+# Remember, month and day names produced here depend on which locale
+# settings the running user has!
 my $now_string = strftime "%w:%d:%A:%B:%V", localtime;
 my ($dayofweek, $dayofmonth, $weekday, $month, $weeknumber) = split(/\:/, $now_string);
 
-my $conf = "$NAV::Path::sysconfdir/pgpasswd.conf";
+my $conf = "$NAV::Path::sysconfdir/pg_backup.conf";
 
 
 my %config = &NAV::config($conf);
 
 my $password = $config{'password'};
 my $username = $config{'username'} || 'postgres';
-my $path = $config{'path'} || '.';
+my $path = $config{'path'} || "$NAV::Path::localstatedir/pg_backup";;
 my $logfile = $config{'logfile'} || "$NAV::Path::localstatedir/log/pg_backup.log";
+my $doVacuum = $config{'vacuum'} || 'no';
+$doVacuum = ($doVacuum =~ /\b(yes|true|on)\b/i);
 
+if ($password eq '') {
+    die("$0: No database password supplied in config file ($conf)\n");
+}
 
 # Check whether today is the first of the month
 if ($dayofmonth eq '01')
@@ -62,7 +87,7 @@ if ($dayofmonth eq '01')
 # Check whether it is the first day of the week
 elsif ($dayofweek eq '0')
 {
-	$week = $weeknumber % 5;
+	my $week = $weeknumber % 5;
 	$filename = "fullbackup_postgres_week$week";
 }
 # If not, it is a regular weekday
@@ -71,28 +96,29 @@ else
 	$filename = "fullbackup_postgres_$weekday";
 }
 
-open(LOGFILE,">>$logfile") || die "Unable to open log for writing ($logfile): $!";
+open(LOGFILE,">>$logfile") || die "$0: Unable to open log for writing ($logfile): $!\n";
 
 
 # Dump all the databases
-$now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFILE "$now_string\tBackup: pg_dumpall > $path/$filename\n";
+if (isatty(1)) { print "$0: Dumping databases\n" }
+&log("Backup: pg_dumpall > $path/$filename");
 $res = `PGPASSWORD=$password PGUSER=$username pg_dumpall > $path/$filename`;
-if ($res ne '') { print LOGFILE "$res\n\n"; }
+if ($res ne '') { &log($res); }
 
 # Compress the dump file
-$now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFILE "$now_string\tbzip2 $path/$filename\n";
+if (isatty(1)) { print "$0: Compressing dump file\n" }
+&log("bzip2 $path/$filename");
 $res = `nice bzip2 -f $path/$filename`;
-if ($res ne '') { print LOGFILE "$res\n\n"; }
+if ($res ne '') { &log($res); }
 
 # Vacuum databases
-$now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFILE "$now_string\tVacuumdb ...\n";
-$res = `PGPASSWORD=$password  vacuumdb -U postgres -a -z`;
-if ($res ne '') { print LOGFILE "$res"; }
+if ($doVacuum) {
+    if (isatty(1)) { print "$0: Vacuuming databases\n" }
+    &log("Vacuuming databases");
+    $res = `PGPASSWORD=$password  vacuumdb -U postgres -a -z 2>&1 1>/dev/null`;
+    if ($res ne '') { &log($res); }
+}
 
-$now_string = strftime "%a %d %b %Y %T", localtime;
-print LOGFILE "$now_string\tDone.\n\n";
+&log("Done");
 
 close(LOGFILE);
