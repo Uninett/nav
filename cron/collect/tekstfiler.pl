@@ -4,38 +4,31 @@ use strict;
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
 my $localkilde = &localkilde();
-my $navmekilde = &navmekilde();
+my $kilde = "etc/kilde/";
 require "$lib/database.pl";
 require "$lib/fil.pl";
 &log_open;
 #-------------ALLE-------------
 my $db = &db_get("tekstfiler");
 my ($fil,$tabell,@felt);
-#--------------ANV-------------
-$fil = "$localkilde/anv.txt";
-$tabell = "anv";
-@felt = ("anvid","descr");
-&db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
+#--------------USE-------------
+&db_file_to_db(connection => $db,file => "etc/kilde/anv.txt",table => "usage",databasefields => ["usageid","descr"],index => ["usageid"]);
 #--------------STED------------
-$fil = "$localkilde/sted.txt";
-$tabell = "sted";
-@felt = ("stedid","descr");
-&db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
+&db_file_to_db(connection => $db,file => "etc/kilde/sted.txt",table => "location",databasefields => ["locationid","descr"],index => ["locationid"]);
 #--------------ROM-------------
-$fil = "$localkilde/rom.txt";
-$tabell = "rom";
-@felt = ("romid","stedid","descr","rom2","rom3","rom4","rom5");
-&db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
+&db_file_to_db(connection => $db,file => "etc/kilde/rom.txt",table => "room",databasefields => ["roomid","locationid","descr","room2","room3","room4","room5"],index => ["roomid"]);
 #--------------ORG-------------
 $fil = "$localkilde/org.txt";
 $tabell = "org";
-@felt = ("orgid","forelder","descr","org2","org3","org4");
+@felt = ("orgid","parent","descr","org2","org3","org4");
 &spesiell_endring_org($db,$fil,$tabell,join(":",@felt),join(":",@felt));
 #--------------TYPE------------
-$fil = "$navmekilde/type.txt";
-$tabell = "type";
-@felt = ("typeid","typegruppe","sysObjectID","descr");
-&db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
+&db_file_to_db(connection => $db,file => "etc/kilde/vendor.txt",table => "vendor",databasefields => ["vendorid"],index => ["vendorid"]);
+&db_file_to_db(connection => $db,file => "etc/kilde/product.txt",table => "product",databasefields => ["vendorid","productno","descr"],index => ["vendorid","productno"]);
+&db_file_to_db(connection => $db,file => "etc/kilde/cat.txt",table => "cat",databasefields => ["catid","descr"],index => ["catid"]);
+&db_file_to_db(connection => $db,file => "etc/kilde/typegroup.txt",table => "typegroup",databasefields => ["typegroupid","descr"],index => ["typegroupid"]);
+&db_file_to_db(connection => $db,file => "etc/kilde/type.txt",table => "type",databasefields => ["vendorid","typename","typegroupid","sysobjectid","cdp","tftp","descr"],index => ["vendorid","typename"],filefields=>["vendorid","typename","typegroupid","descr","sysobjectid","cdp","tftp"]);
+
 #--------------SLUTT-----------
 &log_close;
 

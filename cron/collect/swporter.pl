@@ -15,13 +15,14 @@ my $debug;
 
 my $db = &db_get("swporter");
 
-my @felt_swport = ("swportid","boksid","modul","port","ifindex","status","speed","duplex","trunk","portnavn");
+my @felt_module = ("netboxid","module");
+my @felt_swport = ("moduleid","port","ifindex","link","speed","duplex","trunk","portname");
 my @felt_swportvlan = ("swportid","vlan");
 my @felt_swportallowedvlan = ("swportid","hexstring");
 
-my %boks = &db_hent_hash($db,"SELECT boksid,ip,sysName,typegruppe,watch,ro FROM boks join type using (typeid) WHERE kat=\'SW\'");
+my %boks = &db_hent_hash($db,"SELECT netboxid,ip,sysname,typegroupid,up,ro FROM netbox join type using (typeid) WHERE catid=\'SW\'");
 my %swport;
-my %db_swport = &db_select_hash($db,"swport join boks using (boksid) where kat=\'SW\' AND boksid NOT IN (SELECT boksid FROM boks JOIN type USING(typeid) WHERE typegruppe LIKE '3%' OR typegruppe IN ('cat1900-sw','catmeny-sw'))",\@felt_swport,1,2,3);
+my %db_swport = &db_select_hash($db,"swport join module using (moduleid) join netbox using (netboxid) where catid=\'SW\' AND netboxid NOT IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE typegroupid LIKE '3%' OR typegroupid IN ('cat1900-sw','catmeny-sw'))",\@felt_swport,0,1);
 
 my %swportvlan;
 my %swportvlantemp;
@@ -39,32 +40,42 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
 	}
     }
 }
+### MODULE
+my %db_module = &get_module;
+my %module;
+for my $sw (keys %swport){
+    for my $mo (keys %{$swport{$sw}}){
+	$module{$sw}{$mo} = [ $sw, $mo ];
+	print $sw."   ".$mo."\n" if $debug;
+    }
+}
+&db_safe(connection => $db,table => "module",fields => \@felt_module,index=>["netboxid","module"],new => \%module, old => \%db_module, delete => 1, insert => "device");
 
-#for my $boksid (keys %swport){
-#    print "\n".$boksid;
-#    for my $interf(keys %{$swport{$boksid}}){
-#	print "\n".$interf;
-#	for my $port(keys %{$swport{$boksid}{$interf}}){
-#	    print "\n".$port;
-#	    print "\n".$swport{$boksid}{$interf}{$port}[1]."   ".$swport{$boksid}{$interf}{$port}[2]."   ".$swport{$boksid}{$interf}{$port}[3]."    ".$swport{$boksid}{$interf}{$port}[4];
-#	}
-#    }
-#}
 
-#my $res_begin = $db->exec("begin");
+### skal bruke moduleid
+my %moduleid = &db_hent_dobbel($db,"select netboxid,module,moduleid from module");
+my %port;
+for my $sw (keys %swport){
+    for my $mo (keys %{$swport{$sw}}){
+	for my $po (keys %{$swport{$sw}{$mo}}){
+	    my $moduleid = $moduleid{$sw}{$mo};
+	    $port{$moduleid}{$po} = [$moduleid,$po,@{$swport{$sw}{$mo}{$po}}];
+	}
+    }
+}
+&db_safe(connection => $db,table => "swport",fields => \@felt_swport,index => ["moduleid","port"], new => \%port, old => \%db_swport, delete => 1);
 
-&db_alt($db,3,1,"swport",\@felt_swport,\%swport,\%db_swport,[1,2,3]);
 
-# må leses inn etter at swport er oppdatert
-my @feltswportid = ("boksid","modul","port","swportid");
-my %swport2swportid = &db_select_hash($db,"swport",\@feltswportid,0,1,2);
+
+# swport må leses inn etter at swport er oppdatert for å få med swportid
+my %swport2swportid = &get_swportid;
 
 #må legge på id fra databasen, ikke bare fake-id som ble brukt i swport.
 
 for my $boks (keys %swportvlantemp) {
     for my $modul (keys %{$swportvlantemp{$boks}}){
 	for my $port (keys %{$swportvlantemp{$boks}{$modul}}){
-	    my $nyid = $swport2swportid{$boks}{$modul}{$port}[3];
+	    my $nyid = $swport2swportid{$boks}{$modul}{$port};
 	    if($modul&&$port&&$nyid){
 		$swportvlan{$nyid} = [$nyid,$swportvlantemp{$boks}{$modul}{$port}];
 	    } else {
@@ -76,7 +87,7 @@ for my $boks (keys %swportvlantemp) {
 for my $boks (keys %swportallowedvlantemp) {
     for my $modul (keys %{$swportallowedvlantemp{$boks}}){
 	for my $port (keys %{$swportallowedvlantemp{$boks}{$modul}}){
-	    my $nyid = $swport2swportid{$boks}{$modul}{$port}[3];
+	    my $nyid = $swport2swportid{$boks}{$modul}{$port};
 	    if($modul&&$port&&$nyid){
 #		print $nyid."+".$swportallowedvlantemp{$boks}{$modul}{$port}."\n";
 		$swportallowedvlan{$nyid} = [$nyid,$swportallowedvlantemp{$boks}{$modul}{$port}];
@@ -87,8 +98,8 @@ for my $boks (keys %swportallowedvlantemp) {
     }
 }
 
-&db_alt($db,1,0,"swportvlan",\@felt_swportvlan,\%swportvlan,\%db_swportvlan,[0]);
-&db_alt($db,1,0,"swportallowedvlan",\@felt_swportallowedvlan,\%swportallowedvlan,\%db_swportallowedvlan,[0]);
+&db_safe(connection => $db,delete => 0,table => "swportvlan",fields => \@felt_swportvlan, new => \%swportvlan,old => \%db_swportvlan);
+&db_safe(connection => $db,delete => 0,table => "swportallowedvlan",fields => \@felt_swportallowedvlan,new => \%swportallowedvlan,old => \%db_swportallowedvlan);
 
 #my $res_commit = $db->exec("commit");
 
@@ -96,6 +107,7 @@ for my $boks (keys %swportallowedvlantemp) {
 
 #################################################################
 sub snmp_svitsj{
+    print "hei";
     my $ip = $_[0];
     my $ro = $_[1];
     my $boksid = $_[2];
@@ -119,4 +131,26 @@ sub snmp_svitsj{
 	&skriv("SWITCH-TYPEGRP","typegroup=$typegruppe","ip=$ip");
 	return 1;
     }
+}
+
+sub get_swportid{
+
+    my $sql = "select module.netboxid,module,port,swportid from module inner join swport using (moduleid)";
+    my %resultat;
+    my $res =  &db_select($db,$sql);
+    while(@_ = $res->fetchrow) {
+	$resultat{$_[0]}{$_[1]}{$_[2]} = $_[3] ;
+    }
+    return %resultat;
+}
+
+sub get_module{
+
+    my $sql = "select netboxid,module from module";
+    my %resultat;
+    my $res =  &db_select($db,$sql);
+    while(@_ = $res->fetchrow) {
+	$resultat{$_[0]}{$_[1]} = [ $_[0],$_[1] ] ;
+    }
+    return %resultat;
 }
