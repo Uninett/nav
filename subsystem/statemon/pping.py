@@ -117,7 +117,7 @@ class pinger:
         debug.debug("Starts reporting %i hosts as down" % len(reportDown),7)
         for netboxid in reportDown:
             netbox = self.netboxmap[netboxid]
-            #self.db.pingEvent(netbox, "DOWN")
+            self.db.pingEvent(netbox, "DOWN")
             debug.debug("%s marked as down." % netbox)
         #Rapporter bokser som har kommet opp
         debug.debug("Starts reporting %i hosts as up" % len(reportUp),7)
@@ -127,7 +127,7 @@ class pinger:
             except:
                 debug.debug("Netbox %s is no longer with us..." % netboxid)
                 continue
-            #self.db.pingEvent(netbox, "UP")
+            self.db.pingEvent(netbox, "UP")
             debug.debug( "%s marked as up." % netbox)
 
     def main(self):
