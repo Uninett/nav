@@ -1,8 +1,6 @@
 """
 Integrate rrdBrowser into deviceBrowser...
 
-
-
 TODO:
 * Define y-axis, max-min
 * probably some more
@@ -21,6 +19,9 @@ from nav.errors import *
 from nav.web.templates.tsTemplate import tsTemplate
 from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 from nav.web.SearchBox import SearchBox
+
+from nav.db import navprofiles
+import nav.db
 
 configfile = 'rrdBrowser.conf'
 
@@ -80,7 +81,9 @@ def process(request):
             return html.Division("Invalid value, %s, %s" % (e, query['value']))
         zoom(session, id, value)
         raise RedirectError, urlbuilder.createUrl(division="rrd")
-    
+    if args[0] == "save":
+        return save(session)
+        
     return html.Division("args: %s, query: %s " %(str(args), str(query)))
 
 
@@ -380,3 +383,8 @@ def graph(req,id):
     req.write(f.read())
     f.close()
                                 
+def save(session):
+    conn = nav.db.getConnection('navprofile', 'navprofile')
+    navprofiles.setCursorMethod(conn.cursor)
+    user = session['user']
+    return html.Division("user: %s " %user)
