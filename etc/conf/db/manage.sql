@@ -220,19 +220,19 @@ CREATE TABLE netboxinfo (
   val TEXT NOT NULL
 );
 
-CREATE TABLE netboxdisk (
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  path VARCHAR NOT NULL,
-  blocksize INT4 NOT NULL DEFAULT 1024,
-  PRIMARY KEY (netboxid, path)
-);
-
-
-CREATE TABLE netboxinterface (
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  interf VARCHAR NOT NULL,
-  PRIMARY KEY (netboxid, interf)
-);
+-- netboxdisk and netboxinterface should be obsoleted by netboxinfo
+--
+--CREATE TABLE netboxdisk (
+--  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+--  path VARCHAR NOT NULL,
+--  blocksize INT4 NOT NULL DEFAULT 1024,
+--  PRIMARY KEY (netboxid, path)
+--);
+--CREATE TABLE netboxinterface (
+--  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+--  interf VARCHAR NOT NULL,
+--  PRIMARY KEY (netboxid, interf)
+--);
 
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
