@@ -140,7 +140,7 @@ public class SwportHandler implements DataHandler {
 
 					} else {
 						swportid = oldsd.getSwportidS();
-						if (!oldsd.equals(sd)) {
+						if (!oldsd.equalsSwport(sd)) {
 							// Vi må oppdatere
 							Log.i("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							String[] set = {
