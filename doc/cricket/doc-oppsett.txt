@@ -1,0 +1,146 @@
+
+
+Dokumentasjon av cricket arbeid sommer 2002 - stain@itea.ntnu.no , danielsa@itea.ntnu.no
+
+-----------------------
+Oversikt
+
+1)innlegging til database
+   - forandring av mal
+2)snmpd
+3)databaseformat
+4)makeconfig
+6)jyhton - plugin
+7)spes. probl.
+8)vyer
+
+------------------------
+
+1)innlegging til database
+
+  Alle serverene må legges inn i filen server.txt 
+  (som ligger på /usr/local/nav/local/etc/kilde/server.txt) 
+  ex på format er : 382s:krakatau.stud.ntnu.no:sdrift:SRV:WIN-STUD::Domenekontroller studenter 
+  , se i header på filen for forklaring på hva de enkelte ting står for.
+
+  Deretter må database.pl (cvsroot lib/database.pl) kjøres for at disse serverene skal havne 
+  i databasen.
+
+  Forandring av mal:
+  Vi har to forandringer som vi har lagt inn i cvsroot under /etc/mal/server.txt.mal:
+  i) Vi må ha  inn et eget kategorifelt for boksen (mail,ts) . Vi har imidlertid ikke fått 
+     til å forandre database.pl slik at den legger dette feltet i databasen , det må den 
+     som har skrevet det udokumenterte scriptet database.pl gjøre.
+  ii)Vi må også ha inn om boksen skal overvåkes eller ikke , dette må også legges inn
+     i databasen via database.pl scriptet.
+  
+
+2)snmpd
+  
+  Vi benytter oss av snmp for å hente in info fra serverene og dette krever en snmp daemon 
+  på alle maskinene vi skal hente inn info fra. Det er ulik snmpd for windows og linux/unix.
+  
+  i)windows 
+    Vi har prøvd å bruke net-snmp sin daemon men denne gav fra seg så lite info at vi ikke 
+    fant den god nok. Vi bruker windows sin egen innebygde snmpd. Først så må snmp innst.
+    på windows maskinen , deretter så må tre filer mib.bin , perfmib.dll , perfmib.ini
+    legges til i %systemroot%/system32 (som regel c:\winnt\system32). I tillegg må 
+    det gjøres noen registerendringer. Gå til startmenyen -> run og skriv regedit.
+    Disse forandingene må gjøres :
+    Go To Tree: [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SNMP\Parameters\ExtensionAgents]
+    Add String: "PerfAgent"
+    With Value: "SOFTWARE\Microsoft\PerformanceAgent\CurrentVersion"
+    Add Key: [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PerformanceAgent\CurrentVersion]
+    Add String: "Pathname"
+    With Value: "%SystemRoot%\System32\perfmib.dll"
+
+  ii)*nix
+     her benytter vi oss av net-snmp (http://net-snmp.sourceforge.net/)
+     Denne kan hentes ned med feks :
+     wget http://nedlastingsurl/net-snmp-5.0.1.os.tar.gz
+     tar zxvf net-snmp-5.0.1.os.tar.gz
+     make
+     make install
+
+3)databaseformat
+  Følgende tabeller er lagt til i nav databasen:
+
+  CREATE TABLE bokskategori {
+    boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
+         ON UPDATE CASCADE ON DELETE CASCADE,
+    kategori  VARCHAR(255) NOT NULL PRIMARY KEY
+    }
+
+  CREATE TABLE boksinterface {
+      boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
+               ON UPDATE CASCADE ON DELETE CASCADE,
+      interf  VARCHAR(50) NOT NULL PRIMARY KEY
+      }
+
+  CREATE TABLE boksdisk {
+    boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
+	    ON UPDATE CASCADE ON DELETE CASCADE,
+    path  VARCHAR(255) NOT NULL PRIMARY KEY
+    }
+
+
+  Alle disse tabellene er til hjelp når man automatisk skal generere 
+  konfig filer over hva cricket skal skal hente inn.
+
+  Den første tabellen bokskategori fylles ut ved at man angir i en kategori i servers.txt som 
+  beskrevet i pkt 1. De to neste tabellene blir automatisk fylt ut av jython scriptet som det står 
+  om i pkt. 4.
+
+  Det er i tillegg blitt lagt til to rader i boks tabellen. Disse er 
+  i) snmp_major(integer|default '1') som angir om boksen skal snmp overvåkes eller ikke samt versjon.
+     eks : når snmp_major=0 skal den ikke overvåkes. Dersom man oppgir et tall
+           angir man hvilken versjon av snmp man skal bruke samt at serveren da vil
+	   bli overvåket.
+
+  ii)snmpagent(character varying(30))
+     Dette feltet angir hvilken snmpd som kjører på boksen og fylles ut automatisk
+     av jython scriptet.
+
+ 
+4)Makeconfig 
+
+  I cvsroot cricket/bin er det et perl script , Makeconfig , som genererer konfig filer for cricket 
+  Dette scriptet måtte modifiseres litt slik at det lagde konfig filer til serverene våres.
+  Det som i korthet er gjor er at det lagt til en sub servers som henter ut server infor fra 
+  databasen og lager konfig filer på bakgrunn av dette.
+  Vi henviser til cvsroot cricket/bin/Makeconfig og sub kallet servers for kildekode.
+
+5)jython
+   
+
+
+
+
+
+  
+   
+   
+				 
+			      
+
+
+
+  
+
+	
+  
+  
+
+  
+
+     
+
+    
+  
+
+
+  
+
+
+  
+  
