@@ -717,6 +717,8 @@ public class QueryNetbox extends Thread
 				String cat = nb.getCat();
 				int snmpMajor = nb.getSnmpMajor();
 
+				Log.setNetbox(sysName);
+
 				sSnmp = SimpleSnmp.simpleSnmpFactory(vendor, type);
 				//System.err.println("Created sSnmp: " + sSnmp);
 				sSnmp.setHost(ip);
@@ -844,6 +846,7 @@ public class QueryNetbox extends Thread
 					}
 					scheduleUpdateNetboxes(0);
 				}
+				Log.setNetbox(null);
 
 				long pc = ++nbProcessedCnt;
 				if ((pc % 100) == 0) {

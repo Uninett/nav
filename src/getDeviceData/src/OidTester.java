@@ -73,6 +73,7 @@ public class OidTester
 		if (!checkDupe(nb, snmpoid)) return;
 
 		Type t = nb.getTypeT();
+		Log.setNetbox(nb.getSysname());
 		Log.d("OID_TESTER", "DO_TEST", "Starting test for netbox: " + nb + " ("+t+"), snmpoid: " + snmpoid);
 
 		try {
@@ -82,6 +83,9 @@ public class OidTester
 			String ip = nb.getIp();
 			String ro = nb.getCommunityRo();
 			String sysname = nb.getSysname();
+
+			sSnmp.setHost(ip);
+			sSnmp.setCs_ro(ro);
 
 			if (t.getTypeid() != Type.UNKNOWN_TYPEID && typeChecked.add(t.getTypeid())) {
 				// Check if we need to test for csAtVlan and chassis
@@ -278,7 +282,9 @@ public class OidTester
 			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
 			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
- 		}
+ 		} finally {
+			Log.setNetbox(null);
+		}
 	}
 
 	// Returns true if s is not a dupe (has not been checked before)
