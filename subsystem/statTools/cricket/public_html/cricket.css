@@ -18,7 +18,7 @@ A:active {
   text-decoration: none;
 }
 th {
-  background:lightblue;
+  background:#CDD3FE;
 }
 td {
   white-space:nowrap;
@@ -31,4 +31,12 @@ table {
 }
 td.header {
   font-size:x-large;
+}
+td.header2 {
+  font-weight:bolder;
+  font-size:x-large;
+  color:white;
+}
+tr.header {
+  background-color:#CDD3FE;
 }
