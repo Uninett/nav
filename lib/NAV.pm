@@ -1,7 +1,7 @@
 package NAV;
 ####################
 #
-# $Id: NAV.pm,v 1.6 2002/11/25 10:52:09 gartmann Exp $
+# $Id: NAV.pm,v 1.7 2002/11/25 12:27:38 gartmann Exp $
 # This file is part of the NAV project.
 # NAV module contains the common methods / subroutines that NAV scripts are
 # using. It also does some initial work regarding the NAVlog system.
@@ -36,7 +36,7 @@ my $NAVDIR = "/usr/local/nav/";
 my %conf = &hash_conf($NAVDIR."navme/etc/conf/collect/collect.conf");
 my %types = &get_types("navmessage");
 
-my $debug = 1;
+my $debug = 0;
 
 sub get_path{
     my $que = $_[0];
@@ -120,36 +120,6 @@ sub db_hent_hash {
     while(@_ = $res->fetchrow) {
 	@_ = map rydd($_), @_;
 	$resultat{$_[0]} = [ @_ ];
-    }
-    return %resultat;
-}
-sub db_select_hash {
-    my $db = $_[0];
-    my $tabell = $_[1];
-    my @felt = @{$_[2]};
-    my $en = $_[3];
-    my $to = $_[4];
-    my $tre = $_[5];
-
-    my %resultat;
-    my $sql = "SELECT ".join(",", @felt)." FROM $tabell";
-    my $res =  &db_select($db,$sql);
-
-    if(defined($tre)){
-	while(@_ = $res->fetchrow) {
-	    @_ = map rydd($_), @_;
-	    $resultat{$_[$en]}{$_[$to]}{$_[$tre]} = [ @_ ] ;
-	}
-    } elsif (defined($to)) {
-	while(@_ = $res->fetchrow) {
-	    @_ = map rydd($_), @_;
-	    $resultat{$_[$en]}{$_[$to]} = [ @_ ] ;
-	}
-    } elsif (defined($en)){
-	while(@_ = $res->fetchrow) {
-	    @_ = map rydd($_), @_;
-	    $resultat{$_[$en]} = [ @_ ] ;
-	}
     }
     return %resultat;
 }
@@ -246,8 +216,8 @@ sub log_write {
 
     }
 
-    my $newidentificator = $types{$identificator}[1];
-    my $message = $types{$identificator}[2];
+    my $newidentificator = $types{$identificator}[0];
+    my $message = $types{$identificator}[1];
 
 #    print $message."\n";
 
@@ -281,8 +251,8 @@ sub skriv { # alias for log_write
 
     }
 
-    my $newidentificator = $types{$identificator}[1];
-    my $message = $types{$identificator}[2];
+    my $newidentificator = $types{$identificator}[0];
+    my $message = $types{$identificator}[1];
 
 #    print $message."\n";
 
@@ -497,19 +467,6 @@ sub db_do_update {
 	   ) {
 
 	die("Parametrene er ikke fullstendig utfylt\n");
-	
-    } else {
-	my $db = $parameter{connection};
-	my $tabell = $parameter{table};
-	my $felt = $parameter{field};
-	my $fra = $parameter{old};
-	my $til = $parameter{new};
-	my $hvor = $parameter{where};
-
-	my $update;
-	if(exists($parameter{update})){
-	    $update = $parameter{update};
-	}
 	
     } else {
 	my $db = $parameter{connection};
@@ -905,7 +862,7 @@ sub error_correct{
 	    
 	    &skriv("TEXT-TOOLONG", "table=$1","field=$2","value=$3","length=$lengde");
 	} elsif($sql =~ /^INSERT INTO (\w+) \((.+?)\) VALUES \((.+?)\)/i){
-	      &skriv("TEXT-TOOLONG", "table=$1","field=$2","value=$3","length=$lengde");
+	      &skriv("TEXT-ONEOFTOOLONG", "table=$1","field=$2","value=$3","length=$lengde");
   
 	} else {
 	      &skriv("TEXT-TOOLONG", "table=\"$sql\"","field=","value=$errmsg","length=$lengde");
