@@ -22,6 +22,7 @@
 	<!-- Data plugins -->
   <target name="data-plugins">
     <ant inheritAll="false" dir="data-plugins/NetboxInfo"/>
+    <ant inheritAll="false" dir="data-plugins/ModuleMon"/>
     <ant inheritAll="false" dir="data-plugins/Device"/>
     <ant inheritAll="false" dir="data-plugins/Netbox"/>
     <ant inheritAll="false" dir="data-plugins/Module"/>
@@ -93,6 +94,7 @@
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
     <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/>
+    <ant inheritAll="false" dir="data-plugins/ModuleMon" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Device" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Netbox" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Module" target="clean"/>
