@@ -86,13 +86,13 @@ sub fil_nettel{
 	    if($temptype = &snmp_type($ip,$ro,$mib_type)) {
 		my $type = $type{$temptype};
 		my $sysname = &snmp_sysname($ip,$ro,$mib_sysname,$endelser);
-		if($type) {
+#		if($type) {
 		    @_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
 		    @_ = map rydd($_), @_;
 		    
 		    $nettel{$_[0]} = [ @_ ];
 		    $alle{$_[0]} = 1;
-		}
+#		}
 	    }
 	}
 	
@@ -110,7 +110,7 @@ sub fil_server{
 
 	my $ip;
 	if($ip = &hent_ip($_[1])) {
-	    @_ = ($ip,@_[0..5]);
+	    @_ = ($ip,@_[0..1],lc($_[2]),uc($_[3]),@_[4..5]);
 	    @_ = map rydd($_), @_;
 	    
 	    my $sysname = &fjern_endelse($_[2],$endelser);

@@ -308,7 +308,7 @@ sub db_endring_spesiell {
 
     for my $rad (keys %ny) {
 	my $id = $swport2swportid{$ny{$rad}[1]}{$ny{$rad}[2]};
-	print "ID=$id\n";
+#	print "ID=$id\n";
 	&db_endring_per_linje($db,\@{$ny{$rad}},\@{$gammel{$rad}},\@felt,$tabell,$id);
     }
 }

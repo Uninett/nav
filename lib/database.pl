@@ -41,6 +41,9 @@ sub db_hent_hash_konkatiner {
 }
 
 sub db_hent_enkel {
+## Henter ut hash indeksert på første ledd i sql-setning. 
+## Nøkkelen er første ledd
+## Verdien er andre ledd
     my ($db,$sql) = @_;
     my %resultat = ();
     my $res =  &db_select($db,$sql);
@@ -171,17 +174,19 @@ sub db_update {
     if(defined( $fra ) && defined( $til )){
     unless($til eq $fra) {
 	print "***IKKE LIKE\n";
-	if ($til eq "" && $fra ne ""){
-	    my $sql = "UPDATE $tabell SET $felt=null $hvor";
+	if (!$til && $fra){
+	    my $sql = "UPDATE $tabell SET $felt=null WHERE $hvor";
 	    my $nql = "OPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null|\n";
 	    print $nql;
 	    print &db_execute($db,$sql);
-	} else {
-	    my $sql = "UPDATE $tabell SET $felt=\'$til\' $hvor";
+	} elsif ($til) {
+	    my $sql = "UPDATE $tabell SET $felt=\'$til\' WHERE $hvor";
 	    my $nql = "OPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |$til|\n";
 	    print $nql;
 	    print &db_execute($db,$sql);
 	    print $sql;
+#	} else {
+#	    print "tomme: $til & $fra\n";
 	}
     }
     }
@@ -343,6 +348,7 @@ sub db_endring_per_linje {
 #UPDATE
 	for my $i (0..$#felt ) {
 	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
+#		print "NY: $ny[$i] GAMMEL: $gammel[$i]\n";
 		unless($ny[$i] eq $gammel[$i]) {
 		    #oppdatereringer til null må ha egen spørring
 		    if ($ny[$i] eq "" && $gammel[$i] ne ""){

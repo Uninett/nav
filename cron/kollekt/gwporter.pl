@@ -11,6 +11,7 @@ require "$vei/iplib.pl";
 my $ip2IfIndex     = ".1.3.6.1.2.1.4.20.1.2"; 
 my $ip2NetMask     = ".1.3.6.1.2.1.4.20.1.3"; 
 my $ip2ospf        = ".1.3.6.1.2.1.14.8.1.4";
+my $ifType         = ".1.3.6.1.2.1.2.2.1.3";
 my $if2AdminStatus = ".1.3.6.1.2.1.2.2.1.7";
 my $if2Descr       = ".1.3.6.1.2.1.2.2.1.2";
 my $if2Speed       = ".1.3.6.1.2.1.2.2.1.5";
@@ -21,7 +22,8 @@ my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
 my $db = &db_connect("manage","navall","uka97urgf");
 
-my @felt_prefiks =("prefiksid","nettadr","maske","vlan","antmask","maxhosts","nettype","orgid","anvid","nettident","komm");
+## antmask tatt ut
+my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","komm");
 my @felt_gwport = ("gwportid","boksid","ifindex","gwip","interf","masterindex","speed","ospf");
 
 my (%lan, %stam, %link, %vlan);
@@ -94,6 +96,18 @@ foreach my $prefiksid (keys %prefiksid2gwip) {
 	&db_oppdater($db,"prefiks","rootgwid",$gammel,$ny,"prefiksid",$prefiksid);
     }
 }
+## Setter antmask. Dette skjer til slutt. Det er dumt, det kunne vært
+## gjort underveis.
+my %antmask = &db_hent_enkel($db,"select prefiksid,count(distinct mac) from arp where date_part('days',cast(NOW()-fra as INTERVAL)) <1 or til is null group by prefiksid");
+my %db_antmask = &db_hent_enkel($db,"select prefiksid,antmask from prefiks");
+foreach my $prefiksid (keys %db_antmask) {
+    my $gammel = $db_antmask{$prefiksid};
+    my $ny = $antmask{$prefiksid};
+    unless ($ny eq $gammel) {
+	&db_oppdater($db,"prefiks","antmask",$gammel,$ny,"prefiksid",$prefiksid);
+    }
+}
+
 
 ######################################
 sub hent_snmpdata {
@@ -165,6 +179,11 @@ sub hent_snmpdata {
 	(my $if,my $octet) = split(/:/,$line); 
 	$interface{$if}{octet} = $octet;
 #	$gatewayip{0.0.0.0}{ifindex} = $if;
+    }    
+    my @lines = &snmpwalk("$ro\@$ip",$ifType);
+    foreach my $line (@lines) {                                             
+	(my $if,my $type) = split(/:/,$line); 
+	$interface{$if}{type} = $type;
     }
     my @lines = &snmpwalk("$ro\@$ip",$ip2ospf);
     foreach my $line (@lines) {
@@ -213,7 +232,7 @@ sub hent_snmpdata {
 #    }
     foreach my $if ( keys %interface ) {
 #	print $interface{$if}{status};
-	if($interface{$if}{status} == 1) {
+	if($interface{$if}{status} == 1 && $interface{$if}{type} != 23) {
 	    if($interface{$if}{octet}&&!$interface{$if}{gwip}){
 		$gwport{$boksid}{$if}{""} = [ undef,
 					      $boksid,
@@ -230,7 +249,7 @@ sub hent_snmpdata {
 #	print "$gwip\n";
 	my $if = $gatewayip{$gwip}{ifindex};
 #	print $interface{$if}{status};
-	if($interface{$if}{status} == 1) {
+	if($interface{$if}{status} == 1 && $interface{$if}{type} != 23) {
 	    my $interf = $interface{$if}{interf};
 	    my $ospf = $gatewayip{$gwip}{ospf};
 #	print "m|".$interface{$if}{master}."|\n";
@@ -256,9 +275,9 @@ sub hent_snmpdata {
 #	my $maske = $gatewayip{$interface{$if}{gwip}}{maske};
 #	my $netmask = $gatewayip{$interface{$if}{gwip}}{netmask};
 	my $maxhosts = &max_ant_hosts($maske);
-	my $antmask= &ant_maskiner($interface{$if}{gwip},
-						  $netmask,
-						  $maxhosts);
+#	my $antmask= &ant_maskiner($interface{$if}{gwip},
+#						  $netmask)
+#						  $maxhosts);
 #	$boks2prefiks{$boksid} = $id if $nettadr && $maske;
 
 	my $interf = $interface{$if}{interf};
@@ -266,7 +285,7 @@ sub hent_snmpdata {
 	unless (/^(?:lan|stam|link|elink)/i || $interf =~ /loopback/i) {
 	    $_ = &rydd($vlan{$nettadr}{$maske});
 	}
-	my $vlan = &finn_vlan($_,$boksid);
+	(my $vlan,my $noe, my $noeannet) = &finn_vlan($_,$boksid);
 	
 	if(/^lan/i) {
 	    my $nettnavn = $_;
@@ -275,45 +294,47 @@ sub hent_snmpdata {
 	    $nettype =~ s/lan(\d*)/lan/i;
 	    $org = &rydd($org);
 	    $org =~ s/^(\w*?)\d*$/$1/;
-#	    print "Q$org";
 	    $anv = &rydd($anv);
 	    $anv =~ s/^(\w*?)\d*$/$1/;
-	    $nettnavn =~ s/^lan\d*\,//i;
-#	    print "W$anv";
+	    $nettnavn =~ s/^.+?\,(.+?\,.+?)(\,.*)?$/$1/i;
 #	    print "\n $nettadr / $maske";
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske, 
-					   $vlan, $antmask, $maxhosts, 
+					   $vlan,  $maxhosts, 
 					   $nettype,$org,$anv,
 					   $nettnavn,$komm];
 
 	} elsif (/^stam/i) {
 	    my ($nettype,$stamnavn,$komm) = split /,/;
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan, $antmask, $maxhosts,
+					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
 					   $stamnavn, $komm];
 
 	} elsif (/^link/i) {
 #	    print;
 	    my ($nettype,$samband,$komm) = split /,/;
+	    my $nettident = "$noe,$noeannet";
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan, $antmask, $maxhosts,
+					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
-					   $samband, $komm];
+					   $nettident, $komm];
 
 	} elsif (/^elink/i) {
 #	    print;
 	    my ($nettype,$ruter,$org,$samband,$komm) = split /,/;
+#	    print "   ruter-".$ruter;
+	    my $nettident = "$noe,$noeannet";
+#	    print "   nettident-".$nettident;
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan, $antmask, $maxhosts,
+					   $vlan,  $maxhosts,
 					   $nettype, $org, undef,
-					   $ruter, $komm]; #ruter tatt over for samband. Egentlig skulle ruter hatt et eget tilruter.
+					   $nettident, $komm]; #ruter tatt over for samband. Egentlig skulle ruter hatt et eget tilruter.
 
 	} elsif ($interf =~ /loopback/i) {
 #	    print "har funnet loopback";
 	    my $nettype = "loopback";
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan, $antmask, $maxhosts,
+					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
 					   undef, undef ];
 	}
@@ -321,7 +342,7 @@ sub hent_snmpdata {
 #	    print "har funnet ukjent $_";
 	    my $nettype = "ukjent";
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan, $antmask, $maxhosts,
+					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
 					   undef, undef ];
 	}
@@ -388,13 +409,14 @@ sub finn_vlan
 	$vlan = $lan{$1}{$2};
     } elsif(/^stam\,(\S+?)$/i) {
 	$vlan = $stam{$1};
-    }elsif(/^link\,(\S+?)(?:\,|$)/i) {
+    }elsif(/^e?link\,(\S+?)(?:\,|$)/i) {
 	if (defined($boks)){
 	    $vlan = $link{$1}{$boks} || $link{$boks}{$1};
 #	    print "\n:$vlan:$1:$boks";
+#	    return ($boks,$1,$vlan)
 	}
     }
-    return $vlan;
+    return ($vlan,$boks,$1);
 }
 
 sub hent_prefiksid {
@@ -407,7 +429,8 @@ sub max_ant_hosts
     return(($_ = 2**(32-$_[0])-2)>0 ? $_ : 0);
 } 
 sub ant_maskiner {
-    return 1;
+    my $prefiksid = $_[0];
+    return $antmask{$prefiksid};
 }
 
 sub finn_prefiksid {
@@ -418,6 +441,7 @@ sub finn_prefiksid {
     my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
     foreach my $maske (@masker) {
 	my $nettadr = &and_ip($ip,$maske);
+	print "\n_".$ip."_".$maske."_".$nettadr;
 #	print "$ip & $maske = $nettadr\n";
 	return $nettadr2prefiksid{$nettadr} if (defined $nettadr2prefiksid{$nettadr});
     }
@@ -430,11 +454,16 @@ sub oppdater_prefiks{
     my %iper = &db_hent_enkel($db,"SELECT $felt_fast,$felt_endres FROM $tabell");
     foreach my $ip (keys %iper) {
 	my $prefiksid = &finn_prefiksid($ip);
+	print "\n-$ip--".$prefiksid;
 #	print "$iper{$ip} eq $prefiksid\n";
-	unless ($iper{$ip} eq $prefiksid){# || $iper{$ip} == 0) {
+#	unless ($iper{$ip} eq $prefiksid ){#|| !$iper{$ip}) {
 #	    print "$tabell - $felt_endres - $iper{$ip} - $prefiksid - $felt_fast - $ip\n";
-	     &db_oppdater($db,$tabell,$felt_endres,$iper{$ip},$prefiksid,$felt_fast,$ip);
-	 }
+#	    unless($prefiksid) {
+#		$prefiksid="null";
+#	    }
+	    my $where = "$felt_fast=\'$ip\'";
+	    &db_update($db,$tabell,$felt_endres,$iper{$ip},$prefiksid,$where);
+#	 }
     }
 }
 
