@@ -182,7 +182,7 @@ class ServiceTable:
             editLink = urlbuilder.createLink(service, subsystem="editdb", content="[edit]")
             row.append(editLink)
             row.append(urlbuilder.createLink(service,
-                                             subsystem='emotd',
+                                             subsystem='messages',
                                              content='[Schedule maintenance]'))
             self.html.add(_class=service.up, *row)
             
