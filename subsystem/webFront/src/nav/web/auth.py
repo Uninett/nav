@@ -14,6 +14,9 @@ import re
 import sys
 import os
 
+ADMINGROUP = 1
+ANONYMOUSGROUP = 2
+
 def checkAuthorization(user, uri):
     """Check whether the given user object is authorized to access the
     specified URI)"""
@@ -23,13 +26,23 @@ def checkAuthorization(user, uri):
     conn = db.getConnection('navprofile', 'navprofile')
     cursor = conn.cursor()
     navprofiles.setCursorMethod(conn.cursor)
-    anonGroup = 2
 
     if user:
         groups = user.getGroups()
     else:
+        groups = []
+
+    # If the user is a member of the administrator group, he is
+    # _always_ granted access to _everything_.
+    if ADMINGROUP in [group.id for group in groups]:
+        return True
+
+    # If the user is not a registered member of the anonymous group,
+    # we still assume he is - because ALL users have at least the
+    # privileges of anonymous users.
+    if not ANONYMOUSGROUP in [group.id for group in groups]:
         from nav.db.navprofiles import Accountgroup
-        groups = [Accountgroup(2)]
+        groups.append(Accountgroup(ANONYMOUSGROUP))
 
     if len(groups):  # If any groups were found
         groupString = ",".join([str(group.id) for group in groups])

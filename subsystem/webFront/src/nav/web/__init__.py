@@ -47,5 +47,4 @@ def redirect(req, url, temporary=False):
     
     req.headers_out['Location'] = url
     req.status = status
-    req.send_http_header()
     raise apache.SERVER_RETURN, status

@@ -13,7 +13,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 from mod_python import apache
 import os
 import nav
-
+from nav import web
 
 def index(req):
     if req.session.has_key('user'):
@@ -63,13 +63,18 @@ def login(req, login='', password='', origin=''):
             req.session.save()
 
             # Redirect to the origin page, or to the root if one was
-            # not given.
+            # not given (using the refresh header, so as not to screw
+            # up the client's POST operation)
             if not origin.strip():
                 origin = '/'
-            req.headers_out['Location'] = origin
-            req.status = apache.HTTP_TEMPORARY_REDIRECT
-            req.send_http_header()
-            raise apache.SERVER_RETURN, apache.HTTP_TEMPORARY_REDIRECT
+            req.headers_out['Refresh'] = '0;URL=%s' % origin
+
+            # This returned page should be replaced by a template or
+            # something looking much nicer.
+            return """
+            Login was successful. Please click this link if your browser doesn't redirect you immediately:
+            <a href="%s">%s</a>
+            """ % (origin, origin)
         else:
             return _getLoginPage(origin, "Login failed")
     else:
