@@ -86,7 +86,7 @@ class Box:
 
         return typeid
 
-    def getSerials(self,results):
+    def __getSerials(self,results):
         """
         Does SQL-queries to get the serial number oids from the database. This function does no snmp-querying.
         """
@@ -113,6 +113,8 @@ class Box:
                 pass
 
         serials.extend(walkserials)
+        self.serials = serials
+        self.serial = serials[0]
         return serials
 
 
@@ -128,28 +130,24 @@ class Box:
 
         serials = []
         type = self.typeid
-        if type and 1 > 2:
+        if type:
             sql = "select snmpoid,getnext from snmpoid left outer join typesnmpoid using (snmpoidid) where typeid = "+str(type)+" and oidkey ilike '%serial%'"
             handle.execute(sql)
             results = handle.fetchall()
-            serials = self.getSerials(results)
+            serials = self.__getSerials(results)
 
         if not serials:
             sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
             handle.execute(sql)
             results = handle.fetchall()
-            serials = self.getSerials(results)
+            serials = self.__getSerials(results)
             
-        self.serials = serials
-
         devlist = []
         sqlserials = []
         for ser in serials:
             sqlserials.append("serial='%s'"%ser)
         serial = str.join(" or ",sqlserials)
         sql = "select deviceid,productid from device where %s" % serial
-        connection = getConnection("bokser")
-        handle = connection.cursor()
         handle.execute(sql)
         for record in handle.fetchall():
             devlist.append(record[0])
@@ -190,6 +188,7 @@ class Box:
         """
         
         return self.hostname,self.ip,self.typeid,self.snmpversion
+
         
 ## sql = "select ip,sysname,ro from netbox where snmp_version > 0 and catid <> 'SRV'"
 ## connection = getConnection("bokser")
@@ -205,5 +204,6 @@ class Box:
 ##         print "FEIL: " + record[1]+" fikk ikke fornuftig svar"
 ##     print "\n"
 
-#a = Box("129.241.23.14","ro")
-#print a.getDeviceId()
+a = Box("129.241.23.14","idija")
+print a.getDeviceId()
+print a.serial
