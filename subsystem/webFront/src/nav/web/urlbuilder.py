@@ -17,7 +17,7 @@ from nav.db import manage
 _subsystems = {
     'devbrowser': '/browse', 
     'report': '/report',
-    'rrd': '/rrd',
+    'rrd': '/rrd/rrdBrowser',
 }
 
 _divisionClasses = {
@@ -27,7 +27,7 @@ _divisionClasses = {
     'netbox': manage.Netbox,
     'cat': manage.Cat,
     'type': manage.Type,
-    'locateion': manage.Location,
+    'location': manage.Location,
 }
 
 def _getObjectByDivision(division, id):
@@ -48,7 +48,8 @@ def _getDivisionByObject(object):
             return division
     raise "Unknown division"        
 
-def createUrl(object=None, id=None, division=None, subsystem="devbrowser", mode="view", tf = None):
+def createUrl(object=None, id=None, division=None, 
+              subsystem="devbrowser", mode="view", **kwargs):
     try:
         url = _subsystems[subsystem] + '/'
     except KeyError:
@@ -69,7 +70,7 @@ def createUrl(object=None, id=None, division=None, subsystem="devbrowser", mode=
             if not (subsystem == 'devbrowser' and division=='netbox'):
                 url += division + '/'
             if id and subsystem=='devbrowser' and division=='service':
-               url += id
+               url += id + '/'
                return url
             if object:
                 try:
@@ -84,21 +85,26 @@ def createUrl(object=None, id=None, division=None, subsystem="devbrowser", mode=
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
                     url += ','.join(id)
+                url += '/' # make sure we have trailing /    
 
     elif subsystem == 'rrd':
+        # MØKKAKODEDRITFAEN!
         url += division
         url += '?'
-        if type(id) != type([]):
+        if type(id) != list:
+            # since id might be a list, we always treat
+            # it as a list.
             id = [id]
-        for i in range(len(id)):
-            url += 'id=%s&' % id[i]
-            url += 'tf=%s&' % tf[i]
-    
+        for i in id:
+            url += 'id=%s&amp;' % i
+        tf = kwargs.get("tf")
+        if tf:
+            url += 'tf=%s' % tf
     return url            
             
     
 def createLink(object=None, content=None, id=None, division=None,
-               subsystem="devbrowser", mode="view", tf =None):
+               subsystem="devbrowser", mode="view", **kwargs):
     if content is None:
         if id and object:
             raise "Ambiguous parameters, id and object cannot both be specified"
@@ -110,7 +116,7 @@ def createLink(object=None, content=None, id=None, division=None,
         if object:    
             content = str(object)    
     url = createUrl(id=id, division=division, subsystem=subsystem,
-                    mode=mode, object=object)
+                    mode=mode, object=object, **kwargs)
     return html.Anchor(content, href=url)                
            
             
