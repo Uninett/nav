@@ -59,8 +59,8 @@ public class OidTester
 		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getTypename());
 
 		try {
-			// Get a netbox to test against
-			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"'");
+			// Get netboxes to test against
+			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' ORDER BY random() * netboxid");
 		
 			while (rs.next()) {
 				boolean supported = false;
