@@ -132,7 +132,7 @@ public class CiscoSwIOS implements DeviceHandler
 			swm.swportFactory(ifindex); // Create module <-> ifindex mapping
 
 			String[] modulport = portif.split("/");
-			if (moduleport.length > 1) {
+			if (modulport.length > 1) {
 				Integer port = Integer.valueOf(modulport[1]);
 				swm.swportFactory(ifindex).setPort(port);
 			}
