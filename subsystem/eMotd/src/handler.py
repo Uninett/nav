@@ -6,9 +6,9 @@
 from mod_python import util, apache
 from mx import DateTime
 from time import strftime
-import sys,os,re,copy,string
+#import sys,os,re,copy,string
 import nav
-import nav.db.manage 
+#import nav.db.manage 
 from nav import db
 from nav.db.manage import Emotd, Emotd_related, Maintenance 
 from nav.db.manage import Room, Service, Netbox 
