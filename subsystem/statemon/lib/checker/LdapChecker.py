@@ -35,27 +35,20 @@ class LdapChecker(AbstractChecker):
 	def __init__(self,service, **kwargs):
 		AbstractChecker.__init__(self, "ldap", service,port=389, **kwargs)
 	def execute(self):
-
 		args = self.getArgs()
 		# we can connect in 2 ways. By hostname/ip (and portnumber)
 		# or by ldap-uri
 		if args.has_key("url"):
-			if is_ldap_url(args["url"]):
+			if ldap.is_ldap_url(args["url"]):
 				l = ldap.initialize(args["url"])
 		else:
-			l = ldap.open(self.getAddress())
-		if args.has_key("username"):
-			username = args["username"]
-		else:
-			username = ""
-		if args.has_key("password"):
-			pwd = args["password"]
-		else:
-			pwd = ""
-
+			ip, port = self.getAddress()
+			l = ldap.open(ip, port=port)
+		username = args.get("username","")
+		password = args.get("password","")
 		timeout = self.getTimeout()
 		try:
-			l.simplebind(user,pwd)
+			l.simple_bind(username, password)
 			if args.has_key("version"):
 				version = args["version"]
 				if (version==2):
@@ -80,31 +73,25 @@ class LdapChecker(AbstractChecker):
 				except Exception,e:
 					return Event.DOWN, "compare failed for some reason"
 
-			elif:
-				if args.has_key("base"):
-					if (args["base"] == "cn=monitor"):
-						my_res = l.search_s("base",ldap.SCOPE_BASE,"cn=monitor")
-						my_res = my_res[0]
-						my_dict = myres[1]
-						version = my_dict["description"][0]
-						self.setVersion(version)
-					if args.has_key("scope"):
-						scope = args["scope"]
-						scope = "ldap.SCOPE_"+scope.upper()
-						if args.has_key("filter"):
-							filter = args["filter"]
-							if args.has_key("attrs"):
-								attrs = args["attrs"]
-							else:
-								attrs = "None"
-						else:
-							filter = "objectclass=dcObject"
-					else:
-						scope = ldap.SCOPE_SUBTREE
-				else:	
-					base = "dc=ntnu,dc=no"
+			else:
+				base = args.get("base", "dc=ntnu,dc=no")
+				if base == "cn=monitor":
+					my_res = l.search_st(base, ldap.SCOPE_BASE, timeout=self.getTimeout())
+					return Event.UP, my_res[0][-1]['description'][0]
+				scope = args.get("scope", "SUBTREE")
+				scope = scope.upper()
+				if scope == "BASE":
+					scope = ldap.SCOPE_BASE
+				elif scope == "ONELEVEL":
+					scope = ldap.SCOPE_ONELEVEL
+				else:
+					scope =ldap.SCOPE_SUBTREE
+				filter = args.get("filter","objectclass=dcObject")
+				attrs = args.get("attrs", ["mail"])
 				try:
-					my_res = l.search(base, scope, filter, attrs)
+					my_res = l.search_ext_s(base, scope, attrlist=attrs, sizelimit=5, timeout=self.getTimeout())
+					print my_res
+					print l.result(my_res)
 					dn = my_res[0][0]
 					mydict = my_res[0][1]
 				except Exception,e:
