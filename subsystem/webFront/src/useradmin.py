@@ -469,6 +469,10 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
     
     if password != passwordConfirm:
         req.session['statusMessage'] = "Passwords do not match"
+        account.reset()
+    elif login is None or len(login) == 0:
+        req.session['statusMessage'] = "Login name was empty"
+        account.reset()
     else:
         if login != account.login:
             account.login = login

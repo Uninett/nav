@@ -148,7 +148,7 @@ ext_sync	external syncronization, reserved for future use,
 CREATE SEQUENCE account_id_seq START 1000;
 CREATE TABLE Account (
     id integer NOT NULL DEFAULT nextval('account_id_seq'),
-    login varchar CONSTRAINT brukernavn_uniq UNIQUE,
+    login varchar CONSTRAINT brukernavn_uniq UNIQUE NOT NULL,
     name varchar DEFAULT 'Noname',
     password varchar,
     ext_sync varchar,
