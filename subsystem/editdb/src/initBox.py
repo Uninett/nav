@@ -158,11 +158,11 @@ class Box:
 
         serials = []
         type = self.typeid
-        if type:
-            sql = "select snmpoid,getnext from snmpoid left outer join typesnmpoid using (snmpoidid) where typeid = "+str(type)+" and oidkey ilike '%serial%'"
-            handle.execute(sql)
-            results = handle.fetchall()
-            serials = self.__getSerials(results)
+#        if type:
+#            sql = "select snmpoid,getnext from snmpoid left outer join typesnmpoid using (snmpoidid) where typeid = "+str(type)+" and oidkey ilike '%serial%'"
+#            handle.execute(sql)
+#            results = handle.fetchall()
+#            serials = self.__getSerials(results)
 
         if not serials:
             sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
