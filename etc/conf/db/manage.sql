@@ -299,8 +299,8 @@ CREATE TABLE swport (
   media VARCHAR(16),
   trunk BOOL NOT NULL DEFAULT false,
 --  static BOOL DEFAULT false,
---  portnavn VARCHAR(30),  
-  portname VARCHAR(30),  
+--  portnavn VARCHAR(30),
+  portname VARCHAR(30),
 --  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -535,7 +535,8 @@ GRANT SELECT ON netbox TO navadmin;
 GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON netboxmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON prefix TO navadmin; 
+GRANT SELECT ON prefix TO navadmin;
+GRANT SELECT ON module TO navadmin;
 GRANT ALL    ON swport TO navadmin;
 GRANT ALL    ON swport_swportid_seq TO navadmin;
 GRANT ALL    ON swportvlan TO navadmin;
@@ -546,9 +547,11 @@ GRANT SELECT ON swportblocked TO navadmin;
 
 GRANT SELECT ON netbox TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
+GRANT SELECT ON module TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
 GRANT ALL    ON swportvlan TO getBoksMacs;
 GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
+GRANT SELECT ON swportallowedvlan TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefix TO getBoksMacs;
 GRANT SELECT ON netboxmac TO getBoksMacs;
