@@ -14,10 +14,16 @@ from errno import errorcode
 class Timeout(Exception):
 	pass
 
+def ssl(sock, timeout, keyfile=None, certfile=None):
+	return Socket(timeout, socket.ssl(sock, keyfile, certfile))
+
 class Socket:
-	def __init__(self,timeout):
+	def __init__(self, timeout, sock=None):
 		self.timeout = timeout
-		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		if sock:
+			self.s = sock
+		else:
+			self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	def connect(self,address):
 		self.s.setblocking(0)
