@@ -37,8 +37,6 @@ class controller:
         self._deamon=kwargs.get("fork", 1)
         self._isrunning=1
         self._checkers=[]
-        self._pidfile=self.conf.get('pidfile', 'servicemon.pid')
-        debug.debug("Wrote pidfile %s" % self._pidfile)
         self._looptime=int(self.conf.get("checkinterval",60))
         debug.debug("Setting checkinterval=%i"% self._looptime)
         self.db=db.db(config.dbconf("db.conf"))
@@ -165,18 +163,8 @@ def start(nofork):
     if fork:
         pid=os.fork()
         if pid > 0:
-            pidfile=conf.get('pidfile', 'servicemon.pid')
-            try:
-                pidfile=open(pidfile, 'w')
-                pidfile.write(str(pid)+'\n')
-                pidfile.close()
-            except Exception, e:
-                print "Could not open %s" % pidfile
-                print str(e)
             os.sys.exit()
-                
         logfile = conf.get('logfile','servicemon.log')
-        #print "Logger til ", logfile
         os.sys.stdout = open(logfile,'a')
         os.sys.stderr = open(logfile,'a')
 
