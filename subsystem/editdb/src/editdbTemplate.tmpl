@@ -525,7 +525,7 @@ $showBody($body)
     <P>
         <TABLE class="header-active">
             <TR>
-                <TH>Serialnumber</TH>
+                <TH>$heading($fields['serial'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['serial'])</TD>
@@ -553,14 +553,14 @@ $hiddenfields($editbox.hiddenFields)
         <TABLE class="header-active">
 #if $fields.has_key('subcat')
             <TR>
-                <TH>Subcategory</TH>
+                <TH>$heading($fields['subcat'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['subcat'],'width: 100%;')</TD>
             </TR>
 #end if
             <TR>
-                <TH>Function</TH>
+                <TH>$heading($fields['function'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['function'])</TD>
@@ -577,24 +577,24 @@ $hiddenfields($editbox.hiddenFields)
 #end if
         <TABLE class="header-active">
             <TR>
-                <TH>IP</TH>
-                <TH>Category</TH>
+                <TH>$heading($fields['ip'])</TH>
+                <TH>$heading($fields['catid'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['ip'])</TD>
                 <TD>$input($fields['catid'],style='width: 100%;')</TD>
             </TR>
             <TR>
-                <TH>RO Community</TH>
-                <TH>Room</TH>
+                <TH>$heading($fields['ro'])</TH>
+                <TH>$heading($fields['roomid'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['ro'])</TD>
                 <TD>$input($fields['roomid'],style='width: 100%;')</TD>
             </TR>
             <TR>
-                <TH>RW Community</TH>
-                <TH>Organisation</TH>
+                <TH>$heading($fields['rw'])</TH>
+                <TH>$heading($fields['orgid'])</TH>
             </TR>
             <TR>
                 <TD>$input($fields['rw'])</TD>
@@ -622,10 +622,18 @@ $hiddenfields($editbox.hiddenFields)
             <TD>$input($fields['match_regex'])</TD>
         </TR>
         <TR>
+            <TH colspan="2">OID name</TH>
+            <TH colspan="2">MIB</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['oidname'],'width: 100%;')</TD>
+            <TD colspan="2">$input($fields['mib'],'width: 100%;')</TD>
+        </TR>
+        <TR>
             <TH colspan="4">Description</TH>
         </TR>
         <TR>
-            <TD colspan="4">$input($fields['descr'],'width: 100%')</TD>
+            <TD colspan="4">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
     </TABLE>
 $hiddenfields($editbox.hiddenFields)
@@ -786,7 +794,7 @@ $input($fields['productid'])
 #set $fields = $editbox.fields
     <TABLE class="header-active">
         <TR>
-            <TH>User category</TH>
+            <TH>Usage category</TH>
             <TH>Description</TH>
         </TR>
         <TR>
@@ -940,7 +948,7 @@ $hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for bulk import
-#def $bulk($editbox)
+#def bulk($editbox)
 #set $fields = $editbox.fields
     <P>$editbox.help</P>
     <TABLE class="header-active">
@@ -964,14 +972,24 @@ $hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function to write out all hidden input fields
-#def $hiddenfields($fieldlist)
+#def hiddenfields($fieldlist)
 #for $field in $fieldlist.values()
 $input($field)
 #end for
 #end def
 
+## Displays headings in forms, marks required fields
+#def heading($control)
+## REQ_TRUE = 1 (from editdb.py header)
+#if $control[1] == 1
+$control[2]&nbsp;<span style="color: #ff0000">*</span>
+#else
+$control[2]
+#end if
+#end def
+
 ## Template function to display all input fields
-#def $input($control,$style='')
+#def input($control,$style='')
 #if $control[0].disabled
 #set $disabled = 'disabled'
 #else

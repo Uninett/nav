@@ -70,7 +70,7 @@ def addEntryBulk(data,table):
 
 def addEntry(req,templatebox,table,unique=None):
     # req: request object containing a form
-    # templatebox: containing field defenitions
+    # templatebox: containing field definitions
     # table: string with tablename
     # unique: string with unique fieldname
     error = None
