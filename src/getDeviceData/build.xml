@@ -49,7 +49,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoGw"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw"/>
-    <ant inheritAll="false" dir="device-plugins/Server"/>
+    <!-- <ant inheritAll="false" dir="device-plugins/Server"/> -->
     <ant inheritAll="false" dir="device-plugins/Typeoid"/>
   </target>
 
@@ -123,7 +123,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoGw" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw" target="clean"/>
-    <ant inheritAll="false" dir="device-plugins/Server" target="clean"/>
+    <!-- <ant inheritAll="false" dir="device-plugins/Server" target="clean"/> -->
     <ant inheritAll="false" dir="device-plugins/Typeoid" target="clean"/>
   </target>
 </project>
