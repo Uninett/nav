@@ -1170,7 +1170,7 @@ INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES
 -- Table: Rettighet
 
 INSERT INTO rettighet (accountgroupid, utstyrgruppeid) VALUES (1, 71);
-
+INSERT INTO rettighet (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 71);
 
 
 -- Table: defaultutstyr
