@@ -1,0 +1,9 @@
+All projects use the Ant build system; to install, enter the project
+directory and type:
+
+ant install -Dprefix={NAV_PREFIX}
+
+The default NAV_PREFIX is ../../
+
+The directory "javadoc" is only for developer docs and should normally
+not be installed.
