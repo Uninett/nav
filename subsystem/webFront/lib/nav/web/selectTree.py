@@ -63,8 +63,8 @@ class selectTreeLayoutBox:
 
         self.selectList = []
         self.showEmptySelects = showEmptySelects
-        self.showHelpTexts=showHelpTexts
-        self.showTitles = True
+        self.showHelpTexts = showHelpTexts
+        self.showTitles = showTitles
         self.minimumSelectWidth = minimumSelectWidth
         self.exactSelectWidth = exactSelectWidth
         self.htmlId = htmlId
