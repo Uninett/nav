@@ -50,7 +50,7 @@ public class BoxState implements EventHandler, EventCallback
 						e.dispose();
 						return;
 					}
-					Log.d("HANDLE", "Box going down");
+					Log.d("HANDLE", "Box going down: " + b);
 					b.down();
 					startEventMap.put(e.getDeviceidI(), e);
 					callback = true;
@@ -106,7 +106,7 @@ public class BoxState implements EventHandler, EventCallback
 				if (d instanceof Box) {
 					pb = (Box)pd;
 				} else {
-					Log.w("HANDLE", "Module " + m + " does not have a valid parent device (id="+m.getParentDeviceid()+")");
+					Log.w("HANDLE", "Module " + m + " does not have a valid parent device (id="+m.getParentDeviceid()+"): " + d);
 				}
 				if (eventtype.equals("linkState")) {
 					Port p = m.getPort(Integer.parseInt(e.getSubid()));
@@ -248,7 +248,7 @@ public class BoxState implements EventHandler, EventCallback
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
 				Box b = (Box)i.next();
-				Log.d("CALLBACK", "Box down: " + b.getSysname());
+				Log.d("CALLBACK", "Box down: " + b.getSysname() + " up: " + b.isUp());
 
 				if (!b.isUp()) {
 					// The box iself is down, this means we don't report modules down if any
@@ -314,15 +314,28 @@ public class BoxState implements EventHandler, EventCallback
 							if (m.isUp()) continue;
 							
 							// Find the down event
-							Event e = (Event)startEventMap.remove(m.getDeviceidI());
+							Event e = (Event)startEventMap.get(m.getDeviceidI());
 							if (e == null) {
 								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found! " + startEventMap.keySet());
 								continue;
 							}
+							if (sentWarning) startEventMap.remove(m.getDeviceidI());
 							
 							// Create alert
-							Alert a = ddb.alertFactory(e, "moduleDown");
-							a.addEvent(e);
+							Alert a = ddb.alertFactory(e);
+
+							// First send a warning
+							String alerttype = "moduleDown";
+							if (!sentWarning) {
+								a.setState(Event.STATE_NONE);
+								alerttype += "Warning";
+							} else {
+								// Delete 'down' event when alert is posted
+								a.addEvent(e);
+							}
+							a.setAlerttype(alerttype);
+
+							Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added moduleDown alert: " + a);
 
 							if (b.onMaintenance()) {
 								// Do not post to alertq if box is on maintenace
