@@ -136,6 +136,9 @@ public class QueryBoks extends Thread
 
 	public void run()
 	{
+		Log.setDefaultSubsystem("QUERY_NETBOX");
+		Log.setThreadId(id);
+
 		long beginTime = System.currentTimeMillis();
 
 		while (true) {
@@ -161,12 +164,16 @@ public class QueryBoks extends Thread
 			boolean csAtVlan = bd.csAtVlan;
 			boolean cdp = bd.cdp;
 			oidkeys = (Map)oidDb.get(boksType);
+			if (oidkeys == null) {
+				Log.d("RUN", "Missing OID keys for type: " + boksType + ", skipping " + sysName);
+				continue;
+			}
 
 			sSnmp = SimpleSnmp.simpleSnmpFactory(bd.boksType);
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(cs_ro);
 
-			Log.d("RUN", "T"+id+": Now working with("+boksId+"): " + sysName + " ("+ boksType +") ("+ ip +") ("+ bdRemaining +" of "+ antBd+" left)");
+			Log.d("RUN", "Now working with("+boksId+"): " + sysName + " ("+ boksType +") ("+ ip +") ("+ bdRemaining +" of "+ antBd+" left)");
 			long boksBeginTime = System.currentTimeMillis();
 
 			// Liste over alle innslagene vi evt. skal sette inn i swp_boks
@@ -260,27 +267,27 @@ public class QueryBoks extends Thread
 					if (foundCDPMp.contains(ifindex)) {
 						// Vi har funnet CDP på denne porten, støtter denne også CDP tar vi den bort
 						if (cdpBoks.contains(pm.getToNetboxid())) {
-							Log.d("RUN", "T"+id+":  [CDP-DEL] ifindex: " + ifindex + ", " + boksIdName.get(pm.getToNetboxid()) );
+							Log.d("RUN", "[CDP-DEL] ifindex: " + ifindex + ", " + boksIdName.get(pm.getToNetboxid()) );
 							continue;
 						}
 					}
 					netboxList.add(pm);
 				}
 			} catch (SQLException se) {
-				Log.d("RUN", "T"+id+":  QueryBoks.run(): SQLException: " + se.getMessage());
-				System.err.println("T"+id+":  QueryBoks.run(): SQLException: " + se.getMessage());
+				Log.d("RUN", "SQLException: " + se.getMessage());
+				System.err.println("SQLException: " + se.getMessage());
 				if (se.getMessage() != null && se.getMessage().indexOf("Exception: java.net.SocketException") != -1) {
 					// Mistet kontakten med serveren, abort
-					Log.d("RUN", "T"+id+":  QueryBoks.run(): Lost contact with backend, fatal error!");
-					System.err.println("T"+id+":  QueryBoks.run(): Exiting...");
+					Log.d("RUN", "Lost contact with backend, fatal error!");
+					System.err.println("QueryBoks.run(): Exiting...");
 					System.exit(2);
 				}
 				se.printStackTrace(System.err);
 			} catch (TimeoutException te) {
-				Log.d("RUN", "T"+id+":   *** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
+				Log.d("RUN", "*** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
 				continue;
 			} catch (Exception exp) {
-				Log.d("RUN", "T"+id+":  QueryBoks.run(): Fatal error, aborting. Exception: " + exp.getMessage());
+				Log.d("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
 				System.exit(1);
 			}
@@ -389,7 +396,7 @@ public class QueryBoks extends Thread
 			*/
 			
 			if (newCnt > 0 || dupCnt > 0) {
-				Log.d("RUN", "T"+id+": Fount a total of " + newCnt + " new units, " + dupCnt + " duplicate units.");
+				Log.d("RUN", "Fount a total of " + newCnt + " new units, " + dupCnt + " duplicate units.");
 			}
 			
 			long boksUsedTime = System.currentTimeMillis() - boksBeginTime;
@@ -401,7 +408,8 @@ public class QueryBoks extends Thread
 		
 		long usedTime = System.currentTimeMillis() - beginTime;
 		threadDone[num] = true;
-		Log.d("RUN", "T"+id+": ** Thread done, time used: " + getBoksMacs.formatTime(usedTime) + ", waiting for " + getThreadsNotDone() + " **");
+		Log.freeThread();
+		Log.d("RUN", "** Thread done, time used: " + getBoksMacs.formatTime(usedTime) + ", waiting for " + getThreadsNotDone() + " **");
 	}
 	
 	private String getThreadsNotDone()
