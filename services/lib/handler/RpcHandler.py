@@ -1,5 +1,5 @@
 """
-$Id: RpcHandler.py,v 1.9 2003/01/05 02:50:09 magnun Exp $
+$Id: RpcHandler.py,v 1.10 2003/01/12 02:34:13 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/RpcHandler.py,v $
 """
 import os
@@ -17,7 +17,10 @@ class RpcHandler(JobHandler):
 
 	def execute(self):
 		args = self.getArgs()
+		default = ['nfs', 'nlockmgr', 'mountd']
 		required = args.get('required','').split(',')
+		if not required:
+			required= default
 
 		ip, port = self.getAddress()
 
