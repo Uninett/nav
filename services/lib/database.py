@@ -2,7 +2,7 @@
 database
 
 $Author: erikgors $
-$Id: database.py,v 1.3 2002/06/13 13:57:22 erikgors Exp $
+$Id: database.py,v 1.4 2002/06/13 15:04:21 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread
@@ -30,16 +30,15 @@ def newVersion(id,version):
 	queue.put(statement)
 def getJobs():
 	c = db.cursor()
-	query = """SELECT serviceid, index, property, value
+	query = """SELECT serviceid, property, value
 	FROM serviceproperty
-	order by serviceid,index"""
+	order by serviceid"""
 	c.execute(query)
 	property = {}
-	for id,index,prop,value in c.fetchall():
-		if index == 1:
-			property[id] = {prop:[value]}
-		else:
-			property[id][prop] += [value]
+	for id,prop,value in c.fetchall():
+		if id not in property:
+			property[id] = {}
+		property[id][prop] = value
 
 	query = 'SELECT serviceid, handler, version, ip FROM service NATURAL JOIN boks order by serviceid'
 	c.execute(query)
