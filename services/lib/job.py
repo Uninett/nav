@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.19 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.20 2003/01/12 00:20:20 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -65,6 +65,11 @@ class JobHandler:
 			delay = int(self._conf.get('retry delay',5))
 			self.runcount+=1
 			self.debug.log(" %-25s %-5s -> State changed. Scheduling new check in %i sec..." % (self.getSysname(), self.getType(), delay))
+			# Updates rrd every time to get proper 'uptime' for the service
+			try:
+				rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+			except Exception,e:
+				self.debug.log("rrd update failed for %s:%s [%s]" % (self.getSysname(),self.getType(),e),3)
 			priority=delay+time.time()
 			# Queue ourself
 			self.rq.enq((priority,self))
