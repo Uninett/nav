@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: magnun $
-$Id: job.py,v 1.27 2002/06/20 13:42:38 magnun Exp $
+$Id: job.py,v 1.28 2002/06/20 14:09:51 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -414,7 +414,7 @@ jobmap = {'http':HttpHandler,
 	  'ssh':SshHandler,
 	  'dns':DnsHandler,
 	  'imap':ImapHandler,
-	  'mysql':MysqlHandler
+	  'mysql':MysqlHandler,
 	  'smb':SmbHandler,
 	  'SmtpHandler':SmtpHandler
 	  }
