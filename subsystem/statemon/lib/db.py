@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.1 2003/03/26 16:01:43 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.2 2003/05/26 17:47:56 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -136,8 +136,13 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 
 	def pingEvent(self, host, state):
 		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
-		netboxid, deviceid=self.query(query)[0][0:2]
-		self.debug.log("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
+		try:
+			netboxid, deviceid=self.query(query)[0][0:2]
+			self.debug.log("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
+		except Exception,e:
+			self.debug.log("Couldn't get deviceid for %s, Errormsg: %s" % (host,e),3)
+
+			
 
 		if state == 'UP':
 			state = 'e'
@@ -146,7 +151,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 			state = 's'
 			value = 0
 
-		self.debug.log("Locking eventq exclusively")
+		#self.debug.log("Locking eventq exclusively")
 		#self.execute("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE", commit=0);
 		statement = "INSERT INTO eventq (netboxid, deviceid, eventtypeid, state, value, source, target) values (%i, %i, '%s','%s', %i, '%s','%s' )" % (netboxid, deviceid, "boxState", state, value,"pping","eventEngine")
 		self.execute(statement)
