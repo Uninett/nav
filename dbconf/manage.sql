@@ -7,6 +7,8 @@ DROP TABLE swportvlan;
 DROP TABLE swport;
 DROP TABLE gwport;
 
+DROP TABLE swp_boks;
+
 DROP TABLE boksinfo;
 DROP TABLE boks;
 
@@ -29,6 +31,7 @@ DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefiks_prefiksid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
+DROP SEQUENCE swp_boks_swp_boksid_seq;
 
 DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
