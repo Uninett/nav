@@ -244,6 +244,11 @@ CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256)
 );
+CREATE TABLE swportblocked (
+  swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  vlan INT2 NOT NULL DEFAULT '-1',
+  PRIMARY KEY(swportid, vlan)
+);
 
 # VIEWs
 CREATE VIEW boksmac AS  
@@ -304,6 +309,7 @@ GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
 GRANT ALL    ON swp_boks_swp_boksid_seq TO getBoksMacs;
+GRANT ALL    ON swportblocked TO getBoksMacs;
 
 GRANT SELECT ON boks TO navadmin;
 GRANT SELECT ON type TO navadmin;
