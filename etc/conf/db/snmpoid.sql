@@ -287,3 +287,8 @@ INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifAlias','1.3.6.1.
 DELETE FROM snmpoid WHERE oidkey='ifName';
 INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('ifName','1.3.6.1.2.1.31.1.1.1.1','mib-II','');
 
+-- used by ModuleMon
+
+DELETE FROM snmpoid WHERE oidkey='moduleMon';
+INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('moduleMon','1.3.6.1.2.1.2.2.1.1','mib-II','Used by the module monitor; is identical to ifIndex');
+
