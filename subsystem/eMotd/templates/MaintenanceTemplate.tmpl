@@ -1,62 +1,42 @@
-#extends nav.web.templates.MainTemplate
+#extends nav.web.templates.EmotdTemplate
+#from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
+#from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #block content
 #if $body
 $body
 #end if
-    <table border="0" cellspacing="0" cellpadding="0">
-      <tr>
-        <td valign="top" width="190">
-        <!-- Venstremargen -->
-    $emotdlinksbox <br>
-        </td>
-        <td valign="top">
-        Her skal vi dytte informasjon om maintenance ut...
-        <table border="0" cellspacing="0" cellpadding="0"><tr><td>
-    $maint() <br>
-        </td></tr>
-        </table>
-      </tr>
-    </table>
+$makeMenu()
+$maint()
 #end block
 
-#def emotdlinksbox
-  $sideboxstart('EMOTD')
-  $motdlinks
-  $sideboxend()
-#end def
-
-#def $motdlinks
-  $menu
-#end def
-
-#def sideboxstart($title)
-  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
-    <tr>
-      <td class="sideboxtitle">
-        $title
-      </td>
-    </tr>
-    <tr>
-      <td class="sideboxlinks">
-#end def
-
-#def sideboxend
-        </td>
-      </tr>
-    </table>
-#end def
 
 #def maint
-  <br>
+$args['selectbox']
+#set global path = [("Frontpage","/"),("Test","/")]
+#set qs = SearchBoxTemplate()
+#set ts = TreeSelectTemplate()
+    $qs.searchbox($args['searchbox'])
+<form action="$args['action']" method="post">
+    $ts.treeselect($args['selectbox'])
+    <table>
+        <tr>
+#if $args['submit']['enabled']
+            <td><input type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+#else
+            <td><input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']"></td>
+#end if
+        </tr>
+    </table>
+</form>
   #set $nummaint = len($maints)
-  <table width="100%" cellspacing="0" cellpadding="0" border="0">
-    <tr class="title">
-      <td class="title" align="center" colspan="3" style="backgroup-image:url('$imagefolder/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <div class="title"><a href="/emotd/maintenance"><font color="black"> Maintenance</a></div>
+  <table>
+    <tr>
+      <td>
+        <table>
+          <tr>
+            <td>
+              <div><a href="/emotd/maintenance"><font color="black">Maintenance List</a></div>
 #if $nummaint == 0
               No maintenance info.
 #end if
@@ -64,11 +44,11 @@ $body
           </tr>
         </table>
       </td>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+      <td></td>
     </tr>
   </table>
   <!-- Here comes the actual information regarding maintenance information -->
-  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <table>
   <tr>
     <td><b>Room</b></td>
     <td><b>Netbox</b></td>
@@ -79,12 +59,12 @@ $body
   </tr>
   #for $message in $maints
   <tr>
-    <td>$message.roomurl</td>
-    <td>$message.netboxurl</td>
-    <td>$message.serviceurl</td>
+    <td><a href="/report/netbox?roomid=$message.roomid">$message.roomid ($message.roomdesc)</td>
+    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
+    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
     <td>$message.mstart</td>
     <td>$message.mend</td>
-    <td>$message.emotdurl</td>
+    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
   </tr>
   #end for
   </table>

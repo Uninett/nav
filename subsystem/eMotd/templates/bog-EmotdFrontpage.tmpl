@@ -1,58 +1,22 @@
 
-#extends nav.web.templates.EmotdTemplate
+#extends nav.web.templates.MainTemplate
 
 #attr numberOfMessagesShown = 15
 
 
 #block content
-$makeMenu()
-<table border="0" cellspacing="0" cellpadding="0"><tr><td>
-  #set $antemotds = len($emotds)
-<h1>Messages of the Day</h1>
-<p>
-#if $antemotds == 0
-               No active messages
-#else if $antemotds == 1
-               One active message
-#else
-               $antemotds active messages
-#end if
-</p>
-<ul style="list-style-type:none;margin:0px;padding:0px;">
-  #for $message in $emotds
-	<li style="margin-bottom:8px"><table>
+    <table border="0" cellspacing="0" cellpadding="0">
       <tr>
-        <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
-          <a href="/emotd/view?id=$message.emotdid">$message.title</a>
+        <td valign="top" width="190">
+     $emotdlinksbox <br>
         </td>
-        <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
-          $message.last_changed by $message.author
-        </td>
+        <td valign="top">
+        <table border="0" cellspacing="0" cellpadding="0"><tr><td>
+     $emotd($emotds)
+        </td></tr>
+        </table>
       </tr>
-#if $message.replaces_emotd>0
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-#if $message.replaces_title:
-        	Replaces message: <a href="/emotd/view?id=$message.replaces_emotd">$message.replaces_title</a>
-#else
-		Replaces message: <a href="/emotd/view?id=$message.replaces_emotd">$message.replaces_emotd</a>
-#end if
-        </td>
-      </tr>
-#end if
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
-          Description: <br>$message.description
-        </td>
-      </tr>
-      <tr>
-        <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;background-color: #eee;">
-		<span style="font-size:11px">[ <a href="/emotd/edit?action=change&id=$message.emotdid">Change</a> | <a href="/emotd/edit?action=followup&id=$message.emotdid">Followup</a> ]</span>
-        </td>
-      </tr>
-	</table></li>
-  #end for
-	</ul>
+    </table>
 #end block
 
 #def $emotdlinksbox
@@ -87,7 +51,7 @@ $makeMenu()
   #set $antemotds = len($emotds)
   <table width="100%" cellspacing="0" cellpadding="0" border="0">
     <tr class="title">
-      <td class="title" align="center" colspan="3" style="background-image:url('/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">
+      <td class="title" align="center" colspan="3" style="background-image:url('$imagefolder/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="current">
@@ -103,7 +67,7 @@ $makeMenu()
           </tr>
         </table>
       </td>
-      <td align=right style="background-image:url('/arpcam/fill.gif');"><img src="/ragen/top-end.gif"></td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
     </tr>
   </table>
   <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -127,12 +91,12 @@ $makeMenu()
 
 
 #block additionalCSS
-      td {
+      TD {
       font-family: verdana, arial, helvetica, sans-serif;
       font-size: 13;
       }
 
-      td.smallfont {
+      TD.smallfont {
       font-size: 11;
       }
      
