@@ -1,0 +1,7 @@
+What?
+=====
+This directory contains the source code for the webFront framework.  This includes source
+for the Cheetah templates used by the framework.
+
+The python module nav.web stems from the webFront framework.
+
