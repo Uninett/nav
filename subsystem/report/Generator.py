@@ -279,7 +279,7 @@ class ArgumentParser:
                             neg = ""
                         else:
                             operat = "="
-                            value = self.intstr(value)
+                        value = self.intstr(value)
                     elif operator[key] == "like":
                         operat = "ilike"
                         value = "'" + re.sub("\*","%",value) + "'"
