@@ -51,7 +51,7 @@ import no.ntnu.nav.logger.Log;
 
 public class Database
 {
-	public static final int CONNECTION_IDLE_TIMEOUT = 300000; // 5 minutes
+	public static final long CONNECTION_IDLE_TIMEOUT = 60 * 60 * 1000; // 60 minutes
 
 	public static final int POSTGRESQL_DRIVER = 0;
 	public static final int MYSQL_DRIVER = 10;
@@ -59,8 +59,8 @@ public class Database
 
 	public static final int DEFAULT_DRIVER = POSTGRESQL_DRIVER;
 	
-	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 4;
-	public static final int DEFAULT_THREAD_STATEMENT_BUFFER = 0;
+	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 8;
+	public static final int DEFAULT_THREAD_STATEMENT_BUFFER = 2;
 	public static final int DEFAULT_RECONNECT_WAIT_TIME = 10000;
 
 	private static final String dbDriverOracle = "oracle.jdbc.driver.OracleDriver";
@@ -82,10 +82,10 @@ public class Database
 		public String pw;
 		private String conStr;
 
-		//private boolean connectionUp;
 		private boolean returnOnReconnectFail = false;
 		private int refCount;
 		private LinkedList conQ;
+		private LinkedList conQT;
 		private Map activeTransactions = new HashMap();
 
 		private Map statementMap = Collections.synchronizedMap(new HashMap()); // Maps thread to a LinkedList of statements
@@ -99,6 +99,7 @@ public class Database
 			user = _user;
 			pw = _pw;
 			conQ = new LinkedList();
+			conQT = new LinkedList();
 			refCount = 0;
 			storeConnectString();
 		}
@@ -125,9 +126,14 @@ public class Database
 		}
 
 		public int getConnectionCount() {
+			int cnt=0;
 			synchronized (conQ) {
-				return conQ.size();
+				cnt += conQ.size();
 			}
+			synchronized (conQT) {
+				cnt += conQT.size();
+			}
+			return cnt;
 		}
 
 		// Gets a connection for the current thread
@@ -149,6 +155,25 @@ public class Database
 			}
 		}
 
+		// Gets a transaction connection for the current thread
+		public ConnectionDescr getTransConnection() throws SQLException {
+			synchronized (activeTransactions) {
+				if (activeTransactions.containsKey(Thread.currentThread())) {
+					ConnectionDescr transDescr = (ConnectionDescr)activeTransactions.get(Thread.currentThread());
+					if (transDescr == null) throw new SQLException("Transaction aborted due to database reconnect");
+					return transDescr;
+				}
+			}
+			cleanConnectionQT();
+			synchronized (conQT) {
+				if (conQT.isEmpty()) {
+					if (!createTransConnection()) return null;
+				}
+
+				return (ConnectionDescr)conQT.removeFirst();
+			}
+		}
+
 		public void freeConnection(ConnectionDescr cd) {
 			synchronized (activeTransactions) {
 				if (activeTransactions.get(Thread.currentThread()) == cd) {
@@ -159,6 +184,12 @@ public class Database
 			}
 			synchronized (conQ) {
 				conQ.add(cd);
+			}
+		}
+
+		public void freeTransConnection(ConnectionDescr cd) {
+			synchronized (conQT) {
+				conQT.add(cd);
 			}
 		}
 
@@ -208,19 +239,12 @@ public class Database
 
 		private void closeAllConnections() {
 			synchronized (conQ) {
-				for (Iterator it = conQ.iterator(); it.hasNext();) {
-					try {
-						((ConnectionDescr)it.next()).close();
-					} catch (SQLException e) {
-						String msg = e.getMessage();
-						int idx;
-						if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
-						System.err.println("closeConnection error: " + msg);
-					}
-					it.remove();
-				}
+				closeAllConnections(conQ.iterator());
 				statementMap.clear();
 				globStatementQ.clear();
+			}
+			synchronized (conQT) {
+				closeAllConnections(conQT.iterator());
 			}
 			synchronized (activeTransactions) {
 				List l = new ArrayList();
@@ -242,7 +266,29 @@ public class Database
 			}
 		}
 
+		private void closeAllConnections(Iterator conIt) {
+			while (conIt.hasNext()) {
+				try {
+					((ConnectionDescr)conIt.next()).close();
+				} catch (SQLException e) {
+					String msg = e.getMessage();
+					int idx;
+					if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+					System.err.println("closeConnection error: " + msg);
+				}
+				conIt.remove();
+			}
+		}
+
 		private void cleanConnectionQ() throws SQLException {
+			cleanConnectionQ(conQ);
+		}
+
+		private void cleanConnectionQT() throws SQLException {
+			cleanConnectionQ(conQT);
+		}
+
+		private void cleanConnectionQ(LinkedList conQ) throws SQLException {
 			synchronized (conQ) {
 				if (conQ.size() > 1) {
 					Iterator it = conQ.iterator();
@@ -259,23 +305,41 @@ public class Database
 		}
 
 		private boolean createConnection() {
+			ConnectionDescr cd = newConnection();
+			if (cd != null) {
+				synchronized (conQ) {
+					conQ.add(cd);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private boolean createTransConnection() {
+			ConnectionDescr cd = newConnection();
+			if (cd != null) {
+				synchronized (conQT) {
+					conQT.add(cd);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private ConnectionDescr newConnection() {
 			try {
 				Class.forName(dbDriverString);
 				
 				Connection con = DriverManager.getConnection(conStr, user, pw);
 				ConnectionDescr cd = new ConnectionDescr(con);
-				synchronized (conQ) {
-					//System.out.println("*** CREATED CONNECTION *** " + conQ.size());
-					conQ.add(cd);
-				}
-				return true;
+				return cd;
 				
 			} catch (ClassNotFoundException e) {
 				System.err.println("createConnection ClassNotFoundExecption error: " + e.getMessage());
 			} catch (SQLException e) {
 				System.err.println("createConnection error: " + e.getMessage());
 			}
-			return false;
+			return null;
 		}
 		
 		public void setReturnOnReconnectFail(boolean b) {
@@ -323,14 +387,14 @@ public class Database
 			Thread t = Thread.currentThread();
 			ConnectionDescr cd = null;
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon calling getCon");
-			if ((cd=(ConnectionDescr)activeTransactions.get(t)) == null && create) activeTransactions.put(t, cd = getConnection());
+			if ((cd=(ConnectionDescr)activeTransactions.get(t)) == null && create) activeTransactions.put(t, cd = getTransConnection());
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon *done*");
 			return cd;
 		}
 
 		private void freeTransactionCon(ConnectionDescr cd) {
 			activeTransactions.remove(Thread.currentThread());
-			freeConnection(cd);
+			freeTransConnection(cd);
 		}
 		
 		private String getConnectString() {
@@ -382,14 +446,17 @@ public class Database
 
 			public void setAutoCommit(boolean autoCommit) throws SQLException {
 				con.setAutoCommit(autoCommit);
+				lastUsed = System.currentTimeMillis();
 			}
 
 			public void commit() throws SQLException {
 				con.commit();
+				lastUsed = System.currentTimeMillis();
 			}
 
 			public void rollback() throws SQLException {
 				con.rollback();
+				lastUsed = System.currentTimeMillis();
 			}
 
 			private void newUpdateStatement() throws SQLException {
@@ -397,6 +464,7 @@ public class Database
 					updateStatement.close();
 				}
 				updateStatement = con.createStatement();
+				lastUsed = System.currentTimeMillis();
 			}
 
 			public Statement getStatement() throws SQLException {
@@ -630,6 +698,7 @@ public class Database
 				ResultSet rs = st.executeQuery(statement);
 				return rs;
 			} catch (Exception e) {
+				e.printStackTrace(System.err);
 				if (e instanceof SQLException) {
 					SQLException sqle = (SQLException)e;
 					String msg = sqle.getMessage();
@@ -673,7 +742,12 @@ public class Database
 	 * either commit() or rollback() is called.  </p>
 	 */
 	public static void beginTransaction() throws SQLException {
-		getDBDescr(null).beginTransaction();
+		try {
+			getDBDescr(null).beginTransaction();
+		} catch (SQLException e) {
+			e.printStackTrace(System.err);
+			throw e;
+		}
 	}
 
 	/**
@@ -683,7 +757,12 @@ public class Database
 	 */
 	public static void commit() throws SQLException {
 		//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering commit");
-		getDBDescr(null).commit();
+		try {
+			getDBDescr(null).commit();
+		} catch (SQLException e) {
+			e.printStackTrace(System.err);
+			throw e;
+		}
 	}
 
 	/**
@@ -692,7 +771,12 @@ public class Database
 	 * transaction.  </p>
 	 */
 	public static void rollback() throws SQLException {
-		getDBDescr(null).rollback();
+		try {
+			getDBDescr(null).rollback();
+		} catch (SQLException e) {
+			e.printStackTrace(System.err);
+			throw e;
+		}
 	}
 
 	/**
@@ -860,6 +944,7 @@ public class Database
 				Statement stUpdate = getUpdateStatement(null);
 				return stUpdate.executeUpdate(statement);
 			} catch (Exception e) {
+				e.printStackTrace(System.err);
 				if (e instanceof SQLException) {
 					SQLException sqle = (SQLException)e;
 					String msg = sqle.getMessage();
@@ -927,8 +1012,8 @@ public class Database
 	 */
 	public static String addSlashes(String s) {
 		if (s == null) return null;
-		if (s.startsWith("(")) return "\\" + s;
-		return s;
+		if (s.startsWith("(")) s = "\\" + s;
+		return addSlashesStrict(s);
 	}
 
 	/**
