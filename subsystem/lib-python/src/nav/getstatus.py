@@ -4,45 +4,65 @@ $Id$
 This file id part of the NAV project.
 
 Function to get the current status from the
-alerhist table. Used by the frontpage (and
-eventually by the status page).
+alerhist table. Used by the frontpage.
 
 Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 """
 
-import mx.DateTime,nav.db.manage
+import nav.db
 
 def boxesDown():
     downList = []
-    t = nav.db.manage.AlerthistNetbox()
+    sql = "SELECT netbox.sysname,netbox.ip,alerthist.start_time," +\
+          "now()-start_time,netbox.up FROM alerthist,netbox,alerttype " + \
+          "WHERE alerthist.eventtypeid='boxState' AND end_time='infinity' " +\
+          "AND alerttype.alerttypeid=alerthist.alerttypeid AND " +\
+          "alerthist.netboxid=netbox.netboxid AND " +\
+          "(alerttype.alerttype='boxDown' or " +\
+          "alerttype.alerttype='boxShadow') AND " +\
+          "netbox.up='n' ORDER BY now()-alerthist.start_time;"
 
-    w = "eventtypeid = 'boxState' and end_time = 'infinity'"
-    for alert in t.getAllIterator(where=w):
+    connection = nav.db.getConnection('status', 'manage')
+    database = connection.cursor()
+    database.execute(sql)
+    result = database.fetchall()
+
+    for alert in result:
         shadow = False
-        if alert.netbox.up == 's':
+        if alert[4] == 's':
             shadow = True
-        downList.append([alert.netbox.sysname,
-                         alert.netbox.ip,
-                         alert.start_time,
-                         mx.DateTime.now() - alert.start_time,
+        downList.append([alert[0],
+                         alert[1],
+                         alert[2],
+                         alert[3],
                          shadow])
-        
     return downList 
 
 def boxesDownSortByNewest():
     downList = []
-    t = nav.db.manage.AlerthistNetbox()
+    sql = "SELECT netbox.sysname,netbox.ip,alerthist.start_time," +\
+          "now()-start_time,netbox.up FROM alerthist,netbox,alerttype " + \
+          "WHERE alerthist.eventtypeid='boxState' AND end_time='infinity' " +\
+          "AND alerttype.alerttypeid=alerthist.alerttypeid AND " +\
+          "alerthist.netboxid=netbox.netboxid AND " +\
+          "(alerttype.alerttype='boxDown' or " +\
+          "alerttype.alerttype='boxShadow') AND " +\
+          "netbox.up='n' ORDER BY now()-alerthist.start_time;"
 
-    w = "eventtypeid = 'boxState' and end_time = 'infinity'"
-    for alert in t.getAllIterator(where=w):
+    connection = nav.db.getConnection('status', 'manage')
+    database = connection.cursor()
+    database.execute(sql)
+    result = database.fetchall()
+
+    for alert in result:
         shadow = False
-        if alert.netbox.up == 's':
+        if alert[4] == 's':
             shadow = True
-        downList.append([mx.DateTime.now() - alert.start_time,
-                         alert.netbox.sysname,
-                         alert.netbox.ip,
-                         alert.start_time,
+        downList.append([alert[3],
+                         alert[0],
+                         alert[1],
+                         alert[2],
                          shadow])
-    downList.sort()    
+    downList.sort()
     return downList 
