@@ -116,13 +116,15 @@ public class CiscoSwIOS implements DeviceHandler
 
 		// Check which interfaces match our pattern
 		Set matchIfindex = new HashSet();
-		for (Iterator it = l.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
+		if (l != null) {
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
 			
-			String portif = s[1];
-			String modulePattern = "((.*?)\\d+)/(\\d+)";
-			if (portif.matches(modulePattern)) {
-				matchIfindex.add(s[0]);
+				String portif = s[1];
+				String modulePattern = "((.*?)\\d+)/(\\d+)";
+				if (portif.matches(modulePattern)) {
+					matchIfindex.add(s[0]);
+				}
 			}
 		}
 		if (matchIfindex.isEmpty()) return;
