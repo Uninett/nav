@@ -282,7 +282,7 @@ public class QueryNetbox extends Thread
 	}
 
 	public static void updateNetboxes() {
-		int newcnt=0, delcnt=0;
+		int newcnt=0, skipcnt=0, delcnt=0;
 
 		try {
 			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' ORDER BY random() * netboxid";
@@ -299,6 +299,7 @@ public class QueryNetbox extends Thread
 				if (t == null) {
 					Log.d("UPDATE_NETBOXES", "Skipping netbox " + rs.getString("sysname") +
 								" because type is null (probably the type doesn't have any OIDs)");
+					skipcnt++;
 					continue;
 				}
 				NetboxImpl nb;
@@ -351,7 +352,7 @@ public class QueryNetbox extends Thread
 			Log.e("UPDATE_NETBOXES", "SQLException: " + e);			
 		}
 
-		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + newcnt + " new, " + delcnt + " removed)");
+		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped)");
 
 	}
 
