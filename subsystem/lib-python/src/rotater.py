@@ -1,34 +1,43 @@
 #!/usr/bin/env python
+# 
+# Copyright (c) 2002-2003 Magnus Nordseth, Stian Søiland
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+# Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#          Stian Søiland <stain@itea.ntnu.no>
+# 
+# License: MIT         
+#
+
+"""A rotating bar.
+Shows a rotating bar while something is happening.
+Log messages and status messages can be output as well,
+with nice colors. Truly useful. (hehe)
 """
-A rotating bar
 
-Copyright (c) 2002-2003 Magnus Nordseth, Stian Søiland 2002-2003
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Authors: Magnus Nordseth <magnun@itea.ntnu.no>
-         Stian Søiland <stain@itea.ntnu.no>
-
-License: MIT         
-
-"""
+# KNOWN BUGS / TODO
+# - The first line includes a duplicate bar/character
+# - Not TERM aware - colors might not work overall
+# - Not stdout-aware - should not write rotating
+#   bar when piped to some other program/file
 
 import sys
 import time
@@ -137,7 +146,7 @@ class RotaterPlugin:
         sys.stdout.flush()
         sys.rotate = -1
 
-def __test():
+def _test():
     import random
     foo = RotaterPlugin()
     messages = ['Calculation gravitation',
@@ -167,6 +176,6 @@ def __test():
         foo.reset(result=OK)
 
 if __name__ == '__main__':
-    __test()
+    _test()
 
             
