@@ -1,5 +1,5 @@
 """
-$Id: LdapHandler.py,v 1.3 2003/06/15 15:56:12 bgrotan Exp $
+$Id: LdapHandler.py,v 1.4 2003/06/15 18:14:59 bgrotan Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/LdapHandler.py,v $
 """
 
@@ -25,9 +25,11 @@ class LdapHandler(JobHandler):
 	base:	the server's basedn (e.g. dc=mydomain,dc=com)
 	scope:	what level of the search will be needed? BASE, ONELEVEL and SUBTREE can be used
 	filter: dn to search for. May have regexp and more. Example: cn=monitor
+	compare: uses the function compare_s(dn, attr, value)  - useful for testing whether an object has a particular value (instead of doing a search with SCOPE_BASE and checking the value)
 	attrs:  specific attributes you want to retrieve from searching filter (not implemented in this version)
 	attr_val: regexp for matching attrs. If matched - Event.UP is returned - else Event.DOWN (not implemented in this version)
-	
+
+	NB! If compare is set/given - attrs and attr_val will be ignored!
 	"""
 
 	def __init__(self,service, **kwargs):
@@ -69,34 +71,47 @@ class LdapHandler(JobHandler):
 					l.protocol_version = ldap.VERSION3
 				except Exception,e:
 					return Event.DOWN, "unsupported protocol version"
-
-			if args.has_key("base"):
-				if args.has_key("scope"):
-					scope = args["scope"]
-					scope = "ldap.SCOPE_"+scope.upper()
-					if args.has_key("filter"):
-						filter = args["filter"]
-						if args.has_key("attrs"):
-							attrs = args["attrs"]
-						else:
-							attrs = "None"
+			if args.has_key("compare"):
+				try:
+					result = l.compare_s(dn,attribute,value)
+					if result:
+						return Event.UP
 					else:
-						filter = "objectclass=dcObject"
-				else:
-					scope = ldap.SCOPE_SUBTREE
-			else:
-				base = "dc=ntnu,dc=no"
-			try:
-				myres = l.search(base, scope, filter)
-				dn = myres[0][0]
-				mydict = myres[0][1]
-			except Exception,e:
-				return Event.DOWN, "Failed search on %s for %s: %s" % (self.getAddress(), filter, str(e))
+						return Event.DOWN, "compare failed: %s:%s" % (attribute,value)
+				except Exception,e:
+					return Event.DOWN, "compare failed for some reason"
+
+			elif:
+				if args.has_key("base"):
+					if (args["base"] == "cn=monitor"):
+						my_res = l.search_s("base",ldap.SCOPE_BASE,"cn=monitor")
+						my_res = my_res[0]
+						my_dict = myres[1]
+						version = my_dict["description"][0]
+						self.setVersion(version)
+					if args.has_key("scope"):
+						scope = args["scope"]
+						scope = "ldap.SCOPE_"+scope.upper()
+						if args.has_key("filter"):
+							filter = args["filter"]
+							if args.has_key("attrs"):
+								attrs = args["attrs"]
+							else:
+								attrs = "None"
+						else:
+							filter = "objectclass=dcObject"
+					else:
+						scope = ldap.SCOPE_SUBTREE
+				else:	
+					base = "dc=ntnu,dc=no"
+				try:
+					my_res = l.search(base, scope, filter, attrs)
+					dn = my_res[0][0]
+					mydict = my_res[0][1]
+				except Exception,e:
+					return Event.DOWN, "Failed ldapSearch on %s for %s: %s" % (self.getAddress(), filter, str(e))
 				
-			l.unbind()
-			# krever enten monitor-backend og søk etter base cn=monitor eller håndtere dette
-			# selv i openldap-2.0.x 
-			# self.setVersion(version)
+				l.unbind()
 		except Exception, e:
 			return Event.DOWN, "Failed to bind to %s: %s" % (self.getAddress(), str(e))
 		return Event.IP, version
