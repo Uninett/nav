@@ -3,6 +3,4 @@ PythonPath "['/usr/local/nav/navme/lib/python','/usr/local/lib/python2.2/site-pa
 SetHandler python-program
 PythonHandler deviceManagement
 PythonHeaderParserHandler nav.web
-#PythonInterpreter dt_1
-#PythonInterpPerDirectory On
 DirectoryIndex deviceManagement.py

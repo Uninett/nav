@@ -13,7 +13,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #################################################
 ## Imports
 
-import psycopg,deviceManagementTables,mx.DateTime,re,forgetSQL
+import nav.db,deviceManagementTables,mx.DateTime,re,forgetSQL
 
 from mod_python import util,apache
 from deviceManagementTemplate import deviceManagementTemplate
@@ -624,8 +624,7 @@ def addOrder(req):
                 ci_dealer = form['cn_dealer']
                 ci_ordernr = form['cn_ordernr']
 
-                connection = psycopg.connect(dsn="host=localhost \
-                user=manage dbname=manage password=eganam")
+                connection = nav.db.getConnection('devicemanagement','manage')
                 database = connection.cursor()
                 firstDevice = True
                 for i in range(0,ci_number):
@@ -908,8 +907,7 @@ class DeviceEvent:
         self.vars = {}
 
     def postEvent(self):
-        connection = psycopg.connect(dsn="""host=localhost user=manage 
-        dbname=manage password=eganam""")
+        connection = nav.db.getConnection('devicemanagement','manage')
         database = connection.cursor()
 
         # post event to eventq
