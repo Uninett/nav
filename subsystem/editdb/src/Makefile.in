@@ -16,7 +16,7 @@ templates = editdbTemplate.py
 files = editdb.py editdbSQL.py editTables.py initBox.py .htaccess
 conffiles = editdb.conf
 
-.PHONY: all install install-lib install-bin install-web clean distclean
+.PHONY: all install install-lib install-bin install-web clean distclean install-conf
 
 all: $(templates)
 
@@ -36,14 +36,14 @@ install-web:
 	done
 
 install-conf:
-        @for file in $(conffiles); do                          \
-          target=$(DESTDIR)$(sysconfdir)/$$file;               \
-          if [ -f "$$target" ]; then                           \
-            echo Skipping installation of config file $$file;  \
-          else                                                 \
-            $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
-          fi;                                                  \
-        done
+    @for file in $(conffiles); do                          \
+      target=$(DESTDIR)$(sysconfdir)/$$file;               \
+      if [ -f "$$target" ]; then                           \
+        echo Skipping installation of config file $$file;  \
+      else                                                 \
+        $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+      fi;                                                  \
+    done
 
 clean:
 	rm -f *~

@@ -43,14 +43,13 @@ from nav.web.templates.editdbTemplate import editdbTemplate
 ## Constants
 
 BASEPATH = '/editdb/'
+CONFIGFILE = 'editdb.conf'
 
 EDITPATH = [('Home','/'),('Tools','/toolbox'),('Edit database',BASEPATH)]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
 IGNORE_BOX = 'ignore_this_box'
-
-CONFIGURATION_CACHED = False
 
 # Bulk import images
 BULK_IMG_GREEN = '/images/lys/green.png'
@@ -67,11 +66,11 @@ BULK_UNSPECIFIED_FIELDNAME = 'excess'
 # Browsers should return utf-8 encoded form-data from 
 # the text input since this is the encoding specified
 # in the MainTemplate
-DEFAULT_ENCODING = 'utf_8'
-BULK_TRY_ENCODINGS = ['utf_8',
-                      'utf_16',
-                      'latin_1',        # West Europe
-                      'iso8859_10']     # Nordic languages
+#DEFAULT_ENCODING = 'utf_8'
+#BULK_TRY_ENCODINGS = ['utf_8',
+#                      'utf_16',
+#                      'latin_1',        # West Europe
+#                      'iso8859_10']     # Nordic languages
 
 # REQ_TRUE: a required field
 # REQ_FALSE: not required
@@ -83,13 +82,6 @@ REQ_NONEMPTY = 3
 # Fieldtypes
 FIELD_STRING = 1
 FIELD_INTEGER = 2
-
-# Options for choosing patch splits
-# Used in pagePatch.editbox 
-#PATCH_SPLIT_OPTIONS = [('no','No split'),
-#                       ('lance25 A','lance25 A'),
-#                       ('YA4-E2-E2 B','YA4-E2-E2 B'),
-#                       ('A','A')]
 
 #################################################
 ## Functions
@@ -105,6 +97,7 @@ def handler(req):
     req.form = util.FieldStorage(req,keep_blank_values)
 
     # Read configuration file
+    #if not globals().has_key('CONFIG_CACHED'):
     readConfig()
 
     output = None
@@ -134,11 +127,37 @@ def handler(req):
 def readConfig():
     ''' Reads configuration from editdb.conf and sets global
         variables. '''
+    global CONFIG_CACHED,DEFAULT_ENCODING,BULK_TRY_ENCODINGS,\
+           CATEGORY_LIST,SPLIT_LIST,SPLIT_OPPOSITE
 
-    config = nav.config.readConfig('editdb.conf')
-    if CONFIGURATION_CACHED:
-        raise('cached')
-    CONFIGURATION_CACHED = True
+    config = nav.config.readConfig(CONFIGFILE)
+    CONFIG_CACHED = True
+    
+    DEFAULT_ENCODING = config['default_encoding']
+    BULK_TRY_ENCODINGS = eval(config['bulk_try_encodings'])
+
+    # Make list of cable categories
+    catlist = eval(config['categories'])
+    categories = []
+    for cat in catlist:
+        categories.append(eval(config[cat]))
+    CATEGORY_LIST = categories
+
+    # Make list of splits and dict of opposite splits
+    splitlist = eval(config['splits'])
+    splits = []
+    opposite = {}
+    for splitName in splitlist:
+        split = eval(config[splitName])
+        # id=0, descr=1, opposite=2
+        splits.append((split[0],split[1]))
+        if split[2]:
+            # References another split, set id
+            opposite[split[0]] = eval(config[split[2]])[0]
+        else:
+            opposite[split[0]] = None
+    SPLIT_LIST = splits
+    SPLIT_OPPOSITE = opposite
 
 def index(req,showHelp=False,status=None):
     ''' Generates the index page (main menu) '''
@@ -1542,12 +1561,6 @@ class pageCabling(editdbPage):
                 r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
                           str(room.descr) + ')'))
 
-            # List of categories
-            cats = [('cat5','cat5'),
-                    ('cat3','cat3'),
-                    ('cat5e','cat5e'),
-                    ('cat6','cat6')]
-
             # Field definitions {field name: [input object, required]}
             f = {'roomid': [inputSelect(options=r),REQ_TRUE,'Room',
                             FIELD_STRING],
@@ -1556,7 +1569,8 @@ class pageCabling(editdbPage):
                  'targetroom': [inputText(),REQ_TRUE,'Target room',
                                 FIELD_STRING],
                  'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING],
-                 'category': [inputSelect(options=cats),REQ_TRUE,'Category',FIELD_STRING]}
+                 'category': [inputSelect(options=CATEGORY_LIST),REQ_TRUE,
+                              'Category',FIELD_STRING]}
 
             self.fields = f
             self.setControlNames()
@@ -2779,7 +2793,8 @@ class pagePatch(editdbPage):
                                      'swport.moduleid=module.moduleid AND ' +\
                                      'module.netboxid=netbox.netboxid',
                                      'room.locationid,room.roomid,' +\
-                                     'netbox.sysname,cabling.jack'),
+                                     'netbox.sysname,module.module,' +\
+                                     'swport.port'),
                                     [(None,None,entryListCell.CHECKBOX,None,None),
                                      (1,'{p}edit/{id}',None,None,None),
                                      (2,None,None,None,None),
@@ -2797,15 +2812,13 @@ class pagePatch(editdbPage):
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
             self.table = page.table
+            self.hiddenFields = {}
 
             # Set the name of this boxname to reflect that we are
             # updating an entry
             if editId:
                 self.boxName = UPDATE_ENTRY
                 self.boxId = editId
-
-            self.hiddenFields = {}
-            if editId:
                 self.addHidden(UPDATE_ENTRY,editId)
 
             selectedSwport = []
@@ -2825,6 +2838,7 @@ class pagePatch(editdbPage):
                 selectedJack = [patch.cabling.cablingid]
                 selectedRoom = [patch.cabling.room.roomid]
                 selectedLocation = [patch.cabling.room.location.locationid]
+                split = patch.split
   
             self.help = 'Add or update a patch by selecting a jack and a ' +\
                         'switchport. Optionally select a split. Only rooms '+\
@@ -2846,9 +2860,11 @@ class pagePatch(editdbPage):
                                         multipleHeight=8)
 
                 # SQL (where) for selecting rooms
-                # Only selects rooms which have one or more boxes of category EDGE,SW or GSW
-                # and where there are "available" jacks. Available means a jack which isn't
-                # already in use by a patch, or a jack which is use by one patch but is splitted.
+                # Only selects rooms which have one or more boxes of 
+                # category EDGE,SW or GSW and where there are "available" 
+                # jacks. Available means a jack which isn't already in 
+                # use by a patch, or a jack which is use by one patch
+                # but is splitted.
                 if editId:
                     roomSQL = None
                 else:
@@ -2870,7 +2886,8 @@ class pagePatch(editdbPage):
 
                 # SQL (where) for selecting jacks
                 # Selects "available" jacks. Available means a jack which isn't
-                # already in use by a patch, or a jack which is use by one patch but is splitted.
+                # already in use by a patch, or a jack which is use by one 
+                # patch but is splitted.
                 if editId:
                     jackSQL = None
                 else:
@@ -2971,7 +2988,7 @@ class pagePatch(editdbPage):
                             # Already exists a patch with this jack, it must
                             # be splitted, select the same split in this form
                             patch = patch[0]
-                            split = patch.split
+                            split = SPLIT_OPPOSITE[patch.split]
 
                 # Remember split from form (overrides split from other patch)
                 if req.form.has_key('split'):
@@ -2988,7 +3005,7 @@ class pagePatch(editdbPage):
                             REQ_FALSE,'Room',FIELD_STRING],
                  'box2': [inputTreeSelect(treeselect=lb2),
                              REQ_FALSE,'Switch port',FIELD_STRING],
-                 'split': [inputSelect(options=PATCH_SPLIT_OPTIONS),REQ_FALSE,
+                 'split': [inputSelect(options=SPLIT_LIST),REQ_FALSE,
                            'Split',FIELD_STRING]}
 
             if split:
@@ -3028,18 +3045,19 @@ class pagePatch(editdbPage):
                     otherPatch = otherPatch[0]
                     otherSplit = otherPatch.split
 
-                    if split != otherSplit:
+                    if SPLIT_OPPOSITE[split] != SPLIT_OPPOSITE[otherSplit]:
                         # Splits are different, either update split on the
                         # other entry, or delete it if this split='no'
                         otherPatchId = str(otherPatch.patchid)
-                        if split == 'no':
+                        # SPLIT_LIST[0][0] is default entry id
+                        if split == SPLIT_LIST[0][0]:
                             # Delete other entry
                             deleteEntry([otherPatchId],'patch','patchid')
                         else:
                             # Update other entry
-                            fields = {'split': split}
-                            updateEntryFields(fields,self.tableName,self.tableIdKey,
-                                              otherPatchId)
+                            fields = {'split': SPLIT_OPPOSITE[split]}
+                            updateEntryFields(fields,self.tableName,
+                                              self.tableIdKey,otherPatchId)
 
                 fields = {'cablingid': cablingid,
                           'swportid': swportid,
@@ -3093,17 +3111,19 @@ class pagePatch(editdbPage):
                 # be splitted, if split is changed then do something
                 otherPatch = otherPatch[0]
                 otherSplit = otherPatch.split
+                #raise(split+','+otherSplit+','+SPLIT_OPPOSITE[otherSplit])
 
-                if split != otherSplit:
+                if SPLIT_OPPOSITE[split] != otherSplit:
                     # Splits are different, either update split on the
                     # other entry, or delete it if this split='no'
                     otherPatchId = str(otherPatch.patchid)
-                    if split == 'no':
+                    # SPLIT_LIST[0][0] is default entry id
+                    if split == SPLIT_LIST[0][0]:
                         # Delete other entry
                         deleteEntry([otherPatchId],'patch','patchid')
                     else:
                         # Update other entry
-                        fields = {'split': split}
+                        fields = {'split': SPLIT_OPPOSITE[split]}
                         updateEntryFields(fields,self.tableName,self.tableIdKey,
                                           otherPatchId)
 
@@ -4522,14 +4542,15 @@ def bulkImportParse(input,bulkdef,separator):
                             break
                         # if this is the id field, 
                         # check if it's unique in the db
-                        if fn == bulkdef.uniqueField:
-                            where = bulkdef.uniqueField+"='"+fields[i] + "'"
-                            result = bulkdef.table.getAllIDs(where=where)
-                            if result:
-                                status = BULK_STATUS_YELLOW_ERROR
-                                remark = "Not unique: An entry with " +fn + \
-                                         "=" + fields[i] + " already exists"
-                                break
+                        if type(bulkdef.uniqueField) is str:
+                            if fn == bulkdef.uniqueField:
+                                where = bulkdef.uniqueField+"='"+fields[i] + "'"
+                                result = bulkdef.table.getAllIDs(where=where)
+                                if result:
+                                    status = BULK_STATUS_YELLOW_ERROR
+                                    remark = "Not unique: An entry with " +fn + \
+                                             "=" + fields[i] + " already exists"
+                                    break
                     else:
                         # This field isn't specified in the bulkdef
                         # Used by netbox for adding any number of subcats
@@ -4775,14 +4796,14 @@ class bulkdefCabling:
     ''' Contains defintion of fields for bulk importing cabling '''
     tablename = 'cabling'
     table = nav.db.manage.Cabling
-    uniqueField = 'cablingid'
+    uniqueField = ['roomid','jack']
     enforce_max_fields = True
     max_num_fields = 6
-    min_num_fields = 5
+    min_num_fields = 4
 
-    process = False
+    process = True
     onlyProcess = False
-    syntax = '#roomid:jack:building:tagetroom:category[:descr]\n'
+    syntax = '#roomid:jack:building:targetroom:[category:descr]\n'
 
     postCheck = False
 
@@ -4791,8 +4812,8 @@ class bulkdefCabling:
               ('jack',0,True,True),
               ('building',0,True,True),
               ('targetroom',0,True,True),
-              ('category',0,True,True),
-              ('descr',0,True,True)]
+              ('category',0,False,True),
+              ('descr',0,False,True)]
 
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
@@ -4806,8 +4827,43 @@ class bulkdefCabling:
                     except forgetSQL.NotFound:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Room '" + data + "' not found in database"
+        if field == 'category':
+            if data:
+                if len(data):
+                    catlist = []
+                    for cat in CATEGORY_LIST:
+                        catlist.append(cat[0])
+                    if not data in catlist:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Category '" + data + "' not found in " +\
+                                 "config file"
         return (status,remark)
     checkValidity = classmethod(checkValidity)
+
+    def preInsert(cls,row):
+        ''' Inserts default value for category. '''
+        if not row.has_key('category'):
+            # Set default category
+            row['category'] = CATEGORY_LIST[0][0]
+        else:
+            if not len(row['category']):
+                # Set default category
+                row['category'] = CATEGORY_LIST[0][0]
+
+        # Check uniqueness
+        where = ""
+        first = True
+        for field in cls.uniqueField:
+            if not first:
+                where += 'AND '
+            where += field + "='" + row[field] + "' "
+            first = False
+        result = cls.table.getAll(where)
+        if result:
+            row = None
+
+        return row
+    preInsert = classmethod(preInsert)
 
 
 class bulkdefPatch:
@@ -4982,12 +5038,6 @@ class bulkdefPatch:
                     "jack='" + row['jack'] + "'"
             cabling = nav.db.manage.Cabling.getAll(where)
             cabling = cabling[0]
-
-            #del row['roomid']
-            #del row['jack']
-            #del row['module']
-            #del row['sysname']
-            #del row['port']
 
             row['swportid'] = str(swport.swportid)
             row['cablingid'] = str(cabling.cablingid)
