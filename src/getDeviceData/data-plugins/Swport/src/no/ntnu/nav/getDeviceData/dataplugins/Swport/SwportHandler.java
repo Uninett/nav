@@ -159,7 +159,7 @@ public class SwportHandler implements DataHandler {
 							"speed", sd.getSpeed(),
 							"duplex", sd.getDuplexS(),
 							"media", Database.addSlashes(sd.getMedia()),
-							"vlan", sd.getInterface(),
+							"vlan", sd.getVlanS(),
 							"trunk", sd.getTrunkS(),
 							"portname", Database.addSlashes(sd.getPortname())
 						};
