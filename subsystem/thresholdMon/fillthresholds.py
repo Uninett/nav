@@ -34,6 +34,7 @@ import psycopg
 import forgetSQL
 import re
 import nav.db.forgotten
+import nav.path
 from nav import db
 
 conn = db.getConnection('thresholdmon','manage')
@@ -52,6 +53,18 @@ def setData (datasource,threshold,max):
 
 # setting default threshold
 default = "90"
+
+# read configfile to check for other value
+confdir = nav.path.sysconfdir
+file = confdir + "/fillthresholds.cfg"
+handle = open (file)
+for line in handle.readlines():
+    if line.startswith("threshold"):
+        default = line.split("=").pop().strip()
+        print "Setting default value to %s" % default
+        break
+
+handle.close()
 
 for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"):
 #for datasource in manage.Rrd_datasource.getAllIterator():
