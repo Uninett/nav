@@ -8,10 +8,12 @@ Oversikt
 1)innlegging til database
    - forandring av mal
 2)snmpd
+  -tilegg til snmpd
 3)databaseformat
 4)makeconfig
+5)cricket
 6)jyhton - plugin
-7)spes. probl.
+7)problemer
 8)vyer
 
 ------------------------
@@ -29,12 +31,11 @@ Oversikt
   Forandring av mal:
   Vi har to forandringer som vi har lagt inn i cvsroot under /etc/mal/server.txt.mal:
   i) Vi må ha  inn et eget kategorifelt for boksen (mail,ts) . Vi har imidlertid ikke fått 
-     til å forandre database.pl slik at den legger dette feltet i databasen , det må den 
-     som har skrevet det udokumenterte scriptet database.pl gjøre.
+     til å forandre database.pl slik at den legger dette feltet i databasen. Det hadde vært 
+     fint om den som har skrevet scriptet database.pl kan ta med dette.
   ii)Vi må også ha inn om boksen skal overvåkes eller ikke , dette må også legges inn
      i databasen via database.pl scriptet.
   
-
 2)snmpd
   
   Vi benytter oss av snmp for å hente in info fra serverene og dette krever en snmp daemon 
@@ -61,6 +62,23 @@ Oversikt
      tar zxvf net-snmp-5.0.1.os.tar.gz
      make
      make install
+     
+     iia)
+     En av fordelene med net-snmp er at det er relativt enkelt å spesifisere egene MIB'er 
+     Dette har vi gjor for å kunne hente ut mailkø fra mailserverene våres. Det vil si på at
+     alle mailgatewayene våres så har vi lagt til følgende linje i snmpd.conf.
+     # legger inn en egendef MIB - dog definert i en rfc - for å sjekke mailkø
+     pass .1.3.6.1.2.1.28.1.1.1 /usr/local/sbin/mailq.sh
+   
+     scriptet mailq ser slik ut:
+     if  [ "$1" = "-g" ] || [ "$2" = ".1.3.6.1.2.1.28.1.1" ] ; then
+         echo .1.3.6.1.2.1.28.1.1.1
+	 echo gauge
+	 mailq | tail -1 | awk '{print $5;}'
+     fi
+
+     Denne sjekker antall mail i kø.
+     
 
 3)databaseformat
   Følgende tabeller er lagt til i nav databasen:
@@ -106,41 +124,73 @@ Oversikt
 
   I cvsroot cricket/bin er det et perl script , Makeconfig , som genererer konfig filer for cricket 
   Dette scriptet måtte modifiseres litt slik at det lagde konfig filer til serverene våres.
-  Det som i korthet er gjor er at det lagt til en sub servers som henter ut server infor fra 
+  Det som i korthet er gjort er at det lagt til en sub servers som henter ut server info fra 
   databasen og lager konfig filer på bakgrunn av dette.
   Vi henviser til cvsroot cricket/bin/Makeconfig og sub kallet servers for kildekode.
 
-5)jython
-   
+5)Cricket
+  Vi benytter oss av cricket (http://cricket.sourceforge.net) som jo nav bygger mye på.
+  Cricket lager kataloger for rutere , svitsjer og servere(den delen som vi har jobbet med).
+  I cvsroot cricket/cricket-config_defaults/servers er det en Default fil som er lagd for 
+  å hente inn den snmp informasjonen vi er int. i på serverene.
+  Filen Defaults er relativt selvforklarende men et par eksempler kommer :
 
+  eks 1) OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  
+  vil si at cricket slår opp denne oid'en mot en server får ut følgende :
 
-
-
-
+  host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.1 = /
+  host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.2 = /log
+  host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.3 = /usr
+  host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.4 = /var
+ 
+  her får cricket ut alle disk partiosjoenene til serveren og dermed kan den 
+  seinere hente inn info om partisjon størrelse og partisjon forbruk 
   
-   
-   
-				 
-			      
+  eks 2) OID sessionTotalwin                1.3.6.1.4.1.311.1.1.3.1.1.21.1.0
+  vil si at man henter ut det totale antall sesjoner som er gjort mot denne 
+  maskinen. At oid'en slutter med win betyr at dette gjelder windowsbokser.
 
+6)jython
+  /usr/local/lib/jython , read the source and don't touch !
 
+7)problemer
+  Det er to ting som har vært spesielle:
+  i) NT 
+     Vi har ikke klart å hente ut HOST-RESOURCE-MIB fra NT 4.0 boksene våres
+     Dette har ført til at vi har droppa innhenting av info fra de boksene 
+     våres om har dette os'et.
+     HOST-RESOURCE-MIB er mib fra 1.3.6.1.2.1.25 og nedover. Som vi ser betyr dette 
+     at vi ikke får hentet ut disker,antall pros(numOfPros) , totalMem i i tillegg er det 
+     heller ikke mulig å hente ut noe session infor fra boksene.
 
-  
+     Vi har prøvd å kompilere opp ny mib.bin og legge til hostmib.dll som en extensionagent
+     i registry uten hell.
 
-	
-  
-  
+     Det er imildertid mulig å hente ut noe nyttig info fra NT boksene følgende OID'er må da 
+     brukes:
+     cpu        :  1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.1.0
+     Interface  :  1.3.6.1.2.1.2.2.1.2
+     (disse to er som beskrevet i Defaults fila)
+     Used Memory: 1.3.6.1.4.1.311.1.1.3.1.1.1.3.0
+     Free Memory: 1.3.6.1.4.1.311.1.1.3.1.1.1.2.0
+     Disk har vi ikke fått til å hente ut.
 
-  
+  ii) interface på win2k
+     Når cricket spør etter win2k sine interface med oid'en ifDescription 1.3.6.1.2.1.2.2.1.2
+     så kommer svaret tilbake som:
+     interfaces.ifTable.ifEntry.ifDescr.1 = MS TCP Loopback interface
+     interfaces.ifTable.ifEntry.ifDescr.2 = Intel 8255x-based Integrated Fast Ethernet
 
-     
+     Dette vises ok men i all hemmeliget legger windows ved en hex null på slutten av begge 
+     disse strengene som ikke vises. Denne må siles ut slik at det ikke blir tull i konfig
+     filene til cricket. Derfor er det gjort et lite hack på cricket sin Map.pm slik at 
+     vi kan hente ut interface på win2k også.
+     Den nye Map.pm ligger i cvsroot /cricket/bin og må byttes ut med cricket
+     sin orignale Map.pm. Alternativt kan kommandoen patch -p0 < cricket.patch kjøres som
+     også ligger i cvsroot /cricket/bin.
 
-    
-  
-
-
-  
-
-
-  
-  
+8) Vyer
+   *hente info fra salmaskiner
+   *hent ut mer kul snmp info 
+   *nytt grensesnitt
+   *..mer ?
