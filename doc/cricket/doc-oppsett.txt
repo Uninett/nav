@@ -97,7 +97,7 @@ Oversikt
      
 
 3)databaseformat
-  Følgende tabeller er lagt til i nav-databasen:
+  Følgende endringer er gjort i nav-databasen:
 
   CREATE TABLE boksdisk (
     boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
@@ -118,6 +118,18 @@ Oversikt
     PRIMARY KEY(boksid, category)
     );              
 
+  ALTER TABLE boks ADD snmp_major INT4;
+  ALTER TABLE boks ALTER snmp_major SET DEFAULT 1;
+  UPDATE boks SET snmp_major=1;
+  ALTER TABLE boks ADD constraint snmp_major_not_null CHECK 
+                                    (snmp_major IS NOT NULL);
+  ALTER TABLE boks ADD snmpagent VARCHAR(30);
+  GRANT ALL ON boksinterface TO navall;
+  GRANT ALL ON boksdisk TO navall;
+  GRANT ALL ON bokscategory TO navall;
+  GRANT ALL ON boksdisk TO getDeviceData;
+  GRANT ALL ON boksinterface TO getDeviceData;
+  GRANT ALL ON bokscategory TO getDeviceData;
 
   Alle disse tabellene er til hjelp når man automatisk skal generere 
   konfigfiler over hva cricket skal skal hente inn.
