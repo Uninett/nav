@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.3 2002/06/05 12:18:44 magnun Exp $
+$Id: RunQueue.py,v 1.4 2002/06/06 13:43:49 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 TODO
@@ -13,7 +13,7 @@ TODO
 from threading import *
 import threading
 import DEQueue
-import sys, time
+import sys, time, types
 import traceback
 
 
@@ -23,7 +23,6 @@ class observer:
         self.hasFinished=threading.Event()
 
     def run(self):
-        print 'starter observer'
         while(1):
             for each in self.observees:
                 each.hasFinished.wait(10)
@@ -53,11 +52,12 @@ class worker(threading.Thread):
                 traceback.print_exc()
 
     def execute(self):
-        print self.getName() + ' kjører jobb nr ' +str(self.runCount)
+        #print self.getName() + ' kjører jobb nr ' +str(self.runCount)
         self.runCount+=1
         self.job.run()
         if self.runCount > self.runQueue.maxRunCount:
             self.running=0
+            self.runQueue.unusedThreadName.append(self.getName())
             self.runQueue.workers.remove(self)
 
 
@@ -68,6 +68,7 @@ class RunQueue:
         self.numThreadsWaiting=0
         self.maxRunCount=5
         self.workers=[]
+        self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
         self.lock=RLock()
         self.awaitWork=Condition(self.lock)
@@ -75,25 +76,28 @@ class RunQueue:
         self.makeDaemon=1
         self.startObserver()
 
+
     def startObserver(self):
         self.ob=observer()
-        print 'køer observer'
         self.enq(self.ob)
 
     def enq(self,*r):
         self.lock.acquire()
         self.rq.put(*r)
-        print 'Elementer i køen: '+ str(len(self.rq))
+        self.debug('Elementer i køen: %i'% (len(self.rq)))
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
-            print 'Har ventende tråd. Kaller notify()'
+            self.debug('Har ventende tråd. Kaller self.awaitWork.notify()')
             self.awaitWork.notify()
         elif self.numThreads < self.maxThreads:
             t=worker(self)
-            print 'lager nytt trådobjekt'
             t.setDaemon(self.makeDaemon)
             self.numThreads+=1
-            t.setName('worker'+str(self.numThreads))
+            if len(self.unusedThreadName) > 0:
+                t.setName(seld.unusedThreadName.pop())
+            else:
+                t.setName('worker'+str(self.numThreads))
+            self.debug('Har lagd nytt trådobjekt, %s' % (t.getName()))
             self.workers.append(t)
 
             t.start()
@@ -102,7 +106,6 @@ class RunQueue:
     def deq(self):
         self.lock.acquire()
         while len(self.rq)==0:
-            print 'Jobbkøen er tom. Venter...'
             if self.stop:
                 self.numThreads-=1 
                 self.lock.release()
@@ -116,6 +119,10 @@ class RunQueue:
         r=self.rq.get()
         self.lock.release()
         return r
+
+    def debug(self, msg):
+        if type(msg)==types.StringType:
+            print msg
 
     def terminate(self):
         self.lock.acquire()
