@@ -4,8 +4,6 @@ from socket import inet_aton,error,gethostbyname,gethostbyaddr
 from nav.Snmp import Snmp,NameResolverException,TimeOutException
 from nav.db import getConnection
 
-#SERIAL_OIDS_FILENAME = "/local/nav/navme/apache/webroot/editdb/initBoxSerialOIDs.txt"
-
 class Box:
     """
     Object that gets ip,hostname,sysobjectid and snmpversion when initialized
@@ -88,48 +86,68 @@ class Box:
 
         return typeid
 
-    def getDeviceId(self):
+    def getSerials(self,results):
         """
-        Uses all the defined OIDs for serial number
+        Does SQL-queries to get the serial number oids from the database. This function does no snmp-querying.
         """
-        
-        sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
-        connection = getConnection("bokser")
-        handle = connection.cursor()
-        handle.execute(sql)
 
         snmp = Snmp(self.ip,self.ro,self.snmpversion)
-        serial = ""
-        for oidtuple in handle.fetchall():#file(SERIAL_OIDS_FILENAME):
+        serials = []
+        walkserials = []
+        for oidtuple in results:
             oid = oidtuple[0]
             getnext = oidtuple[1]
-            print oidtuple
             if not oid.startswith("."):
                 oid = "."+oid
             try:
-                #if getnext==1:
-                #    result = snmp.walk(oid.strip())
-                #    print result
-                #    if result:
-                #        serial = result[0][1]
-                #        print serial
-                #else:
-                    serial = snmp.get(oid.strip()).strip()
+                if getnext==1:
+                    result = snmp.walk(oid.strip())
+                    if result:
+                        for r in result:
+                            if r[1]:
+                                walkserials.append(r[1])
+                else:
+                    serials.append(snmp.get(oid.strip()).strip())
+
             except:
                 pass
-            if serial:
-                break
-        self.serial = serial
 
-        print serial
-        if serial:
-            return self.getDeviceIdFromSerial(serial)
+        serials.extend(walkserials)
+        return serials
 
 
-    def getDeviceIdFromSerial(self,serial):
+    def getDeviceId(self):
+        """
+        Uses all the defined OIDs for serial number. When doing SNMP-request, the SNMP-get-results are prioritised higher than the SNMP-walk-results, because SNMP-gets are more likely will get one ("the one") serial number for a device.
+
+        This function returns all deviceids for all serial numbers for all serial number oids that the device responded on.
+        """
+        
+        connection = getConnection("bokser")
+        handle = connection.cursor()
+
+        serials = []
+        type = self.typeid
+        if type and 1 > 2:
+            sql = "select snmpoid,getnext from snmpoid left outer join typesnmpoid using (snmpoidid) where typeid = "+str(type)+" and oidkey ilike '%serial%'"
+            handle.execute(sql)
+            results = handle.fetchall()
+            serials = self.getSerials(results)
+
+        if not serials:
+            sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
+            handle.execute(sql)
+            results = handle.fetchall()
+            serials = self.getSerials(results)
+            
+        self.serials = serials
 
         devlist = []
-        sql = "select deviceid,productid from device where serial='%s'" % serial
+        sqlserials = []
+        for ser in serials:
+            sqlserials.append("serial='%s'"%ser)
+        serial = str.join(" or ",sqlserials)
+        sql = "select deviceid,productid from device where %s" % serial
         connection = getConnection("bokser")
         handle = connection.cursor()
         handle.execute(sql)
@@ -173,8 +191,19 @@ class Box:
         
         return self.hostname,self.ip,self.typeid,self.snmpversion
         
+## sql = "select ip,sysname,ro from netbox where snmp_version > 0 and catid <> 'SRV'"
+## connection = getConnection("bokser")
+## handle = connection.cursor()
+## handle.execute(sql)
+## for record in handle.fetchall():
+##     print repr(record)
+##     try:
+##         a = Box(record[0],record[2])
+##         #print a.getBoxValues()
+##         print a.getDeviceId()
+##     except:
+##         print "FEIL: " + record[1]+" fikk ikke fornuftig svar"
+##     print "\n"
 
-#a = Box("dragv-827-sw.ntnu.no","gotcha")
-#print a.getBoxValues()
+#a = Box("129.241.23.14","ro")
 #print a.getDeviceId()
-#a.getDeviceIdFromSerial("serial")
