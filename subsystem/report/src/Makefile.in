@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-files = DatabaseResult.py  Generator.py  Matrix.py  Report.py  report.py  .htaccess
+files = DatabaseResult.py  Generator.py  Matrix.py  Report.py  reporthandler.py  .htaccess
 conffiles = front.html report.conf matrix.conf
 
 .PHONY: all install install-lib install-bin install-web clean distclean install-conf
