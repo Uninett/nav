@@ -42,6 +42,7 @@ public class QueryNetbox extends Thread
 	private static int threadCnt;
 	private static Integer idleThreadLock = new Integer(0);
 	private static int netboxCnt;
+	private static int netboxHigh;
 	private static long nbProcessedCnt;
 
 	private static String qNetbox;
@@ -109,8 +110,20 @@ public class QueryNetbox extends Thread
 		Map keyMap = new HashMap();
 
 		// Add the 'typeoid' oidkey
+		addOid("typeoid", keyFreqMap, keyMap);
+
+		// Add the 'dnscheck' oidkey
+		addOid("dnscheck", keyFreqMap, keyMap);
+
+		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
+		typeidMapL.put(typeid, t);
+
+	}
+
+	// Add the given oidkey
+	private static void addOid(String oidkey, Map keyFreqMap, Map keyMap) {		
 		try {
-			ResultSet rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, uptodate FROM snmpoid WHERE oidkey='typeoid'");
+			ResultSet rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, uptodate FROM snmpoid WHERE oidkey='" + oidkey + "'");
 			rs.next();
 			keyFreqMap.put(rs.getString("oidkey"), new Integer(Integer.MAX_VALUE));
 
@@ -118,14 +131,9 @@ public class QueryNetbox extends Thread
 			keyMap.put(rs.getString("oidkey"), snmpoid);
 
 		} catch (SQLException e) {
-			Log.w("QUERY_NETBOX", "CREATE_UNKNOWN_NETBOX", "Missing typeoid from snmpoid, cannot update types!");
-			Log.d("QUERY_NETBOX", "CREATE_UNKNOWN_NETBOX", "SQLException: " + e.getMessage());
-			return;
+			Log.w("QUERY_NETBOX", "ADD_OID", "Missing oidkey " + oidkey + " from snmpoid, cannot update types!");
+			Log.d("QUERY_NETBOX", "ADD_OID", "SQLException: " + e.getMessage());
 		}
-
-		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
-		typeidMapL.put(typeid, t);
-
 	}
 
 	private static void scheduleCheckRunQ(long l)
@@ -263,6 +271,7 @@ public class QueryNetbox extends Thread
 					keyMap.put(rs.getString("oidkey"), snmpoid);
 				} else if (rs.getString("snmpoidid") != null) {
 					t.setDirty(true);
+
 				}
 				prevtypeid = typeid;
 				//prevuptodate = uptodate;
@@ -335,7 +344,7 @@ public class QueryNetbox extends Thread
 			//sql += " LIMIT 1000";
 			rs = Database.query(sql);
 
-			int nbCnt = netboxCnt;
+			int nbHigh = netboxHigh;
 			Set netboxidSet = new HashSet();
 			while (rs.next()) {
 				String netboxid = rs.getString("netboxid");
@@ -360,11 +369,17 @@ public class QueryNetbox extends Thread
 				*/
 				boolean newNetbox = false;
 				if ( (nb=(NetboxImpl)nbMap.get(netboxid)) == null) {
-					nbMap.put(netboxid, nb = new NetboxImpl(++nbCnt, t));
+					nbMap.put(netboxid, nb = new NetboxImpl(++nbHigh, t));
 					newNetbox = true;
 					newcnt++;
 				} else {
+					long oldNextRun = nb.getNextRun();
 					nb.setType(t);
+					if (oldNextRun != nb.getNextRun()) {
+						// We need to remove the netbox from the runq and re-insert it
+						removeFromRunQ(nb, new Long(oldNextRun));
+						newNetbox = true;
+					}
 				}
 
 				nb.setDeviceid(rs.getInt("deviceid"));
@@ -387,7 +402,8 @@ public class QueryNetbox extends Thread
 				netboxidSet.add(new Integer(nb.getNetboxid()));
 			}
 
-			netboxCnt = nbCnt;
+			netboxCnt = netboxidSet.size();
+			netboxHigh = nbHigh;
 
 			// Remove netboxes no longer present
 			for (Iterator it = nbMap.values().iterator(); it.hasNext();) {
@@ -403,7 +419,7 @@ public class QueryNetbox extends Thread
 			Log.e("UPDATE_NETBOXES", "SQLException: " + e);			
 		}
 
-		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped)");
+		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq)");
 
 		if (newcnt > 0) {
 			scheduleCheckRunQ(0);
@@ -422,13 +438,27 @@ public class QueryNetbox extends Thread
 	private static void addToRunQ(NetboxImpl nb, boolean front) {
 		Long nextRun = new Long(nb.getNextRun());
 		synchronized (nbRunQ) {
-			LinkedList l;
+ 			LinkedList l;
 			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) nbRunQ.put(nextRun, l = new LinkedList());
 			if (front) {
 				l.addFirst(nb);
 			} else {
 				l.add(nb);
 			}
+		}
+	}
+
+	private static void removeFromRunQ(NetboxImpl nb, Long nextRun) {
+		synchronized (nbRunQ) {
+ 			LinkedList l;
+			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) return;
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				if (nb.getNum() == ((NetboxImpl)it.next()).getNum()) {
+					it.remove();
+					break;
+				}
+			}
+			if (l.isEmpty()) nbRunQ.remove(nextRun);
 		}
 	}
 
@@ -440,6 +470,12 @@ public class QueryNetbox extends Thread
 			return nb;
 		}
 		return o;
+	}
+
+	private static int nbRunQSize() {
+		synchronized (nbRunQ) {
+			return nbRunQ.size();
+		}
 	}
 
 	private static Object removeRunQHeadNoCheck() {
@@ -487,6 +523,7 @@ public class QueryNetbox extends Thread
 	public void run()
 	{
 		Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
+		Log.setThreadId(tid);
 
 		long beginTime = System.currentTimeMillis();
 
@@ -518,7 +555,7 @@ public class QueryNetbox extends Thread
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(cs_ro);
 
-			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxCnt+")");
+			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxHigh+")");
 			long boksBeginTime = System.currentTimeMillis();
 
 			try {
@@ -539,7 +576,7 @@ public class QueryNetbox extends Thread
 					dhNames += (dhNum==0?"":",")+ss[ss.length-1];
 				}
 
-				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type);
+				Log.d("RUN", "  Found " + deviceHandler.length + " deviceHandlers ("+dhNames+"): " + netboxid + " (cat: " + cat + " type: " + type + ")");
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
@@ -618,6 +655,7 @@ public class QueryNetbox extends Thread
 		}
 
 		Log.d("RUN", "Thread idle, exiting...");
+		Log.freeThread();
 		threadIdle();
 
 	}
