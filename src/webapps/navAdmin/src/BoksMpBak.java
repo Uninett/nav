@@ -2,7 +2,7 @@
  * BoksMpBak.java
  *
  */
-
+import java.util.*;
 
 public class BoksMpBak
 {
@@ -21,9 +21,19 @@ public class BoksMpBak
 		this.boksbak = boksbak;
 		this.modulbak = modulbak;
 		this.portbak = portbak;
-		hashKey = boksbak+":"+modulbak+":"+portbak;
+		calcKey();
 	}
+
+	public void setMp(String mp) {
+		StringTokenizer st = new StringTokenizer(mp, ":");
+		if (st.countTokens() != 2) throw new RuntimeException("Error in BoksMpBak.setMp: Malformed mp: " + mp);
+		modulbak = st.nextToken();
+		portbak = st.nextToken();
+		calcKey();
+	}
+
 	public String hashKey() { return hashKey; }
+	private void calcKey() { hashKey = boksbak+":"+modulbak+":"+portbak; }
 	public String toString() {
 		return "BoksMpBak [boksbak="+boksbak+", modulbak="+modulbak+", portbak="+portbak+"]";
 	}

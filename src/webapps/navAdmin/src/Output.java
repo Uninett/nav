@@ -12,6 +12,9 @@ import javax.servlet.http.*;
 
 public class Output
 {
+	private Com com;
+	private Handler h;
+	private String html;
 	private ServletContext sc;
 
 	public Output(String InHtml, Com InCom, ServletContext sc)
@@ -336,12 +339,6 @@ public class Output
 		catch (java.io.IOException e)
 		{ }
 	}
-
-	//final String PATH;
-	//ServletOutputStream out;
-	Com com;
-	Handler h;
-	String html;
 
 }
 

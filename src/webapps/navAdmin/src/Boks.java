@@ -207,16 +207,20 @@ class Boks
 				Mp mp = new Mp(mpKey);
 				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
 
-				//Integer boksbak = (Integer)l.get(0);
 				BoksMpBak bmp = (BoksMpBak)l.get(0);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
+				if (bmp.modulbak == null && b.foundUplinkMp()) {
+					// Vi velger bare uplink-porten siden vi er direkte uplink
+					bmp.setMp(b.getUplinkMp());
+				}
+
 				b.addUplinkBoksid(myBmp, bmp.modulbak, bmp.portbak);
 
 				// Sett at vi har link til denne enheten
 				mpBoksbak.put(mpKey, bmp);
 				boksbakMp.put(bmp.hashKey(), mpKey);
 
-				if (DEBUG_OUT) outl("<font color=green>[Found]</font> Boks("+getBoksid()+"): <b>" + getName() + "</b> Mp: <b>"+mpKey+"</b> Boksbak("+b.getBoksid()+"</b>): <b>" + b.getName() + "</b><br>");
+				if (DEBUG_OUT) outl("<font color=green>[Found]</font> Boks("+getBoksid()+"): <b>" + getName() + "</b> Mp: <b>"+mpKey+"</b> Boksbak("+b.getBoksid()+"</b>): <b>" + b.getName() + "</b> bmp: " + bmp + "<br>");
 
 				// Vi kan nå ta bort hele listen
 				removeMp.add(mpKey);
@@ -283,12 +287,16 @@ class Boks
 			if (bestGuessIndex >= 0) {
 				// Vi har funnet en kandidat, og velger den
 				BoksMpBak bmp = (BoksMpBak)l.get(bestGuessIndex);
+				Boks b = (Boks)bokser.get(bmp.boksbak);
+				if (bmp.modulbak == null && b.foundUplinkMp()) {
+					// Vi velger bare uplink-porten siden vi er direkte uplink
+					bmp.setMp(b.getUplinkMp());
+				}
 
 				// Porten på denne siden
 				Mp mp = new Mp(mpKey);
 				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
 
-				Boks b = (Boks)bokser.get(bmp.boksbak);
 				b.addUplinkBoksid(myBmp, bmp.modulbak, bmp.portbak);
 
 				// Sett at vi har link til denne enheten
@@ -570,23 +578,21 @@ class Boks
 		if (myModul != null && myPort != null) {
 			mp = myModul+":"+myPort;
 		} else {
-			//if (rawBoksbakMp.containsKey(bmp.boksbak)) mp = (String)rawBoksbakMp.get(bmp.boksbak);
 			mp = (String)rawBoksbakMp.get(bmp.boksbak);
 		}
 
 		if (mp == null && foundUplinkMp()) mp = uplinkMp;
 		if (mp != null) {
 			if (mp.equals(uplinkMp)) uplinkBoksid = bmp.boksbak;
-			//mpBoksbak.put(mp, boksbak);
 			mpBoksbak.put(mp, bmp);
-			//boksbakMp.put(boksbak, mp);
 			boksbakMp.put(bmp.hashKey(), mp);
-			if (DEBUG_OUT) outl("[UPLINK]: Added("+boksid+") "+boksNavn.get(bmp.boksbak)+" as a uplink for ("+getBoksid()+") " + getName() + ", MP: " + mp + ", isUplink: " + foundUplinkBoksid() + "<br>");
+			if (DEBUG_OUT) outl("[UPLINK]: Added("+bmp.boksbak+") "+boksNavn.get(bmp.boksbak)+" as a uplink for ("+getBoksid()+") " + getName() + ", MP: " + mp + ", isUplink: " + foundUplinkBoksid() + "<br>");
 		} else {
 			uplinkBoksid = bmp.boksbak;
 		}
 	}
 
+	/*
 	public void addUplinkBoksid2(int boksid)
 	{
 		Integer boksbak = new Integer(boksid);
@@ -613,6 +619,7 @@ class Boks
 			uplinkBoksid = boksbak;
 		}
 	}
+	*/
 	public boolean foundUplinkBoksid() { return uplinkBoksid != null; }
 	public boolean foundUplinkMp() { return uplinkMp != null; }
 	public String getUplinkMp() { return uplinkMp; }
