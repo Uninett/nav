@@ -73,6 +73,10 @@ DROP TABLE BrukerRettighet CASCADE;
 -- 13 DEFAULTUTSTYR
 DROP TABLE DefaultUtstyr CASCADE;
 
+-- 23 DEFAULTFILTER
+DROP TABLE DefaultFilter CASCADE;
+
+
 -- 14 UTSTYRFILTER
 DROP SEQUENCE utstyrfilter_id_seq;
 DROP TABLE Utstyrfilter CASCADE;
@@ -483,6 +487,29 @@ CREATE TABLE DefaultUtstyr (
 		  ON DELETE CASCADE
 		  ON UPDATE CASCADE
 );
+
+/*
+-- 23 DEFAULTFILTER
+
+Default filter is a table adding default filters to the user groups. Default filters will be avaibale for the user through the webinterface to use for notifications/alerts.
+
+The relation can be only to filters shared by administrators, not to filters owned by someone.
+*/
+CREATE TABLE DefaultFilter (
+       accountgroupid integer NOT NULL,
+       utstyrfilterid integer NOT NULL,
+
+       CONSTRAINT defaultfilter_pk PRIMARY KEY (accountgroupid, utstyrfilterid),
+       CONSTRAINT utstyrfilter_eksisterer
+		  FOREIGN KEY(utstyrfilterid) REFERENCES Utstyrfilter(id)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE,
+       CONSTRAINT accountgroup_exist
+		  FOREIGN KEY(accountgroupid) REFERENCES AccountGroup(id)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
+);
+
 
 /*
 -- 14 UTSTYRFILTER
@@ -994,7 +1021,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 20);
 
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(21, 0, 'Type', 'type.typeid', 'type.descr', 'type.vendorid', 'type.descr', true, 
+(21, 0, 'Type', 'type.typename', 'type.descr', 'type.vendorid', 'type.descr', true, 
 'Type: Limit your alarms equipment type');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 21);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 21);
