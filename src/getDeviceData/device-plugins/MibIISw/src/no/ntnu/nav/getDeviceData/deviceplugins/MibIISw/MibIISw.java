@@ -27,7 +27,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
  *  <li>From MIB-II</li>
  *  <ul>
  *   <li>sysname</li>
- *   <li>sysUptime</li>
+ *   <li>sysUpTime</li>
  *   <li>ifIndex (not used)</li>
  *   <li>ifSpeed</li>
  *   <li>ifAdminStatus</li>
@@ -44,7 +44,7 @@ public class MibIISw implements DeviceHandler
 {
 	private static String[] canHandleOids = {
 		"sysname",
-		"sysUptime",
+		"sysUpTime",
 		"ifSpeed",
 		"ifAdminStatus",
 		"ifOperStatus",
@@ -113,7 +113,9 @@ public class MibIISw implements DeviceHandler
 		processMibII(nb, netboxid, ip, cs_ro, type, nc, sc, mmc);
 
 		// Commit data
+		nc.commit();
 		sc.commit();
+		mmc.commit();
 	}
 
 	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
@@ -151,10 +153,10 @@ public class MibIISw implements DeviceHandler
 			nc.netboxDataFactory(nb).setSysname(s[1]);			
 		}
 
-		l = sSnmp.getNext(nb.getOid("sysUptime"), 1, false, false);
+		l = sSnmp.getNext(nb.getOid("sysUpTime"), 1, false, false);
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
-			nc.netboxDataFactory(nb).setUptime(Double.parseDouble(s[1]));
+			nc.netboxDataFactory(nb).setUptimeTicks(Long.parseLong(s[1]));
 		}
 
 		Set skipIfindexSet = new HashSet();

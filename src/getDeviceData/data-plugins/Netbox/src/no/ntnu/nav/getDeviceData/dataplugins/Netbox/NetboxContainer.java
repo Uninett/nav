@@ -86,11 +86,14 @@ public class NetboxContainer extends DeviceContainer implements DataContainer {
 	}
 
 	public void commit() {
-		// Here we need to do some magic in order for other plugins to see the correct sysname
-		NetboxUpdatable nu = (NetboxUpdatable)nd.getNetbox();
-		nu.setSysname(nd.getSysname());
-
-		commit = true;		
+		if (nd != null) {
+			// Here we need to do some magic in order for other plugins to see the correct sysname
+			if (nd.getSysname() != null) {
+				NetboxUpdatable nu = (NetboxUpdatable)nd.getNetbox();
+				nu.setSysname(nd.getSysname());
+			}
+			commit = true;
+		}
 	}
 
 	// Doc in parent

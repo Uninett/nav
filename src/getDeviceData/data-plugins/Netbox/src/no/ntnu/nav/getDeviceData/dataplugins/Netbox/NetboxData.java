@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 
@@ -13,11 +14,13 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 
 public class NetboxData extends Device
 {
-	private static final double DELTA = 0.00001;
+	// 1 second difference minimum before we change uptime
+	private static final double DELTA = 1.0;
 	private int deviceid;
 
 	private Netbox nb;
 	private String sysname;
+	private String upsince;
 	private double uptime;
 
 	/**
@@ -33,11 +36,23 @@ public class NetboxData extends Device
 	 * Set the sysname of the netbox.
 	 */
 	public void setSysname(String sysname) {
+		if (sysname == null) {
+			Log.d("NETBOX_DATA", "SET_SYSNAME", "Ignoring attempt to set NULL sysname");
+			return;
+		}
 		this.sysname = sysname;
 	}
 
 	/**
 	 * Set the uptime in timerticks (100 ticks per second).
+	 */
+	public void setUptimeTicks(long ticks) {
+		double d = System.currentTimeMillis() - (ticks * 10);
+		setUptime(d / 1000);
+	}
+
+	/**
+	 * Set the uptime in seconds since the epoch.
 	 */
 	public void setUptime(double uptime) {
 		this.uptime = uptime;
@@ -48,17 +63,24 @@ public class NetboxData extends Device
 	protected int getDeviceid() { return super.getDeviceid(); }
 	protected String getDeviceidS() { return super.getDeviceidS(); }
 
+	void setUpsince(String upsince) { this.upsince = upsince; }
+
 	Netbox getNetbox() { return nb; }
 	String getSysname() { return sysname; }
+	String getUpsince() { return upsince; }
 	double getUptime() { return uptime; }
 
 	// Doc in parent
 	protected boolean hasEmptySerial() { return super.hasEmptySerial(); }
 
+	public boolean equalsUptime(NetboxData n) {
+		return Math.abs(uptime - n.uptime) < DELTA;
+	}
+
 	public boolean equalsNetboxData(NetboxData n) {
 		return (getDeviceid() == n.getDeviceid() &&
 						sysname.equals(n.sysname) &&
-						Math.abs(uptime - n.uptime) < DELTA);
+						equalsUptime(n));
 	}
 	
 	public boolean equals(Object o) {

@@ -5,6 +5,7 @@ import java.sql.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.event.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
@@ -19,7 +20,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 
 public class NetboxHandler implements DataHandler {
 
-	private static Map deviceMap;
 	private static Map netboxMap;
 	
 
@@ -38,21 +38,10 @@ public class NetboxHandler implements DataHandler {
 
 		try {
 		
-			// device
-			dumpBeginTime = System.currentTimeMillis();
-			m  = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial FROM device");
-			while (rs.next()) {
-				m.put(rs.getString("serial"), rs.getString("deviceid"));
-			}
-			deviceMap = m;
-			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-			Log.d("INIT", "Dumped device in " + dumpUsedTime + " ms");
-
 			// netbox
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,sysname,EXTRACT(EPOCH FROM NOW()-upsince)*100 AS upsince FROM device JOIN netbox USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime FROM device JOIN netbox USING (deviceid)");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
 																			rs.getString("hw_ver"),
@@ -60,7 +49,8 @@ public class NetboxHandler implements DataHandler {
 																			null);
 				n.setDeviceid(rs.getInt("deviceid"));
 				n.setSysname(rs.getString("sysname"));
-				n.setUptime(rs.getDouble("upsince"));
+				n.setUpsince(rs.getString("upsince"));
+				n.setUptime(rs.getDouble("uptime"));
 				
 				String key = rs.getString("netboxid");
 				m.put(key, n);
@@ -97,6 +87,7 @@ public class NetboxHandler implements DataHandler {
 		NetboxData n = (NetboxData)nc.getNetbox();
 		String netboxid = nb.getNetboxidS();
 		NetboxData oldn = (NetboxData)netboxMap.get(netboxid);
+		netboxMap.put(netboxid, n);
 		if (n.hasEmptySerial()) {
 			n.setDeviceid(oldn.getDeviceid());
 		}
@@ -108,19 +99,31 @@ public class NetboxHandler implements DataHandler {
 		Log.setDefaultSubsystem("NetboxHandler");
 
 		try {
+			Log.d("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
 
 				// Check if we need to update netbox
 			if (!oldn.equalsNetboxData(n)) {
 				// We need to update netbox
-				Log.i("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
 
 				// Convert uptime to timestamp
-				ResultSet rs = Database.query("SELECT NOW() - (("+n.getUptime()+"/100) || ' seconds')::interval AS ts");
+				ResultSet rs = Database.query("SELECT 'epoch'::timestamp with time zone + ("+n.getUptime()+" || ' seconds')::interval AS upsince");
+				rs.next();
+				n.setUpsince(rs.getString("upsince"));
+
+				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+netboxid+"), uptime ticks = "+n.getUptime() + " (" + n.getUpsince()+")");
+
+				// Send event if uptime changed
+				if (!oldn.equalsUptime(n)) {
+					Map varMap = new HashMap();
+					varMap.put("old_upsince", String.valueOf(oldn.getUpsince()));
+					varMap.put("new_upsince", String.valueOf(n.getUpsince()));
+					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "coldStart", Event.STATE_NONE, 0, 0, varMap);
+				}
 
 				String[] set = {
 					"deviceid", n.getDeviceidS(),
 					"sysname", n.getSysname(),
-					"upsince", rs.getString("ts"),
+					"upsince", n.getUpsince(),
 				};
 				String[] where = {
 					"netboxid", netboxid
