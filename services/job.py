@@ -2,8 +2,8 @@
 """
 Overvåkeren
 
-$Author: erikgors $
-$Id: job.py,v 1.26 2002/06/20 11:27:34 erikgors Exp $
+$Author: magnun $
+$Id: job.py,v 1.27 2002/06/20 13:42:38 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -319,6 +319,43 @@ class MysqlHandler(JobHandler):
 		self.setVersion(version)
 		return Event.UP, 'OK'
 
+import imaplib
+class IMAPConnection(imaplib.IMAP4):
+	def __init__(self, timeout, host, port):
+		self.timeout=timeout
+		imaplib.IMAP4.__init__(self, host, port)
+
+
+	def open(self, host, port):
+		"""
+		Overload imaplib's method to connect to the server
+		"""
+		self.sock=Socket(self.timeout)
+		self.sock.connect((self.host, self.port))
+		self.file = self.sock.makefile("rb")
+
+class ImapHandler(JobHandler):
+	"""
+	Valid arguments:
+	port
+	username
+	password
+	"""
+	def __init__(self, serviceid, boksid, ip, args, version):
+		port = args.get("port", 143)
+		JobHandler.__init__(self, "imap", serviceid, boksid, (ip, port), args, version)
+		
+	def execute(self):
+		args = self.getArgs()
+		port = args.get("port",143)
+		user = args.get("username","")
+		passwd = args.get("password","")
+		m = IMAPConnection(self.timeout, self.getAddress(), port)
+		m.login(user, passwd)
+		m.logout()
+		return Event.UP, "Ok"
+		
+
 class SmbHandler(JobHandler):
 	"""
 	args:
@@ -376,7 +413,8 @@ jobmap = {'http':HttpHandler,
 	  'ftp':FtpHandler,
 	  'ssh':SshHandler,
 	  'dns':DnsHandler,
-	  'mysql':MysqlHandler,
+	  'imap':ImapHandler,
+	  'mysql':MysqlHandler
 	  'smb':SmbHandler,
 	  'SmtpHandler':SmtpHandler
 	  }
