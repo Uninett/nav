@@ -1,0 +1,37 @@
+# Dette er cron-brukeren sin crontab.
+
+# De fleste nattlige filer skal startes 
+# herfra, men unntak av f. eks live.pl, som pga icmp ping 
+# må kjøres av root.
+
+MAILTO=grohi@itea.ntnu.no
+CDIR=/usr/local/nav/navme/cron
+
+0,30 * * * * $CDIR/arplogger.pl
+
+
+#01 3 * * * $CDIR/type2db.pl
+# Fjern print-setning.
+
+#03 3 * * * $CDIR/txt2db.pl
+
+#05 3 * * * $CDIR/boks2db.pl
+# Fjern print-setninger.
+# Hva skjer hvis scriptet ikke finner en type? Skal ha feilmelding.
+# Får en del sletting til slutt. Hvorfor??
+# Scriptet tar 15-20 min.
+
+
+#05 3 * * * $CDIR/prefiks2db.pl
+
+#05 3 * * * $CDIR/getgw.pl
+
+#05 3 * * * $CDIR/getgwport.pl
+
+#05 3 * * * $CDIR/getsw.pl
+
+#05 3 * * * $CDIR/getswport.pl
+
+#05 3 * * * $CDIR/getkant.pl
+
+#05 3 * * * $CDIR/prefiksid2boks.pl
