@@ -85,53 +85,48 @@ def checkroot():
         print >> sys.stderr, "You should be root to run this command."
         sys.exit(10)
 
-def c_info(queryList):
+def serviceIterator(queryList, func):
     for service in queryList:
         if services.has_key(service):
-            print "%s (%s): %s" % (service,
-                                   services[service].__class__.__name__,
-                                   services[service].info)
+            func(services[service])
         else:
             print >> sys.stderr, "Unknown service: " + service
 
+def c_info(queryList):
+    def helper(service):
+        print "%s (%s): %s" % (service.name,
+                               service.__class__.__name__,
+                               service.info)
+    serviceIterator(queryList, helper)
+    
 def c_list(queryList):
-    for service in queryList:
-        if services.has_key(service):
-            print service
-        else:
-            print >> sys.stderr, "Unknown service: " + service
+    def helper(service):
+        print service.name
+    serviceIterator(queryList, helper)
 
 def c_start(queryList):
+    def helper(service):
+        service.start()
     checkroot()
-    for service in queryList:
-        if services.has_key(service):
-            services[service].start()
-        else:
-            print >> sys.stderr, "Unknown service: " + service
+    serviceIterator(queryList, helper)
         
 def c_stop(queryList):
+    def helper(service):
+        service.stop()
     checkroot()
-    for service in queryList:
-        if services.has_key(service):
-            services[service].stop()
-        else:
-            print >> sys.stderr, "Unknown service: " + service
+    serviceIterator(queryList, helper)
 
 def c_restart(queryList):
+    def helper(service):
+        service.restart()
     checkroot()
-    for service in queryList:
-        if services.has_key(service):
-            services[service].restart()
-        else:
-            print >> sys.stderr, "Unknown service: " + service
+    serviceIterator(queryList, helper)
         
 def c_status(queryList):
+    def helper(service):
+        service.isUp()
     checkroot()
-    for service in queryList:
-        if services.has_key(service):
-            services[service].isUp()
-        else:
-            print >> sys.stderr, "Unknown service: " + service
+    serviceIterator(queryList, helper)
 
 def c_version(queryList):
     import nav
