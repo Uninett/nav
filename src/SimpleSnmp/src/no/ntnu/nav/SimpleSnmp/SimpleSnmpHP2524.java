@@ -91,7 +91,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			}
 
 			// Get the number of devices in the stack
-			stackList = super.getAll(hpStackOid, false, true);
+			stackList = super.getAll(hpStackOid, false, true, 0);
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
 			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
