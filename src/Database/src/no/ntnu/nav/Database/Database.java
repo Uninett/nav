@@ -1040,7 +1040,9 @@ public class Database
 	{
 		HashMap hm = new HashMap();
 		for (int i=md.getColumnCount(); i > 0; i--) {
-			hm.put(md.getColumnName(i), rs.getString(i));
+			String s;
+			if ((s=rs.getString(i)) != null)
+				hm.put(md.getColumnName(i), s);
 		}
 		return hm;
 	}
