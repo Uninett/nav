@@ -578,6 +578,8 @@ GRANT ALL    ON prefix TO getDeviceData;
 GRANT ALL    ON prefix_prefixid_seq TO getDeviceData;
 GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
+GRANT ALL    ON typesnmpoid TO getDeviceData;
+GRANT ALL    ON snmpoid TO getDeviceData;
 
 
 -------- vlanPlot end ------
