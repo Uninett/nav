@@ -34,7 +34,7 @@ install-bin: bin
 	mkdir --parents $(BINDIR)
 	for file in $(BINS);do $(INSTALL) -m 755 $$file $(BINDIR)/ ;done
 	mkdir --parents $(INITDIR)
-	for file in $(BINS); do $(INSTALL) -m 755 $$file $(INITDIR); done
+	for file in $(INITFILES); do $(INSTALL) -m 755 $$file $(INITDIR); done
 install-checker: checker
 	mkdir --parents $(CHECKERDIR)
 	for file in nav/statemon/checker/*.py; do $(INSTALL) -m 644 $$file $(CHECKERDIR)/; done
