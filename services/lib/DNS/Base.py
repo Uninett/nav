@@ -1,5 +1,5 @@
 """
-$Id: Base.py,v 1.1 2002/06/17 17:30:19 magnun Exp $
+$Id: Base.py,v 1.2 2002/07/01 14:33:51 magnun Exp $
 
 This file is part of the pydns project.
 Homepage: http://pydns.sourceforge.net
@@ -158,6 +158,15 @@ class DnsRequest:
             print self.args
             raise DNSError,'nothing to lookup'
         qname = self.args['name']
+        qclass = self.args.get('qclass','IN')
+        print 'skal vi se da...'
+        if qclass == 'IN':
+            qclass = Class.IN
+        elif qclass == 'chaos':
+            qclass = Class.CH
+            print 'hei'
+        else:
+            raise DNSError,'unknown query class'
         if qtype == Type.AXFR:
             print 'Query type AXFR, protocol forced to TCP'
             protocol = 'tcp'
@@ -167,7 +176,7 @@ class DnsRequest:
         m.addHeader(0,
               0, opcode, 0, 0, rd, 0, 0, 0,
               1, 0, 0, 0)
-        m.addQuestion(qname, qtype, Class.IN)
+        m.addQuestion(qname, qtype, qclass)
         self.request = m.getbuf()
         if protocol == 'udp':
             self.sendUDPRequest(server)
@@ -252,6 +261,9 @@ class DnsAsyncRequest(DnsRequest,asyncore.dispatcher_with_send):
 
 #
 # $Log: Base.py,v $
+# Revision 1.2  2002/07/01 14:33:51  magnun
+# It is now possible to specify query class in req(). This will add support for getting the version of bind.
+#
 # Revision 1.1  2002/06/17 17:30:19  magnun
 # *** empty log message ***
 #
