@@ -35,6 +35,5 @@ def debug(msg, level=5):
         # msg = "[%s %-25s %-8s] %s" % (now, stack, loglevels[level], msg)
         msg = "[%s] %s [%s] %s" % (now, stack, loglevels[level], msg)
         print msg
-        #print "%s %-8s %s" % ((time.strftime('%Y-%m-%d %H:%M:%S ', time.localtime()), loglevels[level], msg.strip()))
         if not sys.stdout.isatty():
             sys.stdout.flush()

@@ -1,12 +1,13 @@
 import sys, os
 sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
-sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
+sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/checker")
 import debug
-import job
+debug.setDebugLevel(0)
+import abstractChecker
 import getopt
-import jobmap
+import checkermap
 
-myDebug = debug.debug(level=7)
+
 
 try:
     #opts, args = getopt.getopt(sys.argv[1:], "i:s:h:a:", ["ip:", "sysname:", "handler:", "args:"])
@@ -22,24 +23,47 @@ ip = ""
 handler = ""
 args={}
 version = ""
+if not opts:
+    print "Usage:"
+    print "checkService -i <ip address> -s <sysname>  -h <handler>"
+    print
+    sys.exit(1)
+
+
 for opt, val in opts:
-    if opt in ("-i", "--help"):
+    if opt in ("-i", "--ip"):
         ip = val
     elif opt in ("-s", "--sysname"):
         sysname = val
     elif opt in ("-h", "--handler"):
         handler = val
-    elif opt in ("-a", "--args"):
-        try:
-            args = eval(val)
-        except:
-            print "%s is not a dict" % val
+    #elif opt in ("-a", "--args"):
+    #    try:
+    #        args = eval(val)
+    #    except:
+    #        print "%s is not a dict" % val
 
-myDebug.log("Ip: %s sysname: %s handler: %s args: %s" % (ip, sysname, handler, args))
-mapper = jobmap.jobmap()
-job = mapper.get(handler)
-if not job:
-    myDebug.log("No such handler: %s" % handler)
+readArgs = 1
+print "Input additional arguments (key=val), empty line to continue:"
+while readArgs:
+    line = raw_input()
+    if not line:
+        readArgs = 0
+        break
+    try:
+        splitted = line.split('=')
+        key = splitted[0]
+        val = "=".join(splitted[1:])
+        args[key] = val
+    except Exception, e:
+        print line, e
+        print "Must be on form 'key=val'"
+
+print args
+debug.debug("Ip: %s sysname: %s handler: %s args: %s" % (ip, sysname, handler, args))
+checker = checkermap.get(handler)
+if not checker:
+    debug.debug("No such handler: %s" % handler)
     sys.exit(1)
 
 service={'id':serviceid,
@@ -50,5 +74,6 @@ service={'id':serviceid,
          'version':version
          }
     
-myJob = job(service)
-myJob.run()
+myChecker = checker(service)
+debug.debug(myChecker.execute())
+
