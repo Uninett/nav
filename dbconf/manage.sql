@@ -199,6 +199,22 @@ CREATE TABLE swp_boks (
   boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE swport (
+  swportid SERIAL PRIMARY KEY,
+  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  ifindex INT2 NOT NULL,
+  status VARCHAR(4) NOT NULL DEFAULT 'down',
+  speed VARCHAR(10),
+  duplex VARCHAR(4),
+  trunk BOOL DEFAULT false,
+  static BOOL DEFAULT false,  
+  modul VARCHAR(4) NOT NULL,
+  port INT2 NOT NULL,
+  portnavn VARCHAR(30),  
+  vpkatbak VARCHAR(5),
+  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
+  UNIQUE(boksid, ifindex)
+);
 
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
@@ -211,27 +227,10 @@ CREATE TABLE gwport (
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false,
-  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
+  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null
+  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 -- not null fjernet fra interf 
-
-CREATE TABLE swport (
-  swportid SERIAL PRIMARY KEY,
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  ifindex INT2 NOT NULL,
-  status VARCHAR(4) NOT NULL DEFAULT 'down',
-  speed VARCHAR(10),
-  duplex VARCHAR(4),
-  trunk BOOL DEFAULT false,
-  static BOOL DEFAULT false,
-  modul VARCHAR(4) NOT NULL,
-  port INT2 NOT NULL,
-  portnavn VARCHAR(30),
-  vpkatbak VARCHAR(5),
-  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
-  UNIQUE(boksid, ifindex)
-);
-
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -402,6 +401,7 @@ GRANT SELECT ON boks TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
 GRANT ALL    ON swportvlan TO getBoksMacs;
+GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
