@@ -24,9 +24,13 @@ public class Gwport implements Comparable
 	private List prefixList;
 
 	Gwport(String ifindex, String interf, String gwip) {
+		this(ifindex, interf);
+		this.gwip = gwip;
+	}
+
+	Gwport(String ifindex, String interf) {
 		this.ifindex = ifindex;
 		this.interf = interf;
-		this.gwip = gwip;
 	}
 
 	int getGwportid() { return gwportid; }

@@ -13,6 +13,7 @@ public class Prefix implements Comparable
 	private int prefixid;
 
 	private String netaddr;
+	private String toGw;
 
 	private List vlanList;
 
@@ -26,6 +27,16 @@ public class Prefix implements Comparable
 	void setPrefixid(String s) { prefixid = Integer.parseInt(s); }
 
 	String getNetaddr() { return netaddr; }
+
+	/**
+	 * Set toGw.
+	 */
+	public void setToGw(String s) {
+		toGw = s;
+	}
+
+	String getToGw() { return toGw; }
+
 
 	/**
 	 * Return a Vlan-object which is used to describe a single vlan.
