@@ -21,43 +21,63 @@
 #
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
-import psycopg, os, sys
+""" This script will connect to a live manage database and dump the
+contents of the snmpoid table in a format suitable for re-insertion at
+the same or a different site.
 
-#
-# This script will connect to a live manage database and dump the
-# contents of the snmpoid table in a format suitable for re-insertion
-# at the same or a different site.
-#
-# Make sure the environment variable PGASSWORD is set before running
-# the script.  Should be rewritten to ask for a password if none is
-# known.
-#
+Make sure the environment variable PGASSWORD is set before running
+the script.  Should be rewritten to ask for a password if none is
+known."""
 
-dbname = "manage"
-dbuser = os.getenv('PGUSER')
-if not dbuser:
-    dbuser = "postgres"
-dbpasswd = os.getenv('PGPASSWORD')
+import sys
+import os
+import psycopg
+import time
 
-connection = psycopg.connect('host=localhost dbname=%s user=%s password=%s' %
-                             (dbname, dbuser, dbpasswd))
-cursor = connection.cursor()
-cursor.execute("SELECT oidkey, snmpoid, descr, oidsource, getnext, " +
-               "match_regex, decodehex, oidname, mib FROM snmpoid " +
-               "ORDER BY oidkey")
+def main(args):
+    dbname = "manage"
+    dbuser = os.getenv('PGUSER')
+    if not dbuser:
+        dbuser = "postgres"
+    dbpasswd = os.getenv('PGPASSWORD')
 
-print "BEGIN;"
-for row in cursor.fetchall():
-    newrow = []
-    for col in row:
-        if col is None:
-            newrow.append('NULL')
-        else:
-            newrow.append("'%s'" % str(col))
-    print "DELETE FROM snmpoid WHERE oidkey=%s;" % newrow[0]
-    print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext,",
-    print "match_regex, decodehex, oidname, mib)"
-    print "VALUES (%s);" % ",".join(newrow)
+    connection = psycopg.connect(
+        'host=localhost dbname=%s user=%s password=%s' %
+        (dbname, dbuser, dbpasswd))
+    cursor = connection.cursor()
+    cursor.execute("SELECT oidkey, snmpoid, descr, oidsource, getnext, " +
+                   "match_regex, decodehex, oidname, mib FROM snmpoid " +
+                   "ORDER BY oidkey")
+
+    timeString = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime())
+    print '--\n-- Automated dump by dumpsnmpoid.py initiated at ' + \
+          timeString + '\n--'
+
+    print "BEGIN;"
+    for row in cursor.fetchall():
+        newrow = []
+        for col in row:
+            if col is None:
+                newrow.append('NULL')
+            else:
+                newrow.append(str(psycopg.QuotedString(str(col))))
+        print "DELETE FROM snmpoid WHERE oidkey=%s;" % newrow[0]
+        print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource,",
+        print "getnext, match_regex, decodehex, oidname, mib)"
+        print "VALUES (%s);" % ",".join(newrow)
+        print
+
+    # We insert statements that will force getDeviceData to re-test all
+    # the boxes, as we've made changed to the list of known snmpoids.
     print
-    
-print "COMMIT;"
+    print "UPDATE snmpoid SET uptodate=true;"
+    print "UPDATE netbox SET uptodate=false;"
+    print
+    print "COMMIT;"
+    print '--\n-- Automatic dump ends here\n--'
+
+##############
+# begin here #
+##############
+if __name__ == '__main__':
+    main(sys.argv[1:])
