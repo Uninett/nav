@@ -1,64 +1,63 @@
-# Dette er navcron sin crontab.
-# Ingen NTNU-proprietære løsninger skal inn her!
+# This is the crontab of the user navcron.
+# No proprietary jobs are supposed to be here.
+# $Id: crontab_navcron.nav,v 1.5 2003/06/23 11:32:27 mortenv Exp $
 
+# Grouped by subsystems for easier add and
+# removal.
+
+# The different subsystems are marked by a 
+# <name_of_subsystem> for start, and 
+# </name_of_subsystem> for end of subsystem.
+
+# The paths we use for the different scripts
 CDIR=/usr/local/nav/navme/cron
 LDIR=/usr/local/nav/local/cron
+LOGDIR=/usr/local/nav/local/log
 
-# Mailto-adressen erstattes i installasjons-prosessen.
-MAILTO=§§ADMIN_MAIL§§
+# This adress is changed during installation of NAV. This
+# is the default mail-adress that the jobs report to.
+MAILTO=%ADMIN_MAIL%
 
-#### SUID script #########
-#### Disse scriptene kjøres SUID, eieren av scriptene skal være root
-#### og gruppa skal være navroot.
-
-# live.pl startes hvert 4. minutt.
-01,05,09,13,17,21,25,29,33,37,41,45,49,53,57 * * * * $CDIR/live.pl
-
+# <backup>
+# This subsystem makes backup of vital information in NAV. 
+# To be able to roll back after a severe crash, this is a 
+# good thing to keep running.
 58 4 * * * /usr/local/nav/navme/cron/pg_backup.pl 2>/dev/null
+# </backup>
 
-#### Slutt på SUID script #########
-
-# De fleste nattlige filer skal startes 
-# herfra.
-
-# Knut-Helge sine script
-
-*/5 * * * * /usr/local/nav/navme/cron/safe_smsd.pl
-
-# Gro-Anita sine script
-
-0,30 * * * * $CDIR/arplogger.pl
-
-# Sigurd Gartmann sine script
-
-05 4 * * * $CDIR/fyll_db.pl
-7 5 * * * $CDIR/syslog/syslogslett.pl
-9,29,49 * * * * $CDIR/syslog/syslogsettinn.pl > /dev/null
-
-
-# John-Magne Bredal sine script
-
-# Her startes terskelmonitoren. Off må kjøres etter On for hver gang
-0,5,10,15,20,25,30,35,40,45,50,55 * * * * $CDIR/hystereseOn
-1,6,11,16,21,26,31,36,41,46,51,56 * * * * $CDIR/hystereseOff
-
-# Kristian Eide sine script
-
-# getBoksMacs, samler også inn CAM-data
-NUM_THREADS=24
-3,18,33,48 * * * *      $CDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS
-#15 0 * * *             $CDIR/getBoksMacs/boksmacCacheUpdate.sh
-
-# getPortData, henter port-data fra 3Com, C1900 og C3000/C3100
-42 * * * *              $CDIR/getPortData/getPortData.sh
-
-# avledTopologi og avledVlan
-15 * * * *              $CDIR/navAdmin/runAvledTopologi.sh
-16 * * * *              $CDIR/navAdmin/runAvledVlan.sh
-
-# CRICKET (by MV for JMB)
+# <cricket>
+# Cricket is the system used for gathering of traffic-data
+# from the different units that are on the network.
 CRICKETDIR=/home/navcron/cricket
 
-0,5,10,15,20,25,30,35,40,45,50,55 * * * * $CRICKETDIR/cricket/collect-subtrees normal
+*/5 * * * * $CRICKETDIR/cricket/collect-subtrees normal
 0-59 * * * * $CRICKETDIR/cricket/collect-subtrees giga
-12 5 * * * $CRICKETDIR/cron/makeconfig
+12 5 * * * $CRICKETDIR/cron/makecricketconfig
+# </cricket>
+
+# <collect>
+# Updating of the database is done by the database-
+# subsystem. To make sure that every change that occur on
+# the network is updated in NAV, have this subsystem running.
+05 4 * * * $CDIR/fyll_db.pl
+7 2 * * * $CDIR/navlog/delete.pl > /dev/null
+9,29,49 * * * * $CDIR/navlog/insert.pl > /dev/null
+
+# 15 * * * *              $CDIR/navAdmin/runAvledTopologi.sh
+# 16 * * * *              $CDIR/navAdmin/runAvledVlan.sh
+
+# 42 * * * *              $CDIR/getPortData/getPortData.sh
+# </collect>
+
+# <iptrace>
+# Collects arp data from routers
+0,30 * * * * $CDIR/arplogger.pl
+# </iptrace>
+
+# <mactrace>
+# Collects cam data from switches
+NUM_THREADS=24
+3,18,33,48 * * * *      $CDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS
+# </mactrace>
+
+# --- EOF ---
