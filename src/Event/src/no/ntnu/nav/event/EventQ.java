@@ -143,7 +143,7 @@ public class EventQ {
 					continue;
 				}
 				if (val == null || "null".equals(val)) {
-					Log.d("EVENTQ", "POST_EVENT", "Inserting null val into eventqvar");
+					Log.d("EVENTQ", "POST_EVENT", "Inserting null val into eventqvar [" + var + "]");
 					val = "(null)";
 				}
 				String[] insv = {
@@ -154,7 +154,7 @@ public class EventQ {
 				Database.insert("eventqvar", insv);
 			}
 			Database.commit();
-			Log.d("EVENTQ", "POST_EVENT", "Posted event from " + e.getSourceSql() + " to " + e.getTargetSql() + " on eventq");
+			Log.d("EVENTQ", "POST_EVENT", "Posted event from " + e.getSourceSql() + " to " + e.getTargetSql() + " (" + e.getEventtypeidSql() + ") on eventq");
 			return true;
 
 		} catch (SQLException exp) {
