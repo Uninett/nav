@@ -21,11 +21,11 @@ import no.ntnu.nav.eventengine.*;
 class eventEngine
 {
 	public static final String realNavRoot = "/usr/local/nav/";
-	public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
-	//public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
+	//public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
+	public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
 	public static final String dbConfigFile = "local/etc/conf/db.conf".replace('/', File.separatorChar);
 	public static final String configFile = "local/etc/conf/eventEngine.conf".replace('/', File.separatorChar);
-	public static final String alertmsgFile = navRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
+	public static final String alertmsgFile = realNavRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
 	public static final String scriptName = "eventEngine";
 
 	public static final boolean ERROR_OUT = true;

@@ -1,11 +1,13 @@
 <project name="Info plugin" default="copy" basedir=".">
     <description>
-        build file for eventengine Info plugin
+        build file Info
     </description>
   <!-- set global properties for this build -->
+  <property name="jar" value="Info.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property name="classpath" value="../../build"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -18,7 +20,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" classpath="${classpath}" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -27,11 +29,11 @@
     <mkdir dir="${dist}"/>
 
     <!-- Put everything in ${build} into the getDeviceData.jar file -->
-    <jar jarfile="${dist}/Info.jar" basedir="${build}" manifest="Plugin-Class"/>
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Plugin-Class"/>
   </target>
 
   <target name="copy" depends="dist">
-    <copy file="${dist}/Info.jar" todir="../"/>
+    <copy file="${dist}/${jar}" todir="../"/>
   </target>
 
   <target name="clean"
@@ -39,5 +41,6 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete file="../${jar}"/>
   </target>
 </project>
