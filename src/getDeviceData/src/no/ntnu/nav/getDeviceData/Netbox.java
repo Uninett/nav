@@ -10,6 +10,7 @@ import java.util.Set;
 
 public interface Netbox
 {
+	public int getDeviceid();
 	public int getNetboxid();
 	public String getNetboxidS();
 	public String getIp();
@@ -19,6 +20,12 @@ public interface Netbox
 	public String getCat();
 	public int getSnmpMajor();
 	public String getSnmpagent();
+
+	/**
+	 * Returns the number of modules in the stack of which this netbox
+	 * is a member; or 1 if it is not part of a stack.
+	 */
+	public int getNumInStack();
 
 	/**
 	 * <p> Takes as input an array of oidkeys, and returns true if this

@@ -6,6 +6,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.NetboxUpdatable;
 public class NetboxImpl implements Netbox, NetboxUpdatable
 {
 	private int netboxNum;
+	private int deviceid;
 	private int netboxid;
 	private String ip;
 	private String cs_ro;
@@ -14,6 +15,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	private String cat;
 	private int snmpMajor;
 	private String snmpagent;
+	private int numInStack;
 
 	private boolean removed;
 
@@ -36,6 +38,9 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	public int getNum() { return netboxNum; }
+
+	public int getDeviceid() { return deviceid; }
+	public void setDeviceid(int i) { deviceid = i; }
 
 	public int getNetboxid() { return netboxid; }
 	public String getNetboxidS() { return String.valueOf(netboxid); }
@@ -62,6 +67,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	public String getSnmpagent() { return snmpagent; }
 	public void setSnmpagent(String s) { snmpagent = s; }
+
+	public void setNumInStack(int numInStack) { this.numInStack = numInStack; }
 
 	Type getTypeT() {
 		return t;
@@ -138,6 +145,11 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 			return t.getOid(key);
 		}
 		return null;
+	}
+
+	// Doc in interface
+	public int getNumInStack() {
+		return numInStack;
 	}
 
 	// Next run for this Netbox

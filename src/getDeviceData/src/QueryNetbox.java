@@ -271,11 +271,15 @@ public class QueryNetbox extends Thread
 		int newcnt=0, skipcnt=0, delcnt=0;
 
 		try {
-			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
+			Map numInStackMap = new HashMap();
+			ResultSet rs = Database.query("SELECT netboxid,COUNT(*) AS numInStack FROM module GROUP BY netboxid HAVING COUNT(*) > 1");
+			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
+
+			String sql = "SELECT ip,ro,deviceid,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
 			sql += " ORDER BY random() * netboxid";
 			//sql += " LIMIT 1000";
-			ResultSet rs = Database.query(sql);
+			rs = Database.query(sql);
 
 			int nbCnt=0;
 			Set netboxidSet = new HashSet();
@@ -307,13 +311,18 @@ public class QueryNetbox extends Thread
 				} else {
 					nb.setType(t);
 				}
-				
+
+				nb.setDeviceid(rs.getInt("deviceid"));
 				nb.setNetboxid(netboxid);
 				nb.setIp(rs.getString("ip"));
 				nb.setCommunityRo(rs.getString("ro"));
 				nb.setType(rs.getString("typename"));
 				nb.setSysname(rs.getString("sysname"));
 				nb.setCat(rs.getString("catid"));
+				int numInStack = 1;
+				if (numInStackMap.containsKey(netboxid)) numInStack = Integer.parseInt((String)numInStackMap.get(netboxid));
+				nb.setNumInStack(numInStack);
+					
 				//nb.setSnmpMajor(rs.getInt("snmp_major"));
 				//nb.setSnmpagent(rs.getString("snmpagent"));
 
