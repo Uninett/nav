@@ -9,7 +9,7 @@ require "$vei/database.pl";
 require "$vei/snmplib.pl";
 require "$vei/fil.pl";
 
-my $conn = &db_connect("manage2","navall","uka97urgf");
+my $conn = &db_connect("manage","navall","uka97urgf");
 
 my $mib_sysname = ".1.3.6.1.2.1.1.5.0";
 my $mib_type =     ".1.3.6.1.2.1.1.2.0";
@@ -78,7 +78,7 @@ sub fil_nettel{
     
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     while (<FIL>) {
-	@_ = &fil_hent_le($felt,$_);
+	@_ = &fil_hent_linje($felt,$_);
 
 	if(my $ip = $_[1]){
 	    my $ro = $_[5];
@@ -106,7 +106,7 @@ sub fil_server{
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     while (<FIL>) {
 
-	@_ = &fil_hent_le($felt,$_);
+	@_ = &fil_hent_linje($felt,$_);
 
 	my $ip;
 	if($ip = &hent_ip($_[1])) {

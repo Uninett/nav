@@ -19,7 +19,7 @@ my $ifAlias        = ".1.3.6.1.2.1.31.1.1.1.18";
 my $hsrp_status    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
-my $db = &db_connect("manage2","navall","uka97urgf");
+my $db = &db_connect("manage","navall","uka97urgf");
 
 my @felt_prefiks =("prefiksid","nettadr","maske","vlan","antmask","maxhosts","nettype","orgid","anvid","nettident","komm");
 my @felt_gwport = ("gwportid","boksid","ifindex","gwip","interf","masterindex","speed","ospf");
@@ -116,10 +116,11 @@ sub hent_snmpdata {
 #	print "interf: $interf\n";
 	$interface{$if}{interf} = $interf;
 	my ($masterinterf,$subinterf) = split/\./,$interf;
+#	print "master = $masterinterf, sub = $subinterf\n";
 	if($subinterf){
 	    $interface{$if}{master} = $description{$masterinterf};
 	} else {
-	    $description{$masterinterf} = $if;
+	    print $description{$masterinterf} = $if;
 	}
     } 
     my @lines = &snmpwalk("$ro\@$ip",$ip2NetMask);
@@ -150,6 +151,7 @@ sub hent_snmpdata {
     foreach my $line (@lines) {                                             
 	(my $if,my $octet) = split(/:/,$line); 
 	$interface{$if}{octet} = $octet;
+#	$gatewayip{0.0.0.0}{ifindex} = $if;
     }
     my @lines = &snmpwalk("$ro\@$ip",$ip2ospf);
     foreach my $line (@lines) {
@@ -196,8 +198,20 @@ sub hent_snmpdata {
 	    delete $gatewayip{$gwip};
 	}
     }
-    
+    foreach my $if ( keys %interface ) {
+	if($interface{$if}{octet}&&!$interface{$if}{gwip}){
+	    $gwport{$boksid}{$if}{""} = [ undef,
+					  $boksid,
+					  $if,
+					  undef,
+					  $interface{$if}{interf},
+					  $interface{$if}{master},
+					  $interface{$if}{speed},
+					  undef];
+	}
+    }
     foreach my $gwip ( keys %gatewayip ) {
+	print "$gwip\n";
 	my $if = $gatewayip{$gwip}{ifindex};
 	my $interf = $interface{$if}{interf};
 	my $ospf = $gatewayip{$gwip}{ospf};
@@ -305,7 +319,7 @@ sub fil_vlan{
 	} else {
 #	    print "\ngikk feil: $_";
 	}
-	print "\n$1:$2:$3";    
+#	print "\n$1:$2:$3";    
     }
     close VLAN;
 }

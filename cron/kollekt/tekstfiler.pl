@@ -5,7 +5,7 @@ my $vei = "/usr/local/nav/navme/lib";
 require "$vei/database.pl";
 require "$vei/fil.pl";
 #-------------ALLE-------------
-my $db = &db_connect("manage2","navall","uka97urgf");
+my $db = &db_connect("manage","navall","uka97urgf");
 my ($fil,$tabell,@felt);
 #--------------ANV-------------
 $fil = "/usr/local/nav/etc/anv.txt";

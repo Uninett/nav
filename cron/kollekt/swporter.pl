@@ -8,7 +8,7 @@ require "$vei/snmplib.pl";
 require "$vei/fil.pl";
 require "$vei/iplib.pl";
 
-my $db = &db_connect("manage2","navall","uka97urgf");
+my $db = &db_connect("manage","navall","uka97urgf");
 
 my @felt_swport = ("swportid","boksid","ifindex","modul","port","status","speed","duplex","trunk","static","portnavn");
 my @felt_swportvlan = ("swportid","vlan");
