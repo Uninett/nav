@@ -86,7 +86,6 @@ public class Typeoid implements DeviceHandler
 				Database.update("DELETE FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 				String[] insDev = {
 					"deviceid", "",
-					//					"serial", "null"
 				};
 				String deviceid = Database.insert("device", insDev, null);
 				
