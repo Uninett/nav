@@ -1,7 +1,19 @@
 #!/usr/bin/perl
-
-# $Id: smsd.pl,v 1.6 2002/09/23 10:58:38 knutvi Exp $
+####################
 #
+# $Id$
+# This file is part of the NAV project.
+# This is the NAV SMS daemon, responsible for dispatching sms messages
+# from the database to users' phones, through the use of
+# MyGnokii2/Gammu
+#
+# Copyright (c) 2001-2003 by NTNU, ITEA nettgruppen
+# Authors: Knut-Helge Vindheim <knut-helge.vindheim@itea.ntnu.no>
+#          Gro-Anita Vindheim <gro-anita.vindheim@itea.ntnu.no>
+#          Morten Vold <mortenv@tihlde.org>
+#
+####################
+
 # Dette er en sms-demon som henter sms meldinger i fra
 # databasen på bigbud og sender dem ved hjelp av 
 # mobiltelefon koblet til com-porten.
@@ -21,19 +33,6 @@
 # -d xx / setter tiden mellom hver gang demone sjekker databasen, default er 30 sek
 # -t xxxxxxxx / sender en testmelding til telefonnummeret
 
-
-# Scriptet ble laget 06.01.2001 av 
-# Knut-Helge Vindheim
-# ITEA Nettgruppen
-
-# Modifisert til å jobbe mot postgreSQL 9/10-01 av
-# Gro-Anita Vindheim
-# ITEA Nettgruppen
-
-# Modifisert til å kjøre som navcron for NAVRun 18/07-2002 av
-# Morten Vold
-# ITEA Nettgruppen
- 
 use POSIX qw(strftime);
 use strict;
 use vars qw($opt_c $opt_d $opt_t $opt_h);
@@ -41,23 +40,24 @@ use Getopt::Std;
 use English;
 use Pg;
 
-
+my $NAVROOT='/usr/local/nav';
 my $vei = "/usr/local/nav/navme/lib";
-require "$vei/database.pl";
-require "$vei/fil.pl";
+require "$vei/NAV.pm";
+import NAV;
 
+my $DISPATCHER = '/usr/local/bin/gammu';
+my $FREEZELIMIT = 30;
+my $pidfil = "$NAVROOT/local/var/run/smsd.pl.pid";
+my $conffil= "$NAVROOT/local/etc/conf/smsd.conf";
+my $navconf= "$NAVROOT/local/etc/conf/nav.conf";
 
-my $pidfil = '/usr/local/nav/local/var/run/smsd.pl.pid';
-my $conffil= '/usr/local/nav/local/etc/conf/smsd.conf';
-
-justme();				# sjekker om smsd kjøres fra før.
 switchuser(); # Sørg for at vi kjører som brukeren navcron
 
 getopt('dt'); 
 
 my %conf = &hash_conf($conffil);
 my $logfil = $conf{logfil} || '/usr/local/nav/local/log/smsd.log';
-my %navconf = &read_navconf();
+my %navconf = &hash_conf($navconf);
 my $MAILDRIFT = $navconf{ADMIN_MAIL};
 
 
@@ -78,13 +78,14 @@ if ($opt_h) {
 
 # Kjører en lokal test på systemet
 if ($opt_t) {
-    $respons_ = &send_sms($opt_t, "Dette er en test, smsd er nå startet.");
+    $respons_ = &send_sms($opt_t, "Dette er en test fra smsd paa " . `hostname`);
     print "$respons_\n";
     exit(0);    
 }
 
+justme();				# sjekker om smsd kjøres fra før.
 
-# Lager bare en connection mot databasen, som er konstant. Håper det ikke krasjer alt...
+# Lager bare en connection mot databasen, som er konstant.
 my %dbconf = &db_readconf();
 my $dbname = $dbconf{db_trapdetect};
 my $dbuser = $dbconf{script_smsd};
@@ -94,7 +95,7 @@ my $conn = &db_connect($dbname, $dbuser, $userpw);
 # Sletter utkøen i databasen
 if ($opt_c) {
     
-    my $sql = "UPDATE smsutko SET sendt=\'I\' WHERE sendt=\'N\'";
+    my $sql = "UPDATE smsutko SET sendt=\'I\', tidsendt=NOW() WHERE sendt=\'N\'";
     
     my $ok = &db_execute($conn,$sql);
 }
@@ -128,8 +129,12 @@ else
 
 my $sql = "SELECT tlf,smsutko.id,melding FROM smsutko,bruker WHERE bruker.id = smsutko.brukerid AND sendt=\'N\'";
 
+chdir('/');
+# Disconnect from terminal, STD(OUT|ERR|IN)
+close(STDOUT);
+close(STDERR);
+close(STDIN);
 # background ourself and go away only if we get this far..
-close(STDOUT); # Disconnect from terminal...
 my $pid = fork();
 if ($pid) {
     # Skriver pid til fil
@@ -247,19 +252,17 @@ sub sorter_sms {
 
 
 	# Sjekker om sendingen var vellykket
-	unless ($respons_) {
+	if ($respons_ == 0) {
 
 	    if ($smssyk) {
 		$smssyk = 0;
 
 		# Skriv logg
 		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
+		print LOGFIL "\nsmsd_up: $dato\tExit-code: $respons_\n";
 
-		# Send mail
-		open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
-		print MAIL "\nsmsd_ok: $dato\t$respons_\n";
-		close(MAIL);
+		sendmail($MAILDRIFT, 'Re: Feil på smsd',
+			 "\nsmsd_ok: $dato\tExit-code: $respons_\n");
 	    }
 
 	    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
@@ -285,6 +288,13 @@ sub sorter_sms {
 		    print LOGFIL "  Sendt: $dato\t$user\t$hash_ko2_{$id_}\n";
 		}
 
+		unless ($ga) {
+		    print LOGFIL "Database error: $dato\tUnable to mark message as sent, terminating!\n";
+		    sendmail($MAILDRIFT, 'Feil på smsd',
+			     "\nDatabase error: $dato\tUnable to mark message as sent, terminating!\n");
+		    exit(1);
+		}
+
 	    }
 
 	    # Setter meldingen lik ignored i databasen
@@ -308,15 +318,16 @@ sub sorter_sms {
 
 		# Skriv logg
 		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		print LOGFIL "\nError: $dato\t$respons_\n";
+		print LOGFIL "\nError: $dato\tExit-code: $respons_\n";
 
-		# Send mail
-		open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
-		print MAIL "\nError: $dato\t$respons_\n";
-		close(MAIL);
+		sendmail($MAILDRIFT, 'Feil på smsd',
+			 "\nError: $dato\tExit-code: $respons_\n");
 
 		# Resetter gnokii programmet
-		$respons_ = `killall mygnokii`;
+		# $respons_ = `killall gammu`;
+		# Ble tidligere brukt til å drepe gnokii dersom flere
+		# utgaver av programmet kjørte samtidig og slåss om
+		# com-porten.
 
 	    }		
 
@@ -338,22 +349,83 @@ sub send_sms {
 
     my ($tlf, $text) = @_;
 
-	# Fikser spesialtegn som ikke takles av echo og gnokii
-	$text =~ s/\(/\\\(/g;
-	$text =~ s/\)/\\\)/g;
-	$text =~ s/\'/\\\'/g;
-	$text =~ s/\"/\\\"/g;
-	$text =~ s/\</\\\</g;
-	$text =~ s/\>/\\\>/g;
+    $dato = strftime " %d\/%m %H:%M", localtime; 
+    $text = $text.$dato;
 
- 
-	$dato = strftime " %d\/%m %H:%M", localtime; 
-	$text = $text.$dato;
+    # We need to fork off another process to open the pipe to the
+    # dispatcher.  This is becase the alarm setup won't work when
+    # spawning a new process through the system (or open) call.  If
+    # the spawned process hangs, the close() call blocks our process
+    # forever, and the alarm is never sent/received.  The idea is to
+    # fork off another smsd.pl and wait for that to exit instead. If
+    # this process times out, wekill the entire process group
+    # (something along those lines).  A message is mailed to the
+    # admin, and safe_smsd will start the daemon again on its next
+    # run.
+    my $forkpid = fork();
+    if ($forkpid == 0) {
+	# I am the child process...
+	$0 = 'SMSD Dispatcher Process';
+	open(my $PIPE, "| $DISPATCHER nothing --sendsms TEXT $tlf 1>/dev/null 2>/dev/null")
+	    or die "Unable to run $DISPATCHER ($!, $?)";
+	print $PIPE $text;
+	close($PIPE);
 
-    my $res = `echo $text | /usr/local/bin/mygnokii --sendsms TEXT $tlf`;
-    
-    return ($? >> 8);
-    
+	# Exit this forked subprocess, using the exit value of the sms
+	# dispatcher.
+	exit($?);
+    } else {
+	# I am the parent process
+	my $err_code = 0;
+
+	# Alarm setup that will wait no longer than $FREEZELIMIT
+	# seconds for our forked process to exit,
+	eval {
+	    local $SIG{ALRM} = sub { die "alarm\n" };
+	    alarm($FREEZELIMIT);
+	    # Blocking wait for child processes.
+	    if (wait() >= 0) {
+		$err_code = $? >> 8;
+	    } else {
+		$err_code = 6969;
+	    }
+	    alarm(0);
+	};
+
+	if ($@) {
+	    print STDERR "Dispatcher froze";
+
+	    # Log the event
+	    my $date = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+	    print LOGFIL "\nError: $date\t$DISPATCHER froze, killing process (including sms daemon)\n";
+	    close(LOGFIL);
+
+	    sendmail($MAILDRIFT, 'Feil på smsd',
+		     "\nError: $date\t$DISPATCHER froze, killing process (including sms daemon)\n");
+
+	    # Send a KILL signal to pid 0.  This is the only efficient
+	    # way I found to kill all processes created by this
+	    # process and its children. The SMS Daemon itself will
+	    # also be killed, but safe_smsd should revive it on its
+	    # next run.
+	    unless (kill('KILL', 0)) {
+		$date = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+		sendmail($MAILDRIFT, 'Feil på smsd', 
+			 "\nError: $date\tWas UNABLE to signal my dispatcher subprocess!\n");
+		print STDERR " - Failed to kill it\n";
+		# Never thought of this happening...
+		exit(6969);
+	    }
+	} else {
+	    # For some reason, we need to explicitly reset the
+	    # database connection here after doing a wait() system
+	    # call.  It seems the connection to the database is lost,
+	    # and the sjekk_conn() subroutine seems to not do any
+	    # good when this particular situation arises.
+	    $conn->reset;
+	    return $err_code;
+	}
+    }
 }
 
 ##################################
@@ -362,18 +434,18 @@ sub sjekk_conn
 {
     my $status = $conn->status;
 
-#    print "Status $status\n";
-
-    unless ($status == 0)
+    unless ($status == PGRES_CONNECTION_OK)
     {
-#	print "Resetter $conn\n";
-
-	my $dato_ = strftime " %d\/%m %H:%M", localtime; 
-	open(MAIL, "|mail -s 'smsd conn reset' $MAILDRIFT");
-	print MAIL "\nStatus: $dato_\t$conn\t $status resatt";
-	close(MAIL);
-
+	my $errorMessage = $conn->errorMessage;
+	my $resolve = "$status Reset";
 	$conn->reset;
+	$status = $conn->status;
+	$resolve = "$status Unable to reset!" unless ($status == PGRES_CONNECTION_OK);
+
+	my $dato_ = strftime "%d\.%m\.%Y %H:%M:%S", localtime; 
+	sendmail($MAILDRIFT, 'smsd database connection problem',
+		 "\nStatus: $dato_\t$conn\t $resolve\n\nError was:\n$errorMessage");
+
     }
 }
 ##################################
@@ -383,7 +455,12 @@ sub justme {
 
 	if (open PIDFIL, "<$pidfil") {
         $pid = <PIDFIL>;
-        kill(0, $pid) and die "\n$0 already running (pid $pid), bailing out\n\n";
+	if ($pid =~ /([0-9]+)/) {
+	    $pid = $1;
+	    kill(0, $pid) and die "\n$0 already running (pid $pid), bailing out\n\n";
+	} else {
+	    die "\nPidfile was corrupt, cannot detect whether we are already running, bailing out\n";
+	}
         close PIDFIL;
     }
 }
@@ -426,6 +503,15 @@ sub switchuser
 	# Dersom navcron ikke eksisterer på systemet:
 	print STDERR "Advarsel! Kjører med root-privilegier!\n";
     }
+}
+
+sub sendmail ($$$)
+{
+    my($address, $subject, $body) = @_;
+
+    open(MAIL, "|mail -s '$subject' $address");
+    print MAIL $body;
+    close(MAIL);
 }
 
 exit(0);
