@@ -52,16 +52,16 @@ sub main {
 	my ($sysname,$port) = split /,/, $_;
 	chomp $port;
 	if ($sysname =~ /-sw/) {
-	    #print "\nFunnet: $sysname,$port\n";
+	    print "\nFunnet: $sysname,$port\n";
 	    if (&switchports($sysname,$port)) {
-		#print "Sletter innlegg ...\n";
+		print "Sletter innlegg ...\n";
 	    } else {
 		print FIL $_;
 	    }
 	} else {
-	    #print "\nFunnet: $sysname,$port\n";
+	    print "\nFunnet: $sysname,$port\n";
 	    if (&routerinterfaces($sysname,$port)) {
-		#print "Sletter innlegg ...\n";
+		print "Sletter innlegg ...\n";
 	    } else {
 		print FIL $_;
 	    }
@@ -144,8 +144,6 @@ sub switchports {
 
     my $id = $hentsvitsjer->fetchrow;
 
-    $hentsvitsjer->finish;
-    
     # Diverse omformateringer på filnavnene... :(
     my $tempmp = $mp;
     $tempmp = uc $mp;
@@ -153,12 +151,10 @@ sub switchports {
     $tempmp =~ s/GI/GE/;
     $tempmp =~ s/_/\./;
 
-#    print "Tempmp: $tempmp\n";
-
-    my $hentporter = &db_select("SELECT portname,speed FROM swport WHERE swportid=$id AND mp=$tempmp",$dbh);
+    my $sporring = "SELECT speed FROM swport WHERE swportid=$id AND mp=$tempmp";
+    print "$sporring\n";
+    my $hentporter = &db_select($sporring,$dbh);
     my ($portname, $speed) = $hentporter->fetchrow;
-
-#    print "Hentet $portname, $speed\n";
 
     my $verdi;
     if (-e "/home/cricket/cricket-data/switch-ports/$sysname/$mp.rrd") {
@@ -192,11 +188,10 @@ sub switchports {
 
 		# Sender trap
 		my $temp1 = "$sysname/$mp";
-		&sendtrap($temp1, $portname, $id, "$belastning%");
+		&sendtrap($temp1, $id, "$belastning%");
 
 		# Sender mail.
 		my $body = "port: $sysname/$mp\n";
-		$body .= "link: $portname\n";
 		$body .= "nettelid: $id\n";
 		$body .= "last: $belastning%\n";
 		
@@ -209,7 +204,6 @@ sub switchports {
     } else {
 	#print "Finner ikke $sysname: $mp.rrd\n\n";
     }
-
     return $returverdi;
 
 } #sub switchports
@@ -225,41 +219,32 @@ sub routerinterfaces{
 
     my ($name, $interf) = @_;
 
-    if ($name =~ m/trlos/) {
-	$name =~ s/-trlos//;
-    }
-    
     my $hentrutere = &db_select("SELECT boksid,sysName FROM boks WHERE kat='GW'",$dbh);
-
     my ($id,$sysname,$ruterid);
 
     while (($id, $sysname) = $hentrutere->fetchrow) {
-	unless ($sysname =~ /psykiatri|ringve|erke/) {
-	    if ($sysname eq $name) {
-		$ruterid = $id;
-	    }
-	    $ruterliste{$id} = $sysname;
-	} else {
-	    $ruterliste{$id} = "$sysname-trlos";
+	if ($sysname eq $name) {
+	    $ruterid = $id;
 	}
+	$ruterliste{$id} = $sysname;
     }
-    $hentrutere->finish;
 
     # Omforming på filnavn
     my $tempinterf = $interf;
     $tempinterf =~ s(_)(/)g;
 
     # Henter variable brukt til sammensetning av beskrivelse.
-    my $hentporter = &db_select("SELECT g.speed,g.nettype,p.orgid,p.anvid,p.samband FROM gwport g, prefiks p WHERE boksid=$ruterid AND interf='$tempinterf'",$dbh);
+    my $sporring = "SELECT g.speed FROM gwport g WHERE boksid=$ruterid AND interf='$tempinterf'";
+    print "$sporring\n";
+    my $hentporter = &db_select($sporring,$dbh);
 
-    my ($speed,$type,$ruter,$tilruter,$org,$kat,$samband) = $hentporter->fetchrow;
+    my ($speed) = $hentporter->fetchrow;
 
-    my @portarray = ($type, $ruterliste{$ruter}, $ruterliste{$tilruter}, $org, $kat, $samband);
-
+    $tempinterf = lc ($interf);
     # Henter lastdata
     my $verdi;
-    if (-e "/home/cricket/cricket-data/router-interfaces/$name/$interf.rrd") {
-	my $RRD = "/home/cricket/cricket-data/router-interfaces/$name/$interf.rrd";
+    if (-e "/home/cricket/cricket-data/router-interfaces/$name/$tempinterf.rrd") {
+	my $RRD = "/home/cricket/cricket-data/router-interfaces/$name/$tempinterf.rrd";
 	
 	my($graphret) = RRDs::graph "/dev/null",
 	"--start","$fra",
@@ -281,26 +266,17 @@ sub routerinterfaces{
 	    }
 	    
 	    # Skriver ut interessant info
-	    
 	    unless ($belastning > $limit) {
 		print "Belastning er gått ned, sender off-trap\n";
-		my $portname = shift @portarray;
-		my $element;
-		foreach $element (@portarray) {
-		    if ($element) {
-			$portname .= ",$element";
-		    }
-		}
 		
 		$belastning = int($belastning);
 
 		# Sender trap
 		my $temp1 = "$name/$interf";
-		&sendtrap($temp1, $portname, $ruterid, "$belastning%");
+		&sendtrap($temp1, $ruterid, "$belastning%");
 		
 		# Sender mail.
 		my $body = "port: $name/$interf\n";
-		$body .= "link: $portname\n";
 		$body .= "nettelid: $ruterid\n";
 		$body .= "last: $belastning%\n";
 		
@@ -315,7 +291,7 @@ sub routerinterfaces{
 	    #print "Ingen speed definert\n";
 	}
     } else {
-	#print "Finner ikke $sysname: $interf.rrd\n\n";
+#	print "Finner ikke $name: $tempinterf.rrd\n\n";
     }
 
     return $returverdi;
@@ -359,7 +335,7 @@ sub sjekkfil {
 
 sub sendtrap {
     
-    my ($sysname, $portname, $nettelid, $belastning) = @_;
+    my ($sysname, $nettelid, $belastning) = @_;
     my @data;
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
@@ -370,9 +346,8 @@ sub sendtrap {
     push(@data, "$newprefix.2", 'string', "$string");
     push(@data, "$newprefix.3", 'string', "$sysname");
     push(@data, "$newprefix.4", 'string', "$nettelid");
-    push(@data, "$newprefix.5", 'string', "$portname");
 
-    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
+#    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
 
 }
 
@@ -391,7 +366,7 @@ sub sendtrap2 {
     push(@data, "$newprefix.3", 'string', "$sysname");
     push(@data, "$newprefix.4", 'string', "$nettelid");
 
-    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
+#    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
 
     
 }
