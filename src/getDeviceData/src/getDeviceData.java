@@ -371,8 +371,8 @@ class getDeviceData
 		swportMap = new HashMap();
 		swportDataMap = new HashMap();
 		dumpBeginTime = System.currentTimeMillis();
-		//rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f'");
-		rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f' and boksid=470");
+		rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f'");
+		//rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f' and boksid=470");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			String key = rs.getString("boksid")+":"+rs.getString("modul")+":"+rs.getString("port");
