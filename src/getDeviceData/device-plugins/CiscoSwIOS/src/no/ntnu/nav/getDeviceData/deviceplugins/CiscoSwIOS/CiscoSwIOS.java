@@ -129,12 +129,13 @@ public class CiscoSwIOS implements DeviceHandler
 				module = Integer.parseInt(m.group(1));
 			}
 			SwModule swm = sc.swModuleFactory(module);
+			swm.swportFactory(ifindex); // Create module <-> ifindex mapping
 
 			String[] modulport = portif.split("/");
-			//swm.setDescr(modulport[0]);
-					
-			Integer port = Integer.valueOf(modulport[1]);
-			swm.swportFactory(ifindex).setPort(port);
+			if (moduleport.length > 1) {
+				Integer port = Integer.valueOf(modulport[1]);
+				swm.swportFactory(ifindex).setPort(port);
+			}
 		}
 
 		/*		l = sSnmp.getAll(nb.getOid("ifDuplex"));
