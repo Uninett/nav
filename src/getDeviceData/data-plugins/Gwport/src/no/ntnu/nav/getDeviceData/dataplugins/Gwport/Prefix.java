@@ -28,17 +28,12 @@ public class Prefix implements Comparable
 	}
 
 	private static String and_ip(String ip, String mask) {
-		StringTokenizer a = new StringTokenizer(ip, ".");
-		StringTokenizer b = new StringTokenizer(mask, ".");
-		int base = 10;
-		if (b.countTokens() == 1) {
-			b = new StringTokenizer(mask, ":");
-			base = 16;
-		}
+		StringTokenizer a = new StringTokenizer(hexToIp(ip), ".");
+		StringTokenizer b = new StringTokenizer(hexToIp(mask), ".");
 		String and_ip = "";
 
 		while (a.hasMoreTokens()) {
-			and_ip += "."+(Integer.parseInt(a.nextToken())&Integer.parseInt(b.nextToken(),base));
+			and_ip += "."+(Integer.parseInt(a.nextToken())&Integer.parseInt(b.nextToken()));
 		}
 		return and_ip.substring(1, and_ip.length());
 	}
@@ -46,18 +41,29 @@ public class Prefix implements Comparable
 	// Calc the number of bits in mask
 	private static int masklen(String mask) {
 		int bits = 0;
-		String[] s = mask.split("\\.");
-		int base = 10;
-		if (s.length == 1) {
-			s = mask.split(":");
-			base = 16;
-		}
+		String[] s = hexToIp(mask).split("\\.");
+
 		for (int i=0; i < s.length; i++) {
 			// 8-(log (256-128) / log 2)
-			bits += (int) Math.round( 8 - (Math.log(256-Integer.parseInt(s[i],base)) / Math.log(2)) );
+			bits += (int) Math.round( 8 - (Math.log(256-Integer.parseInt(s[i])) / Math.log(2)) );
 		}
 		return bits;
 	}
+
+	public static String hexToIp(String s) {
+		return convIp(s, 16, 10, '.');
+	}
+
+	public static String convIp(String hexIp, int fromBase, int toBase, char sep) {
+		if (hexIp == null || hexIp.indexOf(":") < 0) return hexIp;
+		String ip = "";
+		String[] s = hexIp.split(":");
+		for (int i=0; i < s.length; i++) {
+			ip += Integer.toString(Integer.parseInt(s[0],fromBase),toBase) + sep;
+		}
+		return ip.substring(0, ip.length()-1);
+	}
+		
 
 
 	int getPrefixid() { return prefixid; }

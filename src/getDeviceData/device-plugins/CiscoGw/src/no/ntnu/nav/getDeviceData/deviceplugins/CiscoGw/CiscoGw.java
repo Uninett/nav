@@ -347,7 +347,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					String gwip = (String)prefixIt.next();
 					String mask = (String)netmaskMap.get(gwip);
 
-					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey(gwip);
+					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey( Prefix.convIp(gwip,10,16,':') );
 					Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
 
 				}
