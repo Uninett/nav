@@ -165,8 +165,13 @@ public class Log {
 			} else {
 				out = new PrintStream(new BufferedOutputStream(new FileOutputStream(log, true)));
 			}
+
+			String t = sdf.format(new GregorianCalendar().getTime()) + " " + system + " " + subsystem+"-"+priority+"-"+type + " " + msg;
+
+			// Capitalize first letter of log text (name of month)
+			t = t.substring(0, 1).toUpperCase() + t.substring(1, t.length());
 			
-			out.println(sdf.format(new GregorianCalendar().getTime()) + " " + system + " " + subsystem+"-"+priority+"-"+type + " " + msg);
+			out.println(t);
 			if (log != null) out.close();
 		} catch (IOException e) {
 			System.err.println("Logger: IOException when logging to file " + log + ": " + e.getMessage());
