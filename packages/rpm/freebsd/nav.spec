@@ -1,4 +1,4 @@
-%define version 3.0_beta7
+%define version 3.0_beta8
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
@@ -76,8 +76,10 @@ fi
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
+%config(noreplace) %{_prefix}/etc/cricket-views.conf
 %config(noreplace) %{_prefix}/etc/db.conf
 %config(noreplace) %{_prefix}/etc/devbrowser.conf
+%config(noreplace) %{_prefix}/etc/editdb.conf
 %config(noreplace) %{_prefix}/etc/eventEngine.conf
 %config(noreplace) %{_prefix}/etc/getBoksMacs.conf
 %config(noreplace) %{_prefix}/etc/getDeviceData.conf

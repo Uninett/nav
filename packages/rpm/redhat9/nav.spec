@@ -1,4 +1,4 @@
-%define version 3.0_beta7
+%define version 3.0_beta8
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
@@ -14,7 +14,12 @@ Group: Applications/Internet
 BuildRoot: %{_builddir}/%{name}-buildroot
 BuildArch: noarch
 Prefix: %{_prefix}
-Requires: bind-utils, postgresql >= 7.3, python >= 2.2, perl >= 5.6, j2re >= 1.4
+Requires: bind-utils
+Requires: postgresql >= 7.3
+Requires: python >= 2.2
+Requires: perl >= 5.6
+#Requires: java2 >= 1.4
+#Requires: java2 >= 1.4
 
 %description
 This package contains Network Administration Visualized, an advanced
@@ -77,8 +82,10 @@ fi
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
+%config(noreplace) %{_prefix}/etc/cricket-views.conf
 %config(noreplace) %{_prefix}/etc/db.conf
 %config(noreplace) %{_prefix}/etc/devbrowser.conf
+%config(noreplace) %{_prefix}/etc/editdb.conf
 %config(noreplace) %{_prefix}/etc/eventEngine.conf
 %config(noreplace) %{_prefix}/etc/getBoksMacs.conf
 %config(noreplace) %{_prefix}/etc/getDeviceData.conf
