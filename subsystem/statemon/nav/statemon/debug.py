@@ -42,6 +42,7 @@ loglevels={
 
 debuglevel = 5
 def setDebugLevel(level):
+    global debuglevel
     debuglevel = level
 
 def debug(msg, level=5):
@@ -52,7 +53,7 @@ def debug(msg, level=5):
         stack = "%s:%s:%s" % (file, func, line)
         # msg = "[%s %-25s %-8s] %s" % (now, stack, loglevels[level], msg)
         msg = "[%s] %s [%s] %s" % (now, stack, loglevels[level], msg)
-        print msg
+        print >>sys.stderr, msg
         if not sys.stdout.isatty():
             sys.stdout.flush()
 
