@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.8 2002/06/14 12:55:58 magnun Exp $
+$Id: database.py,v 1.9 2002/06/14 13:13:04 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -25,8 +25,8 @@ def run():
 		c.execute(statement)
 def newEvent(event):
 	print "New event. Id: %i Status: %s Info: %s"% (event.id, event.status, event.info)
-def newVersion(id,version):
-	statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,id)
+def newVersion(serviceid,version):
+	statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 	queue.put(statement)
 def getJobs():
 	c = db.cursor()
@@ -35,20 +35,20 @@ def getJobs():
 	order by serviceid"""
 	c.execute(query)
 	property = {}
-	for id,prop,value in c.fetchall():
-		if id not in property:
-			property[id] = {}
-		property[id][prop] = value
+	for serviceid,prop,value in c.fetchall():
+		if serviceid not in property:
+			property[serviceid] = {}
+		property[serviceid][prop] = value
 
 	query = """SELECT serviceid, handler, version, ip
 	FROM service NATURAL JOIN boks order by serviceid"""
 	c.execute(query)
 	jobs = []
-	for id,handler,version,ip in c.fetchall():
+	for serviceid,handler,version,ip in c.fetchall():
 		job = jobmap.get(handler,'')
 		if not job:
 			print 'no such handler:',handler
-		newJob = job(id,ip,property.get(id,{}),version)
+		newJob = job(serviceid,ip,property.get(serviceid,{}),version)
 		jobs += [newJob]
 	return jobs
 
