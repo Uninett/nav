@@ -299,6 +299,8 @@ CREATE TABLE Preference (
     lastsentday timestamp,
     lastsentweek timestamp,
 
+   CONSTRAINT preference_pk PRIMARY KEY(accountid),
+
     CONSTRAINT account_Exist
         FOREIGN KEY(accountid) REFERENCES Account(id)
         ON DELETE CASCADE
@@ -903,11 +905,14 @@ INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuec
 (10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc|[ID]: [NAME]', null, 'eventtype.eventtypeid', true, 
 'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 10);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 10);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (11, 0, 'Alert type', 'alerttype.alerttype', 'alerttype.alerttypedesc|[ID]: [NAME]', 'alerttype.eventtypeid', 'alerttype.alerttypeid', true, 
 'Alert type: An alert type describes the various values an event type may take.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 11);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 11);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr,valuehelp) VALUES 
 (12, 1, 'Severity', 'alertq.severity', null, null, null, false, 
@@ -925,11 +930,13 @@ INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuec
 (13, 0, 'Category', 'cat.catid', 'cat.descr|[ID]: [NAME]', null, 'cat.catid', true, 
 'Category: All equipment is categorized in 7 main categories.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 13);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 13);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr|[ID]: [NAME]', 'subcat.catid', 'subcat.descr', true, 
 'Sub category: Within a catogory user-defined subcategories may exist.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 14);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 14);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
 (15, 0, 'Sysname', 'netbox.netboxid', null, null, null, false, 
@@ -946,6 +953,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 15);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (8, 15);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (9, 15);
 
+
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
 (16, 2, 'IP address', 'netbox.ip', null, null, null, false,
 'Limit your alarms based on an IP address/range (prefix)',
@@ -954,37 +962,49 @@ INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuec
 129.241.190.0/24</br>
 129.241.0.0/16</blockquote>');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 16);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 16);
 
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (17, 0, 'Room', 'room.roomid', 'room.descr|[ID]: [NAME]', 'room.locationid', 'room.roomid', true, 
 'Room: Limit your alarms based on room.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 17);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 17);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (18, 0, 'Location', 'location.locationid', 'location.descr|[NAME] ([ID])', null, 'location.descr', true, 
 'Location: Limit your alarms based on location (a location contains a set of rooms) ');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 18);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 18);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(19, 0, 'Organization', 'org.orgid', 'org.descr|[NAME] ([ID])', 'org.parent', 'org.descr', true, 
+(19, 0, 'Organization', 'org.orgid', 'org.descr|[NAME] ([ID])', null, 'org.descr', true, 
 'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 19);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 19);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (20, 0, 'Usage', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
 'Usage: Different network prefixes are mapped to usage areas.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 20);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 20);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (21, 0, 'Type', 'type.typeid', 'type.descr', 'type.vendorid', 'type.descr', true, 
 'Type: Limit your alarms equipment type');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 21);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 21);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
 'Equipment vendor: Limit alert by the vendor of the netbox.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 22);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 22);
 
 
 
