@@ -24,7 +24,6 @@
 """
 Contains web authentication functionality for NAV.
 """
-from nav import users
 import base64, urllib
 import sys, os, re
 import nav
