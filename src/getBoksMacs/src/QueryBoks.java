@@ -496,7 +496,7 @@ public class QueryBoks extends Thread
 
 		List cdpList = sSnmp.getAll(getOid("cdpNeighbour"), true, 1);
 		if (cdpList == null || cdpList.isEmpty()) {
-			Log.d("PROCESS_CDP", "cdpList is " + cdpList + " for netboxid: " + workingOnBoksid);
+			Log.d("PROCESS_CDP", "cdpList is " + cdpList + " for netboxid: " + workingOnBoksid + " OID: " + getOid("cdpNeighbour") );
 			return l;
 		}
 
