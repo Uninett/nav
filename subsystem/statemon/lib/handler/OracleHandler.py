@@ -1,28 +1,10 @@
 """
-$Id: OracleHandler.py,v 1.4 2003/06/20 12:46:45 arveva Exp $
+$Id: OracleHandler.py,v 1.5 2003/06/23 12:59:48 arveva Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/OracleHandler.py,v $
 """
 
 from job import JobHandler, Event
 import cx_Oracle, string, exceptions, sys
-
-#class OracleHandler(JobHandler):
-#    """
-#    Handle Oracle databases.
-#
-#    Arguments to this handler:
-#
-#    port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
-#    sid     : Database SID
-#    hostname: Accessible from self.getAddress() as pure FQDN hostname
-#    username: Default is nav_agent
-#    password: Default is ag3gva_r
-#    """
-
-#    def __init__(self,service, **kwargs):
-#        JobHandler.__init__(self, "oracle", service, port=1521, **kwargs)
-#    def execute(self):
-
 
 # Test values:
 #print ""
@@ -54,27 +36,38 @@ connect_string = username + "/" + password + "@(DESCRIPTION=(ADDRESS_LIST=(ADDRE
 #print connect_string
 
 #print ""
-print ""
-print "Results: "
+#print ""
+#print "Results: "
 
+class OracleHandler(JobHandler):
+    """
+    Handle Oracle databases.
 
-try:
-    connection = cx_Oracle.connect(connect_string)
-    cursor = connection.cursor()
-    cursor.arraysize = 50
-    cursor.execute("""
-        select version
-        from sys.v_$instance""")
-    row = cursor.fetchone()
-    version = row[0]        
-    print "UP, Oracle " + version
+    Arguments to this handler:
 
-except:
-#    return Event.DOWN, line
-    print "DOWN, " + str(sys.exc_value)
-        
-#		return Event.UP, 'OK'
+    port    : Remote tcp-port where Oracle Listener is living. Default is 1521.
+    sid     : Database SID
+    hostname: Accessible from self.getAddress() as pure FQDN hostname
+    username: Default is nav_agent
+    password: Default is ag3gva_r
+    """
 
+    def __init__(self, *args):
+        JobHandler.__init__(self,'oracle',*args)
+    def execute(self):
+        try:
+            connection = cx_Oracle.connect(connect_string)
+            cursor = connection.cursor()
+            cursor.arraysize = 50
+            cursor.execute("""
+                select version
+                from sys.v_$instance""")
+            row = cursor.fetchone()
+            version = row[0]
+            connection.close()
+        except:
+            return Event.DOWN, str(sys.exc_value) 
+        return Event.UP, "OK, Oracle" + version
 
 def getRequiredArgs():
 	"""
