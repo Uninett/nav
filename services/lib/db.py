@@ -1,51 +1,60 @@
 """
-$Id: db.py,v 1.1 2002/07/08 14:13:01 magnun Exp $
+$Id: db.py,v 1.2 2002/07/10 17:20:40 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 """
-import thread, jobmap, psycopg
+import threading, jobmap, psycopg, Queue
 from job import Event
-from Queue import Queue
 from setup import Service
 
 db = None
 
-class db:
+class db(threading.Thread):
 	def __init__(self, conf):
+		threading.Thread.__init__(self)
 		self.mapper=jobmap.jobmap()
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(1)
 		self.cursor=self.db.cursor()
 		self.sysboks()
+		self.setDaemon()
+		self.queue = Queue.Queue()
+
+	def run(self):
+		while 1:
+			event = self.queue.get()
+			self.commitEvent(event)
 
         def sysboks(self):
 		s = self.query('select sysname,boksid from boks')
 		self.boks = dict(s)
 						
 	def query(self, statement):
-		print "Cursor: %s" % self.cursor
 		self.cursor.execute(statement)
 		return self.cursor.fetchall()
 
 	def execute(self, statement):
 		self.cursor.execute(statement)
-		
+
 	def newEvent(self, event):
+		self.queue.put(event)
+
+	def commitEvent(self, event):
 		if event.status == event.UP:
 			value = 100
 			state = 'f'
 		elif event.status == event.DOWN:
-			value = 0
-			state = 'f'
+			value = 1
+			state = 't'
 		else:
 			pass
 
-		self.db.autocommit()
 		nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
-		statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value) values (%i, %i, %i, '%s','%s', %i )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value)
 
+		statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value, source, target) values (%i, %i, %i, '%s','%s', %i, '%s','%s' )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value,"serviceping","serviceping")
 		self.execute(statement)
-		statement = "INSERT INTO eventqvar (eventqid, var, value) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
-		self.execute(statement)		
+		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
+		self.execute(statement)
+
 
 	def newVersion(self, serviceid, version):
 		print "New version. Id: %i Version: %s" % (serviceid,version)
@@ -74,7 +83,6 @@ class db:
 			job = self.mapper.get(handler)
 			if not job:
 				print 'no such handler:',handler
-			print handler
 			newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version,db=self)
 			if onlyactive and not active:
 				continue
@@ -118,5 +126,5 @@ class db:
         def insertServiceArgs(self,service):
 		self.execute('DELETE FROM serviceproperty WHERE serviceid = %s' % service.id)
 		for prop,value in service.args.items():
-			s.execute("INSERT INTO serviceproperty (serviceid,property,value) values (%s,'%s','%s')" % (service.id,prop,value))
+			self.execute("INSERT INTO serviceproperty (serviceid,property,value) values (%s,'%s','%s')" % (service.id,prop,value))
 										
