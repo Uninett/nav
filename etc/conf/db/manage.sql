@@ -294,7 +294,7 @@ CREATE TABLE swport (
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
   link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
-  speed REAL NOT NULL,
+  speed DOUBLE PRECISION NOT NULL,
   duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR(16),
   trunk BOOL NOT NULL DEFAULT false,
@@ -320,7 +320,7 @@ CREATE TABLE gwport (
 --  interf VARCHAR(30),
   interface VARCHAR(30),
   gwip inet,
-  speed VARCHAR(10),
+  speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
 --  static BOOL DEFAULT false,
 --  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
