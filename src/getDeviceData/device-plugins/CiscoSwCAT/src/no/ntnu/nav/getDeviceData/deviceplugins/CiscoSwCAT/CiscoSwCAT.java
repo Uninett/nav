@@ -128,7 +128,7 @@ public class CiscoSwCAT implements DeviceHandler
 				String[] s2 = s[0].split("\\.");
 				modPortIfindex.put(s[0],s[1]);
 			
-				Integer port = (Integer)Integer.valueOf(s2[1]);
+				Integer port = Integer.valueOf(s2[1]);
 				sc.swportFactory(ifindex).setPort(port);
 			}
 			
