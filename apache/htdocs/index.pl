@@ -5,20 +5,25 @@ use CGI qw(:standard);
 print header;
 print start_html(NAV);
 
-$navstart = '../vhtdocs/navstart.pl';
-$navslutt = '../vhtdocs/navslutt.pl';
+$vhtdocs = '/usr/local/nav/navme/apache/vhtdocs';
+$htpasswd = '/usr/local/nav/navme/apache/htpasswd';
 
-$public     = '../vhtdocs/public.html';
-$restricted = '../vhtdocs/restricted.html';
-$secret     = '../vhtdocs/secret.html';
-$htpasswd = "../htpasswd/.htpasswd-sroot";
+$navstart = "$vhtdocs/navstart.pl";
+$navslutt = "$vhtdocs/navslutt.pl";
 
+$public     = "$vhtdocs/public.html";
+$restricted = "$vhtdocs/restricted.html";
+$secret     = "$vhtdocs/secret.html";
+$passwdfil = "$htpasswd/.htpasswd-sroot";
+
+
+$remote_user = $ENV{'REMOTE_USER'};
 ###########################################
 # Kjører filen navstart, og skriver "print-linjene" til web
-print `$navstart`;
+print `$navstart $remote_user`;
 ###########################################
 
-open (HTPASSWD, $htpasswd) || die "Får ikke åpnet $htpasswd";
+open (HTPASSWD, $passwdfil) || die "Får ikke åpnet $passwdfil";
  
 $user_data{''}{'omraade'} = 'aapen';
 while (<HTPASSWD>) 
@@ -28,8 +33,6 @@ while (<HTPASSWD>)
     chomp ($user_data{$user}{'omraade'} = $omraade);
 }	    
 close(HTPASSWD);
-
-$remote_user = $ENV{'REMOTE_USER'};
 
 open(PUBLIC,$public);
 while (<PUBLIC>)
