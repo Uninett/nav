@@ -1,0 +1,99 @@
+# Denne listen inneholder oversikt over ulike traps som scriptet reagerer på.
+# sykOID'er kommer først, så kommer friskOID'er.
+#
+# Etter hver OID kommer hvilken alarm som skal sendes hvis OID'en forekommer.
+# Script er valgfritt, og må bare forekomme hvis det er skrevet et scipt ved det
+# navnet som tar seg av den trap'en. Dette er ikke helt implementert ennå.
+#
+# Eiere er eierforhold som kan abonnere på denne trap'en. Oversikt over dette
+# finnes i org-tabellen.
+#
+# Kat er kategorien som denne trapen er assosiert med når det gjelder enheter.
+# Altså hvilke kategorier (sjekk nettel) som vil være valgbare for bruker å 
+# abonnere på når trap'en velges. For ingen skriv ingen
+#
+# FORMAT: <sykoid> <syknavn> <friskoid> <frisknavn> <kat> <eiere>
+#
+# Hver OID må adskilles med en -
+#
+# RETT EKSEMPEL .1.3.6.1.4.1.9.0.1 coldStart gw,sw nett
+#
+# kat1-3 angir hvilken kategori trap'en ligger under. Les mer om dette i README
+
+kat1
+-
+: Restart av enhet
+.1.3.6.1.6.3.1.1.5.1 coldStart gw,sw nett,sdrift,hpc #Kommenter gjerne hvis du vil.
+-
+: Restart av system på enhet
+.1.3.6.1.6.3.1.1.5.2 warmStart sw Nett,sdrift,hpc
+-
+: Detekterer unormale pakkeoverføringer
+.1.3.6.1.4.1.3001.1.1.1.0.4 snort ingen nett
+.1.3.6.1.4.1.3001.1.1.2.0.1 antall
+.1.3.6.1.4.1.3001.1.1.2.0.2 tid-fra
+.1.3.6.1.4.1.3001.1.1.2.0.3 tid-til
+.1.3.6.1.4.1.3001.1.1.2.0.4 ip-fra-til
+.1.3.6.1.4.1.3001.1.1.2.0.5 type
+-
+: Link ned på ashtaar
+.1.3.6.1.4.1.3001.1.2.1.0.4 ashtaar-linkDown ingen nett
+.1.3.6.1.4.1.3001.1.2.2.0.1 beskjed
+-
+: Reload av system på enhet
+.1.3.6.1.4.1.9.0.0 reload gw,sw nett,sdrift,hpc
+-
+: Stack mister eller får en enhet
+.1.3.6.1.4.1.3001.2.1.3.0.4 unitChange ingen nett
+.1.3.6.1.4.1.3001.2.1.3.1.1 nettelid
+.1.3.6.1.4.1.3001.2.1.3.1.2 info
+-
+kat2
+-
+: Link går ned på router eller switch
+.1.3.6.1.6.3.1.1.5.3 linkDown .1.3.6.1.6.3.1.1.5.4 linkUp gw,sw nett
+.1.3.6.1.2.1.2.2.1.1 ifIndex
+.1.3.6.1.2.1.2.2.1.2 interface
+.1.3.6.1.2.1.2.2.1.3 type
+-
+: Enhet er nede
+.1.3.6.1.4.1.3001.2.1.1.0.4 boxDown .1.3.6.1.4.1.3001.2.1.1.0.5 boxUp gw,sw,srv,hub nett,sdrift,hpc
+.1.3.6.1.4.1.3001.2.1.1.1.1 nettelid
+.1.3.6.1.4.1.3001.2.1.1.1.2 sysname
+.1.3.6.1.4.1.3001.2.1.1.1.3 ip
+-
+: Enhet er nede, men i skygge av annen enhet som også er nede.
+.1.3.6.1.4.1.3001.2.1.2.0.4 boxShadow .1.3.6.1.4.1.3001.2.1.2.0.5 boxSunny gw,srv,sw nett,sdrift
+.1.3.6.1.4.1.3001.2.1.2.1.1 nettelid
+.1.3.6.1.4.1.3001.2.1.2.1.2 sysname
+-
+kat3
+-
+: Det er noe galt med temp, vifte eller strøm på enhet
+.1.3.6.1.4.1.9.5.0.5 chassisAlarmOn .1.3.6.1.4.1.9.5.0.6 chassisAlarmOff gw,sw nett chassisalarm.pl
+-
+: Belastning stor på link
+.1.3.6.1.4.1.2595.1.1.0.4 terskelOpp .1.3.6.1.4.1.2595.1.1.0.5 terskelNed gw,sw nett
+.1.3.6.1.4.1.2595.1.3.3 beskrivelse
+.1.3.6.1.4.1.2595.1.3.4 nettelid
+.1.3.6.1.4.1.2595.1.3.5 link
+.1.3.6.1.4.1.2595.1.3.6 belastning*
+-
+: DDOS angrep start
+.1.3.6.1.4.1.3001.1.3.1.0.5 DDoSStart .1.3.6.1.4.1.3001.1.3.1.0.6 DDoSStop ingen nett
+.1.3.6.1.4.1.3001.1.3.2.0.1 antall*
+.1.3.6.1.4.1.3001.1.3.2.0.2 tid-fra
+.1.3.6.1.4.1.3001.1.3.2.0.3 tid-til*
+.1.3.6.1.4.1.3001.1.3.2.0.4 ip-fra-til*
+.1.3.6.1.4.1.3001.1.3.2.0.5 type
+-
+: Stor flow fra ip til ip
+.1.3.6.1.4.1.3001.3.1.1.0.4 flowStart .1.3.6.1.4.1.3001.3.1.1.0.5 flowStopp ingen nett
+.1.3.6.1.4.1.3001.3.1.1.1.1 id
+.1.3.6.1.4.1.3001.3.1.1.1.2 antall*
+.1.3.6.1.4.1.3001.3.1.1.1.3 tid-fra
+.1.3.6.1.4.1.3001.3.1.1.1.4 tid-til*
+.1.3.6.1.4.1.3001.3.1.1.1.5 beskrivelse*
+.1.3.6.1.4.1.3001.3.1.1.1.6 type
+-
+# NB! MÅ ha en "-" i slutten av fila.

@@ -1,0 +1,7 @@
+MAILTO=bredal@stud.ntnu.no
+1 0 * * * $HOME/bin/skift >> $HOME/log/skiftlog
+0 6,9,12,15,18,0  * * * $HOME/bin/fjerngif >> $HOME/log/fjerngif_log
+1 0 1 * * $HOME/bin/fjernMnd >> $HOME/log/fjernMnd_log
+0 5 * * * $HOME/bin/redigersick
+1 6,7,8,10 * * * $HOME/bin/delayedgsm
+0 5 * * * $HOME/bin/finnorg
