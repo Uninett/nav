@@ -274,18 +274,18 @@ CREATE TABLE swp_netbox (
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
-  port INT4 NOT NULL,
+  port INT4,
   ifindex INT4 NOT NULL,
-  link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
-  speed DOUBLE PRECISION NOT NULL,
-  duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
+  link CHAR(1) CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
+  speed DOUBLE PRECISION,
+  duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR,
-  trunk BOOL NOT NULL DEFAULT false,
+  trunk BOOL,
   portname VARCHAR,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_catid VARCHAR(8),
-  UNIQUE(moduleid, port)
+  UNIQUE(moduleid, ifindex)
 );
 
 CREATE TABLE gwport (
