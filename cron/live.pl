@@ -1,6 +1,6 @@
 #!/usr/bin/perl 
 
-# $Id: live.pl,v 1.8 2002/08/13 08:42:15 knutvi Exp $
+# $Id: live.pl,v 1.9 2002/08/15 11:13:47 mortenv Exp $
 #####################################
 #
 # live.pl pinger boksene som finnes i tabellen manage.boks, og sender traps ved endringer i status.
@@ -29,7 +29,7 @@ delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 ###########################################################
 # Lese config-fil
 
-$conf = '/usr/local/nav/local/etc/conf/live/live.conf';
+$conf = '/usr/local/nav/local/etc/conf/live.conf';
 
 my %config = &hash_conf($conf);
 

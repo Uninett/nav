@@ -2,6 +2,8 @@
 # Ingen NTNU-proprietære løsninger skal inn her!
 
 CDIR=/usr/local/nav/navme/cron
+LDIR=/usr/local/nav/local/cron
+
 # Mailto-adressen erstattes i installasjons-prosessen.
 MAILTO=§§ADMIN_MAIL§§
 
@@ -18,9 +20,6 @@ MAILTO=§§ADMIN_MAIL§§
 
 # De fleste nattlige filer skal startes 
 # herfra.
-
-CDIR=/usr/local/nav/navme/cron
-LDIR=/usr/local/nav/local/cron
 
 # Knut-Helge sine script
 
