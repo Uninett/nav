@@ -32,6 +32,11 @@ def handler(req):
 
     request = classifyUri(req.uri)
     if not request:
+        if req.args:
+            #  quick patch to except
+            (a,b) = req.args.split("=")
+            redirect(req, '/browse/%s' % b)
+            
         req.send_http_header()
         req.write(req.uri)
         req.write("\n")
@@ -54,6 +59,11 @@ def handler(req):
     request['query'] = req.args
     request['session'] = req.session
     request['req'] = req # in case som might need it. 
+    templatePath = [] # add logical paths to thhis
+    request['templatePath'] = templatePath
+    templatePath.append(("Frontpage", "/"))
+    templatePath.append(("Device browser", "/report"))
+
     # result = handler.process(request)
     req.content_type = "text/html; charset=utf-8"
     try:
@@ -72,11 +82,13 @@ def handler(req):
             result.append(message)
     
     template = DeviceBrowserTemplate()
+    template.path = []
 
     # Our template defines the variable myContent and treeselect.
     # Of course we can add more of them
     template.myContent = result
     template.treeselect = None
+    template.path = templatePath
 
     response = template.respond()
 
