@@ -199,7 +199,7 @@ def help():
     -v  --version   Display version and exit
 
     Written by Stian Søiland and Magnus Nordseth, 2002
-    """  % os.path.basename(os.sys.argv[0]))
+    """  % os.path.basename(os.sys.argv[0])
 
 def start(nofork):
     """

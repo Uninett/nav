@@ -54,7 +54,6 @@ class _db(threading.Thread):
     def __init__(self, conf):
         threading.Thread.__init__(self)
         self.conf = conf
-        self.connect()
         self.setDaemon(1)
         self.queue = Queue.Queue()
         self._hostsToPing = []
@@ -88,6 +87,7 @@ class _db(threading.Thread):
         return cursor
 
     def run(self):
+        self.connect()
         while 1:
             event = self.queue.get()
             debug("Got event: [%s]" % event, 7)
@@ -104,7 +104,7 @@ class _db(threading.Thread):
     def query(self, statement, commit=1):
         try:
             cursor=self.cursor()
-            debug("Executeing: %s" % statement,7)
+            debug("Executing: %s" % statement,7)
             cursor.execute(statement)
             if commit:
                 self.db.commit()
@@ -177,7 +177,7 @@ VALUES (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid,
         statement = """INSERT INTO eventqvar
         (eventqid, var, val) VALUES
         (%i, '%s', '%s')""" % (nextid, 'descr', event.info.replace("'","\\'"))
-        self.execute(statement)
+        # self.execute(statement)
         debug("Executed: %s" % statement)
 
     def hostsToPing(self):

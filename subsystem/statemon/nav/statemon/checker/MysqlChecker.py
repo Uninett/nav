@@ -22,12 +22,12 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
 from nav.statemon import Socket
 class MysqlChecker(AbstractChecker):
-	def __init__(self, serviceid, boksid, ip, args, version):
-		port = args.get("port", 3306)
-		AbstractChecker.__init__(self, "mysql", serviceid, boksid, (ip, port), args, version)
+	def __init__(self,service, **kwargs):
+		AbstractChecker.__init__(self, "mysql", service, port=3306, **kwargs)
 	def execute(self):
 		s = Socket.Socket(self.getTimeout())
 		s.connect(self.getAddress())
