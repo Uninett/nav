@@ -317,10 +317,27 @@ public class DeviceDB
 	}
 
 	private Map callbackMap = new IdentityHashMap();
+
+	/**
+	 * Schedule a callback after the given delay. Any previously
+	 * scheduled callbacks are canceled.
+	 *
+	 * @param ec The object to callback
+	 * @param delay Delay before callback in milliseconds
+	 */
 	public void scheduleCallback(EventCallback ec, long delay)
 	{
 		scheduleCallback(ec, delay, 1);
 	}
+
+	/**
+	 * Schedule a callback after the given delay. Any previously
+	 * scheduled callbacks are canceled.
+	 *
+	 * @param ec The object to callback
+	 * @param delay Delay before callback in milliseconds
+	 * @param invocationCount Number of callbacks to perform
+	 */
 	public void scheduleCallback(EventCallback ec, long delay, int invocationCount)
 	{
 		CallbackTask ct;
@@ -332,17 +349,32 @@ public class DeviceDB
 			timer.scheduleAtFixedRate(ct, delay, delay);
 		}
 	}
+
+	/**
+	 * Check if a callback is currently scheduled.
+	 *
+	 * @param ec The object to check
+	 * @return if a callback is currently scheduled for the given object
+	 */
 	public boolean isScheduledCallback(EventCallback ec)
 	{
 		return callbackMap.containsKey(ec);
 	}
-	// Return true if a callback was canceled
+
+
+	/**
+	 * Cancel any scheduled callbacks.
+	 *
+	 * @param ec The object to cancel callbacks for
+	 * @return true if a callback was canceled; false otherwise
+	 */
 	public boolean cancelCallback(EventCallback ec)
 	{
 		CallbackTask ct;
 		if ( (ct=(CallbackTask)callbackMap.remove(ec)) != null) ct.cancel();
 		return ct != null;
 	}
+
 	private class CallbackTask extends TimerTask
 	{
 		EventCallback ec;
