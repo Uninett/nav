@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.7 2002/06/12 20:13:53 magnun Exp $
+$Id: RunQueue.py,v 1.8 2002/06/14 16:46:17 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/RunQueue.py,v $
 
 """
@@ -48,7 +48,8 @@ class worker(threading.Thread):
                 self._job=self._runqueue.deq()
                 self.execute()
             except TerminateException:
-                self._runqueue.numThreads -= 1
+                self._runqueue.workers.remove(self)
+#                self._runqueue.numThreads -= 1
                 return
             except:
                 traceback.print_exc()
@@ -101,10 +102,11 @@ class RunQueue:
             self.numThreadsWaiting-=1
             self.debug('Using waiting thread')
             self.awaitWork.notify()
-        elif self.numThreads < self.maxThreads:
+        #elif self.numThreads < self.maxThreads:
+        elif len(self.workers) < self.maxThreads:
             t=worker(self)
             t.setDaemon(self.makeDaemon)
-            self.numThreads+=1
+            #self.numThreads+=1
             if len(self.unusedThreadName) > 0:
                 t.setName(self.unusedThreadName.pop())
             else:
@@ -119,13 +121,13 @@ class RunQueue:
         self.lock.acquire()
         while len(self.rq)==0:
             if self.stop:
-                self.numThreads-=1 
+#                self.numThreads-=1 
                 self.lock.release()
                 raise TerminateException
             self.numThreadsWaiting+=1
             self.awaitWork.wait()
         if self.stop: 
-            self.numThreads-=1 
+#            self.numThreads-=1 
             self.lock.release()
             raise TerminateException
         r=self.rq.get()
