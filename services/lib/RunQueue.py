@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.14 2002/06/28 02:35:01 magnun Exp $
+$Id: RunQueue.py,v 1.15 2002/06/30 02:59:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -10,6 +10,20 @@ import threading, DEQueue, sys, time, types, traceback
 
 class TerminateException(Exception):
     pass
+
+class observer:
+    def __init__(self, rq):
+        self._rq=rq
+
+    def run(self):
+        while not self._rq.stop:
+            for eachWorker in self._rq.workers[1:]:
+                if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
+                    print "Alert: %s has used more than 10 seconds"% eachWorker.getName()
+
+            time.sleep(20)
+
+
 
 class worker(threading.Thread):
     """
@@ -23,6 +37,8 @@ class worker(threading.Thread):
         self._runqueue=rq
         self._runcount=0
         self._running=1
+        self._timeCreated=time.time()
+        self._timeStartExecute=0
 
     def run(self):
         """
@@ -46,6 +62,7 @@ class worker(threading.Thread):
         thread will be recycled.
         """
         self._runcount+=1
+        self._timeStartExecute=time.time()
         self._job.run()
         if self._runcount > self._runqueue.getMaxRunCount():
             self._running=0
@@ -53,6 +70,7 @@ class worker(threading.Thread):
             self._runqueue.workers.remove(self)
             print "Info:  Worker is recycling."
         self._runqueue.debug("%s finished job number %i" % (self.getName(), self._runcount))
+        self._timeStartExecute=0
 
 
 class RunQueue:
@@ -69,6 +87,9 @@ class RunQueue:
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
+        self._observer=observer(self)
+        self.enq(self._observer)
+
 
     def getMaxRunCount(self):
         return self._maxRunCount

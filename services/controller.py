@@ -1,11 +1,11 @@
 #!/usr/bin/python
 """
-$Author: erikgors $
-$Id: controller.py,v 1.20 2002/06/28 10:32:16 erikgors Exp $
+$Author: magnun $
+$Id: controller.py,v 1.21 2002/06/30 02:59:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
-__version__ = '$Id: controller.py,v 1.20 2002/06/28 10:32:16 erikgors Exp $'
+__version__ = '$Id: controller.py,v 1.21 2002/06/30 02:59:36 magnun Exp $'
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
@@ -17,11 +17,11 @@ class controller:
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
-        self._runqueue=RunQueue.RunQueue(controller=self)
         self._isrunning=1
         self._jobs=[]
         self._looptime=60
         self._debuglevel=0
+        self._runqueue=RunQueue.RunQueue(controller=self)
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
 
