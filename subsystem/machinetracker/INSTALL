@@ -1,12 +1,21 @@
-För att installera Machine Tracker Web Services .NET, måste ni:
+IUSE=jallalanguage
 
-* kopiera katalogen machinetracker till webroot
-* kopiera från Isbre, eller konfigurera själv
-  /usr/local/nav/local/etc/conf/machinetracker.conf
-* se till att ArpCamTemplate är kompilerad upp på rätt plats
+DESCRIPTION="Machine tracking tool of the NAVv3 package"
 
-Ni vill observera att swithcport-söket endast finnst i alfaversion.
+DEPEND=nav.web.URI
 
+PREPARE{
+	mkdir $APACHE/webroot/machinetracker
+}
+DIR=$APACHE/webroot/machinetracker
 
-Helsningar från Mjukvaru- och Utvecklingsdivisionen
+COPY{
+	cp src/machinetracker.py web $DIR/machinetracker.py
+	cp src/htaccess $DIR/machinetracker.py
+}
+
+CHEETAH-COMPILE{
+	cheetah-compile src/MachineTrackerTemplate.tmpl $DIR/MachineTrackerTemplate
+}
+
 
