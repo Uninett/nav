@@ -20,7 +20,7 @@ class EventImpl implements Event, Alert
 	private String source;
 	private int deviceid;
 	private int netboxid;
-	private int subid;
+	private String subid;
 	private Date time;
 	private String eventtypeid;
 	private int state;
@@ -37,7 +37,7 @@ class EventImpl implements Event, Alert
 	private boolean disposed;
 	private boolean deferred;
 
-	public EventImpl(String eventqid, String source, int deviceid, int netboxid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
+	public EventImpl(String eventqid, String source, int deviceid, int netboxid, String subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
 	{
 		this.eventqid = eventqid;
 		this.source = source;
@@ -93,7 +93,7 @@ class EventImpl implements Event, Alert
 	public int getDeviceid() { return deviceid; }
 	public Integer getDeviceidI() { return new Integer(deviceid); }
 	public int getNetboxid() { return netboxid; }
-	public int getSubid() { return subid; }
+	public String getSubid() { return subid; }
 	public Date getTime() { return time; }
 	public String getTimeS() { return dateToString(time); }
 	public String getEventtypeid() { return eventtypeid; }
@@ -145,7 +145,7 @@ class EventImpl implements Event, Alert
 	// Alert
 	public void setDeviceid(int deviceid) { this.deviceid = deviceid; }
 	public void setNetboxid(int netboxid) { this.netboxid = netboxid; }
-	public void setSubid(int subid) { this.subid = subid; }
+	public void setSubid(String subid) { this.subid = subid; }
 	public void setEventtypeid(String eventtypeid) { this.eventtypeid = eventtypeid; }
 	public void setState(int state) { this.state = state; }
 	public void setValue(int value) { this.value = value; }
@@ -226,7 +226,7 @@ class EventImpl implements Event, Alert
 	public String getSourceSql() { return source; }
 	public String getDeviceidSql() { return deviceid>0 ? String.valueOf(deviceid) : "null"; }
 	public String getNetboxidSql() { return netboxid>0 ? String.valueOf(netboxid) : "null"; }
-	public String getSubidSql() { return subid>0 ? String.valueOf(subid) : "null"; }
+	public String getSubidSql() { return subid; }
 	public String getTimeSql() { return dateToString(time); }
 	public String getEventtypeidSql() { return eventtypeid; }
 	public String getStateSql()
@@ -246,7 +246,7 @@ class EventImpl implements Event, Alert
 		StringBuffer sb = new StringBuffer();
 		if (deviceid > 0) sb.append(deviceid+":");
 		if (netboxid > 0) sb.append(netboxid+":");
-		if (subid > 0) sb.append(subid+":");
+		if (subid != null) sb.append(subid+":");
 		sb.append(eventtypeid+":");
 		sb.append(state);
 		return sb.toString();

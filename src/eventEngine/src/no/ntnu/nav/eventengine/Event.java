@@ -34,7 +34,7 @@ public interface Event
 	public int getDeviceid();
 	public Integer getDeviceidI();
 	public int getNetboxid();
-	public int getSubid();
+	public String getSubid();
 	public Date getTime();
 	public String getTimeS();
 	public String getEventtypeid();

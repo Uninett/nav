@@ -442,7 +442,7 @@ class PluginMonitorTask extends TimerTask
 }
 
 
-class EventqMonitorTask extends TimerTask
+class EventqMonitorTask extends TimerTask implements EventHandler
 {
 	MessagePropagator mp;
 	Map handlerClassMap;
@@ -464,6 +464,7 @@ class EventqMonitorTask extends TimerTask
 	{
 		//Map cloneMap = (Map) ((HashMap)handlerClassMap).clone();
 		handlerCache.clear();
+		handlerCache.put(handleEventTypes()[0], this);
 		for (Iterator i=handlerClassMap.values().iterator(); i.hasNext();) {
 			Class c = (Class)i.next();
 			EventHandler eh;
@@ -482,6 +483,19 @@ class EventqMonitorTask extends TimerTask
 			}
 		}
 
+	}
+
+	public String[] handleEventTypes() { return new String[] { "notification" }; }
+	public void handle(DeviceDB ddb, Event e, ConfigParser cp) {
+		// Event for me!
+		String cmd = e.getVar("command");
+		if ("updateFromDB".equals(cmd)) {
+			mp.updateFromDB();
+			e.dispose();
+		} else {
+			Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown notification command: " + cmd);
+			e.defer("Unknown notification command: " + cmd);
+		}		
 	}
 
 	public void run()
@@ -508,19 +522,9 @@ class EventqMonitorTask extends TimerTask
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Got event: " + e);
 
 				String eventtypeid = e.getEventtypeid();
-				if (eventtypeid.equals("notification")) {
-					// Event for me!
-					String cmd = e.getVar("command");
-					if ("updateFromDB".equals(cmd)) {
-						mp.updateFromDB();
-						e.dispose();
-					} else {
-						Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown notification command: " + cmd);
-						e.defer("Unknown notification command: " + cmd);
-					}
+				EventHandler eh = (EventHandler)handlerCache.get( (handlerCache.containsKey(eventtypeid) ? eventtypeid : "info") ) ;
 
-				} else if (handlerCache.containsKey(eventtypeid)) {
-					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
+				if (eh != null) {
 					Log.d("EVENTQ_MONITOR_TASK", "RUN", "Found handler: " + eh.getClass().getName());
 					Database.beginTransaction();
 					try {

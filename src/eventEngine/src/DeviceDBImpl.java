@@ -64,7 +64,7 @@ class DeviceDBImpl implements DeviceDB
 		String source = rs.getString("source");
 		int deviceid = rs.getInt("deviceid");
 		int boxid = rs.getInt("netboxid");
-		int subid = rs.getInt("subid");
+		String subid = rs.getString("subid");
 		String time = rs.getString(history?"start_time":"time");
 		String eventtypeid = rs.getString("eventtypeid");
 		char state = history ? 's' : rs.getString("state").charAt(0);
@@ -277,7 +277,7 @@ class DeviceDBImpl implements DeviceDB
 		String tableid = table+"id";
 		String tablemsg = table+"msg";
 
-		String alerttypeidExpr = e.getAlerttype() != null ? "(SELECT alerttypeid FROM alerttype WHERE alerttype='"+e.getAlerttype()+"')" : null;
+		String alerttypeidExpr = e.getAlerttype() != null ? "(SELECT alerttypeid FROM alerttype WHERE eventtypeid='" + e.getEventtypeid() + "' AND alerttype='"+e.getAlerttype()+"')" : null;
 
 		String id;
 
@@ -316,6 +316,20 @@ class DeviceDBImpl implements DeviceDB
 				ins = s;
 			}
 			id = Database.insert(table, ins, null);
+
+			if (!history) {
+				// Also insert into alertqvar all event vars
+				for (Iterator it = e.getVarIterator(); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					
+					String[] s = {
+						tableid, id,
+						"var", (String)me.getKey(),
+						"val", (String)me.getValue()
+					};
+					Database.insert("alertqvar", s);
+				}
+			}
 		} else {
 			id = alerthistid;
 		}

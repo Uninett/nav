@@ -109,7 +109,7 @@ public class BoxState implements EventHandler, EventCallback
 					Log.w("HANDLE", "Module " + m + " does not have a valid parent device (id="+m.getParentDeviceid()+")");
 				}
 				if (eventtype.equals("linkState")) {
-					Port p = m.getPort(e.getSubid());
+					Port p = m.getPort(Integer.parseInt(e.getSubid()));
 					if (p == null) {
 						Log.d("HANDLE", "Port="+e.getSubid()+" in module="+m.getModule()+" not found!");
 						return;

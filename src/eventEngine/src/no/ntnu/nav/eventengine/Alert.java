@@ -12,7 +12,7 @@ public interface Alert
 
 	public void setDeviceid(int deviceid);
 	public void setNetboxid(int netboxid);
-	public void setSubid(int subid);
+	public void setSubid(String subid);
 	public void setEventtypeid(String eventtypeid);
 	public void setState(int state);
 	public void setValue(int value);
