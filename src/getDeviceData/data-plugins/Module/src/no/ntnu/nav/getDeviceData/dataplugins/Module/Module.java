@@ -74,9 +74,9 @@ public class Module extends Device implements Comparable
 	}
 	
 	public boolean equals(Object o) {
-		return (o instanceof Module && 
-						equalsModule((Module)o) &&
-						super.equals(o));
+		return (o instanceof Module &&
+						module != null &&
+						module.equals(((Module)o).module));
 	}
 
 

@@ -59,7 +59,8 @@ public class Device
 
 	public boolean equals(Object o) {
 		return (o instanceof Device &&
-						equalsDevice((Device)o));
+						serial != null &&
+						serial.equals(((Device)o).serial));
 	}
 
 	public String toString() { return "Device deviceid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" sw_ver="+sw_ver; }

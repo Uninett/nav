@@ -55,8 +55,24 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 */
 	public Module moduleFactory(String serial, String hw_ver, String sw_ver, String module) {
 		Module m = new Module(serial, hw_ver, sw_ver, module);
-		moduleList.add(m);
+		int k;
+		if ( (k=moduleList.indexOf(m)) >= 0) {
+			m = (Module)moduleList.get(k);
+		} else {
+			addModule(m);
+		}
 		return m;
+	}
+
+	/**
+	 * Add the module to the internal module list.
+	 *
+	 * @param m The module to add
+	 */
+	protected void addModule(Module m) {
+		// Also add it to the parent
+		addDevice(m);
+		moduleList.add(m);
 	}
 
 	public void commit() {

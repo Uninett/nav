@@ -62,8 +62,24 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 */
 	public SwModule swModuleFactory(String serial, String hw_ver, String sw_ver, String module) {
 		SwModule m = new SwModule(serial, hw_ver, sw_ver, module);
-		swModuleList.add(m);
+		int k;
+		if ( (k=swModuleList.indexOf(m)) >= 0) {
+			m = (SwModule)swModuleList.get(k);
+		} else {
+			swModuleList.add(m);
+		}
 		return m;
+	}
+
+	/**
+	 * Add the switch module to the internal switch module list.
+	 *
+	 * @param m The switch module to add
+	 */
+	protected void addSwModule(SwModule m) {
+		// Also add it to the parent
+		addModule(m);
+		swModuleList.add(m);
 	}
 
 	// Doc in parent

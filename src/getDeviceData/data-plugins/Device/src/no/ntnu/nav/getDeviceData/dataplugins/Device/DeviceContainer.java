@@ -52,8 +52,22 @@ public class DeviceContainer implements DataContainer {
 	 */
 	public Device deviceFactory(String serial, String hw_ver, String sw_ver) {
 		Device d = new Device(serial, hw_ver, sw_ver);
-		deviceList.add(d);
+		int k;
+		if ( (k=deviceList.indexOf(d)) >= 0) {
+			d = (Device)deviceList.get(k);
+		} else {
+			addDevice(d);
+		}
 		return d;
+	}
+
+	/**
+	 * Add the device to the internal device list.
+	 *
+	 * @param d The device to add
+	 */
+	protected void addDevice(Device d) {
+		deviceList.add(d);
 	}
 
 	public void commit() {

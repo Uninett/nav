@@ -213,6 +213,9 @@ public class Swport implements Comparable
 	}
 	*/
 
+	/**
+	 * Checks if all fields in the given swport are equal to this one.
+	 */
 	public boolean equalsSwport(Swport sw) {
 		return (port.equals(sw.port) &&
 						ifindex.equals(sw.ifindex) &&
@@ -224,9 +227,14 @@ public class Swport implements Comparable
 						portname.equals(sw.portname));
 	}
 
+	/**
+	 * Two swports are equal if their module number and ifindex are
+	 * equal.
+	 */
 	public boolean equals(Object o) {
-		return (o instanceof Swport && 
-						equalsSwport((Swport)o) &&
+		return (o instanceof Swport &&
+						ifindex != null &&
+						ifindex.equals(((Swport)o).ifindex) &&
 						super.equals(o));
 	}
 
