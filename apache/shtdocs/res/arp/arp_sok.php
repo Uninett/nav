@@ -24,7 +24,6 @@ if ($vars[prefiksid])
   $dager = 7;
 
   list($IPfra,$IPtil) = IPrange($dbh,$prefix,$vars[prefiksid]);
-
 }
 else
 {
@@ -68,12 +67,58 @@ navslutt();
 
 function mac_sok($dbh,$mac,$dns,$dager,$prefix)
 {
-print "<b>MAC: $mac</b><br>";
+print "<b>MAC: $mac</b><p>";
 
 $mac = ereg_replace (":", "", $mac);
 $mac = ereg_replace ("\.", "", $mac);
 $mac = ereg_replace ("-", "", $mac);
 
+
+# # # # # Oppslag i CAM # # # # #
+
+// Connecting, selecting database
+$link = mysql_connect("localhost", "nett", "stotte")
+                   or print("Kunne ikke koble opp mot MySQL-databasen.");
+
+
+mysql_select_db("manage");
+
+$sql = "SELECT hub,up,mac,fra,til FROM cam WHERE (mac LIKE '$mac%' AND (TO_DAYS(NOW())-TO_DAYS(til)< '$dager' OR til IS NULL)) ORDER BY mac,fra DESC";
+
+#print "SQL: $sql<br>";
+
+$result = mysql_query($sql);
+
+if (mysql_num_rows($result) == 0)
+{
+  print "<h3>Ikke resultat på søk i cam-tabellen.</h3><p>";
+}
+else
+{
+  print "<h3>Søk i cam-tabellen:</h3><p>";
+
+  print "<font color=red><b>Merk! Også uplinkporter logges.</b><br>";
+  print "Dette medfører at det kan se ut som om en macadresse er bak flere porter.<br>";
+  print "Vanligvis brukes port x:24 eller x:26 som uplinkport.</font><p>";
+
+  print "<table>";
+  print "<tr><th>mac</th><th>enhet</th><th>unit:port</th><th>fra</th><th>til</th></tr>";
+
+  while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) 
+  {
+    ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$line[mac],$regs);
+    $mac1 = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
+
+    print "<tr><td><font color=blue>$mac1</td><td>$line[hub]</td><td align=center>$line[up]</td><td><font color=green>$line[fra]</td><td><font color=red>$line[til]</td></tr>";
+  }
+}
+
+print "</table><p>";
+
+mysql_close($link);
+
+
+# # # # # Oppslag i ARP # # # # #
 
 $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra";
 
@@ -82,10 +127,12 @@ $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (t
  
   if ($rows == 0)
   {
-    print "<b>Ingen treff</b><br>";
+    print "<h3>Ingen treff i arp-tabellen</h3>";
   }
   else
   {
+    print "<h3>Søk i arp-tabellen:</h3><p>";
+
     $dnsip='heisan';
     print "<TABLE>";
     print "<tr><th>IP</th>";
@@ -327,7 +374,7 @@ function IPrange($dbh,$prefix,$prefiksid)
 
       $til = "$bcast[2].$bcast[3]";
 
-      return array($fra,$til);
+     return array($fra,$til);
 
     }
   }
