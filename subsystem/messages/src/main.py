@@ -416,7 +416,7 @@ def maintenance(req, id = None):
     
     selectBox = TreeSelect()
     searchbox = SearchBox.SearchBox(req,
-                'Type a room id, an ip or a (partial) sysname or servicename', form=False)
+                'Type a room id, an ip or a (partial) sysname or servicename', title="Quicksearch", form=False)
     searchbox.addSearch('host',
                         'ip or hostname',
                         'Netbox',

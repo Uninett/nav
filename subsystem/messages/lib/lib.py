@@ -119,9 +119,9 @@ def messagelist(user,view="active",offset=0):
         time = "publish_end > now() and publish_start < now()"
 
     if access:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by publish_end desc, last_changed desc limit %d offset %d" %(time,LIMIT,offset*LIMIT))
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time,LIMIT,offset*LIMIT))
     else:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by publish_end desc, last_changed desc limit %d offset %d" %(time, LIMIT, offset*LIMIT))
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time, LIMIT, offset*LIMIT))
 
     messages = []
     for (id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units) in database.fetchall():
