@@ -46,6 +46,8 @@ DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
 DROP SEQUENCE vpboksxy_vpboksxyid_seq;
 
+DROP SEQUENCE service_serviceid_seq;
+
 -- Slette alle indekser
 
 ---------------------- JM - don't touch
@@ -203,6 +205,7 @@ CREATE TABLE module (
 CREATE TABLE service (
   serviceid SERIAL PRIMARY KEY,
   boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  active BOOL DEFAULT true,
   handler VARCHAR(8),
   version VARCHAR(128)
 );
