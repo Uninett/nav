@@ -30,8 +30,8 @@ import java.io.*;
 import java.util.*;
 import java.sql.*;
 
-import uk.co.westhawk.snmp.stack.*;
-import uk.co.westhawk.snmp.pdu.*;
+//import uk.co.westhawk.snmp.stack.*;
+//import uk.co.westhawk.snmp.pdu.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
