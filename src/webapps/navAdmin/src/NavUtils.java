@@ -1288,6 +1288,7 @@ class NavUtils
 		}
 
 		// Til slutt går vi gjennom vlanRename og renamer alle vlan der det må gjøres
+		/*
 		iter = vlanRename.iterator();
 		while (iter.hasNext()) {
 			HashMap vlanRenameEntry = (HashMap)iter.next();
@@ -1302,6 +1303,8 @@ class NavUtils
 
 			renamecnt++;
 		}
+		*/
+		renamecnt += vlanRename.size();
 
 		// Then we delete all vlans without either prefices or swports
 		int unusedCnt = Database.update("DELETE FROM vlan WHERE vlanid NOT IN ((SELECT vlanid FROM prefix) UNION (SELECT vlanid FROM swportvlan))");
@@ -1492,7 +1495,9 @@ class NavUtils
 						// Også bytt ut i activeVlan
 						Map map = (Map)activeVlan.get(toid);
 						if (map != null && map.containsKey(new Integer(vlanBack))) {
-							map.put(new Integer(vlan), map.remove(new Integer(vlanBack)));
+							Collection c;
+							if ((c = (Collection)map.get(new Integer(vlan))) == null) map.put(new Integer(vlan), c = new HashSet());
+							c.addAll((Collection)map.remove(new Integer(vlanBack)));
 						}
 
 						HashMap vlanRenameEntry = new HashMap();
