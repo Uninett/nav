@@ -56,7 +56,8 @@ public class ModuleMonHandler implements DataHandler {
 				MultiMap queryIfindicesL = new HashMultiMap();
 				Map moduleToIfindexL = Collections.synchronizedMap(new HashMap());
 				Set queryDupe = new HashSet();
-				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
+				Set nullPortSet = new HashSet();
+				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module,port FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
 				while (rs.next()) {
 					String netboxid = rs.getString("netboxid");
 					moduleMapL.put(rs.getString("netboxid")+":"+rs.getString("module"), rs.getString("moduleid"));
@@ -64,6 +65,13 @@ public class ModuleMonHandler implements DataHandler {
 					modulesL.put(rs.getString("netboxid"), rs.getString("moduleid"));
 
 					String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
+					if (rs.getString("port") == null && !queryDupe.contains(k)) {
+						nullPortSet.add(k);
+					} else {
+						if (nullPortSet.remove(k)) {
+							queryDupe.remove(k);
+						}
+					}
 					if (queryDupe.add(k)) {
 						queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
 
