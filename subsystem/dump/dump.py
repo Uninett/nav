@@ -158,10 +158,12 @@ class Handlers:
             line.append(prefix.netaddr)
             line.append(vlan.nettype.nettypeid)
             line.append(vlan.org and vlan.org.orgid or "")
+            line.append(vlan.netident or "")
             line.append(vlan.usage and vlan.usage.usageid or "")
             line.append(vlan.description or "")
             line.append(vlan.vlan and str(vlan.vlan) or "")
             lineout(line)
+
 
     def service(self):
         global SEPARATOR
