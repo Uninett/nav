@@ -74,6 +74,20 @@ sub collectInfo()
 	return 0;
       }
 
+    if(!defined($info)) {
+	my $sth=$this->{dbh}->prepare("select p.activeprofile, 'en',extract('dow' from now()),a.login from account a, preference p where p.accountid=a.id and a.id=$this->{id}");
+
+	$sth->execute();
+	
+	$info=$sth->fetchrow_arrayref();
+	
+	if($DBI::errstr)
+	{
+	    $this->{log}->printlog("User","collectInfo",$Log::error,"could not get account information about acountid=$this->{id}");
+	    return 0;
+	}
+    }
+
     $this->{activeProfile}=$info->[0];
     $this->{lang}=$info->[1];
     $this->{day}=$info->[2];
@@ -139,7 +153,7 @@ sub collectTimePeriod()
 	# if not, NOW is a week-day.
 	} else {
    		# Set except type to 2, which means all time periods except weekdays
-		$exceptHelgType = 2;
+		$exceptHelgType = 3;
 	}	
 	
 	# 	Extract all timeperiods valid, and sort by which starttime is most recent. The somewhat nasty SQL 
@@ -156,7 +170,7 @@ sub collectTimePeriod()
 
 	# Execute generated query.
 	$tps = $this->{dbh}->selectall_arrayref($tpquery);
-	
+
 	# Exctract first row, which is the most recent time period set active 
     my $tp=$tps->[0];
 
@@ -190,7 +204,12 @@ sub collectTimePeriod()
 	$c2++;
       }
 
-    $this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"collected $c2 time periods");
+    $this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"collected $c2 alarm addresses");
+
+    if($c2==0) {
+	$this->{log}->printlog("User","collectTimePeriod",$Log::warning,"could not get information about addresses for timeperiodid=$tp->[0]");
+	return 0;
+    }
 
     return 1;
   }
