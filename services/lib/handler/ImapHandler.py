@@ -1,5 +1,5 @@
 """
-$Id: ImapHandler.py,v 1.7 2002/12/09 15:33:15 magnun Exp $
+$Id: ImapHandler.py,v 1.8 2003/01/03 15:43:54 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/ImapHandler.py,v $
 """
 
@@ -26,10 +26,11 @@ class ImapHandler(JobHandler):
 	username
 	password
 	"""
-	def __init__(self, serviceid, boksid, ip, args, version, sysname):
-		port = args.get("port", 143)
-		JobHandler.__init__(self, "imap", serviceid, boksid, (ip, port), args, version, sysname)
-		
+	def __init__(self,service):
+		port = service['args'].get('port', 143)
+		service['ip']=(service['ip'],port)
+		JobHandler.__init__(self, "imap", service)
+	
 	def execute(self):
 		args = self.getArgs()
 		user = args.get("username","")
