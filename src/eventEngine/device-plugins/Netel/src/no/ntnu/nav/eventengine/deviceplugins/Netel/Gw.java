@@ -93,9 +93,9 @@ public class Gw extends Netel
 	 *
 	 * @return true if this router is up
 	 */
-	protected boolean reachableFrom(Box b, int vlan, Set visited)
+	protected int reachableFrom(Box b, int vlan, Set visited)
 	{
-		return isUp();
+		return isUp() ? REACHABLE_YES : REACHABLE_NO;
 	}
 
 }

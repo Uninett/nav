@@ -174,22 +174,26 @@ public class Netel extends Box
 		super.updateStatus();
 		if (isUp()) return;
 
-		if (!reachableFrom(this, vlan, new HashSet())) {
+		if (reachableFrom(this, vlan, new HashSet()) == REACHABLE_NO) {
 			shadow();
 		}
 	}
 
+	protected static final int REACHABLE_YES = 0; 
+	protected static final int REACHABLE_NO = 1; 
+	protected static final int REACHABLE_UNKNOWN = 2; 
 
 	/**
 	 * Check if b is reachable from this Netel.
 	 *
 	 * @return true if b is reachable from this Netel; false otherwise
 	 */
-	protected boolean reachableFrom(Box b, int vlan, Set visited)
+	protected int reachableFrom(Box b, int vlan, Set visited)
 	{
 
 		boolean foundDownlink = false;
-		boolean foundUplink = false;
+		boolean foundUplink = true;
+		int reachable = REACHABLE_UNKNOWN;
 
 		outld("reachableFrom: @"+sysname+", vlan="+vlan);
 
@@ -199,10 +203,10 @@ public class Netel extends Box
 			visited.add(getDeviceidI());
 		} else {
 			// If we are down, b is obviously not reachable from here :)
-			if (!isUp()) return false;
+			if (!isUp()) return REACHABLE_NO;
 		}
 
-		for (Iterator i=modules.iterator(); i.hasNext();) {
+		for (Iterator i=modules.iterator(); reachable != REACHABLE_YES && i.hasNext();) {
 			Module m = (Module)i.next();
 			// Verify that we have a downlink to b on the correct vlan
 			for (Iterator j=m.getPortsTo(b); !foundDownlink && j.hasNext();) {
@@ -220,7 +224,7 @@ public class Netel extends Box
 			outld("  Scan for uplink..., module: " + m.getModule());
 
 			// Try to find an uplink which has the correct vlan reachable
-			for (Iterator j=m.getPorts(); !foundUplink && j.hasNext();) {
+			for (Iterator j=m.getPorts(); j.hasNext();) {
 				Port p = (Port)j.next();
 				int dir = p.vlanDirection(vlan);
 				outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + "dev: " + boxidToDeviceid(p.getBoxidBehind()));
@@ -231,11 +235,20 @@ public class Netel extends Box
 						outld("  Reachable from uplink " + n.sysname + "?");
 
 						// Visit this box if we have not already
-						if (visited.add(n.getDeviceidI()) && n.reachableFrom(this, vlan, visited)) {
-							outld("  Yes.");
-							foundUplink = true;
+						if (visited.add(n.getDeviceidI())) {
+							int r = reachableFrom(this, vlan, visited);
+							if (r == REACHABLE_YES) {
+							    outld("  Yes.");
+							    reachable = r;
+							    break;
+							}
+							if (r == REACHABLE_NO) {
+							    outld("  No.");
+							    reachable = r;
+							} else {
+							    outld("  Unknown.");
+							}
 						}
-						if (!foundUplink) outld("  No.");
 					} else {
 						outld("  Error! Device not Netel: " + d);
 					}
@@ -248,27 +261,8 @@ public class Netel extends Box
 			errl("Netel.reachableFrom: Box " + b.getSysname() + " has uplink to " + sysname + ", but no downlink (on same vlan) found!");
 		}
 
-		return foundUplink;
+		return reachable;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
