@@ -542,8 +542,7 @@ public class QueryNetbox extends Thread
 			if (nbRunQ.isEmpty()) return new Long(Long.MAX_VALUE / 2); // Infinity...
 
 			Long nextRun = (Long)nbRunQ.firstKey();
-			// Allow netboxes scheduled in the next 3 seconds
-			if (nextRun.longValue() - 3000 > System.currentTimeMillis()) return new Long(nextRun.longValue() - System.currentTimeMillis());
+			if (nextRun.longValue() > System.currentTimeMillis()) return new Long(nextRun.longValue() - System.currentTimeMillis());
 
 			LinkedList l = (LinkedList)nbRunQ.get(nextRun);
 			NetboxImpl nb  = (NetboxImpl)l.removeFirst();
