@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.15 2002/06/30 02:59:36 magnun Exp $
+$Id: RunQueue.py,v 1.16 2002/07/01 09:20:25 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -19,7 +19,7 @@ class observer:
         while not self._rq.stop:
             for eachWorker in self._rq.workers[1:]:
                 if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
-                    print "Alert: %s has used more than 10 seconds"% eachWorker.getName()
+                    print "Alert: %s - %s has used more than 10 seconds running %s"% (time.strftime('%d %b %Y %H:%M:%S ', time.localtime()), eachWorker.getName(), eachWorker._job.getType())
 
             time.sleep(20)
 

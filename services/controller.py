@@ -1,11 +1,11 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.21 2002/06/30 02:59:36 magnun Exp $
+$Id: controller.py,v 1.22 2002/07/01 09:20:25 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
-__version__ = '$Id: controller.py,v 1.21 2002/06/30 02:59:36 magnun Exp $'
+__version__ = '$Id: controller.py,v 1.22 2002/07/01 09:20:25 magnun Exp $'
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
@@ -21,7 +21,7 @@ class controller:
         self._jobs=[]
         self._looptime=60
         self._debuglevel=0
-        self._runqueue=RunQueue.RunQueue(controller=self)
+        self._runqueue=RunQueue.RunQueue(controller=self, maxthreads=20)
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
 
