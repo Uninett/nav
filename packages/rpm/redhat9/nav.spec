@@ -1,10 +1,10 @@
-%define version 3.0_beta1
+%define version 3.0_beta3
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 2
+Release: 1
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
@@ -29,11 +29,6 @@ make
 %install
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT install
-extra=`find bin/ -name '*.sh'`
-for file in $extra
-do
-  install -v -m 755 -D $file ${RPM_BUILD_ROOT}%{_prefix}/$file
-done
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -92,6 +87,14 @@ fi
 
 
 %changelog
+* Fri Mar 19 2004  <morten.vold@itea.ntnu.no>
+
+- Grabbed new version 3.0_beta3.
+
+* Thu Mar 11 2004  <morten.vold@itea.ntnu.no>
+
+- Grabbed new version 3.0_beta2.
+
 * Tue Mar 09 2004  <morten.vold@itea.ntnu.no>
 
 - Some files weren't updated before first beta release was rolled.
