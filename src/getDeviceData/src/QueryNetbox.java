@@ -337,23 +337,30 @@ public class QueryNetbox extends Thread
 						Log.d("RUN", "TimeoutException: " + te.getMessage());
 						Log.w("RUN", "GIVING UP ON: " + sysName + ", typeid: " + type );
 						continue;
+					} catch (Exception exp) {
+						Log.w("RUN", "Fatal error from devicehandler, skipping. Exception: " + exp.getMessage());
+						exp.printStackTrace(System.err);
+					} catch (Throwable e) {
+						Log.w("RUN", "Fatal error from devicehandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+						e.printStackTrace(System.err);
 					}
 
 				}
 
 				// Call the data handlers for all data plugins
-				containers.callDataHandlers(nb);
-
+				try { 
+					containers.callDataHandlers(nb);
+				} catch (Exception exp) {
+					Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
+					exp.printStackTrace(System.err);
+				} catch (Throwable e) {
+					Log.w("RUN", "Fatal error from datahandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+					e.printStackTrace(System.err);
+				}
+				
 			} catch (NoDeviceHandlerException exp) {
 				Log.d("RUN", exp.getMessage());
-			} catch (Exception exp) {
-				Log.w("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
-				exp.printStackTrace(System.err);
-			} catch (Throwable e) {
-				Log.w("RUN", "Fatal error, plugin is probably old and needs to be updated to new API: " + e.getMessage());
-				e.printStackTrace(System.err);
 			}
-
 			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
 			Log.d("RUN", "Done processing netbox " + nb);
 
