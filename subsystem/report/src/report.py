@@ -1,13 +1,13 @@
 from mod_python import apache,util
 
 import re,string,copy,pprint
-
+import os.path, nav.path
 from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
 
 from Generator import Generator,ReportList
 
-configFile = "/usr/local/nav/local/etc/conf/report/report.conf"
-frontFile = "/usr/local/nav/local/etc/conf/report/front.html"
+configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
+frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
 
 def handler(req):
     uri = req.unparsed_uri

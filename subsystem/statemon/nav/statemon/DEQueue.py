@@ -1,6 +1,6 @@
 """
-$Author: magnun $
-$Id: DEQueue.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
+$Author$
+$Id$
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/DEQueue.py,v $
 """
 

@@ -11,7 +11,6 @@
 
 # The paths we use for the different scripts
 BDIR=/usr/local/nav/navme/bin
-LDIR=/usr/local/nav/local/cron
 LOGDIR=/usr/local/nav/local/log
 PERL5LIB=/usr/local/nav/navme/lib/perl
 
@@ -23,7 +22,7 @@ MAILTO=%ADMIN_MAIL%
 # This subsystem makes backup of vital information in NAV. 
 # To be able to roll back after a severe crash, this is a 
 # good thing to keep running.
-58 4 * * * /usr/local/nav/navme/cron/pg_backup.pl 2>/dev/null
+58 4 * * * $BDIR/pg_backup.pl 2>/dev/null
 # </backup>
 
 # <cricket>

@@ -1,13 +1,20 @@
-#!/usr/bin/perl
-## Name:	arplogger.pl
-## $Id: arplogger.pl,v 1.11 2003/06/26 13:36:13 grohi Exp $
-## Author:	Stig Venaas   <venaas@itea.ntnu.no>
-## Uses some code from test/arp by Simon Leinen. test/arp is distributed
-## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
-## we are using.
-##
-## Modified by grohi@itea.ntnu.no, Aug/Sept/Oct 2001
-######################################################################
+#!/usr/bin/env perl
+####################
+#
+# $Id: $
+# This file is part of the NAV project.
+# Retrieves arp tables from network equipment and stores them in the
+# database.
+#
+# Uses some code from test/arp by Simon Leinen. test/arp is
+# distributed with the Perl SNMP library by Simon Leinen
+# <simon@switch.ch> that we are using.
+#
+# Copyright (c) 2001-2004 by NTNU ITEA
+# Authors: Stig Venaas <venaas@itea.ntnu.no>
+#          Gro-Anita Vindheim <grohi@itea.ntnu.no>
+#
+####################
 
 # * asks the database for data (which gw's to get arp from++)
 # * asks each gw for it's 
@@ -23,6 +30,8 @@ use SNMP_Session "0.57";
 
 use BER;
 use Pg;
+use NAV;
+use NAV::Path;
 
 my @arguments;
 my $filename;
@@ -49,8 +58,6 @@ my $tot_avs=0;
 my $tot_oppdat=0;
 my $tot_nye=0;
 
-my $sti = '/usr/local/nav/log/arp/';
-
 my %OIDS = (
 	    'ipNetToMediaPhysAddress' => [1,3,6,1,2,1,4,22,1,2],
 	    'ipNetToMediaType' => [1,3,6,1,2,1,4,22,1,4],
@@ -59,16 +66,11 @@ my %OIDS = (
 
 # Hente aktuelle rutere fra databasen.
 
-my %dbconf = &db_readconf();
-my $db = $dbconf{db_nav};
-my $dbuser = $dbconf{script_arplogger};
-my $dbuserpw = $dbconf{'userpw_' . $dbuser};
-my $conn = db_connect($db, $dbuser, $dbuserpw);
-
+my $conn = NAV::connection("arplogger", "manage");
 
 my $sql = "SELECT netboxid,ip,ro,sysname FROM netbox WHERE catid=\'GW\' OR catid=\'GSW\'";
 
-my $resultat = db_select($sql,$conn);
+my $resultat = NAV::select($conn, $sql);
 
 while(my @line = $resultat->fetchrow) 
 {
@@ -79,7 +81,7 @@ while(my @line = $resultat->fetchrow)
 
 $sql = "select netboxid,prefixid,host(netaddr) from gwportprefix join gwport using (gwportid) join module using (moduleid) join prefix using (prefixid)";
 
-$resultat = db_select($sql,$conn);
+$resultat = NAV::select($conn, $sql);
 
 while (my @line = $resultat->fetchrow) 
 {
@@ -89,7 +91,7 @@ while (my @line = $resultat->fetchrow)
 
 $sql= "SELECT arpid,netboxid,ip,mac FROM arp WHERE end_time='infinity'"; 
 
-$resultat = db_select($sql,$conn);
+$resultat = NAV::select($conn, $sql);
 
 while (my @line = $resultat->fetchrow) 
 {
@@ -128,7 +130,7 @@ while (@arguments)
 	my $sql = "UPDATE arp SET end_time=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
 
 	$avsluttes++;
-	db_execute($sql,$conn);
+	NAV::execute($conn, $sql);
 	
     }
     
@@ -168,13 +170,13 @@ sub process_arp_entry ($$$) {
 
 	    # Avslutte gammel record. 
 	    my $sql1 = "UPDATE arp SET end_time=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
-	    db_execute($sql1,$conn);
+	    NAV::execute($conn, $sql1);
 	    
 	    # Legge inn ny record.
 	    if ($prefiks2boks{$prefiksid} == $hostid)
 	    {
 		my $sql2 = "INSERT INTO arp (netboxid,prefixid,ip,mac,sysname,start_time) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
-		db_execute($sql2,$conn);
+		NAV::execute($conn, $sql2);
 	    }
 	    $oppdat++;	    
 	}
@@ -191,7 +193,7 @@ sub process_arp_entry ($$$) {
 	if ($prefiks2boks{$prefiksid} == $hostid)
 	{
 	    my $sql2 = "INSERT INTO arp (netboxid,prefixid,ip,mac,sysname,start_time) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
-	    db_execute($sql2,$conn);
+	    NAV::execute($conn, $sql2);
 
 	    $nye++;
 	}
@@ -240,36 +242,3 @@ sub and_ip
 
 ###############################################
 
-sub db_readconf {
-    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
-
-    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
-    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
-    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
-    close(IN);
-
-    return %hash;
-}
-
-sub db_connect {
-    my($db, $user, $pass) = @_;
-    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
-    return $conn;
-}
-sub db_select {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    print "DATABASEFEIL: $sql\n".$conn->errorMessage
-        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
-    return $resultat;
-}
-sub db_execute {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    print "DATABASEFEIL: $sql\n".$conn->errorMessage
-        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
-    return $resultat;
-}

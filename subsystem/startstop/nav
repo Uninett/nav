@@ -18,10 +18,12 @@ use constant SUB_SAME    => 1;
 use constant SUB_DIFF    => 2;
 use constant SUB_UNKNOWN => 255;
 
-my $NAV_ROOT = '/usr/local/nav';
-my $NAV_CONF = "$NAV_ROOT/local/etc/conf/nav.conf";
-my $NAVME_ETC = "$NAV_ROOT/navme/etc";
-my $NAVME_INIT = "$NAVME_ETC/init.d";
+use NAV;
+use NAV::Path;
+
+my $NAV_CONF = "$NAV::Path::sysconfdir/nav.conf";
+my $NAVME_ETC = "$NAV::Path::sysconfdir";
+my $NAVME_INIT = "$NAV::Path::initdir";
 my $CRONFILE = "$NAVME_ETC/crontab_navcron.nav";
 my $CRONTAB = 'crontab';
 my $NAVCRON_USER = 'navcron';
@@ -36,7 +38,6 @@ if ($EUID != 0) {
 die "$CRONFILE does not exist" unless (-f $CRONFILE);
 chdir($NAVME_INIT);
 
-use NAV;
 my %navconf = &NAV::config($NAV_CONF);
 
 my %crontasks = &parseCronFile();

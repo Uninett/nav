@@ -11,12 +11,15 @@
 #
 ####################
 
-# Source function library.
-. /usr/local/nav/navme/etc/init.d/functions
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+sysconfdir=@sysconfdir@
+initdir=@initdir@
 BIN=@bindir@/pping.py
 PIDFILE=@localstatedir@/run/pping.pid
+
+# Source function library.
+. ${initdir}/functions
 
 [ -x $BIN ] || exit 1
 

@@ -9,7 +9,7 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
 #LIBDIR="/usr/local/nav/navme/lib/python"
-import os
+import os, os.path, nav.path
 #if LIBDIR not in os.sys.path:
 #    os.sys.path.append(LIBDIR)
 
@@ -54,7 +54,7 @@ class controller:
         """
         Dumps the current status to a file.
         """
-        filename = "/usr/local/nav/navme/apache/webroot/services/status.txt"
+        filename = os.path.join(nav.path.webroot, "services/status.txt")
         #filename = "/var/www/html/services/status.txt"
         try:
             outputfile = open(filename, 'w')

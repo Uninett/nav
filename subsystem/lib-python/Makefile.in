@@ -12,6 +12,7 @@ libdir = @libdir@
 sysconfdir = @sysconfdir@
 localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
+webroot = @webroot@
 pathmodule = src/nav/path.py
 
 .PHONY: all install install-lib install-bin clean distclean
@@ -28,6 +29,7 @@ $(pathmodule): Makefile
 	@echo "pythonlibdir=\"$(pythonlibdir)\"" >> $(pathmodule)
 	@echo "sysconfdir=\"$(sysconfdir)\"" >> $(pathmodule)
 	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
+	@echo "webroot=\"$(webroot)\"" >> $(pathmodule)
 
 install: install-lib
 

@@ -1,8 +1,5 @@
-import os
-import os.path
+import os, os.path, nav.path
 import sys
-
-__defaultLocation = '/usr/local/nav/local/etc/conf'
 
 def readConfig(filename, splitChar='='):
     """Reads a key=value type config file. If the specified path does
@@ -11,7 +8,7 @@ def readConfig(filename, splitChar='='):
     pairs that were read."""
 
     if filename[0] != os.sep:
-        filename = os.path.join(__defaultLocation, filename)
+        filename = os.path.join(nav.path.sysconfdir, filename)
 
     configuration = {}
     file = open(filename, 'r')

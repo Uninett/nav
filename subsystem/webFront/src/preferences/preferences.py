@@ -1,8 +1,9 @@
 from mod_python import apache,util
 
 from nav.web.templates.MainTemplate import MainTemplate
+import nav.path, os.path
 
-frontFile = "/usr/local/nav/navme/apache/webroot/preferences/list.html"
+frontFile = os.path.join(nav.path.webroot, "preferences/list.html")
 
 def handler(req):
     page = MainTemplate()

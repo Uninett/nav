@@ -1,8 +1,8 @@
 """
 core - kjøre jobber som prosesser i stedet for tråder
 
-$Author: magnun $
-$Id: core.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
+$Author$
+$Id$
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/core.py,v $
 
 tanken er at programmet skal lese argumenter fra stdin

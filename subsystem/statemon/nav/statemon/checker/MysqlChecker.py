@@ -1,5 +1,5 @@
 """
-$Id: MysqlChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
+$Id$
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/MysqlChecker.py,v $
 """
 

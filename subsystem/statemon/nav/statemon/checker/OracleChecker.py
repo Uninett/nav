@@ -1,5 +1,5 @@
 """
-$Id: OracleChecker.py,v 1.3 2003/06/27 12:46:36 arveva Exp $
+$Id$
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/OracleChecker.py,v $
 
 

@@ -9,10 +9,10 @@ Copyright (c) 2002 by NTNU, ITEA
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
-LIBDIR="/usr/local/nav/navme/lib/python"
+#LIBDIR="/usr/local/nav/navme/lib/python"
 import os
-if LIBDIR not in os.sys.path:
-    os.sys.path.append(LIBDIR)
+#if LIBDIR not in os.sys.path:
+#    os.sys.path.append(LIBDIR)
 
 import signal
 import getopt

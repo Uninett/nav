@@ -14,7 +14,6 @@ exec_prefix=@exec_prefix@
 pythonlibdir=@pythonlibdir@
 webroot=@webroot@
 sysconfdir=@sysconfdir@
-NAVVER=navme
 WEBLIB=$(pythonlibdir)/nav/web
 WEBNAME=browse
 

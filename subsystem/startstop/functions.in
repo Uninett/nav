@@ -4,7 +4,7 @@
 # $Id$
 # This file is part of the NAV project.
 # This file contains functions to be used by most or all shell scripts
-# in the navme/bin/init directory.
+# in the NAV init.d directory.
 #
 # Copyright (c) 2002-2003 by NTNU, ITEA nettgruppen
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>

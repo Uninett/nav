@@ -1,4 +1,4 @@
-# $Id: mailAlert.py,v 1.4 2003/06/20 09:34:45 magnun Exp $
+# $Id$
 # $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/mailAlert.py,v $
 
 import smtplib, threading, Queue, time
