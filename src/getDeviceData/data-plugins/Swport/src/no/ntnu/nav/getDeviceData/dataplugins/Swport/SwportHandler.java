@@ -20,7 +20,7 @@ public class SwportHandler implements DataHandler {
 
 	private static Map moduleMap;
 	private static Map swportMap;
-	private static Map ifdescrMap;
+	private static Map portMap;
 
 	/**
 	 * Fetch initial data from swport table.
@@ -42,7 +42,7 @@ public class SwportHandler implements DataHandler {
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
 			swpMap = Collections.synchronizedMap(new HashMap());
-			Map ifdescrMapL = Collections.synchronizedMap(new HashMap());
+			Map portMapL = Collections.synchronizedMap(new HashMap());
 			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,module,netboxid,model,descr,up,swport.swportid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY moduleid");
 			while (rs.next()) {
 				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"), null);
@@ -54,6 +54,17 @@ public class SwportHandler implements DataHandler {
 				int moduleid = rs.getInt("moduleid");
 				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {
 					do {
+						if (rs.getString("port") != null) {
+							String portKey = rs.getString("moduleid")+":"+rs.getString("port");
+							if (portMapL.containsKey(portKey)) {
+								System.err.println("ERROR! Dup port: " + portKey);
+								Database.update("DELETE FROM swport WHERE swportid='"+rs.getString("swportid")+"'");
+								continue;
+							} else {
+								portMapL.put(portKey, rs.getString("swportid"));
+							}
+						}
+
 						Swport sd = new Swport(rs.getString("ifindex"));
 						sd.setSwportid(rs.getInt("swportid"));
 						
@@ -77,20 +88,12 @@ public class SwportHandler implements DataHandler {
 						} else {
 							swpMap.put(key, md);
 						}
-						if (rs.getString("interface") != null) {
-							String ifKey = rs.getString("netboxid")+":"+rs.getString("interface");
-							if (ifdescrMapL.containsKey(ifKey)) {
-								//System.err.println("ERROR! Dup ifdescr: " + ifKey);
-							} else {
-								ifdescrMapL.put(ifKey, rs.getString("swportid"));
-							}
-						}
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
 				}
 			}
 			swportMap = swpMap;
-			ifdescrMap = ifdescrMapL;
+			portMap = portMapL;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
 
@@ -163,10 +166,10 @@ public class SwportHandler implements DataHandler {
 
 					if (oldsd == null) {
 						// If there is an identical ifDescr, delete it
-						String ifKey = nb.getNetboxid()+":"+sd.getInterface();
-						if (sd.getInterface() != null && ifdescrMap.containsKey(ifKey)) {
-							System.err.println("Want to delete ifdescr: " + ifKey);
-							//Database.update("DELETE FROM swport WHERE swportid = '"+ifdescrMap.get(ifKey)+"'");
+						String portKey = nb.getNetboxid()+":"+sd.getPort();
+						if (sd.getPort() != null && portMap.containsKey(portKey)) {
+							System.err.println("Want to delete port: " + portKey + ", " + nb);
+							//Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(portKey)+"'");
 						}
 
 						// Sett inn ny
@@ -193,7 +196,7 @@ public class SwportHandler implements DataHandler {
 						Database.insert("swport", inss);
 						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 						newcnt++;
-						ifdescrMap.put(ifKey, swportid);
+						portMap.put(portKey, swportid);
 
 					} else {
 						swportid = oldsd.getSwportidS();
@@ -222,10 +225,12 @@ public class SwportHandler implements DataHandler {
 							changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 							updcnt++;
 
-							String oldIfKey = nb.getNetboxid()+":"+oldsd.getInterface();
-							String ifKey = nb.getNetboxid()+":"+sd.getInterface();
-							ifdescrMap.remove(oldIfKey);
-							ifdescrMap.put(ifKey, swportid);
+							String oldPortKey = nb.getNetboxid()+":"+oldsd.getPort();
+							String portKey = nb.getNetboxid()+":"+sd.getPort();
+							if (sd.getPort() != null) {
+								portMap.remove(oldPortKey);
+								portMap.put(portKey, swportid);
+							}
 						}
 					}
 					sd.setSwportid(swportid);
