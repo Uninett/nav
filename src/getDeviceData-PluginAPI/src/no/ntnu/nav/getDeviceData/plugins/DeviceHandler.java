@@ -36,7 +36,7 @@ import no.ntnu.nav.ConfigParser.*;
  * <p>
  * getDeviceData first loads all devices to be queried from the database and stores them in a
  * FIFO queue; the device list is reloaded from the database every <i>loadDataInterval</i>
- * see config file) minutes
+ * (see config file) minutes
  * (a future version will do this in respons to a changeDevice event). Then all data from
  * modules / swport is loaded; this data need not be refreshed. Finally the scheduler is called.
  * </p>

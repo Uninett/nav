@@ -13,7 +13,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Class for parsing a config file in <key> = <value> format. The value can be
+ * Class for parsing a config file in &lt;key&gt; = &lt;value&gt; format. The value can be
  * retrieved by calling get() with the corresponding key.
  */
 public class ConfigParser
