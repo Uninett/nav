@@ -136,12 +136,12 @@ class NavUtils
 		HashMap boksNavn = new HashMap();
 		HashMap boksType = new HashMap();
 		HashMap boksKat = new HashMap();
-		ResultSet rs = Database.query("SELECT boksid,sysName,typeid,kat FROM boks");
+		ResultSet rs = Database.query("SELECT netboxid,sysName,typename,catid FROM netbox JOIN type USING(typeid)");
 		while (rs.next()) {
 			String sysname = rs.getString("sysName"); // Må være med da sysname kan være null !!
-			boksNavn.put(new Integer(rs.getInt("boksid")), (sysname==null?"&lt;null&gt;":sysname) );
-			boksType.put(new Integer(rs.getInt("boksid")), rs.getString("typeid"));
-			boksKat.put(new Integer(rs.getInt("boksid")), rs.getString("kat"));
+			boksNavn.put(new Integer(rs.getInt("netboxid")), (sysname==null?"&lt;null&gt;":sysname) );
+			boksType.put(new Integer(rs.getInt("netboxid")), rs.getString("typename"));
+			boksKat.put(new Integer(rs.getInt("netboxid")), rs.getString("catid"));
 		}
 		Boks.boksNavn = boksNavn;
 		Boks.boksType = boksType;
@@ -156,14 +156,14 @@ class NavUtils
 		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) JOIN gwport ON rootgw=gwip ORDER BY boksid,modul,port
 
 		HashSet gwUplink = new HashSet();
-		rs = Database.query("SELECT DISTINCT ON (boksbak) boksid,boksbak FROM gwport WHERE boksbak IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT ON (to_netboxid) netboxid,to_netboxid FROM gwport WHERE to_netboxid IS NOT NULL");
 		while (rs.next()) {
-			gwUplink.add(rs.getString("boksbak"));
+			gwUplink.add(rs.getString("to_netboxid"));
 		}
 
 		//rs = Database.query("SELECT swp_boks.boksid,kat,modul,port,swp_boks.boksbak,swp_boks.modulbak,swp_boks.portbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) JOIN gwport ON rootgwid=gwportid ORDER BY boksid,modul,port");
 		// Endret for å få med GSW
-		rs = Database.query("SELECT swp_boks.boksid,kat,modul,port,swp_boks.boksbak,swp_boks.modulbak,swp_boks.portbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) LEFT JOIN gwport ON rootgwid=gwportid WHERE gwportid IS NOT NULL OR kat='GSW' ORDER BY boksid,modul,port");
+		rs = Database.query("SELECT swp_netbox.netboxid,catid,module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,gwport.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
 
 		HashMap bokser = new HashMap();
 		ArrayList boksList = new ArrayList();
@@ -174,28 +174,28 @@ class NavUtils
 		//int previd = rs.getInt("boksid");
 		int previd = 0;
 		while (rs.next()) {
-			int boksid = rs.getInt("boksid");
+			int boksid = rs.getInt("netboxid");
 			if (boksid != previd) {
 				// Ny boks
 				l = new ArrayList();
-				boolean isSW = (rs.getString("kat").equals("SW") ||
-								rs.getString("kat").equals("GW") ||
-								rs.getString("kat").equals("GSW"));
-				Boks b = new Boks(com, boksid, rs.getInt("gwboksid"), l, bokser, isSW, !gwUplink.contains(String.valueOf(boksid)) );
+				boolean isSW = (rs.getString("catid").equals("SW") ||
+								rs.getString("catid").equals("GW") ||
+								rs.getString("catid").equals("GSW"));
+				Boks b = new Boks(com, boksid, rs.getInt("gwnetboxid"), l, bokser, isSW, !gwUplink.contains(String.valueOf(boksid)) );
 				boksList.add(b);
 				previd = boksid;
 			}
 			String[] s = {
-				rs.getString("modul"),
+				rs.getString("module"),
 				rs.getString("port"),
-				rs.getString("boksbak"),
-				rs.getString("modulbak"),
-				rs.getString("portbak")
+				rs.getString("to_netboxid"),
+				rs.getString("to_module"),
+				rs.getString("to_port")
 			};
 			l.add(s);
 
 			boksidSet.add(new Integer(boksid));
-			boksbakidSet.add(new Integer(rs.getInt("boksbak")));
+			boksbakidSet.add(new Integer(rs.getInt("to_netboxid")));
 		}
 
 		int maxBehindMp=0;
@@ -259,14 +259,14 @@ class NavUtils
 
 		// Vi må vite hvilke bokser som har trunker ut fra seg, dvs. det kjører flere vlan
 		HashSet boksWithTrunk = new HashSet();
-		rs = Database.query("SELECT DISTINCT boksid FROM swport WHERE trunk='t'");
-		while (rs.next()) boksWithTrunk.add(rs.getString("boksid"));
+		rs = Database.query("SELECT DISTINCT netboxid FROM swport JOIN module USING(moduleid) WHERE trunk='t'");
+		while (rs.next()) boksWithTrunk.add(rs.getString("netboxid"));
 
 		// Vi trenger en oversikt over hvilket vlan de forskjellige boksene er på
 		HashMap boksVlan = new HashMap();
-		rs = Database.query("SELECT boksid,vlan FROM boks JOIN prefiks USING (prefiksid) WHERE vlan IS NOT NULL");
+		rs = Database.query("SELECT netboxid,vlan FROM netbox JOIN prefix USING (prefixid) WHERE vlan IS NOT NULL");
 		while (rs.next()) {
-			boksVlan.put(rs.getString("boksid"), rs.getString("vlan"));
+			boksVlan.put(rs.getString("netboxid"), rs.getString("vlan"));
 		}
 
 		// Nå går vi gjennom alle portene vi har funnet boksbak for, og oppdaterer tabellen med dette
@@ -274,13 +274,12 @@ class NavUtils
 		ArrayList swport = new ArrayList();
 		HashMap swrecMap = new HashMap();
 		Map swrecSwportidMap = new HashMap();
-		//rs = Database.query("SELECT swportid,boksid,status,speed,duplex,modul,port,portnavn,boksbak,static,trunk,hexstring FROM swport NATURAL LEFT JOIN swportallowedvlan WHERE status='up' ORDER BY boksid,modul,port");
-		rs = Database.query("SELECT swportid,boksid,status,speed,duplex,modul,port,portnavn,boksbak,swportallowedvlan.static,trunk,hexstring FROM swport LEFT JOIN swportallowedvlan USING (swportid) ORDER BY boksid,ifindex");
+		rs = Database.query("SELECT swportid,netboxid,link,speed,duplex,module,port,portname,to_netboxid,trunk,hexstring FROM swport JOIN module USING(moduleid) LEFT JOIN swportallowedvlan USING (swportid) ORDER BY netboxid,ifindex");
 		ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
 			HashMap hm = getHashFromResultSet(rs, rsmd);
-			if (!rs.getString("status").toLowerCase().equals("down")) swport.add(hm);
-			String key = rs.getString("boksid")+":"+rs.getString("modul")+":"+rs.getString("port");
+			if (rs.getString("link").toLowerCase().equals("y")) swport.add(hm);
+			String key = rs.getString("netboxid")+":"+rs.getString("module")+":"+rs.getString("port");
 			swrecMap.put(key, hm);
 			swrecSwportidMap.put(rs.getString("swportid"), hm);
 		}
@@ -315,17 +314,17 @@ class NavUtils
 				//swrecMap.remove(key);
 				swrec.put("deleted", null);
 
-				String status = (String)swrec.get("status");
-				if (status.toLowerCase().equals("down")) continue;
+				String link = (String)swrec.get("link");
+				if (!link.toLowerCase().equals("y")) continue;
 
-				String idbak = (String)swrec.get("boksbak");
+				String idbak = (String)swrec.get("to_netboxid");
 				if (idbak == null || idbak != null && Integer.parseInt(idbak) != bmp.boksbak.intValue()) {
 					// Oppdatering nødvendig
 					updcnt++;
 					// swport
 					{
 						String[] updateFields = {
-							"boksbak", bmp.boksbak.toString()
+							"to_netboxid", bmp.boksbak.toString()
 						};
 						String[] condFields = {
 							"swportid", (String)swrec.get("swportid")
@@ -389,7 +388,7 @@ class NavUtils
 					}
 					*/
 
-					swrec.put("boksbak", bmp.boksbak.toString());
+					swrec.put("to_netboxid", bmp.boksbak.toString());
 					swrec.put("change", "Updated ("+vlan+")");
 				}
 
@@ -401,11 +400,11 @@ class NavUtils
 					if (swrecBak != null) {
 						swportbakOK = true;
 						String new_swportbak = (String)swrecBak.get("swportid");
-						String cur_swportbak = (String)swrec.get("swportbak");
+						String cur_swportbak = (String)swrec.get("to_swportid");
 
 						if (cur_swportbak == null || !cur_swportbak.equals(new_swportbak)) {
 							String[] updateFields = {
-								"swportbak", new_swportbak
+								"to_swportid", new_swportbak
 							};
 							String[] condFields = {
 								"swportid", (String)swrec.get("swportid")
@@ -426,7 +425,7 @@ class NavUtils
 				*/
 
 				// Så må vi sjekke om vi har en trunk der vi mangler allowedvlan
-				if (swrec.get("trunk").equals("t") && (swrec.get("hexstring") == null || swrec.get("hexstring").equals("") || swrec.get("static").equals("t")) ) {
+				if (swrec.get("trunk").equals("t") && (swrec.get("hexstring") == null || swrec.get("hexstring").equals("")) ) {
 					// Vi har en trunk som er static eller mangler hexstring, da tar vi rett og slett bare hexstringen fra andre siden og setter inn
 
 					Boks b = (Boks)bokser.get(bmp.boksbak);
@@ -450,8 +449,7 @@ class NavUtils
 										// Nå må vi sette inn en ny record i swportallowedvlan
 										String[] fields = {
 											"swportid", (String)swrec.get("swportid"),
-											"hexstring", allowedVlanBak,
-											"static", "t"
+											"hexstring", allowedVlanBak
 										};
 										if (DEBUG_OUT) outl("Inserting new record in swportallowedvlan, swportid: " + swrec.get("swportid") + " new hexstring: " + allowedVlanBak + "<br>");
 										boolean update = false;
@@ -633,7 +631,7 @@ class NavUtils
 					resetcnt++;
 					// Sett felter til null
 					String[] updateFields = {
-						"swportbak", "null"
+						"to_swportid", "null"
 					};
 					String[] condFields = {
 						"swportid", swportid
@@ -651,8 +649,8 @@ class NavUtils
 				// Sett til null
 				resetcnt++;
 				String[] updateFields = {
-					"boksbak", "null",
-					"swportbak", "null"
+					"to_netboxid", "null",
+					"to_swportid", "null"
 				};
 				String[] condFields = {
 					"swportid", swportid
@@ -664,7 +662,7 @@ class NavUtils
 				// Sett felter til null
 				resetcnt++;
 				String[] updateFields = {
-					"swportbak", "null"
+					"to_swportid", "null"
 				};
 				String[] condFields = {
 					"swportid", swportid
@@ -721,10 +719,10 @@ class NavUtils
 		int attCnt=0;
 		for (int i=0; i < swport.size(); i++) {
 			HashMap swrec = (HashMap)swport.get(i);
-			String boksid = (String)swrec.get("boksid");
-			String modul = (String)swrec.get("modul");
+			String boksid = (String)swrec.get("netboxid");
+			String modul = (String)swrec.get("module");
 			String port = (String)swrec.get("port");
-			String portnavn = (String)swrec.get("portnavn");
+			String portnavn = (String)swrec.get("portname");
 			//boolean isStatic = swrec.get("static").equals("t");
 			String change = (String)swrec.get("change");
 
@@ -769,12 +767,12 @@ class NavUtils
 			outl("<tr>");
 			//outl("<td align=right>"+color1+ swrec.get("swportid") + color2+"</td>");
 			outl("<td align=right><a href=\"#" + swrec.get("swportid") + "\">" + swrec.get("swportid") + "</a></td>");
-			outl("<td align=right>"+color1+ swrec.get("boksid") + color2+"</td>");
-			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("boksid"))) + color2+"</td>");
-			outl("<td>"+color1+ boksType.get(new Integer((String)swrec.get("boksid"))) + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("netboxid") + color2+"</td>");
+			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
+			outl("<td>"+color1+ boksType.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("speed") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("duplex") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("modul") + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("module") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("port") + color2+"</td>");
 			outl("<td>"+color1+ portnavn + color2+"</td>");
 			outl("<td>"+color1+ boksbak + color2+"</td>");
@@ -803,10 +801,10 @@ class NavUtils
 
 		for (int i=0; i < swport.size(); i++) {
 			HashMap swrec = (HashMap)swport.get(i);
-			String boksid = (String)swrec.get("boksid");
-			String modul = (String)swrec.get("modul");
+			String boksid = (String)swrec.get("netboxid");
+			String modul = (String)swrec.get("module");
 			String port = (String)swrec.get("port");
-			String portnavn = (String)swrec.get("portnavn");
+			String portnavn = (String)swrec.get("portname");
 			//boolean isStatic = swrec.get("static").equals("t");
 			String change = (String)swrec.get("change");
 
@@ -852,11 +850,11 @@ class NavUtils
 
 			outl("<tr><a name=\"" + swrec.get("swportid") + "\">");
 			outl("<td align=right>"+color1+ swrec.get("swportid") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("boksid") + color2+"</td>");
-			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("boksid"))) + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("netboxid") + color2+"</td>");
+			outl("<td>"+color1+ boksNavn.get(new Integer((String)swrec.get("netboxid"))) + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("speed") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("duplex") + color2+"</td>");
-			outl("<td align=right>"+color1+ swrec.get("modul") + color2+"</td>");
+			outl("<td align=right>"+color1+ swrec.get("module") + color2+"</td>");
 			outl("<td align=right>"+color1+ swrec.get("port") + color2+"</td>");
 			outl("<td>"+color1+ portnavn + color2+"</td>");
 			outl("<td>"+color1+ boksbak + color2+"</td>");
