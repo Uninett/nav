@@ -36,7 +36,7 @@
     <mkdir dir="${dist}"/>
 
     <!-- Put everything in ${build} into the ${jar} file -->
-    <jar jarfile="${dist}/${jar}" basedir="${build}"/>
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Main-Class"/>
   </target>
 
   <target name="install" depends="dist">
