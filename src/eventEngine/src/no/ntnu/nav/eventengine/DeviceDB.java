@@ -1,16 +1,16 @@
 package no.ntnu.nav.eventengine;
 
-/**
- * Eventengine plugins use DeviceDB to communicate with eventengine and each other.
- *
- * FIXME: Should be converted to an interface.
- */
-
 import java.util.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import no.ntnu.nav.Database.*;
+
+/**
+ * Eventengine plugins use DeviceDB to communicate with eventengine and each other.
+ *
+ * FIXME: Should be converted to an interface.
+ */
 
 public class DeviceDB
 {

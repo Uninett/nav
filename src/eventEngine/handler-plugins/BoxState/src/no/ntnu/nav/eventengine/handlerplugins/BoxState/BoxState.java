@@ -1,10 +1,5 @@
 package no.ntnu.nav.eventengine.handlerplugins.BoxState;
 
-/**
- * BoxState plugin for eventengine. Handles all events dealing with
- * netboxes and their modules going up/down.
- */
-
 import java.util.*;
 
 import no.ntnu.nav.ConfigParser.*;
@@ -12,6 +7,11 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.eventengine.*;
 import no.ntnu.nav.eventengine.deviceplugins.Box.*;
 import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
+
+/**
+ * BoxState plugin for eventengine. Handles all events dealing with
+ * netboxes and their modules going up/down.
+ */
 
 public class BoxState implements EventHandler, EventCallback
 {
