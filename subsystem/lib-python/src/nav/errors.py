@@ -32,4 +32,4 @@ class RedirectError(GeneralException):
     # raise with URL, dispatcher.py will redirect
 
 class NoServicesFound(GeneralException):
-    "No services found for device"
+    "No services found for netbox"
