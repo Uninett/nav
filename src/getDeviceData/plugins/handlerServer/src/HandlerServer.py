@@ -6,7 +6,7 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.7 2002/07/04 16:19:25 cricket Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.8 2002/07/04 20:45:07 cricket Exp $"
 
 import UserDict
 import re
@@ -20,7 +20,7 @@ from no.ntnu.nav.getDeviceData.plugins import DeviceData
 
 class OID:
   """Constants for typical used OIDs"""
-  sysDescr = "1.3.6.1.2.1.1.1.0"
+  sysDescr = "1.3.6.1.2.1.1.1"
   sysObjectID = "1.3.6.1.2.1.1.2"
   interfaceDescriptions = "1.3.6.1.2.1.2.2.1.2"
   interfaceTypes = "1.3.6.1.2.1.2.2.1.3" 
@@ -141,7 +141,7 @@ class HandlerServer(DeviceHandler):
     print "comm", box.getCommunityRo()
 
 
-    self.getSnmpAgent(box, snmp, deviceData)
+    self.getSnmpAgent(box, snmp, deviceData, deviceDataList)
     check_array = self.getDiskconf(box)
     keep_on = 1
     for i in check_array:
@@ -191,7 +191,7 @@ class HandlerServer(DeviceHandler):
     return arr  
 
 
-  def getSnmpAgent(self, box, snmp, deviceData):
+  def getSnmpAgent(self, box, snmp, deviceData, deviceDataList):
     """Retrieve SNMP agent version and store it in the database directly
        (should use deviceData, but it currently does not support that)
     
@@ -205,21 +205,41 @@ class HandlerServer(DeviceHandler):
     
     # Get the descriptions
     agent = box.getSnmpagent()
-    
+    print 'hurra her kommer agenten'
+    print agent
     #TEMP - this is not good but a bug in the net-snmp agent forced us
     # to set the agent like this.
-    if (agent == OID.bugAgent): 
+    if (agent == OID.bugAgent):
+      print 'vi fikk en bugge agent !!'
       snmp.setBaseOid(OID.sysDescr)
-      res = snmp.getAll(1)[0]
+      res = ""
+      try:
+        res = snmp.getAll(1)
+        res = res[0][1]
+        print 'men alt gikk ok ......'
+      except:
+        print "Nei og nei, vi fikk ingen snmpdata"
+        print res
+        return None # Give up
+
       res = res.split(" ")[0]
       if (res.lower() == "sunos"):
         agent = (OID.solarisAgent)
+        print ' solaris '
       elif (res.lower() == "linux"):
         agent = (OID.linuxAgent)
+        print ' linux '
       else:
         agent = (OID.other)
-      
-      deviceDate.setSnmpagent(agent)
+        print 'fikk en annen'
+
+    try:
+      deviceData.setSnmpagent(agent)
+      deviceDataList.setDeviceData(deviceData)
+      print 'oooooh yes vi satte muligens inn noe'
+    except:
+      print 'arghhhh . det ble noe galt med oppdatering'
+        
       
 
   def getDisks(self, box, snmp, deviceData, check_array):
