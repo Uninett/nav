@@ -45,7 +45,9 @@ class HttpChecker(AbstractChecker):
 			i.host=vhost
 		i.set_debuglevel(9)
 		i.putrequest('GET',path)
-		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Rev 31337 $Revision$')
+		internalRev = "$Rev$"
+		internalRev = internalRev[:-1].replace('$Rev: ','')
+		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev
 		i.endheaders()
 		response = i.getresponse()
 		if response.status >= 200 and response.status < 400:
