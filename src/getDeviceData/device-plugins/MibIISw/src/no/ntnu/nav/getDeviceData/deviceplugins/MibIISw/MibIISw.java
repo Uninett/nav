@@ -116,38 +116,6 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
-		
-		if ("GW".equals(nb.getCat())) return;
-			
-		Map operStatusMap = sSnmp.getAllMap(nb.getOid("ifOperStatus"));
-		Map admStatusMap = sSnmp.getAllMap(nb.getOid("ifAdminStatus"));
-		if (operStatusMap != null && admStatusMap != null) {
-			for (Iterator it = operStatusMap.keySet().iterator(); it.hasNext();) {
-				String ifindex = (String)it.next();
-				if (skipIfindexSet.contains(ifindex)) continue;
-				// Some 3Com units doesn't give all us all every time
-				if (!admStatusMap.containsKey(ifindex) || !operStatusMap.containsKey(ifindex)) continue;
-				Swport swp = sc.swportFactory(ifindex);
-
-				try {
-					int n = Integer.parseInt((String)admStatusMap.get(ifindex));
-					char link = 'd'; // adm down
-					if (n == 1) {
-						// adm up
-						n = Integer.parseInt((String)operStatusMap.get(ifindex));
-						if (n == 1) link ='y'; // link up
-						else link = 'n'; // link oper down
-					}
-					else if (n != 2 && n != 0) {
-						Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
-					}
-					swp.setLink(link);
-				} catch (NumberFormatException e) {
-					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + admStatusMap.get(ifindex) + " / " + operStatusMap.get(ifindex));
-				}
-			}
-		}
-
 
 		// Set interface, first we try IfName
 		Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
@@ -181,6 +149,39 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
+		
+		if ("GW".equals(nb.getCat())) return;
+			
+		Map operStatusMap = sSnmp.getAllMap(nb.getOid("ifOperStatus"));
+		Map admStatusMap = sSnmp.getAllMap(nb.getOid("ifAdminStatus"));
+		if (operStatusMap != null && admStatusMap != null) {
+			for (Iterator it = operStatusMap.keySet().iterator(); it.hasNext();) {
+				String ifindex = (String)it.next();
+				if (skipIfindexSet.contains(ifindex)) continue;
+				// Some 3Com units doesn't give all us all every time
+				if (!admStatusMap.containsKey(ifindex) || !operStatusMap.containsKey(ifindex)) continue;
+				Swport swp = sc.swportFactory(ifindex);
+
+				try {
+					int n = Integer.parseInt((String)admStatusMap.get(ifindex));
+					char link = 'd'; // adm down
+					if (n == 1) {
+						// adm up
+						n = Integer.parseInt((String)operStatusMap.get(ifindex));
+						if (n == 1) link ='y'; // link up
+						else link = 'n'; // link oper down
+					}
+					else if (n != 2 && n != 0) {
+						Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
+					}
+					swp.setLink(link);
+				} catch (NumberFormatException e) {
+					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + admStatusMap.get(ifindex) + " / " + operStatusMap.get(ifindex));
+				}
+			}
+		}
+
+
 
 		/*
 		// Set interface, first we try IfName
