@@ -187,7 +187,7 @@ public class QueryBoks extends Thread
 						
 						String to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
 						if (to_swportid == null) {
-							Log.i("RUN", "swportid missing for ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" RemoteIf: " + remoteIf);
+							Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + remoteIf + " (" + boksId + ")");
 							continue;
 						}
 					
@@ -284,7 +284,7 @@ public class QueryBoks extends Thread
 				String key = boksId+":"+pm;
 				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 				if (pm.getRemoteIf() != null && new_to_swportid == null) {
-					Log.i("RUN", "swportid missing for ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" RemoteIf: " + pm.getRemoteIf());
+					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + remoteIf + " (" + boksId + ")");
 				}
 
 				// En enhet kan ikke ha link til seg selv
@@ -708,12 +708,12 @@ public class QueryBoks extends Thread
 									swportid = (String)swportidMap.get(netboxid+":"+ifindex);
 									if (swportid != null) {
 										// Find correct vlan
-										vlan = (String)vlanMap.get(netboxid+":"+ifindex);
-										Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + vlan + " is now in blocking mode.");
+										String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
+										Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode.");
 										try {
 											String[] ins = {
 												"swportid", swportid,
-												"vlan", vlan
+												"vlan", dbVlan
 											};
 											Database.insert("swportblocked", ins);
 											if (DB_COMMIT) Database.commit(); else Database.rollback();
@@ -734,10 +734,10 @@ public class QueryBoks extends Thread
 								Map.Entry me = (Map.Entry)iter.next();
 								String swportid = (String)me.getKey();
 								String ifindex = (String)me.getValue();
-								vlan = (String)vlanMap.get(netboxid+":"+ifindex);
-								Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + vlan + " is no longer in blocking mode.");
+								String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
+								Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
 								String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
-								if (vlan != null) sql += " AND vlan='"+vlan+"'";
+								sql += " AND vlan='"+dbVlan+"'";
 								try {
 									Database.update(sql);
 									if (DB_COMMIT) Database.commit(); else Database.rollback();

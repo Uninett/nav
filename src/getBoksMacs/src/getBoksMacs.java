@@ -115,7 +115,7 @@ class getBoksMacs
 		// Init logger
 		Log.init(navRoot + logFile, "getBoksData");
 
-		Log.i("INIT", "============ getDeviceData starting ============");
+		Log.i("INIT", "============ getBoksData starting ============");
 		Log.i("INIT", "Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
 
 		// Load watchMacs
@@ -206,9 +206,10 @@ class getBoksMacs
 		// Hent alle vlan som er blokkert av spanning-tree
 		out("  swportblocked...");
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT swportid,netboxid,ifindex,swportblocked.vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid)");
+		rs = Database.query("SELECT swportid,netboxid,ifindex,cs_at_vlan,swportblocked.vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN type USING(typeid)");
 		while (rs.next()) {
-			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
+			String vlan = (rs.getBoolean("cs_at_vlan") ? rs.getString("vlan") : "");
+			String key = rs.getString("netboxid")+":"+vlan);
 			HashMap blockedIfind;
 			if ( (blockedIfind=(HashMap)spanTreeBlocked.get(key)) == null) spanTreeBlocked.put(key, blockedIfind = new HashMap());
 			blockedIfind.put(rs.getString("ifindex"), rs.getString("swportid"));
@@ -290,7 +291,7 @@ class getBoksMacs
 		// netboxid+ifindex -> vlan
 		QueryBoks.vlanMap = new HashMap();
 		Map vlanMap = QueryBoks.vlanMap;
-		rs = Database.query("SELECT netboxid,ifindex,vlan FROM swport JOIN module USING(moduleid) WHERE vlan IS NOT NULL");
+		rs = Database.query("SELECT netboxid,ifindex,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");
 		while (rs.next()) {
 			vlanMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("vlan"));
 		}
