@@ -11,6 +11,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 from nav import config
 import os
 import os.path
+import nav.auth
 
 webfrontConfig = config.readConfig('webfront.conf')
 
@@ -48,6 +49,15 @@ def getToolList():
     list.sort(_compareTools)
     return list
 
+def filterToolList(toolList, user):
+    """Returns a filtered version of toolList, according to the uri
+    privileges of the user."""
+    newToolList = []
+    for tool in toolList:
+        if nav.auth.hasPrivilege(user, 'web_access', tool.uri):
+            newToolList.append(tool)
+    return newToolList
+
 class Tool:
     def __init__(self):
         self.name = ''
@@ -69,3 +79,6 @@ class Tool:
             self.priority = 0
         
         return self
+
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.uri)

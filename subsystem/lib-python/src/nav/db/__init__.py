@@ -68,6 +68,7 @@ def getConnection(scriptName, database='manage'):
     except KeyError:
         connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
                                      (conf['dbhost'], dbname, user, pw))
+        connection.autocommit(1)
         connObject = ConnectionObject(connection, cacheKey)
         _connectionCache.cache(connObject)
         

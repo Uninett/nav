@@ -9,10 +9,8 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 from nav import users
-import base64
-import re
-import sys
-import os
+import base64, urllib
+import sys, os, re
 import nav
 
 from nav import db
@@ -40,7 +38,7 @@ def redirectToLogin(req):
     Takes the supplied request and redirects it to the NAV login page.
     """
     from nav import web
-    web.redirect(req, '/index.py/login?origin=%s' % req.uri, temporary=True)
+    web.redirect(req, '/index.py/login?origin=%s' % urllib.quote(req.unparsed_uri), temporary=True)
 
 def _find_user_preferences(user, req):
     if not hasattr(user, "preferences"):
@@ -82,7 +80,7 @@ def authenticate(req):
     user = req.session['user']
     _find_user_preferences(user, req)
     
-    if not checkAuthorization(user, req.uri):
+    if not checkAuthorization(user, req.unparsed_uri):
         redirectToLogin(req)
     else:
         if not user.id == 0:
