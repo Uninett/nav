@@ -357,7 +357,7 @@ CREATE TABLE gwport (
   masterindex INT4,
   interface VARCHAR,
   speed DOUBLE PRECISION NOT NULL,
-  ospf INT4,
+  metric INT4,
   to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   UNIQUE(moduleid, ifindex)
@@ -514,9 +514,7 @@ CREATE TABLE vp_netbox_grp_info (
   y INT4 NOT NULL DEFAULT '0'
 );
 -- Default nett
-INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name) VALUES (0,'Bynett');
-INSERT INTO vp_netbox_grp_info (name) VALUES ('Kjernenett');
-INSERT INTO vp_netbox_grp_info (name) VALUES ('Testnett');
+INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',true);
 
 CREATE TABLE vp_netbox_grp (
   vp_netbox_grp_infoid INT4 REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
