@@ -49,7 +49,7 @@ my %db_swport;
 
 my %swportvlan;
 my %db_swportvlan;
-my %ip2id;
+my %sysname2id;
 my %sw2id;
 my %spv2id;
 my %boks;
@@ -89,7 +89,7 @@ my $trunk_iossw = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 #&hent_db_swportvlan;
 
 
-foreach my $boksid ("608") { #keys boks
+foreach my $boksid (keys %boks) { #keys boks
     &hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
 }
 
@@ -200,9 +200,9 @@ sub hent_snmpdata
     {
 	print $typegruppe." er ios-sw\n";
 	print "TING SKJER GALT VED SNMP FOR DISSE. DERFOR IKKE TATT MED";
-#	unless (&hent_iossw($boks{$id}{ip},$boks{$id}{ro},$id)) {
-#	    print "FEIL: ".$boks{$id}{ip}.$boks{$id}{ro}.$id."\n";
-#	}
+	unless (&hent_iossw($boks{$id}{ip},$boks{$id}{ro},$id)) {
+	    print "FEIL: ".$boks{$id}{ip}.$boks{$id}{ro}.$id."\n";
+	}
     }
     else
     {
@@ -290,14 +290,14 @@ sub hent_catsw
     foreach $line (@temp)
     {
 	($mp,$temp) = split(/:/,$line,2);
-	$if{$mp2if{$mp}}{portname} = $temp; 
+	$if{$mp2if{$mp}}{portnavn} = $temp; 
 	print "NAME".$mp2if{$mp}.":".$temp."\n";
 
 	if ($temp =~ /^n|h|o|link|srv/i)
 	{
 	    (undef,my $sysName) = split(/:/,$temp);
-	    $if{$mp2if{$mp}}{idbak} = &boksid($sysName);
-	    print $if{$mp2if{$mp}}{idbak};
+	    $if{$mp2if{$mp}}{boksbak} = $sysname2id{$sysName};
+	    print $if{$mp2if{$mp}}{boksbak};
 	}
     }
 
@@ -343,9 +343,11 @@ sub hent_iossw {
     }
 
     foreach $line (@temp)    {
-	($mp,$temp) = split(/:/,$line);
+	($temp,$mp) = split(/:/,$line);
+	$mp =~ s/FastEthernet/Fa/i;
+	$mp =~ s/GigabitEthernet/Gi/i;
+	($if{$temp}{modul}, $if{$temp}{port}) = split /\//,$mp;
 	$mp2if{$mp} = $temp; 
-	$if{$temp}{mp} = $mp;
 	$if{$temp}{ifindex} = $temp;
 	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
 #	$ii2mp{$temp} = $mp;
@@ -354,8 +356,8 @@ sub hent_iossw {
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_iossw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{duplex} = $temp; 
-	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
+	$if{$mp}{duplex} = $temp; 
+	print "DUPLEX".$mp.":".$temp.":".$mp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -371,27 +373,27 @@ sub hent_iossw {
     @temp = &snmpwalk($ro."\@".$ip,$Status_iossw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{status} = $temp; 
+	$if{$mp}{status} = $temp; 
 	print "STATUS".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
     @temp = &snmpwalk($ro."\@".$ip,$Speed);
     foreach $line (@temp)    {
-	(my $if,$temp) = split(/:/,$line);
+	($mp,$temp) = split(/:/,$line);
 	$temp = ($temp/1e6);
 	$temp =~ s/^(.{0,10}).*/$1/; #tar med de 10 første tegn fra speed
 
-	$if{$if}{speed} = $temp; 
-	print "SPEED".$if.":".$temp."\n";
+	$if{$mp}{speed} = $temp; 
+	print "SPEED".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
     @temp = &snmpwalk($ro."\@".$ip,$trunk_iossw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{trunk} = $temp % 2; 
-	print "TRUNK".$mp2if{$mp}.":".$temp."\n";
+	$if{$mp}{trunk} = $temp % 2; 
+	print "TRUNK".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -401,34 +403,36 @@ sub hent_iossw {
     foreach $line (@temp)
     {
 	($mp,$temp) = split(/:/,$line,2);
-	$if{$mp2if{$mp}}{portname} = $temp; 
-	print "NAME".$mp2if{$mp}.":".$temp."\n";
+	$if{$mp}{portnavn} = $temp; 
+	print "NAME".$mp.":".$temp."\n";
 
 	if ($temp =~ /^n|h|o|link|srv/i)
 	{
 	    (undef,my $sysName) = split(/:/,$temp);
-	    $if{$mp2if{$mp}}{idbak} = &boksid($sysName);
-	    print $if{$mp2if{$mp}}{idbak};
+	    $if{$mp}{boksbak} = $sysname2id{$sysName};
+	    print $if{$mp}{boksbak};
 	}
     }
 
     foreach my $interface (keys %if) {
-	(my $modul, my $port) = split /\./,$if{$interface}{mp};
-	if(defined($if{$interface}{ifindex})){
-	    $swid = join(":",($id,$if{$interface}{ifindex}));
-	    $swport{$swid} = [ $id, 
-			       $modul, 
-			       $port, 
-			       $if{$interface}{ifindex}, 
-			       $if{$interface}{status},
-			       $if{$interface}{speed},
-			       $if{$interface}{duplex},
-			       $if{$interface}{trunk},
-			       $if{$interface}{static},
-			       $if{$interface}{portnavn},
-			       $if{$interface}{boksbak} ];
+	unless ($if{$interface}{modul} =~ /Null0|Vlan1|Tunnel0/i) {
+#	(my $modul, my $port) = split /\./,$if{$interface}{mp};
+	    if(defined($if{$interface}{ifindex})){
+		$swid = join(":",($id,$if{$interface}{ifindex}));
+		$swport{$swid} = [ $id, 
+				   $if{$interface}{modul}, 
+				   $if{$interface}{port}, 
+				   $if{$interface}{ifindex}, 
+				   $if{$interface}{status},
+				   $if{$interface}{speed},
+				   $if{$interface}{duplex},
+				   $if{$interface}{trunk},
+				   $if{$interface}{static},
+				   $if{$interface}{portnavn},
+				   $if{$interface}{boksbak} ];
 #	    $vlan{$swid} = [ $if{$interface}{vlan} ];
 
+	    }
 	}
     }
     return 1;
@@ -560,7 +564,7 @@ sub finn_vlan {
 sub hent_db_boks
 {
     %boks = ();
-    $sql = "SELECT id,ip,typegruppe,watch,ro FROM boks,type WHERE type.type=boks.type and kat=\'SW\' ORDER BY id";
+    $sql = "SELECT id,ip,sysname,typegruppe,watch,ro FROM boks,type WHERE type.type=boks.type and kat=\'SW\' ORDER BY id";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -568,12 +572,12 @@ sub hent_db_boks
 	@_ = map rydd($_), @_;
 		
 	$boks{$_[0]}{ip}      = $_[1];
-#	$boks{$_[0]}{sysname} = $_[2];
-        $boks{$_[0]}{typegruppe} = $_[2];
-        $boks{$_[0]}{watch}   = $_[3];
-        $boks{$_[0]}{ro}      = $_[4];
 
-#	$ip2id{$_[1]} = $_[0];
+        $boks{$_[0]}{typegruppe} = $_[3];
+        $boks{$_[0]}{watch}   = $_[4];
+        $boks{$_[0]}{ro}      = $_[5];
+
+	$sysname2id{$_[2]} = $_[0];
 
 #	$sw{$_[0]} = [ @_ ];
 #	    print "@_\n";
