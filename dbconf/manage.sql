@@ -128,10 +128,10 @@ CREATE TABLE rom (
   romid VARCHAR(10) PRIMARY KEY,
   stedid VARCHAR(12) REFERENCES sted,
   descr VARCHAR(80),
-  rom2 VARCHAR(10),
-  rom3 VARCHAR(10),
-  rom4 VARCHAR(10),
-  rom5 VARCHAR(10)
+  rom2 VARCHAR(30),
+  rom3 VARCHAR(30),
+  rom4 VARCHAR(30),
+  rom5 VARCHAR(30)
 );
 
 
@@ -146,7 +146,7 @@ CREATE TABLE prefiks (
   nettype VARCHAR(10) NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
   anvid VARCHAR(10) REFERENCES anv,
-  samband VARCHAR(20),
+  nettident VARCHAR(20),
   komm VARCHAR(20)
 );
 
@@ -208,7 +208,7 @@ CREATE TABLE gwport (
   ifindex INT2 NOT NULL,
   masterindex INT2,
   interf VARCHAR(30),
-  gwip varchar(15) NOT NULL,
+  gwip varchar(15),
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false,
