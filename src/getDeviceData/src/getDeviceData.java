@@ -472,10 +472,10 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL JOIN type WHERE sysName='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
 		Database.setDefaultKeepOpen(false);
@@ -506,6 +506,7 @@ class getDeviceData
 			bd.setType(rs.getString("typeid"));
 			bd.setSysname(rs.getString("sysname"));
 			bd.setKat(rs.getString("kat"));
+			bd.setSnmpMajor(rs.getInt("snmp_major"));
 
 			if (newBd) {
 				synchronized (bdFifo) {
@@ -684,6 +685,7 @@ class QueryBoks extends Thread
 			String boksType = bd.getType();
 			String sysName = bd.getSysname();
 			String kat = bd.getKat();
+			int snmpMajor = bd.getSnmpMajor();
 
 			outla("T"+id+": Now working with("+boksid+"): " + sysName + " ("+ boksType +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
 			long boksBeginTime = System.currentTimeMillis();
@@ -1233,6 +1235,11 @@ class PluginMonitorTask extends TimerTask
 					Attributes attr = mf.getMainAttributes();
 					String cn = attr.getValue("Plugin-Class");
 					outld("pluginMonitorTask: New or modified jar, trying to load jar " + fileList[i].getName());
+
+					if (cn == null) {
+						outld("pluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
+						continue;
+					}
 
 					Class c;
 					Object o;
