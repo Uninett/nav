@@ -1,7 +1,7 @@
 """
 threadpool
 
-$Id: threadpool.py,v 1.1 2002/06/04 09:14:10 erikgors Exp $
+$Id: threadpool.py,v 1.2 2002/06/04 09:31:31 erikgors Exp $
 """
 
 import threading
@@ -14,6 +14,7 @@ threadpool = []
 
 class jobber(threading.Thread):
 	def __init__(self,name):
+		Thread.__init__()
 		setName(name)
 		self.status = IDLE
 		self.running = 1
