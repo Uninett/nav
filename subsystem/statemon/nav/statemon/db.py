@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.8 2003/06/25 15:04:44 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.8 2003/06/25 15:04:44 magnun Exp $
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -8,7 +8,7 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                               
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
@@ -181,7 +181,8 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		for serviceid,prop,value in self.query(query):
 			if serviceid not in property:
 				property[serviceid] = {}
-			property[serviceid][prop] = value
+			if value:
+				property[serviceid][prop] = value
 
 		fromdb = []
 		query = """SELECT serviceid ,service.netboxid, service.active,
