@@ -120,6 +120,7 @@ INSERT INTO nettype (nettypeid,descr,edit) VALUES ('reserved','reserved',TRUE);
 INSERT INTO nettype (nettypeid,descr,edit) VALUES ('private','private',FALSE);
 INSERT INTO nettype (nettypeid,descr,edit) VALUES ('scope','scope',TRUE);
 INSERT INTO nettype (nettypeid,descr,edit) VALUES ('static','static',TRUE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('unknown','unknow',FALSE);
 
 CREATE TABLE vlan (
   vlanid SERIAL PRIMARY KEY,
