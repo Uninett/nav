@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.5 2002/07/02 13:13:34 magnun Exp $
+$Id: job.py,v 1.6 2002/07/02 18:45:16 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -14,6 +14,7 @@ DEBUG=1
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
+	TYPE = 'serviceState'    # reflects the value type in the evenq table
 	def __init__(self,serviceid,boksid,type,status,info):
 		self.serviceid = serviceid
 		self.boksid = boksid
@@ -136,15 +137,3 @@ class JobHandler:
 		return s.ljust(60) + self.getStatus()
 
 
-#jobmap = {'http':HttpHandler,
-#			 'port':PortHandler,
-#			 'ftp':FtpHandler,
-#			 'ssh':SshHandler,
-#			 'dns':DnsHandler,
-#			 'imap':ImapHandler,
-#			 'mysql':MysqlHandler,
-#			 'smb':SmbHandler,
-#			 'smtp':SmtpHandler,
-#			 'pop':PopHandler,
-#			 'dc':DcHandler
-#			 }
