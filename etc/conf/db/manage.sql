@@ -196,7 +196,8 @@ CREATE TABLE swp_boks (
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   modul VARCHAR(4) NOT NULL,
   port INT2 NOT NULL,
-  boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE
+  boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  misscnt INT2 NOT NULL DEFAULT '0'
 );
 
 CREATE TABLE swport (
@@ -317,11 +318,13 @@ CREATE TABLE cam (
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
   til TIMESTAMP NOT NULL DEFAULT 'infinity',
+  misscnt INT4 DEFAULT '0',
   UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
 CREATE INDEX cam_mac_hash ON cam USING hash (mac);
-CREATE INDEX cam_til_hash ON cam USING hash (til);
- 
+CREATE INDEX cam_til_btree ON cam USING btree (til);
+CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
+
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
   boks VARCHAR(15) NOT NULL,
