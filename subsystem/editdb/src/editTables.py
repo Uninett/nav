@@ -44,9 +44,11 @@ class editdbNetbox(Netbox):
                    'ip': 'ip',
                    'netboxid': 'netboxid',
                    'org': 'orgid',
+                   'orgid': 'orgid',
                    'prefix': 'prefixid',
                    'ro': 'ro',
                    'room': 'roomid',
+                   'roomid': 'roomid',
                    'rw': 'rw',
                    'snmp_agent': 'snmp_agent',
                    'snmp_version': 'snmp_version',
@@ -54,7 +56,6 @@ class editdbNetbox(Netbox):
                    'sysname': 'sysname',
                    'type': 'typeid',
                    'up': 'up'}
-                                                                                                                                                                                                                                                                
 
 
 class editdbType(Type):
@@ -75,10 +76,10 @@ class editdbRoom(Room):
     _sqlFields =  {'descr': 'descr',
                   'locationid': 'locationid',
                   'location': 'locationid',
-                  'room2': 'room2',
-                  'room3': 'room3',
-                  'room4': 'room4',
-                  'room5': 'room5',
+                  'opt1': 'opt1',
+                  'opt2': 'opt2',
+                  'opt3': 'opt3',
+                  'opt4': 'opt4',
                   'roomid': 'roomid'}
     _sqlLinks =  {}
     _userClasses = {}

@@ -105,11 +105,11 @@ $showBody($body)
 #if not $list.isDeleteList
     $actionBar($list)
 #end if
-        <TABLE border="0" cellspacing="0" cellpadding="5">
+        <TABLE border="0" cellspacing="0" cellpadding="0">
             <TR class="header">
                 <TD bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
 #for $heading in $list.headings
-                <TH>$heading</TH>
+                <TD valign="top">$heading&nbsp;</TD>
 #end for
                 <TD bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
             </TR>
@@ -123,9 +123,9 @@ $showBody($body)
 #set $odd = True
 #end if
             <TR class="$rowtype">
-                <TD> </TD> ## first column is start gfx (fix)
+                <TD>&nbsp;</TD> ## first column is start gfx (fix)
 #if not ($list.isDeleteList or $list.isBulkList)
-                <TD><INPUT type="checkbox" name="$list.cnameChk" value="$id" align="center"></TD>
+                <TD><INPUT type="checkbox" name="$list.cnameChk" value="$id" align="center">&nbsp;&nbsp;</TD>
 #elif $list.isDeleteList
                 <INPUT type="hidden" name="$list.cnameChk" value="$id">
 #elif $list.isBulkList
@@ -137,24 +137,18 @@ $showBody($body)
 #end if
 #for $entry,$link in $row
 #if $link
-                <TD><A href="$link">$entry</A></TD>
+                <TD><A href="$link">$entry</A>&nbsp;&nbsp;</TD>
 #else
-                <TD>$entry</TD>
+                <TD>$entry&nbsp;&nbsp;</TD>
 #end if
 #end for
-                <TD> </TD> ## last column is end gfx (fix)
+                <TD>&nbsp;</TD> ## last column is end gfx (fix)
             </TR>
 #end for
         </TABLE>
     $actionBar($list)
     </FORM>
-#if $list.backlink
-#set $url = $list.backlink[0]
-#set $text = $list.backlink[1]
-    <P>
-        <A href="$url">$text</A>
-    </P>
-#end if
+    $showPath(False)
 #end def
 
 ## This function displays the bar with add/edit/delete buttons
@@ -201,6 +195,12 @@ $showBody($body)
             $vendor($editbox)
 #elif $editbox.type == 'netbox'
             $netbox($editbox)
+#elif $editbox.type == 'netboxserial'
+            $netboxserial($editbox)
+#elif $editbox.type == 'netboxserver'
+            $netboxserver($editbox)
+#elif $editbox.type == 'netboxproduct'
+            $netboxproduct($editbox)
 #elif $editbox.type == 'bulk'
             $bulk($editbox)
 #elif $editbox.type == 'usage'
@@ -214,13 +214,6 @@ $showBody($body)
             </TR>
         </TABLE>
     </FORM>
-#if $form.backlink
-#set $text = $form.backlink[0]
-#set $url = $form.backlink[1]
-    <P>
-        <A HREF="$url">$text</A>
-    </P>
-#end if
 #end def
 
 ## Template function for adding or editing a netbox
@@ -250,24 +243,86 @@ $showBody($body)
         </TABLE>
 #end def
 
+## Template function for entering a serialnumber
+#def netboxserial($editbox)
+#set $fields = $editbox.fields
+    <P>$editbox.help</P>
+    <TABLE class="header-active">
+        <TR>
+            <TH>Serialnumber</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['serial'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for choosing between netboxes with
+## identical serials, but (hopefully) different products
+#def netboxproduct($editbox)
+#set $fields = $editbox.fields
+    <P>$editbox.help</P>
+    <TABLE class="header-active">
+    </TABLE>
+#end def
+
+## Template function for server subcat and function
+#def netboxserver($editbox)
+#set $fields = $editbox.fields
+#set $editId = ''
+#if $editbox.editId
+#set $editId = $editbox.editId
+#end if
+    <P>$editbox.help</P>
+    <TABLE class="header-active">
+        <TR>
+            <TH>Subcategory</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields[$editId+'subcat'],'width: 100%;')</TD>
+        </TR>
+        <TR>
+            <TH>Function</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields[$editId+'function'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
 ## Template function for adding or editing a netbox
 #def netbox($editbox)
 #set $fields = $editbox.fields
-        <TABLE class=header-active>
+#if $editbox.editId
+    <H3>$editbox.sysname</H3>
+#end if
+        <TABLE class="header-active">
             <TR>
-                <TH>IP or sysname</TH>
-                <TH>RO Community</TH>
+                <TH>IP</TH>
+                <TH>Category</TH>
             </TR>
             <TR>
-                <TD>$input($fields['sysname'])</TD>
+                <TD>$input($fields['ip'])</TD>
+                <TD>$input($fields['catid'],style='width: 100%;')</TD>
+            </TR>
+            <TR>
+                <TH>RO Community</TH>
+                <TH>Room</TH>
+            </TR>
+            <TR>
                 <TD>$input($fields['ro'])</TD>
+                <TD>$input($fields['roomid'],style='width: 100%;')</TD>
+            </TR>
+            <TR>
+                <TH>RW Community</TH>
+                <TH>Organisation</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['rw'])</TD>
+                <TD>$input($fields['orgid'])</TD>
             </TR>
         </TABLE>
 #end def
-
-
-
-
 
 ## Template function for adding or editing a room
 #def room($editbox)
@@ -284,16 +339,16 @@ $showBody($body)
             <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
         <TR>
-            <TH>Room 2</TH>
-            <TH>Room 3</TH>
-            <TH>Room 4</TH>
-            <TH>Room 5</TH>
+            <TH>Optional 2</TH>
+            <TH>Optional 3</TH>
+            <TH>Optional 4</TH>
+            <TH>Optional 5</TH>
         </TR>
         <TR>
-            <TD>$input($fields['room2'])</TD>
-            <TD>$input($fields['room3'],'width: 100%;')</TD>
-            <TD>$input($fields['room4'])</TD>
-            <TD>$input($fields['room5'])</TD>
+            <TD>$input($fields['opt1'])</TD>
+            <TD>$input($fields['opt2'],'width: 100%;')</TD>
+            <TD>$input($fields['opt3'])</TD>
+            <TD>$input($fields['opt4'])</TD>
         </TR>
     </TABLE>
 #end def
@@ -332,14 +387,14 @@ $showBody($body)
             <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
         </TR>
         <TR>
-            <TH>Org 2</TH>
-            <TH>Org 3</TH>
-            <TH>Org 4</TH>
+            <TH>Optional 1</TH>
+            <TH>Optional 2</TH>
+            <TH>Optional 3</TH>
         </TR>
         <TR>
-            <TD>$input($fields['org2'])</TD>
-            <TD>$input($fields['org3'])</TD>
-            <TD>$input($fields['org4'])</TD>
+            <TD>$input($fields['opt1'])</TD>
+            <TD>$input($fields['opt2'])</TD>
+            <TD>$input($fields['opt3'])</TD>
         </TR>
     </TABLE>
 #end def
@@ -349,22 +404,30 @@ $showBody($body)
 #set $fields = $editbox.fields
     <TABLE class="header-active" width="60%">
         <TR>
-            <TH>Name</TH>
-            <TH>Vendor</TH>
+            <TH colspan="3" width="30%">Name</TH>
+            <TH>Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="3">$input($fields['typename'],'width: 100%;')</TD>
+            <TD>$input($fields['descr'],'width: 100%;')</TD>
+        <TR>
+            <TH colspan="3">Vendor</TH>
+            <TH>Sysoid</TH>
+        </TR>
+            <TD colspan="3">$input($fields['vendorid'],'width: 100%;')</TD>
+            <TD>$input($fields['sysobjectid'],'width: 100%')</TD>
+        </TR>
+        <TR>
+            <TH>CDP</TH>
+            <TH>TFTP</TH>
+            <TH>Frequency</TH>
             <TH>Typegroup</TH>
         </TR>
         <TR>
-            <TD>$input($fields['typename'])</TD>
-            <TD>$input($fields['vendorid'])</TD>
-            <TD>$input($fields['typegroupid'])</TD>
-        </TR>
-        <TR>
-            <TH colspan="2" align="center">Description</TH>
-            <TH>Sysoid</TH>
-        </TR>
-        <TR>
-            <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
-            <TD>$input($fields['sysobjectid'],'width: 100%;')</TD>
+            <TD align="center">$input($fields['cdp'])</TD>
+            <TD align="center">$input($fields['tftp'])</TD>
+            <TD>$input($fields['frequency'])</TD>
+            <TD>$input($fields['typegroupid'],'width: 100%;')</TD>
         </TR>
 </TABLE>
 #end def
@@ -425,7 +488,7 @@ $showBody($body)
 #def $input($control,$style='')
 #set $control = $control[0]
 #if $control.type == 'text'
-<INPUT type="text" style="$style" name="$control.name" value="$control.value">
+<INPUT type="text" style="$style" size="$control.size" name="$control.name" value="$control.value">
 #elif $control.type == 'select'
 <SELECT name="$control.name" style="$style">
 #for $id,$option in $control.options
@@ -436,10 +499,26 @@ $showBody($body)
 #end if
 #end for
 </SELECT>
+#elif $control.type == 'multipleselect'
+<SELECT multiple name="$control.name" style="$style">
+#for $id,$option in $control.options
+#if $control.value.count($id)
+    <OPTION value="$id" selected>$option</OPTION>
+#else
+    <OPTION value="$id">$option</OPTION>
+#end if
+#end for
+</SELECT>
 #elif $control.type == 'file'
     <INPUT type="file" style="$style" name="$control.name" value="$control.value">
 #elif $control.type == 'textarea'
     <TEXTAREA name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</TEXTAREA>
+#elif $control.type == 'checkbox'
+#if $control.value == True
+    <INPUT type="checkbox" style="$style" name="$control.name" checked>
+#else
+    <INPUT type="checkbox" style="$style" name="$control.name">
+#end if
 #else
 Undefined control
 #end if
