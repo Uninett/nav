@@ -21,6 +21,9 @@ public class GwportHandler implements DataHandler {
 	private static final boolean DB_COMMIT = true;
 
 	private static Map moduleMap;
+
+	private static Map vlanMap;
+	private static Map prefixMap;
 	
 
 	/**
@@ -37,35 +40,58 @@ public class GwportHandler implements DataHandler {
 		Log.setDefaultSubsystem("GwportHandler");
 
 		try {
-		
 			// module, gwport, prefix, vlan
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			/*
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
+			rs = Database.query("SELECT serial,hw_ver,sw_ver,moduleid,module,gwportid,ifindex,interface,masterindex,speed,ospf,prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,gwportid");
 			while (rs.next()) {
-				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
-				md.setDeviceid(rs.getInt("deviceid"));
-				md.setModuleid(rs.getInt("moduleid"));
-				md.setSubmodule(rs.getString("submodule"));
+				// Create module
+				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				gwm.setDeviceid(rs.getInt("deviceid"));
+				gwm.setModuleid(rs.getInt("moduleid"));
 
 				int moduleid = rs.getInt("moduleid");
-				if (rs.getString("port") != null && rs.getString("port").length() > 0) {
+				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {
 					do {
-						Swport sd = new Swport(new Integer(rs.getInt("port")), rs.getString("ifindex"), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
-						sd.setSwportid(rs.getInt("swportid"));
-						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
-						sd.setHexstring(rs.getString("hexstring"));
-						md.addSwport(sd);
+						// Create vlan
+						Vlan vlan = (Vlan)vlanMap.get(rs.getString("vlanid"));
+						if (vlan == null) {
+							vlan = rs.getString("vlan") == null ? gwm.vlanFactory(rs.getString("netident")) :
+								gwm.vlanFactory(rs.getString("netident"), rs.getInt("vlan"));
+							vlan.setVlanid(rs.getInt("vlanid"));
+							vlan.setNettype(rs.getString("nettype"));
+							vlan.setOrgid(rs.getString("orgid"));
+							vlan.setUsageid(rs.getString("usageid"));
+							vlan.setDescription(rs.getString("description"));
+
+							vlanMap.put(rs.getString("vlanid"), vlan);
+						} else {
+							System.err.println("FOUND DUP VLAN!");
+						}
+
+						// Create gwport
+						Gwport gwp = gwm.gwportFactory(rs.getString("ifindex"), rs.getString("interface"));
+						gwp.setGwportid(rs.getInt("gwportid"));
+						gwp.setMasterindex(rs.getInt("masterindex"));
+						gwp.setSpeed(rs.getDouble("speed"));
+						if (rs.getString("ospf") != null) gwp.setOspf(rs.getInt("ospf"));
+
+						int gwportid = rs.getInt("gwportid");
+						do {
+							// Create prefices
+							Prefix prefix = gwp.prefixFactory(rs.getString("gwip"), rs.getBoolean("hsrp"), rs.getString("netaddr"), rs.getInt("masklen"), vlan);
+							prefix.setPrefixid(rs.getInt("prefixid"));
+
+						} while (rs.next() && rs.getInt("gwportid") == gwportid);
+							
 					} while (rs.next() && rs.getInt("moduleid") == moduleid);
 					rs.previous();
 				}
 
-				String key = rs.getString("netboxid")+":"+md.getKey();
-				m.put(key, md);
+				String key = rs.getString("netboxid")+":"+gwm.getKey();
+				m.put(key, gwm);
 			}
-			*/
-			Database.query("");
+
 			moduleMap = m;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
@@ -98,7 +124,35 @@ public class GwportHandler implements DataHandler {
 
 		Log.setDefaultSubsystem("GwportHandler");
 
+		System.err.println("Gwports for " + nb);
+
 		try {
+			for (Iterator gwModules = gc.getGwModules(); gwModules.hasNext();) {
+				GwModule gwm = (GwModule)gwModules.next();
+
+				System.err.println("  GwModule: " + gwm);
+				
+				for (Iterator gwPorts = gwm.getGwports(); gwPorts.hasNext();) {
+					Gwport gwp = (Gwport)gwPorts.next();
+
+					System.err.println("    Gwport: " + gwp);
+					
+					for (Iterator gwportPrefices = gwp.getGwportPrefices(); gwportPrefices.hasNext();) {
+						Gwportprefix gp = (Gwportprefix)gwportPrefices.next();
+
+						String gwip = gp.getGwip();
+						boolean hsrp = gp.getHsrp();
+						Prefix p = gp.getPrefix();
+						Vlan vl = p.getVlan();
+
+						System.err.println("      Gwip: " + gwip);
+						System.err.println("      Hsrp: " + hsrp);
+						System.err.println("      Prefix: " + p);
+						System.err.println("      Vlan: " + vl);
+					}
+				}
+			}
+						
 
 			/*
 			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {

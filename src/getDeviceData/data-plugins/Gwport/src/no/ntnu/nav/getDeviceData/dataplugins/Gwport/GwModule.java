@@ -1,8 +1,6 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
 
@@ -12,6 +10,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
 
 public class GwModule extends Module implements Comparable
 {
+	private Map vlanMap = new HashMap();
+	private List vlanList = new ArrayList();
+
 	private Map gwports = new HashMap();
 
 	GwModule(String serial, String hw_ver, String sw_ver, String module)
@@ -28,12 +29,32 @@ public class GwModule extends Module implements Comparable
 	// Doc in parent
 	protected String getKey() { return super.getKey(); }
 
+	void addGwport(Gwport gwp) { gwports.put(gwp.getIfindex(), gwp); }
 	/*
-	void addGwport(Gwport sd) { swports.put(sd.getPort(), sd); }
 	Iterator getSwports() { return swports.values().iterator(); }
 	int getSwportCount() { return swports.size(); }
 	Swport getSwport(Integer port) { return (Swport)swports.get(port); }
 	*/
+
+	/**
+	 * Return a Vlan-object which is used to describe a single vlan. The
+	 * vlan-number is not known.
+	 */
+	public Vlan vlanFactory(String netident) {
+		Vlan v = new Vlan(netident);
+		vlanList.add(v);
+		return v;
+	}
+
+	/**
+	 * Return a Vlan-object which is used to describe a single vlan.
+	 */
+	public Vlan vlanFactory(String netident, int vlan) {
+		Vlan v;
+		Integer vl = new Integer(vlan);
+		if ( (v=(Vlan)vlanMap.get(vl)) == null) vlanMap.put(vl, v = new Vlan(netident, vlan));
+		return v;
+	}
 
 	/**
 	 * Return a Gwport-object which is used to describe a single router interface.
@@ -44,13 +65,13 @@ public class GwModule extends Module implements Comparable
 		return gw;
 	}
 
-	/**
-	 * Return a Gwport-object which is used to describe a single router interface.
-	 */
-	public Gwport gwportFactory(String ifindex, String interf, String gwip) {
-		Gwport gw = new Gwport(ifindex, interf, gwip);
-		gwports.put(ifindex, gw);
-		return gw;
+	Iterator getGwports() {
+		return gwports.values().iterator();
 	}
+
+	public String toString() {
+		return super.toString() + ", Gwports: " + gwports.size();
+	}
+
 
 }

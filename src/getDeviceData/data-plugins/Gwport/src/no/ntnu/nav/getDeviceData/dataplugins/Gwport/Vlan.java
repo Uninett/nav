@@ -10,17 +10,26 @@ import java.util.ArrayList;
 
 public class Vlan implements Comparable
 {
+	private int vlanid;
 	private int vlan;
 
 	private String nettype;
-	private String org;
-	private String usage;
+	private String orgid;
+	private String usageid;
 	private String netident;
 	private String description;
 
-	Vlan(int vlan) {
+	Vlan(String netident) {
+		this.netident = netident;
+	}
+
+	Vlan(String netident, int vlan) {
+		this(netident);
 		this.vlan = vlan;
 	}
+
+	int getVlanid() { return vlanid; }
+	void setVlanid(int i) { vlanid = i; }	
 
 	int getVlan() { return vlan; }
 	void setVlan(int i) { vlan = i; }
@@ -35,22 +44,15 @@ public class Vlan implements Comparable
 	/**
 	 * Set org.
 	 */
-	public void setOrg(String s) {
-		org = s;
+	public void setOrgid(String s) {
+		orgid = s;
 	}
 
 	/**
 	 * Set usage.
 	 */
-	public void setUsage(String s) {
-		usage = s;
-	}
-
-	/**
-	 * Set netident.
-	 */
-	public void setNetident(String s) {
-		netident = s;
+	public void setUsageid(String s) {
+		usageid = s;
 	}
 
 	/**
@@ -85,7 +87,7 @@ public class Vlan implements Comparable
 	}
 
 	public String toString() {
-		return "Vlan vlan="+vlan;
+		return vlan + ", nettype="+nettype+", org="+orgid+", usage="+usageid+", netident="+netident+", descr="+description;
 	}
 
 }
