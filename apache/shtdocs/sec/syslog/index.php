@@ -1,5 +1,5 @@
 <?php
-// $id$
+// $id:$
 
     require("/usr/local/nav/navme/lib/getdb.php");
 
