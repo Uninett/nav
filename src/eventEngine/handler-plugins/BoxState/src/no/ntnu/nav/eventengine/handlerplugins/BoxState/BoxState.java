@@ -202,8 +202,13 @@ public class BoxState implements EventHandler, EventCallback
 						Alert a = ddb.alertFactory(e);
 						a.addEvent(e);
 
+						outld("  added alert: " + a);
+
 						// Set status (down or shadow)
 						a.addVar("status", n.getStatusS());
+
+						// Set time
+						a.addVar("time", e.getTimeS());
 
 						// Update alerttype
 						if (n.getStatus() == Box.STATUS_SHADOW) {

@@ -15,6 +15,7 @@ public interface Event
 	public int getBoksid();
 	public int getSubid();
 	public Date getTime();
+	public String getTimeS();
 	public String getEventtypeid();
 	public int getState();
 	public int getValue();

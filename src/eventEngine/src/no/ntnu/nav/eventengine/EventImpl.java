@@ -87,6 +87,7 @@ class EventImpl implements Event, Alert
 	public int getBoksid() { return boksid; }
 	public int getSubid() { return subid; }
 	public Date getTime() { return time; }
+	public String getTimeS() { return dateToString(time); }
 	public String getEventtypeid() { return eventtypeid; }
 	public int getState() { return state; }
 	public int getValue() { return value; }
