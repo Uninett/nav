@@ -101,7 +101,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	// Doc in interface
-	public boolean requestOidFetchPermission(String key) {
+	public boolean canGetOid(String key) {
 		if (!oidNextRunMap.containsKey(key)) return false;
 
 		long nextRun = ((Long)oidNextRunMap.get(key)).longValue();

@@ -28,15 +28,16 @@ public interface Netbox
 	public boolean isSupportedOids(String[] oidkeys);
 
 	/**
-	 * <p> Ask permission to fetch the OID for the given key. Since
-	 * different OID's, or even equal OID's, but on different types of
-	 * devices, can have different query frequencies, this method must
-	 * be called before attempting to query the device. </p>
+	 * <p> Check if the OID for the given key is ready to be
+	 * fetched. Since different OID's, or even equal OID's, but on
+	 * different types of devices, can have different query frequencies,
+	 * this method must be called before attempting to query the
+	 * device. </p>
 	 *
 	 * @param key The key for the OID
 	 * @return true if the OID is ready to be quieried
 	 */
-	public boolean requestOidFetchPermission(String key);
+	public boolean canGetOid(String key);
 
 	/**
 	 * Get the OID for the given key.
