@@ -498,7 +498,7 @@ class EventqMonitorTask extends TimerTask
 	DeviceDB devDB;
 
 	Map handlerCache = new HashMap();
-	int lastEventqid;
+	int lastEventqid = 0;
 
 	public EventqMonitorTask(Map handlerMap, DeviceDB devDB)
 	{
@@ -532,52 +532,45 @@ class EventqMonitorTask extends TimerTask
 	public void run()
 	{
 		try {
-			ResultSet rs = Database.query("SELECT eventqid,deviceid,boksid,time,eventtypeid,var,eventqvar.value FROM eventq JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " ORDER BY eventqid");
+			//outld("Last lastEventqid is: " + lastEventqid);
+			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,boksid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
 			if (rs.getFetchSize() > 0) outld("Fetched " + rs.getFetchSize() + " events from eventq");
+
 			while (rs.next()) {
-				// Get fields
-				int eventqid = rs.getInt("eventqid");
-				int deviceid = rs.getInt("deviceid");
-				int boksid = rs.getInt("boksid");
-				String time = rs.getString("time");
-				String eventtypeid = rs.getString("eventtypeid");
-				Map varMap = new HashMap();
 
-				do {
-					String var = rs.getString("var");
-					List l;
-					if ( (l=(List)varMap.get(var)) == null) varMap.put(var, l=new ArrayList());
-					l.add(rs.getString("value"));
-
-					if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getInt("eventqid");
-
-				} while (rs.next() && rs.getInt("eventqid") == eventqid);
-				rs.previous();
-
-				Event e = new EventImpl(eventqid, deviceid, boksid, time, eventtypeid, varMap);
-
+				Event e = DeviceDB.eventFactory(rs);
 				outld("  Got event: " + e);
 
+				String eventtypeid = e.getEventtypeid();
 				if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
 					outld("  Found handler: " + eh.getClass().getName());
-					eh.handle(e);
+					eh.handle(devDB, e);
 				} else {
 					outld("  No handler found for eventtype: " + eventtypeid);
 				}
 
 			}
+
+			if (rs.last()) if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getInt("eventqid");
+
 		} catch (SQLException e) {
 			// Now we are in trouble
 			errl("EventqMonitorTask:  SQLException when fetching from eventq: " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 	}
 
 /*
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','f',100);
-INSERT INTO eventqvar (eventqid,var,value) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','t',100);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
 COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','f',100);
+COMMIT;
+
 */
 
 	private static void outd(Object o) { System.out.print(o); }

@@ -7,6 +7,6 @@ public interface EventHandler
 {
 
 	public String[] handleEventTypes();
-	public void handle(Event e);
+	public void handle(DeviceDB ddb, Event e);
 
 }
