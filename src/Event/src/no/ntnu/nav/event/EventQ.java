@@ -247,14 +247,14 @@ class EventQMonitorTask extends TimerTask {
 
 		try {
 			ResultSet rs = Database.query("SELECT eventqid,source,target,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target IN (" + targets + ") ORDER BY eventqid");
-			if (rs.getFetchSize() > 0) {
-				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched " + rs.getFetchSize() + " rows from eventq");
+			if (rs.next()) {
+				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched rows from eventq");
 			} else {
 				return;
 			}
 
 			int eventCnt=0;
-			while (rs.next()) {
+			do {
 				String target = rs.getString("target");
 				Event e = Event.eventFactory(rs);
 				eventCnt++;
@@ -280,7 +280,7 @@ class EventQMonitorTask extends TimerTask {
 
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Processed " + eventCnt + " events in this session");
 				if (rs.last()) if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getLong("eventqid");
-			}
+			} while (rs.next());
 
 		} catch (SQLException exp) {
 			// Now we are in trouble
