@@ -8,8 +8,6 @@ Target --default--
 OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  #prints all the discs
 OID    StorageSize              1.3.6.1.2.1.25.2.3.1.5  #the size of the disc
 OID    StorageUsed              1.3.6.1.2.1.25.2.3.1.6  #how much space is used
-#Users
-OID    numOfUsers		1.3.6.1.2.1.25.1.5.0
 #pros
 OID    numOfPros		1.3.6.1.2.1.25.1.6.0
 #interface
@@ -28,17 +26,22 @@ OID    totalMem              	1.3.6.1.2.1.25.2.2.0
 #nix
 OID loadnix                     1.3.6.1.4.1.2021.10.1.5.1 #average load last 5 min
 OID memUsagenix			1.3.6.1.4.1.2021.4.6.0
-OID cpunix                      1.3.6.1.4.1.2021.11.10
-#windows
-#OID Loadwin                    ARG!!
-OID memUsagewin			1.3.6.1.4.1.311.1.1.3.1.1.7.2.0
+OID cpunix			1.3.6.1.4.1.2021.11.10
+OID numOfUsersnix		1.3.6.1.2.1.25.1.5.0      #antall brukere på maskinen
+
+#windows her har vi brukt spesifike ting for MS og kompilert 
+#opp mib'ene selv , se i doc'en før du koker/forandrer noe her !
+OID sessionTotalwin		1.3.6.1.4.1.311.1.1.3.1.1.13.1.0	
+OID sessionActivewin		1.3.6.1.4.1.311.1.1.3.1.1.13.2.0
+OID sessionInactivewin		1.3.6.1.4.1.311.1.1.3.1.1.13.3.0
+OID memUsagewin			1.3.6.1.4.1.311.1.1.3.1.1.4.3.0
 OID cpuwin			1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.0
 
 			
 datasource	StorageDescription	ds-source =	snmp://%snmp%/StorageDescription
 datasource	StorageSize		ds-source =	snmp://%snmp%/StorageSize.%inst%		#rrd-ds-type = COUNTER
 datasource	StorageUsed		ds-source =	snmp://%snmp%/StorageUsed.%inst%		#rrd-ds-type = COUNTER
-datasource	numOfUsers		ds-source =	snmp://%snmp%/numOfUsers
+datasource	numOfUsersnix		ds-source =	snmp://%snmp%/numOfUsersnix
 datasource	numOfPros		ds-source =	snmp://%snmp%/numOfPros
 datasource	interfaceInBit		ds-source =	snmp://%snmp%/interfaceInBit.%inst%		rrd-ds-type =  COUNTER
 datasource	interfaceOutBit		ds-source =	snmp://%snmp%/interfaceOutBit.%inst%		rrd-ds-type =  COUNTER
@@ -51,6 +54,9 @@ datasource	totalMem		ds-source =	snmp://%snmp%/totalMem
 datasource	loadnix			ds-source =	snmp://%snmp%/loadnix 
 datasource	memUsagenix		ds-source =	snmp://%snmp%/memUsagenix
 datasource	cpunix			ds-source =	snmp://%snmp%/cpunix
+datasource	sessionTotalwin		ds-source =	snmp://%snmp%/sessionTotalwin
+datasource	sessionActivewin	ds-source =	snmp://%snmp%/sessionActivewin
+datasource	sessionInactivewin	ds-source =	snmp://%snmp%/sessionInactivewin
 datasource	memUsagewin		ds-source =	snmp://%snmp%/memUsagewin
 datasource	cpuwin			ds-source =	snmp://%snmp%/cpuwin
 
@@ -95,8 +101,10 @@ targettype interfaceError
 	ds = "interfaceInError,interfaceOutError"
 targettype interfaceDiscard
 	ds = "ifInDiscards,ifOutDiscards"
-targettype users
-	ds = "numOfUsers"
+targettype usersnix
+	ds = "numOfUsersnix"
+targettype userswin
+	ds = "sessionTotalwin,sessionActivewin,sessionInactivewin"
 targettype processes
 	ds = "numOfPros"
 targettype memnix
@@ -166,11 +174,27 @@ graph ifOutDiscards
     color   = blue
     draw-as = LINE2
 
-#users
+#usersnix
 graph numOfUsers
     units   = "Antall"
     color   = dark-green
     draw-as = AREA
+
+#userswin
+graph sessionTotalwin
+    units   = "totalt antall"
+    color   = dark-green
+    draw-as = AREA
+
+graph sessionActivewin
+    units   = "active"
+    color   = blue
+    draw-as = LINE2
+
+graph sessionInactivewin
+    units   = "Inactive"
+    color   = dark-blue
+    draw-as = LINE2
 
 #Processes 
 graph numOfPros
