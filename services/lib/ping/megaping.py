@@ -1,3 +1,11 @@
+"""
+$Id: megaping.py,v 1.9 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.                                                                                             
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
+	Stian Soiland   <stain@stud.ntnu.no>
+"""
 import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,debug,config
 # From our friend:
 import ip,icmp,rrd

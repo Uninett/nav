@@ -1,8 +1,9 @@
 """
-$Author: magnun $
-$Id: RunQueue.py,v 1.24 2003/01/03 15:47:02 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
-
+$Id: RunQueue.py,v 1.25 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.                                                                                             
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 from threading import *
 import threading, DEQueue, sys, time, types, traceback, debug, config

@@ -1,11 +1,16 @@
 """
-$Author: magnun $
-$Id: config.py,v 1.11 2002/11/28 22:07:34 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
+$Id: config.py,v 1.12 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.
 
+Abstraction for the various config files used
+by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
+
 import os, re
 
 CONFIGFILEPATH=['/usr/local/navme/etc/conf/','.']

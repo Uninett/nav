@@ -1,9 +1,14 @@
 """
-create and update rrd-objects
+$Id: rrd.py,v 1.7 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.
 
-$Id: rrd.py,v 1.6 2002/11/28 22:07:34 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/rrd.py,v $
+Module for creating and updating rrd-objects
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Erik Gorset	<erikgors@stud.ntnu.no>
 """
+
+
 import os
 from RRDtool import RRDtool
 from job import Event
@@ -21,8 +26,6 @@ def update(serviceid,time,status,responsetime):
 	responsetime: 0-300 or '' (undef)
 	"""
 	filename = '%s/%s.rrd' % (RRDDIR,serviceid)
-	#print "rrdfil: %s %i" % (filename, os.path.exists(filename))
-	#print "Box: %s responsetime: %s" % (serviceid,responsetime)
 	os.path.exists(filename) or create(serviceid)
 	if status == Event.UP:
 		rrdstatus=0

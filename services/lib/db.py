@@ -1,13 +1,18 @@
 """
-$Id: db.py,v 1.12 2003/01/03 15:50:32 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
+$Id: db.py,v 1.13 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
 by the service monitor.
 
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
+	Erik Gorset	<erikgors@stud.ntnu.no>
 """
+
 import threading, jobmap, psycopg, Queue, job, debug
 from setup import Service
 

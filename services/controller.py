@@ -1,10 +1,10 @@
-
 #!/usr/bin/python
 """
-$Author: magnun $
-$Id: controller.py,v 1.30 2003/01/02 22:02:12 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
-
+$Id: controller.py,v 1.31 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.                                                                                             
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")

@@ -1,6 +1,9 @@
 """
-$Id: debug.py,v 1.4 2003/01/02 22:01:26 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/debug.py,v $
+$Id: debug.py,v 1.5 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.                                                                                             
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
 import time, sys

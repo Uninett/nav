@@ -1,8 +1,12 @@
 """
-$Id: Socket.py,v 1.5 2002/08/29 11:04:55 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/Socket.py,v $
-"""
+$Id: Socket.py,v 1.6 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.
 
+Socket module with timeout.
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Erik Gorset	<erikgors@stud.ntnu.no>
+"""
 import time,socket,sys,types,string
 from select import select
 from errno import errorcode

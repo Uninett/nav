@@ -1,6 +1,10 @@
 """
-$Id: jobmap.py,v 1.1 2002/06/28 09:19:58 erikgors Exp $
-$Source: /usr/local/cvs/navbak/navme/services/lib/jobmap.py,v $
+$Id: jobmap.py,v 1.2 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
+	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 import os, re
 
@@ -14,11 +18,6 @@ class jobmap(dict):
     def register(self, service, handler):
         if not service in self:
             self[service] = handler
-
-#    def __getitem__(self, service):
-#        exec( "import "+ self[service])
-#        print self[service]+'.'+self[service]
-#        return eval(self[service]+'.'+self[service])
 
     def get(self, service):
         exec( "import "+ self[service])

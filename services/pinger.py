@@ -1,8 +1,10 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.8 2003/01/02 22:01:57 magnun Exp $
-$Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
-
+$Id: pinger.py,v 1.9 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+This file is part of the NAV project.                                                                                             
+                                                                                                                                 
+Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
