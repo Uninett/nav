@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: bokser.pl,v 1.13 2002/11/26 11:14:07 gartmann Exp $
+# $Id: bokser.pl,v 1.14 2002/12/18 15:32:22 gartmann Exp $
 # This file is part of the NAV project.
 # bokser reads the files nettel.txt (containing network devices) and server.txt
 # and does SNMPget to require information. This information is updated in the 
@@ -51,9 +51,10 @@ my $endelser = $nav_conf{"DOMAIN_SUFFIX"};
 my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
 #-----------------------
 #FILLESING: server.txt
+my %temp_netboxcategory; # blir brukt for å samle tjenetekategorier per ip
 my @felt_server = ("ip","sysname","roomid","orgid","catid","subcat","ro");
 my $fil_server = "$localkilde/server.txt";
-%server = &fil_server($fil_server,scalar(@felt_server),$endelser,\%sysnamehash);
+%server = &fil_server($fil_server,scalar(@felt_server)+2,$endelser,\%sysnamehash);
 #----------------------------------
 #DATABASELESING
 
@@ -67,6 +68,19 @@ for my $a (keys %db_server) {
 #&device_endring($conn,\%server,\%db_server,\@felt_server,"netbox");
 #&db_device($conn,"netbox",\@felt_server,[0],[0,1,2,3,4,5,6],\%server,\%db_server,0);
 &db_safe(connection => $conn,table => "netbox",fields => \@felt_server, new => \%server, old => \%db_server,delete => 0,insert => "device");
+
+my %ip2netboxid = &db_select_hash($conn,"netbox",["ip","netboxid"],0);
+my %old_netboxcategory = &db_select_hash($conn,"netboxcategory",["netboxid","category"],0,1);
+my %new_netboxcategory;
+for my $ip (keys %temp_netboxcategory) {
+    my $netboxid = $ip2netboxid{$ip}[1];
+    for my $value (keys %{$temp_netboxcategory{$ip}}) {
+	my @temp = ($netboxid,$value);
+	$new_netboxcategory{$netboxid}{$value} = \@temp;
+    }
+}
+my @fields_netboxcategory = ("netboxid","category");
+&db_safe(connection => $conn, table => "netboxcategory", fields => \@fields_netboxcategory, new => \%new_netboxcategory, old => \%old_netboxcategory, index => ["netboxid","category"], delete => 1);
 
 #------------------------------
 #FILLESING: nettel.txt
@@ -168,6 +182,11 @@ sub fil_server{
 	@_ = &fil_hent_linje($felt,$_);
 	my $ip;
 	if($ip = &hent_ip($_[1])) {
+
+	    for my $value (split /,/, $_[7]){
+		$temp_netboxcategory{$ip}{$value} = 1;
+	    }
+
 	    @_ = ($ip,@_[0..1],lc($_[2]),uc($_[3]),@_[4..5]);
 	    @_ = map rydd($_), @_;
 	    my $sysname = &fjern_endelse($_[2],$endelser);
