@@ -114,6 +114,28 @@ public class CiscoSwIOS implements DeviceHandler
 
 		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
 
+		// First we need to count the modules (Fa0, Gi0, Gi should be 1)
+		Map moduleCntMap = new HashMap();
+		{
+			Set moduleSet = new HashSet();
+			int modCnt=0;
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				
+				String portif = s[1];
+				String modulePattern = "((.*?)\\d+)/.*";
+				if (portif.matches(modulePattern)) {
+					Matcher m = Pattern.compile(modulePattern).matcher(portif);
+					m.matches();
+					String mn = m.group(1);
+					String interf = m.group(2);
+					if (moduleCntMap.containsKey(interf)) moduleCntMap.put(interf, new Integer(modCnt));
+					if (!moduleSet.add(mn)) modCnt++;
+					
+				}
+			}
+		}
+
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
 			
@@ -122,11 +144,12 @@ public class CiscoSwIOS implements DeviceHandler
 
 			// Determine and create the module
 			int module = 0;
-			String modulePattern = ".*?(\\d+)/.*";
+			String modulePattern = "(.*?)(\\d+)/.*";
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
 				m.matches();
-				module = Integer.parseInt(m.group(1));
+				int base = ((Integer)moduleCntMap.get(m.group(1))).intValue();
+				module = base+Integer.parseInt(m.group(2));
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
