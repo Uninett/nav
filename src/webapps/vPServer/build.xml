@@ -4,6 +4,7 @@
     </description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
+  <property name="lib" location="lib"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
   <property name="build.compiler.emacs" value="yes"/>
@@ -18,7 +19,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" classpath="${lib}/jsdk22.jar"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -31,6 +32,14 @@
          webxml="metadata/web.xml">
       <classes dir="${build}"/>
     </war>
+  </target>
+
+  <target name="install" depends="dist">
+    <mkdir dir="../../../webapps"/>
+    <copy file="${dist}/vPServer.war" todir="../../../webapps"/>
+  </target>
+  <target name="uninstall">
+    <delete file="../../../webapps/vPServer.war"/>
   </target>
 
   <target name="dist_debug" depends="dist"
