@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
 use strict;
+require '/usr/local/nav/navme/lib/NAV.pm';
+import NAV qw(:DEFAULT :collect);
 
-require "/usr/local/nav/navme/etc/conf/path.pl";
-my $lib = &lib();
-require "$lib/database.pl";
-require "$lib/snmplib.pl";
-require "$lib/fil.pl";
-require "$lib/iplib.pl";
+my $lib = get_path("path_lib");
+my $path_collect = get_path("path_collect");
+require $lib."snmplib.pl";
+require $lib."iplib.pl";
 
 &log_open;
 
@@ -32,7 +32,7 @@ my %swportallowedvlantemp;
 my %db_swportallowedvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportallowedvlan)." FROM swportallowedvlan");
 
 foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
-    if($boks{$boksid}[4] =~ /y|t/i) {
+    if($boks{$boksid}[4] =~ /n|f/i) {
 	&skriv("DEVICE-WATCH","ip=".$boks{$boksid}[2]);
     } else {
 	if (&snmp_svitsj($boks{$boksid}[1],$boks{$boksid}[5],$boksid,$boks{$boksid}[3],$boks{$boksid}[2]) eq '0') {
@@ -114,7 +114,7 @@ sub snmp_svitsj{
     my $typegruppe = $_[3];
     my $sysname = $_[4];
 
-    my $includefile = "/usr/local/nav/navme/cron/collect/typer/".$typegruppe.".pl";
+    my $includefile = $path_collect."typer/".$typegruppe.".pl";
     if(-r $includefile){
 
 	do $includefile ||  print $!;

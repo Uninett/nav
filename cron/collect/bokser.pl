@@ -1,24 +1,18 @@
 #!/usr/bin/perl
-print "deg   \n";
+
 use SNMP_util;
 use strict;
 
-print "hei   \n";
+require '/usr/local/nav/navme/lib/NAV.pm';
+import NAV qw(:DEFAULT :collect);;
 
-require "/usr/local/nav/navme/etc/conf/path.pl";
-my $lib = &lib();
-my $localkilde = &localkilde();
-my $localconf = &localconf();
+my $localkilde = get_path("path_localkilde");
+my $localconf = get_path("path_localconf");
+my $lib = get_path("path_lib");
 
-print "på   \n";
-
-require "$lib/database.pl";
-require "$lib/snmplib.pl";
-require "$lib/fil.pl";
+require $lib."snmplib.pl";
 
 &log_open;
-
-print "start   \n";
 
 my $conn = &db_get("bokser");
 
@@ -40,7 +34,6 @@ my %db_unntak = ();#&db_hent_enkel($conn,"select ip,watch from boks where watch=
 my @felt_server = ("ip","sysname","roomid","orgid","catid","subcat","ro");
 my $fil_server = "$localkilde/server.txt";
 %server = &fil_server($fil_server,scalar(@felt_server),$endelser,\%sysnamehash);
-print "leste server   \n";
 #----------------------------------
 #DATABASELESING
 
@@ -52,16 +45,15 @@ for my $a (keys %db_server) {
     $db_alle{$ip} = 1;
 }
 #&device_endring($conn,\%server,\%db_server,\@felt_server,"netbox");
-&db_device($conn,"netbox",\@felt_server,[0],[0,1,2,3,4,5,6],\%server,\%db_server,0);
+#&db_device($conn,"netbox",\@felt_server,[0],[0,1,2,3,4,5,6],\%server,\%db_server,0);
+&db_safe(connection => $conn,table => "netbox",fields => \@felt_server, new => \%server, old => \%db_server,delete => 0,insert => "device");
 
 
-print "server ferdig   \n";
 #------------------------------
 #FILLESING: nettel.txt
 my @felt_nettel = ("ip","sysname","typeid","roomid","orgid","catid","subcat","ro","rw");
 my $fil_nettel = "$localkilde/nettel.txt";
 %nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%db_unntak,\%sysnamehash);
-print "leste nettel   ";
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
@@ -73,9 +65,7 @@ for my $a (keys %db_nettel) {
     my $ip = $db_nettel{$a}[0];
     $db_alle{$ip} = 1;
 }
-&db_device(connection => $conn,table => "netbox",fields => \@felt_nettel, new => \%nettel, old => \%db_nettel,delete => 0,insert => "device");
-
-print "nettel ferdig   \n";
+&db_safe(connection => $conn,table => "netbox",fields => \@felt_nettel, new => \%nettel, old => \%db_nettel,delete => 0,insert => "device");
 
 #-----------------------------------
 #DELETE
@@ -107,8 +97,7 @@ sub fil_nettel{
     open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
     while (<FIL>) {
 	@_ = &fil_hent_linje($felt,$_);
-	print my $ip = $_[1];
-	print "\n";
+	my $ip = $_[1];
 	if($ip&&!exists($unntak{$ip})){
 	    my $ro = $_[5];
 	    if (my @passerr = $ro =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
@@ -124,8 +113,7 @@ sub fil_nettel{
 # gammel    ($sysname,$temptype) = &snmp_system(1,$ip,$ro,$endelser);
 	    ($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
 	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
-	    print my $type = $type{$temptype};
-	    print "\n";
+	    my $type = $type{$temptype};
 	    if($sysname){
 		unless($type){
 		    &skriv("TEXT-TYPE","ip=$ip","type=$temptype");

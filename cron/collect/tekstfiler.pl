@@ -1,12 +1,11 @@
 #!/usr/bin/perl
 use strict;
 
-require "/usr/local/nav/navme/etc/conf/path.pl";
-my $lib = &lib();
-my $localkilde = &localkilde();
-my $kilde = "etc/kilde/";
-require "$lib/database.pl";
-require "$lib/fil.pl";
+require '/usr/local/nav/navme/lib/NAV.pm';
+import NAV qw(:DEFAULT :collect);
+
+my $path_local = &get_path("path_local");
+
 &log_open;
 #-------------ALLE-------------
 my $db = &db_get("tekstfiler");
@@ -18,7 +17,7 @@ my ($fil,$tabell,@felt);
 #--------------ROM-------------
 &db_file_to_db(connection => $db,file => "etc/kilde/rom.txt",table => "room",databasefields => ["roomid","locationid","descr","room2","room3","room4","room5"],index => ["roomid"]);
 #--------------ORG-------------
-$fil = "$localkilde/org.txt";
+$fil = $path_local."etc/kilde/org.txt";
 $tabell = "org";
 @felt = ("orgid","parent","descr","org2","org3","org4");
 &spesiell_endring_org($db,$fil,$tabell,join(":",@felt),join(":",@felt));

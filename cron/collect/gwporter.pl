@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 
 use strict;
+require '/usr/local/nav/navme/lib/NAV.pm';
+import NAV qw(:DEFAULT :collect);
 
-require "/usr/local/nav/navme/etc/conf/path.pl";
-my $lib = &lib();
-my $localkilde = &localkilde();
-require "$lib/database.pl";
-require "$lib/snmplib.pl";
-require "$lib/fil.pl";
-require "$lib/iplib.pl";
+my $lib = get_path("path_lib");
+my $localkilde = get_path("path_localkilde");
+require $lib."snmplib.pl";
+require $lib."iplib.pl";
+
 my $debug = 0;
 
 &log_open;
@@ -35,7 +35,7 @@ my (%lan, %stam, %link, %vlan);
 &fil_vlan;
 
 ### prefixtabellen
-my %prefix = &fil_prefix("$localkilde/prefiks.txt",4);
+my %prefix = &fil_prefix($localkilde."prefiks.txt",4);
 my %db_prefix = &db_select_hash($db,"prefix",\@felt_prefix,0);
 
 ### bokser det skal samles inn gwportinfo for
@@ -46,7 +46,7 @@ my %gwport;
 my %db_gwport = &db_select_hash($db,"gwport",\@felt_gwport,0,1,2);
 
 foreach my $netboxid (keys %bokser) { #$_ = netboxid keys %boks
-    if($bokser{$netboxid}[3] =~ /y|t/i) {
+    if($bokser{$netboxid}[3] =~ /n|f/i) {
 	&skriv("DEVICE-WATCH","ip=".$bokser{$netboxid}[2]);
     } else {
 	if ( &hent_snmpdata($bokser{$netboxid}[1],$bokser{$netboxid}[4],$netboxid) eq '0' ) {
@@ -596,8 +596,8 @@ sub finn_prefixid {
     # Tar inn ip, splitter opp og and'er med diverse
     # nettmasker. Målet er å finne en match med en allerede innhentet
     # prefixid (hash over alle), som så returneres.
-    print "\nPrøver å finne prefiks for ";
-    print my $ip = $_[0];
+#    print "\nPrøver å finne prefiks for ";
+    my $ip = $_[0];
     my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
     foreach my $maske (@masker) {
 	my $nettadr = &and_ip($ip,$maske);
@@ -605,7 +605,7 @@ sub finn_prefixid {
 	$nettadr = &fil_netaddr($nettadr,$mask);
 	return $nettadr2prefixid{$nettadr} if (defined $nettadr2prefixid{$nettadr});
     }
-    print "Fant ikke prefixid for $ip\n";
+#    print "Fant ikke prefixid for $ip\n";
     return 0;
 }
 
