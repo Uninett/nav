@@ -110,6 +110,8 @@ CREATE TABLE prefiks (
   nettadr VARCHAR(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
   vlan VARCHAR(4),
+  antmask INT2,
+  maxhosts INT2,
   nettype VARCHAR(10) NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
   anvid VARCHAR(10) REFERENCES anv,
@@ -179,12 +181,10 @@ CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
-  indeks INT2 NOT NULL,
+  ifindeks INT2 NOT NULL,
   interf VARCHAR(30) NOT NULL,
   gwip VARCHAR(15) NOT NULL,
   speed VARCHAR(10),
-  antmask INT2,
-  maxhosts INT2,
   ospf INT2,
   hsrppri VARCHAR(1),
   static BOOL DEFAULT false
@@ -213,6 +213,10 @@ CREATE TABLE swportvlan (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
   retning VARCHAR(1) NOT NULL DEFAULT 'x'
+);
+CREATE TABLE swportallowedvlan (
+  swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  hexstring varchar(150)
 );
 
 
@@ -274,6 +278,7 @@ GRANT ALL ON boksinfo TO navall;
 GRANT ALL ON gwport TO navall;
 GRANT ALL ON swport TO navall;
 GRANT ALL ON swportvlan TO navall;
+GRANT ALL ON swportallowedvlan TO navall;
 
 
 
