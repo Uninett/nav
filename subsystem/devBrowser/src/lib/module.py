@@ -63,7 +63,7 @@ class ModuleInfo(manage.Module):
         moduleView = html.Division(_class="module")
         if type == "gw":
             moduleView['class'] += ' gw'
-        moduleView.append(html.Header(self.module or "", level=3))
+        moduleView.append(html.Header(str(self.module), level=3))
         # calc width
         width = findDisplayWidth(ports)
         count = 0

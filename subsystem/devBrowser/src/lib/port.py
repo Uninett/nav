@@ -95,7 +95,8 @@ def getVlanInfo(port):
             try:
                 line.append(urlbuilder.createLink(vlan))
             except:
-                raise str(vlan)
+                #raise str(vlan)
+                pass
             if vlanlink.direction is not None:
                 line.append("(direction %s)" % 
                     _directions.get(vlanlink.direction, 
@@ -109,7 +110,8 @@ def getVlanInfo(port):
             try:
                 div.append(urlbuilder.createLink(vlan))
             except:
-                raise str(vlan.vlanid)
+                #raise str(vlan.vlanid)
+                pass
             vlanInfo.append(div)
 
     # This is no useful information. I remove it for now...

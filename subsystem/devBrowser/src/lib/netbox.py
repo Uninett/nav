@@ -202,7 +202,7 @@ class NetboxInfo(manage.Netbox):
             if vlan not in vlans:
                 vlans.append(vlan)
         if len(vlans) > 1:
-            return 'More then one vlan' 
+            return 'Unknown' 
         sw = sw[0]
         swNetbox = sw.module.netbox
         swPort = sw.port
@@ -213,7 +213,11 @@ class NetboxInfo(manage.Netbox):
         
         
     def showIp(self):
-        return self.ip
+        if self.prefix:
+            netmask = self.prefix.netaddr.split('/')[1]
+        else:
+            netmask = 'unknown'
+        return "%s /%s " % (self.ip, netmask)
 
     def availability(self):
         TIMERANGES = ('day', 'week', 'month')
@@ -429,8 +433,17 @@ class NetboxInfo(manage.Netbox):
 
     def showPorts(self):
         div = html.Division(_class="ports")
-        div.append(html.Header("Switchports", level=2))
-        div.append(module.showModuleLegend())        
+        # not sure why I can't use self.netboxid
+        netboxid = self.netboxid._getID()[0]
+        link = urlbuilder.createLink(subsystem='report',
+                                    division='swport',
+                                    id=netboxid,
+                                    content='Switchports')
+        div.append(html.Header(link, level=2))
+        div.append(module.showModuleLegend())
+        # ugly, but only those categorys have swports...
+        if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
+            return None
         modules = self.getChildren(module.ModuleInfo)
         if not modules:
             return None
