@@ -404,10 +404,10 @@ INSERT INTO alertengine (lastalertqid) values(0);
 CREATE TABLE cabling (
   cablingid SERIAL PRIMARY KEY,
   roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,
-  jack INT2 NOT NULL,
+  jack VARCHAR NOT NULL,
   building VARCHAR NOT NULL,
   targetroom VARCHAR NOT NULL,
-  descr VARCHAR NOT NULL,
+  descr VARCHAR,
   category VARCHAR NOT NULL,
 UNIQUE(roomid,jack));
 
