@@ -1,4 +1,4 @@
-%define version 3.0_devel
+%define version 3.0_beta7
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
@@ -51,15 +51,14 @@ fi
 # Most processes are now run by  navcron, so we make sure any existing
 # logfiles and pidfiles are owned by navcron and not root.
 if ( test -d %{_prefix}/var/log ); then
-  chown -R navcron %{_prefix}/var/log/*
+  chown -R navcron %{_prefix}/var/log
 fi
 if ( test -d %{_prefix}/var/run ); then
-  chown -R navcron %{_prefix}/var/run/*
+  chown -R navcron %{_prefix}/var/run
 fi
 
 %files
 %defattr(-,root,nav)
-# %doc README doc/sql/*.sql
 %{_prefix}/doc
 %docdir %{_prefix}/doc
 %{_prefix}/lib
@@ -69,30 +68,32 @@ fi
 %defattr(755,root,nav)
 %{_prefix}/bin
 %{_prefix}/etc/init.d/
-%defattr(2775,root,nav)
 %defattr(0775,root,nav)
-%dir %{_prefix}/apache/tools
 %dir %{_prefix}/etc
 %dir %{_prefix}/etc/report
 %dir %{_prefix}/etc/webfront
 %dir %{_prefix}/etc/cron.d
 %defattr(0664,root,nav)
-%config(noreplace) %{_prefix}/etc/nav.conf
-%config(noreplace) %{_prefix}/etc/db.conf
-%config(noreplace) %{_prefix}/etc/vPServer.conf
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
+%config(noreplace) %{_prefix}/etc/db.conf
 %config(noreplace) %{_prefix}/etc/devbrowser.conf
 %config(noreplace) %{_prefix}/etc/eventEngine.conf
 %config(noreplace) %{_prefix}/etc/getBoksMacs.conf
 %config(noreplace) %{_prefix}/etc/getDeviceData.conf
+%config(noreplace) %{_prefix}/etc/logger.conf
 %config(noreplace) %{_prefix}/etc/machinetracker.conf
+%config(noreplace) %{_prefix}/etc/nav.conf
+%config(noreplace) %{_prefix}/etc/pg_backup.conf
 %config(noreplace) %{_prefix}/etc/pping.conf
-%config(noreplace) %{_prefix}/etc/report/front.html
-%config(noreplace) %{_prefix}/etc/report/report.conf
+%config(noreplace) %{_prefix}/etc/rrdBrowser.conf
 %config(noreplace) %{_prefix}/etc/servicemon.conf
 %config(noreplace) %{_prefix}/etc/smsd.conf
+%config(noreplace) %{_prefix}/etc/vPServer.conf
+%config(noreplace) %{_prefix}/etc/report/front.html
+%config(noreplace) %{_prefix}/etc/report/report.conf
+%config(noreplace) %{_prefix}/etc/report/matrix.conf
 %config(noreplace) %{_prefix}/etc/webfront/contact-information.txt
 %config(noreplace) %{_prefix}/etc/webfront/external-links.txt
 %config(noreplace) %{_prefix}/etc/webfront/nav-links.conf
@@ -100,10 +101,13 @@ fi
 %config(noreplace) %{_prefix}/etc/webfront/welcome-anonymous.txt
 %config(noreplace) %{_prefix}/etc/webfront/welcome-registered.txt
 %config(noreplace) %{_prefix}/etc/cron.d/*
-%config(noreplace) %{_prefix}/etc/rrdBrowser.conf
 
 
 %changelog
+* Wed Jul 21 2004  <morten.vold@itea.ntnu.no>
+
+- Grabbed new version 3.0_beta7
+
 * Sat Jun 05 2004  <kreide@online.no>
 
 - Copy vPServer to config

@@ -1,4 +1,5 @@
-Version 3.0_beta7 (released xx July 2004, revision yyyy)
+Version 3.0_beta7
+(released 21 July 2004)
 
  Changelog for version 3 first created.  This entry contains changes
  since 3.0_beta6.  
@@ -7,9 +8,11 @@ Version 3.0_beta7 (released xx July 2004, revision yyyy)
 ##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
 #####################################################################
 ##                                                                 ##
-## This release makes changes to the NAV database. For information ##
-## on how to upgrade the database schema, please take a look in    ##
-## doc/sql/upgrades for more information.                          ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
 ##                                                                 ##
 #####################################################################
 
@@ -42,3 +45,4 @@ Version 3.0_beta7 (released xx July 2004, revision yyyy)
    v3.  Example config included.
  * The user adminstration panel now has it's own entry in the toolbox.
  * Visibility improvements to vlanPlot and Network Explorer.
+ * Some bugfixes related to getDeviceData's collection of information.
