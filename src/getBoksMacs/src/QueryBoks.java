@@ -310,8 +310,11 @@ public class QueryBoks extends Thread
 			} catch (TimeoutException te) {
 				Log.d("RUN", "*** GIVING UP ON: " + sysName + ", typename: " + boksType + " ***");
 				continue;
+			} catch (NullPointerException exp) {
+				Log.w("RUN", "NullPointerException, aborting thread. Exception: " + exp.getMessage());
+				exp.printStackTrace(System.err);
 			} catch (Exception exp) {
-				Log.d("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
+				Log.e("RUN", "Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
 				System.exit(1);
 			} finally {
@@ -588,7 +591,12 @@ public class QueryBoks extends Thread
 		Map remoteIfMap = sSnmp.getAllMap(getOid("cdpRemoteIf"), true, 1);
 
 		Log.d("PROCESS_CDP", "cdpList.size: " + cdpList.size());
-		if (cdpList.size() != remoteIfMap.size()) Log.d("PROCESS_CDP", "cdpList != remoteIfMap ("+cdpList.size()+" != "+remoteIfMap.size()+").");
+		if (remoteIfMap == null) {
+			remoteIfMap = new HashMap();
+			Log.w("PROCESS_CDP", "Box supports cdpNeighbour, but not cdpRemoteIf. Run OID test again?");
+		} else {
+			if (cdpList.size() != remoteIfMap.size()) Log.d("PROCESS_CDP", "cdpList != remoteIfMap ("+cdpList.size()+" != "+remoteIfMap.size()+").");
+		}
 
 		// Hent liste over alle gamle ifindekser slik at vi kan slette de som ikke lenger eksisterer
 		List unrecognizedCDP = new ArrayList();
