@@ -238,6 +238,8 @@ class ConfigFileMonitorTask extends TimerTask
 
 class PluginMonitorTask extends TimerTask
 {
+  DynamicURLClassLoader cl = new DynamicURLClassLoader();
+
 	File deviceDir, handlerDir;
 	Map deviceClassMap, handlerClassMap;
 
@@ -267,7 +269,7 @@ class PluginMonitorTask extends TimerTask
 	public void run()
 	{
 		// Update Devices
-		if (update(deviceDir, deviceFileMap, deviceClassMap, true)) {
+		if (update(deviceDir, deviceFileMap, deviceClassMap, deviceDir.listFiles() )) {
 			devDB.startDBUpdate();
 
 			Class[] ddbClass = new Class[1];
@@ -312,7 +314,7 @@ class PluginMonitorTask extends TimerTask
 		}
 
 		// Update EventHandlers
-		if (update(handlerDir, handlerFileMap, handlerClassMap, false)) {
+		if (update(handlerDir, handlerFileMap, handlerClassMap, deviceDir.listFiles() )) {
 			emt.updateCache();
 		}
 	}
@@ -347,40 +349,33 @@ class PluginMonitorTask extends TimerTask
 		return depth.intValue();
 	}
 
-	private boolean update(File pluginDir, Map fileMap, Map pluginMap, boolean jarDepend)
+	private boolean update(File pluginDir, Map fileMap, Map pluginMap, File[] dependFiles)
 	{
 		Map cloneMap = (Map) ((HashMap)pluginMap).clone();
 
 		boolean hasChanged = false;
 		File[] fileList = pluginDir.listFiles();
 
-		URL[] plugin_path;
-		if (jarDepend) {
-			plugin_path = new URL[fileList.length];
-			for (int i=0; i < fileList.length; i++) {
+		if (dependFiles != null) {
+			for (int i=0; i < dependFiles.length; i++) {
 				try {
-					plugin_path[i] = fileList[i].toURL();
+						cl.appendURL(dependFiles[i].toURL());
 				} catch (MalformedURLException e) {} // Should never happen
 			}
-		} else {
-			plugin_path = new URL[1];
 		}
 
 		for (int i=0; i < fileList.length; i++) {
 			if (!fileList[i].getName().toLowerCase().endsWith(".jar")) continue;
 			cloneMap.remove(fileList[i].getName());
 
-			//if (fileList[i].getName().equals("HandleCisco.jar")) continue;
-			//outld("pluginMonitorTask: Found jar: " + fileList[i].getName());
-
 			try {
 				Long lastMod;
-				if ( (lastMod=(Long)fileMap.get(fileList[i].getName())) == null || !lastMod.equals(new Long(fileList[i].lastModified())) ) {
+				// If new or modified JAR
+				if ( (lastMod=(Long)fileMap.get(fileList[i].getName())) == null || 
+						 !lastMod.equals(new Long(fileList[i].lastModified())) ) {
 					fileMap.put(fileList[i].getName(), new Long(fileList[i].lastModified()));
 
-					// Ny eller modifisert jar
-					if (!jarDepend) plugin_path[0] = fileList[i].toURL();
-					URLClassLoader cl = new URLClassLoader(plugin_path);
+					cl.appendURL(fileList[i].toURL());
 
 					JarFile jf = new JarFile(fileList[i]);
 					Manifest mf = jf.getManifest();
@@ -430,6 +425,19 @@ class PluginMonitorTask extends TimerTask
 			hasChanged = true;
 		}
 		return hasChanged;
+	}
+
+	class DynamicURLClassLoader extends URLClassLoader {
+		Set urlSet = new HashSet();
+
+		DynamicURLClassLoader() {
+			super(new URL[0]);
+		}
+		public void appendURL(URL u) {
+			if (urlSet.add(u)) {
+				addURL(u);
+			}
+		}
 	}
 
 

@@ -83,7 +83,7 @@ public class BoxState implements EventHandler, EventCallback
 				//outld("BoxState  Box: " + b);
 
 			} else {
-				errl("BoxState    Device not Box or sub-class of Box");
+				errl("BoxState    Device " + d + " not Box or sub-class of Box: " + getClassH(d.getClass()) );
 				return;
 			}
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
@@ -168,6 +168,14 @@ public class BoxState implements EventHandler, EventCallback
 
 
 
+	}
+
+	/**
+   * Return the class hierarchy for c as a String.
+   */
+	private String getClassH(Class c) {
+		if (c.getSuperclass() == null) return "";
+		return getClassH(c.getSuperclass()) + " <- " + c.getName();
 	}
 
 
