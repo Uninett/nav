@@ -10,7 +10,7 @@ fi
 
 CUR_DIR=$NAV_ROOT/navme/subsystem/eventEngine
 
-LOG_DIR="$NAV_ROOT/local/log/eventEngine"
+LOG_DIR="$NAV_ROOT/local/log"
 
 COUNT=`ps wwwwx|grep "eventEngine"|grep -v eventEngine.sh|grep -v grep|wc -l|sed s/" "//g`
 if [ "$COUNT" == "0" ]; then
@@ -19,7 +19,6 @@ if [ "$COUNT" == "0" ]; then
         $JAVA_HOME/bin/java -jar eventEngine.jar $1 >> "$LOG_DIR/eventEngine.log" 2> error-log &
         PID="$!"
         echo $PID >$NAV_ROOT/local/var/run/eventEngine.pid
-        #wait $PID
 else
         echo -n "eventEngine already running"
         exit 1
