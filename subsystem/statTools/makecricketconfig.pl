@@ -252,11 +252,11 @@ foreach my $dir (@{ $config{'dirs'} } ) {
     my $continue = &parseConfig($dir);
     next unless $continue;
 
-    # Making serverconfig...it's still under testing.
-#    if ($dir eq 'servers') {
-#	&makeservers('servers');
-#	next;
-#    }
+    # Making serverconfig...it's still not fully tested.
+    if ($dir eq 'servers') {
+	&makeservers('servers');
+	next;
+    }
 
     # interfaces are kinda standard so we have a fixed config for them.
     if ($config{$dir}{'interface'}) {
