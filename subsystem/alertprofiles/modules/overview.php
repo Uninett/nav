@@ -11,6 +11,12 @@
 session_set('lastaction', 'oversikt');
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
+if (get_exist('vis') )
+	session_set('visoversikt', get_get('vis') );
+
+if (get_exist('tview') )
+	session_set('tview', get_get('tview') );
+
 function helgdescr($helg) {
 	switch($helg) {
 		case 1 : return gettext('All week');
