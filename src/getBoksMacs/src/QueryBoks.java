@@ -1,4 +1,4 @@
-class QueryBoks extends Thread
+public class QueryBoks extends Thread
 {
 	public static boolean ERROR_OUT = true;
 	public static boolean VERBOSE_OUT = false;
