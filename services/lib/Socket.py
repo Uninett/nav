@@ -1,5 +1,5 @@
 """
-$Id: Socket.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
+$Id: Socket.py,v 1.3 2002/07/02 11:28:09 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Socket.py,v $
 """
 
@@ -34,8 +34,9 @@ class Socket:
 	def readline(self):
 		line = ''
 		while 1:
-			line += self.recv(1024)
-			if '\n' in line or not line:
+			s = self.recv(1024)
+			line += s
+			if '\n' in line or not s:
 				return line
 	def send(self,*args):
 		r,w,e = select([],[self.s],[],self.timeout)
