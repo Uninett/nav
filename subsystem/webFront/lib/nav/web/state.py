@@ -20,6 +20,7 @@ from os import path
 import sys
 import fcntl
 import nav.errors
+from mod_python import apache
 
 sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
@@ -60,7 +61,8 @@ def setupSession(req):
     if timenow > (_timestamp + 5*60):
         expireCount = cleanup()
         if (expireCount > 0):
-            print >> sys.stderr, "NAV-DEBUG: Expired %d sessions" % expireCount
+            apache.log_error("Expired %d NAV sessions" % expireCount,
+                             apache.APLOG_NOTICE)
         _timestamp = timenow
 
     cookieValue = getSessionCookie(req)

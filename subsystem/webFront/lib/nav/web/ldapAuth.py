@@ -12,6 +12,7 @@ Thanks to: Bjørn Ove Grøtan <bgrotan@itea.ntnu.no>
 """
 import sys
 from nav import web
+from mod_python import apache
 import nav.errors
 
 try:
@@ -20,7 +21,8 @@ try:
 except Exception,e:
     available = 0
     ldap = None
-    print >> sys.stderr, "NAV-NOTICE: Python LDAP module is not available - ",e
+    apache.log_error("Python LDAP module is not available - " + e,
+                     apache.APLOG_WARNING)
 
 # Determine whether the config file enables ldap functionality or not
 if not web.webfrontConfig.has_option('ldap', 'enabled'):
@@ -54,7 +56,8 @@ def authenticate(login, password):
     except ldap.SERVER_DOWN, e:
         raise NoAnswerError, uri
     except ldap.LDAPError,e:
-        print >> sys.stderr, 'An LDAP error occurred during authentication: ',e
+        apache.log_error('An LDAP error occurred during authentication: ' + e,
+                         apache.APLOG_ERROR)
         return False
 
 def getUserName(login):
