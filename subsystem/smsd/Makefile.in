@@ -15,7 +15,7 @@ crondir = @crondir@
 binaries = smsd.pl safe_smsd.pl
 startscripts = smsd
 conffiles = smsd.conf
-cronfiles = smsd_safe
+cronfiles = safe_smsd
 
 .PHONY: all install install-bin install-scripts clean distclean install-conf install-cron
 

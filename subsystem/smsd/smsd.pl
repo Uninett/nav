@@ -45,7 +45,7 @@ use NAV::Path;
 
 my $DISPATCHER = 'gammu';
 my $FREEZELIMIT = 30;
-my $pidfil = "$NAV::Path::vardir/run/smsd.pl.pid";
+my $pidfil = "$NAV::Path::localstatedir/run/smsd.pl.pid";
 my $conffil= "$NAV::Path::sysconfdir/smsd.conf";
 my $navconf= "$NAV::Path::sysconfdir/nav.conf";
 
