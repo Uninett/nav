@@ -232,8 +232,9 @@ public class MibIISw implements DeviceHandler
 
 				swp.setInterface(interf);
 
-				if (ifdescr.toLowerCase().indexOf("vlan") >= 0 ||
-						interf.toLowerCase().indexOf("vlan") >= 0 ||
+				String vlanPattern = "VLAN (\\d+)";				
+				if (ifdescr.matches(vlanPattern) ||
+						interf.matches(vlanPattern) ||
 						interf.startsWith("EO") ||
 						interf.startsWith("Nu")) {
 					sc.ignoreSwport(ifindex);

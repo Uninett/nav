@@ -107,6 +107,7 @@ public class CiscoSwCAT implements DeviceHandler
 					String portif = s[1];
 
 					// Determine and create the module
+					// Use *? because otherwise two digit numbers won't work!
 					String modulePattern = ".*?(\\d+)/(\\d+)";
 					if (portif.matches(modulePattern)) {
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);

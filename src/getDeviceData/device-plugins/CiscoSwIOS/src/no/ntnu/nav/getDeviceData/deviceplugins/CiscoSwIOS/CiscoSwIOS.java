@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.Netbox;
@@ -141,14 +142,19 @@ public class CiscoSwIOS implements DeviceHandler
 			String portif = s[1];
 
 			// Determine and create the module
+			// Use *? because otherwise two digit numbers won't work!
 			int module = 0;
-			String modulePattern = "((.*)(\\d+))/(\\d+)";
+			String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
+			String moduleNamePattern = "((.*)(\\d+))/(\\d+)";
 
 			String moduleName = null;
 			if (portif.matches(modulePattern)) {
-				Matcher m = Pattern.compile(modulePattern).matcher(portif);
+				Matcher m = Pattern.compile(moduleNamePattern).matcher(portif);
 				m.matches();
 				moduleName = m.group(1);
+
+				m = Pattern.compile(modulePattern).matcher(portif);
+				m.matches();
 				module = Integer.parseInt(m.group(3));
 				if (!moduleNumMap.containsKey(moduleName)) {
 					if (module > highModule) {
@@ -160,6 +166,11 @@ public class CiscoSwIOS implements DeviceHandler
 				} else {
 					module = ((Integer)moduleNumMap.get(moduleName)).intValue();
 				}
+				// If submodule then we add the submodule number to module as a string
+				if (util.groupCountNotNull(m) >= 6) {
+					String submod = m.group(4);
+					module = Integer.parseInt(module + submod);
+				}
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
@@ -168,7 +179,8 @@ public class CiscoSwIOS implements DeviceHandler
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
 				try {
-					Integer port = Integer.valueOf(modulport[1]);
+					// If we have a submodule the port is one index higher
+					Integer port = modulport.length > 2 ? Integer.valueOf(modulport[2]) : Integer.valueOf(modulport[1]);
 					swp.setPort(port);
 				} catch (NumberFormatException e) { }
 			}

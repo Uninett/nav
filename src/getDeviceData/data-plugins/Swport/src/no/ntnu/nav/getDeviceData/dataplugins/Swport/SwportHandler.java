@@ -118,7 +118,7 @@ public class SwportHandler implements DataHandler {
 			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
 				SwModule md = (SwModule)swModules.next();
 				String moduleid = md.getModuleidS();
-				
+
 				// OK, først sjekk om denne porten er i swport fra før
 				/*
 				String moduleKey = nb.getNetboxid()+":"+md.getKey();
