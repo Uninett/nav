@@ -132,7 +132,6 @@ class EventImpl implements Event, Alert
 		if (alerttype == null) return null;
 
 		// Update varMap from database
-		outld("getMsgs: Update varMap for deviceid: " + deviceid);
 		try {
 			ResultSet rs = Database.query("SELECT * from device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
 			ResultSetMetaData rsmd = rs.getMetaData();
@@ -273,8 +272,6 @@ class AlertmsgParser
 			outld("IOException when parsing alertmsg file: " + e.getMessage());
 		}
 
-		outld("formatMsgs, varMap: " + varMap);
-
 		Map m = (Map)eventtypeidMap.get(eventtypeid);
 		if (m == null) {
 			outld("Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
@@ -304,8 +301,7 @@ class AlertmsgParser
 					msg.replace(i-1, e, (String)varMap.get(var));
 				}
 			}
-			s[2] = msg.toString();
-			l.add(s);
+			l.add(new String[] { s[0], s[1], msg.toString() });
 		}
 		return l.iterator();
 	}

@@ -302,10 +302,7 @@ class PluginMonitorTask extends TimerTask
 			// Now call 'init' for all devices
 			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
 
-			Device d = (Device)devDB.getDevice(237);
-			errl("Found:\n"+d);
-
-			d = (Device)devDB.getDevice(707);
+			Device d = (Device)devDB.getDevice(279);
 			errl("Found:\n"+d);
 
 		}

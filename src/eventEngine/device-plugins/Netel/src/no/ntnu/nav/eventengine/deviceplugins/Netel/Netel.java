@@ -217,10 +217,13 @@ public class Netel extends Box
 			// If the module is down there is no point in checking its ports
 			if (!m.isUp()) continue;
 
+			outld("  Scan for uplink..., module: " + m.getModule());
+
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); !foundUplink && j.hasNext();) {
 				Port p = (Port)j.next();
 				int dir = p.vlanDirection(vlan);
+				outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + "dev: " + boxidToDeviceid(p.getBoxidBehind()));
 				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
 					if (d instanceof Netel) {
@@ -233,6 +236,8 @@ public class Netel extends Box
 							foundUplink = true;
 						}
 						if (!foundUplink) outld("  No.");
+					} else {
+						outld("  Error! Device not Netel: " + d);
 					}
 				}
 			}

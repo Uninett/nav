@@ -64,18 +64,20 @@ public class Module extends Device
 			int deviceid = rs.getInt("deviceid");
 
 			//outld("new Module("+deviceid+")");
-			if (rs.getInt("parent_deviceid") == 237) {
+			/*
+			if (rs.getInt("parent_deviceid") == 278) {
 				rs.previous();
 				rs.previous();
 				errl("Boxid: " + rs.getInt("parent_deviceid") + " Port: " + rs.getInt("port") + " parent: " + rs.getInt("to_netboxid"));
 				rs.next();
 				rs.next();
 			}
+			*/
 
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
 				Module m = new Module(ddb, rs);
-				if (m.parentDeviceid == 237) errl("Module: " + m);
+				if (m.parentDeviceid == 278) errl("Module: " + m);
 				ddb.putDevice(m);
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Module())) {
