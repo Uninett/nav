@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.5 2003/06/15 11:08:42 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.6 2003/06/15 11:28:56 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -41,6 +41,11 @@ class JobHandler:
 		self.rq=RunQueue.RunQueue()
 		
 	def run(self):
+		"""
+		Calls executeTest(). If the status has changed it schedules a new
+		test. If the service has been unavailable for more than self.runcount
+		times, it marks the service as down.
+		"""
 		version = self.getVersion()
 		status, info = self.executeTest()
 		service="%s:%s" % (self.getSysname(), self.getType())
@@ -87,6 +92,11 @@ class JobHandler:
 
 
 	def executeTest(self):
+		"""
+		Executes and times the test.
+		Calls self.execute() which should be overridden
+		by each subclass.
+		"""
 		start = time.time()
 		try:
 			status,info = self.execute()
@@ -97,51 +107,80 @@ class JobHandler:
 		return status, info
 
 	def setServiceid(self,serviceid):
+		"""Sets the serviceid according to the database"""
 		self._serviceid = serviceid
 	def getServiceid(self):
+		"""Returns the serviceid """
 		return self._serviceid
 	def setNetboxid(self,boksid):
+		"""Sets the netboxid according to the database """
 		self._boksid = boksid
 	def getNetboxid(self):
+		"""Returns the netboxid """
 		return self._boksid
 	def getResponsetime(self):
+		"""Returns the responsetime of this service """
 		return self._usage
 	def setSysname(self, sysname):
+		"""Sets the sysname """
 		self._sysname=sysname
 	def getSysname(self):
+		"""Returns the sysname of which this service is running on.
+		If no sysname is specified, the ip address is returned."""
 		if self._sysname:
 			return self._sysname
 		else:
-			return self.getAddress()
+			return self.geIp()
 	def setResponsetime(self,usage):
+		"""Sets the responsetime of this service. Is updated by self.run() """
 		self._usage = usage
 	def getStatus(self):
+		"""Returns the current status of this service. Typically
+		Event.UP or Event.DOWN"""
 		return self._status
 	def setStatus(self,status):
+		"""Sets the current status. Is updated by self.run() """
 		self._status = status
 	def getTimestamp(self):
+		"""Returns the time of last check. """
 		return self._timestamp
 	def setTimestamp(self,when = -1):
+		"""Updates the time of last check. If no argument is
+		supplied, it defaults to time.time()"""
 		if when == -1:
 			when = time.time()
 		self._timestamp= when
 	def setTimeout(self,value):
+		"""Sets the timeout value for this service. """
 		self._timeout = value
 	def getTimeout(self):
+		"""Returns the timeout value for this service. """
 		return self._timeout
 	def setArgs(self,args):
 		self._args = args
 	def getArgs(self):
+		"""Returns a dict containing all (nonstandard) arguments passed
+		in to this handler. This could be port, username, password or any
+		other argument a handler might need."""
 		return self._args
 	def setType(self,type):
+		"""Sets the name of the handler. This is used by the
+		constructor."""
 		self._type = type
 	def getType(self):
+		"""Returns the name of the handler. """
 		return self._type
 	def setIp(self, ip):
+		"""Sets the ip address to connect to """
 		self._ip = ip
 	def getIp(self):
+		"""Returns the ipå address to connect to """
 		return self._ip
 	def setPort(self, port):
+		"""Sets the port number to connect to. The constructor
+		parses the arguments (self.getArgs()) and gets the port
+		argument. If no port argument is specified, it sets the port
+		to 0."""
 		self._port = port
 	def getPort(self):
 		"""Returns the port supplied as an argument to
@@ -155,10 +194,14 @@ class JobHandler:
 		"""Returns a tuple (ip, port) """
 		return (self._ip, self._port)
 	def setAddress(self,address):
+		"""This should not be used. Set the ip address and port independently
+		instead."""
 		self._address = address
 	def setVersion(self,version):
+		"""Sets the version of the service. Updateded by self.run() """
 		self._version = version
 	def getVersion(self):
+		"""Returns the current version of the service."""
 		return self._version
 	def __eq__(self,obj):
 		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs() and self.getAddress() == obj.getAddress()
