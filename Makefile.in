@@ -13,8 +13,9 @@ nav_user = @nav_user@
 top_srcdir = @top_srcdir@
 
 subdirs = src \
-	subsystem/lib-python \
 	subsystem/webFront \
+	subsystem/lib-python \
+	subsystem/lib-perl \
 	subsystem/statemon \
 	subsystem/devBrowser \
 	subsystem/statTools

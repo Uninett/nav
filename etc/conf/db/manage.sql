@@ -298,16 +298,6 @@ CREATE TABLE mem (
 );
 
 
-CREATE TABLE swp_netbox (
-  swp_netboxid SERIAL PRIMARY KEY,
-  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  ifindex INT4 NOT NULL,
-  to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
-  misscnt INT4 NOT NULL DEFAULT '0',
-  UNIQUE(netboxid, ifindex, to_netboxid)
-);
-
 CREATE TABLE swport (
   swportid SERIAL PRIMARY KEY,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
@@ -324,6 +314,16 @@ CREATE TABLE swport (
   to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   UNIQUE(moduleid, ifindex)
+);
+
+CREATE TABLE swp_netbox (
+  swp_netboxid SERIAL PRIMARY KEY,
+  netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  ifindex INT4 NOT NULL,
+  to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
+  misscnt INT4 NOT NULL DEFAULT '0',
+  UNIQUE(netboxid, ifindex, to_netboxid)
 );
 
 CREATE TABLE gwport (

@@ -15,7 +15,9 @@ subdirs = \
 	Logger \
 	NetboxInfo \
 	SimpleSnmp \
-	Util
+	Util \
+	webapps/navAdmin
+
 ANT = @ANT@
 
 all:
