@@ -56,9 +56,9 @@ DROP SEQUENCE status_statusid_seq;
 
 create table status (
 statusid serial primary key,
-trapsource varchar(30) not null,
-trap varchar(25) not null,
-trapdescr varchar(250),
+trapsource varchar not null,
+trap varchar not null,
+trapdescr varchar,
 tilstandsfull char(1) check (tilstandsfull='Y' or tilstandsfull='N') not null,
 boksid int2,
 fra timestamp not null,
@@ -88,10 +88,10 @@ CREATE TABLE org (
   orgid VARCHAR(10) PRIMARY KEY,
 --  forelder VARCHAR(10) REFERENCES org,
   parent VARCHAR(10) REFERENCES org,
-  descr VARCHAR(80),
-  org2 VARCHAR(50),
-  org3 VARCHAR(50),
-  org4 VARCHAR(50)
+  descr VARCHAR,
+  org2 VARCHAR,
+  org3 VARCHAR,
+  org4 VARCHAR
 );
 
 
@@ -99,7 +99,7 @@ CREATE TABLE org (
 CREATE TABLE usage (
 --  anvid VARCHAR(10) PRIMARY KEY,
   usageid VARCHAR(10) PRIMARY KEY,
-  descr VARCHAR(20) NOT NULL
+  descr VARCHAR NOT NULL
 );
 
 
@@ -107,7 +107,7 @@ CREATE TABLE usage (
 CREATE TABLE location (
 --  stedid VARCHAR(12) PRIMARY KEY,
   locationid VARCHAR(12) PRIMARY KEY,
-  descr VARCHAR(60) NOT NULL
+  descr VARCHAR NOT NULL
 );
 
 --CREATE TABLE rom (
@@ -116,15 +116,15 @@ CREATE TABLE room (
   roomid VARCHAR(10) PRIMARY KEY,
 --  stedid VARCHAR(12) REFERENCES sted,
   locationid VARCHAR(12) REFERENCES location,
-  descr VARCHAR(80),
+  descr VARCHAR,
 --  rom2 VARCHAR(30),
-  room2 VARCHAR(30),
+  room2 VARCHAR,
 --  rom3 VARCHAR(30),
-  room3 VARCHAR(30),
+  room3 VARCHAR,
 --  rom4 VARCHAR(30),
-  room4 VARCHAR(30),
+  room4 VARCHAR,
 --  rom5 VARCHAR(30)
-  room5 VARCHAR(30)
+  room5 VARCHAR
 );
 
 
@@ -141,16 +141,16 @@ CREATE TABLE prefix (
 --  antmask INT2,
   active_ip_cnt INT4,
   max_ip_cnt INT4,
-  nettype VARCHAR(10) NOT NULL,
+  nettype VARCHAR NOT NULL,
   orgid VARCHAR(10) REFERENCES org,
 --  anvid VARCHAR(10) REFERENCES anv,
   usageid VARCHAR(10) REFERENCES usage,
 --  nettident VARCHAR(30),
-  netident VARCHAR(30),
+  netident VARCHAR,
 --  samband VARCHAR(20),
-    to_gw VARCHAR(20),
+    to_gw VARCHAR,
 --  komm VARCHAR(20)
-  descr VARCHAR(50)
+  descr VARCHAR
 );
 
 CREATE TABLE vendor (
@@ -159,19 +159,19 @@ CREATE TABLE vendor (
 
 CREATE TABLE typegroup (
   typegroupid varchar(15) primary key,
-  descr varchar(60)
+  descr varchar
 );
 
 CREATE TABLE cat (
   catid varchar(8) primary key,
-  descr varchar(50)
+  descr varchar
 );
 
 CREATE TABLE product (
   productid SERIAL PRIMARY KEY,
   vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
-  productno VARCHAR(15) NOT NULL,
-  descr VARCHAR(50),
+  productno VARCHAR NOT NULL,
+  descr VARCHAR,
   UNIQUE (vendorid,productno)
 );
 
@@ -179,9 +179,9 @@ CREATE TABLE product (
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
   productid INT4 REFERENCES product ON UPDATE CASCADE ON DELETE SET NULL,
-  serial VARCHAR(15),
-  hw_ver VARCHAR(10),
-  sw_ver VARCHAR(10),
+  serial VARCHAR,
+  hw_ver VARCHAR,
+  sw_ver VARCHAR,
   UNIQUE(serial)
 -- productid burde vært NOT NULL, men det går ikke nå
 );
@@ -192,10 +192,10 @@ CREATE TABLE type (
   vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON DELETE CASCADE,
   typename VARCHAR(10) NOT NULL,
   typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE CASCADE ON DELETE CASCADE,
-  sysObjectID VARCHAR(30) NOT NULL,
+  sysObjectID VARCHAR NOT NULL,
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
-  descr VARCHAR(50),
+  descr VARCHAR,
   UNIQUE (vendorid,typename)
 );
 
@@ -209,13 +209,13 @@ CREATE TABLE netbox (
   roomid VARCHAR(10) NOT NULL REFERENCES room,
   typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
-  sysname VARCHAR(30) UNIQUE,
+  sysname VARCHAR UNIQUE,
   catid VARCHAR(8) NOT NULL REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
 --  kat2 VARCHAR(10),
-  subcat VARCHAR(10),
+  subcat VARCHAR,
   orgid VARCHAR(10) NOT NULL REFERENCES org,
-  ro VARCHAR(10),
-  rw VARCHAR(10),
+  ro VARCHAR,
+  rw VARCHAR,
 --  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
 --  boksvia2 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
@@ -225,19 +225,29 @@ CREATE TABLE netbox (
 --  watch BOOL DEFAULT false,
 --  skygge BOOL DEFAULT false
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
+  snmp_version INT4 NOT NULL DEFAULT 1,
+  snmp_agent VARCHAR,
   UNIQUE(ip)
 );
+CREATE TABLE netboxcategory (
+  netboxid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  category VARCHAR NOT NULL,
+  PRIMARY KEY(netboxid, category)
+);
+GRANT ALL ON netboxcategory TO navall;
+GRANT ALL ON netboxcategory TO getDeviceData;
+
 
 CREATE TABLE netboxinfo (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  key VARCHAR(32),
-  var varchar(32) NOT NULL,
+  key VARCHAR,
+  var varchar NOT NULL,
   val TEXT NOT NULL
 );
 
 CREATE TABLE netboxdisk (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  path VARCHAR(255) NOT NULL,
+  path VARCHAR NOT NULL,
   blocksize INT4 NOT NULL DEFAULT 1024,
   PRIMARY KEY (netboxid, path)
 );
@@ -245,7 +255,7 @@ CREATE TABLE netboxdisk (
 
 CREATE TABLE netboxinterface (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  interf VARCHAR(50) NOT NULL,
+  interf VARCHAR NOT NULL,
   PRIMARY KEY (netboxid, interf)
 );
 
@@ -254,7 +264,7 @@ CREATE TABLE module (
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
-  submodule VARCHAR(8),
+  submodule VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   lastseen TIMESTAMP NOT NULL DEFAULT 'NOW()',
   UNIQUE (netboxid,module)
@@ -265,8 +275,8 @@ CREATE TABLE module (
 CREATE TABLE mem (
   memid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  memtype VARCHAR(10) NOT NULL,
-  device VARCHAR(15) NOT NULL,
+  memtype VARCHAR NOT NULL,
+  device VARCHAR NOT NULL,
   size INT4 NOT NULL,
   used INT4
 );
@@ -296,11 +306,11 @@ CREATE TABLE swport (
   link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   speed DOUBLE PRECISION NOT NULL,
   duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
-  media VARCHAR(16),
+  media VARCHAR,
   trunk BOOL NOT NULL DEFAULT false,
 --  static BOOL DEFAULT false,
 --  portnavn VARCHAR(30),
-  portname VARCHAR(30),
+  portname VARCHAR,
 --  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -318,7 +328,7 @@ CREATE TABLE gwport (
   ifindex INT4 NOT NULL,
   masterindex INT4,
 --  interf VARCHAR(30),
-  interface VARCHAR(30),
+  interface VARCHAR,
   gwip inet,
   speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
@@ -341,7 +351,7 @@ CREATE TABLE swportvlan (
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar(256)
+  hexstring varchar
 );
 
 
@@ -420,7 +430,7 @@ CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET NULL,
-  sysname VARCHAR(30) NOT NULL,
+  sysname VARCHAR NOT NULL,
   ip INET NOT NULL,
   mac VARCHAR(12) NOT NULL,
   start_time TIMESTAMP NOT NULL,
@@ -435,7 +445,7 @@ CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
-  sysname VARCHAR(30) NOT NULL,
+  sysname VARCHAR NOT NULL,
   module VARCHAR(4) NOT NULL,
   port INT4 NOT NULL,
   mac VARCHAR(12) NOT NULL,
@@ -452,7 +462,7 @@ CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
-  boks VARCHAR(15) NOT NULL,
+  boks VARCHAR NOT NULL,
   unit VARCHAR(2) NOT NULL,
   port VARCHAR(2) NOT NULL,
   trom VARCHAR(10) NOT NULL,
@@ -494,7 +504,7 @@ UNION
 -------- vlanPlot tabeller ------
 CREATE TABLE vp_netbox_grp_info (
   vp_netbox_grp_infoid SERIAL PRIMARY KEY,
-  name VARCHAR(16) NOT NULL,
+  name VARCHAR NOT NULL,
   x INT4 NOT NULL DEFAULT '0',
   y INT4 NOT NULL DEFAULT '0'
 );
@@ -597,7 +607,7 @@ GRANT ALL    ON swportallowedvlan TO getDeviceData;
 -------- event system tables --------
 CREATE TABLE eventtype (
   eventtypeid VARCHAR(32) PRIMARY KEY,
-  eventtypedesc VARCHAR(200),
+  eventtypedesc VARCHAR,
   statefull CHAR(1) NOT NULL CHECK (statefull='y' OR statefull='n')
 );
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
@@ -647,7 +657,7 @@ CREATE TABLE eventq (
 CREATE INDEX eventq_target_btree ON eventq USING btree (target);
 CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
+  var VARCHAR NOT NULL,
   val TEXT NOT NULL
 );
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
@@ -671,8 +681,8 @@ CREATE TABLE alertq (
 );
 CREATE TABLE alertqvar (
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  msgtype VARCHAR(32) NOT NULL,
-  language VARCHAR(10) NOT NULL,
+  msgtype VARCHAR NOT NULL,
+  language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
   UNIQUE(alertqid, msgtype, language)
 );
@@ -697,8 +707,8 @@ CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 CREATE TABLE alerthistvar (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL,
-  msgtype VARCHAR(32) NOT NULL,
-  language VARCHAR(10) NOT NULL,
+  msgtype VARCHAR NOT NULL,
+  language VARCHAR NOT NULL,
   msg TEXT NOT NULL,
   UNIQUE(alerthistid, state, msgtype, language)
 );
@@ -712,14 +722,14 @@ CREATE TABLE service (
   serviceid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   active BOOL DEFAULT true,
-  handler VARCHAR(8),
-  version VARCHAR(128)
+  handler VARCHAR,
+  version VARCHAR
 );
 
 CREATE TABLE serviceproperty (
 serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   property VARCHAR(64) NOT NULL,
-  value VARCHAR(64),
+  value VARCHAR,
   PRIMARY KEY(serviceid, property)
 );
 
