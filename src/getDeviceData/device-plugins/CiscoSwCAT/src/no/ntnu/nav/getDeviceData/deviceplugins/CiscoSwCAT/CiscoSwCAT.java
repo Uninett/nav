@@ -99,6 +99,7 @@ public class CiscoSwCAT implements DeviceHandler
 		processCAT(nb, netboxid, ip, cs_ro, type, mc, sc);
 
 		// Commit data
+		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
 	

@@ -110,6 +110,7 @@ public class CiscoGw implements DeviceHandler
 			
 		// Commit data
 		if (fetch) {
+			if (mc.isCommited()) gwc.setEqual(mc);
 			gwc.commit();
 		}
 	}

@@ -97,6 +97,7 @@ public class CiscoSwIOS implements DeviceHandler
 		processIOS(nb, netboxid, ip, cs_ro, type, mc, sc);
 
 		// Commit data
+		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
 
@@ -216,8 +217,11 @@ public class CiscoSwIOS implements DeviceHandler
 			if (moduleName != null) {
 				boolean composed = false;
 				if (!modNames.put(new Integer(module), moduleName)) {
-					moduleName = composeModuleName(realModule, modNames.get(new Integer(module)));
-					if (!moduleName.equals(md.getDescr())) composed = true;
+					String cModuleName = composeModuleName(realModule, modNames.get(new Integer(module)));
+					if (!moduleName.equals(cModuleName)) {
+						composed = true;
+						moduleName = cModuleName;
+					}
 				}
 				if ((mm.getDescr() == null && md.getDescr() == null) || composed) {
 					md.setDescr(moduleName);

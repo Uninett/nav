@@ -115,6 +115,7 @@ public class HP implements DeviceHandler
 		processHP(nb, netboxid, ip, cs_ro, type, nc, mc, sc);
 
 		// Commit data
+		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
 

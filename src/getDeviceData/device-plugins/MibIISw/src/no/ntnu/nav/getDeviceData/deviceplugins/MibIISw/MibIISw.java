@@ -170,7 +170,8 @@ public class MibIISw implements DeviceHandler
 					if (modulesUp.contains(module)) {
 						mmc.moduleUp(nb, module);
 					} else {
-						Log.d("MODULE_MON", "HP Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");						
+						Log.d("MODULE_MON", "HP Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
+						System.err.println("HP module down, " + nb + ", " + module + ", " + ifindex + ", " + modulesUp + ", " + moduleStatus);
 						sSnmp.ignoreModule(module);
 						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
 					}
@@ -202,6 +203,7 @@ public class MibIISw implements DeviceHandler
 						} else {
 							// Assume down
 							Log.d("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " returned no values");						
+							System.err.println("Module down, " + nb + ", " + module + ", " + ifindex + ", " + askOid + ", " + ifindexMap + ", " + l);
 							sSnmp.ignoreModule(module);
 							mmc.rescheduleNetbox(nb, module, "moduleMon");
 						}

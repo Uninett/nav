@@ -75,6 +75,20 @@ public class _3Com implements DeviceHandler
 			nc = (NetboxContainer)dc;
 		}
 
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
+		}
+
 		SwportContainer sc;
 		{
 			DataContainer dc = containers.getContainer("SwportContainer");
@@ -100,6 +114,7 @@ public class _3Com implements DeviceHandler
 		process3Com(nb, netboxid, ip, cs_ro, type, nc, sc);
 
 		// Commit data
+		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
 
