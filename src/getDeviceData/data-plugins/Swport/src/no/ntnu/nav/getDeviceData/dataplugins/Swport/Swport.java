@@ -84,19 +84,62 @@ public class Swport implements Comparable
 	String getTrunkS() { return trunk?"t":"f"; }
 	String getPortname() { return portname; }
 
+	/**
+	 * Set the link status of the port:
+	 * 
+	 * <ul>
+	 *  <li>'y' means link is up</li>
+	 *  <li>'n' means link is down</li>
+	 *  <li>'d' means the port is turned off (adm down)</li>
+	 * </ul>
+	 */
 	public void setLink(char c) { link = c; }
+
+	/**
+	 * Set the current speed of the port in MBit/sec.
+	 *
+	 */
 	public void setSpeed(String s) { speed = s.trim(); }
+
+	/**
+	 * Set the current duplex of the port:
+	 * 
+	 * <ul>
+	 *  <li>'f' means full duplex</li>
+	 *  <li>'h' means half duplex</li>
+	 * </ul>
+	 */
 	public void setDuplex(char c) { duplex = c; }
+
+	/**
+	 * Set the media type for the port, e.g. "100BaseTX" for a 100Mbit TP port.
+	 */
 	public void setMedia(String s) { media = s.trim(); }
+
+	/**
+	 * Set if the port is using trunking or not.
+	 */
 	public void setTrunk(boolean b) {
 		trunk = b;
 		if (trunk && vlanList == null) vlanList = new ArrayList();
 	}
+
+	/**
+	 * Set the port name
+	 */
 	public void setPortname(String s) { portname = s.trim(); }
 
 	int getVlan() { return vlan; }
+
+	/**
+	 * Set the vlan; only use this for non-trunking ports.
+	 */
 	public void setVlan(int i) { vlan = i; }
 
+	/**
+	 * Used for trunking ports; call this method to add
+	 * the VLANs allowed on the port.
+	 */
 	public void addTrunkVlan(String vlan) {
 		if (!trunk) return;
 		vlanList.add(vlan);
@@ -106,6 +149,10 @@ public class Swport implements Comparable
 		if (hexstring == null) hexstring = getVlanAllowHexString();
 		return hexstring;
 	}
+
+	/**
+	 * Set the allowed VLANs as a hexstring (used on Cisco devices).
+	 */
 	public void setHexstring(String s) { hexstring = s; }
 
 	String getVlanAllowHexString()
