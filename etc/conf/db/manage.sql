@@ -555,7 +555,7 @@ CREATE TABLE rrd_file (
   filename  VARCHAR NOT NULL, -- name of the rrdfile (including the .rrd)
   step      INT, -- the number of seconds between each update
   subsystem VARCHAR REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid  INT REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
+  netboxid  INT REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   key       VARCHAR,
   value     VARCHAR
 );
