@@ -197,7 +197,10 @@ CREATE TABLE swp_boks (
   modul VARCHAR(4) NOT NULL,
   port INT2 NOT NULL,
   boksbak INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  misscnt INT2 NOT NULL DEFAULT '0'
+  modulbak VARCHAR(4),
+  portbak INT2,
+  misscnt INT2 NOT NULL DEFAULT '0',
+  UNIQUE(boksid,modul,port,boksbak)
 );
 
 CREATE TABLE swport (
