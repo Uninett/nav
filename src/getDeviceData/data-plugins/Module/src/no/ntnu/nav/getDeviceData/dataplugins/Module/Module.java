@@ -94,6 +94,12 @@ public class Module extends Device implements Comparable
 		return ""+module;
 	}
 
+	public void setEqual(Module m) {
+		if (m.moduleid != 0) moduleid = m.moduleid;
+		if (m.model != null) model = m.model;
+		if (m.descr != null) descr = m.descr;
+	}
+
 	protected boolean hasEmptySerial() { return super.hasEmptySerial(); }
 
 	public boolean equalsModule(Module m) {

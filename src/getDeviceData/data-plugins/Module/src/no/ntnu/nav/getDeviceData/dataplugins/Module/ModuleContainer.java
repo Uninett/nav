@@ -125,6 +125,45 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	/**
+	 * Return the supervisor module, if not found the first module, or
+	 * create module 1 if no modules are present.
+	 */
+	public Module getSupervisorModule() {
+		// Try to find a supervisor module
+		int module = 1;
+		boolean found = false;
+		for (Iterator it = getModules(); it.hasNext();) {
+			Module m = (Module)it.next();
+			if (!found) {
+				module = m.getModule();
+				found = true;
+			}
+			String model = m.getModel();
+			if (model == null) model = "";
+			String descr = m.getDescr();
+			if (descr == null) descr = "";
+
+			if (model.toLowerCase().indexOf("sup") >= 0 || descr.toLowerCase().indexOf("sup") >= 0) {
+				module = m.getModule();
+				break;
+			}
+		}
+		Module m = moduleFactory(module);
+		return m;
+	}
+
+	/**
+	 * Copy all data in the given container to this container.
+	 */
+	public void setEqual(ModuleContainer mc) {
+		for (Iterator it = mc.getModules(); it.hasNext();) {
+			Module m = (Module)it.next();
+			Module myModule = moduleFactory(m.getModule());
+			myModule.setEqual(m);
+		}
+	}
+
+	/**
 	 * Add the module to the internal module list.
 	 *
 	 * @param m The module to add
@@ -146,7 +185,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	// Doc in parent
-	protected boolean isCommited() {
+	public boolean isCommited() {
 		return commit;
 	}
 

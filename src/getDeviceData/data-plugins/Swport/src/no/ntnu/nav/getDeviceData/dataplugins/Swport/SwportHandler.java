@@ -166,10 +166,10 @@ public class SwportHandler implements DataHandler {
 
 					if (oldsd == null) {
 						// If there is an identical ifDescr, delete it
-						String portKey = nb.getNetboxid()+":"+sd.getPort();
+						String portKey = moduleid+":"+sd.getPort();
 						if (sd.getPort() != null && portMap.containsKey(portKey)) {
 							System.err.println("Want to delete port: " + portKey + ", " + nb);
-							//Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(portKey)+"'");
+							Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(portKey)+"'");
 						}
 
 						// Sett inn ny
@@ -225,8 +225,8 @@ public class SwportHandler implements DataHandler {
 							changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 							updcnt++;
 
-							String oldPortKey = nb.getNetboxid()+":"+oldsd.getPort();
-							String portKey = nb.getNetboxid()+":"+sd.getPort();
+							String oldPortKey = oldmd.getModuleid()+":"+oldsd.getPort();
+							String portKey = moduleid+":"+sd.getPort();
 							if (sd.getPort() != null) {
 								portMap.remove(oldPortKey);
 								portMap.put(portKey, swportid);

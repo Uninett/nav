@@ -207,10 +207,15 @@ public class NetboxHandler implements DataHandler {
 					};
 					Database.insert("netbox_vtpvlan", ins);
 				}
+				//Database.commit();
+			} catch (SQLException e) {
+				e.printStackTrace(System.err);
+				//Database.rollback();
+			}
+			try {
 				for (Iterator delIt = oldn.vtpVlanDifference(n).iterator(); delIt.hasNext();) {
 					Database.update("DELETE FROM netbox_vtpvlan WHERE netboxid="+netboxid+" AND vtpvlan='"+delIt.next()+"'");
 				}
-				//Database.commit();
 			} catch (SQLException e) {
 				e.printStackTrace(System.err);
 				//Database.rollback();

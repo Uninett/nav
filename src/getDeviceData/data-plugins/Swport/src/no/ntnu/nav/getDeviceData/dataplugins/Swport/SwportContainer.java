@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 import java.util.*;
 
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
 
 /**
@@ -140,7 +141,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	}
 	
 	// Doc in parent
-	protected boolean isCommited() {
+	public boolean isCommited() {
 		return super.isCommited();
 	}
 
@@ -153,7 +154,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		}
 	}
 
-	// Assign any module-less swports to module 1
+	// Assign any module-less swports to a module
 	void assignSwportsWithoutModule() {
 		List l = new ArrayList();
 		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
@@ -163,8 +164,9 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 
 		// Only create SwModule if it contains any swports
 		if (!l.isEmpty()) {
-			SwModule m = swModuleFactory(1);
-			for (Iterator it = l.iterator(); it.hasNext();) m.addSwport((Swport)it.next());
+			Module m = (Module)getSupervisorModule();
+			SwModule swm = swModuleFactory(m.getModule());
+			for (Iterator it = l.iterator(); it.hasNext();) swm.addSwport((Swport)it.next());
 		}
 
 		// Ignore any empty modules
