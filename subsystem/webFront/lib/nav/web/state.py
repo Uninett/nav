@@ -149,12 +149,11 @@ def cleanup():
     return counter
 
 class Session(dict):
-    def __init__(self, id=None):
-        if id:
-            self.id = id
+    def __init__(self, sessionid=None):
+        if sessionid:
+            self.id = sessionid
         else:
-            # overparanoid entropy =) 
-            entropy = str(hash(self))
+            entropy = str(id(self))
             self.id = getUniqueString(entropy)
         dict.__init__(self)
         self.created = time.time()
