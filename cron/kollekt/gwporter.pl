@@ -51,10 +51,6 @@ for my $nettadr ( keys %prefiks ) {
 #    print "\nboks".$boks;
     for my $maske (keys %{$prefiks{$nettadr}}) {
 #	print "\nifindex".$ifindex;
-	    foreach my $r (0..5) {
-		print " - ".$prefiks{$nettadr}{$maske}[$r];
-	    }
-	    print "\n";
 	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
     }
 }
@@ -69,6 +65,9 @@ my %nettadr2prefiksid = &db_hent_enkel($db,"SELECT nettadr,prefiksid FROM prefik
 for my $boks ( keys %gwport ) {
     for my $ifindex (keys %{$gwport{$boks}}) {
 	for my $gwip (keys %{$gwport{$boks}{$ifindex}}) {
+#	    for my $innhold (@{$db_gwport{$boks}{$ifindex}{$gwip}}) {
+#		print "$innhold|";
+#	    }
 	    &db_manipulate($db,1,"gwport",\@felt_gwport,\@{$gwport{$boks}{$ifindex}{$gwip}},\@{$db_gwport{$boks}{$ifindex}{$gwip}},$boks,$ifindex,$gwip);
 	}
     }
@@ -114,17 +113,15 @@ sub hent_snmpdata {
 	$interface{$if}{nettnavn} = $nettnavn;
     }    
     my @lines = &snmpwalk("$ro\@$ip",$if2Descr);
+    my %description;
     foreach my $line (@lines) {
-	my %description;
         (my $if,my $interf) = split(/:/,$line);
-#	print "interf: $interf\n";
 	$interface{$if}{interf} = $interf;
 	my ($masterinterf,$subinterf) = split/\./,$interf;
-#	print "master = $masterinterf, sub = $subinterf\n";
 	if($subinterf){
 	    $interface{$if}{master} = $description{$masterinterf};
 	} else {
-	    print $description{$masterinterf} = $if;
+	    $description{$masterinterf} = $if;
 	}
     } 
     my @lines = &snmpwalk("$ro\@$ip",$ip2NetMask);
@@ -219,13 +216,14 @@ sub hent_snmpdata {
 	my $if = $gatewayip{$gwip}{ifindex};
 	my $interf = $interface{$if}{interf};
 	my $ospf = $gatewayip{$gwip}{ospf};
+	print "m|".$interface{$if}{master}."|\n";
 	$gwport{$boksid}{$if}{$gwip} = [ undef,
 					 $boksid,
 					 $if,
 					 $gwip,
 					 $interf,
 					 $interface{$if}{master},
-					 $interface{$gatewayip{$gwip}{ifindex}}{speed},
+					 $interface{$if}{speed},
 					 $ospf];
     }
 
@@ -314,7 +312,7 @@ sub fil_vlan{
 
     open VLAN, "</usr/local/nav/etc/vlan.txt";
     foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
-	if(/^(\d+)\:lan\,(\S+?)\,(\S+?)$/) {
+	if(/^(\d+)\:lan\,(\S+?)\d*\,(\S+?)\d*$/) {
 	    $lan{$2}{$3} = $1;
 	} elsif (/^(\d+)\:stam\,(\S+?)$/) {
 	    $stam{$2} = $1;
@@ -323,8 +321,7 @@ sub fil_vlan{
 	} else {
 #	    print "\ngikk feil: $_";
 	}
-	print "\n$1:$2:$3";    
-	print "\n$lan{$2}{$3}";
+#	print "\n$1:$2:$3";    
     }
     close VLAN;
 }
@@ -332,16 +329,14 @@ sub finn_vlan
 {
     my $vlan = "";
     my ($boks,undef) = split /\./,$boks{$_[1]}[2],2;
-    print "boksting: $boks\n";
-    print $_[0]."\n";
-    $_ = lc($_[0]);
+    $_ = $_[0];
     if(/^lan\d*\,(\S+?)\,(\S+?)(?:\,|$)/i) {
-	print $vlan = $lan{$1}{$2};
+	$vlan = $lan{$1}{$2};
     } elsif(/^stam\,(\S+?)$/i) {
-	print $vlan = $stam{$1};
+	$vlan = $stam{$1};
     }elsif(/^link\,(\S+?)(?:\,|$)/i) {
 	if (defined($boks)){
-	    print $vlan = $link{$1}{$boks} || $link{$boks}{$1};
+	    $vlan = $link{$1}{$boks} || $link{$boks}{$1};
 #	    print "\n:$vlan:$1:$boks";
 	}
     }
