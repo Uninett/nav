@@ -23,7 +23,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *
  * <p>
  * <ui>
- *  <li>ifDescr</li>
+ *  <li>3cIfDescr</li>
  *  <li>3cPS40PortState</li>
  *  <li>3cIfMauType</li>
  *  <li>3cSerial</li>
@@ -37,7 +37,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 public class _3Com implements DeviceHandler
 {
 	private static String[] canHandleOids = {
-		"ifDescr",
+		"3cIfDescr",
 		"3cPS40PortState",
 		"3cIfMauType",
 		"3cSerial",
@@ -247,7 +247,7 @@ public class _3Com implements DeviceHandler
 		}
 
 		// Fetch ifDescr
-		List ifDescrList = sSnmp.getAll(nb.getOid("ifDescr"), true, true);
+		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true, true);
 		if (ifDescrList != null) {
 			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
