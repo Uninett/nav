@@ -8,46 +8,73 @@ import no.ntnu.nav.eventengine.*;
 
 public class Box extends Device
 {
-	static Map downMap = new HashMap();
+	public static final int STATUS_UP = 0;
+	public static final int STATUS_SHADOW = 10;
+	public static final int STATUS_DOWN = 20;
 
-	int boxid;
-	boolean status;
+	protected static Map downMap = new HashMap();
 
-	public Box(int deviceid, int boxid)
+	protected int boxid;
+	protected int status;
+
+	protected String ip;
+	protected String sysname;
+
+	protected Box() { }
+
+	public Box(ResultSet rs) throws SQLException
 	{
-		super(deviceid);
-		this.boxid = boxid;
+		this(rs, null);
 	}
-	public Box(Device d)
+
+	public Box(ResultSet rs, Device d) throws SQLException
 	{
-		super(d);
+		super(rs, d);
+		update(rs);
+
 		if (d instanceof Box) {
 			Box b = (Box)d;
-			boxid = b.boxid;
 			status = b.status;
 		}
 	}
 
+
+	protected void update(ResultSet rs) throws SQLException
+	{
+		boxid = rs.getInt("boksid");
+		ip = rs.getString("ip");
+		sysname = rs.getString("sysname");
+	}
+
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
-		System.out.println("Box.updateFromDB");
-		ResultSet rs = Database.query("SELECT boksid FROM boks");
+		outld("Box.updateFromDB");
+		ResultSet rs = Database.query("SELECT boksid AS deviceid, boksid,ip,sysname FROM boks");
 
 		while (rs.next()) {
-			int boxid = rs.getInt("boksid");
-			int deviceid = boxid;
+			int deviceid = rs.getInt("deviceid");
 
 			//outld("new Box("+deviceid+")");
 
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
-				d = new Box(deviceid, boxid);
-				ddb.putDevice(d);
-			} else if (!ddb.isTouchedDevice(d)) {
-				Box b = new Box(d);
+				Box b = new Box(rs);
 				ddb.putDevice(b);
+			} else if (!ddb.isTouchedDevice(d)) {
+				if (classEq(d, new Box())) {
+					((Box)d).update(rs);
+					ddb.touchDevice(d);
+				} else {
+					Box b = new Box(rs, d);
+					ddb.putDevice(b);
+				}
 			}
 		}
+	}
+
+	public static int boxDownCount()
+	{
+		return downMap.size();
 	}
 
 	public static Iterator findBoxesDown()
@@ -58,19 +85,42 @@ public class Box extends Device
 	public void down()
 	{
 		downMap.put(new Integer(boxid), this);
-		status = false;
+		status = STATUS_DOWN;
+	}
+
+	public void shadow()
+	{
+		downMap.put(new Integer(boxid), this);
+		status = STATUS_SHADOW;
 	}
 
 	public void up()
 	{
 		downMap.remove(new Integer(boxid));
-		status = true;
+		status = STATUS_UP;
 	}
 
-	public boolean isUp()
+	public boolean isUp() { return status == STATUS_UP; }
+
+	public int getStatus()
 	{
 		return status;
 	}
 
+	public String toString()
+	{
+		return "Box [ip="+ip+", sysname="+sysname+", status="+statusToString(status)+"]";
+	}
+
+
+	private static String statusToString(int status)
+	{
+		switch (status) {
+			case STATUS_UP: return "up";
+			case STATUS_SHADOW: return "shadow";
+			case STATUS_DOWN: return "down";
+		}
+		return null;
+	}
 
 }
