@@ -149,6 +149,9 @@ def _customizeTables():
     # Fix Navbarlink
     Navbarlink._sqlPrimary = ('id',)
 
+    # Fix Preference
+    Preference._sqlPrimary = ('account',)
+
 def setCursorMethod(cursor):
     import forgotten.navprofiles
     forgotten.navprofiles._Wrapper.cursor = cursor

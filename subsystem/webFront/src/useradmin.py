@@ -460,9 +460,12 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
             account.load()
         except forgetSQL.NotFound:
             return "Account id %s does not exist" % id
+
+        initializePreference = False
     else:
         redir = 'account'
         account = navprofiles.Account()
+        initializePreference = True
     
     if password != passwordConfirm:
         req.session['statusMessage'] = "Passwords do not match"
@@ -476,10 +479,19 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
             
         try:
             account.save()
-            redir = 'account?id=%s' % account.id
-            req.session['statusMessage'] = "Account successfully stored"
         except psycopg.IntegrityError:
             req.session['statusMessage'] = "A database integrity error prevented us from storing the Account"
+        else:
+            if initializePreference:
+                # Copy the preferences of the default user
+                preference = navprofiles.Preference(0)
+                preference.load()
+                preference.account = account.id
+                preference._new = True
+                preference.save()
+
+            redir = 'account?id=%s' % account.id
+            req.session['statusMessage'] = "Account successfully stored"
 
     web.redirect(req, redir, seeOther=True)
 
