@@ -1,7 +1,5 @@
 #extends nav.web.templates.EmotdTemplate
 
-#attr numberOfMessagesShown = 15
-
 #def $makeMenu
 <div>
 	<ul style="list-style-type:none;marin=0;padding:0;">
@@ -29,7 +27,8 @@ $makeMenu()
         	Title: <a href="/emotd/view/$message.id">$message.title</a><br />
           	Edited: $message.last_changed by $message.author<br />
 	        Description: $message.description<br />
-		Units on maintenance: $message.units
+		Units on maintenance: $message.units<br />
+		Is this a new message: $message.today
 	</li>
   #end for
 </ul>

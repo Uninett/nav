@@ -82,6 +82,8 @@ def handler(req):
             
     elif path[0] == 'commit':
         output = commit(req)        
+    elif path[0] == 'submit':
+        output = submit(req)        
     elif path[0] == 'committime':
         output = committime(req)
     elif path[0] == 'commitplacement':
@@ -103,7 +105,7 @@ def handler(req):
 
     if output:
         req.content_type = "text/html"
-        req.write(output)
+        req.write(output+repr(req.session))
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
@@ -147,38 +149,48 @@ def search(req):
 
 
 class Message:
-    def __init__(self, mess, user, equipment):# emotdid, last_changed, author, title, description, detail, affected, downtime, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd, key, value):
-        #raise(repr(args))
-        (emotdid, last_changed, author, title, description, detail, affected, downtime, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd) = mess[0:16]
+    def __init__(self, user, emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, replaces_title, maint_start, maint_end, state, equipment):
         self.emotdid = emotdid
-        if not isinstance(last_changed, str):
+        if last_changed and not isinstance(last_changed, str):
             last_changed = strftime("%Y-%m-%d %H:%M",last_changed.tuple())
-        self.replaces_title = ""
-        if replaces_emotd:
-            database.execute("select title from emotd where emotdid=%d" % int(replaces_emotd))
-            row = database.fetchone()
-            if row:
-                self.replaces_title = row[0]
+        if publish_start and not isinstance(publish_start, str):
+            publish_start = strftime("%Y-%m-%d %H:%M",publish_start.tuple())
+        if publish_end and not isinstance(publish_end, str):
+            publish_end = strftime("%Y-%m-%d %H:%M",publish_end.tuple())
+        if maint_start and not isinstance(maint_start, str):
+            maint_start = strftime("%Y-%m-%d %H:%M",maint_start.tuple())
+        if maint_end and not isinstance(maint_end, str):
+            maint_end = strftime("%Y-%m-%d %H:%M",maint_end.tuple())
         self.own = False
         if user == author:
             self.own = True
+        if description:
+            description = textpara(description)
+        if detail:
+            detail = textpara(detail)
         self.last_changed = last_changed
+        self.publish_start = publish_start
+        self.publish_end = publish_end
+        self.maint_start = maint_start
+        self.maint_end = maint_end
         self.author = author
         self.title = title
         self.description = description
         self.detail = detail
         self.affected = affected
         self.downtime = downtime
-        self.title_en = title_en
-        self.description_en = description_en
-        self.detail_en = detail_en
-        self.affected_en = affected_en
-        self.downtime_en = downtime_en
+##         self.title_en = title_en
+##         self.description_en = description_en
+##         self.detail_en = detail_en
+##         self.affected_en = affected_en
+##         self.downtime_en = downtime_en
         self.replaces_emotd = replaces_emotd
+        self.replaces_title = replaces_title
         self.equipment = equipment
+        self.type = type
                  
 
-def view(req, view = None, lang = None):
+def viewold(req, view = None, lang = None):
 
     user = req.session['user']
     menu = getMenu(req)
@@ -200,14 +212,29 @@ def view(req, view = None, lang = None):
     else:
         return messageView(view, user, lang)
 
-def messageView(view, user, lang = None):
+def view(req, view = None, lang = None):
     access = False
+    user = req.session['user']
+    list = 0
     if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
         access = True
 
-    where = "emotdid=%d" % view
-    page = ViewMessageTemplate()
-
+    if isinstance(view,int):
+        emotdid = int(view)
+        where = "emotdid=%d" % view
+        
+    else:
+        list = 1
+        if access and view == "all":
+            where = ""
+        elif access and view == "scheduled":
+            where = "emotd.publish_start > now()"
+        elif access and view == "old":
+            where = "emotd.publish_end < now()"
+        else:
+            where = "emotd.publish_end > now() and emotd.publish_start < now()"
+            view = "active"
+        
     if not access:
         if len(where):
             # må koordineres med view == "all" lenger opp
@@ -215,48 +242,44 @@ def messageView(view, user, lang = None):
             
     where = "where " + where
 
-    sql = "select key, value from emotd_related %s" % where
+
+##    if lang:
+##      sql = "select emotdid, type, publish_start, publish_end, last_changed, author, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) %s order by last_changed desc" % where
+##    else:
+    ##    select emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) %s order by last_changed desc" % where
+        
+    sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) %s order by last_changed desc" % where
     database.execute(sql)
     equipment = {}
-    for (key, value) in database.fetchall():
-        if not equipment.has_key(key):
-            equipment[key] = []
-        equipment[key].append(value)
+    for (emotdid, key, value) in database.fetchall():
+        if not equipment.has_key(emotdid):
+            equipment[emotdid] = {}
+        if not equipment[emotdid].has_key(key):
+            equipment[emotdid][key] = []
+        equipment[emotdid][key].append(value)
 
-    if lang:
-        sql = "select emotdid, type, publish_start, publish_end, last_changed, author, title_en, description_en, detail_en, affected_en, downtime_en, replaces_emotd, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) %s order by last_changed desc" % where
-    else:
-        sql = "select emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) %s order by last_changed desc" % where
-        
+    
+    sql = "select emotd.emotdid, emotd.type, emotd.publish_start, emotd.publish_end, emotd.last_changed, emotd.author, emotd.title, emotd.description, emotd.detail, emotd.affected, emotd.downtime, emotd.replaces_emotd,e2.title, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) left outer join emotd as e2 on emotd.replaces_emotd=e2.emotdid %s order by last_changed desc" % where
+
     database.execute(sql)
-    (page.emotdid, page.type, page.publishstart, page.publishend, page.last_changed, page.author, page.title, page.description, page.detail, page.affected, page.downtime, page.replaces_emotd, page.maintstart, page.maintend, page.state) = database.fetchone()
-    if page.publishstart:
-        page.publishstart = page.publishstart.strftime(DATEFORMAT)
-    if page.publishend:
-        page.publishend = page.publishend.strftime(DATEFORMAT)
-    if page.maintstart:
-        page.maintstart = page.maintstart.strftime(DATEFORMAT)
-    if page.maintend:
-        page.maintend = page.maintend.strftime(DATEFORMAT)
-    if page.last_changed:
-        page.last_changed = page.last_changed.strftime(DATEFORMAT)
-    if page.description:
-        page.description = textpara(page.description)
-    if page.detail:
-        page.detail = textpara(page.detail)
-    page.replaces_title = ""
-    if page.replaces_emotd:
-        database.execute("select title from emotd where emotdid=%d" % int(page.replaces_emotd))
-        row = database.fetchone()
-        if row:
-            page.replaces_title = row[0]
-    emotdid = int(page.emotdid)
-    eq = {}
-    if len(equipment):
-        eq = equipmentformat(equipment)
-    page.maintlist = eq
+    
+    messages = []
+    for (emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, replaces_title, maint_start, maint_end, state) in database.fetchall():
+        eq = {}
+        if equipment.has_key(emotdid):
+            eq = equipment[emotdid]
+        messages.append(Message(user, emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, replaces_title, maint_start, maint_end, state, equipmentformat(eq)))
+
+    page = ViewMessageTemplate()
+    
+    if list:
+        page.title = "%s Messages" % view.capitalize()
+    else:
+        page.title = messages[0].title
+    
+    page.messages = messages
     page.access = access
-    page.action =""
+#    page.action = ""
     return page.respond()
 
 def messageList(view, user, menu = ""):
@@ -323,6 +346,9 @@ class MessageListMessage:
         self.author = author
         self.type = type
         self.units = units
+        self.new = 0
+        if last_changed>DateTime.today():
+            self.new = 1
 
 def home(req,view="active"):
     page = EmotdFrontpage()
@@ -560,29 +586,36 @@ def mainttime(req, id = None):
         req.emotdid = int(req.form["id"])
 
     if hasattr(req,"emotdid"):
-        database.execute("select maint_start,maint_end from maintenance where emotdid=%d" % req.emotdid)
-        maintenance = database.fetchone()
-        if maintenance:
-            start = maintenance[0]
-            end = maintenance[1]
-        else:
-            start = DateTime.now()
-            end = DateTime.now() + DateTime.RelativeDateTime(days=+7)
-            req.ny = True
-        
-        (year,month,day,hour,minute) = start.tuple()[0:5]
-        if not maintenance:
-            minute = 0
-        page.start = (year,month,day,hour,minute)
-        (year,month,day,hour,minute) = end.tuple()[0:5]
-        if not maintenance:
-            minute = 0
-        page.end = (year,month,day,hour,minute)
+        (page.start, page.end) = getMaintTime(req.emotdid)
         page.action = BASEPATH + "committime"
         page.emotdid = req.emotdid
         page.ny = req.ny
         return page.respond()
 
+
+def getMaintTime(emotdid = None):
+    maintenance = None
+    if emotdid:
+        database.execute("select maint_start,maint_end from maintenance where emotdid=%d" % int(emotdid))
+        maintenance = database.fetchone()
+    if maintenance:
+        start = maintenance[0]
+        end = maintenance[1]
+    else:
+        start = DateTime.now()
+        end = DateTime.now() + DateTime.RelativeDateTime(days=+7)
+
+    (year,month,day,hour,minute) = start.tuple()[0:5]
+    if not maintenance:
+        minute = 0
+    start = (year,month,day,hour,minute)
+    
+    (year,month,day,hour,minute) = end.tuple()[0:5]
+    if not maintenance:
+        minute = 0
+    end = (year,month,day,hour,minute)
+            
+    return (start,end)
 
 def maintenance(req, id = None):
     ''' Put locations,rooms,netboxes,modules,services on maintenance to prevent 
@@ -606,12 +639,12 @@ def maintenance(req, id = None):
     if not emotdid:
         emotdid = 0
         
-    searchBox = SearchBox.SearchBox(req,'Type a room id, an ip,a (partial) sysname or servicename')
+    ##searchBox = SearchBox.SearchBox(req,'Type a room id, an ip, a (partial) sysname or servicename')
     selectBox = TreeSelect()
     # search
     # Make the searchbox
     searchbox = SearchBox.SearchBox(req,
-                'Type a room id, an ip or a (partial) sysname')
+                'Type a room id, an ip or a (partial) sysname or servicename')
     searchbox.addSearch('host',
                         'ip or hostname',
                         'Netbox',
@@ -625,17 +658,20 @@ def maintenance(req, id = None):
                         {'rooms': ['roomid'],
                          'locations': ['location','locationid']},
                         where = "roomid = '%s'")
-    searchBox.addSearch('service',
-                        'serviceid or partial servicename',
+    searchbox.addSearch('service',
+                        '(partial) servicename',
                         'Service',
                         {'rooms':['netbox','room','roomid'],
                          'netboxes':['netbox','netboxid'],
                          'locations': ['netbox','room','location','locationid'],
-                         'services':['serviceid']},
-                        where = "serviceid ='%s'")
+                         'services':['serviceid','handler']},
+                        where = "handler ='%s'")
 
     args['searchbox'] = searchbox
-    sr = searchbox.getResults(req)
+
+    sr = {"locations":[],"rooms":[],"netboxes":[]}
+    if req.form.has_key('sb_submit'):
+        sr = searchbox.getResults(req)
 
     if emotdid:
         args['action'] = BASEPATH + 'add/' + str(emotdid)
@@ -723,12 +759,9 @@ def maintenance(req, id = None):
         buttontext = "Add location(s) to message"
         buttonkey = "cn_add_locations"
 
-    if emotdid:
-        doneaction = BASEPATH + "view/" + str(emotdid)
-        donetext = "Return to message view"
-    else:
-        doneaction = BASEPATH + "set"
-        donetext = "Next: Select message"
+    doneaction = BASEPATH + "submit"
+    donetext = "Submit"
+    
     args['cancel'] = {'control': "cancel",
                     'value': "Cancel",
                     'enabled': True}
@@ -765,9 +798,6 @@ def maintenance(req, id = None):
                     deviceHistList.append(History(deviceid,netboxId=netboxid))
                 args['returnpath'] = {'url': BASEPATH + 'history/',
                                       'text': 'Return'}
-    if req.form.has_key('cn_add_boxes'):
-        args['action'] = BASEPATH + 'maintenance'
-       
     # Register rma clicked?
     if req.form.has_key('cn_submit_rma'):
         if req.form.has_key('cn_module'):
@@ -791,19 +821,19 @@ def maintenance(req, id = None):
     args['selectbox'] = selectbox
 
 
-    searchBox.addSearch('host',
-                        'ip or hostname',
-                        'Netbox',
-                        {'rooms': ['room','roomid'],
-                        'locations': ['room','location','locationid'],
-                        'netboxes': ['netboxid']},
-                        call = SearchBox.checkIP)
-    searchBox.addSearch('room',
-                        'room id',
-                        'Room',
-                        {'rooms': ['roomid'],
-                         'locations': ['location','locationid']},
-                         where = "roomid = '%s'")
+##     searchBox.addSearch('host',
+##                         'ip or hostname',
+##                         'Netbox',
+##                         {'rooms': ['room','roomid'],
+##                         'locations': ['room','location','locationid'],
+##                         'netboxes': ['netboxid']},
+##                         call = SearchBox.checkIP)
+##     searchBox.addSearch('room',
+##                         'room id',
+##                         'Room',
+##                         {'rooms': ['roomid'],
+##                          'locations': ['location','locationid']},
+##                          where = "roomid = '%s'")
     
     # Maintenance start<->end
     oneweek = str(DateTime.now() + DateTime.oneWeek)
@@ -814,80 +844,209 @@ def maintenance(req, id = None):
     body = ""
     args['title'] = title
     nameSpace = {'title': title,'page': 'browse', 'body': body, 'args': args, 'form':form, 'menu': menu}
-    if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
-        if hasattr(req,"emotdid") and req.emotdid > 0:#req.form.has_key("id") and int(req.form["id"])>0:
-            #emotdid = req.form["id"]
-            emotdid = req.emotdid
-            kind = None
-            if req.form.has_key("cn_netbox"):
-                kind = "netbox"
+##     if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
+##         if hasattr(req,"emotdid") and req.emotdid > 0:#req.form.has_key("id") and int(req.form["id"])>0:
+##             #emotdid = req.form["id"]
+##             emotdid = req.emotdid
+##             kind = None
+##             if req.form.has_key("cn_netbox"):
+##                 kind = "netbox"
 
-            elif req.form.has_key("cn_room"):
-                kind = "room"
+##             elif req.form.has_key("cn_room"):
+##                 kind = "room"
 
-            elif req.form.has_key("cn_location"):
-                kind = "location"
+##             elif req.form.has_key("cn_location"):
+##                 kind = "location"
 
-            if kind:
-                for key in req.form.keys():
-                    m = re.search("cn_%s_(\w+)"%kind,key)
-                    if m:
-                        sql = "insert into emotd_related (emotdid,key,value) values (%d, %s, %s)"
-                        database.execute(sql, (emotdid, kind, m.group(1)))
-                connection.commit()
-            redirect(req,BASEPATH+"add/%s" % emotdid)
+##             if kind:
+##                 for key in req.form.keys():
+##                     m = re.search("cn_%s_(\w+)"%kind,key)
+##                     if m:
+##                         sql = "insert into emotd_related (emotdid,key,value) values (%d, %s, %s)"
+##                         database.execute(sql, (emotdid, kind, m.group(1)))
+##                 connection.commit()
+##             redirect(req,BASEPATH+"add/%s" % emotdid)
 
-        else:
-            kind = None
-            if req.form.has_key("cn_netbox"):
-                kind = "netbox"
+##         else:
 
-            elif req.form.has_key("cn_room"):
-                kind = "room"
+    ### PARSE INPUT
+    if req.form:
 
-            elif req.form.has_key("cn_location"):
-                kind = "location"
+        if not req.session.has_key('message'):
+            req.session['message'] = {}
+        if req.form.has_key("messagetitle") and req.form["messagetitle"]:
+            req.session['message']['title'] = req.form["messagetitle"]
+        if req.form.has_key("messagedescription") and req.form["messagedescription"]:
+            req.session['message']['description'] = req.form["messagedescription"]
+        if req.form.has_key("messagetype") and req.form["messagetype"]:
+            req.session['message']['type'] = req.form["messagetype"]
+        if req.form.has_key("id") and req.form["id"]:
+            req.session['message']['emotdid'] = req.form["id"]
 
-            if kind:
-                for key in req.form.keys():
-                    m = re.search("cn_%s_(\w+)"%kind,key)
-                    if m:
-                        if not req.session.has_key('equipment'):
-                            req.session['equipment'] = {}
-                        if not req.session['equipment'].has_key(kind):
-                            req.session['equipment'][kind] = []
-                        req.session['equipment'][kind].append(m.group(1))
-                req.session.save()
-            redirect(req,BASEPATH+"add")
+        if req.form.has_key("maint_start_hour"):
+            req.session['message']['maint_start'] = DateTime.DateTime(int(req.form["maint_start_year"]),int(req.form["maint_start_month"]),int(req.form["maint_start_day"]),int(req.form["maint_start_hour"]),int(req.form["maint_start_minute"]))
+        if req.form.has_key("maint_end_hour"):
+            req.session['message']['maint_end'] = DateTime.DateTime(int(req.form["maint_end_year"]),int(req.form["maint_end_month"]),int(req.form["maint_end_day"]),int(req.form["maint_end_hour"]),int(req.form["maint_end_minute"]))
+        
+        kind = None
+        if req.form.has_key("cn_netbox"):
+            kind = "netbox"
+
+        elif req.form.has_key("cn_room"):
+            kind = "room"
+
+        elif req.form.has_key("cn_location"):
+            kind = "location"
+
+        if kind:
+            for key in req.form.keys():
+                m = re.search("cn_%s_(\w+)"%kind,key)
+                if m:
+                    if not req.session.has_key('equipment'):
+                        req.session['equipment'] = {}
+                    if not req.session['equipment'].has_key(kind):
+                        req.session['equipment'][kind] = []
+                    req.session['equipment'][kind].append(m.group(1))
+        req.session.save()
+        redirect(req,BASEPATH+"add")
     else:
         page = MaintenanceTemplate(searchList=[nameSpace])
         page.remove = 0
         page.maintstart = ""
         page.maintend = ""
         page.messagetitle = ""
+        page.messagelist = ""
+        page.messagetitle = ""
+        page.messagedescription = ""
+        page.messagetype = ""
+        page.defined = 0
 
+        if req.session.has_key('defined'):
+            page.defined = 1
+        
+        else:
+            page.messagelist = selectmessagelist()
+
+        (page.maintstart,page.maintend) = getMaintTime(emotdid)
         if emotdid:
             page.remove = 1
             page.equipment = equipmentlist(emotdid)
-            sql = "select title, maint_start, maint_end from emotd left outer join maintenance using (emotdid) where emotdid=%d" % emotdid
+            sql = "select title, description, type from emotd where emotdid=%d" % emotdid
             database.execute(sql)
-            (page.messagetitle,page.maintstart,page.maintend) = database.fetchone()
-            if page.maintstart:
-                page.maintstart = page.maintstart.strftime(DATEFORMAT)
-            if page.maintend:
-                page.maintend = page.maintend.strftime(DATEFORMAT)
+            (page.messagetitle,page.messagedescription,messagetype) = database.fetchone()
         else:
             emotdid = 0
-            if req.session.has_key('equipment'):
-                page.equipment = equipmentformat(req.session['equipment'])
-            else:
-                page.equipment = []
-        #raise repr(page.equipment)
-        #    return page.respond()
-        #template = deviceManagementTemplate(searchList=[nameSpace])
+            try:
+                if req.session.has_key('message'):
+                    if req.session['message'].has_key('title') and req.session['message']['title']:
+                        page.messagetitle = req.session['message']['title']
+                    if req.session['message'].has_key('description') and req.session['message']['description']:    
+                        page.messagedescription = req.session['message']['description']
+                    if req.session['message'].has_key('type') and req.session['message']['type']:
+                        page.messagetype = req.session['message']['type']
+                if req.session.has_key('equipment'):
+                    page.equipment = equipmentformat(req.session['equipment'])
+                else:
+                    page.equipment = []
+            except:
+                raise repr(req.session)
         page.path = args['path']
         page.emotdid = emotdid
         return page.respond()
+
+def submit(req):
+    if req.session.has_key("message"): #do something
+        if req.session['message'].haskey("emotdid"):
+            emotdid = int(req.session["message"]["emotdid"])
+        elif req.form.has_key("id"): 
+            emotdid = int(req.form["id"])
+        if emotdid: #update
+            if req.session.has_key("equipment"):
+                equipment = req.session["equipment"]
+                database.execute("select key,value from emotd_related where emotdid=%d and key='%s' and value='%s'",(emotdid,))
+                database = {"location":[], "room":[], "netbox":[], "module":[], "service":[]}
+                for (key,value) in database.fetchall():
+                    database[key].append(value)
+
+                for key,values in equipment.keys():
+                    for v in values:
+                        if database[key].count(v):
+                            equipment[key].remove(v)
+                            database[key].remove(v)
+                        else:
+                            database.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
+                            equipment[key].remove(v)
+
+                for keys,values in database.keys():
+                    for v in values:
+                        database.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
+            if req.session['message'].has_key("maint_start") and req.session['message'].has_key("maint_end"):
+                database.execute("select emotdid from maintenance where emotdid=%s",(emotdid,))
+                maintenance = database.fetchone()
+                if maintenance:
+                    database.execute("update maintenance set maint_start=%s, maint_end=%s",(maint_start,maint_end))
+                else:
+                    database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, maint_start, maint_end))
+        else: #new
+            messagetitle = ""
+            messagedescription = ""
+            messagetype = ""
+            messagedetail = ""
+            mesageaffected = ""
+            messagedowntime = ""
+            messageauthor = ""
+            messagelast = ""
+            messagepublishstart = ""
+            messagepublishend = ""
+            
+            if req.session['message'].has_key('title') and req.session['message']['title']:
+                messagetitle = req.session['message']['title']
+            if req.session['message'].has_key('description') and req.session['message']['description']:
+                messagedescription = req.session['message']['description']
+            if req.session['message'].has_key('detail') and req.session['message']['detail']:
+                messagedetail = req.session['message']['detail']
+            if req.session['message'].has_key('affected') and req.session['message']['affected']:
+                messageaffected = req.session['message']['affected']
+            if req.session['message'].has_key('downtime') and req.session['message']['downtime']:
+                messagedowntime = req.session['message']['downtime']
+            if req.session['message'].has_key('author') and req.session['message']['author']:
+                messageauthor = req.session['message']['author']
+            if req.session['message'].has_key('last_changed') and req.session['message']['last_changed']:
+                messagelast = req.session['message']['last_changed']
+            if req.session['message'].has_key('publish_start') and req.session['message']['publish_start']:
+                messagepublishstart = req.session['message']['publish_start']
+            elif req.session['message'].has_key("maint_start"):
+                messagepublishstart = req.session['message']['maint_start']
+            if req.session['message'].has_key('publish_end') and req.session['message']['publish_end']:
+                messagepublishend = req.session['message']['maint_end']
+            elif req.session['message'].has_key("maint_end"):
+                messagepublishend = req.session['message']['publish_end']
+            if req.session['message'].has_key('type') and req.session['message']['type']:
+                messagetype = req.session['message']['type']
+                
+            
+            ### get next emotdid
+            database.execute("select nextval('emotd_emotdid_seq')")
+            emotdid = int(database.fetchone()[0])
+
+            if req.session.has_key("equipment"):
+                equipment = req.session["equipment"]
+                for key,values in equipment.keys():
+                    for v in values:
+                        database.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
+                        equipment[key].remove(v)
+                        
+            if req.session['message'].has_key("maint_start") and req.session['message'].has_key("maint_end"):
+                database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, maint_start, maint_end))
+
+            if req.session['message'].has_key("title") and req.session['message'].has_key("descr"):
+                database.execute("insert into emotd (emtodid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)", (messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
+
+                
+        req.session["equipment"] = {}
+        req.session.save()
+        connection.commit()
+    redirect(req,BASEPATH+"view")
 
 def status(req):
     if req.form.has_key("id"):
@@ -947,21 +1106,29 @@ def placemessage(req, lang = None):
     if req.session.has_key("equipment"):
         eql = equipmentformat(req.session["equipment"])
 
-    if lang:
-        sql = "select emotdid, title_en, description_en from emotd where publish_end>now() order by publish_end desc"
-    else:
-        sql = "select emotdid, title, description from emotd where  publish_end>now() order by publish_end desc"
-    database.execute(sql)
+##     if lang:
+##         sql = "select emotdid, title_en, description_en from emotd where publish_end>now() order by publish_end desc"
+##     else:
+##         sql = "select emotdid, title, description from emotd where  publish_end>now() order by publish_end desc"
+##     database.execute(sql)
 
-    messages = []
-    for (emotdid,title,description) in database.fetchall():
-        messages.append((emotdid, title, description))
+##     messages = []
+##     for (emotdid,title,description) in database.fetchall():
+##         messages.append((emotdid, title, description))
 
-    page.emotds = messages
+    page.emotds = selectmessagelist()
     page.type = type    
     page.equipment_list = eql
     ##page.emotds = (req.session['user'],1)#EmotdSelect.fetchAll()
     return page.respond()
+
+def selectmessagelist():
+    database.execute("select emotdid, title, description from emotd where publish_end>now() order by publish_end desc")
+    messages = []
+    for (emotdid,title,description) in database.fetchall():
+        messages.append((emotdid, title, description))
+    return messages
+    
 
 def edit(req, id = None):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
@@ -969,7 +1136,7 @@ def edit(req, id = None):
     #title = 'Editing as %s ' % (req.session['user'].login)
     page.path =  [("Home", "/"), ("Messages", "/emotd"),("Edit Message","")]
     page.pagetitle = "Edit Message"
-    page.menu = getMenu(req)
+    #page.menu = getMenu(req)
     page.parent_id = None
     page.emotdid = None
     
@@ -1095,11 +1262,28 @@ def commit(req):
         database.execute("update emotd set description=%s, detail=%s, title=%s, affected=%s, downtime=%s, type=%s, publish_start=%s, publish_end=%s, last_changed=%s where emotdid=%d", (description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed), emotdid))
         
     else:
-        # if no id, make a new MOTD
-        database.execute("select nextval('emotd_emotdid_seq')")
-        emotdid = int(database.fetchone()[0])
-        #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
-        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
+        if req.form.has_key("cn_save"):
+            # if no id, make a new MOTD
+            database.execute("select nextval('emotd_emotdid_seq')")
+            emotdid = int(database.fetchone()[0])
+            # database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
+            database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
+        else:
+            if not req.session.has_key("message"):
+                req.session["message"] = {}
+            req.session['message']['title'] = title
+            req.session['message']['description'] = description
+            req.session['message']['detail'] = detail
+            req.session['message']['affected'] = affected
+            req.session['message']['downtime'] = downtime
+            req.session['message']['author'] = author
+            req.session['message']['last_changed'] = last_changed
+            req.session['message']['type'] = type
+            req.session['message']['publish_start'] = start
+            req.session['message']['publish_end'] = end
+
+            req.session.save()
+            
     connection.commit()
     if req.form.has_key("cn_save"):
         redirect(req,"%sview/%s" % (BASEPATH, emotdid))
