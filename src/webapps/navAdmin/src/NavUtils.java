@@ -983,7 +983,7 @@ class NavUtils
 		HashMap activeVlan = new HashMap();
 		// vlan er aktivt på port selv om den er nede, og vi må ta med vlan'et IP'en på selve boksen er på
 		//rs = Database.query("(SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL) UNION (SELECT DISTINCT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL)");
-		rs = Database.query("(SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");		while (rs.next()) {
+		rs = Database.query("SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL");		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");
 			if ((m = (Map)activeVlan.get(netboxid)) == null) activeVlan.put(netboxid, m = new HashMap());
