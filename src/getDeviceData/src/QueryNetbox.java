@@ -285,8 +285,9 @@ public class QueryNetbox extends Thread
 		int newcnt=0, skipcnt=0, delcnt=0;
 
 		try {
-			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' ORDER BY random() * netboxid";
+			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
+			sql += " ORDER BY random() * netboxid";
 			//sql += " LIMIT 1000";
 			ResultSet rs = Database.query(sql);
 

@@ -50,13 +50,12 @@ public class Swport implements Comparable
 		this.ifindex = ifindex.trim();
 	}
 
-	public void setData(Integer port, char link, String speed, char duplex, String media, boolean trunk, String portname) {
+	public void setData(Integer port, char link, String speed, char duplex, String media, String portname) {
 		setPort(port);
 		setLink(link);
 		setSpeed(speed);
 		setDuplex(duplex);
 		setMedia(media);
-		setTrunk(trunk);
 		setPortname(portname);
 	}
 
