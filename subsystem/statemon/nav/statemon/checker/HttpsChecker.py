@@ -1,5 +1,5 @@
 """
-$Id$
+$Id: HttpChecker.py 2209 2004-01-27 11:25:30Z mortenv $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/HttpChecker.py,v $
 """
 from nav.statemon.event import Event
@@ -27,9 +27,9 @@ class HTTPSConnection(httplib.HTTPSConnection):
 		ssl = socket.ssl(sock.s, None, None)
 		self.sock = httplib.FakeSocket(sock, ssl)
 		
-class HttpChecker(AbstractChecker):
+class HttpsChecker(AbstractChecker):
 	def __init__(self,service, **kwargs):
-		AbstractChecker.__init__(self, "http", service, port=0, **kwargs)
+		AbstractChecker.__init__(self, "https", service, port=0, **kwargs)
 	def execute(self):
 		ip, port = self.getAddress()
 		url = self.getArgs().get('url','')
@@ -37,10 +37,11 @@ class HttpChecker(AbstractChecker):
 			url = "/"
 		protocol, vhost, path, query, fragment = urlsplit(url)
 		
-		i = HTTPConnection(self.getTimeout(), ip, port or 80)
+		i = HTTPSConnection(self.getTimeout(), ip, port or 443)
+
 		if vhost:
 			i.host=vhost
-
+		
 		i.putrequest('GET',path)
 		internalRev = "$Rev: 1361 $"
 		internalRev = internalRev[:-2].replace('$Rev: ','')
