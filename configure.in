@@ -35,6 +35,7 @@ webroot='${prefix}/apache/webroot'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
+initdir='etc/init.d'
 
 AC_OUTPUT(Makefile
 	src/Makefile
