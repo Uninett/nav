@@ -45,7 +45,7 @@ def index(req):
     navlinks = nav.config.readConfig(navLinksFile)
     navlinkshtml = ""
     for name, url in navlinks.items():
-        if (nav.web.linkchecker.shouldShow(url, req.session['user'])):
+        if (nav.web.shouldShow(url, req.session['user'])):
             navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
     page.navlinks = lambda:navlinkshtml
 

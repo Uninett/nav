@@ -156,10 +156,11 @@ class Session(dict):
     def save(self):
         """Make the Session object persistent"""
         filename = path.join(tempDir, '%s%s' % (serialPrefix, self.id))
+        os.umask(0077) # Make sure only owner has rights
         file = open(filename, 'w')
 
         fcntl.lockf(file, fcntl.LOCK_EX) # Exclusive write lock
-        pickler = cPickle.Pickler(file, False)
+        pickler = cPickle.Pickler(file, True)
         pickler.dump(self)
         fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
         file.close()

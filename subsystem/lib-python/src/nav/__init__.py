@@ -9,6 +9,8 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import time
+# Import all path symbols from the path module (generated at build time)
+from path import *
 
 class ObjectCache(dict):
     def __setitem__(self, key, item):
