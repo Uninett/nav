@@ -76,4 +76,6 @@ print LOGFIL "$now_string\tVacuumdb ...\n";
 $res = `PGPASSWORD=$passord  vacuumdb -U postgres -a`;
 if ($res ne '') { print LOGFIL "$res\n\n"; }
 
+print LOGFIL "$now_string\tFerdig.\n";
+
 close(LOGFIL);
