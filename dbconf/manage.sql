@@ -229,7 +229,8 @@ CREATE TABLE swport (
   port INT2 NOT NULL,
   portnavn VARCHAR(30),
   vpkatbak VARCHAR(5),
-  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
+  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
+  UNIQUE(boksid, modul, port)
 );
 
 
@@ -238,6 +239,7 @@ CREATE TABLE swportvlan (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
   retning VARCHAR(1) NOT NULL DEFAULT 'x'
+  trunk CHAR(1) NOT NULL DEFAULT 'N'
 );
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
@@ -309,11 +311,12 @@ GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON boksmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
 GRANT SELECT ON prefiks TO navadmin;
-GRANT SELECT ON swport TO navadmin;
-GRANT SELECT,INSERT,DELETE ON swportvlan TO navadmin;
+GRANT ALL    ON swport TO navadmin;
+GRANT ALL    ON swport_swportid_seq TO navadmin;
+GRANT ALL    ON swportvlan TO navadmin;
 GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
 GRANT SELECT,DELETE ON swp_boks TO navadmin;
-GRANT SELECT ON swportallowedvlan TO navadmin;
+GRANT ALL    ON swportallowedvlan TO navadmin;
 
 --### vlanPlot end ###
 
