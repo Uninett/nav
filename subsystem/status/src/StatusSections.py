@@ -306,7 +306,7 @@ class NetboxSectionBox(SectionBox):
     " Section displaying services that are down or in shadow "
 
     # attribs for preferences
-    name = 'Boxes down'
+    name = 'IP Devices down'
     typeId = 'netbox'
 
     prefsOptions = None
@@ -461,11 +461,11 @@ class NetboxSectionBox(SectionBox):
             boxesShadow = 'No'
 
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = boxesDown + ' boxes down'
+            self.summary = boxesDown + ' IP devices down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = boxesShadow + ' boxes in shadow'
+            self.summary = boxesShadow + ' IP devices in shadow'
         else:
-            self.summary = boxesDown + ' boxes down, ' + \
+            self.summary = boxesDown + ' IP devices down, ' + \
                            boxesShadow.lower() + ' in shadow'
 
     def getFilters(controlBaseName,orgList):

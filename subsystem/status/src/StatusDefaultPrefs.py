@@ -36,7 +36,7 @@ p3
 p5
 S'netbox'
 p6
-S'Boxes down'
+S'IP devices down'
 p7
 (dp8
 S'state'
@@ -53,7 +53,7 @@ p13
 asta(S'netbox_1'
 p14
 g6
-S'Boxes in shadow'
+S'IP devices in shadow'
 p15
 (dp16
 S'state'
