@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: QueryBoks.java,v 1.3 2002/11/22 21:30:39 kristian Exp $
+* $Id: QueryBoks.java,v 1.4 2002/11/22 22:20:30 kristian Exp $
 * This file is part of the NAV project.
 * Logging of CAM/CDP data
 *
@@ -430,7 +430,7 @@ public class QueryBoks extends Thread
 				} else {
 					String[] s = {
 						"netboxid", boksId,
-						"modul", pm.getModul(),
+						"module", pm.getModul(),
 						"port", pm.getPort(),
 						"to_netboxid", pm.getBoksId()
 					};
