@@ -1,27 +1,27 @@
 -- Slette alle tabeller
 
-DROP TABLE mem;
-DROP TABLE swportblocked;
-DROP TABLE swportallowedvlan;
-DROP TABLE swportvlan;
-DROP TABLE gwport;
-DROP TABLE vlan;
-DROP TABLE prefix;
-DROP TABLE swport;
-DROP TABLE module;
+DROP TABLE mem CASCADE;
+DROP TABLE swportblocked CASCADE;
+DROP TABLE swportallowedvlan CASCADE;
+DROP TABLE swportvlan CASCADE;
+DROP TABLE gwport CASCADE;
+DROP TABLE vlan CASCADE;
+DROP TABLE prefix CASCADE;
+DROP TABLE swport CASCADE;
+DROP TABLE module CASCADE;
 DROP TABLE netboxcategory;
 DROP TABLE netboxinfo;
-DROP TABLE netbox;
-DROP TABLE cat;
-DROP TABLE device;
-DROP TABLE product;
-DROP TABLE vendor;
-DROP TABLE type;
+DROP TABLE netbox CASCADE;
+DROP TABLE cat CASCADE;
+DROP TABLE device CASCADE;
+DROP TABLE product CASCADE;
+DROP TABLE vendor CASCADE;
+DROP TABLE type CASCADE;
 DROP TABLE typegroup;
-DROP TABLE room;
-DROP TABLE location;
-DROP TABLE usage;
-DROP TABLE org;
+DROP TABLE room CASCADE;
+DROP TABLE location CASCADE;
+DROP TABLE usage CASCADE;
+DROP TABLE org CASCADE;
 
 DROP TABLE swp_netbox;
 
@@ -170,8 +170,8 @@ CREATE TABLE type (
   UNIQUE (vendorid,typename)
 );
 
-CREATE TABLE objectid (
-	oidid SERIAL PRIMARY KEY,
+CREATE TABLE snmpoid (
+	snmpoidid SERIAL PRIMARY KEY,
 	oidkey VARCHAR NOT NULL,
 	objectid VARCHAR NOT NULL,
 	descr VARCHAR
@@ -179,7 +179,7 @@ CREATE TABLE objectid (
 
 CREATE TABLE typeoid (
 	typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-	oidid INT4 REFERENCES objectid ON UPDATE CASCADE ON DELETE CASCADE,
+	snmpoidid INT4 REFERENCES objectid ON UPDATE CASCADE ON DELETE CASCADE,
 	frequency INT4,
 	UNIQUE(typeid, oidid)
 );  
