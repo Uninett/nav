@@ -181,8 +181,8 @@ sub sorter_sms {
     # Bruk 'sort keys' vist en vist en ønsker at lavest mobil-nummer skal komme først 
     foreach $user (sort keys %hash_ko) {
 	
-	@sendt_id = '';
-	@ignored_id = '';
+	@sendt_id = ();
+	@ignored_id = ();
 	
 	# Henter alle meldingen til den første personen i fra hash'en
 #	if ($nr1_user) {
