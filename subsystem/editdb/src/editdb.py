@@ -14,7 +14,7 @@ from nav.web.serviceHelper import getCheckers,getDescription
 #################################################
 ## Constants
 
-BASEPATH = '/~hansjorg/editdb/'
+BASEPATH = '/editdb/'
 
 EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database','/editdb')]
 
