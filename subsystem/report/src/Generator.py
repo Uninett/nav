@@ -181,7 +181,7 @@ class ConfigParser:
         for line in reResult:
 
             key = line[0]
-            value = line[1]
+            value = line[1].replace('\n',' ').strip()
 
             if key == "sql" or key == "query":
                 config.setQuery(value)
