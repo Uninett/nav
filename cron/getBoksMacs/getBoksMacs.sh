@@ -3,16 +3,14 @@
 # og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
 # med job-finished filen.
 
-NAV_ROOT="/usr/local/nav"
-#NAV_ROOT="/home/kristian/devel/navme"
+#NAV_ROOT="/usr/local/nav"
+NAV_ROOT="/home/kristian/devel"
 
 NAV_CONF="$NAV_ROOT/local/etc/conf/nav.conf"
 
 if [ "$JAVA_HOME" == "" ]; then
 	JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
-
-#CLASSPATH=./getBoksMacs.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
 
 CUR_DIR=$NAV_ROOT/navme/cron/getBoksMacs
 JOB_FINISHED=$CUR_DIR/job-finished
