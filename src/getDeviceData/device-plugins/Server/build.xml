@@ -1,42 +1,26 @@
-<project name="Server" default="dist" basedir=".">
+<project name="Server plugin" default="copy" basedir=".">
     <description>
-        getDeviceData plugin for servers
+        build file Server plugin
     </description>
   <!-- set global properties for this build -->
+  <property name="jar" value="Server.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-  <property name="classpath"
-  value="../../build:../../data-plugins/Device/build:../../data-plugins/Module
-  /build:../../data-plugins/Swport/build"/>
+  <property name="classpath" value="../../build:../../data-plugins/Device/build:../../data-plugins/NetboxInfo/build"/>
+  <property name="build.compiler.emacs" value="yes"/>
 
-  <target name="init" depends="clean">
+  <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
-    <!-- Create the directory structure used by compile -->
+    <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
-    <mkdir dir="${dist}"/>
   </target>
 
   <target name="compile" depends="init"
         description="compile the source " >
-    <!-- Compile the jython code from ${src} into ${build} -->
-    <exec executable="jythonc">
-      <arg value="--package" />
-      <arg value="no.ntnu.nav.getDeviceData.deviceplugins.Server" />
-      
-      <arg value="--deep" />
-      <arg value="--core" />
-
-      <arg value="--workdir" />
-      <arg path="${build}" />
-
-      <arg value="--jar" />
-      <arg path="${dist}/Server.jar" />
-
-      <arg file="${src}/Server.py" />
-     
-    </exec>
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" classpath="${classpath}" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -44,19 +28,19 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the Server.jar file -->
-    <jar jarfile="${dist}/Server.jar" update="yes" manifest="Plugin-Class"/>
+    <!-- Put everything in ${build} into the getDeviceData.jar file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Plugin-Class"/>
   </target>
 
   <target name="copy" depends="dist">
-    <copy file="${dist}/handlerServer.jar" todir="../"/>
-  </target>   
-
+    <copy file="${dist}/${jar}" todir="../"/>
+  </target>
 
   <target name="clean"
         description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete file="../${jar}"/>
   </target>
 </project>
