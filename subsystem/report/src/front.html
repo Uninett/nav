@@ -1,31 +1,35 @@
 
 <h2>Reports</h2>
 
-<table width=80%>
+<table width="80%">
 <tr>
 
-<td width=25%><form action=../browse/>Info<br>
-<input type=text name=netbox size=10>
-<input type=submit value=Find>
-<br><font size=1 color=gray>IP / sysname</font>
+<td width="25%"><form action="../browse/">
+<label style="display: block; white-space: nowrap">Info</label>
+<input type="text" name="netbox" size="10">
+<input type="submit" value="Find">
+<div style="font-size: 0.7em; color: gray">IP / sysname</div>
 </form></td>
 
-<td width=25%><form action=netbox>Room<br>
-<input type=text name=roomid size=10>
-<input type=submit value=Find>
-<br><font size=1 color=gray>room</font>
+<td width="25%"><form action="netbox">
+<label style="display: block; white-space: nowrap">Room</label>
+<input type="text" name="roomid" size="10">
+<input type="submit" value="Find">
+<div style="font-size: 0.7em; color: gray">room</div>
 </form></td>
 
-<td width=25%><form action=device>Device<br>
-<input type=text name="serial" size=10>
-<input type=submit value=Find>
-<br><font size=1 color=gray>serial number</font>
+<td width="25%"><form action="device">
+<label style="display: block; white-space: nowrap">Device</label>
+<input type="text" name="serial" size="10">
+<input type="submit" value="Find">
+<div style="font-size: 0.7em; color: gray">serial number</div>
 </form></td>
 
-<td width=25%><form action=swportv>Switchports with vlan<br>
-<input type=text name="vlan.vlan" size=10>
-<input type=submit value=Find>
-<br><font size=1 color=gray>vlan number</font>
+<td width="25%"><form action="swportv">
+<label style="display: block; white-space: nowrap">Switchports with vlan</label>
+<input type="text" name="vlan.vlan" size="10">
+<input type="submit" value="Find">
+<div style="font-size: 0.7em; color: gray">vlan number</div>
 </form></td>
 
 
@@ -44,25 +48,25 @@
 <b>Collected information</b>
 <dt><a href=netbox>Devices in Operation (all)</a>
 
-<dt><a href=gw>Routers</a>
-<dd><a href=prefix>Prefixes</a>
-<dd><a href=gwport>Router ports</a>
-<dt><a href=sw?catid_op=in&catid=SW,GSW>Core Switches</a>
-<dd><a href=swport?b1.catid=SW>Core switch ports</a></li>
-<dd><a href=swport?b1.catid=SW&s1.trunk=1>Trunked core switch ports</a></li>
-<dd><a href=swportv?b1.catid=SW>Core switch ports (expand trunks to vlan)</a></li>
+<dt><a href="gw">Routers</a>
+<dd><a href="prefix">Prefixes</a>
+<dd><a href="gwport">Router ports</a>
+<dt><a href="sw?catid_op=in&catid=SW,GSW">Core Switches</a>
+<dd><a href="swport?b1.catid=SW">Core switch ports</a></li>
+<dd><a href="swport?b1.catid=SW&s1.trunk=1">Trunked core switch ports</a></li>
+<dd><a href="swportv?b1.catid=SW">Core switch ports (expand trunks to vlan)</a></li>
 
-<dt><a href=sw?catid=EDGE>Edge Switches and Hubs</a>
-<dd><a href=swportv?b1.catid=EDGE>Edge switch ports</a></li>
+<dt><a href="sw?catid=EDGE">Edge Switches and Hubs</a>
+<dd><a href="swportv?b1.catid=EDGE">Edge switch ports</a></li>
 
-<dt><a href=wlan>Wireless</a>
+<dt><a href="wlan">Wireless</a>
 
-<dt><a href=srv>Servers</a>
-<dd><a href=servicemon>Services</a>
+<dt><a href="srv">Servers</a>
+<dd><a href="servicemon">Services</a>
 
-<dt><a href=other>Other devices</a>
-<dt><a href=modules>Modules</a>
-<dt><a href=mem>Memory</a>
+<dt><a href="other">Other devices</a>
+<dt><a href="modules">Modules</a>
+<dt><a href="mem">Memory</a>
 </dl>
 </td>
 <td valign=top width=50% colspan=2>
@@ -70,13 +74,13 @@
 <dt><b>Manually updated information</b>
 <dt><a href="../editdb"><i>[Update database]</i></a>
 <br><br>
-<dt><a href=type>Equipment types</a>
-<dt><a href=room>Rooms</a>
-<dt><a href=location>Locations</a>
-<dt><a href=org>Organisations</a>
-<dt><a href=usage>User groups</a>
-<dt><a href=vendor>Vendors</a>
-<dt><a href=product>Products</a>
+<dt><a href="type">Equipment types</a>
+<dt><a href="room">Rooms</a>
+<dt><a href="location">Locations</a>
+<dt><a href="org">Organisations</a>
+<dt><a href="usage">User groups</a>
+<dt><a href="vendor">Vendors</a>
+<dt><a href="product">Products</a>
 
 
 </dl>
