@@ -49,6 +49,10 @@ public class QueryNetbox extends Thread
 	private static Map scheduleImmediatelyMap = Collections.synchronizedMap(new HashMap());
 	private static int threadCnt;
 	private static Integer idleThreadLock = new Integer(0);
+	private static LinkedList threadIdList = new LinkedList();
+	private static int curMaxTid = 0;
+
+
 	private static int netboxCnt;
 	private static int netboxHigh;
 	private static long nbProcessedCnt;
@@ -236,13 +240,6 @@ public class QueryNetbox extends Thread
 		// The unknown type is for netboxes without type
 		createUnknownType(typeidM);
 
-		// Clear OID queue
-		/*
-		synchronized (oidQ) {
-			oidQ.clear();
-		}
-		*/
-		
 		try {
 			// First fetch new types from the database
 			ResultSet rs = Database.query("SELECT typeid, typename, vendorid, cs_at_vlan, chassis FROM type");
@@ -299,16 +296,11 @@ public class QueryNetbox extends Thread
 			NetboxImpl nb = (NetboxImpl)it.next();
 			Type t = (Type)typeidMap.get(nb.getTypeT().getTypeid());
 			nb.setType(t);
-			/*
-			if (t.getDirty()) {
-				t.setDirty(false);
-			}
-			*/
 		} 
 	}
 
 	public static synchronized void updateNetboxes() {
-		int newcnt=0, skipcnt=0, delcnt=0, oidnew=0;
+		int newcnt=0, skipcnt=0, delcnt=0;
 
 		try {
 			Map numInStackMap = new HashMap();
@@ -316,7 +308,7 @@ public class QueryNetbox extends Thread
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
 			//String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
-			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,netbox.uptodate, type.frequency AS typefreq, netboxsnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM netbox LEFT JOIN type USING(typeid) LEFT JOIN netboxsnmpoid USING(netboxid) LEFT JOIN snmpoid USING(snmpoidid) WHERE up='y' AND ro IS NOT NULL";
+			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,netbox.uptodate, type.frequency AS typefreq, netboxsnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid FROM netbox LEFT JOIN type USING(typeid) LEFT JOIN netboxsnmpoid USING(netboxid) LEFT JOIN snmpoid USING(snmpoidid) WHERE up='y' AND ro IS NOT NULL";
 			boolean randomize = true;
 			if (qNetbox != null) {
 				String qn = qNetbox;
@@ -352,7 +344,6 @@ public class QueryNetbox extends Thread
 			int nbHigh = netboxHigh;
 			Set netboxidSet = new HashSet();
 			List addToRunQList = new ArrayList();
-			List addToOidQList = new ArrayList();
 
 			while (rs.next()) {
 				String netboxid = rs.getString("netboxid");
@@ -406,6 +397,9 @@ public class QueryNetbox extends Thread
 							addToRunQList.add(nb);
 						}
 						netboxidSet.add(new Integer(nb.getNetboxid()));
+						nb.setUptodate(rs.getBoolean("uptodate"));
+						/*
+						netboxidSet.add(new Integer(nb.getNetboxid()));
 						//System.err.println("Sysname: " + rs.getString("sysname") + ", " + rs.getBoolean("uptodate") + ", " + oidNetboxSet);
 						if (!rs.getBoolean("uptodate") && oidNetboxSet.add(netboxid)) {
 							synchronized (deviceNetboxCache) {
@@ -415,6 +409,7 @@ public class QueryNetbox extends Thread
 							System.err.println("Added to oidq: " + nb);
 							oidnew++;
 						}
+						*/
 						///////////////////////////////////////////
 
 					}
@@ -426,7 +421,6 @@ public class QueryNetbox extends Thread
 					int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
 					if (freq <= 0) {
 						Log.w("UPDATE_NETBOXES", "No frequency specified for netbox " + netboxid + ", oid: " + oidkey + ", skipping.");
-						//prevnetboxid = netboxid;
 						continue;
 					}
 					keyFreqMap.put(oidkey, new Integer(freq));
@@ -440,11 +434,6 @@ public class QueryNetbox extends Thread
 				NetboxImpl nb = (NetboxImpl)it.next();
 				nb.updateNextRun();
 				addToRunQ(nb);
-			}
-			synchronized (oidQ) {
-				for (Iterator it = addToOidQList.iterator(); it.hasNext();) {
-					oidQ.add((NetboxImpl)it.next());
-				}
 			}
 
 			netboxCnt = netboxidSet.size();
@@ -471,13 +460,11 @@ public class QueryNetbox extends Thread
 			e.printStackTrace(System.err);
 		}
 
-		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq, " + oidnew + " new oidQ)");
+		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq, " + threadCnt + " active)");
 
-		// Check the run queue in case we have any new OIDs to check
-		synchronized (oidQ) {
-			if (newcnt > 0 || !oidQ.isEmpty()) {
-				scheduleCheckRunQ(0);
-			}
+		// Check the run queue in case we have any new netboxes to check
+		if (newcnt > 0) {
+			scheduleCheckRunQ(0);
 		}
 
 	}
@@ -589,19 +576,33 @@ public class QueryNetbox extends Thread
 			int max = allowExtra ? maxThreadCnt+extraThreadCnt : maxThreadCnt;
 			if (allowExtra && extraThreadCnt > 0) extraThreadCnt--;
 			if (threadCnt < max) {
+				int tid = getFreeTid();
+				threadCnt++;
 				//System.err.println("New thread, cnt="+(threadCnt+1)+" max="+max);
-				return format(threadCnt++, String.valueOf(max-1).length());
+				return format(tid, String.valueOf(max-1).length());
 			}
 			return null;
 		}
 	}
 
-	private static void threadIdle() {
+	private static void threadIdle(String tid) {
 		synchronized (idleThreadLock) {
+			returnTid(Integer.parseInt(tid));
 			//System.err.println("Del thread, cnt="+(threadCnt-1));
 			threadCnt--;
 		}
 		scheduleCheckRunQ(0);
+	}
+
+	private static int getFreeTid() {
+		if (threadIdList.isEmpty()) {
+			threadIdList.add(new Integer(curMaxTid++));
+		}
+		return ((Integer)threadIdList.removeFirst()).intValue();
+	}
+
+	private static void returnTid(int tid) {
+		threadIdList.add(new Integer(tid));
 	}
 
 	// Constructor
@@ -628,6 +629,8 @@ public class QueryNetbox extends Thread
 			while (true) {
 
 				// Check if we were assigned an oid object and not a netbox
+				if (oidUpdObj == null && !nb.getUptodate()) oidUpdObj = nb;
+
 				if (oidUpdObj != null) {
 					OidTester oidTester = new OidTester();
 					if (oidUpdObj instanceof NetboxImpl) {
@@ -636,20 +639,19 @@ public class QueryNetbox extends Thread
 						sSnmp.setHost(nb.getIp());
 						sSnmp.setCs_ro(nb.getCommunityRo());
 						oidTester.oidTest(nb, oidkeyMap.values().iterator(), sSnmp );
-						oidNetboxSet.remove(nb.getNetboxidS());
 					} else if (oidUpdObj instanceof Snmpoid) {
 						Snmpoid oid = (Snmpoid)oidUpdObj;
 						oidTester.oidTest(oid, nbList.iterator() );
 						oidKeySet.remove(oid.getOidkey());
-					}
-					synchronized (oidQ) {
-						if (oidQ.isEmpty()) {
-							Log.d("RUN", "oidQ empty, scheduling types/netboxes update");
-							scheduleUpdateNetboxes(0);
+						synchronized (oidQ) {
+							if (oidQ.isEmpty()) {
+								Log.d("RUN", "oidQ empty, scheduling types/netboxes update");
+								scheduleUpdateNetboxes(0);
+							}
+							Log.d("RUN", "Thread idle, done OID object processing ("+oidQ.size()+" remain), exiting...");
+							return;
 						}
-						Log.d("RUN", "Thread idle, done OID object processing ("+oidQ.size()+" remain), exiting...");
 					}
-					return;
 				}
 
 				// Process netbox
@@ -807,7 +809,7 @@ public class QueryNetbox extends Thread
 			sSnmp = null;
 			System.gc();
 			Log.freeThread();
-			threadIdle();
+			threadIdle(tid);
 		}
 	}
 
@@ -948,6 +950,8 @@ public class QueryNetbox extends Thread
 						Log.d("RUNQ", (((Long)me.getKey()).longValue()-curTime) + ": " + me.getValue());
 					}
 				}
+			} else if ("dumpOidLocks".equals(cmd)) {
+				Log.d("HANDLE_EVENT", "Active OID locks: " + OidTester.getLockSet());
 			} else if ("updateFromDB".equals(cmd)) {
 				// Update types/netboxes
 				Log.d("UPDATE", "Updating types/netboxes");

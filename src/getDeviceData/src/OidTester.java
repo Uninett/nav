@@ -83,7 +83,7 @@ public class OidTester
 
 			if (t.getTypeid() != Type.UNKNOWN_TYPEID && typeChecked.add(t.getTypeid())) {
 				// Check if we need to test for csAtVlan and chassis
-				synchronized(lock(t.getTypeid())) {
+				try { synchronized(lock(t.getTypeid())) {
 					// Chassis first, using chassisId and exception for cat2924 (FIXME!)
 					try {
 						boolean chassis = true;
@@ -146,11 +146,10 @@ public class OidTester
 						Database.update("UPDATE type SET cs_at_vlan = '" + t.getCsAtVlanC() + "' WHERE typeid = '"+t.getTypeid()+"'");
 						Log.i("OID_TESTER", "CS_AT_VLAN", "Type " + t + " supports cs@vlan: " + t.getCsAtVlanC());
 					}
-				}
-				unlock(t.getTypeid());
+				} } finally { unlock(t.getTypeid()); }
 			}
 
-			synchronized(lock(ip)) {
+			try { synchronized(lock(ip)) {
 
 				List atVlan;
 				if (tmp.containsKey("atVlan")) {
@@ -257,9 +256,11 @@ public class OidTester
 							}
 						}
 					} catch (TimeoutException e) {
-						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
+						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip + " (vl: " + atVl + ")");
+						break;
 					} catch (Exception e) {
 						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip + ", assuming not supported: " + e.getMessage());
+						break;
 					}
 
 					if (supported) break;
@@ -269,8 +270,7 @@ public class OidTester
 				if (!supported) {
 					Database.update("DELETE FROM netboxsnmpoid WHERE netboxid='"+nb.getNetboxid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 				}
-			}
-			unlock(ip);
+			} } finally { unlock(ip); }
 
 		} catch (SQLException e) {
 			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
@@ -316,6 +316,10 @@ public class OidTester
 		if (rf != null && rf.dec()) {
 			lockMap.remove(s);
 		}
+	}
+
+	public static synchronized Set getLockSet() {
+		return new HashSet(lockMap.keySet());
 	}
 
 	private static class Refcnt {

@@ -79,6 +79,16 @@ public interface Netbox
 	 */
 	public String getOid(String key);
 
+
+	/**
+	 * <p> Get the OID for the given key without checking if it
+	 * scheduled for fetching.  </p>
+	 *
+	 * @param key The OID key
+	 * @return the OID for the given key, or null if the key is not supported
+	 */
+	public String getOidNoCheck(String key);
+
 	/**
 	 * <p>Get a key which uniquely identifies this netbox. Currently
 	 * the netboxid is returned. </p>

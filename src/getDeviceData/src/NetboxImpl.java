@@ -17,6 +17,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	private String snmpagent;
 	private int numInStack;
 
+	private boolean uptodate;
+
 	private boolean removed;
 	private boolean updateNetboxes;
 	private boolean recreate;
@@ -82,6 +84,9 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	public String getSnmpagent() { return snmpagent; }
 	public void setSnmpagent(String s) { snmpagent = s; }
+
+	public boolean getUptodate() { return uptodate; }
+	public void setUptodate(boolean b) { uptodate = b; }
 
 	public void setNumInStack(int numInStack) { this.numInStack = numInStack; }
 
@@ -182,7 +187,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		return ((Integer)keyFreqMap.get(key)).intValue();
 	}
 
-	String getOidNoCheck(String key) {
+	public String getOidNoCheck(String key) {
 		Snmpoid snmpoid = (Snmpoid)keyMap.get(key);
 		return snmpoid == null ? null : snmpoid.getSnmpoid();
 	}
