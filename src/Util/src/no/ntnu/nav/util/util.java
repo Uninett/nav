@@ -63,4 +63,38 @@ public class util {
 		return cnt-1;
 	}
 
+	/**
+	 * Join the string elements into a single string, with each element
+	 * separated by the given sep (which can be empty).
+	 */
+	public static String join(String[] s, String sep) {
+		return join(s, sep, 0);
+	}
+
+	/**
+	 * Join the string elements into a single string, with each element
+	 * separated by the given sep (which can be empty), starting with
+	 * the idx'th element.
+	 */
+	public static String join(String[] s, String sep, int idx) {
+		if (idx < 0) return null;
+		StringBuffer sb = new StringBuffer();
+		for (int i=idx; i < s.length; i++) {
+			sb.append(s[i]);
+			if (i != s.length-1) sb.append(sep);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * The set must contain only String objects; its elements are
+	 * returned as a String array.
+	 */
+	public static String[] stringArray(Set s) {
+		if (s == null) return null;
+		String[] a = new String[s.length()];
+		int i=0;
+		for (Iterator it = s.iterator(); it.hasNext();) a[i++] = (String)it.next();
+	}
+
 }
