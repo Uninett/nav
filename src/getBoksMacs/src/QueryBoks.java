@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: QueryBoks.java,v 1.6 2003/05/29 14:27:39 kristian Exp $
+* $Id: QueryBoks.java,v 1.7 2003/06/25 14:49:05 kristian Exp $
 * This file is part of the NAV project.
 * Loging of CAM/CDP data
 *
@@ -254,12 +254,13 @@ public class QueryBoks extends Thread
 							boksType.equals("MSFC1") ||
 							boksType.equals("RSM") ) {
 
-							if (DB_UPDATE) Database.update("UPDATE gwport SET to_netboxid = '"+pm.getBoksId()+"', to_swportid = "+remoteSwportid+" WHERE netboxid = '"+boksId+"' AND prefixid IS NOT NULL");
+							if (DB_UPDATE) Database.update("UPDATE gwport SET to_netboxid = '"+pm.getBoksId()+"', to_swportid = "+remoteSwportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND prefixid IS NOT NULL");
 							if (DB_COMMIT) Database.commit(); else Database.rollback();
 							outl("    ["+boksType+"] Ifindex: " + pm.getIfindex() + " Interface: " + pm.getModulS() + ", " + boksIdName.get(pm.getBoksId()) );
 							continue;
 						}
 
+						/* Can ikke brukes mer da vi trenger data fra module
 						String[] updateFields = {
 							"to_netboxid", pm.getBoksId(),
 							"to_swportid", remoteSwportid
@@ -268,7 +269,11 @@ public class QueryBoks extends Thread
 							"netboxid", boksId,
 							"ifindex", pm.getIfindex()
 						};
-						if (DB_UPDATE) Database.update("gwport", updateFields, condFields);
+						if (DB_UPDATE) Database.update("gwport", updateFields, condFields);						
+						*/
+
+						if (DB_UPDATE) Database.update("UPDATE gwport SET to_netboxid = '"+pm.getBoksId()+"', to_swportid = "+remoteSwportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND ifindex='"+pm.getIfindex());
+
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						outl("    [GW] Ifindex: " + pm.getIfindex() + " Interface: " + pm.getModulS() + ", " + boksIdName.get(pm.getBoksId()) );
 					}
@@ -726,7 +731,7 @@ public class QueryBoks extends Thread
 				// Setter boksbak og swportbak for alle matchende interfacer
 				outl("  Updating boksbak("+workingOnBoksid+"), swportbak("+swportid+") for gw: " + boksIdName.get(boksid)+", rIf: " + rIf);
 				//if (DB_UPDATE) Database.update("UPDATE gwport SET boksbak = '"+workingOnBoksid+"', swportbak = '"+swportid+"' WHERE gwportid IN (SELECT gwportid FROM gwport JOIN prefiks USING(prefiksid) WHERE vlan IS NOT NULL AND boksid='"+boksid+"' AND interf like '"+rIf+"%')");
-				if (DB_UPDATE) Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+swportid+"' WHERE  netboxid='"+boksid+"' AND interface = '"+rIf+"'");
+				if (DB_UPDATE) Database.update("UPDATE gwport SET to_netboxid = '"+workingOnBoksid+"', to_swportid = '"+swportid+"' WHERE  moduleid IN (SELECT moduleid FROM module WHERE netboxid='"+boksid+"') AND interface = '"+rIf+"'");
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			}
 		} else if (boksGwSet.contains(workingOnBoksid)) {
