@@ -2,28 +2,33 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.2 2002/06/04 15:06:21 erikgors Exp $
+$Id: job.py,v 1.3 2002/06/05 11:26:00 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys
+
+FEIL = 0
+OK = 100
 
 class Job:
 	"""
 	Jobb-klasse som hver enkel "tjeneste"-modul skal extende,
 	den må ha en execute() som returnerer (state,txt)
 	"""
-	def __init__(self,address,*args):
+	def __init__(self,address):
 		self.setName('generic')
 		self.setAddress(address)
 		self.setStatus('')
-		self.setLastRun()
-		self.setState('')
+		self.setTimestamp()
+		self.setState(())
 	def run(self):
-		state,txt = self.execute()
+		start = time.time()
+		state = self.execute()
+		setUsage(time.time()-start)
 		
 		if state != self.getState() and self.getState():
 			#forteller databasen at her har det skjedd noe
-			database.add(self,state,txt)
+			database.add(self,state)
 		else:
 			self.setState(state)
 		self.setLastRun()
@@ -38,12 +43,11 @@ class Job:
 #				if not i:
 #					break
 #				txt += i
+			state = OK
 			txt = txt.strip()
-			state = txt
 		except:
-			i = sys.exc_info()[1]
-			state = i.errno
-			txt = i.args
+			state = FEIL
+			txt = str(sys.exc_type) + str(sys.exc_info()[1].args)
 		s.close()
 
 		return state,txt
@@ -51,12 +55,12 @@ class Job:
 		return self._status
 	def setStatus(self,status):
 		self._status = status
-	def getLastRun(self):
-		return self._lastRun
-	def setLastRun(self,when = 0):
+	def getTimestamp(self):
+		return self._timestamp
+	def setTimestamp(self,when = 0):
 		if not when:
 			when = time.time()
-		self._lastRun = when
+		self._timestamp= when
 	def setState(self,txt):
 		self._state = txt
 	def getState(self):
@@ -82,18 +86,31 @@ class Job:
 	def __repr__(self):
 		return '\'' + self.getName() + '\' ' + str(self.getAddress())
 class Url(Job):
-	def __init__(self,address,type,data):
+	def __init__(self,address,type,path = '/'):
 		Job.__init__(self,address)
 		Job.setName(self,'url')
-		self.url = '%s://%s:%i%s' % (type,address[0],address[1],data)
+		self.url = '%s://%s:%i%s' % (type,address[0],address[1],path)
 	def execute(self):
 		import urllib
 		try:
 			txt = urllib.urlopen(self.url).read()
-			state = 'OK'
-			txt = txt[:100]
+			state = OK
+			txt = 'OK'
 		except:
-			i = sys.exc_info()[1]
-			state = i.errno
-			txt = i.args
+			state = FEIL
+			txt = str(sys.exc_type) + str(sys.exc_info()[1].strerror.args)
+		return state,txt
+class Http(Url):
+	def __init__(self,address,path = '/'):
+		Url.__init__(self,address,'http',path)
+		Job.setName(self,'http')
+	def execute(self):
+		import urllib
+		try:
+			i = urllib.urlopen(self.url)
+			state = OK
+			txt = i.headers.getheader('server')
+		except:
+			state = str(sys.exc_type)
+			txt = str(sys.exc_info()[1].strerror.args)
 		return state,txt
