@@ -13,11 +13,60 @@ echo "<p>" . gettext("Et utstyrsfilter er et sett av filtermatch'er som utgjør 
 inkluderes i det aktuelle filteret. Man kan sette sammen mange utstyrsfiltre til en utstyrsgruppe. 
 <p>Når du skal lage en varslingsprofil velger du blandt utstyrsgruppene dine for å definere hvilket utstyr 
 du ønsker å overvåke."); 
-echo '<p><a href="#nyttfilter">' . gettext("Legg til nytt filter") . '</A>';
+echo '<p><a href="?subaction=ny">' . gettext("Legg til nytt filter") . '</A>';
 
 
 session_set('lastaction', 'filter');
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
+
+
+
+if (in_array(get_get('subaction'), array('ny', 'endre') )) {
+
+
+	print '<a name="ny"></a><div class="newelement">';
+	
+	if ($subaction == 'endre') {
+		print '<h2>' .gettext("Endre navn på filter") . '</h2>';
+	} else {
+		print '<h2>' .gettext("Legg til nytt filter") . '</h2>';
+	}
+	
+
+	
+	echo '<form name="form1" method="post" action="index.php?action=filter&subaction=';
+
+	if ($subaction == 'endre') echo "endret"; else echo "nyttfilter";
+	echo '">';
+
+	if ($subaction == 'endre') {
+		print '<input type="hidden" name="fid" value="' . $fid . '">';
+	}
+
+	
+	echo '<table width="100%" border="0" cellspacing="0" cellpadding="3">
+	    <tr>
+	      <td width="30%"><p>' . gettext("Navn") . '</p></td>
+	      <td width="70%"><input name="navn" type="text" size="40" 
+	value="' .  $navn . '"></td>
+	    </tr>';
+	
+	echo '<tr>
+	      <td>&nbsp;</td>
+	      <td align="right"><input type="submit" name="Submit" value="';
+
+	if ($subaction == 'endre') echo gettext("Lagre endringer"); else echo gettext("Legg til nytt filter");
+	echo '"></td>
+	    </tr>
+	  </table>
+	</form></div>';
+
+
+}
+
+
+
+
 
 if ($subaction == 'endret') {
 
@@ -138,42 +187,7 @@ print $l->getHTML();
 print "<p>[ <a href=\"index.php?action=" . $action. "\">" .gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0> ]</a> ";
 print gettext("Antall filtre: ") . sizeof($filtre);
 
-print '<a name="nyttfilter"></a><p>';
-
-if ($subaction == 'endre') {
-	print '<h2>' .gettext("Endre navn på filter") . '</h2>';
-} else {
-	print '<h2>' .gettext("Legg til nytt filter") . '</h2>';
-}
-
 ?>
-
-<form name="form1" method="post" action="index.php?action=filter&subaction=<?php
-if ($subaction == 'endre') echo "endret"; else echo "nyttfilter";
-?>">
-<?php
-if ($subaction == 'endre') {
-	print '<input type="hidden" name="fid" value="' . $fid . '">';
-}
-?>
-
-  <table width="100%" border="0" cellspacing="0" cellpadding="3">
-    <tr>
-      <td width="30%"><p><?php echo gettext("Navn"); ?></p></td>
-      <td width="70%"><input name="navn" type="text" size="40" 
-value="<?php echo $navn; ?>"></td>
-    </tr>
-
-    <tr>
-      <td>&nbsp;</td>
-      <td align="right"><input type="submit" name="Submit" value="<?php
-if ($subaction == 'endre') echo gettext("Lagre endringer"); else echo gettext("Legg til nytt filter");
-?>"></td>
-    </tr>
-  </table>
-
-</form>
-
 
 </td></tr>
 </table>

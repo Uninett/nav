@@ -12,11 +12,10 @@
 
 
 
-
-
 /*
  *	FUNKSJONER for sesjonshåndtering.
  */
+
 function session_set($var, $par) {
 	$varname = "SeSsIoN_" . $var;
 	$_SESSION[$varname] = $par;
@@ -28,7 +27,9 @@ function session_get($var) {
 }
 
 function session_delete($var) {
-	unset( $_SESSION[$var] );
+	$varname = 'SeSsIoN_' . $var;
+//	session_unregister( $_SESSION[$varname] );
+	unset($_SESSION[$varname]);
 }
 
 function session_exist($var) {

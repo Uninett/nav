@@ -623,8 +623,6 @@ ON (Tidsper.id = grupper.tid)
 
 ORDER BY time, minutt";
 
-//   print "<p>$querystring";
-
     if ( $query = pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
 
@@ -1043,6 +1041,26 @@ WHERE id = " . addslashes($gid) ;
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$gr[0] = $data["navn"]; 
 		$gr[1] = $data["descr"];		
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasesørring.";
+    }
+    return $gr;
+  }
+
+	// Hent ut info om en utstyrsfilterid
+  function utstyrfilterInfo($fid) {
+    $gr = NULL;
+
+    $querystring = "SELECT navn 
+FROM Utstyrfilter 
+WHERE id = " . addslashes($fid) ;
+
+//	print "<p>" . $querystring;
+
+    if ( $query = pg_exec($this->connection, $querystring) AND pg_numrows($query) == 1 ) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$gr[0] = $data["navn"]; 
     }  else {
       $error = new Error(2);
       $bruker{'errmsg'}= "Feil med datbasesørring.";

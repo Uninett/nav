@@ -13,6 +13,7 @@ error_reporting (E_ALL ^ E_NOTICE);
 require("session.php");
 require("databaseHandler.php");
 require("dbinit.php");
+require("leading_zero.function.php");
 
 require("auth.php");
 
@@ -50,7 +51,7 @@ require("listing.php");
 <html>
 
 <head>
-<title><?php echo gettext('NAVuser'); ?></title>
+<title><?php echo gettext('NAV Alert Profiles'); ?></title>
 <link rel="stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
 <style type="text/css" media="all">@import "css/stil.css";</style>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
@@ -59,40 +60,20 @@ require("listing.php");
 <body bgcolor="#ffffff" text="#000000">
 
 
-    <div style="position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('/images/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
-    <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
-      <table cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Preferences</a></td>
-          <td width="0%" valign="top"><img src="/images/main/navbar-separator.gif" alt="" /></td>
-          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="/index.py/toolbox">Toolbox</a></td>
-          <td width="0%" valign="top"><img src="/images/main/navbar-separator.gif" alt="" /></td>
-	  <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Useradmin</a></td>
-          <td width="0%" valign="top"><img src="/images/main/quicklink-start.gif" alt="" /></td>
-          <td width="0%" valign="top" style="background-image:url('/images/main/quicklink-fill.gif'); background-repeat: none">
-          <select>
-            <option> Choose a tool </option>
-            <option> Network Explorer </option>
-	    <option> VlanPlot </option>
-	    <option> RaGen </option>
-	    <option> Cricket </option>
-	    <option> Device Browser </option>
-	  </select>
-          </td>
-          <td width="0%" valign="top"><img src="/images/main/quicklink-end.gif" alt="" /></td>
-          <td width="100%" valign="top" align="right"><img src="/images/main/navbar-separator.gif" alt="" /></td>
-          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index.py/logout">Logout</a></td>
-      </tr>
-    </table>
-  </div>
+<!-- INCLUDE HEADER -->
+<?php
+exec('PYTHONPATH="/usr/local/nav/navme/lib/python" /usr/local/nav/navme/bin/navTemplate.py user=' . session_get('bruker') . ' content=%%% path=AlertProfiles:/alertprofiles ', $out );
 
-  <img src="/images/blank.gif" height="100" alt="blank"><br>
+$pyhtml = implode(" ",$out);
+
+preg_match("/<body.*?>(.*?)%%%/", $pyhtml, $header);
+preg_match("/%%%(.*?)<\/body>/", $pyhtml, $footer);
 
 
+echo $header[1];
 
-
-
-
+?>
+<!-- INCLUDE HEADER -->
 
 <table width="100%">
 <tr><td valign="top" width="20%">
@@ -163,7 +144,7 @@ class Meny {
 					print $error->getHTML();
 				}
 			} else { // Vises som default...
-				return array('oversikt.php', 'velkommen.php');
+				return array('oversikt.php');
 			}
 		} 
 		// Vises til de som ikke er innlogget.
@@ -191,16 +172,21 @@ if ( get_get('action')  ) {
 $meny = NEW Meny($login);
 
 print "<P>";
-$meny->newOption(gettext("Oversikt"), "oversikt", 0, array('oversikt.php', 'velkommen.php') );
+$meny->newOption(gettext("Oversikt"), "oversikt", 0, array('oversikt.php') );
 $meny->newOption(gettext("Adresser"), "adress", 1,array('adress.php') );
 $meny->newOption(gettext("Profiler"), "profil", 1, array('profil.php') );
 $meny->newOption(gettext("Utstyrsgrupper"), "utstyr", 1, array('utstyr.php') );
 $meny->newOption(gettext("Utstyrsfiltre"), "filter", 1, array('filter.php') );
 $meny->newOption(gettext("Hjelp"), "hjelp", 1, array('hjelp.php') );
 
+/*
+	WAP and password changing disabled 3. Oct 2003, because of integration with NAV.
+	WAP may be enabled again later.
+
 print "<p>";
 $meny->newOption(gettext("WAP-oppsett"), "wap", 1, array('wap.php') );
 $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
+*/
 
 print "<p>";
 $meny->newOption(gettext("Brukere"), "admin", 1000, array('admin.php') );
@@ -222,31 +208,6 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 </td></tr>
 </table>
 
-
-<table class="meny">
-<tr><td class="menyHead">
-<p><?php echo gettext('Innlogging'); ?>
-</td></tr>
-
-<tr><td>
-<?php
-
-/*
- * Innloggingsvindu. Viser innloggingsfelt om man ikke er logget inn.
- * Ellers viser den brukernavn som er innlogget.
- */
-
-if ( $login) {
-  print "<p>" . gettext("Du er logget inn som ") . session_get('bruker');
-//  print "<p><a href=\"index.php?action=logout\">" . gettext("Logg ut") . "</a>";
-} else {
-	echo "<p>" . gettext("Du er dessverre ikke innlogget korrekt.");
-}
-
-?>
-
-</td></tr>
-</table>
 
 
 
@@ -291,7 +252,7 @@ if ($language == 'no') {
 print '</td></tr></table>';
 
 if ($langset) {
-	echo gettext("Velkommen!"); 
+	echo gettext("Velkommen!<p><small>Språkvalget er lagret i databasen, men vil gjelde bare for AlertProfiles.</small>"); 
 }
 
 ?>
@@ -300,11 +261,6 @@ if ($langset) {
 
 
 </table>
-
-
-
-
-
 
 
 <div class="noCSS">
@@ -362,13 +318,12 @@ if ( $error != null ) {
 	print "<tr><td><p>" . $error->message . "</td></tr></table>";
 }
 
-
-
 ?>
 
 </td></tr></table>
 <?php
 include("dbclose.php");
+echo $footer[1];
 ?>
 
 </body>

@@ -1,6 +1,12 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Endre utstyrsgruppe"); ?></p>
+<?php
+echo '<p>Endre Ustyrsgruppe</p>';
+if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
+$utstginfo = $dbh->utstyrgruppeInfo(session_get('grp_gid') );
+echo '<div class="subheader">' . $utstginfo[0] . '</div>';
+
+?>
 </td></tr>
 
 <tr><td>
@@ -16,9 +22,11 @@ echo gettext("Legg til nytt filter");
 echo "</a>";
 
 
+
+
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
-if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
+
 
 if ( session_get('admin') < 100 && !$dbh->permissionEquipmentGroup( session_get('uid'), session_get('grp_gid') ) ) {
     echo "<h2>Security violation</h2>";

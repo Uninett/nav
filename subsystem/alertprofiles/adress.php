@@ -11,11 +11,76 @@ loginOrDie();
 
 echo "<p>";
 echo gettext("Her kan du administrere dine varlingsadresser.");
-echo '<a href="#nyadresse">';
-echo " " . gettext("Legg til ny adresse"); 
-echo "</a>";
+
+if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 
 
+	print '<a name="nyadresse"></a><div class="newelement">';
+	
+	if (get_get('subaction') == 'endre') {
+		print '<h2>' . gettext("Endre adresse") . '</h2>';
+	} else {
+		print '<h2>' . gettext("Legg til ny adresse") . '</h2>';
+	}
+	
+	echo '<form name="form1" method="post" action="index.php?subaction=';
+	if ($subaction == 'endre') echo "endret"; else echo "nyadresse";
+	echo '">';
+	
+	if (get_get('subaction') == 'endre') {
+		print '<input type="hidden" name="aid" value="' . $aid . '">';
+	}
+	
+	echo '
+	  <table width="100%" border="0" cellspacing="0" cellpadding="3">
+	    <tr>
+	      <td width="30%">' .  gettext("Adressetype") . '</td>
+	      <td width="70%">
+	      	<select name="adressetype" id="selectadr">';
+	      	
+	$tsel = 1;
+	if (get_get('subaction') == 'endre') {
+		$tsel = $oldtype;
+	} else {
+		$adresse = '';
+	}
+	
+	print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-post") . '</option>';
+	print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>' . gettext("SMS") . '</option>';
+//	print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>' . gettext("IRC") . '</option>';
+//	print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>' . gettext("ICQ") . '</option>';
+	
+	echo '
+			</select>
+	      </td>
+	    </tr>';
+	    
+	echo '
+	    <tr>
+	      <td valign="top">' .  gettext("Adresse") . '</td>
+	      <td>
+	      <input name="adresse" type="text" size="50" value="' .  $adresse . '">
+	      <p>' . gettext("Kan være f.eks:") . '<br>
+	      mail: <i>bruker@uninett.no</i><br>
+	      sms: <i>99372612</i>
+	      </td>
+	    </tr>';
+	
+	
+	echo '<tr>
+	      <td align="right" colspan="2"><input type="submit" name="Submit" value="';
+	if ($subaction == 'endre') echo gettext("Lagre endringer"); 
+		else echo gettext("Legg til ny adresse");
+	echo '"></td>
+	    </tr></table></form></div>';
+
+
+} else {
+	echo '<p><a href="?subaction=ny">';
+	echo " " . gettext("Legg til ny adresse"); 
+	echo "</a>";
+
+}
 
 if (get_get('subaction') == 'endret') {
 
@@ -118,75 +183,7 @@ print $l->getHTML();
 print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("oppdater") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=\"0\"> ]</a> ";
 print gettext("Antall adresser: ") . sizeof($adr);
 
-print '<a name="nyadresse"></a><p>';
-
-if (get_get('subaction') == 'endre') {
-	print '<h2>' . gettext("Endre adresse") . '</h2>';
-} else {
-	print '<h2>' . gettext("Legg til ny adresse") . '</h2>';
-}
-
 ?>
-
-
-
-<form name="form1" method="post" action="index.php?subaction=<?php
-if ($subaction == 'endre') echo "endret"; else echo "nyadresse";
-?>">
-
-<?php
-if (get_get('subaction') == 'endre') {
-	print '<input type="hidden" name="aid" value="' . $aid . '">';
-}
-?>
-  <table width="100%" border="0" cellspacing="0" cellpadding="3">
-    <tr>
-      <td width="30%"><?php echo gettext("Adressetype"); ?></td>
-      <td width="70%">
-      	<select name="adressetype" id="selectadr">
-<?php
-$tsel = 1;
-if (get_get('subaction') == 'endre') {
-	$tsel = $oldtype;
-} else {
-	$adresse = '';
-}
-
-print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-post") . '</option>';
-print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>' . gettext("SMS") . '</option>';
-print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>' . gettext("IRC") . '</option>';
-print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>' . gettext("ICQ") . '</option>';
-
-?>
-		</select>
-      </td>
-    </tr>
-    
-    
-    <tr>
-      <td valign="top"><?php echo gettext("Adresse"); ?></td>
-      <td>
-      <input name="adresse" type="text" size="50" value="<?php echo $adresse; ?>">
-      <p><?php echo gettext("Kan være f.eks:"); ?><br>
-      mail: <i>bruker@uninett.no</i><br>
-      sms: <i>99372612</i><br>
-      irc: <i>nick@irc.homelien.no</i><br>
-      icq: <i>123456789</i>
-      </td>
-    </tr>
-
-
-    <tr>
-      <td align="right" colspan="2"><input type="submit" name="Submit" value="<?php
-if ($subaction == 'endre') echo gettext("Lagre endringer"); else echo gettext("Legg til ny adresse");
-?>"></td>
-    </tr>
-    
-    
-  </table>
-
-</form>
-
 
 </td></tr>
 </table>

@@ -69,7 +69,7 @@ if (isset($_ENV['REMOTE_USER'] ) AND
 		)
 	) ) {
 
-	//hogecho "Bruker:" . session_get('bruker') . ":   ENV:" . $_ENV['REMOTE_USER'] . ":";
+	// echo "Bruker:" . session_get('bruker') . ":   ENV:" . $_ENV['REMOTE_USER'] . ":";
 
     $username = $_ENV['REMOTE_USER'];
 
@@ -94,8 +94,26 @@ WHERE (Account.login = '$username') AND
                 // INNLOGGING OK!!
                 $foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
                 $dbh->nyLogghendelse($data["aid"], 1, gettext("Logget inn fra ") . $foo);
+                
+                $bgr = $dbh->listBrukersGrupper($data["aid"], 0);
+                $uadmin = 1;
+                foreach ($bgr AS $bg) {
+                	if ($bg[0] == 1) $uadmin = 100;
+                	if ($bg[0] == 2) $uadmin = 0;
+                }
+
+				session_delete('uid');
+				session_delete('admin');
+				session_delete('lang');
+				session_delete('bruker');
+				session_delete('login');
+				session_delete('action');
+				session_delete('subaction');
+
+//				session_destroy();
+
                 session_set('uid', $data["aid"]);
-                session_set('admin', $data["admin"]);
+                session_set('admin', $uadmin);
                 session_set('lang', $data["value"]);
                 session_set('bruker', $username);
                 session_set('login', true);

@@ -11,9 +11,104 @@ loginOrDie();
 
 echo "<p>";
 echo gettext("Her kan du endre og opprette nye profiler.");
-echo '<p><a href="#nyprofil">';
-echo gettext("Legg til ny profil"); 
-echo "</a>";
+
+
+$dagnavn[0] = gettext("Mandag");
+$dagnavn[1] = gettext("Tirsdag");
+$dagnavn[2] = gettext("Onsdag");
+$dagnavn[3] = gettext("Torsdag");
+$dagnavn[4] = gettext("Fredag");
+$dagnavn[5] = gettext("Lørdag");
+$dagnavn[6] = gettext("Søndag");
+
+if (in_array(get_get('subaction'), array('ny', 'endre') )) {
+	
+	
+	print '<a name="nyadresse"></a><div class="newelement">';
+	
+	if ($subaction == 'endre') {
+		print '<h2>' . gettext("Endre navn på profil") . '</h2>';
+	} else {
+		print '<h2>' . gettext("Legg til ny profil") . '</h2>';
+	}
+	
+	
+	echo '<form name="form1" method="post" action="index.php?action=profil&subaction=';
+	if ($subaction == 'endre') echo "endret"; else echo "nyprofil";
+	echo '">';
+	if ($subaction == 'endre') {
+		print '<input type="hidden" name="pid" value="' . $pid . '">';
+	}
+
+	echo '
+	  <table width="100%" border="0" cellspacing="0" cellpadding="3">
+	    <tr>';
+	
+	if (get_get('subaction') == "endre")  {
+		$p = $dbh->brukerprofilInfo($pid);
+		
+		$navn = $p[0];
+		$ukedag = $p[1];
+		$uketidh = $p[2];
+		$uketidm = $p[3];
+		$tidh = leading_zero($p[4], 2);
+		$tidm = leading_zero($p[5], 2);
+	} else {
+		$navn = "";
+		$ukedag = 0;
+		$uketidh = "09";
+		$uketidm = "00";
+		$tidh = "07";
+		$tidm = "30";
+	}
+	
+
+	
+    echo '<td><p>' . gettext("Navn") . '</p></td>
+	      <td><input name="navn" type="text" size="40" value="';
+	echo $navn;
+	echo '"></td>';
+	echo '<td align="right"><input type="submit" name="Submit" value="';
+
+	if ($subaction == 'endre') 
+		echo gettext("Lagre endringer"); else 
+		echo gettext("Legg til ny profil");
+	echo '"></td>
+	    </tr>
+		<tr>';
+
+	echo "<td>";
+	echo gettext("Ukevarsling");
+	echo "</td>";
+	
+	echo '<td><select name="ukedag">';
+	
+	for ($i = 0; $i < 7; $i++) {
+		print '<option value="' . $i . '"';
+		if ($i == $ukedag) print " selected";
+		print '>' . $dagnavn[$i];
+	}
+											
+	echo '</select>
+			<input name="uketidh" type="text" value="' .  $uketidh . '" size="2">&nbsp;:&nbsp;
+			<input name="uketidm" type="text" value="' .  $uketidm . '" size="2">
+			</td>
+		</tr>';
+		
+	echo '<tr><td>' .  gettext("Dagvarsling") . '</td>
+			<td><input name="tidh" type="text" value="' .  $tidh . '" size="2">&nbsp;:&nbsp;
+				<input name="tidm" type="text" value="' .  $tidm . '" size="2">
+			</td>
+		</tr></table></form></div>';
+
+
+} else {
+	echo '<p><a href="?subaction=ny">';
+	echo gettext("Legg til ny profil"); 
+	echo "</a>";
+}
+
+
 
 if (get_get('subaction') == 'settaktiv') {
 	$dbh->aktivProfil(session_get('uid'), get_get('pid') );
@@ -137,100 +232,8 @@ print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deaktiver
     "<a href=\"index.php\">oppdater <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0></a> ] ";
 print gettext("Antall profiler: ") . sizeof($profiler);
 
-print '<a name="nyprofil"></a><p>';
-
-if ($subaction == 'endre') {
-	print '<h2>' . gettext("Endre navn på profil") . '</h2>';
-} else {
-	print '<h2>' . gettext("Legg til ny profil") . '</h2>';
-}
 
 ?>
-
-<form name="form1" method="post" action="index.php?action=profil&subaction=<?php
-if ($subaction == 'endre') echo "endret"; else echo "nyprofil";
-?>">
-<?php
-if ($subaction == 'endre') {
-	print '<input type="hidden" name="pid" value="' . $pid . '">';
-
-}
-?>
-  <table width="100%" border="0" cellspacing="0" cellpadding="3">
-
-
-    <tr>
- 
-<?php   
-
-if (get_get('subaction') == "endre")  {
-	$p = $dbh->brukerprofilInfo($pid);
-	
-	$navn = $p[0];
-	$ukedag = $p[1];
-	$uketidh = $p[2];
-	$uketidm = $p[3];
-	$tidh = $p[4];
-	$tidm = $p[5];
-} else {
-	$navn = "";
-	$ukedag = 0;
-	$uketidh = "09";
-	$uketidm = "00";
-	$tidh = "07";
-	$tidm = "30";
-}
-
-$dagnavn[0] = gettext("Mandag");
-$dagnavn[1] = gettext("Tirsdag");
-$dagnavn[2] = gettext("Onsdag");
-$dagnavn[3] = gettext("Torsdag");
-$dagnavn[4] = gettext("Fredag");
-$dagnavn[5] = gettext("Lørdag");
-$dagnavn[6] = gettext("Søndag");
-
-?>
-    
-      <td><p><?php echo gettext("Navn"); ?></p></td>
-      <td><input name="navn" type="text" size="40" 
-value="<?php echo $navn; ?>"></td>
-      <td align="right"><input type="submit" name="Submit" value="<?php
-if ($subaction == 'endre') echo gettext("Lagre endringer"); else 
-	echo gettext("Legg til ny profil");
-?>"></td>
-    </tr>
-	<tr>
-<?php
-echo "<td>";
-echo gettext("Ukevarsling");
-echo "</td>";
-
-echo '<td><select name="ukedag">';
-
-	for ($i = 0; $i < 7; $i++) {
-		print '<option value="' . $i . '"';
-		if ($i == $ukedag) print " selected";
-		print '>' . $dagnavn[$i];
-	}
-										
-?>
-		</select>
-		<input name="uketidh" type="text" value="<?php echo $uketidh; ?>" size="2">&nbsp;:&nbsp;
-		<input name="uketidm" type="text" value="<?php echo $uketidm; ?>" size="2">
-		</td>
-	</tr>
-	
-	<tr>
-<?php echo "<td>"; echo gettext("Dagvarsling") . "</td>"; ?>
-		<td><input name="tidh" type="text" value="<?php echo $tidh; ?>" size="2">&nbsp;:&nbsp;
-			<input name="tidm" type="text" value="<?php echo $tidm; ?>" size="2">
-		</td>
-	</tr>	
-	
-  </table>
-
-</form>
-
 
 </td></tr>
 </table>

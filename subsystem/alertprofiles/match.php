@@ -1,6 +1,15 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Oppsett av filter'); ?></p>
+<?php
+echo '<p>Oppsett av filter</p>';
+if ( get_exist('fid') ) {
+	session_set('match_fid', get_get('fid') );
+}
+$utstginfo = $dbh->utstyrfilterInfo( session_get('match_fid') );
+echo '<div class="subheader">' . $utstginfo[0] . '</div>';
+
+?>
+
 </td></tr>
 
 <tr><td>
@@ -20,14 +29,12 @@ $dbhk = $dbinit->get_dbhk();
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
-if ( get_exist('fid') ) {
-	session_set('match_fid', get_get('fid') );
-}
 
-            if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
-                echo "<h2>Security violation</h2>";
-                exit(0);
-            }
+
+if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
+	echo "<h2>Security violation</h2>";
+	exit(0);
+}
 
 
 $type[0] = gettext('er lik');
