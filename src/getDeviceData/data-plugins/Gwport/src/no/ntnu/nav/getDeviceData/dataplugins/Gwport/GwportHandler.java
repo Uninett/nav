@@ -19,7 +19,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
 
 public class GwportHandler implements DataHandler {
 
-	private static final boolean DB_COMMIT = true;
+	private static final boolean DEBUG_OUT = false;
 
 	private static Map moduleMap;
 
@@ -71,7 +71,7 @@ public class GwportHandler implements DataHandler {
 
 							vlanMap.put(rs.getString("vlanid"), vlan);
 						} else {
-							System.err.println("FOUND DUP VLAN! " + vlan);
+							errl("FOUND DUP VLAN! " + vlan);
 						}
 
 						// Create gwport
@@ -130,7 +130,7 @@ public class GwportHandler implements DataHandler {
 
 		Log.setDefaultSubsystem("GwportHandler");
 
-		System.err.println("Gwports for " + nb);
+		errl("Gwports for " + nb);
 
 
 		// First we need to update vlanMap so we can do proper
@@ -215,7 +215,7 @@ public class GwportHandler implements DataHandler {
 
 							vlanDbMap.put(rs.getString("netident"), vlan);
 						} else {
-							System.err.println("FOUND DUP VLAN! " + vlan);
+							errl("FOUND DUP VLAN! " + vlan);
 						}
 
 						// Create gwport
@@ -252,7 +252,7 @@ public class GwportHandler implements DataHandler {
 					return;
 				}
 
-				System.err.println("  GwModule: " + gwm);
+				errl("  GwModule: " + gwm);
 				
 				for (Iterator gwPorts = gwm.getGwports(); gwPorts.hasNext();) {
 					Gwport gwp = (Gwport)gwPorts.next();
@@ -302,7 +302,7 @@ public class GwportHandler implements DataHandler {
 						}
 					}
 
-					System.err.println("    Gwport: " + gwp);
+					errl("    Gwport: " + gwp);
 
 					for (Iterator gwportPrefices = gwp.getGwportPrefices(); gwportPrefices.hasNext();) {
 						Gwportprefix gp = (Gwportprefix)gwportPrefices.next();
@@ -471,10 +471,10 @@ public class GwportHandler implements DataHandler {
 						
 
 
-						System.err.println("      Gwip: " + gwip);
-						System.err.println("      Hsrp: " + hsrp);
-						System.err.println("      Prefix: " + p);
-						System.err.println("      Vlan: " + vl);
+						errl("      Gwip: " + gwip);
+						errl("      Hsrp: " + hsrp);
+						errl("      Prefix: " + p);
+						errl("      Vlan: " + vl);
 					}
 				}
 			}
@@ -485,6 +485,10 @@ public class GwportHandler implements DataHandler {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+	}
+
+	private static void errl(Object o) {
+		if (DEBUG_OUT) System.err.println(o);
 	}
 
 }
