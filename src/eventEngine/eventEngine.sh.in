@@ -17,17 +17,26 @@ fi
 CUR_DIR=${javalibdir}/eventEngine
 LOG_DIR="${localstatedir}/log/eventEngine"
 PIDFILE=${localstatedir}/run/eventEngine.pid
+OUTLOG=${LOGDIR}/eventEngine-stdout.log
+ERRLOG=${LOGDIR}/eventEngine-stderr.log
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
-    if test -d /proc/$pidnum; then
+    if [ ps -p "${pidnum}" >/dev/null ]; then
 	echo "eventEngine already running!"
 	exit 1
     fi
 fi
 
+# If error log exists and has content, we rename it before creating a
+# new one
+if [ -s ${ERRLOG} ]; then
+    newname="${ERRLOG}.`date +'%Y-%m-%d-%H%M'`.log"
+    mv ${ERRLOG} ${newname}
+fi
+
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xmx268435456 -cp "eventEngine.jar:$CLASSPATH" eventEngine $1 >> "$LOG_DIR/eventEngine-stdout.log" 2> "$LOG_DIR/eventEngine-error.log" &
+$JAVA_HOME/bin/java -Xmx268435456 -cp "eventEngine.jar:$CLASSPATH" eventEngine $1 >> ${OUTLOG} 2> ${ERRLOG} &
 pidno="$!"
 echo $pidno > $PIDFILE

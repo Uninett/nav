@@ -26,7 +26,7 @@ JOB_FINISHED=${localstatedir}/run/boksmacs-finished.flag
 getpid() {
     if [ -f $PIDFILE ]; then
 	local pidnum=`cat $PIDFILE`
-	if [ -d /proc/$pidnum ]; then
+	if [ ps -p "${pidnum}" >/dev/null ]; then
 	    echo $pidnum
 	fi
     fi

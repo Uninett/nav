@@ -17,17 +17,26 @@ fi
 CUR_DIR=${javalibdir}/getDeviceData
 LOG_DIR="${localstatedir}/log/getDeviceData"
 PIDFILE=${localstatedir}/run/getDeviceData.pid
+OUTLOG=${LOGDIR}/getDeviceData-stdout.log
+ERRLOG=${LOGDIR}/getDeviceData-stderr.log
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
-    if test -d /proc/$pidnum; then
+    if [ ps -p "${pidnum}" >/dev/null ]; then
 	echo "getDeviceData already running!"
 	exit 1
     fi
 fi
 
+# If error log exists and has content, we rename it before creating a
+# new one
+if [ -s ${ERRLOG} ]; then
+    newname="${ERRLOG}.`date +'%Y-%m-%d-%H%M'`.log"
+    mv ${ERRLOG} ${newname}
+fi
+
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xmx268435456 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 >> "$LOG_DIR/getDeviceData-stdout.log" 2> "$LOG_DIR/getDeviceData-error.log" &
+$JAVA_HOME/bin/java -Xmx268435456 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 >> ${OUTLOG} 2> ${ERRLOG} &
 pidno="$!"
 echo $pidno > $PIDFILE
