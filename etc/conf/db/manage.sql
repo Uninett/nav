@@ -632,9 +632,10 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceInOperation','Registers that a device is in operation','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceSwUpgrade','Registers a sofware upgrade on a device','n');
- INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceHwUpgrade','Registers a hardware upgrade on a device','n');
-
+INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+    ('deviceRma','Registers an RMA event for a device','y');
 
 DROP TABLE eventq CASCADE;
 DROP SEQUENCE eventq_eventqid_seq;
