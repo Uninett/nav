@@ -15,7 +15,7 @@ class NettelIcon implements ImageObserver
 	Com com;
 
 	String imageName;
-	static final String DIR_PREFIX = "common/";
+	static final String DIR_PREFIX = "icons/";
 
 	private int x;
 	private int y;
@@ -35,9 +35,9 @@ class NettelIcon implements ImageObserver
 
 		// Hent ikonet
 		if (com.getApplet() != null) {
-			icon = com.getApplet().getImage(com.getApplet().getDocumentBase(),DIR_PREFIX+"icons/"+imageName);
+			icon = com.getApplet().getImage(com.getApplet().getDocumentBase(),DIR_PREFIX+imageName);
 		} else {
-			icon = Toolkit.getDefaultToolkit().getImage(DIR_PREFIX+"icons/"+imageName);
+			icon = Toolkit.getDefaultToolkit().getImage(DIR_PREFIX+imageName);
 		}
 		sizeX = icon.getWidth(this);
 		sizeY = icon.getHeight(this);

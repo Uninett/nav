@@ -42,19 +42,23 @@
   <target name="install" depends="dist">
     <mkdir dir="${DESTDIR}${instdir}"/>
     <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
+
+    <copy todir="${DESTDIR}${instdir}">
+      <fileset dir="html"/>
+    </copy>
+    <copy todir="${DESTDIR}${instdir}/icons">
+      <fileset dir="icons"/>
+    </copy>
+    <copy todir="${DESTDIR}${instdir}/gfx">
+      <fileset dir="gfx"/>
+    </copy>
+
     <mkdir dir="${DESTDIR}${tooldir}"/>
-    <copy file="loadmap.tool" todir="${DESTDIR}${tooldir}"/>
+    <copy file="vlanPlot.tool" todir="${DESTDIR}${tooldir}"/>
   </target>
   <target name="uninstall">
-    <delete file="${DESTDIR}${instdir}/${jar}"/>
-    <delete file="${DESTDIR}${tooldir}/loadmap.tool" />
-  </target>
-
-  <target name="dist_debug" depends="dist"
-        description="Upload dist to server">
-    <exec dir="${dist}" executable="scp" os="Windows 2000">
-      <arg line="vlanPlot.jar bb.itea.ntnu.no:devel/navme/apache/htdocs/vlanPlot/common"/>
-    </exec>
+    <delete dir="${DESTDIR}${instdir}"/>
+    <delete file="${DESTDIR}${tooldir}/vlanPlot.tool" />
   </target>
 
   <target name="clean"

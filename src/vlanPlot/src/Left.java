@@ -787,7 +787,7 @@ class Logo extends Canvas
 {
 	Com com;
 	Image navLogo;
-	static final String DIR_PREFIX = "common/";
+	static final String DIR_PREFIX = "gfx/";
 
 	public Logo(Com InCom)
 	{
