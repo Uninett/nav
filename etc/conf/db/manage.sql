@@ -215,7 +215,7 @@ CREATE TABLE swport (
   portnavn VARCHAR(30),  
   boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
   vpkatbak VARCHAR(5),
-  UNIQUE(boksid, ifindex)
+  UNIQUE(boksid, modul, port)
 );
 
 CREATE TABLE gwport (
