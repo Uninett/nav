@@ -25,7 +25,6 @@
  * Authors: Andreas Aakre Solberg <andreas.solberg@uninett.no>
  *
  */
- */
 
 
 function leading_zeros( $aNumber, $intPart, $floatPart = NULL, $dec_point = NULL, $thousands_sep = NULL) {
