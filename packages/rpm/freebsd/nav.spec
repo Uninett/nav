@@ -1,4 +1,4 @@
-%define version 3.0_beta3
+%define version 3.0_devel
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
@@ -16,8 +16,11 @@ BuildArch: noarch
 Prefix: %{_prefix}
 
 %description
-This package contains Network Administration Visualized.
-This space should contain an interesting description of NAV
+This package contains Network Administration Visualized, an advanced
+software suite to monitor large computer networks. It automatically
+discovers network topology, monitors network load and outages, and can
+send alerts on network events by e-mail and SMS, allowing for flexible
+configuration of alert profiles.
 
 %prep
 %setup -q
@@ -75,6 +78,7 @@ fi
 %defattr(0664,root,nav)
 %config(noreplace) %{_prefix}/etc/nav.conf
 %config(noreplace) %{_prefix}/etc/db.conf
+%config(noreplace) %{_prefix}/etc/vPServer.conf
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
@@ -99,6 +103,11 @@ fi
 
 
 %changelog
+* Sat Jun 05 2004  <kreide@online.no>
+
+- Copy vPServer to config
+- Updated NAV description
+
 * Wed Mar 24 2004  <morten.vold@itea.ntnu.no>
 
 - First attempt at FreeBSD RPM package.

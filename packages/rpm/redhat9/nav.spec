@@ -79,6 +79,7 @@ fi
 %defattr(0664,root,nav)
 %config(noreplace) %{_prefix}/etc/nav.conf
 %config(noreplace) %{_prefix}/etc/db.conf
+%config(noreplace) %{_prefix}/etc/vPServer.conf
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
@@ -103,6 +104,10 @@ fi
 
 
 %changelog
+* Sat Jun 05 2004  <kreide@online.no>
+
+- Copy vPServer to config
+
 * Thu May 27 2004  <kreide@online.no>
 
 - Grabbed new version 3.0_beta5.
