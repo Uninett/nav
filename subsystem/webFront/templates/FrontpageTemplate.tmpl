@@ -19,8 +19,9 @@
        <td><img src='$imagefolder/blank.gif' width="10"></td>
        <td valign="top">
 	$welcome
-	$emotd
-	$status
+        <table border="0" cellspacing="0" cellpadding="0"><tr><td>
+	$emotd </td></tr><tr><td>
+	$status </td></tr></table>
        </td>
      </tr>
    </table>
@@ -58,9 +59,8 @@
 
 #def status
   <br>
-<table cellspacing="0" cellpadding="0" border="0">
-
-<!------------------------ STATUS TITLE ---->
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<!------------------------- STATUS TITLE  ---->
     <tr class="title">
       <td class="title" align="center" colspan="5" style="background-image:url('$imagefolder/status/statuslogo+fill.gif'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
@@ -134,22 +134,49 @@
 #end def
 
 #def emotd
+  <br>
   #from nav.web.EmotdSelect import getAllActive
   #set $emotds = getAllActive()
-  <table cellspacing="0" cellpadding="0" border="0" style="padding: 1px 5px;">
+  #set $antemotds = len($emotds)
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+
+    <tr class="title">
+      <td class="title" align="center" colspan="3" style="background-image:url('$imagefolder/emotd/emotdlogo+fill.gif'); background-repeat: no-repeat;">  
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="current">
+#if $antemotds == 0
+              <div class="title"><a href="/emotd/"><font color="black">Messages of the Day</font></a></div>
+                No active messages
+#else if $antemotds == 1
+              <div class="title"><a href="/emotd/"><font color="black">Message of the Day</font></a></div>
+                One active message
+#else
+              <div class="title"><a href="/emotd/"><font color="black">Messages of the Day</font></a></div>
+                $antemotds active messages
+#end if
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+  </table>
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+
   #set $antall = 0
   #for $emotd in $emotds
      #if $antall < $numberOfMessagesShown
      <tr>
-       <td style="border-top: 1px solid black; border-left: 1px solid black; background-color: #eeeeff;">
+       <td style="border-top: 1px solid white; border-left: 1px solid white; background-color: #eee;">
          <a href="/emotd/view?id=$emotd.emotdid">$emotd.title</a>
        </td>
-       <td align="right" style="border-top: 1px solid black; border-right: 1px solid black; background-color: #eeeeff;">
-         xy/xz/200x
+       <td colspan="2" align="right" style="border-top: 1px solid white; border-right: 1px solid white; background-color: #eee; font-size: 11px">
+         00/00/2000
        </td>
      </tr>
      <tr>
-       <td colspan="2" style="border-bottom: 1px solid black; border-left: 1px solid black; border-right: 1px solid black;">
+       <td colspan="3" style="border-bottom: 1px solid white; border-left: 1px solid white; border-right: 1px solid white;">
          $emotd.description
        </td>
      </tr>
