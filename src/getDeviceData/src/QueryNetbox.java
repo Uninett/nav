@@ -146,6 +146,7 @@ public class QueryNetbox extends Thread
 				int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
 				if (freq == 0) {
 					Log.w("UPDATE_TYPES", "No frequency specified for type " + typeid + ", oid: " + rs.getString("oidkey") + ", skipping.");
+					prevtypeid = typeid;
 					continue;
 				}
 				keyFreqMap.put(rs.getString("oidkey"), new Integer(freq));

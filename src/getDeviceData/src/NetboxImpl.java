@@ -85,7 +85,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 			m.put(oidkey, baseTime);
 			s.add(oidkey);
 		}
-		sm.put(baseTime, s);
+		if (!s.isEmpty()) sm.put(baseTime, s);
 
 		oidRunQ = sm;
 		oidNextRunMap = m;
