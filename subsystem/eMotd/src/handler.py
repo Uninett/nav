@@ -207,6 +207,7 @@ def maintenance(req):
     '''
     form = ''
     body = ''
+    menu = getMenu(req)
     searchBox = None
     selectBox = None
     EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Maintenance","")]
@@ -455,9 +456,6 @@ def maintenance(req):
                     body += '<p><font color=red>An error occured!</font>'
         else:
             body = '<font color=red><p>No netbox or service/module chosen</font>'
-    #else:
-        #selectBox.update(req.form)
-    #    form = '<font color=red><p>No id given. Cannot set maintenance without Emotd!</font>'
 
     nameSpace = {'title': title, 'motd': None, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
     page = EmotdTemplate(searchList=[nameSpace])
