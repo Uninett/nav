@@ -114,7 +114,11 @@ $fil = "/usr/local/nav/etc/nettel.txt";
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
 while (<FIL>) {
 #leser bare kolonner med "ord:"
-    next unless /^\w+?\:\S+?\:/; 
+
+
+    next unless /^[a-zA-Z0-9_\-]+?:/;
+#    next unless /^\w+?\:\S+?\:/; 
+
 #splitter resten av linja
     (@_,undef) = split /:/, $_,$les+2;
 
@@ -124,7 +128,9 @@ while (<FIL>) {
     $ip = $_[1];
     my $ro = $_[5];
     $type = hent_type($ip,$ro);
+
     my $sysname = hent_sysname($ip,$ro,join(":",@endelser));
+
     if($type) {
 	@_ = ($ip,$type,$_[0],$sysname,$_[2],@_[3..6]);
 	@_ = map rydd($_), @_;
@@ -135,7 +141,6 @@ while (<FIL>) {
 	print "\n";
 	$alle{$_[0]} = 1;
     }
-
 }
 close FIL;
 
@@ -281,6 +286,9 @@ sub hent_type{
     my $ip = $_[0];
     my $ro = $_[1];
     my $resultat;
+
+#    print "$ip\t$ro";
+
     if (defined($ro) && $ro ne "") {
 	my @res = snmpwalk("$ro\@$ip:161:1:2:4","system");
 	(undef,my $oid) = split /:/, $res[1];

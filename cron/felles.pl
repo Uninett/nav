@@ -38,10 +38,10 @@ sub fil_hent {
     foreach (<FIL>) {
 	#tar med linjer som begynner med ord før kolon bestående av 
 	#tall,bokstaver,lavstrek,bindestrek
-	if (/^[a-zA-Z0-9_\-]+?:/) {
+	if (/^([a-zA-Z0-9_\-]+?:.*)\#*?/) {
 	    #sletter ting som er ekstra i stedet for å slå 
 	    #sammen med seinere feilkolonner.
-	    (@linje,undef) = split(/:/,$_,$felt+1); 
+	    (@linje,undef) = split(/:/,$1,$felt+1); 
 	    @linje = map rydd($_), @linje; #rydder opp
 	    $resultat{$linje[0]} = [ @linje ]; #legger inn i hash
 	}

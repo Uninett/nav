@@ -2,19 +2,36 @@
 use strict;
 
 if(do "txt2db.pl"){
+    print "ferdig med txt2db\n";
     if(do "type2db.pl"){
+	print "ferdig med type2db\n";
 	if(do "prefiks2db.pl"){
+	    print "ferdig med prefiks2db\n";
 	    if(do "boks2db.pl"){
-		if(do "prefiksid2db.pl"){
+		print "ferdig med boks2db\n";
+	#	if(do "prefiksid2boks.pl"){
+	# 	    print "ferdig med prefiksid2boks\n";
 		    if(do "getprefiks.pl"){
+			print "ferdig med getprefiks\n";
 			if(do "getgwport.pl"){
+			    print "ferdig med getgwport\n";
 			    if(do "rootgwid2db.pl"){
+				print "ferdig med rootgwid2db\n";
 				if(do "hsrpgw.pl"){
+				    print "ferdig med hsrpgw\n";
 				    if(do "getswport.pl"){
+					print "ferdig med getswport.pl\n";
 					if(do "getgw.pl"){
+					    print "ferdig med getgw\n";
 					    if(do "getsw.pl"){
+						print "ferdig med getsw\n";
 						if(do "getkant.pl"){
-						    print "ferdig";
+						    print "ferdig med getkant\n";
+						    if(do "prefiksid2boks.pl"){
+							print "ferdig med prefiksid2boks\n";
+							
+							print "ferdig!!!!!!";
+						    } else {						    
 						} else {
 						    print "FANT IKKE getkant\n";
 						}
@@ -39,9 +56,9 @@ if(do "txt2db.pl"){
 		    } else {
 			print "FANT IKKE getprefiks\n";
 		    }
-		} else {
-		    print "FANT IKKE prefiksid2db\n";
-		}
+#		} else {
+#		    print "FANT IKKE prefiksid2boks\n";
+#		}
 	    } else {
 		print "FANT IKKE boks2db\n";
 	    }

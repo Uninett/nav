@@ -26,7 +26,7 @@ my %db_gwport = ();
 my %gwport = ();
 my %db_prefiks = ();
 my %prefiks = ();
-my @felt_gwport = ("gwip","boksid","prefiksid","ifindex","interf","speed","ospf");
+my @felt_gwport = ("gwip","boksid","prefiksid","ifindeks","interf","speed","ospf");
 my %boks;
 my %rootgw;
 
@@ -39,6 +39,7 @@ my $if2AdminStatus = ".1.3.6.1.2.1.2.2.1.7";
 my $if2Descr = ".1.3.6.1.2.1.2.2.1.2";
 my $if2Speed = ".1.3.6.1.2.1.2.2.1.5";
 my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28"; 
+my $ifAlias = ".1.3.6.1.2.1.31.1.1.1.18";
 
 my $hsrp_status = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
@@ -210,7 +211,7 @@ sub hent_gwdata {
         ($gwip,$if) = split(/:/,$line);
 	$tnett{$gwip}{ifindeks}= $if;
     }
-    @lines = &snmpwalk("$ro\@$ip",$if2Nettnavn);
+    @lines = &snmpwalk("$ro\@$ip",$ifAlias);
 
     foreach $line (@lines) {
         ($if,$nettnavn) = split(/:/,$line);

@@ -40,19 +40,30 @@ my $if2Descr = ".1.3.6.1.2.1.2.2.1.2";
 my $if2Speed = ".1.3.6.1.2.1.2.2.1.5";
 my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28"; 
 
+my %vlan;
+
 my (%lan, %stam, %link);
 open VLAN, "</usr/local/nav/etc/vlan.txt";
 foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
-    if(/^(\d+)\:lan\,(\S+?)\,(\S+?)$/) {
-	$lan{$2}{$3} = $1;
-    } elsif (/^(\d+)\:stam\,(\S+?)$/) {
-	$stam{$2} = $1;
-    } elsif (/^(\d+)\:link\,(\S+?)\,(\S+?)$/) {
-	$link{$2}{$3} = $1;
+#    print "\nlinje :: $_ \n";
+    if(/^(\d+)\:(lan\,(\S+?)\,(\S+?)(?:\,\S+?)??)(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
+	$lan{$3}{$4} = $1;
+#	print "linje: $4\n";
+	$vlan{$5}{$6} = $2;
+    } elsif (/^(\d+)\:(stam\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
+	$stam{$3} = $1;
+#	print "heeeeeeeeeeeeeeeei $3   $2    $1\n";
+	$vlan{$4}{$5} = $2;
+    } elsif (/^(\d+)\:(link\,(\S+?)\,(\S+?)(?:\,\S+?)??)(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
+	$link{$3}{$4} = $1;
+	$vlan{$5}{$6} = $2;
+#    } elsif (/^(\d+)\:elink\,(\S+?)\,(\S+?)(?:\,\S+?)??(?:\:(.*?))??\#.*?$/) {
+#	$elink{$2}{$3} = $1;
+#	$vlan{$1} = ($5);
     } else {
-	print "\ngikk feil: $_";
+#	print "kommentar: $_";
     }
-    print "\n$1:$2:$3";    
+#    print "\n$1:$2:$3";    
 }
 close VLAN;
 
@@ -270,13 +281,17 @@ sub hent_prefiksdata {
     foreach $gwip (keys %tnett)
     {
 	my $id = join (":", ($tnett{$gwip}{nettadr},$tnett{$gwip}{maske}));
-	$tnett{$gwip}{vlan} = &finn_vlan( $if{$tnett{$gwip}{indeks}}{nettnavn},$boksid);
 	$tnett{$gwip}{maxhosts} = &max_ant_hosts($tnett{$gwip}{maske});
 	$tnett{$gwip}{antmask}  = &ant_maskiner($gwip,$tnett{$gwip}{netmask},$tnett{$gwip}{maxhosts});
 #	print $id;
 #	print "\n";
+
+	$interf = $if{$tnett{$gwip}{indeks}}{interf};
 	$_ = $if{$tnett{$gwip}{indeks}}{nettnavn};
-	
+	unless (/^(?:lan|stam|link|elink)/i || $interf =~ /loopback/i) {
+	    $_ = $vlan{$tnett{$gwip}{nettadr}}{$tnett{$gwip}{maske}};
+	}
+	$tnett{$gwip}{vlan} = &finn_vlan($_,$boksid);	
 	if(/^lan/i) {
 	    ($tnett{$gwip}{nettype},$tnett{$gwip}{org},$tnett{$gwip}{anv},$tnett{$gwip}{komm}) = split /,/;
 	    $tnett{$gwip}{nettype} =~ s/lan(\d*)/lan/i;
@@ -335,7 +350,7 @@ sub hent_prefiksdata {
 			      $tnett{$gwip}{samband},
 			      $tnett{$gwip}{komm}];
 
-	} elsif (/loopback/i) {
+	} elsif ($interf =~ /loopback/i) {
 	    $tnett{$gwip}{nettype} = "loopback";
 	    $prefiks{$id} = [ $tnett{$gwip}{prefiksid},
 			      $tnett{$gwip}{nettadr},
@@ -347,9 +362,21 @@ sub hent_prefiksdata {
 			      undef,
 			      undef,
 			      undef];
+	} else {
+#	    print "fant en ukjent";
+	    $tnett{$gwip}{nettype} = "ukjent";
+	    $prefiks{$id} = [ $tnett{$gwip}{prefiksid},
+			      $tnett{$gwip}{nettadr},
+			      $tnett{$gwip}{maske},
+			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
+			      $tnett{$gwip}{nettype},
+			      undef,
+			      undef,
+			      undef];
+
 	}
-
-
     }
 }
 
@@ -408,7 +435,10 @@ sub finn_vlan
     if(/^lan\d*\,(\S+?)\,(\S+?)(?:\,|$)/i) {
 	$vlan = $lan{$1}{$2};
     } elsif(/^stam\,(\S+?)$/i) {
+#	print "leter\n";
+#	print;
 	$vlan = $stam{$1};
+#	print "fant          $1\n";
     }elsif(/^link\,(\S+?)(?:\,|$)/i) {
 	if (defined($boks)){
 	    $vlan = $link{$1}{$boks} || $link{$boks}{$1};
