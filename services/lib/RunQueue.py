@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.13 2002/06/28 01:06:40 magnun Exp $
+$Id: RunQueue.py,v 1.14 2002/06/28 02:35:01 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -51,6 +51,7 @@ class worker(threading.Thread):
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
+            print "Info:  Worker is recycling."
         self._runqueue.debug("%s finished job number %i" % (self.getName(), self._runcount))
 
 
@@ -60,7 +61,7 @@ class RunQueue:
         self._controller=kwargs.get('controller',self)
         self.debug=self._controller.debug
         self.numThreadsWaiting=0
-        self._maxRunCount=5
+        self._maxRunCount=50
         self.workers=[]
         self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
@@ -78,6 +79,7 @@ class RunQueue:
         self.debug('Number of elements in queue: %i'% (len(self.rq)))
         self.debug("Number of workers: %i" % len(self.workers))
         self.debug("Number of waiting threads: %i" % self.numThreadsWaiting)
+        print "Info:  Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting)
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
             self.debug('Using waiting thread')

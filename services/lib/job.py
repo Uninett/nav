@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.3 2002/06/28 01:06:40 magnun Exp $
+$Id: job.py,v 1.4 2002/06/28 02:35:01 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types
@@ -10,7 +10,7 @@ from errno import errorcode
 from Socket import Socket
 
 TIMEOUT = 5 #default timeout
-
+DEBUG=1
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
@@ -40,14 +40,22 @@ class JobHandler:
 		version = self.getVersion()
 		status, info = self.executeTest()
 
-		print "Info: %s" % info
+		if DEBUG:
+			import socket
+			host=self.getAddress()
+			if type(host)==type(()):
+				host=host[0]
+			host = socket.getfqdn(host)
+			print "Info:  %-25s %-5s -> %s" % (host, self.getType(),info)
 		if status != self.getStatus():
-			print "State changed. Trying again in 5 sec..."
+			if DEBUG:
+				print "Info:  %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType())
 			time.sleep(5)
 			status, info = self.executeTest()
 		
 		if status != self.getStatus():
-			print "Updating database"
+			if DEBUG:
+				print "Event: %-25s %-5s -> %s, %s" % (host, self.getType(), status, info)
 			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
 			self.setStatus(status)
 		
@@ -112,11 +120,11 @@ class JobHandler:
 	def getVersion(self):
 		return self._version
 	def __eq__(self,obj):
-		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs()
+		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs() and self.getAddress() == obj.getAddress()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
-		value = self.getServiceid() + self.getArgs().__str__().__hash__()
+		value = self.getServiceid() + self.getArgs().__str__().__hash__() + self.getAddress().__hash__()
 		value = value % 2**31
 		return int(value)
 	def __repr__(self):

@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.15 2002/06/28 01:06:40 magnun Exp $
+$Id: database.py,v 1.16 2002/06/28 02:35:01 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread, jobmap
@@ -27,7 +27,7 @@ def run():
 		statement = queue.get()
 		c.execute(statement)
 def newEvent(event):
-	print "New event. Id: %i Status: %s Info: %s"% (event.serviceid, event.status, event.info)
+	#print "New event. Id: %i Status: %s Info: %s"% (event.serviceid, event.status, event.info)
 	if event.status == event.UP:
 		value = 100
 	else:
