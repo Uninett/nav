@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
+$Id: servicemon.py,v 1.4 2003/06/18 11:38:31 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -62,7 +62,6 @@ class controller:
         """
         newjobs = self.db.getJobs(self.dirty)
         self.dirty=0
-
 
         s=[]    
         for i in newjobs:
