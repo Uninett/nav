@@ -57,7 +57,19 @@ class editdbNetbox(Netbox):
                    'subcat': 'subcat',
                    'sysname': 'sysname',
                    'type': 'typeid',
-                   'up': 'up'}
+                   'up': 'up',
+                   'serial': 'device.serial'}
+    _sqlLinks =  (('deviceid', 'device.deviceid'),)
+    _userClasses =  {'cat': Cat,
+                    'device': Device,
+                    'org': Org,
+                    'prefix': Prefix,
+                    'room': Room,
+                    'subcat': Subcat,
+                    'type': Type}
+    _sqlPrimary =  ('netboxid',)
+    _shortView =  ()
+                                                        
 
 class editdbProduct(Product):
     # adds vendorid
@@ -152,4 +164,15 @@ class editdbService(Service):
     _shortView =  ()
     _sqlTable =  'service'
     _descriptions =  {}
-                                            
+
+class editdbTypesnmpoid(Typesnmpoid):
+    _sqlFields =  {'frequency': 'frequency',
+                   'type': 'typeid',
+                   'snmpoid': 'snmpoidid'}
+    _sqlLinks =  {}
+    _sqlPrimary = ('typeid',)
+    _userClasses =  {'type': 'Type', 'snmpoid': 'Snmpoid'}
+    _shortView =  ()
+    _sqlTable =  'typesnmpoid'
+    _descriptions =  {}
+                                                 

@@ -114,6 +114,17 @@ $showBody($body)
 #end for
     </P>
 #end if
+#if $list.isBulkList
+## Show bulk preview legend
+        <P>
+            Legend
+        </P>
+        <P>
+            <IMG src="$list.imgGreen">&nbsp;$list.legendGreen<BR>
+            <IMG src="$list.imgRed">&nbsp;$list.legendRed<BR>
+            <IMG src="$list.imgYellow">&nbsp;$list.legendYellow<BR>
+        </P>
+#end if
     <FORM method="$list.method" action="$list.action">
 #if $list.hiddenIdValue
         <INPUT type="hidden" name="$list.cnameHiddenId" value="$list.hiddenIdValue">
@@ -162,8 +173,8 @@ $showBody($body)
         </TABLE>
     $actionBar($list)
 #if $list.isBulkList
-#for $data in $list.hiddenData
-    <INPUT type="hidden" name="$list.cnameHiddenData" value="$data">
+#for $name,$value in $list.hiddenData
+    <INPUT type="hidden" name="$name" value="$value">
 #end for
 #end if
     </FORM>
@@ -242,6 +253,8 @@ $showBody($body)
             $vlan($editbox)
 #elif $editbox.type == 'subcat'
             $subcat($editbox)
+#elif $editbox.type == 'snmpoid'
+            $snmpoid($editbox)
 #elif $editbox.type == 'hiddenormessage'
             $hiddenormessage($editbox)
 #end if
@@ -363,6 +376,35 @@ $hiddenfields($editbox.hiddenFields)
 $hiddenfields($editbox.hiddenFields)
 #end def
 
+## Template function for adding or editing an snmpoid
+#def snmpoid($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>OID key</TH>
+            <TH>Snmpoid</TH>
+            <TH>OID source</TH>
+            <TH>Match regexp</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['oidkey'])</TD>
+            <TD>$input($fields['snmpoid'])</TD>
+            <TD>$input($fields['oidsource'])</TD>
+            <TD>$input($fields['match_regex'])</TD>
+        </TR>
+        <TR>
+            <TH colspan="4">Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="4">$input($fields['descr'],'width: 100%')</TD>
+        </TR>
+    </TABLE>
+$hiddenfields($editbox.hiddenFields)
+#end def
+
+
+
+
 ## Template function for adding or editing a room
 #def room($editbox)
 #set $fields = $editbox.fields
@@ -390,6 +432,7 @@ $hiddenfields($editbox.hiddenFields)
             <TD>$input($fields['opt4'])</TD>
         </TR>
     </TABLE>
+$hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for adding or editing a location
@@ -405,6 +448,7 @@ $hiddenfields($editbox.hiddenFields)
             <TD>$input($fields['descr'],'width: 100%;')</TD>
         </TR>
     </TABLE>
+$hiddenfields($editbox.hiddenFields)
 #end def
 
 ## Template function for adding or editing an org

@@ -181,7 +181,12 @@ def index(req,showHelp=False):
              'represented in your network.',
             [BASEPATH + 'vendor/edit','Add'],
             [BASEPATH + 'vendor/list','Edit'],
-            [BASEPATH + 'bulk/vendor','Bulk import']]]
+            [BASEPATH + 'bulk/vendor','Bulk import']],
+            ['Snmpoid',
+             'Manually add snmpoids ',
+            [BASEPATH + 'snmpoid/edit','Add'],
+            ['',''],
+            ['','']]]
     body.tables.append(Table('Types, products and vendors','',headings,rows))
 
     # Table for vlans and special subnets
@@ -268,6 +273,8 @@ def handleSubmit(req, table, action, editid):
         output = editVlan(req,selected,action,error)
     elif table == 'subcat':
         output = editSubcat(req,selected,action,error)
+    elif table == 'snmpoid':
+        output = editSnmpoid(req,selected,action,error)
     elif table == 'bulk':
         output = bulkImport(req,action)
     return output
@@ -434,6 +441,12 @@ def bulkImport(req,action):
         # show list
         list = selectList()
         list.isBulkList = True
+        list.imgGreen = BULK_IMG_GREEN
+        list.imgYellow = BULK_IMG_YELLOW
+        list.imgRed = BULK_IMG_RED
+        list.legendGreen = 'No errors. Row will be imported.'
+        list.legendYellow = 'Other error. Row will not be imported.'
+        list.legendRed = 'Syntax error. Row will not be imported.'
         list.title = 'Preview import'
         list.hiddenData = []
         list.hiddenData.append((BULK_TABLENAME,req.form['table']))
@@ -451,7 +464,8 @@ def bulkImport(req,action):
         separator = req.form[BULK_SEPARATOR]
         data = req.form[BULK_HIDDEN_DATA]
         result = bulkInsert(data,bulkdef[table],separator)
-        form.status = 'Inserted ' + str(result) + ' rows'
+        form.status = editdbStatus()
+        form.status.messages.append('Inserted ' + str(result) + ' rows')
 
     nameSpace = {'editList': list, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
@@ -489,6 +503,106 @@ def bulkInsert(data,bulkdef,separator):
 
     addEntryBulk(rowlist,bulkdef.tablename)
     return len(rowlist)
+
+# Function for handling listing and editing of rooms
+def editSnmpoid(req,selected,action,error=None):
+    path = EDITPATH + [('Add snmpoid',False)]
+    table = 'snmpoid'
+    idfield = 'snmpoidid'
+    templatebox = editboxSnmpoid()
+    deleteDef = deletedefSnmpoid()
+    # Form definition
+    form = editForm()
+    form.action = BASEPATH + 'snmpoid/edit/'
+    status = editdbStatus()
+    if error:
+        status.errors.append(error)
+    form.status = status
+    # List definition
+    editList = selectList()
+    editList.status = status
+    editList.table = editTables.Snmpoid
+    editList.tablename = 'snmpoid'
+    editList.orderBy = 'oidkey'
+    editList.idcol = 'snmpoidid'
+    editList.columns = [('OID key','oidkey',True),
+                        ('Snmpoid','snmpoid',False),
+                        ('Description','descr',False),
+                        ('OID source','oidsource',False),
+                        ('Match regexp','match_regex',False)]
+
+    # Check if the confirm button has been pressed
+    if req.form.has_key(form.cnameConfirm):
+        missing = templatebox.hasMissing(req) 
+        if not missing:
+            if req.form.has_key(ADDNEW_ENTRY):
+                error = addEntry(req,templatebox,table,unique='oidkey')
+                if not error:
+                    status.messages.append("Added snmpoid '" + \
+                                           req.form['oidkey'] + "'")
+                    action = 'add'
+                else:
+                    status.errors.append(error)
+                    action = 'add'
+            elif req.form.has_key(UPDATE_ENTRY):
+                selected,error = updateEntry(req,templatebox,table,
+                                             idfield,unique='roomid')
+                if not error:
+                    message = 'Updated '
+                    for s in selected:
+                        message += editTables.Room(s).roomid + ' ' 
+                    status.messages.append(message)
+                    action = 'list'
+                else:
+                    status.errors.append(error)
+                    action = 'edit'
+        else:
+            status.errors.append("Required field '" + missing + "' missing")
+    # Confirm delete pressed?
+    if req.form.has_key(selectList.cnameDeleteConfirm):
+        status = deleteDef.delete(selected,status)
+        action = 'list' 
+    
+    # Decide what to show 
+    if action == 'edit':
+        path = EDITPATH + [('Snmpoid',BASEPATH+'snmpoid/list'),('Edit',False)]
+        if len(selected)>1:
+            form.title = 'Edit snmpoids'
+        else:
+            form.title = 'Edit snmpoid'
+        form.textConfirm = 'Update'
+        for s in selected:
+            form.add(editboxSnmpoid(s))
+        editList = None
+    elif action == 'add':
+        form.title = 'Add new snmpoid'
+        form.textConfirm = 'Add snmpoid'
+        form.add(editboxSnmpoid(formData=req.form))
+        editList = None
+    elif action == 'delete':
+        path = EDITPATH + [('Snmpoids',BASEPATH+'snmpoid/list'),
+                           ('Delete',False)]
+        editList.isDeleteList = True
+        editList.deleteList = selected
+        editList.title = 'Are you sure you want to delete the selected ' + \
+                         'snmpoid(s)?'
+        editList.action = BASEPATH + 'snmpoid/edit/'
+        editList.fill()
+    elif action == 'list':
+        path = EDITPATH + [('Snmpoids',False)]
+        editList.title = 'Edit snmpoids'
+        editList.action = BASEPATH + 'snmpoid/edit/'
+        editList.fill()
+        # don't display the form
+        form = None
+
+    nameSpace = {'editList': editList, 'editForm': form}
+    template = editdbTemplate(searchList=[nameSpace])
+    template.path = path
+    return template.respond()
+
+
+
 
 # Function for handling listing and editing of rooms
 def editRoom(req,selected,action,error=None):
@@ -1437,7 +1551,7 @@ def updateNetbox(req,templateform,selected):
               "Continue to proceed)."
 
     box = None
-    status = None
+    status = editdbStatus()
     action = 'predefined'
     form = req.form
     templateform.title = 'Edit box'
@@ -1479,7 +1593,7 @@ def updateNetbox(req,templateform,selected):
                     error = 'Sysname ' + sysname + ' (' + form['ip'] + \
                             ') already exists in database'
             if error:
-                templateform.error = error
+                status.errors.append(error)
                 templateform.add(editboxNetbox(editId=selected,formData=form))
                 return (status,action,templateform)
 
@@ -1492,14 +1606,14 @@ def updateNetbox(req,templateform,selected):
                     box = initBox.Box(form['ip'],form['ro'])
                 except nav.Snmp.TimeOutException:
                     # No SNMP answer
-                    templateform.error = 'No SNMP response, check RO community'
+                    status.errors.append('No SNMP response, check RO community')
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1])
+                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1]))
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (status,action,templateform)
@@ -1532,8 +1646,8 @@ def updateNetbox(req,templateform,selected):
                     templateform.add(editboxHiddenOrMessage(message))
             else:
                 # RO blank, return error
-                templateform.error = 'Category ' + form['catid'] + \
-                                     ' requires a RO community'
+                status.errors.append('Category ' + form['catid'] + \
+                                     ' requires a RO community')
                 templateform.add(editboxNetbox(editId=selected,formData=form))
                 nextStep = STEP_1
         else:
@@ -1544,15 +1658,15 @@ def updateNetbox(req,templateform,selected):
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
                 except namp.Snmp.TimeOutException:
-                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1])
+                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1]))
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1])
+                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1]))
                     templateform.add(editboxNetbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
@@ -1705,8 +1819,8 @@ def updateNetbox(req,templateform,selected):
             addEntryFields(fields,'netboxinfo')
 
         action = 'list'
-        status = 'Updated box ' + form['sysname'] + ' (' + \
-                 form['ip'] + ')'
+        status.messages.append('Updated box ' + form['sysname'] + ' (' + \
+                               form['ip'] + ')')
 
     if not step == STEP_3: 
         # Unless this is the last step, set the nextStep
@@ -1732,7 +1846,7 @@ def addNetbox(req,templateform):
               "Continue to proceed)."
 
     box = None
-    status = None
+    status = editdbStatus()
     action = 'predefined'
     form = req.form
     templateform.title = 'Add box'
@@ -1768,7 +1882,7 @@ def addNetbox(req,templateform):
                         ') already exists in database'
 
         if error:
-            templateform.error = error
+            status.errors.append(error)
             templateform.add(editboxNetbox(formData=form))
             return (status,action,templateform)
 
@@ -1781,13 +1895,13 @@ def addNetbox(req,templateform):
                     box = initBox.Box(form['ip'],form['ro'])
                 except nav.Snmp.TimeOutException:
                     # No SNMP answer
-                    templateform.error = 'No SNMP response, check RO community'
+                    status.errors.append('No SNMP response, check RO community')
                     templateform.add(editboxNetbox(formData=form))
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1])
+                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1]))
                     templateform.add(editboxNetbox(formData=form))
                     return (status,action,templateform)
      
@@ -1813,8 +1927,8 @@ def addNetbox(req,templateform):
                     nextStep = STEP_1
             else:
                 # RO blank, return error
-                templateform.error = 'Category ' + form['catid'] + \
-                                     ' requires a RO community'
+                status.errors.append('Category ' + form['catid'] + \
+                                     ' requires a RO community')
                 templateform.add(editboxNetbox(formData=form))
                 nextStep = STEP_1
         else:
@@ -1825,13 +1939,13 @@ def addNetbox(req,templateform):
                 try:
                     box = initBox.Box(form['ip'],form['ro'])
                 except nav.Snmp.TimeOutException:
-                    templateform.error = 'No SNMP response, check RO community'
+                    status.errors.append('No SNMP response, check RO community')
                     templateform.add(editboxNetbox(formData=form))
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
-                    templateform.error = 'Error: ' + str(sys.exc_info()[0]) + \
-                                         ': ' + str(sys.exc_info()[1])
+                    status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
+                                         ': ' + str(sys.exc_info()[1]))
                     templateform.add(editboxNetbox(formData=form))
                     return (action,templateform)
 
@@ -1938,8 +2052,8 @@ def addNetbox(req,templateform):
                      snmpversion,subcatlist,
                      function)
         action = 'list'
-        status = 'Added box ' + form['sysname'] + ' (' + \
-                 form['ip'] + ')'
+        status.messages.append('Added box ' + form['sysname'] + ' (' + \
+                 form['ip'] + ')')
 
     if not step == STEP_3: 
         # Unless this is the last step, set the nextStep
@@ -1973,7 +2087,9 @@ def editNetbox(req,selected,action,error=None):
                         ('Category','catid',False),
                         ('Organisation','orgid',False),
                         ('RO','ro',False),
-                        ('RW','rw',False)]
+                        ('RW','rw',False),
+                        ('Type','type',False),
+                        ('Serial','serial',False)]
 
     # Check if the confirm button has been pressed
     if req.form.has_key(form.cnameConfirm):
@@ -1981,14 +2097,17 @@ def editNetbox(req,selected,action,error=None):
         if not missing:
             if req.form.has_key(ADDNEW_ENTRY):
                 # add new netbox
-                (message,action,form) = addNetbox(req,form)
-                if action == 'list':
-                    status.messages.append(message)
+                (status,action,form) = addNetbox(req,form)
+                form.status = status
+                #if action == 'list':
+                #    status.messages.append(message)
             elif req.form.has_key(UPDATE_ENTRY):
+                # Only edit one box at a time
                 selected = selected[0]
-                (message,action,form) = updateNetbox(req,form,selected)
-                if action == 'list':
-                    status.messages.append(message)
+                (status,action,form) = updateNetbox(req,form,selected)
+                form.status = status
+                #if action == 'list':
+                #    status.messages.append(message)
         else:
             status.errors.append("Required field '" + missing + "' missing")    
     # Confirm delete pressed?
@@ -2612,12 +2731,12 @@ class editbox:
         self.hiddenFields[fieldname][0].name = fieldname
 
     def addDisabled(self):
-        # Since fields are disabled, they aren't posted (stupid HTML)
-        # so we must add them as hidden fields
+        # Since fields which are disabled, aren't posted (stupid HTML)
+        # we must add them as hidden fields
         # This only goes for textinputs (?!) so we must also change
         # controlnames to avoid getting double values for selects, etc.
         for fieldname,definition in self.fields.items():
-            if not definition[0].type=='hidden':
+            if definition[0].disabled and (not definition[0].type=='hidden'):
                 self.addHidden(fieldname,definition[0].value)
                 definition[0].name = definition[0].name + '_disabled'
 
@@ -2712,13 +2831,42 @@ class editboxService(editbox):
         if disabled:
             self.addDisabled()
  
+class editboxSnmpoid(editbox):
+    type = 'snmpoid'
+    table = editTables.Snmpoid
+            
+    def __init__(self,editId=None,formData=None):
+        self.hiddenFields = {}
+
+        disabled = False
+        if editId:
+            disabled = True
+
+        f = {'oidkey': [inputText(disabled=disabled),REQ_TRUE],
+             'snmpoid': [inputText(),REQ_TRUE],
+             'descr': [inputText(),REQ_TRUE],
+             'oidsource': [inputText(),REQ_FALSE],
+             'match_regex': [inputText(),REQ_FALSE]}
+        self.fields = f
+        self.setControlNames()
+
+        if editId:
+            self.editId = editId
+            self.fill()
+        
+        if formData:
+            self.formFill(formData)
+
+        if disabled:
+            self.addDisabled()
+
  
 class editboxRoom(editbox):
     type = 'room'
     table = editTables.editdbRoom
             
     def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
+        self.hiddenFields = {}
 
         disabled = False
         if editId:
@@ -2741,12 +2889,17 @@ class editboxRoom(editbox):
         if formData:
             self.formFill(formData)
 
+        if disabled:
+            self.addDisabled()
+
+
 class editboxLocation(editbox):
     type = 'location'
     table = editTables.Location
             
     def __init__(self,editId=None,formData=None):
-        # Field definitions {field name: [input object, required]}
+        self.hiddenFields = {}
+
         disabled = False
         if editId:
             disabled = True
@@ -2762,6 +2915,9 @@ class editboxLocation(editbox):
         
         if formData:
             self.formFill(formData)
+
+        if disabled:
+            self.addDisabled()
 
 class editboxOrg(editbox):
     type = 'org'
@@ -3231,6 +3387,15 @@ class deletedef:
             # the dependencies array must be updated? Give general error
             error += '%s is referenced in another table' % (self.name,)
         self.status.errors.append(error) 
+
+class deletedefSnmpoid(deletedef):
+    # This class isn't in use. Must define dependencies to use it.
+    table = 'snmpoid'
+    idfield = 'snmpoidid'
+   
+    dependencies = []
+    name = 'snmpoid'
+
 
 class deletedefRoom(deletedef):
     table = 'room'
