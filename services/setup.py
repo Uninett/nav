@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.7 2002/07/04 00:36:33 magnun Exp $
+$Id: setup.py,v 1.8 2002/07/05 10:04:14 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -136,10 +136,8 @@ def main(file,conf):
 	dbEntries = db.fromDB()
 	print "Entries in db: %i" % len(dbEntries)
 
-	delete = []
-	for each in dbEntries:
-		if each not in fileEntries:
-			delete.append(each)
+	delete = filter(lambda x: x not in fileEntries, dbEntries)
+	new = filter(lambda x: x not in dbEntries, fileEntries)
 
 	if delete:
 		print "Elements to be deleted: %i" % len(delete)
@@ -156,11 +154,6 @@ def main(file,conf):
 			db.delete(i)
 	print 'updating db'
 
-
-	new=[]
-	for each in fileEntries:
-		if each not in dbEntries:
-			new.append(each)
 	print "Elements to add: %i" % len(new)
 	for each in new:
 		print "Adding service: %s" % each
