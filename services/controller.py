@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.11 2002/06/15 21:34:42 magnun Exp $
+$Id: controller.py,v 1.12 2002/06/15 21:49:51 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -20,7 +20,7 @@ class controller:
         self._looptime=60
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
         self.config=config.config("db.conf")
-        self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], self.config["db_nav"], self.config["userpw_manage"]))
+        self.db=db.db("host = %s user = %s dbname = %s password = %s" % (self.config["dbhost"], "manage" self.config["db_nav"], self.config["userpw_manage"]))
         self.db.run()
                       
 #host = localhost user = manage dbname = manage password = eganam')
