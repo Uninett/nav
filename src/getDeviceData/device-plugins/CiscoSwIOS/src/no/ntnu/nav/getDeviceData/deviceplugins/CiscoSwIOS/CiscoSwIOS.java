@@ -211,6 +211,7 @@ public class CiscoSwIOS implements DeviceHandler
 				}
 			}
 			SwModule swm = sc.swModuleFactory(module);
+			Module mm = mc.moduleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
 			if (moduleName != null) {
 				boolean composed = false;
@@ -218,7 +219,7 @@ public class CiscoSwIOS implements DeviceHandler
 					moduleName = composeModuleName(realModule, modNames.get(new Integer(module)));
 					if (!moduleName.equals(md.getDescr())) composed = true;
 				}
-				if (md.getDescr() == null || composed) {
+				if ((mm.getDescr() == null && md.getDescr() == null) || composed) {
 					md.setDescr(moduleName);
 				}
 			}
