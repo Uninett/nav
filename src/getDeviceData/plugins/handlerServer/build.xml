@@ -24,8 +24,6 @@
       
       <arg value="--deep" />
 
-      <arg value="--core" /> <!-- include jython base -->
-
       <arg value="--workdir" />
       <arg path="${build}" />
 
@@ -45,6 +43,11 @@
     <!-- Put everything in ${build} into the HandlerServer.jar file -->
     <jar jarfile="${dist}/HandlerServer.jar" update="yes" manifest="Plugin-Class"/>
   </target>
+
+  <target name="copy" depends="dist">
+    <copy file="${dist}/handlerServer.jar" todir="../"/>
+  </target>   
+
 
   <target name="clean"
         description="clean up" >
