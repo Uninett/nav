@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.9 2003/06/16 15:40:26 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.10 2003/06/20 09:34:45 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -171,7 +171,7 @@ class JobHandler:
 		if self._sysname:
 			return self._sysname
 		else:
-			return self.geIp()
+			return self.getIp()
 	def setResponsetime(self,usage):
 		"""Sets the responsetime of this service. Is updated by self.run() """
 		self._usage = usage

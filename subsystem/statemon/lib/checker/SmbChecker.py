@@ -1,5 +1,5 @@
 """
-$Id: SmbChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
+$Id: SmbChecker.py,v 1.2 2003/06/20 09:34:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/SmbChecker.py,v $
 """
 import os,re
@@ -29,7 +29,7 @@ class SmbChecker(AbstractChecker):
 			s = '-N'
 
 
-		s = os.popen('/usr/local/samba/bin/smbclient -L %s -p %i %s 2>/dev/null' % (host,port,s)).read()
+		s = os.popen('/usr/bin/smbclient -L %s -p %i %s 2>/dev/null' % (host,port,s)).read()
 		version = pattern.search(s) and ' '.join(pattern.search(s).groups())
 		if version:
 			self.setVersion(version)

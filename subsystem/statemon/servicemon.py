@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: servicemon.py,v 1.5 2003/06/19 12:50:34 magnun Exp $                                                                                                                              
+$Id: servicemon.py,v 1.6 2003/06/20 09:34:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -42,15 +42,21 @@ class controller:
         """
         Dumps the current status to a file.
         """
+        filename = "/usr/local/nav/navme/apache/webroot/services/status.txt"
+        #filename = "/var/www/html/services/status.txt"
         try:
-            outputfile = open('/var/www/html/services/status.txt','w')
+            outputfile = open(filename, 'w')
         except:
-            debug.debug("Failed to open outputfile: %s" % outputfile,2)
+            debug.debug("Failed to open outputfile: %s" % filename,2)
             return
 
         try:
+            outputlines = []
             for each in self._checkers:
-                outputfile.write("%-25s %-5s %-5s %s\n" % (each.getSysname(), each.getType(), each.getStatus(), each.getVersion()) )
+                outputlines.append("%-25s %-5s %-5s %s\n" %
+                                   (each.getSysname(), each.getType(), each.getStatus(), each.getVersion()))
+            outputlines.sort()
+            map(outputfile.write, outputlines)
 
             outputfile.write("\n\nLast updated: %s" % time.asctime())
             outputfile.close()

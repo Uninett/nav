@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.5 2003/06/19 12:50:34 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.6 2003/06/20 09:34:45 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -27,7 +27,8 @@ class _db(threading.Thread):
 	_instance=None
 	def __init__(self, conf):
 		threading.Thread.__init__(self)
-		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
+		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s"
+					% (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(0)
 		self.sysnetbox()
 		self.setDaemon(1)

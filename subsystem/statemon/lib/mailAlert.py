@@ -1,4 +1,4 @@
-# $Id: mailAlert.py,v 1.3 2003/06/19 12:50:34 magnun Exp $
+# $Id: mailAlert.py,v 1.4 2003/06/20 09:34:45 magnun Exp $
 # $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/mailAlert.py,v $
 
 import smtplib, threading, Queue, time
@@ -84,7 +84,7 @@ class _mailAlert(threading.Thread):
         msg = "From: %s\r\nTo: %s\r\nSubject: %s\r\n" % (self._sender, self._recipent, subject)
         msg += self.alertText
         msg += "\n\n--\nAs friendly as possible"
-        msg += "\nCurrent status at: http://metanav.ntnu.no/services/status.txt"
+        msg += "\nCurrent status at: http://isbre.itea.ntnu.no/services/"
 
         smtpobj = smtplib.SMTP("smtp.stud.ntnu.no")
         smtpobj.set_debuglevel(0)

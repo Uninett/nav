@@ -1,5 +1,5 @@
 """
-$Id: LdapHandler.py,v 1.5 2003/06/16 15:40:26 magnun Exp $
+$Id: LdapHandler.py,v 1.6 2003/06/20 09:34:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/LdapHandler.py,v $
 """
 
@@ -35,7 +35,6 @@ class LdapHandler(JobHandler):
 	def __init__(self,service, **kwargs):
 		JobHandler.__init__(self, "ldap", service,port=389, **kwargs)
 	def execute(self):
-
 		args = self.getArgs()
 		# we can connect in 2 ways. By hostname/ip (and portnumber)
 		# or by ldap-uri
@@ -43,7 +42,7 @@ class LdapHandler(JobHandler):
 			if is_ldap_url(args["url"]):
 				l = ldap.initialize(args["url"])
 		else:
-			l = ldap.open(self.getAddress())
+			l = ldap.open(self.getIp())
 		if args.has_key("username"):
 			username = args["username"]
 		else:
@@ -55,7 +54,7 @@ class LdapHandler(JobHandler):
 
 		timeout = self.getTimeout()
 		try:
-			l.simplebind(user,pwd)
+			l.simple_bind(username,pwd)
 			if args.has_key("version"):
 				version = args["version"]
 				if (version==2):
@@ -80,7 +79,7 @@ class LdapHandler(JobHandler):
 				except Exception,e:
 					return Event.DOWN, "compare failed for some reason"
 
-			elif:
+			else:
 				if args.has_key("base"):
 					if (args["base"] == "cn=monitor"):
 						my_res = l.search_s("base",ldap.SCOPE_BASE,"cn=monitor")
@@ -103,6 +102,9 @@ class LdapHandler(JobHandler):
 						scope = ldap.SCOPE_SUBTREE
 				else:	
 					base = "dc=ntnu,dc=no"
+					filter = ''
+					scope = ''
+					attrs = ''
 				try:
 					my_res = l.search(base, scope, filter, attrs)
 					dn = my_res[0][0]

@@ -1,12 +1,13 @@
 """
-$Id: megaping.py,v 1.2 2003/06/01 12:17:25 magnun Exp $                                                                                                                              
+$Id: megaping.py,v 1.3 2003/06/20 09:34:45 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Stian Soiland   <stain@stud.ntnu.no>
 """
-import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,debug,config
+import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,config
+from debug import debug
 # From our friend:
 import ip,icmp,rrd
 
@@ -78,7 +79,6 @@ class Host:
 class MegaPing(RotaterPlugin):
   def __init__(self, socket=None, conf=None):
     RotaterPlugin.__init__(self)
-    self.debug = debug.debug()
     if conf is None:
       self.conf=config.pingconf()
     else:
@@ -164,7 +164,7 @@ class MegaPing(RotaterPlugin):
         try:
           (pkt, (sender, blapp)) = self.socket.recvfrom(4096)
         except socket.error:
-          self.debug.log("RealityError -2", 1)
+          debug("RealityError -2", 1)
           continue
         # could also use the ip module to get the payload
 
@@ -172,18 +172,18 @@ class MegaPing(RotaterPlugin):
         try:
           reply = icmp.Packet(repip.data)
         except ValueError:
-          self.debug.log("Recived illegeal packet from %s: %s" % (sender,repr(repip.data)), 7)
+          debug("Recived illegeal packet from %s: %s" % (sender,repr(repip.data)), 7)
           continue
         if reply.id <> self.pid:
-          self.debug.log("The id field of the packet does not match for %s"% sender,7)
+          debug("The id field of the packet does not match for %s"% sender,7)
           continue
 
         cookie = reply.data[0:14]
         try:
           host = self.requests[cookie]
         except KeyError:
-          self.debug.log("The packet recieved from %s does not match any of the packets we sent." % repr(sender),7)
-          self.debug.log("Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie),7)
+          debug("The packet recieved from %s does not match any of the packets we sent." % repr(sender),7)
+          debug("Length of recieved packet: %i Cookie: [%s]" % (len(reply.data), cookie),7)
           continue
 
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
@@ -192,7 +192,7 @@ class MegaPing(RotaterPlugin):
         host.replies.push(pingtime)
         host.logPingTime(pingtime)
         
-        self.debug.log("Response from %-16s in %03.3f ms" % (sender, pingtime*1000),7)
+        debug("Response from %-16s in %03.3f ms" % (sender, pingtime*1000),7)
         del self.requests[cookie]  
       elif self.senderFinished:
           break
@@ -212,7 +212,7 @@ class MegaPing(RotaterPlugin):
       hosts = self.hosts
     for host in hosts:
       if self.requests.has_key(host):
-        self.debug.log("Duplicate host %s ignored" % host,6)
+        debug("Duplicate host %s ignored" % host,6)
         continue
 
       now = time.time()

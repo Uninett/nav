@@ -6,7 +6,7 @@ import job
 import getopt
 import jobmap
 
-myDebug = debug.debug(level=5)
+myDebug = debug.debug(level=7)
 
 try:
     #opts, args = getopt.getopt(sys.argv[1:], "i:s:h:a:", ["ip:", "sysname:", "handler:", "args:"])

@@ -1,5 +1,5 @@
 """
-$Id: DcChecker.py,v 1.1 2003/06/19 12:56:18 magnun Exp $
+$Id: DcChecker.py,v 1.2 2003/06/20 09:34:45 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/DcChecker.py,v $
 """
 
@@ -22,7 +22,10 @@ class DcChecker(AbstractChecker):
 			return Event.DOWN, "Missing required argument: username"
 		ip, host = self.getAddress()
 		command = "/usr/local/samba/bin/rpcclient -U %% -c 'lookupnames %s' %s  2>/dev/null" % (username, ip)
-		result = os.popen(command).readlines()[-1]
+		result = os.popen(command).readlines()
+		if not result:
+			return Event.UP, "Failed to check service"
+		result = result[-1]
 		if result.split(" ")[0] == username:
 			return Event.UP, 'Ok'
 		else:
