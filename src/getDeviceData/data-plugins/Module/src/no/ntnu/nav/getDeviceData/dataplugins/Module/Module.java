@@ -88,7 +88,7 @@ public class Module extends Device implements Comparable
 
 	public int compareTo(Object o) {
 		Module m = (Module)o;
-		return new Integer(module).compareTo(new Integer(m.getModule()));
+		return new Integer(module).compareTo(new Integer(m.module));
 	}
 	public String toString() { return super.toString() + ", " + getModuleS() + " descr="+descr; }
 }
