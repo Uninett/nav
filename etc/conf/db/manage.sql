@@ -612,6 +612,13 @@ GRANT ALL ON rrd_datasource TO manage;
 GRANT SELECT ON subsystem TO rrduser;
 GRANT ALL ON subsystem TO manage;
 
+-- 
+CREATE VIEW rrddatasourcenetbox AS
+(SELECT DISTINCT rrd_datasource.descr, rrd_datasource.rrd_datasourceid, sysname
+  FROM rrd_datasource
+  JOIN rrd_file USING (rrd_fileid)
+  JOIN netbox USING (netboxid));
+
 ------------------------------------------------------------------------------------------
 -- event system tables
 ------------------------------------------------------------------------------------------
