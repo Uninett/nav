@@ -638,7 +638,7 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 (1, 1);
 
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
-(0, 100, true, 100);
+(1, 100, true, 100);
 
 -- Matchfields
 
