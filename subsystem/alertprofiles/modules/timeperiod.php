@@ -31,14 +31,48 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo '<p>';
-echo gettext("To add a new time period, you have to click on the time you want the time period to start (on the time table below).");
+echo '<p>' . gettext('You may add or delete time periods on a whole week, weekday or weekend 
+basis. To add a new time period simply click on the 24 hour schedule at 
+the start time you wish. To delete a time period use the trash can.');
+echo '<p>' . gettext('Each time period is defined by a set of alert subscriptions 
+([<i>filter group</i>, <i>alarm address</i>] tuples). To edit a timeperiod open 
+it.');
 
 
 if (!$dbh->permissionProfile( session_get('uid'), session_get('periode_pid') ) ) {
     echo "<h2>Security violation</h2>";
     exit(0);
 } 
+
+
+if ( isset($coor1) OR isset($coor2) ) {
+	
+	if (isset($coor2)) {
+		$dtype = 3; $coor=$coor2;
+	} else {
+		$dtype = 2; $coor=$coor1;
+	}
+	
+	preg_match("/^\?[0-9]+,([0-9]+)$/i", $coor, $match);
+	$units = round((($match[1]-10) / 7.5) + 12) % 48;
+	$time = floor($units / 2);
+	$min = ($units % 2) * 30; 
+	if ($min > 9 ) $klokke = "$time:$min"; else
+	$klokke = "$time:0$min";
+	
+	$tidsid = $dbh->nyTidsperiode($dtype, $klokke, session_get('periode_pid') );
+	
+	if ($tidsid > 0) { 
+	echo gettext("<p><font size=\"+3\">OK</font>, a new time periods is created. Go to the form below to setup alert for this time period.");
+	  session_set('subaction', "endre");
+	} else {
+	echo "<p><font size=\"+3\">" . gettext('An error</font> occured, a new profile is <b>not</b> created."');
+	}
+	
+	session_set('periode_tid', $tidsid);
+  
+}
+
 
 function helgdescr($helg) {
 	switch($helg) {
@@ -168,7 +202,7 @@ for ($i = 0; $i < sizeof($perioder); $i++) {
 
 print "<h3>" . gettext("Monday - Friday") . "</h3>";
 print "<table width=\"100%\"><tr><td>\n";
-print "<A HREF=\"index.php?action=periode-setup&subsaction=new&pid=" . session_get('periode_pid') . "&coor1=\">\n";
+print "<A HREF=\"index.php?action=periode&subsaction=new&pid=" . session_get('periode_pid') . "&coor1=\">\n";
 print "<img border=\"0\" class=\"ilink\" title=\"Create new time period here\" alt=\"Timeplan Man-Fre\" src=\"timeplan.php?";
 $c = 0;
 foreach ($kt[0] as $el) {
@@ -183,7 +217,7 @@ print "</td></tr></table>";
 
 print "<h3>" . gettext("Saturday and Sunday") . "</h3>";
 print '<table width="100%"><tr><td>';
-print "<A HREF=\"index.php?action=periode-setup&subaction=new&pid=" . session_get('periode_pid') . "&coor2=\"><img border=\"0\" class=\"ilink\" alt=\"Timeplan Lør-Søn\" title=\"Create new time period here\" src=\"timeplan.php?";
+print "<A HREF=\"index.php?action=periode&subaction=new&pid=" . session_get('periode_pid') . "&coor2=\"><img border=\"0\" class=\"ilink\" alt=\"Timeplan Lør-Søn\" title=\"Create new time period here\" src=\"timeplan.php?";
 $c = 0;
 foreach ($kt[1] as $el) {
      print "t[" . $c . "]=" . $kt[1][$c][0] . "&m[" . $c . "]=" . $kt[1][$c++][1] . "&";

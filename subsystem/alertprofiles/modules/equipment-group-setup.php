@@ -18,8 +18,10 @@ echo '<div class="subheader">' . $utstginfo[0] . '</div>';
 include("loginordie.php");
 loginOrDie();
 
-echo "<p>";
-echo gettext("Here you select filters which make up the filter group."); 
+echo '<p>' . gettext('Setup the filter group using the formula:') . '<p>' .
+	gettext('Filter group = ((&lt;filter 1&gt; &lt;operator&gt; &lt;filter 2&gt;)... &lt;operator&gt; &lt;filter n&gt;)'); 
+
+
 echo '<p><a href="#nyttfilter">';
 echo gettext("Add new filter"); 
 echo "</a>";
@@ -54,9 +56,14 @@ if (isset($subaction) && $subaction == 'slett') {
 
 if (isset($subaction) && $subaction == "nyttfilter") {  
   if (($uid > 0) AND (isset($filterid))){ 
-  	$neg = post_get('neg-check') == 1 ? 0 : 1;
+  	
+  	$ink = ((post_get('inkluder') == 1) || (post_get('inkluder') == 2)) ? 1 : 0;
+  	$positiv = ((post_get('inkluder') == 1) || (post_get('inkluder') == 3)) ? 1 : 0;
+  	
+  	//print "<p>Value: " . post_get('inkluder') . " Ink:$ink Positiv:$positiv .";
+  	
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
-		post_get('inkluder'), $neg );
+		$ink, $positiv );
   } else {
     print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new filter is <b>not</b> added.");
   }
@@ -69,15 +76,16 @@ if (isset($subaction) && $subaction == "swap") {
 }
 
 $l = new Lister( 114,
-		array(gettext('Incl'), gettext('Neg'), gettext('Filter'), gettext('Move'), gettext('Options..') ),
-		array(15, 10, 45, 15, 15),
-		array('center', 'center', 'left', 'center', 'right'),
-		array(false, false, false, false, false),
+		array(gettext('Operator') . '&nbsp;', gettext('Filter'), gettext('Move'), gettext('Options..') ),
+		array(25,  45, 15, 15),
+		array('right', 'left', 'center', 'right'),
+		array(false, false, false, false),
 		0
 );
 
 
-print "<h3>" . gettext("Filters") . "</h3>";
+//print "<h3>" . gettext("Filters") . "</h3>";
+print "<p>";
 
 $filtre = $dbh->listFiltreGruppe(session_get('grp_gid'), 1);
 
@@ -109,21 +117,28 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
   		$filtre[$i][0] . '">' . 
   		'<img alt="Delete" src="icons/delete.gif" border=0></a>';	
   	
-  	if ($filtre[$i][3] == 't') {
-		$inkicon = '<img src="icons/pluss.gif" border="0" alt="' . gettext("Include") . '"> Include';
-	} else {
-		$inkicon = '<img src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . '"> Exclude';
-	}
+		if ($filtre[$i][3] == 't') {
+			if ($filtre[$i][4] == 't') {
+				$inkicon = gettext('Add') .
+					'&nbsp;<img src="icons/pluss.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = gettext('Add inverse') .
+					'&nbsp;<img src="icons/plussinverse.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}  	
+		} else {
+			if ($filtre[$i][4] == 't') {
+				$inkicon = gettext('Subtract') . 
+					'&nbsp;<img src="icons/minus.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = gettext('And') . 
+					'&nbsp;<img src="icons/and.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}
+		}
+		$inkicon .= '&nbsp;&nbsp;';
+
+
 	
-	if ($filtre[$i][4] == 't') {
-		//$negicon = '<img src="icons/pos.gif" border="0" alt="' . gettext("Normal") . '">';
-		$negicon = gettext('&nbsp;');
-	} else {
-		//$negicon = '<img src="icons/neg.gif" border="0" alt="' . gettext("Inverted") . '">';
-		$negicon = gettext('<b>NOT</b>');		
-	}
-	
-	$fm = "<ul>";
+	$fm = '<ul style="margin-top: 0px">';
 	$match = $dbh->listMatch($filtre[$i][0], 0 );
 	for ($j = 0; $j < sizeof($match); $j++) {
 		/*
@@ -132,16 +147,15 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 		$match[$row][2] = $data["matchtype"];
 		$match[$row][3] = $data["verdi"];		
 		*/
-		$fm .= '<li>' . $match[$j][1] . ' ' . $type[$match[$j][2]] . ' ' . $match[$j][3] . '</li>' ."\n";
+		$fm .= '<li style="margin-top: 0px">' . $match[$j][1] . ' ' . $type[$match[$j][2]] . ' ' . $match[$j][3] . '</li>' ."\n";
 	}
 	$fm .= "</ul>";
 
-	$fnavn = '<p><a href="index.php?action=match&amp;fid=' . $filtre[$i][0] . '"><b>' .
+	$fnavn = '<p style="margin-top: .8em; padding: 0px"><a style="margin-bottom: 0px" href="index.php?action=match&amp;fid=' . $filtre[$i][0] . '"><b>' .
 		$filtre[$i][1] . '</b></a>' .
 		$fm;
 	
 	$l->addElement( array($inkicon, // inkluder
-		$negicon,
 		$fnavn,  // navn
 		$flytt,
 		$valg ) 
@@ -156,13 +170,58 @@ print gettext("Number of filters: ") . sizeof($filtre);
 
 ?>
 
-<a name="nyttfilter"></a><p><h3><?php echo gettext("Add new filter"); ?></h3>
-<form name="form1" method="post" action="index.php?action=utstyrgrp&subaction=nyttfilter">
+<a name="nyttfilter"></a>
+<div class="newelement"><h3><?php echo gettext("Add filter to group"); ?></h3>
+<form name="form1" method="post" action="index.php?action=utstyrgrp&subaction=nyttfilter" style="margin: 0px">
   <table width="100%" border="0" cellspacing="0" cellpadding="3">
     
     <tr>
+    	<td align="left" valign="top" width="50%">
 
-    	<td width="50%">
+
+<p>Operator<br>
+
+<?php 
+$optionactive = "";
+if (sizeof($filtre) < 1) {
+	$optionactive = "disabled";
+}
+?>
+
+<input name="inkluder" type="radio" value="1" checked>
+<img src="icons/pluss.gif" border="0" alt="Inkluder" style="margin-bottom: -5px">
+<?php
+	echo gettext("Add"); 
+?>
+<br>
+
+<input name="inkluder" type="radio" value="3" <?php echo $optionactive; ?> >
+<img src="icons/minus.gif" border="0" alt="Ekskluder" style="margin-bottom: -5px">
+<?php 
+	echo gettext("Subtract"); 
+?> 
+<br>
+
+<input name="inkluder" type="radio" value="4" <?php echo $optionactive; ?> >
+<img src="icons/and.gif" border="0" alt="Ekskluder" style="margin-bottom: -5px">
+<?php 
+	echo gettext("And"); 
+?>
+<br>
+
+<input name="inkluder" type="radio" value="2" <?php echo $optionactive; ?> >
+<img src="icons/plussinverse.gif" border="0" alt="Inkluder NOT" style="margin-bottom: -5px">
+<?php 
+	echo gettext("Add inverse"); 
+?>
+
+
+
+</td>
+
+
+<td align="left" valign="top" width="50%">
+<p>Choose a filter<br>
 <?php
 print '<select name="filterid">';
 $sort = isset($sort) ? $sort : 0;
@@ -176,54 +235,29 @@ for ($i = 0; $i < sizeof($filtervalg); $i++)
 	if ($i == 0) {
 		print "<option value\"empty\">" . gettext("No filters avaiable...") . "</option>";
 	}
-print '</select>';
-?>    	
-</td>
+print '</select><p>';
 
 
 
-<td align="left" valign="center" width="20%">
-<p>
-<img src="icons/pluss.gif" border="0" alt="Inkluder">
-<input name="inkluder" type="radio" value="1" checked><?php echo gettext("Include"); ?><br>
-<img src="icons/minus.gif" border="0" alt="Ekskluder">
-<input name="inkluder" type="radio" value="0"><?php echo gettext("Exclude"); ?> 
-</td>
- 
-
-<td align="left" valign="center" width="20%">
-<p><!--
-<img src="icons/pos.gif" border="0" alt="Vanlig" vspace="0">
-<input type="radio" name="invers" value="1" checked><?php echo gettext("Normal"); ?><br>
-
-<img src="icons/neg.gif" border="0" alt="Invers">
-<input type="radio" name="invers" value="0"><?php echo gettext("Inverted"); ?>-->
-<input name="neg-check" value="1" type="checkbox"><?php echo gettext('Invert filter'); ?>
-</td>
-</tr>
-        
-        
-   	<tr>
-   	<td>&nbsp;</td>
-   	<td>&nbsp;</td>
-<td><?php
 if ($i > 0 ) { 
-      print '<input type="submit" name="Submit" value="' . gettext("Add") . '"></td>';
+      print '<input type="submit" name="Submit" value="' . gettext("Add filter") . '"></td>';
  } else {
- 	print "<p>" . gettext("Add");
+ 	print gettext("No more filters to add");
  }
-?></td>   	   	   	
-   	</tr>
-   	
+?>
+
+</td></tr>
+        
    	
   </table>
 </form>
+</div>
 
 <?php
     if (!post_exist('matchfelt') ) {
-        echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
+        echo '<div align="right"><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
         echo '<input type="submit" name="Submit" value="' . gettext('Finished setting up filter group') . '">';
-        echo '</form>';
+        echo '</form></div>';
     }
 ?>
 

@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Administration of avaiable match-fields"); ?></p>
+<p><?php echo gettext("Administration of filter variables"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -8,12 +8,10 @@
 include("loginordie.php");
 loginOrDie();
 
-echo "<p>" . gettext("Here you can setup and create new match fields.
-<p><b>Warning</b>: The new match field has to be supported by the Alert Engine.");
+echo "<p>" . gettext("Here you can setup and create new filter variables.
+<p><b>Warning</b>: The new filter variables has to be supported by the Alert Engine.");
 
-echo '<p><a href="#nymatch">';
-echo gettext("Add a new match field") . "</a>";
-echo "<p>";
+
 
 $dbhk = $dbinit->get_dbhk();
 
@@ -26,12 +24,12 @@ echo "</pre>";
 if (get_get('subaction') == "slett") {
 	
     $dbh->slettMatchField(get_get('mfid') );
-    print "<p><font size=\"+3\">" . gettext("OK</font>, the match field is removed from the database.");
+    print "<p><font size=\"+3\">" . gettext("OK</font>, the filter variable is removed from the database.");
 
 }
 
 if (get_get('subaction') == "nymatch") {
-  print "<h3>" . gettext("Registering a new match field...") . "</h3>";
+  print "<h3>" . gettext("Registering a new filter variable...") . "</h3>";
   
 
 
@@ -41,7 +39,7 @@ if (get_get('subaction') == "nymatch") {
     post_get('showlist'), post_get('datatype')
   );
 
-    print "<p><font size=\"+3\">" . gettext("OK</font>, a new match field is added to the datbase and will be available for usage immediately (if supported by Alert Enige). The match field ID is ") . $fid;
+    print "<p><font size=\"+3\">" . gettext("OK</font>, a new filter variable is added to the datbase and will be available for usage immediately (if supported by Alert Enige). The match field ID is ") . $fid;
 
 
 
@@ -56,8 +54,8 @@ $l = new Lister( 301,
 );
 
 
-print "<h3>" . gettext("Available Match Fields") . "</h3>";
-
+//print "<h3>" . gettext("Available Match Fields") . "</h3>";
+print "<p>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -81,11 +79,11 @@ for ($i = 0; $i < sizeof($fmlist); $i++) {
 print $l->getHTML(1);
 
 print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
-print gettext("Number of available match fields: ") . sizeof($fmlist);
+print gettext("Number of available filter variables: ") . sizeof($fmlist);
 ?>
-<a name="nymatch"></a><p><h3>
+<a name="nymatch"></a><div class="newelement"><h3>
 <?php
-echo gettext("Add a new match field"); 
+echo gettext("Add a new filter variable"); 
 ?>
 </h3>
 
@@ -259,11 +257,11 @@ echo '    </tr>';
 
 echo '    <tr>';
 echo '      <td colspan="2" align="right"><input type="submit" name="Submit" value="';
-echo gettext('Add new match field') . '"></td>';
+echo gettext('Add new filter variable') . '"></td>';
 echo '    </tr>';
 
 
-echo '</table></form>';
+echo '</table></form></div>';
 ?>
 
 </td></tr>

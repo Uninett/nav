@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Overview'); ?></p>
+<p><?php echo gettext('My active profile'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -31,17 +31,23 @@ function helgdescr($helg) {
  * the function easysetup() prints an easy form to create a default alert profile.
  *
  */
-function easysetup($dbh) {
+function easysetup($dbh, $uid) {
+
+	# Check users addresses
+	$adr = $dbh->listAdresser(session_get('uid'), 0);
+	for ($i = 0; $i < sizeof($adr); $i++) {
+		$atype[$adr[$i][2]]++;
+	}
 	echo '<p>
 	<table width="100%">
 		<tr><td>
 			<img alt="Warning" align="top" src="images/warning.png">
 		</td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. 
-						Choose profiles from the menu at the left margin and create a new profile.");
+						You may use the Easy Setup form below to easy setup a new profile.");
 	echo '</td></tr>';
 	echo '<tr><td colspan="2">';
 	
-	echo '<div class="newelement"><h3>Easy setup your first alert profile</h3>';
+	echo '<div class="newelement"><h2>Easy setup your first alert profile</h2>';
 	echo '<form method="post" action="index.php?action=oversikt&subaction=easysetup">';
 	echo '<p>Enter a profile name: <input name="name" size="35" value="Standard">';
 	echo '<br>Choose a default profile template:<br><select name="template">';
@@ -52,7 +58,20 @@ function easysetup($dbh) {
 		<option value="4">Five timeperiods, Weekdays (work,evening,night), Weekend (day,night)</option>
 
 	';
-	echo '</select><br><input type="submit" value="Create profile">';
+	echo '</select>';
+	if ($atype[1] < 1 or $atype[2] < 1) {
+		echo '<h3>Add alert addresses to your account</h3>';
+		if ($atype[1] < 1) {
+			echo '<p><img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("Email") . '&nbsp;';
+			echo '<input name="address-1" size="30">';
+		}
+		if ($atype[2] < 1) {
+			echo '<p><img alt="sms" src="icons/mobil.gif" border=0>&nbsp;' . gettext("SMS") . '&nbsp;';
+			echo '<input name="address-2" size="8">';
+		}
+
+	}
+	echo '<p><input type="submit" value="Create profile">';
 	echo '</form></div></td></tr>	
 	</table>'; 
 	
@@ -83,23 +102,33 @@ if (isset($subaction) && $subaction == 'easysetup') {
 		break;
 	}
 	$dbh->aktivProfil(session_get('uid'), $profilid );
-	print "<p><font size=\"+3\">" . gettext("Congratulations</font>, your first profile is successfully created.");
+	
+	if ( post_exist('address-1') ) {
+		$dbh->nyAdresse(post_get('address-1'), 1, session_get('uid') );
+		print "<p>Email address (" . post_get('address-1') . ') is added to your account.</p>';
+	}
+	if ( post_exist('address-2') ) {
+		$dbh->nyAdresse(post_get('address-2'), 2, session_get('uid') );
+		print "<p>Telephone number (" . post_get('address-2') . ') is added to your account.</p>';
+	}
+	
+	print "<p><font size=\"+1\">" . gettext("Congratulations</font>, your first profile is successfully created.");
 
 }
 
 
 /*
  * the function eqgroupview() prints out a nice html table showing the requested 
- * equipment group in i hiearchy, with all equipment filters in detail.
+ * filter group in i hiearchy, with all filters in detail.
  *
  */
  
 function eqgroupviewsmall($dbh, $eqid) {
 
-	$t = '<h3>Equipment group composition</h3>';
+	$t = '<h3>Filter group composition</h3>';
 
 	$filtre = $dbh->listFiltreGruppe($eqid, 0);
-	
+	$t .= '<table width="100%" border="0">';
 	for ($i = 0; $i < sizeof($filtre); $i++) {
 
 		/*
@@ -111,21 +140,23 @@ function eqgroupviewsmall($dbh, $eqid) {
 		*/
 
 		if ($filtre[$i][3] == 't') {
-			$inkicon = '<img style="vertical-align: bottom" src="icons/pluss.gif" border="0" alt="' . gettext("Include") . 
-			'">';
+			if ($filtre[$i][4] == 't') {
+				$inkicon = '<img src="icons/pluss.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = '<img src="icons/plussinverse.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}  	
 		} else {
-			$inkicon = '<img style="vertical-align: bottom" src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . 
-			'">';
+			if ($filtre[$i][4] == 't') {
+				$inkicon = '<img src="icons/minus.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = '<img src="icons/and.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}
 		}
 	
-		if ($filtre[$i][4] == 't') {
-			$negicon = '&nbsp;';
-		} else {
-			$negicon = gettext('NOT');
-		}
-		$t .= '<p>' . $inkicon . ' ' . $negicon . ' ' . $filtre[$i][1];
+		$t .= '<tr><td class="eqoel">' . $inkicon . '&nbsp;' . $filtre[$i][1] . '</td></tr>';
 
 	}
+	$t .= '</table>';
 	return $t;
 }
 
@@ -141,7 +172,7 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 
 	echo '<table class="timetable" border="0" cellpadding="0" cellspacing="0">';
 	echo '<tr class="header"><td class="clock">' . gettext('Time') . '</td><td class="helg">' . gettext('Weekday') . '</td>' .
-		'<td class="eqg">' . gettext('Supervised equipment groups') . '</td></tr>';
+		'<td class="eqg">' . gettext('Supervised filter groups') . '</td></tr>';
 
 	$rc = 0;
 	$alt[0] = 'even'; $alt[1] = 'odd';
@@ -267,22 +298,13 @@ if (sizeof($grupperettighet) < 1) {
 	}
 }
     
-/*
- * TIMEPLAN OVERSIKT OVER AKTIV PROFIL
- 
-<li style="margin: 1px; list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder.png)"> 
- <li style="border: thin solid black; background: #ebb; margin: 1px;
-		list-style-image: url(http://jimmac.musichall.cz/ikony/i12/appointment-reminder-excl.png)">
-		echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i5/16_ethernet.png)">';		
-				echo '<li style="list-style-image: url(http://jimmac.musichall.cz/ikony/i43/stock_jump-to-16.png)">';		
- */
 
-//echo '<div style="border: thin #999 solid; margin: 2px; padding: 2px; background: ddd">';
 
 if ($brukerinfo[4] > 0) {
-	echo '<h1>' . $acprofilename . '</h1>';
+	echo '<h1 style="margin-bottom: 0px;"><span style="border-bottom: thin solid #999 ">' . $acprofilename . '</span></h1>' .
+	'<p style="margin-top: 1px; font-size: 0.7em; color: #999">Active profile</p>';
 	if (session_get('tview') == 2) {
-		echo '<p style="font-size: small">' . gettext('Show timetable for') . ' [ <a href="?tview=1">' . gettext('weekdays and weekend separate') . '</a> | ' . gettext('the whole week together in one view') . ' ]';
+		echo '<p>' . gettext('Show timetable for') . ' [ <a href="?tview=1">' . gettext('weekdays and weekend separate') . '</a> | ' . gettext('the whole week together in one view') . ' ]';
 		echo '<h3 style="margin-top: .6em; margin-bottom: 0px">' . gettext('Timetable whole week') . "</h3>";
 		echo '<p style="margin-top: 0px; margin-bottom: 1em">[ <a href="index.php?action=periode&pid=' . $acprofileid . '">Edit timetable</a> ]</p>';		
 		showTimeTable($dbh, $brukerinfo, array(1,2,3) );
@@ -302,7 +324,7 @@ if ($brukerinfo[4] > 0) {
 
 
 // Lag en dropdown meny for å velge aktiv profil
-print '<div align="right"><form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv">';
+print '<div align="right"><form name="form1" method="post" action="index.php?action=oversikt&subaction=settaktiv"><p>';
 print gettext('Change active profile') . ': <select name="pid" id="selectprof" onChange="this.form.submit()">';
 if ($brukerinfo[4] < 1) { 
 	echo '<option value="0">' . gettext("Choose alert profile") . '</option>'; 

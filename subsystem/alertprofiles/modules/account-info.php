@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext('Account info'); ?></p>
+<p><?php echo gettext('My permissions'); ?></p>
 </td></tr>
 
 <tr><td>
@@ -23,6 +23,8 @@ if (isset($subaction) && $subaction == 'settaktiv') {
 $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 $profiler = $dbh->listProfiler( session_get('uid'), 1);
 
+//print "<p>Print din UID er " . session_get('uid');
+
 $grupperettighet = $dbh->listUtstyrRettighet(session_get('uid'), 1);
 $grupper = $dbh->listBrukersGrupper(session_get('uid'), 1);
 
@@ -40,7 +42,9 @@ if (sizeof($grupperettighet) < 1) {
     
 
 
-echo '<p>&nbsp;';
+echo '<p>' . gettext('The NAV administrator may have limited the set of alarms that you may 
+receive. The defined set that applies to you is shown in the
+Permissions section below.');
 
 echo '<table width="100%"><tr width="30%" valign="top"><td>';
 echo '<h3>' . gettext('Account type') . '</h3>';
@@ -81,7 +85,7 @@ echo '<h2>' . gettext("Permissions") . '</h2>';
 if (sizeof($grupperettighet) < 1) {
 		echo gettext('<p>You have <b>not</b> permissions to any filter groups.');
 } else {
-		echo gettext('<p style="font-size:x-small">You have permissions to ') . sizeof($grupperettighet) . gettext(' equipment groups:');
+		echo gettext('<p style="font-size:x-small">You have permissions to ') . sizeof($grupperettighet) . gettext(' filter groups:');
 }
 	
 for ($i = 0; $i < sizeof($grupperettighet); $i++) {

@@ -230,9 +230,10 @@ ORDER BY " . $sorts[$sort];
     $sorts = array ('name',
 		    'ab, name',
 		    'ar, name',
-		    'ad, name');
+		    'ad, name',
+		    'adf, name');
 		    
-	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad 
+	$querystring = "SELECT id, name, descr, BCount.ab, Rcount.ar, Dcount.ad, DFCount.adf  
 FROM Accountgroup 
 LEFT OUTER JOIN (
 	SELECT count(accountid) AS ab, groupid
@@ -251,7 +252,13 @@ LEFT OUTER JOIN (
 	FROM DefaultUtstyr 
 	GROUP BY accountgroupid 
 ) AS DCount 
-ON (id = DCount.accountgroupid) 		    
+ON (id = DCount.accountgroupid) 
+LEFT OUTER JOIN (
+	SELECT count(utstyrfilterid) AS adf, accountgroupid
+	FROM DefaultFilter 
+	GROUP BY accountgroupid 	
+) AS DFCount 
+ON (id = DFCount.accountgroupid)    
 ORDER BY " . $sorts[$sort];
 
 	//print "<pre>" . $querystring . "</pre>";
@@ -267,6 +274,7 @@ ORDER BY " . $sorts[$sort];
 		$brukere[$row][3] = $data["ab"];
 		$brukere[$row][4] = $data["ar"];
 		$brukere[$row][5] = $data["ad"];
+		$brukere[$row][6] = $data["adf"];		
 		$row++;
       } 
     }  else {
@@ -985,6 +993,51 @@ ON (id = FCount.utstyrgruppeid)";
 
 
 
+	// Denne funksjonen returenrer alle felles filtere samt default utrstyr knyttet til
+	// brukergruppene.
+  function listGrFilter($uid, $gid, $sort) {
+    $utst = NULL;
+    
+#    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
+
+    $querystring = "SELECT id, navn,  
+	(def.utstyrfilterid > 0 ) AS default 
+FROM (
+	SELECT id, navn  
+	FROM Utstyrfilter 
+	WHERE accountid is null 
+) AS filter 
+LEFT OUTER JOIN (
+	SELECT utstyrfilterid   
+	FROM DefaultFilter  
+	WHERE accountgroupid = " . addslashes($gid) . "
+) AS def 
+ON (filter.id = def.utstyrfilterid) 
+ORDER BY navn";
+    
+  //print "<p>$querystring";
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$utst[$row][0] = $data["id"]; 
+		$utst[$row][1] = $data["navn"];			
+		$utst[$row][2] = $data["default"];
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    return $utst;
+  }
+
+
+
+
 	// Denne funksjonen returenrer alle utstyrsgruppene samt rettigheter og default utrstyr knyttet til
 	// brukergruppene.
   function listGrUtstyr($uid, $gid, $sort) {
@@ -1178,8 +1231,84 @@ WHERE id = " . addslashes($pid) ;
 
 
 
-	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account.
+
+	// Denne funksjonen returnerer alle filtrene som en Account har tilgang til, 
+	// enten man har laget den selv eller den er arvet gjennom DefaultFilter.
   function listFiltre($uid, $sort) {
+    $utst = NULL;
+    
+    $sorts = array (
+    	'navn,id',
+    	'min,navn',
+    	'am,navn',
+    	'ag,navn');
+
+    $querystring = "
+SELECT * FROM (
+	SELECT DISTINCT ON (id) id, navn, min, am, ag 
+	FROM (
+		SELECT id, navn, true AS min
+		FROM Utstyrfilter
+		WHERE (accountid = " . addslashes($uid) . ")
+		UNION
+		SELECT Utstyrfilter.id, Utstyrfilter.navn, (Utstyrfilter.accountid = " . addslashes($uid). ") AS min 
+		FROM Utstyrfilter, DefaultFilter, AccountGroup, AccountInGroup
+		WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
+			AND (AccountInGroup.groupid = AccountGroup.id)
+			AND (AccountGroup.id = DefaultFilter.accountgroupid)
+			AND (DefaultFilter.utstyrfilterid = Utstyrfilter.id)
+	) AS MineFilter 
+	LEFT OUTER JOIN (
+		SELECT count(mid) AS am,  uid
+		FROM (
+			SELECT FilterMatch.id AS mid, Utstyrfilter.id AS uid
+			FROM Utstyrfilter, FilterMatch
+			WHERE (Utstyrfilter.id = FilterMatch.utstyrfilterid)
+		) AS Mcount 
+		GROUP BY uid 
+	) AS match ON (MineFilter.id = match.uid) 
+	LEFT OUTER JOIN (
+		SELECT count(gid) AS ag, uid
+		FROM (
+			SELECT GruppeTilFilter.utstyrgruppeid AS gid, Utstyrfilter.id AS uid
+			FROM Utstyrfilter, GruppeTilFilter
+			WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
+		) AS Gcount 
+		GROUP BY uid 
+	) AS grupper ON (MineFilter.id = grupper.uid)
+) AS jalla ORDER BY " . $sorts[$sort];
+     
+    // print "<pre>" . $querystring . "</pre>";
+     
+    if ( $query = pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$utst[$row][0] = $data["id"];		
+		$utst[$row][1] = $data["navn"];
+		$utst[$row][2] = $data["am"];
+		$utst[$row][3] = $data["ag"];
+		$utst[$row][4] = $data["min"];
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+    
+    return $utst;
+     
+    }
+
+
+
+
+
+
+
+	// Denne funksjonen returnerer alle filtrene som hører til en bestemt Account.
+  function listFiltre_depr($uid, $sort) {
     $filtre = NULL;
     
 #    $sorts = array ('time, minutt', 'aa, time, minutt', 'au, time, minutt', 'time, minutt');
@@ -1297,22 +1426,34 @@ ORDER BY navn";
   function listFiltreFast($uid, $gid, $sort) {
     $filtre = NULL;
 
-    $querystring = "SELECT Utstyrfilter.id, Utstyrfilter.navn 
-FROM Utstyrfilter 
-WHERE accountid = " . addslashes($uid) . " 
-EXCEPT SELECT Utstyrfilter.id, Utstyrfilter.navn 
-FROM Utstyrfilter, GruppeTilFilter 
-WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid) 
-	AND (GruppeTilFilter.utstyrgruppeid = " . $gid . ")
-ORDER BY navn";
+    $querystring = "
+SELECT * FROM (
+	SELECT DISTINCT ON (id) id, navn, min 
+	FROM (
+		SELECT id, navn, true AS min
+		FROM Utstyrfilter
+		WHERE (accountid = " . addslashes($uid) . ")
+		UNION
+		SELECT Utstyrfilter.id, Utstyrfilter.navn, (Utstyrfilter.accountid = " . addslashes($uid). ") AS min 
+		FROM Utstyrfilter, DefaultFilter, AccountGroup, AccountInGroup
+		WHERE (AccountInGroup.accountid = " . addslashes($uid) . ")
+			AND (AccountInGroup.groupid = AccountGroup.id)
+			AND (AccountGroup.id = DefaultFilter.accountgroupid)
+			AND (DefaultFilter.utstyrfilterid = Utstyrfilter.id)
+	) AS MineFilter 
+) AS jalla ORDER BY min,navn ";
     
 //  print "<p>Spørring fast: $querystring";
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
       while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-		$filtre[$row][0] = $data["id"]; 
-		$filtre[$row][1] = $data["navn"];
+		$filtre[$row][0] = $data["id"];
+		if ($data["min"] == 't' ) {
+			$filtre[$row][1] = $data["navn"];
+		} else {
+			$filtre[$row][1] = '(Public) ' . $data["navn"];
+		}
 		$row++;
       } 
     }  else {
@@ -1685,6 +1826,21 @@ function endreDefault($gid, $ugid, $type) {
 
 }
 
+// Legge til eller endre en default filter
+function endreDefaultFilter($gid, $fid, $type) {
+
+	
+	$querystr = "DELETE FROM DefaultFilter WHERE accountgroupid = " . addslashes($gid) . " AND utstyrfilterid = " . addslashes($fid);
+	@pg_exec($this->connection, $querystr);
+/* 	print "<p>Query: $querystr";	 */
+	if ( $type ) {
+		$querystr = "INSERT INTO DefaultFilter (accountgroupid, utstyrfilterid) VALUES (" . addslashes($gid) . ", " . addslashes($fid) . " )";
+/* 	print "<p>Query: $querystr";			 */
+		@pg_exec($this->connection, $querystr);
+	}
+
+}
+
 
 
 
@@ -2012,12 +2168,15 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
 
   // opprette ny match
   function nyMatch($matchfelt, $matchtype, $verdi, $fid) {
-
+/* 	addslashes($verdi); */
+/* 	$v = preg_replace('/\\{2}/', '-', $verdi); */
+/* 	print "<pre>før:$verdi \n slashed:" . $verdi . "\n stripped: $v \n</pre>"; */
+/* 	print "Magic" .  get_magic_quotes_gpc() ; */
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO FilterMatch (id, matchfelt, matchtype, utstyrfilterid, verdi) VALUES (" . 
       "nextval('filtermatch_id_seq'), " . addslashes($matchfelt) . ", " . 
       addslashes($matchtype) .", " . addslashes($fid) . ", '" . 
-      addslashes($verdi) . "' )";
+      $verdi . "' )";
     
     // echo "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring)) {

@@ -46,7 +46,7 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 		$adresse = '';
 	}
 	
-	echo '<option value="1" '; if ($tsel == 1) echo 'selected'; echo '>' . gettext("E-mail") . '</option>';
+	echo '<option value="1" '; if ($tsel == 1) echo 'selected'; echo '>' . gettext("Email") . '</option>';
 	
 	if (access_sms($brukernavn)) {
 		echo '<option value="2" '; if ($tsel == 2) echo 'selected'; echo '>' . gettext("SMS") . '</option>';
@@ -149,7 +149,8 @@ if ($aid > 0) {
   
 }
 
-echo "<h3>" . gettext("My addresses") . "</h3>";
+//echo "<h3>" . gettext("My addresses") . "</h3>";
+print "<p>";
 
 //	function Lister($id, $labels, $c, $align, $isorts, $defaultsort) {
 $l = new Lister( 101,
@@ -169,7 +170,7 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 
 
 	switch($adr[$i][2]) {
-		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("E-mail"); break;
+		case 1 : $type = '<img alt="mail" src="icons/mail.gif" border=0>&nbsp;' . gettext("Email"); break;
 		case 2 : $type = '<img alt="sms" src="icons/mobil.gif" border=0>&nbsp;' . gettext("SMS"); break;
 		case 3 : $type = '<img alt="irc" src="icons/irc.gif" border=0>&nbsp;' . gettext("IRC"); break;
 		case 4 : $type = '<img alt="icq" src="icons/icq.gif" border=0>&nbsp;' . gettext("ICQ"); break;				

@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Filter group access"); ?></p>
+<p><?php echo gettext("Filter and filter group access"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -10,11 +10,9 @@ loginOrDie();
 
 
 echo "<p>";
-echo gettext("Here you can create and setup user groups."); 
+echo gettext("Here you can setup permissions to user groups, and assign filters and filter groups to user groups."); 
 
-echo '<p><a href="#nygruppe">';
-echo gettext("Add a new user group");
-echo '</a><p>';
+
 
 
 
@@ -42,22 +40,24 @@ if (session_get('gruppesubaction') == "endregruppe") {
 			$var = "dvelg" . $m[1];		
 			$dbh->endreDefault(session_get('endregruppeid'), $m[1], isset(${$var}) );	
 		}
+		if ( preg_match("/fdvalg([0-9]+)/i", $n, $m) ) {
+			$var = "fdvelg" . $m[1];		
+			$dbh->endreDefaultFilter(session_get('endregruppeid'), $m[1], isset(${$var}) );	
+		}
 	}
 
-	$navn = ""; $descr = gettext("Description : ");
-	print "<p><font size=\"+3\">" . gettext("OK</font>, changes applied for user group.");
+	$navn = ""; $descr = ""; //gettext("Description : ");
+	print "<p><font size=\"+1\">" . gettext("OK</font>, changes applied for user group.");
 	
 	session_set('gruppesubaction', 'clean');
-
-  
 }
 
 $l = new Lister( 103,
-	array(gettext('User group'), gettext('#users'), gettext('#permissions'), 
-		gettext('#std. groups'), gettext('Options..') ),
-	array(25, 20, 20, 20, 15),
-	array('left', 'right', 'right', 'right', 'right' ),
-	array(true, true, true, true, false),
+	array(gettext('User group'), gettext('#users'), gettext('#perms'), 
+		gettext('#std.groups'), gettext('#std.filters'), gettext('Options..') ),
+	array(25, 15, 15, 15, 15, 15),
+	array('left', 'right', 'right', 'right', 'right', 'right' ),
+	array(true, true, true, true, true, false),
 	0
 );
 
@@ -93,11 +93,16 @@ for ($i = 0; $i < sizeof($grupper); $i++) {
 	} else { 
 		$ag = "<img alt=\"Ingen\" src=\"icons/stop.gif\">"; 
 	}
-	
+	if ($grupper[$i][6] > 0 ) { 
+		$adf = $grupper[$i][6]; 
+	} else { 
+		$adf = "<img alt=\"Ingen\" src=\"icons/stop.gif\">"; 
+	}	
 	$l->addElement( array($grupper[$i][1],  // gruppenavn
 		$ab,  // #bruekre
 		$ar, // #rettigheter
 		$ag,  // #std grupper
+		$adf, // #std. filter..
 		$valg
 		) 
 	);
@@ -114,26 +119,25 @@ print "<p>[ <a href=\"index.php?action=filter-group-access\">" . gettext("update
 print gettext("Number of groups: ") . sizeof($grupper);
 
 
-if (session_get('gruppesubaction') == 'endre') {
-	$gr = $dbh->brukergruppeInfo(session_get('endregruppeid') );
-	$navn = $gr[0];
-	$descr = $gr[1];
-} else {
-	$descr = gettext("Description : ");
-}
-
 
 
 if (session_get('gruppesubaction') == 'endre' OR session_get('gruppesubaction') == 'nygruppe') {
 
-
-	echo '<h1>' . $navn . '</h1>';
-	echo '<p>' . $descr. '</p>';
+	$gr = $dbh->brukergruppeInfo(session_get('endregruppeid') );
+	$navn = $gr[0];
+	$descr = $gr[1];
+	
+	echo '<div style="
+		padding: 2px 5px 5px 50px; 
+		background: #fafafa; 
+		margin: 10px 5px 10px 5px;
+		border: 1px solid #ccc"><h1>' . $navn . '</h1>';
+	echo '<p>' . $descr. '</p></div>';
 	
 	echo '<form action="index.php?action=filter-group-access&subaction=endregruppe" method="post">';
 
 	$l = new Lister( 105,
-		array(gettext('Permissions'), gettext('Standard groups'), gettext('Group name') ),
+		array(gettext('Define<br>permissions'), gettext('Available<br>to users'), gettext('Group name') ),
 		array(15, 15, 70),
 		array('left', 'left', 'left'),
 		array(false, false, true),
@@ -162,9 +166,43 @@ if (session_get('gruppesubaction') == 'endre' OR session_get('gruppesubaction') 
 			$utstyr[$i][1]
 		) );
 	}
-	
+
 	print "<h3>" . gettext("User groups can access which filter groups") . "</h3>";
 	print $l->getHTML();
+	
+
+
+
+	
+	$l = new Lister( 105,
+		array(gettext('Available<br>to users'), gettext('Filter name') ),
+		array(30, 70),
+		array('left', 'left'),
+		array(false, true),
+		2
+	);
+
+
+	$sort = isset($sort) ? $sort : 0;
+	$filter = $dbh->listGrFilter(session_get('uid'), session_get('endregruppeid'), $sort);
+	
+	for ($i = 0; $i < sizeof($filter); $i++) {
+	
+		if ($filter[$i][2] == 't') $d = " checked"; else $d = "";
+		$fdvelg = '<input name="fdvelg' . $filter[$i][0] . '" type="checkbox" value="1"' . $d . '>';
+		$fdvelg .= '<input name="fdvalg' . $filter[$i][0] . '" value="1" type="hidden">';
+
+		$l->addElement( array(
+			$fdvelg,			
+			$filter[$i][1]
+		) );
+	}
+	
+	print "<h3>" . gettext("User groups can access which filters") . "</h3>";
+	print $l->getHTML();	
+	
+	
+	
 	print '<p><input type="submit" name="Submit" value="' . gettext("Change filter group access for ")  . $navn .  '">';
 
 
@@ -189,16 +227,18 @@ if (session_get('gruppesubaction') == 'endre' OR session_get('gruppesubaction') 
 			print '<li>' . $brukere[$i][2]  . ' (' . $brukere[$i][1] . ')</li>';
 		}
 	}
+	if (sizeof($brukere) < 1)  {
+		print '<li>No users</li>';
+	}
 
 	echo '</ul>';
 
-
+	echo '</form>';
 
 }
 
 ?>
 
-</form>
 
 </td></tr>
 </table>

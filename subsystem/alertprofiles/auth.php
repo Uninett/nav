@@ -78,13 +78,13 @@ WHERE (Account.login = '$username') AND
                 $uadmin = 1;
                 foreach ($bgr AS $bg) {
                 	if ($bg[0] == 1) $uadmin = 100;
-                	if ($bg[0] == 2) $uadmin = 0;
+                	//if ($bg[0] == 2) $uadmin = 0;
                 }
                 
                 // MUST BE REMOVED!
-				if ($data["aid"] == 1000) {
-					$uadmin = 10000;
-				} 
+/* 				if ($data["aid"] == 1000) { */
+/* 					$uadmin = 10000; */
+/* 				}  */
 				
 				session_delete('uid');
 				session_delete('admin');

@@ -9,9 +9,13 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo "<p>";
-echo gettext("Here you can create and setup alert profiles.");
-
+echo '<p>' . gettext("Here you can create and setup alert profiles.");
+echo '<p>' . gettext('Typically each profile is for an intended work mode. Examples are: "at 
+work", "on vacation", "at 24hour duty", etc. You may define as many 
+profiles as you like and you can easily swap to reselect your active 
+profile.');
+echo '<p>' . gettext('A profile consist of a set of time periods. Open a profile to edit the 
+time periods and its definitions.');
 
 $dagnavn[0] = gettext("Monday");
 $dagnavn[1] = gettext("Tuesday");
@@ -186,7 +190,8 @@ $l = new Lister( 106,
 	array(true, true, true, false),
 	1);
 
-print "<h3>" . gettext("My profiles") . "</h3>";
+//print "<h3>" . gettext("My profiles") . "</h3>";
+print "<p>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );

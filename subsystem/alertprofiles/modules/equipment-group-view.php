@@ -7,7 +7,7 @@ if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
 
 $utstginfo = $dbh->utstyrgruppeInfo(session_get('grp_gid') );
 echo '<div class="subheader"><img src="icons/equipment.png"> ' . $utstginfo[0] . 
-	'<p style="font-size: x-small; font-weight: normal; margin: 2px; text-align: left"><img src="icons/gruppe.gif"> This is a public filter group, owned by the administrators. You are free to use this filter group to set up alert profiles, but you cannot change the filter group composition.</div>';
+	'<p style="font-size: x-small; font-weight: normal; margin: 2px; text-align: left"><img src="icons/person100.gif"> This is a public filter group, owned by the administrators. You are free to use this filter group to set up alert profiles, but you cannot change the filter group composition.</div>';
 
 ?>
 
@@ -20,27 +20,27 @@ loginOrDie();
 
 echo "<p>";
 echo gettext("Here is a read only overview of the requested filter group. The composition of the filter group, consisting of the include/exclude list of filters is shown below.");
-
+echo "<p>";
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 
 /*
  * the function eqgroupview() prints out a nice html table showing the requested 
- * equipment group in i hiearchy, with all equipment filters in detail.
+ * filter group in i hiearchy, with all filters in detail.
  *
  */
  
 function eqgroupview($dbh, $eqid) {
-
+	global $type;
 	echo '<h3>Filter group overview</h3>';
 
 	$filtre = $dbh->listFiltreGruppe($eqid, 0);
 	
 	$l = new Lister( 114,
-		array(gettext('Include'), gettext('Invert'), gettext('Filter') ),
-		array(10, 15, 75 ),
-		array('left', 'center', 'left'),
-		array(false, false, false),
+		array(gettext('Operator') . '&nbsp;', gettext('Filter') ),
+		array(25, 75 ),
+		array('right', 'left'),
+		array(false, false),
 		0
 	);	
 	
@@ -55,21 +55,26 @@ function eqgroupview($dbh, $eqid) {
 		*/
 
 		if ($filtre[$i][3] == 't') {
-			$inkicon = '<img src="icons/pluss.gif" border="0" alt="' . gettext("Include") . 
-			'"> <span style="vertical-align: top">Include</span>';
+			if ($filtre[$i][4] == 't') {
+				$inkicon = gettext('Add') .
+					'&nbsp;<img src="icons/pluss.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = gettext('Add inverse') .
+					'&nbsp;<img src="icons/plussinverse.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}  	
 		} else {
-			$inkicon = '<img style="imglow" src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . 
-			'"> <span style="vertical-align: top">Exclude</span>';
+			if ($filtre[$i][4] == 't') {
+				$inkicon = gettext('Subtract') . 
+					'&nbsp;<img src="icons/minus.gif" border="0" alt="operator" style="margin-bottom: -5px">';
+			} else {
+				$inkicon = gettext('And') . 
+					'&nbsp;<img src="icons/and.gif" border="0" alt="operator" style="margin-bottom: -5px">';		
+			}
 		}
-	
-		if ($filtre[$i][4] == 't') {
-			$negicon = '&nbsp;';
-		} else {
-			$negicon = gettext('NOT');
-		}
+		$inkicon .= '&nbsp;&nbsp;';
 
 
-		$fm = "<ul>";
+		$fm = '<ul style="margin-top: 0px;">';
 		$match = $dbh->listMatch($filtre[$i][0], 0 );
 		for ($j = 0; $j < sizeof($match); $j++) {
 			/*
@@ -83,7 +88,6 @@ function eqgroupview($dbh, $eqid) {
 		$fm .= "</ul>";
 		$l->addElement( array(
 			$inkicon, // inkluder
-			$negicon,
 			$filtre[$i][1] . $fm ) 
 		);
 	
@@ -93,7 +97,7 @@ function eqgroupview($dbh, $eqid) {
 
 }
 
-/* Print overview for equipment group if requested */
+/* Print overview for filter group if requested */
 
 eqgroupview($dbh, session_get('grp_gid'));
 

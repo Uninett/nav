@@ -9,7 +9,24 @@ include("loginordie.php");
 loginOrDie();
 
 
-echo "<p>" . gettext("Public filters is shared among administrators, and is used to create public filter groups connected to user groups.");
+echo "<p>" . gettext("Public filters is shared among administrators, and can be assigned to user groups, and used by regular users.");
+
+
+echo '<p>' . gettext('Filters are used to build filter groups, which in turn are the building 
+blocks in your alert profiles. Like filter groups, filters may be
+predefined by the NAV administrator or you may define your own.') . '<p>' .
+	gettext('Open an existing filter or create a new.'); 
+
+if (get_get('allowdelete') == 1 ) {
+	print '
+<div style="
+		padding: 2px 50px 5px 50px; 
+		background: #772020; 
+		color: #fcfcfc ! important;
+		margin: 10px 5px 10px 5px;
+		border: 1px solid #000"><h2>Warning</h2><p>You are about to delete a filter that is contained in at least one filter group. Deleting such a filter will change the behaviour of those filter groups. Be absolutely sure that you know what you do.</p></div>';
+}
+
 
 echo '<p><a href="?subaction=ny">'; 
 echo gettext("Add a new filter") . "</A>";
@@ -129,19 +146,24 @@ $l = new Lister( 110,
 		0
 );
 
-print "<h3>" . gettext("Public filters") . "</h3>";
-
+//print "<h3>" . gettext("Public filters") . "</h3>";
+print "<p>";
 if (! isset($sort) ) { $sort = 1; }
 $filtre = $dbh->listFiltreAdm($sort);
 
 for ($i = 0; $i < sizeof($filtre); $i++) {
 
-  $valg = '<a href="index.php?action=match&fid=' . $filtre[$i][0] . '">' . 
-  	'<img alt="Open" src="icons/open2.gif" border=0></a>&nbsp;' .
-  	'<a href="index.php?action=ffilter&subaction=endre&navn=' . $filtre[$i][1] . '&fid=' . $filtre[$i][0] . '#nyttfilter">' .
-    '<img alt="Edit" src="icons/edit.gif" border=0></a>&nbsp;' .
-    '<a href="index.php?action=ffilter&subaction=slett&fid=' . $filtre[$i][0] . '">' .
-    '<img alt="Delete" src="icons/delete.gif" border=0></a>';
+	$valg = '<a href="index.php?action=match&fid=' . $filtre[$i][0] . '">' . 
+		'<img alt="Open" src="icons/open2.gif" border=0></a>&nbsp;' .
+		'<a href="index.php?action=ffilter&subaction=endre&navn=' . $filtre[$i][1] . '&fid=' . $filtre[$i][0] . '#nyttfilter">' .
+		'<img alt="Edit" src="icons/edit.gif" border=0></a>&nbsp;';
+
+	if ($filtre[$i][3] < 1 or get_get('allowdelete') == 1 ) {
+		$valg .= '<a href="index.php?action=ffilter&subaction=slett&fid=' . $filtre[$i][0] . '">' .
+	'<img alt="Delete" src="icons/delete.gif" border=0></a>';
+	} else {
+		$valg .= '<img alt="Delete" title="This filter is in use in at least one filter group." src="icons/delete-grey.gif" border=0>';
+	}
 
   if ($filtre[$i][2] > 0 ) 
     { $am = $filtre[$i][2]; }
@@ -164,10 +186,15 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 		  );
 }
 
+
 print $l->getHTML();
 
 print "<p>[ <a href=\"index.php?action=ffilter\">" . gettext('update') . " <img src=\"icons/refresh.gif\" alt=\"oppdater\" class=\"refresh\" border=0> ]</a> ";
 print gettext("Number of filters: ") . sizeof($filtre);
+
+if (get_get('allowdelete') != 1 ) {
+	print '<p align="right">[ <a href="index.php?action=' . best_get('action'). '&allowdelete=1">Allow removal of filters in use</a> ]';
+}
 
 ?>
 

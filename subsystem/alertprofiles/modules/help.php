@@ -21,7 +21,7 @@ echo '[ <a href="documents/alert-profiles-manual.pdf">' . gettext("Download") . 
 <tr><td colspan="2"><h2>Overview and account info</h2></td></tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/equipment.png"></td>
-	<td><p>Equipment group.</p></td>
+	<td><p>Filter group.</p></td>
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/gruppe.gif"></td>
@@ -29,7 +29,7 @@ echo '[ <a href="documents/alert-profiles-manual.pdf">' . gettext("Download") . 
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/person0.gif"></td>
-	<td><p>Your account is diabled.</p></td>
+	<td><p>Your account is disabled.</p></td>
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/person1.gif"></td>
@@ -56,7 +56,7 @@ echo '[ <a href="documents/alert-profiles-manual.pdf">' . gettext("Download") . 
 <tr><td colspan="2"><h2>Address types</h2></td></tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/mail.gif"></td>
-	<td><p>E-mail.</p></td>
+	<td><p>Email.</p></td>
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/mobil.gif"></td>
@@ -64,22 +64,30 @@ echo '[ <a href="documents/alert-profiles-manual.pdf">' . gettext("Download") . 
 </tr>
 
 
-<tr><td colspan="2"><h2>Equipment groups</h2></td></tr>
+<tr><td colspan="2"><h2>Filter groups</h2></td></tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/person1.gif"></td>
 	<td><p>Equipment group is private.</p></td>
 </tr>
 <tr>
-	<td width="32"><img alt="icon" src="icons/gruppe.gif"></td>
+	<td width="32"><img alt="icon" src="icons/person100.gif"></td>
 	<td><p>Equipment group is owned by the administrators and shared among user groups.</p></td>
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/pluss.gif"></td>
-	<td><p>Equipment filter is included.</p></td>
+	<td><p>Filter is added to group.</p></td>
 </tr>
 <tr>
 	<td width="32"><img alt="icon" src="icons/minus.gif"></td>
-	<td><p>Equipment filter is excluded.</p></td>
+	<td><p>Filter is subtracted from the group.</p></td>
+</tr>
+<tr>
+	<td width="32"><img alt="icon" src="icons/plussinverse.gif"></td>
+	<td><p>Alerts which not match the filter is added to the group.</p></td>
+</tr>
+<tr>
+	<td width="32"><img alt="icon" src="icons/and.gif"></td>
+	<td><p>Alerts has to match this filter to be in the group.</p></td>
 </tr>
 
 <tr><td colspan="2"><h2>Setting up addresses, profiles and equipment groups</h2></td></tr>

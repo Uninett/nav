@@ -25,38 +25,38 @@
  * Dette er en generell feilmeldingsklasse. 
  */
 class Error {
-  var $type;
-  var $message;
-  var $type_name;
-  var $sev; 
-  
-  function Error ($errtype, $sev = 0) {
-    $this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
-    	gettext('Database error'), gettext('Security error'), gettext('IO error'),
-    	gettext('AlertProfiles PHP Errorhandler') );
-    $this->type = $errtype;
-    $this->sev = $sev;
-  }
-
-  function getHeader () {
-    return $this->type_name[$this->type];
-  }
-
-  function setMessage ($msg) {
-    $this->message = $msg;
-  }
-  
-  function isSevere() {
-  	return ($this->sev == 1);
-  }
-
-  function getHTML () {
-    $html =  "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
-    $html .= $this->GetHeader();
-    $html .= "</h2></td></tr>";
-    $html .= "<tr><td><p>" . $this->message . "</td></tr></table>";
-    return $html;
-  }
+	var $type;
+	var $message;
+	var $type_name;
+	var $sev; 
+	
+	function Error ($errtype, $sev = 0) {
+		$this->type_name = array(gettext('Uknown error'), gettext('Log in error'), 
+			gettext('Database error'), gettext('Security error'), gettext('IO error'),
+			gettext('AlertProfiles PHP Errorhandler') );
+		$this->type = $errtype;
+		$this->sev = $sev;
+	}
+	
+	function getHeader () {
+		return $this->type_name[$this->type];
+	}
+	
+	function setMessage ($msg) {
+		$this->message = $msg;
+	}
+	
+	function isSevere() {
+		return ($this->sev == 1);
+	}
+	
+	function getHTML () {
+		$html =  "<table width=\"100%\" class=\"feilWindow\"><tr><td class=\"mainWindowHead\"><h2>";
+		$html .= $this->GetHeader();
+		$html .= "</h2></td></tr>";
+		$html .= "<tr><td><p>" . $this->message . "</td></tr></table>";
+		return $html;
+	}
 
 }
 
@@ -280,12 +280,17 @@ class Meny {
 		} 	
 	}
 
-	function newOption($name, $action, $level, $files) {
+	function newOption($name, $action, $actionnow, $level, $files) {
 
 		if ($this->adm >= $level) {
-			print "<A href=\"index.php?action=" . $action . "\">";
+			if ($action != $actionnow) {
+				print "<A href=\"index.php?action=" . $action . "\">";
+			}
 			print $name;
-			print "</A><BR>\n";
+			if ($action != $actionnow) {			
+				print "</A>";
+			}
+			print "<br>\n";
 		}
 		
 		$this->level{$action} = $level;
@@ -329,7 +334,7 @@ class Meny {
 
 <table class="meny">
 <tr><td class="menyHead">
-<p><?php echo gettext('NAV Menu'); ?>
+<p><?php echo gettext('Alert Profiles'); ?>
 </td></tr>
 
 <tr><td>
@@ -341,29 +346,34 @@ if ( get_get('action')  ) {
 
 $meny = NEW Meny($login);
 
-echo "<p>";
-$meny->newOption(gettext("My active profile"), "oversikt", 0, array('modules/overview.php') );
-$meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profile.php') );
-$meny->newOption(gettext("Filter groups"), "utstyr", 1, array('modules/equipment-group-private.php') );
-$meny->newOption(gettext("Filters"), "filter", 1, array('modules/equipment-filter-private.php') );
+echo '<p><img src="icons/person1.gif" style="float: right">';
+$meny->newOption(gettext("My active profile"), "oversikt", session_get('action'), 0, array('modules/overview.php') );
+$meny->newOption(gettext("Profiles"), "profil", session_get('action'), 1, array('modules/alert-profile.php') );
+$meny->newOption(gettext("Filter groups"), "utstyr", session_get('action'), 1, array('modules/equipment-group-private.php') );
+$meny->newOption(gettext("Filters"), "filter", session_get('action'), 1, array('modules/equipment-filter-private.php') );
 
-echo "<p>";
+
+echo "<hr><p>";
+$meny->newOption(gettext("My permissions"), "account-info", session_get('action'), 1, array('modules/account-info.php') );
+$meny->newOption(gettext("Addresses"), "adress", session_get('action'), 1,array('modules/address.php') );
+$meny->newOption(gettext("Alert language"), "language", session_get('action'), 1, array('modules/language-settings.php') );
+$meny->newOption(gettext("WAP setup"), "wap", session_get('action'), 1, array('modules/wap-setup.php') );
+$meny->newOption(gettext("Help"), "hjelp", session_get('action'), 1, array('modules/help.php') );
+
+if (session_get('admin') >= 100) {
+	echo '<hr><p><span style="font-weight: bold">Admin menu</span><img src="icons/person100.gif" style="float: right"><br>';
+}
 /*
 $meny->newOption(gettext("Users"), "admin", 1000, array('modules/user-admin.php') );
 */
-$meny->newOption(gettext("Filter group access"), "filter-group-access", 100, array('modules/filter-group-access.php') );
-$meny->newOption(gettext("Public filter groups"), "futstyr", 100, array('modules/equipment-group-public.php') );
-$meny->newOption(gettext("Public filters"), "ffilter", 100, array('modules/equipment-filter-public.php') );
-$meny->newOption(gettext("Match fields"), "filtermatchadm", 100, array('modules/filtermatch-admin.php') );
-$meny->newOption(gettext("Log"), "logg", 20, array('modules/log.php') );
+$meny->newOption(gettext("Public access"), "filter-group-access", session_get('action'), 100, array('modules/filter-group-access.php') );
+$meny->newOption(gettext("Public filter groups"), "futstyr", session_get('action'), 100, array('modules/equipment-group-public.php') );
+$meny->newOption(gettext("Public filters"), "ffilter", session_get('action'), 100, array('modules/equipment-filter-public.php') );
+$meny->newOption(gettext("Filter variables"), "filtermatchadm", session_get('action'), 100, array('modules/filtermatch-admin.php') );
+$meny->newOption(gettext("Log"), "logg", session_get('action'), 20, array('modules/log.php') );
 
 
-echo "<p>";
-$meny->newOption(gettext("My permissions"), "account-info", 1, array('modules/account-info.php') );
-$meny->newOption(gettext("Addresses"), "adress", 1,array('modules/address.php') );
-$meny->newOption(gettext("Alert language"), "language", 1, array('modules/language-settings.php') );
-$meny->newOption(gettext("WAP setup"), "wap", 1, array('modules/wap-setup.php') );
-$meny->newOption(gettext("Help"), "hjelp", 1, array('modules/help.php') );
+
 
 
 
@@ -372,8 +382,9 @@ $meny->newModule('periode', 1, array('modules/timeperiod.php') );
 $meny->newModule('periode-setup', 1, array('modules/timeperiod-setup.php') );
 $meny->newModule('utstyrgrp', 1, array('modules/equipment-group-setup.php') );
 $meny->newModule('equipment-group-view', 1, array('modules/equipment-group-view.php') );
+$meny->newModule('equipment-filter-view', 1, array('modules/equipment-filter-view.php') );
 $meny->newModule('match', 1, array('modules/equipment-filter-setup.php') );
-$meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php') );
+//$meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php') );
 
 ?>
 

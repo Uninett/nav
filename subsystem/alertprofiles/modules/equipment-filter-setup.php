@@ -17,11 +17,14 @@ echo '<div class="subheader">' . $utstginfo[0] . '</div>';
 include("loginordie.php");
 loginOrDie();
 
-echo "<p>";
-echo gettext("Here you can setup conditions to be fulfilled for a specific event to be match by the filter. If one or more conditions returns false the event will not be included in the filter.");
-echo '<p><a href="#nymatch">';
-echo gettext("Add new condition");
-echo '</a>';
+
+echo '<p>' . gettext("A filter consist of one (or more) expressions of the following form:") . 
+	'<br>' . gettext('Filter = &lt;variable&gt; &lt;selection criteria&gt; &lt;value&gt;') . '<br>' . 
+	gettext('If <b>one or more</b> of the filter expressions fail to match the alert in 
+question, no alarm will be sent.') . '<p>' .
+	gettext('Please note that the set of variables used to compose filters may
+be expanded by the NAV administrator.');
+
 
 
 $dbhk = $dbinit->get_dbhk();
@@ -36,15 +39,15 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get
 if (isset($subaction) && $subaction == 'slett') {
 	if (session_get('match_fid') > 0) { 
 		$dbh->slettFiltermatch(session_get('match_fid'), get_get('mid') );
-		print "<p><font size=\"+3\">" . gettext("OK</font>, the condition is removed from the filter.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, the expression is removed from the filter.");
 	} else {
-		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the match is <b>not</b> removed.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the expression is <b>not</b> removed.");
 	}
 }
 
 
 if (isset($subaction) && $subaction == "nymatch") {
-	print "<h3>" . gettext("Registering new condition...") . "</h3>";
+	print "<h3>" . gettext("Registering new expression...") . "</h3>";
 	
 	if ($uid > 0) {
 	
@@ -56,17 +59,17 @@ if (isset($subaction) && $subaction == "nymatch") {
 				$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
 				$tval, session_get('match_fid') );				
 			} else {
-				print "<p><font size=\"+3\">" . gettext("No values selected, a new match is <b>not</b> added.");
+				print "<p><font size=\"+3\">" . gettext("No values selected, a new expression is <b>not</b> added.");
 			}
 					
 		} else {
 			$matchid = $dbh->nyMatch(post_get('matchfelt'), post_get('matchtype'), 
 			post_get('verdi'), session_get('match_fid') );
 		}
-		print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
+		print "<p><font size=\"+3\">" . gettext("OK</font>, a new expression (match) is added to this filter.");
 	
 	} else {
-		print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new expression is  <b>not</b> added.");
 	}
 	$subaction = "";
 	unset($matchfelt);
@@ -82,7 +85,8 @@ $l = new Lister(111,
 );
 
 
-print "<h3>" . gettext("Filter matches") . "</h3>";
+//print "<h3>" . gettext("Filter matches") . "</h3>";
+print "<p>";
 
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
@@ -110,7 +114,7 @@ print "Antall filtermatcher: " . sizeof($match);
 
 
 echo '<a name="nymatch"></a><div class="newelement"><h3>';
-echo gettext("Add new condition");
+echo gettext("Add new expression");
 echo '</h3>';
 
 
@@ -122,7 +126,7 @@ print '<form name="form1" method="post" action="index.php?action=match&subaction
 
 
     <tr>
-    	<td width="30%"><p><?php echo gettext('Choose field'); ?></p></td>
+    	<td width="30%"><p><?php echo gettext('Variable'); ?></p></td>
     	<td width="70%">
     	<select name="matchfelt" id="select" onChange="this.form.submit()">
 <?php
@@ -182,7 +186,7 @@ if ( post_exist('matchtype') ) {
 
 
 echo '<td width="30%"><p>';
-echo gettext("Choose condition");
+echo gettext("Selection criteria");
 echo '</p></td><td width="70%">';
 
 echo '<input type="hidden" name="matchfelt" value="' . $valgt_matchfelt . '">';
@@ -280,7 +284,7 @@ if ($matchfieldinfo[8] == 't' ) {
       
 <?php
 
-$tekst = gettext("Add condition");
+$tekst = gettext("Add expression");
 
 print '<td><input type="submit" name="Submit" value="' . $tekst . '"></td>';
 
