@@ -38,7 +38,7 @@ class CachedObject:
 class ObjectCache(dict):
     def __setitem__(self, key, item):
         if not isinstance(item, CacheableObject):
-            raise ValueError, "ObjectCache only caches CacheableObject instances, not %s" % type(item)
+            raise ValueError, "%s is not a CacheableObject instance" % repr(item)
         else:
             if self.has_key(key):
                 raise CacheError, "An object keyed %s is already stored in the cache" % repr(key)
@@ -49,12 +49,12 @@ class ObjectCache(dict):
         self[key].cache = None
         dict.__delitem__(self, key)
 
-    def cache(self, object):
-        """Caches the object, which must be a CacheableObject instance"""
-        if not isinstance(object, CacheableObject):
-            raise ValueError, "ObjectCache only caches CacheableObject instances, not %s" % type(object)
+    def cache(self, item):
+        """Caches the item, which must be a CacheableObject instance"""
+        if not isinstance(item, CacheableObject):
+            raise ValueError, "%s is not a CacheableObject instance" % repr(item)
         else:
-            self[object.key] = object
+            self[item.key] = item
 
     def invalidate(self):
         """Removes all invalid objects from the cache, and returns the

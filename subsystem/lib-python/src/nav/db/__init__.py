@@ -10,13 +10,13 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import psycopg
 import nav
-from nav import config, ObjectCache, CacheableObject
+from nav import config
 
 db = None
 driver = psycopg
-_connectionCache = ObjectCache()
+_connectionCache = nav.ObjectCache()
 
-class ConnectionObject(CacheableObject):
+class ConnectionObject(nav.CacheableObject):
     """
     Specialization of nav.CacheableObject to implement psycopg
     connection caching.
@@ -30,7 +30,7 @@ class ConnectionObject(CacheableObject):
             cursor = self.object.cursor()
             cursor.execute('SELECT 1')
             return False
-        except psycopg.ProgrammingError:
+        except (psycopg.ProgrammingError, psycopg.OperationalError):
             import sys
             sys.stderr.write('DB-DEBUG: Invalid connection object (%s), age=%s\n' % (repr(self.key), self.age()))
             self.object.close()
