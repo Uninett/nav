@@ -18,6 +18,9 @@ psql navuser -f nav.sql
 
 DROP TABLE Wapkey CASCADE;
 
+DROP SEQUENCE loggid;
+DROP TABLE Logg CASCADE;
+
 DROP SEQUENCE brukergruppeid;
 DROP TABLE Brukergruppe CASCADE;
 
@@ -89,6 +92,22 @@ CREATE TABLE Wapkey (
        key varchar,
        
        CONSTRAINT wapkey_bruker_pk PRIMARY KEY(brukerid),     
+       
+       CONSTRAINT bruker_eksisterer
+		  FOREIGN KEY(brukerid) REFERENCES Bruker(id)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
+);
+
+CREATE SEQUENCE loggid;
+CREATE TABLE Logg (
+		id integer NOT NULL DEFAULT nextval('loggid'),
+       brukerid integer NOT NULL,
+       type integer,
+       tid timestamp,       
+       descr varchar,
+       
+       CONSTRAINT loggid_pk PRIMARY KEY(id),     
        
        CONSTRAINT bruker_eksisterer
 		  FOREIGN KEY(brukerid) REFERENCES Bruker(id)
