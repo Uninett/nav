@@ -394,7 +394,7 @@ class getBoksMacs
 			outl(dumpUsedTime + " ms.");
 		}
 
-		Database.setDefaultKeepOpen(true);
+		//Database.setDefaultKeepOpen(true);
 		if (qNetbox == null) {
 			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','EDGE','WLAN','GW','GSW') AND up='y' AND ro IS NOT NULL");
 		} else
@@ -411,7 +411,7 @@ class getBoksMacs
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE typegruppe in ('cat-sw', 'ios-sw')");
 		}
-		Database.setDefaultKeepOpen(false);
+		//Database.setDefaultKeepOpen(false);
 
 		Stack bdStack = new Stack();
 		while (rs.next()) {

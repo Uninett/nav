@@ -251,13 +251,21 @@ class DeviceDBImpl implements DeviceDB
 
 		} catch (SQLException exp) {
 			Log.d("DEV_DB", "POSTALERT", "SQLException while posting alert: " + exp);
+			try {
+				Database.rollback();
+			} catch (SQLException expr) {
+				Log.d("DEV_DB", "POSTALERT", "SQLException when rolling back: " + expr);
+			}				
 			exp.printStackTrace(System.err);
-			Database.rollback();
 			throw new PostAlertException("Got SQLException: " + exp.getMessage());
 		} catch (PostAlertException exp) {
 			Log.d("DEV_DB", "POSTALERT", "PostAlertException while posting alert: " + exp);
+			try {
+				Database.rollback();
+			} catch (SQLException expr) {
+				Log.d("DEV_DB", "POSTALERT", "SQLException when rolling back: " + expr);
+			}				
 			exp.printStackTrace(System.err);
-			Database.rollback();
 			throw exp;
 		}
 

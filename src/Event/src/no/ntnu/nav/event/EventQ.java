@@ -187,8 +187,12 @@ public class EventQ {
 			return true;
 
 		} catch (SQLException exp) {
-			Database.rollback();
 			Log.e("EVENTQ", "POST_EVENT", "SQLException when posting to eventq: " + exp.getMessage());
+			try {
+				Database.rollback();
+			} catch (SQLException expr) {
+				Log.e("EVENTQ", "POST_EVENT", "SQLException when rolling back: " + expr.getMessage());
+			}
 			exp.printStackTrace(System.err);
 		}
 		return false;

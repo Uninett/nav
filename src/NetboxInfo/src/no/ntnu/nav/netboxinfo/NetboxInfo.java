@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 
 /**
  * <p> This class supports the storage of string values in a variable
@@ -333,7 +334,11 @@ public class NetboxInfo {
 		try {
 			return putNoError(netboxid, key, var, newVals);
 		} catch (SQLException se) {
-			Database.rollback();
+			try {
+				Database.rollback();
+			} catch (SQLException expr) {
+				Log.d("NETBOXINFO", "PUT_ERROR", "SQLException when rolling back: " + expr);
+			}				
 			throw new RuntimeException("Got SQLException, aborting put: " + se.getMessage());
 		}
 }
@@ -345,63 +350,72 @@ public class NetboxInfo {
 		while (rs.next()) {
 			valMap.put(rs.getString("val"), rs.getString("netboxinfoid"));
 		}
+		
+		try {
+			Database.beginTransaction();
 
-		Database.beginTransaction();
+			if (valMap.size() == 0) {
+				// Var is new, simply insert new records
+				insertVals(netboxid, key, var, newVals);
+				Database.commit();
+				return true;
 
-		if (valMap.size() == 0) {
-			// Var is new, simply insert new records
-			insertVals(netboxid, key, var, newVals);
-			Database.commit();
-			return true;
-
-		} else {
-			// Var exists, try to update before delete
-			Set newValSet = new HashSet();
-			while (newVals.hasNext()) {
-				newValSet.add(newVals.next());
-			}
-
-			// Remove all equal values (the intersection) from both sets
-			// since we don't need to update those
-			Set intersection = new HashSet(newValSet);
-			intersection.retainAll(valMap.keySet());
-			newValSet.removeAll(intersection);
-			valMap.keySet().removeAll(intersection);
-
-			// All remaining values in valMap should no longer be present; if there are
-			// any values left in newValMap, update rows from valMap
-			for (Iterator newValIt = newValSet.iterator(), valIt = valMap.values().iterator();
-					 newValIt.hasNext() && valIt.hasNext();) {
-				String newVal = (String)newValIt.next();
-				String netboxinfoid = (String)valIt.next();
-				newValIt.remove();
-				valIt.remove();
-
-				String[] set = {
-					"val", newVal
-				};
-				String[] where = {
-					"netboxinfoid", netboxinfoid
-				};
-				Database.update("netboxinfo", set, where);
-			}
-
-			// Now either newValSet or valMap (or both) are empty; in the
-			// first case the remaning entries from valMap are deleted, in
-			// the second the remaining entries in newValSet are inserted.
-			if (!newValSet.isEmpty()) {
-				insertVals(netboxid, key, var, newValSet.iterator());
-			}
-						
-			if (!valMap.isEmpty()) {
-				for (Iterator valIt = valMap.values().iterator(); valIt.hasNext();) {
-					Database.update("DELETE FROM netboxinfo WHERE netboxinfoid = '" + valIt.next() + "'");
+			} else {
+				// Var exists, try to update before delete
+				Set newValSet = new HashSet();
+				while (newVals.hasNext()) {
+					newValSet.add(newVals.next());
 				}
+
+				// Remove all equal values (the intersection) from both sets
+				// since we don't need to update those
+				Set intersection = new HashSet(newValSet);
+				intersection.retainAll(valMap.keySet());
+				newValSet.removeAll(intersection);
+				valMap.keySet().removeAll(intersection);
+
+				// All remaining values in valMap should no longer be present; if there are
+				// any values left in newValMap, update rows from valMap
+				for (Iterator newValIt = newValSet.iterator(), valIt = valMap.values().iterator();
+					 newValIt.hasNext() && valIt.hasNext();) {
+					String newVal = (String)newValIt.next();
+					String netboxinfoid = (String)valIt.next();
+					newValIt.remove();
+					valIt.remove();
+
+					String[] set = {
+						"val", newVal
+					};
+					String[] where = {
+						"netboxinfoid", netboxinfoid
+					};
+					Database.update("netboxinfo", set, where);
+				}
+
+				// Now either newValSet or valMap (or both) are empty; in the
+				// first case the remaning entries from valMap are deleted, in
+				// the second the remaining entries in newValSet are inserted.
+				if (!newValSet.isEmpty()) {
+					insertVals(netboxid, key, var, newValSet.iterator());
+				}
+						
+				if (!valMap.isEmpty()) {
+					for (Iterator valIt = valMap.values().iterator(); valIt.hasNext();) {
+						Database.update("DELETE FROM netboxinfo WHERE netboxinfoid = '" + valIt.next() + "'");
+					}
+				}
+
 			}
 
+			Database.commit();
+		} catch (SQLException e) {
+			try {
+				Database.rollback();
+			} catch (SQLException expr) {
+				Log.d("NETBOXINFO", "PUT_NOERROR", "SQLException when rolling back: " + expr);
+			}				
+			throw e;
 		}
-
-		Database.commit();
 		return false;
 	}
 

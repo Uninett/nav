@@ -85,8 +85,7 @@ public class Typeoid implements DeviceHandler
 
 				Log.i("HANDLE_DEVICE", "Deleting netbox from database: " + nb);
 
-				// FIXME
-				//Database.beginTransaction();
+				Database.beginTransaction();
 				Database.update("DELETE FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 
 				/*
@@ -111,7 +110,7 @@ public class Typeoid implements DeviceHandler
 				};
 				Database.insert("netbox", insNb);
 
-				//Database.commit();
+				Database.commit();
 
 				// It is now safe to remove the netbox
 				nu.remove(true);
@@ -120,7 +119,11 @@ public class Typeoid implements DeviceHandler
 		} catch (SQLException e) {
 			Log.e("HANDLE_DEVICE", "Error while trying to change type for netbox " + nb);
 			Log.d("HANDLE_DEVICE", "SQLException: " + e);
-			//Database.rollback();
+			try {
+				Database.rollback();
+			} catch (SQLException er) {
+				Log.d("HANDLE_DEVICE", "SQLException during rollback: " + er);
+			}
 			e.printStackTrace(System.err);
 		}
 
