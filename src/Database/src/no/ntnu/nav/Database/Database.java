@@ -198,24 +198,8 @@ public class Database
 			else if (feltVerdi[i].equals("null")) fnutt = "";
 
 			query += fnutt + feltVerdi[i] + fnutt;
-			//if (feltVerdi[i - 1].toLowerCase().startsWith("dato") && feltVerdi[i].toLowerCase().equals("sysdate"))
-			//query = query.concat(feltVerdi[i]);
-			//else
-			//query = query.concat(String.valueOf(new StringBuffer("'").append(feltVerdi[i]).append("'")));
 		}
 		query = query.concat(")");
-		/*
-		try {
-			//System.out.println("Insert query: ".concat(query));
-			stUpdate.close();
-			stUpdate = connection.createStatement();
-			stUpdate.executeUpdate(query);
-			return true;
-		} catch (SQLException e) {
-			System.err.println("Insert query error: ".concat(e.getMessage()));
-			return false;
-		}
-		*/
 		return update(query);
     }
 
@@ -238,40 +222,20 @@ public class Database
 			if (i != 0) query += " AND ";
 
 			query += keyNavnVerdi[i] + "='" + addSlashes(keyNavnVerdi[i+1]) + "'";
-			//query += String.valueOf(new StringBuffer().append().append().append());
 		}
-		/*
-		try {
-			//System.out.println("Update query: ".concat(query));
-			stUpdate.close();
-			stUpdate = connection.createStatement();
-			stUpdate.executeUpdate(query);
-			return true;
-		} catch (SQLException e) {
-			System.err.println("Update query error: ".concat(e.getMessage()));
-			return false;
-		}
-		*/
 		return update(query);
     }
 
-    public static synchronized int update(String query) throws SQLException
-    {
-		/*
-		try {
-			//System.out.println("Update query: ".concat(query));
-			stUpdate.close();
-			stUpdate = connection.createStatement();
-			stUpdate.executeUpdate(query);
-			return true;
-		} catch (SQLException e) {
-			System.err.println("Update query error: ".concat(e.getMessage()));
-			return false;
-		}
-		*/
+	public static synchronized int update(String query) throws SQLException
+	{
 		stUpdate.close();
 		stUpdate = connection.createStatement();
-		return stUpdate.executeUpdate(query);
+		try {
+			return stUpdate.executeUpdate(query);
+		} catch (SQLException e) {
+			System.err.println("SQLException for query: " + query);
+			throw e;
+		}
 	}
 
 	/**
