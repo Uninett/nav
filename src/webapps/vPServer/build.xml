@@ -3,10 +3,14 @@
         build file for vPServer
     </description>
   <!-- set global properties for this build -->
+  <property name="war" value="vPServer"/>
   <property name="src" location="src"/>
   <property name="lib" location="lib"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+	<property name="prefix" location="../../../"/>
+  <property name="warinstdir"  location="${prefix}/webapps"/>
+	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -19,7 +23,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" classpath="${lib}/jsdk22.jar"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}" classpath="${lib}/jsdk22.jar"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -27,19 +31,19 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the vPServer.war file -->
-    <war destfile="${dist}/vPServer.war"
+    <!-- Put everything in ${build} into the war file -->
+    <war destfile="${dist}/${war}"
          webxml="metadata/web.xml">
       <classes dir="${build}"/>
     </war>
   </target>
 
-  <target name="install" depends="dist">
-    <mkdir dir="../../../webapps"/>
-    <copy file="${dist}/vPServer.war" todir="../../../webapps"/>
+  <target name="install" depends="dist,dist_navutils">
+    <mkdir dir="${warinstdir}"/>
+    <copy file="${dist}/${war}" todir="${warinstdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="../../../webapps/vPServer.war"/>
+    <delete file="${warinstdir}/${war}"/>
   </target>
 
   <target name="dist_debug" depends="dist"
