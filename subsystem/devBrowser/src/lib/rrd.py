@@ -1,6 +1,13 @@
 """
 Integrate rrdBrowser into deviceBrowser...
 
+
+
+TODO:
+* Define y-axis, max-min
+* probably some more
+
+Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
 from mod_python import apache, util
@@ -20,28 +27,59 @@ def process(request):
     if not args:
         raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "":
-        return treeselect(request['req'], session)
-        #return showIndex()
-    if args[0] == "ds":
+        return showIndex(request['req'], session)
+    if args[0] == "datasources":
         return datasources(query, session)
     if args[0] == "timeframe":
-        return timeframe(session, query)
+        timeframe(session, query)
+        session.save()
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "add":
         return treeselect(request['req'], session)
+    if args[0] == 'graphAction':
+        graphAction(request['req'])
+        session.save()
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "join":
         try:
-            idlist = query['id']
+            id = query['id']
         except:
             return "nalle"
-        return join(session, idlist)
+        join(session, id)
+        session.save()
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
+    if args[0] == "split":
+        try:
+            id = query['id']
+        except:
+            return html.Division('Noe gikk galt')
+        split(session, id)
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "remove":
         try:
-            id = query['id'][0]
+            id = query['id']
         except:
-            return showGraphs(session)
-        return remove(session, query['id'][0])
+            return html.Division('Dette gikk dårlig')
+            #return showGraphs(session)
+        remove(session, id)
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
+    
     return html.Division("args: %s, query: %s " %(str(args), str(query)))
 
+
+def graphAction(req):
+    req.form = util.FieldStorage(req)
+    action = req.form['action']
+    selected = req.form['selected']
+    if type(selected) != list:
+        selected = [selected]
+    if 'join'in action:
+        return join(req.session, selected)
+    if 'remove' in action:
+        return remove(req.session, selected)
+    if 'split' in action:
+        return split(req.session, selected)
+    return html.Division("req.form: %s action: %s selected: %s" % (str(req.form), action, selected))
 
 def join(session, list):
     try:
@@ -58,31 +96,47 @@ def join(session, list):
         toDelete.append(i)
         for ds in page[i].datasources:
             first.datasources.append(ds)
-
     # remove the elements joind to another, but largest id first
     toDelete.sort()
     toDelete.reverse()
     for i in toDelete:
-        del page[i]    
-    return showGraphs(session)
-        
-        
+        del page[i]
+    session.save()
 
-def remove(session, index):
+def split(session, list):
+    graphs = session['rrd'].presentations
+    splitted = []
+    for index in list:
+        for ds in graphs[int(index)].datasources:
+            pres = presenter.presentation()
+            pres.datasources.append(ds)
+            splitted.append(pres)
+    graphs.extend(splitted)
+    session.save()
+    remove(session, list)
+def remove(session, list):
     try:
-        session['rrd'].presentations.pop(int(index))
+        list.sort()
+        list.reverse()
+        for i in list:
+            session['rrd'].presentations.pop(int(i))
     except Exception, e:
-        return html.Division("%s %s" % (str(e), str(index)))
-    return showGraphs(session)
+        return html.Division("%s %s" % (str(e), str(list)))
+    session.save()
 def timeframe(session, query):
     for i in session['rrd'].presentations:
         i.timeLast(query['tf'][0])
-    return showGraphs(session)
 
-def showIndex():
-    result = html.Division()
-    result.append(html.Header("Select datasources", level=1))
-    return result
+def showIndex(req, session):
+    try:
+        presentations = session['rrd'].presentations
+    except Exception, e:
+        result = html.Division()
+        result.append(str(e))
+        return result
+    if len(presentations):
+        return showGraphs(session)
+    return treeselect(req, session)
 
 def treeselect(req, session, action=None):
     result = html.Division()
@@ -146,18 +200,16 @@ def treeselect(req, session, action=None):
             a.addDs(ds)
             pageobj.presentations.append(a)
         req.session['rrd'] = pageobj
-        return showGraphs(session)
-
+        req.session.save()
+        raise RedirectError, urlbuilder.createUrl(division="rrd")        
 
     if req:
         selectbox.update(req.form)
         nameSpace = {'selectbox': selectbox}
         oldds = req.session['rrd'].presentations
         debug = {'debug': "%s Old Ds: %s" % (str(req.form.keys()), str(oldds))}
-        #template = nav.web.templates.tsrrdTemplate.tsrrdTemplate(searchList=[nameSpace, debug])
         template = nav.web.templates.tsTemplate.tsTemplate()
         result.append(template.treeselect(selectbox))
-        #result.append(template.respond())
     result.append(html.Input(type='submit', name='cn_commitDs', value='Add selected'))
     return result
 
@@ -180,17 +232,32 @@ def parseQuery(query):
     return d
 
 def showGraphs(session):
+    form = html.Form(action='graphAction', method='post')
     result = html.Division()
+    form.append(result)
     for tf in ['year', 'month', 'week', 'day', 'hour']:
         result.append(html.Anchor(tf, href='timeframe?tf=%s' % tf))
-    table = html.SimpleTable()
+    table = html.SimpleTable(id='rrdgraphs')
+    selectbox = html.Select(name = 'action', onChange='this.form.submit()')
+    selectbox.append(html.Option('- Choose action -', value = 'dummy'))
+    selectbox.append(html.Option('Remove selected', value = 'remove'))
+    selectbox.append(html.Option('Join selected', value = 'join'))
+    selectbox.append(html.Option('Split selected', value = 'split'))
+    table.add('', html.TableCell(selectbox, colspan="2",
+                                 _class="actionselecttop"))
     result.append(table)
     images = session['rrd'].presentations
     for index in range(len(images)):
-        table.add(html.Image(src=images[index].graphUrl(), name=index),
-                  html.Anchor('Remove', href='remove?id=%s' % index))
+        editCell = html.Division()
+        editCell.append((html.Anchor('Remove', href='remove?id=%s' % index)))
+        editCell.append(html.Break())
+        editCell.append(html.Anchor('Split', href='split?id=%s' % index))
+        table.add(html.Image(src=images[index].graphUrl(), name=index), editCell,
+            html.Checkbox(name="selected", value=index))
+
+    table.add('', html.TableCell(selectbox, colspan='2', _class="actionselectbottom"))
     result.append(html.Anchor('Add datasource', href='add'))
-    return result
+    return form
 
 def datasources(query, session):
     page = presenter.page()
