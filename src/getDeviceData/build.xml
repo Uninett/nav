@@ -27,6 +27,7 @@
 	<!-- Data plugins -->
   <target name="data-plugins">
     <!-- <ant inheritAll="false" dir="data-plugins/NetboxInfo"/> -->
+    <ant inheritAll="false" dir="data-plugins/Mem"/>
     <ant inheritAll="false" dir="data-plugins/ModuleMon"/>
     <ant inheritAll="false" dir="data-plugins/Device"/>
     <ant inheritAll="false" dir="data-plugins/Netbox"/>
@@ -46,6 +47,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon"/>
     <ant inheritAll="false" dir="device-plugins/CiscoGw"/>
+    <ant inheritAll="false" dir="device-plugins/DeviceMem"/>
     <ant inheritAll="false" dir="device-plugins/DNSCheck"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw"/>
@@ -124,6 +126,7 @@
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
     <!-- <ant inheritAll="false" dir="data-plugins/NetboxInfo" target="clean"/> -->
+    <ant inheritAll="false" dir="data-plugins/Mem" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/ModuleMon" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Device" target="clean"/>
     <ant inheritAll="false" dir="data-plugins/Netbox" target="clean"/>
@@ -140,6 +143,7 @@
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoGw" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/DeviceMem" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/DNSCheck" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw" target="clean"/>
