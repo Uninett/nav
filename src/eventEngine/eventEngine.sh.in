@@ -37,6 +37,6 @@ fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xmx268435456 -cp "eventEngine.jar:$CLASSPATH" eventEngine $1 >> ${OUTLOG} 2> ${ERRLOG} &
+$JAVA_HOME/bin/java -Xincgc -Xmx268435456 -cp "eventEngine.jar:$CLASSPATH" eventEngine $1 >> ${OUTLOG} 2> ${ERRLOG} &
 pidno="$!"
 echo $pidno > $PIDFILE
