@@ -33,6 +33,7 @@ sub new
     $this->{type}{less}=3;
     $this->{type}{lesseq}=4;
     $this->{type}{neq}=5;
+    $this->{type}{in}=11;
     $this->{log}=Log->new();
     bless $this;
     $this->collectInfo();
@@ -213,15 +214,26 @@ sub checkString()
 {
     my ($this,$type,$value,$str)=@_;
     my $match=0;
+    my @strings;
 
-    if($value eq $str) {
-	$match=1;
-    }
-
-    if($type==$this->{type}{eq}) {
-	return $match;
+    if($type==$this->{type}{in}) {
+	@strings=split(/\|/,$value);
+	foreach my $s (@strings) {
+	    if($str eq $s) {
+		return 1;
+	    }
+	}
+	return 0;
     } else {
-	return !$match;
+	if($value eq $str) {
+	    $match=1;
+	}
+	
+	if($type==$this->{type}{eq}) {
+	    return $match;
+	} else {
+	    return !$match;
+	}
     }
 	
 }

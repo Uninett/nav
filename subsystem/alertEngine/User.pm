@@ -7,6 +7,7 @@
 
 package User;
 
+use NAV::Path;
 use strict;
 use Log;
 use diagnostics;
@@ -42,9 +43,11 @@ sub collectInfo()
 #Returns true if successful.
   {
     my $this=shift;
-    my $sth=$this->{dbh}->prepare("select p.activeprofile, p.sms, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'");
+    my $sth=$this->{dbh}->prepare("select p.activeprofile, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'");
 
     $sth->execute();
+
+    print "select p.activeprofile, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'\n";
 
     my $info=$sth->fetchrow_arrayref();
 
@@ -55,9 +58,10 @@ sub collectInfo()
       }
 
     $this->{activeProfile}=$info->[0];
-    $this->{sms}=$info->[1];
-    $this->{lang}=$info->[2];
-    $this->{day}=$info->[3];
+    $this->{lang}=$info->[1];
+    $this->{day}=$info->[2];
+
+    $this->{sms}=system("$NAV::Path::bindir/hasPrivilege.py arneos alerttype sms");
 
     if(!$this->{lang}) {
 	$this->{log}->printlog("User","collectInfo",$Log::error,"no language defined for acountid=$this->{id}");
@@ -121,7 +125,7 @@ sub collectTimePeriod()
     $this->{timePeriod}->{starttime}=$tp->[2];
     my $aEs=$this->{dbh}->selectall_arrayref("select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]");
 
-    print "select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]\n";
+ #   print "select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]\n";
 
     if($DBI::errstr)
       {
@@ -268,11 +272,11 @@ sub checkNewAlerts()
 		}
 		else
 		{
-		    my $k;
-		    my $v;
-		    while (($k, $v) = each(%$ae)) {
-			print "$k=$v\n";
-		    }
+		   # my $k;
+		   # my $v;
+		   # while (($k, $v) = each(%$ae)) {
+			#print "$k=$v\n";
+		#    }
 
 		    #Send alert
 		    $this->sendAlert($this->{nA}->getAlert($c),$ae->{address});
@@ -371,6 +375,7 @@ sub sendsms()
     $this->{log}->printlog("User","sendSMS",$Log::informational,"SMS $to: $msg");
 
     my $severity=$alert->getSeverity();
+
     $this->{dbh}->do("insert into smsq (phone,msg,severity,time) values($to,'$msg',$severity,now())");
 }
 
