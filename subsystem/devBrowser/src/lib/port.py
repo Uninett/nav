@@ -22,7 +22,10 @@ _link = {
 
 def process(request):
     import netbox,module
-    netbox = netbox.findNetbox(request['hostname'])
+    netbox = netbox.findNetboxes(request['hostname'])
+    if len(netbox) > 1:
+        return
+    netbox = netbox[0]
     module = module.findModule(netbox, request['module'])
     port = findPort(module, request['port'])
     request['templatePath'].append((str(netbox), 

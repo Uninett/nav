@@ -7,7 +7,10 @@ import forgetHTML as html
 def process(request):
     # PYTHON IMPORTS ZUCZ=RZZZ!!
     import netbox
-    netbox = netbox.findNetbox(request['hostname'])
+    netbox = netbox.findNetboxes(request['hostname'])
+    if len(netbox) > 1:
+        return
+    netbox=netbox[0]
     module = findModule(netbox, request['module'])
     request['templatePath'].append((str(netbox), 
                                     urlbuilder.createUrl(netbox)))

@@ -151,7 +151,7 @@ class NetboxInfo(manage.Netbox):
         info.add('Ip address', self.showIp())
         info.add('Vlan', self.showVlan())
         info.add('Gateway', self.showGw())
-        info.add('Switch', self.showSw())
+        info.add('Uplink', self.showSw())
         info.add('Category', urlbuilder.createLink(self.cat,
             subsystem="report"))
         if self.type:
