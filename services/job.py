@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.10 2002/06/13 13:08:03 erikgors Exp $
+$Id: job.py,v 1.11 2002/06/13 13:37:52 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -70,7 +70,7 @@ class Socket:
 
 
 class JobHandler:
-	def __init__(self,type,id,address,args,version = '',status = Event.UP):
+	def __init__(self,type,id,address,args,version,status = Event.UP):
 		self.setId(id)
 		self.setType(type)
 		self.setAddress(address)
@@ -216,3 +216,4 @@ class FTP(ftplib.FTP):
 		self.file = self.sock.makefile('rb')
 		self.welcome = self.getresp()
 		return self.welcome
+jobmap = {'http':HttpHandler,'port',PortHandler}
