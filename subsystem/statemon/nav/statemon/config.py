@@ -77,7 +77,7 @@ def serviceconf(*args, **kwargs):
 class _pingconf(Conf):
     _instance=None
     def __init__(self, *args, **kwargs):
-        self._file=kwargs.get('configfile','pinger.conf')
+        self._file=kwargs.get('configfile','pping.conf')
         self.validoptions=[]
         Conf.__init__(self, *args, **kwargs)
 
