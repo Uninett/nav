@@ -1,0 +1,4 @@
+SetHandler python-program
+PythonHandler reports
+PythonInterpreter gartmann_4
+PythonDebug On
