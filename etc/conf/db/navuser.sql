@@ -104,7 +104,7 @@ CREATE TABLE Logg (
 		id integer NOT NULL DEFAULT nextval('loggid'),
        brukerid integer NOT NULL,
        type integer,
-       tid timestamp,       
+       tid timestamptz,       
        descr varchar,
        
        CONSTRAINT loggid_pk PRIMARY KEY(id),     

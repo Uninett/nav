@@ -8,9 +8,6 @@
 
 <?php
 
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
-
 $brukerinfo = $dbh->brukerInfo( session_get('uid') );
 
 if (get_exist('vis') )

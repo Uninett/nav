@@ -19,10 +19,6 @@ if (! $dbkcon = @pg_connect("user=manage dbname=manage password=eganam") ) {
   $error->message = "Kunne ikke koble til database.";
 }
 
-
-
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
 $dbhk = new DBHK($dbkcon);
 
 $brukernavn = session_get('bruker'); $uid = session_get('uid');

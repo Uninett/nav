@@ -15,8 +15,6 @@ loginOrDie();
 <?php
 
 
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
 
 if (get_exist('subaction')) 
 	session_set('subaction', get_get('subaction'));

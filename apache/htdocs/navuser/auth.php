@@ -50,10 +50,7 @@ class Error {
 global $login;
 $login = false;
 
-if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navuser") ) {
-	$error = new Error(2);
-	$error->message = "Kunne ikke koble til database.";
-} else {
+
 
   /*
    * Denne seksjonen omhandler brukere som allerede er innlogget
@@ -79,6 +76,8 @@ if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navuser") ) {
 		if (pg_numrows($query) == 1) {
 			if ( $data = pg_fetch_array($query, $row) ) {
 				// INNLOGGING OK!!
+				$foo =  gethostbyaddr (getenv ("REMOTE_ADDR") );
+				$dbh->nyLogghendelse($data["id"], 1, "Logget inn fra " . $foo);
 				session_set('uid', $data["id"]);
 				session_set('admin', $data["admin"]);
 				session_set('bruker', $username);
@@ -97,10 +96,9 @@ if (! $dbcon = @pg_connect("user=manage password=eganam dbname=navuser") ) {
 
   }
 
-}  
-
 
 if ($action == "logout") {
+	$dbh->nyLogghendelse(session_get('uid'), 2, "Logget ut");
 	$login = false;
 	session_set('login', false);
 }

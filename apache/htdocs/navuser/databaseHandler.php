@@ -107,6 +107,44 @@ ORDER BY " . $sorts[$sort];
 
 
 
+
+  function listLogg($sort) {
+    
+    $logg = NULL;
+    
+    $sorts = array ('Logg.type, tid DESC',
+		    'Bruker.navn, tid DESC',
+		    'tid DESC',
+		    'Logg.descr, tid DESC');
+		    
+	$querystring = "SELECT Logg.type, Logg.descr, date_part('epoch', Logg.tid) AS tid, Bruker.navn 
+FROM Bruker, Logg 
+WHERE (	Bruker.id = Logg.brukerid ) 
+ORDER BY " . $sorts[$sort] . " LIMIT 100";
+
+	//print "<pre>" . $querystring . "</pre>";
+
+    if ( $query = pg_exec($this->connection, $querystring) ) {
+		$tot = pg_numrows($query); $row = 0;
+
+	while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$logg[$row][0] = $data["type"];
+		$logg[$row][1] = $data["descr"];
+		$logg[$row][2] = $data["tid"];
+		$logg[$row][3] = $data["navn"];
+		$row++;
+      } 
+    } 
+    
+    return $logg;
+  }
+
+
+
+
+
+
   function listBrukerGrupper($sort) {
     
     $brukere = NULL;
@@ -1342,6 +1380,29 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
     }
 
   }
+  
+  
+
+  // opprette ny adresse
+  function nyLogghendelse($brukerid, $type, $descr) {
+
+    // Spxrring som legger inn i databasen
+    $querystring = "INSERT INTO Logg (brukerid, type, descr, tid) VALUES (" . 
+    	addslashes($brukerid) . ", " . addslashes($type) .", '" . 
+    	addslashes($descr) . "', current_timestamp )";
+    
+	#print "<p>query: $querystring\n brukerid: $brukerid";
+    if ( $query = pg_exec( $this->connection, $querystring)) {
+      
+		return 1;
+    } else {
+      // fikk ikke til å legge i databasen
+      return 0;
+    }
+
+  }
+  
+  
 
 
   // opprette ny profil

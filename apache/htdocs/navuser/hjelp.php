@@ -19,8 +19,7 @@ loginOrDie();
 
 <?php
 
-#include("databaseHandler.php");
-#$dbh = new DBH($dbcon);
+
 
 ?>
 

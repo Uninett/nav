@@ -14,8 +14,6 @@ loginOrDie();
 
 <?php
 
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
 
 if (get_get('subaction') == 'settaktiv') {
 	$dbh->aktivProfil(session_get('bruker'), get_get('pid') );

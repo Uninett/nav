@@ -13,9 +13,6 @@ loginOrDie();
 
 <?php
 
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
-
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 if (get_get('subaction') == 'endre') {

@@ -16,9 +16,6 @@ Men da må du huske å oppdatere bokmerke på mobilen din.
 
 <?php
 
-include("databaseHandler.php");
-
-$dbh = new DBH($dbcon);
 $uid = session_get('uid');
 
 if ($subaction == 'nykey') {

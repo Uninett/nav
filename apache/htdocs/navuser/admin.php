@@ -16,11 +16,6 @@ loginOrDie();
 <p>
 <?php
 
-include("databaseHandler.php");
-$dbh = new DBH($dbcon);
-
-
-
 if (get_get('subaction') == 'endre') {
 	session_set('endrebrukerid', get_get('cuid'));
 }

@@ -14,10 +14,6 @@ loginOrDie();
 
 <?php
 
-include("databaseHandler.php");
-
-$dbh = new DBH($dbcon);
-
 if (get_get('subaction') == 'endret') {
 
 	if (post_get('aid') > 0) { 

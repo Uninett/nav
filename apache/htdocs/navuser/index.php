@@ -1,6 +1,9 @@
 <?php 
 require("session.php");
+require("databaseHandler.php");
 require("dbinit.php");
+
+
 require("auth.php");
 
 header("Content-Type: text/html; charset=utf-8");
