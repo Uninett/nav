@@ -143,7 +143,7 @@ sub checkAlert()
 	    if($ret==1 && $numExclude==0)
 	      {
 		  $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
-		  return 1
+		  return 1;
 	      }
 	    elsif(!$ret && !$numInclude)
 	      {
@@ -163,9 +163,9 @@ sub checkAlert()
       }
 
     if($ret==0) {
-	$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
-    } else {
 	$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is not in equipmentgroup $eGID");
+    } else {
+	$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
     }
 
     return $ret;
@@ -174,24 +174,28 @@ sub checkAlert()
 sub checkMatch()
   {
     my ($this,$fm,$alert)=@_;
+    my $ret;
+    $ret=0;
 
     #Get correct info from alert
     my $info=$alert->getInfo($fm->{valuename});
 
     if($fm->{datatype}==$this->{datatype}{string}) {
-	return $this->checkString($fm->{type},$fm->{value},$info);
+	$ret=$this->checkString($fm->{type},$fm->{value},$info);
     }
     elsif($fm->{datatype}==$this->{datatype}{int}) {
-	return $this->checkInt($fm->{type},$fm->{value},$info);
+	$ret=$this->checkInt($fm->{type},$fm->{value},$info);
     }
     elsif($fm->{datatype}==$this->{datatype}{ip}) {
-	return $this->checkIP($fm->{type},$fm->{value},$info);
+	$ret=$this->checkIP($fm->{type},$fm->{value},$info);
     }
     else {
-	return $this->checkString($fm->{type},$fm->{value},$info);
+	$ret=$this->checkString($fm->{type},$fm->{value},$info);
     }
 
-    return 0;
+    $this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "datatype=$fm->{datatype} type=$fm->{type} value=$fm->{value} info=$info ret=$ret");
+
+    return $ret;
   }
 
 sub checkString()

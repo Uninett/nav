@@ -88,7 +88,12 @@ sub collectTimePeriod()
     #Collect information about timeperiod
 
     my $tps;
+    if(!$this->{activeProfile}) {
+	return;
+    }
+
     if($this->{day}==0 || $this->{day}==6) {
+	print("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=2 order by starttid desc\n");
 	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=2 order by starttid desc");
     } else {
 	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=3 order by starttid desc");
@@ -350,6 +355,11 @@ sub sendemail()
     my $now=localtime;
     my($subject,$body);
 
+    if(!defined $msg) {
+	$this->{log}->printlog("User","sendEmail",$Log::error,"no msg defined");
+	return;
+    }
+
     $msg=~/^Subject: (.*)\n/;
     $subject=$1;
     $msg=~s/^Subject: (.*)\n//;
@@ -359,8 +369,9 @@ sub sendemail()
 	$this->{log}->printlog("User","sendEmail",$Log::error,"no subject defined");
 	return;
     }
-
+    
     $this->{log}->printlog("User","sendEmail",$Log::informational,"EMAIL $to\tSubject: $subject");
+   
     open(SENDMAIL, "|$this->{sendmail}")
       or die "Can't fork for sendmail: $!\n";
     print SENDMAIL <<"EOF";
@@ -421,7 +432,7 @@ sub checkRights()
 	    if($this->{eG}->checkAlert($eg,$this->{nA}->getAlert($alertid)))
 	      {
 		  #Correct permissions
-		return 1;
+		  return 1;
 	      }
 	  }
       }
@@ -441,6 +452,7 @@ sub checkRights()
 	      return 1;
 	  }
       }
+
     $this->{log}->printlog("User","checkRights",$Log::debugging,"no rights: $alertid");
     return 0;
   }
