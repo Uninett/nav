@@ -91,16 +91,19 @@ class ModuleInfo(manage.Module):
             portView['title'] = ""
             if port.speed:
                 portView['class'] += ' Mb%d' % port.speed
-                titles.append( '%d Mbit' % port.speed)
+                title = '%d Mbit' % port.speed
+                if port.to_netbox:    
+                    title +=' -> %s' % port.to_netbox
+                titles.append(title)    
             if type == 'sw':
                 if port.link == 'd':
-                    portView['class'] += ' disabled'
+                    portView['class'] += 'disabled'
                 elif port.link <> 'y':
-                    portView['class'] += ' passive'
+                    portView['class'] += 'passive'
                     titles.append('not active')
                 if port.trunk:
                     portView['class'] += ' trunk'
-                    titles.append("trunk")
+                    titles.append(", trunk")
                 portView['class'] += ' %sduplex' % port.duplex
                 if port.duplex == 'h':
                     titles.append("half duplex")

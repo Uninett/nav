@@ -132,6 +132,13 @@ class NetboxInfo(manage.Netbox):
         sw = self.getChildren(manage.Swport, 'to_netbox')
         if not sw:
             return 'Unknown'
+        vlans = []
+        for i in sw:
+            vlan = i.vlan
+            if vlan not in vlans:
+                vlans.append(vlan)
+        if len(vlans) > 1:
+            return 'More then one vlan' 
         sw = sw[0]
         swNetbox = sw.module.netbox
         swPort = sw.port
