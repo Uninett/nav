@@ -28,8 +28,9 @@ import psycopg, os, sys
 # contents of the snmpoid table in a format suitable for re-insertion
 # at the same or a different site.
 #
-# Make sure the environment variable PGASSWORD is set before running the script.
-# Should be rewritten to ask for a password if none is known.
+# Make sure the environment variable PGASSWORD is set before running
+# the script.  Should be rewritten to ask for a password if none is
+# known.
 #
 
 dbname = "manage"
@@ -41,7 +42,9 @@ dbpasswd = os.getenv('PGPASSWORD')
 connection = psycopg.connect('host=localhost dbname=%s user=%s password=%s' %
                              (dbname, dbuser, dbpasswd))
 cursor = connection.cursor()
-cursor.execute("SELECT oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex FROM snmpoid")
+cursor.execute("SELECT oidkey, snmpoid, descr, oidsource, getnext, " +
+               "match_regex, decodehex, oidname, mib FROM snmpoid " +
+               "ORDER BY oidkey")
 
 print "BEGIN;"
 for row in cursor.fetchall():
@@ -52,7 +55,8 @@ for row in cursor.fetchall():
         else:
             newrow.append("'%s'" % str(col))
     print "DELETE FROM snmpoid WHERE oidkey=%s;" % newrow[0]
-    print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex)",
+    print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext,",
+    print "match_regex, decodehex, oidname, mib)"
     print "VALUES (%s);" % ",".join(newrow)
     print
     
