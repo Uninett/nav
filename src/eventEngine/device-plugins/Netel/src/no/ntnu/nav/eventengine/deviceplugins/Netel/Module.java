@@ -103,6 +103,13 @@ public class Module extends Device
 		}
 	}
 
+	/**
+	 * Return the deviceid of the box this module is part of.
+	 */
+	public int getParentDeviceid() {
+		return parentDeviceid;
+	}
+
 	public void remove(DeviceDB ddb)
 	{
 		if (parent != null) {
