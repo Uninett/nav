@@ -1,3 +1,10 @@
+"""
+...
+
+$Author: erikgors $
+$Id: main.py,v 1.2 2002/06/06 12:44:58 erikgors Exp $
+$Source: /usr/local/cvs/navbak/navme/services/Attic/main.py,v $
+"""
 import os,sys,time
 import job,threadpool
 

@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.4 2002/06/06 09:19:45 erikgors Exp $
+$Id: job.py,v 1.5 2002/06/06 12:44:58 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys
@@ -15,18 +15,20 @@ class Job:
 	Jobb-klasse som hver enkel "tjeneste"-modul skal extende,
 	den må ha en execute() som returnerer (state,txt)
 
+	sorteres ettersom når den sist ble kjørt (getTimestamp)
+
 	Denne vil koble til en port og lese _en_ linje
 	"""
 	def __init__(self,address):
 		self.setName('generic')
 		self.setAddress(address)
 		self.setStatus('')
-		self.setTimestamp()
+		self.setTimestamp(0)
 		self.setState(())
 	def run(self):
 		start = time.time()
 		state = self.execute()
-		setUsage(time.time()-start)
+		self.setUsage(time.time()-start)
 		
 		if state != self.getState() and self.getState():
 			#forteller databasen at her har det skjedd noe
@@ -34,6 +36,7 @@ class Job:
 		else:
 			self.setState(state)
 		self.setTimestamp()
+		print self.getUsage()
 	def execute(self):
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
@@ -53,14 +56,18 @@ class Job:
 		s.close()
 
 		return state,txt
+	def getUsage(self):
+		return self._usage
+	def setUsage(self,usage):
+		self._usage = usage
 	def getStatus(self):
 		return self._status
 	def setStatus(self,status):
 		self._status = status
 	def getTimestamp(self):
 		return self._timestamp
-	def setTimestamp(self,when = 0):
-		if not when:
+	def setTimestamp(self,when = -1):
+		if when == -1:
 			when = time.time()
 		self._timestamp= when
 	def setState(self,txt):
@@ -82,6 +89,8 @@ class Job:
 			return obj == self.getAddress()
 		else:
 			return self.getName() == obj.getName() and self.getAddress() == obj.getAddress()
+	def __cmp__(self,obj):
+		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
 		i = (self.getName().__hash__() + self.getAddress().__hash__()) % 2**31
 		return int(i)
@@ -105,6 +114,14 @@ class Port(Job):
 			txt = str(sys.exc_type) + str(sys.exc_info()[1].args)
 		s.close()
 		return state,txt
+class Dummy(Job):
+	def __init__(self,address):
+		Job.__init__(self,address)
+		Job.setName(self,'dummy')
+	def execute(self):
+		import random
+		time.sleep(random.random()*10)
+		return OK,'ok'
 
 class Url(Job):
 	def __init__(self,address,type,path = '/'):

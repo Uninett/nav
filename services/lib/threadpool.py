@@ -1,7 +1,10 @@
 """
 threadpool
 
-$Id: threadpool.py,v 1.5 2002/06/06 09:19:45 erikgors Exp $
+$Author: erikgors $
+$Id: threadpool.py,v 1.6 2002/06/06 12:44:58 erikgors Exp $
+$Source: /usr/local/cvs/navbak/navme/services/lib/Attic/threadpool.py,v $
+
 """
 
 import threading,time
@@ -26,6 +29,7 @@ class Worker(threading.Thread):
 		while self.running:
 			self.status = IDLE
 			self.job = jobqueue.get()
+			print self.getName(), 'har fått ny jobb:',self.job
 
 			self.status = WORK
 			result = self.job.run()
