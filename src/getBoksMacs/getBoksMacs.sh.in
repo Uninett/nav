@@ -44,7 +44,7 @@ if [ -z `getpid` ] || [ -f $JOB_FINISHED ]; then
     # Check again that getBoksMacs is not already running
     if [ -z `getpid` ]; then
         # Now run script
-	$JAVA_HOME/bin/java -cp "getBoksMacs.jar:$CLASSPATH" getBoksMacs $1 >> "$LOG_DIR/getBoksMacs.log" &
+	$JAVA_HOME/bin/java -Xmx268435456 -cp "getBoksMacs.jar:$CLASSPATH" getBoksMacs $1 >> "$LOG_DIR/getBoksMacs.log" &
 	pidno="$!"
 	echo $pidno >$PIDFILE
 	wait $pidno
