@@ -363,6 +363,17 @@ public class GwportHandler implements DataHandler {
 							Database.insert("gwportprefix", ins2);
 							
 						} else {
+							// Insert into gwportprefix
+							Log.d("APPEND_TO_PREFIX", "Prefix: " + p);
+							
+							String[] ins = {
+								"gwportid", gwportid,
+								"prefixid", (String)prefixMap.get(p.getCidr()),
+								"gwip", gp.getGwip(),
+								"hsrp", gp.getHsrp()?"t":"f"
+							};
+							Database.insert("gwportprefix", ins);
+
 							// FIXME
 							/*
 							vlanid = oldgwp.getVlanidS();
