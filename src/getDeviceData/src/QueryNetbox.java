@@ -10,6 +10,7 @@ import no.ntnu.nav.logger.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.event.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
@@ -73,6 +74,9 @@ public class QueryNetbox extends Thread
 		nbMap = new HashMap();
 		nbRunQ = new TreeMap();
 		oidQ = new LinkedList();
+
+		// Create the EventListener
+		EventQ.addEventQListener("getDeviceData", new EventListener());
 
 		timer = new Timer();
 		updateDataTimer = new Timer();
@@ -162,7 +166,7 @@ public class QueryNetbox extends Thread
 				// Try to get a free thread
 				String tid = requestThread();
 				if (tid == null) {
-					Log.d("CHECK_RUN_Q", "oidQ not empty, but to thread available");
+					Log.d("CHECK_RUN_Q", "oidQ not empty, but no thread available");
 					oidQ.addFirst(updateO);
 					return;
 				}
@@ -566,7 +570,7 @@ public class QueryNetbox extends Thread
 				// Find handlers for this boks
 				DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("  No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type);
+					throw new NoDeviceHandlerException("  No device handlers found for netbox: " + netboxid + " (cat: " + cat + " type: " + type + ")");
 				}
 
 				Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
@@ -773,6 +777,39 @@ public class QueryNetbox extends Thread
 		public void run() {
 			Log.setDefaultSubsystem("CHECK_RUN_Q");
 			checkRunQ();
+		}
+	}
+
+	static class EventListener implements EventQListener {
+		public void handleEvent(Event e) {
+			Log.setDefaultSubsystem("HANDLE_EVENT");		
+
+			switch (e.getSubid()) {
+			case '0':
+				// Dump runq
+				synchronized (nbRunQ) {
+					Log.d("RUNQ", "Dumping runQ: " + nbRunQ.size() + " entries"); 
+					for (Iterator it=nbRunQ.entrySet().iterator(); it.hasNext();) {
+						Map.Entry me = (Map.Entry)it.next();
+						Log.d("RUNQ", me.getKey() + ": " + me.getValue());
+					}
+				}
+				break;
+
+			case '1':
+				// Update types/netboxes
+				Log.d("UPDATE", "Updating types/netboxes");
+				updateTypes(false);
+				updateNetboxes();
+				break;
+
+			default:
+				Log.d("DEFAULT", "Unknown event: " + e);
+				break;
+			}
+
+			e.dispose();
+
 		}
 	}
 
