@@ -417,13 +417,17 @@ public class SimpleSnmp
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
-		if (baseOid == null) return null;
+		if (baseOid == null) {
+			getCnt = 0;
+			return null;
+		}
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
 		ArrayList l = new ArrayList();
 		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
 		if (cache.containsKey(cacheKey)) {
 			l.addAll((Collection)cache.get(cacheKey));
+			getCnt = 0;
 			return l;
 		}
 
