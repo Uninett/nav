@@ -24,7 +24,7 @@ if ( get_exist('fid') ) {
 	session_set('match_fid', get_get('fid') );
 }
 
-            if (!$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
+            if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get('uid'), session_get('match_fid') ) ) {
                 echo "<h2>Security violation</h2>";
                 exit(0);
             }

@@ -1,4 +1,6 @@
 <?php
+error_reporting(0);
+
 	header("Content-type: text/vnd.wap.wml");  
 
 	print '<?xml version="1.0" encoding="UTF-8"?>'; 

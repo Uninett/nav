@@ -104,7 +104,7 @@ if (session_get('subaction') == 'velge') {
 ?>
 
 <form name="brukertilgruppe" method="post" action="index.php?subaction=valgt">	
-<?
+<?php
 	
 		print $l->getHTML();
 		print '<p align="right"><input type="submit" name="Submit" value="' . gettext("Meld på valgte brukergrupper") . '"></form>';
