@@ -6,6 +6,8 @@ public class Type
 	public static final int CS_AT_VLAN_FALSE = 1;
 	public static final int CS_AT_VLAN_UNKNOWN = 2;
 
+	public static final String UNKNOWN_TYPEID = "-1";
+
 	private String typeid;
 	private String typename;
 	private String vendor;
@@ -30,7 +32,7 @@ public class Type
 		if (!uptodate) dirty = true;
 	}
 
-	String getTypeid() {
+	public String getTypeid() {
 		return typeid;
 	}
 

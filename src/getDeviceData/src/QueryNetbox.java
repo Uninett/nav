@@ -25,6 +25,8 @@ public class QueryNetbox extends Thread
 	private static Map dataClassMap, deviceClassMap;
 
 	private static Timer timer;
+	private static Timer updateDataTimer;
+	private static int updateDataInterval;
 	private static CheckRunQTask checkRunQTask;
 
 	private static Map typeidMap;
@@ -57,8 +59,9 @@ public class QueryNetbox extends Thread
 	Object oidUpdObj;
 
 	// Static init
-	public static void init(int numThreads, int updateDataInterval, ConfigParser cp, Map dataCM, Map deviceCM, String qnb) {
+	public static void init(int numThreads, int updateDataIntervalI, ConfigParser cp, Map dataCM, Map deviceCM, String qnb) {
 		maxThreadCnt = numThreads;
+		updateDataInterval = updateDataIntervalI;
 		navCp = cp;
 		dataClassMap = dataCM;
 		deviceClassMap = deviceCM;
@@ -68,19 +71,55 @@ public class QueryNetbox extends Thread
 		nbMap = new HashMap();
 		nbRunQ = new TreeMap();
 		oidQ = new LinkedList();
+
+		createUnknownType();
 		
 		// Fetch from DB
 		updateTypes(false);
 		updateNetboxes();
 
 		// Schedule fetch updates
-		Timer updateDataTimer = new Timer();
 		Log.d("INIT", "Starting timer for data updating");
-		updateDataTimer.schedule(new UpdateDataTask(), updateDataInterval, updateDataInterval);
+		updateDataTimer = new Timer();
+		scheduleUpdateNetboxes(updateDataInterval);
 
 		Log.d("INIT", "Starting timer for netbox query scheduling");
 		timer = new Timer();
 		timer.schedule( checkRunQTask = new CheckRunQTask(), 0);
+
+	}
+
+	private static void scheduleUpdateNetboxes(long l) {
+		synchronized (updateDataTimer) {
+			updateDataTimer.cancel();
+			updateDataTimer = new Timer();
+			updateDataTimer.schedule(new UpdateDataTask(), l, updateDataInterval);
+			Log.d("QUERY_NETBOX", "SCHEDULE_UPDATE_NETBOXES", "Schedule for immediate execution");
+		}
+	}
+
+	private static void createUnknownType() {
+		// The unknown type is used for netboxes with missing type and only supports the 'typeoid' oidkey
+		String typeid = Type.UNKNOWN_TYPEID;
+		String typename = "unknownType";
+		String vendorid = "unknownVendor";
+		int csAtVlan = Type.CS_AT_VLAN_UNKNOWN;
+		boolean uptodate = true;
+		Map keyFreqMap = new HashMap();
+		Map keyMap = new HashMap();
+
+		// Add the 'typeoid' oidkey
+		try {
+			ResultSet rs = Database.query("SELECT oidkey,snmpoid FROM snmpoid WHERE oidkey='typeoid'");
+			rs.next();
+			keyFreqMap.put(rs.getString("oidkey"), new Integer(Integer.MAX_VALUE));
+		} catch (SQLException e) {
+			Log.d("QUERY_NETBOX", "CREATE_UNKNOWN_NETBOX", "Missing typeoid from snmpoid, cannot update types!");
+			return;
+		}
+
+		Type t = new Type(typeid, typename, vendorid, csAtVlan, uptodate, keyFreqMap, keyMap);
+		typeidMap.put(typeid, t);
 
 	}
 
@@ -253,7 +292,7 @@ public class QueryNetbox extends Thread
 		}
 	}
 
-	private static void updateNetboxesWithNewTypes() {
+	private static synchronized void updateNetboxesWithNewTypes() {
 		for (Iterator it = nbMap.values().iterator(); it.hasNext();) {
 			NetboxImpl nb = (NetboxImpl)it.next();
 			Type t = (Type)typeidMap.get(nb.getTypeT().getTypeid());
@@ -275,7 +314,7 @@ public class QueryNetbox extends Thread
 			ResultSet rs = Database.query("SELECT netboxid,COUNT(*) AS numInStack FROM module GROUP BY netboxid HAVING COUNT(*) > 1");
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
-			String sql = "SELECT ip,ro,deviceid,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
+			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y'";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
 			sql += " ORDER BY random() * netboxid";
 			//sql += " LIMIT 1000";
@@ -286,6 +325,7 @@ public class QueryNetbox extends Thread
 			while (rs.next()) {
 				String netboxid = rs.getString("netboxid");
 				String typeid = rs.getString("typeid");
+				if (typeid == null) typeid = Type.UNKNOWN_TYPEID;
 				Type t = (Type)typeidMap.get(typeid);
 				if (t == null) {
 					Log.d("UPDATE_NETBOXES", "Skipping netbox " + rs.getString("sysname") +
@@ -484,6 +524,7 @@ public class QueryNetbox extends Thread
 
 					try {
 						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
+						if (nb.isRemoved()) break;
 
 					} catch (TimeoutException te) {
 						Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
@@ -500,27 +541,23 @@ public class QueryNetbox extends Thread
 
 				}
 
-				// Call the data handlers for all data plugins
-				try { 
-					containers.callDataHandlers(nb);
-				} catch (Exception exp) {
-					Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
-					exp.printStackTrace(System.err);
-				} catch (Throwable e) {
-					Log.w("RUN", "Fatal error from datahandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
-					e.printStackTrace(System.err);
+				if (!nb.isRemoved()) {
+					// Call the data handlers for all data plugins
+					try { 
+						containers.callDataHandlers(nb);
+					} catch (Exception exp) {
+						Log.w("RUN", "Fatal error from datahandler, skipping. Exception: " + exp.getMessage());
+						exp.printStackTrace(System.err);
+					} catch (Throwable e) {
+						Log.w("RUN", "Fatal error from datahandler, plugin is probably old and needs to be updated to new API: " + e.getMessage());
+						e.printStackTrace(System.err);
+					}
 				}
 				
 			} catch (NoDeviceHandlerException exp) {
 				Log.d("RUN", exp.getMessage());
 			}
 			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
-			Log.d("RUN", "Done processing netbox " + nb);
-
-			long pc = ++nbProcessedCnt;
-			if ((pc % 100) == 0) {
-				Log.i("RUN", "** Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ") **");
-			}
 
 			// If netbox is removed, don't add it to the RunQ
 			if (!nb.isRemoved()) {
@@ -528,6 +565,17 @@ public class QueryNetbox extends Thread
 				
 				// Insert into queue
 				addToRunQ(nb);
+
+				Log.d("RUN", "Done processing netbox " + nb);
+
+			} else {
+				Log.d("RUN", "Done, netbox is removed: " + nb);
+				if (nb.needUpdateNetboxes()) scheduleUpdateNetboxes(0);
+			}
+
+			long pc = ++nbProcessedCnt;
+			if ((pc % 100) == 0) {
+				Log.i("RUN", "** Processed " + pc + " netboxes (" + (pc%(netboxCnt+1)) + " of " + netboxCnt + ") **");
 			}
 
 			// Try to get a new netbox to process

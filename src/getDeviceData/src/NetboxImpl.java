@@ -18,6 +18,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	private int numInStack;
 
 	private boolean removed;
+	private boolean updateNetboxes;
 
 	// Shared
 	Type t;
@@ -215,6 +216,13 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	// Remove this netbox
 	void remove() { removed = true; }
+
+	boolean needUpdateNetboxes() { return updateNetboxes; }
+
+	public void remove(boolean updateNetboxes) {
+		this.updateNetboxes = updateNetboxes;
+		remove();
+	}
 
 	public String toString() {
 		return "Netbox: " + getSysname();
