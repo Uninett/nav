@@ -11,11 +11,11 @@ package AlertEngine;
 use strict;
 use diagnostics;
 use POSIX qw(setsid);
+use IO::Handle;
 
 use Engine;
 
-BEGIN {require "alertengine.cfg";}
-
+#BEGIN {require "alertengine.cfg";}
 
 ####################################################
 ## Engine 
@@ -24,7 +24,7 @@ BEGIN {require "alertengine.cfg";}
 
 sub runEngine() {
 
-	my $e = Engine->new($cfg);
+	my $e = Engine->new($Log::cfg);
 	$e->run();
 
 }
@@ -34,8 +34,10 @@ sub runEngine() {
 ####################################################
 
 sub launch() {
+    my $logfile=shift;
+    my $pidfile=shift;
 
-	if (-f '/tmp/alertengine.pid') {
+	if (-f $pidfile) {
 		print "It seems like alertengine is already running.\n";
 		exit(0);
 	}
@@ -49,15 +51,18 @@ sub launch() {
 	open STDIN, '/dev/null' ||
 		die "Can't read /dev/null: $!";
 		
-	open STDOUT, '>>/tmp/alertengine.debug' || 
+	open STDOUT, '>> '.$logfile || 
 		die "Can't write to /dev/null: $!";
 	
-	open STDERR, '>>/tmp/alertengine.debug' || 
+	open STDERR, '>> '.$logfile || 
 		die "Can't write to /dev/null: $!";
 
+    select(STDOUT);
+    
 	my $pid = 0;
 	if ($pid = fork()) {
-		open pid_file, '>/tmp/alertengine.pid';
+	    print "PID: $pidfile\n";
+		open pid_file, '> '.$pidfile || die "Could not open pid file $pidfile";
 		print pid_file $pid . " " . time();
 		close(pid_file);
 		exit(0);
@@ -98,14 +103,14 @@ sub datediff() {
 }
 
 sub stop() {
-
-	if (-f '/tmp/alertengine.pid') {
-		open pid_file, '</tmp/alertengine.pid' ||
+    my $pidfile=shift;
+	if (-f $pidfile) {
+		open pid_file, '< '.$pidfile ||
 			die "Cannot open pidfile";
 		my ($pid, $tid) = split / /, <pid_file>;
 		close(pid_file);
 		my $dif = time() - $tid;
-		unlink('/tmp/alertengine.pid') ||
+		unlink($pidfile) ||
 			die "Could not delete pidfile\n";
 		print "Trying to stop alertengine. It has been running for " . &datediff($dif) . ".\n";
 		print "Please wait for it to gracefully flush queue to database etc...\n";
@@ -124,8 +129,9 @@ sub stop() {
 
 
 sub status() {
-	if (-f '/tmp/alertengine.pid') {
-		open pid_file, '</tmp/alertengine.pid' ||
+    my $pidfile=shift;
+	if (-f $pidfile) {
+		open pid_file, '< '.$pidfile ||
 			die "Cannot open pidfile";
 		my ($pid, $tid) = split / /, <pid_file>;
 		close(pid_file);
@@ -144,12 +150,13 @@ sub status() {
 ####################################################
 
 $_ = shift @ARGV || 'start';
+my $pidfile=$Log::cfg->{pidfile};
 
 SWITCH : {
-    /^start$/ && do { &launch(); last; };
-    /^restart$/ && do { &stop(); &launch(); last; };
-    /^stop$/ && do { &stop(); last; };
-    /^status$/ && do { &status(); last; };    
+    /^start$/ && do { &launch($Log::cfg->{logfile},$pidfile); last; };
+    /^restart$/ && do { &stop($pidfile); &launch($Log::cfg->{logfile},$pidfile); last; };
+    /^stop$/ && do { &stop($pidfile); last; };
+    /^status$/ && do { &status($pidfile); last; };    
     print <<END
 Usage: alertengine.pl [option]
 

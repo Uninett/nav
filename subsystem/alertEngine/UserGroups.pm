@@ -8,6 +8,7 @@
 package UserGroups;
 
 use strict;
+use Log;
 
 sub new
 #Constructor
@@ -15,6 +16,8 @@ sub new
     my $this={};
     shift;
     $this->{dbh}=shift;
+
+    $this->{log}=Log->new();
     bless $this;
 
     $this->collectInfo();
@@ -25,23 +28,23 @@ sub collectInfo()
 #Collects all relevant information
 #Returns true if successful.
   {
-    my $self=shift;
+    my $this=shift;
 
-    my $ugs=$self->{dbh}->selectall_arrayref("select id from brukergruppe");
+    my $ugs=$this->{dbh}->selectall_arrayref("select id from accountgroup");
 
     if($DBI::errstr)
       {
-	print "ERROR: could not get list of user groups\n";
+	  $this->{log}->printlog("UserGroups","collectInfo",$Log::error,"could not get list of account groups");
 	return 0;
       }
 
     foreach my $ug (@$ugs)
       {
-	my $egs=$self->{dbh}->selectall_arrayref("select ug.id from utstyrgruppe ug,rettighet r,brukergruppe bg where bg.id=r.brukergruppeid and r.utstyrgruppeid=ug.id and bg.id=$ug->[0]") || print "ERROR: could not get list of equipment groups";
+	my $egs=$this->{dbh}->selectall_arrayref("select ug.id from utstyrgruppe ug,rettighet r,accountgroup bg where bg.id=r.accountgroupid and r.utstyrgruppeid=ug.id and bg.id=$ug->[0]") || $this->{log}->printlog("UserGroups","collectInfo",$Log::error,"could not get list of equipment groups");
 	
 	if($DBI::errstr)
 	  {
-	    print "ERROR: could not get list of equipment groups\n";
+	      $this->{log}->printlog("UserGroups","collectInfo",$Log::error,"could not get list of equipment groups");
 	    return 0;
 	  }
 	
@@ -52,15 +55,15 @@ sub collectInfo()
 	    push @$list,$eg->[0];
 	  }
 	
-	$self->{info}[$ug->[0]]->{permissions}=$list;
+	$this->{info}[$ug->[0]]->{permissions}=$list;
       }
     return 1;
   }
 
 sub getEquipmentGroups()
   {
-    my ($self,$userGroup)=@_;
-    return $self->{info}[$userGroup]->{permissions};
+    my ($this,$userGroup)=@_;
+    return $this->{info}[$userGroup]->{permissions};
   }
 
 1;

@@ -11,6 +11,8 @@ require AlertsBase;
 
 use strict;
 use Exporter;
+use Log;
+
 use vars qw(@ISA);
 @ISA=qw(AlertsBase);
 
@@ -20,7 +22,7 @@ sub new
     my $class=shift;
     my $this={};
     $this->{dbh}=shift;
-
+    $this->{log}=Log->new();
     bless $this,$class;
     $this->collectInfo();
     return $this;
@@ -50,6 +52,8 @@ sub collectInfo()
 	$this->{lastid}=$id->[0];
 	$num++;
       }
+
+    $this->{log}->printlog("NewAlerts","collectInfo",$Log::debugging, "found $num new alerts");
   }
 
 sub finished()

@@ -8,7 +8,8 @@
 package EquipmentGroups;
 
 use strict;
-use NetAddr::IP;
+use IP;
+use Log;
 
 #my $dbh;
 #my %info;
@@ -21,12 +22,9 @@ sub new
     $this->{dbh}=shift;
 
     #Access control fields
-    $this->{field}{Netboxtype}=3;
-    $this->{field}{Severity}=5;
-    $this->{field}{IP}=6;
-    $this->{field}{Name}=7;
-    $this->{field}{Source}=10;
-    $this->{field}{Eventtype}=11;
+    $this->{datatype}{string}=0;
+    $this->{datatype}{int}=1;
+    $this->{datatype}{ip}=2;
     
     #Access control type
     $this->{type}{eq}=0;
@@ -35,7 +33,7 @@ sub new
     $this->{type}{less}=3;
     $this->{type}{lesseq}=4;
     $this->{type}{neq}=5;
-
+    $this->{log}=Log->new();
     bless $this;
     $this->collectInfo();
     return $this;
@@ -47,22 +45,22 @@ sub collectInfo()
   {
     my $this=shift;
 
-    my $egs=$this->{dbh}->selectall_arrayref("select id,brukerid from utstyrgruppe");
+    my $egs=$this->{dbh}->selectall_arrayref("select id,accountid from utstyrgruppe");
 
     if($DBI::errstr)
       {
-	print "ERROR: could not get list of equipment groups\n";
+	$this->{log}->printlog("EquipmentGroups","collectInfo",$Log::error,"could not get list of equipment groups");
 	return 0;
       }
 
     foreach my $eg (@$egs)
       {
 	$this->{info}[$eg->[0]]->{user}=$eg->[1];
-	my $efs=$this->{dbh}->selectall_arrayref("select uf.id, uf.brukerid, gtf.inkluder, gtf.prioritet from utstyrgruppe ug,gruppetilfilter gtf, utstyrfilter uf where ug.id=$eg->[0] and ug.id=gtf.utstyrgruppeid and uf.id=gtf.utstyrfilterid order by gtf.prioritet");
+	my $efs=$this->{dbh}->selectall_arrayref("select uf.id, uf.accountid, gtf.inkluder, gtf.prioritet from utstyrgruppe ug,gruppetilfilter gtf, utstyrfilter uf where ug.id=$eg->[0] and ug.id=gtf.utstyrgruppeid and uf.id=gtf.utstyrfilterid order by gtf.prioritet");
 	
 	if($DBI::errstr)
 	  {
-	    print "ERROR: could not get list of equipment filters\n";
+	      $this->{log}->printlog("EquipmentGroups","collectInfo",$Log::error,"could not get list of equipment filters\n");
 	    return 0;
 	  }
 
@@ -73,11 +71,11 @@ sub collectInfo()
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{included}=$ef->[2];
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{priority}=$ef->[3];
 
-	    my $fms=$this->{dbh}->selectall_arrayref("select fm.id,fm.matchfelt,fm.matchtype,fm.verdi from filtermatch fm,utstyrfilter uf where fm.utstyrfilterid=uf.id and uf.id=$ef->[0]");
+	    my $fms=$this->{dbh}->selectall_arrayref("select fm.id,fm.matchfelt,fm.matchtype,fm.verdi,mf.valueid,mf.valuename,mf.datatype from filtermatch fm,utstyrfilter uf,matchfield mf where fm.utstyrfilterid=uf.id and uf.id=$ef->[0] and fm.matchfelt=mf.matchfieldid");
 	
 	    if($DBI::errstr)
 	      {
-		print "ERROR: could not get list of equipment filters\n";
+		  $this->{log}->printlog("EquipmentGroups","collectInfo",$Log::error,"could not get list of equipment filters\n");
 		return 0;
 	      }
 	
@@ -87,6 +85,9 @@ sub collectInfo()
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{field}=$fm->[1];
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{type}=$fm->[2];
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{value}=$fm->[3];
+		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{valueid}=$fm->[4];
+		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{valuename}=$fm->[5];
+		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{datatype}=$fm->[6];
 		$c2++;
 	      }
 	    $c++;
@@ -102,6 +103,9 @@ sub checkAlert()
     my ($this,$eGID,$alert)=@_;
 
     my $filters=$this->{info}[$eGID]->{filters};
+
+    my $alertid=$alert->getID();
+    $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "checking to see if alertid $alertid is in equipmentgroup $eGID");
 
     #Get numExclude and numInclude
     my $numExclude=0;
@@ -138,11 +142,13 @@ sub checkAlert()
 	
 	    if($ret==1 && $numExclude==0)
 	      {
-		return 1
+		  $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
+		  return 1
 	      }
 	    elsif(!$ret && !$numInclude)
 	      {
-		return 0;
+		  $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is not in equipmentgroup $eGID");
+		  return 0;
 	      }
 
 	    if($ef->{included})
@@ -155,43 +161,42 @@ sub checkAlert()
 	      }
 	  }
       }
+
+    if($ret==0) {
+	$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
+    } else {
+	$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is not in equipmentgroup $eGID");
+    }
+
     return $ret;
   }
 
 sub checkMatch()
   {
     my ($this,$fm,$alert)=@_;
-    if($fm->{field}==$this->{field}{IP})
-    {
-	return $this->checkIP($fm->{type},$fm->{value},$alert->getIP());
+
+    #Get correct info from alert
+    my $info=$alert->getInfo($fm->{valuename});
+
+    if($fm->{datatype}==$this->{datatype}{string}) {
+	return $this->checkString($fm->{type},$fm->{value},$info);
     }
-    elsif($fm->{field}==$this->{field}{Source})
-    {
-	return $this->checkName($fm->{type},$fm->{value},$alert->getSource());
+    elsif($fm->{datatype}==$this->{datatype}{int}) {
+	return $this->checkInt($fm->{type},$fm->{value},$info);
     }
-    elsif($fm->{field}==$this->{field}{Severity})
-    {
-	return $this->checkInt($fm->{type},$fm->{value},$alert->getSeverity());
+    elsif($fm->{datatype}==$this->{datatype}{ip}) {
+	return $this->checkIP($fm->{type},$fm->{value},$info);
     }
-    elsif($fm->{field}==$this->{field}{Name})
-    {
-	return $this->checkName($fm->{type},$fm->{value},$alert->getName());
+    else {
+	return $this->checkString($fm->{type},$fm->{value},$info);
     }
-    elsif($fm->{field}==$this->{field}{Eventtype})
-    {
-	return $this->checkString($fm->{type},$fm->{value},$alert->getEventtype());
-    }
-    elsif($fm->{field}==$this->{field}{Netboxtype})
-    {
-	return $this->checkInt($fm->{type},$fm->{value},$alert->getNetboxtype());
-    }
+
     return 0;
   }
 
 sub checkString()
 {
     my ($this,$type,$value,$str)=@_;
-
     my $match=0;
 
     if($value eq $str) {
@@ -243,7 +248,7 @@ sub checkInt()
 }
 
 
-sub checkName()
+sub checkStringRegExp()
 {
     my ($this,$type,$value,$name)=@_;
     
@@ -296,6 +301,7 @@ sub checkIP()
 	    }
 	}
     }
+
 
     if($type==$this->{type}{eq})
     {

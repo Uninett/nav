@@ -10,18 +10,18 @@
 
 package Engine;
 
-use lib '/home/arneos/perl/lib/perl5/site_perl/5.8.0/i386-linux-thread-multi';
+#use lib '/home/arneos/perl/lib/perl5/site_perl/5.8.0/i386-linux-thread-multi';
 
 use strict 'vars';
 use diagnostics;
 use DBI;
 use UserGroups;
 use Alert;
+use QueuedAlerts;
 use EquipmentGroups;
 use NewAlerts;
 use User;
-
-use Data::Dumper;
+use Log;
 
 # Konstruktor..
 sub new {
@@ -29,20 +29,23 @@ sub new {
 	my $this = {};
 	# oppretter en databaseforbindelse til profildatabasen
 	                              # db host name passwd
-	bless $this,$class;
-
-	$this->{dbh_user} = DBI->connect("dbi:Pg:dbname=$cfg->{db_usersdb};host='$cfg->{db_host}'",$cfg->{db_user}, $cfg->{db_passwd}, undef) || die $DBI::errstr;
-	$this->{dbh_alert} = DBI->connect("dbi:Pg:dbname='$cfg->{db_alertdb}';host='$cfg->{db_host}'", $cfg->{db_user}, $cfg->{db_passwd}, undef) || die $DBI::errstr;
+	$this->{dbh_user} = DBI->connect("dbi:Pg:dbname=$cfg->{usersdb_name};host='$cfg->{usersdb_host}'",$cfg->{usersdb_loginname}, $cfg->{usersdb_passwd}, undef) || die $DBI::errstr;
+	$this->{dbh_alert} = DBI->connect("dbi:Pg:dbname='$cfg->{alertdb_name}';host='$cfg->{alertdb_host}'", $cfg->{alertdb_loginname}, $cfg->{alertdb_passwd}, undef) || die $DBI::errstr;
 
 	$this->{cfg}=$cfg;
+	$this->{log}=Log->new();
+
+	bless $this,$class;                                          
+
 	return $this;
 }
 
 # Sletter PID-filen.
 sub delete_pidfile() {
-	if (-f '/tmp/alertengine.pid') {
-		unlink('/tmp/alertengine.pid');
-	}
+    my $pidfile=shift;
+    if (-f $pidfile) {
+	unlink($pidfile);
+    }
 }
 
 # funksjon som kalles nŒr daemonen kj¿res ned..
@@ -52,8 +55,8 @@ sub shutdownConstruct() {
 	# returnerer en lukning (closure) som inneholder referanse til riktig Engine::objekt.
 	return sub {
 		my $signal_recv = shift;
-		&delete_pidfile;
-		print  "Got signal :" . $signal_recv . ":! nice shutdown.\n\n";
+		&delete_pidfile($this->{cfg}->{pidfile});
+		$this->{log}->printlog("Engine","shutdownConstruct",$this->{log}->{informational}, "Got signal :" . $signal_recv . ":! nice shutdown.");
 		
 		$this->disconnectDB();
 
@@ -78,24 +81,23 @@ sub checkAlerts()
     my $num=$nA->getAlertNum();
     my $uG=undef;
     my $eG=undef;
-    if($num)
-      {
-	$uG=UserGroups->new($this->{dbh_user});
-	$eG=EquipmentGroups->new($this->{dbh_user});
-      }
+    if(!defined $num) {
+	$num=0;
+    }
 
-#    my $list=$uG->getEquipmentGroups(1);
-#    for my $l (@$list)
-#      {
-#	print "1 $l\n";
-			  #      }
+    $uG=UserGroups->new($this->{dbh_user});
+    $eG=EquipmentGroups->new($this->{dbh_user});
+  
+    #Collect infor about queued alerts
+    my $qa=QueuedAlerts->new($this->{dbh_alert},$this->{dbh_user});
 
-    #Get list us users
-    my $users=$this->{dbh_user}->selectall_arrayref("select id from bruker where aktivprofil is not NULL") || print "ERROR: could not get list of active users";
-    foreach my $userid (@$users)
+    #Get list of users
+    my $users=$this->{dbh_user}->selectall_arrayref("select id from account a, preference p where a.id=p.accountid and p.activeprofile is not NULL") || $this->{log}->printlog("Engine","checkAlerts",$Log::error, "could not get list of active users");
+
+   foreach my $userid (@$users)
       {
 	my $user=User->new($userid->[0],$this->{dbh_user},$this->{cfg});
-	$user->checkAlertQueue();
+	$user->checkAlertQueue($qa,$eG);
 	if($num)
 	  #If there are new active alarts
 	  {
@@ -136,9 +138,9 @@ sub run() {
 		my $tdiff = $te - $tf;
 		#print "Elapsed time alertsession: " . $tdiff . " seconds.\n\n\n";
 		
-		open var_dump, '>/tmp/vardump.txt';
-		print  var_dump Dumper($this);
-		close (var_dump);
+#		open var_dump, '>/tmp/vardump.txt';
+#		print  var_dump Dumper($this);
+#		close (var_dump);
 		sleep($this->{cfg}->{sleep});
 	}
 }
