@@ -1,0 +1,78 @@
+"""
+$Id$
+
+This file id part of the NAV project.
+
+Contains a class for a searchbox
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+"""
+
+import nav.db.manage
+
+# Class for displaying a search box
+class SearchBox:
+    formCname = 'sb_form'
+    inputCname = 'sb_input'
+    typeCname = 'sb_searchtype'
+
+    method = 'post'
+    title = 'Search'
+    inputSize = '10'
+
+    def __init__(self,req,help,title=None):
+        if title:
+            self.title = title
+
+        self.help = help
+        self.error = None
+        self.result = None
+        self.searches = {}
+    
+        self.selected = None
+        if req.form.has_key(self.typeCname):
+            self.selected = req.form[self.typeCname]
+
+    def addSearch(self,sid,name,table,columns,where=None,call=None):
+        " Adds a new search type to the searchbox "
+        self.searches[sid] = (name,table,columns,where,call)
+
+    def getResults(self,req):
+        " Returns the results from the source as a dict "
+        results = {}
+        for sid,options in self.searches.items():
+            name,table,columns,where,call = options
+            for key,columns in columns.items():
+                results[key] = []
+
+        if req.form.has_key(self.typeCname):
+            for sid,options in self.searches.items():
+                if req.form[self.typeCname] == sid:
+                    name,table,columns,where,call = options
+                    db = getattr(nav.db.manage,table)
+
+                    if req.form.has_key(self.inputCname):
+                        input = req.form[self.inputCname]
+                        if where:
+                            where = where % (input,)
+                        else:
+                            (success,val) = call(input)
+                            if success:
+                                where = val
+                            else:
+                                raise(val)
+
+                    for entry in db.getAllIterator(where=where):
+                        for key,column in columns.items():
+                            value = entry
+                            
+                            for c in column:
+                                value = getattr(value,c)
+                            if type(value) not in (list, str, int):
+                                # a bit ugly, but we must ensure that we use the
+                                # id field
+                                results[key].append(value._getID()[0])
+                            else:
+                                results[key].append(str(value))
+        return results
