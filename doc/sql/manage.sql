@@ -390,20 +390,28 @@ CREATE TABLE swportblocked (
   PRIMARY KEY(swportid, vlan)
 );
 
-
-CREATE TABLE port2off (
-  swportid INT4 REFERENCES swport(swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  roomid VARCHAR(30) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
-  socket VARCHAR NOT NULL,
-  office VARCHAR,
-  PRIMARY KEY(roomid, socket)
-);
-
 CREATE TABLE alertengine (
 	lastalertqid integer
 );
 
 INSERT INTO alertengine (lastalertqid) values(0);
+
+CREATE TABLE cabling (
+  cablingid SERIAL PRIMARY KEY,
+  roomid VARCHAR(30) NOT NULL REFERENCES room ON UPDATE CASCADE ON DELETE CASCADE,
+  jack INT2 NOT NULL,
+  building VARCHAR NOT NULL,
+  tagetroom VARCHAR NOT NULL,
+  descr VARCHAR NOT NULL,
+  category VARCHAR NOT NULL,
+UNIQUE(roomid,jack));
+
+CREATE TABLE patch (
+  patchid SERIAL PRIMARY KEY,
+  swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
+  cablingid INT4 NOT NULL REFERENCES cabling ON UPDATE CASCADE ON DELETE CASCADE,
+  split VARCHAR NOT NULL DEFAULT 'no',
+UNIQUE(swportid,cablingid));
 
 
 ------------------------------------------------------------------
