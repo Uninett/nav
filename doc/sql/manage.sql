@@ -75,8 +75,8 @@ CREATE TABLE status (
 ------------------------------------------------------------------------------------------
 
 CREATE TABLE org (
-  orgid VARCHAR(10) PRIMARY KEY,
-  parent VARCHAR(10) REFERENCES org (orgid),
+  orgid VARCHAR(30) PRIMARY KEY,
+  parent VARCHAR(30) REFERENCES org (orgid),
   descr VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
@@ -85,19 +85,19 @@ CREATE TABLE org (
 
 
 CREATE TABLE usage (
-  usageid VARCHAR(10) PRIMARY KEY,
+  usageid VARCHAR(30) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
 
 
 CREATE TABLE location (
-  locationid VARCHAR(12) PRIMARY KEY,
+  locationid VARCHAR(30) PRIMARY KEY,
   descr VARCHAR NOT NULL
 );
 
 CREATE TABLE room (
-  roomid VARCHAR(10) PRIMARY KEY,
-  locationid VARCHAR(12) REFERENCES location,
+  roomid VARCHAR(30) PRIMARY KEY,
+  locationid VARCHAR(30) REFERENCES location,
   descr VARCHAR,
   opt1 VARCHAR,
   opt2 VARCHAR,
@@ -126,8 +126,8 @@ CREATE TABLE vlan (
   vlanid SERIAL PRIMARY KEY,
   vlan INT4,
   nettype VARCHAR NOT NULL REFERENCES nettype(nettypeid) ON UPDATE CASCADE ON DELETE CASCADE,
-  orgid VARCHAR(10) REFERENCES org,
-  usageid VARCHAR(10) REFERENCES usage,
+  orgid VARCHAR(30) REFERENCES org,
+  usageid VARCHAR(30) REFERENCES usage,
   netident VARCHAR,
   description VARCHAR
 );  
@@ -217,13 +217,13 @@ CREATE TABLE typesnmpoid (
 CREATE TABLE netbox (
   netboxid SERIAL PRIMARY KEY,
   ip INET NOT NULL,
-  roomid VARCHAR(10) NOT NULL REFERENCES room,
+  roomid VARCHAR(30) NOT NULL REFERENCES room,
   typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   sysname VARCHAR UNIQUE,
   catid VARCHAR(8) NOT NULL REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
   subcat VARCHAR,
-  orgid VARCHAR(10) NOT NULL REFERENCES org,
+  orgid VARCHAR(30) NOT NULL REFERENCES org,
   ro VARCHAR,
   rw VARCHAR,
   prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
@@ -368,7 +368,7 @@ CREATE TABLE swportblocked (
 
 CREATE TABLE port2off (
   swportid INT4 REFERENCES swport(swportid) ON UPDATE CASCADE ON DELETE SET NULL,
-  roomid VARCHAR(10) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
+  roomid VARCHAR(30) NOT NULL REFERENCES room(roomid) ON UPDATE CASCADE ON DELETE CASCADE,
   socket VARCHAR NOT NULL,
   office VARCHAR,
   PRIMARY KEY(roomid, socket)
@@ -600,21 +600,9 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('notification','Notification event, typically between NAV systems','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
+    ('deviceChanged','Registers a change on a device','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceRegistered','Tells us that a device has been registered with a serial number','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceError','Registers an error situation with a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceOnService','Registers that a device is put on service','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceInOperation','Registers that a device is in operation','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceSwUpgrade','Registers a sofware upgrade on a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceHwUpgrade','Registers a hardware upgrade on a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceRma','Registers an RMA event for a device','y');
+    ('deviceNotice','Registers a notice on a device','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
 
@@ -691,6 +679,20 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxRestart','coldStart','Tells us that a network-unit has done a coldstart.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxRestart','warmStart','Tells us that a network-unit has done a warmstart.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceChanged','deviceOrdered','Device is ordered or has arrived.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceChanged','deviceInOperation','Device is in operation.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceChanged','deviceRma','Rma event for device.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceNotice','deviceRegistered','Device is registered with a serial.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceNotice','deviceError','Error situation on device.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceNotice','deviceSwUpgrade','Software upgrade on device.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('deviceNotice','deviceHwUpgrade','Hardware upgrade on device.');
 
 
 CREATE TABLE alertq (
