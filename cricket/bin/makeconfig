@@ -42,6 +42,8 @@ print "Sletter tidligere config-filer\n";
 `rm -R $path/switch-ports/*`;
 `rm -R $path/giga-router-interfaces/*`;
 `rm -R $path/giga-switch-ports/*`;
+`rm -R $path/switches/*`;
+`rm -R $path/routers/*`;
 
 print "Kopierer over default verdier\n";
 `cp -R $default/* $path`;
@@ -70,10 +72,8 @@ print "Skriver gigaswitchports\n";
 &gigaswitchports;
 print "OK!\n";
 
-#$dbh->disconnect;
-
 print "Kompilerer nytt config-tre\n";
-#system("/home/cricket/cricket/compile");
+system("/home/cricket/cricket/cricket/compile");
 
 print "Ferdig!\n";
 
@@ -86,7 +86,7 @@ sub Routers {
     my $fil = "$path/routers/Targets";
 
     # Henter alle ruterne fra databasen
-    my $sporring = "SELECT id,sysname,ip,type,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
+    my $sporring = "SELECT boksid,sysname,ip,type,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
     my $getrouters = &db_select($sporring,$dbh);
 
     # Skriver til filen
@@ -158,7 +158,7 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.id AND speed!=1000 ORDER BY vlan";
+	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 ORDER BY vlan";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
 
@@ -216,7 +216,7 @@ sub Switches {
 
     my $fil = "$path/switches/switches";
 
-    my $sporring = "SELECT id, ip, sysName,type,ro FROM boks WHERE kat='SW' ORDER BY sysName";
+    my $sporring = "SELECT boksid, ip, sysName,type,ro FROM boks WHERE kat='SW' ORDER BY sysName";
     my $getswitches = &db_select($sporring,$dbh);
 
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
@@ -258,7 +258,7 @@ sub Switchports {
 
 	if ($community) {
 	    # Finner alle portene som er på switchen.
-	    my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id and speed!=1000 and portnavn!='' ORDER BY id";
+	    my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id and speed!=1000 and portnavn!='' ORDER BY swportid";
 	    my $getports = &db_select($sporring,$dbh);
 	    my $antall = $getports->ntuples;
 
@@ -315,7 +315,7 @@ sub gigarouterinterfaces {
 
     my $count = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.id and g.boksid=b.id";
+    my $sporring = "SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid";
     my $getinterfaces = &db_select($sporring,$dbh);
 
     while (my @temp = $getinterfaces->fetchrow) {
@@ -327,8 +327,6 @@ sub gigarouterinterfaces {
 	unless (-e "$path/giga-router-interfaces/$sysname") {
 	    mkdir ("$path/giga-router-interfaces/$sysname",0775);
 	}
-
-	print "$sysname\n";
 
 	my $fil = "$path/giga-router-interfaces/$sysname/interfaces";
 	if (-e "$path/giga-router-interfaces/$sysname/interfaces") {
@@ -381,7 +379,7 @@ sub gigaswitchports {
     my %test;
     my $count = 0;
 
-    my $sporring = "select b.id,b.ip,b.sysname,b.type,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.id=s.boksid and s.speed='1000' order by b.id";
+    my $sporring = "select b.boksid,b.ip,b.sysname,b.type,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.boksid=s.boksid and s.speed='1000' and portnavn!='' order by b.boksid";
     my $getports = &db_select($sporring,$dbh);
 
     while (my @temp = $getports->fetchrow) {
