@@ -30,7 +30,19 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/data-plugins/Device/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/data-plugins/Netbox/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/data-plugins/Module/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/data-plugins/Gwport/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 
@@ -79,10 +91,6 @@
 
 
 		<!-- Other packages -->
-    <packageset dir="../SimpleSnmp/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
-
     <packageset dir="../ConfigParser/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
@@ -94,6 +102,19 @@
     <packageset dir="../Logger/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
+
+    <packageset dir="../NetboxInfo/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../SimpleSnmp/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+		<!-- Dummy packages to make the javadoc look nicer -->
+    <packageset dir="src" defaultexcludes="yes">
+      <include name="java/lang/**" />
+    </packageset>		
 
 
     <doctitle><![CDATA[<h1>NAV Java packages</h1>]]></doctitle>
