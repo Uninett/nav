@@ -49,6 +49,9 @@ class Grp
 	}
 
 	public void setName(String s) { name = s; }
+	public String getName() { return name; }
+	
+	public int getGrpid() { return id; }
 
 	public boolean getHideicons() { return hideicons; }
 
@@ -155,16 +158,18 @@ class Grp
 
 	public boolean contains(int conX, int conY)
 	{
-		Polygon p = new Polygon();
+		if (hideicons) {
+			return icon.contains(conX, conY);
+		} else {
+			Polygon p = new Polygon();
 
-		p.addPoint(x, y);
-		p.addPoint(x+r*2, y);
-		p.addPoint(x+r*2, y+r*2);
-		p.addPoint(x, y+r*2);
+			p.addPoint(x, y);
+			p.addPoint(x+r*2, y);
+			p.addPoint(x+r*2, y+r*2);
+			p.addPoint(x, y+r*2);
 
-		return p.contains(conX, conY);
-
-
+			return p.contains(conX, conY);
+		}
 	}
 
 

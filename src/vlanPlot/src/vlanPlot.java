@@ -14,6 +14,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.*;
 
 
 public class vlanPlot extends Applet
@@ -99,8 +100,14 @@ class panel extends Panel
 		com = InCom;
 		setBackground(Color.white);
 
+		/*
 		if (System.getProperty("java.vendor").equals("Netscape Communications Corporation")) {
 			DEBUG_LEVEL = 0;
+		}
+		*/
+		System.out.println("Jave vendor: " + System.getProperty("java.vendor"));
+		if (System.getProperty("java.vendor").toLowerCase().indexOf("Microsoft") < 0) {
+			//DEBUG_LEVEL = 0;
 		}
 
 		Admin admin = new Admin(com);
@@ -110,17 +117,18 @@ class panel extends Panel
 
 
 		// Get Java version number
+		String v = null;
 		try {
-			String v = System.getProperty("java.version");
-			StringTokenizer st = new StringTokenizer(v, ".");
+			v = System.getProperty("java.version");
+			StringTokenizer st = new StringTokenizer(v, "_");
+			st = new StringTokenizer(st.nextToken(), ".");
 			if (st.hasMoreTokens()) com.setJavaMajorVersion(Integer.parseInt(st.nextToken()));
 			if (st.hasMoreTokens()) com.setJavaMinorVersion(Integer.parseInt(st.nextToken()));
 			if (st.hasMoreTokens()) com.setJavaRevisionVersion(Integer.parseInt(st.nextToken()));
 			com.d("Running on Java version: " + v, 0);
 		} catch (Exception e) {
-			com.d("Error getting java version number, assuming 1.0.0", 0);
+			com.d("Error getting java version number, assuming 1.0.0 ("+v+")", 0);
 		}
-
 
 		// Sett parametere fra HTML-filen, hvis dette er en applet, ellers brukes default-verdier
 		initParameters();
@@ -277,6 +285,11 @@ class panel extends Panel
 		Input.lastURL = lastURL;
 		Input.cricketURL = cricketURL;
 		Input.netflowURL = netflowURL;
+		try {
+			URL url = new URL(vPServerURL);
+			Input.rootURL = url.getProtocol()+"://"+url.getHost();
+		} catch (MalformedURLException e) {
+		}
 	}
 
 	public void setWaitCursor()

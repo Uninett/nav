@@ -123,7 +123,7 @@ class Nettel
 
 		//nettelIcon = new NettelIcon(com, this, kat);
 
-		if (kat.equals("gw") || kat.equals("sw") || kat.equals("kant") ) isClickable = true;
+		if (kat.equals("gw") || kat.equals("gsw") || kat.equals("sw") || kat.equals("kant") ) isClickable = true;
 		//if (vlan == 0 || com.getNet().getVisVlan() != 0) setDrawVlan(false);
 
 
@@ -766,7 +766,7 @@ class Nettel
 	// Opplyser om punktet (x,y) er innenfor selve boksen
 	public boolean boksContains(int x, int y)
 	{
-		if (!isVisible) return false;
+		if (!isVisible || !iconVisible) return false;
 		return nettelIcon.contains(x, y);
 	}
 

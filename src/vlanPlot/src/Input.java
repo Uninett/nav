@@ -14,7 +14,8 @@ import java.net.*;
 class Input
 {
 	// Default verdier
-	public static String vPServerURLDefault = "http://www.nav.ntnu.no/vPServerNG/servlet/vPServer";
+	//public static String vPServerURLDefault = "http://www.nav.ntnu.no/vPServerNG/servlet/vPServer";
+	public static String vPServerURLDefault = "https://beta.nav.ntnu.no/vPServer/servlet/vPServer";
 	public static String lastURLDefault = "http://www.nav.ntnu.no/vlanPlotNG/common/vPLast/last_ny.pl";
 	public static String cricketURLDefault = "http://www.nav.ntnu.no/~cricket/";
 	public static String netflowURLDefault = "http://manwe.itea.ntnu.no/";
@@ -25,6 +26,8 @@ class Input
 
 	// URL for vPServer-modulen
 	public static String vPServerURL;
+	
+	public static String rootURL;
 
 	// URL for last-scriptet
 	public static String lastURL;

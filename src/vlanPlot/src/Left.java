@@ -180,7 +180,9 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 			for (int i = 0; i < v.size(); i++) {
 				//nett.addItem("Vis " + v.elementAt(i));
-				nett.addItem("" + v.elementAt(i));
+				String s = (String)v.elementAt(i);
+				if (s.startsWith("_")) s = s.substring(1, s.length());
+				nett.addItem("" + s);
 			}
 			nett.addItem("");
 
@@ -227,6 +229,8 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		saveButton = new Button("Save");
 		moveButton.setVisible(false);
 		saveButton.setVisible(false);
+
+		Button refreshButton = new Button("Refresh");
 
 		skala.addItem("Absolute scale");
 		skala.addItem("Relative scale");
@@ -344,10 +348,17 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		gridbag.setConstraints(okButton, c);
 		add(okButton, c);
 
-		// adminButton
+		// okButton
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0.0; c.weighty = 1;
 		c.gridx = 2; c.gridy = 8; c.gridwidth = 1; c.gridheight = 1;
+		gridbag.setConstraints(refreshButton, c);
+		add(refreshButton, c);
+
+		// adminButton
+		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0.0; c.weighty = 1;
+		c.gridx = 1; c.gridy = 9; c.gridwidth = 1; c.gridheight = 1;
 		gridbag.setConstraints(moveButton, c);
 		add(moveButton, c);
 
@@ -372,6 +383,11 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 		// acionListeners
 		okButton.addActionListener(this);
+		refreshButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					com.getNet().refreshNettel(true);
+				}
+			});				
 
 		AdminListener al = new AdminListener(com);
 		al.setMoveMode(moveButton);

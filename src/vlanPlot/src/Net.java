@@ -74,6 +74,7 @@ class Net extends Canvas implements ItemListener
 	//Font overskriftFont = new Font("Helvetica",Font.PLAIN, FONT_SIZE);
 	Font overskriftFont = new Font("Arial",Font.BOLD, FONT_SIZE);
 	String overskrift = "";
+	String preHeader = "Traffic map: ";
 
 	// Menyer
 	PopupMenus vlanMenu;
@@ -83,8 +84,8 @@ class Net extends Canvas implements ItemListener
 	public static final int HZLINK = 1;
 	public static final int DNLINK = 2;
 
-	public static final String gwMenuText[] = { "CPU load", "Net-list" };
-	public static final String swMenuText[] = { "Backplane load" };
+	public static final String gwMenuText[] = { "Device info", "Network Explorer", "CPU load", "Net-list" };
+	public static final String swMenuText[] = { "Device info", "Network Explorer", "Backplane load" };
 	public static final String linkMenuText[] = { "Load", "Packets", "Drops", "Errors" };
 	public static final String linkGwMenuText[] = { "Load", "Packets", "Drops", "Errors", "|"};
 
@@ -108,11 +109,11 @@ class Net extends Canvas implements ItemListener
 
 		PopupMenuListener pmListener = new PopupMenuListener(com);
 
-		vlanMenu = new PopupMenus("VLAN_MENU", "Vlan meny", this, pmListener);
-		PopupMenus gwMenu = new PopupMenus("RUTER_MENU", "Ruter meny", gwMenuText, this, pmListener);
-		PopupMenus swMenu = new PopupMenus("SWITCH_MENU", "Svitsj meny", swMenuText, this, pmListener);
-		PopupMenus linkMenu = new PopupMenus("LINK_MENU", "Link meny", linkMenuText, this, pmListener);
-		PopupMenus linkGwMenu = new PopupMenus("LINK_GW_MENU", "Link Gw meny", linkGwMenuText, this, pmListener);
+		vlanMenu = new PopupMenus("VLAN_MENU", "Vlan menu", this, pmListener);
+		PopupMenus gwMenu = new PopupMenus("RUTER_MENU", "Router menu", gwMenuText, this, pmListener);
+		PopupMenus swMenu = new PopupMenus("SWITCH_MENU", "Switch menu", swMenuText, this, pmListener);
+		PopupMenus linkMenu = new PopupMenus("LINK_MENU", "Link menu", linkMenuText, this, pmListener);
+		PopupMenus linkGwMenu = new PopupMenus("LINK_GW_MENU", "Link Gw menu", linkGwMenuText, this, pmListener);
 
 		com.setGwMenu(gwMenu);
 		com.setSwMenu(swMenu);
@@ -271,6 +272,7 @@ class Net extends Canvas implements ItemListener
 
 		// Legg til rutere
 		Enumeration e = lRouters.elements();
+		int topLayoutCnt=0;
 		while (e.hasMoreElements()) {
 			String[] s = (String[])e.nextElement();
 
@@ -288,13 +290,11 @@ class Net extends Canvas implements ItemListener
 
 			if ( (xy = (String[])lRouterXY.get(s[0])) == null) {
 				xy = new String[3];
-				/*
-				xy[1] = "10";
-				xy[2] = "25";
-				*/
-				// Random
-				xy[1] = "" + (10 + (int)(Math.random()*500));
-				xy[2] = "" + (25 + (int)(Math.random()*500));
+				int[] topXY = topRowLayout(topLayoutCnt++);
+				xy[1] = ""+topXY[0];
+				xy[2] = ""+topXY[1];
+				//xy[1] = "" + (10 + (int)(Math.random()*500));
+				//xy[2] = "" + (25 + (int)(Math.random()*500));
 			} else {
 				n.locationSet();
 			}
@@ -337,8 +337,12 @@ class Net extends Canvas implements ItemListener
 				int x = Integer.parseInt(s[2]);
 				int y = Integer.parseInt(s[3]);
 				if (x == 0 && y == 0) {
-					x = (10 + (int)(Math.random()*500));
-					y = (25 + (int)(Math.random()*500));
+					// Pen layout på topp
+					int[] topXY = topRowLayout(topLayoutCnt++);
+					x = topXY[0];
+					y = topXY[1];
+					//x = (10 + (int)(Math.random()*500));
+					//y = (25 + (int)(Math.random()*500));
 				}
 				grp.setXY(x, y);
 			}
@@ -359,7 +363,7 @@ class Net extends Canvas implements ItemListener
 			grp.autoLayout();
 		}
 		com.getLeft().addNettNavn(null); // Listen blir sortert og lukket
-		setOverskrift(com.getLeft().getNettNavn(visGruppe)+" for "+netName); // Nå kan vi sette overskrift
+		setOverskrift(preHeader + com.getLeft().getNettNavn(visGruppe)); // Nå kan vi sette overskrift
 
 		// legg til linker
 		e = lRouterLinks.elements();
@@ -466,6 +470,19 @@ class Net extends Canvas implements ItemListener
 		}
 
 
+	}
+
+	private int[] topRowLayout(int topLayoutCnt) {
+		int CANVAS_X = 500;
+		int CANVAS_Y = 500;
+		int SPACE_X = 25;
+		int SPACE_Y = 0;
+		int NUM_ROW = CANVAS_X / (Nettel.sizeX + SPACE_X);
+		int TOP_X = 10;
+		int TOP_Y = 25;
+		int x = TOP_X + (topLayoutCnt % NUM_ROW) * (Nettel.sizeX + SPACE_X);
+		int y = TOP_Y + (topLayoutCnt / NUM_ROW) * (Nettel.sizeY + SPACE_Y);
+		return new int[] { x, y };
 	}
 
 	public void applyLast()
@@ -643,14 +660,14 @@ class Net extends Canvas implements ItemListener
 		if (selectVlan) {
 			String[] vlanName = (String[])lVlanNames.get(String.valueOf(visVlan));
 			if (vlanName != null) {
-				setOverskrift("Vlan " + visVlan + " ("+vlanName[1]+") sett fra " + n.getName() );
+				setOverskrift(preHeader + n.getName() + "  Vlan " + visVlan + " ("+vlanName[1]+")");
 			} else {
 				com.d("Error, vlanName not found for vlan: " + visVlan, 2);
-				setOverskrift("Vlan " + visVlan + " (unknown) sett fra " + n.getName() );
+				setOverskrift(preHeader + n.getName() + "  Vlan " + visVlan + " (unknown)");
 			}
 			vlanVandring = true;
 		} else {
-			setOverskrift("Verden sett fra " + n.getName() );
+			setOverskrift(preHeader + n.getName() );
 			vlanVandring = false;
 		}
 
@@ -887,6 +904,7 @@ class Net extends Canvas implements ItemListener
 		if (s != null) {
 			com.d("hasAdmin: " + s[1], 1);
 			com.getAdmin().setHasAdmin(new Boolean(s[1]).booleanValue());
+			//com.getAdmin().setHasAdmin(true);
 		}
 
 		if (com.getAdmin().getHasAdmin()) {
@@ -910,7 +928,12 @@ class Net extends Canvas implements ItemListener
 
 	public void refreshNettel()
 	{
-		if (!needReset) return;
+		refreshNettel(false);
+	}
+
+	public void refreshNettel(boolean force)
+	{
+		if (!force && !needReset) return;
 		needReset = false;
 
 		com.getMainPanel().setWaitCursor();
@@ -1057,8 +1080,6 @@ class Net extends Canvas implements ItemListener
 		com.getNet().refreshNettel();
 	}
 
-
-
 	public void drawBackKnapp(Graphics g)
 	{
 		//int startX = 243;
@@ -1083,10 +1104,9 @@ class Net extends Canvas implements ItemListener
 		g.fillPolygon(backKnapp);
 		// teksten på knappen
 		g.setColor(Color.black);
-		g.drawString("Go back", startX+3, startY+15);
+		g.drawString("Back", startX+3, startY+15);
 
 	}
-
 
 	public void drawOverskrift(Graphics g)
 	{

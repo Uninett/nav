@@ -177,12 +177,14 @@ class Mouse implements MouseListener
 					{
 						overNettel = true;
 						com.d("Klikket: " + n.getName(),3);
+						boolean router = !n.getKat().equals("sw");
+
 						if (button1)
 						{ // venstre-klikk på nettel/link
 							if (n.getIsClickable() )
 							{
 								n.disablePopup();
-								if (n.getKat().equals("gw")) n.setVlan(0);
+								if (router) n.setVlan(0);
 
 								com.d("------------------------------------------------------------------------", 1);
 								com.d("Aktivert klikk: " + n.getName() + " Vlan: " + n.getVlan(), 1 );
@@ -192,23 +194,17 @@ class Mouse implements MouseListener
 								return;
 							}
 						} else
-						if (button2 && n.getIsClickable() && (n.getKat().equals("gw") || n.getKat().equals("sw")) )
+						if (button2 && n.getIsClickable() && (n.getKat().equals("gw") || n.getKat().equals("gsw") || n.getKat().equals("sw")) )
 						{ // høyre-klikk på nettel/link
 							n.disablePopup();
-							boolean router = true;
-							if (n.getKat().equals("sw"))
-							{
-								router = false;
-							}
 
 							if (n.containsNettel(x, y))
 							{ // høyre-klikket på nettel
 								PopupMenus activeMenu;
-								if (n.getKat().equals("gw"))
-								{
+								com.d("  Right-click on nettel: " + n.getName() + " Vlan: " + n.getVlan(), 1 );
+								if (router) {
 									activeMenu = com.getGwMenu();
-								} else
-								{
+								} else {
 									activeMenu = com.getSwMenu();
 								}
 
@@ -223,7 +219,7 @@ class Mouse implements MouseListener
 							{ // høyre-klikket på link
 								Link l = n.getLink(x, y);
 								PopupMenus activeMenu;
-								if (n.getKat().equals("gw"))
+								if (router)
 								{
 									activeMenu = com.getLinkGwMenu();
 								} else
@@ -316,7 +312,7 @@ class Mouse implements MouseListener
 						{
 							n.setClicked(true);
 							com.setClicked(n.getBoksid());
-							com.d("Klikket Nettel: " + n.getName() + ", id: " + n.getBoksid(), 3);
+							com.d("Admin klikket Nettel: " + n.getName() + ", id: " + n.getBoksid(), 3);
 							return;
 						}
 					}
@@ -336,7 +332,7 @@ class Mouse implements MouseListener
 						{
 							grp.setClicked(true);
 							com.setClickedGrp(i);
-							//System.out.println("Clicked: " + i);
+							com.d("Admin klikket Grp: " + grp.getName() + ", id: " + grp.getGrpid(), 3);
 							return;
 						}
 					}
@@ -538,6 +534,45 @@ class PopupMenuListener implements ActionListener
 			*/
 	}
 
+	private void procDeviceInfo(ActionEvent ae)
+	{
+		String cmd = ae.getActionCommand();
+		PopupMenus activeMenu = com.getActiveMenu();
+		String nettelName = activeMenu.getNettelName();
+		String url = Input.rootURL + "/browse/";
+
+		if (cmd.equals(com.getNet().gwMenuText[0] ))
+		{
+			url += nettelName;
+		} else
+		if (cmd.equals(com.getNet().swMenuText[0] )) {
+			url += nettelName;
+		}
+
+		com.d("  Showing URL: " + url, 2);
+		showURL(url);
+	}
+
+	private void procNetworkExplorer(ActionEvent ae)
+	{
+		String cmd = ae.getActionCommand();
+		PopupMenus activeMenu = com.getActiveMenu();
+		String nettelName = activeMenu.getNettelName();
+		String url = Input.rootURL + "/navAdmin/servlet/navAdmin?section=ni&func=visTopologi&searchField=0.sysname&searchFor=";
+
+		if (cmd.equals(com.getNet().gwMenuText[1] ))
+		{
+			url += nettelName;
+		} else
+		if (cmd.equals(com.getNet().swMenuText[1] )) {
+			url += nettelName;
+		}
+
+		url += "#searchtarget";
+		com.d("  Showing URL: " + url, 2);
+		showURL(url);
+	}
+
 	private void procVlan(ActionEvent ae)
 	{
 		MenuItem mi = (MenuItem)ae.getSource();
@@ -579,16 +614,36 @@ class PopupMenuListener implements ActionListener
 			kommando = "Errors";
 		} else
 		if(kommando.equals(com.getNet().gwMenuText[0] ))
+		{
+			procDeviceInfo(e);
+			return;
+		} else
+		if(kommando.equals(com.getNet().gwMenuText[1] ))
+		{
+			procNetworkExplorer(e);
+			return;
+		} else
+		if(kommando.equals(com.getNet().gwMenuText[2] ))
 		{ // CPU Last
 			kommando = "cpu";
 		} else
-		if(kommando.equals(com.getNet().gwMenuText[1] ))
+		if(kommando.equals(com.getNet().gwMenuText[2] ))
 		{ // Nettliste
 			//String gwName = com.getGwMenu().getNettelName();
 			//showURL(CGIBINURL+"nettliste.pl?gw=" + nettelName);
 			return;
 		} else
 		if(kommando.equals(com.getNet().swMenuText[0] ))
+		{
+			procDeviceInfo(e);
+			return;
+		}
+		if(kommando.equals(com.getNet().swMenuText[1] ))
+		{
+			procNetworkExplorer(e);
+			return;
+		}
+		if(kommando.equals(com.getNet().swMenuText[2] ))
 		{
 			kommando = "backplane";
 		}
