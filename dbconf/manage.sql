@@ -136,7 +136,7 @@ CREATE TABLE prefiks (
   prefiksid SERIAL PRIMARY KEY,
   nettadr VARCHAR(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
-  rootgw VARCHAR(15),
+  rootgwid INT2 UNIQUE,
   vlan INT2,
   antmask INT2,
   maxhosts INT2,
@@ -161,7 +161,7 @@ CREATE TABLE boks (
   ip VARCHAR(15) NOT NULL,
   romid VARCHAR(10) NOT NULL REFERENCES rom,
   typeid VARCHAR(10) REFERENCES type,
-  sysName VARCHAR(30),
+  sysName VARCHAR(30) UNIQUE,
   kat VARCHAR(10) NOT NULL,
   kat2 VARCHAR(10),
   orgid VARCHAR(10) NOT NULL REFERENCES org,
@@ -243,7 +243,7 @@ CREATE TABLE swportvlan (
 );
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar(255)
+  hexstring varchar(256)
 );
 
 
