@@ -91,21 +91,26 @@ $default_table_CSS()
 
 <table>
 
+#set $counter = 0
 #for $a in $report.form
-<tr><td><label for="$a.raw">$a.title</label></td><td><input type="checkbox" name="${a.raw}_not" id="${a.raw}_not"#slurp
+<tr><td><label for="adv${counter}">$a.title</label></td><td><input type="checkbox" name="${a.raw}_not" id="adv${counter}_not"#slurp
 #if $neg.has_key($a.raw)
  checked="1"#slurp
 #end if
-</td><td><label for="${a.raw}_not">not</label></td><td>
+>
+</td><td><label for="adv${counter}_not">not</label></td><td>
 #if $operator.has_key($a.raw)
 $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,$operator[$a.raw], $descriptions)
 #else
 $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
 #end if
-</td><td><input type="text" name="$a.raw" id="$a.raw"#slurp
+</td><td><input type="text" name="$a.raw" id="adv${counter}"#slurp
 #if $contents.has_key($a.raw)
  value="$contents[$a.raw]"#slurp
 #end if
+>
+</tr>
+#set $counter += 1
 #end for
 
 <tr><td></td><td></td><td><input type="hidden" name="adv" value="1"/></td><td><input type="submit" name="r4g3n53nd" value="Send"/></table></form>
@@ -129,7 +134,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
               <a title="previous page" href="$report.navigator.previous"
                  onmouseover="image1.src='$imagefolder/ragen/previous-active.gif';"
                  onmouseout="image1.src='$imagefolder/ragen/previous.gif';">
-              <img name="image1" src="$imagefolder/ragen/previous.gif" border="0" alt="<< previous" title="previous page" /></a>
+              <img name="image1" src="$imagefolder/ragen/previous.gif" border="0" alt="&lt;&lt; previous" title="previous page" /></a>
 #else
               <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
 #end if
@@ -145,7 +150,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
               <a title="next page" href="$report.navigator.next"
                  onmouseover="image2.src='$imagefolder/ragen/next-active.gif';"
                  onmouseout="image2.src='$imagefolder/ragen/next.gif';">
-              <img name="image2" src="$imagefolder/ragen/next.gif" border="0" alt="next >>" title="next page" /></a>
+              <img name="image2" src="$imagefolder/ragen/next.gif" border="0" alt="next &gt;&gt;" title="next page" /></a>
 #else
               <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
 #end if
@@ -153,7 +158,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
           </tr>
         </table>
       </td>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif" alt=""></td>
     </tr>
 ## ------------------------------------------------------------------- HEADER ROW ---- ##
     <tr class="header">
@@ -231,7 +236,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
               <a title="previous page" href="$report.navigator.previous"
                  onmouseover="image3.src='$imagefolder/ragen/bottom-previous-active.gif';"
                  onmouseout="image3.src='$imagefolder/ragen/bottom-previous.gif';">
-              <img name="image3" src="$imagefolder/ragen/bottom-previous.gif" border="0" alt="<< previous" title="previous page" /></a>
+              <img name="image3" src="$imagefolder/ragen/bottom-previous.gif" border="0" alt="&lt;&lt; previous" title="previous page" /></a>
 #else
               <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
 #end if
@@ -247,7 +252,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
               <a title="next page" href="$report.navigator.next"
                  onmouseover="image4.src='$imagefolder/ragen/bottom-next-active.gif';"
                  onmouseout="image4.src='$imagefolder/ragen/bottom-next.gif';">
-              <img name="image4" src="$imagefolder/ragen/bottom-next.gif" border="0" alt="next >>" title="next page" /></a>
+              <img name="image4" src="$imagefolder/ragen/bottom-next.gif" border="0" alt="next &gt;&gt;" title="next page" /></a>
 #else
               <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
 #end if
