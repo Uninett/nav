@@ -175,8 +175,9 @@ CREATE TABLE type (
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
   frequency INT4,
+  uptodate BOOLEAN NOT NULL DEFAULT 'f',
   descr VARCHAR,
-  UNIQUE (vendorid,typename)
+  UNIQUE (vendorid, typename)
 );
 
 CREATE TABLE snmpoid (
@@ -184,6 +185,9 @@ CREATE TABLE snmpoid (
 	oidkey VARCHAR NOT NULL,
 	snmpoid VARCHAR NOT NULL,
 	oidsource VARCHAR,
+  getnext BOOLEAN NOT NULL DEFAULT 't',
+  match_regex VARCHAR,
+  uptodate BOOLEAN NOT NULL DEFAULT 'f',
 	descr VARCHAR
 );
 
