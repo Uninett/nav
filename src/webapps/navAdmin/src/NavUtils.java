@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.6 2002/11/28 23:58:26 kristian Exp $
+* $Id: NavUtils.java,v 1.7 2002/12/08 13:07:38 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
@@ -150,7 +150,7 @@ class NavUtils
 		HashMap boksNavn = new HashMap();
 		HashMap boksType = new HashMap();
 		HashMap boksKat = new HashMap();
-		ResultSet rs = Database.query("SELECT netboxid,sysName,typename,catid FROM netbox JOIN type USING(typeid)");
+		ResultSet rs = Database.query("SELECT netboxid,sysName,typename,catid FROM netbox LEFT JOIN type USING(typeid)");
 		while (rs.next()) {
 			String sysname = rs.getString("sysName"); // Må være med da sysname kan være null !!
 			boksNavn.put(new Integer(rs.getInt("netboxid")), (sysname==null?"&lt;null&gt;":sysname) );
