@@ -22,7 +22,7 @@ ERRLOG=${LOGDIR}/eventEngine-stderr.log
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
-    if [ ps -p "${pidnum}" >/dev/null ]; then
+    if (ps -p "${pidnum}" >/dev/null); then
 	echo "eventEngine already running!"
 	exit 1
     fi
