@@ -211,8 +211,15 @@ if ($ok) {
 foreach my $dir (@{ $config{'dirs'} } ) {
     printf "---------- %s ----------\n", "$dir" if $ll >= 2;
     printf "Treating %s.\n", $dir if $ll >= 3;
+
     my $continue = &parseConfig($dir);
     next unless $continue;
+
+    # Making serverconfig...it's still under testing.
+    if ($dir eq 'servers') {
+	&makeservers('servers');
+	next;
+    }
 
     # interfaces are kinda standard so we have a fixed config for them.
     if ($config{$dir}{'interface'}) {
@@ -225,8 +232,6 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 	&makeTargets($dir);
     }
 }
-# Making serverconfig...it's still under testing.
-&makeservers('servers');
 
 # Ok, we are done with editing config, making targettypes,
 # making targets and so on. Now lets fill the rrd-database
@@ -1195,10 +1200,9 @@ sub fillRRDdatabase {
 
 }
 
+# Still under developement, lacks information in the typesnmpoid to use the
+# standard setup.
 sub makeservers {
-    # Iterates over all the servers in the database marked SNMP, and
-    # writes them to various config files.
-    # the phrase snmpagent ~'^1' = starts with 1
 
     my $me = "makeservers";
     print "=> RUNNING $me <=\n";
@@ -1224,9 +1228,9 @@ sub makeservers {
 	print "Making targets for $id, $sysname\n" if $ll >= 3;
 
 	my $os = 0;
-	my $win32 = 'WIN';
-	my $linux = 'LINUX';
-	my $unix = 'UNIX';
+	my $win32 = 'win';
+	my $linux = 'linux';
+	my $unix = 'unix';
 
 	# Check if os_guess is set, if not try to find os from category. If nothing
 	# is found, set os to UNIX
@@ -1236,17 +1240,22 @@ sub makeservers {
 	unless ($r->ntuples > 0) {
 	    
 	    print "\tNo os_guess found for $id, $sysname\n" if $ll >= 2;
+
 	    $q = "SELECT category FROM netboxcategory WHERE netboxid=$id";
 	    print "\t$q\n" if $ll >= 3;
 	    $r = $dbh->exec($q);
 
 	    $os = $unix;
-	    while (my ($category) = $r->fetchrow) {
-		if ($category eq 'WIN') {
-		    $os = $win32;
-		} elsif ($category eq 'LINUX') {
-		    $os = $linux;
+	    if ($r->ntuples > 0) {
+		while (my ($category) = $r->fetchrow) {
+		    if ($category eq 'WIN') {
+			$os = $win32;
+		    } elsif ($category eq 'LINUX') {
+			$os = $linux;
+		    }
 		}
+	    } else {
+		printf "\tNo category set for %s, %s\n", $id, $sysname if $ll >= 2;
 	    }
 
 	}  else {
@@ -1254,6 +1263,7 @@ sub makeservers {
 	    $os = $val;
 	}
 
+	$os = lc $os;
 	print "\tOS set to $os\n" if $ll >= 2;
 
 
