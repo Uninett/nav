@@ -3,7 +3,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.16 2002/06/17 17:18:23 erikgors Exp $
+$Id: job.py,v 1.17 2002/06/17 17:38:10 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -224,7 +224,6 @@ class FtpHandler(JobHandler):
 	username
 	password
 	path (ACCT)
-	timeout
 	"""
 	def __init__(self,id,ip,args,version):
 		port = args.get('port',21)
@@ -244,8 +243,6 @@ class FtpHandler(JobHandler):
 			return Event.DOWN,output.split('\n')[0]
 class SshHandler(JobHandler):
 	"""
-	take the args:
-	timeout
 	"""
 	def __init__(self,id,ip,args,version):
 		port = args.get('port',22)
@@ -292,12 +289,26 @@ class DnsHandler(JobHandler):
 		else:
 			return Event.DOWN, "Timeout"
 
-		
+class MysqlHandler(JobHandler):
+	def __init__(self, id, ip, args, version):
+		port = args.get("port", 3306)
+		JobHandler.__init__(self, "mysql", id, (ip, port), args, version)
+	def execute(self):
+		s = Socket(self.getTimeout())
+		s.connect(self.getAddress())
+		line = s.readline()
+		s.close()
+		#this is ugly
+		version = line.split('-')[1].split('\n')[1].strip()
+		self.setVersion(version)
+		return Event.UP, 'OK'
+
 
 
 jobmap = {'http':HttpHandler,
 	  'port':PortHandler,
 	  'ftp':FtpHandler,
 	  'ssh':SshHandler,
-	  'dns':DnsHandler
+	  'dns':DnsHandler,
+	  'mysql':MysqlHandler
 	  }
