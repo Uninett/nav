@@ -59,10 +59,10 @@ class Host:
     return self.ip.__hash__()
 
   def __eq__(self, obj):
-    if type(obj) == type(""):
-      return self.netbox == obj
-    else:
-      return self.netbox.netboxid == obj.netboxid
+    #if type(obj) == type(""):
+    #  return self.netbox == obj
+    #else:
+    return self.netbox.netboxid == obj.netboxid
 
   def logPingTime(self, pingtime):
     netbox = self.netbox
