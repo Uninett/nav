@@ -175,6 +175,7 @@ class Input
 			if (name != null) ret.put(name, hash);
 		} catch (Exception e) {
 			com.d("Error: " + e.getMessage(), 0);
+			throw new RuntimeException(e.getMessage());
 		}
 
 		if (hashKey != null) boksCache.put(hashKey, ret);

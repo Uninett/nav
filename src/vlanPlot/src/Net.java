@@ -70,6 +70,9 @@ class Net extends Canvas implements ItemListener
 
 	boolean hideCore = false;
 
+	boolean error = false;
+	String errorMsg;
+
 	public static int FONT_SIZE = 20;
 	//Font overskriftFont = new Font("Helvetica",Font.PLAIN, FONT_SIZE);
 	Font overskriftFont = new Font("Arial",Font.BOLD, FONT_SIZE);
@@ -936,17 +939,23 @@ class Net extends Canvas implements ItemListener
 		if (!force && !needReset) return;
 		needReset = false;
 
-		com.getMainPanel().setWaitCursor();
-		if (visNettel == null) showBynett(); else showNettel();
-		if (visGruppe == -1) com.getLeft().setNettNavn(""); // Vis blankt menyvalg
-		repaint();
-		com.getMainPanel().setDefaultCursor();
+		try {
+			com.getMainPanel().setWaitCursor();
+			if (visNettel == null) showBynett(); else showNettel();
+			if (visGruppe == -1) com.getLeft().setNettNavn(""); // Vis blankt menyvalg
+			error = false;
+		} catch (Exception e) {
+			error = true;
+			errorMsg = e.getMessage();
+		} finally {
+			repaint();
+			com.getMainPanel().setDefaultCursor();
+		}
 	}
 
 	private void showBynett()
 	{
 		//com.getInput().getDefaultInputNotify(visGruppe);
-
 		buildBynett();
 		//applyLast();
 	}
@@ -1029,6 +1038,11 @@ class Net extends Canvas implements ItemListener
 	{
 		final int ANTALL_PASS = 5;
 
+		if (error) {
+			drawErrorMsg(g, errorMsg);
+			return;
+		}
+		
 		drawBackKnapp(g);
 		drawOverskrift(g);
 
@@ -1078,6 +1092,18 @@ class Net extends Canvas implements ItemListener
 		//com.getNet().setVisNettel(null);
 		com.getNet().setVisGruppe(nett, nettNavn);
 		com.getNet().refreshNettel();
+	}
+
+	public void drawErrorMsg(Graphics g, String msg)
+	{
+		//int startX = 243;
+		//int startY = 1;
+		int startX = 15;
+		int startY = 15;
+
+		g.setColor(Color.black);
+		g.drawString("An error occured fetching data from server:", startX+3, startY+15);
+		g.drawString(msg, startX+3, startY+35);
 	}
 
 	public void drawBackKnapp(Graphics g)
