@@ -29,7 +29,7 @@ class getBoksMacs
 	public static final String configFile = (Path.sysconfdir + "/getBoksMacs.conf").replace('/', File.separatorChar);
 	public static final String watchMacsFile = (Path.sysconfdir + "/watchMacs.conf").replace('/', File.separatorChar);
 	public static final String scriptName = "getBoksMacs";
-	public static final String logFile = (Path.localstatedir + "/getBoksMacs.log").replace('/', File.separatorChar);
+	public static final String logFile = (Path.localstatedir + "/log/getBoksMacs.log").replace('/', File.separatorChar);
 
 	public static int NUM_THREADS = 24;
 	public static final int SHOW_TOP = 25;
@@ -67,47 +67,42 @@ class getBoksMacs
 
 	public static void main(String[] args) throws SQLException
 	{
-		ConfigParser cp, dbCp;
-		try {
-			cp = new ConfigParser(configFile);
-		} catch (IOException e) {
-			errl("Error, could not read config file: " + configFile);
-			return;
-		}
-		try {
-			dbCp = new ConfigParser(dbConfigFile);
-		} catch (IOException e) {
-			errl("Error, could not read config file: " + dbConfigFile);
-			return;
-		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
-			errl("Error, could not connect to database!");
-			return;
-		}
-
-		// Set MAX_MISSCNT
-		int MAX_MISSCNT = 3;
-		{
-			String s = cp.get("MaxMisscnt");
-			if (s != null) {
-				try {
-					MAX_MISSCNT = Integer.parseInt(s);
-				} catch (NumberFormatException e) {
-					errl("Warning, MaxMisscnt must be a number: " + s);
-				}
-			}
-		}
-
+		String cf = null;
+		String qNetbox = null;
 		// Check arguments
 		if (args.length > 0) {
 			try {
 				NUM_THREADS = Integer.parseInt(args[0]);
 			} catch (NumberFormatException e) {
-				outl("Error, unrecognized argument: " + args[0]);
-				return;
+				// Assume this argument is a netbox name
+				qNetbox = args[0].trim();
+				System.out.println("Overriding netbox: " + qNetbox);
+				// Is next arg number of threads?
+				if (args.length > 1) {
+					try {
+						NUM_THREADS = Integer.parseInt(args[1]);
+					} catch (NumberFormatException ee) {
+						// Assume this argument is the name of the config file
+						File f = new File(args[0]);
+						if (f.exists() && !f.isDirectory()) {
+							cf = f.getAbsolutePath();
+							System.out.println("Overriding configfile: " + f.getAbsolutePath());
+						}
+						// Is next arg number of threads?
+						if (args.length > 2) {
+							try {
+								NUM_THREADS = Integer.parseInt(args[2]);
+								System.out.println("Overriding number of threads: " + NUM_THREADS);
+							} catch (NumberFormatException eee) {
+								System.out.println("Error, unrecognized argument: " + args[2]);
+								return;
+							}
+						}
+					}
+				}
 			}
 			if (NUM_THREADS > 128) {
-				outl("Error, more than 128 threads not recommended, re-compile needed.");
+				System.out.println("Error, more than 128 threads not recommended, re-compile needed.");
 				return;
 			}
 		}
@@ -117,6 +112,38 @@ class getBoksMacs
 
 		Log.i("INIT", "============ getBoksData starting ============");
 		Log.i("INIT", "Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
+
+		ConfigParser cp, dbCp;
+		try {
+			if (cf == null) cf = configFile;
+			cp = new ConfigParser(cf);
+		} catch (IOException e) {
+			Log.e("INIT", "Could not read config file: " + cf);
+			return;
+		}
+		try {
+			dbCp = new ConfigParser(dbConfigFile);
+		} catch (IOException e) {
+			Log.e("INIT", "Could not read config file: " + dbConfigFile);
+			return;
+		}
+		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+			Log.e("INIT", "Could not connect to database!");
+			return;
+		}
+
+		// Set MAX_MISSCNT
+		int MAX_MISSCNT = 3;
+		if (cp != null) {
+			String s = cp.get("MaxMisscnt");
+			if (s != null) {
+				try {
+					MAX_MISSCNT = Integer.parseInt(s);
+				} catch (NumberFormatException e) {
+					errl("Warning, MaxMisscnt must be a number: " + s);
+				}
+			}
+		}
 
 		// Load watchMacs
 		try {
@@ -329,50 +356,20 @@ class getBoksMacs
 			outl(dumpUsedTime + " ms.");
 		}
 
-
-		String qNettel;
-
-		qNettel = "_all";
-		//qNettel = "_new";
-		//qNettel = "_sw";
-		//qNettel = "_gw";
-		//qNettel = "_kant";
-		//qNettel = "_cat-ios";
-		//qNettel = "_cdp";
-		//qNettel = "voll-sw";
-		//qNettel = "sb-353-sw"; // NO NAV AREA
-		//qNettel = "kjemi-gw";
-		//qNettel = "hyper-sw";
-		//qNettel = "voll-sby-981-h";
-		//qNettel = "hb-301-sw2";
-		//qNettel = "tekno-sw2";
-		//qNettel = "kjemi-382s-sw2";
-		//qNettel = "itea-ans3-230-h"; // HP
-		//qNettel = "hf-stud-802-h";
-		//qNettel = "hf-ans-806-h";
-		//qNettel = "kjemi-370-sw";
-		//qNettel  = "blasal-sw2";
-		//qNettel = "kjemi-gsw";
-		//qNettel = "sb-gsw";
-		//qNettel = "mts-646-sw";
-
 		Database.setDefaultKeepOpen(true);
-		if (qNettel.equals("_new")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='EDGE' or kat='SW') ORDER BY boksid");
+		if (qNetbox == null) {
+			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','EDGE','WLAN','GW','GSW') AND up='y' AND ro IS NOT NULL");
 		} else
-		if (qNettel.equals("_all")) {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','EDGE','GW','GSW') AND up='y' AND ro IS NOT NULL");
-		} else
-		if (qNettel.equals("_gw")) {
+		if (qNetbox.equals("_gw")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='GW'");
 		} else
-		if (qNettel.equals("_sw")) {
+		if (qNetbox.equals("_sw")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='SW'");
 		} else
-		if (qNettel.equals("_kant")) {
+		if (qNetbox.equals("_kant")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='EDGE'");
 		} else {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"' AND ro IS NOT NULL");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNetbox+"' AND ro IS NOT NULL");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE typegruppe in ('cat-sw', 'ios-sw')");
 		}
@@ -402,6 +399,7 @@ class getBoksMacs
 		QueryBoks.boksidKat = boksidKat;
 		QueryBoks.boksidType = boksidType;
 		QueryBoks.sysnameMap = sysnameMap;
+		QueryBoks.downBoksid = downBoksid;
 
 		QueryBoks.spanTreeBlocked = spanTreeBlocked;
 
@@ -467,13 +465,13 @@ class getBoksMacs
 
 		}
 		int swpResetCnt = QueryBoks.getSwpResetMisscnt();
-		outl("swp_netbox: A total of " + prependSpace(missinc,4) + " units were missed,   " + prependSpace(swpResetCnt,4) + " units were reset,   " + prependSpace(remcnt,4) + " units were removed.");
+		Log.d("STATS", "swp_netbox: A total of " + prependSpace(missinc,4) + " units were missed,   " + prependSpace(swpResetCnt,4) + " units were reset,   " + prependSpace(remcnt,4) + " units were removed.");
 
 		int[] camCnt = finishCam(MAX_MISSCNT);
 		int camMissinc = camCnt[0];
 		int camRemCnt = camCnt[1];
 		int camResetCnt = QueryBoks.getCamResetMisscnt();
-		outl("cam       : A total of " + prependSpace(camMissinc,4) + " records were missed, " + prependSpace(camResetCnt,4) + " records were reset, " + prependSpace(camRemCnt,4) + " records were closed.");
+		Log.d("STATS", "cam       : A total of " + prependSpace(camMissinc,4) + " records were missed, " + prependSpace(camResetCnt,4) + " records were reset, " + prependSpace(camRemCnt,4) + " records were closed.");
 
 		ArrayList boksReport = QueryBoks.boksReport;
 		Collections.sort(boksReport);
@@ -481,11 +479,11 @@ class getBoksMacs
 		digits = String.valueOf(Math.min(SHOW_TOP, boksReport.size())).length();
 		for (int i=0; i < SHOW_TOP && i < boksReport.size(); i++) {
 			BoksReport br = (BoksReport)boksReport.get(i);
-			outl(format(i+1, digits)+": " + formatTime(br.getUsedTime()) + ", " + br.getBoksData().sysName + " (" + br.getBoksData().boksType + ") (" + br.getBoksData().ip + ")");
+			Log.d("STATS", format(i+1, digits)+": " + formatTime(br.getUsedTime()) + ", " + br.getBoksData().sysName + " (" + br.getBoksData().boksType + ") (" + br.getBoksData().ip + ")");
 		}
 
 		Database.closeConnection();
-		outl("All done, time used: " + formatTime(usedTime) + ".");
+		Log.d("STATS", "All done, time used: " + formatTime(usedTime) + ".");
 
 		// Create a job-finished file
 		try {
@@ -608,7 +606,7 @@ class getBoksMacs
 		return hm;
 	}
 
-	private static String[] netelKat = { "GSW", "GW", "SW", "KANT" };
+	private static String[] netelKat = { "GSW", "GW", "SW", "EDGE", "WLAN" };
 	private static Set netelSet = new HashSet();
 	public static boolean isNetel(String kat) {
 		if (netelSet.isEmpty()) for (int i=0;i<netelKat.length;++i) netelSet.add(netelKat[i]);

@@ -18,6 +18,8 @@ import java.sql.*;
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
 //import no.ntnu.nav.netboxinfo.*;
@@ -32,6 +34,7 @@ public class QueryBoks extends Thread
 	public static HashMap boksidKat;
 	public static HashMap boksidType;
 	public static HashMap sysnameMap;
+	public static Set downBoksid;
 
 	public static HashMap spanTreeBlocked;
 
@@ -50,7 +53,7 @@ public class QueryBoks extends Thread
 	// Mengde av vlan som må sjekkes på Cisco-boksene
 	public static Map vlanBoksid;
 
-	// Hvilke porter det står en GW|SW|KANT bak, som gitt i swp_boks-tabellen
+	// Hvilke porter det står en GW|SW|EDGE bak, som gitt i swp_boks-tabellen
 	static HashSet foundBoksBakSwp;
 	public static void setFoundBoksBakSwp(HashSet hs) { foundBoksBakSwp = hs; }
 
@@ -127,7 +130,7 @@ public class QueryBoks extends Thread
 
 	private String getOid(String oidkey) {
 		if (!oidkeys.containsKey(oidkey)) {
-			Log.e("GET_OID", "OID is missing for oidkey: " + oidkey);
+			Log.d("GET_OID", "OID is missing for oidkey: " + oidkey);
 			return null;
 		}
 		return (String)oidkeys.get(oidkey);
@@ -302,6 +305,9 @@ public class QueryBoks extends Thread
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
+
+				// Dersom boksen bak er nede skal vi ikke endre
+				if (downBoksid.contains(pm.getToNetboxid())) continue;
 
 				if (pm.getRemoteIf() != null && new_to_swportid == null) {
 					if (swportNetboxSet.contains(pm.getToNetboxid())) {
@@ -535,6 +541,7 @@ public class QueryBoks extends Thread
 		Log.d("PROCESS_CDP", "cdpList.size: " + cdpList.size());
 		if (cdpList.size() != remoteIfMap.size()) Log.d("PROCESS_CDP", "cdpList != remoteIfMap ("+cdpList.size()+" != "+remoteIfMap.size()+").");
 
+		List unrecognizedCDP = new ArrayList();
 		for (Iterator it = cdpList.iterator(); it.hasNext();) {
 			String[] cdps = (String[])it.next();
 			String ifindex = cdps[0];
@@ -544,6 +551,7 @@ public class QueryBoks extends Thread
 			String netboxid = extractNetboxid(remoteName);
 			if (netboxid == null) {
 				Log.d("PROCESS_CDP", "Not found, ("+workingOnBoksid+") "+boksIdName.get(workingOnBoksid)+", Ifindex: " + ifindex + " String: " + remoteName);
+				unrecognizedCDP.add(new String[] { ifindex, remoteName });
 				continue;
 			}
 			String sysname = (String)boksIdName.get(netboxid);
@@ -583,6 +591,12 @@ public class QueryBoks extends Thread
 				}
 			}
 			
+		}
+		
+		for (Iterator it = unrecognizedCDP.iterator(); it.hasNext();) {
+			// Write this to netboxinfo
+			String[] s = (String[])it.next();
+			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", s[0], s[1]);
 		}
 		
 		return l;
@@ -704,119 +718,148 @@ public class QueryBoks extends Thread
 							}
 						}
 					}
+				}
 
-					// Hent macadresser på dette vlan
-					List macVlan = sSnmp.getAll(getOid("macPortEntry"));
+				// Hent macadresser på dette vlan
+				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_VALUE);
+				List macVlan = sSnmp.getAll(getOid("macPortEntry"));
+				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_OID);
 
-					if (mpBlocked.isEmpty() && (macVlan == null || macVlan.isEmpty())) continue;
+				Map portIndexMap = null;
+				if (macVlan == null) {
+					// Try 3Com SS mac
+					macVlan = sSnmp.getAll(getOid("3cSSMac"));
+					if (macVlan != null) {
+						// We need to rewrite the list to match macPortEntry format, as well as create a portIndexMap
+						List newMacVlan = new ArrayList();
+						portIndexMap = new HashMap();
+						for (Iterator macIt = macVlan.iterator(); macIt.hasNext();) {
+							String[] s = (String[])macIt.next();
+							String[] mp = s[0].split("\\.");
+							int module = Integer.parseInt(mp[0]);
+							int port = Integer.parseInt(mp[1]);
+							String ifindex = module + (port<10?"0":"") + port;
+							newMacVlan.add(new String[] { util.join(mp, ".", 2), ifindex });
+							portIndexMap.put(ifindex, ifindex);
+						}
+						macVlan = newMacVlan;
+					}
+				}
+
+				if (mpBlocked.isEmpty() && (macVlan == null || macVlan.isEmpty())) continue;
 						
-					// Hent mapping mellom ifIndex og intern portindex
-					Map portIndexMap = sSnmp.getAllMap(getOid("basePortIfIndex"));
-					if (portIndexMap != null) {
-						int blockedCnt=0;
-						if (mpBlocked.size() > 0) {
-							Map blockedIfind = (Map)spanTreeBlocked.get(netboxid+":"+vlan);
-							if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert på dette vlan
+				// Hent mapping mellom ifIndex og intern portindex
+				if (portIndexMap == null) {
+					sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_BOTH);
+					portIndexMap = sSnmp.getAllMap(getOid("basePortIfIndex"));
+					sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_OID);
+				}
+
+				if (portIndexMap != null) {
+					int blockedCnt=0;
+					if (mpBlocked.size() > 0) {
+						Map blockedIfind = (Map)spanTreeBlocked.get(netboxid+":"+vlan);
+						if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert på dette vlan
 							
-							for (Iterator blockIt = mpBlocked.iterator(); blockIt.hasNext();) {
-								String s = (String)blockIt.next();
-								String ifindex = (String)portIndexMap.get(s);
-								if (ifindex == null) continue;
+						for (Iterator blockIt = mpBlocked.iterator(); blockIt.hasNext();) {
+							String s = (String)blockIt.next();
+							String ifindex = (String)portIndexMap.get(s);
+							if (ifindex == null) continue;
 								
-								// OK, nå kan vi sjekke om denne eksisterer fra før
-								String swportid = (String)blockedIfind.remove(ifindex);
-								if (swportid == null) {
-									// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
-									swportid = (String)swportidMap.get(netboxid+":"+ifindex);
-									if (swportid != null) {
-										// Find correct vlan
-										String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-										Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode.");
-										try {
-											String[] ins = {
-												"swportid", swportid,
-												"vlan", dbVlan
-											};
-											Database.insert("swportblocked", ins);
-											if (DB_COMMIT) Database.commit(); else Database.rollback();
-											blockedCnt++;
-										} catch (SQLException e) {
-											Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-											e.printStackTrace(System.err);
-										}
-									} else {
-										Log.d("MAC_ENTRY", "Missing swportid for ifindex " + ifindex + " on boks: " + boksIdName.get(netboxid));
+							// OK, nå kan vi sjekke om denne eksisterer fra før
+							String swportid = (String)blockedIfind.remove(ifindex);
+							if (swportid == null) {
+								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
+								swportid = (String)swportidMap.get(netboxid+":"+ifindex);
+								if (swportid != null) {
+									// Find correct vlan
+									String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
+									Log.d("MAC_ENTRY", "Ifindex: " + ifindex + " on VLAN: " + dbVlan + " ("+vlan+") is now in blocking mode.");
+									try {
+										String[] ins = {
+											"swportid", swportid,
+											"vlan", dbVlan
+										};
+										Database.insert("swportblocked", ins);
+										if (DB_COMMIT) Database.commit(); else Database.rollback();
+										blockedCnt++;
+									} catch (SQLException e) {
+										Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
+										e.printStackTrace(System.err);
 									}
 								} else {
-									blockedCnt++;
+									Log.d("MAC_ENTRY", "Missing swportid for ifindex " + ifindex + " on boks: " + boksIdName.get(netboxid));
 								}
-							}
-							// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så de må slettes
-							for (Iterator iter = blockedIfind.entrySet().iterator(); iter.hasNext();) {
-								Map.Entry me = (Map.Entry)iter.next();
-								String swportid = (String)me.getKey();
-								String ifindex = (String)me.getValue();
-								String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
-								Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
-								String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
-								sql += " AND vlan='"+dbVlan+"'";
-								try {
-									Database.update(sql);
-									if (DB_COMMIT) Database.commit(); else Database.rollback();
-								} catch (SQLException e) {
-									Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
-									e.printStackTrace(System.err);
-								}
+							} else {
+								blockedCnt++;
 							}
 						}
-						if (macVlan.size() == 0) continue;
+						// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så de må slettes
+						for (Iterator iter = blockedIfind.entrySet().iterator(); iter.hasNext();) {
+							Map.Entry me = (Map.Entry)iter.next();
+							String swportid = (String)me.getKey();
+							String ifindex = (String)me.getValue();
+							String dbVlan = (vlan.length() == 0 ? (String)vlanMap.get(netboxid+":"+ifindex) : vlan);
+							Log.d("MAC_ENTRY", "swportid: " + swportid + " on VLAN: " + dbVlan + " ("+vlan+") is no longer in blocking mode.");
+							String sql = "DELETE FROM swportblocked WHERE swportid='"+swportid+"'";
+							sql += " AND vlan='"+dbVlan+"'";
+							try {
+								Database.update(sql);
+								if (DB_COMMIT) Database.commit(); else Database.rollback();
+							} catch (SQLException e) {
+								Log.d("MAC_ENTRY", "SQLException: " + e.getMessage());
+								e.printStackTrace(System.err);
+							}
+						}
+					}
+					if (macVlan.size() == 0) continue;
 
-						if (!csAtVlan) vlan = "[all]";
-						Log.d("MAC_ENTRY", "Querying vlan: " + vlan + ", MACs: " + macVlan.size() + " Mappings: " + portIndexMap.size() + " Blocked: " + blockedCnt + " / " + mpBlocked.size() );
+					if (!csAtVlan) vlan = "[all]";
+					Log.d("MAC_ENTRY", "Querying vlan: " + vlan + ", MACs: " + macVlan.size() + " Mappings: " + portIndexMap.size() + " Blocked: " + blockedCnt + " / " + mpBlocked.size() );
 						
-						activeVlanCnt++;
-						boolean b = false;
-						for (Iterator vlanIt = macVlan.iterator(); vlanIt.hasNext();) {
-							String[] s = (String[])vlanIt.next();
-							String mac = decimalToHexMac(s[0]);
-							if (mac.length() != 12) {
-								Log.d("PROCESS_MAC", "Wrong length: " + s[0] + " vs " + mac);
-							}
-							
-							// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
-							// Dette skjer på C35* enhetene.
-							if (netboxid.equals(macBoksId.get(mac))) continue;
-							
-							// Finn ifIndex
-							String ifindex = (String)portIndexMap.get(s[1]);
-							if (ifindex == null) {
-								if (!"0".equals(s[1])) {
-									Log.d("MAC_ENTRY", "MAC: " + mac + " (" + s[0] + ") ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", but no ifIndex mapping exists.");
-								}
-								continue;
-							}
-							
-							// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-							safeCloseBoksidAdd(netboxid);
-							
-							// Prosesser Mac (CAM)
-							processMac(netboxid, ifindex, mac);
-							
-							// Sjekk om vi skal ta med denne mac
-							if (!macBoksId.containsKey(mac)) continue;
-							String to_netboxid = (String)macBoksId.get(mac);
-							
-							String to_cat = (String)boksidKat.get(to_netboxid);
-							if (to_cat == null || isNetel(to_cat)) {
-								foundBoksBak.add(ifindex);
-							}
-
-							PortBoks pm = new PortBoks(ifindex, to_netboxid, "MAC");
-							if (dupCheck.contains(netboxid+":"+pm)) continue;
-							dupCheck.add(netboxid+":"+pm);
-
-							l.add(pm);							
+					activeVlanCnt++;
+					boolean b = false;
+					for (Iterator vlanIt = macVlan.iterator(); vlanIt.hasNext();) {
+						String[] s = (String[])vlanIt.next();
+						String mac = decimalToHexMac(s[0]);
+						if (mac.length() != 12) {
+							Log.d("PROCESS_MAC", "Wrong length: " + s[0] + " vs " + mac);
 						}
+						//Log.d("MAC_ENTRY", "Found mac: " + mac + " portIndex: " + s[1] + "("+ boksIdName.get(macBoksId.get(mac)) +")");
+							
+						// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
+						// Dette skjer på C35* enhetene.
+						if (netboxid.equals(macBoksId.get(mac))) continue;
+							
+						// Finn ifIndex
+						String ifindex = (String)portIndexMap.get(s[1]);
+						if (ifindex == null) {
+							if (!"0".equals(s[1])) {
+								Log.d("MAC_ENTRY", "MAC: " + mac + " (" + s[0] + ") ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", but no ifIndex mapping exists.");
+							}
+							continue;
+						}
+							
+						// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+						safeCloseBoksidAdd(netboxid);
+							
+						// Prosesser Mac (CAM)
+						processMac(netboxid, ifindex, mac);
+							
+						// Sjekk om vi skal ta med denne mac
+						if (!macBoksId.containsKey(mac)) continue;
+						String to_netboxid = (String)macBoksId.get(mac);
+							
+						String to_cat = (String)boksidKat.get(to_netboxid);
+						if (to_cat == null || isNetel(to_cat)) {
+							foundBoksBak.add(ifindex);
+						}
+
+						PortBoks pm = new PortBoks(ifindex, to_netboxid, "MAC");
+						if (dupCheck.contains(netboxid+":"+pm)) continue;
+						dupCheck.add(netboxid+":"+pm);
+
+						l.add(pm);							
 					}
 				}
 
