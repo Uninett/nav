@@ -18,7 +18,9 @@ from nav.rrd import presenter
 import forgetHTML as html
 from nav.web import urlbuilder
 from nav.errors import *
-import nav.web.templates.tsTemplate
+from nav.web.templates.tsTemplate import tsTemplate
+from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
+from nav.web.SearchBox import SearchBox
 
 configfile = 'rrdBrowser.conf'
 
@@ -128,6 +130,9 @@ def remove(session, list):
         return html.Division("%s %s" % (str(e), str(list)))
     session.save()
 def timeframe(session, query):
+    tf = query['tf'][0]
+    session['rrd'].timeframe = tf
+    session.save()
     for i in session['rrd'].presentations:
         i.timeLast(query['tf'][0])
 
@@ -147,11 +152,30 @@ def showIndex(req, session):
 
 def treeselect(req, session, action=None):
     result = html.Division()
-    form = html.Form(action="", method='post')
-    result.append(form)
     keep_blank_values = True
     req.form = util.FieldStorage(req, keep_blank_values)
 
+
+    searchbox = SearchBox(req,'Type a room id, an ip or a (partial) sysname')
+    searchbox.addSearch('ds',
+                        'Datasource',
+                        'RrdDataSourceFile',
+                        {'catids': ['netbox.cat'],
+                         'netboxes': ['netbox'],
+                         'datasources' : ['rrd_datasourceid'],
+                         },
+                        where = "rrd_datasource.descr like '%%%s%%'"
+                        )
+                        
+
+    searchResults = searchbox.getResults(req)
+    searchBoxTemplate = SearchBoxTemplate()
+    result.append(searchBoxTemplate.searchbox(searchbox))
+    # Some debugging
+    # result.append(html.Division(str(searchResults)))
+    # all treeselect stuff...
+    form = html.Form(action="", method='post')
+    result.append(form)
     selectbox = TreeSelect()
     default_list = []
     select = Select('cn_category',
@@ -160,7 +184,10 @@ def treeselect(req, session, action=None):
                     multipleSize = 20,
                     initTable='Cat',
                     initTextColumn='descr',
-                    initIdColumn='catid')
+                    initIdColumn='catid',
+                    optionFormat = '$d ($v)',
+                    preSelected = searchResults['catids']
+                    )
     
     select2 = UpdateableSelect(select,           # previous element
                                'cn_netbox',      # element name
@@ -171,7 +198,9 @@ def treeselect(req, session, action=None):
                                'catid',          # foreign key (from previous element)
                                default_list,     # default options
                                multiple=True,    
-                               multipleSize=20)
+                               multipleSize=20,
+                               preSelected = searchResults['netboxes']
+                               )
 
 
     select3 = UpdateableSelect(select2,
@@ -183,6 +212,7 @@ def treeselect(req, session, action=None):
                                'netboxid',
                                multiple=True,
                                multipleSize=20,
+                               preSelected = searchResults['datasources'],
                                onchange=None)
 
 
@@ -190,22 +220,34 @@ def treeselect(req, session, action=None):
     selectbox.addSelect(select2)
     selectbox.addSelect(select3)
 
-
-    if req.form.has_key('cn_commitDs'):
+    if req.form.has_key('cn_cancel'):
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
+    
+    if req.form.has_key('cn_commitDs') or req.form.has_key('cn_joinDs'):
         selectbox.update(req.form)
         try:
             pageobj = req.session['rrd']
         except:
             pageobj = presenter.page()
-
-        datasources = req.form['cn_datasource']
+        try:
+            datasources = req.form['cn_datasource']
+        except KeyError:
+            raise RedirectError, urlbuilder.createUrl(division="rrd")
         if type(datasources) != type([]):
             datasources = [datasources]
 
-        for ds in datasources:
-            a = presenter.presentation()
-            a.addDs(ds)
+        # if the user selected join, we use only one presentation
+        currentTimeFrame = pageobj.timeframe
+        if req.form.has_key('cn_joinDs'):
+            a = presenter.presentation(tf=currentTimeFrame)
+            for ds in datasources:
+                a.addDs(ds)
             pageobj.presentations.append(a)
+        else:
+            for ds in datasources:
+                a = presenter.presentation(tf=currentTimeFrame)
+                a.addDs(ds)
+                pageobj.presentations.append(a)
         req.session['rrd'] = pageobj
         req.session.save()
         raise RedirectError, urlbuilder.createUrl(division="rrd")        
@@ -215,9 +257,13 @@ def treeselect(req, session, action=None):
         nameSpace = {'selectbox': selectbox}
         oldds = req.session['rrd'].presentations
         debug = {'debug': "%s Old Ds: %s" % (str(req.form.keys()), str(oldds))}
-        template = nav.web.templates.tsTemplate.tsTemplate()
+        template = tsTemplate()
         result.append(template.treeselect(selectbox))
     result.append(html.Input(type='submit', name='cn_commitDs', value='Add selected'))
+    result.append(html.Input(type='submit', name='cn_joinDs', value='Add and join'))
+    result.append(html.Input(type='submit', name='cn_cancel', value='Cancel'))
+
+    # result.append(html.Division(str(select2.selectedList)))
     return result
 
 
