@@ -240,7 +240,17 @@ sub hent_catsw
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{duplex} = $temp; 
+
+# Oversetter fra tall til beskrivelse
+	if ($temp == 1)
+	{
+	    $if{$mp2if{$mp}}{duplex} = 'half'; 
+	}
+	else
+	{
+	    $if{$mp2if{$mp}}{duplex} = 'full'; 
+	}
+
 	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
 	
 #	$ii2mp{$temp} = $mp;
@@ -256,7 +266,17 @@ sub hent_catsw
     @temp = &snmpwalk($ro."\@".$ip,$Status_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{status} = $temp; 
+
+# Oversetter fra tall til up/down
+	if ($temp == 2)
+	{
+	    $if{$mp2if{$mp}}{status} = 'up';
+	}
+	else
+	{
+	    $if{$mp2if{$mp}}{status} = 'down'; 
+	}
+
 	print "STATUS".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
@@ -289,12 +309,13 @@ sub hent_catsw
 	$if{$mp2if{$mp}}{portnavn} = $temp; 
 	print "NAME".$mp2if{$mp}.":".$temp."\n";
 
-	if ($temp =~ /^n|h|o|link|srv/i)
-	{
-	    (undef,my $sysName) = split(/:/,$temp);
-	    $if{$mp2if{$mp}}{boksbak} = $sysname2id{$sysName};
-	    print $if{$mp2if{$mp}}{boksbak};
-	}
+## Dropper å skrive til boksbak
+#	if ($temp =~ /^n|h|o|link|srv/i)
+#	{
+#	    (undef,my $sysName) = split(/:/,$temp);
+#	    $if{$mp2if{$mp}}{boksbak} = $sysname2id{$sysName};
+#	    print $if{$mp2if{$mp}}{boksbak};
+#	}
     }
 
     foreach my $interface (keys %if) {
@@ -352,11 +373,22 @@ sub hent_iossw {
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_iossw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp}{duplex} = $temp; 
+
+	# Oversetter fra tall til beskrivelse
+	if ($temp == 1)
+	{
+	    $if{$mp}{duplex} = 'full'; 
+	}
+	else
+	{
+	    $if{$mp}{duplex} = 'half'; 
+	}
+
 	print "DUPLEX".$mp.":".$temp.":".$mp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
+
 #HAR IKKE RIKTIG MIB FOR PORTTYPE
 #    @temp = &snmpwalk($ro."\@".$ip,$portType_iossw);
 #    foreach $line (@temp)    {
@@ -366,10 +398,21 @@ sub hent_iossw {
 	
 #	$ii2mp{$temp} = $mp;
 #    }
+
     @temp = &snmpwalk($ro."\@".$ip,$Status_iossw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	$if{$mp}{status} = $temp; 
+
+# Oversetter fra tall til up/down.
+	if ($temp == 1)
+	{
+	    $if{$mp}{status} = 'up';
+	}
+	else
+	{
+	    $if{$mp}{status} = 'down';
+	}
+
 	print "STATUS".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
@@ -402,12 +445,13 @@ sub hent_iossw {
 	$if{$mp}{portnavn} = $temp; 
 	print "NAME".$mp.":".$temp."\n";
 
-	if ($temp =~ /^n|h|o|link|srv/i)
-	{
-	    (undef,my $sysName) = split(/:/,$temp);
-	    $if{$mp}{boksbak} = $sysname2id{$sysName};
-	    print $if{$mp}{boksbak};
-	}
+## Dropper å skrive til boksbak
+#	if ($temp =~ /^n|h|o|link|srv/i)
+#	{
+#	    (undef,my $sysName) = split(/:/,$temp);
+#	    $if{$mp}{boksbak} = $sysname2id{$sysName};
+#	    print $if{$mp}{boksbak};
+#	}
     }
 
     foreach my $interface (keys %if) {
