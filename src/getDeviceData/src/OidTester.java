@@ -29,10 +29,11 @@ public class OidTester
 		try {
 			Database.update("UPDATE type SET uptodate='t' WHERE typeid='"+t.getTypeid()+"'");
 		} catch (SQLException e) {
-			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
-			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
+			Log.e("OID_TESTER", "TEST_TYPE", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "TEST_TYPE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+		Log.i("OID_TESTER", "TEST_TYPE", "Type " + t + " is now to-to-date");
 	}
 
 	public void oidTest(Snmpoid snmpoid, Iterator typeIt) {
@@ -45,10 +46,11 @@ public class OidTester
 		try {
 			Database.update("UPDATE snmpoid SET uptodate='t' WHERE snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 		} catch (SQLException e) {
-			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
-			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
+			Log.e("OID_TESTER", "TEST_OID", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "TEST_OID", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
+		Log.i("OID_TESTER", "TEST_OID", "OID " + snmpoid + " is now to-to-date");
 	}
 
 	private void doTest(Type t, Snmpoid snmpoid) {
@@ -124,8 +126,10 @@ public class OidTester
 						} catch (Exception e) {
 							// Not supported
 							t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
+							Log.d("OID_TESTER", "CS_AT_VLAN", "Type " + t + ", Exception " + e);
 						}
 						Database.update("UPDATE type SET cs_at_vlan = '" + t.getCsAtVlanC() + "' WHERE typeid = '"+t.getTypeid()+"'");
+						Log.i("OID_TESTER", "CS_AT_VLAN", "Type " + t + " supports cs@vlan: " + t.getCsAtVlanC());
 					}
 				}
 				unlock(t.getTypeid());
