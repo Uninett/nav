@@ -246,7 +246,6 @@ sub Switchports {
 	my ($id, $ip, $switchnavn, $type, $community) = @$_;
 
 	if ($community) {
-
 	    unless (-e "$path/switch-ports/$switchnavn") {
 		mkdir ("$path/switch-ports/$switchnavn", 0775);
 	    }
@@ -261,14 +260,14 @@ sub Switchports {
 
 	    unless ($type =~ /SW/) {
 		# Finner alle portene som er på switchen.
-		my $getports = $dbh->prepare("SELECT mp,portname FROM swport WHERE swid=$id ORDER BY id");
+		my $getports = $dbh->prepare("SELECT modul,port,portname FROM swport WHERE boksid=$id ORDER BY id");
 		$getports->execute;
 
 		my @liste;
 		
-		while (my ($mp, $portname) = $getports->fetchrow_array) {
-		    unless ($portname =~ /(udef|undef)/ or !$mp) {
-			push @liste, [$mp, $portname];
+		while (my ($modul, $port, $portname) = $getports->fetchrow_array) {
+		    unless ($portname =~ /(udef|undef)/ or !$modul or !$port) {
+			push @liste, [$modul, $port, $portname];
 		    }
 		}
 
@@ -281,9 +280,9 @@ sub Switchports {
 		    $mp =~ s/fe/Fa/i;
 		    $mp =~ s/ge/Gi/i;
 		    $mp =~ s/\./_/;
-		    print FIL "target $mp\n";
+		    print FIL "target $modul_$port\n";
 		    $mp =~ s/_/\//;
-		    print FIL "\tport-name\t=\t$mp\n";
+		    print FIL "\tport-name\t=\t$modul\/$port\n";
 		    $portname =~ s/\s/_/g;
 		    print FIL "\tshort-desc\t=\t$portname\n";
 
