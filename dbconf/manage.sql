@@ -151,6 +151,7 @@ CREATE TABLE prefiks (
   orgid VARCHAR(10) REFERENCES org,
   anvid VARCHAR(10) REFERENCES anv,
   nettident VARCHAR(20),
+  samband VARCHAR(20),
   komm VARCHAR(20)
 );
 
