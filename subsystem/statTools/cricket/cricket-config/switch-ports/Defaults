@@ -16,10 +16,11 @@ Target	--default--
 # All the orther information is stored in the main Defaults file.
 
 html    page-header
-	<table width=100%>
-        <tr>
-                <td align=left class=header>%auto-title%</td>
-                <td align=right><a href=/>Back to NAV</a></td>
+        <table width=100%>
+        <tr class=header>
+                <td width=33% align=left class=header>%auto-title%</td>
+                <td width=33% align=center class=header2>NAV-v3</td>
+                <td width=33% align=right><a href=/>Back to NAV</a></td>
         </tr>
         </table>
-	<h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+        <h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
