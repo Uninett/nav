@@ -24,7 +24,6 @@ public class Module extends Device implements Comparable
 	{
 		super(serial, hw_ver, sw_ver);
 		this.module = module;
-		submodule = "";
 	}
 
 	// Doc in parent

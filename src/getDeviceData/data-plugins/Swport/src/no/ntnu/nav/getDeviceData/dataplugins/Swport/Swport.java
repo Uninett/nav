@@ -30,14 +30,14 @@ public class Swport implements Comparable
 	private Integer port;
 	private String ifindex;
 
-	private char link;
+	private Character link;
 	private String speed;
-	private char duplex;
-	private String media = "";
-	private boolean trunk;
-	private String portname = "";
+	private Character duplex;
+	private String media;
+	private Boolean trunk;
+	private String portname;
 
-	private int vlan = 0;
+	private Integer vlan;
 	private ArrayList vlanList;
 
 	private String hexstring;
@@ -46,10 +46,6 @@ public class Swport implements Comparable
 	{
 		this.port = port;
 		this.ifindex = ifindex.trim();
-
-		this.link = PORT_LINK_DOWN;
-		this.speed = "";
-		this.trunk = false;
 	}
 
 	public Swport(Integer port, String ifindex, char link, String speed, char duplex, String media, boolean trunk, String portname)
@@ -57,12 +53,12 @@ public class Swport implements Comparable
 		this.port = port;
 		this.ifindex = ifindex.trim();
 
-		this.link = link;
-		this.speed = speed.trim();
-		this.duplex = duplex;
-		if (media != null) this.media = media.trim();
+		setLink(link);
+		setSpeed(speed);
+		setDuplex(duplex);
+		setMedia(media);
 		setTrunk(trunk);
-		if (portname != null) this.portname = portname.trim();
+		setPortname(portname);
 	}
 
 	int getSwportid() { return swportid; }
@@ -71,20 +67,23 @@ public class Swport implements Comparable
 	void setSwportid(String s) { swportid = Integer.parseInt(s); }
 
 	Integer getPort() { return port; }
-	String getPortS() { return ((port.toString().length()==1)?" ":"")+getPort(); }
+	String getPortS() {
+		if (port == null) return null;
+		return ((port.toString().length()==1)?"0":"")+getPort();
+	}
 
 	String getIfindex() { return ifindex; }
-	String getIfindexS() { return ((ifindex.length()==1)?" ":"")+getIfindex(); }
+	String getIfindexS() { return ((ifindex.length()==1)?"0":"")+getIfindex(); }
 
-	char getLink() { return link; }
+	Character getLink() { return link; }
+	String getLinkS() { return string(link); }
 
 	String getSpeed() { return speed; }
-	char getDuplex() { return duplex; }
-	String getDuplexS() { 
+	Character getDuplex() { return duplex; }
+	String getDuplexS() {
+		if (duplex == null) return null;
 		String s = String.valueOf(duplex).trim();
-		System.err.println("Duplex for port " +getPort() + " is |" + s + "|");
 		if (s.length() == 0) {
-			System.err.println("  match");
 			Log.w("SWPORT", "MISSING_DUPLEX", "Defaulting to full duplex. Port="+getPort()+", Swportid="+getSwportid());
 			return "f";
 		}
@@ -96,9 +95,12 @@ public class Swport implements Comparable
 	/**
 	 * Get if the port is using trunking or not.
 	 */
-	public boolean getTrunk() { return trunk; }
-
-	String getTrunkS() { return trunk?"t":"f"; }
+	public Boolean getTrunk() { return trunk; }
+	boolean getTrunkB() { return trunk != null && trunk.booleanValue(); }
+	String getTrunkS() {
+		if (getTrunk() == null) return null;
+		return getTrunk().booleanValue()?"t":"f";
+	}
 	String getPortname() { return portname; }
 
 	/**
@@ -110,13 +112,13 @@ public class Swport implements Comparable
 	 *  <li>'d' means the port is turned off (adm down)</li>
 	 * </ul>
 	 */
-	public void setLink(char c) { link = c; }
+	public void setLink(char c) { link = new Character(c); }
 
 	/**
 	 * Set the current speed of the port in MBit/sec.
 	 *
 	 */
-	public void setSpeed(String s) { speed = s.trim(); }
+	public void setSpeed(String s) { speed = trim(s); }
 
 	/**
 	 * Set the current duplex of the port:
@@ -126,39 +128,39 @@ public class Swport implements Comparable
 	 *  <li>'h' means half duplex</li>
 	 * </ul>
 	 */
-	public void setDuplex(char c) { duplex = c; }
+	public void setDuplex(char c) { duplex = new Character(c); }
 
 	/**
 	 * Set the media type for the port, e.g. "100BaseTX" for a 100Mbit TP port.
 	 */
-	public void setMedia(String s) { media = s.trim(); }
+	public void setMedia(String s) { media = trim(s); }
 
 	/**
 	 * Set if the port is using trunking or not.
 	 */
 	public void setTrunk(boolean b) {
-		trunk = b;
-		if (trunk && vlanList == null) vlanList = new ArrayList();
+		trunk = new Boolean(b);
+		if (b && vlanList == null) vlanList = new ArrayList();
 	}
 
 	/**
 	 * Set the port name
 	 */
-	public void setPortname(String s) { portname = s.trim(); }
+	public void setPortname(String s) { portname = trim(s); }
 
-	int getVlan() { return vlan; }
+	Integer getVlan() { return vlan; }
 
 	/**
 	 * Set the vlan; only use this for non-trunking ports.
 	 */
-	public void setVlan(int i) { vlan = i; }
+	public void setVlan(int i) { vlan = new Integer(i); }
 
 	/**
 	 * Used for trunking ports; call this method to add
 	 * the VLANs allowed on the port.
 	 */
 	public void addTrunkVlan(String vlan) {
-		if (!trunk) return;
+		if (!getTrunkB()) return;
 		vlanList.add(vlan);
 	}
 
@@ -174,7 +176,7 @@ public class Swport implements Comparable
 
 	String getVlanAllowHexString()
 	{
-		if (!getTrunk()) return "";
+		if (!getTrunkB()) return "";
 
 		int[] a = new int[256];
 		for (int i=0; i < a.length; i++) a[i] = 0;
@@ -240,6 +242,15 @@ public class Swport implements Comparable
 			" Speed: " + speed +
 			" Duplex: " + duplex +
 			" Media: " + media; 
+	}
+
+	private String trim(String s) {
+		return (s == null) ? s : s.trim();
+	}
+
+	private String string(Object o) {
+		if (o == null) return null;
+		return String.valueOf(o);
 	}
 
 }

@@ -127,9 +127,9 @@ public class SwportHandler implements DataHandler {
 						String[] inss = {
 							"swportid", swportid,
 							"moduleid", moduleid,
-							"port", sd.getPort().toString(),
+							"port", sd.getPortS(),
 							"ifindex", sd.getIfindex(),
-							"link", String.valueOf(sd.getLink()),
+							"link", sd.getLinkS(),
 							"speed", sd.getSpeed(),
 							"duplex", sd.getDuplexS(),
 							"media", Database.addSlashes(sd.getMedia()),
@@ -145,7 +145,7 @@ public class SwportHandler implements DataHandler {
 							Log.i("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							String[] set = {
 								"ifindex", sd.getIfindex(),
-								"link", String.valueOf(sd.getLink()),
+								"link", sd.getLinkS(),
 								"speed", sd.getSpeed(),
 								"duplex", sd.getDuplexS(),
 								"media", Database.addSlashes(sd.getMedia()),
@@ -160,17 +160,17 @@ public class SwportHandler implements DataHandler {
 					}
 					sd.setSwportid(swportid);
 
-					if (!sd.getTrunk()) {
-						if (oldsd != null && oldsd.getTrunk()) {
+					if (sd.getTrunk() != null && !sd.getTrunk().booleanValue()) {
+						if (oldsd != null && oldsd.getTrunk().booleanValue()) {
 							// Går fra trunk -> non-trunk, slett alle så nær som et vlan fra swportvlan
 							Database.update("DELETE FROM swportvlan WHERE swportid="+sd.getSwportid()+" AND vlan!=(SELCT MIN(vlan) FROM swportvlan WHERE swportid="+sd.getSwportid()+" GROUP BY swportid)");
 						}
 
 						// Også oppdater swportvlan
-						if (oldsd == null || oldsd.getVlan() == Integer.MIN_VALUE) {
-							if (sd.getVlan() <= 0) sd.setVlan(1);
+						if (oldsd == null || (oldsd.getVlan() != null && oldsd.getVlan().intValue() == Integer.MIN_VALUE)) {
+							if (sd.getVlan() == null || sd.getVlan().intValue() <= 0) sd.setVlan(1);
 							Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+sd.getSwportid()+"','"+sd.getVlan()+"')");
-						} else if (sd.getVlan() > 0 && oldsd.getVlan() != sd.getVlan()) {
+						} else if (sd.getVlan() != null && sd.getVlan().intValue() > 0 && oldsd.getVlan() != null && oldsd.getVlan().intValue() != sd.getVlan().intValue()) {
 							Database.update("UPDATE swportvlan SET vlan = '"+sd.getVlan()+"' WHERE swportid = '"+sd.getSwportid()+"'");
 						}
 
@@ -179,7 +179,7 @@ public class SwportHandler implements DataHandler {
 							Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
 						}
 
-					} else {
+					} else if (sd.getTrunk() != null) {
 						// Trunk, da må vi evt. oppdatere swportallowedvlan
 						if (sd.getHexstring().length() > 0) {
 							if (oldsd == null || oldsd.getHexstring().length() == 0) {
