@@ -559,9 +559,9 @@ public class QueryBoks extends Thread
 			if (netboxid == null) {
 				Log.d("PROCESS_CDP", "Not found, ("+workingOnBoksid+") "+boksIdName.get(workingOnBoksid)+", Ifindex: " + ifindex + " String: " + remoteName);
 				unrecognizedCDP.add(new String[] { ifindex, remoteName });
+				oldUnrecIfind.remove(ifindex);
 				continue;
 			}
-			oldUnrecIfind.remove(ifindex);
 			String sysname = (String)boksIdName.get(netboxid);
 
 			// Opprett record for boksen bak porten
