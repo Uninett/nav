@@ -53,7 +53,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 	protected String convertToIfIndex(String[] s) {
 		// Construct ifIndex
 		String ifindex = s[0];
-		if (ifindex.length() == 1) ifindex = "0" + ifindex;
+		if (ifindex.split("\\.")[0].length() == 1) ifindex = "0" + ifindex;
 		ifindex = new Integer(Integer.parseInt(s[2])+1) + ifindex;
 		return ifindex;
 	}
