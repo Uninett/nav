@@ -2,15 +2,23 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.7 2002/06/11 14:07:10 erikgors Exp $
+$Id: job.py,v 1.8 2002/06/13 09:30:41 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
-import time,socket,sys
+import time,socket,sys,types
 from select import select
 from errno import errorcode
 
 class Timeout(Exception):
 	pass
+class Event:
+	UP = 'UP'
+	DOWN = 'DOWN'
+	def __init__(self,id,status,info):
+		self.status = status
+		self.id = id
+		self.info = info
+
 class Socket:
 	def __init__(self,timeout=5):
 		self.timeout = timeout
@@ -25,7 +33,7 @@ class Socket:
 			if not errorcode[number] == 'EINPROGRESS':
 				raise
 		self.s.setblocking(1)
-		r,w,e = select([],[self.s],[],self.timeout)
+		r,w,e = select([],[self],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in connect')
 	def recv(self,*args):
@@ -53,46 +61,42 @@ class Socket:
 		self.s.close()
 	def makefile(self,*args):
 		return self.s.makefile(*args)
+	def fileno(self):
+		return self.s.fileno()
+	def sendall(self,*args):
+		return self.s.sendall(*args)
+	
 
 
-class Job:
-	"""
-	Jobb-klasse som hver enkel "tjeneste"-modul skal extende,
-	den må ha en execute() som returnerer (state,txt)
-
-	sorteres ettersom når den sist ble kjørt (getTimestamp)
-
-	Denne vil koble til en port og lese _en_ linje
-	"""
-	def __init__(self,address):
-		self.setName('generic')
+class JobHandler:
+	def __init__(self,type,id,address,args,version = '',status = Event.UP):
+		self.setId(id)
+		self.setType(type)
 		self.setAddress(address)
-		self.setStatus('')
+		self.setStatus(status)
 		self.setTimestamp(0)
-		self.setState(())
+		self.setArgs(args)
+		self.setVersion(version)
 	def run(self):
 		start = time.time()
-		state = self.execute()
+		version = self.getVersion()
+		try:
+			status,info = self.execute()
+		except Exception,info:
+			status = 'DOWN'
+			info = str(info)
 		self.setUsage(time.time()-start)
 		
-		if state != self.getState() and self.getState():
-			#forteller databasen at her har det skjedd noe
-			database.add(self,state)
-		else:
-			self.setState(state)
+		if status != self.getStatus():
+			database.newEvent(self,Event(self.getId(),status,info))
+			self.setStatus(status)
+		elif version != self.getVersion():
+			database.newVersion(self.getId(),self.getVersion())
 		self.setTimestamp()
-	def execute(self):
-		s = Socket()
-		try:
-			s.connect(self.getAddress())
-			txt = s.readline()
-			state = 'UP'
-		except Exception,info:
-			state = 'DOWN'
-			txt = str(info)
-		s.close()
-
-		return state,txt
+	def setId(self,id):
+		self._id = id
+	def getId(self):
+		return self._id
 	def getUsage(self):
 		return self._usage
 	def setUsage(self,usage):
@@ -107,63 +111,60 @@ class Job:
 		if when == -1:
 			when = time.time()
 		self._timestamp= when
-	def setState(self,txt):
-		self._state = txt
-	def getState(self):
-		return self._state
-	def setName(self,name):
-		self._name = name
-	def getName(self):
-		return self._name
+	def setArgs(self,args):
+		self._args = args
+	def getArgs(self):
+		return self._args
+	def setType(self,type):
+		self._type = type
+	def getType(self):
+		return self._type
 	def getAddress(self):
 		return self._address
 	def setAddress(self,address):
 		self._address = address
+	def setVersion(self,version):
+		self._version = version
+	def getVersion(self):
+		return self._version
 	def __eq__(self,obj):
-		if type(obj) == str:
-			return self.getName() == obj
-		elif type(obj) == tuple:
-			return obj == self.getAddress()
-		else:
-			return self.getName() == obj.getName() and self.getAddress() == obj.getAddress()
+		if type(obj) in [str,types.IntType]:
+			return self.getId() == int(obj)
+		return self.getId() == obj.getId()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
-		i = (self.getName().__hash__() + self.getAddress().__hash__()) % 2**31
-		return int(i)
+		return self.getId()
 	def __repr__(self):
-		return '\'' + self.getName() + '\' ' + str(self.getAddress())
-class Port(Job):
-	"""
-	sjekker om en port er i live
-	"""
-	def __init__(self,address):
-		Job.__init__(self,address)
-		Job.setName(self,'portlive')
+		s = '%i: %s %s' % (self.getId(),self.getType(),str(self.getAddress()))
+		return s.ljust(40) + self.getStatus()
+class PortHandler(JobHandler):
+	def __init__(self,*args):
+		JobHandler.__init__(self,'port',*args)
 	def execute(self):
 		s = Socket()
-		try:
-			s.connect(self.getAddress())
-			state = 'UP'
-		except Exception,info:
-			state = 'DOWN'
-			txt = str(info)
+		s.connect(self.getAddress())
+		r,w,x = select([s],[],[],0.1)
+		if r:
+			s.readline()
+			print s.readline()
+		status = Event.UP
+		txt = 'Alive'
 		s.close()
 
-		return state,txt
-class Dummy(Job):
-	def __init__(self,address):
-		Job.__init__(self,address)
-		Job.setName(self,'dummy')
+		return status,txt
+class DummyHandler(JobHandler):
+	def __init__(self,*args):
+		JobHandler.__init__(self,'dummy',*args)
 	def execute(self):
 		import random
 		time.sleep(random.random()*10)
-		return 'UP','ok'
+		return Event.UP,'OK'
 
 #class Url(Job):
 #	def __init__(self,address,type,path = '/'):
 #		Job.__init__(self,address)
-#		Job.setName(self,'url')
+#		Job.setType(self,'url')
 #		self.url = '%s://%s:%i%s' % (type,address[0],address[1],path)
 #	def execute(self):
 #		import urllib
@@ -175,27 +176,30 @@ class Dummy(Job):
 #			state = 'DOWN'
 #			txt = str(info)
 #		return state,txt
-class Http(Job):
-	def __init__(self,address,path = '/'):
-		Job.__init__(self,address)
-		Job.setName(self,'http')
-		self.path = path
+import httplib
+class HTTPConnection(httplib.HTTPConnection):
+	def __init__(self,host,port=None):
+		httplib.HTTPConnection.__init__(self,host,port)
+	def connect(self):
+		self.sock = Socket()
+		self.sock.connect((self.host,self.port))
+class HttpHandler(JobHandler):
+	def __init__(self,id,address,args,version):
+		JobHandler.__init__(self,'http',id,address,args,version)
 	def execute(self):
-		import httplib
-		try:
-			i = httplib.HTTPConnection('')
-			i.sock = Socket()
-			i.sock.connect(self.getAddress())
-			i.putrequest('GET','http://%s:%i%s' % (self.getAddress()[0],self.getAddress()[1],self.path))
-			i.endheaders()
-			response = i.getresponse()
-			if response.status >= 200 and response.status < 300:
-				state = 'UP'
-				txt = response.getheader('SERVER')
-			else:
-				state = 'DOWN'
-				txt = 'status == ' +  str(response.status)
-		except Exception,info:
-			state = 'DOWN'
-			txt = str(info)
-		return state,txt
+		i = HTTPConnection(*self.getAddress())
+		path = self.getArgs().get('path','/')
+		url = 'http://%s:%i%s' % (self.getAddress()[0],self.getAddress()[1],path)
+		print url
+		i.putrequest('GET',url)
+		i.endheaders()
+		response = i.getresponse()
+		if response.status >= 200 and response.status < 300:
+			status = Event.UP
+			version = response.getheader('SERVER')
+			self.setVersion(version)
+			info= 'OK (' + str(response.status) + ')'
+		else:
+			status = Event.DOWN
+			info = 'ERROR (' +  str(response.status) + ')'
+		return status,info
