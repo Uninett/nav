@@ -173,9 +173,10 @@ public class DeviceDB
 
 		// Post the alert to alertq
 		try {
+			Database.beginTransaction();
 			// Lock eventq/eventqvar tables to avoid deadlock
-			Database.update("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE");
-			Database.update("LOCK TABLE eventqvar IN SHARE ROW EXCLUSIVE MODE");
+			//Database.update("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE");
+			//Database.update("LOCK TABLE eventqvar IN SHARE ROW EXCLUSIVE MODE");
 
 			// Insert into alertq
 			insertAlert(e, false, 0);

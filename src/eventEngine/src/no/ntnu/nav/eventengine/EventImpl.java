@@ -100,7 +100,6 @@ class EventImpl implements Event, Alert
 		if (disposed) return;
 		try {
 			Database.update("DELETE FROM eventq WHERE eventqid = '"+eventqid+"'");
-			Database.commit();
 		} catch (SQLException e) {
 			errl("EventImpl: Cannot dispose of self: " + e.getMessage());
 			return;
