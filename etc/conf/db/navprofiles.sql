@@ -94,13 +94,18 @@ DROP TABLE NavbarLink CASCADE;
 
 DROP TABLE AccountNavbar;
 
--- WebAuthorization
-DROP TABLE WebAuthorization;
-
 -- AccountOrg
 DROP TABLE AccountOrg;
 
+-- AccountGroupPrivilege
+DROP TABLE AccountGroupPrivilege;
 
+-- Privilege
+DROP TABLE Privilege;
+DROP SEQUENCE privilege_id_seq;
+
+-- PrivilegeByGroup
+DROP VIEW PrivilegeByGroup;
 
 /*
 ------------------------------------------------------
@@ -715,27 +720,6 @@ CREATE TABLE AccountNavbar (
 );
 
 /*
--- WebAuthorization
-
-This table describes which web resources specific AccountGroups may
-access.  The uri field is a regular expression. For every request to
-the web server, the requested URI will be matched against a list of
-these regular expressions for each group the logged in user is a
-member of.  If a match is found, the user is granted access.  If no
-match is found, a 401 Authorization Required response is sent.
-
-*/
-CREATE TABLE WebAuthorization (
-       accountgroupid integer NOT NULL,
-       uri varchar NOT NULL,
-
-       CONSTRAINT accountgroup_exists
-                  FOREIGN KEY(accountgroupid) REFERENCES Accountgroup(id)
-                  ON DELETE CASCADE
-                  ON UPDATE CASCADE
-);
-
-/*
 -- AccountOrg
 
 This table associates accounts with organizations.  Unfortunately, the
@@ -754,6 +738,53 @@ CREATE TABLE AccountOrg (
                   FOREIGN KEY(accountid) REFERENCES Account(id)
                   ON DELETE CASCADE
                   ON UPDATE CASCADE
+);
+
+/*
+-- Privilege
+
+This table contains valid privilege names and their id numbers for
+reference from the AccountGroupPrivilege table
+
+*/
+CREATE SEQUENCE privilege_id_seq START 10000;
+CREATE TABLE Privilege (
+       privilegeid integer NOT NULL DEFAULT nextval('privilege_id_seq'),
+       privilegename varchar(30) NOT NULL CONSTRAINT privilegename_uniq UNIQUE,
+
+       CONSTRAINT privilege_pk PRIMARY KEY (privilegeid)
+);
+
+/*
+-- AccountGroupPrivilege
+
+This table defines privileges granted to AccountGroups.
+
+*/
+CREATE TABLE AccountGroupPrivilege (
+       accountgroupid integer NOT NULL,
+       privilegeid integer NOT NULL,
+       target varchar NOT NULL,
+
+       CONSTRAINT agprivilege_pk PRIMARY KEY (accountgroupid, privilegeid, target),
+       CONSTRAINT accountgroup_exists
+                  FOREIGN KEY(accountgroupid) REFERENCES AccountGroup(id)
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE,
+       CONSTRAINT privilege_exists
+                  FOREIGN KEY(privilegeid) REFERENCES Privilege
+                  ON DELETE CASCADE
+                  ON UPDATE CASCADE
+);
+
+/*
+-- PrivilegeByGroup
+
+This is a view that is similar to AccountGroupPrivilege, except that privilege names have been resolved from the privilege id
+*/
+CREATE VIEW PrivilegeByGroup AS (
+       SELECT a.accountgroupid, b.privilegename AS action, a.target
+       FROM AccountgroupPrivilege AS a NATURAL JOIN Privilege AS b
 );
 
 /*
@@ -781,22 +812,6 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
 (1, 100, true, 100);
 
--- DEFAULT WEB AUTHORIZATION
-
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(1, '.*');
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(2, '^/index.py/login\\b');
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(2, '^/images/.*');
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(2, '^/wap/.*');
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(2, '^/$');
-INSERT INTO WebAuthorization (accountgroupid, uri) VALUES
-(2, '^/index.py/index$');
-
-
 -- NAVBAR PREFERENCES
 
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
@@ -808,6 +823,27 @@ INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
 (0, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
 (0, 2, 'navbar');
+
+-- Privileges
+
+INSERT INTO Privilege VALUES (1, 'empty_privilege');
+INSERT INTO Privilege VALUES (2, 'web_access');
+
+/*
+  Set some default web_access privileges
+*/
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(1, 2, '.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/index.py/login\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/images/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/wap/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/$');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
+(2, 2, '^/index.py/index$');
 
 -- Matchfields
 
@@ -873,10 +909,10 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 
 
 -- giving away permission to select from sequences..
-GRANT SELECT, UPDATE ON account_id_seq, accountgroup_id_seq, alarmadresse_id_seq, brukerprofil_id_seq, tidsperiode_id_seq, utstyrgruppe_id_seq, utstyrfilter_id_seq, matchfield_id_seq, filtermatch_id_seq, operator_id_seq, logg_id_seq, navbarlink_id_seq TO navprofile;
+GRANT SELECT, UPDATE ON account_id_seq, accountgroup_id_seq, alarmadresse_id_seq, brukerprofil_id_seq, tidsperiode_id_seq, utstyrgruppe_id_seq, utstyrfilter_id_seq, matchfield_id_seq, filtermatch_id_seq, operator_id_seq, logg_id_seq, navbarlink_id_seq, privilege_id_seq, privilegebygroup TO navprofile;
 
 -- giving away permissions to add change and delete from tables...
-GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, webauthorization, accountorg TO navprofile;
+GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg, navbarlinkids, accountnavbar, privilege, accountgroupprivilege, accountorg TO navprofile;
 
 
 /*

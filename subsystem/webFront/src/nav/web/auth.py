@@ -13,48 +13,24 @@ import base64
 import re
 import sys
 import os
-
-ADMINGROUP = 1
-ANONYMOUSGROUP = 2
+import nav
 
 def checkAuthorization(user, uri):
-    """Check whether the given user object is authorized to access the
-    specified URI)"""
-
+    """
+    Check whether the given user object is authorized to access the
+    specified URI)
+    """
+    # First make sure we are connected to the navprofile database.
     from nav import db
     from nav.db import navprofiles
     conn = db.getConnection('navprofile', 'navprofile')
     cursor = conn.cursor()
     navprofiles.setCursorMethod(conn.cursor)
 
-    if user:
-        groups = user.getGroups()
-    else:
-        groups = []
-
-    # If the user is a member of the administrator group, he is
-    # _always_ granted access to _everything_.
-    if ADMINGROUP in [group.id for group in groups]:
-        return True
-
-    # If the user is not a registered member of the anonymous group,
-    # we still assume he is - because ALL users have at least the
-    # privileges of anonymous users.
-    if not ANONYMOUSGROUP in [group.id for group in groups]:
-        from nav.db.navprofiles import Accountgroup
-        groups.append(Accountgroup(ANONYMOUSGROUP))
-
-    if len(groups):  # If any groups were found
-        groupString = ",".join([str(group.id) for group in groups])
-        cursor.execute("SELECT * FROM WebAuthorization WHERE accountgroupid IN (%s)" % groupString)
-        for authz in cursor.dictfetchall():
-            regex = re.compile(authz['uri'])
-            if regex.search(uri):
-                return True
-
-    # If no groups or uri matches were found, we return false.
-    return False
-    
+    # When the connection has been made, we make use of the privilege
+    # system to discover whether the user has access to this uri or
+    # not.
+    return nav.auth.hasPrivilege(user, 'web_access', uri)
 
 def redirectToLogin(req):
     """

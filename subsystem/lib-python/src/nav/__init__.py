@@ -35,8 +35,10 @@ class CachedObject:
     def __str__(self):
         return self.object.__str__()
 
+
 # We import some sub-modules because of bugs in mod_python
 import db
+import auth
 try:
     # This actually belongs in another subsystem
     import web
