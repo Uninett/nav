@@ -36,6 +36,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwBasic/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/device-plugins/HP/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
