@@ -72,6 +72,8 @@ vet man at det er interFaceIndex 18 som har gått ned.  Så ved å
 identifisere alle OID'ene i en trap, kan man finne ut hva som skjer og
 handle deretter.  </p>
 
+<img src=pics/snmp.gif>
+
 <p>
 Mer utfyllende informasjon om SNMP, traps o.l. kan du finne blant
 annet her:<br>
@@ -292,7 +294,7 @@ annet her:<br>
 	<li>Dette systemet er gjort mulig vha:
 	<ul>
 		<li><a href="http://www.perl.com">PERL</a>
-		<li><a href="http://ucd-snmp.ucdavis.edu/">UCD-SNMP -
+		<li><a href="http://net-snmp.sourceforge.net/">NET-SNMP -
 		programpakke</a>
 		<li><a href="http://www.php.net">PHP</a>
 		<li><a href="http://www.linux.org">Linux</a>

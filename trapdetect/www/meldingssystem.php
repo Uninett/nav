@@ -1,13 +1,12 @@
 <?php
 require ('meldingssystem.inc');
 
-list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-
 html_topp("Varslingsregistrering - Steg 1");
 
-if ($admin && $REMOTE_USER != $bruker) {
-  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
-}
+#list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+#if ($admin && $REMOTE_USER != $bruker) {
+#  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+#}
 echo "<p>Velkommen til varslingsregistrering. Dette er en 3-stegsprosess der
 du må gjennom følgende punkter:";
 
@@ -18,22 +17,22 @@ echo "</ul></p>";
 
 echo "<hr width=90%>";
 
-echo "<p><h3>STEG 1</h3>Her er alle traps du har tilgang til med <b>$bruker</b> sin ";
-echo "organisasjonstilhørighet. Velg trap du vil abonnere på og trykk <b>gå videre</b>.</p>";
+print "<p><h3>STEG 1</h3>Her er alle traps du har tilgang til med <b>$bruker</b> sin ";
+print "organisasjonstilhørighet. Velg trap du vil abonnere på og trykk <b>gå videre</b>.</p>\n";
 
 
 # Connecter til db
-$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
 
 # Henter alle orger bruker er medlem i
-mysql_select_db("trapdetect", $dbh);
 
-$sporring = "select org.navn from useriorg,org,user where user.id=useriorg.userid and useriorg.orgid=org.id and user.user='".$bruker."'";
+$sporring = "select org.navn from brukeriorg,org,bruker where bruker.id=brukeriorg.brukerid and brukeriorg.orgid=org.id and bruker.bruker='$bruker'";
 
-$result = mysql_query($sporring, $dbh);
-
+$result = pg_exec($dbh,$sporring);
+$rows = pg_numrows($result);
 $eier = array();
-while ($row = mysql_fetch_row($result)) {
+for ($i=0;$i < $rows; $i++) {
+  $row = pg_fetch_row($result,$i);
   array_push($eier,$row[0]);
 }
 
@@ -51,15 +50,17 @@ foreach ($eier as $navn) {
   }
 }
 
-$sporring .= " and trapeier.orgid=org.id and trap.id=trapid group by syknavn order by syknavn";
-$result = mysql_query($sporring,$dbh);
+$sporring .= " and trapeier.orgid=org.id and trap.id=trapid group by syknavn,beskrivelse order by syknavn";
+$result = pg_exec($dbh,$sporring);
+$rows = pg_numrows($result);
 
 echo "<form action=meldingssystem2.php method=\"POST\">";
 echo "Velg trap: <select name=trap>\n";
 
 $besk = array();
 
-while ($row = mysql_fetch_array($result)) {
+for ($i=0;$i < $rows;$i++) {
+  $row = pg_fetch_array($result,$i);
 # Skriver ut listen over alle oider som man kan velge å søke etter.
   echo "<option value=".$row["syknavn"].">".$row["syknavn"]."\n";
 # Tar vare på bekrivelsene

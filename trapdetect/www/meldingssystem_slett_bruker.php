@@ -7,22 +7,21 @@ html_topp("$HTTP_POST_VARS[bruker] slettet");
 list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
 
 if ($admin && $slett1 && $slett2) {
-  $dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
-  mysql_select_db("trapdetect", $dbh);
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
 
-  $sporring = "select id from user where user='$bruker'";
-  $res = mysql_query($sporring);
-  $svar = mysql_fetch_array($res);
+  $sporring = "select id from bruker where bruker='$bruker'";
+  $res = pg_exec($sporring);
+  $svar = pg_fetch_array($res,0);
 
   # Sletter alt i alle tabeller.
-  $sporring = "delete from user where user='$bruker'";
-  mysql_query($sporring);
-  $sporring = "delete from useriorg where userid=$svar[id]";
-  mysql_query($sporring);
-  $sporring = "delete from varsel where userid=$svar[id]";
-  mysql_query($sporring);
-  $sporring = "delete from unntak where userid=$svar[id]";
-  mysql_query($sporring);
+  $sporring = "delete from bruker where bruker='$bruker'";
+  pg_exec($sporring);
+  $sporring = "delete from brukeriorg where brukerid=$svar[id]";
+  pg_exec($sporring);
+  $sporring = "delete from varsel where brukerid=$svar[id]";
+  pg_exec($sporring);
+  $sporring = "delete from unntak where brukerid=$svar[id]";
+  pg_exec($sporring);
 
   print "$bruker slettet, gå tilbake til hovedsiden<br>\n";
   knapp_hovedside($REMOTE_USER);

@@ -10,13 +10,24 @@ function html_topp_tid($tittel,$tid,$url) {
   print "<title>$tittel</title></head><body bgcolor=white>";
 }
 
+function html_topp_script($tittel) {
+  print "<html><head><title>$tittel</title>";
+  print "<SCRIPT language=\"JavaScript\">\n";
+  print "<!--\n";
+}
+
+function html_topp2_script() {
+  print "//-->\n";
+  print "</SCRIPT></head
+>\n";
+  print "<body bgcolor=white>";
+}
 
 # Tar inn to brukere og sjekker om navnene er like.
 # Hvis ikke sjekker vi om det navnet som ikke er tatt
 # av variabelen $REMOTE_USER har admin-rettigheter.
 function verify_user($bruker,$remote) {
-
-  $filename = "/usr/local/apache/shtdocs/secret/msyst.conf";
+  $filename = "msyst.conf";
   $contents = file($filename);
   $admin = 0;
   

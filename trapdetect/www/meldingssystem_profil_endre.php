@@ -11,11 +11,10 @@ if ($vars[sms] == 'on') {
 }
 #skrivpost($vars);
 
-list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+list ($bruker,$admin) = verify_user($bruker,"bredal");
 
 # Oppretter kontakt med databasen.
-$dbh = mysql_connect("localhost","nett","stotte");
-mysql_select_db('trapdetect');
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
 
 ########################################
 # Legger data inn i databasen
@@ -23,36 +22,36 @@ mysql_select_db('trapdetect');
 # fra før.
 ########################################
 if ($admin && $ny) {
-  $sporring = "insert into user (user,mail,tlf,status,sms,dsms_fra,dsms_til) values ";
+  $sporring = "insert into bruker (bruker,mail,tlf,status,sms,dsms_fra,dsms_til) values ";
   $sporring .= "('$bruker','$vars[mail]','$vars[tlf]','$vars[status]','$vars[sms]','$vars[dsmsfra]','$vars[dsmstil]')";
-  $done = mysql_query($sporring);
+  $done = pg_exec($sporring);
 
-  $hent_id = mysql_query("select id from user where user='$bruker'");
-  $res = mysql_fetch_array($hent_id);
+  $hent_id = pg_exec("select id from bruker where bruker='$bruker'");
+  $res = pg_fetch_array($hent_id,0);
   
   foreach ($vars[org] as $element) {
-    mysql_query("insert into useriorg (userid,orgid) values ($res[id],$element)");
+    pg_exec("insert into brukeriorg (brukerid,orgid) values ($res[id],$element)");
   }
 } else {
-  $hent_id = mysql_query("select id from user where user='$bruker'");
-  $res = mysql_fetch_array($hent_id);
+  $hent_id = pg_exec("select id from bruker where bruker='$bruker'");
+  $res = pg_fetch_array($hent_id,0);
   if ($admin) {
-    $sporring = "update user set mail='$vars[mail]',tlf='$vars[tlf]',status='$vars[status]'";
-    $sporring .= ",sms='$vars[sms]', dsms_fra='$vars[dsmsfra]',dsms_til='$vars[dsmstil]' where user='$bruker'";
+    $sporring = "update bruker set mail='$vars[mail]',tlf='$vars[tlf]',status='$vars[status]'";
+    $sporring .= ",sms='$vars[sms]', dsms_fra='$vars[dsmsfra]',dsms_til='$vars[dsmstil]' where bruker='$bruker'";
 
     if ($vars[org]) {
 # Sletter alle innlegg med denne brukerid
-      $slett = mysql_query("delete from useriorg where userid=$res[id]");
+      $slett = pg_exec("delete from brukeriorg where brukerid=$res[id]");
 # Legger inn alle valgte orgid
       foreach ($vars[org] as $element) {
-	mysql_query("insert into useriorg (userid,orgid) values ($res[id],$element)");
+	pg_exec("insert into brukeriorg (brukerid,orgid) values ($res[id],$element)");
       }
     }
   } else {
-    $sporring = "update user set mail='$vars[mail]',tlf='$vars[tlf]',status='$vars[status]'";
-    $sporring .= ",dsms_fra='$vars[dsmsfra]',dsms_til='$vars[dsmstil]' where user='$bruker'";
+    $sporring = "update bruker set mail='$vars[mail]',tlf='$vars[tlf]',status='$vars[status]'";
+    $sporring .= ",dsms_fra='$vars[dsmsfra]',dsms_til='$vars[dsmstil]' where bruker='$bruker'";
   }
-  $done = mysql_query($sporring);
+  $done = pg_exec($sporring);
 }
 #print "$sporring<br>\n";
 

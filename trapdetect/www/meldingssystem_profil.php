@@ -12,33 +12,37 @@ $border=0;
 
 $alert = "Valgene dine vil ikke bli oppdatert i databasen selv om du forandrer på dem her. Dette fordi du ikke har admin-rettigheter.";
 
-list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+list ($bruker,$admin) = verify_user($bruker,"bredal");
 
-$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
-mysql_select_db("trapdetect", $dbh);
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
 
 # Henter all info om bruker
-$sporring = "select * from user where user='$bruker'";
-$res = mysql_query($sporring);
-$brukerinfo = mysql_fetch_array($res);
+$sporring = "select * from bruker where bruker='$bruker'";
+$res = pg_exec($dbh,$sporring);
 $ny = 0;
-if (mysql_num_rows($res) == 0) {
+if (pg_numrows($res) == 0) {
 #  print "Ny bruker<br>\n";
   $ny = 1;
+} else {
+  $brukerinfo = pg_fetch_array($res,0);
 }
 
 # Henter alle org i org-tabellen
-$hent_org = mysql_query("select * from org");
+$hent_org = pg_exec("select * from org");
+$antall = pg_numrows($hent_org);
 $org = array();
-while ($res = mysql_fetch_array($hent_org)) {
+for ($i=0;$i<$antall;$i++) {
+  $res = pg_fetch_array($hent_org,$i);
   $org[$res[id]] = $res[navn];
 }
 
 if (!$ny) {
 # Henter alle org som bruker er med i
-  $hent_useriorg = mysql_query("select * from useriorg where userid=$brukerinfo[id]");
+  $hent_useriorg = pg_exec("select * from brukeriorg where brukerid=$brukerinfo[id]");
+  $antall = pg_numrows($hent_useriorg);
   $useriorg = array();
-  while ($res = mysql_fetch_array($hent_useriorg)) {
+  for ($i=0;$i<$antall;$i++) {
+    $res = pg_fetch_array($hent_useriorg,$i);
     $useriorg[$res[orgid]]++;
   }
 }
@@ -130,7 +134,7 @@ print "* - kan bare forandres av administrator<br<\n";
 function delayedsms($tid,$array,$type) {
   print "<select name=$type>\n";
   foreach ($array as $element) {
-    if ($element == $tid) {
+    if (!strcmp($element,$tid)) {
       print "<option value=$element selected>$element</option>\n";
     } else {
       print "<option value=$element>$element</option>\n";

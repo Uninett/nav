@@ -3,12 +3,15 @@
 require ('meldingssystem.inc');
 html_topp("Varslingsregistrering - Steg 3");
 
-list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-if ($admin && $REMOTE_USER != $bruker) {
-  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
-}
+#list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+#if ($admin && $REMOTE_USER != $bruker) {
+#  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+#}
 
-$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
+#skrivpost($HTTP_POST_VARS);
+
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
+$dbh_m = pg_Connect ("dbname=manage user=manage password=eganam");
 
 echo "<p><h3>STEG 3</h3>Velg varslingstype for de valgte enheter for <b>$trap</b> bruker <b>$bruker</b></p>\n";
 
@@ -24,31 +27,22 @@ $unntak = array(); # Holder styr på alt som ikke skal være med
 
 $postvars = $HTTP_POST_VARS;
 $keys = array_keys($postvars);
-#foreach ($keys as $key) {
-#	if (preg_match("/list/",$key)) {
-#		foreach ($postvars[$key] as $temp) {
-#			echo "$key -> $temp<br>\n";
-#		}
-#	} else {
-#		echo "$key -> $postvars[$key]<br>\n";
-#	}
-#}
 
 ########################################
 # Finner ut om bruker kan velge sms.
 ########################################
-mysql_select_db("trapdetect", $dbh);
-$sporring = "select sms from user where user='$bruker'";
-$res = mysql_query($sporring);
-$temp = mysql_fetch_row($res);
+$sporring = "select sms from bruker where bruker='$bruker'";
+#print "$sporring<br>\n";
+$res = pg_exec($dbh,$sporring);
+$temp = pg_fetch_row($res,0);
 $sms = $temp[0];
 
 #################
 # Finner trapid
 #################
 $sporring="select id from trap where syknavn='$trap'";
-$res = mysql_query($sporring);
-$temp = mysql_fetch_row($res);
+$res = pg_exec($dbh,$sporring);
+$temp = pg_fetch_row($res,0);
 $trapid = $temp[0];
 
 ##################################################
@@ -57,9 +51,12 @@ $trapid = $temp[0];
 $eksisterer_ukat = array();
 $eksisterer_kat = array();
 $eksisterer_enhet = array();
-$sporring = "select varsel.kat,varsel.ukat,varsel.vtypeid from varsel,user where userid=user.id and user.user='$bruker' and trapid=$trapid";
-$res = mysql_query($sporring);
-while ($temp = mysql_fetch_row($res)) {
+$sporring = "select varsel.kat,varsel.ukat,varsel.vtypeid from varsel,bruker where brukerid=bruker.id and bruker.bruker='$bruker' and trapid=$trapid";
+#print "$sporring<br>\n";
+$res = pg_exec($dbh,$sporring);
+$antall = pg_numrows($res);
+for ($i=0;$i<$antall;$i++) {
+  $temp = pg_fetch_row($res,$i);
   if ($temp[0] && $temp[1]) {
     $eksisterer_ukat[$temp[0]][$temp[1]] = $temp[2];
   } elseif ($temp[0]) {
@@ -67,10 +64,25 @@ while ($temp = mysql_fetch_row($res)) {
   }
 }
 
-$sporring = "select manage.nettel.sysname,unntak.vtypeid from unntak,manage.nettel,user where userid=user.id and user.user='$bruker' and trapid=$trapid and nettel.id=unntak.nettelid and unntak.status='pluss'";
-$res = mysql_query($sporring);
-while ($temp = mysql_fetch_row($res)) {
-  $eksisterer_enhet[$temp[0]] = $temp[1];
+# Henter id
+$temp_boksid = array();
+$sporring = "select boksid,vtypeid from unntak,bruker where brukerid=bruker.id and bruker.bruker='$bruker' and trapid=$trapid and unntak.status='pluss'";
+#print "$sporring<br>\n";
+$res = pg_exec($dbh,$sporring);
+$antall = pg_numrows($res);
+for ($i=0;$i<$antall;$i++) {
+  $row = pg_fetch_row($res,$i);
+  $temp_boksid[$row[0]] = $row[1];
+}
+
+# Henter sysname
+$eksisterer_enhet = array();
+foreach (array_keys($temp_boksid) as $key) {
+  $sporring = "select sysname from boks where boksid=$key";
+#  print "$sporring<br>\n";
+  $res = pg_exec($dbh_m,$sporring);
+  $row = pg_fetch_row($res,0);
+  $eksisterer_enhet[$row[0]] = $temp_boksid[$key];
 }
 
 ##################################################
@@ -117,12 +129,14 @@ foreach ($keys as $var) {
 # Henter alle varslingstyper fra databasen, 
 # legger de i et array for senere bruk.
 ##################################################
-$result = mysql_query("select * from varseltype");
-while ($svar = mysql_fetch_row($result)) {
+$result = pg_exec($dbh,"select * from varseltype");
+$antall = pg_numrows($result);
+$varseltype=array();
+for ($i=0;$i<$antall;$i++) {
+  $svar = pg_fetch_row($result,$i);
   $varseltype[$svar[1]] = $svar[0];
 }
 $type = array_keys($varseltype);
-
 
 echo "Velg varslingstype for de forskjellige kategoriene/underkategoriene/enhetene";
 echo "<form action=meldingssystem4.php method=\"POST\">\n";

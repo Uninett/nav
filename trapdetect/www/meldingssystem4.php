@@ -1,22 +1,20 @@
 <?php
 require ('meldingssystem.inc');
 html_topp("Varslingsregistrering - legg inn i databasen");
-list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
-if ($admin && $REMOTE_USER != $bruker) {
-  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
-}
+#list ($bruker,$admin) = verify_user($bruker,$REMOTE_USER);
+#if ($admin && $REMOTE_USER != $bruker) {
+#  print "Du er innlogget som <b>$bruker</b> med administratorrettighetene til <b>$REMOTE_USER</b><br>\n";
+#}
 
 # Kobler til database.
-#echo "<p>Oppretter kontakt med databasen...";
-$dbh = mysql_connect("localhost", "nett", "stotte") or die ("Kunne ikke åpne connection til databasen.");
-#echo "ok</p>\n";
+$dbh = pg_Connect ("dbname=trapdetect user=trapdetect password=tcetedpart");
+$dbh_m = pg_Connect ("dbname=manage user=manage password=eganam");
 
 ##################################################
 # Henter nødvendige data; brukerid
 ##################################################
-mysql_select_db("trapdetect", $dbh);
-$resultat = mysql_query("select id from user where user='".$bruker."'");
-$userid = mysql_fetch_row($resultat);
+$resultat = pg_exec($dbh,"select id from bruker where bruker='$bruker'");
+$userid = pg_fetch_row($resultat,0);
 ##################################################
 
 $postvars = $HTTP_POST_VARS;
@@ -67,12 +65,12 @@ foreach ($keys as $key) {
 # inneholder alle variable.
 ##################################################
 function legginn($trapid,$variable) {
-  global $userid,$dbh;
+  global $userid,$dbh,$dbh_m;
 
 #  print "Funksjon legginn får inn $trapid, $variable<br>\n";
 
-  $resultat = mysql_query("select syknavn from trap where id=$trapid");
-  $trapname = mysql_fetch_row($resultat);
+  $resultat = pg_exec($dbh,"select syknavn from trap where id=$trapid");
+  $trapname = pg_fetch_row($resultat,0);
 
 ##################################################
 # Parser variable og lager spørringer.
@@ -86,7 +84,7 @@ function legginn($trapid,$variable) {
     foreach ($variable["unntak"] as $element) {
       if (preg_match("/(.+),(.+)/",$element,$matches)) {
 # Dette er et underkategoriunntak
-	$sporring = "insert into varsel (userid,trapid,kat,ukat,vtypeid) values (".$userid[0].",".$trapid.",'".$matches[1]."','".$matches[2]."',0) ";
+	$sporring = "insert into varsel (brukerid,trapid,kat,ukat,vtypeid) values ($userid[0],$trapid,'$matches[1]','$matches[2]',0)";
 	array_push($ukatunntak,$sporring);
       } else { 
 # Dette er en enhet
@@ -112,29 +110,28 @@ function legginn($trapid,$variable) {
   foreach ($keys as $element) {
     if (preg_match("/^kat:(.+)/",$element,$matches)) { 
 # Vi har funnet en hovedkategori
-      $sporring = "insert into varsel (userid,trapid,kat,vtypeid) values (".$userid[0].",".$trapid.",'".$matches[1]."',".$variable[$matches[0]].")";
+      $sporring = "insert into varsel (brukerid,trapid,kat,vtypeid) values (".$userid[0].",".$trapid.",'".$matches[1]."',".$variable[$matches[0]].")";
       array_push($sporringer,$sporring);
     } elseif (preg_match("/^ukat:(.+),(.+)/",$element,$matches)) { 
 # Vi har funnet en underkategori
-      $sporring = "insert into varsel (userid,trapid,kat,ukat,vtypeid) values (".$userid[0].",".$trapid.",'".$matches[1]."','".$matches[2]."',".$variable[$matches[0]].")";
+      $sporring = "insert into varsel (brukerid,trapid,kat,ukat,vtypeid) values ($userid[0], $trapid, '".$matches[1]."', '".$matches[2]."', ".$variable[$matches[0]].")";
       array_push($sporringer,$sporring);
     } elseif (preg_match("/enhet:(.+)/",$element,$matches)) { 
 # Vi har funnet en enhet som skal legges til.
-      mysql_select_db("manage", $dbh);
-      $res = mysql_query("select id from nettel where sysname='".$matches[1]."'");
-      if (mysql_num_rows($res) == 0) { 
+      $res = pg_exec($dbh_m,"select boksid from boks where sysname='$matches[1]'");
+      if (pg_numrows($res) == 0) { 
 # Noe gikk galt, kanskje med sysname
 	$matches[1] = preg_replace("/_/",".",$matches[1]); 
 # Skifter underscore med punktum
-	$res = mysql_query("select id from nettel where sysname='".$matches[1]."'"); 
+	$res = pg_exec($dbh_m,"select boksid from boks where sysname='$matches[1]'"); 
 # Ny spørring kjøres
       }
-      $enhet = mysql_fetch_row($res);
-      $sporring = "insert into unntak (userid,trapid,nettelid,vtypeid,status) values (".$userid[0].",".$trapid.",".$enhet[0].",".$variable[$matches[0]].",'pluss')";
+      $enhet = pg_fetch_row($res,0);
+      $sporring = "insert into unntak (brukerid,trapid,boksid,vtypeid,status) values ($userid[0],$trapid,$enhet[0],".$variable[$matches[0]].",'pluss')";
       array_push($sporringer,$sporring);
     } elseif (preg_match("/spesial/",$element)) { 
 # Denne kommer av traps uavhengige av enheter
-      $sporring = "insert into varsel (userid,trapid,vtypeid) values (".$userid[0].",".$trapid.",".$variable["spesial"].")";
+      $sporring = "insert into varsel (brukerid,trapid,vtypeid) values ($userid[0],$trapid,$variable[spesial])";
       array_push($sporringer,$sporring);
     }
   }
@@ -145,10 +142,9 @@ function legginn($trapid,$variable) {
 # er i $enhetunntak til unntak-tabellen.
 ##################################################
   foreach ($enhetunntak as $innlegg) {
-    mysql_select_db("manage", $dbh);
-    $res = mysql_query("Select id from nettel where sysname='".$innlegg."'");
-    $enhet = mysql_fetch_row($res);
-    $sporring = "insert into unntak (userid,trapid,nettelid,status) values (".$userid[0].",".$trapid.",".$enhet[0].",'minus')";
+    $res = pg_exec($dbh_m,"Select boksid from boks where sysname='$innlegg'");
+    $enhet = pg_fetch_row($res,0);
+    $sporring = "insert into unntak (brukerid,trapid,boksid,status) values ($userid[0],$trapid,$enhet[0],'minus')";
     array_push($sporringer,$sporring);
   }
 
@@ -162,12 +158,11 @@ function legginn($trapid,$variable) {
 # Sletter først alle innlegg med samme bruker og trap som eksisterer
 # fra før. Så legges alle innleggene inn.
 ######################################################################
-  mysql_select_db("trapdetect", $dbh);
-  mysql_query("delete from varsel where userid=".$userid[0]." and trapid=".$trapid);
-  mysql_query("delete from unntak where userid=".$userid[0]." and trapid=".$trapid);
+  pg_exec($dbh,"delete from varsel where brukerid=$userid[0] and trapid=$trapid");
+  pg_exec($dbh,"delete from unntak where brukerid=$userid[0] and trapid=$trapid");
   foreach ($sporringer as $sporring) {
 #    echo "$sporring<br>\n";
-    mysql_query($sporring);
+    pg_exec($dbh,$sporring);
   }
 
   echo "<p>Innleggene for <b>$trapname[0]</b> er nå lagt i databasen.</p>";
