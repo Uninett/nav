@@ -194,8 +194,23 @@ CREATE TABLE type (
   sysObjectID VARCHAR NOT NULL,
   cdp BOOL DEFAULT false,
   tftp BOOL DEFAULT false,
+	frequency INT4,
   descr VARCHAR,
   UNIQUE (vendorid,typename)
+);
+
+CREATE TABLE oid (
+	oidid SERIAL PRIMARY KEY,
+	oidkey VARCHAR NOT NULL,
+	oid VARCHAR NOT NULL,
+	frequency INT4,
+	descr VARCHAR
+);	
+
+CREATE TABLE typeoid (
+  typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
+	oidid INT4 REFERENCES oid ON UPDATE CASCADE ON DELETE CASCADE,
+	UNIQUE(typeid, oidid)
 );
 
 
