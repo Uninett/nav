@@ -392,7 +392,7 @@ class NavUtils
 				boolean swportbakOK = false;
 				if (bmp.toIfindex != null) {
 					// OK, slå opp i swportMap for å finne riktig swportid
-					HashMap swrecBak = (HashMap)swrecMap.get(bmp.hashKey());
+					Map swrecBak = (Map)swrecMap.get(bmp.hashKey());
 					if (swrecBak != null) {
 						swportbakOK = true;
 						String new_swportbak = (String)swrecBak.get("swportid");
@@ -409,7 +409,7 @@ class NavUtils
 						}
 					} else {
 						// Feilsitasjon!
-						outl("<font color=\"red\">ERROR:</font> Could not find record in swport,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Ifindex: <b>" + bmp.toIfindex + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b><br>");
+						outl("<font color=\"red\">ERROR:</font> Could not find record in swport,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Ifindex: <b>" + bmp.toIfindex + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b> ("+bmp.hashKey()+")<br>");
 					}
 				}
 
