@@ -302,33 +302,62 @@ class presentation:
         """Generates an url to a image representing the current presentation"""
         url = 'graph.py'
         index = 0
-        params = ['-w'+str(self.graphWidth),'-h'+str(self.graphHeight),'-s'+self.fromTime,'-e'+self.toTime]
+        params = ['-w'+str(self.graphWidth),'-h'+str(self.graphHeight),'-s'+self.fromTime,'-e'+self.toTime,'--no-minor']
         try:
             params.append('-t %s' % self.title)
         except NameError:
             pass
         
-        for i in self.datasources:
-            color = {0:'#0F0CFF',1:'#00FF00',2:'#FF0000',3:'#00FFFF',4:'#FFFF00',5:'#FF00FF',6:'#000044',7:'#004400',8:'#440000'}
+        for ds in self.datasources:
             color_max = {0:'#6b69e1',1:'#007F00',2:'#7F0000',3:'#007F7F',4:'#7F7F00',5:'#7F007F',6:'#000022',7:'#002200',8:'#220000'}            
+            color = {0:'#0F0CFF',1:'#00FF00',2:'#FF0000',3:'#00FFFF',4:'#FFFF00',5:'#FF00FF',6:'#000044',7:'#004400',8:'#440000'}
             rrd_variable = 'avg'+str(index)
             rrd_max_variable = 'max'+str(index)
-            rrd_filename = i.fullPath()
-            rrd_datasourcename = i.name
-            linetype = i.linetype
+            rrd_filename = ds.fullPath()
+            rrd_datasourcename = ds.name
+            linetype = ds.linetype
             linetype_max = 'LINE1'
-            legend = i.legend
-            params += ['DEF:'+rrd_variable+'='+rrd_filename+':'+rrd_datasourcename+':AVERAGE',linetype+':'+rrd_variable+color[index]+':'+''+legend+'']
+            legend = ds.legend
+            if ds.units and ds.units.count("%"):
+                # limit to [0,100]
+                params += ['--upper-limit', '100', '--lower-limit', '0']
+            params += ['DEF:'+rrd_variable+'='+rrd_filename+':'+rrd_datasourcename+':AVERAGE']
+            # Define virtuals to possibly do some percentage magical
+            # flipping
+            virtual = 'CDEF:v_'+rrd_variable+'='
+            if ds.units and ds.units[0] == '-': # begins with -
+                # availability is flipped up-side down, revert
+                # and show as percentage
+                virtual += '1,%s,-' % rrd_variable
+            else:
+                virtual += rrd_variable
+            if ds.units and ds.units.count("%"):
+                virtual += ',100,*'
+            params += [virtual]
+            params += [linetype+':v_'+rrd_variable+color[index]+':'+''+legend+'']
 
             a = rrdtool.info(rrd_filename)
+            # HVA I HELVETE SKJER HER!?!?!??!?!
             if [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))]:
                 legend += ' - MAX'
-                params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX',linetype_max+':'+rrd_max_variable+color_max[index]+':'+''+legend+'']
+                params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
+                virtual = 'CDEF:v_'+rrd_max_variable+'='
+                if ds.units and ds.units[0] == '-': # begins with -
+                    # availability is flipped up-side down, revert
+                    # and show as percentage
+                    virtual += '1,%s,-' % rrd_max_variable
+                else:
+                    virtual += rrd_max_variable
+                if ds.units and ds.units.count("%"):
+                    virtual += ',100,*'
+                params += [virtual]
+                params += [linetype_max+':v_'+rrd_max_variable+color_max[index]+':'+''+legend+'']
                 
             index += 1
             
         if index == 0:
             params += ["COMMENT:''"]
+        #raise ' '.join(params)    
         id = self.genImage(*params)
         return 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id='+id
 
