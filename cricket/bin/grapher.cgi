@@ -360,7 +360,7 @@ sub doHTMLPage {
 		my($label) = rangeToLabel($range);
 		print "<h3>$label graph${plural}</h3>\n";
 
-  		# Mekket av JM
+  		########## Mekket av JM ##########
       		print "<form action=index.cgi method=GET>";
       		my @values = split(/&/,$ENV{'QUERY_STRING'});
       		my $i_jm;
@@ -392,7 +392,7 @@ sub doHTMLPage {
       		}
       		print "Tast maxverdi (m/k/M/%): <input type=text name=yokohoma size=10 maxlength=10>&nbsp; m=milli, k=kilo, M=mega e.g. 10M (0 -> tilbake til auto-scale)";
       		print "</form>";
-  		# Til hit
+  		########## Til hit ##########
 
 		#
 		# If we have this, we should use it
@@ -529,7 +529,7 @@ sub doHTMLPage {
 		    $gQ->param('target', $thisTarget2);
 		    $gQ->param('inst', $thisInst) if ($thisInst);
 
-		    # Mekket av JM
+		    ########## Mekket av JM ##########
 		    my @values = split(/&/,$ENV{'QUERY_STRING'});
 		    for $i_jm (@values) {
 			my ($varname, $mydata) = split(/=/,$i_jm);
@@ -549,7 +549,7 @@ sub doHTMLPage {
 			}
 			$gQ->param('yokohoma', $yokohoma);
 		    }
-		    # Til hit
+		    ########## Til hit ##########
 		    
 		    $gQ->param('dslist', $dslist);
 		    $gQ->param('range', $range);
