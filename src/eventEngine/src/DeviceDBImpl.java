@@ -321,6 +321,7 @@ class DeviceDBImpl implements DeviceDB
 				// Also insert into alertqvar all event vars
 				for (Iterator it = e.getVarIterator(); it.hasNext();) {
 					Map.Entry me = (Map.Entry)it.next();
+					if (me.getKey() == null || me.getValue() == null) continue;
 					
 					String[] s = {
 						tableid, id,
@@ -367,6 +368,7 @@ class DeviceDBImpl implements DeviceDB
 		if (history) {
 			for (Iterator it = e.historyVarIterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
+				if (me.getKey() == null || me.getValue() == null) continue;
 
 				String[] ins = {
 					tableid, id,
@@ -433,7 +435,13 @@ class DeviceDBImpl implements DeviceDB
 				callbackMap.remove(ec);
 				cancel();
 			}
-			ec.callback(DeviceDBImpl.this, count);
+			try {
+				ec.callback(DeviceDBImpl.this, count);
+			} catch (Exception exp) {
+				Log.d("DEV_DB", "CALLBACK_TASK", "Got exception from callback: " + exp);
+				exp.printStackTrace(System.err);
+			}
+				
 		}
 	}
 

@@ -234,8 +234,13 @@ public class Netel extends Box
 				Port p = (Port)j.next();
 				int dir = p.vlanDirection(vlan);
 				if (p.getBoxidBehind() != 0) {
-					Netel n = (Netel)devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
-					outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
+					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
+					if (d instanceof Netel) {
+						Netel n = (Netel)d;
+						outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
+					} else {
+						System.err.println("    Device is not instance of Netel: " + d);
+					}
 				}
 				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
