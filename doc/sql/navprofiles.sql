@@ -883,7 +883,7 @@ CREATE VIEW PrivilegeByGroup AS (
 
 -- Accounts and Accountgroups
 
-INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', '');
+INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', 'Full access to everything');
 INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
 
 -- Some default example groups
@@ -910,7 +910,11 @@ INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (2, 0, 'Toolbox', '/too
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (3, 0, 'Useradmin', '/useradmin/index');
 INSERT INTO NavbarLink (id, accountid, name, uri) VALUES (4, 0, 'Userinfo', '/useradmin/userinfo');
 
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 1, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 2, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 3, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (1, 4, 'navbar');
+
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 1, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 2, 'navbar');
 INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES (0, 4, 'navbar');
