@@ -1,10 +1,29 @@
-Kopier report til webroot
+IUSE=jallalanguage
 
+DESCRIPTION="Report Generator tool for NAV v3"
 
-cp front.html /usr/local/nav/local/etc/conf/report/front.html
-cp report.conf /usr/local/nav/local/etc/conf/report/report.conf
+DEPEND=nav.web.URI
 
-ReportTemplate må være i template-katalogen
+PREPARE{
+	mkdir $ÂAPACHE/webroot/report
+	mkdir $NAV/local/etc/conf/report
+}
 
-Hvis det trengs, lag symlink til navkatalogen, som på isbre
+DIR = $APACHE/webroot/report
+
+COPY{
+	cp src/DatabaseResult.py $DIR/DatabaseResult.py
+	cp src/Generator.py $DIR/Generator.py
+	cp src/Report.py $DIR/Report.py
+	cp src/report.py $DIR/report.py
+	cp src/htaccess $DIR/.htaccess
+	cp src/front.html $NAV/local/etc/conf/report/front.html
+	cp src/report.conf $NAV/local/etc/conf/report/report.conf
+}
+
+CHEETAH-COMPILE{
+	#ReportTemplate må være i template-katalogen
+}
+
+#Hvis det trengs, lag symlink til navkatalogen, som på isbre
 
