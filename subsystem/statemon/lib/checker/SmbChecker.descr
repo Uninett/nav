@@ -1,0 +1,2 @@
+description=Windows file sharing
+optargs=hostname username password port timeout

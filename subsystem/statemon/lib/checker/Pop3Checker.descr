@@ -1,0 +1,3 @@
+description=Post office protocol
+args=username password
+optargs=port timeout

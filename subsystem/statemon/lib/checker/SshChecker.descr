@@ -1,0 +1,2 @@
+description=Secure shell server
+optargs=port timeout
