@@ -302,6 +302,7 @@ CREATE TABLE module (
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module INT4 NOT NULL,
+  model VARCHAR,
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
