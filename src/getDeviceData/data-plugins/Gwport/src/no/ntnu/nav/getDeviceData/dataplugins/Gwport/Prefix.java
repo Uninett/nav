@@ -51,15 +51,19 @@ public class Prefix implements Comparable
 	}
 
 	public static String hexToIp(String s) {
-		return convIp(s, 16, 10, '.');
+		return convIp(s, 16, 10, ':', '.');
 	}
 
-	public static String convIp(String hexIp, int fromBase, int toBase, char sep) {
-		if (hexIp == null || hexIp.indexOf(":") < 0) return hexIp;
+	public static String ipToHex(String s) {
+		return convIp(s, 10, 16, '.' ,':');
+	}
+
+	public static String convIp(String hexIp, int fromBase, int toBase, char oldsep, char newsep) {
+		if (hexIp == null || hexIp.indexOf(oldsep) < 0) return hexIp;
 		String ip = "";
-		String[] s = hexIp.split(":");
+		String[] s = hexIp.split(""+oldsep);
 		for (int i=0; i < s.length; i++) {
-			ip += Integer.toString(Integer.parseInt(s[0],fromBase),toBase) + sep;
+			ip += Integer.toString(Integer.parseInt(s[i],fromBase),toBase) + newsep;
 		}
 		return ip.substring(0, ip.length()-1);
 	}
