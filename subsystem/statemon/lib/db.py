@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.4 2003/06/15 11:06:28 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -224,7 +224,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		for i in self.getJobs(0):
 			serviceid = i.getServiceid()
 			active = (i.active and 'true') or 'false'
-			netboxid = i.getBoksid()
+			netboxid = i.getNetboxid()
 			if not netboxid:
 				sysname='None'
 			else:

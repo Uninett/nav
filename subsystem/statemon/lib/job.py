@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.3 2003/06/13 12:52:37 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.4 2003/06/15 11:06:28 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -22,7 +22,7 @@ class JobHandler:
 		self._conf=config.serviceconf()
 		self.setType(type)
 		self.setServiceid(service['id'])
-		self.setBoksid(service['netboxid'])
+		self.setNetboxid(service['netboxid'])
 		self._ip = service['ip']
 		#self.setAddress(service['ip'])
 		self.setArgs(service['args'])
@@ -63,7 +63,7 @@ class JobHandler:
 
 		if status != self.getStatus():
 			self.debug.log("%-20s -> %s, %s" % (service, status, info),1)
-			newEvent=event.Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info)
+			newEvent=event.Event(self.getServiceid(),self.getNetboxid(),self.getType(),status,info)
 			newEvent.setSysname(self.getSysname())
 			# Post to the NAV alertq
 			self.db.newEvent(newEvent)
@@ -74,7 +74,7 @@ class JobHandler:
 			self.setStatus(status)
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
-			newEvent=event.Event(self.getServiceid(),self.getBoksid(),
+			newEvent=event.Event(self.getServiceid(),self.getNetboxid(),
 					     self.getType(), status, info,
 					     eventtype="version", version=self.getVersion())
 			self.db.newEvent(newEvent)
@@ -101,9 +101,9 @@ class JobHandler:
 		self._serviceid = serviceid
 	def getServiceid(self):
 		return self._serviceid
-	def setBoksid(self,boksid):
+	def setNetboxid(self,boksid):
 		self._boksid = boksid
-	def getBoksid(self):
+	def getNetboxid(self):
 		return self._boksid
 	def getResponsetime(self):
 		return self._usage
