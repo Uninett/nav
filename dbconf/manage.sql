@@ -1,5 +1,5 @@
 -- Slette alle views
-DROP VIEW boksmac
+DROP VIEW boksmac;
 
 -- Slette alle tabeller
 DROP TABLE swportallowedvlan;
