@@ -1,8 +1,9 @@
+
 """
 Overvåker
 
-$Author: erikgors $
-$Id: job.py,v 1.14 2002/06/14 12:37:33 erikgors Exp $
+$Author: magnun $
+$Id: job.py,v 1.15 2002/06/17 17:15:10 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -255,7 +256,48 @@ class SshHandler(JobHandler):
 		self.setVersion(version)
 		return Event.UP,'OK'
 
+import DNS
+class DnsHandler(JobHandler):
+	"""
+	"""
+
+	def __init__(self, id, ip, args, version):
+		port = args.get("port", 42)
+		JobHandler.__init__(self, "dns", id, (ip, port), args, version)
+
+	def execute(self):
+		server=self.getAddress()
+		d = DNS.DnsRequest(server=server[0], timeout=self.getTimeout())
+		args = self.getArgs()
+		request = args.get("request","").split(",")
+		timeout = 0
+		answer  = 0
+		for i in range(len(request)):
+			print "request: %s"%request[i]
+			try:
+				reply = d.req(name=request[i].strip())
+			except DNS.Error:
+				timeout = 1
+				print "%s timed out..." %request[i]
+
+			if not timeout and len(reply.answers) > 0 :
+				answer = 1
+				print "%s -> %s"%(request[i], reply.answers[0]["data"])
+				
+		if not timeout and answer:
+			return Event.UP, "Ok"
+		elif not timeout and not answer:
+			return Event.UP, "No record found"
+		else:
+			return Event.DOWN, "Timeout"
+
+		
 
 
-jobmap = {'http':HttpHandler,'port':PortHandler,'ftp':FtpHandler,'ssh':SshHandler}
+jobmap = {'http':HttpHandler,
+	  'port':PortHandler,
+	  'ftp':FtpHandler,
+	  'ssh':SshHandler,
+	  'dns':DnsHandler
+	  }
 import database
