@@ -4,7 +4,7 @@ from socket import inet_aton,error,gethostbyname,gethostbyaddr
 from nav.Snmp import Snmp,NameResolverException,TimeOutException
 from nav.db import getConnection
 
-SERIAL_OIDS_FILENAME = "/local/nav/navme/apache/webroot/editdb/initBoxSerialOIDs.txt"
+#SERIAL_OIDS_FILENAME = "/local/nav/navme/apache/webroot/editdb/initBoxSerialOIDs.txt"
 
 class Box:
     """
@@ -158,8 +158,11 @@ class Box:
         except TimeOutException:
 
             snmp = Snmp(identifier,ro)
-            sysname = snmp.get("1.3.6.1.2.1.1.5.0")
-            version = "1"
+            try:
+                sysname = snmp.get("1.3.6.1.2.1.1.5.0")
+                version = "1"
+            except TimeOutException:
+                version = "0"
             
         return version
 
