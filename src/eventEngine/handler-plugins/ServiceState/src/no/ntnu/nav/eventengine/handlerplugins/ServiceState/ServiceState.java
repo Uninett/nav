@@ -33,15 +33,19 @@ public class ServiceState implements EventHandler
 
 		// Lookup the server
 		Device d = ddb.getDevice(e.getDeviceid());
-		String deviceup;
-		if (!d.isUp()) {
-		    // Lower the severity by 30 points, but not below zero
-		    a.setSeverity(Math.max(e.getSeverity()-30,0));
-		    deviceup = "No";
-		} else {
-		    deviceup = "Yes";
+		if (d != null) {
+		    String deviceup;
+		    if (!d.isUp()) {
+			// Lower the severity by 30 points, but not below zero
+			a.setSeverity(Math.max(e.getSeverity()-30,0));
+			deviceup = "No";
+		    } else {
+			deviceup = "Yes";
+		    }
+		    a.addVar("deviceup", deviceup);
+		} else  {
+		    outld("  warning: device for deviceid("+e.getDeviceid()+") not found!");
 		}
-		a.addVar("deviceup", deviceup);
 
 		// Set time
 		a.addVar("time", e.getTimeS());
