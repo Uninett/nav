@@ -169,6 +169,8 @@ class EventImpl implements Event, Alert
 	}
 
 	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
+	String getAlerttype() { return alerttype; }
+
 	public Iterator getMsgs() {
 		// Update varMap from database
 		try {

@@ -61,7 +61,7 @@ public class Netel extends Box
 		}
 
 		Log.d("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all netboxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE catid IN ('SW','EDGE')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid) WHERE catid IN ('SW','EDGE')");
 
 		while (rs.next()) {
 			try {

@@ -241,14 +241,9 @@ class DeviceDBImpl implements DeviceDB
 		String table = history?"alerthist":"alertq";
 		String tableid = table+"id";
 		String tablemsg = table+"msg";
-		//String tableseq = table+"_"+table+"id_seq";
 
-		/*
-		// First get an id
-		ResultSet rs = Database.query("SELECT nextval('"+tableseq+"')");
-		if (!rs.next()) throw new PostAlertException("Error, could not get id from seq " + tableseq);
-		int id = rs.getInt("nextval");
-		*/
+		String alerttypeidExpr = e.getAlerttype() != null ? "(SELECT alerttypeid FROM alerttype WHERE alerttype='"+e.getAlerttype()+"')" : null;
+
 		String id;
 
 		// Don't insert into alerthist of this is an end-alert
@@ -263,6 +258,7 @@ class DeviceDBImpl implements DeviceDB
 					"subid", e.getSubidSql(),
 					"time", e.getTimeSql(),
 					"eventtypeid", e.getEventtypeidSql(),
+					"alerttypeid", alerttypeidExpr,
 					"state", e.getStateSql(),
 					"value", e.getValueSql(),
 					"severity", e.getSeveritySql()
@@ -278,6 +274,7 @@ class DeviceDBImpl implements DeviceDB
 					"start_time", e.getTimeSql(),
 					"end_time", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
 					"eventtypeid", e.getEventtypeidSql(),
+					"alerttypeid", alerttypeidExpr,
 					"value", e.getValueSql(),
 					"severity", e.getSeveritySql()
 				};

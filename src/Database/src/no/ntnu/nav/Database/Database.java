@@ -385,14 +385,18 @@ public class Database
 					first = false;
 				}
 
-				String fnutt = "'";
+				boolean fnutt = true;
 				if (fieldValues[i].equals("NOW()") ||
 						fieldValues[i].equals("null") ||
 						(fieldValues[i].startsWith("(") && !fieldValues[i].equals("(null)"))) {
-					fnutt = "";
+					fnutt = false;
 				}
-				
-				query += fnutt + addSlashesStrict(fieldValues[i]) + fnutt;
+
+				if (fnutt) {
+					query += "'" + addSlashesStrict(fieldValues[i]) + "'";
+				} else {
+					query += fieldValues[i];
+				}
 			}
 		}
 		query += ")";
@@ -435,12 +439,18 @@ public class Database
 				}
 
 				noUpdate = false;
-				String fnutt = "'";
-				if (fieldValues[i+1].equals("NOW()")) fnutt = "";
-				else if (fieldValues[i+1].equals("null")) fnutt = "";
-				else if (fieldValues[i+1].startsWith("(") && !fieldValues[i+1].equals("(null)")) fnutt = "";
+				boolean fnutt = true;
+				if (fieldValues[i+1].equals("NOW()") ||
+						fieldValues[i+1].equals("null") ||
+						(fieldValues[i+1].startsWith("(") && !fieldValues[i+1].equals("(null)"))) {
+					fnutt = false;
+				}
 
-				query += fieldValues[i] + "=" + fnutt + addSlashesStrict(fieldValues[i+1]) + fnutt;
+				if (fnutt) {
+					query += fieldValues[i] + "=" + "'" + addSlashesStrict(fieldValues[i+1]) + "'";
+				} else {
+					query += fieldValues[i] + "=" + fieldValues[i+1];
+				}
 			}
 		}
 		if (noUpdate) return 0;

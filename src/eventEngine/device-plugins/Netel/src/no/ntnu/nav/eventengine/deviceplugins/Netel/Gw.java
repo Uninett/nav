@@ -41,26 +41,26 @@ public class Gw extends Netel
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("GW_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all GWs from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE catid IN ('GW', 'GSW')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid) WHERE catid IN ('GW', 'GSW')");
 
 		while (rs.next()) {
 			try {
 
-			int deviceid = rs.getInt("deviceid");
+				int deviceid = rs.getInt("deviceid");
 
-			Device d = (Device)ddb.getDevice(deviceid);
-			if (d == null) {
-				Gw gw = new Gw(ddb, rs);
-				ddb.putDevice(gw);
-			} else if (!ddb.isTouchedDevice(d)) {
-				if (classEq(d, new Gw())) {
-					((Gw)d).update(rs);
-					ddb.touchDevice(d);
-				} else {
-					Gw gw = new Gw(ddb, rs, d);
+				Device d = (Device)ddb.getDevice(deviceid);
+				if (d == null) {
+					Gw gw = new Gw(ddb, rs);
 					ddb.putDevice(gw);
+				} else if (!ddb.isTouchedDevice(d)) {
+					if (classEq(d, new Gw())) {
+						((Gw)d).update(rs);
+						ddb.touchDevice(d);
+					} else {
+						Gw gw = new Gw(ddb, rs, d);
+						ddb.putDevice(gw);
+					}
 				}
-			}
 
 			} catch (Exception e) {
 				Log.e("GW_DEVICEPLUGIN", "UPDATE_FROM_DB", "Exception while creating devices: " + e.getMessage());
