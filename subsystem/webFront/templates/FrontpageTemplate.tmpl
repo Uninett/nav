@@ -1,0 +1,175 @@
+
+#extends MainTemplate
+
+#attr boxesdown = False
+
+#block content
+   <table border="0" cellspacing="0" cellpadding="0">
+     <tr>
+       <td valign="top" width="190">
+	$navlinksbox <br>
+	$externallinksbox <br>
+	$contactinformationbox <br>
+       </td>
+       <td><img src='$imagefolder/blank.gif' width="10"></td>
+       <td valign="top">
+	$welcome
+	$status
+	$emotd
+       </td>
+     </tr>
+   </table>
+#end block
+
+#def navlinksbox
+  $sideboxstart('NAV-links')
+  $navlinks
+  $sideboxend()     
+#end def
+
+#def navlinks
+	<a href="/">NAV hovedside</a><br>
+	<A HREF="/vlanPlot/">Nettkart</A><br>      
+	<a href="/status/">Status n&aring;</a><br>
+	<a href="http://metanav.ntnu.no/NAVlinks/">Om NAV / Andre NAV</a><br>
+#end def
+
+#def externallinksbox
+  $sideboxstart('External links')
+  $externallinks
+  $sideboxend()
+#end def
+
+#def externallinks
+#end def
+
+#def contactinformationbox
+  $sideboxstart('Contact information')
+  $contactinformation
+  $sideboxend()
+#end def
+
+#def contactinformation
+#end def
+
+#def welcome
+#end def
+
+#def status
+  <br><hr noshade color=#999999 size=1>
+
+<table cellspacing="0" cellpadding="0" border="0">
+
+<!------------------------ STATUS TITLE ---->
+    <tr class="title">
+      <td class="title" align="center" colspan="5" style="background-image:url('$imagefolder/status/statuslogo+fill.gif'); background-repeat: no-repeat;">  
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="current">
+              <div class="title"><a href="/status/"><font color="black">Status Now</font></a></div>
+              $numboxesdown boxes down, $numboxesshadow in shadow
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+<!------------------------- STATUS HEADER ---->
+    <tr class="header">
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="11">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Sysname &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          IP &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Downtime &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          Down since &nbsp;
+      </td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="11">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
+    </tr>
+
+#set $numberdown = 0
+#set $row = "oddrow"
+#for $box in $boxesdown
+#if not $box[4]
+  #if $numberdown < 10
+    <tr class="$row">
+      <td><a href="/browse/$box[1]">$box[1]</a>&nbsp;&nbsp;</td>
+      <td>$box[2]&nbsp;&nbsp;</td>
+      <td align="right"><a title="$box[0]"><font color="black">$box[5]</font></a>&nbsp;&nbsp;</td>
+      #set $since = $box[3].strftime('%d/%m/%Y %H:%M')
+      <td>$since</td>
+    </tr>
+    #if $row == "evenrow"
+      #set $row = "oddrow"
+    #else
+      #set $row = "evenrow"
+    #end if
+  #end if
+  #set $numberdown = $numberdown + 1
+#end if
+#end for
+
+#if len($boxesdown) > 10
+  #set $linktext = "(more)"
+#else
+  #set $linktext = "(to status page)"
+#end if
+<tr><td colspan="6" align="center"><font size="-2"><a href="/status/">$linktext</td></tr>
+
+</table>
+
+#end def
+
+#def emotd
+  <br><hr noshade color=#999999 size=1>
+  Message of the Day <br>
+#end def
+
+
+#def sideboxstart($title)
+  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
+    <tr>
+      <td class="sideboxtitle">
+        $title
+      </td>
+    </tr>
+    <tr>
+      <td class="sideboxlinks">
+#end def
+
+#def sideboxend
+      </td>
+    </tr>
+  </table>
+#end def
+
+#block additionalCSS
+      TD { 
+        font-family: verdana, arial, helvetica, sans-serif;
+	font-size: 13;
+      }
+
+      td.sideboxlinks {
+      font-size: 11;
+      border: 1px solid #ccc;
+      }
+
+      td.sideboxtitle {
+      font-size: 13;
+      border: 1px solid #000;
+      text-align: center;
+      background-image:url('/images/form/fill-active.gif');
+      background-color:#ccf;
+      }
+
+$default_table_CSS
+#end block
