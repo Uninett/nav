@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.9 2002/06/14 17:07:51 magnun Exp $
+$Id: RunQueue.py,v 1.10 2002/06/14 17:09:12 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/RunQueue.py,v $
 
 """
@@ -97,7 +97,7 @@ class RunQueue:
         self.lock.acquire()
         self.rq.put(*r)
         self.debug('Number of elements in queue: %i'% (len(self.rq)))
-        self.debug("Number of workers" % len(self.workers))
+        self.debug("Number of workers: %i" % len(self.workers))
         self.debug("Number of waiting threads: %i" % self.numThreadsWaiting)
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
