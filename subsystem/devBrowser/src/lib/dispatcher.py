@@ -2,7 +2,8 @@ import os
 import sys
 import time
 import profile
-import warnings 
+import warnings
+import traceback
 from mod_python import apache
 from nav.errors import *
 

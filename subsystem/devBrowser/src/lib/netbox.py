@@ -69,6 +69,9 @@ def process(request):
     return result
 
 class NetboxInfo(manage.Netbox):
+    def __init__(self, netbox):
+        manage.Netbox.__init__(self,netbox)
+        self.setPrefix()
     
     def showInfo(self):
         result = html.Division()
@@ -82,6 +85,8 @@ class NetboxInfo(manage.Netbox):
         info.add('Status', _statusTranslator.get(self.up, self.up))
         info.add('Availability', self.availability())
         info.add('Ip address', self.showIp())
+        info.add('Vlan', self.showVlan())
+        info.add('Gateway', self.showGw())
         info.add('Category', urlbuilder.createLink(self.cat,
             subsystem="report"))
         if self.type:
@@ -90,22 +95,42 @@ class NetboxInfo(manage.Netbox):
         info.add('Room', urlbuilder.createLink(self.room))
         result.append(info)
         return result
-    def showIp(self):
+    def setPrefix(self):
         prefixes = manage.Prefix.getAll(where="'%s' << netaddr" % self.ip,
-                                    orderBy='netaddr')
-        return self.ip
+                                        orderBy='netaddr')
         if not prefixes:
-            vlan = "(Unknown network)"
+            self.prefix = 0
         else:
             # the last one is the one with most spesific network address
-            vlan = prefixes[-1].vlan
-            if vlan:
-                vlan = urlbuilder.createLink(vlan, 
-                                content="Vlan %s" % vlan.vlan)
-            else:
-                vlan = "(Unknown vlan)"
-        return "%s %s" % (self.ip, vlan)
+            self.prefix = prefixes[-1]
+        
+    def showGw(self):
+        if not self.prefix:
+            return 'Unknown'
+        # Find the gw
+        gws = self.prefix.getChildren(manage.Gwportprefix,
+                                 orderBy='hsrp')
+        if not gws:
+            return 'Unknown'
+        # If we have hsrp, the active gw is listed last
+        gw = gws[-1]
+        gwNetbox = gw.gwport.module.netbox
+        gwLink = urlbuilder.createLink(gwNetbox, content=gw.gwip)
+        return gwLink
 
+    def showVlan(self):
+        vlan = self.prefix.vlan
+        if vlan.vlan:
+            vlan = urlbuilder.createLink(vlan, 
+                                         content="Vlan %s" % vlan.vlan)
+        else:
+            vlan = 'Unknown'
+        return vlan
+        
+        
+        
+    def showIp(self):
+        return self.ip
 
     def availability(self):
         TIMERANGES = ('day', 'week', 'month')
@@ -126,10 +151,10 @@ class NetboxInfo(manage.Netbox):
         result=html.Division()
         for timerange in TIMERANGES:
             value = self.rrdAverage(statusDS, timerange)
-            if value:
-                value = (1-value)*100    
-            else:
+            if value is None:
                 value = 0 # unknown -> not availabe..?
+            else:
+                value = (1-value)*100    
             value = tableview.Value(value, "%")
             dsids = [ds.rrd_datasourceid for ds in datasources]
             link = urlbuilder.createLink(subsystem='rrd',
@@ -309,7 +334,9 @@ class NetboxInfo(manage.Netbox):
             all = []
             for ds in rrd.getChildren(manage.Rrd_datasource):
                 link = urlbuilder.createLink(subsystem='rrd',
-                    id=ds.rrd_datasourceid, division="datasources", content=(ds.descr or "(unknown)"))
+                                             id=ds.rrd_datasourceid,
+                                             division="datasources",
+                                             content=(ds.descr or "(unknown)"))
                 all.append(ds.rrd_datasourceid)
                 result.append(html.Division(link))
 

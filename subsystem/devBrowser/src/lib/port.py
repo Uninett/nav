@@ -45,10 +45,11 @@ def findPort(module, portName):
 def showInfo(port):
     info = html.Division()
     module = port.module
-    info.append(html.Header("Port %s, module %s, device %s" % 
-                (port.port, 
+    info.append(html.Header("Device %s, module %s, port %s" % 
+                (urlbuilder.createLink(module.netbox),
                 urlbuilder.createLink(module, content=module.module),
-                urlbuilder.createLink(module.netbox))))
+                port.port)))
+ 
     table = html.SimpleTable()            
     info.append(table)
     for field in \
@@ -101,14 +102,16 @@ def getVlanInfo(port):
             div = html.Division()
             div.append(urlbuilder.createLink(vlan))
             vlanInfo.append(div)
-    if allowed:
-        vlanInfo.append(html.Header("Allowed hexstrings", level=3))
-        for allow in allowed:
-            hex = allow.hexstring
-            # insert some linebreaks
-            hex = re.sub(r"(.{50})", "\\1\n", hex)
-            pre = html.Pre(hex)
-            vlanInfo.append(pre)
+
+    # This is no useful information. I remove it for now...
+    #if allowed:
+    #    vlanInfo.append(html.Header("Allowed hexstrings", level=3))
+    #    for allow in allowed:
+    #        hex = allow.hexstring
+    #        # insert some linebreaks
+    #        hex = re.sub(r"(.{50})", "\\1\n", hex)
+    #        pre = html.Pre(hex)
+    #        vlanInfo.append(pre)
 
     return vlanInfo
     

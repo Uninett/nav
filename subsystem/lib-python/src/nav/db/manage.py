@@ -50,7 +50,7 @@ def _customizeTables():
     Swportallowedvlan._sqlPrimary = ('swport', 'hexstring')
     Emotd_related._sqlPrimary = ('emotd', 'key', 'value')
     Netboxinfo._sqlPrimary = ('key', 'var', 'val')
-
+    Gwportprefix._sqlPrimary = ('gwip',)
 
     # connection with database
     forgotten.manage._Wrapper.cursor = nav.db.cursor
