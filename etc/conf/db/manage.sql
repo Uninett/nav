@@ -419,6 +419,7 @@ GRANT ALL ON device_deviceid_seq TO navall;
 GRANT ALL ON type_typeid_seq TO navall;
 GRANT ALL ON alertengine TO navall;
 
+GRANT ALL ON snmpoid TO navall;
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
