@@ -95,6 +95,9 @@ DELETE FROM snmpoid WHERE oidkey='c5000Bandwidth';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, uptodate, getnext, match_regex, decodehex) VALUES ('c5000Bandwidth', '1.3.6.1.4.1.9.5.1.1.8.0', '', 'Cricket', true, false, NULL, false);
 
 
+DELETE FROM snmpoid WHERE oidkey='hpSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, uptodate, getnext, match_regex, decodehex) VALUES ('hpSerial', '1.3.6.1.2.1.47.1.1.1.1.11.1', 'Serial number for HP', 'hp', true, false, NULL, false);
+
 DELETE FROM snmpoid WHERE oidkey='hpHwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, uptodate, getnext, match_regex, decodehex) VALUES ('hpHwVer', '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0', 'Hardware version number', 'hp', true, false, NULL, false);
 
