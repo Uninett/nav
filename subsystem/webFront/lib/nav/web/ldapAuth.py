@@ -55,6 +55,10 @@ def authenticate(login, password):
         return True
     except ldap.SERVER_DOWN, e:
         raise NoAnswerError, uri
+    except ldap.INVALID_CREDENTIALS, e:
+        apache.log_error('LDAP did not authenticate account ' + login,
+                         apache.APLOG_WARNING)
+        return False
     except ldap.LDAPError,e:
         apache.log_error('An LDAP error occurred during authentication: ' + str(e),
                          apache.APLOG_ERR)

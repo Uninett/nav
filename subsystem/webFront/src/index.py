@@ -97,10 +97,12 @@ def login(req, login='', password='', origin=''):
             apache.log_error('Account %s not found in NAVdb' % login,
                              apache.APLOG_INFO, req.server)
             
+        authenticated = False
         if account is None:
             # If we did not find the account in the NAVdb, we try to
             # find the account through LDAP, if available.
             if ldapAuth.available and ldapAuth.authenticate(login, password):
+                authenticated = True
                 apache.log_error('Account %s authenticated through LDAP' % login,
                                  apache.APLOG_INFO, req.server)
                 # The login name was authenticated through our LDAP
@@ -122,22 +124,26 @@ def login(req, login='', password='', origin=''):
                 # available, we fail the login
                 return _getLoginPage(origin, "Login failed")
 
-        authenticated = False
-        if account.ext_sync == 'ldap' and ldapAuth.available:
-            # Try to authenticate this ldap account through the ldap server
-            try:
-                authenticated = ldapAuth.authenticate(login, password)
-                # If we were authenticated, we update the stored password hash
-                account.setPassword(password)
-                account.save()
-            except ldapAuth.NoAnswerError, e:
-                req.session['message'] = 'No answer from LDAP server ' + str(e)
-
         if not authenticated:
-            # If no external methods authenticated us so far, do the
-            # default internal authentication against the password
-            # stored in NAVdb
-            authenticated = account.authenticate(password)
+            if account.ext_sync == 'ldap' and ldapAuth.available:
+                # Try to authenticate this ldap account through the ldap server
+                try:
+                    authenticated = ldapAuth.authenticate(login, password)
+                    # If we were authenticated, we update the stored password hash
+                    if authenticated:
+                        apache.log_error('Account %s authenticated through LDAP' % login,
+                                         apache.APLOG_INFO, req.server)
+                        account.setPassword(password)
+                        account.save()
+                except ldapAuth.NoAnswerError, e:
+                    req.session['message'] = 'No answer from LDAP server ' + str(e)
+                    # Attempt to authenticate through stored password
+                    # when no answer
+                    authenticated = account.authenticate(password)
+            else:
+                # If this account is not to be externally
+                # authenticated, we authenticated against NAVdb only.
+                authenticated = account.authenticate(password)
 
         if authenticated:
             apache.log_error('Account %s successfully logged in' % login,
@@ -153,6 +159,8 @@ def login(req, login='', password='', origin=''):
                 origin = '/'
             web.redirect(req, origin, seeOther=True)
         else:
+            apache.log_error('Account %s failed login' % login,
+                             apache.APLOG_WARNING, req.server)
             return _getLoginPage(origin, "Login failed")
     else:
         if req.session.has_key('message'):
