@@ -36,8 +36,9 @@ class AbstractChecker:
 	from event import Event
 	class GopherHandler(AbstractHandler):
 	  def __init__(self, service, **kwargs):
-	    AbstractHandler.__init__(self, "gopher", service, **kwargs)
-	    self.setPort(self.getPort() or 70) # gopher usually runs on port 70
+            # gopher usually runs on port 70
+	    AbstractHandler.__init__(self, "gopher", service, port=70 **kwargs)
+	    
 	  def execute(self):
 	    # In case you need user/pass you can do like this:
 	    args = self.getArgs()
