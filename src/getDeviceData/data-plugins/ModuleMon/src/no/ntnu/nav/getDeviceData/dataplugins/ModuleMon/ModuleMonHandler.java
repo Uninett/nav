@@ -35,7 +35,12 @@ public class ModuleMonHandler implements DataHandler {
 	 * Fetch initial data from swport table.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
-		if (persistentStorage.containsKey("initDone") && changedDeviceids.isEmpty()) return;
+		boolean onlyUpdate = true;
+		for (Iterator it = changedDeviceids.values().iterator(); it.hasNext() && onlyUpdate;) {
+			if (((Integer)it.next()).intValue() != DataHandler.DEVICE_UPDATED) onlyUpdate = false;
+		}
+
+		if (persistentStorage.containsKey("initDone") && (changedDeviceids.isEmpty() || onlyUpdate)) return;
 		persistentStorage.put("initDone", null);
 
 		Log.setDefaultSubsystem("ModuleMonHandler");
@@ -67,6 +72,7 @@ public class ModuleMonHandler implements DataHandler {
 				modules = modulesL;
 				queryIfindices = queryIfindicesL;
 				Log.d("INIT", "Fetched " + modidMap.size() + " modules (" + (modidMap.size()-oldcnt) + " new)");
+				if ((modidMap.size()-oldcnt) == 0) Log.w("INIT", "No new modules, changed: " + changedDeviceids);
 
 			} catch (SQLException e) {
 				Log.e("INIT", "SQLException: " + e.getMessage());
