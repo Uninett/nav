@@ -32,6 +32,10 @@
     </packageset>
 
 		<!-- getDeviceData device plugins -->
+    <packageset dir="../getDeviceData/device-plugins/3Com/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/device-plugins/HP/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
@@ -76,6 +80,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../Logger/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
 
     <doctitle><![CDATA[<h1>NAV Java packages</h1>]]></doctitle>
     <bottom><![CDATA[<i>Copyright &#169; 2003 ITEA, NTNU. All Rights Reserved.</i>]]></bottom>
@@ -88,8 +96,10 @@
     <group title="getDeviceData Data plugins" packages="no.ntnu.nav.getDeviceData.dataplugins.*"/>
     <group title="getDeviceData Device plugins" packages="no.ntnu.nav.getDeviceData.deviceplugins.*"/>
 
+<!--
     <link offline="true" href="http://java.sun.com/products/jdk/1.2/docs/api/" packagelistLoc="C:\tmp"/>
     <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+-->
    </javadoc>
  </target>
 
