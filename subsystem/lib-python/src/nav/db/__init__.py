@@ -26,12 +26,6 @@ def getConnection(scriptName, database='nav'):
     connection.
     """
     import nav
-    if not hasattr(nav, 'CachedObject'):
-        reload(nav)
-        import sys
-        sys.stderr.write('MORTEN-DEBUG: CachedObject not found, module nav reloaded;' +
-                         'Extremely strange mod_python bug forces this ugly hack\n')
-                  
     from nav import CachedObject
     global _connectionCache
     cacheKey = '%s_%s' % (scriptName, database)

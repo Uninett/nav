@@ -8,14 +8,6 @@ Provides a common root package for the NAV python library.
 Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
-# We import some sub-modules because of bugs in mod_python
-import db
-try:
-    # This actually belongs in another subsystem
-    import web
-except:
-    pass
-
 import time
 
 class CachedObject:
@@ -42,3 +34,12 @@ class CachedObject:
     
     def __str__(self):
         return self.object.__str__()
+
+# We import some sub-modules because of bugs in mod_python
+import db
+try:
+    # This actually belongs in another subsystem
+    import web
+except:
+    pass
+
