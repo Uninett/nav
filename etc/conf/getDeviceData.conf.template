@@ -1,5 +1,9 @@
 # Config-file for getDeviceData Java application
+# All times are specified in minutes
 
-# At least wait this long between querying a boks
-minBoksRunInterval = 15
+# Wait at least this long between queries to boks
+minBoksRunInterval = 60
+
+# Wait at least this long before reloading data from tables
+loadDataInterval = 5
 
