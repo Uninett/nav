@@ -287,6 +287,73 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
+  <td colspan="2">Sent when the serial number of a device changes.</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
+  <td colspan="2">&nbsp;</td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td><b>Eventq fields</b></td>
+  <td><b>Description</b></td>
+  <td><b>Always present</b></td>
+ </tr>
+ <tr>
+  <td><b>deviceid</b></td>
+  <td>Device collected from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>netboxid</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>subid</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>state</b></td>
+  <td>This event is stateless</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>value</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>severity</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td colspan="3"><b>Supported variables</b></td>
+ </tr>
+ <tr>
+  <td><b>old_serial</b></td>
+  <td>The old serial number of the netbox.</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>new_serial</b></td>
+  <td>The new serial number of the netbox.</td>
+  <td>Yes</td>
+ </tr>
+</table>
+</p>
+
+<!-- deviceHwUpgrade -->
+<p>
+<a name="deviceHwUpgrade"></a>
+<table border="1" cellpadding="3" cellspacing="0">
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
+  <td colspan="2"><b>deviceHwUpgrade</b></td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
   <td colspan="2">Sent when the hardware version of a device changes.</td>
  </tr>
  <tr>
@@ -305,8 +372,8 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td><b>netboxid</b></td>
-  <td>Netbox collected from</td>
-  <td>Yes</td>
+  <td>Not used</td>
+  <td>No</td>
  </tr>
  <tr>
   <td><b>subid</b></td>
@@ -372,8 +439,8 @@ General getDeviceData documentation; supported events.
  </tr>
  <tr>
   <td><b>netboxid</b></td>
-  <td>Netbox collected from</td>
-  <td>Yes</td>
+  <td>Not used</td>
+  <td>No</td>
  </tr>
  <tr>
   <td><b>subid</b></td>
