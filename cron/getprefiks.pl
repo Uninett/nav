@@ -26,7 +26,7 @@ my %db_prefiks = ();
 my %prefiks = ();
 my @felt_gwport = ("gwip","boksid","prefiksid","indeks","interf","speed","maxhosts","antmask","ospf","hsrppri","static");
 my @felt_prefiks;
-my @felt_prefiks_alle =("prefiksid","nettadr","maske","vlan","nettype","orgid","anvid","samband","komm");
+my @felt_prefiks_alle =("prefiksid","nettadr","maske","vlan","antmask","maxhosts","nettype","orgid","anvid","samband","komm");
 
 my %boks;
 
@@ -60,7 +60,7 @@ close VLAN;
 &hent_prefiksdatabase(); 
 
 foreach (keys %boks) { #$_ = boksid
-    if($boks{$_}{watch} =~ /y/i ||$boks{$_}{ip} eq "129.241.194.4") {
+    if($boks{$_}{watch} =~ /y|t/i) {
 	print "$boks{$_}{ip} er på watch.\n";
     } else {
 	if (&hent_prefiksdata($_) eq '0') {
@@ -267,22 +267,26 @@ sub hent_prefiksdata {
 	}
     }
 
-    foreach $gwip (sort by_ip keys %tnett)
+    foreach $gwip (keys %tnett)
     {
 	my $id = join (":", ($tnett{$gwip}{nettadr},$tnett{$gwip}{maske}));
 	$tnett{$gwip}{vlan} = &finn_vlan( $if{$tnett{$gwip}{indeks}}{nettnavn},$boksid);
+	$tnett{$gwip}{maxhosts} = &max_ant_hosts($tnett{$gwip}{maske});
+	$tnett{$gwip}{antmask}  = &ant_maskiner($gwip,$tnett{$gwip}{netmask},$tnett{$gwip}{maxhosts});
 #	print $id;
 #	print "\n";
 	$_ = $if{$tnett{$gwip}{indeks}}{nettnavn};
 	
 	if(/^lan/i) {
 	    ($tnett{$gwip}{nettype},$tnett{$gwip}{org},$tnett{$gwip}{anv},$tnett{$gwip}{komm}) = split /,/;
-	    $tnett{$gwip}{nettype} =~ /lan(\d*)/;
-	    $tnett{$gwip}{hsrppri} = $1 if defined $1;
+	    $tnett{$gwip}{nettype} =~ s/lan(\d*)/lan/i;
+#	    $tnett{$gwip}{hsrppri} = $1 if defined $1;
 	    $prefiks{$id} = [ $tnett{$gwip}{prefiksid},
 			      $tnett{$gwip}{nettadr},
 			      $tnett{$gwip}{maske},
 			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
 			      $tnett{$gwip}{nettype}, 
 			      $tnett{$gwip}{org}, 
 			      $tnett{$gwip}{anv},
@@ -295,6 +299,8 @@ sub hent_prefiksdata {
 			      $tnett{$gwip}{nettadr},
 			      $tnett{$gwip}{maske},
 			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
 			      $tnett{$gwip}{nettype}, 
 			      $tnett{$gwip}{org},
 			      undef,
@@ -307,6 +313,8 @@ sub hent_prefiksdata {
 			      $tnett{$gwip}{nettadr},
 			      $tnett{$gwip}{maske},
 			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
 			      $tnett{$gwip}{nettype},
 			      undef,
 			      undef,
@@ -331,6 +339,8 @@ sub hent_prefiksdata {
 			      $tnett{$gwip}{nettadr},
 			      $tnett{$gwip}{maske},
 			      $tnett{$gwip}{vlan},
+			      $tnett{$gwip}{antmask},
+			      $tnett{$gwip}{maxhosts},
 			      $tnett{$gwip}{nettype},
 			      undef,
 			      undef,

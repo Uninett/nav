@@ -24,7 +24,7 @@ my %db_gwport = ();
 my %gwport = ();
 my %db_prefiks = ();
 my %prefiks = ();
-my @felt_gwport = ("gwip","boksid","prefiksid","indeks","interf","speed","maxhosts","antmask","ospf","hsrppri");
+my @felt_gwport = ("gwip","boksid","prefiksid","ifindeks","interf","speed","ospf","hsrppri");
 my %boks;
 
 # Mibs:
@@ -42,7 +42,7 @@ my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28";
 
 #her er det mye gammelt (fra før GA sin tid)
 foreach (keys %boks) { #$_ = boksid
-    if($boks{$_}{watch} =~ /y/i ||$boks{$_}{ip} eq "129.241.194.4") {
+    if($boks{$_}{watch} =~ /y|t/i) {
 	print "$boks{$_}{ip} er på watch.\n";
     } else {
 	if (&hent_gwdata($_) eq '0') {
@@ -189,7 +189,7 @@ sub hent_gwdata {
     
     foreach $line (@lines) {
         ($gwip,$if) = split(/:/,$line);
-	$tnett{$gwip}{indeks}= $if;
+	$tnett{$gwip}{ifindeks}= $if;
     }
     @lines = &snmpwalk("$ro\@$ip",$if2Nettnavn);
 
@@ -221,7 +221,7 @@ sub hent_gwdata {
             $gwip = "$ip[0].$ip[1].$ip[2].$ip[3]";
 
 #	    print "$gwip: OSPF: $ospf\n"; 
-            if ($tnett{$gwip}{indeks})
+            if ($tnett{$gwip}{ifindeks})
             {
 		$tnett{$gwip}{ospf} = $ospf;
             }
@@ -259,7 +259,7 @@ sub hent_gwdata {
 #	print "$gwip\n";
 
 	if (!($tnett{$gwip}{maske} == 0)                 #  bits ulik 0 
-	    && ($if{$tnett{$gwip}{indeks}}{status} == 1))# nettet er adm oppe
+	    && ($if{$tnett{$gwip}{ifindeks}}{status} == 1))# nettet er adm oppe
 	{
 	#    print "$gwip\n";                        
         # Fjerner "gw nummer 2" fra 23-bits nett.
@@ -285,20 +285,20 @@ sub hent_gwdata {
 
     }
 #tar fra hashene tnett og if og legger i gwport
-    foreach $gwip (sort by_ip keys %tnett)
+    foreach $gwip (keys %tnett)
     {
-	$tnett{$gwip}{interf}   = $if{$tnett{$gwip}{indeks}}{interf};
-	$tnett{$gwip}{speed}    = $if{$tnett{$gwip}{indeks}}{speed};
+	$tnett{$gwip}{interf}   = $if{$tnett{$gwip}{ifindeks}}{interf};
+	$tnett{$gwip}{speed}    = $if{$tnett{$gwip}{ifindeks}}{speed};
 	$tnett{$gwip}{maxhosts} = &max_ant_hosts($tnett{$gwip}{maske});
 	$tnett{$gwip}{antmask}  = &ant_maskiner($gwip,$tnett{$gwip}{netmask},$tnett{$gwip}{maxhosts});
 
-	$_ = $if{$tnett{$gwip}{indeks}}{nettnavn};
+	$_ = $if{$tnett{$gwip}{ifindeks}}{nettnavn};
 
 	$tnett{$gwip}{hsrppri} = "1";
 	if(/^lan(\d*)/i) {
 	    $tnett{$gwip}{hsrppri} = $1 if $1;
 	}
-	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{indeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf},$tnett{$gwip}{hsrppri}];
+	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{ifindeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf},$tnett{$gwip}{hsrppri}];
     }
 
 }

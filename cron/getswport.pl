@@ -25,6 +25,8 @@ use SNMP_util;
 use Pg;
 use Socket;
 use strict;
+
+require "felles.pl";
 ##################################
 
 my $db = "manage";
@@ -32,6 +34,7 @@ my $conn = db_connect($db);
  
 my @felt_swport = ("boksid","modul","port","ifindex","status","speed","duplex","trunk","static","portnavn","boksbak");
 my @felt_swportvlan = ("swportid","vlan");
+my @felt_swportallowedvlan = ("swportid","hexstring");
 my $sql;
 my $resultat;
 my $table;
@@ -50,6 +53,9 @@ my %swportid;
 
 my %swportvlan;
 my %db_swportvlan;
+
+my %swportallowedvlan;
+my %db_swportallowedvlan;
 my %sysname2id;
 my %sw2id;
 my %spv2id;
@@ -93,7 +99,7 @@ my $trunk_iossw    = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 #&hent_db_swportvlan;
 
 #henter snmp-data og legger dem i hashen swport
-foreach my $boksid (keys %boks) { #keys boks
+foreach my $boksid ("2") { #keys boks
 
 #    if ($boks{$boksid}{sysname} eq 'rfb-409-sw')
 #    {
@@ -102,111 +108,98 @@ foreach my $boksid (keys %boks) { #keys boks
 #    }
 }
 
-
+print "går videre";
 ##swid består av boksid og ifindex
-foreach $swid (keys %swport) {
-    (my $boksid, my $ifindex) = split /:/,$swid;
-    my $swportid = $sw2id{$boksid}{$ifindex};
-    &sammenlikn(\%swport,\%db_swport,\@felt_swport,"swport",$swid,$swportid);
+#foreach $swid (keys %swport) {
+for my $boks (keys %swportvlan) {
+    for my $ifindex (keys %{$swportvlan{$boks}}) {
+	&sammenlikn_ny(\@{$swport{$boks}{$ifindex}},\@{$db_swport{$boks}{$ifindex}},\@felt_swport, "swport","swportid",$sw2id{$boks}{$ifindex});
+    }
 }
+
+#    (my $boksid, my $ifindex) = split /:/,$swid;
+#    my $swportid = $sw2id{$boksid}{$ifindex};
+#    if (defined($swportid) && $swportid ne ""){
+#        if($swport{$swid}[7] eq "t") { #trunk
+#            #henter ut alle vlan og legger inn i hashen swportvlan
+#            &hent_snmpdata_vlan($swid,$swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
+#	    print "\ntrunk\n";
+#        } else {
+#            #henter ut det ene, siden ikke trunk, og legger i swportvlan
+#            &hent_snmpdata_ett_vlan($swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
+#        }
+#    }
+
+#    &sammenlikn(\%swport,\%db_swport,\@felt_swport,"swport",$swid,$swportid);
+#}
 
 #henter inn databaser
 
-#my %swportid = ();
+my %swportid = ();
+&hent_db_swport;
+
 &hent_db_swportvlan;
-
-my $boksid;
-my $ifindex;
-my $vlanid;
-
-foreach $vlanid (keys %swportvlan)
-{
-    unless ($db_swportvlan{$vlanid})
-    {	
-	(my $boksid,my $ifindex, my $vlan) = split(/:/,$vlanid);
-	my $temp = $swportid{$boksid}{$ifindex};
-
-	print "$vlanid\t$temp\n";
-
-	$sql = "INSERT INTO swportvlan (swportid,vlan) VALUES ($temp,$vlan)";
-	db_execute($sql,$conn);
-
-	print "$sql\n";
-
+print "hei";
+print @{$swportvlan{149}{3}}[0..3];
+print $sw2id{149}{3};
+print "hopp";
+for my $boks (keys %swportvlan) {
+    for my $ifindex (keys %{$swportvlan{$boks}}) {
+	if ($swportvlan{$boks}{$ifindex}[0]){
+	    print @{$swportvlan{$boks}{$ifindex}}[0..1],"\n";
+	    print $sw2id{$boks}{$ifindex},"\n";
+	    @{$swportvlan{$boks}{$ifindex}} = ($sw2id{$boks}{$ifindex},$swportvlan{$boks}{$ifindex}[0]);
+	    print @{$swportvlan{$boks}{$ifindex}}[0..1],"-----------------\n";
+	    &sammenlikn_ny(\@{$swportvlan{$boks}{$ifindex}},\@{$db_swportvlan{$boks}{$ifindex}},\@felt_swportvlan, "swportvlan", "swportid",$sw2id{$boks}{$ifindex});
+	}
     }
-    
-    delete $swportvlan{$vlanid};
-    delete $db_swportvlan{$vlanid};    
 }
 
-foreach $vlanid (keys %db_swportvlan) # er i db, men ikke hentet denne runden
-{
-    (my $boksid,my $ifindex, my $vlan) = split(/:/,$vlanid);
-
-    $sql = "DELETE FROM swportvlan WHERE swportid=$swportid{$boksid}{$ifindex} AND vlan =$vlan";
-    db_execute($sql,$conn);
-
-    print "$sql\n";
+for my $boks (keys %swportallowedvlan) {
+    for my $ifindex (keys %{$swportvlan{$boks}}) {
+	if ($swportallowedvlan{$boks}{$ifindex}[0]){
+	    @{$swportallowedvlan{$boks}{$ifindex}} = ($sw2id{$boks}{$ifindex},$swportallowedvlan{$boks}{$ifindex}[0]);
+	    &sammenlikn_ny(\@{$swportallowedvlan{$boks}{$ifindex}},\@{$db_swportallowedvlan{$boks}{$ifindex}},\@felt_swportallowedvlan, "swportallowedvlan", "swportid",$sw2id{$boks}{$ifindex});
+	}
+    }
 }
-
-
-##############################################
-
-##vlanid består av swportid og vlan
-#foreach my $vlanid (keys %swportvlan) {
-#    (my $swportid, my $vlan) = split /:/,$vlanid;
-#    my $swportvlanid = $spv2id{$swportid}{$vlan};
-#    &sammenlikn(\%swportvlan,\%db_swportvlan,\@felt_swportvlan,"swportvlan",$vlanid,$swportvlanid);
-#}
-
-#################################################
-#################################################
 #################################################
 
-#se txt2db.pl for mer kommentarer. denne vil inngå i modul seinere
-sub sammenlikn {
-
-    my %ny = %{$_[0]};
-    my %gammel = %{$_[1]};
+sub sammenlikn_ny {
+    my @ny = @{$_[0]};
+    my @gammel = @{$_[1]};
     my @felt = @{$_[2]};
     my $tabell = $_[3];
-    my $f = $_[4]; #hashens id
-    my $nokkel = "swportid"; #nøkkel
-    my $id = $_[5]; #nøkkelens match
-    my @line;
+    my $nokkel = $_[4];
+    my $treff = $_[5];
 
-    if (defined($id) && $id ne ""){
-#-----------------------
-#UPDATE
-	for my $i (0..$#felt) {
-	    unless($ny{$f}[$i] eq $gammel{$f}[$i]) {
-#oppdatereringer til null må ha egen spørring
-		print "\n\"".$ny{$f}[$i]."\" <> \"".$gammel{$f}[$i]."\"!";
-		if ($ny{$f}[$i] eq "" && $gammel{$f}[$i] ne ""){
-		  #  print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"NULL\"";
-		    $sql = "UPDATE $tabell SET $felt[$i]=null WHERE $nokkel=\'$id\'";
-		    db_execute($sql,$conn);
+    print @gammel[0];
+    if($gammel[0]) {
+#    if ($treff) {
+	for my $i  (0..$#felt) {
+	    unless ( $ny[$i] eq $gammel[$i]) {
+		if ( $ny[$i] eq "" && $gammel[$i] ) {
+		    $sql = "UPDATE $tabell SET $felt[$i] = null WHERE $nokkel = \'$treff\'";
+		    &db_execute($sql,$conn);
 		    print $sql;
 		} else {
-#normal oppdatering
-		  #  print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"$ny{$f}[$i]\"";
-		    $sql = "UPDATE $tabell SET $felt[$i]=\'$ny{$f}[$i]\' WHERE $nokkel=\'$id\'";
+		    print "Oppdaterer *$tabell* felt *$felt[$i]* fra *$gammel[$i]* til *$ny[$i]*\n";
+		    $sql = "UPDATE $tabell SET $felt[$i] = \'$ny[$i]\' WHERE $nokkel = \'$treff\'";
 		    print $sql;
-		    db_execute($sql,$conn);
+		    &db_execute($sql,$conn);
 		}
 	    }
 	}
-
     } else {
 	
 #-----------------------
 #INSERT
-	print "\nSetter inn $ny{$f}[0]";
+	print "\nSetter inn $ny[0]";
 	my @val;
 	my @key;
 	foreach my $i (0..$#felt) {
-	    if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
-		push(@val, "\'".$ny{$f}[$i]."\'");
+	    if (defined($ny[$i]) && $ny[$i] ne ""){
+		push(@val, "\'".$ny[$i]."\'");
 		push(@key, $felt[$i]);
 	    }
 	}
@@ -214,10 +207,9 @@ sub sammenlikn {
 	$sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
 	print $sql;
 	db_execute($sql,$conn);
-    }    
-#OBS: KAN IKKE SLETTE FRA DATABASEN (pga fillesing)
+    }   
 }
-    
+
 ###################################################
 # henter snmpdata avhengig av boksens typegruppe
 sub hent_snmpdata
@@ -229,7 +221,7 @@ sub hent_snmpdata
     print "$boks{$id}{sysname}\t";
 
 # Sjekker på typegruppe.
-	
+    
     if ($typegruppe eq 'cat-sw')
     {
 	print "Henter normalt fra ".$typegruppe."\n";
@@ -269,6 +261,7 @@ sub hent_catsw
     my $temp;
     my $mp;
     my %vlan;
+    my $vlanid;
 
     my %tempvlan = ();
 
@@ -284,10 +277,10 @@ sub hent_catsw
 	$mp2if{$mp} = $temp; 
 	$if{$temp}{mp} = $mp;
 	$if{$temp}{ifindex} = $temp;
-#	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
+	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
 #	$ii2mp{$temp} = $mp;
     }
-     
+    
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
@@ -302,7 +295,7 @@ sub hent_catsw
 	    $if{$mp2if{$mp}}{duplex} = 'full'; 
 	}
 
-#	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
+	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -310,7 +303,7 @@ sub hent_catsw
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
 	$if{$mp2if{$mp}}{porttype} = $temp; 
-#	print "PORTTYPE".$mp2if{$mp}.":".$temp."\n";
+	print "PORTTYPE".$mp2if{$mp}.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -328,7 +321,7 @@ sub hent_catsw
 	    $if{$mp2if{$mp}}{status} = 'down'; 
 	}
 
-#	print "STATUS".$mp.":".$temp."\n";
+	print "STATUS".$mp.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -339,60 +332,61 @@ sub hent_catsw
 	$temp =~ s/^(.{0,10}).*/$1/; #tar med de 10 første tegn fra speed
 
 	$if{$if}{speed} = $temp; 
-#	print "SPEED".$if.":".$temp."\n";
+	print "SPEED".$if.":".$temp."\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
 
-    @temp = &snmpwalk($ro."\@".$ip,$vlan_catsw);
-    foreach $line (@temp) {
-	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{vlan} = $temp;
-	
-#	print "VLAN $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{vlan}\n";
-
-	$vlanid = "$id:$mp2if{$mp}:$if{$mp2if{$mp}}{vlan}"; 
-	$swportvlan{$vlanid}++;
-
-	$tempvlan{$temp}++;
-
-    }
-    
+    @temp = ();
     @temp = &snmpwalk($ro."\@".$ip,$trunk_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-
-#	$if{$mp2if{$mp}}{trunk} = $temp % 2; 
-
+	print $line,"\n";
+#	$temp %= 2; 
+	print $temp,"\n";
 	if ($temp == 1)
 	{
 	    $if{$mp2if{$mp}}{trunk} = 't';
-	    foreach $temp (keys %tempvlan)
-	    {
+#	    foreach $temp (keys %tempvlan)
+#	    {
 #		print "$mp\t$temp\n";
-		$vlanid = "$id:$mp2if{$mp}:$temp";
-		$swportvlan{$vlanid}++;
-	    }
-
-
-
+#		$vlanid = "$id:$mp2if{$mp}:$temp";
+#		$swportvlan{$vlanid}++;
+	    my $vlanhex;
+	    ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.5.1.9.3.1.5.$mp");
+	    print $vlanhex = unpack "H*", $vlanhex;
+	    $if{$mp2if{$mp}}{vlanhex} = $vlanhex;
+#	    } 
+	    
 	}
 	else {
 	    $if{$mp2if{$mp}}{trunk} = 'f';
-	}
+	    my @temp2 = &snmpwalk($ro."\@".$ip,$vlan_catsw);
+#	    foreach $line (@temp2) {
+		($mp,my $temp2) = split(/:/,$line);
+		print $if{$mp2if{$mp}}{vlan} = $temp2,"\n";
+		
+#		print "VLAN $mp\t$mp2if{$mp}\t$temp2\t$if{$mp2if{$mp}}{vlan}\n";
+		
+#		$vlanid = "$id:$mp2if{$mp}:$if{$mp2if{$mp}}{vlan}"; 
+#		$swportvlan{$vlanid}++;
+		
+#		$temp2vlan{$temp}++;
+	    }
+#	}
 
-#	print "TRUNK $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{trunk}\n";
-
+	print "TRUNK $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{trunk}\n";
+	
 #	$ii2mp{$temp} = $mp;
     }
-
+    
 
     @temp = &snmpwalk($ro."\@".$ip,$portName_catsw);
     foreach $line (@temp)
     {
 	($mp,$temp) = split(/:/,$line,2);
 	$if{$mp2if{$mp}}{portnavn} = $temp; 
-#	print "NAME".$mp2if{$mp}.":".$temp."\n";
+	print "NAME".$mp2if{$mp}.":".$temp."\n";
 
     }
 
@@ -401,19 +395,23 @@ sub hent_catsw
 	(my $modul, my $port) = split /\./,$if{$interface}{mp};
 	if(defined($if{$interface}{ifindex}))
 	{
+	    my $boksid = $id;
+	    my $ifindex = $if{$interface}{ifindex};
+	    
 	    $swid = join(":",($id,$if{$interface}{ifindex}));
-	    $swport{$swid} = [ $id, 
-			       $modul, 
-			       $port, 
-			       $if{$interface}{ifindex}, 
-			       $if{$interface}{status},
-			       $if{$interface}{speed},
-			       $if{$interface}{duplex},
-			       $if{$interface}{trunk},
-			       $if{$interface}{static},
-			       $if{$interface}{portnavn},
-			       $if{$interface}{boksbak} ];
-#	    $vlan{$swid} = [ $if{$interface}{vlan} ];
+	    $swport{$boksid}{$ifindex} = [ $id, 
+					   $modul, 
+					   $port, 
+					   $if{$interface}{ifindex}, 
+					   $if{$interface}{status},
+					   $if{$interface}{speed},
+					   $if{$interface}{duplex},
+					   $if{$interface}{trunk},
+					   $if{$interface}{static},
+					   $if{$interface}{portnavn},
+					   $if{$interface}{boksbak} ];
+	    $swportvlan{$boksid}{$ifindex} = [ $if{$interface}{vlan} ];
+	    $swportallowedvlan{$boksid}{$ifindex} = [ $if{$interface}{vlanhex} ];
 	}
     }
     return 1;
@@ -436,6 +434,7 @@ sub hent_iossw {
     my $mp;
     my %vlan;
     my %tempvlan = ();
+    my $vlanid;
 
     @temp = &snmpwalk($ro."\@".$ip,$IfIndex_iossw);
     unless ($temp[0]) {
@@ -452,7 +451,7 @@ sub hent_iossw {
 #	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
 #	$ii2mp{$temp} = $mp;
     }
-     
+    
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_iossw);
     foreach $line (@temp)    {
 	(my $port,$temp) = split(/:/,$line);
@@ -478,7 +477,7 @@ sub hent_iossw {
 #	($mp,$temp) = split(/:/,$line);
 #	$if{$mp2if{$mp}}{porttype} = $temp; 
 #	print "PORTTYPE".$mp2if{$mp}.":".$temp."\n";
-	
+    
 #	$ii2mp{$temp} = $mp;
 #    }
 
@@ -533,15 +532,28 @@ sub hent_iossw {
 
 	if ($temp == 0) {
 	    $if{$ifi}{trunk} = 't';
-	    foreach my $temp2 (keys %tempvlan)
-	    {
+
+	    my $vlanhex;
+	    ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.9.46.1.6.1.1.4.$mp");
+	    print $vlanhex = unpack "H*", $vlanhex;
+	    $if{$mp2if{$mp}}{vlanhex} = $vlanhex;
+
+#	    foreach my $temp2 (keys %tempvlan)
+#	    {
 #		print "$mp\t$temp\n";
-		$vlanid = "$id:$ifi:$temp2";
-		$swportvlan{$vlanid}++;
-	    }	    
+#		$vlanid = "$id:$ifi:$temp2";
+#		$swportvlan{$vlanid}++;
+#	    }	    
 	}
 	else {
 	    $if{$ifi}{trunk} = 'f';  
+	    my @temp2 = &snmpwalk($ro."\@".$ip,$vlan_catsw);
+
+		($mp,my $temp2) = split(/:/,$line);
+		print $if{$mp2if{$mp}}{vlan} = $temp2,"\n";
+
+
+
 	}
 
     }
@@ -561,6 +573,8 @@ sub hent_iossw {
 #	(my $modul, my $port) = split /\./,$if{$interface}{mp};
 	    if(defined($if{$interface}{ifindex})){
 		$swid = join(":",($id,$if{$interface}{ifindex}));
+		my $boksid = $id;
+		my $ifindex = $if{$interface}{ifindex};
 		$swport{$swid} = [ $id, 
 				   $if{$interface}{modul}, 
 				   $if{$interface}{port}, 
@@ -572,6 +586,8 @@ sub hent_iossw {
 				   $if{$interface}{static},
 				   $if{$interface}{portnavn},
 				   $if{$interface}{boksbak} ];
+	    $swportvlan{$boksid}{$ifindex} = [ $if{$interface}{vlan} ];
+	    $swportallowedvlan{$boksid}{$ifindex} = [ $if{$interface}{vlanhex} ];
 
 #		print "$swid: $interface\t$if{$interface}{trunk}\t$swport{$swid}[1]\t$swport{$swid}[2]\t$swport{$swid}[7]\n";
 
@@ -594,7 +610,7 @@ sub hent_db_boks
     while(@_ = $resultat->fetchrow) 
     {
 	@_ = map rydd($_), @_;
-		
+	
 	$boks{$_[0]}{ip}      = $_[1];
 	$boks{$_[0]}{sysname} = $_[2];
         $boks{$_[0]}{typegruppe} = $_[3];
@@ -610,6 +626,61 @@ sub hent_db_boks
     
 }
 ##########################
+sub hent_snmpdata_ett_vlan 
+{
+    my $swportid = $_[0];
+    my $ip = $_[1];
+    my $ro = $_[2];
+    my $typegruppe = $_[3];
+    my @temp = ();
+
+    if ($typegruppe eq "cat-sw") 
+    {
+	(@temp) = &snmpwalk($ro."\@".$ip,$vlan_catsw);
+    } elsif ($typegruppe eq "ios-sw")
+    {
+	(@temp) = &snmpwalk($ro."\@".$ip,$vlan_iossw);
+    } else {
+	return 0;
+    }
+    
+    foreach $line (@temp)    {
+	(undef,my $temp) = split(/:/,$line);
+	my $vlanid = join (":", $swportid, $temp);
+	#legger inn i hashen swportvlan
+	$swportvlan{$vlanid} = [ $swportid, $temp ]; 
+	print "VLAN".$vlanid.":".$temp."\n";
+	
+#       $ii2mp{$temp} = $mp;
+	return 1;
+    }
+    
+    
+}
+sub hent_snmpdata_vlan 
+{
+    my $modport = join (".", ($swport{$_[0]}[1],$swport{$_[0]}[2]) );
+    my $swportid = $_[1];
+    my $ip = $_[2];
+    my $ro = $_[3];
+    my $typegruppe = $_[4];
+    my $vlanhex;
+
+    if ($typegruppe eq "cat-sw") {
+        ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.5.1.9.3.1.5.$modport");
+    } elsif ($typegruppe eq "ios-sw") {
+        ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.9.46.1.6.1.1.4.$modport");
+    } else {
+        return 0;
+    }
+#pakker ut hexstrengen og legger den i hash klar for database
+    print $vlanhex."\n";
+    print $vlanhex = unpack "H*", $vlanhex;
+    $swportallowedvlan{$swportid} = [ $swportid, $vlanhex ];
+    return 1;
+}
+
+
 sub hent_db_swport
 {
     %db_swport = ();
@@ -623,68 +694,95 @@ sub hent_db_swport
 	#lager entydig nøkkel og legger inn i hashen db_swport
 	my $id = join(":",$_[1],$_[4]);
 	$sw2id{$_[1]}{$_[4]} = $_[0];
-	$db_swport{$id} = [ @_[1..@felt_swport] ];
+	$db_swport{$_[1]}{$_[4]} = [ @_[1..@felt_swport] ];
     }    
 }
+
 ##########################
 
 sub hent_db_swportvlan
 {
 
-    my %temp1 = ();
+#    my $sql1 = "SELECT swportid,boksid,ifindex FROM swport";
 
-    my $sql1 = "SELECT swportid,boksid,ifindex FROM swport";
-
-    my $sql2 = "SELECT swportid,vlan FROM swportvlan";
+#    my $sql2 = "SELECT swportid,vlan FROM swportvlan";
     
-    my $resultat1 = db_select($sql1,$conn);
-    while(@_ = $resultat1->fetchrow) 
-    {
-	@_ = map rydd($_), @_;
+#    my $resultat1 = db_select($sql1,$conn);
+#    while(@_ = $resultat1->fetchrow) 
+#    {
+#	@_ = map rydd($_), @_;
 
-	$swportid{$_[1]}{$_[2]} = $_[0];
+#	$swportid{$_[1]}{$_[2]} = $_[0];
 
-	$temp1{$_[0]} = "$_[1]:$_[2]"; 
+#	$temp1{$_[0]} = "$_[1]:$_[2]"; 
 
-    }
-	
-    my $resultat2 = db_select($sql2,$conn);
-    while(@_ = $resultat2->fetchrow) 
-    {
-	@_ = map rydd($_), @_;
+#    }
+    
+#    my $resultat2 = db_select($sql2,$conn);
+#    while(@_ = $resultat2->fetchrow) 
+#    {
+#	@_ = map rydd($_), @_;
 
 	#lager entydig nøkkel og legger inn i hashen db_swport
-	my $id = join(":",$temp1{$_[0]},$_[1]);
+#	my $id = join(":",$temp1{$_[0]},$_[1]);
 	
-	$db_swportvlan{$id}++;
+#	$db_swportvlan{$id}++;
+#    }    
+#}
+    my $sql = "SELECT boksid,ifindex,".join(",",@felt_swportvlan)." FROM swport natural join swportvlan";
+    
+    my $resultat = db_select($sql,$conn);
+    while(@_ = $resultat->fetchrow) 
+    {
+	@_ = map rydd($_), @_;
+#	print @_[2..$#_],"\n";
+#	my $id = join(":",$_[0],$_[1]);
+	$db_swportvlan{$_[0]}{$_[1]} = [ @_[2..$#_] ];
+    }    
+}
+
+
+sub hent_db_swportallowedvlan
+{
+
+    my %temp = ();
+
+    my $sql = "SELECT  boksid,ifindex,".join(",",@felt_swportallowedvlan)." FROM swport natural join swportallowedvlan";
+    
+    my $resultat = db_select($sql,$conn);
+    while(@_ = $resultat->fetchrow) 
+    {
+	@_ = map rydd($_), @_;
+
+	$db_swportallowedvlan{$_[0]}{$_[1]} = [ @_[2..$#_] ];
     }    
 }
 
 ########################################################
 
 sub db_connect {     
-my $db = $_[0];     
+    my $db = $_[0];     
     my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
-die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;     
-return $conn; 
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;     
+    return $conn; 
 }
 
 sub db_select {     
-my $sql = $_[0];     
-my $conn = $_[1];     
-my $resultat = $conn->exec($sql);     
-print "DATABASEFEIL: $sql\n".$conn->errorMessage         
-    unless ($resultat->resultStatus eq PGRES_TUPLES_OK);     
-return $resultat; 
+    my $sql = $_[0];     
+    my $conn = $_[1];     
+    my $resultat = $conn->exec($sql);     
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage         
+	unless ($resultat->resultStatus eq PGRES_TUPLES_OK);     
+    return $resultat; 
 }
 
 sub db_execute {     
-my $sql = $_[0];     
-my $conn = $_[1];     
-my $resultat = $conn->exec($sql);     
-print "DATABASEFEIL: $sql\n".$conn->errorMessage         
-    unless ($resultat->resultStatus eq PGRES_COMMAND_OK);     
-return $resultat;
+    my $sql = $_[0];     
+    my $conn = $_[1];     
+    my $resultat = $conn->exec($sql);     
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage         
+	unless ($resultat->resultStatus eq PGRES_COMMAND_OK);     
+    return $resultat;
 }
 
 sub rydd {    
@@ -692,7 +790,7 @@ sub rydd {
 	$_ = $_[0];
 	s/\s*$//;
 	s/^\s*//;
-    return $_;
+	return $_;
     } else {
 	return "";
     }

@@ -185,7 +185,7 @@ sub hent_data
    
     unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
-	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
+#	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
     }
 
 

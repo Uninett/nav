@@ -168,7 +168,7 @@ sub hent_data
 #    print ":".$sn.":".$boks{$id}{sysName}.":";
     unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
-	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
+#	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
     }
 
 
@@ -180,7 +180,7 @@ sub hent_data
         ($gwip,$netmask) = split(/:/,$line);
 	my $nettadr = &and_ip($gwip,$netmask);
 	my $maske = &mask_bits($netmask);
-	$prefiksid = &hent_prefiksid($nettadr, $maske);
+	$prefiksid = $prefiksid{$nettadr}{$maske};
 
     }
     unless ($boks{$id}{prefiksid} =~ /$prefiksid/){
@@ -365,19 +365,20 @@ sub mask_bits {
         return 0;
     }
 }  
+
 sub hent_prefiksid {
     my $id = "";
 
-    $sql = "SELECT distinct prefiksid FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
+    $sql = "SELECT distinct prefiksid,nettadr,maske FROM prefiks";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)
     {
 	@line = map rydd($_), @line;
-	$id = $line[0];
+	$prefiksid{$line[1]}{$line[2]} = $line[0];
     }
-    return $id;
 } 
+
 sub oppdater_en
 {
     my $tabell = $_[0];
@@ -412,7 +413,7 @@ sub db_execute {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
 	unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
     return $resultat;
 }

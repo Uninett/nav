@@ -160,7 +160,7 @@ sub hent_data
    
     unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
-	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
+#	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
     }
 
 
@@ -177,7 +177,7 @@ sub hent_data
 	my $maske = &mask_bits($netmask);
 	$prefiksid = $prefiksid{$nettadr}{$maske};
 
-#	print "$ip\t$gwip:$netmask\t$nettadr/$maske\t*$prefiksid*\n";
+	print "$ip\t$gwip:$netmask\t$nettadr/$maske\t*$prefiksid*\n";
 
     }
     unless ($boks{$id}{prefiksid} =~ /$prefiksid/){

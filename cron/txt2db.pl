@@ -1,14 +1,12 @@
 #!/usr/bin/perl -w
 
-use Pg;
 use strict;
+require "felles.pl";
 
 #-------------ALLE-------------
 my $db = "manage";
 my $conn = db_connect($db);
 my ($fil,$tabell,@felt);
-my $forelder;
-my %forelder;
 #--------------ANV-------------
 $fil = "/usr/local/nav/etc/anv.txt";
 $tabell = "anv";
@@ -27,42 +25,23 @@ $tabell = "rom";
 #--------------ORG-------------
 $fil = "/usr/local/nav/etc/org.txt";
 $tabell = "org";
-$forelder = "1";
+@felt = ("orgid","forelder","descr","org2","org3","org4");
+&db_endring($fil,$tabell,\@felt);
 @felt = ("orgid","forelder","descr","org2","org3","org4");
 &db_endring($fil,$tabell,\@felt);
 #--------------FELLES_KODE-----
 sub db_endring {
-    #lokale variabler
+    my $fil = $_[0];
+    my $tabell = $_[1];
+    my @felt = @{$_[2]};
     my @gen = (); my $sql = ""; my $resultat = ""; my %ny = (); my %gammel = ();
-    #leser inn fra fil
-    open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
-    foreach (<FIL>) {
-	#tar med linjer som begynner med ord før kolon bestående av 
-	#tall,bokstaver,lavstrek,bindestrek
-	if (/^[a-zA-Z0-9_\-]+?:/) {
-	    #sletter ting som er ekstra i stedet for å slå 
-	    #sammen med seinere feilkolonner.
-	    (@_,undef) = split(/:/,$_,scalar(@felt)+1); 
-	    @gen = map rydd($_), @_; #rydder opp
-	    $ny{$gen[0]} = [ @gen ]; #legger inn i hash
-#foreldrehash dersom kolonnenummer som tilsvarer foreldre er satt, settes forelder til dette
-	    if ($forelder) {
-		$forelder{$gen[0]} = $gen[$forelder];
-	    }
-	}
-	close FIL;
-    }
 
+    %ny = &fil_hent($fil,scalar(@felt));
     #leser fra database
-    $sql = "SELECT ".join(",", @felt )." FROM $tabell ORDER BY $felt[0]";
-    $resultat = db_select($sql,$conn);
-    while(@_ = $resultat->fetchrow) {
-	@_ = map rydd($_), @_;
-	$gammel{$_[0]} = [ @_ ];
-    }
+    %gammel = &db_hent($conn,"SELECT ".join(",", @felt )." FROM $tabell ORDER BY $felt[0]");
 
     #alle nøklene i hashen ny
-    LOOP: for my $f (keys %ny) {
+    for my $f (keys %ny) {
 
 	#eksisterer i databasen?
 	if($gammel{$f}[0]) {
@@ -73,101 +52,28 @@ sub db_endring {
 		    unless($ny{$f}[$i] eq $gammel{$f}[$i]) {
 			#oppdatereringer til null må ha egen spørring
 			if ($ny{$f}[$i] eq "" && $gammel{$f}[$i] ne ""){
-			    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"NULL\"";
-			    $sql = "UPDATE $tabell SET $felt[$i]=null WHERE $felt[0]=\'$f\'";
-			    db_execute($sql,$conn);
-			    print $sql;
+			    &oppdater($conn,$tabell,$felt[$i],$gammel{$f}[$i],"null",$felt[0],$f);
 			} else {
-			    #normal oppdatering
-			    print "\nOppdaterer $f felt $felt[$i] fra \"$gammel{$f}[$i]\" til \"$ny{$f}[$i]\"";
-			    $sql = "UPDATE $tabell SET $felt[$i]=\'$ny{$f}[$i]\' WHERE $felt[0]=\'$f\'";
-			    print $sql;
-			    db_execute($sql,$conn);
+
+			    &oppdater($conn,$tabell,$felt[$i],"\'$gammel{$f}[$i]\'","\'$ny{$f}[$i]\'",$felt[0],$f);
 			}
 		    }
 		}
 	    }
-	    delete $ny{$f};
-	    delete $gammel{$f};
 	}else{
 #-----------------------
 #INSERT
-	    if($forelder{$f} and exists($ny{$forelder{$f}})){
-		print "\nSetter inn $ny{$f}[0]";
-		my @val;
-		my @key;
-		foreach my $i (0..$#felt) {
-		    if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
-			#normal
-			push(@val, "\'".$ny{$f}[$i]."\'");
-			push(@key, $felt[$i]);
-		    } elsif (defined($ny{$f}[$i])) {
-			#null
-			push(@val, "NULL");
-			push(@key, $felt[$i]);
-		    }
-		}
-		if(scalar(@key)){ #key eksisterer
-		    print scalar(@key);
-		    $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-		    print $sql;
-		    db_execute($sql,$conn);
-		}
-		delete $ny{$f};
-		delete $gammel{$f};
-	    }
+	    &db_sett_inn($conn,$tabell,join(":",@felt),join(":",@{$ny{$f}}));
+
 	}
-	next LOOP unless scalar(keys %ny);
     }
 #-----------------------------------
 #DELETE
     #hvis den ikke ligger i fila
     for my $f (keys %gammel) {
 	unless(exists($ny{$f})) {
-	    print "sletter ".$f;
-	    $sql = "DELETE FROM $tabell WHERE $felt[0]=\'$f\'";
-	    print $sql;
-	    db_execute($sql,$conn);
+	    &slett($conn,$tabell,$felt[0],$f);
 	}
     }
 
 }
-
-sub db_connect {
-    my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
-    return $conn;
-}
-sub db_select {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
-	unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
-    return $resultat;
-}
-sub db_execute {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    print "DATABASEFEIL: $sql\n".$conn->errorMessage
-	unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
-    return $resultat;
-}
-
-
-#returnerer tom streng hvis ikke definert
-sub rydd {    if (defined $_[0]) {
-	$_ = $_[0];
-	s/\s*$//;
-	s/^\s*//;
-    return $_;
-    } else {
-	return "";
-    }
-}
-
-
-
-
