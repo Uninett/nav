@@ -99,8 +99,11 @@ public class QueryNetbox extends Thread
 		synchronized (updateDataTimer) {
 			if (updateDataTask != null) updateDataTask.cancel();
 			updateDataTask = new UpdateDataTask();
+
+			// The delay can actually be negative due to inaccuracy in the Java timer
+			l = Math.max(l, 0);
+			Log.d("QUERY_NETBOX", "SCHEDULE_UPDATE_NETBOXES", "Schedule update netboxes in " + l + " ms");
 			updateDataTimer.schedule(updateDataTask, l, updateDataInterval);
-			Log.d("QUERY_NETBOX", "SCHEDULE_UPDATE_NETBOXES", "Schedule for immediate execution");
 		}
 	}
 
@@ -146,10 +149,10 @@ public class QueryNetbox extends Thread
 		synchronized (timer) {
 			if (checkRunQTask != null) checkRunQTask.cancel();
 			checkRunQTask = new CheckRunQTask();
-			// Eh.. make sure we don't schedule anything negative =)
-			// If this happens it is a bug and should be fixed!
-			//l = Math.max(l, 0);
-			Log.d("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule in " + l + " ms");
+
+			// The delay can actually be negative due to inaccuracy in the Java timer
+			l = Math.max(l, 0);
+			Log.d("QUERY_NETBOX", "SCHEDULE_CHECK_RUN_Q", "Schedule check runq in " + l + " ms");
 			timer.schedule(checkRunQTask, l);
 		}
 	}
@@ -344,8 +347,29 @@ public class QueryNetbox extends Thread
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
 			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
-			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
-			sql += " ORDER BY random() * netboxid";
+			boolean randomize = true;
+			if (qNetbox != null) {
+				String qn = qNetbox;
+
+				if (qn.startsWith("_") || qn.indexOf(",") >= 0) {
+					if (qn.startsWith("_")) {
+						qn = qn.substring(1, qn.length());
+						sql += " AND catid IN (";
+					} else {
+						sql += " AND sysname IN (";
+						randomize = false;
+					}
+					String[] ids = qn.split(",");
+					for (int i=0; i < ids.length; i++) sql += "'" + ids[i] + "',";
+					if (ids.length > 0) sql = sql.substring(0, sql.length()-1);
+					sql += ")";
+				} else {
+					sql += " AND sysname LIKE '"+qn+"'";
+				}
+			}
+			if (randomize) {
+				sql += " ORDER BY random() * netboxid";
+			}
 			//sql += " LIMIT 1000";
 			rs = Database.query(sql);
 
@@ -802,7 +826,8 @@ public class QueryNetbox extends Thread
 					Log.d("RUNQ", "Dumping runQ: " + nbRunQ.size() + " entries"); 
 					for (Iterator it=nbRunQ.entrySet().iterator(); it.hasNext();) {
 						Map.Entry me = (Map.Entry)it.next();
-						Log.d("RUNQ", me.getKey() + ": " + me.getValue());
+						long curTime = System.currentTimeMillis();
+						Log.d("RUNQ", (((Long)me.getKey()).longValue()-curTime) + ": " + me.getValue());
 					}
 				}
 				break;
