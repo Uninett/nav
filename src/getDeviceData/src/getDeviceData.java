@@ -128,8 +128,7 @@ class getDeviceData
 			errl("Error, could not read config file: " + navRoot + dbConfigFile);
 			return;
 		}
-		//if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), "manage2", dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
 			errl("Error, could not connect to database!");
 			return;
 		}
@@ -140,9 +139,9 @@ class getDeviceData
 		} catch (Exception e) {
 			QueryBoks.minBoksRunInterval = 60; // Default is every 60 minutes
 		}
-		QueryBoks.minBoksRunInterval *= 60 * 1000; // Convert from minutes to in milliseconds
+		QueryBoks.minBoksRunInterval *= 60 * 1000; // Convert from minutes to milliseconds
 		// DEBUG
-		//QueryBoks.minBoksRunInterval = 30000; // Every 30 secs
+		QueryBoks.minBoksRunInterval = 15000; // Every 15 secs
 
 		int loadDataInterval;
 		try {
@@ -505,10 +504,10 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' AND (catid='SRV' OR typegroupid LIKE '3%' OR typegroupid IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND (catid='SRV' OR typegroupid LIKE '3%' OR typegroupid IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' AND sysname='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND sysname='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
 		//Database.setDefaultKeepOpen(false);
@@ -815,29 +814,29 @@ class QueryBoks extends Thread
 							moduleid = oldmd.getModuleidS();
 							if (!oldmd.equals(md)) {
 								// Vi må oppdatere module
-								String[] where = {
-									"moduleid", moduleid
-								};
 								String[] set = {
 									"deviceid", deviceid,
 									"module", md.getModule(),
 									"submodule", md.getSubmodule()
 								};
-								if (DB_UPDATE) Database.update("module", where, set);
+								String[] where = {
+									"moduleid", moduleid
+								};
+								if (DB_UPDATE) Database.update("module", set, where);
 							}
 						}
 						md.setModuleid(moduleid);
 
 						if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
 							// Oppdater device
-							String[] where = {
-								"deviceid", deviceid
-							};
 							String[] set = {
 								"hw_ver", md.getHwVer(),
 								"sw_ver", md.getSwVer()
 							};
-							if (DB_UPDATE) Database.update("device", where, set);
+							String[] where = {
+								"deviceid", deviceid
+							};
+							if (DB_UPDATE) Database.update("device", set, where);
 						}
 
 						outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
@@ -876,7 +875,19 @@ class QueryBoks extends Thread
 								if (!oldsd.equals(sd)) {
 									// Vi må oppdatere
 									outl("STUB: Update swport...");
-
+									String[] set = {
+										"ifindex", sd.getIfindex(),
+										"link", String.valueOf(sd.getLink()),
+										"speed", sd.getSpeed(),
+										"duplex", sd.getDuplexS(),
+										"media", Database.addSlashes(sd.getMedia()),
+										"trunk", sd.getTrunkS(),
+										"portname", Database.addSlashes(sd.getPortname())
+									};
+									String[] where = {
+										"swportid", swportid
+									};
+									Database.update("swport", set, where);
 								}
 							}
 							sd.setSwportid(swportid);
@@ -1074,6 +1085,7 @@ class QueryBoks extends Thread
 						}
 					}
 				}
+				if (DB_COMMIT) Database.commit(); else Database.rollback();
 
 
 			//} catch (SQLException se) {
