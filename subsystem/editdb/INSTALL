@@ -12,11 +12,5 @@ the editdb directory.
 Installation
 ------------
 
-All the files should be placed in a directory 'editdb' in the webroot.
-
-The file editdbTemplate.tmpl must be compiled with cheetah and placed in the
-'editdb' directory.
-
-The file 'htaccess' must be renamed to '.htaccess'. The path directive in
-the htaccess file must possibly be edited. The last element points to the
-editdb directory in the webroot.
+The files should be placed in a directory 'editdb' in the webroot. Except
+for the compiled template which goes with the other webfront templates.

@@ -14,6 +14,7 @@ webroot = @webroot@
 
 templates = editdbTemplate.py
 files = editdb.py editdbSQL.py editTables.py initBox.py .htaccess
+conffiles = editdb.conf
 
 .PHONY: all install install-lib install-bin install-web clean distclean
 
@@ -22,7 +23,7 @@ all: $(templates)
 $(templates): %.py: %.tmpl
 	$(CHEETAH) compile $<
 
-install: install-lib install-web
+install: install-lib install-web install-conf
 
 install-lib: $(templates)
 	for file in $(templates); do \
@@ -33,6 +34,16 @@ install-web:
 	for file in $(files); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/editdb/$$file || exit 1; \
 	done
+
+install-conf:
+        @for file in $(conffiles); do                          \
+          target=$(DESTDIR)$(sysconfdir)/$$file;               \
+          if [ -f "$$target" ]; then                           \
+            echo Skipping installation of config file $$file;  \
+          else                                                 \
+            $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+          fi;                                                  \
+        done
 
 clean:
 	rm -f *~

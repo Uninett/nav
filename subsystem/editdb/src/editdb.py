@@ -50,6 +50,8 @@ ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
 IGNORE_BOX = 'ignore_this_box'
 
+CONFIGURATION_CACHED = False
+
 # Bulk import images
 BULK_IMG_GREEN = '/images/lys/green.png'
 BULK_IMG_YELLOW = '/images/lys/yellow.png'
@@ -84,10 +86,10 @@ FIELD_INTEGER = 2
 
 # Options for choosing patch splits
 # Used in pagePatch.editbox 
-PATCH_SPLIT_OPTIONS = [('no','No split'),
-                       ('lance25 A','lance25 A'),
-                       ('YA4-E2-E2 B','YA4-E2-E2 B'),
-                       ('A','A')]
+#PATCH_SPLIT_OPTIONS = [('no','No split'),
+#                       ('lance25 A','lance25 A'),
+#                       ('YA4-E2-E2 B','YA4-E2-E2 B'),
+#                       ('A','A')]
 
 #################################################
 ## Functions
@@ -98,8 +100,12 @@ def handler(req):
     request = re.search('editdb/(.+)$',path).group(1)
     request = request.split('/')
 
+    # Get form from request object
     keep_blank_values = True
     req.form = util.FieldStorage(req,keep_blank_values)
+
+    # Read configuration file
+    readConfig()
 
     output = None
     showHelp = False
@@ -125,6 +131,14 @@ def handler(req):
     else:
         return apache.HTTP_NOT_FOUND
 
+def readConfig():
+    ''' Reads configuration from editdb.conf and sets global
+        variables. '''
+
+    config = nav.config.readConfig('editdb.conf')
+    if CONFIGURATION_CACHED:
+        raise('cached')
+    CONFIGURATION_CACHED = True
 
 def index(req,showHelp=False,status=None):
     ''' Generates the index page (main menu) '''
@@ -1492,15 +1506,15 @@ class pageCabling(editdbPage):
                                       ('Jack',True,None),
                                       ('Building',True,None),
                                       ('Target room',True,None),
-                                      ('Description',True,None),
-                                      ('Category',True,None)]
+                                      ('Category',True,None),
+                                      ('Description',True,None)]
 
             self.cellDefinition = [(('cablingid,roomid,jack,' + \
-                                     'building,targetroom,descr,category',
+                                     'building,targetroom,category,descr',
                                      'cabling',
                                      None,
                                      None,
-                                     'building,roomid'),
+                                     'roomid,jack'),
                                     [(None,None,entryListCell.CHECKBOX,None,None),
                                      (1,'{p}edit/{id}',None,None,None),
                                      (2,None,None,None,None),
@@ -1528,6 +1542,12 @@ class pageCabling(editdbPage):
                 r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
                           str(room.descr) + ')'))
 
+            # List of categories
+            cats = [('cat5','cat5'),
+                    ('cat3','cat3'),
+                    ('cat5e','cat5e'),
+                    ('cat6','cat6')]
+
             # Field definitions {field name: [input object, required]}
             f = {'roomid': [inputSelect(options=r),REQ_TRUE,'Room',
                             FIELD_STRING],
@@ -1535,8 +1555,8 @@ class pageCabling(editdbPage):
                  'building': [inputText(),REQ_TRUE,'Building',FIELD_STRING],
                  'targetroom': [inputText(),REQ_TRUE,'Target room',
                                 FIELD_STRING],
-                 'descr': [inputText(),REQ_TRUE,'Description',FIELD_STRING],
-                 'category': [inputText(),REQ_TRUE,'Category',FIELD_STRING]}
+                 'descr': [inputText(),REQ_FALSE,'Description',FIELD_STRING],
+                 'category': [inputSelect(options=cats),REQ_TRUE,'Category',FIELD_STRING]}
 
             self.fields = f
             self.setControlNames()
@@ -2720,7 +2740,7 @@ class pagePatch(editdbPage):
                          (', ','cabling.targetroom'),
                          (', ','cabling.building'),
                          (', ','cabling.room.location.locationid'),
-                         ('\' to netbox \'','swport.module.netbox.sysname'),
+                         ('\' to switch \'','swport.module.netbox.sysname'),
                          (', module ','swport.module.module'),
                          (', port ','swport.port'),
                          ('\'',None)]
@@ -2741,22 +2761,16 @@ class pagePatch(editdbPage):
 
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
-                                      ('Jack',True,None),
-                                      ('Target room',True,None),
-                                      ('Building',True,None),
-                                      ('Location',True,None),
-                                      ('Split',True,None),
-                                      ('Room',True,None),
-                                      ('Sysname',True,None),
+                                      ('Switch',True,None),
                                       ('Module',True,None),
-                                      ('Port',True,None)]
+                                      ('Port',True,None),
+                                      ('Room',True,None),
+                                      ('Jack',True,None),
+                                      ('Split',True,None)]
 
-            self.cellDefinition = [(('patch.patchid,cabling.jack,' +\
-                                     'cabling.targetroom,' +\
-                                     'cabling.building,room.locationid,' +\
-                                     'patch.split,room.roomid,' +\
-                                     'netbox.sysname,' +\
-                                     'module.module,swport.port',
+            self.cellDefinition = [(('patch.patchid,netbox.sysname,' +\
+                                     'module.module,swport.port,' +\
+                                     'room.roomid,cabling.jack,patch.split',
                                      'patch,cabling,room,netbox,swport,module',
                                      None,
                                      'patch.cablingid=cabling.cablingid ' +\
@@ -2772,10 +2786,7 @@ class pagePatch(editdbPage):
                                      (3,None,None,None,None),
                                      (4,None,None,None,None),
                                      (5,None,None,None,None),
-                                     (6,None,None,None,None),
-                                     (7,None,None,None,None),
-                                     (8,None,None,None,None),
-                                     (9,None,None,None,None)])]
+                                     (6,None,None,None,None)])]
 
     class editbox(editbox):
         ''' Describes fields for adding and editing patch entries.
@@ -2815,7 +2826,11 @@ class pagePatch(editdbPage):
                 selectedRoom = [patch.cabling.room.roomid]
                 selectedLocation = [patch.cabling.room.location.locationid]
   
-            self.help = ''
+            self.help = 'Add or update a patch by selecting a jack and a ' +\
+                        'switchport. Optionally select a split. Only rooms '+\
+                        'with at least one switch and at least one available ' +\
+                        'jack are listed. Available jacks have '+\
+                        'either no patch or at most one splitted patch connected.'
 
             if req:
                 select1 = simpleSelect('Location',
@@ -2830,6 +2845,15 @@ class pagePatch(editdbPage):
                                         selectMultiple=False,
                                         multipleHeight=8)
 
+                # SQL (where) for selecting rooms
+                # Only selects rooms which have one or more boxes of category EDGE,SW or GSW
+                # and where there are "available" jacks. Available means a jack which isn't
+                # already in use by a patch, or a jack which is use by one patch but is splitted.
+                if editId:
+                    roomSQL = None
+                else:
+                    roomSQL = """((SELECT count(*) FROM cabling WHERE cabling.roomid=room.roomid AND (((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no')) < 2)) > 0) AND ((SELECT count(*) FROM netbox WHERE roomid=room.roomid AND (netbox.catid='SW' OR netbox.catid='GSW' OR netbox.catid='EDGE')) > 0)"""
+
                 select2 = updateSelect(select1,
                                        'locationid',
                                        'Room',
@@ -2837,12 +2861,20 @@ class pagePatch(editdbPage):
                                        ('roomid,descr',
                                         'room',
                                         None,
-                                        None,
+                                        roomSQL,
                                         'roomid'),
                                         selectedRoom,
                                         optionFormat='$1 ($2)',
                                         selectMultiple=False,
                                         multipleHeight=8)
+
+                # SQL (where) for selecting jacks
+                # Selects "available" jacks. Available means a jack which isn't
+                # already in use by a patch, or a jack which is use by one patch but is splitted.
+                if editId:
+                    jackSQL = None
+                else:
+                    jackSQL = """(((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no') < 2))"""
 
                 select3 = updateSelect(select2,
                                        'roomid',
@@ -2851,15 +2883,15 @@ class pagePatch(editdbPage):
                                        ('cablingid,jack',
                                         'cabling',
                                         None,
-                                        None,
+                                        jackSQL,
                                         'jack'),
                                         selectedJack,
                                         optgroupFormat='Room $1',
-                                        postOnChange=False,
+                                        postOnChange=True,
                                         selectMultiple=False,
                                         multipleHeight=8)
 
-                whereSwitch = "AND (catid='EDGE' or catid='SW' or catid='GSW')"
+                whereSwitch = "(catid='EDGE' or catid='SW' or catid='GSW')"
                 select4 = updateSelect(select2,
                                        'roomid',
                                        'Switch',
@@ -2888,6 +2920,12 @@ class pagePatch(editdbPage):
                                        selectMultiple=False,
                                        multipleHeight=8)
 
+                # Don't show swports that are already in use
+                if editId:
+                    swportSQL = None
+                else:
+                    swportSQL = "((SELECT count(*) FROM patch WHERE patch.swportid=swport.swportid) < 1)"
+
                 select6 = updateSelect(select5,
                                        'moduleid',
                                        'Port',
@@ -2895,7 +2933,7 @@ class pagePatch(editdbPage):
                                        ('swportid,port',
                                         'swport',
                                         None,
-                                        None,
+                                        swportSQL,
                                         'port'),
                                         selectedSwport,
                                         optgroupFormat='Module $2',
@@ -2922,9 +2960,24 @@ class pagePatch(editdbPage):
                 lb2.addSelect(select5)
                 lb2.addSelect(select6)
 
-                # Remember split
+                # Check if the selected jack is already used in a patch
+                # (ie. a split). In that case, set the split select to
+                # the same value in this form
+                if req.form.has_key('cn_jack'):
+                    if len(req.form['cn_jack']):
+                        where = "cablingid='" + req.form['cn_jack'] + "'"
+                        patch = nav.db.manage.Patch.getAll(where)
+                        if patch:
+                            # Already exists a patch with this jack, it must
+                            # be splitted, select the same split in this form
+                            patch = patch[0]
+                            split = patch.split
+
+                # Remember split from form (overrides split from other patch)
                 if req.form.has_key('split'):
-                    split = req.form['split']
+                    if req.form['split'] != 'no':
+                        split = req.form['split']
+
             else:
                 lb = None
                 lb2 = None
@@ -2966,6 +3019,28 @@ class pagePatch(editdbPage):
                 error = "Missing required field 'Port'"
 
             if not error:
+                # Check if the selected jack already belongs to a patch
+                where = "cablingid='" + cablingid + "'"
+                otherPatch = nav.db.manage.Patch.getAll(where)
+                if otherPatch:
+                    # Already exists a patch with this jack, it must
+                    # be splitted, if split is changed then do something
+                    otherPatch = otherPatch[0]
+                    otherSplit = otherPatch.split
+
+                    if split != otherSplit:
+                        # Splits are different, either update split on the
+                        # other entry, or delete it if this split='no'
+                        otherPatchId = str(otherPatch.patchid)
+                        if split == 'no':
+                            # Delete other entry
+                            deleteEntry([otherPatchId],'patch','patchid')
+                        else:
+                            # Update other entry
+                            fields = {'split': split}
+                            updateEntryFields(fields,self.tableName,self.tableIdKey,
+                                              otherPatchId)
+
                 fields = {'cablingid': cablingid,
                           'swportid': swportid,
                           'split': split}
@@ -2991,6 +3066,7 @@ class pagePatch(editdbPage):
 
         status = editdbStatus()
         error = None
+        action = 'edit'
 
         split = None
         cablingid = None
@@ -3009,6 +3085,28 @@ class pagePatch(editdbPage):
             error = "Missing required field 'Port'"
 
         if not error:
+            # Check if the selected jack already belongs to a patch
+            where = "cablingid='" + cablingid + "'"
+            otherPatch = nav.db.manage.Patch.getAll(where)
+            if otherPatch:
+                # Already exists a patch with this jack, it must
+                # be splitted, if split is changed then do something
+                otherPatch = otherPatch[0]
+                otherSplit = otherPatch.split
+
+                if split != otherSplit:
+                    # Splits are different, either update split on the
+                    # other entry, or delete it if this split='no'
+                    otherPatchId = str(otherPatch.patchid)
+                    if split == 'no':
+                        # Delete other entry
+                        deleteEntry([otherPatchId],'patch','patchid')
+                    else:
+                        # Update other entry
+                        fields = {'split': split}
+                        updateEntryFields(fields,self.tableName,self.tableIdKey,
+                                          otherPatchId)
+
             fields = {'cablingid': cablingid,
                       'swportid': swportid,
                       'split': split}
@@ -4680,11 +4778,11 @@ class bulkdefCabling:
     uniqueField = 'cablingid'
     enforce_max_fields = True
     max_num_fields = 6
-    min_num_fields = 6
+    min_num_fields = 5
 
     process = False
     onlyProcess = False
-    syntax = '#roomid:jack:building:tagetroom:descr:category\n'
+    syntax = '#roomid:jack:building:tagetroom:category[:descr]\n'
 
     postCheck = False
 
@@ -4693,8 +4791,8 @@ class bulkdefCabling:
               ('jack',0,True,True),
               ('building',0,True,True),
               ('targetroom',0,True,True),
-              ('descr',0,True,True),
-              ('category',0,True,True)]
+              ('category',0,True,True),
+              ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
         status = BULK_STATUS_OK
@@ -4719,20 +4817,20 @@ class bulkdefPatch:
     uniqueField = 'patchid'
     enforce_max_fields = True
     max_num_fields = 6
-    min_num_fields = 6
+    min_num_fields = 5
 
     process = True
     onlyProcess = False
-    syntax = '#switch(sysname):module:port:roomid:jack:split\n'
+    syntax = '#switch(sysname):module:port:roomid:jack[:split]\n'
 
     postCheck = False
 
     # list of (fieldname,max length,not null,use field)
-    fields = [('sysname',0,True,True),
-              ('module',0,True,True),
-              ('port',0,True,True),
-              ('roomid',0,True,True),
-              ('jack',0,True,True),
+    fields = [('sysname',0,True,False),
+              ('module',0,True,False),
+              ('port',0,True,False),
+              ('roomid',0,True,False),
+              ('jack',0,True,False),
               ('split',0,True,True)]
 
     def checkValidity(cls,field,data):
@@ -4747,7 +4845,7 @@ class bulkdefPatch:
                         cls.roomId = room.roomid
                         # If room existsm, check if netbox is in it
                         where = "netboxid=" + str(cls.netboxId) + " AND " +\
-                                "roomid=" + cls.roomId
+                                "roomid='" + cls.roomId + "'"
                         box = nav.db.manage.Netbox.getAll(where)
                         if not box:
                             sw = nav.db.manage.Netbox(cls.netboxId).sysname
@@ -4760,44 +4858,74 @@ class bulkdefPatch:
         if field == 'sysname':
             if data:
                 if len(data):
-                    where = "sysname='" + data + "'"
-                    box = nav.db.manage.Netbox.getAll(where)
-                    if box:
-                        box = box[0]
-                        cls.netboxId = box.netboxid
+                    # Check if switch is given as ip or sysname
+                    result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$',
+                                      data)
+                    ip = None
+                    if result:
+                        # This is an IP
+                        ip = data
                     else:
-                        status = BULK_STATUS_RED_ERROR
-                        remark = "Switch '" + data + "' not found in database"
+                        # Not an IP, possibly a hostname
+                        try:
+                            ip = gethostbyname(data)
+                            sysname = data
+                        except:
+                            status = BULK_STATUS_RED_ERROR
+                            remark = "Switch '" + data + "' not found in database"
+                    # 'ip' should be numerical ip now, 
+                    # else there already was an error
+                    if ip:
+                        where = "ip='" + ip + "'"
+                        box = nav.db.manage.Netbox.getAll(where)
+                        if box:
+                            box = box[0]
+                            cls.netboxId = box.netboxid
+                        else:
+                            status = BULK_STATUS_RED_ERROR
+                            remark = "Switch '" + data + "' not found in database"
         if field == 'module':
             if data:
                 if len(data):
-                    where = "module='" + data + "' AND " +\
-                            "netboxid='" + str(cls.netboxId) + "'"
-                    module = nav.db.manage.Module.getAll(where)
-                    if module:
-                        module = module[0]
-                        cls.moduleId = module.moduleid
-                    else:
+                    try:
+                        tst = int(data)
+                        where = "module='" + data + "' AND " +\
+                                "netboxid='" + str(cls.netboxId) + "'"
+                        module = nav.db.manage.Module.getAll(where)
+                        if module:
+                            module = module[0]
+                            cls.moduleId = module.moduleid
+                        else:
+                            status = BULK_STATUS_RED_ERROR
+                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                            remark = "Module '" + data + "' in switch " +\
+                                     sw + " not found in database"
+                    except ValueError:
                         status = BULK_STATUS_RED_ERROR
-                        sw = nav.db.manage.Netbox(cls.netboxId).sysname
-                        remark = "Module '" + data + "' in switch " +\
-                                 sw + " not found in database"
+                        remark = "Module must be integer"
         if field == 'port':
+            # Check if this port on the specified module in the switch
+            # is present in the database
             if data:
                 if len(data):
-                    where = "moduleid='" + str(cls.moduleId) + "' AND " +\
-                            "port='" + data + "'"
-                    swport = nav.db.manage.Swport.getAll(where)
-                    if swport:
-                        swport = swport[0]
-                        cls.swportId = swport.swportid
-                    else:
+                    try:
+                        tst = int(data)
+                        where = "moduleid='" + str(cls.moduleId) + "' AND " +\
+                                "port='" + data + "'"
+                        swport = nav.db.manage.Swport.getAll(where)
+                        if swport:
+                            swport = swport[0]
+                            cls.swportId = swport.swportid
+                        else:
+                            status = BULK_STATUS_RED_ERROR
+                            sw = nav.db.manage.Netbox(cls.netboxId).sysname
+                            module = nav.db.manage.Module(cls.moduleId).module
+                            remark = "Port '" + data + "', module '" +\
+                                     str(module) + "' in switch " +\
+                                     sw + " not found in database"
+                    except ValueError:
                         status = BULK_STATUS_RED_ERROR
-                        sw = nav.db.manage.Netbox(cls.netboxId).sysname
-                        module = nav.db.manage.Module(cls.moduleId).module
-                        remark = "Port '" + data + "', module '" +\
-                                 str(module) + "' in switch " +\
-                                 sw + " not found in database"
+                        remark = "Port must be integer"
         if field == 'jack':
             if data:
                 if len(data):
@@ -4818,33 +4946,51 @@ class bulkdefPatch:
 
     def preInsert(cls,row):
         ''' Gets required data from db before inserting row. '''
-        where = "sysname='" + row['sysname'] + "'"
-        box = nav.db.manage.Netbox.getAll(where)
-        box = box[0]
+        # Check if sysname is given as ip or sysname
+        result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$',
+                          row['sysname'])
+        ip = None
+        if result:
+            # This is an IP
+            ip = row['sysname']
+        else:
+            # Not an IP, possibly a hostname
+            try:
+                ip = gethostbyname(row['sysname'])
+            except:
+                # DNS lookup failed
+                # could happen if DNS stopped working between
+                # preview and insert
+                row = None
 
-        where = "module='" + row['module'] + "' AND " +\
-                "netboxid='" + str(box.netboxid) + "'"
-        module = nav.db.manage.Module.getAll(where)
-        module = module[0]
+        if ip:
+            where = "ip='" + ip + "'"
+            box = nav.db.manage.Netbox.getAll(where)
+            box = box[0]
 
-        where = "moduleid='" + str(module.moduleid) + "' AND " +\
-                "port='" + row['port'] + "'"
-        swport = nav.db.manage.Swport.getAll(where)
-        swport = swport[0]
+            where = "module='" + row['module'] + "' AND " +\
+                    "netboxid='" + str(box.netboxid) + "'"
+            module = nav.db.manage.Module.getAll(where)
+            module = module[0]
 
-        where = "roomid='" + row['roomid'] + "' AND " +\
-                "jack='" + row['jack'] + "'"
-        cabling = nav.db.manage.Cabling.getAll(where)
-        cabling = cabling[0]
+            where = "moduleid='" + str(module.moduleid) + "' AND " +\
+                    "port='" + row['port'] + "'"
+            swport = nav.db.manage.Swport.getAll(where)
+            swport = swport[0]
 
-        del row['roomid']
-        del row['jack']
-        del row['module']
-        del row['sysname']
-        del row['port']
+            where = "roomid='" + row['roomid'] + "' AND " +\
+                    "jack='" + row['jack'] + "'"
+            cabling = nav.db.manage.Cabling.getAll(where)
+            cabling = cabling[0]
 
-        row['swportid'] = str(swport.swportid)
-        row['cablingid'] = str(cabling.cablingid)
+            #del row['roomid']
+            #del row['jack']
+            #del row['module']
+            #del row['sysname']
+            #del row['port']
+
+            row['swportid'] = str(swport.swportid)
+            row['cablingid'] = str(cabling.cablingid)
         return row
     preInsert = classmethod(preInsert)
 
