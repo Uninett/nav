@@ -6,6 +6,7 @@ $Source: $
 from abstractChecker import AbstractChecker
 from event import  Event
 import imaplib, Socket, socket
+from OpenSSL import SSL
 #class IMAPConnection(imaplib.IMAP4):
 #	def __init__(self, timeout, host, port):
 #		self.timeout=timeout
@@ -39,6 +40,7 @@ class IMAPSConnection(imaplib.IMAP4):
         self.certfile = certfile
         self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
+        self.ctx = SSL.Context(SSL.SSLv23_METHOD)
 
 
     def open(self, host, port ):
@@ -49,10 +51,13 @@ class IMAPSConnection(imaplib.IMAP4):
         """
         self.host = host
         self.port = port
-        self.sock = Socket.Socket(self.timeout)
-        self.sock.connect((host, port))
+        #self.sock = Socket.Socket(self.timeout)
+        #self.sslobj = SSL.Connection(self.ctx, self.sock)
+        self.sslobj = Socket.ssl(self.host, self.port, self.timeout)
+        #self.sslobj.connect((host, port))
+        #self.sock.connect((host, port))
         #self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)
-        self.sslobj = Socket.ssl(self.sock.s, self.timeout, self.keyfile, self.certfile)
+        #self.sslobj = Socket.ssl(self.sock.s, self.timeout, self.keyfile, self.certfile)
 
 
     def read(self, size):
