@@ -61,4 +61,9 @@ NUM_THREADS=24
 10 * * * *      $BDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS
 # </mactrace>
 
+# <safe_smsd>
+# check smsd.pl os up and running, or else start it
+*/5 * * * * $CDIR/safe_smsd.pl
+# </safe_smsd>
+
 # --- EOF ---
