@@ -1,6 +1,7 @@
 <?php
 $test = fopen("test.txt","w");
 fwrite($test,date("i:s "));
+    require("/usr/local/nav/navme/lib/getdb.php");
 
 # preset
 
@@ -9,7 +10,7 @@ $grense = 200; # treff per side
 ############
 ## Databasetilkobling
 ############
-    $db = pg_Connect("dbname=manage user=navall password=uka97urgf");
+$db = db_get("ragen");
 
 $fil = les_fil("/usr/local/nav/local/etc/conf/ragen/ragen.conf","r");
 $fil .= les_fil("/usr/local/nav/navme/etc/conf/ragen/ragen.conf","r");

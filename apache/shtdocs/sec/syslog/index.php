@@ -1,4 +1,5 @@
 <?php
+    require("/usr/local/nav/navme/lib/getdb.php");
 
 function tr($a_innhold,$konfigurasjon=""){
     foreach($a_innhold as $innhold){
@@ -50,6 +51,7 @@ function form_select($navn,$option,$values="",$selected=""){
     return $retval;
 }
 
+
 function a($navn,$adresse="#topp",$konfigurasjon=""){
     return "<a href=\"$adresse\" $konfigurasjon>$navn</a>";
 }
@@ -91,6 +93,7 @@ function topp($tittel="") {
     $retval = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n<html>\n<head>\n\t<title>NAV";
     if ($tittel) $retval .= ": $tittel";
     $retval .= "</title>";
+    $retval .= "<style>body,td,a{font-family:verdana,tahoma,helvetica,sans-serif;}h1{color:#ffffff;font-size:32pt;}</style>";
     $retval .= "\n</head>\n\n<body topmargin=\"0\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" bgcolor=\"#ffffff\" text=\"#000000\" link=\"#000099\" alink=\"#0000ff\" vlink=\"#000099\"><a name=\"topp\"></a>";
     return $retval;
 }
@@ -105,15 +108,18 @@ else $tid_fra = rawurldecode($tid_fra);
 if(!$tid_til) $tid_til=date("Y-m-d H:i:s");
 else $tid_til = rawurldecode($tid_til);
 
-$dbh = pg_connect("dbname=syslog user=syslogadmin password=urg20ola") or die("<br>Klarte ikke koble til databasen!<br>");
 
-    $db_tabell = db_select($dbh,"select boks,type from meldinger");
+$dbh = db_get("syslog");
+
+$db_tabell = db_select($dbh,"select boks,type from meldinger");
 $db_boks[0]="";
 $db_type[0]="";
 foreach(array_keys($db_tabell) as $rad){
     $db_boks[$db_tabell[$rad][0]] = $db_tabell[$rad][0];
     $db_type[$db_tabell[$rad][1]] = $db_tabell[$rad][1];
 }
+sort($db_boks);
+sort($db_type);
 
 $db_prioritet = array_merge(array(0=>""),db_select($dbh,"SELECT prioritet from prioriteter"));
 $db_bokstype = array(0=>"",1=>"gw",2=>"sw",3=>"na");
