@@ -14,14 +14,15 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 
 public class NetboxData extends Device
 {
-	// 5 second difference minimum before we change uptime
-	private static final double DELTA = 5.0;
+	// 20 second difference minimum before we change uptime
+	private static final double DELTA = 20.0;
 	private int deviceid;
 
 	private Netbox nb;
 	private String sysname;
 	private String upsince;
 	private double uptime;
+	//private long curTime;
 
 	/**
 	 * Constructor.
@@ -30,6 +31,7 @@ public class NetboxData extends Device
 	{
 		super(serial, hw_ver, sw_ver);
 		this.nb = nb;
+		//curTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -43,8 +45,7 @@ public class NetboxData extends Device
 	 * Set the uptime in timerticks (100 ticks per second).
 	 */
 	public void setUptimeTicks(long ticks) {
-		double d = System.currentTimeMillis() - (ticks * 10);
-		setUptime(d / 1000);
+		uptime = ticksToUptime(ticks);
 	}
 
 	/**
@@ -52,6 +53,18 @@ public class NetboxData extends Device
 	 */
 	public void setUptime(double uptime) {
 		this.uptime = uptime;
+	}
+
+	private double ticksToUptime(long ticks) {
+		long curTime = System.currentTimeMillis();
+		double uptime = (curTime - (ticks * 10)) / 1000.0;
+		return uptime;
+	}
+
+	private long uptimeToTicks(double uptime) {
+		long curTime = System.currentTimeMillis();
+		long ticks = (long) ((curTime - (uptime * 1000)) / 10);
+		return ticks;
 	}
 
 	// Doc in parent
@@ -64,13 +77,59 @@ public class NetboxData extends Device
 	Netbox getNetbox() { return nb; }
 	String getSysname() { return sysname; }
 	String getUpsince() { return upsince; }
+	long getTicks() { return uptimeToTicks(uptime); }
 	double getUptime() { return uptime; }
 
 	// Doc in parent
 	protected boolean hasEmptySerial() { return super.hasEmptySerial(); }
 
+	/**
+	 * Returns true if the uptimeDelta is less than DELTA.
+	 */
 	public boolean equalsUptime(NetboxData n) {
-		return Math.abs(uptime - n.uptime) < DELTA;
+		return uptimeDelta(n) < DELTA;
+	}
+
+	/**
+	 * Calculate the difference in uptime between this unit and the
+	 * given, in seconds. It is assumed that the counter (at 100
+	 * ticks/second) is 32 bit, and if the difference taking this into
+	 * account is less than one day we will assume the value has not
+	 * wrapped.
+	 */
+	public double uptimeDelta(NetboxData n) {
+		// The counter is 32 bits, 100 ticks/sec, thus we must take care when the value wraps
+		// If the delta is bigger than 2^32 - 1 day we assume the value has wrapped
+
+		long wrapVal = (1L<<32)-1;
+		long wrapDelta = wrapVal - (24 * 3600 * 100);
+
+		long ticks = getTicks();
+		long nticks = n.getTicks();
+
+		// Wrap values in case they are already above the limit; we are only interested in the delta
+		long up = ticks - wrapVal * (ticks / wrapVal);
+		long nup = nticks - wrapVal * (nticks / wrapVal);
+
+		long d = Math.abs(up - nup);
+
+		/*
+		System.err.println("ticks    : " + ticks);
+		System.err.println("n.ticks  : " + n.ticks);
+		System.err.println("wrapVal  : " + wrapVal);
+		System.err.println("wrapDelta: " + wrapDelta);
+		System.err.println("up       : " + up);
+		System.err.println("nup      : " + nup);
+		System.err.println("d        : " + (d));
+		System.err.println("w-d      : " + (wrapVal-d));
+		*/
+
+		if (d > wrapDelta) {
+			// Value has wrapped
+			Log.d("UPTIME_DELTA", "Uptime wrapped for netbox("+nb.getNetboxid()+"): " + nb.getSysname());
+			d = wrapVal - d;
+		}
+		return d / 100.0;
 	}
 
 	public boolean equalsNetboxData(NetboxData n) {

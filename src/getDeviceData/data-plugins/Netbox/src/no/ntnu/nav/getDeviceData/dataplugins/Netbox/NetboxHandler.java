@@ -6,6 +6,7 @@ import java.sql.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.event.*;
+import no.ntnu.nav.util.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
@@ -90,10 +91,18 @@ public class NetboxHandler implements DataHandler {
 		// deviceid if serial is empty.
 		NetboxData n = (NetboxData)nc.getNetbox();
 		String netboxid = nb.getNetboxidS();
-		NetboxData oldn = (NetboxData)netboxMap.get(netboxid);
-		netboxMap.put(netboxid, n);
-		if (n.hasEmptySerial()) {
-			n.setDeviceid(oldn.getDeviceid());
+		NetboxData oldn;
+		synchronized (netboxMap) {
+			oldn = (NetboxData)netboxMap.get(netboxid);
+			if (oldn == null) {
+				// Time to update the netboxMap
+				init(new HashMap());
+				oldn = (NetboxData)netboxMap.get(netboxid);
+			}
+			netboxMap.put(netboxid, n);
+			if (n.hasEmptySerial()) {
+				n.setDeviceid(oldn.getDeviceid());
+			}
 		}
 
 		// Let DeviceHandler update the device table first
@@ -103,8 +112,8 @@ public class NetboxHandler implements DataHandler {
 		Log.setDefaultSubsystem("NetboxHandler");
 
 		try {
-			Log.d("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
-
+			String deltaS = oldn != null ? " delta = " + util.format(n.uptimeDelta(oldn),1) + "s" : "";
+			Log.d("UPDATE_NETBOX", "devid="+n.getDeviceidS()+" "+n.getSysname() + " ("+netboxid+") ticks=" + n.getTicks() + deltaS);
 				// Check if we need to update netbox
 			if (oldn == null || !n.equalsNetboxData(oldn)) {
 				// We need to update netbox
@@ -115,7 +124,7 @@ public class NetboxHandler implements DataHandler {
 				rs.next();
 				n.setUpsince(rs.getString("upsince"));
 
-				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+n.getSysname()+") ("+netboxid+"), uptime ticks = "+n.getUptime() + " (" + n.getUpsince()+")");
+				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+n.getSysname()+") ("+netboxid+")," + deltaS + " uptime ticks = "+n.getTicks() + " (" + n.getUpsince()+")");
 
 				// Send event if uptime changed
 				if (!oldn.equalsUptime(n)) {
@@ -123,6 +132,16 @@ public class NetboxHandler implements DataHandler {
 					varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
 					varMap.put("new_upsince", String.valueOf(n.getUpsince()));
 					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "coldStart", Event.STATE_NONE, 0, 0, varMap);
+
+					// Update DB. We should only do this if the update really
+					// has changed since the value might have wrapped.
+					String[] set = {
+						"upsince", n.getUpsince(),
+					};
+					String[] where = {
+						"netboxid", netboxid
+					};
+					Database.update("netbox", set, where);
 				}
 
 				if (sysnameSet.contains(n.getSysname())) {
@@ -135,7 +154,6 @@ public class NetboxHandler implements DataHandler {
 				String[] set = {
 					"deviceid", n.getDeviceidS(),
 					"sysname", n.getSysname(),
-					"upsince", n.getUpsince(),
 				};
 				String[] where = {
 					"netboxid", netboxid
