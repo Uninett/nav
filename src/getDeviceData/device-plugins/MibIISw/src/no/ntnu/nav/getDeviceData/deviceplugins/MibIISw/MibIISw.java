@@ -142,6 +142,34 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 			String baseOid = nb.getOid("moduleMon");
+			String hpMemberStatusOid = nb.getOid("hpStackStatsMemberOperStatus");
+			if (hpMemberStatusOid != null) {
+				Set modulesUp = new HashSet();
+				Map moduleStatus = new HashMap();
+				List statusList = sSnmp.getAll(hpMemberStatusOid);
+				for (Iterator it = statusList.iterator(); it.hasNext();) {
+					String[] s = (String[])it.next();
+					String module = s[0];
+					int status = Integer.parseInt(s[1]);
+					moduleStatus.put(module, ""+status);
+					if (status == 10 && status == 12) {
+						// Up
+						modulesUp.add(module);
+					}
+				}
+				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
+					String[] s = (String[])it.next();
+					String ifindex = s[0];
+					String module = s[1];
+					if (modulesUp.contains(module)) {
+						mmc.moduleUp(nb, module);
+					} else {
+						Log.d("MODULE_MON", "HP Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");						
+						sSnmp.ignoreModule(module);
+						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
+					}
+				}
+			} else
 			if (baseOid != null) {
 				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
 					String[] s = (String[])it.next();
@@ -154,13 +182,26 @@ public class MibIISw implements DeviceHandler
 						List l = sSnmp.getNext(askOid, 1, false, false);
 						if (l != null && !l.isEmpty()) {
 							// We got a response
-							mmc.ifindexActive(ifindex);
+							if (nb.getNumInStack() == 2) {
+								String moduleWithIP = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
+								if (moduleWithIP != null) {
+									String ifind = mmc.ifindexForModule(nb.getNetboxidS(), moduleWithIP);
+									// Since there are only two modules we are surely talking to the one with the IP
+									if (ifind != null) ifindex = ifind;
+									else System.err.println("Wops, ifind is null for " + nb.getSysname() + " moduleWithIP: " + moduleWithIP);
+								}
+							}
+							mmc.moduleUp(nb, module);
 						} else {
-							Log.d("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " returned no values");
+							// Assume down
+							Log.d("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " returned no values");						
+							sSnmp.ignoreModule(module);
+							mmc.rescheduleNetbox(nb, module, "moduleMon");
 						}
 					} catch (TimeoutException te) {
 						// Assume the module is down
 						Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
+						sSnmp.ignoreModule(module);
 					}
 				}
 				sSnmp.onlyAskModule(null);
@@ -224,7 +265,9 @@ public class MibIISw implements DeviceHandler
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
 			long ticks = Long.parseLong(s[1]);
-			if (ticks > 0 && ticks != 4294967295l) {
+			//if (ticks > 0 && ticks != 4294967295l) {
+			// Ticks must be > 0 and < 30 years
+			if (ticks > 0 && ticks != 4294967295l && ticks < 94608000000l) {
 				nc.netboxDataFactory(nb).setUptimeTicks(ticks);
 				nc.commit();
 			}
