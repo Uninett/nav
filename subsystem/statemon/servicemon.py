@@ -190,7 +190,7 @@ Written by Erik Gorset and Magnus Nordseth, 2002
 
 if __name__=='__main__':
     # chdir into own dir
-    mydir, myname = os.path.split(os.sys.argv[1:])
+    mydir, myname = os.path.split(os.sys.argv[0])
     os.chdir(mydir)
                                   
     try:
