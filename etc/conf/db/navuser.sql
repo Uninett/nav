@@ -85,11 +85,14 @@ DROP TABLE Operator;
 DROP SEQUENCE loggid;
 DROP TABLE Logg CASCADE;
 
+-- 22 NAVBARLINK
 
+DROP SEQUENCE navbarlinkids;
+DROP TABLE NavbarLink CASCADE;
 
+-- 23 ACCOUNTNAVBAR
 
-
-
+DROP TABLE AccountNavbar;
 
 
 
@@ -656,6 +659,56 @@ CREATE TABLE queue (
     time timestamp not null    
 );
 
+/*
+-- 20 NAVBARLINK
+
+Table for links in the navigation bar and dropdown menus. Links with
+accountid 0 is shared by all.
+
+accountid          owner of the link, id 0 means link is shared by all
+name               one or two words describing the link, eg. Network
+Explorer
+uri                address of the link, eg. /vlanplot/index.html
+
+*/
+CREATE SEQUENCE navbarlinkids START 1000;
+CREATE TABLE NavbarLink (
+    id integer NOT NULL DEFAULT nextval('navbarlinkids'),
+    accountid integer NOT NULL DEFAULT 0,
+    name varchar,
+    uri varchar,
+
+    CONSTRAINT navbarlink_pk PRIMARY KEY (id),
+    CONSTRAINT account_exists
+               FOREIGN KEY (accountid) REFERENCES Account(id)
+               ON DELETE CASCADE
+               ON UPDATE CASCADE
+);
+
+/*
+-- 21 ACCOUNTNAVBAR
+
+Relation between account and navbarlinks, describing where the user wants
+the link to be.
+
+positions      'navbar', 'qlink1', 'qlink2' or a combination of these.
+
+*/
+CREATE TABLE AccountNavbar (
+    accountid integer NOT NULL,
+    navbarlinkid integer NOT NULL,
+    positions varchar,
+
+    CONSTRAINT accountnavbar_pk PRIMARY KEY (accountid, navbarlinkid),
+    CONSTRAINT account_exists
+               FOREIGN KEY (accountid) REFERENCES Account(id)
+               ON DELETE CASCADE
+               ON UPDATE CASCADE,
+    CONSTRAINT navbarlink_exists
+               FOREIGN KEY (navbarlinkid) REFERENCES NavbarLink(id)
+               ON DELETE CASCADE
+               ON UPDATE CASCADE
+);
 
 
 
@@ -680,7 +733,20 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
 (1, 100, true, 100);
 
+-- NAVBAR PREFERENCES
 
+INSERT INTO Account (id, login, name, password) VALUES
+(0, 'default', 'Default User', '');
+
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
+(1, 0, 'Preferences', '/preferences');
+INSERT INTO NavbarLink (id, accountid, name, uri) VALUES
+(2, 0, 'Toolbox', '/toolbox');
+
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
+(0, 1, 'navbar');
+INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
+(0, 2, 'navbar');
 
 -- Matchfields
 
