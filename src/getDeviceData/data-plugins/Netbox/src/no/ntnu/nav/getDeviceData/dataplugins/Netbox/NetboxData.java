@@ -169,6 +169,7 @@ public class NetboxData extends Device
 	}
 
 	// Override to avoid Netbox/Module fighting over fields
+	/* No longer possible as Device data is not cached anymore ...
 	public boolean equalsDevice(Device d) {
 		if (!(d instanceof NetboxData)) {
 			if (d.getHwVer() != null) setHwVer(d.getHwVer());
@@ -177,6 +178,7 @@ public class NetboxData extends Device
 		}
 		return super.equalsDevice(d);
 	}
+	*/
 	
 	public boolean equals(Object o) {
 		return (o instanceof NetboxData && 
