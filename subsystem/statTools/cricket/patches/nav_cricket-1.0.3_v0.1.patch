@@ -1,7 +1,7 @@
 Index: compile
 ===================================================================
---- compile	(.../vendor/cricket/1.0.3)	(revision 7)
-+++ compile	(.../nav/cricket)	(revision 7)
+--- compile	(.../vendor/cricket/1.0.3)	(revision 8)
++++ compile	(.../nav/cricket)	(revision 8)
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl -w
 +#!/usr/bin/perl -w
@@ -43,8 +43,8 @@ Index: compile
  	print LOCK "$$\n";
 Index: grapher.cgi
 ===================================================================
---- grapher.cgi	(.../vendor/cricket/1.0.3)	(revision 7)
-+++ grapher.cgi	(.../nav/cricket)	(revision 7)
+--- grapher.cgi	(.../vendor/cricket/1.0.3)	(revision 8)
++++ grapher.cgi	(.../nav/cricket)	(revision 8)
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl -w
 +#!/usr/bin/perl -w
@@ -60,7 +60,7 @@ Index: grapher.cgi
                  #
                  # If we have this, we should use it
                  #
-@@ -518,22 +518,71 @@
+@@ -518,22 +518,70 @@
                      my($format) = graphParam($gRef, 'graph-format', $defFmt);
  
                      my($cache) = $gQ->param('cache');
@@ -110,7 +110,6 @@ Index: grapher.cgi
 +                    print $gQ->textfield(-name => 'yokohoma',
 +                                         -size => 10
 +                                         -maxlength => 10);
-+                    print "";
 +                    print $gQ->end_form;
 +                    
 +                    my %lettervalues;
@@ -135,7 +134,7 @@ Index: grapher.cgi
                      # pass thru the value of the cache param, if given
                      $gQ->param('cache', $cache) if (defined($cache));
  
-@@ -649,6 +698,33 @@
+@@ -649,6 +697,33 @@
              }
  
              print "<h3>Targets that are available:</h3>\n";
@@ -146,21 +145,21 @@ Index: grapher.cgi
 +            ##################################################
 +            
 +            # Making links from giga to non-giga graphs
-+            my $jmlink = $gQ->self_url();
-+            my $jmname = $name;
-+            if ($jmname =~ /giga/) {
++            my $navlink = $gQ->self_url();
++            my $navname = $name;
++            if ($navname =~ /giga/) {
 +                # searches for non-giga graphs
-+                $jmname =~ s/^\///;
-+                $jmlink =~ s/giga-//;
-+                if (-e "/home/navcron/cricket/cricket-data/$jmname") {
-+                    print "<a href=$jmlink>Non-giga interfaces</a> exist for this unit.\n";
++                $navname =~ s/^\///;
++                $navlink =~ s/giga-//;
++                if (-e "$Common::global::gCricketHome/cricket-data/$navname") {
++                    print "<a href=$navlink>Non-giga interfaces</a> exist for this unit.\n";
 +                }
 +            } else {
 +                # searches for giga-interface graphs
-+                $jmname =~ s/^\///;
-+                if (-e "/home/navcron/cricket/cricket-data/giga-$jmname") {
-+                    $jmlink =~ s/\%2F/\%2Fgiga-/;
-+                    print "<a href=$jmlink>giga-interfaces</a> exist for this unit.\n";
++                $navname =~ s/^\///;
++                if (-e "$Common::global::gCricketHome/cricket-data/giga-$navname") {
++                    $navlink =~ s/\%2F/\%2Fgiga-/;
++                    print "<a href=$navlink>giga-interfaces</a> exist for this unit.\n";
 +                }
 +            }
 +            # End of edit
@@ -169,7 +168,7 @@ Index: grapher.cgi
              print "<table border cellpadding=2 width=100%>\n";
  
              if ($doDesc) {
-@@ -1241,9 +1317,24 @@
+@@ -1241,9 +1316,24 @@
          @interlaced = ( '-i' );
      }
  
