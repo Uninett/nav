@@ -171,12 +171,12 @@ public class GwportHandler implements DataHandler {
 			ResultSet rs;
 
 			Map prefixDbMap = new HashMap();
-			rs = Database.query("SELECT prefixid,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix");
+			rs = Database.query("SELECT prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix");
 			while (rs.next()) {
 				Vlan vl = new Vlan(null);
 				vl.setVlanid(rs.getInt("vlanid"));
 				Prefix p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vl);
-				prefixDbMap.put(rs.getString("netaddr"), p);
+				prefixDbMap.put(rs.getString("cidr"), p);
 			}
 
 			Map gwpDbMap = new HashMap();
