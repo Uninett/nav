@@ -11,7 +11,6 @@ from debug import debug
 checkers = {}
 checkerdir = os.path.join(os.path.dirname(__file__), "checker")
 if checkerdir not in os.sys.path:
-    debug("Adding %s to sys.path" % checkerdir)
     os.sys.path.append(checkerdir)
 def register(key, module):
     if not key in checkers.keys():
@@ -24,7 +23,11 @@ def get(checker):
     module = checkers.get(checker.lower(),'')
     if not module:
         return
-    exec( "import "+ module)
+    try:
+        exec( "import "+ module)
+    except:
+        debug("Failed to import %s" % module)
+        return
     return eval(module+'.'+module)
 
 def parsedir():

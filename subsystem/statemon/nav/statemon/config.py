@@ -1,19 +1,25 @@
 """
-$Id: config.py,v 1.1 2003/03/26 16:01:43 magnun Exp $                                                                                                                              
+$Id: config.py,v 1.1 2003/03/26 16:01:43 magnun Exp $
 This file is part of the NAV project.
 
 Abstraction for the various config files used
 by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
-                                                                                                                                 
-Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
+
+Copyright (c) 2002 by NTNU, ITEA nettgruppen
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
 import os, re
 
-CONFIGFILEPATH=['/usr/local/nav/local/etc/conf/','.']
+try:
+    # this module exists in a properly installed enviroment
+    import nav.path
+    CONFIGFILEPATF=[nav.path.sysconfdir]
+except ImportError:
+    # fallback to current dir++
+    CONFIGFILEPATH=['/usr/local/nav/local/etc/conf/','.']
 
 class Conf(dict):
     def __init__(self, *args, **kwargs):
@@ -52,7 +58,7 @@ class _dbconf(Conf):
     def __init__(self, *args, **kwargs):
         self._file=kwargs.get('configfile','db.conf')
         # Valid configoptions must be specified in this list
-        self.validoptions=["dbhost", "dbport", "db_nav", "userpw_manage"]
+        self.validoptions=[]
         Conf.__init__(self, *args, **kwargs)
 
 class _serviceconf(Conf):

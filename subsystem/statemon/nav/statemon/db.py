@@ -37,11 +37,12 @@ class _db(threading.Thread):
 		self.queue = Queue.Queue()
 	def connect(self):
 		try:
+			host = self.conf['dbhost']
+			user = self.conf['script_servicemon']
+			passwd = self.conf['userpw_%s'%user]
+			dbname = self.conf['db_nav']
 			self.db = psycopg.connect("host = %s user = %s dbname = %s password = %s"
-						  % (self.conf["dbhost"],
-						     "manage"
-						     ,self.conf["db_nav"],
-						     self.conf["userpw_manage"]))
+						  % (host, user, dbname, passwd))
 		except Exception, e:
 			debug("Couldn't connect to db.", 2)
 			debug(str(e),2)
