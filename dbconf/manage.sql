@@ -23,13 +23,40 @@ DROP TABLE vpBoksGrpInfo;
 DROP SEQUENCE boks_boksid_seq;
 DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefiks_prefiksid_seq;
-DROP SEQUENCE status_statusid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
 
 DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
 DROP SEQUENCE vpboksxy_vpboksxyid_seq;
+
+########## JM - don't touch
+
+DROP TABLE status;
+DROP SEQUENCE status_statusid_seq;
+
+create table status (
+statusid serial primary key,
+trapsource varchar(30) not null,
+trap varchar(25) not null,
+trapdescr varchar(250),
+tilstandsfull char(1) check (tilstandsfull='Y' or tilstandsfull='N') not null,
+boksid int2,
+fra timestamp not null,
+til timestamp
+);
+
+create table smsutko (
+id serial primary key,
+brukerid int2 not null,
+tidspunkt timestamp not null,
+melding varchar(145) not null,
+sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
+smsid int4,
+tidsendt timestamp
+); 
+
+####################
 
 # Slette alle indekser
 
