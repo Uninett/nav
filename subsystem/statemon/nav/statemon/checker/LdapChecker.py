@@ -125,7 +125,7 @@ class LdapChecker(AbstractChecker):
 				
 			l.unbind()
 
-		return Event.UP 
+		return Event.UP, "Ok"
 
 
 def getRequiredArgs():
