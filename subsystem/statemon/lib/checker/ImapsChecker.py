@@ -51,7 +51,8 @@ class IMAPSConnection(imaplib.IMAP4):
         self.port = port
         self.sock = Socket.Socket(self.timeout)
         self.sock.connect((host, port))
-        self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)
+        #self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)
+        self.sslobj = Socket.ssl(self.sock.s, self.timeout, self.keyfile, self.certfile)
 
 
     def read(self, size):
