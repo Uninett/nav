@@ -30,8 +30,8 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the SimpleSnmp.jar file -->
-    <jar jarfile="${dist}/SimpleSnmp.jar" basedir="${build}"/>
+    <!-- Put everything in ${build} into the ${jar} file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}"/>
   </target>
 
   <target name="install" depends="dist">
