@@ -65,6 +65,7 @@ function lagDatatmp() {
   }
 
   $keys = array_keys($data);
+  if (count($keys) != 0) {
   $key = current($keys);
   $max = 0;
   while ($key) {
@@ -82,25 +83,31 @@ function lagDatatmp() {
     arsort ($data);
   }
   return array ($data,$max);
+  } else {
+    return array (0,0);
+  }
 }
 
 # Tingen som gjør noe begynner her. Sjekk også statistikk.inc.
 
 list ($data,$max) = lagDatatmp();
-list ($imagemap, $bilde) = tegnBilde($data,$max);
-$antall = sizeof($imagemap);
+if ($data == 0) {
+  print "Ingen traps registrert i dette tidsrommet<br>\n";
+} else {
+  list ($imagemap, $bilde) = tegnBilde($data,$max);
+  $antall = sizeof($imagemap);
 
-echo "<center><img src=\"pics/$bilde.png\" usemap=\"#map\" border=0></center>\n";
+  echo "<center><img src=\"pics/$bilde.png\" usemap=\"#map\" border=0></center>\n";
 # Tegner opp imagemap
-echo "<map name=\"map\">";
-for ($i = 0; $i < $antall; $i++) {
-  $name = key ($imagemap);
-  list($x,$y,$xx,$yy) = $imagemap[$name];
-  echo "<area shape=rect href=\"statistikk_ant_det.php?navn=$name&dato=$dato&dager=$dager\" coords=\"$x,$y,$xx,$yy\">\n";
-  next($imagemap);
+  echo "<map name=\"map\">";
+  for ($i = 0; $i < $antall; $i++) {
+    $name = key ($imagemap);
+    list($x,$y,$xx,$yy) = $imagemap[$name];
+    echo "<area shape=rect href=\"statistikk_ant_det.php?navn=$name&dato=$dato&dager=$dager\" coords=\"$x,$y,$xx,$yy\">\n";
+    next($imagemap);
+  }
+  echo "</map>";
 }
-echo "</map>";
-
 ?>
 
 <?php bunntabell() ?>

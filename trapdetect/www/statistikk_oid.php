@@ -40,20 +40,24 @@ if ($dager == 0) {
 # Tingen som gjør noe begynner her. Sjekk også statistikk.inc.
 
 list ($data,$max) = lagDatatmp();
-list ($imagemap, $bilde) = tegnBilde($data,$max);
-$antall = sizeof($imagemap);
+if ($data == 0) {
+  print "Ingen traps registrert i dette tidsrommet<br>\n";
+} else {
+  list ($imagemap, $bilde) = tegnBilde($data,$max);
+  $antall = sizeof($imagemap);
 
-echo "<center><img src=\"pics/$bilde.png\" usemap=\"#map\" border=0></center>\n";
+  echo "<center><img src=\"pics/$bilde.png\" usemap=\"#map\" border=0></center>\n";
 # Tegner opp imagemap
-echo "<map name=\"map\">";
-for ($i = 0; $i < $antall; $i++) {
-  $oid = key ($imagemap);
-  list($x,$y,$xx,$yy) = $imagemap[$oid];
-  echo "<area shape=rect href=\"statistikk_oid_det.php?oid=$oid&dato=$dato&dager=$dager\" coords=\"$x,$y,$xx,$yy\">\n";
-  next($imagemap);
-}
-echo "</map>";
+  echo "<map name=\"map\">";
+  for ($i = 0; $i < $antall; $i++) {
+    $oid = key ($imagemap);
+    list($x,$y,$xx,$yy) = $imagemap[$oid];
+    echo "<area shape=rect href=\"statistikk_oid_det.php?oid=$oid&dato=$dato&dager=$dager\" coords=\"$x,$y,$xx,$yy\">\n";
+    next($imagemap);
+  }
+  echo "</map>";
 
+}
 
 # Funksjon som lager et dataarray + finner maxverdi og returnerer dette.
 function lagDatatmp() {
@@ -75,6 +79,7 @@ function lagDatatmp() {
     $sporring = "SELECT trap FROM status WHERE fra LIKE '%$dbdato%' ";
     $result = pg_exec($dbh,$sporring) or die ("Fikk ingenting fra databasen.");
     $antall = pg_numrows($result);
+
     for ($i=0;$i<$antall;$i++) {
       $row = pg_fetch_array ($result,$i);
       $data[$row[trap]] ++;
@@ -83,23 +88,27 @@ function lagDatatmp() {
   }
 
   $keys = array_keys($data);
-  $key = current($keys);
-  $max = 0;
-  while ($key) {
-    if ($data[$key] > $max) { 
-      $max = $data[$key];
+  if (count($keys) != 0) {
+    $key = current($keys);
+    $max = 0;
+    while ($key) {
+      if ($data[$key] > $max) { 
+	$max = $data[$key];
+      }
+      $key = next ($keys);
     }
-    $key = next ($keys);
-  }
 
-  if ($sort) {
+    if ($sort) {
 # Sorterer etter navn
-  } else {
+    } else {
 # Sorterer etter antall som default
-    arsort ($data);
-  }
+      arsort ($data);
+    }
 
-  return array ($data,$max);
+    return array ($data,$max);
+  } else {
+    return array (0,0);
+  }
 }
 
 ?>
