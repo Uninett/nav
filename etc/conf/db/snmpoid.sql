@@ -16,6 +16,9 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cModel', '1.3.
 DELETE FROM snmpoid WHERE oidkey='3cDescr';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cDescr', '1.3.6.1.4.1.43.10.27.1.1.1.5','3com','Description');
 
+DELETE FROM snmpoid WHERE oidkey='3cIfDescr';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, decodehex, match_regex, descr) VALUES ('3cIfDescr', '1.3.6.1.2.1.2.2.1.2','3com','t','.*Port (\\d+)\\b.*','3Com ifDescr for port and unit');
+
 DELETE FROM snmpoid WHERE oidkey='3cSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cSerial', '1.3.6.1.4.1.43.10.27.1.1.1.13','3com','Serial number');
 
