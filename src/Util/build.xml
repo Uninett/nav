@@ -49,11 +49,11 @@
   </target>
 
   <target name="install" depends="dist">
-    <mkdir dir="${instdir}"/>
-    <copy file="${dist}/${jar}" todir="${instdir}"/>
+    <mkdir dir="${DESTDIR}${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
   </target>
   <target name="uninstall">
-    <delete file="${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${instdir}/${jar}"/>
   </target>
 
   <target name="clean"

@@ -45,6 +45,7 @@ install-web: install-images
 	for file in $(tools); do \
 	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
+	$(INSTALL) -v -m 644 src/.htaccess $(DESTDIR)$(webroot)/.htaccess
 
 install-images:
 	@cd graphics; \

@@ -1,15 +1,34 @@
+Dependencies
+============
+This section should specify what packages are needed to build and run NAV.
+To build NAV, you need at least the following:
+
+make
+autoconf
+Perl >= 5.6.0
+Python >= 2.2.0
+Java 2 SDK >= 1.4.0
+Cheetah
+
+
 Installing NAV
 ==============
-NB! The build system has not been implemented throughout the entire project
-hierarchy yet, so this may not work.  Check individuel INSTALL files in
-subdirectories for more detailed installation instructions.
-
-
 To install NAV, do the following:
 
-# sh configure
+# ./configure
 # make
 # make install
+
+If you wish to configure NAV to run from a different location than the
+default /usr/local/nav you should specify a new directory using the
+--prefix= option of the configure script, e.g. "./configure
+--prefix=/opt/nav".
+
+If you are building an RPM package (or similar) of NAV, you may wish
+to have the files installed in a physically different location (a
+temporary build directory) than what you configured the package for.
+In this case, you should specify this build directory by adding
+"DESTDIR=/your/build/directory" to "make install" command.
 
 
 Configuring NAV
@@ -18,4 +37,3 @@ After installation, there is still a lot of configuration to do before you can
 start using NAV.
 
 TODO: Write up configuration procedures.
-

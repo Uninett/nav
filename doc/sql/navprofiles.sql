@@ -821,6 +821,8 @@ INSERT INTO AccountGroup (id, name, descr) VALUES
 (1, 'NAV Administrators', '');
 INSERT INTO AccountGroup (id, name, descr) VALUES
 (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
+INSERT INTO AccountGroup (id, name, descr) VALUES
+(3, 'Restricted users', 'Users with restricted access');
 
 INSERT INTO Account (id, login, name, password) VALUES
 (0, 'default', 'Default User', '');
@@ -856,20 +858,18 @@ INSERT INTO Privilege VALUES (3, 'alert_by');
 /*
   Set some default web_access privileges
 */
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(1, 2, '.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/index.py/login\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/images/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/wap/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/alertprofiles/wap/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/$');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES
-(2, 2, '^/index.py/index$');
+-- Administrators get full access
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (1, 2, '.*');
+-- Anonymous users need access to a few things, like the login page and images and soforth
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index.py/login\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/images/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/wap/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/alertprofiles/wap/.*');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/$');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index.py/index$');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/toolbox\b');
+-- Gives access to most tools for restricted users (during alpha testing, at least)
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(index|report|status|editdb|emotd|alertprofiles|devicemanagement|machinetracker)/?');
 
 -- Matchfields
 

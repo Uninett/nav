@@ -6,7 +6,14 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
+perllibdir = @perllibdir@
+pythonlibdir = @pythonlibdir@
+javalibdir = @javalibdir@
 sysconfdir = @sysconfdir@
+webroot = @webroot@
+initdir = @initdir@
+localstatedir = @localstatedir@
+tooldir = @tooldir@
 
 INSTALL = @INSTALL@
 nav_user = @nav_user@
@@ -38,7 +45,7 @@ subdirs = src \
 
 # Make sure we export make variables to the environment
 export
-.PHONY: all install clean distclean
+.PHONY: all install clean distclean installdirs dist
 
 all:
 	@for dir in ${subdirs}; do \
@@ -46,11 +53,28 @@ all:
 	done
 	@echo Done
 
-install:
+install: installdirs
 	@for dir in ${subdirs}; do \
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
+	tools/htpython.sh $(DESTDIR)$(webroot) $(webroot)
 	@echo Done
+
+installdirs:
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(prefix)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -v -m 0775 -d $(DESTDIR)$(sysconfdir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(bindir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(libdir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(javalibdir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(perllibdir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(pythonlibdir)
+	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(webroot)
+	$(INSTALL) -v -m 0775 -d $(DESTDIR)$(tooldir)
+	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)
+	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/log
+	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/run
+	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/rrd
 
 clean:
 	rm -f *~ 
@@ -64,7 +88,8 @@ distclean: clean
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 
-dist: distclean
+# dist: distclean
+dist:
 	@echo Creating source tarball...
 	@SRCDIR=`pwd`;                                  \
 	TARBALL=$(PACKAGE).tar.gz;                      \
