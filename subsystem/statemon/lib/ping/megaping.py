@@ -59,10 +59,10 @@ class Host:
     return self.ip.__hash__()
 
   def __eq__(self, obj):
-    #if type(obj) == type(""):
-    #  return self.netbox == obj
-    #else:
-    return self.netbox.netboxid == obj.netboxid
+    if type(obj) == type(""):
+      return self.netbox.ip == obj
+    else:
+      return self.netbox.ip == obj.ip
 
   def logPingTime(self, pingtime):
     netbox = self.netbox
@@ -108,7 +108,7 @@ class MegaPing(RotaterPlugin):
     # Create our common socket
     if socket is None:
       self.socket = makeSocket()
-    else:
+~    else:
       self.socket = socket
 
   def setHosts(self,netboxes):
@@ -117,11 +117,11 @@ class MegaPing(RotaterPlugin):
     in our list, we reuse that  host object
     """
     # add new hosts
-    newhosts = filter(lambda x: x not in self.hosts, netboxes)
+    newhosts = filter(lambda x: x.ip not in self.hosts, netboxes)
     for netbox in newhosts:
       self.hosts.append(Host(netbox))
     # remove outdated hosts...
-    oldhosts = filter(lambda x: x not in netboxes, self.hosts)
+    oldhosts = filter(lambda x: x.ip not in netboxes, self.hosts)
     for netbox in oldhosts:
       self.hosts.remove(Host(netbox))
 
