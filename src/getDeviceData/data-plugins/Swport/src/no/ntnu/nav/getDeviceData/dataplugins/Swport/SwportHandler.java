@@ -56,12 +56,19 @@ public class SwportHandler implements DataHandler {
 				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {
 					do {
 						Swport sd = new Swport(rs.getString("ifindex"));
-						sd.setData(rs.getString("port") == null ? new Integer(0) : new Integer(rs.getInt("port")), rs.getString("link") == null ? 'x' : rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex") == null ? 'x' : rs.getString("duplex").charAt(0), rs.getString("media"), rs.getString("portname"));
 						sd.setSwportid(rs.getInt("swportid"));
+						
+						if (rs.getString("port") != null) sd.setPort(new Integer(rs.getInt("port")));
+						if (rs.getString("link") != null) sd.setLink(rs.getString("link").charAt(0));
+						sd.setSpeed(rs.getString("speed"));
+						if (rs.getString("duplex") != null) sd.setDuplex(rs.getString("duplex").charAt(0));
+						sd.setMedia(rs.getString("media"));
+						sd.setPortname(rs.getString("portname"));
 						sd.setInterface(rs.getString("interface"));
 						if (rs.getString("vlan") != null) sd.setVlan(rs.getInt("vlan"));
-						sd.setTrunk(rs.getBoolean("trunk"));
+						if (rs.getString("trunk") != null) sd.setTrunk(rs.getBoolean("trunk"));
 						sd.setHexstring(rs.getString("hexstring"));
+
 						md.addSwport(sd);
 						String key = rs.getString("netboxid")+":"+rs.getString("ifindex");
 						if (swpMap.containsKey(key)) {
@@ -150,7 +157,6 @@ public class SwportHandler implements DataHandler {
 						swportid = rs.getString("swportid");
 
 						Log.d("NEW_SWPORT", "New swport, swportid="+swportid+", moduleid="+moduleid+", port="+sd.getPort()+", ifindex="+sd.getIfindex()+", link="+sd.getLink()+", speed="+sd.getSpeed()+", duplex="+sd.getDuplexS()+", media="+Database.addSlashes(sd.getMedia())+", trunk="+sd.getTrunkS()+", portname="+Database.addSlashes(sd.getPortname()));
-
 
 						String[] inss = {
 							"swportid", swportid,

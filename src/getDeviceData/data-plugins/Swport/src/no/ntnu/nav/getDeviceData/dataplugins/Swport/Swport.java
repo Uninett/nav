@@ -255,6 +255,7 @@ public class Swport implements Comparable
 						(speed == null || speed.equals(sw.speed)) &&
 						(duplex == null || duplex.equals(sw.duplex)) &&
 						(media == null || media.equals(sw.media)) &&
+						(vlan == null || vlan.equals(sw.vlan)) &&
 						(trunk == null || trunk.equals(sw.trunk)) &&
 						(portname == null || portname.equals(sw.portname)));
 	}
@@ -283,6 +284,7 @@ public class Swport implements Comparable
 			" Speed: " + speed +
 			" Duplex: " + duplex +
 			" Media: " + media +
+			" Vlan: " + vlan +
 			" Trunk: " + trunk +
 			" Portname: " + portname;
 	}
