@@ -59,8 +59,9 @@ import operator
 from mx import DateTime
 from os import path
 
-unitmap = {'s' : 'Seconds',
-           '%' : 'Percent',
+unitmap = {'s'   : 'Seconds',
+           '%'   : 'Percent',
+           '100%': 'Percent',
            }
 
 class rrd_file:
