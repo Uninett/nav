@@ -21,7 +21,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 public class NetboxHandler implements DataHandler {
 
 	private static Map netboxMap;
-	
+	private static Set sysnameSet;
 
 	/**
 	 * Fetch initial data from device and netbox tables.
@@ -31,6 +31,7 @@ public class NetboxHandler implements DataHandler {
 		persistentStorage.put("initDone", null);
 
 		Map m;
+		Set set;
 		ResultSet rs;
 		long dumpBeginTime,dumpUsedTime;
 
@@ -41,6 +42,7 @@ public class NetboxHandler implements DataHandler {
 			// netbox
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
+			set = Collections.synchronizedSet(new HashSet());
 			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime FROM device JOIN netbox USING (deviceid)");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
@@ -51,11 +53,13 @@ public class NetboxHandler implements DataHandler {
 				n.setSysname(rs.getString("sysname"));
 				n.setUpsince(rs.getString("upsince"));
 				n.setUptime(rs.getDouble("uptime"));
+				set.add(rs.getString("sysname"));
 				
 				String key = rs.getString("netboxid");
 				m.put(key, n);
 			}
 			netboxMap = m;
+			sysnameSet = set;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped module in " + dumpUsedTime + " ms");
 
@@ -102,8 +106,9 @@ public class NetboxHandler implements DataHandler {
 			Log.d("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
 
 				// Check if we need to update netbox
-			if (!oldn.equalsNetboxData(n)) {
+			if (oldn == null || !oldn.equalsNetboxData(n)) {
 				// We need to update netbox
+				if (oldn != null) sysnameSet.remove(oldn.getSysname());
 
 				// Convert uptime to timestamp
 				ResultSet rs = Database.query("SELECT 'epoch'::timestamp with time zone + ("+n.getUptime()+" || ' seconds')::interval AS upsince");
@@ -115,9 +120,16 @@ public class NetboxHandler implements DataHandler {
 				// Send event if uptime changed
 				if (!oldn.equalsUptime(n)) {
 					Map varMap = new HashMap();
-					varMap.put("old_upsince", String.valueOf(oldn.getUpsince()));
+					varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
 					varMap.put("new_upsince", String.valueOf(n.getUpsince()));
 					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "coldStart", Event.STATE_NONE, 0, 0, varMap);
+				}
+
+				if (sysnameSet.contains(n.getSysname())) {
+					Log.w("UPDATE_NETBOX", "New sysname ("+n.getSysname()+") is already present in netbox, cannot update");
+					n.setSysname(null);
+				} else {
+					sysnameSet.add(n.getSysname());
 				}
 
 				String[] set = {
