@@ -195,8 +195,11 @@ public class MibIISw implements DeviceHandler
 		l = sSnmp.getNext(nb.getOid("sysUpTime"), 1, false, false);
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
-			nc.netboxDataFactory(nb).setUptimeTicks(Long.parseLong(s[1]));
-			nc.commit();
+			long ticks = Long.parseLong(s[1]);
+			if (ticks > 0) {
+				nc.netboxDataFactory(nb).setUptimeTicks(ticks);
+				nc.commit();
+			}
 		}
 
 		Set skipIfindexSet = new HashSet();
