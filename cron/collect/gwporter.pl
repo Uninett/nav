@@ -48,10 +48,10 @@ my %db_gwport = &db_select_hash($db,"gwport",\@felt_gwport,1,2,3);
 
 foreach my $boksid (keys %bokser) { #$_ = boksid keys %boks
     if($bokser{$boksid}[3] =~ /y|t/i) {
-	print "\n\n$bokser{$boksid}[2] er på watch. Data vil ikke bli hentet for denne ruteren.";
+	&skriv("GWERR","\n\n$bokser{$boksid}[2] er på watch. Data vil ikke bli hentet for denne ruteren.");
     } else {
 	if ( &hent_snmpdata($boksid,$bokser{$boksid}[1],$bokser{$boksid}[4]) eq '0' ) {
-	    print "Kunne ikke hente data fra $bokser{$boksid}[2]\n";
+	    &skriv("GWERR","Kunne ikke hente data fra $bokser{$boksid}[2]\n");
 	}
     }
 }
@@ -327,7 +327,7 @@ sub hent_snmpdata {
 #	    print "har funnet ukjent $_";
 	    my $nettype = "ukjent";
 	    if($prefiks{$nettadr}{$maske}[8]){
-		print "\n\nSkriver ikke over $prefiks{$nettadr}{$maske}[8]" if $debug;
+		&skriv("GWOUT", "\nFlere prefiks gjør at vi ikke skriver over $prefiks{$nettadr}{$maske}[8]");
 	    } else {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
@@ -456,6 +456,4 @@ sub oppdater_prefiks{
 #	 }
     }
 }
-
-return 1;
 

@@ -63,7 +63,7 @@ for my $a (keys %db_nettel) {
     my $ip = $db_nettel{$a}[1];
     $db_alle{$ip} = 1;
 }
-&db_endring($conn,\%nettel,\%db_nettel,\@felt_nettel,"boks");
+&db_nettel_endring($conn,\%nettel,\%db_nettel,\@felt_nettel,"boks");
 
 #-----------------------------------
 #DELETE
@@ -105,7 +105,7 @@ sub fil_nettel{
 	    }
 	    # må legges inn så lenge den eksisterer i fila, uavhengig av snmp
 	    $alle{$ip} = 1;
-	    print $sysname.$type."\n";
+#	    print $sysname.$type."\n";
 	}
 	
     }
@@ -134,5 +134,47 @@ sub fil_server{
     close FIL;
     return %server;
 }
-
-return 1;
+sub db_nettel_endring {
+#helt lik
+    my $db = $_[0];
+    my %ny = %{$_[1]};
+    my %gammel = %{$_[2]};
+    my @felt = @{$_[3]};
+    my $tabell = $_[4];
+    for my $feltnull (keys %ny) {
+	&db_nettel_endring_per_linje($db,\@{$ny{$feltnull}},\@{$gammel{$feltnull}},\@felt,$tabell,$feltnull);
+    }
+}
+sub db_nettel_endring_per_linje {
+    my $db = $_[0];
+    my @ny = @{$_[1]};
+    my @gammel = @{$_[2]};
+    my @felt = @{$_[3]};
+    my $tabell = $_[4];
+    my $id = $_[5];
+    
+    #eksisterer i databasen?
+    if($gammel[0]) {
+#-----------------------
+#UPDATE
+	for my $i (0..$#felt ) {
+	    if(defined( $gammel[$i] ) && defined( $ny[$i] )){
+#		print "NY: $ny[$i] GAMMEL: $gammel[$i]\n";
+		unless($ny[$i] eq $gammel[$i]) {
+		    #oppdatereringer til null må ha egen spørring
+		    if ($ny[$i] eq "" && $gammel[$i] ne ""){
+			&db_oppdater($db,$tabell,$felt[$i],$gammel[$i],"null",$felt[0],$id);
+		    } else {
+			
+			&db_oppdater($db,$tabell,$felt[$i],"\'$gammel[$i]\'","\'$ny[$i]\'",$felt[0],$id);
+		    }
+		}
+	    }
+	}
+    }else{
+#-----------------------
+#INSERT
+	&db_sett_inn($db,$tabell,join(":",@felt),join(":",@ny));
+	
+    }
+}
