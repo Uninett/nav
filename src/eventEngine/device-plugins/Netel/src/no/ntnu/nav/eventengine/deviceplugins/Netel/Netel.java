@@ -61,7 +61,7 @@ public class Netel extends Box
 		}
 
 		Log.d("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all netboxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE catid IN ('SW','KANT')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE catid IN ('SW','EDGE')");
 
 		while (rs.next()) {
 			try {
@@ -232,7 +232,7 @@ public class Netel extends Box
 
 						// Visit this box if we have not already
 						if (visited.add(n.getDeviceidI())) {
-							int r = reachableFrom(this, vlan, visited);
+							int r = n.reachableFrom(this, vlan, visited);
 							if (r == REACHABLE_YES) {
 								//outld("  Yes.");
 							    reachable = r;
