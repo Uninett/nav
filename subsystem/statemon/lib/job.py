@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.7 2003/06/15 11:44:04 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.8 2003/06/15 14:03:56 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -7,9 +7,9 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
         Erik Gorset     <erikgors@stud.ntnu.no>
 """
 import time,socket,sys,types,config,debug,mailAlert, RunQueue
-import event
 import db
 import rrd
+import event
 from select import select
 from errno import errorcode
 from Socket import Socket
@@ -19,7 +19,8 @@ DEBUG=0
 
 class JobHandler:
 	"""
-	This is the superclass for each handler. If you want to
+	This is the superclass for each handler. Note that it is
+	'abstract' and should not be instanciated directly. If you want to
 	check a service that is not supported by NAV, you have to
 	write your own handler. This is done quite easily by subclassing
 	this class.
@@ -44,13 +45,21 @@ class JobHandler:
             # Now you need to do the actual check
 	    # I don't implement it now, but every exception is
 	    # caught by the suberclass, and will mark the service
-	    # as down.
+	    # as down. If you want to create a more understandable
+	    # error message you should catch the Exception here and
+	    # return Event.DOWN, "some valid error message"
 	    # You should try to extract a version number from the server.
 	    version = ""
 	    # and then we return status UP, and our version string.
 	    return Event.UP, version
 	"""
 	def __init__(self,type,service,status=event.Event.UP):
+		"""
+		type is the name of the handler (subclass)
+		service is a dict containing ip, sysname, netboxid, serviceid,
+		version and extra arguments to the handler
+		status defaults to up, but can be overridden.
+		"""
 		self._conf=config.serviceconf()
 		self.setType(type)
 		self.setServiceid(service['id'])
@@ -109,7 +118,7 @@ class JobHandler:
 			self.alerter.put(newEvent)
 			self.setStatus(status)
 		
-		if version != self.getVersion() and self.getStatus() == Event.UP:
+		if version != self.getVersion() and self.getStatus() == event.Event.UP:
 			newEvent=event.Event(self.getServiceid(),self.getNetboxid(),
 					     self.getType(), status, info,
 					     eventtype="version", version=self.getVersion())
