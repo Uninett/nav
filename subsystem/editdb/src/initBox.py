@@ -115,7 +115,9 @@ class Box:
 
         serials.extend(walkserials)
         self.serials = serials
-        self.serial = serials[0]
+	self.serial = None
+	if len(serials):
+	    self.serial = serials[0]
         return serials
 
 
