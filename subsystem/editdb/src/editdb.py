@@ -1579,12 +1579,13 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
 
     if not deviceid:
         # Make new device first
-        if len(serial):
-            fields = {'serial': serial}
-        else:
+        #if len(serial):
+        fields = {'serial': serial}
+        #else:
             # Don't insert an empty serialnumber (as serialnumbers must be
             # unique in the database) (ie. don't insert '' for serial)
-            fields = {}
+            #fields = {}
+            
         deviceid = addEntryFields(fields,
                                   'device',
                                   ('deviceid','device_deviceid_seq'))
@@ -3423,37 +3424,38 @@ class structNetbox:
                                  typeid=req.form['typeid'],
                                  snmpversion=req.form['snmpversion'],
                                  formData=form))
-            if len(serial):
-                # Any devices in the database with this serial?
-                where = "serial = '" + str(serial) + "'"
-                device = editTables.Device.getAll(where)
-                if device:
-                    # Found a device with this serial
-                    deviceId = device[0].deviceid
-                    # Must check if there already is a box with this serial
-                    where = "deviceid = '" + str(deviceId) + "'"
-                    box = editTables.Netbox.getAll(where)
-                    if box:
-                        box = box[0]
-                        message = 'A box with this serial already exists ' + \
-                                  '(' + box.sysname + ')'
-                        templateform.add(editboxHiddenOrMessage(message))
-                        #This doesn't work for some reason:
-                        #templateform.add(editboxNetbox(box.netboxid,
-                        #                               disabled=True))
-                        templateform.showConfirm = False
-                        return (status,action,templateform)
-                else:
-                    # Not found, make new device
-                    deviceId = None
+            #if len(serial):
+            # Any devices in the database with this serial?
+            where = "serial = '" + str(serial) + "'"
+            device = editTables.Device.getAll(where)
+            if device:
+                # Found a device with this serial
+                deviceId = device[0].deviceid
+                # Must check if there already is a box with this serial
+                where = "deviceid = '" + str(deviceId) + "'"
+                box = editTables.Netbox.getAll(where)
+                if box:
+                    box = box[0]
+                    message = 'A box with this serial already exists ' + \
+                              '(' + box.sysname + ')'
+                    templateform.add(editboxHiddenOrMessage(message))
+                    #This doesn't work for some reason:
+                    #templateform.add(editboxNetbox(box.netboxid,
+                    #                               disabled=True))
+                    templateform.showConfirm = False
+                    return (status,action,templateform)
             else:
+                # Not found, make new device
+                deviceId = None
+                    
+            #else: # MATCHES if-SENTENCE ON LINE 3427: if len(serial)
                 # Empty serial specified, not allowed
-                nextStep = STEP_2
-                editboxHidden.addHidden(CNAME_STEP,nextStep) 
+                #nextStep = STEP_2
+                #editboxHidden.addHidden(CNAME_STEP,nextStep) 
 
-                message = 'You must enter a serial'
-                templateform.add(editboxHiddenOrMessage(message))
-                return (status,action,templateform)
+                #message = 'You must enter a serial'
+                #templateform.add(editboxHiddenOrMessage(message))
+                #return (status,action,templateform)
 
             editboxHidden.addHidden('deviceid',deviceId)
 
@@ -4278,9 +4280,9 @@ class bulkdefNetbox:
                 try:
                     box = initBox.Box(data['ip'],data['ro'])
                     box.getDeviceId()
-                    if (not hasSerial) and (not box.serial):
-                        status = BULK_STATUS_YELLOW_ERROR
-                        error = "No serial returned by SNMP, and no serial given."
+#                    if (not hasSerial) and (not box.serial):
+#                        status = BULK_STATUS_YELLOW_ERROR
+#                        error = "No serial returned by SNMP, and no serial given."
                     if (not box.typeid):
                         if editTables.Cat(data['catid']).req_snmp:
                             status = BULK_STATUS_YELLOW_ERROR
@@ -4410,17 +4412,19 @@ class bulkdefNetbox:
             # if we got serial from initbox, set this
                 if box.serial:
                     row['serial'] = str(box.serial)
+                else:
+                    row['serial'] = ''
             # Make new device
             if row.has_key('serial'):
-                if len(row['serial']):
-                    fields = {'serial': row['serial']}
-                    # serial shouldn't be inserted into Netbox table
-                    # so remove it from the row
-                    del(row['serial'])
-                else:
+                #if len(row['serial']):
+                fields = {'serial': row['serial']}
+                # serial shouldn't be inserted into Netbox table
+                # so remove it from the row
+                del(row['serial'])
+                #else:
                     # Don't insert an empty serialnumber
                     # (as serialnumbers must be unique in the database)
-                    fields = {}
+                    #fields = {}
                 # Must check if a device with this serial is already present
                 if fields.has_key('serial'):
                     where = "serial='%s'" % (fields['serial'])
