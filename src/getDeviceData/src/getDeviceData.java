@@ -472,10 +472,10 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL JOIN type WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL LEFT JOIN type WHERE sysName='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
 		Database.setDefaultKeepOpen(false);
@@ -920,6 +920,7 @@ class QueryBoks extends Thread
 							// Insert new
 							try {
 								String[] ins = {
+									"boksid", boksid,
 									"path", Database.addSlashes(path)
 								};
 								if (DB_UPDATE) Database.insert("boksdisk", ins);
@@ -963,6 +964,7 @@ class QueryBoks extends Thread
 							// Insert new
 							try {
 								String[] ins = {
+									"boksid", boksid,
 									"interf", Database.addSlashes(interf)
 								};
 								if (DB_UPDATE) Database.insert("boksinterface", ins);
@@ -1085,16 +1087,27 @@ class QueryBoks extends Thread
 
 			// Iterate over all known plugins to find one that can handle this boks
 			synchronized (deviceHandlerMap) {
+				int best=0;
+				Class bestHandlerClass = null;
+				DeviceHandler bestHandler = null;
+
 				for (Iterator it=deviceHandlerMap.values().iterator(); it.hasNext();) {
 					Class c = (Class)it.next();
 					Object o = c.newInstance();
 					if (o instanceof DeviceHandler) {
 						DeviceHandler dh = (DeviceHandler)o;
-						if (dh.canHandleDevice(bd)) {
-							synchronized (deviceHandlerBdMap) { deviceHandlerBdMap.put(bd.getBoksid(), c); }
-							return dh;
+						int i;
+						if ( (i=dh.canHandleDevice(bd)) > best) {
+							best = i;
+							bestHandlerClass = c;
+							bestHandler = dh;
 						}
 					}
+				}
+
+				if (best > 0) {
+					synchronized (deviceHandlerBdMap) { deviceHandlerBdMap.put(bd.getBoksid(), bestHandlerClass); }
+					return bestHandler;
 				}
 			}
 		} catch (InstantiationException e) {
@@ -1219,8 +1232,7 @@ class PluginMonitorTask extends TimerTask
 			if (!fileList[i].getName().toLowerCase().endsWith(".jar")) continue;
 			cloneMap.remove(fileList[i].getName());
 
-			if (fileList[i].getName().equals("HandleCisco.jar")) continue;
-
+			//if (fileList[i].getName().equals("HandleCisco.jar")) continue;
 			//outld("pluginMonitorTask: Found jar: " + fileList[i].getName());
 
 			try {
@@ -1244,26 +1256,20 @@ class PluginMonitorTask extends TimerTask
 						continue;
 					}
 
-					Class c;
-					Object o;
+					Class c, deviceHandlerInterface;
 					try {
+						deviceHandlerInterface = Class.forName("no.ntnu.nav.getDeviceData.plugins.DeviceHandler");
+
 						c = cl.loadClass(cn);
-						o = c.newInstance();
 					} catch (ClassNotFoundException e) {
 						errl("PluginMonitorTask:   Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
-						continue;
-					} catch (InstantiationException e) {
-						errl("PluginMonitorTask:   InstantiationException when instantiating class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
-						continue;
-					} catch (IllegalAccessException e) {
-						errl("PluginMonitorTask:   IllegalAccessException when instantiating class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					} catch (NoClassDefFoundError e) {
 						errl("PluginMonitorTask:   NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					}
 
-					if (o instanceof DeviceHandler) {
+					if (deviceHandlerInterface.isAssignableFrom(c)) {
 						// OK, add to list
 						synchronized (deviceHandlerMap) {
 							deviceHandlerMap.put(fileList[i].getName(), c);
