@@ -133,12 +133,14 @@ public class ModuleHandler implements DataHandler {
 					changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 					if ("0".equals(moduleid)) {
 						Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
+						System.err.println("Database returned 0 ID for new module ("+nb.getNetboxid()+"), should not happen!");
 					}
 
 				} else {
 					moduleid = oldmd.getModuleidS();
 					if ("0".equals(moduleid)) {
 						Log.e("HANDLE_DATA", "Old module data object has 0 moduleid, should not happen!");
+						System.err.println("Old module data object has 0 moduleid ("+nb.getNetboxid()+"), should not happen!");
 					}
 
 					if (!md.equalsModule(oldmd)) {
