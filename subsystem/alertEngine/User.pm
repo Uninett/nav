@@ -99,7 +99,6 @@ sub collectTimePeriod()
     }
 
     if($this->{day}==0 || $this->{day}==6) {
-	print("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=2 order by starttid desc\n");
 	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=2 order by starttid desc");
     } else {
 	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=3 order by starttid desc");
@@ -121,6 +120,8 @@ sub collectTimePeriod()
     $this->{timePeriod}->{weekend}=$tp->[1];
     $this->{timePeriod}->{starttime}=$tp->[2];
     my $aEs=$this->{dbh}->selectall_arrayref("select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]");
+
+    print "select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]\n";
 
     if($DBI::errstr)
       {
@@ -267,6 +268,12 @@ sub checkNewAlerts()
 		}
 		else
 		{
+		    my $k;
+		    my $v;
+		    while (($k, $v) = each(%$ae)) {
+			print "$k=$v\n";
+		    }
+
 		    #Send alert
 		    $this->sendAlert($this->{nA}->getAlert($c),$ae->{address});
 		}
@@ -321,7 +328,9 @@ sub sendPreparedAlerts()
 	my $addr=$this->{addrs}[$addrid];
 	my $func=\&{"send$User::msgtype[$addr->{type}]"};
 	$this->{log}->printlog("User","sendPreparedAlerts",$Log::debugging,"sending prepared alerts");
-	$this->$func($addr->{address},$this->{prepareSendAlert}{$addrid}->[0]);
+	if(length($User::msgtype[$addr->{type}])>0) {
+	    $this->$func($addr->{address},$this->{prepareSendAlert}{$addrid}->[0]);
+	}
     }
 }
 
@@ -339,6 +348,11 @@ sub sendAlert()
       #Check address type
       my $addr=$this->{addrs}[$addressid];
       
+      if(!$addr->{type}) {
+	  $this->{log}->printlog("User","sendAlert",$Log::error,"no address type defined");
+	  return;
+      }
+
       my $func=\&{"send$User::msgtype[$addr->{type}]"};
       
       $this->$func($addr->{address},$alert->getMsg($User::msgtype[$addr->{type}],$this->{lang}),$alert);
@@ -355,7 +369,7 @@ sub sendsms()
     }
 
     $this->{log}->printlog("User","sendSMS",$Log::informational,"SMS $to: $msg");
-    
+
     my $severity=$alert->getSeverity();
     $this->{dbh}->do("insert into smsq (phone,msg,severity,time) values($to,'$msg',$severity,now())");
 }
@@ -382,7 +396,7 @@ sub sendemail()
     }
     
     $this->{log}->printlog("User","sendEmail",$Log::informational,"EMAIL $to\tSubject: $subject");
-    
+
     open(SENDMAIL, "|$this->{sendmail}")
       or die "Can't fork for sendmail: $!\n";
     print SENDMAIL <<"EOF";

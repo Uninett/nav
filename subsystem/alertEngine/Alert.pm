@@ -138,6 +138,8 @@ sub getInfo()
 sub collecttable()
 {
     my ($this,$name,$sql)=@_;
+
+    $this->{log}->printlog("Alert","collecttable",$Log::debugging, "collecting info from table: $sql");
 	
     my $sth=$this->{dbh}->prepare($sql);
     $sth->execute;
