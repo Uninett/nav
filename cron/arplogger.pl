@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 ## Name:	arpdblogger
-## $Id: arplogger.pl,v 1.1 2001/08/19 11:55:31 grohi Exp $
+## $Id: arplogger.pl,v 1.2 2001/08/19 12:07:09 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -53,7 +53,7 @@ my $tot_avs=0;
 my $tot_oppdat=0;
 my $tot_nye=0;
 
-my $sti = '/usr/local/nav/log/';
+my $sti = '/usr/local/nav/log/arp/';
 
 # Hente aktuelle rutere fra databasen.
 
