@@ -15,7 +15,13 @@ class Timeout(Exception):
 	pass
 
 def ssl(sock, timeout, keyfile=None, certfile=None):
+	"""
+	Returns an sslsocket with timeout support.
+	"""
 	return Socket(timeout, socket.ssl(sock, keyfile, certfile))
+
+#class SslSocket(Socket):
+	
 
 class Socket:
 	def __init__(self, timeout, sock=None):
@@ -36,6 +42,9 @@ class Socket:
 		r,w,e = select([],[self],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in connect after %i sec' % self.timeout)
+	def read(self, buf):
+		return self.recv(buf)
+
 	def recv(self,*args):
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
