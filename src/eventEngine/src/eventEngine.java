@@ -506,10 +506,11 @@ class EventqMonitorTask extends TimerTask
 					String cmd = e.getVar("command");
 					if ("updateFromDB".equals(cmd)) {
 						mp.updateFromDB();
+						e.dispose();
 					} else {
-						Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown command: " + cmd);
+						Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown notification command: " + cmd);
+						e.defer("Unknown notification command: " + cmd);
 					}
-					e.dispose();
 
 				} else if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
