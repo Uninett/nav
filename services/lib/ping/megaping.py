@@ -54,10 +54,10 @@ class Host:
       return self.ip == obj.ip
 
   def logPingTime(self, pingtime):
-    self.replies.push(pingtime)
     if pingtime:
       rrd.update(self.ip,'N','UP',pingtime)
     else:
+      # Dette er litt grisete og bør endres
       rrd.update(self.ip,'N','DOWN',10)
 
   def getState(self, nrping=3):
@@ -181,6 +181,7 @@ class MegaPing(RotaterPlugin):
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
         pingtime = arrival - host.time
         ### sett inn i RotatingList
+        host.replies.push(pingtime)
         host.logPingTime(pingtime)
         
         #print "Response from %-16s in %03.3f ms" % (sender, pingtime*1000)
@@ -190,7 +191,7 @@ class MegaPing(RotaterPlugin):
 
     # Everything else timed out
     for host in self.requests.values():
-      #host.replies.push(None)
+      host.replies.push(None)
       host.logPingTime(pingtime)
     end = time.time()
     self.elapsedtime=end-start
