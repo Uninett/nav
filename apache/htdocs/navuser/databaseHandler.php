@@ -1474,7 +1474,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   
   
 
-  // opprette ny adresse
+  // opprette ny hendelse i loggen
   function nyLogghendelse($brukerid, $type, $descr) {
 
     // Spxrring som legger inn i databasen

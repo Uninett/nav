@@ -55,6 +55,7 @@ for ($i = 0; $i < sizeof($logg); $i++) {
 	$hikon[6] = 'logg_new.gif';
 	$hikon[7] = 'logg_del.gif';
 	$hikon[8] = 'logg_edit.gif';
+	$hikon[9] = 'logg_wap.gif';
 
 	$hi = '<img alt="Hendelse" src="icons/' . $hikon[$type] . '">';
 
