@@ -1,3 +1,16 @@
+"""
+$Id$
+
+This file id part of the NAV project.
+
+Function to get the current status from the
+alerhist table. Used by the frontpage (and
+eventually by the status page).
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+"""
+
 import mx.DateTime,nav.db.manage
 
 def boxesDown():
