@@ -322,7 +322,7 @@ public class QueryNetbox extends Thread
 			ResultSet rs = Database.query("SELECT netboxid,COUNT(*) AS numInStack FROM module GROUP BY netboxid HAVING COUNT(*) > 1");
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
-			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y'";
+			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
 			sql += " ORDER BY random() * netboxid";
 			//sql += " LIMIT 1000";
