@@ -245,7 +245,7 @@ CREATE TABLE swportvlan (
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256),
-  static CHAR(1) NOT NULL DEFAULT 'f'
+  static BOOL NOT NULL DEFAULT false
 );
 
 CREATE TABLE swportblocked (
