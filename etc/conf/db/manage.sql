@@ -13,11 +13,6 @@ DROP TABLE module;
 DROP TABLE mem;
 DROP TABLE boksinfo;
 DROP TABLE boks;
-DROP TABLE boksdisk;
-DROP TABLE boksinterface;
-
-DROP TABLE service;
-DROP TABLE serviceproperty;
 
 DROP TABLE type;
 DROP TABLE prefiks;
@@ -46,8 +41,6 @@ DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
 DROP SEQUENCE vpboksxy_vpboksxyid_seq;
 
-DROP SEQUENCE service_serviceid_seq;
-
 -- Slette alle indekser
 
 ---------------------- JM - don't touch
@@ -75,7 +68,7 @@ til timestamp
 --sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
 --smsid int4,
 --tidsendt timestamp
---);
+--); 
 
 ------------------------------------------
 
@@ -140,20 +133,39 @@ CREATE TABLE prefiks (
 
 
 CREATE TABLE type (
-  typeid VARCHAR(10) PRIMARY KEY,
-  typegruppe VARCHAR(10) NOT NULL,
-  sysObjectID VARCHAR(30) NOT NULL,
-  descr VARCHAR(60)
+typeid SERIAL PRIMARY KEY,
+vendorid varchar(15) NOT NULL REFERENCES vendor ON UPDATE CASCADE ON
+DELETE CASCADE,
+typename VARCHAR(10) NOT NULL,
+typegroupid varchar(15) NOT NULL REFERENCES typegroup ON UPDATE
+CASCADE ON DELETE CASCADE,
+sysObjectID VARCHAR(30) NOT NULL,
+cdp BOOL DEFAULT false,
+tftp BOOL DEFAULT false,
+descr VARCHAR(50)
 );
 
+CREATE TABLE vendor (
+       vendorid varchar(15) primary key
+);
+
+CREATE TABLE typegroup (
+       typegroupid varchar(15) primary key,
+       descr varchar(60)
+);
+
+CREATE TABLE cat (
+       catid varchar(8) primary key,
+       descr varchar(50)
+);
 
 CREATE TABLE boks (
   boksid SERIAL PRIMARY KEY,
   ip varchar(15) NOT NULL,
   romid VARCHAR(10) NOT NULL REFERENCES rom,
-  typeid VARCHAR(10) REFERENCES type,
+  typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
   sysName VARCHAR(30) UNIQUE,
-  kat VARCHAR(10) NOT NULL,
+  catid VARCHAR(8) NOT NULL REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE,
   kat2 VARCHAR(10),
   orgid VARCHAR(10) NOT NULL REFERENCES org,
   ro VARCHAR(10),
@@ -164,39 +176,16 @@ CREATE TABLE boks (
   active BOOL DEFAULT true,
   static BOOL DEFAULT false,
   watch BOOL DEFAULT false,
-  skygge BOOL DEFAULT false,
-
-  snmp_major INT4 NOT NULL DEFAULT 1,
-  snmpagent VARCHAR(30),
+  skygge BOOL DEFAULT false
 );
 
 
 CREATE TABLE boksinfo (
-  boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  main_sw varchar(20),
-  serial varchar(15),
-  function VARCHAR(100)
+boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+main_sw varchar(20),
+serial varchar(15),
+function VARCHAR(100)
 );
-
-CREATE TABLE boksdisk (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  path VARCHAR(255) NOT NULL,
-  blocksize INT4 NOT NULL DEFAULT 1024,
-  PRIMARY KEY (boksid, path)
-);
-
-CREATE TABLE boksinterface (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  interf VARCHAR(50) NOT NULL, 
-  PRIMARY KEY (boksid, interf)
-);
-
-CREATE TABLE bokscategory (
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR(30) NOT NULL,
-  PRIMARY KEY(boksid, category)
- );
-
 
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
@@ -209,21 +198,6 @@ CREATE TABLE module (
   sw VARCHAR(10),
   ports INT4,
   portsUp INT4
-);
-
-CREATE TABLE service (
-  serviceid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  active BOOL DEFAULT true,
-  handler VARCHAR(8),
-  version VARCHAR(128)
-);
-
-CREATE TABLE serviceproperty (
-serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
-  property VARCHAR(64) NOT NULL,
-  value VARCHAR(64),
-  PRIMARY KEY(serviceid, property)
 );
 
 CREATE TABLE mem (
@@ -259,10 +233,9 @@ CREATE TABLE swport (
   duplex VARCHAR(4),
   media VARCHAR(16),
   trunk BOOL DEFAULT false,
-  static BOOL DEFAULT false,
-  portnavn VARCHAR(30),
+  static BOOL DEFAULT false,  
+  portnavn VARCHAR(30),  
   boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
-  swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   vpkatbak VARCHAR(5),
   UNIQUE(boksid, modul, port)
 );
@@ -270,7 +243,7 @@ CREATE TABLE swport (
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET NULL,
+  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT2 NOT NULL,
   masterindex INT2,
   interf VARCHAR(30),
@@ -278,11 +251,11 @@ CREATE TABLE gwport (
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false,
-  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET NULL,
+  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
   swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
--- not null fjernet fra interf
+-- not null fjernet fra interf 
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -313,9 +286,6 @@ GRANT ALL ON prefiks TO navall;
 GRANT ALL ON type TO navall;
 GRANT ALL ON boks TO navall;
 GRANT ALL ON boksinfo TO navall;
-GRANT ALL ON boksinterface TO navall;
-GRANT ALL ON bokscategory TO navall;
-GRANT ALL ON boksdisk TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
@@ -331,9 +301,6 @@ GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 GRANT ALL ON module_moduleid_seq TO navall;
 GRANT ALL ON mem_memid_seq TO navall;
 
-GRANT ALL ON service TO navall;
-GRANT ALL ON serviceproperty TO navall;
-
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 
@@ -342,7 +309,7 @@ DROP TABLE cam;
 DROP TABLE port2pkt; 
 DROP TABLE pkt2rom;  
 
-DROP SEQUENCE arp_arpid_seq;
+DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
@@ -386,21 +353,6 @@ CREATE INDEX cam_fra_btree ON cam USING btree (fra);
 CREATE INDEX cam_til_btree ON cam USING btree (til);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
--- Trigger for arp, cam
-CREATE FUNCTION boksid_null_upd_til () RETURNS opaque AS
-  'BEGIN
-     IF old.boksid IS NOT NULL AND new.boksid IS NULL THEN
-       new.til = current_timestamp;
-     END IF;
-     RETURN new;
-   end' LANGUAGE plpgsql;
-
-CREATE TRIGGER update_cam BEFORE UPDATE ON cam
-  FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
-CREATE TRIGGER update_arp BEFORE UPDATE ON arp
-  FOR EACH ROW EXECUTE PROCEDURE boksid_null_upd_til();
-
-
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
   boks VARCHAR(15) NOT NULL,
@@ -430,7 +382,7 @@ GRANT all ON pkt2rom_id_seq TO navall;
 
 
 -- VIEWs -----------------------
-CREATE VIEW boksmac AS
+CREATE VIEW boksmac AS  
 (SELECT DISTINCT ON (mac) boks.boksid,mac
  FROM arp
  JOIN boks USING (ip)
@@ -444,7 +396,7 @@ UNION
 
 -------- vlanPlot tabeller ------
 CREATE TABLE vpBoksGrpInfo (
-  gruppeid SERIAL PRIMARY KEY,
+  gruppeid SERIAL PRIMARY KEY,              
   name VARCHAR(16) NOT NULL,
   x INT2 NOT NULL DEFAULT '0',
   y INT2 NOT NULL DEFAULT '0'
@@ -462,7 +414,7 @@ CREATE TABLE vpBoksGrp (
 );
 
 CREATE TABLE vpBoksXY (
-  vpBoksXYId SERIAL PRIMARY KEY,
+  vpBoksXYId SERIAL PRIMARY KEY, 
   pboksid INT4 NOT NULL,
   x INT2 NOT NULL,
   y INT2 NOT NULL,
@@ -493,7 +445,7 @@ GRANT SELECT ON boks TO navadmin;
 GRANT SELECT ON type TO navadmin;
 GRANT SELECT ON boksmac TO navadmin;
 GRANT SELECT ON gwport TO navadmin;
-GRANT SELECT ON prefiks TO navadmin;
+GRANT SELECT ON prefiks TO navadmin; 
 GRANT ALL    ON swport TO navadmin;
 GRANT ALL    ON swport_swportid_seq TO navadmin;
 GRANT ALL    ON swportvlan TO navadmin;
@@ -528,128 +480,5 @@ GRANT ALL    ON swportallowedvlan TO getPortData;
 -- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
-GRANT SELECT,UPDATE ON boks TO getDeviceData;
-GRANT SELECT ON type TO getDeviceData;
-GRANT ALL    ON boksdisk TO getDeviceData;
-GRANT ALL    ON boksinterface TO getDeviceData;
-GRANT ALL    ON bokscategory TO getDeviceData;
-GRANT ALL    ON swport TO getDeviceData;
-GRANT ALL    ON swport_swportid_seq TO getDeviceData;
-GRANT ALL    ON swportvlan TO getDeviceData;
-GRANT ALL    ON swportvlan_swportvlanid_seq TO getDeviceData;
-GRANT ALL    ON swportallowedvlan TO getDeviceData;
 
 -------- vlanPlot end ------
-
-
--------- event system tables --------
-CREATE TABLE eventtype (
-  eventtypeid VARCHAR(32) PRIMARY KEY
-);
-INSERT INTO eventtype (eventtypeid) VALUES ('boxState');
-INSERT INTO eventtype (eventtypeid) VALUES ('serviceState');
-INSERT INTO eventtype (eventtypeid) VALUES ('moduleState');
-INSERT INTO eventtype (eventtypeid) VALUES ('thresholdState');
-INSERT INTO eventtype (eventtypeid) VALUES ('linkState');
-INSERT INTO eventtype (eventtypeid) VALUES ('coldStart');
-INSERT INTO eventtype (eventtypeid) VALUES ('warmStart');
-INSERT INTO eventtype (eventtypeid) VALUES ('info');
-
-CREATE TABLE eventprocess (
-  eventprocessid VARCHAR(32) PRIMARY KEY
-);
-INSERT INTO eventprocess (eventprocessid) VALUES ('eventEngine');
-INSERT INTO eventprocess (eventprocessid) VALUES ('pping');
-INSERT INTO eventprocess (eventprocessid) VALUES ('serviceping');
-INSERT INTO eventprocess (eventprocessid) VALUES ('moduleMon');
-INSERT INTO eventprocess (eventprocessid) VALUES ('thresholdMon');
-INSERT INTO eventprocess (eventprocessid) VALUES ('trapParser');
-
-DROP TABLE eventq;
-DROP SEQUENCE eventq_eventqid_seq;
-DROP TABLE eventqvar;
-
-CREATE TABLE eventq (
-  eventqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  target VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  subid INT4,
-  time TIMESTAMP NOT NULL DEFAULT 'NOW()',
-  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
-  value INT4 NOT NULL DEFAULT '100',
-  severity INT4 NOT NULL DEFAULT '50'
-);
-CREATE INDEX eventq_target_btree ON eventq USING btree (target);
-CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
-CREATE TABLE eventqvar (
-  eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
-  val TEXT NOT NULL
-);
-
--- alert tables
-DROP TABLE alertq;
-DROP SEQUENCE alertq_alertqid_seq;
-DROP TABLE alertqvar;
-
-CREATE TABLE alertq (
-  alertqid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  subid INT4,
-  time TIMESTAMP NOT NULL,
-  eventtypeid VARCHAR(32) REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  state CHAR(1) NOT NULL,
-  value INT4 NOT NULL,
-  severity INT4 NOT NULL
-);
-CREATE TABLE alertqvar (
-  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
-  val TEXT NOT NULL
-);
-
-DROP TABLE alerthist;
-DROP SEQUENCE alerthist_alerthistid_seq;
-DROP TABLE alerthistvar;
-
-CREATE TABLE alerthist (
-  alerthistid SERIAL PRIMARY KEY,
-  source VARCHAR(32) NOT NULL REFERENCES eventprocess (eventprocessid) ON UPDATE CASCADE ON DELETE CASCADE,
-  deviceid INT4,
-  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  subid INT4,
-  start_t TIMESTAMP NOT NULL,
-  end_t TIMESTAMP DEFAULT 'infinity',
-  eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
-  value INT4 NOT NULL,
-  severity INT4 NOT NULL
-);
-CREATE INDEX alerthist_end_t_btree ON alerthist USING btree (end_t);
-CREATE TABLE alerthistvar (
-  alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
-  val TEXT NOT NULL
-);
-
-GRANT SELECT ON eventtype TO eventengine;
-GRANT SELECT ON eventprocess TO eventengine;
-GRANT ALL ON eventq TO eventengine;
-GRANT ALL ON eventq_eventqid_seq TO eventengine;
-GRANT ALL ON eventqvar TO eventengine;
-GRANT ALL ON alertq TO eventengine;
-GRANT ALL ON alertq_alertqid_seq TO eventengine;
-GRANT ALL ON alertqvar TO eventengine;
-GRANT ALL ON alerthist TO eventengine;
-GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
-GRANT ALL ON alerthistvar TO eventengine;
-GRANT SELECT,UPDATE ON boks TO eventengine;
-GRANT SELECT ON module TO eventengine;
-GRANT SELECT ON swport TO eventengine;
-GRANT SELECT ON gwport TO eventengine;
-GRANT SELECT ON prefiks TO eventengine;
-
