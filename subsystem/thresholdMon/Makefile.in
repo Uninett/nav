@@ -13,7 +13,7 @@ crondir = @crondir@
 
 binaries = fillthresholds.py thresholdMon.py
 cronfiles = thresholdMon
-conffiles = fillthresholds.cfg
+conffiles = fillthresholds.conf
 
 .PHONY: all install install-bin clean distclean install-cron
 
@@ -28,7 +28,7 @@ install-bin:
 	done
 
 install-conf:
-        @for file in $(conffiles); do                          \
+	@for file in $(conffiles); do                          \
           target=$(DESTDIR)$(sysconfdir)/$$file;               \
           if [ -f "$$target" ]; then                           \
             echo Skipping installation of config file $$file;  \
