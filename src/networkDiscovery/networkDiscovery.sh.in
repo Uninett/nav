@@ -16,7 +16,7 @@ fi
 
 CUR_DIR=${javalibdir}/networkDiscovery
 LOG_DIR="${localstatedir}/log/networkDiscovery"
-OUTLOG=${LOG_DIR}/networkDiscovery.html
+OUTLOG=${LOG_DIR}/networkDiscovery-$1.html
 ERRLOG=${LOG_DIR}/networkDiscovery-stderr.log
 
 # If error log exists and has content, we rename it before creating a
@@ -28,4 +28,4 @@ fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xmx268435456 -cp "networkDiscovery.jar:$CLASSPATH" networkDiscovery $1 > ${OUTLOG} 2> ${ERRLOG}
+$JAVA_HOME/bin/java -Xmx268435456 -cp "networkDiscovery.jar:$CLASSPATH" networkDiscovery $1 $2 > ${OUTLOG} 2> ${ERRLOG}

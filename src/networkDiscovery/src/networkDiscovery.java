@@ -42,15 +42,16 @@ class networkDiscovery
 		{
 			nu.outl("Arguments: [configFile] <options>\n");
 			nu.outl("Where options include:\n");
-			nu.outl("   -topology\tDiscover the network topology using data collected via SNMP.");
-			nu.outl("   -vlan\tDiscover which VLANs are running on each network link");
-			nu.outl("   -debug\tTurn on debugging output.");
+			nu.outl("   topology\tDiscover the network topology using data collected via SNMP.");
+			nu.outl("   vlan\tDiscover which VLANs are running on each network link");
+			nu.outl("   debug\tTurn on debugging output.");
 			return;
 		}
 
 		int beginOptions = 0;
 		String configFile = args[0];
 		ConfigParser cp, dbCp;
+		/*
 		if (!configFile.startsWith("-")) {
 			beginOptions = 1;
 			try {
@@ -60,6 +61,7 @@ class networkDiscovery
 				return;
 			}
 		}
+		*/
 		try {
 			dbCp = new ConfigParser(dbConfigFile);
 		} catch (IOException e) {
@@ -74,20 +76,20 @@ class networkDiscovery
 		Set argSet = new HashSet();
 		for (int i=beginOptions; i < args.length; i++) argSet.add(args[i]);
 
-		if (argSet.contains("-debug")) debugParam = "yes";
+		if (argSet.contains("debug")) debugParam = "yes";
 
 		try {
 			String title;
-			if (argSet.contains("-topology")) title = "Network discovery report";
-			else if (argSet.contains("-vlan")) title = "Vlan discovery report";
+			if (argSet.contains("topology")) title = "Network discovery report";
+			else if (argSet.contains("vlan")) title = "Vlan discovery report";
 			else title = "Argument is not valid";
 
 			nu.outl("<html>");
 			nu.outl("<head><title>"+title+"</title></head>");
 			nu.outl("<body>");
 
-			if (argSet.contains("-topology")) nu.avledTopologi();
-			else if (argSet.contains("-vlan")) nu.avledVlan();
+			if (argSet.contains("topology")) nu.avledTopologi();
+			else if (argSet.contains("vlan")) nu.avledVlan();
 			else {
 				nu.outl("Argument is not valid, start without arguments for help.");
 			}
@@ -320,7 +322,7 @@ class networkDiscovery
 				swrec.put("deleted", null);
 
 				String link = (String)swrec.get("link");
-				if (!link.toLowerCase().equals("y")) continue;
+				if (!"y".equals(link.toLowerCase())) continue; // Ignore non-up links
 
 				String idbak = (String)swrec.get("to_netboxid");
 				if (idbak == null || idbak != null && Integer.parseInt(idbak) != bmp.boksbak.intValue()) {
