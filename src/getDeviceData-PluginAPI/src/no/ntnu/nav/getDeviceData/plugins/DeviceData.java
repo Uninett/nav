@@ -30,6 +30,7 @@ public class DeviceData
 	 * in the database not added here will be removed.
 	 *
 	 * @param path The path to add
+	 * @param blocksize The blocksize used for the path
 	 */
 	public void addBoksDisk(String path, int blocksize) { if (path != null) boksDisk.add(new String[] { path, String.valueOf(blocksize) } ); }
 

@@ -1,6 +1,7 @@
 package no.ntnu.nav.getDeviceData.plugins;
 
 import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.ConfigParser.*;
 
 public interface DeviceHandler
 {
@@ -16,6 +17,6 @@ public interface DeviceHandler
 	 */
 	public int canHandleDevice(BoksData bd);
 
-	public void handle(BoksData bd, SimpleSnmp sSnmp, DeviceDataList ddList) throws TimeoutException;
+	public void handle(BoksData bd, SimpleSnmp sSnmp, ConfigParser cp, DeviceDataList ddList) throws TimeoutException;
 
 }
