@@ -167,7 +167,7 @@ sub collectVar()
 {
     my $this=shift;
 
-    my $vars=$this->{dbh}->selectall_arrayref("select msgtype,language,msg from alertqvar where alertqid=$this->{id}") || $this->{log}->printlog("Alert","collectVar",$Log::error, "could not get alertqvar list");
+    my $vars=$this->{dbh}->selectall_arrayref("select msgtype,language,msg from alertqmsg where alertqid=$this->{id}") || $this->{log}->printlog("Alert","collectVar",$Log::error, "could not get alertqvar list");
 
     foreach my $var (@$vars)
     {
