@@ -35,6 +35,7 @@ subdirs = src \
 	subsystem/editdb \
 	subsystem/messages \
 	subsystem/machinetracker \
+	subsystem/pyproxy \
 	subsystem/report \
 	subsystem/smsd \
 	subsystem/startstop \
@@ -65,7 +66,7 @@ install-all:
 install-doc:
 	$(MAKE) -C doc install
 
-config = etc/crontab_navcron.nav doc/conf/db.conf doc/conf/nav.conf
+config = doc/conf/db.conf doc/conf/nav.conf
 install-conf:
 	@for file in $(config) ; do                               \
 	  dirname=`dirname $$file` ;                              \
