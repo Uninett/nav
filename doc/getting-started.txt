@@ -1,4 +1,4 @@
-$Id:$
+$Id$
 
 Getting started with NAV 3.0
 ============================
@@ -79,22 +79,24 @@ Integrating Cricket with NAV
 ============================
 This section assumes your cricket installation has been placed in
 /usr/local/nav/cricket/, with the cricket executables in
-/usr/local/nav/cricket/cricket/.
+/usr/local/nav/cricket/cricket/ (approximately as we all know from
+"Installing Cricket for the Complete Beginner" at
+http://cricket.sourceforge.net/support/doc/beginner.html, only that
+the prefix is different).
 
-Do the following commands (as navcron or root):
+More detailed instructions for integrating Cricket with NAV can be
+found in /usr/local/nav/doc/cricket/README (with example files in the
+same directory)
 
-cd /usr/local/nav/cricket
-mkdir public_html
-ln -s ../cricket/grapher.cgi
-ln -s ../cricket/mini-graph.cgi
-ln -s ../cricket/VERSION
-ln -s ../cricket/images/
-ln -s ../lib/
-ln -s grapher.cgi index.cgi
-echo "SetHandler none" > .htaccess
+To integrate your Cricket installation's public_html directory with
+the NAV web interface, to the following as root:
+
 cd /usr/local/nav/apache/webroot
 ln -s /usr/local/nav/cricket/public_html cricket
+echo "SetHandler none" > cricket/.htaccess
 
+NAV's toolbox comes ready with the "Statistics" tool, which sends you
+to the /cricket/ url.
 
 
 Configuring your environment
