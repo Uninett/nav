@@ -421,9 +421,10 @@ CREATE VIEW netboxmac AS
  JOIN netbox USING (ip)
  WHERE arp.end_time='infinity')
 UNION
-(SELECT DISTINCT ON (mac) gwport.netboxid,mac
+(SELECT DISTINCT ON (mac) module.netboxid,mac
  FROM arp
  JOIN gwport ON (arp.ip=gwport.gwip)
+ JOIN module USING (moduleid)
  WHERE arp.end_time='infinity');
 
 
