@@ -15,6 +15,13 @@ public interface NetboxUpdatable
 	public String getTypeid();
 
 	/**
+	 * Call this to force recreation of the netbox. It will be deleted
+	 * from the database, along with any additional information, and a
+	 * new record started.
+	 */
+	public void recreate();
+
+	/**
 	 * <p> Remove the netbox; calling this method guarantees that no
 	 * other plugins will process it. This method is typically used if
 	 * the netbox is deleted from the database.  </p>

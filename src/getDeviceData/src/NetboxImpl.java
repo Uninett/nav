@@ -19,6 +19,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	private boolean removed;
 	private boolean updateNetboxes;
+	private boolean recreate;
 
 	// Shared
 	Type t;
@@ -220,6 +221,12 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	void remove() { removed = true; }
 
 	boolean needUpdateNetboxes() { return updateNetboxes; }
+
+	boolean needRecreate() { return recreate; }
+
+	public void recreate() {
+		recreate = true;
+	}
 
 	public void remove(boolean updateNetboxes) {
 		this.updateNetboxes = updateNetboxes;

@@ -538,7 +538,7 @@ public class QueryNetbox extends Thread
 
 					try {
 						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
-						if (nb.isRemoved()) break;
+						if (nb.isRemoved() || nb.needRecreate()) break;
 
 					} catch (TimeoutException te) {
 						Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
@@ -555,7 +555,7 @@ public class QueryNetbox extends Thread
 
 				}
 
-				if (!nb.isRemoved()) {
+				if (!nb.isRemoved() && !nb.needRecreate()) {
 					// Call the data handlers for all data plugins
 					try { 
 						containers.callDataHandlers(nb);
@@ -571,7 +571,13 @@ public class QueryNetbox extends Thread
 			} catch (NoDeviceHandlerException exp) {
 				Log.d("RUN", exp.getMessage());
 			}
-			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
+			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
+
+			// If we need to recreate the netbox, set the unknown type
+			if (nb.needRecreate()) {
+				Log.d("RUN", "Recreating netbox: " + nb);
+				nb.setType((Type)typeidMap.get(Type.UNKNOWN_TYPEID));
+			}
 
 			// If netbox is removed, don't add it to the RunQ
 			if (!nb.isRemoved()) {
