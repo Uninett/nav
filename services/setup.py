@@ -1,52 +1,51 @@
 """
-$Id: setup.py,v 1.6 2002/06/28 13:42:50 erikgors Exp $
+$Id: setup.py,v 1.7 2002/07/04 00:36:33 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
-import re,getopt,sys,config,database,psycopg, jobmap
+import re,getopt,sys,config,database,psycopg, jobmap, string
 
-HEADER = '#id     active   sysname              handler    args'
+HEADER = '#sysname              handler    args'
 
 mapper = jobmap.jobmap()
 
 class Service:
-	def __init__(self,id,active,sysname,handler,args):
-		self.id = id
-		self.active = active
+	def __init__(self, sysname, handler, args, id=''):
 		self.sysname = sysname
 		self.handler = handler
 		self.args = args
-	def __cmp__(self,obj):
-		if self.id == 'new':
-			return -1
-		else:
-			i = int(self.id)
-			j = type(obj) == int and obj or int(obj.id)
-			return i.__cmp__(j)
-	def __repr__(self):
-		return "%-8s,%-8s,%-20s,%-10s,%s" % (`self.id`,`self.active`,`self.sysname`,`self.handler`,self.args)
+		self.id = id
+		self.active='t'
+	def __cmp__(self, obj):
+		return self.sysname==obj.sysname and self.handler==obj.handler and self.args==obj.args
+	def __eq__(self, obj):
+		return self.sysname==obj.sysname and self.handler==obj.handler and self.args==obj.args
 	def __hash__(self):
-		return self.id.__hash__()
+		value = self.sysname.__hash__() + self.handler.__hash__() + self.args.__str__().__hash__()
+		value = value % 2**31
+		return int(value)
+	def __repr__(self):
+		strargs = string.join(map(lambda x: x+'='+self.args[x], self.args))
+		return "%-20s %-10s %s" % (self.sysname, self.handler, strargs)
+
 def parseLine(line):
+	line = line.strip()
+	w = line.split()
+	sysname = w[0]
+	handler = w[1]
+	args = w[2:]
 	try:
-		id,active,sysname,handler,args = eval(line)
+		args=dict(map(lambda x: tuple(x.split('=')), args))
 	except ValueError:
-		msg = "tuple of wrong size: (%s)" % line
-		raise TypeError(msg)
-	if not (id == 'new' or str(id).isdigit()):
-		msg = "should be 'new' or a number: (%s)" % id
-		raise TypeError(msg)
-	if not active in ('false','true'):
-		msg = "should be 'true' or 'false': (%s)" % active
-		raise TypeError(msg)
+		print "Argumentet har ikke riktig syntax: %s" % args
+		args=""
+	
 	if handler not in mapper:
 		msg = "no such handler/type: (%s)" % handler
 		raise TypeError(msg)
-	if not type(args) == dict:
-		msg = "should be a dict: (%s)" % args
-		raise TypeError(msg)
-	return Service(id,active,sysname,handler,args)
+
+	return Service(sysname, handler, args)
 
 def fromFile(file):
 	new = []
@@ -56,6 +55,7 @@ def fromFile(file):
 			service = parseLine(i)
 			new += [service]
 	return new
+
 class DB:
 	def __init__(self,conf):
 		self.conf = conf
@@ -78,7 +78,6 @@ class DB:
 		for i in database.getJobs(0):
 			serviceid = i.getServiceid()
 			active = (i.active and 'true') or 'false'
-			#active = 'true'
 			boksid = i.getBoksid()
 			for j in self.boks:
 				if self.boks[j] == boksid:
@@ -87,36 +86,29 @@ class DB:
 			handler = i.getType()
 			args = i.getArgs()
 			
-			new = Service(serviceid,active,sysname,handler,args)
+			new = Service(sysname, handler, args, serviceid)
 			services += [new]
 		services.sort()
 		return services
 
-	def delete(self,serviceid):
-		print "serviceid: %s" % serviceid
+	def delete(self,service):
+		print "serviceid: %s" % service
 		s = self.db.cursor()
-		s.execute("DELETE FROM service WHERE serviceid = '%s'" % serviceid.id)
-	def updateservice(self,service):
-		s = self.db.cursor()
-		s.execute("UPDATE service SET boksid = %s, active = %s, handler = '%s' WHERE serviceid = %s" % (self.boks[service.sysname], service.active, service.handler, service.id))
-		self.insertargs(service)
+		s.execute("DELETE FROM service WHERE serviceid = '%s'" % service.id)
+
 	def insertservice(self,service):
-		if service.id != 'new':
-			raise Exception('EASDFG reality disfunction!!112')
 		s = self.db.cursor()
 		next = self.query("select nextval('service_serviceid_seq')")[0][0]
-#		try:
-		s.execute("INSERT INTO service (serviceid,boksid,active,handler) VALUES (%s,%s,%s,'%s')" % (next, self.boks[service.sysname], service.active, service.handler))
-#		except KeyError: # dette skal ikke kunne skje
-#			print "Boksen er sikkert ikke registrert: %s" % service.sysname
+		s.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, self.boks[service.sysname], service.handler))
 		service.id = next
 		self.insertargs(service)
-		#return next
+
 	def insertargs(self,service):
 		s = self.db.cursor()
 		s.execute('DELETE FROM serviceproperty WHERE serviceid = %s' % service.id)
 		for prop,value in service.args.items():
 			s.execute("INSERT INTO serviceproperty (serviceid,property,value) values (%s,'%s','%s')" % (service.id,prop,value))
+
 def newFile(file,conf):
 	conf = config.config(conf)
 	db = DB(conf)
@@ -137,34 +129,20 @@ def main(file,conf):
 	db = DB(conf)
 
 	print 'parsing file'
-	new = {}
-	newentries = []
-	for i in fromFile(file):
-		if i.id=="new":
-			newentries.append(i)
-		else:
-			new[i.id] = i
+	fileEntries = fromFile(file)
+	print "Entries in file: %i" % len(fileEntries)
 	
-	print "in file: %i" % (len(new) + len(newentries))
-	print "Newentries: %i" % len(newentries)
-	print 'fetching services from db'
 	db.connect()
-	result = db.fromDB()
-	print "in db: %i" % len(result)
+	dbEntries = db.fromDB()
+	print "Entries in db: %i" % len(dbEntries)
 
 	delete = []
-	for i in result:
-		if i not in new:
-			delete += [i]
-		elif new[i.id].sysname != i.sysname:
-			msg = 'serviceid and sysname do not match: (%s,%s) should be (%s,%s)' % (i,new[i],i,result[i])
-			raise TypeError(msg)
-	for i in new.values():
-		if i.sysname not in db.boks:
-			msg = 'sysname not found: (%s)' % i.sysname
-			raise TypeError(msg)
+	for each in dbEntries:
+		if each not in fileEntries:
+			delete.append(each)
+
 	if delete:
-		print 'to be deleted:'
+		print "Elements to be deleted: %i" % len(delete)
 		for i in delete:
 			print i
 		s = 0
@@ -178,23 +156,16 @@ def main(file,conf):
 			db.delete(i)
 	print 'updating db'
 
-	for i in new.values():
-#		print "updateing: %s" % i
-		if i.id == 'new':
-			print "This shouldn't happen"
-		else:
-			db.updateservice(i)
-	for i in newentries:
-		db.insertservice(i)
 
-	keys = new.keys()
-	keys.sort()
+	new=[]
+	for each in fileEntries:
+		if each not in dbEntries:
+			new.append(each)
+	print "Elements to add: %i" % len(new)
+	for each in new:
+		print "Adding service: %s" % each
+		db.insertservice(each)
 
-	print 'creating ' + file
-	file = open(file,'w')
-	file.write(HEADER + '\n')
-	for i in keys:
-		file.write('%s\n' % new[i])
 def help():
 	print """ - Setup -
 
