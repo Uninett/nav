@@ -272,11 +272,13 @@ public class Database
 	 * either commit() or rollback() is called.  </p>
 	 */
 	public static synchronized void beginTransaction() {
+		/*
 		try {
 			connection.setAutoCommit(false);
 		} catch (SQLException e) {
 			System.err.println("setAutoCommit error: " + e.getMessage());
 		}
+		*/
 	}
 
 	/**
@@ -285,12 +287,14 @@ public class Database
 	 * transaction.  </p>
 	 */
 	public static synchronized void commit() {
+		/*
 		try {
 			connection.commit();
 			connection.setAutoCommit(true);
 		} catch (SQLException e) {
 			System.err.println("Commit error: ".concat(e.getMessage()));
 		}
+		*/
 	}
 
 	/**
@@ -299,12 +303,14 @@ public class Database
 	 * transaction.  </p>
 	 */
 	public static synchronized void rollback() {
+		/*
 		try {
 			connection.rollback();
 			connection.setAutoCommit(true);
 		} catch (SQLException e) {
 			System.err.println("Rollback error: ".concat(e.getMessage()));
 		}
+		*/
 	}
 
 	/**
@@ -365,7 +371,7 @@ public class Database
 				} else {
 					first = false;
 				}
-				query += fieldValues[i];
+				query += addSlashesStrict(fieldValues[i]);
 			}
 		}
 
@@ -381,11 +387,12 @@ public class Database
 
 				String fnutt = "'";
 				if (fieldValues[i].equals("NOW()") ||
-						fieldValues[i].equals("null")) {
+						fieldValues[i].equals("null") ||
+						(fieldValues[i].startsWith("(") && !fieldValues[i].equals("(null)"))) {
 					fnutt = "";
 				}
 				
-				query += fnutt + fieldValues[i] + fnutt;
+				query += fnutt + addSlashesStrict(fieldValues[i]) + fnutt;
 			}
 		}
 		query += ")";
@@ -431,8 +438,9 @@ public class Database
 				String fnutt = "'";
 				if (fieldValues[i+1].equals("NOW()")) fnutt = "";
 				else if (fieldValues[i+1].equals("null")) fnutt = "";
+				else if (fieldValues[i+1].startsWith("(") && !fieldValues[i+1].equals("(null)")) fnutt = "";
 
-				query += fieldValues[i] + "=" + fnutt + addSlashes(fieldValues[i+1]) + fnutt;
+				query += fieldValues[i] + "=" + fnutt + addSlashesStrict(fieldValues[i+1]) + fnutt;
 			}
 		}
 		if (noUpdate) return 0;
@@ -441,7 +449,7 @@ public class Database
 		for (int i = 0; i < keyFieldValues.length; i += 2) {
 			if (i != 0) query += " AND ";
 
-			query += keyFieldValues[i] + "='" + addSlashes(keyFieldValues[i+1]) + "'";
+			query += keyFieldValues[i] + "='" + addSlashesStrict(keyFieldValues[i+1]) + "'";
 		}
 		return update(query);
 	}
@@ -484,13 +492,26 @@ public class Database
 
 
 	/**
+	 * <p> Make the given string "safe" (e.g. do not allow ( at the begining).
+	 * \) </p>
+	 *
+	 * @param s The string to make safe
+	 * @return a safe version of the string 
+	 */
+	public static String addSlashes(String s) {
+		if (s == null) return null;
+		if (s.startsWith("(")) return "\\" + s;
+		return s;
+	}
+
+	/**
 	 * <p> Escape any special characters in the given string (e.g. ' and
 	 * \) </p>
 	 *
 	 * @param s The string to escape
 	 * @return the string with special characters escaped
 	 */
-	public static String addSlashes(String s) {
+  private static String addSlashesStrict(String s) {
 		if (s == null) return null;
 		s = insertBefore(s, "\\", "\\");
 		s = insertBefore(s, "'", "\\");
