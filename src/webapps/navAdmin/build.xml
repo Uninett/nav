@@ -357,10 +357,12 @@
    description="Create binary distribution">
 
     <!-- Copy documentation subdirectories -->
+    <!-- Commented out, becase they don't exist
     <mkdir   dir="${dist.home}/docs"/>
     <copy    todir="${dist.home}/docs">
       <fileset dir="${docs.home}"/>
     </copy>
+    -->
 
     <!-- Create application JAR file -->
     <war destfile="${dist.home}/${app.name}.war"

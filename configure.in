@@ -56,8 +56,6 @@ AC_OUTPUT(Makefile
 	src/eventEngine/eventEngine.sh
 	src/networkDiscovery/networkDiscovery.sh
 	src/getBoksMacs/getBoksMacs.sh
-	src/webapps/navAdmin/runAvledTopologi.sh
-	src/webapps/navAdmin/runAvledVlan.sh
 	src/Makefile
 	subsystem/backup/Makefile
 	subsystem/pyproxy/Makefile
