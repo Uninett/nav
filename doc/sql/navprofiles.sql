@@ -871,28 +871,20 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 -- Gives access to most tools for restricted users (during alpha testing, at least)
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(index|report|status|editdb|emotd|alertprofiles|devicemanagement|machinetracker)/?');
 
--- Matchfields
 
-/* Matchfield.Datatype
-string:  0
-integer: 1
-ip adr:  2
+
+
+-- Matchfields
+/* 
+Matchfield.Datatype
+	string:  0
+	integer: 1
+	ip adr:  2
 */
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypeid', null, 'eventtype.eventtypeid', true, 
-'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)', 
-'Event types:<p><ul>
-<li><b>boxState</b>: Tells us whether a network-unit is down or up.</li>
-<li><b>serviceState</b>: Tells us whether a service on a server is up or down.</li>
-<li><b>moduleState</b>: Tells us whether a module in a device is working or not.</li>
-<li><b>thresholdState</b>: Tells us whether the load has passed a certain threshold.</li>
-<li><b>linkState</b>: Tells us whether a link is up or down.</li>
-<li><b>coldStart</b>: Tells us that a network-unit has done a coldstart</li>
-<li><b>warmStart</b>: Tells us that a network-unit has done a warmstart</li>
-<li><b>info</b>: Tells us that a network-unit has done a warmstart</li>
-<li><b>maintenanceState</b>: Tells us if something is set on maintenance.</li>
-</ul>');
+INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
+(10, 0, 'Event type', 'eventtype.eventtypeid', 'eventtype.eventtypedesc|[ID]: [NAME]', null, 'eventtype.eventtypeid', true, 
+'Event type: An event type describes a category of alarms. (Please note that alarm type is a more refined attribute. There are a set of alarm types within an event type.)');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 10);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
@@ -900,39 +892,52 @@ INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuec
 'Alert type: An alert type describes the various values an event type may take.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 11);
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(12, 0, 'Category', 'cat.catid', 'cat.descr|[ID]: [NAME]', null, 'cat.descr', true, 
-'Category: All equipment is categorized in 7 main categories.');
+INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr,valuehelp) VALUES 
+(12, 1, 'Severity', 'alertq.severity', null, null, null, false, 
+'Severity: Limit your alarms based on severity.',
+'Range: Severities are in the range 0-100, where 100 is most severe.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 12);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (1, 12);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (2, 12);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (3, 12);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (4, 12);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 12);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(13, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr|[ID]: [NAME]', 'subcat.catid', 'subcat.descr', true, 
-'Sub category: Within a catogory user-defined subcategories may exist.');
+(13, 0, 'Category', 'cat.catid', 'cat.descr|[ID]: [NAME]', null, 'cat.catid', true, 
+'Category: All equipment is categorized in 7 main categories.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 13);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(14, 0, 'Sysname', 'netbox.netboxid', null, null, null, false, 
-'Sysname: Limit your alarms based on sysname.');
+(14, 0, 'Sub category', 'subcat.subcatid', 'subcat.descr|[ID]: [NAME]', 'subcat.catid', 'subcat.descr', true, 
+'Sub category: Within a catogory user-defined subcategories may exist.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (6, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (8, 14);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (9, 14);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(15, 2, 'IP address', 'netbox.ip', null, null, null, false,
+(15, 0, 'Sysname', 'netbox.netboxid', null, null, null, false, 
+'Sysname: Limit your alarms based on sysname.',
+'Sysname examples:<blockquote>
+<b>Starts with:</b> samson.<br>
+<b>Ends with:</b> .stud.ntnu.no<br>
+<b>Contains:</b> .studby.<br>
+<b>Regexp:</b> [sbm][0-2][0-9]{2}[a-z]\\.studby\\.ntnu\\.no</blockquote>');
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 15);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 15);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (6, 15);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (7, 15);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (8, 15);
+INSERT INTO Operator (operatorid, matchfieldid) VALUES (9, 15);
+
+INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
+(16, 2, 'IP address', 'netbox.ip', null, null, null, false,
 'Limit your alarms based on an IP address/range (prefix)',
 'examples:<blockquote>
 129.241.190.190<br>
 129.241.190.0/24</br>
 129.241.0.0/16</blockquote>');
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 15);
-
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(16, 0, 'Organization', 'org.orgid', 'org.descr|[NAME] ([ID])', 'org.parent', 'org.descr', true, 
-'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 16);
+
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
 (17, 0, 'Room', 'room.roomid', 'room.descr|[ID]: [NAME]', 'room.locationid', 'room.roomid', true, 
@@ -940,35 +945,32 @@ INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuec
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 17);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(18, 0, 'Location', 'location.locationid', 'location.descr', null, 'location.descr', true, 
+(18, 0, 'Location', 'location.locationid', 'location.descr|[NAME] ([ID])', null, 'location.descr', true, 
 'Location: Limit your alarms based on location (a location contains a set of rooms) ');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 18);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(19, 0, 'Usage', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
-'Usage: Different network prefixes are mapped to usage areas.');
+(19, 0, 'Organization', 'org.orgid', 'org.descr|[NAME] ([ID])', 'org.parent', 'org.descr', true, 
+'Organization: Limit your alarms based on the organization ownership of the alarm in question.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 19);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(20, 0, 'Type', 'type.typeid', 'type.descr', 'type.vendorid', 'type.descr', true, 
-'Type: Limit your alarms equipment type');
+(20, 0, 'Usage', 'usage.usageid', 'usage.descr', null, 'usage.descr', true, 
+'Usage: Different network prefixes are mapped to usage areas.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 20);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
-(21, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
-'Equipment vendor: Limit alert by the vendor of the netbox.');
+(21, 0, 'Type', 'type.typeid', 'type.descr', 'type.vendorid', 'type.descr', true, 
+'Type: Limit your alarms equipment type');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 21);
 
-INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr,valuehelp) VALUES 
-(22, 1, 'Severity', 'alertq.severity', null, null, null, false, 
-'Severity: Limit your alarms based on severity.',
-'Range: Severities are in the range 0-100, where 100 is most severe.');
+INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
+(22, 0, 'Equipment vendor', 'vendor.vendorid', 'vendor.vendorid', null, 'vendor.vendorid', true,
+'Equipment vendor: Limit alert by the vendor of the netbox.');
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 22);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (1, 16);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (2, 16);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (3, 16);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (4, 16);
-INSERT INTO Operator (operatorid, matchfieldid) VALUES (5, 16);
+
+
+
 
 
 
