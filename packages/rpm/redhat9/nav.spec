@@ -1,10 +1,10 @@
-%define version 3.0_devel
+%define version 3.0_beta1
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 1
+Release: 2
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
@@ -92,6 +92,10 @@ fi
 
 
 %changelog
+* Tue Mar 09 2004  <morten.vold@itea.ntnu.no>
+
+- Some files weren't updated before first beta release was rolled.
+
 * Tue Mar 09 2004  <morten.vold@itea.ntnu.no>
 
 - First beta release.
