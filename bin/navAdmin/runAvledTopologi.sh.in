@@ -17,4 +17,4 @@ CUR_DIR="${bindir}/navAdmin"
 REPORT_DIR="${localstatedir}/log"
 
 cd $CUR_DIR
-$JAVA_HOME/bin/java -cp "NavUtils.jar:$CLASSPATH" NavUtils $CONF_FILE -avledTopologi > "$REPORT_DIR/avledTopologi.html"
+$JAVA_HOME/bin/java -cp "NavUtils.jar:$CLASSPATH" NavUtils -avledTopologi > "$REPORT_DIR/avledTopologi.html"
