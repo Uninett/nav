@@ -20,13 +20,20 @@
 					 overview="overview.html"
            additionalparam="-breakiterator">
 
-
 		<!-- getDeviceData -->
     <packageset dir="../getDeviceData/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 
 		<!-- getDeviceData data plugins -->
+    <packageset dir="../getDeviceData/data-plugins/NetboxInfo/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/data-plugins/Module/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/data-plugins/Swport/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
