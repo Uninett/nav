@@ -6,6 +6,7 @@ This module encompasses modules with web functionality for NAV.
 
 Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
+         Magnar Sveen <magnars@idi.ntnu.no>
 """
 import state
 import auth
@@ -56,3 +57,12 @@ def redirect(req, url, temporary=False, seeOther=False):
     req.headers_out['Location'] = url
     req.status = status
     raise apache.SERVER_RETURN, status
+
+def shouldShow(link, user):
+    """
+    Checks if a link should be shown on the webpage. If the link
+    starts with 'http://' or 'https://' it is considered an external
+    link and allowed. Internal links are checked using nav.auth.hasPrivilege.
+    """
+    startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
+    return startsWithHTTP or nav.auth.hasPrivilege(user, 'web_access', link)
