@@ -98,21 +98,31 @@ public class Server implements DeviceHandler
             }
             String[] s = (String[])result.get(0);
 						String descr = s[1];
-            Log.i("getSnmp", "sysDescr found: " + descr);
+            Log.d("getSnmp", "sysDescr found: " + descr);
             NetboxInfo.put("snmp_agent", descr);
-            String os;
-            if (descr.equals(OID_solarisAgent)) {
-                os = "solaris";
-            } else if (descr.equals(OID_linuxAgent)) {
-                os = "linux";
-            } else if (descr.startsWith(OID_bugAgent)) {
-                os = "unix"; // when is this?
-            } else if (descr.startsWith(OID_windows)) {
-                os = "windows"; // could guess version
-            } else {
-                os = "unknown";
+
+            snmp.setBaseOid(OID_sysObjectID);
+            result = snmp.getAll(false);
+            if ( result.isEmpty() ) {
+                Log.w("getSnmp", "No sysObjectID found");
+                return;
             }
-            Log.i("getSnmp", "os guessed: " + os);
+						s = (String[])result.get(0);
+						descr = s[1];
+						String os;
+						if (descr.equals(OID_solarisAgent)) {
+							os = "solaris";
+            } else if (descr.equals(OID_linuxAgent)) {
+							os = "linux";
+            } else if (descr.startsWith(OID_bugAgent)) {
+							os = "unix"; // when is this?
+            } else if (descr.startsWith(OID_windows)) {
+							os = "windows"; // could guess version
+            } else {
+							Log.i("getSnmp", "OID_Agent not identified: " + descr);
+							os = "unknown";
+            }
+            Log.d("getSnmp", "os guessed: " + os);
             NetboxInfo.put("os_guess", os);
         }
         void getDisks() {
@@ -146,7 +156,7 @@ public class Server implements DeviceHandler
                 if (type.equals(OID_filesystemUnknown)) 
                     continue;
                 if (type.equals("") || descr.equals("")) {
-                    Log.i("getDisks", "Skipping disk " + id + " since it has no description or type");
+                    Log.d("getDisks", "Skipping disk " + id + " since it has no description or type");
                     continue;
                 }
                 try {
@@ -223,6 +233,7 @@ public class Server implements DeviceHandler
         // caller?)
         snmp.setHost(nb.getIp());
         snmp.setCs_ro(nb.getCommunityRo());
+				NetboxInfo.setDefaultNetboxid(nb.getNetboxidS());
         ServerHandler handler = new ServerHandler(nb, snmp, cp, containers);
         handler.getSnmp();
         handler.getDisks();
