@@ -7,6 +7,8 @@ use strict;
 my $db = "manage";
 my $conn = db_connect($db);
 my ($fil,$tabell,@felt);
+my $forelder;
+my %forelder;
 #--------------ANV-------------
 $fil = "/usr/local/nav/etc/anv.txt";
 $tabell = "anv";
@@ -25,8 +27,7 @@ $tabell = "rom";
 #--------------ORG-------------
 $fil = "/usr/local/nav/etc/org.txt";
 $tabell = "org";
-@felt = ("orgid","forelder","descr","org2","org3","org4");
-&db_endring($fil,$tabell,\@felt);
+$forelder = "1";
 @felt = ("orgid","forelder","descr","org2","org3","org4");
 &db_endring($fil,$tabell,\@felt);
 #--------------FELLES_KODE-----
@@ -44,6 +45,10 @@ sub db_endring {
 	    (@_,undef) = split(/:/,$_,scalar(@felt)+1); 
 	    @gen = map rydd($_), @_; #rydder opp
 	    $ny{$gen[0]} = [ @gen ]; #legger inn i hash
+#foreldrehash dersom kolonnenummer som tilsvarer foreldre er satt, settes forelder til dette
+	    if ($forelder) {
+		$forelder{$gen[0]} = $gen[$forelder];
+	    }
 	}
 	close FIL;
     }
@@ -57,7 +62,7 @@ sub db_endring {
     }
 
     #alle nøklene i hashen ny
-    for my $f (keys %ny) {
+    LOOP: for my $f (keys %ny) {
 
 	#eksisterer i databasen?
 	if($gammel{$f}[0]) {
@@ -82,30 +87,37 @@ sub db_endring {
 		    }
 		}
 	    }
+	    delete $ny{$f};
+	    delete $gammel{$f};
 	}else{
 #-----------------------
 #INSERT
-	    print "\nSetter inn $ny{$f}[0]";
-	    my @val;
-	    my @key;
-	    foreach my $i (0..$#felt) {
-		if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
-		    #normal
-		    push(@val, "\'".$ny{$f}[$i]."\'");
-		    push(@key, $felt[$i]);
-		} elsif (defined($ny{$f}[$i])) {
-		    #null
-		    push(@val, "NULL");
-		    push(@key, $felt[$i]);
+	    if($forelder{$f} and exists($ny{$forelder{$f}})){
+		print "\nSetter inn $ny{$f}[0]";
+		my @val;
+		my @key;
+		foreach my $i (0..$#felt) {
+		    if (defined($ny{$f}[$i]) && $ny{$f}[$i] ne ""){
+			#normal
+			push(@val, "\'".$ny{$f}[$i]."\'");
+			push(@key, $felt[$i]);
+		    } elsif (defined($ny{$f}[$i])) {
+			#null
+			push(@val, "NULL");
+			push(@key, $felt[$i]);
+		    }
 		}
-	    }
-	    if(scalar(@key)){ #key eksisterer
-		print scalar(@key);
-		$sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-		print $sql;
-		db_execute($sql,$conn);
+		if(scalar(@key)){ #key eksisterer
+		    print scalar(@key);
+		    $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
+		    print $sql;
+		    db_execute($sql,$conn);
+		}
+		delete $ny{$f};
+		delete $gammel{$f};
 	    }
 	}
+	next LOOP unless scalar(keys %ny);
     }
 #-----------------------------------
 #DELETE

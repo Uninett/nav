@@ -95,11 +95,11 @@ my $trunk_iossw    = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 #henter snmp-data og legger dem i hashen swport
 foreach my $boksid (keys %boks) { #keys boks
 
-    if ($boks{$boksid}{sysname} eq 'rfb-409-sw')
-    {
+#    if ($boks{$boksid}{sysname} eq 'rfb-409-sw')
+#    {
 	&hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
 	
-    }
+#    }
 }
 
 
@@ -117,12 +117,6 @@ foreach $swid (keys %swport) {
 
 my $boksid;
 my $ifindex;
-
-foreach $boksid (keys %swportid)
-{
-    print "$boksid\n";
-
-}
 my $vlanid;
 
 foreach $vlanid (keys %swportvlan)
@@ -177,7 +171,7 @@ sub sammenlikn {
     my @felt = @{$_[2]};
     my $tabell = $_[3];
     my $f = $_[4]; #hashens id
-    my $nokkel = "id"; #nøkkel
+    my $nokkel = "swportid"; #nøkkel
     my $id = $_[5]; #nøkkelens match
     my @line;
 
@@ -368,33 +362,26 @@ sub hent_catsw
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
 
-	$if{$mp2if{$mp}}{trunk} = $temp % 2; 
+#	$if{$mp2if{$mp}}{trunk} = $temp % 2; 
 
-	if ($if{$mp2if{$mp}}{trunk} == 1)
+	if ($temp == 1)
 	{
 	    $if{$mp2if{$mp}}{trunk} = 't';
-	}
-	else {
-	    $if{$mp2if{$mp}}{trunk} = 'f';
-	}
-
-#	print "TRUNK $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{trunk}\n";
-
-	if ($if{$mp2if{$mp}}{trunk} eq 't')
-	{
 	    foreach $temp (keys %tempvlan)
 	    {
 #		print "$mp\t$temp\n";
 		$vlanid = "$id:$mp2if{$mp}:$temp";
 		$swportvlan{$vlanid}++;
 	    }
-	    
+
+
+
 	}
-#	else # ikke trunk
-#	{
-#	    $vlanid = "$id:$mp2if{$mp}:$if{$mp2if{$mp}}{vlan}"; 
-#	    $swportvlan{$vlanid}++;
-#	}
+	else {
+	    $if{$mp2if{$mp}}{trunk} = 'f';
+	}
+
+#	print "TRUNK $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{trunk}\n";
 
 #	$ii2mp{$temp} = $mp;
     }
@@ -407,13 +394,6 @@ sub hent_catsw
 	$if{$mp2if{$mp}}{portnavn} = $temp; 
 #	print "NAME".$mp2if{$mp}.":".$temp."\n";
 
-## Dropper å skrive til boksbak
-#	if ($temp =~ /^n|h|o|link|srv/i)
-#	{
-#	    (undef,my $sysName) = split(/:/,$temp);
-#	    $if{$mp2if{$mp}}{boksbak} = $sysname2id{$sysName};
-#	    print $if{$mp2if{$mp}}{boksbak};
-#	}
     }
 
     foreach my $interface (keys %if) 
@@ -467,7 +447,7 @@ sub hent_iossw {
 	$mp =~ s/FastEthernet/Fa/i;
 	$mp =~ s/GigabitEthernet/Gi/i;
 	($if{$temp}{modul}, $if{$temp}{port}) = split /\//,$mp;
-	$mp2if{$mp} = $temp; 
+#	$mp2if{$mp} = $temp; 
 	$if{$temp}{ifindex} = $temp;
 #	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
 #	$ii2mp{$temp} = $mp;
@@ -475,19 +455,19 @@ sub hent_iossw {
      
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_iossw);
     foreach $line (@temp)    {
-	($mp,$temp) = split(/:/,$line);
-
+	(my $port,$temp) = split(/:/,$line);
+	my $ifi = $port+1;
 	# Oversetter fra tall til beskrivelse
 	if ($temp == 1)
 	{
-	    $if{$mp}{duplex} = 'full'; 
+	    $if{$ifi}{duplex} = 'full'; 
 	}
 	else
 	{
-	    $if{$mp}{duplex} = 'half'; 
+	    $if{$ifi}{duplex} = 'half'; 
 	}
 
-#	print "DUPLEX".$mp.":".$temp.":".$mp."\n";
+#	print "DUPLEX\t$ifi\t$temp\t$if{$ifi}{duplex}\n";
 	
 #	$ii2mp{$temp} = $mp;
     }
@@ -504,21 +484,20 @@ sub hent_iossw {
 
     @temp = &snmpwalk($ro."\@".$ip,$Status_iossw);
     foreach $line (@temp)    {
-	($mp,$temp) = split(/:/,$line);
+	(my $ifi,$temp) = split(/:/,$line);
 
 # Oversetter fra tall til up/down.
 	if ($temp == 1)
 	{
-	    $if{$mp}{status} = 'up';
+	    $if{$ifi}{status} = 'up';
 	}
 	else
 	{
-	    $if{$mp}{status} = 'down';
+	    $if{$ifi}{status} = 'down';
 	}
 
 #	print "STATUS".$mp.":".$temp."\n";
 	
-#	$ii2mp{$temp} = $mp;
     }
     @temp = &snmpwalk($ro."\@".$ip,$Speed);
     foreach $line (@temp)    {
@@ -534,14 +513,12 @@ sub hent_iossw {
 
     @temp = &snmpwalk($ro."\@".$ip,$vlan_iossw);
     foreach $line (@temp) {
-	($mp,$temp) = split(/:/,$line);
-	$if{$mp2if{$mp}}{vlan} = $temp;
+	(my $ifi,$temp) = split(/:/,$line);
+	$if{$ifi}{vlan} = $temp;
 	
-#	print "VLAN $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{vlan}\n";
+#	print "VLAN $ifi\t$temp\t$if{$ifi}{vlan}\n";
 
-	my $temp2 = $mp+1;
-	
-	$vlanid = "$id:$temp2:$if{$mp2if{$mp}}{vlan}"; 
+	$vlanid = "$id:$ifi:$temp"; 
 	$swportvlan{$vlanid}++;
 
 	$tempvlan{$temp}++;
@@ -550,44 +527,31 @@ sub hent_iossw {
     
     @temp = &snmpwalk($ro."\@".$ip,$trunk_iossw);
     foreach $line (@temp)    {
-	($mp,$temp) = split(/:/,$line);
-
+	(my $port,$temp) = split(/:/,$line);
+	my $ifi = $port+1;
 	# $temp=0 betyr trunk, ikke ellers.
 
 	if ($temp == 0) {
-	    $if{$mp}{trunk} = 't';
-	}
-	else {
-	    $if{$mp}{trunk} = 'f';  
-	}
-
-	if ($if{$mp}{trunk} eq 't')
-	{
-	    foreach $temp (keys %tempvlan)
+	    $if{$ifi}{trunk} = 't';
+	    foreach my $temp2 (keys %tempvlan)
 	    {
 #		print "$mp\t$temp\n";
-		my $temp2=$mp+1;
-		$vlanid = "$id:$temp2:$temp";
+		$vlanid = "$id:$ifi:$temp2";
 		$swportvlan{$vlanid}++;
 	    }	    
 	}
-#	else
-#	{
-#	    $vlanid = "$id:$mp:$if{$mp2if{$mp}}{vlan}"; 
-#	    $swportvlan{$vlanid}++;
-#	}
+	else {
+	    $if{$ifi}{trunk} = 'f';  
+	}
 
-#	print "TRUNK $mp : $temp : $if{$mp}{trunk}\n";
-	
-#	$ii2mp{$temp} = $mp;
     }
 
 
     @temp = &snmpwalk($ro."\@".$ip,$portName_iossw);
     foreach $line (@temp)
     {
-	($mp,$temp) = split(/:/,$line,2);
-	$if{$mp}{portnavn} = $temp; 
+	(my $ifi, $temp) = split(/:/,$line,2);
+	$if{$ifi}{portnavn} = $temp; 
 #	print "NAME".$mp.":".$temp."\n";
 
     }
@@ -604,8 +568,7 @@ sub hent_iossw {
 				   $if{$interface}{status},
 				   $if{$interface}{speed},
 				   $if{$interface}{duplex},
-	   # Trunk har ikke data for vlan1, begynner derfor aa telle fra 1 paa fa0/1 :(	   
-				   $if{$interface-1}{trunk},
+				   $if{$interface}{trunk},
 				   $if{$interface}{static},
 				   $if{$interface}{portnavn},
 				   $if{$interface}{boksbak} ];
@@ -625,7 +588,7 @@ sub hent_iossw {
 sub hent_db_boks
 {
     %boks = ();
-    $sql = "SELECT id,ip,sysname,typegruppe,watch,ro FROM boks,type WHERE type.type=boks.type and kat=\'SW\' ORDER BY id";
+    $sql = "SELECT boksid,ip,sysname,typegruppe,watch,ro FROM boks,type WHERE type.typeid=boks.typeid and kat=\'SW\' ORDER BY boksid";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -650,7 +613,7 @@ sub hent_db_boks
 sub hent_db_swport
 {
     %db_swport = ();
-    $sql = "SELECT id,".join(",", @felt_swport)." FROM swport ORDER BY id";
+    $sql = "SELECT swportid,".join(",", @felt_swport)." FROM swport ORDER BY swportid";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -670,7 +633,7 @@ sub hent_db_swportvlan
 
     my %temp1 = ();
 
-    my $sql1 = "SELECT id,boksid,ifindex FROM swport";
+    my $sql1 = "SELECT swportid,boksid,ifindex FROM swport";
 
     my $sql2 = "SELECT swportid,vlan FROM swportvlan";
     

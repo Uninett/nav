@@ -52,20 +52,22 @@ open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
 while (<FIL>) {
 #leser bare kolonner med "ord:"
 
-    next unless /^(\w+?\:)(\S+?)\:/; 
+    next unless /^\w+?\:\S+?\:/; 
     (@_,undef) = split /:/, $_,$les+1;
 
     @_ = map rydd($_), @_;
 
-    $ip = hent_ip($2);
-    $type = hent_type($ip,$_[5]);
-    @gen = ($ip,$type,@_[0..5],undef);
-    
+    if($ip = hent_ip($_[1])){
+	@gen = ($ip,undef,@_[0..5],undef);
+	
 #fjerner "whitespace"-tegn
-    @gen = map rydd($_), @gen;
-    
+	@gen = map rydd($_), @gen;
+	
 #lagrer array i hash
-    $fil{$gen[0]} = [ @gen ];
+	$fil{$gen[0]} = [ @gen ];
+    } else {
+	print "DNS-feil\n";
+    }
 }
 close FIL;
 
@@ -166,8 +168,11 @@ for my $f (keys %db) {
 
 sub hent_ip{
     if (defined $_[0]){
-	$_ = gethostbyname($_[0]);
-	return inet_ntoa($_);
+	if(my $ip = gethostbyname($_[0])){
+	    return inet_ntoa($ip);
+	} else {
+	    return 0;
+	}
     } else {
 	return "";
     }   
@@ -207,7 +212,7 @@ sub db_execute {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
 	unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
     return $resultat;
 }
