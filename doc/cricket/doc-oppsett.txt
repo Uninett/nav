@@ -102,7 +102,7 @@ Oversikt
         Patchen er i cvs:contrib/net-snmp-memory.patch
      
      ii) net-snmp rapp. feil i system.sysObjectID.0
-     	 patch kommer etterhvert på sourceforge.net 
+     	 patchen kom på sourceforge.net 
 	 se pkt 7v) og pkt 9 for mer forklaring og link
      
 
@@ -322,9 +322,9 @@ Oversikt
     feks solaris , linux. Dette er ikke mulig da feltet
     system.sysObjectID.0 alltid gir ut samme verdi (1.3.6.1.4.1.8072.3.2)
     for solaris og linux. Det kom imidlertid ut en patch siste arbeidsdag
-    som vi prøvde , denne patchen virket seff ikke.
-    Se pkt 9 der vi har link. Midlertidig fiks er lagd i jyhton scriptet
-    
+    som vi prøvde , denne patchen virket bra.
+    Se pkt 9 der vi har link.
+   
 
 8) Vyer
    * hente info fra salmaskiner
@@ -345,7 +345,12 @@ Oversikt
      (enklere for NT-admins på høyskoler)
    * tilgangskontroll  
    * Ny parallellisert innsamler
-  
+   * Vi må få hentet inn diskIO på boksene:
+   	Dette kan gjøres på en enkel måte , i Default fila til cricket ligger 
+	alt til rette for dette (trenger ikke gjøre noen forandring) men man 
+	må kommentere inn noen linjer i makeconfig scriptet (kommenter inn linjene 
+	i disk angående disksolaris). I tillegg må det legges inn støtte for dette 
+	i diskDevice.java og jython plugin scriptet.
 
 9) Linker
    cricket sin hjemmeside:
