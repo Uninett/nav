@@ -580,41 +580,41 @@ CREATE VIEW rrddatasourcenetbox AS
 CREATE TABLE eventtype (
   eventtypeid VARCHAR(32) PRIMARY KEY,
   eventtypedesc VARCHAR,
-  statefull CHAR(1) NOT NULL CHECK (statefull='y' OR statefull='n')
+  stateful CHAR(1) NOT NULL CHECK (stateful='y' OR stateful='n')
 );
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
   ('boxState','Tells us whether a network-unit is down or up.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES 
   ('serviceState','Tells us whether a service on a server is up or down.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('moduleState','Tells us whether a module in a device is working or not.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('thresholdState','Tells us whether the load has passed a certain threshold.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('linkState','Tells us whether a link is up or down.','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('coldStart','Tells us that a network-unit has done a coldstart','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('warmStart','Tells us that a network-unit has done a warmstart','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('info','Basic information','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceRegistered','Tells us that a device has been registered with a serial number','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceError','Registers an error situation with a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceOnService','Registers that a device is put on service','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceInOperation','Registers that a device is in operation','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceSwUpgrade','Registers a sofware upgrade on a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceHwUpgrade','Registers a hardware upgrade on a device','n');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceRma','Registers an RMA event for a device','y');
-INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
 
 DROP TABLE eventq CASCADE;
