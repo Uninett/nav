@@ -53,7 +53,8 @@ public class MibIISw implements DeviceHandler
 		"ifAdminStatus",
 		"ifOperStatus",
 		"ifDescr",
-		"moduleMon"
+		"moduleMon",
+		"vtpVlanState",
 	};
 
 	private SimpleSnmp sSnmp;
@@ -170,12 +171,29 @@ public class MibIISw implements DeviceHandler
 		}
 
 		List l;
+		// If vtpVlanState is supported, collect VLANs
+		if (nb.getOid("vtpVlanState") != null) {
+			l = sSnmp.getAll(nb.getOid("vtpVlanState")+".1");
+			if (l != null) {
+				NetboxData nd = nc.netboxDataFactory(nb);
+				for (Iterator it = l.iterator(); it.hasNext();) {
+					String[] s = (String[])it.next();
+					try {
+						nd.addVtpVlan(Integer.parseInt(s[0]));
+					} catch (NumberFormatException e) {
+						e.printStackTrace(System.err);
+					}
+				}
+				nc.commit();
+			}
+		}
 
 		// Collect serial for chassis
 		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
 		if (l != null && !l.isEmpty()) {
 			String[] s = (String[])l.get(0);
 			nc.netboxDataFactory(nb).setSerial(s[1]);
+			nc.commit();
 		}
 
 		// Collect sysname and uptime

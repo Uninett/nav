@@ -79,4 +79,12 @@ public interface Netbox
 	 */
 	public String getOid(String key);
 
+	/**
+	 * <p>Get a key which uniquely identifies this netbox. Currently
+	 * the netboxid is returned. </p>
+	 *
+	 * @return the netboxid
+	 */
+	public String getKey();
+
 }

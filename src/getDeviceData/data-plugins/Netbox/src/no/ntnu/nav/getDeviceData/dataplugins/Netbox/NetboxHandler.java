@@ -62,13 +62,13 @@ public class NetboxHandler implements DataHandler {
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
 			set = Collections.synchronizedSet(new HashSet());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime FROM device JOIN netbox USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,netboxid,sysname,upsince,EXTRACT(EPOCH FROM upsince) AS uptime,vtpvlan FROM device JOIN netbox USING (deviceid) LEFT JOIN netbox_vtpvlan USING (netboxid) ORDER BY netboxid");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
-																			rs.getString("hw_ver"),
-																			rs.getString("fw_ver"),
-																			rs.getString("sw_ver"),
-																			null);
+											  rs.getString("hw_ver"),
+											  rs.getString("fw_ver"),
+											  rs.getString("sw_ver"),
+											  null);
 				n.setDeviceid(rs.getInt("deviceid"));
 				n.setSysname(rs.getString("sysname"));
 				n.setUpsince(rs.getString("upsince"));
@@ -77,7 +77,14 @@ public class NetboxHandler implements DataHandler {
 				
 				String key = rs.getString("netboxid");
 				m.put(key, n);
+				
+				int netboxid = rs.getInt("netboxid");
+				do {
+					n.addVtpVlan(rs.getInt("vtpvlan"));
+				} while (rs.next() && rs.getInt("netboxid") == netboxid);
+				rs.previous();
 			}
+
 			netboxMap = m;
 			sysnameSet = set;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
@@ -163,6 +170,25 @@ public class NetboxHandler implements DataHandler {
 				EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "info", Event.STATE_NONE, 0, 0, varMap);
 				netboxMap.remove(netboxid);
 				return;
+			}
+
+			// Update vtpVlan if necessary
+			try {
+				Database.beginTransaction();
+				for (Iterator addIt = n.vtpVlanDifference(oldn).iterator(); addIt.hasNext();) {
+					String[] ins = {
+						"netboxid", netboxid,
+						"vtpvlan", ""+addIt.next(),
+					};
+					Database.insert("netbox_vtpvlan", ins);
+				}
+				for (Iterator delIt = oldn.vtpVlanDifference(n).iterator(); delIt.hasNext();) {
+					Database.update("DELETE FROM netbox_vtpvlan WHERE netboxid="+netboxid+" AND vtpvlan='"+delIt.next()+"'");
+				}
+				Database.commit();
+			} catch (SQLException e) {
+				e.printStackTrace(System.err);
+				Database.rollback();
 			}
 
 			String deltaS = oldn != null ? " delta = " + util.format(n.uptimeDelta(oldn),1) + "s" : "";

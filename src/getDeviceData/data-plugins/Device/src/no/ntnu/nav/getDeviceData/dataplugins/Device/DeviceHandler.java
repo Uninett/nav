@@ -77,7 +77,7 @@ public class DeviceHandler implements DataHandler {
 		// Check if we find the device in the DB
 		if (serial != null && serial.length() > 0) {
 			ResultSet rs = Database.query("SELECT deviceid,hw_ver,fw_ver,sw_ver FROM device WHERE serial = '" + serial + "'");
-			if (rs.next()) {				
+			if (rs.next()) {
 				deviceid = rs.getString("deviceid");
 				String hw_ver = rs.getString("hw_ver");
 				String fw_ver = rs.getString("fw_ver");
@@ -143,6 +143,8 @@ public class DeviceHandler implements DataHandler {
 					if (!dev.equalsDevice(olddev)) {
 						// Device needs to be updated
 						Log.i("UPDATE_DEVICE", "Update deviceid="+deviceid+" serial="+dev.getSerial()+" hw_ver="+dev.getHwVer()+" fw_ver="+dev.getFwVer()+" sw_ver="+dev.getSwVer());
+						//System.err.println("new: " + dev);
+						//System.err.println("old: " + olddev);
 						
 						String[] set = {
 							"serial", dev.getSerial(),
@@ -184,6 +186,7 @@ public class DeviceHandler implements DataHandler {
 							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 					}
+					dev.setEqual(olddev);
 				}
 				dev.setDeviceid(deviceid);
 

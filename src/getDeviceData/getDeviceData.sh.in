@@ -37,6 +37,6 @@ fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xmx268435456 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 >> ${OUTLOG} 2> ${ERRLOG} &
+$JAVA_HOME/bin/java -Xincgc -Xmx536870912 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 >> ${OUTLOG} 2> ${ERRLOG} &
 pidno="$!"
 echo $pidno > $PIDFILE

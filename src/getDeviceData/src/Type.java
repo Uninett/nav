@@ -13,25 +13,13 @@ public class Type
 	private String vendor;
 	private int csAtVlan;
 	private boolean chassis;
-	private boolean uptodate;
-	private boolean dirty;
 
-	// Maps an OID key to frequency in seconds
-	private Map keyFreqMap;
-
-	// Maps an OID key to Snmpoid
-	private Map keyMap;
-
-	Type(String typeid, String typename, String vendor, int csAtVlan, boolean chassis, boolean uptodate, Map keyFreqMap, Map keyMap) {
+	Type(String typeid, String typename, String vendor, int csAtVlan, boolean chassis) {
 		this.typeid = typeid;
 		this.typename = typename;
 		this.vendor = vendor;
 		this.csAtVlan = csAtVlan;
 		this.chassis = chassis;
-		this.uptodate = uptodate;
-		this.keyFreqMap = keyFreqMap;
-		this.keyMap = keyMap;
-		if (!uptodate) dirty = true;
 	}
 
 	public String getTypeid() {
@@ -44,31 +32,6 @@ public class Type
 	
 	String getVendor() {
 		return vendor;
-	}
-
-	Iterator getKeyFreqMapIterator() {
-		return keyFreqMap.entrySet().iterator();
-	}
-
-	int getFreq(String key) {
-		return ((Integer)keyFreqMap.get(key)).intValue();
-	}
-
-	String getOid(String key) {
-		Snmpoid snmpoid = (Snmpoid)keyMap.get(key);
-		return snmpoid == null ? null : snmpoid.getSnmpoid();
-	}
-
-	Iterator getOidIterator() {
-		return keyMap.values().iterator();
-	}
-
-	void setDirty(boolean dirty) {
-		this.dirty = dirty;
-	}
-
-	boolean getDirty() {
-		return dirty;
 	}
 
 	void setCsAtVlan(int i) {
@@ -94,16 +57,6 @@ public class Type
 		this.chassis = chassis;
 	}
 
-	boolean getUptodate() {
-		return uptodate;
-	}
-
-	void addSnmpoid(int freq, Snmpoid snmpoid) {
-		String oidkey = snmpoid.getOidkey();
-		keyFreqMap.put(oidkey, new Integer(freq));
-		keyMap.put(oidkey, snmpoid);
-	}
-	
 	public String getKey() {
 		return "t" + getTypeid();
 	}

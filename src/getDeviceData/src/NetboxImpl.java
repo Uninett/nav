@@ -21,6 +21,12 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	private boolean updateNetboxes;
 	private boolean recreate;
 
+	// Maps an OID key to frequency in seconds
+	private Map keyFreqMap;
+
+	// Maps an OID key to Snmpoid
+	private Map keyMap;
+
 	// Shared
 	Type t;
 
@@ -32,11 +38,13 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	// Run queue
 	private SortedMap oidRunQ;
 
-	NetboxImpl(int netboxNum, Type t) {
+	NetboxImpl(int netboxNum, Type t, Map keyFreqMap, Map keyMap) {
 		this.netboxNum = netboxNum;
 		oidRunQ = Collections.synchronizedSortedMap(new TreeMap());
 		oidNextRunMap = Collections.synchronizedMap(new HashMap());
-		setType(t);
+		this.t = t;
+		this.keyFreqMap = keyFreqMap;
+		this.keyMap = keyMap;
 	}
 
 	public int getNum() { return netboxNum; }
@@ -100,7 +108,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		Set r = new HashSet();
 		r.addAll(oidNextRunMap.keySet());
 
-		for (Iterator it = t.getKeyFreqMapIterator(); it.hasNext();) {
+		for (Iterator it = keyFreqMap.entrySet().iterator(); it.hasNext();) {
 			Map.Entry me = (Map.Entry)it.next();
 			String oidkey = (String)me.getKey();
 			r.remove(oidkey);
@@ -156,12 +164,27 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		return false;
 	}
 
+	void addSnmpoid(int freq, Snmpoid snmpoid) {
+		String oidkey = snmpoid.getOidkey();
+		keyFreqMap.put(oidkey, new Integer(freq));
+		keyMap.put(oidkey, snmpoid);
+	}
+
 	// Doc in interface
 	public String getOid(String key) {
 		if (canGetOid(key)) {
-			return t.getOid(key);
+			return getOidNoCheck(key);
 		}
 		return null;
+	}
+
+	int getFreq(String key) {
+		return ((Integer)keyFreqMap.get(key)).intValue();
+	}
+
+	String getOidNoCheck(String key) {
+		Snmpoid snmpoid = (Snmpoid)keyMap.get(key);
+		return snmpoid == null ? null : snmpoid.getSnmpoid();
 	}
 
 	// Doc in interface
@@ -184,7 +207,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		String oidkey;
 		while ((oidkey = removeRunQHead()) != null) {
 			// Freq is in seconds, convert to milliseconds
-			long freq = t.getFreq(oidkey);
+			long freq = getFreq(oidkey);
 			freq *= 1000;
 
 			// Calculate time of next run.
@@ -246,8 +269,12 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		remove();
 	}
 
+	public String getKey() {
+		return getNetboxidS();
+	}
+
 	public String toString() {
-		return "Netbox: " + getSysname();
+		return getSysname();
 	}
 	
 

@@ -1,8 +1,6 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Netbox;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.getDeviceData.Netbox;
@@ -26,6 +24,7 @@ public class NetboxData extends Device
 	private double uptime;
 	//private long curTime;
 	//private long baseTime;
+	private Set vtpVlanSet = new HashSet();
 
 	//public long u1,u2;
 
@@ -86,6 +85,23 @@ public class NetboxData extends Device
 	long getTicks() { return uptimeToTicks(getUptime()); }
 	//double getUptime() { return uptime - (System.currentTimeMillis()-baseTime)/1000.0; }
 	double getUptime() { return uptime; }
+
+	/**
+	 * Add a VTP vlan to the netbox.
+	 */
+	public void addVtpVlan(int vtpVlan) {
+		if (vtpVlan > 0 && vtpVlan <= 999) {
+			vtpVlanSet.add(""+vtpVlan);
+		}
+	}
+	Iterator vtpVlanIterator() {
+		return vtpVlanSet.iterator();
+	}
+	Set vtpVlanDifference(NetboxData nd) {
+		Set diff = new HashSet(vtpVlanSet);
+		diff.removeAll(nd.vtpVlanSet);
+		return diff;
+	}
 
 	// Doc in parent
 	protected boolean hasEmptySerial() { return super.hasEmptySerial(); }

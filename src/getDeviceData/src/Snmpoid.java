@@ -1,4 +1,7 @@
 import java.util.*;
+import java.sql.*;
+
+import no.ntnu.nav.Database.*;
 
 public class Snmpoid
 {
@@ -71,6 +74,18 @@ public class Snmpoid
 
 	public String toString() {
 		return oidkey;
+	}
+
+	public static String getOid(String oidkey) {
+		try {
+			ResultSet rs = Database.query("SELECT snmpoid FROM snmpoid WHERE oidkey = '"+oidkey+"'");
+			if (rs.next()) {
+				return rs.getString("snmpoid");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace(System.err);
+		}
+		return null;
 	}
 
 }

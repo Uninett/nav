@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.regex.*;
 import java.sql.*;
 
 import no.ntnu.nav.logger.*;
@@ -6,6 +7,8 @@ import no.ntnu.nav.util.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
+
+import no.ntnu.nav.getDeviceData.Netbox;
 
 /**
  * This class tests netboxes for OID compatibility.
@@ -18,31 +21,37 @@ public class OidTester
 	private static Map lockMap = new HashMap();
 	//private static Set dupeSet = new HashSet();
 	private static MultiMap dupeMap = new HashMultiMap();
+	private static Set typeChecked = Collections.synchronizedSet(new HashSet());
 
-	private SimpleSnmp sSnmp;
+	//private SimpleSnmp sSnmp;
 
-	public void oidTest(Type t, Iterator snmpoidIt) {
+	public void oidTest(NetboxImpl nb, Iterator snmpoidIt, SimpleSnmp sSnmp) {
 		// Call test for all OIDs to this type
+		Map tmp = new HashMap();
 		for (; snmpoidIt.hasNext();) {
 			Snmpoid snmpoid = (Snmpoid)snmpoidIt.next();
-			doTest(t, snmpoid);
+			doTest(nb, snmpoid, sSnmp, tmp);
 		}
 
 		try {
-			Database.update("UPDATE type SET uptodate='t' WHERE typeid='"+t.getTypeid()+"'");
+			Database.update("UPDATE netbox SET uptodate='t' WHERE netboxid='"+nb.getNetboxid()+"'");
 		} catch (SQLException e) {
-			Log.e("OID_TESTER", "TEST_TYPE", "A database error occoured while updating the OID database; please report this to NAV support!");
-			Log.d("OID_TESTER", "TEST_TYPE", "SQLException: " + e.getMessage());
+			Log.e("OID_TESTER", "TEST_NETBOX", "A database error occoured while updating the OID database; please report this to NAV support!");
+			Log.d("OID_TESTER", "TEST_NETBOX", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
-		Log.i("OID_TESTER", "TEST_TYPE", "Type " + t + " is now up-to-date");
+		Log.i("OID_TESTER", "TEST_NETBOX", "Netbox " + nb + " is now up-to-date");
 	}
 
-	public void oidTest(Snmpoid snmpoid, Iterator typeIt) {
+	public void oidTest(Snmpoid snmpoid, Iterator netboxIt) {
 		// Call test for all types to this OID
-		for (; typeIt.hasNext();) {
-			Type t = (Type)typeIt.next();
-			doTest(t, snmpoid);
+		SimpleSnmp sSnmp = null;
+		Map tmp = new HashMap();
+		for (; netboxIt.hasNext();) {
+			NetboxImpl nb = (NetboxImpl)netboxIt.next();
+			sSnmp = SimpleSnmp.simpleSnmpFactory(nb.getTypeT().getVendor(), nb.getTypeT().getTypename());
+			doTest(nb, snmpoid, sSnmp, tmp);
+			sSnmp.destroy();
 		}
 
 		try {
@@ -55,89 +64,24 @@ public class OidTester
 		Log.i("OID_TESTER", "TEST_OID", "OID " + snmpoid + " is now up-to-date");
 	}
 
-	private void doTest(Type t, Snmpoid snmpoid) {
-		boolean dupeType = dupeMap.containsKey(t.getKey());
+	private void doTest(NetboxImpl nb, Snmpoid snmpoid, SimpleSnmp sSnmp, Map tmp) {
+		boolean dupeType = dupeMap.containsKey(nb.getKey());
 
 		// Return if this has already been checked
-		if (!checkDupe(t, snmpoid)) return;
+		if (!checkDupe(nb, snmpoid)) return;
 
-		Log.d("OID_TESTER", "DO_TEST", "Starting test for type: " + t + ", snmpoid: " + snmpoid);
-		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getVendor(), t.getTypename());
+		Type t = nb.getTypeT();
+		Log.d("OID_TESTER", "DO_TEST", "Starting test for netbox: " + nb + " ("+t+"), snmpoid: " + snmpoid);
 
 		try {
-			// Get netboxes to test against
-			ResultSet rs = Database.query("SELECT ip, ro, sysname FROM netbox WHERE typeid = '"+t.getTypeid()+"' AND up='y' ORDER BY random() * netboxid");
-		
-			while (rs.next()) {
-				boolean supported = false;
+			boolean supported = false;
 
-				// Check that not someone else is testing against this netbox
-				String ip = rs.getString("ip");
-				String ro = rs.getString("ro");
-				String sysname = rs.getString("sysname");
-				synchronized(lock(ip)) {
+			// Check that not someone else is testing against this netbox
+			String ip = nb.getIp();
+			String ro = nb.getCommunityRo();
+			String sysname = nb.getSysname();
 
-					// Do the test
-					sSnmp.setParams(ip, rs.getString("ro"), snmpoid.getSnmpoid());
-
-					try {
-						List l = null;
-						boolean reqGetnext = true;
-						if (snmpoid.getGetnext()) {
-							// Check if getnext is really necessary
-							l = sSnmp.getAll(snmpoid.getDecodehex(), false);
-							if (!l.isEmpty()) reqGetnext = false;
-						}
-						if (reqGetnext) {
-							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
-						}
-						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (reqGetnext: "+reqGetnext+")");
-					
-						String regex = snmpoid.getMatchRegex();
-						for (Iterator i = l.iterator(); i.hasNext();) {
-							String[] s = (String[])i.next();
-							if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
-								// Update db
-								Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
-
-								rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
-								if (!rs.next()) {
-									String[] ins = {
-										"typeid", t.getTypeid(),
-										"snmpoidid", snmpoid.getSnmpoidid(),
-										"frequency", ""+DEFAULT_FREQ
-									};
-									Database.insert("typesnmpoid", ins);
-
-									if (!reqGetnext) {
-										// Change status of getnext to false
-										String[] set = {
-											"getnext", "f",
-										};
-										String[] where = {
-											"snmpoidid", snmpoid.getSnmpoidid(),
-										};
-										Database.update("snmpoid", set, where);
-									}
-								}
-								supported = true;
-								t.addSnmpoid(DEFAULT_FREQ, snmpoid);
-								break;
-							}
-						}
-					} catch (TimeoutException e) {
-						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
-					} catch (Exception e) {
-						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip + ", assuming not supported: " + e.getMessage());
-					}
-						
-					if (!supported) {
-						Database.update("DELETE FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
-					}
-
-				}
-				unlock(ip);
-
+			if (t.getTypeid() != Type.UNKNOWN_TYPEID && typeChecked.add(t.getTypeid())) {
 				// Check if we need to test for csAtVlan and chassis
 				synchronized(lock(t.getTypeid())) {
 					// Chassis first, using chassisId and exception for cat2924 (FIXME!)
@@ -149,8 +93,8 @@ public class OidTester
 							chassis = false;
 						} else {
 							// Check if cChassisSlots is 1
-							List chassisSlotsList = sSnmp.getAll(t.getOid("cChassisSlots"));
-							if (chassisSlotsList != null) {
+							List chassisSlotsList = sSnmp.getAll(Snmpoid.getOid("cChassisSlots"));
+							if (chassisSlotsList != null && !chassisSlotsList.isEmpty()) {
 								String[] s = (String[])chassisSlotsList.get(0);
 								try {
 									int slots = Integer.parseInt(s[1]);
@@ -176,6 +120,7 @@ public class OidTester
 						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing cChassisSlots with netbox: " + ip);
 					} catch (Exception e) {
 						Log.d("OID_TESTER", "DO_TEST", "Got exception testing cChassisSlots with netbox: " + ip + ": " + e.getMessage());
+						e.printStackTrace(System.err);
 					}
 						
 					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
@@ -203,33 +148,150 @@ public class OidTester
 					}
 				}
 				unlock(t.getTypeid());
+			}
 
-				if (supported) {
-					// No need to test further
-					break;
+			synchronized(lock(ip)) {
+
+				List atVlan;
+				if (tmp.containsKey("atVlan")) {
+					atVlan = (List)tmp.get("atVlan");
+				} else {
+					tmp.put("atVlan", atVlan = new ArrayList());
+					atVlan.add("");
+					if (t.getCsAtVlan() == t.CS_AT_VLAN_TRUE) {
+						sSnmp.setTimeoutLimit(1);
+
+						// Try to find the vlan of the netbox's IP
+						boolean foundVl = false;
+						try {
+							List myVlan = sSnmp.getNext(Snmpoid.getOid("ipAdEntIfIndex")+"."+ip, 1, false, false);
+							if (!myVlan.isEmpty()) {
+								myVlan = sSnmp.getNext(Snmpoid.getOid("ifDescr")+"."+((String[])myVlan.get(0))[1], 1, true, false);
+								if (!myVlan.isEmpty()) {
+									String interf = ((String[])myVlan.get(0))[1].toLowerCase();
+									String pattern = "vlan(\\d+).*";
+									if (interf.matches(pattern)) {
+										Matcher m = Pattern.compile(pattern).matcher(interf);
+										m.matches();
+										int vlan = Integer.parseInt(m.group(1));
+										atVlan.add("@"+vlan);
+										foundVl = true;
+									}
+								}
+							}
+						} catch (Exception e) {
+						}
+
+						if (!foundVl) {
+							try {
+								// Try the vtp OID
+								List myVlan = sSnmp.getAll(Snmpoid.getOid("vtpVlanState")+".1", false);
+								for (Iterator myIt = myVlan.iterator(); myIt.hasNext();) {
+									String vl = ((String[])myIt.next())[0];
+									atVlan.add("@"+vl);
+									foundVl = true;
+								}
+							} catch (Exception e) {
+							}
+						}
+
+						if (!foundVl) {
+							for (int vlCnt = 1; vlCnt <= 999; vlCnt++) {
+								atVlan.add("@"+vlCnt);
+							}
+						}
+
+						sSnmp.setDefaultTimeoutLimit();
+					}
+				}
+
+				for (Iterator vlIt = atVlan.iterator(); vlIt.hasNext();) {
+					String atVl = (String)vlIt.next();
+
+					// Do the test
+					sSnmp.setParams(ip, ro+atVl, snmpoid.getSnmpoid());
+
+					try {
+						List l = null;
+						boolean reqGetnext = true;
+						if (snmpoid.getGetnext()) {
+							// Check if getnext is really necessary
+							l = sSnmp.getAll(snmpoid.getDecodehex(), false);
+							if (!l.isEmpty()) reqGetnext = false;
+						}
+						if (reqGetnext) {
+							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+						}
+						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (reqGetnext: "+reqGetnext+", vl: " + atVl+")");
+					
+						String regex = snmpoid.getMatchRegex();
+						for (Iterator i = l.iterator(); i.hasNext();) {
+							String[] s = (String[])i.next();
+							if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
+								// Update db
+								Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
+
+								ResultSet rs = Database.query("SELECT netboxid FROM netboxsnmpoid WHERE netboxid='"+nb.getNetboxid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
+								if (!rs.next()) {
+									String[] ins = {
+										"netboxid", nb.getNetboxidS(),
+										"snmpoidid", snmpoid.getSnmpoidid(),
+										"frequency", ""+DEFAULT_FREQ
+									};
+									Database.insert("netboxsnmpoid", ins);
+
+									if (!reqGetnext) {
+										// Change status of getnext to false
+										String[] set = {
+											"getnext", "f",
+										};
+										String[] where = {
+											"snmpoidid", snmpoid.getSnmpoidid(),
+										};
+										Database.update("snmpoid", set, where);
+									}
+								}
+								supported = true;
+								nb.addSnmpoid(DEFAULT_FREQ, snmpoid);
+								break;
+							}
+						}
+					} catch (TimeoutException e) {
+						Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
+					} catch (Exception e) {
+						Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip + ", assuming not supported: " + e.getMessage());
+					}
+
+					if (supported) break;
+
+				}
+
+				if (!supported) {
+					Database.update("DELETE FROM netboxsnmpoid WHERE netboxid='"+nb.getNetboxid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 				}
 			}
+			unlock(ip);
+
 		} catch (SQLException e) {
 			Log.e("OID_TESTER", "DO_TEST", "A database error occoured while updating the OID database; please report this to NAV support!");
 			Log.d("OID_TESTER", "DO_TEST", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
-		}
-
+ 		}
 	}
 
 	// Returns true if s is not a dupe (has not been checked before)
-	private static boolean checkDupe(Type t, Snmpoid snmpoid) {
+	private static boolean checkDupe(Netbox nb, Snmpoid snmpoid) {
 		synchronized (dupeMap) {
-			boolean b1 = dupeMap.put(t.getKey(), snmpoid.getKey());
-			boolean b2 = dupeMap.put(snmpoid.getKey(), t.getKey());
+			boolean b1 = dupeMap.put(nb.getKey(), snmpoid.getKey());
+			boolean b2 = dupeMap.put(snmpoid.getKey(), nb.getKey());
 			return b1 || b2;
 		}
 	}
 
 	// Clear the type from the dupe cache
-	public static void clearDupe(Type t) {
+	public static void clearDupe(Netbox nb) {
 		synchronized (dupeMap) {
-			dupeMap.remove(t.getKey());
+			dupeMap.remove(nb.getKey());
 		}
 	}
 

@@ -91,6 +91,13 @@ public class Device
 						serial.length() == 0);
 	}
 
+	void setEqual(Device d) {
+		if (serial == null) serial = d.serial;
+		if (hw_ver == null) hw_ver = d.hw_ver;
+		if (fw_ver == null) fw_ver = d.fw_ver;
+		if (sw_ver == null) sw_ver = d.sw_ver;
+	}
+
 	public boolean equalsDevice(Device d) {
 		return ((serial == null || serial.equals(d.serial)) &&
 						(hw_ver == null || hw_ver.equals(d.hw_ver)) &&
@@ -104,6 +111,6 @@ public class Device
 						serial.equals(((Device)o).serial));
 	}
 
-	public String toString() { return "devid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver; }
+	public String toString() { return "devid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver + " ["+super.toString()+"]"; }
 
 }
