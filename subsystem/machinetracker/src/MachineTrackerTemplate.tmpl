@@ -160,7 +160,26 @@
 #end for
 </table>
 #else
+#set $noresults = 0
+#if $form.search == "mac"
+#if $form.mac
+#set $noresults = 1
+#end if
+#elif $form.search == "swp"
+#if $form.switch
+#set $noresults = 1
+#end if
+#else
+#if $form.ip_from
+#set $noresults = 1
+#end if
+#end if
+
+#if $noresults
+<p>Your search did not return any results</p>
+#else
 <p>The NAV system collects arp and cam information from all registered net devices. Arp data from all routers are inserted into the NAV database every 30. minutes, and mac address tables from all layer2-equipment are collected and inserted every X. minutes.</p><p> Machine tracker gives you the opportunity to search these data, to trace the whereabouts of a mac address or an IP address. The reverse search is also possible; to find which mac/ip was registered on a specified switchport in the last days.</p>
+#end if
 #end if
 
 </td></tr></table></p>
