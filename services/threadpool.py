@@ -1,12 +1,12 @@
 """
 threadpool
 
-$Id: threadpool.py,v 1.2 2002/06/04 09:31:31 erikgors Exp $
+$Id: threadpool.py,v 1.3 2002/06/04 10:50:49 erikgors Exp $
 """
 
 import threading
-IDLE = 1
-WORK = 2
+IDLE = 2
+WORK = 4
 
 
 jobqueue = []
