@@ -152,15 +152,6 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		debug("Executed: %s" % statement)
 
 	def pingEvent(self, host, state):
-		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
-		try:
-			netboxid, deviceid=self.query(query)[0][0:2]
-			debug("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
-		except Exception,e:
-			debug("Couldn't get deviceid for %s, Errormsg: %s" % (host,e),3)
-
-			
-
 		if state == 'UP':
 			state = 'e'
 			value = 100
@@ -168,9 +159,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 			state = 's'
 			value = 0
 
-		#debug("Locking eventq exclusively")
-		#self.execute("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE", commit=0);
-		statement = "INSERT INTO eventq (netboxid, deviceid, eventtypeid, state, value, source, target) values (%i, %i, '%s','%s', %i, '%s','%s' )" % (netboxid, deviceid, "boxState", state, value,"pping","eventEngine")
+		statement = "INSERT INTO eventq (netboxid, deviceid, eventtypeid, state, value, source, target) values (%i, %i, '%s','%s', %i, '%s','%s' )" % (host.netboxid, host.deviceid, "boxState", state, value,"pping","eventEngine")
 		self.execute(statement)
 		
 

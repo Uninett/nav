@@ -103,8 +103,8 @@ class controller:
                 pause=wait/(len(self._checkers)*2)
             else:
                 pause=0
-            for each in self._checkers:
-                self._runqueue.enq(each)
+            for checker in self._checkers:
+                self._runqueue.enq(checker)
                 time.sleep(pause)
 
             self.createStatusFile()

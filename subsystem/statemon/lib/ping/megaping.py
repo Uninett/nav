@@ -79,7 +79,11 @@ class Host:
       status = self.replies[:nrping] != [None]*nrping
       return status
     else:
-      return 1
+      # Return the value from the databasse
+      #print "Netbox.up: %s" % self.netbox.up
+      if self.netbox.up == 'y':
+        return 1
+      return 0
 
 class MegaPing(RotaterPlugin):
   def __init__(self, socket=None, conf=None):
@@ -245,7 +249,7 @@ class MegaPing(RotaterPlugin):
     reply=[]
     for host in self.hosts:
       if not host.getState():
-        reply.append(host.ip)
+        reply.append(host.netbox)
 
     return reply
 
@@ -253,6 +257,6 @@ class MegaPing(RotaterPlugin):
     reply=[]
     for host in self.hosts:
       if host.getState():
-        reply.append(host.ip)
+        reply.append(host.netbox)
 
     return reply

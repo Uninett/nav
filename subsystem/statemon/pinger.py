@@ -34,6 +34,7 @@ class pinger:
         self.down=[]
         sock = kwargs.get('socket',None)
         self.pinger=megaping.MegaPing(sock)
+        self.justStarted = 1
                       
     def getJobs(self):
         """
@@ -48,6 +49,14 @@ class pinger:
             self.hosts.append(netbox)
         #self.hosts = map(lambda x:x[0], hosts)
         debug.debug("We now got %i hosts in our list to ping" % len(self.hosts),7)
+
+        if self.justStarted:
+            for host in self.hosts:
+                if host.up != 'y':
+                    self.down.append(host)
+            debug.debug("%i servers marked as down/service in database" % len(self.down))
+            self.justStarted = 0
+                
 
     def main(self):
         """
@@ -161,6 +170,7 @@ def setUser():
     print "Setting UID to %s " % uid 
     os.setegid(gid)
     os.seteuid(uid)
+    os.umask(0022)
     print "Now running as user %s" % username
 
 if __name__=='__main__':

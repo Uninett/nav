@@ -29,7 +29,7 @@ class HTTPSConnection(httplib.HTTPSConnection):
 		
 class HttpChecker(AbstractChecker):
 	def __init__(self,service, **kwargs):
-		AbstractChecker.__init__(self, "http", service,port=80, **kwargs)
+		AbstractChecker.__init__(self, "http", service, port=0, **kwargs)
 	def execute(self):
 		ip, port = self.getAddress()
 		url = self.getArgs().get('url','')
@@ -38,16 +38,16 @@ class HttpChecker(AbstractChecker):
 		protocol, vhost, path, query, fragment = urlsplit(url)
 		
 		if protocol == 'https':
-			i = HTTPSConnection(self.getTimeout(), ip, port)
+			i = HTTPSConnection(self.getTimeout(), ip, port or 443)
 		else:
-			i = HTTPConnection(self.getTimeout(), ip, port)
+			i = HTTPConnection(self.getTimeout(), ip, port or 80)
 		if vhost:
 			i.host=vhost
-		i.set_debuglevel(9)
+		#i.set_debuglevel(9)
 		i.putrequest('GET',path)
 		internalRev = "$Rev$"
-		internalRev = internalRev[:-1].replace('$Rev: ','')
-		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev
+		internalRev = internalRev[:-2].replace('$Rev: ','')
+		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Release 31337, internal revision %s' % internalRev)
 		i.endheaders()
 		response = i.getresponse()
 		if response.status >= 200 and response.status < 400:

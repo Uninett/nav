@@ -6,7 +6,7 @@ os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 import abstractChecker
 import re,getopt,sys,config,psycopg,checkermap,string,db
-import service
+from service import Service
 
 HEADER = '#sysname              handler    args'
 
