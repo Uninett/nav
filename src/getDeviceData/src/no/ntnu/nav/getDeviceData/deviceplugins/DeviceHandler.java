@@ -83,14 +83,15 @@ import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
 public interface DeviceHandler
 {
 	/**
-	 * The value 0, which means this plugin cannot handle the given
-	 * Netbox.
+	 * <p> The value 0, which means this plugin cannot handle the given
+	 * Netbox.  </p>
 	 */
 	public static final int NEVER_HANDLE = 0;
 
 	/**
-	 * Special value saying that this plugin should always handle the
-	 * device, but its order among the plugins is not important.
+	 * <p> Special value saying that this plugin should always handle
+	 * the device, but its order among the plugins is not important.
+	 * </p>
 	 */
 	public static final int ALWAYS_HANDLE = 1;
 
@@ -122,7 +123,8 @@ public interface DeviceHandler
 	public int canHandleDevice(Netbox nb);
 
 	/**
-	 * Actually handle the device specified by the Netbox argument.
+	 * <p> Actually handle the device specified by the Netbox argument.
+	 * </p>
 	 *
 	 * @param bd The data describing the device
 	 * @param sSnmp An instance of SimpleSnmp the plugins can use to do SNMP queries

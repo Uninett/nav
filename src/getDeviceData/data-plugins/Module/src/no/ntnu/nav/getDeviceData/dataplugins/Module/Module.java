@@ -20,9 +20,16 @@ public class Module extends Device implements Comparable
 	/**
 	 * Constructor.
 	 */
-	protected Module(String serial, String hw_ver, String sw_ver, String module)
-	{
-		super(serial, hw_ver, sw_ver);
+	protected Module(String module) {
+		super();
+		this.module = module;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	protected Module(String serial, String hwVer, String swVer, String module) {
+		super(serial, hwVer, swVer);
 		this.module = module;
 	}
 

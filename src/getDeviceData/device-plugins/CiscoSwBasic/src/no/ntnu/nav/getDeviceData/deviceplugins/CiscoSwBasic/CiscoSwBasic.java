@@ -60,7 +60,7 @@ public class CiscoSwBasic implements DeviceHandler
 		if (canHandleDevice(nb) <= 0) return;
 
 		// Vi trenger ifindexMp kobling
-		HashMap ifindexMp = fetchIfindexMpMap(ip, cs_ro, typegroup);
+		//HashMap ifindexMp = fetchIfindexMpMap(ip, cs_ro, typegroup);
 
 		if (typegroup.equals("cat1900-sw")) {
 			processCisco1900(netboxid, ip, cs_ro, typegroup, type, sc);

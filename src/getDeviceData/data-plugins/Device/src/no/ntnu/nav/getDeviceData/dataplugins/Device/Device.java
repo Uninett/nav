@@ -15,11 +15,16 @@ public class Device
 	/**
 	 * Constructor.
 	 */
-	protected Device(String serial, String hw_ver, String sw_ver)
-	{
+	protected Device() {
+	}
+
+	/**
+	 * Constructor.
+	 */
+	protected Device(String serial, String hwVer, String swVer) {
 		this.serial = serial;
-		this.hw_ver = hw_ver;
-		this.sw_ver = sw_ver;
+		this.hw_ver = hwVer;
+		this.sw_ver = swVer;
 	}
 
 	/**
@@ -33,7 +38,7 @@ public class Device
 	protected String getDeviceidS() { return String.valueOf(getDeviceid()); }
 
 	/**
-	 * Set the deviceid of the physical device which this module represents.
+	 * Set the deviceid of the physical device.
 	 */
 	protected void setDeviceid(int i) { deviceid = i; }
 
@@ -42,6 +47,21 @@ public class Device
 	String getSerial() { return serial; }
 	String getHwVer() { return hw_ver; }
 	String getSwVer() { return sw_ver; }
+
+	/**
+	 * Set the the serial number of the physical device.
+	 */
+	public void setSerial(String serial) { this.serial = serial; }
+
+	/**
+	 * Set the the hardware version number of the physical device.
+	 */
+	public void setHwVer(String hwVer) { this.hw_ver = hwVer; }
+
+	/**
+	 * Set the the software version number of the physical device.
+	 */
+	public void setSwVer(String swVer) { this.sw_ver = swVer; }
 
 	/**
 	 * Return true if this device does not have a serial.

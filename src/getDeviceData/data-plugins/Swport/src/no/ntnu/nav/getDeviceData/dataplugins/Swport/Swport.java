@@ -42,17 +42,15 @@ public class Swport implements Comparable
 
 	private String hexstring;
 
-	public Swport(Integer port, String ifindex)
+	private boolean assignedToModule;
+
+	Swport(String ifindex)
 	{
-		this.port = port;
 		this.ifindex = ifindex.trim();
 	}
 
-	public Swport(Integer port, String ifindex, char link, String speed, char duplex, String media, boolean trunk, String portname)
-	{
-		this.port = port;
-		this.ifindex = ifindex.trim();
-
+	public void setData(Integer port, char link, String speed, char duplex, String media, boolean trunk, String portname) {
+		setPort(port);
 		setLink(link);
 		setSpeed(speed);
 		setDuplex(duplex);
@@ -91,6 +89,16 @@ public class Swport implements Comparable
 	}
 
 	String getMedia() { return media; }
+
+	void assignedToModule() { assignedToModule = true; }
+	boolean isAssignedToModule() { return assignedToModule; }
+
+	/**
+	 * Set the port number.
+	 */
+	public void setPort(Integer port) {
+		this.port = port;
+	}
 
 	/**
 	 * Get if the port is using trunking or not.
@@ -217,11 +225,11 @@ public class Swport implements Comparable
 	 * Checks if all fields in the given swport are equal to this one.
 	 */
 	public boolean equalsSwport(Swport sw) {
-		return (port.equals(sw.port) &&
-						ifindex.equals(sw.ifindex) &&
-						link == sw.link &&
-						speed.equals(sw.speed) &&
-						duplex == sw.duplex &&
+		return (ifindex.equals(sw.ifindex) &&
+						port != null && port.equals(sw.port) &&
+						link != null && link.equals(sw.link) &&
+						speed != null && speed.equals(sw.speed) &&
+						duplex != null && duplex.equals(sw.duplex) &&
 						media.equals(sw.media) &&
 						trunk == sw.trunk &&
 						portname.equals(sw.portname));
@@ -240,7 +248,7 @@ public class Swport implements Comparable
 
 	public int compareTo(Object o) {
 		Swport sw = (Swport)o;
-		return port.compareTo(sw.port);
+		return ifindex.compareTo(sw.ifindex);
 	}
 
 	public String toString() {

@@ -114,7 +114,10 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	// Doc in interface
 	public String getOid(String key) {
-		return t.getOid(key);
+		if (canGetOid(key)) {
+			return t.getOid(key);
+		}
+		return null;
 	}
 
 	// Next run for this Netbox

@@ -55,7 +55,11 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
-    <packageset dir="../getDeviceData/device-plugins/CiscoSwBasic/src" defaultexcludes="yes">
+    <packageset dir="../getDeviceData/device-plugins/CiscoSw1900/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwMenu/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 

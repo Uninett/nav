@@ -19,8 +19,8 @@ public interface Netbox
 	public String getSnmpagent();
 
 	/**
-	 * Takes as input an array of oidkeys, and returns true if this
-	 * netbox supports any of the given oidkeys.
+	 * <p> Takes as input an array of oidkeys, and returns true if this
+	 * netbox supports any of the given oidkeys.  </p>
 	 *
 	 * @param oidkeys Oidkeys to check
 	 * @return true if netbox supports any of the given oidkeys
@@ -31,8 +31,12 @@ public interface Netbox
 	 * <p> Check if the OID for the given key is ready to be
 	 * fetched. Since different OID's, or even equal OID's, but on
 	 * different types of devices, can have different query frequencies,
-	 * this method must be called before attempting to query the
-	 * device. </p>
+	 * is it necessary to do this check before attempting to query the
+	 * device.  </p>
+	 *
+	 * <p> Note that the {@link #getOid getOid} method does this check
+	 * automatically, thus normally it should not be necessary to call
+	 * this method directly.  </p>
 	 *
 	 * @param key The key for the OID
 	 * @return true if the OID is ready to be quieried
@@ -40,10 +44,11 @@ public interface Netbox
 	public boolean canGetOid(String key);
 
 	/**
-	 * Get the OID for the given key.
+	 * <p> Get the OID for the given key; this method will return null
+	 * if the OID is not ready to be fetched.  </p>
 	 *
 	 * @param key The OID key
-	 * @return the OID for the given key
+	 * @return the OID for the given key, or null if the OID is not ready to be fetched
 	 */
 	public String getOid(String key);
 

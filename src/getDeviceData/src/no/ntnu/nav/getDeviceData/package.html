@@ -1,0 +1,147 @@
+<html>
+<head>
+</head>
+
+<body>
+<p>
+General getDeviceData documentation; supported events.
+</p>
+
+<p>
+<b>Supported incoming events</b>
+<p>
+
+<p>
+<a name="requestSnmp"></a>
+<table border="1" cellpadding="3" cellspacing="0">
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
+  <td colspan="2">requestSnmp</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
+  <td colspan="2">Send this event to request collection of SNMP data for a device</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
+  <td colspan="2"><a href="#requestSnmpDone">requestSnmpDone</a></td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td><b>Eventq fields</b></td>
+  <td><b>Description</b></td>
+  <td><b>Required</b></td>
+ </tr>
+ <tr>
+  <td><b>deviceid</b></td>
+  <td>Device to collect from</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>netboxid</b></td>
+  <td>Netbox to collect from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>subid</b></td>
+  <td>Copied to the requestSnmpDone event if present; use this to differenciate answer events.</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>state</b></td>
+  <td>This event is stateless</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>value</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>severity</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td colspan="3"><b>Supported variables</b></td>
+ </tr>
+ <tr>
+  <td><b>maxage</b></td>
+  <td>Maximum age, in seconds, of collected data; any data older than this will be collected. If not present, 0 is assumed.</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>oidkeys</b></td>
+  <td>Comma-separated list of oidkeys to collect. If not present, all are collected.</td>
+  <td>No</td>
+ </tr>
+</table>
+</p>
+
+<p>
+<b>Supported outgoing events</b>
+<p>
+
+<p>
+<a name="requestSnmpDone"></a>
+<table border="1" cellpadding="3" cellspacing="0">
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
+  <td colspan="2">requestSnmpDone</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
+  <td colspan="2">Sent as response to a requestSnmp event when processing is finished.</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
+  <td colspan="2"><a href="#requestSnmp">requestSnmp</a></td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td><b>Eventq fields</b></td>
+  <td><b>Description</b></td>
+  <td><b>Always present</b></td>
+ </tr>
+ <tr>
+  <td><b>deviceid</b></td>
+  <td>Device collected from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>netboxid</b></td>
+  <td>Netbox collected from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>subid</b></td>
+  <td>Copied from the requestSnmp event if present there</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>state</b></td>
+  <td>This event is stateless</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>value</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>severity</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td colspan="3"><b>Supported variables</b></td>
+ </tr>
+ <tr>
+  <td><b>age</b></td>
+  <td>Age, in seconds, of oldest collected data.</td>
+  <td>Yes</td>
+ </tr>
+</table>
+</p>
+
+</body>
+
+</html

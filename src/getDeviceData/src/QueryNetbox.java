@@ -50,7 +50,6 @@ public class QueryNetbox extends Thread
 	// Object data
 	String tid;
 	NetboxImpl nb;
-	SimpleSnmp sSnmp = new SimpleSnmp();
 
 	// Static init
 	public static void init(int numThreads, int updateDataInterval, ConfigParser cp, Map dataCM, Map deviceCM, String qnb) {
@@ -306,6 +305,8 @@ public class QueryNetbox extends Thread
 			String sysName = nb.getSysname();
 			String cat = nb.getCat();
 			int snmpMajor = nb.getSnmpMajor();
+
+			SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(type);
 
 			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxCnt+")");
 			long boksBeginTime = System.currentTimeMillis();

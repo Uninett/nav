@@ -13,10 +13,16 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
 public class SwModule extends Module implements Comparable
 {
 	private Map swports = new HashMap();
+	private SwportContainer sc;
 
-	SwModule(String serial, String hw_ver, String sw_ver, String module)
-	{
-		super(serial, hw_ver, sw_ver, module);
+	SwModule(String module, SwportContainer sc) {
+		super(module);
+		this.sc = sc;
+	}
+
+	SwModule(String serial, String hwVer, String swVer, String module, SwportContainer sc) {
+		super(serial, hwVer, swVer, module);
+		this.sc = sc;
 	}
 
 	protected void setDeviceid(int i) { super.setDeviceid(i); }
@@ -28,26 +34,18 @@ public class SwModule extends Module implements Comparable
 	// Doc in parent
 	protected String getKey() { return super.getKey(); }
 
-	void addSwport(Swport sd) { swports.put(sd.getPort(), sd); }
+	void addSwport(Swport sd) { swports.put(sd.getIfindex(), sd); }
 	Iterator getSwports() { return swports.values().iterator(); }
 	int getSwportCount() { return swports.size(); }
-	Swport getSwport(Integer port) { return (Swport)swports.get(port); }
+	Swport getSwport(String ifindex) { return (Swport)swports.get(ifindex); }
 
 	/**
 	 * Return an Swport-object which is used to describe a single switch port.
 	 */
-	public Swport swportFactory(Integer port, String ifindex) {
-		Swport sw = new Swport(port, ifindex);
-		swports.put(port, sw);
-		return sw;
-	}
-
-	/**
-	 * Return an Swport-object which is used to describe a single switch port.
-	 */
-	public Swport swportFactory(Integer port, String ifindex, char link, String speed, char duplex, String media, boolean trunk, String portname) {
-		Swport sw = new Swport(port, ifindex, link, speed, duplex, media, trunk, portname);
-		swports.put(port, sw);
+	public Swport swportFactory(String ifindex) {
+		Swport sw = sc.createOrGetSwport(ifindex);
+		sw.assignedToModule();
+		swports.put(ifindex, sw);
 		return sw;
 	}
 

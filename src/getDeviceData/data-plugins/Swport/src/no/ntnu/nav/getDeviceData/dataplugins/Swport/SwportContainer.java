@@ -23,11 +23,10 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
  * </p>
  *
  * <p> For storing data the device plugin should request an {@link
- * SwModule SwModule} from the {@link #swModuleFactory swModuleFactory} method
- * for each module, giving the module number, serial number, and, if
- * available, the hardware and software version. For each switch port
- * on the module an {@link Swport Swport} object should be
- * requested.</p>
+ * SwModule SwModule} from the {@link #swModuleFactory
+ * swModuleFactory} method for each module, giving the module
+ * number. For each switch port on the module an {@link Swport Swport}
+ * object should be requested.  </p>
  *
  * @see SwportHandler
  */
@@ -36,6 +35,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 
 	private SwportHandler swh;
 	private List swModuleList = new ArrayList();
+	private Map swportMap = new HashMap();
 
 	protected SwportContainer(SwportHandler swh) {
 		super(null);
@@ -57,11 +57,40 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		return swh;
 	}
 
+	Swport createOrGetSwport(String ifindex) {
+		if (swportMap.containsKey(ifindex)) {
+			return (Swport)swportMap.get(ifindex);
+		}
+		Swport swp = new Swport(ifindex);
+		swportMap.put(ifindex, swp);
+		return swp;
+	}
+
+	/**
+	 * <p>
+	 * Since the ifIndex number is unique on a Netbox, this method can be used to get an Swport directly if only
+	 * the ifIndex is know, but not the module number.
+	 * </p>
+	 *
+	 * <p> If no Swport with the given ifindex exists it will be
+	 * created, but not assigned to a module. The Swport is assigned to
+	 * a module when the {@link SwModule#swportFactory
+	 * SwModule.swportFactory()} method is called; if an Swport is not
+	 * assigned to a module it will automatically be assigned to module
+	 * 1.  </p>
+	 *
+	 * @param ifindex The ifindex of the Swport to get
+	 * @return an Swport with the given ifindex
+	 */
+	public Swport swportFactory(String ifindex) {
+		return createOrGetSwport(ifindex);
+	}
+
 	/**
 	 * Return an SwModule object which is used to describe one switch module.
 	 */
-	public SwModule swModuleFactory(String serial, String hw_ver, String sw_ver, String module) {
-		SwModule m = new SwModule(serial, hw_ver, sw_ver, module);
+	public SwModule swModuleFactory(String module) {
+		SwModule m = new SwModule(module, this);
 		int k;
 		if ( (k=swModuleList.indexOf(m)) >= 0) {
 			m = (SwModule)swModuleList.get(k);
@@ -88,6 +117,13 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	}
 
 	Iterator getSwModules() {
+		// Assign any module-less swports to module 1
+		SwModule m = swModuleFactory("1");
+		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
+			Swport swp = (Swport)it.next();
+			if (!swp.isAssignedToModule()) m.addSwport(swp);
+		}
+
 		Collections.sort(swModuleList);
 		return swModuleList.iterator();
 	}

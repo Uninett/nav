@@ -44,7 +44,7 @@ public class SwportHandler implements DataHandler {
 			m = Collections.synchronizedMap(new HashMap());
 			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
 			while (rs.next()) {
-				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				SwModule md = new SwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"), null);
 				md.setDeviceid(rs.getInt("deviceid"));
 				md.setModuleid(rs.getInt("moduleid"));
 				md.setSubmodule(rs.getString("submodule"));
@@ -52,7 +52,8 @@ public class SwportHandler implements DataHandler {
 				int moduleid = rs.getInt("moduleid");
 				if (rs.getString("port") != null && rs.getString("port").length() > 0) {
 					do {
-						Swport sd = new Swport(new Integer(rs.getInt("port")), rs.getString("ifindex"), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
+						Swport sd = new Swport(rs.getString("ifindex"));
+						sd.setData(new Integer(rs.getInt("port")), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
 						sd.setSwportid(rs.getInt("swportid"));
 						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
 						sd.setHexstring(rs.getString("hexstring"));
@@ -113,7 +114,7 @@ public class SwportHandler implements DataHandler {
 
 					// Finn evt. gammel
 					String swportid;
-					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getPort());
+					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
 					if (oldsd == null) {
 						// Sett inn ny
 						Log.i("NEW_SWPORT", "New swport: " + sd.getPort());
