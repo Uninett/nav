@@ -21,11 +21,12 @@ public class ModuleMonHandler implements DataHandler {
 
 	private static boolean DEBUG = false;
 
-	private static Map ifindMap;
+	private static Map moduleMap;
 	private static Map modidMap;
 	private static MultiMap modules;
 	
 	private static MultiMap queryIfindices;
+	private static Map moduleToIfindex;
 
 	private static Set modulesDown = new HashSet();
 	
@@ -49,20 +50,26 @@ public class ModuleMonHandler implements DataHandler {
 
 			try {
 				// We need to the mapping from netboxid:ifindex -> module and the modules belonging to each netbox
-				Map ifindMapL = new HashMap();
-				Map modidMapL = new HashMap();
+				Map moduleMapL = Collections.synchronizedMap(new HashMap());
+				Map modidMapL = Collections.synchronizedMap(new HashMap());
 				MultiMap modulesL = new HashMultiMap();
 				MultiMap queryIfindicesL = new HashMultiMap();
+				Map moduleToIfindexL = Collections.synchronizedMap(new HashMap());
 				Set queryDupe = new HashSet();
 				ResultSet rs = Database.query("SELECT deviceid,netboxid,ifindex,moduleid,module FROM module JOIN swport USING(moduleid) ORDER BY RANDOM()");
 				while (rs.next()) {
-					ifindMapL.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("moduleid"));
+					String netboxid = rs.getString("netboxid");
+					moduleMapL.put(rs.getString("netboxid")+":"+rs.getString("module"), rs.getString("moduleid"));
 					modidMapL.put(rs.getString("moduleid"), rs.getString("deviceid"));
 					modulesL.put(rs.getString("netboxid"), rs.getString("moduleid"));
 
 					String k = rs.getString("netboxid")+":"+rs.getString("moduleid");
 					if (queryDupe.add(k)) {
 						queryIfindicesL.put(rs.getString("netboxid"), new String[] { rs.getString("ifindex"), rs.getString("module") });
+
+						Map mm;
+						if ( (mm=(Map)moduleToIfindexL.get(netboxid)) == null) moduleToIfindexL.put(netboxid, mm = new HashMap());
+						mm.put(rs.getString("module"), rs.getString("ifindex"));
 					}
 				}
 
@@ -73,9 +80,10 @@ public class ModuleMonHandler implements DataHandler {
 				}
 
 				modidMap = modidMapL;
-				ifindMap = ifindMapL;
+				moduleMap = moduleMapL;
 				modules = modulesL;
 				queryIfindices = queryIfindicesL;
+				moduleToIfindex = moduleToIfindexL;
 				Log.d("INIT", "Fetched " + modidMap.size() + " modules (" + (modidMap.size()-oldcnt) + " new)");
 				if ((modidMap.size()-oldcnt) == 0) Log.w("INIT", "No new modules, changed: " + changedDeviceids);
 
@@ -92,7 +100,7 @@ public class ModuleMonHandler implements DataHandler {
 	 * DataHandler.
 	 */
 	public DataContainer dataContainerFactory() {
-		return new ModuleMonContainer(this, queryIfindices);
+		return new ModuleMonContainer(this, queryIfindices, moduleToIfindex);
 	}
 	
 	/**
@@ -117,9 +125,9 @@ public class ModuleMonHandler implements DataHandler {
 			if (DEBUG) err("  Modules: " + new ArrayList(mod));
 
 			int severity = 50;
-			if (DEBUG) err("  Active ifindex: " + mmc.getIfindexActiveSet());
-			for (Iterator it = mmc.getActiveIfindices(); it.hasNext();) {
-				String moduleid = (String)ifindMap.get(nb.getNetboxid()+":"+it.next());;
+			if (DEBUG) err("  Modules up: " + mmc.getModulesUpSet());
+			for (Iterator it = mmc.getModulesUp(); it.hasNext();) {
+				String moduleid = (String)moduleMap.get(nb.getNetboxid()+":"+it.next());;
 				String deviceid = (String)modidMap.get(moduleid);
 				String key = nb.getNetboxid()+":"+moduleid;
 
@@ -133,10 +141,12 @@ public class ModuleMonHandler implements DataHandler {
 
 			// All remaining modules are now considered down; send event
 			if (DEBUG) err("  Remaining modules: " + new ArrayList(mod));
+			if (!mod.isEmpty()) Log.d("MODULE_MON", "REPORT_DOWN", "Reporting modules down: " + mod + " ("+modules.get(nb.getNetboxidS())+")");
 			for (Iterator it = mod.iterator(); it.hasNext();) {
 				String moduleid = (String)it.next();
 				String deviceid = (String)modidMap.get(moduleid);
 
+				Log.d("MODULE_MON", "REPORT_DOWN", "Module("+moduleid+","+deviceid+") is down, sending event");
 				sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
 				modulesDown.add(nb.getNetboxid()+":"+moduleid);
 			}

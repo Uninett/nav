@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.ModuleMon;
 import java.util.*;
 
 import no.ntnu.nav.util.*;
+import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 /**
@@ -21,11 +22,13 @@ public class ModuleMonContainer implements DataContainer {
 	private boolean commit = false;
 
 	private MultiMap queryIfindices;
-	private Set ifindexActiveSet = new HashSet();
+	private Map moduleToIfindex;
+	private Set moduleUpSet = new HashSet();
 
-	protected ModuleMonContainer(ModuleMonHandler mmh, MultiMap queryIfindices) {
+	protected ModuleMonContainer(ModuleMonHandler mmh, MultiMap queryIfindices, Map moduleToIfindex) {
 		this.mmh = mmh;
 		this.queryIfindices = queryIfindices;
+		this.moduleToIfindex = moduleToIfindex;
 	}
 
 	/**
@@ -59,13 +62,44 @@ public class ModuleMonContainer implements DataContainer {
 	}
 
 	/**
-	 * <p> Register that the given ifindex is active on the switch; the
-	 * module which owns the ifindex is considered up.  </p>
-	 *
-	 * @param ifindex The active ifindex
+	 * Reschedule the given netbox for the given module and OID. OID =
+	 * null means all OIDs.
 	 */
-	public void ifindexActive(String ifindex) {
-		ifindexActiveSet.add(ifindex);
+	public void rescheduleNetbox(Netbox nb, String module, String oid) {
+		int cnt = nb.get(module);
+		if (cnt < 3) {
+			if (cnt < 0) cnt = 0;
+			nb.set(module, ++cnt);
+			long delay;
+			switch (cnt) {
+			case 1: delay = 30; break;
+			case 2: delay = 60; break;
+			case 3: delay = 120; break;
+			default:
+				System.err.println("Error in rescheduleNetbox, cnt="+cnt+", should not happen");
+				return;
+			}
+			nb.scheduleOid(oid, delay);
+		}
+	}
+
+	/**
+	 * <p> Returns the ifindex to ask for the given module.  </p>
+	 */
+	public String ifindexForModule(String netboxid, String module) {
+		Map mm = (Map)moduleToIfindex.get(netboxid);
+		return (String)mm.get(module);
+	}
+
+	/**
+	 * <p> Register that the given module is up on the netbox.
+	 * </p>
+	 *
+	 * @param module The up module
+	 */
+	public void moduleUp(Netbox nb, String module) {
+		moduleUpSet.add(module);
+		nb.set(module, 0);
 	}
 
 	public void commit() {
@@ -76,12 +110,12 @@ public class ModuleMonContainer implements DataContainer {
 		return commit;
 	}
 
-	Iterator getActiveIfindices() {
-		return ifindexActiveSet.iterator();
+	Iterator getModulesUp() {
+		return moduleUpSet.iterator();
 	}
 
-	Set getIfindexActiveSet() {
-		return ifindexActiveSet;
+	Set getModulesUpSet() {
+		return moduleUpSet;
 	}
 
 
