@@ -139,6 +139,9 @@ class EventImpl implements Event, Alert
 			errl("EventImpl: SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
 		}
 
+		// Add time
+		addVar("time", getTimeS());
+
 		return AlertmsgParser.formatMsgs(eventtypeid, alerttype, state, varMap);
 	}
 

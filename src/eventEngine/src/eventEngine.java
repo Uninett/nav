@@ -93,7 +93,7 @@ class eventEngine
 		}
 
 		// The eventq monitor
-		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB);
+		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB, cfmt);
 
 		// Set up the plugin monitor
 		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerClassMap, devDB, deviceMap, emt );
@@ -199,10 +199,10 @@ class eventEngine
 
 class ConfigFileMonitorTask extends TimerTask
 {
-	File cf;
-	ConfigParser cp;
-	boolean cfNotFound;
-	long lastMod;
+	private File cf;
+	private ConfigParser cp;
+	private boolean cfNotFound;
+	private long lastMod;
 
 	public ConfigFileMonitorTask(String cfPath)
 	{
@@ -222,8 +222,10 @@ class ConfigFileMonitorTask extends TimerTask
 			errl("Error, could not read config file: " + cf);
 			return;
 		}
+	}
 
-
+	public ConfigParser getConfigParser() {
+		return cp;
 	}
 
 	public boolean cfNotFound() { return cfNotFound; }
@@ -351,6 +353,7 @@ class PluginMonitorTask extends TimerTask
 
 	private boolean update(File pluginDir, Map fileMap, Map pluginMap, File[] dependFiles)
 	{
+		// The cloneMap is used to remove plugins whose .jar file is deleted
 		Map cloneMap = (Map) ((HashMap)pluginMap).clone();
 
 		boolean hasChanged = false;
@@ -454,14 +457,16 @@ class EventqMonitorTask extends TimerTask
 {
 	Map handlerClassMap;
 	DeviceDB devDB;
+	ConfigFileMonitorTask cfmt;
 
 	Map handlerCache = new HashMap();
 	int lastEventqid = 0;
 
-	public EventqMonitorTask(Map handlerClassMap, DeviceDB devDB)
+	public EventqMonitorTask(Map handlerClassMap, DeviceDB devDB, ConfigFileMonitorTask cfmt)
 	{
 		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
+		this.cfmt = cfmt;
 	}
 
 	public void updateCache()
@@ -508,7 +513,7 @@ class EventqMonitorTask extends TimerTask
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
 					outld("  Found handler: " + eh.getClass().getName());
 					try {
-						eh.handle(devDB, e);
+						eh.handle(devDB, e, cfmt.getConfigParser() );
 
 					} catch (Exception exp) {
 						errl("EventqMonitorTask: Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
