@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-$Id:$
+$Id$
 
 This file is part of the NAV project.
 
@@ -12,8 +12,10 @@ Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
 
 ##
 # import modules and set path
-from nav.db.manage import Emotd,Emotd_related,Maintenance
-from nav.db.manage import Eventq,Eventqvar,Eventtype,Netbox,Service,Room
+#from nav.db.manage import Emotd,Emotd_related,Maintenance
+#from nav.db.manage import Eventq,Eventqvar,Eventtype,Netbox,Service,Room
+from nav import db
+
 from mx import DateTime
 
 ##
@@ -21,49 +23,37 @@ from mx import DateTime
 events = []
 states = ['scheduled','active','passed','overridden']
 debug = False
+connection = db.getConnection('eventEngine','manage')
+database = connection.cursor()
+
 
 def schedule():
     """ Check if there are maintenances to be schedule """
-    where = ["maint_start < now()"]
-    where.append("maint_end > now()")
-    mids = Maintenance.getAllIDs(where)
-    if debug:
-        print 'debug: Found ', len(mids) , ' maintenences'
-    for mid in mids:
-        if Maintenance(mid).state not in states:
-            m = Maintenance(mid)
-            m.state = 'scheduled'
-            m.save() 
-            if debug:
-                print 'maintenance with id %s scheduled' % mid
+    sql = "update maintenance set state = 'scheduled' where state is null or state not in ('scheduled','active','passed','overridden')"
+    database.execute(sql)
+    connection.commit()
+    
 
 def check_state():
     """ 
     Checks if there are some maintenances to be set active 
     (e.g. send maintenenaceOn)
     """
-    where = ["maint_start < now()"]
-    where.append("maint_end > now()")
-    where.append("state = 'scheduled'")
-    mids = Maintenance.getAllIDs(where)
-    if debug:
-        print 'debug: Found ', len(mids) , ' maintenances to change'
-    for mid in mids:
+    sql = "select maintenanceid,emotdid from maintenance where maint_start < now() and state='scheduled'"
+    database.execute(sql)
+    for (mid,emotdid) in database.fetchall():
         e = {}
-        e['type'] = 'maintenanceOn'
-        e['emotdid'] = Maintenance(mid).emotd
+        e['type'] = 'active'
+        e['emotdid'] = emotdid
         e['maintenanceid'] = mid
         events.append(e)
-    where = ["maint_start < now()"]
-    where.append("maint_end < now()")
-    where.append("state = 'active'")
-    mids = Maintenance.getAllIDs(where)
-    if debug: 
-        print 'debug: Found ', len(mids) , ' maintenances to change'
-    for mid in mids:
+        
+    sql = "select maintenanceid,emotdid from maintenance where maint_end < now() and state='active'"
+    database.execute(sql)
+    for (mid,emotdid) in database.fetchall():
         e = {}
-        e['type'] = 'maintenanceOff'
-        e['emotdid'] = Maintenance(mid).emotd
+        e['type'] = 'passed'
+        e['emotdid'] = emotdid
         e['maintenanceid'] = mid
         events.append(e)
     # bør ha magi for å sjekke overlappende tidsvinduer med overlappende bokser... jeje
@@ -71,47 +61,51 @@ def check_state():
 
 def send_event():
     """ Sends events to EventQueue based on table 'maintenance' """
-    if debug:
-        print 'debug: Found %s events to send to eventq' % len(events)
-        print 'debug: ', events
     for event in events:
-        mid = event['emotdid']
-        maintid = event['maintenanceid']
-        where = ["emotdid = %s" % mid] 
-        if debug: print 'finner bokser og servicer koblet mot emotd-melding'
-        related = Emotd_related.getAll(where)
-        if debug: print 'emotdid: ', mid
+        emotdid = event['emotdid']
+        mid = event['maintenanceid']
+        type = event['type']
+        
+        sql = "select key,value from emotd_related where emotdid=%d" % int(emotdid)
+        database.execute(sql)
+        
+        for (key,val) in database.fetchall():
+            target = 'eventEngine'
+            subsystem = 'emotd'
+            severity = 50
+            source = subsystem #'maintenance'
+            eventtype = 'maintenanceState'
+            state = 'e'
+            value = 0
+            if type == 'active':
+                state = 's'
+                value = 100
+            if key=='netbox':
+                database.execute("select deviceid,sysname from netbox where netboxid = %d" % int(val))
+                (deviceid,sysname) = database.fetchone()[0]
+                database.execute("select nextval('eventq_eventqid_seq')")
+                eventqid = database.fetchone()[0]
+                database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(val), int(deviceid), source, severity, state, value))
+                database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, sysname))
+            elif key=='room' or key=='location':
+                database.execute("insert into eventq (eventqid,target,eventtypeid,source,severity,state,value) values (%d,'%s','%s','%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, source, severity, state, value))
+                database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, val))
+            elif key=='module':
+                database.execute("select netboxid, deviceid, module, descr from module where moduleid=%d" % int(val))
+                (netboxid, deviceid, module, descr) = database.fetchone()
+                database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,deviceid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(netboxid), int(deviceid), source, severity, state, value))
+                database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, module + ":" + descr))
+            elif key=='service':
+                database.execute("select netboxid, handler from service where serviceid=%d" % int(val))
+                (netboxid, handler) = database.fetchone()
+                database.execute("insert into eventq (eventqid,target,eventtypeid,netboxid,subid,source,severity,state,value) values (%d,'%s','%s',%d,%d,'%s',%d,'%s',%d)" % (int(eventqid), target, eventtype, int(netboxid), int(val), source, severity, state, value))
+                database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, handler))
+            else:
+                raise repr("Unrecognised equipment key")
 
-        if debug: print 'fant %s enheter koblet mot denne meldingen' % len(related) 
-        for unit in related:
-            ''' send 1(one) event pr netbox/service/module '''
-            e = Eventq()
-            e.target = 'eventEngine'
-            e.subsystem = 'emotd'
-            e.eventtype = 'maintenanceState'
-            e.netbox = unit.value
-            e.deviceid = Netbox(unit.value).device.deviceid
-            if unit.key == 'service':
-                e.subid = unit.value
-            if event['type'] == 'maintenanceOn':
-                e.state = 's'
-                e.value = 100
-                Maintenance(maintid).state = 'active'
-            if event['type'] == 'maintenanceOff':
-                e.state = 'e'
-                e.value = 0
-                Maintenance(maintid).state = 'passed'
-            e.severity = 50
-            e.source = 'maintenance'
-            e.time = DateTime.now()
-            try:
-                e.save() # beam me up Scotty!
-                if debug:
-                    print 'Event %s:%s for %s sent ' % (e.eventtype,e.state,e.netbox)
-            except:
-                print 'An error occured sending event for %s : %s' % (mid,e.netbox)
-        if len(related)<1:
-            print 'Error: No netbox/service/module found relating this maintenance-event'
+                
+        database.execute("update maintenance set state='%s' where maintenanceid = %d" % (type, int(mid)))
+        connection.commit()
 
 
 if __name__ == '__main__':
