@@ -304,7 +304,7 @@ public class _3Com implements DeviceHandler
 				String ifindex = s[0].split("\\.")[0];
 				String mauTypeOid = s[1];
 
-				if ("0.0".equals(oidMap.get(mauTypeOid))) continue;
+				if ("0.0".equals(mauTypeOid)) continue;
 
 				if (oidMap.containsKey(mauTypeOid)) {
 					s = (String[])oidMap.get(mauTypeOid);
