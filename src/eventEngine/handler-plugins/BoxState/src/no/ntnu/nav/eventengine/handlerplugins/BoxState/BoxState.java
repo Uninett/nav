@@ -217,14 +217,14 @@ public class BoxState implements EventHandler, EventCallback
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
 				Box b = (Box)i.next();
-				Log.d("CALLBACK", "Box down: " + b);
+				Log.d("CALLBACK", "Box down: " + b.getSysname() );
 
 				if (!b.isUp()) {
 					// The box iself is down, this means we don't report modules down if any
 					// Find the down event
 					Event e = (Event)startEventMap.get(b.getDeviceidI());
 					if (e == null) {
-						Log.w("CALLBACK", "Box " + b + " is down, but no start event found!");
+						Log.w("CALLBACK", "Box " + b.getSysname() + " is down, but no start event found!");
 						continue;
 					}
 					if (sentWarning) startEventMap.remove(b.getDeviceidI());
