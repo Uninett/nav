@@ -54,7 +54,10 @@ def index(req):
     numboxesdown = 0
     numboxesshadow = 0
     for box in liste:
-        timeparts = str(box[0]).split(':')
+        boxs = str(box[0])
+        while boxs[:3] == "00:":
+            boxs = boxs[3:]
+        timeparts = boxs.split(':')
         time = timeparts[0] + TIMES[len(timeparts)-1]
         box.append(time)
         if box[4]:
