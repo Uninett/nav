@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import psycopg
+from nav import db
 
 class DatabaseResult:
     """
@@ -21,7 +21,8 @@ class DatabaseResult:
         self.sums = {}
         self.error = ""
 
-        connection = psycopg.connect(dsn="host=localhost user=manage dbname=manage password=eganam")
+        connection = db.getConnection('webfront','manage')
+
         database = connection.cursor()
 
         self.sql = reportConfig.makeSQL()
@@ -41,13 +42,15 @@ class DatabaseResult:
             self.rowcount = database.rowcount
 
             ## handling of the "sum" option
-            sumsql = reportConfig.makeSumSQL()
-            database.execute(sumsql)
-            sums = database.fetchone()
+            if self.sums:
+                sumsql = reportConfig.makeSumSQL()
+                database.execute(sumsql)
+                sums = database.fetchone()
 
             ## coherce the results from the databasequery to the field-labels
-            for sum in reportConfig.sum:
-                self.sums[sum] = sums[reportConfig.sum.index(sum)]
+                if sums:
+                    for sum in reportConfig.sum:
+                        self.sums[sum] = sums[reportConfig.sum.index(sum)]
 
 
         except psycopg.ProgrammingError,p:

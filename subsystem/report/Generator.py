@@ -36,9 +36,14 @@ class Generator:
         config = configParser.configuration
         parseOK = configParser.parseReport(reportName)
 
+        adv = 0
         if parseOK:
             argumentParser = ArgumentParser(config)
             argumentHash = argumentParser.parseArguments(args)
+            if argumentHash.has_key("adv"):
+                if argumentHash["adv"]:
+                    adv = 1
+                del argumentHash["adv"]
             (contents,neg,operator) = argumentParser.parseQuery(argumentHash)
 
             answer = DatabaseResult(config)
@@ -48,11 +53,11 @@ class Generator:
             formatted = Report(config,answer,uri)
             formatted.titlebar = reportName + " - report - NAV"
         
-            return (formatted,contents,neg,operator)
+            return (formatted,contents,neg,operator,adv)
 
         else:
 
-            return (0,None,None,None)
+            return (0,None,None,None,adv)
 
 
 
@@ -352,11 +357,11 @@ class ArgumentParser:
     
 
     def intstr(self,arg):
-        try:
-            arg = int(arg)
-            arg = str(arg)
-        except ValueError:
-            arg = "'" + arg + "'"
+        #try:
+        #    arg = int(arg)
+        #    arg = str(arg)
+        #except ValueError:
+        arg = "'" + arg + "'"
         return arg
 
 
@@ -401,20 +406,21 @@ class ReportConfig:
         return sql
 
     def makeTotalSQL(self):
-        select = self.sql_select[0]
-        
-        sql = self.selectstring(select) + self.fromstring() + self.wherestring() + self.groupstring()
+        #select = self.sql_select_orig[0]
+
+        #skulle gjerne begrenset dette søket, så det ikke tok sånn tid, ved å bruke select deklarert rett over i selectstring().
+        sql = self.selectstring() + self.fromstring() + self.wherestring() + self.groupstring()
         return sql
 
     def makeSumSQL(self):
-        ## jukser her! count != sum
+        ## jukser her! count != sum --> ikke nå lenger
         
         sum = []
         for s in self.sum:
-            s = "count("+s+")"
+            s = "sum("+s+")"
             sum.append(s)
             #sumString = string.join(self.sum,",")
-        sql = self.selectstring(sum) + self.fromstring() + self.wherestring() + self.groupstring()
+        sql = self.selectstring(sum) + self.fromstring() + self.wherestring()# + self.groupstring()
         return sql
 
     def fromstring(self):

@@ -283,14 +283,18 @@ class Report:
 
                 ## the number of fields shown may be larger than the size
                 ## of the tuple returned from the database
-                if self.extra.count(self.fieldName[field]):
-                    text = self.fields[field]
-                else:                    
-                    #if not field >= len(self.shown) - len(self.extra)+2:
-                    text = line[field]
-                #else:
-                    #text = self.fields[field]
+                try:
+                    
+                    if self.extra.count(self.fieldName[field]):
+                        text = self.fields[field]
+                    else:                    
+                        #if not field >= len(self.shown) - len(self.extra)+2:
+                        text = line[field]
+                    #else:
+                        #text = self.fields[field]
 
+                except KeyError,e:
+                    text = "feil"
 
                 newfield.setText(text)
                 
