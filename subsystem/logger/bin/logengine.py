@@ -25,6 +25,8 @@
 
 ## The structure in this file is not good, but understandable. It is easy
 ## to see that this file is converted from procedure oriented perl code.
+## go down to the main part first if you want to know what this is all
+## about.
 
 import re
 import fcntl
@@ -40,6 +42,41 @@ logfile = config.get("paths","syslog")
 
 connection = db.getConnection('logger','logger')
 database = connection.cursor()
+
+def get_exception_dicts(config):
+
+    options = config.options("priorityexceptions")
+
+    exceptionorigin = {}
+    exceptiontype = {}
+    exceptiontypeorigin = {}
+    exceptions = {}
+    for option in options:
+        newpriority = config.get("priorityexceptions", option)
+        op = re.split("@",option)
+        if len(op) == 1:
+            exceptions[op[0]] = newpriority
+        if len(op) == 2:
+            any = re.compile("any",re.I)
+            if not op[0] or any.search(op[0]):
+                exceptionorigin[op[1]] = newpriority
+            if not op[1] or any.search(op[1]):
+                exceptiontype[op[0]] = newpriority
+            #both fields
+            if op[0] and op[1]:
+                if not exceptiontypeorigin.has_key(op[0]):
+                    exceptiontypeorigin[op[0]] = {}
+                exceptiontypeorigin[op[0]][op[1]] = newpriority
+
+        #only one of the fields
+        for exception, priority in exceptions.items():
+            typematch = re.search("^\w+\-\d+\-\S+$", exception)
+            if typematch:
+                exceptiontype[exception] = priority
+            else:
+                exceptionorigin[exception] = priority
+
+    return (exceptionorigin,exceptiontype,exceptiontypeorigin)
 
 
 def createMessage(line):
@@ -68,7 +105,8 @@ def createMessage(line):
         #stoler på at denne tiden er rett
         servtime = oritime
 
-        
+        return Message(servtime, origin, type, description)
+
         #print oritime+DateTime.DateTimeDelta(5)
 
     else:
@@ -86,15 +124,16 @@ def createMessage(line):
 
             servtime = DateTime.DateTime(year,month,day,hour,min)
             
-            raise "this is a defined message, but it has no handler"
+            return Message(servtime, origin, type, description)
+            #raise "this is a defined message, but it has no handler"
         
         else:
-            raise "this is an undefined message"+line
+            database.execute("insert into errorerror (message) values (%s)" , (line,))
+            connection.commit()
+            #raise "this is an undefined message"+line
 
-    #ny prioritet hvis exceptions
-    #ikke impl
+            return
 
-    return Message(servtime, origin, type, description)
 
     
 class Message:
@@ -121,13 +160,6 @@ class Message:
             return categorymatch.group(1)
         else:
             return "rest"
-
-#not in use
-def find_priority(description):
-
-    prioritymatch = re.search(".*-(\d)-??.*",description)
-    if prioritymatch:
-        return int(prioritymatch.group(1))
 
 def find_year(mnd):
 
@@ -173,8 +205,8 @@ if __name__ == '__main__':
     categories = {}
     database.execute("select category from category")
     for r in database.fetchall():
-        if not categories.has_key(r):
-            categories[r] = r
+        if not categories.has_key(r[0]):
+            categories[r[0]] = r[0]
     
     origins = {}
     database.execute("select origin, name from origin")
@@ -189,6 +221,9 @@ if __name__ == '__main__':
             types[r[1]] = {}
         if not types[r[1]].has_key(r[2]):
             types[r[1]][r[2]] = int(r[0])
+
+    ## parse priorityexceptions
+    (exceptionorigin,exceptiontype,exceptiontypeorigin) = get_exception_dicts(config)
 
     ## delete old records
     ## the limits for what is old is specified in the logger.conf
@@ -208,40 +243,62 @@ if __name__ == '__main__':
     fcntl.flock(f, fcntl.LOCK_EX)
     
     fcon = f.readlines()
-    f.truncate(0)
+    #f.truncate(0)
     
     fcntl.flock(f, fcntl.LOCK_UN)
     f.close()
 
     for line in fcon:
+
         message = createMessage(line)
+        if message:
 
-        if origins.has_key(message.origin):
-            originid = origins[message.origin]
+            if origins.has_key(message.origin):
+                originid = origins[message.origin]
 
-        else:
-            if not categories.has_key(message.category):
-                database.execute("insert into category (category) values ('%s')" % message.category)
-                categories[message.category] = message.category
+            else:
+                if not categories.has_key(message.category):
+                    database.execute("insert into category (category) values ('%s')" % message.category)
+                    categories[message.category] = message.category
 
-            database.execute("select nextval('origin_origin_seq')")
-            originid = database.fetchone()[0]
-            database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
-            origins[message.origin] = originid
+                database.execute("select nextval('origin_origin_seq')")
+                originid = database.fetchone()[0]
+                database.execute("insert into origin (origin, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
+                origins[message.origin] = originid
 
-        if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
-            typeid = types[message.facility][message.mnemonic]
+            if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
+                typeid = types[message.facility][message.mnemonic]
 
-        else:
-            database.execute("select nextval('type_type_seq')")
-            typeid = int(database.fetchone()[0])
+            else:
+                database.execute("select nextval('type_type_seq')")
+                typeid = int(database.fetchone()[0])
 
-            database.execute("insert into type (type, facility, mnemonic, priority) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priorityid))
-            if not types.has_key(message.facility):
-                types[message.facility] = {}
-            types[message.facility][message.mnemonic] = typeid
+                database.execute("insert into type (type, facility, mnemonic, priority) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priorityid))
+                if not types.has_key(message.facility):
+                    types[message.facility] = {}
+                types[message.facility][message.mnemonic] = typeid
 
-        database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, '%s')"% (message.time, originid, message.priorityid, typeid, message.description))
+            ## overload priority if exceptions are set
+            if exceptiontypeorigin.has_key(message.type.lower()) and exceptiontypeorigin[message.type.lower()].has_key(message.origin.lower()):
+                try:
+                    message.priorityid = int(exceptiontypeorigin[message.type.lower()][message.origin.lower()])
+                except:
+                    pass
+
+            elif exceptionorigin.has_key(message.origin.lower()):
+                try:
+                    message.priorityid = int(exceptionorigin[message.origin.lower()])
+                except:
+                    pass
+
+            elif exceptiontype.has_key(message.type.lower()):
+                try:
+                    message.priorityid = int(exceptiontype[message.type.lower()])
+                except:
+                    pass
+
+            #insert into database
+            database.execute("insert into message (time, origin, newpriority, type, message) values ('%s', %d, %d, %d, '%s')"% (message.time, originid, message.priorityid, typeid, message.description))
 
     connection.commit()
 

@@ -20,6 +20,7 @@ install:
 	for dir in $(subdirs); do \
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
+	$(INSTALL) -D -v -m 644 logengine $(DESTDIR)$(crondir)/logengine
 	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 clean:

@@ -24,15 +24,20 @@
 #
 from mod_python import apache,util
 
+import os
+import nav
 from nav import db
 import psycopg
 import re
 from mx import DateTime
+from ConfigParser import ConfigParser
 from nav.web.templates.LoggerTemplate import LoggerTemplate
 
 connection = db.getConnection('webfront','logger')
 database = connection.cursor()
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
+DOMAIN_SUFFICES = [s.strip() for s in nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")]
+
 
 def handler(req):
 
@@ -56,9 +61,15 @@ def handler(req):
     origin2originid = {}
     origins.append((0,"(All)"))
     for r in database.fetchall():
-        origins.append((r[0], r[1]))
-        origin2originid[r[1]] = r[0]
-        originid2origin[r[0]] = r[1]
+        shortorigin = r[1]
+        origin2originid[shortorigin] = r[0]
+        for d in DOMAIN_SUFFICES:
+            shortorigin = re.sub(d,"",r[1])
+        origins.append((r[0], shortorigin))
+        originid2origin[r[0]] = shortorigin
+        
+        # should maybe make this dependant on wether it already exists
+        origin2originid[shortorigin] = r[0]
         
     database.execute("select category from category order by category")
     categories = database.fetchall()
@@ -106,7 +117,7 @@ def handler(req):
         origin = req.form["origin"]
         originid = origin2originid[origin]
         constraints.append("origin = %d" % originid)
-        links.append("origin=%s" % origin)
+        links.append("origin=%s" % originid2origin[originid])
     if req.form.has_key("category") and req.form["category"] > '0':
         category = req.form["category"]
         constraints.append("category = '%s'" % category)
@@ -140,20 +151,24 @@ def handler(req):
         error = 1
     else:
         error = 0
+    if req.form.has_key("exception"):
+        exception = 1
+    else:
+        exception = 0
         
     log = 0
-    if not error:
+    if not error and not exception:
 
 
         if origin and type or origin and log or type and log:
             ## log
 
             #where = re.sub("priority","newpriority",where)
-            database.execute("select time, name, newpriority, priority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
+            database.execute("select time, origin, newpriority, priority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
             #raise repr("select time, name, newpriority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
             log = []
             for l in database.fetchall():
-                log.append(LogMessage(l[0], l[1], l[2], l[3], l[4], l[5], l[6]))
+                log.append(LogMessage(l[0], originid2origin[l[1]], l[2], l[3], l[4], l[5], l[6]))
             page.log = log
             page.mode = "log"
             page.total = database.rowcount
@@ -183,13 +198,27 @@ def handler(req):
 
     else:
 
+        if exception:
+        ## list priority exceptions
+        
+            config = ConfigParser()
+            config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
+            options = config.options("priorityexceptions")
+            exceptions = []
+            for option in options:
+                newpriority = config.get("priorityexceptions", option)
+                exceptions.append((option, newpriority))
+            page.exceptions = exceptions
+            page.mode = "exception"
+                
+        else:
         ## errors
-
-        database.execute("select message from errorerror order by id desc")
-        page.errors = database.fetchall()
-        page.mode = "errors"
-        page.total = database.rowcount
-
+        
+            database.execute("select message from errorerror order by id desc")
+            page.errors = database.fetchall()
+            page.mode = "error"
+            page.total = database.rowcount
+        
     req.content_type = "text/html"
     req.write(page.respond())
 
