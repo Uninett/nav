@@ -35,7 +35,6 @@ class pinger:
         self._looptime=int(self.config.get('checkinterval',60))
         debug.debug("Setting checkinterval=%i" %self._looptime)
         self._debuglevel=0
-        self._pidfile=self.config.get('pidfile', 'pinger.pid')
         self.dbconf=config.dbconf()
         self.db=db.db(self.dbconf)
         self.down=[]
@@ -146,18 +145,8 @@ def start(nofork):
     if not nofork:
         pid=os.fork()
         if pid > 0:
-            pidfile=conf.get('pidfile', 'pinger.pid')
-            try:
-                pidfile=open(pidfile, 'w')
-                pidfile.write(str(pid)+'\n')
-                pidfile.close()
-            except Exception, e:
-                print "Could not open %s" % pidfile
-                print str(e)
             os.sys.exit()
-
-        logfile = conf.get('logfile','pinger.log')
-        # print "Logger til ", logfile
+        logfile = conf.get('logfile','pping.log')
         os.sys.stdout = open(logfile,'a')
         os.sys.stderr = open(logfile,'a')
     myPinger=pinger(socket=sock)
