@@ -41,6 +41,14 @@ public class BoxState implements EventHandler, EventCallback
 		if (eventtype.equals("boxState")) {
 			if (d instanceof Box) {
 				Box b = (Box)d;
+
+				if (b.onMaintenance()) {
+					// We simply ignore any events from boxes on maintenance
+					Log.d("HANDLE", "Ignoring event as the box is on maintenance");
+					e.dispose();
+					return;
+				}
+
 				if (e.getState() == Event.STATE_START) {
 					if (!b.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
 						Log.d("HANDLE", "Ignoring duplicate down event for Box");
@@ -87,7 +95,7 @@ public class BoxState implements EventHandler, EventCallback
 				}
 
 			} else {
-				Log.w("HANDLE", "Device " + d + " not Box or sub-class of Box: " + getClassH(d.getClass()) );
+				Log.w("HANDLE", "Device " + d + " not Box or sub-class of Box: " + d.getClassH());
 				return;
 			}
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
@@ -190,15 +198,6 @@ public class BoxState implements EventHandler, EventCallback
 
 	}
 
-	/**
-   * Return the class hierarchy for c as a String.
-   */
-	private String getClassH(Class c) {
-		if (c.getSuperclass() == null) return "";
-		return getClassH(c.getSuperclass()) + " <- " + c.getName();
-	}
-
-
 
 	private boolean sentWarning = false;
 
@@ -217,7 +216,7 @@ public class BoxState implements EventHandler, EventCallback
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
 				Box b = (Box)i.next();
-				Log.d("CALLBACK", "Box down: " + b.getSysname() );
+				Log.d("CALLBACK", "Box down: " + b.getSysname());
 
 				if (!b.isUp()) {
 					// The box iself is down, this means we don't report modules down if any
