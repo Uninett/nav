@@ -80,7 +80,8 @@ public class Port
 
 		List vl = new ArrayList();
 		do {
-			vl.add(new Vlan(rs.getInt("vlan"), rs.getString("direction").charAt(0)));
+			char dir = rs.getString("direction") == null ? 'x' : rs.getString("direction").charAt(0);
+			vl.add(new Vlan(rs.getInt("vlan"), dir));
 			//errl("Debug   Port: New vlan: " + vl.get(vl.size()-1));
 		} while (rs.next() && rs.getInt("parent_deviceid") == parentDeviceid && rs.getString("module").equals(module) && rs.getInt("port") == port);
 		rs.previous();

@@ -13,18 +13,23 @@ import no.ntnu.nav.eventengine.*;
 
 class DeviceDBImpl implements DeviceDB
 {
+	private static final int MIN_UPDATE_INTERVAL = 10000;
+
 	private Timer timer;
 
+	private MessagePropagator mp;
 	private HashMap deviceMap;
 	private Set deviceidSet;
 	private boolean updateMode;
+	private long lastDBUpdate = System.currentTimeMillis();
 	
 	// Contains the down alerts from alert hist so we know can look the
 	// start event up when the end alert arrives
 	private Map downAlertMap = new HashMap();
 
-	DeviceDBImpl(HashMap deviceMap, Timer timer, String alertmsgFile) throws java.text.ParseException
+	DeviceDBImpl(MessagePropagator mp, HashMap deviceMap, Timer timer, String alertmsgFile) throws java.text.ParseException
 	{
+		this.mp = mp;
 		this.deviceMap = deviceMap;
 		this.timer = timer;
 
@@ -87,7 +92,15 @@ class DeviceDBImpl implements DeviceDB
 
 	public Device getDevice(int deviceid)
 	{
-		return (Device)deviceMap.get(new Integer(deviceid));
+		Integer id = new Integer(deviceid);
+		if (!updateMode && !deviceMap.containsKey(id) && (System.currentTimeMillis()-lastDBUpdate > MIN_UPDATE_INTERVAL)) {
+			// Update from DB
+			Log.d("DEVICEDB_IMPL", "GET_DEVICE", "Device not found, forcing DB update: " + deviceid);
+			System.out.println("Device not found, forcing DB update: " + deviceid);
+			//mp.updateFromDB();
+			lastDBUpdate = System.currentTimeMillis();
+		}
+		return (Device)deviceMap.get(id);
 	}
 
 	public void putDevice(Device d)
@@ -106,6 +119,7 @@ class DeviceDBImpl implements DeviceDB
 	}
 
 	public void startDBUpdate() {
+		Log.d("DEVICEDB_IMPL", "START_DB_UPDATE", "devDB size: " + deviceMap.size());
 		deviceidSet = ((HashMap)deviceMap.clone()).keySet();
 		updateMode = true;
 	}
@@ -179,12 +193,17 @@ class DeviceDBImpl implements DeviceDB
 			boolean removeDownAlert = false;
 			boolean noDownAlertExp = false;
 			if (e.getState() != Event.STATE_END) {
-				// Insert into alerthist
-				String id = insertAlert(e, true, null);
+				if (e.getState() == Event.STATE_START && downAlertMap.containsKey(e.getKey())) {
+					// Duplicate start event, not allowing!
+					Log.e("DeviceDBImpl", "POST_ALERT", "Duplicate start event, not posting to alertq: " + e);
+				} else {
+					// Insert into alerthist
+					String id = insertAlert(e, true, null);
 
-				if (e.getState() == Event.STATE_START) {
-					e.setEventqid(id);
-					downAlertMap.put(e.getKey(), e);
+					if (e.getState() == Event.STATE_START) {
+						e.setEventqid(id);
+						downAlertMap.put(e.getKey(), e);
+					}
 				}
 			} else {
 				// End event, set end time for previous (start) alert
@@ -207,9 +226,9 @@ class DeviceDBImpl implements DeviceDB
 				EventImpl de = (EventImpl)i.next();
 				sb.append(",'"+de.getEventqid()+"'");
 			}
-			Log.d("DEV_DB", "POSTALERT", "Removing events from eventq: " + sb);
 			if (sb.length() > 0) {
 				sb.deleteCharAt(0);
+				Log.d("DEV_DB", "POSTALERT", "Removing events from eventq: " + sb);
 				Database.update("DELETE FROM eventq WHERE eventqid IN ("+sb+")");
 			}
 

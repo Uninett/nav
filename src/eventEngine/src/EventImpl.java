@@ -35,6 +35,7 @@ class EventImpl implements Event, Alert
 	private List eventList = new ArrayList();
 
 	private boolean disposed;
+	private boolean deferred;
 
 	public EventImpl(String eventqid, String source, int deviceid, int netboxid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
 	{
@@ -113,6 +114,32 @@ class EventImpl implements Event, Alert
 			return;
 		}
 		disposed = true;
+	}
+	public void defer(String reason) {
+		if (disposed || deferred) return;
+		try {
+			String sev = getSeverity() == 0 ? "-1" : "(-severity)";
+			Database.update("UPDATE eventq SET severity = " + sev + " WHERE eventqid = '"+eventqid+"'");
+		} catch (SQLException e) {
+			Log.e("EVENT_IMPL", "DEFER", "Cannot update severity: " + e.getMessage());
+			return;
+		}
+		postEventqvar("deferred", "yes");
+		if (reason != null) postEventqvar("deferred_reason", reason);
+		deferred = true;		
+	}
+
+	private void postEventqvar(String var, String val) {
+		try {
+			String[] ins = {
+				"eventqid", eventqid,
+				"var", var,
+				"val", val,
+			};
+			Database.insert("eventqvar", ins);
+		} catch (SQLException e) {
+			Log.e("EVENT_IMPL", "POST_EVENTQVAR", "Cannot post to eventqvar: " + e.getMessage());
+		}
 	}
 
 	// Alert
@@ -246,14 +273,14 @@ class EventImpl implements Event, Alert
 
 	public String toString()
 	{
-		String s = "eventqid="+eventqid+" deviceid="+deviceid+" netboxid="+netboxid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql();
+		String s = "e="+eventqid+" d="+deviceid+" n="+netboxid+" t="+eventtypeid+" s="+getStateSql();
 		boolean first=true;
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();
 			String var = (String)me.getKey();
 			String val = (String)me.getValue();
-			if (first) { first = false; s += "\n"; }
-			s += "["+var+"="+val+"] ";
+			//if (first) { first = false; s += "\n"; }
+			s += " ["+var+"="+val+"]";
 		}
 		return s;
 	}

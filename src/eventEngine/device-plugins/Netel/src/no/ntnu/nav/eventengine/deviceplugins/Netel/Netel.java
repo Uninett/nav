@@ -15,7 +15,8 @@ public class Netel extends Box
 	protected int moduleStatus;
 	private int moduleDownCount;
 
-	List modules = new ArrayList();
+	//List modules = new ArrayList();
+	Map modules = new HashMap();
 	Map modulesDown = new HashMap();
 
 	protected Netel() { }
@@ -61,7 +62,7 @@ public class Netel extends Box
 		}
 
 		Log.d("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all netboxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid) WHERE catid IN ('SW','EDGE')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid) WHERE catid IN ('SW','EDGE','WLAN')");
 
 		while (rs.next()) {
 			try {
@@ -72,6 +73,11 @@ public class Netel extends Box
 			if (d == null) {
 				Netel n = new Netel(ddb, rs);
 				ddb.putDevice(n);
+			} else if (classEq(d, new Module())) {
+				// Add the module and then overwrite
+				Netel n = new Netel(ddb, rs, d);
+				n.addModule((Module)d);
+				ddb.putDevice(n);					
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Netel())) {
 					((Netel)d).update(rs);
@@ -109,7 +115,8 @@ public class Netel extends Box
 
 	protected void addModule(Module m)
 	{
-		modules.add(m);
+		modules.put(m.getDeviceidI(), m);
+		if (!m.isUp()) moduleDown(m);
 	}
 	protected void removeModule(Module m)
 	{
@@ -137,7 +144,7 @@ public class Netel extends Box
 	}
 	protected Iterator getModules()
 	{
-		return modules.iterator();
+		return modules.values().iterator();
 	}
 	public Iterator getModulesDown()
 	{
@@ -155,7 +162,7 @@ public class Netel extends Box
 	{
 		StringBuffer sb = new StringBuffer(super.toString());
 		sb.append("\n  Netel ["+modules.size()+" modules]");
-		for (Iterator i=modules.iterator(); i.hasNext();) {
+		for (Iterator i=modules.values().iterator(); i.hasNext();) {
 			sb.append("\n    "+i.next());
 		}
 		return sb.toString();
@@ -174,6 +181,7 @@ public class Netel extends Box
 		if (reachableFrom(this, vlan, new HashSet()) == REACHABLE_NO) {
 			shadow();
 		}
+		outld("");
 	}
 
 	protected static final int REACHABLE_YES = 0; 
@@ -191,7 +199,7 @@ public class Netel extends Box
 		boolean foundDownlink = false;
 		int reachable = REACHABLE_UNKNOWN;
 
-		//outld("reachableFrom: @"+sysname+", vlan="+vlan);
+		outld("reachableFrom: @"+sysname+", vlan="+vlan + ", b="+b.getSysname() + ", modules="+modules.size());
 
 		// No downlink to overselves
 		if (b == this) {
@@ -199,10 +207,11 @@ public class Netel extends Box
 			visited.add(getDeviceidI());
 		} else {
 			// If we are down, b is obviously not reachable from here :)
+			if (!isUp()) outld("  No. (down)");
 			if (!isUp()) return REACHABLE_NO;
 		}
 
-		for (Iterator i=modules.iterator(); reachable != REACHABLE_YES && i.hasNext();) {
+		for (Iterator i=modules.values().iterator(); reachable != REACHABLE_YES && i.hasNext();) {
 			Module m = (Module)i.next();
 			// Verify that we have a downlink to b on the correct vlan
 			for (Iterator j=m.getPortsTo(b); !foundDownlink && j.hasNext();) {
@@ -215,38 +224,41 @@ public class Netel extends Box
 			}
 
 			// If the module is down there is no point in checking its ports
+			if (!m.isUp()) outld("  Skip module.");
 			if (!m.isUp()) continue;
 
-			//outld("  Scan for uplink..., module: " + m.getModule());
+			outld("  Scan for uplink..., module: " + m.getModule());
 
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); j.hasNext();) {
 				Port p = (Port)j.next();
 				int dir = p.vlanDirection(vlan);
-				//outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + "dev: " + boxidToDeviceid(p.getBoxidBehind()));
+				if (p.getBoxidBehind() != 0) {
+					outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + ((Netel)devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()))).getSysname());
+				}
 				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
 					if (d instanceof Netel) {
 						Netel n = (Netel)d;
-						//outld("  Reachable from uplink " + n.sysname + "?");
+						outld("  Reachable from uplink " + n.sysname + "?");
 
 						// Visit this box if we have not already
 						if (visited.add(n.getDeviceidI())) {
 							int r = n.reachableFrom(this, vlan, visited);
 							if (r == REACHABLE_YES) {
-								//outld("  Yes.");
+								outld("  Yes.");
 							    reachable = r;
 							    break;
 							}
 							if (r == REACHABLE_NO) {
-								//outld("  No.");
+								outld("  No.");
 							    reachable = r;
 							} else {
-								//outld("  Unknown.");
+								outld("  Unknown.");
 							}
 						}
 					} else {
-						//outld("  Error! Device not Netel: " + d);
+						outld("  Error! Device not Netel: " + d);
 					}
 				}
 			}
@@ -259,6 +271,8 @@ public class Netel extends Box
 
 		return reachable;
 	}
+
+	static void outld(String s) { /*System.err.println(s);*/ }
 
 
 }

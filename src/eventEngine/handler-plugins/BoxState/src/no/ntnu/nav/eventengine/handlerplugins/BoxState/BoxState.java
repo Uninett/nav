@@ -19,11 +19,11 @@ public class BoxState implements EventHandler, EventCallback
 	private Map startEventMap = new HashMap();
 	private int lastDownCount;
 
-	public static final int SHADOW_SEVERITY_DEDUCTION = 30;
+	public static final int SHADOW_SEVERITY_DEDUCTION = 20;
 
 	public String[] handleEventTypes()
 	{
-		return new String[] { "boxState", "moduleState", "linkState", "coldStart", "warmStart" };
+		return new String[] { "boxState", "moduleState", "linkState", "boxRestart" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
@@ -40,7 +40,7 @@ public class BoxState implements EventHandler, EventCallback
 		String eventtype = e.getEventtypeid();
 		boolean callback = false;
 
-		if (eventtype.equals("boxState")) {
+		if (eventtype.equals("boxState") || eventtype.equals("moduleState") || eventtype.equals("linkState")) {
 			if (d instanceof Box) {
 				Box b = (Box)d;
 
@@ -99,12 +99,7 @@ public class BoxState implements EventHandler, EventCallback
 					b.up();
 				}
 
-			} else {
-				Log.w("HANDLE", "Device " + d + " not Box or sub-class of Box: " + d.getClassH());
-				return;
-			}
-		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
-			if (d instanceof Module) {
+			} else if (d instanceof Module) {
 				Module m = (Module)d;
 				Device pd = ddb.getDevice(m.getParentDeviceid());
 				Box pb = null;
@@ -131,7 +126,7 @@ public class BoxState implements EventHandler, EventCallback
 							e.dispose();
 							return;
 						}
-						Log.d("HANDLE", "Module going down");
+						Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
 						m.down();
 						startEventMap.put(e.getDeviceidI(), e);
 						callback = true;
@@ -177,15 +172,32 @@ public class BoxState implements EventHandler, EventCallback
 
 					//outld("BoxState  Module: " + m);
 				}
-
+				
 			} else {
-				Log.w("HANDLE", "Device not Module or sub-class of Module");
+				Log.w("HANDLE", "Device " + d + " not Box, Module or sub-class: " + d.getClassH());
+				e.defer("Device not Box, Module or sub-class: " + d.getClassH());
 				return;
 			}
-		} else if (eventtype.equals("coldStart") || eventtype.equals("warmStart")) {
-			// Do nothing (yet)
-			Log.d("HANDLE", "Ignoring event " + eventtype);
-			e.dispose();
+		} else if (eventtype.equals("boxRestart")) {
+			// Simply post on alertq
+			String alerttype = e.getVar("alerttype");
+			Alert a = ddb.alertFactory(e, alerttype);
+			a.addEvent(e);
+
+			if (d instanceof Box) {
+				Box b = (Box)d;
+				if (b.onMaintenance()) {
+					// Do not post to alertq if box is on maintenace
+					a.setPostAlertq(false);
+				}
+			}
+
+			Log.d("HANDLE", "Posting boxRestart ("+alerttype+") alert");
+			try {
+				ddb.postAlert(a);
+			} catch (PostAlertException exp) {
+				Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
+			}
 			return;
 		}
 
@@ -207,6 +219,8 @@ public class BoxState implements EventHandler, EventCallback
 			try {
 				alertTicks = Integer.parseInt(cp.get("alertTicks"));
 			} catch (Exception exp) { }
+			
+			alertTickLength = 10; // debug
 
 			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
@@ -302,13 +316,19 @@ public class BoxState implements EventHandler, EventCallback
 							// Find the down event
 							Event e = (Event)startEventMap.remove(m.getDeviceidI());
 							if (e == null) {
-								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "Module " + m + " is down, but no start event found!");
+								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found! " + startEventMap.keySet());
 								continue;
 							}
 							
 							// Create alert
 							Alert a = ddb.alertFactory(e, "moduleDown");
 							a.addEvent(e);
+
+							if (b.onMaintenance()) {
+								// Do not post to alertq if box is on maintenace
+								Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
+								a.setPostAlertq(false);
+							}
 							
 							// Post the alert
 							try {

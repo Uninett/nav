@@ -11,7 +11,7 @@ import no.ntnu.nav.eventengine.deviceplugins.Box.*;
 public class Module extends Device
 {
 	protected static final boolean DEBUG_OUT = true;
-	protected static final boolean VERBOSE_TOSTRING = true;
+	protected static final boolean VERBOSE_TOSTRING = false;
 
 	protected int parentDeviceid;
 	protected int parentBoxid;
@@ -43,6 +43,7 @@ public class Module extends Device
 		parentDeviceid = rs.getInt("parent_deviceid");
 		parentBoxid = rs.getInt("parent_netboxid");
 		module = rs.getString("module");
+		status = "y".equals(rs.getString("up"));
 		do {
 			//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
 			Port p;
@@ -59,7 +60,7 @@ public class Module extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("MODULE_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all modules from database");
-		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE module.up='y' ORDER BY moduleid,module,port");
+		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,module.up,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) LEFT JOIN swportvlan USING(swportid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,module,port");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -79,6 +80,10 @@ public class Module extends Device
 			if (d == null) {
 				Module m = new Module(ddb, rs);
 				ddb.putDevice(m);
+			} else if (classEq(d, new Netel())) {
+				// Add ourselves to the netbox
+				Module m = new Module(ddb, rs, d);
+				((Netel)d).addModule(m);
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Module())) {
 					((Module)d).update(rs);
@@ -119,18 +124,55 @@ public class Module extends Device
 
 	public void down()
 	{
+		boolean prevStatus = status;
 		status = false;
+		updateDbModuleStatus(status != prevStatus);
 		parent.moduleDown(this);
 	}
 	public void up()
 	{
 		status = true;
+		updateDbModuleStatus(true);
 		parent.moduleUp(this);
 	}
 	public boolean isUp()
 	{
 		return status;
 	}
+
+	// If changeStatus is true and the module is down we do not want to
+	// overwrite a previously set downsince and this has to check this
+	// condition
+	private void updateDbModuleStatus(boolean changeStatus)
+	{
+		char c = status ? 'y' : 'n';
+		String downsince;
+		if (status) {
+			downsince = "null";
+		} else if (changeStatus) {
+			downsince = "now()";
+		} else {
+			// Check if we should update or not
+			try {
+				ResultSet rs = Database.query("SELECT downsince FROM module WHERE deviceid="+deviceid);
+				if (rs.next() && rs.getString("downsince") != null) {
+					downsince = "downsince";
+				} else {
+					downsince = "now()";
+				}
+			} catch (SQLException e) {
+				Log.w("MODULE_DEVICEPLUGIN", "UPDATE_DB_MODULE_STATUS", "Could not read previous downsince for deviceid=" + deviceid);
+				downsince = "now()";
+			}
+		}
+		
+		try {
+			Database.update("UPDATE module SET up='"+c+"', downsince = "+downsince+" WHERE deviceid="+deviceid);
+		} catch (SQLException e) {
+			Log.w("MODULE_DEVICEPLUGIN", "UPDATE_DB_MODULE_STATUS", "Could not change status for deviceid=" + deviceid);
+		}
+	}
+
 
 	public String getModule()
 	{

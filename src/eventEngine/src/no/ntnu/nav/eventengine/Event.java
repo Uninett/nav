@@ -91,4 +91,15 @@ public interface Event
 	 */
 	public void dispose();
 
+	/**
+	 * <p> Defer the event. The event will not be deleted, but rather
+	 * marked as 'deferred'; its severity will be set to a negative
+	 * value and eventengine will not do further prosessing on it.  </p>
+	 *
+	 * <p> Also the reason for deferring it will be written to
+	 * eventqvar, with the variables 'deferred = yes' and
+	 * 'deferred_reason = reason'.  </p>
+	 */
+	public void defer(String reason);
+
 }

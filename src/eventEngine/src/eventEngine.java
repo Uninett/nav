@@ -85,12 +85,14 @@ class eventEngine
 		cfmt.run(); // Load config first time
 		timer.schedule(cfmt, 5 * 1000, 5 * 1000); // 5 second delay
 
+		MessagePropagatorImpl mp = new MessagePropagatorImpl();
+
 		HashMap handlerClassMap = new HashMap();
 		HashMap deviceMap = new HashMap();
 
 		DeviceDBImpl devDB;
 		try {
-			devDB = new DeviceDBImpl(deviceMap, timer, alertmsgFile);
+			devDB = new DeviceDBImpl(mp, deviceMap, timer, alertmsgFile);
 		} catch (ParseException e) {
 			System.err.println("While reading " + alertmsgFile + ":");
 			System.err.println("  " + e.getMessage());
@@ -98,15 +100,28 @@ class eventEngine
 		}
 
 		// The eventq monitor
-		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB, cfmt);
+		EventqMonitorTask emt = new EventqMonitorTask(mp, handlerClassMap, devDB, cfmt);
 
 		// Set up the plugin monitor
 		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerClassMap, devDB, deviceMap, emt );
+		mp.setPluginMonitorTask(pmt);
 		pmt.run(); // Load all plugins
 
 		timer.schedule(pmt, 5 * 1000, 5 * 1000); // Check for new plugin every 5 seconds
 		timer.schedule(emt, 1 * 1000, 5 * 1000); // Check for new events every 5 seconds
 
+	}
+
+	static class MessagePropagatorImpl implements MessagePropagator {
+		private PluginMonitorTask pmt;
+
+		void setPluginMonitorTask(PluginMonitorTask pmt) {
+			this.pmt = pmt;
+		}
+
+		public void updateFromDB() {
+			pmt.updateFromDB();
+		}
 	}
 
 	private static String format(long i, int n)
@@ -178,6 +193,8 @@ class ConfigFileMonitorTask extends TimerTask
 
 class PluginMonitorTask extends TimerTask
 {
+	private static final int UPDATE_INTERVAL = 60 * 60 * 1000;
+
   DynamicURLClassLoader cl = new DynamicURLClassLoader();
 
 	File deviceDir, handlerDir;
@@ -189,6 +206,8 @@ class PluginMonitorTask extends TimerTask
 	DeviceDBImpl devDB;
 	Map deviceMap;
 	EventqMonitorTask emt;
+
+	private long lastDBUpdate = System.currentTimeMillis();
 
 	public PluginMonitorTask(String devicePath, Map deviceClassMap, String handlerPath, Map handlerClassMap, DeviceDBImpl devDB, Map deviceMap, EventqMonitorTask emt)
 	{
@@ -206,55 +225,13 @@ class PluginMonitorTask extends TimerTask
 		}
 	}
 
-	public void run()
+	public synchronized void run()
 	{
 		// Update Devices
-		if (update(deviceDir, deviceFileMap, deviceClassMap, deviceDir.listFiles() )) {
-			devDB.startDBUpdate();
-			Class[] ddbClass = new Class[1];
-			Object[] o = new Object[] { devDB };
-			try {
-				ddbClass[0] = Class.forName("no.ntnu.nav.eventengine.DeviceDB");
-			} catch (ClassNotFoundException e) {
-				System.err.println("ClassNotFoundException when getting DeviceDB reference: " + e.getMessage());
-				e.printStackTrace(System.err);
-			}
-
-			List deviceClassList = new ArrayList();
-			for (Iterator i = deviceClassMap.values().iterator(); i.hasNext();) {
-				Class c = (Class)i.next();
-				deviceClassList.add(new DeviceClassEntry(findDepth(c), c));
-			}
-
-			Collections.sort(deviceClassList);
-
-			for (Iterator i = deviceClassList.iterator(); i.hasNext();) {
-				Class c = ((DeviceClassEntry)i.next()).deviceClass;
-				try {
-					Method m = c.getMethod("updateFromDB", ddbClass);
-					m.invoke(null, o);
-				} catch (NoSuchMethodException e) {
-					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "NoSuchMethodException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
-					e.printStackTrace(System.err);
-				} catch (IllegalAccessException e) {
-					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "IllegalAccessException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
-					e.printStackTrace(System.err);
-				} catch (InvocationTargetException e) {
-					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
-					e.printStackTrace(System.err);
-				}
-
-			}
-
-			devDB.endDBUpdate();
-			classDepthCache.clear();
-
-			// Now call 'init' for all devices
-			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
-
-			//Device d = (Device)devDB.getDevice(279);
-			//errl("Found:\n"+d);
-
+		if (update(deviceDir, deviceFileMap, deviceClassMap, deviceDir.listFiles() ) ||
+				(System.currentTimeMillis()-lastDBUpdate > UPDATE_INTERVAL)) {
+			updateFromDB();
+			lastDBUpdate = System.currentTimeMillis();
 		}
 
 		// Update EventHandlers
@@ -262,6 +239,55 @@ class PluginMonitorTask extends TimerTask
 			emt.updateCache();
 		}
 	}
+
+	public synchronized void updateFromDB() {
+		devDB.startDBUpdate();
+		Class[] ddbClass = new Class[1];
+		Object[] o = new Object[] { devDB };
+		try {
+			ddbClass[0] = Class.forName("no.ntnu.nav.eventengine.DeviceDB");
+		} catch (ClassNotFoundException e) {
+			System.err.println("ClassNotFoundException when getting DeviceDB reference: " + e.getMessage());
+			e.printStackTrace(System.err);
+		}
+
+		List deviceClassList = new ArrayList();
+		for (Iterator i = deviceClassMap.values().iterator(); i.hasNext();) {
+			Class c = (Class)i.next();
+			deviceClassList.add(new DeviceClassEntry(findDepth(c), c));
+		}
+
+		Collections.sort(deviceClassList);
+
+		for (Iterator i = deviceClassList.iterator(); i.hasNext();) {
+			Class c = ((DeviceClassEntry)i.next()).deviceClass;
+			try {
+				Method m = c.getMethod("updateFromDB", ddbClass);
+				m.invoke(null, o);
+			} catch (NoSuchMethodException e) {
+				Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "NoSuchMethodException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+				e.printStackTrace(System.err);
+			} catch (IllegalAccessException e) {
+				Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "IllegalAccessException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+				e.printStackTrace(System.err);
+			} catch (InvocationTargetException e) {
+				Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+				e.printStackTrace(System.err);
+			}
+
+		}
+
+		devDB.endDBUpdate();
+		classDepthCache.clear();
+
+		// Now call 'init' for all devices
+		for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
+
+		//Device d = (Device)devDB.getDevice(279);
+		//errl("Found:\n"+d);
+	}
+
+
 
 	class DeviceClassEntry implements Comparable
 	{
@@ -391,6 +417,7 @@ class PluginMonitorTask extends TimerTask
 
 class EventqMonitorTask extends TimerTask
 {
+	MessagePropagator mp;
 	Map handlerClassMap;
 	DeviceDBImpl devDB;
 	ConfigFileMonitorTask cfmt;
@@ -398,8 +425,9 @@ class EventqMonitorTask extends TimerTask
 	Map handlerCache = new HashMap();
 	int lastEventqid = 0;
 
-	public EventqMonitorTask(Map handlerClassMap, DeviceDBImpl devDB, ConfigFileMonitorTask cfmt)
+	public EventqMonitorTask(MessagePropagator mp, Map handlerClassMap, DeviceDBImpl devDB, ConfigFileMonitorTask cfmt)
 	{
+		this.mp = mp;
 		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
 		this.cfmt = cfmt;
@@ -432,7 +460,7 @@ class EventqMonitorTask extends TimerTask
 	public void run()
 	{
 		try {
-			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
+			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' AND severity >= 0 ORDER BY eventqid");
 			if (rs.getFetchSize() > 0) {
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched " + rs.getFetchSize() + " rows from eventq");
 			} else {
@@ -446,7 +474,17 @@ class EventqMonitorTask extends TimerTask
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Got event: " + e);
 
 				String eventtypeid = e.getEventtypeid();
-				if (handlerCache.containsKey(eventtypeid)) {
+				if (eventtypeid.equals("notification")) {
+					// Event for me!
+					String cmd = e.getVar("command");
+					if ("updateFromDB".equals(cmd)) {
+						mp.updateFromDB();
+					} else {
+						Log.d("EVENTQ_MONITOR_TASK", "RUN", "Unknown command: " + cmd);
+					}
+					e.dispose();
+
+				} else if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
 					Log.d("EVENTQ_MONITOR_TASK", "RUN", "Found handler: " + eh.getClass().getName());
 					try {
@@ -475,7 +513,46 @@ class EventqMonitorTask extends TimerTask
 		}
 	}
 
+
+
 /*
+
+1673
+
+BEGIN;
+INSERT INTO eventq (source,target,netboxid,eventtypeid,state,severity) VALUES ('pping','getDeviceData',659,'notification','x',0);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData' AND netboxid=659),'command','runNetbox');
+COMMIT;
+
+--kjemi-384-sw
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',75,75,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',724,394,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',725,395,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',761,396,'boxState','e',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',75,75,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',724,394,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',725,395,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',761,396,'boxState','s',100);
+COMMIT;
+
+
+--tekno-sw
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1643,627,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',9953,827,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',9956,829,'boxState','e',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1643,627,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',9953,827,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',9956,829,'boxState','s',100);
+COMMIT;
+
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',348,347,'boxState','s',100);
 INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',48977,1912,'boxState','s',100);

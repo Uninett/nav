@@ -25,6 +25,7 @@ public class Info implements EventHandler
 
 		Alert a = ddb.alertFactory(e);
 		a.addEvent(e);
+		if (e.getVar("alerttype") != null) a.setAlerttype(e.getVar("alerttype"));
 
 		try {
 			ddb.postAlert(a);

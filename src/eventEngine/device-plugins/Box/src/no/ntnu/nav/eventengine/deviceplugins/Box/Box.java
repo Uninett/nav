@@ -70,7 +70,7 @@ public class Box extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("BOX_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all boxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid)");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid)");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");

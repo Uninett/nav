@@ -28,6 +28,7 @@ public class MaintenanceState implements EventHandler
 		Device d = ddb.getDevice(e.getDeviceid());
 		if (d == null) {
 			Log.w("HANDLE", "Device with deviceid="+e.getDeviceid()+" not found!");
+			e.defer("Device with deviceid="+e.getDeviceid()+" not found!");
 			return;
 		}
 
