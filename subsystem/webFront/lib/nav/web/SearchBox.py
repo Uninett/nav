@@ -36,34 +36,37 @@ class SearchBox:
         if req.form.has_key(self.typeCname):
             self.selected = req.form[self.typeCname]
 
-    def addSearch(self,sid,name,table,columns,where=None,call=None):
+    def addSearch(self,sid,name,table,columns,where=None,like=None,call=None):
         " Adds a new search type to the searchbox "
-        self.searches[sid] = (name,table,columns,where,call)
+        self.searches[sid] = (name,table,columns,where,like,call)
 
     def getResults(self,req):
         " Returns the results from the source as a dict "
         results = {}
         for sid,options in self.searches.items():
-            name,table,columns,where,call = options
+            name,table,columns,where,like,call = options
             for key,columns in columns.items():
                 results[key] = []
 
         if req.form.has_key(self.typeCname):
             for sid,options in self.searches.items():
                 if req.form[self.typeCname] == sid:
-                    name,table,columns,where,call = options
+                    name,table,columns,where,like,call = options
                     db = getattr(nav.db.manage,table)
 
                     if req.form.has_key(self.inputCname):
                         input = req.form[self.inputCname]
                         if where:
                             where = where % (input,)
-                        else:
+                        elif like:
+                            where = like + " LIKE '%" + input + "%'" 
+                        elif call:
                             (success,val) = call(input)
                             if success:
                                 where = val
                             else:
-                                raise(val)
+                                raise("SearchBox callback function " +\
+                                      "failed: " + str(val))
 
                     for entry in db.getAllIterator(where=where):
                         for key,column in columns.items():
