@@ -177,11 +177,15 @@ class NetboxInfo(manage.Netbox):
             return 'Unknown'
         # Find the gw
         gws = self.prefix.getChildren(manage.Gwportprefix,
-                                 orderBy='hsrp')
+                                 orderBy=['hsrp','gwip'])
         if not gws:
             return 'Unknown'
         # If we have hsrp, the active gw is listed last
-        gw = gws[-1]
+        # else, we select the one with lowest ip
+        if gws[-1].hsrp:
+            gw = gws[-1]
+        else:
+            gw = gws[0]
         gwNetbox = gw.gwport.module.netbox
         gwLink = urlbuilder.createLink(gwNetbox, content=gw.gwip)
         return gwLink
