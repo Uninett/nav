@@ -18,6 +18,7 @@ public class SimpleSnmp
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
 	private int getCnt;
+	private boolean getNext = false;
 
 	public SimpleSnmp() { }
 
@@ -45,7 +46,7 @@ public class SimpleSnmp
 	*/
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree
+	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -55,7 +56,22 @@ public class SimpleSnmp
 	public ArrayList getNext(int cnt, boolean decodeHex) throws TimeoutException
 	{
 		getCnt = (cnt < 0) ? 0 : cnt;
-		return getAll(decodeHex);
+		return getAll(decodeHex, true);
+	}
+
+	/**
+	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree
+	 *
+	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param decodeHex try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getNext(int cnt, boolean decodeHex, boolean getNext) throws TimeoutException
+	{
+		getCnt = (cnt < 0) ? 0 : cnt;
+		return getAll(decodeHex, getNext);
 	}
 
 	/**
@@ -66,17 +82,30 @@ public class SimpleSnmp
 	 */
 	public ArrayList getAll() throws TimeoutException
 	{
-		return getAll(false);
+		return getAll(false, true);
 	}
 
 	/**
 	 * Snmpwalk the given OID and return the entire subtree
 	 *
-	 * @param decodeHex try to decode returned hex to ASCII
+	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(boolean decodeHex) throws TimeoutException
+	{
+		return getAll(decodeHex, true);
+	}
+
+	/**
+	 * Snmpwalk the given OID and return the entire subtree
+	 *
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(boolean decodeHex, boolean getNext) throws TimeoutException
 	{
 		ArrayList l = new ArrayList();
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
@@ -93,11 +122,13 @@ public class SimpleSnmp
 				context.setCommunity(cs_ro);
 			}
 
-			//SnmpContext context = new SnmpContext(host, 161);
 			BlockPdu pdu = new BlockPdu(context);
 
-			pdu.setPduType(BlockPdu.GETNEXT);
 			pdu.addOid(baseOid);
+			pdu.setPduType(getNext ? BlockPdu.GETNEXT : BlockPdu.GET);
+
+			boolean sentGetNext = getNext;
+			String oid = baseOid;
 
 			// Should we get the entire subtree?
 			boolean getAll = getCnt == 0;
@@ -106,8 +137,8 @@ public class SimpleSnmp
 				try {
 					varbind vb;
 					while ( (vb=pdu.getResponseVariableBinding()) != null) {
-						String oid = vb.getOid().getValue();
-						if (!oid.startsWith(baseOid) || (!getAll && getCnt-- == 0)) break;
+						oid = vb.getOid().getValue();
+						if (!oid.startsWith(baseOid)) break;
 
 						// Reset timeoutCnt
 						timeoutCnt = 0;
@@ -124,15 +155,18 @@ public class SimpleSnmp
 							} else {
 								 data = o.toString();
 							}
+							data = data.trim();
 						}
-						//outl("OID: " + oid + " = " + data );
+						//outl("Base: " + baseOid);
+						//outl("Oid : " + oid);
 
 						String[] s = {
-							oid.substring(baseOid.length()+1, oid.length()).trim(),
-							//String.valueOf(vb.getValue()).trim()
+							oid.length() == baseOid.length() ? oid : oid.substring(baseOid.length()+1, oid.length()),
 							data.trim()
 						};
 						l.add(s);
+
+						if (!getAll && --getCnt == 0) break;
 
 						pdu = new BlockPdu(context);
 						pdu.setPduType(BlockPdu.GETNEXT);
@@ -141,7 +175,16 @@ public class SimpleSnmp
 
 				} catch (PduException e) {
 					String m = e.getMessage();
-					if (m.equals("Timed out")) {
+					if (m.equals("No such name error")) {
+						if (!sentGetNext) {
+							pdu = new BlockPdu(context);
+							pdu.setPduType(BlockPdu.GETNEXT);
+							pdu.addOid(oid);
+							sentGetNext = true;
+							continue;
+						}
+					}
+					else if (m.equals("Timed out")) {
 						gotTimeout = true;
 						timeoutCnt++;
 						if (timeoutCnt >= TIMEOUT_LIMIT) {
@@ -162,6 +205,7 @@ public class SimpleSnmp
 		} catch (IOException e) {
 			outl("  *ERROR*: Host: " + host + " IOException: " + e.getMessage() );
 		}
+		getCnt = 0;
 		return l;
 	}
 
@@ -187,5 +231,8 @@ public class SimpleSnmp
 
 	private static void out(String s) { System.out.print(s); }
 	private static void outl(String s) { System.out.println(s); }
+
+	private static void err(String s) { System.err.print(s); }
+	private static void errl(String s) { System.err.println(s); }
 }
 

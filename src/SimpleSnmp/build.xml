@@ -6,7 +6,7 @@
   <property name="jar" value="SimpleSnmp.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
+  <property name="dist"  location="dist2"/>
   <property name="instdir"  location="../../lib/java"/>
   <property name="build.compiler.emacs" value="yes"/>
 
@@ -20,7 +20,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -38,6 +38,13 @@
   </target>
   <target name="uninstall">
     <delete file="${instdir}/${jar}"/>
+  </target>
+
+  <target name="dist_debug" depends="dist"
+        description="Upload dist to server">
+    <exec dir="${dist}" executable="scp" os="Windows 2000">
+      <arg line="${jar} bigbud.itea.ntnu.no:/usr/local/nav/navme/lib/java"/>
+    </exec>
   </target>
 
   <target name="clean"
