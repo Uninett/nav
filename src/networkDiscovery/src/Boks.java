@@ -587,7 +587,7 @@ class Boks
 			if (ifindex.equals(uplinkMp)) uplinkBoksid = bmp.boksbak;
 			mpBoksbak.put(ifindex, bmp);
 			boksbakMp.put(bmp.hashKey(), ifindex);
-			if (DEBUG_OUT) outl("[UPLINK]: Added("+bmp.boksbak+") "+boksNavn.get(bmp.boksbak)+" as a uplink for ("+getBoksid()+") " + getName() + ", ifIndex: " + ifindex + ", isUplink: " + foundUplinkBoksid() + "<br>");
+			if (DEBUG_OUT) outl("[UPLINK]: Added("+bmp.boksbak+") "+boksNavn.get(bmp.boksbak)+" as an uplink for ("+getBoksid()+") " + getName() + ", ifIndex: " + ifindex + ", isUplink: " + foundUplinkBoksid() + "<br>");
 		} else {
 			uplinkBoksid = bmp.boksbak;
 		}
