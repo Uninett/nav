@@ -1,5 +1,5 @@
 """
-$Id: job.py,v 1.4 2003/06/15 11:06:28 magnun Exp $                                                                                                                              
+$Id: job.py,v 1.5 2003/06/15 11:08:42 magnun Exp $                                                                                                                              
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -22,9 +22,8 @@ class JobHandler:
 		self._conf=config.serviceconf()
 		self.setType(type)
 		self.setServiceid(service['id'])
+		self.setIp(service['ip'])
 		self.setNetboxid(service['netboxid'])
-		self._ip = service['ip']
-		#self.setAddress(service['ip'])
 		self.setArgs(service['args'])
 		self.setVersion(service['version'])
 		self.setSysname(service['sysname'])
@@ -138,12 +137,22 @@ class JobHandler:
 		self._type = type
 	def getType(self):
 		return self._type
+	def setIp(self, ip):
+		self._ip = ip
+	def getIp(self):
+		return self._ip
 	def setPort(self, port):
 		self._port = port
 	def getPort(self):
+		"""Returns the port supplied as an argument to
+		the test. If no argument is supplied, this function
+		returns 0.
+		This allows you to do (and i encourage you to)
+		self.setPort(self.getPort() or DEFAULT_PORT_FOR_SERVICE)
+		in your subclass."""
 		return self._port
 	def getAddress(self):
-		#return self._address
+		"""Returns a tuple (ip, port) """
 		return (self._ip, self._port)
 	def setAddress(self,address):
 		self._address = address
