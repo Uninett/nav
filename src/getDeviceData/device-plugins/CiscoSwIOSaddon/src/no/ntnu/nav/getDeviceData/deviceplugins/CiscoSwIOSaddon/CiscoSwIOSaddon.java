@@ -77,24 +77,24 @@ public class CiscoSwIOSaddon implements DeviceHandler
 	private void processIOSaddon(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
 	{
 		typeid = typeid.toLowerCase();
-
+		
 		List l;
-
+		
 		l = sSnmp.getAll(nb.getOid("iosTrunk"));
 		if (l != null) {
-		    for (Iterator it = l.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
-			boolean trunk = (s[1].equals("1") ? false : true);
-			sc.swportFactory(s[0]).setTrunk(trunk);
-		    }
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				boolean trunk = (s[1].equals("1") ? false : true);
+				sc.swportFactory(s[0]).setTrunk(trunk);
+			}
 		}
 		l = sSnmp.getAll(nb.getOid("iosDuplex"));
 		if (l != null) {
-		    for (Iterator it = l.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
-			char duplex = (s[1].equals("1") ? 'f' : 'h');
-			sc.swportFactory(s[0]).setDuplex(duplex);
-		    }
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				char duplex = (s[1].equals("1") ? 'f' : 'h');
+				sc.swportFactory(s[0]).setDuplex(duplex);
+			}
 		}
 	}
 }

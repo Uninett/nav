@@ -83,11 +83,11 @@ public class CiscoSwCL3addon implements DeviceHandler
 
 		l = sSnmp.getAll(nb.getOid("cL3Trunk"));
 		if (l != null) {
-		    for (Iterator it = l.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
-			boolean trunk = (s[1].equals("1") ? true : false);
-			sc.swportFactory(s[0]).setTrunk(trunk);
-		    }
+			for (Iterator it = l.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				boolean trunk = (s[1].equals("1") ? true : false);
+				sc.swportFactory(s[0]).setTrunk(trunk);
+			}
 		}
 	}
 }
