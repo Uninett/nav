@@ -1,5 +1,5 @@
 """
-$Id: rrd.py,v 1.4 2003/06/20 15:49:21 magnun Exp $                                                                                                                              
+$Id: rrd.py,v 1.5 2003/06/25 15:04:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 Module for creating and updating rrd-objects
@@ -12,31 +12,65 @@ Author: Erik Gorset	<erikgors@stud.ntnu.no>
 import os
 import event
 from debug import debug
-#from RRDtool import RRDtool
 import rrdtool as rrd
-#rrd = RRDtool()
+import db
+import config
+
 RRDDIR = '/var/rrd'
-def create(serviceid):
+database = db.db(config.dbconf())
+
+def create(filename, netboxid, serviceid=None):
+	step = 300
+	
 	if RRDDIR and not os.path.exists(RRDDIR):
 		os.mkdir(RRDDIR)
-	filename = "%s/%s.rrd" % (RRDDIR,serviceid)
-	tupleFromHell = ('%s' % (filename),'-s 300','DS:STATUS:GAUGE:600:0:1','DS:RESPONSETIME:GAUGE:600:0:300','RRA:AVERAGE:0.5:1:288','RRA:AVERAGE:0.5:6:336','RRA:AVERAGE:0.5:12:720','RRA:MAX:0.5:12:720','RRA:AVERAGE:0.5:288:365','RRA:MAX:0.5:288:365','RRA:AVERAGE:0.5:288:1095','RRA:MAX:0.5:288:1095')
+	tupleFromHell = ('%s' % (os.path.join(RRDDIR,filename)),
+			 '-s %s' % step,
+			 'DS:STATUS:GAUGE:600:0:1',
+			 'DS:RESPONSETIME:GAUGE:600:0:300',
+			 'RRA:AVERAGE:0.5:1:288',
+			 'RRA:AVERAGE:0.5:6:336',
+			 'RRA:AVERAGE:0.5:12:720',
+			 'RRA:MAX:0.5:12:720',
+			 'RRA:AVERAGE:0.5:288:365',
+			 'RRA:MAX:0.5:288:365',
+			 'RRA:AVERAGE:0.5:288:1095',
+			 'RRA:MAX:0.5:288:1095')
 	rrd.create(*tupleFromHell)
 	debug("Created rrd file %s" % filename)
 
-def update(serviceid,time,status,responsetime):
+	# a bit ugly...
+	if serviceid:
+		key="serviceid"
+		val=serviceid
+		subsystem = "serviceping"
+	else:
+		key=""
+		val=""
+		subsystem= "pping"
+	rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid, subsystem, key, val)
+	database.registerDS(rrd_fileid, "RESPONSETIME", "", "GAUGE", "s")
+	database.registerDS(rrd_fileid, "STATUS", "Availability of the service", "GAUGE", "")
+
+def update(netboxid,sysname,time,status,responsetime,serviceid=None):
 	"""
 	time: 'N' or time.time()
 	status: 'UP' or 'DOWN' (from Event.status)
 	responsetime: 0-300 or '' (undef)
 	"""
-	filename = '%s/%s.rrd' % (RRDDIR,serviceid)
-	os.path.exists(filename) or create(serviceid)
+	if serviceid:
+		filename = '%s.%s.rrd' % (sysname, serviceid)
+		# typically ludvig.ntnu.no.54.rrd
+	else:
+		filename = '%s.rrd' % (sysname)
+		# typically ludvig.ntnu.no.rrd
+
+	os.path.exists(os.path.join(RRDDIR, filename)) or create(filename, netboxid, serviceid)
 	if status == event.Event.UP:
 		rrdstatus=0
 	else:
 		rrdstatus = 1
 	
-	rrdParam = (filename,'%s:%i:%s' % (time, rrdstatus, responsetime))
+	rrdParam = (os.path.join(RRDDIR,filename),'%s:%i:%s' % (time, rrdstatus, responsetime))
 	rrd.update(*rrdParam)
-	debug("Updated %s" % filename)
+	debug("Updated %s" % filename,6)

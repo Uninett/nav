@@ -1,5 +1,5 @@
 """
-$Id: abstractChecker.py,v 1.1 2003/06/20 07:52:57 magnun Exp $
+$Id: abstractChecker.py,v 1.2 2003/06/25 15:04:44 magnun Exp $
 This file is part of the NAV project.                                                                                             
                                                                                                                                  
 Copyright (c) 2002 by NTNU, ITEA nettgruppen                                                                                      
@@ -98,7 +98,8 @@ class AbstractChecker:
 			debug("%-20s -> State changed. Scheduling new check in %i sec..." % (service, delay))
 			# Updates rrd every time to get proper 'uptime' for the service
 			try:
-				rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+				rrd.update(self.getNetboxid(), self.getSysname(), 'N',
+					   self.getStatus(), self.getResponsetime(), self.getServiceid())
 			except Exception,e:
 				debug("rrd update failed for %s [%s]" % (service,e),3)
 			priority=delay+time.time()
@@ -125,7 +126,8 @@ class AbstractChecker:
 			self.db.newEvent(newEvent)
 
 		try:
-			rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
+			rrd.update(self.getNetboxid(), self.getSysname(), 'N',
+				   self.getStatus(), self.getResponsetime(), self.getServiceid())
 		except Exception,e:
 			debug("rrd update failed for %s [%s]" % (service,e),3)
 		self.setTimestamp()
@@ -245,7 +247,7 @@ class AbstractChecker:
 		"""Returns the current version of the service."""
 		return self._version
 	def __eq__(self,obj):
-		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs() and self.getAddress() == obj.getAddress()
+		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):

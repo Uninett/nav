@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.7 2003/06/23 16:54:00 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.8 2003/06/25 15:04:44 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -240,9 +240,28 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		services.sort()
 		return services
 			
-
+	def registerRrd(self, path, filename, step, netboxid, subsystem, key="",val=""):
+		rrdid = self.query("SELECT nextval('rrd_file_rrd_fileid_seq')")[0][0]
+		if key and val:
+			statement = """INSERT INTO rrd_file
+			(rrd_fileid, path, filename, step, netboxid, key, value, subsystem) values
+			(%s, '%s','%s',%s,%s,'%s',%s,'%s')""" %	(rrdid, path, filename,
+								 step, netboxid, key, val, subsystem)
+		else:
+			statement = """INSERT INTO rrd_file
+			(rrd_fileid, path, filename, step, netboxid, subsystem) VALUES
+			(%s,'%s','%s',%s,%s,'%s')""" %(rrdid, path, filename,
+						       step, netboxid, subsystem)
+		self.execute(statement)
+		return rrdid
+	def registerDS(self, rrd_fileid, name, descr, dstype, unit):
+		statement = """INSERT INTO rrd_datasource
+		(rrd_fileid, name, descr, dstype, units) VALUES
+		(%s, '%s', '%s', '%s', '%s')""" % (rrd_fileid, name, descr, dstype, unit)
+		self.execute(statement)
+		
+		
 	def deleteService(self,service):
-		print "serviceid: %s" % service
 		self.execute("DELETE FROM service WHERE serviceid = '%s'" % service.id)
 
 	def insertService(self,service):
