@@ -14,7 +14,6 @@ import socket
 import select
 import os
 import profile
-import md5
 import random
 import struct
 import circbuf
@@ -32,8 +31,6 @@ import icmp
 # import rrd
 
 PINGSTRING="Stian og Magnus ruler verden"
-
-hasher = md5.md5()
 
 def makeSocket():
   sock = socket.socket(socket.AF_INET,
