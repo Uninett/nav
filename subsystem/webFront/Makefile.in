@@ -14,12 +14,17 @@ tooldir = @tooldir@
 
 tools = useradmin.tool
 
+top_srcdir = @top_srcdir@
+
 config = contact-information.txt  nav-links.conf  welcome-anonymous.txt external-links.txt webfront.conf welcome-registered.txt
 
 .PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
-all: 
+all: config/webfront.conf
 	$(MAKE) -C templates $@
+
+config/webfront.conf: config/webfront.conf.source
+	$(top_srcdir)/tools/expand.pl config/webfront.conf.source > config/webfront.conf
 
 install: install-lib install-bin install-web install-conf
 	$(MAKE) -C templates $@
