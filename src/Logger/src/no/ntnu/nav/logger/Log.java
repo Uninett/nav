@@ -9,15 +9,17 @@ import java.io.*;
 import java.text.*;
 
 /**
- * Class for logging messages in NAV (variation on the Cisco format) log format.
+ * <p> Class for logging messages in NAV (variation on the Cisco
+ * format) log format. </p>
  *
- * An example log entry line:
+ * <p> An example log entry line: </p>
  *
- * May 27 08:32:58 2002 bokser.pl DBBOX-3-ORG <msg>
+ * <p> <pre> May 27 08:32:58 2002 bokser.pl DBBOX-3-ORG &lt;msg&gt; </pre>
+ * </p>
  *
- * First is the time, then name of the system, then a tripple with name of the subsystem,
- * priority and the type (system, subsystem and type must be unique). Last is the log
- * message.
+ * <p> First is the time, then name of the system, then a tripple with
+ * name of the subsystem, priority and the type (system, subsystem and
+ * type must be unique). Last is the log message. </p>
  */
 public class Log {
 
