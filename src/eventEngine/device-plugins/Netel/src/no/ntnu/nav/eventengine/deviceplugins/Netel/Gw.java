@@ -89,9 +89,10 @@ public class Gw extends Netel
 
 	/**
 	 * Check if b is reachable from this Netel. Currently, this methods
-	 * always returns true for routers (type Gw) if it is up.
+	 * always returns REACHABLE_YES for routers (type Gw) if it is up;
+	 * REACHABLE_NO otherwise.
 	 *
-	 * @return true if this router is up
+	 * @return REACHABLE_YES if this router is up; REACHABLE_NO otherwise
 	 */
 	protected int reachableFrom(Box b, int vlan, Set visited)
 	{

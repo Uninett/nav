@@ -186,13 +186,12 @@ public class Netel extends Box
 	/**
 	 * Check if b is reachable from this Netel.
 	 *
-	 * @return true if b is reachable from this Netel; false otherwise
+	 * @return REACHABLE_YES if b is reachable from this Netel; REACHABLE_NO if not; or REACHABLE_UNKNOWN if we don't know
 	 */
 	protected int reachableFrom(Box b, int vlan, Set visited)
 	{
 
 		boolean foundDownlink = false;
-		boolean foundUplink = true;
 		int reachable = REACHABLE_UNKNOWN;
 
 		outld("reachableFrom: @"+sysname+", vlan="+vlan);
