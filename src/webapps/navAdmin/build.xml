@@ -47,12 +47,12 @@
   <target name="install" depends="dist,dist_navutils">
     <mkdir dir="../../../webapps"/>
     <copy file="${dist}/navAdmin.war" todir="../../../webapps"/>
-    <mkdir dir="../../../cron/navAdmin"/>
+    <mkdir dir="../../../subsystem/navAdmin"/>
     <copy file="${dist}/NavUtils.jar" todir="../../../subsystem/navAdmin"/>
   </target>
   <target name="uninstall">
     <delete file="../../../webapps/navAdmin.war"/>
-    <delete file="../../../cron/navAdmin/NavUtils.jar"/>
+    <delete file="../../../subsystem/navAdmin/NavUtils.jar"/>
   </target>
 
   <target name="dist_debug" depends="dist,dist_navutils"
