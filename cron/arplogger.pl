@@ -76,7 +76,8 @@ while(my @line = $resultat->fetchrow)
     $sysName{$line[0]} = $line[3];
 }
 
-$sql = "SELECT netboxid,prefixid,host(netaddr) FROM gwport JOIN prefix USING (prefixid) JOIN module USING (moduleid) WHERE gwportid=rootgwid"; 
+
+$sql = "select netboxid,prefixid,host(netaddr) from gwportprefix join gwport using (gwportid) join module using (moduleid) join prefix using (prefixid)";
 
 $resultat = db_select($sql,$conn);
 
@@ -191,6 +192,7 @@ sub process_arp_entry ($$$) {
 	{
 	    my $sql2 = "INSERT INTO arp (netboxid,prefixid,ip,mac,sysname,start_time) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
 	    db_execute($sql2,$conn);
+
 	    $nye++;
 	}
     }
@@ -214,6 +216,7 @@ sub getprefiks
     foreach $maske (@masker)
     {
 	$netadr = and_ip($ip,$maske);
+
 	return $prefiksdb{$netadr} if (defined $prefiksdb{$netadr});
     }
     
