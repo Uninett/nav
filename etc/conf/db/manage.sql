@@ -648,6 +648,7 @@ GRANT ALL ON alerthist TO eventengine;
 GRANT ALL ON alerthist_alerthistid_seq TO eventengine;
 GRANT ALL ON alerthistvar TO eventengine;
 GRANT SELECT,UPDATE ON boks TO eventengine;
+GRANT SELECT ON module TO eventengine;
 GRANT SELECT ON swport TO eventengine;
 GRANT SELECT ON gwport TO eventengine;
 GRANT SELECT ON prefiks TO eventengine;
