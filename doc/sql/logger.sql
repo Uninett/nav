@@ -3,10 +3,11 @@
 -- PrioritY levels and descriptions
 --------------------------------------------------------
 
-DROP TABLE priority;
+DROP TABLE priority CASCADE;
+DROP SEQUENCE priority_priority_seq;
 
 CREATE TABLE priority (
-  priority VARCHAR PRIMARY KEY, -- like greit å la den vare tekst
+  priority INTEGER PRIMARY KEY, -- like greit å la den vare tekst
   keyword VARCHAR UNIQUE NOT NULL,
   description VARCHAR
 );
@@ -16,11 +17,11 @@ CREATE TABLE priority (
 -- Types of messages, ala syslog
 --------------------------------------------------------
 
-DROP TABLE type;
+DROP TABLE type CASCADE;
 
 CREATE TABLE type (
   type VARCHAR PRIMARY KEY NOT NULL,
-  priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE,
+  priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 --------------------------------------------------------
@@ -28,7 +29,7 @@ CREATE TABLE type (
 -- Categorising of origins
 --------------------------------------------------------
 
-DROP TABLE category;
+DROP TABLE category CASCADE;
 
 CREATE TABLE category (
   category VARCHAR PRIMARY KEY NOT NULL
@@ -39,10 +40,10 @@ CREATE TABLE category (
 -- Origins, senders of messages
 --------------------------------------------------------
 
-DROP TABLE origin;
+DROP TABLE origin CASCADE;
 
 CREATE TABLE origin (
-  name VARCHAR PRIMARY KEY NOT NULL,
+  origin VARCHAR PRIMARY KEY NOT NULL,
   category VARCHAR
 );
 
@@ -52,13 +53,13 @@ CREATE TABLE origin (
 -- time, origin, priority, type and message text.
 --------------------------------------------------------
 
-DROP TABLE message;
+DROP TABLE message CASCADE;
 DROP SEQUENCE message_id_seq;
 
 CREATE TABLE message (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  origin INTEGER NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
+  origin VARCHAR NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
   priority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
   type VARCHAR NOT NULL REFERENCES type (type) ON UPDATE CASCADE ON DELETE SET NULL,
   message VARCHAR
@@ -70,7 +71,7 @@ CREATE TABLE message (
 -- lagt her. Andre ting også.
 --------------------------------------------------------
 
-DROP TABLE errorerror;
+DROP TABLE errorerror CASCADE;
 DROP SEQUENCE errorerror_id_seq;
 
 CREATE TABLE errorerror (
