@@ -82,7 +82,7 @@ public class Gw extends Netel
 	{
 		StringBuffer sb = new StringBuffer(super.toString());
 		sb.append("\n  Gw ["+modules.size()+" modules]");
-		for (Iterator i=modules.iterator(); i.hasNext();) {
+		for (Iterator i=modules.values().iterator(); i.hasNext();) {
 			sb.append("\n    "+i.next());
 		}
 		return sb.toString();
