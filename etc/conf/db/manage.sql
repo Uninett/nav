@@ -298,7 +298,7 @@ CREATE TABLE swport (
   duplex CHAR(1) NOT NULL CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR(16),
   trunk BOOL NOT NULL DEFAULT false,
---  static BOOL DEFAULT false,  
+--  static BOOL DEFAULT false,
 --  portnavn VARCHAR(30),  
   portname VARCHAR(30),  
 --  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
@@ -680,8 +680,11 @@ CREATE TABLE alerthist (
 CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 CREATE TABLE alerthistvar (
   alerthistid INT4 REFERENCES alerthist ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
-  val TEXT NOT NULL
+  state CHAR(1) NOT NULL,
+  msgtype VARCHAR(32) NOT NULL,
+  language VARCHAR(10) NOT NULL,
+  msg TEXT NOT NULL,
+  UNIQUE(alerthistid, state, msgtype, language)
 );
 
 --servicemon tables
