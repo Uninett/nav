@@ -1,24 +1,19 @@
-# router sub-tree
+# routers sub-tree
 #
 # This is where we collect stats on the chassis of our routers
 # (i.e. memory, CPU, temperature). These are kept separate from
 # the interfaces themselves since they have quite different
 # configuration needs.
 
-Target	--default--
-	router			= %auto-target-name%
-	snmp-host		= %router%.uit.no
-	# you could set a router-specific community string here:
-	# snmp-community	= not-public
-	#
-	# Provide no default type, since each router will be different,
-	# and if we want to specify each model explicitly, or
-	# get a warning.
-	target-type		= standard-router
-	short-desc      	=       ""
-	directory-desc  	= "Stats for %auto-target-name%"
+#############################################
+# Edited specifically for NAV v3 - NTNU
+# by John Magne Bredal <bredal@itea.ntnu.no>
+#############################################
 
-# OID's we'll be using in this tree
+Target	--default--
+	short-desc      	=	""
+	directory-desc  	=	"Stats for %auto-target-name%"
+
 OID		cpu1min		1.3.6.1.4.1.9.2.1.57.0
 OID		cpu5min		1.3.6.1.4.1.9.2.1.58.0
 OID		tempInlet	1.3.6.1.4.1.9.9.13.1.3.1.3.1
@@ -29,7 +24,6 @@ OID		mem5minFree	1.3.6.1.4.1.9.9.48.1.1.1.6.1
 
 datasource	--default--
 	rrd-ds-type		=	GAUGE
-	rrd-heartbeat	=	1800
 	rrd-min			=	undef
 	rrd-max			=	undef
 	
@@ -41,80 +35,49 @@ datasource	tempState	ds-source	=	snmp://%snmp%/tempState
 datasource	mem5minUsed	ds-source	=	snmp://%snmp%/mem5minUsed
 datasource	mem5minFree	ds-source	=	snmp://%snmp%/mem5minFree
 
-# 3600 routers do not report temperature -- they only
-# report tempterature states:
-#               normal(1),
-#               warning(2),
-#               critical(3),
-#               shutdown(4),
-#               notPresent(5) 
-
 targetType cgw 
         ds      =       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
-        view    =       "cpu: cpu1min cpu5min,
-	                memory: mem5minUsed mem5minFree"
+        view    =       "cpu: cpu1min cpu5min,memory: mem5minUsed mem5minFree"
 
 targetType cts
         ds      =       "cpu1min, cpu5min, mem5minUsed, mem5minFree"
-        view    =       "cpu: cpu1min cpu5min,
-	                memory: mem5minUsed mem5minFree"
-#
-#Rutere som ikke rapporterer minne..
-#
+        view    =       "cpu: cpu1min cpu5min,memory: mem5minUsed mem5minFree"
+
 targetType cgw-nomem
 	ds      =       "cpu1min, cpu5min"
 	view    =       "cpu: cpu1min cpu5min" 
 
-html short-desc                 Router Chassis
+html 	short-desc	Router Chassis
 
 graph   cpu1min
-    units   =   "%"
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "Percent CPU utilization"
-    legend  =   "1 minute CPU utilization"
-	# fixed y-axis, since this is a percentage
+	units   =	"%"
+	color   =	dark-green
+	draw-as =	AREA
+	y-axis  =	"Percent CPU utilization"
+	legend  =	"1 minute CPU utilization"
 	y-min	=	0
 	y-max	=	100
 
 graph   cpu5min
-    units   =   "%"
-    color   =   blue
-    y-axis  =   "Percent CPU utilization"
-    legend  =   "5 minute CPU utilization"
-	# fixed y-axis, since this is a percentage
+	units   =	"%"
+	color   =	blue
+	y-axis  =	"Percent CPU utilization"
+	legend  =	"5 minute CPU utilization"
 	y-min	=	0
 	y-max	=	100
 
-graph   tempInlet
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "degrees Centigrade"
-	units	=	"&#176;"
-	space	=	""
-    legend  =   "Inlet temperature in C"
-	precision	=	integer
-
-graph   tempOutlet
-    color   =   blue
-    y-axis  =   "degrees Centigrade"
-	units	=	"&#176;"
-	space	=	""
-    legend  =   "Outlet temperature in C"
-	precision	=	integer
-
 graph   mem5minUsed
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "Bytes"
-    legend  =   "5 minute used memory"
+	color   =	dark-green
+	draw-as =	AREA
+	y-axis  =	"Bytes"
+	legend  =	"5 minute used memory"
 
 graph   mem5minFree
-    color   =   blue
-    y-axis  =   "Bytes"
-    legend  =   "5 minute free memory"
+	color   =	blue
+	y-axis  =	"Bytes"
+	legend  =	"5 minute free memory"
 
 html    page-header
-    <!-- you could put your company logo on every page here: -->
-    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
-    <br clear=left>
+	<!-- you could put your company logo on every page here: -->
+	<h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+	<br clear=left>

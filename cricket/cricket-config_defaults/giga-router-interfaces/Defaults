@@ -1,15 +1,19 @@
-# router interface sub-tree
+# giga-router-interfaces sub-tree
 #
 # This is where we collect stats on the interfaces of our routers
 # (i.e. Octets, Packets, Errors).  These are kept seperate from the
 # routers themselves since they have quite different configuration needs.
 
+#############################################
+# Edited specifically for NAV v3 - NTNU
+# by John Magne Bredal <bredal@itea.ntnu.no>
+#############################################
+
 Target	--default--
 	inst		=	map(interface-name)
-	# snmp-community	=	secret
 	snmp-host	=	%router%
 	target-type	=	standard-interface
-	short-desc      =       ""
+	short-desc	=	""
 	directory-desc	=	"Stats for %auto-target-name%"
 
 # ifInOctets and ifOutOctets come from above, since they
@@ -28,39 +32,34 @@ datasource ifOutUcastPackets
 	ds-source	=	snmp://%snmp%/ifOutUcastPkts.%inst%
 
 targetType  standard-interface
-	ds	=	"ifInOctets, ifOutOctets, ifInErrors,
-			ifOutErrors, ifInUcastPackets, ifOutUcastPackets"
-	view	=	"Octets: ifInOctets ifOutOctets,
-			UcastPackets: ifInUcastPackets ifOutUcastPackets,
-			Errors: ifInErrors ifOutErrors"
-
-# likewise, graph params for ifInOctets and ifOutOctets come from above
+	ds		=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPackets, ifOutUcastPackets"
+	view		=	"Octets: ifInOctets ifOutOctets,UcastPackets: ifInUcastPackets ifOutUcastPackets,Errors: ifInErrors ifOutErrors"
 
 graph   ifInUcastPackets
-    color       =   dark-green
-    draw-as     =   AREA
-    y-axis      =   "packets per second"
-    units       =   "pkt/sec"
-    legend      =   "Average num Packets In"
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"packets per second"
+	units		=	"pkt/sec"
+	legend		=	"Average num Packets In"
  
 graph   ifOutUcastPackets
-    color       =   blue
-    y-axis      =   "packets per second"
-    units       =   "pkt/sec"
-    legend      =   "Average num Packets Out"
+	color		=	blue
+	y-axis		=	"packets per second"
+	units		=	"pkt/sec"
+	legend		=	"Average num Packets Out"
  
 graph   ifInErrors
-    color       =   dark-green
-    draw-as     =   AREA
-    y-axis      =   "errors per second"
-    units       =   "err/sec"
-    legend      =   "Average Errors In"
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"errors per second"
+	units		=	"err/sec"
+	legend		=	"Average Errors In"
 
 graph   ifOutErrors
-    color       =   blue
-    y-axis      =   "errors per second"
-    legend      =   "Average Errors Out"
-    units       =   "err/sec"
+	color		=	blue
+	y-axis		=	"errors per second"
+	legend		=	"Average Errors Out"
+	units		=	"err/sec"
 
 html    page-header
     <!-- you could put your company logo on every page here: -->

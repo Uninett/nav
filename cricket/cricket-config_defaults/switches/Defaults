@@ -2,160 +2,182 @@
 #
 # Contributed by Jeff Jensen <jpj@corp.webtv.net>.
 # Hacked by Jeff Allen... any mistakes are mine.
- 
+
+#############################################
+# Edited specifically for NAV v3 - NTNU
+# by John Magne Bredal <bredal@itea.ntnu.no>
+############################################# 
+
 Target  --default--
-    switch          = %auto-target-name%
-    snmp-host       = %switch%
-	# you can set this, if you need to:
-	# snmp-community  = private
-	# we leave this unset here so that we MUST remember to set it later
-    target-type     = undef
 	short-desc      =       ""
-    directory-desc  =       "Stats for %auto-target-name%"
+	directory-desc  =       "Stats for %auto-target-name%"
  
-OID c1900Bandwidth		1.3.6.1.4.1.437.1.1.3.7.1.0
-OID c1900BandwidthMax   	1.3.6.1.4.1.437.1.1.3.7.5.0
-OID c2900Bandwidth      	1.3.6.1.4.1.9.9.87.1.5.1.0
-OID c5000Bandwidth      	1.3.6.1.4.1.9.5.1.1.8.0
-OID c5000BandwidthMax		1.3.6.1.4.1.9.5.1.1.19.0
-OID cpu1min			1.3.6.1.4.1.9.2.1.57.0
-OID cpu5min			1.3.6.1.4.1.9.2.1.58.0
-OID mem5minUsed			1.3.6.1.4.1.9.9.48.1.1.1.5.1
-OID mem5minFree			1.3.6.1.4.1.9.9.48.1.1.1.6.1
- 
+# Bandwidth
+OID	c1900Bandwidth		1.3.6.1.4.1.437.1.1.3.7.1.0
+OID	c1900BandwidthMax	1.3.6.1.4.1.437.1.1.3.7.5.0
+OID	c2900Bandwidth		1.3.6.1.4.1.9.9.87.1.5.1.0
+OID	c5000Bandwidth		1.3.6.1.4.1.9.5.1.1.8.0
+OID	c5000BandwidthMax	1.3.6.1.4.1.9.5.1.1.19.0
+# CPU
+OID	cpu1min			1.3.6.1.4.1.9.2.1.57.0
+OID	cpu5min			1.3.6.1.4.1.9.2.1.58.0
+OID	hpcpu			1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0
+# Memory
+OID	mem5minUsed		1.3.6.1.4.1.9.9.48.1.1.1.5.1
+OID	mem5minFree		1.3.6.1.4.1.9.9.48.1.1.1.6.1
+OID 	hpmem5minUsed		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.7.1
+OID	hpmem5minFree		1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.1
+
+
+########################################
+# DATASOURCES
+########################################
+
 datasource  --default--
-    rrd-ds-type     =   GAUGE
-    rrd-heartbeat   =   1800
-    rrd-min         =   undef
-    rrd-max         =   undef
+	rrd-ds-type	=	GAUGE
+	rrd-min		=	undef
+	rrd-max		=	undef
 
 datasource  c1900-bandwidth
-    ds-source       =   snmp://%snmp%/c1900Bandwidth
-    desc            =   "The amount of bandwidth used across the backplane."
+	ds-source	=	snmp://%snmp%/c1900Bandwidth
+	desc		=	"The amount of bandwidth used across the backplane."
  
 datasource  c1900-bandwidth-max
-    ds-source       =   snmp://%snmp%/c1900BandwidthMax
-    desc            =   "The maximum amount of bandwidth used across the
-                         backplane."
+	ds-source	=	snmp://%snmp%/c1900BandwidthMax
+	desc		=	"The maximum amount of bandwidth used across the backplane."
 
 datasource  c2900-bandwidth
-    ds-source       =   snmp://%snmp%/c2900Bandwidth
-    desc            =   "The amount of bandwidth used across the backplane."
+	ds-source	=	snmp://%snmp%/c2900Bandwidth
+	desc		=	"The amount of bandwidth used across the backplane."
 
 datasource c5000-bandwidth
-    ds-source       =   snmp://%snmp%/c5000Bandwidth
-    desc            =   "The amount of bandwidth used across the backplane."
+	ds-source	=	snmp://%snmp%/c5000Bandwidth
+	desc		=	"The amount of bandwidth used across the backplane."
  
 datasource c5000-bandwidth-max
-    ds-source       =   snmp://%snmp%/c5000BandwidthMax
-    rrd-heartbeat   =   1800
-    desc            =   "The maximum amount of bandwidth used across the
-                         backplane".
+	ds-source	=	snmp://%snmp%/c5000BandwidthMax
+	desc		=	"The maximum amount of bandwidth used across the backplane".
 
 datasource  cpu1min
-    ds-source   =   snmp://%snmp%/cpu1min
-    rrd-ds-type     =   GAUGE
-    rrd-heartbeat   =   1800
-    desc            =   "The average usage of the CPU over the last 1 minute."
+	ds-source	=	snmp://%snmp%/cpu1min
+	desc		=	"The average usage of the CPU over the last 1 minute."
  
 datasource  cpu5min
-    ds-source   =   snmp://%snmp%/cpu5min
-    rrd-ds-type     =   GAUGE
-    rrd-heartbeat   =   1800
-    desc            =   "The average usage of the CPU over the last 5 minutes."
+	ds-source	=	snmp://%snmp%/cpu5min
+	desc		=	"The average usage of the CPU over the last 5 minutes."
+
+datasource  hpcpu
+	ds-source	=	snmp://%snmp%/hpcpu
+	desc		=	"The average usage of the CPU over the last 1 minute."
 
 datasource  mem5minUsed
-    ds-source   =   snmp://%snmp%/mem5minUsed
-    rrd-ds-type     =   GAUGE
-    rrd-heartbeat   =   1800
-    desc            =   "The amount of memory used over the last 5 minutes."
+	ds-source	=	snmp://%snmp%/mem5minUsed
+	desc		=	"The amount of memory used over the last 5 minutes."
  
 datasource  mem5minFree
-    ds-source   =   snmp://%snmp%/mem5minFree
-    rrd-ds-type     =   GAUGE
-    rrd-heartbeat   =   1800
-    desc            =   "The amount of memory free over the last 5 minutes."
- 
-graph c1900-bandwidth
-    units   =   bs
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "Bits"
-    legend  =   "Bits/s across backplane"
+	ds-source	=	snmp://%snmp%/mem5minFree
+	desc		=	"The amount of memory free over the last 5 minutes."
 
-graph c1900-bandwidth-max
-    units   =   bs
-    color   =   blue
-    y-axis  =   "Bits"
-    legend  =   "Max bits/s across backplane during interval"
+datasource  hpmem5minUsed
+	ds-source	=	snmp://%snmp%/hpmem5minUsed
+	desc		=	"The amount of memory used over the last 5 minutes."
 
-graph c2900-bandwidth
-    units   =   bs
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "MBits"
-    legend  =   "MBits/s across backplane"
+datasource  hpmem5minFree
+	ds-source	=	snmp://%snmp%/hpmem5minFree
+	desc		=	"The amount of memory free over the last 5 minutes."
  
-graph c5000-bandwidth
-    units   =   bs
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "Percent backplane utilization"
-    legend  =   "Percent backplane utilization"
+########################################
+# GRAPHS
+########################################
+
+graph	c1900-bandwidth
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"Bits"
+	legend		=	"Bits/s across backplane"
+
+graph	c1900-bandwidth-max
+	color		=	blue
+	y-axis		=	"Bits"
+	legend		=	"Max bits/s across backplane during interval"
+
+graph	c2900-bandwidth
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"MBits"
+	legend		=	"MBits/s across backplane"
  
-graph c5000-bandwidth-max
-    units   =   bs
-    color   =   blue
-    y-axis  =   "Max percentage backplane utilization"
-    legend  =   "Max percentage backplane utilization"
+graph	c5000-bandwidth
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"Percent backplane utilization"
+	legend		=	"Percent backplane utilization"
+ 
+graph	c5000-bandwidth-max
+	color		=	blue
+	y-axis		=	"Max percentage backplane utilization"
+	legend		=	"Max percentage backplane utilization"
 
 graph   cpu1min
-    units   =   %
-    color   =   dark-green
-    draw-as =   AREA
-    y-axis  =   "Percent CPU utilization"
-    legend  =   "1 minute CPU utilization"
-    precision   =   integer
+	units		=	%
+	color		=	dark-green
+	draw-as		=	AREA
+	y-axis		=	"Percent CPU utilization"
+	legend		=	"1 minute CPU utilization"
+	precision	=	integer
  
 graph   cpu5min
-    units   =   %
-    color   =   blue
-    y-axis  =   "Percent CPU utilization"
-    legend  =   "5 minute CPU utilization"
-    precision   =   integer
+	units		=	%
+	color		=	blue
+	y-axis		=	"Percent CPU utilization"
+	legend		=	"5 minute CPU utilization"
+	precision	=	integer
 
 graph   mem5minUsed
-    units   =   B
-    draw-as =   AREA
-    y-axis  =   "Bytes"
-    legend  =   "5 minute used memory"
-    precision   =   integer
+	draw-as		=	AREA
+	y-axis		=	"Bytes"
+	legend		=	"5 minute used memory"
+	precision	=	integer
  
 graph   mem5minFree
-    units   =   B
-    y-axis  =   "Bytes"
-    legend  =   "5 minute free memory"
-    precision   =   integer
+	y-axis		=	"Bytes"
+	legend		=	"5 minute free memory"
+	precision	=	integer
 
-targetType  cisco-2900xl
-	ds	=	"cpu1min, cpu5min, mem5minUsed, mem5minFree"
-    view    =   "cpu: cpu1min cpu5min,
-					memory: mem5minUsed mem5minFree"
- 
+########################################
+# TARGET-TYPES
+########################################
+
 targetType  cat1900-sw
-    ds  =   "c1900-bandwidth, c1900-bandwidth-max"
-    view    =   "backplane: c1900-bandwidth c1900-bandwidth-max"
+	ds	=	"c1900-bandwidth, c1900-bandwidth-max"
+	view	=	"backplane: c1900-bandwidth c1900-bandwidth-max"
 
-targetType cat-sw 
-    ds  =   "c5000-bandwidth, c5000-bandwidth-max"
-    view    =   "backplane: c5000-bandwidth c5000-bandwidth-max"
+targetType spes-sw
+	ds	=	"c1900-bandwidth, c1900-bandwidth-max"
+	view	=	"backplane: c1900-bandwidth c1900-bandwidth-max"
 
 targetType ios-sw 
-    ds  =   "c2900-bandwidth, cpu1min, cpu5min"
-    view    =   "backplane: c2900-bandwidth,
-                cpu: cpu1min cpu5min"
+	ds	=	"c2900-bandwidth, cpu1min, cpu5min"
+	view	=	"backplane: c2900-bandwidth,cpu: cpu1min cpu5min"
+
+targetType cat-sw 
+	ds	=	"c5000-bandwidth, c5000-bandwidth-max"
+	view	=	"backplane: c5000-bandwidth c5000-bandwidth-max"
+
+targetType hpsw
+	ds	=	"hpmem5minFree, hpmem5minUsed, hpcpu"
+	view	=	"cpu: hpcpu, memory: hpmem5minFree hpmem5minUsed"
+
+targetType cl3-sw
+	ds	=	"cpu1min, cpu5min, mem5minUsed, mem5minFree"
+	view	=	"cpu: cpu1min cpu5min,memory: mem5minUsed mem5minFree"
+
+targetType cgsw
+	ds	=	"cpu1min, cpu5min, mem5minUsed, mem5minFree"
+	view	=	"cpu: cpu1min cpu5min,memory: mem5minUsed mem5minFree"
+
 
 html    page-header
-    <!-- you could put your company logo on every page here: -->
-    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
-    <br clear=left>
+	<!-- you could put your company logo on every page here: -->
+	<h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+	<br clear=left>
