@@ -29,6 +29,8 @@ public class SimpleSnmp
 	private int getCnt;
 	private boolean getNext = false;
 
+	private Map cache = new HashMap();
+
 	/**
 	 * Construct an empty SimpleSnmp class.
 	 */
@@ -419,6 +421,12 @@ public class SimpleSnmp
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
 		ArrayList l = new ArrayList();
+		String cacheKey = host+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
+		if (cache.containsKey(cacheKey)) {
+			l.addAll((Collection)cache.get(cacheKey));
+			return l;
+		}
+
 		try {
 			checkSnmpContext();
 
@@ -509,6 +517,7 @@ public class SimpleSnmp
 			outl("  *ERROR*: Host: " + host + " IOException: " + e.getMessage() );
 		}
 		getCnt = 0;
+		cache.put(cacheKey, l);
 		return l;
 	}
 
