@@ -1,0 +1,14 @@
+diff -u -r net-snmp-5.0.1/agent/mibgroup/ucd-snmp/memory.c net-snmp-5.0.1-local/agent/mibgroup/ucd-snmp/memory.c
+--- net-snmp-5.0.1/agent/mibgroup/ucd-snmp/memory.c	Fri Apr 26 13:11:11 2002
++++ net-snmp-5.0.1-local/agent/mibgroup/ucd-snmp/memory.c	Thu Jun 27 15:21:44 2002
+@@ -304,8 +304,8 @@
+         for (j = 0; j < MAX_COL && *p; j++) {   /* scanf column-by-column */
+             l = sscanf(p, "%lu%n", &m, &k);
+             m /= 1024;
+-            if (4294967295 > m) {
+-                *(row[i] + j) = 4294967295;
++	    if (0x7fffffff < m) {
++	        *(row[i] + j) = 0x7fffffff;
+             } else {
+                 *(row[i] + j) = (unsigned) m;
+             }

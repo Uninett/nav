@@ -1,0 +1,30 @@
+diff -ur cricket-1.0.3/lib/Common/Map.pm cricket-1.0.3-local/lib/Common/Map.pm
+--- cricket-1.0.3/lib/Common/Map.pm	Thu Oct 25 02:48:15 2001
++++ cricket-1.0.3-local/lib/Common/Map.pm	Thu Jun 20 17:52:01 2002
+@@ -17,7 +17,15 @@
+ #    You should have received a copy of the GNU General Public License
+ #    along with this program; if not, write to the Free Software
+ #    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-
++#
++#    BUGS : If you try to get an interface description from windows computers
++#           it returns a 0 byte at the end.
++#           ex : snmpwalk windowshost public 1.3.6.1.2.1.2.2.1.2
++#                returns : MS TCP Loopback interface00
++#           and when you try to compare this with your config file it fails.
++#	    The problem has been fixed  with :$name  =~ s/\000//g; in line 169. 
++#        
++#
+ package Common::Map;
+ 
+ use snmpUtils;
+@@ -156,6 +164,9 @@
+         my($row);
+         foreach $row (@ret) {
+             my($inst, $name) = split(':', $row, 2);
++	    #Windows interfaces returns a 0 byte at the enda.
++	    #The sentence above fix this problem.
++	    $name  =~ s/\000//g;
+             $main::gMapCache{$snmp}->{$mapkey}->{$name} = $inst;
+         }
+     }
