@@ -34,9 +34,9 @@
 # i kø, etc. Man kan være med i 0 eller flere tjenestekategorier.
 # 
 # Foreløpig støttes disse kategoriene:
-#    email
+#    mail
 #
 # Eksempel: (her blankt på underkategori og porter)
-# 813:alfa.itea.ntnu.no:SDRIFT:SRV:UNIX::Loginserver ansatte::ts,email,dns,web
+# 813:alfa.itea.ntnu.no:SDRIFT:SRV:UNIX::Loginserver ansatte::ts,mail,dns,web
 #
 #------------------------------------------------------------------------------
