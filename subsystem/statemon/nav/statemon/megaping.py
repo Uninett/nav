@@ -285,7 +285,7 @@ class MegaPing:
     Unreachable hosts will have roundtriptime = -1
     """
     reply=[]
-    for host in self._hosts:
+    for host in self._hosts.values():
       if host.getState():
         reply.append((host.ip, host.replies[0]))
       else:
@@ -298,7 +298,7 @@ class MegaPing:
     (ip, timeout) for the unreachable hosts.
     """
     reply=[]
-    for host in self._hosts:
+    for host in self._hosts.values():
       if not host.getState():
         reply.append((host.ip, self._timeout))
     return reply
@@ -309,7 +309,7 @@ class MegaPing:
     (ip, roundtriptime) for reachable hosts.
     """
     reply=[]
-    for host in self._hosts:
+    for host in self._hosts.values():
       if host.getState():
         reply.append((host.ip, host.replies[0]))
     return reply
