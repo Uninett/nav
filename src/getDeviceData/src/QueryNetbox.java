@@ -53,6 +53,7 @@ public class QueryNetbox extends Thread
 	// Object data
 	String tid;
 	NetboxImpl nb;
+	Object oidUpdObj;
 
 	// Static init
 	public static void init(int numThreads, int updateDataInterval, ConfigParser cp, Map dataCM, Map deviceCM, String qnb) {
@@ -95,6 +96,26 @@ public class QueryNetbox extends Thread
 	private static void checkRunQ()
 	{
 		Log.setDefaultSubsystem("QUERY_NETBOX");
+
+		// First we check if the OID database needs updating
+		synchronized (oidQ) {
+			while (!oidQ.isEmpty()) {
+				Object updateO = oidQ.removeFirst();
+				Log.d("CHECK_RUN_Q", "oidQ not empty, got: " + updateO);
+
+				// Try to get a free thread
+				String tid = requestThread();
+				if (tid == null) {
+					Log.d("CHECK_RUN_Q", "oidQ not empty, but to thread available");
+					oidQ.addFirst(updateO);
+					return;
+				}
+
+				// OK, start a new QueryNetbox
+				Log.d("CHECK_RUN_Q", "Starting new OID thread with id: " + tid);
+				new QueryNetbox(tid, updateO).start();
+			}
+		}
 		
 		// Try to get a free netbox
 		Object o;
@@ -113,7 +134,7 @@ public class QueryNetbox extends Thread
 			}
 
 			// OK, start a new QueryNetbox
-			Log.d("CHECK_RUN_Q", "Starting new thread with id: " + tid);
+			Log.d("CHECK_RUN_Q", "Starting new Netbox thread with id: " + tid);
 			new QueryNetbox(tid, nb).start();
 
 		} 
@@ -202,6 +223,8 @@ public class QueryNetbox extends Thread
 					}
 					keyFreqMap.put(rs.getString("oidkey"), new Integer(freq));
 					keyMap.put(rs.getString("oidkey"), snmpoid);
+				} else if (rs.getString("snmpoidid") != null) {
+					t.setDirty(true);
 				}
 				prevtypeid = typeid;
 				//prevuptodate = uptodate;
@@ -248,6 +271,7 @@ public class QueryNetbox extends Thread
 				synchronized (deviceNetboxCache) {
 					deviceNetboxCache.remove(nb.getNetboxidS());
 				}
+				t.setDirty(false);
 			}
 		} 
 	}
@@ -386,6 +410,11 @@ public class QueryNetbox extends Thread
 		this.nb = initialNb;
 	}
 
+	public QueryNetbox(String tid, Object oidUpdObj) {
+		this.tid = tid;
+		this.oidUpdObj = oidUpdObj;
+	}
+
 	public void run()
 	{
 		Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
@@ -394,27 +423,20 @@ public class QueryNetbox extends Thread
 
 		while (true) {
 
-			// First check if there are any OIDs to update
-			{
-				Object updateO = null;
-				synchronized (oidQ) {
-					if (!oidQ.isEmpty()) {
-						updateO = oidQ.removeFirst();
-						Log.d("RUN", "oidQ not empty, got: " + updateO);
-					}
+			// Check if we were assigned an oid object and not a netbox
+			if (oidUpdObj != null) {
+				OidTester oidTester = new OidTester();
+				if (oidUpdObj instanceof Type) {
+					oidTester.oidTest((Type)oidUpdObj, oidkeyMap.values().iterator() );
+				} else if (oidUpdObj instanceof Snmpoid) {
+					oidTester.oidTest((Snmpoid)oidUpdObj, typeidMap.values().iterator() );
 				}
-				if (updateO != null) {
-					OidTester oidTester = new OidTester();
-					if (updateO instanceof Type) {
-						oidTester.oidTest((Type)updateO, oidkeyMap.values().iterator() );
-					} else if (updateO instanceof Snmpoid) {
-						oidTester.oidTest((Snmpoid)updateO, typeidMap.values().iterator() );
-					}
-					continue;
-				}
+				Log.d("RUN", "Thread idle, done OID object processing, exiting...");
+				threadIdle();
+				return;
 			}
-					
 
+			// Process netbox
 			String netboxid = nb.getNetboxidS();
 			String ip = nb.getIp();
 			String cs_ro = nb.getCommunityRo();
