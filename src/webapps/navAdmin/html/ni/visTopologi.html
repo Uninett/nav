@@ -1,14 +1,15 @@
+<!--
 		<h2>
 				<font color=#000066>
 					Network Explorer
 				</font>
 		</h2>
-
+-->
 		<form method="POST" action="">
 			<input type="hidden" name="section" value="ni">
 			<input type="hidden" name="func" value="searchSwport">
 
-		<table>
+		<table style="font-size: 13">
 		  <tr>
 				<td colspan=3>
 				  <b>Search the network</b>
@@ -33,6 +34,11 @@
 				<td>
 				    for <input type="text" name="searchFor" value="[/ni.visTopologi.searchFor]"><br>
 				</td>
+			<tr>
+				<td colspan=2>
+					<input type="checkbox" name="showdetails" [/ni.visTopologi.showdetails]> Show detailed information<br>
+				</td>
+			</tr>
 			<tr>
 				<td colspan=2>
 					<input type="checkbox" name="showempty" [/ni.visTopologi.showempty]> Show ports with empty portname<br>

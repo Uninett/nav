@@ -258,6 +258,7 @@ class HandlerNettinfo
 		nu.avledVlan();
 	}
 
+	HashMap sysnameMap = null;
 	private synchronized HashMap[] getPortMap() throws SQLException {
 		final long AGE_LIMIT = 1000*60*15; // 5 mins
 		//final long AGE_LIMIT = 1000*30; // 30 sec
@@ -288,13 +289,16 @@ class HandlerNettinfo
 			sysnameMap = new HashMap();
 			katMap = new HashMap();
 
+			String domainSuffix = com.getNavConf().get("DOMAIN_SUFFIX");
+			if (domainSuffix == null) domainSuffix = "";
+
 			// Hent gw'ene som danner røttene i treet
 			//ResultSet rs = Database.query("SELECT gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY sysname,vlan,interf");
 			//ResultSet rs = Database.query("SELECT DISTINCT ON (boksid,vlan) gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY boksid,vlan,interf");
 
 			// NAVv2 SQL: "SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,ip,kat,romid,main_sw,serial,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks LEFT JOIN boksinfo USING (boksid) JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf"
 
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlan) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlan,gwport.interface");
+			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlan) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,swport.ifindex AS to_ifindex,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlan,gwport.interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -324,6 +328,7 @@ class HandlerNettinfo
 				hm.put("vlan", rs.getString("vlan"));
 				hm.put("direction", "n");
 				hm.put("port", rs.getString("interface"));
+				hm.put("to_ifindex", rs.getString("to_ifindex"));
 				hm.put("to_module", rs.getString("to_module"));
 				hm.put("to_port", rs.getString("to_port"));
 				hm.put("to_catid", "gwport");
@@ -333,7 +338,9 @@ class HandlerNettinfo
 				//hm.put("boksbak", rs.getString("boksbak"));
 
 				// For search
-				hm.put("sysname", rs.getString("sysname"));
+				String sysname = rs.getString("sysname");
+				if (sysname.endsWith(domainSuffix)) sysname = sysname.substring(0, sysname.length()-domainSuffix.length());
+				hm.put("sysname", sysname);
 				hm.put("ip", rs.getString("ip"));
 				hm.put("room", rs.getString("roomid"));
 				hm.put("software", rs.getString("sw_ver"));
@@ -389,7 +396,9 @@ class HandlerNettinfo
 			rs = Database.query("SELECT netboxid,sysname,catid FROM netbox");
 			while (rs.next()) {
 				String boksid = rs.getString("netboxid");
-				sysnameMap.put(boksid, rs.getString("sysname"));
+				String sysname = rs.getString("sysname");
+				if (sysname.endsWith(domainSuffix)) sysname = sysname.substring(0, sysname.length()-domainSuffix.length());
+				sysnameMap.put(boksid, sysname);
 				katMap.put(boksid, rs.getString("catid"));
 			}
 
@@ -406,6 +415,32 @@ class HandlerNettinfo
 		return topologiMap;
 	}
 
+	private static final int SORT_SYSNAME = 0;
+	private static final int SORT_IFINDEX = 10;
+	private Collection sort(Collection c, int sortOn) {
+		List l = new ArrayList(c);
+		Collections.sort(l,	new Comparator() {
+					public int compare(Object o1, Object o2) {
+						if (!(o1 instanceof HashMap) || !(o2 instanceof HashMap)) return 0;
+						HashMap m1 = (HashMap)o1;
+						HashMap m2 = (HashMap)o2;
+						switch (sortOn) {
+						case SORT_SYSNAME:
+							String s1 = (String)sysnameMap.get(m1.get("to_netboxid"));
+							String s2 = (String)sysnameMap.get(m2.get("to_netboxid"));
+							return s1.compareTo(s2);
+
+						case SORT_IFINDEX:
+							Integer i1 = new Integer((String)m1.get("to_ifindex"));
+							Integer i2 = new Integer((String)m2.get("to_ifindex"));
+							return i1.compareTo(i2);
+						}
+					}
+			});
+		return l;
+	}
+
+	private boolean showdetails = false;
 
 	/* [/ni.visTopologi]
 	 *
@@ -413,6 +448,9 @@ class HandlerNettinfo
 	private void visTopologi() throws SQLException
 	{
 		if (s.length > 2) {
+			if (s[2].equals("showdetails")) {
+				com.out( com.get("ni.visTopologi.showdetails") );
+			}
 			if (s[2].equals("showempty")) {
 				com.out( com.get("ni.visTopologi.showempty") );
 			}
@@ -438,6 +476,11 @@ class HandlerNettinfo
 			return;
 		}
 
+		showdetails = false;
+		{
+			String s = com.get("ni.visTopologi.showdetails");
+			if (s != null && s.equals("checked")) showdetails = true;
+		}
 		boolean showempty = false;
 		{
 			String s = com.get("ni.visTopologi.showempty");
@@ -467,12 +510,12 @@ class HandlerNettinfo
 		String expandIcon = imgRoot + "expand.gif" + "\" alt=\"Expand entire branch\">";
 		String label = "<a name=\"0:0\"></a>";
 
-		com.out("<table border=0 cellspacing=0 cellpadding=0>\n");
+		com.out("<table border=0 cellspacing=0 cellpadding=0 style=\"font-size: 13\">\n");
 		com.outl("  <tr>");
 		com.outl("    <td>");
 		com.outl("      " + label + ntnuImg);
 		com.outl("    </td>");
-		com.outl("    <td colspan=50>");
+		com.outl("    <td colspan=50 style=\"font-size: 13\">");
 
 		/*
 		com.out(      "<a href=\"");
@@ -490,7 +533,7 @@ class HandlerNettinfo
 		long begin = System.currentTimeMillis();
 		HashMap portMap;
 		Map rootMap;
-		HashMap sysnameMap;
+		//HashMap sysnameMap;
 		HashMap katMap;
 		{
 			HashMap[] hmA = getPortMap();
@@ -511,11 +554,12 @@ class HandlerNettinfo
 		}
 		com.getUser().setData("traverseList", travMap);
 
+		/*
 		for (Iterator iter=travMap.entrySet().iterator(); iter.hasNext();) {
 			Map.Entry me = (Map.Entry)iter.next();
 			//com.outl("trav: " + me.getKey() + " b: " + me.getValue() + "<br>");
 		}
-
+		*/
 
 
 		/*
@@ -563,7 +607,7 @@ class HandlerNettinfo
 
 
 		com.out("<table border=0 cellspacing=0 cellpadding=0>\n");
-		for (Iterator iter=rootMap.values().iterator(); iter.hasNext();) {
+		for (Iterator iter=sort(rootMap.values(), SORT_SYSNAME).iterator(); iter.hasNext();) {
 			HashMap swrec = (HashMap)iter.next();
 			swportExpand(swrec, rootRec, 0, !iter.hasNext(), expandRoot, showempty, false, showpath, searchblocked, null, null, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
 		}
@@ -578,7 +622,9 @@ class HandlerNettinfo
 
 		com.out("</table>\n");
 
+		com.outl("<div style=\"font-size: 13\">");
 		com.outl("<br>Fetch from DB/cache: " + (p1-begin) + " ms. Output HTML: " + (p2-p1) + " ms.");
+		com.outl("</div>");
 
 	}
 
@@ -587,7 +633,7 @@ class HandlerNettinfo
 		int strekType = (lastPort ? BOXOPEN_BOTTOM : BOXOPEN_BOTH);
 
 		if (depth > 24) {
-			com.outl("<tr><td colspan=50>ERROR, depth too large, return.</td></tr>");
+			com.outl("<tr><td colspan=50 style=\"font-size: 13\">ERROR, depth too large, return.</td></tr>");
 			return false;
 		}
 
@@ -698,8 +744,10 @@ class HandlerNettinfo
 
 		//if (portList.size()>1) com.outl("portList.size(): " + portList.size());
 
-		for (int i = 0; i < portList.size(); i++) {
-			HashMap port = (HashMap)portList.get(i);
+		//for (int i = 0; i < portList.size(); i++) {
+		//	HashMap port = (HashMap)portList.get(i);
+		for (Iterator it=sort(portList, SORT_IFINDEX).iterator(); it.hasNext();) {
+			HashMap port = (HashMap)it.next();
 
 			//if (i == portList.size()-1) strekType = STREK_BOTTOM;
 			boolean b = swportExpand(port, swrec, depth+1, (i == portList.size()-1), expand, showempty, searchexact, showpath, searchblocked, searchField, searchFor, searchHitSet, portMap, travMap, sysnameMap, katMap, visitSet);
@@ -859,7 +907,7 @@ class HandlerNettinfo
 		String portbak = (String)swrec.get("to_port");
 		String mpBak;
 		if (modulbak == null && portbak == null) mpBak = "";
-		else mpBak = " [<b>"+(modulbak!=null?modulbak+"/":"")+portbak+"</b>]";
+		else mpBak = " [<b>"+(modulbak!=null?modulbak:"")+(portbak!=null?"/"+portbak:"")+"</b>]";
 
 		String vlan = (String)swrec.get("vlan");
 		String retning = (String)swrec.get("direction");
@@ -932,9 +980,9 @@ class HandlerNettinfo
 		// print table
 		//com.outl("    <td>");
 		if (searchHit) {
-			com.outl("<td bgcolor=\"#F0E18C\" colspan=\"50\">");
+			com.outl("<td bgcolor=\"#F0E18C\" colspan=\"50\" style=\"font-size: 13\">");
 		} else {
-			com.outl("<td colspan=\"50\">");
+			com.outl("<td colspan=\"50\" style=\"font-size: 13\">");
 		}
 		/*
 		if (depth == 0) {
@@ -980,7 +1028,7 @@ class HandlerNettinfo
 		//com.outl("</td>");
 
 		String netaddr = "";
-		if (swrec.containsKey("netaddr")) {
+		if (showdetails && swrec.containsKey("netaddr")) {
 			netaddr = " ("+swrec.get("netaddr")+", " + swrec.get("nettype") + ", " + swrec.get("netident")+")";
 		}
 
@@ -1011,7 +1059,7 @@ class HandlerNettinfo
 			//com.outl("    </td>");
 		}
 
-		//com.outl("<td align=\"right\">&nbsp;&nbsp;" + arrowIcon + "&nbsp;</td>");
+		//com.outl("</td><td align=\"right\">&nbsp;&nbsp;" + arrowIcon + "&nbsp;</td><td colspan=\"50\" style=\"font-size: 13\">");
 		com.outl("&nbsp;&nbsp;" + arrowIcon + "&nbsp;");
 
 		//com.outl("    <td colspan=50 align=\"left\">");
@@ -2860,6 +2908,9 @@ class HandlerNettinfo
 			if (subSect.equals("visTopologi"))
 			{
 				if (com.getp("B1") != null) {
+					String showdetails = com.getp("showdetails");
+					com.set("ni.visTopologi.showdetails", (showdetails!=null ? "checked" : ""), false );
+
 					String showempty = com.getp("showempty");
 					com.set("ni.visTopologi.showempty", (showempty!=null ? "checked" : ""), false );
 

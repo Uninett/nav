@@ -361,6 +361,9 @@
       <webinf dir=".">
         <include name="html/**"/>
       </webinf>
+      <lib dir=".">
+        <include name="lib/**"/>
+      </lib>
       <zipfileset dir="gfx" prefix="gfx"/>
       <zipfileset dir="tooltips" prefix="tooltips"/>
     </war>

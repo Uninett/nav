@@ -101,6 +101,9 @@ public class Com
 	public ConfigParser getConf() { return cp; }
 	public void setConf(ConfigParser Icp) { cp = Icp; }
 
+	public ConfigParser getNavConf() { return navCp; }
+	public void setNavConf(ConfigParser Icp) { navCp = Icp; }
+
 	public HttpServletRequest getReq() { return req; }
 	public void setReq(HttpServletRequest Ireq) { req = Ireq; }
 
@@ -168,6 +171,7 @@ public class Com
 	PrintWriter writer;
 
 	ConfigParser cp;
+	ConfigParser navCp;
 	//Sql db;
 	User user;
 	Handler handler;

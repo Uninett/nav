@@ -34,6 +34,14 @@
       </description>
     </context-param>
 
+    <context-param>
+      <param-name>navConfigFile</param-name>
+      <param-value>etc/nav.conf</param-value>
+      <description>
+        Location of the config file within the NAV root
+      </description>
+    </context-param>
+
     <servlet>
         <servlet-name>NetworkExplorer</servlet-name>
         <servlet-class>navAdmin</servlet-class>

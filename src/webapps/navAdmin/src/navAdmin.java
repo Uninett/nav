@@ -31,8 +31,9 @@ public class navAdmin extends HttpServlet
 		String navRoot = getServletContext().getInitParameter("navRoot");
 		String dbConfigFile = getServletContext().getInitParameter("dbConfigFile");
 		String configFile = getServletContext().getInitParameter("configFile");
+		String navConfigFile = getServletContext().getInitParameter("navConfigFile");
 
-		ConfigParser cp, dbCp;
+		ConfigParser cp, dbCp, navCp;
 		try {
 			cp = new ConfigParser(navRoot + configFile);
 		} catch (IOException e) {
@@ -52,7 +53,14 @@ public class navAdmin extends HttpServlet
 			out.println("Error, could not connect to database!");
 			return;
 		}
+		try {
+			navCp = new ConfigParser(navRoot + navConfigFile);
+		} catch (IOException e) {
+			out.println("Error, could not read nav config file: " + navRoot + navConfigFile);
+			return;
+		}
 		com.setConf(cp);
+		com.setNavConf(navCp);
 
 		/*
 		out.println("gfx, " + getServletContext().getResourceAsStream("gfx/dumhub.gif"));
