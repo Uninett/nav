@@ -29,6 +29,10 @@ class SmtpChecker(AbstractChecker):
 		if len(version) >= 1:
 			s = version[0]
 			for i in version[1:]:
+				# smtp servers tend to display the version
+				# and time/date seperated by a , or ;
+				if ',' in i:
+					break
 				s += ' ' + i
 				if ';' in s:
 					break
