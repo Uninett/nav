@@ -1532,6 +1532,11 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
 
     if typeid:
         fields['typeid'] = typeid
+
+        # Set uptyodate = false
+        tifields = {'uptodate': 'f'}
+        updateEntryFields(tifields,'type','typeid',typeid)
+
     if snmpversion:
         # Only use the first char from initbox, can't insert eg. '2c' in
         # this field
@@ -4233,7 +4238,13 @@ class bulkdefNetbox:
                 try:
                     box = initBox.Box(row['ip'],row['ro'])
                     if box.typeid:
-                        row['typeid'] = str(box.typeid)
+                        typeId = str(box.typeid)
+                        row['typeid'] = typeId
+                        # Set uptyodate = false
+                        tifields = {'uptodate': 'f'}
+                        updateEntryFields(tifields,'type','typeid',typeId)
+                    if box.snmpversion:
+                        row['snmp_version'] = str(box.snmpversion[0])
                     # getDeviceId() Returns a list (of ints, so str())
                     deviceid = str(box.getDeviceId()[0])
                 except:
