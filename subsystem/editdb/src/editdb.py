@@ -288,7 +288,7 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'vendor/list','Edit'],
             [BASEPATH + 'bulk/vendor','Bulk import']],
             ['Snmpoid',
-             'Manually add snmpoids ',
+             'Manually add snmpoids (candidates for the cricket collector)',
             [BASEPATH + 'snmpoid/edit','Add'],
             ['',''],
             ['','']],
@@ -332,7 +332,7 @@ def index(req,showHelp=False,status=None):
 
     # Table for containers (Network load map)
     rows = [['Container',
-             'A container is a collection of routers for the network load map ',
+             'A container is a collection of routers for the traffic map ',
             [BASEPATH + 'container/edit','Add'],
             [BASEPATH + 'container/list','Edit'],
             None],
@@ -341,7 +341,7 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'ric/edit','Add'],
             [BASEPATH + 'ric/list','Edit'],
             None]]
-    body.tables.append(Table('Network Load Map','',headings,rows))
+    body.tables.append(Table('Traffic Map','',headings,rows))
 
 
 
