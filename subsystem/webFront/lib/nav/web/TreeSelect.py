@@ -44,62 +44,62 @@ class TreeSelect:
     def update(self,form):
         " Updates the selects in the element list based on the form. "
         for select in self.elementList:
-            select.selectedList = []
-            maybe_selected = []
+            if select.updateThis:
+                select.selectedList = []
+                maybe_selected = []
 
-            if form.has_key(select.elementName):
-                # maybe_selected is the rows indicated as selected from the
-                # form. since there may be rows which are selected, but
-                # doesn't exist after updating the previous box, the list
-                # must be checked against the existing rows in the prev select
-                maybe_selected = form[select.elementName] 
+                if form.has_key(select.elementName):
+                    # maybe_selected is the rows indicated as selected from the
+                    # form. since there may be rows which are selected, but
+                    # doesn't exist after updating the previous box, the list
+                    # must be checked against the existing rows in the prev select
+                    maybe_selected = form[select.elementName] 
 
-                # if only one row is selected, the mod_python FieldObject
-                # returns a string, not a list. Checks and makes a list. 
-                if type(maybe_selected) is str:
-                    string = maybe_selected
-                    maybe_selected = []
-                    maybe_selected.append(string)
+                    # if only one row is selected, the mod_python FieldObject
+                    # returns a string, not a list. Checks and makes a list. 
+                    if type(maybe_selected) is str:
+                        string = maybe_selected
+                        maybe_selected = []
+                        maybe_selected.append(string)
 
-            if select.prevElement:
-                # does this select have a previous select element?
-                # ie. another select box to the left of it
-                for selected in maybe_selected:
-                    
-                    if(form.has_key(select.elementName + '_' + selected)):
-                        # this row was selected the last time
-                        # should it still be selected?
-                        last_key = form[select.elementName + '_' + selected]
-                        if select.prevElement.selectedList.count(last_key):
+                if select.prevElement:
+                    # does this select have a previous select element?
+                    # ie. another select box to the left of it
+                    for selected in maybe_selected:
+                        
+                        if(form.has_key(select.elementName + '_' + selected)):
+                            # this row was selected the last time
+                            # should it still be selected?
+                            last_key = form[select.elementName + '_' + selected]
+                            if select.prevElement.selectedList.count(last_key):
+                                select.selectedList.append(selected)
+                        else:
+                            # this row was just selected now, so it must be added
                             select.selectedList.append(selected)
-                    else:
-                        # this row was just selected now, so it must be added
-                        select.selectedList.append(selected)
-            else:
-                # if this is the first select, then the selected rows in
-                # the form are always correct (the first list is static)
-                select.selectedList = maybe_selected
+                else:
+                    # if this is the first select, then the selected rows in
+                    # the form are always correct (the first list is static)
+                    select.selectedList = maybe_selected
 
-            # Are there any preselected items?
-            # In that case, add them now
-            for id in select.preSelected:
-                if not select.selectedList.count(id):
-                    select.selectedList.append(id)
+                # Are there any preselected items?
+                # In that case, add them now
+                for id in select.preSelected:
+                    if not select.selectedList.count(id):
+                        select.selectedList.append(id)
 
         # Recurse through the elements and update the options
         # start with the first element
-        select = self.elementList[0] 
-        next = select.nextElement
+        if select.updateThis:
+            select = self.elementList[0] 
+            next = select.nextElement
 
-        while(next):
-            next.updateOptions(next.prevElement.selectedList)
-            next = next.nextElement 
+            while(next):
+                next.updateOptions(next.prevElement.selectedList)
+                next = next.nextElement 
 
-        # update the selected rows (selected in form -> Option.selected = true)
-        for select in self.elementList:
-            select.updateSelected()
-
-        return
+            # update the selected rows (selected in form -> Option.selected = true)
+            for select in self.elementList:
+                select.updateSelected()
 
 
 #################################################
@@ -110,6 +110,9 @@ class Select:
     """ Select is a simple select. Used for the first select in the TreeSelect
     It is not possible to update it dynamically. The options list is populated
     by the initOptions() method, each time the Select is instantiated. """
+
+    # Update this select with TreeSelect.update()?
+    updateThis = True
 
     # html element name
     elementName = None
@@ -390,6 +393,70 @@ class UpdateableSelect(Select):
                 last_key=selected))
         return
 
+# Class SimpleSelect
+
+class SimpleSelect(Select):
+    # Don't update this with TreeSelect.update()
+    updateThis = False
+    onchange = None
+
+    def __init__(self,
+                 elementName,
+                 title,
+                 initTable,
+                 initTextColumn,
+                 initIdColumn,
+                 initIdList,
+                 multiple = False,
+                 multipleSize = None,
+                 optionFormat=None,
+                 orderByValue=False):
+
+        self.options = []
+        self.elementName = elementName
+        self.title = title
+        self.initTable = initTable
+        self.initTextColumn = initTextColumn
+        self.initIdColumn = initIdColumn
+        self.initIdList = initIdList
+        self.multiple = multiple
+        self.multipleSize = multipleSize
+        self.optionFormat = optionFormat
+        self.orderByValue = orderByValue
+
+        self.initOptions()
+
+    def initOptions(self):
+        " Populate the options list from the initTable. "
+        table = getattr(nav.db.manage, self.initTable)
+
+        ob = self.initTextColumn
+        if self.orderByValue:
+            ob = self.initIdColumn
+
+        where = ''
+        for id in self.initIdList:
+            if where:
+                where += " OR "
+            where += self.initIdColumn + "='%s' " % (id,)
+
+        for row in table.getAllIterator(orderBy=ob,where=where):
+            descr = getattr(row, self.initTextColumn)
+            value = getattr(row, self.initIdColumn)
+
+            if self.optionFormat:
+                text = self.optionFormat
+                text = text.replace('$v',str(value))
+                text = text.replace('$d',str(descr))
+            else:
+                text = descr
+            selected = False
+            
+            self.options.append(Option(text,value,selected)) 
+        return
+    
+    def lastKeys(self):
+        return None
 
 #################################################
 ## class Option
