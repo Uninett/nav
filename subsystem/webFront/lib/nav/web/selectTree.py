@@ -281,7 +281,7 @@ class updateSelect(simpleSelect):
             sql += 'WHERE ' + self.prevTableIdKey + "='" + s + "' "
                 
             if where:
-                sql += where + ' '           
+                sql += 'AND ' + where + ' '           
             if orderBy:
                 sql += 'ORDER BY ' + orderBy + ' '
 
