@@ -68,18 +68,10 @@ def login(req, login='', password='', origin=''):
             req.session.save()
 
             # Redirect to the origin page, or to the root if one was
-            # not given (using the refresh header, so as not to screw
-            # up the client's POST operation)
+            # not given.
             if not origin.strip():
                 origin = '/'
-            req.headers_out['Refresh'] = '0;URL=%s' % origin
-
-            # This returned page should be replaced by a template or
-            # something looking much nicer.
-            return """
-            Login was successful. Please click this link if your browser doesn't redirect you immediately:
-            <a href="%s">%s</a>
-            """ % (origin, origin)
+            web.redirect(req, origin, seeOther=True)
         else:
             return _getLoginPage(origin, "Login failed")
     else:
