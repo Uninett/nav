@@ -372,6 +372,44 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
+
+		// Collect sysDescr
+		List sysDescrList = sSnmp.getAll(nb.getOid("sysDescr"), true, false);
+		if (sysDescrList != null) {
+			for (Iterator it = sysDescrList.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String sysDescr = s[1];
+				NetboxInfo.put(nb.getNetboxidS(), null, "sysDescr", sysDescr);
+
+				String version = null;
+				// Extract version
+				int k=0;
+				if ( (k=sysDescr.indexOf("Version")) >= 0) {
+					k += "Version".length();
+					int e = sysDescr.indexOf(",", k);
+					int e2 = sysDescr.indexOf("\n", k);
+					if (e <= k) e = sysDescr.length();
+					if (e2 <= k) e2 = sysDescr.length();
+					version =  sysDescr.substring(k, Math.min(e,e2));
+				} else {
+					Matcher m = Pattern.compile("V([0-9]+[a-zA-Z0-9.&&[^ ]]*)").matcher(sysDescr);
+					if (m.find()) {	
+						version = m.group(1);
+					} else {
+						m = Pattern.compile(" ([0-9]+\\.[a-zA-Z0-9.&&[^ ]]+)").matcher(sysDescr);
+						if (m.find()) {	
+							version = m.group(1);							
+						}
+					}
+				}
+				if (version != null) {
+					version = version.trim();
+					nc.netboxDataFactory(nb).setSwVer(version);
+				}
+
+				break;
+			}
+		}
 		
 		if ("GW".equals(nb.getCat())) return;
 			
@@ -417,86 +455,54 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
-		// Collect sysDescr
-		List sysDescrList = sSnmp.getAll(nb.getOid("sysDescr"), true, false);
-		if (sysDescrList != null) {
-			for (Iterator it = sysDescrList.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-				String sysDescr = s[1];
-				NetboxInfo.put(nb.getNetboxidS(), null, "sysDescr", sysDescr);
-
-				String version = null;
-				// Extract version
-				int k=0;
-				if ( (k=sysDescr.indexOf("Version")) >= 0) {
-					k += "Version".length();
-					int e = sysDescr.indexOf(",", k);
-					int e2 = sysDescr.indexOf("\n", k);
-					if (e <= k) e = sysDescr.length();
-					if (e2 <= k) e2 = sysDescr.length();
-					version =  sysDescr.substring(k, Math.min(e,e2));
-				} else {
-					Matcher m = Pattern.compile("V([0-9]+[a-zA-Z0-9.&&[^ ]]*)").matcher(sysDescr);
-					if (m.find()) {	
-						version = m.group(1);
-					}
-				}
-				if (version != null) {
-					version = version.trim();
-					nc.netboxDataFactory(nb).setSwVer(version);
-				}
-
-				break;
-			}
-		}
 
 
 
-		/*
-		// Set interface, first we try IfName
-		Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
-		if (ifNameMap != null) {
+			/*
+			// Set interface, first we try IfName
+			Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
+			if (ifNameMap != null) {
 			for (Iterator it = ifNameMap.entrySet().iterator(); it.hasNext();) {
-				Map.Entry me = (Map.Entry)it.next();
-				String ifindex = (String)me.getKey();
-				if (skipIfindexSet.contains(ifindex)) continue;
-				String ifname = (String)me.getValue();
+			Map.Entry me = (Map.Entry)it.next();
+			String ifindex = (String)me.getKey();
+			if (skipIfindexSet.contains(ifindex)) continue;
+			String ifname = (String)me.getValue();
 				
-				Swport swp = sc.swportFactory(ifindex);
-				swp.setInterface(ifname);
+			Swport swp = sc.swportFactory(ifindex);
+			swp.setInterface(ifname);
 			}
-		} else {
+			} else {
 			// Type does not support ifName; instead use ifDescr
 			Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
 			if (ifdescrMap != null) {
-				for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
-					Map.Entry me = (Map.Entry)it.next();
-					String ifindex = (String)me.getKey();
-					if (skipIfindexSet.contains(ifindex)) continue;
-					String ifdescr = (String)me.getValue();
+			for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String ifindex = (String)me.getKey();
+			if (skipIfindexSet.contains(ifindex)) continue;
+			String ifdescr = (String)me.getValue();
 					
-					Swport swp = sc.swportFactory(ifindex);
-					swp.setInterface(ifdescr);
-				}
+			Swport swp = sc.swportFactory(ifindex);
+			swp.setInterface(ifdescr);
 			}
-		}
-		*/
+			}
+			}
+			*/
 
-		/*
-		// If type supports portIfindex
-		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfIndex")));
-		if (portIfindexMap != null) {
-		for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
-				String ifindex = (String)it.next();
-				if (skipIfindexSet.contains(ifindex)) continue;
+			/*
+			// If type supports portIfindex
+			MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfIndex")));
+			if (portIfindexMap != null) {
+			for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
+			String ifindex = (String)it.next();
+			if (skipIfindexSet.contains(ifindex)) continue;
 
-				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\\.");
+			String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\\.");
 				
-				Swport swp = sc.swportFactory(ifindex);
-				swp.setInterface(mp[0] + "/" + mp[1]);
+			Swport swp = sc.swportFactory(ifindex);
+			swp.setInterface(mp[0] + "/" + mp[1]);
 			}
-		*/
+			*/
 
-	}
+		}
 
 }
