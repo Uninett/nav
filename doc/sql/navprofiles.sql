@@ -341,11 +341,11 @@ A table specifying a time period. This could be though of as an element in a tim
 
 starttid	this attribute speficies the start time of this time period. The time period end time is 
             implicit given by the start time by the next time period.
-            1 all week
-            2 weekdays Monday-Friday
-            3 weekend Saturday-Sunday
-            
+
 helg		Speficies wether this time period is for weekdays or weekend or both.
+				1 all week
+				2 weekdays Monday-Friday
+				3 weekend Saturday-Sunday
 */
 CREATE SEQUENCE tidsperiode_id_seq START 1000;
 CREATE TABLE Tidsperiode (

@@ -114,22 +114,55 @@ sub collectTimePeriod()
     #Collect information about timeperiod
 
     my $tps;
+    
     if(!$this->{activeProfile}) {
-	$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no active profile");
-	return;
+		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no active profile");
+		return;
     }
 
+	# 	The 'helg' field in the database table 'tidsperiode' specifies wether 
+	# this timeperiod is for weekdays or weekend or both.
+	#		1 all week	Monday	-	Sunday
+	#		2 weekdays 	Monday	-	Friday
+	#		3 weekend 	Saturday-	Sunday
+	#	Postresql day of week is an integer from 0 to 6, where 
+	# 0 is sunday, 1 monday and 6 saturday
+
+	my $tpquery;
+	my $exceptHelgType;
+
+	# If NOW is sunday or saturday
     if($this->{day}==0 || $this->{day}==6) {
-	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=2 order by starttid desc");
-    } else {
-	$tps=$this->{dbh}->selectall_arrayref("select id,helg,starttid from tidsperiode where brukerprofilid=$this->{activeProfile} and starttid<now() and helg!=3 order by starttid desc");
-    }
+   		# Set except type to 2, which means all time periods except weekdays
+		$exceptHelgType = 2;
 
+	# if not, NOW is a week-day.
+	} else {
+   		# Set except type to 2, which means all time periods except weekdays
+		$exceptHelgType = 2;
+	}	
+	
+	# 	Extract all timeperiods valid, and sort by which starttime is most recent. The somewhat nasty SQL 
+	# is an implementation of a interval modulo 24hour function, and what neccessary to support time 
+	# periods spanning midnight.
+	$tpquery = "
+		SELECT id, helg, starttid FROM (
+			 SELECT *, date_trunc('day', localtimestamp) + (localtime - starttid) - 
+				date_trunc('day', date_trunc('day', localtimestamp) + (localtime - starttid)) AS s 
+			FROM tidsperiode 
+			WHERE brukerprofilid = $this->{activeProfile} AND helg != $exceptHelgType
+			ORDER BY s LIMIT 1
+		) q";
+
+	# Execute generated query.
+	$tps = $this->{dbh}->selectall_arrayref($tpquery);
+	
+	# Exctract first row, which is the most recent time period set active 
     my $tp=$tps->[0];
 
     if(!defined $tp) {
-	$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no time period available");
-	return;
+		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no time period available");
+		return;
     }
 
     if($DBI::errstr)
@@ -142,20 +175,18 @@ sub collectTimePeriod()
     $this->{timePeriod}->{starttime}=$tp->[2];
     my $aEs=$this->{dbh}->selectall_arrayref("select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]");
 
- #   print "select alarmadresseid,utstyrgruppeid,vent from varsle where tidsperiodeid=$tp->[0]\n";
-
-    if($DBI::errstr)
-      {
-	  $this->{log}->printlog("User","collectTimePeriod",$Log::error,"could not get information about addresses");
-	  return 0;
-      }
+	if($DBI::errstr)
+	{
+		$this->{log}->printlog("User","collectTimePeriod",$Log::error,"could not get information about addresses");
+		return 0;
+	}
 
     my $c2=0;
     foreach my $aE (@$aEs)
-      {
-	$this->{timePeriod}->{aE}[$c2]->{address}=$aE->[0];
-	$this->{timePeriod}->{aE}[$c2]->{eGID}=$aE->[1];
-	$this->{timePeriod}->{aE}[$c2]->{queue}=$aE->[2];
+	{
+		$this->{timePeriod}->{aE}[$c2]->{address}=$aE->[0];
+		$this->{timePeriod}->{aE}[$c2]->{eGID}=$aE->[1];
+		$this->{timePeriod}->{aE}[$c2]->{queue}=$aE->[2];
 	$c2++;
       }
 
