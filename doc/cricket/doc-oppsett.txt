@@ -51,11 +51,15 @@ Oversikt
   i)Windows 
     Vi har prøvd å bruke net-snmp sin daemon men denne gav fra seg så
     lite info at vi ikke fant den god nok. Vi bruker Windows sin egen
-    innebygde snmpd. Først så må snmp innst.  på Windows maskinen ,
-    deretter så må tre filer mib.bin , perfmib.dll , perfmib.ini legges
+    innebygde snmpd. Først så må snmp innst.  på Windows maskinen.
+    Deretter kan du hente ned NavWin.zip som ligger her , pakke den opp
+    og kjøre click_me_first.bat filen så skal alt innst. automatisk.
+    Evt kan du gjøre dette manuelt:
+    de tre filene mib.bin , perfmib.dll , perfmib.ini legges
     til i %systemroot%/system32 (som regel c:\winnt\system32). I tillegg
-    må det gjøres noen registerendringer. Gå til startmenyen -> run og
-    skriv regedit.
+    må det gjøres noen registerendringer. 
+    
+    Gå til startmenyen -> run og skriv regedit.
     
     Disse forandingene må gjøres :
     Go To Tree: [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SNMP\Parameters\ExtensionAgents]
