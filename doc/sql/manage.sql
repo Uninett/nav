@@ -533,6 +533,7 @@ INSERT INTO subsystem (name) VALUES ('trapParser');
 INSERT INTO subsystem (name) VALUES ('cricket');
 INSERT INTO subsystem (name) VALUES ('deviceTracker');
 INSERT INTO subsystem (name) VALUES ('getDeviceData');
+INSERT INTO subsystem (name) VALUES ('emotd');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
