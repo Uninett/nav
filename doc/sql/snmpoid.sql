@@ -269,8 +269,20 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='cHsrpGrpStandbyState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cHsrpGrpStandbyState','1.3.6.1.4.1.9.9.106.1.2.1.1.15','cgw',NULL,'0',NULL,'0');
 
-DELETE FROM snmpoid WHERE oidkey='catSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catSerial','1.3.6.1.4.1.9.5.1.3.1.1.26','Serial number','cat','t',NULL,'0');
+DELETE FROM snmpoid WHERE oidkey='catModuleModel';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catModuleModel','1.3.6.1.4.1.9.5.1.3.1.1.17','Module model','cat','t',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleHwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catModuleHwVer','1.3.6.1.4.1.9.5.1.3.1.1.18','Module hardware version','cat','t',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleFwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catModuleFwVer','1.3.6.1.4.1.9.5.1.3.1.1.19','Module firmware version','cat','t',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleSwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catModuleSwVer','1.3.6.1.4.1.9.5.1.3.1.1.20','Module software version','cat','t',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='catModuleSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('catModuleSerial','1.3.6.1.4.1.9.5.1.3.1.1.26','Serial number','cat','t',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='cCardSwVersion';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardSwVersion','1.3.6.1.4.1.9.3.6.11.1.6','Slot card software version','Cisco','0',NULL,'0');
@@ -282,7 +294,7 @@ DELETE FROM snmpoid WHERE oidkey='ifSerial';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ifSerial','1.3.6.1.2.1.47.1.1.1.1.11.1','Serial number for device','mib-II','0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='cCardSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardSerial','1.3.6.1.4.1.9.3.6.11.1.4','Slot card serial','Cisco','0',NULL,'0');
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardSerial','1.3.6.1.4.1.9.3.6.11.1.4','Slot card serial','Cisco','0','[^0]|\\w{2,}','0');
 
 DELETE FROM snmpoid WHERE oidkey='ospfIfMetricMetric';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ospfIfMetricMetric','1.3.6.1.2.1.14.8.1.4','cgw',NULL,'0',NULL,'0');
