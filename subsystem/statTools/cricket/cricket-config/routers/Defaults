@@ -46,6 +46,46 @@ datasource      c5000BandwidthMax	ds-source       =       snmp://%snmp%/c5000Ban
 # should be done automatically before final release.
 
 #!#!#! Do NOT remove this line
+targetType C1000
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+
+targetType cis1005
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
+
+targetType C1605
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+
+targetType C1700
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+
+targetType cis4000
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree,sysUpTime"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,uptime:sysUptime"
+
+targetType C6500gsw
+        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree,c5000Bandwidth,c5000BandwidthMax"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet, bandwidth:c5000Bandwidth c5000BandwidthMax"
+
+targetType cat6509
+        ds      =       "cpu1min,cpu5min,mem5minUsed,c5000BandwidthMax,tempInlet,tempOutlet,mem5minFree,c5000Bandwidth,sysUpTime"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,bandwidth:c5000Bandwidth c5000BandwidthMax,uptime: sysUptime"
+
+targetType C7200
+        ds      =       "cpu1min,cpu5min,tempInlet,mem5minUsed,tempOutlet,mem5minFree"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet"
+
+targetType cis7206
+        ds      =       "cpu1min,cpu5min,mem5minUsed,tempInlet,tempOutlet,mem5minFree,sysUpTime"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree,temperature:tempInlet tempOutlet,uptime:sysUptime"
+
+targetType RSM
+        ds      =       "cpu1min,cpu5min,mem5minUsed,mem5minFree"
+        view    =       "cpu:cpu1min cpu5min,memory:mem5minUsed mem5minFree"
+
 
 html 	short-desc	Router Chassis
 
