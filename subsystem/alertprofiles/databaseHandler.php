@@ -71,13 +71,13 @@ WHERE (accountid = " . addslashes($uid) . " AND id = " . addslashes($id) . ")";
     
     $sorts = array ('login',
 		    'name',
-		    'admin, name',
-		    'sms, name',
+		    'name',
+		    'name',
 		    'queuelength, name',
 		    'pa, name',
 		    'aa, name');
 		    
-    $querystring = "SELECT Account.id, Account.login, Account.name, Preference.admin, Preference.sms, Preference.queuelength, " .
+    $querystring = "SELECT Account.id, Account.login, Account.name, null as admin, null as sms, Preference.queuelength, " .
       "profiler.pa, adresser.aa FROM Preference, Account LEFT OUTER JOIN " .
       "(SELECT count(Brukerprofil.id) AS pa, Brukerprofil.accountid AS uid " . 
       "FROM Brukerprofil GROUP BY (Brukerprofil.accountid)) AS profiler ON (Account.id = profiler.uid) " .
@@ -285,8 +285,8 @@ ORDER BY " . $sorts[$sort];
     
     $sorts = array ('name',
 		    'name',
-		    'admin, name',
-		    'sms, name',
+		    'name',
+		    'name',
 		    'pa, name',
 		    'aa, name');
 		    
@@ -990,7 +990,7 @@ ORDER BY navn";
   function brukerInfo($uid) {
     $br = NULL;
 
-    $querystring = "SELECT login, name, admin, sms, activeprofile  
+    $querystring = "SELECT login, name, null as admin, null as sms, activeprofile  
 FROM Account, Preference  
 WHERE id = " . addslashes($uid) . " AND account.id = preference.accountid";
 
@@ -1538,14 +1538,14 @@ function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde
 	if ($passord != undef && strlen($passord) > 0) {
 		@pg_exec($this->connection, $querystr);
 	}	
-	
+/*	
 	if ($sms == 1) $s = "true"; else $s = "false";
 	$querystr = "UPDATE Preference SET sms = " . addslashes($s) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
-	
+
 	$querystr = "UPDATE Preference SET admin = " . addslashes($admin) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);	
-	
+	*/
 	$querystr = "UPDATE Preference SET queuelength = '" . addslashes($kolengde) . " days' WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 
@@ -1659,7 +1659,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
   // opprette ny bruker
   function nyBruker( $navn, $brukernavn, $passord, $admin, $sms, $kolengde, $error ) {
 
-    if ( $sms   == 1 ) { $sms = 'true'; } else { $sms = 'false'; }
+    //if ( $sms   == 1 ) { $sms = 'true'; } else { $sms = 'false'; }
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Account (name, login, password) VALUES ('" . 
@@ -1677,8 +1677,8 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       $idrow = pg_fetch_row($idres, 0);
       
           // Spxrring som legger inn i databasen
-        $querystring = "INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES (" . 
-            $idrow[0] . ", " . addslashes($admin) . ", " . $sms . ", '" . addslashes($kolengde) . " days') ";
+        $querystring = "INSERT INTO Preference (accountid, queuelength) VALUES (" . 
+            $idrow[0] . ", '" . addslashes($kolengde) . " days') ";
             
         pg_exec( $this->connection, $querystring);
 

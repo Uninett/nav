@@ -14,10 +14,11 @@ require("config.php");
 require("databaseHandler.php");
 require("session.php");
 
-
 require("dbinit.php");
+
 require("leading_zero.function.php");
 require("hasPrivilege.function.php");
+require("check_syntax.function.php");
 
 require("auth.php");
 

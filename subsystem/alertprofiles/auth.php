@@ -79,7 +79,7 @@ if (isset($_ENV['REMOTE_USER'] ) AND
     $username = $_ENV['REMOTE_USER'];
 
     $querystring = "
-SELECT Account.id AS aid, Preference.admin, ap.value 
+SELECT Account.id AS aid, ap.value 
 FROM Preference, Account 
 	LEFT OUTER JOIN (
 		SELECT accountid, property, value FROM AccountProperty WHERE property = 'language' 

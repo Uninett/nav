@@ -8,6 +8,7 @@
 include("loginordie.php");
 loginOrDie();
 
+$brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 echo "<p>";
 echo gettext("Here you can setup your alert addresses.");
@@ -45,10 +46,13 @@ if (in_array(get_get('subaction'), array('ny', 'endre') )) {
 		$adresse = '';
 	}
 	
-	print '<option value="1" '; if ($tsel == 1) print 'selected'; print '>' . gettext("E-mail") . '</option>';
-	print '<option value="2" '; if ($tsel == 2) print 'selected'; print '>' . gettext("SMS") . '</option>';
-//	print '<option value="3" '; if ($tsel == 3) print 'selected'; print '>' . gettext("IRC") . '</option>';
-//	print '<option value="4" '; if ($tsel == 4) print 'selected'; print '>' . gettext("ICQ") . '</option>';
+	echo '<option value="1" '; if ($tsel == 1) echo 'selected'; echo '>' . gettext("E-mail") . '</option>';
+	
+	if (access_sms($brukernavn)) {
+		echo '<option value="2" '; if ($tsel == 2) echo 'selected'; echo '>' . gettext("SMS") . '</option>';
+	}
+//	echo '<option value="3" '; if ($tsel == 3) echo 'selected'; echo '>' . gettext("IRC") . '</option>';
+//	echo '<option value="4" '; if ($tsel == 4) echo 'selected'; echo '>' . gettext("ICQ") . '</option>';
 	
 	echo '
 			</select>
@@ -93,10 +97,10 @@ if (get_get('subaction') == 'endret') {
 	
 		$aid = $dbh->endreAdresse(post_get('aid'), post_get('adressetype'), post_get('adresse') );
 		$adresse=0;
-		print "<p><font size=\"+3\">" . gettext("OK</font>, address is changed.");
+		echo "<p><font size=\"+3\">" . gettext("OK</font>, address is changed.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("An error</font> occured, the address is  <b>not</b> changed.");
+		echo "<p><font size=\"+3\">" . gettext("An error</font> occured, the address is  <b>not</b> changed.");
 	}
 
 
@@ -114,32 +118,38 @@ if (get_get('subaction') == 'slett') {
             	
 		$dbh->slettAdresse(get_get('aid') );
 		$adresse='';
-		print "<p><font size=\"+3\">" . gettext("OK</font>, the address is removed from the database.");
+		echo "<p><font size=\"+3\">" . gettext("OK</font>, the address is removed from the database.");
 
 	} else {
-		print "<p><font size=\"+3\">" . gettext("An error occured</font>, the address is <b>not</b> removed.");
+		echo "<p><font size=\"+3\">" . gettext("An error occured</font>, the address is <b>not</b> removed.");
 	}
 
   
 }
 
 if (get_get('subaction') == 'nyadresse') {
-	$aid = $dbh->nyAdresse(post_get('adresse'), post_get('adressetype'), session_get('uid') );
-	
-  if ($aid > 0) { 
-    $adresse=0;
-    
-    print "<p><font size=\"+3\">" . gettext("OK</font>, a new address is added to the database.");
+	$nyadr = post_get('adresse');
 
-  } else {
-    print "<p><font size=\"+3\">" . gettext("An error occured</font>, a new user is <b>not</b> added to the database.");
-  }
+	if ( post_get('adressetype') != 2 OR check_syntax_address_sms($nyadr)  ) {
+		$aid = $dbh->nyAdresse($nyadr, post_get('adressetype'), session_get('uid') );
+	} else {	
+		$aid = 0;
+	    echo "<p><font size=\"+3\">" . gettext("Invalid input syntax</font>. The mobile telephone number should be exactly eight numbers.");
+	} 
+if ($aid > 0) { 
+	$adresse=0;
+	
+	echo "<p><font size=\"+3\">" . gettext("OK</font>, a new address is added to the database.");
+
+} else {
+	echo "<p><font size=\"+3\">" . gettext("An error occured</font>, a new user is <b>not</b> added to the database.");
+}
 
 
   
 }
 
-print "<h3>" . gettext("My addresses") . "</h3>";
+echo "<h3>" . gettext("My addresses") . "</h3>";
 
 //	function Lister($id, $labels, $c, $align, $isorts, $defaultsort) {
 $l = new Lister( 101,
@@ -178,10 +188,10 @@ for ($i = 0; $i < sizeof($adr); $i++) {
 				);
 }
 
-print $l->getHTML();
+echo $l->getHTML();
 
-print "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
-print gettext("Number of addresses: ") . sizeof($adr);
+echo "<p>[ <a href=\"index.php?action=" . $action. "\">" . gettext("update") . " <img src=\"icons/refresh.gif\" class=\"refresh\" alt=\"oppdater\" border=\"0\"> ]</a> ";
+echo gettext("Number of addresses: ") . sizeof($adr);
 
 ?>
 
