@@ -131,7 +131,11 @@ class SqlBoks
 
 
 		} catch (SQLException e) {
-			out.println("SQLException: " + e.getMessage());
+			outl("<pre>");
+			outl("Got SQLException: " + e.getMessage());
+			e.printStackTrace(new PrintStream(out));
+			outl("Stack trace complete.");
+			outl("</pre>");
 		}
 
 
@@ -196,7 +200,7 @@ class SqlBoks
 			"kat",
 			"interf",
 			"speed",
-			"ospf"
+			"metric"
 		};
 		String[] defLinkFields = {
 			"kat",
@@ -244,7 +248,7 @@ class SqlBoks
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
 				"interface",
-				"ospf",
+				"metric",
 				"netaddr",
 				"speed"
 			};
@@ -254,7 +258,7 @@ class SqlBoks
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
 				"interface",
-				"ospf",
+				"metric",
 				"netaddr",
 				"speed"
 			};
@@ -264,7 +268,7 @@ class SqlBoks
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
 				"interface",
-				"ospf",
+				"metric",
 				"netaddr",
 				"speed"
 			};
@@ -273,7 +277,7 @@ class SqlBoks
 		{
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(stam->gw)",
-				"ospf",
+				"metric",
 				"netaddr",
 				"speed"
 			};
@@ -282,7 +286,7 @@ class SqlBoks
 		{
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->gw)",
-				"ospf",
+				"metric",
 				"netaddr",
 				"speed"
 			};
@@ -748,9 +752,9 @@ class SqlBoks
 
 		if (thisKat == null || thisKat.length() == 0) {
 			// Må koste på oss et SQL kall ekstra
-			ResultSet rs = Database.query("SELECT kat FROM boks WHERE boksid='"+Database.addSlashes(thisBoksid)+"'");
+			ResultSet rs = Database.query("SELECT catid FROM netbox WHERE netboxid='"+Database.addSlashes(thisBoksid)+"'");
 			if (!rs.next()) return; // boksid eksisterer ikke
-			thisKat = rs.getString("kat");
+			thisKat = rs.getString("catid");
 		}
 
 		ArrayList up = new ArrayList();
@@ -775,32 +779,29 @@ class SqlBoks
 			{
 				String[] s = {
 					"&&sysName!!Kat: ##!!Romid: ##!!Last: &&boksLast",
-					"kat",
-					"romid"
+					"catid",
+					"roomid"
 				};
 				text.put("gwBoks", s);
 			}
 			{
 				String[] s = {
-					"&&sysName!!Nettadr: ##/##",
-					"nettadr",
-					"maske"
+					"&&sysName!!Nettadr: ##",
+					"netaddr",
 				};
 				text.put("lanBoks", s);
 			}
 			{
 				String[] s = {
-					"&&sysName!!Nettadr: ##/##",
-					"nettadr",
-					"maske"
+					"&&sysName!!Nettadr: ##",
+					"netaddr",
 				};
 				text.put("stamBoks", s);
 			}
 			{
 				String[] s = {
-					"&&sysName!!Nettadr: ##/##",
-					"nettadr",
-					"maske"
+					"&&sysName!!Nettadr: ##",
+					"netaddr",
 				};
 				text.put("defBoks", s);
 			}
@@ -808,74 +809,67 @@ class SqlBoks
 			// Linker
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
-					"interf",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
+					"interface",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("gw-gwLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
-					"interf",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
+					"interface",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("gw-stamLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->lan)",
-					"interf",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->lan)",
+					"interface",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("gw-lanLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
-					"interf",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
+					"interface",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("gw-defLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(stam->gw)",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(stam->gw)",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("stam-gwLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(lan->gw)",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(lan->gw)",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("lan-gwLink", s);
 			}
 			{
 				String[] s = {
-					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##/##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->gw)",
-					"ospf",
-					"nettadr",
-					"maske",
+					"&&sysNameFrom -> &&sysNameTo!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(def->gw)",
+					"metric",
+					"netaddr",
 					"speed"
 				};
 				text.put("def-gwLink", s);
@@ -883,20 +877,20 @@ class SqlBoks
 			{
 				String[] s = {
 					"gwportid: &&linkid!!&&sysNameFrom -> &&sysNameTo!!Kat: ##!!(def->def)",
-					"kat",
+					"catid",
 				};
 				text.put("def-defLink", s);
 			}
 
 			// Vi må vite hvilken kat en gitt boks er slik at vP kan oppgi dette når den spør om LAN'et
 			HashMap boksKatMap = new HashMap();
-			ResultSet rs = Database.query("SELECT boksid,kat FROM boks WHERE boksid IN (SELECT boksbak FROM gwport WHERE prefiksid IN (SELECT prefiksid FROM gwport WHERE boksid='"+thisBoksid+"'))");
-			while (rs.next()) boksKatMap.put(rs.getString("boksid"), rs.getString("kat").toLowerCase());
+			ResultSet rs = Database.query("SELECT netboxid,catid FROM netbox WHERE netboxid IN (SELECT to_netboxid FROM gwport JOIN gwportprefix USING(gwportid) WHERE prefixid IN (SELECT prefixid FROM gwport JOIN module USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid='"+thisBoksid+"'))");
+			while (rs.next()) boksKatMap.put(rs.getString("netboxid"), rs.getString("catid").toLowerCase());
 
 			String cFields = "";
 			{
 				HashSet hs = new HashSet();
-				String[] aa = { "gwportid", "boksid", "sysName", "interf", "prefiksid", "nettype", "nettident", "kat", "vlan", "speed", "boksbak" };
+				String[] aa = { "gwportid", "netboxid", "sysName", "interface", "prefix.prefixid", "nettype", "netident", "catid", "vlan", "speed", "to_netboxid" };
 				for (int i=0; i < aa.length; i++) hs.add(aa[i].toLowerCase());
 
 				Iterator iter = text.entrySet().iterator();
@@ -910,7 +904,7 @@ class SqlBoks
 				}
 			}
 
-			rs = Database.query("SELECT gwportid,boksid,sysName,interf,gwport.prefiksid,nettype,nettident,kat,vlan,speed,boksbak"+cFields+" FROM (gwport JOIN prefiks USING (prefiksid)) JOIN boks USING (boksid) WHERE nettype NOT IN ('loopback','ukjent') AND gwport.prefiksid IN (SELECT prefiksid FROM gwport WHERE boksid='"+thisBoksid+"') AND NOT (boksid!='"+thisBoksid+"' AND nettype!='link') ORDER BY gwip");
+			rs = Database.query("SELECT gwportid,netboxid,sysName,interface,prefix.prefixid,nettype,netident,catid,vlan,speed,to_netboxid"+cFields+" FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) JOIN module USING(moduleid) JOIN netbox USING(netboxid) WHERE nettype NOT IN ('loopback','unknown') AND prefix.prefixid IN (SELECT prefixid FROM gwport JOIN module USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid='"+thisBoksid+"') AND NOT (netboxid!='"+thisBoksid+"' AND nettype!='link') ORDER BY gwip");
 
 			// NY
 			// SELECT gwportid,boksid,sysName,interf,gwport.prefiksid,nettype,nettident,kat,vlan,speed,boksbak FROM (gwport JOIN prefiks USING (prefiksid)) JOIN boks USING (boksid) WHERE nettype NOT IN ('loopback','ukjent') AND gwport.prefiksid IN (SELECT prefiksid FROM gwport WHERE boksid='') AND NOT (boksid!='' AND nettype!='link') ORDER BY gwip
@@ -928,12 +922,12 @@ class SqlBoks
 			HashSet boksDupe = new HashSet();
 			while (rs.next()) {
 				String gwportid = rs.getString("gwportid");
-				String prefiksid = rs.getString("prefiksid");
-				String boksidTo = rs.getString("boksid");
+				String prefiksid = rs.getString("prefixid");
+				String boksidTo = rs.getString("netboxid");
 				String sysname = rs.getString("sysname");
-				String katTo = rs.getString("kat").toLowerCase();
+				String katTo = rs.getString("catid").toLowerCase();
 				String nettype = rs.getString("nettype");
-				String boksbak = rs.getString("boksbak");
+				String boksbak = rs.getString("to_netboxid");
 				String retning = "o"; // Up er default
 
 				// Først legger vi til boksen som den er for å være sikker på at den alltid kommer med
@@ -963,7 +957,7 @@ class SqlBoks
 				if (thisBoksid.equals(boksidTo) && !nettype.equals("link") ) {
 					// lan, elink, stam eller tilsvarende. Nå skal det bare være en enkelt link, så vi bare skriver ut
 					// og legger til linken.
-					String nettident = rs.getString("nettident");
+					String nettident = rs.getString("netident");
 					if (nettident.indexOf("-fw") != -1) nettype = "fw";
 
 					boksidTo = "-"+prefiksid;
@@ -1017,7 +1011,7 @@ class SqlBoks
 					l.add(s);
 				}
 
-				String[] linkInfoTo = { gwportid, rs.getString("speed"), rs.getString("interf") };
+				String[] linkInfoTo = { gwportid, rs.getString("speed"), rs.getString("interface") };
 				linkInfo.add(linkInfoTo);
 				{
 					ArrayList l = new ArrayList();
@@ -1220,7 +1214,7 @@ class SqlBoks
 			}
 
 			// Hent høyste boksid
-			ResultSet rs = Database.query("SELECT MAX(boksid) AS maxboksid FROM boks");
+			ResultSet rs = Database.query("SELECT MAX(netboxid) AS maxboksid FROM netbox");
 			rs.next();
 			int maxBoksid = rs.getInt("maxboksid");
 
