@@ -765,7 +765,9 @@ public class QueryBoks extends Thread
 							// Finn ifIndex
 							String ifindex = (String)portIndexMap.get(s[1]);
 							if (ifindex == null) {
-								Log.d("MAC_ENTRY", "MAC: " + mac + " ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", but no ifIndex mapping exists.");
+								if (!"0".equals(s[1])) {
+									Log.d("MAC_ENTRY", "MAC: " + mac + " (" + s[0] + ") ("+ boksIdName.get(macBoksId.get(mac)) +") found at index: " + s[1] + ", but no ifIndex mapping exists.");
+								}
 								continue;
 							}
 							

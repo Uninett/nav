@@ -369,7 +369,7 @@ class getBoksMacs
 		if (qNettel.equals("_kant")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='KANT'");
 		} else {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,,catid,sysName,vendorid,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"' AND ro IS NOT NULL");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE typegruppe in ('cat-sw', 'ios-sw')");
 		}
