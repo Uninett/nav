@@ -141,6 +141,34 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
+
+		// Set interface, first we try IfName
+		Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
+		Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
+
+		if (ifdescrMap != null) {
+			for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String ifindex = (String)me.getKey();
+				if (skipIfindexSet.contains(ifindex)) continue;
+				String ifdescr = (String)me.getValue();
+				String ifname = (ifNameMap != null ? (String)ifNameMap.get(ifindex) : null);				
+				Swport swp = sc.swportFactory(ifindex);
+
+				// Some heuristics for choosing either ifdescr or ifname
+				// We prefer ifname if it exists, unless ifdescr contains the string "Ethernet"
+				String interf;
+				if (ifdescr.indexOf("Ethernet") >= 0) {
+					interf = ifdescr;
+				} else {
+					interf = (ifname != null ? ifname : ifdescr);
+				}
+
+				swp.setInterface(interf);
+			}
+		}
+
+		/*
 		// Set interface, first we try IfName
 		Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
 		if (ifNameMap != null) {
@@ -168,6 +196,7 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
+		*/
 
 		/*
 		// If type supports portIfindex
