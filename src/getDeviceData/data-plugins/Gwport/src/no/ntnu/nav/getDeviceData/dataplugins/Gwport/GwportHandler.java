@@ -514,8 +514,8 @@ public class GwportHandler implements DataHandler {
 			"vlanid", "",
 			"vlan", vl.getVlanS(),
 			"nettype", vl.getNettype(),
-			"orgid", vl.getOrgid(),
-			"usageid", vl.getUsageid(),
+			"orgid", "(SELECT orgid FROM org WHERE orgid='"+vl.getOrgid()+"')",
+			"usageid", "(SELECT usageid FROM usage WHERE usageid='"+vl.getUsageid()+"')",
 			"netident", vl.getNetident(),
 			"description", vl.getDescription()
 		};
@@ -526,8 +526,8 @@ public class GwportHandler implements DataHandler {
 	private static void updateVlan(Vlan vl) throws SQLException {
 		String[] set = {
 			"nettype", vl.getNettype(),
-			"orgid", vl.getOrgid(),
-			"usageid", vl.getUsageid(),
+			"orgid", "(SELECT orgid FROM org WHERE orgid='"+vl.getOrgid()+"')",
+			"usageid", "(SELECT usageid FROM usage WHERE usageid='"+vl.getUsageid()+"')",
 			"netident", vl.getNetident(),
 			"description", vl.getDescription()
 		};
