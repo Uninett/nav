@@ -17,20 +17,49 @@
 # 2 -> default
 # 3 -> debug
 
-# Things for the cricket-configtree
 BEGIN {
-    eval "require '/home/navcron/cricket/cricket/cricket-conf.pl'";
+
+    $cricketdir = 0;
+    $ll = 2;
+
+    use vars qw ($opt_h $opt_l $opt_c);
+
+    use Pg;
+    use Cwd;
+    use Getopt::Std;
+
+    getopts('hl:c:');
+
+    # Checking for Cricket if c-option not set.
+    my @defaultcricketdirs = ("/home/navcron/cricket","/usr/local/cricket");
+    if ($opt_c) {
+	print "Setting cricketdir to $opt_d.\n";
+	$cricketdir = $opt_d;
+    } else {
+	print "No path to Cricket specified, searching default paths...\n" if $ll >= 2;
+	foreach my $dir (@defaultcricketdirs) {
+	    print "Searching in $dir.\n" if $ll >= 2;
+	    if (-e $dir) {
+		print "Found cricket in $dir.\n" if $ll >= 2;
+		$cricketdir = $dir;
+		last;
+	    }
+	}
+	unless ($cricketdir) {
+	    print "Didn't find Cricket, if you know where it is use the -c parameter.\n";
+	    exit;
+	}
+    }
+
+    eval "require '$cricketdir/cricket/cricket-conf.pl'";
+
 }
 
-my $ll = 2;
-umask 007;
+our $ll;
+our $cricketdir;
+our ($opt_l,$opt_h,$opt_c);
 
-use vars qw ($opt_h $opt_l);
-
-use Pg;
-use Cwd;
-use Getopt::Std;
-
+# Imports the config-db from Cricket
 use lib "$Common::global::gInstallRoot/lib";
 
 use ConfigTree::Cache;
@@ -46,18 +75,19 @@ if (! $gCT->init()) {
         "gConfigRoot/config.db: $!");
 }
 
+umask 007;
+
 use strict;
 
 my $pathtonav = "/usr/local/nav/navme/lib";
 require "$pathtonav/NAV.pm";
 import NAV;
 
-getopts('hl:');
-
-my $usage = "USAGE: $0 [-h] [-l loglevel]
+my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
-h  : help, prints this
-l  : loglevel (1 - silent, 2 - default, 3 - debug)
+\th: help, prints this
+\tc: location of Cricket, if not set we search in default directories (/usr/local/cricket/ /home/navcon/cricket) 
+\tl: loglevel (1 - silent, 2 - default, 3 - debug)
 
 Made by John Magne Bredal - ITEA NTNU 2003
 ";
@@ -68,7 +98,6 @@ if ($opt_h) {
 }
 
 # some vars
-my $cricketdir = "/home/navcron/cricket";
 my $cricketconfigdir = "$cricketdir/cricket-config";
 my $compiledir = "$cricketdir/cricket";
 my $configfile = ".nav";
@@ -88,7 +117,7 @@ if ($opt_l && $opt_l =~ m/\d/) {
 }
 
 # DB-vars
-my $dbh = &db_get('statTools');
+my $dbh = &NAV::db_get('statTools');
 
 # Must have the cricket-rows of the snmpoid-table in memory.
 my %oidhash;
@@ -149,7 +178,6 @@ print "Done\n" if $ll >= 3;
 
 
 # Lets start working.
-
 
 # Rotating changelogs
 for (my $counter = 8; $counter > 0;$counter--) {
@@ -460,12 +488,18 @@ sub createTargetTypes {
 	# for each oid, check if it should be used in a targettype
 	my @newtt;
 	while (my $snmpoidid = $fetchoids->fetchrow) {
-	    print "Found snmpoidid $snmpoidid.\n" if $ll >= 3;
+	    print "Found snmpoidid $snmpoidid " if $ll >= 3;
 
-	    next unless $oidhash{$snmpoidid};
-
-	    # here we do a weak test for interface-oids
-	    next if $oidhash{$snmpoidid} =~ m/^if/;
+	    unless ($oidhash{$snmpoidid}) {
+		print "- skipping because not in oidhash.\n" if $ll >= 3;
+		next;
+	    } elsif ($oidhash{$snmpoidid} =~ m/^if/) {
+		# here we do a weak test for interface-oids
+		print "- skipping because it is an interface oid.\n" if $ll >= 3;
+		next;
+	    } else {
+		print "\n";
+	    }
 
 	    # if the oid is not in the config-file we cannot collect data from it	    
 	    if ($oidinconfig->{lc($oidhash{$snmpoidid})}) {
