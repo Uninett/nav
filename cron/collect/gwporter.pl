@@ -4,6 +4,7 @@ use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
+my $localkilde = &localkilde();
 require "$lib/database.pl";
 require "$lib/snmplib.pl";
 require "$lib/fil.pl";
@@ -30,7 +31,7 @@ my @felt_gwport = ("gwportid","boksid","ifindex","gwip","interf","masterindex","
 my (%lan, %stam, %link, %vlan);
 &fil_vlan;
 
-my $fil_prefiks = "/usr/local/nav/etc/prefiks.txt";
+my $fil_prefiks = "$localkilde/prefiks.txt";
 my @felt_fil_prefiks = ("nettadr","maske","nettype","orgid","komm");
 my %prefiks = &fil_prefiks($fil_prefiks,scalar(@felt_fil_prefiks));
 
@@ -362,7 +363,7 @@ sub hent_snmpdata {
 
 
 sub fil_vlan{
-open VLAN, "</usr/local/nav/etc/vlan.txt";
+open VLAN, "<$localkilde/vlan.txt";
 foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
 #    print "\nlinje :: $_ \n";
     if(/^(\d+)\:((?:lan|stam|link)\,(\S+?)\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*(?:\#.*)??$/) {
@@ -386,7 +387,7 @@ foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
 }
 close VLAN;
 =cut
-    open VLAN, "</usr/local/nav/etc/vlan.txt";
+    open VLAN, "<$localkilde/vlan.txt";
     foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
 	print;
 	if(/^(\d+)\:lan\,(\S+?)\,(\S+?)$/) {

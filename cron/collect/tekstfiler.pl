@@ -3,33 +3,35 @@ use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
+my $localkilde = &localkilde();
+my $navmekilde = &navmekilde();
 require "$lib/database.pl";
 require "$lib/fil.pl";
 #-------------ALLE-------------
 my $db = &db_connect("manage","navall","uka97urgf");
 my ($fil,$tabell,@felt);
 #--------------ANV-------------
-$fil = "/usr/local/nav/etc/anv.txt";
+$fil = "$localkilde/anv.txt";
 $tabell = "anv";
 @felt = ("anvid","descr");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------STED------------
-$fil = "/usr/local/nav/etc/sted.txt";
+$fil = "$localkilde/sted.txt";
 $tabell = "sted";
 @felt = ("stedid","descr");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------ROM-------------
-$fil = "/usr/local/nav/etc/rom.txt";
+$fil = "$localkilde/rom.txt";
 $tabell = "rom";
 @felt = ("romid","stedid","descr","rom2","rom3","rom4","rom5");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));
 #--------------ORG-------------
-$fil = "/usr/local/nav/etc/org.txt";
+$fil = "$localkilde/org.txt";
 $tabell = "org";
 @felt = ("orgid","forelder","descr","org2","org3","org4");
 &spesiell_endring_org($db,$fil,$tabell,join(":",@felt),join(":",@felt));
 #--------------TYPE------------
-$fil = "/usr/local/nav/etc/type.txt";
+$fil = "$navmekilde/type.txt";
 $tabell = "type";
 @felt = ("typeid","typegruppe","sysObjectID","descr");
 &db_endring_med_sletting($db,$fil,$tabell,join(":",@felt));

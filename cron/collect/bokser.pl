@@ -6,6 +6,8 @@ use strict;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
+my $localkilde = &localkilde();
+my $localconf = &localconf();
 require "$lib/database.pl";
 require "$lib/snmplib.pl";
 require "$lib/fil.pl";
@@ -19,13 +21,13 @@ my (%server,%db_server,%nettel,%db_nettel,%alle,%db_alle);
 
 #sysname-endelser
 #leses inn fra fil og legges i kolonseparert skalar
-    my $fil_endelser = "/usr/local/nav/etc/conf/endelser.txt";
+    my $fil_endelser = "$localconf/endelser.txt";
     my $endelser = &fil_endelser($fil_endelser);
     my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
 #-----------------------
 #FILLESING: server.txt
 my @felt_server = ("ip","romid","sysname","orgid","kat","kat2","ro");
-my $fil_server = "/usr/local/nav/etc/server.txt";
+my $fil_server = "$localkilde/server.txt";
 %server = &fil_server($fil_server,scalar(@felt_server),$endelser);
 
 #----------------------------------
@@ -42,7 +44,7 @@ for my $a (keys %db_server) {
 #------------------------------
 #FILLESING: nettel.txt
 my @felt_nettel = ("ip","typeid","romid","sysname","orgid","kat","kat2","ro","rw");
-my $fil_nettel = "/usr/local/nav/etc/nettel.txt";
+my $fil_nettel = "$localkilde/nettel.txt";
 %nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser);
 
 #----------------------------------
