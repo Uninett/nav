@@ -1,9 +1,27 @@
+# $Id$
+#
+# Copyright 2003 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# Authors: Erlend Mjaavatten <mjaavatt@itea.ntnu.no>
+#
 """
-
-$Id$
-
-rrd.presenter module
-
 Abstraction of the rrd_file and rrd_datasource fields in the main NAV database.
 
 Consists of three classes, presentation beeing the one of most interest to other developers.
@@ -25,12 +43,6 @@ Quick example:
 >>> a.title = 'My Graph'         # You can set the title to what you want
 >>> a.graphUrl()
 'http://isbre.itea.ntnu.no/rrd/rrdBrowser/graph?id=348552316' # Returns a link to an image representing the two datasources. This link is valid for about ten minutes
-
-
-
-
-Copyright (c) 2003 by NTNU, ITEA nettgruppen
-Authors: Erlend Mjaavatten <mjaavatt@itea.ntnu.no>
 """
 
 configfile = 'rrdBrowser.conf'

@@ -9,7 +9,7 @@ Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
 Source0: %{name}-%{version}.tar.gz
-License: Commercial
+License: GPL
 Group: Applications/Internet
 BuildRoot: %{_builddir}/%{name}-buildroot
 BuildArch: noarch

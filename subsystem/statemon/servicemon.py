@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2002 Norwegian University of Science and Technology
+# Copyright 2002-2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
+# $Id$
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 """
