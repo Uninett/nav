@@ -62,7 +62,7 @@ public class OidTester
 
 		try {
 			// Get netboxes to test against
-			ResultSet rs = Database.query("SELECT ip, ro FROM netbox WHERE typeid = '"+t.getTypeid()+"' AND up='y' ORDER BY random() * netboxid");
+			ResultSet rs = Database.query("SELECT ip, ro, sysname FROM netbox WHERE typeid = '"+t.getTypeid()+"' AND up='y' ORDER BY random() * netboxid");
 		
 			while (rs.next()) {
 				boolean supported = false;
@@ -70,6 +70,7 @@ public class OidTester
 				// Check that not someone else is testing against this netbox
 				String ip = rs.getString("ip");
 				String ro = rs.getString("ro");
+				String sysname = rs.getString("sysname");
 				synchronized(lock(ip)) {
 
 					// Do the test
@@ -77,7 +78,7 @@ public class OidTester
 
 					try {
 						List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
-						Log.d("OID_TESTER", "DO_TEST", "Got results, length: " + l.size());
+						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size());
 					
 						String regex = snmpoid.getMatchRegex();
 						for (Iterator i = l.iterator(); i.hasNext();) {
