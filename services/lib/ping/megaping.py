@@ -184,7 +184,7 @@ class MegaPing(RotaterPlugin):
         host.replies.push(pingtime)
         host.logPingTime(pingtime)
         
-        #print "Response from %-16s in %03.3f ms" % (sender, pingtime*1000)
+        self.debug.log("Response from %-16s in %03.3f ms" % (sender, pingtime*1000),7)
         del self.requests[cookie]  
       elif self.senderFinished:
           break
@@ -192,7 +192,7 @@ class MegaPing(RotaterPlugin):
     # Everything else timed out
     for host in self.requests.values():
       host.replies.push(None)
-      host.logPingTime(pingtime)
+      host.logPingTime(None)
     end = time.time()
     self.elapsedtime=end-start
 
