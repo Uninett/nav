@@ -1,5 +1,5 @@
 """
-$Id: HttpHandler.py,v 1.8 2002/08/26 20:55:02 magnun Exp $
+$Id: HttpHandler.py,v 1.9 2002/09/06 08:40:18 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/HttpHandler.py,v $
 """
 from job import Event, JobHandler
@@ -9,9 +9,7 @@ class HTTPConnection(httplib.HTTPConnection):
 	def __init__(self,timeout,host,port=None):
 		httplib.HTTPConnection.__init__(self,host,port)
 		self.timeout = timeout
-		print "Setting timeout=", timeout
 	def connect(self):
-		print "Creating socket"
 		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
