@@ -315,6 +315,7 @@ public class GwportHandler implements DataHandler {
 								"description", vl.getDescription()
 							};
 							vlanid = Database.insert("vlan", ins, null);
+							vl.setVlanid(vlanid);
 							vlanDbMap.put(vl.getNetident(), vl);
 							
 						} else {
@@ -350,6 +351,7 @@ public class GwportHandler implements DataHandler {
 								"vlanid", vlanid
 							};
 							prefixid = Database.insert("prefix", ins, null);
+							p.setPrefixid(prefixid);
 							prefixMap.put(p.getNetaddr(), p);
 
 							String[] ins2 = {

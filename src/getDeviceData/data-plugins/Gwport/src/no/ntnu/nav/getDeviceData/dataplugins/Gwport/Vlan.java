@@ -30,7 +30,8 @@ public class Vlan implements Comparable
 
 	int getVlanid() { return vlanid; }
 	String getVlanidS() { return ""+vlanid; }
-	void setVlanid(int i) { vlanid = i; }	
+	void setVlanid(int i) { vlanid = i; }
+	void setVlanid(String s) { vlanid = Integer.parseInt(s); }
 
 	Integer getVlan() { return vlan; }
 	String getVlanS() { return vlan == null ? null : String.valueOf(vlan); }
