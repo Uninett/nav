@@ -12,6 +12,8 @@ public class Device
 	private String hw_ver;
 	private String sw_ver;
 
+	protected boolean ignore;
+
 	/**
 	 * Constructor.
 	 */
@@ -47,6 +49,8 @@ public class Device
 	String getSerial() { return serial; }
 	String getHwVer() { return hw_ver; }
 	String getSwVer() { return sw_ver; }
+
+	boolean getIgnore() { return ignore; }
 
 	/**
 	 * Set the the serial number of the physical device.

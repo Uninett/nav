@@ -81,6 +81,16 @@ public class DeviceContainer implements DataContainer {
 		return commit;
 	}
 
+	/**
+	 * Removes all modules we ignore from the module list.
+	 */
+	protected void removeIgnoredModules() {
+		// Remove any ignored modules
+		for (Iterator it=deviceList.iterator(); it.hasNext();) {
+			if (((Device)it.next()).getIgnore()) it.remove();
+		}
+	}
+
 	// Return an iterator over the devices in this container.
 	Iterator getDevices() {
 		return deviceList.iterator();

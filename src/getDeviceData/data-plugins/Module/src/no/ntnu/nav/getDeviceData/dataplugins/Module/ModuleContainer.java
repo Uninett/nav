@@ -83,6 +83,15 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	protected boolean isCommited() {
 		return commit;
 	}
+
+	// Doc in parent
+	protected void removeIgnoredModules() {
+		// Remove any ignored modules
+		super.removeIgnoredModules();
+		for (Iterator it=moduleList.iterator(); it.hasNext();) {
+			if (((Module)it.next()).getIgnore()) it.remove();
+		}
+	}
 	
 	Iterator getModules() {
 		Collections.sort(moduleList);

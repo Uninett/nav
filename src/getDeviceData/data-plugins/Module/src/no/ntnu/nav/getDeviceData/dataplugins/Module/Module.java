@@ -60,6 +60,8 @@ public class Module extends Device implements Comparable
 
 	String getDescr() { return descr; }
 
+	boolean getIgnore() { return ignore; }
+
 	/**
 	 * Set the description of this module.
 	 */

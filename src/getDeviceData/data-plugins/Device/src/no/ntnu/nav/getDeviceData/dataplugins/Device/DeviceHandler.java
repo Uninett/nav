@@ -94,7 +94,7 @@ public class DeviceHandler implements DataHandler {
 				Device olddev = (Device)devserialMap.get(serial);
 
 				// If that didn't work we try by deviceid
-				if (olddev == null && deviceid != null) olddev = (Device)devidMap.get(deviceid); 
+				if (olddev == null && deviceid != null) olddev = (Device)devidMap.get(deviceid);
 
 				if (olddev == null) {
 					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!

@@ -150,6 +150,18 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 			SwModule m = swModuleFactory(1);
 			for (Iterator it = l.iterator(); it.hasNext();) m.addSwport((Swport)it.next());
 		}
+
+		// Ignore any empty modules
+		for (Iterator it=swModuleList.iterator(); it.hasNext();) {
+			SwModule swm = (SwModule)it.next();
+			boolean ignore = true;
+			for (Iterator swpit=swm.getSwports(); swpit.hasNext() && ignore;) {
+				if (!getIgnoreSwport(((Swport)swpit.next()).getIfindex())) ignore = false;
+			}
+			if (ignore) swm.ignore();
+		}
+		removeIgnoredModules();
+
 	}
 
 	Iterator getSwModules() {

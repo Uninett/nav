@@ -38,6 +38,7 @@ public class SwModule extends Module implements Comparable
 	Iterator getSwports() { return swports.values().iterator(); }
 	int getSwportCount() { return swports.size(); }
 	Swport getSwport(String ifindex) { return (Swport)swports.get(ifindex); }
+	void ignore() { ignore = true; }
 
 	/**
 	 * Return an Swport-object which is used to describe a single switch port.
