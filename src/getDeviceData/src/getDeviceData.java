@@ -379,9 +379,9 @@ class getDeviceData
 		rs = Database.query("SELECT boksid,path FROM boksdisk");
 		while (rs.next()) {
 			String key = rs.getString("boksid");
-			Set s;
-			if ( (s=(Set)boksDiskMap.get(key)) == null) boksDiskMap.put(key, s = new HashSet());
-			s.add(rs.getString("path"));
+			Map m;
+			if ( (m=(Map)boksDiskMap.get(key)) == null) boksDiskMap.put(key, m = new HashMap());
+			m.put(rs.getString("path"), new String[] { rs.getString("blocksize") } );
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
@@ -909,35 +909,58 @@ class QueryBoks extends Thread
 				// boksdisk
 				if (dd != null && dd.getBoksDiskUpdated()) {
 					List l = dd.getBoksDisk();
-					HashSet boksDisk = (HashSet)boksDiskMap.get(bd.getBoksid());
-					if (boksDisk == null) boksDisk = new HashSet();
-					HashSet boksDiskClone = (HashSet)boksDisk.clone();
+					HashMap boksDisk = (HashMap)boksDiskMap.get(bd.getBoksid());
+					if (boksDisk == null) boksDisk = new HashMap();
+					HashMap boksDiskClone = (HashMap)boksDisk.clone();
 
 					// Iterate over the list and add/update as needed
 					for (Iterator i = l.iterator(); i.hasNext();) {
-						String path = ((String)i.next()).trim();
-						if (!boksDisk.contains(path)) {
+						String[] vals = (String[])i.next();
+						String path = vals[0].trim();
+						String blocksize = vals[1];
+						if (!boksDisk.containsKey(path)) {
 							// Insert new
 							try {
 								String[] ins = {
 									"boksid", boksid,
-									"path", Database.addSlashes(path)
+									"path", Database.addSlashes(path),
+									"blocksize", blocksize
 								};
 								if (DB_UPDATE) Database.insert("boksdisk", ins);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
 						} else {
 							boksDiskClone.remove(path);
+
+							// Check if values (blocksize) have changed
+							String[] dbVals = (String[])boksDisk.get(path);
+							String dbBlocksize = dbVals[0];
+							if (!dbBlocksize.equals(blocksize)) {
+								try {
+									String[] cnd = {
+										"boksid", boksid,
+										"path", Database.addSlashes(path)
+									};
+									String[] upd = {
+										"blocksize", blocksize
+									};
+									if (DB_UPDATE) Database.update("boksdisk", cnd, upd);
+									if (DB_COMMIT) Database.commit(); else Database.rollback();
+								} catch (SQLException e) {
+									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
+								}
+							}
 						}
+
 					}
 
 					// Remove any remaining paths
 					StringBuffer sb = new StringBuffer();
-					for (Iterator i = boksDiskClone.iterator(); i.hasNext();) {
+					for (Iterator i = boksDiskClone.keySet().iterator(); i.hasNext();) {
 						String path = (String)i.next();
-						sb.append(",'"+path+"'");
+						sb.append(",'"+Database.addSlashes(path)+"'");
 					}
 					if (sb.length() > 0) {
 						sb.deleteCharAt(0);
@@ -981,7 +1004,7 @@ class QueryBoks extends Thread
 					StringBuffer sb = new StringBuffer();
 					for (Iterator i = boksInterfaceClone.iterator(); i.hasNext();) {
 						String interf = (String)i.next();
-						sb.append(",'"+interf+"'");
+						sb.append(",'"+Database.addSlashes(interf)+"'");
 					}
 					if (sb.length() > 0) {
 						sb.deleteCharAt(0);
