@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: smsd.pl,v 1.5 2002/09/23 08:12:43 knutvi Exp $
+# $Id: smsd.pl,v 1.6 2002/09/23 10:58:38 knutvi Exp $
 #
 # Dette er en sms-demon som henter sms meldinger i fra
 # databasen på bigbud og sender dem ved hjelp av 
@@ -44,7 +44,7 @@ use Pg;
 
 my $vei = "/usr/local/nav/navme/lib";
 require "$vei/database.pl";
-
+require "$vei/fil.pl";
 
 
 my $pidfil = '/usr/local/nav/local/var/run/smsd.pl.pid';
@@ -84,7 +84,7 @@ if ($opt_t) {
 }
 
 
-# Lager bare en connection mot databasen, som er konstant.
+# Lager bare en connection mot databasen, som er konstant. Håper det ikke krasjer alt...
 my %dbconf = &db_readconf();
 my $dbname = $dbconf{db_trapdetect};
 my $dbuser = $dbconf{script_smsd};
@@ -247,7 +247,7 @@ sub sorter_sms {
 
 
 	# Sjekker om sendingen var vellykket
-	if ($respons_ =~ /\bsent\b/im) {
+	unless ($respons_) {
 
 	    if ($smssyk) {
 		$smssyk = 0;
@@ -316,7 +316,7 @@ sub sorter_sms {
 		close(MAIL);
 
 		# Resetter gnokii programmet
-		$respons_ = `killall gnokii`;
+		$respons_ = `killall mygnokii`;
 
 	    }		
 
@@ -350,9 +350,9 @@ sub send_sms {
 	$dato = strftime " %d\/%m %H:%M", localtime; 
 	$text = $text.$dato;
 
-    my $respons = `echo $text | /usr/local/bin/gnokii --sendsms $tlf`;
+    my $res = `echo $text | /usr/local/bin/mygnokii --sendsms TEXT $tlf`;
     
-    return $respons;
+    return ($? >> 8);
     
 }
 
