@@ -2,6 +2,8 @@
 
 use strict;
 
+use lib "$ENV{'NAV_PREFIX'}/lib/perl" ; 
+
 use Engine;
 
 my $tf = time();

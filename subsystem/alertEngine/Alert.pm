@@ -68,7 +68,7 @@ sub getInfo()
 	    $this->collecttable($db,"select d.* from device d, netbox n where n.netboxid=$this->{alertq}->{netboxid} and d.deviceid=n.deviceid");
 	}
 	elsif($db eq "eventtype") {
-	    $this->collecttable($db,"select * from eventtype where eventtypeid=$this->{alertq}->{eventtypeid}");
+	    $this->collecttable($db,"select * from eventtype where eventtypeid='$this->{alertq}->{eventtypeid}'");
 	}
 	elsif($db eq "gwport") {
 	    $this->collecttable($db,"select g.* from gwport g,module m, netbox n where n.netboxid=$this->{alertq}->{netboxid} and m.deviceid=n.deviceid and g.moduleid=m.moduleid");

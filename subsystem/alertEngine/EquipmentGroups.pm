@@ -56,7 +56,7 @@ sub collectInfo()
     foreach my $eg (@$egs)
       {
 	$this->{info}[$eg->[0]]->{user}=$eg->[1];
-	my $efs=$this->{dbh}->selectall_arrayref("select uf.id, uf.accountid, gtf.inkluder, gtf.prioritet from utstyrgruppe ug,gruppetilfilter gtf, utstyrfilter uf where ug.id=$eg->[0] and ug.id=gtf.utstyrgruppeid and uf.id=gtf.utstyrfilterid order by gtf.prioritet");
+	my $efs=$this->{dbh}->selectall_arrayref("select uf.id, uf.accountid, gtf.inkluder, gtf.prioritet,gtf.positiv from utstyrgruppe ug,gruppetilfilter gtf, utstyrfilter uf where ug.id=$eg->[0] and ug.id=gtf.utstyrgruppeid and uf.id=gtf.utstyrfilterid order by gtf.prioritet");
 	
 	if($DBI::errstr)
 	  {
@@ -70,6 +70,7 @@ sub collectInfo()
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{userid}=$ef->[1];
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{included}=$ef->[2];
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{priority}=$ef->[3];
+	    $this->{info}[$eg->[0]]->{filters}[$c]->{positive}=$ef->[4];
 
 	    my $fms=$this->{dbh}->selectall_arrayref("select fm.id,fm.matchfelt,fm.matchtype,fm.verdi,mf.valueid,mf.datatype from filtermatch fm,utstyrfilter uf,matchfield mf where fm.utstyrfilterid=uf.id and uf.id=$ef->[0] and fm.matchfelt=mf.matchfieldid");
 
@@ -130,12 +131,22 @@ sub checkAlert()
 	  {
 	    my $match=$this->checkMatch($fm,$alert);
 
+	    if($ef->{positive}==0) {
+		$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "inverted filter(NOT)");
+		if($match==1) {
+		    $match=0;
+		} else {
+		    $match=1;
+		}
+	    }
+
 	    if($match==1 && $ef->{included}==1)
 	      {
 		$ret=1;
 	      }
 	    elsif($match && !$ef->{included})
 	      {
+		$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "exclude");
 		$ret=0;
 	      }
 	
@@ -156,6 +167,7 @@ sub checkAlert()
 	      }
 	    else
 	      {
+		$this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "exclude");
 		$numExclude--;
 	      }
 	  }

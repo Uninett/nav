@@ -1,0 +1,7 @@
+cp alertengine.pl $NAV_PREFIX/bin
+cp alertdaemon.pl $NAV_PREFIX/bin
+cp *pm $NAV_PREFIX/lib/perl
+cp alertengine.cfg $NAV_PREFIX/etc/conf
+edit alertengine.cfg to set proper path for pid and log file
+make sure NAV_PREFIX is set before running alertengine.pl or alertdaemon.pl
+

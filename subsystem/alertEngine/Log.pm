@@ -2,8 +2,12 @@ package Log;
 
 use vars qw{%log};
 
+if(-f "$ENV{'NAV_PREFIX'}/etc/conf/alertengine.cfg") {
+    require "$ENV{'NAV_PREFIX'}/etc/conf/alertengine.cfg";
+} else {
+    require "alertengine.cfg";
+}
 
-require "alertengine.cfg";
 use strict 'vars';
 
 use vars qw{$cfg};

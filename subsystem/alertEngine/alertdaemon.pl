@@ -8,6 +8,8 @@
 
 package AlertEngine;
 
+use lib "$ENV{'NAV_PREFIX'}/lib/perl" ; 
+
 use strict;
 use diagnostics;
 use POSIX qw(setsid);
@@ -38,8 +40,20 @@ sub launch() {
     my $pidfile=shift;
 
 	if (-f $pidfile) {
+	    open pid_file, '< '.$pidfile ||
+		die "Cannot open pidfile";
+	    my ($pid, $tid) = split / /, <pid_file>;
+	    close(pid_file);
+	    open ps_file, "ps -e | grep $pid | wc -l|";
+	    my $count=<ps_file>;
+	    close(ps_file);
+	    if($count==0) {
+		unlink($pidfile) ||
+		    die "Could not delete pidfile\n";
+	    } else {
 		print "It seems like alertengine is already running.\n";
 		exit(0);
+	    }
 	}
 
 	print "Starting alertengine...\n";
@@ -109,6 +123,15 @@ sub stop() {
 			die "Cannot open pidfile";
 		my ($pid, $tid) = split / /, <pid_file>;
 		close(pid_file);
+		open ps_file, "ps -e | grep $pid | wc -l|";
+		my $count=<ps_file>;
+		close(ps_file);
+		if($count==0) {
+		    print "Alertengine is not running.\n";
+		    unlink($pidfile) ||
+			die "Could not delete pidfile\n";
+		    return(0);
+		}
 		my $dif = time() - $tid;
 		unlink($pidfile) ||
 			die "Could not delete pidfile\n";
@@ -130,18 +153,28 @@ sub stop() {
 
 sub status() {
     my $pidfile=shift;
-	if (-f $pidfile) {
-		open pid_file, '< '.$pidfile ||
-			die "Cannot open pidfile";
-		my ($pid, $tid) = split / /, <pid_file>;
-		close(pid_file);
-		print "Alertengine is running with process id $pid.\n";
-		my $dif = time() - $tid;
-		print "It has been running for " . &datediff($dif) . ".\n";
+    if (-f $pidfile) {
+	open pid_file, '< '.$pidfile ||
+	    die "Cannot open pidfile";
+	my ($pid, $tid) = split / /, <pid_file>;
+	close(pid_file);
+	open ps_file, "ps -e | grep $pid | wc -l|";
+	my $count=<ps_file>;
+	close(ps_file);
+	if($count>0) {	   
+	    print "Alertengine is running with process id $pid.\n";
+	    my $dif = time() - $tid;
+	    print "It has been running for " . &datediff($dif) . ".\n";
 	} else {
-		print "Alertengine is not running.\n";
+	    print "Alertengine is not running.\n";
+	    unlink($pidfile) ||
+		die "Could not delete pidfile\n";
 	}
-
+    }     
+    else {
+	print "Alertengine is not running.\n";
+    }
+    
 }
 
 

@@ -59,6 +59,10 @@ sub collectInfo()
     $this->{lang}=$info->[2];
     $this->{day}=$info->[3];
 
+    if(!$this->{lang}) {
+	$this->{log}->printlog("User","collectInfo",$Log::error,"no language defined for acountid=$this->{id}");
+    }
+
     return 1;
   }
 
@@ -282,7 +286,7 @@ sub queueAlert()
 #    print "Queue alert $alertid\n";
     $this->{log}->printlog("User","queueAlert",$Log::informational,"queued alert $alertid to address $addressid");
 
-    my $sth=$this->{dbh}->prepare("insert into queue (accountid,addressid,alertid,time) select $this->{id},$addressid,$alertid,now() where not exists(select accountid from queue where accountid=$this->{id} and alertid=$alertid and addressid=$addressid)");
+    my $sth=$this->{dbh}->prepare("insert into queue (accountid,addrid,alertid,time) select $this->{id},$addressid,$alertid,now() where not exists(select accountid from queue where accountid=$this->{id} and alertid=$alertid and addrid=$addressid)");
     $sth->execute();
   }
 
@@ -351,6 +355,7 @@ sub sendsms()
     }
 
     $this->{log}->printlog("User","sendSMS",$Log::informational,"SMS $to: $msg");
+    
     my $severity=$alert->getSeverity();
     $this->{dbh}->do("insert into smsq (phone,msg,severity,time) values($to,'$msg',$severity,now())");
 }
@@ -422,7 +427,7 @@ sub checkRights()
   {
     my ($this,$alertid)=@_;
 
-    $this->{log}->printlog("User","checkRights",$Log::debugging, "checking rights for user $this->{id} and alertid=$alertid");
+    $this->{log}->printlog("User","checkRights",$Log::debugging, "checking rights for user $this->{id}");
     
     #Get user groups
     if(!defined $this->{usergroups})
