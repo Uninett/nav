@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.23 2002/07/03 12:01:06 cricket Exp $
+# $Id: makeconfig,v 1.24 2003/05/11 10:10:03 magnun Exp $
 
 use strict;
 
@@ -95,34 +95,34 @@ print "Ferdig!\n";
 sub Servers {
 
 
-    # Henter typegrupper fra type
-    my %typegruppe;
-    my $query = "select typeid,typegruppe from type";
+    # Henter typegroupr fra type
+    my %typegroup;
+    my $query = "select typeid,typegroupid from type";
     my $getres = &db_select($query,$dbh);
-    while (my($typeid,$typegruppe) = $getres->fetchrow) {
-	$typegruppe{$typeid} = $typegruppe;
+    while (my($typeid,$typegroupid) = $getres->fetchrow) {
+	$typegroup{$typeid} = $typegroupid;
     }
 
     # Iterates over all the servers in the database marked SNMP, and
     # writes them to various config files.    
     
-    # the phrase snmpagent ~'^1' = starts with 1
-    $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,snmpagent FROM boks
-    WHERE kat='SRV' AND snmp_major > 0 AND snmpagent ~'^.' ORDER BY sysname";
+    # the phrase snmp_agent ~'^1' = starts with 1
+    $query = "SELECT Netboxid,sysname,ip,typeid,roomid,ro,snmp_agent FROM netbox
+    WHERE catid='SRV' AND snmp_version > 0 AND snmp_agent ~'^.' ORDER BY sysname";
     my $getservers = &db_select($query,$dbh);
 
     while (my @temp = $getservers->fetchrow) {
-      my ($id, $sysname,$ip,$type,$romid,$community,$snmpagent) = @temp;
+      my ($id, $sysname,$ip,$type,$roomid,$community,$snmp_agent) = @temp;
             # Avoid severe errors in the database
       if ($sysname) {
           if ($community) {
 
                 my $win32 = 0;
-                if($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.311\./) {
+                if($snmp_agent && $snmp_agent =~ /^1\.3\.6\.1\.4\.1\.311\./) {
                   $win32 = 1;
                 }
                 my $linux = 0;
-                if ($snmpagent && $snmpagent =~ /^1\.3\.6\.1\.4\.1\.8072\./) {
+                if ($snmp_agent && $snmp_agent =~ /^1\.3\.6\.1\.4\.1\.8072\./) {
                   $linux = 1;
                 }
                 my $server = $sysname;
@@ -137,10 +137,10 @@ sub Servers {
 
 
                 # Finding room description
-                $query = "SELECT descr FROM rom WHERE romid='$romid'";
+                $query = "SELECT descr FROM room WHERE roomid='$roomid'";
                 my $getdesc = &db_select($query,$dbh);
                 if (!(my $desc = $getdesc->fetchrow)) {
-                    print "Ingen beskrivelse for rom med id=$romid\n";
+                    print "Ingen beskrivelse for room med id=$roomid\n";
                     print FIL "\tshort-desc\t=\t\"\"\n";
                 } else {
                     print FIL "\tshort-desc\t=\t\"$desc\"\n";
@@ -193,7 +193,7 @@ sub Servers {
                   print FIL "\n";
                 }
 		#Get the category and insert into file
-		$query = "SELECT category FROM bokscategory WHERE boksid=$id";
+		$query = "SELECT category FROM netboxcategory WHERE netboxid=$id";
 		my $getcategory = &db_select($query, $dbh);
 		while (my $category = $getcategory->fetchrow) {
 			print FIL "target \"$category\"\n";
@@ -207,7 +207,7 @@ sub Servers {
                 mkdir ("$path/servers/$sysname/interface",0775);
                 $fil = "$path/servers/$sysname/interface/interfaces";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-                $query = "SELECT interf FROM boksinterface WHERE boksid=$id";
+                $query = "SELECT interf FROM netboxinterface WHERE netboxid=$id";
                 my $getinterfaces = &db_select($query, $dbh);
                 print FIL "target --default--\n";
                 print FIL "\tserver\t=\t$sysname\n";
@@ -231,7 +231,7 @@ sub Servers {
                 mkdir ("$path/servers/$sysname/disk",0775);
                 $fil = "$path/servers/$sysname/disk/disks";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-                $query = "SELECT path,blocksize FROM boksdisk WHERE boksid=$id";
+                $query = "SELECT path,blocksize FROM netboxdisk WHERE netboxid=$id";
                 my $getpaths = &db_select($query, $dbh);
                 print FIL "target --default--\n";
                 print FIL "\tserver\t=\t$sysname\n";
@@ -270,32 +270,32 @@ sub Routers {
 
     my $fil = "$path/routers/Targets";
 
-    # Henter typegrupper fra type
-    my %typegruppe;
-    my $sporring = "select typeid,typegruppe from type";
+    # Henter typegroupidr fra type
+    my %typegroup;
+    my $sporring = "select typeid,typegroupid from type";
     my $getres = &db_select($sporring,$dbh);
-    while (my($typeid,$typegruppe) = $getres->fetchrow) {
-	$typegruppe{$typeid} = $typegruppe;
+    while (my($typeid,$typegroupid) = $getres->fetchrow) {
+	$typegroup{$typeid} = $typegroupid;
     }
 
     # Henter alle ruterne fra databasen
-    $sporring = "SELECT boksid,sysname,ip,typeid,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
+    $sporring = "SELECT netboxid,sysname,ip,typeid,roomid,ro FROM netbox WHERE catid='GW' ORDER BY sysname";
     my $getrouters = &db_select($sporring,$dbh);
 
     # Skriver til filen
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
     while (my @temp = $getrouters->fetchrow) {
-	my ($id, $sysname,$ip,$type,$romid,$community) = @temp;
+	my ($id, $sysname,$ip,$type,$roomid,$community) = @temp;
 	
 	# Unngår hvis det er feil i databasen
 	if ($sysname) {
 	    if ($community) {
-		push @ruterliste, [$id, $sysname, $ip, $romid,$community];
-		if ($typegruppe{$type}) {
+		push @ruterliste, [$id, $sysname, $ip, $roomid,$community];
+		if ($typegroup{$type}) {
 		    print FIL "target $sysname\n";
 		    print FIL "\tsnmp-host\t=\t$ip\n";
 		    print FIL "\tsnmp-community\t=\t$community\n";
-		    print FIL "\ttarget-type\t=\t$typegruppe{$type}\n";
+		    print FIL "\ttarget-type\t=\t$typegroup{$type}\n";
 
 #  		# Unntak for type ruter
 #  		if ($type =~ /^(IGS|AGS|C2514|C4000|C4700|C1005|C7200|C7500)$/ ) {
@@ -305,10 +305,10 @@ sub Routers {
 #  		}
 
 		    # Må finne beskrivelsen til rommet
-		    $sporring = "SELECT descr FROM rom WHERE romid='$romid'";
+		    $sporring = "SELECT descr FROM room WHERE roomid='$roomid'";
 		    my $getdesc = &db_select($sporring,$dbh);
 		    if (!(my $desc = $getdesc->fetchrow)) {
-			print "Ingen beskrivelse for rom med id=$romid\n";
+			print "Ingen beskrivelse for room med id=$roomid\n";
 			print FIL "\tshort-desc\t=\t\"\"\n\n";
 		    } else {
 			print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
@@ -332,7 +332,7 @@ sub Routerinterfaces {
     for (@ruterliste) {
         my %routerint = ();
 
-	my ($ruterid, $sysname, $ip, $romid, $community) = @$_;
+	my ($ruterid, $sysname, $ip, $roomid, $community) = @$_;
 
 	unless (-e "$path/router-interfaces/$sysname") {
 	    mkdir ("$path/router-interfaces/$sysname",0775);
@@ -345,29 +345,29 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,prefiksid FROM gwport WHERE boksid=$ruterid AND speed!=1000 and masterindex is null";
+	my $sporring = "SELECT interface,speed,prefixid FROM gwport WHERE netboxid=$ruterid AND speed!=1000 and masterindex is null";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
 	
 	my @liste;
-	my ($interf,$speed,$nettident,$prefiksid);
-	while (($interf,$speed,$prefiksid) = $getinterfaces->fetchrow) {
+	my ($interf,$speed,$netident,$prefixid);
+	while (($interf,$speed,$prefixid) = $getinterfaces->fetchrow) {
 	    unless ($routerint{$interf}) {
 		$routerint{$interf}++;
 		# Spør etter description hvis det finnes
-		if ($prefiksid) {
-		    $sporring = "select nettident from prefiks where prefiksid=$prefiksid";
+		if ($prefixid) {
+		    $sporring = "select netident from prefix where prefixid=$prefixid";
 		    my $getident = &db_select($sporring,$dbh);
-		    $nettident = $getident->fetchrow;
-		    unless ($nettident) {
-			$nettident = '"Beskrivelse ikke tilgjengelig"';
+		    $netident = $getident->fetchrow;
+		    unless ($netident) {
+			$netident = '"Beskrivelse ikke tilgjengelig"';
 		    }
 		} else {
-		    $nettident = '"Beskrivelse ikke tilgjengelig"';
+		    $netident = '"Beskrivelse ikke tilgjengelig"';
 		}
 		# Vil ikke ha med Loopback-interfacene.
 		unless ($interf =~ /Loopback/) {
-		    push @liste, [$interf,$speed,$nettident];
+		    push @liste, [$interf,$speed,$netident];
 		}
 	    }
 	}
@@ -376,13 +376,13 @@ sub Routerinterfaces {
 	my $order = @liste;
 
 	for (@liste) {
-	    ($interf,$speed,$nettident) = @$_;
+	    ($interf,$speed,$netident) = @$_;
 	    $interf =~ s/\//_/g;
 	    print FIL "\ntarget $interf\n";
 	    $interf =~ s/_/\//g;
 	    print FIL "\tinterface-name\t=\t$interf\n";
 
-	    print FIL "\tshort-desc\t=\t$nettident\n";
+	    print FIL "\tshort-desc\t=\t$netident\n";
 
 	    # Setter slik at alle capacities har .00 etter seg
 	    if ($speed =~ /\./) {
@@ -410,15 +410,15 @@ sub Switches {
 
     my $fil = "$path/switches/switches";
 
-    # Henter typegrupper fra type
-    my %typegruppe;
-    my $sporring = "select typeid,typegruppe from type";
+    # Henter typegroupidr fra type
+    my %typegroup;
+    my $sporring = "select typeid,typegroupid from type";
     my $getres = &db_select($sporring,$dbh);
-    while (my($typeid,$typegruppe) = $getres->fetchrow) {
-	$typegruppe{$typeid} = $typegruppe;
+    while (my($typeid,$typegroupid) = $getres->fetchrow) {
+	$typegroup{$typeid} = $typegroupid;
     }
 
-    $sporring = "SELECT boksid, ip, sysName,typeid,ro FROM boks WHERE kat='SW' ORDER BY sysName";
+    $sporring = "SELECT netboxid, ip, sysName,typeid,ro FROM netbox WHERE catid='SW' ORDER BY sysName";
     my $getswitches = &db_select($sporring,$dbh);
 
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
@@ -435,7 +435,7 @@ sub Switches {
 		    if ($community) {
 			print FIL "target $sysname\n";
 			print FIL "\tsnmp-community\t=\t$community\n";
-			print FIL "\ttarget-type\t=\t$typegruppe{$type}\n\n";
+			print FIL "\ttarget-type\t=\t$typegroup{$type}\n\n";
 #			print FIL "\ttarget-type\t=\t$type\n";
 		    }
 		}
@@ -459,8 +459,8 @@ sub Switchports {
 	my ($id, $ip, $switchnavn, $type, $community) = @$_;
 
 	if ($community) {
-	    # Finner alle portene som er på switchen.
-	    my $sporring = "SELECT modul,port,portnavn FROM swport WHERE boksid=$id and speed!=1000 and portnavn!='' ORDER BY swportid";
+	    # Finner alle portene som er på switchen. (SOM HAR NAVN FOR FAEN!)
+	    my $sporring = "SELECT moduleid,port,portname FROM swport WHERE to_netboxid=$id and speed!=1000 and portname!='' ORDER BY swportid";
 	    my $getports = &db_select($sporring,$dbh);
 	    my $antall = $getports->ntuples;
 
@@ -521,47 +521,49 @@ sub gigarouterinterfaces {
     my $count = 0;
     my $teller = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,g.interf,g.speed,b.ro,g.prefiksid FROM boks b,gwport g WHERE g.speed='1000' and g.boksid=b.boksid and g.masterindex is null ORDER BY sysname";
+    my $sporring = "SELECT b.ip,b.sysname,g.interface,g.speed,b.ro,g.prefixid FROM " . 
+      "netbox b,gwport g WHERE g.speed='1000' and g.netboxid=b.netboxid and g.masterindex is null " . 
+      "ORDER BY sysname";
     my $getinterfaces = &db_select($sporring,$dbh);
     my $antall_interfaces = $getinterfaces->ntuples;
     
     my $tempip = "0";
     my @liste;
     my @liste_bak;
-    my($ip,$sysname,$interf,$nettident,$speed,$community,$prefiksid);
-    while (($ip,$sysname,$interf,$speed,$community,$prefiksid) = $getinterfaces->fetchrow) {
+    my($ip,$sysname,$interf,$netident,$speed,$community,$prefixid);
+    while (($ip,$sysname,$interf,$speed,$community,$prefixid) = $getinterfaces->fetchrow) {
 #	$sysname =~ s/\..+//;
 	$teller++;
 
-	if ($prefiksid) {
-	    $sporring = "select nettident from prefiks where prefiksid=$prefiksid";
+	if ($prefixid) {
+	    $sporring = "select netident from prefix where prefixid=$prefixid";
 	    my $getident = &db_select($sporring,$dbh);
-	    $nettident = $getident->fetchrow;
-	    unless ($nettident) {
-		$nettident = '"Beskrivelse ikke tilgjengelig"';
+	    $netident = $getident->fetchrow;
+	    unless ($netident) {
+		$netident = '"Beskrivelse ikke tilgjengelig"';
 	    }
 	} else {
-	    $nettident = '"Beskrivelse ikke tilgjengelig"';
+	    $netident = '"Beskrivelse ikke tilgjengelig"';
 	}
 
 	if (($ip eq $tempip || $tempip eq "0") && $teller != $antall_interfaces) {
-	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
+	    push @liste_bak, [$ip,$sysname,$interf,$netident,$speed,$community];
 	    $tempip = $ip;
 	} else {
 	    
 	    if ($teller == $antall_interfaces) {
-                push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
+                push @liste_bak, [$ip,$sysname,$interf,$netident,$speed,$community];
             }
 
 	    @liste = @liste_bak;
 	    @liste_bak = ();
-	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
+	    push @liste_bak, [$ip,$sysname,$interf,$netident,$speed,$community];
 	    $tempip = $ip;
 	    @liste = &sorter (2,@liste);
 	    my $order = @liste;
 
 	    for (@liste) {
-		($ip,$sysname,$interf,$nettident,$speed,$community) = @$_;
+		($ip,$sysname,$interf,$netident,$speed,$community) = @$_;
 
 		unless (-e "$path/giga-router-interfaces/$sysname") {
 		    mkdir ("$path/giga-router-interfaces/$sysname",0775);
@@ -581,7 +583,7 @@ sub gigarouterinterfaces {
 		print FIL "\ntarget $interf\n";
 		$interf =~ s/_/\//g;
 		print FIL "\tinterface-name\t=\t$interf\n";
-		print FIL "\tshort-desc\t=\t$nettident";
+		print FIL "\tshort-desc\t=\t$netident";
 		
 		# Setter slik at alle capacities har .00 etter seg
 		if ($speed =~ /\./) {
@@ -607,7 +609,7 @@ sub gigaswitchports {
     my %test;
     my $count = 0;
 
-    my $sporring = "select b.boksid,b.ip,b.sysname,b.typeid,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.boksid=s.boksid and s.speed='1000' and portnavn!='' order by b.boksid";
+    my $sporring = "select b.netboxid,b.ip,b.sysname,b.typeid,s.moduleid,s.port,s.portname,b.ro from swport s,netbox b where b.netboxid=s.netboxid and s.speed='1000' and s.portname!='' order by b.netboxid";
     my $getports = &db_select($sporring,$dbh);
 
     my $tempswitchnavn = "";
