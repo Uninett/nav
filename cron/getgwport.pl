@@ -38,8 +38,9 @@ my $if2Speed = ".1.3.6.1.2.1.2.2.1.5";
 my $if2Nettnavn = ".1.3.6.1.4.1.9.2.2.1.1.28"; 
 
 #henter fra database
-hent_database(); 
+&hent_database(); 
 
+#her er det mye gammelt (fra før GA sin tid)
 foreach (keys %boks) { #$_ = boksid
     if($boks{$_}{watch} =~ /y/i ||$boks{$_}{ip} eq "129.241.194.4") {
 	print "$boks{$_}{ip} er på watch.\n";
@@ -100,6 +101,7 @@ sub oppdat_db
 	      # Eksisterer den i %subnet? ja-> sjekk de forskjellige variablene, nei-> legg inn.
 	      # Sjekk og innlegging er avhengig av type nett (link,elink,loopback,lan,stam,hsrp)
 
+#generell ting, bør ligge i modul
 sub sammenlikn {
 
     my %ny = %{$_[0]};
@@ -161,6 +163,7 @@ sub sammenlikn {
     }
 }
 
+#snmp-henting: litt mye krypiske ting her.
 sub hent_gwdata {
     my $boksid = $_[0];
     my $prefiksid = $_[1];
@@ -281,6 +284,7 @@ sub hent_gwdata {
 	
 
     }
+#tar fra hashene tnett og if og legger i gwport
     foreach $gwip (sort by_ip keys %tnett)
     {
 	$tnett{$gwip}{interf}   = $if{$tnett{$gwip}{indeks}}{interf};
@@ -339,6 +343,8 @@ sub hent_prefiksid {
     }
     return $id;
 }
+
+#en del gamle smårutinger som kanskje ikke blir brukt en gang.
 sub max_ant_hosts
 {
     return 0 if($_[0] == 0);
