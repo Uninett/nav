@@ -326,6 +326,19 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
+		// Fetch portname (ifAlias)
+		List ifAliasList = sSnmp.getAll(nb.getOid("ifAlias"), true);
+		if (ifAliasList != null) {
+			for (Iterator it = ifAliasList.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String ifindex = s[0];
+				String alias = s[1];
+
+				Swport swp = sc.swportFactory(ifindex);
+				swp.setPortname(alias);
+			}
+		}
+
 
 
 		/*
