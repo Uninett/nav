@@ -133,7 +133,9 @@ def showIndex(req, session):
     except KeyError:
         # session contains no rrd info.
         # poor user, but sure we can help
-        presentations = 0
+        session['rrd'] = presenter.page()
+        session['rrd'].presentations = []
+        session.save()
     if len(presentations):
         return showGraphs(session)
     return treeselect(req, session)
