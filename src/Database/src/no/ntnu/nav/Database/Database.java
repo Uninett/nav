@@ -34,18 +34,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Date;
 import java.net.SocketException;
+import java.util.*;
 
 import no.ntnu.nav.logger.Log;
 
 /**
  * <p> Wrapper around the JDBC API to simplify working with the
  * database. This class contains only static methods any may thus be
- * used without needing a reference to it. It is also
- * thread-safe. However, it only supports connecting to one database
- * at a time.  </p>
+ * used without needing a reference to it. It is also fully
+ * thread-safe and supports per-thread transactions. </p>
  *
  * @version $LastChangedRevision$ $LastChangedDate$
  * @author Kristian Eide &lt;kreide@online.no&gt;
@@ -53,41 +51,450 @@ import no.ntnu.nav.logger.Log;
 
 public class Database
 {
-	private static final int ST_BUFFER = 40;
+	public static final int CONNECTION_IDLE_TIMEOUT = 300000; // 5 minutes
+
+	public static final int POSTGRESQL_DRIVER = 0;
+	public static final int MYSQL_DRIVER = 10;
+	public static final int ORACLE_DRIVER = 20;
+
+	public static final int DEFAULT_DRIVER = POSTGRESQL_DRIVER;
+	
+	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 4;
+	public static final int DEFAULT_THREAD_STATEMENT_BUFFER = 0;
+	public static final int DEFAULT_RECONNECT_WAIT_TIME = 10000;
+
 	private static final String dbDriverOracle = "oracle.jdbc.driver.OracleDriver";
-	private static final String dbDriverPostgre = "org.postgresql.Driver";
+	private static final String dbDriverPostgresql = "org.postgresql.Driver";
 	private static final String dbDriverMysql = "org.gjt.mm.mysql.Driver";
 
-	private static final String dbName = "postgresql";
-	//private static final String dbName = "mysql";
 
-	private static final String dbDriver = dbDriverPostgre;
+	private static Map activeDB = Collections.synchronizedMap(new HashMap()); // Maps thread -> active connection identifier
+	private static Map dbDescrs = Collections.synchronizedMap(new HashMap()); // Maps user-supplied connection identifier to DB descr
 
-	private static Connection connection;
-	private static String connectionString;
-	private static String connectionUser;
-	private static String connectionPw;
 
-	private static Statement[] stQuery = new Statement[ST_BUFFER];
-	private static boolean[] stKeepOpen = new boolean[ST_BUFFER];
-	private static boolean defaultKeepOpen = false;
+	private static class DBDescr {
+		private int dbDriver;
+		private String dbDriverString;
+		public String serverName;
+		public String serverPort;
+		public String dbName;
+		public String user;
+		public String pw;
+		private String conStr;
 
-	private static Statement stUpdate;
-	private static int queryCount;
-	private static int queryPos;
-	private static boolean queryQFull = false;
+		//private boolean connectionUp;
+		private boolean returnOnReconnectFail = false;
+		private int refCount;
+		private LinkedList conQ;
+		private Map activeTransactions = new HashMap();
 
-	private static int reconnectWaitTime = 10000; // 10 seconds
-	private static boolean returnOnReconnectFail = false;
+		private Map statementMap = Collections.synchronizedMap(new HashMap()); // Maps thread to a LinkedList of statements
+		private LinkedList globStatementQ = new LinkedList();
 
-	private static int connectionCount = 0;
+		public DBDescr(int _dbDriver, String _serverName, String _serverPort, String _dbName, String _user, String _pw) {
+			dbDriver = _dbDriver;
+			serverName = _serverName;
+			serverPort = _serverPort;
+			dbName = _dbName;
+			user = _user;
+			pw = _pw;
+			conQ = new LinkedList();
+			refCount = 0;
+			storeConnectString();
+		}
+
+		public String getKey() {
+			return conStr+":"+user+":"+pw;
+		}
+
+		public boolean verifyConnection() {
+			try {
+				Statement st = getStatement();
+				ResultSet rs = st.executeQuery("SELECT 1");
+				if (rs.next()) {
+					// Connection OK
+					return true;
+				}
+			} catch (Exception e) {
+				String msg = e.getMessage();
+				int idx;
+				if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+				System.err.println("Connection verify failed: " + msg);
+			}
+			return false;
+		}
+
+		public int getConnectionCount() {
+			synchronized (conQ) {
+				return conQ.size();
+			}
+		}
+
+		// Gets a connection for the current thread
+		public ConnectionDescr getConnection() throws SQLException {
+			synchronized (activeTransactions) {
+				if (activeTransactions.containsKey(Thread.currentThread())) {
+					ConnectionDescr transDescr = (ConnectionDescr)activeTransactions.get(Thread.currentThread());
+					if (transDescr == null) throw new SQLException("Transaction aborted due to database reconnect");
+					return transDescr;
+				}
+			}
+			cleanConnectionQ();
+			synchronized (conQ) {
+				if (conQ.isEmpty()) {
+					if (!createConnection()) return null;
+				}
+
+				return (ConnectionDescr)conQ.removeFirst();
+			}
+		}
+
+		public void freeConnection(ConnectionDescr cd) {
+			synchronized (activeTransactions) {
+				if (activeTransactions.get(Thread.currentThread()) == cd) {
+					//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"NOT freeing con");
+					return;
+				}
+				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"FREEING con");
+			}
+			synchronized (conQ) {
+				conQ.add(cd);
+			}
+		}
+
+		public Statement getStatement() throws SQLException {
+			ConnectionDescr cd = getConnection();
+			Statement st = cd.getStatement();
+			freeConnection(cd);
+			return st;
+		}
+
+		public Statement getUpdateStatement() throws SQLException {
+			ConnectionDescr cd = getConnection();
+			Statement st = cd.getUpdateStatement();
+			freeConnection(cd);
+			return st;
+		}
+
+		public boolean openConnection() {
+			if (!connect()) return false;
+			refCount++;
+			return true;
+		}
+
+		private boolean connect() {
+			synchronized (conQ) {
+				if (conQ.isEmpty()) {
+					if (!createConnection()) return false;
+				}
+			}
+			return true;
+		}
+
+		public void closeConnection() {
+			refCount--;
+			if (refCount > 0) return; // Still open connections
+			closeAllConnections();
+		}
+
+		public boolean reconnect() {
+			synchronized (conQ) {
+				//System.out.println("Closing all connections: " + conQ.size());
+				closeAllConnections();
+				//System.out.println("            connections: " + conQ.size());
+				return connect();
+			}
+		}
+
+		private void closeAllConnections() {
+			synchronized (conQ) {
+				for (Iterator it = conQ.iterator(); it.hasNext();) {
+					try {
+						((ConnectionDescr)it.next()).close();
+					} catch (SQLException e) {
+						String msg = e.getMessage();
+						int idx;
+						if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+						System.err.println("closeConnection error: " + msg);
+					}
+					it.remove();
+				}
+				statementMap.clear();
+				globStatementQ.clear();
+			}
+			synchronized (activeTransactions) {
+				List l = new ArrayList();
+				for (Iterator it = activeTransactions.entrySet().iterator(); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					try {
+						((ConnectionDescr)me.getValue()).close();
+					} catch (SQLException e) {
+						String msg = e.getMessage();
+						int idx;
+						if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+						System.err.println("closeConnection error: " + msg);
+					}
+					l.add(me.getKey());
+				}
+				for (Iterator it = l.iterator(); it.hasNext();) {
+					activeTransactions.put(it.next(), null);
+				}
+			}
+		}
+
+		private void cleanConnectionQ() throws SQLException {
+			synchronized (conQ) {
+				if (conQ.size() > 1) {
+					Iterator it = conQ.iterator();
+					while (it.hasNext()) {
+						ConnectionDescr cd = (ConnectionDescr)it.next();
+						if (System.currentTimeMillis() - cd.lastUsed > CONNECTION_IDLE_TIMEOUT) {
+							cd.close();
+							it.remove();
+							if (conQ.size() == 1) break;
+						}
+					}
+				}
+			}
+		}
+
+		private boolean createConnection() {
+			try {
+				Class.forName(dbDriverString);
+				
+				Connection con = DriverManager.getConnection(conStr, user, pw);
+				ConnectionDescr cd = new ConnectionDescr(con);
+				synchronized (conQ) {
+					//System.out.println("*** CREATED CONNECTION *** " + conQ.size());
+					conQ.add(cd);
+				}
+				return true;
+				
+			} catch (ClassNotFoundException e) {
+				System.err.println("createConnection ClassNotFoundExecption error: " + e.getMessage());
+			} catch (SQLException e) {
+				System.err.println("createConnection error: " + e.getMessage());
+			}
+			return false;
+		}
+		
+		public void setReturnOnReconnectFail(boolean b) {
+			returnOnReconnectFail = b;
+		}
+
+		public boolean getReturnOnReconnectFail() {
+			return returnOnReconnectFail;
+		}
+
+		public void beginTransaction() throws SQLException {
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering beginTransaction");
+			synchronized (activeTransactions) {
+				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* beginTransaction entered");
+				ConnectionDescr cd = getTransactionCon(true);
+				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* getTransCont done..");
+				cd.setAutoCommit(false);
+			}
+		}
+
+		public void commit() throws SQLException {
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering sync activeTrans");
+			synchronized (activeTransactions) {
+				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit calling getTrans");
+				ConnectionDescr cd = getTransactionCon(false);
+				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit returned from getTrans");
+				if (cd == null) return;
+				cd.commit();
+				cd.setAutoCommit(true);
+				freeTransactionCon(cd);
+			}
+		}
+
+		public void rollback() throws SQLException {
+			synchronized (activeTransactions) {
+				ConnectionDescr cd = getTransactionCon(false);
+				if (cd == null) return;
+				cd.rollback();
+				cd.setAutoCommit(true);
+				freeTransactionCon(cd);
+			}
+		}
+
+		private ConnectionDescr getTransactionCon(boolean create) throws SQLException {
+			Thread t = Thread.currentThread();
+			ConnectionDescr cd = null;
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon calling getCon");
+			if ((cd=(ConnectionDescr)activeTransactions.get(t)) == null && create) activeTransactions.put(t, cd = getConnection());
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon *done*");
+			return cd;
+		}
+
+		private void freeTransactionCon(ConnectionDescr cd) {
+			activeTransactions.remove(Thread.currentThread());
+			freeConnection(cd);
+		}
+		
+		private String getConnectString() {
+			return conStr;
+		}
+
+		private void storeConnectString() {
+			conStr = "jdbc:";
+
+			switch (dbDriver) {
+			case MYSQL_DRIVER:
+				dbDriverString = dbDriverMysql;
+				conStr += "mysql";
+				break;
+
+			case ORACLE_DRIVER:
+				//"jdbc:oracle:thin:@loiosh.stud.idb.hist.no:1521:orcl";
+				dbDriverString = dbDriverOracle;
+				conStr += "oracle";
+				break;
+
+			case POSTGRESQL_DRIVER:
+			default:
+				dbDriverString = dbDriverPostgresql;
+				conStr += "postgresql";
+				break;
+			}
+			conStr += "://" + serverName;
+			if (serverPort != null) conStr += ":"+serverPort;
+			conStr += "/" + dbName;
+		}
+
+
+		private class ConnectionDescr {
+			private Connection con;
+			private long lastUsed;
+			private Statement updateStatement;
+			
+			public ConnectionDescr(Connection _con) throws SQLException {
+				con = _con;
+				lastUsed = System.currentTimeMillis();
+				newUpdateStatement();
+				con.setAutoCommit(true);
+			}
+
+			public void close() throws SQLException {
+				con.close();
+			}
+
+			public void setAutoCommit(boolean autoCommit) throws SQLException {
+				con.setAutoCommit(autoCommit);
+			}
+
+			public void commit() throws SQLException {
+				con.commit();
+			}
+
+			public void rollback() throws SQLException {
+				con.rollback();
+			}
+
+			private void newUpdateStatement() throws SQLException {
+				if (updateStatement != null) {
+					updateStatement.close();
+				}
+				updateStatement = con.createStatement();
+			}
+
+			public Statement getStatement() throws SQLException {
+				StatementQ stQ = getOrCreateStatementQ();
+				synchronized (globStatementQ) {
+					if (globStatementQ.size() > DEFAULT_GLOBAL_STATEMENT_BUFFER) {
+						((Statement)globStatementQ.removeFirst()).close();
+					}
+				}
+				return stQ.getStatement();
+			}
+
+			public Statement getUpdateStatement() throws SQLException {
+				newUpdateStatement();
+				return updateStatement;
+			}
+
+			private StatementQ getOrCreateStatementQ() {
+				Thread t = Thread.currentThread();
+			    StatementQ q;
+				if ((q=(StatementQ)statementMap.get(t)) == null) statementMap.put(t, q = new StatementQ());
+				return q;
+			}
+
+			private class StatementQ {
+				LinkedList statementQ; // FIFO list over statements
+				int bufferSize;
+
+				public StatementQ() {
+					this(DEFAULT_THREAD_STATEMENT_BUFFER);
+				}
+
+				public StatementQ(int _bufferSize) {
+					bufferSize = _bufferSize;
+					statementQ = new LinkedList();
+				}
+
+				public Statement getStatement() throws SQLException {
+					Statement st = con.createStatement();
+					statementQ.add(st);
+					if (statementQ.size() > bufferSize) {
+						synchronized (globStatementQ) {
+							globStatementQ.add(statementQ.removeFirst());
+						}
+					}
+					lastUsed = System.currentTimeMillis();
+					return st;
+				}
+			}
+		}		
+	}
+
+
+	// Changes the active DB that is to be used for subsequent DB calls
+	public static void setActiveDB(String conId) {
+		activeDB.put(Thread.currentThread(), conId);
+	}
+
+	private static Statement getStatement(String conId) throws SQLException {
+		return getDBDescr(conId).getStatement();
+	}
+
+	private static Statement getUpdateStatement(String conId) throws SQLException {
+		return getDBDescr(conId).getUpdateStatement();
+	}
+		
+
+	private static DBDescr getDBDescr(String conId) {
+		conId = getConnectionId(conId);
+		DBDescr db = (DBDescr)dbDescrs.get(conId);
+		if (db == null) throw new RuntimeException("DBDescr not found, did you forget to call openConnection?");
+		return db;
+	}
+
+	private static boolean removeDBDescr(String conId) {
+		conId = getConnectionId(conId);
+		return dbDescrs.remove(conId) != null;
+	}
+
+
+	private static String getConnectionId(String conId) {
+		if (conId != null) return conId;
+		if (activeDB.containsKey(Thread.currentThread())) return (String)activeDB.get(Thread.currentThread());
+		return (String)activeDB.get(null);
+	}
+		
+
 
 	// Contains only static methods
 	private Database() {
 	}
 
+	public static boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
+		return openConnection(null, DEFAULT_DRIVER, serverName, serverPort, dbName, user, pw);
+	}
+
 	/**
-	 * <p> Open a connection to the database. Note that simultanious
+	 * <p> Open a connection to the database. Note that simultaneous
 	 * connections to different databases are not supported; if a
 	 * connection is already open when this method is called a
 	 * connection will be opened to the same database which is already
@@ -100,37 +507,36 @@ public class Database
 	 * @param pw Password to use for login to server
 	 * @return true if connection was opened successfully; false otherwise
 	 */
-	public static synchronized boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
+	public static boolean openConnection(String conId, int dbDriver, String serverName, String serverPort, String dbName, String user, String pw) {
 		boolean ret = false;
 		if (serverName == null) { ret=true; System.err.println("Database.openConnection(): Error, serverName is null"); }
-		if (serverPort == null) { ret=true; System.err.println("Database.openConnection(): Error, serverPort is null"); }
 		if (dbName == null) { ret=true; System.err.println("Database.openConnection(): Error, dbName is null"); }
 		if (user == null) { ret=true; System.err.println("Database.openConnection(): Error, user is null"); }
 		if (pw == null) { ret=true; System.err.println("Database.openConnection(): Error, pw is null"); }
 		if (ret) return false;
 
-		if (connectionCount > 0) {
-			// En connection er allerede åpen
-			connectionCount++;
-			return true;
+		DBDescr db;
+		synchronized (dbDescrs) {
+			db = (DBDescr)dbDescrs.get(getConnectionId(conId));
+			if (db == null) {
+				db = new DBDescr(dbDriver, serverName, serverPort, dbName, user, pw);
+				if (conId == null) {
+					conId = db.getKey();
+					DBDescr db2 = (DBDescr)dbDescrs.get(getConnectionId(conId));
+					if (db2 != null) db = db2;
+				}
+			}
+			dbDescrs.put(conId, db);
 		}
-
-		try {
-			Class.forName(dbDriver);
-	
-			connectionString = "jdbc:postgresql://" + serverName + ":"+serverPort+"/" + dbName;
-			connectionUser = user;
-			connectionPw = pw;
-			connect();
-
-			connectionCount++;
-			return true;
-		} catch (ClassNotFoundException e) {
-			System.err.println("openConnection ClassNotFoundExecption error: ".concat(e.getMessage()));
-		} catch (SQLException e) {
-			System.err.println("openConnection error: ".concat(e.getMessage()));
+		
+		if (!db.openConnection()) {
+			dbDescrs.remove(conId);
+			return false;
 		}
-		return false;
+		
+		activeDB.put(Thread.currentThread(), conId);
+		if (!activeDB.containsKey(null)) activeDB.put(null, conId);
+		return true;
 	}
 
 	/**
@@ -143,25 +549,9 @@ public class Database
 	 *
 	 * @param b New value for returnOnReconnectFail
 	 */
-	public static void setReturnOnReconnectFail(boolean b) {
-		returnOnReconnectFail = b;
-	}
-
-	private static void connect() throws SQLException {
-		connection = DriverManager.getConnection(connectionString, connectionUser, connectionPw);
-
-		//connection = DriverManager.getConnection(dbName, login, pw);
-		//c = DriverManager.getConnection("jdbc:mysql://" + server + "/" + db + "?user=" + login + "&password=" + pw);
-		//String dbNavn = "jdbc:oracle:thin:@loiosh.stud.idb.hist.no:1521:orcl";
-		
-		//connection = DriverManager.getConnection("jdbc:"+dbName+"://" + serverName + "/" + dbName, user, pw);
-		//connection = DriverManager.getConnection("jdbc:mysql://"+serverName+"/"+dbName+"?user="+user+"&password="+pw);
-
-		connection.setAutoCommit(true);
-		stUpdate = connection.createStatement();
-
-		queryPos = 0;
-		for (int i=0; i < stKeepOpen.length; i++) stKeepOpen[i]=false;
+	public static void setReturnOnReconnectFail(String conId, boolean returnOnReconnectFail) {
+		DBDescr db = getDBDescr(conId);
+		db.setReturnOnReconnectFail(returnOnReconnectFail);
 	}
 
 	/**
@@ -171,24 +561,28 @@ public class Database
 	 *
 	 * @return the number of database connections
 	 */
-	public static synchronized int getConnectionCount() { return connectionCount; }
+	public static int getConnectionCount() {
+		synchronized (dbDescrs) {
+			int cnt=0;
+			for (Iterator it = dbDescrs.values().iterator(); it.hasNext();) {
+				cnt += ((DBDescr)it.next()).getConnectionCount();
+			}
+			return cnt;
+		}
+	}
+
+	public static void closeConnection() {
+		closeConnection(null);
+	}
 
 	/**
 	 * <p> Close the connection to the database.  </p>
 	 */
-	public static synchronized void closeConnection() {
-		if (connectionCount == 0) return; // Ingen connection å lukke
-		connectionCount--;
-		if (connectionCount > 0) {
-			// En connection er fortsatt åpen
-			return;
-		}
-
-		try {
-			//System.out.println("########## -CLOSE CONNECTION ON DATABASE- ##########");
-			connection.close();
-		} catch (SQLException e) {
-			System.err.println("closeConnection error: ".concat(e.getMessage()));
+	public static void closeConnection(String conId) {
+		synchronized (dbDescrs) {
+			DBDescr db = getDBDescr(conId);
+			db.closeConnection();
+			removeDBDescr(conId);
 		}
 	}
 
@@ -201,10 +595,12 @@ public class Database
 	 *
 	 * @param def specifies if the ResultSet returned for subsequent querys should never be closed.
 	 */
+	/*
 	public static void setDefaultKeepOpen(boolean def)
 	{
 		defaultKeepOpen = def;
 	}
+	*/
 
 	/**
 	 * <p> Execute the given query.  </p>
@@ -214,7 +610,7 @@ public class Database
 	 */
 	public static ResultSet query(String statement) throws SQLException
 	{
-		return query(statement, defaultKeepOpen);
+		return query(statement, false);
 	}
 
 	/**
@@ -224,80 +620,60 @@ public class Database
 	 * @param keepOpen If true, never close the returned ResultSet object
 	 * @return the result of the query
 	 */
-	public static synchronized ResultSet query(String statement, boolean keepOpen) throws SQLException
+	public static ResultSet query(String statement, boolean keepOpen) throws SQLException
 	{
 		// Try to execute. If we get a SocketException, wait and try again
-		boolean firstTry = true;
+		//boolean firstTry = true;
 		while (true) {
 			try {
-
-				if (!findNotOpen()) throw new SQLException("There are no open statements left!");
-				
-				if (queryPos==stQuery.length) {
-					if (!queryQFull) queryQFull = true;
-					queryPos = 0;
-				}
-				if (queryQFull) stQuery[queryPos].close();
-				
-				Statement st = connection.createStatement();
-				stQuery[queryPos] = st;
-				stKeepOpen[queryPos] = keepOpen;
-				queryCount++;
-				queryPos++;
-				
+				Statement st = getStatement(null);
 				ResultSet rs = st.executeQuery(statement);
 				return rs;
-			} catch (SQLException sqle) {
-				throw sqle;
 			} catch (Exception e) {
-				// First try to reconnect
-				if (firstTry) {
-					connect();
-					continue;
+				if (e instanceof SQLException) {
+					SQLException sqle = (SQLException)e;
+					String msg = sqle.getMessage();
+					if (msg.indexOf("broken the connection") < 0 &&
+						msg.indexOf("SocketException") < 0 &&
+						msg.indexOf("Connection is closed") < 0) throw sqle;
 				}
+				DBDescr db = getDBDescr(null);
+				synchronized (db) {
 
-				// That didn't work; log error
-				Log.e("DATABASE-QUERY", "Got Exception; database is probably down: " + e.getMessage());
+					if (db.verifyConnection()) continue;
+					//System.out.println("Verify failed...");
+					if (db.reconnect()) continue;
 
-				if (returnOnReconnectFail) {
-					throw new SQLException("Got Exception; database is probably down: " + e.getMessage());
+					// That didn't work; log error
+					String msg = e.getMessage();
+					int idx;
+					if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+
+					Log.e("DATABASE-QUERY", "Got Exception; database is probably down: " + msg);
+
+					if (db.getReturnOnReconnectFail()) {
+						throw new SQLException("Got Exception; database is probably down: " + msg);
+					}
+
+					while (!db.verifyConnection()) {
+						try {
+							Thread.currentThread().sleep(DEFAULT_RECONNECT_WAIT_TIME);
+							//System.out.println("Done sleeping, reconnect..");
+							db.reconnect();
+						} catch (InterruptedException ie) {
+						}
+					}
 				}
-
-				try {
-					Thread.currentThread().wait(reconnectWaitTime);
-				} catch (InterruptedException ie) {
-				}
-
-				connect();
-
 			}
 		}
-	}
-
-	private static boolean findNotOpen()
-	{
-		// Find a 'free' statement
-		int startIndex = queryPos;
-		do {
-			if (queryPos==stQuery.length) queryPos = 0;
-			if (!stKeepOpen[queryPos]) return true;
-			queryPos++;
-		} while (queryPos != startIndex);
-		return false;
 	}
 
 	/**
 	 * <p> Begin a transaction. The database will not be changed until
 	 * either commit() or rollback() is called.  </p>
 	 */
-	public static synchronized void beginTransaction() {
-		/*
-		try {
-			connection.setAutoCommit(false);
-		} catch (SQLException e) {
-			System.err.println("setAutoCommit error: " + e.getMessage());
-		}
-		*/
+	public static void beginTransaction() throws SQLException {
+		getDBDescr(null).beginTransaction();
 	}
 
 	/**
@@ -305,15 +681,9 @@ public class Database
 	 * autocommit mode. Use beginTransaction() to start a new
 	 * transaction.  </p>
 	 */
-	public static synchronized void commit() {
-		/*
-		try {
-			connection.commit();
-			connection.setAutoCommit(true);
-		} catch (SQLException e) {
-			System.err.println("Commit error: ".concat(e.getMessage()));
-		}
-		*/
+	public static void commit() throws SQLException {
+		//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering commit");
+		getDBDescr(null).commit();
 	}
 
 	/**
@@ -321,15 +691,8 @@ public class Database
 	 * go back to autocommit mode. Use beginTransaction() to start a new
 	 * transaction.  </p>
 	 */
-	public static synchronized void rollback() {
-		/*
-		try {
-			connection.rollback();
-			connection.setAutoCommit(true);
-		} catch (SQLException e) {
-			System.err.println("Rollback error: ".concat(e.getMessage()));
-		}
-		*/
+	public static void rollback() throws SQLException {
+		getDBDescr(null).rollback();
 	}
 
 	/**
@@ -490,15 +853,51 @@ public class Database
 	 * @param statement The statement to execute
 	 * @return the number of rows updated
 	 */
-	public static synchronized int update(String statement) throws SQLException
+	public static int update(String statement) throws SQLException
 	{
-		stUpdate.close();
-		stUpdate = connection.createStatement();
-		try {
-			return stUpdate.executeUpdate(statement);
-		} catch (SQLException e) {
-			System.err.println("SQLException for update statement: " + statement);
-			throw e;
+		while (true) {
+			try {
+				Statement stUpdate = getUpdateStatement(null);
+				return stUpdate.executeUpdate(statement);
+			} catch (Exception e) {
+				if (e instanceof SQLException) {
+					SQLException sqle = (SQLException)e;
+					String msg = sqle.getMessage();
+					if (msg.indexOf("broken the connection") < 0 &&
+						msg.indexOf("SocketException") < 0 &&
+						msg.indexOf("Connection is closed") < 0) {
+						System.err.println("SQLException for update statement: " + statement);
+						throw sqle;
+					}
+				}
+				DBDescr db = getDBDescr(null);
+				synchronized (db) {
+
+					if (db.verifyConnection()) continue;
+					//System.out.println("Verify failed...");
+					if (db.reconnect()) continue;
+
+					// That didn't work; log error
+					String msg = e.getMessage();
+					int idx;
+					if (msg != null && (idx=msg.indexOf("Stack Trace")) >= 0) msg = msg.substring(0, idx-1);
+
+					Log.e("DATABASE-UPDATE", "Got Exception; database is probably down: " + msg);
+
+					if (db.getReturnOnReconnectFail()) {
+						throw new SQLException("Got Exception; database is probably down: " + msg);
+					}
+
+					while (!db.verifyConnection()) {
+						try {
+							Thread.currentThread().sleep(DEFAULT_RECONNECT_WAIT_TIME);
+							//System.out.println("Done sleeping, reconnect..");
+							db.reconnect();
+						} catch (InterruptedException ie) {
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -518,7 +917,6 @@ public class Database
 		}
 		return hm;
 	}
-
 
 	/**
 	 * <p> Make the given string "safe" (e.g. do not allow ( at the begining).
@@ -540,7 +938,7 @@ public class Database
 	 * @param s The string to escape
 	 * @return the string with special characters escaped
 	 */
-  private static String addSlashesStrict(String s) {
+	private static String addSlashesStrict(String s) {
 		if (s == null) return null;
 		s = insertBefore(s, "\\", "\\");
 		s = insertBefore(s, "'", "\\");
