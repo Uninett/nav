@@ -12,9 +12,18 @@ public class BoxState implements EventHandler
 		return new String[] { "boxState" };
 	}
 
-	public void handle(Event e)
+	public void handle(DeviceDB ddb, Event e)
 	{
-		outld("BoxState handeling event: " + e);
+		outld("BoxState handling event: " + e);
+
+		Alert a = ddb.alertFactory(e);
+		a.addEvent(e);
+
+		try {
+			ddb.postAlert(a);
+		} catch (PostAlertException exp) {
+			System.err.println("BoxState: " + exp);
+		}
 
 
 	}
