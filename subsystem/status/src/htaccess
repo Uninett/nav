@@ -2,7 +2,7 @@ PythonPath "['', '/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/pyth
 
 SetHandler python-program
 PythonHandler status
-PythonDebug On
+PythonDebug Off
 
 PythonHeaderParserHandler nav.web
 Options +ExecCGI
