@@ -365,14 +365,30 @@ sub doHTMLPage {
       		my @values = split(/&/,$ENV{'QUERY_STRING'});
       		my $i_jm;
       		for $i_jm (@values) {
-      		    my ($varname, $mydata) = split(/=/,$i_jm);
-  		    $mydata =~ s/(%2C)/,/g;
-		    $mydata =~ s/(%3A)/:/g;
-		    $mydata =~ s/(%2F)/\//g;
-
-      		    unless ($varname =~ /yokohoma/g) {
-      			print "<input type=hidden name=".$varname." value=$mydata>\n";
-      		    }
+		    print "$i_jm<br>\n";
+		    # Sjekk for tidligere versjoner, uten patch.
+		    if ($i_jm =~ /;/) {
+			my @jm_tidligere = split(/;/,$i_jm);
+			for (@jm_tidligere) {
+			    my ($varname, $mydata) = split(/=/,$_);
+			    $mydata =~ s/(%2C)/,/g;
+			    $mydata =~ s/(%3A)/:/g;
+			    $mydata =~ s/(%2F)/\//g;
+			    unless ($varname =~ /yokohoma/g) {
+#				print "V: $varname -> $mydata<br>\n";
+				print "<input type=hidden name=$varname value=$mydata>\n";
+			    }
+			}
+		    } else {
+			my ($varname, $mydata) = split(/=/,$i_jm);
+			$mydata =~ s/(%2C)/,/g;
+			$mydata =~ s/(%3A)/:/g;
+			$mydata =~ s/(%2F)/\//g;
+			unless ($varname =~ /yokohoma/g) {
+#			    print "V: $varname -> $mydata<br>\n";
+			    print "<input type=hidden name=$varname value=$mydata>\n";
+			}
+		    }      		    
       		}
       		print "Tast maxverdi (m/k/M/%): <input type=text name=yokohoma size=10 maxlength=10>&nbsp; m=milli, k=kilo, M=mega e.g. 10M (0 -> tilbake til auto-scale)";
       		print "</form>";
