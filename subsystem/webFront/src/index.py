@@ -109,7 +109,8 @@ def login(req, login='', password='', origin=''):
     else:
         # The user requested only the login page
         if origin:
-            return _getLoginPage(origin, "Not authorized")
+            return _getLoginPage(origin,
+                                 """You are not authorized to access<br>%s""" % origin)
         else:
             return _getLoginPage('')
 

@@ -12,7 +12,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #from mod_python import apache
 import os, nav, psycopg, forgetSQL
 from nav import web, db
-from nav.db import navprofiles
+from nav.db import navprofiles, manage
 from nav.web.templates.useradmin import *
 
 def _profileCursor():
@@ -22,6 +22,8 @@ def _profileCursor():
 
 def _manageCursor():
     _manageConn = db.getConnection('webfront', 'manage')
+    import nav.db.forgotten.manage
+    nav.db.forgotten.manage._Wrapper.cursor = _manageConn.cursor
     return _manageConn.cursor()
 
 def _accountsToTemplate(accounts):
@@ -175,6 +177,12 @@ def _getGroupPrivileges(gid):
     cursor.execute(sql)
     return cursor.dictfetchall()
 
+def _getPrivileges():
+    """Return a list of dictionaries containing valid privilege names
+    and their id numbers"""
+    privileges = navprofiles.Privilege.getAll(orderBy="privilegename")
+    return privileges
+
 def _getNextSequence(sequence):
     cursor = _profileCursor()
     sql = \
@@ -297,7 +305,7 @@ def account(req, id=None):
         # Sanitary work on arguments
         try:
             id = int(id)
-        except:
+        except TypeError:
             return "%s is not a valid account id" % repr(id)
 
         account = navprofiles.Account(id)
@@ -311,6 +319,8 @@ def account(req, id=None):
         page.account = _accountsToTemplate([account])[0]
         page.editable = account.ext_sync is None or account.ext_sync == ''
         page.account['groups'] = _groupsToTemplate(account.getGroups())
+        page.account['organizations'] = account.getOrgIds()
+        page.account['organizations'].sort()
     else:
         page.newAccount = True
         page.information = "Creating new account"
@@ -328,6 +338,7 @@ def account(req, id=None):
     # these
     groupIds = [ group['id'] for group in page.account['groups'] ]
     page.account['nongroups'] = _getGroups(excludeIds=groupIds)
+    page.orgTree = manage.getOrgTree()
 
     if req.session.has_key('statusMessage'):
         page.statusMessage = req.session['statusMessage']
@@ -343,7 +354,7 @@ def group(req, id=None):
     if id is not None:
         try:
             id = int(id)
-        except:
+        except TypeError:
             return "%s is not a valid group id" % repr(id)
 
         group = navprofiles.Accountgroup(id)
@@ -374,6 +385,7 @@ def group(req, id=None):
     # we may add new members to this group on this form.
     memberIds = [ member['id'] for member in page.group['members'] ]
     page.group['nonmembers'] = _getAccounts(excludeIds=memberIds)
+    page.privileges = _getPrivileges()
 
     if req.session.has_key('statusMessage'):
         page.statusMessage = req.session['statusMessage']
@@ -406,7 +418,7 @@ def groupsubmit(req, id=None, name=None, description=None):
         redir = 'group?id=%s' % id
         try:
             id = int(id)
-        except ValueError:
+        except TypeError:
             return "%s is not a valid group id" % id
 
         group = navprofiles.Accountgroup(id)
@@ -440,7 +452,7 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
         redir = 'account?id=%s' % id
         try:
             id = int(id)
-        except ValueError:
+        except TypeError:
             return "%s is not a valid account id" % id
 
         account = navprofiles.Account(id)
@@ -459,8 +471,8 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
             account.login = login
         if name != account.name:
             account.name = name
-        if password is not None and password != account.password:
-            account.password = password
+        if password is not None:
+            account.setPassword(password)
             
         try:
             account.save()
@@ -475,7 +487,7 @@ def accountdel(req, id=None, confirm=False):
     """Delete an account and redirect to the account list"""
     try:
         id = int(id)
-    except:
+    except TypeError:
         return "%s is not a valid account id" % id
 
     account = navprofiles.Account(id)
@@ -505,7 +517,7 @@ def groupdel(req, id=None, confirm=False):
     """Delete a group and redirect to the group list"""
     try:
         id = int(id)
-    except:
+    except TypeError:
         return "%s is not a valid account id" % id
 
     group = navprofiles.Accountgroup(id)
@@ -531,7 +543,151 @@ def groupdel(req, id=None, confirm=False):
         req.session['statusMessage'] = "Group '%s' (#%s) successfully deleted" % (name, id)
         web.redirect(req, "grouplist", seeOther=True)
 
+def grant(req, gid=None, pid=None, target=None):
+    """Grant a privilege to a group."""
+    if pid is None:
+        req.session['statusMessage'] = "You must select a privilege to grant first"
+        web.redirect(req, "group?id=%s" % gid)
+        
+    try:
+        gid = int(gid)
+        pid = int(pid)
+    except TypeError:
+        return "Invalid arguments"
+    if target is None:
+        return "Missing target"
+
+    group = navprofiles.Accountgroup(gid)
+    try:
+        group.load()
+    except forgetSQL.NotFound:
+        return "No such group id %s" % gid
+    
+    privilege = navprofiles.Privilege(pid)
+    try:
+        privilege.load()
+    except forgetSQL.NotFound:
+        return "No such privilege id %s" % pid
+
+    privrow = navprofiles.Accountgroupprivilege()
+    privrow.privilege = privilege.id
+    privrow.accountgroup = group.id
+    privrow.target = target
+    try:
+        if privrow.save():
+            req.session['statusMessage'] = "Successfully granted privilege '%s' for '%s'" % (privilege.name, target)
+        else:
+            req.session['statusMessage'] = "Failed to grant privilege '%s' for '%s'" % (privilege.name, target)
+    except psycopg.IntegrityError:
+        req.session['statusMessage'] = "Privilege '%s' is already granted for '%s'" % (privilege.name, target)
+    web.redirect(req, "group?id=%s" % gid)
+    
+def revoke(req, gid=None, pid=None, target=None):
+    """Revoke a privilege from a group."""
+    try:
+        gid = int(gid)
+        pid = int(pid)
+    except TypeError:
+        return "Invalid arguments"
+    if target is None:
+        return "Missing target"
+
+    privrow = navprofiles.Accountgroupprivilege(gid, pid, target)
+    try:
+        privrow.load()
+        privrow.delete()
+        privilege = navprofiles.Privilege(pid)
+        req.session['statusMessage'] = "Successfully revoked privilege '%s' for '%s'" % (privilege.name, target)
+    except forgetSQL.NotFound:
+        return "No such privilege has previously been granted"
+    
+    web.redirect(req, "group?id=%s" % gid)
+
+def orglink(req, uid=None, orgid=None):
+    """Add a user to one or more organizations"""
+    # First, sanitize arguments
+    if type(orgid) is str:
+        orgid = [orgid]
+    elif type(orgid) is not list:
+        return "Invalid arguments"
+    try:
+        uid = int(uid)
+    except TypeError:
+        return "Invalid arguments"
+
+    # Check the the account id is valid
+    try:
+        account = navprofiles.Account(uid)
+        account.load()
+    except forgetSQL.NotFound:
+        return "No such account id %s" % uid
+
+    # Check that all orgids are valid
+    for id in orgid:
+        org = manage.Org(id)
+        try:
+            org.load()
+        except forgetSQL.NotFound:
+            return "No such organization %s" % repr(id)
+
+    # Then, make the user member of all organizations
+    successful = []
+    for id in orgid:
+        link = navprofiles.Accountorg()
+        link.account = uid
+        link.orgid = id
+        try:
+            link.save()
+            successful.append(id)
+        except psycopg.IntegrityError:
+            pass
+
+    if len(successful) > 0:
+        req.session['statusMessage'] = "Successfully added %s to the following organizations: %s" % (
+            account.login, ",".join(successful))
+    else:
+        req.session['statusMessage'] = "%s was not added to any organizations" % account.login
+    web.redirect(req, "account?id=%s" % uid, seeOther=True)
+    
+
+def orgunlink(req, uid=None, orgid=None):
+    """Remove a user from one or more organizations"""
+    # First, sanitize arguments
+    if type(orgid) is str:
+        orgid = [orgid]
+    elif type(orgid) is not list:
+        return "Invalid arguments"
+    try:
+        uid = int(uid)
+    except TypeError:
+        return "Invalid arguments"
+
+    # Check the the account id is valid
+    try:
+        account = navprofiles.Account(uid)
+        account.load()
+    except forgetSQL.NotFound:
+        return "No such account id %s" % uid
+
+    # Then, remove the user from each organizations
+    successful = []
+    for id in orgid:
+        link = navprofiles.Accountorg(uid, id)
+        try:
+            link.load()
+            link.delete()
+            successful.append(id)
+        except forgetSQL.NotFound:
+            pass
+
+    if len(successful) > 0:
+        req.session['statusMessage'] = "Successfully removed %s from the following organizations: %s" % (
+            account.login, ",".join(successful))
+    else:
+        req.session['statusMessage'] = "%s was not removed from any organizations" % account.login
+    web.redirect(req, "account?id=%s" % uid, seeOther=True)
+    
+
 def index(req):
     """Default useradmin index page, shows the accountlist."""
     return accountlist(req)
-

@@ -36,6 +36,18 @@
 #end def
 
 
+#def add_orgtree($tree, $level=0)
+#set $levelled = '&nbsp;&nbsp;' * $level
+#set $orgs = $tree.keys()
+$orgs.sort()
+#for $org in $orgs
+    <option value="$org">$levelled$org</option>
+#if len($tree[$org]) > 0
+$add_orgtree($tree[$org], $level+1)
+#end if
+#end for
+#end def
+
 
 #block useradmin
 <form method="POST" action="accountsubmit">
@@ -61,6 +73,25 @@ $account.ext_sync
 #if not $newAccount
 
 <p><a href="accountdel?id=$account.id">DELETE</a> this account</p>
+
+<h3>Organizations</h3>
+
+<p>
+#if len($account.organizations) > 0
+#set $organizations = map(lambda s: "<a href=\"orgunlink?uid=%s&orgid=%s\">%s</a>" % ($account.id, s,s), $account.organizations)
+#set $orglist = ", ".join($organizations)
+  Member of the following organizations (click one to remove): <i>$orglist</i>
+#else
+  Not a member of any organizations.
+#end if
+</p>
+<form name="organizations" method="POST" action="orglink">
+  <input type="hidden" name="uid" value="$account.id" />
+  <select name="orgid" size="8" multiple>
+$add_orgtree($orgTree)
+  </select><br>
+  <input type="submit" value="Add to selected organizations" />
+</form>
 
 <h3>Group memberships</h3>
 

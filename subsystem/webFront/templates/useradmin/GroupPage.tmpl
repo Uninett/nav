@@ -9,6 +9,7 @@
 ##
 
 #extends UserAdmin
+#import urllib
 
 #def textfield($name, $value, $maxLength=0, $forceEditable=0)
 #if $editable or $forceEditable
@@ -30,7 +31,9 @@
 #end def
 
 #def add_privilege($privilege)
-  <b>$privilege.privilegename</b> to <code>$privilege.target</code><br>
+  <b>$privilege.privilegename</b> for <code>$privilege.target</code>
+  (<a href="revoke?gid=$group.id&pid=$privilege.privilegeid&target=$urllib.quote($privilege.target)">Revoke</a>)
+  <br>
 #end def
 
 ## 
@@ -54,14 +57,28 @@
 
 <h3>Privileges</h3>
 
-<p>(See <a
+<p><font size=-1>(See <a
 href="http://www.amk.ca/python/howto/regex/">http://www.amk.ca/python/howto/regex/</a>
 for a HOWTO on the Regular expressions used for matching targets for privileges
-like 'web_access'.)</p>
+like 'web_access'.)</font></p>
 
 #for $privilege in $group.privileges
 $add_privilege($privilege)
 #end for
+
+  <h4>Grant privileges:</h4>
+  <form name="privileges" action="grant">
+    <p>
+      <input type="hidden" name="gid" value="$group.id" />
+      <select name="pid" size="1">
+#for $privilege in $privileges
+        <option value="$privilege.id">$privilege.name</option>
+#end for      
+      </select>
+      <b>Target:</b><input type="text" name="target" value="" size="60" /><br>
+      <input type="submit" value="Grant" />
+    </p>
+  </form>
 
 <h3>Member list</h3>
 

@@ -12,6 +12,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import nav.db
 from nav.db.forgotten.navprofiles import *
+import md5
 
 class Account(nav.db.forgotten.navprofiles.Account):
     def getGroups(self):
@@ -87,13 +88,29 @@ class Account(nav.db.forgotten.navprofiles.Account):
         interpret this as: 'The user is not allowed to log in'
 
         In the future, this could be extended to accept other types of
-        authentication tokes, such as personal certificates or
+        authentication tokens, such as personal certificates or
         whatever.
         """
-        if not self.password.strip():
+        if len(self.password.strip()) > 0:
+            # If the stored password is indicated to be an md5 hash,
+            # we compute the md5 hash of the supplied password for
+            # comparison.
+            if self.password[:3] == 'md5':
+                hash = md5.md5(password)
+                return (hash.hexdigest() == self.password[3:])
+            else:
+                return (password == self.password)
+        else:
             return False
 
-        return (password == self.password)
+    def setPassword(self, password):
+        """Set the password of this account. The password parameter is
+        the plaintext password.  Physically, the password field might
+        be an md5 hash of the plaintext password."""
+        if len(password.strip()) > 0:
+            self.password = "md5%s" % md5.md5(password).hexdigest()
+        else:
+            self.password = ""
 
 class Accountgroup(Accountgroup):
     def getMembers(self):
@@ -110,6 +127,11 @@ def _customizeTables():
     """
     nav.db.forgotten.navprofiles._Wrapper.cursor = nav.db.cursor
     nav.db.forgotten.navprofiles._Wrapper._dbModule = nav.db.driver
+
+    # Fix Privilege
+    Privilege._sqlFields['name'] = 'Privilege.privilegename'
+    Privilege._sqlFields['id'] = 'Privilege.privilegeid'
+    Accountgroupprivilege._sqlPrimary = ('accountgroup', 'privilege', 'target')
 
     # Fix Accountingroup
     if Accountingroup._sqlFields.has_key('groupid'):

@@ -193,6 +193,38 @@ class AlerthistNetbox(forgotten.manage._Wrapper):
     _sqlTable =  'alerthist'
     _descriptions =  {}
 
+def _buildOrgTree(tree, intermediate, key=None):
+    """Recursively builds a tree structure for the parent/child
+    relationships described in the flat intermediate dictionary."""
+    if intermediate.has_key(key):
+        for org in intermediate[key]:
+            tree.update( {org: {}} )
+            _buildOrgTree( tree[org], intermediate, key=org)
+
+def _getOrgIntermediate():
+    """Returns a dictionary, keys being the ids of organizations with
+    children, values being a list of organization ids of the children.
+    In effect, it is a flat structure describing the parent/child
+    relationships of the organizational hierarchy.  The intermediate
+    dictionary returned can be fed to _buildOrgTree() which will
+    return a tree representation of the hierarchy."""
+    
+    orgObject = Org()
+    intermediate = {}
+    iterator = Org.getAllIterator(useObject = orgObject)
+    for org in iterator:
+        if org.parent not in intermediate.keys():
+            intermediate[org.parent] = []
+        intermediate[org.parent].append(org.orgid)
+    return intermediate
+
+def getOrgTree():
+    """Returns a dictionary based tree structure of the organization
+    hierarchy stored in the database."""
+    orgTree = {}
+    _buildOrgTree(orgTree, _getOrgIntermediate())
+    return orgTree
+    
 _isIP = re.compile(r"^(\d{1,3}(\.\d{1,3}){3})$")
 _isNum = re.compile(r"^\d+$")
 
