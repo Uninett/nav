@@ -935,6 +935,8 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/$');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/toolbox\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/index(.py)?/(index|login|logout|userinfo|passwd)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages/(rss|historic|active|planned|view|maintenance)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages\\b');
 
 -- Give read access to most informational tools for ReadAll group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
