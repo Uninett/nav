@@ -13,7 +13,7 @@ use POSIX qw(strftime);
 my ($res, $filnavn);
 
 my $now_string = strftime "%e %w %A %B %W", localtime;
-my ($dayofmonth, $dayofweek, $weekday, $month, $weeknumber) = split(/\s/, $now_string);
+my ($dummy, $dayofmonth, $dayofweek, $weekday, $month, $weeknumber) = split(/\s/, $now_string);
 
 my $conf = '/usr/local/nav/local/etc/conf/pgpasswd.conf';
 
@@ -52,8 +52,6 @@ else
 {
 	$filnavn = "fullbackup_postgres_$weekday";
 }
-
-print "$logfil\n";
 
 open(LOGFIL,">>$logfil");
 
