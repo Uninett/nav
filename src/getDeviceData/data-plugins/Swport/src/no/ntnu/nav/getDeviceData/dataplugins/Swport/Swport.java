@@ -167,7 +167,13 @@ public class Swport implements Comparable
 	/**
 	 * Set the port name
 	 */
-	public void setPortname(String s) { portname = trim(s); }
+	public void setPortname(String s) {
+		if (s != null && s.trim().length() > 0) {
+			portname = s.trim();
+		} else {
+			portname = null;
+		}
+	}
 
 	Integer getVlan() { return vlan; }
 	String getVlanS() { return string(vlan); }
