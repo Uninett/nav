@@ -1188,6 +1188,8 @@ class ModuleHistoryBox(SectionBox):
               "WHERE alerthist.netboxid = netbox.netboxid AND "+\
               "alerthist.subid=module.moduleid AND " +\
               "alerthist.eventtypeid='moduleState' AND " +\
+              "(alerttype.alerttype='moduleDown' OR " +\
+              "alerttype.alerttype='moduleUp') AND " +\
               "date(start_time) = '%s' " %(self.date,)
             
         if self.moduleid:
