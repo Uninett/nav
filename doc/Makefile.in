@@ -10,13 +10,20 @@ INSTALL = @INSTALL@
 
 # File lists
 
-docsql = sql/README sql/manage.sql sql/navprofiles.sql sql/snmpoid.sql
+docfiles = sql/logger.sql \
+           sql/manage.sql \
+           sql/navprofiles.sql \
+           sql/README \
+           sql/snmpoid.sql \
+           sql/upgrades/3.0_beta7.sql \
+           sql/upgrades/README \
+           getting-started.txt
 
 .PHONY: all install
 
 all:
 
 install:
-	@for file in $(docsql); do \
+	@for file in $(docfiles); do \
 	  $(INSTALL) -v -m 644 -D $$file $(DESTDIR)$(docdir)/$$file || exit 1; \
 	done
