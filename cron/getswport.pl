@@ -96,52 +96,34 @@ my $trunk_iossw    = "1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
 &hent_db_boks;
 &hent_db_swport;
 
-#&hent_db_swportvlan;
-
 #henter snmp-data og legger dem i hashen swport
-foreach my $boksid ("2") { #keys boks
-
-#    if ($boks{$boksid}{sysname} eq 'rfb-409-sw')
-#    {
-	&hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
-	
-#    }
+foreach my $boksid ("609") { #keys %boks 584 609 2
+    &hent_snmpdata($boksid,$boks{$boksid}{typegruppe});
 }
 
 print "går videre";
 ##swid består av boksid og ifindex
 #foreach $swid (keys %swport) {
-for my $boks (keys %swportvlan) {
-    for my $ifindex (keys %{$swportvlan{$boks}}) {
+for my $boks (keys %swport) { #swportvlan
+    for my $ifindex (keys %{$swport{$boks}}) {
 	&sammenlikn_ny(\@{$swport{$boks}{$ifindex}},\@{$db_swport{$boks}{$ifindex}},\@felt_swport, "swport","swportid",$sw2id{$boks}{$ifindex});
     }
 }
 
-#    (my $boksid, my $ifindex) = split /:/,$swid;
-#    my $swportid = $sw2id{$boksid}{$ifindex};
-#    if (defined($swportid) && $swportid ne ""){
-#        if($swport{$swid}[7] eq "t") { #trunk
-#            #henter ut alle vlan og legger inn i hashen swportvlan
-#            &hent_snmpdata_vlan($swid,$swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
-#	    print "\ntrunk\n";
-#        } else {
-#            #henter ut det ene, siden ikke trunk, og legger i swportvlan
-#            &hent_snmpdata_ett_vlan($swportid,$boks{$boksid}{ip},$boks{$boksid}{ro},$boks{$boksid}{typegruppe});
-#        }
-#    }
-
-#    &sammenlikn(\%swport,\%db_swport,\@felt_swport,"swport",$swid,$swportid);
-#}
 
 #henter inn databaser
 
 my %swportid = ();
 &hent_db_swport;
 
+for my $boks (keys %swportvlan) {
+    print "$boks   $swportvlan{$boks}.\n";
+}
 &hent_db_swportvlan;
+&hent_db_swportallowedvlan;
 print "hei";
-print @{$swportvlan{149}{3}}[0..3];
-print $sw2id{149}{3};
+print @{$swportvlan{2}{3}}[0..3];
+print $sw2id{2}{3};
 print "hopp";
 for my $boks (keys %swportvlan) {
     for my $ifindex (keys %{$swportvlan{$boks}}) {
@@ -158,6 +140,8 @@ for my $boks (keys %swportvlan) {
 for my $boks (keys %swportallowedvlan) {
     for my $ifindex (keys %{$swportvlan{$boks}}) {
 	if ($swportallowedvlan{$boks}{$ifindex}[0]){
+	    print @{$swportvlan{$boks}{$ifindex}}[0..1],"\n";
+	    print $sw2id{$boks}{$ifindex},"\n";
 	    @{$swportallowedvlan{$boks}{$ifindex}} = ($sw2id{$boks}{$ifindex},$swportallowedvlan{$boks}{$ifindex}[0]);
 	    &sammenlikn_ny(\@{$swportallowedvlan{$boks}{$ifindex}},\@{$db_swportallowedvlan{$boks}{$ifindex}},\@felt_swportallowedvlan, "swportallowedvlan", "swportid",$sw2id{$boks}{$ifindex});
 	}
@@ -173,7 +157,7 @@ sub sammenlikn_ny {
     my $nokkel = $_[4];
     my $treff = $_[5];
 
-    print @gammel[0];
+    print $gammel[0],"\n\n\n";
     if($gammel[0]) {
 #    if ($treff) {
 	for my $i  (0..$#felt) {
@@ -249,21 +233,12 @@ sub hent_catsw
     my $ip = $_[0];
     my $ro = $_[1];
     my $id = $_[2];
-    my $swid;
     my @temp;
-    my @temp2;
     my $line;
-    my $line2;
-    my $vlans;
-    my %hash;
     my %if;
     my %mp2if;
     my $temp;
     my $mp;
-    my %vlan;
-    my $vlanid;
-
-    my %tempvlan = ();
 
 #mp og temp bør sees på som midlertidige variabler, selv om mp noen ganger faktisk er modul.port.
 
@@ -273,12 +248,11 @@ sub hent_catsw
     }
 
     foreach $line (@temp)    {
-	($mp,$temp) = split(/:/,$line);
-	$mp2if{$mp} = $temp; 
-	$if{$temp}{mp} = $mp;
-	$if{$temp}{ifindex} = $temp;
-	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
-#	$ii2mp{$temp} = $mp;
+	($mp,my $ifi) = split(/:/,$line);
+	$mp2if{$mp} = $ifi; 
+	$if{$ifi}{mp} = $mp;
+	$if{$ifi}{ifindex} = $ifi;
+#	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
     }
     
     @temp = &snmpwalk($ro."\@".$ip,$Duplex_catsw);
@@ -294,23 +268,17 @@ sub hent_catsw
 	{
 	    $if{$mp2if{$mp}}{duplex} = 'full'; 
 	}
-
-	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
-	
-#	$ii2mp{$temp} = $mp;
+#	print "DUPLEX".$mp.":".$temp.":".$mp2if{$mp}."\n";
     }
     @temp = &snmpwalk($ro."\@".$ip,$portType_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
 	$if{$mp2if{$mp}}{porttype} = $temp; 
-	print "PORTTYPE".$mp2if{$mp}.":".$temp."\n";
-	
-#	$ii2mp{$temp} = $mp;
+#	print "PORTTYPE".$mp2if{$mp}.":".$temp."\n";
     }
     @temp = &snmpwalk($ro."\@".$ip,$Status_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-
 # Oversetter fra tall til up/down
 	if ($temp == 2)
 	{
@@ -320,74 +288,40 @@ sub hent_catsw
 	{
 	    $if{$mp2if{$mp}}{status} = 'down'; 
 	}
-
-	print "STATUS".$mp.":".$temp."\n";
-	
-#	$ii2mp{$temp} = $mp;
+#	print "STATUS".$mp.":".$temp."\n";
     }
     @temp = &snmpwalk($ro."\@".$ip,$Speed);
     foreach $line (@temp)    {
 	(my $if,$temp) = split(/:/,$line);
 	$temp = ($temp/1e6);
 	$temp =~ s/^(.{0,10}).*/$1/; #tar med de 10 første tegn fra speed
-
 	$if{$if}{speed} = $temp; 
-	print "SPEED".$if.":".$temp."\n";
-	
-#	$ii2mp{$temp} = $mp;
+#	print "SPEED".$if.":".$temp."\n";
     }
 
-    @temp = ();
     @temp = &snmpwalk($ro."\@".$ip,$trunk_catsw);
     foreach $line (@temp)    {
 	($mp,$temp) = split(/:/,$line);
-	print $line,"\n";
-#	$temp %= 2; 
-	print $temp,"\n";
 	if ($temp == 1)
 	{
 	    $if{$mp2if{$mp}}{trunk} = 't';
-#	    foreach $temp (keys %tempvlan)
-#	    {
-#		print "$mp\t$temp\n";
-#		$vlanid = "$id:$mp2if{$mp}:$temp";
-#		$swportvlan{$vlanid}++;
-	    my $vlanhex;
-	    ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.5.1.9.3.1.5.$mp");
-	    print $vlanhex = unpack "H*", $vlanhex;
+	    my ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.5.1.9.3.1.5.$mp");
+	    $vlanhex = unpack "H*", $vlanhex;
 	    $if{$mp2if{$mp}}{vlanhex} = $vlanhex;
-#	    } 
-	    
-	}
-	else {
+	} else {
 	    $if{$mp2if{$mp}}{trunk} = 'f';
-	    my @temp2 = &snmpwalk($ro."\@".$ip,$vlan_catsw);
-#	    foreach $line (@temp2) {
-		($mp,my $temp2) = split(/:/,$line);
-		print $if{$mp2if{$mp}}{vlan} = $temp2,"\n";
-		
-#		print "VLAN $mp\t$mp2if{$mp}\t$temp2\t$if{$mp2if{$mp}}{vlan}\n";
-		
-#		$vlanid = "$id:$mp2if{$mp}:$if{$mp2if{$mp}}{vlan}"; 
-#		$swportvlan{$vlanid}++;
-		
-#		$temp2vlan{$temp}++;
-	    }
-#	}
-
+	    my ($temp2) = &snmpget($ro."\@".$ip,$vlan_catsw.".".$mp);
+	    $if{$mp2if{$mp}}{vlan} = $temp2;
+	}
 	print "TRUNK $mp\t$mp2if{$mp}\t$temp\t$if{$mp2if{$mp}}{trunk}\n";
-	
-#	$ii2mp{$temp} = $mp;
     }
     
-
     @temp = &snmpwalk($ro."\@".$ip,$portName_catsw);
     foreach $line (@temp)
     {
 	($mp,$temp) = split(/:/,$line,2);
 	$if{$mp2if{$mp}}{portnavn} = $temp; 
-	print "NAME".$mp2if{$mp}.":".$temp."\n";
-
+#	print "NAME".$mp2if{$mp}.":".$temp."\n";
     }
 
     foreach my $interface (keys %if) 
@@ -397,8 +331,8 @@ sub hent_catsw
 	{
 	    my $boksid = $id;
 	    my $ifindex = $if{$interface}{ifindex};
-	    
-	    $swid = join(":",($id,$if{$interface}{ifindex}));
+
+#	    $swid = join(":",($id,$if{$interface}{ifindex}));
 	    $swport{$boksid}{$ifindex} = [ $id, 
 					   $modul, 
 					   $port, 
@@ -424,17 +358,12 @@ sub hent_iossw {
     my $ip = $_[0];
     my $ro = $_[1];
     my $id = $_[2];
-    my $swid;
     my @temp;
     my $line;
-    my %hash;
     my %if;
     my %mp2if;
     my $temp;
     my $mp;
-    my %vlan;
-    my %tempvlan = ();
-    my $vlanid;
 
     @temp = &snmpwalk($ro."\@".$ip,$IfIndex_iossw);
     unless ($temp[0]) {
@@ -446,7 +375,7 @@ sub hent_iossw {
 	$mp =~ s/FastEthernet/Fa/i;
 	$mp =~ s/GigabitEthernet/Gi/i;
 	($if{$temp}{modul}, $if{$temp}{port}) = split /\//,$mp;
-#	$mp2if{$mp} = $temp; 
+	print $if{$temp}{modul},"\.",$if{$temp}{port};
 	$if{$temp}{ifindex} = $temp;
 #	print "IFINDEX".$mp.":".$temp.":".$if{$temp}{ifindex}."\n";
 #	$ii2mp{$temp} = $mp;
@@ -510,50 +439,20 @@ sub hent_iossw {
 #	$ii2mp{$temp} = $mp;
     }
 
-    @temp = &snmpwalk($ro."\@".$ip,$vlan_iossw);
-    foreach $line (@temp) {
-	(my $ifi,$temp) = split(/:/,$line);
-	$if{$ifi}{vlan} = $temp;
-	
-#	print "VLAN $ifi\t$temp\t$if{$ifi}{vlan}\n";
-
-	$vlanid = "$id:$ifi:$temp"; 
-	$swportvlan{$vlanid}++;
-
-	$tempvlan{$temp}++;
-	
-    }
-    
     @temp = &snmpwalk($ro."\@".$ip,$trunk_iossw);
     foreach $line (@temp)    {
 	(my $port,$temp) = split(/:/,$line);
 	my $ifi = $port+1;
-	# $temp=0 betyr trunk, ikke ellers.
 
 	if ($temp == 0) {
 	    $if{$ifi}{trunk} = 't';
-
-	    my $vlanhex;
-	    ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.9.46.1.6.1.1.4.$mp");
+	    my ($vlanhex) = &snmpget($ro."\@".$ip,"1.3.6.1.4.1.9.9.46.1.6.1.1.4.$ifi");
 	    print $vlanhex = unpack "H*", $vlanhex;
-	    $if{$mp2if{$mp}}{vlanhex} = $vlanhex;
-
-#	    foreach my $temp2 (keys %tempvlan)
-#	    {
-#		print "$mp\t$temp\n";
-#		$vlanid = "$id:$ifi:$temp2";
-#		$swportvlan{$vlanid}++;
-#	    }	    
-	}
-	else {
+	    $if{$ifi}{vlanhex} = $vlanhex;
+	} else {
 	    $if{$ifi}{trunk} = 'f';  
-	    my @temp2 = &snmpwalk($ro."\@".$ip,$vlan_catsw);
-
-		($mp,my $temp2) = split(/:/,$line);
-		print $if{$mp2if{$mp}}{vlan} = $temp2,"\n";
-
-
-
+	    my ($temp2) = &snmpget($ro."\@".$ip,$vlan_iossw.".".$ifi);
+	    $if{$ifi}{vlan} = $temp2;
 	}
 
     }
@@ -570,25 +469,25 @@ sub hent_iossw {
 
     foreach my $interface (keys %if) {
 	unless ($if{$interface}{modul} =~ /Null0|Vlan1|Tunnel0/i) {
-#	(my $modul, my $port) = split /\./,$if{$interface}{mp};
+	(my $modul, my $port) = split /\./,$if{$interface}{mp};
 	    if(defined($if{$interface}{ifindex})){
-		$swid = join(":",($id,$if{$interface}{ifindex}));
+#		$swid = join(":",($id,$if{$interface}{ifindex}));
 		my $boksid = $id;
 		my $ifindex = $if{$interface}{ifindex};
-		$swport{$swid} = [ $id, 
-				   $if{$interface}{modul}, 
-				   $if{$interface}{port}, 
-				   $if{$interface}{ifindex}, 
-				   $if{$interface}{status},
-				   $if{$interface}{speed},
-				   $if{$interface}{duplex},
-				   $if{$interface}{trunk},
-				   $if{$interface}{static},
-				   $if{$interface}{portnavn},
-				   $if{$interface}{boksbak} ];
-	    $swportvlan{$boksid}{$ifindex} = [ $if{$interface}{vlan} ];
-	    $swportallowedvlan{$boksid}{$ifindex} = [ $if{$interface}{vlanhex} ];
-
+		$swport{$boksid}{$ifindex} = [ $id, 
+					       $if{$interface}{modul}, 
+					       $if{$interface}{port}, 
+					       $if{$interface}{ifindex}, 
+					       $if{$interface}{status},
+					       $if{$interface}{speed},
+					       $if{$interface}{duplex},
+					       $if{$interface}{trunk},
+					       $if{$interface}{static},
+					       $if{$interface}{portnavn},
+					       $if{$interface}{boksbak} ];
+		$swportvlan{$boksid}{$ifindex} = [ $if{$interface}{vlan} ];
+		$swportallowedvlan{$boksid}{$ifindex} = [ $if{$interface}{vlanhex} ];
+		
 #		print "$swid: $interface\t$if{$interface}{trunk}\t$swport{$swid}[1]\t$swport{$swid}[2]\t$swport{$swid}[7]\n";
 
 #	    $vlan{$swid} = [ $if{$interface}{vlan} ];
@@ -703,58 +602,29 @@ sub hent_db_swport
 sub hent_db_swportvlan
 {
 
-#    my $sql1 = "SELECT swportid,boksid,ifindex FROM swport";
-
-#    my $sql2 = "SELECT swportid,vlan FROM swportvlan";
-    
-#    my $resultat1 = db_select($sql1,$conn);
-#    while(@_ = $resultat1->fetchrow) 
-#    {
-#	@_ = map rydd($_), @_;
-
-#	$swportid{$_[1]}{$_[2]} = $_[0];
-
-#	$temp1{$_[0]} = "$_[1]:$_[2]"; 
-
-#    }
-    
-#    my $resultat2 = db_select($sql2,$conn);
-#    while(@_ = $resultat2->fetchrow) 
-#    {
-#	@_ = map rydd($_), @_;
-
-	#lager entydig nøkkel og legger inn i hashen db_swport
-#	my $id = join(":",$temp1{$_[0]},$_[1]);
-	
-#	$db_swportvlan{$id}++;
-#    }    
-#}
     my $sql = "SELECT boksid,ifindex,".join(",",@felt_swportvlan)." FROM swport natural join swportvlan";
     
     my $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
     {
 	@_ = map rydd($_), @_;
-#	print @_[2..$#_],"\n";
-#	my $id = join(":",$_[0],$_[1]);
 	$db_swportvlan{$_[0]}{$_[1]} = [ @_[2..$#_] ];
+	print $db_swportvlan{$_[0]}{$_[1]}[0..1],"\n";
     }    
 }
 
 
 sub hent_db_swportallowedvlan
 {
-
-    my %temp = ();
-
     my $sql = "SELECT  boksid,ifindex,".join(",",@felt_swportallowedvlan)." FROM swport natural join swportallowedvlan";
     
     my $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
     {
 	@_ = map rydd($_), @_;
-
 	$db_swportallowedvlan{$_[0]}{$_[1]} = [ @_[2..$#_] ];
+	print $db_swportallowedvlan{$_[0]}{$_[1]}[0..4],"\n";
+
     }    
 }
 
