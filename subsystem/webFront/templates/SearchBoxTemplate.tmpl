@@ -1,0 +1,40 @@
+## $Id: $
+##
+## This file is a part of the NAV project.
+##
+## Contains a template function for displaying a
+## SearchBox object
+##
+## Last changed: 2003.09.14
+## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+##
+
+#def searchbox($s)
+   <form name="$s.formCname" method="$s.method"><p>
+   <table title="$s.help" style="border: solid black 2px; width: 30%; background: #eeeeee;">
+        <tr>
+            <th colspan="2" style="text-align: left;">
+                $s.title
+#if $s.error
+                <span style="color: #f00;">($s.error)</span>
+#end if
+ #if $s.result
+                <span style="color: #090;">($s.result)</span>
+#end if
+            </th>
+        </tr>
+        <tr>
+            <td style="width: 40%;"><select style="width: 100%;" name="$s.typeCname">
+#for $sid,$options in $s.searches.items()
+#if $s.selected == $sid
+            <option selected value="$sid">$options[0]</option>
+#else
+            <option value="$sid">$options[0]</option>
+#end if
+#end for
+            </select></td>
+            <td><input style="width: 100%;" size="$s.inputSize" type="text" name="$s.inputCname"></td>
+        </tr>
+    </table>
+    </p></form>
+#end def
