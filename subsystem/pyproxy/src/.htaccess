@@ -1,0 +1,4 @@
+SetHandler python-program
+PythonHandler nav.web.pyproxy.proxy
+DirectoryIndex index
+
