@@ -29,7 +29,7 @@ DELETE FROM snmpoid WHERE oidkey='3cSwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cSwVer', '1.3.6.1.4.1.43.10.27.1.1.1.12','3com','Software version number');
 
 
--- Cisco
+-- Cisco switch
 
 DELETE FROM snmpoid WHERE oidkey='c1900Duplex';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('c1900Duplex', '1.3.6.1.4.1.437.1.1.3.3.1.1.8','Cisco','Duplex status');
@@ -56,6 +56,25 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cMenuTrunk', '1
 DELETE FROM snmpoid WHERE oidkey='cMenuVlan';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cMenuVlan', '1.3.6.1.4.1.9.5.14.8.1.1.3','Cisco','Port trunk state');
 
+-- Cisco router
+
+DELETE FROM snmpoid WHERE oidkey='cCardIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardIndex', '1.3.6.1.4.1.9.3.6.11.1.1','Cisco','Slot card type');
+
+DELETE FROM snmpoid WHERE oidkey='cCardDescr';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardDescr', '1.3.6.1.4.1.9.3.6.11.1.3','Cisco','Slot card description');
+
+DELETE FROM snmpoid WHERE oidkey='cCardSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardSerial', '1.3.6.1.4.1.9.3.6.11.1.4','Cisco','Slot card serial');
+
+DELETE FROM snmpoid WHERE oidkey='cCardHwVersion';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardHwVersion', '1.3.6.1.4.1.9.3.6.11.1.5','Cisco','Slot card hardware version');
+
+DELETE FROM snmpoid WHERE oidkey='cCardSwVersion';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardSwVersion', '1.3.6.1.4.1.9.3.6.11.1.6','Cisco','Slot card software version');
+
+DELETE FROM snmpoid WHERE oidkey='cCardSlotNumber';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cCardSlotNumber', '1.3.6.1.4.1.9.3.6.11.1.7','Cisco','Slot card slotnumber mapping');
 
 -- HP switch
 
