@@ -15,6 +15,8 @@ pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 pathmodule = src/nav/path.py
 
+config = rrdBrowser.conf
+
 .PHONY: all install install-lib install-bin clean distclean
 
 all: $(pathmodule)
@@ -43,8 +45,16 @@ install-lib: $(pathmodule)
 install-bin:
 	cd bin; \
 	$(INSTALL) -v -D -m 755 hasPrivilege.py $(DESTDIR)$(bindir)/hasPrivilege.py
+
 install-conf:
-	$(INSTALL) -v -D -m 644 *.conf $(DESTDIR)$(sysconfdir)/.
+	for file in $(config); do                              \
+	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target;           \
+	  fi                                                   \
+	done
 
 clean:
 	backups=`find src -name '*~'`; \
