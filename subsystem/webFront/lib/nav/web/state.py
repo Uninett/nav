@@ -256,7 +256,12 @@ class Session(dict):
 
     def mtime(self):
         """ Return the mtime of the stored session file."""
-        return path.getmtime(sessionFilename(self))
+        try:
+            return path.getmtime(sessionFilename(self))
+        except OSError, e:
+            # If this was a new session, it hasn't been stored to disk
+            # yet, so we just report the current time.
+            return time.time()
 
     def touch(self):
         """ Update the mtime of the stored session file."""
