@@ -42,7 +42,8 @@ class Box:
         try:
             ip = gethostbyname(hostname)
         except error, e:
-            
+
+            ip = identifier
             try:
                 #id er ip-adresse
                 ip = inet_aton(identifier)
@@ -78,51 +79,66 @@ class Box:
 
         typeidsql = "select typeid from type where sysobjectid = '%s'"%sysobjectid
         handle.execute(typeidsql)
-        typeid = handle.fetchone()[0]
-
+        try:
+            typeid = handle.fetchone()[0]
+        except TypeError:
+            typeid = None
+        #hae? hva gjør denne?
         snmpversion = 1
 
         return typeid
 
     def getDeviceId(self):
         """
-        Uses all the defined OIDs for serial number, and 
+        Uses all the defined OIDs for serial number
         """
+        
+        sql = "select snmpoid,getnext from snmpoid where oidkey ilike '%serial%'"
+        connection = getConnection("bokser")
+        handle = connection.cursor()
+        handle.execute(sql)
 
         snmp = Snmp(self.ip,self.ro,self.snmpversion)
-        for oid in file(SERIAL_OIDS_FILENAME):
+        serial = ""
+        for oidtuple in handle.fetchall():#file(SERIAL_OIDS_FILENAME):
+            oid = oidtuple[0]
+            getnext = oidtuple[1]
+            print oidtuple
+            if not oid.startswith("."):
+                oid = "."+oid
             try:
-                #print "prøver "+oid.strip()
-                serial = snmp.get(oid.strip())
-                #print serial
-            except TimeOutException:
-                serial = ""
-
+                #if getnext==1:
+                #    result = snmp.walk(oid.strip())
+                #    print result
+                #    if result:
+                #        serial = result[0][1]
+                #        print serial
+                #else:
+                    serial = snmp.get(oid.strip()).strip()
+            except:
+                pass
             if serial:
                 break
         self.serial = serial
 
+        print serial
         if serial:
             return self.getDeviceIdFromSerial(serial)
 
 
     def getDeviceIdFromSerial(self,serial):
 
+        devlist = []
         sql = "select deviceid,productid from device where serial='%s'" % serial
         connection = getConnection("bokser")
         handle = connection.cursor()
         handle.execute(sql)
         for record in handle.fetchall():
-            self.deviceIdList.append(record[0])
+            devlist.append(record[0])
 
-        if self.deviceIdList:
-            return self.deviceIdList
-        else:
-            return
-            #raise ValueError("Deviceid not found for serial %s" % serial)
-            #f = file(filename).readfile()
-        
-
+        if devlist:
+            self.deviceIdList = devlist
+            return devlist
      
     def getSnmpVersion(self,identifier,ro):
         """
