@@ -170,13 +170,25 @@ public class GwportHandler implements DataHandler {
 		try {
 			ResultSet rs;
 
-			Map prefixMap = new HashMap();
-			rs = Database.query("SELECT prefixid,netaddr FROM prefix");
-			while (rs.next()) prefixMap.put(rs.getString("netaddr"), rs.getString("prefixid"));
+			Map prefixDbMap = new HashMap();
+			rs = Database.query("SELECT prefixid,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix");
+			while (rs.next()) {
+				Vlan vl = new Vlan(null);
+				vl.setVlanid(rs.getInt("vlanid"));
+				Prefix p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vl);
+				prefixDbMap.put(rs.getString("netaddr"), p);
+			}
+
+			Map gwpDbMap = new HashMap();
+			rs = Database.query("SELECT gwportid,gwip,hsrp,netaddr FROM gwportprefix JOIN prefix USING(prefixid)");
+			while (rs.next()) {
+				Prefix p = (Prefix)prefixDbMap.get(rs.getString("netaddr"));
+				Gwportprefix gp = new Gwportprefix(rs.getString("gwip"), rs.getBoolean("hsrp"), p);
+				gwpDbMap.put(rs.getString("gwip"), gp);
+			}
 
 			// module, gwport, prefix, vlan
 			Map moduleMap = new HashMap();
-			Map vlanDbMap = new HashMap();
 			rs = Database.query("SELECT device.deviceid,serial,hw_ver,sw_ver,moduleid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,prefix.prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,vlan.orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) JOIN netbox USING(netboxid) WHERE netboxid=" + nb.getNetboxid() + " ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
@@ -341,7 +353,7 @@ public class GwportHandler implements DataHandler {
 						// Then gwportprefix / prefix
 						Gwportprefix oldgp = oldgwp == null ? null : oldgwp.getGwportprefix(gwip);
 						String prefixid;
-						if (oldgp == null && !prefixMap.containsKey(p.getCidr())) {
+						if (oldgp == null && !prefixDbMap.containsKey(p.getCidr())) {
 							// Insert new
 							Log.d("NEW_PREFIX", "Creating vlan: " + vl);
 							
@@ -362,39 +374,51 @@ public class GwportHandler implements DataHandler {
 							};
 							Database.insert("gwportprefix", ins2);
 							
-						} else if (oldgp == null) {
+						} else if (oldgp == null && !gwpDbMap.containsKey(gp.getGwip())) {
 							// Insert into gwportprefix
 							Log.d("APPEND_TO_PREFIX", "Prefix: " + p);
 							
 							String[] ins = {
 								"gwportid", gwportid,
-								"prefixid", (String)prefixMap.get(p.getCidr()),
+								"prefixid", ((Prefix)prefixMap.get(p.getCidr())).getPrefixidS(),
 								"gwip", gp.getGwip(),
 								"hsrp", gp.getHsrp()?"t":"f"
 							};
 							Database.insert("gwportprefix", ins);
+						} else {
+							// oldgp == null -> we must update prefix/gwportprefix
+							// oldgp != null -> only update prefix/gwportprefix if changed
+							oldgp = (Gwportprefix)gwpDbMap.get(gp.getGwip());
+							oldp = (Prefix)prefixDbMap.get(p.getCidr());
 
-							// FIXME
-							/*
-							vlanid = oldgwp.getVlanidS();
-							if (!vl.equalsVlan(dbvlan)) {
-								// Vi må oppdatere
-								Log.d("UPDATE_VLAN", "Update vlan " + vl);
+							if (!p.equalsPrefix(oldp)) {
+								// Update prefix
+								Log.d("UPDATE_PREFIX", "Update prefix " + p);
 								String[] set = {
-									"vlan", vl.getVlanS(),
-									"nettype", vl.getNettype(),
-									"orgid", vl.getOrgid(),
-									"usageid", vl.getUsageid(),
-									"netident", vl.getNetident(),
-									"description", vl.getDescription()
+								"netaddr", p.getCidr(),
+								"vlanid", vlanid
 								};
 								String[] where = {
-									"vlanid", vlanid
+									"prefixid", oldp.getPrefixidS()
 								};
-								Database.update("vlan", set, where);
+								Database.update("prefix", set, where);
 							}
-							*/
+
+							if (!gp.equalsGwportprefix(oldgp)) {
+								// Update gwportprefix
+								Log.d("UPDATE_GWPORTPREFIX", "Update gwportprefix " + gp);
+								String[] set = {
+									"gwportid", gwportid,
+									"prefixid", oldp.getPrefixidS(),
+									"hsrp", gp.getHsrp()?"t":"f"
+								};
+								String[] where = {
+									"gwip", gp.getGwip()
+								};
+								Database.update("gwportprefix", set, where);
+							}
 						}
+
 
 						/*
 						if (vl.getNettype().equals("unknown")) {

@@ -24,5 +24,15 @@ class Gwportprefix
 	boolean getHsrp() { return hsrp; }
 	Prefix getPrefix() { return prefix; }
 
+	public boolean equalsGwportprefix(Gwportprefix gp) {
+		return (gwip.equals(gp.gwip) &&
+						hsrp == gp.hsrp &&
+						prefix.getPrefixid() == gp.prefix.getPrefixid());
+	}
+
+	public boolean equals(Object o) {
+		return (o instanceof Gwportprefix && 
+						equalsGwportprefix((Gwportprefix)o));
+	}
 
 }

@@ -90,24 +90,16 @@ public class Prefix implements Comparable
 	void getRootgwid() { return rootgwid; }
 	*/
 
-	/*
-	public boolean equalsGwport(Gwport gw) {
-		return (port.equals(sw.port) &&
-						ifindex.equals(sw.ifindex) &&
-						link == sw.link &&
-						speed.equals(sw.speed) &&
-						duplex == sw.duplex &&
-						media.equals(sw.media) &&
-						trunk == sw.trunk &&
-						portname.equals(sw.portname));
+	public boolean equalsPrefix(Prefix p) {
+		return (netaddr.equals(p.netaddr) &&
+						masklen == p.masklen &&
+						vlan.getVlanid() == p.vlan.getVlanid());
 	}
 
 	public boolean equals(Object o) {
-		return (o instanceof Swport && 
-						equalsSwport((Swport)o) &&
-						super.equals(o));
+		return (o instanceof Prefix && 
+						equalsPrefix((Prefix)o));
 	}
-	*/
 
 	public int compareTo(Object o) {
 		Prefix p = (Prefix)o;
