@@ -12,6 +12,9 @@ DROP TABLE module CASCADE;
 DROP TABLE netboxcategory;
 DROP TABLE netboxinfo;
 DROP TABLE netbox CASCADE;
+DROP TABLE emotd CASCADE;
+DROP TABLE maintenance CASCADE;
+DROP TABLE emotd_related CASCADE;
 DROP TABLE cat CASCADE;
 DROP TABLE device CASCADE;
 DROP TABLE product CASCADE;
@@ -47,6 +50,8 @@ DROP SEQUENCE device_deviceid_seq;
 DROP SEQUENCE product_productid_seq;
 DROP SEQUENCE module_moduleid_seq;
 DROP SEQUENCE mem_memid_seq;
+DROP SEQUENCE emotd_emotdid_seq;
+DROP SEQUENCE maintenance_maintenanceid_seq;
 
 -------------
 DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
@@ -728,6 +733,56 @@ CREATE TABLE alerthistvar (
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
+
+
+CREATE TABLE emotd (
+    emotdid SERIAL PRIMARY KEY,
+    replaces_emotd INT NULL REFERENCES emotd ON UPDATE CASCADE ON DELETE SET NULL,
+    -- internal message?
+    -- author is username (login) from navprofiles-db
+    author VARCHAR NOT NULL,
+    last_changed TIMESTAMP NOT NULL,
+    title VARCHAR NOT NULL,
+    title_en VARCHAR,
+    description TEXT NOT NULL,
+    description_en TEXT,
+    -- a more technical description
+    detail TEXT,
+    detail_en TEXT,
+    -- which users
+    affected TEXT,
+    affected_en TEXT,
+    publish_start TIMESTAMP,
+    publish_end TIMESTAMP,
+    -- email sent?
+    published BOOLEAN NOT NULL DEFAULT False,
+    -- estimated downtime
+    downtime VARCHAR,
+    downtime_en VARCHAR,
+    -- "info" or "error"
+    type VARCHAR NOT NULL
+);                  
+
+-- scheduled - ongoing or old maintenance periods
+CREATE TABLE maintenance (
+    maintenanceid SERIAL PRIMARY KEY,
+    emotdid INT NOT NULL REFERENCES emotd ON UPDATE CASCADE ON DELETE CASCADE,
+    maint_start TIMESTAMP NOT NULL,
+    maint_end TIMESTAMP NOT NULL,
+    state VARCHAR CHECK (state IN ('scheduled','active','passed','overridden'))   
+);
+
+-- references to netbox/room/etc.
+CREATE TABLE emotd_related (
+    emotdid INT REFERENCES emotd ON UPDATE CASCADE ON DELETE CASCADE,
+    -- typically "device", "room", etc., normally table name
+    key VARCHAR NOT NULL,
+    -- the identificator (primary key) of the referenced object
+    value VARCHAR NOT NULL,
+    PRIMARY KEY(emotdid,key,value)
+);
+
+
 
 ------------------------------------------------------------------------------------------
 -- servicemon tables
