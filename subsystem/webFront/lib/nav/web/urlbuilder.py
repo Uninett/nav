@@ -116,7 +116,7 @@ def createUrl(object=None, id=None, division=None,
         if object:
             id = object._getID()[0]
         if division=="vlan":
-            url += 'swportv?vlan=%s' % id
+            url += 'swportv?vlanid=%s' % id
         elif division=='room':
             url += 'netbox?roomid=%s' % id
         elif division=='cat':    
@@ -124,7 +124,7 @@ def createUrl(object=None, id=None, division=None,
         elif division=='org':
             url += 'org?orgid=%s' % id
         elif division=='type':
-            url += 'type?typename=%s' % id
+            url += 'type?typeid=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
