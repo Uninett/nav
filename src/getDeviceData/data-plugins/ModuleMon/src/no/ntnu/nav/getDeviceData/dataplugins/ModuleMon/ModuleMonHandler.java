@@ -19,8 +19,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class ModuleMonHandler implements DataHandler {
 
-	private static final boolean DB_UPDATE = true;
-	private static final boolean DB_COMMIT = true;
+	private static boolean DEBUG = false;
 
 	private static Map ifindMap;
 	private static Map modidMap;
@@ -67,6 +66,12 @@ public class ModuleMonHandler implements DataHandler {
 					}
 				}
 
+				rs = Database.query("SELECT netboxid,moduleid FROM module WHERE up='n'");
+				while (rs.next()) {
+					String key = rs.getString("netboxid")+":"+rs.getString("moduleid");
+					modulesDown.add(key);
+				}
+
 				modidMap = modidMapL;
 				ifindMap = ifindMapL;
 				modules = modulesL;
@@ -99,6 +104,7 @@ public class ModuleMonHandler implements DataHandler {
 		if (!mmc.isCommited()) return;
 
 		synchronized (modulesDown) {
+			if (DEBUG) err("Check modules down("+nb+"): " + modulesDown);
 
 			Set mod = modules.get(nb.getNetboxidS());
 			if (mod == null) {
@@ -108,9 +114,10 @@ public class ModuleMonHandler implements DataHandler {
 
 			// Local copy we can modify
 			mod = new HashSet(mod);
+			if (DEBUG) err("  Modules: " + new ArrayList(mod));
 
 			int severity = 50;
-
+			if (DEBUG) err("  Active ifindex: " + mmc.getIfindexActiveSet());
 			for (Iterator it = mmc.getActiveIfindices(); it.hasNext();) {
 				String moduleid = (String)ifindMap.get(nb.getNetboxid()+":"+it.next());;
 				String deviceid = (String)modidMap.get(moduleid);
@@ -125,6 +132,7 @@ public class ModuleMonHandler implements DataHandler {
 			}
 
 			// All remaining modules are now considered down; send event
+			if (DEBUG) err("  Remaining modules: " + new ArrayList(mod));
 			for (Iterator it = mod.iterator(); it.hasNext();) {
 				String moduleid = (String)it.next();
 				String deviceid = (String)modidMap.get(moduleid);
@@ -141,6 +149,10 @@ public class ModuleMonHandler implements DataHandler {
 		if (!EventQ.createAndPostEvent("moduleMon", "eventEngine", Integer.parseInt(deviceid), nb.getNetboxid(), Integer.parseInt(moduleid), "moduleState", state, -1, severity, null)) {
 			Log.c("MODULE_MON", "SEND_EVENT", "Error sending moduleUp|Down event for " + nb + ", moduleid: " + moduleid);
 		}
+	}
+
+	private static void err(String s) {
+		System.err.println(s);
 	}
 
 }

@@ -80,5 +80,9 @@ public class ModuleMonContainer implements DataContainer {
 		return ifindexActiveSet.iterator();
 	}
 
+	Set getIfindexActiveSet() {
+		return ifindexActiveSet;
+	}
+
 
 }
