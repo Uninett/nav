@@ -357,8 +357,8 @@
    description="Create binary distribution">
 
     <!-- Copy documentation subdirectories -->
-    <!-- Commented out, becase they don't exist
     <mkdir   dir="${dist.home}/docs"/>
+    <!-- Commented out, becase they don't exist
     <copy    todir="${dist.home}/docs">
       <fileset dir="${docs.home}"/>
     </copy>
