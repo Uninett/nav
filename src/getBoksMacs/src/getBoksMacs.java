@@ -358,10 +358,10 @@ class getBoksMacs
 
 		Database.setDefaultKeepOpen(true);
 		if (qNettel.equals("_new")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='KANT' or kat='SW') ORDER BY boksid");
+			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='EDGE' or kat='SW') ORDER BY boksid");
 		} else
 		if (qNettel.equals("_all")) {
-			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','KANT','GW','GSW') AND up='y' AND ro IS NOT NULL");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE catid IN ('SW','EDGE','GW','GSW') AND up='y' AND ro IS NOT NULL");
 		} else
 		if (qNettel.equals("_gw")) {
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='GW'");
@@ -370,7 +370,7 @@ class getBoksMacs
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='SW'");
 		} else
 		if (qNettel.equals("_kant")) {
-			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='KANT'");
+			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE kat='EDGE'");
 		} else {
 			rs = Database.query("SELECT ip,ro,netboxid,typename,catid,sysName,vendorid,cdp,cs_at_vlan FROM netbox JOIN type USING(typeid) WHERE sysName='"+qNettel+"' AND ro IS NOT NULL");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE prefiksid in (2089,1930) AND boksid != 241");
