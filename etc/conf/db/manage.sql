@@ -110,10 +110,25 @@ CREATE TABLE room (
   opt4 VARCHAR
 );
 
+CREATE TABLE nettype (
+  nettypeid VARCHAR PRIMARY KEY,
+  descr VARCHAR,
+  edit BOOLEAN DEFAULT FALSE
+);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('core','core',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('dummy','dummy',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('elink','elink',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('lan','lan',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('link','link',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('loopback','loopbcak',FALSE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('reserved','reserved',TRUE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('scope','scope',TRUE);
+INSERT INTO nettype (nettypeid,descr,edit) VALUES ('static','static',TRUE);
+
 CREATE TABLE vlan (
   vlanid SERIAL PRIMARY KEY,
   vlan INT4,
-  nettype VARCHAR NOT NULL,
+  nettype VARCHAR NOT NULL REFERENCES nettype(nettypeid) ON UPDATE CASCADE ON DELETE CASCADE,
   orgid VARCHAR(10) REFERENCES org,
   usageid VARCHAR(10) REFERENCES usage,
   netident VARCHAR,
@@ -373,6 +388,7 @@ GRANT ALL ON vendor TO navall;
 GRANT ALL ON product TO navall;
 GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
+GRANT ALL ON nettype TO navall;
 GRANT ALL ON vlan TO navall;
 GRANT ALL ON port2off TO navall;
 
