@@ -128,7 +128,6 @@ CREATE TABLE prefix (
   rootgwid INT4 UNIQUE,
   active_ip_cnt INT4,
   max_ip_cnt INT4,
-  to_gw VARCHAR,
   vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
 );
 
