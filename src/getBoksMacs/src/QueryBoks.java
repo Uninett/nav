@@ -208,9 +208,9 @@ public class QueryBoks extends Thread
 						}
 
 						// OK, da er vi klar, oppdater gwport!
-						if (boksType.equals("MSFC") ||
-								boksType.equals("MSFC1") ||
-								boksType.equals("RSM") ) {
+						if (boksType.equals("cat6kMsfc") || // MSFC
+								boksType.equals("cat6kMsfc2") || // MSFC1
+								boksType.equals("cisWSX5302") ) { // RSM
 							
 							Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE gwportid IN (SELECT gwportid FROM module JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid = '"+boksId+"')");
 							if (DB_COMMIT) Database.commit(); else Database.rollback();
