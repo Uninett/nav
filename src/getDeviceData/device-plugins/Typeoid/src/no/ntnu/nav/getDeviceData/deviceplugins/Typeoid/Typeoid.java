@@ -40,8 +40,8 @@ public class Typeoid implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		// -1 means before any normal ALWAYS_HANDLE plugins
-		int v = nb.isSupportedOids(canHandleOids) ? -1 : NEVER_HANDLE;
+		// Typeoid should run first, before any normal ALWAYS_HANDLE plugins
+		int v = nb.isSupportedOids(canHandleOids) ? -100 : NEVER_HANDLE;
 		Log.d("TYPEOID_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}

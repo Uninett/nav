@@ -39,7 +39,8 @@ public class DNSCheck implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
+		// DNS should run second, after Typeoid
+		int v = nb.isSupportedOids(canHandleOids) ? -90 : NEVER_HANDLE;
 		Log.d("DNSCHECK_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
