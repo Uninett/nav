@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: smsd.pl,v 1.4 2002/07/23 10:04:53 mortenv Exp $
+# $Id: smsd.pl,v 1.5 2002/09/23 08:12:43 knutvi Exp $
 #
 # Dette er en sms-demon som henter sms meldinger i fra
 # databasen på bigbud og sender dem ved hjelp av 
@@ -84,7 +84,7 @@ if ($opt_t) {
 }
 
 
-# Lager bare en connection mot databasen, som er konstant. Håper det ikke krasjer alt...
+# Lager bare en connection mot databasen, som er konstant.
 my %dbconf = &db_readconf();
 my $dbname = $dbconf{db_trapdetect};
 my $dbuser = $dbconf{script_smsd};
@@ -144,7 +144,6 @@ $0 = 'smsd.pl: NAV SMS daemon ready...';
 # Kjører en uendelig løkke her
 while ($v=2) {
     &sjekk_ko;
-#    print "sleeep ...\n";
     sleep $forsinkelse;
 }
 
@@ -153,7 +152,6 @@ sub sjekk_ko {
     my (%hash_ko_, @line);
     
     &sjekk_conn;
-#    print "SQL: $sql\n";
     my $ko_N = &db_select($conn,$sql);
     
     if ($ko_N->ntuples) {
