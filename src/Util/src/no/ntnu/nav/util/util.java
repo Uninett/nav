@@ -1,6 +1,7 @@
 package no.ntnu.nav.util;
 
 import java.util.*;
+import java.util.regex.*;
 import java.text.*;
 
 /**
@@ -51,6 +52,15 @@ public class util {
 		DecimalFormat df = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH) );
 		df.setMinimumFractionDigits(n);
 		return df.format(d);
+	}
+
+	/**
+	 * Return the number of groups before the first non-NULL group.
+	 */
+	public static int groupCountNotNull(Matcher m) {
+		int cnt;
+		for (cnt = 1; cnt <= m.groupCount() && m.group(cnt) != null; cnt++);
+		return cnt-1;
 	}
 
 }
