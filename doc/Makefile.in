@@ -16,6 +16,7 @@ docfiles = sql/logger.sql \
            sql/README \
            sql/snmpoid.sql \
            sql/upgrades/3.0_beta7.sql \
+           sql/upgrades/3.0_beta8.sql \
            sql/upgrades/README \
            getting-started.txt
 

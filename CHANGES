@@ -1,3 +1,43 @@
+Version 3.0_beta9
+(released xx January 2005)
+
+ User-visible changes:
+ 
+ * For performance reasons, the WestHawk Java SNMP library has been
+   discarded in favor of Java SNMP, which has a nice GPL license and
+   doesn't hog resources by creating lots of threads.
+ * Machine tracker searches have been redone to be more like in NAV 2,
+   due to the complexity of automatic attempts at correlating CAM and
+   ARP records.1
+ * Makecricketconfig should now generate correct interface
+   descriptions for router interfaces in Cricket.
+ * The previously disabled Server statistics support of
+   Makecricketconfig has ben re-enabled and fixed.
+ * Start/stop scripts now use "su -" when switching from root to
+   navcron, to reset the environment before starting processes.  This
+   may have adverse effects if root has his/her environment variables
+   set to locate NAV libraries while the navcron user doesn't.
+ * The report system should now correctly count the number of gwports
+   registered for a device in NAVdb.
+ * Edit database no longer throws exceptions if NAVdb contains
+   organizations without descriptions.
+ * The default priorities of the web tools have been adjusted.
+ * getDeviceData should no longer come out of sync with NAVdb, as it
+   no longer works on a memory cache of the NAVdb.
+ * getDeviceData no longer deletes prefixes of the 'scope' type (which
+   makes the prefix matrix of the Report system work again).
+ * Improvements to the module monitor of getDeviceData.
+ * Load data is now available in the Traffic map.
+
+Known bugs in this version:
+
+ * getDeviceData will at times seemingly "forget" some IP devices and
+   stop retrieving updated information from them.  Until this has been
+   fixed, this can be worked around by restarting getDeviceData,
+   either on a regular basis, or when inconsistencies between NAVdb
+   and the real world are seen.
+
+
 Version 3.0_beta8
 (released 08 November 2004)
 
