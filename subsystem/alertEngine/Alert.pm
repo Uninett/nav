@@ -50,6 +50,8 @@ sub getInfo()
 
     my ($db,$col)=split '\.',$info;
 
+    $this->{log}->printlog("Alert","getInfo",$Log::debugging, "collecting info from table $db column $col");
+
     if(!defined $this->{$db})
     {
 	#Collect table from manage database

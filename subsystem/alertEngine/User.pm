@@ -43,6 +43,7 @@ sub collectInfo()
   {
     my $this=shift;
     my $sth=$this->{dbh}->prepare("select p.activeprofile, p.sms, ap.value,extract('dow' from now()) from account a, preference p,accountproperty ap where p.accountid=a.id and a.id=$this->{id} and ap.accountid=a.id and ap.property='language'");
+
     $sth->execute();
 
     my $info=$sth->fetchrow_arrayref();
@@ -89,6 +90,7 @@ sub collectTimePeriod()
 
     my $tps;
     if(!$this->{activeProfile}) {
+	$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no active profile");
 	return;
     }
 
@@ -102,6 +104,7 @@ sub collectTimePeriod()
     my $tp=$tps->[0];
 
     if(!defined $tp) {
+	$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no time period available");
 	return;
     }
 
@@ -129,6 +132,9 @@ sub collectTimePeriod()
 	$this->{timePeriod}->{aE}[$c2]->{queue}=$aE->[2];
 	$c2++;
       }
+
+    $this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"collected $c2 time periods");
+
     return 1;
   }
 
@@ -399,9 +405,12 @@ sub checkActiveProfile()
 
     my $tp=$this->{timePeriod};
     my $aes=$tp->{aE};
+    my $check;
+
     foreach my $a (@$aes)
       {
-	if($this->{eG}->checkAlert($a->{eGID},$alerts->getAlert($alertid)))
+	  $check=$this->{eG}->checkAlert($a->{eGID},$alerts->getAlert($alertid));
+	  if($check)
 	  {
 	    push @$ae,$a;	    
 	  }

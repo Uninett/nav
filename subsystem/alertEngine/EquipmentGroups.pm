@@ -71,8 +71,8 @@ sub collectInfo()
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{included}=$ef->[2];
 	    $this->{info}[$eg->[0]]->{filters}[$c]->{priority}=$ef->[3];
 
-	    my $fms=$this->{dbh}->selectall_arrayref("select fm.id,fm.matchfelt,fm.matchtype,fm.verdi,mf.valueid,mf.valuename,mf.datatype from filtermatch fm,utstyrfilter uf,matchfield mf where fm.utstyrfilterid=uf.id and uf.id=$ef->[0] and fm.matchfelt=mf.matchfieldid");
-	
+	    my $fms=$this->{dbh}->selectall_arrayref("select fm.id,fm.matchfelt,fm.matchtype,fm.verdi,mf.valueid,mf.datatype from filtermatch fm,utstyrfilter uf,matchfield mf where fm.utstyrfilterid=uf.id and uf.id=$ef->[0] and fm.matchfelt=mf.matchfieldid");
+
 	    if($DBI::errstr)
 	      {
 		  $this->{log}->printlog("EquipmentGroups","collectInfo",$Log::error,"could not get list of equipment filters\n");
@@ -86,8 +86,7 @@ sub collectInfo()
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{type}=$fm->[2];
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{value}=$fm->[3];
 		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{valueid}=$fm->[4];
-		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{valuename}=$fm->[5];
-		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{datatype}=$fm->[6];
+		$this->{info}[$eg->[0]]->{filters}[$c]->{filterMatch}[$c2]->{datatype}=$fm->[5];
 		$c2++;
 	      }
 	    $c++;
@@ -143,12 +142,12 @@ sub checkAlert()
 	    if($ret==1 && $numExclude==0)
 	      {
 		  $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is in equipmentgroup $eGID");
-		  return 1;
+		  return $ret;
 	      }
 	    elsif(!$ret && !$numInclude)
 	      {
 		  $this->{log}->printlog("EquipmentGroups","checkAlert",$Log::debugging, "Alertid $alertid is not in equipmentgroup $eGID");
-		  return 0;
+		  return $ret;
 	      }
 
 	    if($ef->{included})
@@ -178,7 +177,7 @@ sub checkMatch()
     $ret=0;
 
     #Get correct info from alert
-    my $info=$alert->getInfo($fm->{valuename});
+    my $info=$alert->getInfo($fm->{valueid});
 
     if($fm->{datatype}==$this->{datatype}{string}) {
 	$ret=$this->checkString($fm->{type},$fm->{value},$info);
