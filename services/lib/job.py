@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.15 2002/12/09 15:36:30 magnun Exp $
+$Id: job.py,v 1.16 2002/12/13 20:13:22 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types,config,debug,mailAlert
@@ -48,7 +48,7 @@ class JobHandler:
 		self.db=db.db(config.dbconf())
 		self.debug=debug.debug()
 		self.alerter=mailAlert.mailAlert()
-		self.debug.log("New job instance for %s:%s " % (sysname, type))
+		self.debug.log("New job instance for %s:%s " % (sysname, type),6)
 		
 	def run(self):
 		import rrd,db
@@ -56,7 +56,7 @@ class JobHandler:
 		version = self.getVersion()
 		status, info = self.executeTest()
 
-		self.debug.log("%-25s %-5s -> %s" % (self.getSysname(), self.getType(),info))
+		self.debug.log("%-25s %-5s -> %s" % (self.getSysname(), self.getType(),info),6)
 
 		runcount = 0
 		while status != self.getStatus() and runcount < int(self._conf.get('retry',3)):

@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.10 2002/12/09 15:36:30 magnun Exp $
+$Id: db.py,v 1.11 2002/12/13 20:13:22 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -26,7 +26,7 @@ class _db(threading.Thread):
 		self.debug=debug.debug()
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(1)
-		self.cursor=self.db.cursor()
+		#self.cursor=self.db.cursor()
 		self.sysnetbox()
 		self.setDaemon(1)
 		self.queue = Queue.Queue()
@@ -52,15 +52,19 @@ class _db(threading.Thread):
 		
 	def query(self, statement):
 		try:
-			self.cursor.execute(statement)
-			return self.cursor.fetchall()
+			cursor=self.db.cursor()
+			self.debug.log("Executeing: %s" % statement,7)
+			cursor.execute(statement)
+			return cursor.fetchall()
 		except psycopg.DatabaseError, psycopg.InterfaceError:
 			self.debug.log("Could not execute query: %s" % statement, 2)
 			return []
 
 	def execute(self, statement):
 		try:
-			self.cursor.execute(statement)
+			cursor=self.db.cursor()
+			self.debug.log("Executeing: %s" % statement,7)
+			cursor.execute(statement)
 		except psycopg.DatabaseError, psycopg.InterfaceError:
 			self.debug.log("Could not execute statement: %s" % statement, 2)
 
@@ -102,7 +106,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 	def pingEvent(self, host, state):
 		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
 		netboxid, deviceid=self.query(query)[0][0:2]
-
+		self.debug.log("Found netboxid=%s, deviceid=%s from ip=%s"%(netboxid,deviceid,host),7)
 
 		if state == 'UP':
 			state = 'e'
