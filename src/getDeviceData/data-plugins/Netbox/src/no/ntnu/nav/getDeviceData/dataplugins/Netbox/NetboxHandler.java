@@ -54,13 +54,13 @@ public class NetboxHandler implements DataHandler {
 			// netbox
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,type,sysname FROM device JOIN netbox USING (deviceid)");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,netboxid,typeid,sysname FROM device JOIN netbox USING (deviceid)");
 			while (rs.next()) {
 				NetboxData n = new NetboxData(rs.getString("serial"),
 																			rs.getString("hw_ver"),
 																			rs.getString("sw_ver"),
 																			null,
-																			rs.getString("type"),
+																			rs.getString("typeid"),
 																			rs.getString("sysname"));
 				n.setDeviceid(rs.getInt("deviceid"));
 
@@ -114,11 +114,11 @@ public class NetboxHandler implements DataHandler {
 				// Check if we need to update netbox
 			if (!oldn.equalsNetboxData(n)) {
 				// We need to update netbox
-				Log.i("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" type="+n.getType()+" sysname="+n.getSysname());
+				Log.i("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" typeid="+n.getType()+" sysname="+n.getSysname());
 
 				String[] set = {
 					"deviceid", n.getDeviceidS(),
-					"type", n.getType(),
+					"typeid", n.getType(),
 					"sysname", n.getSysname()
 				};
 				String[] where = {
