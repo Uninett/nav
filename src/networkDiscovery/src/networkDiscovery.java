@@ -218,10 +218,11 @@ class networkDiscovery
 				errl("Error! kat not found for boksid: " + boksbakid);
 			}
 			boolean isSW = (kat.equals("SW") ||
-											kat.equals("GW") ||
-											kat.equals("GSW"));
+							kat.equals("GW") ||
+							kat.equals("GSW"));
 
 			Boks b = new Boks(boksbakid.intValue(), 0, null, bokser, isSW, true);
+			if (!bokser.containsKey(b.getBoksidI())) boksList.add(b);
 			bokser.put(b.getBoksidI(), b);
 			if (DEBUG_OUT) outl("Adding boksbak("+b.getBoksid()+"): <b>"+b.getName()+"</b><br>");
 		}
@@ -322,7 +323,8 @@ class networkDiscovery
 				swrec.put("deleted", null);
 
 				String link = (String)swrec.get("link");
-				if (!"y".equals(link.toLowerCase())) continue; // Ignore non-up links
+				if (link != null) link = link.toLowerCase();
+				if ("n".equals(link)) continue; // Ignore non-up links
 
 				String idbak = (String)swrec.get("to_netboxid");
 				if (idbak == null || idbak != null && Integer.parseInt(idbak) != bmp.boksbak.intValue()) {
