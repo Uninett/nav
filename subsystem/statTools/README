@@ -31,12 +31,14 @@ except for if the database for some reason has to be refilled.
 
 filltypesnmpoid.pl
 ==================
-This script tries to detect what oid's the units in the database
-answer to. This is done by grouping by typename, then selecting two
-random units of that type from the database, and then querying them
-with all the cricketoids located in the snmpoid-table. Using some
-logic it decides what oid's returned a sane answer and stores the
-connection type<->oid in the typesnmpoid-table.
+NB! This script is made obsolete by getDeviceData. Do NOT run this
+script if you don't know exactly what you are doing.  This script
+tries to detect what oid's the units in the database answer to. This
+is done by grouping by typename, then selecting two random units of
+that type from the database, and then querying them with all the
+cricketoids located in the snmpoid-table. Using some logic it decides
+what oid's returned a sane answer and stores the connection type<->oid
+in the typesnmpoid-table.
 
 makecricketconfig.pl
 ====================
