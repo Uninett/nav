@@ -72,3 +72,15 @@ vtypeid int2 references varseltype on update cascade on delete cascade,
 status varchar(5) not null check (status='minus' or status='pluss')
 );
 
+
+create table smsutko ( 
+id serial primary key, 
+brukerid int2 references bruker on update cascade on delete cascade, 
+tidspunkt timestamp not null, 
+melding varchar(145) not null, 
+sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'), 
+smsid int4, 
+tidsendt timestamp 
+);
+
+
