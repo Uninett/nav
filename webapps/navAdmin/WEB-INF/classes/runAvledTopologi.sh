@@ -1,18 +1,16 @@
 #!/bin/sh
 
-JAVA_HOME=/usr/java/jdk
-CLASSPATH=./getPortData.jar:/usr/local/nav/navme/java/lib/postgre.jar:/usr/local/nav/navme/java/lib/snmp.jar:.
-
-CONF_FILE="/usr/local/nav/local/etc/conf/navAdmin.conf"
-
 NAV_ROOT="/usr/local/nav"
+NAV_CONF="$NAV_ROOT/local/etc/conf/nav.conf"
 
+if [ "$JAVA_HOME" == "" ]; then
+        JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+fi
+
+CONF_FILE="$NAV_ROOT/local/etc/conf/navAdmin.conf"
 NAVME_ROOT="$NAV_ROOT/navme"
-#NAVME_ROOT="/home/kristian/devel/navme"
-
 CUR_DIR=$NAVME_ROOT/webapps/navAdmin/WEB-INF/classes
-
 REPORT_DIR=$NAV_ROOT/local/log/navAdmin/report
 
 cd $CUR_DIR
-$JAVA_HOME/bin/java -cp $CLASSPATH NavUtils $CONF_FILE -avledTopologi > "$REPORT_DIR/avledTopologi.html"
+$JAVA_HOME/bin/java -cp . NavUtils $CONF_FILE -avledTopologi > "$REPORT_DIR/avledTopologi.html"
