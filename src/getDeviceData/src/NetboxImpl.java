@@ -110,6 +110,16 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	// Doc in interface
+	public Set oidsNotSupported(String[] oidkeys) {
+		Set s = new HashSet();
+		for (Iterator it = Arrays.asList(oidkeys).iterator(); it.hasNext();) {
+			String oidkey = (String)it.next();
+			if (!oidNextRunMap.containsKey(oidkey)) s.add(oidkey);
+		}
+		return s;
+	}
+
+	// Doc in interface
 	public boolean canGetOid(String key) {
 		if (!oidNextRunMap.containsKey(key)) return false;
 

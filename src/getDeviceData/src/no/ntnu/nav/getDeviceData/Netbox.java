@@ -1,5 +1,7 @@
 package no.ntnu.nav.getDeviceData;
 
+import java.util.Set;
+
 /**
  * <p>
  * Describes a Netbox.
@@ -35,6 +37,15 @@ public interface Netbox
 	 * @return true if netbox supports all of the given oidkeys
 	 */
 	public boolean isSupportedAllOids(String[] oidkeys);
+
+	/**
+	 * <p> Takes as input an array of oidkeys, and returns the set of
+	 * oidkeys not supported by this netbox.  </p>
+	 *
+	 * @param oidkeys Oidkeys to check
+	 * @return the set of oidkeys not supported by this netbox
+	 */
+	public Set oidsNotSupported(String[] oidkeys);
 
 	/**
 	 * <p> Check if the OID for the given key is ready to be

@@ -192,7 +192,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		*/
 
 		// Check for OID support
-		if (!nb.isSupportedAllOids(new String[] {
+		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
 			"cCardIndex",
 			"cCardDescr",
 			"cCardSerial",
@@ -206,9 +206,10 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			"ifDescr",
 			"ifInOctets",
 			"ifAlias"
-		})) {
+		});
 
-			Log.w("PROCESS_CGW", "One or more required OIDs are not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
+		if (!oidsNotSupported.isEmpty()) {
+			Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			return;
 		}
 		
