@@ -20,7 +20,11 @@ echo "</a>";
 
 if (get_get('subaction') == 'settaktiv') {
 	$dbh->aktivProfil(session_get('bruker'), get_get('pid') );
-	print "<p><font size=\"+3\">" . gettext('Aktivisert</font>. Du har nå byttet aktiv profil.');
+        if (get_get('pid') > 0) {
+            echo "<p><font size=\"+3\">" . gettext('Aktivisert</font>. Du har nå byttet aktiv profil.');
+        } else {
+            echo "<p><font size=\"+3\">" . gettext('Deaktivert</font>. Du har nå ingen aktive profiler.');
+        }
 }
 
 if (get_get('subaction') == 'endret') {
@@ -30,9 +34,8 @@ if (get_get('subaction') == 'endret') {
 		$dbh->endreProfil($pid, post_get('navn'), post_get('ukedag'), 
 			post_get('uketidh'), post_get('uketidm'), post_get('tidh'), post_get('tidm') );
 		$navn='';
-		
-		print "<p><font size=\"+3\">" . gettext("OK</font>, profilnavnet er endret.");
 
+		print "<p><font size=\"+3\">" . gettext("OK</font>, profilnavnet er endret.");
 
 	} else {
 		print "<p><font size=\"+3\">" . gettext("Feil</font> oppstod, profilen er <b>ikke</b> endret.");
@@ -40,19 +43,14 @@ if (get_get('subaction') == 'endret') {
 }
 
 if (get_get('subaction') == 'slett') {
-
-	
 	if ($pid > 0) { 
-	
 		$foo = $dbh->slettProfil($pid);
 		$navn = '';
 		
 		print "<p><font size=\"+3\">" . gettext("OK</font>, profilen er slettet fra databasen.");
-
 	} else {
 		print "<p><font size=\"+3\">" . gettext("Feil</font>, profilen er <b>ikke</b> slettet.");
 	}
-
 }
 
 
@@ -126,7 +124,8 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 
 print $l->getHTML();
 
-print "<p>[ <a href=\"index.php\">oppdater <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0> ]</a> ";
+print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">Deaktiver aktiv profil</a> | ' .  
+    "<a href=\"index.php\">oppdater <img src=\"icons/oppdater.gif\" alt=\"oppdater\" border=0></a> ] ";
 print gettext("Antall profiler: ") . sizeof($profiler);
 
 print '<a name="nyprofil"></a><p>';

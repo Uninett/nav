@@ -43,7 +43,7 @@ if ($k[0] == null) {
 } else {
 	print "<p>" . gettext("Din wapkey er: ") ."<b>" . $k[0] . "</b>.";
 	print "<p>" . gettext("Det betyr at du kan nå din brukerprofil fra denne wapsiden:") . "<br>";
-	print "<pre>http://bigbud.itea.ntnu.no/navuser/wap/?k=" . $k[0] . "</pre>";
+	print "<pre>http://bigbud.itea.ntnu.no/wap/?k=" . $k[0] . "</pre>";
 
 	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generer ny key") . "</a> | 
 <a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Fjern wapkey") . "</a> ]";

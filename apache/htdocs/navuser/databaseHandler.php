@@ -1978,6 +1978,7 @@ FROM FilterMatch WHERE (utstyrfilterid = " . $utstyrfilterid[1] . ")";
   // sett en profil som aktiv for en bestemt bruker
   function aktivProfil($brukernavn, $profilid) {
 
+    if ($profilid == 0) { $profilid = "null"; }
     // Spxrring som legger inn i databasen
     $querystring = "UPDATE Bruker SET aktivProfil = " . addslashes($profilid) . " WHERE " .
       " brukernavn = '" . addslashes($brukernavn) . "'  ";
