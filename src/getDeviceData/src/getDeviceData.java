@@ -1075,7 +1075,6 @@ class QueryBoks extends Thread
 			} catch (Exception exp) {
 				outle("T"+id+":   QueryBoks.run(): Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
-				break;
 			}
 
 
