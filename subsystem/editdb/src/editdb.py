@@ -3518,7 +3518,7 @@ class pagePrefix(editdbPage):
 
             orgs = [('','No organisation')]
             for o in nav.db.manage.Org.getAllIterator(orderBy='orgid'):
-                orgs.append((o.orgid,o.orgid + ' (' + o.descr + ')'))
+                orgs.append((o.orgid,o.orgid + ' (' + str(o.descr) + ')'))
 
             usageids = [('','No usage')]
             for usage in editTables.Usage.getAllIterator(orderBy='usageid'):
@@ -5154,7 +5154,7 @@ class pageVlan(editdbPage):
 
             orgs = [('','No organisation')]
             for o in nav.db.manage.Org.getAllIterator():
-                orgs.append((o.orgid,o.orgid + ' (' + o.descr + ')'))
+                orgs.append((o.orgid,o.orgid + ' (' + str(o.descr) + ')'))
 
             usageids = [('','No usage')]
             for usage in nav.db.manage.Usage.getAllIterator():
