@@ -659,6 +659,7 @@ public class QueryNetbox extends Thread
 					int v;
 					try {
 						v = dh.canHandleDevice(nb);
+						if (v == DeviceHandler.NEVER_HANDLE) continue;
 					} catch (Exception e) {
 						Log.w("FIND_DEVICE_HANDLERS", "FIND_DEVICE_HANDLERS", "Error from DeviceHandler " + c + ", skipping: " + e.getMessage());
 						continue;
