@@ -1,13 +1,14 @@
 package no.ntnu.nav.eventengine;
 
-import no.ntnu.nav.Database.*;
-
 import java.util.*;
 import java.io.*;
 import java.text.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 
 class EventImpl implements Event, Alert
 {
@@ -40,7 +41,7 @@ class EventImpl implements Event, Alert
 		try {
 			this.time = stringToDate(time);
 		} catch (ParseException e) {
-			errl("Error in date '" + time + "' from Postgres, should not happen: " + e.getMessage());
+			Log.c("EVENT_IMPL", "CONSTRUCTOR", "Error in date '" + time + "' from Postgres, should not happen: " + e.getMessage());
 		}
 
 		this.eventtypeid = eventtypeid;
@@ -101,7 +102,7 @@ class EventImpl implements Event, Alert
 		try {
 			Database.update("DELETE FROM eventq WHERE eventqid = '"+eventqid+"'");
 		} catch (SQLException e) {
-			errl("EventImpl: Cannot dispose of self: " + e.getMessage());
+			Log.e("EVENT_IMPL", "DISPOSE", "EventImpl: Cannot dispose of self: " + e.getMessage());
 			return;
 		}
 		disposed = true;
@@ -136,7 +137,7 @@ class EventImpl implements Event, Alert
 				varMap.putAll(hm);
 			}
 		} catch (SQLException e) {
-			errl("EventImpl: SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
+			Log.e("EVENT_IMPL", "GET_MSGS", "SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
 		}
 
 		// Add time
@@ -232,11 +233,13 @@ class EventImpl implements Event, Alert
 	}
 	*/
 
+	/*
 	private static void outd(Object o) { System.out.print(o); }
 	private static void outld(Object o) { System.out.println(o); }
 
 	private static void err(Object o) { System.err.print(o); }
 	private static void errl(Object o) { System.err.println(o); }
+	*/
 }
 
 class AlertmsgParser
@@ -257,41 +260,44 @@ class AlertmsgParser
 		try {
 			parseAlertmsg();
 		} catch (IOException e) {
-			outld("IOException when parsing alertmsg file: " + e.getMessage());
+			Log.w("ALERTMSG_PARSER", "SET_ALERTMSG_FILE", "IOException when parsing alertmsg file: " + e.getMessage());
 		}
 		return true;
 	}
 
 	public static Iterator formatMsgs(String eventtypeid, String alerttype, int state, Map varMap)
 	{
+		Log.setDefaultSubsystem("ALTERTMSG_PARSER");
+
 		try {
 			parseAlertmsg();
 		} catch (ParseException e) {
-			outld("ParseException when parsing alertmsg file: " + e.getMessage());
+			Log.w("FORMAT_MSGS", "ParseException when parsing alertmsg file: " + e.getMessage());
 		} catch (IOException e) {
-			outld("IOException when parsing alertmsg file: " + e.getMessage());
+			Log.w("FORMAT_MSGS", "IOException when parsing alertmsg file: " + e.getMessage());
 		}
+
+		List l = new ArrayList();
 
 		Map m = (Map)eventtypeidMap.get(eventtypeid);
 		if (m == null) {
-			outld("Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
-			return null;
+			Log.d("FORMAT_MSGS", "Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
+			return l.iterator();
 		}
 
 		if (alerttype == null) alerttype = "";
 		List msgList = (List)m.get(alerttype);
 		if (msgList == null) {
 			String s = state==Event.STATE_NONE?"":state==Event.STATE_START?"Start":"End";
-			outld("Alerttype: WARNING: " + alerttype + " not found in alertmsg file! Trying default"+s);
+			Log.d("FORMAT_MSGS", "Alerttype: " + alerttype + " not found in alertmsg file! Trying default"+s);
 
 			msgList = (List)m.get("default"+s);
 			if (msgList == null) {
-				outld("Alerttype: FATAL: default"+s+" not found in alertmsg file!");
-				return null;
+				Log.d("FORMAT_MSGS", "Alerttype: default"+s+" not found in alertmsg file! Giving up.");
+				return l.iterator();
 			}
 		}
 
-		List l = new ArrayList();
 		for (Iterator it=msgList.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
 
@@ -449,9 +455,9 @@ class AlertmsgParser
 						}
 						state--;
 
-						outld("Eventtypeid: " + eventtypeid + " Alerttype: " + alerttype + " Media: " + media + " Lang: " + lang + " Msg:");
-						outld(msg);
-						outld("---");
+						Log.d("PARSE_ALERTMSG", "Eventtypeid: " + eventtypeid + " Alerttype: " + alerttype + " Media: " + media + " Lang: " + lang + " Msg:");
+						Log.d("PARSE_ALERTMSG", msg);
+						Log.d("PARSE_ALERTMSG", "---");
 
 						msgList.add(new String[] { media, lang, msg } );
 
@@ -476,11 +482,12 @@ class AlertmsgParser
 		return s.indexOf(ss);
 	}
 
-
+	/*
 	private static void outd(Object o) { System.out.print(o); }
 	private static void outld() { System.out.println(); }
 	private static void outld(Object o) { System.out.println(o); }
 
 	private static void err(Object o) { System.err.print(o); }
 	private static void errl(Object o) { System.err.println(o); }
+	*/
 }

@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 
 /**
  * Eventengine plugins use DeviceDB to communicate with eventengine and each other.

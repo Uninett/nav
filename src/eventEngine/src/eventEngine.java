@@ -16,6 +16,7 @@ import java.sql.*;
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
 
 class eventEngine
@@ -27,6 +28,7 @@ class eventEngine
 	public static final String configFile = "local/etc/conf/eventEngine.conf".replace('/', File.separatorChar);
 	public static final String alertmsgFile = realNavRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
 	public static final String scriptName = "eventEngine";
+	public static final String logFile = "local/log/eventEngine.log";
 
 	public static final boolean ERROR_OUT = true;
 	public static final boolean VERBOSE_OUT = true;
@@ -66,6 +68,9 @@ class eventEngine
 			errl("Error, could not connect to database!");
 			return;
 		}
+
+		// Init logger
+		Log.init(navRoot + logFile, "eventEngine");
 
 		// Deamon timer
 		timer = new Timer(true);
@@ -518,6 +523,9 @@ class EventqMonitorTask extends TimerTask
 					} catch (Exception exp) {
 						errl("EventqMonitorTask: Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
 						exp.printStackTrace(System.err);
+
+						// Rollback any database changes
+						Database.rollback();
 					}
 				} else {
 					outld("  No handler found for eventtype: " + eventtypeid);
