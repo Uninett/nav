@@ -3,16 +3,21 @@
 # og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
 # med job-finished filen.
 
-JAVA_HOME=/usr/java/jdk
-CLASSPATH=./getBoksMacs.jar:/usr/local/nav/navme/java/lib/postgre.jar:/usr/local/nav/navme/java/lib/snmp.jar:.
-
-NAV_ROOT="/usr/local/nav/navme"
+NAV_ROOT="/usr/local/nav"
 #NAV_ROOT="/home/kristian/devel/navme"
 
-CUR_DIR=$NAV_ROOT/cron/getBoksMacs
+NAV_CONF="$NAV_ROOT/local/etc/conf/nav.conf"
+
+if [ "$JAVA_HOME" == "" ]; then
+	JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+fi
+
+CLASSPATH=./getBoksMacs.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
+
+CUR_DIR=$NAV_ROOT/navme/cron/getBoksMacs
 JOB_FINISHED=$CUR_DIR/job-finished
 
-LOG_DIR="/usr/local/nav/local/log/cam"
+LOG_DIR="$NAV_ROOT/local/log/cam"
 #LOG_DIR=$CUR_DIR
 
 COUNT=`ps wwwwx|grep "getBoksMacsMulti"|grep -v getBoksMacs.sh|grep -v grep|wc -l|sed s/" "//g`
@@ -26,11 +31,12 @@ if [ "$COUNT" = "0" ] || [ -a $JOB_FINISHED ]; then
         # Now run new script
         $JAVA_HOME/bin/java -cp $CLASSPATH getBoksMacsMulti $1 > "$LOG_DIR/getBoksMacs-`/bin/date +%Y-%m-%d_%H-%M`.log" &
         PID="$!"
-        /bin/echo $PID >last.pid
+        echo $PID >last.pid
         wait $PID
         if [ -a $JOB_FINISHED ]; then
                 rm -f $JOB_FINISHED
         fi
 else
-        echo "getBoksMacsMulti already running (and not finished)"
+        # echo "getBoksMacsMulti already running (and not finished)"
+	echo -n ""
 fi
