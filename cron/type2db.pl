@@ -35,7 +35,7 @@ foreach (<FIL>) {
     close FIL;
 }
 
-@felt = ("type","typegruppe","sysObjectID","descr");
+@felt = ("typeid","typegruppe","sysObjectID","descr");
 
 $sql = "SELECT ".join(",", @felt )." FROM type ORDER BY $felt[0]";
 $resultat = db_select($sql,$conn);

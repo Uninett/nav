@@ -606,7 +606,7 @@ sub finn_vlan {
 sub hent_db_boks
 {
     %boks = ();
-    $sql = "SELECT id,ip,sysname,typegruppe,watch,ro FROM boks,type WHERE type.type=boks.type and kat=\'SW\' ORDER BY id";
+    $sql = "SELECT boksid,ip,sysname,typegruppe,watch,ro FROM boks,type WHERE type.typeid=boks.typeid and kat=\'SW\' ORDER BY boksid";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -631,7 +631,7 @@ sub hent_db_boks
 sub hent_db_swport
 {
     %db_swport = ();
-    $sql = "SELECT id,".join(",", @felt_swport)." FROM swport ORDER BY id";
+    $sql = "SELECT swportid,".join(",", @felt_swport)." FROM swport ORDER BY swportid";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -648,7 +648,7 @@ sub hent_db_swport
 sub hent_db_swportvlan
 {
     %db_swport = ();
-    $sql = "SELECT id,".join(",",@felt_swportvlan)." FROM swportvlan";
+    $sql = "SELECT swportvlanid,".join(",",@felt_swportvlan)." FROM swportvlan";
     
     $resultat = db_select($sql,$conn);
     while(@_ = $resultat->fetchrow) 
@@ -666,7 +666,7 @@ sub hent_db_swportvlan
 sub boksid {
     my $id = "";
     my @line;
-    $sql = "select id from boks where sysName=\'$_[0]\'";
+    $sql = "select boksid from boks where sysName=\'$_[0]\'";
     $resultat = db_select($sql,$conn);
 	
     while (@line=$resultat->fetchrow)

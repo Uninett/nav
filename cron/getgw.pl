@@ -226,7 +226,7 @@ sub hent_data
 ###########################################
 sub hent_db
 {
-    $sql = "SELECT id,ip,type,sysName,prefiksid,watch,ro FROM boks WHERE kat=\'GW\'";
+    $sql = "SELECT boksid,ip,typeid,sysName,prefiksid,watch,ro FROM boks WHERE kat=\'GW\'";
 
     $resultat = db_select($sql,$conn);
     while (@line = $resultat->fetchrow)
@@ -368,7 +368,7 @@ sub mask_bits {
 sub hent_prefiksid {
     my $id = "";
 
-    $sql = "SELECT distinct id FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
+    $sql = "SELECT distinct prefiksid FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)

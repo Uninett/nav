@@ -50,7 +50,7 @@ close FIL;
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
-@felt = ("nettadr","maske","nettype","org","komm");
+@felt = ("nettadr","maske","nettype","orgid","komm");
 
 #select 
 $sql = "SELECT ".join(",", @felt )." FROM prefiks ORDER BY $felt[0]";

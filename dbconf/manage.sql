@@ -89,13 +89,13 @@ CREATE TABLE anv (
 
 
 CREATE TABLE sted (
-  sted VARCHAR(12) PRIMARY KEY,
+  stedid VARCHAR(12) PRIMARY KEY,
   descr VARCHAR(60) NOT NULL
 );
 
 CREATE TABLE rom (
   romid VARCHAR(10) PRIMARY KEY,
-  sted VARCHAR(12) REFERENCES sted,
+  stedid VARCHAR(12) REFERENCES sted,
   descr VARCHAR(50),
   rom2 VARCHAR(10),
   rom3 VARCHAR(10),
@@ -110,15 +110,15 @@ CREATE TABLE prefiks (
   maske VARCHAR(3) NOT NULL,
   vlan VARCHAR(4),
   nettype VARCHAR(10) NOT NULL,
-  org VARCHAR(10) REFERENCES org,
-  anv VARCHAR(10) REFERENCES anv,
+  orgid VARCHAR(10) REFERENCES org,
+  anvid VARCHAR(10) REFERENCES anv,
   samband VARCHAR(20),
   komm VARCHAR(20)
 );
 
 
 CREATE TABLE type (
-  type VARCHAR(10) PRIMARY KEY,
+  typeid VARCHAR(10) PRIMARY KEY,
   typegruppe VARCHAR(10) NOT NULL,
   sysObjectID VARCHAR(30) NOT NULL,
   descr VARCHAR(60)
@@ -129,16 +129,16 @@ CREATE TABLE boks (
   boksid SERIAL PRIMARY KEY,
   ip VARCHAR(15) NOT NULL,
   romid VARCHAR(10) NOT NULL REFERENCES rom,
-  type VARCHAR(10),
+  typeid VARCHAR(10) NOT NULL REFERENCES type,
   sysName VARCHAR(30),
   kat VARCHAR(10) NOT NULL,
   kat2 VARCHAR(10),
-  drifter VARCHAR(10) NOT NULL,
+  orgid VARCHAR(10) NOT NULL REFERENCES org,
   ro VARCHAR(10),
   rw VARCHAR(10),
   prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
-  via2 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
-  via3 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
+  boksvia2 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
+  boksvia3 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
   active BOOL DEFAULT true,
   static BOOL DEFAULT false,
   watch BOOL DEFAULT false,
@@ -188,6 +188,7 @@ CREATE TABLE swport (
   modul VARCHAR(4) NOT NULL,
   port INT2 NOT NULL,
   portnavn VARCHAR(30),
+  vpkatbak VARCHAR(5),
   boksbak INT2 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
 );
 
@@ -195,7 +196,7 @@ CREATE TABLE swport (
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  vlan INT2 NOT NULL,
+  vlan INT4 NOT NULL,
   retning VARCHAR(1) NOT NULL DEFAULT 'x'
 );
 

@@ -26,7 +26,7 @@ my %db_prefiks = ();
 my %prefiks = ();
 my @felt_gwport = ("gwip","boksid","prefiksid","indeks","interf","speed","maxhosts","antmask","ospf","hsrppri","static");
 my @felt_prefiks;
-my @felt_prefiks_alle =("id","nettadr","maske","vlan","nettype","org","anv","samband","komm");
+my @felt_prefiks_alle =("prefiksid","nettadr","maske","vlan","nettype","orgid","anvid","samband","komm");
 
 my %boks;
 
@@ -131,7 +131,7 @@ sub sammenlikn_prefiks {
 
     (my $nettadr, my $maske) = split /:/,$f;
     
-    $sql = "select distinct id from prefiks where nettadr=\'$nettadr\' and maske=\'$maske\'";
+    $sql = "select distinct prefiksid from prefiks where nettadr=\'$nettadr\' and maske=\'$maske\'";
     $resultat = db_select($sql,$conn);
 	
     while (@line=$resultat->fetchrow)
@@ -344,7 +344,7 @@ sub hent_prefiksdata {
 
 sub hent_prefiksdatabase {
 
-    $sql = "SELECT id,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'";
+    $sql = "SELECT boksid,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)
@@ -378,7 +378,7 @@ sub hent_prefiksdatabase {
 sub hent_prefiksid {
     my $id = "";
 
-    $sql = "SELECT distinct id FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
+    $sql = "SELECT distinct prefiksid FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)

@@ -295,6 +295,7 @@ sub hent_gwdata {
 
 	$_ = $if{$tnett{$gwip}{indeks}}{nettnavn};
 	if(/^lan(\d*)/i) {
+	    $tnett{$gwip}{hsrppri} = 1;
 	    $tnett{$gwip}{hsrppri} = $1 if defined $1;
 	}
 	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{indeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf},$tnett{$gwip}{hsrppri}];
@@ -304,7 +305,7 @@ sub hent_gwdata {
 
 sub hent_database {
 
-    $sql = "SELECT id,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'";
+    $sql = "SELECT boksid,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)
@@ -333,7 +334,7 @@ sub hent_database {
 sub hent_prefiksid {
     my $id = "";
 
-    $sql = "SELECT distinct id FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
+    $sql = "SELECT distinct prefiksid FROM prefiks WHERE nettadr=\'$_[0]\' and maske=\'$_[1]\'";
     $resultat = db_select($sql,$conn);
 
     while (@line=$resultat->fetchrow)
