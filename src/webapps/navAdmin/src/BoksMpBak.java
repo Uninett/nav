@@ -34,6 +34,7 @@ public class BoksMpBak
 	*/
 	public void setToIfindex(String toIfindex) {
 		this.toIfindex = toIfindex;
+		calcKey();
 	}
 
 	public String hashKey() { return hashKey; }
