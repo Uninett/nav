@@ -125,10 +125,12 @@ CREATE TABLE vlan (
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
   netaddr CIDR NOT NULL,
-  rootgwid INT4 UNIQUE,
+--  rootgwid INT4,
+  vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   active_ip_cnt INT4,
   max_ip_cnt INT4,
-  vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE
+  UNIQUE(netaddr)
+--  UNIQUE(rootgwid)
 );
 
 CREATE TABLE vendor (
@@ -251,8 +253,8 @@ CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  module VARCHAR(4) NOT NULL,
-  submodule VARCHAR, -- what is this used for?
+	module INT4 NOT NULL,
+  descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
   UNIQUE (netboxid, module)
@@ -289,9 +291,10 @@ CREATE TABLE swport (
   speed DOUBLE PRECISION,
   duplex CHAR(1) CHECK (duplex='f' OR duplex='h'), -- f=full, h=half
   media VARCHAR,
+  vlan INT NOT NULL,
   trunk BOOL,
   portname VARCHAR,
-  to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   UNIQUE(moduleid, ifindex)
 );
@@ -299,17 +302,24 @@ CREATE TABLE swport (
 CREATE TABLE gwport (
   gwportid SERIAL PRIMARY KEY,
   moduleid INT4 NOT NULL REFERENCES module ON UPDATE CASCADE ON DELETE CASCADE,
-  prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT4 NOT NULL,
+  link CHAR(1) CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   masterindex INT4,
   interface VARCHAR,
-  gwip INET,
   speed DOUBLE PRECISION NOT NULL,
   ospf INT4,
-  to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
+  to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
 );
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
+
+CREATE TABLE gwportprefix (
+  gwportid INT4 REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
+	prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
+  gwip INET,
+  hsrp BOOL NOT NULL DEFAULT 'f',
+	UNIQUE(gwip)
+)
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
