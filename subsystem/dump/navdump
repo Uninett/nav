@@ -1,0 +1,212 @@
+#!/usr/bin/env python
+
+from nav.db import manage
+
+import sys
+
+def warn(msg):
+    sys.stderr.write(msg + "\n")
+
+def fail(resultcode, msg):
+    warn(msg)
+    sys.exit(resultcode)
+
+class Handlers:
+    def netbox(self):
+        print "#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]"
+        allFunctions = manage.Netboxinfo.getAll(where="var='function'")
+        for box in manage.Netbox.getAllIterator():
+            line = []
+            line.append(box.room.roomid)
+            line.append(box.ip)
+            line.append(box.org.orgid)
+            line.append(box.cat.catid)
+            line.append(box.ro or "")
+            line.append(box.device.serial or box.sysname)
+            line.append(box.rw or "")
+            functions = [f.val for f in allFunctions 
+                         if f.netbox == box]
+            functions = str.join(", ", functions)
+            line.append(functions)
+            categories = box.getChildren(manage.Netboxcategory)
+            categories = [cat.category for cat in categories]
+            categories.sort()
+            line.extend(categories)
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+
+    def org(self):
+        print "#orgid[:parent:description:optional1:optional2:optional3]"
+        for org in manage.Org.getAllIterator():
+            line = []
+            line.append(org.orgid)
+            line.append(org.parent or "")
+            line.append(org.descr or "")
+            line.append(org.opt1 or "")
+            line.append(org.opt2 or "")
+            line.append(org.opt3 or "")
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+ 
+    def subcat(self):
+        print "#subcatid:catid:description"
+        for subcat in manage.Subcat.getAllIterator():
+            line = []
+            line.append(subcat.subcatid)
+            line.append(subcat.cat.catid)
+            line.append(subcat.descr)
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+  
+    def usage(self):
+        print "#usageid:descr"
+        for usage in manage.Usage.getAllIterator():
+            line = []
+            line.append(usage.usageid)
+            line.append(usage.descr)
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+   
+    def location(self):
+        print "#locationid:descr"
+        for location in manage.Location.getAllIterator():
+            line = []         
+            line.append(location.locationid)
+            line.append(location.descr)
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+    
+    def room(self):
+        print "#roomid[:locationid:descr:opt1:opt2:opt3:opt4]"
+        for room in manage.Room.getAllIterator():         
+            line = []         
+            line.append(room.roomid)
+            line.append(room.location.locationid)
+            line.append(room.descr or "")
+            line.append(room.opt1 or "")
+            line.append(room.opt2 or "")
+            line.append(room.opt3 or "")
+            line.append(room.opt4 or "")
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+   
+    def type(self):
+        print "#vendorid:typename:sysoid[:description:frequency:cdp:tftp]"         
+        for type in manage.Type.getAllIterator():
+            line = []
+            line.append(type.vendor.vendorid)
+            line.append(type.typename)
+            line.append(type.sysobjectid)
+            line.append(type.descr)
+            line.append(str(type.frequency))
+            line.append(str(type.cdp))
+            line.append(str(type.tftp))
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+
+    def vendor(self):
+        print "#vendorid"            
+        for vendor in manage.Vendor.getAllIDs():
+            print vendor.replace(":", "")
+   
+    def product(self):
+        print "#vendorid:productno[:description]"
+        for product in manage.Product.getAllIterator():
+            line = []
+            line.append(product.vendor.vendorid)
+            line.append(product.productno)
+            line.append(product.descr or "")
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+
+    def prefix(self):
+        print "#prefix/mask:nettype[:orgid:netident:usage:description:vlan]"            
+        for prefix in manage.Prefix.getAllIterator():
+            vlan = prefix.vlan
+            line = []
+            line.append(prefix.netaddr)
+            line.append(vlan.nettype.nettypeid)
+            line.append(vlan.org and vlan.org.orgid or "")
+            line.append(vlan.usage and vlan.usage.usageid or "")
+            line.append(vlan.description or "")
+            line.append(vlan.vlan and str(vlan.vlan) or "")
+            # Remove any : in strings
+            line = [x.replace(":", "") for x in line]
+            print ":".join(line)
+
+def main():
+    try:
+        # Should
+        from optparse import OptionParser
+    except ImportError:
+        try:
+            from optik import OptionParser
+        except ImportError:
+            fail(1, "optik 1.4.1 or Python 2.3 or later needed "
+                    "for command line) usage.\n"
+                    "Download optik from "
+                    "http://optik.sourceforge.net/ or upgrade Python.")
+    usage = "usage: %prog [options]\n" \
+            "Dumps NAV database to importable files."
+    parser = OptionParser(usage=usage)
+    parser.add_option("-t", "--table", dest="table",
+                      help="dump data from TABLE",
+                      metavar="TABLE", default="")
+    parser.add_option("-o", "--output", dest="output",
+                      help="dump data to FILE instead of stdout",
+                      metavar="FILE") 
+    parser.add_option("-a", "--all", dest="all", action="store_true",
+                      help="Dump all tables to files named TABLE.txt")
+    (options, args) = parser.parse_args()
+    
+    if options.all:
+        sys._stdout = sys.stdout
+        handlers = Handlers()
+        for key in Handlers.__dict__.keys():
+            if key[0] == "_":
+                continue
+            file = key + ".txt"    
+            sys.stdout = sys._stdout    
+            print "Dumping " + file
+            try:
+                # We're lazy and are using print all the way 
+                sys.stdout = open(file, "w")
+            except IOError, e:
+                fail(2, "Could not open file %s: %s" % 
+                        (options.output, e))
+            handler = getattr(handlers, key)
+            handler()
+        sys.exit(0)      
+
+    if options.output:
+        try:
+            # We're lazy and are using print all the way 
+            sys._stdout = sys.stdout
+            sys.stdout = open(options.output, "w")
+        except IOError, e:
+            fail(2, "Could not open file %s: %s" % 
+                    (options.output, e))
+        except TypeError:
+            fail(2, "You stupid moron")    
+    
+    handler = getattr(Handlers(), options.table, "")
+    if not handler:
+        tables = [table for table in Handlers.__dict__.keys() 
+                  if not table[0] == "_"]
+        tables.sort()              
+        tables = str.join("\n", tables)
+        fail(3, "You must select a valid table. Valid tables are:\n" + tables)
+
+    # And run the handler
+    handler()
+
+if __name__ == "__main__":
+    main()
