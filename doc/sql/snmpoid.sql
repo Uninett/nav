@@ -295,4 +295,4 @@ INSERT INTO snmpoid (oidkey,snmpoid,oidsource,descr) VALUES ('moduleMon','1.3.6.
 -- used by initBox (editdb)
 
 DELETE FROM snmpoid WHERE oidkey='typeoid';
-INSERT INTO snmpoid (oidkey,snmpoid,descr,getnext,decodehex) VALUES ('typeoid','1.3.6.1.2.1.1.2.0','all','t','f');
+INSERT INTO snmpoid (oidkey,snmpoid,descr,getnext,decodehex) VALUES ('typeoid','1.3.6.1.2.1.1.2.0','all','f','f');
