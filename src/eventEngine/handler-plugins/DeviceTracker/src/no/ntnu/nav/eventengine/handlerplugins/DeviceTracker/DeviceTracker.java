@@ -56,13 +56,21 @@ public class DeviceTracker implements EventHandler
                 // Sent when a device is made active
                 a.copyHistoryVar(e, "serial");
                 // Set device.active = True
-                Database.update("UPDATE device SET active = 'TRUE' WHERE deviceid = " + e.getDeviceid());
-                Database.commit(); 
-            } elif (e.getState() == Event.STATE_END) {
+                try {
+                    Database.update("UPDATE device SET active = 'TRUE' WHERE deviceid = " + e.getDeviceid());
+                    Database.commit();
+                } catch (SQLException exp) {
+                    Log.e("HANDLE","deviceState-start: Unable to set device.active=True for device " + e.getDeviceid());
+                }
+            } else if (e.getState() == Event.STATE_END) {
                 // Sent when a device reaches it's end of life
                 // Set device.active = False
-                Database.update("UPDATE device SET active = 'FALSE' WHERE deviceid = " + e.getDeviceid());
-                Database.commit(); 
+                try {
+                    Database.update("UPDATE device SET active = 'FALSE' WHERE deviceid = " + e.getDeviceid());
+                    Database.commit();
+                } catch (SQLException exp) {
+                    Log.e("HANDLE","deviceState-end: Unable to set device.active=False for device " + e.getDeviceid());
+                }
             }
         } else if (eventtype.equals("deviceState")) {
             // deviceState event (stateful)
