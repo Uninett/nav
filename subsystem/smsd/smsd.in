@@ -15,6 +15,7 @@ sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@
+user=@nav_user@
 
 # Source function library.
 . ${initdir}/functions
@@ -26,7 +27,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting smsd.pl: "
-		rc= daemon ${bindir}/smsd.pl
+		rc= daemon "su -c ${bindir}/smsd.pl ${user}"
 		echo
 		exit $rc
 		;;

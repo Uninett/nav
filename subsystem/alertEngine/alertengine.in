@@ -14,6 +14,7 @@ exec_prefix=@exec_prefix@
 sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
+user=@nav_user@
 
 # Source function library.
 . ${initdir}/functions
@@ -26,7 +27,7 @@ cd ${bindir}
 case "$1" in
 	start)
 		# Start daemons.
-		rc= ${bindir}/alertdaemon.pl start
+		rc= su -c "${bindir}/alertdaemon.pl start" ${user}
 		echo
 		exit $rc;
 		;;
@@ -37,7 +38,7 @@ case "$1" in
 		exit $rc;
         	;;
 	restart)
-		rc= ${bindir}/alertdaemon.pl restart
+		rc= su -c "${bindir}/alertdaemon.pl restart" ${user}
 		echo
 		exit $rc;
 		;;

@@ -16,6 +16,7 @@ sysconfdir=@sysconfdir@
 initdir=@initdir@
 bindir=@bindir@
 localstatedir=@localstatedir@
+user=@nav_user@
 
 # Source function library.
 . ${initdir}/functions
@@ -27,7 +28,7 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting getDeviceData: "
-		rc= daemon ${bindir}/getDeviceData/getDeviceData.sh
+		rc= daemon "su -c ${bindir}/getDeviceData/getDeviceData.sh ${user}"
 		echo
 		exit $rc
 		;;
