@@ -41,6 +41,101 @@ utstyr)
  
  </ul>
 
+<?php
+ /*
+Lagt til av Sigurd: Liste over lokale rapporter.
+ */
+function verify(){
+    global $PHP_AUTH_USER;
+    $passordfil = "/usr/local/nav/local/apache/htpasswd/.htpasswd-sec";
+    $fd = fopen ($passordfil,"r");
+    $funnet = 0;
+    while (!$funnet&&!feof($fd)) {
+	$buffer = fgets($fd, 4096);
+	if(preg_match("/^$PHP_AUTH_USER\:/i",$buffer)){
+	    $funnet = 1;
+	}
+    }
+    fclose ($fd);
+    return $funnet;
+}
+function les_fil($fil,$var){
+##############
+## Leser fra fil til en lang tekstreng
+##############
+    $filinnhold = "";
+    if(is_readable($fil)){
+	$fp = fopen($fil,$var);
+	$filinnhold = fread($fp,filesize($fil));
+	fclose($fp);
+    }
+    return $filinnhold;
+}
+function tolk_fil($fil,$allowed=0){
+#############
+## Behandler tekststreng og putter inn i hasher
+#############
+  $local_reports = array();
+    if($allowed){
+	if(preg_match_all("/^\s*([\w\ \t]+?)(?:\_sec)?\s*{(.*?)}/sm",$fil,$regs)){
+	  for($a=0;$a<sizeof($regs[0]);$a++){
+	  $reportid = $regs[1][$a];
+	    $var = $regs[2][$a];
+	    //print $var;
+	    preg_match_all("/^\#{0}\s*\\\$(\S+?)\s*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
+	    for ($i = 0; $i<sizeof($para[0]); $i++) {
+	      if(!strcasecmp($para[1][$i],"overskrift")){
+		$reportname = $para[2][$i];
+		$local_reports[$reportid] = $reportname;
+	      }
+	    }
+	  }
+	}
+    } else {
+	if(preg_match_all("/^\s*([\w\ \t]+?)\s*{(.*?)}/sm",$fil,$regs)){
+	  for($a=0;$a<sizeof($regs[0]);$a++){
+	  $reportid = $regs[1][$a];
+	    $var = $regs[2][$a];
+	    //print $var;
+	    preg_match_all("/\#{0}\s*\\\$(\S+?)\s*=\W*\"(.+?)\"\s*\;/smi",$var,$para);
+	    for ($i = 0; $i<sizeof($para[0]); $i++) {
+	      if(!strcasecmp($para[1][$i],"overskrift")){
+		$reportname = $para[2][$i];
+		$local_reports[$reportid] = $reportname;
+	      }
+	    }
+	  }
+	}
+    }
+
+    return $local_reports;
+}
+ 
+$local_file = les_fil("/usr/local/nav/local/etc/conf/ragen/ragen.conf","r");
+$global_file = les_fil("/usr/local/nav/navme/etc/conf/ragen/ragen.conf","r");
+
+$allowed = verify();
+$local_reports = tolk_fil($local_file,$allowed);
+$global_reports = tolk_fil($global_file,$allowed);
+
+foreach (array_keys($local_reports) as $local_key){
+  if($global_reports[$local_key]){
+    $local_reports[$local_key] = "";
+  }
+
+}
+
+print "\n\n<h3>Lokale rapporter</h3>\n<ul>";
+
+foreach($local_reports as $id => $name){
+  if($name){
+    print "\n\t<li><a href=\"index.php?rapport=$id\">".ucfirst($name)."</a></li>";
+  }
+}
+print "\n</ul>";
+
+?>
+
 <h3>Snarveier</h3>
 
 <b>Søk etter:</b>
@@ -69,6 +164,7 @@ utstyr)
 </table>
 
 <?php
+
 
 navslutt();
 ?>
