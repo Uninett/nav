@@ -173,22 +173,22 @@ CREATE TABLE type (
 );
 
 CREATE TABLE snmpoid (
-	snmpoidid SERIAL PRIMARY KEY,
-	oidkey VARCHAR NOT NULL,
-	snmpoid VARCHAR NOT NULL,
-	oidsource VARCHAR,
+  snmpoidid SERIAL PRIMARY KEY,
+  oidkey VARCHAR NOT NULL,
+  snmpoid VARCHAR NOT NULL,
+  oidsource VARCHAR,
   getnext BOOLEAN NOT NULL DEFAULT 't',
   decodehex BOOLEAN NOT NULL DEFAULT 'f',
   match_regex VARCHAR,
   uptodate BOOLEAN NOT NULL DEFAULT 'f',
-	descr VARCHAR
+  descr VARCHAR
 );
 
 CREATE TABLE typesnmpoid (
-	typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
-	snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
-	frequency INT4,
-	UNIQUE(typeid, snmpoidid)
+  typeid INT4 REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE,
+  snmpoidid INT4 REFERENCES snmpoid ON UPDATE CASCADE ON DELETE CASCADE,
+  frequency INT4,
+  UNIQUE(typeid, snmpoidid)
 );  
 
 CREATE TABLE netbox (
@@ -219,19 +219,19 @@ GRANT ALL ON netboxcategory TO getDeviceData;
 
 
 CREATE TABLE netboxinfo (
-	netboxinfoid SERIAL PRIMARY KEY,
+  netboxinfoid SERIAL PRIMARY KEY,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   key VARCHAR,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
-	UNIQUE(netboxid, key, var, val)
+  UNIQUE(netboxid, key, var, val)
 );
 
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
   deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-	module INT4 NOT NULL,
+  module INT4 NOT NULL,
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
@@ -253,7 +253,7 @@ CREATE TABLE swp_netbox (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   ifindex INT4 NOT NULL,
   to_netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  to_ifindex INT4,
+  to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
   misscnt INT4 NOT NULL DEFAULT '0',
   UNIQUE(netboxid, ifindex, to_netboxid)
 );
@@ -291,11 +291,11 @@ CREATE TABLE gwport (
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE gwportprefix (
-  gwportid INT4 REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
-	prefixid INT4 REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
-  gwip INET,
+  gwportid INT4 NOT NULL REFERENCES gwport ON UPDATE CASCADE ON DELETE CASCADE,
+  prefixid INT4 NOT NULL REFERENCES prefix ON UPDATE CASCADE ON DELETE CASCADE,
+  gwip INET NOT NULL,
   hsrp BOOL NOT NULL DEFAULT 'f',
-	UNIQUE(gwip)
+  UNIQUE(gwip)
 );
 
 CREATE TABLE swportvlan (
@@ -406,7 +406,7 @@ CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   sysname VARCHAR NOT NULL,
-	ifindex INT4 NOT NULL,
+  ifindex INT4 NOT NULL,
   module VARCHAR(4),
   port INT4,
   mac CHAR(12) NOT NULL,
@@ -522,6 +522,7 @@ GRANT SELECT ON vlan TO getBoksMacs;
 GRANT ALL    ON swportvlan TO getBoksMacs;
 GRANT SELECT ON swportallowedvlan TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
+GRANT SELECT ON gwportprefix TO getBoksMacs;
 GRANT SELECT ON prefix TO getBoksMacs;
 GRANT SELECT ON netboxmac TO getBoksMacs;
 GRANT ALL    ON swp_netbox TO getBoksMacs;
@@ -608,9 +609,9 @@ CREATE TABLE rrd_datasource (
   descr         VARCHAR, -- human-understandable name of the datasource
   dstype        VARCHAR CHECK (dstype='GAUGE' OR dstype='DERIVE' OR dstype='COUNTER' OR dstype='ABSOLUTE'),
   units         VARCHAR, -- textual decription of the y-axis (percent, kilo, giga, etc.)
-  threshold	VARCHAR,
-  max		VARCHAR,
-  delimiter	CHAR(1) CHECK (delimiter='>' OR delimiter='<'),
+  threshold VARCHAR,
+  max   VARCHAR,
+  delimiter CHAR(1) CHECK (delimiter='>' OR delimiter='<'),
   thresholdstate VARCHAR CHECK (thresholdstate='active' OR thresholdstate='inactive')
 );
 
@@ -639,21 +640,21 @@ CREATE TABLE eventtype (
   statefull CHAR(1) NOT NULL CHECK (statefull='y' OR statefull='n')
 );
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
-	('boxState','Tells us whether a network-unit is down or up.','y');
+  ('boxState','Tells us whether a network-unit is down or up.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES 
-	('serviceState','Tells us whether a service on a server is up or down.','y');
+  ('serviceState','Tells us whether a service on a server is up or down.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('moduleState','Tells us whether a module in a device is working or not.','y');
+  ('moduleState','Tells us whether a module in a device is working or not.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('thresholdState','Tells us whether the load has passed a certain threshold.','y');
+  ('thresholdState','Tells us whether the load has passed a certain threshold.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('linkState','Tells us whether a link is up or down.','y');
+  ('linkState','Tells us whether a link is up or down.','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('coldStart','Tells us that a network-unit has done a coldstart','n');
+  ('coldStart','Tells us that a network-unit has done a coldstart','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('warmStart','Tells us that a network-unit has done a warmstart','n');
+  ('warmStart','Tells us that a network-unit has done a warmstart','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
-	('info','Basic information','n');
+  ('info','Basic information','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
     ('deviceOrdered','Tells us that a device has been ordered or that an ordered device has arrived','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,statefull) VALUES
@@ -693,7 +694,7 @@ CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
-	UNIQUE(eventqid, var) -- only one val per var per event
+  UNIQUE(eventqid, var) -- only one val per var per event
 );
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
