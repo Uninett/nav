@@ -13,13 +13,14 @@ DROP TABLE sted;
 DROP TABLE anv;
 DROP TABLE org;
 
+#############NEI
+
 DROP TABLE vpBoksXY;
 DROP TABLE vpBoksGrp;
 DROP TABLE vpBoksGrpInfo;
 
 # Slette alle sekvenser
 DROP SEQUENCE boks_boksid_seq;
-DROP SEQUENCE boksinfo_boksinfoid_seq;
 DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefiks_prefiksid_seq;
 DROP SEQUENCE status_statusid_seq;
@@ -228,26 +229,25 @@ CREATE TABLE vpBoksXY (
 );
 ### vlanPlot end ###
 
-GRANT ALL ON org TO group nav;
-GRANT ALL ON anv TO group nav;
-GRANT ALL ON sted TO group nav;
-GRANT ALL ON rom TO group nav;
-GRANT ALL ON prefiks TO group nav;
-GRANT ALL ON type TO group nav;
-GRANT ALL ON boks TO group nav;
-GRANT ALL ON boksinfo TO group nav;
-GRANT ALL ON gwport TO group nav;
-GRANT ALL ON swport TO group nav;
-GRANT ALL ON swportvlan TO group nav;
+GRANT ALL ON org TO navall;
+GRANT ALL ON anv TO navall;
+GRANT ALL ON sted TO navall;
+GRANT ALL ON rom TO navall;
+GRANT ALL ON prefiks TO navall;
+GRANT ALL ON type TO navall;
+GRANT ALL ON boks TO navall;
+GRANT ALL ON boksinfo TO navall;
+GRANT ALL ON gwport TO navall;
+GRANT ALL ON swport TO navall;
+GRANT ALL ON swportvlan TO navall;
 
 
 
-GRANT ALL ON boks_id_seq TO group nav;
-GRANT ALL ON boksinfo_id_seq TO group nav;
-GRANT ALL ON gwport_id_seq TO group nav;
-GRANT ALL ON prefiks_id_seq TO group nav;
-GRANT ALL ON swport_id_seq TO group nav;
-GRANT ALL ON swportvlan_id_seq TO group nav;
+GRANT ALL ON boks_boksid_seq TO navall;
+GRANT ALL ON gwport_gwportid_seq TO navall;
+GRANT ALL ON prefiks_prefiksid_seq TO navall;
+GRANT ALL ON swport_swportid_seq TO navall;
+GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 
 ################################
 

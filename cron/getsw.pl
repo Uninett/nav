@@ -185,7 +185,7 @@ sub hent_data
    
     unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
-	&oppdater_en("boks","sysName",$sn,"id",$id);
+	&oppdater_en("boks","sysName",$sn,$felt[0],$id);
     }
 
 
@@ -202,7 +202,7 @@ sub hent_data
     }
     unless ($boks{$id}{prefiksid} =~ /$prefiksid/){
 	$boks{$id}{prefiksid}= $prefiksid;
-	&oppdater_en("boks","prefiksid",$prefiksid,"id",$id);
+	&oppdater_en("boks","prefiksid",$prefiksid,$felt[0],$id);
     }
   
 #    $sup_version =~ s/\d+://g;

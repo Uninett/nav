@@ -291,12 +291,12 @@ sub hent_gwdata {
 	$tnett{$gwip}{speed}    = $if{$tnett{$gwip}{indeks}}{speed};
 	$tnett{$gwip}{maxhosts} = &max_ant_hosts($tnett{$gwip}{maske});
 	$tnett{$gwip}{antmask}  = &ant_maskiner($gwip,$tnett{$gwip}{netmask},$tnett{$gwip}{maxhosts});
-	print "\n";
 
 	$_ = $if{$tnett{$gwip}{indeks}}{nettnavn};
+
+	$tnett{$gwip}{hsrppri} = "1";
 	if(/^lan(\d*)/i) {
-	    $tnett{$gwip}{hsrppri} = 1;
-	    $tnett{$gwip}{hsrppri} = $1 if defined $1;
+	    $tnett{$gwip}{hsrppri} = $1 if $1;
 	}
 	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{indeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf},$tnett{$gwip}{hsrppri}];
     }

@@ -49,21 +49,21 @@ my @gen;
 #FILLESING: server.txt
 $fil = "/usr/local/nav/etc/server.txt";
 open (FIL, "<$fil") || die ("kunne ikke åpne $fil");
-foreach my $l (<FIL>) {
+while (<FIL>) {
 #leser bare kolonner med "ord:"
 
-    next unless $l =~ /^(\w+?\:)(\S+?)\:/; 
-    (@_,undef) = split /:/, $l,$les+1;
+    next unless /^(\w+?\:)(\S+?)\:/; 
+    (@_,undef) = split /:/, $_,$les+1;
 
     @_ = map rydd($_), @_;
 
     $ip = hent_ip($2);
     $type = hent_type($ip,$_[5]);
     @gen = ($ip,$type,@_[0..5],undef);
-
+    
 #fjerner "whitespace"-tegn
     @gen = map rydd($_), @gen;
-
+    
 #lagrer array i hash
     $fil{$gen[0]} = [ @gen ];
 }
@@ -96,7 +96,7 @@ close FIL;
 #----------------------------------
 #DATABASELESING
 #felter som skal leses ut av databasen
-@felt = ("ip","type","romid","sysname","drifter","kat","kat2","ro","rw");
+@felt = ("ip","typeid","romid","sysname","orgid","kat","kat2","ro","rw");
 
 #select 
 $sql = "SELECT ".join(",", @felt )." FROM boks ORDER BY $felt[0]";
@@ -165,8 +165,12 @@ for my $f (keys %db) {
 }
 
 sub hent_ip{
-    $_ = gethostbyname($_[0]);
-    return inet_ntoa($_);
+    if (defined $_[0]){
+	$_ = gethostbyname($_[0]);
+	return inet_ntoa($_);
+    } else {
+	return "";
+    }   
 }
 sub hent_type{
     my $ip = $_[0];
@@ -177,7 +181,7 @@ sub hent_type{
 	(undef,my $oid) = split /:/, $res[1];
 	print "oid: ".$oid."\n";
 	my $conn = db_connect($db);
-	my $sql = "SELECT type FROM type WHERE sysobjectid=\'$oid\'";
+	my $sql = "SELECT typeid FROM type WHERE sysobjectid=\'$oid\'";
 	$resultat = db_select($sql,$conn);
 	$resultat = $resultat->fetchrow;
 	print "OK:\t$ro\@$ip = $resultat \n";

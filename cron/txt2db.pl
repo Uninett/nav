@@ -20,7 +20,7 @@ $tabell = "sted";
 #--------------ROM-------------
 $fil = "/usr/local/nav/etc/rom.txt";
 $tabell = "rom";
-@felt = ("romid","sted","descr","rom2","rom3","rom4","rom5");
+@felt = ("romid","stedid","descr","rom2","rom3","rom4","rom5");
 &db_endring($fil,$tabell,\@felt);
 #--------------ORG-------------
 $fil = "/usr/local/nav/etc/org.txt";
