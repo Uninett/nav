@@ -39,6 +39,7 @@ public class QueryNetbox extends Thread
 	private static int threadCnt;
 	private static Integer idleThreadLock = new Integer(0);
 	private static int netboxCnt;
+	private static long nbProcessedCnt;
 
 	private static String qNetbox;
 
@@ -178,7 +179,6 @@ public class QueryNetbox extends Thread
 					t = new Type(typeid, typename, uptodate, keyFreqMap, keyMap);
 					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
 					typeidM.put(typeid, t);
-					Log.d("UPDATE_TYPES", "Created type: " + t);
 				}
 					
 				/*
@@ -509,6 +509,11 @@ public class QueryNetbox extends Thread
 			}
 			Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);				
 			Log.d("RUN", "Done processing netbox " + nb);
+
+			long pc = ++nbProcessedCnt;
+			if ((pc % 100) == 0) {
+				Log.i("RUN", "Processed " + pc + " netboxes (" + (pc%100) + " of " + netboxCnt + ")");
+			}
 
 			// If netbox is removed, don't add it to the RunQ
 			if (!nb.isRemoved()) {
