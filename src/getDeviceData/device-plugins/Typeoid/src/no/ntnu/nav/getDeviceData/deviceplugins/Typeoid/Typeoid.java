@@ -52,16 +52,15 @@ public class Typeoid implements DeviceHandler
 
 		// Fetch the typeoid
 		List l = sSnmp.getNext(nb.getOid("typeoid"), 1, true, false);
-		if (l.isEmpty()) {
+		if (l == null || l.isEmpty()) {
 			Log.w("HANDLE_DEVICE", "No returned results from typeoid, cannot update type!");
 			return;
 		}
 
 		String sysobjectid = ((String[])l.get(0))[1];
-		sysobjectid = sysobjectid.substring(1, sysobjectid.length());
 
 		try {
-			ResultSet rs = Database.query("SELECT typeid,type FROM type WHERE sysobjectid = '" + sysobjectid + "'");
+			ResultSet rs = Database.query("SELECT typeid,typename FROM type WHERE sysobjectid = '" + sysobjectid + "'");
 			if (!rs.next()) {
 				Log.w("HANDLE_DEVICE", "Type not found for sysobjectid: " + sysobjectid + " on " + nb);
 				return;
@@ -72,19 +71,22 @@ public class Typeoid implements DeviceHandler
 				{
 					// Send event
 					Map varMap = new HashMap();
-					varMap.put("oldType", nb.getType());
-					varMap.put("newType", rs.getString("type"));
-					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", 0, 0, 0, varMap);
+					varMap.put("oldType", (nb.getType()==null?"unknownType":nb.getType()));
+					varMap.put("newType", rs.getString("typename"));
+					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
 				}
 				
 				// Delete the netbox and insert new netbox with correct type
 				rs = Database.query("SELECT ip,roomid,sysname,catid,orgid,ro,rw,prefixid,up FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 				rs.next();
-				
+
+				Log.i("HANDLE_DEVICE", "Deleting netbox from database: " + nb);
+								
 				Database.beginTransaction();
 				Database.update("DELETE FROM netbox WHERE netboxid = '"+nb.getNetboxid()+"'");
 				String[] insDev = {
-					"deviceid", ""
+					"deviceid", "",
+					//					"serial", "null"
 				};
 				String deviceid = Database.insert("device", insDev, null);
 				
@@ -113,6 +115,7 @@ public class Typeoid implements DeviceHandler
 			Log.e("HANDLE_DEVICE", "Error while trying to change type for netbox " + nb);
 			Log.d("HANDLE_DEVICE", "SQLException: " + e);
 			Database.rollback();
+			e.printStackTrace(System.err);
 		}
 
 	}
