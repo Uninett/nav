@@ -509,7 +509,8 @@ ORDER BY " . $sorts[$sort];
     $matcher = NULL;
     
     $sorts = array (
-        'name'
+        'name',
+        'matchfieldid'
     );
 
     $querystring = "SELECT matchfieldid, name, descr, valuehelp " .
@@ -2384,15 +2385,27 @@ class DBHK {
   function listVerdier($valueid, $valuename, $valuecategory, $valuesort, $limit) {
 
     $verdier = null;
+    $vname = split("\|", $valuename);
+    
+/* 	echo '<p>vname:<pre>'; */
+/* 	print_r($vname); */
+/*     echo "</pre>"; */
+    
+    
+    $vntemplate = (sizeof($vname) > 1) ? $vname[1] : '[NAME]';
+    $vnamestr = (sizeof($vname) > 1) ? $vname[0] : $valuename;
+    
     $vtabell = $this->get_table($valueid);
     $vid = $this->get_field($valueid);
-    $vname = $this->get_field($valuename);
+    $vname = $this->get_field($vnamestr);
     $vsort = $this->get_field($valuesort);
     $vcat = $this->get_field($valuecategory);
+    
     if ($valuecategory != "") {
         $vc = ", " . $vcat;
     } else {
         $vc = "";
+        //$vsort = $this->get_field($vcat) . ', ' . $vsort;
     }
     $querystring = "SELECT $vid, $vname $vc " . 
     	"FROM $vtabell " .
@@ -2405,8 +2418,12 @@ class DBHK {
 
         while ( $row < $tot) {
             $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+			$namestring = $vntemplate;
+			$namestring = preg_replace('/(\[NAME\])/', $data[$vname], $namestring);
+			$namestring = preg_replace('/(\[ID\])/', $data[$vid], $namestring);
+			$namestring = preg_replace('/(\[GROUP\])/', $data[$vcat], $namestring);
             $verdier[$data[$vcat]][$row][0] = $data[$vid];
-            $verdier[$data[$vcat]][$row][1] = $data[$vname];
+            $verdier[$data[$vcat]][$row][1] = $namestring;
             $row++;
         }
         

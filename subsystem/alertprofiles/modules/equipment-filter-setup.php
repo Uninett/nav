@@ -128,7 +128,7 @@ print '<form name="form1" method="post" action="index.php?subaction=velgmatchfel
 <?php
 
 // Viser oversikt over hvilke filtermatchfelter man kan velge...
-$matchfields = $dbh->listMatchField(0);
+$matchfields = $dbh->listMatchField(1);
 
 foreach ($matchfields AS $matchfield) {
 	$sel = "";
@@ -220,6 +220,8 @@ echo "</pre>";
 if ($matchfieldinfo[8] == 't' ) {
   
 	echo '<select name="verdi" id="select">';    
+
+	ksort($verdier);
 
 	// Traverser kategorier
 	foreach ($verdier AS $cat => $catlist) {
