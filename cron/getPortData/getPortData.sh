@@ -12,7 +12,7 @@ if [ "$JAVA_HOME" == "" ]; then
         JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
 
-CLASSPATH=./getPortData.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
+#CLASSPATH=./getPortData.jar:$NAV_ROOT/navme/java/lib/postgre.jar:$NAV_ROOT/navme/java/lib/snmp.jar:.
 
 CUR_DIR=$NAV_ROOT/navme/cron/getPortData
 JOB_FINISHED=$CUR_DIR/job-finished
@@ -28,8 +28,8 @@ if [ "$COUNT" == "0" ] || [ -a $JOB_FINISHED ]; then
                 kill -9 `cat last.pid`
                 rm -f $JOB_FINISHED
         fi
-        # Now run new script
-        $JAVA_HOME/bin/java -cp $CLASSPATH getPortData $1 > "$LOG_DIR/getPortData-`/bin/date +%Y-%m-%d_%H-%M`.log" &
+        # Now run script
+        $JAVA_HOME/bin/java -jar getPortData.jar $1 > "$LOG_DIR/getPortData-`/bin/date +%Y-%m-%d_%H-%M`.log" &
         PID="$!"
         echo $PID >last.pid
         wait $PID
