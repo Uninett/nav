@@ -158,8 +158,6 @@ header("Content-Type: text/html; charset=utf-8");
 
 
 
-
-
 // I18N support information here
 $language = 'en';
 

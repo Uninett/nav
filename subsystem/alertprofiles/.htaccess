@@ -1,3 +1,2 @@
 SetHandler none
-
-
+php_flag register_globals on
