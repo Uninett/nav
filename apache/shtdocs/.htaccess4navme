@@ -5,7 +5,7 @@
 
 AuthName "AapentNettStat" 
 AuthType Basic 
-AuthUserFile /usr/local/apache/htpasswd/.htpasswd-sroot
+AuthUserFile /usr/local/nav/local/apache/htpasswd/.htpasswd-sroot
 require valid-user 
 
 # satisfy any

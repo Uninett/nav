@@ -2,7 +2,7 @@
 # allow from 129.241.75.
  
 AuthType Basic 
-AuthUserFile /usr/local/nav/navme/apache/htpasswd/.htpasswd-res
+AuthUserFile /usr/local/nav/local/apache/htpasswd/.htpasswd-res
 AuthName "RestrictedNettStat" 
 require valid-user 
 

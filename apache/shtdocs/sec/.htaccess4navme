@@ -1,7 +1,7 @@
 # deny from all
  
 AuthType Basic 
-AuthUserFile /usr/local/nav/navme/apache/htpasswd/.htpasswd-sec
+AuthUserFile /usr/local/nav/local/apache/htpasswd/.htpasswd-sec
 AuthName "SecretNettStat" 
 require valid-user 
 
