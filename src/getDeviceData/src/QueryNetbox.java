@@ -219,6 +219,7 @@ public class QueryNetbox extends Thread
 				boolean oiduptodate = rs.getBoolean("oiduptodate");
 				
 				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, matchRegex, oiduptodate);
+				oidkeyM.put(oidkey, snmpoid);
 				synchronized (oidQ) { oidQ.add(snmpoid); }
 
 			}
@@ -399,6 +400,7 @@ public class QueryNetbox extends Thread
 				synchronized (oidQ) {
 					if (!oidQ.isEmpty()) {
 						updateO = oidQ.removeFirst();
+						Log.d("RUN", "oidQ not empty, got: " + updateO);
 					}
 				}
 				if (updateO != null) {

@@ -55,4 +55,8 @@ public class Snmpoid
 		return typeMap.values().iterator();
 	}
 
+	public String toString() {
+		return "Snmpoid: " + oidkey;
+	}
+
 }

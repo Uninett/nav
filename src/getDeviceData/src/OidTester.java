@@ -56,6 +56,7 @@ public class OidTester
 		// Return if this has already been checked
 		if (!checkDupe(t.getTypeid()+":"+snmpoid.getOidkey())) return;
 
+		Log.d("OID_TESTER", "DO_TEST", "Starting test for type: " + t + ", snmpoid: " + snmpoid);
 		sSnmp = SimpleSnmp.simpleSnmpFactory(t.getTypename());
 
 		try {

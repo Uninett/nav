@@ -66,7 +66,7 @@ public class Type
 	}
 
 	public String toString() {
-		return "Type: " + typeid;
+		return "Type("+typeid+"): " + typename;
 	}
 
 
