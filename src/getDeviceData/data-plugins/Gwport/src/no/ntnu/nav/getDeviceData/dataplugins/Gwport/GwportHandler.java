@@ -690,10 +690,12 @@ public class GwportHandler implements DataHandler {
 				}
 			}
 		}
+		/*
 		if (hasDeleted) {
 			Database.update("DELETE FROM gwport WHERE masterindex IS NOT NULL AND gwportid NOT IN (SELECT gwportid FROM gwportprefix)");
 			Database.update("DELETE FROM gwport WHERE masterindex IS NULL AND ifindex NOT IN (SELECT masterindex FROM gwport WHERE masterindex IS NOT NULL AND moduleid = gwport.moduleid) AND gwportid NOT IN (SELECT gwportid FROM gwportprefix)");
 		}
+		*/
 	}
 	
 	private static void createVlan(Vlan vl) throws SQLException {
