@@ -1,8 +1,7 @@
 """
 database
 
-$Author: magnun $
-$Id: database.py,v 1.16 2002/06/28 02:35:01 magnun Exp $
+$Id: database.py,v 1.17 2002/06/28 10:14:21 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread, jobmap
@@ -28,10 +27,7 @@ def run():
 		c.execute(statement)
 def newEvent(event):
 	#print "New event. Id: %i Status: %s Info: %s"% (event.serviceid, event.status, event.info)
-	if event.status == event.UP:
-		value = 100
-	else:
-		value = 0
+	value = event.UP and 100
 
 	# Dette må fikses...
 	#statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr) values (%i, %i, '%s', '%s', %i, '%s'  ) " % (event.serviceid, event.boksid, event.type, 't',value, event.info.replace("'","\\'"))
@@ -59,22 +55,16 @@ def getJobs(onlyactive = 1):
 	c.execute(query)
 	jobs = []
 	for serviceid,boksid,active,handler,version,ip in c.fetchall():
-		if not active and onlyactive:
-			continue
 		job = mapper.get(handler)
 		if not job:
 			print 'no such handler:',handler
 		newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
-		if not onlyactive:
+		if onlyactive and not active:
+			continue
+		else:
 			setattr(newJob,'active',active)
 
 		jobs += [newJob]
-	db.commit()
+#	db.commit()
 	return jobs
 
-
-if __name__ == '__main__':
-	startup('host = localhost user = manage dbname = manage password = eganam')
-	jobs = getJobs()
-	for i in jobs:
-		print jobs
