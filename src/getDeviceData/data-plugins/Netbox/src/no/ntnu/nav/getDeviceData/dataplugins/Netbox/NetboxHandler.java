@@ -126,7 +126,7 @@ public class NetboxHandler implements DataHandler {
 				}
 
 				if (sysnameSet.contains(n.getSysname())) {
-					Log.w("UPDATE_NETBOX", "New sysname ("+n.getSysname()+") is already present in netbox, cannot update");
+					Log.w("UPDATE_NETBOX", "Cannot change " + oldn + " to " + n + " as it is already present in netbox");
 					n.setSysname(null);
 				} else {
 					sysnameSet.add(n.getSysname());
