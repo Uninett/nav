@@ -79,7 +79,8 @@ class NetboxInfo(manage.Netbox):
         info.add('Status', _statusTranslator.get(self.up, self.up))
         info.add('Availability', self.availability())
         info.add('Ip address', self.showIp())
-        info.add('Category', urlbuilder.createLink(self.cat))
+        info.add('Category', urlbuilder.createLink(self.cat,
+            subsystem="report"))
         if self.type:
             info.add('Type', urlbuilder.createLink(self.type))
         info.add('Organisation', urlbuilder.createLink(self.org))
@@ -276,7 +277,8 @@ class NetboxInfo(manage.Netbox):
                    where="not subsystem in ('pping', 'serviceping')")
         if not rrdfiles:
             return None
-        table = html.SimpleTable()
+        result = html.Division()
+        result.append(html.Header("Statistics", level=3))
         for rrd in rrdfiles:
             info = "%s: %s" % (rrd.key, rrd.value)
             if rrd.key == 'swport':
@@ -292,13 +294,18 @@ class NetboxInfo(manage.Netbox):
                         port.module.module,
                         port.port)
                        
+            all = []
             for ds in rrd.getChildren(manage.Rrd_datasource):
-                table.add(str(rrd.value), info, str(ds.descr))
-                
-    #            ds.load()
-     #           ds.rrd_file.load()
-      #          table.add(str(ds.rrd_file._values), str(ds._values))
-        return table
+                link = urlbuilder.createLink(subsystem='rrd',
+                    id=ds.rrd_datasourceid, division="datasources", content=(ds.descr or "(unknown)"))
+                all.append(ds.rrd_datasourceid)
+                result.append(html.Division(link))
+
+        link = urlbuilder.createLink(subsystem='rrd',
+                    id=all, division="datasources", content="[All]")
+        result.append(html.Division(link))
+        return result                
+
     def showPorts(self):
         div = html.Division(_class="ports")
         div.append(html.Header("Switchports", level=2))
