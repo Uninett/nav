@@ -157,7 +157,7 @@ def start(nofork):
             os.sys.exit()
 
         logfile = conf.get('logfile','pinger.log')
-        print "Logger til ", logfile
+        # print "Logger til ", logfile
         os.sys.stdout = open(logfile,'a')
         os.sys.stderr = open(logfile,'a')
     myPinger=pinger(socket=sock)
@@ -174,11 +174,11 @@ def setUser():
         print "User %s not found" % username
         print "Exiting"
         os.sys.exit()
-    print "Setting UID to %s " % uid 
+    # print "Setting UID to %s " % uid 
     os.setegid(gid)
     os.seteuid(uid)
     os.umask(0022)
-    print "Now running as user %s" % username
+    # print "Now running as user %s" % username
 
 if __name__=='__main__':
     try:
