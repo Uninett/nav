@@ -220,7 +220,7 @@ CREATE TABLE netboxinfo (
   key VARCHAR,
   var VARCHAR NOT NULL,
   val TEXT NOT NULL,
-	UNIQUE(netboxid, key, var)
+	UNIQUE(netboxid, key, var, val)
 );
 
 -- netboxdisk and netboxinterface should be obsoleted by netboxinfo
@@ -644,7 +644,8 @@ CREATE INDEX eventq_target_btree ON eventq USING btree (target);
 CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR NOT NULL,
-  val TEXT NOT NULL
+  val TEXT NOT NULL,
+	UNIQUE(eventqid, var) -- only one val per var per event
 );
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
