@@ -11,6 +11,7 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
+import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
 
 /**
  * <p>
@@ -29,6 +30,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *   <li>ifAdminStatus</li>
  *   <li>ifOperStatus</li>
  *   <li>ifDescr</li>
+ *   <li>moduleMon</li>
  *  </ul>
  * </ul>
  * </p>
@@ -41,7 +43,8 @@ public class MibIISw implements DeviceHandler
 		"ifSpeed",
 		"ifAdminStatus",
 		"ifOperStatus",
-		"ifDescr"
+		"ifDescr",
+		"moduleMon"
 	};
 
 	private SimpleSnmp sSnmp;
@@ -57,6 +60,7 @@ public class MibIISw implements DeviceHandler
 		Log.setDefaultSubsystem("MIB_II_SW_DEVHANDLER");
 		
 		SwportContainer sc;
+		ModuleMonContainer mmc;
 		{
 			DataContainer dc = containers.getContainer("SwportContainer");
 			if (dc == null) {
@@ -68,6 +72,17 @@ public class MibIISw implements DeviceHandler
 				return;
 			}
 			sc = (SwportContainer)dc;
+
+			dc = containers.getContainer("ModuleMonContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleMonContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleMonContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleMonContainer! " + dc);
+				return;
+			}
+			mmc = (ModuleMonContainer)dc;
 		}
 
 		String netboxid = nb.getNetboxidS();
@@ -78,18 +93,42 @@ public class MibIISw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processMibII(nb, netboxid, ip, cs_ro, type, sc);
+		processMibII(nb, netboxid, ip, cs_ro, type, sc, mmc);
 
 		// Commit data
 		sc.commit();
 	}
 
-	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
+	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
 	{
+		if (nb.getNumInStack() > 1) {
+			// Do moduleMon
+			String baseOid = nb.getOid("moduleMon");
+			if (baseOid != null) {
+				for (Iterator it = mmc.getQueryIfindices(netboxid); it.hasNext();) {
+					String[] s = (String[])it.next();
+					String ifindex = s[0];
+					String module = s[1];
+					try {
+						sSnmp.onlyAskModule(module);
+						List l = l = sSnmp.getNext(baseOid+"."+it.next(), 1, false, false);
+						if (l != null && !l.isEmpty()) {
+							// We got a response
+							mmc.ifindexActive(ifindex);
+						}
+					} catch (TimeoutException te) {
+						// Assume the module is down
+						Log.i("PROCESS_MIBII", "Module with ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
+					}
+				}
+				sSnmp.onlyAskModule(null);
+			}
+		}
+
 		Set skipIfindexSet = new HashSet();
 
 		// Set speed
-		List speedList = sSnmp.getAll(nb.getOid("ifSpeed"));;
+		List speedList = sSnmp.getAll(nb.getOid("ifSpeed"));
 		if (speedList != null) {
 			for (Iterator it = speedList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
