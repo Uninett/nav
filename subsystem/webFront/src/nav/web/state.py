@@ -61,7 +61,9 @@ def setSessionCookie(req, value):
     """
     Sets the session cookie = value in the given request object
     """
-    req.headers_out['Set-Cookie'] = '%s=%s;' % (sessionCookieName, value)
+    cookieString = '%s=%s; path=/' % (sessionCookieName, value)
+    req.headers_out['Set-Cookie'] = cookieString
+    req.err_headers_out['Set-Cookie'] = cookieString
     
 def getSessionCookie(req):
     """
