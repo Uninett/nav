@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 NAV_ROOT="/usr/local/nav"
 NAV_CONF="$NAV_ROOT/local/etc/conf/nav.conf"
@@ -10,7 +10,7 @@ fi
 CONF_FILE="$NAV_ROOT/local/etc/conf/navAdmin.conf"
 NAVME_ROOT="$NAV_ROOT/navme"
 CUR_DIR=$NAVME_ROOT/subsystem/navAdmin
-REPORT_DIR=$NAV_ROOT/local/log/navAdmin/report
+REPORT_DIR=$NAV_ROOT/local/log
 
 cd $CUR_DIR
 $JAVA_HOME/bin/java -jar NavUtils.jar $CONF_FILE -avledTopologi > "$REPORT_DIR/avledTopologi.html"

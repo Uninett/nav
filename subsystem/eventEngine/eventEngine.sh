@@ -16,7 +16,7 @@ COUNT=`ps wwwwx|grep "eventEngine.jar"|grep -v eventEngine.sh|grep -v grep|wc -l
 if [ "$COUNT" == "0" ]; then
         cd $CUR_DIR
         # Now run script
-        $JAVA_HOME/bin/java -jar eventEngine.jar $1 >> "$LOG_DIR/eventEngine.log" 2> error-log &
+        $JAVA_HOME/bin/java -jar eventEngine.jar $1 >> "$LOG_DIR/eventEngine-stdout.log" 2> error-log &
         PID="$!"
         echo $PID >$NAV_ROOT/local/var/run/eventEngine.pid
 else
