@@ -238,13 +238,14 @@ CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT4 NOT NULL,
-  retning VARCHAR(1) NOT NULL DEFAULT 'x',
+  retning CHAR(1) NOT NULL DEFAULT 'x',
   UNIQUE (swportid,vlan)
 );
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
-  hexstring varchar(256)
+  hexstring varchar(256),
+  static CHAR(1) NOT NULL DEFAULT 'f'
 );
 
 CREATE TABLE swportblocked (
