@@ -6,6 +6,7 @@ import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.util.*;
+import no.ntnu.nav.event.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
@@ -149,8 +150,19 @@ public class MibIISw implements DeviceHandler
 
 		l = sSnmp.getNext(nb.getOid("sysname"), 1, true, false);
 		if (l != null && !l.isEmpty()) {
+			// sysname (dnsname) should start with the collected sysname
 			String[] s = (String[])l.get(0);
-			nc.netboxDataFactory(nb).setSysname(s[1]);			
+			if (!nb.getSysname().startsWith(s[1])) {
+				// Log
+				Log.i("HANDLE", "Sysname (DNS) ("+nb.getSysname()+") does not start with the collected sysname ("+s[1]+")");
+
+				Map varMap = new HashMap();
+				varMap.put("dnsname", String.valueOf(nb.getSysname()));
+				varMap.put("sysname", String.valueOf(s[1]));
+				EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
+			} else {
+				Log.d("HANDLE", "Correct: Sysname (DNS) ("+nb.getSysname()+") starts with the collected sysname ("+s[1]+")");
+			}
 		}
 
 		l = sSnmp.getNext(nb.getOid("sysUpTime"), 1, false, false);

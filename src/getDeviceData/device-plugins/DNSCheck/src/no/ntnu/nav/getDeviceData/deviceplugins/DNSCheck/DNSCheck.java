@@ -12,6 +12,7 @@ import no.ntnu.nav.util.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 
 /**
  * <p>
@@ -47,6 +48,20 @@ public class DNSCheck implements DeviceHandler
 	{
 		Log.setDefaultSubsystem("DNSCHECK_DEVHANDLER");
 
+		NetboxContainer nc;
+		{
+			DataContainer dc = containers.getContainer("NetboxContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No NetboxContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof NetboxContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a NetboxContainer! " + dc);
+				return;
+			}
+			nc = (NetboxContainer)dc;
+		}
+
 		// Do DNS lookup
 		InetAddress ia = null;
 		try {
@@ -58,22 +73,10 @@ public class DNSCheck implements DeviceHandler
 		if (dnsName.equals(nb.getIp())) {
 			// DNS lookup failed
 			Log.i("HANDLE", "DNS lookup failed for " + nb);
-			return;
 		}
 
-		// dnsName and sysname should match - but for now we just check that dnsName starts with sysname
-		if (!dnsName.startsWith(nb.getSysname())) {
-			// Log
-			Log.i("HANDLE", "Sysname ("+nb.getSysname()+") and DNS ("+dnsName+") does not match!");
-
-			Map varMap = new HashMap();
-			varMap.put("sysname", String.valueOf(nb.getSysname()));
-			varMap.put("dnsname", dnsName);
-			EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
-			
-		}
-
-		Log.d("HANDLE", "Correct: Sysname ("+nb.getSysname()+") and DNS ("+dnsName+") match!");
+		nc.netboxDataFactory(nb).setSysname(dnsName);
+		nc.commit();
 
 	}
 
