@@ -127,7 +127,10 @@ class _db(threading.Thread):
                 try:
                     self.db.commit()
                 except:
-                    debug("Failed to rollback", 2)
+                    debug("Failed to commit", 2)
+        except psycopg.IntegrityError, e:
+            debug(str(e), 2)
+            debug("Throwing away update...", 2)
         except Exception, e:
             debug("Could not execute statement: %s" % statement, 2)
             debug(str(e))
