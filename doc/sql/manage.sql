@@ -599,7 +599,7 @@ GRANT ALL    ON device_deviceid_seq TO getDeviceData;
 GRANT SELECT,UPDATE ON netbox TO getDeviceData;
 GRANT ALL    ON netboxinfo TO getDeviceData;
 GRANT ALL    ON netboxinfo_netboxinfoid_seq TO getDeviceData;
-GRANT SELECT ON type TO getDeviceData;
+GRANT SELECT,UPDATE ON type TO getDeviceData;
 GRANT ALL    ON cat TO getDeviceData;
 GRANT ALL    ON module TO getDeviceData;
 GRANT ALL    ON module_moduleid_seq TO getDeviceData;
@@ -617,7 +617,7 @@ GRANT ALL    ON prefix_prefixid_seq TO getDeviceData;
 GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
 GRANT ALL    ON typesnmpoid TO getDeviceData;
-GRANT ALL    ON snmpoid TO getDeviceData;
+GRANT SELECT,UPDATE ON snmpoid TO getDeviceData;
 
 
 -------- vlanPlot end ------
