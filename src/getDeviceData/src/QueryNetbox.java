@@ -484,7 +484,11 @@ public class QueryNetbox extends Thread
 			e.printStackTrace(System.err);
 		}
 
-		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq, " + threadCnt + " active)");
+		String msg = "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq,";
+		if (initialQ.size() > 0) msg += " " + initialQ.size() + " initialQ,";
+		msg +=  " " + threadCnt + " active)";
+		Log.i("UPDATE_NETBOXES", msg);
+		//Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + netboxHigh + " high, " + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped, " + nbRunQSize() + " runq, " + threadCnt + " active)");
 
 		// Check the run queue in case we have any new netboxes to check
 		if (newcnt > 0) {
@@ -557,7 +561,9 @@ public class QueryNetbox extends Thread
 
 	private static Object removeRunQHeadNoCheck() {
 		synchronized (nbRunQ) {
-			if (nbRunQ.isEmpty()) {
+			boolean isInitial = !initialQ.isEmpty();
+			boolean rand = Math.random() >= 0.5f; // 50% of picking initial if runQ is not empty
+			if (nbRunQ.isEmpty() || (isInitial && rand)) {
 				if (!initialQ.isEmpty()) return initialQ.remove(initialQ.size()-1);
 				return new Long(Long.MAX_VALUE / 2); // Infinity...
 			}
@@ -891,7 +897,13 @@ public class QueryNetbox extends Thread
 					Map m;
 					if ( (m = (Map)persistentStorage.get(fn)) == null) persistentStorage.put(fn,  m = Collections.synchronizedMap(new HashMap()));
 					m.put("navCp", navCp);
-					dh.init(m, changedDeviceids);
+					try {
+						dh.init(m, changedDeviceids);
+					} catch (Throwable th) {
+						System.err.println("File: " + fn);
+						th.printStackTrace();
+						continue;
+					}
 
 					dcs.addContainer(dh.dataContainerFactory());				
 				}
