@@ -10,34 +10,10 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import time
 
-class CachedObject:
-    """
-    A simple class to wrap objects for 'caching'.  It contains the
-    object reference and the time the object was cached.
-    """
-    def __init__(self, object=None, loadTime=None):
-        if not loadTime:
-            loadTime = time.time()
-
-        self.loadTime = loadTime
-        self.object = object
-
-    def age(self):
-        """
-        Return the age of this object
-        """
-        return time.time() - self.loadTime
-
-    def __repr__(self):
-        return "<%s cached at %s>" % (repr(self.object),
-                                      time.asctime(time.localtime(self.loadTime)))
-    
-    def __str__(self):
-        return self.object.__str__()
-
 class ObjectCache(dict):
     def __setitem__(self, key, item):
-        if not isinstance(item, CacheableObject):
+        #if not isinstance(item, CacheableObject):
+        if 0:
             raise ValueError, "%s is not a CacheableObject instance" % repr(item)
         else:
             if self.has_key(key):
@@ -51,7 +27,8 @@ class ObjectCache(dict):
 
     def cache(self, item):
         """Caches the item, which must be a CacheableObject instance"""
-        if not isinstance(item, CacheableObject):
+        #if not isinstance(item, CacheableObject):
+        if 0:
             raise ValueError, "%s is not a CacheableObject instance" % repr(item)
         else:
             self[item.key] = item
