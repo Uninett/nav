@@ -9,6 +9,7 @@ Target	--default--
 	switch			=	%auto-target-name%
 	snmp-host		=	%switch%
 	target-type		=	switch-port
+	directory-desc  =       "Stats for %auto-target-name%"
 
 dataSource ifInOctets
     ds-source = snmp://%snmp%/ifInOctets.%inst%

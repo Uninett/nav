@@ -10,6 +10,7 @@ Target  --default--
 	# snmp-community  = private
 	# we leave this unset here so that we MUST remember to set it later
     target-type     = undef
+    directory-desc  =       "Stats for %auto-target-name%"
  
 OID c1900Bandwidth		1.3.6.1.4.1.437.1.1.3.7.1.0
 OID c1900BandwidthMax   	1.3.6.1.4.1.437.1.1.3.7.5.0
