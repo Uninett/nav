@@ -11,18 +11,21 @@
 
 #def searchbox($s)
    <form name="$s.formCname" method="$s.method"><p>
-   <table title="$s.help" style="border: solid black 2px; background: #eeeeee;">
+   <table title="$s.help" style="border: 1px solid #666; background-image:url('/images/form/fill-active.gif');">
         <tr>
             <th colspan="3" style="text-align: left;">
                 $s.title
-#if $s.error
-                <span style="color: #f00;">($s.error)</span>
-#end if
- #if $s.result
-                <span style="color: #090;">($s.result)</span>
-#end if
-            </th>
         </tr>
+#if $s.error
+        <tr>
+            <td colspan="3"><span style="color: #f00;font-size: 10">$s.error</span></td>
+        </tr>
+#end if
+#if $s.result
+        <tr>
+            <td colspan="3"><span style="color: #090;font-size: 10">$s.result</span></td>
+        </tr>
+#end if
         <tr>
             <td><select name="$s.typeCname">
 #for $sid,$options in $s.searches.items()
