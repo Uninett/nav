@@ -372,7 +372,7 @@ def maintenance(req):
     if req and req.form.has_key('list'): 
         body = '<p>Current maintenance:</p>'
         maintdict = {}
-        if req.form['list'] == 'current':
+        if req.form['list'] == 'current' or req.form['list'] == 'active':
             maintdict = EmotdSelect.getMaintenance(state='active',access=True)
         if req.form['list'] == 'scheduled':
             maintdict = EmotdSelect.getMaintenance(state='scheduled',access=True)
