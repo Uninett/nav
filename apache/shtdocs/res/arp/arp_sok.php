@@ -1,6 +1,7 @@
 <?php
 
 require('/usr/local/nav/navme/apache/vhtdocs/nav.inc');
+require('/usr/local/nav/local/etc/conf/arp_sok.inc');
 
 $prefixfil = file('/usr/local/nav/local/etc/conf/prefiks.txt');
 
@@ -35,7 +36,7 @@ else
   $IPtil = $vars[IPtil];
 }
 
-navstart("Status nå",$bruker);
+navstart("Søk på IP/mac",$bruker);
  
  
 print "<h2>Søk på IP/mac</h2>";
@@ -57,11 +58,8 @@ if ($sok == 'mac')
 }
 
 
+ navslutt();
  
-navslutt();
- 
-######
-
 
 ###### ###### ###### ###### ######
 
@@ -74,22 +72,14 @@ $mac = ereg_replace ("\.", "", $mac);
 $mac = ereg_replace ("-", "", $mac);
 
 
-# # # # # Oppslag i CAM # # # # #
+# # # # # Mac-soek: Oppslag i CAM # # # # #
 
-// Connecting, selecting database
-$link = mysql_connect("localhost", "nett", "stotte")
-                   or print("Kunne ikke koble opp mot MySQL-databasen.");
+$sql = "SELECT boks.sysname,modul,port,mac,fra,til,vlan,boks.ip FROM cam JOIN boks USING (boksid) JOIN prefiks USING (prefiksid) WHERE mac LIKE '$mac%' and (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra DESC";
 
+$result = pg_exec($dbh,$sql);
+$rows = pg_numrows($result);
 
-mysql_select_db("manage");
-
-$sql = "SELECT hub,up,mac,fra,til FROM cam WHERE (mac LIKE '$mac%' AND (TO_DAYS(NOW())-TO_DAYS(til)< '$dager' OR til IS NULL)) ORDER BY mac,fra DESC";
-
-#print "SQL: $sql<br>";
-
-$result = mysql_query($sql);
-
-if (mysql_num_rows($result) == 0)
+if ($rows == 0)
 {
   print "<h3>Ikke resultat på søk i cam-tabellen.</h3><p>";
 }
@@ -97,30 +87,37 @@ else
 {
   print "<h3>Søk i cam-tabellen:</h3><p>";
 
-  print "<font color=red><b>Merk! Også uplinkporter logges.</b><br>";
+  print "<font color=red><b>Merk! Også uplinkporter logges.</b></font><br>";
   print "Dette medfører at det kan se ut som om en macadresse er bak flere porter.<br>";
-  print "Vanligvis brukes port x:24 eller x:26 som uplinkport.</font><p>";
+  print "Vanligvis brukes port x:24 eller x:26 som uplinkport.<p>";
 
   print "<table>";
-  print "<tr><th>mac</th><th>enhet</th><th>unit:port</th><th>fra</th><th>til</th></tr>";
+  print "<tr><th>mac</th><th>enhet</th><th>unit:port</th><th>fra</th><th>til</th><th></th></tr>";
 
-  while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) 
+  for ($i=0;$i < $rows; $i++) 
   {
-    ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$line[mac],$regs);
+    $svar = pg_fetch_array($result,$i);
+
+
+    ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[mac],$regs);
     $mac1 = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
 
-    print "<tr><td><font color=blue>$mac1</td><td>$line[hub]</td><td align=center>$line[up]</td><td><font color=green>$line[fra]</td><td><font color=red>$line[til]</td></tr>";
+    print "<tr><td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[mac]>$mac1</a></td><td>$svar[sysname]</td><td align=center>$svar[modul]:$svar[port]</td><td><font color=green>$svar[fra]</td><td><font color=red>$svar[til]</td>";
+
+  print "<td>";
+  print lenke('mac_cam',$svar);
+  print "</td>";
+
+  print "</tr>";
   }
 }
 
 print "</table><p>";
 
-mysql_close($link);
 
+# # # # # Mac-soek: Oppslag i ARP # # # # #
 
-# # # # # Oppslag i ARP # # # # #
-
-$sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra";
+$sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (til is null or date_part('days',cast (NOW()-fra as INTERVAL))<$dager+1) order by mac,fra";
 
   $result = pg_exec($dbh,$sql);
   $rows = pg_numrows($result);
@@ -141,18 +138,18 @@ $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (t
 
     for ($i=0;$i < $rows; $i++) 
     {
-      $svar = pg_fetch_row($result,$i);
+      $svar = pg_fetch_array($result,$i);
 
-      $IPfra = ereg_replace ($prefix, "", $svar[0]); 
+      $IPfra = ereg_replace ($prefix, "", $svar[ip_inet]); 
 
-      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&IPfra=$IPfra>$svar[0]</a></td>";
+      print "<tr><td><a href=./arp_sok.php?sok=IP&&type=IP&&dager=$dager&&dns=$dns&&IPfra=$IPfra>$svar[ip_inet]</a></td>";
  
       if ($dns)
       {
 
-         if ($dnsip != $svar[0])
+         if ($dnsip != $svar[ip_inet])
          {
-           $dnsip = $svar[0];
+           $dnsip = $svar[ip_inet];
            $dnsname= gethostbyaddr($dnsip);
            if ($dnsname == $dnsip)
            {
@@ -163,12 +160,17 @@ $sql = $sql = "SELECT ip_inet,mac,fra,til FROM arp WHERE mac LIKE '$mac%' and (t
          print "<td><FONT COLOR=chocolate>$dnsname</td>";
        }
 
-       ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[1],$regs);
-       $svar[1] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
+       ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[mac],$regs);
+       $svar[mac] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
 
  
-      print "<td><font color=blue>$svar[1]</td><td><font color=green>$svar[2]</td><td><font color=red>$svar[3]</td></tr>";
+      print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[mac]>$svar[mac]</a></td><td><font color=green>$svar[fra]</td><td><font color=red>$svar[til]</td>";
 
+        print "<td>";
+        print lenke('mac_arp',$svar);
+        print "</td>";
+
+	print "</tr>";
 
     }
 
@@ -226,15 +228,15 @@ else
 
        for ($i=0;$i < $rows; $i++) 
        {
-         $svar = pg_fetch_row($result,$i);
+         $svar = pg_fetch_array($result,$i);
 
-         print "<tr><td>$svar[0]</td>"; 
+         print "<tr><td>$svar[ip_inet]</td>"; 
 
          if ($dns)
          {         
-	   if ($dnsip != $svar[0])
+	   if ($dnsip != $svar[ip_inet])
            {
-             $dnsip = $svar[0];
+             $dnsip = $svar[ip_inet];
 	     $dnsname= gethostbyaddr($dnsip);
              if ($dnsname == $dnsip)
              {
@@ -247,10 +249,19 @@ else
 
         # Setter inn : i mac :)
 
-        ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[1],$regs);
-        $svar[1] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
+        ereg("(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})",$svar[mac],$regs);
+        $svar[mac] = "$regs[1]:$regs[2]:$regs[3]:$regs[4]:$regs[5]:$regs[6]";
 
-         print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[1]>$svar[1]</a></td><td><font color=green>$svar[2]</td><td><font color=red>$svar[3]</td></tr>";
+         print "<td><font color=blue><a href=./arp_sok.php?sok=mac&&type=mac&&dns=$dns&&dager=$dager&&mac=$svar[mac]>$svar[mac]</a></td><td><font color=green>$svar[fra]</td><td><font color=red>$svar[til]</td>";
+
+        print "<td>";
+        print lenke('ip_arp',$svar);
+        print "</td>";
+
+	print "</tr>";
+
+
+
        }
        print "</table>"; 
     }
