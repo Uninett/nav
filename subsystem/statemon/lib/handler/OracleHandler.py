@@ -1,10 +1,10 @@
 """
-$Id: OracleHandler.py,v 1.3 2003/06/20 06:12:10 arveva Exp $
+$Id: OracleHandler.py,v 1.4 2003/06/20 12:46:45 arveva Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/OracleHandler.py,v $
 """
 
 from job import JobHandler, Event
-import cx_Oracle
+import cx_Oracle, string, exceptions, sys
 
 #class OracleHandler(JobHandler):
 #    """
@@ -22,19 +22,56 @@ import cx_Oracle
 #    def __init__(self,service, **kwargs):
 #        JobHandler.__init__(self, "oracle", service, port=1521, **kwargs)
 #    def execute(self):
+
+
+# Test values:
+#print ""
+#print "Test values:"
+hostname = "shinsaku.itea.ntnu.no"
+#print "Host: " + hostname
+
+sid = "FSKURS"
+#print "Database SID: " + sid
+
+
+# Default values:
+#print ""
+#print "Default values:"
+port = "1521"
+#print "Listener port: " + port
+
+username = "nav_agent"
+#print "Default database username: " + username
+
+password = "ag3gva_r"
+#print "Default database password: " + password
+
+
+# Connect string:
+#print ""
+connect_string = username + "/" + password + "@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=TCP)(PROTOCOL=TCP)(Host=" + hostname + ")(Port=" + port + ")))(CONNECT_DATA=(SID=" + sid + ")(GLOBAL_NAME=" + sid + ")))" 
+#print "Connect String: "
+#print connect_string
+
+#print ""
+print ""
+print "Results: "
+
+
 try:
-    connection = cx_Oracle.connect("nav_agent/ag3gva_r@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=TCP)(PROTOCOL=TCP)(Host=shinsaku.itea.ntnu.no)(Port=1521)))(CONNECT_DATA=(SID=FSKURS)(GLOBAL_NAME=FSKURS)))")
+    connection = cx_Oracle.connect(connect_string)
     cursor = connection.cursor()
     cursor.arraysize = 50
     cursor.execute("""
-        select 'x', 'y', 'z'
-                from dual""")
-    for column_1, column_2, column_3 in cursor.fetchall():
-                print "Values:", column_1, column_2, column_3
+        select version
+        from sys.v_$instance""")
+    row = cursor.fetchone()
+    version = row[0]        
+    print "UP, Oracle " + version
 
 except:
 #    return Event.DOWN, line
-    print "feil"   
+    print "DOWN, " + str(sys.exc_value)
         
 #		return Event.UP, 'OK'
 
