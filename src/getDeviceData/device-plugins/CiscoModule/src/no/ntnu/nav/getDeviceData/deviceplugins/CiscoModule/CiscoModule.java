@@ -12,6 +12,7 @@ import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
+import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
 
 /**
  * <p>
@@ -99,6 +100,21 @@ public class CiscoModule implements DeviceHandler
 			mc = (ModuleContainer)dc;
 		}
 
+		ModuleMonContainer mmc;
+		{
+			DataContainer dc = containers.getContainer("ModuleMonContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleMonContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleMonContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleMonContainer! " + dc);
+				return;
+			}
+			mmc = (ModuleMonContainer)dc;
+		}
+
+
 		String netboxid = nb.getNetboxidS();
 		String ip = nb.getIp();
 		String cs_ro = nb.getCommunityRo();
@@ -107,7 +123,7 @@ public class CiscoModule implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoModule(nb, netboxid, ip, cs_ro, type, nc, mc);
+		boolean fetch = processCiscoModule(nb, netboxid, ip, cs_ro, type, nc, mc, mmc);
 			
 		// Commit data
 		if (fetch) {
@@ -119,7 +135,7 @@ public class CiscoModule implements DeviceHandler
 	 * Cisco modules
 	 *
 	 */
-	private boolean processCiscoModule(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc) throws TimeoutException {
+	private boolean processCiscoModule(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc, ModuleMonContainer mmc) throws TimeoutException {
 
 		/*
 		  "catModuleModel",
@@ -170,7 +186,7 @@ public class CiscoModule implements DeviceHandler
 		// HwVer for the chassis
 		if (nc.netboxDataFactory(nb).getHwVer() == null) {
 			List chassisVerList = sSnmp.getAll(nb.getOid("cChassisVersion"), true);
-			if (chassisVerList != null) {
+			if (chassisVerList != null && !chassisVerList.isEmpty()) {
 				String[] s = (String[])chassisVerList.get(0);
 				nc.netboxDataFactory(nb).setHwVer(s[1]);
 			}
@@ -199,7 +215,7 @@ public class CiscoModule implements DeviceHandler
 				Map.Entry me = (Map.Entry)it.next();
 				String module = (String)me.getKey();
 				if (DEBUG) err("Created module " + module + " from catModModel");
-				mc.moduleFactory(module).setDescr((String)me.getValue());
+				mc.moduleFactory(module).setModel((String)me.getValue());
 			}
 		}
 
@@ -263,10 +279,10 @@ public class CiscoModule implements DeviceHandler
 				if (DEBUG) err("Created module " + module + " from cCard");				
 				Module m = mc.moduleFactory(module);
 				
-				if (cardDescr != null) m.setDescr((String)cardDescr.get(cardIndex));
-				if (cardSerial != null) m.setSerial((String)cardSerial.get(cardIndex));
-				if (cardHwVer != null) m.setHwVer((String)cardHwVer.get(cardIndex));
-				if (cardSwVer != null) m.setSwVer((String)cardSwVer.get(cardIndex));
+				if (cardDescr != null && m.getDescr() == null) m.setDescr((String)cardDescr.get(cardIndex));
+				if (cardSerial != null && m.getSerial() == null) m.setSerial((String)cardSerial.get(cardIndex));
+				if (cardHwVer != null && m.getHwVer() == null) m.setHwVer((String)cardHwVer.get(cardIndex));
+				if (cardSwVer != null && m.getSwVer() == null) m.setSwVer((String)cardSwVer.get(cardIndex));
 			}
 		}
 
@@ -376,17 +392,27 @@ public class CiscoModule implements DeviceHandler
 				if (DEBUG) err("Created module " + module + " from Phys");
 				Module m = mc.moduleFactory(module);
 
-				if (physSerial != null && physSerial.containsKey(id)) m.setSerial((String)physSerial.get(id));
-				if (physHwVer != null && physHwVer.containsKey(id)) m.setHwVer((String)physHwVer.get(id));
-				if (physFwVer != null && physFwVer.containsKey(id)) m.setFwVer((String)physFwVer.get(id));
-				if (physSwVer != null && physSwVer.containsKey(id)) m.setSwVer((String)physSwVer.get(id));
+				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));
+				if (physHwVer != null && physHwVer.containsKey(id) && m.getHwVer() == null) m.setHwVer((String)physHwVer.get(id));
+				if (physFwVer != null && physFwVer.containsKey(id) && m.getFwVer() == null) m.setFwVer((String)physFwVer.get(id));
+				if (physSwVer != null && physSwVer.containsKey(id) && m.getSwVer() == null) m.setSwVer((String)physSwVer.get(id));
 
-				if (physModelName != null && physModelName.containsKey(id)) m.setModel((String)physModelName.get(id));
-				if (physDescr != null && physDescr.containsKey(id)) m.setDescr((String)physDescr.get(id));
+				if (physModelName != null && physModelName.containsKey(id) && m.getModel() == null) m.setModel((String)physModelName.get(id));
+				if (physDescr != null && physDescr.containsKey(id) && m.getDescr() == null) m.setDescr((String)physDescr.get(id));
 			}				
 		}
 
-		return true;
+		Set moduleSet = mc.getModuleSet();
+		if (!moduleSet.isEmpty()) {
+			for (Iterator it = moduleSet.iterator(); it.hasNext();) {
+				String module = (String)it.next();
+				mmc.moduleUp(nb, module);
+			}
+			//System.err.println("modulesUp: " + moduleSet);
+			mmc.commit();
+			return true;
+		}
+		return false;
 	}
 
 	private Set getValidCL3Modules(Map m) {
@@ -394,6 +420,8 @@ public class CiscoModule implements DeviceHandler
 		for (Iterator it = m.entrySet().iterator(); it.hasNext();) {
 			Map.Entry me = (Map.Entry)it.next();
 			String module = (String)me.getKey();
+			String val = (String)me.getValue();
+			if (val == null || val.length() == 0 || "unknown".equalsIgnoreCase(val)) continue;
 			try {
 				int i = Integer.parseInt(module);
 				if ((i % 1000) == 0) valid.add(Integer.toString(i / 1000));
