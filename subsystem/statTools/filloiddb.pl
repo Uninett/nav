@@ -1,10 +1,13 @@
 #!/usr/bin/perl -w
-
 ##################################################
-# FILLOIDDB
-# -----------------
-# ITEA NTNU © 2003
-# Author: John Magne Bredal <bredal@itea.ntnu.no>
+# This file is part of the NAV project.
+#
+# This perl-script uses a file named cricketoids.txt
+# to fill the oid database with some initial oids
+# that is used in relation to Cricket.
+#
+# Copyright (c) 2003 by NTNU, ITEA nettgruppen
+# Authors: John Magne Bredal <bredal@itea.ntnu.no>
 ##################################################
 
 use strict;

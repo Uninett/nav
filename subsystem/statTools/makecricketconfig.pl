@@ -1,19 +1,16 @@
 #!/usr/bin/perl -w
-
 ##################################################
-# MAKECRICKETCONFIG
-# -----------------
-# ITEA NTNU © 2003
-# Author: John Magne Bredal <bredal@itea.ntnu.no>
+# This file is part of the NAV project.
+#
+# This script makes the config to Cricket based on
+# data in the manage-db.
+#
+# Copyright (c) 2003 by NTNU, ITEA nettgruppen
+# Authors: John Magne Bredal <bredal@itea.ntnu.no>
 ##################################################
 # TODO:
 # - use config.db to see target-types too.
 # - make views automatically
-
-# ABSTRACT
-# --------
-# This script makes the config to Cricket based on
-# data in the manage-db.
 
 # Loglevels:
 # 1 -> silent

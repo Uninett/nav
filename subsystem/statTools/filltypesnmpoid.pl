@@ -1,14 +1,16 @@
 #!/usr/bin/perl 
 
 ############################################################
-# FILLTYPESNMPOID
-# ---------------
-# ITEA / NTNU © 2003
-# Author: John Magne Bredal <bredal@itea.ntnu.no>
+# $Id$
+#
+# This file is part of the NAV project.
 #
 # Takes info from the snmpoid-table, checks it with the
 # units that are on the network, and writes the correct
 # relations in the typesnmpoid-table.
+#
+# Copyright (c) 2003 by NTNU, ITEA nettgruppen
+# Authors: John Magne Bredal <bredal@itea.ntnu.no>
 ############################################################
 
 use vars qw($opt_l $opt_h);
