@@ -942,7 +942,7 @@ GRANT SELECT,UPDATE,DELETE ON emotd TO navall;
 GRANT SELECT,UPDATE,DELETE ON emotd_related TO navall;
 GRANT SELECT,UPDATE,DELETE ON maintenance TO navall;
 GRANT ALL ON emotd_emotdid_seq TO navall;
-GRANT ALL ON maintenance_maintenanceid TO navall;
+GRANT ALL ON maintenance_maintenanceid_seq TO navall;
 GRANT SELECT ON eventtype TO eventengine;
 GRANT SELECT ON subsystem TO eventengine;
 GRANT ALL ON eventq TO eventengine;
