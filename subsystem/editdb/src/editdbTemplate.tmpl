@@ -3,25 +3,66 @@
 #extends nav.web.templates.MainTemplate
 
 #def additionalCSS
-    TR.header   { background-color: white;
+    ## CSS Tooltip
+    a.info      { position: relative;
+                  z-index: 24;
+                  background-color: #ccc,
+                  color: #0f0;
+                  text-decoration: none}
+    
+    a.info:hover { 
+                  z-index: 25;
+                  background-color: #ff0}
+
+    a.info span {display: none}
+
+    a.info:hover span {
+                  display: block;
+                  position: absolute;
+                  top: 2em;
+                  left: 2em;
+                  width: 15em;
+                  padding: 4px;
+                  border: 1px solid #000;
+                  background-color: #588;
+                  color: #000;}
+    
+    ## Table style 
+    tr.header   { background-color: white;
                   background-image:url('/images/ragen/navbar-fill.gif');
                   background-repeat: repeat-x;
                   height: 26px;
                   padding: 1px 0px 0px 0px;
                   font-size: 13; }
 
-    TR.evenrow  { font-size: 12; background-color: #eeeeee; }
-    TR.oddrow   { font-size: 12; }
+    tr.evenrow  { font-size: 12; background-color: #eeeeee; }
+    tr.oddrow   { font-size: 12; }
 
-    P.error     { color: #ff0000; }
-    P.status    { color: #00bb00; }
-    P.infotext  { width: 80%;
+    td.startheader {
+                  background-color: white;
+                  background-image: url('/images/ragen/navbar-start.gif');
+                  background-repeat: no-repeat;
+                  width: 14px}
+
+    td.endheader { 
+                  background-color: white;
+                  background-image:url('/images/ragen/navbar-end.gif');
+                  background-position: top right;
+                  background-repeat: no-repeat;
+                  width: 14px}
+
+    ## Status and error style
+    p.error     { color: #ff0000; }
+    p.status    { color: #00bb00; }
+    p.infotext  { width: 80%;
                   font-size: 13; }
 $default_form_CSS()
 #end def
 
 #def content
-#if $editList
+#if $entryList
+$showSelectList($entryList)
+#elif $editList
 $showList($editList)
 #elif $editForm
 $showForm($editForm)
@@ -30,7 +71,167 @@ $showBody($body)
 #end if
 #end def
 
+## function showSelectList
+##
+## Template function for displaying a list in a table with optional
+## radiobuttons or checkboxes for selecting rows
+##
+## $selectList
+##   ++-- title                     :: list title
+##   ++-- formMethod                :: method for form, post or get
+##   ++-- formAction                :: action for form
+##   ++-- selectCname               :: controlname for radiob./checkbox
+##   ++-- status                    :: editdb.status object
+##   ++-- buttonsTop                :: list of buttons for top of list
+##          +-- (cname,value)       :: tuple of control name and value (text)
+##   ++-- buttonsBottom             :: list of buttons for bottom of list
+##          +-- (cname,value)       :: tuple of control name and value (text)
+##   ++-- headings                  :: list of heading cells (cell objects)
+##          +-- text                :: heading text
+##          +-- url                 :: heading link (optional)
+##   ++-- rows                      :: array of rows
+##          +-- (id,cells)          :: tuple (id, list of cells)
+##                +-- text          :: cell text
+##                +-- url           :: link for this cell
+##                +-- checkbox      :: boolean, show a checkbox in this cell
+##                +-- radiobutton   :: boolean, show a radiobuttion
+##                +-- image         :: path to an image (optional)
+##                +-- tooltip       :: list of tooltip strings (optional) 
+##
+#def $showSelectList($selectList)
+    <h3>$selectList.title</h3>
+#if $selectList.body
+    <p>$selectList.body</p>
+#end if
+#if $selectList.status
+    $showStatus($selectList.status)
+#end if
+    <form method="$selectList.formMethod" action="$selectList.formAction">
+## Top buttons
+        <p>
+#for $cname,$value in $selectList.buttonsTop
+            <input type="submit" name="$cname" value="$value">
+#end for
+        </p>
+        <table border="0" cellspacing="0" cellpadding="0">
+## Show headings
+            <tr class="header">
+                <td class="startheader">
+#for $cell in $selectList.headings
+                <td valign="top">
+#if $cell.url
+                    <a href="$cell.url">$cell.text</a>&nbsp;
+#else
+                    $cell.text&nbsp;
+#end if
+#if $cell.tooltip
+                    <span>
+#for $line in $cell.tooltip
+                        $line<br>
+#end for
+                    </span>
+#end if
+                </td>
+#end for
+                <td class="endheader">
+            </tr>
+## Rows
+#set $oddRow = True
+#for $fullrow in $selectList.rows
+## $fullrow[0] is sortKey
+#set $id = $fullrow[1][0]
+#set $row = $fullrow[1][1]
+## Set rowstyle
+#if $oddRow
+#set $rowstyle = 'oddrow'
+#set $oddRow = False
+#else
+#set $rowstyle = 'evenrow'
+#set $oddRow = True
+#end if
+            <tr class="$rowstyle">
+## Cells in a row
+                <td>&nbsp;</td>
+#for $cell in $row
+                <td>
+#if $cell.url
+                    <a href="$cell.url">
+#elif $cell.tooltip
+                    <a title="" class="info" href="#$id">
+#end if
+#if $cell.image
+                    <img src="$cell.image">
+#end if
+#if $cell.text
+#set $first = True
+#for $line in $cell.text
+#if not $first
+                        <br>
+#end if
+#set $first = False
+                    $line
+#end for
+#end if
+#if $cell.tooltip
+                    <span>
+#set $first = True
+#for $line in $cell.tooltip
+#if not $first
+                        <br>
+#end if
+#set $first = False
+                        $line
+#end for
+                    </span>
+#end if
+#if $cell.checkbox
+                    <input type="checkbox" name="$selectList.selectCname" value="$id">
+#elif $cell.radiobutton
+                    <input type="radio" name="$selectList.selectCname" value="$id">
+#end if
+#if $cell.url or $cell.tooltip
+                    </a>
+#end if
+                    &nbsp;&nbsp;
+                </td>
+#end for
+                <td>&nbsp;</td>
+            </tr>
+#end for
+        </table>
+## Bottom buttons
+        <p>
+#for $cname,$value in $selectList.buttonsBottom
+            <input type="submit" name="$cname" value="$value">
+#end for
+        </p>
+    </form>
+#end def
+
+## function showStatus
+##
+## Template function for displaying status and error messages
+## takes an editdb.status object as parameter
+##
+## $status
+##   +-- messages                   :: list of message strings
+##   +-- errors                     :: list of error strings
+##
+#def $showStatus($status)
+    <p class="status">
+#for $message in $status.messages
+        $message<br>
+#end for
+    </p>
+    <p class="error">
+#for $error in $status.errors
+        $error<br>
+#end for
+    </p>
+#end def
+
 ## Template function to show a body object
+## ie. display the editdb main menu
 #def $showBody($body)
     <h2>$body.title</h2>
     <p class="infotext">$body.infotext</p>

@@ -205,7 +205,7 @@ def index(req,showHelp=False):
             [BASEPATH + 'bulk/prefix','Bulk import']]]
     body.tables.append(Table('Vlans and special subnets','',headings,rows))
 
-    nameSpace = {'editList': None, 'editForm': None, 'body': body}
+    nameSpace = {'entryList': None, 'editList': None, 'editForm': None, 'body': body}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = [('Frontpage','/'),
                      ('Tools','/toolbox'),
@@ -467,7 +467,7 @@ def bulkImport(req,action):
         form.status = editdbStatus()
         form.status.messages.append('Inserted ' + str(result) + ' rows')
 
-    nameSpace = {'editList': list, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': list, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = EDITPATH + [('Bulk import',False)]
     return template.respond()
@@ -596,7 +596,7 @@ def editSnmpoid(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -696,7 +696,7 @@ def editRoom(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -790,7 +790,7 @@ def editLocation(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -887,7 +887,7 @@ def editOrg(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -987,7 +987,7 @@ def editType(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -1083,7 +1083,7 @@ def editProduct(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -1175,7 +1175,7 @@ def editVendor(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -1378,7 +1378,7 @@ def editPrefix(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -1470,7 +1470,7 @@ def editVlan(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -1594,7 +1594,7 @@ def updateNetbox(req,templateform,selected):
                             ') already exists in database'
             if error:
                 status.errors.append(error)
-                templateform.add(editboxNetbox(editId=selected,formData=form))
+                templateform.add(structNetbox.editbox(editId=selected,formData=form))
                 return (status,action,templateform)
 
         if editTables.Cat(form['catid']).req_snmp == True:
@@ -1607,19 +1607,19 @@ def updateNetbox(req,templateform,selected):
                 except nav.Snmp.TimeOutException:
                     # No SNMP answer
                     status.errors.append('No SNMP response, check RO community')
-                    templateform.add(editboxNetbox(editId=selected,
+                    templateform.add(structNetbox.editbox(editId=selected,
                                                    formData=form))
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
                     status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1]))
-                    templateform.add(editboxNetbox(editId=selected,
+                    templateform.add(structNetbox.editbox(editId=selected,
                                                    formData=form))
                     return (status,action,templateform)
      
                 box.getDeviceId()
-                templateform.add(editboxNetbox(editId=selected,
+                templateform.add(structNetbox.editbox(editId=selected,
                                                formData=form,disabled=True))
 
                 if box.typeid:
@@ -1628,7 +1628,7 @@ def updateNetbox(req,templateform,selected):
                         serial = box.serial
                     else:
                         serial = oldBox.device.serial
-                    templateform.add(editboxNetboxSerial(
+                    templateform.add(structNetbox.editboxSerial(
                                      gotRo=True,
                                      serial=serial,
                                      sysname=sysname,
@@ -1648,7 +1648,7 @@ def updateNetbox(req,templateform,selected):
                 # RO blank, return error
                 status.errors.append('Category ' + form['catid'] + \
                                      ' requires a RO community')
-                templateform.add(editboxNetbox(editId=selected,formData=form))
+                templateform.add(structNetbox.editbox(editId=selected,formData=form))
                 nextStep = STEP_1
         else:
             # SNMP not required by cat
@@ -1660,19 +1660,19 @@ def updateNetbox(req,templateform,selected):
                 except namp.Snmp.TimeOutException:
                     status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1]))
-                    templateform.add(editboxNetbox(editId=selected,
+                    templateform.add(structNetbox.editbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
                     status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1]))
-                    templateform.add(editboxNetbox(editId=selected,
+                    templateform.add(structNetbox.editbox(editId=selected,
                                                    formData=form))
                     return (action,templateform)
 
                 box.getDeviceId()
-                templateform.add(editboxNetbox(editId=selected,
+                templateform.add(structNetbox.editbox(editId=selected,
                                                formData=form,
                                                disabled=True))
                 if box.typeid:
@@ -1681,7 +1681,7 @@ def updateNetbox(req,templateform,selected):
                         serial = box.serial
                     else:
                         serial = oldBox.device.serial
-                    templateform.add(editboxNetboxSerial(gotRo=True,
+                    templateform.add(structNetbox.editboxSerial(gotRo=True,
                                      serial=serial,
                                      sysname=sysname,
                                      typeid=box.typeid,
@@ -1699,11 +1699,11 @@ def updateNetbox(req,templateform,selected):
                     nextStep = STEP_1
             else:
                 # RO blank, don't check SNMP, ask for serial
-                templateform.add(editboxNetbox(editId=selected,
+                templateform.add(structNetbox.editbox(editId=selected,
                                                formData=form,
                                                disabled=True))
                 serial = oldBox.device.serial
-                templateform.add(editboxNetboxSerial(gotRo=False,
+                templateform.add(structNetbox.editboxSerial(gotRo=False,
                                                      serial = serial,
                                                      sysname=sysname,
                                                      editSerial=True))
@@ -1715,9 +1715,9 @@ def updateNetbox(req,templateform,selected):
         if nextStep == STEP_3:
             # We didn't get here by skipping a step (ie. we didn't get
             # serialnumber by SNMP), so we must add the first two boxes
-            templateform.add(editboxNetbox(editId=selected,
+            templateform.add(structNetbox.editbox(editId=selected,
                                            formData=form,disabled=True))
-            templateform.add(editboxNetboxSerial(gotRo=False,
+            templateform.add(structNetbox.editboxSerial(gotRo=False,
                              serial=req.form['serial'],
                              sysname=req.form['sysname'],
                              typeid=req.form['typeid'],
@@ -1752,10 +1752,10 @@ def updateNetbox(req,templateform,selected):
         # Show subcategory/function editbox 
         # If category has changed, then don't load the old subcatinfo
         if oldBox.catid != form['catid']:
-            templateform.add(editboxNetboxCategory(req.form['catid'],
+            templateform.add(structNetbox.editboxCategory(req.form['catid'],
                                                    showHelp=False))
         else:
-            templateform.add(editboxNetboxCategory(req.form['catid'],
+            templateform.add(structNetbox.editboxCategory(req.form['catid'],
                                                    selected))
         nextStep = STEP_3
 
@@ -1883,7 +1883,7 @@ def addNetbox(req,templateform):
 
         if error:
             status.errors.append(error)
-            templateform.add(editboxNetbox(formData=form))
+            templateform.add(structNetbox.editbox(formData=form))
             return (status,action,templateform)
 
         if editTables.Cat(form['catid']).req_snmp == True:
@@ -1896,20 +1896,20 @@ def addNetbox(req,templateform):
                 except nav.Snmp.TimeOutException:
                     # No SNMP answer
                     status.errors.append('No SNMP response, check RO community')
-                    templateform.add(editboxNetbox(formData=form))
+                    templateform.add(structNetbox.editbox(formData=form))
                     return (status,action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
                     status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1]))
-                    templateform.add(editboxNetbox(formData=form))
+                    templateform.add(structNetbox.editbox(formData=form))
                     return (status,action,templateform)
      
                 box.getDeviceId()
-                templateform.add(editboxNetbox(formData=form,disabled=True))
+                templateform.add(structNetbox.editbox(formData=form,disabled=True))
                 if box.typeid:
                     # Got type
-                    templateform.add(editboxNetboxSerial(
+                    templateform.add(structNetbox.editboxSerial(
                                      gotRo=True,
                                      serial=box.serial,
                                      sysname=sysname,
@@ -1929,7 +1929,7 @@ def addNetbox(req,templateform):
                 # RO blank, return error
                 status.errors.append('Category ' + form['catid'] + \
                                      ' requires a RO community')
-                templateform.add(editboxNetbox(formData=form))
+                templateform.add(structNetbox.editbox(formData=form))
                 nextStep = STEP_1
         else:
             # SNMP not required by cat
@@ -1940,20 +1940,20 @@ def addNetbox(req,templateform):
                     box = initBox.Box(form['ip'],form['ro'])
                 except nav.Snmp.TimeOutException:
                     status.errors.append('No SNMP response, check RO community')
-                    templateform.add(editboxNetbox(formData=form))
+                    templateform.add(structNetbox.editbox(formData=form))
                     return (action,templateform)
                 except Exception, e:
                     # Other error (no route to host for example)
                     status.errors.append('Error: ' + str(sys.exc_info()[0]) + \
                                          ': ' + str(sys.exc_info()[1]))
-                    templateform.add(editboxNetbox(formData=form))
+                    templateform.add(structNetbox.editbox(formData=form))
                     return (action,templateform)
 
                 box.getDeviceId()
-                templateform.add(editboxNetbox(formData=form,disabled=True))
+                templateform.add(structNetbox.editbox(formData=form,disabled=True))
                 if box.typeid:
                     # Got type
-                    templateform.add(editboxNetboxSerial(gotRo=True,
+                    templateform.add(structNetbox.editboxSerial(gotRo=True,
                                      serial=box.serial,
                                      sysname=sysname,
                                      typeid=box.typeid,
@@ -1970,8 +1970,8 @@ def addNetbox(req,templateform):
                     nextStep = STEP_1
             else:
                 # RO blank, don't check SNMP, ask for serial
-                templateform.add(editboxNetbox(formData=form,disabled=True))
-                templateform.add(editboxNetboxSerial(gotRo=False,
+                templateform.add(structNetbox.editbox(formData=form,disabled=True))
+                templateform.add(structNetbox.editboxSerial(gotRo=False,
                                                      sysname=sysname))
                 nextStep = STEP_2
     if step == STEP_2:
@@ -1985,8 +1985,8 @@ def addNetbox(req,templateform):
         if nextStep == STEP_3:
             # We didn't get here by skipping a step (ie. we didn't get
             # serialnumber by SNMP), so we must add the first two boxes
-            templateform.add(editboxNetbox(formData=form,disabled=True))
-            templateform.add(editboxNetboxSerial(gotRo=False,
+            templateform.add(structNetbox.editbox(formData=form,disabled=True))
+            templateform.add(structNetbox.editboxSerial(gotRo=False,
                              serial=req.form['serial'],
                              sysname=req.form['sysname'],
                              typeid=req.form['typeid'],
@@ -2027,7 +2027,7 @@ def addNetbox(req,templateform):
         editboxHidden.addHidden('deviceid',deviceId)
 
         # Show subcategory/function editbox 
-        templateform.add(editboxNetboxCategory(req.form['catid']))
+        templateform.add(structNetbox.editboxCategory(req.form['catid']))
         nextStep = STEP_3
 
     if step == STEP_3:
@@ -2065,7 +2065,7 @@ def editNetbox(req,selected,action,error=None):
     path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
     table = 'netbox'
     idfield = 'netboxid'
-    templatebox = editboxNetbox()
+    templatebox = structNetbox.editbox()
     deleteDef = deletedefNetbox()
     status = editdbStatus()
     if error:
@@ -2075,6 +2075,11 @@ def editNetbox(req,selected,action,error=None):
     form.status = status
     form.action = BASEPATH + 'netbox/edit/'
     # List definition
+    sort = None
+    if req.form.has_key('sort'):
+        sort = req.form['sort']
+    listView = structNetbox.listDef(sort)
+    
     editList = selectList()
     editList.status = status
     editList.table = editTables.editdbNetbox
@@ -2088,7 +2093,7 @@ def editNetbox(req,selected,action,error=None):
                         ('Organisation','orgid',False),
                         ('RO','ro',False),
                         ('RW','rw',False),
-                        ('Type','type',False),
+                        ('Type','typename',False),
                         ('Serial','serial',False)]
 
     # Check if the confirm button has been pressed
@@ -2119,6 +2124,7 @@ def editNetbox(req,selected,action,error=None):
     if action == 'predefined':
         # Action is predefined by addNetbox() or updateNetbox()
         form.textConfirm = 'Continue'
+        listView = None
         editList = None
     elif action == 'edit':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Edit',False)]
@@ -2126,15 +2132,17 @@ def editNetbox(req,selected,action,error=None):
         form.textConfirm = 'Continue'
         # can only edit one
         selected = selected[0]
-        form.add(editboxNetbox(selected))
+        form.add(structNetbox.editbox(selected))
         # preserve path
         form.action = BASEPATH + 'netbox/edit/' + selected
+        listView = None
         editList = None
     elif action == 'add':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Add',False)]
         form.title = 'Add box'
         form.textConfirm = 'Continue'
-        form.add(editboxNetbox(formData=req.form))
+        form.add(structNetbox.editbox(formData=req.form))
+        listView = None
         editList = None
     elif action == 'delete':
         path = EDITPATH + [('Boxes',BASEPATH+'netbox/list'),('Delete',False)]
@@ -2143,15 +2151,17 @@ def editNetbox(req,selected,action,error=None):
         editList.title = 'Are you sure you want to delete the selected box(es)?'
         editList.action = BASEPATH + 'netbox/edit/'
         editList.fill()
+        listView = None
     elif action == 'list':
         path = EDITPATH + [('Boxes',False)]
         editList.title = 'Edit boxes'
         editList.action = BASEPATH + 'netbox/edit/'
-        editList.fill()
+        #editList.fill()
         # don't display the form
+        listView.fill()
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': listView, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -2249,7 +2259,7 @@ def editUsage(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None, 'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -2458,7 +2468,7 @@ def editService(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None,'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
@@ -2556,11 +2566,150 @@ def editSubcat(req,selected,action,error=None):
         # don't display the form
         form = None
 
-    nameSpace = {'editList': editList, 'editForm': form}
+    nameSpace = {'entryList': None,'editList': editList, 'editForm': form}
     template = editdbTemplate(searchList=[nameSpace])
     template.path = path
     return template.respond()
 
+## class selectListCell
+## A cell in a selectList
+class selectListCell:
+    def __init__(self,text=None,url=None,checkbox=False,radiobutton=False,
+                 image=None,tooltip=None):
+        self.text = text
+        self.url = url
+        self.checkbox = checkbox
+        self.radiobutton = radiobutton
+        self.image = image
+        self.tooltip = tooltip
+
+## class entryList (rename to selectList)
+class entryList:
+    # Constants
+    CNAME_SELECT = 'checkbox_id'
+    CNAME_ADD = 'submit_add'
+    CNAME_EDIT = 'submit_edit'
+    CNAME_DELETE = 'submit_delete'
+    
+    # Class variables used by the template
+    title = None
+    status = None
+    body = None
+    formMethod = 'post'
+    formAction = None
+    selectCname = CNAME_SELECT
+    buttonsTop = [(CNAME_ADD,'Add new'),
+                  (CNAME_EDIT,'Edit selected'),
+                  (CNAME_DELETE,'Delete selected')]
+    buttonsBottom = buttonsTop
+    headings = []             # list of cell objects
+    rows = []                 # tuples of (sortstring,id,cell object)
+
+    # Variables for filling the list
+    basePath = None
+    sortBy = None
+    defaultSortBy = None
+    headingDefinition = None
+    cellDefintion = None
+
+    def fill(self):
+        # Prepare sorting
+        if self.sortBy:
+            try:
+                self.sortBy = int(self.sortBy)
+            except:
+                self.sortBy = None
+
+        # Make headings
+        i = 0
+        for heading,sortlink in self.headingDefinition:
+            if self.sortBy:
+                currentOrder = self.sortBy
+            else:
+                currentOrder = self.defaultSortBy
+            s = i
+            if i == currentOrder:
+                # Reverse sort?
+                s = -i
+            url = self.basePath + 'list/?sort=' + str(s)
+            if sortlink:
+                self.headings.append(selectListCell(heading,
+                                                    url))
+            else:
+                self.headings.append(selectListCell(heading,
+                                                    None))
+            i = i + 1
+
+        # Preparse tooltips, etc.
+        for sqlQuery,definition in self.cellDefinition:
+            for column in definition:
+                for cell in column:
+                    if type(cell) is list:
+                        # This cell definition is a list, as opposed to
+                        # a tuple, so we must prefetch some data for the
+                        # parse function
+                        # Must prefetch data for this column
+                        for tooltipDef in cell:
+                            # There can be one or more defintions per cell
+                            sql = tooltipDef[0]
+                            # column[2] is reserved for data
+                            tooltipDef[2] = executeSQLreturn(sql)
+
+        # Make rows
+        reverseSort = False
+        if self.sortBy:
+            if self.sortBy < 0:
+                self.sortBy = self.sortBy * -1
+                reverseSort = True
+
+        for sqlQuery,definition in self.cellDefinition:
+            fetched = executeSQLreturn(sqlQuery)
+            for row in fetched:
+                id = row[0]
+                cells = []
+                for text,url,checkbox,radio,image,tooltip in definition:
+                   cells.append(selectListCell(self.parse(text,row),
+                                               self.parse(url,row,True),
+                                               checkbox,
+                                               radio,
+                                               image,
+                                               self.parse(tooltip,row))) 
+                
+                
+                sortKey = None
+                if self.sortBy:
+                    sortKey = row[self.sortBy]
+                self.rows.append([sortKey,(id,cells)])
+        if self.sortBy:
+            self.rows.sort()
+            if reverseSort:
+                self.rows.reverse()
+
+    def parse(self,parseString,currentRow,url=False):
+        result = None
+        if type(parseString) is int:
+            # parseString refers to integer column
+            result = [currentRow[parseString]]
+        elif type(parseString) is str:
+            parseString = parseString.replace('{p}',self.basePath)
+            parseString = parseString.replace('{id}',str(currentRow[0]))
+            if url:
+                result = parseString
+            else:
+                result = [parseString]
+        elif type(parseString) is list:
+            result = []
+            for tooltipDef in parseString:
+                data = tooltipDef[2]
+                if data:
+                    # There is preparsed data (ie. the sql returned something)
+                    result.append(tooltipDef[1][0])
+                    # [1][0] = Tooltip (can also be other preparsed data) header
+                    for row in data:
+                        if currentRow[0] == row[0]:
+                            # ID's match
+                            result.append(row[1])
+        return result        
 
 # Class representing a form, used by the template
 class editForm:
@@ -3112,192 +3261,6 @@ class editboxHiddenOrMessage(editbox):
         # don't need to repeat it here 
         self.boxName = IGNORE_BOX
 
-
-class editboxNetboxSerial(editbox):
-    type = 'netboxserial'
-
-    def __init__(self,gotRo,serial='',sysname=None,typeid=None,
-                 snmpversion=None,formData=None,editSerial=False):
-        self.hiddenFields = {}
-        # Set info fields
-        self.sysname = sysname
-        if typeid:
-            self.typename = editTables.Type(typeid).typename
-        else:
-            self.typename = 'n/a'
-        if snmpversion:
-            self.snmpversion = snmpversion
-        else:
-            self.snmpversion = 'n/a'
-
-        disabled = False
-        self.help = None
-        if gotRo:
-            # RO was specified, so the box has been queried by SNMP
-            if serial:
-                # It returned a serialnumber
-                disabled = True
-                self.help = 'Serialnumber retrieved by SNMP.'
-            else:
-                self.help = 'Unable to retrieve serialnumber for this ' + \
-                            'device by SNMP. ' + \
-                            'Enter a serialnumber'
-        else:
-            if serial:
-                # Serial was entered manually
-                self.help = ''
-                disabled = True
-            else:   
-                self.help = 'Enter a serialnumber'
-
-        # If editSerial = True, override help text and always enable editing
-        if editSerial:
-            disabled = False
-            # Should be some help text here
-            self.help = ''
-
-        self.fields = {'serial': [inputText(value=serial,disabled=disabled),
-                                  REQ_TRUE]}
-        self.setControlNames()
-
-        self.addHidden('sysname',sysname)
-        self.addHidden('typeid',typeid)
-        self.addHidden('snmpversion',snmpversion)
-
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
-        
-        # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
-        # don't need to repeat it here 
-        self.boxName = IGNORE_BOX
-
-class editboxNetboxCategory(editbox):
-    type = 'netboxcategory'
-    editId = None
-
-    def __init__(self,catid,editId=None,showHelp=True):
-        self.hiddenFields = {}
-        subcategories = False
-        if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
-            subcategories = True
-
-        self.help = None
-        if editId:
-            self.editId = editId
-        elif showHelp:
-            # Only show help if we're adding a new box
-            if subcategories:
-                self.help = 'You can select one or more subcategories for '+\
-                            'boxes with the selected category. You can also '+\
-                            'add an optional description of the function of '+\
-                            'this box.'
-            else:
-                self.help = 'You can add an optional description of the ' + \
-                            'function of this box.'
-
-        o = []
-        for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
-                                                       catid + "'"):
-            o.append((subcat.subcatid,subcat.subcatid + ' (' + \
-                      subcat.descr + ')'))
-        if editId:
-            if subcategories:
-                self.fields = {'subcat': \
-                              [inputMultipleSelect(options=o),REQ_FALSE],
-                              'function': [inputText(size=40),REQ_FALSE]}
-            else:
-                self.fields = {'function': [inputText(size=40),REQ_FALSE]}
-        else:
-            if subcategories:
-                self.fields = {'subcat': [inputMultipleSelect(options=o),
-                                         REQ_FALSE],
-                               'function': [inputText(size=40),REQ_FALSE]}
-            else:
-                self.fields = {'function': [inputText(size=40),REQ_FALSE]}
- 
-        self.setControlNames()
-
-        if editId:
-            # Get selected netboxcategories
-            sql = "SELECT category FROM netboxcategory WHERE netboxid='%s'" \
-            % (editId,)
-            res = executeSQLreturn(sql)
-            selected = []
-            for s in res:
-               selected.append(s[0])
-               if subcategories:
-                   # A subcat field is present for this box with this cat
-                   self.fields['subcat'][0].value = selected
-
-            # Get var 'function' from netboxinfo
-            sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
-                  % (editId,) + \
-                  "AND var='function'"
-            res = executeSQLreturn(sql)
-            if res:
-                self.fields['function'][0].value = res[0][0]
-        
-        # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
-        # don't need to repeat it here 
-        self.boxName = IGNORE_BOX
-
-class editboxNetbox(editbox):
-    type = 'netbox'
-    table = editTables.editdbNetbox
-    editId = None
-
-    def __init__(self,editId=None,formData=None,disabled=False):
-        self.hiddenFields = {}
-        if editId:
-            # Preserve the selected id
-            self.addHidden(selectList.cnameChk,editId)
-            self.sysname = editTables.Netbox(editId).sysname
-            self.editId = editId
-            self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
-                                    ('Edit',False)]
-        else:
-            self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
-                                    ('Add',False)]
- 
-        o = [(None,'Select an organisation')]
-        for org in editTables.Org.getAllIterator(orderBy='orgid'):
-            o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
-
-        r = [(None,'Select a room')]
-        for room in editTables.Room.getAllIterator(orderBy='roomid'):
-            loc = editTables.Location(room.location).descr
-            r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
-                      str(room.descr) + ')'))
-
-        c = [(None,'Select a category')]
-        for cat in editTables.Cat.getAllIterator(orderBy='catid'):
-            c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
-
-        # Field definitions {field name: [input object, required]}
-        f = {'ip': [inputText(disabled=disabled),REQ_TRUE],
-             'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE],
-             'orgid': [inputSelect(options=o,disabled=disabled),REQ_TRUE],
-             'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE],
-             'ro': [inputText(disabled=disabled),REQ_FALSE],
-             'rw': [inputText(disabled=disabled),REQ_FALSE]}
-        self.fields = f
-        self.setControlNames()
-
-        if editId:
-            # This box is for editing an existing netbox with id = editId
-            self.editId = editId
-            self.fill()
-
-        if formData:
-            self.formFill(formData)
-
-        if disabled:
-            self.addDisabled()
-
- 
 class editboxSubcat(editbox):
     type = 'subcat'
     table = editTables.editdbSubcat
@@ -3320,6 +3283,267 @@ class editboxSubcat(editbox):
 
         if formData:
             self.formFill(formData) 
+
+##
+## class structNetbox
+##         |+-- class listDef
+##         |+-- class editbox
+##         |+-- class editboxSerial
+##         |+-- class editboxCategory
+##
+
+class structNetbox:
+
+    class listDef(entryList):
+        def __init__(self,sort):
+            self.headings = []
+            self.rows = []
+
+            self.sortBy = sort
+            self.title = 'Edit boxes'
+            self.basePath = BASEPATH + 'netbox/'
+            self.formAction = BASEPATH + 'netbox/edit'
+        
+            # 1 = roomid
+            self.defaultSortBy = 1
+
+            self.headingDefinition = [('Select',False),
+                                      ('Room',True),
+                                      ('Sysname',True),
+                                      ('IP',True),
+                                      ('Category',True),
+                                      ('Organisation',True),
+                                      ('RO',True),
+                                      ('RW',True),
+                                      ('Type',True),
+                                      ('Serial',True)]
+
+            subcatTooltip = [['SELECT netboxid,' + \
+                             'netboxcategory.category FROM netbox ' + \
+                             'WHERE netboxcategory.netboxid=netboxid',
+                             ('Subcategories:','{$1}'),None],
+                             ['SELECT netboxid,val FROM netboxinfo ' + \
+                             'WHERE var=\'function\'',
+                             ('Function:','{$1}'),None]]
+
+
+            self.cellDefinition = [('SELECT netboxid,roomid,sysname,ip,' + \
+                                    'catid,orgid,ro,rw,type.typename,' + \
+                                    'device.serial FROM netbox WHERE ' + \
+                                    '(deviceid=device.deviceid) ' + \
+                                    'AND (typeid=type.typeid) ' + \
+                                    'ORDER BY roomid,sysname',
+                                    [(None,None,True,False,None,None),
+                                     (1,None,False,False,None,None),
+                                     (2,'{p}edit/{id}',False,False,None,None),
+                                     (3,None,False,False,None,None),
+                                     (4,None,False,False,None,subcatTooltip),
+                                     (5,None,False,False,None,None),
+                                     (6,None,False,False,None,None),
+                                     (7,None,False,False,None,None),
+                                     (8,None,False,False,None,None),
+                                     (9,None,False,False,None,None)]),
+                                    ('SELECT netboxid,roomid,sysname,ip,' + \
+                                    'catid,orgid,ro,rw,' + \
+                                    'device.serial FROM netbox WHERE ' + \
+                                    '(deviceid=device.deviceid) ' + \
+                                    'AND (typeid IS NULL) ' + \
+                                    'ORDER BY roomid,sysname',
+                                    [(None,None,True,False,None,None),
+                                     (1,None,False,False,None,None),
+                                     (2,'{p}edit/{id}',False,False,None,None),
+                                     (3,None,False,False,None,None),
+                                     (4,None,False,False,None,subcatTooltip),
+                                     (5,None,False,False,None,None),
+                                     (6,None,False,False,None,None),
+                                     (7,None,False,False,None,None),
+                                     ('No type',None,False,False,None,None),
+                                     (8,None,False,False,None,None)])]
+
+    class editbox(editbox):
+        type = 'netbox'
+        table = editTables.editdbNetbox
+        editId = None
+
+        def __init__(self,editId=None,formData=None,disabled=False):
+            self.hiddenFields = {}
+            if editId:
+                # Preserve the selected id
+                self.addHidden(selectList.cnameChk,editId)
+                self.sysname = editTables.Netbox(editId).sysname
+                self.editId = editId
+                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                                        ('Edit',False)]
+            else:
+                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                                        ('Add',False)]
+     
+            o = [(None,'Select an organisation')]
+            for org in editTables.Org.getAllIterator(orderBy='orgid'):
+                o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
+
+            r = [(None,'Select a room')]
+            for room in editTables.Room.getAllIterator(orderBy='roomid'):
+                loc = editTables.Location(room.location).descr
+                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
+                          str(room.descr) + ')'))
+
+            c = [(None,'Select a category')]
+            for cat in editTables.Cat.getAllIterator(orderBy='catid'):
+                c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
+
+            # Field definitions {field name: [input object, required]}
+            f = {'ip': [inputText(disabled=disabled),REQ_TRUE],
+                 'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE],
+                 'orgid': [inputSelect(options=o,disabled=disabled),REQ_TRUE],
+                 'roomid': [inputSelect(options=r,disabled=disabled),REQ_TRUE],
+                 'ro': [inputText(disabled=disabled),REQ_FALSE],
+                 'rw': [inputText(disabled=disabled),REQ_FALSE]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                # This box is for editing an existing netbox with id = editId
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+
+    class editboxSerial(editbox):
+        type = 'netboxserial'
+
+        def __init__(self,gotRo,serial='',sysname=None,typeid=None,
+                     snmpversion=None,formData=None,editSerial=False):
+            self.hiddenFields = {}
+            # Set info fields
+            self.sysname = sysname
+            if typeid:
+                self.typename = editTables.Type(typeid).typename
+            else:
+                self.typename = 'n/a'
+            if snmpversion:
+                self.snmpversion = snmpversion
+            else:
+                self.snmpversion = 'n/a'
+
+            disabled = False
+            self.help = None
+            if gotRo:
+                # RO was specified, so the box has been queried by SNMP
+                if serial:
+                    # It returned a serialnumber
+                    disabled = True
+                    self.help = 'Serialnumber retrieved by SNMP.'
+                else:
+                    self.help = 'Unable to retrieve serialnumber for this ' + \
+                                'device by SNMP. ' + \
+                                'Enter a serialnumber'
+            else:
+                if serial:
+                    # Serial was entered manually
+                    self.help = ''
+                    disabled = True
+                else:   
+                    self.help = 'Enter a serialnumber'
+
+            # If editSerial = True, override help text and always enable editing
+            if editSerial:
+                disabled = False
+                # Should be some help text here
+                self.help = ''
+
+            self.fields = {'serial': [inputText(value=serial,disabled=disabled),
+                                      REQ_TRUE]}
+            self.setControlNames()
+
+            self.addHidden('sysname',sysname)
+            self.addHidden('typeid',typeid)
+            self.addHidden('snmpversion',snmpversion)
+
+            if formData:
+                self.formFill(formData)
+
+            if disabled:
+                self.addDisabled()
+            
+            # The editboxNetbox has UPDATE_ENTRY (which holds the id) or ADDNEW, 
+            # don't need to repeat it here 
+            self.boxName = IGNORE_BOX
+
+    class editboxCategory(editbox):
+        type = 'netboxcategory'
+        editId = None
+
+        def __init__(self,catid,editId=None,showHelp=True):
+            self.hiddenFields = {}
+            subcategories = False
+            if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
+                subcategories = True
+
+            self.help = None
+            if editId:
+                self.editId = editId
+            elif showHelp:
+                # Only show help if we're adding a new box
+                if subcategories:
+                    self.help = 'You can select one or more subcategories for '+\
+                                'boxes with the selected category. You can also '+\
+                                'add an optional description of the function of '+\
+                                'this box.'
+                else:
+                    self.help = 'You can add an optional description of the ' + \
+                                'function of this box.'
+
+            o = []
+            for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
+                                                           catid + "'"):
+                o.append((subcat.subcatid,subcat.subcatid + ' (' + \
+                          subcat.descr + ')'))
+            if editId:
+                if subcategories:
+                    self.fields = {'subcat': \
+                                  [inputMultipleSelect(options=o),REQ_FALSE],
+                                  'function': [inputText(size=40),REQ_FALSE]}
+                else:
+                    self.fields = {'function': [inputText(size=40),REQ_FALSE]}
+            else:
+                if subcategories:
+                    self.fields = {'subcat': [inputMultipleSelect(options=o),
+                                             REQ_FALSE],
+                                   'function': [inputText(size=40),REQ_FALSE]}
+                else:
+                    self.fields = {'function': [inputText(size=40),REQ_FALSE]}
+     
+            self.setControlNames()
+
+            if editId:
+                # Get selected netboxcategories
+                sql = "SELECT category FROM netboxcategory WHERE netboxid='%s'" \
+                % (editId,)
+                res = executeSQLreturn(sql)
+                selected = []
+                for s in res:
+                   selected.append(s[0])
+                   if subcategories:
+                       # A subcat field is present for this box with this cat
+                       self.fields['subcat'][0].value = selected
+
+                # Get var 'function' from netboxinfo
+                sql = "SELECT val FROM netboxinfo WHERE netboxid='%s' " \
+                      % (editId,) + \
+                      "AND var='function'"
+                res = executeSQLreturn(sql)
+                if res:
+                    self.fields['function'][0].value = res[0][0]
+            
+            # The editboxNetbox has UPDATE_ENTRY (which holds the id), 
+            # don't need to repeat it here 
+            self.boxName = IGNORE_BOX
+
 
 class editboxBulk(editbox):
     type = 'bulk'
@@ -3502,7 +3726,6 @@ class deletedefNetbox(deletedef):
     dependencies = []
     name = 'netbox'
  
-
 
 # Class for the template, holds status and error messages
 class editdbStatus:
@@ -4042,90 +4265,4 @@ class selectList:
                     row.append((text,None))
             self.rows.append((id,row))
 
-
-
-# Class representing a list of entries, used by the template
-#class selectList:
-#    # Text and controlnames for the action bar
-#    textAdd = 'Add new'
-#    textEdit = 'Edit selected'
-#    textDelete = 'Delete selected'
-#    cnameAdd = 'submit_add'
-#    cnameEdit = 'submit_edit'
-#    cnameDelete = 'submit_delete'
-#    cnameChk = 'checkbox_id'
-#    # Delete controls
-#    cnameDeleteConfirm = 'confirm_delete'
-#    textDeleteConfirm = 'Delete'
-#    # Bulk controls
-#    cnameBulkConfirm = 'confirm_bulk'
-#    textBulkConfirm = 'Import'
-#    # List rows where
-#    where = None
-
-#    def __init__(self):
-#        # bulk confirm list?
-#        self.isBulkList = False
-#        # is this a confirm delete list?
-#        self.isDeleteList = False
-#        # list of entries to delete
-#        self.deleteList = []
-#        # For the template
-#        self.method = 'post'
-#        self.action = None
-#        self.error = None
-#        self.status = None
-#        self.backlink = None
-#
-#        # Variables that must be filled before passing to the template
-#        self.title = None
-#        self.headings = []
-#        self.rows = []
-
-#        # Variables used by fill()
-#        self.table = None
-#        self.idcol = None
-#        self.orderBy = None
-#        self.tablename = ''
-#
-#    def fill(self):
-#        " Fill the headings and rows lists "
-#    
-#        # fill headings
-#        self.headings = []
-#        if not self.isDeleteList:
-#            self.headings = ['Select']
-#        for heading,column,link in self.columns:    
-#            self.headings.append(heading)
-#
-#        # fill rows
-#        entries = []
-#        if not self.isDeleteList:
-#            entries = self.table.getAllIterator(orderBy=self.orderBy,
-#                                                where=self.where)
-#        else:
-#            for id in self.deleteList:
-#                entries.append(self.table(id))
-#
-#        for entry in entries:
-#            id = getattr(entry,self.idcol)
-#
-#            row = []
-#            for heading,column,link in self.columns:
-#                if link:
-#                    eid = id
-#                    if not type(eid) is str:
-#                        eid = str(id)
-#                    row.append(([getattr(entry,column)],BASEPATH + self.tablename + '/edit/' + eid))
-#                else:
-#                    text = []
-#                    if type(column) is str:
-#                        text = [getattr(entry,column)]
-#                    else:
-#                        sectable,secidfield,sectextfield = column
-#                        iter = sectable.getAllIterator(where=secidfield + \
-#                                        "='" + eid + "'")
-#                        for i in iter:
-#                            text.append(getattr(i,sectextfield)) 
-#                    row.append((text,None))
-#            self.rows.append((id,row))
+   
