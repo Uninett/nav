@@ -682,6 +682,27 @@ CREATE TABLE alerthistvar (
   val TEXT NOT NULL
 );
 
+--servicemon tables
+DROP TABLE service;
+DROP TABLE serviceproperty;
+DROP SEQUENCE service_serviceid_seq;
+
+CREATE TABLE service (
+  serviceid SERIAL PRIMARY KEY,
+  netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
+  active BOOL DEFAULT true,
+  handler VARCHAR(8),
+  version VARCHAR(128)
+);
+
+CREATE TABLE serviceproperty (
+serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
+  property VARCHAR(64) NOT NULL,
+  value VARCHAR(64),
+  PRIMARY KEY(serviceid, property)
+);
+
+
 GRANT SELECT ON eventtype TO eventengine;
 GRANT SELECT ON eventprocess TO eventengine;
 GRANT ALL ON eventq TO eventengine;
