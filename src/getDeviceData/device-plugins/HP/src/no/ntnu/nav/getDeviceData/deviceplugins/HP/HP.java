@@ -5,6 +5,7 @@ import java.util.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
@@ -230,6 +231,12 @@ public class HP implements DeviceHandler
 				String[] s = (String[])it.next();
 				sc.swModuleFactory(Integer.parseInt(s[2])).setSwVer(s[1]);
 			}
+		}
+
+		l = sSnmp.getNext(nb.getOid("hpStackName"), 1, true, false);
+		if (l != null && !l.isEmpty()) {
+			String[] s = (String[])l.get(0);
+			if (s[1].length() > 0) NetboxInfo.put(nb.getNetboxidS(), null, "stackName", s[1]);
 		}
 
 		// Switch port data
