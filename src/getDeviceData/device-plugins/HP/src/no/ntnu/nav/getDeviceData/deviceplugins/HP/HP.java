@@ -12,16 +12,54 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
+ * <p>
  * DeviceHandler for collecting switch port data from HP switches.
+ * </p>
+ *
+ * <p>
+ * This plugin handles the following OID keys:
+ * </p>
+ *
+ * <ui>
+ *  <li>From MIB-II</li>
+ *  <ul>
+ *   <li>ifIndex (not used)</li>
+ *   <li>ifSpeed</li>
+ *   <li>ifAdminStatus</li>
+ *   <li>ifOperStatus</li>
+ *  </ul>
+ *  <li>HP specific</li>
+ *  <ul>
+ *   <li>hpStack</li>
+ *   <li>hpSerial</li>
+ *   <li>hpHwVer</li>
+ *   <li>hpSwVer</li>
+ *   <li>hpPortType</li>
+ *   <li>hpVlan</li>
+ *  </ul>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * <b>Note:</b> Both hpStack, hpSerial and hpPortType are required for any OID fetching to take place.
+ * </p>
  */
 
 public class HP implements DeviceHandler
 {
 	private static String[] canHandleOids = {
-		"ifIndex",
-		"ifSpeed",
-		"ifAdminStatus",
-		"ifOperStatus"
+	  // The four MIB-II OIDs are not included here because this plugin uses
+		// hpPortType instead of ifIndex to get the ifIndex for each port.
+		//		"ifIndex",
+		//		"ifSpeed",
+		//		"ifAdminStatus",
+		//		"ifOperStatus",
+		"hpStack",
+		"hpSerial",
+		"hpHwVer",
+		"hpSwVer",
+		"hpPortType",
+		"hpVlan"
 	};
 
 	private SimpleSnmp sSnmp;
@@ -70,14 +108,6 @@ public class HP implements DeviceHandler
 	 */
 	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
 	{
-
-		/* // Just for testing
-		Log.d("PROCESS_HP", "Actual SNMP processing not active");
-		Log.d("PROCESS_HP", "Allowed ifIndex: " + nb.requestOidFetchPermission("ifIndex"));
-		Log.d("PROCESS_HP", "Allowed ifType: " + nb.requestOidFetchPermission("ifType"));		
-		Log.d("PROCESS_HP", "Allowed ifDuplex: " + nb.requestOidFetchPermission("ifDuplex"));
-		if (true) return;
-		*/
 
 		/*
 		HP 2524:
@@ -165,8 +195,9 @@ public class HP implements DeviceHandler
 
 		*/
 
-
+		/*
 		String stackOid = "1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1";
+                       
 
 		String ifIndexOid = ".1.3.6.1.2.1.2.2.1.1";
 		String ifSpeedOid = ".1.3.6.1.2.1.2.2.1.5";
@@ -182,11 +213,21 @@ public class HP implements DeviceHandler
 		//String fastEtherModeOid = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.10";
 
 		String vlanOid = "1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1";
+		*/
+
+		// We cannot do anything without the stack OID, and we always want
+		// the serial as well as the port type (since we don't use
+		// ifIndex)
+		if (!nb.canGetOid("hpStack") ||
+				!nb.canGetOid("hpSerial") ||
+				!nb.canGetOid("hpPortType")) {
+			return;
+		}
 
 		ArrayList stackList, macList;
 
-		// Henter først antallet i stack'en:
-		sSnmp.setParams(ip, cs_ro, stackOid);
+		// Get the number of devices in the stack
+		sSnmp.setParams(ip, cs_ro, nb.getOid("hpStack"));
 		stackList = sSnmp.getAll();
 
 		if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
@@ -199,44 +240,57 @@ public class HP implements DeviceHandler
 
 			sSnmp.setCs_ro(cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""));
 
-			// Hent serial, hw, sw
-			String serial, hw_ver, sw_ver;
+			String serial = null, hwVer = null, swVer = null;
 			try {
-				sSnmp.setBaseOid(serialOid);
+				sSnmp.setBaseOid(nb.getOid("hpSerial"));
 				serial = ((String[])sSnmp.getNext(1, true, false).get(0))[1];
 
-				sSnmp.setBaseOid(hwOid);
-				hw_ver = ((String[])sSnmp.getNext(1, true, false).get(0))[1];
+				// Fetch HwVer, SwVer
+				if (nb.canGetOid("hpHwVer")) {
+					sSnmp.setBaseOid(nb.getOid("hpHwVer"));
+					hwVer = ((String[])sSnmp.getNext(1, true, false).get(0))[1];
+				}
 
-				sSnmp.setBaseOid(swOid);
-				sw_ver = ((String[])sSnmp.getNext(1, true, false).get(0))[1];
+				if (nb.canGetOid("hpSwVer")) {
+					sSnmp.setBaseOid(nb.getOid("hpSwVer"));
+					swVer = ((String[])sSnmp.getNext(1, true, false).get(0))[1];
+				}
+
 			} catch (IndexOutOfBoundsException e) {
 				Log.w("PROCESS_HP", "IndexOutOfBoundsException while fetching (serial|hw|sw): " + e.getMessage() );
 				e.printStackTrace(System.err);
 				return;
 			}
-			Log.d("PROCESS_HP", "Module: " + modul + " Serial: " + serial + " Hw_ver: " + hw_ver +  " Sw_ver: " + sw_ver);
+			Log.d("PROCESS_HP", "Module: " + modul + " Serial: " + serial + " HwVer: " + hwVer +  " SwVer: " + swVer);
 
-			SwModule m = sc.swModuleFactory(serial, hw_ver, sw_ver, modul);
+			SwModule m = sc.swModuleFactory(serial, hwVer, swVer, modul);
 
-			// Get data
 			Map speedMap = null;
-			if (nb.requestOidFetchPermission("ifType")) {
-				sSnmp.setBaseOid(nb.getOid("ifType"));
+			if (nb.canGetOid("ifSpeed")) {
+				sSnmp.setBaseOid(nb.getOid("ifSpeed"));
 				speedMap = sSnmp.getAllMap();
 			}
 
-			sSnmp.setBaseOid(ifOperStatusOid);
-			ArrayList ifOperStatusList = sSnmp.getAll();
+			Map operStatusMap = null;
+			if (nb.canGetOid("ifOperStatus")) {
+				sSnmp.setBaseOid(nb.getOid("ifOperStatus"));
+				operStatusMap = sSnmp.getAllMap();
+			}
 
-			sSnmp.setBaseOid(ifAdmStatusOid);
-			ArrayList ifAdmStatusList = sSnmp.getAll();
+			Map admStatusMap = null;
+			if (nb.canGetOid("ifAdminStatus")) {
+				sSnmp.setBaseOid(nb.getOid("ifAdminStatus"));
+				admStatusMap = sSnmp.getAllMap();
+			}
 
-			sSnmp.setBaseOid(vlanOid);
-			ArrayList vlanList = sSnmp.getAll();
+			Map vlanMap = null;
+			if (nb.canGetOid("hpVlan")) {
+				sSnmp.setBaseOid(nb.getOid("hpVlan"));
+				vlanMap = sSnmp.getAllMapList();
+			}
 
-			sSnmp.setBaseOid(portTypeOid);
-			ArrayList portTypeList = sSnmp.getAll();
+			sSnmp.setBaseOid(nb.getOid("hpPortType"));
+			List portTypeList = sSnmp.getAll();
 
 			/*
 			if (ifSpeedList.size() != ifOperStatusList.size() || ifSpeedList.size() != portTypeList.size()) {
@@ -245,48 +299,9 @@ public class HP implements DeviceHandler
 			}
 			*/
 			
-			/*
-			HashMap speedMap = new HashMap();
-			for (int j=0; j < ifSpeedList.size(); j++) {
-				String[] speed = (String[])ifSpeedList.get(j);
-				speedMap.put(speed[0], speed[1]);
-			}
-			*/
-
-			HashMap operStatusMap = new HashMap();
-			for (int j=0; j < ifOperStatusList.size(); j++) {
-				String[] operStatus = (String[])ifOperStatusList.get(j);
-				operStatusMap.put(operStatus[0], operStatus[1]);
-			}
-
-			HashMap admStatusMap = new HashMap();
-			for (int j=0; j < ifAdmStatusList.size(); j++) {
-				String[] admStatus = (String[])ifAdmStatusList.get(j);
-				admStatusMap.put(admStatus[0], admStatus[1]);
-			}
-
-			HashMap vlanMap = new HashMap();
-			for (int j=0; j < vlanList.size(); j++) {
-				String[] vlan = (String[])vlanList.get(j);
-				vlan[0] = vlan[0].substring(vlan[0].lastIndexOf(".")+1, vlan[0].length());
-
-				List vl;
-				if ( (vl=(List)vlanMap.get(vlan[0])) == null) vlanMap.put(vlan[0], vl=new ArrayList());
-				vl.add(vlan[1]);
-			}
-
-			for (int j=0; j < portTypeList.size(); j++) {
-				String[] portType = (String[])portTypeList.get(j);
+			for (Iterator it = portTypeList.iterator(); it.hasNext();) {
+				String[] portType = (String[])it.next();
 				String ifindex = portType[0];
-
-				String operStatus = (String)operStatusMap.get(ifindex);
-				String admStatus = (String)admStatusMap.get(ifindex);
-
-				List portVlanList = (List)vlanMap.get(ifindex);
-				if (portVlanList == null) {
-					Log.w("PROCESS_HP", "Error, vlanList not found for ifindex: " + ifindex);
-					continue;
-				}
 
 				Integer port;
 				try {
@@ -296,39 +311,42 @@ public class HP implements DeviceHandler
 					continue;
 				}
 
-				String speedS = null;
+				//Swport sw = m.swportFactory(port, ifindex, link, speedS, duplex, media, false, "");
+				Swport sw = m.swportFactory(port, ifindex);
+
+
 				if (speedMap != null) {
 					String speed = (String)speedMap.get(ifindex);
 					long speedNum;
 					try {
 						speedNum = Long.parseLong(speed);
+						sw.setSpeed(String.valueOf( (speedNum/1000000) ));
 					} catch (NumberFormatException e) {
 						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException on speed: " + speed);
-						continue;
 					}
-					speedS = String.valueOf( (speedNum/1000000) );
 				}
 
-				char link = 'd'; // adm down
-				try {
-					int n = Integer.parseInt(admStatus);
-					if (n == 1) {
-						// adm up
-						n = Integer.parseInt(operStatus);
-						if (n == 1) link ='y'; // link up
-						else link = 'n'; // link oper down
+				if (operStatusMap != null && admStatusMap != null) {
+					try {
+						int n = Integer.parseInt((String)admStatusMap.get(ifindex));
+						char link = 'd'; // adm down
+						if (n == 1) {
+							// adm up
+							n = Integer.parseInt((String)operStatusMap.get(ifindex));
+							if (n == 1) link ='y'; // link up
+							else link = 'n'; // link oper down
+						}
+						else if (n != 2 && n != 0) {
+							Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
+						}
+						sw.setLink(link);
+					} catch (NumberFormatException e) {
+						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatusMap.get(ifindex));
 					}
-					else if (n != 2 && n != 0) {
-						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown status code: " + n);
-						continue;
-					}
-				} catch (NumberFormatException e) {
-					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for status code: " + operStatus);
-					continue;
 				}
 
 				char duplex;
-				String media;
+				String media = null;
 				try {
 					int n = Integer.parseInt(portType[1]);
 					switch (n) {
@@ -406,32 +424,39 @@ public class HP implements DeviceHandler
 						Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " Unknown port type: " + n);
 						continue;
 					}
+
+					sw.setMedia(media);
+					sw.setDuplex(duplex);
+
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + ifindex + " NumberFormatException for port type: " + portType[1]);
-					continue;
 				}
 
-				Log.d("PROCESS_HP", "Added portData("+netboxid+"): ifindex: " + ifindex + " Modul: " + modul + " Port: " + port + " Link: " + link + " Speed: " + speedS + " Duplex: " + duplex + " Media: " + media);
-
-				// PortData(String ifindex, String modul, String port, String status, String speed, String duplex, String media, boolean trunk, String portnavn)
-				//PortData pd = new PortData(ifindex, modul, port, status, speedS, duplex, media, false, "");
-				Swport sw = m.swportFactory(port, ifindex, link, speedS, duplex, media, false, "");
-
-				// Vlan
-				if (portVlanList.size() > 1) {
-					sw.setTrunk(true);
-					for (Iterator k=portVlanList.iterator(); k.hasNext();) {
-						sw.addTrunkVlan((String)k.next());
+				if (vlanMap != null) {
+					List portVlanList = (List)vlanMap.get(ifindex);
+					if (portVlanList == null) {
+						Log.w("PROCESS_HP", "Error, vlanList not found for ifindex: " + ifindex);
 					}
-				} else {
-					int vlan = 0;
-					try {
-						vlan = Integer.parseInt((String)portVlanList.get(0));
-					} catch (NumberFormatException e) {
-						Log.w("PROCESS_HP", "Cannot parse vlan: " + portVlanList.get(0));
+
+					// Vlan
+					if (portVlanList.size() > 1) {
+						sw.setTrunk(true);
+						for (Iterator k=portVlanList.iterator(); k.hasNext();) {
+							sw.addTrunkVlan((String)k.next());
+						}
+					} else {
+						int vlan = 0;
+						try {
+							vlan = Integer.parseInt((String)portVlanList.get(0));
+							sw.setVlan(vlan);
+						} catch (NumberFormatException e) {
+							Log.w("PROCESS_HP", "Cannot parse vlan: " + portVlanList.get(0));
+						}
 					}
-					sw.setVlan(vlan);
 				}
+
+				Log.d("PROCESS_HP", "Netbox " + netboxid + ", added Swport: " + sw);
+
 			}
 		}
 
