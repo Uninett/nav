@@ -1,0 +1,20 @@
+# This file lists the subtrees that will be processed together in one
+# set. See the comments at the beginning of collect-subtrees for more info.
+
+# This will be passed to collector so it can find the Config Tree.
+# If this directory does not start with a slash, it will
+# have $HOME prepended.
+base:	cricket-config
+
+# this is where logs will be put. (The $HOME rule applies here too.)
+logdir:	cricket-logs
+
+set normal:
+	/routers
+	/switches
+	/switch-ports
+	/router-interfaces
+
+set giga:
+	/giga-router-interfaces
+	/giga-switch-ports
