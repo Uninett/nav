@@ -132,6 +132,7 @@ class EventImpl implements Event, Alert
 		if (alerttype == null) return null;
 
 		// Update varMap from database
+		outld("getMsgs: Update varMap for deviceid: " + deviceid);
 		try {
 			ResultSet rs = Database.query("SELECT * from device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
 			ResultSetMetaData rsmd = rs.getMetaData();
@@ -202,11 +203,13 @@ class EventImpl implements Event, Alert
 	public String toString()
 	{
 		//String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time="+time+" eventtypeid="+eventtypeid;
-		String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql()+"\n";
+		String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql();
+		boolean first=true;
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();
 			String var = (String)me.getKey();
 			String val = (String)me.getValue();
+			if (first) { first = false; s += "\n"; }
 			s += "["+var+"="+val+"] ";
 			/*
 			List l = (List)me.getValue();
