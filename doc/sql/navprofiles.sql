@@ -296,9 +296,9 @@ sms		Is the user allowed to get alerts on sms.
 CREATE TABLE Preference (
     accountid integer NOT NULL,
     queuelength interval,
-    admin integer NOT NULL DEFAULT 1,       
+/*    admin integer NOT NULL DEFAULT 1,       */
     activeprofile integer,
-    sms boolean NOT NULL DEFAULT true, 
+/*    sms boolean NOT NULL DEFAULT true, */
     
     lastsentday timestamp,
     lastsentweek timestamp,
@@ -327,8 +327,8 @@ CREATE OR REPLACE FUNCTION copy_default_preferences () RETURNS TRIGGER AS '
   BEGIN
     SELECT INTO pref * FROM preference WHERE accountid = 0;
     pref.accountid := NEW.id;
-    INSERT INTO preference (accountid, queuelength, admin, activeprofile, sms, lastsentday, lastsentweek)
-      VALUES (pref.accountid, pref.queuelength, pref.admin, pref.activeprofile, pref.sms, pref.lastsentday, pref.lastsentweek);
+    INSERT INTO preference (accountid, queuelength, activeprofile, lastsentday, lastsentweek)
+      VALUES (pref.accountid, pref.queuelength, pref.activeprofile, pref.lastsentday, pref.lastsentweek);
     RETURN NEW;
   END' LANGUAGE 'plpgsql';
 CREATE TRIGGER insert_account AFTER INSERT ON account FOR EACH ROW EXECUTE PROCEDURE copy_default_preferences();
@@ -488,27 +488,7 @@ CREATE TABLE DefaultUtstyr (
 		  ON UPDATE CASCADE
 );
 
-/*
--- 23 DEFAULTFILTER
 
-Default filter is a table adding default filters to the user groups. Default filters will be avaibale for the user through the webinterface to use for notifications/alerts.
-
-The relation can be only to filters shared by administrators, not to filters owned by someone.
-*/
-CREATE TABLE DefaultFilter (
-       accountgroupid integer NOT NULL,
-       utstyrfilterid integer NOT NULL,
-
-       CONSTRAINT defaultfilter_pk PRIMARY KEY (accountgroupid, utstyrfilterid),
-       CONSTRAINT utstyrfilter_eksisterer
-		  FOREIGN KEY(utstyrfilterid) REFERENCES Utstyrfilter(id)
-		  ON DELETE CASCADE
-		  ON UPDATE CASCADE,
-       CONSTRAINT accountgroup_exist
-		  FOREIGN KEY(accountgroupid) REFERENCES AccountGroup(id)
-		  ON DELETE CASCADE
-		  ON UPDATE CASCADE
-);
 
 
 /*
@@ -786,6 +766,30 @@ CREATE TABLE AccountNavbar (
                ON UPDATE CASCADE
 );
 
+
+/*
+-- 23 DEFAULTFILTER
+
+Default filter is a table adding default filters to the user groups. Default filters will be avaibale for the user through the webinterface to use for notifications/alerts.
+
+The relation can be only to filters shared by administrators, not to filters owned by someone.
+*/
+CREATE TABLE DefaultFilter (
+       accountgroupid integer NOT NULL,
+       utstyrfilterid integer NOT NULL,
+
+       CONSTRAINT defaultfilter_pk PRIMARY KEY (accountgroupid, utstyrfilterid),
+       CONSTRAINT utstyrfilter_eksisterer
+		  FOREIGN KEY(utstyrfilterid) REFERENCES Utstyrfilter(id)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE,
+       CONSTRAINT accountgroup_exist
+		  FOREIGN KEY(accountgroupid) REFERENCES AccountGroup(id)
+		  ON DELETE CASCADE
+		  ON UPDATE CASCADE
+);
+
+
 /*
 -- AccountOrg
 
@@ -854,6 +858,21 @@ CREATE VIEW PrivilegeByGroup AS (
        FROM AccountgroupPrivilege AS a NATURAL JOIN Privilege AS b
 );
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 ------------------------------------------------------
  INSERT INITIAL DATA
@@ -878,10 +897,6 @@ INSERT INTO Account (id, login, name, password) VALUES
 INSERT INTO AccountInGroup (accountid, groupid) VALUES 
 (1, 1);
 
-INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
-(1, 100, true, '14 days');
-INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
-(0, 1, false, '14 days');
 
 -- NAVBAR PREFERENCES
 
