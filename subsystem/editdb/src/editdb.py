@@ -1316,6 +1316,9 @@ def insertNetbox(ip,sysname,catid,roomid,orgid,
     if typeid:
         fields['typeid'] = typeid
     if snmpversion:
+        # Only use the first char from initbox, can't insert eg. '2c' in
+        # this field
+        snmpversion = snmpversion[0]
         fields['snmp_version'] = snmpversion
 
     netboxid = addEntryFields(fields,
@@ -1430,6 +1433,7 @@ def updateNetbox(req,templateform,selected):
                 box.getDeviceId()
                 templateform.add(editboxNetbox(editId=selected,
                                                formData=form,disabled=True))
+
                 if box.typeid:
                     # Got type
                     if box.serial:
@@ -1442,7 +1446,7 @@ def updateNetbox(req,templateform,selected):
                                      sysname=sysname,
                                      typeid=box.typeid,
                                      snmpversion=box.snmpversion,
-                                     editSerial=True))
+                                     editSerial=False))
                     if box.serial:
                         # Got serial, go directly to step 2
                         step = STEP_2
@@ -1494,7 +1498,7 @@ def updateNetbox(req,templateform,selected):
                                      sysname=sysname,
                                      typeid=box.typeid,
                                      snmpversion=box.snmpversion,
-                                     editSerial=True))
+                                     editSerial=False))
                     if box.serial:
                         # Got serial, go directly to step 2
                         step = STEP_2
@@ -1531,12 +1535,17 @@ def updateNetbox(req,templateform,selected):
                              typeid=req.form['typeid'],
                              snmpversion=req.form['snmpversion']))
         # If the serial was changed we have to check if it's unique
-        if (oldBox.device.serial != form['serial']) and len(serial):
+        if box:
+            newSerial = box.serial
+        else:
+            newSerial = form['serial']
+
+        if serial != newSerial:
             # Any other devices in the database with this serial?
-            where = "serial = '" + str(form['serial']) + "'"
+            where = "serial = '" + str(newSerial) + "'"
             device = editTables.Device.getAll(where)
             if device:
-                message = 'Can\'t change the serialnumber since another ' + \
+                message = 'Can\'t update the serialnumber since another '+\
                           'device with this serial exists in ' + \
                           'the database.'
                 templateform.add(editboxHiddenOrMessage(message))
@@ -1568,6 +1577,9 @@ def updateNetbox(req,templateform,selected):
         snmpversion = None
         if form.has_key('snmpversion'):
             snmpversion = form['snmpversion']
+            # Only use first char of snmpversion, don't insert things like
+            # '2c'
+            snmpversion = snmpversion[0]
 
         # Update netbox
         fields = {'ip': form['ip'],
@@ -1583,9 +1595,11 @@ def updateNetbox(req,templateform,selected):
         updateEntryFields(fields,'netbox','netboxid',selected)
 
         # Update device
-        fields = {'serial': form['serial']}
-        deviceId = str(oldBox.device.deviceid)
-        updateEntryFields(fields,'device','deviceid',deviceId)
+        if form['serial'] != oldBox.device.serial:
+            # Set new serial, if it has changed
+            fields = {'serial': form['serial']}
+            deviceId = str(oldBox.device.deviceid)
+            updateEntryFields(fields,'device','deviceid',deviceId)
 
         # Remove old subcat and function entries
         netboxId = oldBox.netboxid
@@ -2663,7 +2677,7 @@ class editboxType(editbox):
             
     def __init__(self,editId=None,formData=None):
         # Field definitions {field name: [input object, required]}
-        f = {'typename': [inputText(),REQ_TRUE],
+        f = {'typename': [inputText(maxlength=10),REQ_TRUE],
              'vendorid': [inputSelect(table=editTables.editdbVendor),REQ_TRUE],
              'descr': [inputText(),REQ_TRUE],
              'sysobjectid': [inputText(),REQ_TRUE],
