@@ -465,7 +465,6 @@ public class GwportHandler implements DataHandler {
 									if (remoteCdp != null) vl.setNetident(nb.getSysname() + "," + remoteCdp);
 								}
 							}
-								
 						} else {
 							nettype = "lan";
 						}
@@ -485,7 +484,7 @@ public class GwportHandler implements DataHandler {
 						nettype = "core";
 					}
 
-					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl);
+					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl + " New: " + nettype);
 
 					if (!Vlan.equals(vl.getNettype(), nettype) ||
 							(netident != null && !netident.equals(vl.getNetident()))) {
