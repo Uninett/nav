@@ -43,7 +43,7 @@ require "$vei/database.pl";
 
 
 my $pidfil = "/var/run/smsd.pl.pid";
-my $conffil= '/usr/local/nav/etc/conf/smsd.conf';
+my $conffil= '/usr/local/nav/local/etc/conf/smsd.conf';
 
 justme();				# sjekker om smsd kjøres fra før.
 fork && exit;           # background ourself and go away
@@ -181,141 +181,143 @@ sub sorter_sms {
     # Bruk 'sort keys' vist en vist en ønsker at lavest mobil-nummer skal komme først 
     foreach $user (sort keys %hash_ko) {
 	
+	@sendt_id = '';
+	@ignored_id = '';
 	
 	# Henter alle meldingen til den første personen i fra hash'en
-	if ($nr1_user) {
-	    $meld_nr = 1;
-	    $ant_ignored = 0;
-	    $text_ = "";
-	    $nr1_user = 0;	    
-	    
-	    foreach $id (keys %{$hash_ko{$user}}) {
-		
-		# Meldinger som sendes til personen
-		
-		if ((length($text_) + length($hash_ko{$user}{$id})) < 136) {
-		    if ($meld_nr eq '1') {
-			$text_ = $hash_ko{$user}{$id};
-		    }
-		    elsif ($meld_nr eq '2') {
-			$text_ = "1:".$text_."\\;  2:".$hash_ko{$user}{$id};
-		    }
-		    else {
-			$text_ = $text_."\\; $meld_nr:".$hash_ko{$user}{$id};
-		    }
-		    
-		    $tlf_ = $user;
-		    push @sendt_id, $id; 
-		    
-		    $meld_nr++;
-		}
-		
-		# Meldinger som ignoreres, en teller dem opp
-		else {
-		    push @ignored_id, $id;
-		    $ant_ignored++;
-		}
-		
-	    }
-	    
-	    
-	    # Hvis det er flere en 1 melding til personen
-	    if ($ant_ignored > 0) {
-		$respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
-	    }
-	    
-	    # Hvis det kun er en melding til personen
-	    else {
-		$respons_ = &send_sms($tlf_, $text_);
-	    }
-	    
-	    # Sjekker om sendingen var vellykket
-	    if ($respons_ =~ /Sent/) {
-		
-		if ($smssyk) {
-		    $smssyk = 0;
-		    
-		    # Skriv logg
-                    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-                    print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
-		    
-                    # Send mail
-                    open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
-                    print MAIL "\nsmsd_ok: $dato\t$respons_\n";
-                    close(MAIL);
-		    
-                }
-		
-		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		
-		# Teller antall velykkede sendte meldinger
-		$smsid++;
-		
-		# Setter meldingen lik sendt i databasen
-		$nr1 = $#sendt_id - 1;
-		while (@sendt_id) {
-		    $id_ = pop @sendt_id;
-		    
-		    my $sendt_ok = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
-
-		    &sjekk_conn;
-		    my $ga = &db_execute($conn,$sendt_ok);
-		    
-		    # Skriv til logg
-		    if ($nr1 == $#sendt_id) {
-			print LOGFIL "Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-		    }
-		    else {
-			print LOGFIL "  Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-		    }
-		}
-		# Setter meldingen lik ignored i databasen
-		while (@ignored_id) {
-		    $id_ = pop @ignored_id;
-		    
-		    my $sendt_ign = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
-
-		    &sjekk_conn;
-		    $ga = &db_execute($conn,$sendt_ign);
-		    
-		    # Skriv til logg
-		    print LOGFIL "  Ignored: $dato\t$user\t$hash_ko{$user}{$id_}\n";
-		}
-	    }
-	    else {
-		
-		unless ($smssyk) {
-		    
-		    $smssyk = 1;
-		    
-		    # Skriv logg
-		    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
-		    print LOGFIL "\nError: $dato\t$respons_\n";
-		    
-		    # Send mail
-		    open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
-		    print MAIL "\nError: $dato\t$respons_\n";
-		    close(MAIL);
-		    
-		    # Resetter gnokii programmet
-		    $respons_ = `killall gnokii`;
-		    
-		}		
-		
-		sleep 60;
-	    }
-	    
-	}
-	
-	
-	
+#	if ($nr1_user) {
+#	    $meld_nr = 1;
+#	    $ant_ignored = 0;
+#	    $text_ = "";
+#	    $nr1_user = 0;	    
+#	    
+#	    foreach $id (keys %{$hash_ko{$user}}) {
+#		
+#		# Meldinger som sendes til personen
+#		
+#		if ((length($text_) + length($hash_ko{$user}{$id})) < 136) {
+#		    if ($meld_nr eq '1') {
+#			$text_ = $hash_ko{$user}{$id};
+#		    }
+#		    elsif ($meld_nr eq '2') {
+#			$text_ = "1:".$text_."\\;  2:".$hash_ko{$user}{$id};
+#		    }
+#		    else {
+#			$text_ = $text_."\\; $meld_nr:".$hash_ko{$user}{$id};
+#		    }
+#		    
+#		    $tlf_ = $user;
+#		    push @sendt_id, $id; 
+#		    
+#		    $meld_nr++;
+#		}
+#		
+#		# Meldinger som ignoreres, en teller dem opp
+#		else {
+#		    push @ignored_id, $id;
+#		    $ant_ignored++;
+#		}
+#		
+#	    }
+#	    
+#	    
+#	    # Hvis det er flere en 1 melding til personen
+#	    if ($ant_ignored > 0) {
+#		$respons_ = &send_sms($tlf_, $text_." +$ant_ignored se web.");
+#	    }
+#	    
+#	    # Hvis det kun er en melding til personen
+#	    else {
+#		$respons_ = &send_sms($tlf_, $text_);
+#	    }
+#	    
+#	    # Sjekker om sendingen var vellykket
+#	    if ($respons_ =~ /Sent/) {
+#		
+#		if ($smssyk) {
+#		    $smssyk = 0;
+#		    
+#		    # Skriv logg
+#                    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+#                    print LOGFIL "\nsmsd_up: $dato\t$respons_\n";
+#		    
+#                    # Send mail
+#                    open(MAIL, "|mail -s 'RE:Feil på smsd' $MAILDRIFT");
+#                    print MAIL "\nsmsd_ok: $dato\t$respons_\n";
+#                    close(MAIL);
+#		    
+#                }
+#		
+#		$dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+#		
+#		# Teller antall velykkede sendte meldinger
+#		$smsid++;
+#		
+#		# Setter meldingen lik sendt i databasen
+#		$nr1 = $#sendt_id - 1;
+#		while (@sendt_id) {
+#		    $id_ = pop @sendt_id;
+#		    
+#		    my $sendt_ok = "UPDATE smsutko SET sendt=\'Y\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+#
+#		    &sjekk_conn;
+#		    my $ga = &db_execute($conn,$sendt_ok);
+#		    
+#		    # Skriv til logg
+#		    if ($nr1 == $#sendt_id) {
+#			print LOGFIL "Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
+#		    }
+#		    else {
+#			print LOGFIL "  Sendt: $dato\t$user\t$hash_ko{$user}{$id_}\n";
+#		    }
+#		}
+#		# Setter meldingen lik ignored i databasen
+#		while (@ignored_id) {
+#		    $id_ = pop @ignored_id;
+#		    
+#		    my $sendt_ign = "UPDATE smsutko SET sendt=\'I\',smsid=\'$smsid\',tidsendt=NOW() WHERE id=\'$id_\'";
+#
+#		    &sjekk_conn;
+#		    $ga = &db_execute($conn,$sendt_ign);
+#		    
+#		    # Skriv til logg
+#		    print LOGFIL "  Ignored: $dato\t$user\t$hash_ko{$user}{$id_}\n";
+#		}
+#	    }
+#	    else {
+#		
+#		unless ($smssyk) {
+#		    
+#		    $smssyk = 1;
+#		    
+#		    # Skriv logg
+#		    $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime;
+#		    print LOGFIL "\nError: $dato\t$respons_\n";
+#		    
+#		    # Send mail
+#		    open(MAIL, "|mail -s 'Feil på smsd' $MAILDRIFT");
+#		    print MAIL "\nError: $dato\t$respons_\n";
+#		    close(MAIL);
+#		    
+#		    # Resetter gnokii programmet
+#		    $respons_ = `killall gnokii`;
+#		    
+#		}		
+#		
+#		sleep 60;
+#	    }
+#	    
+#	}
+#	
+#	
+#	
 	# Resten av brukerene i hash'en
-	else {
+#	else {
 	    
 	    # Clear hash for ny bruker
 	    %hash_ko2_ = (); 
 	    
-	    # Henter på nytt alle meldingen til neste person
+	    # Henter på nytt alle meldingen til denne personen
 	    
 	    $ko = "SELECT smsutko.id,melding FROM smsutko,bruker WHERE bruker.id=smsutko.brukerid AND sendt=\'N\' AND tlf=\'$user\'"; 
 
@@ -450,7 +452,7 @@ sub sorter_sms {
 		sleep 60;
 	    }
 	    
-	}
+#	}
 	
     }
     
