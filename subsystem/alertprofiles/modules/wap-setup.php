@@ -41,7 +41,7 @@ if ($k[0] == null) {
 } else {
 	print "<p>" . gettext("Your WAP key is: ") ."<b>" . $k[0] . "</b>.";
 	print "<p>" . gettext("You can now access Alert profiles from this WAP page :") . "<br>";
-	print "<pre>http://isbre.itea.ntnu.no/wap/?k=" . $k[0] . "</pre>";
+	print '<pre>http://' . $_SERVER['SERVER_NAME'] . '/wap/?k=' . $k[0] . '</pre>';
 
 	print "<p>[ <a href=\"index.php?subaction=nykey\">" . gettext("Generate a new key") . "</a> | 
 <a href=\"index.php?action=wap&subaction=slettkey\">" . gettext("Deactivate WAP access") . "</a> ]";

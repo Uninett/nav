@@ -10,7 +10,7 @@
 
 class WDBH {
 
-	// MÂ ha inn en ferdig oppkoblet databasekobling til postgres
+	// Må ha inn en ferdig oppkoblet databasekobling til postgres
 	var $connection;
 
 	// Konstruktor
@@ -22,9 +22,13 @@ class WDBH {
 	function sjekkwapkey($wapkey) {
     
             $uid = 0;
-            $querystring = "SELECT Account.login as al, Account.id as aid, Accountproperty.value, account.name as aname FROM AccountProperty WHERE (property = 'wapkey') AND 
-(value = '" . addslashes($wapkey) . "') AND 
-(account.id = accountproperty.accountid) ";
+            $querystring = "
+SELECT Account.login as al, Account.id as aid, Accountproperty.value, account.name as aname, preference.activeprofile as ap  
+FROM AccountProperty, Account, Preference  
+WHERE (property = 'wapkey') AND 
+	(value = '" . addslashes($wapkey) . "') AND 
+	(account.id = accountproperty.accountid) AND
+	(account.id = preference.accountid) ";
 
 		#print "<p> " . $querystring . "</p>";
 
@@ -33,9 +37,10 @@ class WDBH {
 			$uid = $data["aid"];
 			$brukernavn = $data["al"];
 			$navn = $data["aname"];
+			$aktivprofil = $data["ap"];
 		}
     
-	 	return array($uid, $brukernavn, $navn);
+	 	return array($uid, $brukernavn, $navn, $aktivprofil);
 	}
 
 
@@ -67,18 +72,18 @@ ORDER BY aktiv DESC, Brukerprofil.navn" ;
 
     //print "<p>$querystring";
 
-    if ( $query = @pg_exec($this->connection, $querystring) ) {
-      $tot = pg_numrows($query); $row = 0;
-
-      while ( $row < $tot) {
-	$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
-	$profiler[$row][0] = $data["id"]; 
-	$profiler[$row][1] = $data["navn"];
-	$profiler[$row][2] = $data["antall"];
-	$profiler[$row][3] = $data["aktiv"];
-	$row++;
-      } 
-    }
+	if ( $query = @pg_exec($this->connection, $querystring) ) {
+		$tot = pg_numrows($query); $row = 0;
+	
+		while ( $row < $tot) {
+			$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+			$profiler[$row][0] = $data["id"]; 
+			$profiler[$row][1] = $data["navn"];
+			$profiler[$row][2] = $data["antall"];
+			$profiler[$row][3] = $data["aktiv"];
+			$row++;
+		} 
+	}
     
     return $profiler;
   }
@@ -109,7 +114,7 @@ ORDER BY aktiv DESC, Brukerprofil.navn" ;
     $querystring = "UPDATE Preference SET activeProfile = " . addslashes($profilid) . " WHERE " .
       " accountid = " . addslashes($uid) . "  ";
     
-   #print "<p>query: $querystring";
+   //echo "<p>query: $querystring";
     if ( $query = pg_exec( $this->connection, $querystring) ) {
       return 1;
     } else {

@@ -3,8 +3,8 @@ error_reporting(0);
 
 	header("Content-type: text/vnd.wap.wml");  
 
-	print '<?xml version="1.0" encoding="UTF-8"?>'; 
-	print '<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">';
+	echo '<?xml version="1.0" encoding="UTF-8"?>'; 
+	echo '<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN" "http://www.wapforum.org/DTD/wml_1.1.xml">';
 ?>
 
 <wml>
@@ -41,8 +41,8 @@ $cstr = "user=$duser password=$dpass dbname=$ddb";
 //echo "<p>" . $cstr;
 
 if (! $dbcon = pg_connect($cstr) ) {
-    print gettext("Hele portalen blir sperret når ikke databasen er tilgjenglig.");
-    exit(0);
+    echo gettext("<p>Database error! Sorry.</p></card></wml>");
+    exit();
 } 
             
 require("db.php");
@@ -65,50 +65,52 @@ if (get_exist('k') ) {
 	$user = $dbh->sjekkwapkey(get_get('k'));
 	
 	if ($user[0] == 0) {
-		print "<p>Wapnøkkel er ugyldig.</p></card></wml>";
-		exit(0);	
+		echo "<p>WAP key is invalid.</p></card></wml>";
+		exit();	
 	}
 
 } else {
-	print "<p>Du må oppgi wapnøkkel i urlen.</p></card></wml>";
-	exit(0);
+	echo "<p>WAP key not submitted.</p></card></wml>";
+	exit();
 }
 
-print "<p>Du er logget inn som <br/>" . $user[1]. "</p>";
+echo "<p>You are successfully logged in as <br/>" . $user[1]. "</p>";
+
 
 
 if ( get_exist('p') ) {
-	$dbh->aktivProfil($user[0], get_get('p') );
-	$dbh->nyLogghendelse($user[0], 9, "Endret profil med WAP til (id=" . get_get('p') . ")");
-	print '<p>Aktiv profil er endret</p>';
+	$nyprofil = get_get('p') == 0 ? 'null' : get_get('p');
+	$dbh->aktivProfil($user[0], $nyprofil );
+	$dbh->nyLogghendelse($user[0], 9, "Active profile is changed to (id=" . get_get('p') . ")");
+	echo '<p>Active profile is changed. (new id: ' . $nyprofil . ')</p>';
 }
 
-print '<p><b>Aktiv profil</b></p>';
-
+echo '<p><b>Active profile:</b></p>';
 
 $profiler = $dbh->listprofiler($user[0]);
+$selval = is_null($user[3]) ? 0 : $user[3];
 
-print '<p><select name="p">';
+echo '<p><select name="p" value="' . $selval . '" ivalue="' . $selval . '">' . "\n";
+echo '<option value="0">No active profile</option>' . "\n";
 
 for ($i = 0; $i < sizeof($profiler); $i++) {
-	print '<option value="' . $profiler[$i][0] . '" '; 
-	if ($brukerinfo[4] == $profiler[$i][0]) print 'selected'; 
-	print '>' . $profiler[$i][1] . '</option>';
+	echo '<option value="' . $profiler[$i][0] . '">' . 
+		$profiler[$i][1] . '</option>' . "\n";
 }
 
 if (sizeof($profiler) < 1) {
-	print '<option value="0">Ingen profiler..</option>';
+	echo '<option value="0">No profiles..</option>';
 }
 
-print '</select></p>';
+echo '</select></p>';
 
 
-print '<do type="accept" label="Bytt profil" >';
-#print '<postfield name="p" value="$(p)" />';
-print '<go href="?k=' . get_get('k') . '&amp;p=$(p:escape)"/></do>';
+echo '<do type="accept" label="Change profile" >';
+#echo '<postfield name="p" value="$(p)" />';
+echo '<go href="?k=' . get_get('k') . '&amp;p=$(p:escape)"/></do>';
 
 
-print '</card></wml>';
+echo '</card></wml>';
 
 pg_close($dbcon);
 ?>
