@@ -6,20 +6,28 @@ import no.ntnu.nav.ConfigParser.*;
 public interface DeviceHandler
 {
 	/**
+	 * <p>
 	 * This method should check if the implementing plugin can handle the device specified
 	 * by the BoksData argument, and return a value different from zero if it does.
+	 * </p>
 	 *
+	 * <p>
 	 * If the value returned is greater than zero, no plugins with a lower absolute value
 	 * will be asked to handle the device. The plugins will then be asked to handle the
 	 * device in order from highest to lowest value, ignoring sign.
+	 * </p>
 	 *
+	 * <p>
 	 * If two (or more) plugins return the same positive value, only one of them will be
 	 * asked to handle the device, but it is not defined which one. If two (or more)
 	 * plugins return the same absolute value, but with different sign, the plugins who
 	 * returned negative values will not be asked.
+	 * </p>
 	 *
+	 * <p>
 	 * For example, if there are five plugins, returning values -4, 1, -3, 4, and -6, only
 	 * the plugins returning -6 and 4 will be asked (in that order).
+	 * </p>
 	 *
 	 * @param bd The data describing the device
 	 * @return a value different from zero (0) if the plugin can handle the given device
