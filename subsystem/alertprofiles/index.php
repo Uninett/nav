@@ -67,7 +67,7 @@ require("listing.php");
 
 <!-- INCLUDE HEADER -->
 <?php
-exec('PYTHONPATH="/usr/local/nav/navme/lib/python" /usr/local/nav/navme/bin/navTemplate.py user=' . session_get('bruker') . ' content=%%% path=AlertProfiles:/alertprofiles ', $out );
+exec('/usr/local/nav/bin/navTemplate.py user=' . session_get('bruker') . ' content=%%% path=AlertProfiles:/alertprofiles ', $out );
 
 $pyhtml = implode(" ",$out);
 

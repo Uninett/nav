@@ -6,8 +6,8 @@
 
 // PATHS
 
-define("PATH_DB", "/usr/local/nav/local/etc/conf/");
-define("PATH_BIN", "/usr/local/nav/navme/bin/");
+define("PATH_DB", "/usr/local/nav/etc/conf/");
+define("PATH_BIN", "/usr/local/nav/bin/");
 
 /*
  * Matchfield operators
