@@ -412,7 +412,10 @@ class PortTrace:
             
         sql = "SELECT DISTINCT cam.module,cam.port,cam.mac,arp.ip,swport.portname FROM netbox JOIN cam USING (netboxid) JOIN module USING (netboxid) JOIN swport USING (moduleid) JOIN arp USING (mac) WHERE "
 
-        sql = sql+"netbox.sysName = '"+form.netbox+"' "
+        if nav.db.manage._isIP.match(form.netbox):
+          sql = sql+"netbox.IP = '"+form.netbox+"' "
+        else:
+          sql = sql+"netbox.sysName = '"+form.netbox+"' "
 
 
         if form.module.lower() == "all":
