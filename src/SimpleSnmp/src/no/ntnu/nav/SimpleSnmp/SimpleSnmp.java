@@ -632,6 +632,7 @@ public class SimpleSnmp
 
 		} catch (IOException e) {
 			outl("  *ERROR*: Host: " + host + " IOException: " + e.getMessage() );
+			e.printStackTrace();
 		}
 		getCnt = 0;
 		return l;
