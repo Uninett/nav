@@ -5,6 +5,7 @@ import java.util.*;
 public class DeviceData
 {
 	String sysname;
+	String snmpagent;
 
 	//List propertyList;
 	List boksDisk = new ArrayList();
@@ -24,6 +25,15 @@ public class DeviceData
 	public void setSysname(String s) { sysname = s; }
 
 	public String getSysname() { return sysname; }
+
+	/**
+	 * Set the snmpagent; if it is not blank the database will be updated if needed
+	 *
+	 * @param s the new snmpagent for this boks
+	 */
+	public void setSnmpagent(String s) { snmpagent = s; }
+
+	public String getSnmpagent() { return snmpagent; }
 
 	/**
 	 * Add this path to the boks; any news paths will be inserted into the database, paths
