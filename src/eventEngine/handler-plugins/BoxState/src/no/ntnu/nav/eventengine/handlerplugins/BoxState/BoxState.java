@@ -131,7 +131,7 @@ public class BoxState implements EventHandler, EventCallback
 				if (eventtype.equals("linkState")) {
 					Port p = m.getPort(Integer.parseInt(e.getSubid()));
 					if (p == null) {
-						Log.d("HANDLE", "Port="+e.getSubid()+" in module="+m.getModule()+" not found!");
+						Log.d("HANDLE", "Port ifindex="+e.getSubid()+" in module="+m.getModule()+" not found!");
 						return;
 					}
 					if (e.getState() == Event.STATE_START) p.down();
