@@ -6,7 +6,7 @@ http://www.nav.ntnu.no/
 (c) Stian Søiland <stain@itea.ntnu.no> 2002
 """
 
-__version__ = "$Id: HandlerServer.py,v 1.4 2002/07/01 13:59:21 cricket Exp $"
+__version__ = "$Id: HandlerServer.py,v 1.5 2002/07/02 09:34:05 cricket Exp $"
 
 import UserDict
 import re
@@ -35,16 +35,17 @@ class OID:
 
 class Unit:
   """A temporary way to store unit data"""
-  def __init__(self, unitID, description="", type=""):
+  def __init__(self, unitID, description="", type="", size="1024"):
     self.unitID = unitID
     self.description = description
     self.type = type
+    self.size = size
   def __repr__(self):
     info = (self.unitID, repr(self.type), repr(self.description))
     return "<unit id=%s type=%s description=%s>" % info
 
 class Checking:
-  """ Checking wh1.3.6.1.2.1.25.2.3.1.4 and if it should 
+  """ Checking which disk we will skip and if it should 
       be recursive or not """
   def rec(self , line , splitter):
     li2 = string.expandtabs(line,1)
@@ -229,7 +230,13 @@ class HandlerServer(DeviceHandler):
       print "Fant disk %s med filsystem %s" %  (diskID, filesystem)
       disks[diskID].type = filesystem
 
-
+    #...and also their blocksize
+    snmp.setBaseOid(OID.diskBlockSize)
+    diskBlockSize = snmp.getAll(1)
+    for (diskID,blocksize) in diskBlockSize:
+      print "Fant disk %s med blokkstr %s" % (diskID,blocksize)
+      disks[diskID].size = blocksize
+    
     # some sanity checks 
     for disk in disks.values():
       if(disk.type in (OID.filesystemNFS, OID.filesystemUnknown)):
@@ -265,9 +272,9 @@ class HandlerServer(DeviceHandler):
 
     # Insert into database
     for disk in disks.values():
-      deviceData.addBoksDisk(disk.description) 
+      deviceData.addBoksDisk(disk.description, disk.size) 
     
-    deviceData.boksDiskUpdated()  
+    deviceData.boksDiskUpdated()
 
 
   def getInterfaces(self, box, snmp, deviceData):
