@@ -141,21 +141,20 @@ public class MibIISw implements DeviceHandler
 			}
 		}
 
-		// Set ifDescr
-		// If type supports portIfindex
-		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfIndex")));
-		if (portIfindexMap != null) {
-			for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
-				String ifindex = (String)it.next();
+		// Set interface, first we try IfName
+		Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
+		if (ifNameMap != null) {
+			for (Iterator it = ifNameMap.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String ifindex = (String)me.getKey();
 				if (skipIfindexSet.contains(ifindex)) continue;
-
-				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\\.");
+				String ifname = (String)me.getValue();
 				
 				Swport swp = sc.swportFactory(ifindex);
-				swp.setInterface(mp[0] + "/" + mp[1]);
+				swp.setInterface(ifname);
 			}
 		} else {
-			// Type does not support portifIndex; instead use ifDescr
+			// Type does not support ifName; instead use ifDescr
 			Map ifdescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
 			if (ifdescrMap != null) {
 				for (Iterator it = ifdescrMap.entrySet().iterator(); it.hasNext();) {
@@ -169,6 +168,21 @@ public class MibIISw implements DeviceHandler
 				}
 			}
 		}
+
+		/*
+		// If type supports portIfindex
+		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfIndex")));
+		if (portIfindexMap != null) {
+		for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
+				String ifindex = (String)it.next();
+				if (skipIfindexSet.contains(ifindex)) continue;
+
+				String[] mp = ((String)portIfindexMap.get(ifindex).iterator().next()).split("\\.");
+				
+				Swport swp = sc.swportFactory(ifindex);
+				swp.setInterface(mp[0] + "/" + mp[1]);
+			}
+		*/
 
 	}
 
