@@ -62,15 +62,6 @@ BULK_STATUS_YELLOW_ERROR = 2
 BULK_STATUS_RED_ERROR = 3
 # Bulk fieldname for unspecified fields
 BULK_UNSPECIFIED_FIELDNAME = 'excess'
-# List of character encodings which bulk import tries.
-# Browsers should return utf-8 encoded form-data from 
-# the text input since this is the encoding specified
-# in the MainTemplate
-#DEFAULT_ENCODING = 'utf_8'
-#BULK_TRY_ENCODINGS = ['utf_8',
-#                      'utf_16',
-#                      'latin_1',        # West Europe
-#                      'iso8859_10']     # Nordic languages
 
 # REQ_TRUE: a required field
 # REQ_FALSE: not required
@@ -88,6 +79,7 @@ FIELD_INTEGER = 2
 
 def handler(req):
     ''' mod_python handler '''
+
     path = req.uri
     match = re.search('editdb/(.+)$',path)
     if match:
@@ -95,7 +87,7 @@ def handler(req):
         request = request.split('/')
     else:
         request = ""
-
+    
     # Get form from request object
     keep_blank_values = True
     fieldStorage = util.FieldStorage(req,keep_blank_values)
@@ -207,8 +199,8 @@ def index(req,showHelp=False,status=None):
     headings = []
     
     # Table for boxes and services
-    rows = [['Boxes',
-             'Input seed information on the IP-device you want to ' +\
+    rows = [['IP devices',
+             'Input seed information on the IP device you want to ' +\
              'monitor',
             [BASEPATH + 'netbox/edit','Add'],
             [BASEPATH + 'netbox/list','Edit'],
@@ -218,12 +210,12 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'service/edit','Add'],
             [BASEPATH + 'service/list','Edit'],
             [BASEPATH + 'bulk/service','Bulk import']]]
-    body.tables.append(Table('Boxes and services','',headings,rows))
+    body.tables.append(Table('IP devices and services','',headings,rows))
 
     # Table for rooms and locations 
     rows = [['Room',
              'Register all wiring closets and server rooms that contain ' +\
-             'boxes NAV monitors',
+             'IP devices which NAV monitors',
             [BASEPATH + 'room/edit','Add'],
             [BASEPATH + 'room/list','Edit'],
             [BASEPATH + 'bulk/room','Bulk import']],
@@ -235,13 +227,7 @@ def index(req,showHelp=False,status=None):
     body.tables.append(Table('Rooms and locations','',headings,rows))
 
     # Table org and usage cat
-    rows = [['Subcategory',
-             'The main categories of a device are predefined by NAV (i.e. ' +\
-             'GW,SW,SRV). You may however create subcategories yourself.',
-            [BASEPATH + 'subcat/edit','Add'],
-            [BASEPATH + 'subcat/list','Edit'],
-            [BASEPATH + 'bulk/subcat','Bulk import']],
-            ['Organisation',
+    rows = [['Organisation',
              'Register all organisational units that are relevant. I.e. ' +\
              'all units that have their own subnet/server facilities.',
             [BASEPATH + 'org/edit','Add'],
@@ -283,7 +269,14 @@ def index(req,showHelp=False,status=None):
              'Manually add snmpoids ',
             [BASEPATH + 'snmpoid/edit','Add'],
             ['',''],
-            ['','']]]
+            ['','']],
+            ['Subcategory',
+             'The main categories of a device are predefined by NAV (i.e. ' +\
+             'GW,SW,SRV). You may however create subcategories yourself.',
+            [BASEPATH + 'subcat/edit','Add'],
+            [BASEPATH + 'subcat/list','Edit'],
+            [BASEPATH + 'bulk/subcat','Bulk import']],
+]
     body.tables.append(Table('Types, products and vendors','',headings,rows))
 
     # Table for vlans and special subnets
@@ -314,6 +307,21 @@ def index(req,showHelp=False,status=None):
             [BASEPATH + 'patch/list','Edit'],
             [BASEPATH + 'bulk/patch','Bulk import']]]
     body.tables.append(Table('Cabling system','',headings,rows))
+
+    # Table for containers (Network load map)
+    rows = [['Container',
+             'A container is a collection of routers for the network load map ',
+            [BASEPATH + 'container/edit','Add'],
+            [BASEPATH + 'container/list','Edit'],
+            None],
+            ['Routers In Container',
+             'Add or remove routers from containers ',
+            [BASEPATH + 'ric/edit','Add'],
+            [BASEPATH + 'ric/list','Edit'],
+            None]]
+    body.tables.append(Table('Network Load Map','',headings,rows))
+
+
 
     nameSpace = {'entryList': None, 'editList': None, 'editForm': None, 'body': body}
     template = editdbTemplate(searchList=[nameSpace])
@@ -799,7 +807,8 @@ class entryList:
                     for id in self.where:
                         if not first:
                             sqlQuery += 'OR'
-                        sqlQuery += " %s='%s' " % (self.tableIdKey,id)
+                        sqlQuery += " %s.%s='%s' " % (self.tableName,
+                                                      self.tableIdKey,id)
                         if first:
                             first = False
                     sqlQuery += ') '
@@ -1645,8 +1654,6 @@ class pageCabling(editdbPage):
                              nav.db.manage.Cabling,
                              'room.roomid']]
 
-
-
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
                                       ('Room',True,None),
@@ -1711,6 +1718,76 @@ class pageCabling(editdbPage):
             if formData:
                 self.formFill(formData)
 
+class pageContainer(editdbPage):
+    ''' Describes editing of containers (vp_netbox_grp_info). '''
+    
+    basePath = BASEPATH + 'container/'
+    table = nav.db.manage.Vp_netbox_grp_info
+    pageName = 'container'
+    tableName = 'vp_netbox_grp_info'
+    tableIdKey = 'vp_netbox_grp_infoid'
+    sequence = 'vp_netbox_grp_info_vp_netbox_grp_infoid_seq'
+    editMultipleAllowed = True
+    editIdAllowed = False
+
+    # Unique fields (for errormessages from add/update)
+    unique = None
+
+    # Nouns
+    singular = 'container'
+    plural = 'containers'
+
+    # Delete dependencies
+    dependencies = []
+
+    # Description format used by describe(id)
+    # Example: room 021 (descr) to jack 123, building, office
+    descriptionFormat = [('','name')]
+
+    pathAdd = EDITPATH + [('Container',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('Container',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('Container',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('Container',False)]
+
+    class listDef(entryList):
+        ''' Describes the format of the list view of containers. '''
+        def __init__(self,req,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,req,struct,sort,deleteWhere)
+            
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Name',True,None)]
+
+            self.cellDefinition = [(('vp_netbox_grp_infoid,name',
+                                     'vp_netbox_grp_info',
+                                     None,
+                                     None,
+                                     'name'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing vendor entries.
+            The template uses this field information to display the form. '''
+    
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            # Field definitions {field name: [input object, required]}
+            f = {'name': [inputText(),REQ_TRUE,'Name',FIELD_STRING]}
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                self.editId = editId
+                self.fill()
+
+            if formData:
+                self.formFill(formData)
+            
 class pageLocation(editdbPage):
     ''' Describes editing of the location table. '''
     
@@ -1814,8 +1891,8 @@ class pageNetbox(editdbPage):
     editIdAllowed = True
 
     # Nouns
-    singular = 'box'
-    plural = 'boxes'
+    singular = 'IP device'
+    plural = 'IP devices'
 
     # Delete dependencies
     dependencies = []
@@ -1823,10 +1900,10 @@ class pageNetbox(editdbPage):
     # Description format used by describe(id)
     descriptionFormat = [('','sysname')]
 
-    pathAdd = EDITPATH + [('Boxes',basePath+'list'),('Add',False)]
-    pathEdit = EDITPATH + [('Boxes',basePath+'list'),('Edit',False)]
-    pathDelete = EDITPATH + [('Boxes',basePath+'list'),('Delete',False)]
-    pathList = EDITPATH + [('Boxes',False)]
+    pathAdd = EDITPATH + [('IP devices',basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [('IP devices',basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [('IP devices',basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [('IP devices',False)]
 
     class listDef(entryList):
         ''' Describes the format of the list view of netboxes. '''
@@ -1913,10 +1990,10 @@ class pageNetbox(editdbPage):
                 self.addHidden(selectList.cnameChk,editId)
                 self.sysname = editTables.Netbox(editId).sysname
                 self.editId = editId
-                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                self.path = EDITPATH + [('IP devices','/editdb/netbox/list'),
                                         ('Edit',False)]
             else:
-                self.path = EDITPATH + [('Boxes','/editdb/netbox/list'),
+                self.path = EDITPATH + [('IP devices','/editdb/netbox/list'),
                                         ('Add',False)]
      
             o = [(None,'Select an organisation')]
@@ -2040,12 +2117,12 @@ class pageNetbox(editdbPage):
                 # Only show help if we're adding a new box
                 if subcategories:
                     self.help = 'You can select one or more subcategories ' +\
-                                'for boxes with the selected category. ' +\
+                                'for IP devices with the selected category. ' +\
                                 'You can also add an optional description ' +\
                                 'of the function of this box.'
                 else:
                     self.help = 'You can add an optional description of the '+\
-                                'function of this box.'
+                                'function of this IP device.'
 
             o = []
             for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
@@ -2124,7 +2201,7 @@ class pageNetbox(editdbPage):
         status = editdbStatus()
         action = 'predefined'
         form = req.form
-        templateform.title = 'Add box'
+        templateform.title = 'Add IP device'
 
         # Add editbox with hidden values for step (and deviceid)
         editboxHidden = editboxHiddenOrMessage()
@@ -2238,7 +2315,7 @@ class pageNetbox(editdbPage):
                           "target=\"_blank\">" + \
                           "add this type to the database</a>. " +\
                           "After adding the type, start the registration " +\
-                          "again to set correct type on box."
+                          "again to set correct type on this IP device."
 
                 if len(form['ro']):
                     # RO specified, check SNMP anyway
@@ -2306,7 +2383,7 @@ class pageNetbox(editdbPage):
                         # A box with this serial already exists
                         # in the database. Ask for serial again.
                         box = box[0]
-                        status.errors.append('A box (' + box.sysname + \
+                        status.errors.append('An IP device (' + box.sysname + \
                                              ') with the serial \'' +\
                                              str(serial) +\
                                              '\' already exists.')
@@ -2357,7 +2434,7 @@ class pageNetbox(editdbPage):
                          snmpversion,subcatlist,
                          function)
             action = 'list'
-            status.messages.append('Added box: ' + form['sysname'] + ' (' + \
+            status.messages.append('Added IP device: ' + form['sysname'] + ' (' + \
                                    req.form['hiddenIP'] + ')')
         if not step == STEP_2: 
             # Unless this is the last step, set the nextStep
@@ -2375,7 +2452,7 @@ class pageNetbox(editdbPage):
         # Step0: ask for ip,ro,rw,catid,org,room
         # Step1: ask for serial (and sysname,snmpversion and typeid)
         #        ask for subcategory and function
-        # Step2: add the box
+        # Step2: update the box
         message = "Got SNMP response, but can't find type in " + \
                   "database. You must <a href=\"" + ADD_TYPE_URL + \
                   "?sysobjectid=%s\" " + \
@@ -2389,7 +2466,7 @@ class pageNetbox(editdbPage):
         status = editdbStatus()
         action = 'predefined'
         form = req.form
-        templateform.title = 'Edit box'
+        templateform.title = 'Edit IP device'
         # Preserve the URL
         templateform.action = BASEPATH + 'netbox/edit/' + selected
 
@@ -2526,7 +2603,7 @@ class pageNetbox(editdbPage):
                           "target=\"_blank\">" + \
                           "add this type to the database</a>. " +\
                           "After adding the type, start the registration " +\
-                          "again to set correct type on box."
+                          "again to set correct type on IP device."
 
                 if len(form['ro']):
                     # RO specified, check SNMP anyway
@@ -2634,7 +2711,7 @@ class pageNetbox(editdbPage):
                             # A box with this serial already exists
                             # in the database. Ask for serial again.
                             box = box[0]
-                            status.errors.append('A box (' + box.sysname + \
+                            status.errors.append('An IP device (' + box.sysname + \
                                                  ') with the serial \'' +\
                                                  str(serial) +\
                                                  '\' already exists.')
@@ -2742,7 +2819,7 @@ class pageNetbox(editdbPage):
                 addEntryFields(fields,'netboxinfo')
 
             action = 'list'
-            status.messages.append('Updated box ' + form['sysname'] + ' (' + \
+            status.messages.append('Updated IP device ' + form['sysname'] + ' (' + \
                                    form['ip'] + ')')
 
         if not step == STEP_2: 
@@ -3266,28 +3343,26 @@ class pagePatch(editdbPage):
             error = "Missing required field 'Port'"
 
         if not error:
-            # Check if the selected jack already belongs to a patch
-            where = "cablingid='" + cablingid + "'"
+            # Check if the selected jack belongs to another patch
+            where = "cablingid='" + cablingid + "' AND NOT patchid='" +\
+                    selected[0] + "'"
             otherPatch = nav.db.manage.Patch.getAll(where)
             if otherPatch:
-                # Already exists a patch with this jack, it must
-                # be splitted, if split is changed then do something
+                # Already exists a patch with this jack
                 otherPatch = otherPatch[0]
-                otherSplit = otherPatch.split
+                #otherSplit = otherPatch.split
 
-                if SPLIT_OPPOSITE[split] != otherSplit:
-                    # Splits are different, either update split on the
-                    # other entry, or delete it if this split='no'
-                    otherPatchId = str(otherPatch.patchid)
-                    # SPLIT_LIST[0][0] is default entry id
-                    if split == SPLIT_LIST[0][0]:
-                        # Delete other entry
-                        deleteEntry([otherPatchId],'patch','patchid')
-                    else:
-                        # Update other entry
-                        fields = {'split': SPLIT_OPPOSITE[split]}
-                        updateEntryFields(fields,self.tableName,self.tableIdKey,
-                                          otherPatchId)
+                # Update other split
+                otherPatchId = str(otherPatch.patchid)
+                # SPLIT_LIST[0][0] is default entry id
+                if split == SPLIT_LIST[0][0]:
+                    # Delete other entry
+                    deleteEntry([otherPatchId],'patch','patchid')
+                else:
+                    # Update other entry
+                    fields = {'split': SPLIT_OPPOSITE[split]}
+                    updateEntryFields(fields,self.tableName,self.tableIdKey,
+                                      otherPatchId)
 
             fields = {'cablingid': cablingid,
                       'swportid': swportid,
@@ -3643,6 +3718,209 @@ class pageProduct(editdbPage):
             if formData:
                 self.formFill(formData)
 
+class pageRic(editdbPage):
+    ''' Describes editing of routers in containers (vp_netbox_grp). '''
+    
+    basePath = BASEPATH + 'ric/'
+    table = nav.db.manage.Vp_netbox_grp
+    pageName = 'ric'
+    tableName = 'vp_netbox_grp'
+    # Id is vp_netbox_grp_infoid and pnetboxid, but use pnetboxid
+    # since it's easier and should be unique
+    tableIdKey = 'pnetboxid'
+    sequence = None
+    editMultipleAllowed = False
+    editIdAllowed = True
+
+    # Description format used by describe(id)
+    descriptionFormat = [(' in container',None)]
+
+    # Unique fields (for errormessages from add/update)
+    unique = ['vp_netbox_grp_infoid','pnetboxid']
+
+    # Nouns
+    singular = 'router in container'
+    plural = 'routers in containers'
+
+    # Delete dependencies
+    dependencies = []
+
+    ric = 'Routers in containers'
+    pathAdd = EDITPATH + [(ric,basePath+'list'),('Add',False)]
+    pathEdit = EDITPATH + [(ric,basePath+'list'),('Edit',False)]
+    pathDelete = EDITPATH + [(ric,basePath+'list'),('Delete',False)]
+    pathList = EDITPATH + [(ric,False)]
+
+    class listDef(entryList):
+        ''' Describes product list view '''
+        def __init__(self,req,struct,sort,deleteWhere=None):
+            # Do general init
+            entryList.__init__(self,req,struct,sort,deleteWhere)
+            
+            # Specific init
+            self.defaultSortBy = 1
+
+            # list of (heading text, show sortlink, compare function for sort)
+            self.headingDefinition = [('Select',False,None),
+                                      ('Container',True,None),
+                                      ('Router',True,None)]
+
+            self.cellDefinition = [(('vp_netbox_grp.pnetboxid,' +\
+                                     'vp_netbox_grp_info.name,netbox.sysname',
+                                     'vp_netbox_grp,vp_netbox_grp_info,netbox',
+                                     None,
+                                     'pnetboxid=netbox.netboxid AND ' +\
+                                     'vp_netbox_grp.vp_netbox_grp_infoid=' +\
+                                     'vp_netbox_grp_info.vp_netbox_grp_infoid',
+                                     'vp_netbox_grp_info.name,netbox.sysname'),
+                                    [(None,None,entryListCell.CHECKBOX,None,None),
+                                     (1,'{p}edit/{id}',None,None,None),
+                                     (2,None,None,None,None)])]
+
+    class editbox(editbox):
+        ''' Describes fields for adding and editing routers to containers.
+            The template uses this field information to display the form. '''
+
+        def __init__(self,page,req=None,editId=None,formData=None):
+            self.page = page.pageName
+            self.table = page.table
+            self.hiddenFields = {}
+
+            # Make list of routers
+            where = "AND ((SELECT count(*) FROM vp_netbox_grp WHERE " +\
+                    "pnetboxid=netbox.netboxid) = 0)"
+            selectedRouters = []
+            disabled = False
+            if editId:
+                # editId given is netboxid, get containerid
+                sql = "SELECT vp_netbox_grp_infoid FROM vp_netbox_grp " +\
+                      "WHERE pnetboxid='" + editId + "'"
+                result = executeSQLreturn(sql)
+                containerId = str(result[0][0])
+                # Doesn't call self.fill(), so set update attribs here
+                self.boxName = UPDATE_ENTRY
+                self.editId = editId
+                self.boxId = self.editId
+                # Disable container select
+                disabled = True
+
+                sql = "SELECT pnetboxid FROM vp_netbox_grp WHERE " +\
+                      "vp_netbox_grp_infoid='" + containerId + "'"
+                result = executeSQLreturn(sql)      
+                for row in result:
+                    selectedRouters.append(str(row[0]))
+
+                # If we're editing, include routers already in container
+                where = "AND (((SELECT count(*) FROM vp_netbox_grp WHERE " +\
+                        "pnetboxid=netbox.netboxid) = 0) OR ((SELECT " +\
+                        "count(*) FROM vp_netbox_grp WHERE " +\
+                        "vp_netbox_grp_infoid='" + containerId +\
+                        "' AND pnetboxid=netboxid) = 1))"
+               
+            select1 = simpleSelect('Routers',
+                                   'cn_routers',
+                                   ('netboxid,sysname',
+                                    'netbox',
+                                    None,
+                                    "(catid='GSW' OR catid='GW') " + where,
+                                    'sysname'),
+                                    selectedRouters,
+                                    optionFormat='$2',
+                                    postOnChange=False,
+                                    selectMultiple=True,
+                                    multipleHeight=8)
+
+            st = selectTree()
+            st.addSelect(select1)
+            lb = None
+            if req:
+                st.update(req.form)
+                lb = selectTreeLayoutBox(showEmptySelects=True,
+                                         showTitles=False)
+                lb.addSelect(select1)
+
+            # Make list of containers
+            containers = [('','Select a container')]
+            cs = nav.db.manage.Vp_netbox_grp_info.getAll(orderBy='name')
+            for c in cs:
+                containers.append((str(c.vp_netbox_grp_infoid),c.name))
+            # Field definitions {field name: [input object, required]}
+            f = {'container': [inputSelect(options=containers,
+                                           disabled=disabled),
+                              REQ_TRUE,'Container',FIELD_STRING],
+                 'routers': [inputTreeSelect(treeselect=lb),REQ_TRUE,
+                             'Routers',FIELD_STRING]}
+
+            self.fields = f
+            self.setControlNames()
+
+            if editId:
+                # Set container value (routers list set by selectTree)
+                self.fields['container'][0].value = containerId
+            if disabled:
+                self.addDisabled()
+
+    def add(self,req,templateForm,action):
+            ''' Adds routers in containers. Overrides the default add 
+                function. '''
+            error = None
+            status = editdbStatus()
+
+            containerId = req.form['container']
+            routerList = req.form['cn_routers']
+            if not type(routerList) is list:
+                routerList = [routerList]
+                
+            for netboxId in routerList:
+                fields = {'vp_netbox_grp_infoid': containerId,
+                          'pnetboxid': netboxId}
+                try:
+                    addEntryFields(fields,self.tableName)
+                except psycopg.ProgrammingError:
+                    # This router already added to this container
+                    routerList.remove(netboxId)
+
+            action = 'list'
+            cntname = nav.db.manage.Vp_netbox_grp_info(containerId).name
+            for netboxId in routerList:
+                sysname = nav.db.manage.Netbox(netboxId).sysname
+                message = "Added router '" + sysname + "' to container '" +\
+                          cntname + "'"
+                status.messages.append(message)
+            return (status,action,templateForm,None)
+
+    def update(self,req,templateForm,selected):
+        ''' Updates routers in containers. Overrides the default update 
+            function in editdbPage '''
+
+        action = 'list'
+        status = editdbStatus()
+        editId = req.form[UPDATE_ENTRY]
+
+        routerList = req.form['cn_routers']
+        if not type(routerList) is list:
+            routerList = [routerList]
+       
+        # editId given is netboxid, get containerid
+        sql = "SELECT vp_netbox_grp_infoid FROM vp_netbox_grp " +\
+              "WHERE pnetboxid='" + editId + "'"
+        result = executeSQLreturn(sql)
+        containerId = str(result[0][0])
+
+        # Remove all routers from container
+        sql = "DELETE FROM vp_netbox_grp WHERE vp_netbox_grp_infoid='" +\
+             containerId + "'"
+        executeSQL([sql])
+
+        # Add selected routers to container
+        for netboxId in routerList:
+            fields = {'vp_netbox_grp_infoid':  containerId,
+                      'pnetboxid': netboxId}
+            addEntryFields(fields,self.tableName)
+
+        selected = [editId]
+        return (status,action,templateForm,selected)
+
 
 
 class pageRoom(editdbPage):
@@ -3913,6 +4191,7 @@ class pageService(editdbPage):
         status = editdbStatus()
         # Check if all required serviceproperties are present
         properties = getDescription(req.form['handler'])
+        serviceid = None
         missing = False
         propertyStep = False
        
@@ -3994,10 +4273,6 @@ class pageService(editdbPage):
         missing = False
         propertyStep = False
 
-        #ditboxHidden = editboxHiddenOrMessage()
-        #emplateForm.add(editboxHidden)
-        #ditboxHidden.addHidden('handler',handler)
-     
         if properties:
             if properties.has_key('args'):
                 for required in properties['args']:
@@ -4591,12 +4866,14 @@ class pageVlan(editdbPage):
 
 # List of editdb pages
 pageList = {'cabling': pageCabling,
+            'container': pageContainer,
             'location': pageLocation,
             'netbox': pageNetbox,
             'org': pageOrg,
             'patch': pagePatch,
             'prefix': pagePrefix,
             'product': pageProduct,
+            'ric': pageRic,
             'room': pageRoom,
             'service': pageService,
             'snmpoid': pageSnmpoid,
@@ -4632,7 +4909,7 @@ class editboxBulk(editbox):
                   ('type','Types'),
                   ('product','Products'),
                   ('vendor','Vendors'),
-                  ('netbox','Boxes'),
+                  ('netbox','IP devices'),
                   ('service','Services'),
                   ('vlan','Vlans'),
                   ('prefix','Prefixes'),
@@ -5591,7 +5868,7 @@ class bulkdefNetbox:
                     if (not box.typeid):
                         if editTables.Cat(data['catid']).req_snmp:
                             status = BULK_STATUS_YELLOW_ERROR
-                            error = "Got SNMP response, but couldn't get type which is required for boxes of this category. Add type manually."
+                            error = "Got SNMP response, but couldn't get type which is required for IP devices of this category. Add type manually."
                         else:
                             status = BULK_STATUS_OK
                             error = "Got SNMP response, but couldn't get type (type isn't required for this category)."
@@ -5599,18 +5876,18 @@ class bulkdefNetbox:
                     if editTables.Cat(data['catid']).req_snmp:
                         # Snmp failed, but is required by this CAT
                         status = BULK_STATUS_YELLOW_ERROR
-                        raise("RO given, but failed to contact box by SNMP (boxes of this category are required to answer).")
+                        raise("RO given, but failed to contact IP device by SNMP (IP devices of this category are required to answer).")
                     else:
                         # Snmp failed, but isn't required by this CAT
                         if hasSerial:
                             status = BULK_STATUS_OK
-                            raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer as long as a serial is given).")
+                            raise("RO given, but failed to contact IP device by SNMP (IP devices of this cateogry aren't required to answer as long as a serial is given).")
                         else:
                             status = BULK_STATUS_YELLOW_ERROR
-                            raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer, but you must supply a serial if they don't).")
+                            raise("RO given, but failed to contact IP device by SNMP (IP devices of this cateogry aren't required to answer, but you must supply a serial if they don't).")
                 except Exception, e:
                     status = BULK_STATUS_RED_ERROR
-                    error = 'Uknown error while querying box: '
+                    error = 'Uknown error while querying IP device: '
                     error += str(sys.exc_info()[0]) + ': '
                     error += str(sys.exc_info()[1])
                 if error:
@@ -5661,7 +5938,7 @@ class bulkdefNetbox:
                     netbox = editTables.Netbox.getAll(where)
                     if netbox:
                         status = BULK_STATUS_RED_ERROR
-                        remark = "A box with the serial '" + data + \
+                        remark = "An IP device with the serial '" + data + \
                                  "' already exists"
         if field == BULK_UNSPECIFIED_FIELDNAME:
             # These are subcats

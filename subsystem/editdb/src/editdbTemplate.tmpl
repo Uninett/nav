@@ -491,6 +491,8 @@ $showBody($body)
         <P>
 #if $editbox.page == 'room'
             $room($editbox)
+#elif $editbox.page == 'container'
+            $container($editbox)
 #elif $editbox.page == 'location'
             $location($editbox)
 #elif $editbox.page == 'org'
@@ -519,6 +521,8 @@ $showBody($body)
             $product($editbox)
 #elif $editbox.page == 'prefix'
             $prefix($editbox)
+#elif $editbox.page == 'ric'
+            $ric($editbox)
 #elif $editbox.page == 'vlan'
             $vlan($editbox)
 #elif $editbox.page == 'subcat'
@@ -870,6 +874,37 @@ $input($fields['productid'])
         </TR>
     </TABLE>
 #end def
+
+## Form for adding or editing a container
+#def container($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>$heading($fields['name'])</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['name'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Form for adding or editing routers in containers
+#def ric($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>$heading($fields['container'])</TH>
+            <TH>$heading($fields['routers'])</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['container'])</TD>
+            <TD>$input($fields['routers'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+
+
 
 ## Form for adding or editing a vendor
 #def vendor($editbox)
