@@ -126,6 +126,10 @@ public class QueryBoks extends Thread
 	}
 
 	private String getOid(String oidkey) {
+		if (!oidkeys.containsKey(oidkey)) {
+			Log.e("GET_OID", "OID is missing for oidkey: " + oidkey);
+			return null;
+		}
 		return (String)oidkeys.get(oidkey);
 	}
 
