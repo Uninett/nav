@@ -1203,7 +1203,10 @@ class PluginMonitorTask extends TimerTask
 
 	public void run()
 	{
-		if (!pluginDir.isDirectory()) return;
+		if (!pluginDir.isDirectory()) {
+			outld("pluginMonitorTask: Error, plugins/ directory not found, exiting...");
+			System.exit(0);
+		}
 
 		Map cloneMap;
 		synchronized (deviceHandlerMap) {
