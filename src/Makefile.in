@@ -51,12 +51,12 @@ ConfigParser: Logger
 Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
-getBoksMacs: ConfigParser Database Event Logger SimpleSnmp
+getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 getDeviceData: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
-NetboxInfo: Database Logger
+NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
 Util: Database Logger
-webapps/navAdmin: ConfigParser Database Logger
+webapps/navAdmin: ConfigParser Database Event Logger
 
 .lastbuild:
 # Do absolutely nothing, just let ANT decide whether a rebuild is necessary
