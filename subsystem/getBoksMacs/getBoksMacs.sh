@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Relativt komplisert script på grunn av at java-prosessen kan henge seg opp,
 # og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
 # med job-finished filen.
