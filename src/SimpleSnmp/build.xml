@@ -6,7 +6,7 @@
   <property name="jar" value="SimpleSnmp.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
-  <property name="dist"  location="dist2"/>
+  <property name="dist"  location="dist"/>
   <property name="instdir"  location="../../lib/java"/>
   <property name="build.compiler.emacs" value="yes"/>
 

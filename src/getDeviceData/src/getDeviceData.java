@@ -17,11 +17,6 @@ import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.getDeviceData.plugins.*;
 
-/*
-import uk.co.westhawk.snmp.stack.*;
-import uk.co.westhawk.snmp.pdu.*;
-*/
-
 // select swportid,boksid,sysname,typeid,ifindex,modul,port,status,speed,duplex,media,trunk from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f' order by boksid,modul,port;
 // select count(*) from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f';
 // SELECT DISTINCT typeid FROM swport JOIN boks USING(boksid) WHERE swport.static='t';
@@ -61,9 +56,9 @@ class getDeviceData
 	static HashMap boksDiskMap;
 	static HashMap boksInterfaceMap;
 
-	// Swport
-	static HashMap swportMap;
-	static HashMap swportDataMap;
+	// module / swport
+	static HashMap moduleMap;
+	static HashMap deviceMap = new HashMap();
 
 	static int threadNumDigits = String.valueOf(NUM_THREADS-1).length();
 
@@ -86,7 +81,10 @@ class getDeviceData
 			} catch (NumberFormatException e) {
 				// Assume this argument is the config file
 				File f = new File(args[0]);
-				if (f.exists() && !f.isDirectory()) cf = f.getAbsolutePath();
+				if (f.exists() && !f.isDirectory()) {
+					cf = f.getAbsolutePath();
+					outl("Using configfile: " + f.getAbsolutePath());
+				}
 
 				// Is next arg number of threads?
 				if (args.length > 1) {
@@ -95,6 +93,7 @@ class getDeviceData
 					} catch (NumberFormatException ee) {
 						// Assume this argument is a boksname
 						qBoks = args[1].trim();
+						outl("Querying netbox: " + qBoks);
 
 						// Is next arg number of threads?
 						if (args.length > 2) {
@@ -129,7 +128,8 @@ class getDeviceData
 			errl("Error, could not read config file: " + navRoot + dbConfigFile);
 			return;
 		}
-		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		//if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
+		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), "manage2", dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
 			errl("Error, could not connect to database!");
 			return;
 		}
@@ -168,8 +168,9 @@ class getDeviceData
 
 		QueryBoks.setConfigParser(cp);
 
-		QueryBoks.setSwportMap(swportMap);
-		QueryBoks.setSwportDataMap(swportDataMap);
+		QueryBoks.setModuleMap(moduleMap);
+		QueryBoks.setDeviceMap(deviceMap);
+		//QueryBoks.setSwportDataMap(swportDataMap);
 		QueryBoks.setBoksDiskMap(boksDiskMap);
 		QueryBoks.setBoksInterfaceMap(boksInterfaceMap);
 
@@ -357,7 +358,7 @@ class getDeviceData
 
 	public static void loadData() throws SQLException
 	{
-		if (swportMap == null) loadPermanentData();
+		if (moduleMap == null) loadPermanentData();
 		loadReloadableData();
 	}
 
@@ -368,29 +369,41 @@ class getDeviceData
 		outl("Loading permanent data from tables...");
 
 		out("  swport...");
-		swportMap = new HashMap();
-		swportDataMap = new HashMap();
+		moduleMap = new HashMap();
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f'");
-		//rs = Database.query("SELECT swport.swportid,boksid,ifindex,modul,port,status,speed,duplex,media,trunk,portnavn,vlan,hexstring FROM swport JOIN boks USING (boksid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) WHERE watch='f' and boksid=470");
-		ResultSetMetaData rsmd = rs.getMetaData();
+		rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
+		//ResultSetMetaData rsmd = rs.getMetaData();
 		while (rs.next()) {
-			String key = rs.getString("boksid")+":"+rs.getString("modul")+":"+rs.getString("port");
-			String swportid = rs.getString("swportid");
-			swportMap.put(key, swportid);
 
-			HashMap hm = getHashFromResultSet(rs, rsmd, true);
-			swportDataMap.put(swportid, hm);
+			ModuleData md = new ModuleData(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+			md.setDeviceid(rs.getInt("deviceid"));
+			md.setModuleid(rs.getInt("moduleid"));
+			md.setSubmodule(rs.getString("submodule"));
+
+			int moduleid = rs.getInt("moduleid");
+			if (rs.getString("port") != null && rs.getString("port").length() > 0) {
+				do {
+					SwportData sd = new SwportData(rs.getString("port"), rs.getString("ifindex"), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
+					sd.setSwportid(rs.getInt("swportid"));
+					sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
+					sd.setHexstring(rs.getString("hexstring"));
+					md.addSwportData(sd);
+				} while (rs.next() && rs.getInt("moduleid") == moduleid);
+				rs.previous();
+			}
+
+			String key = rs.getString("netboxid")+":"+md.getKey();
+			moduleMap.put(key, md);
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 
-		out("  boksdisk...");
+		out("  netboxdisk...");
 		boksDiskMap = new HashMap();
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT boksid,path,blocksize FROM boksdisk");
+		rs = Database.query("SELECT netboxid,path,blocksize FROM netboxdisk");
 		while (rs.next()) {
-			String key = rs.getString("boksid");
+			String key = rs.getString("netboxid");
 			Map m;
 			if ( (m=(Map)boksDiskMap.get(key)) == null) boksDiskMap.put(key, m = new HashMap());
 			m.put(rs.getString("path"), new String[] { rs.getString("blocksize") } );
@@ -398,12 +411,12 @@ class getDeviceData
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 
-		out("  boksinterface...");
+		out("  netboxinterface...");
 		boksInterfaceMap = new HashMap();
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT boksid,interf FROM boksinterface");
+		rs = Database.query("SELECT netboxid,interf FROM netboxinterface");
 		while (rs.next()) {
-			String key = rs.getString("boksid");
+			String key = rs.getString("netboxid");
 			Set s;
 			if ( (s=(Set)boksInterfaceMap.get(key)) == null) boksInterfaceMap.put(key, s = new HashSet());
 			s.add(rs.getString("interf"));
@@ -431,6 +444,14 @@ class getDeviceData
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 		outl(dumpUsedTime + " ms.");
 		*/
+
+		// device
+		dumpBeginTime = System.currentTimeMillis();
+		rs = Database.query("SELECT deviceid,serial FROM device");
+		while (rs.next()) {
+			deviceMap.put(rs.getString("serial"), rs.getString("deviceid"));
+		}
+		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 
 
 
@@ -484,10 +505,10 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND snmp_major > 0 AND (kat='SRV' OR typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' AND (catid='SRV' OR typegroupid LIKE '3%' OR typegroupid IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE snmp_major > 0 AND sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y' AND sysname='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
 		//Database.setDefaultKeepOpen(false);
@@ -498,7 +519,7 @@ class getDeviceData
 		}
 		while (rs.next()) {
 			// Eksisterer denne fra før?
-			String boksid = rs.getString("boksid");
+			String boksid = rs.getString("netboxid");
 			BoksDataImpl bd;
 			boolean newBd = false;
 			synchronized (bdMap) {
@@ -514,12 +535,12 @@ class getDeviceData
 			bd.setBoksid(boksid);
 			bd.setIp(rs.getString("ip"));
 			bd.setCommunityRo(rs.getString("ro"));
-			bd.setTypegruppe(rs.getString("typegruppe"));
-			bd.setType(rs.getString("typeid"));
+			bd.setTypegruppe(rs.getString("typegroupid"));
+			bd.setType(rs.getString("typename"));
 			bd.setSysname(rs.getString("sysname"));
-			bd.setKat(rs.getString("kat"));
-			bd.setSnmpMajor(rs.getInt("snmp_major"));
-			bd.setSnmpagent(rs.getString("snmpagent"));
+			bd.setKat(rs.getString("catid"));
+			//bd.setSnmpMajor(rs.getInt("snmp_major"));
+			//bd.setSnmpagent(rs.getString("snmpagent"));
 
 			if (newBd) {
 				synchronized (bdFifo) {
@@ -598,10 +619,14 @@ class QueryBoks extends Thread
 	static ConfigParser navCp;
 	public static void setConfigParser(ConfigParser cp) { navCp = cp; }
 
-	static HashMap swportMap;
-	public static void setSwportMap(HashMap h) { swportMap=h; }
+	static HashMap moduleMap;
+	public static void setModuleMap(HashMap h) { moduleMap=h; }
+	static HashMap deviceMap;
+	public static void setDeviceMap(HashMap h) { deviceMap=h; }
+	/*
 	static HashMap swportDataMap;
 	public static void setSwportDataMap(HashMap h) { swportDataMap=h; }
+	*/
 
 	static HashMap boksDiskMap;
 	public static void setBoksDiskMap(HashMap h) { boksDiskMap = h; }
@@ -694,7 +719,7 @@ class QueryBoks extends Thread
 				if (++curBd > antBd) curBd = 0;
 			}
 
-			String boksid = bd.getBoksid();
+			String netboxid = bd.getBoksid();
 			String ip = bd.getIp();
 			String cs_ro = bd.getCommunityRo();
 			String boksTypegruppe = bd.getTypegruppe();
@@ -703,7 +728,7 @@ class QueryBoks extends Thread
 			String kat = bd.getKat();
 			int snmpMajor = bd.getSnmpMajor();
 
-			outla("T"+id+": Now working with("+boksid+"): " + sysName + " ("+ boksType +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
+			outla("T"+id+": Now working with("+netboxid+"): " + sysName + " ("+ boksType +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
 			long boksBeginTime = System.currentTimeMillis();
 
 			// Liste over alle innslagene vi evt. skal sette inn i swp_boks
@@ -716,193 +741,180 @@ class QueryBoks extends Thread
 				// Find handlers for this boks
 				DeviceHandler[] deviceHandler = findHandlers(bd);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
+					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + netboxid + " (kat: " + kat + " type: " + boksType + ")");
 				}
-				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
+				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (kat: " + kat + " type: " + boksType + ")");
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
 					DeviceDataListImpl dlist = new DeviceDataListImpl();
 					deviceHandler[dhNum].handle(bd, sSnmp, navCp, dlist);
-					List swportDataList = dlist.getSwportDataList();
+					List moduleDataList = dlist.getModuleDataList();
 
 					//if (!sSnmp.resetGotTimeout() && !portDataList.isEmpty()) synchronized (safeCloseBoksid) { safeCloseBoksid.add(boksid); }
 
 					// Process returned swports
-					outld("T"+id+":   DeviceHandler["+dhNum+"] returned SwportDataList, ports found: : " + swportDataList.size());
+					outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
 
 					boolean DB_UPDATE_BK = DB_UPDATE;
 					boolean DB_COMMIT_BK = DB_COMMIT;
-					DB_UPDATE = false;
-					DB_COMMIT = false;
-					Collections.sort(swportDataList); // Egentlig unødvendig, men kjekt å ha det ferdig sortert i databasen
-					for (int i=0; i < swportDataList.size(); i++) {
-						SwportData pd = (SwportData)swportDataList.get(i);
+					//DB_UPDATE = false;
+					//DB_COMMIT = false;
+					Collections.sort(moduleDataList); // Egentlig unødvendig, men kjekt å ha det ferdig sortert i databasen
+					for (int i=0; i < moduleDataList.size(); i++) {
+						ModuleData md = (ModuleData)moduleDataList.get(i);
+
+						// Er dette serienummeret i device-tabellen?
+						String deviceid = (String)deviceMap.get(md.getSerial());
+						boolean insertedDevice = false;
+						if (deviceid == null) {
+							// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
+							// Først oppretter vi device
+							outld("  [device] [NEW] Serial: " + md.getSerial());
+
+							ResultSet rs = Database.query("SELECT nextval('device_deviceid_seq') AS deviceid");
+							rs.next();
+							deviceid = rs.getString("deviceid");
+
+							String[] insd = {
+								"deviceid", deviceid,
+								"serial", md.getSerial(),
+								"hw_ver", md.getHwVer(),
+								"sw_ver", md.getSwVer()
+							};
+							if (DB_UPDATE) Database.insert("device", insd);
+							insertedDevice = true;
+							deviceMap.put(md.getSerial(), deviceid);
+						}
+						md.setDeviceid(deviceid);
 
 						// OK, først sjekk om denne porten er i swport fra før
-						String key = boksid+":"+pd.getModul()+":"+pd.getPort();
-						String swportid = (String)swportMap.remove(key);
+						String moduleKey = netboxid+":"+md.getKey();
+						String moduleid;
+						ModuleData oldmd = (ModuleData)moduleMap.get(moduleKey);
+						moduleMap.put(moduleKey, md);
 
-						if (swportid == null) {
-							// Ikke fra før, vi må sette inn
-							outl("  [NEW] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
-							String[] insertFields = {
-								"boksid", boksid,
-								"ifindex", pd.getIfindex(),
-								"modul", pd.getModul(),
-								"port", pd.getPort(),
-								"status", pd.getStatus(),
-								"speed", pd.getSpeed(),
-								"duplex", pd.getDuplex(),
-								"media", pd.getMedia(),
-								"trunk", pd.getTrunkS(),
-								"portnavn", Database.addSlashes(pd.getPortnavn())
+						if (oldmd == null) {
+							// Sett inn i module
+							outld("    [module] [NEW] Module: " + md.getModule());
+
+							ResultSet rs = Database.query("SELECT nextval('module_moduleid_seq') AS moduleid");
+							rs.next();
+							moduleid = rs.getString("moduleid");
+
+							String[] insm = {
+								"moduleid", moduleid,
+								"deviceid", deviceid,
+								"netboxid", netboxid,
+								"module", md.getModule(),
+								"submodule", md.getSubmodule()
 							};
-							if (DB_UPDATE) {
-								if (pd.getVlan() == 0) pd.setVlan(1);
-
-								String sql = "INSERT INTO swportvlan (swportid,vlan) VALUES ((SELECT swportid FROM swport WHERE boksid='"+boksid+"' AND ifindex='"+pd.getIfindex()+"'),'"+pd.getVlan()+"')";
-								try {
-									newcnt += Database.insert("swport", insertFields);
-
-									if (!pd.getTrunk()) {
-										// Sett inn i swportvlan også
-										Database.update(sql);
-									}
-
-									if (DEBUG_OUT) outl("Inserted row: " + pd);
-									if (DB_COMMIT) Database.commit(); else Database.rollback();
-								} catch (SQLException e) {
-									outle("  SQLException in QueryBoks.run(): Cannot insert new record into swport/swportvlan: " + e.getMessage());
-									outle("  SQL: " + sql);
-								}
-							}
+							if (DB_UPDATE) Database.insert("module", insm);
 
 						} else {
-							// Eksisterer fra før, da skal vi evt. oppdatere hvis nødvendig
-							boolean needUpdate = true;
-							HashMap hm;
-							synchronized (swportDataMap) {
-								// Ta saken ut fra listen, skal ikke slettes
-								hm = (HashMap)swportDataMap.remove(swportid);
-							}
-							if (hm == null) {
-								outle("  Error in QueryBoks.run(): Should not happen, swportDataMap not found for swportid: " + swportid);
-								continue;
-							}
-
-							/*
-							String[] tt = {
-								"boksid",
-								"ifindex",
-								"modul",
-								"port",
-								"status",
-								"speed",
-								"duplex",
-								"media",
-								"trunk",
-								"portnavn"
-							};
-							for (int j=0;j<tt.length; j++) {
-								if (!hm.containsKey(tt[j]) || hm.get(tt[j]) == null) {
-									outle("tt: " + tt[j] + " key: " + hm.containsKey(tt[j]) + " val: " + hm.get(tt[j]));
-									outle(pd);
-								}
-							}
-							*/
-
-							//outle("boksid: " + hm.containsKey("boksid") + " val: " + hm.get("boksid") );
-							//outle("ifindex: " + hm.containsKey("ifindex") + " val: "+ hm.get("ifindex") );
-							//outle("modul: " + hm.containsKey("modul") + " val: "+ hm.get("modul") );
-
-							//System.err.println("swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
-
-							// Må ikke være null på grunn av sjekkingen her
-							if (hm.get("vlan") == null) hm.put("vlan", "");
-							if (hm.get("hexstring") == null) hm.put("hexstring", "");
-							String hexstring = pd.getVlanAllowHexString();
-
-							// Hvis vlan=0 skal vi ikke endre
-							if (pd.getVlan() == 0) {
-								if (!hm.get("vlan").equals("")) pd.setVlan(Integer.parseInt((String)hm.get("vlan")));
-								else pd.setVlan(1);
-							}
-
-							// FIXME: Meget sært spesialtilfelle for 3Com 9300 der vi ikke endrer trunk automatisk
-							if (boksTypegruppe.equals("3ss9300")) pd.setTrunk(hm.get("trunk").equals("t"));
-
-							if (hm.get("boksid").equals(boksid) &&
-								hm.get("ifindex").equals(pd.getIfindex() ) &&
-								hm.get("modul").equals(pd.getModul() ) &&
-								hm.get("port").equals(pd.getPort() ) &&
-								hm.get("status").equals(pd.getStatus() ) &&
-								hm.get("speed").equals(pd.getSpeed() ) &&
-								hm.get("duplex").equals(pd.getDuplex() ) &&
-								hm.get("media").equals(pd.getMedia() ) &&
-								hm.get("trunk").equals(pd.getTrunkS() ) &&
-								hm.get("portnavn").equals(pd.getPortnavn() ) &&
-								hm.get("vlan").equals(String.valueOf(pd.getVlan()) ) &&
-								hm.get("hexstring").equals(hexstring) ) {
-
-								needUpdate = false;
-							}
-							if (needUpdate) {
-								outl("  [UPD] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
-								String[] updateFields = {
-									"boksid", boksid,
-									"ifindex", pd.getIfindex(),
-									"modul", pd.getModul(),
-									"port", pd.getPort(),
-									"status", pd.getStatus(),
-									"speed", pd.getSpeed(),
-									"duplex", pd.getDuplex(),
-									"media", pd.getMedia(),
-									"trunk", pd.getTrunkS(),
-									"portnavn", Database.addSlashes(pd.getPortnavn())
+							moduleid = oldmd.getModuleidS();
+							if (!oldmd.equals(md)) {
+								// Vi må oppdatere module
+								String[] where = {
+									"moduleid", moduleid
 								};
-								String[] condFields = {
-									"swportid", swportid
+								String[] set = {
+									"deviceid", deviceid,
+									"module", md.getModule(),
+									"submodule", md.getSubmodule()
 								};
-								if (DB_UPDATE) {
-									try {
-										updcnt += Database.update("swport", updateFields, condFields);
-
-										if (!pd.getTrunk()) {
-											// Også oppdater swportvlan
-											if (((String)hm.get("vlan")).length() == 0) {
-												// Må sette inn ny record
-												//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-												Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-											} else {
-												//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-												Database.update("UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-											}
-										} else {
-											// Trunk, da må vi evt. oppdatere swportallowedvlan
-											if (hexstring.length() > 0) {
-												if (((String)hm.get("hexstring")).length() == 0) {
-													// Må sette inn ny record
-													//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-													Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+swportid+"','"+hexstring+"')");
-												} else {
-													//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-													Database.update("UPDATE swportallowedvlan SET hexstring = '"+hexstring+"' WHERE swportid = '"+swportid+"'");
-												}
-											}
-										}
-
-										if (DEBUG_OUT) outl("Updated row: " + pd);
-										if (DB_COMMIT) Database.commit(); else Database.rollback();
-									} catch (SQLException e) {
-										outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update record from swport: " + e.getMessage());
-										//outle("T"+id+":     swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
-									}
-								}
-							} else {
-								outl("  [DUP] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
+								if (DB_UPDATE) Database.update("module", where, set);
 							}
 						}
+						md.setModuleid(moduleid);
+
+						if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
+							// Oppdater device
+							String[] where = {
+								"deviceid", deviceid
+							};
+							String[] set = {
+								"hw_ver", md.getHwVer(),
+								"sw_ver", md.getSwVer()
+							};
+							if (DB_UPDATE) Database.update("device", where, set);
+						}
+
+						outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
+
+						// Så alle swportene
+						for (Iterator j = md.getSwportData(); j.hasNext();) {
+							SwportData sd = (SwportData)j.next();
+
+							// Finn evt. gammel
+							String swportid;
+							SwportData oldsd = oldmd.getSwportData(sd.getPortI());
+							if (oldsd == null) {
+								// Sett inn ny
+								outld("      [swport] [NEW] Port: " + sd.getPort());
+
+								ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
+								rs.next();
+								swportid = rs.getString("swportid");
+
+								String[] inss = {
+									"swportid", swportid,
+									"moduleid", moduleid,
+									"port", sd.getPort(),
+									"ifindex", sd.getIfindex(),
+									"link", String.valueOf(sd.getLink()),
+									"speed", sd.getSpeed(),
+									"duplex", sd.getDuplexS(),
+									"media", Database.addSlashes(sd.getMedia()),
+									"trunk", sd.getTrunkS(),
+									"portname", Database.addSlashes(sd.getPortname())
+								};
+								if (DB_UPDATE) Database.insert("swport", inss);
+
+							} else {
+								swportid = oldsd.getSwportidS();
+								if (!oldsd.equals(sd)) {
+									// Vi må oppdatere
+									outl("STUB: Update swport...");
+
+								}
+							}
+							sd.setSwportid(swportid);
+
+							if (!sd.getTrunk()) {
+								if (oldsd != null && oldsd.getTrunk()) {
+									// Går fra trunk -> non-trunk, slett alle så nær som et vlan fra swportvlan
+									Database.update("DELETE FROM swportvlan WHERE swportid="+sd.getSwportid()+" AND vlan!=(SELCT MIN(vlan) FROM swportvlan WHERE swportid="+sd.getSwportid()+" GROUP BY swportid)");
+								}
+
+								// Også oppdater swportvlan
+								if (oldsd == null || oldsd.getVlan() == Integer.MIN_VALUE) {
+									if (sd.getVlan() <= 0) sd.setVlan(1);
+									Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+sd.getSwportid()+"','"+sd.getVlan()+"')");
+								} else if (sd.getVlan() > 0 && oldsd.getVlan() != sd.getVlan()) {
+									Database.update("UPDATE swportvlan SET vlan = '"+sd.getVlan()+"' WHERE swportid = '"+sd.getSwportid()+"'");
+								}
+
+								// Slett evt. fra swportallowedvlan
+								if (oldsd != null && oldsd.getHexstring().length() > 0) {
+									Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
+								}
+
+							} else {
+								// Trunk, da må vi evt. oppdatere swportallowedvlan
+								if (sd.getHexstring().length() > 0) {
+									if (oldsd == null || oldsd.getHexstring().length() == 0) {
+										Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+sd.getHexstring()+"')");
+									} else if (!oldsd.getHexstring().equals(sd.getHexstring())) {
+										Database.update("UPDATE swportallowedvlan SET hexstring = '"+sd.getHexstring()+"' WHERE swportid = '"+sd.getSwportid()+"'");
+									}
+								}
+							}
+
+						}
+
+						if (DB_COMMIT) Database.commit(); else Database.rollback();
+
 					}
 					if (DB_UPDATE_BK) DB_UPDATE = true;
 					if (DB_COMMIT_BK) DB_COMMIT = true;
@@ -959,7 +971,7 @@ class QueryBoks extends Thread
 								// Insert new
 								try {
 									String[] ins = {
-										"boksid", boksid,
+										"netboxid", netboxid,
 										"path", Database.addSlashes(path),
 										"blocksize", blocksize
 									};
@@ -978,7 +990,7 @@ class QueryBoks extends Thread
 								if (!dbBlocksize.equals(blocksize)) {
 									try {
 										String[] cnd = {
-											"boksid", boksid,
+											"netboxid", netboxid,
 											"path", Database.addSlashes(path)
 										};
 										String[] upd = {
@@ -1030,7 +1042,7 @@ class QueryBoks extends Thread
 								// Insert new
 								try {
 									String[] ins = {
-										"boksid", boksid,
+										"netboxid", netboxid,
 										"interf", Database.addSlashes(interf)
 									};
 									if (DB_UPDATE) Database.insert("boksinterface", ins);

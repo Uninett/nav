@@ -4,19 +4,19 @@ import no.ntnu.nav.getDeviceData.plugins.*;
 public class DeviceDataListImpl implements DeviceDataList
 {
 	DeviceData deviceData;
-	List swportDataList = new ArrayList();
+	List moduleDataList = new ArrayList();
 
 	public void setDeviceData(DeviceData deviceData)
 	{
 		this.deviceData = deviceData;
 	}
 
-	public void addSwportData(SwportData swportData)
+	public void addModuleData(ModuleData moduleData)
 	{
-		swportDataList.add(swportData);
+		moduleDataList.add(moduleData);
 	}
 
 	public DeviceData getDeviceData() { return deviceData; }
-	public List getSwportDataList() { return swportDataList; }
+	public List getModuleDataList() { return moduleDataList; }
 
 }

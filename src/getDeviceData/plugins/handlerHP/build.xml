@@ -1,11 +1,13 @@
-<project name="handlerHP" default="copy" basedir=".">
+<project name="handlerHP" default="dist" basedir=".">
     <description>
         getDeviceData plugin for HP
     </description>
   <!-- set global properties for this build -->
+  <property name="jar" value="handlerHP.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property name="instdir"  location="../../cron/getDeviceData/plugins"/>
   <property name="build.compiler.emacs" value="yes"/>
 
   <target name="init">
@@ -18,7 +20,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"
@@ -30,8 +32,19 @@
     <jar jarfile="${dist}/handlerHP.jar" basedir="${build}" manifest="Plugin-Class"/>
   </target>
 
-  <target name="copy" depends="dist">
-    <copy file="${dist}/handlerHP.jar" todir="../"/>
+  <target name="install" depends="dist">
+    <mkdir dir="${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${instdir}"/>
+  </target>
+  <target name="uninstall">
+    <delete file="${instdir}/${jar}"/>
+  </target>
+
+  <target name="dist_debug" depends="dist"
+        description="Upload dist to server">
+    <exec dir="${dist}" executable="scp" os="Windows 2000">
+      <arg line="${jar} bigbud.itea.ntnu.no:devel/navme/cron/getDeviceData/plugins"/>
+    </exec>
   </target>
 
   <target name="clean"

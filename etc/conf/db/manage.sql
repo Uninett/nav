@@ -251,7 +251,7 @@ CREATE TABLE netboxinterface (
 
 CREATE TABLE module (
   moduleid SERIAL PRIMARY KEY,
-  deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE SET NULL,
+  deviceid INT4 NOT NULL REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
   submodule VARCHAR(8),
@@ -570,6 +570,7 @@ GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 -- GRANT SELECT ON prefiks TO getBoksMacs;
 
 GRANT ALL    ON device TO getDeviceData;
+GRANT ALL    ON device_deviceid_seq TO getDeviceData;
 GRANT SELECT,UPDATE ON netbox TO getDeviceData;
 GRANT SELECT,UPDATE ON netboxinfo TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
@@ -577,6 +578,7 @@ GRANT ALL    ON netboxdisk TO getDeviceData;
 GRANT ALL    ON netboxinterface TO getDeviceData;
 GRANT ALL    ON cat TO getDeviceData;
 GRANT ALL    ON module TO getDeviceData;
+GRANT ALL    ON module_moduleid_seq TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
