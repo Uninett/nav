@@ -59,6 +59,7 @@ def makeEvent (presobject,datasource,state):
 
     var = datasource.descr
     val = datasource.threshold
+    subid = datasource.rrd_datasourceid
 
     print "Setting var to %s" % var
     print "Setting val to %s" % val
@@ -70,23 +71,25 @@ def makeEvent (presobject,datasource,state):
     if state == 'active':
         if ll >= 2: print "Threshold on %s surpassed." %datasource.descr
         setState(datasource,state)
-        sendEvent(var,val,netbox,state);
+        sendEvent(var,val,netbox,state,subid);
     elif state == 'inactive':
         if ll >= 2: print "%s has calmed down." % datasource.descr
         setState(datasource,state)
-        sendEvent(var,val,netbox,state);
+        sendEvent(var,val,netbox,state,subid);
     elif state == 'stillactive':
         if ll >= 2: print "Alert on %s is still active." % datasource.descr
     else:
         if ll >= 2: print "No such state (%s)" % state
 
 # Updates the correct tables for sending the event
-def sendEvent (var, val, netbox, state):
+def sendEvent (var, val, netbox, state, subid):
 
     if state == 'active':
         state = 's'
     else:
         state = 'e'
+
+    if ll >= 2: print "sending event"
 
     eventq = manage.Eventq()
     eventq.source = 'thresholdMon'
@@ -97,14 +100,19 @@ def sendEvent (var, val, netbox, state):
     eventq.time = "NOW()"
     eventq.value = 100
     eventq.severity = 100
+    eventq.subid = subid
     
     eventq.save()
+
+    if ll >= 2: print "Eventq object saved"
 
     # Have some trouble getting forgetSQL to find correct key here, so using normal psql-query
     cur = conn.cursor()
 
     query = "INSERT INTO eventqvar (eventqid, var, val) VALUES (%s, '%s', '%s')" %(eventq.eventqid, var, val)
     cur.execute(query)
+
+    if ll >= 2: print "Eventvar object saved"
     
 
 ##################################################
