@@ -408,7 +408,8 @@ public class QueryBoks extends Thread
 				//outl("T"+id+":    ["+pm.getSource()+"] Modul: " + pm.getModulS() + " Port: " + pm.getPortS() + ", " + getBoksMacs.boksIdName.get(pm.getBoksId()) );
 
 
-				if (verifyNetboxid(boksId) && verifyNetboxid(pm.getToNetboxid())) {
+				boolean verify1=true, verify2=true;
+				if ((verify1=verifyNetboxid(boksId)) && (verify2=verifyNetboxid(pm.getToNetboxid()))) {
 					String[] ins = {
 						"netboxid", boksId,
 						"ifindex", pm.getIfindex(),
@@ -424,6 +425,9 @@ public class QueryBoks extends Thread
 						Log.d("RUN", "Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
 						e.printStackTrace(System.err);
 					}
+				} else {
+					if (!verify1) Log.d("VERIFY_NETBOXID", "Verify netboxid ("+boksId+") failed");
+					if (!verify2) Log.d("VERIFY_NETBOXID", "Verify to netboxid ("+pm.getToNetboxid()+") failed");
 				}
 			}
 
@@ -1637,13 +1641,17 @@ public class QueryBoks extends Thread
 				continue;
 			}
 
-			try {
-				Database.insert("cam", insertData);
-				if (DB_COMMIT) Database.commit(); else Database.rollback();
-				camNewCnt++;
-			} catch (SQLException e) {
-				Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
-				e.printStackTrace(System.err);
+			if (verifyNetboxid(insertData[1])) {
+				try {
+					Database.insert("cam", insertData);
+					if (DB_COMMIT) Database.commit(); else Database.rollback();
+					camNewCnt++;
+				} catch (SQLException e) {
+					Log.d("RUN_CAM_QUEUE", "SQLException: Cannot update record in cam: " + e.getMessage());
+					e.printStackTrace(System.err);
+				}
+			} else {
+				Log.d("VERIFY_NETBOXID", "While insert cam, verify netboxid ("+insertData[1]+") failed");
 			}
 		}
 		camInsertQueue.clear();
