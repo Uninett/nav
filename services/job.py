@@ -2,8 +2,8 @@
 """
 Overvåker
 
-$Author: magnun $
-$Id: job.py,v 1.19 2002/06/18 14:15:48 magnun Exp $
+$Author: erikgors $
+$Id: job.py,v 1.20 2002/06/18 14:26:27 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -136,13 +136,13 @@ class JobHandler:
 	def getVersion(self):
 		return self._version
 	def __eq__(self,obj):
-#		if type(obj) in [str,types.IntType]:
-#			return self.getId() == int(obj)
 		return self.getId() == obj.getId() and self.getArgs() == obj.getArgs()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
-		return self.getId()
+		value = self.getId() + self.getArgs().__str__().__hash__()
+		value = value % 2**31
+		return int(value)
 	def __repr__(self):
 		s = '%i: %s %s %s' % (self.getId(),self.getType(),str(self.getAddress()),str(self.getArgs()))
 		return s.ljust(60) + self.getStatus()
