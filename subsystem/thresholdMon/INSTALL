@@ -29,9 +29,7 @@ DEPENDENCIES
 The scripts in this subsystem are dependent only on modules that
 should already be installed in NAV-v3
 
-The user of the script should have the PYTHONPATH variable set to
-/usr/local/nav/navme/lib/python.
-
+The user of the script should have the PYTHONPATH variable set correctly.
 
 LOCATION OF INSTALL
 ===================

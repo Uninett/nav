@@ -36,8 +36,8 @@ def setData (datasource,threshold,max):
 # setting default threshold
 default = "90"
 
-#for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"):
-for datasource in manage.Rrd_datasource.getAllIterator():
+for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"):
+#for datasource in manage.Rrd_datasource.getAllIterator():
     if datasource.units == '%' or datasource.units == '-%':
         print "Found percent %s: %s, setting threshold=%s, max=100" %(datasource.descr,datasource.units, default)
         setData(datasource,default,"100")

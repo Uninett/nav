@@ -119,7 +119,7 @@ for option, argument in opt:
 # it to the max-value.
 
 for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT NULL"):
-    if ll >= 3: print "-- NEW DATASOURCE --"
+    if ll >= 3: print "-- NEW DATASOURCE (%s) --" % datasource.rrd_datasourceid
     surpassed = 0
 
     # These values are silly. They just show how much the maximum value
@@ -149,6 +149,7 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
         value = pres.average().pop()
         if ll >= 3: print "%s" % value
     else:
+        if ll >= 3: print "No value returned, are we collecting data to this rrd-file???"
         continue
 
     # Checking if it is percent or a normal value we are comparing
