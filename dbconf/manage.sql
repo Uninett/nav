@@ -216,7 +216,7 @@ CREATE TABLE swportvlan (
 );
 
 
-### vlanPlot tabeller ###
+--### vlanPlot tabeller ###
 CREATE TABLE vpBoksGrpInfo (
   gruppeid SERIAL PRIMARY KEY,              
   name VARCHAR(16) NOT NULL
@@ -261,7 +261,7 @@ GRANT ALL    ON swp_boks TO getBoksMacs;
 GRANT SELECT ON community TO getBoksMacs;
 
 
-### vlanPlot end ###
+--### vlanPlot end ###
 
 GRANT ALL ON org TO navall;
 GRANT ALL ON anv TO navall;
@@ -283,6 +283,65 @@ GRANT ALL ON prefiks_prefiksid_seq TO navall;
 GRANT ALL ON swport_swportid_seq TO navall;
 GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 
-################################
+--################################
+-- TRACE
+--################################
+
+DROP TABLE arp; 
+DROP TABLE cam; 
+DROP TABLE port2pkt; 
+DROP TABLE pkt2rom;  
+
+DROP SEQUENCE arp_arpid_seq; 
+DROP SEQUENCE cam_camid_seq; 
+DROP SEQUENCE port2pkt_id_seq; 
+DROP SEQUENCE pkt2rom_id_seq;
+
+CREATE TABLE arp (
+arpid serial primary key,
+boksid int4 references boks;
+prefiksid int4 references prefiks;
+ip varchar(15) not null,
+mac varchar(12) not null,
+fra timestamp not null,
+til timestamp
+);
+
+ 
+CREATE TABLE cam (
+camid serial primary key,
+mac varchar(12) not null,
+boks varchar(15) not null,
+unit varchar(2) not null,
+port varchar(2) not null,
+fra timestamp not null,
+til timestamp
+);
+ 
+CREATE TABLE port2pkt (
+id serial primary key,
+boks varchar(15) not null,
+unit varchar(2) not null,
+port varchar(2) not null,
+trom varchar(10) not null,
+pkt varchar(4) not null
+);
 
 
+CREATE TABLE pkt2rom (
+id serial primary key,
+trom varchar(10) not null,
+pkt varchar(4) not null,
+bygg varchar(15) not null,
+rom varchar(10) not null
+);
+
+
+GRANT all ON arp TO navall;
+GRANT all ON arp_arpid_seq TO navall;
+GRANT all ON cam TO navall;
+GRANT all ON cam_camid_seq TO navall;
+GRANT all ON port2pkt TO navall;
+GRANT all ON port2pkt_id_seq TO navall;
+GRANT all ON pkt2rom TO navall;
+GRANT all ON pkt2rom_id_seq TO navall;
