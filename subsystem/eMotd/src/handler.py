@@ -28,6 +28,7 @@ from nav.web.templates.MaintTimeTemplate import MaintTimeTemplate
 from nav.web.templates.ViewMessageTemplate import ViewMessageTemplate
 from nav.web.templates.EditTemplate import EditTemplate
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
+from nav.web.templates.FeederTemplate import FeederTemplate
 
 #################################################
 ## Module constants
@@ -38,6 +39,7 @@ menu = ''
 EmotdTemplate.path =  [("Home", "/"), ("Messages", "/emotd")]
 DATEFORMAT = "%Y-%m-%d %H:%M"
 BASEPATH = '/emotd/'
+LIMIT = 20
 LANG1 = "Norwegian"
 LANG2 = "English"
 
@@ -61,12 +63,16 @@ def handler(req):
         else:
             output = edit(req)
     elif path[0] == 'view':
-        if len(path)>1:
+        if len(path)>2:
+                output = view(req,path[1],path[2])
+        elif len(path)>1:
             output = view(req,path[1])
         else:
             output = view(req)
     elif path[0] == 'maintenance':
         output = maintlist(req)
+    elif path[0] == 'rss':
+        output = feed(req)
     elif path[0] == 'add':
         if len(path)>1:
             output = maintenance(req,path[1])
@@ -74,11 +80,20 @@ def handler(req):
             output = maintenance(req)
 
     elif path[0] == 'active':
-        output = home(req,"active")   
+        if len(path)>1:
+            output = home(req,"active",path[1])
+        else:
+            output = home(req,"active")   
     elif path[0] == 'historic':
-        output = home(req,"historic")   
+        if len(path)>1:
+            output = home(req,"historic",path[1])
+        else:
+            output = home(req,"historic")   
     elif path[0] == 'planned':
-        output = home(req,"planned")   
+        if len(path)>1:
+            output = home(req,"planned",path[1])
+        else:
+            output = home(req,"planned")   
             
     elif path[0] == 'commit':
         output = commit(req)
@@ -107,7 +122,7 @@ def handler(req):
 
     if output:
         req.content_type = "text/html"
-        req.write(output+repr(req.session))
+        req.write(output)
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
@@ -133,7 +148,7 @@ def getMenu(user,this):
 
     menu.append(MenuItem("maintenance","Maintenance list"))
     if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
-        menu.append(MenuItem("edit","Compose new message",this))
+        menu.append(MenuItem("edit","New message",this))
         menu.append(MenuItem("add","Maintenance Setup",this))
     return menu
 
@@ -214,7 +229,7 @@ def viewold(req, view = None, lang = None):
     else:
         return messageView(view, user, lang)
 
-def view(req, view = None, lang = None):
+def view(req, view = None, offset="0", lang = None):
     access = False
     user = req.session['user']
     list = 0
@@ -253,7 +268,7 @@ def view(req, view = None, lang = None):
 ##    else:
     ##    select emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) %s order by last_changed desc" % where
         
-    sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) %s order by last_changed desc" % where
+    sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) %s order by publish_end desc" % where
     database.execute(sql)
     equipment = {}
     for (emotdid, key, value) in database.fetchall():
@@ -264,7 +279,7 @@ def view(req, view = None, lang = None):
         equipment[emotdid][key].append(value)
 
     
-    sql = "select emotd.emotdid, emotd.type, emotd.publish_start, emotd.publish_end, emotd.last_changed, emotd.author, emotd.title, emotd.description, emotd.detail, emotd.affected, emotd.downtime, emotd.replaces_emotd,e2.title, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) left outer join emotd as e2 on emotd.replaces_emotd=e2.emotdid %s order by last_changed desc" % where
+    sql = "select emotd.emotdid, emotd.type, emotd.publish_start, emotd.publish_end, emotd.last_changed, emotd.author, emotd.title, emotd.description, emotd.detail, emotd.affected, emotd.downtime, emotd.replaces_emotd,e2.title, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) left outer join emotd as e2 on emotd.replaces_emotd=e2.emotdid %s order by publish_end desc, emotd.last_changed desc" % where
 
     database.execute(sql)
 
@@ -367,18 +382,38 @@ class MessageListMessage:
         if last_changed>DateTime.today():
             self.new = 1
 
-def home(req,view="active"):
+def home(req,view="active",offset="0"):
+
+    if not offset:
+        offset = 0
+    offset = int(offset)
+        
     page = EmotdFrontpage()
     user = req.session['user']
     page.title = "%s Messages" % view.capitalize()
     page.menu = getMenu(user,view)
-    page.messages = messagelist(user,view)
+    page.messages = messagelist(user,view,offset)
+    page.path = [('Frontpage','/'),
+                 ('Messages',BASEPATH),
+                 (page.title,'')]
+    
+    page.nexturi = ""
+    if len(page.messages) == 20:
+        page.nexturi = "/emotd/"+view+"/"+str(offset+1)
+
+    page.previousuri = ""
+    if int(offset) > 0:
+        page.previousuri = "/emotd/"+view+"/"+str(offset-1)
+
     return page.respond()
 
-def messagelist(user,view="active"):
+def messagelist(user,view="active",offset=0):
     access = False
     if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
         access = True
+
+    if offset:
+        offset = int(offset)
         
     if access and view == "planned":
         time = "publish_start > now()"
@@ -388,9 +423,9 @@ def messagelist(user,view="active"):
         time = "publish_end > now() and publish_start < now()"
 
     if access:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type order by last_changed desc" % time)
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end  order by publish_end desc, last_changed desc limit %s offset %d" %(time,LIMIT,offset*LIMIT))
     else:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type order by last_changed desc" % time)
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end order by publish_end desc, last_changed desc limit %s offset %d"% (time, LIMIT, offset*LIMIT))
 
     messages = []
     for (id, titile, description, last_changed, author, type, units) in database.fetchall():
@@ -480,7 +515,6 @@ class MaintElement:
         
 
 def maintlist(req):
-    #activedict = EmotdSelect.getMaintenance(state='active',access=True)
     sql = "select emotd.emotdid, key, value, maint_start, maint_end, title, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' "
     database.execute(sql)
     maints = database.fetchall()
@@ -551,44 +585,14 @@ def feed(req):
        Suggest using http://diveintomark.org/projects/feed_parser/feedparser.py as
        parser for python-clients - very sweet!
     '''
-    body = ''
-    cursor = Emotd.cursor
 
-    if req.form.has_key('client'):
-        # try to find any
-        client = req.form['client']
-        if client == "html":
-            body += '<html><body><pre>'
-        # where do we store client-info?
-        cursor.execute('select * from emotd where date_end > now() and date_start < now()')
-    else:
-        # if client is not supplied, show all
-        cursor.execute('select * from emotd where date_end > now() and date_start < now()') 
+    page = FeederTemplate()
+    database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc") 
+    page.messages = database.fetchall()
 
-    # the following will always follow the feed - please do not touch this..
-    body += '<?xml version="1.0" encoding="iso-8859-1"?> \n'
-    body += '<rdf:RDF \n'
-    body += 'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" \n'
-    body += 'xmlns="http://my.netscape.com/rdf/simple/0.9/"> \n'
-    body += '\n'
-    rows = cursor.dictfetchall()
-    if len(rows) < 1:
-        body += '<item>'
-        body += '<title>No emotd currently active</title>'
-        body += '<link>http://isbre.itea.ntnu.no</link>'
-        body += '</item>'
-    else:
-        for row in rows:
-            body += '<item>\n'
-            body += '<title>%(title)s </title>' % row
-            body += '<link>http://isbre.itea.ntnu.no/emotd/view/%(emotdid)s </link>' % row
-            body += '</item>\n'
-    # and this will be the tail of the feed
-    body += '</rdf:RDF>\n\n'
-    if client:
-        if client == "html":
-            body += '</pre></body></html>'
-    return body
+    page.server = req.server.server_hostname
+
+    return page.respond()
 
 
 def mainttime(req, id = None):
@@ -955,10 +959,11 @@ def maintenance(req, id = None):
         page.defined = 0
         page.equipment = {}
         page.newequipment = {}
+        page.defined = 0
 
         emotdid = int(emotdid)
     
-        if req.session.has_key('defined'):
+        if req.session.has_key('message') and req.session['message'].has_key('defined') and req.session['message']['defined']:
             page.defined = 1
 
         else:
@@ -1009,16 +1014,16 @@ def submit(req):
 
                 for key,values in equipment.items():
                     for v in values:
-                        if old[key].count(v):
-                            equipment[key].remove(v)
-                            old[key].remove(v)
-                        else:
+                        if not old[key].count(v):
+                #            equipment[key].remove(v)
+                #            old[key].remove(v)
+                #        else:
                             database.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
-                            equipment[key].remove(v)
+                #            equipment[key].remove(v)
 
-                for keys,values in old.items():
-                    for v in values:
-                        database.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
+                #for keys,values in old.items():
+                #    for v in values:
+                #        database.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
             messagemaintstart = ""
             messagemaintend = ""
             if req.session['message'].has_key('maint_start') and req.session['message']['maint_start']:
@@ -1307,6 +1312,7 @@ def commit(req):
     #description_en = req.form['description_en']
     detail = req.form['detail']
     #detail_en = req.form['detail_en']
+    emotdid = 0
 
     # Save new or existing MOTD
     if req.form.has_key("parent_id") and req.form["parent_id"]:
@@ -1319,6 +1325,9 @@ def commit(req):
         emotdid = int(database.fetchone()[0])
         #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, parent_id, last_changed))
         database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), replaces, str(last_changed)))
+        database.execute("select key, value from emotd_related where emotdid=%d", (replaces,))
+        for (key, value) in database.fetchall():
+            database.execute("insert into emotd_related (emotdid, key, value) values (%d,%s,%s)",(emotdid, key, value))
     
     elif req.form.has_key('emotdid') and req.form["emotdid"]:
         emotdid = int(req.form["emotdid"])
@@ -1332,7 +1341,7 @@ def commit(req):
             emotdid = int(database.fetchone()[0])
             # database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
             database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
-        else:
+        elif req.form.has_key("cn_save_and_add"):
             if not req.session.has_key("message"):
                 req.session["message"] = {}
             req.session['message']['title'] = title
@@ -1341,10 +1350,11 @@ def commit(req):
             req.session['message']['affected'] = affected
             req.session['message']['downtime'] = downtime
             req.session['message']['author'] = author
-            req.session['message']['last_changed'] = last_changed
+            req.session['message']['last_changed'] = last_changed.strftime(DATEFORMAT)
             req.session['message']['type'] = type
-            req.session['message']['publish_start'] = start
-            req.session['message']['publish_end'] = end
+            req.session['message']['publish_start'] = start.strftime(DATEFORMAT)
+            req.session['message']['publish_end'] = end.strftime(DATEFORMAT)
+            req.session['message']['defined'] = 1
 
             req.session.save()
             
@@ -1352,7 +1362,7 @@ def commit(req):
     if req.form.has_key("cn_save"):
         redirect(req,"%sview/%s" % (BASEPATH, emotdid))
     elif req.form.has_key("cn_save_and_add"):
-        redirect(req,"%stime/%s" % (BASEPATH, emotdid))
+        redirect(req,"%sadd/" % (BASEPATH))
     return apache.OK
 
 def commitplacement(req):
@@ -1376,7 +1386,8 @@ def commitplacement(req):
 
 
 def remove(req,emotdid = 0):
-    emotdid = int(emotdid)
+    if emotdid:
+        emotdid = int(emotdid)
     if req.args:
         params = req.args
         types = params.split("&")
