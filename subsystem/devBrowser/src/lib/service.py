@@ -2,7 +2,7 @@ from mod_python import apache
 import forgetHTML as html
 from nav import db
 from nav.db import manage 
-from nav.web import servicetable
+from nav.web.devBrowser import servicetable
 from nav.web import urlbuilder
 from nav.errors import *
 import random
