@@ -173,6 +173,10 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		String oidkey = snmpoid.getOidkey();
 		keyFreqMap.put(oidkey, new Integer(freq));
 		keyMap.put(oidkey, snmpoid);
+		if (!oidNextRunMap.containsKey(oidkey)) {
+			// Schedule this OID immediately
+			addToRunQ(oidkey, new Long(0));
+		}
 	}
 
 	// Doc in interface
