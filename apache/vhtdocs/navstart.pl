@@ -2,11 +2,11 @@
 
 $menybrede = "100%";
 
-$header     = '/local/apache/vhtdocs/header.html';
-$meny       = '/local/apache/vhtdocs/meny.html';
-$kontakt    = '/local/apache/vhtdocs/kontakt.html';
-$bruker     = '/local/apache/vhtdocs/bruker.html';
-$htpasswd   = '/usr/local/apache/htpasswd/.htpasswd-sroot';
+$header     = './header.html';
+$meny       = './meny.html';
+$kontakt    = './kontakt.html';
+$bruker     = './vhtdocs/bruker.html';
+$htpasswd   = '../htpasswd/.htpasswd-sroot';
 
 open (HTPASSWD, $htpasswd) || die "Får ikke åpnet $htpasswd";
  
@@ -45,10 +45,10 @@ print "
 ";
 
 #print "<a href=https://www.nav.ntnu.no/restricted/>Logg inn</a>
-print "<a href=https://www.nav.ntnu.no/>Logg inn</a>
-<a href=http://www.nav.ntnu.no/hjelp.html>Hjelp</a>" if
+print "<a href=../shtdocs/>Logg inn</a>
+<a href=/doc/hjelp.html>Hjelp</a>" if
 (lc($user_data{$remote_user}{'omraade'}) eq 'aapen');
-print "<a href=https://www.nav.ntnu.no/secret/>Logg inn</a>" if (lc($user_data{$remote_user}{'omraade'}) eq 'begrenset');
+print "<a href=/sec/>Logg inn</a>" if (lc($user_data{$remote_user}{'omraade'}) eq 'begrenset');
  
 print "
 </font></strong></font>

@@ -5,13 +5,13 @@ use CGI qw(:standard);
 print header;
 print start_html(NAV);
 
-$navstart = '/local/apache/htdocs/public/perl/navstart.pl';
-$navslutt = '/local/apache/htdocs/public/perl/navslutt.pl';
+$navstart = '../vhtdocs/navstart.pl';
+$navslutt = '../vhtdocs/navslutt.pl';
 
 $public     = '../vhtdocs/public.html';
 $restricted = '../vhtdocs/restricted.html';
 $secret     = '../vhtdocs/secret.html';
-$htpasswd = "/usr/local/nav/htpasswd/.htpasswd-sroot";
+$htpasswd = "../htpasswd/.htpasswd-sroot";
 
 ###########################################
 # Kjører filen navstart, og skriver "print-linjene" til web
