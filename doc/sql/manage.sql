@@ -173,6 +173,7 @@ CREATE TABLE device (
   productid INT4 REFERENCES product ON UPDATE CASCADE ON DELETE SET NULL,
   serial VARCHAR,
   hw_ver VARCHAR,
+  fw_ver VARCHAR,
   sw_ver VARCHAR,
   UNIQUE(serial)
 -- productid burde vært NOT NULL, men det går ikke nå
