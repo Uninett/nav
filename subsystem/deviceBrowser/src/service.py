@@ -1,10 +1,12 @@
 from mod_python import apache
 import forgetHTML as html
-from nav import tables
-from nav import database
-from nav import utils
-from nav.web import tableview
-from errors import *
+from nav import db
+from nav.db import manage 
+from nav.web import servicetable
+from nav.web import urlbuilder
+from nav.errors import *
+import random
+import time
 
 _serviceStates = {
     'y': 'Up',
@@ -23,31 +25,24 @@ def process(request):
         query = query.split("=")
     if query and query[0]=='sort' and query[1:]:
         sort = query[1]
+    try:
+        sort = int(sort)
+    except:
+        sort = 1
     if not args:
         # We need a trailing /
-        raise RedirectError, "http://isbre.itea.ntnu.no/stain/service/"    
-
+        raise RedirectError, urlbuilder.createUrl(division="service")
     if args[0] == '':
         return showIndex()
 
     if args[0] == 'all':
-        return showAll(sort)
+        return showAll(request,sort)
 
     return getNetboxes(args[0], sort)
 
 def getServices(netbox):
-    services = netbox.getChildren(tables.Service)
+    services = netbox.getChildren(manage.Service)
     return services
-
-def downSince(service):
-    where = ["eventtypeid='serviceState'"]
-    where.append("end_time='infinity'")
-    alerts = service.getChildren(tables.Alerthist, 'subid', where)
-    if not alerts:
-        return None
-    # Eh.. there should be only one with end_time==infinity
-    lastAlert = alerts[-1]
-    return lastAlert.start_time
 
 def showIndex(showAll=0):
     result = html.Division()
@@ -66,53 +61,30 @@ def showIndex(showAll=0):
     result.append(html.Paragraph(html.Anchor("Show all", href="all")))        
     return result
 
-def showAll(sort):
-    services = tables.Service.getAll()
+def showAll(request, sort):
     result = html.Division()
-    result.append(html.Header("All services", level=2))
-    table = tableview.TableView("Service", "Server", "Status", "Version", 
-                                baseurl="all", sortBy=sort)
-    table['class'] = "serviceNetboxes"
-    result.append(table)
-                              
-    for service in services:
-        version = service.version or "Unknown"
-        sysname = service.netbox.sysname
-        # Prepare for some css-stylish
-        # row['class'] = service.up
-        
-        linkNetbox = html.Anchor(sysname, href='../%s' % sysname)
-        linkService = html.Anchor(service.handler, href=service.handler)
-        status = getServiceState(service)
-        if service.up == 'n':
-            since = downSince(service)
-            status += " since %s" % since
-        table.add(linkService, linkNetbox, status, version, _class=service.up)
-    table.sort()    
-    return result      
+    start = time.time()
+    try:
+        if not request['session'].has_key("servicetable"):
+            raise "NotFound"
+        (table, stored) = request['session']['servicetable']
+        if time.time() - stored > 60*5:
+            # max 5 min to cache
+            raise "NotFound"
+        table.html.sortBy = sort
+        table.html.sort()
+        result.append(table.html)
+        end = time.time() - start
+        result.append("Sorted in %s seconds, " %  end)
+        result.append("last updated %s" % time.strftime("%H:%M:%S"))
+    except "NotFound":    
+        table = servicetable.ServiceTable(sort=sort)
+        result.append(table.html)
+        end = time.time() - start
+        result.append("Generated in %s seconds" %  end)
+        request['session']['servicetable'] = (table, time.time())
+    return result
     
 def getNetboxes(servicename, sort):
-    service = database.escape(servicename)
-    services = tables.Service.getAll("handler=%s" % service)
-    result = html.Division()
-    result.append(html.Header("All servers running %s" % servicename, level=2))
-    table = tableview.TableView("Server", "Version", "Status", 
-                                baseurl=servicename, sortBy=sort)
-    table['class'] = "serviceNetboxes"
-    result.append(table)
-                              
-    for service in services:
-        version = service.version or "Unknown"
-        sysname = service.netbox.sysname
-        # Prepare for some css-stylish
-        # row['class'] = service.up
-        
-        link = html.Anchor(sysname, href='../%s' % sysname)
-        status = getServiceState(service)
-        if service.up == 'n':
-            since = downSince(service)
-            status += " since %s" % since
-        table.add(link, version, status, _class=service.up)
-    table.sort()    
-    return result      
-
+    table = servicetable.ServiceTable(servicenames=(servicename,), sort=sort) 
+    return table.html      

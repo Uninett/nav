@@ -2,10 +2,12 @@
 import os
 import sys
 import time
-
+import profile
+import warnings 
 from mod_python import apache
+from nav.errors import *
 
-from errors import *
+import forgetHTML as html
 
 # Drrrty read av config
 import nav.config
@@ -20,6 +22,14 @@ except NameError:
 config = nav.config.readConfig('devbrowser.conf')
 
 def handler(req):
+    
+    # catch warnings
+    warns = []
+    def showwarning(message, category, filename, lineno):
+        warning = warnings.formatwarning(message, category, filename, lineno)
+        warns.append(warning)
+    warnings.showwarning = showwarning
+
     request = classifyUri(req.uri)
     if not request:
         req.send_http_header()
@@ -38,13 +48,25 @@ def handler(req):
     except AttributeError:
         return apache.HTTP_NOT_FOUND
     
-
     req.session.setdefault('uris', [])
     request['query'] = req.args
+    request['session'] = req.session
         
     # result = handler.process(request)
-    req.content_type = "text/html"
-    result = handler.process(request)
+    req.content_type = "text/html; charset=utf-8"
+    try:
+        result = handler.process(request)
+    except RedirectError, error:
+        redirect(req, error.args[0])
+    
+    # postpend the warningsw
+    if warns:    
+        # Wrap it so we can add more
+        result = html.Division(result)
+        for warn in warns:
+            message = html.Pre(warn, _class="warning")
+            result.append(message)
+    
     template = MainTemplate()
     template.content = lambda: result
     # DRRRRRRTYUUUYY
@@ -58,20 +80,49 @@ def handler(req):
         padding: 0.2em;
       }
       /* Services down have red light, in shadow yellow */
-      table.serviceNetboxes tr.n td.col0:before { content: url("/images/lys/red.png") }
-      table.serviceNetboxes tr.s td.col0:before { content: url("/images/lys/yellow.png") }
-      table.serviceNetboxes tr.y td.col0 { padding-left: 25px; }
+      table.serviceNetbox td { padding: 0.2em; }
       table.netboxinfo th { text-align: left; }
-      /* Arrows for sorting!! */
+      /* Arrows for sorting!! 
       th.reverseSort#activeSort:after { content: url("/images/pilopp.png") }
       th.sort#activeSort:after { content: url("/images/pilned.png") }
+      */
       th#activeSort { background-color: #ace; }
       table.serviceNetboxes th { text-align: left;  }
+      pre.alert {
+        position: absolute;
+        border: 1px solid black;
+        background-color: #ffa;
+        visibility: hidden;
+        z-index: 2;
+        width: auto;
+        padding: 0.1em;
+      }
+      div.alertBox {
+        padding-right: 1em;
+        float: left;
+      }
+      pre.warning {
+        padding: 1em;
+        border: 2px dotted black;
+        background-color: #a88;
+        color: black;
+        margin-left: 10em;
+        margin-right: 10em;
+        margin-top: 2em;
+      }
+      
     """
-    try:
-        response = template.respond()
-    except RedirectError, error:
-        redirect(req, error.args[0])
+    template.additionalJavaScript = lambda: """
+    function show(id) {
+        elem = document.getElementById(id);
+        elem.style.visibility = 'visible';
+    }
+    function hide(id) {
+        elem = document.getElementById(id);
+        elem.style.visibility = 'hidden';
+    }
+    """
+    response = template.respond()
 
     req.send_http_header()
     req.write(response)
@@ -100,7 +151,7 @@ def classifyUri(uri):
         return request
 
     # Clean this up in some way
-    if name in 'device cat vlan room service sla notfound org'.split():
+    if name in 'device cat vlan room service sla notfound alert org'.split():
         request['type'] = name
     else:
         # Ok, it's a sysname.. split out to a seperate function that

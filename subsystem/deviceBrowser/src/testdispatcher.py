@@ -2,7 +2,7 @@
 import unittest
 
 from test import Dummy
-from errors import *
+from nav.errors import *
 
 import mod_python
 import dispatcher
@@ -12,12 +12,12 @@ class TestDispatcher(unittest.TestCase):
     def setUp(self):
         # we don't need anything in the request object now
         self.req = Dummy()
-        self.req.uri = "/stain/ludvig.ntnu.no:dns/stats"
+        self.req.uri = "/browse/ludvig.ntnu.no:dns/stats"
     def testHandlerDevice(self):
         response = dispatcher.handler(self.req)
         assert response
     def testHandlerNotFound(self):    
-        self.req.uri = "/stain/notfound/error/"
+        self.req.uri = "/browse/notfound/error/"
         response = dispatcher.handler(self.req)
         self.assertEqual(response, mod_python.apache.HTTP_NOT_FOUND)
     def testUrlSplitDevice(self):
@@ -25,11 +25,11 @@ class TestDispatcher(unittest.TestCase):
         self.assertEqual(request['hostname'], 'ludvig.ntnu.no')
         self.assertEqual(request['service'], 'dns')
     def testUrlSplitIndexSlash(self):
-        uri = "/stain/"
+        uri = "/browse/"
         request = dispatcher.classifyUri(uri)
         self.assertEqual(request, {})
     def testUrlSplitIndexFilename(self):
-        uri = "/stain/dispatcher.py"
+        uri = "/browse/dispatcher.py"
         request = dispatcher.classifyUri(uri)
         self.assertEqual(request, {})
     def testUrlSplitError(self):

@@ -3,7 +3,7 @@ import unittest
 from test import Dummy
 import service
 import mod_python
-from nav import tables
+from nav.db import manage 
 
 class TestService(unittest.TestCase):
     def setUp(self):
@@ -30,7 +30,7 @@ class TestService(unittest.TestCase):
         response = service.process(self.request)
         assert response
     def testGetServices(self):
-        netbox = tables.getNetbox('ludvig.ntnu.no')
+        netbox = manage.getNetbox('ludvig.ntnu.no')
         services = service.getServices(netbox)
         self.assert_(services)
 
