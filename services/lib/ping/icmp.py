@@ -59,7 +59,7 @@ class Packet:
 					      self.id, self.seq)
 
     def assemble(self, cksum=1):
-	idseq = struct.pack('hh', self.id, self.seq)
+	idseq = struct.pack('HH', self.id, self.seq)
 	packet = chr(self.type) + chr(self.code) + '\000\000' + idseq \
 		 + self.data
 	if cksum:
@@ -79,7 +79,7 @@ class Packet:
 
 	self.type = ord(packet[0])
 	self.code = ord(packet[1])
-	elts = struct.unpack('hhh', packet[2:8])
+	elts = struct.unpack('HHH', packet[2:8])
 	[self.cksum, self.id, self.seq] = map(lambda x:x & 0xffff, elts)
 	self.data = packet[8:]
 
@@ -88,7 +88,7 @@ class Packet:
 	packet = self.packet
 	if len(packet) & 1:
 	    packet = packet + '\0'
-	words = array.array('h', packet)
+	words = array.array('H', packet)
 	sum = 0
 	for word in words:
 	    sum = sum + (word & 0xffff)
