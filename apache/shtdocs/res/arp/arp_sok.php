@@ -25,8 +25,6 @@ if ($vars[prefiksid])
 
   list($IPfra,$IPtil) = IPrange($dbh,$prefix,$vars[prefiksid]);
 
-  print "IPfra $IPfra IPtil $IPtil<br>";
-
 }
 else
 {
@@ -302,12 +300,7 @@ function IPrange($dbh,$prefix,$prefiksid)
 
       $fra = ereg_replace ($prefix, "", $svar[0]); 
 
-#      print "IPfra: $IPfra<br>";
-
       list ($bcast[0],$bcast[1],$bcast[2],$bcast[3]) = split("\.",$svar[0],4);
-
-#      print "nett: $nett<br>";
-#      $bcast = $nett;
 
       if ($svar[1] == 23)
       {
@@ -334,9 +327,7 @@ function IPrange($dbh,$prefix,$prefiksid)
 
       $til = "$bcast[2].$bcast[3]";
 
-      print "Fra $fra til $til<br>";
-
-     return array($fra,$til);
+      return array($fra,$til);
 
     }
   }
