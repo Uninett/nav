@@ -45,7 +45,7 @@ $default_tabs_CSS();
 #end if
 #if $item.this or $item.text == $current:
 		<li id="current"><a>$item.text</a></li>
-#elif $item.text == "New message" or $item.text == "Maintenance Setup":
+#elif $item.text == "New message" or $item.text == "Maintenance Setup" or $item.text == "Maintenance":
 		<li><a href="$item.link">$item.text</a></li>
 #else:
 		<li id="same"><a href="$item.link">$item.text</a></li>
@@ -68,10 +68,10 @@ $default_tabs_CSS();
 #else:
 		<li><a href="/messages/edit">New message</a></li>
 #end if
-#if $current == "Maintenance Setup":
-		<li id="current"><a>Maintenance Setup</a></li>
+#if $current == "Maintenance":
+		<li id="current"><a>Maintenance</a></li>
 #else:
-		<li><a href="/messages/add/">Maintenance Setup</a></li>
+		<li><a href="/messages/add/">Maintenance</a></li>
 #end if
 	</ul>
 </div>

@@ -1,54 +1,59 @@
-##
-## Copyright 2003, 2004 Norwegian University of Science and Technology
-##
-## This file is part of Network Administration Visualized (NAV)
-##
-## NAV is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
-##
-## NAV is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with NAV; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-##
-##
-## $Id$
-## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
-##          Magnar Sveen <magnars@idi.ntnu.no>
-##
-
 #extends nav.web.templates.EmotdTemplate
+
+#def newmessage($message)
+<div style="padding: 5px 10px;">
+<a href="/messages/view/$message.id"><font size=3><b>$message.title</b></font></a><br>
+#if $message.description
+$message.description
+#end if
+<br>
+#if $message.affected
+<br><label class="title">Affected end users:</label> $message.affected
+#end if
+#if $message.downtime
+<br><label class="title">Estimated downtime:</label> $message.downtime
+#end if
+#if $message.units
+<br><label class="title">Units on maintenance:</label> <a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a>
+</div>
+#end def
 
 #block content
 $makeMenu()
-	<h1>$title</h1>
+<br>
 #if $messages:
 <table style="font-size:13px; border: 1px solid black;" cellspacing="0">
-  <TR><TD COLSPAN=2 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
+  <TR><TD COLSPAN=3 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
   <div style="position: relative; margin-top: -12px;"><img src="/images/emotd/top-l.gif"></div>
   <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;">$title</div>
   </TD></TR>
 #set $farge = "white";
   #for $message in $messages
+
+#if $message.new
+<style>
+   label.title {
+	font-weight: bold;
+   }
+</style>
+   <tr><td colspan="2">
+$newmessage($message)
+   </td></tr>
+#set $farge = "white";
+#else
    <tr style="background: $farge;">
       <td style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
 #if $message.units
-      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id"><img src="/images/wrench.gif" border="0">$message.units</a></td>
+      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a></td>
 #else
       <td style="padding: 0px 10px;">&nbsp;</td>      
 #end if
-
-#if $message.new
-          	Edited: $message.last_changed by $message.author<br />
-	        Description: $message.description<br />
-		Units on maintenance: $message.units<br />
-		Is this a new message: $message.new
+#if not $title == "Active Messages"
+#set $start = str($message.publish_start)[0:16]
+#set $end = str($message.publish_end)[0:16]
+      <td style="padding: 0px 10px; font-size:9px;" nowrap>
+      <a style="color: black; text-decoration: none;" title="Published at $start">$start[8:10]/$start[5:7]</a> - <a style="color: black; text-decoration: none;" title="Outdated at $end">$end[8:10]/$end[5:7]</a></td>      
+#end if
 #end if
 
 #if $farge == "white":

@@ -1,28 +1,3 @@
-##
-## Copyright 2003, 2004 Norwegian University of Science and Technology
-##
-## This file is part of Network Administration Visualized (NAV)
-##
-## NAV is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2 of the License, or
-## (at your option) any later version.
-##
-## NAV is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with NAV; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-##
-##
-## $Id$
-## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
-##          Magnar Sveen <magnars@idi.ntnu.no>
-##
-
 #extends nav.web.templates.EmotdTemplate
 
 #block content
@@ -30,76 +5,90 @@
 $makeMenu2()
 
 #if $all
-<h1>$title</h1>
-#else
-<a href="/messages/view/$category">Show all</a>
+<br><font size=6><b>$title</b></font><br>
 #end if
+
+#set $mellom = False
 
 #for message in $messages
 
+<br>
 #if $all
-<h2>$message.title</h2>
-#else
-<h1>$message.title</h1>
+#if $mellom
+<hr noshade color="#cccccc" size="1">
 #end if
-
+#set $mellom = True
+<font size=5><b>$message.title</b></font>
+#else
+<font size=6><b>$message.title</b></font>
+#end if
+<br>
 
 ##klokkeslett tas imot på iso-format
 
-<p class="pysetekst" style="font-size:0.6em">$message.type
+<style>
+   label.title {
+	font-weight: bold;
+   }
+   p {
+	font-size: 0.8em;
+   }
+</style>
+
+<span class="pysetekst" style="font-size:0.6em; color: #999; padding: 0px 0px 0px 5px;">$message.type
 #if $access and $message.publish_start
 $message.publish_start - $message.publish_end
 #end if
 by $message.author on $message.last_changed
-</p>
-#if $message.affected
-<p><label>Affected end users:</label>$message.affected</p>
-#end if
-#if $message.downtime
-<p><label>Estimated downtime:</label>$message.downtime</p>
-#end if
-#if $message.maint_start and $access
-
-<p><label>Maintenance window:</label><b>$message.maint_start - $message.maint_end</b></p>
-#end if
+</span>
 #if $message.description
 $message.description
+#end if
+#if $message.affected
+<p><label class="title">Affected end users:</label> $message.affected</p>
+#end if
+#if $message.downtime
+<p><label class="title">Estimated downtime:</label> $message.downtime</p>
+#end if
+#if $message.detail
+<p><label class="title">Details:</label>
+$message.detail</p>
 #end if
 #if $message.equipment
 $equipmentList($message.equipment)
 #end if
-#if $message.detail
-$message.detail
+#if $message.maint_start and $access
+<p><label class="title">Maintenance window:</label> $message.maint_start - $message.maint_end</p>
 #end if
 
 #if $message.replaces_emotd
 #if $message.replaces_title
-<p>This message replaces: <a href="/messages/view/$message.replaces_emotd">$message.replaces_title</a>.</p>
+<p><label class="title">This message replaces:</label> <a href="/messages/view/$message.replaces_emotd">$message.replaces_title</a>.</p>
 #else
-<p>This message replaces message no.: <a href="/messages/view/$message.replaces_emotd">$message.replaces_emotd</a>.</p>
+<p><label class="title">This message replaces message no.:</label> <a href="/messages/view/$message.replaces_emotd">$message.replaces_emotd</a>.</p>
 #end if
 #end if
 
+<span style="font-size:0.8em;">
 #if $access
+[ 
 #if $username == $message.author:
-[ <a href="/messages/edit/$message.emotdid">Edit Message</a> 
+<a href="/messages/edit/$message.emotdid">Edit Message</a>
 #else
-[ <a href="/messages/edit/$message.emotdid">Followup Message</a> 
+<a href="/messages/edit/$message.emotdid">Followup Message</a> 
 #end if
 
 | <a href="/messages/add/$message.emotdid">Maintenance Setup</a>
 
-
-###if $message.maint_start
-##| <a href="/messages/time/$message.emotdid">Edit Maintenance Window</a> | <a href="/messages/add/$message.emotdid">Edit Equipment List</a> 
-###else
-##| <a href="/messages/time/$message.emotdid">Define Maintenance Window and Add Equipment</a>
-###end if
-
+#if not $all
+ | <a href="/messages/view/$category">Show all</a>
+#end if
+</span>
 
 ]</form>
 #end if
 
 #end for
+<br><br>
 </div>
 #end block

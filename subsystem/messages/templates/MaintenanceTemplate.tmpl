@@ -28,7 +28,7 @@
 #from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #block content
-$makeMenu2("Maintenance Setup")
+$makeMenu2("Maintenance")
 ##$emotdid
 <form action="$args['action']" method="post">
 <h1>Maintenance Setup</h1>
@@ -56,7 +56,6 @@ $maint()
 #else
             <input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
 #end if
-<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
 
 <p>
 $makeDateTime("Start maintenance","maintstart",$maintstart[0],$maintstart[1],$maintstart[2],$maintstart[3],$maintstart[4])
@@ -69,6 +68,7 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 </form>
 <form action="$args['cancelaction']" method="post">
 <input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
+<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
 </form>
 </div>
 #end block
