@@ -16,6 +16,9 @@ DROP TABLE boks;
 DROP TABLE boksdisk;
 DROP TABLE boksinterface;
 
+DROP TABLE service;
+DROP TABLE serviceproperty;
+
 DROP TABLE type;
 DROP TABLE prefiks;
 DROP TABLE rom;
@@ -197,6 +200,21 @@ CREATE TABLE module (
   portsUp INT4
 );
 
+CREATE TABLE service (
+  serviceid SERIAL PRIMARY KEY,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+  handler VARCHAR(8),
+  version VARCHAR(128)
+);
+
+CREATE TABLE serviceproperty (
+serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
+  index INT2 NOT NULL DEFAULT 1,
+  property VARCHAR(64) NOT NULL,
+  value VARCHAR(64),
+  PRIMARY KEY(serviceid, index, property)
+);
+
 CREATE TABLE mem (
 memid SERIAL PRIMARY KEY,
 boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
@@ -299,6 +317,9 @@ GRANT ALL ON swport_swportid_seq TO navall;
 GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
 GRANT ALL ON module_moduleid_seq TO navall;
 GRANT ALL ON mem_memid_seq TO navall;
+
+GRANT ALL ON service TO navall;
+GRANT ALL ON serviceproperty TO navall;
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
