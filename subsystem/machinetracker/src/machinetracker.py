@@ -109,19 +109,29 @@ class MachineTrackerSQLQuery:
 			days = 7
 	      	fra = DateTime.today()-(int(days)*DateTime.oneDay)
       		fra = fra.strftime("%Y-%m-%d")
-	      	tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"  
+
+		# the infinity part is not needed after kristian's rewrite
+	      	#tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"
+		tidstreng = "(arp.end_time  > '" + fra + "')"
 	
 		if extra:
 			extra = "and " + extra
 
 		if not order_by:
-			order_by = "arp.ip,cam.sysname,module,port,start"
+			order_by = "arp.ip,arp.mac,cam.sysname,module,port,start"
 		order_by = "order by " + order_by
 			
 #		self.sql = "select distinct arp.ip,cam.mac,cam.sysname,module,port,cam.start_time,cam.end_time from arp left join cam using (mac),netbox where " + tidstreng + " and netbox.prefixid=arp.prefixid " + extra + " order by start_time"
-			
-                self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,arp.start_time as start, arp.end_time as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
+#               self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,arp.start_time as start, arp.end_time as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
 
+# kristian's rewrite
+		self.sql = "SELECT arp.ip, arp.mac, cam.sysname AS switch, module, port, arp.start_time AS start, arp.end_time AS end FROM arp LEFT JOIN cam ON (camid=(SELECT camid FROM cam WHERE arp.mac=cam.mac ORDER BY ABS(EXTRACT (epoch FROM (arp.start_time-cam.start_time))) LIMIT 1)) WHERE " + tidstreng + " " + extra + " " + order_by
+
+		#kristian's rewrite
+		#(arp.end_time > '2004-10-07')  AND ip BETWEEN '129.241.23.40' AND '129.241.23.50' ORDER BY arp.ip, cam.sysname, module, mac, port, start;
+ 
+
+			
 
 	def getTable(self, dns="",aip="",naip=""):
 
