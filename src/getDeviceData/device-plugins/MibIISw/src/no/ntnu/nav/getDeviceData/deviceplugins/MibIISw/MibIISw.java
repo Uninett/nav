@@ -83,17 +83,23 @@ public class MibIISw implements DeviceHandler
 
 	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, SwportContainer sc) throws TimeoutException
 	{
+		Set skipIfindexSet = new HashSet();
+
 		// Set speed
 		List speedList = sSnmp.getAll(nb.getOid("ifSpeed"));;
 		if (speedList != null) {
 			for (Iterator it = speedList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				Swport swp = sc.swportFactory(s[0]);
 				
 				long speedNum;
 				try {
 					speedNum = Long.parseLong(s[1]);
-					swp.setSpeed(String.valueOf( (speedNum/1000000) ));
+					if (speedNum <= 0) {
+						skipIfindexSet.add(s[0]);
+					} else {
+						Swport swp = sc.swportFactory(s[0]);
+						swp.setSpeed(String.valueOf( (speedNum/1000000) ));
+					}
 				} catch (NumberFormatException e) {
 					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on speed: " + s[1]);
 				}
@@ -105,6 +111,7 @@ public class MibIISw implements DeviceHandler
 		if (operStatusMap != null && admStatusMap != null) {
 			for (Iterator it = operStatusMap.keySet().iterator(); it.hasNext();) {
 				String ifindex = (String)it.next();
+				if (skipIfindexSet.contains(ifindex)) continue;
 				Swport swp = sc.swportFactory(ifindex);
 
 				try {
