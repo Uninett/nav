@@ -117,14 +117,14 @@ class MegaPing(RotaterPlugin):
     in our list, we reuse that  host object
     """
     # add new hosts
-    # newhosts = filter(lambda x: x.ip not in self.hosts, netboxes)
-    # for netbox in newhosts:
-    #   self.hosts.append(Host(netbox))
+    newhosts = filter(lambda x: x not in self.hosts, netboxes)
+    for netbox in newhosts:
+      self.hosts.append(Host(netbox))
     # remove outdated hosts...
-    # oldhosts = filter(lambda x: x.netbox not in netboxes, self.hosts)
-    # for netbox in oldhosts:
-    #   self.hosts.remove(Host(netbox))
-    self.hosts = netboxes
+    oldhosts = filter(lambda x: x not in netboxes, self.hosts)
+    for netbox in oldhosts:
+      self.hosts.remove(Host(netbox))
+    
   def reset(self):
     self.requests = {}
     self.responses = {}
