@@ -547,6 +547,59 @@ DELETE FROM snmpoid WHERE oidkey='ucd_memtotalAvail';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ucd_memtotalAvail','1.3.6.1.4.1.2021.4.11.0','','Cricket','0',NULL,'0',NULL,NULL);
 
+
+
+DELETE FROM snmpoid WHERE oidkey='physDescr';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physDescr','1.3.6.1.2.1.47.1.1.1.1.2','A textual description of physical entity','mib-II','0',NULL,'0','entPhysicalDescr','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physContainedIn';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physContainedIn','1.3.6.1.2.1.47.1.1.1.1.4','The value of entPhysicalIndex for the physical entity which contains this physical entity','mib-II','0',NULL,'0','entPhysicalContainedIn','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physClass';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physClass','1.3.6.1.2.1.47.1.1.1.1.5','An indication of the general hardware type of the physical entity','mib-II','0',NULL,'0','entPhysicalClass','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physName','1.3.6.1.2.1.47.1.1.1.1.7','The textual name of the physical entity','mib-II','0',NULL,'0','entPhysicalName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physHwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physHwVer','1.3.6.1.2.1.47.1.1.1.1.8','The vendor-specific hardware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalHardwareRev','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physFwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physFwVer','1.3.6.1.2.1.47.1.1.1.1.9','The vendor-specific firmware revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalFirmwareRev','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physSwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physSwVer','1.3.6.1.2.1.47.1.1.1.1.10','The vendor-specific software revision string for the physical entity','mib-II','0',NULL,'0','entPhysicalSoftwareRev','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physSerial','1.3.6.1.2.1.47.1.1.1.1.11','The vendor-specific serial number string for the physical entity','mib-II','0',NULL,'0','entPhysicalSerialNum','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physMfgName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physMfgName','1.3.6.1.2.1.47.1.1.1.1.12','The name of the manufacturer of this physical component','mib-II','0',NULL,'0','entPhysicalMfgName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physModelName';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physModelName','1.3.6.1.2.1.47.1.1.1.1.13','The vendor-specific model name identifier string associated with this physical component','mib-II','0',NULL,'0','entPhysicalModelName','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='vtpVlanState';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('vtpVlanState','1.3.6.1.4.1.9.9.46.1.3.1.1.2','The state of this VLAN','cisco','0',NULL,'0','vtpVlanState','CISCO-VTP-MIB');
+
+
+
+
+
+UPDATE snmpoid SET uptodate=true;
+UPDATE netbox SET uptodate=false;
+
 COMMIT;
 
 
