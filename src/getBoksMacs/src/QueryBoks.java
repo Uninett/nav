@@ -283,10 +283,12 @@ public class QueryBoks extends Thread
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
 
+				/*
 				String[] mp = (String[])mpMap.get(boksId+":"+pm.getIfindex());
 				if (mp == null) mp = new String[2];
 				String[] rMp = (String[])interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 				if (rMp == null) rMp = new String[2];
+				*/
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
@@ -325,9 +327,7 @@ public class QueryBoks extends Thread
 						if (!pm.getIfindex().equals(to_ifindex)) {
 							try {
 								String[] upd = {
-									"to_ifindex", pm.getIfindex(),
-									"to_module", rMp[0],
-									"to_port", rMp[1]
+									"to_ifindex", pm.getIfindex()
 								};
 								String[] where = {
 									"swp_netboxid", swp_boksid
@@ -356,11 +356,7 @@ public class QueryBoks extends Thread
 				String[] ins = {
 					"netboxid", boksId,
 					"ifindex", pm.getIfindex(),
-					"module", mp[0],
-					"port", mp[1],
 					"to_netboxid", pm.getToNetboxid(),
-					"to_module", rMp[0],
-					"to_port", rMp[1]
 				};
 
 				try {
