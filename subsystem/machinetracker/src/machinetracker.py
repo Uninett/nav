@@ -42,7 +42,7 @@ def handler(req):
     section = ""
     s = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
     if s:   
-            section = s.group(1)
+        section = s.group(1)
 
     page = MachineTrackerTemplate()
     page.table = None
@@ -166,67 +166,67 @@ class MachineTrackerSQLQuery:
             #try:
             while ipt <= highestIP and line <= len(result):
 
-                    if line >= len(result):
-                        ip = highestIP
-                    else:
-                        ip = IP(result[line][0])
+                if line >= len(result):
+                    ip = highestIP
+                else:
+                    ip = IP(result[line][0])
 
-                    if ip > ipt or line >= len(result):
-                        if naip:
-                            if dns:
-                                dnsname = self.hostname(ipt.toIP())
-                                newline = ResultRow(ipt.toIP(),None,None,None,None,None,None,dnsname)
-                            else:
-                                newline = ResultRow(ipt.toIP(),None,None,None,None,None,None)
+                if ip > ipt or line >= len(result):
+                    if naip:
+                        if dns:
+                            dnsname = self.hostname(ipt.toIP())
+                            newline = ResultRow(ipt.toIP(),None,None,None,None,None,None,dnsname)
+                        else:
+                            newline = ResultRow(ipt.toIP(),None,None,None,None,None,None)
 
-                            newresult.append(newline)
+                        newresult.append(newline)
 
+                    ipt += 1
+                #elif ipt == ip:
+                #   ipt += 1
+
+                else:
+                    if ipt == ip:
                         ipt += 1
-                    #elif ipt == ip:
-                    #   ipt += 1
 
-                    else:
-                        if ipt == ip:
-                            ipt += 1
+                    if aip:
 
-                        if aip:
+                        #funker ikke så bra, nei datetime(ip,mac,netbox,module,port,start_time,end_time) = [str(l) for l in result[line][:4]]
+                        start_time = result[line][5].strftime("%Y-%m-%d %H:%M")
+                        end_time = result[line][6]
+                        if end_time.year>DateTime.now().year+1:
+                            end_time = "infinity"
+                        else:
+                            end_time = end_time.strftime("%Y-%m-%d %H:%M")
+                        #start_time = result[line][5].strftime("%Y-%m-%d %H:%M:%S") #'2003-09-19 13:11:48
+                        #end_time = result[line][6].strftime("%Y-%m-%d %H:%M:%S")
+                        ipaddr = ip.toIP()                  
+                        mac = result[line][1]
+                        switch = result[line][2]
+                        module = result[line][3]
+                        port = result[line][4]
 
-                            #funker ikke så bra, nei datetime(ip,mac,netbox,module,port,start_time,end_time) = [str(l) for l in result[line][:4]]
-                            start_time = result[line][5].strftime("%Y-%m-%d %H:%M")
-                            end_time = result[line][6]
-                            if end_time.year>DateTime.now().year+1:
-                                end_time = "infinity"
+                        if line>0:
+                            if str(result[line-1][0]) == ip.toIP() and str(result[line][1]) == str(result[line-1][1]) and str(result[line][2]) == str(result[line-1][2]) and str(result[line][3]) == str(result[line-1][3]) and str(result[line][4]) == str(result[line-1][4]): 
+                                ipaddr = None
+                                mac = None
+                                switch = None
+                                module = None
+                                port = None
+
+                        if dns:
+                            if ipaddr:
+                                dnsname = self.hostname(ip.toIP())
                             else:
-                                end_time = end_time.strftime("%Y-%m-%d %H:%M")
-                            #start_time = result[line][5].strftime("%Y-%m-%d %H:%M:%S") #'2003-09-19 13:11:48
-                            #end_time = result[line][6].strftime("%Y-%m-%d %H:%M:%S")
-                            ipaddr = ip.toIP()                  
-                            mac = result[line][1]
-                            switch = result[line][2]
-                            module = result[line][3]
-                            port = result[line][4]
+                                dnsname = None
 
-                            if line>0:
-                                if str(result[line-1][0]) == ip.toIP() and str(result[line][1]) == str(result[line-1][1]) and str(result[line][2]) == str(result[line-1][2]) and str(result[line][3]) == str(result[line-1][3]) and str(result[line][4]) == str(result[line-1][4]): 
-                                    ipaddr = None
-                                    mac = None
-                                    switch = None
-                                    module = None
-                                    port = None
+                            newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time,dnsname)
+                        else:
+                            newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time)
 
-                            if dns:
-                                if ipaddr:
-                                    dnsname = self.hostname(ip.toIP())
-                                else:
-                                    dnsname = None
+                        newresult.append(newline)
 
-                                newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time,dnsname)
-                            else:
-                                newline = ResultRow(ipaddr,mac,switch,module,port,start_time,end_time)
-
-                            newresult.append(newline)
-
-                        line += 1
+                    line += 1
         else:
             newresult = []
 
