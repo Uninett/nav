@@ -1,0 +1,92 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: type.txt
+#
+# Hensikt: All nettelektronikk er av en type. Typen sier noe
+# om hva slags utstyr dette er. Vi avleder typen automatisk ved
+# å se på boksens sysObjectID og dernest tolke type.txt.
+#
+# Hver type tilhører i tillegg en typegruppe. Fellesnevner for en
+# typegruppe er at alle typene her har den samme måten å hente data
+# via MIB-struktur.
+#
+# Syntaks:      type:typegruppe:sysObjectID:beskrivelse
+# Makslengde:   10   10         30          60
+#
+# Definerte typegrupper pr dato:
+# cgw        = Cisco ruter
+# cts        = Cisco terminalserver
+# cat-sw     = Cisco Catalyst-OS svitsj
+# ios-sw     = Cisco IOS-OS svitsj
+# catmeny-sw = Cisco menybasert svitsj.
+# spes-sw    = Cisco: spesielle/sære svitsjer
+# 3hub       = 3Com hub
+# portsv     = 3Com portsvitsj
+# ------------------------------------------------------------------
+# Listen er sortert etter tema, for ordens skyld:
+#
+# Cisco Rutere
+#
+cGW2610:cgw:1.3.6.1.4.1.9.1.185:Cisco 2610 ruter
+cGW2611:cgw:1.3.6.1.4.1.9.1.186:Cisco 2611 ruter
+cGW2612:cgw:1.3.6.1.4.1.9.1.187:Cisco 2612 ruter
+cGW2948gL3:cgw:1.3.6.1.4.1.9.1.275:Cisco Catalyst 2948G L3
+AGS:cgw:1.3.6.1.4.1.9.1.11:Cisco AGS ruter
+C1000:cgw:1.3.6.1.4.1.9.1.49:Cisco 1000-serien ruter
+C1605:cgw:1.3.6.1.4.1.9.1.172:Cisco 1605 ruter
+C2500:cgw:1.3.6.1.4.1.9.1.30:Cisco 2500-serien ruter
+C3600:cgw:1.3.6.1.4.1.9.1.110:Cisco 3600 serien ruter
+C4000:cgw:1.3.6.1.4.1.9.1.7:Cisco 4000 serien ruter
+C4500:cgw:1.3.6.1.4.1.9.1.14:Cisco 4500 serien ruter
+C4700:cgw:1.3.6.1.4.1.9.1.50:Cisco 4700 serien ruter
+C7000:cgw:1.3.6.1.4.1.9.1.8:Cisco 7000 serien ruter
+C7200:cgw:1.3.6.1.4.1.9.1.108:Cisco 7200 serien ruter
+C7200vxr:cgw:1.3.6.1.4.1.9.1.222:Cisco 7200VXR ruter
+C7505:cgw:1.3.6.1.4.1.9.1.48:Cisco 7508 serien ruter
+C7507:cgw:1.3.6.1.4.1.9.1.45:Cisco 7507 serien ruter
+C7513:cgw:1.3.6.1.4.1.9.1.46:Cisco 7513 serien ruter
+C8540:cgw:1.3.6.1.4.1.9.1.203:Cisco 8540 serien ruter
+IGS:cgw:1.3.6.1.4.1.9.1.3:Cisco IGS ruter
+MSFC:cgw:1.3.6.1.4.1.9.1.301:Cisco MSFC ruter
+RSM:cgw:1.3.6.1.4.1.9.1.168:Cisco RSM ruter
+#
+# Cisco terminalserver
+#
+AS5200:cts:1.3.6.1.4.1.9.1.109:Cisco AS5200 oppringt
+TS2511:cts:1.3.6.1.4.1.9.1.27:Cisco terminalserver 2511
+#
+# Cisco Svitsjer
+#
+cSW2912xl:ios-sw:1.3.6.1.4.1.9.1.219:Cisco Catalyst 2912XL switch
+cSW2916m:ios-sw:1.3.6.1.4.1.9.1.171:Cisco Catalyst 2916m-XL switch
+C1200:spes-sw:1.3.6.1.4.1.9.5.5:Cisco Catlyst 1200 svitsj
+C1900or:cat1900-sw:1.3.6.1.4.1.9.5.28:Cisco Catalyst 1900 svitsj original (dyp)
+C1900st:cat1900-sw:1.3.6.1.4.1.9.5.18:Cisco Catalyst 1900 svitsj standard
+C2924x00:ios-sw:1.3.6.1.4.1.9.1.183:Cisco Catalyst 2924 switch hardware 0x00
+C2924x01:ios-sw:1.3.6.1.4.1.9.1.217:Cisco Catalyst 2924 switch hardware 0x01
+C2926:cat-sw:1.3.6.1.4.1.9.5.35:Cisco Catlyst 2926 switch
+C3000:catmeny-sw:1.3.6.1.4.1.9.5.26:Cisco Catalyst 3000-svitsj HW Rev 6
+C3100:catmeny-sw:1.3.6.1.4.1.9.5.23:Cisco Catalyst 3100-svitsj HW Rev 1
+C3508:ios-sw:1.3.6.1.4.1.9.1.246:Cisco Catalyst 3508 svitsj
+C3524:ios-sw:1.3.6.1.4.1.9.1.248:Cisco Catalyst 3524 svitsj
+C3548:ios-sw:1.3.6.1.4.1.9.1.278:Cisco catalyst 3548 svitsj
+C4006:cat-sw:1.3.6.1.4.1.9.5.46:Cisco Catalyst 4006 svitsj
+C5000:cat-sw:1.3.6.1.4.1.9.5.7:Cisco Catalyst 5000 svitsj
+C5500:cat-sw:1.3.6.1.4.1.9.5.17:Cisco Catalyst 5500 svitsj
+C5505:cat-sw:1.3.6.1.4.1.9.5.34:Cisco Catalyst 5505 svitsj
+C5509:cat-sw:1.3.6.1.4.1.9.5.36:Cisco Catalyst 5509 svitsj
+C6500:cat-sw:1.3.6.1.4.1.9.5.44:Cisco Catalyst 6500 serien svitsj
+#
+# 3com hub
+#
+Off8:3hub:1.3.6.1.4.1.43.1.8.21:3Com Office8 hub
+PS40:3ss:1.3.6.1.4.1.43.10.27.4.1:3Com Portstack 40 hub
+#
+# 3com svitsj
+#
+SW1100:3ss:1.3.6.1.4.1.43.10.27.4.1.2.1:3Com portsvitsj 1100
+SW3300:3ss:1.3.6.1.4.1.43.10.27.4.1.2.2:3Com portsvitsj 3300
+SW9300:3ss9300:1.3.6.1.4.1.43.1.16.2.2.2.1:3Com portsvitsj 9300
+#
+# End of File
+#
