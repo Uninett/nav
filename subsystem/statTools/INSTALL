@@ -2,12 +2,19 @@ INSTALL INSTRUCTIONS FOR CRICKET AND MAKECRICKETCONFIG
 ======================================================
 
 Contact: John Magne Bredal <bredal@itea.ntnu.no>
+Version: ALFA
 
 
 DOWNLOAD
 ========
-Cricket v.1.0.3 should be available from the ftp-server. The rest of
-the files are available from the NAV-v3 bundle.
+
+Cricket v.1.0.3 should be available from the local ftp-server. If not,
+the official release can be found here:
+
+FTP: ftp://download.sourceforge.net/pub/sourceforge/cricket/cricket-1.0.3.tar.gz
+HTTP: http://download.sourceforge.net/cricket/cricket-1.0.3.tar.gz
+
+The rest of the files are available from the NAV-v3 bundle.
 
 
 DEPENDENCIES
