@@ -30,15 +30,6 @@ $width='11%';
 
 ###############################
 
-#print "<h2>Subnett - grafisk</h2>";
-#print "Tabellen viser ledige subnett i hvitt.<br>";
-#print "Lysgrønn og rosa indikerer hhv utnyttelse på under 10 % eller over 80%.<br>";
-#print "Syntax i feltene er nett/maske (aktive maskiner/maxhost/prosent)<br>";
-#print "Statiske felt har kommentar i parantesen.<p>";
-
-#print "Bruk linken til venstre for mer info, statistikk osv.<p>";
-
-
 $conn = &db_connect("manage","navall","uka97urgf");
 
 
@@ -126,13 +117,18 @@ sub skriv_adresserom
 	
 	if (($a1 eq $b1) && ($line[2] >= $maske))
 	{
+	    @ipmask = split(/\./,bits_mask($line[2]));
+	    
+	    $tip[2] = $ip[2] & $ipmask[2];
+	    $tip[3] = $ip[3] & $ipmask[3];
+	    
+	    if ($line[2] > 27)
+	    {
+		$unntak{$tip[2]}++;
+	    }
+
 	    if ($line[2] =~ /23|24|25|26|27/)
 	    {
-		@ipmask = split(/\./,bits_mask($line[2]));
-		
-		$tip[2] = $ip[2] & $ipmask[2];
-		$tip[3] = $ip[3] & $ipmask[3];
-		
 		$subnet{$tip[2]}{$tip[3]}{bits} = $line[2];
 		$subnet{$tip[2]}{$tip[3]}{vlan} = $line[3];
 		$subnet{$tip[2]}{$tip[3]}{mask} = $line[4]||0;
@@ -143,20 +139,14 @@ sub skriv_adresserom
 		$subnet{$tip[2]}{$tip[3]}{komm}  = $line[7]||$line[8]||'?';
 		
 		$subnet{$tip[2]}{$tip[3]}{pros} = int 100*$subnet{$tip[2]}{$tip[3]}{mask}/ $subnet{$tip[2]}{$tip[3]}{max}; 
-	    }
-
-
-	    if ($line[2] > 27)
-	    {
-		$unntak{$tip[2]}++;
-	    }
-	    if ($line[2] == 23)
-	    {
-		$dob_net{$tip[2]}++;
+		
+		if ($line[2] == 23)
+		{
+		    $dob_net{$tip[2]}++;
+		}
 	    }
 	}
     }
-
     &skriv_tabell;
 }
 
