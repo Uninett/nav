@@ -1,7 +1,6 @@
-#!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.23 2003/01/02 21:59:10 magnun Exp $
+$Id: RunQueue.py,v 1.24 2003/01/03 15:47:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -84,8 +83,6 @@ class _RunQueue:
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
-        
-
 
     def getMaxRunCount(self):
         return self._maxRunCount
@@ -96,7 +93,6 @@ class _RunQueue:
         if type(r) == types.TupleType:
             pri,obj=r
             self.pq.put(pri,obj)
-            self.debug.log("Got job with priority")
         else:
             self.rq.put(r)
 
@@ -135,13 +131,15 @@ class _RunQueue:
                 scheduledTime=float(scheduledTime)
                 now=time.time()
                 wait=scheduledTime-now
-                #self.debug.log("Job scheduled in %s secs" % wait)
-                # Execute scheduled priority jobs if any
+                # If we have priority ready we
+                # return it now.
                 if wait <= 0:
                     r=self.pq.get()
                     self.lock.release()
                     return r
-            # Execute unpriorited jobs if any
+            # We have no priority jobs ready.
+            # Check if we have unpriority jobs
+            # to execute
             if len(self.rq) > 0:
                 r=self.rq.get()
                 self.lock.release()
@@ -149,7 +147,7 @@ class _RunQueue:
             # Wait to execute priority job, break if new jobs arrive
             else:
                 self.numThreadsWaiting+=1
-                self.debug.log("Thread waits for %s secs"%wait)
+                self.debug.log("Thread waits for %s secs"%wait,7)
                 self.awaitWork.wait(wait)
             
 
