@@ -58,19 +58,15 @@ IPTTLDEC = 1
 IP_MSS = 576
 
 # Helper functions
-
-import regex
-rx_addr = regex.compile('\([0-9]+\)\.\([0-9]+\)\.\([0-9]+\)\.\([0-9]+\)')
+import re
+rx_addr = re.compile('\([0-9]+\)\.\([0-9]+\)\.\([0-9]+\)\.\([0-9]+\)')
 
 def dotted_to_int(s, rx=rx_addr):
     if rx.match(s) == -1:
 	raise ValueError, "not a valid IP address"
     parts = map(lambda x:chr(x), map(string.atoi, rx.group(1, 2, 3, 4)))
-    return string.joinfields(parts, '')
+    return string.join(parts, '')
 
-# The basic packet
-
-#class Packet(inet.EncapsPacket):
 class Packet:
     """An IP packet.
 
@@ -157,9 +153,7 @@ class Packet:
 	self.dst = string.joinfields(map(lambda x:str(ord(x)), dst), '.')
 
     def __disassemble(self, raw_packet, cksum=0):
-	# Ok, I didn't realize this. The kernel does the checksum for
-	# you, even on a raw packet. Plus, the Python cksum code seems
-	# to be buggy. It's different than the IP version by ...01010
+	# The kernel computes the checksum, even on a raw packet. 
 	packet = inet.net2iph(raw_packet)
 	b1 = ord(packet[0])
 	self.v = (b1 >> 4) & 0x0f
