@@ -94,6 +94,9 @@
       A:visited { color: #336699; text-decoration: none; }
       A:hover   { color: #000000; text-decoration: underline; }
       A:active  { color: #6699CC; text-decoration: none; }
+
+      div#footer { clear: left; text-align: center; }
+      .copyright { font-size: x-small; color: #999999; }
 #end def standardCSS
 $standardCSS()
 
@@ -221,17 +224,17 @@ $showPath(True)
 #end def content
 $content()
 
+<div id="footer">
 <hr noshade size="1" color="#cccccc">
-<font size="1" color="#999999">
-<center>
+<p class="copyright">
 NAV - Copyright &copy; 2003-2004 NTNU ITEA <br>
 #if $user.id == 0
 You are not logged in.
 #else
 You are logged in as <a href="/index/userinfo">$user.name</a>.
 #end if
-</center>
-</font>
+</p>
+</div>
 
   </body>
 </html>
