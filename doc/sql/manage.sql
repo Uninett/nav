@@ -613,9 +613,6 @@ GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
 GRANT ALL    ON typesnmpoid TO getDeviceData;
 GRANT SELECT,UPDATE ON snmpoid TO getDeviceData;
-GRANT ALL ON eventq TO getDeviceData;
-GRANT ALL ON eventq_eventqid_seq TO getDeviceData;
-GRANT ALL ON eventqvar TO getDeviceData;
 
 
 -------- vlanPlot end ------
@@ -679,11 +676,8 @@ CREATE TABLE rrd_datasource (
   thresholdstate VARCHAR CHECK (thresholdstate='active' OR thresholdstate='inactive')
 );
 
-GRANT ALL ON rrd_file TO rrduser;
 GRANT ALL ON rrd_file TO manage;
-GRANT ALL ON rrd_datasource TO rrduser;
 GRANT ALL ON rrd_datasource TO manage;
-GRANT SELECT ON subsystem TO rrduser;
 GRANT ALL ON subsystem TO manage;
 
 -- 
@@ -761,6 +755,12 @@ CREATE TABLE eventqvar (
   UNIQUE(eventqid, var) -- only one val per var per event
 );
 CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
+
+-- Grants for these objects
+GRANT ALL ON eventq TO getDeviceData;
+GRANT ALL ON eventq_eventqid_seq TO getDeviceData;
+GRANT ALL ON eventqvar TO getDeviceData;
+
 
 -- alert tables
 DROP TABLE alertq CASCADE;
