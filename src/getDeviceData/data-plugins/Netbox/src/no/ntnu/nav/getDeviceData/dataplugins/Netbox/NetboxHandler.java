@@ -61,7 +61,7 @@ public class NetboxHandler implements DataHandler {
 			netboxMap = m;
 			sysnameSet = set;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-			Log.d("INIT", "Dumped module in " + dumpUsedTime + " ms");
+			Log.d("INIT", "Dumped device/netbox in " + dumpUsedTime + " ms");
 
 		} catch (SQLException e) {
 			Log.e("INIT", "SQLException: " + e.getMessage());
