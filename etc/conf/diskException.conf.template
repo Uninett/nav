@@ -1,0 +1,34 @@
+# This config file tells us which mountpoints we will ignore.
+# It affects all the units in the databasetable boks that has kat=SRV
+# Also check the table boksdisk to see the names of the mountpoints
+# The config file has 3 separate fields : server mountpoint option
+#
+# Example 1: If you have a lot of computers that automount a partition
+#            called /Units/whatever you don't want do monitor this partition 
+#            cause it will just show up periodic.We use the 3 separate
+#            fields like this:
+#            *		/Units	recursive		
+#            This means: on all servers, * , we ignore the partition
+#            that starts with /Units , if there are other partitions
+#            that is named /Units/whatever we also ignore them ,
+#            recursive.
+# Example 2: If you have one partition you don't want to monitor on 
+#            your servers you simply use:
+#            *   "/opt/Star office"
+#            This is like example 1 but without the clause recursive 
+#            If you have a partition called /opt/Star office/whatever
+#            it will be monitored. Also notice the use of " " , this is 
+#            because we have a split in the name star office.
+# Example 3: If you don't want to monitor any disks on the computer
+#            jeeves.stud you use:
+#            jeeves.stud *
+# Example 4: If you don't want to monitor the disk E:\ on krakatau.stud
+#            you use:
+#            krakatau.stud E:\
+# Our whole config file now should look like this :
+# *		/Units			recursive
+# *		/Stores     recursive
+# *		"/opt/Star office"
+# krakatau.stud	E:\
+# jeeves.stud	*
+
