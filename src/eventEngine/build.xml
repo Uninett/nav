@@ -26,6 +26,7 @@
     <ant inheritAll="false" dir="handler-plugins/Info"/>
     <ant inheritAll="false" dir="handler-plugins/BoxState"/>
     <ant inheritAll="false" dir="handler-plugins/ServiceState"/>
+    <ant inheritAll="false" dir="handler-plugins/DeviceTracker"/>
   </target>
 
   <target name="compile" depends="init"
