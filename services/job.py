@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: magnun $
-$Id: job.py,v 1.30 2002/06/20 16:23:17 magnun Exp $
+$Id: job.py,v 1.31 2002/06/20 18:46:31 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -374,6 +374,9 @@ class PopHandler(JobHandler):
 		JobHandler.__init__(self, "pop3", serviceid, boksid, (ip, port), args, version)
 
 	def execute(self):
+		"""
+		hihi
+		"""
 		args = self.getArgs()
 		user = args.get("username","")
 		passwd = args.get("password", "")
