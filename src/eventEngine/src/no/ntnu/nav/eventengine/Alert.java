@@ -16,6 +16,8 @@ public interface Alert
 
 	public void addVar(String key, String val);
 
+	public void setAlerttype(String alerttype);
+
 	public void addEvent (Event e);
 
 }

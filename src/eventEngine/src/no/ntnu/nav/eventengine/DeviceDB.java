@@ -28,7 +28,7 @@ public class DeviceDB
 
 		// Fetch all unclosed alerthist records
 		try {
-			ResultSet rs = Database.query("SELECT * FROM alerthist NATURAL LEFT JOIN alerthistvar WHERE end_t='infinity'");
+			ResultSet rs = Database.query("SELECT * FROM alerthist NATURAL LEFT JOIN alerthistvar WHERE end_time='infinity'");
 			while (rs.next()) {
 				EventImpl e = eventImplFactory(rs, true);
 				downAlertMap.put(e.getKey(), e);
@@ -54,9 +54,9 @@ public class DeviceDB
 		int id = rs.getInt(tableid);
 		String source = rs.getString("source");
 		int deviceid = rs.getInt("deviceid");
-		int boksid = rs.getInt("boksid");
+		int boxid = rs.getInt("netboxid");
 		int subid = rs.getInt("subid");
-		String time = rs.getString(history?"start_t":"time");
+		String time = rs.getString(history?"start_time":"time");
 		String eventtypeid = rs.getString("eventtypeid");
 		char state = history ? 's' : rs.getString("state").charAt(0);
 		int value = rs.getInt("value");
@@ -75,7 +75,7 @@ public class DeviceDB
 			rs.previous();
 		}
 
-		EventImpl e = new EventImpl(id, source, deviceid, boksid, subid, time, eventtypeid, state, value, severity, varMap);
+		EventImpl e = new EventImpl(id, source, deviceid, boxid, subid, time, eventtypeid, state, value, severity, varMap);
 		return e;
 	}
 
@@ -143,11 +143,18 @@ public class DeviceDB
 		return key;
 	}
 
-
 	public Alert alertFactory(Event e)
 	{
-		if (e == null) return new EventImpl();
-		return new EventImpl((EventImpl)e);
+		return alertFactory(e, null);
+	}
+
+	public Alert alertFactory(Event e, String alerttype)
+	{
+		EventImpl ei;
+		if (e == null) ei = new EventImpl();
+		else ei = new EventImpl((EventImpl)e);
+		if (alerttype != null) ei.setAlerttype(alerttype);
+		return ei;
 	}
 
 	/**
@@ -179,7 +186,7 @@ public class DeviceDB
 				EventImpl da = (EventImpl)getDownAlert(e);
 				if (da == null) throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
 				int alerthistid = da.getEventqid();
-				Database.update("UPDATE alerthist SET end_t = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
+				Database.update("UPDATE alerthist SET end_time = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
 				removeDownAlert = true;
 			}
 
@@ -228,7 +235,7 @@ public class DeviceDB
 				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
-				"boksid", e.getBoksidSql(),
+				"netboxid", e.getBoksidSql(),
 				"subid", e.getSubidSql(),
 				"time", e.getTimeSql(),
 				"eventtypeid", e.getEventtypeidSql(),
@@ -242,10 +249,10 @@ public class DeviceDB
 				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
-				"boksid", e.getBoksidSql(),
+				"netboxid", e.getBoksidSql(),
 				"subid", e.getSubidSql(),
-				"start_t", e.getTimeSql(),
-				"end_t", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
+				"start_time", e.getTimeSql(),
+				"end_time", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
 				"eventtypeid", e.getEventtypeidSql(),
 				"value", e.getValueSql(),
 				"severity", e.getSeveritySql()
@@ -254,6 +261,24 @@ public class DeviceDB
 		}
 		Database.insert(table, ins);
 
+		if (!history) {
+			Iterator it = e.getMsgs();
+			while (it.hasNext()) {
+				String[] s = (String[])it.next();
+				String media = s[0];
+				String lang = s[1];
+				String msg = s[2];
+
+				String[] insv = {
+					tableid, String.valueOf(id),
+					"msgtype", media,
+					"language", lang,
+					"msg", msg
+				};
+				Database.insert(tablevar, insv);
+			}
+		}
+		/*
 		Iterator i = e.getVarMap().entrySet().iterator();
 		if (i.hasNext()) {
 			while (i.hasNext()) {
@@ -271,6 +296,7 @@ public class DeviceDB
 				}
 			}
 		}
+		*/
 		return id;
 	}
 

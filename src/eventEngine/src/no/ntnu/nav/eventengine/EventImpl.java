@@ -5,6 +5,8 @@ import no.ntnu.nav.Database.*;
 import java.util.*;
 import java.io.*;
 import java.text.*;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 class EventImpl implements Event, Alert
@@ -121,6 +123,23 @@ class EventImpl implements Event, Alert
 	}
 
 	public void setAlerttype(String alerttype) { this.alerttype = alerttype; }
+	public Iterator getMsgs() {
+		if (alerttype == null) return null;
+
+		// Update varMap from database
+		try {
+			ResultSet rs = Database.query("SELECT * from device JOIN netbox USING (deviceid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN location USING (locationid) WHERE deviceid = " + deviceid);
+			ResultSetMetaData rsmd = rs.getMetaData();
+			if (rs.next()) {
+				HashMap hm = getHashFromResultSet(rs, rsmd);
+				varMap.putAll(hm);
+			}
+		} catch (SQLException e) {
+			errl("EventImpl: SQLException when fetching data from deviceid("+deviceid+"): " + e.getMessage());
+		}
+
+		return AlertmsgParser.formatMsgs(eventtypeid, alerttype, varMap);
+	}
 
 	public void addEvent (Event e) { eventList.add(e); }
 
@@ -158,6 +177,11 @@ class EventImpl implements Event, Alert
 
 	public boolean isDisposed() { return disposed; }
 
+	public static boolean setAlertmsgFile(String s) throws ParseException
+	{
+		return AlertmsgParser.setAlertmsgFile(s);
+	}
+
 	private Date stringToDate(String d) throws ParseException
 	{
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -188,9 +212,13 @@ class EventImpl implements Event, Alert
 	}
 
 
-	public static boolean setAlertmsgFile(String s) throws ParseException
+	private HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md) throws SQLException
 	{
-		return AlertmsgParser.setAlertmsgFile(s);
+		HashMap hm = new HashMap();
+		for (int i=md.getColumnCount(); i > 0; i--) {
+			hm.put(md.getColumnName(i), rs.getString(i));
+		}
+		return hm;
 	}
 
 	private static void outd(Object o) { System.out.print(o); }
@@ -204,7 +232,7 @@ class AlertmsgParser
 {
 	private static File alertmsgFile;
 	private static long alertmsgLastModified;
-	private static Map eventtypeidMap = new HashMap();
+	private static Map eventtypeidMap;
 
 	public static boolean setAlertmsgFile(String s) throws ParseException
 	{
@@ -223,10 +251,49 @@ class AlertmsgParser
 		return true;
 	}
 
-	public static Iterator formatMsgs(String eventtypeid, String alerttype, Map varMap) throws ParseException
+	public static Iterator formatMsgs(String eventtypeid, String alerttype, Map varMap)
 	{
+		try {
+			parseAlertmsg();
+		} catch (ParseException e) {
+			outld("ParseException when parsing alertmsg file: " + e.getMessage());
+		} catch (IOException e) {
+			outld("IOException when parsing alertmsg file: " + e.getMessage());
+		}
 
-		return null;
+		Map m = (Map)eventtypeidMap.get(eventtypeid);
+		if (m == null) {
+			outld("Eventtypeid: " + eventtypeid + " not found in alertmsg file!");
+			return null;
+		}
+
+		List msgList = (List)m.get(alerttype);
+		if (msgList == null) {
+			outld("Alerttype: " + alerttype + " not found in alertmsg file!");
+			return null;
+		}
+
+		List l = new ArrayList();
+		for (Iterator it=msgList.iterator(); it.hasNext();) {
+			String[] s = (String[])it.next();
+
+			StringBuffer msg = new StringBuffer(s[2]);
+
+			int i = 0;
+			while ( (i=msg.indexOf("$", i)) != -1) {
+				if (++i == msg.length()) break;
+				int e = i;
+				while (e < msg.length() && Character.isLetterOrDigit(msg.charAt(e))) e++;
+				String var = msg.substring(i, e).trim();
+				if (var.length() == 0) continue;
+				if (varMap.containsKey(var)) {
+					msg.replace(i-1, e, (String)varMap.get(var));
+				}
+			}
+			s[2] = msg.toString();
+			l.add(s);
+		}
+		return l.iterator();
 	}
 
 	private static final int EXP_EVENTTYPEID = 0;
@@ -238,6 +305,7 @@ class AlertmsgParser
 	private static void parseAlertmsg() throws ParseException, IOException
 	{
 		if (alertmsgFile == null || alertmsgFile.lastModified() == alertmsgLastModified) return;
+		alertmsgLastModified = alertmsgFile.lastModified();
 
 		BufferedReader in = new BufferedReader(new FileReader(alertmsgFile));
 
@@ -247,6 +315,9 @@ class AlertmsgParser
 		boolean allow_colon_block = false;
 		boolean is_colon_block = false;
 
+		Map etMap = new HashMap();
+		Map atMap = null;
+		List msgList = null;
 		String eventtypeid = null;
 		String alerttype = null;
 		String media = null;
@@ -288,11 +359,13 @@ class AlertmsgParser
 					switch (state) {
 						case EXP_EVENTTYPEID:
 						eventtypeid = t;
+						if ( (atMap=(Map)etMap.get(t)) == null) etMap.put(t, atMap = new HashMap());
 						exp_begin_block = true;
 						break;
 
 						case EXP_ALERTTYPE:
 						alerttype = t;
+						if ( (msgList=(List)atMap.get(t)) == null) atMap.put(t, msgList = new ArrayList());
 						exp_begin_block = true;
 						break;
 
@@ -304,6 +377,7 @@ class AlertmsgParser
 						case EXP_LANG:
 						lang = t;
 						if (lang.endsWith(":")) {
+							lang = lang.substring(0, lang.length()-1);
 							state++;
 							is_colon_block = true;
 							continue;
@@ -360,6 +434,8 @@ class AlertmsgParser
 						outld(msg);
 						outld("---");
 
+						msgList.add(new String[] { media, lang, msg } );
+
 						break;
 					}
 				}
@@ -369,6 +445,8 @@ class AlertmsgParser
 		if (state != 0) {
 			throw new ParseException("Parse error on line " + lineno + ": " + state + " unterminated blocks.", 0);
 		}
+
+		eventtypeidMap = etMap;
 
 	}
 

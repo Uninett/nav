@@ -90,8 +90,6 @@ class eventEngine
 			errl("  " + e.getMessage());
 			return;
 		}
-		errl("parsing of " + alertmsgFile + " ok!");
-		if (true) return;
 
 		// The eventq monitor
 		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB);
@@ -449,7 +447,7 @@ class EventqMonitorTask extends TimerTask
 	DeviceDB devDB;
 
 	Map handlerCache = new HashMap();
-	int lastEventqid = 3162;
+	int lastEventqid = 20567;
 
 	public EventqMonitorTask(Map handlerClassMap, DeviceDB devDB)
 	{
@@ -485,7 +483,7 @@ class EventqMonitorTask extends TimerTask
 	{
 		try {
 			//outld("Last lastEventqid is: " + lastEventqid);
-			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,boksid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
+			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
 			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,boksid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' and source='pping' ORDER BY eventqid");
 			if (rs.getFetchSize() > 0) outld("Fetched " + rs.getFetchSize() + " events from eventq");
 
@@ -533,11 +531,11 @@ COMMIT;
 - tekno-sw is going down...
 
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',678,678,'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',534,533,'boxState','s',100);
 COMMIT;
 
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',678,678,'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',534,533,'boxState','e',100);
 COMMIT;
 
 - mask-stud-368-h2 is going down...
