@@ -260,8 +260,14 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='cModel';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cModel','1.3.6.1.4.1.9.3.6.11.1.2','cgw',NULL,'0',NULL,'0');
 
+DELETE FROM snmpoid WHERE oidkey='cChassisSlots';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cChassisSlots','1.3.6.1.4.1.9.3.6.12','Cisco',NULL,'0',NULL,'0','chassisSlots','OLD-CISCO-CHASSIS-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='cCardSlotNumber';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardSlotNumber','1.3.6.1.4.1.9.3.6.11.1.7','Slot card slotnumber mapping','Cisco','0',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='cCardContainedByIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardContainedByIndex','1.3.6.1.4.1.9.3.6.11.1.8','cardIndex of the parent card which directly contains this card, or 0 if contained by the chassis','Cisco','0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='cCardHwVersion';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cCardHwVersion','1.3.6.1.4.1.9.3.6.11.1.5','Slot card hardware version','Cisco','0',NULL,'0');
@@ -311,8 +317,14 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 DELETE FROM snmpoid WHERE oidkey='cHw';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cHw','1.3.6.1.4.1.9.3.6.11.1.5','cgw',NULL,'0',NULL,'0');
 
+DELETE FROM snmpoid WHERE oidkey='cChassisType';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cChassisType','1.3.6.1.4.1.9.3.6.1','Cisco',NULL,'t',NULL,'0', 'chassisType', 'OLD-CISCO-CHASSIS-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='cChassisVersion';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cChassisVersion','1.3.6.1.4.1.9.3.6.2','Cisco',NULL,'t',NULL,'0', 'chassisVersion', 'OLD-CISCO-CHASSIS-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='cSerial';
-INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cSerial','1.3.6.1.4.1.9.3.6.3','cgw',NULL,'t',NULL,'0');
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib) VALUES ('cSerial','1.3.6.1.4.1.9.3.6.3','cgw',NULL,'t',NULL,'0', 'chassisId', 'OLD-CISCO-CHASSIS-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='ifHCInUcastPkts';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('ifHCInUcastPkts','1.3.6.1.2.1.31.1.1.1.7','','mib-II','0',NULL,'0');
@@ -331,6 +343,9 @@ INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, de
 
 DELETE FROM snmpoid WHERE oidkey='cL3HwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3HwVer','1.3.6.1.4.1.9.9.92.1.1.1.4','Hardware version','cL3','0',NULL,'0');
+
+DELETE FROM snmpoid WHERE oidkey='cL3FwVer';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3FwVer','1.3.6.1.4.1.9.9.92.1.1.1.7','Firmware version','cL3','0',NULL,'0');
 
 DELETE FROM snmpoid WHERE oidkey='cL3SwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex) VALUES ('cL3SwVer','1.3.6.1.4.1.9.9.92.1.1.1.8','Software version','cL3','0',NULL,'0');
