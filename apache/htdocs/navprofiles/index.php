@@ -203,8 +203,8 @@ $meny->newOption(gettext("WAP-oppsett"), "wap", 1, array('wap.php') );
 $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
 
 print "<p>";
-$meny->newOption(gettext("Brukere"), "admin", 1000, array('admin.php') );
-$meny->newOption(gettext("Brukergrupper"), "gruppe", 1000, array('gruppe.php') );
+$meny->newOption(gettext("Brukere"), "admin", 105, array('admin.php') );
+$meny->newOption(gettext("Brukergrupper"), "gruppe", 105, array('gruppe.php') );
 $meny->newOption(gettext("Felles Utst.grp."), "futstyr", 100, array('fellesutstyr.php') );
 $meny->newOption(gettext("Felles Utst.filter"), "ffilter", 100, array('fellesfilter.php') );
 $meny->newOption(gettext("Adm. match-felt"), "filtermatchadm", 100, array('filtermatchadm.php') );
