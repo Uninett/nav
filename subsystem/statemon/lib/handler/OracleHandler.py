@@ -1,5 +1,5 @@
 """
-$Id: OracleHandler.py,v 1.2 2003/06/19 09:43:21 arveva Exp $
+$Id: OracleHandler.py,v 1.3 2003/06/20 06:12:10 arveva Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/OracleHandler.py,v $
 """
 
@@ -23,7 +23,7 @@ import cx_Oracle
 #        JobHandler.__init__(self, "oracle", service, port=1521, **kwargs)
 #    def execute(self):
 try:
-    connection = cx_Oracle.connect("nav_agent/ag3gva_r@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=TCP)(PROTOCOL=TCP)(Host=shinsaku.itea.ntnu.no)(Port=1521)))(CONNECT_DATA=(SID=FSKURS)(GLOBAL_NAME=FSKURS.ntnu.no)))")
+    connection = cx_Oracle.connect("nav_agent/ag3gva_r@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=TCP)(PROTOCOL=TCP)(Host=shinsaku.itea.ntnu.no)(Port=1521)))(CONNECT_DATA=(SID=FSKURS)(GLOBAL_NAME=FSKURS)))")
     cursor = connection.cursor()
     cursor.arraysize = 50
     cursor.execute("""
