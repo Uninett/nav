@@ -332,6 +332,7 @@ class Module(_Wrapper):
     _sqlFields =  {'descr': 'descr',
                   'device': 'deviceid',
                   'downsince': 'downsince',
+                  'model': 'model',
                   'module': 'module',
                   'moduleid': 'moduleid',
                   'netbox': 'netboxid',
