@@ -640,6 +640,8 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
 (1, 100, true, 100);
 
+
+
 -- Matchfields
 
 INSERT INTO MatchField (matchfieldid, name, valueid, valuename, valuecategory, valuesort, showlist, descr) VALUES 
@@ -708,7 +710,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (10, 18);
 
 
 -- giving away permission to select from sequences..
-GRANT SELECT ON accountids, accountgroupids, alarmadresseid, brukerprofilid, tidsperiodeid, utstyrgruppeid, utstyrfilterid, matchfieldids, filtermatchid, operatorids,loggid TO navprofile;
+GRANT SELECT, UPDATE ON accountids, accountgroupids, alarmadresseid, brukerprofilid, tidsperiodeid, utstyrgruppeid, utstyrfilterid, matchfieldids, filtermatchid, operatorids,loggid TO navprofile;
 
 -- giving away permissions to add change and delete from tables...
 GRANT DELETE, SELECT, INSERT, UPDATE ON account, accountgroup, accountingroup, accountproperty, alarmadresse, brukerprofil, preference, tidsperiode, utstyrgruppe, varsle, rettighet, brukerrettighet, defaultutstyr, utstyrfilter, gruppetilfilter, matchfield, filtermatch, operator, logg TO navprofile;
