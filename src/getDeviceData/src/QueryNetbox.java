@@ -255,7 +255,7 @@ public class QueryNetbox extends Thread
 
 	private static Object removeRunQHeadNoCheck() {
 		synchronized (nbRunQ) {
-			if (nbRunQ.isEmpty()) return new Long(Integer.MAX_VALUE);
+			if (nbRunQ.isEmpty()) return new Long(System.currentTimeMillis() + Integer.MAX_VALUE); // Infinity...
 
 			Long nextRun = (Long)nbRunQ.firstKey();
 			if (nextRun.longValue() > System.currentTimeMillis()) return new Long(nextRun.longValue() - System.currentTimeMillis());

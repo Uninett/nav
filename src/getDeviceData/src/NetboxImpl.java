@@ -122,7 +122,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	// Next run for this Netbox
 	long getNextRun() {
-		if (oidRunQ.isEmpty()) return Long.MAX_VALUE;
+		if (oidRunQ.isEmpty()) return System.currentTimeMillis() + Integer.MAX_VALUE; // Infinity...
 		return ((Long)oidRunQ.firstKey()).longValue();
 	}
 
