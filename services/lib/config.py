@@ -1,6 +1,6 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.8 2002/08/16 19:38:30 magnun Exp $
+$Id: config.py,v 1.9 2002/08/26 20:55:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
 Implements the singleton pattern ensuring only one
@@ -8,16 +8,24 @@ instance created.
 """
 import os, re
 
+CONFIGFILEPATH=['/usr/local/navme/etc/conf/','.']
 
 class Conf(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
-        try:
-            self._configfile=open(self._file, "r")
-        except:
-            print "Failed to open %s" % configfile
-            os.sys.exit(0)
+        self._configfile=None
+        for path in CONFIGFILEPATH:
+            file=os.path.join(os.path.abspath(path),self._file)
+            try:
+                self._configfile=open(file, "r")
+                break
+            except IOError:
+                pass
 
+        if self._configfile is None:
+            print "Failed to open %s" % self._file
+            print str(info)
+            os.sys.exit(0)
         self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
         self.parsefile()
 

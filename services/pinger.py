@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.3 2002/08/16 19:38:30 magnun Exp $
+$Id: pinger.py,v 1.4 2002/08/26 20:55:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -9,17 +9,21 @@ os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/ping")
 
-import megaping, db, debug, config, signal, getopt, time
+import megaping, db, debug, config, signal, getopt, time, pwd
 
 class pinger:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
+        self.config=config.pingconf()
+        self.debug=debug.debug(level=int(self.config.get('debuglevel',5)))
+        self.debug.log("Setting debuglevel=%s "% self.config.get('debuglevel',5))
         self._isrunning=1
-        self._looptime=60
+        self._looptime=int(self.config.get('checkinterval',60))
+        self.debug.log("Setting checkinterval=%i" %self._looptime)
         self._debuglevel=0
-        self._pidfile=kwargs.get('pidfile', 'controller.pid')
+        self._pidfile=self.config.get('pidfile', 'pinger.pid')
         self.dbconf=config.dbconf()
         self.db=db.db(self.dbconf)
         self.down=[]
@@ -34,29 +38,6 @@ class pinger:
 
         hosts = self.db.hostsToPing()
         self.hosts = map(lambda x:x[0], hosts)
-
-    def start(self, nofork):
-        """
-        Forks a new prosess, letting the service run as
-        a daemon.
-        """
-        if nofork:
-            self.main()
-        else:    
-            pid=os.fork()
-            if pid > 0:
-                try:
-                    self._pidfile=open(self._pidfile, 'w')
-                    self._pidfile.write(str(pid)+'\n')
-                    self._pidfile.close()
-                except:
-                    print "Could not open %s" % self._pidfile
-                os.sys.stdin.close()
-                os.sys.stdout.close()
-                os.sys.stderr.close()
-                os.sys.exit()
-            else:
-                self.main()
 
     def main(self):
         """
@@ -77,22 +58,23 @@ class pinger:
             #Rapporter bokser som har gått ned
             for each in reportdown:
                 self.db.pingEvent(each, 'DOWN')
-                print "Markerer %s som nede." % each
+                self.debug.log("%s marked as down." % each)
             #Rapporter bokser som har kommet opp
             for each in reportup:
                 self.db.pingEvent(each, 'UP')
-                print "Markerer %s som oppe." % each
+                self.debug.log( "%s marked as up." % each)
 
-            print "%i hosts checked in %03.3f secs. %i hosts is currently marked as down." % (len(self.hosts),elapsedtime,len(self.down))
-            time.sleep(20)
+            self.debug.log("%i hosts checked in %03.3f secs. %i hosts currently marked as down." % (len(self.hosts),elapsedtime,len(self.down)))
+            wait=self._looptime-elapsedtime
+            self.debug.log("Sleeping %03.3f secs" % wait,6)
+            time.sleep(wait)
 
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
-            self.debug( "Caught SIGTERM. Exiting.")
-            self._runqueue.terminate()
+            self.debug.log("Caught SIGTERM. Exiting.",1)
             os.sys.exit(0)
         else:
-            self.debug( "Caught %s. Resuming operation." % (signum))
+            self.debug.log( "Caught %s. Resuming operation." % (signum),2)
 
 
 
@@ -104,9 +86,51 @@ def help():
     -h  --help      Displays this message
     -n  --nofork    Run in foreground
     -v  --version   Display version and exit
-    
+
+    Written by Stian Søiland and Magnus Nordseth, 2002
     """  % os.path.basename(os.sys.argv[0])
 
+def start(nofork):
+    """
+    Forks a new prosess, letting the service run as
+    a daemon.
+    """
+    conf = config.pingconf()
+    if not nofork:
+        pid=os.fork()
+        if pid > 0:
+            pidfile=conf.get('pidfile', 'pinger.pid')
+            try:
+                pidfile=open(pidfile, 'w')
+                pidfile.write(str(pid)+'\n')
+                pidfile.close()
+            except Exception, e:
+                print "Could not open %s" % pidfile
+                print str(e)
+            os.sys.exit()
+
+        logfile = conf.get('logfile','pinger.log')
+        print "Logger til ", logfile
+        os.sys.stdout = open(logfile,'w')
+        os.sys.stderr = open(logfile,'w')
+    myPinger=pinger(socket=sock)
+    myPinger.main()
+
+
+def setUser():
+    conf = config.pingconf()
+    username = conf.get('user', 'nobody')
+    try:
+        uid = pwd.getpwnam(username)[2]
+        gid = pwd.getpwnam(username)[3]
+    except KeyError:
+        print "User %s not found" % username
+        print "Exiting"
+        os.sys.exit()
+    print "Setting UID to %s " % uid 
+    os.setegid(gid)
+    os.seteuid(uid)
+    print "Now running as user %s" % username
 
 if __name__=='__main__':
     try:
@@ -130,9 +154,5 @@ if __name__=='__main__':
 
     print "Creating socket"
     sock = megaping.makeSocket()
-    print "Setting UID to navcron"
-    os.setegid(1000)
-    os.seteuid(518)
-    print "Now running as user navcron"
-    myPinger=pinger(socket=sock)
-    myPinger.start(nofork)
+    setUser()
+    start(nofork)

@@ -1,12 +1,12 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.18 2002/08/08 18:09:20 magnun Exp $
+$Id: RunQueue.py,v 1.19 2002/08/26 20:55:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
 from threading import *
-import threading, DEQueue, sys, time, types, traceback, debug
+import threading, DEQueue, sys, time, types, traceback, debug, config
 
 class TerminateException(Exception):
     pass
@@ -78,11 +78,14 @@ class worker(threading.Thread):
 
 class RunQueue:
     def __init__(self,**kwargs):
-        self._maxThreads=kwargs.get('maxthreads', sys.maxint)
-        self._controller=kwargs.get('controller',self)
+        self.conf=config.serviceconf()
         self.debug=debug.debug()
+        self._maxThreads=int(self.conf.get('maxthreads', sys.maxint))
+        self._maxRunCount=int(self.conf.get('recycle interval',50))
+        self.debug.log("Setting maxthreads=%i" % self._maxThreads)
+        self.debug.log("Setting maxRunCount=%i" % self._maxRunCount)
+        self._controller=kwargs.get('controller',self)
         self.numThreadsWaiting=0
-        self._maxRunCount=50
         self.workers=[]
         self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
@@ -90,8 +93,8 @@ class RunQueue:
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
-        self._observer=observer(self)
-        self.enq(self._observer)
+        #self._observer=observer(self)
+        #self.enq(self._observer)
 
 
     def getMaxRunCount(self):
@@ -137,4 +140,7 @@ class RunQueue:
         self.awaitWork.notifyAll()
         self.numThreadsWaiting=0
         self.lock.release()
-			
+	self.debug.log("Waiting for threads to terminate...")
+        for i in self.workers:
+            i.join()
+        self.debug.log("All threads have finished")

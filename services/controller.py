@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.24 2002/08/16 19:38:30 magnun Exp $
+$Id: controller.py,v 1.25 2002/08/26 20:55:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -9,21 +9,24 @@ import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib/handler")
 
-import RunQueue, types, time, job, getopt, signal,  config, db
+import RunQueue, types, time, job, getopt, signal, config, db, debug
 
 class controller:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
         signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
+        self.conf=config.serviceconf()
+        debugger=debug.debug()
+        self.debug=debugger.log
         self._isrunning=1
         self._jobs=[]
-        self._looptime=60
         self._debuglevel=0
-        self._runqueue=RunQueue.RunQueue(controller=self, maxthreads=20)
-        self._pidfile=kwargs.get('pidfile', 'controller.pid')
-        self.config=config.dbconf("db.conf")
-        self.db=db.db(self.config)
+        self._runqueue=RunQueue.RunQueue(controller=self)
+        self._pidfile=self.conf.get('pidfile', 'controller.pid')
+        self._looptime=int(self.conf.get("checkinterval",60))
+        self.debug("Setting checkinterval=%i"% self._looptime)
+        self.db=db.db(config.dbconf("db.conf"))
         self.db.start()
 
 
@@ -46,51 +49,11 @@ class controller:
 
         self._jobs=s
                     
-
-    def debug(self, msg):
-        """
-        Provides simple debug support. Should we use syslog or
-        a file?
-        """
-        if self._debuglevel > 1:
-            if type(msg)==types.StringType:
-                print (time.strftime('%d %b %Y %H:%M:%S ', time.localtime())) + msg
-
-    def start(self, nofork):
-        """
-        Forks a new prosess, letting the service run as
-        a daemon.
-        """
-        if nofork:
-            self.main()
-        else:    
-            pid=os.fork()
-            if pid > 0:
-                try:
-                    self._pidfile=open(self._pidfile, 'w')
-                    self._pidfile.write(str(pid)+'\n')
-                    self._pidfile.close()
-                except:
-                    print "Could not open %s" % self._pidfile
-                os.sys.stdin.close()
-                os.sys.stdout.close()
-                os.sys.stderr.close()
-                os.sys.exit()
-            else:
-                self.main()
-
     def main(self):
         """
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
-
-        #database.startup("host = %s user = %s dbname = %s password = %s" %
-        #                 (self.config["dbhost"],
-        #                  "manage",
-        #                  self.config["db_nav"],
-        #                  self.config["userpw_manage"]))
-        
         while self._isrunning:
             start=time.time()
             self.getJobs()
@@ -110,6 +73,34 @@ class controller:
         else:
             self.debug( "Caught %s. Resuming operation." % (signum))
 
+
+def start(nofork):
+    """
+    Forks a new prosess, letting the service run as
+    a daemon.
+    """
+    conf = config.serviceconf()
+    if not nofork:
+        pid=os.fork()
+        if pid > 0:
+            pidfile=conf.get('pidfile', 'servicemon.pid')
+            try:
+                pidfile=open(pidfile, 'w')
+                pidfile.write(str(pid)+'\n')
+                pidfile.close()
+            except Exception, e:
+                print "Could not open %s" % pidfile
+                print str(e)
+            os.sys.exit()
+                
+        logfile = conf.get('logfile','servicemon.log')
+        print "Logger til ", logfile
+        os.sys.stdout = open(logfile,'w')
+        os.sys.stderr = open(logfile,'w')
+
+    myController=controller()
+    myController.main()
+                
 
 
 
@@ -144,5 +135,4 @@ if __name__=='__main__':
         help()
         os.sys.exit(2)
                                
-    myController=controller()
-    myController.start(nofork)
+    start(nofork)

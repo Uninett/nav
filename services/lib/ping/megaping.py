@@ -1,5 +1,4 @@
 import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,debug,config
-
 # From our friend:
 import ip,icmp
 
@@ -62,19 +61,21 @@ class Host:
       return 1
 
 class MegaPing(RotaterPlugin):
-  def __init__(self, socket=None, conf=None, packetsize=64):
+  def __init__(self, socket=None, conf=None):
     RotaterPlugin.__init__(self)
     self.debug = debug.debug()
     if conf is None:
       self.conf=config.pingconf()
     else:
       self.conf=conf
-    self.delay=float(self.conf.get('delay',0.002))
+    self.delay=float(self.conf.get('delay',2))/1000   # convert from ms
     self.timeout = int(self.conf.get('timeout', 5))
     self.hosts = []
     self.sent = 0
+    packetsize = int(self.conf.get('packetsize', 64))
     if packetsize < 44:
-      raise "Packetsize (%s) too small to create cookie. Must be at least 44."
+      raise """Packetsize (%s) too small to create a proper cookie.
+               Must be at least 44."""%packetsize
     self.packetsize=packetsize
     self.totaltWait=0
     self.pid = os.getpid()
