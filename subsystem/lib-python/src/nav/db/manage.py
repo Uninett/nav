@@ -20,16 +20,13 @@ def _customizeTables():
     # Add/replace links between tables
     Swp_netbox._userClasses['to_module'] = Module
     Swp_netbox._userClasses['to_netbox'] = Netbox
-    Swport._userClasses['to_cat'] = Cat
     Swport._userClasses['to_netbox'] = Netbox
     Swport._userClasses['to_swport'] = Swport
     # rename from *_netboxid to *_netbox
     Swp_netbox._sqlFields['to_netbox'] = 'to_netboxid'
-    Swport._sqlFields['to_cat'] = 'to_catid'
     Swport._sqlFields['to_netbox'] = 'to_netboxid'
     Swport._sqlFields['to_swport'] = 'to_swportid'
     del Swp_netbox._sqlFields['to_netboxid']
-    del Swport._sqlFields['to_catid']
     del Swport._sqlFields['to_netboxid']
     del Swport._sqlFields['to_swportid']
     # this is not a reference to the Type-table =)
@@ -105,7 +102,6 @@ class Portconfig(Swport):
                   'portname': 'portname',
                   'speed': 'speed',
                   'swportid': 'swportid',
-                  'to_cat': 'to_catid',
                   'to_netbox': 'to_netboxid',
                   'to_swport': 'to_swportid',
                   'trunk': 'trunk',
@@ -119,7 +115,7 @@ class Portconfig(Swport):
                 )
     # these userclasses are all from Module
     _userClasses =  {'device': 'Device', 'netbox': 'Netbox',
-                     'to_cat': 'Cat', 'to_netbox': 'Netbox',
+                     'to_netbox': 'Netbox',
                      'to_swport': 'Swport',
     }
     _orderBy = ('module', 'port')
