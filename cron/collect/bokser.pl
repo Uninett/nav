@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: bokser.pl,v 1.14 2002/12/18 15:32:22 gartmann Exp $
+# $Id: bokser.pl,v 1.15 2003/01/10 11:57:25 gartmann Exp $
 # This file is part of the NAV project.
 # bokser reads the files nettel.txt (containing network devices) and server.txt
 # and does SNMPget to require information. This information is updated in the 
@@ -187,7 +187,7 @@ sub fil_server{
 		$temp_netboxcategory{$ip}{$value} = 1;
 	    }
 
-	    @_ = ($ip,@_[0..1],lc($_[2]),uc($_[3]),@_[4..5]);
+	    @_ = ($ip,@_[0..1],$_[2],uc($_[3]),@_[4..5]);
 	    @_ = map rydd($_), @_;
 	    my $sysname = &fjern_endelse($_[2],$endelser);
 	    ($sysname,%sysnamehash) = &sysnameuniqueify($sysname,\%sysnamehash);
