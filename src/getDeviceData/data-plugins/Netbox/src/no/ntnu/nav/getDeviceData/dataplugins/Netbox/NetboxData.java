@@ -14,8 +14,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 
 public class NetboxData extends Device
 {
-	// 20 second difference minimum before we change uptime
-	private static final double DELTA = 20.0;
+	// 300 second difference minimum before we change uptime
+	private static final double DELTA = 300.0;
 	private int deviceid;
 
 	private Netbox nb;
