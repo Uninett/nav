@@ -323,7 +323,7 @@ def editPage(req,page,request):
     selected = []
     # Get editid from url if it is present (external links and list links)
     if len(request) > 1:
-        if len(request) == 3:
+        if (len(request) == 3) or (len(request) == 4):
             if request[2]:
                 selected = [request[2]]
 
@@ -377,7 +377,10 @@ def editPage(req,page,request):
 
     # Make form object for template
     outputForm = editForm()
-    outputForm.action = page.basePath + 'edit/'
+    if hasattr(page,'action'):
+        outputForm.action = page.action
+    else:
+        outputForm.action = page.basePath + 'edit/'
 
     # List definition, get sorting parameter
     sort = None
@@ -1564,7 +1567,7 @@ class pageCabling(editdbPage):
             # Field definitions {field name: [input object, required]}
             f = {'roomid': [inputSelect(options=r),REQ_TRUE,'Room',
                             FIELD_STRING],
-                 'jack': [inputText(),REQ_TRUE,'Jack',FIELD_INTEGER],
+                 'jack': [inputText(),REQ_TRUE,'Jack',FIELD_STRING],
                  'building': [inputText(),REQ_TRUE,'Building',FIELD_STRING],
                  'targetroom': [inputText(),REQ_TRUE,'Target room',
                                 FIELD_STRING],
@@ -2736,6 +2739,11 @@ class pagePatch(editdbPage):
     editMultipleAllowed = False
     editIdAllowed = False
 
+    # Set action which makes browser jump to the first
+    # selectTree layoutbox. Makes editing easier on screens
+    # with low y resolution.
+    action = basePath + 'edit/#top'
+
     # Unique fields (for errormessages from add/update)
     # Set to none since this page checks this in it's own 
     # add/update functions
@@ -2772,6 +2780,19 @@ class pagePatch(editdbPage):
             
             # Specific init
             self.defaultSortBy = 1
+
+            # List filters
+            #elf.filters = [('Show patches in room ',
+            #                ('roomid,descr',
+            #                 'room',
+            #                 None,
+            #                 None,
+            #                 'roomid'),
+            #                 1,
+            #                 2,
+            #                 'flt_room',
+                               
+
 
             # list of (heading text, show sortlink, compare function for sort)
             self.headingDefinition = [('Select',False,None),
@@ -2828,6 +2849,9 @@ class pagePatch(editdbPage):
             selectedRoom = []
             selectedLocation = []
             split = None
+            addRoom = []
+            addJack = []
+            addSwport = []
             if editId:
                 # Preserve the selected id
                 self.addHidden(selectList.cnameChk,editId)
@@ -2839,6 +2863,22 @@ class pagePatch(editdbPage):
                 selectedRoom = [patch.cabling.room.roomid]
                 selectedLocation = [patch.cabling.room.location.locationid]
                 split = patch.split
+                # Entries which must be added manually since the sql
+                # excludes them (not to be shown while adding, but must
+                # be shown while editing since they are selected)
+                addRoom = [(patch.cabling.room.location.locationid,
+                            patch.cabling.room.roomid,
+                            patch.cabling.room.roomid + ' (' +\
+                            patch.cabling.room.descr + ')',
+                            True)]
+                addJack = [(patch.cabling.room.roomid,
+                            str(patch.cabling.cablingid),
+                            patch.cabling.jack,
+                            True)]
+                addSwport = [(str(patch.swport.module.moduleid),
+                              str(patch.swport.swportid),
+                              str(patch.swport.port),
+                              True)]
   
             self.help = 'Add or update a patch by selecting a jack and a ' +\
                         'switchport. Optionally select a split. Only rooms '+\
@@ -2865,10 +2905,7 @@ class pagePatch(editdbPage):
                 # jacks. Available means a jack which isn't already in 
                 # use by a patch, or a jack which is use by one patch
                 # but is splitted.
-                if editId:
-                    roomSQL = None
-                else:
-                    roomSQL = """((SELECT count(*) FROM cabling WHERE cabling.roomid=room.roomid AND (((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no')) < 2)) > 0) AND ((SELECT count(*) FROM netbox WHERE roomid=room.roomid AND (netbox.catid='SW' OR netbox.catid='GSW' OR netbox.catid='EDGE')) > 0)"""
+                roomSQL = """((SELECT count(*) FROM cabling WHERE cabling.roomid=room.roomid AND (((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no')) < 2)) > 0) AND ((SELECT count(*) FROM netbox WHERE roomid=room.roomid AND (netbox.catid='SW' OR netbox.catid='GSW' OR netbox.catid='EDGE')) > 0)"""
 
                 select2 = updateSelect(select1,
                                        'locationid',
@@ -2880,6 +2917,7 @@ class pagePatch(editdbPage):
                                         roomSQL,
                                         'roomid'),
                                         selectedRoom,
+                                        addRoom,
                                         optionFormat='$1 ($2)',
                                         selectMultiple=False,
                                         multipleHeight=8)
@@ -2888,10 +2926,7 @@ class pagePatch(editdbPage):
                 # Selects "available" jacks. Available means a jack which isn't
                 # already in use by a patch, or a jack which is use by one 
                 # patch but is splitted.
-                if editId:
-                    jackSQL = None
-                else:
-                    jackSQL = """(((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no') < 2))"""
+                jackSQL = """(((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split='no') = 0) AND ((SELECT count(*) FROM patch WHERE patch.cablingid=cabling.cablingid AND patch.split!='no') < 2))"""
 
                 select3 = updateSelect(select2,
                                        'roomid',
@@ -2903,6 +2938,7 @@ class pagePatch(editdbPage):
                                         jackSQL,
                                         'jack'),
                                         selectedJack,
+                                        addJack,
                                         optgroupFormat='Room $1',
                                         postOnChange=True,
                                         selectMultiple=False,
@@ -2938,10 +2974,7 @@ class pagePatch(editdbPage):
                                        multipleHeight=8)
 
                 # Don't show swports that are already in use
-                if editId:
-                    swportSQL = None
-                else:
-                    swportSQL = "((SELECT count(*) FROM patch WHERE patch.swportid=swport.swportid) < 1)"
+                swportSQL = "((SELECT count(*) FROM patch WHERE patch.swportid=swport.swportid) < 1)"
 
                 select6 = updateSelect(select5,
                                        'moduleid',
@@ -2953,6 +2986,7 @@ class pagePatch(editdbPage):
                                         swportSQL,
                                         'port'),
                                         selectedSwport,
+                                        addSwport,
                                         optgroupFormat='Module $2',
                                         postOnChange=False,
                                         selectMultiple=False,
@@ -2967,7 +3001,7 @@ class pagePatch(editdbPage):
                 st.addSelect(select6)
                 st.update(req.form)
 
-                lb = selectTreeLayoutBox()
+                lb = selectTreeLayoutBox(htmlId='top')
                 lb.addSelect(select1)
                 lb.addSelect(select2)
                 lb.addSelect(select3)
@@ -3045,7 +3079,7 @@ class pagePatch(editdbPage):
                     otherPatch = otherPatch[0]
                     otherSplit = otherPatch.split
 
-                    if SPLIT_OPPOSITE[split] != SPLIT_OPPOSITE[otherSplit]:
+                    if SPLIT_OPPOSITE[split] != otherSplit:
                         # Splits are different, either update split on the
                         # other entry, or delete it if this split='no'
                         otherPatchId = str(otherPatch.patchid)
@@ -3111,7 +3145,6 @@ class pagePatch(editdbPage):
                 # be splitted, if split is changed then do something
                 otherPatch = otherPatch[0]
                 otherSplit = otherPatch.split
-                #raise(split+','+otherSplit+','+SPLIT_OPPOSITE[otherSplit])
 
                 if SPLIT_OPPOSITE[split] != otherSplit:
                     # Splits are different, either update split on the
@@ -4870,7 +4903,7 @@ class bulkdefPatch:
     ''' Contains defintion of fields for bulk importing patches '''
     tablename = 'patch'
     table = nav.db.manage.Patch
-    uniqueField = 'patchid'
+    uniqueField = ['swportid','cablingid']
     enforce_max_fields = True
     max_num_fields = 6
     min_num_fields = 5
@@ -4887,7 +4920,7 @@ class bulkdefPatch:
               ('port',0,True,False),
               ('roomid',0,True,False),
               ('jack',0,True,False),
-              ('split',0,True,True)]
+              ('split',0,False,True)]
 
     def checkValidity(cls,field,data):
         ''' Checks validity (eg. existance) of input fields.'''
@@ -4997,6 +5030,16 @@ class bulkdefPatch:
                                  " jack '" + data + "' " +\
                                  " and room '" + cls.roomId + "'" +\
                                  " not found in database"
+        if field == 'split':
+            if data:
+                if len(data):
+                    splitlist = []
+                    for split in SPLIT_LIST:
+                        splitlist.append(split[0])
+                    if not data in splitlist:
+                        status = BULK_STATUS_RED_ERROR
+                        remark = "Split '" + data + "' not found in config " +\
+                                 "file"
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -5041,6 +5084,48 @@ class bulkdefPatch:
 
             row['swportid'] = str(swport.swportid)
             row['cablingid'] = str(cabling.cablingid)
+
+            if not row.has_key('split'):
+                # Set default split
+                row['split'] = SPLIT_LIST[0][0]
+            if not len(row['split']):
+                row['split'] = SPLIT_LIST[0][0]
+
+            # Check if the selected jack already belongs to a patch
+            where = "cablingid='" + row['cablingid'] + "'"
+            otherPatch = nav.db.manage.Patch.getAll(where)
+            if otherPatch:
+                # Already exists a patch with this jack, it must
+                # be splitted, if split is changed then do something
+                otherPatch = otherPatch[0]
+                otherSplit = otherPatch.split
+
+                if SPLIT_OPPOSITE[row['split']] != otherSplit:
+                    # Splits are different, either update split on the
+                    # other entry, or delete it if this split='no'
+                    otherPatchId = str(otherPatch.patchid)
+                    # SPLIT_LIST[0][0] is default entry id
+                    if row['split'] == SPLIT_LIST[0][0]:
+                        # Delete other entry
+                        deleteEntry([otherPatchId],'patch','patchid')
+                    else:
+                        # Update other entry
+                        fields = {'split': SPLIT_OPPOSITE[row['split']]}
+                        updateEntryFields(fields,'patch',
+                                          'patchid',otherPatchId)
+
+        # Check uniqueness
+        where = ""
+        first = True
+        for field in cls.uniqueField:
+            if not first:
+                where += 'AND '
+            where += field + "='" + row[field] + "' "
+            first = False
+        result = cls.table.getAll(where)
+        if result:
+            row = None
+
         return row
     preInsert = classmethod(preInsert)
 
