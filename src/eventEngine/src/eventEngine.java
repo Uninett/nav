@@ -108,7 +108,7 @@ class eventEngine
 		pmt.run(); // Load all plugins
 
 		timer.schedule(pmt, 5 * 1000, 5 * 1000); // Check for new plugin every 5 seconds
-		timer.schedule(emt, 1 * 1000, 5 * 1000); // Check for new events every 5 seconds
+		timer.schedule(emt, 5 * 1000, 5 * 1000); // Check for new events every 5 seconds
 
 	}
 
@@ -522,6 +522,11 @@ class EventqMonitorTask extends TimerTask
 BEGIN;
 INSERT INTO eventq (source,target,netboxid,eventtypeid,state,severity) VALUES ('pping','getDeviceData',659,'notification','x',0);
 INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData' AND netboxid=659),'command','runNetbox');
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,eventtypeid,state,severity) VALUES ('pping','getDeviceData','notification','x',0);
+INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE target='getDeviceData'),'command','updateFromDB');
 COMMIT;
 
 --kjemi-384-sw
