@@ -51,11 +51,11 @@ def handler(req):
 	if section.lower() == "mac":
 		page.form = MACForm(args.get("mac"),args.get("days"),args.get("dns"),args.get("aip"),args.get("naip"))
 		if args.get("mac"):
-			tracker = MACSQLQuery(args.get("mac"),args.get("days"),args.get("sigurd"))
+			tracker = MACSQLQuery(args.get("mac"),args.get("days"))
 	elif section.lower() == "switchports" or section.lower() == "switchport" or section.lower() == "swport" or section.lower() == "port" or section.lower() == "swp": 
 		page.form = SwPortForm(args.get("switch"),args.get("module"),args.get("port"),args.get("days"),args.get("dns"),args.get("aip"),args.get("naip"))
 		if args.get("switch"):
-			tracker = SwPortSQLQuery(args.get("switch"),args.get("module"),args.get("port"),args.get("days"),args.get("sigurd"))
+			tracker = SwPortSQLQuery(args.get("switch"),args.get("module"),args.get("port"),args.get("days"))
 	else:
 		
 		prefixid = args.get("prefixid")
@@ -83,7 +83,7 @@ def handler(req):
 				from_ip = temp_ip
 				temp_ip = None
 			
-			tracker = IPSQLQuery(from_ip,to_ip,args.get("days"),args.get("sigurd"))
+			tracker = IPSQLQuery(from_ip,to_ip,args.get("days"))
 
 	if tracker:
 		result = tracker.getTable(args.get("dns"),args.get("aip"),args.get("naip"))
@@ -101,7 +101,7 @@ def handler(req):
 
 class MachineTrackerSQLQuery:
 
-	def __init__(self,days="7",extra="",order_by="",sigurd=""):
+	def __init__(self,days="7",extra="",order_by=""):
 
 		self.host = {}
 
@@ -109,7 +109,7 @@ class MachineTrackerSQLQuery:
 			days = 7
 	      	fra = DateTime.today()-(int(days)*DateTime.oneDay)
       		fra = fra.strftime("%Y-%m-%d")
-	      	tidstreng = "((cam.end_time > '" + fra + "' or cam.end_time='infinity') and (arp.end_time > '" + fra + "' or arp.end_time='infinity'))"  
+	      	tidstreng = "((cam.end_time > '" + fra + "' or cam.end_time='infinity') or (arp.end_time > '" + fra + "' or arp.end_time='infinity'))"  
 	
 		if extra:
 			extra = "and " + extra
@@ -122,8 +122,6 @@ class MachineTrackerSQLQuery:
 			
                 self.sql = "select distinct arp.ip,cam.mac,cam.sysname as switch,module,port,coalesce(cam.start_time,arp.start_time) as start, coalesce(cam.end_time,arp.end_time) as end from arp left join cam using (mac) where " + tidstreng + " " + extra + " " + order_by
 
-		if sigurd:
-			raise ValueError, self.sql
 
 	def getTable(self, dns="",aip="",naip=""):
 
@@ -251,28 +249,31 @@ class ResultRow:
 
 class MACSQLQuery (MachineTrackerSQLQuery):
 
-	def __init__(self,mac,days="7",sigurd=""):
-		mac = mac.replace(":", "")
+	def __init__(self,mac,days="7"):
+		mac = re.sub("[^0-9a-fA-F]+","",mac)
+		#mac = mac.replace(":", "")
 		mac = mac.lower()
 		if mac.startswith("*") or mac.endswith("*"):
 			extra = "mac ilike '%s'"%mac.replace("*","%")
 		else:
 			extra = "mac='%s'"%mac
 		order_by = "mac,cam.sysname,module,port,arp.ip,start"
-		MachineTrackerSQLQuery.__init__(self,days,extra,order_by,sigurd)
+		MachineTrackerSQLQuery.__init__(self,days,extra,order_by)
 
 class IPSQLQuery (MachineTrackerSQLQuery):
 
-	def __init__(self,ip_from,ip_to,days="7",sigurd=""):
+	def __init__(self,ip_from,ip_to,days="7"):
+		ip_from = re.sub("[^0-9.]+","",ip_from)
+		ip_to = re.sub("[^0-9.]+","",ip_to)
 		self.ip_from = ip_from
 		self.ip_to = ip_to
 		order_by = "arp.ip,cam.sysname,module,mac,port,start"
 		extra = "ip between '%s' and '%s'"%(ip_from,ip_to)
-		MachineTrackerSQLQuery.__init__(self,days,extra,order_by,sigurd)
+		MachineTrackerSQLQuery.__init__(self,days,extra,order_by)
 
 class SwPortSQLQuery (MachineTrackerSQLQuery):
 
-	def __init__(self,ip,module,port,days="7",sigurd=""):
+	def __init__(self,ip,module,port,days="7"):
 
 		#oversetter en evt fra hostname til ip
 		#try:
@@ -294,7 +295,7 @@ class SwPortSQLQuery (MachineTrackerSQLQuery):
 
 		extra = "cam.sysname = '%s' and %s and %s"%(ip,modulesql,portsql)
 
-		MachineTrackerSQLQuery.__init__(self,days,extra,order_by,sigurd)
+		MachineTrackerSQLQuery.__init__(self,days,extra,order_by)
 
 class MachineTrackerForm:
 

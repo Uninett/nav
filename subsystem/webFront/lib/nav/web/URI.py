@@ -25,6 +25,7 @@
 #
 
 import re,string
+from urllib import unquote_plus as unquote
 from urlparse import urlsplit
 
 class URI:
@@ -102,6 +103,6 @@ class URI:
     def get(self,var):
 
         if self.args.has_key(var):
-            return self.args[var]
+            return unquote(self.args[var])
         else:
             return
