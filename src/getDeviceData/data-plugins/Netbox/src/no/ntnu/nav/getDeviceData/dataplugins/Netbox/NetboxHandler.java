@@ -148,7 +148,7 @@ public class NetboxHandler implements DataHandler {
 				varMap.put("new_deviceid", String.valueOf(n.getDeviceid()));
 				varMap.put("old_serial", String.valueOf(oldn.getSerial()));
 				varMap.put("new_serial", String.valueOf(n.getSerial()));
-				EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
+				EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "info", Event.STATE_NONE, 0, 0, varMap);
 				netboxMap.remove(netboxid);
 				return;
 			}

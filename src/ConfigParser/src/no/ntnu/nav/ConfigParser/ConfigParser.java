@@ -35,7 +35,7 @@ import java.util.*;
  * corresponding key.
  *
  * @version $LastChangedRevision$ $LastChangedDate$
- * @author Kristian Eide
+ * @author Kristian Eide &lt;kreide@online.no&gt;
  */
 
 public class ConfigParser

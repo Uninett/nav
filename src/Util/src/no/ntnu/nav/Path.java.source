@@ -1,17 +1,42 @@
-package no.ntnu.nav;
 /*
- * $Id: $
+ * Path
  * 
- * This file is part of the NAV project.
- * Defines the system paths of the NAV installation.
+ * $LastChangedRevision$
  *
- * The actual source of this file has a .source extension, and will be
- * processed by Ant to have property references expanded (sort of
- * preprocessing of the code)
+ * $LastChangedDate$
  *
- * Copyright (C) 2003 NTNU ITEA
- * Authors: Morten Vold <morten.vold@itea.ntnu.no>
+ * Copyright 2002-2004 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package no.ntnu.nav;
+
+/**
+ * <p> This file is part of the NAV project.  Defines the system paths
+ * of the NAV installation.  </p>
  *
+ * <p> The actual source of this file has a .source extension, and
+ * will be processed by Ant to have property references expanded (sort
+ * of preprocessing of the code) </p>
+ *
+ * @version $LastChangedRevision$ $LastChangedDate$
+ * @author Morten Vold &lt;morten.vold@itea.ntnu.no&gt;
+ * @author Kristian Eide &lt;kreide@online.no&gt;
  */
 
 public class Path {

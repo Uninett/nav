@@ -48,7 +48,7 @@ import no.ntnu.nav.logger.Log;
  * at a time.  </p>
  *
  * @version $LastChangedRevision$ $LastChangedDate$
- * @author Kristian Eide <kreide@online.no>
+ * @author Kristian Eide &lt;kreide@online.no&gt;
  */
 
 public class Database
