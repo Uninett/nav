@@ -148,6 +148,8 @@ class ServiceTable:
                 for timeframe in self.timeframes:
                     stat = self.getServiceRrds(service, timeframe, ds)
                     row.append(stat)
+            editLink = urlbuilder.createLink(service, subsystem="editdb", content="[edit]")
+            row.append(editLink)
             self.html.add(_class=service.up, *row)
             
     def getServiceRrds(self, service, timeframe, ds):
