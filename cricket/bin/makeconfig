@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.18 2002/06/19 13:28:29 stain Exp $
+# $Id: makeconfig,v 1.19 2002/06/20 16:15:01 cricket Exp $
 
 use strict;
 
@@ -129,10 +129,9 @@ sub Servers {
           if ($community) {
 
                 my $win32 = 0;
-                if($ostype =~ /^1\.3\.6\.1\.4\.1\.311/) {
+                if($ostype && $ostype =~ /^1\.3\.6\.1\.4\.1\.311\./) {
                   $win32 = 1;
                 }
-          
                 my $server = $sysname;
                 my $sysname = $sysname . '.ntnu.no';
                 mkdir ("$path/servers/$sysname",0775);
@@ -202,7 +201,9 @@ sub Servers {
                 print FIL "\tserver\t=\t$sysname\n";
                 print FIL "\n";
                 while (my $interface = $getinterfaces->fetchrow) {
-                  print FIL "target \"$interface\"\n";
+		  my $name = $interface;
+		  $name =~ s/\s/_/g; # We need filesystem-rrd-nicer names without spaces
+                  print FIL "target \"$name\"\n";
                   print FIL "\ttarget-type = interface\n";
                   print FIL "\tinst = map(interface-name)\n";
                   print FIL "\tinterface-name = \"$interface\"\n";
@@ -222,11 +223,13 @@ sub Servers {
                 while (my $mnt = $getpaths->fetchrow) {
 	          my $name = $mnt;
 		  if($name eq "/") {
-			  $name = "root";
+			  $name = "root";    # Special case for /
 		  } else {
-			  $name =~ s,/,_,g;
-			  $name =~ s/^_//;
+			  $name =~ s,/,_,g;  # /usr/local -> _usr_local
+			  $name =~ s/^_//;   # _usr -> usr
+			  $name =~ s/:.*//;  # C:\ Label nblablabalb -> C
 		  }
+		  $mnt =~ s/\\/\\\\/g; # Double escape backslashes in configfile  C:\ --> C:\\
                   print FIL "target \"$name\"\n";
                   print FIL "\ttarget-type = disk\n";
                   print FIL "\tinst = map(mount-point)\n";
