@@ -1,4 +1,3 @@
-
 import os
 import sys
 import time
@@ -24,7 +23,6 @@ except NameError:
 config = nav.config.readConfig('devbrowser.conf')
 
 def handler(req):
-    
     # catch warnings
     warns = []
     def showwarning(message, category, filename, lineno):
@@ -55,11 +53,13 @@ def handler(req):
     req.session.setdefault('uris', [])
     request['query'] = req.args
     request['session'] = req.session
-        
+    request['req'] = req # in case som might need it. 
     # result = handler.process(request)
     req.content_type = "text/html; charset=utf-8"
     try:
         result = handler.process(request)
+        # Ensure our session gets saved =)
+        req.session.save()
     except RedirectError, error:
         redirect(req, error.args[0])
     
@@ -72,8 +72,12 @@ def handler(req):
             result.append(message)
     
     template = DeviceBrowserTemplate()
-    # DRRRRRRTYUUUYY
-    template.content = lambda: result
+
+    # Our template defines the variable myContent and treeselect.
+    # Of course we can add more of them
+    template.myContent = result
+    template.treeselect = None
+
     response = template.respond()
 
     req.send_http_header()
@@ -103,7 +107,7 @@ def classifyUri(uri):
         return request
 
     # Clean this up in some way
-    if name in 'netbox cat vlan room service sla notfound alert org'.split():
+    if name in 'netbox cat vlan room service sla notfound alert org rrd'.split():
         request['type'] = name
     else:
         # Ok, it's a sysname.. split out to a seperate function that
