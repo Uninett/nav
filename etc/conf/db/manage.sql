@@ -525,7 +525,6 @@ GRANT SELECT ON swport TO vPServer;
 GRANT SELECT ON swportvlan TO vPServer;
 GRANT SELECT,UPDATE ON vp_netbox_grp_info TO vPServer;
 GRANT ALL    ON vp_netbox_grp TO vPServer;
-GRANT ALL    ON vp_netbox_grp_vp_netbox_grpid_seq TO vPServer;
 GRANT ALL    ON vp_netbox_xy TO vPServer;
 GRANT ALL    ON vp_netbox_xy_vp_netbox_xyid_seq TO vPServer;
 
