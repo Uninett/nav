@@ -43,6 +43,7 @@ RESET = "\033[0m"
 OK = "%s[  %sOK  %s]%s" % (DARK, GREEN, DARK, RESET)
 FAILED = "%s[%sFAILED%s]%s" % (DARK, RED, DARK, RESET)
 WARN = "%s[ %sWARN %s]%s" % (DARK, YELLOW, DARK, RESET)
+RESULTCODES = (OK, WARN, FAILED)
 
 
 
@@ -83,6 +84,14 @@ class RotaterPlugin:
         if self._status:
             sys.stdout.write(self._status + " ")
         self._drawRotate()
+    def _drawResult(self, result):
+        if result in RESULTCODES:
+            length = 8
+        else:
+            length = len(result)
+        length += 1    
+        sys.stdout.write(DEL*length) # go back to prev line
+        sys.stdout.write(result+"\n")
     def _format(self, msgs):
         """Returns the arguments almost like when formatted by print"""
         msgs = [str(s) for s in msgs]   
@@ -93,7 +102,7 @@ class RotaterPlugin:
             # We have started, erase previous rotate symbol
             sys.stdout.write(DEL)
         if includeStatus and self._status:
-            # Delete the status message as well as the seperator space
+            # Delete the status message
             sys.stdout.write(DEL * (len(self._status)+1))
     def log(self, *msgs):        
         """Writes a logline independent of status line"""
@@ -105,19 +114,26 @@ class RotaterPlugin:
         """Writes just the logline"""
         sys.stdout.write(msg + "\n")
         
-    def status(self, *msg):
-        """Sets status to the arguments given. If result is given,
-           it will be the result of the previous command"""
+    def status(self, *msg, **kwargs):
+        """Sets status to the arguments given. If keyword arg 'result'
+        is given, it will be the result of the previous command"""
+        result = kwargs.get("result")    
         oldStatus = self._status
         self._erase(includeStatus=True)
         if oldStatus and self._logStatus:
             self._log(oldStatus)
+            if result:
+                self._drawResult(result)
         self._status = self._format(msg)
+        if self._status:
+            self._status += " " # add a space for the rotator
         self._drawStatus() 
         sys.stdout.flush()
-    def reset(self):
+    def reset(self, result=None):
         self._erase()
         sys.stdout.write("\n")
+        if result:
+            self._drawResult(result)
         sys.stdout.flush()
         sys.rotate = -1
 
@@ -131,15 +147,24 @@ def __test():
                 'Sexifying',
                 ]
     try:
+        foo.status("Starting test")
         while 1:
-            if random.random() > 0.9:
-                foo.status(random.choice(messages))
+            rand = random.random()
+            if rand > 0.93:
+                msg = random.choice(messages)
+                if rand > 0.5:
+                    # we're going status
+                    result = random.choice(RESULTCODES)
+                    foo.status(msg, result=result)
+                else:
+                    foo.status(msg)
             foo.rotate()
             time.sleep(random.random() / 10)
-            if random.random() > 0.99:
+            if rand > 0.99:
                 raise KeyboardInterrupt
     except KeyboardInterrupt:
-        foo.reset()
+        foo.status("Aborting", result=FAILED)
+        foo.reset(result=OK)
 
 if __name__ == '__main__':
     __test()
