@@ -17,5 +17,5 @@ public interface DeviceDataList
 {
 
 	public void setDeviceData(DeviceData deviceData);
-	public void addSwportData(SwportData swportData);
+	public void addModuleData(ModuleData moduleData);
 }

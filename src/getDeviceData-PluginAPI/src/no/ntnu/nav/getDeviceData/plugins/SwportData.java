@@ -4,77 +4,84 @@ import java.util.ArrayList;
 
 public class SwportData implements Comparable
 {
-	String ifindex;
-	String modul;
-	String port;
+	public static final char PORT_LINK_YES = 'y';
+	public static final char PORT_LINK_NO = 'n';
+	public static final char PORT_LINK_DOWN = 'd';
 
-	String status;
+	int swportid;
+
+	String port;
+	Integer portI;
+	String ifindex;
+
+	char link;
 	String speed;
-	String duplex;
-	String media;
+	char duplex;
+	String media = "";
 	boolean trunk;
-	String portnavn;
+	String portname = "";
 
 	int vlan = 0;
 	ArrayList vlanList;
 
-	public SwportData(String ifindex, String modul, String port)
-	{
-		this.ifindex = ifindex.trim();
-		this.modul = modul.trim();
-		this.port = port.trim();
+	String hexstring;
 
-		this.status = "";
+	public SwportData(String port, String ifindex)
+	{
+		this.port = port.trim();
+		this.portI = new Integer(this.port);
+		this.ifindex = ifindex.trim();
+
+		this.link = PORT_LINK_DOWN;
 		this.speed = "";
-		this.duplex = "";
-		this.media = "";
 		this.trunk = false;
-		this.portnavn = "";
 	}
 
-	public SwportData(String ifindex, String modul, String port, String status, String speed, String duplex, String media, boolean trunk, String portnavn)
+	public SwportData(String port, String ifindex, char link, String speed, char duplex, String media, boolean trunk, String portname)
 	{
-		this.ifindex = ifindex.trim();
-		this.modul = modul.trim();
 		this.port = port.trim();
+		this.portI = new Integer(this.port);
+		this.ifindex = ifindex.trim();
 
-		setStatus(status);
+		this.link = link;
 		this.speed = speed.trim();
-		this.duplex = duplex.trim();
-		this.media = media.trim();
+		this.duplex = duplex;
+		if (media != null) this.media = media.trim();
 		setTrunk(trunk);
-		this.portnavn = portnavn.trim();
-
+		if (portname != null) this.portname = portname.trim();
 	}
+
+	public int getSwportid() { return swportid; }
+	public String getSwportidS() { return String.valueOf(swportid); }
+	public void setSwportid(int i) { swportid = i; }
+	public void setSwportid(String s) { swportid = Integer.parseInt(s); }
+
+	public String getPort() { return port; }
+	public Integer getPortI() { return portI; }
+	public String getPortS() { return ((port.length()==1)?" ":"")+getPort(); }
 
 	public String getIfindex() { return ifindex; }
 	public String getIfindexS() { return ((ifindex.length()==1)?" ":"")+getIfindex(); }
 
-	public String getModul() { return modul; }
-	public String getModulS() { return ((modul.length()==1)?" ":"")+getModul(); }
-
-	public String getPort() { return port; }
-	public String getPortS() { return ((port.length()==1)?" ":"")+getPort(); }
-
-	public String getStatus() { return status; }
-	public String getStatusS() { return ((status.length()==2)?"  ":"")+status; }
+	public char getLink() { return link; }
 
 	public String getSpeed() { return speed; }
-	public String getDuplex() { return duplex; }
+	public char getDuplex() { return duplex; }
+	public String getDuplexS() { return String.valueOf(duplex); }
 	public String getMedia() { return media; }
 	public boolean getTrunk() { return trunk; }
 	public String getTrunkS() { return trunk?"t":"f"; }
-	public String getPortnavn() { return portnavn; }
+	public String getPortname() { return portname; }
 
-	public void setStatus(String s) { status = s.trim(); }
+	public void setLink(char c) { link = c; }
 	public void setSpeed(String s) { speed = s.trim(); }
-	public void setDuplex(String s) { duplex = s.trim(); }
+	public void setDuplex(char c) { duplex = c; }
 	public void setMedia(String s) { media = s.trim(); }
 	public void setTrunk(boolean b) {
 		trunk = b;
 		if (trunk && vlanList == null) vlanList = new ArrayList();
 	}
-	public void setPortnavn(String s) { portnavn = s.trim(); }
+	public void setPortname(String s) { portname = s.trim(); }
 
 	public int getVlan() { return vlan; }
 	public void setVlan(int i) { vlan = i; }
@@ -83,6 +90,12 @@ public class SwportData implements Comparable
 		if (!trunk) return;
 		vlanList.add(vlan);
 	}
+
+	public String getHexstring() {
+		if (hexstring == null) hexstring = getVlanAllowHexString();
+		return hexstring;
+	}
+	public void setHexstring(String s) { hexstring = s; }
 
 	public String getVlanAllowHexString()
 	{
@@ -123,12 +136,24 @@ public class SwportData implements Comparable
 	}
 	*/
 
+	public boolean equals(Object o) {
+		if (o instanceof SwportData) {
+			SwportData sd = (SwportData)o;
+			return (port.equals(sd.port) &&
+					ifindex.equals(sd.ifindex) &&
+					link == sd.link &&
+					speed.equals(sd.speed) &&
+					duplex == sd.duplex &&
+					media.equals(sd.media) &&
+					trunk == sd.trunk &&
+					portname.equals(sd.portname));
+		}
+		return false;
+	}
+
 	public int compareTo(Object o) {
 		SwportData pd = (SwportData)o;
-		if (modul.equals(pd.getModul())) {
-			return new Integer(port).compareTo(new Integer(pd.getPort()));
-		}
-		return new Integer(modul).compareTo(new Integer(pd.getModul()));
+		return new Integer(port).compareTo(new Integer(pd.getPort()));
 	}
-	public String toString() { return getIfindexS()+" "+getModulS()+"/"+getPortS()+": Status: " + getStatusS() + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media; }
+	public String toString() { return getPortS()+": Ifindex: " + getIfindexS() + " Link: " + getLink() + " Speed: " + speed + " Duplex: " + duplex + " Media: " + media; }
 }

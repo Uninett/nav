@@ -13,6 +13,9 @@ public class DeviceData
 	List boksInterface = new ArrayList();
 	boolean boksInterfaceUpdated;
 
+	Map netboxinfo = new HashMap();
+	boolean netboxinfoUpdated;
+
 	public DeviceData() {
 
 	}
@@ -70,8 +73,24 @@ public class DeviceData
 	public List getBoksInterface() { return boksInterface; }
 	public boolean getBoksInterfaceUpdated() { return boksInterfaceUpdated; }
 
+	/**
+	 *
+	 *
+	 */
+	public void addNetboxinfo(String key, String var, String val) {
+		Map m;
+		if ( (m=(Map)netboxinfo.get(key)) == null) netboxinfo.put(key, m=new HashMap());
 
+		Set s;
+		if ( (s=(Set)m.get(var)) == null) m.put(var, s=new HashSet());
 
+		s.add(val);
+	}
+
+	public void netboxinfoUpdated() { netboxinfoUpdated = true; }
+
+	public Map getNetboxinfo() { return netboxinfo; }
+	public boolean getNetboxinfoUpdated() { return netboxinfoUpdated; }
 
 
 }
