@@ -62,7 +62,7 @@ class Host:
     if type(obj) == type(""):
       return self.netbox == obj
     else:
-      return self.netbox == obj
+      return self.netbox.netboxid == obj.netboxid
 
   def logPingTime(self, pingtime):
     netbox = self.netbox
