@@ -27,8 +27,10 @@ nav.db.forgotten.manage._Wrapper.cursor = conn.cursor
 nav.db.forgotten.manage._Wrapper._dbModule = psycopg
 
 import re
-import rrdpresenter
-pres = rrdpresenter.presentation()
+
+from nav.rrd import presenter
+
+pres = presenter.presentation()
 
 # Globals
 exceptions = ['cpu5min','c5000BandwidthMax']
