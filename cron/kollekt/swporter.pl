@@ -60,21 +60,25 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
 my %swport2swportid = &db_hent_dobbel($db,"SELECT boksid,ifindex,swportid FROM swport");
 &db_endring_spesiell($db,\%swport, \%db_swport, \@felt_swport, "swport");
 
+#skriver bare til skjerm
+#foreach my $h (keys %swport2swportid) {
+#    foreach my $hu (keys %{$swport2swportid{$h}}) {
+#	print "\nSWPORTID $hu = $swport2swportid{$h}{$hu}";
+#    }
+#}
 
-foreach my $h (keys %swport2swportid) {
-    foreach my $hu (keys %{$swport2swportid{$h}}) {
-	print "\nSWPORTID $hu = $swport2swportid{$h}{$hu}";
-    }
-}
+# må leses inn på nytt etter at swport er oppdatert
+%swport2swportid = &db_hent_dobbel($db,"SELECT boksid,ifindex,swportid FROM swport");
+
 #må legge på id fra databasen, ikke bare fake-id som ble brukt i swport.
 foreach my $id (keys %swportvlanfeilid) {
-#    print $id;
+    print $id;
     my ($boksid,$ifindex) =  split /\//,$id;    
     my $nyid = $swport2swportid{$boksid}{$ifindex};
     $swportvlan{$nyid} = [$nyid,$swportvlanfeilid{$id}];
 }
 foreach my $id (keys %swportallowedvlanfeilid) {
-#    print $id;
+    print $id;
     my ($boksid,$ifindex) =  split /\//,$id;
     my $nyid = $swport2swportid{$boksid}{$ifindex};
     $swportallowedvlan{$nyid} = [$nyid,$swportallowedvlanfeilid{$id}];

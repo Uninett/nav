@@ -20,7 +20,7 @@ my $ifAlias        = ".1.3.6.1.2.1.31.1.1.1.18";
 my $hsrp_status    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.15";
 my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 
-my $db = &db_connect("manage2","navall","uka97urgf");
+my $db = &db_connect("manage","navall","uka97urgf");
 
 ## antmask tatt ut
 my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","samband","komm");
@@ -34,7 +34,7 @@ my @felt_fil_prefiks = ("nettadr","maske","nettype","orgid","komm");
 my %prefiks = &fil_prefiks($fil_prefiks,scalar(@felt_fil_prefiks));
 
 my %prefiksid = &db_hent_dobbel($db,"SELECT nettadr,maske,prefiksid FROM prefiks");
-my %boks = &db_hent_hash($db,"SELECT boksid,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'");
+my %bokser = &db_hent_hash($db,"SELECT boksid,ip,sysName,watch,ro FROM boks WHERE kat=\'GW\'");
 
 my %boks2prefiks;
 # my %prefiks; definert i fillesinga fra prefiks.txt
@@ -43,12 +43,12 @@ my %db_prefiks = &db_select_hash($db,"prefiks",\@felt_prefiks,1,2);
 my %gwport;
 my %db_gwport = &db_select_hash($db,"gwport",\@felt_gwport,1,2,3);
 
-foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
-    if($boks{$boksid}[3] =~ /y|t/i) {
-	print "$boks{$boksid}[2] er på watch.\n";
+foreach my $boksid (keys %bokser) { #$_ = boksid keys %boks
+    if($bokser{$boksid}[3] =~ /y|t/i) {
+	print "$bokser{$boksid}[2] er på watch.\n";
     } else {
-	if ( &hent_snmpdata($boksid) eq '0' ) {
-	    print "Kunne ikke hente data fra $boks{$boksid}[2]\n";
+	if ( &hent_snmpdata($boksid,$bokser{$boksid}[1],$bokser{$boksid}[4]) eq '0' ) {
+	    print "Kunne ikke hente data fra $bokser{$boksid}[2]\n";
 	}
     }
 }
@@ -60,7 +60,7 @@ foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
 #	&db_manipulate($db,1,"prefiks",\@felt_prefiks,\@{$prefiks{$nettadr}{$maske}},\@{$db_prefiks{$nettadr}{$maske}},$nettadr,$maske);
 #    }
 #}
-&alt($db,1,\%prefiks,\%db_prefiks,"prefiks",\@felt_prefiks,1,2);
+&db_alt($db,2,1,"prefiks",\@felt_prefiks,\%prefiks,\%db_prefiks);
 
 #nå som alle prefiksene er samlet inn, vil det være på sin plass å sette dem inn i boks.
 
@@ -79,7 +79,7 @@ my %nettadr2prefiksid = &db_hent_enkel($db,"SELECT nettadr,prefiksid FROM prefik
 #	}
 #    }
 #}
-&alt($db,1,\%gwport,\%db_gwport,"gwport",\@felt_gwport,1,2,3);
+&db_alt($db,3,1,"gwport",\@felt_gwport,\%gwport,\%db_gwport);
 
 
 #prefiksid i gwport oppdateres her
@@ -112,30 +112,30 @@ foreach my $prefiksid (keys %db_antmask) {
 ######################################
 sub hent_snmpdata {
     my $boksid = $_[0];
-    my $ip = $boks{$boksid}[1];
-    my $ro = $boks{$boksid}[4];
+    my $ip = $_[1];
+    my $ro = $_[2];
     my %interface = ();
     my %gatewayip = ();
     my %id;
     my %boks;
 
-    my @lines = &snmpwalk("$ro\@$ip",$ip2IfIndex);
-    return(0) unless $lines[0];
-    foreach my $line (@lines) {
+    my @ifindex = &snmpwalk("$ro\@$ip",$ip2IfIndex);
+    return(0) unless $ifindex[0];
+    foreach my $line (@ifindex) {
         (my $gwip,my $if) = split(/:/,$line);
 #	print "\n$boksid:$if:gwip:",
 	$interface{$if}{gwip} = $gwip;
 	$gatewayip{$gwip}{ifindex} = $if;
     }
-    my @lines = &snmpwalk("$ro\@$ip",$ifAlias);
-    foreach my $line (@lines) {
+    my @alias = &snmpwalk("$ro\@$ip",$ifAlias);
+    foreach my $line (@alias) {
         (my $if,my $nettnavn) = split(/:/,$line);
 #	print "nettnavn $nettnavn\n\n";
 	$interface{$if}{nettnavn} = $nettnavn;
     }    
-    my @lines = &snmpwalk("$ro\@$ip",$if2Descr);
+    my @descr = &snmpwalk("$ro\@$ip",$if2Descr);
     my %description;
-    foreach my $line (@lines) {
+    foreach my $line (@descr) {
         (my $if,my $interf) = split(/:/,$line);
 	$interface{$if}{interf} = $interf;
 	my ($masterinterf,$subinterf) = split/\./,$interf;
@@ -145,8 +145,8 @@ sub hent_snmpdata {
 	    $description{$masterinterf} = $if;
 	}
     } 
-    my @lines = &snmpwalk("$ro\@$ip",$ip2NetMask);
-    foreach my $line (@lines)
+    my @netmask = &snmpwalk("$ro\@$ip",$ip2NetMask);
+    foreach my $line (@netmask)
     {
         (my $gwip,my $netmask) = split(/:/,$line);
 	$gatewayip{$gwip}{netmask} = $netmask;
@@ -162,31 +162,31 @@ sub hent_snmpdata {
 #	print $gatewayip{$gwip}{prefiksid};
     }
 #over: prefiks& under: gwport
-    my @lines = &snmpwalk("$ro\@$ip",$if2Speed);
-    foreach my $line (@lines) {
+    my @speed = &snmpwalk("$ro\@$ip",$if2Speed);
+    foreach my $line (@speed) {
         (my $if,my $speed) = split(/:/,$line);
 	$speed = ($speed/1e6);
 	$speed =~ s/^(.{0,10}).*/$1/; #tar med de 10 første tegn fra speed
 	$interface{$if}{speed} = $speed;
     }
-    my @lines = &snmpwalk("$ro\@$ip",$if2AdminStatus);
-    foreach my $line (@lines) {                                             
+    my @adminstatus = &snmpwalk("$ro\@$ip",$if2AdminStatus);
+    foreach my $line (@adminstatus) {                                             
 	(my $if,my $status) = split(/:/,$line); 
 	$interface{$if}{status} = $status;
     }
-    my @lines = &snmpwalk("$ro\@$ip",$ifInOctet);
-    foreach my $line (@lines) {                                             
+    my @inoctet = &snmpwalk("$ro\@$ip",$ifInOctet);
+    foreach my $line (@inoctet) {                                             
 	(my $if,my $octet) = split(/:/,$line); 
 	$interface{$if}{octet} = $octet;
 #	$gatewayip{0.0.0.0}{ifindex} = $if;
     }    
-    my @lines = &snmpwalk("$ro\@$ip",$ifType);
-    foreach my $line (@lines) {                                             
+    my @type = &snmpwalk("$ro\@$ip",$ifType);
+    foreach my $line (@type) {                                             
 	(my $if,my $type) = split(/:/,$line); 
 	$interface{$if}{type} = $type;
     }
-    my @lines = &snmpwalk("$ro\@$ip",$ip2ospf);
-    foreach my $line (@lines) {
+    my @ospf = &snmpwalk("$ro\@$ip",$ip2ospf);
+    foreach my $line (@ospf) {
         (my $utv_ip,my $ospf) = split(/:/,$line);
         if ($utv_ip =~ /\.0\.0$/){
             my (@ip) = split(/\./,$utv_ip);
@@ -198,13 +198,14 @@ sub hent_snmpdata {
         }
     }  
 # hsrpgw-triksing
-    my @lines = &snmpwalk("$ro\@$ip",$hsrp_status);
-    foreach my $line (@lines) {
+    my @hsrp = &snmpwalk("$ro\@$ip",$hsrp_status);
+    foreach my $line (@hsrp) {
 	(my $if,undef,my $hsrpstatus) = split(/:|\./,$line);    
 	if($hsrpstatus == 6) {
-	    my ($rootgwip) = &snmpget("$ro\@$ip",$hsrp_rootgw.".".$if.".0");
+	    if(my ($rootgwip) = &snmpget("$ro\@$ip",$hsrp_rootgw.".".$if.".0")){
 #	    print "\n$boksid:$if:nhsrp:",
-	    $gatewayip{$rootgwip}{ifindex} = $if;
+		$gatewayip{$rootgwip}{ifindex} = $if;
+	    }
 	}
     }
 
@@ -282,7 +283,6 @@ sub hent_snmpdata {
 
 	my $interf = $interface{$if}{interf};
 	$_ = &rydd($interface{$if}{nettnavn});
-#	print "\n";
 	unless (/^(?:lan|stam|link|elink)/i || $interf =~ /loopback/i) {
 	    $_ = &rydd($vlan{$nettadr}{$maske});
 	}
@@ -292,10 +292,7 @@ sub hent_snmpdata {
 	    my $nettnavn = $_;
 	    my ($nettype,$org,$anv,$komm) = split /,/;
 	    $nettype = &rydd($nettype);
-	    print $nettype;
 	    $nettype =~ s/lan(\d*)/lan/i;
-	    print $nettype;
-	    print "\n";
 #	    $nettype = "lan";
 	    $org = &rydd($org);
 	    $org =~ s/^(\w*?)\d*$/$1/;
@@ -345,10 +342,14 @@ sub hent_snmpdata {
 	else {
 #	    print "har funnet ukjent $_";
 	    my $nettype = "ukjent";
+	    if($prefiks{$nettadr}{$maske}[8]){
+		print "skriver ikke over $prefiks{$nettadr}{$maske}[8] \n";
+	    } else {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
 					   undef, undef, undef ];
+	}
 	}
 
     }
@@ -363,21 +364,21 @@ sub fil_vlan{
 open VLAN, "</usr/local/nav/etc/vlan.txt";
 foreach (<VLAN>){ #peller ut vlan og putter i nettypehasher
 #    print "\nlinje :: $_ \n";
-    if(/^(\d+)\:(lan\,(\S+?)\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*(?:\#.*)??$/) {
+    if(/^(\d+)\:((?:lan|stam|link)\,(\S+?)\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*(?:\#.*)??$/) {
 	$lan{$3}{$4} = $1;
 #	print "linje: $4\n";
 #	$vlan{$5}{$6} = $2;
-    } elsif (/^(\d+)\:(stam\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
-	$stam{$3} = $1;
+#    } elsif (/^(\d+)\:(stam\,(\S+?))(?:\,\S+?)??(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
+#	$stam{$3} = $1;
 #	print "heeeeeeeeeeeeeeeei $3   $2    $1\n";
 #	$vlan{$4}{$5} = $2;
-    } elsif (/^(\d+)\:(link\,(\S+?)\,(\S+?)(?:\,\S+?)??)(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
-	$link{$3}{$4} = $1;
+#    } elsif (/^(\d+)\:(link\,(\S+?)\,(\S+?)(?:\,\S+?)??)(?:\:(\S+?)\/(\d+))??\s*\#.*$/) {
+#	$link{$3}{$4} = $1;
 #	$vlan{$5}{$6} = $2;
 #    } elsif (/^(\d+)\:elink\,(\S+?)\,(\S+?)(?:\,\S+?)??(?:\:(.*?))??\#.*?$/) {
 #	$elink{$2}{$3} = $1;
 #	$vlan{$1} = ($5);
-    } else {
+#    } else {
 #	print "kommentar: $_";
     }
 #    print "\n$1:$2:$3";    
@@ -407,15 +408,15 @@ close VLAN;
 sub finn_vlan
 {
     my $vlan = "";
-    my ($boks,undef) = split /\./,$boks{$_[1]}[2],2;
+    my ($boks,undef) = split /\./,$bokser{$_[1]}[2],2;
     $_ = $_[0];
-    if(/^lan\d*\,(\S+?)\,(\S+?)(?:\,|$)/i) {
+    if(/^(?:lan|stam)\d*\,(\S+?)\,(\S+?)(?:\,|$)/i) {
 	$vlan = $lan{$1}{$2};
-    } elsif(/^stam\,(\S+?)$/i) {
-	$vlan = $stam{$1};
+#    } elsif(/^stam\,(\S+?)$/i) {
+#	$vlan = $stam{$1};
     }elsif(/^e?link\,(\S+?)(?:\,|$)/i) {
 	if (defined($boks)){
-	    $vlan = $link{$1}{$boks} || $link{$boks}{$1};
+	    $vlan = $lan{$1}{$boks} || $lan{$boks}{$1};
 #	    print "\n:$vlan:$1:$boks";
 #	    return ($boks,$1,$vlan)
 	}
@@ -429,6 +430,7 @@ sub hent_prefiksid {
 }
 sub max_ant_hosts
 {
+    return 0 unless(defined($_[0]));
     return 0 if($_[0] == 0);
     return(($_ = 2**(32-$_[0])-2)>0 ? $_ : 0);
 } 
