@@ -119,6 +119,9 @@ public class NetboxInfoHandler implements DataHandler {
 					} else {
 						// Var exists, try to update before delete
 
+						// Make a copy of valMap so we don't overwrite our cache
+						valMap = new HashMap(valMap);
+
 						// Remove all equal values (the intersection) from both sets
 						// since we don't need to update those
 						Set intersection = new HashSet(newValMap.keySet());
