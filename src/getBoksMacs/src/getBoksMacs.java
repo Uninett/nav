@@ -493,7 +493,7 @@ class getBoksMacs
 		} catch (SecurityException e) {
 			errl("Error, cannot write to user.dir: " + e.getMessage() );
 		} catch (IOException e) {
-			errl("Error, got IOException: " + e.getMessage() );
+			errl("Cannot create job-finished, got IOException: " + e.getMessage() );
 		}
 
 		outflush();

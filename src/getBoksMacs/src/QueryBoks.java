@@ -282,20 +282,21 @@ public class QueryBoks extends Thread
 			for (Iterator netboxIt = netboxList.iterator(); netboxIt.hasNext();) {
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
+				String new_to_swportid = (String)interfaceMap.get(pm.getRemoteIf());
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
 
 				// Sjekk om dette er en duplikat
 				if (swp.contains(key)) {
-					String swp_boksid = null, to_ifindex = null;
+					String swp_boksid = null, to_swportid = null;
 					int misscnt=0;
 					synchronized (swp_d) {
 						if (swp_d.containsKey(key)) {
 							HashMap hm = (HashMap)swp_d.remove(key);
 							swp_boksid = (String)hm.get("swp_netboxid");
 							misscnt = Integer.parseInt((String)hm.get("misscnt"));
-							to_ifindex = (String)hm.get("to_ifindex");
+							to_swportid = (String)hm.get("to_swportid");
 						}
 					}
 					if (swp_boksid != null && misscnt > 0) {
@@ -315,12 +316,12 @@ public class QueryBoks extends Thread
 						swpIncResetMisscnt();
 					}
 
-					if (to_ifindex != null) {
+					if (new_to_swportid != null) {
 						// Nå må vi sjekke om ifindex feltet har endret seg
-						if (!pm.getIfindex().equals(to_ifindex)) {
+						if (!new_to_swportid.equals(to_swportid)) {
 							try {
 								String[] upd = {
-									"to_ifindex", pm.getIfindex()
+									"to_swportid", new_to_swportid
 								};
 								String[] where = {
 									"swp_netboxid", swp_boksid
@@ -350,6 +351,7 @@ public class QueryBoks extends Thread
 					"netboxid", boksId,
 					"ifindex", pm.getIfindex(),
 					"to_netboxid", pm.getToNetboxid(),
+					"to_swportid", new_to_swportid
 				};
 
 				try {
@@ -1412,7 +1414,7 @@ public class QueryBoks extends Thread
 
 		} else {
 			// Nei, da er denne MAC'en ny på porten, og vi må sette inn en record i cam-tabellen
-			s = (String[])mpMap.get(ifindex);
+			s = (String[])mpMap.get(netboxid+":"+ifindex);
 			if (s == null) s = new String[2];
 			String[] insertData = {
 				"netboxid", netboxid,
