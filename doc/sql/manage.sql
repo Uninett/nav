@@ -696,6 +696,8 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxState','boxSunny','Box declared up from a previous shadow state.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
+  ('moduleState','moduleDownWarning','Warning sent before declaring the module down.');
+INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('moduleState','moduleDown','Module declared down.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('moduleState','moduleUp','Module declared up.');
