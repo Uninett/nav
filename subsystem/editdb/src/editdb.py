@@ -2970,17 +2970,17 @@ class editboxNetbox(editbox):
  
         o = [(None,'Select an organisation')]
         for org in editTables.Org.getAllIterator(orderBy='orgid'):
-            o.append((org.orgid,org.orgid + ' (' + org.descr + ')'))
+            o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
 
         r = [(None,'Select a room')]
         for room in editTables.Room.getAllIterator(orderBy='roomid'):
             loc = editTables.Location(room.location).descr
             r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
-                      room.descr + ')'))
+                      str(room.descr) + ')'))
 
         c = [(None,'Select a category')]
         for cat in editTables.Cat.getAllIterator(orderBy='catid'):
-            c.append((cat.catid,cat.catid + ' (' + cat.descr + ')'))
+            c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
 
         # Field definitions {field name: [input object, required]}
         f = {'ip': [inputText(disabled=disabled),REQ_TRUE],
@@ -3264,7 +3264,7 @@ class bulkdefNetbox:
               ('catid',8,True,True),
               ('ro',0,False,True),
               ('rw',0,False,True),
-              ('serial',0,True,True)]
+              ('serial',0,False,False)]
 
     def checkValidity(cls,field,data):
         status = True
@@ -3274,6 +3274,14 @@ class bulkdefNetbox:
                 sysname = gethostbyaddr(data)[0]
             except:
                 remark = "DNS lookup failed, using '" + data + "' as sysname"
+
+        if field == 'serial':
+            if len(data):
+                where = "serial='" + data + "'"
+                device = editTables.Device.getAll(where)
+                if device:
+                    remark = "Duplicate serialnumber '" + data + "', skipping"
+                    status = False
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
@@ -3291,6 +3299,7 @@ class bulkdefNetbox:
                 box = initBox.Box(row['ip'],row['ro'])
                 deviceid = box.getDeviceId()
             except:
+                # If initBox fails, always make a new device
                 deviceid = None
 
         if deviceid:
