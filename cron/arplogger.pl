@@ -1,37 +1,23 @@
 #!/usr/bin/perl
 ## Name:	arpdblogger
-## $Id: arplogger.pl,v 1.5 2001/09/21 15:44:45 gartmann Exp $
+## $Id: arplogger.pl,v 1.6 2001/10/08 10:59:00 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
 ## we are using.
 ## Description:	Print changes in arp caches from previous run
+##
+## Modified by grohi@itea.ntnu.no, Aug/Sept 2001
 ######################################################################
-## Usage: arp hostname [community]
-##        arp {argument} [argument] ...
-##        
-##        argument:
-##        { -f file } | { hostname community }
-##
-##        The lines in file must have the following format:
-##        [ hostname [community] ]
-##
-## Extracts each HOSTNAME's network to media address table using SNMP
-##
-##
+
 
 require 5.002;
 use strict;
 
 use SNMP_Session "0.57"; 
 
-#use SNMP_util;
-
 use BER;
 use Pg;
-
-# ipNetToMediaPhysAddress
-#my $ip2mac = '.1.3.6.1.2.1.4.22.1.2';
 
 my @arguments;
 my $filename;
@@ -62,8 +48,6 @@ my %OIDS = (
 	    'ipNetToMediaPhysAddress' => [1,3,6,1,2,1,4,22,1,2],
 	    'ipNetToMediaType' => [1,3,6,1,2,1,4,22,1,4],
 	    );
-
-
 
 
 # Hente aktuelle rutere fra databasen.
@@ -100,11 +84,6 @@ while (my @line = $resultat->fetchrow)
 {
     $gwport{$line[0]}{$line[1]}{$line[2]}++;
 }
-
-
-
-
-#exit();
 
 
 # Main program
@@ -158,7 +137,6 @@ while (@arguments)
 
 #print "TOTALT\t$tot_nye\t$tot_oppdat\t$tot_avs\n";
 
-#$dbh->disconnect;
 1;
 
 ##
@@ -178,16 +156,7 @@ sub process_arp_entry ($$$) {
 
 #  print "$hostname\t$ip\t$prefiksid\t";
 
-#  if ($prefiksid == 0)
-#  {
-#      print "Finner ikke prefiks for $ip\n";
-      
-  unless (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
-  {
-      print "Feil prefiks: $ip\t$prefiksid\t$hostname.\n";
-#      print "Feil\n";
-  }
-  else  # prefiksid funnet og er ok, skal legges inn
+  if (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
   {
 #      print "Legges inn\n";
       $arptable_new{$ip} = hex_string($mac);
@@ -275,7 +244,7 @@ sub db_select {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
         unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
     return $resultat;
 }
