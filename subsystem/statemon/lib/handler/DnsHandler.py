@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.1 2003/03/26 16:02:17 magnun Exp $
+$Id: DnsHandler.py,v 1.2 2003/05/26 17:47:14 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler, Event
@@ -18,40 +18,39 @@ class DnsHandler(JobHandler):
 		d = DNS.DnsRequest(server=ip, timeout=self.getTimeout())
 		args = self.getArgs()
 		#print "Args: ", args
-		request = args.get("request","").split(",")
-		if request == [""]:
+		request = args.get("request","").strip()
+		timeout=0
+		if not request:
 			#print "valid debug message :)"
 			return Event.UP, "Argument request must be supplied"
 		else:
-			timeout = 0
-			answer  = []
-			for i in range(len(request)):
-				#print "request: %s"%request[i]
-				try:
-					reply = d.req(name=request[i].strip())
-				except DNS.Error:
-					timeout = 1
-					#print "%s timed out..." %request[i]
+			answer  = ""
+			#print "request: %s"%request[i]
+			try:
+				reply = d.req(name=request)
+			except DNS.Error:
+				timeout = 1
+				#print "%s timed out..." %request[i]
 					
-				if not timeout and len(reply.answers) > 0 :
-					answer.append(1)
-					#print "%s -> %s"%(request[i], reply.answers[0]["data"])
-				elif not timeout and len(reply.answers)==0:
-					answer.append(0)
+			if not timeout and len(reply.answers) > 0 :
+				answer=1
+				#print "%s -> %s"%(request[i], reply.answers[0]["data"])
+			elif not timeout and len(reply.answers)==0:
+				answer=0
 
-
-			ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers
-			if len(ver) > 0:
-				self.setVersion(ver[0]['data'][0])
+			# This breaks on windows dns servers and probably other not bind servers
+			#ver = d.req(name="version.bind",qclass="chaos", qtype='txt').answers
+			#if len(ver) > 0:
+			#	self.setVersion(ver[0]['data'][0])
 					
 			
 
-			if not timeout and 0 not in answer:
+			if not timeout and answer == 1:
 				return Event.UP, "Ok"
-			elif not timeout and 0 in answer:
-				return Event.UP, "No record found"
+			elif not timeout and answer == 1:
+				return Event.UP, "No record found, request=%s" % request
 			else:
-				return Event.DOWN, "Timeout"
+				return Event.DOWN, "Timeout while requesting %s" % request
 
 
 def getRequiredArgs():
