@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.12 2002/09/19 22:21:05 magnun Exp $
+$Id: job.py,v 1.13 2002/10/08 18:46:03 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types,config,debug,mailAlert
@@ -82,8 +82,7 @@ class JobHandler:
 
 			
 			self.setStatus(status)
-			if DEBUG:
-				self.debug.log("%-25s %-5s -> %s, %s" % (host, self.getType(), status, info))
+			self.debug.log("%-25s %-5s -> %s, %s" % (host, self.getType(), status, info),1)
 
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:

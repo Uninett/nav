@@ -1,5 +1,5 @@
 """
-$Id: SmbHandler.py,v 1.8 2002/09/19 22:21:05 magnun Exp $
+$Id: SmbHandler.py,v 1.9 2002/10/08 18:46:03 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SmbHandler.py,v $
 """
 import os,re
@@ -29,7 +29,7 @@ class SmbHandler(JobHandler):
 			s = '-N'
 
 
-		s = os.popen('./Timeout.py -t %s /usr/local/samba/bin/smbclient -L %s -p %i %s 2>/dev/null' % (self.getTimeout(),host,port,s)).read()
+		s = os.popen('/usr/local/samba/bin/smbclient -L %s -p %i %s 2>/dev/null' % (host,port,s)).read()
 		version = pattern.search(s) and ' '.join(pattern.search(s).groups())
 		if version:
 			self.setVersion(version)

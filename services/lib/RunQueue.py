@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.19 2002/08/26 20:55:02 magnun Exp $
+$Id: RunQueue.py,v 1.20 2002/10/08 18:46:03 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -67,7 +67,7 @@ class worker(threading.Thread):
         self._runcount+=1
         self._timeStartExecute=time.time()
         self._job.run()
-        if self._runcount > self._runqueue.getMaxRunCount():
+        if self._runqueue.getMaxRunCount() != 0 and self._runcount > self._runqueue.getMaxRunCount():
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.26 2002/09/19 22:21:05 magnun Exp $
+$Id: controller.py,v 1.27 2002/10/08 18:46:03 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -19,6 +19,7 @@ class controller:
         self.conf=config.serviceconf()
         debugger=debug.debug()
         self.debug=debugger.log
+        self._deamon=kwargs.get("fork", 1)
         self._isrunning=1
         self._jobs=[]
         self._debuglevel=0
@@ -32,13 +33,32 @@ class controller:
         self.alerter.start()
 
 
+    def createStatusFile(self):
+        """
+        Dumps the current status to a file.
+        """
+        try:
+            outputfile = open('/var/www/html/services/status.txt','w')
+        except:
+            print "Failed to open outputfile"
+
+                                                                
+        for each in self._jobs:
+            try:
+                host=self.db.netboxid[each.getBoksid()]
+            except KeyError:
+                host = "Unspecified host"
+            outputfile.write("%-25s %-5s %s\n" % (host, each.getType(), each.getStatus()))
+
+        outputfile.write("\n\nLast updated: %s" % time.asctime())
+        outputfile.close()
+
                       
     def getJobs(self):
         """
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-        #newjobs = database.getJobs()
         newjobs = self.db.getJobs()
 
 
@@ -62,16 +82,27 @@ class controller:
             filter(self._runqueue.enq, self._jobs)
             wait=self._looptime - (time.time() - start)
             self.debug("Waiting %i seconds." % wait)
+            self.createStatusFile()
             if wait <= 0:
                 self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait)
             else:
                 time.sleep(wait)
+
 
     def signalhandler(self, signum, frame):
         if signum == signal.SIGTERM:
             self.debug( "Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
             os.sys.exit(0)
+        elif signum == signal.SIGUSR1:
+            # reopen the logfile
+            logfile=self.conf.get("logfile", "servicemon.log")
+            self.debug("Caught SIGUSR1. Reopening logfile...")
+            os.sys.stdout.close()
+            os.sys.stderr.close()
+            os.sys.stdout = open(logfile,'w')
+            os.sys.stderr = open(logfile,'w')
+            self.debug("Reopened logfile: %s" % logfile)
         else:
             self.debug( "Caught %s. Resuming operation." % (signum))
 
@@ -82,7 +113,7 @@ def start(nofork):
     a daemon.
     """
     conf = config.serviceconf()
-    if not nofork:
+    if fork:
         pid=os.fork()
         if pid > 0:
             pidfile=conf.get('pidfile', 'servicemon.pid')
@@ -96,11 +127,11 @@ def start(nofork):
             os.sys.exit()
                 
         logfile = conf.get('logfile','servicemon.log')
-        print "Logger til ", logfile
+        #print "Logger til ", logfile
         os.sys.stdout = open(logfile,'w')
         os.sys.stderr = open(logfile,'w')
 
-    myController=controller()
+    myController=controller(fork=fork)
     myController.main()
                 
 
@@ -123,14 +154,14 @@ Written by Erik Gorset and Magnus Nordseth, 2002
 if __name__=='__main__':
     try:
         opts, args = getopt.getopt(os.sys.argv[1:], 'hnv', ['help','nofork', 'version'])
-        nofork=0
+        fork=1
 
         for opt, val in opts:
             if opt in ('-h','--help'):
                 help()
                 os.sys.exit()
             elif opt in ('-n','--nofork'):
-                nofork=1
+                fork=0
             elif opt in ('-v','--version'):
                 print __version__
                 os.sys.exit(0)
@@ -140,4 +171,4 @@ if __name__=='__main__':
         help()
         os.sys.exit(2)
                                
-    start(nofork)
+    start(fork)
