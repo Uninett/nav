@@ -99,6 +99,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../Event/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../Logger/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
