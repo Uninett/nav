@@ -401,6 +401,7 @@ GRANT ALL    ON vpboksxy_vpboksxyid_seq TO vPServer;
 GRANT SELECT ON boks TO getBoksMacs;
 GRANT SELECT ON type TO getBoksMacs;
 GRANT SELECT ON swport TO getBoksMacs;
+GRANT ALL    ON swportvlan TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
