@@ -10,6 +10,7 @@ Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 import state
 import auth
+import nav
 
 def headerparserhandler(req):
     """
@@ -65,4 +66,4 @@ def shouldShow(link, user):
     link and allowed. Internal links are checked using nav.auth.hasPrivilege.
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
-    return startsWithHTTP or auth.hasPrivilege(user, 'web_access', link)
+    return startsWithHTTP or nav.auth.hasPrivilege(user, 'web_access', link)
