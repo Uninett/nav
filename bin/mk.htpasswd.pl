@@ -2,15 +2,15 @@
 
 use strict;
 
-my $intern_userlist = "/usr/local/apache/htpasswd/intern_user";
-my $nettass_userlist = "/usr/local/apache/htpasswd/nettass_user"; 
-my $stat_userlist  = "/usr/local/apache/htpasswd/stat_user";
-my $bdb_userlist = "/usr/local/etc/passwd.bdb.nettinfo";
+my $intern_userlist = "../../etc/htpasswd/intern_user";
+my $nettass_userlist = "../../etc/htpasswd/nettass_user"; 
+my $stat_userlist  = "../../etc/htpasswd/stat_user";
+my $bdb_userlist = "../../etc/passwd.dat";
 
-my $htpasswd_sroot = "/usr/local/apache/htpasswd/.htpasswd-sroot";
-my $htpasswd_sec = "/usr/local/apache/htpasswd/.htpasswd-sec";
-my $htpasswd_res = "/usr/local/apache/htpasswd/.htpasswd-res";
-my $htpasswd_sby = "/usr/local/apache/htpasswd/.htpasswd-sby"; 
+my $htpasswd_sroot = "../apache/htpasswd/.htpasswd-sroot";
+my $htpasswd_sec = "../apache/htpasswd/.htpasswd-sec";
+my $htpasswd_res = "../apache/htpasswd/.htpasswd-res";
+my $htpasswd_sby = "../apache/htpasswd/.htpasswd-sby"; 
 
 
 my (%sroot, %sec, %res, %sby);
@@ -31,7 +31,7 @@ close (INTERN_FIL);
 
 
 
-open (NETTASS_FIL, "<$nettass_userlist") || die "F?r ikke ?pnet filen med de interne brukerene: $nettass_userlist $!\n";
+open (NETTASS_FIL, "<$nettass_userlist") || die "F?r ikke ?pnet filen med de nettass: $nettass_userlist $!\n";
  
 while (<NETTASS_FIL>) {
     next if (/^\W/);
