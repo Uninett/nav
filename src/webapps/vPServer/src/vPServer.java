@@ -45,7 +45,7 @@ public class vPServer extends HttpServlet
 		try {
 			dbCp = new ConfigParser(navRoot + dbConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read config file: " + navRoot + dbConfigFile);
+			out.println("Error, could not read database config file: " + navRoot + dbConfigFile);
 			return;
 		}
 
