@@ -81,6 +81,7 @@ General getDeviceData documentation; supported events.
 <b>Supported outgoing events</b>
 <p>
 
+<!-- requestSnmpDone -->
 <p>
 <a name="requestSnmpDone"></a>
 <table border="1" cellpadding="3" cellspacing="0">
@@ -141,6 +142,75 @@ General getDeviceData documentation; supported events.
  </tr>
 </table>
 </p>
+
+<!-- deviceHwUpgrade -->
+<p>
+<a name="deviceHwUpgrade"></a>
+<table border="1" cellpadding="3" cellspacing="0">
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Eventtype</b></td>
+  <td colspan="2">deviceHwUpgrade</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Description</b></td>
+  <td colspan="2">Sent when a netbox changes type and is recreated.</td>
+ </tr>
+ <tr>
+  <td bgcolor="#CCCCFF" class="TableHeadingColor"><b>Related events</b></td>
+  <td colspan="2"></td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td><b>Eventq fields</b></td>
+  <td><b>Description</b></td>
+  <td><b>Always present</b></td>
+ </tr>
+ <tr>
+  <td><b>deviceid</b></td>
+  <td>Device collected from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>netboxid</b></td>
+  <td>Netbox collected from</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>subid</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>state</b></td>
+  <td>This event is stateless</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>value</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr>
+  <td><b>severity</b></td>
+  <td>Not used</td>
+  <td>No</td>
+ </tr>
+ <tr bgcolor="#CCCCFF" class="TableHeadingColor">
+  <td colspan="3"><b>Supported variables</b></td>
+ </tr>
+ <tr>
+  <td><b>oldtype</b></td>
+  <td>The name of the old type.</td>
+  <td>Yes</td>
+ </tr>
+ <tr>
+  <td><b>newtype</b></td>
+  <td>The name of the new type.</td>
+  <td>Yes</td>
+ </tr>
+</table>
+</p>
+
+<!-- end list -->
 
 </body>
 
