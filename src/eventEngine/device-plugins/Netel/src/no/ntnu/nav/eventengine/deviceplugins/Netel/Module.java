@@ -59,7 +59,7 @@ public class Module extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("MODULE_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all modules from database");
-		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,port,to_netboxid,vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) WHERE module.up='y' ORDER BY moduleid,module,port");
+		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,port,to_netboxid,vlan.vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE module.up='y' ORDER BY moduleid,module,port");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");

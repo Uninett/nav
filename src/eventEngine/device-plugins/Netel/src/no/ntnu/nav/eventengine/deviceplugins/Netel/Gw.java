@@ -41,7 +41,7 @@ public class Gw extends Netel
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("GW_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all GWs from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox LEFT JOIN prefix USING(prefixid) WHERE catid IN ('GW', 'GSW')");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE catid IN ('GW', 'GSW')");
 
 		while (rs.next()) {
 			try {
