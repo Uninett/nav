@@ -15,6 +15,7 @@
    <tr class="$row">
       <td><a href="/useradmin/account?id=$account.id">$account.login</a> &nbsp;</td>
       <td nowrap>$account.name</td>
+      <td nowrap>$account.ext_sync</td>
       <td align="middle" width="0%">$account.groupcount</td>
    </tr>
 #end def
@@ -26,7 +27,7 @@
 <!------------------------- TITLE  ---->
 #set $rows = len($accounts)
     <tr class="title">
-      <td class="title" align="center" colspan="4" style="background-image:url('$imagefolder/adminlogo+fill.gif'); background-repeat: no-repeat;">  
+      <td class="title" align="center" colspan="5" style="background-image:url('$imagefolder/adminlogo+fill.gif'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="current">
@@ -49,6 +50,9 @@
       </td>
       <td class="header" valign="top" bgcolor="white" nowrap >
           Name &nbsp;
+      </td>
+      <td class="header" valign="top" bgcolor="white" nowrap >
+          External &nbsp;
       </td>
       <td class="header" valign="top" bgcolor="white" nowrap width="0%" align="right">
           # of groups &nbsp;
