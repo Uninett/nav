@@ -4,6 +4,7 @@
 from mod_python import util, apache
 from mx import DateTime
 from time import strftime
+import re
 #import sys,os,re,copy,string
 import nav
 #import nav.db.manage 
@@ -502,8 +503,11 @@ def maintlist(req):
         elif key == 'module':
             try:
                 database.execute("select module, descr from module where moduleid=%d" % int(value))
+            except:
+		pass
+		# Jeg er en idiot som skriver uferdig kode.	
 
-def getMaintTime(emotdid = None):
+def getMaintTime(emotdid=None):
     """ Makes useful representation of maintenance start and maintenance end. Is it still in use?"""
     
     maintenance = None
