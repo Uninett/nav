@@ -1,5 +1,5 @@
 """
-$Id: config.py,v 1.12 2003/01/03 19:19:55 magnun Exp $                                                                                                                              
+$Id: config.py,v 1.13 2003/01/08 23:08:00 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 Abstraction for the various config files used
@@ -29,7 +29,6 @@ class Conf(dict):
 
         if self._configfile is None:
             print "Failed to open %s" % self._file
-            print str(info)
             os.sys.exit(0)
         self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
         self.parsefile()
