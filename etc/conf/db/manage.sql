@@ -371,6 +371,9 @@ GRANT ALL ON product TO navall;
 GRANT ALL ON device TO navall;
 GRANT ALL ON cat TO navall;
 GRANT ALL ON typegroup TO navall;
+GRANT ALL ON alerthist TO navall;
+GRANT ALL ON eventtype TO navall;
+GRANT ALL ON service TO navall;
 
 GRANT ALL ON netbox_netboxid_seq TO navall;
 GRANT ALL ON gwport_gwportid_seq TO navall;
