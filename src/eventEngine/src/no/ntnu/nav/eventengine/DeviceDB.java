@@ -170,8 +170,13 @@ public class DeviceDB
 	public void postAlert(Alert a) throws PostAlertException
 	{
 		EventImpl e = (EventImpl)a;
+
 		// Post the alert to alertq
 		try {
+			// Lock eventq/eventqvar tables to avoid deadlock
+			Database.update("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE");
+			Database.update("LOCK TABLE eventqvar IN SHARE ROW EXCLUSIVE MODE");
+
 			// Insert into alertq
 			insertAlert(e, false, 0);
 
