@@ -1,7 +1,9 @@
 package no.ntnu.nav.eventengine.handlerplugins.BoxState;
 
 import java.util.*;
+import java.sql.*;
 
+import no.ntnu.nav.Database.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.logger.*;
 
@@ -219,8 +221,7 @@ public class BoxState implements EventHandler, EventCallback
 			try {
 				alertTicks = Integer.parseInt(cp.get("alertTicks"));
 			} catch (Exception exp) { }
-			
-			//alertTickLength = 10; // debug
+			alertTickLength = 6; // debug
 
 			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
@@ -276,6 +277,18 @@ public class BoxState implements EventHandler, EventCallback
 						a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
 					} else if (b.getStatus() == Box.STATUS_DOWN) {
 						alerttype = "boxDown";
+					}
+
+					// Update varMap from database
+					try {
+						ResultSet rs = Database.query("SELECT * FROM module WHERE deviceid = " + e.getDeviceid());
+						ResultSetMetaData rsmd = rs.getMetaData();
+						if (rs.next()) {
+							HashMap hm = Database.getHashFromResultSet(rs, rsmd);
+							a.addVars(hm);
+						}
+					} catch (SQLException exp) {
+						Log.w("BOX_STATE_EVENTHANDLER", "SQLException when fetching data from module("+e.getDeviceid()+"): " + exp.getMessage());
 					}
 
 					// First send a warning
