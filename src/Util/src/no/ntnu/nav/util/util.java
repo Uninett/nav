@@ -67,6 +67,7 @@ public class util {
 			begin = k + rem.length();
 
 		} while ((k=s.indexOf(rem, begin)) >= 0);
+		sb.append(s.substring(begin, s.length()));
 
 		return sb.toString();
 	}
