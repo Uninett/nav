@@ -1,0 +1,47 @@
+#!/usr/bin/env make
+# 
+# This file is part of the NAV project and sånt
+# 
+
+# programs to use for make
+INSTALL=@INSTALL@
+SHELL=@SHELL@
+# paths
+prefix=@prefix@
+bindir=@bindir@
+libdir=@libdir@
+exec_prefix=@exec_prefix@
+pythonlibdir=@pythonlibdir@
+webroot=@webroot@
+NAVVER=navme
+WEBLIB=$(pythonlibdir)/nav/web
+WEBNAME=browse
+
+WEBDIR=$(webroot)/$(WEBNAME)
+WEBLIBS=netbox.py module.py port.py service.py servicetable.py dispatcher.py rrd.py
+
+
+.PHONY: all lib web install install-lib install-web clean distclean
+# ok, the targets
+all: 
+lib:
+web:
+
+# the install
+install: install-lib install-web
+
+install-lib: lib
+	$(INSTALL) -d $(DESTDIR)$(WEBLIB)/devBrowser
+	touch $(DESTDIR)$(WEBLIB)/__init__.py
+	touch $(DESTDIR)$(WEBLIB)/devBrowser/__init__.py
+	for file in $(WEBLIBS); do $(INSTALL) -m 644 src/lib/$$file $(DESTDIR)$(WEBLIB)/devBrowser/; done
+install-web: web
+	$(INSTALL) -d $(DESTDIR)$(WEBDIR)
+	$(INSTALL) -m 644 src/htaccess $(DESTDIR)$(WEBDIR)/.htaccess
+	# Apache is lame and needs an EXISTING FILE to use 
+	# DirectoryIndex...... so let's create an empty one
+	touch $(DESTDIR)$(WEBDIR)/index
+clean:
+	find -name *.pyc -print0 | xargs --null rm -f
+distclean: clean
+	rm -f Makefile
