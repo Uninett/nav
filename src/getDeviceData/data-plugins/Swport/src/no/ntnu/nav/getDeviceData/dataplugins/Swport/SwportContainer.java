@@ -110,6 +110,16 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		addModule(m);
 		swModuleList.add(m);
 	}
+	
+	// Override to assign any module-less swports to module 1
+	public void commit() {
+		super.commit();
+		SwModule m = swModuleFactory("1");
+		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
+			Swport swp = (Swport)it.next();
+			if (!swp.isAssignedToModule()) m.addSwport(swp);
+		}
+	}
 
 	// Doc in parent
 	protected boolean isCommited() {
@@ -117,13 +127,6 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	}
 
 	Iterator getSwModules() {
-		// Assign any module-less swports to module 1
-		SwModule m = swModuleFactory("1");
-		for (Iterator it = swportMap.values().iterator(); it.hasNext();) {
-			Swport swp = (Swport)it.next();
-			if (!swp.isAssignedToModule()) m.addSwport(swp);
-		}
-
 		Collections.sort(swModuleList);
 		return swModuleList.iterator();
 	}

@@ -50,10 +50,10 @@ public class SwportHandler implements DataHandler {
 				md.setSubmodule(rs.getString("submodule"));
 
 				int moduleid = rs.getInt("moduleid");
-				if (rs.getString("port") != null && rs.getString("port").length() > 0) {
+				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {
 					do {
 						Swport sd = new Swport(rs.getString("ifindex"));
-						sd.setData(new Integer(rs.getInt("port")), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
+						sd.setData(rs.getString("port") == null ? new Integer(0) : new Integer(rs.getInt("port")), rs.getString("link") == null ? 'x' : rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex") == null ? 'x' : rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
 						sd.setSwportid(rs.getInt("swportid"));
 						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
 						sd.setHexstring(rs.getString("hexstring"));
@@ -117,7 +117,7 @@ public class SwportHandler implements DataHandler {
 					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());
 					if (oldsd == null) {
 						// Sett inn ny
-						Log.i("NEW_SWPORT", "New swport: " + sd.getPort());
+						Log.i("NEW_SWPORT", "New swport: " + sd);
 						ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
 						rs.next();
 						swportid = rs.getString("swportid");

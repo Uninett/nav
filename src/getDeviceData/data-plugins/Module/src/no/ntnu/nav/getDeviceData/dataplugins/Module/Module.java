@@ -76,8 +76,8 @@ public class Module extends Device implements Comparable
 
 	public boolean equalsModule(Module m) {
 		return (getDeviceid() == m.getDeviceid() &&
-						module != null && module.equals(m.module) &&
-						submodule != null && submodule.equals(m.submodule));
+						module.equals(m.module) &&
+						(submodule == null || submodule.equals(m.submodule)));
 	}
 	
 	public boolean equals(Object o) {

@@ -226,13 +226,13 @@ public class Swport implements Comparable
 	 */
 	public boolean equalsSwport(Swport sw) {
 		return (ifindex.equals(sw.ifindex) &&
-						port != null && port.equals(sw.port) &&
-						link != null && link.equals(sw.link) &&
-						speed != null && speed.equals(sw.speed) &&
-						duplex != null && duplex.equals(sw.duplex) &&
-						media.equals(sw.media) &&
-						trunk == sw.trunk &&
-						portname.equals(sw.portname));
+						(port == null || port.equals(sw.port)) &&
+						(link == null || link.equals(sw.link)) &&
+						(speed == null || speed.equals(sw.speed)) &&
+						(duplex == null || duplex.equals(sw.duplex)) &&
+						(media == null || media.equals(sw.media)) &&
+						(trunk == null || trunk.equals(sw.trunk)) &&
+						(portname == null || portname.equals(sw.portname)));
 	}
 
 	/**
@@ -252,8 +252,8 @@ public class Swport implements Comparable
 	}
 
 	public String toString() {
-		return getPortS() + ": " +
-			"Ifindex: " + getIfindexS() +
+		return getIfindexS() + "," +
+			" Port: " + getPort() +
 			" Link: " + getLink() +
 			" Speed: " + speed +
 			" Duplex: " + duplex +

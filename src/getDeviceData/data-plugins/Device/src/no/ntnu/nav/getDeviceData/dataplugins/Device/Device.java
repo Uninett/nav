@@ -72,9 +72,9 @@ public class Device
 	}
 
 	public boolean equalsDevice(Device d) {
-		return (serial.equals(d.serial) &&
-						hw_ver.equals(d.hw_ver) &&
-						sw_ver.equals(d.sw_ver));
+		return ((serial == null || serial.equals(d.serial)) &&
+						(hw_ver == null || hw_ver.equals(d.hw_ver)) &&
+						(sw_ver == null || sw_ver.equals(d.sw_ver)));
 	}
 
 	public boolean equals(Object o) {
