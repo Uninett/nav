@@ -738,7 +738,7 @@ class QueryBoks extends Thread
 					SwportData pd = (SwportData)swportDataList.get(i);
 
 					// OK, først sjekk om denne porten er i swport fra før
-					String key = boksid+":"+pd.getIfindex();
+					String key = boksid+":"+pd.getModul()+":"+pd.getPort();
 					String swportid = (String)swportMap.remove(key);
 
 					if (swportid == null) {
@@ -916,6 +916,7 @@ class QueryBoks extends Thread
 						try {
 							if (DB_UPDATE) Database.update("UPDATE boks SET sysname='"+Database.addSlashes(sysname)+"' WHERE boksid='"+bd.getBoksid()+"'");
 							if (DB_COMMIT) Database.commit(); else Database.rollback();
+							if (DB_UPDATE && DB_COMMIT) bd.setSysname(sysname);
 						} catch (SQLException e) {
 							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update sysname for boksid " + bd.getBoksid() + " to " + Database.addSlashes(sysname) + ": " + e.getMessage());
 						}
@@ -930,6 +931,7 @@ class QueryBoks extends Thread
 						try {
 							if (DB_UPDATE) Database.update("UPDATE boks SET snmpagent='"+Database.addSlashes(snmpagent)+"' WHERE boksid='"+bd.getBoksid()+"'");
 							if (DB_COMMIT) Database.commit(); else Database.rollback();
+							if (DB_UPDATE && DB_COMMIT) bd.setSnmpagent(snmpagent);
 						} catch (SQLException e) {
 							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
 						}
@@ -939,8 +941,11 @@ class QueryBoks extends Thread
 				// boksdisk
 				if (dd != null && dd.getBoksDiskUpdated()) {
 					List l = dd.getBoksDisk();
-					HashMap boksDisk = (HashMap)boksDiskMap.get(bd.getBoksid());
-					if (boksDisk == null) boksDisk = new HashMap();
+					HashMap boksDisk;
+					synchronized (boksDiskMap) {
+						boksDisk = (HashMap)boksDiskMap.get(bd.getBoksid());
+						if (boksDisk == null) boksDiskMap.put(bd.getBoksid(), boksDisk = new HashMap());
+					}
 					HashMap boksDiskClone = (HashMap)boksDisk.clone();
 
 					// Iterate over the list and add/update as needed
@@ -958,6 +963,7 @@ class QueryBoks extends Thread
 								};
 								if (DB_UPDATE) Database.insert("boksdisk", ins);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
+								if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
 							} catch (SQLException e) {
 								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
@@ -978,6 +984,7 @@ class QueryBoks extends Thread
 									};
 									if (DB_UPDATE) Database.update("boksdisk", upd, cnd);
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
+									if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
 								} catch (SQLException e) {
 									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
 								}
@@ -991,6 +998,7 @@ class QueryBoks extends Thread
 					for (Iterator i = boksDiskClone.keySet().iterator(); i.hasNext();) {
 						String path = (String)i.next();
 						sb.append(",'"+Database.addSlashes(path)+"'");
+						if (DB_UPDATE && DB_COMMIT) boksDisk.remove(path);
 					}
 					if (sb.length() > 0) {
 						sb.deleteCharAt(0);
@@ -1006,8 +1014,11 @@ class QueryBoks extends Thread
 				// boksinterface
 				if (dd != null && dd.getBoksInterfaceUpdated()) {
 					List l = dd.getBoksInterface();
-					HashSet boksInterface = (HashSet)boksInterfaceMap.get(bd.getBoksid());
-					if (boksInterface == null) boksInterface = new HashSet();
+					HashSet boksInterface;
+					synchronized (boksInterfaceMap) {
+						boksInterface = (HashSet)boksInterfaceMap.get(bd.getBoksid());
+						if (boksInterface == null) boksInterfaceMap.put(bd.getBoksid(), boksInterface = new HashSet());
+					}
 					HashSet boksInterfaceClone = (HashSet)boksInterface.clone();
 
 					// Iterate over the list and add/update as needed
@@ -1022,6 +1033,7 @@ class QueryBoks extends Thread
 								};
 								if (DB_UPDATE) Database.insert("boksinterface", ins);
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
+								if (DB_UPDATE && DB_COMMIT) boksInterface.add(interf);
 							} catch (SQLException e) {
 								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new interf " + interf + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
@@ -1035,6 +1047,7 @@ class QueryBoks extends Thread
 					for (Iterator i = boksInterfaceClone.iterator(); i.hasNext();) {
 						String interf = (String)i.next();
 						sb.append(",'"+Database.addSlashes(interf)+"'");
+						if (DB_UPDATE && DB_COMMIT) boksInterface.remove(interf);
 					}
 					if (sb.length() > 0) {
 						sb.deleteCharAt(0);
