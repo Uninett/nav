@@ -284,7 +284,7 @@ public class QueryBoks extends Thread
 				String key = boksId+":"+pm;
 				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
 				if (pm.getRemoteIf() != null && new_to_swportid == null) {
-					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + remoteIf + " (" + boksId + ")");
+					Log.i("RUN", "Cannot find swport: ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" If: " + pm.getRemoteIf() + " (" + boksId + ")");
 				}
 
 				// En enhet kan ikke ha link til seg selv

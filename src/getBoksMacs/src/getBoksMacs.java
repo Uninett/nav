@@ -209,7 +209,7 @@ class getBoksMacs
 		rs = Database.query("SELECT swportid,netboxid,ifindex,cs_at_vlan,swportblocked.vlan FROM swportblocked JOIN swport USING(swportid) JOIN module USING(moduleid) JOIN netbox USING(netboxid) JOIN type USING(typeid)");
 		while (rs.next()) {
 			String vlan = (rs.getBoolean("cs_at_vlan") ? rs.getString("vlan") : "");
-			String key = rs.getString("netboxid")+":"+vlan);
+			String key = rs.getString("netboxid")+":"+vlan;
 			HashMap blockedIfind;
 			if ( (blockedIfind=(HashMap)spanTreeBlocked.get(key)) == null) spanTreeBlocked.put(key, blockedIfind = new HashMap());
 			blockedIfind.put(rs.getString("ifindex"), rs.getString("swportid"));
