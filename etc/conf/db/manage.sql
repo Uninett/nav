@@ -186,6 +186,7 @@ CREATE TABLE snmpoid (
 	snmpoid VARCHAR NOT NULL,
 	oidsource VARCHAR,
   getnext BOOLEAN NOT NULL DEFAULT 't',
+  decodehex BOOLEAN NOT NULL DEFAULT 'f',
   match_regex VARCHAR,
   uptodate BOOLEAN NOT NULL DEFAULT 'f',
 	descr VARCHAR
