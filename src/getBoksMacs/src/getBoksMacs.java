@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: getBoksMacs.java,v 1.3 2002/11/22 21:33:59 kristian Exp $
+* $Id: getBoksMacs.java,v 1.4 2002/11/22 21:37:33 kristian Exp $
 * This file is part of the NAV project.
 * Logging of CAM/CDP data
 *
@@ -331,7 +331,7 @@ class getBoksMacs
 			bd.ip = rs.getString("ip");
 			bd.cs_ro = rs.getString("ro");
 			bd.boksId = rs.getString("netboxid");
-			bd.boksTypegruppe = rs.getString("typegroupeid");
+			bd.boksTypegruppe = rs.getString("typegroupid");
 			bd.boksType = rs.getString("typename");
 			bd.sysName = rs.getString("sysname");
 			bd.kat = rs.getString("catid");
