@@ -39,6 +39,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 public class HP implements DeviceHandler
 {
+
+	public static final int HANDLE_PRI_HP = -22;
+
 	private static String[] canHandleOids = {
 		"ifSerial",
 		"hpHwVer",
@@ -50,7 +53,7 @@ public class HP implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
+		int v = nb.isSupportedOids(canHandleOids) ? HANDLE_PRI_HP : NEVER_HANDLE;
 		Log.d("HP_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
@@ -71,6 +74,20 @@ public class HP implements DeviceHandler
 				return;
 			}
 			nc = (NetboxContainer)dc;
+		}
+
+		ModuleContainer mc;
+		{
+			DataContainer dc = containers.getContainer("ModuleContainer");
+			if (dc == null) {
+				Log.w("NO_CONTAINER", "No ModuleContainer found, plugin may not be loaded");
+				return;
+			}
+			if (!(dc instanceof ModuleContainer)) {
+				Log.w("NO_CONTAINER", "Container is not a ModuleContainer! " + dc);
+				return;
+			}
+			mc = (ModuleContainer)dc;
 		}
 
 		SwportContainer sc;
@@ -95,7 +112,7 @@ public class HP implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processHP(nb, netboxid, ip, cs_ro, type, nc, sc);
+		processHP(nb, netboxid, ip, cs_ro, type, nc, mc, sc);
 
 		// Commit data
 		sc.commit();
@@ -105,7 +122,7 @@ public class HP implements DeviceHandler
 	 * HP
 	 *
 	 */
-	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, SwportContainer sc) throws TimeoutException {
+	private void processHP(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc, SwportContainer sc) throws TimeoutException {
 
 		/*
 		HP 2524:
@@ -222,6 +239,26 @@ public class HP implements DeviceHandler
 
 		List l;
 
+		// Which module is the commander
+		String moduleWithIP = "0";
+		List memberList = sSnmp.getAll(nb.getOid("hpStackStatsMemberOperStatus"));
+		if (memberList != null) {
+			for (Iterator it = memberList.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String module = s[0];
+				int status = Integer.parseInt(s[1]);
+				if (status == 12) {
+					// Commander
+					moduleWithIP = module;
+					NetboxInfo.put(nb.getNetboxidS(), null, "ModuleWithIP", moduleWithIP);
+					break;
+				}
+			}
+		} else {
+			String moduleWithIPL = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
+			if (moduleWithIPL != null) moduleWithIP = moduleWithIPL;
+		}
+
 		// Module data
 		l = sSnmp.getNext(nb.getOid("ifSerial"), 1, true, false);
 		if (l != null) {
@@ -237,8 +274,12 @@ public class HP implements DeviceHandler
 					//return;
 				}
 				
-				if (nc.netboxDataFactory(nb).getSerial() == null) nc.netboxDataFactory(nb).setSerial(s[1]);
-				sc.swModuleFactory(Integer.parseInt(module)).setSerial(s[1]);
+				if (moduleWithIP.equals(module) && nc.netboxDataFactory(nb).getSerial() == null) {
+					nc.netboxDataFactory(nb).setSerial(s[1]);
+				}
+				int moduleNum = Integer.parseInt(module);
+				mc.moduleFactory(moduleNum);
+				sc.swModuleFactory(moduleNum).setSerial(s[1]);
 				Log.d("PROCESS_HP", "Module: " + module + " Serial: " + s[1]);
 			}
 		}
