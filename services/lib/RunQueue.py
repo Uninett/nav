@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.4 2002/06/06 13:43:49 magnun Exp $
+$Id: RunQueue.py,v 1.5 2002/06/08 21:24:42 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 TODO
@@ -34,31 +34,37 @@ class TerminateException(Exception):
     pass
 
 class worker(threading.Thread):
+    """
+    The thread removes a job from the runqueue and executes it. If the
+    runque is empty, the thread sleeps until it gets woken when a job is
+    placed in the queue.
+
+    """
     def __init__(self, rq):
         threading.Thread.__init__(self)
-        self.runQueue=rq
-        self.runCount=0
-        self.running=1
+        self._runQueue=rq
+        self._runCount=0
+        self._running=1
 
     def run(self):
-        while self.running:
+        while self._running:
             try:
-                self.job=self.runQueue.deq()
+                self._job=self._runQueue.deq()
                 self.execute()
             except TerminateException:
-                runQueue.numThreads-=1
+                self._runQueue.numThreads-=1
                 return
             except:
                 traceback.print_exc()
 
     def execute(self):
         #print self.getName() + ' kjører jobb nr ' +str(self.runCount)
-        self.runCount+=1
-        self.job.run()
-        if self.runCount > self.runQueue.maxRunCount:
-            self.running=0
-            self.runQueue.unusedThreadName.append(self.getName())
-            self.runQueue.workers.remove(self)
+        self._runCount+=1
+        self._job.run()
+        if self._runCount > self._runQueue.getMaxRunCount():
+            self._running=0
+            self._runQueue.unusedThreadName.append(self.getName())
+            self._runQueue.workers.remove(self)
 
 
 class RunQueue:
@@ -66,7 +72,7 @@ class RunQueue:
         self.maxThreads=kwargs.get('maxthreads', sys.maxint)
         self.numThreads=0
         self.numThreadsWaiting=0
-        self.maxRunCount=5
+        self._maxRunCount=5
         self.workers=[]
         self.unusedThreadName=[]
         self.rq=DEQueue.DEQueue()
@@ -76,6 +82,8 @@ class RunQueue:
         self.makeDaemon=1
         self.startObserver()
 
+    def getMaxRunCount(self):
+        return self._maxRunCount
 
     def startObserver(self):
         self.ob=observer()
