@@ -280,9 +280,7 @@
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${warinstdir}/${war}"/>
-    <!-- The navAdmin tool does not yet exist
     <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
-    -->
   </target>
 
 <!-- ==================== Clean Target ==================================== -->
