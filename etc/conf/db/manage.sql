@@ -655,8 +655,10 @@ CREATE TABLE alertq (
 );
 CREATE TABLE alertqvar (
   alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
-  var VARCHAR(32) NOT NULL,
-  val TEXT NOT NULL
+  msgtype VARCHAR(32) NOT NULL,
+  language VARCHAR(10) NOT NULL,
+  msg TEXT NOT NULL,
+  UNIQUE(alertqid, msgtype, language)
 );
 
 DROP TABLE alerthist;
