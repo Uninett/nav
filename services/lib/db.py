@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.3 2002/07/15 19:48:11 magnun Exp $
+$Id: db.py,v 1.4 2002/07/17 18:01:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -8,7 +8,7 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 """
-import threading, jobmap, psycopg, Queue, job
+import threading, jobmap, psycopg, Queue, job, debug
 from setup import Service
 
 
@@ -23,6 +23,7 @@ class _db(threading.Thread):
 	def __init__(self, conf):
 		threading.Thread.__init__(self)
 		self.mapper=jobmap.jobmap()
+		self.debug=debug.debug()
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(1)
 		self.cursor=self.db.cursor()
@@ -43,14 +44,15 @@ class _db(threading.Thread):
 		try:
 			self.cursor.execute(statement)
 			return self.cursor.fetchall()
-		except DatabaseError, InterfaceError:
+		except psycopg.DatabaseError, psycopg.InterfaceError:
+			self.debug.log("Could not execute query: %s" % statement, 2)
 			return []
 
 	def execute(self, statement):
 		try:
 			self.cursor.execute(statement)
-		except DatabaseError, InterfaceError:
-			pass
+		except psycopg.DatabaseError, psycopg.InterfaceError:
+			self.debug.log("Could not execute statement: %s" % statement, 2)
 
 	def newEvent(self, event):
 		self.queue.put(event)
@@ -58,16 +60,16 @@ class _db(threading.Thread):
 	def commitEvent(self, event):
 		if event.status == event.UP:
 			value = 100
-			state = 'f'
+			state = 'e'
 		elif event.status == event.DOWN:
 			value = 1
-			state = 't'
+			state = 's'
 		else:
 			pass
 
 		nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
 
-		statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value, source, target) values (%i, %i, %i, '%s','%s', %i, '%s','%s' )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value,"serviceping","serviceping")
+		statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value, source, target) values (%i, %i, %i, '%s','%s', %i, '%s','%s' )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value,"serviceping","eventEngine")
 		self.execute(statement)
 		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
 		self.execute(statement)

@@ -1,5 +1,5 @@
 """
-$Id: DnsHandler.py,v 1.6 2002/07/15 20:16:35 magnun Exp $
+$Id: DnsHandler.py,v 1.7 2002/07/17 18:01:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DnsHandler.py,v $
 """
 from job import JobHandler, Event
@@ -20,13 +20,13 @@ class DnsHandler(JobHandler):
 		#print "Args: ", args
 		request = args.get("request","").split(",")
 		if request == [""]:
-			print "valid debug message :)"
+			#print "valid debug message :)"
 			return Event.UP, "Argument request must be supplied"
 		else:
 			timeout = 0
 			answer  = []
 			for i in range(len(request)):
-				print "request: %s"%request[i]
+				#print "request: %s"%request[i]
 				try:
 					reply = d.req(name=request[i].strip())
 				except DNS.Error:

@@ -1,12 +1,12 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.16 2002/07/01 09:20:25 magnun Exp $
+$Id: RunQueue.py,v 1.17 2002/07/17 18:01:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
 from threading import *
-import threading, DEQueue, sys, time, types, traceback
+import threading, DEQueue, sys, time, types, traceback, debug
 
 class TerminateException(Exception):
     pass
@@ -14,12 +14,13 @@ class TerminateException(Exception):
 class observer:
     def __init__(self, rq):
         self._rq=rq
+        self.debug=debug.debug()
 
     def run(self):
         while not self._rq.stop:
             for eachWorker in self._rq.workers[1:]:
                 if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
-                    print "Alert: %s - %s has used more than 10 seconds running %s"% (time.strftime('%d %b %Y %H:%M:%S ', time.localtime()), eachWorker.getName(), eachWorker._job.getType())
+                    self.debug.log("%s has used more than 10 seconds running %s"% (eachWorker.getName(), eachWorker._job.getType(),2))
 
             time.sleep(20)
 
@@ -34,6 +35,7 @@ class worker(threading.Thread):
     """
     def __init__(self, rq):
         threading.Thread.__init__(self)
+        self.debug=debug.debug()
         self._runqueue=rq
         self._runcount=0
         self._running=1
@@ -68,8 +70,8 @@ class worker(threading.Thread):
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
-            print "Info:  Worker is recycling."
-        self._runqueue.debug("%s finished job number %i" % (self.getName(), self._runcount))
+            self.debug.log("%s is recycling."% self.getName())
+        self.debug.log("%s finished job number %i" % (self.getName(), self._runcount),7)
         self._timeStartExecute=0
 
 
@@ -77,7 +79,7 @@ class RunQueue:
     def __init__(self,**kwargs):
         self._maxThreads=kwargs.get('maxthreads', sys.maxint)
         self._controller=kwargs.get('controller',self)
-        self.debug=self._controller.debug
+        self.debug=debug.debug()
         self.numThreadsWaiting=0
         self._maxRunCount=50
         self.workers=[]
@@ -97,13 +99,9 @@ class RunQueue:
     def enq(self,*r):
         self.lock.acquire()
         self.rq.put(*r)
-        self.debug('Number of elements in queue: %i'% (len(self.rq)))
-        self.debug("Number of workers: %i" % len(self.workers))
-        self.debug("Number of waiting threads: %i" % self.numThreadsWaiting)
-        print "Info:  Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting)
+        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
-            self.debug('Using waiting thread')
             self.awaitWork.notify()
         elif len(self.workers) < self._maxThreads:
             t=worker(self)
@@ -112,7 +110,6 @@ class RunQueue:
                 t.setName(self.unusedThreadName.pop())
             else:
                 t.setName('worker'+str(len(self.workers)))
-            self.debug('Created new thread, %s' % (t.getName()))
             self.workers.append(t)
 
             t.start()
@@ -132,11 +129,6 @@ class RunQueue:
         r=self.rq.get()
         self.lock.release()
         return r
-
-    def debug(self, msg):
-        if DEBUG:
-            if type(msg)==types.StringType:
-                print msg
 
     def terminate(self):
         self.lock.acquire()

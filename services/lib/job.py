@@ -1,10 +1,10 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.8 2002/07/15 23:01:45 magnun Exp $
+$Id: job.py,v 1.9 2002/07/17 18:01:36 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
-import time,socket,sys,types,config
+import time,socket,sys,types,config,debug
 from select import select
 from errno import errorcode
 from Socket import Socket
@@ -36,6 +36,7 @@ class JobHandler:
 		self.setVersion(version)
 		self.setTimeout(args.get('timeout',TIMEOUT))
 		self.db=db.db(config.config())
+		self.debug=debug.debug()
 		
 	def run(self):
 		import rrd,db
@@ -49,12 +50,12 @@ class JobHandler:
 			if type(host)==type(()):
 				host=host[0]
 			host = socket.getfqdn(host)
-			print "Info:  %-25s %-5s -> %s" % (host, self.getType(),info)
+			self.debug.log("%-25s %-5s -> %s" % (host, self.getType(),info))
 			
 		runcount = 0
 		while status != self.getStatus() and runcount < 3:
 			if DEBUG:
-				print "Info:  %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType())
+				self.debug.log(" %-25s %-5s -> State changed. Trying again in 5 sec..." % (host, self.getType()))
 			time.sleep(5)
 			status, info = self.executeTest()
 			runcount += 1
@@ -63,7 +64,7 @@ class JobHandler:
 			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
 			self.setStatus(status)
 			if DEBUG:
-				print "Event: %-25s %-5s -> %s, %s" % (host, self.getType(), status, info)
+				self.debug.log("%-25s %-5s -> %s, %s" % (host, self.getType(), status, info))
 
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
