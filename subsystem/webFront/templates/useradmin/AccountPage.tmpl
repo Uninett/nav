@@ -10,9 +10,15 @@
 
 #extends UserAdmin
 
-#def textfield($name, $value, $maxLength=0, $forceEditable=0)
+#def textfield($name, $value, $maxLength=0, $forceEditable=0, $password=False)
+#if $password
+#set $inputtype = "password"
+#else
+#set $inputtype = "text"
+#end if
+
 #if $editable or $forceEditable
-  <input type="text" name="$name" value="$value" />
+  <input type="$inputtype" name="$name" value="$value" />
 #else
   <i>$value</i>
 #end if
@@ -45,10 +51,16 @@ $account.ext_sync
 [None]
 #end if
   </i><br>
+#unless $account.ext_sync
+  <b>Password:</b> $textfield('password', '', password=True)<br>
+  <b>Confirm password:</b> $textfield('passwordConfirm', '', password=True)<br>
+#end if
   <input type="submit" value="Submit changes" />
 </form>
 
 #if not $newAccount
+
+<p><a href="accountdel?id=$account.id">DELETE</a> this account</p>
 
 <h3>Group memberships</h3>
 

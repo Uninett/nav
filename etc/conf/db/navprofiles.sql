@@ -18,11 +18,11 @@
 */
 
 -- 1 ACCOUNT
-DROP SEQUENCE accountids;
+DROP SEQUENCE account_id_seq;
 DROP TABLE Account CASCADE;
 
 -- 2 ACCOUNTGROUP
-DROP SEQUENCE accountgroupids;
+DROP SEQUENCE accountgroup_id_seq;
 DROP TABLE AccountGroup CASCADE;
 
 -- 3 ACCOUNTINGROUP

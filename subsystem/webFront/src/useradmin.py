@@ -10,71 +10,68 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
 """
 #from mod_python import apache
-import os, nav, psycopg
+import os, nav, psycopg, forgetSQL
 from nav import web, db
 from nav.db import navprofiles
 from nav.web.templates.useradmin import *
 
-# Make sure the database connection is always there
-_profileConn = db.getConnection('navprofile', 'navprofile')
-navprofiles.setCursorMethod(_profileConn.cursor)
-_profileCursor = _profileConn.cursor
-_manageConn = db.getConnection('webfront', 'manage')
-_manageCursor = _manageConn.cursor
+def _profileCursor():
+    _profileConn = db.getConnection('navprofile', 'navprofile')
+    navprofiles.setCursorMethod(_profileConn.cursor)
+    return _profileConn.cursor()
 
-def _getAccounts(includeIds=[], excludeIds=[], forGroup=None):
+def _manageCursor():
+    _manageConn = db.getConnection('webfront', 'manage')
+    return _manageConn.cursor()
+
+def _accountsToTemplate(accounts):
+    """Convert a list of Account objects into a list of dictionaries
+    containing the Account properties."""
+    accountList = [{'id': item.id,
+                    'login': item.login,
+                    'name': item.name,
+                    'ext_sync': item.ext_sync,
+                    'groupcount': len(item.getGroups())
+                    } for item in accounts ]
+    return accountList
+
+def _groupsToTemplate(groups):
+    """Convert a list of Account objects into a list of dictionaries
+    containing the Account properties."""
+    groupList = [{'id': item.id,
+                  'name': item.name,
+                  'description': item.descr,
+                  'membercount': len(item.getMembers())
+                  } for item in groups ]
+    return groupList
+
+def _getAccounts(includeIds=[], excludeIds=[]):
     """Return a list of rows from the Account table"""
     criteria = []
     if len(includeIds) > 0:
-        criteria.append("a.id IN (%s)" % ','.join([str(x) for x in includeIds]))
+        criteria.append("id IN (%s)" % ','.join([str(x) for x in includeIds]))
     if len(excludeIds) > 0:
-        criteria.append("a.id NOT IN (%s)" % ','.join([str(x) for x in excludeIds]))
-    if forGroup is not None:
-        criteria.append("b.groupid=%d" % forGroup)
+        criteria.append("id NOT IN (%s)" % ','.join([str(x) for x in excludeIds]))
 
     if len(criteria) > 0:
-        whereClause = "WHERE %s" % " AND ".join(criteria)
+        accounts = navprofiles.Account.getAll(where=criteria, orderBy="login")
     else:
-        whereClause = ""
-    
-    cursor = _profileCursor()
-    sql = \
-        """SELECT a.id, a.login, a.name, a.ext_sync, COUNT(b.groupid) AS groupcount
-        FROM account AS a
-        LEFT JOIN accountingroup AS b
-        ON a.id = b.accountid
-        %s
-        GROUP BY a.id, a.login, a.name, a.ext_sync
-        ORDER BY a.login""" % whereClause
-    cursor.execute(sql)
-    return cursor.dictfetchall()
+        accounts = navprofiles.Account.getAll(orderBy="login")
+    return _accountsToTemplate(accounts)
 
-def _getGroups(includeIds=[], excludeIds=[], forAccount=None):
+def _getGroups(includeIds=[], excludeIds=[]):
     """Return a list of rows from the AccountGroup table"""
     criteria = []
     if len(includeIds) > 0:
-        criteria.append("g.id IN (%s)" % ','.join([str(x) for x in includeIds]))
+        criteria.append("id IN (%s)" % ','.join([str(x) for x in includeIds]))
     if len(excludeIds) > 0:
-        criteria.append("g.id NOT IN (%s)" % ','.join([str(x) for x in excludeIds]))
-    if forAccount is not None:
-        criteria.append("b.accountid=%d" % forAccount)
+        criteria.append("id NOT IN (%s)" % ','.join([str(x) for x in excludeIds]))
 
     if len(criteria) > 0:
-        whereClause = "WHERE %s" % " AND ".join(criteria)
+        groups = navprofiles.Accountgroup.getAll(where=criteria, orderBy="name")
     else:
-        whereClause = ""
-    
-    cursor = _profileCursor()
-    sql = \
-        """SELECT g.id, g.name, g.descr AS description, COUNT(b.accountid) AS membercount
-        FROM accountgroup AS g
-        LEFT JOIN accountingroup AS b
-        ON g.id = b.groupid
-        %s
-        GROUP BY g.id, g.name, g.descr
-        ORDER BY g.name""" % whereClause
-    cursor.execute(sql)
-    return cursor.dictfetchall()
+        groups = navprofiles.Accountgroup.getAll(orderBy="name")
+    return _groupsToTemplate(groups)
 
 def _accountExists(id):
     cursor = _profileCursor()
@@ -271,6 +268,12 @@ def accountlist(req):
     page = AccountList()
     page.accounts = _getAccounts()
     page.path[-1] = ("Account list", False)
+    page.title = "Account list"
+
+    if req.session.has_key('statusMessage'):
+        page.statusMessage = req.session['statusMessage']
+        del req.session['statusMessage']
+
     return page
 
 def grouplist(req):
@@ -278,6 +281,12 @@ def grouplist(req):
     page = GroupList()
     page.groups = _getGroups()
     page.path[-1] = ("Group list", False)
+    page.title = "Group list"
+
+    if req.session.has_key('statusMessage'):
+        page.statusMessage = req.session['statusMessage']
+        del req.session['statusMessage']
+
     return page
 
 def account(req, id=None):
@@ -291,20 +300,20 @@ def account(req, id=None):
         except:
             return "%s is not a valid account id" % repr(id)
 
-        accounts = _getAccounts(includeIds=[id])
-        if len(accounts) < 1:
+        account = navprofiles.Account(id)
+        try:
+            account.load()
+        except forgetSQL.NotFound:
             return "no such account %s" % id
-        else:
-            account = accounts[0]
 
         page.newAccount = False
-        page.information = "Editing account \"%s\" (#%s)" % (account['name'], account['id'])
-        page.account = account
-        page.editable = account['ext_sync'] is None or account['ext_sync'] == ''
-        page.account['groups'] = _getGroups(forAccount=id)
+        page.information = "Editing account \"%s\" (#%s)" % (account.name, account.id)
+        page.account = _accountsToTemplate([account])[0]
+        page.editable = account.ext_sync is None or account.ext_sync == ''
+        page.account['groups'] = _groupsToTemplate(account.getGroups())
     else:
         page.newAccount = True
-        page.information = "Creating new user"
+        page.information = "Creating new account"
         page.account = {'id': None,
                         'login': '',
                         'name': 'New user',
@@ -337,17 +346,17 @@ def group(req, id=None):
         except:
             return "%s is not a valid group id" % repr(id)
 
-        groups = _getGroups(includeIds=[id])
-        if len(groups) < 1:
+        group = navprofiles.Accountgroup(id)
+        try:
+            group.load()
+        except forgetSQL.NotFound:
             return "no such group %s" % id
-        else:
-            group = groups[0]
 
         page.newGroup = False
-        page.information = "Editing group \"%s\" (#%s)" % (group['name'], group['id'])
-        page.group = group
+        page.information = "Editing group \"%s\" (#%s)" % (group.name, group.id)
+        page.group = _groupsToTemplate([group])[0]
         page.editable = True
-        page.group['members'] = _getAccounts(forGroup=id)
+        page.group['members'] = _accountsToTemplate(group.getMembers())
         page.group['privileges'] = _getGroupPrivileges(id)
     else:
         page.newGroup = True
@@ -392,43 +401,135 @@ def unlink(req, uid=None, gid=None, source=None):
 def groupsubmit(req, id=None, name=None, description=None):
     """Receives and stores information submitted from the group
     form."""
-    groupStruct = {'id': id,
-                   'name': name,
-                   'description': description}
-
     if id is not None:
+        # We are attempting to submit data for an existing group
         redir = 'group?id=%s' % id
+        try:
+            id = int(id)
+        except ValueError:
+            return "%s is not a valid group id" % id
+
+        group = navprofiles.Accountgroup(id)
+        try:
+            group.load()
+        except forgetSQL.NotFound:
+            return "Group id %s does not exist" % id
     else:
         redir = 'group'
+        group = navprofiles.Accountgroup()
 
-    if _storeGroup(groupStruct):
-        req.session['statusMessage'] = "Data saved"
-    else:
-        req.session['statusMessage'] = "Failed to store the data"
+    if name != group.name:
+        group.name = name
+    if description != group.descr:
+        group.descr = description
+
+    try:
+        group.save()
+        redir = 'group?id=%s' % group.id
+        req.session['statusMessage'] = "Group successfully stored"
+    except psycopg.IntegrityError:
+        req.session['statusMessage'] = "A database integrity error prevented us from storing the Group"
 
     web.redirect(req, redir, seeOther=True)
 
-def accountsubmit(req, id=None, login=None, name=None, password='', passwordConfirm=''):
+def accountsubmit(req, id=None, login=None, name=None, password=None, passwordConfirm=None):
     """Receives and stores information submitted from the account
     form."""
-    accountStruct = {'id': id,
-                     'login': login,
-                     'name': name,
-                     'password': password}
-
     if id is not None:
+        # We are attempting to submit data for an existing account
         redir = 'account?id=%s' % id
+        try:
+            id = int(id)
+        except ValueError:
+            return "%s is not a valid account id" % id
+
+        account = navprofiles.Account(id)
+        try:
+            account.load()
+        except forgetSQL.NotFound:
+            return "Account id %s does not exist" % id
     else:
         redir = 'account'
-
+        account = navprofiles.Account()
+    
     if password != passwordConfirm:
         req.session['statusMessage'] = "Passwords do not match"
-    elif _storeAccount(accountStruct):
-        req.session['statusMessage'] = "Data saved"
     else:
-        req.session['statusMessage'] = "Failed to store the data"
+        if login != account.login:
+            account.login = login
+        if name != account.name:
+            account.name = name
+        if password is not None and password != account.password:
+            account.password = password
+            
+        try:
+            account.save()
+            redir = 'account?id=%s' % account.id
+            req.session['statusMessage'] = "Account successfully stored"
+        except psycopg.IntegrityError:
+            req.session['statusMessage'] = "A database integrity error prevented us from storing the Account"
 
     web.redirect(req, redir, seeOther=True)
+
+def accountdel(req, id=None, confirm=False):
+    """Delete an account and redirect to the account list"""
+    try:
+        id = int(id)
+    except:
+        return "%s is not a valid account id" % id
+
+    account = navprofiles.Account(id)
+    try:
+        account.load()
+        name = account.name
+    except forgetSQL.NotFound:
+        return "No such account id %s" % id
+
+    if id < 1000:
+        req.session['statusMessage'] = "System account '%s' (#%s) cannot be deleted" % (name, id)
+        web.redirect(req, "account?id=%s" % id, seeOther=True)
+    elif not confirm:
+        page = ConfirmPage()
+        page.path[-1] = ("Delete an account", False)
+        page.title = "Delete an account"
+        page.confirmation = "You are about to delete the account '%s' (#%s).  Are you sure?" % (name, id)
+        page.yestarget = "accountdel?id=%s&confirm=1" % id
+        page.notarget = "account?id=%s" % id
+        return page
+    else:
+        account.delete()
+        req.session['statusMessage'] = "Account '%s' (#%s) successfully deleted" % (name, id)
+        web.redirect(req, "accountlist", seeOther=True)
+
+def groupdel(req, id=None, confirm=False):
+    """Delete a group and redirect to the group list"""
+    try:
+        id = int(id)
+    except:
+        return "%s is not a valid account id" % id
+
+    group = navprofiles.Accountgroup(id)
+    try:
+        group.load()
+        name = group.name
+    except forgetSQL.NotFound:
+        return "No such group id %s" % id
+
+    if id < 1000:
+        req.session['statusMessage'] = "System group '%s' (#%s) cannot be deleted" % (name, id)
+        web.redirect(req, "group?id=%s" % id, seeOther=True)
+    elif not confirm:
+        page = ConfirmPage()
+        page.path[-1] = ("Delete a group", False)
+        page.title = "Delete a group"
+        page.confirmation = "You are about to delete the group '%s' (#%s).  Are you sure?" % (name, id)
+        page.yestarget = "groupdel?id=%s&confirm=1" % id
+        page.notarget = "group?id=%s" % id
+        return page
+    else:
+        group.delete()
+        req.session['statusMessage'] = "Group '%s' (#%s) successfully deleted" % (name, id)
+        web.redirect(req, "grouplist", seeOther=True)
 
 def index(req):
     """Default useradmin index page, shows the accountlist."""

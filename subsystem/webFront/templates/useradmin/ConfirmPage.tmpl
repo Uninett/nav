@@ -1,0 +1,28 @@
+## $Id$
+##
+## This file is part of the NAV project.
+##
+## Extends the UserAdmin template for common useradmin structure.
+## Builds html for a page asking for confirmation of some kind
+##
+## Authors: Morten Vold <morten.vold@itea.ntnu.no>
+##
+
+#extends UserAdmin
+
+#attr $path = [("Frontpage", "/"), ("Useradmin", "/useradmin/index"), ("Index", "False")]
+
+#block useradmin
+<h3>$title</h3>
+<p>$confirmation</p>
+
+<div align="center">
+  <p>
+    <font size=+3>
+      <a href="$yestarget">YES</a> - <a href="$notarget">NO</a>
+    </font>
+  </p>
+</div>
+
+#end block useradmin
+
