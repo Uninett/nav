@@ -1,6 +1,7 @@
 package no.ntnu.nav.getDeviceData.plugins.Handler3Com;
 
 import no.ntnu.nav.SimpleSnmp.*;
+import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.plugins.*;
 import java.util.*;
 
@@ -17,7 +18,7 @@ public class Handler3Com implements DeviceHandler
 				bd.getTypegruppe().equals("3ss9300")) ? 1 : 0;
 	}
 
-	public void handle(BoksData bd, SimpleSnmp sSnmp, DeviceDataList ddList) throws TimeoutException
+	public void handle(BoksData bd, SimpleSnmp sSnmp, ConfigParser cp, DeviceDataList ddList) throws TimeoutException
 	{
 		String boksid = bd.getBoksid();
 		String ip = bd.getIp();
