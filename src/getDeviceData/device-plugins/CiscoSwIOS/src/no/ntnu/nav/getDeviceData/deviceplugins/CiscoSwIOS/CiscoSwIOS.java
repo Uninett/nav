@@ -116,13 +116,13 @@ public class CiscoSwIOS implements DeviceHandler
 
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
-				
+			
 			String ifindex = s[0];
 			String portif = s[1];
 
 			// Determine and create the module
 			int module = 0;
-			String modulePattern = ".*(\\d+)/.*";
+			String modulePattern = "(\\d+)/.*";
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
 				m.matches();
@@ -131,9 +131,9 @@ public class CiscoSwIOS implements DeviceHandler
 			SwModule swm = sc.swModuleFactory(module);
 
 			String[] modulport = portif.split("/");
-			swm.setDescr(modulport[0]);
+			//swm.setDescr(modulport[0]);
 					
-			Integer port = Integer.getInteger(modulport[1]);
+			Integer port = Integer.valueOf(modulport[1]);
 			swm.swportFactory(ifindex).setPort(port);
 		}
 
@@ -184,7 +184,7 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 		
-		l = sSnmp.getAll(nb.getOid("ifPortName"));
+		l = sSnmp.getAll(nb.getOid("ifPortName"), true);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
