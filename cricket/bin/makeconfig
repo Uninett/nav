@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.21 2002/06/26 08:41:18 cricket Exp $
+# $Id: makeconfig,v 1.22 2002/07/01 15:45:38 cricket Exp $
 
 use strict;
 
@@ -182,6 +182,11 @@ sub Servers {
                 }
                 print FIL "\n";
 
+                if($win32) {
+                  print FIL "target \"Error\"\n";
+                  print FIL "\ttarget-type = error\n";
+                  print FIL "\n";
+                }
 		#Get the category and insert into file
 		$query = "SELECT category FROM bokscategory WHERE boksid=$id";
 		my $getcategory = &db_select($query, $dbh);
@@ -203,39 +208,45 @@ sub Servers {
                 print FIL "\tserver\t=\t$sysname\n";
                 print FIL "\n";
                 while (my $interface = $getinterfaces->fetchrow) {
-		  my $name = $interface;
-		  $name =~ s/\s/_/g; # We need filesystem-rrd-nicer names without spaces
+       		        my $name = $interface;
+		              $name =~ s/\s/_/g; # We need filesystem-rrd-nicer names without spaces
+                  $name =~ s,/,_,g;
+                  my $interface2 = $interface; 
+                  $interface2 =~ s/\\/\\\\/g;
                   print FIL "target \"$name\"\n";
                   print FIL "\ttarget-type = interface\n";
                   print FIL "\tinst = map(interface-name)\n";
-                  print FIL "\tinterface-name = \"$interface\"\n";
+                  print FIL "\tinterface-name = \"$interface2\"\n";
+                  print FIL "\tshort-desc  =\"$interface\"\n";
                   print FIL "\n";
                 }
                 close FIL;
 
                 # Then all the disks
-		mkdir ("$path/servers/$sysname/disk",0775);
+		            mkdir ("$path/servers/$sysname/disk",0775);
                 $fil = "$path/servers/$sysname/disk/disks";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
-                $query = "SELECT path FROM boksdisk WHERE boksid=$id";
+                $query = "SELECT path,blocksize FROM boksdisk WHERE boksid=$id";
                 my $getpaths = &db_select($query, $dbh);
                 print FIL "target --default--\n";
                 print FIL "\tserver\t=\t$sysname\n";
                 print FIL "\n";
-                while (my $mnt = $getpaths->fetchrow) {
-	          my $name = $mnt;
-		  if($name eq "/") {
-			  $name = "root";    # Special case for /
-		  } else {
-			  $name =~ s,/,_,g;  # /usr/local -> _usr_local
-			  $name =~ s/^_//;   # _usr -> usr
-			  $name =~ s/:.*//;  # C:\ Label nblablabalb -> C
-		  }
-		  $mnt =~ s/\\/\\\\/g; # Double escape backslashes in configfile  C:\ --> C:\\
-                  print FIL "target \"$name\"\n";
-                  print FIL "\ttarget-type = disk\n";
-                  print FIL "\tinst = map(mount-point)\n";
-                  print FIL "\tmount-point = \"$mnt\"\n";
+                while (my ($mnt,$blz) = $getpaths->fetchrow) {
+	              my $name = $mnt;
+		              if($name eq "/") {
+			            $name = "root";    # Special case for /
+		              } else {
+			          $name =~ s,/,_,g;  # /usr/local -> _usr_local
+			          $name =~ s/^_//;   # _usr -> usr
+			          $name =~ s/:.*//;  # C:\ Label nblablabalb -> C
+		            }
+		            $mnt =~ s/\\/\\\\/g; # Double escape backslashes in configfile  C:\ --> C:\\
+                print FIL "target \"$name\"\n";
+                print FIL "\ttarget-type = disk\n";
+                print FIL "\tinst = map(mount-point)\n";
+                print FIL "\tmount-point = \"$mnt\"\n";
+		            print FIL "\tshort-desc  = \"$mnt\"\n";
+                print FIL "\tblocksize = \"$blz\"\n";
                   print FIL "\n";
                 }
                 close FIL;
