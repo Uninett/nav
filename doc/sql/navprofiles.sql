@@ -938,7 +938,7 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 
 -- Give read access to most informational tools for ReadAll group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
-       VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 2, '^/(report|status|emotd|alertprofiles|trace|browse|preferences|cricket)/?');
+       VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 2, '^/(report|status|emotd|alertprofiles|machinetracker|browse|preferences|cricket)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
