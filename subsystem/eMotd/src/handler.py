@@ -24,6 +24,7 @@ from nav.web.templates.EmotdFrontpage import EmotdFrontpage
 from nav.web.templates.EmotdMessageTemplate import EmotdMessageTemplate
 from nav.web.templates.MaintenanceTemplate import MaintenanceTemplate
 from nav.web.templates.MaintListTemplate import MaintListTemplate
+from nav.web.templates.MaintTimeTemplate import MaintTimeTemplate
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 
 #################################################
@@ -64,6 +65,8 @@ def handler(req):
         output = maintenance(req)
     elif path[0] == 'commit':
         output = commit(req)
+    elif path[0] == 'time':
+        output = mainttime()
     else:
         output = show_active(req)
 
@@ -373,6 +376,13 @@ def feed(req):
         if client == "html":
             body += '</pre></body></html>'
     return body
+
+
+def mainttime(req):
+
+    page = MaintTimeTemplate()
+    return page.respond()
+
 
 def maintenance(req):
     ''' Put locations,rooms,netboxes,modules,services on maintenance to prevent 
@@ -1229,8 +1239,8 @@ def commit(req):
     #page = EmotdTemplate(searchList=[nameSpace])
     #return page.respond()
     if req.form.has_key("cn_save"):
-        redirect(req,"%s/view?id=%s" % (BASEPATH, m.emotdid))
+        redirect(req,"%sview?id=%s" % (BASEPATH, m.emotdid))
     elif req.form.has_key("cn_save_and_add"):
-        redirect(req,"%s/add?id=%s" % (BASEPATH, m.emotdid))
+        redirect(req,"%sadd?id=%s" % (BASEPATH, m.emotdid))
     return apache.OK
 

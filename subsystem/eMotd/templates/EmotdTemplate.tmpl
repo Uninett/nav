@@ -14,6 +14,60 @@
 </div>
 #end def
 
+#def $makeDateTime($prefix,$year,$month,$day,$hour,$minute)
+
+<select name="${prefix}_year">
+#for y in range(2004,2020)
+<option value="$y".slurp
+#if $y==$year
+ selected="1".slurp
+#end if
+>$y</option>
+#end for
+</select>
+
+<select name="${prefix}_month">
+#for m in range(1,13)
+<option value="$m".slurp
+#if $m==$month
+ selected = "1".slurp
+#end if
+>$m</option>
+#end for
+</select>
+
+<select name="${prefix}_day">
+#for d in range(1,32)
+<option value="$d".slurp
+#if $d==$day
+ selected = "1".slurp
+#end if
+>$d</option>
+#end for
+</select>
+
+<select name="${prefix}_hour">
+#for h in range(0,24)
+<option value="$h".slurp
+#if $h==$hour
+ selected = "1".slurp
+#end if
+>$h</option>
+#end for
+</select>
+
+<select name="${prefix}_minute">
+#for m in ("00","15","30","45")
+<option value="$m".slurp
+#if $m==$minute
+ selected = "1".slurp
+#end if
+>$m</option>
+#end for
+</select>
+
+#end def
+
 #def equipmentList($eq)
 #if len($eq.keys()):
 	<ul>
