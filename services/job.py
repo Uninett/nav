@@ -2,7 +2,7 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.5 2002/06/06 12:44:58 erikgors Exp $
+$Id: job.py,v 1.6 2002/06/07 11:11:59 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys
@@ -36,7 +36,6 @@ class Job:
 		else:
 			self.setState(state)
 		self.setTimestamp()
-		print self.getUsage()
 	def execute(self):
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
