@@ -2,72 +2,62 @@
 core - kjøre jobber som prosesser i stedet for tråder
 
 $Author: erikgors $
-$Id: core.py,v 1.2 2002/06/18 15:12:52 erikgors Exp $
+$Id: core.py,v 1.3 2002/06/24 14:23:13 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/core.py,v $
 
 tanken er at programmet skal lese argumenter fra stdin
 starte jobbene som egne prosesser som skriver resultat til stdout
 
 eks stdin:
-(serviceid,ip,type,version,{property:value})
+(serviceid,boksid,ip,type,version,{property:value})
 
 eks stdout:
-(serviceid,status,info,version,responsetid)
+(serviceid,boksid,status,info,version,responsetid)
 """
-import os,sys,time,random,signal
+import os,sys,time,signal
 from job import jobmap,Event
 
-MAX = 50
+MAX = 10
 TIMEOUT = 5
-class Core:
-	def __init__(self,jobargs):
-		"""
-		jobargs er en liste med args til jobbene
-		"""
-		self.jobargs = jobargs
-		self.counter = 0
-		self.t = {}
-	def run(self):
-		for i in self.jobargs:
-			if self.counter < MAX:
-				start = time.time()
-				serviceid,ip,type,version,args = i
-				pid = os.fork()
-				if not pid:
+class Timeout(Exception):
+	pass
+def handler(s,f):
+	raise Timeout('timeout')
+def do(serviceid,boksid,ip,type,version,args):
+	start = time.time()
+	j = jobmap[type](serviceid,boksid,ip,args,version)
+	status,info = j.execute()
+	version = j.getVersion()
+	return (serviceid,status,info,version,time.time() - start)
+def core(childs = MAX):
+	signal.signal(signal.SIGALRM, handler)
+	for child in range(childs):
+		pid = os.fork()
+		if not pid:
+			while 2:
+				try:
+					s = raw_input()
+					if not s:
+						sys.exit(0)
+					serviceid,boksid,ip,type,version,args = eval(s)
 					timeout = args.get('timeout',TIMEOUT)
 					signal.alarm(timeout)
-					#kjøre en job
-					j = jobmap[type](serviceid,ip,args,version)
-					status,info = j.execute()
-					version = j.getVersion()
-					#printe resultatet til stdout
-					print (serviceid,status,info,version,time.time() - start)
-					sys.exit(0)
-				else:
-					self.t[pid] = serviceid
-					self.counter += 1
-			else:
-				self.wait()
-		while self.counter:
-			self.wait()
-	def wait(self):
-		pid,status = os.wait()
-		if status:
-			print (self.t[pid],Event.DOWN,'timeout','',0)
+					print do(serviceid,boksid,ip,type,version,args)
+					signal.alarm(0)
+				except Timeout,info:
+					print (serviceid,Event.DOWN,'timeout',0)
+				except SystemExit:
+					raise
 
-
-		del self.t[pid]
-		self.counter -= 1
-
+	try:
+		for i in range(childs):
+			os.wait()
+	except:
+		#logge til syslog elns
+		pass
 if __name__ == '__main__':
-	jobargs = []
-	while 1:
-		line = raw_input()
-		if not line:
-			break
-		line = eval(line)
-		if not type(line) == tuple:
-			raise TypeError(str(line))
-		jobargs += [line]
-	core = Core(jobargs)
-	core.run()
+	if len(sys.argv) == 2:
+		childs = int(sys.argv[1])
+		core(childs)
+	else:
+		core()
