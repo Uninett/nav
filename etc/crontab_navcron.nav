@@ -67,4 +67,9 @@ NUM_THREADS=24
 */5 * * * * $CDIR/safe_smsd.pl
 # </safe_smsd>
 
+# <maintengine>
+# Check maintenance-queue and sends events to eventq
+*/5 * * * * $BDIR/maintengine.py
+# </maintengine>
+
 # --- EOF ---
