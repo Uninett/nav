@@ -5,10 +5,10 @@ import java.util.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.NetboxInfo.*;
 
 /**
   * A small class to help us store 
@@ -76,20 +76,16 @@ public class Server implements DeviceHandler
         Netbox nb;
         SimpleSnmp snmp;
         ConfigParser cp;
-        NetboxInfoContainer info;
         public ServerHandler(Netbox nb, SimpleSnmp snmp, 
                              ConfigParser cp, DataContainers containers) {
                                        
             Log.setDefaultSubsystem("ServerPlugin " + nb.getSysname());
             Log.d("ServerHandler", "Handling the device");
             // Blapp Blapp = Blapp Blapp blapp blapp blapp blapp !!!!
-            NetboxInfoContainer info = 
-                (NetboxInfoContainer)containers.getContainer("NetboxInfoContainer");
             // Store stuff
             this.nb = nb;
             this.snmp = snmp;
             this.cp = cp;
-            this.info = info;
             // don't need this, really
             // this.containers = containers
         }
@@ -100,9 +96,10 @@ public class Server implements DeviceHandler
                 Log.w("getSnmp", "No sysDescr found");
                 return;
             }
-            String descr = (String)result.get(0);
+            String[] s = (String[])result.get(0);
+						String descr = s[1];
             Log.i("getSnmp", "sysDescr found: " + descr);
-            info.put("snmp_agent", descr);
+            NetboxInfo.put("snmp_agent", descr);
             String os;
             if (descr.equals(OID_solarisAgent)) {
                 os = "solaris";
@@ -116,7 +113,7 @@ public class Server implements DeviceHandler
                 os = "unknown";
             }
             Log.i("getSnmp", "os guessed: " + os);
-            info.put("os_guess", os);
+            NetboxInfo.put("os_guess", os);
         }
         void getDisks() {
             DiskMap disks = new DiskMap();
@@ -161,10 +158,10 @@ public class Server implements DeviceHandler
                 }
                 Log.d("getDisks", "Adding " + descr + " " + type + 
                       " " + blocksizeInt);
-                info.put(descr, "disk_unitid", id);
-                info.put(descr, "disk_type", type);
-                info.put(descr, "disk_blocksizeInt",
-                         Integer.toString(blocksizeInt));
+                NetboxInfo.put(descr, "disk_unitid", id);
+                NetboxInfo.put(descr, "disk_type", type);
+                NetboxInfo.put(descr, "disk_blocksizeInt",
+															 Integer.toString(blocksizeInt));
             }
         }
         void getInterfaces() {
@@ -205,13 +202,10 @@ public class Server implements DeviceHandler
                     continue;
                 if (description.startsWith("dummy"))
                     continue;
-                info.put(description, "interf_unitid", id);
-                info.put(description, "interf_type", type);
+                NetboxInfo.put(description, "interf_unitid", id);
+                NetboxInfo.put(description, "interf_type", type);
                 Log.d("getInterfaces", "Added interface " + id + " " + description + " " + type);
             }
-        }
-        void sync() {
-            this.info.commit();
         }
     }
     public int canHandleDevice(Netbox nb) {
@@ -233,7 +227,6 @@ public class Server implements DeviceHandler
         handler.getSnmp();
         handler.getDisks();
         handler.getInterfaces();
-        handler.sync();
     }
 }
     
