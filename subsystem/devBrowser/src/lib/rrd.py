@@ -40,8 +40,8 @@ def process(request):
         raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "add":
         return treeselect(request['req'], session)
-    if args[0] == 'graphAction':
-        graphAction(request['req'])
+    if args[0] == 'pageAction':
+        pageAction(request['req'])
         session.save()
         raise RedirectError, urlbuilder.createUrl(division="rrd")
     if args[0] == "graph":
@@ -69,14 +69,37 @@ def process(request):
             #return showGraphs(session)
         remove(session, id)
         raise RedirectError, urlbuilder.createUrl(division="rrd")
+    if args[0] == "zoom":
+        try:
+            id = int(query['id'][0])
+        except Exception, e:
+            return html.Division("No id passed in %s, %s" % (e, query['id']))
+        try:
+            value = float(query['value'][0])
+        except Exception, e:
+            return html.Division("Invalid value, %s, %s" % (e, query['value']))
+        zoom(session, id, value)
+        raise RedirectError, urlbuilder.createUrl(division="rrd")
     
     return html.Division("args: %s, query: %s " %(str(args), str(query)))
 
 
-def graphAction(req):
+def pageAction(req):
     req.form = util.FieldStorage(req)
     action = req.form['action']
-    selected = req.form['selected']
+    zoomList = req.form['zoom']
+    if req.form.has_key('cn_zoom'):
+        for i in range(len(zoomList)):
+            try:
+                value = float(zoomList[i])
+            except:
+                continue
+            if value != 0:
+                zoom(req.session, i, value)
+    try:
+        selected = req.form['selected']
+    except KeyError:
+        selected = []
     if type(selected) != list:
         selected = [selected]
     if 'join'in action:
@@ -85,7 +108,8 @@ def graphAction(req):
         return remove(req.session, selected)
     if 'split' in action:
         return split(req.session, selected)
-    return html.Division("req.form: %s action: %s selected: %s" % (str(req.form), action, selected))
+    return html.Division("req.form: %s action: %s zoom: %s selected: %s" %
+                         (str(req.form), action, zoom, selected))
 
 def join(session, list):
     try:
@@ -129,12 +153,21 @@ def remove(session, list):
     except Exception, e:
         return html.Division("%s %s" % (str(e), str(list)))
     session.save()
+
+def zoom(session, id, value):
+    session['rrd'].presentations[id].setYAxis(value)
+    session.save()
+
 def timeframe(session, query):
     tf = query['tf'][0]
+    try:
+        session['rrd'].timeframeIndex = query['tfIndex'][0]
+    except:
+        pass
     session['rrd'].timeframe = tf
     session.save()
     for i in session['rrd'].presentations:
-        i.timeLast(query['tf'][0])
+        i.timeLast(tf, session['rrd'].timeframeIndex)
 
 def showIndex(req, session):
     try:
@@ -285,7 +318,7 @@ def parseQuery(query):
     return d
 
 def showGraphs(session):
-    form = html.Form(action='graphAction', method='post')
+    form = html.Form(action='pageAction', method='post')
     result = html.Division()
     form.append(result)
     for tf in ['year', 'month', 'week', 'day', 'hour']:
@@ -305,11 +338,25 @@ def showGraphs(session):
         editCell.append((html.Anchor('Remove', href='remove?id=%s' % index)))
         editCell.append(html.Break())
         editCell.append(html.Anchor('Split', href='split?id=%s' % index))
+        editCell.append(html.Break())
+        editCell.append(html.Input(type='text', name='zoom', value='0', size='4'))
+        editCell.append(html.Input(type='submit', name='cn_zoom', value='zoom'))
         table.add(html.Image(src=images[index].graphUrl(), name=index), editCell,
             html.Checkbox(name="selected", value=index))
 
     table.add('', html.TableCell(selectbox, colspan='2', _class="actionselectbottom"))
+
+    # Display previous link allowing to navigate in time
+    result.append(html.Anchor('Previous', href='timeframe?tf=%s&tfIndex=%s' % (
+            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) + 1)))
+    if int(session['rrd'].timeframeIndex) > 1:
+        result.append(html.Anchor('Next', href='timeframe?tf=%s&tfIndex=%s' % (
+            session['rrd'].timeframe, int(session['rrd'].timeframeIndex) - 1)))
+
+    result.append(html.Break())
     result.append(html.Anchor('Add datasource', href='add'))
+    #result.append(html.Division("Timeframe: %s, timeframeIndex: %s" % (session['rrd'].timeframe,
+    #                                                                   session['rrd'].timeframeIndex)))
     return form
 
 def datasources(query, session):
