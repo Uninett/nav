@@ -1,7 +1,9 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.DNSCheck;
 
-import java.util.*;
+import java.io.*;
 import java.net.*;
+import java.util.*;
+import java.util.regex.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
@@ -35,6 +37,17 @@ public class DNSCheck implements DeviceHandler
 	private static String[] canHandleOids = {
 		"dnscheck",
 	};
+
+	private static String[] hostBinCandidates = {
+		"/bin/host",
+		"/sbin/host",
+		"/usr/bin/host",
+		"/usr/sbin/host",
+		"/usr/local/bin/host",
+		"/usr/local/sbin/host",
+	};
+	private static File hostBin;
+		
 
 	private SimpleSnmp sSnmp;
 
@@ -72,13 +85,71 @@ public class DNSCheck implements DeviceHandler
 		}
 		String dnsName = ia.getCanonicalHostName();
 		if (dnsName.equals(nb.getIp())) {
-			// DNS lookup failed
-			Log.i("HANDLE", "DNS lookup failed for " + nb);
+			Log.d("HANDLE", "Java DNS lookup failed for " + nb);
+
+			dnsName = doHostReverseDNS(nb.getIp());
+			if (dnsName.equals(nb.getIp())) {
+				// DNS lookup failed
+				Log.i("HANDLE", "DNS lookup failed for " + nb);
+			}
 		}
 
 		nc.netboxDataFactory(nb).setSysname(dnsName);
 		nc.commit();
 
+	}
+
+	private String doHostReverseDNS(String ip) {
+		try {
+			if (hostBin == null) {
+				for (int i=0; i < hostBinCandidates.length; i++) {
+					File f = new File(hostBinCandidates[i]);
+					if (f.exists() && f.isFile()) {
+						hostBin = f;
+						break;
+					}
+				}
+			}
+
+			String[] hostCmd = {
+				hostBin.getAbsolutePath(),
+				ip
+			};
+
+			Runtime rt = Runtime.getRuntime();
+			Process p = rt.exec(hostCmd);
+			BufferedInputStream in = new BufferedInputStream(p.getInputStream());
+			try {
+				p.waitFor();
+			} catch (InterruptedException e) {
+				System.err.println("InterruptedException: " + e);
+				e.printStackTrace(System.err);
+				return ip;
+			}
+
+			byte[] b = new byte[1024];
+			in.read(b, 0, 1024);
+			String s = new String(b).trim();
+
+			// Check if found
+			if (s.indexOf("not found") >= 0) return ip;
+
+			// Extract DNS name
+			String pat = ".*domain name pointer +(\\S{3,})";
+
+			if (s.matches(pat)) {
+				Matcher m = Pattern.compile(pat).matcher(s);
+				m.matches();
+				String host = m.group(1);
+				if (host.endsWith(".")) host = host.substring(0, host.length()-1);
+				return host;
+			}
+
+		} catch (IOException e) {
+			System.err.println("IOException: " + e);
+			e.printStackTrace(System.err);
+		}
+		return ip;
 	}
 
 }
