@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ## Name:	arplogger.pl
-## $Id: arplogger.pl,v 1.10 2002/07/12 06:45:23 mortenv Exp $
+## $Id: arplogger.pl,v 1.11 2003/06/26 13:36:13 grohi Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -14,7 +14,7 @@
 # * checks with existing records in the database manage, the arp table
 #   - inserts new records unless already inserted
 #   - terminates old records where the ip<->mac comb. was not found 
-#   - leaves the rest unchanged
+#   - leave the rest unchanged
 
 require 5.002;
 use strict;
@@ -66,7 +66,7 @@ my $dbuserpw = $dbconf{'userpw_' . $dbuser};
 my $conn = db_connect($db, $dbuser, $dbuserpw);
 
 
-my $sql = "SELECT boksid,ip,ro,sysName FROM boks WHERE kat=\'GW\'";
+my $sql = "SELECT netboxid,ip,ro,sysname FROM netbox WHERE catid=\'GW\' OR catid=\'GSW\'";
 
 my $resultat = db_select($sql,$conn);
 
@@ -76,30 +76,17 @@ while(my @line = $resultat->fetchrow)
     $sysName{$line[0]} = $line[3];
 }
 
-
-#$sql = "SELECT prefiksid,nettadr FROM prefiks"; 
-
-$sql = "SELECT boksid,prefiksid,nettadr FROM gwport JOIN prefiks USING (prefiksid) WHERE gwportid=rootgwid"; 
+$sql = "SELECT netboxid,prefixid,host(netaddr) FROM gwport JOIN prefix USING (prefixid) JOIN module USING (moduleid) WHERE gwportid=rootgwid"; 
 
 $resultat = db_select($sql,$conn);
 
 while (my @line = $resultat->fetchrow) 
 {
     $prefiksdb{$line[2]} = $line[1];
-
     $prefiks2boks{$line[1]} = $line[0];
-
 }
 
-$sql = "SELECT boksid,ifindex,prefiksid FROM gwport";
-$resultat = db_select($sql,$conn);
-
-while (my @line = $resultat->fetchrow) 
-{
-    $gwport{$line[0]}{$line[1]}{$line[2]}++;
-}
-
-$sql= "SELECT arpid,boksid,ip,mac FROM arp WHERE til='infinity'"; 
+$sql= "SELECT arpid,netboxid,ip,mac FROM arp WHERE end_time='infinity'"; 
 
 $resultat = db_select($sql,$conn);
 
@@ -137,9 +124,7 @@ while (@arguments)
     my $ip = '';
     foreach $ip (keys %{$arptable{$hostid}}) 
     { 
-#	print "$ip\n";
-
-	my $sql = "UPDATE arp SET til=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
+	my $sql = "UPDATE arp SET end_time=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
 
 	$avsluttes++;
 	db_execute($sql,$conn);
@@ -147,14 +132,10 @@ while (@arguments)
     }
     
 #    print "$hostname\tnye:$nye\toppdaterte:$oppdat\tAvsluttet:$avsluttes\n";
-
-
     $tot_nye += $nye;
     $tot_oppdat += $oppdat;
     $tot_avs += $avsluttes;
-
 }
-
 
 #print "TOTALT\t$tot_nye\t$tot_oppdat\t$tot_avs\n";
 
@@ -174,54 +155,45 @@ sub process_arp_entry ($$$) {
     my ($ifIndex, $ip) = split(/\./, $index, 2);
     
     my $prefiksid = getprefiks($ip);
+            
+    $arptable_new{$ip} = hex_string($mac);
     
-    
-    
-#    if (exists $gwport{$hostid}{$ifIndex}{$prefiksid})
-#    {
-#      print "Legges inn: $ip\n";
-
-	$arptable_new{$ip} = hex_string($mac);
+    if (defined( $arptable{$hostid}{$ip} )) {
 	
-	if (defined( $arptable{$hostid}{$ip} )) {
+	if ($arptable{$hostid}{$ip} ne $arptable_new{$ip}) {
+	    
+# IP er koblet mot en annen macadresse, => vil avslutte gammel
+# og legge til ny record.
 
-#	    print "gml: $ip fra *$arptable{$hostid}{$ip}* til *$arptable_new{$ip}*\n";
+	    # Avslutte gammel record. 
+	    my $sql1 = "UPDATE arp SET end_time=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
+	    db_execute($sql1,$conn);
+	    
+	    # Legge inn ny record.
+	    if ($prefiks2boks{$prefiksid} == $hostid)
+	    {
+		my $sql2 = "INSERT INTO arp (netboxid,prefixid,ip,mac,sysname,start_time) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
+		db_execute($sql2,$conn);
+	    }
+	    $oppdat++;	    
+	}
+	
+# Sletter "behandlede" IP-adresser fra tabellen. De som blir igjen var aktive forrige runde, men er ikke aktive naa.
+# De skal derfor slettes. (senere i scriptet).
 
-	    if ($arptable{$hostid}{$ip} ne $arptable_new{$ip}) {
-	      
-#		print "IKKE like\n";
-
-	      # Avslutte gammel record. 
-	      my $sql1 = "UPDATE arp SET til=NOW() WHERE arpid = \'$arpid{$hostid}{$ip}{$arptable{$hostid}{$ip}}\'"; 
-#               print "AVSLUTT: $sql1\n";                 
-	      db_execute($sql1,$conn);
-	      
-	      # Legge inn ny record.
-	      if ($prefiks2boks{$prefiksid} == $hostid)
-	      {
-		  my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,ip_inet,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
-#               print "$sql2\n";
-		  db_execute($sql2,$conn);
-	      }
-	      $oppdat++;
-	      
-	  }
-	  delete $arptable{$hostid}{$ip};
-      } 
-      else # ikke i %arptable fra før: legg inn.
-      {
-#	  print "LIKE\n";
-
-	  # Legge inn ny record.
-	  if ($prefiks2boks{$prefiksid} == $hostid)
-	  {
-	      my $sql2 = "INSERT INTO arp (boksid,prefiksid,ip,ip_inet,mac,kilde,fra) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
-#           print "NY: $sql2\n";
-	      db_execute($sql2,$conn);
-	      $nye++;
-	  }
-      }
-#  }
+	delete $arptable{$hostid}{$ip};
+	
+    } 
+    else # ikke i %arptable fra før: nye innslag: legg inn!
+    {
+	# Legge inn ny record.
+	if ($prefiks2boks{$prefiksid} == $hostid)
+	{
+	    my $sql2 = "INSERT INTO arp (netboxid,prefixid,ip,mac,sysname,start_time) VALUES (\'$hostid\',\'$prefiksid\',\'$ip\',\'$arptable_new{$ip}\',\'$sysName{$hostid}\',NOW())";
+	    db_execute($sql2,$conn);
+	    $nye++;
+	}
+    }
 }
 
 ##############################################
@@ -231,21 +203,20 @@ sub getprefiks
     # Tar inn ip, splitter opp og and'er med diverse
     # nettmasker. Målet er å finne en match med en allerede innhentet
     # prefiksid (hash over alle), som så returneres.
-
+    
     my $ip = $_[0];
     
     my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
-
+    
     my $netadr;
     my $maske;
-
+    
     foreach $maske (@masker)
     {
 	$netadr = and_ip($ip,$maske);
-	
 	return $prefiksdb{$netadr} if (defined $prefiksdb{$netadr});
     }
-
+    
 #    print "Fant ikke prefiksid for $ip\n";
     return 0;
 }
