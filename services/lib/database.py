@@ -1,7 +1,7 @@
 """
 database
 
-$Id: database.py,v 1.17 2002/06/28 10:14:21 erikgors Exp $
+$Id: database.py,v 1.18 2002/07/02 18:44:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread, jobmap
@@ -26,12 +26,16 @@ def run():
 		statement = queue.get()
 		c.execute(statement)
 def newEvent(event):
-	#print "New event. Id: %i Status: %s Info: %s"% (event.serviceid, event.status, event.info)
-	value = event.UP and 100
+	if event.status == event.UP:
+		value = 100
+	elif event.status == event.DOWN:
+		value = 0
+	else:
+		raise "RealityError. Value should be Event.UP or Event.DOWN"
+	
+	statement = "INSERT INTO eventq (deviceid, boksid, eventtypeid, statefull, value, descr) values (%i, %i, '%s','t', %i, '%s' )" % (event.serviceid, event.boksid, event.TYPE, value, event.info.replace("'","\\'") )
+	queue.put(statement)
 
-	# Dette må fikses...
-	#statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr) values (%i, %i, '%s', '%s', %i, '%s'  ) " % (event.serviceid, event.boksid, event.type, 't',value, event.info.replace("'","\\'"))
-	#queue.put(statement)
 
 def newVersion(serviceid,version):
 	print "New version. Id: %i Version: %s" % (serviceid,version)
@@ -65,6 +69,6 @@ def getJobs(onlyactive = 1):
 			setattr(newJob,'active',active)
 
 		jobs += [newJob]
-#	db.commit()
+	db.commit()
 	return jobs
 
