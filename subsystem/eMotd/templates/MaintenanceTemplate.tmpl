@@ -3,7 +3,8 @@
 ##from nav.web.templates.SearchBoxTemplate import SearchBoxTemplate
 
 #block content
-$emotdid
+$makeMenu2("Maintenance Setup")
+##$emotdid
 <form action="$args['action']" method="post">
 <h1>Maintenance setup</h1>
 
@@ -14,6 +15,8 @@ $new()
 #end if
 
 #set $emotdid = int($emotdid)
+<br>
+<div style="padding: 0px 0px 0px 10px;">
 
 #if $emotdid > 0
 #set $eq = $equipment[$emotdid]
@@ -21,7 +24,14 @@ $equipmentList($eq,$emotdid)
 #end if
 $equipmentList($newequipment)
 
-$searchbox($args['searchbox'])
+$maint()
+
+#if $args['submit']['enabled']
+            <input type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
+#else
+            <input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
+#end if
+<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
 
 <p>
 $makeDateTime("Start maintenance","maintstart",$maintstart[0],$maintstart[1],$maintstart[2],$maintstart[3],$maintstart[4])
@@ -30,12 +40,12 @@ $makeDateTime("Start maintenance","maintstart",$maintstart[0],$maintstart[1],$ma
 <p>
 $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2],$maintend[3],$maintend[4])
 </p>
-
-$maint()
+</div>
 </form>
 <form action="$args['cancelaction']" method="post">
 <input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
 </form>
+</div>
 #end block
 
 
@@ -49,7 +59,9 @@ $maint()
 #end def
 
 #def new
-<div><label>Select message</label><select name="emotdid" onchange="this.form.submit()">
+<table style="font-size:11px;" cellspacing="10" cellpadding="0">
+<tr><td colspan="3">
+<label>Select message</label><br><select name="emotdid" onchange="this.form.submit()">
 #if $emotdid==0:
 	<option value="0" selected="1">Compose new message</option>
 #else:
@@ -65,10 +77,12 @@ $maint()
 	<option value="$b[0]">$d ...</option>
 #end if
 #end for
-</select></div>
-<div><label>Title: </label><input type="text" name="messagetitle" value="$messagetitle" /></div>
-<div><label>Description: </label><textarea name="messagedescription" cols="40" rows="3">$messagedescription</textarea></div>
-<div><label>Type: </label><select name="messagetype">
+</select>
+</td></tr>
+<tr><td>
+<label>Title: </label><br><input type="text" name="messagetitle" size=34 value="$messagetitle" />
+</td><td>
+<label>Type: </label><br><select name="messagetype">
 #for $t in ("error","scheduled","info","internal")
 #set selected = ''
 #if $t==$messagetype
@@ -76,7 +90,15 @@ $maint()
 #end if
 <option value="$t"$selected>$t</option>
 #end for
-</select></div>
+</select>
+</td></tr><tr>
+<td colspan=2>
+<label>Description: </label><br><textarea name="messagedescription" cols="40" rows="3">$messagedescription</textarea>
+</td>
+<td style="padding: 0px 0px 0px 25px;" valign=bottom>
+$searchbox($args['searchbox'])
+</td>
+</tr></table>
 #end def
 
 
@@ -87,13 +109,6 @@ $maint()
 #set ts = TreeSelectTemplate()
 ##    $qs.searchbox($args['searchbox'])
     $ts.treeselect($args['selectbox'])
-#if $args['submit']['enabled']
-            <input type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
-#else
-            <input disabled type="submit" name="$args['submit']['control']" value="$args['submit']['value']">
-#end if
-##<form action="$args['doneaction']" method="post">
-<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
 #end def
 
 
@@ -109,11 +124,10 @@ $maint()
 
 #def searchbox($s)
 ##   <form name="$s.formCname" method="$s.method"><p>
-<div style="float:right;">
    <table title="$s.help" style="border: solid black 2px; background: #eeeeee;">
         <tr>
             <th colspan="3" style="text-align: left;">
-                $s.title
+                Quicksearch
 #if $s.error
                 <span style="color: #f00;">($s.error)</span>
 #end if
@@ -136,6 +150,5 @@ $maint()
             <td><input type="submit" name="$s.submitCname" value="$s.submitText"></td>
         </tr>
     </table>
-</div>
 ##    </p></form>
 #end def

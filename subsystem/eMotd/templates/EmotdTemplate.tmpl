@@ -2,28 +2,64 @@
 
 #attr numberOfMessagesShown = 15
 
+#block additionalCSS
+$default_tabs_CSS();
+#end block additionalCSS
+
 #block errormessage
 #end block
 
-#def $makeMenu
-<div style="float:left">
-##	<h1 style="font-size:14;">Emotd Menu</h1>
-	<ul style="list-style-type:none;marin=0;padding:0;">
+#def $makeMenu($current = False)
+<div style="border: 1px solid black; margin: 33px 0px; padding: 0px 19px;">
+<div id="tabs" style="margin: -24px -10px;">
+	<ul>
 #for $item in $menu:
+## HACK
+#if $item.text == "Compose new message":
+#set $item.text = "New message";
+#end if
+#if $item.this or $item.text == $current:
+		<li id="current"><a>$item.text</a></li>
+#elif $item.text == "New message" or $item.text == "Maintenance Setup":
 		<li><a href="$item.link">$item.text</a></li>
+#else:
+		<li id="same"><a href="$item.link">$item.text</a></li>
+#end if
 #end for
 	</ul>
 </div>
 #end def
 
+#def $makeMenu2($current = False)
+<div style="border: 1px solid black; margin: 33px 0px; padding: 0px 19px;">
+<div id="tabs" style="margin: -24px -10px;">
+	<ul>
+		<li id="same"><a href="/emotd/active">Active messages</a></li>
+		<li id="same"><a href="/emotd/planned">Planned messages</a></li>
+		<li id="same"><a href="/emotd/historic">Historic messages</a></li>
+		<li id="same"><a href="/emotd/maintenance">Maintenance list</a></li>
+#if $current == "New message":
+		<li id="current"><a>New message</a></li>
+#else:
+		<li><a href="/emotd/edit">New message</a></li>
+#end if
+#if $current == "Maintenance Setup":
+		<li id="current"><a>Maintenance Setup</a></li>
+#else:
+		<li><a href="/emotd/add/">Maintenance Setup</a></li>
+#end if
+	</ul>
+</div>
+#end def
 
 #def $makeFormField($type,$name,$val="",$label=None,$star=None)
 
 #if $label
-<label>$label</label>#slurp
-#end if
+<label style="font-size: 11px;">$label</label>#slurp
 #if $star
-<span style="color:red;">*</span>#slurp
+<span style="color:red; font-size: 11px;">*</span>#slurp
+#end if
+<br>
 #end if
 #if $type == "tinytextarea"
 <textarea name="$name" cols="30" rows="5">$val</textarea>
@@ -32,14 +68,14 @@
 #elif $type == "textarea"
 <textarea name="$name" cols="50" rows="5">$val</textarea>
 #else
-<input type="$type" name="$name" value="$val" />
+<input type="$type" size="37" name="$name" value="$val" />
 #end if
 
 #end def
 
 #def $makeDateTime($label,$prefix,$year,$month,$day,$hour,$minute)
 
-<label>$label</label>
+<label style="white-space: nowrap; font-size: 11px; width:110px;">$label</label>
 <select name="${prefix}_year">
 #for y in range(2004,2020)
 <option value="$y" #slurp
@@ -72,7 +108,7 @@ selected="1" #slurp
 #end for
 </select>
 
-<label>at</label>
+<label style="font-size:11px;">at</label>
 
 <select name="${prefix}_hour">
 #for h in range(0,24)
@@ -101,42 +137,42 @@ selected="1" #slurp
 
 #def equipmentList($eq,$emotdid=0)
 #if len($eq) and len($eq.keys()):
-	<ul>
+<table style="font-size:13px;">
+<tr><td colspan=2><b>Units on maintenance:</td></tr>
 #for a,b in $eq.items():
 #for c in $b:
-	<li>$a $c[1] #slurp
+	<tr>
 #if $emotdid
-(<a href="/emotd/remove/$emotdid/?$a=$c[0]">remove</a>)#slurp
+<td><a href="/emotd/remove/$emotdid/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
 #elif $emotdid==0:
-(<a href="/emotd/remove/?$a=$c[0]">remove</a>)#slurp
+<td><a href="/emotd/remove/?$a=$c[0]" title="Remove"><img border="0" src="/images/form/deleteicon.gif"></a></td>#slurp
 #end if
-</li>
+<td>$a $c[1] #slurp</td>
+</tr>
 #end for
 #end for
-	</ul>
+	</table>
 #end if
 #end def
 
 #def maintList
 
-Maintenance List
+<h1>Maintenance List</h1>
 #if len($maints) == 0
 No maintenance info.
 #end if
   <!-- Here comes the actual information regarding maintenance information -->
-  <table>
+  <table style="font-size: 13px;">
   <tr>
-    <th>On Maintenance</th>
-    <th>Title</th>
-    <th>Start</th>
-    <th>End</th>
+    <td><b>On maintenance</b></td>
+    <td><b>Related message</b></td>
+    <td><b>Off maintenance</b></td>
   </tr>
   #for $message in $maints
   <tr>
 ##    <td><a href="/report/netbox?roomid=$message.roomid">$message.roomid ($message.roomdesc)</td>
 ##    <td><a href="/browse/$message.netboxid">$message.netboxid</a></td>
 ##    <td><a href="/browse/service/$message.serviceid">$message.serviceid</a></td>
-##    <td>$message.mstart</td>
 ##    <td>$message.mend</td>
 ##    <td><a href="/emotd/view=$message.emotdid">$message.title</a></td>
 #if $message.key == 'room'
@@ -151,9 +187,9 @@ No maintenance info.
     <td><a href="/browse/service/$message.value">$message.description</a></td>
 #end if
     <td><a href="/emotd/view/$message.emotdid">$message.title</a></td>
-    <td>$message.start</td>
     <td>$message.end</td>
   </tr>
   #end for
   </table>
+<br>
 #end def

@@ -1,47 +1,42 @@
 #extends nav.web.templates.EmotdTemplate
 
-#block additionalCSS
-$default_tabs_CSS();
-#end block additionalCSS
-
-#def $makeMenu
-<div id="tabs" style="margin: -33px -10px; width: 755px;">
-	<ul>
-#for $item in $menu:
-## HACK
-#if $item.text == "Compose new message":
-#set $item.text = "New message";
-#end if
-#if $item.this:
-		<li id="current"><a>$item.text</a></li>
-#elif $item.text == "New message" or $item.text == "Maintenance Setup":
-		<li><a href="$item.link">$item.text</a></li>
-#else:
-		<li id="same"><a href="$item.link">$item.text</a></li>
-#end if
-#end for
-	</ul>
-</div>
-#end def
-
 #block content
-<div style="border: 1px solid black; margin: 33px 0px; padding: 0px 19px; min-width: 730px;">
 $makeMenu()
 	<h1>$title</h1>
-
-##block errormessage
-##end block
-
-<ul style="list-style-type:none;margin:0px;padding:0px;">
+#if $messages:
+<table style="font-size:13px; border: 1px solid black;" cellspacing="0">
+  <TR><TD COLSPAN=2 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
+  <div style="position: relative; margin-top: -12px;"><img src="/images/emotd/top-l.gif"></div>
+  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;">$title</div>
+  </TD></TR>
+#set $farge = "white";
   #for $message in $messages
-	<li style="margin-bottom:8px">
-        	Title: <a href="/emotd/view/$message.id">$message.title</a><br />
-          	Edited: $message.last_changed by $message.author<br />
-	        Description: $message.description<br />
-		Units on maintenance: $message.units<br />
-		Is this a new message: $message.new
-	</li>
+   <tr style="background: $farge;">
+      <td style="padding: 0px 10px;"><a href="/emotd/view/$message.id">$message.title</a></td>
+#if $message.units
+      <td style="padding: 0px 10px;" align="right"><a href="/emotd/add/$message.id"><img src="/images/wrench.gif" border="0">$message.units</a></td>
+#else
+      <td style="padding: 0px 10px;">&nbsp;</td>      
+#end if
+
+##if $message.new
+##          	Edited: $message.last_changed by $message.author<br />
+##	        Description: $message.description<br />
+##		Units on maintenance: $message.units<br />
+##		Is this a new message: $message.new
+##end if
+
+#if $farge == "white":
+#set $farge = "#eeeeee"
+#else:
+#set $farge = "white"
+#end if
+   </tr>
   #end for
-</ul>
+</table>
+#else:
+No $title found.<br>
+#end if
+<br>
 </div>
 #end block

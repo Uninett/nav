@@ -1,53 +1,68 @@
 #extends nav.web.templates.EmotdTemplate
 
 
+#block additionalJavaScript
+function checkForm(form) {
+   if (form.title.value == "") {
+      alert("Please fill in a title.");
+      form.title.focus();
+   } else if (form.description.value == "") {
+      alert("Please fill in a description.");
+      form.description.focus();
+   } else {
+      return true;
+   }
+   return false;
+}
+#end block
+
 #block content
 
+$makeMenu2("New message")
 <h1>$pagetitle</h1>
 
-<form action="$action" method="post">
+<form action="$action" method="post" onSubmit="return checkForm(this);">
 $makeFormField("hidden","author",$author)
 $makeFormField("hidden","last_changed",$last_changed)
 $makeFormField("hidden","emotdid",$emotdid)
 $makeFormField("hidden","parent_id",$parent_id)
-<ul style="list-style-type:none;margin=0;padding:0;">
-<li>$makeDateTime("Active From","publish_start",$publish_start[0],$publish_start[1],$publish_start[2],$publish_start[3],$publish_start[4])</li>
-<li>$makeDateTime("Active To","publish_end",$publish_end[0],$publish_end[1],$publish_end[2],$publish_end[3],$publish_end[4]) <i>Defaults to one week</i></li>
-
-<li>
-<label>Type</label>
+<table border="0" cellspacing=10>
+<tr>
+<td>$makeFormField("text","title",$title,"Title",1)</td>
+<td>
+<label style="font-size:11px;">Type</label><br>
 <select name="type">
-<option value="info">Informational</option>
 <option value="error">Error</option>
-<option value="internal">Internal </option>
 <option value="scheduled">Scheduled outage</option>
+<option value="info">Informational</option>
+<option value="internal">Internal </option>
 </select>
-<i>Internal will not be published in public</i>
-</li>
+<font size=1><i>Internal will not be published in public</i></font>
+</td>
+</tr>
 
-#*<li>
-<table><tr><td>
-<h2>$primary_language</h2>
-<ul style="list-style-type:none;margin=0;padding:0;">*#
-<li>$makeFormField("text","title",$title,"Title",1)</li>
-<li>$makeFormField("tinyshorttextarea","downtime",$downtime,"Estimated downtime")</li>
-<li>$makeFormField("tinyshorttextarea","affected",$affected,"Affected end users")</li>
-<li>$makeFormField("tinytextarea","description",$description,"Description",1)</li>
-<li>$makeFormField("tinytextarea","detail",$detail,"Details")</li>
-#* #if $secondary_language
-</ul></td><td>
-<h2>$secondary_language</h2>
-<ul style="list-style-type:none;margin=0;padding:0;">
-<li>$makeFormField("text","title_en",$title_en,"Title",1)</li>
-<li>$makeFormField("tinyshorttextarea","downtime_en",$downtime_en,"Estimated downtime")</li>
-<li>$makeFormField("tinyshorttextarea","affected_en",$affected_en,"Affected end users")</li>
-<li>$makeFormField("tinytextarea","description_en",$description_en,"Description",1)</li>
-<li>$makeFormField("tinytextarea","detail_en",$detail_en,"Details")</li>
-#end if
-</ul></td></tr></table></li>*#
+<tr>
+<td>$makeFormField("tinytextarea","description",$description,"Description",1)</td>
+<td>$makeFormField("tinytextarea","detail",$detail,"Details")</td>
+</tr>
 
-<li><input type="submit" name="cn_save" value="Save this message" /></li>
-<li><input type="submit" name="cn_save_and_add" value="Save and add equipment to this message" /></li>
-</ul>
+<tr>
+<td>$makeFormField("tinyshorttextarea","downtime",$downtime,"Estimated downtime")</td>
+<td>$makeFormField("tinyshorttextarea","affected",$affected,"Affected end users")</td>
+</tr>
+
+<tr>
+<td colspan="2">$makeDateTime("Active From","publish_start",$publish_start[0],$publish_start[1],$publish_start[2],$publish_start[3],$publish_start[4])</td>
+</tr><tr>
+<td colspan="2">$makeDateTime("Active To","publish_end",$publish_end[0],$publish_end[1],$publish_end[2],$publish_end[3],$publish_end[4]) <font size=1><i>Defaults to one week</i></font></td>
+</tr>
+
+<tr><td colspan="2">
+<input type="submit" name="cn_save" value="Save this message" /></li>
+<input type="submit" name="cn_save_and_add" value="Save and add equipment to this message" />
+</td>
+</tr>
+</table>
 </form>
+</div>
 #end block
