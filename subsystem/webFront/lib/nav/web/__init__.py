@@ -8,7 +8,6 @@ Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Morten Vold <morten.vold@itea.ntnu.no>
          Magnar Sveen <magnars@idi.ntnu.no>
 """
-import state
 import auth
 import nav
 import time
@@ -27,6 +26,7 @@ def headerparserhandler(req):
     performs authentication and authorization functions for each
     request.
     """
+    import state
     from mod_python import apache
 
     # We automagically redirect users to the index page if they
