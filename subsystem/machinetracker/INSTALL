@@ -1,0 +1,12 @@
+För att installera Machine Tracker Web Services .NET, måste ni:
+
+* kopiera katalogen machinetracker till webroot
+* kopiera från Isbre, eller konfigurera själv
+  /usr/local/nav/local/etc/conf/machinetracker.conf
+* se till att ArpCamTemplate är kompilerad upp på rätt plats
+
+Ni vill observera att swithcport-söket endast finnst i alfaversion.
+
+
+Helsningar från Mjukvaru- och Utvecklingsdivisionen
+

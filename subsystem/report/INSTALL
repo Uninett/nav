@@ -1,0 +1,10 @@
+Kopier report til webroot
+
+Legg til eksterne filer:
+etc/conf/report/report.conf
+etc/conf/report/front.html
+
+ReportTemplate må være i template-katalogen
+
+Hvis det trengs, lag symlink til navkatalogen, som på isbre
+
