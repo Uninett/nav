@@ -69,6 +69,16 @@ def getNetbox(address):
         return None
     return results[0]
 
+
+class RrdDataSourceFile(Rrd_datasource):
+    """A join between Netbox, Rrd_file and Rrd_datasource"""
+    _sqlFields = Rrd_datasource._sqlFields.copy()
+    _sqlFields['netbox'] = 'rrd_file.netboxid'
+    _userClasses = Rrd_datasource._userClasses.copy()
+    _userClasses['netbox'] = Netbox
+    _sqlLinks = (('rrd_fileid', 'rrd_file.rrd_fileid'),)
+
+
 class Portconfig(Swport):
     """A join between Swport and Module"""
     _sqlFields =  {
