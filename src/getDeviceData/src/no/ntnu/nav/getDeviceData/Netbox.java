@@ -90,6 +90,25 @@ public interface Netbox
 	public String getOidNoCheck(String key);
 
 	/**
+	 * <p> Schedule the given OID to run again in <i>delay</i> seconds. </p>
+	 *
+	 * @param key The OID key
+	 * @param delay The schdule delay in seconds
+	 */
+	public void scheduleOid(String key, long delay);
+
+	/**
+	 * <p> Store a number in this netbox object. </p>
+	 */
+	public void set(String k, int n);
+
+	/**
+	 * <p> Retrieve a number previously stored in this netbox
+	 * object. </p>
+	 */
+	public int get(String k);
+
+	/**
 	 * <p>Get a key which uniquely identifies this netbox. Currently
 	 * the netboxid is returned. </p>
 	 *

@@ -29,6 +29,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	// Maps an OID key to Snmpoid
 	private Map keyMap;
 
+	private Map numberStoreMap;
+
 	// Shared
 	Type t;
 
@@ -47,6 +49,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		this.t = t;
 		this.keyFreqMap = keyFreqMap;
 		this.keyMap = keyMap;
+		numberStoreMap = Collections.synchronizedMap(new HashMap());
 	}
 
 	public int getNum() { return netboxNum; }
@@ -102,14 +105,22 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	}
 
 	void scheduleImmediately() {
+		scheduleAllOids(0);
+	}
+
+	void scheduleAllOids(long delay) {
 		synchronized (oidRunQ) {
 			oidRunQ.clear();
 			oidNextRunMap.clear();
-			updateNextRun();
+			updateNextRun(delay);
 		}
 	}
 
 	void updateNextRun() {
+		updateNextRun(0);
+	}
+
+	void updateNextRun(long delay) {
 		Set r = new HashSet();
 		r.addAll(oidNextRunMap.keySet());
 
@@ -119,7 +130,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 			r.remove(oidkey);
 			if (!oidNextRunMap.containsKey(oidkey)) {
 				// Schedule immediately
-				addToRunQ(oidkey, new Long(0));
+				addToRunQ(oidkey, new Long(delay));
 			}
 		}
 
@@ -168,6 +179,28 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		}
 		return false;
 	}
+
+	// Doc in interface
+	public void scheduleOid(String oidkey, long delay) {
+		delay = System.currentTimeMillis() + delay*1000;
+		if (oidkey == null) {
+			scheduleAllOids(delay);
+		} else {
+			addToRunQ(oidkey, new Long(delay));
+		}
+	}
+
+	// Doc in interface
+	public void set(String k, int n) {
+		numberStoreMap.put(k, new Integer(n));
+	}
+
+	// Doc in interface
+	public int get(String k) {
+		if (!numberStoreMap.containsKey(k)) return - (1 << 28);
+		return ((Integer)numberStoreMap.get(k)).intValue();
+	}
+
 
 	void addSnmpoid(int freq, Snmpoid snmpoid) {
 		String oidkey = snmpoid.getOidkey();

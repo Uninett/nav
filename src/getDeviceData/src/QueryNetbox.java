@@ -790,7 +790,7 @@ public class QueryNetbox extends Thread
 					// Insert into queue
 					addToRunQ(nb);
 
-					Log.d("RUN", "Done processing netbox " + nb);
+					Log.d("RUN", "Done processing netbox " + nb + " (nextrun: " + (nb.getNextRun()-System.currentTimeMillis())+ ")");
 
 				} else {
 					Log.d("RUN", "Done, netbox is removed: " + nb);
