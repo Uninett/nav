@@ -13,7 +13,7 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 templates = StatusTemplate.py
-files = StatusPrefs.py  status.py  StatusSections.py  StatusTables.py .htaccess
+files = StatusPrefs.py  status.py  StatusSections.py  StatusDefaultPrefs.py .htaccess
 
 .PHONY: all install install-lib install-bin install-web clean distclean
 
@@ -23,7 +23,6 @@ $(templates): %.py: %.tmpl
 	$(CHEETAH) compile $<
 
 install: install-lib install-web
-	$(INSTALL) -v -D -m 644 default-prefs.pickle $(DESTDIR)/tmp/default-prefs.pickle
 
 install-lib: $(templates)
 	for file in $(templates); do \

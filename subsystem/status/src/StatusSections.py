@@ -13,7 +13,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #################################################
 ## Imports
 
-import StatusTables,mx.DateTime
+import nav.db.manage,mx.DateTime,nav
 from nav.web import urlbuilder
 
 #################################################
@@ -21,6 +21,7 @@ from nav.web import urlbuilder
 
 FILTER_ALL_SELECTED = 'all_selected_tkn'
 BASEPATH = '/status/'
+INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
 
 #################################################
 ## Classes
@@ -32,8 +33,6 @@ class SectionBox:
     title = None
     maxHeight = None
 
-    # list of columns (left to right)
-    columns = []
     urlRoot = None
 
     # ManageGetArgs instance
@@ -49,252 +48,25 @@ class SectionBox:
         self.getArgs = getArgs
         self.urlRoot = urlRoot
         self.maxHeight = maxHeight
-        self.columns = []
         self.title = title
 
-    def addColumn(self,heading,table,field,orderBy,whereClause=None,show=True):
-        self.columns.append(SectionColumn(heading,table,field,orderBy,\
-        whereClause,show))
-
-    def addColumnPrefilled(self,heading,columnData,show=True):
-        self.columns.append(SectionColumnPrefilled(heading,columnData,show))
-
-
-    def sort(self, columnNumber):
-        columnNumber -= 1
-
-        permutation = self.columns[columnNumber].sort()
-
-        for column in self.columns:
-            if column.sortState == SectionColumn.SORTED_BY_OTHER:
-                column.sortBy(permutation)
-
-        # refill
-        self.fill()
-
-    def sortReverse(self, columnNumber):
-
-        columnNumber -= 1
-
-        permutation = self.columns[columnNumber].sortReverse()
-
-        for column in self.columns:
-            if column.sortState == SectionColumn.SORTED_BY_OTHER:
-                column.sortBy(permutation)
-
-        # refill
-        self.fill()
-
-
-    def fill(self):
-        " Fill columns with data from database "
-        for column in self.columns:
-            column.fill()  
-
     def addHeadings(self):
+        # Add headings with sorting urls
         i = 1
-        for column in self.columns:
-            if column.show:
-                colNumber = i
-                if (self.getArgs.getArgs(self.sortId)):
-                    if int(self.getArgs.getArgs(self.sortId)[0]) == colNumber:
-                        # we're already sorting by this row, reverse the sort
-                        # next time
-                        colNumber = -i
-                
-                args = self.getArgs.addArg(self.sortId,repr(colNumber))
-                url = '%s?%s#%s' % (self.urlRoot,args,self.controlBaseName)
-                style = ''
-                id = ''
-                if column.sortState == SectionColumn.SORTED_BY_THIS:
-                    style = 'sortedBy'
-                    id = 'ascending'
-                elif column.sortState == SectionColumn.SORTED_BY_THIS_REVERSE:
-                    style = 'sortedBy'
-                    id = 'descending'
-                self.headings.append((column.heading,url,style,id))
-            i += 1
+        for text,sort in self.headingDefs:
+            url = None
+            style = None
 
-
-class SectionColumn:
-    " A column in a SectionBox "
-
-    # constants
-    SORT_BY_THIS = 0 
-    SORTED_BY_THIS = 1
-    SORTED_BY_OTHER = 2
-    SORTED_BY_THIS_REVERSE = 3
-
-    sortState = None
-
-    heading = None
-    table = None
-    field = []
-    whereClause = None
-    show = True
-
-    orderBy = ''
-    rows = []
-
-    def __init__(self,heading,table,field,orderBy,whereClause,show):
-        self.rows = []
-
-        self.orderBy = orderBy
-        self.show = show
-        self.sortState = self.SORTED_BY_OTHER
-        self.heading = heading
-        self.table = table
-        self.field = field
-        self.whereClause = whereClause
-        return
-
-    def fill(self):
-        " Fill this column with rows from database "
-        table = getattr(StatusTables,self.table)
-
-        fields = self.field
-
-        if self.whereClause:
-            iterator = table.getAllIterator((self.whereClause),\
-            orderBy=self.orderBy)
-        else:
-            iterator = table.getAllIterator(orderBy=self.orderBy)
-
-        counter = 0
-
-        for row in iterator:
-            for field in fields:
-                object = getattr(row, field)
-                row = object
-
-            self.rows.append((row,counter))
-            counter += 1
-        return
-
-    def sort(self):
-        " Sort section by this column "
-        self.sortState = self.SORTED_BY_THIS
-
-        self.rows.sort()
-
-        permutation = []
-
-        for row in self.rows:
-            data,counter = row
-            permutation.append(counter)
+            sortBy = i
+            if (self.getArgs.getArgs(self.sortId)):
+                if int(self.getArgs.getArgs(self.sortId)[0]) == sortBy:
+                    # already sorting by this column, reverse it
+                    sortBy = -i
+            args = self.getArgs.addArg(self.sortId,repr(sortBy))
+            url = '%s?%s#%s' % (self.urlRoot,args,self.controlBaseName)
             
-        return permutation
-
-    def sortReverse(self):
-        " Sort section by this column, descending "
-        self.sortState = self.SORTED_BY_THIS_REVERSE
-
-        self.rows.sort()
-        self.rows.reverse()
-
-        permutation = []
-
-        for row in self.rows:
-            data,counter = row
-            permutation.append(counter)
-            
-        return permutation
-
-    def sortBy(self,permutation):
-        " Sort this column by another column "
-        self.sortState = self.SORTED_BY_OTHER
-
-        # Make an empty list of the same length
-        sortedList = []
-
-        counter = 0
-        for index in permutation:
-            data,counterOld = self.rows[index]
-            sortedList.append((data,counter))
-            counter += 1
-
-        self.rows = sortedList
-        return
-
-class SectionColumnPrefilled:
-    " A prefilled column in a SectionBox "
-
-    # constants
-    SORT_BY_THIS = 0 
-    SORTED_BY_THIS = 1
-    SORTED_BY_OTHER = 2
-    SORTED_BY_THIS_REVERSE = 3
-
-    sortState = None
-
-    heading = None
-    table = None
-    field = []
-    whereClause = None
-    show = True
-
-    orderBy = ''
-    rows = []
-
-    def __init__(self,heading,columnData,show):
-        # rows: [(data,rownumber),..]
-        self.columnData = columnData
-
-        self.show = show
-        self.sortState = self.SORTED_BY_OTHER
-        self.heading = heading
-        return
-
-    def fill(self):
-        # prefilled
-        self.rows = self.columnData
-
-    def sort(self):
-        " Sort section by this column "
-        self.sortState = self.SORTED_BY_THIS
-
-        self.rows.sort()
-
-        permutation = []
-
-        for row in self.rows:
-            data,counter = row
-            permutation.append(counter)
-            
-        return permutation
-
-    def sortReverse(self):
-        " Sort section by this column, descending "
-        self.sortState = self.SORTED_BY_THIS_REVERSE
-
-        self.rows.sort()
-        self.rows.reverse()
-
-        permutation = []
-
-        for row in self.rows:
-            data,counter = row
-            permutation.append(counter)
-            
-        return permutation
-
-    def sortBy(self,permutation):
-        " Sort this column by another column "
-        self.sortState = self.SORTED_BY_OTHER
-
-        # Make an empty list of the same length
-        sortedList = []
-
-        counter = 0
-        for index in permutation:
-            data,counterOld = self.rows[index]
-            sortedList.append((data,counter))
-            counter += 1
-
-        self.rows = sortedList
-        return
-
-
+            self.headings.append((text,url,style,self.controlBaseName))
+            i+=1
 
 
 #################################################
@@ -304,39 +76,51 @@ class ServiceSectionBox(SectionBox):
     " Section displaying services that are down or in shadow "
 
     # attribs for preferences
-    description = 'Section for services'
     name = 'Services down'
     typeId = 'service'
 
     prefsOptions = None
 
-    headings = []
-    rows = []
+    defaultSort = 3         # -3, thus sortReverse = True
+    sortReverse = False 
+    sortBy = defaultSort
 
     def __init__(self, controlBaseName,getArgs,title,filterSettings):
-        # Sort reverse by column 3 (down time)
-        self.defaultSort = [-3]
+        # Sort reverse by column 3 (downtime)
 
         self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('Handler',None),
+                            ('Down since',None),
+                            ('Downtime',None),
+                            ('',None)]
         self.rows = []
         self.summary = None
         self.historyLink = [BASEPATH + 'history/?type=services','(history)']
-        self.columns = []
-        self.table = None
+        self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
-        self.initColumns(filterSettings)
-        self.fill()
+        self.addHeadings()
         return
  
-    def initColumns(self,filterSettings):
-        where_clause = "eventtypeid = 'serviceState' and end_time = 'infinity'"
-  
+    def fill(self):
+        filterSettings = self.filterSettings
+    
+        sql = "SELECT netbox.sysname,service.handler," +\
+              "alerthist.start_time,now()-alerthist.start_time," +\
+              "service.up,service.serviceid,netbox.netboxid " +\
+              "FROM alerthist,netbox,service " + \
+              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
+              "alerthist.subid=service.serviceid AND " +\
+              "alerthist.end_time='infinity' AND " +\
+              "alerthist.eventtypeid='serviceState' "
+ 
         # parse filter settings
+        where_clause = ''
         if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
@@ -346,7 +130,7 @@ class ServiceSectionBox(SectionBox):
                 where_clause += ") "
             # catid
             if not filterSettings['handler'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for handler in filterSettings['handler']:
                     if not first_line:
@@ -365,73 +149,75 @@ class ServiceSectionBox(SectionBox):
                     where_clause += "service.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
+            else: 
+              where_clause += "AND (service.up = 'n' OR service.up='s') "
+
+        sql = sql + where_clause + " ORDER BY now()-start_time" 
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
   
-        orderBy = 'start_time' 
-        self.addColumn('Sysname','AlerthistStatusService',\
-        ['sysname'],orderBy,where_clause)
-        self.addColumn('Service','AlerthistStatusService',\
-        ['handler'],orderBy,where_clause)
-        self.addColumn('Down since','AlerthistStatusService',\
-        ['start_time'],orderBy,where_clause)
-        self.addColumn('Downtime','AlerthistStatusService',\
-        ['start_time'],orderBy,where_clause)
-        self.addColumn('Up','AlerthistStatusService',\
-        ['up'],orderBy,where_clause,show=False)
-
-        for column in self.columns:
-            column.fill() 
-        return
-
-    def fill(self):
-        self.rows = []
-        self.headings = []
-
-        self.addHeadings()
-
-        height = len(self.columns[0].rows)
+        height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
                 height = self.maxHeight
 
         servicesDown = 0
         servicesShadow = 0
- 
-        for i in range(0,height):
+
+        SYSNAME = 0
+        HANDLER = 1
+        STARTTIME = 2
+        DOWNTIME = 3
+        UP = 4
+        SERVICEID = 5
+        BOXID = 6
+        
+        for line in result:
             row = []
+            style = None    
 
-            # håndtere hver kolonne manuelt            
-            up,counter = self.columns[4].rows[i]
-            style = None
-            if up == 'n':
-                servicesDown += 1
-                style = None
-            elif up == 's':
+            if line[UP] == 's':
                 servicesShadow += 1
-                style = 'shadow'
+                #style = 'shadow' 
+            else:
+                servicesDown += 1 
 
-            # Sysname 
-            data,counter = self.columns[0].rows[i]
-            netbox = StatusTables.Netbox
-            boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
-            row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
-                                                  style))
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
             # Handler
-            data,counter = self.columns[1].rows[i]
-            row.append((data,urlbuilder.createUrl(id=data,
-                                                  division='service'),None))
+            row.append((line[HANDLER],urlbuilder.createUrl(id=line[HANDLER],
+                        division='service'),None,style))
  
-            # Down since
-            start,counter = self.columns[2].rows[i]
-            row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
+            # Start
+            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),None,None,
+                        style))
 
             # Downtime
-            start,counter = self.columns[3].rows[i]
-            diff = mx.DateTime.now() - start
-            delta = repr(diff.absvalues()[0]) + ' d, ' + \
-            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
-            row.append((delta,'',None))
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                       line[DOWNTIME].strftime('%H') + ' h, ' + \
+                       line[DOWNTIME].strftime('%M') + ' m'
+            row.append((downTime,None,None,style))
 
-            self.rows.append(row)
+            # History link
+            row.append((None,
+                        BASEPATH + 'history/?type=services&id=%s' \
+                        % (line[SERVICEID],),
+                        ('/images/status/status-history.png',
+                        'View history for this service'),
+                        None))
+
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+
         if not self.listStates.count('s') and self.listStates.count('n'):
             self.summary = str(servicesDown) + ' services down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
@@ -439,7 +225,6 @@ class ServiceSectionBox(SectionBox):
         else:
             self.summary = str(servicesDown) + ' services down, ' + \
                            str(servicesShadow) + ' in shadow'
-        return
 
     def getFilters(controlBaseName,orgList):
         """
@@ -448,7 +233,7 @@ class ServiceSectionBox(SectionBox):
         filterHeadings = ['Organisation','Service','State']
 
         filterSelects = []
-        table = StatusTables.Org()
+        table = nav.db.manage.Org()
 
         # Org
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -473,36 +258,52 @@ class ServiceSectionBox(SectionBox):
         return (filterHeadings,filterSelects)
     getFilters = staticmethod(getFilters)
 
+
 class NetboxSectionBox(SectionBox):
-    " Section displaying netboxes that are down or in shadow "
-    
+    " Section displaying services that are down or in shadow "
+
     # attribs for preferences
     name = 'Boxes down'
-    typeId = 'netbox'     
-    
-    def __init__(self,controlBaseName,getArgs,title,filterSettings):
-        # Sort reverse by column 3 (down time)
-        self.defaultSort = [-3]
+    typeId = 'netbox'
+
+    prefsOptions = None
+
+    defaultSort = 3
+    sortReverse = False 
+    sortBy = defaultSort
+
+    def __init__(self, controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column 4 (downtime)
 
         self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('IP',None),
+                            ('Down since',None),
+                            ('Downtime',None),
+                            ('',None)]
         self.rows = []
-        self.columns = []
         self.summary = None
         self.historyLink = [BASEPATH + 'history/?type=boxes','(history)']
+        self.filterSettings = filterSettings
 
-        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
-        self.initColumns(filterSettings)
-        self.fill()
+        SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
+        self.addHeadings()
         return
  
-    def initColumns(self,filterSettings):
-        # basic where
-        where_clause = "eventtypeid = 'boxState' " +\
-                       "and end_time = 'infinity'" +\
-                       "and alerttypeid = 2"
-
-        # parse filter settings
-        ##raise(repr(filterSettings))
+    def fill(self):
+        filterSettings = self.filterSettings
+    
+        sql = "SELECT netbox.sysname,netbox.ip," +\
+              "alerthist.start_time,now()-alerthist.start_time," +\
+              "netbox.up,alerttype.alerttype,netbox.netboxid FROM " + \
+              "alerthist,netbox,alerttype " + \
+              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
+              "alerttype.alerttypeid=alerthist.alerttypeid AND " +\
+              "alerthist.end_time='infinity' AND " +\
+              "alerthist.eventtypeid='boxState' AND " +\
+              "(netbox.up='n' OR netbox.up='s') "
+ 
+        where_clause = ''
         if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
@@ -532,80 +333,84 @@ class NetboxSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "netbox.up = '" + state + "'"
+                    if state=='n':
+                        # Down
+                        state = 'boxDown'
+                    elif state=='s':
+                        # Shadow
+                        state = 'boxShadow'
+                    where_clause += "alerttype.alerttype = '" + state + "'"
                     first_line = False
                 where_clause += ") "
+            else:
+                where_clause += " AND (alerttype.alerttype='boxDown' or " +\
+                                "alerttype.alerttype='boxShadow') "
 
-        self.addColumn('Sysname','AlerthistStatusNetbox',['sysname'],\
-        'start_time',where_clause)
-        self.addColumn('IP','AlerthistStatusNetbox',['ip'],\
-        'start_time',where_clause)
-        self.addColumn('Down since','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('Downtime','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('Shadow','AlerthistStatusNetbox',['up'],\
-        'start_time',where_clause,show=False)
-        self.addColumn('','AlerthistStatusNetbox',['up'],\
-        'start_time',where_clause,show=True)
+        sql = sql + where_clause + " ORDER BY now()-start_time" 
 
-        for column in self.columns:
-            column.fill() 
-        return
-
-    def fill(self):
-        self.rows = []
-        self.headings = []
-
-        self.addHeadings()
-
-        height = len(self.columns[0].rows)
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+ 
+        height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
                 height = self.maxHeight
 
         boxesDown = 0
         boxesShadow = 0
-        for i in range(0,height):
+
+        SYSNAME = 0
+        IP = 1
+        STARTTIME = 2
+        DOWNTIME = 3
+        UP = 4
+        ALERTTYPE = 5
+        BOXID = 6
+
+        for line in result:
             row = []
+            style = None    
 
-            # håndtere hver kolonne manuelt            
-            up,counter = self.columns[5].rows[i]
-
-            style = None
-            if up == 'n':
-                style = None 
-                boxesDown += 1
-            elif up == 's':
-                style = 'shadow'
+            if line[ALERTTYPE] == 'boxShadow':
                 boxesShadow += 1
+                #style = 'shadow' 
+            else:
+                boxesDown += 1 
 
-            # Sysname 
-            data,counter = self.columns[0].rows[i]
-            netbox = StatusTables.Netbox
-            boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
-            row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
-                                                  style))
-            # IP
-            data,counter = self.columns[1].rows[i]
-            row.append((data,None,style))
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,
+                        style))
+
+            # Ip
+            row.append((line[IP],None,None,style))
  
             # Down since
-            start,counter = self.columns[2].rows[i]
-            row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
+            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),
+                        None,None,style))
 
             # Downtime
-            start,counter = self.columns[3].rows[i]
-            diff = mx.DateTime.now() - start
-            delta = repr(diff.absvalues()[0]) + ' d, ' + \
-            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
-            row.append((delta,'',None))
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                       line[DOWNTIME].strftime('%H') + ' h, ' + \
+                       line[DOWNTIME].strftime('%M') + ' m'
 
-            # History
-            row.append(('<img border="0" src="/~hansjorg/icon.png">',
-                        BASEPATH + 'history/?type=boxes&id=%s' % (boxid,),
+            row.append((downTime,None,None,style))
+
+            # History icon
+            row.append((None,
+                        BASEPATH + 'history/?type=boxes&id=%s' % (line[BOXID],),
+                        ('/images/status/status-history.png',
+                        'View history for this box'),
                         None))
-            self.rows.append(row)
+
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
 
         if not self.listStates.count('s') and self.listStates.count('n'):
             self.summary = str(boxesDown) + ' boxes down'
@@ -614,7 +419,6 @@ class NetboxSectionBox(SectionBox):
         else:
             self.summary = str(boxesDown) + ' boxes down, ' + \
                            str(boxesShadow) + ' in shadow'
-        return
 
     def getFilters(controlBaseName,orgList):
         """
@@ -626,7 +430,7 @@ class NetboxSectionBox(SectionBox):
         filterSelects = []
 
         # Org
-        table = StatusTables.Org()
+        table = nav.db.manage.Org()
         # Restrict to orgs where user belongs
         #whereOrg = makeWhereList(orgList)
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -635,7 +439,7 @@ class NetboxSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
-        table = StatusTables.Cat()
+        table = nav.db.manage.Cat()
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
              optionsList.append((cat.catid,cat.catid,False))
@@ -655,29 +459,48 @@ class ModuleSectionBox(SectionBox):
     # attribs for preferences
     name = 'Modules down'
     typeId = 'module'     
-    
-    def __init__(self,controlBaseName,getArgs,title,filterSettings):
-        # Sort reverse by column (down time)
-        self.defaultSort = [-3]
+ 
+    prefsOptions = None
+
+    defaultSort = 4      
+    sortReverse = False 
+    sortBy = defaultSort
+
+    def __init__(self, controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column 4 (downtime)
 
         self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('IP',None),
+                            ('Module',None),
+                            ('Down since',None),
+                            ('Downtime',None),
+                            ('',None)]
         self.rows = []
-        self.columns = []
-        self.historyLink = [BASEPATH + 'history/?type=modules','(history)']
         self.summary = None
+        self.historyLink = [BASEPATH + 'history/?type=modules','(history)']
+        self.filterSettings = filterSettings
 
-        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
-        self.initColumns(filterSettings)
-        self.fill()
+        SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
+        self.addHeadings()
         return
  
-    def initColumns(self,filterSettings):
-        # basic where
-        where_clause = "eventtypeid = 'moduleState' " +\
-                       "and end_time = 'infinity'"
-
-        # parse filter settings
-        ##raise(repr(filterSettings))
+    def fill(self):
+        filterSettings = self.filterSettings
+    
+        sql = "SELECT netbox.sysname,netbox.ip," +\
+              "module.module,alerthist.start_time," +\
+              "now()-alerthist.start_time,netbox.up," +\
+              "alerttype.alerttype,module.moduleid,netbox.netboxid FROM " + \
+              "alerthist,netbox,alerttype,module " + \
+              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
+              "alerthist.subid = module.moduleid AND " +\
+              "alerttype.alerttypeid=alerthist.alerttypeid AND " +\
+              "alerthist.end_time='infinity' AND " +\
+              "alerthist.eventtypeid='moduleState' AND " +\
+              "alerttype.alerttype='moduleDown' "
+ 
+        where_clause = ''
         if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
@@ -707,95 +530,91 @@ class ModuleSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "netbox.up = '" + state + "'"
+                    where_clause += "module.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
+            else:
+              where_clause += "AND (module.up='n' OR module.up='s') "
 
-        self.addColumn('Sysname','AlerthistStatusNetbox',['sysname'],\
-        'start_time',where_clause)
-        self.addColumn('IP','AlerthistStatusNetbox',['ip'],\
-        'start_time',where_clause)
-        self.addColumn('Module','AlerthistStatusNetbox',['subid'],\
-        'start_time',where_clause)
-        self.addColumn('Down since','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('Downtime','AlerthistStatusNetbox',['start_time'],\
-        'start_time',where_clause,show=True)
-        self.addColumn('Shadow','AlerthistStatusNetbox',['up'],\
-        'start_time',where_clause,show=False)
-        self.addColumn('','AlerthistStatusNetbox',['up'],\
-        'start_time',where_clause,show=True)
+        sql = sql + where_clause + " ORDER BY now()-start_time" 
 
-        for column in self.columns:
-            column.fill() 
-        return
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
 
-    def fill(self):
-        self.rows = []
-        self.headings = []
-
-        self.addHeadings()
-
-        height = len(self.columns[0].rows)
+        height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
                 height = self.maxHeight
 
         modulesDown = 0
         modulesShadow = 0
-        for i in range(0,height):
+
+        SYSNAME = 0
+        IP = 1
+        MODULE = 2
+        STARTTIME = 3
+        DOWNTIME = 4
+        UP = 5
+        ALERTTYPE = 6
+        MODULEID = 7
+        BOXID = 8
+        
+        for line in result:
             row = []
+            style = None    
 
-            # håndtere hver kolonne manuelt            
-            up,counter = self.columns[5].rows[i]
-            style = None
-            if up == 'n':
-                modulesDown += 1
-                style = None
-            elif up == 's':
+            if line[UP] == 's':
                 modulesShadow += 1
-                style = 'shadow'
+                style = 'shadow' 
+            else:
+                modulesDown += 1 
 
-            # Sysname 
-            data,counter = self.columns[0].rows[i]
-            netbox = StatusTables.Netbox
-            boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
-            row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
-                                                  style)) 
-            # IP
-            data,counter = self.columns[1].rows[i]
-            row.append((data,None,style)) 
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,
+                        style))
 
-            # Module
-            data,counter = self.columns[2].rows[i]
-            module = StatusTables.Module(data)
-            row.append((Module.module,'/',''))
+            # Ip
+            row.append((line[IP],None,None,style))
  
+            # Module
+            row.append((str(line[MODULE]),None,None,style))
+
             # Down since
-            start,counter = self.columns[3].rows[i]
-            row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
+            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),
+                        None,None,style))
 
             # Downtime
-            start,counter = self.columns[4].rows[i]
-            diff = mx.DateTime.now() - start
-            delta = repr(diff.absvalues()[0]) + ' d, ' + \
-            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
-            row.append((delta,'',None))
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                       line[DOWNTIME].strftime('%H') + ' h, ' + \
+                       line[DOWNTIME].strftime('%M') + ' m'
 
-            # History
-            row.append(('<img border="0" src="/~hansjorg/icon.png">',
-                        BASEPATH + 'history/?type=boxes&id=%s' % (boxid,),
+            row.append((downTime,None,None,style))
+
+            # History icon
+            row.append((None,
+                        BASEPATH + 'history/?type=modules&id=%s' \
+                        % (line[MODULEID],),
+                        ('/images/status/status-history.png',
+                        'View history for this module'),
                         None))
 
-            self.rows.append(row)
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+
         if not self.listStates.count('s') and self.listStates.count('n'):
             self.summary = str(modulesDown) + ' modules down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
             self.summary = str(modulesShadow) + ' modules in shadow'
         else:
             self.summary = str(modulesDown) + ' modules down, ' + \
-                           str(modulesShadow) + ' in shadow'
-        return
+                           str(modulesShadow) + ' modules in shadow'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -807,7 +626,7 @@ class ModuleSectionBox(SectionBox):
         filterSelects = []
 
         # Org
-        table = StatusTables.Org()
+        table = nav.db.manage.Org()
         # Restrict to orgs where user belongs
         #whereOrg = makeWhereList(orgList)
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -816,7 +635,7 @@ class ModuleSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
-        table = StatusTables.Cat()
+        table = nav.db.manage.Cat()
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
              optionsList.append((cat.catid,cat.catid,False))
@@ -830,3 +649,380 @@ class ModuleSectionBox(SectionBox):
     getFilters = staticmethod(getFilters)
 
 
+##
+## History sections
+##
+
+
+class NetboxHistoryBox(SectionBox):
+    " Section showing the history of netboxes that have been down or in shadow "
+   
+    defaultSort = 2
+    sortBy = defaultSort
+    sortReverse = True
+    
+    def __init__(self,controlBaseName,getArgs,title,date,boxid=None):
+        self.headings = []
+        self.rows = []
+        if boxid:
+            # Don't show history icon when we're looking at one box
+            self.headingDefs = [('Sysname',None),
+                                ('IP',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None),
+                                ('boxState',None)]
+                                
+        else:
+            self.headingDefs = [('Sysname',None),
+                                ('IP',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None),
+                                ('boxState',None),
+                                ('',None)]
+
+        self.date = date
+        self.boxid = boxid
+
+        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
+        self.addHeadings()
+        return
+ 
+    def fill(self):
+        sql = "SELECT netbox.sysname,netbox.ip," +\
+              "alerthist.start_time,alerthist.end_time," +\
+              "netbox.netboxid,alerttype.alerttype " +\
+              "FROM alerthist,netbox,alerttype WHERE " + \
+              "alerthist.netboxid=netbox.netboxid AND " +\
+              "alerthist.alerttypeid=alerttype.alerttypeid AND " +\
+              "alerthist.eventtypeid='boxState' AND " +\
+              "(alerttype.alerttype='boxDown' OR " +\
+              "alerttype.alerttype='boxUp' OR " +\
+              "alerttype.alerttype='boxShadow' OR " +\
+              "alerttype.alerttype='boxSunny') AND " +\
+              "date(start_time) = '%s' " %(self.date,)
+
+        
+        if self.boxid:
+            sql += " AND alerthist.netboxid='%s'" % (self.boxid,)
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        SYSNAME = 0
+        IP = 1
+        FROM = 2
+        TO = 3
+        DOWNTIME = 4
+        BOXID = 5
+        ALERTTYPE = 6
+
+        for tmpline in result:
+            # Must insert downtime
+            if not tmpline[TO] or tmpline[TO]==INFINITY:
+                downTime = mx.DateTime.now() - tmpline[FROM]
+            else:
+                downTime = tmpline[TO] - tmpline[FROM]
+            line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:6])
+
+            row = []
+
+            style = None
+            #if (line[ALERTTYPE]=='boxShadow' or line[ALERTTYPE]=='boxSunny'):
+            #    style = 'shadow'
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
+            # IP
+            row.append((line[IP],None,None,style))
+ 
+
+            # From
+            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
+                       None,None,style))
+
+            # To
+            if not line[TO] or line[TO]==INFINITY:
+                row.append(('Still down',None,None,style))
+            else:
+                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
+                           None,None,style))
+
+            # Downtime
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                           line[DOWNTIME].strftime('%H') + ' h, ' +\
+                           line[DOWNTIME].strftime('%M') + ' min'
+            row.append((downTime,None,None,style))
+
+            # boxState
+            row.append((line[ALERTTYPE],None,None,style))
+
+            # History
+            if not self.boxid:
+                row.append((None,
+                            BASEPATH + 'history/?type=boxes&id=%s' \
+                            % (line[BOXID],),
+                            ('/images/status/status-history.png',
+                            'View history for thix box'),
+                            style))
+            
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+        return
+
+class ServiceHistoryBox(SectionBox):
+    " Section showing history for services "
+    
+    defaultSort = 2
+    sortBy = defaultSort
+    sortReverse = True
+    
+    def __init__(self,controlBaseName,getArgs,title,date,serviceid=None):
+        self.headings = []
+        self.rows = []
+        self.date = date
+        self.serviceid = serviceid
+
+        if serviceid:
+            # Don't show history icon when we're looking at one box
+            self.headingDefs = [('Sysname',None),
+                                ('Handler',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None)]
+                                
+        else:
+            self.headingDefs = [('Sysname',None),
+                                ('Handler',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None),
+                                ('',None)]
+
+        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
+        self.addHeadings()
+        return
+ 
+    def fill(self):
+
+        sql = "SELECT netbox.sysname,service.handler," +\
+              "alerthist.start_time,alerthist.end_time,netbox.netboxid,"+\
+              "alerttype.alerttype,service.serviceid FROM netbox,"+\
+              "service,alerthist LEFT JOIN alerttype using(alerttypeid) "+\
+              "WHERE alerthist.netboxid = netbox.netboxid AND "+\
+              "alerthist.subid=service.serviceid AND " +\
+              "alerthist.eventtypeid='serviceState' AND " +\
+              "date(start_time) = '%s' " %(self.date,)
+            
+        if self.serviceid:
+            sql += " AND service.serviceid='%s'" % (self.serviceid,)
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        SYSNAME = 0
+        HANDLER = 1
+        FROM = 2
+        TO = 3
+        DOWNTIME = 4
+        BOXID = 5
+        ALERTTYPE = 6
+        SERVICEID = 7
+
+        for tmpline in result:
+            # Must insert downtime
+            if not tmpline[TO] or tmpline[TO]==INFINITY:
+                downTime = mx.DateTime.now() - tmpline[FROM]
+            else:
+                downTime = tmpline[TO] - tmpline[FROM]
+            line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:7])
+            row = []
+
+            style = None
+            #if (line[ALERTTYPE]=='boxShadow' or line[ALERTTYPE]=='boxSunny'):
+            #    style = 'shadow'
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
+            # Handler
+            row.append((line[HANDLER],None,None,style))
+ 
+
+            # From
+            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
+                       None,None,style))
+
+            # To
+            if not line[TO] or line[TO]==INFINITY:
+                row.append(('Still down',None,None,style))
+            else:
+                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
+                           None,None,style))
+
+            # Downtime
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                           line[DOWNTIME].strftime('%H') + ' h, ' +\
+                           line[DOWNTIME].strftime('%M') + ' min'
+            row.append((downTime,None,None,style))
+
+            # History
+            if not self.serviceid:
+                row.append((None,
+                            BASEPATH + 'history/?type=services&id=%s' \
+                            % (line[SERVICEID],),
+                            ('/images/status/status-history.png',
+                            'View history for this service'),
+                            style))
+            
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+        return
+
+
+class ModuleHistoryBox(SectionBox):
+    " Section showing history for modules "
+    
+    defaultSort = 2
+    sortBy = defaultSort
+    sortReverse = True
+    
+    def __init__(self,controlBaseName,getArgs,title,date,moduleid=None):
+        self.headings = []
+        self.rows = []
+        self.date = date
+        self.moduleid = moduleid
+
+        if moduleid:
+            # Don't show history icon when we're looking at one box
+            self.headingDefs = [('Sysname',None),
+                                ('Module',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None)]
+                                
+        else:
+            self.headingDefs = [('Sysname',None),
+                                ('Module',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Downtime',None),
+                                ('',None)]
+
+        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
+        self.addHeadings()
+        return
+ 
+    def fill(self):
+
+        sql = "SELECT netbox.sysname,module.module," +\
+              "alerthist.start_time,alerthist.end_time,netbox.netboxid,"+\
+              "alerttype.alerttype,module.moduleid FROM netbox,"+\
+              "module,alerthist LEFT JOIN alerttype using(alerttypeid) "+\
+              "WHERE alerthist.netboxid = netbox.netboxid AND "+\
+              "alerthist.subid=module.moduleid AND " +\
+              "alerthist.eventtypeid='moduleState' AND " +\
+              "date(start_time) = '%s' " %(self.date,)
+            
+        if self.moduleid:
+            sql += " AND module.moduleid='%s'" % (self.moduleid,)
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        SYSNAME = 0
+        MODULE = 1
+        FROM = 2
+        TO = 3
+        DOWNTIME = 4
+        BOXID = 5
+        ALERTTYPE = 6
+        MODULEID = 7
+
+        for tmpline in result:
+            # Must insert downtime
+            if not tmpline[TO] or tmpline[TO]==INFINITY:
+                downTime = mx.DateTime.now() - tmpline[FROM]
+            else:
+                downTime = tmpline[TO] - tmpline[FROM]
+            line = list(tmpline[0:4]) + [downTime] + list(tmpline[4:7])
+            row = []
+
+            style = None
+            #if (line[ALERTTYPE]=='boxShadow' or line[ALERTTYPE]=='boxSunny'):
+            #    style = 'shadow'
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
+            # Handler
+            row.append((str(line[MODULE]),None,None,style))
+ 
+
+            # From
+            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
+                       None,None,style))
+
+            # To
+            if not line[TO] or line[TO]==INFINITY:
+                row.append(('Still down',None,None,style))
+            else:
+                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
+                           None,None,style))
+
+            # Downtime
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                           line[DOWNTIME].strftime('%H') + ' h, ' +\
+                           line[DOWNTIME].strftime('%M') + ' min'
+            row.append((downTime,None,None,style))
+
+            # History
+            if not self.moduleid:
+                row.append((None,
+                            BASEPATH + 'history/?type=modules&id=%s' \
+                            % (line[MODULEID],),
+                            ('/images/status/status-history.png',
+                            'View history for this module'),
+                            style))
+            
+            self.rows.append([line[self.sortBy],row])
+
+        self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+        return

@@ -12,14 +12,15 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #################################################
 ## Imports
 
-import psycopg, cPickle, re
-import nav.db
+import psycopg, cPickle, re, nav.db
+import StatusDefaultPrefs
 from StatusSections import *
 
 #################################################
 ## Constants
 
-DEFAULT_PREFS_FILENAME = 'tmp/default-prefs.pickle'
+BASEPATH = '/status/'
+ADMIN_USER_ID = '1'
 
 #################################################
 ## Classes
@@ -46,12 +47,23 @@ class HandleStatusPrefs:
     actionBarUpName = None
     actionBarDelName = None
     radioButtonName = None
+    formAction = BASEPATH + 'prefs/status.py'
+
+    isAdmin = False
+    adminHeader = 'Save default prefs (admin only)'
+    adminHelp = 'Save this layout as a default for users without any ' + \
+                'saved status page preference.'
+    adminButton = 'Save as default'
 
     def __init__(self,req):
         self.editSectionBoxes = []
 
         self.req = req
-        form = req.form       
+        form = req.form
+        
+        # Admin gets to select between all orgs and can save def prefs
+        if str(req.session['user'].id) == ADMIN_USER_ID:
+            self.isAdmin = True
         self.orgList = req.session['user'].getOrgIds()
         # Make a list of the available SectionBox types
         sectionBoxTypeList = []
@@ -258,13 +270,17 @@ class HandleStatusPrefs:
 
         data = psycopg.QuotedString(cPickle.dumps(prefs))
 
-        try:
-            self.loadPrefs(self.req)
+        sql = "SELECT property FROM accountproperty " + \
+              "WHERE accountid='%s' " % (self.req.session['user'].id,) + \
+              "AND property='%s'" % (self.STATUS_PROPERTY,)
+        database.execute(sql)
+        result = database.fetchall()
+        if result:
             # Prefs exists, update
             sql = "UPDATE accountproperty SET value=%s WHERE accountid=%s and \
             property='%s'" % \
             (data,self.req.session['user'].id,self.STATUS_PROPERTY)
-        except:
+        else:
             # No prefs previously saved
 
             sql = "INSERT INTO accountproperty (accountid,property,value) \
@@ -288,10 +304,25 @@ class HandleStatusPrefs:
             (data,) = data
             prefs = cPickle.loads(data)
         else:
+            # No prefs for this user in the database
+            # Load default prefs from admin user
+            sql = "SELECT value FROM accountproperty WHERE accountid=%s \
+            and property='%s'" % (ADMIN_USER_ID,cls.STATUS_PROPERTY)
+            database.execute(sql)
+            data = database.fetchone()        
+            if data:
+                (data,) = data
+                prefs = cPickle.loads(data)
+            else:
+                # No system default prefs found (admin users prefs)
+                # load from StatusDefaultPrefs module
+                data = StatusDefaultPrefs.defaultPrefs
+                prefs = cPickle.loads(data)
+
             # No prefs stored in the database for this user,
             # load the default prefs from a file
-            fh = file(DEFAULT_PREFS_FILENAME,'r')
-            prefs = cPickle.load(fh)
+            #fh = file(DEFAULT_PREFS_FILENAME,'r')
+            #prefs = cPickle.load(fh)
         
         return prefs
     loadPrefs = classmethod(loadPrefs)
@@ -300,9 +331,29 @@ class HandleStatusPrefs:
         " Saves current prefs as default preferences in a file "
         prefs = self.getPrefs()
 
-        fh = file(DEFAULT_PREFS_FILENAME,'w')
-        fh.write(cPickle.dumps(prefs))
-        fh.close()
+        connection = nav.db.getConnection('status', 'navprofile')
+        database = connection.cursor()
+
+        data = psycopg.QuotedString(cPickle.dumps(prefs))
+
+        sql = "SELECT property FROM accountproperty " + \
+              "WHERE accountid='%s' " % (ADMIN_USER_ID,) + \
+              "AND property='%s'" % (self.STATUS_PROPERTY,)
+        database.execute(sql)
+        result = database.fetchall()
+        if result:
+            # Prefs exists, update
+            sql = "UPDATE accountproperty SET value=%s WHERE accountid=%s and \
+            property='%s'" % \
+            (data,ADMIN_USER_ID,self.STATUS_PROPERTY)
+        else:
+            # No prefs previously saved
+
+            sql = "INSERT INTO accountproperty (accountid,property,value) \
+            VALUES (%s,'%s',%s)" % \
+            (ADMIN_USER_ID,self.STATUS_PROPERTY,data)
+        database.execute(sql)
+        connection.commit()
 
 class EditSectionBox:
     """

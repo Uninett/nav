@@ -1,4 +1,15 @@
-(iStatusPrefs
+"""
+$Id$
+
+This file id part of the NAV project.
+
+Contains a pickled StatusPrefs object with default settings
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+"""
+
+defaultPrefs="""(iStatusPrefs
 StatusPrefs
 p1
 (dp2
@@ -78,4 +89,4 @@ asS'orgid'
 (lp40
 S'all_selected_tkn'
 p41
-astasb.
+astasb."""
