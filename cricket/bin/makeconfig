@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.13 2002/06/14 13:30:44 danielsa Exp $
+# $Id: makeconfig,v 1.14 2002/06/17 09:10:57 stain Exp $
 
 use strict;
 
@@ -157,7 +157,7 @@ sub Servers {
 
 
                 print FIL "target \"memory\"\n";
-                if($ostype=="win32") {
+                if($ostype eq "win32") {
                   print FIL "\ttarget-type = memwin\n";
                 } else { 
                   print FIL "\ttarget-type = memnix\n";
@@ -166,7 +166,7 @@ sub Servers {
                 
 
                 print FIL "target \"memory\"\n";
-                if($ostype=="win32") {
+                if($ostype eq "win32") {
                   print FIL "\ttarget-type = cpuwin\n";
                 } else { 
                   print FIL "\ttarget-type = cpunix\n";
@@ -193,11 +193,11 @@ sub Servers {
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT path FROM boksdisk WHERE boksid=$id";
                 my $getpaths = &db_select($query, $dbh);
-                while (my $interface = $getpaths->fetchrow) {
-                  print FIL "target \"interfaceTraffic\"\n";
-                  print FIL "\ttarget-type = interfaceTraffic\n";
-                  print FIL "\tinst = map(interface-name)\n";
-                  print FIL "\tinterface-name = \"$interface\"\n";
+                while (my $mnt = $getpaths->fetchrow) {
+                  print FIL "target \"disk\"\n";
+                  print FIL "\ttarget-type = disk\n";
+                  print FIL "\tinst = map(mount-point)\n";
+                  print FIL "\tmount-point = \"$mnt\"\n";
                   print FIL "\n";
                 }
                 close FIL;
