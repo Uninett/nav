@@ -26,6 +26,7 @@
       <arg value="no.ntnu.nav.getDeviceData.deviceplugins.Server" />
       
       <arg value="--deep" />
+      <arg value="--core" />
 
       <arg value="--workdir" />
       <arg path="${build}" />
