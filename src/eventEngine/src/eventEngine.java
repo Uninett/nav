@@ -212,7 +212,6 @@ class PluginMonitorTask extends TimerTask
 		// Update Devices
 		if (update(deviceDir, deviceFileMap, deviceClassMap, deviceDir.listFiles() )) {
 			devDB.startDBUpdate();
-
 			Class[] ddbClass = new Class[1];
 			Object[] o = new Object[] { devDB };
 			try {
