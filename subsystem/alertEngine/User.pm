@@ -371,7 +371,7 @@ sub sendemail()
     }
     
     $this->{log}->printlog("User","sendEmail",$Log::informational,"EMAIL $to\tSubject: $subject");
-   
+    
     open(SENDMAIL, "|$this->{sendmail}")
       or die "Can't fork for sendmail: $!\n";
     print SENDMAIL <<"EOF";

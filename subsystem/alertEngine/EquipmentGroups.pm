@@ -277,7 +277,6 @@ sub checkStringRegExp()
 
 sub checkIP()
 # Suports following formats:
-# * - all ip addresses are valid
 # 10.0.0.1,10.0.0.2,10.1.1.0/24 - multiple IP addresses can be
 # specified using , to seperate them.
   {
@@ -289,24 +288,22 @@ sub checkIP()
 
     my $ip1;
     my $ip2=new NetAddr::IP($ipaddr);
+    if(!$ip2) {
+	return 0;
+    }
 
     foreach my $addr (@list)
     {
-	if($addr=~/^\*$/)
+	$ip1=new NetAddr::IP($addr);
+	if(!$ip1) {
+	    return 0;
+	}
+	if($ip1->contains($ip2)) 
 	{
 	    $match=1;
 	}
-	else
-	{
-	    $ip1=new NetAddr::IP($addr);
-	    if($ip1->contains($ip2)) 
-	    {
-		$match=1;
-	    }
-	}
     }
-
-
+    
     if($type==$this->{type}{eq})
     {
 	return $match;
