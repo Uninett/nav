@@ -159,7 +159,7 @@ sub db_endring {
 
 sub db_connect {
     my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db,user=navall,password=uka97urgf");
+    my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
