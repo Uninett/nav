@@ -68,6 +68,7 @@ public class navAdmin extends HttpServlet
 
 		HttpSession session = req.getSession(true);
 
+		com.setContext(getServletContext());
 		com.setReq(req);
 		com.setRes(res);
 		com.setSes(session);

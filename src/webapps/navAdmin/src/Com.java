@@ -36,21 +36,17 @@ public class Com
 	// out med line-feed
 	public void outl(String s)
 	{
-		out(s+"\n");
-		/*
-		if (!setType)
-		{
-			setContentType("text/html");
-		}
+		if (!setType) { setContentType("text/html"); }
 
 		try
 		{
-			if (stdout) System.out.println(s);
-				else out.print(s + "\n");
+			if (stdout)
+				System.out.println(s);
+			else
+				out.print(s + "\n");
 		}
 		catch (IOException e)
 		{}
-		*/
 	}
 
 
@@ -118,6 +114,9 @@ public class Com
 	public void setOut(ServletOutputStream Iout) { out = Iout; }
 	public void setStandardOutput(boolean b) { stdout = b; setType = b; }
 
+	public ServletContext getContext() { return sc; }
+	public void setContext(ServletContext sc) { this.sc = sc; }
+
 	//public Sql getDb() { return db; }
 	//public void setDb(Sql Idb) { db = Idb; }
 
@@ -165,6 +164,7 @@ public class Com
 	HttpServletResponse res;
 	HttpSession session;
 	ServletOutputStream out;
+	ServletContext sc;
 	PrintWriter writer;
 
 	ConfigParser cp;

@@ -1,0 +1,70 @@
+<!--#include virtual="head.inc" -->
+
+		<h2>
+				<font color=#000066>
+					Network Explorer
+				</font>
+		</h2>
+
+		<form method="POST" action="">
+			<input type="hidden" name="section" value="ni">
+			<input type="hidden" name="func" value="searchSwport">
+
+		<table>
+		  <tr>
+				<td colspan=3>
+				  <b>Search the network</b>
+				</td>
+			</tr>
+			<tr>
+				<td>
+				  Search in field
+				</td>
+				<td>
+					<select name="searchField">
+						<option value="0.sysname|to_sysname"[/ni.visTopologi.searchField.0]>sysName</option>
+						<option value="1.ip"[/ni.visTopologi.searchField.1]>IP</option>
+						<option value="2.portname"[/ni.visTopologi.searchField.2]>Portname</option>
+						<option value="3.vlan"[/ni.visTopologi.searchField.3]>Vlan</option>
+						<option value="4.room"[/ni.visTopologi.searchField.4]>Room</option>
+						<option value="5.software"[/ni.visTopologi.searchField.5]>Software</option>
+						<option value="6.serial"[/ni.visTopologi.searchField.6]>Serial</option>
+					</select>
+				</td>
+
+				<td>
+				    for <input type="text" name="searchFor" value="[/ni.visTopologi.searchFor]"><br>
+				</td>
+			<tr>
+				<td colspan=2>
+					<input type="checkbox" name="showempty" [/ni.visTopologi.showempty]> Show ports with empty portname<br>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<input type="checkbox" name="searchexact" [/ni.visTopologi.searchexact]> Search exact (no substring match)<br>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<input type="checkbox" name="showpath" [/ni.visTopologi.showpath]> Show only path to search matches<br>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<input type="checkbox" name="searchblocked" [/ni.visTopologi.searchblocked]> Search across blocked VLANs<br>
+				</td>
+			</tr>
+
+                        <tr>
+			  <td><a href="[/link.ni.visTopologi.closeAll]">Close all</a></td>
+			  <td colspan=3>
+					<p><input type="submit" value="Search" name="B1"><input type="reset" value="Reset form" name="B2"></p>
+				</td>
+			</tr>
+	  </table>
+		</form>
+
+[/ni.visTopologi]
+
+<!--#include virtual="foot.inc" -->
