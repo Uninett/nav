@@ -26,14 +26,13 @@
 use Pg;
 use strict;
 
-my $path = "/home/bredal/cricket-config";
-my $default = "/home/bredal/cricket-config_defaults";
+my $path = "/home/cricket/cricket-config";
+my $default = "/home/cricket/cricket/cricket-config_defaults";
 
 my @ruterliste;
 my @switchliste;
 
-my $database = "manage";
-my $dbh = db_connect($database);
+my $dbh = &db_connect("manage", "manage", "eganam");
 
 # Sletter alt for å forhindre at det blir liggende feil igjen fra
 # forrige oppdatering.
@@ -428,7 +427,9 @@ sub gigaswitchports {
 
 sub db_connect {
     my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db");
+    my $user = $_[1];
+    my $pass = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
