@@ -15,6 +15,7 @@ top_srcdir = @top_srcdir@
 subdirs = src \
 	subsystem/lib-python \
 	subsystem/webFront \
+	subsystem/statemon \
 	subsystem/statTools
 
 .PHONY: all install clean distclean

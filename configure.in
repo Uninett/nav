@@ -28,6 +28,7 @@ AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
 AC_SUBST(perllibdir)
 
+
 dnl Setting some default variables for NAV
 nav_user=navcron
 webroot='${prefix}/apache/webroot'
@@ -39,6 +40,7 @@ AC_OUTPUT(Makefile
 	src/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
+	subsystem/statemon/Makefile
 	subsystem/webFront/templates/Makefile
 	subsystem/statTools/Makefile)
 
