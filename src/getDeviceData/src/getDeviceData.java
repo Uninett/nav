@@ -502,7 +502,8 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND (catid='SRV' OR typegroupid LIKE '3%' OR typegroupid IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			//rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND (catid='SRV' OR typegroupid LIKE '3%' OR typegroupid IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
 			rs = Database.query("SELECT ip,ro,netboxid,typename,typegroupid,catid,sysname FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND sysname='"+qNettel+"'");
