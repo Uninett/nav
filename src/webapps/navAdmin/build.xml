@@ -48,7 +48,7 @@
     <mkdir dir="../../../webapps"/>
     <copy file="${dist}/navAdmin.war" todir="../../../webapps"/>
     <mkdir dir="../../../cron/navAdmin"/>
-    <copy file="${dist}/NavUtils.jar" todir="../../../cron/navAdmin"/>
+    <copy file="${dist}/NavUtils.jar" todir="../../../subsystem/navAdmin"/>
   </target>
   <target name="uninstall">
     <delete file="../../../webapps/navAdmin.war"/>
@@ -61,10 +61,10 @@
       <arg line="navAdmin.war bb.itea.ntnu.no:devel/navme/webapps"/>
     </exec>
     <exec executable="ssh" os="Windows 2000">
-      <arg line="bb.itea.ntnu.no mkdir -p devel/navme/webapps/navAdmin ; cd devel/navme/webapps/navAdmin ; jar xf ../navAdmin.war"/>
+      <arg line="bigbud.itea.ntnu.no mkdir -p devel/navme/webapps/navAdmin ; cd devel/navme/webapps/navAdmin ; jar xf ../navAdmin.war"/>
     </exec>
     <exec dir="${dist}" executable="scp" os="Windows 2000">
-      <arg line="NavUtils.jar bb.itea.ntnu.no:devel/navme/cron/navAdmin"/>
+      <arg line="NavUtils.jar bigbud.itea.ntnu.no:devel/navme/subsystem/navAdmin"/>
     </exec>
   </target>
 
