@@ -48,44 +48,57 @@ def _getDivisionByObject(object):
             return division
     raise "Unknown division"        
 
-def createUrl(object=None, id=None, division=None, subsystem="devbrowser", mode="view"):
+def createUrl(object=None, id=None, division=None, subsystem="devbrowser", mode="view", tf = None):
     try:
         url = _subsystems[subsystem] + '/'
     except KeyError:
         raise "Unknown subsystem: %s" % subsystem
     if id and object:
         raise "Ambiguous parameters, id and object cannot both be specified"
-    if id and division not in ('service',):
-        object = _getObjectByDivision(division, id)
-    if not division and object:
-        try:
-            division = _getDivisionByObject(object)
-        except:
-            raise "Unknown object type"
-    if division:
-        if not (subsystem == 'devbrowser' and division=='netbox'):
-            url += division + '/'
-        if id and subsystem=='devbrowser' and division=='service':
-           url += id
-           return url
-        if object:
+
+
+    if subsystem == 'devbrowser':
+        if id and division not in ('service',):
+            object = _getObjectByDivision(division, id)
+        if not division and object:
             try:
-                # Does it exist in the database?
-                object.load()
-            except forgetSQL.NotFound, e:
-                raise "Unknown id %s" % e
-            if division=="netbox":    
-                # We skip the redirect
-                url += object.sysname
-            else:
-                # Turn into strings, possibly join with ,
-                id = [str(x) for x in object._getID()]
-                url += ','.join(id)
+                division = _getDivisionByObject(object)
+            except:
+                raise "Unknown object type"
+        if division:
+            if not (subsystem == 'devbrowser' and division=='netbox'):
+                url += division + '/'
+            if id and subsystem=='devbrowser' and division=='service':
+               url += id
+               return url
+            if object:
+                try:
+                    # Does it exist in the database?
+                    object.load()
+                except forgetSQL.NotFound, e:
+                    raise "Unknown id %s" % e
+                if division=="netbox":    
+                    # We skip the redirect
+                    url += object.sysname
+                else:
+                    # Turn into strings, possibly join with ,
+                    id = [str(x) for x in object._getID()]
+                    url += ','.join(id)
+
+    elif subsystem == 'rrd':
+        url += division
+        url += '?'
+        if type(id) != type([]):
+            id = [id]
+        for i in range(len(id)):
+            url += 'id=%s&' % id[i]
+            url += 'tf=%s&' % tf[i]
+    
     return url            
             
     
 def createLink(object=None, content=None, id=None, division=None,
-               subsystem="devbrowser", mode="view"):
+               subsystem="devbrowser", mode="view", tf =None):
     if content is None:
         if id and object:
             raise "Ambiguous parameters, id and object cannot both be specified"
