@@ -127,7 +127,7 @@ CREATE TABLE sted (
 CREATE TABLE rom (
   romid VARCHAR(10) PRIMARY KEY,
   stedid VARCHAR(12) REFERENCES sted,
-  descr VARCHAR(50),
+  descr VARCHAR(80),
   rom2 VARCHAR(10),
   rom3 VARCHAR(10),
   rom4 VARCHAR(10),
@@ -137,7 +137,7 @@ CREATE TABLE rom (
 
 CREATE TABLE prefiks (
   prefiksid SERIAL PRIMARY KEY,
-  nettadr VARCHAR(15) NOT NULL,
+  nettadr varchar(15) NOT NULL,
   maske VARCHAR(3) NOT NULL,
   rootgwid INT2 UNIQUE,
   vlan INT2,
@@ -161,7 +161,7 @@ CREATE TABLE type (
 
 CREATE TABLE boks (
   boksid SERIAL PRIMARY KEY,
-  ip VARCHAR(15) NOT NULL,
+  ip varchar(15) NOT NULL,
   romid VARCHAR(10) NOT NULL REFERENCES rom,
   typeid VARCHAR(10) REFERENCES type,
   sysName VARCHAR(30) UNIQUE,
@@ -206,11 +206,13 @@ CREATE TABLE gwport (
   boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   ifindex INT2 NOT NULL,
+  masterindex INT2,
   interf VARCHAR(30),
-  gwip VARCHAR(15) NOT NULL,
+  gwip varchar(15) NOT NULL,
   speed VARCHAR(10),
   ospf INT2,
-  static BOOL DEFAULT false
+  static BOOL DEFAULT false,
+  boksbak INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET null
 );
 -- not null fjernet fra interf 
 
