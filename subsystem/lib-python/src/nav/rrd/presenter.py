@@ -345,7 +345,7 @@ class presentation:
             # Define virtuals to possibly do some percentage magical
             # flipping
             virtual = 'CDEF:v_'+rrd_variable+'='
-            if ds.units and ds.units[0] == '-': # begins with -
+            if ds.units and ds.units.startswith('-'):
                 # availability is flipped up-side down, revert
                 # and show as percentage
                 virtual += '1,%s,-' % rrd_variable
@@ -354,8 +354,17 @@ class presentation:
                 if ds.units:
                     units.append(ds.units)
                 virtual += rrd_variable
-            if ds.units and ds.units.count("%"):
-                virtual += ',100,*'
+            if ds.units and ds.units.endswith("%"):
+                # percent, check if we have to do some scaling...
+                scalingfactor = ds.units[:-1] # strip %
+                if scalingfactor.startswith('-'):
+                    scalingfactor = scalingfactor[1:]
+                try:
+                    int(scalingfactor)
+                    virtual += ',100,*'
+                except ValueError:
+                    pass
+                
             params += [virtual]
             params += [linetype+':v_'+rrd_variable+color[index % len(color)]+':'+''+legend+'']
 
@@ -365,14 +374,24 @@ class presentation:
                 legend += ' - MAX'
                 params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
                 virtual = 'CDEF:v_'+rrd_max_variable+'='
-                if ds.units and ds.units[0] == '-': # begins with -
+                if ds.units and ds.units.startswith('-'): # begins with -
                     # availability is flipped up-side down, revert
                     # and show as percentage
                     virtual += '1,%s,-' % rrd_max_variable
                 else:
                     virtual += rrd_max_variable
-                if ds.units and ds.units.count("%"):
-                    virtual += ',100,*'
+
+                if ds.units and ds.units.endswith("%"):
+                    # percent, check if we have to do some scaling...
+                    scalingfactor = ds.units[:-1] # strip %
+                    if scalingfactor.startswith('-'):
+                        scalingfactor = scalingfactor[1:]
+                    try:
+                        int(scalingfactor)
+                        virtual += ',100,*'
+                    except ValueError:
+                        pass
+            
                 params += [virtual]
                 params += [linetype_max+':v_'+rrd_max_variable+color_max[index]+':'+''+legend+'']
                 
