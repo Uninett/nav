@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.7 2002/12/08 13:07:38 kristian Exp $
+* $Id: NavUtils.java,v 1.8 2003/06/06 16:20:20 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
@@ -1275,7 +1275,7 @@ class NavUtils
 			String oldvlan = (String)vlanRenameEntry.get("oldvlan");
 			String newvlan = (String)vlanRenameEntry.get("newvlan");
 
-			if (DB_UPDATE) Database.update("UPDATE swportvlan SET vlan='"+newvlan+"' WHERE swportid IN (SELECT swportid FROM swport JOIN swportvlan USING(swportid) WHERE boksid='"+boksid+"' AND trunk='f' AND vlan='"+oldvlan+"')");
+			if (DB_UPDATE) Database.update("UPDATE swportvlan SET vlan='"+newvlan+"' WHERE swportid IN (SELECT swportid FROM swport JOIN swportvlan USING(swportid) JOIN module USING(moduleid) WHERE netboxid='"+boksid+"' AND trunk='f' AND vlan='"+oldvlan+"')");
 
 			//if (DB_COMMIT) Database.commit(); else Database.rollback();
 			//System.err.println("On boks: " + boksName.get(boksid) + " rename vlan: " + oldvlan + " to " + newvlan);
