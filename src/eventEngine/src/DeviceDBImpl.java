@@ -105,6 +105,12 @@ class DeviceDBImpl implements DeviceDB
 
 	public Device getDevice(int deviceid)
 	{
+		if (deviceid == 0) {
+			RuntimeException exp = new RuntimeException();
+			System.err.println("deviceid is 0!");
+			exp.printStackTrace(System.err);
+			return null;
+		}
 		Integer id = new Integer(deviceid);
 		if (!updateMode && !deviceMap.containsKey(id)) {
 			Log.d("DEVICEDB_IMPL", "GET_DEVICE", "Device not found, trying DB update: " + deviceid);
