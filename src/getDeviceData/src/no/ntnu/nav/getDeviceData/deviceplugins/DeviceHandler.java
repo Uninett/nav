@@ -117,7 +117,7 @@ public interface DeviceHandler
 	 * 1, -3, 4, and -6, only the plugins returning -6 and 4 will be
 	 * asked (in that order).  </p>
 	 *
-	 * @param bd The data describing the device
+	 * @param nb The data describing the device
 	 * @return a value different from zero (0) if the plugin can handle the given device
 	 */
 	public int canHandleDevice(Netbox nb);
@@ -126,7 +126,7 @@ public interface DeviceHandler
 	 * <p> Actually handle the device specified by the Netbox argument.
 	 * </p>
 	 *
-	 * @param bd The data describing the device
+	 * @param nb The data describing the device
 	 * @param sSnmp An instance of SimpleSnmp the plugins can use to do SNMP queries
 	 * @param cp A ConfigParser instance reading data from nav.conf
 	 * @param containers Gives access to the DataContainer objects used for returning data
