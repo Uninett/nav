@@ -21,7 +21,7 @@ try:
 except Exception,e:
     available = 0
     ldap = None
-    apache.log_error("Python LDAP module is not available - " + e,
+    apache.log_error("Python LDAP module is not available - " + str(e),
                      apache.APLOG_WARNING)
 
 # Determine whether the config file enables ldap functionality or not
@@ -56,8 +56,8 @@ def authenticate(login, password):
     except ldap.SERVER_DOWN, e:
         raise NoAnswerError, uri
     except ldap.LDAPError,e:
-        apache.log_error('An LDAP error occurred during authentication: ' + e,
-                         apache.APLOG_ERROR)
+        apache.log_error('An LDAP error occurred during authentication: ' + str(e),
+                         apache.APLOG_ERR)
         return False
 
 def getUserName(login):

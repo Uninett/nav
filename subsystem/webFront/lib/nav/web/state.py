@@ -62,7 +62,7 @@ def setupSession(req):
         expireCount = cleanup()
         if (expireCount > 0):
             apache.log_error("Expired %d NAV sessions" % expireCount,
-                             apache.APLOG_NOTICE)
+                             apache.APLOG_NOTICE, req.server)
         _timestamp = timenow
 
     cookieValue = getSessionCookie(req)
