@@ -80,7 +80,12 @@ public class Swport implements Comparable
 	char getDuplex() { return duplex; }
 	String getDuplexS() { return String.valueOf(duplex); }
 	String getMedia() { return media; }
-	boolean getTrunk() { return trunk; }
+
+	/**
+	 * Get if the port is using trunking or not.
+	 */
+	public boolean getTrunk() { return trunk; }
+
 	String getTrunkS() { return trunk?"t":"f"; }
 	String getPortname() { return portname; }
 
