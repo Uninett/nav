@@ -421,7 +421,7 @@ public class SimpleSnmp
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
 		ArrayList l = new ArrayList();
-		String cacheKey = host+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
+		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
 		if (cache.containsKey(cacheKey)) {
 			l.addAll((Collection)cache.get(cacheKey));
 			return l;
