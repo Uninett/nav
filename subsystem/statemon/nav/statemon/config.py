@@ -16,7 +16,7 @@ import os, re
 try:
     # this module exists in a properly installed enviroment
     import nav.path
-    CONFIGFILEPATF=[nav.path.sysconfdir]
+    CONFIGFILEPATH=[nav.path.sysconfdir]
 except ImportError:
     # fallback to current dir++
     CONFIGFILEPATH=['/usr/local/nav/local/etc/conf/','.']
