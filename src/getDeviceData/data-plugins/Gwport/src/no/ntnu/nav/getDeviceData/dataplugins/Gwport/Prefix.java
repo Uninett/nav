@@ -14,8 +14,9 @@ public class Prefix implements Comparable
 
 	private String netaddr;
 	private int masklen;
-	//private int rootgwid;
 	private Vlan vlan;
+
+	private Set gwportidSet = new HashSet();
 
 	Prefix(String netaddr, int masklen, Vlan vlan) {
 		this.netaddr = netaddr;
@@ -77,6 +78,15 @@ public class Prefix implements Comparable
 	String getPrefixidS() { return String.valueOf(prefixid); }
 	void setPrefixid(int i) { prefixid = i; }
 	void setPrefixid(String s) { prefixid = Integer.parseInt(s); }
+
+	void setNetaddr(String n) { netaddr = n; }
+	void setMasklen(int l) { masklen = l; }
+	void setVlan(Vlan v) { vlan = v; }
+
+	void addGwport(String gwportid) { gwportidSet.add(gwportid); }
+	void removeGwport(String gwportid) { gwportidSet.remove(gwportid); }
+	int gwportCount() { return gwportidSet.size(); }
+	Iterator getGwportidIterator() { return gwportidSet.iterator(); }
 
 	String getNetaddr() { return netaddr; }
 	int getMasklen() { return masklen; }

@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 import java.util.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
 
 /**
  * Contain Gwportprefix data
@@ -24,15 +25,21 @@ class Gwportprefix
 	boolean getHsrp() { return hsrp; }
 	Prefix getPrefix() { return prefix; }
 
+	void setHsrp(boolean h) { hsrp = h; }
+	void setPrefix(Prefix p) { prefix = p; }
+
 	public boolean equalsGwportprefix(Gwportprefix gp) {
-		return (gwip.equals(gp.gwip) &&
-						hsrp == gp.hsrp &&
-						prefix.getPrefixid() == gp.prefix.getPrefixid());
+		return (gp != null &&
+						hsrp == gp.hsrp);
 	}
 
 	public boolean equals(Object o) {
 		return (o instanceof Gwportprefix && 
 						equalsGwportprefix((Gwportprefix)o));
+	}
+
+	public String toString() {
+		return "gwip="+gwip + " hsrp="+hsrp + " prefix="+prefix + " ("+Integer.toHexString(hashCode())+")";
 	}
 
 }

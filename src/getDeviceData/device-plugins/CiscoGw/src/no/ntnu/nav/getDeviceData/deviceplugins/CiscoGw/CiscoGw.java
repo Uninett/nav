@@ -354,12 +354,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					} else if (ifDescrMap.containsKey(ifindex) && ((String)ifDescrMap.get(ifindex)).startsWith("Loopback")) {
 						nettype = "loopback";
 					} else {
-						nettype = "unknown";
+						nettype = Vlan.UNKNOWN_NETTYPE;
 						netident = descr;
 					}
 				} catch (Exception e) {
 					Log.w("PROCESS_CGW", "Cannot parse ifAlias (ifindex " + ifindex + " on " + nb.getSysname() + "): " + descr);
-					nettype = "unknown";
+					nettype = Vlan.UNKNOWN_NETTYPE;
 					netident = descr;
 				}
 

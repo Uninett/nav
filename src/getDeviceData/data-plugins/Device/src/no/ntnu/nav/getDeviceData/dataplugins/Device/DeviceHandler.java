@@ -18,8 +18,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class DeviceHandler implements DataHandler {
 
-	private static final boolean DB_COMMIT = true;
-
 	private static Map devidMap;
 	private static Map devserialMap;
 
@@ -164,7 +162,6 @@ public class DeviceHandler implements DataHandler {
 				devidMap.put(deviceid, dev);
 				if (serial != null) devserialMap.put(serial, dev);
 
-				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			}
 
 		} catch (SQLException e) {

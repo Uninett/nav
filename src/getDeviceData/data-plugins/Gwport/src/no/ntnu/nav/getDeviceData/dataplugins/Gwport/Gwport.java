@@ -59,6 +59,26 @@ public class Gwport implements Comparable
 
 	Gwportprefix getGwportprefix(String gwip) { return (Gwportprefix)gwportprefixMap.get(gwip); }
 
+	// Return all gwips of this gwport
+	Set gwipSet() { return gwportprefixMap.keySet(); }
+
+	// Returns the set of gwips in gwportprefixMap, but not in the given set
+	Set gwipIntersection(Set gwipSet) {
+		Set s = new HashSet(gwportprefixMap.keySet());
+		s.removeAll(gwipSet);
+		return s;
+	}
+
+	// Returns the number of gwportprefices using hsrp
+	int hsrpCount() {
+		int hsrpCnt=0;
+		for (Iterator it = gwportprefixMap.values().iterator(); it.hasNext();) {
+			Gwportprefix gwp = (Gwportprefix)it.next();
+			if (gwp.getHsrp()) hsrpCnt++;
+		}
+		return hsrpCnt;
+	}
+
 	/**
 	 * Set the masterinterf .
 	 */
@@ -117,32 +137,28 @@ public class Gwport implements Comparable
 		return p;
 	}
 
+	void addGwportprefix(String gwip, Gwportprefix gp) {
+		gwportprefixMap.put(gwip, gp);
+	}
+
 	Iterator getGwportPrefices() {
 		return gwportprefixMap.values().iterator();
 	}
 
 	public boolean equalsGwport(Gwport gw) {
-		return false;
-	}
-
-	/*
-	public boolean equalsGwport(Gwport gw) {
-		return (port.equals(sw.port) &&
-						ifindex.equals(sw.ifindex) &&
-						link == sw.link &&
-						speed.equals(sw.speed) &&
-						duplex == sw.duplex &&
-						media.equals(sw.media) &&
-						trunk == sw.trunk &&
-						portname.equals(sw.portname));
+		return (ifindex.equals(gw.ifindex) &&
+						(interf == null || interf.equals(gw.interf)) &&
+						(link == null || link.equals(gw.link)) &&
+						(masterindex == null || masterindex.equals(gw.masterindex)) &&
+						(masterinterf == null || masterinterf.equals(masterinterf)) &&
+						(speed == null || speed.equals(gw.speed)) &&
+						(ospf == null || ospf.equals(gw.ospf)));
 	}
 
 	public boolean equals(Object o) {
-		return (o instanceof Swport && 
-						equalsSwport((Swport)o) &&
-						super.equals(o));
+		return (o instanceof Gwport && 
+						equalsGwport((Gwport)o));
 	}
-	*/
 
 	public int compareTo(Object o) {
 		Gwport gw = (Gwport)o;
@@ -150,7 +166,7 @@ public class Gwport implements Comparable
 	}
 
 	public String toString() {
-		return "ifindex="+ifindex+" interf="+interf;
+		return "ifindex="+ifindex+" interf="+interf + " ("+Integer.toHexString(hashCode())+")";
 	}
 
 	private String string(Object o) {

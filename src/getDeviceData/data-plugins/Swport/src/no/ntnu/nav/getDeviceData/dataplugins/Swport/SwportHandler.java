@@ -18,12 +18,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
 
 public class SwportHandler implements DataHandler {
 
-	private static final boolean DB_UPDATE = true;
-	private static final boolean DB_COMMIT = true;
-
 	private static Map moduleMap;
 	private static Map swportMap;
-	
 
 	/**
 	 * Fetch initial data from swport table.
@@ -81,7 +77,6 @@ public class SwportHandler implements DataHandler {
 					rs.previous();
 				}
 			}
-			Database.commit();
 			swportMap = swpMap;
 			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
 			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
@@ -168,7 +163,7 @@ public class SwportHandler implements DataHandler {
 							"trunk", sd.getTrunkS(),
 							"portname", Database.addSlashes(sd.getPortname())
 						};
-						if (DB_UPDATE) Database.insert("swport", inss);
+						Database.insert("swport", inss);
 						newcnt++;
 
 					} else {
@@ -217,8 +212,6 @@ public class SwportHandler implements DataHandler {
 					}
 
 				}
-
-				if (DB_COMMIT) Database.commit(); else Database.rollback();
 
 			}
 

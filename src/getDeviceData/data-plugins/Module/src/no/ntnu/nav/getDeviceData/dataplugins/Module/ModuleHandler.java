@@ -19,12 +19,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceHandler;
 
 public class ModuleHandler implements DataHandler {
 
-	private static final boolean DB_UPDATE = true;
-	private static final boolean DB_COMMIT = true;
-
 	private static Map deviceMap;
 	private static Map moduleMap;
-	
 
 	/**
 	 * Fetch initial data from device and module tables.
@@ -154,12 +150,10 @@ public class ModuleHandler implements DataHandler {
 						String[] where = {
 							"moduleid", moduleid
 						};
-						if (DB_UPDATE) Database.update("module", set, where);
+						Database.update("module", set, where);
 					}
 				}
 				md.setModuleid(moduleid);
-
-				if (DB_COMMIT) Database.commit(); else Database.rollback();
 
 			}
 

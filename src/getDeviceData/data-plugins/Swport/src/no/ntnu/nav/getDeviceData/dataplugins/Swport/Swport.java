@@ -267,8 +267,7 @@ public class Swport implements Comparable
 	public boolean equals(Object o) {
 		return (o instanceof Swport &&
 						ifindex != null &&
-						ifindex.equals(((Swport)o).ifindex) &&
-						super.equals(o));
+						ifindex.equals(((Swport)o).ifindex));
 	}
 
 	public int compareTo(Object o) {

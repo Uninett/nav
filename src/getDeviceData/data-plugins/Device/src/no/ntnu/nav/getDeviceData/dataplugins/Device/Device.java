@@ -37,7 +37,7 @@ public class Device
 	/**
 	 * Return the deviceid as a String.
 	 */
-	protected String getDeviceidS() { return String.valueOf(getDeviceid()); }
+	protected String getDeviceidS() { return deviceid == 0 ? null : String.valueOf(getDeviceid()); }
 
 	/**
 	 * Set the deviceid of the physical device.

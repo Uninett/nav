@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 public class Vlan implements Comparable
 {
+	public static final String UNKNOWN_NETTYPE = "unknown";
+
 	private int vlanid;
 	private Integer vlan;
 
@@ -43,6 +45,17 @@ public class Vlan implements Comparable
 	String getNetident() { return netident; }
 	String getDescription() { return description; }
 
+	void setNetident(String s) { netident = s; }
+
+	void setEqual(Vlan vl) {
+		if (vl.vlan != null) vlan = vl.vlan;
+		if (vl.nettype != null && !vl.nettype.equals(UNKNOWN_NETTYPE)) nettype = vl.nettype;
+		if (vl.orgid != null) orgid = vl.orgid;
+		if (vl.usageid != null) usageid = vl.usageid;
+		if (vl.netident != null) netident = vl.netident;
+		if (vl.description != null) description = vl.description;
+	}
+
 	/**
 	 * Set nettype.
 	 */
@@ -72,16 +85,18 @@ public class Vlan implements Comparable
 	}
 
 	public boolean equalsVlan(Vlan vl) {
-		return false;
+		return ((vlan == null || vlan.equals(vl.vlan)) &&
+						(nettype == null || nettype.equals(UNKNOWN_NETTYPE) || nettype.equals(vl.nettype)) &&
+						(orgid == null || orgid.equals(vl.orgid)) &&
+						(usageid == null || usageid.equals(vl.usageid)) &&
+						(netident == null || netident.equals(vl.netident)) &&
+						(description == null || description.equals(vl.description)));
 	}
 
-	/*
 	public boolean equals(Object o) {
-		return (o instanceof Swport && 
-						equalsSwport((Swport)o) &&
-						super.equals(o));
+		return (o instanceof Vlan && 
+						equalsVlan((Vlan)o));
 	}
-	*/
 
 	public int compareTo(Object o) {
 		Vlan v = (Vlan)o;
@@ -89,7 +104,7 @@ public class Vlan implements Comparable
 	}
 
 	public String toString() {
-		return vlan + ", nettype="+nettype+", org="+orgid+", usage="+usageid+", netident="+netident+", descr="+description;
+		return vlan + ", nettype="+nettype+", org="+orgid+", usage="+usageid+", netident="+netident+", descr="+description + " ("+Integer.toHexString(hashCode())+")";
 	}
 
 }

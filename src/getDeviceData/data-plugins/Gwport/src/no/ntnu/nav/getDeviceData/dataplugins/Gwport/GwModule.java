@@ -73,7 +73,7 @@ public class GwModule extends Module implements Comparable
 	}
 
 	public String toString() {
-		return super.toString() + ", Gwports: " + gwports.size();
+		return super.toString() + ", Gwports: " + gwports.size() + " ("+Integer.toHexString(hashCode())+")";
 	}
 
 

@@ -17,10 +17,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class NetboxInfoHandler implements DataHandler {
 
-	private static final boolean DB_COMMIT = true;
-
-	private static Map netboxMap;
-	
+	private static Map netboxMap;	
 
 	/**
 	 * Fetch initial data from netboxinfo table.
@@ -166,8 +163,6 @@ public class NetboxInfoHandler implements DataHandler {
 				}
 			}
 
-			if (DB_COMMIT) Database.commit(); else Database.rollback();
-			
 		} catch (SQLException e) {
 			Log.e("HANDLE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
