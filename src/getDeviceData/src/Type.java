@@ -40,7 +40,8 @@ public class Type
 	}
 
 	String getOid(String key) {
-		return (String)keyMap.get(key);
+		Snmpoid snmpoid = (Snmpoid)keyMap.get(key);
+		return snmpoid == null ? null : snmpoid.getSnmpoid();
 	}
 
 	Iterator getOidIterator() {
@@ -66,7 +67,7 @@ public class Type
 	}
 
 	public String toString() {
-		return "Type("+typeid+"): " + typename;
+		return typename+"("+typeid+")";
 	}
 
 

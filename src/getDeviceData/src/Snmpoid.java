@@ -7,17 +7,19 @@ public class Snmpoid
 	String snmpoid;
 
 	boolean getnext;
+	boolean decodehex;
 	String matchRegex;
 
 	boolean uptodate;
 
 	Map typeMap;
 
-	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, String matchRegex, boolean uptodate) {
+	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, boolean decodehex, String matchRegex, boolean uptodate) {
 		this.snmpoidid = snmpoidid;
 		this.oidkey = oidkey;
 		this.snmpoid = snmpoid;
 		this.getnext = getnext;
+		this.decodehex = decodehex;
 		this.matchRegex = matchRegex;
 		this.uptodate = uptodate;
 		typeMap = new HashMap();
@@ -39,6 +41,10 @@ public class Snmpoid
 		return getnext;
 	}
 
+	public boolean getDecodehex() {
+		return decodehex;
+	}
+
 	public String getMatchRegex() {
 		return matchRegex;
 	}
@@ -56,7 +62,7 @@ public class Snmpoid
 	}
 
 	public String toString() {
-		return "Snmpoid: " + oidkey;
+		return oidkey;
 	}
 
 }

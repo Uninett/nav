@@ -152,7 +152,7 @@ public class QueryNetbox extends Thread
 
 		// First fetch new types from the database
 		try {
-			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
+			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
 			String prevtypeid = null;
 			//boolean prevuptodate;
 			//boolean dirty = false;
@@ -175,6 +175,7 @@ public class QueryNetbox extends Thread
 					t = new Type(typeid, typename, uptodate, keyFreqMap, keyMap);
 					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
 					typeidM.put(typeid, t);
+					Log.d("UPDATE_TYPES", "Created type: " + t);
 				}
 					
 				/*
@@ -198,12 +199,13 @@ public class QueryNetbox extends Thread
 					String oidkey = rs.getString("oidkey");
 					String oid = rs.getString("snmpoid");
 					boolean getnext = rs.getBoolean("getnext");
+					boolean decodehex = rs.getBoolean("decodehex");
 					String matchRegex = rs.getString("match_regex");
 					boolean oiduptodate = rs.getBoolean("oiduptodate");
 				
 					Snmpoid snmpoid;
 					if ( (snmpoid=(Snmpoid)oidkeyM.get(oidkey)) == null) {
-						oidkeyM.put(oidkey, snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, matchRegex, oiduptodate));
+						oidkeyM.put(oidkey, snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, oiduptodate));
 						/*
 						if (!oiduptodate && t.getUptodate()) {
 							synchronized (oidQ) { oidQ.add(snmpoid); }
@@ -232,16 +234,17 @@ public class QueryNetbox extends Thread
 			//typeidM.put(prevtypeid, new Type(prevtypeid, keyFreqMap, keyMap));
 
 			// Now check all non-uptodate OIDs
-			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, match_regex, snmpoid.uptodate AS oiduptodate FROM snmpoid WHERE uptodate = 'f'");
+			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM snmpoid WHERE uptodate = 'f'");
 			while (rs.next()) {
 				String snmpoidid = rs.getString("snmpoidid");
 				String oidkey = rs.getString("oidkey");
 				String oid = rs.getString("snmpoid");
 				boolean getnext = rs.getBoolean("getnext");
+				boolean decodehex = rs.getBoolean("decodehex");
 				String matchRegex = rs.getString("match_regex");
 				boolean oiduptodate = rs.getBoolean("oiduptodate");
 				
-				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, matchRegex, oiduptodate);
+				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, oiduptodate);
 				oidkeyM.put(oidkey, snmpoid);
 				synchronized (oidQ) { oidQ.add(snmpoid); }
 
@@ -280,6 +283,7 @@ public class QueryNetbox extends Thread
 		try {
 			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
+			//sql += " LIMIT 1000";
 			ResultSet rs = Database.query(sql);
 
 			int nbCnt=0;

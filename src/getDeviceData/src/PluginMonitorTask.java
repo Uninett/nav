@@ -114,6 +114,7 @@ class PluginMonitorTask extends TimerTask
 						Log.d("UPDATE", "Plugin " + fileList[i].getName() + " loaded and added to classMap");
 					} else {
 						Log.w("UPDATE", "Failed to load plugin! Class " + cn + " is not a gDD plugin");
+						Log.d("UPDATE", "Class failed to load is: " + c);						
 					}
 				}
 			} catch (IOException e) {

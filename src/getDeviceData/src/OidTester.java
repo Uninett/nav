@@ -74,18 +74,16 @@ public class OidTester
 				boolean supported = false;
 
 				try {
-					List l;
-					if (snmpoid.getGetnext()) {
-						l = sSnmp.getAll();
-					} else {
-						l = sSnmp.getAll(false, false);
-					}
-
+					List l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+					Log.d("OID_TESTER", "DO_TEST", "Got results, length: " + l.size());
+					
 					String regex = snmpoid.getMatchRegex();
 					for (Iterator i = l.iterator(); i.hasNext();) {
 						String[] s = (String[])i.next();
 						if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
 							// Update db
+							Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
+
 							rs = Database.query("SELECT typeid FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 							if (!rs.next()) {
 								String[] ins = {
@@ -102,8 +100,10 @@ public class OidTester
 					}
 				} catch (TimeoutException e) {
 					Log.d("OID_TESTER", "DO_TEST", "Got timeout exception testing oidkey " + snmpoid.getOidkey() + " with netbox: " + ip);
+				} catch (Exception e) {
+					Log.d("OID_TESTER", "DO_TEST", "Got exception testing oidkey " + snmpoid.getOidkey() + "with netbox: " + ip + ", assuming not supported: " + e.getMessage());
 				}
-
+						
 				if (!supported) {
 					Database.update("DELETE FROM typesnmpoid WHERE typeid='"+t.getTypeid()+"' AND snmpoidid='"+snmpoid.getSnmpoidid()+"'");
 				}
