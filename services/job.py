@@ -2,12 +2,13 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.8 2002/06/13 09:30:41 erikgors Exp $
+$Id: job.py,v 1.9 2002/06/13 09:57:58 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
 from select import select
 from errno import errorcode
+import database
 
 class Timeout(Exception):
 	pass
@@ -88,7 +89,7 @@ class JobHandler:
 		self.setUsage(time.time()-start)
 		
 		if status != self.getStatus():
-			database.newEvent(self,Event(self.getId(),status,info))
+			database.newEvent(Event(self.getId(),status,info))
 			self.setStatus(status)
 		elif version != self.getVersion():
 			database.newVersion(self.getId(),self.getVersion())
@@ -147,7 +148,6 @@ class PortHandler(JobHandler):
 		r,w,x = select([s],[],[],0.1)
 		if r:
 			s.readline()
-			print s.readline()
 		status = Event.UP
 		txt = 'Alive'
 		s.close()
@@ -161,21 +161,6 @@ class DummyHandler(JobHandler):
 		time.sleep(random.random()*10)
 		return Event.UP,'OK'
 
-#class Url(Job):
-#	def __init__(self,address,type,path = '/'):
-#		Job.__init__(self,address)
-#		Job.setType(self,'url')
-#		self.url = '%s://%s:%i%s' % (type,address[0],address[1],path)
-#	def execute(self):
-#		import urllib
-#		try:
-#			txt = urllib.urlopen(self.url).read()
-#			state = 'UP'
-#			txt = 'UP'
-#		except Exception,info:
-#			state = 'DOWN'
-#			txt = str(info)
-#		return state,txt
 import httplib
 class HTTPConnection(httplib.HTTPConnection):
 	def __init__(self,host,port=None):
