@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.17 2003/01/02 22:00:20 magnun Exp $
+$Id: job.py,v 1.18 2003/01/03 15:49:42 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types,config,debug,mailAlert, RunQueue
@@ -31,30 +31,29 @@ class Event:
 
 
 class JobHandler:
-	def __init__(self,type,serviceid,boksid,address,args,version,sysname='',status = Event.UP):
+	def __init__(self,type,service,status=Event.UP):
 		import db
 		self._conf=config.serviceconf()
-		self.setServiceid(serviceid)
-		self.setBoksid(boksid)
 		self.setType(type)
-		self.setAddress(address)
+		self.setServiceid(service['id'])
+		self.setBoksid(service['netboxid'])
+		self.setAddress(service['ip'])
+		self.setArgs(service['args'])
+		self.setVersion(service['version'])
+		self.setSysname(service['sysname'])
 		self.setStatus(status)
 		self.setTimestamp(0)
-		self.setArgs(args)
-		self.setVersion(version)
-		self.setSysname(sysname)
-		timeout = args.get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
+		timeout = self.getArgs().get('timeout', self._conf.get("%s timeout" % self.getType(), self._conf.get('timeout',TIMEOUT)))
 		self.setTimeout(int(timeout))
 		self.db=db.db(config.dbconf())
 		self.debug=debug.debug()
 		self.alerter=mailAlert.mailAlert()
-		self.debug.log("New job instance for %s:%s " % (sysname, type),6)
+		self.debug.log("New job instance for %s:%s " % (self.getSysname(), self.getType()),6)
 		self.runcount=0
 		self.rq=RunQueue.RunQueue()
 		
 	def run(self):
-		import rrd,db
-
+		import rrd, db
 		version = self.getVersion()
 		status, info = self.executeTest()
 
@@ -68,12 +67,6 @@ class JobHandler:
 			# Queue ourself
 			self.rq.enq((priority,self))
 			return
-		#while status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
-		#	delay = int(self._conf.get('retry delay',5))
-		#	self.debug.log(" %-25s %-5s -> State changed. Trying again in %i sec..." % (self.getSysname(), self.getType(), delay))
-		#	time.sleep(delay)
-		#	status, info = self.executeTest()
-		#	self.runcount += 1
 
 		if status != self.getStatus():
 			self.debug.log("%-25s %-5s -> %s, %s" % (self.getSysname(), self.getType(), status, info),1)
@@ -93,7 +86,7 @@ class JobHandler:
 		try:
 			rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		except Exception,e:
-			self.debug.log("Faild to update rrd: %s" % e,3)
+			self.debug.log("rrd update failed for %s:%s [%s]" % (self.getSysname(),self.getType(),e),3)
 		self.setTimestamp()
 		self.runcount=0
 
