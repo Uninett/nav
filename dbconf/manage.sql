@@ -9,6 +9,8 @@ DROP TABLE gwport;
 
 DROP TABLE swp_boks;
 
+DROP TABLE module;
+DROP TABLE mem;
 DROP TABLE boksinfo;
 DROP TABLE boks;
 
@@ -32,6 +34,8 @@ DROP SEQUENCE prefiks_prefiksid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
 DROP SEQUENCE swp_boks_swp_boksid_seq;
+DROP SEQUENCE module_moduleid_seq;
+DROP SEQUENCE mem_memid_seq;
 -------------
 DROP SEQUENCE vpboksgrp_vpboksgrpid_seq;
 DROP SEQUENCE vpboksgrpinfo_gruppeid_seq;
@@ -158,16 +162,34 @@ CREATE TABLE boks (
 
 
 CREATE TABLE boksinfo (
-  boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  software VARCHAR(13),
-  sysLoc VARCHAR(50),
-  sysCon VARCHAR(40),
-  ais INT2,
-  mem VARCHAR(10),
-  flashMem VARCHAR(10),
-  function VARCHAR(100),
-  supVersion VARCHAR(10)
+boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+main_sw varchar(20),
+serial varchar(15),
+function VARCHAR(100)
 );
+
+CREATE TABLE module (
+moduleid SERIAL PRIMARY KEY,
+boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+modulenumber INT4 NOT NULL,
+model VARCHAR(10),
+descr VARCHAR(25),
+serial VARCHAR(15),
+hw VARCHAR(10),
+sw VARCHAR(10),
+ports INT4,
+portsUp INT4
+);
+
+CREATE TABLE mem (
+memid SERIAL PRIMARY KEY,
+boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+memtype VARCHAR(10) NOT NULL,
+device VARCHAR(15) NOT NULL,
+size INTEGER NOT NULL,
+used INTEGER
+);
+
 
 CREATE TABLE swp_boks ( 
   swp_boksid SERIAL PRIMARY KEY,                                                                  
@@ -218,10 +240,12 @@ CREATE TABLE swportvlan (
   retning VARCHAR(1) NOT NULL DEFAULT 'x',
   UNIQUE (swportid,vlan)
 );
+
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   hexstring varchar(256)
 );
+
 CREATE TABLE swportblocked (
   swportid INT4 NOT NULL REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
   vlan INT2 NOT NULL DEFAULT '-1',
@@ -318,6 +342,8 @@ GRANT ALL ON prefiks TO navall;
 GRANT ALL ON type TO navall;
 GRANT ALL ON boks TO navall;
 GRANT ALL ON boksinfo TO navall;
+GRANT ALL ON module TO navall;
+GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
 GRANT ALL ON swport TO navall;
 GRANT ALL ON swportvlan TO navall;
@@ -330,6 +356,8 @@ GRANT ALL ON gwport_gwportid_seq TO navall;
 GRANT ALL ON prefiks_prefiksid_seq TO navall;
 GRANT ALL ON swport_swportid_seq TO navall;
 GRANT ALL ON swportvlan_swportvlanid_seq TO navall;
+GRANT ALL ON module_moduleid_seq TO navall;
+GRANT ALL ON mem_memid_seq TO navall;
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
