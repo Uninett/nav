@@ -69,6 +69,7 @@ public class OidTester
 
 				// Check that not someone else is testing against this netbox
 				String ip = rs.getString("ip");
+				String ro = rs.getString("ro");
 				synchronized(lock(ip)) {
 
 					// Do the test
@@ -117,7 +118,7 @@ public class OidTester
 					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
 						// Do test
 						try {
-							sSnmp.setCs_ro(rs.getString("ro")+"@1");
+							sSnmp.setCs_ro(ro+"@1");
 							sSnmp.getNext("1", 1, false, true);
 
 							// OK, supported
