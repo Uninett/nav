@@ -143,7 +143,7 @@ public class MibIISw implements DeviceHandler
 
 		// Set ifDescr
 		// If type supports portIfindex
-		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfindex")));
+		MultiMap portIfindexMap = util.reverse(sSnmp.getAllMap(nb.getOid("portIfIndex")));
 		if (portIfindexMap != null) {
 			for (Iterator it = portIfindexMap.keySet().iterator(); it.hasNext();) {
 				String ifindex = (String)it.next();
