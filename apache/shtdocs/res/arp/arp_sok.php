@@ -34,7 +34,7 @@ else
   $sok    = $vars[sok];
   $dager  = $vars[dager];
   $dns    = $vars[dns];
-  $mac    = $vars[mac];
+  $mac    = strtolower ($vars[mac]);
   $IPfra  = $vars[IPfra];
   $IPtil  = $vars[IPtil];
   $alleip = $vars[alleip];
