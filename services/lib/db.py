@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.11 2002/12/13 20:13:22 magnun Exp $
+$Id: db.py,v 1.12 2003/01/03 15:50:32 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -26,7 +26,6 @@ class _db(threading.Thread):
 		self.debug=debug.debug()
 		self.db=psycopg.connect("host = %s user = %s dbname = %s password = %s" % (conf["dbhost"],"manage",conf["db_nav"],conf["userpw_manage"]))
 		self.db.autocommit(1)
-		#self.cursor=self.db.cursor()
 		self.sysnetbox()
 		self.setDaemon(1)
 		self.queue = Queue.Queue()
@@ -123,16 +122,10 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 
 	def hostsToPing(self):
-		#query="""SELECT DISTINCT ip FROM netbox WHERE active='t' """
 		query="""SELECT DISTINCT ip FROM netbox """
 		return self.query(query)
 
 	def getJobs(self, onlyactive = 1):
-		# Update our netboxid <-> sysname hash first. It
-		# is used by job.py to do some more userfriendly
-		# logging.
-		#self.getnetboxid()
-
 		query = """SELECT serviceid, property, value
 		FROM serviceproperty
 		order by serviceid"""
@@ -160,7 +153,14 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 			if not job:
 				self.debug("no such handler: %s",handler,2)
 				continue
-			newJob = job(serviceid,netboxid,ip,property.get(serviceid,{}),version,sysname=sysname)
+			service={'id':serviceid,
+				 'netboxid':netboxid,
+				 'ip':ip,
+				 'sysname':sysname,
+				 'args':property.get(serviceid,{}),
+				 'version':version
+				 }
+			newJob = job(service)
 			if onlyactive and not active:
 				continue
 			else:
