@@ -54,23 +54,35 @@ def handler(req):
     user = None
     if req.session.has_key('user') and req.session['user'].id > 0:
         user = req.session['user'].login
-    response = doRequest(proxyreq, req.method, remotecookie, query=postdata,
-                         user=user, session=req.session.id)
-    remoteanswer = response.read()
-    req.content_type = response.msg.dict['content-type']
-    if not req.content_type.startswith('text') or \
-           req.uri.startswith("/vPServer"):
-        req.send_http_header()
-        req.write(remoteanswer)
-        return apache.OK
 
     try:
-        cookie = response.msg.dict['set-cookie']
-        cookie = cookie[:cookie.find(';')]
-        req.session['navadmin-cookie'] = cookie
-        req.session.save()
-    except KeyError:
-        pass
+        response = doRequest(proxyreq, req.method, remotecookie, query=postdata,
+                             user=user, session=req.session.id)
+    except Exception, e:
+        remoteanswer = html.Division()
+        remoteanswer.append(html.Header("Could not connect to servlet", 2))
+        trace = traceback.format_exception(*sys.exc_info())
+        message = "".join(trace)
+        remoteanswer.append(html.Pre(message, _class="warning"))
+        remoteanwser = str(remoteanswer)
+    
+    else:
+        remoteanswer = response.read()
+        req.content_type = response.msg.dict['content-type']
+        if not req.content_type.startswith('text') or \
+               req.uri.startswith("/vPServer"):
+            req.send_http_header()
+            req.write(remoteanswer)
+            return apache.OK
+
+        try:
+            cookie = response.msg.dict['set-cookie']
+            cookie = cookie[:cookie.find(';')]
+            req.session['navadmin-cookie'] = cookie
+            req.session.save()
+        except KeyError:
+            pass
+
     
     req.session.setdefault('uris', [])
     templatePath = [] # add logical paths to thhis
@@ -83,6 +95,7 @@ def handler(req):
 
     # Our template defines the variable myContent and treeselect.
     # Of course we can add more of them
+        
     template.myContent = remoteanswer
     template.treeselect = None
     template.path = templatePath
