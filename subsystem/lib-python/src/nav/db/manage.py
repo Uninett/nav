@@ -20,26 +20,35 @@ def _customizeTables():
     # Add/replace links between tables
     Swp_netbox._userClasses['to_module'] = Module
     Swp_netbox._userClasses['to_netbox'] = Netbox
-    Swp_netbox._userClasses['swp_netbox'] = Netbox
+    Swport._userClasses['to_cat'] = Cat
+    Swport._userClasses['to_netbox'] = Netbox
+    Swport._userClasses['to_swport'] = Swport
     # rename from *_netboxid to *_netbox
     Swp_netbox._sqlFields['to_netbox'] = 'to_netboxid'
-    Swp_netbox._sqlFields['swp_netbox'] = 'swp_netboxid'
+    Swport._sqlFields['to_cat'] = 'to_catid'
+    Swport._sqlFields['to_netbox'] = 'to_netboxid'
+    Swport._sqlFields['to_swport'] = 'to_swportid'
     del Swp_netbox._sqlFields['to_netboxid']
-    del Swp_netbox._sqlFields['swp_netboxid']
-
+    del Swport._sqlFields['to_catid']
+    del Swport._sqlFields['to_netboxid']
+    del Swport._sqlFields['to_swportid']
+    
     # some nice descriptive fields
     Netbox._shortView = ('sysname',)
-    Room._shortView = ('location', 'descr')
+    Room._shortView = ('roomid', 'location', 'descr')
     Location._shortView = ('descr',)
-    Org._shortView = ('descr',)
-    Cat._shortView = ('descr',)
+    Org._shortView = ('orgid', 'descr',)
+    Cat._shortView = ('catid', 'descr',)
     Type._shortView = ('vendor', 'typename', 'descr') 
+    Vlan._shortView = ('vlan','netident')
 
     # Link tables needs primary key
     Swportvlan._sqlPrimary = ('swport','vlan')
+    Swportblocked._sqlPrimary = ('swport','vlan')
     Alerthistmsg._sqlPrimary = ('alerthist', 'language', 'msgtype')
     Alerthistvar._sqlPrimary = ('alerthist', 'var', 'val','state')
     Module._sqlPrimary = ('moduleid',)
+    Swportallowedvlan._sqlPrimary = ('swport', 'hexstring')
 
     # connection with database
     forgotten.manage._Wrapper.cursor = nav.db.cursor
@@ -70,7 +79,6 @@ def getNetbox(address):
         return None
     return results[0]
 
-
 class RrdDataSourceFile(Rrd_datasource):
     """A join between Netbox, Rrd_file and Rrd_datasource"""
     _sqlFields = Rrd_datasource._sqlFields.copy()
@@ -92,9 +100,9 @@ class Portconfig(Swport):
                   'portname': 'portname',
                   'speed': 'speed',
                   'swportid': 'swportid',
-                  'to_catid': 'to_catid',
-                  'to_netboxid': 'to_netboxid',
-                  'to_swportid': 'to_swportid',
+                  'to_cat': 'to_catid',
+                  'to_netbox': 'to_netboxid',
+                  'to_swport': 'to_swportid',
                   'trunk': 'trunk',
                   # from module
                   'module': 'module.module',
@@ -105,7 +113,10 @@ class Portconfig(Swport):
     _sqlLinks = ( ('moduleid', 'module.moduleid'),
                 )
     # these userclasses are all from Module
-    _userClasses =  {'device': 'Device', 'netbox': 'Netbox'}
+    _userClasses =  {'device': 'Device', 'netbox': 'Netbox',
+                     'to_cat': 'Cat', 'to_netbox': 'Netbox',
+                     'to_swport': 'Swport',
+    }
     _orderBy = ('module', 'port')
     _shortView = ('module', 'port')
 

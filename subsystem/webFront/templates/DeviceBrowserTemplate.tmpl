@@ -144,6 +144,37 @@
       td.s {
         background: #cc8;
       }
+      table#rrdgraphs {
+        padding: 0;
+        border-collapse: collapse;
+      }
+      table#rrdgraphs td {
+        margin: 0;
+        padding: 0.2em;
+      }
+      table#rrdgraphs tr:first-child td.col2 {
+        background-color: white;
+        border: none;
+        display: none;
+      }
+      table#rrdgraphs td.actionselecttop,
+      table#rrdgraphs td.actionselectbottom,
+      table#rrdgraphs td.col2 {
+        background-color: #ccf;
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        border-top: none;
+        border-right: none;
+      }
+      table#rrdgraphs td.actionselecttop {
+        text-align: right;
+        border: 1px solid black;
+      }
+      table#rrdgraphs td.actionselectbottom {
+        text-align: right;
+        border: 1px solid black;
+      }
+#end block additionalCSS      
 
 #block additionalJavaScript
 #end block additionalJavaScript
