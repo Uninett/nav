@@ -214,6 +214,9 @@ public class Netel extends Box
 				}
 			}
 
+			// If the module is down there is no point in checking its ports
+			if (!m.isUp()) continue;
+
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); !foundUplink && j.hasNext();) {
 				Port p = (Port)j.next();
