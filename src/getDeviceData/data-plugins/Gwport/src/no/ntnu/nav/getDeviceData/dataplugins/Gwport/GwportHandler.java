@@ -462,7 +462,7 @@ public class GwportHandler implements DataHandler {
 				for (Iterator it = oldgwpSet.iterator(); it.hasNext();) {
 					oldIfindex.add(((Gwport)it.next()).getIfindex());
 				}
-				nbGwpMap.put(nb.getNetboxidS(), foundGwps.values());
+				nbGwpMap.putAll(nb.getNetboxidS(), new HashSet(foundGwps.values()));
 				oldIfindex.removeAll(foundGwps.keySet());
 				
 				for (Iterator it = oldIfindex.iterator(); it.hasNext();) {
