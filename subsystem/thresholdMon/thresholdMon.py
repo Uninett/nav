@@ -36,11 +36,13 @@ pres = presenter.presentation()
 exceptions = ['cpu5min','c5000BandwidthMax']
 ll = 1
 
+# Print usage when -h option called
 def usage(name):
     print "USAGE: %s [-h] [-l loglevel]" % name
     print "-h\t\tthis helptext"
     print "-l loglevel\tset the loglevel (1-silent,2-normal,3-debug)"
 
+# A simple method to set state in the rrd_datasource table
 def setState(datasource,state):
     if ll >= 2: print "Setting %s to %s" %(datasource.descr,state)
     datasource.thresholdstate = state
@@ -98,8 +100,9 @@ def sendEvent (var, val, netbox, state):
     
     eventq.save()
 
+    # Have some trouble getting forgetSQL to find correct key here, so using normal psql-query
     cur = conn.cursor()
-    
+
     query = "INSERT INTO eventqvar (eventqid, var, val) VALUES (%s, '%s', '%s')" %(eventq.eventqid, var, val)
     cur.execute(query)
     
@@ -116,9 +119,11 @@ except getopt.GetoptError:
 
 for option, argument in opt:
     if option == '-h':
+        # If -h option set, print usage, exit
         usage(sys.argv[0])
         sys.exit()
     elif option == '-l':
+        # If -l option set, use the argument as loglevel if it is in range 1:4
         argument = int(argument)
         if argument in range(1,4):
             ll = argument
@@ -152,7 +157,8 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
         temprrd = datasource.rrd_file
         if ll >= 3: print "Error could not add ds, continuing (%s,%s,%s)" % (datasource.rrd_datasourceid,temprrd.path,temprrd.filename)
         continue
-    
+
+    # We look at values over the 15 last minutes. 
     pres.fromTime = '-15min'
 
     if ll >= 3: print "Getting data from %s (%s)" % (datasource.rrd_datasourceid,datasource.descr)
