@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.9 2002/06/14 13:13:04 magnun Exp $
+$Id: database.py,v 1.10 2002/06/18 15:02:54 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread
@@ -34,7 +34,7 @@ def getJobs():
 	FROM serviceproperty
 	order by serviceid"""
 	c.execute(query)
-	property = {}
+
 	for serviceid,prop,value in c.fetchall():
 		if serviceid not in property:
 			property[serviceid] = {}
@@ -49,7 +49,9 @@ def getJobs():
 		if not job:
 			print 'no such handler:',handler
 		newJob = job(serviceid,ip,property.get(serviceid,{}),version)
+		print "Property: %s" % property
 		jobs += [newJob]
+	db.commit()
 	return jobs
 
 
