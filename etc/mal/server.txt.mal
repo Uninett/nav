@@ -9,14 +9,34 @@
 # Innholdet er sortert på telematikkrom.
 #
 # Syntaks:
-# rom:dnsnavn:drifter:kategori:underkategori:read-community:beskrivelse:porter
-
-# rom må være definert i rom.txt.
-# drifter betegner gruppen som skal ha beskjed dersom noe skjer
-# Underkategori for å spesifisere type server (mail,dns,web,....)
-# Porter er aktuelt i forb. med portovervåkning. Ikke aktuelt enda.
-# Read-community i tilfelle man skal gjøre snmp mot serverne en gang i framtida.
+# rom:dnsnavn:drifter:kategori:underkategori:read-community:beskrivelse:porter:tjenestekategorier
 #
-# Eksempel:
-# 813:alfa.itea.ntnu.no:SDRIFT:SRV:UNIX::Loginserver ansatte:
-#---------------------------------------------------------------------------
+# rom må være definert i rom.txt.
+#
+# drifter betegner gruppen som skal ha beskjed dersom noe skjer
+#
+# kategori skal alltid være SRV for servere.
+# 
+# Underkategori for å spesifisere type server (mail,dns,web,....)
+# Kun informativt.
+# 
+# Porter er aktuelt i forb. med portovervåkning. Ikke aktuelt enda.
+# 
+# Read-community er for SNMP, hvis dette er satt vil boksen bli
+# overvåket av cricket (disk/cpu/minne, osv). En vanlig verdi her
+# er «public». Blank verdi vil si at boksen ikke vil bli snmp-overvåket,
+# uavhengig av tjenestekategorier. (som selvsagt kan brukes til andre
+# ting, f.eks. databasevisninger)
+#
+# Tjenestekategorier er et kommaseparert felt for å dypere spesifisere
+# spesielle tjenester som også skal snmpovervåkes. F.eks. hvis man 
+# spesifiserer 'email' her så vil det bli overvåket antall e-post
+# i kø, etc. Man kan være med i 0 eller flere tjenestekategorier.
+# 
+# Foreløpig støttes disse kategoriene:
+#    email
+#
+# Eksempel: (her blankt på underkategori og porter)
+# 813:alfa.itea.ntnu.no:SDRIFT:SRV:UNIX::Loginserver ansatte::ts,email,dns,web
+#
+#------------------------------------------------------------------------------
