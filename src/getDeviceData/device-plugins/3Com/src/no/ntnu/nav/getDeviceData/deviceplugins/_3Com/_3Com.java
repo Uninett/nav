@@ -6,6 +6,7 @@ import java.util.regex.*;
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
@@ -241,17 +242,74 @@ public class _3Com implements DeviceHandler
 
 		List l;
 
+ 		// Fetch ifDescr
+		Set moduleSet = new HashSet();
+		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true);
+		if (ifDescrList != null) {
+			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String ifindex = s[0];
+				String ifdescr = s[1];
+
+				// Use regex for extracting unit and port
+				String port = null;
+				{
+					String k = extractPortFromDescr(ifdescr);
+					if (k != null) port = k;
+				}
+
+				int module = 1;
+				{
+					int k = extractModuleFromDescr(ifdescr);
+					if (k >= 0) module = k;
+				}
+				moduleSet.add(""+module);
+
+				SwModule swm = sc.swModuleFactory(module);
+				Swport swp = swm.swportFactory(ifindex);
+				if (port != null) swp.setPort(new Integer(port));
+				swp.setTrunk(false);
+				swp.setVlan(1);
+
+				// Special case for 3Com 9300 which only has FD gigabit ports
+				if (type.equals("sw9300")) {
+					swp.setDuplex('f');
+					swp.setMedia("1000BaseSX");
+				}
+			}
+		}
+
+		String moduleWithIP = "1";
+		if (moduleSet.size() > 1) {
+			// Check which module has the IP
+			String ipAdEntIfIndex = nb.getOid("ipAdEntIfIndex");
+			if (ipAdEntIfIndex != null) {
+				ipAdEntIfIndex += "."+nb.getIp();
+				List ipList = sSnmp.getAll(ipAdEntIfIndex, false, false);
+				if (ipList != null && !ipList.isEmpty()) {
+					String[] s = (String[])ipList.get(0);
+					String ifindex = s[1];
+					int module = Integer.parseInt(""+ifindex.charAt(0));
+					moduleWithIP = ""+module;
+					NetboxInfo.put(nb.getNetboxidS(), null, "ModuleWithIP", moduleWithIP);
+					
+				}
+			}
+		}
+
 		// Module data
 		l = sSnmp.getAll(nb.getOid("3cSerial"), true);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				if (nc.netboxDataFactory(nb).getSerial() == null) {
-					nc.netboxDataFactory(nb).setSerial(s[1]);
+				String module = s[0];
+				String serial = s[1];
+				if (moduleWithIP.equals(module) && nc.netboxDataFactory(nb).getSerial() == null) {
+					nc.netboxDataFactory(nb).setSerial(serial);
 					nc.commit();
 				}
-				sc.swModuleFactory(Integer.parseInt(s[0])).setSerial(s[1]);
-				Log.d("PROCESS_3COM", "Module: " + s[0] + " Serial: " + s[1]);
+				sc.swModuleFactory(Integer.parseInt(module)).setSerial(serial);
+				Log.d("PROCESS_3COM", "Module: " + module + " Serial: " + serial);
 			}
 		}
 
@@ -282,37 +340,6 @@ public class _3Com implements DeviceHandler
 				Module swm = sc.swModuleFactory(Integer.parseInt(module));
 				swm.setModel(model);
 				if (descrMap != null && descrMap.containsKey(module)) swm.setDescr(String.valueOf(descrMap.get(module)));
-			}
-		}
-
-		// Fetch ifDescr
-		List ifDescrList = sSnmp.getAll(nb.getOid("3cIfDescr"), true);
-		if (ifDescrList != null) {
-			for (Iterator it = ifDescrList.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-				String ifindex = s[0];
-				String ifdescr = s[1];
-
-				// Use regex for extracting unit and port
-				String port = null;
-				Matcher m = Pattern.compile("Port +(\\d+)\\b").matcher(ifdescr);
-				if (m.find()) port = m.group(1);
-
-				int module = 1;
-				m = Pattern.compile("Unit +(\\d+)\\b").matcher(ifdescr);
-				if (m.find()) module = Integer.parseInt(m.group(1));
-
-				SwModule swm = sc.swModuleFactory(module);
-				Swport swp = swm.swportFactory(ifindex);
-				if (port != null) swp.setPort(new Integer(port));
-				swp.setTrunk(false);
-				swp.setVlan(1);
-
-				// Special case for 3Com 9300 which only has FD gigabit ports
-				if (type.equals("sw9300")) {
-					swp.setDuplex('f');
-					swp.setMedia("1000BaseSX");
-				}
 			}
 		}
 
@@ -360,6 +387,18 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
+	}
+
+	private int extractModuleFromDescr(String ifdescr) {
+		Matcher m = Pattern.compile("Unit +(\\d+)\\b").matcher(ifdescr);
+		if (m.find()) return Integer.parseInt(m.group(1));
+		return -1;
+	}
+
+	private String extractPortFromDescr(String ifdescr) {
+		Matcher m = Pattern.compile("Port +(\\d+)\\b").matcher(ifdescr);
+		if (m.find()) return m.group(1);
+		return null;
 	}
 
 }
