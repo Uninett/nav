@@ -29,6 +29,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	// Maps an OID key to Snmpoid
 	private Map keyMap;
 
+	private Map reschedulesMap;
 	private Map numberStoreMap;
 
 	// Shared
@@ -50,6 +51,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		this.keyFreqMap = keyFreqMap;
 		this.keyMap = keyMap;
 		numberStoreMap = Collections.synchronizedMap(new HashMap());
+		reschedulesMap = Collections.synchronizedMap(new HashMap());
 	}
 
 	public int getNum() { return netboxNum; }
@@ -182,12 +184,12 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 
 	// Doc in interface
 	public void scheduleOid(String oidkey, long delay) {
-		delay = System.currentTimeMillis() + delay*1000;
-		if (oidkey == null) {
-			scheduleAllOids(delay);
-		} else {
-			addToRunQ(oidkey, new Long(delay));
+		delay *= 1000;
+		Long l;
+		if ((l=(Long)reschedulesMap.get(oidkey)) != null) {
+			if (l.longValue() < delay) return;
 		}
+		reschedulesMap.put(oidkey, new Long(delay));
 	}
 
 	// Doc in interface
@@ -240,11 +242,28 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		return ((Long)oidRunQ.firstKey()).longValue();
 	}
 
+	private void integrateReschedules(long curTime) {
+		for (Iterator it=reschedulesMap.entrySet().iterator();it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			String oidkey = (String)me.getKey();
+			long delay = ((Long)me.getValue()).longValue()+curTime;
+			if (oidkey == null) {
+				scheduleAllOids(delay);
+			} else {
+				removeFromRunQ(oidkey);
+				addToRunQ(oidkey, new Long(delay));
+			}
+		}
+		reschedulesMap.clear();
+	}
+
 	// Processing done, reschedule requested oids
 	void reschedule() {
 		long curTime = System.currentTimeMillis();
 		if (baseTime == 0) baseTime = curTime; // Set baseTime on first reschedule
 		long d = curTime - baseTime;
+		
+		integrateReschedules(curTime);
 
 		String oidkey;
 		while ((oidkey = removeRunQHead()) != null) {
@@ -284,7 +303,6 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		oidNextRunMap.put(oidkey, nextRun);
 	}
 
-	// Currently not in use
 	private void removeFromRunQ(String oidkey) {
 		Long oidNextRun = (Long)oidNextRunMap.get(oidkey);
 		Set s = (Set)oidRunQ.get(oidNextRun);
@@ -298,8 +316,17 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 		System.err.println("needRecreate: " + needRecreate());
 		System.err.println("isRemoved: " + isRemoved());
 		System.err.println("nextRun: " + getNextRun());
-		System.err.println("nextRunMap: " + oidNextRunMap);
+		SortedMap tm = new TreeMap();
+		long curTime = System.currentTimeMillis();
+		for (Iterator it=oidNextRunMap.entrySet().iterator();it.hasNext();) {
+			Map.Entry me = (Map.Entry)it.next();
+			long l = ((Long)me.getValue()).longValue()-curTime;
+			if (l < 0) l = 0;
+			tm.put(me.getKey(), new Long(l));
+		}
+		System.err.println("nextRunMap: " + tm);
 		System.err.println("oidRunQ: " + oidRunQ);
+		System.err.println("currentTime: " + System.currentTimeMillis());
 	}
 
 	// Return if this netbox is removed
