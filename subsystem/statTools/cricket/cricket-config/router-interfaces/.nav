@@ -11,5 +11,5 @@
 type = GW,GSW
 interface = 1
 name = interface
-descr = select nettype,netident from gwport left join prefix using (prefixid) left join vlan using (vlan) where gwportid=$id and netident is not null
+descr = select nettype,netident from gwportprefix left join prefix using (prefixid) left join vlan using (vlan) where gwportid=$id and netident is not null
 table = gwport
