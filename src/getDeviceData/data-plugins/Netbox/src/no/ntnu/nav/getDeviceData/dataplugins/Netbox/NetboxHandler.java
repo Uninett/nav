@@ -106,7 +106,7 @@ public class NetboxHandler implements DataHandler {
 			Log.d("UPDATE_NETBOX", "netboxid="+netboxid+" deviceid="+n.getDeviceidS()+" sysname="+n.getSysname() + " uptime="+n.getUptime());
 
 				// Check if we need to update netbox
-			if (oldn == null || !oldn.equalsNetboxData(n)) {
+			if (oldn == null || !n.equalsNetboxData(oldn)) {
 				// We need to update netbox
 				if (oldn != null) sysnameSet.remove(oldn.getSysname());
 
