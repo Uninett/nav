@@ -132,7 +132,7 @@ def createMessage(line):
             # if this message shows sign of cisco format, put it in the error log
             typematch = re.search("\w+-\d+-?\S*:",line)
             if typematch:
-                database.execute("insert into errorerror (message) values (%s)" , (repr(line),))
+                database.execute("insert into errorerror (message) values (%s)" , (db.escape(line),))
                 connection.commit()
             #raise "this is an undefined message"+line
 
@@ -147,7 +147,7 @@ class Message:
         self.origin = origin
         self.category = self.find_category(origin)
         self.type = type
-        self.description = repr(description)
+        self.description = db.escape(description)
         (self.facility, self.priorityid, self.mnemonic) = self.find_priority(type)
 
     def find_priority(self, type):
