@@ -15,6 +15,7 @@ initdir = @initdir@
 localstatedir = @localstatedir@
 tooldir = @tooldir@
 docdir = @docdir@
+crondir = @crondir@
 
 INSTALL = @INSTALL@
 nav_user = @nav_user@
@@ -116,8 +117,7 @@ distclean: clean
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 
-# dist: distclean
-dist:
+dist: distclean
 	@echo Creating source tarball...
 	@SRCDIR=`pwd`;                                  \
 	TARBALL=$(PACKAGE).tar.gz;                      \
