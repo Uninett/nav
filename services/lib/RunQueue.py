@@ -1,26 +1,13 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.10 2002/06/14 17:09:12 magnun Exp $
+$Id: RunQueue.py,v 1.11 2002/06/15 21:27:55 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
 from threading import *
 import threading, DEQueue, sys, time, types, traceback
 
-
-class observer:
-    def __init__(self):
-        self.observees=[]
-        self.hasFinished=threading.Event()
-
-    def run(self):
-        while(1):
-            for each in self.observees:
-                each.hasFinished.wait(10)
-                #print each + " er ferdig"
-
-	
 
 class TerminateException(Exception):
     pass
@@ -49,7 +36,6 @@ class worker(threading.Thread):
                 self.execute()
             except TerminateException:
                 self._runqueue.workers.remove(self)
-#                self._runqueue.numThreads -= 1
                 return
             except:
                 traceback.print_exc()
@@ -71,10 +57,9 @@ class worker(threading.Thread):
 
 class RunQueue:
     def __init__(self,**kwargs):
-        self.maxThreads=kwargs.get('maxthreads', sys.maxint)
+        self._maxThreads=kwargs.get('maxthreads', sys.maxint)
         self._controller=kwargs.get('controller',self)
         self.debug=self._controller.debug
-        self.numThreads=0
         self.numThreadsWaiting=0
         self._maxRunCount=5
         self.workers=[]
@@ -84,14 +69,9 @@ class RunQueue:
         self.awaitWork=Condition(self.lock)
         self.stop=0
         self.makeDaemon=1
-        #self.startObserver()
 
     def getMaxRunCount(self):
         return self._maxRunCount
-
-    def startObserver(self):
-        self.ob=observer()
-        self.enq(self.ob)
 
     def enq(self,*r):
         self.lock.acquire()
@@ -103,11 +83,9 @@ class RunQueue:
             self.numThreadsWaiting-=1
             self.debug('Using waiting thread')
             self.awaitWork.notify()
-        #elif self.numThreads < self.maxThreads:
-        elif len(self.workers) < self.maxThreads:
+        elif len(self.workers) < self._maxThreads:
             t=worker(self)
             t.setDaemon(self.makeDaemon)
-            #self.numThreads+=1
             if len(self.unusedThreadName) > 0:
                 t.setName(self.unusedThreadName.pop())
             else:
@@ -122,13 +100,11 @@ class RunQueue:
         self.lock.acquire()
         while len(self.rq)==0:
             if self.stop:
-#                self.numThreads-=1 
                 self.lock.release()
                 raise TerminateException
             self.numThreadsWaiting+=1
             self.awaitWork.wait()
         if self.stop: 
-#            self.numThreads-=1 
             self.lock.release()
             raise TerminateException
         r=self.rq.get()
