@@ -93,6 +93,10 @@ class selectTree:
         # Fill all simpleselect()s
         for select in self.selectList:
             if not select.prevSelect:
+                firstLoad = True
+                if form.has_key(select.controlName):
+                    firstLoad = False
+                select.firstLoad = firstLoad
                 select.fill()
 
         # Set all selected options and fill updateselect()s
@@ -179,6 +183,7 @@ class simpleSelect:
         selectMultiple = BOOLEAN, if True the select gets the HTML attribute
                          multiple.
         multipleHeight = INT, the height of the select in lines.
+        disabled       = BOOLEAN, disable select
         '''
 
     simpleSelect = True
@@ -195,7 +200,8 @@ class simpleSelect:
                  setOnChange=True,
                  actionOnChange=None,
                  selectMultiple=True,
-                 multipleHeight=5):
+                 multipleHeight=5,
+                 disabled=False):
 
         # simpleSelect does never have any prevSelect
         self.prevSelect = None
@@ -210,6 +216,7 @@ class simpleSelect:
         self.setOnChange = setOnChange
         self.selectMultiple = selectMultiple
         self.multipleHeight = multipleHeight
+        self.disabled = disabled
 
         self.onChange = None
         if setOnChange:
@@ -230,21 +237,23 @@ class simpleSelect:
         self.nextOptgroupList = {}
 
         # Make sql query
-        fields,tables,join,where,orderBy = self.sqlTuple
+        result = []
+        if self.sqlTuple:
+            fields,tables,join,where,orderBy = self.sqlTuple
         
-        sql = 'SELECT ' + fields + ' FROM ' + tables + ' '
-        if where:
-            sql += 'WHERE ' + where + ' '           
-        if orderBy:
-            sql += 'ORDER BY ' + orderBy + ' '
+            sql = 'SELECT ' + fields + ' FROM ' + tables + ' '
+            if where:
+                sql += 'WHERE ' + where + ' '           
+            if orderBy:
+                sql += 'ORDER BY ' + orderBy + ' '
 
-        # Execute sql query (replace editdb with treeSelect user)
-        connection = nav.db.getConnection('editdb','manage')
-        database = connection.cursor()
-        database.execute(sql)
-        result = database.fetchall()
-        connection.commit()
-       
+            # Execute sql query (replace editdb with treeSelect user)
+            connection = nav.db.getConnection('editdb','manage')
+            database = connection.cursor()
+            database.execute(sql)
+            result = database.fetchall()
+            connection.commit()
+           
         self.maxOptionTextLength = 0 
         for row in result:
             # Save row for optgroupformat in next select
@@ -330,7 +339,8 @@ class updateSelect(simpleSelect):
                          this.form.post()
         selectMultiple = BOOLEAN, if True the select gets the HTML attribute
                          multiple.
-        multipleHeight = INT, the height of the select in lines. '''
+        multipleHeight = INT, the height of the select in lines. 
+        disabled       = BOOLEAN, disable select '''
 
     simpleSelect = False
 
@@ -346,8 +356,10 @@ class updateSelect(simpleSelect):
                  valueFormat='$1',
                  optgroupFormat=None,
                  setOnChange=True,
+                 actionOnChange=None,
                  selectMultiple=True,
-                 multipleHeight=5):
+                 multipleHeight=5,
+                 disabled=False):
 
         # Link with previous select
         self.prevSelect = prevSelect
@@ -364,6 +376,7 @@ class updateSelect(simpleSelect):
         self.setOnChange = setOnChange
         self.selectMultiple = selectMultiple
         self.multipleHeight = multipleHeight
+        self.disabled = disabled
 
         self.onChange = None
         if setOnChange:
