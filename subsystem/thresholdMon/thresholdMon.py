@@ -49,10 +49,20 @@ def setState(datasource,state):
 
 # Makes the event ready for sending and updates the rrd_datasource
 # table with the correct information
+# calls sendEvent with correct values
 def makeEvent (presobject,datasource,state):
 
     # Fetching some data about the rrd
     rrdfile = datasource.rrd_file
+
+    var = datasource.descr
+    if datasource.delimiter == '>':
+        val = "more than %s" % datasource.threshold
+    else:
+        val = "less than %s" % datasource.threshold
+
+    print "Setting var to %s" % var
+    print "Setting val to %s" % val
     
     if rrdfile.netbox is not None:
         netbox = rrdfile.netbox
@@ -61,37 +71,41 @@ def makeEvent (presobject,datasource,state):
     if state == 'active':
         if ll >= 2: print "Threshold on %s surpassed." %datasource.descr
         setState(datasource,state)
+        sendEvent(var,val,netbox,state);
     elif state == 'inactive':
         if ll >= 2: print "%s has calmed down." % datasource.descr
         setState(datasource,state)
+        sendEvent(var,val,netbox,state);
     elif state == 'stillactive':
         if ll >= 2: print "Alert on %s is still active." % datasource.descr
     else:
         if ll >= 2: print "No such state (%s)" % state
 
 # Updates the correct tables for sending the event
-def sendEvent (descr, netbox, state):
+def sendEvent (var, val, netbox, state):
 
     if state == 'active':
         state = 's'
     else:
         state = 'e'
 
-    eventq = Eventq()
+    eventq = manage.Eventq()
     eventq.source = 'thresholdMon'
     eventq.target = 'eventEngine'
-    eventq.netboxid = netbox.netboxid
-    eventq.eventtypeid = 'thresholdState'
+    eventq.netbox = netbox.netboxid
+    eventq.eventtype = 'thresholdState'
     eventq.state = state
+    eventq.time = "NOW()"
+    eventq.value = 100
+    eventq.severity = 100
     
     eventq.save()
 
-    eventqvar = Eventqvar()
-    eventqvar.eventqid = eventq.eventqid
-    eventqvar.var = 'descr'
-    eventqvar.val = descr
-
-    eventqvar.save()
+    cur = conn.cursor()
+    
+    query = "INSERT INTO eventqvar (eventqid, var, val) VALUES (%s, '%s', '%s')" %(eventq.eventqid, var, val)
+    cur.execute(query)
+    
 
 ##################################################
 # Done with functions, let the games begin!
