@@ -12,8 +12,8 @@ import nav
 #import forgetHTML as html
 #import forgetSQL
 import nav.db.manage 
-from nav.db.manage import Emotd, Emotd_related, Maintenance, Service, Netbox 
-import nav.web.EmotdSelect as EmotdSelect
+from nav.db.manage import Emotd, Emotd_related, Maintenance, Room, Service, Netbox 
+from nav.web import EmotdSelect
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox
 
@@ -367,7 +367,43 @@ def maintenance(req):
     form += '</select>'
     form += '</td></tr></table>'
     
-    if req and not req.form.has_key('submitbutton'):
+    if req and req.form.has_key('list'): 
+        body = '<p>Current maintenance:</p>'
+        maintdict = {}
+        if req.form['list'] == 'current':
+            maintdict = EmotdSelect.getMaintenance(state='active',access=True)
+        if req.form['list'] == 'scheduled':
+            maintdict = EmotdSelect.getMaintenance(state='scheduled',access=True)
+        body += '<table width=800><tr><td>\n'
+        for maint in maintdict.keys():
+            body += '<table> \n'
+            body += '<tr><td>Maintenanceid: %s </td>\n' % maint
+            mstart = maintdict[maint][0]['maint_start']
+            mend   = maintdict[maint][0]['maint_end']
+            body += '<td>Started: %s</td><td>Ends at: %s </td></tr>\n' % (mstart,mend)
+            body += '<tr><td>Room</td><td>Netbox</td><td>Service/module</td></tr>'
+            for f in range(len(maintdict[maint])):
+                # One maintenance, can keep severel rooms,netbox,services
+                entry = maintdict[maint][f]
+                if entry['key'] == 'room':
+                    room = Room(entry['value']).roomid + "," + Room(entry['value']).descr
+                    body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td></tr>' % (room)
+                if entry['key'] == 'netbox':
+                    room = Netbox(entry['value']).room.roomid + "," + Netbox(entry['value']).room.descr 
+                    netbox = Netbox(entry['value']).sysname 
+                    body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td></tr>' % (room,netbox)
+                if entry['key'] == 'service':
+                    netbox = Service(entry['value']).netbox.sysname
+                    room = Service(entry['value']).netbox.room.roomid + "," + Service(61).netbox.room.descr
+                    service = Service(entry['value']).handler
+                    body += '<tr><td>%s</td><td>%s</td><td><b>&s</b></td></tr>\n' % (room,netbox,service)
+            body += '</table><hr>\n'
+            # end view of maintenance with this id
+        body += '</td></tr></table>\n'
+        # For listing ongoing or scheduled maintenances, we don't show searchBox and selectBox.. present a link maybe?
+        searchBox = None
+        selectBox = None     
+    elif req and not req.form.has_key('submitbutton') and not req.form.has_key('list'):
         # Run update every time the form is submitted,
         # unless the submit button has been pressed
         selectBox.update(req.form)
@@ -415,13 +451,12 @@ def maintenance(req):
                     body += '<p><font color=red>An error occured!</font>'
         else:
             body = '<font color=red><p>No netbox or service/module chosen</font>'
-    else:
-        selectBox.update(req.form)
-        form = '<font color=red><p>No id given. Cannot set maintenance without Emotd!</font>'
+    #else:
+        #selectBox.update(req.form)
+    #    form = '<font color=red><p>No id given. Cannot set maintenance without Emotd!</font>'
 
     nameSpace = {'title': title, 'motd': None, 'menu': menu, 'form':form,'body': body, 'searchBox': searchBox, 'selectBox': selectBox}
     page = EmotdTemplate(searchList=[nameSpace])
-    #page = MaintenanceTemplate(searchList=[nameSpace])
     return page.respond()
 
 def view(req):
