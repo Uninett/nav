@@ -18,7 +18,6 @@ import StatusTables,mx.DateTime,re
 
 from mod_python import util,apache
 from StatusTemplate import StatusTemplate
-from miscUtils import makeWhereList
 
 from nav.web import urlbuilder
 
@@ -34,6 +33,7 @@ HISTORY_DEFAULT_NO_DAYS = 7
 HISTORY_TYPE_BOXES = 'boxes'
 HISTORY_TYPE_SERVICES = 'services'
 BASEPATH = '/status/'
+INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
 
 #################################################
 ## Default handler
@@ -64,6 +64,10 @@ def indexHistory(req):
 
     nameSpace = {'status': None, 'prefs': None, 'history': historyPage}
     template = StatusTemplate(searchList=[nameSpace])
+    template.path = [('Frontpage','/'),
+                     ('Tools','/toolbox'),
+                     ('Status',BASEPATH),
+                     ('History',None)]
     return template.respond()
 
 
@@ -74,6 +78,9 @@ def indexPrefs(req):
  
     nameSpace = {'status': None, 'prefs': prefsPage, 'history': None}
     template = StatusTemplate(searchList=[nameSpace])
+    template.path = [('Frontpage','/'),
+                     ('Preferences','/preferences'),
+                     ('Status page preferences',None)]
     return template.respond()
 
        
@@ -84,6 +91,7 @@ def indexInternal(req):
 
     nameSpace = {'status': statusPage, 'prefs': None, 'history': None}
     template = StatusTemplate(searchList=[nameSpace])
+    template.path = [('Frontpage','/'),('Tools','/toolbox'),('Status',None)]
     return template.respond()
 
 #################################################
@@ -107,19 +115,25 @@ class StatusPage:
             if typeId == 'netbox':
                 self.sections.append(NetboxSectionBox(controlBaseName,args,\
                 title,filters))
-            if typeId == 'service':
+            elif typeId == 'service':
                 self.sections.append(ServiceSectionBox(controlBaseName,args,\
+                title,filters))
+            elif typeId == 'module':
+                self.sections.append(ModuleSectionBox(controlBaseName,args,\
                 title,filters))
 
         # check http get arguments and sort the lists
         for section in self.sections:
             sortArg = args.getArgs(section.sortId)
+            if not sortArg:
+                sortArg = section.defaultSort
             if sortArg:
                 colNumber = int(sortArg[0])
                 if colNumber > 0:
                     section.sort(colNumber)
                 else:
-                    section.sortReverse(colNumber*-1)
+                    colNumber = colNumber * (-1)
+                    section.sortReverse(colNumber)
 
 class HistoryPage:
     " Class representing the history page "
@@ -129,7 +143,7 @@ class HistoryPage:
         CNAME_TYPE = 'type'
         CNAME_ID = 'id'
 
-        self.title = 'History'
+        self.title = 'Status history'
         args = ManageGetArgs(req.form)
         self.sections = []
 
@@ -223,8 +237,8 @@ class NetboxHistoryBox(SectionBox):
  
     def initColumns(self,date,boxid):
         where_clause = "eventtypeid = 'boxState' " +\
-                       "and date(start_time) = '%s' " % (date,) +\
-                       "and end_time != 'infinity' "
+                       "and date(start_time) = '%s' " % (date,)
+                       #"and end_time != 'infinity' "
 
         if boxid:
             where_clause += " and netboxid = '%s'" % (boxid,)
@@ -248,7 +262,6 @@ class NetboxHistoryBox(SectionBox):
             column.fill() 
         return
 
-
     def fill(self):
         self.rows = []
         self.headings = []
@@ -268,9 +281,9 @@ class NetboxHistoryBox(SectionBox):
 
             # Sysname 
             data,counter = self.columns[0].rows[i]
-            style = ''
+            style = None
             if up == 'n':
-                style = 'down'
+                style = None
             elif up == 's':
                 style = 'shadow'
 
@@ -285,10 +298,16 @@ class NetboxHistoryBox(SectionBox):
 
             # To
             end,counter = self.columns[2].rows[i]
-            row.append((end.strftime('%H:%M %d-%m-%y'),'',None))
+            if not end or end == INFINITY:
+                row.append(('Still down','',None))
+            else:
+                row.append((end.strftime('%H:%M %d-%m-%y'),'',None))
 
             # Downtime
-            diff = end - start
+            if not end or end == INFINITY:
+                diff = mx.DateTime.now() - start
+            else:
+                diff = end - start
             delta = repr(diff.absvalues()[0]) + ' d, ' + \
             diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' min'
             row.append((delta,'',None))
@@ -382,8 +401,8 @@ class ServiceHistoryBox(SectionBox):
 
             # Downtime
             diff = end - start
-            delta = repr(diff.absvalues()[0]) + ' days, ' + \
-            diff.strftime('%H') + ' hours, ' + diff.strftime('%M') + ' minutes'
+            delta = repr(diff.absvalues()[0]) + ' d, ' + \
+            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
             row.append((delta,'',None))
 
             self.rows.append(row)

@@ -18,19 +18,20 @@ $displayPrefs($prefs)
 #end if
 
 #if $status
-<h2>$status.title</h2>
+    <h2>$status.title</h2>
+    <table>
 #for $SectionBox in $status.sections
+        <tr>
 $displaySectionBox($SectionBox)
+        </tr>
 #end for
+    </table>
 #end if
 
 #if $history
 <h2>$history.title</h2>
 $displayStatusAction($history)
 $displaySectionBoxes($history)
-##for $SectionBox in $history.sections
-##$displaySectionBox($SectionBox)
-##end for
 #end if
 
 #end def
@@ -43,16 +44,8 @@ th.sortedBy {background: #8aa}
 th.sortedBy#ascending:after {content: url("/images/pilned.png")}
 th.sortedBy#descending:after {content: url("/images/pilopp.png")}
 
-tr.evenrow  { font-size: 12; background-color: #eeeeee; }
-tr.oddrow   { font-size: 12; }
 tr.title    { vertical-align: baseline; font-size: 15; background-color: #ddddff;}
-tr.header   { background-color: white;
-              background-image:url('/images/ragen/navbar-fill.gif');
-              background-repeat: repeat-x;
-              height: 26px;
-              padding: 1px 0px 0px 0px;
-              font-size: 13;}
-
+$default_table_CSS()
 $default_form_CSS()
 #end def
 
@@ -91,11 +84,11 @@ $default_form_CSS()
 #end def
 
 ## Function for displaying all the sections on a page
-## Used by the status page to display all rows from all sections
+## Used by the history page to display all rows from all sections
 ## in one table (can do this since the number of columns is
 ## equal for all sections)
 #def displaySectionBoxes($page)
-    <table cellpadding="5%" cellspacing="0">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding: 0px 5px 0px 5px;">
 #for $section in $page.sections
 $listSectionRows($section)
 #end for
@@ -111,14 +104,14 @@ $listSectionRows($section)
             <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-            <th id="$id" align=left><a href="$url">$heading</a></th>
+            <td class="header" valign="top" id="$id" align=left><a href="$url">$heading</a>&nbsp;</td>
 #else
-            <th id="$id" align=left>$heading</th>
+            <td class="header" valign="top" id="$id" align=left>$heading&nbsp;</td>
 #end if
 #end for
             <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
         </tr>
-#set $odd = False
+#set $odd = True
 #for $row in $SectionBox.rows
 #if $odd
 #set $rowstyle = 'oddrow'
@@ -128,35 +121,50 @@ $listSectionRows($section)
 #set $odd = True
 #end if
         <tr class="$rowstyle">
-            <td> </td>
+            <td style="background: #fff;">&nbsp;</td>
 #for $col, $url, $style in $row
 #if $url
-            <td class="$style"><a href="$url">$col</a>
+            <td class="$style"><a href="$url">$col&nbsp;&nbsp;</a>
 #else
-            <td class="$style">$col</td>
+            <td class="$style">$col&nbsp;&nbsp;</td>
 #end if
 #end for
-            <td> </td>
+            <td style="background: #fff;">&nbsp;&nbsp;</td>
         </tr>
 #end for
 #end def
 
 ## This renders each sectionbox
 #def displaySectionBox($SectionBox)
-    <h3 id="$SectionBox.controlBaseName">$SectionBox.title <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></h3>
-    <table cellpadding="3%" cellspacing="0">
-        <tr class="header">
-            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+    ##<h3 id="$SectionBox.controlBaseName">$SectionBox.title <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></h3>
+#set $nrofcols = len($SectionBox.headings) + 1
+    <td>
+        <table id="$SectionBox.controlBaseName" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+            <tr class="title">
+                <td class="title" align="center" colspan="$nrofcols" style="background-image:url('/images/status/statuslogo+fill.gif'); background-repeat: no-repeat;">  
+                    <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+                        <tr class="navigation">
+                            <td class="current">
+                                <div class="title">$SectionBox.title<a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></div>
+                                $SectionBox.summary
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td align=right style="background-image:url('/images/arpcam/fill.gif');"><img src="/images/ragen/top-end.gif"></td>
+            </tr>
+            <tr class="header">
+                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-            <th id="$id"><a href="$url">$heading</a></th>
+                <td class="header" valign="top" id="$id"><a href="$url">$heading&nbsp;</a></td>
 #else
-            <th id="$id">$heading</th>
+                <td class="header" valign="top" id="$id">$heading&nbsp;</td>
 #end if
 #end for
-            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
-        </tr>
-#set $odd = False
+                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
+            </tr>
+#set $odd = True
 #for $row in $SectionBox.rows
 #if $odd
 #set $rowstyle = 'oddrow'
@@ -165,28 +173,34 @@ $listSectionRows($section)
 #set $rowstyle = 'evenrow'
 #set $odd = True
 #end if
-        <tr class="$rowstyle">
-            <td> </td>
+            <tr class="$rowstyle">
+                <td>&nbsp;</td>
 #for $col, $url, $style in $row
 #if $url
-            <td class="$style"><a href="$url">$col</a>
+                <td class="$style"><a href="$url">$col&nbsp;&nbsp;</a>
 #else
-            <td class="$style">$col</td>
+                <td class="$style">$col&nbsp;&nbsp;</td>
 #end if
 #end for
-            <td> </td>
-        </tr>
+                <td>&nbsp;</td>
+            </tr>
 #end for
-    </table>
+        </table>
+    </td>
 #end def
 
 ## This renders the preferences page
 #def displayPrefs($prefsPage)
-<form action="status.py" method="post">
+## move this from template to StatusPrefs.py
+<p>
+Add, delete or rearrange sections on your status page.
+</p>
 
-<table class=header-active>
+<form action="/status/prefs/status.py" method="post">
+
+<table class="header-inactive">
 <tr>
-<th>Select</th><th>Name</th><th>Filter</th>
+<th style="width: 10px;">&nbsp;</th><th>Name</th><th>Filter</th>
 </tr>
 
 #for $editSection in $prefsPage.editSectionBoxes
@@ -195,33 +209,38 @@ $displayEditSectionBox($editSection,$prefsPage.radioButtonName)
 
 ## action bar
 <tr>
-<td colspan=2>
-<input type="submit" name="$prefsPage.actionBarUpName" value="Move up">
-<input type="submit" name="$prefsPage.actionBarDelName" value="Delete">
+<td colspan="3">
+<input type="submit" name="$prefsPage.actionBarUpName" value="Move selected section up">
+<input type="submit" name="$prefsPage.actionBarDelName" value="Delete selected section">
 </td>
 </tr>
 
 </table>
 
 ## addbar
-<table>
-<tr>
-<th colspan=4 align=left>Add new section</th>
-</tr>
-<tr>
-<td>$prefsPage.addBarTitle</td>
-<td>
-<SELECT name="$prefsPage.addBarSelectName">
+    <p>
+        <h3>Add new section</h3>
+        <table>
+            <tr>
+                <td>$prefsPage.addBarTitle</td>
+                <td>
+                    <SELECT name="$prefsPage.addBarSelectName">
 #for $value,$text in $prefsPage.addBarSelectOptions
-<OPTION value="$value">$text</OPTION>
+                    <OPTION value="$value">$text</OPTION>
 #end for
-</SELECT>
-</td>
-<td><input type="submit" name="$prefsPage.addBarSubmitName" value="Add"></td>
-<td><input type="submit" name="$prefsPage.addBarSaveName" value="Save"</td>
-<td><input type="submit" name="$prefsPage.addBarSaveDefName" value="Save Default"</td>
-</tr>
-</table>
+                    </SELECT>
+                </td>
+                <td><input type="submit" name="$prefsPage.addBarSubmitName" value="Add"></td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <input type="submit" name="$prefsPage.addBarSaveName" value="Save">
+                    <input disabled type="submit" name="" value="Preview">
+                    <input type="submit" name="$prefsPage.addBarSaveDefName" value="Save as default page">
+                </td>
+            </tr>
+        </table>
+    </p>
 </form>
 #end def
 

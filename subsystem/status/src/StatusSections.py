@@ -14,14 +14,13 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 ## Imports
 
 import StatusTables,mx.DateTime
-from miscUtils import makeWhereList
 from nav.web import urlbuilder
 
 #################################################
 ## Constants
 
 FILTER_ALL_SELECTED = 'all_selected_tkn'
-BASEPATH = 'http://isbre.itea.ntnu.no/status/'
+BASEPATH = '/status/'
 
 #################################################
 ## Classes
@@ -236,12 +235,16 @@ class ServiceSectionBox(SectionBox):
     rows = []
 
     def __init__(self, controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column 3 (down time)
+        self.defaultSort = [-3]
+
         self.headings = []
         self.rows = []
-
+        self.summary = None
         self.historyLink = [BASEPATH + 'history/?type=services','(history)']
         self.columns = []
         self.table = None
+
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
         self.initColumns(filterSettings)
         self.fill()
@@ -273,6 +276,7 @@ class ServiceSectionBox(SectionBox):
                     first_line = False
                 where_clause += ") "
             # state
+            self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
                 where_clause += " and ("
                 first_line = True
@@ -310,19 +314,25 @@ class ServiceSectionBox(SectionBox):
             if height > self.maxHeight:
                 height = self.maxHeight
 
+
+        servicesDown = 0
+        servicesShadow = 0
+ 
         for i in range(0,height):
             row = []
 
             # håndtere hver kolonne manuelt            
-            up,counter = self.columns[3].rows[i]
-            # Sysname 
-            data,counter = self.columns[0].rows[i]
-            style = ''
+            up,counter = self.columns[4].rows[i]
+            style = None
             if up == 'n':
-                style = 'down'
+                servicesDown += 1
+                style = None
             elif up == 's':
+                servicesShadow += 1
                 style = 'shadow'
 
+            # Sysname 
+            data,counter = self.columns[0].rows[i]
             netbox = StatusTables.Netbox
             boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
             row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
@@ -339,11 +349,18 @@ class ServiceSectionBox(SectionBox):
             # Downtime
             start,counter = self.columns[3].rows[i]
             diff = mx.DateTime.now() - start
-            delta = repr(diff.absvalues()[0]) + ' days, ' + \
-            diff.strftime('%H') + ' hours, ' + diff.strftime('%M') + ' minutes'
+            delta = repr(diff.absvalues()[0]) + ' d, ' + \
+            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
             row.append((delta,'',None))
 
             self.rows.append(row)
+        if not self.listStates.count('s') and self.listStates.count('n'):
+            self.summary = str(servicesDown) + ' services down'
+        elif not self.listStates.count('n') and self.listStates.count('s'):
+            self.summary = str(servicesShadow) + ' services in shadow'
+        else:
+            self.summary = str(servicesDown) + ' services down, ' + \
+                           str(servicesShadow) + ' in shadow'
         return
 
     def getFilters(controlBaseName,orgList):
@@ -358,9 +375,9 @@ class ServiceSectionBox(SectionBox):
         # Org
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         # Restrict to orgs where user belongs
-        whereOrg = makeWhereList(orgList)
-        for org in table.getAllIterator(where=whereOrg,orderBy = 'orgid'):
-            optionsList.append((org.orgid,org.descr,False))
+        #whereOrg = makeWhereList(orgList)
+        for org in table.getAllIterator(orderBy = 'orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
@@ -382,14 +399,17 @@ class NetboxSectionBox(SectionBox):
     " Section displaying netboxes that are down or in shadow "
     
     # attribs for preferences
-    description = 'Test description of NetboxSectionBox'
     name = 'Boxes down'
     typeId = 'netbox'     
     
     def __init__(self,controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column 3 (down time)
+        self.defaultSort = [-3]
+
         self.headings = []
         self.rows = []
         self.columns = []
+        self.summary = None
         self.historyLink = [BASEPATH + 'history/?type=boxes','(history)']
 
         SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
@@ -426,6 +446,7 @@ class NetboxSectionBox(SectionBox):
                     first_line = False
                 where_clause += ") "
             # state
+            self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
                 where_clause += " and ("
                 first_line = True
@@ -437,6 +458,8 @@ class NetboxSectionBox(SectionBox):
                 where_clause += ") "
 
         self.addColumn('Sysname','AlerthistStatusNetbox',['sysname'],\
+        'start_time',where_clause)
+        self.addColumn('IP','AlerthistStatusNetbox',['ip'],\
         'start_time',where_clause)
         self.addColumn('Down since','AlerthistStatusNetbox',['start_time'],\
         'start_time',where_clause,show=True)
@@ -462,43 +485,56 @@ class NetboxSectionBox(SectionBox):
             if height > self.maxHeight:
                 height = self.maxHeight
 
+        boxesDown = 0
+        boxesShadow = 0
         for i in range(0,height):
             row = []
 
             # håndtere hver kolonne manuelt            
-            up,counter = self.columns[2].rows[i]
+            up,counter = self.columns[5].rows[i]
+
+            style = None
+            if up == 'n':
+                style = None 
+                boxesDown += 1
+            elif up == 's':
+                style = 'shadow'
+                boxesShadow += 1
 
             # Sysname 
             data,counter = self.columns[0].rows[i]
-            style = ''
-            if up == 'n':
-                style = 'down'
-            elif up == 's':
-                style = 'shadow'
-
             netbox = StatusTables.Netbox
             boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
             row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
                                                   style))
+            # IP
+            data,counter = self.columns[1].rows[i]
+            row.append((data,None,style))
  
             # Down since
-            start,counter = self.columns[1].rows[i]
+            start,counter = self.columns[2].rows[i]
             row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
 
             # Downtime
-            start,counter = self.columns[2].rows[i]
+            start,counter = self.columns[3].rows[i]
             diff = mx.DateTime.now() - start
-            delta = repr(diff.absvalues()[0]) + ' days, ' + \
-            diff.strftime('%H') + ' hours, ' + diff.strftime('%M') + ' minutes'
+            delta = repr(diff.absvalues()[0]) + ' d, ' + \
+            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
             row.append((delta,'',None))
 
             # History
             row.append(('<img border="0" src="/~hansjorg/icon.png">',
                         BASEPATH + 'history/?type=boxes&id=%s' % (boxid,),
                         None))
- 
-
             self.rows.append(row)
+
+        if not self.listStates.count('s') and self.listStates.count('n'):
+            self.summary = str(boxesDown) + ' boxes down'
+        elif not self.listStates.count('n') and self.listStates.count('s'):
+            self.summary = str(boxesShadow) + ' boxes in shadow'
+        else:
+            self.summary = str(boxesDown) + ' boxes down, ' + \
+                           str(boxesShadow) + ' in shadow'
         return
 
     def getFilters(controlBaseName,orgList):
@@ -513,17 +549,17 @@ class NetboxSectionBox(SectionBox):
         # Org
         table = StatusTables.Org()
         # Restrict to orgs where user belongs
-        whereOrg = makeWhereList(orgList)
+        #whereOrg = makeWhereList(orgList)
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
-        for org in table.getAllIterator(where=whereOrg,orderBy='orgid'):
-            optionsList.append((org.orgid,org.descr,False))
+        for org in table.getAllIterator(orderBy='orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
         table = StatusTables.Cat()
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
-             optionsList.append((cat.catid,cat.descr,False))
+             optionsList.append((cat.catid,cat.catid,False))
         filterSelects.append((controlBaseName + '_' + 'catid',optionsList))
 
         # State
@@ -533,5 +569,186 @@ class NetboxSectionBox(SectionBox):
         return (filterHeadings,filterSelects)
     getFilters = staticmethod(getFilters)
 
+
+
+class ModuleSectionBox(SectionBox):
+    " Section displaying modules that are down or in shadow "
+    
+    # attribs for preferences
+    name = 'Modules down'
+    typeId = 'module'     
+    
+    def __init__(self,controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column (down time)
+        self.defaultSort = [-3]
+
+        self.headings = []
+        self.rows = []
+        self.columns = []
+        self.historyLink = [BASEPATH + 'history/?type=modules','(history)']
+        self.summary = None
+
+        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
+        self.initColumns(filterSettings)
+        self.fill()
+        return
+ 
+    def initColumns(self,filterSettings):
+        # basic where
+        where_clause = "eventtypeid = 'moduleState' " +\
+                       "and end_time = 'infinity'"
+
+        # parse filter settings
+        ##raise(repr(filterSettings))
+        if filterSettings:
+            # orgid
+            if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for org in filterSettings['orgid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.orgid = '" + org + "'"
+                    first_line = False
+                where_clause += ") "
+            # catid
+            if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for cat in filterSettings['catid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.catid = '" + cat + "'"
+                    first_line = False
+                where_clause += ") "
+            # state
+            self.listStates = filterSettings['state']
+            if not filterSettings['state'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for state in filterSettings['state']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.up = '" + state + "'"
+                    first_line = False
+                where_clause += ") "
+
+        self.addColumn('Sysname','AlerthistStatusNetbox',['sysname'],\
+        'start_time',where_clause)
+        self.addColumn('IP','AlerthistStatusNetbox',['ip'],\
+        'start_time',where_clause)
+        self.addColumn('Module','AlerthistStatusNetbox',['subid'],\
+        'start_time',where_clause)
+        self.addColumn('Down since','AlerthistStatusNetbox',['start_time'],\
+        'start_time',where_clause,show=True)
+        self.addColumn('Downtime','AlerthistStatusNetbox',['start_time'],\
+        'start_time',where_clause,show=True)
+        self.addColumn('Shadow','AlerthistStatusNetbox',['up'],\
+        'start_time',where_clause,show=False)
+        self.addColumn('','AlerthistStatusNetbox',['up'],\
+        'start_time',where_clause,show=True)
+
+        for column in self.columns:
+            column.fill() 
+        return
+
+    def fill(self):
+        self.rows = []
+        self.headings = []
+
+        self.addHeadings()
+
+        height = len(self.columns[0].rows)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        modulesDown = 0
+        modulesShadow = 0
+        for i in range(0,height):
+            row = []
+
+            # håndtere hver kolonne manuelt            
+            up,counter = self.columns[5].rows[i]
+            style = None
+            if up == 'n':
+                modulesDown += 1
+                style = None
+            elif up == 's':
+                modulesShadow += 1
+                style = 'shadow'
+
+            # Sysname 
+            data,counter = self.columns[0].rows[i]
+            netbox = StatusTables.Netbox
+            boxid = netbox.getAllIDs(("sysname='%s'" % data))[0]
+            row.append((data,urlbuilder.createUrl(id=boxid,division='netbox'),
+                                                  style)) 
+            # IP
+            data,counter = self.columns[1].rows[i]
+            row.append((data,None,style)) 
+
+            # Module
+            data,counter = self.columns[2].rows[i]
+            module = StatusTables.Module(data)
+            row.append((Module.module,'/',''))
+ 
+            # Down since
+            start,counter = self.columns[3].rows[i]
+            row.append((start.strftime('%H:%M %d-%m-%y'),'',None))
+
+            # Downtime
+            start,counter = self.columns[4].rows[i]
+            diff = mx.DateTime.now() - start
+            delta = repr(diff.absvalues()[0]) + ' d, ' + \
+            diff.strftime('%H') + ' h, ' + diff.strftime('%M') + ' m'
+            row.append((delta,'',None))
+
+            # History
+            row.append(('<img border="0" src="/~hansjorg/icon.png">',
+                        BASEPATH + 'history/?type=boxes&id=%s' % (boxid,),
+                        None))
+
+            self.rows.append(row)
+        if not self.listStates.count('s') and self.listStates.count('n'):
+            self.summary = str(modulesDown) + ' modules down'
+        elif not self.listStates.count('n') and self.listStates.count('s'):
+            self.summary = str(modulesShadow) + ' modules in shadow'
+        else:
+            self.summary = str(modulesDown) + ' modules down, ' + \
+                           str(modulesShadow) + ' in shadow'
+        return
+
+    def getFilters(controlBaseName,orgList):
+        """
+        Return the filters that this section accepts
+        """
+
+        filterHeadings = ['Organisation','Category','State']
+
+        filterSelects = []
+
+        # Org
+        table = StatusTables.Org()
+        # Restrict to orgs where user belongs
+        #whereOrg = makeWhereList(orgList)
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        for org in table.getAllIterator(orderBy='orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
+        filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
+
+        # Cat
+        table = StatusTables.Cat()
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        for cat in table.getAllIterator():
+             optionsList.append((cat.catid,cat.catid,False))
+        filterSelects.append((controlBaseName + '_' + 'catid',optionsList))
+
+        # State
+        filterSelects.append((controlBaseName + '_' + 'state',\
+        [(FILTER_ALL_SELECTED,'All',True),('n','Down',False),\
+        ('s','Shadow',False)]))
+        return (filterHeadings,filterSelects)
+    getFilters = staticmethod(getFilters)
 
 

@@ -57,6 +57,7 @@ class HandleStatusPrefs:
         sectionBoxTypeList = []
         sectionBoxTypeList.append(NetboxSectionBox)
         sectionBoxTypeList.append(ServiceSectionBox)
+        sectionBoxTypeList.append(ModuleSectionBox)
         # Make a dictionary of typeId,SectionBox
         self.sectionBoxTypes = dict([(section.typeId,section) for \
         section in sectionBoxTypeList])

@@ -1,12 +1,10 @@
-PythonPath "['', '/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/python/lib/python2.2', '/usr/lib/apache/python/lib/python2.2/plat-linux2', '/usr/lib/apache/python/lib/python2.2/lib-tk', '/usr/lib/apache/python/lib/python2.2/lib-dynload', '/usr/lib/apache/python/lib/python2.2/site-packages', '/usr/local/nav/navme/lib/python', '/usr/local/lib/python2.2/site-packages', '/local/nav/navme/apache/webroot/status','/home/hansjorg/lib']"
+PythonPath "['', '/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/python/lib/python2.2', '/usr/lib/apache/python/lib/python2.2/plat-linux2', '/usr/lib/apache/python/lib/python2.2/lib-tk', '/usr/lib/apache/python/lib/python2.2/lib-dynload', '/usr/lib/apache/python/lib/python2.2/site-packages', '/usr/local/nav/navme/lib/python', '/usr/local/lib/python2.2/site-packages', '/local/nav/navme/apache/webroot/status']"
 
 SetHandler python-program
 PythonHandler status
 PythonDebug On
 
 PythonHeaderParserHandler nav.web
-#PythonInterpPerDirectory On
-PythonInterpreter hansjorg_status93
 Options +ExecCGI
 
 DirectoryIndex status.py

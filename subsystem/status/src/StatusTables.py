@@ -32,7 +32,8 @@ class AlerthistStatusNetbox(Alerthist):
                   'value': 'value',
                   'up': 'netbox.up',
                   'sysname': 'netbox.sysname',
-                  'orgid': 'netbox.orgid'}
+                  'orgid': 'netbox.orgid',
+                  'ip': 'netbox.ip'}
     _sqlLinks =  (('netboxid', 'netbox.netboxid'),)
     _userClasses =  {'device': Device, 'eventtype': Eventtype, 'netbox': Netbox}
     _sqlPrimary =  ('alerthistid',)
