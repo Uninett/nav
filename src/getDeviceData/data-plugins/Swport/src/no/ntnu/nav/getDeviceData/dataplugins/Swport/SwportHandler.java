@@ -171,6 +171,7 @@ public class SwportHandler implements DataHandler {
 						if (!sd.equalsSwport(oldsd) || md.getModuleid() != oldmd.getModuleid()) {
 							// Vi må oppdatere
 							Log.d("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
+							Log.d("UPDATE_SWPORT", "Old: " + oldsd + ", New: " + sd);
 							String[] set = {
 								"moduleid", md.getModuleidS(),
 								"ifindex", sd.getIfindex(),

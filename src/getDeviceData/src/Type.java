@@ -8,6 +8,7 @@ public class Type
 
 	private String typeid;
 	private String typename;
+	private String vendor;
 	private int csAtVlan;
 	private boolean uptodate;
 	private boolean dirty;
@@ -18,9 +19,10 @@ public class Type
 	// Maps an OID key to Snmpoid
 	private Map keyMap;
 
-	Type(String typeid, String typename, int csAtVlan, boolean uptodate, Map keyFreqMap, Map keyMap) {
+	Type(String typeid, String typename, String vendor, int csAtVlan, boolean uptodate, Map keyFreqMap, Map keyMap) {
 		this.typeid = typeid;
 		this.typename = typename;
+		this.vendor = vendor;
 		this.csAtVlan = csAtVlan;
 		this.uptodate = uptodate;
 		this.keyFreqMap = keyFreqMap;
@@ -34,6 +36,10 @@ public class Type
 
 	String getTypename() {
 		return typename;
+	}
+	
+	String getVendor() {
+		return vendor;
 	}
 
 	Iterator getKeyFreqMapIterator() {

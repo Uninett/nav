@@ -33,7 +33,7 @@ public class OidTester
 			Log.d("OID_TESTER", "TEST_TYPE", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
-		Log.i("OID_TESTER", "TEST_TYPE", "Type " + t + " is now to-to-date");
+		Log.i("OID_TESTER", "TEST_TYPE", "Type " + t + " is now up-to-date");
 	}
 
 	public void oidTest(Snmpoid snmpoid, Iterator typeIt) {
@@ -50,7 +50,7 @@ public class OidTester
 			Log.d("OID_TESTER", "TEST_OID", "SQLException: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
-		Log.i("OID_TESTER", "TEST_OID", "OID " + snmpoid + " is now to-to-date");
+		Log.i("OID_TESTER", "TEST_OID", "OID " + snmpoid + " is now up-to-date");
 	}
 
 	private void doTest(Type t, Snmpoid snmpoid) {
@@ -116,18 +116,22 @@ public class OidTester
 				// Check if we need to test for csAtVlan
 				synchronized(lock(t.getTypeid())) {
 					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
-						// Do test
-						try {
-							sSnmp.setCs_ro(ro+"@1");
-							sSnmp.getNext("1", 1, false, true);
-
-							// OK, supported
-							t.setCsAtVlan(t.CS_AT_VLAN_TRUE);
-
-						} catch (Exception e) {
-							// Not supported
+						if ("3com".equals(t.getVendor())) {
 							t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
-							Log.d("OID_TESTER", "CS_AT_VLAN", "Type " + t + ", Exception " + e);
+						} else {
+							// Do test
+							try {
+								sSnmp.setCs_ro(ro+"@1");
+								sSnmp.getNext("1", 1, false, true);
+								
+								// OK, supported
+								t.setCsAtVlan(t.CS_AT_VLAN_TRUE);
+								
+							} catch (Exception e) {
+								// Not supported
+								t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
+								Log.d("OID_TESTER", "CS_AT_VLAN", "Type " + t + ", Exception " + e);
+							}
 						}
 						Database.update("UPDATE type SET cs_at_vlan = '" + t.getCsAtVlanC() + "' WHERE typeid = '"+t.getTypeid()+"'");
 						Log.i("OID_TESTER", "CS_AT_VLAN", "Type " + t + " supports cs@vlan: " + t.getCsAtVlanC());

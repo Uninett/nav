@@ -156,7 +156,7 @@ public class QueryNetbox extends Thread
 
 		// First fetch new types from the database
 		try {
-			ResultSet rs = Database.query("SELECT typeid, typename, type.frequency AS typefreq, cs_at_vlan, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
+			ResultSet rs = Database.query("SELECT typeid, typename, vendorid, type.frequency AS typefreq, cs_at_vlan, type.uptodate, typesnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM type LEFT JOIN typesnmpoid USING(typeid) LEFT JOIN snmpoid USING(snmpoidid) ORDER BY typeid");
 			String prevtypeid = null;
 			//boolean prevuptodate;
 			//boolean dirty = false;
@@ -178,7 +178,7 @@ public class QueryNetbox extends Thread
 					int csAtVlan = rs.getString("cs_at_vlan") == null ? Type.CS_AT_VLAN_UNKNOWN : Type.csAtVlan(rs.getBoolean("cs_at_vlan"));
 					boolean uptodate = rs.getBoolean("uptodate");
 
-					t = new Type(typeid, typename, csAtVlan, uptodate, keyFreqMap, keyMap);
+					t = new Type(typeid, typename, rs.getString("vendorid"), csAtVlan, uptodate, keyFreqMap, keyMap);
 					if (!uptodate) synchronized (oidQ) { oidQ.add(t); }
 					typeidM.put(typeid, t);
 				}
