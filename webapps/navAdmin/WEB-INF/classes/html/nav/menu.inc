@@ -20,8 +20,8 @@
 -->
       <tr>
         <td>
-          <!-- <a href="[/link.topologivisning]">Topologivisning</a> -->
-          Topologivisning
+          <a href="[/link.ni.visTopologi]">Topologivisning</a>
+          <!-- Topologivisning -->
         </td>
         <td>
           Se topologien i tre-struktur
