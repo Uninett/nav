@@ -20,6 +20,54 @@
 					 overview="overview.html"
            additionalparam="-breakiterator">
 
+
+		<!-- getDeviceData -->
+    <packageset dir="../getDeviceData/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+		<!-- getDeviceData data plugins -->
+    <packageset dir="../getDeviceData/data-plugins/Swport/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+		<!-- getDeviceData device plugins -->
+    <packageset dir="../getDeviceData/device-plugins/HP/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+
+		<!-- eventEngine -->
+    <packageset dir="../eventEngine/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+		<!-- eventEngine device plugins -->
+    <packageset dir="../eventEngine/device-plugins/Box/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../eventEngine/device-plugins/Netel/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+		<!-- eventEngine handler plugins -->
+    <packageset dir="../eventEngine/handler-plugins/BoxState/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+    <packageset dir="../eventEngine/handler-plugins/ServiceState/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+    <packageset dir="../eventEngine/handler-plugins/Info/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+
+		<!-- Other packages -->
+    <packageset dir="../SimpleSnmp/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../ConfigParser/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
@@ -28,30 +76,18 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
-    <packageset dir="../getDeviceData/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
-
-		<!-- Packagesets for getDeviceData data plugins -->
-    <packageset dir="../getDeviceData/data-plugins/Swport/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
-
-		<!-- Packagesets for getDeviceData device plugins -->
-    <packageset dir="../getDeviceData/device-plugins/HP/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
-
-    <packageset dir="../SimpleSnmp/src" defaultexcludes="yes">
-      <include name="no/ntnu/nav/**" />
-    </packageset>
 
     <doctitle><![CDATA[<h1>NAV Java packages</h1>]]></doctitle>
     <bottom><![CDATA[<i>Copyright &#169; 2003 ITEA, NTNU. All Rights Reserved.</i>]]></bottom>
     <!--<tag name="todo" scope="all" description="To do:" /> -->
+    <group title="eventEngine Packages" packages="no.ntnu.nav.eventengine*"/>
+    <group title="eventEngine Device plugins" packages="no.ntnu.nav.eventengine.deviceplugins*"/>
+    <group title="eventEngine Handler plugins" packages="no.ntnu.nav.eventengine.handlerplugins*"/>
+
     <group title="getDeviceData Packages" packages="no.ntnu.nav.getDeviceData*"/>
     <group title="getDeviceData Data plugins" packages="no.ntnu.nav.getDeviceData.dataplugins.*"/>
     <group title="getDeviceData Device plugins" packages="no.ntnu.nav.getDeviceData.deviceplugins.*"/>
+
     <link offline="true" href="http://java.sun.com/products/jdk/1.2/docs/api/" packagelistLoc="C:\tmp"/>
     <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
    </javadoc>
