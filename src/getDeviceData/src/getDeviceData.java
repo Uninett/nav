@@ -473,7 +473,6 @@ class getDeviceData
 		qNettel = "_def";
 		//qNettel = "itea-ans3-230-h";
 		//qNettel = "iot-stud-313-h2";
-		qNettel = "et-stud6-323-h";
 
 		if (qBoks != null) qNettel = qBoks;
 
