@@ -121,7 +121,8 @@ public class CiscoSwIOS implements DeviceHandler
 				String[] s = (String[])it.next();
 			
 				String portif = s[1];
-				String modulePattern = "((.*?)\\d+)/(\\d+)";
+				String modulePattern = "((.*)\\d+)/(\\d+)";
+
 				if (portif.matches(modulePattern)) {
 					matchIfindex.add(s[0]);
 				}
@@ -141,7 +142,8 @@ public class CiscoSwIOS implements DeviceHandler
 
 			// Determine and create the module
 			int module = 0;
-			String modulePattern = "((.*?)(\\d+))/(\\d+)";
+			String modulePattern = "((.*)(\\d+))/(\\d+)";
+
 			String moduleName = null;
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
@@ -217,6 +219,7 @@ public class CiscoSwIOS implements DeviceHandler
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				if (!matchIfindex.contains(s[0])) continue;
+				sc.swportFactory(s[0]).setTrunk(true);
 				sc.swportFactory(s[0]).setHexstring(s[1]);
 			}
 		}
