@@ -348,6 +348,14 @@ class Netboxinfo(_Wrapper):
     _sqlTable =  'netboxinfo'
     _descriptions =  {}
 
+class Netboxmac(_Wrapper):
+    _sqlFields =  {'mac': 'mac', 'netbox': 'netboxid'}
+    _sqlLinks =  {}
+    _userClasses =  {'netbox': 'Netbox'}
+    _shortView =  ()
+    _sqlTable =  'netboxmac'
+    _descriptions =  {}
+
 class Org(_Wrapper):
     _sqlFields =  {'descr': 'descr',
                   'opt1': 'opt1',
@@ -519,6 +527,14 @@ class Rrd_file(_Wrapper):
     _sqlPrimary =  ('rrd_fileid',)
     _shortView =  ()
     _sqlTable =  'rrd_file'
+    _descriptions =  {}
+
+class Rrddatasourcenetbox(_Wrapper):
+    _sqlFields =  {'sysname': 'sysname', 'rrd_datasource': 'rrd_datasourceid', 'descr': 'descr'}
+    _sqlLinks =  {}
+    _userClasses =  {'rrd_datasource': 'Rrd_datasource'}
+    _shortView =  ()
+    _sqlTable =  'rrddatasourcenetbox'
     _descriptions =  {}
 
 class Service(_Wrapper):
