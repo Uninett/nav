@@ -36,6 +36,7 @@ public class navAdmin extends HttpServlet
 		try {
 			cp = new ConfigParser(navRoot + configFile);
 		} catch (IOException e) {
+			cp = null;
 			/*
 			out.println("Error, could not read config file: " + navRoot + configFile);
 			return;
