@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-templates = EmotdFrontpage.py  EmotdTemplate.py  MaintenanceTemplate.py  EmotdMessageTemplate.py  MaintListTemplate.py  MaintTimeTemplate.py  EmotdStandardTemplate.py  EditTemplate.py  ViewMessageTemplate.py
+templates = EditTemplate.py EmotdFrontpage.py EmotdMessageTemplate.py EmotdStandardTemplate.py EmotdTemplate.py MaintenanceTemplate.py MaintListTemplate.py MaintTimeTemplate.py
 
 .PHONY: all install install-lib clean distclean
 

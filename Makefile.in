@@ -46,7 +46,7 @@ subdirs = src \
 
 # Make sure we export make variables to the environment
 export
-.PHONY: all install clean distclean installdirs dist
+.PHONY: all install clean distclean installdirs dist install-all install-doc install-conf webfix
 
 all:
 	@for dir in ${subdirs}; do \
@@ -54,15 +54,29 @@ all:
 	done
 	@echo Done
 
-install: installdirs
-	@for dir in ${subdirs}; do \
-	  $(MAKE) -C $$dir $@ || exit 1; \
-	done
-	tools/htpython.sh $(DESTDIR)$(webroot) $(webroot)
+install: installdirs install-all install-conf install-doc webfix
 	@echo Done
+
+install-all:
+	@for dir in ${subdirs}; do \
+	  $(MAKE) -C $$dir install || exit 1; \
+	done
 
 install-doc:
 	$(MAKE) -C doc install
+
+config = etc/crontab_navcron.nav doc/conf/db.conf doc/conf/nav.conf
+install-conf:
+	@for file in $(config) ; do                               \
+	  dirname=`dirname $$file` ;                              \
+	  filename=`echo $$file | sed "s,$$dirname/*,,"` ;        \
+	  target="$(DESTDIR)$(sysconfdir)/$$filename" ;           \
+	  if [ -f "$$target" ]; then                              \
+	    echo Skipping installation of config file $$filename; \
+	  else                                                    \
+	    $(INSTALL) -v -D -m 644 $$file $$target;              \
+	  fi ;                                                    \
+	done
 
 installdirs:
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(prefix)
@@ -83,6 +97,9 @@ installdirs:
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/run
 	$(INSTALL) -v -m 2775 -d $(DESTDIR)$(localstatedir)/rrd
 
+webfix:
+	tools/htpython.sh $(DESTDIR)$(webroot) $(webroot)
+
 clean:
 	rm -f *~ 
 	@for dir in ${subdirs}; do \
@@ -100,10 +117,12 @@ dist:
 	@echo Creating source tarball...
 	@SRCDIR=`pwd`;                                  \
 	TARBALL=$(PACKAGE).tar.gz;                      \
-	/bin/rm -f /tmp/$(PACKAGE) $$TARBALL;           \
-	ln -s $$SRCDIR /tmp/$(PACKAGE);                 \
-	cd /tmp;                                        \
-        tar -czf $$TARBALL --exclude .svn $(PACKAGE)/*; \
-	/bin/rm -f /tmp/$(PACKAGE);                     \
-	/bin/mv /tmp/$$TARBALL $$SRCDIR;                \
-	echo Placed as $$TARBALL
+	rm -f $(PACKAGE) $$TARBALL;                     \
+	ln -s . $(PACKAGE);                             \
+        tar -czf $$TARBALL                              \
+	    --exclude .svn                              \
+	    --exclude '*~'                              \
+	    --exclude $(PACKAGE)/$(PACKAGE)             \
+	    $(PACKAGE)/*;                               \
+	rm -f $(PACKAGE);                               \
+	echo Created $$TARBALL

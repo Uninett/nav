@@ -4,18 +4,19 @@
 Summary: Powerful network administration tool
 Name: nav
 Version: %{version}
-Release: 4
+Release: 1
 Vendor: NTNU ITEA
 Distribution: Network Administration Visualized
 URL: http://metanav.ntnu.no/
 Source0: %{name}-%{version}.tar.gz
-License: Proprietary
+License: Commercial
 Group: Applications/Internet
 BuildRoot: %{_builddir}/%{name}-buildroot
 Prefix: %{_prefix}
+Requires: bind-utils, postgresql >= 7.3, python >= 2.2, perl >= 5.6, j2re >= 1.4
 
 %description
-This package contains a development version of Network Administration Visualized.
+This package contains Network Administration Visualized.
 This space should contain an interesting description of NAV
 
 %prep
@@ -28,9 +29,6 @@ make
 %install
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT install
-cp etc/crontab_navcron.nav ${RPM_BUILD_ROOT}%{_prefix}/etc
-cp doc/conf/nav.conf ${RPM_BUILD_ROOT}%{_prefix}/etc
-cp doc/conf/db.conf ${RPM_BUILD_ROOT}%{_prefix}/etc
 extra=`find bin/ -name '*.sh'`
 for file in $extra
 do
@@ -52,8 +50,9 @@ fi
 
 %files
 %defattr(-,root,nav)
-%doc README doc/sql/*.sql
-/tmp/*
+# %doc README doc/sql/*.sql
+%{_prefix}/doc
+%docdir %{_prefix}/doc
 %{_prefix}/lib
 %{_prefix}/apache
 %defattr(2775,root,nav)
@@ -93,17 +92,7 @@ fi
 
 
 %changelog
-* Fri Jan 30 2004  <morten.vold@itea.ntnu.no>
+* Tue Mar 09 2004  <morten.vold@itea.ntnu.no>
 
-- Another release to fix bugs.  Some web systems were importing
-  templates from the wrong places, and maintengine.py did not identify
-  itself as a python script.  Configuration files are now tagged with
-  the noreplace option.
+- First beta release.
 
-* Thu Jan 29 2004  <morten.vold@itea.ntnu.no>
-
-- Fixed several problems that only appeared on a clean install.
-
-* Wed Jan 28 2004  <morten.vold@itea.ntnu.no>
-
-- Initial build.
