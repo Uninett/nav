@@ -10,6 +10,7 @@ Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 """
 
 import nav.db.manage,re
+from socket import gethostbyaddr,gaierror
 
 # Class for displaying a search box
 class SearchBox:
@@ -29,6 +30,7 @@ class SearchBox:
 
         self.help = help
         self.error = None
+        self.status = None
         self.result = None
         self.searches = {}
     
@@ -40,6 +42,14 @@ class SearchBox:
         " Adds a new search type to the searchbox "
         self.searches[sid] = (name,table,columns,where,like,call)
 
+    def getQuery(self,req):
+        " Returns the query entered into the searchbox "
+        result = None
+        if req.form.has_key(self.inputCname):
+            if len(req.form[self.inputCname]):
+                result = req.form[self.inputCname]
+        return result 
+
     def getResults(self,req):
         " Returns the results from the source as a dict "
         results = {}
@@ -48,6 +58,7 @@ class SearchBox:
             for key,columns in columns.items():
                 results[key] = []
 
+        validSearch = True
         if req.form.has_key(self.typeCname):
             for sid,options in self.searches.items():
                 if req.form[self.typeCname] == sid:
@@ -65,29 +76,31 @@ class SearchBox:
                             if success:
                                 where = val
                             else:
-                                raise("SearchBox callback function " +\
-                                      "failed: " + str(val))
+                                self.error = val
+                                validSearch = False
 
-                    for entry in db.getAllIterator(where=where):
-                        for key,column in columns.items():
-                            value = entry
-                            if type(value) == type(None):
-                                continue
-                            for c in column:
-                                # This must be done recursively
-                                # allowing to specify
-                                # netbox.catid as valid column
-                                for i in c.split('.'):
-                                    try:
-                                        value = getattr(value,i)
-                                    except:
-                                        pass
-                            if type(value) not in (list, str, int):
-                                # a bit ugly, but we must ensure that we use the
-                                # id field
-                                results[key].append(value._getID()[0])
-                            else:
-                                results[key].append(str(value))
+                    if validSearch:
+                        for entry in db.getAllIterator(where=where):
+                            for key,column in columns.items():
+                                value = entry
+                                if type(value) == type(None):
+                                    continue
+                                for c in column:
+                                    # This must be done recursively
+                                    # allowing to specify
+                                    # netbox.catid as valid column
+                                    for i in c.split('.'):
+                                        try:
+                                            value = getattr(value,i)
+                                        except:
+                                            pass
+                                if type(value) not in (list, str, int):
+                                    # a bit ugly, but we must ensure that we use the
+                                    # id field
+                                    results[key].append(value._getID()[0])
+                                else:
+                                    results[key].append(str(value))
+                                self.status = "%d matches" % (len(results),)
         return results
 
 
@@ -97,9 +110,16 @@ def checkIP(input):
     result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',input)
     if result:
         # this is an ip address
-        for octet in result.groups():
-            if (int(octet) > 255) or (int(octet) < 0):
-                raise("Invalid IP")
+        try:
+            gethostbyaddr(input)
+        except gaierror:
+            return (False,"Invalid IP")
+        except:
+            # No error if there is no dns record for this ip for example
+            pass
+        #for octet in result.groups():
+        #    if (int(octet) > 255) or (int(octet) < 0):
+        #        return(False,"Invalid IP")
         where = "ip='%s'" % (input,)
     else:
         # this is a hostname
