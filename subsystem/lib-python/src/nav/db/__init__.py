@@ -36,13 +36,13 @@ def getConnection(scriptName, database='nav'):
     if _connectionCache.has_key(cacheKey):
         connection = _connectionCache[cacheKey].object
         try:
-            cursor = conn.cursor()
+            cursor = connection.cursor()
             cursor.execute('SELECT 1')
             return connection
         except psycopg.ProgrammingError:
             import sys
             sys.stderr.write('DB-DEBUG: Reaping a dead connection object\n')
-            conn.close()
+            connection.close()
             del cursor
             del connection
             del _connectionCache[cacheKey]
