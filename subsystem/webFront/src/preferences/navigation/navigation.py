@@ -18,6 +18,27 @@ def _find_pref_user():
     user = Account(0)
   return user
 
+def _find_user_preferences(user, req):
+  if not hasattr(user, "preferences"):
+    # if user preferences is not loaded, it's time to do so
+    user.preferences = Preferences()
+    conn = nav.db.getConnection('navprofile', 'navprofile')
+    nav.db.navprofiles.setCursorMethod(conn.cursor)
+    prefs = user.getChildren(Accountnavbar)
+    if not prefs:
+      # if user has no preferences set, use default preferences
+      default = Account(0)
+      prefs = default.getChildren(Accountnavbar)
+    for pref in prefs:
+      link = Navbarlink(pref.navbarlink)
+      if pref.positions.count('navbar'): # does 'positions'-string contain 'navbar'
+        user.preferences.navbar.append(Link(link.name, link.uri))
+      if pref.positions.count('qlink1'): # does 'positions'-string contain 'qlink1'
+        user.preferences.qlink1.append(Link(link.name, link.uri))
+      if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
+        user.preferences.qlink2.append(Link(link.name, link.uri))
+    req.session.save() # remember this to next time
+
 def handler(req):
   from nav.web.templates.NavbarPreferencesTemplate import NavbarPreferencesTemplate
   template = NavbarPreferencesTemplate()
@@ -26,6 +47,8 @@ def handler(req):
   req.content_type = "text/html"
   req.send_http_header()
   user = _find_pref_user()
+  if not hasattr(user, "preferences"):
+    _find_user_preferences(user, req)
   default = Account(0)
   template.user = user
   template.homemadelinks = user.getChildren(Navbarlink)
@@ -55,7 +78,7 @@ def handler(req):
       checked['qlink2'] = True
   template.checked = checked
   req.write(template.respond())
-  return apache.OK
+  return " "
 
 def newlink(req):
   from nav.web.templates.ChangeLinkTemplate import ChangeLinkTemplate
@@ -64,9 +87,6 @@ def newlink(req):
   req.send_http_header()
   template.link = False
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   if user.id == 0:
     template.type = "default"
   req.write(template.respond())
@@ -81,9 +101,6 @@ def editlink(req, id):
   nav.db.navprofiles.setCursorMethod(conn.cursor)
   template.link = Navbarlink(id)
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   if user.id == 0:
     template.type = "default"
   req.write(template.respond())
@@ -94,23 +111,17 @@ def deletelink(req, id):
   conn.autocommit(1)
   nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   link = Navbarlink(id)
   if link.account == user.id or link.account.id == user.id:
     link.delete()
     _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "preferences", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
 
 def saveprefs(req):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
   nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   # first delete all preferences
   for oldpref in user.getChildren(Accountnavbar):
     oldpref.delete()
@@ -122,16 +133,13 @@ def saveprefs(req):
     newpref.positions = str(req.form[key])
     newpref.save()
   _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "index", seeOther=True)
+  return nav.web.redirect(req, "/", seeOther=True)
 
 def savenewlink(req, name, url, usein):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
   nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   newlink = Navbarlink()
   newlink.account = user.id
   newlink.name = name
@@ -144,20 +152,17 @@ def savenewlink(req, name, url, usein):
     newuse.positions = usein
     newuse.save()
   _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "preferences", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
 
 def updatelink(req, id, name, url):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
   nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
-  if not user:
-    # if no user is defined in the session, redirect to index - same with default user
-    return nav.web.redirect(req, "index", seeOther=True)    
   changedlink = Navbarlink(id)
   if changedlink.account == user.id or changedlink.account.id == user.id:
     changedlink.name = name
     changedlink.uri = url
     changedlink.save()
     _force_reload_of_user_preferences(req)
-  return nav.web.redirect(req, "preferences", seeOther=True)
+  return nav.web.redirect(req, "/preferences/navigation/", seeOther=True)
