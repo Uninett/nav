@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: Database.java,v 1.3 2002/12/01 01:56:19 kristian Exp $
+* $Id: Database.java,v 1.4 2003/03/03 10:44:53 kristian Exp $
 * This file is part of the NAV project.
 * Database interface class
 *
@@ -57,9 +57,9 @@ public class Database
 		if (ret) return false;
 
 		for (int i=0; i < stKeepOpen.length; i++) stKeepOpen[i]=false;
-		connectionCount++;
-		if (connectionCount > 1) {
+		if (connectionCount > 0) {
 			// En connection er allerede åpen
+			connectionCount++;
 			return true;
 		}
 
@@ -74,8 +74,9 @@ public class Database
 			//connection = DriverManager.getConnection("jdbc:"+dbName+"://" + serverName + "/" + dbName, user, pw);
 			//connection = DriverManager.getConnection("jdbc:mysql://"+serverName+"/"+dbName+"?user="+user+"&password="+pw);
 
-			connection.setAutoCommit(false);
+			connection.setAutoCommit(true);
 			stUpdate = connection.createStatement();
+			connectionCount++;
 			return true;
 		} catch (ClassNotFoundException e) {
 			System.err.println("openConnection ClassNotFoundExecption error: ".concat(e.getMessage()));
@@ -150,10 +151,19 @@ public class Database
 		return false;
 	}
 
+	public static synchronized void beginTransaction() {
+		try {
+			connection.setAutoCommit(false);
+		} catch (SQLException e) {
+			System.err.println("setAutoCommit error: " + e.getMessage());
+		}
+	}
+
     public static synchronized void commit() {
 		try {
 			//System.out.println("########## -COMMIT ON DATABASE- ##########");
 			connection.commit();
+			connection.setAutoCommit(true);
 		} catch (SQLException e) {
 			System.err.println("Commit error: ".concat(e.getMessage()));
 		}
@@ -163,6 +173,7 @@ public class Database
 		try {
 			//System.out.println("########## -ROLLBACK ON DATABASE- ##########");
 			connection.rollback();
+			connection.setAutoCommit(true);
 		} catch (SQLException e) {
 			System.err.println("Rollback error: ".concat(e.getMessage()));
 		}
