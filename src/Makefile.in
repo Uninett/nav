@@ -1,0 +1,41 @@
+##
+## Attempted Makefile for Java subsystems
+## 
+SHELL = @SHELL@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+subdirs = \
+	ConfigParser \
+	Database \
+	Event \
+	eventEngine \
+	getBoksMacs \
+	getDeviceData \
+	Logger \
+	NetboxInfo \
+	SimpleSnmp \
+	Util
+ANT = @ANT@
+
+all:
+	@for dir in $(subdirs); do \
+	  echo "Building $$dir ..."; \
+	  (cd $$dir && $(ANT)) || exit 1; \
+	done
+
+install:
+	@for dir in $(subdirs); do \
+	  echo "Installing $$dir ..."; \
+	  (cd $$dir && $(ANT) install -Dprefix=$(DESTDIR)/$(prefix)) || exit 1; \
+	done
+
+clean:
+	rm -f *~
+	@for dir in $(subdirs); do \
+	  echo "Entering $$dir ..."; \
+	  (cd $$dir && $(ANT) $@) || exit 1; \
+	done
+
+distclean:
+	@echo Target distclean is not supported in the java projects, but should be...

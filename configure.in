@@ -5,7 +5,22 @@ AC_PREFIX_DEFAULT(/tmp/nav)
 AC_CONFIG_AUX_DIR(conf)
 
 AC_PROG_INSTALL
-AC_PATH_PROG(CHEETAH, cheetah)
+AC_PATH_PROG(PYTHON,python)
+if test -z "$PYTHON"; then
+  AC_MSG_WARN([No python executable found])
+else
+  if ! ${PYTHON} -c '
+import sys
+if not hasattr(sys, "version_info") or sys.version_info < (2,2,0):
+  sys.exit(1)'; then
+    AC_MSG_WARN([Your python version is too old for NAV])
+  fi
+fi
+AC_PATH_PROG(CHEETAH,cheetah)
+AC_PATH_PROG(ANT,ant)
+if test -z "$ANT"; then
+  AC_MSG_WARN([No Ant found, you need this to build java software])
+fi
 
 AC_SUBST(nav_user)
 AC_SUBST(webroot)
@@ -21,9 +36,11 @@ javalibdir='${libdir}/java'
 perllibdir='${libdir}/perl'
 
 AC_OUTPUT(Makefile
+	src/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
-	subsystem/webFront/templates/Makefile)
+	subsystem/webFront/templates/Makefile
+	subsystem/statTools/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"

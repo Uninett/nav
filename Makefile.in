@@ -12,31 +12,33 @@ INSTALL = @INSTALL@
 nav_user = @nav_user@
 top_srcdir = @top_srcdir@
 
-subdirs = subsystem/lib-python \
-	subsystem/webFront
+subdirs = src \
+	subsystem/lib-python \
+	subsystem/webFront \
+	subsystem/statTools
 
 .PHONY: all install clean distclean
 
 all:
 	@for dir in ${subdirs}; do \
-	  $(MAKE) -C $$dir $@; \
+	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 	@echo Done
 
 install:
 	@for dir in ${subdirs}; do \
-	  $(MAKE) -C $$dir $@; \
+	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 	@echo Done
 
 clean:
 	rm -f *~ 
 	@for dir in ${subdirs}; do \
-	  $(MAKE) -C $$dir $@; \
+	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
 
 distclean: clean
 	rm -f config.status config.cache config.log Makefile
 	@for dir in ${subdirs}; do \
-	  $(MAKE) -C $$dir $@; \
+	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
