@@ -46,15 +46,19 @@ def create(filename, netboxid, serviceid=None, handler=""):
 		subsystem = "serviceping"
 		statusdescr = "%s availability" % handler
 		responsedescr = "%s responsetime" % handler
+		unit = '-%'
 	else:
 		key=""
 		val=""
 		subsystem= "pping"
 		statusdescr = "Packet loss"
 		responsedescr = "Roundtrip time"
+		unit = '%'
 	rrd_fileid = database.registerRrd(RRDDIR, filename, step, netboxid, subsystem, key, val)
-	database.registerDS(rrd_fileid, "RESPONSETIME", responsedescr, "GAUGE", "s")
-	database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", "")
+	database.registerDS(rrd_fileid, "RESPONSETIME",
+			    responsedescr, "GAUGE", "s")
+
+	database.registerDS(rrd_fileid, "STATUS", statusdescr, "GAUGE", unit)
 
 def update(netboxid,sysname,time,status,responsetime,serviceid=None,handler=""):
 	"""

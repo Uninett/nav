@@ -95,7 +95,7 @@ class AbstractChecker:
 		if status != self.getStatus() and self.runcount < int(self._conf.get('retry',3)):
 			delay = int(self._conf.get('retry delay',5))
 			self.runcount+=1
-			debug("%-20s -> State changed. Scheduling new check in %i sec..." % (service, delay))
+			debug("%-20s -> State changed. New check in %i sec. (%s, %s)" % (service, delay, status, info))
 			# Updates rrd every time to get proper 'uptime' for the service
 			try:
 				rrd.update(self.getNetboxid(), self.getSysname(), 'N',
