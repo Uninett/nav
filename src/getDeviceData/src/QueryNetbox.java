@@ -143,7 +143,12 @@ public class QueryNetbox extends Thread
 				}
 
 				boolean oidfreq = (rs.getString("oidfreq") != null && rs.getString("oidfreq").length() > 0);
-				keyFreqMap.put(rs.getString("oidkey"), new Integer(oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq")));
+				int freq = oidfreq ? rs.getInt("oidfreq") : rs.getInt("typefreq");
+				if (freq == 0) {
+					Log.w("UPDATE_TYPES", "No frequency specified for type " + typeid + ", oid: " + rs.getString("oidkey") + ", skipping.");
+					continue;
+				}
+				keyFreqMap.put(rs.getString("oidkey"), new Integer(freq));
 				keyMap.put(rs.getString("oidkey"), rs.getString("snmpoid"));
 				prevtypeid = typeid;
 			}
