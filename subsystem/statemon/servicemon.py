@@ -43,7 +43,6 @@ class controller:
         debug.debug("Setting checkinterval=%i"% self._looptime)
         self.db=db.db(config.dbconf("db.conf"))
         debug.debug("Reading database config")
-        self.db.start()
         debug.debug("Setting up runqueue")
         self._runqueue=RunQueue.RunQueue(controller=self)
         #self.alerter=mailAlert.mailAlert()
@@ -104,7 +103,7 @@ class controller:
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
-
+        self.db.start()
         while self._isrunning:
             start=time.time()
             self.getCheckers()

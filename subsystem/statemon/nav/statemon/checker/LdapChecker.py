@@ -36,6 +36,7 @@ class LdapChecker(AbstractChecker):
 		AbstractChecker.__init__(self, "ldap", service,port=389, **kwargs)
 	def execute(self):
 		args = self.getArgs()
+		versionstr = ""
 		# we can connect in 2 ways. By hostname/ip (and portnumber)
 		# or by ldap-uri
 		if args.has_key("url"):
@@ -47,60 +48,63 @@ class LdapChecker(AbstractChecker):
 		username = args.get("username","")
 		password = args.get("password","")
 		timeout = self.getTimeout()
-		try:
-			l.simple_bind(username, password)
-			if args.has_key("version"):
-				version = args["version"]
-				if (version==2):
-					l.protocol_version = ldap.VERSION2
-				elif (version==3):
-					l.protocol_version = ldap.VERSION3
-				else:
-					return Event.DOWN, "unsupported protocol version"
+		l.simple_bind(username, password)
+		if args.has_key("version"):
+			version = args["version"]
+			if (version==2):
+				l.protocol_version = ldap.VERSION2
+			elif (version==3):
+				l.protocol_version = ldap.VERSION3
 			else:
-				# default is protocol-version 3
-				try:
-					l.protocol_version = ldap.VERSION3
-				except Exception,e:
-					return Event.DOWN, "unsupported protocol version"
-			if args.has_key("compare"):
-				try:
-					result = l.compare_s(dn,attribute,value)
-					if result:
-						return Event.UP
-					else:
-						return Event.DOWN, "compare failed: %s:%s" % (attribute,value)
-				except Exception,e:
-					return Event.DOWN, "compare failed for some reason"
+				return Event.DOWN, "unsupported protocol version"
+		else:
+			# default is protocol-version 3
+			try:
+				l.protocol_version = ldap.VERSION3
+			except Exception,e:
+				return Event.DOWN, "unsupported protocol version"
+		if args.has_key("compare"):
+			try:
+				result = l.compare_s(dn,attribute,value)
+				if result:
+					return Event.UP
+				else:
+					return Event.DOWN, "compare failed: %s:%s" % (attribute,value)
+			except Exception,e:
+				return Event.DOWN, "compare failed for some reason"
 
+		else:
+			base = args.get("base", "dc=ntnu,dc=no")
+			if base == "cn=monitor":
+				my_res = l.search_st(base, ldap.SCOPE_BASE, timeout=self.getTimeout())
+				versionstr=str(my_res[0][-1]['description'][0])
+				self.setVersion(versionstr)
+				return Event.UP, versionstr
+			scope = args.get("scope", "SUBTREE")
+			scope = scope.upper()
+			if scope == "BASE":
+				scope = ldap.SCOPE_BASE
+			elif scope == "ONELEVEL":
+				scope = ldap.SCOPE_ONELEVEL
 			else:
-				base = args.get("base", "dc=ntnu,dc=no")
-				if base == "cn=monitor":
-					my_res = l.search_st(base, ldap.SCOPE_BASE, timeout=self.getTimeout())
-					return Event.UP, my_res[0][-1]['description'][0]
-				scope = args.get("scope", "SUBTREE")
-				scope = scope.upper()
-				if scope == "BASE":
-					scope = ldap.SCOPE_BASE
-				elif scope == "ONELEVEL":
-					scope = ldap.SCOPE_ONELEVEL
-				else:
-					scope =ldap.SCOPE_SUBTREE
-				filter = args.get("filter","objectclass=dcObject")
-				attrs = args.get("attrs", ["mail"])
-				try:
-					my_res = l.search_ext_s(base, scope, attrlist=attrs, sizelimit=5, timeout=self.getTimeout())
-					print my_res
-					print l.result(my_res)
-					dn = my_res[0][0]
-					mydict = my_res[0][1]
-				except Exception,e:
-					return Event.DOWN, "Failed ldapSearch on %s for %s: %s" % (self.getAddress(), filter, str(e))
+				scope =ldap.SCOPE_SUBTREE
+			filter = args.get("filter","objectclass=dcObject")
+			attrs = args.get("attrs", ["mail"])
+			try:
+				my_res = l.search_ext_s(base, scope,
+							filterstr=filter,
+							attrlist=attrs,
+							timeout=self.getTimeout())
+
+				dn = my_res[0][0]
+				mydict = my_res[0][1]
+			except Exception,e:
+				print "Exception: %s" % str(e)
+				return Event.DOWN, "Failed ldapSearch on %s for %s: %s" % (self.getAddress(), filter, str(e))
 				
-				l.unbind()
-		except Exception, e:
-			return Event.DOWN, "Failed to bind to %s: %s" % (self.getAddress(), str(e))
-		return Event.IP, version
+			l.unbind()
+
+		return Event.UP 
 
 
 def getRequiredArgs():

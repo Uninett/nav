@@ -39,9 +39,9 @@ class RpcChecker(AbstractChecker):
 				return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
 			output = os.popen('/usr/sbin/rpcinfo -%s %s %s' % (protocol,ip,service))
 			output = output.read()
-			if "ready" in output:
+			if output.find("ready"):
 				continue
-			if "not available" in output:
+			if outut.find("not available"):
 				return Event.DOWN, "%s not avail" % service
 			if not output:
 				return Event.DOWN,'timeout'

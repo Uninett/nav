@@ -71,7 +71,8 @@ service={'id':serviceid,
          'ip':ip,
          'sysname':sysname,
          'args':args,
-         'version':version
+         'version':version,
+         'deviceid':0
          }
     
 myChecker = checker(service)
