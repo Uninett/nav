@@ -32,22 +32,28 @@ my $limit = 87;
 my $fra = -900;
 
 # SNMP-variable
-my $ipadresse = "129.242.5.182";
-my $hostname = "po";
-my $prefix = '.1.3.6.1.4.1.2595.1.1';
+my $ipadresse = "129.241.190.201";
+my $hostname = "bb";
+my $prefix = '.1.3.6.1.4.1.3001.1.3';
 
-my $fil = "/home/cricket/bin/alarm";
-my $enhet = "/home/cricket/bin/alarm2";
+my $fil = "/usr/local/nav/local/log/alarm";
+my $enhet = "/usr/local/nav/local/log/alarm2";
 my $to = "bredal\@stud.ntnu.no";
 my %svitsjliste;
 my %ruterliste;
 
-my $dbh = &db_connect("manage", "manage", "eganam");
+my $cricketpath = "/home/navcron/cricket";
+
+my $dbh = &db_connect();
 
 # Kjører subrutinene
+#print "\t----- Start -> Switches -----\n\n";
 &switches;
+#print "\t\n\n----- End of Switches -> Routers  -----\n\n";
 &routers;
+#print "\t\n\n----- End of Routers -> Switch-ports -----\n\n";
 &switchports;
+#print "\t\n\n----- End of Switch-ports -> Router-interfaces -----\n";
 &routerinterfaces;
 
 sub switches {
@@ -65,8 +71,8 @@ sub switches {
 
     while (($id, $sysname) = each %svitsjliste) {
 	my $verdi = 0;
-	if (-e "/home/cricket/cricket-data/switches/$sysname.rrd") {
-	    my $RRD = "/home/cricket/cricket-data/switches/$sysname.rrd";
+	if (-e "$cricketpath/cricket-data/switches/$sysname.rrd") {
+	    my $RRD = "$cricketpath/cricket-data/switches/$sysname.rrd";
 
 	    my($graphret) = RRDs::graph "/dev/null",
 	    "--start","$fra",
@@ -79,10 +85,10 @@ sub switches {
 	    if (@$graphret[0] =~ /\d/) { $verdi = int(@$graphret[0]); } else { $verdi = 0; }
 
 	    # Skriver ut data til skjerm
-	    print "$sysname:\t$verdi\n";
+	    #print "$sysname:\t$verdi\n";
 
 	} else {
-	    print "Finner ikke $sysname.rrd\n";
+	    #print "Finner ikke $sysname.rrd\n";
 	}
     }
 
@@ -95,17 +101,13 @@ sub routers {
     my $hentrutere = &db_select("SELECT boksid,sysName FROM boks WHERE kat='GW'",$dbh);
 
     while (($id, $sysname) = $hentrutere->fetchrow) {
-	unless ($sysname =~ /psykiatri|ringve|erke/) {
 	    $ruterliste{$id} = $sysname;
-	} else {
-	    $ruterliste{$id} = "$sysname-trlos";
-	}
     }
 
     while (($id, $sysname) = each %ruterliste) {
 	my $verdi;
-	if (-e "/home/cricket/cricket-data/routers/$sysname.rrd") {
-	    my $RRD = "/home/cricket/cricket-data/routers/$sysname.rrd";
+	if (-e "$cricketpath/cricket-data/routers/$sysname.rrd") {
+	    my $RRD = "$cricketpath/cricket-data/routers/$sysname.rrd";
 
 	    my($graphret) = RRDs::graph "/dev/null",
 	    "--start","$fra",
@@ -117,11 +119,13 @@ sub routers {
 	    
 	    if (@$graphret[0] =~ /\d/) { $verdi = int(@$graphret[0]); } else { $verdi = 0; }
 
+	    #print "$sysname:\t$verdi\n";
+
 	    # Sender melding hvis belastning over godkjent.
 	    if ($verdi > $limit && $verdi < 100) {
 		# Sjekker om finnes fra før
 		unless(&sjekkfil2($sysname)) {
-		    print "$sysname:\t$verdi\n";
+		    #print "$sysname:\t$verdi\n";
 		    # Skriver til oversiktsfil
 		    open (ENHET, ">>$enhet") or die "Kunne ikke legge til $enhet $! \n";
 		    print ENHET "$sysname\n";
@@ -133,7 +137,7 @@ sub routers {
 		}
 	    }
 	} else {
-	    print "Kan ikke finne $sysname.rrd\n";
+	    #print "Kan ikke finne $sysname.rrd\n";
 	}
     }
 
@@ -144,11 +148,11 @@ sub switchports {
     my ($id, $sysname);
 
     while (($id, $sysname) = each %svitsjliste) {
-	my $sporring = "SELECT modul,port,portnavn,speed FROM swport WHERE boksid=$id AND portnavn!=''";
+	my $sporring = "SELECT modul,port,speed FROM swport WHERE boksid=$id AND status='up' AND speed!=''";
 	#print "$sporring\n";
 	my $hentporter = &db_select($sporring,$dbh);
 
-	while (my ($modul,$port,$portnavn,$speed) = $hentporter->fetchrow) {
+	while (my ($modul,$port,$speed) = $hentporter->fetchrow) {
 	    # Diverse omformateringer på filnavnene... :(
 	    my $org_modul = $modul;
 	    $modul = lc $modul;
@@ -157,11 +161,11 @@ sub switchports {
 	    my $mp = $modul."_".$port;
 	    my $org_mp = $org_modul."_".$port;
 
-	    my $path;
+	    my $path = $cricketpath;
 	    if ($speed == 1000) {
-		$path = "/home/cricket/cricket-data/giga-switch-ports";
+		$path .= "/cricket-data/giga-switch-ports";
 	    } else {
-		$path = "/home/cricket/cricket-data/switch-ports";
+		$path .= "/cricket-data/switch-ports";
 	    }
 
 	    my $verdi;
@@ -186,10 +190,12 @@ sub switchports {
 		    if ($rest > 4) {
 			$belastning += 1;
 		    }
+
+		    $belastning = int($belastning);
+		    #print "$sysname/$mp:\t$belastning\n";
 		    
 		    # Skriver ut interessant info
 		    if ($belastning > $limit && $belastning < 100) {
-			$belastning = int($belastning);
 
 			# Hvis ikke innlegg finnes fra før
 			# legg inn i fil, sende mail.
@@ -200,6 +206,7 @@ sub switchports {
 			    my $body = "port: $sysname/$org_mp\n";
 			    $body .= "nettelid: $id\n";
 			    $body .= "last: $belastning%\n";
+			    #print $body;
 
 			    open (FIL, ">>$fil") or die "Kunne ikke åpne $fil $!\n";
 			    print FIL "$sysname,$org_mp\n";
@@ -209,7 +216,7 @@ sub switchports {
 			    my $temp1 = "$sysname/$org_mp";
 			    &sendtrap($temp1, $id,"$belastning%");
 
-			    print $body;
+			    #print $body;
 			    #&sendmail($body);
 			} else {
 			    #print "Innlegg funnet!\n";
@@ -222,7 +229,7 @@ sub switchports {
 		    }
 		}
 	    } else {
-		print "Finner ikke $sysname/$mp\n";
+		#print "Finner ikke $path/$sysname/$mp\n";
 	    }
 	}
     }
@@ -234,22 +241,20 @@ sub routerinterfaces{
     my ($id,$sysname);
 
     while (($id,$sysname) = each %ruterliste) {
-	my $hentporter = &db_select("SELECT g.interf,g.speed FROM gwport g WHERE g.boksid=$id AND g.masterindex=''",$dbh);
+	my $hentporter = &db_select("SELECT g.interf,g.speed FROM gwport g WHERE g.boksid=$id AND g.masterindex is null AND g.interf not like 'Tunnel%'",$dbh);
 
-	while (my ($interf, $speed,$type,$org,$kat,$samband) = $hentporter->fetchrow) {
+	while (my ($interf, $speed) = $hentporter->fetchrow) {
 	    unless ($interf =~ /Loopback0/) {
 		# Omforming på filnavn
 		my $org_interf = $interf;
 		$interf = lc $interf;
 		$interf =~ s(/)(_)g;
 		
-		my @portarray = ($type, $org, $kat, $samband);
-
-		my $path;
+		my $path = $cricketpath;
 		if ($speed == 1000) {
-		    $path = "/home/cricket/cricket-data/giga-router-interfaces";
+		    $path .= "/cricket-data/giga-router-interfaces";
 		} else {
-		    $path = "/home/cricket/cricket-data/router-interfaces";
+		    $path .= "/cricket-data/router-interfaces";
 		}
 
 		# Henter lastdata
@@ -275,12 +280,12 @@ sub routerinterfaces{
 			if ($rest > 4) {
 			    $belastning += 1;
 			}
+
+			$belastning = int($belastning);
+			#print "$sysname/$interf:\t$belastning\n";
 			
 			# Skriver ut interessant info
 			if ($belastning > $limit && $belastning < 100) {
-
-			    $belastning = int($belastning);
-
 			    # Hvis ikke innlegg finnes fra før
 			    # legg inn i fil, sende mail.
 			    unless (&sjekkfil($sysname,$org_interf)) {
@@ -299,7 +304,7 @@ sub routerinterfaces{
 				$body .= "nettelid: $id\n";
 				$body .= "last: $belastning%\n";
 				
-				print "$body\n";
+				#print "$body\n";
 				#&sendmail($body);
 			    } else {
 				#print "Innlegg funnet!\n";
@@ -307,7 +312,7 @@ sub routerinterfaces{
 			}
 		    }
 		} else {
-		    print "Finner ikke $sysname: $interf.rrd\n\n";
+		    #print "Finner ikke $sysname: $interf.rrd\n\n";
 		}
 	    }
 	}
@@ -372,15 +377,14 @@ sub sendtrap {
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
 
-    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+    my $newprefix = ".1.3.6.1.4.1.3001.1.3.1";
 
-    push(@data, "$newprefix.1", 'string', "hysteresis");
-    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.1", 'string', "$string");
+    push(@data, "$newprefix.2", 'string', "$nettelid");
     push(@data, "$newprefix.3", 'string', "$sysname");
-    push(@data, "$newprefix.4", 'string', "$nettelid");
-    push(@data, "$newprefix.6", 'string', "$belastning");
+    push(@data, "$newprefix.4", 'string', "$belastning");
 
-#    &snmptrap($ipadresse, $prefix, $hostname, 6, 4, @data);
+    #&snmptrap($ipadresse, $prefix, $hostname, 6, 1, @data);
 
 }
 
@@ -391,21 +395,34 @@ sub sendtrap2 {
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
 
-    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+    my $newprefix = ".1.3.6.1.4.1.3001.1.3.1";
 
-    push(@data, "$newprefix.1", 'string', "hysteresis");
-    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.1", 'string', "$string");
+    push(@data, "$newprefix.2", 'string', "$nettelid");
     push(@data, "$newprefix.3", 'string', "$sysname");
-    push(@data, "$newprefix.4", 'string', "$nettelid");
-    push(@data, "$newprefix.6", 'string', "$belastning");
+    push(@data, "$newprefix.4", 'string', "$belastning");
 
-#    &snmptrap($ipadresse, $prefix, $hostname, 6, 4, @data);
+    #&snmptrap($ipadresse, $prefix, $hostname, 6, 1, @data);
+}
+
+sub db_readconf {
+    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
+
+    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
+    close(IN);
+
+    return %hash;
 }
 
 sub db_connect {
-    my $db = $_[0];
-    my $user = $_[1];
-    my $pass = $_[2];
+    my %dbconf = &db_readconf();
+
+    my $db = $dbconf{db_nav};
+    my $user = $dbconf{script_hystereseOn};
+    my $pass = $dbconf{'userpw_' . $user};
+
     my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;

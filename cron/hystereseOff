@@ -27,16 +27,18 @@ my $limit = 70;
 # Tidsrom (i sekunder bakover i tid)
 my $fra = -900;
 
-# SNMP-variable
-my $ipadresse = "129.242.5.182";
-my $hostname = "po";
-my $prefix = '.1.3.6.1.4.1.2595.1.1';
+my $cricketpath = "/home/navcron/cricket";
 
-my $fil = "/home/cricket/bin/alarm";
-my $enhet = "/home/cricket/bin/alarm2";
+# SNMP-variable
+my $ipadresse = "129.241.190.201";
+my $hostname = "bb";
+my $prefix = '.1.3.6.1.4.1.3001.1.3';
+
+my $fil = "/usr/local/nav/local/log/alarm";
+my $enhet = "/usr/local/nav/local/log/alarm2";
 my $to = "bredal\@stud.ntnu.no";
 
-my $dbh = &db_connect("manage", "manage", "eganam");
+my $dbh = &db_connect();
 my %ruterliste;
 
 # Kjører subrutinene
@@ -105,8 +107,8 @@ sub routers {
     print "Nettelid: $nettelid\n";
 
     my $verdi;
-    if (-e "/home/cricket/cricket-data/routers/$sysname.rrd") {
-	my $RRD = "/home/cricket/cricket-data/routers/$sysname.rrd";
+    if (-e "$cricketpath/cricket-data/routers/$sysname.rrd") {
+	my $RRD = "$cricketpath/cricket-data/routers/$sysname.rrd";
 
 	my($graphret) = RRDs::graph "/dev/null",
 	"--start","$fra",
@@ -152,11 +154,11 @@ sub switchports {
     my $hentporter = &db_select($sporring,$dbh);
     my ($speed) = $hentporter->fetchrow;
 
-    my $path;
+    my $path = $cricketpath;
     if ($speed == 1000) {
-	$path = "/home/cricket/cricket-data/giga-switch-ports";
+	$path .= "/cricket-data/giga-switch-ports";
     } else {
-	$path = "/home/cricket/cricket-data/switch-ports";
+	$path .= "/cricket-data/switch-ports";
     }
 
     $mp = lc $mp;
@@ -192,7 +194,7 @@ sub switchports {
 
 		# Sender trap
 		my $temp1 = "$sysname/$mp";
-		#&sendtrap($temp1, $id, "$belastning%");
+		&sendtrap($temp1, $id, "$belastning%");
 
 		# Sender mail.
 		my $body = "port: $sysname/$mp\n";
@@ -247,8 +249,8 @@ sub routerinterfaces{
     $tempinterf = lc ($interf);
     # Henter lastdata
     my $verdi;
-    if (-e "/home/cricket/cricket-data/router-interfaces/$name/$tempinterf.rrd") {
-	my $RRD = "/home/cricket/cricket-data/router-interfaces/$name/$tempinterf.rrd";
+    if (-e "$cricketpath/cricket-data/router-interfaces/$name/$tempinterf.rrd") {
+	my $RRD = "$cricketpath/cricket-data/router-interfaces/$name/$tempinterf.rrd";
 	
 	my($graphret) = RRDs::graph "/dev/null",
 	"--start","$fra",
@@ -289,13 +291,13 @@ sub routerinterfaces{
 
 		$returverdi = 1;
 	    } else {
-		#print "Belastning holder seg: $belastning\n";
+		print "Belastning holder seg: $belastning\n";
 	    }
 	} else {
-	    #print "Ingen speed definert\n";
+	    print "Ingen speed definert\n";
 	}
     } else {
-#	print "Finner ikke $name: $tempinterf.rrd\n\n";
+	print "Finner ikke $name: $tempinterf.rrd\n\n";
     }
 
     return $returverdi;
@@ -344,14 +346,13 @@ sub sendtrap {
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
 
-    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+    my $newprefix = ".1.3.6.1.4.1.3001.1.3.1";
 
-    push(@data, "$newprefix.1", 'string', "hysteresis");
-    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.1", 'string', "$string");
+    push(@data, "$newprefix.2", 'string', "$nettelid");
     push(@data, "$newprefix.3", 'string', "$sysname");
-    push(@data, "$newprefix.4", 'string', "$nettelid");
 
-#    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
+    #&snmptrap($ipadresse, $prefix, $hostname, 6, 2, @data);
 
 }
 
@@ -363,22 +364,35 @@ sub sendtrap2 {
 
     my $string = "ifInOctets:hysteresis:8750000:10000000";
 
-    my $newprefix = ".1.3.6.1.4.1.2595.1.3";
+    my $newprefix = ".1.3.6.1.4.1.3001.1.3.1";
 
-    push(@data, "$newprefix.1", 'string', "hysteresis");
-    push(@data, "$newprefix.2", 'string', "$string");
+    push(@data, "$newprefix.1", 'string', "$string");
+    push(@data, "$newprefix.2", 'string', "$nettelid");
     push(@data, "$newprefix.3", 'string', "$sysname");
-    push(@data, "$newprefix.4", 'string', "$nettelid");
 
-#    &snmptrap($ipadresse, $prefix, $hostname, 6, 5, @data);
+    #&snmptrap($ipadresse, $prefix, $hostname, 6, 2, @data);
 
     
 }
 
+sub db_readconf {
+    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
+
+    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
+    close(IN);
+
+    return %hash;
+}
+
 sub db_connect {
-    my $db = $_[0];
-    my $user = $_[1];
-    my $pass = $_[2];
+    my %dbconf = &db_readconf();
+
+    my $db = $dbconf{db_nav};
+    my $user = $dbconf{script_hystereseOn};
+    my $pass = $dbconf{'userpw_' . $user};
+
     my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
