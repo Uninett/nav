@@ -54,15 +54,15 @@ DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
 DROP TABLE status;
 DROP SEQUENCE status_statusid_seq;
 
-create table status (
-statusid serial primary key,
-trapsource varchar not null,
-trap varchar not null,
-trapdescr varchar,
-tilstandsfull char(1) check (tilstandsfull='Y' or tilstandsfull='N') not null,
-boksid int2,
-fra timestamp not null,
-til timestamp
+CREATE TABLE status (
+  statusid SERIAL PRIMARY KEY,
+  trapsource VARCHAR NOT NULL,
+  trap VARCHAR NOT NULL,
+  trapdescr VARCHAR,
+  tilstandsfull CHAR(1) CHECK (tilstandsfull='Y' OR tilstandsfull='N') NOT NULL,
+  boksid INT2,
+  fra TIMESTAMP NOT NULL,
+  til TIMESTAMP
 );
 
 ------------------------------------------
