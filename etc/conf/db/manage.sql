@@ -322,6 +322,7 @@ CREATE TABLE cam (
   UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
 CREATE INDEX cam_mac_hash ON cam USING hash (mac);
+CREATE INDEX cam_fra_btree ON cam USING btree (fra);
 CREATE INDEX cam_til_btree ON cam USING btree (til);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
