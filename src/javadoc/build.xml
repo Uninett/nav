@@ -1,0 +1,54 @@
+<project name="Javadoc for NAV project" default="doc" basedir=".">
+    <description>
+        Javadoc for NAV project
+    </description>
+  <!-- set global properties for this build -->
+  <property name="doc" location="doc"/>
+
+  <target name="init">
+    <!-- Create the doc directory -->
+    <mkdir dir="${doc}"/>
+  </target>
+
+  <target name="doc" depends="init">
+   <javadoc 
+           destdir="doc/"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="NAV Java APIs"
+           additionalparam="-breakiterator">
+
+    <packageset dir="../ConfigParser/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../Database/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData-PluginAPI/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../SimpleSnmp/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
+    <bottom><![CDATA[<i>Copyright &#169; 2003 ITEA, NTNU. All Rights Reserved.</i>]]></bottom>
+    <!--<tag name="todo" scope="all" description="To do:" /> -->
+    <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
+    <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
+    <link offline="true" href="http://java.sun.com/products/jdk/1.2/docs/api/" packagelistLoc="C:\tmp"/>
+    <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+   </javadoc>
+ </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${doc}"/>
+  </target>
+
+</project>
