@@ -46,6 +46,8 @@ class selectTreeLayoutBox:
                              (not respected by IE).
         exactSelectWidth = BOOLEAN, set the width of the select to x elements
                            where x is the length of the longest option string.
+        htmlId = HTML id for this layoutbox. Makes it possible to
+                 jump to this layoutbox in the page.
         '''
 
     onChange = 'this.form.submit()'
@@ -56,7 +58,8 @@ class selectTreeLayoutBox:
                  showHelpTexts=True,
                  showTitles=True,
                  minimumSelectWidth=False,
-                 exactSelectWidth=False):
+                 exactSelectWidth=False,
+                 htmlId=None):
 
         self.selectList = []
         self.showEmptySelects = showEmptySelects
@@ -64,6 +67,7 @@ class selectTreeLayoutBox:
         self.showTitles = True
         self.minimumSelectWidth = minimumSelectWidth
         self.exactSelectWidth = exactSelectWidth
+        self.htmlId = htmlId
 
     def addSelect(self,select):
         ''' Adds a select to this layoutBox '''
