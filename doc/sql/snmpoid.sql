@@ -227,6 +227,10 @@ DELETE FROM snmpoid WHERE oidkey='catModuleSwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('catModuleSwVer','1.3.6.1.4.1.9.5.1.3.1.1.20','Module software version','cat','0',NULL,'0',NULL,'CISCO-STACK-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='catSerial';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('catSerial','1.3.6.1.4.1.9.5.1.2.19','Serial number','cat','0',NULL,'0',NULL,NULL);
+
 DELETE FROM snmpoid WHERE oidkey='cdpNeighbour';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('cdpNeighbour','1.3.6.1.4.1.9.9.23.1.2.1.1.6','CDP neighbour','cisco','0',NULL,'0','cdpCacheDeviceId','CISCO-CDP-MIB');
@@ -615,7 +619,7 @@ INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmp
 --#2970
 INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.561'));
 --# cat295024G
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.428'));
+INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.428'));
 --#cat2924XL
 INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.183'));
 --#cat2924XLv
