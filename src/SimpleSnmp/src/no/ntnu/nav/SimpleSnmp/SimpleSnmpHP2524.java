@@ -43,7 +43,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 	// Doc in parent
 	// Must be overridden to avoid module being prepended twice if stripCnt is 0
 	public Map getAllMapList(String baseOid, int stripCnt) throws TimeoutException {
-		List l = getAll(false, baseOid, false, true, 0);
+		List l = getAll(false, baseOid, 0, false, true, 0);
 		return listToMapList(l, stripCnt);
 	}
 
@@ -60,12 +60,12 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 
 
 	// Doc in parent
-	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
-		return getAll(true, baseOid, decodeHex, getNext, stripCnt);
+	public ArrayList getAll(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+		return getAll(true, baseOid, getCnt, decodeHex, getNext, stripCnt);
 	}
 
 	// If prependModule is true the module will be prepended to the OID
-	private ArrayList getAll(boolean prependModule, String baseOid, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+	private ArrayList getAll(boolean prependModule, String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
 		if (baseOid == null) return null;
 		//Log.d("SimpleSnmpHP2524", "GET_ALL", "Fetch baseOid: " + baseOid);
 		try {
@@ -91,7 +91,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			}
 
 			// Get the number of devices in the stack
-			stackList = super.getAll(hpStackOid, false, true, 0);
+			stackList = super.getAll(hpStackOid, 0, false, true, 0);
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
 			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
@@ -106,7 +106,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			String module = s[1];
 			//String modulePrepend = s[1].equals("0") ? "" : s[1];
 			
-			List pl = super.getAll(baseOid, decodeHex, getNext, stripCnt);
+			List pl = super.getAll(baseOid, getCnt, decodeHex, getNext, stripCnt);
 			for (Iterator it = pl.iterator(); it.hasNext();) {
 				s = (String[])it.next();
 				String port = s[0];

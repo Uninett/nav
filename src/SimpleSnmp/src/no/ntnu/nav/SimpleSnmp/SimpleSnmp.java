@@ -26,8 +26,6 @@ public class SimpleSnmp
 	private SnmpContext context = null;
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
-	private int getCnt;
-	private boolean getNext = false;
 
 	private Map cache = new HashMap();
 
@@ -104,15 +102,14 @@ public class SimpleSnmp
 	 * <p> Note: the baseOid prefix will be removed from any returned
 	 * OIDs.  </p>
 	 *
-	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param getCnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getNext(int cnt, boolean decodeHex) throws TimeoutException
+	public ArrayList getNext(int getCnt, boolean decodeHex) throws TimeoutException
 	{
-		getCnt = (cnt < 0) ? 0 : cnt;
-		return getAll(decodeHex, true);
+		return getAll(baseOid, getCnt, decodeHex, true, 0);
 	}
 
 	/**
@@ -122,16 +119,15 @@ public class SimpleSnmp
 	 * <p> Note: the baseOid prefix will be removed from any returned
 	 * OIDs.  </p>
 	 *
-	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param getCnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getNext(int cnt, boolean decodeHex, boolean getNext) throws TimeoutException
+	public ArrayList getNext(int getCnt, boolean decodeHex, boolean getNext) throws TimeoutException
 	{
-		getCnt = (cnt < 0) ? 0 : cnt;
-		return getAll(decodeHex, getNext);
+		return getAll(baseOid, getCnt, decodeHex, getNext, 0);
 	}
 
 	/**
@@ -148,10 +144,9 @@ public class SimpleSnmp
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getNext(String baseOid, int cnt, boolean decodeHex, boolean getNext) throws TimeoutException
+	public ArrayList getNext(String baseOid, int getCnt, boolean decodeHex, boolean getNext) throws TimeoutException
 	{
-		getCnt = (cnt < 0) ? 0 : cnt;
-		return getAll(baseOid, decodeHex, getNext);
+		return getAll(baseOid, getCnt, decodeHex, getNext, 0);
 	}
 
 	/**
@@ -369,7 +364,7 @@ public class SimpleSnmp
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(String baseOid, boolean decodeHex, int stripCnt) throws TimeoutException {
-		return getAll(baseOid, decodeHex, true, stripCnt);
+		return getAll(baseOid, 0, decodeHex, true, stripCnt);
 	}
 
 	/**
@@ -400,7 +395,7 @@ public class SimpleSnmp
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
-		return getAll(baseOid, decodeHex, getNext, 0);
+		return getAll(baseOid, 0, decodeHex, getNext, 0);
 	}
 
 	/**
@@ -410,24 +405,21 @@ public class SimpleSnmp
 	 * OIDs.  </p>
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param getCnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
 	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
 	 */
-	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
-		if (baseOid == null) {
-			getCnt = 0;
-			return null;
-		}
+	public ArrayList getAll(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+		if (baseOid == null) return null;
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
 		ArrayList l = new ArrayList();
 		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
 		if (cache.containsKey(cacheKey)) {
 			l.addAll((Collection)cache.get(cacheKey));
-			getCnt = 0;
 			return l;
 		}
 
