@@ -1,6 +1,6 @@
 import threading,sys,time,socket,select,os,profile,md5,random,struct,circbuf,debug,config
 # From our friend:
-import ip,icmp
+import ip,icmp,rrd
 
 ROTATION=r"/-\|"
 PINGSTRING="Stian og Magnus ruler verden"
@@ -52,6 +52,13 @@ class Host:
       return self.ip == obj
     else:
       return self.ip == obj.ip
+
+  def logPingTime(self, pingtime):
+    self.replies.push(pingtime)
+    if pingtime:
+      rrd.update(self.ip,'N','UP',pingtime)
+    else:
+      rrd.update(self.ip,'N','DOWN',10)
 
   def getState(self, nrping=3):
     if self.certain:
@@ -174,7 +181,7 @@ class MegaPing(RotaterPlugin):
         # Puuh.. OK, it IS our package <--- Stain, you're a moron
         pingtime = arrival - host.time
         ### sett inn i RotatingList
-        host.replies.push(pingtime)
+        host.logPingTime(pingtime)
         
         #print "Response from %-16s in %03.3f ms" % (sender, pingtime*1000)
         del self.requests[cookie]  
@@ -183,7 +190,8 @@ class MegaPing(RotaterPlugin):
 
     # Everything else timed out
     for host in self.requests.values():
-      host.replies.push(None)
+      #host.replies.push(None)
+      host.logPingTime(pingtime)
     end = time.time()
     self.elapsedtime=end-start
 

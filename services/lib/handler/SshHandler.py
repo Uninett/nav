@@ -1,5 +1,5 @@
 """
-$Id: SshHandler.py,v 1.5 2002/07/15 20:16:35 magnun Exp $
+$Id: SshHandler.py,v 1.6 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/SshHandler.py,v $
 """
 from job import JobHandler, Event
@@ -15,7 +15,7 @@ class SshHandler(JobHandler):
 		s.connect(self.getAddress())
 		version = s.readline().strip()
 		self.setVersion(version)
-		return Event.UP,'OK'
+		return Event.UP, version
 
 def getRequiredArgs():
 	"""

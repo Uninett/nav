@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.27 2002/10/08 18:46:03 magnun Exp $
+$Id: controller.py,v 1.28 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
@@ -48,7 +48,7 @@ class controller:
                 host=self.db.netboxid[each.getBoksid()]
             except KeyError:
                 host = "Unspecified host"
-            outputfile.write("%-25s %-5s %s\n" % (host, each.getType(), each.getStatus()))
+            outputfile.write("%-25s %-5s %-5s %s\n" % (host, each.getType(), each.getStatus(), each.getVersion()) )
 
         outputfile.write("\n\nLast updated: %s" % time.asctime())
         outputfile.close()
@@ -79,7 +79,15 @@ class controller:
         while self._isrunning:
             start=time.time()
             self.getJobs()
-            filter(self._runqueue.enq, self._jobs)
+            #filter(self._runqueue.enq, self._jobs)
+            wait=self._looptime - (time.time() - start)
+            if self._jobs:
+                pause=wait/(len(self._jobs)*2)
+            else:
+                pause=0
+            for each in self._jobs:
+                self._runqueue.enq(each)
+                time.sleep(pause)
             wait=self._looptime - (time.time() - start)
             self.debug("Waiting %i seconds." % wait)
             self.createStatusFile()

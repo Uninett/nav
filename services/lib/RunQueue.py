@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.20 2002/10/08 18:46:03 magnun Exp $
+$Id: RunQueue.py,v 1.21 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -81,8 +81,8 @@ class RunQueue:
         self.conf=config.serviceconf()
         self.debug=debug.debug()
         self._maxThreads=int(self.conf.get('maxthreads', sys.maxint))
-        self._maxRunCount=int(self.conf.get('recycle interval',50))
         self.debug.log("Setting maxthreads=%i" % self._maxThreads)
+        self._maxRunCount=int(self.conf.get('recycle interval',50))
         self.debug.log("Setting maxRunCount=%i" % self._maxRunCount)
         self._controller=kwargs.get('controller',self)
         self.numThreadsWaiting=0
@@ -103,7 +103,7 @@ class RunQueue:
     def enq(self,*r):
         self.lock.acquire()
         self.rq.put(*r)
-        self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
+        #self.debug.log("Number of workers: %i Waiting workers: %i" % (len(self.workers),self.numThreadsWaiting))
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
             self.awaitWork.notify()

@@ -1,5 +1,5 @@
 """
-$Id: ImapHandler.py,v 1.5 2002/07/15 20:16:35 magnun Exp $
+$Id: ImapHandler.py,v 1.6 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/ImapHandler.py,v $
 """
 
@@ -49,7 +49,7 @@ class ImapHandler(JobHandler):
 					break
 		self.setVersion(version)
 		
-		return Event.UP, "Ok"
+		return Event.UP, version
 
 def getRequiredArgs():
 	"""

@@ -1,6 +1,6 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.10 2002/09/19 22:21:05 magnun Exp $
+$Id: config.py,v 1.11 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/config.py,v $
 
 Implements the singleton pattern ensuring only one
@@ -28,6 +28,7 @@ class Conf(dict):
             os.sys.exit(0)
         self._regexp=re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)",re.M)
         self.parsefile()
+        self._configfile.close()
 
     def parsefile(self):
         for (key, value) in self._regexp.findall(self._configfile.read()):

@@ -1,5 +1,5 @@
 """
-$Id: HttpHandler.py,v 1.10 2002/09/19 22:21:05 magnun Exp $
+$Id: HttpHandler.py,v 1.11 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/HttpHandler.py,v $
 """
 from job import Event, JobHandler
@@ -26,7 +26,6 @@ class HttpHandler(JobHandler):
 		else:
 			url = "http://%s:%i/%s" % (ip, port, path)
 
-		print "Request: %s" % url
 		i.putrequest('GET',url)
 		i.endheaders()
 		response = i.getresponse()
@@ -34,10 +33,11 @@ class HttpHandler(JobHandler):
 			status = Event.UP
 			version = response.getheader('SERVER')
 			self.setVersion(version)
-			info= 'OK (' + str(response.status) + ')'
+			info= 'OK (%s) %s' % (str(response.status), version)
 		else:
 			status = Event.DOWN
-			info = 'ERROR (' +  str(response.status) + ')'
+			info = 'ERROR (%s) %s'  % (str(response.status),url)
+
 		return status,info
 
 

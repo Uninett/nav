@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.8 2002/09/19 22:21:05 magnun Exp $
+$Id: db.py,v 1.9 2002/11/28 22:07:34 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -97,8 +97,9 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 
 
 	def pingEvent(self, host, state):
-		query = "SELECT netboxid FROM netbox WHERE ip='%s'"%host
-		netboxid=self.query(query)[0][0]
+		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
+		netboxid, deviceid=self.query(query)[0][0:2]
+
 
 		if state == 'UP':
 			state = 'e'
@@ -107,7 +108,7 @@ values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, ev
 			state = 's'
 			value = 0
 
-		statement = "INSERT INTO eventq (netboxid, eventtypeid, state, value, source, target) values (%i, '%s','%s', %i, '%s','%s' )" % (netboxid, "boxState", state, value,"pping","eventEngine")
+		statement = "INSERT INTO eventq (netboxid, deviceid, eventtypeid, state, value, source, target) values (%i, %i, '%s','%s', %i, '%s','%s' )" % (netboxid, deviceid, "boxState", state, value,"pping","eventEngine")
 		self.execute(statement)
 
 	def newVersion(self, serviceid, version):
