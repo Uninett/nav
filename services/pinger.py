@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-$Id: pinger.py,v 1.1 2002/07/25 16:53:39 magnun Exp $
+$Id: pinger.py,v 1.2 2002/08/08 18:09:33 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/pinger.py,v $
 
 """
@@ -23,7 +23,7 @@ class pinger:
         self.config=config.config("db.conf")
         self.db=db.db(self.config)
         self.down=[]
-        self.pinger=megaping.MegaPing([])
+        self.pinger=megaping.MegaPing()
                       
     def getJobs(self):
         """
@@ -66,7 +66,8 @@ class pinger:
         while self._isrunning:
             start=time.time()
             self.getJobs()
-            self.pinger.start(self.hosts)
+            self.pinger.setHosts(self.hosts)
+            elapsedtime=self.pinger.start()
             down = self.pinger.noAnswers()
             reportdown = filter(lambda x: x not in self.down, down)
             reportup = filter(lambda x: x not in down, self.down)
@@ -75,10 +76,13 @@ class pinger:
             #Rapporter bokser som har gått ned
             for each in reportdown:
                 self.db.pingEvent(each, 'DOWN')
+                print "Markerer %s som nede." % each
             #Rapporter bokser som har kommet opp
             for each in reportup:
                 self.db.pingEvent(each, 'UP')
-                
+                print "Markerer %s som oppe." % each
+
+            print "%i hosts checked in %03.3f secs. %i hosts is currently marked as down." % (len(self.hosts),elapsedtime,len(self.down))
             time.sleep(20)
 
     def signalhandler(self, signum, frame):

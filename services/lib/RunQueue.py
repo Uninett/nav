@@ -1,7 +1,7 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.17 2002/07/17 18:01:36 magnun Exp $
+$Id: RunQueue.py,v 1.18 2002/08/08 18:09:20 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
 
 """
@@ -19,10 +19,11 @@ class observer:
     def run(self):
         while not self._rq.stop:
             for eachWorker in self._rq.workers[1:]:
-                if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
-                    self.debug.log("%s has used more than 10 seconds running %s"% (eachWorker.getName(), eachWorker._job.getType(),2))
+                
+                #if eachWorker._timeStartExecute and time.time()-eachWorker._timeStartExecute > 10:
+                    #self.debug.log("%s has used more than 10 seconds running %s"% (eachWorker.getName(), eachWorker._job.getType(),2))
 
-            time.sleep(20)
+                    time.sleep(20)
 
 
 

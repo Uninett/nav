@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.9 2002/07/17 18:01:36 magnun Exp $
+$Id: job.py,v 1.10 2002/08/08 18:09:20 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/job.py,v $
 """
 import time,socket,sys,types,config,debug
@@ -14,14 +14,15 @@ DEBUG=1
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
-	TYPE = 'serviceState'    # reflects the value type in the evenq table
-	def __init__(self,serviceid,boksid,type,status,info):
+
+	def __init__(self,serviceid,boksid,type,status,info,eventtype='serviceState', version=''):
 		self.serviceid = serviceid
 		self.boksid = boksid
 		self.type = type
 		self.status = status
 		self.info = info
-
+		self.eventtype = eventtype
+		self.version = version
 
 class JobHandler:
 	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
@@ -49,7 +50,10 @@ class JobHandler:
 			host=self.getAddress()
 			if type(host)==type(()):
 				host=host[0]
-			host = socket.getfqdn(host)
+			if host:
+				host = socket.getfqdn(host)
+			else:
+				host = "Unspecified host"
 			self.debug.log("%-25s %-5s -> %s" % (host, self.getType(),info))
 			
 		runcount = 0
@@ -68,7 +72,8 @@ class JobHandler:
 
 		
 		if version != self.getVersion() and self.getStatus() == Event.UP:
-			self.db.newVersion(self.getServiceid(),self.getVersion())
+			self.db.newEvent(Event(self.getServiceid(),self.getBoksid(), self.getType(), status, info, eventtype="version", version=self.getVersion()))
+
 		rrd.update(self.getServiceid(),'N',self.getStatus(),self.getResponsetime())
 		self.setTimestamp()
 

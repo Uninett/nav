@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.5 2002/07/25 16:53:39 magnun Exp $
+$Id: db.py,v 1.6 2002/08/08 18:09:20 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/db.py,v $
 
 This class is an abstraction of the database operations needed
@@ -58,6 +58,11 @@ class _db(threading.Thread):
 		self.queue.put(event)
 
 	def commitEvent(self, event):
+		if event.eventtype == "version":
+			statement = "UPDATE service SET version = '%s' where serviceid = %i" % (event.version, event.serviceid)
+			self.execute(statement)
+			return
+		
 		if event.status == event.UP:
 			value = 100
 			state = 'e'
@@ -68,8 +73,14 @@ class _db(threading.Thread):
 			pass
 
 		nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
-
-		statement = "INSERT INTO eventq (eventqid, subid, boksid, eventtypeid, state, value, source, target) values (%i, %i, %i, '%s','%s', %i, '%s','%s' )" % (nextid, event.serviceid, event.boksid, event.TYPE, state, value,"serviceping","eventEngine")
+		if not event.boksid:
+			statement = """INSERT INTO eventq
+(eventqid, subid, boksid, eventtypeid, state, value, source, target)
+values (%i, %i, %s, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, 'NULL', event.eventtype, state, value,  "serviceping","eventEngine")
+		else:
+			statement = """INSERT INTO eventq
+(eventqid, subid, boksid, eventtypeid, state, value, source, target)
+values (%i, %i, %i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid, event.boksid, event.eventtype, state, value,  "serviceping","eventEngine")
 		self.execute(statement)
 		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
 		self.execute(statement)
@@ -90,14 +101,15 @@ class _db(threading.Thread):
 		self.execute(statement)
 
 	def newVersion(self, serviceid, version):
-		print "New version. Id: %i Version: %s" % (serviceid,version)
+		self.debug.log( "New version. Id: %i Version: %s" % (serviceid,version))
 		statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
-		self.execute(statement)
-		self.db.commit()
-		self.db.autocommit(1)
+
+		#self.execute(statement)
+		#self.db.commit()
+		#self.db.autocommit(1)
 
 	def hostsToPing(self):
-		query="""SELECT ip FROM boks WHERE active='t' """
+		query="""SELECT DISTINCT ip FROM boks WHERE active='t' """
 		return self.query(query)
 
 	def getJobs(self, onlyactive = 1):
@@ -111,11 +123,25 @@ class _db(threading.Thread):
 				property[serviceid] = {}
 			property[serviceid][prop] = value
 
-		query = """SELECT serviceid ,service.boksid, service.active, handler, version, ip
-		FROM service JOIN boks ON (service.boksid=boks.boksid) order by serviceid"""
+		fromdb = []
+		query = """SELECT serviceid ,service.boksid, service.active,
+		handler, version, ip FROM service JOIN boks ON
+		(service.boksid=boks.boksid) order by serviceid"""
+		map(fromdb.append, self.query(query))
+		query = """SELECT serviceid, boksid, active, handler, version
+		FROM service WHERE boksid is NULL"""
+		map(fromdb.append, self.query(query))
 
 		jobs = []
-		for serviceid,boksid,active,handler,version,ip in self.query(query):
+		for each in fromdb:
+			if len(each) == 6:
+				serviceid,boksid,active,handler,version,ip = each
+			elif len(each) == 5:
+				serviceid,boksid,active,handler,version = each
+				ip = ''
+			else:
+				print "Each: %s" % each
+				
 			job = self.mapper.get(handler)
 			if not job:
 				print 'no such handler:',handler
@@ -137,10 +163,13 @@ class _db(threading.Thread):
 			serviceid = i.getServiceid()
 			active = (i.active and 'true') or 'false'
 			boksid = i.getBoksid()
-			for j in self.boks:
-				if self.boks[j] == boksid:
-					sysname = j
-					break
+			if not boksid:
+				sysname=''
+			else:
+				for j in self.boks:
+					if self.boks[j] == boksid:
+						sysname = j
+						break
 			handler = i.getType()
 			args = i.getArgs()
 			
@@ -156,7 +185,10 @@ class _db(threading.Thread):
 
 	def insertService(self,service):
 		next = self.query("select nextval('service_serviceid_seq')")[0][0]
-		self.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, self.boks[service.sysname], service.handler))
+		try:
+			self.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, self.boks[service.sysname], service.handler))
+		except KeyError:
+			self.execute("INSERT INTO service (serviceid,boksid,handler) VALUES (%s,%s,'%s')" % (next, 'NULL', service.handler))
 		service.id = next
 		self.insertServiceArgs(service)						
         def insertServiceArgs(self,service):

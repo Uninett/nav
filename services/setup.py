@@ -1,5 +1,5 @@
 """
-$Id: setup.py,v 1.10 2002/07/15 23:01:45 magnun Exp $
+$Id: setup.py,v 1.11 2002/08/08 18:09:33 magnun Exp $
 """
 import os
 os.sys.path.append(os.path.split(os.path.realpath(os.sys.argv[0]))[0]+"/lib")
@@ -44,6 +44,10 @@ def parseLine(line):
 	if handler not in mapper:
 		msg = "no such handler/type: (%s)" % handler
 		raise TypeError(msg)
+
+	#Handle boxless services
+	if sysname == 'none':
+		sysname = ""
 
 	return Service(sysname, handler, args)
 
