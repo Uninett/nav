@@ -1,8 +1,8 @@
-## $Id: $
-##
-## This file is part of the NAV project.
+## 
+## ArpCamTemplate.tmpl
 ##
 ## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
+##
 ## Builds html for the IP/mac-search with data in this form:
 ##
 ## $object
@@ -37,13 +37,14 @@
 ## The template uses images in $imagefolder/arpcam/, where $imagefolder
 ## is inherited from MainTemplate and defaults to "/images".
 ##
-## Copyright (c) 2003 by NTNU, ITEA nettgruppen
-## Author: Magnar Sveen <magnars@idi.ntnu.no>
+## Last changed: 2003.06.30
+## Author: Magnar Sveen (magnars@idi.ntnu.no)
 ##
 
 #extends MainTemplate
 
 #attr $bodyOnLoad = "onLoad='checkAll();'"
+#attr $columns = 8
 
 #block additionalCSS
 $default_form_CSS()
@@ -183,12 +184,13 @@ $default_table_CSS()
 #end block additionalJavaScript
 
 #block content
+  #set $realcolumns = $columns + 1
   <table border="0" cellspacing="0" cellpadding="0" >
 
 ## ------------------------------------------------------------------------- FORM ---- ##
     <form>
     <tr class="form">
-      <td colspan="9">
+      <td colspan="$realcolumns">
         <table border="0" cellspacing="5" cellpadding="0" >
           <tr>
             <td colspan=2>
@@ -292,8 +294,8 @@ $default_table_CSS()
 ## ---------------------------------------------------------------- ERROR MESSAGE ---- ##
 #if $object.errmsg
     <tr>
-      <td colspan="9" align="center">
-        <font size="+2" color="red">$object.errmsg</font>
+      <td colspan="$realcolumns" align="center">
+        <font size=+2 color=red>$object.errmsg</font>
       </td>
     </tr>
 #end if
@@ -303,7 +305,7 @@ $default_table_CSS()
   #set $rows = len($object.arp) + 1
 ## -------------------------------------------------------------------- TITLE ROW ---- ##
     <tr class="title">
-      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/arplogo+fill.gif'); background-repeat: no-repeat;">  
+      <td class="title" align="center" colspan="$columns" style="background-image:url('$imagefolder/arpcam/arplogo+fill.gif'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="previous">
@@ -364,7 +366,7 @@ $default_table_CSS()
 #set $evenrow = 1
 #end if
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
-          <a href="trace?search=ip&from_ip=$row.ip&to_ip=$row.ip&days=$object.form.days&dns=$object.form.dns&aip=$object.form.aip&naip=$object.form.naip">$row.ip</a>
+          <a href="/trace/ip?from_ip=$row.ip&to_ip=$row.ip&days=$object.form.days&dns=$object.form.dns&aip=$object.form.aip&naip=$object.form.naip">$row.ip</a>
       </td>
 #if $object.form.dns
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
@@ -372,7 +374,7 @@ $default_table_CSS()
       </td>
 #end if
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
-          <a href="trace?search=mac&mac=$row.mac&days=$object.form.days&dns=$object.form.dns">$row.mac</a>
+          <a href="/trace/mac?mac=$row.mac&days=$object.form.days&dns=$object.form.dns">$row.mac</a>
       </td>
       <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
           $row.start
@@ -391,7 +393,7 @@ $default_table_CSS()
 #end for
 ## -------------------------------------------------------------------- BLANK ROW ---- ##
     <tr bgcolor="white">
-      <td colspan="8">
+      <td colspan="$columns">
         <img src="$imagefolder/blank.gif" height="5" width="1" alt="" />
       </td>
     </tr>
@@ -402,7 +404,7 @@ $default_table_CSS()
   #set $rows = len($object.cam) + 1
 ## -------------------------------------------------------------------- TITLE ROW ---- ##
     <tr class="title">
-      <td class="title" align="center" colspan="8" style="background-image:url('$imagefolder/arpcam/camlogo+fill.gif'); background-repeat: no-repeat;">  
+      <td class="title" align="center" colspan="$columns" style="background-image:url('$imagefolder/arpcam/camlogo+fill.gif'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="previous">
@@ -487,7 +489,7 @@ $default_table_CSS()
 #end for
 ## -------------------------------------------------------------------- BLANK ROW ---- ##
     <tr bgcolor="white">
-      <td colspan="8">
+      <td colspan="$columns">
         <img src="$imagefolder/blank.gif" height="5" width="1" alt="" />
       </td>
     </tr>
