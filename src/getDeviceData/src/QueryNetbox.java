@@ -307,6 +307,8 @@ public class QueryNetbox extends Thread
 			int snmpMajor = nb.getSnmpMajor();
 
 			SimpleSnmp sSnmp = SimpleSnmp.simpleSnmpFactory(type);
+			sSnmp.setHost(ip);
+			sSnmp.setCs_ro(cs_ro);
 
 			Log.d("RUN", "Now working with("+netboxid+"): " + sysName + ", type="+type+", ip="+ip+" (device "+ nb.getNum() +" of "+ netboxCnt+")");
 			long boksBeginTime = System.currentTimeMillis();
