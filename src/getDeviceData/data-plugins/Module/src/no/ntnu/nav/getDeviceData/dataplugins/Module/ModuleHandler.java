@@ -132,9 +132,16 @@ public class ModuleHandler implements DataHandler {
 						"descr", md.getDescr()
 					};
 					moduleid = Database.insert("module", ins, null);
+					if ("0".equals(moduleid)) {
+						Log.e("HANDLE_DATA", "Database returned 0 ID, should not happen!");
+					}
 
 				} else {
 					moduleid = oldmd.getModuleidS();
+					if ("0".equals(moduleid)) {
+						Log.e("HANDLE_DATA", "Old module data object has 0 moduleid, should not happen!");
+					}
+
 					if (!md.equalsModule(oldmd)) {
 						// Vi må oppdatere module
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" descr="+md.getDescr());
