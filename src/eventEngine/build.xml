@@ -8,7 +8,7 @@
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
 	<property name="prefix" location="../../"/>
-  <property name="instdir"  location="${prefix}/subsystem/eventEngine"/>
+  <property name="instdir"  location="${prefix}/bin/eventEngine"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
