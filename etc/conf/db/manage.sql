@@ -12,13 +12,13 @@ DROP TABLE swp_boks;
 DROP TABLE module;
 DROP TABLE mem;
 DROP TABLE boksinfo;
-DROP TABLE boks;
+DROP TABLE netbox;
 
 DROP TABLE type;
-DROP TABLE prefiks;
-DROP TABLE rom;
-DROP TABLE sted;
-DROP TABLE anv;
+DROP TABLE prefix;
+DROP TABLE room;
+DROP TABLE location;
+DROP TABLE usage;
 DROP TABLE org;
 
 -------VP - fingra fra fatet, Sigurd:
@@ -28,9 +28,9 @@ DROP TABLE vpBoksGrp;
 DROP TABLE vpBoksGrpInfo;
 
 -- Slette alle sekvenser
-DROP SEQUENCE boks_boksid_seq;
+DROP SEQUENCE netbox_netboxid_seq;
 DROP SEQUENCE gwport_gwportid_seq;
-DROP SEQUENCE prefiks_prefiksid_seq;
+DROP SEQUENCE prefix_prefixid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
 DROP SEQUENCE swp_boks_swp_boksid_seq;
