@@ -134,6 +134,7 @@ public class CiscoSwIOS implements DeviceHandler
 				}
 			}
 		}
+		if (moduleCntMap.isEmpty()) return;
 
 		for (Iterator it = l.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
@@ -158,8 +159,10 @@ public class CiscoSwIOS implements DeviceHandler
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
-				Integer port = Integer.valueOf(modulport[1]);
-				swp.setPort(port);
+				try {
+					Integer port = Integer.valueOf(modulport[1]);
+					swp.setPort(port);
+				} catch (NumberFormatException e) { }
 			}
 		}
 
