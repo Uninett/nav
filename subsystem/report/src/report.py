@@ -3,8 +3,10 @@ from mod_python import apache,util
 import re,string,copy,pprint
 import os.path, nav.path
 from nav.web.templates.ReportTemplate import ReportTemplate,MainTemplate
+from nav.web.templates.MatrixTemplate import MatrixTemplate
 
 from Generator import Generator,ReportList
+from Matrix import Matrix
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
@@ -22,7 +24,7 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
         list = ReportList(configFile).getReportList()
-        page.path = [("Home", "/"), ("Tools", "/toolbox"), ("Report", False)]
+        page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
         #req.write(pprint.pformat(req.args))
         if req.args and req.args.find("sort=alnum")>-1:
@@ -41,6 +43,27 @@ def handler(req):
         #lambda:w+sortby
         req.write(page.respond())
         return apache.OK
+
+    elif reportName == "matrix":
+
+        page = MatrixTemplate()
+        req.content_type = "text/html"
+        req.send_http_header()
+
+        matrix = Matrix()
+        matrix.makeMatrix()
+
+        page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+        page.start = matrix.start
+        page.end = matrix.end
+        page.unntak = matrix.unntak
+        page.big_net_rowspan = matrix.big_net_rowspan
+        page.colspan = {20: 8, 21: 8,  22: 8, 23: 8, 24: 8, 25: 4, 26: 2, 27: 1}
+        page.subnet = matrix.subnet
+        page.bnet = matrix.bnet
+        page.network = matrix.network
+        page.numbers = matrix.numbers
+        req.write(page.respond())
 
     else:
         page = ReportTemplate()
@@ -65,7 +88,7 @@ def handler(req):
             namename = "Error"
             namelink = False
 
-        page.path = [("Home", "/"), ("Tools", "/toolbox"), ("Report", "/report/"), (namename,namelink)]
+        page.path = [("Home", "/"), ("Report", "/report/"), (namename,namelink)]
         page.title = "Report - "+namename
         old_uri = req.unparsed_uri
         page.old_uri = old_uri

@@ -1,0 +1,107 @@
+#extends nav.web.templates.MainTemplate
+
+#block content
+<h1>$network - graphic view</h1>
+<p>Tabellen viser ledige subnett i hvitt. pjatti pjatt</p>
+
+<table style="border: 1px solid black; font-size: 0.8em;">
+<tr>
+<td></td>
+#for $number in $numbers
+<td>$number</td>
+#end for
+</tr>
+
+#for $x in range($start,$end)
+#if $unntak.has_key($x)
+<tr>
+<td>$netlink($bnet,$x)</td>
+<td colspan="8" bgcolor="skyblue">Subnet(s) with mask greater than 27</td>
+</tr>
+
+#elif $big_net_rowspan.has_key($x)
+#set $y = $numbers[0]
+<tr>
+<td>$netlink($bnet,$x)</td>
+<td rowspan="$big_net_rowspan[$x]" colspan="8" #slurp
+#if $subnet.has_key($x) and $subnet[$x].has_key($y)
+#if $subnet[$x][$y].percent>80
+bgcolor="pink" #slurp
+#elif $subnet[$x][$y].percent<10
+bgcolor="palegreen" #slurp
+#else
+bgcolor="skyblue" #slurp
+#end if
+style="text-align:center">$netinfo($subnet[$x][$y])</td>
+#end if
+</tr>
+#set $rowspan = $big_net_rowspan[$x]
+
+#for $i in range(1,$rowspan)
+#set $x = $x + 1
+<tr>
+<td>$bnet</td>
+</tr>
+#end for
+#else
+
+<tr>
+<td>$netlink($bnet,$x)</td>
+###set $i = 0
+#set $local_colspan = 0
+
+#for $i in range(0, len($numbers))
+#set $y = $numbers[$i]
+
+#if $subnet.has_key($x) and $subnet[$x].has_key($y) and $subnet[$x][$y]
+<td colspan="$colspan[$subnet[$x][$y].bits]" #slurp
+###tar ikke med statisk/tildelt-tullet
+
+#if $subnet[$x][$y].percent>80
+style="background-color:pink;text-align:center;" #slurp
+#elif $subnet[$x][$y].percent<10
+style="background-color:palegreen;text-align:center;" #slurp
+#else
+style="background-color:skyblue;text-align:center;" #slurp
+#end if
+>
+$netinfo($subnet[$x][$y])
+###i++colspan-subnet-1
+###set $i = $i + $colspan[$subnet[$x][$y].bits] - 1
+
+#set $local_colspan = $colspan[$subnet[$x][$y].bits] - 1
+</td>
+
+#else
+
+## do not make empty cols where there is a another cell spanning this col
+#if $local_colspan > 0
+#set $local_colspan = $local_colspan - 1
+#else
+<td></td>
+#end if
+
+###set $i = $i + 1
+#end if
+#end for ###numbers
+</tr>
+#end if
+#end for ###hele x
+
+</table>
+#end block
+
+#def $netlink($input1,$input2)
+<a href="/report/prefix?host(netaddr)=${input1}.${input2}.%&host(netaddr)_op=like">${input1}.${input2}.</a>
+#end def
+
+#def $netinfo($subnetelement)
+<a href="/report/prefix?prefix.prefixid=$subnetelement.prefixid">$subnetelement.ip/$subnetelement.bits</a> ($subnetelement.machines/$subnetelement.max/$subnetelement.percent%)
+#end def
+
+#block additionalCSS
+td{ 
+    width: 20px;
+
+}
+#end block

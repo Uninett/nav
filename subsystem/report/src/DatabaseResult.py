@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from nav import db
+import psycopg
 
 class DatabaseResult:
     """

@@ -238,21 +238,23 @@ class ArgumentParser:
                 reResult = reObject.search(key)
 
                 if reResult:
-                    if reResult.group('group') == "navn" or reResult.group('group') == "name":
-                        config.name[reResult.group('groupkey')] = value
-                    elif reResult.group('group') == "url" or reResult.group('group') == "uri":
-                        config.uri[reResult.group('groupkey')] = value
-                    elif reResult.group('group') == "forklar" or reResult.group('group') == "explain" or reResult.group('group') == "description":
-                        config.explain[reResult.group('groupkey')] = value
-                    elif reResult.group('groupkey') == "not":
-                        nott[reResult.group('group')] = value
-                    elif reResult.group('groupkey') == "op":
-                        operator[reResult.group('group')] = value
+                    g = unquote_plus(reResult.group('group'))
+                    gk = unquote_plus(reResult.group('groupkey'))
+                    if g == "navn" or g == "name":
+                        config.name[gk] = value
+                    elif g == "url" or g == "uri":
+                        config.uri[gk] = value
+                    elif g == "forklar" or g == "explain" or g == "description":
+                        config.explain[gk] = value
+                    elif gk == "not":
+                        nott[g] = value
+                    elif gk == "op":
+                        operator[g] = value
+                
                 else:
                     if value and not key == "r4g3n53nd":
-                        fields[key] = unquote_plus(value)
+                        fields[unquote_plus(key)] = unquote_plus(value)
                 
-
         for key,value in fields.items():
 
             if not operator.has_key(key):
