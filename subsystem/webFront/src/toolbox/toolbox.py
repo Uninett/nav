@@ -20,6 +20,6 @@ def handler(req):
 
     from nav.web import toolbox
     page.tools = toolbox.filterToolList(toolbox.getToolList(), req.session['user'])
-    page.path = [("Frontpage", "/"), ("Tools", False)]
+    page.path = [("Home", "/"), ("Tools", False)]
     req.write(page.respond())
     return apache.OK

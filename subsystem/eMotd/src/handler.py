@@ -25,7 +25,7 @@ from nav.web.templates.EmotdFrontpage import EmotdFrontpage
 title = 'Massage of the day'
 menu = ''
 
-EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd")]
+EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd")]
 
 #################################################
 # Elements 
@@ -100,7 +100,7 @@ def editlinks(req,id):
 def search(req):
     ''' Free-text search in MOTD-db '''
     title = 'MOTD freetext search'
-    EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Search","")]
+    EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd"),("Search","")]
     menu = getMenu(req)
     body = None
     motd = None
@@ -113,7 +113,7 @@ def search(req):
 def show_active(req):
     ''' Show all active MOTD (as in not outdated )'''
     title = 'Current active messages'
-    EmotdFrontpage.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Current active messages","")]
+    EmotdFrontpage.path =  [("Home", "/"), ("eMotd", "/emotd"),("Current active messages","")]
     body = ''
     form = ''
     menu = getMenu(req)
@@ -146,7 +146,7 @@ def wrap(s,lines=None,cols=74):
 def viewall(req,orderby=None):
     ''' Show all MOTDs available for current user '''
     title = 'All published messages'
-    EmotdFrontpage.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Published messages","")]
+    EmotdFrontpage.path =  [("Home", "/"), ("eMotd", "/emotd"),("Published messages","")]
     menu = getMenu(req)
     if nav.auth.hasPrivilege(req.session['user'],'web_access','/emotd/edit'):
         emotds = EmotdSelect.fetchAll(access=True)
@@ -210,7 +210,7 @@ def maintenance(req):
     menu = getMenu(req)
     searchBox = None
     selectBox = None
-    EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Maintenance","")]
+    EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd"),("Maintenance","")]
 
     searchBox = SearchBox.SearchBox(req,'Type a room id, an ip,a (partial) sysname or servicename') 
     selectBox = TreeSelect()
@@ -464,7 +464,7 @@ def maintenance(req):
 def view(req):
     ''' Show a given MOTD based on the motd_id '''
     title = 'View MOTD'
-    EmotdFrontpage.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("View","")]
+    EmotdFrontpage.path =  [("Home", "/"), ("eMotd", "/emotd"),("View","")]
     body = ''
     access = False
     form = ''
@@ -502,7 +502,7 @@ def isdefault(a,b):
 def edit(req):
     ''' Edit a given motd_id or new Emotd if motd_id is not given '''
     title = 'Editing as %s ' % (req.session['user'].login)
-    EmotdTemplate.path =  [("Frontpage", "/"), ("eMotd", "/emotd"),("Edit","")]
+    EmotdTemplate.path =  [("Home", "/"), ("eMotd", "/emotd"),("Edit","")]
     id = "None"
     body = ''
     menu = getMenu(req)

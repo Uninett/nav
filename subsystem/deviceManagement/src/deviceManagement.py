@@ -114,7 +114,7 @@ def index(req):
 
     args = {}
     args['body'] = body
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',False)]
     args['title'] = 'Device Management'
@@ -130,7 +130,7 @@ def delete(req):
     Manual module delete
     """
     args = {}
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',BASEPATH),
                     ('Module delete',False)]
@@ -180,7 +180,7 @@ def browse(req,path):
     # Args holds everything for the template
     args = {}
     # Common path for all browse views
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',BASEPATH)]
 
@@ -370,7 +370,7 @@ def browse(req,path):
 
 def registerRma(req,deviceId=None):
     args = {}
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',BASEPATH),
                     ('Register RMA',False)]
@@ -542,7 +542,7 @@ def history(req,deviceId):
 
 def order(req):
     args = {}
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',BASEPATH),
                     ('Order management',False)]
@@ -794,7 +794,7 @@ def registerOrder(req,orderId):
 def register(req):
     args = {}
     args['error'] = None
-    args['path'] = [('Frontpage','/'),
+    args['path'] = [('Home','/'),
                     ('Tools','/toolbox'),
                     ('Device Management',BASEPATH),
                     ('Register new device',False)]

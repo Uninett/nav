@@ -58,7 +58,7 @@ def handler(req):
     request['req'] = req # in case som might need it. 
     templatePath = [] # add logical paths to thhis
     request['templatePath'] = templatePath
-    templatePath.append(("Frontpage", "/"))
+    templatePath.append(("Home", "/"))
     templatePath.append(("Device browser", "/report"))
 
     # result = handler.process(request)

@@ -48,7 +48,7 @@ def main(argv):
             func = lambda : vars['content']
             setattr(page, key, func)
         elif key == "path":
-            path = [ ("Frontpage", "/") ]
+            path = [ ("Home", "/") ]
             list = value.split(':')
             if len(list) % 2 != 0:
                 raise "element count of 'path' must be an even number"

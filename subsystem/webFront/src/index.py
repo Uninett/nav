@@ -32,7 +32,7 @@ def index(req):
     from nav.web.templates.FrontpageTemplate import FrontpageTemplate
 
     page = FrontpageTemplate()
-    page.path = [("Frontpage", False)]
+    page.path = [("Home", False)]
 
     if req.session['user'].id == 0:
         welcomeFile = welcomeFileAnonymous

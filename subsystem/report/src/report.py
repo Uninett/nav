@@ -49,7 +49,7 @@ def handler(req):
         req.content_type = "text/html"
         req.send_http_header()
         list = ReportList(configFile).getReportList()
-        page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Report", False)]
+        page.path = [("Home", "/"), ("Tools", "/toolbox"), ("Report", False)]
         page.title = "Report - Index"
         #req.write(pprint.pformat(req.args))
         if req.args and req.args.find("sort=alnum")>-1:
@@ -88,7 +88,7 @@ def handler(req):
             namename = "Error"
             namelink = False
 
-        page.path = [("Frontpage", "/"), ("Tools", "/toolbox"), ("Report", "/report/"), (namename,namelink)]
+        page.path = [("Home", "/"), ("Tools", "/toolbox"), ("Report", "/report/"), (namename,namelink)]
         page.title = "Report - "+namename
 
 

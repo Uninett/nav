@@ -16,7 +16,7 @@ from nav.web.serviceHelper import getCheckers,getDescription
 
 BASEPATH = '/editdb/'
 
-EDITPATH = [('Frontpage','/'),('Tools','/toolbox'),('Edit database','/editdb')]
+EDITPATH = [('Home','/'),('Tools','/toolbox'),('Edit database','/editdb')]
 
 ADDNEW_ENTRY = 'addnew_entry'
 UPDATE_ENTRY = 'update_entry'
@@ -207,7 +207,7 @@ def index(req,showHelp=False):
 
     nameSpace = {'editList': None, 'editForm': None, 'body': body}
     template = editdbTemplate(searchList=[nameSpace])
-    template.path = [('Frontpage','/'),
+    template.path = [('Home','/'),
                      ('Tools','/toolbox'),
                      ('Edit database',None)]
     return template.respond()

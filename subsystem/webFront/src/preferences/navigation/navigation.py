@@ -42,7 +42,7 @@ def _find_user_preferences(user, req):
 def handler(req):
   from nav.web.templates.NavbarPreferencesTemplate import NavbarPreferencesTemplate
   template = NavbarPreferencesTemplate()
-  template.path = [("Frontpage", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
+  template.path = [("Home", "/"), ("Preferences", "/preferences/"), ("Navigation preferences", False)]
   template.title = "Navigation preferences"
   req.content_type = "text/html"
   req.send_http_header()

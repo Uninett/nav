@@ -64,7 +64,7 @@ def indexHistory(req):
 
     nameSpace = {'status': None, 'prefs': None, 'history': historyPage}
     template = StatusTemplate(searchList=[nameSpace])
-    template.path = [('Frontpage','/'),
+    template.path = [('Home','/'),
                      ('Tools','/toolbox'),
                      ('Status',BASEPATH),
                      ('History',None)]
@@ -78,7 +78,7 @@ def indexPrefs(req):
  
     nameSpace = {'status': None, 'prefs': prefsPage, 'history': None}
     template = StatusTemplate(searchList=[nameSpace])
-    template.path = [('Frontpage','/'),
+    template.path = [('Home','/'),
                      ('Preferences','/preferences'),
                      ('Status page preferences',None)]
     return template.respond()
@@ -91,7 +91,7 @@ def indexInternal(req):
 
     nameSpace = {'status': statusPage, 'prefs': None, 'history': None}
     template = StatusTemplate(searchList=[nameSpace])
-    template.path = [('Frontpage','/'),('Tools','/toolbox'),('Status',None)]
+    template.path = [('Home','/'),('Tools','/toolbox'),('Status',None)]
     return template.respond()
 
 #################################################

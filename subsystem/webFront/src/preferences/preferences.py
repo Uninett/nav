@@ -8,7 +8,7 @@ def handler(req):
     page = MainTemplate()
     req.content_type = "text/html"
     req.send_http_header()
-    page.path = [("Frontpage", "/"), ("Preferences", False)]
+    page.path = [("Home", "/"), ("Preferences", False)]
     page.title = "Preferences"
     page.content = lambda:file(frontFile).read()
     page.additionalCSS = lambda:"""
