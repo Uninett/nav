@@ -23,12 +23,19 @@
 #
 
 import re
+import os
+import nav
 from mx import DateTime
 from nav import db
+from ConfigParser import ConfigParser
 
-logfile = "/home/gartmann/cisco.log"
-connection = db.getConnection('navlogadmin','navlog')
+config = ConfigParser()
+config.read(os.path.join(nav.path.sysconfdir,'logger.conf'))
+logfile = config.get("paths","syslog")
+
+connection = db.getConnection('logger','logger')
 database = connection.cursor()
+
 
 def createMessage(line):
 
@@ -150,6 +157,7 @@ def find_month(textual):
 
 if __name__ == '__main__':
 
+    ## initial setup of dictionaries
     origins = {}
     database.execute("select id, name, category from origin")
     for r in database.fetchall():
@@ -170,6 +178,17 @@ if __name__ == '__main__':
         if not types[r[1]].has_key(r[2]):
             types[r[1]][r[2]] = int(r[0])
 
+    ## delete old records
+    ## the limits for what is old is specified in the logger.conf
+    ## configuration file
+    for priority in range(0,8):
+        if config.get("deletepriority",str(priority)):
+            database.execute("delete from message where priority=%d and time<'%s'",(priority + 1, DateTime.now()+DateTime.RelativeDateTime(days=-int(config.get("deletepriority",str(priority))))))
+            print "delete from message where priority=%d and time<%s",(priority + 1, DateTime.now()+DateTime.RelativeDateTime(days=-int(config.get("deletepriority",str(priority)))))
+
+    ## add new records
+    ## the new records are read from the cisco syslog file specified 
+    ## by the syslog path in the logger.conf configuration file
     f = file(logfile).readlines()
 
     for line in f:
@@ -183,6 +202,7 @@ if __name__ == '__main__':
             originid = database.fetchone()[0]
 
             database.execute("insert into origin (id, name, category) values (%d, %s, %s)", (originid, message.origin, message.category))
+            origins[message.origin] = originid
 
         if types.has_key(message.facility) and types[message.facility].has_key(message.mnemonic):
             typeid = types[message.facility][message.mnemonic]
@@ -192,7 +212,12 @@ if __name__ == '__main__':
             typeid = int(database.fetchone()[0])
 
             database.execute("insert into type (id, facility, mnemonic, priorityid) values (%d, %s, %s, %d)", (typeid, message.facility, message.mnemonic, message.priority))
+            if not types.has_key(message.facility):
+                types[message.facility] = {}
+            types[message.facility][message.mnemonic] = typeid
 
-        database.execute("insert into message (time, originid, priority, typeid, message) values (%s, %d, %d, %d, %s)", (message.time, originid, priority, typeid, message.description))
+        database.execute("insert into message (time, originid, priority, typeid, message) values ('%s', %d, %d, %d, '%s')"% (message.time, originid, message.priority, typeid, message.description))
 
     connection.commit()
+
+

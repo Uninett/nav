@@ -26,7 +26,7 @@ from mod_python import apache,util
 
 from nav import db
 import psycopg
-connection = db.getConnection('webfront','manage')
+connection = db.getConnection('webfront','logger')
 database = connection.cursor()
 
 def handler(req):
