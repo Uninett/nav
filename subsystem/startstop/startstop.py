@@ -218,7 +218,9 @@ class Crontab(object):
         # crontab; the following is an attempt to remove those three
         # lines.
         for x in range(3):
-            if len(self.content) > 0 and self.content[0][:2] == '# ':
+            if not self.content:
+                break
+            if self.content[0][:2] == '# ': 
                 del self.content[0]
         self._parseBlocks()
 
