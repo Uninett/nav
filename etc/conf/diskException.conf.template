@@ -25,10 +25,17 @@
 # Example 4: If you don't want to monitor the disk E:\ on krakatau.stud
 #            you use:
 #            krakatau.stud E:\
+# Example 5: If you have an automount partition that always contain
+#            something with others (ex /foo/others/cool) and you dont want to
+#            monitor it use:
+#            * */others/* recursive
+#            The first * means alle machines , */others/* means all
+#            mountpoints
+#            that contain the phrase /others/ , recursive means all.
 # Our whole config file now should look like this :
-# *		/Units			recursive
-# *		/Stores     recursive
-# *		"/opt/Star office"
-# krakatau.stud	E:\
-# jeeves.stud	*
-
+# *  /Units  recursive
+# *  /Stores recursive
+# *  "/opt/Star office"
+# krakatau.stud E:\
+# jeeves.stud   *
+# * */others/* recursive
