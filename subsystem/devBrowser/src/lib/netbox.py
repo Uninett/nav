@@ -42,6 +42,7 @@ def process(request):
         # How did we get here?
         return showIndex()
     netbox = findNetbox(hostname)
+    request['templatePath'].append((str(netbox), None))
 
     #for i in netbox._sqlFields.keys():
     #    line = "%s: %s\n" % (i, getattr(netbox, i))
@@ -57,9 +58,9 @@ def process(request):
     rrds = info.showRrds()
     if rrds:
         result.append(rrds)
-    links = info.showLinks()    
-    if links:
-        result.append(links)
+##    links = info.showLinks()    
+##    if links:
+##        result.append(links)
     ports = info.showPorts()
     if ports:
         result.append(ports)
@@ -202,8 +203,10 @@ class NetboxInfo(manage.Netbox):
             age['title'] = end_time
             age['align'] = 'right'
             row.append(age)       
-            
-            table.add(*row)
+            if end_time == 'Still down':
+                table.add(_class="stillDown", *row)
+            else:    
+                table.add(*row)
         div = html.Division()
         div['class'] = "alerts"
         div.append(html.Header("Recent alerts (last week)", level=3))
@@ -223,8 +226,12 @@ class NetboxInfo(manage.Netbox):
         return div
 
     def showLinks(self):
-        up = self.getChildren(manage.Swp_netbox, 'to_netbox')
-        down = self.getChildren(manage.Swp_netbox, 'netbox')
+        # Vi må hente ifra swport-tabellen istedet!
+        up = self.getChildren(manage.Swport, 'to_netbox')
+        down = []
+        for module in self.getChildren(manage.Module):
+            modLinks = module.getChildren(manage.Swport, 'module')
+            down.extend(modLinks)
         if not (up or down):
             return None
         info = html.Division()
@@ -238,7 +245,7 @@ class NetboxInfo(manage.Netbox):
             for link in up:
                 line = html.Division()
                 info.append(line)
-                line.append(urlbuilder.createLink(link.netbox))
+                line.append(urlbuilder.createLink(link.to_netbox))
                 # His port
                 line.append("(")
                 if link.module and link.port:
