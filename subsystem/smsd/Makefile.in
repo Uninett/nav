@@ -1,5 +1,5 @@
 ##
-## This is the makefile for statTools
+## This is the makefile for the SMS Daemon
 ##
 
 SHELL = @SHELL@
@@ -9,21 +9,26 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 sysconfdir = @sysconfdir@
+initdir = $(sysconfdir)/init.d
 
-webroot = @webroot@
+binaries = smsd.pl safe_smsd.pl
+startscripts = smsd
+conffiles = smsd.conf
 
-binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
-conffiles = cricketoids.txt
-
-.PHONY: all install install-lib install-bin install-conf install-web clean distclean
+.PHONY: all install install-bin install-scripts clean distclean install-conf
 
 all: 
 
-install: install-bin install-conf
+install: $(startscripts) install-bin install-scripts install-conf
 
 install-bin:
 	@for file in $(binaries); do \
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-scripts:
+	@for file in $(startscripts); do \
+	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file || exit 1; \
 	done
 
 install-conf:
@@ -40,4 +45,4 @@ clean:
 	rm -f *~
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile smsd

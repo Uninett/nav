@@ -11,12 +11,12 @@ sysconfdir = @sysconfdir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
-.PHONY: all install install-lib install-bin install-web install-images clean distclean
+.PHONY: all install install-lib install-bin install-web install-images clean distclean install-conf
 
 all: 
 	$(MAKE) -C templates $@
 
-install: install-lib install-bin install-web
+install: install-lib install-bin install-web install-conf
 	$(MAKE) -C templates $@
 
 install-lib:
@@ -44,6 +44,14 @@ install-images:
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
+
+install-conf:
+	@target=$(DESTDIR)$(sysconfdir)/webfront.conf ;            \
+	if [ -f "$$target" ]; then                                 \
+	  echo Skipping installation of config file webfront.conf; \
+	else                                                       \
+	  $(INSTALL) -D -m 644 doc/webfront.conf.sample $$target;  \
+	fi
 
 clean:
 	@backups=`find lib bin src -name '*~'`; \

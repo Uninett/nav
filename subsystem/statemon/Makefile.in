@@ -34,8 +34,8 @@ checker:
 install: install-lib install-bin install-checker install-conf
 
 install-lib: lib
-	mkdir -p $(rrddir)
-	chmod 775 $(rrddir)
+	mkdir -p $(DESTDIR)$(rrddir)
+	chmod 775 $(DESTDIR)$(rrddir)
 	for file in nav/statemon/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in nav/statemon/DNS/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 install-bin: bin
@@ -45,10 +45,22 @@ install-checker: checker
 	for file in nav/statemon/checker/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in nav/statemon/checker/*.descr; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 install-conf: conf
-	for file in $(CONFFILES); do $(INSTALL) -v -D -m 640 $$file $(DESTDIR)$(sysconfdir)/$$file || exit 1; done
+	@for file in $(CONFFILES); do                          \
+	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+	  fi;                                                  \
+	done
+
 uninstall:
 	for file in $(BINS); do rm -f $(DESTDIR)$(bindir)/$$file; done	
 	rm -rf $(DESTDIR)$(pythonlibdir)
 	rm -rf $(DESTDIR)$(pythonlibdir)
 clean:
 	find -name *.pyc -print0 | xargs --null rm -f
+
+distclean: clean
+	find -name '*~' -print0 | xargs --null rm -f
+	rm Makefile

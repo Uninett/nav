@@ -11,16 +11,17 @@ bindir = @bindir@
 libdir = @libdir@
 sysconfdir = @sysconfdir@
 localstatedir=@localstatedir@
-perllibdir = @pythonlibdir@
+perllibdir = @perllibdir@
 
 binaries = alertdaemon.pl alertengine.pl
 libraries = Alert.pm AlertsBase.pm Engine.pm EquipmentGroups.pm IP.pm Log.pm NewAlerts.pm QueuedAlerts.pm User.pm UserGroups.pm
+conffiles = alertengine.cfg
 
-.PHONY: all install install-bin install-lib clean distclean
+.PHONY: all install install-bin install-lib clean distclean install-conf
 
 all:
 
-install: install-lib install-bin
+install: install-lib install-bin install-conf
 
 install-lib:
 	for file in $(binaries); do \
@@ -30,6 +31,16 @@ install-lib:
 install-bin:
 	for file in $(libraries); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(perllibdir)/$$file || exit 1; \
+	done
+
+install-conf:
+	@for file in $(conffiles); do                          \
+	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+	  fi;                                                  \
 	done
 
 clean:

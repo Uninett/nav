@@ -13,16 +13,27 @@ templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
 files = DatabaseResult.py  Generator.py  Report.py  report.py
+conffiles = front.html report.conf
 
-.PHONY: all install install-lib install-bin install-web clean distclean
+.PHONY: all install install-lib install-bin install-web clean distclean install-conf
 
 all:
 
-install: install-web
+install: install-web install-conf
 
 install-web:
 	for file in $(files); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/report/$$file || exit 1; \
+	done
+
+install-conf:
+	@for file in $(conffiles); do                          \
+	  target=$(DESTDIR)$(sysconfdir)/report/$$file;        \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+	  fi;                                                  \
 	done
 
 clean:

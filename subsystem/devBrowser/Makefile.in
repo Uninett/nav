@@ -13,6 +13,7 @@ libdir=@libdir@
 exec_prefix=@exec_prefix@
 pythonlibdir=@pythonlibdir@
 webroot=@webroot@
+sysconfdir=@sysconfdir@
 NAVVER=navme
 WEBLIB=$(pythonlibdir)/nav/web
 WEBNAME=browse
@@ -20,15 +21,16 @@ WEBNAME=browse
 WEBDIR=$(webroot)/$(WEBNAME)
 WEBLIBS=netbox.py module.py port.py service.py servicetable.py dispatcher.py rrd.py
 
+conffiles = devbrowser.conf
 
-.PHONY: all lib web install install-lib install-web clean distclean
+.PHONY: all lib web install install-lib install-web clean distclean install-conf
 # ok, the targets
 all: 
 lib:
 web:
 
 # the install
-install: install-lib install-web
+install: install-lib install-web install-conf
 
 install-lib: lib
 	$(INSTALL) -d $(DESTDIR)$(WEBLIB)/devBrowser
@@ -38,9 +40,20 @@ install-lib: lib
 install-web: web
 	$(INSTALL) -d $(DESTDIR)$(WEBDIR)
 	$(INSTALL) -m 644 src/htaccess $(DESTDIR)$(WEBDIR)/.htaccess
-	# Apache is lame and needs an EXISTING FILE to use 
-	# DirectoryIndex...... so let's create an empty one
+# Apache is lame and needs an EXISTING FILE to use 
+# DirectoryIndex...... so let's create an empty one
 	touch $(DESTDIR)$(WEBDIR)/index
+
+install-conf:
+	@for file in $(conffiles); do                          \
+	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
+	  if [ -f "$$target" ]; then                           \
+	    echo Skipping installation of config file $$file;  \
+	  else                                                 \
+	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+	  fi;                                                  \
+	done
+
 clean:
 	find -name *.pyc -print0 | xargs --null rm -f
 distclean: clean

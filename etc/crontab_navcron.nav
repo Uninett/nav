@@ -10,7 +10,6 @@
 # </name_of_subsystem> for end of subsystem.
 
 # The paths we use for the different scripts
-CDIR=/usr/local/nav/navme/cron
 BDIR=/usr/local/nav/navme/bin
 LDIR=/usr/local/nav/local/cron
 LOGDIR=/usr/local/nav/local/log
@@ -41,9 +40,6 @@ CRICKETDIR=/usr/local/nav/cricket
 # Updating of the database is done by the database-
 # subsystem. To make sure that every change that occur on
 # the network is updated in NAV, have this subsystem running.
-#05 4 * * * $CDIR/fyll_db.pl
-#7 2 * * * $CDIR/navlog/delete.pl > /dev/null
-#9,29,49 * * * * $CDIR/navlog/insert.pl > /dev/null
 
 35 * * * *              $BDIR/navAdmin/runAvledTopologi.sh
 36 * * * *              $BDIR/navAdmin/runAvledVlan.sh
@@ -52,7 +48,7 @@ CRICKETDIR=/usr/local/nav/cricket
 
 # <iptrace>
 # Collects arp data from routers
-0,30 * * * * $CDIR/arplogger.pl
+0,30 * * * * $BDIR/arplogger.pl
 # </iptrace>
 
 # <mactrace>
@@ -64,7 +60,7 @@ NUM_THREADS=24
 
 # <safe_smsd>
 # check smsd.pl os up and running, or else start it
-*/5 * * * * $CDIR/safe_smsd.pl
+*/5 * * * * $BDIR/safe_smsd.pl
 # </safe_smsd>
 
 # <maintengine>

@@ -1,0 +1,5 @@
+# Configuration for the NAV web frontend
+
+# TOOLPATH gives the search path for tool plugin description files.
+TOOLPATH=/usr/local/nav/apache/tools
+

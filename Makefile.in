@@ -12,13 +12,30 @@ INSTALL = @INSTALL@
 nav_user = @nav_user@
 top_srcdir = @top_srcdir@
 
+NAME=nav
+VERSION=$(shell cat VERSION)
+PACKAGE=$(NAME)-$(VERSION)
+
 subdirs = src \
-	subsystem/webFront \
-	subsystem/lib-python \
 	subsystem/lib-perl \
-	subsystem/statemon \
+	subsystem/lib-python \
+	subsystem/alertEngine \
+	subsystem/alertprofiles \
+	subsystem/backup \
 	subsystem/devBrowser \
-	subsystem/statTools
+	subsystem/deviceManagement \
+	subsystem/editdb \
+	subsystem/eMotd \
+	subsystem/machinetracker \
+	subsystem/report \
+	subsystem/smsd \
+	subsystem/startstop \
+	subsystem/statemon \
+	subsystem/statTools \
+	subsystem/status \
+	subsystem/thresholdMon \
+	subsystem/webFront
+
 
 .PHONY: all install clean distclean
 
@@ -45,3 +62,15 @@ distclean: clean
 	@for dir in ${subdirs}; do \
 	  $(MAKE) -C $$dir $@ || exit 1; \
 	done
+
+dist: distclean
+	@echo Creating source tarball...
+	@SRCDIR=`pwd`;                                  \
+	TARBALL=$(PACKAGE).tar.gz;                      \
+	/bin/rm -f /tmp/$(PACKAGE) $$TARBALL;           \
+	ln -s $$SRCDIR /tmp/$(PACKAGE);                 \
+	cd /tmp;                                        \
+        tar -czf $$TARBALL --exclude .svn $(PACKAGE)/*; \
+	/bin/rm -f /tmp/$(PACKAGE);                     \
+	/bin/mv /tmp/$$TARBALL $$SRCDIR;                \
+	echo Placed as $$TARBALL

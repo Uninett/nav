@@ -4,6 +4,14 @@
 SHELL = @SHELL@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+javalibdir = @javalibdir@
+sysconfdir = @sysconfdir@
+localstatedir = @localstatedir@
+
+BUILDARGS = -Dprefix=$(prefix) -Dbindir=$(bindir) -Djavalibdir=$(javalibdir) -Dsysconfdir=$(sysconfdir) -Dlocalstatedir=$(localstatedir)
+INSTALLARGS = -Dprefix=$(DESTDIR)$(prefix) -Dbindir=$(DESTDIR)$(bindir) -Djavalibdir=$(DESTDIR)$(javalibdir) -Dsysconfdir=$(DESTDIR)$(sysconfdir) -Dlocalstatedir=$(DESTDIR)$(localstatedir)
 
 subdirs = \
 	ConfigParser \
@@ -20,20 +28,23 @@ subdirs = \
 
 ANT = @ANT@
 
-all:
-	@for dir in $(subdirs); do \
-	  echo "Building $$dir ..."; \
-	  (cd $$dir && $(ANT)) || exit 1; \
-	done
+all: $(subdirs)
+
+$(subdirs): .
+	@echo "Building $@ ..."
+	(cd $@ && $(ANT) $(BUILDARGS)) && touch $@
+
+.:
+	touch .
 
 install:
 	@for dir in $(subdirs); do \
 	  echo "Installing $$dir ..."; \
-	  (cd $$dir && $(ANT) install -Dprefix=$(DESTDIR)/$(prefix)) || exit 1; \
+	  (cd $$dir && $(ANT) install $(INSTALLARGS)) || exit 1; \
 	done
 
 clean:
-	rm -f *~
+	rm -f *~ .lastbuild
 	@for dir in $(subdirs); do \
 	  echo "Entering $$dir ..."; \
 	  (cd $$dir && $(ANT) $@) || exit 1; \

@@ -7,8 +7,15 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-	<property name="prefix" location="../../"/>
-  <property name="instdir"  location="${prefix}/bin/eventEngine"/>
+
+  <property name="prefix" location="/usr/local/nav"/>
+  <property name="bindir" location="${prefix}/bin"/>
+  <property name="libdir" location="${prefix}/lib"/>
+  <property name="javalibdir" location="${libdir}/java"/>
+  <property name="sysconfdir" location="${prefix}/etc"/>
+  <property name="localstatedir" location="${prefix}/var"/>
+
+  <property name="instdir"  location="${bindir}/eventEngine"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
@@ -61,6 +68,12 @@
     <copy todir="${instdir}/handler-plugins">
       <fileset dir="handler-plugins" includes="*.jar"/>
     </copy>
+
+    <!-- Place init script and default configuration files -->
+    <mkdir dir="${sysconfdir}/init.d" />
+    <copy file="eventengine" todir="${sysconfdir}/init.d" />
+    <copy file="eventEngine.conf" todir="${sysconfdir}" />
+    <copy file="alertmsg.conf" todir="${sysconfdir}" />
   </target>
 
   <target name="uninstall">

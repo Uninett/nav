@@ -10,7 +10,7 @@ webroot = @webroot@
 
 # Just grab all files, except SVN administrative areas, and a few
 # other source tree-only files.
-files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' \) )
+files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' -or -name '*.tool' \) )
 
 .PHONY: all install
 
@@ -26,18 +26,7 @@ install:
 	done
 
 clean:
-	rm -f *~ 
-	rm -f locale/*~
-	rm -f locale/en/*~
-	rm -f locale/en/LC_MESSAGES/*~
-	rm -f locale/no/*~
-	rm -f locale/no/LC_MESSAGES/*~
-	rm -f wap/*~
-	rm -f images/*~
-	rm -f css/*~
-	rm -f documents/*~
-	rm -f icons/*~
-	rm -f modules/*~
+	find -name '*~' -print0 | xargs --null rm -f
 
 distclean: clean
 	rm -f Makefile

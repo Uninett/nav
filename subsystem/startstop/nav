@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: nav,v 1.2 2003/05/26 12:19:36 mortenv Exp $
+# $Id$
 # This file is part of the NAV project.
 # Common start/stop script for all NAV daemons.  It will also manage
 # loading/unloading of cron-based tasks in the NAV system.

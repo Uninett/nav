@@ -11,7 +11,7 @@
   <property name="dist"  location="dist"/>
 	<property name="prefix" location="../../../"/>
   <property name="jarinstdir"  location="${prefix}/bin/navAdmin"/>
-  <property name="warinstdir"  location="${prefix}/webapps"/>
+  <property name="warinstdir"  location="${prefix}/apache/webapps"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 
