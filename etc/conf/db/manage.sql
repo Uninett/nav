@@ -1,7 +1,5 @@
--- Slette alle views
-DROP VIEW boksmac;
-
 -- Slette alle tabeller
+DROP TABLE swportblocked;
 DROP TABLE swportallowedvlan;
 DROP TABLE swportvlan;
 DROP TABLE swport;
@@ -9,11 +7,15 @@ DROP TABLE gwport;
 
 DROP TABLE swp_netbox;
 
+DROP TABLE vendor;
+DROP TABLE product;
+DROP TABLE device;
+DROP TABLE cat;
 DROP TABLE module;
 DROP TABLE mem;
 DROP TABLE netboxinfo;
 DROP TABLE netbox;
-
+DROP TABLE typegroup;
 DROP TABLE type;
 DROP TABLE prefix;
 DROP TABLE room;
@@ -21,8 +23,10 @@ DROP TABLE location;
 DROP TABLE usage;
 DROP TABLE org;
 
--------VP - fingra fra fatet, Sigurd:
+DROP TABLE netboxdisk;
+DROP TABLE netboxinterface;
 
+-------VP - fingra fra fatet, Sigurd:
 DROP TABLE vp_netbox_xy;
 DROP TABLE vp_netbox_grp;
 DROP TABLE vp_netbox_grp_info;
@@ -31,9 +35,12 @@ DROP TABLE vp_netbox_grp_info;
 DROP SEQUENCE netbox_netboxid_seq;
 DROP SEQUENCE gwport_gwportid_seq;
 DROP SEQUENCE prefix_prefixid_seq;
+DROP SEQUENCE type_typeid_seq;
 DROP SEQUENCE swport_swportid_seq;
 DROP SEQUENCE swportvlan_swportvlanid_seq;
 DROP SEQUENCE swp_netbox_swp_netboxid_seq;
+DROP SEQUENCE device_deviceid_seq;
+DROP SEQUENCE product_productid_seq;
 DROP SEQUENCE module_moduleid_seq;
 DROP SEQUENCE mem_memid_seq;
 -------------
@@ -72,6 +79,7 @@ til timestamp
 ------------------------------------------
 
 -- Definerer gruppe nav:
+DROP GROUP nav;
 CREATE GROUP nav;
 
 ------------------------------------------------------------------------------------------
@@ -379,11 +387,18 @@ DROP TABLE arp;
 DROP TABLE cam; 
 DROP TABLE port2pkt; 
 DROP TABLE pkt2rom;  
+DROP VIEW netboxmac;
+DROP TABLE eventtype;
+DROP TABLE eventprocess;
 
 DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
+--DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
+--DROP SEQUENCE vp_netbox_xy_vp_netbox_xy_seq;
+
+DROP FUNCTION netboxid_null_upd_end_time();
 
 -- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
 -- Merk at "createlang -U manage -d manage plpgsql" må kjøres først
@@ -423,7 +438,7 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time
+CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
@@ -557,7 +572,7 @@ GRANT SELECT,UPDATE ON netboxinfo TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
 GRANT ALL    ON netboxdisk TO getDeviceData;
 GRANT ALL    ON netboxinterface TO getDeviceData;
-GRANT ALL    ON netboxcategory TO getDeviceData;
+GRANT ALL    ON cat TO getDeviceData;
 GRANT ALL    ON swport TO getDeviceData;
 GRANT ALL    ON swport_swportid_seq TO getDeviceData;
 GRANT ALL    ON swportvlan TO getDeviceData;
@@ -608,12 +623,12 @@ CREATE TABLE eventq (
   severity INT4 NOT NULL DEFAULT '50'
 );
 CREATE INDEX eventq_target_btree ON eventq USING btree (target);
-CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 CREATE TABLE eventqvar (
   eventqid INT4 REFERENCES eventq ON UPDATE CASCADE ON DELETE CASCADE,
   var VARCHAR(32) NOT NULL,
   val TEXT NOT NULL
 );
+CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
 -- alert tables
 DROP TABLE alertq;
