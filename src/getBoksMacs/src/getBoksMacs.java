@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: getBoksMacs.java,v 1.5 2002/11/23 00:32:01 kristian Exp $
+* $Id: getBoksMacs.java,v 1.6 2003/05/29 14:27:39 kristian Exp $
 * This file is part of the NAV project.
 * Loging of CAM/CDP data
 *
@@ -26,6 +26,7 @@ class getBoksMacs
 	public static final String navRoot = "/usr/local/nav/";
 	public static final String dbConfigFile = "local/etc/conf/db.conf";
 	public static final String configFile = "local/etc/conf/getBoksMacs.conf";
+	public static final String watchMacsFile = "local/etc/conf/watchMacs.conf";
 	public static final String scriptName = "getBoksMacs";
 
 	public static int NUM_THREADS = 24;
@@ -68,6 +69,7 @@ class getBoksMacs
 	// For CAM-logger
 	static HashMap unclosedCam = new HashMap();
 	static HashSet safeCloseBoksid = new HashSet();
+	static HashSet watchMacs = new HashSet();
 
 	public static void main(String[] args) throws SQLException
 	{
@@ -117,6 +119,22 @@ class getBoksMacs
 		}
 		outl("Running with " + NUM_THREADS + " thread"+(NUM_THREADS>1?"s":"")+".");
 
+		// Load watchMacs
+		try {
+			int wmcnt=0;
+			BufferedReader bf = new BufferedReader(new FileReader(navRoot+watchMacsFile));
+			String s;
+			while ( (s=bf.readLine()) != null) {
+				s = s.trim();
+				if (s.length() != 12 || s.startsWith("#")) continue;
+				watchMacs.add(s);
+				wmcnt++;
+			}
+			outl("watchMacs read: " + wmcnt);
+		} catch (IOException e) {
+			outl("Could not read watchMacs.conf");
+		}
+
 
 		long dumpBeginTime,dumpUsedTime;
 
@@ -134,7 +152,7 @@ class getBoksMacs
 		// Hent kobling mellom boksid<->sysName og motsatt
 		out("  boks...");
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT netboxid,sysName,catid,typename FROM netbox JOIN type USING(typeid)");
+		rs = Database.query("SELECT netboxid,sysName,catid,typename FROM netbox LEFT JOIN type USING(typeid)");
 		while (rs.next()) {
 			boksIdName.put(rs.getString("netboxid"), rs.getString("sysname"));
 			boksidKat.put(rs.getString("netboxid"), rs.getString("catid").toUpperCase());
@@ -191,12 +209,7 @@ class getBoksMacs
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
 			HashMap blockedIfind;
-			if (spanTreeBlocked.containsKey(key)) {
-				blockedIfind = (HashMap)spanTreeBlocked.get(key);
-			} else {
-				blockedIfind = new HashMap();
-				spanTreeBlocked.put(key, blockedIfind);
-			}
+			if ( (blockedIfind=(HashMap)spanTreeBlocked.get(key)) == null) spanTreeBlocked.put(key, blockedIfind = new HashMap());
 			blockedIfind.put(rs.getString("ifindex"), rs.getString("swportid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
@@ -360,6 +373,7 @@ class getBoksMacs
 
 		QueryBoks.unclosedCam = unclosedCam;
 		QueryBoks.safeCloseBoksid = safeCloseBoksid;
+		QueryBoks.watchMacs = watchMacs;
 
 		// Indikerer om en tråd er ferdig
 		QueryBoks.initThreadDone(NUM_THREADS);

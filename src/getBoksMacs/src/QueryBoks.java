@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: QueryBoks.java,v 1.5 2002/11/23 00:32:01 kristian Exp $
+* $Id: QueryBoks.java,v 1.6 2003/05/29 14:27:39 kristian Exp $
 * This file is part of the NAV project.
 * Loging of CAM/CDP data
 *
@@ -59,6 +59,7 @@ public class QueryBoks extends Thread
 	// For CAM-loggeren
 	public static HashMap unclosedCam;
 	public static HashSet safeCloseBoksid;
+	public static HashSet watchMacs;
 	// Per-tråd variabler for CAM
 	private List camInsertQueue = new ArrayList();
 	private List camResetQueue = new ArrayList();
@@ -176,6 +177,7 @@ public class QueryBoks extends Thread
 					boksTypegruppe.equals("cgsw") ||
 					boksTypegruppe.equals("ios-sw") ||
 					boksTypegruppe.equals("cat-sw") ||
+					boksTypegruppe.equals("cL3-sw") ||
 					boksTypegruppe.equals("cat1900-sw") ||
 					boksTypegruppe.equals("catmeny-sw") ) {
 
@@ -320,7 +322,9 @@ public class QueryBoks extends Thread
 				outla("T"+id+":  QueryBoks.run(): SQLException: " + se.getMessage());
 				if (se.getMessage() != null && se.getMessage().indexOf("Exception: java.net.SocketException") != -1) {
 					// Mistet kontakten med serveren, abort
-					break;
+					outla("T"+id+":  QueryBoks.run(): Lost contact with backend, fatal error!");
+					outla("T"+id+":  QueryBoks.run(): Exiting...");
+					System.exit(2);
 				}
 				se.printStackTrace(System.err);
 			} catch (TimeoutException te) {
@@ -331,7 +335,8 @@ public class QueryBoks extends Thread
 				outle("T"+id+":  QueryBoks.run(): Fatal error, aborting. Exception: " + exp.getMessage());
 				outla("T"+id+":  QueryBoks.run(): Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
-				break;
+				outla("T"+id+":  QueryBoks.run(): Exiting...");
+				System.exit(1);
 			}
 
 			Collections.sort(boksListe);
@@ -443,7 +448,6 @@ public class QueryBoks extends Thread
 						newCnt++;
 					} catch (SQLException e) {
 						errl("ERROR, Insert into swp_netbox ("+key+"), SQLException: " + e.getMessage() );
-
 					}
 				} else {
 					newCnt++;
@@ -538,6 +542,12 @@ public class QueryBoks extends Thread
 			// Hent ut mp på andre siden
 			if (cdpRMpList.size() <= i) continue;
 			String[] remoteIf = (String[])cdpRMpList.get(i);
+
+			// c1900 har port 25 og 26 som A og B
+			remoteIf[1] = remoteIf[1].trim();
+			if (remoteIf[1].equals("A") || remoteIf[1].equals("B")) {
+				remoteIf[1] = ""+ (26 + remoteIf[1].charAt(0) - 'A');
+			}
 
 			// Opprett record for boksen bak porten
 			PortBoks pm = processCDP(workingOnBoksid, cdps[1], ifind, mp[0], mp[1], remoteIf[1].trim() );
@@ -735,11 +745,13 @@ public class QueryBoks extends Thread
 			} else {
 				remoteMp = stringToMp(ifindex, remoteIf);
 
+				/*
 				if (((String)boksidKat.get(boksid)).equals("GSW")) {
 					// Modul skal nå være et tall, strip Gi
 					if (remoteMp[0].startsWith("Gi")) remoteMp[0] = remoteMp[0].substring(2, remoteMp[0].length());
 					else if (remoteMp[0].startsWith("Fa")) remoteMp[0] = remoteMp[0].substring(2, remoteMp[0].length());
 				}
+				*/
 
 			}
 			pm.setRemoteMp(remoteMp);
@@ -985,6 +997,7 @@ public class QueryBoks extends Thread
 				if (blockedIfind != null) {
 					// Slett eksisterende innslag i databasen
 					try {
+						outl("    All ports on " + sysnameMap.get(boksid) + " are now non-blocking");
 						Database.update("DELETE FROM swportblocked WHERE EXISTS (SELECT swportid FROM swport JOIN module USING(moduleid) WHERE netboxid="+boksid+" AND swportblocked.swportid=swportid) AND vlan='"+vlan+"'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 					} catch (SQLException e) {
@@ -1097,7 +1110,6 @@ public class QueryBoks extends Thread
 
 				// Prosesser Mac (CAM)
 				processMac(boksid, modul, port, mac);
-
 
 				// Sjekk om vi skal ta med denne mac
 				if (!macBoksId.containsKey(mac)) continue;
@@ -1460,12 +1472,16 @@ public class QueryBoks extends Thread
 	 *
 	 */
 	private void processMac(String boksid, String modul, String port, String mac) {
-
 		// Først sjekker vi om vi har en uavsluttet CAM-record for denne MAC'en
 		String key = boksid+":"+modul.trim()+":"+port.trim()+":"+mac.trim();
 
 		// Ignorer duplikater
 		if (!dupeMacSet.add(key)) return;
+
+		// Sjekk mot watchMacs
+		if (watchMacs.contains(mac)) {
+			reportWatchMac(boksid, modul, port, mac);
+		}
 
 		String[] s;
 		synchronized (unclosedCam) {
@@ -1498,7 +1514,7 @@ public class QueryBoks extends Thread
 			String camKey = s[1];
 
 			if (foundBoksBak.contains(mp) || foundCDPMp.contains(mp) || foundBoksBakSwp.contains(boksid+":"+mp)) {
-				//outld("    runCamQueue: Skipping reset of port: " + mp);
+				//outld("    runCamQueue: Skipping reset of port: " + mp + " ("+foundBoksBak.contains(mp)+","+foundCDPMp.contains(mp)+","+foundBoksBakSwp.contains(boksid+":"+mp)+")");
 				continue;
 			}
 
@@ -1535,7 +1551,7 @@ public class QueryBoks extends Thread
 			String[] insertData = (String[])camInsertQueue.get(i);
 			String key = insertData[5]+":"+insertData[7]; // modul+port
 			if (foundBoksBak.contains(key) || foundCDPMp.contains(key) || foundBoksBakSwp.contains(boksid+":"+key)) {
-				//outld("    Skipping port: " + key);
+				//outld("    Skipping port: " + key + " ("+foundBoksBak.contains(key)+","+foundCDPMp.contains(key)+","+foundBoksBakSwp.contains(boksid+":"+key)+")");
 				continue;
 			}
 
@@ -1560,6 +1576,16 @@ public class QueryBoks extends Thread
 				//System.out.println("Boksid: " + boksid + " added to safeCloseBoksid");
 			}
 		}
+	}
+
+	private void reportWatchMac(String boksid, String modul, String port, String mac) {
+		String s = 	"The following watched MAC has been found: " + mac + "\n" +
+					"\n"+
+					"At " + boksIdName.get(boksid) + ", Module: " + modul + " Port: " + port + "\n" +
+					"\n"+
+					"Please check watchMacs.conf for whom to contact about this particular MAC";
+
+		errl(s);
 	}
 
 	private String decimalToHexMac(String decMac) {
