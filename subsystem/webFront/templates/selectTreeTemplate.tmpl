@@ -78,7 +78,7 @@ $layoutBox.emptySelectText $select.prevSelect.title
 #set $height = str($select.multipleHeight)
 #set $attribs += 'size="' + $height + '" '
 #end if
-#if $select.postOnChange
+#if $select.setOnChange
 #set $attribs += 'onchange="' + $layoutBox.onChange + '" '
 #end if
 <select name="$select.controlName" $attribs style="$style">

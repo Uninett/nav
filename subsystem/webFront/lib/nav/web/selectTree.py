@@ -170,10 +170,12 @@ class simpleSelect:
                        The default is $1 which means that the sql should
                        get the id field as field number one (or this string
                        must be set otherwise).
-        postOnChange = BOOLEAN, if True the form the select is in will be
+        setOnChange =  BOOLEAN, if True the form the select is in will be
                        posted each time a change is made (ie. something is
                        selected or deselected. Usually set to false for
                        the last select in a chain.
+        actionOnChange = STRING, script which overrides the usual 
+                         this.form.post().
         selectMultiple = BOOLEAN, if True the select gets the HTML attribute
                          multiple.
         multipleHeight = INT, the height of the select in lines.
@@ -190,7 +192,8 @@ class simpleSelect:
                  addEntryList=[],
                  optionFormat='$2',
                  valueFormat='$1',
-                 postOnChange=True,
+                 setOnChange=True,
+                 actionOnChange=None,
                  selectMultiple=True,
                  multipleHeight=5):
 
@@ -204,13 +207,15 @@ class simpleSelect:
         self.addEntryList = addEntryList
         self.optionFormat = optionFormat
         self.valueFormat = valueFormat
-        self.postOnChange = postOnChange
+        self.setOnChange = setOnChange
         self.selectMultiple = selectMultiple
         self.multipleHeight = multipleHeight
 
         self.onChange = None
-        if postOnChange:
+        if setOnChange:
             self.onChange = 'this.form.submit()'
+            if actionOnChange:
+                self.onChange = actionOnChange
         # List of selectOption()s
         self.options = []
         # List of selected rows. Save for optgroupformat for next select.
@@ -317,10 +322,12 @@ class updateSelect(simpleSelect):
                        must be set otherwise).
         optgroupFormat = Format string for the optgroup text. $x is replaced
                          by field x in the sql result.
-        postOnChange = BOOLEAN, if True the form the select is in will be
+        setOnChange =  BOOLEAN, if True the form the select is in will be
                        posted each time a change is made (ie. something is
                        selected or deselected. Usually set to false for
                        the last select in a chain.
+        actionOnChange = STRING, script which overrides the usual
+                         this.form.post()
         selectMultiple = BOOLEAN, if True the select gets the HTML attribute
                          multiple.
         multipleHeight = INT, the height of the select in lines. '''
@@ -338,7 +345,7 @@ class updateSelect(simpleSelect):
                  optionFormat='$2',
                  valueFormat='$1',
                  optgroupFormat=None,
-                 postOnChange=True,
+                 setOnChange=True,
                  selectMultiple=True,
                  multipleHeight=5):
 
@@ -354,13 +361,15 @@ class updateSelect(simpleSelect):
         self.optionFormat = optionFormat
         self.valueFormat = valueFormat
         self.optgroupFormat = optgroupFormat
-        self.postOnChange = postOnChange
+        self.setOnChange = setOnChange
         self.selectMultiple = selectMultiple
         self.multipleHeight = multipleHeight
 
         self.onChange = None
-        if postOnChange:
+        if setOnChange:
             self.onChange = 'this.form.submit()'
+            if actionOnChange:
+                self.onChange = actionOnChange
         # List of selectOption()s
         self.options = []
         # List of selected rows. Save for optgroupformat for next select.
