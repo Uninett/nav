@@ -17,8 +17,8 @@ fi
 CUR_DIR=${javalibdir}/getDeviceData
 LOG_DIR="${localstatedir}/log/getDeviceData"
 PIDFILE=${localstatedir}/run/getDeviceData.pid
-OUTLOG=${LOGDIR}/getDeviceData-stdout.log
-ERRLOG=${LOGDIR}/getDeviceData-stderr.log
+OUTLOG=${LOG_DIR}/getDeviceData-stdout.log
+ERRLOG=${LOG_DIR}/getDeviceData-stderr.log
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`

@@ -17,8 +17,8 @@ fi
 CUR_DIR=${javalibdir}/eventEngine
 LOG_DIR="${localstatedir}/log/eventEngine"
 PIDFILE=${localstatedir}/run/eventEngine.pid
-OUTLOG=${LOGDIR}/eventEngine-stdout.log
-ERRLOG=${LOGDIR}/eventEngine-stderr.log
+OUTLOG=${LOG_DIR}/eventEngine-stdout.log
+ERRLOG=${LOG_DIR}/eventEngine-stderr.log
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
