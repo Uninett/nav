@@ -286,7 +286,7 @@ public class HP implements DeviceHandler
 			Map vlanMap = null;
 			if (nb.canGetOid("hpVlan")) {
 				sSnmp.setBaseOid(nb.getOid("hpVlan"));
-				vlanMap = sSnmp.getAllMapList();
+				vlanMap = sSnmp.getAllMapList(1);
 			}
 
 			sSnmp.setBaseOid(nb.getOid("hpPortType"));
@@ -313,7 +313,6 @@ public class HP implements DeviceHandler
 
 				//Swport sw = m.swportFactory(port, ifindex, link, speedS, duplex, media, false, "");
 				Swport sw = m.swportFactory(port, ifindex);
-
 
 				if (speedMap != null) {
 					String speed = (String)speedMap.get(ifindex);
