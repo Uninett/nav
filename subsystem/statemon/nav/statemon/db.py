@@ -121,7 +121,7 @@ class _db(threading.Thread):
     def execute(self, statement, commit=1):
         try:
             cursor=self.cursor()
-            debug("Executeing: %s" % statement,5)
+            debug("Executing: %s" % statement,5)
             cursor.execute(statement)
             if commit:
                 try:
