@@ -94,7 +94,7 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 			$error[] = $ne;			
 		break;
 		default:
-			$ne = new Error(5);
+			$ne = new Error(5, 1);
 			$ne->message = gettext("AlertProfiles error-handler:Unkown error type: [$errno] <h3>$errstr</h3><p>
 			$errfile<br>on line [$errline]\n");
 			$error[] = $ne;							

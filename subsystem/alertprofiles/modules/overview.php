@@ -31,7 +31,7 @@ function helgdescr($helg) {
  * the function easysetup() prints an easy form to create a default alert profile.
  *
  */
-function easysetup($dbh, $uid) {
+function easysetup($dbh) {
 
 	# Check users addresses
 	$adr = $dbh->listAdresser(session_get('uid'), 0);

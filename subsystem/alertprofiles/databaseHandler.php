@@ -10,13 +10,14 @@
 
 class DBH {
 
-  // Må ha inn en ferdig oppkoblet databasekobling til postgres
-  var $connection;
+	// Må ha inn en ferdig oppkoblet databasekobling til postgres
+	var $connection;
 
-  // Konstruktor
-  function DBH($connection) {
-    $this->connection = $connection;
-  }
+
+	// Konstruktor
+	function DBH($connection) {
+		$this->connection = $connection;
+	}
   
   
     function permissionAddress($uid, $aid) {

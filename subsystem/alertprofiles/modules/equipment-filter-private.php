@@ -146,7 +146,7 @@ $l = new Lister( 110,
 		array(40, 10, 15, 15, 20),
 		array('left', 'left', 'right', 'right', 'right'),
 		array(true, true, true, true, false),
-		0
+		1
 );
 if ( get_exist('sortid') )
 	$l->setSort(get_get('sort'), get_get('sortid') );
