@@ -150,7 +150,7 @@ public class QueryNetbox extends Thread
 
 	}
 
-	public static void updateTypes(boolean updateNetboxes) {
+	public static synchronized void updateTypes(boolean updateNetboxes) {
 		Map typeidM = new HashMap();
 		Map oidkeyM = new HashMap();
 
@@ -267,7 +267,7 @@ public class QueryNetbox extends Thread
 		} 
 	}
 
-	public static void updateNetboxes() {
+	public static synchronized void updateNetboxes() {
 		int newcnt=0, skipcnt=0, delcnt=0;
 
 		try {
@@ -281,7 +281,7 @@ public class QueryNetbox extends Thread
 			//sql += " LIMIT 1000";
 			rs = Database.query(sql);
 
-			int nbCnt=0;
+			int nbCnt = netboxCnt;
 			Set netboxidSet = new HashSet();
 			while (rs.next()) {
 				String netboxid = rs.getString("netboxid");
@@ -349,6 +349,10 @@ public class QueryNetbox extends Thread
 		}
 
 		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + newcnt + " new, " + delcnt + " removed, " + skipcnt + " skipped)");
+
+		if (newcnt > 0) {
+			scheduleCheckRunQ(0);
+		}
 
 	}
 
@@ -645,6 +649,7 @@ public class QueryNetbox extends Thread
 
 	static class UpdateDataTask extends TimerTask {
 		public void run() {
+			Log.setDefaultSubsystem("UPDATE_DATA");		
 			updateTypes(false);
 			updateNetboxes();
 		}
@@ -652,6 +657,7 @@ public class QueryNetbox extends Thread
 
 	static class CheckRunQTask extends TimerTask {
 		public void run() {
+			Log.setDefaultSubsystem("CHECK_RUN_Q");
 			checkRunQ();
 		}
 	}
