@@ -120,17 +120,6 @@ public class CiscoModule implements DeviceHandler
 	private boolean processCiscoModule(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc) throws TimeoutException {
 
 		/*
-		  "physClass",
-		  "physSwVer",
-		  "physDescr",
-		  "physName",
-		  "physSerial",
-		  "physHwVer",
-		  "physFwVer",
-		  "physModelName",
-		*/
-
-		/*
 		  "catModuleModel",
 		  "catModuleHwVer",
 		  "catModuleFwVer",
@@ -153,73 +142,19 @@ public class CiscoModule implements DeviceHandler
 		  "cl3SwVer",
 		*/
 
+		/* Highest pri
 
-		// The phys OIDs
-		Map physClass = sSnmp.getAllMap(nb.getOid("physClass"), false, 0, true); // Ask for oidToModuleMap
-		if (physClass != null) {
-			Map physDescr = sSnmp.getAllMap(nb.getOid("physDescr"), true);
-			Map physSerial = sSnmp.getAllMap(nb.getOid("physSerial"), true);
-			Map physHwVer = sSnmp.getAllMap(nb.getOid("physHwVer"), true);
-			Map physFwVer = sSnmp.getAllMap(nb.getOid("physFwVer"), true);
-			Map physSwVer = sSnmp.getAllMap(nb.getOid("physSwVer"), true);
-			Map physModelName = sSnmp.getAllMap(nb.getOid("physModelName"), true);
+		  "physClass",
+		  "physSwVer",
+		  "physDescr",
+		  "physName",
+		  "physSerial",
+		  "physHwVer",
+		  "physFwVer",
+		  "physModelName",
+		  "physParentRelPos",
+		*/
 
-			/*
-			  PhysicalClass
-			  1:other
-			  2:unknown
-			  3:chassis
-			  4:backplane
-			  5:container
-			  6:powerSupply
-			  7:fan
-			  8:sensor
-			  9:module
-			  10:port
-			  11:stack
-			*/
-			Map oidToModuleMapping = (Map)physClass.remove("OidToModuleMapping");
-			MultiMap classMap = util.reverse(physClass);
-			
-			// chassis
-			for (Iterator it = classMap.get("3").iterator(); it.hasNext();) {
-				String id = (String)it.next();
-				NetboxData nd = nc.netboxDataFactory(nb);
-				if (nd.getSerial() == null && physSerial != null && physSerial.containsKey(id)) nd.setSerial((String)physSerial.get(id));
-				if (physHwVer != null && physHwVer.containsKey(id)) nd.setHwVer((String)physHwVer.get(id));
-				if (physFwVer != null && physFwVer.containsKey(id)) nd.setFwVer((String)physFwVer.get(id));
-				if (physSwVer != null && physSwVer.containsKey(id)) nd.setSwVer((String)physSwVer.get(id));
-				break; // Only do first
-			}
-
-			// modules
-			for (Iterator it = classMap.get("9").iterator(); it.hasNext();) {
-				String id = (String)it.next();
-				int module;
-				try {
-					if (oidToModuleMapping != null && oidToModuleMapping.containsKey(id)) {
-						module = Integer.parseInt((String)oidToModuleMapping.get(id));						
-					} else {
-						module = Integer.parseInt(id);
-						if (module < 1000) continue;
-						module /= 1000;
-					}
-				} catch (NumberFormatException e) {
-					System.err.println("Working with " + nb + ", NumberFormatException: " + e);
-					e.printStackTrace(System.err);
-					continue;
-				}
-				Module m = mc.moduleFactory(module);
-
-				if (physSerial != null && physSerial.containsKey(id)) m.setSerial((String)physSerial.get(id));
-				if (physHwVer != null && physHwVer.containsKey(id)) m.setHwVer((String)physHwVer.get(id));
-				if (physFwVer != null && physFwVer.containsKey(id)) m.setFwVer((String)physFwVer.get(id));
-				if (physSwVer != null && physSwVer.containsKey(id)) m.setSwVer((String)physSwVer.get(id));
-
-				if (physModelName != null && physModelName.containsKey(id)) m.setModel((String)physModelName.get(id));
-				if (physDescr != null && physDescr.containsKey(id)) m.setDescr((String)physDescr.get(id));
-			}				
-		}
 
 		// Try to fetch the serial for the chassis
 		if (nc.netboxDataFactory(nb).getSerial() == null) {
@@ -362,6 +297,74 @@ public class CiscoModule implements DeviceHandler
 					mc.moduleFactory(module).setSwVer((String)cl3SwVer.get(module+"000"));
 				}
 			}
+		}
+
+		// The phys OIDs
+		Map physClass = sSnmp.getAllMap(nb.getOid("physClass"), false, 0, true); // Ask for oidToModuleMap
+		if (physClass != null) {
+			Map physDescr = sSnmp.getAllMap(nb.getOid("physDescr"), true);
+			Map physSerial = sSnmp.getAllMap(nb.getOid("physSerial"), true);
+			Map physHwVer = sSnmp.getAllMap(nb.getOid("physHwVer"), true);
+			Map physFwVer = sSnmp.getAllMap(nb.getOid("physFwVer"), true);
+			Map physSwVer = sSnmp.getAllMap(nb.getOid("physSwVer"), true);
+			Map physModelName = sSnmp.getAllMap(nb.getOid("physModelName"), true);
+			//Map physParentPos = sSnmp.getAllMap(nb.getOid("physParentRelPos"), true);
+
+			/*
+			  PhysicalClass
+			  1:other
+			  2:unknown
+			  3:chassis
+			  4:backplane
+			  5:container
+			  6:powerSupply
+			  7:fan
+			  8:sensor
+			  9:module
+			  10:port
+			  11:stack
+			*/
+			Map oidToModuleMapping = (Map)physClass.remove("OidToModuleMapping");
+			MultiMap classMap = util.reverse(physClass);
+			
+			// chassis
+			for (Iterator it = classMap.get("3").iterator(); it.hasNext();) {
+				String id = (String)it.next();
+				NetboxData nd = nc.netboxDataFactory(nb);
+				if (nd.getSerial() == null && physSerial != null && physSerial.containsKey(id)) nd.setSerial((String)physSerial.get(id));
+				if (physHwVer != null && physHwVer.containsKey(id)) nd.setHwVer((String)physHwVer.get(id));
+				if (physFwVer != null && physFwVer.containsKey(id)) nd.setFwVer((String)physFwVer.get(id));
+				if (physSwVer != null && physSwVer.containsKey(id)) nd.setSwVer((String)physSwVer.get(id));
+				break; // Only do first
+			}
+
+			// modules
+			for (Iterator it = classMap.get("9").iterator(); it.hasNext();) {
+				String id = (String)it.next();
+				int module;
+				try {
+					if (oidToModuleMapping != null && oidToModuleMapping.containsKey(id)) {
+						module = Integer.parseInt((String)oidToModuleMapping.get(id));						
+					} else {
+						module = Integer.parseInt(id);
+						if (module < 1000) continue;
+						module /= 1000;
+					}
+				} catch (NumberFormatException e) {
+					System.err.println("Working with " + nb + ", NumberFormatException: " + e);
+					e.printStackTrace(System.err);
+					continue;
+				}
+				Module m = mc.moduleFactory(module);
+
+				if (physSerial != null && physSerial.containsKey(id)) m.setSerial((String)physSerial.get(id));
+				if (physHwVer != null && physHwVer.containsKey(id)) m.setHwVer((String)physHwVer.get(id));
+				if (physFwVer != null && physFwVer.containsKey(id)) m.setFwVer((String)physFwVer.get(id));
+				if (physSwVer != null && physSwVer.containsKey(id)) m.setSwVer((String)physSwVer.get(id));
+
+				if (physModelName != null && physModelName.containsKey(id)) m.setModel((String)physModelName.get(id));
+				if (physDescr != null && physDescr.containsKey(id)) m.setDescr((String)physDescr.get(id));
+			}				
 		}
 
 		return true;
