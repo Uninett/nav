@@ -3,7 +3,7 @@
 Overvåkeren
 
 $Author: erikgors $
-$Id: job.py,v 1.24 2002/06/19 10:35:15 erikgors Exp $
+$Id: job.py,v 1.25 2002/06/20 10:04:02 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -319,12 +319,41 @@ class MysqlHandler(JobHandler):
 		self.setVersion(version)
 		return Event.UP, 'OK'
 
+class SmbHandler(JobHandler):
+	"""
+	args:
+		'username'
+		'password'
+		'port'
+	"""
+	def __init__(self, serviceid, boksid, ip, args, version):
+		address = (ip,args.get('port',139))
+		JobHandler.__init__(self,'smb',serviceid,boksid,address,args,version)
+	def execute(self):
+		args = self.getArgs()
+		username = args.get('username','')
+		password = args.get('password','')
 
+		if password and username:
+			s = '-U ' + username + '%' + password
+		else:
+			s = '-N'
+
+		ip,port = self.getAddress()
+		import os
+		status = os.system('smbclient -L %s -p %i %s 2>/dev/null > /dev/null' %(ip,port,s))
+
+		if status:
+			return Event.DOWN,'error %i' % status
+		else:
+			return Event.UP,'OK'
+		
 
 jobmap = {'http':HttpHandler,
 	  'port':PortHandler,
 	  'ftp':FtpHandler,
 	  'ssh':SshHandler,
 	  'dns':DnsHandler,
-	  'mysql':MysqlHandler
+	  'mysql':MysqlHandler,
+	  'smb':SmbHandler
 	  }
