@@ -54,6 +54,7 @@ navn varchar(50)
 create table bruker (
 id serial primary key,
 bruker varchar(10) not null,
+navn varchar(30) not null,
 mail varchar(40),
 tlf varchar(8),
 status varchar(5) not null default 'fri' check (status='fri' or status='aktiv'),
