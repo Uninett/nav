@@ -90,8 +90,7 @@ $gCT->Base($Common::global::gConfigRoot);
 $gCT->Warn(\&Warn);
 
 if (! $gCT->init()) {
-    die("Failed to open compiled config tree from " .
-        "gConfigRoot/config.db: $!");
+    die("Failed to open compiled config tree from gConfigRoot/config.db: $!\n If this is the first time you run makecricketconfig, try compile cricket ($cricketdir/cricket/compile)\n");
 }
 
 umask 007;
@@ -120,10 +119,12 @@ my $compiledir = "$cricketdir/cricket";
 my $configfile = ".nav";
 my $changelog = "$cricketdir/cricket-logs/changelog";
 
+my $viewfile = "$compiledir/view-groups";
+
 my %config; # stores navconfig for the configtree
 my %dshash; # stores the mapping between ds and ds-type
-my %targettypehash;
-my %rtargettypehash; # temporar hash for servers
+my %targetoidhash;
+my %rtargetoidhash; # temporar hash for servers
 my %rrdhash;
 
 my $step = 300;
@@ -150,6 +151,23 @@ while (my ($id,$txt) = $r->fetchrow) {
 }
 print "Done\n" if $ll >= 3;
 
+
+# Read the different view-groups into a hash
+my %viewarr;
+if (-e $viewfile) {
+    open (VIEW, $viewfile) or die ("Could not open $viewfile: $!\n");
+    while (<VIEW>) {
+	next unless /^view/;
+	m/view (\w+):(.*)/;
+	my $view = $1;
+	my @ds = split (" ", $2);
+	$viewarr{$view} = [ @ds ];
+    }
+    close VIEW;
+} else {
+    print "Could not find $viewfile, it should be in $compiledir...no views will be made.\n";
+}
+
 ########################################
 # Description of hashes
 ########################################
@@ -169,11 +187,11 @@ print "Done\n" if $ll >= 3;
 # we know what rrd-ds-type that is defined. Filled by using the parseDefaults sub.
 # Example: dshash{ifinctets} = COUNTER
 
-# targettypehash{targettype} = [datasources]
+# targetoidhash{targettype} = [datasources]
 # --------------------------------------
-# For each targettype we store the array of 
-# datasources that use to collect data.
-# Example (may be incorrect): RSM->[cpu1min,cpu5min,mem5minUsed,mem5minFree]
+# For each netbox we store the array of 
+# datasources used to collect data.
+# Example (may be incorrect): kjemi-gsw->[cpu1min,cpu5min,mem5minUsed,mem5minFree]
 
 # oidhash{id} = txt
 # --------------------------------------
@@ -234,10 +252,10 @@ foreach my $dir (@{ $config{'dirs'} } ) {
     next unless $continue;
 
     # Making serverconfig...it's still under testing.
-    if ($dir eq 'servers') {
-	&makeservers('servers');
-	next;
-    }
+#    if ($dir eq 'servers') {
+#	&makeservers('servers');
+#	next;
+#    }
 
     # interfaces are kinda standard so we have a fixed config for them.
     if ($config{$dir}{'interface'}) {
@@ -257,7 +275,7 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 # rrdhash that we have built.
 
 
-&fillRRDdatabase();
+# &fillRRDdatabase();
 
 #compiling
 umask 002;
@@ -427,7 +445,7 @@ sub parseDefaults {
 	# ---------------------------
 
 	# we first look for a targettype
-	if (m/^\s*targettype\s*(\w+)/i) {
+	if (m/^\s*targettype\s*(\S+)/i) {
 	    print "Found targettype >$1<.\n" if $ll >= 3;
 	    $tt = $1;
 	}
@@ -443,8 +461,8 @@ sub parseDefaults {
 
 	    my @dsarr = map $roidhash{$_}, @tmp;
 	    print "Pushing @dsarr on $tt\n" if $ll >= 3;
-	    $targettypehash{$tt} = [@dsarr];
-	    $rtargettypehash{$tt} = [@tmp];
+	    $targetoidhash{$tt} = [@dsarr];
+	    $rtargetoidhash{$tt} = [@tmp];
 	    @dsarr = ();
 
 	}
@@ -461,9 +479,9 @@ sub parseDefaults {
 ##################################################
 # createTargetTypes
 # --------------------
-# fetches all the types from the type-table, and
-# makes a targetType for every type based on the
-# data we find in the typesnmpoid-table.
+# fetches all the netboxes we are to make config
+# for and  makes a targetType for every type based
+# on the data we find in the netboxsnmpoid-table.
 #
 # Help functions: &parseDefaults, &compare, &makeTTs
 #
@@ -490,20 +508,25 @@ sub createTargetTypes {
 	$type = "catid='$type'";
     }
 
+    # Todo for new system - try 1
+    # - find all netboxes of give type (category)
+    # - foreach netbox, find all snmpoids (oidkey)
+    # - check if it is
+
     printf "Creating targetTypes for %s, based on %s .\n", $dir, join (",", @types) if $ll >= 2;
 
-    my $query = "SELECT typeid,typename FROM netbox LEFT JOIN type USING (typeid) WHERE (" . join ( " OR ", @types ) . ") AND typeid IS NOT NULL GROUP BY typeid,typename";
+    my $query = "SELECT netboxid,sysname FROM netbox WHERE (" . join ( " OR ", @types ) . ")";
     print "$query\n" if $ll >= 3;
     my $res = $dbh->exec($query);
 
     # For all the types, make a targetType
     # Use only the oids that are not interface-specific
-    while (my($typeid,$typename)=$res->fetchrow) {
-	print "\nFound type $typename.\n" if $ll >= 2;
+    while (my($netboxid, $sysname)=$res->fetchrow) {
+	print "\nFound netbox $sysname.\n" if $ll >= 2;
 	print "---------------------\n" if $ll >= 2;
 	
-	# Fetch the oids for this type
-	my $q = "SELECT snmpoidid FROM typesnmpoid WHERE typeid=$typeid";
+	# Fetch the oids for this netbox
+	my $q = "SELECT snmpoidid FROM netboxsnmpoid WHERE netboxid=$netboxid";
 	printf "%s\n", $q if $ll >= 3;
 	my $fetchoids = $dbh->exec($q);
 
@@ -539,19 +562,19 @@ sub createTargetTypes {
 	next if $#newtt < 0;
 
 	# checking is this targettype already exists in the config-file
-	if ($targettypehash{$typename}) {
+	if ($targetoidhash{$sysname}) {
 	    print "This targettype already exists, checking if it's equal.\n" if $ll >= 3;
-	    if (&compare($targettypehash{$typename}, [ @newtt ] )) {
+	    if (&compare($targetoidhash{$sysname}, [ @newtt ] )) {
 		print "They are equal.\n" if $ll >= 3;
 	    } else {
 		print "The new targettype does not match with the old, making new.\n" if $ll >= 3;
-		$newtts{$typename} = [@newtt];
-		$targettypehash{$typename} = [@newtt];
+		$newtts{$sysname} = [@newtt];
+		$targetoidhash{$sysname} = [@newtt];
 	    }
 	} else {
 	    print "This targettype does not exist, making new.\n" if $ll >= 3;
-	    $newtts{$typename} = [@newtt];
-	    $targettypehash{$typename} = [@newtt];
+	    $newtts{$sysname} = [@newtt];
+	    $targetoidhash{$sysname} = [@newtt];
 	}
 
 	@newtt = ();
@@ -621,7 +644,9 @@ sub makeTTs {
 		    print "Adding targettype $tt to file.\n" if $ll >= 3;
 		    printf CHANGELOG "Adding targettype %s to %s.\n", $tt, $path;
 		    print HANDLE "targetType $tt\n";
-		    print HANDLE "\tds\t=\t\"", join (",", map $oidhash{$_}, @{ $input{$tt} } ), "\"\n\n";
+		    print HANDLE "\tds\t= \"", join (",", map $oidhash{$_}, @{ $input{$tt} } ), "\"\n";
+		    print HANDLE &makeView( @{ $input{$tt} } );
+		    print HANDLE "\n\n";
 		}
 	    } else {
 		print "No new targettypes added.\n" if $ll >= 3;
@@ -683,7 +708,7 @@ sub makeTargets {
 	$type = "catid='$type'";
     }
 
-    my $query = "SELECT netboxid,ip,typename,sysname,ro,type.descr as typedescr, room.descr as roomdescr FROM netbox LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) WHERE (" . join ( " OR ", @types ) . ") AND up='y' ORDER BY sysname";
+    my $query = "SELECT netboxid,ip,sysname,ro, type.descr as typedescr , room.descr as roomdescr FROM netbox LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) WHERE (" . join ( " OR ", @types ) . ") AND up='y' ORDER BY sysname";
     print "$query\n" if $ll >= 3;
 
     my $res = $dbh->exec($query);
@@ -691,12 +716,11 @@ sub makeTargets {
     
     my %changes = ();
     my @changes = ();
-    while (my ($netboxid,$ip,$typename,$sysname,$ro,$typedescr,$roomdescr) = $res->fetchrow) {
-	next if !$typename;
+    while (my ($netboxid,$ip,$sysname,$ro,$typedescr,$roomdescr) = $res->fetchrow) {
 
 	# If we failed to make a targettype for this one, skip it.
-	unless ($targettypehash{$typename}) {
-	    print "Could not find a targettype for $typename, skipping $sysname.\n" if $ll >= 2;
+	unless ($targetoidhash{$sysname}) {
+	    print "Could not find a targettype for $sysname, skipping.\n" if $ll >= 2;
 	    next;
 	}
 
@@ -704,30 +728,30 @@ sub makeTargets {
 	# target $sysname
 	#     snmp-host = $ip
 	#     snmp-community = $ro
-	#     target-type = $typename
+	#     target-type = $sysname
 	#     short-desc = 
 	# We let Cricket do the sorting atm
 
 	# Making description - perhaps we should be more flexible here?
 	my $descr;
-	if ($typedescr && $roomdescr) {
+	if ($roomdescr) {
 	    $descr = join (", ", $typedescr,$roomdescr);
 	} else {
-	    $descr = $typedescr || $roomdescr;
+	    $descr = $typedescr;
 	}
 	$descr = "\"$descr\"";
 
 	# Storing info that we need later when we are going to 
 	# fill the rrd-db.
 	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'netboxid'} = $netboxid;
-	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'ds'} = $targettypehash{$typename};
+	$rrdhash{"$cricketconfigdir/$dir"}{$sysname}{'ds'} = $targetoidhash{$sysname};
 
 	push @changes, $sysname;
 
 	$filetext .= "target \"$sysname\"\n";
 	$filetext .= "\tsnmp-host\t=\t$ip\n";
 	$filetext .= "\tsnmp-community\t=\t$ro\n";
-	$filetext .= "\ttarget-type\t=\t$typename\n";
+	$filetext .= "\ttarget-type\t=\t$sysname\n";
 	$filetext .= "\tshort-desc\t=\t$descr\n\n";
 	print "Adding target \"$sysname\"\n" if $ll >= 2;
 
@@ -1330,7 +1354,7 @@ sub makeservers {
 	} else {
 	    $ds = "usersnix";
 	}
-	$rrdhash{$fullpath}{'users'}{'ds'} = $rtargettypehash{$ds};
+	$rrdhash{$fullpath}{'users'}{'ds'} = $rtargetoidhash{$ds};
 	print FIL "target \"users\"\n";
 	print FIL "\ttarget-type\t=\t$ds\n\n";
 
@@ -1338,14 +1362,14 @@ sub makeservers {
 	# PROCESSES
 	print FIL "target \"processes\"\n";
 	print FIL "\ttarget-type\t=\tprocesses\n\n";
-	$rrdhash{$fullpath}{'processes'}{'ds'} = $rtargettypehash{'processes'};
+	$rrdhash{$fullpath}{'processes'}{'ds'} = $rtargetoidhash{'processes'};
 
 
 	# LOAD
 	if($os ne $win32) {
 	    print FIL "target \"load\"\n";
 	    print FIL "\ttarget-type\t=\tloadnix\n\n";
-	    $rrdhash{$fullpath}{'load'}{'ds'} = $rtargettypehash{'loadnix'};
+	    $rrdhash{$fullpath}{'load'}{'ds'} = $rtargetoidhash{'loadnix'};
 	}
 
 
@@ -1359,7 +1383,7 @@ sub makeservers {
 	}
 	print FIL "target \"memory\"\n";
 	print FIL "\ttarget-type\t=\t$ds\n\n";
-	$rrdhash{$fullpath}{'memory'}{'ds'} = $rtargettypehash{$ds};
+	$rrdhash{$fullpath}{'memory'}{'ds'} = $rtargetoidhash{$ds};
 
 
 	# CPU
@@ -1370,14 +1394,14 @@ sub makeservers {
 	}
 	print FIL "target \"cpu\"\n";
 	print FIL "\ttarget-type\t=\t$ds\n\n";
-	$rrdhash{$fullpath}{'cpu'}{'ds'} = $rtargettypehash{$ds};
+	$rrdhash{$fullpath}{'cpu'}{'ds'} = $rtargetoidhash{$ds};
 
 
 	# ERROR
 	if($os eq $win32) {
 	    print FIL "target \"Error\"\n";
 	    print FIL "\ttarget-type\t=\terror\n\n";
-	    $rrdhash{$fullpath}{'error'}{'ds'} = $rtargettypehash{'error'};
+	    $rrdhash{$fullpath}{'error'}{'ds'} = $rtargetoidhash{'error'};
 	}
 
 	close FIL;
@@ -1412,7 +1436,7 @@ sub makeservers {
 		print FIL "\tshort-desc\t=\t\"$interface\"\n";
 		print FIL "\n";
 		$rrdhash{"$fullpath/interface"}{$name}{'netboxid'}= $id;
-		$rrdhash{"$fullpath/interface"}{$name}{'ds'} = $rtargettypehash{"interface"};
+		$rrdhash{"$fullpath/interface"}{$name}{'ds'} = $rtargetoidhash{"interface"};
 	    }
 	    close FIL;
 	}
@@ -1458,9 +1482,42 @@ sub makeservers {
 		print FIL "\n";
 
 		$rrdhash{"$fullpath/disk"}{$name}{'netboxid'}= $id;
-		$rrdhash{"$fullpath/disk"}{$name}{'ds'} = $rtargettypehash{"disk"};
+		$rrdhash{"$fullpath/disk"}{$name}{'ds'} = $rtargetoidhash{"disk"};
 	    }
 	    close FIL;
 	}
     }   
+}
+
+# Sorting the d
+sub makeView {
+
+    my @oids = @_;
+
+    # Ok, we have a list of oids to put into groups based on the
+    # %viewarr. We will return a hash where the groupnames are
+    # keys and the members of the group is a reference to an array
+
+    my @strings;
+
+    foreach my $group (keys %viewarr) {
+	my @temp = ();
+	foreach my $groupmember (@ { $viewarr{ $group } }) {
+	    foreach my $oid (@oids) {
+		if ($oidhash{$oid} eq $groupmember) {
+		    push @temp, $groupmember;
+		    printf "Pushing %s on %s\n", $groupmember, $group;
+		}
+	    }
+	}
+	if (@temp) {
+	    push @strings, "$group:". join (" ", @temp);
+	}
+    }
+
+    my $returnstring = "\tview\t= \"" . join(", ", @strings) . "\"";
+       
+    print "$returnstring\n";
+    return $returnstring;
+
 }
