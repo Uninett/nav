@@ -19,50 +19,96 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
+#          Stian Soiland <stain@itea.ntnu.no>
 #
 
-import optik
-import IPy
 import sys
+import socket
+try:
+    from optparse import OptionParser
+except ImportError:
+    from optik import OptionParser    
+import IPy
+from nav.statemon import debug
+# ignore "lack of config file"
+debug.setDebugLevel(1)
 from nav.statemon import megaping
 
+def resolve(host):
+    try:
+        resolved = socket.gethostbyaddr(host)
+        return resolved[0]
+    except socket.herror:
+        return host    
+
 def main():
-    usage = "usage: %prog [options] ip-range"
-    parser = optik.OptionParser(usage)
+    usage = "usage: %prog [options] ip-range [..]"
+    parser = OptionParser(usage)
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose",
                       help="Verbose output")
+    parser.add_option("-r", "--resolve",
+                      action="store_true", dest="resolve",
+                      help="Resolve DNS")
+    parser.add_option("-u", "--up",
+                      action="store_true", dest="up",
+                      help="Only print hosts that are up")
+    parser.add_option("-d", "--down",
+                      action="store_true", dest="down",
+                      help="Only print hosts that are down")
 
     (options, args) = parser.parse_args()
-    if len(args) != 1:
+    if not args:
         parser.error("incorrect number of arguments")
         sys.exit(1)
-    try:
-        ips = [str(x) for x in IPy.IP("%s" % args[0])]
-        # Remove first and last ip...
-        ips.pop(0)
-        ips.pop(-1)
-    except:
-        print "Invalid ip or ip range specified."
-        sys.exit(1)
+    ips = []    
+    while args:    
+        try:
+            moreips = [str(x) for x in IPy.IP("%s" % args.pop())]
+        except:
+            parser.error("Invalid ip or ip range specified.")
+            sys.exit(2)
+        else:
+            if len(moreips) > 2:
+                # Skip network address and broadcast 
+                moreips.pop(0)
+                moreips.pop(-1)
+            ips.extend(moreips)
+    if options.up and options.down:
+        parser.error("Pointless to combine --up and --down")    
 
     pinger = megaping.MegaPing()
     pinger.setHosts(ips)
-    print "Pinging %s hosts..." % len(ips)
+    if options.verbose:
+        print >>sys.stderr, "Pinging %s hosts..." % len(ips)
     usedtime = pinger.ping()
     noanswers = pinger.noAnswers()
-    if options.verbose:
+    if options.verbose or options.down:
         for (host, time) in noanswers:
-            print "%15s Request timed out..." % host
+            if options.resolve:
+                host = resolve(host)
+                format = "%s Request timed out..."
+            else:
+                format = "%15s Request timed out..."    
+            if options.down:
+                format = "%s"
+            print format % host
 
     answers = pinger.answers()
-    #answers.sort()
     for (host, time) in answers:
-        print "%15s answers in %3.3fms" % (host, float(time)*1000)
+        if options.resolve:
+            host = resolve(host)
+        if options.up:
+            print host
+        elif options.down:
+            pass    
+        else:
+            print "%15s answers in %3.3fms" % (host, float(time)*1000)
 
-    print "Answer from %s/%s hosts in %s sec" % (len(answers), len(ips), usedtime)
+    if options.verbose:
+        print >>sys.stderr, "Answer from %s/%s hosts in %s sec" % (
+                            len(answers), len(ips), usedtime)
             
 
 if __name__ == '__main__':
