@@ -89,7 +89,7 @@ class MessageListMessage:
     def __init__(self,id,title,description,last_changed,author,type,publish_start = None, publish_end = None, affected = "", downtime = "", units = 0):
         self.id = int(id)
         self.title = title
-        self.description = description
+        self.description = textpara(description)
         self.last_changed = last_changed.strftime(DATEFORMAT)
         self.author = author
         self.type = type
@@ -197,7 +197,7 @@ def equipmentformat(eqdict):
 
 def textpara(text):
     """ Formats the paragraphed text according to html syntax."""
-    text = re.sub("\n+", "</p><p>", text)
+    text = re.sub("(?:\n\r?)+", "</p><p>", text)
     return "<p>" + text + "</p>"
 
 class MaintListElement:
@@ -250,11 +250,26 @@ def getMaintTime(emotdid=None):
     
     maintenance = None
     if emotdid:
+        try:
+            emotdid = int(emotdid)
+        except:
+            emotdid = None
+    if emotdid:
         database.execute("select maint_start,maint_end from maintenance where emotdid=%d" % int(emotdid))
         maintenance = database.fetchone()
-    if maintenance:
-        start = maintenance[0]
-        end = maintenance[1]
+        if maintenance:
+            start = maintenance[0]
+            end = maintenance[1]
+        else:
+            database.execute("select publish_start,publish_end from emotd where emotdid=%d" % int(emotdid))
+            if maintenance:
+                maintenance = database.fetchone()
+                start = maintenance[0]
+                end = maintenance[1]
+            else:
+                start = DateTime.now()
+                end = DateTime.now() + DateTime.RelativeDateTime(days=+7)
+            
     else:
         start = DateTime.now()
         end = DateTime.now() + DateTime.RelativeDateTime(days=+7)

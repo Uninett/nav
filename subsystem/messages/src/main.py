@@ -109,7 +109,7 @@ def handler(req):
             output = home(req,"planned",path[1])
         else:
             output = home(req,"planned")   
-            
+
     elif path[0] == 'commit':
         output = commit(req)
     elif path[0] == 'cancel':
@@ -138,7 +138,7 @@ def handler(req):
 
     if output:
         req.content_type = "text/html" #maybe unneccesarry
-        req.write(output)
+        req.write(output+repr(req.session))
         return apache.OK
     else:
         return apache.HTTP_NOT_FOUND
@@ -406,13 +406,13 @@ def maintenance(req, id = None):
     args['path'] = [('Home','/'),
                     ('Messages',BASEPATH),
                     (title, None)]
-    if not req.session.has_key("message"):
-        req.session["message"] = {}
+    if not req.session.has_key("emotdmessage"):
+        req.session["emotdmessage"] = {}
     if id:
-        req.session["message"]["emotdid"] = int(id)
-    elif not req.session["message"].has_key("emotdid"):
-        req.session["message"]["emotdid"] = 0
-    emotdid = req.session["message"]["emotdid"]
+        req.session["emotdmessage"]["emotdid"] = int(id)
+    elif not req.session["emotdmessage"].has_key("emotdid"):
+        req.session["emotdmessage"]["emotdid"] = 0
+    emotdid = req.session["emotdmessage"]["emotdid"]
 
     if isinstance(emotdid, list):
         emotdid = emotdid[0]
@@ -551,46 +551,35 @@ def maintenance(req, id = None):
                     'value': donetext,
                     'enabled': True}
     args['doneaction'] = doneaction
-
     args['selectbox'] = selectbox
-
-    
-    # Maintenance start<->end
-    oneweek = str(DateTime.now() + DateTime.oneWeek)
-    oneday = str(DateTime.now() + DateTime.oneDay)
-    now = str(DateTime.now())
     
     body = ""
     args['title'] = title
     nameSpace = {'title': title, 'args': args}
 
-    ### PARSE INPUT
-    if req.form.has_key("cn_done"):
-        redirect(req,BASEPATH+"submit")
+    if len(req.form):
+        if req.form.has_key("maintstart_year") and req.form["maintstart_year"]:
+            req.session['emotdmessage']['maint_start'] = DateTime.DateTime(int(req.form["maintstart_year"]),int(req.form["maintstart_month"]),int(req.form["maintstart_day"]),int(req.form["maintstart_hour"]),int(req.form["maintstart_minute"])).strftime(DATEFORMAT)
+        if req.form.has_key("maintend_year") and req.form["maintend_year"]:
+            req.session['emotdmessage']['maint_end'] = DateTime.DateTime(int(req.form["maintend_year"]),int(req.form["maintend_month"]),int(req.form["maintend_day"]),int(req.form["maintend_hour"]),int(req.form["maintend_minute"])).strftime(DATEFORMAT)
 
-    elif len(req.form):
 
-        if not req.session.has_key('message'):
-            req.session['message'] = {}
+        if not req.session.has_key('emotdmessage'):
+            req.session['emotdmessage'] = {}
         if req.form.has_key("emotdid"):
             if isinstance(req.form["emotdid"],list):
                 emotdid = req.form["emotdid"][0]
             else:
                 emotdid = req.form["emotdid"]
-            req.session['message']['emotdid'] = emotdid
+            req.session['emotdmessage']['emotdid'] = emotdid
             
         if req.form.has_key("messagetitle"):
-            req.session['message']['title'] = req.form["messagetitle"]
+            req.session['emotdmessage']['title'] = req.form["messagetitle"]
         if req.form.has_key("messagedescription"):
-            req.session['message']['description'] = req.form["messagedescription"]
+            req.session['emotdmessage']['description'] = req.form["messagedescription"]
         if req.form.has_key("messagetype"):
-            req.session['message']['type'] = req.form["messagetype"]
-    
-        if req.form.has_key("maintstart_hour"):
-            req.session['message']['maint_start'] = DateTime.DateTime(int(req.form["maintstart_year"]),int(req.form["maintstart_month"]),int(req.form["maintstart_day"]),int(req.form["maintstart_hour"]),int(req.form["maintstart_minute"])).strftime(DATEFORMAT)
-        if req.form.has_key("maintend_hour"):
-            req.session['message']['maint_end'] = DateTime.DateTime(int(req.form["maintend_year"]),int(req.form["maintend_month"]),int(req.form["maintend_day"]),int(req.form["maintend_hour"]),int(req.form["maintend_minute"])).strftime(DATEFORMAT)
-        
+            req.session['emotdmessage']['type'] = req.form["messagetype"]
+           
         if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
             kind = None
             if req.form.has_key("cn_netbox"):
@@ -611,8 +600,13 @@ def maintenance(req, id = None):
                         if not req.session['equipment'].has_key(kind):
                             req.session['equipment'][kind] = []
                         req.session['equipment'][kind].append(m.group(1))
-        req.session.save()
-    if req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
+    req.session.save()
+
+    ### PARSE INPUT
+    if req.form.has_key("cn_done"):
+        redirect(req,BASEPATH+"submit")
+
+    elif req.form.has_key('cn_add_netboxes') or req.form.has_key('cn_add_rooms') or req.form.has_key('cn_add_locations'):
         redirect(req,BASEPATH+"add")
     else:
         # make page. one submit makes this script (maintenance method) both parsing input and redirect to this page for making the resulting page.
@@ -625,38 +619,47 @@ def maintenance(req, id = None):
         page.messagetitle = ""
         page.messagedescription = ""
         page.messagetype = ""
-        page.defined = 0
         page.equipment = {}
         page.newequipment = {}
         page.defined = 0
 
         emotdid = int(emotdid)
-    
-        if req.session.has_key('message') and req.session['message'].has_key('defined') and req.session['message']['defined']:
-            page.defined = 1
 
+        #fungerer uansett om emotdid er et tall
+        (dbmaintstart,dbmaintend) = getMaintTime(emotdid)
+        if req.session.has_key('emotdmessage') and req.session['emotdmessage'].has_key('maint_start') and req.session['emotdmessage']['maint_start']:
+            page.maintstart = [ int(stri) for stri in re.split("-|\ |:",req.session['emotdmessage']['maint_start'])]
+            #raise repr(dbmaintstart)+repr(page.maintstart)
         else:
-            page.messagelist = selectmessagelist()
-        (page.maintstart,page.maintend) = getMaintTime(emotdid)
+            page.maintstart = dbmaintstart
+            
+        if req.session.has_key('emotdmessage') and req.session['emotdmessage'].has_key('maint_end') and req.session['emotdmessage']['maint_end']:
+            page.maintend = [ int(stri) for stri in re.split("-|\ |:",req.session['emotdmessage']['maint_end'])]
+        else:
+            page.maintend = dbmaintend
+
         if emotdid:
             page.remove = 1
+            page.defined = 1
             page.equipment = equipmentlist(emotdid)
             database.execute("select title, description, type from emotd where emotdid=%d",(int(emotdid),))
             (page.messagetitle,page.messagedescription,messagetype) = database.fetchone()
         else:
+            page.messagelist = selectmessagelist()
             emotdid = 0
             try:
-                if req.session.has_key('message'):
-                    if req.session['message'].has_key('emotdid') and req.session['message']['emotdid']:
-                        emotdid = req.session['message']['emotdid']
-                    if req.session['message'].has_key('title') and req.session['message']['title']:
-                        page.messagetitle = req.session['message']['title']
-                    if req.session['message'].has_key('description') and req.session['message']['description']:    
-                        page.messagedescription = req.session['message']['description']
-                    if req.session['message'].has_key('type') and req.session['message']['type']:
-                        page.messagetype = req.session['message']['type']
+                if req.session.has_key('emotdmessage'):
+                    if req.session['emotdmessage'].has_key('emotdid') and req.session['emotdmessage']['emotdid']:
+                        emotdid = req.session['emotdmessage']['emotdid']
+                    if req.session['emotdmessage'].has_key('title') and req.session['emotdmessage']['title']:
+                        page.messagetitle = req.session['emotdmessage']['title']
+                    if req.session['emotdmessage'].has_key('description') and req.session['emotdmessage']['description']:    
+                        page.messagedescription = req.session['emotdmessage']['description']
+                    if req.session['emotdmessage'].has_key('type') and req.session['emotdmessage']['type']:
+                        page.messagetype = req.session['emotdmessage']['type']
             except:
                 raise repr(req.session)
+        req.session.save()
         if req.session.has_key('equipment'):
             page.newequipment = equipmentformat(req.session['equipment'])
         page.path = args['path']
@@ -667,15 +670,19 @@ def submit(req):
     """ A lot of parsing and session and data handling. This method is run when the SUBMIT button is pressed. """
     
     emotdid = 0
-    if req.session.has_key("message"): #do something
-        if req.session['message'].has_key("emotdid"):
+
+    if req.session.has_key("emotdmessage"): #do something
+
+        if req.session['emotdmessage'].has_key("emotdid"):
             try:
-                emotdid = int(req.session["message"]["emotdid"])
+                emotdid = int(req.session["emotdmessage"]["emotdid"])
             except:
                 emotdid = 0
         elif req.form.has_key("emotdid"): 
             emotdid = int(req.form["emotdid"])
+
         if emotdid: #update
+
             if req.session.has_key("equipment"):
                 equipment = req.session["equipment"]
                 database.execute("select key,value from emotd_related where emotdid=%d",(emotdid,))
@@ -697,10 +704,10 @@ def submit(req):
                 #        database.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
             messagemaintstart = ""
             messagemaintend = ""
-            if req.session['message'].has_key('maint_start') and req.session['message']['maint_start']:
-                messagemaintstart = req.session['message']['maint_start']
-            if req.session['message'].has_key('maint_end') and req.session['message']['maint_end']:
-                messagemaintend = req.session['message']['maint_end']
+            if req.session['emotdmessage'].has_key('maint_start') and req.session['emotdmessage']['maint_start']:
+                messagemaintstart = req.session['emotdmessage']['maint_start']
+            if req.session['emotdmessage'].has_key('maint_end') and req.session['emotdmessage']['maint_end']:
+                messagemaintend = req.session['emotdmessage']['maint_end']
             if messagemaintstart and messagemaintend:
                 database.execute("select emotdid from maintenance where emotdid=%s",(emotdid,))
                 maintenance = database.fetchone()
@@ -709,6 +716,7 @@ def submit(req):
                 else:
                     database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
         else: #new
+
             messagetitle = ""
             messagedescription = ""
             messagetype = ""
@@ -723,34 +731,34 @@ def submit(req):
             messagemaintend = ""
             emotdid = 0
             
-            if req.session['message'].has_key('title') and req.session['message']['title']:
-                messagetitle = req.session['message']['title']
-            if req.session['message'].has_key('description') and req.session['message']['description']:
-                messagedescription = req.session['message']['description']
-            if req.session['message'].has_key('detail') and req.session['message']['detail']:
-                messagedetail = req.session['message']['detail']
-            if req.session['message'].has_key('affected') and req.session['message']['affected']:
-                messageaffected = req.session['message']['affected']
-            if req.session['message'].has_key('downtime') and req.session['message']['downtime']:
-                messagedowntime = req.session['message']['downtime']
-#            if req.session['message'].has_key('author') and req.session['message']['author']:
-#                messageauthor = req.session['message']['author']
-#            if req.session['message'].has_key('last_changed') and req.session['message']['last_changed']:
-#                messagelast = req.session['message']['last_changed']
-            if req.session['message'].has_key('maint_start') and req.session['message']['maint_start']:
-                messagemaintstart = req.session['message']['maint_start']
-            if req.session['message'].has_key('maint_end') and req.session['message']['maint_end']:
-                messagemaintend = req.session['message']['maint_end']
-            if req.session['message'].has_key('publish_start') and req.session['message']['publish_start']:
-                messagepublishstart = req.session['message']['publish_start']
-            elif req.session['message'].has_key("maint_start"):
-                messagepublishstart = req.session['message']['maint_start']
-            if req.session['message'].has_key('publish_end') and req.session['message']['publish_end']:
-                messagepublishend = req.session['message']['publish_end']
-            elif req.session['message'].has_key("maint_end"):
-                messagepublishend = req.session['message']['maint_end']
-            if req.session['message'].has_key('type') and req.session['message']['type']:
-                messagetype = req.session['message']['type']
+            if req.session['emotdmessage'].has_key('title') and req.session['emotdmessage']['title']:
+                messagetitle = req.session['emotdmessage']['title']
+            if req.session['emotdmessage'].has_key('description') and req.session['emotdmessage']['description']:
+                messagedescription = req.session['emotdmessage']['description']
+            if req.session['emotdmessage'].has_key('detail') and req.session['emotdmessage']['detail']:
+                messagedetail = req.session['emotdmessage']['detail']
+            if req.session['emotdmessage'].has_key('affected') and req.session['emotdmessage']['affected']:
+                messageaffected = req.session['emotdmessage']['affected']
+            if req.session['emotdmessage'].has_key('downtime') and req.session['emotdmessage']['downtime']:
+                messagedowntime = req.session['emotdmessage']['downtime']
+#            if req.session['emotdmessage'].has_key('author') and req.session['emotdmessage']['author']:
+#                messageauthor = req.session['emotdmessage']['author']
+#            if req.session['emotdmessage'].has_key('last_changed') and req.session['emotdmessage']['last_changed']:
+#                messagelast = req.session['emotdmessage']['last_changed']
+            if req.session['emotdmessage'].has_key('maint_start') and req.session['emotdmessage']['maint_start']:
+                messagemaintstart = req.session['emotdmessage']['maint_start']
+            if req.session['emotdmessage'].has_key('maint_end') and req.session['emotdmessage']['maint_end']:
+                messagemaintend = req.session['emotdmessage']['maint_end']
+            if req.session['emotdmessage'].has_key('publish_start') and req.session['emotdmessage']['publish_start']:
+                messagepublishstart = req.session['emotdmessage']['publish_start']
+            elif req.session['emotdmessage'].has_key("maint_start"):
+                messagepublishstart = req.session['emotdmessage']['maint_start']
+            if req.session['emotdmessage'].has_key('publish_end') and req.session['emotdmessage']['publish_end']:
+                messagepublishend = req.session['emotdmessage']['publish_end']
+            elif req.session['emotdmessage'].has_key("maint_end"):
+                messagepublishend = req.session['emotdmessage']['maint_end']
+            if req.session['emotdmessage'].has_key('type') and req.session['emotdmessage']['type']:
+                messagetype = req.session['emotdmessage']['type']
                 
             
             ### get next emotdid
@@ -772,7 +780,7 @@ def submit(req):
                     database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
                
         req.session["equipment"] = {}
-        req.session["message"] = {}
+        req.session["emotdmessage"] = {}
         connection.commit()
         req.session.save()
     redirect(req,BASEPATH+"view/"+str(emotdid))
@@ -780,11 +788,11 @@ def submit(req):
 def cancelmaintenance(req):
 
     req.session["equipment"] = {}
-    req.session["message"] = {}
+    req.session["emotdmessage"] = {}
 
     req.session.save()
     
-    redirect(req,BASEPATH+"add/")
+    redirect(req,BASEPATH+"active/")
 
 
 def isdefault(a,b):
@@ -1000,19 +1008,19 @@ def commit(req):
             # database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
             database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
         elif req.form.has_key("cn_save_and_add"):
-            if not req.session.has_key("message") or not isinstance(req.session["message"],dict):
-                req.session["message"] = {}
-            req.session['message']['title'] = title
-            req.session['message']['description'] = description
-            req.session['message']['detail'] = detail
-            req.session['message']['affected'] = affected
-            req.session['message']['downtime'] = downtime
-            req.session['message']['author'] = author
-            req.session['message']['last_changed'] = last_changed.strftime(DATEFORMAT)
-            req.session['message']['type'] = type
-            req.session['message']['publish_start'] = start.strftime(DATEFORMAT)
-            req.session['message']['publish_end'] = end.strftime(DATEFORMAT)
-            req.session['message']['defined'] = 1
+            if not req.session.has_key("emotdmessage") or not isinstance(req.session["emotdmessage"],dict):
+                req.session["emotdmessage"] = {}
+            req.session['emotdmessage']['title'] = title
+            req.session['emotdmessage']['description'] = description
+            req.session['emotdmessage']['detail'] = detail
+            req.session['emotdmessage']['affected'] = affected
+            req.session['emotdmessage']['downtime'] = downtime
+            req.session['emotdmessage']['author'] = author
+            req.session['emotdmessage']['last_changed'] = last_changed.strftime(DATEFORMAT)
+            req.session['emotdmessage']['type'] = type
+            req.session['emotdmessage']['publish_start'] = start.strftime(DATEFORMAT)
+            req.session['emotdmessage']['publish_end'] = end.strftime(DATEFORMAT)
+            req.session['emotdmessage']['defined'] = 1
 
             req.session.save()
             
@@ -1065,3 +1073,4 @@ def remove(req,emotdid = 0):
         redirect(req,BASEPATH+"add/"+str(emotdid))
     else:
         redirect(req,BASEPATH+"add/")
+

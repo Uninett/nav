@@ -65,13 +65,12 @@ $makeDateTime("Start maintenance","maintstart",$maintstart[0],$maintstart[1],$ma
 $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2],$maintend[3],$maintend[4])
 </p>
 </div>
+<input type="submit" name="cn_done" value="Submit" />
 </form>
 <form action="$args['cancelaction']" method="post">
 <input type="submit" name="$args['cancel']['control']" value=$args['cancel']['value'] />
 </form>
-<form action="$args['doneaction']" method="post">
-<input type="submit" name="$args['done']['control']" value="$args['done']['value']" />
-</form>
+
 </div>
 #end block
 
@@ -88,7 +87,8 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 #def new
 <table style="font-size:11px;" cellspacing="10" cellpadding="0">
 <tr><td colspan="3">
-<label>Select message</label><br><select name="emotdid" onchange="this.form.submit()">
+<label>Select message</label><br>
+<select name="emotdid" onchange="this.form.submit()" >
 #if $emotdid==0:
 	<option value="0" selected="1">Compose new message</option>
 #else:
@@ -106,10 +106,11 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 #end for
 </select>
 </td></tr>
+
 <tr><td>
 <label>Title: </label><br><input type="text" name="messagetitle" size=34 value="$messagetitle" />
 </td><td>
-<label>Type: </label><br><select name="messagetype">
+<label>Type: </label><br><select name="messagetype" >
 #for $t in ("error","scheduled","info","internal")
 #set selected = ''
 #if $t==$messagetype
@@ -119,8 +120,9 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 #end for
 </select>
 </td></tr><tr>
+
 <td colspan=2>
-<label>Description: </label><br><textarea name="messagedescription" cols="40" rows="3">$messagedescription</textarea>
+<label>Description: </label><br><textarea name="messagedescription" cols="40" rows="3" >$messagedescription</textarea>
 </td>
 <td style="padding: 0px 0px 0px 25px;" valign=bottom>
 #set qs = SearchBoxTemplate()
