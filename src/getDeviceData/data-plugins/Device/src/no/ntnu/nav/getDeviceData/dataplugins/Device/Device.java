@@ -71,17 +71,29 @@ public class Device
 	/**
 	 * Set the the hardware version number of the physical device.
 	 */
-	public void setHwVer(String hwVer) { this.hw_ver = hwVer; }
+	public void setHwVer(String hwVer) {
+		if (hwVer != null && hwVer.length() > 0) {
+			this.hw_ver = hwVer;
+		}
+	}
 
 	/**
 	 * Set the the firmware version number of the physical device.
 	 */
-	public void setFwVer(String fwVer) { this.fw_ver = fwVer; }
+	public void setFwVer(String fwVer) {
+		if (fwVer != null && fwVer.length() > 0) {
+			this.fw_ver = fwVer;
+		}
+	}
 
 	/**
 	 * Set the the software version number of the physical device.
 	 */
-	public void setSwVer(String swVer) { this.sw_ver = swVer; }
+	public void setSwVer(String swVer) {
+		if (swVer != null && swVer.length() > 0) {
+			this.sw_ver = swVer;
+		}
+	}
 
 	/**
 	 * Return true if this device does not have a serial.

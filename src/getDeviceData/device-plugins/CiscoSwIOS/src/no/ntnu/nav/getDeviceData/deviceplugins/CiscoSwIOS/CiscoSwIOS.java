@@ -195,6 +195,7 @@ public class CiscoSwIOS implements DeviceHandler
 					String submod = m.group(4);
 					module = Integer.parseInt(module + submod);
 					realModule = module;
+					mc.moduleFactory(module);
 				}
 			}
 

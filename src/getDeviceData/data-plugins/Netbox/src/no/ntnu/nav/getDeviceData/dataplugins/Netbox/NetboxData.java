@@ -160,6 +160,16 @@ public class NetboxData extends Device
 						(sysname == null || sysname.equals(n.sysname)) &&
 						equalsUptime(n));
 	}
+
+	// Override to avoid Netbox/Module fighting over fields
+	public boolean equalsDevice(Device d) {
+		if (!(d instanceof NetboxData)) {
+			if (d.getHwVer() != null) setHwVer(d.getHwVer());
+			if (d.getFwVer() != null) setFwVer(d.getFwVer());
+			if (d.getSwVer() != null) setSwVer(d.getSwVer());
+		}
+		return super.equalsDevice(d);
+	}
 	
 	public boolean equals(Object o) {
 		return (o instanceof NetboxData && 

@@ -15,6 +15,7 @@ public class Module extends Device implements Comparable
 	private int moduleid;
 
 	private int module;
+	private String model;
 	private String descr;
 
 	/**
@@ -58,9 +59,15 @@ public class Module extends Device implements Comparable
 	public int getModule() { return module; }
 	String getModuleS() { return ((module < 10)?" ":"")+getModule(); }
 
+	public String getModel() { return model; }
 	public String getDescr() { return descr; }
 
 	boolean getIgnore() { return ignore; }
+
+	/**
+	 * Set the model of this module.
+	 */
+	public void setModel(String s) { model = s; }
 
 	/**
 	 * Set the description of this module.
@@ -79,6 +86,7 @@ public class Module extends Device implements Comparable
 	public boolean equalsModule(Module m) {
 		return (getDeviceid() == m.getDeviceid() &&
 						module == m.module &&
+						(model == null || model.equals(m.model)) &&
 						(descr == null || descr.equals(m.descr)));
 	}
 	
@@ -92,5 +100,5 @@ public class Module extends Device implements Comparable
 		Module m = (Module)o;
 		return new Integer(module).compareTo(new Integer(m.module));
 	}
-	public String toString() { return super.toString() + ", " + getModuleS() + " descr="+descr; }
+	public String toString() { return super.toString() + ", " + getModuleS() + " model="+model+" descr="+descr; }
 }

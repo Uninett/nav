@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
 import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.getDeviceData.Netbox;
@@ -114,6 +115,19 @@ public class CiscoSwCAT implements DeviceHandler
 			HashMap ifModule = new HashMap();
 			l = sSnmp.getAll(nb.getOid("ifName"), true);
 			if (l != null) {
+				// Count number of modules
+				Set moduleCntSet = new HashSet();
+				for (Iterator it = l.iterator(); it.hasNext();) {
+					String[] s = (String[])it.next();
+					String portif = s[1];
+					String modulePattern = "((.*)(\\d+))/(\\d+)";
+					if (portif.matches(modulePattern)) {
+						Matcher m = Pattern.compile(modulePattern).matcher(portif);
+						m.matches();
+						moduleCntSet.add(m.group(3));
+					}
+				}
+
 				for (Iterator it = l.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 
@@ -122,16 +136,29 @@ public class CiscoSwCAT implements DeviceHandler
 
 					// Determine and create the module
 					// Use *? because otherwise two digit numbers won't work!
-					String modulePattern = ".*?(\\d+)/(\\d+)";
+					//String modulePattern = ".*?(\\d+)/(\\d+)";
+					String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
 					if (portif.matches(modulePattern)) {
 						Matcher m = Pattern.compile(modulePattern).matcher(portif);
 						m.matches();
-						int module = Integer.parseInt(m.group(1));
+						int module = Integer.parseInt(m.group(3));
+
+						// If submodule then we add the submodule number to module as a string
+						if (util.groupCountNotNull(m) >= 6) {
+							String submod = m.group(4);
+							module = Integer.parseInt(module + submod);
+							mc.moduleFactory(module);
+						}
 
 						if (mc.getModule(module) == null) {
-							// Not allowed to create module
-							Log.w("PROCESS_CAT", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
-							continue;
+							if (module == 0 && moduleCntSet.size() == 1) {
+								module = 1;
+								mc.moduleFactory(1);
+							} else {
+								// Not allowed to create module
+								Log.w("PROCESS_CAT", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
+								continue;
+							}
 						}
 
 						SwModule swm = sc.swModuleFactory(module);

@@ -272,9 +272,11 @@ public class _3Com implements DeviceHandler
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String module = s[0];
-				String descr = s[1];
-				if (descrMap != null && descrMap.containsKey(module)) descr += " (" + descrMap.get(module) + ")";
-				sc.swModuleFactory(Integer.parseInt(module)).setDescr(descr);
+				String model = s[1];
+
+				Module swm = sc.swModuleFactory(Integer.parseInt(module));
+				swm.setModel(model);
+				if (descrMap != null && descrMap.containsKey(module)) swm.setDescr(String.valueOf(descrMap.get(module)));
 			}
 		}
 

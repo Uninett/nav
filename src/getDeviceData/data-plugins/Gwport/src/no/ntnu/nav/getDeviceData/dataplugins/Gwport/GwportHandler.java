@@ -94,12 +94,13 @@ public class GwportHandler implements DataHandler {
 			// Fill moduleMap from module, gwport
 			dumpBeginTime = System.currentTimeMillis();
 			Map m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,netboxid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,gwip FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) ORDER BY moduleid,gwportid");
+			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,netboxid,module,model,descr,gwportid,ifindex,interface,masterindex,speed,ospf,gwip FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
 				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
 				gwm.setDeviceid(rs.getInt("deviceid"));
 				gwm.setModuleid(rs.getInt("moduleid"));
+				gwm.setModel(rs.getString("model"));
 				gwm.setDescr(rs.getString("descr"));
 
 				int moduleid = rs.getInt("moduleid");
