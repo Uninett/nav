@@ -288,10 +288,16 @@ DROP SEQUENCE cam_camid_seq;
 DROP SEQUENCE port2pkt_id_seq; 
 DROP SEQUENCE pkt2rom_id_seq;
 
+CREATE TABLE boksmac_cache (
+  boksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET NULL,
+  mac VARCHAR(12) NOT NULL,
+  UNIQUE(boksid, mac)
+);
+
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks ON UPDATE SET NULL,
-  prefiksid INT4 REFERENCES prefiks ON UPDATE SET NULL,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
+  prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET NULL,
   kilde VARCHAR(20) NOT NULL,
   ip VARCHAR(15) NOT NULL,
   ip_inet INET NOT NULL,
@@ -303,13 +309,18 @@ CREATE INDEX arp_ip_inet_btree ON arp USING btree (ip_inet);
  
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
+  boksid INT4 REFERENCES boks ON UPDATE CASCADE ON DELETE SET NULL,
+  sysName VARCHAR(30) NOT NULL,
+  modul VARCHAR(4) NOT NULL,
+  port INT2 NOT NULL,
   mac VARCHAR(12) NOT NULL,
-  boks VARCHAR(15) NOT NULL,
-  unit VARCHAR(2) NOT NULL,
-  port VARCHAR(2) NOT NULL,
   fra TIMESTAMP NOT NULL,
-  til TIMESTAMP
+  til TIMESTAMP,
+  UNIQUE(boksid,sysName,modul,port,mac,fra)
 );
+CREATE INDEX cam_mac_hash ON cam USING hash (mac);
+CREATE INDEX cam_til_hash ON cam USING hash (til);
+CREATE INDEX cam_til_btree ON cam USING btree (til);
  
 CREATE TABLE port2pkt (
   id SERIAL PRIMARY KEY,
@@ -405,9 +416,12 @@ GRANT ALL    ON swportvlan_swportvlanid_seq TO getBoksMacs;
 GRANT SELECT,UPDATE ON gwport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
+GRANT ALL    ON boksmac_cache TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
 GRANT ALL    ON swp_boks_swp_boksid_seq TO getBoksMacs;
 GRANT ALL    ON swportblocked TO getBoksMacs;
+GRANT ALL    ON cam TO getBoksMacs;
+GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 
 GRANT SELECT ON boks TO navadmin;
 GRANT SELECT ON type TO navadmin;
