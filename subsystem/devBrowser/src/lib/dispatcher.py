@@ -36,11 +36,7 @@ def handler(req):
             #  quick patch to except
             (a,b) = req.args.split("=")
             redirect(req, '/browse/%s' % b)
-            
-        req.send_http_header()
-        req.write(req.uri)
-        req.write("\n")
-        req.write("Dette er forsiden.. q-Pakh'")
+        redirect(req, '/report')    
         return apache.OK
     try:  
         import nav
@@ -72,12 +68,20 @@ def handler(req):
         req.session.save()
     except RedirectError, error:
         redirect(req, error.args[0])
+    except apache.SERVER_RETURN, error:
+        # don't catch-all these
+        raise error
+    except Exception, error:
+        result = html.Paragraph("""We're terribly sorry, but something went wrong.. :(""")
+        warns.append(repr(error) + "\n" + str(error))
     
     # postpend the warnings
     if warns:    
         # Wrap it so we can add more
         result = html.Division(result)
         for warn in warns:
+            warn = warn.replace("<", "&lt;")
+            warn = warn.replace(">", "&gt;")
             message = html.Pre(warn, _class="warning")
             result.append(message)
     
