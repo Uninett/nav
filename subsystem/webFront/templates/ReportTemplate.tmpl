@@ -1,8 +1,8 @@
+## $Id: $
 ##
-## ReportTemplate.tmpl
+## This file is part of the NAV project.
 ##
 ## Extends the MainTemplate for header-information, nav-logo and navigation-bar.
-##
 ## Builds html for the Report Generator with data in this form:
 ##
 ## $report
@@ -28,30 +28,28 @@
 ## The template uses images in $imagefolder/ragen/, where $imagefolder
 ## is inherited from MainTemplate and defaults to "/images".
 ##
-## Last changed: 2003.06.25
-## Author: Magnar Sveen (magnars@idi.ntnu.no)
+## This template can easily be used for other tables, as long as the indata is
+## structured in the same way. To change the watermark-logo, change the $logo attribute.
+## To illustrate:
+##
+##   import ReportTemplate from foo.bar.ReportTemplate
+##   page = ReportTemplate()
+##   page.report = fillReportWithData()
+##   page.logo = "/foo/bar.gif"
+##
+## Author: Magnar Sveen <magnars@idi.ntnu.no>
 ##
 
 #extends MainTemplate
 
+#attr $logo = "ragen/logo+fill.gif"
+
 #block additionalCSS
-      DIV.title { font-size: 15; font-weight: bold; text-align: center; padding: 0px 0px 0px 0px}
-
-      TR.navigation { font-size: 11; }
-      TD.previous { text-align: right; }
-      TD.current  { text-align: center; }
-      TD.next     { text-align: left; }
-
-      TR.header { background-image:url('$imagefolder/ragen/navbar-fill.gif'); background-repeat: repeat-x; height: 26px; padding: 1px 0px 0px 0px; }
-
-      TR.header { font-size: 13; background-color: #eeeeee; }
-      TR.footer { font-size: 13; font-weight: bold; background-color: white; }
-
-      TR.evenrow { font-size: 11; background-color: #eeeeee; }
-      TR.oddrow  { font-size: 11; }
+$default_table_CSS()
 #end block additionalCSS
 
 #block additionalJavaScript
+## preload images for navigation images onMouseOver
       image1 = new Image();
       image1.src = "$imagefolder/ragen/previous-active.gif";
       image2 = new Image();
@@ -63,11 +61,16 @@
 #end block additionalJavaScript
 
 #block content
+
+## ----------------------------------------------------------------------- REPORT ---- ##
 #if $report
-  <table class="title" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-image:url('$imagefolder/ragen/logo+fill.gif'); background-repeat: no-repeat; ">
+#set $rows = len($report.table.rows) + 2
+  <table border="0" cellspacing="0" cellpadding="0">
+
+## -------------------------------------------------------------------- TITLE ROW ---- ##
+#set $columns = len($report.table.header.cells) + 1
     <tr class="title">
-      <td width="9"> </td>
-      <td class="title" align="center">
+      <td class="title" align="center" colspan="$columns" style="background-image:url('$imagefolder/$logo'); background-repeat: no-repeat;">  
         <table class="navigation" cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="previous">
@@ -99,14 +102,15 @@
           </tr>
         </table>
       </td>
-      <td style="background-image:url('$imagefolder/ragen/top-end.gif'); background-repeat: no-repeat; " width="9"> </td>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
     </tr>
-  </table>
-  <table class="results" width="100%" border="0" cellspacing="0" cellpadding="0">
+## ------------------------------------------------------------------- HEADER ROW ---- ##
     <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="9999"><img src=$imagefolder/blank.gif"" width=14 height=1 alt="" /></td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
 #for $cell in $report.table.header.cells
-      <td class="header" valign="top" style="padding: 0px 10px 0px 0px; ">
+      <td class="header" valign="top" bgcolor=white nowrap >
 #if $cell.uri
         <a href="$cell.uri" class="navbar" title="$cell.explanation">
 #else
@@ -116,8 +120,11 @@
         </a>&nbsp;
       </td>
 #end for
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-repeat: no-repeat; width: 14px;" rowspan="9999"><img src=$imagefolder/blank.gif"" width=14 height=1 alt="" /></td>
+      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </td>
     </tr>
+## -------------------------------------------------------------------- DATA ROWS ---- ##
 #set $evenrow = 0
 #for $row in $report.table.rows
 #if $evenrow
@@ -147,8 +154,11 @@
 #end for
     </tr>
 #end for
+#if $report.table.footer
+## ------------------------------------------------------------------- BLACK LINE ---- ##
 #set $cols = len($report.table.header.cells)
     <tr bgcolor="black"><td colspan="$cols"><img src="$imagefolder/blank.gif" height="1" width="1" alt="" /></td></tr>
+## ----------------------------------------------------------------------- FOOTER ---- ##
     <tr class="footer">
 #for $cell in $report.table.footer.cells
       <td class="footer">
@@ -158,12 +168,10 @@
       </td>
 #end for
     </tr>
-  </table>
-
-  <table class="navigation" width="100%" border="0" cellspacing="0" cellpadding="0">
+#end if
+## ------------------------------------------------------------ FOOTER NAVIGATION ---- ##
     <tr class="navigation" style="background-image:url('$imagefolder/ragen/bottom-fill.gif'); background-repeat: repeat-x;">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/bottom-start.gif'); background-repeat: no-repeat; width: 10px"></td>
-      <td class="navigation" align="center">
+      <td class="navigation" colspan="$columns" bgcolor="white" align="center" style="background-image:url('$imagefolder/ragen/bottom-start.gif'); background-repeat: no-repeat; ">
         <table cellspacing="0" cellpadding="0" border="0">
           <tr class="navigation">
             <td class="previous">
