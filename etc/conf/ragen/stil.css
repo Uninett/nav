@@ -1,0 +1,12 @@
+p, a, td { 
+        font-family: Verdana,Geneva,Arial,Helvetica,sans-serif; 
+        text-decoration : none;
+        font-size: 10pt; 
+        }
+	
+td{
+	padding-left:1em;
+}
+input {
+	border: 0;
+}
