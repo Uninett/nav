@@ -1,38 +1,25 @@
-/* Stilsett for NAV front-end.
- *	her kan man gjore endring som endrer utseende på hele NAV portalen. Hvis man
- * onsker å endre utseende bor det gjores i denne CSS filen, ikke i html koden.
- *
- */
+@import url("listing.css");
 
+/*
+ * NAVuser main stylesheet
+ */
 .ilink {
 	cursor:crosshair;
 }
 
 
-/* Utseende av linker */
-
-A:link, A:visited {
-	color: #333333
-}
-
-P A:active, P A:hover {
-	color: #993333
-}
-
-A {
-	text-decoration: none
-}
-
 A.sort:link, A.sort:visited {
-	color: #CCCCCC
+        color: #CCCCCC
 }
 
 A.sort:active, A.sort:hover {
-	color: #FF9999
+        color: #FF9999
+}
+TABLE.listingTable TH {
+	color: #999;
 }
 
-
-/* Boksen under periode som man endrer tidsperiodeinstillingene paa */
+/* Period box for time settings.. */
 
 .endreboks {
 	background-color: #FFFFCC;
@@ -44,50 +31,52 @@ A.sort:active, A.sort:hover {
 	border-color: #000000
 }
 
-/* Dokument utseende */
+/* Visual Document */
 
 BODY { 
-	background : #FFFFFF;
-	color : #000000;
-	font-family : arial, sans-serif;
-	margin : 1.4em
+
 }
 .main {
 	text-align : left;
 	width : 80%
 }
-
-.meny {
-	width : 100%;
-	border : 1px groove #000000;
-	margin : 0px 0px 10px 0px;
-	background : #CCCCFF
-}
-
-.mainWindow {
-	margin : 0px 0px 10px 0px;
-	background : #ffffdd;
-	border : 1px groove #000000
-}
-
 .feilWindow {
 	margin : 2px 2px 22px 2px;
 	background : #FFFF00;
 	border : 1px groove #000000
 }
-
-.menyHead {
-	font-weight : bold;
-	background : #336699;
-	color : #CCCCCC;
-	text-align : center
+.meny {
+	width : 100%;
+	border : thin solid #666;
+	margin : 0px 0px 10px 0px;
+	background : #dedede;
+	background-image:url('/images/toolbox/module-fill.gif'); 
+	background-repeat: repeat;
 }
 
-.mainWindowHead {
+.menyHead {
+	border: thin solid #666;
 	font-weight : bold;
-	color : #ffffdd;
-	background : #003366;
-	text-align : center
+	background : #ddd;
+	color : black;
+	text-align : center;
+	background-image:url('../images/backgroundpattern.png'); 
+	background-repeat: repeat;	
+}
+
+.mainWindow {
+	margin : 0px 0px 10px 0px;
+	background : #fffafa;
+	border : 1px groove #000000
+}
+.mainWindowHead {
+	border: thin solid #666;
+	font-weight : bold;
+	background : #ddd;
+	color : black;
+	text-align : center;
+	background-image:url('../images/backgroundpattern.png'); 
+	background-repeat: repeat
 }
 
 INPUT.subm {
@@ -103,11 +92,10 @@ INPUT.fieldOne {
 }
 
 P.nop {
-	margin-bottom: 0em
+	margin-bottom: 0px
 }
 
 P.descr {
-	font-family: arial, sans-serif;
 	color: #333333;
 	font-size: 0.9em;
 	margin: 0em
@@ -115,7 +103,7 @@ P.descr {
 
 .oversikt { 
 	background : #dddddd;
-	border : 1px groove #000000
+	border : thin solid #666;
 }
 
 P, TD, TH, TR, LI {
@@ -145,4 +133,69 @@ h3 {
 }
 
 .noCSS { display: none }
+
+
+
+
+
+/* LISTING */
+.listingTable {
+	border: thin solid #666;
+  margin : 2px 2px 2px 2px;
+}
+
+.listingLabel {
+  background : #336699;
+  font-size: 0.8em;
+  font-weight : bold;
+}
+
+.listingRowA {
+  background : #d0d0d0
+}
+
+.listingRowB {
+  background : #f5f5f5
+}
+
+.listingHL {
+  background : #cc9999
+}
+
+.listingField {
+
+	border-width: thin;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	border-color: #999999;
+
+  padding-left: 0px;
+  padding-right: 0px;
+  font-size: 0.7em; 
+}
+/* LISTING */
+
+
+* {
+	font-family: verdana, arial, helvetica, sans-serif;
+}
+
+BODY { 
+	background-image:url('/images/main/background-fill.gif');
+	background-repeat: repeat-x;
+	background-color: white; 
+}
+
+A.navbar         { color: #000000; text-decoration: none; font-size: 13; }
+A.navbar:visited { color: #000000; text-decoration: none; }
+A.navbar:hover   { color: #336699; text-decoration: none; }
+A.navbar:active  { color: #4477AA; text-decoration: none; }
+
+A         { color: #336699; text-decoration: none; }
+A:visited { color: #336699; text-decoration: none; }
+A:hover   { color: #000000; text-decoration: underline; }
+A:active  { color: #6699CC; text-decoration: none; }
+
 

@@ -5,14 +5,11 @@
  * - Denne inneholder authentiseringsrutinene for portalen til NAV.
  *
  *
-
  * Dette er et generelt bibliotek for å lagre sesjonsvariable,
  *	grunnen til at det er lagt i eget bibliotek er at php har endret litt
  *  på funksjonsnavnene for å lage sesjonsvariable og da er det enklere å endre
  *  ett sted enn 100. 
- 
  */
-
 
 
 /* 
@@ -51,41 +48,43 @@ class Error {
 global $login;
 $login = false;
 
-
-
   /*
-   * Denne seksjonen omhandler brukere som allerede er innlogget
+   * Already logged in
    */
-
-
 if ( session_get('login') ) {
-        $login = true;	
+	$login = true;	
+}
+if (!isset($_ENV['REMOTE_USER'])) {
+    $dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
+    $login = false;
+    session_set('login', false);
 }
 
 /*
-* Denne seksjonen omhandler innlogging for første gang
+* First time login to NAVuser..
 */
-if (isset($username)) {
+if (isset($_ENV['REMOTE_USER'] ) AND
+	( session_get('login') == false  OR 
+		(session_get('login') AND (session_get('bruker') != $_ENV['REMOTE_USER']) 
+		)
+	) ) {
 
-    $username = addslashes($username);
-    $passwd = addslashes($passwd);
+	//hogecho "Bruker:" . session_get('bruker') . ":   ENV:" . $_ENV['REMOTE_USER'] . ":";
+
+    $username = $_ENV['REMOTE_USER'];
 
     $querystring = "
 SELECT Account.id AS aid, Preference.admin, ap.value 
-FROM Preference, Account LEFT OUTER JOIN (
-SELECT accountid, property, value FROM AccountProperty WHERE property = 'language' 
-) AS ap ON 
+FROM Preference, Account 
+	LEFT OUTER JOIN (
+		SELECT accountid, property, value FROM AccountProperty WHERE property = 'language' 
+	) AS ap ON 
     (Account.id = ap.accountid) 
-WHERE (Account.login = '$username' AND password = '$passwd') AND 
+WHERE (Account.login = '$username') AND 
     (Account.id = Preference.accountid) ";
 
    //echo "<p>Query: " . $querystring;
-   /*
-    echo "<pre>lsdkfjsdlkfj";
-    print_r($dbcon);
-    print_r($dbinit);
-    echo "</pre>\n";
-*/
+
     if (! $query = pg_exec($dbh->connection, $querystring)  ) {
         $error = new Error(2);
         $error->message = gettext("Feil med datbasespørring.");
@@ -107,16 +106,12 @@ WHERE (Account.login = '$username' AND password = '$passwd') AND
             }
         } else {
             $error = new Error(1);
-            $error->message = gettext("Du skrev inn feil brukernavn eller passord, forsøk igjen...");
+            $error->message = gettext("Inkonsistens i databasen. Du er korrekt innlogget, men brukeren din er ikke konfigurert riktig for å kunne fungere med NAV Alert. Ta kontakt med systemadministrator.");
         }
     }
 }
 
 
-if ($action == "logout") {
-    $dbh->nyLogghendelse(session_get('uid'), 2, gettext("Logget ut") );
-    $login = false;
-    session_set('login', false);
-}
+
 
 ?>

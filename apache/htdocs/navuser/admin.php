@@ -16,7 +16,7 @@ echo gettext("Legg til ny bruker") . "</a>";
 echo "<p>";
 
 if (get_get('subaction') == 'endre') {
-	session_set('endrebrukerid', get_get('cuid'));
+    session_set('endrebrukerid', get_get('cuid'));
 }
 
 

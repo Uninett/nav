@@ -1,4 +1,15 @@
 <?php 
+/*
+ *	index.php
+ *
+ *	Main file for NAVuser. All submodules will be called from this file.
+ *
+ */
+
+
+// Report all errors except E_NOTICE
+error_reporting (E_ALL ^ E_NOTICE);
+
 require("session.php");
 require("databaseHandler.php");
 require("dbinit.php");
@@ -9,7 +20,7 @@ header("Content-Type: text/html; charset=utf-8");
 
 
 // I18N support information here
-$language = 'no';
+$language = 'en';
 
 if ($login) {
 	$language = session_get('lang');
@@ -39,23 +50,49 @@ require("listing.php");
 <html>
 
 <head>
-<title><?php echo gettext('NAVprofiles'); ?></title>
-<style type="text/css" media="all">@import "css/stil.css";</style>
-<style type="text/css" media="all">@import "css/listing.css";</style>
+<title><?php echo gettext('NAVuser'); ?></title>
 <link rel="stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">
-<link rel="css/stylesheet" type="text/css" media="all" charset="utf-8" href="css/listing.css">
-
+<style type="text/css" media="all">@import "css/stil.css";</style>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
-<table width="100%">
-<tr><td align="left">
-<a href="index.php">
-<img border="0" src="images/nav4.jpg" alt="Topplogo">
-</a>
-</td></tr>
-</table>
+
+
+    <div style="position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('/images/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
+    <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
+      <table cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Preferences</a></td>
+          <td width="0%" valign="top"><img src="/images/main/navbar-separator.gif" alt="" /></td>
+          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="/index.py/toolbox">Toolbox</a></td>
+          <td width="0%" valign="top"><img src="/images/main/navbar-separator.gif" alt="" /></td>
+	  <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;"><a class="navbar" href="#">Useradmin</a></td>
+          <td width="0%" valign="top"><img src="/images/main/quicklink-start.gif" alt="" /></td>
+          <td width="0%" valign="top" style="background-image:url('/images/main/quicklink-fill.gif'); background-repeat: none">
+          <select>
+            <option> Choose a tool </option>
+            <option> Network Explorer </option>
+	    <option> VlanPlot </option>
+	    <option> RaGen </option>
+	    <option> Cricket </option>
+	    <option> Device Browser </option>
+	  </select>
+          </td>
+          <td width="0%" valign="top"><img src="/images/main/quicklink-end.gif" alt="" /></td>
+          <td width="100%" valign="top" align="right"><img src="/images/main/navbar-separator.gif" alt="" /></td>
+          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index.py/logout">Logout</a></td>
+      </tr>
+    </table>
+  </div>
+
+  <img src="/images/blank.gif" height="100" alt="blank"><br>
+
+
+
+
+
+
 
 <table width="100%">
 <tr><td valign="top" width="20%">
@@ -73,7 +110,7 @@ print "<br>Nlogin:" . $login;
 
 
 /* 
- * Dette er en generell feilmeldingsklasse. 
+ * Menu class
  */
 class Meny {
 	var $level;
@@ -140,7 +177,7 @@ class Meny {
 ?>
 
 <table class="meny">
-<tr class="menyHead"><td>
+<tr><td class="menyHead">
 <p><?php echo gettext('NAV Meny'); ?>
 </td></tr>
 
@@ -166,8 +203,8 @@ $meny->newOption(gettext("WAP-oppsett"), "wap", 1, array('wap.php') );
 $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
 
 print "<p>";
-$meny->newOption(gettext("Brukere"), "admin", 50, array('admin.php') );
-$meny->newOption(gettext("Brukergrupper"), "gruppe", 100, array('gruppe.php') );
+$meny->newOption(gettext("Brukere"), "admin", 1000, array('admin.php') );
+$meny->newOption(gettext("Brukergrupper"), "gruppe", 1000, array('gruppe.php') );
 $meny->newOption(gettext("Felles Utst.grp."), "futstyr", 100, array('fellesutstyr.php') );
 $meny->newOption(gettext("Felles Utst.filter"), "ffilter", 100, array('fellesfilter.php') );
 $meny->newOption(gettext("Adm. match-felt"), "filtermatchadm", 100, array('filtermatchadm.php') );
@@ -187,7 +224,7 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 
 
 <table class="meny">
-<tr class="menyHead"><td>
+<tr><td class="menyHead">
 <p><?php echo gettext('Innlogging'); ?>
 </td></tr>
 
@@ -201,19 +238,11 @@ $meny->newModule('brukertilgruppe', 50, array('velgbrukergrupper.php') );
 
 if ( $login) {
   print "<p>" . gettext("Du er logget inn som ") . session_get('bruker');
-  print "<p><a href=\"index.php?action=logout\">" . gettext("Logg ut") . "</a>";
+//  print "<p><a href=\"index.php?action=logout\">" . gettext("Logg ut") . "</a>";
 } else {
-  print "<p>" . gettext("Du er <b>ikke</b> logget inn.");
-  print "<p class=\"field\">";
-  print "<form method=\"post\" action=\"index.php\">";
-  print "<INPUT type=\"text\" class=\"fieldOne\" name=\"username\" value=\"";
-  if (isset($username)) print $username; else print "bruker";
-  print "\"><br>";
-  print "<INPUT type=\"password\" class=\"fieldOne\" name=\"passwd\"><br>";
-  print "<INPUT type=\"submit\" class=\"subm\" name=\"submit\" value=\"" . gettext("Logg inn") . "\">";
-  print "</FORM>";
+	echo "<p>" . gettext("Du er dessverre ikke innlogget korrekt.");
 }
-  
+
 ?>
 
 </td></tr>
@@ -223,14 +252,14 @@ if ( $login) {
 
 
 <table class="meny">
-<tr class="menyHead"><td>
+<tr><td class="menyHead">
 <p><?php
 	echo gettext("Velg språk");
 ?>
 </td></tr>
 
 
-<!-- ************* SPRÅK HÅNDTERING ************* -->
+<!-- ************* LANGUAGE HANDLING ************* -->
 <tr><td>
 <?php
 
@@ -276,59 +305,17 @@ if ($langset) {
 
 
 
-<table class="meny">
-<tr class="menyHead"><td>
-<p><?php echo gettext('Kontakt'); ?>
-</td></tr>
-
-<tr><td>
-
-<p>
-<b>Uninett AS</b><br>
-Teknobyen<br>
-Abelsgate 5<br>
-7030 Trondheim
-<p>
-<?php 
-echo gettext("Tlf: 73 55 79 00"); 
-echo "<br>";
-echo gettext("Fax: 73 55 79 01");
-echo "<p>"; 
-echo gettext("Epost:");
-echo "<br>";
-?>
-<small><a href=mailto:info@uninett.no>info@uninett.no</a></small>
-
-</td></tr>
-</table>
-
-<table class="meny">
-<tr class="menyHead"><td>
-<p><?php
-	echo gettext("HTML og CSS");
-?>
-</td></tr>
-
-<tr><td>
-<P align="center"><a href="http://validator.w3.org/check/referer"><img border="0" src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!" height="31" width="88"></a><br>
-
-<a href="http://jigsaw.w3.org/css-validator/"><img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a></p>
-
-</td></tr>
-</table>
-
 
 
 <div class="noCSS">
 <table class="meny">
-<tr class="menyHead"><td>
+<tr><td class="menyHead">
 <?php
 echo '<p><b>' . gettext('StyleSheets') . '</b>';
 echo '</td></tr>';
 echo '<tr><td>';
 echo '<p>';
-echo gettext("Du har en nettleser som ikke støtter stylesheets. 
-Vi anbefaler bruk av en nettleser som støtter stylesheets.");
+echo gettext("Du har en nettleser som ikke støtter stylesheets. Vi anbefaler bruk av en nettleser som støtter stylesheets.");
 ?>
 </td></tr>
 </table>

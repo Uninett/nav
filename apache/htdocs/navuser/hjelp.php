@@ -7,15 +7,11 @@
 <?php
 include("loginordie.php");
 loginOrDie();
-
-echo "<p>" . gettext("Har du problemer med å få til noe med NAV webgrensesnittet skal du kunne finne hjelp her.");
-echo '<p>[ <a href="">' . gettext("Last ned") . '</a> ] ' . gettext("brukermanual i PDF-format.");
+echo '<h1>Brukermanual</h1>';
+echo '<p><img src="icons/pdf_icon.png" alt="PDF format">';
+echo '[ <a href="documents/NAValert-manual.pdf">' . gettext("Last ned") . '</a> ] ' . gettext("brukermanual i PDF-format.");
 
 ?>
-<h2><?php echo gettext('Introduksjon'); ?></h2>
-<?php echo gettext('<p>Hei'); ?>
-<h2><?php echo gettext('FAQ'); ?></h2>
-<?php echo gettext('<p>Q: Foo<p>A: Bar'); ?>
 
 </td></tr>
 </table>

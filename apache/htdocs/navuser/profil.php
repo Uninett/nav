@@ -121,7 +121,7 @@ for ($i = 0; $i < sizeof($profiler); $i++) {
 
 print $l->getHTML();
 
-print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">Deaktiver aktiv profil</a> | ' .  
+print '<p>[ <a href="index.php?subaction=settaktiv&pid=0">' . gettext("Deaktiver aktiv profil") . '</a> | ' .  
     "<a href=\"index.php\">oppdater <img src=\"icons/refresh.gif\" alt=\"oppdater\" border=0></a> ] ";
 print gettext("Antall profiler: ") . sizeof($profiler);
 

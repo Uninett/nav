@@ -56,7 +56,8 @@ function makeZone($img, $h, $m, $h2, $m2, $col, $forcewrap) {
 
 }
 
-if ($debug != 1) { Header("Content-type: image/png"); }
+error_reporting(0);
+Header("Content-type: image/png");
 $string=implode($argv," ");
 
 $im = ImageCreate(200,380);
@@ -93,14 +94,13 @@ for ($i = 0; $i < 24; $i++ ) {
 
 ImageRectangle($im, 40, 10, 190, 370, $black);
 
-$col[0] = ImageColorAllocate($im, 255, 153,  51);
-$col[1] = ImageColorAllocate($im, 204, 153, 204);
-$col[2] = ImageColorAllocate($im,   0, 153, 204);
-$col[3] = ImageColorAllocate($im, 204, 153, 102);
-$col[4] = ImageColorAllocate($im, 153, 153, 102);
-$col[5] = ImageColorAllocate($im, 153, 204,  51);
-$col[6] = ImageColorAllocate($im,   0, 102, 102);
-$col[7] = ImageColorAllocate($im, 255, 255, 102);
+$col[0] = ImageColorAllocate($im, 245, 245, 255);
+$col[1] = ImageColorAllocate($im, 255, 215,   0);
+$col[2] = ImageColorAllocate($im, 255, 160, 122);
+$col[3] = ImageColorAllocate($im,  70, 130, 180);
+$col[4] = ImageColorAllocate($im, 255,  99,  71);
+$col[5] = ImageColorAllocate($im, 245, 245, 220);
+$col[6] = ImageColorAllocate($im, 189, 183, 102);
 
 
 // hvis bare et force wraparaound

@@ -4,11 +4,10 @@
 # Andreas Åkre Solberg <Andreas.Solberg@uninett.no>, 2003.
 #
 #, fuzzy
-
 msgid ""
 msgstr ""
 "Project-Id-Version: NAVuser\n"
-"POT-Creation-Date: 2003-02-04 12:15+0100\n"
+"POT-Creation-Date: 2003-07-02 14:00+0200\n"
 "PO-Revision-Date: 2003-02-04 12:20+0100\n"
 "Last-Translator: Andreas Åkre Solberg <Andreas.Solberg@uninett.no>\n"
 "Language-Team: Engelsk <andrs@uninett.no>\n"
@@ -56,13 +55,14 @@ msgstr "Register new user..."
 msgid "Feil</font>, ny bruker er <b>ikke</b> lagt til i databasen."
 msgstr "Error</font>, new user is <b>not</b> added to the database."
 
-#: admin.php:93 admin.php:210 endrepassord.php:55
+#: admin.php:93 admin.php:210 endrepassord.php:62
 msgid "Brukernavn"
 msgstr "Username"
 
 #: admin.php:93 admin.php:190 fellesfilter.php:88 fellesfilter.php:156
 #: fellesutstyr.php:93 fellesutstyr.php:183 filter.php:87 filter.php:155
-#: gruppe.php:203 logg.php:26 profil.php:83 utstyr.php:179
+#: filtermatchadm.php:51 filtermatchadm.php:100 gruppe.php:203 logg.php:26
+#: profil.php:78 profil.php:182 utstyr.php:87 utstyr.php:180
 msgid "Navn"
 msgstr "Name"
 
@@ -87,8 +87,8 @@ msgid "#adr"
 msgstr "adr"
 
 #: admin.php:94 adress.php:72 fellesfilter.php:88 fellesutstyr.php:93
-#: fellesutstyrgrp.php:65 filter.php:87 gruppe.php:102 match.php:130
-#: profil.php:83 utstyrgrp.php:67
+#: filter.php:87 gruppe.php:102 match.php:87 periode.php:277 periode.php:287
+#: profil.php:78 utstyr.php:87 utstyrgrp.php:68
 msgid "Valg.."
 msgstr "Options.."
 
@@ -101,9 +101,10 @@ msgid "Ukjent"
 msgstr "Unknown"
 
 #: admin.php:171 adress.php:109 fellesutstyr.php:149 filter.php:131
-#: gruppe.php:161 utstyr.php:146 utstyrgrp.php:128 velgbrukergrupper.php:111
-msgid "Refresh"
-msgstr "Refresh"
+#: filtermatchadm.php:83 gruppe.php:161 logg.php:72 match.php:119
+#: periode.php:374 utstyr.php:147 utstyrgrp.php:129 velgbrukergrupper.php:112
+msgid "oppdater"
+msgstr "update"
 
 #: admin.php:172
 msgid "Antall brukere: "
@@ -125,7 +126,7 @@ msgstr "user@uninett.no"
 msgid "Legg til ny epost?"
 msgstr "Add new email?"
 
-#: admin.php:216 endrepassord.php:62
+#: admin.php:216 endrepassord.php:75
 msgid "Passord"
 msgstr "Password"
 
@@ -173,14 +174,18 @@ msgstr "Two months"
 msgid "Tilgang til SMS alarm"
 msgstr "Authorized to get SMS"
 
-#: admin.php:271 adress.php:172 fellesfilter.php:164 fellesutstyr.php:197
-#: filter.php:163 periode.php:151 profil.php:190 utstyr.php:193
+#: admin.php:271 adress.php:172 fellesfilter.php:164 fellesutstyr.php:203
+#: filter.php:163 periode.php:152 profil.php:186 utstyr.php:231
 msgid "Lagre endringer"
 msgstr "Save changes"
 
 #: admin.php:273
 msgid "Legg til bruker"
 msgstr "Add user"
+
+#: adress.php:3 adress.php:68
+msgid "Mine adresser"
+msgstr "My adresses"
 
 #: adress.php:13
 msgid "Her kan du administrere dine varlingsadresser."
@@ -209,10 +214,6 @@ msgstr "Error</font>, adress is <b>not</b> removed."
 #: adress.php:58
 msgid "OK</font>, ny adresse er lagt til i databasen."
 msgstr "OK</font>, new adress is added to the database."
-
-#: adress.php:68
-msgid "Mine adresser"
-msgstr "My adresses"
 
 #: adress.php:72
 msgid "Type"
@@ -254,7 +255,7 @@ msgstr "Unknown error"
 msgid "Feil under innlogging"
 msgstr "Error under login"
 
-#: auth.php:28 dbinit.php:4
+#: auth.php:28 dbinit.php:53 dbinit.php:98
 msgid "Databasefeil"
 msgstr "Database error"
 
@@ -266,59 +267,64 @@ msgstr "Security error"
 msgid "Lese/Skrive feil"
 msgstr "Read/Write error"
 
-#: auth.php:75
+#: auth.php:91
 msgid "Feil med datbasespørring."
 msgstr "Error with database query"
 
-#: auth.php:81
+#: auth.php:97
 msgid "Logget inn fra "
 msgstr "Logged in from "
 
-#: auth.php:89
+#: auth.php:106
 msgid "Noe feil skjedde når jeg prøvde å hente ut brukerid fra databasen."
 msgstr "Something bad happened when I tried to get userid from the database."
 
-#: auth.php:93
+#: auth.php:110
 msgid "Du skrev inn feil brukernavn eller passord, forsøk igjen..."
 msgstr "You entered wrong username or password, try again..."
 
-#: auth.php:102
+#: auth.php:117
 msgid "Logget ut"
 msgstr "Logged out"
 
-#: dbinit.php:5
+#: dbinit.php:54 dbinit.php:99
 msgid "Hele portalen blir sperret når ikke databasen er tilgjenglig."
 msgstr "The portal is closed when the database is down. Sorry."
+
+#: endrepassord.php:3 endrepassord.php:89
+msgid "Endre Passord"
+msgstr "Change password"
 
 #: endrepassord.php:12
 msgid "Her kan du endre passord for en bruker."
 msgstr "Here you can change password for users."
 
-#: endrepassord.php:24
+#: endrepassord.php:14
+#, fuzzy
+msgid "Her kan du endre passord for din bruker."
+msgstr "Here you can change password for users."
+
+#: endrepassord.php:31
 msgid "OK</font>, passordet er endret for brukeren "
 msgstr "OK</font>, password is changed "
 
-#: endrepassord.php:28
+#: endrepassord.php:35
 msgid ""
 "Feil</font>, du skrev ikke to like passord, derfor vil det <b>ikke</b> bli "
 "endret."
 msgstr "Error</font>, passwords do not match, and will <b>not</b> be changed."
 
-#: endrepassord.php:33
+#: endrepassord.php:40
 msgid "Feil</font> oppstod, passord er <b>ikke</b> endret."
 msgstr "Error</font> occured, passord is <b>not</b> changed"
 
-#: endrepassord.php:44
-msgid "Endre passord for en bruker"
-msgstr "Change password for an user"
+#: endrepassord.php:51 index.php:166
+msgid "Endre passord"
+msgstr "Change passwords"
 
-#: endrepassord.php:69
+#: endrepassord.php:82
 msgid "Passord igjen"
 msgstr "Password again"
-
-#: endrepassord.php:76
-msgid "Endre Passord"
-msgstr "Change password"
 
 #: fellesfilter.php:3
 msgid "Felles utstyrsfiltre"
@@ -328,12 +334,12 @@ msgstr "Admin equipmentfilter"
 msgid ""
 "Felles utstyrsfiltre deles blandt administratorene, og kan brukes til å "
 "danne utstyrsgrupper som kan knyttes til brukergrupper."
-msgstr "Administrators equipmentfilters is shared among administrators, "
-"and could be used to shape equipmentgroups attached to usergroups."
+msgstr ""
+"Administrators equipmentfilters is shared among administrators, and could be "
+"used to shape equipmentgroups attached to usergroups."
 
-#: fellesfilter.php:15 fellesfilter.php:140 fellesfilter.php:164
-#: fellesutstyrgrp.php:14 fellesutstyrgrp.php:131 filter.php:16 filter.php:139
-#: filter.php:163 utstyrgrp.php:15 utstyrgrp.php:133
+#: fellesfilter.php:15 fellesfilter.php:140 fellesfilter.php:164 filter.php:16
+#: filter.php:139 filter.php:163 utstyrgrp.php:15 utstyrgrp.php:134
 msgid "Legg til nytt filter"
 msgstr "Add new filter"
 
@@ -361,12 +367,12 @@ msgstr "OK</font>, the filter is removed from the database."
 msgid "Feil</font>, filteret er <b>ikke</b> slettet."
 msgstr "Error</font>, the filter is <b>not</b> removed."
 
-#: fellesfilter.php:61 filter.php:61 profil.php:60
+#: fellesfilter.php:61 filter.php:61 profil.php:55
 msgid "Registrerer ny profil..."
 msgstr "Register new alertprofile..."
 
-#: fellesfilter.php:65 fellesutstyr.php:68 filter.php:65 match.php:107
-#: profil.php:65 utstyr.php:68
+#: fellesfilter.php:65 fellesutstyr.php:68 filter.php:65 match.php:64
+#: profil.php:60 utstyr.php:67
 msgid "Uten navn"
 msgstr "Noname"
 
@@ -378,10 +384,10 @@ msgstr "New admin equipment filter"
 msgid ""
 "OK</font>, et nytt filter er opprettet. Åpne filteret for å legge til "
 "betingelser og begrensninger."
-msgstr "OK</font>, a new filter is created. Open the filter to add limitation "
-"matches"
+msgstr ""
+"OK</font>, a new filter is created. Open the filter to add limitation matches"
 
-#: fellesfilter.php:75 filter.php:74 profil.php:76
+#: fellesfilter.php:75 filter.php:74 profil.php:71
 msgid "Feil</font>, ny profil er <b>ikke</b> lagt til i databasen."
 msgstr "Error</font>, new profile is <b>not</b> added to the database."
 
@@ -397,8 +403,8 @@ msgstr "#groups"
 msgid "Dine utstyrsfiltre"
 msgstr "Your equipment filters"
 
-#: fellesfilter.php:133 fellesutstyr.php:150 fellesutstyrgrp.php:127
-#: filter.php:132 utstyr.php:147 utstyrgrp.php:129
+#: fellesfilter.php:133 fellesutstyr.php:150 filter.php:132 utstyr.php:148
+#: utstyrgrp.php:130
 msgid "Antall filtre: "
 msgstr "Number of filters: "
 
@@ -406,14 +412,19 @@ msgstr "Number of filters: "
 msgid "Endre navn på filter"
 msgstr "Change name of filter"
 
+#: fellesutstyr.php:3 fellesutstyr.php:101
+msgid "Felles utstyrsgrupper"
+msgstr "Admin equipment groups"
+
 #: fellesutstyr.php:11
 msgid ""
 "Her kan du endre og opprette nye utstyrsgrupper. \n"
 "Utstyrsgruppene kan du koble til varslinger inne i profilene."
-msgstr "Here you can change and create new equipment groups. \n"
+msgstr ""
+"Here you can change and create new equipment groups. \n"
 "Equipment groups could be attached to alerts in the alertprofiles."
 
-#: fellesutstyr.php:14 fellesutstyr.php:164 utstyr.php:15 utstyr.php:160
+#: fellesutstyr.php:14 fellesutstyr.php:164 utstyr.php:15 utstyr.php:161
 msgid "Legg til ny utstyrsgruppe"
 msgstr "Add new equipment group"
 
@@ -421,11 +432,11 @@ msgstr "Add new equipment group"
 msgid "Endret navn på felles utstyrsgruppe"
 msgstr "Change name of admin equipment group"
 
-#: fellesutstyr.php:28 utstyr.php:29
+#: fellesutstyr.php:28 utstyr.php:28
 msgid "OK</font>, utstyrsgruppenavnet er endret."
 msgstr "OK</font>, name of equipment group is changed."
 
-#: fellesutstyr.php:31 utstyr.php:32
+#: fellesutstyr.php:31 utstyr.php:31
 msgid "Feil</font> oppstod, navnet er <b>ikke</b> endret."
 msgstr "Error</font> occured, the name is <b>not</b> changed."
 
@@ -433,110 +444,49 @@ msgstr "Error</font> occured, the name is <b>not</b> changed."
 msgid "Slettet felles utstyrsgruppe"
 msgstr "Admin equipment group is removed"
 
-#: fellesutstyr.php:48 utstyr.php:48
+#: fellesutstyr.php:48 utstyr.php:47
 msgid "OK</font>, utstyrsgruppen er slettet fra databasen."
 msgstr "OK</font>, equipmentgroup is removed from the database."
 
-#: fellesutstyr.php:51 utstyr.php:51
+#: fellesutstyr.php:51 utstyr.php:50
 msgid "Feil</font>, utstyrsgruppen er <b>ikke</b> slettet."
 msgstr "Error</font>, the equipment group is <b>not</b> removed."
 
-#: fellesutstyr.php:65 utstyr.php:65
+#: fellesutstyr.php:65 utstyr.php:64
 msgid "Registrerer ny utstyrsgruppe..."
 msgstr "Register new equipment group..."
 
-#: fellesutstyr.php:73 utstyr.php:71
+#: fellesutstyr.php:73 utstyr.php:72
 msgid "OK</font>, en ny utstyrsgruppe er lagt til."
 msgstr "OK</font>, a new equipment group is added."
 
-#: fellesutstyr.php:76 match.php:115 utstyr.php:74
+#: fellesutstyr.php:76 match.php:72 utstyr.php:75
 msgid "Feil</font>, ny match er <b>ikke</b> lagt til i databasen."
 msgstr "Error</font>, new filter match is <b>not</b> added."
 
-#: fellesutstyr.php:93 periode.php:59 profil.php:83
+#: fellesutstyr.php:93 periode.php:59 profil.php:78 utstyr.php:87
 msgid "#perioder"
 msgstr "#periods"
 
-#: fellesutstyr.php:93 periode.php:59
+#: fellesutstyr.php:93 periode.php:59 utstyr.php:87
 msgid "#filtre"
 msgstr "#filters"
 
-#: fellesutstyr.php:101
-msgid "Felles utstyrsgrupper"
-msgstr "Admin equipment groups"
-
-#: fellesutstyr.php:156 utstyr.php:152
+#: fellesutstyr.php:156 utstyr.php:153
 msgid "Beskrivelse :"
 msgstr "Description :"
 
-#: fellesutstyr.php:162 utstyr.php:158
+#: fellesutstyr.php:162 utstyr.php:159
 msgid "Endre navn på utstyrsgruppe"
 msgstr "Change name of equipment group"
 
-#: fellesutstyr.php:197 utstyr.php:193
+#: fellesutstyr.php:203 utstyr.php:233
 msgid "Legg til ny utstyrgruppe"
 msgstr "Add new equipment group"
 
-#: fellesutstyrgrp.php:12
-msgid "Her velger du filtre som tilsammen danner denne utstyrsgruppen. "
-msgstr "Here you choose filters to shape an equipment group. "
-
-#: fellesutstyrgrp.php:29 utstyrgrp.php:31
-msgid "OK</font>, filteret er fjernet fra gruppen."
-msgstr "OK</font>, the filter is removed from the group."
-
-#: fellesutstyrgrp.php:32 utstyrgrp.php:34
-msgid "Feil</font>, filteret er <b>ikke</b> fjernet."
-msgstr "Error</font>, the filter is <b>not</b> removed."
-
-#: fellesutstyrgrp.php:49 utstyrgrp.php:51
-msgid "Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen."
-msgstr "Error</font>, a new filter is <b>not</b> added."
-
-#: fellesutstyrgrp.php:65 utstyrgrp.php:67
-msgid "Inkl"
-msgstr "Incl"
-
-#: fellesutstyrgrp.php:65 utstyrgrp.php:67
-msgid "Neg"
-msgstr "Neg"
-
-#: fellesutstyrgrp.php:65 utstyrgrp.php:67
-msgid "Utstyrfilter"
-msgstr "Equipment filter"
-
-#: fellesutstyrgrp.php:65 utstyrgrp.php:67
-msgid "Flytt"
-msgstr "Move"
-
-#: fellesutstyrgrp.php:73 index.php:137 utstyrgrp.php:75
+#: filter.php:3 index.php:161 utstyrgrp.php:76
 msgid "Utstyrsfiltre"
 msgstr "Equipment filters"
-
-#: fellesutstyrgrp.php:144 utstyrgrp.php:146
-msgid "Ingen filtre tilgjengelig..."
-msgstr "No filters available..."
-
-#: fellesutstyrgrp.php:155 utstyrgrp.php:106 utstyrgrp.php:157
-msgid "Inkluder"
-msgstr "Includes"
-
-#: fellesutstyrgrp.php:157 utstyrgrp.php:159
-msgid "Eksluder"
-msgstr "Excludes"
-
-#: fellesutstyrgrp.php:164 utstyrgrp.php:166
-msgid "Vanlig"
-msgstr "Normal"
-
-#: fellesutstyrgrp.php:167 utstyrgrp.php:169
-msgid "Motsatt"
-msgstr "Inverse"
-
-#: fellesutstyrgrp.php:177 fellesutstyrgrp.php:179 utstyrgrp.php:179
-#: utstyrgrp.php:181
-msgid "Legg til"
-msgstr "Add"
 
 #: filter.php:12
 msgid ""
@@ -547,15 +497,139 @@ msgid ""
 "<p>Når du skal lage en varslingsprofil velger du blandt utstyrsgruppene dine "
 "for å definere hvilket utstyr \n"
 "du ønsker å overvåke."
-msgstr "An equipment filter is a set of filter matches which together shape a "
-" group of limitation, which decides if an alert is matched by the filter. "
-"You can put together many filters to an equipment group."
+msgstr ""
+"An equipment filter is a set of filter matches which together shape a  group "
+"of limitation, which decides if an alert is matched by the filter. You can "
+"put together many filters to an equipment group."
 
 #: filter.php:29
 msgid "OK</font>, filternavnet er endret."
 msgstr "OK</font>, filtrname is changed."
 
-#: gruppe.php:3 gruppe.php:109 index.php:146 oversikt.php:64
+#: filtermatchadm.php:3
+msgid "Administrering av tilgjengelige match-felter"
+msgstr "Administration of avaiable match fields"
+
+#: filtermatchadm.php:11
+msgid ""
+"Her kan du slette og opprette nye match-fetler med utgangspunkt i manage-"
+"databasen."
+msgstr "Here you can create and delete new filmter matches related to the manage-database"
+
+#: filtermatchadm.php:14
+#, fuzzy
+msgid "Legg til ny filtermatch"
+msgstr "Add new filtermatch"
+
+#: filtermatchadm.php:28
+#, fuzzy
+msgid "OK</font>, match-feltet er slettet fra databasen."
+msgstr "OK</font>, the match field is removed from the database."
+
+#: filtermatchadm.php:33
+#, fuzzy
+msgid "Registrerer ny filtermatch..."
+msgstr "Register new filter match..."
+
+#: filtermatchadm.php:44
+msgid ""
+"OK</font>, nytt match-felt er lagt inn i databasen og vil være tilgjengelig "
+"for bruk med engang. Felt-id-en er "
+msgstr "OK</font>, a new match field is added to the database and will be avaibale instantly. The field id is "
+
+#: filtermatchadm.php:51
+#, fuzzy
+msgid "id"
+msgstr "id"
+
+#: filtermatchadm.php:51
+msgid "Manage-referanse"
+msgstr "Manage-reference"
+
+#: filtermatchadm.php:51
+#, fuzzy
+msgid "Valg..."
+msgstr "Options.."
+
+#: filtermatchadm.php:59
+msgid "Tilgjengelige Match-felter"
+msgstr "Available match fields"
+
+#: filtermatchadm.php:84
+msgid "Antall tilgjengelige match-felter: "
+msgstr "Number of avaiable match fields: "
+
+#: filtermatchadm.php:88
+#, fuzzy
+msgid "Legg til nytt Match-felt"
+msgstr "Add new match field"
+
+#: filtermatchadm.php:109 filtermatchadm.php:112
+msgid "Vis liste"
+msgstr "Show list"
+
+#: filtermatchadm.php:113
+msgid "Vis input felt"
+msgstr "Show input field"
+
+#: filtermatchadm.php:118
+#, fuzzy
+msgid "Maks listelengde"
+msgstr "Max queuelength"
+
+#: filtermatchadm.php:133
+msgid "Datatype"
+msgstr "Datatype"
+
+#: filtermatchadm.php:136
+msgid "Streng"
+msgstr "String"
+
+#: filtermatchadm.php:137
+msgid "Tallverdi"
+msgstr "Integer"
+
+#: filtermatchadm.php:138
+#, fuzzy
+msgid "IP-adresse"
+msgstr "IP address"
+
+#: filtermatchadm.php:159
+msgid "Manage (id)"
+msgstr "Manage (id)"
+
+#: filtermatchadm.php:163 filtermatchadm.php:182 filtermatchadm.php:203
+#: filtermatchadm.php:223
+msgid "Ingen referanse"
+msgstr "No reference"
+
+#: filtermatchadm.php:178
+msgid "Manage (Navn)"
+msgstr "Manage (Name)"
+
+#: filtermatchadm.php:198
+msgid "Manage (Kategori)"
+msgstr "Manage (Category)"
+
+#: filtermatchadm.php:219
+msgid "Manage (Sorter)"
+msgstr "MAnage (Sort)"
+
+#: filtermatchadm.php:241 logg.php:26
+msgid "Beskrivelse"
+msgstr "Description"
+
+#: filtermatchadm.php:250
+#, fuzzy
+msgid "Verdihjelp"
+msgstr "Valuehelp"
+
+#: filtermatchadm.php:262
+#, fuzzy
+msgid "Legg til Match-felt"
+msgstr "Add new filter"
+
+#: gruppe.php:3 gruppe.php:109 index.php:170 oversikt.php:64
 msgid "Brukergrupper"
 msgstr "Usergroups"
 
@@ -587,8 +661,9 @@ msgstr "Description : "
 msgid ""
 "OK</font>, ny brukergruppe er opprettet. Vennligst legg til brukere, "
 "utstyrsgrupper og rettigheter til brukergruppen."
-msgstr "OK</font>, a new usergroup is created. Please add users, "
-"equipmentgroups and permissions to the new group."
+msgstr ""
+"OK</font>, a new usergroup is created. Please add users, equipmentgroups and "
+"permissions to the new group."
 
 #: gruppe.php:59
 msgid "OK</font>, brukergruppen er slettet fra databasen."
@@ -618,11 +693,11 @@ msgstr "#users"
 msgid "#rettighet"
 msgstr "#permissions"
 
-#: gruppe.php:102 velgbrukergrupper.php:50
+#: gruppe.php:102 velgbrukergrupper.php:51
 msgid "#std. grupper"
 msgstr "#std. groups"
 
-#: gruppe.php:162 velgbrukergrupper.php:112
+#: gruppe.php:162 velgbrukergrupper.php:113
 msgid "Antall grupper: "
 msgstr "Number of groups: "
 
@@ -650,11 +725,11 @@ msgstr "Permissions"
 msgid "Default grupper"
 msgstr "Default groups"
 
-#: gruppe.php:260 index.php:136
+#: gruppe.php:260 index.php:160 utstyr.php:3
 msgid "Utstyrsgrupper"
 msgstr "Equipment groups"
 
-#: hjelp.php:3 index.php:138
+#: hjelp.php:3 index.php:162
 msgid "Hjelp"
 msgstr "Help"
 
@@ -662,7 +737,8 @@ msgstr "Help"
 msgid ""
 "Har du problemer med å få til noe med NAV webgrensesnittet skal du kunne "
 "finne hjelp her."
-msgstr "If you have troubles using the NAVuser webfrontend this page could be "
+msgstr ""
+"If you have troubles using the NAVuser webfrontend this page could be "
 "usefull to you."
 
 #: hjelp.php:12
@@ -673,91 +749,149 @@ msgstr "Download"
 msgid "brukermanual i PDF-format."
 msgstr "user manual in PDF-format."
 
-#: index.php:101
+#: hjelp.php:15
+msgid "Introduksjon"
+msgstr "Introduction"
+
+#: hjelp.php:16
+msgid "<p>Hei"
+msgstr "<p>Hello"
+
+#: hjelp.php:17
+msgid "FAQ"
+msgstr "FAQ"
+
+#: hjelp.php:18
+msgid "<p>Q: Foo<p>A: Bar"
+msgstr "<p>Q: Foo<p>A: Bar"
+
+#: index.php:42
+#, fuzzy
+msgid "NAVprofiles"
+msgstr "NAVprofiles"
+
+#: index.php:125
 msgid ""
 "Du forsøkte å hente inn en submodul som din bruker ikke har tilgang til. "
 "Forsøk å logge ut og inn igjen, og hvis det fortsatt ikke fungerer varsle "
 "systemadministrator."
-msgstr "You tried to load a submodule which is not available with your set of "
+msgstr ""
+"You tried to load a submodule which is not available with your set of "
 "permissions. Try log out and log in again, and if it still not works contact "
 "system administrator."
 
-#: index.php:133
+#: index.php:144
+msgid "NAV Meny"
+msgstr "NAV Menu"
+
+#: index.php:157 oversikt.php:3
 msgid "Oversikt"
 msgstr "Overview"
 
-#: index.php:134
+#: index.php:158
 msgid "Adresser"
-msgstr "Adresses"
+msgstr "Addresses"
 
-#: index.php:135
+#: index.php:159
 msgid "Profiler"
 msgstr "Profiles"
 
-#: index.php:141
+#: index.php:165
 msgid "WAP-oppsett"
 msgstr "Wap setup"
 
-#: index.php:142
-msgid "Endre passord"
-msgstr "Change passwords"
-
-#: index.php:145
+#: index.php:169
 msgid "Brukere"
 msgstr "Users"
 
-#: index.php:147
+#: index.php:171
 msgid "Felles Utst.grp."
 msgstr "Admin equip.grp"
 
-#: index.php:148
+#: index.php:172
 msgid "Felles Utst.filter"
 msgstr "Admin equip.filters"
 
-#: index.php:149
+#: index.php:173
+#, fuzzy
+msgid "Adm. match-felt"
+msgstr "Choose matchfield"
+
+#: index.php:174
 msgid "Logg"
 msgstr "Log"
 
 #: index.php:191
+msgid "Innlogging"
+msgstr "Login"
+
+#: index.php:203
 msgid "Du er logget inn som "
 msgstr "You are logged in as "
 
-#: index.php:192
+#: index.php:204
 msgid "Logg ut"
 msgstr "Log out"
 
-#: index.php:194
+#: index.php:206
 msgid "Du er <b>ikke</b> logget inn."
 msgstr "You are <b>not</b> logged in."
 
-#: index.php:201
+#: index.php:213
 msgid "Logg inn"
 msgstr "Log in"
 
-#: index.php:225
+#: index.php:228
+msgid "Velg språk"
+msgstr "Choose language"
+
+#: index.php:239 index.php:244
+msgid "Engelsk"
+msgstr "English"
+
+#: index.php:252 index.php:257
+msgid "Norsk"
+msgstr "Norwegian"
+
+#: index.php:265
+msgid "Velkommen!"
+msgstr "Welcome!"
+
+#: index.php:283
+#, fuzzy
+msgid "Kontakt"
+msgstr "Account class"
+
+#: index.php:296
 msgid "Tlf: 73 55 79 00"
 msgstr "Tlf: +4773557900"
 
-#: index.php:227
+#: index.php:298
 msgid "Fax: 73 55 79 01"
 msgstr "Fax: +4773557901"
 
-#: index.php:229
+#: index.php:300
 msgid "Epost:"
 msgstr "E-mail:"
 
-#: index.php:240
+#: index.php:311
 msgid "HTML og CSS"
 msgstr "HTML and CSS"
 
-#: index.php:260
+#: index.php:329
+msgid "StyleSheets"
+msgstr "Stylesheets"
+
+#: index.php:333
+#, fuzzy
 msgid ""
-"Du har en nettleser som ikke støtter stylesheets. \n"
-"Vi anbefaler bruk av en nettleser som støtter stylesheets."
-msgstr "You have a webbrowser that do not supports stylesheets. \n"
+"Du har en nettleser som ikke støtter stylesheets. Vi anbefaler bruk av en "
+"nettleser som støtter stylesheets."
+msgstr ""
+"You have a webbrowser that do not supports stylesheets. \n"
 "The site will be fully available, but might look bad."
 
-#: index.php:294
+#: index.php:366
 msgid "Kan ikke lese filen"
 msgstr "Cannot read file"
 
@@ -765,27 +899,27 @@ msgstr "Cannot read file"
 msgid "Ingen elementer funnet"
 msgstr "No elements found"
 
+#: logg.php:3
+#, fuzzy
+msgid "Hendelseslogg"
+msgstr "Event log"
+
 #: logg.php:17
-msgid ""
-"Her er en liste over siste hendelser i NAVuser.Her er en liste over siste "
-"hendelser i NAVuser."
+#, fuzzy
+msgid "Her er en liste over siste hendelser i NAVuser. "
 msgstr "Here is a list of last events in NAVuser."
 
 #: logg.php:21
 msgid "Loggdata"
 msgstr "Logdata"
 
-#: logg.php:26 match.php:56
+#: logg.php:26
 msgid "Hendelse"
 msgstr "Event"
 
-#: logg.php:26
+#: logg.php:26 periode.php:277 periode.php:287
 msgid "Tid"
 msgstr "Time"
-
-#: logg.php:26
-msgid "Beskrivelse"
-msgstr "Description"
 
 #: logg.php:73
 msgid "Antall viste hendelser: "
@@ -795,8 +929,13 @@ msgstr "Number of shown events: "
 msgid ""
 "<p><B>Alvorlig feil!</B> Du må være innlogget for å nå denne "
 "funksjonaliteten. Kontakt Systemadministrator."
-msgstr "<p><B>Serious error!</B> You must be logged in to use this module. "
-"Contact system administrator."
+msgstr ""
+"<p><B>Serious error!</B> You must be logged in to use this module. Contact "
+"system administrator."
+
+#: match.php:3
+msgid "Oppsett av filter"
+msgstr "Filter setup"
 
 #: match.php:12
 msgid ""
@@ -804,124 +943,114 @@ msgid ""
 "bestemt hendelse skal inkluderes av filteret. \n"
 "Hvis en eller flere av match'ene ikke slår til vil en hendelse altså ikke "
 "være med."
-msgstr "Here you create a set of limitations that must validate true for "
-"alerts to go throuh."
+msgstr ""
+"Here you create a set of limitations that must validate true for alerts to "
+"go throuh."
 
-#: match.php:15 match.php:167
+#: match.php:15 match.php:124
 msgid "Legg til ny betingelse"
 msgstr "Add new filter match"
 
-#: match.php:21
-msgid "Kunne ikke koble til database."
-msgstr "Could not connect to database."
-
-#: match.php:48
-msgid "Utstyrtype"
-msgstr "Class"
-
-#: match.php:50
-msgid "Grad av viktighet"
-msgstr "Severity"
-
-#: match.php:51
-msgid "IP adresse"
-msgstr "IP adress"
-
-#: match.php:52
-msgid "Utstyrsnavn"
-msgstr "Equipment name"
-
-#: match.php:55
-msgid "Kilde"
-msgstr "Source"
-
-#: match.php:58 match.php:215
+#: match.php:27 match.php:205
 msgid "er lik"
 msgstr "is alike"
 
-#: match.php:59
+#: match.php:28
 msgid "er større enn"
 msgstr "greater than"
 
-#: match.php:60
+#: match.php:29
 msgid "er større eller lik"
 msgstr "is greater or alike"
 
-#: match.php:61
+#: match.php:30
 msgid "er mindre enn"
 msgstr "is less than"
 
-#: match.php:62
+#: match.php:31
 msgid "er mindre eller lik"
 msgstr "is less or alike"
 
-#: match.php:63 match.php:216
+#: match.php:32
 msgid "er ulik"
 msgstr "is unlike"
 
-#: match.php:64
+#: match.php:33
 msgid "starter med"
 msgstr "starts with"
 
-#: match.php:65
+#: match.php:34
 msgid "slutter med"
 msgstr "ends with"
 
-#: match.php:66
+#: match.php:35
 msgid "inneholder"
 msgstr "contains"
 
-#: match.php:67
+#: match.php:36
 msgid "regexp"
 msgstr "regexp"
 
-#: match.php:68
+#: match.php:37
 msgid "wildcard (? og *)"
 msgstr "wildcards (? and *)"
 
-#: match.php:89
+#: match.php:46
 msgid "OK</font>, matchen er fjernet fra filteret."
 msgstr "OK</font>, match is removed from the filter."
 
-#: match.php:92
+#: match.php:49
 msgid "Feil</font>, matchen er <b>ikke</b> fjernet."
 msgstr "Error</font>, match is <b>not</b> removed."
 
-#: match.php:104
+#: match.php:61
 msgid "Registrerer ny match..."
 msgstr "Register new match..."
 
-#: match.php:112
+#: match.php:69
 msgid "OK</font>, en ny betingelse (match) er lagt til for dette filteret."
 msgstr "OK</font>, a new match is added to this filter."
 
-#: match.php:130
+#: match.php:87
 msgid "Felt"
 msgstr "Field"
 
-#: match.php:130
+#: match.php:87
 msgid "Betingelse"
 msgstr "Condition"
 
-#: match.php:130
+#: match.php:87
 msgid "Verdi"
 msgstr "Value"
 
-#: match.php:138
+#: match.php:95
 msgid "Filtermatcher"
 msgstr "Filter match"
 
-#: match.php:203
+#: match.php:136
+#, fuzzy
+msgid "Velg felt"
+msgstr "Choose matchfield"
+
+#: match.php:192
 msgid "Velg betingelse"
 msgstr "Choose a condition"
 
-#: match.php:335
+#: match.php:230
+msgid "Sett verdi"
+msgstr "Set value"
+
+#: match.php:290
 msgid "Legg til betingelse"
 msgstr "Add condition"
 
-#: match.php:337
+#: match.php:292
 msgid "Velg matchefelt"
 msgstr "Choose matchfield"
+
+#: match.php:311
+msgid "Ferdig med å editere filteret"
+msgstr "Finished editing filter"
 
 #: oversikt.php:18
 msgid "Du er logget inn på NAV med brukernavn"
@@ -939,17 +1068,26 @@ msgstr "Show less info..."
 msgid "Kontotype"
 msgstr "Account class"
 
-#: oversikt.php:37
+#: oversikt.php:36 oversikt.php:37
 msgid "Administrator"
 msgstr "Administrator"
 
-#: oversikt.php:41
+#: oversikt.php:40 oversikt.php:41
 msgid "Vanlig bruker"
 msgstr "Normal user"
 
 #: oversikt.php:44
 msgid "Ukjent administrator nivå."
 msgstr "Unknown admin level."
+
+#: oversikt.php:48
+#, fuzzy
+msgid "Tilgang til SMS"
+msgstr "Authorized to get SMS"
+
+#: oversikt.php:51 periode.php:128 profil.php:100
+msgid "Ja"
+msgstr "Yes"
 
 #: oversikt.php:52
 msgid "Ja, du har tilgang til å sette opp SMS alarmer."
@@ -992,29 +1130,50 @@ msgid "Aktiv profil"
 msgstr "Active profile"
 
 #: oversikt.php:102
-msgid "<p>Aktiv profil er endret til : "
+#, fuzzy
+msgid "Aktiv profil er endret til"
 msgstr "<p>Active profile changed to : "
 
-#: oversikt.php:123
+#: oversikt.php:119
 msgid "Ingen profiler opprettet..."
 msgstr "No profiles created..."
+
+#: oversikt.php:124
+msgid ""
+"Ingen brukerprofil er aktiv. Aktiviser en profil ved å velge den fra menyen "
+"over."
+msgstr "No profile is active. Choose a profile from the menu above to activate."
+
+#: oversikt.php:134
+msgid ""
+"Ingen brukerprofil er for øyeblikket aktiv. Det betyr at du ikke vil bli "
+"varslet om noen alarmer."
+msgstr "No profile is active at the moment. That means no alerts will be sent."
+
+#: oversikt.php:138
+msgid ""
+"Du har ikke opprettet noen profiler. Dermed vil du heller ikke få noe "
+"varsling. Gå til menyvalget Profiler i venstremargen og opprett en ny profil "
+"der."
+msgstr "You have not created any profiles. Go to profiles on the menu and add a new profile."
 
 #: periode.php:13
 msgid ""
 "For å legge til en ny tidsperiode kan du klikke på ønsket tidspunkt på "
 "timeplanen."
-msgstr "To add a new period to you time schedule, click on desired moment time "
-"on the time schedule."
+msgstr ""
+"To add a new period to you time schedule, click on desired moment time on "
+"the time schedule."
 
-#: periode.php:49 periode.php:310
+#: periode.php:49 periode.php:344
 msgid "Mandag - Fredag"
 msgstr "Monday - Friday"
 
-#: periode.php:51 periode.php:329
+#: periode.php:51 periode.php:363
 msgid "Lørdag og Søndag"
 msgstr "Saturday and Sunday"
 
-#: periode.php:59
+#: periode.php:59 utstyr.php:87
 msgid "Eier"
 msgstr "Owner"
 
@@ -1022,13 +1181,9 @@ msgstr "Owner"
 msgid "Utstyr"
 msgstr "Equipment"
 
-#: periode.php:128 profil.php:107
+#: periode.php:127 profil.php:102
 msgid "Nei"
 msgstr "No"
-
-#: periode.php:129 profil.php:105
-msgid "Ja"
-msgstr "Yes"
 
 #: periode.php:130
 msgid "I kø (daglig)"
@@ -1042,50 +1197,90 @@ msgstr "In queue (weekly)"
 msgid "I kø (profilbytte)"
 msgstr "In queue (profilechange)"
 
-#: periode.php:147
+#: periode.php:148
 msgid "Velg utstyr som skal overvåkes med hvilke alarmtyper"
 msgstr "Choose equipment to be monitored and alerted to which adresses"
 
-#: periode.php:186
+#: periode.php:194
 msgid ""
 "<p><font size=\"+3\">OK</font>, En ny tidsperiode er opprettet. Gå til "
 "skjemaet midt på siden for å stille inn  varsling i denne tidsperioden."
-msgstr "<p><font size=\"+3\">OK</font>, a new time period is created. Go to "
-"the fields in the middle of this page to setup monitoring for this time period."
+msgstr ""
+"<p><font size=\"+3\">OK</font>, a new time period is created. Go to the "
+"fields in the middle of this page to setup monitoring for this time period."
 
-#: periode.php:189
+#: periode.php:197
 msgid "Feil</font>, ny profil er <b>ikke</b> lagt til i databasen.\""
 msgstr "Error</font>, a new profile is <b>not</b> added to the database.\""
 
-#: periode.php:225
+#: periode.php:233
 msgid "OK</font>, tidsperioden ("
 msgstr "OK</font>, the period"
 
-#: periode.php:225
+#: periode.php:233
 msgid ") er slettet fra databasen."
 msgstr ") is removed from the database."
 
-#: periode.php:228
+#: periode.php:236
 msgid "Feil</font>, tidsperioden er <b>ikke</b> slettet."
 msgstr "Error</font>, period is <b>not</b> removed."
 
-#: periode.php:341
+#: periode.php:262
+msgid "Konflikter"
+msgstr "Conflicts"
+
+#: periode.php:263
+msgid ""
+"Du har satt opp to eller flere tidsperioder som starter på samme "
+"klokkeslett. Slett de tidsperiodene som fører til konflikten, så vil denne "
+"advarselen forsvinne."
+msgstr "You have created two or more timeperiods which starts at the same time. Delete the superfluous time periods to remove this warning."
+
+#: periode.php:264
+msgid "Her er en liste over gjeldende konflikter:"
+msgstr "Here is a list of the current conflicts:"
+
+#: periode.php:277 periode.php:287
+#, fuzzy
+msgid "#adresser"
+msgstr "Adresses"
+
+#: periode.php:277 periode.php:287
+#, fuzzy
+msgid "#utstyr grp."
+msgstr " equipment groups."
+
+#: periode.php:375
 msgid "Antall perioder: "
 msgstr "Number of periods: "
+
+#: periode.php:379
+msgid "Ferdig med å sette opp profilen"
+msgstr "Finished setting up profile"
+
+#: profil.php:3
+#, fuzzy
+msgid "Mine profiler"
+msgstr "Your profiles"
 
 #: profil.php:13
 msgid "Her kan du endre og opprette nye profiler."
 msgstr "Here you can setup and add profiles."
 
-#: profil.php:15 profil.php:137 profil.php:190
+#: profil.php:15 profil.php:133 profil.php:187
 msgid "Legg til ny profil"
 msgstr "Add new profile"
 
-#: profil.php:23
+#: profil.php:21
 msgid "Aktivisert</font>. Du har nå byttet aktiv profil."
 msgstr "Acitivated</font>. You have no changed active profile."
 
-#: profil.php:34
+#: profil.php:23
+#, fuzzy
+msgid "Deaktivert</font>. Du har nå ingen aktive profiler."
+msgstr "Acitivated</font>. You have no changed active profile."
+
+#: profil.php:35
 msgid "OK</font>, profilnavnet er endret."
 msgstr "OK</font>, name of profile is changed."
 
@@ -1093,35 +1288,74 @@ msgstr "OK</font>, name of profile is changed."
 msgid "Feil</font> oppstod, profilen er <b>ikke</b> endret."
 msgstr "Error</font> occured, the profile is <b>not</b> changed."
 
-#: profil.php:50
+#: profil.php:47
 msgid "OK</font>, profilen er slettet fra databasen."
 msgstr "OK</font>, the profile is removed from the database."
 
-#: profil.php:53
+#: profil.php:49
 msgid "Feil</font>, profilen er <b>ikke</b> slettet."
 msgstr "Error</font>, the profile is <b>not</b> removed."
 
-#: profil.php:83
+#: profil.php:68
+#, fuzzy
+msgid "OK</font>, En ny profil er opprettet for brukeren "
+msgstr "OK</font>, password is changed "
+
+#: profil.php:78
 msgid "Aktiv"
 msgstr "Active"
 
-#: profil.php:89
+#: profil.php:84
 msgid "Dine profiler"
 msgstr "Your profiles"
 
-#: profil.php:130
+#: profil.php:124
+#, fuzzy
+msgid "Deaktiver aktiv profil"
+msgstr "Active profile"
+
+#: profil.php:126
 msgid "Antall profiler: "
 msgstr "Number of profiles: "
 
-#: profil.php:135
+#: profil.php:131
 msgid "Endre navn på profil"
 msgstr "Change name of profile"
 
-#: profil.php:196
+#: profil.php:172
+msgid "Mandag"
+msgstr "Monday"
+
+#: profil.php:173
+#, fuzzy
+msgid "Tirsdag"
+msgstr "Tuesday"
+
+#: profil.php:174
+msgid "Onsdag"
+msgstr "Wedenesday"
+
+#: profil.php:175
+msgid "Torsdag"
+msgstr "Thursday"
+
+#: profil.php:176
+msgid "Fredag"
+msgstr "Friday"
+
+#: profil.php:177
+msgid "Lørdag"
+msgstr "Saturday"
+
+#: profil.php:178
+msgid "Søndag"
+msgstr "Sunday"
+
+#: profil.php:193
 msgid "Ukevarsling"
 msgstr "Weekly alerts"
 
-#: profil.php:215
+#: profil.php:212
 msgid "Dagvarsling"
 msgstr "Daily alerts"
 
@@ -1129,132 +1363,108 @@ msgstr "Daily alerts"
 msgid ""
 "Her kan du endre og opprette nye utstyrsgrupper. Utstyrsgruppene kan du "
 "koble direkte til varslinger inne i profilene."
-msgstr "Here you can setup and create new equipment groups. The equipment groups "
-"can be directly attached to alerts inside the profiles."
+msgstr ""
+"Here you can setup and create new equipment groups. The equipment groups can "
+"be directly attached to alerts inside the profiles."
 
-#: utstyr.php:51 utstyr.php:71 utstyr.php:74
-msgid "<p><font size=\"+3\">"
-msgstr "<p><font size=\"+3\">"
-
-#: utstyr.php:65 utstyr.php:94
-msgid "<h3>"
-msgstr "<h3>"
-
-#: utstyr.php:65 utstyr.php:94
-msgid "</h3>"
-msgstr "</h3>"
-
-#: utstyr.php:94
+#: utstyr.php:95
 msgid "Mine utstyrsgrupper"
 msgstr "My equipment groups"
 
-#: utstyr.php:108 utstyr.php:115
-msgid "<img alt=\"Ingen\" src=\"icons/stop.gif\">"
-msgstr "<img alt=\"Ingen\" src=\"icons/stop.gif\">"
+#: utstyr.php:188
+msgid "Basert på"
+msgstr "Based upon"
 
-#: utstyr.php:119
-msgid "<img alt=\"Min\" src=\"icons/person1.gif\">"
-msgstr "<img alt=\"Min\" src=\"icons/person1.gif\">"
-
-#: utstyr.php:120
-msgid "<a href=\"index.php?action=utstyrgrp&gid="
-msgstr "<a href=\"index.php?action=utstyrgrp&gid="
-
-#: utstyr.php:121 utstyr.php:126 utstyr.php:146 utstyr.php:170
-msgid "\">"
-msgstr "\">"
-
-#: utstyr.php:121
-msgid "<img alt=\"Open\" src=\"icons/open2.gif\" border=0></a>&nbsp;"
-msgstr "<img alt=\"Open\" src=\"icons/open2.gif\" border=0></a>&nbsp;"
-
-#: utstyr.php:122
-msgid "<a href=\"index.php?subaction=endre&gid="
-msgstr "<a href=\"index.php?subaction=endre&gid="
-
-#: utstyr.php:123
-msgid "#nygruppe\">"
-msgstr "#nygruppe\">"
-
-#: utstyr.php:124
-msgid "<img alt=\"Edit\" src=\"icons/edit.gif\" border=0></a>&nbsp;"
-msgstr "<img alt=\"Edit\" src=\"icons/edit.gif\" border=0></a>&nbsp;"
-
-#: utstyr.php:125
-msgid "<a href=\"index.php?action=utstyr&subaction=slett&gid="
-msgstr "<a href=\"index.php?action=utstyr&subaction=slett&gid="
-
-#: utstyr.php:127
-msgid "<img alt=\"Delete\" src=\"icons/delete.gif\" border=0></a>"
-msgstr "<img alt=\"Delete\" src=\"icons/delete.gif\" border=0></a>"
-
-#: utstyr.php:130
-msgid "<img alt=\"Gruppe\" src=\"icons/gruppe.gif\">"
-msgstr "<img alt=\"Gruppe\" src=\"icons/gruppe.gif\">"
-
-#: utstyr.php:131
-msgid "&nbsp;"
-msgstr "&nbsp;"
-
-#: utstyr.php:146
-msgid "<p>[ <a href=\"index.php?action="
-msgstr "<p>[ <a href=\"index.php?action="
-
-#: utstyr.php:146
-msgid "&fid="
-msgstr "&fid="
-
-#: utstyr.php:146
-msgid " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> "
-msgstr " <img src=\"icons/refresh.gif\" alt=\"Refresh\" border=0> ]</a> "
-
-#: utstyr.php:158 utstyr.php:160
-msgid "<h2>"
-msgstr "<h2>"
-
-#: utstyr.php:158 utstyr.php:160
-msgid "</h2>"
-msgstr "</h2>"
-
-#: utstyr.php:165
-msgid "endret"
-msgstr "endret"
-
-#: utstyr.php:165
-msgid "nygruppe"
-msgstr "nygruppe"
-
-#: utstyr.php:170
-msgid "<input type=\"hidden\" name=\"gid\" value=\""
-msgstr "<input type=\"hidden\" name=\"gid\" value=\""
+#: utstyr.php:192
+#, fuzzy
+msgid "Tom utstyrsgruppe"
+msgstr "Empty equipment group"
 
 #: utstyrgrp.php:3
-msgid "Endre utstyrsgrupper"
+#, fuzzy
+msgid "Endre utstyrsgruppe"
 msgstr "Change equipment groups"
 
 #: utstyrgrp.php:13
 msgid "Her velger du filtre som tilsammen danner denne utstyrsgruppen."
 msgstr "Here you choose filters to make up this equipment group."
 
-#: utstyrgrp.php:95
+#: utstyrgrp.php:32
+msgid "OK</font>, filteret er fjernet fra gruppen."
+msgstr "OK</font>, the filter is removed from the group."
+
+#: utstyrgrp.php:35
+msgid "Feil</font>, filteret er <b>ikke</b> fjernet."
+msgstr "Error</font>, the filter is <b>not</b> removed."
+
+#: utstyrgrp.php:52
+msgid "Feil</font>, nytt filter er <b>ikke</b> lagt til i databasen."
+msgstr "Error</font>, a new filter is <b>not</b> added."
+
+#: utstyrgrp.php:68
+msgid "Inkl"
+msgstr "Incl"
+
+#: utstyrgrp.php:68
+msgid "Neg"
+msgstr "Neg"
+
+#: utstyrgrp.php:68
+msgid "Utstyrfilter"
+msgstr "Equipment filter"
+
+#: utstyrgrp.php:68
+msgid "Flytt"
+msgstr "Move"
+
+#: utstyrgrp.php:96
 msgid "Flytt opp"
 msgstr "Move up"
 
-#: utstyrgrp.php:99
+#: utstyrgrp.php:100
 msgid "Flytt ned"
 msgstr "Move down"
 
-#: utstyrgrp.php:108
+#: utstyrgrp.php:107 utstyrgrp.php:162
+msgid "Inkluder"
+msgstr "Includes"
+
+#: utstyrgrp.php:109
 msgid "Ekskluder"
 msgstr "Exclude"
 
-#: utstyrgrp.php:112
+#: utstyrgrp.php:113
 msgid "Normal"
 msgstr "Normal"
 
-#: utstyrgrp.php:114
+#: utstyrgrp.php:115
 msgid "Omvendt"
 msgstr "Inverse"
+
+#: utstyrgrp.php:151
+msgid "Ingen filtre tilgjengelig..."
+msgstr "No filters available..."
+
+#: utstyrgrp.php:164
+msgid "Eksluder"
+msgstr "Excludes"
+
+#: utstyrgrp.php:171
+msgid "Vanlig"
+msgstr "Normal"
+
+#: utstyrgrp.php:174
+msgid "Motsatt"
+msgstr "Inverse"
+
+#: utstyrgrp.php:184 utstyrgrp.php:186
+msgid "Legg til"
+msgstr "Add"
+
+#: utstyrgrp.php:198
+#, fuzzy
+msgid "Ferdig med å editere utstyrsgruppe"
+msgstr "Register new equipment group..."
 
 #: velgbrukergrupper.php:3 velgbrukergrupper.php:47
 msgid "Velg brukergrupper"
@@ -1266,9 +1476,10 @@ msgid ""
 "medlem av. Når en bruker er medlem i en brukergruppe, får han rettighet til "
 "alt utstyret gruppen gir tilgang til, og arver noen standard utstyrsgrupper "
 "som brukeren kan bruke til å definere sine varslingsprofiler."
-msgstr "Here you can deside which usergroups, the actual usergroup can be "
-"a member of. When a user is member of an usergroup, he have permission to all "
-"the equipment the group make permissions to, and inherit some default equipment "
+msgstr ""
+"Here you can deside which usergroups, the actual usergroup can be a member "
+"of. When a user is member of an usergroup, he have permission to all the "
+"equipment the group make permissions to, and inherit some default equipment "
 "groups the user can use to make his own profiles."
 
 #: velgbrukergrupper.php:37
@@ -1276,22 +1487,23 @@ msgid "Brukeren er nå påmeldt valgte brukergrupper."
 msgstr "The user is now registered in the chosen user groups."
 
 #: velgbrukergrupper.php:38
-msgid "Gå til"
+#, fuzzy
+msgid "Gå til "
 msgstr "Goto "
 
 #: velgbrukergrupper.php:38
 msgid "administrering av brukere"
 msgstr "administration of users"
 
-#: velgbrukergrupper.php:50
+#: velgbrukergrupper.php:51
 msgid "Velg.."
 msgstr "Choose.."
 
-#: velgbrukergrupper.php:109
+#: velgbrukergrupper.php:110
 msgid "Meld på valgte brukergrupper"
 msgstr "Register chosen user groups"
 
-#: velgbrukergrupper.php:115
+#: velgbrukergrupper.php:116
 msgid "Ingen bruker valgt."
 msgstr "No user chosen."
 
@@ -1305,8 +1517,9 @@ msgid ""
 "På disse sidene vil man kunne administrere sine brukerprofiler, og oppsett "
 "på \n"
 "hva man vil overvåke og hvilke varslinger man vil motta på hvilke medium."
-msgstr "This is a testversion of NAVuser."
-" On theese pages you can administer your userprofiles, and setup alerts."
+msgstr ""
+"This is a testversion of NAVuser. On theese pages you can administer your "
+"userprofiles, and setup alerts."
 
 #: velkommen.php:13
 msgid "Reload"
@@ -1324,8 +1537,9 @@ msgid ""
 "og hvis du har misstanke om at noen kan ha fått tak i den kan du generere ny "
 "wapkey her. \n"
 "Men da må du huske å oppdatere bokmerke på mobilen din."
-msgstr "Here you can turn on and of WAP-portal for your user. Remeber to keep "
-"the wapkey secret, and if lost, generate a new one or disable WAP."
+msgstr ""
+"Here you can turn on and of WAP-portal for your user. Remeber to keep the "
+"wapkey secret, and if lost, generate a new one or disable WAP."
 
 #: wap.php:38
 msgid "Wapkey"
@@ -1354,3 +1568,4 @@ msgstr "Generate new key"
 #: wap.php:49
 msgid "Fjern wapkey"
 msgstr "Disable wapkey"
+

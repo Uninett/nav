@@ -601,6 +601,53 @@ ORDER BY time, minutt";
 
 
 
+	// Denne funksjonen returnerer en liste over alle tidsperioder som kræsjer, altså har samme tid.        
+function listPeriodekonflikter($pid) {
+    $konf = NULL;
+    
+    $querystring =  "
+SELECT antall, dag, starttid FROM (
+    SELECT count(id) AS antall, dag, starttid FROM (
+        SELECT id, 'hverdag' AS dag, starttid 
+        FROM Tidsperiode 
+        WHERE brukerprofilid = " . addslashes($pid) . " AND ((helg = 2) OR (helg = 1) )
+            UNION
+        SELECT id, 'helg' AS dag, starttid  
+        FROM Tidsperiode 
+        WHERE brukerprofilid = " . addslashes($pid) . " AND ((helg = 3) OR (helg = 1) )
+        ) AS subs
+    GROUP BY dag, starttid
+) AS subss 
+WHERE antall > 1
+";     
+     //print "<pre>" . $querystring . "</pre>";
+     
+   
+    if ( $query = pg_exec($this->connection, $querystring) ) {
+      $tot = pg_numrows($query); $row = 0;
+
+      while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$konf[$row][0] = $data["antall"];		
+		$konf[$row][1] = $data["dag"];
+		$konf[$row][2] = $data["starttid"];
+
+		$row++;
+      } 
+    }  else {
+      $error = new Error(2);
+      $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+
+    return $konf;
+     
+    }
+
+
+
+
+
+
 	// Denne funksjonen returnerer alle utstyrgrupper som en Account har tilgang til, 
 	// enten man har laget den selv eller den er arvet gjennom DefaultUtstyr.
   function listUtstyr($uid, $sort) {
@@ -1433,7 +1480,7 @@ function endreBruker($uid, $brukernavn, $navn, $passord, $admin, $sms, $kolengde
 	$querystr = "UPDATE Preference SET admin = " . addslashes($admin) . " WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);	
 	
-	$querystr = "UPDATE Preference SET queuelength = " . addslashes($kolengde) . " WHERE accountid = " . addslashes($uid);
+	$querystr = "UPDATE Preference SET queuelength = '" . addslashes($kolengde) . " days' WHERE accountid = " . addslashes($uid);
 	@pg_exec($this->connection, $querystr);
 
 }
@@ -1565,7 +1612,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       
           // Spxrring som legger inn i databasen
         $querystring = "INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES (" . 
-            $idrow[0] . ", " . addslashes($admin) . ", " . $sms . ", " . addslashes($kolengde) . ") ";
+            $idrow[0] . ", " . addslashes($admin) . ", " . $sms . ", '" . addslashes($kolengde) . " days') ";
             
         pg_exec( $this->connection, $querystring);
 
@@ -1774,7 +1821,7 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
     }
 
   // opprette nytt matchfelt
-function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qvaluecategory, $qvaluesort, $listlimit, $showlist) {
+function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qvaluecategory, $qvaluesort, $listlimit, $showlist, $datatype) {
 
     $ivalueid 		= $this->extrval($qvalueid);
     $ivaluename 	= $this->extrval($qvaluename);
@@ -1785,10 +1832,10 @@ function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qval
     $iname		= $this->extrval($name);
  
          // Spxrring som legger inn i databasen
-    $querystring = "INSERT INTO MatchField (name, descr, valuehelp, valueid, valuename, valuecategory, valuesort, listlimit, showlist) VALUES (" .
+    $querystring = "INSERT INTO MatchField (name, descr, valuehelp, valueid, valuename, valuecategory, valuesort, listlimit, showlist, datatype) VALUES (" .
     $iname . ", " . $idescr . ", " . $ivaluehelp . ", " . $ivalueid . ", " . 
     $ivaluename . ", " . $ivaluecategory . ", " . $ivaluesort . ", " .
-      addslashes($listlimit) . ", " . $showlist . " )";
+      addslashes($listlimit) . ", " . $showlist . ", " . addslashes($datatype) . " )";
     
    // print "<p>query: $querystring";
    

@@ -110,7 +110,7 @@ class Lister {
 
 		foreach ($this->labels as $key => $label) {
 
-			$s .= "<td class=\"listingLabel\" align=\"" . $this->aligns[$col] . "\">";
+			$s .= "<th class=\"listingLabel\" align=\"" . $this->aligns[$col] . "\">";
 
 			if ($this->sorts[$col] ) {	    	
 				$s .= "<a class=\"sort\" href=\"index.php?sortid=" . $this->lid ."&sort=$key\">";
@@ -129,7 +129,7 @@ class Lister {
 				}
 			}
 			
-		$s .= "</td>\n";
+		$s .= "</th>\n";
 		$col++;
     }
 
