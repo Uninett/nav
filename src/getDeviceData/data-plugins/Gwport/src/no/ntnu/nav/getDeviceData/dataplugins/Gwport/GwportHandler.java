@@ -177,7 +177,7 @@ public class GwportHandler implements DataHandler {
 			// module, gwport, prefix, vlan
 			Map moduleMap = new HashMap();
 			Map vlanDbMap = new HashMap();
-			rs = Database.query("SELECT serial,hw_ver,sw_ver,moduleid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,orgid,usageid,netident,description FROM device JOIN module USING(deviceid) JOIN netbox USING(netboxid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE netboxid=" + nb.getNetboxid() + " ORDER BY moduleid,gwportid");
+			rs = Database.query("SELECT serial,hw_ver,sw_ver,moduleid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,prefix.prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,vlan.orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) JOIN netbox USING(netboxid) WHERE netboxid=" + nb.getNetboxid() + " ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
 				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
