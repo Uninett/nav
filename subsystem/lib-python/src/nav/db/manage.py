@@ -1,3 +1,4 @@
+# -*- coding: ISO8859-1 -*-
 #
 # $Id$
 #
@@ -72,6 +73,7 @@ def _customizeTables():
     Netboxinfo._sqlPrimary = ('key', 'var', 'val')
     Gwportprefix._sqlPrimary = ('gwip',)
     Serviceproperty._sqlPrimary = ('service', 'property')
+    Netboxcategory._sqlPrimary = ('netbox', 'category')
 
     # connection with database
     forgotten.manage._Wrapper.cursor = nav.db.cursor
