@@ -7,7 +7,7 @@
 use Pg;
 use strict;
 
-my $loggfil = "/usr/local/trapdetect/log/dsmslogg";
+my $loggfil = "/usr/local/nav/local/log/trapdetect/dsmslogg";
 my $dbh_m = db_connect("manage","manage","eganam");
 my $dbh_t = db_connect("trapdetect","trapdetect","tcetedpart");
 

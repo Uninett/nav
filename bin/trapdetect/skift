@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-$traplog = "/home/trapdet/log/traplog";
+$traplog = "/usr/local/nav/local/log/trapdetect/traplog";
 
 chomp ($dato = `date +%d%m%y --date "1 day ago"`);
 

@@ -23,11 +23,13 @@ if (defined $valg) {
 
 my ($ok,$ok2, $ok_org, $ok_kat); # Feilsjekkvariable
 #my $fil = "../etc/TrapDetect.conf_bak"; # conf-fila som skal legges inn i database.
-my $fil = "../etc/TrapDetect.conf";
+my $lokalfil = "/usr/local/nav/local/etc/conf/TrapDetect_local.conf";
+my $fil = "/usr/local/nav/navme/etc/trapdetect/TrapDetect.conf";
 
 my $dbh = db_connect("trapdetect");
 
-&les_fil();
+&les_fil($lokalfil);
+&les_fil($fil);
 
 if ($ok && $ok2 && $ok_org && $ok_kat) {
     print "Ferdig - alt ok\n";
@@ -56,6 +58,7 @@ if ($ok && $ok2 && $ok_org && $ok_kat) {
 ##################################################
 sub les_fil {
 
+    my $fil = shift;
     my $bool = 0; # Angir om vi skal fortsette og lete etter suboid'er
     my %beskrivelse; # Alle beskrivelser; trap som key
     my %kategorier; # Alle kategorier med trap som key

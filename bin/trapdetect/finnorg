@@ -11,25 +11,27 @@ use strict;
 use Pg;
 
 # Kobler til databasen
-my $dbh = &db_connect("manage","manage","eganam");
+my $dbh_m = &db_connect("manage","manage","eganam");
 my $dbh_t = &db_connect("trapdetect","trapdetect","tcetedpart");
-my $hent_org = &db_select("select * from org",$dbh_t);
 
 # Legger alle org i en hash
 my %org;
+my $hent_org = &db_select("select * from org",$dbh_t);
 while (my @res = $hent_org->fetchrow) {
+    $res[1] = uc$res[1];
     $org{$res[1]}++;
+    print "$res[1]\n";
 }
 
 # Henter alle org som finnes i nettel, her heter det eier
 # Hvis de ikke finnes i org fra før, legges de inn der.
-my $hent_eier = &db_select("select eier from nettel group by eier",$dbh);
+my $hent_eier = &db_select("select distinct(orgid) from boks",$dbh_m);
 while (my @res = $hent_eier->fetchrow) {
-    my $eier = $res[0];
+    my $eier = uc $res[0];
     print "Sjekker om $eier finnes fra før...";
     unless ($org{$eier}) {
 	print "nei - legger inn\n";
-	my $sporring = "insert into org (navn) values ($eier)\n";
+	my $sporring = "insert into org (navn) values ('$eier')";
 	print "$sporring\n";
 	my $ok = &db_execute($sporring,$dbh_t);
 	unless ($ok) {
@@ -42,13 +44,13 @@ while (my @res = $hent_eier->fetchrow) {
 
 sub db_connect {
     my $db = $_[0];
-    my $user = $_[1];
-    my $pass = $_[2];
-    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    my $uname = $_[1];
+    my $passwd = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$uname password=$passwd");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
-
+ 
 sub db_select {
     my $sql = $_[0];
     my $conn = $_[1];
@@ -57,7 +59,7 @@ sub db_select {
         unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
     return $resultat;
 }
-
+ 
 sub db_execute {
     my $sql = $_[0];
     my $conn = $_[1];
@@ -65,6 +67,6 @@ sub db_execute {
     print "DATABASEFEIL: $sql\n".$conn->errorMessage
         unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
 #die er byttet med print
-
+ 
     return $resultat;
 }
