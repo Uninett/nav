@@ -26,10 +26,11 @@
     </packageset>
 
 		<!-- getDeviceData data plugins -->
+<!--
     <packageset dir="../getDeviceData/data-plugins/NetboxInfo/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
-
+-->
     <packageset dir="../getDeviceData/data-plugins/ModuleMon/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
