@@ -4,32 +4,51 @@ $Source: /usr/local/cvs/navbak/navme/subsystem/statemon/lib/checker/HttpChecker.
 """
 from event import Event
 from abstractChecker import AbstractChecker
+from urlparse import urlsplit
 import httplib
 import Socket
+import socket
 class HTTPConnection(httplib.HTTPConnection):
-	def __init__(self,timeout,host,port=None):
+	def __init__(self,timeout,host,port=80):
 		httplib.HTTPConnection.__init__(self,host,port)
 		self.timeout = timeout
+		self.connect()
 	def connect(self):
 		self.sock = Socket.Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
+class HTTPSConnection(httplib.HTTPSConnection):
+	def __init__(self,timeout,host,port=443):
+		httplib.HTTPSConnection.__init__(self,host,port)
+		self.timeout = timeout
+		self.connect()
+	def connect(self):
+		sock = Socket.Socket(self.timeout)
+		sock.connect((self.host,self.port))
+		ssl = socket.ssl(sock.s, None, None)
+		self.sock = httplib.FakeSocket(sock, ssl)
+		
 class HttpChecker(AbstractChecker):
 	def __init__(self,service, **kwargs):
 		AbstractChecker.__init__(self, "http", service,port=80, **kwargs)
 	def execute(self):
 		ip, port = self.getAddress()
-		i = HTTPConnection(self.getTimeout(), ip, port)
-		vhost = self.getArgs().get('vhost','')
-		path  = self.getArgs().get('path','')
-		if vhost:
-			url = "http://%s/%s" % (vhost, path)
+		url = self.getArgs().get('url','')
+		if not url:
+			url = "/"
+		protocol, vhost, path, query, fragment = urlsplit(url)
+		
+		if protocol == 'https':
+			i = HTTPSConnection(self.getTimeout(), ip, port)
 		else:
-			url = "http://%s:%i/%s" % (ip, port, path)
-
-		i.putrequest('GET',url)
+			i = HTTPConnection(self.getTimeout(), ip, port)
+		if vhost:
+			i.host=vhost
+		i.set_debuglevel(9)
+		i.putrequest('GET',path)
+		i.putheader('User-Agent','NAV/ServiceMon Build 1734 Rev 31337 $Revision$')
 		i.endheaders()
 		response = i.getresponse()
-		if response.status >= 200 and response.status < 300:
+		if response.status >= 200 and response.status < 400:
 			status = Event.UP
 			version = response.getheader('SERVER')
 			self.setVersion(version)
