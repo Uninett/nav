@@ -249,3 +249,67 @@ You are logged in as <a href="/index/userinfo">$user.name</a>.
       td.header-submit      { border: 1px solid #9cf; background-image:url('$imagefolder/form/fill-submit.gif');   text-align: center; }
       td.header-white       { border: 1px solid #ccc;                                                              text-align: center; }
 #end def default_form_CSS
+
+#def default_tabs_CSS
+#tabs {
+    float:left;
+    width:100%;
+    font-size:11px;
+    line-height:normal;
+    }
+
+  #tabs ul {
+    margin:0;
+    padding:10px 0px 0;
+    list-style:none;
+    }
+
+  #tabs li {
+    float:left;
+    background:url("$imagefolder/tabs/blue-r.png") no-repeat right top;
+    margin:0;
+    padding:0;
+    }
+
+  #tabs a {
+    display:block;
+    background:url("$imagefolder/tabs/blue-l.png") no-repeat left top;
+    padding:5px 14px 4px;
+    text-decoration:none;
+    color:#369;
+    border-bottom: 1px solid black;
+    float:left;
+    }
+
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+  #header a {float:none;}
+/* End IE5-Mac hack */
+
+  #tabs a:hover {
+    color:black;
+  }
+
+  #tabs #current {
+    background-image:url("$imagefolder/tabs/white-r.png");
+    }
+
+  #tabs #current a {
+    background-image:url("$imagefolder/tabs/white-l.png");
+    color:black;
+    border-bottom: 1px solid white;
+    }
+
+  #tabs #same {
+    background-image:url("$imagefolder/tabs/yellow-r.png");
+    }
+
+  #tabs #same a {
+    background-image:url("$imagefolder/tabs/yellow-l.png");
+    color:#663;
+    }
+
+  #tabs #same a:hover {
+    color:black;
+  }
+
+#end def default_tabs_CSS
