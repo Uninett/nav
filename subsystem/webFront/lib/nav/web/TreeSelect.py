@@ -108,12 +108,11 @@ class TreeSelect:
         # start with the first element
         if select.updateThis:
             select = self.elementList[0] 
-            nextElements = select.nextElement
+            next = select.nextElement
 
-            for next in nextElements:
-                while(next):
-                    next.updateOptions(next.prevElement.selectedList)
-                    next = next.nextElement 
+            while(next):
+                next.updateOptions(next.prevElement.selectedList)
+                next = next.nextElement 
 
             # update the selected rows (selected in form -> Option.selected = true)
             for select in self.elementList:
@@ -152,7 +151,7 @@ class Select:
     onchange = None
 
     # points to the next and previous selects
-    nextElement = []
+    nextElement = None
     prevElement = None
 
     # copy of the list of selected entries for this select
@@ -322,7 +321,7 @@ class UpdateableSelect(Select):
 
         # link together with the last select
         self.prevElement = prevElement
-        prevElement.nextElement.append(self)
+        prevElement.nextElement = self
 
         self.updateFromTable = updateFromTable
         self.textColumn = textColumn
