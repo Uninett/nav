@@ -2,13 +2,14 @@
 Overvåker
 
 $Author: erikgors $
-$Id: job.py,v 1.12 2002/06/13 13:57:22 erikgors Exp $
+$Id: job.py,v 1.13 2002/06/13 15:34:35 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
 from select import select
 from errno import errorcode
 
+TIMEOUT = 5 #default timeout
 class Timeout(Exception):
 	pass
 class Event:
@@ -20,7 +21,7 @@ class Event:
 		self.info = info
 
 class Socket:
-	def __init__(self,timeout=5):
+	def __init__(self,timeout):
 		self.timeout = timeout
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -77,6 +78,7 @@ class JobHandler:
 		self.setTimestamp(0)
 		self.setArgs(args)
 		self.setVersion(version)
+		self.setTimeout(args.get('timeout',TIMEOUT))
 	def run(self):
 		start = time.time()
 		version = self.getVersion()
@@ -90,7 +92,7 @@ class JobHandler:
 		if status != self.getStatus():
 			database.newEvent(Event(self.getId(),status,info))
 			self.setStatus(status)
-		elif version != self.getVersion():
+		if version != self.getVersion():
 			database.newVersion(self.getId(),self.getVersion())
 		self.setTimestamp()
 	def setId(self,id):
@@ -111,6 +113,10 @@ class JobHandler:
 		if when == -1:
 			when = time.time()
 		self._timestamp= when
+	def setTimeout(self,value):
+		self._timeout = value
+	def getTimeout(self):
+		return self._timeout
 	def setArgs(self,args):
 		self._args = args
 	def getArgs(self):
@@ -168,11 +174,12 @@ class HTTPConnection(httplib.HTTPConnection):
 		self.sock = Socket()
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
-	def __init__(self,id,address,args,version):
-		JobHandler.__init__(self,'http',id,address,args,version)
+	def __init__(self,id,ip,args,version):
+		port = args.get('port',80)
+		JobHandler.__init__(self,'http',id,(ip,port),args,version)
 	def execute(self):
 		i = HTTPConnection(*self.getAddress())
-		path = self.getArgs().get('path','/')
+		path = self.getArgs().get('path',['/'])[0]
 		url = 'http://%s:%i%s' % (self.getAddress()[0],self.getAddress()[1],path)
 		print url
 		i.putrequest('GET',url)
@@ -189,8 +196,13 @@ class HttpHandler(JobHandler):
 		return status,info
 import ftplib
 class FTP(ftplib.FTP):
-	def __init__(self):
+	def __init__(self,timeout,host='',user='',passwd='',acct=''):
 		ftplib.FTP.__init__(self)
+		if host:
+			self.connect(host)
+		if user:
+			self.login(user,passwd,acct)
+		self.timeout = timeout
 	def connect(self, host = '', port = 0):
 		'''Connect to host.  Arguments are:
 		- host: hostname to connect to (string, default previous host)
@@ -198,22 +210,51 @@ class FTP(ftplib.FTP):
 		if host: self.host = host
 		if port: self.port = port
 		msg = "getaddrinfo returns an empty list"
-		for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
-			af, socktype, proto, canonname, sa = res
-			try:
-				self.sock = Socket()
-				self.sock.connect(sa)
-			except socket.error, msg:
-				if self.sock:
-					self.sock.close()
-				self.sock = None
-				continue
-			break
-		if not self.sock:
-			raise socket.error, msg
-		self.af = af
+		self.sock = Socket(self.timeout)
+		self.sock.connect((self.host,self.port))
 		self.file = self.sock.makefile('rb')
 		self.welcome = self.getresp()
 		return self.welcome
-jobmap = {'http':HttpHandler,'port':PortHandler}
+class FtpHandler(JobHandler):
+	"""
+	takes the args:
+	username
+	password
+	path (ACCT)
+	timeout
+	"""
+	def __init__(self,id,ip,args,version):
+		port = args.get('port',21)
+		JobHandler.__init__(self,'ftp',id,(ip,port),args,version)
+	def execute(self):
+		s = FTP(self.getTimeout())
+		ip,port = self.getAddress()
+		output = s.connect(ip,port)
+		args = self.getArgs()
+		username = args.get('username','')
+		password = args.get('password','')
+		path = args.get('path','')
+		output = s.login(username,password,path)
+		if output[:3] == '230':
+			return Event.UP,'code 230'
+		else:
+			return Event.DOWN,output.split('\n')[0]
+class SshHandler(JobHandler):
+	"""
+	take the args:
+	timeout
+	"""
+	def __init__(self,id,ip,args,version):
+		port = args.get('port',22)
+		JobHandler.__init__(self,'ssh',id,(ip,port),args,version)
+	def execute(self):
+		s = Socket(self.getTimeout())
+		s.connect(self.getAddress())
+		version = s.readline().strip()
+		self.setVersion(version)
+		return Event.UP,'OK'
+
+
+
+jobmap = {'http':HttpHandler,'port':PortHandler,'ftp':FtpHandler,'ssh':SshHandler}
 import database
