@@ -13,7 +13,7 @@ from nav import db
 from nav.db.manage import Emotd, Emotd_related, Maintenance 
 from nav.db.manage import Room, Service, Netbox 
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
-from nav.web import SearchBox,EmotdSelect,redirect
+from nav.web import SearchBox,EmotdSelect,redirect,shouldShow
 
 #################################################
 ## Templates
@@ -142,12 +142,11 @@ def getMenu(user,this):
     # Should have some fancy icons and shit
     menu = []
     menu.append(MenuItem("active","Active messages",this))
-    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
-        menu.append(MenuItem("planned","Planned messages",this))
-        menu.append(MenuItem("historic","Historic messages",this))
+    menu.append(MenuItem("planned","Planned messages",this))
+    menu.append(MenuItem("historic","Historic messages",this))
 
     menu.append(MenuItem("maintenance","Maintenance list"))
-    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+    if shouldShow('/emotd/edit',user):
         menu.append(MenuItem("edit","New message",this))
         menu.append(MenuItem("add","Maintenance Setup",this))
     return menu
@@ -234,7 +233,7 @@ def view(req, view = None, offset="0", lang = None):
     user = req.session['user']
     list = 0
     category = "active"
-    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+    if shouldShow('/emotd/edit',user):
         access = True
 
     try:
@@ -370,13 +369,17 @@ def view(req, view = None, offset="0", lang = None):
 ##     #return emotds
 
 class MessageListMessage:
-    def __init__(self,id,title,description,last_changed,author,type,units):
+    def __init__(self,id,title,description,last_changed,author,type,publish_start = None, publish_end = None, affected = "", downtime = "", units = 0):
         self.id = int(id)
         self.title = title
         self.description = description
         self.last_changed = last_changed.strftime(DATEFORMAT)
         self.author = author
         self.type = type
+        self.publish_start = publish_start
+        self.publish_end = publish_end
+        self.affected = affected
+        self.downtime = downtime
         self.units = units
         self.new = 0
         if last_changed>DateTime.today():
@@ -409,7 +412,7 @@ def home(req,view="active",offset="0"):
 
 def messagelist(user,view="active",offset=0):
     access = False
-    if nav.auth.hasPrivilege(user,'web_access','/emotd/edit'):
+    if shouldShow('/emotd/edit',user):
         access = True
 
     if offset:
@@ -423,13 +426,13 @@ def messagelist(user,view="active",offset=0):
         time = "publish_end > now() and publish_start < now()"
 
     if access:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end  order by publish_end desc, last_changed desc limit %s offset %d" %(time,LIMIT,offset*LIMIT))
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by publish_end desc, last_changed desc limit %d offset %d" %(time,LIMIT,offset*LIMIT))
     else:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end order by publish_end desc, last_changed desc limit %s offset %d"% (time, LIMIT, offset*LIMIT))
+        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by publish_end desc, last_changed desc limit %d offset %d" %(time, LIMIT, offset*LIMIT))
 
     messages = []
-    for (id, titile, description, last_changed, author, type, units) in database.fetchall():
-        messages.append(MessageListMessage(id, titile, description, last_changed, author, type, units))
+    for (id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units) in database.fetchall():
+        messages.append(MessageListMessage(id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units))
         
     return messages
     
