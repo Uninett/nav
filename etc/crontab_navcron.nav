@@ -68,7 +68,7 @@ NUM_THREADS=24
 # </maintengine>
 
 # <thresholdMon>
-*/5 * * * * $BDIR/thresholdMon.py
+*/5 * * * * $BDIR/thresholdMon.py >> $LOGDIR/thresholdMon.log
 # </thresholdMon>
 
 # --- EOF ---
