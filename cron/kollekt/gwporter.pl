@@ -23,7 +23,7 @@ my $hsrp_rootgw    = ".1.3.6.1.4.1.9.9.106.1.2.1.1.11";
 my $db = &db_connect("manage","navall","uka97urgf");
 
 ## antmask tatt ut
-my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","komm");
+my @felt_prefiks =("prefiksid","nettadr","maske","vlan","maxhosts","nettype","orgid","anvid","nettident","samband","komm");
 my @felt_gwport = ("gwportid","boksid","ifindex","gwip","interf","masterindex","speed","ospf");
 
 my (%lan, %stam, %link, %vlan);
@@ -282,6 +282,7 @@ sub hent_snmpdata {
 
 	my $interf = $interface{$if}{interf};
 	$_ = &rydd($interface{$if}{nettnavn});
+#	print "\n";
 	unless (/^(?:lan|stam|link|elink)/i || $interf =~ /loopback/i) {
 	    $_ = &rydd($vlan{$nettadr}{$maske});
 	}
@@ -291,8 +292,11 @@ sub hent_snmpdata {
 	    my $nettnavn = $_;
 	    my ($nettype,$org,$anv,$komm) = split /,/;
 	    $nettype = &rydd($nettype);
-#	    $nettype =~ s/lan(\d*)/lan/i;
-	    $nettype = "lan";
+	    print $nettype;
+	    $nettype =~ s/lan(\d*)/lan/i;
+	    print $nettype;
+	    print "\n";
+#	    $nettype = "lan";
 	    $org = &rydd($org);
 	    $org =~ s/^(\w*?)\d*$/$1/;
 	    $anv = &rydd($anv);
@@ -302,7 +306,7 @@ sub hent_snmpdata {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske, 
 					   $vlan,  $maxhosts, 
 					   $nettype,$org,$anv,
-					   $nettnavn,$komm];
+					   $nettnavn, undef,$komm];
 
 #	} elsif (/^stam/i) {
 #	    my ($nettype,$stamnavn,$komm) = split /,/;
@@ -317,7 +321,7 @@ sub hent_snmpdata {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
-					   $nettident, $komm];
+					   $nettident, $samband, $komm];
 
 	} elsif (/^elink/i) {
 #	    print;
@@ -328,7 +332,7 @@ sub hent_snmpdata {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
 					   $nettype, $org, undef,
-					   $nettident, $komm]; #ruter tatt over for samband. Egentlig skulle ruter hatt et eget tilruter.
+					   $nettident, $samband, $komm]; #ruter tatt over for samband. Egentlig skulle ruter hatt et eget tilruter.
 
 	} elsif ($interf =~ /loopback/i) {
 #	    print "har funnet loopback";
@@ -336,7 +340,7 @@ sub hent_snmpdata {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
-					   undef, undef ];
+					   undef, undef, undef ];
 	}
 	else {
 #	    print "har funnet ukjent $_";
@@ -344,7 +348,7 @@ sub hent_snmpdata {
 	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
 					   $vlan,  $maxhosts,
 					   $nettype, undef, undef,
-					   undef, undef ];
+					   undef, undef, undef ];
 	}
 
     }
