@@ -558,6 +558,7 @@ INSERT INTO subsystem (name) VALUES ('moduleMon');
 INSERT INTO subsystem (name) VALUES ('thresholdMon');
 INSERT INTO subsystem (name) VALUES ('trapParser');
 INSERT INTO subsystem (name) VALUES ('cricket');
+INSERT INTO subsystem (name) VALUES ('deviceTracker');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
