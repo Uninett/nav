@@ -93,7 +93,7 @@ foreach my $prefiksid (keys %prefiksid2gwip) {
     my $gammel = $prefiksid2rootgwid{$prefiksid};
     my $ny = $gwip2gwportid{$prefiksid2gwip{$prefiksid}};
     unless ($ny eq $gammel) {
-	&db_oppdater($db,"prefiks","rootgwid",$gammel,$ny,"prefiksid",$prefiksid);
+	&db_update($db,"prefiks","rootgwid",$gammel,$ny,"prefiksid=$prefiksid");
     }
 }
 ## Setter antmask. Dette skjer til slutt. Det er dumt, det kunne vært
@@ -104,7 +104,7 @@ foreach my $prefiksid (keys %db_antmask) {
     my $gammel = $db_antmask{$prefiksid};
     my $ny = $antmask{$prefiksid};
     unless ($ny eq $gammel) {
-	&db_oppdater($db,"prefiks","antmask",$gammel,$ny,"prefiksid",$prefiksid);
+	&db_update($db,"prefiks","antmask",$gammel,$ny,"prefiksid=$prefiksid");
     }
 }
 
@@ -287,11 +287,12 @@ sub hent_snmpdata {
 	}
 	(my $vlan,my $noe, my $noeannet) = &finn_vlan($_,$boksid);
 	
-	if(/^lan/i) {
+	if(/^(?:lan|stam)/i) {
 	    my $nettnavn = $_;
 	    my ($nettype,$org,$anv,$komm) = split /,/;
 	    $nettype = &rydd($nettype);
-	    $nettype =~ s/lan(\d*)/lan/i;
+#	    $nettype =~ s/lan(\d*)/lan/i;
+	    $nettype = "lan";
 	    $org = &rydd($org);
 	    $org =~ s/^(\w*?)\d*$/$1/;
 	    $anv = &rydd($anv);
@@ -303,13 +304,12 @@ sub hent_snmpdata {
 					   $nettype,$org,$anv,
 					   $nettnavn,$komm];
 
-	} elsif (/^stam/i) {
-	    my ($nettype,$stamnavn,$komm) = split /,/;
-	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
-					   $vlan,  $maxhosts,
-					   $nettype, undef, undef,
-					   $stamnavn, $komm];
-
+#	} elsif (/^stam/i) {
+#	    my ($nettype,$stamnavn,$komm) = split /,/;
+#	    $prefiks{$nettadr}{$maske} = [ undef, $nettadr, $maske,
+#					   $vlan,  $maxhosts,
+#					   $nettype, undef, undef,
+#					   $stamnavn, $komm];
 	} elsif (/^link/i) {
 #	    print;
 	    my ($nettype,$samband,$komm) = split /,/;
@@ -441,7 +441,7 @@ sub finn_prefiksid {
     my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
     foreach my $maske (@masker) {
 	my $nettadr = &and_ip($ip,$maske);
-	print "\n_".$ip."_".$maske."_".$nettadr;
+#	print "\n_".$ip."_".$maske."_".$nettadr;
 #	print "$ip & $maske = $nettadr\n";
 	return $nettadr2prefiksid{$nettadr} if (defined $nettadr2prefiksid{$nettadr});
     }
@@ -454,7 +454,7 @@ sub oppdater_prefiks{
     my %iper = &db_hent_enkel($db,"SELECT $felt_fast,$felt_endres FROM $tabell");
     foreach my $ip (keys %iper) {
 	my $prefiksid = &finn_prefiksid($ip);
-	print "\n-$ip--".$prefiksid;
+#	print "\n-$ip--".$prefiksid;
 #	print "$iper{$ip} eq $prefiksid\n";
 #	unless ($iper{$ip} eq $prefiksid ){#|| !$iper{$ip}) {
 #	    print "$tabell - $felt_endres - $iper{$ip} - $prefiksid - $felt_fast - $ip\n";
