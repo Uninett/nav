@@ -1,8 +1,7 @@
 """
 create and update rrd-objects
 
-$Authour$
-$Id: rrd.py,v 1.3 2002/06/19 10:35:15 erikgors Exp $
+$Id: rrd.py,v 1.4 2002/06/19 10:37:19 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/rrd.py,v $
 """
 import os
