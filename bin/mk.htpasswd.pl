@@ -55,19 +55,12 @@ open (STAT_FIL, "<$stat_userlist") || die "Får ikke åpnet filen med de statiske 
       $sec{$user}{adgang} = $adgang;
     }
 
-    elsif (lc($adgang) eq 'begrenset') {
+    # nettass er NTNU propritært
+    elsif (lc($adgang) eq ('begrenset'||'nettass')) {
       $res{$user}{passwd} = $passwd;
       $res{$user}{navn}   = $navn;
       $res{$user}{info}   = $info;
       $res{$user}{adgang} = $adgang;
-    }
-
-    # NTNU propritært
-    elsif (lc($adgang) eq 'nettass') {
-	$sby{$user}{passwd} = $passwd;
-	$sby{$user}{navn}   = $navn;
-	$sby{$user}{info}   = $info;
-	$sby{$user}{adgang} = 'begrenset';  
     }
 
     else {
