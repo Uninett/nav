@@ -1,21 +1,29 @@
-from mod_python import apache
-from nav.db import manage
-from nav.web import urlbuilder
-from nav.errors import *
-from nav.rrd import presenter
 
-from nav.web import tableview
-from nav.web.devBrowser import service
-from nav.web.devBrowser.servicetable import ServiceTable
+from mod_python import apache
 import forgetHTML as html
 import random
 import re
 from mx import DateTime
 
+from nav.db import manage
+from nav.web import urlbuilder
+from nav.errors import *
+from nav.rrd import presenter
+from nav.web import tableview
+import module
+from nav.web.devBrowser.servicetable import ServiceTable
+
 _statusTranslator = {'y':'Up',
                      'n':'Down',
                      's':'Shadow'
                      }
+
+def findNetbox(hostname):
+    netbox = manage.getNetbox(hostname)
+    if not netbox:
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+    return netbox    
+
 def process(request):
     args = request['args']
     query = request['query']
@@ -33,9 +41,8 @@ def process(request):
     if not hostname:
         # How did we get here?
         return showIndex()
-    netbox = manage.getNetbox(hostname)
-    if not netbox:
-        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+    netbox = findNetbox(hostname)
+
     #for i in netbox._sqlFields.keys():
     #    line = "%s: %s\n" % (i, getattr(netbox, i))
     #    result.append(html.Division(line))
@@ -50,6 +57,9 @@ def process(request):
     rrds = info.showRrds()
     if rrds:
         result.append(rrds)
+    links = info.showLinks()    
+    if links:
+        result.append(links)
     ports = info.showPorts()
     if ports:
         result.append(ports)
@@ -211,6 +221,56 @@ class NetboxInfo(manage.Netbox):
         div.append(table.html)
         return div
 
+    def showLinks(self):
+        up = self.getChildren(manage.Swp_netbox, 'to_netbox')
+        down = self.getChildren(manage.Swp_netbox, 'netbox')
+        if not (up or down):
+            return None
+        info = html.Division()
+        info.append(html.Header("Links with this box", level=2))
+        def swporturl(netbox, module, port):
+            """Generates a link to a given port"""
+            url = urlbuilder.createUrl(netbox)
+            url += 'module%s/port%s/' % (module, port)
+            return html.Anchor(str(port), href=url)
+        if up:
+            for link in up:
+                line = html.Division()
+                info.append(line)
+                line.append(urlbuilder.createLink(link.netbox))
+                # His port
+                line.append("(")
+                if link.module and link.port:
+                    line.append("%s %s" % 
+                            (link.module, 
+                             swporturl(link.netbox, link.module,link.port)))
+                line.append("&nbsp;--&gt;&nbsp;")
+                # our 
+                if link.to_module and link.to_port:
+                    line.append("%s %s" % 
+                        (link.to_module, 
+                         swporturl(link.to_netbox, link.to_module,link.to_port)))
+                line.append(")")
+        if down:
+            for link in down:
+                line = html.Division()
+                info.append(line)
+                line.append(urlbuilder.createLink(link.to_netbox))
+                # His port
+                line.append("(")             
+                if link.to_module and link.to_port:
+                    line.append("(%s %s" % 
+                        (link.to_module, 
+                         swporturl(link.to_netbox, link.to_module,link.to_port)))
+                line.append("&nbsp;&lt;--&nbsp;")
+                # our port
+                if link.module and link.port:
+                    line.append("%s %s" % 
+                            ( link.module, 
+                             swporturl(link.netbox, link.module,link.port)))
+                line.append(")")             
+        return info                    
+
     def showRrds(self):
         rrdfiles = self.getChildren(manage.Rrd_file,
                    where="not subsystem in ('pping', 'serviceping')")
@@ -239,127 +299,23 @@ class NetboxInfo(manage.Netbox):
      #           ds.rrd_file.load()
       #          table.add(str(ds.rrd_file._values), str(ds._values))
         return table
-
     def showPorts(self):
         div = html.Division(_class="ports")
         div.append(html.Header("Switchports", level=2))
-        div.append(self.showModuleLegend())        
-        # div.append(modules)
-        modules = self.getChildren(manage.Module)
+        div.append(module.showModuleLegend())        
+        modules = self.getChildren(module.ModuleInfo)
         if not modules:
             return None
         isNum = lambda x: re.match("^[0-9]+$",x)
+        # høhø
         modules.sort(lambda a,b:
             # sort by number - if possible
             (isNum(a.module) and isNum(b.module) 
              and cmp(int(a.module), int(b.module))) 
             or cmp(a.module,b.module)) 
-        for module in modules:
-            moduleView = self.showModule(module)
+        for mod in modules:
+            moduleView = mod.showModule()
             if moduleView:
                 div.append(moduleView)
         return div
 
-    def showModule(self,module):
-        def findDisplayWidth(ports):
-            # Normally we'll show 12 ports in a row, but
-            # sometimes (?) 16 could be the one.
-            length = len(ports)
-            for x in 12,16,8,14:
-                if not length % x:
-                    return x
-            return 12        
-        
-        ports = module.getChildren(manage.Swport)
-        if not ports:
-            type = "gw"
-        else:
-            type = "sw"
-        ports += module.getChildren(manage.Gwport)
-
-        if not ports:
-            return None
-        
-        moduleView = html.Division(_class="module")
-        if type == "gw":
-            moduleView['class'] += ' gw'
-        moduleView.append(html.Header(module.module or "", level=3))
-        # calc width
-        width = findDisplayWidth(ports)
-        count = 0
-        portTable = html.Table()
-        moduleView.append(portTable)
-        row = html.TableRow()
-        for port in ports:
-            if count and not count % width:
-                portTable.append(row)
-                row = html.TableRow()
-            count += 1
-            if type=="gw":
-                if port.masterindex:
-                    portNr = "%s-%s" % (port.masterindex, port.ifindex)
-                else:    
-                    portNr = port.ifindex
-            else:
-                portNr = port.port
-            portView = html.TableCell("%s"% portNr,  _class="port")
-            row.append(portView)
-            titles = []
-            portView['title'] = ""
-            if type == 'sw' and port.link <> 'y':
-                portView['class'] += ' passive'
-                titles.append('not active')
-            if port.speed:    
-                portView['class'] += ' Mb%d' % port.speed
-                titles.append( '%d Mbit' % port.speed)
-            if type == 'sw':
-                if port.trunk:
-                    portView['class'] += ' trunk'
-                    titles.append("trunk")
-                portView['class'] += ' %sduplex' % port.duplex
-                if port.duplex == 'h':
-                    titles.append("half duplex")
-                elif port.duplex == 'f':
-                    titles.append("full duplex")
-                if port.media:
-                    titles.append(port.media)
-                vlans = port.getChildren(manage.Swportvlan)
-                if vlans:
-                    vlans = [str(x.vlan) for x in vlans]
-                    titles.append('Vlan ' + ','.join(vlans))
-                blocked = port.getChildren(manage.Swportblocked)        
-                if blocked:
-                    portView['class'] += ' blocked'
-                    vlans = [str(block.vlan) for block in blocked]
-                    titles.append("blocked " + ','.join(vlans))
-            if type == 'gw':
-                for item in port._values.items():
-                    titles.append("%s %s" % item)
-            if titles:
-                # beautiful! but .capitalize() lowercases everything first
-                titles[0] = titles[0][0].upper() + titles[0][1:]
-                title = ', '.join(titles)
-                portView['title'] = title
-                
-        portTable.append(row)
-        return moduleView
-
-    def showModuleLegend(self):
-        legend = html.Division(_class="legend")
-        legend.append(html.Header("Legend", level=3))
-        def mkLegend(name, descr):
-            port = html.Span("1")
-            port['class'] = "port %s" % name
-            legend.append(port)
-            legend.append(descr)
-            legend.append(" ")
-        mkLegend("passive", "Not active")
-        mkLegend("hduplex", "Half duplex")
-        mkLegend("blocked", "Blocked")
-        mkLegend("Mb10", "10 Mbit")
-        mkLegend("Mb100", "100 Mbit")
-        mkLegend("Mb1000", "1 Gbit")
-        mkLegend("trunk", "Trunk")
-        legend.append(html.Break())
-        legend.append(html.Emphasis("Hold mouse over port for info, click for details"))
-        return legend    

@@ -42,12 +42,12 @@ def handler(req):
         handler = __import__('nav.web.devBrowser.' + request['type'],
                              globals(), locals(), ('nav', 'web'))
         handler.process # make sure that there is a process functin
-
     except ImportError, e:
+        #req.write("Hmm")
         req.write(str(e))
         return apache.HTTP_NOT_FOUND
     except AttributeError, e:
-        raise repr(handler)
+        req.write(str(e))
         return apache.HTTP_NOT_FOUND
     
     req.session.setdefault('uris', [])
@@ -107,7 +107,7 @@ def classifyUri(uri):
         return request
 
     # Clean this up in some way
-    if name in 'netbox cat vlan room service sla notfound alert org rrd'.split():
+    if name in 'netbox cat vlan room module port service sla notfound alert org rrd'.split():
         request['type'] = name
     else:
         # Ok, it's a sysname.. split out to a seperate function that
@@ -117,6 +117,15 @@ def classifyUri(uri):
             (name, service) = name.split(":")[:2]
             request['service'] = service
         request['hostname'] = name
+        if splitted:
+            request['module'] = splitted.pop(0)
+            if request['module']:
+                request['type'] = 'module'
+        if splitted:
+            request['port'] = splitted.pop(0)
+            if request['port']:
+                request['type'] = 'port'
+            
     
     request['args'] = splitted # the rest
     
