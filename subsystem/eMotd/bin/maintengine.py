@@ -21,7 +21,7 @@ from mx import DateTime
 # some placeholders
 events = []
 states = ['scheduled','active','passed','overridden']
-debug = True
+debug = False
 
 def schedule():
     ##
@@ -94,11 +94,11 @@ def send_event():
             if unit.key == 'service':
                 e.subid = unit.value
             if event['type'] == 'maintenanceOn':
-                e.state = 'e'
+                e.state = 's'
                 e.value = 100
                 Maintenance(maintid).state = 'active'
             if event['type'] == 'maintenanceOff':
-                e.state = 's'
+                e.state = 'e'
                 e.value = 0
                 Maintenance(maintid).state = 'passed'
             e.severity = 50
