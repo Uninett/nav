@@ -298,7 +298,7 @@ class HandlerNettinfo
 
 			// NAVv2 SQL: "SELECT DISTINCT ON (sysname,vlan) gwport.boksid,sysname,ip,kat,romid,main_sw,serial,interf,vlan,netaddr,nettype,nettident,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks LEFT JOIN boksinfo USING (boksid) JOIN gwport USING (boksid) LEFT JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) ORDER BY sysname,vlan,interf"
 
-			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlan) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,swport.ifindex AS to_ifindex,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlan,gwport.interface");
+			ResultSet rs = Database.query("SELECT DISTINCT ON (sysname,vlan.vlan) mg.netboxid,sysname,ip,catid,roomid,sw_ver,serial,gwport.interface,vlan.vlan,netaddr,nettype,netident,gwport.to_netboxid,gwport.to_swportid,mg.module AS to_module,port AS to_port FROM gwport JOIN module AS mg USING(moduleid) JOIN netbox USING(netboxid) JOIN device ON (netbox.deviceid=device.deviceid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN module AS ms ON (ms.moduleid=swport.moduleid) ORDER BY sysname,vlan.vlan,gwport.interface");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			while (rs.next()) {
 				//HashMap hm = getHashFromResultSet(rs, rsmd, false);
@@ -328,7 +328,6 @@ class HandlerNettinfo
 				hm.put("vlan", rs.getString("vlan"));
 				hm.put("direction", "n");
 				hm.put("port", rs.getString("interface"));
-				hm.put("to_ifindex", rs.getString("to_ifindex"));
 				hm.put("to_module", rs.getString("to_module"));
 				hm.put("to_port", rs.getString("to_port"));
 				hm.put("to_catid", "gwport");
@@ -366,7 +365,7 @@ class HandlerNettinfo
 
 			// NAVv2 SQL: SELECT a.swportid,a.boksid,boks.sysname,boks.ip,boks.romid AS room,main_sw AS software,serial,boks2.sysname AS sysnamebak,a.modul,a.port,vlan,retning,a.status,a.speed,a.duplex,a.media,a.status,a.trunk,a.portnavn AS portname,a.boksbak,b.modul AS modulbak,b.port AS portbak FROM swport AS a JOIN boks USING (boksid) LEFT JOIN boksinfo USING (boksid) JOIN swportvlan USING (swportid) LEFT JOIN swport AS b ON (a.swportbak = b.swportid) LEFT JOIN boks AS boks2 ON (a.boksbak = boks2.boksid)
 
-			rs = Database.query("SELECT a.swportid,module.netboxid,netbox.sysname,netbox.ip,netbox.roomid AS room,sw_ver AS software,serial,netbox2.sysname AS to_sysname,module.module,a.port,vlan.vlan,direction,module.up,a.speed,a.duplex,a.media,module.up,a.trunk,a.portname,a.to_netboxid,module2.module AS to_module,b.port AS to_port FROM swport AS a JOIN module USING (moduleid) JOIN netbox USING (netboxid) JOIN device ON (netbox.deviceid=device.deviceid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) LEFT JOIN swport AS b ON (a.to_swportid = b.swportid) LEFT JOIN module AS module2 ON (b.moduleid = module2.moduleid) LEFT JOIN netbox AS netbox2 ON (a.to_netboxid = netbox2.netboxid)");
+			rs = Database.query("SELECT a.swportid,module.netboxid,netbox.sysname,netbox.ip,netbox.roomid AS room,sw_ver AS software,serial,netbox2.sysname AS to_sysname,module.module,a.port,a.ifindex,vlan.vlan,direction,module.up,a.speed,a.duplex,a.media,module.up,a.trunk,a.portname,a.to_netboxid,module2.module AS to_module,b.port AS to_port FROM swport AS a JOIN module USING (moduleid) JOIN netbox USING (netboxid) JOIN device ON (netbox.deviceid=device.deviceid) JOIN swportvlan USING (swportid) JOIN vlan USING(vlanid) LEFT JOIN swport AS b ON (a.to_swportid = b.swportid) LEFT JOIN module AS module2 ON (b.moduleid = module2.moduleid) LEFT JOIN netbox AS netbox2 ON (a.to_netboxid = netbox2.netboxid)");
 			rsmd = rs.getMetaData();
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -431,8 +430,8 @@ class HandlerNettinfo
 							return s1.compareTo(s2);
 
 						case SORT_IFINDEX:
-							String if1 = (String)m1.get("to_ifindex");
-							String if2 = (String)m2.get("to_ifindex");
+							String if1 = (String)m1.get("ifindex");
+							String if2 = (String)m2.get("ifindex");
 							Integer i1 = new Integer(if1 != null && !"null".equals(if1) ? if1 : "0");
 							Integer i2 = new Integer(if2 != null && !"null".equals(if2) ? if2 : "0");
 							return i1.compareTo(i2);
