@@ -13,7 +13,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 /**
  * <p>
- * DeviceHandler for collecting switch port data from C3xxx and C19xx switches.
+ * DeviceHandler for collecting switch port data from C3xxx switches.
  * </p>
  *
  * <p>
@@ -31,9 +31,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  * </ul>
  * </p>
  *
- * <p>
- * <b>Note:</b> Both hpSerial and hpPortType are required for any OID fetching to take place.
- * </p>
  */
 
 public class CiscoSwMenu implements DeviceHandler
