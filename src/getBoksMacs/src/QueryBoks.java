@@ -495,7 +495,10 @@ public class QueryBoks extends Thread
 		List l = new ArrayList();
 
 		List cdpList = sSnmp.getAll(getOid("cdpNeighbour"), true, 1);
-		if (cdpList.size() == 0) return l;
+		if (cdpList == null || cdpList.isEmpty()) {
+			Log.d("PROCESS_CDP", "cdpList is " + cdpList + " for netboxid: " + workingOnBoksid);
+			return l;
+		}
 
 		// Vi har fått noe via CDP, da kan vi trygt lukke CAM records
 		safeCloseBoksidAdd(workingOnBoksid);
@@ -749,6 +752,9 @@ public class QueryBoks extends Thread
 						for (Iterator vlanIt = macVlan.iterator(); vlanIt.hasNext();) {
 							String[] s = (String[])vlanIt.next();
 							String mac = decimalToHexMac(s[0]);
+							if (mac.length() != 12) {
+								Log.d("PROCESS_MAC", "Wrong length: " + s[0] + " vs " + mac);
+							}
 							
 							// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
 							// Dette skjer på C35* enhetene.
