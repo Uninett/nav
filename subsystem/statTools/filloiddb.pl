@@ -14,7 +14,7 @@ use strict;
 use Pg;
 use Getopt::Std;
 
-use vars qw ($opt_l $opt_h, $opt_f);
+use vars qw ($opt_l $opt_h $opt_f);
 
 getopts('hl:f:');
 
