@@ -96,3 +96,27 @@ INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpPortType', '1
 DELETE FROM snmpoid WHERE oidkey='hpVlan';
 INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('hpVlan', '1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.1','hp','Vlan for each port');
 
+-- CAM logger
+
+DELETE FROM snmpoid WHERE oidkey='macEntry';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('macEntry', '1.3.6.1.2.1.17.4.3.1','bridge-mib','Bridge table for various switches');
+
+DELETE FROM snmpoid WHERE oidkey='basePortIfIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('basePortIfIndex', '1.3.6.1.2.1.17.1.4.1.2','bridge-mib','Port ifindex mapping');
+
+DELETE FROM snmpoid WHERE oidkey='stpPortState';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('stpPortState', '1.3.6.1.2.1.17.2.15.1.3','bridge-mib','Spanning tree port state');
+
+DELETE FROM snmpoid WHERE oidkey='cMenuMac';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('cMenuMac', '1.3.6.1.4.1.9.5.14.4.3.1.4.1','cisco','Bridge table for Cisco menu type switch');
+
+DELETE FROM snmpoid WHERE oidkey='3c9300Mac';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3c9300Mac', '1.3.6.1.4.1.43.29.4.10.8.1.5.1','3com','Bridge table for 3Com SuperStack 1900');
+
+DELETE FROM snmpoid WHERE oidkey='3cSSMac';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cSSMac', '1.3.6.1.4.1.43.10.22.2.1.3','3com','Bridge table for 3Com SuperStack');
+
+DELETE FROM snmpoid WHERE oidkey='3cHubMac';
+INSERT INTO snmpoid (oidkey, snmpoid, oidsource, descr) VALUES ('3cHubMac', '1.3.6.1.4.1.43.10.9.5.1.6','3com','Bridge table for 3Com HUBs');
+
+
