@@ -53,6 +53,7 @@ public class Log {
 	private static String system;
 	private static Map subsystemMap = Collections.synchronizedMap(new HashMap());
 	private static Map threadIdMap = Collections.synchronizedMap(new HashMap());
+	private static Map netboxMap = Collections.synchronizedMap(new HashMap());
 
 	public static final int MSG_EMERGENCY = 0;
 	public static final int MSG_ALERT = 1;
@@ -76,6 +77,16 @@ public class Log {
 	public static void init(File f, String system) {
 		if (f != null) log = f;
 		Log.system = system;
+	}
+
+	/**
+	 * Set the netbox name to use. If set, this will be included
+	 * instead of the system name (which is redundant as it is given
+	 * by the log filename).
+	 */
+	public static void setNetbox(String netbox) {
+		if (netbox == null) netboxMap.remove(Thread.currentThread());
+		else netboxMap.put(Thread.currentThread(), netbox);
 	}
 
 	/**
@@ -205,6 +216,9 @@ public class Log {
 		// May 27 08:32:58 2002 bokser.pl DBBOX-3-ORG <msg>
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss yyyy");
 
+		String netbox = (String)netboxMap.get(Thread.currentThread());
+		String sys = netbox != null ? netbox : system;
+
 		// Get default
 		if (subsystem == null) subsystem = (String)subsystemMap.get(Thread.currentThread());
 		if (msg == null) msg = "";
@@ -220,7 +234,7 @@ public class Log {
 				out = new PrintStream(new BufferedOutputStream(new FileOutputStream(log, true)));
 			}
 
-			String t = sdf.format(new GregorianCalendar().getTime()) + " " + system + id + " " + subsystem+"-"+priority+"-"+type + " " + msg;
+			String t = sdf.format(new GregorianCalendar().getTime()) + " " + sys + id + " " + subsystem+"-"+priority+"-"+type + " " + msg;
 
 			// Capitalize first letter of log text (name of month)
 			t = t.substring(0, 1).toUpperCase() + t.substring(1, t.length());
