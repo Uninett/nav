@@ -658,7 +658,7 @@ class Swport(_Wrapper):
                   'trunk': 'trunk',
                   'vlan': 'vlan'}
     _sqlLinks =  {}
-    _userClasses =  {'vlan': 'Vlan', 'module': 'Module'}
+    _userClasses =  {'module': 'Module'}
     _sqlPrimary =  ('swportid',)
     _shortView =  ()
     _sqlTable =  'swport'
