@@ -107,8 +107,8 @@ class MachineTrackerSQLQuery:
 
         if not days:
             days = 7
-            fra = DateTime.today()-(int(days)*DateTime.oneDay)
-            fra = fra.strftime("%Y-%m-%d")
+        fra = DateTime.today()-(int(days)*DateTime.oneDay)
+        fra = fra.strftime("%Y-%m-%d")
 
         # the infinity part is not needed after kristian's rewrite
             #tidstreng = "(arp.end_time > '" + fra + "' or arp.end_time='infinity')"
