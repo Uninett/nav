@@ -378,7 +378,7 @@ class getDeviceData
 		out("  boksdisk...");
 		boksDiskMap = new HashMap();
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT boksid,path FROM boksdisk");
+		rs = Database.query("SELECT boksid,path,blocksize FROM boksdisk");
 		while (rs.next()) {
 			String key = rs.getString("boksid");
 			Map m;
