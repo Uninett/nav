@@ -21,7 +21,7 @@ def addEntryBulk(data,table):
     for row in data:
         sql = 'INSERT INTO ' + table + ' ('
         first = True
-        for field,value in row:
+        for field,value in row.items():
             if len(value):
                 if not first:
                     sql += ','
@@ -29,7 +29,7 @@ def addEntryBulk(data,table):
                 first = False
         sql += ') VALUES ('
         first = True
-        for field,value in row:
+        for field,value in row.items():
             if len(value):    
                 if not first:
                     sql += ','
@@ -43,19 +43,21 @@ def addEntry(req,templatebox,table):
     sql = 'INSERT INTO ' + table + ' ('
     first = True
     for field,descr in templatebox.fields.items():
-        if len(req.form[field]):
-            if not first:
-                sql += ','
-            sql += field
-            first = False
+        if req.form.has_key(field):
+            if len(req.form[field]):
+                if not first:
+                    sql += ','
+                sql += field
+                first = False
     sql += ') VALUES ('
     first = True
     for field,descr in templatebox.fields.items():
-        if len(req.form[field]):    
-            if not first:
-                sql += ','
-            sql += "'" + req.form[field] + "'"
-            first = False
+        if req.form.has_key(field):
+            if len(req.form[field]):    
+                if not first:
+                    sql += ','
+                sql += "'" + req.form[field] + "'"
+                first = False
     sql += ')'
     sqllist = [sql]
     executeSQL(sqllist)
@@ -120,27 +122,34 @@ def deleteEntry(selected,table,idfield,where=None):
     sqllist = [sql]
     executeSQL(sqllist)
 
-def updateEntry(req,templatebox,table,idfield):
+def updateEntry(req,templatebox,table,idfield,staticid=False):
     """ 
     Parses the form data in the request object based on the 
     fields defined in the templatebox, and updates the table 
     """
     sqllist = []
     data = []
-  
-    if type(req.form[idfield]) is list:
-        for i in range(0,len(req.form[idfield])):
+ 
+    # get the name of one of the fields that should be present
+    presentfield = templatebox.fields.keys()[0]
+
+    if type(req.form[presentfield]) is list:
+        for i in range(0,len(req.form[presentfield])):
             values = {}
             for field,descr in templatebox.fields.items():
-                if len(req.form[field][i]):
-                    values[field] = req.form[field][i]
+                if req.form.has_key(field):
+                    # some fields (checkboxes) might not be present
+                    if len(req.form[field][i]):
+                        values[field] = req.form[field][i]
             # the hidden element UPDATE_ENTRY contains the original ID
             data.append((req.form[UPDATE_ENTRY][i],values))
     else:
         values = {}
         for field,descr in templatebox.fields.items():
-            if len(req.form[field]):
-                values[field] = req.form[field]
+            if req.form.has_key(field):
+                # some fields (like checkboxes might not be present)
+                if len(req.form[field]):
+                    values[field] = req.form[field]
         # the hidden element UPDATE_ENTRY contains the original ID
         data.append((req.form[UPDATE_ENTRY],values))
 
@@ -163,6 +172,12 @@ def updateEntry(req,templatebox,table,idfield):
     # Fix this:
     error = None
     if error:
+        for i in range(0,len(data)):
+            id,fields = data[i]
+            idlist.append(id)
+    elif staticid:
+        # id can't be edited by the user, so the ids are the same as
+        # we started with
         for i in range(0,len(data)):
             id,fields = data[i]
             idlist.append(id)

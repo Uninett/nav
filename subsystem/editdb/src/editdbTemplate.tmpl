@@ -14,7 +14,7 @@
     TR.oddrow   { font-size: 12; }
 
     P.error     { color: #ff0000; }
-    P.status    { color: #00ff00; }
+    P.status    { color: #00bb00; }
     P.infotext  { width: 80%;
                   font-size: 13; }
 $default_form_CSS()
@@ -128,12 +128,6 @@ $showBody($body)
                 <TD><INPUT type="checkbox" name="$list.cnameChk" value="$id" align="center">&nbsp;&nbsp;</TD>
 #elif $list.isDeleteList
                 <INPUT type="hidden" name="$list.cnameChk" value="$id">
-#elif $list.isBulkList
-#for $field,$value in $id.items()
-#if not $field == 'error'
-                <INPUT type="hidden" name="$field" value="$value">
-#end if
-#end for
 #end if
 #for $entry,$link in $row
 #if $link
@@ -147,6 +141,11 @@ $showBody($body)
 #end for
         </TABLE>
     $actionBar($list)
+#if $list.isBulkList
+#for $data in $list.hiddenData
+    <INPUT type="hidden" name="$list.cnameHiddenData" value="$data">
+#end for
+#end if
     </FORM>
     $showPath(False)
 #end def
@@ -205,6 +204,12 @@ $showBody($body)
             $bulk($editbox)
 #elif $editbox.type == 'usage'
             $usage($editbox)
+#elif $editbox.type == 'service'
+            $service($editbox)
+#elif $editbox.type == 'serviceproperties'
+            $serviceproperties($editbox)
+#elif $editbox.type == 'product'
+            $product($editbox)
 #end if
         </P>
 #end for
@@ -421,15 +426,39 @@ $showBody($body)
             <TH>CDP</TH>
             <TH>TFTP</TH>
             <TH>Frequency</TH>
-            <TH>Typegroup</TH>
+            <TD>&nbsp;</TD>
         </TR>
         <TR>
             <TD align="center">$input($fields['cdp'])</TD>
             <TD align="center">$input($fields['tftp'])</TD>
             <TD>$input($fields['frequency'])</TD>
-            <TD>$input($fields['typegroupid'],'width: 100%;')</TD>
+            <TD>&nbsp;</TD>
         </TR>
 </TABLE>
+#end def
+
+## Template function for adding or editing a product
+#def product($editbox)
+#set $fields = $editbox.fields
+#if $fields.has_key('productid')
+$input($fields['productid'])
+#end if
+    <TABLE class="header-active">
+        <TR>
+            <TH>Vendorid</TH>
+            <TH>Productno</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['vendorid'])</TD>
+            <TD>$input($fields['productno'])</TD>
+        </TR>
+        <TR>
+            <TH colspan="2">Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
+        </TR>
+    </TABLE>
 #end def
 
 ## Template function for adding or editing a vendor
@@ -445,7 +474,7 @@ $showBody($body)
     </TABLE>
 #end def
 
-## Template function for adding or editing a user catefory
+## Template function for adding or editing a user category
 #def usage($editbox)
 #set $fields = $editbox.fields
     <TABLE class="header-active">
@@ -460,10 +489,62 @@ $showBody($body)
     </TABLE>
 #end def
 
+## Template function for adding or editing a service
+#def service($editbox)
+#set $fields = $editbox.fields
+    <P>$editbox.help</P>
+    <TABLE class="header-active">
+        <TR>
+            <TH>Server</TH>
+            <TH>Handler</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['netboxid'])</TD>
+            <TD>$input($fields['handler'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for adding or editing service properties
+#def serviceproperties($editbox)
+#if $editbox.show
+#set $args = $editbox.args
+#set $optargs = $editbox.optargs
+    <P>$editbox.title</P>
+    <TABLE class="header-active">
+#if len($editbox.args)
+            <TR>
+                <TH colspan="2">Required</TH>
+            </TR>
+#for $field,$content in $args.items()
+            <TR>
+                <TD>$field</TD>
+                <TD>$input($args[$field])</TD>
+            </TR>
+#end for
+#end for
+#end if
+#if len($editbox.optargs)
+            <TR>
+                <TH colspan="2">Optional</TH>
+            </TR>
+#for $field,$content in $optargs.items()
+            <TR>
+                <TD>$field</TD>
+                <TD>$input($optargs[$field])</TD>
+            </TR>
+#end for
+#end if
+    </TABLE>
+#end if
+#end def
+
+
 
 ## Template function for bulk import
 #def $bulk($editbox)
 #set $fields = $editbox.fields
+    <P>$editbox.help</P>
     <TABLE class="header-active">
         <TR>
             <TH align="left">Import</TH>
@@ -490,7 +571,7 @@ $showBody($body)
 #if $control.type == 'text'
 <INPUT type="text" style="$style" size="$control.size" name="$control.name" value="$control.value">
 #elif $control.type == 'select'
-<SELECT name="$control.name" style="$style">
+<SELECT name="$control.name" style="$style" $control.attribs>
 #for $id,$option in $control.options
 #if $id == $control.value
     <OPTION value="$id" selected>$option</OPTION>
@@ -515,10 +596,13 @@ $showBody($body)
     <TEXTAREA name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</TEXTAREA>
 #elif $control.type == 'checkbox'
 #if $control.value == True
-    <INPUT type="checkbox" style="$style" name="$control.name" checked>
+## VALUE is hardcoded to 1, which is good for boolean fields in the db
+    <INPUT type="checkbox" style="$style" name="$control.name" value="1" checked>
 #else
-    <INPUT type="checkbox" style="$style" name="$control.name">
+    <INPUT type="checkbox" style="$style" name="$control.name" value="1">
 #end if
+#elif $control.type == 'hidden'
+    <INPUT type="hidden" name="$control.name" value="$control.value">
 #else
 Undefined control
 #end if

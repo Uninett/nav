@@ -58,6 +58,14 @@ class editdbNetbox(Netbox):
                    'up': 'up'}
 
 
+class editdbProduct(Product):
+    # adds vendorid
+    _sqlFields =  {'descr': 'descr',
+                  'productid': 'productid',
+                  'productno': 'productno',
+                  'vendor': 'vendorid',
+                  'vendorid': 'vendorid'}
+                                                          
 class editdbType(Type):
     # adds typegroupid and vendorid
     _sqlFields =  {'cdp': 'cdp',
@@ -65,8 +73,6 @@ class editdbType(Type):
                    'frequency': 'frequency',
                    'sysobjectid': 'sysobjectid',
                    'tftp': 'tftp',
-                   'typegroupid': 'typegroupid',
-                   'typegroup': 'typegroupid',
                    'typeid': 'typeid',
                    'typename': 'typename',
                    'vendor': 'vendorid',
