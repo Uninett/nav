@@ -9,6 +9,7 @@ my @tid = localtime(time);
 #pen(STDERR,'>>','/usr/local/nav/local/log/collect/sterr-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
 #pen(STDOUT,'>>','/usr/local/nav/local/log/collect/stout-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
 
+=cut
 open(DBERR,'>>','/usr/local/nav/local/log/collect/collecterror-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
 open(DBOUT,'>>','/usr/local/nav/local/log/collect/collectupdate-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
 
@@ -20,29 +21,30 @@ open(GWOUT,'>>','/usr/local/nav/local/log/collect/gwport-'.($tid[5]+1900).'-'.($
 
 open(SWERR,'>>','/usr/local/nav/local/log/collect/swporterror-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
 open(SWOUT,'>>','/usr/local/nav/local/log/collect/swport-'.($tid[5]+1900).'-'.($tid[4]+1).'-'.$tid[3].'-'.$tid[2].'_'.$tid[1].'.log');
+=cut
 
 my $collect = &collect();
 
 my $tid = localtime(time); 
 print $tid.": START. Starter først oppdateringer fra tekstfilene.\n";
 
-do    "$collect/tekstfiler.pl";
+system    "$collect/tekstfiler.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med tekstfilene, starter oppdatering av boksene.\n";
 
-do    "$collect/bokser.pl";
+system    "$collect/bokser.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med boksene, starter oppdatering av prefiks og gwporter.\n";
 
-do    "$collect/gwporter.pl";
+system    "$collect/gwporter.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med gwporter, starter oppdatering av swporter og hjelpetabeller.\n";
 
-do    "$collect/swporter.pl";
+system    "$collect/swporter.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med swporter.pl, starter get_boksdata.\n";
 
-system "$collect/get_boksdata.pl";
+system    "$collect/get_boksdata.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med get_boksdata.pl, starter sletting fra trapdetectunntakene.\n";
 
@@ -50,13 +52,3 @@ system "$collect/slett_fra_trapdet_unntak.pl";
 $tid = localtime(time); 
 print $tid.": ferdig med slett_fra_trapdet_unntak.pl, og dermed helt FERDIG!\n";
 
-#close(STDOUT);
-#close(STDERR);
-close(DBOUT);
-close(DBERR);
-close(SWOUT);
-close(SWERR);
-close(GWOUT);
-close(GWERR);
-close(SNOUT);
-close(SNERR);

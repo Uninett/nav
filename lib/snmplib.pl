@@ -5,6 +5,7 @@ use SNMP;
 use SNMP_util;
 use Socket;
 
+#ikke i bruk
 sub snmp_system{
     my ($antallpunktum,$ip,$ro,$endelser) = @_;
     my ($sys,$type);
@@ -42,9 +43,10 @@ sub snmpsystem{
 	unless($sys) {
 	    my $error = $sess->{ErrorStr};
 	    unless($error){
-		$error = "Feil";
+		&skriv("SNMP-DNSNAME", "ip=$host", "dns=$dns");
+	    } else {
+		&skriv("SNMP-ERROR", "ip=$host", "message=$error");
 	    }
-	    &skriv("SNERR", $error." for $host\n");
 	    $sys = 0;
 	    $type = 0;
 	} else {
@@ -56,7 +58,7 @@ sub snmpsystem{
 #	print "\n$for\n$mellom\n$etter\n";
 		
 	    } else {
-		&skriv("SNOUT", "\nDNSNAME($dns) OG SYSNAME($sys) ER FORSKJELLIGE for $host\n");
+		&skriv("DNS-NAMECHAOS", "ip=$host", "sysname=$sys", "dns=$dns");
 	    }
 	}
 	$type =~ s/^\.//; # fjerner punktum fra starten av OID

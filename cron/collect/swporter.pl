@@ -30,10 +30,10 @@ my %db_swportallowedvlan = &db_hent_hash($db,"SELECT ".join(",", @felt_swportall
 
 foreach my $boksid (keys %boks) { #$_ = boksid keys %boks
     if($boks{$boksid}[4] =~ /y|t/i) {
-	&skriv("SWERR","$boks{$boksid}[2] er på watch. Data blir ikke hentet fra denne svitjsen\n");
+	&skriv("DEVICE-WATCH","ip=".$boks{$boksid}[2]);
     } else {
 	if (&snmp_svitsj($boks{$boksid}[1],$boks{$boksid}[5],$boksid,$boks{$boksid}[3],$boks{$boksid}[2]) eq '0') {
-	    &skriv("SWERR","Kunne ikke hente data fra $boks{$boksid}[2]\n");
+	    &skriv("DEVICE-BOXDOWN","ip=".$boks{$boksid}[2]);
 	}
     }
 }
@@ -66,7 +66,7 @@ for my $boks (keys %swportvlantemp) {
 	    if($modul&&$port&&$nyid){
 		$swportvlan{$nyid} = [$nyid,$swportvlantemp{$boks}{$modul}{$port}];
 	    } else {
-		&skriv("SWERR","*(mangler nyid)************ $boks.$modul.$port ****************\n");
+		&skriv("DEBUG-NOID","ip=$boks","module=$modul","port=$port");
 	    }
 	}
     }
@@ -79,7 +79,7 @@ for my $boks (keys %swportallowedvlantemp) {
 #		print $nyid."+".$swportallowedvlantemp{$boks}{$modul}{$port}."\n";
 		$swportallowedvlan{$nyid} = [$nyid,$swportallowedvlantemp{$boks}{$modul}{$port}];
 	    } else {
-		&skriv("SWERR","*(mangler nyid)************ $boks.$modul.$port ****************\n");
+		&skriv("DEBUG-NOID","ip=$boks","module=$modul","port=$port");
 	    }
 	}
     }
@@ -103,7 +103,7 @@ sub snmp_svitsj{
 
 	do $includefile;
 
-	&skriv("SWOUT","henter data for boks nummer $boksid ($typegruppe, $ip, $sysname)\n");
+	&skriv("DEVICE-COLLECT","ip=$ip");
 
 	my @sw = &bulk($ip,$ro,$boksid);
 
@@ -113,7 +113,7 @@ sub snmp_svitsj{
 
 	return 1; #feilmelding om snmp ellers
     } else {
-	&skriv("SWERR","Dette er ikke en kjent typegruppe: $typegruppe\n");
+	&skriv("SWITCH-TYPEGRP","typegroup=$typegruppe","ip=$ip");
 	return 0;
     }
 }

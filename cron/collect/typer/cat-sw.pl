@@ -19,7 +19,9 @@ sub bulk{
     
     my $numInts = $sess->get('ifNumber.0');
 
-    &skriv("SNERR",$sess->{ErrorStr});
+    if(my $error = $sess->{ErrorStr}){
+	&skriv("SNMP-ERROR","ip=$ip","message=$error");
+    }
 
     my ($ifindex,$portname,$status, $duplex, $porttype, $trunk, $vlan ) = $sess->bulkwalk(0,$numInts+1,[ ['.1.3.6.1.4.1.9.5.1.4.1.1.11'],['.1.3.6.1.4.1.9.5.1.4.1.1.4'],['.1.3.6.1.4.1.9.5.1.4.1.1.6'],['.1.3.6.1.4.1.9.5.1.4.1.1.10'],['.1.3.6.1.4.1.9.5.1.4.1.1.5'],['.1.3.6.1.4.1.9.5.1.9.3.1.8'],['.1.3.6.1.4.1.9.5.1.9.3.1.3']]);
     

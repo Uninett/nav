@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 #use strict;
+open(COLLECTLOG,'>>','/usr/local/nav/local/log/collect/navllog.log');
 
 sub fil_hent_linje {
     (my $felt,$_) = @_;
@@ -44,10 +45,49 @@ sub fil_prefiks {
     close FIL;
     return %resultat;
 }
-sub skriv (*$) {
 
-    my ($handle,$tekst) = @_;
+my %types = &get_types("collect");
 
+sub get_types {
+    my $class = $_[0];
+    my $syslogconnection = &db_connect("syslog","syslogadmin","urg20ola");
+    my %types = &db_hent_hash($syslogconnection,"select id,type,message from messagetemplate where class=\'$class\'");
+
+    return %types;
+}
+
+
+sub skriv {
+
+    my ($identificator,@parameters) = @_;
+    my %parameter = ();
+
+    my $filename = $0;
+
+    for my $parameter (@parameters) {
+#	print "\n$parameter";
+	my ($key,$value) = split /\=/,$parameter,2;
+#	print " $key = $value - ";
+	$parameter{$key} = $value;
+
+    }
+
+    my $newidentificator = $types{$identificator}[1];
+    my $message = $types{$identificator}[2];
+
+#    print $message."\n";
+
+    $message =~ s/\$(\w+)/$parameter{$1}/g;
+
+#    print $message."\n";
+
+
+    $filename =~ /^.*?\/?(\w+\.\w+)$/;
+    $filename = $1;
+
+    my $text = $filename." %$newidentificator %$message\n";
+
+=cut
     print DBERR $tekst if $handle =~ /DBERR/;
     print DBOUT $tekst if $handle =~ /DBOUT/;
     print SNERR $tekst if $handle =~ /SNERR/;
@@ -58,9 +98,18 @@ sub skriv (*$) {
     print SWOUT $tekst if $handle =~ /SWOUT/;
 
     print $tekst unless fileno($handle);
+=cut
+
+    &printlog($text);
 
     return 1;
 
+}
+
+sub printlog{
+    my $time = scalar localtime;
+    print COLLECTLOG $time." ".'%'.$_[0];
+    return 1;
 }
 
 return 1;

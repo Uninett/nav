@@ -29,7 +29,7 @@ my %db_unntak = ();#&db_hent_enkel($conn,"select ip,watch from boks where watch=
     my %type = &db_hent_enkel($conn,"SELECT sysobjectid,typeid FROM type");
 #-----------------------
 #FILLESING: server.txt
-my @felt_server = ("sysname","ip","romid","orgid","kat","kat2","ro");
+my @felt_server = ("ip","sysname","romid","orgid","kat","kat2","ro");
 my $fil_server = "$localkilde/server.txt";
 %server = &fil_server($fil_server,scalar(@felt_server),$endelser);
 
@@ -40,14 +40,14 @@ my $fil_server = "$localkilde/server.txt";
 %db_server = &db_hent_hash($conn,"SELECT ".join(",", @felt_server )." FROM boks where kat = 'SRV'");
 #legge til alle
 for my $a (keys %db_server) {
-    my $ip = $db_server{$a}[1];
+    my $ip = $db_server{$a}[0];
     $db_alle{$ip} = 1;
 }
 &db_endring($conn,\%server,\%db_server,\@felt_server,"boks");
 
 #------------------------------
 #FILLESING: nettel.txt
-my @felt_nettel = ("sysname","ip","typeid","romid","orgid","kat","kat2","ro","rw");
+my @felt_nettel = ("ip","sysname","typeid","romid","orgid","kat","kat2","ro","rw");
 my $fil_nettel = "$localkilde/nettel.txt";
 %nettel = &fil_nettel($fil_nettel,scalar(@felt_nettel),$endelser,\%db_unntak);
 
@@ -59,7 +59,7 @@ my $fil_nettel = "$localkilde/nettel.txt";
 
 #legge til i alle
 for my $a (keys %db_nettel) {
-    my $ip = $db_nettel{$a}[1];
+    my $ip = $db_nettel{$a}[0];
     $db_alle{$ip} = 1;
 }
 &db_nettel_endring($conn,\%nettel,\%db_nettel,\@felt_nettel,"boks");
@@ -91,16 +91,27 @@ sub fil_nettel{
 	my $ip = $_[1];
 	if($ip&&!exists($unntak{$ip})){
 	    my $ro = $_[5];
+	    if (my @passerr = $ro =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
+		my $passerr = join "",@passerr;
+		&skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
+	    }
+	    if (my @passerr = $_[6] =~ /(\W)/g){ #sier fra hvis det finnes non-alfanumeriske tegn i passordet, og skriver ut (bare) disse tegnene.
+		my $passerr = join "",@passerr;
+		&skriv("TEXT-COMMUNITY", "ip=$ip","illegal=$passerr");
+	    }
 	    my $temptype;
 	    my $sysname;
 # gammel    ($sysname,$temptype) = &snmp_system(1,$ip,$ro,$endelser);
 	    ($sysname,$temptype) = &snmpsystem($ip,$ro,$endelser);
 	    my $type = $type{$temptype};
 	    if($sysname){
-		@_ = ($sysname,$ip,$type,$_[0],$_[2],@_[3..6]);
+		unless($type){
+		    &skriv("TEXT-TYPE","ip=$ip","type=$temptype");
+		}
+		@_ = ($ip,$sysname,$type,$_[0],$_[2],@_[3..6]);
 		@_ = map rydd($_), @_;
 		
-		$nettel{$sysname} = [ @_ ];
+		$nettel{$ip} = [ @_ ];
 	    }
 	    # må legges inn så lenge den eksisterer i fila, uavhengig av snmp
 	    $alle{$ip} = 1;
@@ -126,7 +137,7 @@ sub fil_server{
 	    
 	    my $sysname = &fjern_endelse($_[2],$endelser);
 	    
-	    $server{$sysname} = [ $sysname,@_[0..1],@_[3..6] ];
+	    $server{$ip} = [ $ip,$sysname,$_[1],@_[3..6] ];
 	    $alle{$ip} = 1;
 	}
     }

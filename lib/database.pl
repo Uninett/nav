@@ -173,13 +173,33 @@ sub db_sett_inn {
 	}
     }
     if(scalar(@key)){ #key eksisterer
-	&skriv("DBOUT","\n\nSetter inn *".join(" ",@val)."* i *$tabell*");
+	&skriv("DATABASE-INSERT","tuple=".join(" ",@val),"table=$tabell");
 	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
 	print $sql if $debug;
-	&skriv("DBERR", &db_execute($db,$sql));
+	&db_execute($db,$sql);
     }
 }
 sub db_insert {
+    my $db = $_[0];
+    my $tabell = $_[1];
+    my @felt = @{$_[2]};
+    my @verdier = @{$_[3]};
+
+    my @val;
+    my @key;
+    foreach my $i (0..$#felt) {
+	print $verdier[$i]."\n";
+	if (defined($verdier[$i]) && $verdier[$i] ne ''){
+	    push(@val, "\'".$verdier[$i]."\'");
+	    push(@key, $felt[$i]);
+	}
+    }
+    if(scalar(@key)){
+	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
+	&db_execute($db,$sql);
+    }
+}
+sub db_logg_insert {
     my $db = $_[0];
     my $tabell = $_[1];
     my @felt = @{$_[2]};
@@ -200,10 +220,10 @@ sub db_insert {
 	}
     }
     if(scalar(@key)){ #key eksisterer
-	my $nql = "\n\nSETTER INN I |$tabell| FELT |".join(" ",@key)."| VERDIER |".join(" ",@val)."|";
+#	my $nql = "\n\nSETTER INN I |$tabell| FELT |".join(" ",@key)."| VERDIER |".join(" ",@val)."|";
 	my $sql = "INSERT INTO $tabell (".join(",",@key ).") VALUES (".join(",",@val).")";
-	&skriv("DBOUT", $nql);
-	&skriv("DBERR", &db_execute($db,$sql));
+	&skriv("DATABASE-INSERT", "table=$tabell", "tuple=".join(" ",@val));
+	&db_execute($db,$sql);
     }
 }
 sub db_update {
@@ -213,14 +233,15 @@ sub db_update {
 #	print "***IKKE LIKE\n";
 	if (!$til && $fra){
 	    my $sql = "UPDATE $tabell SET $felt=null WHERE $hvor";
-	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null| hvor |$hvor|";
-	    &skriv("DBOUT", $nql);
-	    &skriv("DBERR", &db_execute($db,$sql));
+#	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |null| hvor |$hvor|";
+	    &skriv("DATABASE-UPDATE", "from=$fra","to=null","where=$hvor","table=$tabell", "field=$felt");
+	 &db_execute($db,$sql);
+
 	} elsif ($til) {
 	    my $sql = "UPDATE $tabell SET $felt=\'$til\' WHERE $hvor";
-	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |$til| hvor |$hvor|";
-	    &skriv("DBOUT", $nql);
-	    &skriv("DBERR", &db_execute($db,$sql));
+#	    my $nql = "\n\nOPPDATERER |$tabell| FELT |$felt| FRA |$fra| TIL |$til| hvor |$hvor|";
+	    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor","table=$tabell","field=$felt");
+	   &db_execute($db,$sql);
 	    print $sql if $debug;
 #	} else {
 #	    print "tomme: $til & $fra\n";
@@ -232,44 +253,49 @@ sub db_update {
 sub db_oppdater {
     my ($db,$tabell,$felt,$fra,$til,$hvor_nokkel,$hvor_passer) = @_;
 
-    &skriv("DBOUT", "\n\nOppdaterer *$tabell* felt *$felt* fra *$fra* til *$til* hvor *$hvor_nokkel* er *$hvor_passer*");
     my $sql = "UPDATE $tabell SET $felt=$til WHERE $hvor_nokkel=\'$hvor_passer\'";
-    &skriv("DBERR", &db_execute($db,$sql));
+    &skriv("DATABASE-UPDATE", "from=$fra","to=$til","where=$hvor_nokkel = $hvor_passer","table=$tabell","field=$felt");
+ &db_execute($db,$sql);
+
     print $sql if $debug;
 }
+#ikke i bruk
 sub db_oppdater_idant_to {
     my ($db,$tabell,$felt,$fra,$til,$hvor_nokkel1,$hvor_nokkel2,$hvor_passer1,$hvor_passer2) = @_;
 
     &skriv("DBOUT", "\n\nOppdaterer *$tabell* felt *$felt* fra *$fra* til *$til* hvor *$hvor_nokkel1* er *$hvor_passer1* og *$hvor_nokkel2* er *$hvor_passer2*");
     my $sql = "UPDATE $tabell SET $felt=$til WHERE $hvor_nokkel1=\'$hvor_passer1\' AND $hvor_nokkel2=\'$hvor_passer2\'";
-    &skriv("DBERR", &db_execute($db,$sql));
+    &db_execute($db,$sql);
 #    print $sql,"\n";
 }
 
 sub db_delete {
     my ($db,$tabell,$hvor) = @_;
-    my $nql = "\n\nSLETTER FRA TABELL |$tabell| HVOR |$hvor|";
+#    my $nql = "\n\nSLETTER FRA TABELL |$tabell| HVOR |$hvor|";
     my $sql = "DELETE FROM $tabell WHERE $hvor";
-    &skriv("DBOUT", $nql);
-    &skriv("DBERR", &db_execute($db,$sql));
+    &skriv("DATABASE-DELETE", "table=$tabell","where=$hvor");
+  &db_execute($db,$sql);
+
 #    print $sql;
 }    
 sub db_slett {
     my ($db,$tabell,$hvor_nokkel,$hvor_passer) = @_;
     if($hvor_passer){
-	&skriv("DBOUT", "\n\nSletter fra *$tabell* hvor $hvor_nokkel = $hvor_passer");
 	my $sql = "DELETE FROM $tabell WHERE $hvor_nokkel=\'$hvor_passer\'";
-	&skriv("DBERR", &db_execute($db,$sql));
+	&skriv("DATABASE-DELETE", "table=$tabell","where=$hvor_nokkel = $hvor_passer");
+	&db_execute($db,$sql);
+
 	print $sql if $debug;
     }
 }    
+#ikke i bruk
 sub db_slett_idant_to {
     my ($db,$tabell,$hvor_nokkel1,$hvor_nokkel2,$hvor_passer1,$hvor_passer2) = @_;
 
 
     &skriv("DBOUT", "\n\nSletter fra *$tabell* hvor $hvor_nokkel1 = $hvor_passer1");
     my $sql = "DELETE FROM $tabell WHERE $hvor_nokkel1=\'$hvor_passer1\' AND $hvor_nokkel2=\'$hvor_passer2\'";
-    &skriv("DBERR", &db_execute($db,$sql));
+   &db_execute($db,$sql);
     print $sql if $debug;
 }    
 
@@ -328,7 +354,7 @@ sub db_manipulate {
 	}
 #	print "\n";
     } else {
-	&db_insert($db,$tabell,\@felt,\@ny);
+	&db_logg_insert($db,$tabell,\@felt,\@ny);
     }
 
     if($slett == 1){
@@ -468,7 +494,7 @@ sub db_alt{
 			    &db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}{$key3}[$i],$ny{$key1}{$key2}{$key3}[$i],$where);
 			}
 		    } else {
-			&db_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}{$key3}});
+			&db_logg_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}{$key3}});
 		    }
 		}
 	    }
@@ -496,7 +522,7 @@ sub db_alt{
 			&db_update($db,$tabell,$felt[$i],$gammel{$key1}{$key2}[$i],$ny{$key1}{$key2}[$i],$where);
 		    }
 		} else {
-		    &db_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}});
+		    &db_logg_insert($db,$tabell,\@felt,\@{$ny{$key1}{$key2}});
 		}
 	    }
 	}	
@@ -520,7 +546,7 @@ sub db_alt{
 		    &db_update($db,$tabell,$felt[$i],$gammel{$key1}[$i],$ny{$key1}[$i],$where);
 		}
 	    } else {
-		&db_insert($db,$tabell,\@felt,\@{$ny{$key1}});
+		&db_logg_insert($db,$tabell,\@felt,\@{$ny{$key1}});
 	    }
 	}
     	
@@ -630,8 +656,9 @@ sub db_select {
     my $sql = $_[1];
     my $conn = $_[0];
     my $resultat = $conn->exec($sql);
-    die "KLARTE IKKE Å SPØRRE: \n$sql\n".$conn->errorMessage
-	unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    unless ($resultat->resultStatus eq PGRES_TUPLES_OK){
+	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
+    }
     return $resultat;
 }
 sub db_execute {
@@ -639,7 +666,7 @@ sub db_execute {
     my $conn = $_[0];
     my $resultat = $conn->exec($sql);
     unless ($resultat->resultStatus eq PGRES_COMMAND_OK){
-	&skriv("DBERR", "\nDATABASEFEIL: \n$sql".$conn->errorMessage);
+	&skriv("DATABASE-ERROR", "sql=$sql", "message=".$conn->errorMessage);
     }
     return $resultat->oidStatus;
 }
