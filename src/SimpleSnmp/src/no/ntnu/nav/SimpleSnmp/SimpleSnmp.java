@@ -31,14 +31,14 @@ public class SimpleSnmp
 	private int getCnt;
 	private boolean getNext = false;
 
-        /**
-         * Construct an empty SimpleSnmp class.
-         */
+	/**
+	 * Construct an empty SimpleSnmp class.
+	 */
 	public SimpleSnmp() { }
-
-        /**
-         * Construct a SimpleSnmp class and set initial parameters.
-         */
+	
+	/**
+	 * Construct a SimpleSnmp class and set initial parameters.
+	 */
 	public SimpleSnmp(String host, String cs_ro, String baseOid)
 	{
 		setParams(host, cs_ro, baseOid);
@@ -54,15 +54,15 @@ public class SimpleSnmp
 		setBaseOid(baseOid);
 	}
 
-        /**
+	/**
 	 * Set how many times the device can time out before a TimeoutException is thrown.
-         */
+	 */
 	public void setTimeoutLimit(int limit)
 	{
 		timeoutLimit = Math.max(1,limit);
 	}
 
-        /**
+	/**
 	 * Set the timeout limit to the default value (currently 4).
 	 */
 	public void setDefaultTimeoutLimit()
@@ -79,7 +79,9 @@ public class SimpleSnmp
 	*/
 
 	/**
-	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree
+	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree.
+	 *
+	 * Note: the baseOid prefix is removed from the returned OIDs.
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -93,7 +95,10 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree
+	 * Snmpwalk the given OID and return a maximum of cnt entries from the subtree.
+	 *
+	 * Note: the baseOid prefix will be removed from the returned OIDs if they are not
+	 * equal (getNext is used).
 	 *
 	 * @param cnt The maximum number of OIDs to get; 0 or less means get as much as possible
 	 * @param decodeHex try to decode returned hex to ASCII
@@ -108,7 +113,9 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree
+	 * Snmpwalk the given OID and return the entire subtree.
+	 *
+	 * Note: the baseOid prefix is removed from the returned OIDs.
 	 *
 	 * @return an ArrayList containing String arrays of two elements; OID and value
 	 * @throws TimeoutException if the hosts times out
@@ -119,7 +126,9 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree
+	 * Snmpwalk the given OID and return the entire subtree.
+	 *
+	 * Note: the baseOid prefix is removed from the returned OIDs.
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @return an ArrayList containing String arrays of two elements; OID and value
@@ -131,7 +140,10 @@ public class SimpleSnmp
 	}
 
 	/**
-	 * Snmpwalk the given OID and return the entire subtree
+	 * Snmpwalk the given OID and return the entire subtree.
+	 *
+	 * Note: the baseOid prefix will be removed from the returned OIDs if they are not
+	 * equal (getNext is used).
 	 *
 	 * @param decodeHex Try to decode returned hex to ASCII
 	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
@@ -193,6 +205,8 @@ public class SimpleSnmp
 						//outl("Base: " + baseOid);
 						//outl("Oid : " + oid);
 
+						// If the returned OID is of greater length than the baseOid, remove the baseOid prefix;
+						// otherwise, use it as-is.
 						String[] s = {
 							oid.length() == baseOid.length() ? oid : oid.substring(baseOid.length()+1, oid.length()),
 							data.trim()
