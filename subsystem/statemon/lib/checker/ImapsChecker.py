@@ -51,9 +51,15 @@ class IMAPSConnection(imaplib.IMAP4):
         """
         self.host = host
         self.port = port
+        # try with 2.3 socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((host, port))
+        self.sslobj = socket.ssl(self.sock, self.keyfile, self.certfile)
+
+        # som old things...
         #self.sock = Socket.Socket(self.timeout)
         #self.sslobj = SSL.Connection(self.ctx, self.sock)
-        self.sslobj = Socket.ssl(self.host, self.port, self.timeout)
+        #self.sslobj = Socket.ssl(self.host, self.port, self.timeout)
         #self.sslobj.connect((host, port))
         #self.sock.connect((host, port))
         #self.sslobj = socket.ssl(self.sock.s, self.keyfile, self.certfile)

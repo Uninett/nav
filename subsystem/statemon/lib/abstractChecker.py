@@ -219,7 +219,7 @@ class AbstractChecker:
 		"""Sets the ip address to connect to """
 		self._ip = ip
 	def getIp(self):
-		"""Returns the ipå address to connect to """
+		"""Returns the ip address to connect to """
 		return self._ip
 	def setPort(self, port):
 		"""Sets the port number to connect to. The constructor

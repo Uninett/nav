@@ -32,12 +32,12 @@ class SslObject:
 		#if not r:
 		#	raise Timeout('Timeout in readafter %i sec' % self.timeout)
 		#if self.sslsock.pending():
-		print "In SslObject.read" 
+		#print "In SslObject.read" 
 		return self.sslsock.read(*args)
 		#else:
 			#raise Timeout('blippeti')
 	def write(self, *args):
-		print "writing "
+		#print "writing "
 		r,w,e = select([],[self.sslsock],[],self.timeout)
 		if not w:
 			raise Timeout('Timeout in write after %i sec' % self.timeout)
@@ -50,7 +50,7 @@ class Socket:
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	def connect(self,address):
-		print "in socket.connect"
+		#print "in socket.connect"
 		self.s.setblocking(0)
 		try:
 			self.s.connect(address)
@@ -65,7 +65,7 @@ class Socket:
 		return self.recv(buf)
 
 	def recv(self,*args):
-		print "in socket.recv"
+		#print "in socket.recv"
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
 			raise Timeout('Timeout in recv after %i sec' % self.timeout)
