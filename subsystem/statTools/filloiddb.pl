@@ -14,18 +14,23 @@ use strict;
 use Pg;
 use Getopt::Std;
 
-use vars qw ($opt_l $opt_h);
+use vars qw ($opt_l $opt_h, $opt_f);
 
-getopts('hl:');
+getopts('hl:f:');
 
-my $ll = 0;
+&usage if $opt_h;
+
+# Setting loglevel
+my $ll = 2;
 $ll = $opt_l if $opt_l;
 
-# Global vars
 my $oidfile = "cricketoids.txt";
-print "Using file $oidfile as sourcefile for oids.\n" if $ll >=1;
+$oidfile = $opt_f if $opt_f;
+
+print "Using file $oidfile as sourcefile for oids.\n" if $ll >= 2;
 
 # DB-vars
+# Need to write a module to get password
 my $db_name = "manage";
 my $db_user = "manage";
 my $db_pass = "eganam";
@@ -59,39 +64,58 @@ sub fillfromfile {
 	    my $oiddescr = join " ", @splitresult;
 	    
 	    $query = "SELECT * FROM snmpoid WHERE oidkey='$oidtext' AND snmpoid='$oid'";
-#	    print "$query\n";
+	    print "$query\n" if $ll >= 3;
 	    $res = $dbh->exec($query);
 
 	    if ($res->ntuples > 0) {
 		my ($key,$oidkey,$snmpoid,$descr,$oidsource) = $res->fetchrow;
 		if (($oidsource eq $keyword) || ($oidsource eq $keyword2)) {
 		    $foundcounter++;
-#		    printf "Found existing row %s,%s,%s,%s\n",$oidkey,$snmpoid,$descr,$oidsource;
+		    printf "Found existing row %s,%s,%s,%s\n",$oidkey,$snmpoid,$descr,$oidsource if $ll >= 3;
 		    next;
 		} else {
 		    print "Found source $oidsource, which is not like $keyword or $keyword2.\n" if $ll>=2;
 		    $necounter++;
+		    next;
 		}
 
 	    }
 	    
-	    my $y;
-	    if ($oidtext =~ /^if.*/) {$y=$keyword2;} else {$y=$keyword;}
+	    my $oidsource;
+	    my $getnext;
+	    
+	    # Sets correct paramaters based on if this is a interface or not.
+	    if ($oidtext =~ /^if.*/) {
+		$oidsource = $keyword2;
+		$getnext = 't';
+	    } else {
+		$oidsource = $keyword;
+		$getnext = 'f';
+	    }
 
-	    $query = "INSERT INTO snmpoid (oidkey,snmpoid,descr,oidsource) VALUES ('$oidtext','$oid','$oiddescr','$y')";
-	    print "$query\n";
+	    $query = "INSERT INTO snmpoid (oidkey,snmpoid,descr,oidsource,getnext) VALUES ('$oidtext','$oid','$oiddescr','$oidsource','$getnext')";
+	    print "$query\n" if $ll >= 3;
 	    $res = $dbh->exec($query);
 
 	    $counter++;
 
 	    unless ($res->resultStatus) {
-		print "Error: $dbh->errorMessage\n";
+		print "Error: $dbh->errorMessage\n" if $ll >= 1;
 	    }
 	}
     }
     close HANDLE;
 
-    print "Added $counter rows.\n" if $ll>=1;
-    print "Found $foundcounter existing snmpoids of which $necounter did not have $keyword or $keyword2 as description.\n" if $ll>=1;
+    print "Added $counter rows.\n" if $ll >= 2;
+    print "Found $foundcounter existing snmpoids of which $necounter did not have $keyword or $keyword2 as description.\n" if $ll >= 2;
 
+}
+
+sub usage {
+    print "Usage: $0 [-h] [-l loglevel]\n";
+    print "\t-h: this helptext\n";
+    print "\t-l: specify loglevel (1=silent, 2=normal, 3=debug)\n";
+    
+    exit(0);
+       
 }
