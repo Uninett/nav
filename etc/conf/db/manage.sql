@@ -353,6 +353,7 @@ GRANT ALL ON prefix TO navall;
 GRANT ALL ON type TO navall;
 GRANT ALL ON netbox TO navall;
 GRANT ALL ON netboxinfo TO navall;
+GRANT ALL ON netboxinfo_netboxinfoid_seq TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
@@ -530,7 +531,8 @@ GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 GRANT ALL    ON device TO getDeviceData;
 GRANT ALL    ON device_deviceid_seq TO getDeviceData;
 GRANT SELECT,UPDATE ON netbox TO getDeviceData;
-GRANT SELECT,UPDATE ON netboxinfo TO getDeviceData;
+GRANT SELECT,UPDATE,INSERT ON netboxinfo TO getDeviceData;
+GRANT ALL ON netboxinfo_netboxinfoid_seq TO getDeviceData;
 GRANT SELECT ON type TO getDeviceData;
 GRANT ALL    ON netboxdisk TO getDeviceData;
 GRANT ALL    ON netboxinterface TO getDeviceData;
@@ -833,6 +835,7 @@ GRANT ALL ON eventtype TO navall;
 GRANT ALL ON service TO navall;
 GRANT SELECT,UPDATE,DELETE ON netbox TO navall;
 GRANT SELECT,UPDATE,DELETE ON netboxinfo TO navall;
+GRANT ALL ON netboxinfo_netboxinfoid_seq TO navall;
 GRANT SELECT,UPDATE,DELETE ON netboxcategory TO navall;
 GRANT SELECT,UPDATE,DELETE ON room TO navall;
 GRANT SELECT,UPDATE,DELETE ON location TO navall;
@@ -869,6 +872,7 @@ GRANT SELECT ON service TO eventengine;
 GRANT SELECT ON serviceproperty TO eventengine;
 
 -- adding grant select for NAVprofiles.....
-GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistmsg, alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
+-- GRANT SELECT ON status, netboxcategory, mem, org,  usage,  vendor,  product,  typegroup,  arp, port2pkt,  pkt2rom,  vp_netbox_grp_info,  vp_netbox_grp,  vp_netbox_xy,  swp_netbox,  swportblocked,  cam,  netboxinfo,  netboxdisk,  netboxinterface,  swportallowedvlan,  eventtype,  eventprocess,  eventq,  eventqvar,  alertq,  alertqvar,  alerthist,  alerthistmsg, alerthistvar,  netbox,  cat,  type, room,  location,  module,  swport,  swportvlan,  gwport,  prefix,  serviceproperty,  alertengine,  device,  service TO navprofilemanage;
+-- brukeren navprofilemanage finnes  jo ikke
 -- skal inneholde alle tabeller i manage til en hver tid.
 -- -Andreas-
