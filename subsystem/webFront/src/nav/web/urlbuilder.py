@@ -30,6 +30,7 @@ _divisionClasses = {
     'location': manage.Location,
     'port': manage.Swport,
     'module': manage.Module,
+    'vlan':  manage.Vlan,
 }
 
 def _getObjectByDivision(division, id):
@@ -92,6 +93,8 @@ def createUrl(object=None, id=None, division=None,
                 elif division=="module":
                     url += object.netbox.sysname
                     url += '/module%s' % object.module   
+                elif division=='vlan':
+                    url += str(object.vlan)
                 else:
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
@@ -101,7 +104,7 @@ def createUrl(object=None, id=None, division=None,
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
-        url += '?'
+        url += "?"
         if type(id) != list:
             # since id might be a list, we always treat
             # it as a list.
