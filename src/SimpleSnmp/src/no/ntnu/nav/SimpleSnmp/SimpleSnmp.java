@@ -438,7 +438,7 @@ public class SimpleSnmp
 					varbind vb;
 					while ( (vb=pdu.getResponseVariableBinding()) != null) {
 						oid = vb.getOid().getValue();
-						if (!oid.startsWith(baseOid)) break;
+						if (!baseOid.equals(oid) || !oid.startsWith(baseOid+".")) break;
 
 						// Reset timeoutCnt
 						timeoutCnt = 0;
