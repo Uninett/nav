@@ -8,7 +8,7 @@
 ##################################################
 
 use strict;
-use DBI;
+use Pg;
 
 my $valg = shift @ARGV;
 
@@ -22,11 +22,13 @@ if (defined $valg) {
 }
 
 my ($ok,$ok2, $ok_org, $ok_kat); # Feilsjekkvariable
-my $fil = "../etc/TrapDetect.conf_bak"; # conf-fila som skal legges inn i database.
+#my $fil = "../etc/TrapDetect.conf_bak"; # conf-fila som skal legges inn i database.
+my $fil = "TrapDetect.conf_bak";
 
-my $dbh = DBI->connect("trapdetect","nett","stotte","mysql") or die "Fikk ikke åpnet databasen\n";
+my $dbh = db_connect("trapdetect");
 
 &les_fil();
+
 if ($ok && $ok2 && $ok_org && $ok_kat) {
     print "Ferdig - alt ok\n";
 } else {
@@ -160,7 +162,7 @@ sub les_fil {
     # Sletter alt fra databasen siden bare det som er i 
     # fila skal være i databasen.
     my $sporring = "delete from trap";
-    my $rows = $dbh->do($sporring);
+    my $rows = &db_execute($sporring,$dbh);
 
     # Legger inn alle traps i trap-tabellen
     my @keys = keys (%trap);
@@ -173,36 +175,36 @@ sub les_fil {
 	    ($sykoid,$syktekst,$friskoid,$frisktekst,$hovedkat) = @arr;
 	    $sporring = "insert into trap (sykoid,syknavn,friskoid,frisknavn,beskrivelse,type) values ";
 	    $sporring .= "('$sykoid','$syktekst','$friskoid','$frisktekst','$besk',$hovedkat)";
-	    $ok = $dbh->do($sporring);
+	    print "$sporring\n";
+	    $ok = &db_execute($sporring,$dbh);
 	} elsif ($length == 3) {
 	    # Tilstandsløs funnet
 	    ($sykoid,$syktekst,$hovedkat) = @arr;
 	    $sporring = "insert into trap (sykoid,syknavn,beskrivelse,type) values ('$sykoid','$syktekst','$besk',$hovedkat)";
-	    $ok = $dbh->do($sporring);
+	    print "$sporring\n";
+	    $ok = &db_execute($sporring,$dbh);
 	}
     }
 
     # Henter alle id'er fra trap-tabellen til bruk senere
     %trap = ();
     $sporring = "select id,syknavn from trap";
-    my $finn_traps = $dbh->prepare($sporring);
-    $finn_traps->execute;
-    while (my @res = $finn_traps->fetchrow_array) {
+    my $finn_traps = &db_select($sporring,$dbh);
+    while (my @res = $finn_traps->fetchrow) {
 	$trap{$res[1]} = $res[0];	
     }
 
     # Henter alle id'er fra org-tabellen til bruk senere
     my %org = ();
     $sporring = "select id,navn from org";
-    my $finn_org = $dbh->prepare($sporring);
-    $finn_org->execute;
-    while (my @res = $finn_org->fetchrow_array) {
+    my $finn_org = &db_select($sporring,$dbh);
+    while (my @res = $finn_org->fetchrow) {
 	my $temp = lc $res[1];
 	$org{$temp} = $res[0];	
     }    
 
     # Legger inn alle suboid'er i subtrap-tabellen
-    $dbh->do("delete from subtrap");
+    &db_execute("delete from subtrap",$dbh);
     my $key;
     @keys = keys (%suboid);
     foreach $key (@keys) {
@@ -211,12 +213,13 @@ sub les_fil {
 	    my ($suboid,$navn) = @$_;
 	    $sporring = "insert into subtrap (trapid,suboid,navn) values ";
 	    $sporring .= "($trap{$key},'$suboid','$navn')";
-	    $ok2 = $dbh->do($sporring);
+		print "$sporring\n";
+	    $ok2 = &db_execute($sporring,$dbh);
 	}
     }
 
     # Legger alle kategoriene inn i trapkat-tabellen.
-    $dbh->do("delete from trapkat");
+    &db_execute("delete from trapkat",$dbh);
     @keys = keys (%kategorier);
     foreach $key (@keys) {
 	my $kat = $kategorier{$key};
@@ -224,13 +227,14 @@ sub les_fil {
 	unless ($kat =~ /ingen/i) {
 	    for (@alle) {
 		$sporring = "insert into trapkat (trapid,kat) values ($trap{$key},'$_')";
-		$ok_kat = $dbh->do($sporring);
+		print "$sporring\n";
+		$ok_kat = &db_execute($sporring,$dbh);
 	    }
 	}
     }
 
     # Legger alle org-trap-sammenhenger i trapeier
-    $dbh->do("delete from trapeier");
+    &db_execute("delete from trapeier",$dbh);
     @keys = keys (%eier);
     foreach $key (@keys) {
 	my $eiere = $eier{$key};
@@ -239,8 +243,36 @@ sub les_fil {
 	    $_ = lc $_;
 	    if (exists $org{$_}) {
 		$sporring = "insert into trapeier (orgid,trapid) values ($org{$_},$trap{$key})";
-		$ok_org = $dbh->do($sporring);
+		print "$sporring\n";
+		$ok_org = &db_execute($sporring,$dbh);
 	    }
 	}
     }
 }
+
+sub db_connect {
+    my $db = $_[0];
+    my $conn = Pg::connectdb("dbname=$db");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
+
+sub db_select {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    return $resultat;
+}
+
+sub db_execute {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
+#die er byttet med print
+
+    return $resultat;
+}                
