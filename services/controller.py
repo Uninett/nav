@@ -1,12 +1,12 @@
 #!/usr/bin/python
 """
-$Author: magnun $
-$Id: controller.py,v 1.6 2002/06/12 20:13:53 magnun Exp $
+$Author: erikgors $
+$Id: controller.py,v 1.7 2002/06/13 15:47:18 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
 
-import RunQueue, types, os, time, job, getopt, signal
+import RunQueue, types, os, time, job, getopt, signal,database
 
 class controller:
     def __init__(self, **kwargs):
@@ -24,9 +24,7 @@ class controller:
         Fetches new jobs from the NAV database and appends them to
         the runqueue.
         """
-        newjobs = []
-        for i in range(20):
-            newjobs += [job.Dummy(('localhost',80))]
+        newjobs = database.getJobs()
             
         s=[]    
         for i in newjobs:
@@ -72,6 +70,7 @@ class controller:
         Loops until SIGTERM is caught. The looptime is defined
         by self._looptime
         """
+	database.startup('host = localhost user = manage dbname = manage password = eganam')
         while self._isrunning:
             start=time.time()
             self.getJobs()
