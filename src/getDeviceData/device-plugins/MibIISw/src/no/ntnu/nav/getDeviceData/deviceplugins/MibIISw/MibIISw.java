@@ -44,6 +44,9 @@ public class MibIISw implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
+		// Ugly hack for GWs, waiting for new table port
+		if ("GW".equals(nb.getCat())) return NEVER_HANDLE;
+
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
 		Log.d("MIB_II_SW_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
