@@ -17,7 +17,7 @@ sub new
 
     $this->{id}=shift;
     $this->{dbh}=shift;
-    $this->{dbh_alert}=shift;
+#    $this->{dbh_alert}=shift;
     my $cfg=shift;
     $this->{email_from}=$cfg->{email_from};
     $this->{sendmail}=$cfg->{sendmail};
@@ -183,7 +183,7 @@ sub checkNewAlerts()
 		if($ae->{queue})
 		{
 		    #Queue alert
-		    $this->queueAlert($c,$ae->{address});
+		    $this->queueAlert($this->{nA}->getAlert($c),$ae->{address});
 		}
 		else
 		{
@@ -199,11 +199,12 @@ sub checkNewAlerts()
 sub queueAlert()
 #Store alert in queue
   {
-    my($this,$alertid,$addressid)=@_;
-    print "Queue alert $alertid\n";
+    my($this,$alert,$addressid)=@_;
+    $alert->queued();
+#    print "Queue alert $alertid\n";
 
-    my $sth=$this->{dbh}->prepare("insert into ko (brukerid,alertid,adrid) select $this->{id},$alertid,$addressid where not exists(select brukerid,alertid,adrid from ko where brukerid=$this->{id} and alertid=$alertid and adrid=$addressid)");
-    $sth->execute();
+#    my $sth=$this->{dbh}->prepare("insert into ko (brukerid,alertid,adrid) select $this->{id},$alertid,$addressid where not exists(select brukerid,alertid,adrid from ko where brukerid=$this->{id} and alertid=$alertid and adrid=$addressid)");
+    #$sth->execute();
 
   }
 
@@ -252,7 +253,7 @@ sub sendSMS()
 	print "Error: no SMS message\n";
     }
 
-#    print "SMS $to: $msg\n";
+    print "SMS $to: $msg\n";
 #    return; 
     $this->{dbh}->do("insert into smsutko (tlfnr,melding) values($to,'$msg')");
 }
@@ -266,7 +267,8 @@ sub sendEmail()
 	return;
     }
 
-#    print "To:$to\nSubject: $subject\n$body\n";
+
+    print "EMAIL $to\tSubject: $subject\n";
 #    return;
 
     open(SENDMAIL, "|$this->{sendmail}")
@@ -347,3 +349,5 @@ sub checkRights()
 
 1;
 
+
+#  LocalWords:  addressid

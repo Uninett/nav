@@ -48,7 +48,7 @@ sub collectInfo()
     $this->{value}=$info->[7];
     $this->{severity}=$info->[8];
     $this->{id}=$info->[9];
-
+    $this->{queued}=0;
     return 1;
   }
 
@@ -184,6 +184,24 @@ sub getID()
 {
     my $this=shift;
     return $this->{id};
+}
+
+sub queued()
+{
+    my $this=shift;
+    $this->{queued}=1;
+}
+
+sub delete()
+#deletes alert from db
+{
+    my $this=shift;
+    if(!$this->{queued})
+    {
+#	print "delete\n";
+#	return;
+	$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
+    }
 }
 
 1;

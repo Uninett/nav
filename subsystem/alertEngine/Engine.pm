@@ -104,6 +104,12 @@ sub checkAlerts()
 	  }
       }
 	
+    #Delete alerts
+    for(my $c=0;$c<$num;$c++) {
+	my $alert=$nA->getAlert($c);
+	$alert->delete();
+    }
+
     $this->{lastAlertID}=$nA->finished();
   }
 
