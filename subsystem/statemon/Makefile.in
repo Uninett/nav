@@ -1,0 +1,54 @@
+#!/usr/bin/env make
+# 
+# This file is part of the NAV project and sånt
+# 
+
+# paths
+PREFIX=@prefix@
+NAVVER=navme
+pythonlibdir = @pythonlibdir@
+PYLIB=$(pythonlibdir)/statemon
+BINDIR=@bindir@
+INITDIR=$(PREFIX)/$(NAVVER)/etc/init.d
+INITFILES=pping servicemon
+BINS=checkService.py pping.py servicemon.py
+LIBS=
+CHECKERDIR=$(PYLIB)/checker
+CONFDIR=@sysconfdir@
+CONFFILES=servicemon.conf pping.conf
+# programs to use for make
+INSTALL=@INSTALL@
+
+# ok, the targets
+all: 
+lib:
+bin:
+conf:
+checker:
+
+# the install
+install: install-lib install-bin install-checker install-conf
+
+install-lib: lib
+	mkdir --parents $(DESTDIR)$(PYLIB)
+	for file in nav/statemon/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(PYLIB)/; done
+	mkdir --parents $(DESTDIR)$(PYLIB)/DNS
+	for file in nav/statemon/DNS/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(PYLIB)/DNS/; done
+install-bin: bin
+	mkdir --parents $(DESTDIR)$(BINDIR)
+	for file in $(BINS);do $(INSTALL) -m 755 $$file $(DESTDIR)$(BINDIR)/ ;done
+	mkdir --parents $(DESTDIR)$(INITDIR)
+	for file in $(INITFILES); do $(INSTALL) -m 755 $$file $(DESTDIR)$(INITDIR); done
+install-checker: checker
+	mkdir --parents $(DESTDIR)$(CHECKERDIR)
+	for file in nav/statemon/checker/*.py; do $(INSTALL) -m 644 $$file $(DESTDIR)$(CHECKERDIR)/; done
+	for file in nav/statemon/checker/*.descr; do $(INSTALL) -m 644 $$file $(DESTDIR)$(CHECKERDIR)/; done
+install-conf: conf
+	mkdir --parents $(DESTDIR)$(CONFDIR)
+	for file in $(CONFFILES); do $(INSTALL) -m 640 $$file $(DESTDIR)$(CONFDIR)/; done
+uninstall:
+	for file in $(BINS); do rm -f $(DESTDIR)$(BINDIR)/$$file; done	
+	rm -rf $(DESTDIR)$(CHECKERDIR)
+	rm -rf $(DESTDIR)$(PYLIB)
+clean:
+	find -name *.pyc -print0 | xargs --null rm -f
