@@ -1,0 +1,263 @@
+## $Id: $
+##
+## This file is a part of the NAV project.
+##
+## Contains functions for displaying status sections
+## and for displaying the status preference page
+##
+## Last changed: 2003.07.25
+## Author: Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+##
+
+#extends nav.web.templates.MainTemplate
+
+#def content
+#if $prefs
+<h2>Status page preferences</h2>
+$displayPrefs($prefs)
+#end if
+
+#if $status
+<h2>$status.title</h2>
+#for $SectionBox in $status.sections
+$displaySectionBox($SectionBox)
+#end for
+#end if
+
+#if $history
+<h2>$history.title</h2>
+$displayStatusAction($history)
+$displaySectionBoxes($history)
+##for $SectionBox in $history.sections
+##$displaySectionBox($SectionBox)
+##end for
+#end if
+
+#end def
+
+#def additionalCSS
+td.down {background: #eee}
+td.shadow {background: #f85}
+
+th.sortedBy {background: #8aa}
+th.sortedBy#ascending:after {content: url("/images/pilned.png")}
+th.sortedBy#descending:after {content: url("/images/pilopp.png")}
+
+tr.evenrow  { font-size: 12; background-color: #eeeeee; }
+tr.oddrow   { font-size: 12; }
+tr.title    { vertical-align: baseline; font-size: 15; background-color: #ddddff;}
+tr.header   { background-color: white;
+              background-image:url('/images/ragen/navbar-fill.gif');
+              background-repeat: repeat-x;
+              height: 26px;
+              padding: 1px 0px 0px 0px;
+              font-size: 13;}
+
+$default_form_CSS()
+#end def
+
+## This function show the select bar (type=boxes|services|?,days=1-?)
+#def displayStatusAction($bar)
+    <form action="$bar.action" method="$bar.method">
+#if $bar.boxValue
+        <input type="hidden" name="$bar.boxCname" value="$bar.boxValue">
+#end if
+        <p>
+            $bar.typeText
+## Only show the type select if no special box is selected
+#if not $bar.boxValue
+            <select name="$bar.typeCname" onchange="$bar.onChange">
+#for $value,$option in $bar.typeOptions
+#if $value == $bar.typeValue
+                <option selected value="$value">$option</option>
+#else
+                <option value="$value">$option</option>
+#end if
+#end for
+            </select>
+#end if
+            $bar.daysText
+            <select name="$bar.daysCname" onchange="$bar.onChange">
+#for $value,$option in $bar.daysOptions
+#if $value == $bar.daysValue
+                <option selected value="$value">$option</option>
+#else
+                <option value="$value">$option</option>
+#end if
+#end for
+            </select>
+        </p>                   
+    <form>
+#end def
+
+## Function for displaying all the sections on a page
+## Used by the status page to display all rows from all sections
+## in one table (can do this since the number of columns is
+## equal for all sections)
+#def displaySectionBoxes($page)
+    <table cellpadding="5%" cellspacing="0">
+#for $section in $page.sections
+$listSectionRows($section)
+#end for
+    </table>
+#end def
+
+## This renders the rows in a sectionbox
+#def listSectionRows($SectionBox)
+        <tr class="title">
+            <th colspan="2" id="$SectionBox.controlBaseName">$SectionBox.title</th>
+        <tr>
+        <tr class="header">
+            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+#for $heading, $url, $style, $id in $SectionBox.headings
+#if $url
+            <th id="$id" align=left><a href="$url">$heading</a></th>
+#else
+            <th id="$id" align=left>$heading</th>
+#end if
+#end for
+            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
+        </tr>
+#set $odd = False
+#for $row in $SectionBox.rows
+#if $odd
+#set $rowstyle = 'oddrow'
+#set $odd = False
+#else
+#set $rowstyle = 'evenrow'
+#set $odd = True
+#end if
+        <tr class="$rowstyle">
+            <td> </td>
+#for $col, $url, $style in $row
+#if $url
+            <td class="$style"><a href="$url">$col</a>
+#else
+            <td class="$style">$col</td>
+#end if
+#end for
+            <td> </td>
+        </tr>
+#end for
+#end def
+
+## This renders each sectionbox
+#def displaySectionBox($SectionBox)
+    <h3 id="$SectionBox.controlBaseName">$SectionBox.title <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></h3>
+    <table cellpadding="3%" cellspacing="0">
+        <tr class="header">
+            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+#for $heading, $url, $style, $id in $SectionBox.headings
+#if $url
+            <th id="$id"><a href="$url">$heading</a></th>
+#else
+            <th id="$id">$heading</th>
+#end if
+#end for
+            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
+        </tr>
+#set $odd = False
+#for $row in $SectionBox.rows
+#if $odd
+#set $rowstyle = 'oddrow'
+#set $odd = False
+#else
+#set $rowstyle = 'evenrow'
+#set $odd = True
+#end if
+        <tr class="$rowstyle">
+            <td> </td>
+#for $col, $url, $style in $row
+#if $url
+            <td class="$style"><a href="$url">$col</a>
+#else
+            <td class="$style">$col</td>
+#end if
+#end for
+            <td> </td>
+        </tr>
+#end for
+    </table>
+#end def
+
+## This renders the preferences page
+#def displayPrefs($prefsPage)
+<form action="status.py" method="post">
+
+<table class=header-active>
+<tr>
+<th>Select</th><th>Name</th><th>Filter</th>
+</tr>
+
+#for $editSection in $prefsPage.editSectionBoxes
+$displayEditSectionBox($editSection,$prefsPage.radioButtonName)
+#end for
+
+## action bar
+<tr>
+<td colspan=2>
+<input type="submit" name="$prefsPage.actionBarUpName" value="Move up">
+<input type="submit" name="$prefsPage.actionBarDelName" value="Delete">
+</td>
+</tr>
+
+</table>
+
+## addbar
+<table>
+<tr>
+<th colspan=4 align=left>Add new section</th>
+</tr>
+<tr>
+<td>$prefsPage.addBarTitle</td>
+<td>
+<SELECT name="$prefsPage.addBarSelectName">
+#for $value,$text in $prefsPage.addBarSelectOptions
+<OPTION value="$value">$text</OPTION>
+#end for
+</SELECT>
+</td>
+<td><input type="submit" name="$prefsPage.addBarSubmitName" value="Add"></td>
+<td><input type="submit" name="$prefsPage.addBarSaveName" value="Save"</td>
+<td><input type="submit" name="$prefsPage.addBarSaveDefName" value="Save Default"</td>
+</tr>
+</table>
+</form>
+#end def
+
+#def displayEditSectionBox($editSectionBox,$radioButtonName)
+<tr>
+<td class=header-active><input type="radio" name="$radioButtonName" value="$editSectionBox.controlBaseName"></td>
+<td class=header-active>$editSectionBox.name<br><input type="text" value="$editSectionBox.title" name="$editSectionBox.controlBaseName"></td>
+<td class=header-active>
+<table class=header-active cellpadding=5%>
+<tr>
+#for $heading in $editSectionBox.filterHeadings
+<th>$heading</th>
+#end for
+</tr>
+
+<tr>
+#for $select in $editSectionBox.filterSelects
+<td align="center"> 
+#set $control = $select[0]
+#set $selects = $select[1]
+<select size=4 multiple name="$control">
+#for $value,$option,$selected in $selects
+
+#if $selected
+<option value="$value" selected>$option</option>
+#else
+<option value="$value">$option</option>
+#end if
+
+#end for
+</select>
+</td>
+#end for
+</tr>
+
+</table>
+</td>
+</tr>
+#end def
