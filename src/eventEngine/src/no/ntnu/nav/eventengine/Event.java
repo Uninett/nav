@@ -11,6 +11,7 @@ public interface Event
 
 	public String getSource();
 	public int getDeviceid();
+	public Integer getDeviceidI();
 	public int getBoksid();
 	public int getSubid();
 	public Date getTime();
@@ -22,5 +23,7 @@ public interface Event
 	public Map getVarMap();
 
 	public String getKey();
+
+	public void dispose();
 
 }

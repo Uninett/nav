@@ -1,23 +1,28 @@
 package no.ntnu.nav.eventengine;
 
+import no.ntnu.nav.Database.*;
+
 import java.util.*;
 import java.text.*;
+import java.sql.SQLException;
 
 class EventImpl implements Event, Alert
 {
-	int eventqid;
-	String source;
-	int deviceid;
-	int boksid;
-	int subid;
-	Date time;
-	String eventtypeid;
-	int state;
-	int value;
-	int severity;
-	Map varMap;
+	private int eventqid;
+	private String source;
+	private int deviceid;
+	private int boksid;
+	private int subid;
+	private Date time;
+	private String eventtypeid;
+	private int state;
+	private int value;
+	private int severity;
+	private Map varMap;
 
-	List eventList = new ArrayList();
+	private List eventList = new ArrayList();
+
+	private boolean disposed;
 
 	public EventImpl(int eventqid, String source, int deviceid, int boksid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
 	{
@@ -37,8 +42,8 @@ class EventImpl implements Event, Alert
 
 		switch (state) {
 			case 'x': this.state = STATE_NONE; break;
-			case 't': this.state = STATE_START; break;
-			case 'f': this.state = STATE_END; break;
+			case 's': this.state = STATE_START; break;
+			case 'e': this.state = STATE_END; break;
 		}
 
 		this.value = value;
@@ -73,6 +78,7 @@ class EventImpl implements Event, Alert
 	// Event
 	public String getSource() { return source; }
 	public int getDeviceid() { return deviceid; }
+	public Integer getDeviceidI() { return new Integer(deviceid); }
 	public int getBoksid() { return boksid; }
 	public int getSubid() { return subid; }
 	public Date getTime() { return time; }
@@ -81,6 +87,18 @@ class EventImpl implements Event, Alert
 	public int getValue() { return value; }
 	public int getSeverity() { return severity; }
 	public Map getVarMap() { return varMap; }
+	public void dispose()
+	{
+		if (disposed) return;
+		try {
+			Database.update("DELETE FROM eventq WHERE eventqid = '"+eventqid+"'");
+			Database.commit();
+		} catch (SQLException e) {
+			errl("EventImpl: Cannot dispose of self: " + e.getMessage());
+			return;
+		}
+		disposed = true;
+	}
 
 	// Alert
 	public void setDeviceid(int deviceid) { this.deviceid = deviceid; }
@@ -108,8 +126,8 @@ class EventImpl implements Event, Alert
 	{
 		switch (state) {
 			case STATE_NONE: return "x";
-			case STATE_START: return "t";
-			case STATE_END: return "f";
+			case STATE_START: return "s";
+			case STATE_END: return "e";
 		}
 		return null;
 	}
@@ -126,6 +144,8 @@ class EventImpl implements Event, Alert
 		sb.append(state);
 		return sb.toString();
 	}
+
+	public boolean isDisposed() { return disposed; }
 
 	private Date stringToDate(String d) throws ParseException
 	{

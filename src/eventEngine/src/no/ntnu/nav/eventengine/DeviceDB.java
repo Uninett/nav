@@ -8,24 +8,29 @@ import java.sql.SQLException;
 
 public class DeviceDB
 {
-	HashMap deviceMap = new HashMap();
-	Set deviceidSet;
-	boolean updateMode;
+	private Timer timer;
+
+	private HashMap deviceMap;
+	private Set deviceidSet;
+	private boolean updateMode;
 
 	/**
 	 *
 	 */
-	Map downAlertMap = new HashMap();
+	private Map downAlertMap = new HashMap();
 
-	public DeviceDB()
+	public DeviceDB(HashMap deviceMap, Timer timer)
 	{
+		this.deviceMap = deviceMap;
+		this.timer = timer;
 
 		// Fetch all unclosed alerthist records
 		try {
-			ResultSet rs = Database.query("SELECT * FROM alerthist LEFT NATURAL JOIN alerthistvar WHERE end_t='infinity'");
+			ResultSet rs = Database.query("SELECT * FROM alerthist NATURAL LEFT JOIN alerthistvar WHERE end_t='infinity'");
 			while (rs.next()) {
 				EventImpl e = eventImplFactory(rs, true);
 				downAlertMap.put(e.getKey(), e);
+				outld("DeviceDB: downAlertMap: " + e);
 			}
 		} catch (SQLException e) {
 			System.err.println("DeviceDB.DeviceDB: Unable to read alerthist: " + e.getMessage());
@@ -51,7 +56,7 @@ public class DeviceDB
 		int subid = rs.getInt("subid");
 		String time = rs.getString(history?"start_t":"time");
 		String eventtypeid = rs.getString("eventtypeid");
-		char state = history ? 'x' : rs.getString("state").charAt(0);
+		char state = history ? 's' : rs.getString("state").charAt(0);
 		int value = rs.getInt("value");
 		int severity = rs.getInt("severity");
 		Map varMap = new HashMap();
@@ -70,6 +75,11 @@ public class DeviceDB
 
 		EventImpl e = new EventImpl(id, source, deviceid, boksid, subid, time, eventtypeid, state, value, severity, varMap);
 		return e;
+	}
+
+	public static boolean isDisposed(Event e)
+	{
+		return ((EventImpl)e).isDisposed();
 	}
 
 
@@ -109,8 +119,28 @@ public class DeviceDB
 
 	public Alert getDownAlert(Event e)
 	{
-		return (Alert)downAlertMap.get(e.getKey());
+		if (e.getState() == Event.STATE_END && e instanceof EventImpl) {
+			return (Alert)downAlertMap.get(getDownAlertKey(e));
+		}
+		return null;
 	}
+
+	private void removeDownAlert(Event e)
+	{
+		if (e.getState() == Event.STATE_END && e instanceof EventImpl) {
+			downAlertMap.remove(getDownAlertKey(e));
+		}
+	}
+
+	private String getDownAlertKey(Event e)
+	{
+		EventImpl ei = (EventImpl)e;
+		ei.setState(Event.STATE_START);
+		String key = e.getKey();
+		ei.setState(Event.STATE_END);
+		return key;
+	}
+
 
 	public Alert alertFactory(Event e)
 	{
@@ -133,6 +163,7 @@ public class DeviceDB
 			insertAlert(e, false);
 
 			// Update alertqhist
+			boolean removeDownAlert = false;
 			if (e.getState() != Event.STATE_END) {
 				// Insert new record
 				int id = insertAlert(e, true);
@@ -142,12 +173,12 @@ public class DeviceDB
 					downAlertMap.put(e.getKey(), e);
 				}
 			} else {
-				// End event, so set end time for previous alert
-				e.setState(Event.STATE_START);
+				// End event, set end time for previous (start) alert
 				EventImpl da = (EventImpl)getDownAlert(e);
 				if (da == null) throw new PostAlertException("DeviceDB.postAlert: DownAlert not found!");
 				int alerthistid = da.getEventqid();
 				Database.update("UPDATE alerthist SET end_t = '"+e.getTimeSql()+"' WHERE alerthistid = "+alerthistid);
+				removeDownAlert = true;
 			}
 
 			// Now delete releated events from eventq
@@ -163,6 +194,8 @@ public class DeviceDB
 
 			// Everything went well, so it is safe to commit
 			Database.commit();
+
+			if (removeDownAlert) removeDownAlert(e);
 
 		} catch (SQLException exp) {
 			exp.printStackTrace(System.err);
@@ -238,6 +271,55 @@ public class DeviceDB
 		}
 		return id;
 	}
+
+	private Map callbackMap = new IdentityHashMap();
+	public void scheduleCallback(EventCallback ec, long delay)
+	{
+		scheduleCallback(ec, delay, 1);
+	}
+	public void scheduleCallback(EventCallback ec, long delay, int invocationCount)
+	{
+		CallbackTask ct;
+		if ( (ct=(CallbackTask)callbackMap.remove(ec)) != null) ct.cancel();
+
+		if (invocationCount > 0) {
+			ct = new CallbackTask(ec, invocationCount);
+			callbackMap.put(ec, ct);
+			timer.scheduleAtFixedRate(ct, delay, delay);
+		}
+	}
+	public boolean isScheduledCallback(EventCallback ec)
+	{
+		return callbackMap.containsKey(ec);
+	}
+	// Return true if a callback was canceled
+	public boolean cancelCallback(EventCallback ec)
+	{
+		CallbackTask ct;
+		if ( (ct=(CallbackTask)callbackMap.remove(ec)) != null) ct.cancel();
+		return ct != null;
+	}
+	private class CallbackTask extends TimerTask
+	{
+		EventCallback ec;
+		int count;
+
+		public CallbackTask(EventCallback ec, int count)
+		{
+			this.ec = ec;
+			this.count = count;
+		}
+
+		public void run()
+		{
+			if (--count == 0) {
+				callbackMap.remove(ec);
+				cancel();
+			}
+			ec.callback(DeviceDB.this, count);
+		}
+	}
+
 
 
 	private static void outd(Object o) { System.out.print(o); }

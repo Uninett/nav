@@ -16,21 +16,7 @@ import java.sql.*;
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
-//import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.eventengine.*;
-
-/*
-import uk.co.westhawk.snmp.stack.*;
-import uk.co.westhawk.snmp.pdu.*;
-*/
-
-// select swportid,boksid,sysname,typeid,ifindex,modul,port,status,speed,duplex,media,trunk from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f' order by boksid,modul,port;
-// select count(*) from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f';
-// SELECT DISTINCT typeid FROM swport JOIN boks USING(boksid) WHERE swport.static='t';
-
-
-// For å slette alle swportvlan records dette scriptet fyller inn
-// DELETE FROM swportvlan WHERE swportid IN (SELECT swportid FROM swport JOIN boks USING(boksid) NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw')))
 
 class eventEngine
 {
@@ -93,13 +79,14 @@ class eventEngine
 		timer.schedule(cfmt, 5 * 1000, 5 * 1000); // 5 second delay
 
 		HashMap handlerClassMap = new HashMap();
-		DeviceDB devDB = new DeviceDB();
+		HashMap deviceMap = new HashMap();
+		DeviceDB devDB = new DeviceDB(deviceMap, timer);
 
 		// The eventq monitor
 		EventqMonitorTask emt = new EventqMonitorTask(handlerClassMap, devDB);
 
 		// Set up the plugin monitor
-		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerClassMap, devDB, emt );
+		PluginMonitorTask pmt = new PluginMonitorTask("device-plugins", new HashMap(), "handler-plugins", handlerClassMap, devDB, deviceMap, emt );
 		pmt.run(); // Load all plugins
 
 		timer.schedule(pmt, 5 * 1000, 5 * 1000); // Check for new plugin every 5 seconds
@@ -158,65 +145,6 @@ class eventEngine
 		out("]");
 		WAIT_POS = (WAIT_POS+1)%4;
 	}
-
-	/*
-	private static void timerSched(long l)
-	{
-		synchronized (timer) {
-			boksTimer.cancel();
-			boksTimer = new BoksTimer();
-			timer.schedule(boksTimer, l);
-		}
-	}
-
-	//private static boolean timerRunning;
-	public static void threadIdle()
-	{
-		timerSched(0);
-	}
-
-	public static void checkBdQ()
-	{
-		outld("Checking queue for ripe boksDatas");
-		synchronized (bdFifo) {
-			outld("  Elements in queue: " + bdFifo.size());
-			if (bdFifo.size() == 0) return;
-			BoksDataImpl bd = (BoksDataImpl)bdFifo.getFirst();
-			if (bd.nextRun() > System.currentTimeMillis()) {
-				// Not yet ripe
-				outld("  Head of queue not yet ripe, next run in: " + (bd.nextRun() - System.currentTimeMillis()) + " ms");
-				//timer.setInitialDelay( (int)(bd.nextRun() - System.currentTimeMillis()) );
-				//timer.restart();
-				//timer.schedule(boksTimer, bd.nextRun() - System.currentTimeMillis());
-				timerSched(bd.nextRun() - System.currentTimeMillis());
-				return;
-			}
-
-			// Start a new thread to handle this
-			outd("  Head of queue ripe, starting new thread to handle this...");
-			int tnum;
-			synchronized (idleThreads) {
-				if (idleThreads.empty()) { outld("no idle threads"); return; } // No available threads
-				tnum = ((Integer)idleThreads.pop()).intValue();
-			}
-			outld("started thread #"+tnum);
-
-			bdFifo.removeFirst();
-			threads[tnum] = new QueryBoks(tnum, format(tnum, threadNumDigits), bd);
-			threads[tnum].start();
-
-			// Schedule next task if there is one
-			if (bdFifo.size() > 0) {
-				bd = (BoksDataImpl)bdFifo.getFirst();
-				//timer.setInitialDelay( (int)(bd.nextRun() - System.currentTimeMillis()) );
-				//timer.restart();
-				//timer.schedule(boksTimer, bd.nextRun() - System.currentTimeMillis());
-				outld("  Scheduling next task, ripe in: " + (Math.max(0, bd.nextRun() - System.currentTimeMillis())) + " ms");
-				timerSched(Math.max(0, bd.nextRun() - System.currentTimeMillis()) );
-			}
-		}
-	}
-	*/
 
 
 	private static String format(long i, int n)
@@ -298,21 +226,23 @@ class ConfigFileMonitorTask extends TimerTask
 class PluginMonitorTask extends TimerTask
 {
 	File deviceDir, handlerDir;
-	Map deviceMap, handlerClassMap;
+	Map deviceClassMap, handlerClassMap;
 
 	Map deviceFileMap = new HashMap();
 	Map handlerFileMap = new HashMap();
 
 	DeviceDB devDB;
+	Map deviceMap;
 	EventqMonitorTask emt;
 
-	public PluginMonitorTask(String devicePath, Map deviceMap, String handlerPath, Map handlerClassMap, DeviceDB devDB, EventqMonitorTask emt)
+	public PluginMonitorTask(String devicePath, Map deviceClassMap, String handlerPath, Map handlerClassMap, DeviceDB devDB, Map deviceMap, EventqMonitorTask emt)
 	{
 		deviceDir = new File(devicePath);
-		this.deviceMap = deviceMap;
+		this.deviceClassMap = deviceClassMap;
 		handlerDir = new File(handlerPath);
 		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
+		this.deviceMap = deviceMap;
 		this.emt = emt;
 
 		if (!deviceDir.isDirectory() || !handlerDir.isDirectory()) {
@@ -324,7 +254,7 @@ class PluginMonitorTask extends TimerTask
 	public void run()
 	{
 		// Update Devices
-		if (update(deviceDir, deviceFileMap, deviceMap, true)) {
+		if (update(deviceDir, deviceFileMap, deviceClassMap, true)) {
 			devDB.startDBUpdate();
 
 			Class[] ddbClass = new Class[1];
@@ -334,7 +264,7 @@ class PluginMonitorTask extends TimerTask
 			} catch (ClassNotFoundException e) {}
 
 			List deviceClassList = new ArrayList();
-			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) {
+			for (Iterator i = deviceClassMap.values().iterator(); i.hasNext();) {
 				Class c = (Class)i.next();
 				deviceClassList.add(new DeviceClassEntry(findDepth(c), c));
 			}
@@ -359,6 +289,13 @@ class PluginMonitorTask extends TimerTask
 
 			devDB.endDBUpdate();
 			classDepthCache.clear();
+
+			// Now call 'init' for all devices
+			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
+
+			//Device d = (Device)devDB.getDevice(678);
+			//errl("Found:\n"+d);
+
 		}
 
 		// Update EventHandlers
@@ -367,7 +304,7 @@ class PluginMonitorTask extends TimerTask
 		}
 	}
 
-	class DeviceClassEntry
+	class DeviceClassEntry implements Comparable
 	{
 		int depth;
 		Class deviceClass;
@@ -548,6 +485,7 @@ class EventqMonitorTask extends TimerTask
 					outld("  Found handler: " + eh.getClass().getName());
 					try {
 						eh.handle(devDB, e);
+
 					} catch (Exception exp) {
 						errl("EventqMonitorTask: Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
 						exp.printStackTrace(System.err);
@@ -577,8 +515,34 @@ BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'boxState','f',100);
 COMMIT;
 
+- tekno-sw is going down...
 
-- Hva gjøres i tilfellet der man har f.eks to like etterfølgende info-events?
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',678,678,'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',678,678,'boxState','e',100);
+COMMIT;
+
+- mask-stud-368-h2 is going down...
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1253,1253,'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1253,1253,'boxState','e',100);
+COMMIT;
+
+
+
+- Hva gjøres i tilfellet der man har f.eks to like etterfølgende info-events, skal event engine ignorere den siste?
+- Hva gjøres for tilstandsfulle events som aldri oppheves (f.eks en linkDown event der kabelen kobles over på annen port)?
+- Skal transienter rapporteres, dvs. boxDown og boxUp i rask rekkefølge?
+- Hvordan skal coldStart og warmStart behandles?
+- linkState events går ikke til alertq/alerthist
+- Dersom en boks går ned, skal moduleDown rapporteres til alertq, evt. med skygge?
 
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','t',100);
@@ -593,6 +557,10 @@ BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1,1,'info','x',100);
 INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventq_eventqid_seq.last_value),'pl','100');
 COMMIT;
+
+
+
+
 
 
 
