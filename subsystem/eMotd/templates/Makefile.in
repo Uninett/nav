@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-templates = EmotdFrontpage.py  EmotdTemplate.py  MaintenanceTemplate.py
+templates = EmotdFrontpage.py  EmotdTemplate.py  MaintenanceTemplate.py  EmotdMessageTemplate.py  MaintListTemplate.py  EmotdStandardTemplate.py
 
 .PHONY: all install install-lib clean distclean
 
@@ -25,7 +25,7 @@ install: install-lib
 
 install-lib: $(templates)
 	for file in $(templates); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(templatedir)/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/emotd/$$file || exit 1; \
 	done
 
 clean:
