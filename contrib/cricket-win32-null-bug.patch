@@ -22,9 +22,11 @@ diff -ur cricket-1.0.3/lib/Common/Map.pm cricket-1.0.3-local/lib/Common/Map.pm
          my($row);
          foreach $row (@ret) {
              my($inst, $name) = split(':', $row, 2);
-+	    #Windows interfaces returns a 0 byte at the enda.
-+	    #The sentence above fix this problem.
-+	    $name  =~ s/\000//g;
++	    #Windows interfaces returns a 0 byte at the end.
++	    #The sentence below fix this problem.
++     if($name) {
++  	    $name  =~ s/\000//g;
++     }
              $main::gMapCache{$snmp}->{$mapkey}->{$name} = $inst;
          }
      }
