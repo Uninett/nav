@@ -70,7 +70,7 @@ def handler(req):
     
     else:
         remoteanswer = response.read()
-        req.content_type = response.msg.dict['content-type']
+        req.content_type = response.msg.get('content-type', 'text/html')
         if not req.content_type.startswith('text') or \
                req.uri.startswith("/vPServer"):
             req.send_http_header()
