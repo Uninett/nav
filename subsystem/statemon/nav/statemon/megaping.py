@@ -89,30 +89,10 @@ class Host:
   def __repr__(self):
     return "megaping.Host instance for ip %s " % self.ip
 
-#  def logPingTime(self, pingtime):
-#    netbox = self.netbox
-#    if pingtime:
-#      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'UP', pingtime)
-#      #rrd.update(self.ip,'N','UP',pingtime)
-#    else:
-#      # Dette er litt grisete og bør endres
-#      rrd.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN', 5)
-#      #rrd.update(self.ip,'N','DOWN',5)
-
   def getState(self, nrping=3):
     # This is the reoundtrip time. Not sure if we need
     # status bit as well...
     return self.replies[0]
-
-#    if self.certain:
-#      status = self.replies[:nrping] != [None]*nrping
-#      return status
-#    else:
-#      # Return the value from the databasse
-#      #print "Netbox.up: %s" % self.netbox.up
-#      if self.netbox.up == 'y':
-#        return 1
-#      return 0
 
 class MegaPing:
   """
@@ -189,15 +169,6 @@ class MegaPing:
     self._getter.join()
     return self._elapsedtime
   
-  #def icmpPrototype(self):
-  #  self.pkt = icmp.Packet()
-  #  self.pkt.type = icmp.ICMP_ECHO
-  #  self.pkt.id = self._pid
-  #  self.pkt.seq = 0 # Always sequence number 0..
-  
-  #def makeIcmpPacket(self, pingstring=PINGSTRING):
-  #  self.pkt.data = pingstring
-  #  return self.pkt.assemble()
 
   def _getResponses(self):
     start = time.time()
