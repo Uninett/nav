@@ -187,7 +187,7 @@ public class QueryBoks extends Thread
 						
 						String to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+remoteIf);
 						if (to_swportid == null) {
-							Log.d("RUN", "swportid missing for ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" RemoteIf: " + remoteIf);
+							Log.i("RUN", "swportid missing for ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" RemoteIf: " + remoteIf);
 							continue;
 						}
 					
@@ -283,6 +283,9 @@ public class QueryBoks extends Thread
 				PortBoks pm = (PortBoks)netboxIt.next();
 				String key = boksId+":"+pm;
 				String new_to_swportid = (String)interfaceMap.get(pm.getToNetboxid()+":"+pm.getRemoteIf());
+				if (pm.getRemoteIf() != null && new_to_swportid == null) {
+					Log.i("RUN", "swportid missing for ("+pm.getToNetboxid()+") "+boksIdName.get(pm.getToNetboxid())+" RemoteIf: " + pm.getRemoteIf());
+				}
 
 				// En enhet kan ikke ha link til seg selv
 				if (boksId.equals(pm.getToNetboxid())) continue;
