@@ -229,7 +229,7 @@ CREATE TABLE gwport (
   speed VARCHAR(10),
   ospf INT2,
   static BOOL DEFAULT false,
-  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null
+  boksbak INT4 REFERENCES boks (boksid) ON UPDATE CASCADE ON DELETE SET null,
   swportbak INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET null
 );
 CREATE INDEX gwport_swportbak_btree ON gwport USING btree (swportbak);
