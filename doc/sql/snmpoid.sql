@@ -631,100 +631,31 @@ INSERT INTO vendor (vendorid) VALUES ('3com');
 --INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('','','','','t','t','3600','f','f');
 
 
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('3com','PS40','1.3.6.1.4.1.43.10.27.4.1','Portstack 40 hub','f','f','3600','f','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('3com','SW1100','1.3.6.1.4.1.43.10.27.4.1.2.1','Portsvitsj 1100','f','f','3600','f','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('3com','SW3300','1.3.6.1.4.1.43.10.27.4.1.2.2','Portsvitsj 3300','f','f','3600','f','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('3com','SW9300','1.3.6.1.4.1.43.1.16.2.2.2.1','Portsvitsj 9300','f','f','3600','f','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','c2970','1.3.6.1.4.1.9.1.561','Cisco 2970','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','c3750','1.3.6.1.4.1.9.1.516','Cisco 3750','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat2924XL','1.3.6.1.4.1.9.1.183','Catalyst 2924 XL switch','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat2924XLv','1.3.6.1.4.1.9.1.217','Catalyst 2924 XLv switch','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat295024G','1.3.6.1.4.1.9.1.428','Catalyst 2950G-24-E1 svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat3508GXL','1.3.6.1.4.1.9.1.246','Catalyst 3508 GXL svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat3524XL','1.3.6.1.4.1.9.1.248','Catalyst 3524 XL svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat4006','1.3.6.1.4.1.9.1.448','Catalyst 4006 sup 2 L3 svitsj','t','t','3600','t','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat4506','1.3.6.1.4.1.9.1.502','Catalyst 4506 sup4 L3 svitsj','t','t','3600','t','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cat6509','1.3.6.1.4.1.9.1.283','Catalyst 6509 (native mode)','t','t','3600','t','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cis1005','1.3.6.1.4.1.9.1.49','1005 ruter','t','t','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cis1200ios','1.3.6.1.4.1.9.1.525','Aironet 1200 IOS Access Point (AP)','t','f','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cis4000','1.3.6.1.4.1.9.1.7','4000 ruter','t','t','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('cisco','cis7206','1.3.6.1.4.1.9.1.108','7206 ruter','t','t','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('hp','hp2524','1.3.6.1.4.1.11.2.3.7.11.19','ProCurve Switch 2524','t','t','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('hp','hp2626','1.3.6.1.4.1.11.2.3.7.11.34','Procurve Switch 2626','t','t','3600','f','f');
- INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ('hp','hp2650','1.3.6.1.4.1.11.2.3.7.11.29','Procurve Switch 2650','t','t','3600','f','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ( 'cisco','wsc2926','1.3.6.1.4.1.9.5.35','Catalyst 2926 switsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ( 'cisco','wsc4006','1.3.6.1.4.1.9.5.46','Catalyst 4006 svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ( 'cisco','wsc5000','1.3.6.1.4.1.9.5.7','Catalyst 5000 svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ( 'cisco','wsc5500','1.3.6.1.4.1.9.5.17','Catalyst 5500 svitsj','t','t','3600','t','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan,uptodate) VALUES ( 'cisco','wsc5505','1.3.6.1.4.1.9.5.34','Catalyst 5505 svitsj','t','t','3600','t','f');
-
-
--- **** Serialnumber-mib for the predefined types ****
---# MAL:
---#INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey=''),(select typeid from type where --#sysobjectid=''));
---
-
-
---#cat6509
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.283'));
---#3750
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.516'));
---#2970
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.561'));
---# cat295024G
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.428'));
---#cat2924XL
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.183'));
---#cat2924XLv
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.217'));
---# 3508GXL
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.246'));
---# 3524xl
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.248'));
-
---# cat4006
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.448'));
---#cat4506
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.502'));
-
---#trlos cis1200ios
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.525'));
-
---#cis1005
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.49'));
-
---#cis4000
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.7'));
-
---#cis7206
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='cCardSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.1.108'));
-
---# 2926
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='catSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.5.35'));
---# wsc4006
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='catSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.5.46'));
---# wsc5000
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='catSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.5.7'));
-
---# wsc5500
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='catSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.5.17'));
---# wsc5505
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='catSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.9.5.34'));
-
---# hp2524
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.11.2.3.7.11.19'));
---# hp2650
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.11.2.3.7.11.29'));
---# hp2626
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='ifSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.11.2.3.7.11.34'));
-
---# PS40
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='3cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.43.10.27.4.1'));
---#SW1100
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='3cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.43.10.27.4.1.2.1'));
---#SW3300
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='3cSerial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.43.10.27.4.1.2.2'));
---#SW9300
-INSERT INTO typesnmpoid (frequency,snmpoidid,typeid) VALUES ('3600',(select snmpoidid from snmpoid where oidkey='3c9300Serial'),(select typeid from type where sysobjectid='1.3.6.1.4.1.43.1.16.2.2.2.1'));
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','PS40','1.3.6.1.4.1.43.10.27.4.1','Portstack 40 hub','f','f','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW1100','1.3.6.1.4.1.43.10.27.4.1.2.1','Portsvitsj 1100','f','f','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW3300','1.3.6.1.4.1.43.10.27.4.1.2.2','Portsvitsj 3300','f','f','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW9300','1.3.6.1.4.1.43.1.16.2.2.2.1','Portsvitsj 9300','f','f','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','c2970','1.3.6.1.4.1.9.1.561','Cisco 2970','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','c3750','1.3.6.1.4.1.9.1.516','Cisco 3750','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat2924XL','1.3.6.1.4.1.9.1.183','Catalyst 2924 XL switch','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat2924XLv','1.3.6.1.4.1.9.1.217','Catalyst 2924 XLv switch','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat295024G','1.3.6.1.4.1.9.1.428','Catalyst 2950G-24-E1 svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat3508GXL','1.3.6.1.4.1.9.1.246','Catalyst 3508 GXL svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat3524XL','1.3.6.1.4.1.9.1.248','Catalyst 3524 XL svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat4006','1.3.6.1.4.1.9.1.448','Catalyst 4006 sup 2 L3 svitsj','t','t','3600','t');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat4506','1.3.6.1.4.1.9.1.502','Catalyst 4506 sup4 L3 svitsj','t','t','3600','t');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat6509','1.3.6.1.4.1.9.1.283','Catalyst 6509 (native mode)','t','t','3600','t');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cis1005','1.3.6.1.4.1.9.1.49','1005 ruter','t','t','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cis1200ios','1.3.6.1.4.1.9.1.525','Aironet 1200 IOS Access Point (AP)','t','f','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cis4000','1.3.6.1.4.1.9.1.7','4000 ruter','t','t','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cis7206','1.3.6.1.4.1.9.1.108','7206 ruter','t','t','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('hp','hp2524','1.3.6.1.4.1.11.2.3.7.11.19','ProCurve Switch 2524','t','t','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('hp','hp2626','1.3.6.1.4.1.11.2.3.7.11.34','Procurve Switch 2626','t','t','3600','f');
+ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('hp','hp2650','1.3.6.1.4.1.11.2.3.7.11.29','Procurve Switch 2650','t','t','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ( 'cisco','wsc2926','1.3.6.1.4.1.9.5.35','Catalyst 2926 switsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ( 'cisco','wsc4006','1.3.6.1.4.1.9.5.46','Catalyst 4006 svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ( 'cisco','wsc5000','1.3.6.1.4.1.9.5.7','Catalyst 5000 svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ( 'cisco','wsc5500','1.3.6.1.4.1.9.5.17','Catalyst 5500 svitsj','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ( 'cisco','wsc5505','1.3.6.1.4.1.9.5.34','Catalyst 5505 svitsj','t','t','3600','t');
 
 --#############################################################
