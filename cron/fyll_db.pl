@@ -1,16 +1,15 @@
 #!/usr/bin/perl
 use strict;
 
-require "/usr/local/nav/navme/etc/conf/path.pl";
-my $localkilde = &localkilde();
-#print "$lib\n";
-my $lib = &lib;
-require "$lib/fil.pl";
+require '/usr/local/nav/navme/lib/NAV.pm';
+import NAV;
 
+my $localkilde = get_path("path_localkilde");
+my $collect = get_path("path_collect");
 
 my @tid = localtime(time);
 
-my $collect = &collect();
+system    "/usr/local/nav/navme/cron/syslog/messagetemplate.pl";
 
 &log_open;
 &skriv("RUN-START","program=tekstfiler");
