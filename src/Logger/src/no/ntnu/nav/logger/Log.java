@@ -23,7 +23,7 @@ public class Log {
 
 	private static File log;
 	private static String system;
-	private static String subsystem;
+	private static Map subsystemMap = Collections.synchronizedMap(new HashMap());
 
 	public static final int MSG_EMERGENCY = 0;
 	public static final int MSG_ALERT = 1;
@@ -50,10 +50,12 @@ public class Log {
 	}
 
 	/**
-	 * Set the default subsystem name to use
+	 * Set the default subsystem name to use. This is stored per thread,
+	 * and it is thus safe for multiple threads to use this method
+	 * at the same time.
 	 */
 	public static void setDefaultSubsystem(String subsystem) {
-		Log.subsystem = subsystem;
+		subsystemMap.put(Thread.currentThread(), subsystem);
 	}
 
 	/**
@@ -155,7 +157,7 @@ public class Log {
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss yyyy");
 
 		// Get default
-		if (subsystem == null) subsystem = Log.subsystem;
+		if (subsystem == null) subsystem = (String)subsystemMap.get(Thread.currentThread());
 		if (msg == null) msg = "";
 
 		try {
