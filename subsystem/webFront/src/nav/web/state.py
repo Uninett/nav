@@ -1,20 +1,15 @@
-####################
-#
-# $Id: x1$
-# This file is part of the NAV project.
-# State handling for NAV web requests.
-#
-# Copyright (c) 2003 by NTNU, ITEA nettgruppen
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
-#          Stian Søiland <stian@soiland.no>
-#
-####################
 """
-State handling for NAV web requests.
+$Id$
 
-This module contains fixup- and cleanuphandlers for use with NAV.
-They maintain state through use of cookies and a Session object that
-is attached to the request object.
+This file is part of the NAV project.
+
+This module performs state handling for NAV web requests.  It defines
+a Session dictionary class with built-in persistence, and contains
+functions to associate session objects with request objects.
+
+Copyright (c) 2003 by NTNU, ITEA nettgruppen
+Authors: Morten Vold <morten.vold@itea.ntnu.no>
+         Stian Søiland <stian@soiland.no>
 """
 import time
 import random
@@ -22,12 +17,11 @@ import md5
 import cPickle
 import os
 from os import path
-from mod_python import apache
 import sys
 
-cookieName = 'nav_sessid'
+sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
-serialPrefix = '%s_' % cookieName
+serialPrefix = '%s_' % sessionCookieName
 
 
 def getUniqueString(entropy=''):
@@ -45,25 +39,49 @@ def getUniqueString(entropy=''):
     return hash.hexdigest()
 
 
-def fixuphandler(req):
+def setupSession(req):
     """
-    Set up a new or load an existing session object for this request.
+    Sets up a session dictionary for this request.  If the request
+    contains a session Cookie, we attempt to load a stored session, if
+    not we create a new one and post a new session cookie to the
+    client.
     """
-    c = None
     req.session = None
 
-    if req.headers_in.has_key('Cookie'):
-        import Cookie
-        c = Cookie.SimpleCookie()
-        c.load(str(req.headers_in['Cookie']))
-        if c.has_key(cookieName):
-            req.session = Session(c[cookieName].value)
+    cookieValue = getSessionCookie(req)
+    if (cookieValue):
+        req.session = Session(cookieValue)
 
     if req.session is None:
         req.session = Session()
-    req.headers_out['Set-Cookie'] = '%s=%s;' % (cookieName, req.session.id)
+    setSessionCookie(req, req.session.id)
 
-    return apache.OK
+
+def setSessionCookie(req, value):
+    """
+    Sets the session cookie = value in the given request object
+    """
+    req.headers_out['Set-Cookie'] = '%s=%s;' % (sessionCookieName, value)
+    
+def getSessionCookie(req):
+    """
+    Returns the value of the session cookie in the request object - if it exists.
+    """
+    if req.headers_in.has_key('Cookie'):
+        import Cookie
+        cookie = Cookie.SimpleCookie()
+        cookie.load(str(req.headers_in['Cookie']))
+        if cookie.has_key(sessionCookieName):
+            return cookie[sessionCookieName].value
+    # if all else fails:
+    return None
+
+def deleteSessionCookie(req):
+    """
+    Deletes the session cookie from the client by blanking it
+    """
+    setSessionCookie(req, '')
+
 
 class Session(dict):
     def __init__(self, id=None):
@@ -71,19 +89,20 @@ class Session(dict):
             self.id = id
         else:
             self.id = getUniqueString()
-            dict.__init__(self)
-            self.created = time.time()
+        dict.__init__(self)
+        self.created = time.time()
         self._changed = False
 
     def __new__(cls, sessionId=None):
         if not sessionId:
-            return dict.__new__(cls)          
+            return dict.__new__(cls)
         
         filename = path.join(tempDir, '%s%s' % (serialPrefix, sessionId))
         try:
             file = open(filename, 'r')
         except IOError:
-            return dict.__new__(cls) # Ok, instanciate a new
+            # If the session does not exist, create a new one using the given id.
+            return dict.__new__(cls, sessionId)
     
         unpickler = cPickle.Unpickler(file)
         session = unpickler.load()
@@ -98,6 +117,17 @@ class Session(dict):
         pickler = cPickle.Pickler(file, False)
         pickler.dump(self)
         file.close()
+        self._changed = False
+
+    def expire(self):
+        """
+        Expires this session and deletes persistent data
+        """
+        filename = path.join(tempDir, '%s%s' % (serialPrefix, self.id))
+        try:
+            os.unlink(filename)
+        except OSError:
+            pass
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)

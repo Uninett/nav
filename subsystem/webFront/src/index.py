@@ -58,9 +58,12 @@ def login(req, login='', password='', origin=''):
             return _getLoginPage(origin, "Login failed")
 
         if (account.authenticate(password)):
-            #set session object and move to origin
+            # Place the Account object in the session dictionary
             req.session['user'] = account
             req.session.save()
+
+            # Redirect to the origin page, or to the root if one was
+            # not given.
             if not origin.strip():
                 origin = '/'
             req.headers_out['Location'] = origin
@@ -81,3 +84,19 @@ def _getLoginPage(origin, message=''):
     page.message = message
     
     return page
+
+def logout(req):
+    """
+    Expires the current session, removes the session cookie and redirects to the index page.
+    """
+    # Expire and remove session
+    req.session.expire()
+    del req.session
+    from nav.web import state
+    state.deleteSessionCookie(req)
+
+    # Redirect user to root page
+    req.headers_out['Location'] = '/'
+    req.status = apache.HTTP_TEMPORARY_REDIRECT
+    req.send_http_header()
+    raise apache.SERVER_RETURN, apache.HTTP_TEMPORARY_REDIRECT
