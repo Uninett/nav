@@ -7,8 +7,8 @@ CONF_FILE="/usr/local/nav/local/etc/conf/navAdmin.conf"
 
 NAV_ROOT="/usr/local/nav"
 
-#NAVME_ROOT="$NAV_ROOT/navme"
-NAVME_ROOT="/home/kristian/devel/navme"
+NAVME_ROOT="$NAV_ROOT/navme"
+#NAVME_ROOT="/home/kristian/devel/navme"
 
 CUR_DIR=$NAVME_ROOT/webapps/navAdmin/WEB-INF/classes
 

@@ -6,8 +6,8 @@
 JAVA_HOME=/usr/java/jdk
 CLASSPATH=./getPortData.jar:/usr/local/nav/navme/java/lib/postgre.jar:/usr/local/nav/navme/java/lib/snmp.jar:.
 
-#NAV_ROOT="/usr/local/nav/navme"
-NAV_ROOT="/home/kristian/devel/navme"
+NAV_ROOT="/usr/local/nav/navme"
+#NAV_ROOT="/home/kristian/devel/navme"
 
 CUR_DIR=$NAV_ROOT/cron/getPortData
 JOB_FINISHED=$CUR_DIR/job-finished
