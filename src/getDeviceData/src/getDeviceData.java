@@ -33,7 +33,7 @@ class getDeviceData
 	public static final String dbConfigFile = "local/etc/conf/db.conf";
 	public static final String configFile = "local/etc/conf/getDeviceData.conf";
 	public static final String scriptName = "getDeviceData";
-	public static final String logFile = "local/etc/log/getDeviceData.log";
+	public static final String logFile = "local/log/getDeviceData.log";
 
 	public static int NUM_THREADS = 16;
 	public static final int SHOW_TOP = 25;
@@ -473,6 +473,7 @@ class getDeviceData
 		qNettel = "_def";
 		//qNettel = "itea-ans3-230-h";
 		//qNettel = "iot-stud-313-h2";
+		qNettel = "et-stud6-323-h";
 
 		if (qBoks != null) qNettel = qBoks;
 
