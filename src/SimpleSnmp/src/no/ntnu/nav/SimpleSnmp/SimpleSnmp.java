@@ -9,7 +9,8 @@ import uk.co.westhawk.snmp.pdu.*;
 
 public class SimpleSnmp
 {
-	private final int TIMEOUT_LIMIT = 4;
+	private final int DEFAULT_TIMEOUT_LIMIT = 4;
+	private int timeoutLimit = 4;
 
 	private String host = "127.0.0.1";
 	private String cs_ro = "community";
@@ -35,6 +36,15 @@ public class SimpleSnmp
 		setHost(host);
 		setCs_ro(cs_ro);
 		setBaseOid(baseOid);
+	}
+
+	public void setTimeoutLimit(int limit)
+	{
+		timeoutLimit = Math.max(1,limit);
+	}
+	public void setDefaultTimeoutLimit()
+	{
+		timeoutLimit = DEFAULT_TIMEOUT_LIMIT;
 	}
 
 	/*
@@ -187,7 +197,7 @@ public class SimpleSnmp
 					else if (m.equals("Timed out")) {
 						gotTimeout = true;
 						timeoutCnt++;
-						if (timeoutCnt >= TIMEOUT_LIMIT) {
+						if (timeoutCnt >= timeoutLimit) {
 							throw new TimeoutException("Too many timeouts, giving up");
 						} else {
 							// Re-try operation
