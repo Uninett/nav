@@ -700,12 +700,12 @@ sub makeTargets {
 
 	push @changes, $sysname;
 
-	$filetext .= "target $sysname\n";
+	$filetext .= "target \"$sysname\"\n";
 	$filetext .= "\tsnmp-host\t=\t$ip\n";
 	$filetext .= "\tsnmp-community\t=\t$ro\n";
 	$filetext .= "\ttarget-type\t=\t$typename\n";
 	$filetext .= "\tshort-desc\t=\t$descr\n\n";
-	print "Adding target $sysname\n" if $ll >= 2;
+	print "Adding target \"$sysname\"\n" if $ll >= 2;
 
     }
 
@@ -868,7 +868,7 @@ sub makeinterfaceTargets {
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'id'} = $id;
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'table'} = $table;
 
-	    $filetext .= "target $name\n";
+	    $filetext .= "target \"$name\"\n";
 	    $filetext .= "\torder\t=\t$order\n";
 	    $filetext .= "\tinterface-index\t=\t$ifindex\n";
 	    $filetext .= "\tshort-desc\t=\t$descr\n\n";
@@ -882,7 +882,7 @@ sub makeinterfaceTargets {
 	# Adding the all-target
 	$filetext .= "target all\n";
 	$filetext .= "\torder\t=\t$numtargets\n";
-	$filetext .= "\ttargets\t=\t".join(";",@targets)."\n\n";
+	$filetext .= "\ttargets\t=\t\"".join(";",@targets)."\"\n\n";
 
 	$changes{"$cricketconfigdir/$dir/$sysname"} = [@changes];
 
