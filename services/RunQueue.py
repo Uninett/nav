@@ -1,8 +1,14 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.2 2002/06/04 21:13:46 magnun Exp $
+$Id: RunQueue.py,v 1.3 2002/06/05 12:18:44 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/RunQueue.py,v $
+
+TODO
+* Fikse riktig navn på trådene
+* Litt mer fornuftig logging
+* Skal vi ha observer?
+
 """
 from threading import *
 import threading
@@ -28,35 +34,15 @@ class observer:
 class TerminateException(Exception):
     pass
 
-#def runStrategy(runnable, rq):
-#    runnable.starttime=time.time()
-#    rq.ob.observees.append(runnable)
-#    print 'kaller run() på objektet i tråd '
-#    print traceback.print_exc()
-#    runnable.run()
-
-
-#def simpleRunStrategy(runnable,rq):
-#    runnable.run()
-
-#def execute(runQueue,runStrategy):
-#    while 1:
-#        try:
-#            r=runQueue.deq()
-#            runStrategy(r,runQueue)
-#        except TerminateException:
-#            runQueue.numThreads-=1
-#            return
-#        except:
-#            traceback.print_exc()
-
 class worker(threading.Thread):
     def __init__(self, rq):
         threading.Thread.__init__(self)
         self.runQueue=rq
+        self.runCount=0
+        self.running=1
 
     def run(self):
-        while 1:
+        while self.running:
             try:
                 self.job=self.runQueue.deq()
                 self.execute()
@@ -67,8 +53,12 @@ class worker(threading.Thread):
                 traceback.print_exc()
 
     def execute(self):
-        print "Skal kjøre jobb nå..."
+        print self.getName() + ' kjører jobb nr ' +str(self.runCount)
+        self.runCount+=1
         self.job.run()
+        if self.runCount > self.runQueue.maxRunCount:
+            self.running=0
+            self.runQueue.workers.remove(self)
 
 
 class RunQueue:
@@ -76,15 +66,14 @@ class RunQueue:
         self.maxThreads=kwargs.get('maxthreads', sys.maxint)
         self.numThreads=0
         self.numThreadsWaiting=0
-        self.rq=kwargs.get('queue')
+        self.maxRunCount=5
         self.workers=[]
-        if self.rq is None:
-            self.rq=DEQueue.DEQueue()
-            self.lock=RLock()
-            self.awaitWork=Condition(self.lock)
-            self.stop=0
-            self.makeDaemon=1
-            self.startObserver()
+        self.rq=DEQueue.DEQueue()
+        self.lock=RLock()
+        self.awaitWork=Condition(self.lock)
+        self.stop=0
+        self.makeDaemon=1
+        self.startObserver()
 
     def startObserver(self):
         self.ob=observer()
@@ -104,14 +93,9 @@ class RunQueue:
             print 'lager nytt trådobjekt'
             t.setDaemon(self.makeDaemon)
             self.numThreads+=1
-            if self.numThreads==1:
-                t.setName('observer')
-            else:
-                t.setName('worker'+str(self.numThreads))
+            t.setName('worker'+str(self.numThreads))
             self.workers.append(t)
 
-            print "numThreads: "+ str(self.numThreads)
-            print "len(workers): "+ str(len(self.workers))
             t.start()
         self.lock.release()
 
