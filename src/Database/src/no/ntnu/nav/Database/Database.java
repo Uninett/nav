@@ -21,7 +21,17 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Date;
+import java.net.SocketException;
 
+import no.ntnu.nav.logger.Log;
+
+/**
+ * Wrapper around the JDBC API to simplify working with the
+ * database. This class contains only static methods any may thus be
+ * used without needing a reference to it. It is also
+ * thread-safe. However, it only supports connecting to one database
+ * at a time.
+ */
 public class Database
 {
 	private static final int ST_BUFFER = 40;
@@ -35,6 +45,9 @@ public class Database
 	private static final String dbDriver = dbDriverPostgre;
 
 	private static Connection connection;
+	private static String connectionString;
+	private static String connectionUser;
+	private static String connectionPw;
 
 	private static Statement[] stQuery = new Statement[ST_BUFFER];
 	private static boolean[] stKeepOpen = new boolean[ST_BUFFER];
@@ -45,8 +58,29 @@ public class Database
 	private static int queryPos;
 	private static boolean queryQFull = false;
 
+	private static int reconnectWaitTime = 10000; // 10 seconds
+	private static boolean returnOnReconnectFail = false;
+
 	private static int connectionCount = 0;
 
+	// Contains only static methods
+	private Database() {
+	}
+
+	/**
+	 * Open a connection to the database. Note that simultanious
+	 * connections to different databases are not supported; if a
+	 * connection is already open when this method is called a
+	 * connection will be opened to the same database which is already
+	 * connected.
+	 *
+	 * @param serverName Name of server to connect to
+	 * @param serverPort Network port on server to connect to
+	 * @param dbName Name of database to connect to
+	 * @param user Username to use for login to server
+	 * @param pw Password to use for login to server
+	 * @return true if connection was opened successfully; false otherwise
+	 */
 	public static synchronized boolean openConnection(String serverName, String serverPort, String dbName, String user, String pw) {
 		boolean ret = false;
 		if (serverName == null) { ret=true; System.err.println("Database.openConnection(): Error, serverName is null"); }
@@ -56,7 +90,6 @@ public class Database
 		if (pw == null) { ret=true; System.err.println("Database.openConnection(): Error, pw is null"); }
 		if (ret) return false;
 
-		for (int i=0; i < stKeepOpen.length; i++) stKeepOpen[i]=false;
 		if (connectionCount > 0) {
 			// En connection er allerede åpen
 			connectionCount++;
@@ -65,17 +98,12 @@ public class Database
 
 		try {
 			Class.forName(dbDriver);
+	
+			connectionString = "jdbc:postgresql://" + serverName + ":"+serverPort+"/" + dbName;
+			connectionUser = user;
+			connectionPw = pw;
+			connect();
 
-			//connection = DriverManager.getConnection(dbName, login, pw);
-			//c = DriverManager.getConnection("jdbc:mysql://" + server + "/" + db + "?user=" + login + "&password=" + pw);
-			//String dbNavn = "jdbc:oracle:thin:@loiosh.stud.idb.hist.no:1521:orcl";
-
-			connection = DriverManager.getConnection("jdbc:postgresql://" + serverName + ":"+serverPort+"/" + dbName, user, pw);
-			//connection = DriverManager.getConnection("jdbc:"+dbName+"://" + serverName + "/" + dbName, user, pw);
-			//connection = DriverManager.getConnection("jdbc:mysql://"+serverName+"/"+dbName+"?user="+user+"&password="+pw);
-
-			connection.setAutoCommit(true);
-			stUpdate = connection.createStatement();
 			connectionCount++;
 			return true;
 		} catch (ClassNotFoundException e) {
@@ -86,8 +114,49 @@ public class Database
 		return false;
 	}
 
+	/**
+	 * When returnOnReconnectFail is true and the connection to the
+	 * database is lost, only a single reconnect is tried. If it fails
+	 * control is returned to the calling method with an error.
+	 *
+	 * If returnOnReconnectFail is false (default) a reconnect will be
+	 * tried every few seconds until the connection is restored.
+	 *
+	 * @param b New value for returnOnReconnectFail
+	 */
+	public static void setReturnOnReconnectFail(boolean b) {
+		returnOnReconnectFail = b;
+	}
+
+	private static void connect() throws SQLException {
+		connection = DriverManager.getConnection(connectionString, connectionUser, connectionPw);
+
+		//connection = DriverManager.getConnection(dbName, login, pw);
+		//c = DriverManager.getConnection("jdbc:mysql://" + server + "/" + db + "?user=" + login + "&password=" + pw);
+		//String dbNavn = "jdbc:oracle:thin:@loiosh.stud.idb.hist.no:1521:orcl";
+		
+		//connection = DriverManager.getConnection("jdbc:"+dbName+"://" + serverName + "/" + dbName, user, pw);
+		//connection = DriverManager.getConnection("jdbc:mysql://"+serverName+"/"+dbName+"?user="+user+"&password="+pw);
+
+		connection.setAutoCommit(true);
+		stUpdate = connection.createStatement();
+
+		queryPos = 0;
+		for (int i=0; i < stKeepOpen.length; i++) stKeepOpen[i]=false;
+	}
+
+	/**
+	 * Return the number of database connections. Note that this may not
+	 * reflect the number of actual connections to the database, as they
+	 * may be shared.
+	 *
+	 * @return the number of database connections
+	 */
 	public static synchronized int getConnectionCount() { return connectionCount; }
 
+	/**
+	 * Close the connection to the database.
+	 */
 	public static synchronized void closeConnection() {
 		if (connectionCount == 0) return; // Ingen connection å lukke
 		connectionCount--;
@@ -117,28 +186,74 @@ public class Database
 		defaultKeepOpen = def;
 	}
 
+	/**
+	 * Execute the given query.
+	 *
+	 * @param statement The SQL query statement to exectute
+	 * @return the result of the query
+	 */
 	public static ResultSet query(String statement) throws SQLException
 	{
 		return query(statement, defaultKeepOpen);
 	}
+
+	/**
+	 * Execute the given query.
+	 *
+	 * @param statement The SQL query statement to exectute
+	 * @param keepOpen If true, never close the returned ResultSet object
+	 * @return the result of the query
+	 */
 	public static synchronized ResultSet query(String statement, boolean keepOpen) throws SQLException
 	{
-		if (!findNotOpen()) throw new SQLException("There are no open statements left!");
+		// Try to execute. If we get a SocketException, wait and try again
+		boolean firstTry = true;
+		while (true) {
+			try {
 
-		if (queryPos==stQuery.length) {
-			if (!queryQFull) queryQFull = true;
-			queryPos = 0;
+				if (!findNotOpen()) throw new SQLException("There are no open statements left!");
+				
+				if (queryPos==stQuery.length) {
+					if (!queryQFull) queryQFull = true;
+					queryPos = 0;
+				}
+				if (queryQFull) stQuery[queryPos].close();
+				
+				Statement st = connection.createStatement();
+				stQuery[queryPos] = st;
+				stKeepOpen[queryPos] = keepOpen;
+				queryCount++;
+				queryPos++;
+				
+				ResultSet rs = st.executeQuery(statement);
+				return rs;
+			} catch (SQLException sqle) {
+				throw sqle;
+			} catch (Exception e) {
+				// First try to reconnect
+				if (firstTry) {
+					connect();
+					continue;
+				}
+
+				// That didn't work; log error
+				Log.e("DATABASE-QUERY", "Got Exception; database is probably down: " + e.getMessage());
+
+				if (returnOnReconnectFail) {
+					throw new SQLException("Got Exception; database is probably down: " + e.getMessage());
+				}
+
+				try {
+					Thread.currentThread().wait(reconnectWaitTime);
+				} catch (InterruptedException ie) {
+				}
+
+				connect();
+
+			}
 		}
-		if (queryQFull) stQuery[queryPos].close();
-
-		Statement st = connection.createStatement();
-		stQuery[queryPos] = st;
-		stKeepOpen[queryPos] = keepOpen;
-		queryCount++;
-		queryPos++;
-		ResultSet resultset = st.executeQuery(statement);
-		return resultset;
 	}
+
 	private static boolean findNotOpen()
 	{
 		// Find a 'free' statement
@@ -151,6 +266,10 @@ public class Database
 		return false;
 	}
 
+	/**
+	 * Begin a transaction. The database will not be changed until
+	 * either commit() or rollback() is called.
+	 */
 	public static synchronized void beginTransaction() {
 		try {
 			connection.setAutoCommit(false);
@@ -159,6 +278,11 @@ public class Database
 		}
 	}
 
+	/**
+	 * If a transaction is in progress, commit it, then go back to
+	 * autocommit mode. Use beginTransaction() to start a new
+	 * transaction.
+	 */
 	public static synchronized void commit() {
 		try {
 			//System.out.println("########## -COMMIT ON DATABASE- ##########");
@@ -169,6 +293,11 @@ public class Database
 		}
 	}
 
+	/**
+	 * If a transaction is in progress, roll back any changes, then go
+	 * back to autocommit mode. Use beginTransaction() to start a new
+	 * transaction.
+	 */
 	public static synchronized void rollback() {
 		try {
 			//System.out.println("########## -ROLLBACK ON DATABASE- ##########");
@@ -181,10 +310,12 @@ public class Database
 
 	/**
 	 * Insert a row in the database and return the sequence number used
-	 * for the row. Currently this only works for the PostgreSQL
-	 * database.  This method assumes that the first two elements of the
-	 * fieldValues argument are the name of the id-column which is to be
-	 * assigned the sequence number and a dummy value respectably.
+	 * for the row.
+	 *
+	 * Currently this only works for the PostgreSQL database.  This
+	 * method assumes that the first two elements of the fieldValues
+	 * argument are the name of the id-column which is to be assigned
+	 * the sequence number and a dummy value respectably.
 	 *
 	 * If the given seqName is null, it is assumed to be "tablename_idfieldname_seq".
 	 *
@@ -208,9 +339,11 @@ public class Database
 	}
 
 	/**
-	 * Insert a row in the specified table. The fieldValues argument must contain
-	 * an even number of elements, and each pair of consecutive elements must
-	 * specify the name of the column and the value to be inserted in said column
+	 * Insert a row in the specified table.
+	 *
+	 * The fieldValues argument must contain an even number of elements,
+	 * and each pair of consecutive elements must specify the name of
+	 * the column and the value to be inserted in said column
 	 * respectably.
 	 *
 	 * @param table The name of the table in which the row is to be inserted
@@ -220,6 +353,7 @@ public class Database
 	 */
 	public static int insert(String table, String[] fieldValues) throws SQLException
 	{
+
 		if ((fieldValues.length & 0x1) == 1)
 			return -1;
 
@@ -246,37 +380,64 @@ public class Database
 		return update(query);
 	}
 
-	public static int update(String table, String[] feltVerdi, String[] keyNavnVerdi) throws SQLException
+	/**
+	 * Update rows in the specified table.
+	 *
+	 * The fieldValues argument must contain an even number of elements,
+	 * and each pair of consecutive elements must specify the name of
+	 * the column and the new value to be set in said column
+	 * respectably.
+	 *
+	 * The keyFieldValues specifies which rows to update; it must
+	 * contain an even number of elements, and each pair of consecutive
+	 * elements must specify the name of the column and the value said
+	 * column must have for the row to be included in the update
+	 * respectable.
+	 *
+	 * @param table The name of the table in which the row is to be inserted
+	 * @param fieldValues The names of columns and the values to be inserted
+	 *
+	 * @return the number of updated rows.
+	 */
+	public static int update(String table, String[] fieldValues, String[] keyFieldValues) throws SQLException
 	{
-		if ((feltVerdi.length & 0x1) == 1 || (keyNavnVerdi.length & 0x1) == 1)
+		if ((fieldValues.length & 0x1) == 1 || (keyFieldValues.length & 0x1) == 1)
 			return -1;
-		String query = String.valueOf(new StringBuffer("UPDATE ").append(table).append(" SET "));
-		for (int i = 0; i < feltVerdi.length; i += 2) {
+
+		String query = "UPDATE " + table + " SET ";
+		for (int i = 0; i < fieldValues.length; i += 2) {
 			if (i != 0) query += ",";
 
 			String fnutt = "'";
-			if (feltVerdi[i+1].equals("NOW()")) fnutt = "";
-			else if (feltVerdi[i+1].equals("null")) fnutt = "";
+			if (fieldValues[i+1].equals("NOW()")) fnutt = "";
+			else if (fieldValues[i+1].equals("null")) fnutt = "";
 
-			query += feltVerdi[i] + "=" + fnutt + addSlashes(feltVerdi[i+1]) + fnutt;
+			query += fieldValues[i] + "=" + fnutt + addSlashes(fieldValues[i+1]) + fnutt;
 		}
+
 		query += " WHERE ";
-		for (int i = 0; i < keyNavnVerdi.length; i += 2) {
+		for (int i = 0; i < keyFieldValues.length; i += 2) {
 			if (i != 0) query += " AND ";
 
-			query += keyNavnVerdi[i] + "='" + addSlashes(keyNavnVerdi[i+1]) + "'";
+			query += keyFieldValues[i] + "='" + addSlashes(keyFieldValues[i+1]) + "'";
 		}
 		return update(query);
 	}
 
-	public static synchronized int update(String query) throws SQLException
+	/**
+	 * Execute the given statement, and return the number of rows updated.
+	 *
+	 * @param statement The statement to execute
+	 * @return the number of rows updated
+	 */
+	public static synchronized int update(String statement) throws SQLException
 	{
 		stUpdate.close();
 		stUpdate = connection.createStatement();
 		try {
-			return stUpdate.executeUpdate(query);
+			return stUpdate.executeUpdate(statement);
 		} catch (SQLException e) {
-			System.err.println("SQLException for query: " + query);
+			System.err.println("SQLException for update statement: " + statement);
 			throw e;
 		}
 	}
