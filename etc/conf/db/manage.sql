@@ -224,7 +224,7 @@ CREATE TABLE netbox (
 --  static BOOL DEFAULT false,
 --  watch BOOL DEFAULT false,
 --  skygge BOOL DEFAULT false
-  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
+  up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n' OR up='s'), -- y=up, n=down, s=shadow
   UNIQUE(ip)
 );
 
@@ -255,7 +255,7 @@ CREATE TABLE module (
   netboxid INT4 NOT NULL REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
   module VARCHAR(4) NOT NULL,
   submodule VARCHAR(8),
-  up CHAR(1) NOT NULL DEFAULT 'n' CHECK (up='y' OR up='n'), -- y=up, n=down
+  up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   lastseen TIMESTAMP NOT NULL DEFAULT 'NOW()',
   UNIQUE (netboxid,module)
 );
@@ -293,7 +293,7 @@ CREATE TABLE swport (
   port INT4 NOT NULL,
   ifindex INT4 NOT NULL,
 --  status VARCHAR(4) NOT NULL DEFAULT 'down',
-  link CHAR(1) NOT NULL DEFAULT 'n' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
+  link CHAR(1) NOT NULL DEFAULT 'y' CHECK (link='y' OR link='n' OR link='d'), -- y=up, n=down (operDown), d=down (admDown)
   speed VARCHAR(10),
   duplex VARCHAR(4),
   media VARCHAR(16),
