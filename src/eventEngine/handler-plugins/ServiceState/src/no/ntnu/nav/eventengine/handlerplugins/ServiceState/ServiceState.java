@@ -1,17 +1,22 @@
 package no.ntnu.nav.eventengine.handlerplugins.ServiceState;
 
-import no.ntnu.nav.eventengine.*;
-import no.ntnu.nav.eventengine.deviceplugins.Box.*;
-import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
-
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.ConfigParser.*;
-
 import java.util.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.logger.*;
+
+import no.ntnu.nav.eventengine.*;
+import no.ntnu.nav.eventengine.deviceplugins.Box.*;
+import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
+
+/**
+ * EventHandler for serviceState events.
+ *
+ */
 
 public class ServiceState implements EventHandler
 {
@@ -24,13 +29,14 @@ public class ServiceState implements EventHandler
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
 	{
-		outld("ServiceState handling event: " + e);
+		Log.setDefaultSubsystem("SERVICE_STATE_DEVICEHANDLER");
+		Log.d("HANDLE", "Event: " + e);
 
 		// Create alert
 		Alert a = ddb.alertFactory(e);
 		a.addEvent(e);
-		
-		outld("  added alert: " + a);
+
+		Log.d("HANDLE", "Added alert: " + a);
 
 		// Lookup the server
 		Device d = ddb.getDevice(e.getDeviceid());
@@ -45,7 +51,7 @@ public class ServiceState implements EventHandler
 			}
 			a.addVar("deviceup", deviceup);
 		} else {
-			outld("  warning: device for deviceid("+e.getDeviceid()+") not found!");
+			Log.w("HANDLE", "Device for deviceid("+e.getDeviceid()+") not found!");
 		}
 
 		char up = 'x';
@@ -62,7 +68,7 @@ public class ServiceState implements EventHandler
 				Database.update("UPDATE service SET up = '" + up + "' WHERE serviceid = " + e.getSubid());
 				Database.commit();
 			} catch (SQLException exp) {
-				errl("ServiceState: SQLException when trying to update up-field (set to " + up + ") in service: " + exp.getMessage());
+				Log.w("HANDLE", "SQLException when trying to update up-field (set to " + up + ") in service: " + exp.getMessage());
 			}
 		}
 		
@@ -78,22 +84,16 @@ public class ServiceState implements EventHandler
 				if (handler != null) a.setAlerttype(handler+state);
 			}
 		} catch (SQLException exp) {
-			errl("EventImpl: SQLException when fetching data from serviceproperty("+e.getSubid()+"): " + exp.getMessage());
+			Log.w("HANDLE", "SQLException when fetching data from serviceproperty("+e.getSubid()+"): " + exp.getMessage());
 		}
 
 		// Post the alert
 		try {
 			ddb.postAlert(a);
 		} catch (PostAlertException exp) {
-			errl("ServiceState.classback: While posting service alert, PostAlertException: " + exp.getMessage());
+			Log.w("HANDLE", "While posting service alert, PostAlertException: " + exp.getMessage());
 		}
 		
 	}
-	
-	private static void outd(Object o) { if (DEBUG_OUT) System.out.print(o); }
-	private static void outld(Object o) { if (DEBUG_OUT) System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 
 }

@@ -1,10 +1,10 @@
 package no.ntnu.nav.eventengine;
 
-/**
- * Interface for getting a callback from DeviceDB.
- */
-
 import java.util.*;
+
+/**
+ * Interface for getting callbacks from DeviceDB.
+ */
 
 public interface EventCallback
 {

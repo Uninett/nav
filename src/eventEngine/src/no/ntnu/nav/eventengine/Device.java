@@ -3,11 +3,14 @@ package no.ntnu.nav.eventengine;
 import java.util.*;
 import java.sql.*;
 
+/**
+ * The Device class forms the root of the class hierarchy for
+ * representing devices. Device plugins can inherit this class to
+ * provide classes which describes devices in more detail.
+ */
 
 public abstract class Device
 {
-	protected static final boolean DEBUG_OUT = true;
-
 	protected DeviceDB devDB;
 
 	protected int deviceid;
@@ -37,10 +40,4 @@ public abstract class Device
 		return o1.getClass().getName().equals(o2.getClass().getName());
 	}
 
-
-	protected static void outd(Object o) { if (DEBUG_OUT) System.out.print(o); }
-	protected static void outld(Object o) { if (DEBUG_OUT) System.out.println(o); }
-
-	protected static void err(Object o) { System.err.print(o); }
-	protected static void errl(Object o) { System.err.println(o); }
 }

@@ -3,6 +3,7 @@ package no.ntnu.nav.eventengine.handlerplugins.BoxState;
 import java.util.*;
 
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.logger.*;
 
 import no.ntnu.nav.eventengine.*;
 import no.ntnu.nav.eventengine.deviceplugins.Box.*;
@@ -15,8 +16,6 @@ import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
 
 public class BoxState implements EventHandler, EventCallback
 {
-	private static final boolean DEBUG_OUT = true;
-
 	private Map startEventMap = new HashMap();
 	private int lastDownCount;
 
@@ -27,11 +26,12 @@ public class BoxState implements EventHandler, EventCallback
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
 	{
-		outld("BoxState handling event: " + e);
+		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
+		Log.d("HANDLE", "Event: " + e);
 
 		Device d = ddb.getDevice(e.getDeviceid());
 		if (d == null) {
-			errl("BoxState.handle: Error, device with deviceid="+e.getDeviceid()+" not found!");
+			Log.w("HANDLE", "Device with deviceid="+e.getDeviceid()+" not found!");
 			return;
 		}
 
@@ -43,11 +43,11 @@ public class BoxState implements EventHandler, EventCallback
 				Box b = (Box)d;
 				if (e.getState() == Event.STATE_START) {
 					if (!b.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
-						outld("BoxState  Ignoring duplicate down event for Box");
+						Log.d("HANDLE", "Ignoring duplicate down event for Box");
 						e.dispose();
 						return;
 					}
-					outld("BoxState  Box going down");
+					Log.d("HANDLE", "Box going down");
 					b.down();
 					startEventMap.put(e.getDeviceidI(), e);
 					callback = true;
@@ -58,7 +58,7 @@ public class BoxState implements EventHandler, EventCallback
 						// The down event could be in the startEventMap queue
 						Event se = (Event)startEventMap.get(e.getDeviceidI());
 						if (se == null) {
-							outld("BoxState  Ignoring box up event as no down event was found!");
+							Log.d("HANDLE", "Ignoring box up event as no down event was found!");
 							e.dispose();
 							return;
 						}
@@ -66,9 +66,9 @@ public class BoxState implements EventHandler, EventCallback
 						startEventMap.remove(e.getDeviceidI());
 						se.dispose();
 						e.dispose();
-						outld("BoxState  Ignoring transient boxState");
+						Log.d("HANDLE", "Ignoring transient boxState");
 					} else {
-						outld("BoxState  Box going up");
+						Log.d("HANDLE", "Box going up");
 
 						// Post alert
 						a = ddb.alertFactory(e, "boxUp");
@@ -77,7 +77,7 @@ public class BoxState implements EventHandler, EventCallback
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
-							errl("BoxState  Error, PostAlertException: " + exp.getMessage());
+							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 						}
 						
 						// Clean up
@@ -86,10 +86,8 @@ public class BoxState implements EventHandler, EventCallback
 					b.up();
 				}
 
-				//outld("BoxState  Box: " + b);
-
 			} else {
-				errl("BoxState    Device " + d + " not Box or sub-class of Box: " + getClassH(d.getClass()) );
+				Log.w("HANDLE", "Device " + d + " not Box or sub-class of Box: " + getClassH(d.getClass()) );
 				return;
 			}
 		} else if (eventtype.equals("moduleState") || eventtype.equals("linkState")) {
@@ -98,22 +96,22 @@ public class BoxState implements EventHandler, EventCallback
 				if (eventtype.equals("linkState")) {
 					Port p = m.getPort(e.getSubid());
 					if (p == null) {
-						errl("BoxState  Error, port="+e.getSubid()+" in module="+m.getModule()+" not found!");
+						Log.d("HANDLE", "Port="+e.getSubid()+" in module="+m.getModule()+" not found!");
 						return;
 					}
 					if (e.getState() == Event.STATE_START) p.down();
 					else if (e.getState() == Event.STATE_END) p.up();
 					e.dispose();
 
-					outld("BoxState  Port: " + p);
+					Log.d("HANDLE", "Port: " + p);
 				} else {
 					if (e.getState() == Event.STATE_START) {
 						if (!m.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
-							outld("BoxState  Ignoring duplicate down event for Module");
+							Log.d("HANDLE", "Ignoring duplicate down event for Module");
 							e.dispose();
 							return;
 						}
-						outld("BoxState  Module going down");
+						Log.d("HANDLE", "Module going down");
 						m.down();
 						startEventMap.put(e.getDeviceidI(), e);
 						callback = true;
@@ -124,7 +122,7 @@ public class BoxState implements EventHandler, EventCallback
 							// The down event could be in the startEventMap queue
 							Event se = (Event)startEventMap.get(e.getDeviceidI());
 							if (se == null) {
-								outld("BoxState  Ignoring module up event as no down event was found!");
+								Log.d("HANDLE", "Ignoring module up event as no down event was found!");
 								e.dispose();
 								return;
 							}
@@ -132,9 +130,9 @@ public class BoxState implements EventHandler, EventCallback
 							startEventMap.remove(e.getDeviceidI());
 							se.dispose();
 							e.dispose();
-							outld("BoxState  Ignoring transient moduleState");
+							Log.d("HANDLE", "Ignoring transient moduleState");
 						} else {
-							outld("BoxState  Module going up");
+							Log.d("HANDLE", "Module going up");
 
 							// Post alert
 							a = ddb.alertFactory(e, "moduleUp");
@@ -142,7 +140,7 @@ public class BoxState implements EventHandler, EventCallback
 							try {
 								ddb.postAlert(a);
 							} catch (PostAlertException exp) {
-								errl("BoxState  Error, PostAlertException: " + exp.getMessage());
+								Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 							}
 
 							// Clean up
@@ -155,12 +153,12 @@ public class BoxState implements EventHandler, EventCallback
 				}
 
 			} else {
-				errl("BoxState    Device not Module or sub-class of Module");
+				Log.w("HANDLE", "Device not Module or sub-class of Module");
 				return;
 			}
 		} else if (eventtype.equals("coldStart") || eventtype.equals("warmStart")) {
 			// Do nothing (yet)
-			outld("BoxState  Ignoring event " + eventtype);
+			Log.d("HANDLE", "Ignoring event " + eventtype);
 			e.dispose();
 			return;
 		}
@@ -184,11 +182,11 @@ public class BoxState implements EventHandler, EventCallback
 				alertTicks = Integer.parseInt(cp.get("alertTicks"));
 			} catch (Exception exp) { }
 
-			outld("BoxState  Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
+			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
 		}
 
-		outld("BoxState finished handling event, startEventMap size="+startEventMap.size() + " callback: " + ddb.isScheduledCallback(this));
+		Log.d("HANDLE", "Finished handling event, startEventMap size="+startEventMap.size() + " callback: " + ddb.isScheduledCallback(this));
 
 	}
 
@@ -206,9 +204,10 @@ public class BoxState implements EventHandler, EventCallback
 
 	public void callback(DeviceDB ddb, int invocationsRemaining)
 	{
-		int downCount = Netel.boxDownCount();
+		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
 
-		outld("BoxState callback, lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining+ " sentWarning="+sentWarning);
+		int downCount = Netel.boxDownCount();
+		Log.d("CALLBACK", "lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining+ " sentWarning="+sentWarning);
 
 		if ( (downCount == lastDownCount && !sentWarning) || invocationsRemaining == 0) {
 			
@@ -218,7 +217,7 @@ public class BoxState implements EventHandler, EventCallback
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
 				Box b = (Box)i.next();
-				outld("BoxState: Box down: " + b);
+				Log.d("CALLBACK", "Box down: " + b);
 
 				if (b instanceof Netel) {
 					Netel n = (Netel)b;
@@ -228,7 +227,7 @@ public class BoxState implements EventHandler, EventCallback
 						// Find the down event
 						Event e = (Event)startEventMap.get(n.getDeviceidI());
 						if (e == null) {
-							errl("BoxState.callback: Error, Netel " + n + " is down, but no start event found!");
+							Log.w("CALLBACK", "Netel " + n + " is down, but no start event found!");
 							continue;
 						}
 						if (sentWarning) startEventMap.remove(n.getDeviceidI());
@@ -261,13 +260,13 @@ public class BoxState implements EventHandler, EventCallback
 
 						a.setAlerttype(alerttype);
 
-						outld("  added alert: " + a);
+						Log.d("CALLBACK", "Added alert: " + a);
 
 						// Post the alert
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
-							errl("BoxState.callback: While posting netel down alert, PostAlertException: " + exp.getMessage());
+							Log.w("CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
 						}
 
 
@@ -280,7 +279,7 @@ public class BoxState implements EventHandler, EventCallback
 							// Find the down event
 							Event e = (Event)startEventMap.remove(m.getDeviceidI());
 							if (e == null) {
-								errl("BoxState.callback: Error, Module " + m + " is down, but no start event found!");
+								Log.w("CALLBACK", "Module " + m + " is down, but no start event found!");
 								continue;
 							}
 
@@ -292,7 +291,7 @@ public class BoxState implements EventHandler, EventCallback
 							try {
 								ddb.postAlert(a);
 							} catch (PostAlertException exp) {
-								errl("BoxState.classback: While posting module down alert, PostAlertException: " + exp.getMessage());
+								Log.w("CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
 							}
 						}
 
@@ -312,7 +311,7 @@ public class BoxState implements EventHandler, EventCallback
 				errl("BoxState: Error, eventMap is not empty after alert processing!");
 			}
 			*/
-			outld("BoxState.callback: Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
+			Log.d("CALLBACK", "Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
 
 		}
 
@@ -321,12 +320,5 @@ public class BoxState implements EventHandler, EventCallback
 
 
 	}
-
-
-	private static void outd(Object o) { if (DEBUG_OUT) System.out.print(o); }
-	private static void outld(Object o) { if (DEBUG_OUT) System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 
 }

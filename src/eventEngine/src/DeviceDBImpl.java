@@ -1,32 +1,29 @@
-package no.ntnu.nav.eventengine;
-
 import java.util.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.eventengine.*;
 
 /**
- * Eventengine plugins use DeviceDB to communicate with eventengine and each other.
+ * Implementation of DeviceDB interface.
  *
- * FIXME: Should be converted to an interface.
  */
 
-public class DeviceDB
+class DeviceDBImpl implements DeviceDB
 {
 	private Timer timer;
 
 	private HashMap deviceMap;
 	private Set deviceidSet;
 	private boolean updateMode;
-
-	/**
-	 *
-	 */
+	
+	// Contains the down alerts from alert hist so we know can look the
+	// start event up when the end alert arrives
 	private Map downAlertMap = new HashMap();
 
-	public DeviceDB(HashMap deviceMap, Timer timer, String alertmsgFile) throws java.text.ParseException
+	DeviceDBImpl(HashMap deviceMap, Timer timer, String alertmsgFile) throws java.text.ParseException
 	{
 		this.deviceMap = deviceMap;
 		this.timer = timer;
@@ -39,15 +36,15 @@ public class DeviceDB
 			while (rs.next()) {
 				EventImpl e = eventImplFactory(rs, true);
 				downAlertMap.put(e.getKey(), e);
-				outld("DeviceDB: downAlertMap: " + e);
+				Log.d("DEVICEDB_IMPL", "CONSTRUCTOR", "Added to downAlertMap: " + e);
 			}
 		} catch (SQLException e) {
-			System.err.println("DeviceDB.DeviceDB: Unable to read alerthist: " + e.getMessage());
+			Log.e("DeviceDBImpl", "CONSTRUCTOR", "Unable to read alerthist: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
 	}
 
-	public static Event eventFactory(ResultSet rs) throws SQLException
+	static Event eventFactory(ResultSet rs) throws SQLException
 	{
 		return eventImplFactory(rs, false);
 	}
@@ -71,19 +68,14 @@ public class DeviceDB
 		int severity = rs.getInt("severity");
 		Map varMap = new HashMap();
 
-		/*
-		String var = rs.getString("var");
-		if (var != null) {
+		if (!history && rs.getString("var") != null) {
+			// Get any variables the event may have
 			do {
-
-				List l;
-				if ( (l=(List)varMap.get(var)) == null) varMap.put(var, l=new ArrayList());
-				l.add(rs.getString("val"));
-
+				varMap.put(rs.getString("var"), rs.getString("val"));
+				
 			} while (rs.next() && rs.getInt(tableid) == id);
 			rs.previous();
 		}
-		*/
 
 		EventImpl e = new EventImpl(id, source, deviceid, boxid, subid, time, eventtypeid, state, value, severity, varMap);
 		return e;
@@ -93,8 +85,6 @@ public class DeviceDB
 	{
 		return ((EventImpl)e).isDisposed();
 	}
-
-
 
 	public Device getDevice(int deviceid)
 	{
@@ -124,17 +114,12 @@ public class DeviceDB
 	public void endDBUpdate()
 	{
 		if (!updateMode) return;
-		outld("devDB size: " + deviceMap.size());
-		outld("Clone size: " + deviceidSet.size());
+		Log.d("DEVICEDB_IMPL", "END_DB_UPDATE", "devDB size: " + deviceMap.size());
+		Log.d("DEVICEDB_IMPL", "END_DB_UPDATE", "Clone size: " + deviceidSet.size());
 		updateMode = false;
 	}
 
-	/**
-	 * Get the 'up' Alert to use for completing previous 'down' Alert.
-	 *
-	 * @param e The 'up' event (STATE_END)
-	 * @return the 'up' alert
-	 */
+	// Doc in interface
 	public Alert getDownAlert(Event e)
 	{
 		if (e.getState() == Event.STATE_END && e instanceof EventImpl) {
@@ -159,25 +144,13 @@ public class DeviceDB
 		return key;
 	}
 
-	/**
-	 * Create a new alert with the given event as a template. 'default'
-	 * will be used as alerttype.
-	 *
-	 * @param e The event to use as template
-	 * @return a new alert
-	 */
+	// Doc in interface
 	public Alert alertFactory(Event e)
 	{
 		return alertFactory(e, null);
 	}
 
-	/**
-	 * Create a new alert with the given event as a template.
-	 *
-	 * @param e The event to use as template
-	 * @param alerttype The alerttype to use (see top of alertmsg.conf for details)
-	 * @return a new alert
-	 */
+	// Doc in interface
 	public Alert alertFactory(Event e, String alerttype)
 	{
 		EventImpl ei;
@@ -186,17 +159,8 @@ public class DeviceDB
 		if (alerttype != null) ei.setAlerttype(alerttype);
 		return ei;
 	}
-
-	/**
-	 * Post and commit the given alert to the alertq, then delete
-	 * the associated Events.
-	 *
-	 * If the state for this Alert is 'down', it will be added to the
-	 * down alert list. Call getDownAlert() to get the alert to use
-	 * for the 'up' Alert.
-	 *
-	 * @param a The alert to be posted
-	 */
+	
+	// Doc in interface
 	public void postAlert(Alert a) throws PostAlertException
 	{
 		EventImpl e = (EventImpl)a;
@@ -204,9 +168,6 @@ public class DeviceDB
 		// Post the alert to alertq
 		try {
 			Database.beginTransaction();
-			// Lock eventq/eventqvar tables to avoid deadlock
-			//Database.update("LOCK TABLE eventq IN SHARE ROW EXCLUSIVE MODE");
-			//Database.update("LOCK TABLE eventqvar IN SHARE ROW EXCLUSIVE MODE");
 
 			// Insert into alertq
 			insertAlert(e, false, 0);
@@ -268,6 +229,7 @@ public class DeviceDB
 		}
 
 	}
+
 	private int insertAlert(EventImpl e, boolean history, int alerthistid) throws SQLException, PostAlertException
 	{
 		String table = history?"alerthist":"alertq";
@@ -286,7 +248,7 @@ public class DeviceDB
 				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
-				"netboxid", e.getBoksidSql(),
+				"netboxid", e.getNetboxidSql(),
 				"subid", e.getSubidSql(),
 				"time", e.getTimeSql(),
 				"eventtypeid", e.getEventtypeidSql(),
@@ -300,7 +262,7 @@ public class DeviceDB
 				tableid, String.valueOf(id),
 				"source", e.getSourceSql(),
 				"deviceid", e.getDeviceidSql(),
-				"netboxid", e.getBoksidSql(),
+				"netboxid", e.getNetboxidSql(),
 				"subid", e.getSubidSql(),
 				"start_time", e.getTimeSql(),
 				"end_time", (e.getState() == Event.STATE_NONE ? "null" : "infinity"),
@@ -348,26 +310,13 @@ public class DeviceDB
 
 	private Map callbackMap = new IdentityHashMap();
 
-	/**
-	 * Schedule a callback after the given delay. Any previously
-	 * scheduled callbacks are canceled.
-	 *
-	 * @param ec The object to callback
-	 * @param delay Delay before callback in milliseconds
-	 */
+	// Doc in interface
 	public void scheduleCallback(EventCallback ec, long delay)
 	{
 		scheduleCallback(ec, delay, 1);
 	}
 
-	/**
-	 * Schedule a callback after the given delay. Any previously
-	 * scheduled callbacks are canceled.
-	 *
-	 * @param ec The object to callback
-	 * @param delay Delay before callback in milliseconds
-	 * @param invocationCount Number of callbacks to perform
-	 */
+	// Doc in interface
 	public void scheduleCallback(EventCallback ec, long delay, int invocationCount)
 	{
 		CallbackTask ct;
@@ -380,24 +329,13 @@ public class DeviceDB
 		}
 	}
 
-	/**
-	 * Check if a callback is currently scheduled.
-	 *
-	 * @param ec The object to check
-	 * @return if a callback is currently scheduled for the given object
-	 */
+	// Doc in interface
 	public boolean isScheduledCallback(EventCallback ec)
 	{
 		return callbackMap.containsKey(ec);
 	}
 
-
-	/**
-	 * Cancel any scheduled callbacks.
-	 *
-	 * @param ec The object to cancel callbacks for
-	 * @return true if a callback was canceled; false otherwise
-	 */
+	// Doc in interface
 	public boolean cancelCallback(EventCallback ec)
 	{
 		CallbackTask ct;
@@ -422,15 +360,8 @@ public class DeviceDB
 				callbackMap.remove(ec);
 				cancel();
 			}
-			ec.callback(DeviceDB.this, count);
+			ec.callback(DeviceDBImpl.this, count);
 		}
 	}
 
-
-
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 }

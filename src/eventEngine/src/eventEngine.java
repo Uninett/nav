@@ -23,7 +23,8 @@ class eventEngine
 {
 	public static final String realNavRoot = "/usr/local/nav/";
 	//public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
-	public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
+	//public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
+	public static final String navRoot = realNavRoot.replace('/', File.separatorChar);
 	public static final String dbConfigFile = "local/etc/conf/db.conf".replace('/', File.separatorChar);
 	public static final String configFile = "local/etc/conf/eventEngine.conf".replace('/', File.separatorChar);
 	public static final String alertmsgFile = realNavRoot+"local/etc/conf/alertmsg.conf".replace('/', File.separatorChar);
@@ -61,11 +62,11 @@ class eventEngine
 		try {
 			dbCp = new ConfigParser(navRoot + dbConfigFile);
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + navRoot + dbConfigFile);
+			System.err.println("Error, could not read config file: " + navRoot + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
-			errl("Error, could not connect to database!");
+			System.err.println("Error, could not connect to database!");
 			return;
 		}
 
@@ -73,13 +74,13 @@ class eventEngine
 		Log.init(navRoot + logFile, "eventEngine");
 
 		// Deamon timer
-		timer = new Timer(true);
+		timer = new Timer(false);
 
 		// Set up the config file monitor
 		if (cf == null) cf = navRoot + configFile;
 		ConfigFileMonitorTask cfmt = new ConfigFileMonitorTask(cf);
 		if (cfmt.cfNotFound()) {
-			errl("Error, could not read config file: " + cf);
+			System.err.println("Error, could not read config file: " + cf);
 			return;
 		}
 		cfmt.run(); // Load config first time
@@ -88,12 +89,12 @@ class eventEngine
 		HashMap handlerClassMap = new HashMap();
 		HashMap deviceMap = new HashMap();
 
-		DeviceDB devDB;
+		DeviceDBImpl devDB;
 		try {
-			devDB = new DeviceDB(deviceMap, timer, alertmsgFile);
+			devDB = new DeviceDBImpl(deviceMap, timer, alertmsgFile);
 		} catch (ParseException e) {
-			errl("While reading " + alertmsgFile + ":");
-			errl("  " + e.getMessage());
+			System.err.println("While reading " + alertmsgFile + ":");
+			System.err.println("  " + e.getMessage());
 			return;
 		}
 
@@ -107,60 +108,7 @@ class eventEngine
 		timer.schedule(pmt, 5 * 1000, 5 * 1000); // Check for new plugin every 5 seconds
 		timer.schedule(emt, 1 * 1000, 5 * 1000); // Check for new events every 5 seconds
 
-
-		// Now just wait :-)
-		InputStreamReader in = new InputStreamReader(System.in);
-
-		boolean msg = false;
-		boolean INTERACTIVE = false;
-		while (true) {
-			if (!msg) {
-				outl("Press Q+Enter to exit...");
-				msg = true;
-			} else {
-				//out(".");
-				if (INTERACTIVE) outWait();
-			}
-			Thread.currentThread().sleep(500);
-
-			// Sjekk om vi skal avslutte
-			if (in.ready()) {
-				int c = in.read();
-				if (c == 'Q' || c == 'q') break;
-			}
-		}
-		outl("All done.");
-
-
-
-
-
 	}
-
-	private static boolean PRINT_BOX;
-	private static int WAIT_POS;
-	public static void outWait()
-	{
-		// - \ | /
-
-		if (!PRINT_BOX) {
-			PRINT_BOX = true;
-		} else {
-			System.out.print((char)8);
-			System.out.print((char)8);
-			System.out.print((char)8);
-		}
-		out("[");
-		switch (WAIT_POS) {
-			case 0: out("-"); break;
-			case 1: out("\\"); break;
-			case 2: out("|"); break;
-			case 3: out("/"); break;
-		}
-		out("]");
-		WAIT_POS = (WAIT_POS+1)%4;
-	}
-
 
 	private static String format(long i, int n)
 	{
@@ -192,14 +140,6 @@ class eventEngine
 		return hm;
 	}
 
-	private static void out(Object o) { System.out.print(o); }
-	private static void outl(Object o) { System.out.println(o); }
-	private static void outflush() { System.out.flush(); }
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	private static void errflush() { System.err.flush(); }
-	private static void outd(String s) { if (DEBUG_OUT) System.out.print(s); }
-	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
 }
 
 class ConfigFileMonitorTask extends TimerTask
@@ -224,7 +164,7 @@ class ConfigFileMonitorTask extends TimerTask
 		try {
 			cp = new ConfigParser(cf.getAbsolutePath());
 		} catch (IOException e) {
-			errl("Error, could not read config file: " + cf);
+			Log.w("CONFIG_FILE_MONITOR_TASK", "RUN", "Could not read config file: " + cf);
 			return;
 		}
 	}
@@ -234,12 +174,6 @@ class ConfigFileMonitorTask extends TimerTask
 	}
 
 	public boolean cfNotFound() { return cfNotFound; }
-
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 
 }
 
@@ -253,11 +187,11 @@ class PluginMonitorTask extends TimerTask
 	Map deviceFileMap = new HashMap();
 	Map handlerFileMap = new HashMap();
 
-	DeviceDB devDB;
+	DeviceDBImpl devDB;
 	Map deviceMap;
 	EventqMonitorTask emt;
 
-	public PluginMonitorTask(String devicePath, Map deviceClassMap, String handlerPath, Map handlerClassMap, DeviceDB devDB, Map deviceMap, EventqMonitorTask emt)
+	public PluginMonitorTask(String devicePath, Map deviceClassMap, String handlerPath, Map handlerClassMap, DeviceDBImpl devDB, Map deviceMap, EventqMonitorTask emt)
 	{
 		deviceDir = new File(devicePath);
 		this.deviceClassMap = deviceClassMap;
@@ -268,7 +202,7 @@ class PluginMonitorTask extends TimerTask
 		this.emt = emt;
 
 		if (!deviceDir.isDirectory() || !handlerDir.isDirectory()) {
-			outld("pluginMonitorTask: Error, plugins directory not found, exiting...");
+			Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "Plugins directory not found, exiting...");
 			System.exit(0);
 		}
 	}
@@ -282,7 +216,7 @@ class PluginMonitorTask extends TimerTask
 			Class[] ddbClass = new Class[1];
 			Object[] o = new Object[] { devDB };
 			try {
-				ddbClass[0] = Class.forName("no.ntnu.nav.eventengine.DeviceDB");
+				ddbClass[0] = Class.forName("DeviceDBImpl");
 			} catch (ClassNotFoundException e) {}
 
 			List deviceClassList = new ArrayList();
@@ -303,7 +237,7 @@ class PluginMonitorTask extends TimerTask
 				} catch (IllegalAccessException e) {
 
 				} catch (InvocationTargetException e) {
-					outld("PluginMonitorTask:   InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+					Log.w("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
 					e.printStackTrace(System.err);
 				}
 
@@ -352,7 +286,8 @@ class PluginMonitorTask extends TimerTask
 		if (parent == null) return 0;
 
 		classDepthCache.put(c.getName(), depth = new Integer(findDepth(parent)+1));
-		outld("Class " + c.getName() + " has depth " + depth.intValue());
+		Log.d("PLUGIN_MONITOR_TASK", "CONSTRUCTOR", "Class " + c.getName() + " has depth " + depth.intValue());
+
 		return depth.intValue();
 	}
 
@@ -389,10 +324,10 @@ class PluginMonitorTask extends TimerTask
 					Manifest mf = jf.getManifest();
 					Attributes attr = mf.getMainAttributes();
 					String cn = attr.getValue("Plugin-Class");
-					outld("PluginMonitorTask: New or modified jar, trying to load " + fileList[i].getName());
+					Log.d("PLUGIN_MONITOR_TASK", "UPDATE", "New or modified jar, trying to load " + fileList[i].getName());
 
 					if (cn == null) {
-						outld("PluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
+						Log.d("PLUGIN_MONITOR_TASK", "UPDATE", "JAR is missing Plugin-Class manifest, skipping...");
 						continue;
 					}
 
@@ -403,10 +338,10 @@ class PluginMonitorTask extends TimerTask
 
 						c = cl.loadClass(cn);
 					} catch (ClassNotFoundException e) {
-						errl("PluginMonitorTask:   Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						Log.w("PLUGIN_MONITOR_TASK", "UPDATE", "Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					} catch (NoClassDefFoundError e) {
-						errl("PluginMonitorTask:   NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						Log.w("PLUGIN_MONITOR_TASK", "UPDATE", "NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 						continue;
 					}
 
@@ -414,20 +349,20 @@ class PluginMonitorTask extends TimerTask
 						// Found new Device, add to list
 						pluginMap.put(fileList[i].getName(), c);
 						hasChanged = true;
-						outld("PluginMonitorTask:   OK! Loaded and added to pluginMap");
+						Log.d("PLUGIN_MONITOR_TASK", "UPDATE", "OK! JAR Loaded and added to pluginMap");
 					} else {
-						outld("PluginMonitorTask:   Failed! class " + cn + " is not an event engine plugin");
+						Log.w("PLUGIN_MONITOR_TASK", "UPDATE", "Failed! Class " + cn + " is not an event engine plugin");
 					}
 				}
 			} catch (IOException e) {
-				errl("PluginMonitorTask:   IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+				Log.e("PLUGIN_MONITOR_TASK", "UPDATE", "IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
 			}
 		}
 
 		Iterator i = cloneMap.keySet().iterator();
 		while (i.hasNext()) {
 			String fn = (String)i.next();
-			outld("PluginMonitorTask: Removing jar " + fn + " from pluginMap");
+			Log.d("PLUGIN_MONITOR_TASK", "UPDATE", "Removing jar " + fn + " from pluginMap");
 			pluginMap.remove(fn);
 			fileMap.remove(fn);
 			hasChanged = true;
@@ -448,26 +383,19 @@ class PluginMonitorTask extends TimerTask
 		}
 	}
 
-
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-
 }
 
 
 class EventqMonitorTask extends TimerTask
 {
 	Map handlerClassMap;
-	DeviceDB devDB;
+	DeviceDBImpl devDB;
 	ConfigFileMonitorTask cfmt;
 
 	Map handlerCache = new HashMap();
 	int lastEventqid = 0;
 
-	public EventqMonitorTask(Map handlerClassMap, DeviceDB devDB, ConfigFileMonitorTask cfmt)
+	public EventqMonitorTask(Map handlerClassMap, DeviceDBImpl devDB, ConfigFileMonitorTask cfmt)
 	{
 		this.handlerClassMap = handlerClassMap;
 		this.devDB = devDB;
@@ -484,10 +412,10 @@ class EventqMonitorTask extends TimerTask
 			try {
 				eh = (EventHandler)c.newInstance();
 			} catch (InstantiationException e) {
-				errl("EventqMonitorTask: Error, Main EventHandler plugin class must have a public default (no args) constructor:" + e.getMessage());
+				Log.w("EVENTQ_MONITOR_TASK", "UPDATE_CACHE", "Main EventHandler plugin class must have a public default (no args) constructor:" + e.getMessage());
 				continue;
 			} catch (IllegalAccessException e) {
-				errl("EventqMonitorTask: Error, Main EventHandler plugin class must have a public default (no args) constructor:" + e.getMessage());
+				Log.w("EVENTQ_MONITOR_TASK", "UPDATE_CACHE", "Main EventHandler plugin class must have a public default (no args) constructor:" + e.getMessage());
 				continue;
 			}
 			String[] s = eh.handleEventTypes();
@@ -501,43 +429,45 @@ class EventqMonitorTask extends TimerTask
 	public void run()
 	{
 		try {
-			//outld("Last lastEventqid is: " + lastEventqid);
-			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' AND source='test' ORDER BY eventqid");
-			//ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' and source='pping' ORDER BY eventqid");
 			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' ORDER BY eventqid");
-			if (rs.getFetchSize() > 0) outld("Fetched " + rs.getFetchSize() + " events from eventq");
-			else return;
+			if (rs.getFetchSize() > 0) {
+				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched " + rs.getFetchSize() + " rows from eventq");
+			} else {
+				return;
+			}
 
+			int eventCnt=0;
 			while (rs.next()) {
-
-				Event e = DeviceDB.eventFactory(rs);
-				outld("  Got event: " + e);
+				Event e = DeviceDBImpl.eventFactory(rs);
+				eventCnt++;
+				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Got event: " + e);
 
 				String eventtypeid = e.getEventtypeid();
 				if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
-					outld("  Found handler: " + eh.getClass().getName());
+					Log.d("EVENTQ_MONITOR_TASK", "RUN", "Found handler: " + eh.getClass().getName());
 					try {
 						eh.handle(devDB, e, cfmt.getConfigParser() );
 
 					} catch (Exception exp) {
-						errl("EventqMonitorTask: Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
+						Log.e("EVENTQ_MONITOR_TASK", "RUN", "Got Exception from handler: " + eh.getClass().getName() + " Msg: " + exp.getMessage());
 						exp.printStackTrace(System.err);
 
 						// Rollback any database changes
 						Database.rollback();
 					}
 				} else {
-					outld("  No handler found for eventtype: " + eventtypeid);
+					Log.w("EVENTQ_MONITOR_TASK", "RUN", "No handler found for eventtype: " + eventtypeid);
 				}
 
 			}
 
+			Log.d("EVENTQ_MONITOR_TASK", "RUN", "Processed " + eventCnt + " events in this session");
 			if (rs.last()) if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getInt("eventqid");
 
 		} catch (SQLException e) {
 			// Now we are in trouble
-			errl("EventqMonitorTask:  SQLException when fetching from eventq: " + e.getMessage());
+			Log.e("EVENTQ_MONITOR_TASK", "RUN", "SQLException when fetching from eventq: " + e.getMessage());
 			e.printStackTrace(System.err);
 		}
 	}
@@ -628,11 +558,6 @@ COMMIT;
 
 */
 
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
 }
 
 

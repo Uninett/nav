@@ -2,8 +2,9 @@ package no.ntnu.nav.eventengine.deviceplugins.Netel;
 
 import java.util.*;
 import java.sql.*;
-import no.ntnu.nav.Database.*;
 
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
 import no.ntnu.nav.eventengine.deviceplugins.Box.*;
 
@@ -39,7 +40,7 @@ public class Gw extends Netel
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
-		outld("Gw.updateFromDB");
+		Log.d("GW_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all GWs from database");
 		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox LEFT JOIN prefix USING(prefixid) WHERE catid IN ('GW', 'GSW')");
 
 		while (rs.next()) {
@@ -62,7 +63,7 @@ public class Gw extends Netel
 			}
 
 			} catch (Exception e) {
-				errl("Exception: " + e.getMessage());
+				Log.e("GW_DEVICEPLUGIN", "UPDATE_FROM_DB", "Exception while creating devices: " + e.getMessage());
 				e.printStackTrace(System.err);
 				throw new RuntimeException(e.getMessage());
 			}

@@ -2,6 +2,10 @@ package no.ntnu.nav.eventengine;
 
 import java.util.*;
 
+/**
+ * An Event; contains all data about the event.
+ *
+ */
 
 public interface Event
 {
@@ -12,7 +16,7 @@ public interface Event
 	public String getSource();
 	public int getDeviceid();
 	public Integer getDeviceidI();
-	public int getBoksid();
+	public int getNetboxid();
 	public int getSubid();
 	public Date getTime();
 	public String getTimeS();
@@ -25,6 +29,11 @@ public interface Event
 
 	public String getKey();
 
+	/**
+	 * Dispose of the event. Normally this happens automatically when an
+	 * alert created from this event is posted, but in the case no alert
+	 * is to be posted this method can be used.
+	 */
 	public void dispose();
 
 }

@@ -2,15 +2,14 @@ package no.ntnu.nav.eventengine.deviceplugins.Netel;
 
 import java.util.*;
 import java.sql.*;
-import no.ntnu.nav.Database.*;
 
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
 import no.ntnu.nav.eventengine.deviceplugins.Box.*;
 
 public class Netel extends Box
 {
-	protected static final boolean DEBUG_OUT = true;
-
 	public static final int MODULE_STATUS_UP = 0;
 	public static final int MODULE_STATUS_DOWN = 10;
 	protected int moduleStatus;
@@ -56,20 +55,18 @@ public class Netel extends Box
 		try {
 			Gw.updateFromDB(ddb);
 		} catch (Exception e) {
-			errl("Exception: " + e.getMessage());
+			Log.e("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Exception while calling Gw.updateFromDB: " + e.getMessage());
 			e.printStackTrace(System.err);
 			throw new RuntimeException(e.getMessage());
 		}
 
-		outld("Netel.updateFromDB");
+		Log.d("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all netboxes from database");
 		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid) WHERE catid IN ('SW','KANT')");
 
 		while (rs.next()) {
 			try {
 
 			int deviceid = rs.getInt("deviceid");
-
-			//outld("new Netel("+deviceid+")");
 
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
@@ -86,7 +83,7 @@ public class Netel extends Box
 			}
 
 			} catch (Exception e) {
-				errl("Exception: " + e.getMessage());
+				Log.e("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Exception while creating devices: " + e.getMessage());
 				e.printStackTrace(System.err);
 				throw new RuntimeException(e.getMessage());
 			}
@@ -96,7 +93,7 @@ public class Netel extends Box
 		try {
 			Module.updateFromDB(ddb);
 		} catch (Exception e) {
-			errl("Exception: " + e.getMessage());
+			Log.e("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Exception while calling Module.updateFromDB: " + e.getMessage());
 			e.printStackTrace(System.err);
 			throw new RuntimeException(e.getMessage());
 		}
@@ -194,7 +191,7 @@ public class Netel extends Box
 		boolean foundDownlink = false;
 		int reachable = REACHABLE_UNKNOWN;
 
-		outld("reachableFrom: @"+sysname+", vlan="+vlan);
+		//outld("reachableFrom: @"+sysname+", vlan="+vlan);
 
 		// No downlink to overselves
 		if (b == this) {
@@ -220,36 +217,36 @@ public class Netel extends Box
 			// If the module is down there is no point in checking its ports
 			if (!m.isUp()) continue;
 
-			outld("  Scan for uplink..., module: " + m.getModule());
+			//outld("  Scan for uplink..., module: " + m.getModule());
 
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); j.hasNext();) {
 				Port p = (Port)j.next();
 				int dir = p.vlanDirection(vlan);
-				outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + "dev: " + boxidToDeviceid(p.getBoxidBehind()));
+				//outld("    Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + "dev: " + boxidToDeviceid(p.getBoxidBehind()));
 				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
 					if (d instanceof Netel) {
 						Netel n = (Netel)d;
-						outld("  Reachable from uplink " + n.sysname + "?");
+						//outld("  Reachable from uplink " + n.sysname + "?");
 
 						// Visit this box if we have not already
 						if (visited.add(n.getDeviceidI())) {
 							int r = reachableFrom(this, vlan, visited);
 							if (r == REACHABLE_YES) {
-							    outld("  Yes.");
+								//outld("  Yes.");
 							    reachable = r;
 							    break;
 							}
 							if (r == REACHABLE_NO) {
-							    outld("  No.");
+								//outld("  No.");
 							    reachable = r;
 							} else {
-							    outld("  Unknown.");
+								//outld("  Unknown.");
 							}
 						}
 					} else {
-						outld("  Error! Device not Netel: " + d);
+						//outld("  Error! Device not Netel: " + d);
 					}
 				}
 			}
@@ -257,7 +254,7 @@ public class Netel extends Box
 		}
 
 		if (!foundDownlink) {
-			errl("Netel.reachableFrom: Box " + b.getSysname() + " has uplink to " + sysname + ", but no downlink (on same vlan) found!");
+			Log.w("NETEL_DEVICEPLUGIN", "Box " + b.getSysname() + " has uplink to " + sysname + ", but no downlink (on same vlan) found!");
 		}
 
 		return reachable;

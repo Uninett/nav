@@ -1,5 +1,3 @@
-package no.ntnu.nav.eventengine;
-
 import java.util.*;
 import java.io.*;
 import java.text.*;
@@ -9,13 +7,19 @@ import java.sql.SQLException;
 
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.eventengine.*;
+
+/**
+ * Implementation of Event and Alert interfaces.
+ *
+ */
 
 class EventImpl implements Event, Alert
 {
 	private int eventqid;
 	private String source;
 	private int deviceid;
-	private int boksid;
+	private int netboxid;
 	private int subid;
 	private Date time;
 	private String eventtypeid;
@@ -30,12 +34,12 @@ class EventImpl implements Event, Alert
 
 	private boolean disposed;
 
-	public EventImpl(int eventqid, String source, int deviceid, int boksid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
+	public EventImpl(int eventqid, String source, int deviceid, int netboxid, int subid, String time, String eventtypeid, char state, int value, int severity, Map varMap)
 	{
 		this.eventqid = eventqid;
 		this.source = source;
 		this.deviceid = deviceid;
-		this.boksid = boksid;
+		this.netboxid = netboxid;
 		this.subid = subid;
 
 		try {
@@ -62,7 +66,7 @@ class EventImpl implements Event, Alert
 		eventqid = e.eventqid;
 		source = e.source;
 		deviceid = e.deviceid;
-		boksid = e.boksid;
+		netboxid = e.netboxid;
 		subid = e.subid;
 		time = e.time;
 		eventtypeid = e.eventtypeid;
@@ -85,7 +89,7 @@ class EventImpl implements Event, Alert
 	public String getSource() { return source; }
 	public int getDeviceid() { return deviceid; }
 	public Integer getDeviceidI() { return new Integer(deviceid); }
-	public int getBoksid() { return boksid; }
+	public int getNetboxid() { return netboxid; }
 	public int getSubid() { return subid; }
 	public Date getTime() { return time; }
 	public String getTimeS() { return dateToString(time); }
@@ -110,7 +114,7 @@ class EventImpl implements Event, Alert
 
 	// Alert
 	public void setDeviceid(int deviceid) { this.deviceid = deviceid; }
-	public void setBoksid(int boksid) { this.boksid = boksid; }
+	public void setNetboxid(int netboxid) { this.netboxid = netboxid; }
 	public void setSubid(int subid) { this.subid = subid; }
 	public void setEventtypeid(String eventtypeid) { this.eventtypeid = eventtypeid; }
 	public void setState(int state) { this.state = state; }
@@ -153,7 +157,7 @@ class EventImpl implements Event, Alert
 
 	public String getSourceSql() { return source; }
 	public String getDeviceidSql() { return deviceid>0 ? String.valueOf(deviceid) : "null"; }
-	public String getBoksidSql() { return boksid>0 ? String.valueOf(boksid) : "null"; }
+	public String getNetboxidSql() { return netboxid>0 ? String.valueOf(netboxid) : "null"; }
 	public String getSubidSql() { return subid>0 ? String.valueOf(subid) : "null"; }
 	public String getTimeSql() { return dateToString(time); }
 	public String getEventtypeidSql() { return eventtypeid; }
@@ -173,7 +177,7 @@ class EventImpl implements Event, Alert
 	{
 		StringBuffer sb = new StringBuffer();
 		if (deviceid > 0) sb.append(deviceid+":");
-		if (boksid > 0) sb.append(boksid+":");
+		if (netboxid > 0) sb.append(netboxid+":");
 		if (subid > 0) sb.append(subid+":");
 		sb.append(eventtypeid+":");
 		sb.append(state);
@@ -201,8 +205,7 @@ class EventImpl implements Event, Alert
 
 	public String toString()
 	{
-		//String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time="+time+" eventtypeid="+eventtypeid;
-		String s = "eventqid="+eventqid+" deviceid="+deviceid+" boksid="+boksid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql();
+		String s = "eventqid="+eventqid+" deviceid="+deviceid+" netboxid="+netboxid+" time=[] eventtypeid="+eventtypeid+" state="+getStateSql();
 		boolean first=true;
 		for (Iterator i = varMap.entrySet().iterator(); i.hasNext();) {
 			Map.Entry me = (Map.Entry)i.next();
@@ -210,36 +213,10 @@ class EventImpl implements Event, Alert
 			String val = (String)me.getValue();
 			if (first) { first = false; s += "\n"; }
 			s += "["+var+"="+val+"] ";
-			/*
-			List l = (List)me.getValue();
-			s += "\n  "+var+"=";
-			for (int j=0; j<l.size(); j++) {
-				s += l.get(j);
-				if (j < l.size()-1) s +=", ";
-			}
-			*/
 		}
 		return s;
 	}
 
-	/*
-	private HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md) throws SQLException
-	{
-		HashMap hm = new HashMap();
-		for (int i=md.getColumnCount(); i > 0; i--) {
-			hm.put(md.getColumnName(i), rs.getString(i));
-		}
-		return hm;
-	}
-	*/
-
-	/*
-	private static void outd(Object o) { System.out.print(o); }
-	private static void outld(Object o) { System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-	*/
 }
 
 class AlertmsgParser
@@ -251,7 +228,10 @@ class AlertmsgParser
 	public static boolean setAlertmsgFile(String s) throws ParseException
 	{
 		File f = new File(s);
-		if (!f.exists()) return false;
+		if (!f.exists()) {
+			Log.w("ALERTMSG_PARSER", "SET_ALERTMSG_FILE", "File " + f + " does not exist!");
+			return false;
+		}
 		if (alertmsgFile != null && alertmsgFile.equals(f)) return true;
 
 		alertmsgFile = f;
@@ -268,16 +248,21 @@ class AlertmsgParser
 	public static Iterator formatMsgs(String eventtypeid, String alerttype, int state, Map varMap)
 	{
 		Log.setDefaultSubsystem("ALTERTMSG_PARSER");
+		List l = new ArrayList();
 
 		try {
 			parseAlertmsg();
+			if (eventtypeidMap == null) {
+				// This happens when alertmsgFile does not exist
+				return l.iterator();
+			}
 		} catch (ParseException e) {
 			Log.w("FORMAT_MSGS", "ParseException when parsing alertmsg file: " + e.getMessage());
+			return l.iterator();
 		} catch (IOException e) {
 			Log.w("FORMAT_MSGS", "IOException when parsing alertmsg file: " + e.getMessage());
+			return l.iterator();
 		}
-
-		List l = new ArrayList();
 
 		Map m = (Map)eventtypeidMap.get(eventtypeid);
 		if (m == null) {

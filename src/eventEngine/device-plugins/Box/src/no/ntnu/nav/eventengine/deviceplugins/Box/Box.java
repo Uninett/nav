@@ -2,8 +2,9 @@ package no.ntnu.nav.eventengine.deviceplugins.Box;
 
 import java.util.*;
 import java.sql.*;
-import no.ntnu.nav.Database.*;
 
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
 
 public class Box extends Device
@@ -63,7 +64,7 @@ public class Box extends Device
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
-		outld("Box.updateFromDB");
+		Log.d("BOX_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all boxes from database");
 		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up FROM netbox JOIN prefix USING(prefixid)");
 
 		while (rs.next()) {
@@ -161,7 +162,7 @@ public class Box extends Device
 		try {
 			Database.update("UPDATE netbox SET up='"+c+"' WHERE netboxid="+boxid);
 		} catch (SQLException e) {
-			outld("Error, could not change status for netboxid="+boxid);
+			Log.w("BOX_DEVICEPLUGIN", "UPDATE_DB_NETBOX_STATUS", "Could not change status for netboxid=" + boxid);
 		}
 	}
 

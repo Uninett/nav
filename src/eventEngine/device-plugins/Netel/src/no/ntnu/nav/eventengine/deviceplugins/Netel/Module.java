@@ -2,8 +2,9 @@ package no.ntnu.nav.eventengine.deviceplugins.Netel;
 
 import java.util.*;
 import java.sql.*;
-import no.ntnu.nav.Database.*;
 
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.eventengine.*;
 import no.ntnu.nav.eventengine.deviceplugins.Box.*;
 
@@ -57,7 +58,7 @@ public class Module extends Device
 
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
-		outld("Module.updateFromDB");
+		Log.d("MODULE_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all modules from database");
 		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,port,to_netboxid,vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) WHERE module.up='y' ORDER BY moduleid,module,port");
 
 		while (rs.next()) {
@@ -77,7 +78,6 @@ public class Module extends Device
 			Device d = (Device)ddb.getDevice(deviceid);
 			if (d == null) {
 				Module m = new Module(ddb, rs);
-				if (m.parentDeviceid == 278) errl("Module: " + m);
 				ddb.putDevice(m);
 			} else if (!ddb.isTouchedDevice(d)) {
 				if (classEq(d, new Module())) {
@@ -98,7 +98,7 @@ public class Module extends Device
 			parent = (Netel)d;
 			parent.addModule(this);
 		} else {
-			errl("Module error, parentDeviceid="+parentDeviceid+" is not an instance of Netel ("+d+")!");
+			Log.w("MODULE_DEVICEPLUGIN", "INIT", "ParentDeviceid="+parentDeviceid+" is not an instance of Netel ("+d+")!");
 			return;
 		}
 	}
