@@ -12,7 +12,7 @@ CUR_DIR=$NAV_ROOT/navme/subsystem/eventEngine
 
 LOG_DIR="$NAV_ROOT/local/log"
 
-COUNT=`ps wwwwx|grep "eventEngine"|grep -v eventEngine.sh|grep -v grep|wc -l|sed s/" "//g`
+COUNT=`ps wwwwx|grep "eventEngine.jar"|grep -v eventEngine.sh|grep -v grep|wc -l|sed s/" "//g`
 if [ "$COUNT" == "0" ]; then
         cd $CUR_DIR
         # Now run script
