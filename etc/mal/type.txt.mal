@@ -1,0 +1,26 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: type.txt
+#
+# Hensikt: All nettelektronikk er av en type. Typen sier noe
+# om hva slags utstyr dette er. Vi avleder typen automatisk ved
+# å se på boksens sysObjectID og dernest tolke type.txt.
+#
+# Hver type tilhører i tillegg en typegruppe. Fellesnevner for en
+# typegruppe er at alle typene her har den samme måten å hente data
+# via MIB-struktur.
+#
+# Syntaks:      type:typegruppe:sysObjectID:beskrivelse
+# Makslengde:   10   10         30          60
+#
+# Definerte typegrupper pr dato:
+# cgw        = Cisco ruter
+# cts        = Cisco terminalserver
+# cat-sw     = Cisco Catalyst-OS svitsj
+# ios-sw     = Cisco IOS-OS svitsj
+# catmeny-sw = Cisco menybasert svitsj.
+# spes-sw    = Cisco: spesielle/sære svitsjer
+# 3hub       = 3Com hub
+# portsv     = 3Com portsvitsj
+# ------------------------------------------------------------------
+#

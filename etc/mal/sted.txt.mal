@@ -1,0 +1,17 @@
+# ------------------------------------------------------------------
+#
+# Filnavn: sted.txt
+#
+# Hensikt: Angi områder som vi opererer med, deres stedsnavn (stedsid)
+# og en nærmere beskrivelse.
+#
+# Alle rom i rom.txt hører til på et sted.
+#
+# Syntaks:
+# sted:beskrivelse
+#
+# Eksempel:
+# hb:Gløshaugenområdet ut fra HTR HB
+#
+# ------------------------------------------------------------------
+#
