@@ -96,7 +96,7 @@ def createUrl(object=None, id=None, division=None,
                     module = object.module
                     url += module.netbox.sysname
                     url += '/module%s' % module.module   
-                    url += '/port%s' % object.ifindex
+                    url += '/port%s' % object.port
                 elif division=="module":
                     url += object.netbox.sysname
                     url += '/module%s' % object.module   
@@ -110,13 +110,13 @@ def createUrl(object=None, id=None, division=None,
         if division=="vlan":
             url += 'swportv?vlan=%s' % id
         elif division=='room':
-            url += 'room?roomid=%s' % id
+            url += 'netbox?roomid=%s' % id
         elif division=='cat':    
-            url += 'netbox/?catid=%s' % id
+            url += 'netbox?catid=%s' % id
         elif division=='org':
             url += 'org/orgid=%s' % id
         elif division=='type':
-            url += 'netbox/orgid=%s' % id
+            url += 'type/typename=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
