@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.5 2002/11/22 23:09:12 kristian Exp $
+* $Id: NavUtils.java,v 1.6 2002/11/28 23:58:26 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
@@ -226,6 +226,9 @@ class NavUtils
 			Integer boksbakid = (Integer)iter.next();
 
 			String kat = (String)boksKat.get(boksbakid);
+			if (kat == null) {
+				errl("Error! kat not found for boksid: " + boksbakid);
+			}
 			boolean isSW = (kat.equals("SW") ||
 							kat.equals("GW") ||
 							kat.equals("GSW"));
