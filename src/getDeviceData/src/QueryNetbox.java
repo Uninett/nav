@@ -257,8 +257,7 @@ public class QueryNetbox extends Thread
 			typeidMap = typeidM;
 			oidkeyMap = oidkeyM;
 
-			Log.d("UPDATE_TYPES", "Updated typeidMap, size: " + typeidMap.size());
-			Log.d("UPDATE_TYPES", "Updated oidkeyMap, size: " + oidkeyMap.size());
+			Log.i("UPDATE_TYPES", "Num types: " + typeidMap.size() + ", num OIDs: " + oidkeyMap.size());
 
 			// Then update all netboxes with the new types
 			if (updateNetboxes) updateNetboxesWithNewTypes();
@@ -283,6 +282,8 @@ public class QueryNetbox extends Thread
 	}
 
 	public static void updateNetboxes() {
+		int newcnt=0, delcnt=0;
+
 		try {
 			String sql = "SELECT ip,ro,netboxid,typeid,typename,catid,sysname FROM netbox JOIN type USING(typeid) WHERE up='y'";
 			if (qNetbox != null) sql += " AND sysname LIKE '"+qNetbox+"'";
@@ -314,6 +315,9 @@ public class QueryNetbox extends Thread
 				if ( (nb=(NetboxImpl)nbMap.get(netboxid)) == null) {
 					nbMap.put(netboxid, nb = new NetboxImpl(++nbCnt, t));
 					newNetbox = true;
+					newcnt++;
+				} else {
+					nb.setType(t);
 				}
 				
 				nb.setNetboxid(netboxid);
@@ -338,6 +342,7 @@ public class QueryNetbox extends Thread
 				NetboxImpl nb = (NetboxImpl)it.next();
 				if (!netboxidSet.contains(new Integer(nb.getNetboxid()))) nb.remove();
 				it.remove();
+				delcnt++;
 			} 
 
 
@@ -345,7 +350,7 @@ public class QueryNetbox extends Thread
 			Log.e("UPDATE_NETBOXES", "SQLException: " + e);			
 		}
 
-		Log.d("UPDATE_NETBOXES", "Updated netboxes, size: " + netboxCnt);
+		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + "(" + newcnt + " new, " + delcnt + " removed)");
 
 	}
 
