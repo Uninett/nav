@@ -189,12 +189,14 @@ CREATE TABLE boksinfo (
   supVersion VARCHAR(10)
 );
 
-
-CREATE TABLE boksmac (
-  boksmacid SERIAL PRIMARY KEY,
-  boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  mac VARCHAR(12) NOT NULL
-);
+CREATE VIEW boksmac AS
+(SELECT DISTINCT ON (mac) boks.boksid,mac
+ FROM arp
+ JOIN boks USING (ip))
+UNION
+(SELECT DISTINCT ON (mac) gwport.boksid,mac
+ FROM arp,gwport
+ WHERE arp.ip=gwport.gwip);
 
 CREATE TABLE swp_boks ( 
   swp_boksid SERIAL PRIMARY KEY,                                                                  
@@ -275,6 +277,7 @@ CREATE TABLE vpBoksXY (
 # vPServer bruker
 CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
+CREATE USER navadmin WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
 
 GRANT SELECT ON boks TO vPServer;
 GRANT SELECT ON boksinfo TO vPServer;
@@ -292,8 +295,16 @@ GRANT SELECT ON swport TO getBoksMacs;
 GRANT SELECT ON prefiks TO getBoksMacs;
 GRANT SELECT ON boksmac TO getBoksMacs;
 GRANT ALL    ON swp_boks TO getBoksMacs;
-GRANT SELECT ON community TO getBoksMacs;
+GRANT ALL    ON swp_boks_swp_boksid_seq TO getBoksMacs;
 
+GRANT SELECT ON boks TO navadmin;
+GRANT SELECT ON type TO navadmin;
+GRANT SELECT ON boksmac TO navadmin;
+GRANT SELECT ON gwport TO navadmin;
+GRANT SELECT ON prefiks TO navadmin;
+GRANT SELECT ON swport TO navadmin;
+GRANT SELECT ON swportvlan TO navadmin;
+GRANT SELECT,DELETE ON swp_boks TO navadmin;
 
 --### vlanPlot end ###
 
