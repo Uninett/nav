@@ -464,6 +464,7 @@ class NetboxInfo(manage.Netbox):
             return None
         result = html.Division()
         result.append(html.Header("Statistics", level=3))
+        all = []
         for rrd in rrdfiles:
             info = "%s: %s" % (rrd.key, rrd.value)
             if rrd.key == 'swport' or rrd.key == 'gwport':
@@ -479,7 +480,6 @@ class NetboxInfo(manage.Netbox):
                         port.module.module,
                         port.port)
                        
-            all = []
             for ds in rrd.getChildren(manage.Rrd_datasource):
                 link = urlbuilder.createLink(subsystem='rrd',
                                              id=ds.rrd_datasourceid,
@@ -487,7 +487,9 @@ class NetboxInfo(manage.Netbox):
                                              content=(ds.descr or "(unknown)"))
                 all.append(ds.rrd_datasourceid)
                 result.append(html.Division(link))
-
+        if not all:
+            # skip if only ports where defined
+            return None
         link = urlbuilder.createLink(subsystem='rrd',
                     id=all, division="datasources", content="[All]")
         result.append(html.Division(link))
