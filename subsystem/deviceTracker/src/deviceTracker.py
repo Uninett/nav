@@ -19,8 +19,8 @@ import psycopg,dtTables,mx.DateTime,re,forgetSQL
 
 from mod_python import util,apache
 from deviceTrackerTemplate import dtTemplate
-from miscUtils import memberoforg
-from TreeSelect import TreeSelect,Select,UpdateableSelect,Option
+#from miscUtils import memberoforg
+from nav.web.templates.TreeSelect import TreeSelect,Select,UpdateableSelect,Option
 from nav.web import urlbuilder
 
 
@@ -787,6 +787,33 @@ def redirect(req, url):
     req.headers_out.add("Location", url)
     raise apache.SERVER_RETURN, apache.HTTP_MOVED_TEMPORARILY
 
+def makewherelist(orglist):
+    whereList = ''
+    if orglist:
+        first = True
+        for org in orglist:
+            if not first:
+                whereList += ' or '
+            whereList += "orgid='" + org + "'"
+            first = False
+        return whereList
+    else:
+        return None
+
+def memberoforg(req):
+    where = makewherelist(req.session['user'].getOrgIds())
+
+    # if superuser, no restrictions based on orgids
+    superuser = False
+    #for group in req.session['user'].getGroups():
+    #    if group.id == 1:
+    #        superuser = True
+    #        break
+
+    if superuser == True:
+        where = []
+    
+    return where
 
 class DeviceEvent:
     """
