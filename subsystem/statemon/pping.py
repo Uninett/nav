@@ -239,6 +239,8 @@ def setUser():
     os.umask(0022)
 
 if __name__=="__main__":
+    # Make things readable for all
+    os.umask(0664) 
     nofork=0
     try:
         opts, args = getopt.getopt(os.sys.argv[1:],
