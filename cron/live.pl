@@ -2,7 +2,7 @@
 
 #####################################
 #
-# Dette er arvtageren til Falkeblikk :)
+# live.pl pinger boksene som finnes i tabellen manage.boks, og sender traps ved endringer i status.
 #
 #####################################
 
@@ -11,9 +11,10 @@ use Pg;
 use SNMP_util;
 use English;
 
+require "/usr/local/nav/navme/etc/conf/path.pl";
+my $lib = &lib();
+require "$lib/database.pl";
 
-
-#use Mail::Sendmail; 
 
 # 1) Lese config-fil
 # 2) Sjekker at den selv har kontakt med verden (pinger seg ut.)
@@ -23,100 +24,56 @@ use English;
 #    svarer på ping.
 
 ###########################################################
+# Lese config-fil
+
+$conf = '/usr/local/nav/local/etc/conf/live/live.conf';
+
+open(CONF,$conf);
+while (<CONF>)
+{
+    unless (/^\#|^\s+/)
+    {
+	($key,$string) = split(/=/);
+	chomp($string);
+	$config{$key}=$string;
+    }
+}
+
+close(CONF);
+
+############################################################
+
+
+###########################################################
 # Sjekker at det ikke står en annen versjon av live og går når denne starter
 # (Laget av Knut-Helge.)
-$pidfil = "/var/run/live.pl.pid";  
+#$pidfil = "/var/run/live.pl.pid";  
+
 justme();  
 
-open (PIDFIL, ">$pidfil");  
+open (PIDFIL, ">$config{pidfil}");  
 print PIDFIL $PID;  
 close (PIDFIL);
-#
+
+$tid = scalar localtime;
+
+$rundetid = "pid $PID\tstart $tid slutt";
+
 ##########################################################
-
-
-#exit();
-
-
-#print "Start: ",scalar localtime,"\n";
 
 %boks = ();
 
 ###########################################################
 
-$boxDownPrefix   = '.1.3.6.1.4.1.3001.2.1.1';
-$boxShadowPrefix = '.1.3.6.1.4.1.3001.2.1.2';
-
-$up   = '5';
-$down = '4';
-
-###########################################################
-# Lese config-fil
-
-$conf = '/usr/local/nav/etc/conf/live.conf';
-############################################################
-
-open(CONF,$conf);
-while (<CONF>)
-{
-    if (/^ut=/)
-    {
-	# forutsetter at det kun finnes en linje 
-	# som begynner med ut= i live.conf
-
-	($dummy,$veien_ut) = split(/=/);
-	chomp($veien_ut);
-	@veien_ut = split(/:/,$veien_ut);
-    }
-
-    elsif (/^alarm=/)
-    {
-	($dummy,$alarm_ut) = split(/=/);
-	chomp($alarm_ut);
-	@alarm_ut = split(/:/,$alarm_ut);
-    }
-
-    elsif (/^loggfil=/)
-    {
-	($dummy,$loggfil) = split(/=/);
-	chomp($loggfil);
-    }
-
-    elsif (/^extfil=/)
-    {
-	($dummy,$extfil) = split(/=/);
-	chomp($extfil);
-    }
-
-    elsif (/^extbokser=/)
-    {
-	($dummy,$extbokser) = split(/=/);
-	chomp($extbokser);
-    }
-    
-    elsif (/^ipadresse=/)
-    {
-	($dummy,$ipadresse) = split(/=/);
-	chomp($ipadresse);
-    }
-
-}
-close(CONF);
-
-#print "veien ut: @veien_ut\n";
-#print "alarm: @alarm_ut\n";
-#print "loggfil: $loggfil\n";
-#print "extfil: $extfil\n";
-#print "extbokser: $extbokser\n";
-
-
-#exit();
-###########################################################
-
 $p = Net::Ping->new("icmp");
+
+(@veien_ut) = split(/:/,$config{ut});
+(@alarm_ut) = split(/:/,$config{alarm});
 
 foreach $host (@veien_ut)
 {
+#    print "Pinger $host\n";
+
     unless ($p->ping($host, 2))
     {
 #	print "Finner ikke veien ut. Ikke kontakt med $host.\n";
@@ -126,6 +83,14 @@ foreach $host (@veien_ut)
 
 	$dato = scalar localtime;
 	$text = "Live finner ikke veien ut $dato. Problem med $host.";
+
+	open (LOG,">>$config{avbruttlog}");
+	print LOG "$dato: Problem med veien ut. $host svarer ikke på ping.\n";
+	close (LOG);
+	
+
+# Her ønsker vi egentlig å sende en nedtrap, men vi mangler både boksid og sysName
+# Bør legge inn linje i databasen, ikke sende direkte.
 	
 	foreach $tlf (@alarm_ut)
 	{
@@ -134,54 +99,92 @@ foreach $host (@veien_ut)
 	
 	exit(0);
     }
-#    else
-#    {
-#	print "$host ok.\n";
-#    }
 }
 
 $p->close();
 
 
-#exit();
-
-#print "Veien ut er klar!!\n";
-
 ###########################################################
 
-
-$db = "manage";
-$conn = db_connect($db);
+$conn = &db_connect("manage","navall","uka97urgf");
 
 
 ############################################################
 # Plukker alle id'er i nettel
 ############################################################
 
-$sql = "SELECT boksid,ip,sysname,boksvia2,boksvia3,watch,kat,typeid FROM boks";
+$sql = "SELECT boksid,ip,sysname,watch,kat,typeid FROM boks";
 
-$resultat = db_select($sql,$conn);
+$resultat = db_select($conn,$sql);
 
 while(@svar = $resultat->fetchrow)
 {
     $id=$svar[0];
 
+#    print "$svar[1]\n";
+
     $boks{$id}{ip}      = $svar[1];
     $boks{$id}{sysName} = $svar[2];
-    $boks{$id}{via2}    = $svar[3];
-    $boks{$id}{via3}    = $svar[4];
-    $boks{$id}{watch}   = $svar[5];
-    $boks{$id}{kat}     = $svar[6];
-    $boks{$id}{type}    = $svar[7];
+    $boks{$id}{watch}   = $svar[3];
+    $boks{$id}{kat}     = $svar[4];
+    $boks{$id}{type}    = $svar[5];
     $boks{$id}{skygge}  = 'f';
     $boks{$id}{nede}    = 'f';    
+    $boks{$id}{via2}    = '0';
+    $boks{$id}{via3}    = '0';
 }
+
+
+#exit();
+
+#######################
+# V I A 3
+
+$sql = "SELECT b.boksid,g.boksid FROM boks b JOIN prefiks USING (prefiksid),gwport g WHERE rootgwid=gwportid";
+
+$resultat = db_select($conn,$sql);
+
+while(@svar = $resultat->fetchrow)
+{
+    $boks{$svar[0]}{via3}    = $svar[1];
+}
+
+################################
+# V I A 2
+
+# Denne er litt kvasi...
+
+$sql = "SELECT distinct boksid,boksbak FROM swport JOIN swportvlan USING (swportid) WHERE retning =\'n\' AND boksbak IS NOT NULL"; 
+
+$resultat = db_select($conn,$sql);
+
+while(@svar = $resultat->fetchrow)
+{
+    $boks{$svar[1]}{via2}    = $svar[0];
+}
+
+# Sjekker også andre veien for bokser med kat=KANT, men retning n har rangen :)
+
+#$sql = "SELECT distinct boksid,boksbak FROM swport JOIN swportvlan USING (swportid) WHERE retning !=\'o\' AND boksbak IS NOT NULL"; 
+
+$sql = "SELECT distinct s.boksid,s.boksbak FROM swport s JOIN swportvlan USING (swportid),boks b where s.boksbak=b.boksid AND retning !=\'o\' AND (b.kat=\'SRV\' OR b.kat=\'KANT\')";
+
+$resultat = db_select($conn,$sql);
+
+while(@svar = $resultat->fetchrow)
+{
+    if ($boks{$svar[1]}{via2} == 0)
+    {
+	$boks{$svar[1]}{via2}    = $svar[0];
+    }
+}
+
 
 ######################################################
 
-$sql2 = "SELECT statusid,boksid,fra,trap FROM status WHERE til IS NULL AND (trap=\'boxDown\' OR trap=\'boxShadow\')";
+$sql = "SELECT statusid,boksid,fra,trap FROM status WHERE til IS NULL AND (trap=\'boxDown\' OR trap=\'boxShadow\')";
 
-$resultat = db_select($sql2,$conn);
+$resultat = db_select($conn,$sql);
 
 while(@svar = $resultat->fetchrow)
 {
@@ -206,7 +209,9 @@ foreach $id (keys %boks)
 
     if ($ip =~ /^\d/)
     {
-#	print "Pinger $boks{$id}{sysName} nå :)\n" if ($boks{$id}{kat} eq 'SRV');
+#	print "Pinger $boks{$id}{sysName}  nå :)\n" if ($boks{$id}{sysName} eq 'itea-nettel-230-h');
+
+#	print "Ping: $boks{$id}{sysName}\tvia2:$boks{$boks{$id}{via2}}{sysName}\tvia3:$boks{$boks{$id}{via3}}{sysName}\n";
 
 	if ($boks{$id}{kat} eq 'SRV')
 	{
@@ -231,7 +236,7 @@ foreach $id (keys %boks)
 		}
     
 		# For tilfeller der en boks er i skygge, men fortsetter
-		# å være nede etter at skyggen "har forsvunnet": Setter boksen i sunny,
+		# å være nede etter at "det som skygger har kommet opp": Setter boksen i sunny,
 		# og så har den litt tid på seg til å komme opp før den blir rapportert down.
 
 		if (($boks{$id}{skygge} eq 't') && 
@@ -245,11 +250,13 @@ foreach $id (keys %boks)
 	    }
 	    else
 	    {
+		# Svarer på andre ping.
 		&sett_boks_ok($id);
 	    }
 	}
 	else
 	{
+	    # Svarer på første ping
 	    &sett_boks_ok($id);
 	}
     }
@@ -266,8 +273,8 @@ foreach $id (@pingarray)
 	{
 	    $extwatch_new{$id}++;
 	    $tid = scalar localtime;
-	    open (LOG,">>$loggfil");
-	    print LOG "$tid: $boks{$id}{sysName} paa extended watch\n";
+	    open (LOG,">>$config{bokslog}");
+	    print LOG "$tid: $boks{$id}{sysName} ($boks{$id}{ip}) paa extended watch\n";
 	    close (LOG);
 	}
 	else
@@ -277,6 +284,7 @@ foreach $id (@pingarray)
     }
     else
     {
+	# Svarer på tredje ping.
 	&sett_boks_ok($id);
     }
 }
@@ -295,31 +303,11 @@ foreach $id (@downarray)
 	    ($boks{$boks{$id}{via3}}{watch} eq 't'))
     {
 	# Send ned-trap til TrapDetect
-	@data = ("$boxDownPrefix.1.1", 'string', "$id");
-	@data = (@data,"$boxDownPrefix.1.2", 'string', "$boks{$id}{sysName}");
-	@data = (@data,"$boxDownPrefix.1.3", 'string', "$boks{$id}{ip}");
-	&snmptrap($ipadresse, $boxDownPrefix, "Po", 6, $down, @data); 
-
-	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: snmptrap ned: $boks{$id}{sysName}\n";
-	close (LOG);
-
+	&send_trap($id,'down');
     }
     else
     {
-	# boks er i skygge. Oppdater nettel.skygge
-#	$update_skygge = $dbh->do('UPDATE nettel SET skygge=? WHERE id=?',{},('t',$id));
-	@data = ("$boxShadowPrefix.1.1", 'string', "$id");
-	@data = (@data,"$boxShadowPrefix.1.2", 'string', "$boks{$id}{sysName}");
-	@data = (@data,"$boxShadowPrefix.1.3", 'string', "$boks{$id}{ip}");
-	&snmptrap($ipadresse, $boxShadowPrefix, "Po", 6, $down, @data); 
-	
-	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: snmptrap skygge: $boks{$id}{sysName}\n";
-	close (LOG);
-
+	&send_trap($id,'shadow');
     }
 }
 
@@ -327,31 +315,11 @@ foreach $id (@uparray)
 {
     if ($boks{$id}{skygge} eq 't')
     {
-	@data = ("$boxShadowPrefix.1.1", 'string', "$id");
-	@data = (@data,"$boxShadowPrefix.1.2", 'string', "$boks{$id}{sysName}");
-	@data = (@data,"$boxShadowPrefix.1.3", 'string', "$boks{$id}{ip}");
-	&snmptrap($ipadresse, $boxShadowPrefix, "Po", 6, $up, @data); 
-#	print "Sender sunny-trap: $id_ $boks{$id}{sysName}\n";
-
-	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: snmptrap sunny: $boks{$id}{sysName}\n";
-	close (LOG);
-
+	&send_trap($id,'sunny');
     }
     elsif ($boks{$id}{skygge} eq 'f')
     {
-	@data = ("$boxDownPrefix.1.1", 'string', "$id");
-	@data = (@data,"$boxDownPrefix.1.2", 'string', "$boks{$id}{sysName}");
-	@data = (@data,"$boxDownPrefix.1.3", 'string', "$boks{$id}{ip}");
-	&snmptrap($ipadresse, $boxDownPrefix, "Po", 6, $up, @data);
-#	print "Sender opp-trap: $id $boks{$id}{sysName}\n";
-
-	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: snmptrap opp: $boks{$id}{sysName}\n";
-	close (LOG);
-
+	&send_trap($id,'up');
     }
 }
 
@@ -363,10 +331,81 @@ foreach $id (@uparray)
 %extwatch = %extwatch_new;
 dbmclose(%extwatch);
 
+$tid = scalar localtime;
+
+$rundetid = "$rundetid $tid";
+
+open (LOG,">>$config{rundelog}");
+print LOG "$rundetid\n";
+close (LOG);
 
 exit(0);
 
 ##############################################
+
+sub send_trap
+{
+    $id_    = $_[0];
+    $trap   = $_[1];
+
+# $trap kan være down, up, shadow, sunny 
+
+    $prefix = $status = '';
+
+    $string = "id:$id_ sysName:$boks{$id_}{sysName} IP:$boks{$id_}{ip}";
+
+    if ($trap eq 'down')
+    { 
+	$prefix = $config{boxDownPrefix}; $status = $config{downPrefix}; 
+
+	$sql = "INSERT INTO status (trapsource,trap,trapdescr,tilstandsfull,boksid,fra) VALUES ('bb','boxDown',\'$string\','Y',\'$id_\',NOW())";
+
+    }
+    elsif ($trap eq 'up')
+    { 
+	$prefix = $config{boxDownPrefix}; $status = $config{upPrefix}; 
+	
+	$sql = "UPDATE status SET til=NOW() WHERE til IS NULL AND boksid=\'$id_\' AND trapdescr = \'$string\' AND trap='boxDown'";
+
+    }
+    elsif ($trap eq 'shadow')
+    { 
+	$prefix = $config{boxShadowPrefix}; $status = $config{downPrefix}; 
+	
+	$sql = "INSERT INTO status (trapsource,trap,trapdescr,tilstandsfull,boksid,fra) VALUES ('bb','boxDown',\'$string\','Y',\'$id_\',NOW())";
+    }
+    elsif ($trap eq 'sunny')
+    { 
+	$prefix = $config{boxShadowPrefix}; $status = $config{upPrefix}; 
+
+	$sql = "UPDATE status SET til=NOW() WHERE til IS NULL AND boksid=\'$id_\' AND trapdescr = \'$string\' AND trap='boxShadow'";
+
+    }
+
+#    db_execute($conn,$sql);
+
+#    if (($trap eq 'down') || ($trap eq 'up'))
+#    {
+#	$tid1 = scalar localtime;
+#	$til = 'nettstotte@itea.ntnu.no';
+#	$subject = "$trap: $boks{$id_}{sysName} ($boks{$id_}{ip})";
+#	
+#	open(MAIL, "|mail -s '$subject' $til");
+#	print MAIL "$tid1 $trap: $string";
+#	close(MAIL);
+#    }
+
+    @data = ("$prefix.1.1", 'string', "$id_");
+    @data = (@data,"$prefix.1.2", 'string', "$boks{$id_}{sysName}");
+    @data = (@data,"$prefix.1.3", 'string', "$boks{$id_}{ip}");
+    &snmptrap($config{ipadresse}, $prefix, $config{boksnavn}, 6, $status, @data);
+    
+    $tid = scalar localtime;
+    open (LOG,">>$config{bokslog}");
+    print LOG "$tid: snmptrap $trap: $boks{$id_}{sysName} ($boks{$id_}{ip})\n";
+    close (LOG);
+
+}
 ##############################################
 sub sett_boks_ok
 {
@@ -375,13 +414,13 @@ sub sett_boks_ok
     if ($boks{$id_}{watch} eq 't')
     {
 	$sql="UPDATE boks SET watch=\'f\' WHERE boksid=\'$id_\'";
-	db_execute($sql,$conn);
+	db_execute($conn,$sql);
 
 	$boks{$id_}{watch} = 'f';
 
 	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: $boks{$id_}{sysName} av watch\n";
+	open (LOG,">>$config{bokslog}");
+	print LOG "$tid: $boks{$id_}{sysName} ($boks{$id_}{ip} av watch\n";
 	close (LOG);
     }
 	
@@ -403,19 +442,19 @@ sub sett_boks_down
     {
 	
 	$sql="UPDATE boks SET watch=\'t\' WHERE boksid=\'$id_\'";
-	db_execute($sql,$conn);
+	db_execute($conn,$sql);
 
 	$boks{$id_}{watch} = 't';
 
 	$tid = scalar localtime;
-	open (LOG,">>$loggfil");
-	print LOG "$tid: $boks{$id_}{sysName} paa watch\n";
+	open (LOG,">>$config{bokslog}");
+	print LOG "$tid: $boks{$id_}{sysName} ($boks{$id_}{ip}) paa watch\n";
 	close (LOG);
     }
     else # watch = 't'
     {
-	# Legg boks i downarray for sending av trap hvis 
-	# den ikke er i status-tabell fra før (hvis nede=N) 
+	# Legg boks i downarray for sending av ned-trap hvis 
+	# den ikke er i status-tabell fra før (hvis nede=f) 
 	
 	if ($boks{$id_}{nede} eq 'f')
 	{
@@ -423,10 +462,9 @@ sub sett_boks_down
 	    push (@downarray,$id_);
 
 	    $tid = scalar localtime;
-	    open (LOG,">>$loggfil");
-	    print LOG "$tid: $boks{$id_}{sysName} nede\n";
+	    open (LOG,">>$config{bokslog}");
+	    print LOG "$tid: $boks{$id_}{sysName} ($boks{$id_}{ip}) nede\n";
 	    close (LOG);
-	    
 	}
     }   
 }
@@ -442,38 +480,12 @@ sub justme
         $pid = <PIDFIL>;
         kill(0, $pid) and die "$0 already running (pid $pid), bailing out";
         close (PIDFIL);
+
+	$tid = scalar localtime;
+	open (LOG,">>$config{avbruttlog}");
+	print LOG "$tid: Runde avbrutt pga allerede eksisterende prosess med pid $pid\n";
+	close (LOG);
     }
 }
 
 ###########################################
-
-sub db_connect {
-    my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
-    return $conn;
-}
-sub db_select {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
-        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
-    return $resultat;
-}
-sub db_execute {
-    my $sql = $_[0];
-    my $conn = $_[1];
-    my $resultat = $conn->exec($sql);
-    die "DATABASEFEIL: $sql\n".$conn->errorMessage
-        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
-    return $resultat;
-}
-
-##################################
-
-
-
-
-
-
