@@ -221,24 +221,25 @@ class SqlBoks
 		// && = variabelnavn, ## = bytt ut med gitt verdi, !! = \n
 		{
 			String[] s = {
-				"&&sysName!!Cat: ##!!Roomid: ##!!Load: &&boksLast",
+				"Name: &&sysname!!Category: ##!!Type: ##!!Room: ##!!CPU load: &&boksLast",
 				"catid",
-				"roomid"
+				"typename",
+				"roomid",
 			};
 			text.put("gwBoks", s);
+			text.put("gswBoks", s);
 		}
 		{
 			String[] s = {
-				"&&sysName!!Cat: ## (stam)!!Netaddr: ##",
-				"catid",
-				"netaddr"
+				"Name: &&sysName!!Category: core!!Net addr: ##",
+				"netaddr",
 			};
-			text.put("stamBoks", s);
+			text.put("coreBoks", s);
 		}
 		{
 			String[] s = {
-				"sysname!!(def)",
-				"catid"
+				"Name: &&sysname!!Category: ##",
+				"catid",
 			};
 			text.put("defBoks", s);
 		}
@@ -246,24 +247,39 @@ class SqlBoks
 		// Linker
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->gw)",
+				"Link: &&sysNameFrom -> &&sysNameTo!!Interface: ##!!IP address: ##!!Net ident: ##!!Capacity: ## Mbps!!Metric: ##!!Load: &&linkLastPst (&&linkLast)",
 				"interface",
+				"gwip",
+				"netident",
+				"speed",
 				"metric",
-				"netaddr",
-				"speed"
 			};
 			text.put("gw-gwLink", s);
 		}
 		{
 			String[] s = {
-				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->stam)",
+				"Link: &&sysNameFrom -> &&sysNameTo!!Interface: ##!!IP address: ##!!Net ident: ##!!Capacity: ## Mbps!!Metric: ##!!Load: &&linkLastPst (&&linkLast)",
 				"interface",
+				"gwip",
+				"netident",
+				"speed",
 				"metric",
-				"netaddr",
-				"speed"
 			};
-			text.put("gw-stamLink", s);
+			text.put("gw-coreLink", s);
+			text.put("core-gwLink", s);
+			text.put("gsw-coreLink", s);
+			text.put("core-gswLink", s);
+
+			text.put("gsw-defLink", s);
+			text.put("def-gswLink", s);
+			text.put("gw-defLink", s);
+			text.put("def-gwLink", s);
+			text.put("core-defLink", s);
+			text.put("def-coreLink", s);
+			text.put("def-defLink", s);
 		}
+
+		/*
 		{
 			String[] s = {
 				"&&sysNameFrom -> &&sysNameTo!!Interface: ##!!OSPF: ##!!Nettadr: ##!!Capacity: ##!!Last: &&linkLastPst (&&linkLast)!!(gw->def)",
@@ -300,6 +316,7 @@ class SqlBoks
 			};
 			text.put("def-defLink", s);
 		}
+		*/
 
 
 		String cFields = "";
@@ -320,7 +337,7 @@ class SqlBoks
 		}
 
 
-		ResultSet rs = Database.query("SELECT gwportid,netboxid,sysname,interface,prefix.prefixid,nettype,catid,netident"+cFields+" FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING (prefixid) JOIN vlan USING(vlanid) JOIN module USING (moduleid) JOIN netbox USING (netboxid) WHERE nettype NOT IN ('loopback','unknown','lan') ORDER BY netboxid");
+		ResultSet rs = Database.query("SELECT gwportid,netboxid,sysname,interface,prefix.prefixid,nettype,catid,netident"+cFields+" FROM gwport JOIN gwportprefix USING(gwportid) JOIN prefix USING (prefixid) JOIN vlan USING(vlanid) JOIN module USING (moduleid) JOIN netbox USING (netboxid) JOIN type USING(typeid) WHERE nettype NOT IN ('loopback','unknown','lan') ORDER BY netboxid");
 		// SELECT gwportid,boksid,sysName,gwport.prefiksid,nettype,kat,nettident FROM (gwport JOIN prefiks USING (prefiksid)) JOIN boks USING (boksid) WHERE nettype NOT IN ('loopback','ukjent','lan') ORDER BY boksid
 
 
