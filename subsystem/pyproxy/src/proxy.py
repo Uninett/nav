@@ -36,7 +36,7 @@ import nav.web
 from nav.web.templates.DeviceBrowserTemplate import DeviceBrowserTemplate
 
 
-SERVERBASE='isbre.itea.ntnu.no'
+SERVERBASE='localhost'
 SERVERPORT=8080
 
 def handler(req):
