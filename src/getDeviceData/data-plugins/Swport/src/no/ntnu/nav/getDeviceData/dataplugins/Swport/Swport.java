@@ -44,6 +44,7 @@ public class Swport implements Comparable
 	private ArrayList vlanList;
 
 	private String hexstring;
+	private boolean retEmptyHexstring = false;
 
 	private boolean assignedToModule;
 
@@ -186,13 +187,16 @@ public class Swport implements Comparable
 	 */
 	public void addTrunkVlan(String vlan) {
 		if (!getTrunkB()) return;
+		retEmptyHexstring = true;
 		vlanList.add(vlan);
 	}
 
 	String getHexstring() {
-		if (hexstring == null) hexstring = getVlanAllowHexString();
+		if (hexstring == null && retEmptyHexstring) hexstring = getVlanAllowHexString();
 		return hexstring;
 	}
+
+	void setRetEmptyHexstring(boolean b) { retEmptyHexstring = b; }
 
 	/**
 	 * Set the allowed VLANs as a hexstring (used on Cisco devices).

@@ -214,7 +214,7 @@ public class CiscoSwCAT implements DeviceHandler
 					sc.swportFactory(ifindex).setVlan(vlan);
 				}
 			}
-				
+
 			l = sSnmp.getAll(nb.getOid("portTrunk"));
 			if (l != null) {
 				for (Iterator it = l.iterator(); it.hasNext();) {
@@ -224,7 +224,7 @@ public class CiscoSwCAT implements DeviceHandler
 					sc.swportFactory(ifindex).setTrunk(trunk);
 				}
 			}
-				
+
 			l = sSnmp.getAll(nb.getOid("portVlansAllowed"));
 			if (l != null) {
 				for (Iterator it = l.iterator(); it.hasNext();) {

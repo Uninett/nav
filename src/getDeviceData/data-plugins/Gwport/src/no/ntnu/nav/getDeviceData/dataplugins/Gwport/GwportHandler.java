@@ -389,8 +389,8 @@ public class GwportHandler implements DataHandler {
 								dbp.setNetaddr(p.getNetaddr());
 								dbp.setMasklen(p.getMasklen());								
 								dbp.setVlan(vl);
-								p = dbp;
 							}
+							p = dbp;
 
 							// Make sure the gwport refers to the correct gwportprefix
 							gwp.addGwportprefix(gp.getGwip(), (Gwportprefix)gwpDbMap.get(gp.getGwip()));

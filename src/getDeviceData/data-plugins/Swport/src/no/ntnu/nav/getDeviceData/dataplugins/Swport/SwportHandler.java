@@ -132,6 +132,8 @@ public class SwportHandler implements DataHandler {
 				for (Iterator j = md.getSwports(); j.hasNext();) {
 					Swport sd = (Swport)j.next();
 
+					//System.err.println("  Swport: " + sd + " ("+sc.getIgnoreSwport(sd.getIfindex())+")");
+
 					// Check if this swport should be ignored
 					if (sc.getIgnoreSwport(sd.getIfindex())) continue;
 
@@ -198,18 +200,19 @@ public class SwportHandler implements DataHandler {
 					}
 					sd.setSwportid(swportid);
 
+					sd.setRetEmptyHexstring(true);
 					if (sd.getTrunk() != null && !sd.getTrunk().booleanValue()) {
 						// Slett evt. fra swportallowedvlan
-						if (oldsd != null && oldsd.getHexstring().length() > 0) {
+						if (oldsd != null && oldsd.getHexstring() != null && oldsd.getHexstring().length() > 0) {
 							Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
 						}
 
 					} else if (sd.getTrunk() != null) {
 						// Trunk, da må vi evt. oppdatere swportallowedvlan
 						if (sd.getHexstring().length() > 0) {
-							if (oldsd == null || oldsd.getHexstring().length() == 0) {
+							if (oldsd == null || oldsd.getHexstring() == null || oldsd.getHexstring().length() == 0) {
 								Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+Database.addSlashes(sd.getHexstring())+"')");
-							} else if (!oldsd.getHexstring().equals(sd.getHexstring())) {
+							} else if (!sd.getHexstring().equals(oldsd.getHexstring())) {
 								Database.update("UPDATE swportallowedvlan SET hexstring = '"+Database.addSlashes(sd.getHexstring())+"' WHERE swportid = '"+sd.getSwportid()+"'");
 							}
 						}

@@ -261,27 +261,23 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 
-		/*	l = sSnmp.getAll(nb.getOid("ifTrunk"));
-				if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+		l = sSnmp.getAll(nb.getOid("ifTrunk"));
+		if (l != null) {
+			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
+				String ifindex = s[0];
+				if (!matchIfindex.contains(ifindex)) continue;
+
 				boolean trunk = (s[1].equals("1") ? true : false);
-				String[] s2 = s[0].split("\\.");
-				String module = s2[0];
-				String ifindex = (String) modPortIfindex.get(s[0]);
-				String mo = (String) ifModule.get(module);
-				module = (mo != null ? mo : module);
-				SwModule m = sc.swModuleFactory(module);
-				m.swportFactory(ifindex).setTrunk(trunk);
-				}
-				}*/
+				sc.swportFactory(ifindex).setTrunk(trunk);
+			}
+		}
 
 		l = sSnmp.getAll(nb.getOid("ifVlansAllowed"));
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				if (!matchIfindex.contains(s[0])) continue;
-				sc.swportFactory(s[0]).setTrunk(true);
 				sc.swportFactory(s[0]).setHexstring(s[1]);
 			}
 		}

@@ -220,7 +220,7 @@ public class QueryNetbox extends Thread
 			}
 
 			// OK, start a new QueryNetbox
-			Log.d("CHECK_RUN_Q", "Starting new Netbox thread with id: " + tid);
+			Log.d("CHECK_RUN_Q", "Starting new Netbox thread with id: " + tid + " to handle " + nb);
 			new QueryNetbox(tid, nb).start();
 
 		} 
@@ -622,6 +622,8 @@ public class QueryNetbox extends Thread
 		Log.setDefaultSubsystem("QUERY_NETBOX_T"+tid);
 		Log.setThreadId(tid);
 
+		Log.d("RUN", "Thread " + tid + " starting work on ("+nb+"|"+oidUpdObj+")");
+
 		long beginTime = System.currentTimeMillis();
 		SimpleSnmp sSnmp = null;
 
@@ -652,6 +654,7 @@ public class QueryNetbox extends Thread
 							return;
 						}
 					}
+					oidUpdObj = null;
 				}
 
 				// Process netbox
@@ -799,7 +802,7 @@ public class QueryNetbox extends Thread
 
 			}
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Log.e("RUN", "Caught exception, should not happen: " + e.getMessage());
 			e.printStackTrace(System.err);
 		} finally {
@@ -943,7 +946,7 @@ public class QueryNetbox extends Thread
 			if ("dumpRunq".equals(cmd)) {
 				// Dump runq
 				synchronized (nbRunQ) {
-					Log.d("RUNQ", "Dumping runQ: " + nbRunQ.size() + " entries"); 
+					Log.d("HANDLE_EVENT", "Dumping runQ: " + nbRunQ.size() + " entries"); 
 					for (Iterator it=nbRunQ.entrySet().iterator(); it.hasNext();) {
 						Map.Entry me = (Map.Entry)it.next();
 						long curTime = System.currentTimeMillis();
@@ -954,7 +957,7 @@ public class QueryNetbox extends Thread
 				Log.d("HANDLE_EVENT", "Active OID locks: " + OidTester.getLockSet());
 			} else if ("updateFromDB".equals(cmd)) {
 				// Update types/netboxes
-				Log.d("UPDATE", "Updating types/netboxes");
+				Log.d("HANDLE_EVENT", "Updating types/netboxes");
 				scheduleUpdateNetboxes(0);
 			} else if ("runNetbox".equals(cmd)) {
 				String netboxid = String.valueOf(e.getNetboxid());

@@ -105,7 +105,6 @@ public class ModuleHandler implements DataHandler {
 		dh.handleData(nb, dc, changedDeviceids);
 
 		Log.setDefaultSubsystem("ModuleHandler");
-
 		try {
 
 			for (Iterator modules = mc.getModules(); modules.hasNext();) {
@@ -148,9 +147,11 @@ public class ModuleHandler implements DataHandler {
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" model="+md.getModel()+" descr="+md.getDescr());
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+oldmd.getDeviceidS()+" module="+oldmd.getModule()+" model="+oldmd.getModel()+" descr="+oldmd.getDescr());
 
+						boolean newDevid = false;
 						if (oldmd.getDeviceid() != md.getDeviceid()) {
 							// Module has changed
 							Log.i("UPDATE_MODULE", "Module has changed to new device");
+							newDevid = true;
 						}
 
 						String[] set = {
@@ -163,7 +164,7 @@ public class ModuleHandler implements DataHandler {
 							"moduleid", moduleid
 						};
 						Database.update("module", set, where);
-						changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
+						changedDeviceids.put(md.getDeviceidS(), new Integer(newDevid ? DataHandler.DEVICE_ADDED : DataHandler.DEVICE_UPDATED ));
 					}
 				}
 				md.setModuleid(moduleid);

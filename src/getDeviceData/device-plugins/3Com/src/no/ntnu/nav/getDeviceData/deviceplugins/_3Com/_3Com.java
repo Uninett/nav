@@ -37,6 +37,8 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
 
 public class _3Com implements DeviceHandler
 {
+	public static final int HANDLE_PRI_3COM = -28;
+
 	private static String[] canHandleOids = {
 		"3cIfDescr",
 		"3cPS40PortState",
@@ -49,7 +51,7 @@ public class _3Com implements DeviceHandler
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
-		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
+		int v = nb.isSupportedOids(canHandleOids) ? HANDLE_PRI_3COM : NEVER_HANDLE;
 		Log.d("3COM_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
@@ -244,7 +246,10 @@ public class _3Com implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				if (nc.netboxDataFactory(nb).getSerial() == null) nc.netboxDataFactory(nb).setSerial(s[1]);
+				if (nc.netboxDataFactory(nb).getSerial() == null) {
+					nc.netboxDataFactory(nb).setSerial(s[1]);
+					nc.commit();
+				}
 				sc.swModuleFactory(Integer.parseInt(s[0])).setSerial(s[1]);
 				Log.d("PROCESS_3COM", "Module: " + s[0] + " Serial: " + s[1]);
 			}
