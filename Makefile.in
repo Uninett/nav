@@ -1,0 +1,42 @@
+##
+## Top-level Makefile for NAV
+##
+SHELL = @SHELL@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+
+INSTALL = @INSTALL@
+nav_user = @nav_user@
+top_srcdir = @top_srcdir@
+
+subdirs = subsystem/lib-python \
+	subsystem/webFront
+
+.PHONY: all install clean distclean
+
+all:
+	@for dir in ${subdirs}; do \
+	  $(MAKE) -C $$dir $@; \
+	done
+	@echo Done
+
+install:
+	@for dir in ${subdirs}; do \
+	  $(MAKE) -C $$dir $@; \
+	done
+	@echo Done
+
+clean:
+	rm -f *~ 
+	@for dir in ${subdirs}; do \
+	  $(MAKE) -C $$dir $@; \
+	done
+
+distclean: clean
+	rm -f config.status config.cache config.log Makefile
+	@for dir in ${subdirs}; do \
+	  $(MAKE) -C $$dir $@; \
+	done

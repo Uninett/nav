@@ -1,0 +1,46 @@
+##
+## Makefile for lib-python
+##
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+CHEETAH = @CHEETAH@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+
+pythonlibdir = @pythonlibdir@
+pathmodule = src/nav/path.py
+
+.PHONY: all install install-lib clean distclean
+
+all: $(pathmodule)
+
+$(pathmodule): Makefile
+	@echo "Generating $(pathmodule) ..."
+	@echo "# This file was generated during NAV build" > $(pathmodule)
+	@echo "prefix=\"$(prefix)\"" >> $(pathmodule)
+	@echo "exec_prefix=\"$(exec_prefix)\"" >> $(pathmodule)
+	@echo "bindir=\"$(bindir)\"" >> $(pathmodule)
+	@echo "libdir=\"$(libdir)\"" >> $(pathmodule)
+	@echo "pythonlibdir=\"$(pythonlibdir)\"" >> $(pathmodule)
+	@echo "sysconfdir=\"$(sysconfdir)\"" >> $(pathmodule)
+
+install: install-lib
+
+install-lib: $(pathmodule)
+	@cd src; \
+	installable=`find . -name '*.py'`; \
+	for file in $$installable; do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)/$(pythonlibdir)/$$file || exit 1; \
+	done
+clean:
+	backups=`find src -name '*~'`; \
+	rm -f $$backups
+	rm -f *~
+	rm -f $(pathmodule)
+
+distclean: clean
+	rm -f Makefile

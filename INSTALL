@@ -1,0 +1,21 @@
+Installing NAV
+==============
+NB! The build system has not been implemented throughout the entire project
+hierarchy yet, so this may not work.  Check individuel INSTALL files in
+subdirectories for more detailed installation instructions.
+
+
+To install NAV, do the following:
+
+# sh configure
+# make
+# make install
+
+
+Configuring NAV
+===============
+After installation, there is still a lot of configuration to do before you can
+start using NAV.
+
+TODO: Write up configuration procedures.
+

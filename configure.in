@@ -1,0 +1,29 @@
+dnl Process this file with GNU autoconf
+AC_INIT(Makefile.in)
+AC_REVISION($Revision: $)
+AC_PREFIX_DEFAULT(/tmp/nav)
+AC_CONFIG_AUX_DIR(conf)
+
+AC_PROG_INSTALL
+AC_PATH_PROG(CHEETAH, cheetah)
+
+AC_SUBST(nav_user)
+AC_SUBST(webroot)
+AC_SUBST(javalibdir)
+AC_SUBST(pythonlibdir)
+AC_SUBST(perllibdir)
+
+dnl Setting some default variables for NAV
+nav_user=navcron
+webroot='${prefix}/apache/webroot'
+pythonlibdir='${libdir}/python'
+javalibdir='${libdir}/java'
+perllibdir='${libdir}/perl'
+
+AC_OUTPUT(Makefile
+	subsystem/lib-python/Makefile
+	subsystem/webFront/Makefile
+	subsystem/webFront/templates/Makefile)
+
+echo
+echo "Now run 'make' to build NAV"

@@ -1,0 +1,3 @@
+#!/bin/sh
+echo Missing BSD compatible install, cannot proceed!
+exit 1
