@@ -12,7 +12,7 @@ pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
 
-files = handler.py .htaccess
+files = index.py .htaccess
 
 .PHONY: all install install-web clean distclean
 
@@ -22,7 +22,7 @@ install: install-web
 
 install-web:
 	for file in $(files); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/emotd/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/messages/$$file || exit 1; \
 	done
 
 clean:

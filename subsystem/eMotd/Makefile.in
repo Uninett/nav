@@ -6,7 +6,7 @@ exec_prefix = @exec_prefix@
 tooldir = @tooldir@
 crondir = @crondir@
 
-tool = emotd.tool
+tool = messages.tool
 subdirs = templates src lib bin
 
 .PHONY: all install clean distclean
