@@ -39,31 +39,30 @@ BEGIN;
 -- for the module table.
 \echo Finding duplicate device references in netbox
 SELECT netboxid, nextval ('public.device_deviceid_seq'::text) AS newdevid
-INTO TEMP TABLE devid_assignment
+INTO TEMP TABLE netbox_reassignment
 FROM netbox
 WHERE deviceid IN (SELECT deviceid
                    FROM netbox
                    GROUP BY deviceid HAVING count(netboxid) > 1);
 \echo Creating new devices
-INSERT INTO device SELECT newdevid FROM devid_assignment;
+INSERT INTO device SELECT newdevid FROM netbox_reassignment;
 \echo Reassigning the netboxes to the new devices and adding the UNIQUE(deviceid) constraint to the netbox table
-UPDATE netbox SET deviceid = newdevid FROM devid_assignment d
+UPDATE netbox SET deviceid = newdevid FROM netbox_reassignment d
 WHERE netbox.netboxid = d.netboxid;
 ALTER TABLE netbox ADD CONSTRAINT netbox_deviceid_key UNIQUE(deviceid);
-DROP TABLE devid_assignment;
 
 
 \echo Finding duplicate device references in module
 SELECT moduleid, nextval ('public.device_deviceid_seq'::text) AS newdevid
-INTO TEMP TABLE devid_assignment
+INTO TEMP TABLE module_reassignment
 FROM module
 WHERE deviceid IN (SELECT deviceid
                    FROM module
                    GROUP BY deviceid HAVING count(moduleid) > 1);
 \echo Creating new devices
-INSERT INTO device SELECT newdevid FROM devid_assignment;
+INSERT INTO device SELECT newdevid FROM module_reassignment;
 \echo Reassigning the modules to the new devices and adding the UNIQUE(deviceid) constraint to the module table
-UPDATE module SET deviceid = newdevid FROM devid_assignment d
+UPDATE module SET deviceid = newdevid FROM module_reassignment d
 WHERE module.moduleid = d.moduleid;
 ALTER TABLE module ADD CONSTRAINT module_deviceid_key UNIQUE(deviceid);
 
@@ -112,5 +111,9 @@ CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
 -- Redo the vlanPlot groups
 DELETE FROM vp_netbox_grp_info WHERE name IN ('Bynett', 'Kjernenett', 'Testnett');
 INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',true);
+
+-- Reset table privileges, since we created a new table
+SELECT nav_grant('navread', false);
+SELECT nav_grant('navwrite', true);
 
 COMMIT;
