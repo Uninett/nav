@@ -4156,15 +4156,24 @@ class bulkdefNetbox:
                         else:
                             status = BULK_STATUS_OK
                             error = "Got SNMP response, but couldn't get type (type isn't required for this category)."
-                except:
+                except nav.Snmp.TimeOutException:
                     if editTables.Cat(data['catid']).req_snmp:
                         # Snmp failed, but is required by this CAT
                         status = BULK_STATUS_YELLOW_ERROR
                         raise("RO given, but failed to contact box by SNMP (boxes of this category are required to answer).")
                     else:
                         # Snmp failed, but isn't required by this CAT
-                        status = BULK_STATUS_OK
-                        raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer).")
+                        if hasSerial:
+                            status = BULK_STATUS_OK
+                            raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer as long as a serial is given).")
+                        else:
+                            status = BULK_STATUS_YELLOW_ERROR
+                            raise("RO given, but failed to contact box by SNMP (boxes of this cateogry aren't required to answer, but you must supply a serial if they don't).")
+                except Exception, e:
+                    status = BULK_STATUS_RED_ERROR
+                    error = 'Uknown error while querying box: '
+                    error += str(sys.exc_info()[0]) + ': '
+                    error += str(sys.exc_info()[1])
                 if error:
                     raise(error)
         except:
