@@ -1,26 +1,25 @@
+import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
 
-import no.ntnu.nav.getDeviceData.plugins.BoksData;
-
-public class BoksDataImpl implements BoksData
+public class NetboxImpl implements Netbox
 {
-	private String boksid;
+	private String netboxid;
 	private String ip;
 	private String cs_ro;
-	private String boksTypegruppe;
-	private String boksType;
+	private String typegroup;
+	private String type;
 	private String sysName;
-	private String kat;
+	private String cat;
 	private int snmpMajor;
 	private String snmpagent;
 	private long nextRun;
 	private boolean removed;
 
-	public BoksDataImpl() {
+	public NetboxImpl() {
 		nextRun = System.currentTimeMillis();
 	}
 
-	public String getBoksid() { return boksid; }
-	public void setBoksid(String s) { boksid = s; }
+	public String getNetboxid() { return netboxid; }
+	public void setNetboxid(String s) { netboxid = s; }
 
 	public String getIp() { return ip; }
 	public void setIp(String s) { ip = s; }
@@ -28,17 +27,17 @@ public class BoksDataImpl implements BoksData
 	public String getCommunityRo() { return cs_ro; }
 	public void setCommunityRo(String s) { cs_ro = s; }
 
-	public String getTypegruppe() { return boksTypegruppe; }
-	public void setTypegruppe(String s) { boksTypegruppe = s; }
+	public String getTypegroup() { return typegroup; }
+	public void setTypegroup(String s) { typegroup = s; }
 
-	public String getType() { return boksType; }
-	public void setType(String s) { boksType = s; }
+	public String getType() { return type; }
+	public void setType(String s) { type = s; }
 
 	public String getSysname() { return sysName; }
 	public void setSysname(String s) { sysName = s; }
 
-	public String getKat() { return kat; }
-	public void setKat(String s) { kat = s; }
+	public String getCat() { return cat; }
+	public void setCat(String s) { cat = s; }
 
 	public int getSnmpMajor() { return snmpMajor; }
 	public void setSnmpMajor(int i) { snmpMajor = i; }

@@ -12,10 +12,12 @@ import java.text.*;
 
 import java.sql.*;
 
+import no.ntnu.nav.logger.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.getDeviceData.plugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.deviceplugins.*;
 
 // select swportid,boksid,sysname,typeid,ifindex,modul,port,status,speed,duplex,media,trunk from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f' order by boksid,modul,port;
 // select count(*) from swport join boks using (boksid) join type using (typeid) where typegruppe like '3%' and swport.static='f';
@@ -31,6 +33,7 @@ class getDeviceData
 	public static final String dbConfigFile = "local/etc/conf/db.conf";
 	public static final String configFile = "local/etc/conf/getDeviceData.conf";
 	public static final String scriptName = "getDeviceData";
+	public static final String logFile = "local/etc/log/getDeviceData.log";
 
 	public static int NUM_THREADS = 16;
 	public static final int SHOW_TOP = 25;
@@ -65,7 +68,7 @@ class getDeviceData
 	// A timer
 	static Thread[] threads;
 	static Timer timer;
-	static BoksTimer boksTimer;
+	static NetboxTimer netboxTimer;
 	static Stack idleThreads;
 
 	//static HashSet safeCloseBoksid = new HashSet();
@@ -114,6 +117,9 @@ class getDeviceData
 		}
 		outl("Running with " + NUM_THREADS + " threads max.");
 
+		// Init logger
+		Log.init(navRoot + logFile, "getDeviceData");
+
 		ConfigParser cp, dbCp;
 		try {
 			if (cf == null) cf = navRoot + configFile;
@@ -135,13 +141,13 @@ class getDeviceData
 
 		// Load config
 		try {
-			QueryBoks.minBoksRunInterval = Integer.parseInt(cp.get("minBoksRunInterval"));
+			QueryNetbox.minBoksRunInterval = Integer.parseInt(cp.get("minBoksRunInterval"));
 		} catch (Exception e) {
-			QueryBoks.minBoksRunInterval = 60; // Default is every 60 minutes
+			QueryNetbox.minBoksRunInterval = 60; // Default is every 60 minutes
 		}
-		QueryBoks.minBoksRunInterval *= 60 * 1000; // Convert from minutes to milliseconds
+		QueryNetbox.minBoksRunInterval *= 60 * 1000; // Convert from minutes to milliseconds
 		// DEBUG
-		QueryBoks.minBoksRunInterval = 15000; // Every 15 secs
+		QueryNetbox.minBoksRunInterval = 15000; // Every 15 secs
 
 		int loadDataInterval;
 		try {
@@ -159,25 +165,25 @@ class getDeviceData
 
 
 		// Sett datastrukturer for alle tråder
-		QueryBoks.ERROR_OUT = ERROR_OUT;
-		QueryBoks.VERBOSE_OUT = VERBOSE_OUT;
-		QueryBoks.DEBUG_OUT = DEBUG_OUT;
-		QueryBoks.DB_UPDATE = DB_UPDATE;
-		QueryBoks.DB_COMMIT = DB_COMMIT;
+		QueryNetbox.ERROR_OUT = ERROR_OUT;
+		QueryNetbox.VERBOSE_OUT = VERBOSE_OUT;
+		QueryNetbox.DEBUG_OUT = DEBUG_OUT;
+		QueryNetbox.DB_UPDATE = DB_UPDATE;
+		QueryNetbox.DB_COMMIT = DB_COMMIT;
 
-		QueryBoks.setConfigParser(cp);
+		QueryNetbox.setConfigParser(cp);
 
-		QueryBoks.setModuleMap(moduleMap);
-		QueryBoks.setDeviceMap(deviceMap);
-		//QueryBoks.setSwportDataMap(swportDataMap);
-		QueryBoks.setBoksDiskMap(boksDiskMap);
-		QueryBoks.setBoksInterfaceMap(boksInterfaceMap);
+		QueryNetbox.setModuleMap(moduleMap);
+		QueryNetbox.setDeviceMap(deviceMap);
+		//QueryNetbox.setSwportDataMap(swportDataMap);
+		QueryNetbox.setBoksDiskMap(boksDiskMap);
+		QueryNetbox.setBoksInterfaceMap(boksInterfaceMap);
 
-		QueryBoks.setBdFifo(bdFifo);
-		QueryBoks.setBdMap(bdMap);
+		QueryNetbox.setBdFifo(bdFifo);
+		QueryNetbox.setBdMap(bdMap);
 
 		// Indikerer om en tråd er ferdig
-		QueryBoks.initThreadDone(NUM_THREADS);
+		QueryNetbox.initThreadDone(NUM_THREADS);
 
 		// Lag trådene
 		//long beginTime = System.currentTimeMillis();
@@ -186,16 +192,18 @@ class getDeviceData
 		//int digits = String.valueOf(NUM_THREADS-1).length();
 
 		idleThreads = new Stack();
-		QueryBoks.setIdleThreads(idleThreads);
+		QueryNetbox.setIdleThreads(idleThreads);
 		for (int i=NUM_THREADS-1; i >= 0; i--) {
 			idleThreads.push(new Integer(i));
 		}
 
 		// Set up the plugin monitor
-		HashMap deviceHandlerMap = new HashMap();
-		QueryBoks.setDeviceHandlerMap(deviceHandlerMap);
+		Map dataClassMap = new HashMap();
+		Map deviceClassMap = new HashMap();
+		QueryNetbox.setDataClassMap(dataClassMap);
+		QueryNetbox.setDeviceClassMap(deviceClassMap);
 		Timer pluginTimer = new Timer(true);
-		PluginMonitorTask pmt = new PluginMonitorTask("plugins", deviceHandlerMap);
+		PluginMonitorTask pmt = new PluginMonitorTask("data-plugins", dataClassMap, "device-plugins", deviceClassMap);
 		// Load all plugins
 		pmt.run();
 		// Check for new plugin every 5 seconds
@@ -203,7 +211,7 @@ class getDeviceData
 
 		outld("Starting timer for boks query scheduling...");
 		timer = new Timer();
-		timer.schedule( boksTimer = new BoksTimer(), 0);
+		timer.schedule( netboxTimer = new NetboxTimer(), 0);
 
 		/*
 		// Sleep forever
@@ -219,7 +227,7 @@ class getDeviceData
 
 		/*
 		for (int i=0; i < NUM_THREADS; i++) {
-			threads[i] = new QueryBoks(i, format(i, digits));
+			threads[i] = new QueryNetbox(i, format(i, digits));
 			threads[i].start();
 		}
 
@@ -257,7 +265,7 @@ class getDeviceData
 
 		/*
 		// Lag rapport på tid brukt på de forskjellige boksene
-		ArrayList boksReport = QueryBoks.boksReport;
+		ArrayList boksReport = QueryNetbox.boksReport;
 		Collections.sort(boksReport);
 
 		digits = String.valueOf(Math.min(SHOW_TOP, boksReport.size())).length();
@@ -294,22 +302,14 @@ class getDeviceData
 	private static void timerSched(long l)
 	{
 		synchronized (timer) {
-			boksTimer.cancel();
-			boksTimer = new BoksTimer();
-			timer.schedule(boksTimer, l);
+			netboxTimer.cancel();
+			netboxTimer = new NetboxTimer();
+			timer.schedule(netboxTimer, l);
 		}
 	}
 
-	//private static boolean timerRunning;
 	public static void threadIdle()
 	{
-		/*
-		synchronized (timer) {
-			boksTimer.cancel();
-			boksTimer = new BoksTimer();
-			timer.schedule(boksTimer, 0);
-		}
-		*/
 		timerSched(0);
 	}
 
@@ -319,14 +319,11 @@ class getDeviceData
 		synchronized (bdFifo) {
 			outld("  Elements in queue: " + bdFifo.size());
 			if (bdFifo.size() == 0) return;
-			BoksDataImpl bd = (BoksDataImpl)bdFifo.getFirst();
-			if (bd.nextRun() > System.currentTimeMillis()) {
+			NetboxImpl nb = (NetboxImpl)bdFifo.getFirst();
+			if (nb.nextRun() > System.currentTimeMillis()) {
 				// Not yet ripe
-				outld("  Head of queue not yet ripe, next run in: " + (bd.nextRun() - System.currentTimeMillis()) + " ms");
-				//timer.setInitialDelay( (int)(bd.nextRun() - System.currentTimeMillis()) );
-				//timer.restart();
-				//timer.schedule(boksTimer, bd.nextRun() - System.currentTimeMillis());
-				timerSched(bd.nextRun() - System.currentTimeMillis());
+				outld("  Head of queue not yet ripe, next run in: " + (nb.nextRun() - System.currentTimeMillis()) + " ms");
+				timerSched(nb.nextRun() - System.currentTimeMillis());
 				return;
 			}
 
@@ -340,27 +337,25 @@ class getDeviceData
 			outld("started thread #"+tnum);
 
 			bdFifo.removeFirst();
-			threads[tnum] = new QueryBoks(tnum, format(tnum, threadNumDigits), bd);
+			threads[tnum] = new QueryNetbox(tnum, format(tnum, threadNumDigits), nb);
 			threads[tnum].start();
 
 			// Schedule next task if there is one
 			if (bdFifo.size() > 0) {
-				bd = (BoksDataImpl)bdFifo.getFirst();
-				//timer.setInitialDelay( (int)(bd.nextRun() - System.currentTimeMillis()) );
-				//timer.restart();
-				//timer.schedule(boksTimer, bd.nextRun() - System.currentTimeMillis());
-				outld("  Scheduling next task, ripe in: " + (Math.max(0, bd.nextRun() - System.currentTimeMillis())) + " ms");
-				timerSched(Math.max(0, bd.nextRun() - System.currentTimeMillis()) );
+				nb = (NetboxImpl)bdFifo.getFirst();
+				outld("  Scheduling next task, ripe in: " + (Math.max(0, nb.nextRun() - System.currentTimeMillis())) + " ms");
+				timerSched(Math.max(0, nb.nextRun() - System.currentTimeMillis()) );
 			}
 		}
 	}
 
 	public static void loadData() throws SQLException
 	{
-		if (moduleMap == null) loadPermanentData();
+		//if (moduleMap == null) loadPermanentData();
 		loadReloadableData();
 	}
 
+	/*
 	private static void loadPermanentData() throws SQLException
 	{
 		ResultSet rs;
@@ -424,6 +419,7 @@ class getDeviceData
 		outl(dumpUsedTime + " ms.");
 
 	}
+	*/
 
 	private static void loadReloadableData() throws SQLException
 	{
@@ -445,12 +441,14 @@ class getDeviceData
 		*/
 
 		// device
+		/*
 		dumpBeginTime = System.currentTimeMillis();
 		rs = Database.query("SELECT deviceid,serial FROM device");
 		while (rs.next()) {
 			deviceMap.put(rs.getString("serial"), rs.getString("deviceid"));
 		}
 		dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
+		*/
 
 
 
@@ -519,31 +517,31 @@ class getDeviceData
 		while (rs.next()) {
 			// Eksisterer denne fra før?
 			String boksid = rs.getString("netboxid");
-			BoksDataImpl bd;
+			NetboxImpl nb;
 			boolean newBd = false;
 			synchronized (bdMap) {
-				if ( (bd=(BoksDataImpl)bdMap.get(boksid)) != null) {
+				if ( (nb=(NetboxImpl)bdMap.get(boksid)) != null) {
 					bdMapClone.remove(boksid);
 				} else {
-					bd = new BoksDataImpl();
-					bdMap.put(boksid, bd);
+					nb = new NetboxImpl();
+					bdMap.put(boksid, nb);
 					newBd = true;
 				}
 			}
 
-			bd.setBoksid(boksid);
-			bd.setIp(rs.getString("ip"));
-			bd.setCommunityRo(rs.getString("ro"));
-			bd.setTypegruppe(rs.getString("typegroupid"));
-			bd.setType(rs.getString("typename"));
-			bd.setSysname(rs.getString("sysname"));
-			bd.setKat(rs.getString("catid"));
+			nb.setNetboxid(boksid);
+			nb.setIp(rs.getString("ip"));
+			nb.setCommunityRo(rs.getString("ro"));
+			nb.setTypegroup(rs.getString("typegroupid"));
+			nb.setType(rs.getString("typename"));
+			nb.setSysname(rs.getString("sysname"));
+			nb.setCat(rs.getString("catid"));
 			//bd.setSnmpMajor(rs.getInt("snmp_major"));
 			//bd.setSnmpagent(rs.getString("snmpagent"));
 
 			if (newBd) {
 				synchronized (bdFifo) {
-					bdFifo.addFirst(bd);
+					bdFifo.addFirst(nb);
 				}
 			}
 		}
@@ -552,8 +550,8 @@ class getDeviceData
 			Iterator i = bdMapClone.keySet().iterator();
 			while (i.hasNext()) {
 				String boksid = (String)i.next();
-				BoksDataImpl bd = (BoksDataImpl)bdMap.remove(boksid);
-				bd.removed(true);
+				NetboxImpl nb = (NetboxImpl)bdMap.remove(boksid);
+				nb.removed(true);
 			}
 		}
 
@@ -599,7 +597,7 @@ class getDeviceData
 	private static void outld(String s) { if (DEBUG_OUT) System.out.println(s); }
 }
 
-class QueryBoks extends Thread
+class QueryNetbox extends Thread
 {
 	public static boolean ERROR_OUT = true;
 	public static boolean VERBOSE_OUT = false;
@@ -653,14 +651,17 @@ class QueryBoks extends Thread
 	// Rapport når en boks er ferdigbehandlet
 	static ArrayList boksReport = new ArrayList();
 
-	// Device handlers
-	static HashMap deviceHandlerBdMap = new HashMap();
-	static HashMap deviceHandlerMap;
-	public static void setDeviceHandlerMap(HashMap h) { deviceHandlerMap = h; }
-	public static void clearDeviceHandlerBdCache()
+	// Plugins
+	// Caches which device handlers can handle a given Netbox
+	static Map deviceNetboxCache = Collections.synchronizedMap(new HashMap());
+	static Map dataClassMap, deviceClassMap;
+	static Map persistentStorage = Collections.synchronizedMap(new HashMap());
+	public static void setDataClassMap(Map m) { dataClassMap = m; }
+	public static void setDeviceClassMap(Map m) { deviceClassMap = m; }
+	public static void clearDeviceNetboxCache()
 	{
-		synchronized (deviceHandlerBdMap) {
-			deviceHandlerBdMap.clear();
+		synchronized (deviceNetboxCache) {
+			deviceNetboxCache.clear();
 		}
 	}
 
@@ -669,17 +670,17 @@ class QueryBoks extends Thread
 	// Objekt-spesifikke data
 	int tnum;
 	String id;
-	BoksDataImpl bd;
+	NetboxImpl nb;
 	//String id;
 
 	SimpleSnmp sSnmp = new SimpleSnmp();
 
 	// Konstruktør
-	public QueryBoks(int tnum, String id, BoksDataImpl initialBd)
+	public QueryNetbox(int tnum, String id, NetboxImpl initialNb)
 	{
 		this.tnum = tnum;
 		this.id = id;
-		this.bd = initialBd;
+		this.nb = initialNb;
 	}
 
 	public static void initThreadDone(final int NUM_THREADS)
@@ -712,242 +713,57 @@ class QueryBoks extends Thread
 
 		while (true) {
 			// Schedule the next run for this boks
-			bd.nextRun(System.currentTimeMillis() + minBoksRunInterval);
+			nb.nextRun(System.currentTimeMillis() + minBoksRunInterval);
 			synchronized (bdMap) {
 				antBd = bdMap.size();
 				if (++curBd > antBd) curBd = 0;
 			}
 
-			String netboxid = bd.getBoksid();
-			String ip = bd.getIp();
-			String cs_ro = bd.getCommunityRo();
-			String boksTypegruppe = bd.getTypegruppe();
-			String boksType = bd.getType();
-			String sysName = bd.getSysname();
-			String kat = bd.getKat();
-			int snmpMajor = bd.getSnmpMajor();
+			String netboxid = nb.getNetboxid();
+			String ip = nb.getIp();
+			String cs_ro = nb.getCommunityRo();
+			String typegroup = nb.getTypegroup();
+			String type = nb.getType();
+			String sysName = nb.getSysname();
+			String cat = nb.getCat();
+			int snmpMajor = nb.getSnmpMajor();
 
-			outla("T"+id+": Now working with("+netboxid+"): " + sysName + " ("+ boksType +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
+			outla("T"+id+": Now working with("+netboxid+"): " + sysName + " ("+ type +") ("+ ip +") (device "+ curBd +" of "+ antBd+")");
 			long boksBeginTime = System.currentTimeMillis();
 
-			// Liste over alle innslagene vi evt. skal sette inn i swp_boks
-			//ArrayList boksListe = new ArrayList();
-
-			// OK, prøv å spørre
-			int newcnt=0,updcnt=0,remcnt=0;
 			try {
 
+				// Get DataContainer objects from each data-plugin.
+				DataContainersImpl containers = getDataContainers();
+
 				// Find handlers for this boks
-				DeviceHandler[] deviceHandler = findHandlers(bd);
+				DeviceHandler[] deviceHandler = findDeviceHandlers(nb);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + netboxid + " (kat: " + kat + " type: " + boksType + ")");
+					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + netboxid + " (cat: " + cat + " type: " + type + ")");
 				}
-				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (kat: " + kat + " type: " + boksType + ")");
+				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + netboxid + " (cat: " + cat + " type: " + type + ")");
 
 				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
-					DeviceDataListImpl dlist = new DeviceDataListImpl();
-					deviceHandler[dhNum].handle(bd, sSnmp, navCp, dlist);
-					List moduleDataList = dlist.getModuleDataList();
+					try {
+						deviceHandler[dhNum].handleDevice(nb, sSnmp, navCp, containers);
 
-					//if (!sSnmp.resetGotTimeout() && !portDataList.isEmpty()) synchronized (safeCloseBoksid) { safeCloseBoksid.add(boksid); }
+					} catch (TimeoutException te) {
+						outl("T"+id+":   *ERROR*, TimeoutException: " + te.getMessage());
+						outla("T"+id+":   *** GIVING UP ON: " + sysName + ", typeid: " + type + " ***");
+						continue;
+					}
+
+				}
+
+				// Call the data handlers for all data plugins
+				containers.callDataHandlers(nb);
 
 					// Process returned swports
-					outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
+					//outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
 
-					boolean DB_UPDATE_BK = DB_UPDATE;
-					boolean DB_COMMIT_BK = DB_COMMIT;
-					//DB_UPDATE = false;
-					//DB_COMMIT = false;
-					Collections.sort(moduleDataList); // Egentlig unødvendig, men kjekt å ha det ferdig sortert i databasen
-					for (int i=0; i < moduleDataList.size(); i++) {
-						ModuleData md = (ModuleData)moduleDataList.get(i);
 
-						// Er dette serienummeret i device-tabellen?
-						String deviceid = (String)deviceMap.get(md.getSerial());
-						boolean insertedDevice = false;
-						if (deviceid == null) {
-							// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
-							// Først oppretter vi device
-							outld("  [device] [NEW] Serial: " + md.getSerial());
-
-							ResultSet rs = Database.query("SELECT nextval('device_deviceid_seq') AS deviceid");
-							rs.next();
-							deviceid = rs.getString("deviceid");
-
-							String[] insd = {
-								"deviceid", deviceid,
-								"serial", md.getSerial(),
-								"hw_ver", md.getHwVer(),
-								"sw_ver", md.getSwVer()
-							};
-							if (DB_UPDATE) Database.insert("device", insd);
-							insertedDevice = true;
-							deviceMap.put(md.getSerial(), deviceid);
-						}
-						md.setDeviceid(deviceid);
-
-						// OK, først sjekk om denne porten er i swport fra før
-						String moduleKey = netboxid+":"+md.getKey();
-						String moduleid;
-						ModuleData oldmd = (ModuleData)moduleMap.get(moduleKey);
-						moduleMap.put(moduleKey, md);
-
-						if (oldmd == null) {
-							// Sett inn i module
-							outld("    [module] [NEW] Module: " + md.getModule());
-
-							ResultSet rs = Database.query("SELECT nextval('module_moduleid_seq') AS moduleid");
-							rs.next();
-							moduleid = rs.getString("moduleid");
-
-							String[] insm = {
-								"moduleid", moduleid,
-								"deviceid", deviceid,
-								"netboxid", netboxid,
-								"module", md.getModule(),
-								"submodule", md.getSubmodule()
-							};
-							if (DB_UPDATE) Database.insert("module", insm);
-
-						} else {
-							moduleid = oldmd.getModuleidS();
-							if (!oldmd.equals(md)) {
-								// Vi må oppdatere module
-								String[] set = {
-									"deviceid", deviceid,
-									"module", md.getModule(),
-									"submodule", md.getSubmodule()
-								};
-								String[] where = {
-									"moduleid", moduleid
-								};
-								if (DB_UPDATE) Database.update("module", set, where);
-							}
-						}
-						md.setModuleid(moduleid);
-
-						if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
-							// Oppdater device
-							String[] set = {
-								"hw_ver", md.getHwVer(),
-								"sw_ver", md.getSwVer()
-							};
-							String[] where = {
-								"deviceid", deviceid
-							};
-							if (DB_UPDATE) Database.update("device", set, where);
-						}
-
-						outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
-
-						// Så alle swportene
-						for (Iterator j = md.getSwportData(); j.hasNext();) {
-							SwportData sd = (SwportData)j.next();
-
-							// Finn evt. gammel
-							String swportid;
-							SwportData oldsd = oldmd.getSwportData(sd.getPortI());
-							if (oldsd == null) {
-								// Sett inn ny
-								outld("      [swport] [NEW] Port: " + sd.getPort());
-
-								ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
-								rs.next();
-								swportid = rs.getString("swportid");
-
-								String[] inss = {
-									"swportid", swportid,
-									"moduleid", moduleid,
-									"port", sd.getPort(),
-									"ifindex", sd.getIfindex(),
-									"link", String.valueOf(sd.getLink()),
-									"speed", sd.getSpeed(),
-									"duplex", sd.getDuplexS(),
-									"media", Database.addSlashes(sd.getMedia()),
-									"trunk", sd.getTrunkS(),
-									"portname", Database.addSlashes(sd.getPortname())
-								};
-								if (DB_UPDATE) Database.insert("swport", inss);
-
-							} else {
-								swportid = oldsd.getSwportidS();
-								if (!oldsd.equals(sd)) {
-									// Vi må oppdatere
-									outl("STUB: Update swport...");
-									String[] set = {
-										"ifindex", sd.getIfindex(),
-										"link", String.valueOf(sd.getLink()),
-										"speed", sd.getSpeed(),
-										"duplex", sd.getDuplexS(),
-										"media", Database.addSlashes(sd.getMedia()),
-										"trunk", sd.getTrunkS(),
-										"portname", Database.addSlashes(sd.getPortname())
-									};
-									String[] where = {
-										"swportid", swportid
-									};
-									Database.update("swport", set, where);
-								}
-							}
-							sd.setSwportid(swportid);
-
-							if (!sd.getTrunk()) {
-								if (oldsd != null && oldsd.getTrunk()) {
-									// Går fra trunk -> non-trunk, slett alle så nær som et vlan fra swportvlan
-									Database.update("DELETE FROM swportvlan WHERE swportid="+sd.getSwportid()+" AND vlan!=(SELCT MIN(vlan) FROM swportvlan WHERE swportid="+sd.getSwportid()+" GROUP BY swportid)");
-								}
-
-								// Også oppdater swportvlan
-								if (oldsd == null || oldsd.getVlan() == Integer.MIN_VALUE) {
-									if (sd.getVlan() <= 0) sd.setVlan(1);
-									Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+sd.getSwportid()+"','"+sd.getVlan()+"')");
-								} else if (sd.getVlan() > 0 && oldsd.getVlan() != sd.getVlan()) {
-									Database.update("UPDATE swportvlan SET vlan = '"+sd.getVlan()+"' WHERE swportid = '"+sd.getSwportid()+"'");
-								}
-
-								// Slett evt. fra swportallowedvlan
-								if (oldsd != null && oldsd.getHexstring().length() > 0) {
-									Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
-								}
-
-							} else {
-								// Trunk, da må vi evt. oppdatere swportallowedvlan
-								if (sd.getHexstring().length() > 0) {
-									if (oldsd == null || oldsd.getHexstring().length() == 0) {
-										Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+sd.getHexstring()+"')");
-									} else if (!oldsd.getHexstring().equals(sd.getHexstring())) {
-										Database.update("UPDATE swportallowedvlan SET hexstring = '"+sd.getHexstring()+"' WHERE swportid = '"+sd.getSwportid()+"'");
-									}
-								}
-							}
-
-						}
-
-						if (DB_COMMIT) Database.commit(); else Database.rollback();
-
-					}
-					if (DB_UPDATE_BK) DB_UPDATE = true;
-					if (DB_COMMIT_BK) DB_COMMIT = true;
-
-					// Process boks properties
-					DeviceData dd = dlist.getDeviceData();
-
-					// Sysname
-					if (dd != null) {
-						String sysname = dd.getSysname();
-						if (sysname != null && sysname.length() > 0 && !sysname.equals(bd.getSysname())) {
-							// Oppdater
-							try {
-								if (DB_UPDATE) Database.update("UPDATE boks SET sysname='"+Database.addSlashes(sysname)+"' WHERE boksid='"+bd.getBoksid()+"'");
-								if (DB_COMMIT) Database.commit(); else Database.rollback();
-								if (DB_UPDATE && DB_COMMIT) bd.setSysname(sysname);
-							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update sysname for boksid " + bd.getBoksid() + " to " + Database.addSlashes(sysname) + ": " + e.getMessage());
-							}
-						}
-					}
-
+					/*
 					// Snmpagent
 					if (dd != null) {
 						String snmpagent = dd.getSnmpagent();
@@ -958,7 +774,7 @@ class QueryBoks extends Thread
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 								if (DB_UPDATE && DB_COMMIT) bd.setSnmpagent(snmpagent);
 							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
+								outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
 							}
 						}
 					}
@@ -990,7 +806,7 @@ class QueryBoks extends Thread
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
 									if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
 								} catch (SQLException e) {
-									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+									outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 								}
 							} else {
 								boksDiskClone.remove(path);
@@ -1011,7 +827,7 @@ class QueryBoks extends Thread
 										if (DB_COMMIT) Database.commit(); else Database.rollback();
 										if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
 									} catch (SQLException e) {
-										outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
+										outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
 									}
 								}
 							}
@@ -1031,7 +847,7 @@ class QueryBoks extends Thread
 								if (DB_UPDATE) Database.update("DELETE FROM boksdisk WHERE boksid='"+bd.getBoksid()+"' AND path IN ("+sb+")");
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove paths " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot remove paths " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
 						}
 					}
@@ -1060,7 +876,7 @@ class QueryBoks extends Thread
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
 									if (DB_UPDATE && DB_COMMIT) boksInterface.add(interf);
 								} catch (SQLException e) {
-									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new interf " + interf + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+									outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot insert new interf " + interf + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 								}
 							} else {
 								boksInterfaceClone.remove(interf);
@@ -1080,24 +896,15 @@ class QueryBoks extends Thread
 								if (DB_UPDATE) Database.update("DELETE FROM boksinterface WHERE boksid='"+bd.getBoksid()+"' AND interf IN ("+sb+")");
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
 							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove interfs " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								outle("T"+id+":   SQLException in QueryNetbox.run(): Cannot remove interfs " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
 						}
 					}
-				}
-				if (DB_COMMIT) Database.commit(); else Database.rollback();
-
-
-			//} catch (SQLException se) {
-			//	outld("*ERROR* SQLException: " + se.getMessage());
-			} catch (TimeoutException te) {
-				outl("T"+id+":   *ERROR*, TimeoutException: " + te.getMessage());
-				outla("T"+id+":   *** GIVING UP ON: " + sysName + ", typeid: " + boksType + " ***");
-				//continue;
+					********************************/
 			} catch (NoDeviceHandlerException exp) {
 				outld(exp.getMessage());
 			} catch (Exception exp) {
-				outle("T"+id+":   QueryBoks.run(): Fatal error, aborting. Exception: " + exp.getMessage());
+				outle("T"+id+":   QueryNetbox.run(): Fatal error, aborting. Exception: " + exp.getMessage());
 				exp.printStackTrace(System.err);
 			}
 
@@ -1106,22 +913,22 @@ class QueryBoks extends Thread
 			synchronized (bdFifo) {
 				// First add it back to the end of the queue (if not removed)
 				synchronized (bdMap) {
-					if (!bd.removed()) bdFifo.add(bd);
+					if (!nb.removed()) bdFifo.add(nb);
 				}
 
 				// Find the next boks still in our list
-				bd = (BoksDataImpl)bdFifo.getFirst();
+				nb = (NetboxImpl)bdFifo.getFirst();
 				synchronized (bdMap) {
-					while (!bdMap.containsKey(bd.getBoksid())) {
+					while (!bdMap.containsKey(nb.getNetboxid())) {
 						bdFifo.removeFirst();
-						bd = (bdFifo.size() == 0) ? null : (BoksDataImpl)bdFifo.getFirst();
+						nb = (bdFifo.size() == 0) ? null : (NetboxImpl)bdFifo.getFirst();
 					}
-					if (bd == null) break;
+					if (nb == null) break;
 					//antBd = bdMap.size();
 				}
 
 				// Check if the next boks is ripe
-				if (bd.nextRun() > System.currentTimeMillis()) {
+				if (nb.nextRun() > System.currentTimeMillis()) {
 					// Not yet ripe
 					break;
 				}
@@ -1132,44 +939,62 @@ class QueryBoks extends Thread
 			}
 
 			/*
-			int newCnt=0,dupCnt=0;
-			for (int i=0; i < boksListe.size(); i++) {
-			*/
-
-
-			if (newcnt > 0 || updcnt > 0) {
-				outl("T"+id+": Inserted a total of " + newcnt + " new rows, " + updcnt + " updated rows.");
-			}
-
-			/*
 			long boksUsedTime = System.currentTimeMillis() - boksBeginTime;
 			synchronized (boksReport) {
 				boksReport.add(new BoksReport((int)boksUsedTime, bd));
 			}
 			*/
+
+			synchronized (idleThreads) {
+				idleThreads.push(new Integer(id));
+			}
+			outld("T"+id+": Thread idle, exiting...");
+			getDeviceData.threadIdle();
+			
+			/*
+				long usedTime = System.currentTimeMillis() - beginTime;
+				threadDone[id] = true;
+				outla("T"+id+": ** Thread done, time used: " + GetDeviceData.formatTime(usedTime) + ", waiting for " + getThreadsNotDone() + " **");
+			*/
+
 		}
-
-
-		synchronized (idleThreads) {
-			idleThreads.push(new Integer(id));
-		}
-		outld("T"+id+": Thread idle, exiting...");
-		getDeviceData.threadIdle();
-
-		/*
-		long usedTime = System.currentTimeMillis() - beginTime;
-		threadDone[id] = true;
-		outla("T"+id+": ** Thread done, time used: " + GetDeviceData.formatTime(usedTime) + ", waiting for " + getThreadsNotDone() + " **");
-		*/
-
 	}
 
-	private DeviceHandler[] findHandlers(BoksData bd)
-	{
+	private DataContainersImpl getDataContainers() {
+		DataContainersImpl dcs = new DataContainersImpl();
+
 		try {
-			synchronized (deviceHandlerBdMap) {
+			// Iterate over all data plugins
+			synchronized (dataClassMap) {
+				for (Iterator it=dataClassMap.entrySet().iterator(); it.hasNext();) {
+					Map.Entry me = (Map.Entry)it.next();
+					String fn = (String)me.getKey();
+					Class c = (Class)me.getValue();;
+					Object o = c.newInstance();
+					
+					DataHandler dh = (DataHandler)o;
+					
+					Map m;
+					if ( (m = (Map)persistentStorage.get(fn)) == null) persistentStorage.put(fn,  m = Collections.synchronizedMap(new HashMap()));
+					dh.init(m);
+
+					dcs.addContainer(dh.dataContainerFactory());				
+				}
+			}
+		} catch (InstantiationException e) {
+			outle("QueryNetbox.findHandler(): Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+		} catch (IllegalAccessException e) {
+			outle("QueryNetbox.findHandler(): IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
+		}
+
+		return dcs;		
+	}
+
+	private DeviceHandler[] findDeviceHandlers(Netbox nb) {
+		try {
+			synchronized (deviceNetboxCache) {
 				Class[] c;
-				if ( (c=(Class[])deviceHandlerBdMap.get(bd.getBoksid() )) != null) {
+				if ( (c=(Class[])deviceNetboxCache.get(nb.getNetboxid() )) != null) {
 					DeviceHandler[] dh = new DeviceHandler[c.length];
 					for (int i=0; i < c.length; i++) dh[i] = (DeviceHandler)c[i].newInstance();
 					return dh;
@@ -1179,34 +1004,46 @@ class QueryBoks extends Thread
 			// Iterate over all known plugins to find the set of handlers to process this boks
 			// Look at DeviceHandler for docs on the algorithm for selecting handlers
 			TreeMap dbMap = new TreeMap();
-			synchronized (deviceHandlerMap) {
+			List alwaysHandleList = new ArrayList();
+			synchronized (deviceClassMap) {
 
 				int high = 0;
-				for (Iterator it=deviceHandlerMap.values().iterator(); it.hasNext();) {
+				for (Iterator it=deviceClassMap.values().iterator(); it.hasNext();) {
 					Class c = (Class)it.next();
 					Object o = c.newInstance();
 
 					DeviceHandler dh = (DeviceHandler)o;
-					int v = dh.canHandleDevice(bd);
-					if (Math.abs(v) > high) {
-						if (v > high) high = v;
-						dbMap.put(new Integer(Math.abs(v)), c);
+					int v = dh.canHandleDevice(nb);
+					if (v == DeviceHandler.ALWAYS_HANDLE) {
+						alwaysHandleList.add(c);
+					} else {
+						if (Math.abs(v) > high) {
+							if (v > high) high = v;
+							dbMap.put(new Integer(Math.abs(v)), c);
+						}
 					}
 				}
 
-				if (!dbMap.isEmpty()) {
+				if (!dbMap.isEmpty() || !alwaysHandleList.isEmpty()) {
 					SortedMap dbSMap = dbMap.tailMap(new Integer(high));
-					Class[] c = new Class[dbSMap.size()];
+					Class[] c = new Class[dbSMap.size() + alwaysHandleList.size()];
+					
 					int j=dbSMap.size()-1;
 					for (Iterator i=dbSMap.values().iterator(); i.hasNext(); j--) c[j] = (Class)i.next();
-					synchronized (deviceHandlerBdMap) { deviceHandlerBdMap.put(bd.getBoksid(), c); }
-					return findHandlers(bd);
+					
+					j = c.length - 1;
+					for (Iterator i=alwaysHandleList.iterator(); i.hasNext(); j--) c[j] = (Class)i.next();
+					
+					synchronized (deviceNetboxCache) { deviceNetboxCache.put(nb.getNetboxid(), c); }
+
+					// Call ourselves; this avoids duplicating the code for instatiating objects from the classes
+					return findDeviceHandlers(nb);
 				}
 			}
 		} catch (InstantiationException e) {
-			outle("QueryBoks.findHandler(): Unable to instantiate handler for " + bd.getBoksid() + ", msg: " + e.getMessage());
+			outle("QueryNetbox.findHandler(): Unable to instantiate handler for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		} catch (IllegalAccessException e) {
-			outle("QueryBoks.findHandler(): IllegalAccessException for " + bd.getBoksid() + ", msg: " + e.getMessage());
+			outle("QueryNetbox.findHandler(): IllegalAccessException for " + nb.getNetboxid() + ", msg: " + e.getMessage());
 		}
 
 		return null;
@@ -1257,23 +1094,23 @@ class QueryBoks extends Thread
 
 }
 
-class BoksReport implements Comparable
+class NetboxReport implements Comparable
 {
 	int usedTime;
-	BoksData bd;
+	Netbox nb;
 
-	public BoksReport(int usedTime, BoksData bd)
+	public NetboxReport(int usedTime, Netbox nb)
 	{
 		this.usedTime = usedTime;
-		this.bd = bd;
+		this.nb = nb;
 	}
 
 	public int getUsedTime() { return usedTime; }
-	public BoksData getBoksData() { return bd; }
+	public Netbox getNetbox() { return nb; }
 
 	public int compareTo(Object o)
 	{
-		return new Integer(((BoksReport)o).getUsedTime()).compareTo(new Integer(usedTime));
+		return new Integer(((NetboxReport)o).getUsedTime()).compareTo(new Integer(usedTime));
 	}
 }
 
@@ -1289,36 +1126,179 @@ class LoadDataTask extends TimerTask
 	}
 }
 
-class BoksTimer extends TimerTask
+class NetboxTimer extends TimerTask
 {
-	/*
-	getDeviceData dd;
-	public BoksTimer(getDeviceData dd)
-	{
-		this.dd = dd;
-	}
-	*/
-
 	public void run()
 	{
-		//dd.checkQueue();
 		getDeviceData.checkBdQ();
 	}
 }
 
 class PluginMonitorTask extends TimerTask
 {
-	File pluginDir;
-	Map deviceHandlerMap;
+	DynamicURLClassLoader cl = new DynamicURLClassLoader();
+	
+	File dataDir, deviceDir;
+	Map dataClassMap, deviceClassMap;
 
-	Map fileMap = new HashMap();
+	Map dataFileMap = new HashMap();
+	Map deviceFileMap = new HashMap();
 
-	public PluginMonitorTask(String pluginPath, Map m)
+	public PluginMonitorTask(String dataPath, Map dataClassMap, String devicePath, Map deviceClassMap)
 	{
-		pluginDir = new File(pluginPath);
-		deviceHandlerMap = m;
+		dataDir = new File(dataPath);
+		deviceDir = new File(devicePath);
+		this.dataClassMap = dataClassMap;
+		this.deviceClassMap = deviceClassMap;
 	}
 
+	public void run()
+	{
+		// Update data plugins
+		update(dataDir, dataFileMap, dataClassMap, null );
+
+		// Update device plugins
+		update(deviceDir, deviceFileMap, deviceClassMap, dataDir.listFiles() );
+
+		/*
+		if (update(dataDir, dataFileMap, dataClassMap, dataDir.listFiles() )) {
+			devDB.startDBUpdate();
+
+			Class[] ddbClass = new Class[1];
+			Object[] o = new Object[] { devDB };
+			try {
+				ddbClass[0] = Class.forName("no.ntnu.nav.eventengine.DeviceDB");
+			} catch (ClassNotFoundException e) {}
+
+			List deviceClassList = new ArrayList();
+			for (Iterator i = deviceClassMap.values().iterator(); i.hasNext();) {
+				Class c = (Class)i.next();
+				deviceClassList.add(new DeviceClassEntry(findDepth(c), c));
+			}
+
+			Collections.sort(deviceClassList);
+
+			for (Iterator i = deviceClassList.iterator(); i.hasNext();) {
+				Class c = ((DeviceClassEntry)i.next()).deviceClass;
+				try {
+					Method m = c.getMethod("updateFromDB", ddbClass);
+					m.invoke(null, o);
+				} catch (NoSuchMethodException e) {
+
+				} catch (IllegalAccessException e) {
+
+				} catch (InvocationTargetException e) {
+					outld("PluginMonitorTask:   InvocationTargetException when invoking updateFromDB in class " + c.getName() + ": " + e.getMessage());
+					e.printStackTrace(System.err);
+				}
+
+			}
+
+			devDB.endDBUpdate();
+			classDepthCache.clear();
+
+			// Now call 'init' for all devices
+			for (Iterator i = deviceMap.values().iterator(); i.hasNext();) ((Device)i.next()).init(devDB);
+
+			//Device d = (Device)devDB.getDevice(279);
+			//errl("Found:\n"+d);
+
+		}
+
+		// Update EventHandlers
+		if (update(handlerDir, handlerFileMap, handlerClassMap, deviceDir.listFiles() )) {
+			emt.updateCache();
+		}
+		*/
+	}
+
+	private boolean update(File pluginDir, Map fileMap, Map classMap, File[] dependFiles)
+	{
+		// The cloneMap is used to remove plugins whose .jar file is deleted
+		Map cloneMap;
+		synchronized (classMap) {
+			cloneMap = (Map) ((HashMap)classMap).clone();
+		}
+
+		boolean hasChanged = false;
+		File[] fileList = pluginDir.listFiles();
+
+		if (dependFiles != null) {
+			for (int i=0; i < dependFiles.length; i++) {
+				try {
+						cl.appendURL(dependFiles[i].toURL());
+				} catch (MalformedURLException e) {} // Should never happen
+			}
+		}
+
+		for (int i=0; i < fileList.length; i++) {
+			if (!fileList[i].getName().toLowerCase().endsWith(".jar")) continue;
+			cloneMap.remove(fileList[i].getName());
+
+			try {
+				Long lastMod;
+				// If new or modified JAR
+				if ( (lastMod=(Long)fileMap.get(fileList[i].getName())) == null || 
+						 !lastMod.equals(new Long(fileList[i].lastModified())) ) {
+					fileMap.put(fileList[i].getName(), new Long(fileList[i].lastModified()));
+
+					cl.appendURL(fileList[i].toURL());
+
+					JarFile jf = new JarFile(fileList[i]);
+					Manifest mf = jf.getManifest();
+					Attributes attr = mf.getMainAttributes();
+					String cn = attr.getValue("Plugin-Class");
+					outld("PluginMonitorTask: New or modified jar, trying to load " + fileList[i].getName());
+
+					if (cn == null) {
+						outld("PluginMonitorTask:   jar is missing Plugin-Class manifest, skipping...");
+						continue;
+					}
+
+					Class c, dataInterface, deviceInterface;
+					try {
+						dataInterface = Class.forName("no.ntnu.nav.getDeviceData.dataplugins.DataHandler");
+						deviceInterface = Class.forName("no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler");
+
+						c = cl.loadClass(cn);
+					} catch (ClassNotFoundException e) {
+						errl("PluginMonitorTask:   Class " + cn + " not found in jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						continue;
+					} catch (NoClassDefFoundError e) {
+						errl("PluginMonitorTask:   NoClassDefFoundError when loading class " + cn + " from jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+						continue;
+					}
+
+					if (dataInterface.isAssignableFrom(c) || deviceInterface.isAssignableFrom(c)) {
+						// Found new Device, add to list
+						synchronized (classMap) {
+							classMap.put(fileList[i].getName(), c);
+						}
+						hasChanged = true;
+						outld("PluginMonitorTask:   OK! Loaded and added to classMap");
+					} else {
+						outld("PluginMonitorTask:   Failed! class " + cn + " is not an event engine plugin");
+					}
+				}
+			} catch (IOException e) {
+				errl("PluginMonitorTask:   IOException when loading jar " + fileList[i].getName() + ", msg: " + e.getMessage());
+			}
+		}
+
+		Iterator i = cloneMap.keySet().iterator();
+		while (i.hasNext()) {
+			String fn = (String)i.next();
+			outld("PluginMonitorTask: Removing jar " + fn + " from classMap");
+			synchronized (classMap) {
+				classMap.remove(fn);
+			}
+			fileMap.remove(fn);
+			hasChanged = true;
+		}
+		return hasChanged;
+	}
+
+	/*
 	public void run()
 	{
 		if (!pluginDir.isDirectory()) {
@@ -1400,7 +1380,21 @@ class PluginMonitorTask extends TimerTask
 				clearCache = true;
 			}
 		}
-		if (clearCache) QueryBoks.clearDeviceHandlerBdCache();
+		if (clearCache) QueryNetbox.clearDeviceHandlerBdCache();
+	}
+	*/
+
+	class DynamicURLClassLoader extends URLClassLoader {
+		Set urlSet = new HashSet();
+
+		DynamicURLClassLoader() {
+			super(new URL[0]);
+		}
+		public void appendURL(URL u) {
+			if (urlSet.add(u)) {
+				addURL(u);
+			}
+		}
 	}
 
 	private static void outd(Object o) { System.out.print(o); }
