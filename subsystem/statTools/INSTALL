@@ -1,0 +1,123 @@
+INSTALL INSTRUCTIONS FOR CRICKET AND MAKECRICKETCONFIG
+======================================================
+
+Contact: John Magne Bredal <bredal@itea.ntnu.no>
+
+
+DOWNLOAD
+========
+Cricket v.1.0.3 should be available from the ftp-server. The rest of
+the files are available from the NAV-v3 bundle.
+
+
+DEPENDENCIES
+============
+
+Cricket is dependent on the following modules:
+MD5                CPAN: by-authors/id/GAAS/Digest-MD5-*.tar.gz
+LWP                CPAN: by-authors/id/GAAS/libwww-perl-*.tar.gz
+DB_File            CPAN: by-authors/id/PMQS/DB_File-*.tar.gz
+Date::Parse        CPAN: by-authors/id/GBARR/TimeDate-*.tar.gz
+Time::HiRes        CPAN: by-authors/id/DEWEG/Time-HiRes-*.tar.gz
+SNMP_Session       http://www.switch.ch/misc/leinen/snmp/perl
+RRD                http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool
+
+The other scripts are dependent on modules that should already be
+installed in NAV-v3.
+
+LOCATION OF INSTALL
+===================
+Cricket should be installed in a directory called cricket in
+/home/navcron/. The following steps should make sure it is properly
+installed:
+
+Prepare the install
+-------------------
+- log in as navcron-user
+cd ~
+mkdir cricket
+cd cricket
+
+- copy cricket to this directory
+cp /path/to/cricket/cricket-1.0.3.tar.gz .
+
+- unzip/untar
+tar xvzf cricket-1.0.3.tar.gz
+ln -s cricket-1.0.3 cricket
+
+Install
+-------
+cd ~/cricket/cricket
+sh configure
+cp cricket-config.pl.sample cricket-config.pl
+
+- edit cricket-config.pl and make sure the following parameters are
+set (this is all that is needed in the file):
+    "
+	package Common::global;
+	$gCricketHome = "/home/navcron/cricket";
+	$gInstallRoot = "$gCricketHome/cricket";
+	$gConfigRoot = "$gCricketHome/cricket-config";
+	$gDbAccess = "slurp";   # Slurp the database into memory
+    "
+
+Linking the correct directories
+-------------------------------
+cd ~/cricket
+
+- public_html is the location of the webstuff
+mkdir public_html
+cd public_html
+ln -s ../cricket/images
+ln -s ../cricket/grapher.cgi
+ln -s ../cricket/lib
+ln -s ../cricket/mini-graph.cgi
+ln -s ../cricket/VERSION
+ln -s grapher.cgi index.cgi
+cp <location of cricket.css> .
+
+- all the rrds are stored in cricket-data
+mkdir /usr/local/nav/navme/cricket/cricket-data
+ln -s /usr/local/nav/navme/cricket/cricket-data
+
+- all the config are stored in cricket-config
+mkdir /usr/local/nav/navme/cricket/cricket-config
+ln -s /usr/local/nav/navme/cricket/cricket-config
+cd cricket-config
+cp -r <location of templates> .
+rm cricket.css
+
+- all the scripts must be placed somewhere and run.
+- check the path in the scripts too (this is alfa right..)
+
+cd ~/cricket
+mkdir bin
+cd bin
+cp <location of makecricketconfig.pl> .
+cp <location of filloiddb.pl> .
+cp <location of filltypesnmpoid.pl> .
+cp <location of cricketoids.txt> .
+./filloiddb.pl
+./filltypesnmpoid.pl
+~/cricket/cricket/compile
+./makecricketconfig
+
+Running for the first time
+--------------------------
+cd ~/cricket/cricket
+
+- edit the subtree-sets file and make sure the following text are in:
+  "
+  base: cricket-config
+  logdir: cricket-logs
+  set normal:
+       /routers
+       /switches
+       /switch-ports
+       /router-interfaces
+  set giga:
+       /giga-router-interfaces
+       /giga-switch-ports
+  "
+- run nav start cricket (you must be root to do this)
+- things should happen, if not U zuXX0rz!
