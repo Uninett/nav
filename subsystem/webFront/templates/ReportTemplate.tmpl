@@ -65,7 +65,12 @@ $default_table_CSS()
 #if $search>0
 
 <a href="${old_uri}adv=">Close Search</a>
-<h2>Advanced Search</h2><form action="" method="get"><table>
+<h2>Advanced Search</h2><form action="" method="get">
+
+<div style="float:right">The operators are used like this
+<ul><li>= : "equals" (enter null for empty string)</li><li>~ : "case insensitive search (* wildcards)"</li><li>[:] : "between", takes two colon-separated arguments</li><li>(,,) : "is one of", takes a comma-separated list of any size as argument. </li></ul><p><,>,<= and >= needs no explanation. </p><p> All these operators may be negated by clicking the "not" checkbox.</p></div>
+
+<table>
 
 #for $a in $report.form
 <tr><td><label for="$a.raw">$a.title</label></td><td><input type="checkbox" name="${a.raw}_not" id="${a.raw}_not"#slurp
@@ -85,8 +90,7 @@ $selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
 #end for
 
 <tr><td></td><td></td><td><input type="hidden" name="adv" value="1"/></td><td><input type="submit" name="r4g3n53nd" value="Send"/></table></form>
-<font size=1>The operators are used like this
-<ul><li>= : "equals" (enter null for empty string)</li><li>~ : "case insensitive search (* wildcards)"</li><li>[:] : "between", takes two colon-separated arguments</li><li>(,,) : "is one of", takes a comma-separated list of any size as argument. </li></ul><p><,>,<= and >= needs no explanation. </p><p> All these operators may be negated by clicking the "not" checkbox.</p></font>
+
 #else
 <a href="${old_uri}adv=1">Advanced Search</a>
 #end if
