@@ -1,7 +1,7 @@
 """
 Overvåkeren
 
-$Id: job.py,v 1.33 2002/06/21 10:09:25 erikgors Exp $
+$Id: job.py,v 1.34 2002/06/21 12:02:51 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -36,11 +36,11 @@ class Socket:
 		self.s.setblocking(1)
 		r,w,e = select([],[self],[],self.timeout)
 		if not w:
-			raise Timeout('Timeout in connect')
+			raise Timeout('Timeout in connect after %i sec' % self.timeout)
 	def recv(self,*args):
 		r,w,e = select([self.s],[],[],self.timeout)
 		if not r:
-			raise Timeout('Timeout in recv')
+			raise Timeout('Timeout in recv after %i sec' % self.timeout)
 		return self.s.recv(*args)
 	def readline(self):
 		line = ''
@@ -51,7 +51,7 @@ class Socket:
 	def send(self,*args):
 		r,w,e = select([],[self.s],[],self.timeout)
 		if not w:
-			raise Timeout('Timeout in write')
+			raise Timeout('Timeout in write after %i sec' % self.timeout)
 		self.s.send(*args)
 	
 	def write(self,line):
@@ -316,6 +316,17 @@ class MysqlHandler(JobHandler):
 		version = line.split('-')[1].split('\n')[1].strip()
 		self.setVersion(version)
 		return Event.UP, 'OK'
+
+class PostgresqlHandler(JobHandler):
+	def __init__(self, serviceid, boksid, ip, args, version):
+		port = args.get('port', 5432)
+		JobHandler.__init__(self,'postgresql',serviceid, boksid, (ip,port), args, version)
+	def execute(self):
+		args = self.getArgs()
+		s = Socket(self.getTimeout())
+		s.connect(self.getAddress())
+		s.close()
+		return Event.UP,'alive'
 
 import imaplib
 class IMAPConnection(imaplib.IMAP4):
