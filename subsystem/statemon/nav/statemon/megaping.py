@@ -18,13 +18,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland   <stain@itea.ntnu.no>
-#
-"""
-Ping multiple hosts at once
-"""
+
+"""Ping multiple hosts at once."""
+
 import threading
 import sys
 import time
