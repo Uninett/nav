@@ -1,12 +1,15 @@
 """
 $Author: magnun $
-$Id: config.py,v 1.2 2002/06/13 14:33:26 magnun Exp $
+$Id: config.py,v 1.3 2002/06/14 19:44:35 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/config.py,v $
 
 
 """
 import os, re
 
+
+# Valid configoptions must be specified in this list
+validoptions=["db_port", "dp_name", "db_host"]
 
 class config(dict):
     def __init__(self, configfile="db.conf"):
@@ -21,7 +24,10 @@ class config(dict):
 
     def parsefile(self):
         for (key, value) in self._regexp.findall(self._configfile.read()):
-            self[key.strip()]=value.strip()
+            if key.strip() in validoptions:
+                self[key.strip()]=value.strip()
+            else:
+                print "Unknown config option: %s" % key.strip()
 
 
 
