@@ -107,6 +107,10 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/device-plugins/Typeoid/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
 		<!-- eventEngine -->
     <packageset dir="../eventEngine/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
