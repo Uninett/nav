@@ -1,2 +1,2 @@
 description=Generic port checker
-arg=port
+args=port
