@@ -548,6 +548,10 @@ public class QueryNetbox extends Thread
 		synchronized (nbRunQ) {
  			LinkedList l;
 			Long nextRun = (Long)netboxidRunQMap.get(netboxid);
+			if (nextRun == null) {
+				Log.d("QUERY_NETBOX", "REMOVE_FROM_RUNQ", "nextRun not found for netboxid " + netboxid);
+				return null;
+			}
 			if ( (l = (LinkedList)nbRunQ.get(nextRun)) == null) return null;
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				NetboxImpl nb = (NetboxImpl)it.next();
