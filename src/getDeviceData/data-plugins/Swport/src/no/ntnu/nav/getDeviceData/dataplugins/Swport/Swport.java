@@ -48,6 +48,7 @@ public class Swport implements Comparable
 	Swport(String ifindex)
 	{
 		this.ifindex = ifindex.trim();
+		Integer.parseInt(this.ifindex);
 	}
 
 	public void setData(Integer port, char link, String speed, char duplex, String media, String portname) {
