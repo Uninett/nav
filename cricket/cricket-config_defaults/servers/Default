@@ -4,9 +4,9 @@ Target --default--
 	target-type     = undef
 	snmp-community	= public
 			
-#disc
-OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  #prints all the discs
-OID    StorageSize              1.3.6.1.2.1.25.2.3.1.5  #the size of the disc
+#disk
+OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  #prints all the disks
+OID    StorageSize              1.3.6.1.2.1.25.2.3.1.5  #the size of the disk
 OID    StorageUsed              1.3.6.1.2.1.25.2.3.1.6  #how much space is used
 #pros
 OID    numOfPros		1.3.6.1.2.1.25.1.6.0
@@ -91,7 +91,7 @@ map mount-point
     match       =   %mount-point%
 
 
-targettype disc
+targettype disk
 	ds = "StorageSize,StorageUsed"
 targettype interfaceTraffic
 	ds = "interfaceInBit,interfaceOutBit"
@@ -121,7 +121,7 @@ targettype loadnix
 
 # graf helvete
 
-#disc
+#disk
 graph   StorageSize
      units  = "bytes"
      color  = dark-green
