@@ -946,7 +946,7 @@ class QueryBoks extends Thread
 									String[] upd = {
 										"blocksize", blocksize
 									};
-									if (DB_UPDATE) Database.update("boksdisk", cnd, upd);
+									if (DB_UPDATE) Database.update("boksdisk", upd, cnd);
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
 								} catch (SQLException e) {
 									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
