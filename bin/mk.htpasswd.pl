@@ -13,17 +13,16 @@ my $brukerdb = "$nav_htpasswd_conf/passwd";
 
 
 my $intern_userlist = "$nav_htpasswd_conf/intern_user";
-my $nettass_userlist = "$nav_htpasswd_conf/nettass_user"; 
 my $stat_userlist  = "$nav_htpasswd_conf/stat_user";
 
 my $htpasswd_sroot = "$apache_htpasswd/.htpasswd-sroot";
 my $htpasswd_sec = "$apache_htpasswd/.htpasswd-sec";
 my $htpasswd_res = "$apache_htpasswd/.htpasswd-res";
-my $htpasswd_sby = "$apache_htpasswd/.htpasswd-sby"; 
 
 
-my (%sroot, %sec, %res, %sby);
-my (%internlist, %nettasslist);
+
+my (%sroot, %sec, %res);
+my (%internlist);
 my ($user, $passwd, $navn, $info, $adgang);
 my ($key, $dummy, $i);
 
@@ -37,19 +36,6 @@ open (INTERN_FIL, "<$intern_userlist") || die "Får ikke åpnet filen med de inter
    $internlist{$_} = $_;
   }
 close (INTERN_FIL);
-
-
-
-open (NETTASS_FIL, "<$nettass_userlist") || die "F?r ikke ?pnet filen med de nettass: $nettass_userlist $!\n";
- 
-while (<NETTASS_FIL>) {
-    next if (/^\W/);
- 
-    chomp ($_);
-    $nettasslist{$_} = $_;
-}
-close (NETTASS_FIL);  
-
 
 
 open (STAT_FIL, "<$stat_userlist") || die "Får ikke åpnet filen med de statiske brukerene: $stat_userlist $!\n";
@@ -76,11 +62,12 @@ open (STAT_FIL, "<$stat_userlist") || die "Får ikke åpnet filen med de statiske 
       $res{$user}{adgang} = $adgang;
     }
 
+    # NTNU propritært
     elsif (lc($adgang) eq 'nettass') {
 	$sby{$user}{passwd} = $passwd;
 	$sby{$user}{navn}   = $navn;
 	$sby{$user}{info}   = $info;
-	$sby{$user}{adgang} = $adgang;  
+	$sby{$user}{adgang} = 'begrenset';  
     }
 
     else {
@@ -114,18 +101,6 @@ open (DB_FIL, "<$brukerdb") || die "Får ikke åpnet filen med brukerene: $brukerd
 	$sec{$user}{info}   = 'autogenerert';
 	$sec{$user}{adgang} = 'intern';
     }
-
-    elsif ($nettasslist{$user} eq $user) {
-	
-	delete $sroot{$user} if ($sroot{$user});
-	delete $sec{$user}   if ($sec{$user});
-	delete $res{$user}   if ($res{$user});
- 
-	$sby{$user}{passwd} = $passwd;
-	$sby{$user}{navn}   = $navn;
-	$sby{$user}{info}   = 'autogenerert';
-	$sby{$user}{adgang} = 'nettass';
-    }                                    
 
     else {
 
@@ -162,14 +137,6 @@ open (SROOT, ">$htpasswd_sroot") || die "Får ikke åpnet filen: $htpasswd_sroot $
     print SROOT "$key:$res{$key}{passwd}:$res{$key}{navn}:$res{$key}{info}:$res{$key}{adgang}\n";
   }
 
-  print SROOT "\n# Nettass\n";
- 
-  foreach $key (keys %sby) {
- 
-    print SROOT "$key:$sby{$key}{passwd}:$sby{$key}{navn}:$sby{$key}{info}:begrenset\n";
-  }    
-
-
   print SROOT "\n# Intern\n";
 
   foreach $key (keys %sec) {
@@ -192,14 +159,6 @@ open (RES, ">$htpasswd_res") || die "Får ikke åpnet filen: $htpasswd_res $!\n";
   }
 
 
-  print RES "\n# Nettass\n";
- 
-  foreach $key (keys %sby) {
- 
-    print RES "$key:$sby{$key}{passwd}:$sby{$key}{navn}:$sby{$key}{info}:begrenset\n";
-  }    
-
-
   print RES "\n# Intern\n";
 
   foreach $key (keys %sec) {
@@ -208,27 +167,6 @@ open (RES, ">$htpasswd_res") || die "Får ikke åpnet filen: $htpasswd_res $!\n";
   }
 
 close (RES);
-
-
-
-open (SBY, ">$htpasswd_sby") || die "F?r ikke ?pnet filen: $htpasswd_sby $!\n";
-
-  print SBY "# Nettass\n";
- 
-  foreach $key (keys %sby) {
- 
-    print SBY "$key:$sby{$key}{passwd}:$sby{$key}{navn}:$sby{$key}{info}:begrenset\n";
-  } 
-
- 
-  print SBY "\n# Intern\n";
- 
-  foreach $key (keys %sec) {
- 
-    print SBY "$key:$sec{$key}{passwd}:$sec{$key}{navn}:$sec{$key}{info}:$sec{$key}{adgang}\n";
-  }
- 
-close (SBY);  
 
 
 
@@ -244,5 +182,3 @@ open (SEC, ">$htpasswd_sec") || die "Får ikke åpnet filen: $htpasswd_sec $!\n";
 close (SEC);
 
 1;
-
-
