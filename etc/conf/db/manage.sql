@@ -297,7 +297,6 @@ CREATE TABLE gwport (
   to_netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL
 );
-
 CREATE INDEX gwport_to_swportid_btree ON gwport USING btree (to_swportid);
 
 CREATE TABLE swportvlan (
@@ -402,7 +401,6 @@ CREATE TABLE cam (
   misscnt INT4 DEFAULT '0',
   UNIQUE(netboxid,sysname,module,port,mac,start_time)
 );
-
 CREATE TRIGGER update_cam BEFORE UPDATE ON cam FOR EACH ROW EXECUTE PROCEDURE netboxid_null_upd_end_time();
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_start_time_btree ON cam USING btree (start_time);
@@ -501,17 +499,6 @@ GRANT ALL    ON swp_netbox_swp_netboxid_seq TO getBoksMacs;
 GRANT ALL    ON swportblocked TO getBoksMacs;
 GRANT ALL    ON cam TO getBoksMacs;
 GRANT ALL    ON cam_camid_seq TO getBoksMacs;
-
--- GRANT SELECT ON netbox TO getPortData;
--- GRANT SELECT ON type TO getPortData;
--- GRANT ALL    ON swport TO getPortData;
--- GRANT ALL    ON swport_swportid_seq TO getPortData;
--- GRANT ALL    ON swportvlan TO getPortData;
--- GRANT ALL    ON swportvlan_swportvlanid_seq TO getPortData;
--- GRANT ALL    ON swportallowedvlan TO getPortData;
--- GRANT SELECT,UPDATE ON gwport TO getPortData;
--- GRANT ALL    ON gwport_gwportid_seq TO getPortData;
--- GRANT SELECT ON prefiks TO getBoksMacs;
 
 GRANT ALL    ON device TO getDeviceData;
 GRANT ALL    ON device_deviceid_seq TO getDeviceData;
