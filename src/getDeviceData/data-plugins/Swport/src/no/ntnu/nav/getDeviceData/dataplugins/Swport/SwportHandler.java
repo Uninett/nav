@@ -281,7 +281,8 @@ public class SwportHandler implements DataHandler {
 			}
 
 		} catch (SQLException e) {
-			Log.e("HANDLE", e.getMessage());
+			Log.e("HANDLE", "SQLException: " + e.getMessage());
+			e.printStackTrace(System.err);
 		}
 	}
 
