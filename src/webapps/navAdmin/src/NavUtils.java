@@ -1,6 +1,6 @@
 /*******************
 *
-* $Id: NavUtils.java,v 1.4 2002/11/22 22:52:54 kristian Exp $
+* $Id: NavUtils.java,v 1.5 2002/11/22 23:09:12 kristian Exp $
 * This file is part of the NAV project.
 * Topologi- og vlanavleder
 *
@@ -175,7 +175,6 @@ class NavUtils
 			gwUplink.add(rs.getString("to_netboxid"));
 		}
 
-		//rs = Database.query("SELECT swp_boks.boksid,kat,modul,port,swp_boks.boksbak,swp_boks.modulbak,swp_boks.portbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) JOIN gwport ON rootgwid=gwportid ORDER BY boksid,modul,port");
 		// Endret for å få med GSW
 		rs = Database.query("SELECT swp_netbox.netboxid,catid,module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,gwport.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
 
@@ -494,7 +493,7 @@ class NavUtils
 								}
 							} else {
 								// Feilsituasjon, trunk<->non-trunk!
-								outl("<font color=\"red\">ERROR:</font> Link is trunk / non-trunk: boks: " + boksNavn.get(new Integer(boksid)) + " Modul: " + modul + " Port: " + port + " boksBak: " + boksNavn.get(bmp.boksbak) + " ModulBak: " + swrecBak.get("modul") + " PortBak: " + swrecBak.get("port") + "<br>");
+								outl("<font color=\"red\">ERROR:</font> Link is trunk / non-trunk: boks: " + boksNavn.get(new Integer(boksid)) + " Modul: " + modul + " Port: " + port + " boksBak: " + boksNavn.get(bmp.boksbak) + " ModulBak: " + swrecBak.get("module") + " PortBak: " + swrecBak.get("port") + "<br>");
 							}
 						}
 					}
@@ -627,8 +626,8 @@ class NavUtils
 			HashMap swrec = (HashMap)me.getValue();
 
 			String swportid = (String)swrec.get("swportid");
-			String boksbak = (String)swrec.get("boksbak");
-			String swportbak = (String)swrec.get("swportbak");
+			String boksbak = (String)swrec.get("to_netboxid");
+			String swportbak = (String)swrec.get("to_swportid");
 
 			if (swportbak != null && swportbak.length() > 0) {
 				boolean reset = false;
@@ -636,7 +635,7 @@ class NavUtils
 					reset = true;
 				} else {
 					Map swrecBak = (Map)swrecSwportidMap.get(swportbak);
-					if (swrecBak == null || !boksbak.equals(swrecBak.get("boksid"))) {
+					if (swrecBak == null || !boksbak.equals(swrecBak.get("netboxid"))) {
 						reset = true;
 					}
 				}
@@ -1306,10 +1305,10 @@ class NavUtils
 				}
 				totcnt++;
 
-				String boksid = (String)hm.get("boksid");
-				String modul = (String)hm.get("modul");
+				String boksid = (String)hm.get("netboxid");
+				String modul = (String)hm.get("module");
 				String port = (String)hm.get("port");
-				String boksbak = (String)hm.get("boksbak");
+				String boksbak = (String)hm.get("to_netboxid");
 				boolean printMsg = false;
 
 				int startRange=0;
@@ -1408,7 +1407,7 @@ class NavUtils
 			Iterator iter = nontrunkMap.values().iterator();
 			while (iter.hasNext()) {
 				HashMap hm = (HashMap)iter.next();
-				String toid = (String)hm.get("boksbak");
+				String toid = (String)hm.get("to_netboxid");
 				String swportid = (String)hm.get("swportid");
 				String swportidBack = null;
 
@@ -1555,7 +1554,7 @@ class NavUtils
 			//HashMap hm = (HashMap)l.get(i);
 			HashMap hm = (HashMap)iter.next();
 			String hexstr = (String)hm.get("hexstring");
-			String toid = (String)hm.get("boksbak");
+			String toid = (String)hm.get("to_netboxid");
 			String swportid = (String)hm.get("swportid");
 			String swportidBack;
 
