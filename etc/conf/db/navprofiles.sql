@@ -811,6 +811,8 @@ INSERT INTO AccountInGroup (accountid, groupid) VALUES
 
 INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
 (1, 100, true, 100);
+INSERT INTO Preference (accountid, admin, sms, queuelength) VALUES 
+(0, 1, false, '5 minutes');
 
 -- NAVBAR PREFERENCES
 
