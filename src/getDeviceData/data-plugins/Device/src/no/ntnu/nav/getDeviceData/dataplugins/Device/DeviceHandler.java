@@ -39,6 +39,7 @@ public class DeviceHandler implements DataHandler {
 			dumpBeginTime = System.currentTimeMillis();
 			devidMap = Collections.synchronizedMap(new HashMap());
 			devserialMap = Collections.synchronizedMap(new HashMap());
+			//rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver FROM device");
 			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver FROM device");
 			while (rs.next()) {				
 				String deviceid = rs.getString("deviceid");
@@ -59,6 +60,36 @@ public class DeviceHandler implements DataHandler {
 			Log.e("INIT", "SQLException: " + e.getMessage());
 		}
 
+	}
+
+	// Check if the serial is in use in the DB, and if it is, update devidMap
+	private Device getOldDevice(Device dev) throws SQLException {
+		String serial = dev.getSerial();
+		String deviceid = dev.getDeviceidS();
+
+		// Try to look up device by serial first
+		if (devserialMap.containsKey(serial)) return (Device)devserialMap.get(serial);
+
+		// If that didn't work we try by deviceid
+		if (devidMap.containsKey(deviceid)) return (Device)devidMap.get(deviceid);
+
+		// Check if we find the device in the DB
+		if (serial != null && serial.length() > 0) {
+			ResultSet rs = Database.query("SELECT deviceid,hw_ver,sw_ver FROM device WHERE serial = '" + serial + "'");
+			if (rs.next()) {				
+				deviceid = rs.getString("deviceid");
+				String hw_ver = rs.getString("hw_ver");
+				String sw_ver = rs.getString("sw_ver");
+
+				Device d = new Device(serial, hw_ver, sw_ver);
+				d.setDeviceid(deviceid);
+
+				devidMap.put(deviceid, d);
+				if (serial != null) devserialMap.put(serial, d);
+				return d;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -88,11 +119,7 @@ public class DeviceHandler implements DataHandler {
 				String serial = dev.getSerial();
 				String deviceid = dev.getDeviceidS();
 
-				// Try to look up device by serial first
-				Device olddev = (Device)devserialMap.get(serial);
-
-				// If that didn't work we try by deviceid
-				if (olddev == null && deviceid != null) olddev = (Device)devidMap.get(deviceid);
+				Device olddev = getOldDevice(dev);
 
 				if (olddev == null) {
 					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
