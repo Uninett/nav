@@ -212,6 +212,8 @@ public class _3Com implements DeviceHandler
 					swp.setSpeed(speed);
 					swp.setDuplex(duplex.charAt(0));
 					swp.setMedia(media);
+					swp.setTrunk(false);
+					swp.setVlan(1);
 
 					Log.d("PROCESS_3COM", "Added port, netbox: "+ netboxid +", " + swp);
 				}				
@@ -267,6 +269,8 @@ public class _3Com implements DeviceHandler
 				SwModule swm = sc.swModuleFactory(module);
 				Swport swp = swm.swportFactory(ifindex);
 				swp.setPort(new Integer(port));
+				swp.setTrunk(false);
+				swp.setVlan(1);
 
 				// Special case for 3Com 9300 which only has FD gigabit ports
 				if (type.equals("sw9300")) {
