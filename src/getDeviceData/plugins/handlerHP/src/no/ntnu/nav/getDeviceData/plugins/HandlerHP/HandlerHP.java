@@ -13,7 +13,7 @@ public class HandlerHP implements DeviceHandler
 
 	public int canHandleDevice(BoksData bd)
 	{
-		return bd.getTypegruppe().equals("hpsw") ? 1 : 0;
+		return bd.getTypegruppe() != null && bd.getTypegruppe().equals("hpsw") ? 1 : 0;
 	}
 
 	public void handle(BoksData bd, SimpleSnmp sSnmp, ConfigParser cp, DeviceDataList ddList) throws TimeoutException

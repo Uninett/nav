@@ -13,9 +13,10 @@ public class Handler3Com implements DeviceHandler
 
 	public int canHandleDevice(BoksData bd)
 	{
-		return (bd.getTypegruppe().equals("3hub") ||
+		return (bd.getTypegruppe() != null &&
+				(bd.getTypegruppe().equals("3hub") ||
 				bd.getTypegruppe().equals("3ss") ||
-				bd.getTypegruppe().equals("3ss9300")) ? 1 : 0;
+				bd.getTypegruppe().equals("3ss9300"))) ? 1 : 0;
 	}
 
 	public void handle(BoksData bd, SimpleSnmp sSnmp, ConfigParser cp, DeviceDataList ddList) throws TimeoutException
