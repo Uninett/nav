@@ -55,7 +55,10 @@ public class NetboxInfo {
 	 */
 	public static String getSingleton(String var) {
 		Iterator i = get(var);
-		return (i.hasNext()) ? (String)i.next() : null;
+		if (i.hasNext()) {
+			return (var == null) ? ((String[])i.next())[1] : (String)i.next();
+		}
+		return null;
 	}
 
 	/**
@@ -71,7 +74,10 @@ public class NetboxInfo {
 	 */
 	public static String getSingleton(String key, String var) {
 		Iterator i = get(key, var);
-		return (i.hasNext()) ? (String)i.next() : null;
+		if (i.hasNext()) {
+			return (var == null) ? ((String[])i.next())[1] : (String)i.next();
+		}
+		return null;
 	}
 
 	/**
@@ -87,17 +93,21 @@ public class NetboxInfo {
 	 */
 	public static String getSingleton(String netboxid, String key, String var) {
 		Iterator i = get(netboxid, key, var);
-		return (i.hasNext()) ? (String)i.next() : null;
+		if (i.hasNext()) {
+			return (var == null) ? ((String[])i.next())[1] : (String)i.next();
+		}
+		return null;
 	}
 
 	/**
 	 * Get the values for the given variable. The key is assumed to be
-	 * null; var must not be null. A default netboxid must be set before
-	 * this method is called. The iterator returns the values in
+	 * null; if var is null it is treated as a wildcard and an array of
+	 * String[2] is returned. A default netboxid must be set before this
+	 * method is called. The iterator returns the values in
 	 * lexiographical order.
 	 *
 	 * @param var The variable to get values for
-	 * @return an iterator over the values (String-objects)
+	 * @return an iterator over the values (String-objects, or String[2] if var is null)
 	 */
 	public static Iterator get(String var) {
 		return getError(null, null, var);
@@ -105,13 +115,14 @@ public class NetboxInfo {
 
 	/**
 	 * Get the values for the given key and variable. The key is allowed
-	 * to be null; var is not. A default netboxid must be set before
-	 * this method is called. The iterator returns the values in
+	 * to be null; if var is null it is treated as a wildcard and an
+	 * array of String[2] is returned. A default netboxid must be set
+	 * before this method is called. The iterator returns the values in
 	 * lexiographical order.
 	 *
 	 * @param key The key to get values for
 	 * @param var The variable to get values for
-	 * @return an iterator over the values (String-objects)
+	 * @return an iterator over the values (String-objects, or String[2] if var is null)
 	 */
 	public static Iterator get(String key, String var) {
 		return getError(null, key, var);
@@ -119,14 +130,15 @@ public class NetboxInfo {
 
 	/**
 	 * Get the values for the given netboxid, key and variable. The key
-	 * is allowed to be null; var is not. If a default netboxid is set
-	 * netboxid is also allowed to be null. The iterator returns the
+	 * is allowed to be null; if var is null it is treated as a wildcard
+	 * and an array of String[2] is returned. If a default netboxid is
+	 * set netboxid is also allowed to be null. The iterator returns the
 	 * values in lexiographical order.
 	 *
 	 * @param netboxid The netboxid to get values for
 	 * @param key The key to get values for
 	 * @param var The variable to get values for
-	 * @return an iterator over the values (String-objects)
+	 * @return an iterator over the values (String-objects, or String[2] if var is null)
 	 */
 	public static Iterator get(String netboxid, String key, String var) {
 		return getError(netboxid, key, var);
@@ -135,7 +147,7 @@ public class NetboxInfo {
 	// Check for errors
 	private static Iterator getError(String netboxid, String key, String var) {
 		if (netboxid == null) netboxid = (String)netboxidMap.get(Thread.currentThread());
-		if (netboxid == null || var == null) throw new NullPointerException("Netboxid and var are not allowed to be null");
+		if (netboxid == null) throw new NullPointerException("Netboxid and var are not allowed to be null");
 		
 		try {
 			return getNoError(netboxid, key, var);
@@ -149,7 +161,11 @@ public class NetboxInfo {
 		ResultSet rs = getVals(netboxid, key, var);
 		List l = new ArrayList();
 		while (rs.next()) {
-			l.add(rs.getString("val"));
+			if (var == null) {
+				l.add(new String[] { rs.getString("var"), rs.getString("val") });
+			} else {
+				l.add(rs.getString("val"));
+			}
 		}
 		return l.iterator();
 	}
@@ -421,8 +437,9 @@ public class NetboxInfo {
 
 	private static ResultSet getVals(String netboxid, String key, String var) throws SQLException {
 		String k = (key == null || key.length() == 0) ? "key IS NULL" : "key = '"+key+"'";
+		String v = (var == null) ? "" : " AND var = '" + var + "'";
 
-		String q = "SELECT netboxinfoid, val FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + " AND var = '"+var+"' ORDER BY val";
+		String q = "SELECT netboxinfoid, val FROM netboxinfo WHERE netboxid = '"+netboxid+"' AND " + k + v + " ORDER BY val";
 		return Database.query(q);
 	}
 

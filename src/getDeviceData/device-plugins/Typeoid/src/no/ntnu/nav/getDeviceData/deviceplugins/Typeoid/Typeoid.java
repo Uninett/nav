@@ -54,7 +54,7 @@ public class Typeoid implements DeviceHandler
 		// Fetch the typeoid
 		List l = sSnmp.getNext(nb.getOid("typeoid"), 1, true, false);
 		if (l == null || l.isEmpty()) {
-			Log.w("HANDLE_DEVICE", "No returned results from typeoid, cannot update type!");
+			Log.w("HANDLE_DEVICE", "No returned results from typeoid (" + nb + ","+nb.getType()+","+nb.getOid("typeoid")+"), cannot update type! ("+l+")");
 			return;
 		}
 

@@ -216,7 +216,7 @@ public class GwportHandler implements DataHandler {
 								"ospf", gwp.getOspfS()
 							};
 							gwportid = Database.insert("gwport", ins, null);
-							gwportidMap.put(gwportid, new String[] { nb.getSysname(), gwp.getInterf(), (gwp.hsrpCount()>0?"true":"false") });
+							gwportidMap.put(gwportid, new String[] { nb.getSysname(), gwp.getInterf(), (gwp.hsrpCount()>0?"true":"false"), gwp.getIfindex() });
 							changedDeviceids.add(gwm.getDeviceidS());							
 							newcnt++;
 
@@ -315,7 +315,8 @@ public class GwportHandler implements DataHandler {
 
 								// oldgp must now be equal to dbgp
 								if (oldgp != null && oldgp != dbgp) {
-									System.err.println("********* ERROR ********** oldgp != dbgp !!!");
+									Log.d("GWPORTPREFIX", "********* ERROR ********** oldgp != dbgp !!! ("+oldgp+","+dbgp+")");
+									System.err.println("********* ERROR ********** oldgp != dbgp !!! ("+oldgp+","+dbgp+")");
 									return;
 								}
 
@@ -337,7 +338,8 @@ public class GwportHandler implements DataHandler {
 
 							// gp must now be equal to dbgp
 							if (gp != gwpDbMap.get(gp.getGwip())) {
-								System.err.println("********* ERROR ********** gp != dbgp !!!");
+								Log.d("GWPORTPREFIX", "********* ERROR ********** gp != dbgp !!! ("+gp+","+gwpDbMap.get(gp.getGwip())+")");
+								System.err.println("********* ERROR ********** gp != dbgp !!! ("+gp+","+gwpDbMap.get(gp.getGwip())+")");
 								return;
 							}
 
@@ -345,6 +347,7 @@ public class GwportHandler implements DataHandler {
 							Vlan dbvl = dbp.getVlan();
 
 							if (dbvl == null) {
+								Log.d("GWPORTPREFIX", "********* ERROR ********** dbvl == null for prefix: " + dbp + " !!!");
 								System.err.println("********* ERROR ********** dbvl == null for prefix: " + dbp + " !!!");
 								return;
 							}

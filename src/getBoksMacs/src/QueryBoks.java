@@ -541,7 +541,14 @@ public class QueryBoks extends Thread
 		Log.d("PROCESS_CDP", "cdpList.size: " + cdpList.size());
 		if (cdpList.size() != remoteIfMap.size()) Log.d("PROCESS_CDP", "cdpList != remoteIfMap ("+cdpList.size()+" != "+remoteIfMap.size()+").");
 
+		// Hent liste over alle gamle ifindekser slik at vi kan slette de som ikke lenger eksisterer
 		List unrecognizedCDP = new ArrayList();
+		Set oldUnrecIfind = new HashSet();
+		for (Iterator it = NetboxInfo.get(workingOnBoksid, "unrecognizedCDP", null); it.hasNext();) {
+			String[] s = (String[])it.next();
+			oldUnrecIfind.add(s[0]);
+		}
+
 		for (Iterator it = cdpList.iterator(); it.hasNext();) {
 			String[] cdps = (String[])it.next();
 			String ifindex = cdps[0];
@@ -554,6 +561,7 @@ public class QueryBoks extends Thread
 				unrecognizedCDP.add(new String[] { ifindex, remoteName });
 				continue;
 			}
+			oldUnrecIfind.remove(ifindex);
 			String sysname = (String)boksIdName.get(netboxid);
 
 			// Opprett record for boksen bak porten
@@ -597,6 +605,10 @@ public class QueryBoks extends Thread
 			// Write this to netboxinfo
 			String[] s = (String[])it.next();
 			NetboxInfo.put(workingOnBoksid, "unrecognizedCDP", s[0], s[1]);
+		}
+		for (Iterator it = oldUnrecIfind.iterator(); it.hasNext();) {
+			String ifindex = (String)it.next();
+			NetboxInfo.remove(workingOnBoksid, "unrecognizedCDP", ifindex);
 		}
 		
 		return l;
@@ -707,7 +719,7 @@ public class QueryBoks extends Thread
 						if (blockedIfind != null) {
 							// Slett eksisterende innslag i databasen
 							try {
-								Log.d("MAC_ENTRY", "All ports on " + sysnameMap.get(netboxid) + " are now non-blocking");
+								Log.d("MAC_ENTRY", "All ports on " + boksIdName.get(netboxid) + " are now non-blocking");
 								String sql = "DELETE FROM swportblocked WHERE EXISTS (SELECT swportid FROM swport JOIN module USING(moduleid) WHERE netboxid="+netboxid+" AND swportblocked.swportid=swportid)";
 								if (csAtVlan) sql += " AND vlan='"+vlan+"'";
 								Database.update(sql);

@@ -180,7 +180,9 @@ public class OidTester
 	// Returns true if s is not a dupe (has not been checked before)
 	private static boolean checkDupe(Type t, Snmpoid snmpoid) {
 		synchronized (dupeMap) {
-			return dupeMap.put(t.getKey(), snmpoid.getKey()) || dupeMap.put(snmpoid.getKey(), t.getKey());
+			boolean b1 = dupeMap.put(t.getKey(), snmpoid.getKey());
+			boolean b2 = dupeMap.put(snmpoid.getKey(), t.getKey());
+			return b1 || b2;
 		}
 	}
 

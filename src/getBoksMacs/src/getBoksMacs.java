@@ -186,16 +186,24 @@ class getBoksMacs
 			boksidKat.put(rs.getString("netboxid"), rs.getString("catid").toUpperCase());
 			boksidType.put(rs.getString("netboxid"), rs.getString("typename"));
 			String sysname = rs.getString("sysname");
+			sysnameMap.put(sysname, rs.getString("netboxid"));
+
+			// Ta med denne også for sikkerhets skyld
 			String kat = rs.getString("catid").toLowerCase();
-			if (kat.equals("gw") || kat.equals("sw") || kat.equals("kant")) {
+			if (isNetel(kat)) {
 				// Stripp etter første '.'
 				int i;
 				if ( (i=sysname.indexOf('.')) != -1) {
 					sysname = sysname.substring(0, i);
+					sysnameMap.put(sysname, rs.getString("netboxid"));
 				}
 			}
-			sysnameMap.put(sysname, rs.getString("netboxid"));
-			//System.out.println("Lagt til: " + sysname + " kat: " + kat);
+		}
+
+		// Og så alle "ekte" sysname
+		rs = Database.query("SELECT netboxid,val AS sysname FROM netboxinfo WHERE var='sysname'");
+		while (rs.next()) {
+			sysnameMap.put(rs.getString("sysname"), rs.getString("netboxid"));
 		}
 
 		rs = Database.query("SELECT netboxid FROM netbox WHERE up!='y'");

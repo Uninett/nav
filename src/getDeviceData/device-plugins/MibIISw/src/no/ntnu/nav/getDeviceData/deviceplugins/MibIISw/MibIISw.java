@@ -7,6 +7,7 @@ import no.ntnu.nav.SimpleSnmp.*;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.util.*;
 import no.ntnu.nav.event.*;
+import no.ntnu.nav.netboxinfo.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
@@ -186,6 +187,9 @@ public class MibIISw implements DeviceHandler
 			} else {
 				Log.d("HANDLE", "Correct: Sysname (DNS) ("+nb.getSysname()+") starts with the collected sysname ("+s[1]+")");
 			}
+
+			// Put sysname in netboxinfo
+			NetboxInfo.put(nb.getNetboxidS(), null, "sysname", netboxSysname);
 		}
 
 		l = sSnmp.getNext(nb.getOid("sysUpTime"), 1, false, false);
