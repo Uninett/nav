@@ -41,6 +41,7 @@ AC_OUTPUT(Makefile
 	src/Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
+	subsystem/devBrowser/Makefile
 	subsystem/statemon/Makefile
 	subsystem/webFront/templates/Makefile
 	subsystem/statTools/Makefile)

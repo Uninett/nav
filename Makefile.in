@@ -16,6 +16,7 @@ subdirs = src \
 	subsystem/lib-python \
 	subsystem/webFront \
 	subsystem/statemon \
+	subsystem/devBrowser \
 	subsystem/statTools
 
 .PHONY: all install clean distclean
