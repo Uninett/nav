@@ -1,25 +1,29 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 """
 $Author: magnun $
-$Id: controller.py,v 1.5 2002/06/10 13:27:08 magnun Exp $
+$Id: controller.py,v 1.6 2002/06/12 20:13:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/controller.py,v $
 
 """
 
-import RunQueue, types, os, time, job, getopt
-
-__version__ = """$Revision: 1.5 $"""
+import RunQueue, types, os, time, job, getopt, signal
 
 class controller:
     def __init__(self, **kwargs):
+        signal.signal(signal.SIGHUP, self.signalhandler)
+        signal.signal(signal.SIGUSR1, self.signalhandler)
+        signal.signal(signal.SIGTERM, self.signalhandler)
         self._runqueue=RunQueue.RunQueue(controller=self)
         self._isrunning=1
         self._jobs=[]
         self._looptime=60
-        #self._filler=
         self._pidfile=kwargs.get('pidfile', 'controller.pid')
 
     def getJobs(self):
+        """
+        Fetches new jobs from the NAV database and appends them to
+        the runqueue.
+        """
         newjobs = []
         for i in range(20):
             newjobs += [job.Dummy(('localhost',80))]
@@ -53,7 +57,6 @@ class controller:
         else:    
             pid=os.fork()
             if pid > 0:
-                print "pid: "+pid
                 self._pidfile=open(PIDFILE, 'w')
                 self._pidfile.write(str(pid)+'\n')
                 self._pidfile.close()
@@ -62,20 +65,33 @@ class controller:
                 os.sys.stderr.close()
                 os.sys.exit()
             else:
-                print "Kaller main()"
                 self.main()
 
     def main(self):
+        """
+        Loops until SIGTERM is caught. The looptime is defined
+        by self._looptime
+        """
         while self._isrunning:
             start=time.time()
             self.getJobs()
             filter(self._runqueue.enq, self._jobs)
             wait=self._looptime - (time.time() - start)
-            self.debug("Venter i %i sekunder" % wait)
+            self.debug("Waiting %i seconds." % wait)
             if wait <= 0:
-                self.debug("Only superman can do this")
+                self.debug("Only superman can do this. Humans cannot wait for %i seconds." % wait)
             else:
                 time.sleep(wait)
+
+    def signalhandler(self, signum, frame):
+        if signum == signal.SIGTERM:
+            self.debug( "Caught SIGTERM. Exiting.")
+            self._runqueue.terminate()
+            os.sys.exit(0)
+        else:
+            self.debug( "Caught %s. Resuming operation." % (signum))
+
+
 
 
 def help():
@@ -101,14 +117,13 @@ if __name__=='__main__':
             elif opt == '-n' or opt == '--nofork':
                 nofork=1
             elif opt == '-v' or opt == '--version':
-                print "Version %s" % __version__
+                print __version__
                 os.sys.exit(0)
                 
 
     except (getopt.error):
         help()
         os.sys.exit(2)
-            
                                
     controller=controller()
     controller.start(nofork)

@@ -1,20 +1,12 @@
 #!/usr/bin/python2.2
 """
 $Author: magnun $
-$Id: RunQueue.py,v 1.6 2002/06/10 13:24:54 magnun Exp $
+$Id: RunQueue.py,v 1.7 2002/06/12 20:13:53 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/RunQueue.py,v $
-
-TODO
-* Fikse riktig navn på trådene
-* Litt mer fornuftig logging
-* Skal vi ha observer?
 
 """
 from threading import *
-import threading
-import DEQueue
-import sys, time, types
-import traceback
+import threading, DEQueue, sys, time, types, traceback
 
 
 class observer:
@@ -43,28 +35,37 @@ class worker(threading.Thread):
     def __init__(self, rq):
         threading.Thread.__init__(self)
         self._runqueue=rq
-        self._runCount=0
+        self._runcount=0
         self._running=1
 
     def run(self):
+        """
+        Tries to dequeue a job. Loops while
+        self._running=1
+        """
         while self._running:
             try:
                 self._job=self._runqueue.deq()
                 self.execute()
             except TerminateException:
-                self._runqueue.numThreads-=1
+                self._runqueue.numThreads -= 1
                 return
             except:
                 traceback.print_exc()
 
     def execute(self):
-        self._runCount+=1
+        """
+        Executes the job. If maximum runcount is
+        exceeded, self._running is set to zero and the
+        thread will be recycled.
+        """
+        self._runcount+=1
         self._job.run()
-        if self._runCount > self._runqueue.getMaxRunCount():
+        if self._runcount > self._runqueue.getMaxRunCount():
             self._running=0
             self._runqueue.unusedThreadName.append(self.getName())
             self._runqueue.workers.remove(self)
-        self._runqueue.debug("Jobb ferdig")    
+        self._runqueue.debug("%s finished job number %i" % (self.getName(), self._runcount))
 
 
 class RunQueue:
@@ -94,21 +95,21 @@ class RunQueue:
     def enq(self,*r):
         self.lock.acquire()
         self.rq.put(*r)
-        self.debug('Elementer i køen: %i'% (len(self.rq)))
-        self.debug("Ventende tråder: %i" % self.numThreadsWaiting)
+        self.debug('Number of elements in queue: %i'% (len(self.rq)))
+        self.debug("Number of waiting threads: %i" % self.numThreadsWaiting)
         if self.numThreadsWaiting>0:
             self.numThreadsWaiting-=1
-            self.debug('Har ventende tråd. Kaller self.awaitWork.notify()')
+            self.debug('Using waiting thread')
             self.awaitWork.notify()
         elif self.numThreads < self.maxThreads:
             t=worker(self)
             t.setDaemon(self.makeDaemon)
             self.numThreads+=1
             if len(self.unusedThreadName) > 0:
-                t.setName(seld.unusedThreadName.pop())
+                t.setName(self.unusedThreadName.pop())
             else:
                 t.setName('worker'+str(self.numThreads))
-            self.debug('Har lagd nytt trådobjekt, %s' % (t.getName()))
+            self.debug('Created new thread, %s' % (t.getName()))
             self.workers.append(t)
 
             t.start()
