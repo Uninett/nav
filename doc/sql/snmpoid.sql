@@ -450,6 +450,30 @@ DELETE FROM snmpoid WHERE oidkey='macPortEntry';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('macPortEntry','1.3.6.1.2.1.17.4.3.1.2','Bridge table for various switches','bridge-mib','0',NULL,'0','dot1dTpFdbPort','BRIDGE-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='ipRouteIfIndex';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteIfIndex','1.3.6.1.2.1.4.21.1.2','The index value which uniquely identifies the local interface through which the next hop of this route should be reached',NULL,'0',NULL,'0','ipRouteIfIndex','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipRouteDest';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteDest','1.3.6.1.2.1.4.21.1.1','The destination IP address of this route',NULL,'0',NULL,'0','ipRouteDest','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipRouteMask';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteMask','1.3.6.1.2.1.4.21.1.11','Indicate the mask to be logical-ANDed with the destination address before being compared to the value in the ipRouteDest field',NULL,'0',NULL,'0','ipRouteMask','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipRouteNextHop';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteNextHop','1.3.6.1.2.1.4.21.1.7','The IP address of the next hop of this route',NULL,'0',NULL,'0','ipRouteNextHop','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipRouteType';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteType','1.3.6.1.2.1.4.21.1.8','The type of route, 1=other, 2=invalid, 3=direct, 4=indirect',NULL,'0',NULL,'0','ipRouteType','RFC1213');
+
+DELETE FROM snmpoid WHERE oidkey='ipRouteProto';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipRouteProto','1.3.6.1.2.1.4.21.1.9','The routing mechanism via which this route was learned',NULL,'0',NULL,'0','ipRouteProto','RFC1213');
+
 DELETE FROM snmpoid WHERE oidkey='mem5minFree';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('mem5minFree','1.3.6.1.4.1.9.9.48.1.1.1.6.1','','Cricket','0',NULL,'0','ciscoMemoryPoolFree','CISCO-MEMORY-POOL-MIB');
@@ -469,6 +493,10 @@ VALUES ('ospfIfMetricMetric','1.3.6.1.2.1.14.8.1.4','cgw',NULL,'0',NULL,'0','osp
 DELETE FROM snmpoid WHERE oidkey='physClass';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('physClass','1.3.6.1.2.1.47.1.1.1.1.5','An indication of the general hardware type of the physical entity','mib-II','0',NULL,'0','entPhysicalClass','ENTITY-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='physParentRelPos';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('physParentRelPos','1.3.6.1.2.1.47.1.1.1.1.6','','mib-II','0',NULL,'0','entPhysicalParentRelPos','ENTITY-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='physContainedIn';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
