@@ -1,4 +1,6 @@
 <?php
+// $id$
+
     require("/usr/local/nav/navme/lib/getdb.php");
 
 function tr($a_innhold,$konfigurasjon=""){
@@ -100,8 +102,10 @@ function topp($tittel="") {
 
 # /* start */
 
-$tittel = "Syslogmeldinger fra rutere og svitsjer";
+$tittel = "Loggmeldinger fra skript, rutere og svitsjer";
 print topp($tittel);
+
+if(!$system) $system = 'cisco';
 
 if(!$tid_fra) $tid_fra=date("Y-m-d",time()-86400)." 00:00:00";
 else $tid_fra = rawurldecode($tid_fra);
@@ -111,7 +115,7 @@ else $tid_til = rawurldecode($tid_til);
 
 $dbh = db_get("syslog");
 
-$db_tabell = db_select($dbh,"select boks,type from meldinger");
+$db_tabell = db_select($dbh,"select boks,type from meldinger where system='$system'");
 $db_boks[0]="";
 $db_type[0]="";
 foreach(array_keys($db_tabell) as $rad){
@@ -123,6 +127,7 @@ sort($db_type);
 
 $db_prioritet = array_merge(array(0=>""),db_select($dbh,"SELECT prioritet from prioriteter"));
 $db_bokstype = array(0=>"",1=>"gw",2=>"sw",3=>"na");
+$db_system = db_select($dbh,"select distinct system from meldinger");
 $lapper_felles = array(0=>"Alle");
 $lapper_bokstype = array(0=>"Alle",1=>"Rutere", 2=>"Svitsjer",3=>"Mystiske");
 $lapper_prioritet = array(0=>"Alle",1=>"0 - emergencies",2=>"1 - alerts",3=>"2 - critical",4=>"3 - errors",5=>"4 - warnings",6=>"5 - notifications",7=>"6 - informal",8=>"7 - debugging");
@@ -144,7 +149,9 @@ if($type){
 	$overstyring="Prioritet er blitt overstyrt av meldingstype, $type blir vist.";
     }
 }
-
+if($system){
+    array_push($uttrykk,"system = '".$system."'");
+}
 if($tid_fra){
     array_push($uttrykk,"tid >= '$tid_fra'");
 }
@@ -177,10 +184,15 @@ print tb(array(
 				 tr(array(
 					  form(
 					       tb(array(
+							tr(array("System",form_select("system",$db_system,$db_system,$system),form_input("submit","bytt","Bytt system")
+)))))), "bgcolor=\"#e6e6e6\""),
+				 tr(array(
+					  form(
+					       tb(array(
 							tr(array("Prioritet",form_select("prioritet",$db_prioritet,$lapper_prioritet,$prioritet),a("Meldingstype","http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002","target=\"blank\""),form_select("type",$db_type,$lapper_felles,$type))),
 							tr(array("Bokstype",form_select("bokstype",$db_bokstype,$lapper_bokstype,$bokstype),"Avsender",form_select("boks",$db_boks,$lapper_felles,$boks))),
 							tr(array("Fra tidspunkt",form_input("text","tid_fra",$tid_fra,"19","19"),"Til tidspunkt",form_input("text","tid_til",$tid_til,"19","19"))),
-							tr(array(italic("Format"),pre("ееее-mm-dd TT:MM:SS"),"",form_input("submit","send","Send")." ".a("Nullstill",$PHP_SELF)))
+							tr(array(italic("Format"),pre("ееее-mm-dd TT:MM:SS"),form_input("hidden","system",$system),form_input("submit","send","Send")." ".a("Nullstill",$PHP_SELF)))
 							)
 						  ))),
 				    "bgcolor=\"#e6e6e6\"")),
@@ -204,11 +216,15 @@ if(($boks&&$type)||($boks&&$logg)||($type&&$logg)){
 	print tb(array(
 		       tr(array("Totalt $ant rader funnet i databasen etter gitte kriterier."))
 		       ));
-	print "<table>";
-	foreach(array_keys($logg) as $l){
-	    print "<tr><td>".$logg[$l][0]."</td><td>".$logg[$l][1]."</td><td>".$logg[$l][2]."</td><td>".$logg[$l][3]."</td></tr>";
+	if($ant){
+	    print "<table>";
+	    foreach(array_keys($logg) as $l){
+		print "<tr><td>".$logg[$l][0]."</td><td>".$logg[$l][1]."</td><td>".$logg[$l][2]."</td><td>".$logg[$l][3]."</td></tr>";
+	    }
+	    print "</table>";
+	} else {
+	    print "Ingenting е vise";
 	}
-	print "</table>";
 } elseif($boks||$type||$prioritet){
     #/*statistikk*/
 	$boksetabell = db_select($dbh,"SELECT boks, count(*) as count FROM meldinger WHERE $where GROUP BY boks ORDER BY count DESC");
@@ -221,6 +237,9 @@ if(($boks&&$type)||($boks&&$logg)||($type&&$logg)){
 	$linje = $meldingstabell[0];
 
 	print "<table width=\"100%\"><tr><td align=\"center\" colspan=\"2\">Totalt $linje meldinger";
+	if($system){
+	    $systemlink = "&system=$system";
+	}
 	if($prioritet){
 	    print " av prioritet $prioritet";
 	    $prioritetlink = "&prioritet=$prioritet";
@@ -243,28 +262,41 @@ if(($boks&&$type)||($boks&&$logg)||($type&&$logg)){
 	print ".</td></tr>";
 
 	print "<tr><td width=\"50%\" valign=\"top\"><table>";
+	    
+	if(sizeof($boksetabell)){
 
-	foreach(array_keys($boksetabell) as $b){
-	    print "<tr><td>".a($boksetabell[$b][0],"?vis=tell$tidlink$prioritetlink$typelink&boks=".$boksetabell[$b][0])."</td><td>".a($boksetabell[$b][1],"?logg=1$tidlink$prioritetlink$typelink&boks=".$boksetabell[$b][0])."</td></tr>";
-	}
+	    foreach(array_keys($boksetabell) as $b){
+		print "<tr><td>".a($boksetabell[$b][0],"?vis=tell$tidlink$systemlink$prioritetlink$typelink&boks=".$boksetabell[$b][0])."</td><td>".a($boksetabell[$b][1],"?logg=1$tidlink$systemlink$prioritetlink$typelink&boks=".$boksetabell[$b][0])."</td></tr>";
+	    }
+	} 
 
 	print "</table></td><td width=\"50%\" valign=\"top\"><table>";
 
-	foreach(array_keys($typetabell) as $b){
-	    print "<tr><td>".a($typetabell[$b][0],"?vis=tell$tidlink$bokslink$bokstypelink&type=".$typetabell[$b][0])."</td><td>".a($typetabell[$b][1],"?logg=1$tidlink$bokslink$bokstypelink&type=".$typetabell[$b][0])."</td></tr>";
+	if(sizeof($typetabell)){
+
+	    foreach(array_keys($typetabell) as $b){
+		print "<tr><td>".a($typetabell[$b][0],"?vis=tell$tidlink$systemlink$bokslink$bokstypelink&type=".$typetabell[$b][0])."</td><td>".a($typetabell[$b][1],"?logg=1$tidlink$systemlink$bokslink$bokstypelink&type=".$typetabell[$b][0])."</td></tr>";
+	    }
+	    
 	}
-	
+
 	print "</table></td></tr></table>";
 
     } else {
 	#/*prioritet*/
-
+	if($system){
+	    $systemlink = "&system=$system";
+	}
+	if($bokstype){
+	    print " av bokstype $bokstype";
+	    $bokstypelink = "&bokstype=$bokstype";
+	}
 	if($logg = db_select($dbh,"SELECT  prioriteter.prioritet, prioriteter.stikkord, prioriteter.beskrivelse, count(meldinger.id) as count FROM meldinger inner join prioriteter on meldinger.prioritet = prioriteter.prioritet WHERE $where GROUP BY prioriteter.prioritet,prioriteter.stikkord,prioriteter.beskrivelse ORDER BY prioriteter.prioritet")){
 
-$tidlink = "&tid_til=".rawurlencode($tid_til)."&tid_fra=".rawurlencode($tid_fra);
+	    $tidlink = "&tid_til=".rawurlencode($tid_til)."&tid_fra=".rawurlencode($tid_fra);
 	    print "<table>";
 	    foreach(array_keys($logg) as $l){
-		print "<tr><td>".a("Prioritet ".$logg[$l][0]." - ".$logg[$l][1],"?vis=tell$tidlink&bokstype=$bokstype&prioritet=".$logg[$l][0])."</td><td>".$logg[$l][2]."</td><td>".$logg[$l][3]."</td></tr>";
+		print "<tr><td>".a("Prioritet ".$logg[$l][0]." - ".$logg[$l][1],"?vis=tell$tidlink$systemlink$bokstypelink&prioritet=".$logg[$l][0])."</td><td>".$logg[$l][2]."</td><td>".$logg[$l][3]."</td></tr>";
 	    }
 	    print "</table>";
 	} else {
@@ -285,5 +317,7 @@ print tb(array(
 
 
 pg_close($dbh);
+
+print $where;
 
 ?>
