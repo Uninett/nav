@@ -150,6 +150,15 @@ def cleanup():
             pass
     return counter
 
+def sessionFilename(session):
+    """ Return an appropriate filename for storing this session in
+    a file.  Session can be either a session id or object."""
+    if type(session) is str:
+        sessid = session
+    else:
+        sessid = session.id
+    return path.join(tempDir, '%s%s' % (serialPrefix, sessid))
+
 class Session(dict):
     def __init__(self, sessionid=None):
         if sessionid:
@@ -165,7 +174,8 @@ class Session(dict):
         if not sessionId:
             return dict.__new__(cls)
         
-        filename = path.join(tempDir, '%s%s' % (serialPrefix, sessionId))
+        filename = sessionFilename(sessionId)
+        # countdown variable, see other comments below
         attempts = 3
         while attempts > 0:
             try:
@@ -179,11 +189,16 @@ class Session(dict):
             unpickler = cPickle.Unpickler(file)
             try:
                 session = unpickler.load()
-            except Exception, e:
-                # Make sure we unlock before we do anything to handle
-                # this exception.  If the exception still occurs after
-                # three attempts at loading the session, we reraise
-                # the exception for someone else to handle
+            except EOFError, e:
+                # Another process has just created this session file,
+                # but we managed to lock it before the other process
+                # got a write lock, so the file is empty.  The
+                # competing process may be in the queue waiting for a
+                # write lock, and should receive it immediately after
+                # we unlock.  Therefore, we unlock, and retry this
+                # procedure three times before giving up completely
+                # (in which case something is considerably wrong
+                # anyway!)
                 fcntl.lockf(file, fcntl.LOCK_UN)
                 attempts -= 1
                 if attempts <= 0:
@@ -197,16 +212,21 @@ class Session(dict):
 
     def save(self):
         """Make the Session object persistent"""
-        filename = path.join(tempDir, '%s%s' % (serialPrefix, self.id))
+        filename = sessionFilename(self)
         os.umask(0077) # Make sure only owner has rights
-        file = open(filename, 'w')
-
+        if path.exists(filename):
+            mode = 'r+'
+        else:
+            mode = 'w+'
+        file = open(filename, mode)
+        
         fcntl.lockf(file, fcntl.LOCK_EX) # Exclusive write lock
+        file.truncate() # truncate file when lock is acquired
         pickler = cPickle.Pickler(file, True)
         pickler.dump(self)
         fcntl.lockf(file, fcntl.LOCK_UN) # Release lock
-        file.close()
         self._changed = False
+        file.close()
 
     def expire(self):
         """
@@ -217,6 +237,22 @@ class Session(dict):
             os.unlink(filename)
         except OSError:
             pass
+
+    def mtime(self):
+        """ Return the mtime of the stored session file."""
+        return path.getmtime(sessionFilename(self))
+
+    def touch(self):
+        """ Update the mtime of the stored session file."""
+        filename = sessionFilename(self)
+        file = open(filename, 'r+')
+        fcntl.lockf(file, fcntl.LOCK_EX)
+        file.seek(0, 2) # Seek to end of file
+        # Truncate the file here (nothing should exist
+        # beyond this point anyway!)
+        file.truncate()
+        fcntl.lockf(file, fcntl.LOCK_UN)
+        file.close()
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
