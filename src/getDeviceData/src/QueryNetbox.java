@@ -223,7 +223,7 @@ public class QueryNetbox extends Thread
 			//typeidM.put(prevtypeid, new Type(prevtypeid, keyFreqMap, keyMap));
 
 			// Now check all non-uptodate OIDs
-			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM snmpoid WHERE uptodate = 'f'");
+			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, snmpoid.uptodate AS oiduptodate FROM snmpoid WHERE uptodate = 'f' OR snmpoidid NOT IN (SELECT snmpoidid FROM typesnmpoid)");
 			while (rs.next()) {
 				String snmpoidid = rs.getString("snmpoidid");
 				String oidkey = rs.getString("oidkey");
@@ -235,7 +235,7 @@ public class QueryNetbox extends Thread
 				
 				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, oiduptodate);
 				oidkeyM.put(oidkey, snmpoid);
-				synchronized (oidQ) { oidQ.add(snmpoid); }
+				if (!oiduptodate) synchronized (oidQ) { oidQ.add(snmpoid); }
 
 			}
 
