@@ -1,3 +1,9 @@
+/*
+ *  DeviceTracker plugin for eventEngine
+ *  Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+ *
+ */
+
 package no.ntnu.nav.eventengine.handlerplugins.DeviceTracker;
 
 import no.ntnu.nav.eventengine.*;
@@ -6,6 +12,7 @@ import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
 
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.logger.*;
 
 import java.util.*;
 import java.sql.ResultSet;
@@ -24,7 +31,9 @@ public class DeviceTracker implements EventHandler
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
 	{
-		outld("DeviceTracker plugin handling event: " + e);
+        Log.setDefaultSubsystem("DEVICE_TRACKER_HANDLER");
+        if(DEBUG_OUT)
+    		Log.d("HANDLE","DeviceTracker plugin handling event: " + e);
 
         String eventtype = e.getEventtypeid();
 
@@ -32,48 +41,85 @@ public class DeviceTracker implements EventHandler
 		Alert a = ddb.alertFactory(e);
 		a.addEvent(e);
 		
-		outld("  added alert: " + a);
+        if (DEBUG_OUT)
+    		Log.d("HANDLE","Added alert: " + a);
 
         // Add history vars for the different events
         if (eventtype.equals("deviceOrdered")) {
-            a.addHistoryVar("username",e.getVar("username"));
-            if(e.getState() == Event.STATE_START) {
-                a.addHistoryVar("orgid",e.getVar("orgid"));
-                a.addHistoryVar("dealer",e.getVar("dealer"));
-                a.addHistoryVar("orderid",e.getVar("orderid"));
+            if (e.getVar("username") != null)
+                a.addHistoryVar("username",e.getVar("username"));
+            if (e.getState() == Event.STATE_START) {
+                if (e.getVar("orgid") != null)
+                    a.addHistoryVar("orgid",e.getVar("orgid"));
+                if (e.getVar("dealer") != null)
+                    a.addHistoryVar("dealer",e.getVar("dealer"));
+                if (e.getVar("orderid") != null)
+                    a.addHistoryVar("orderid",e.getVar("orderid"));
             }
         } else if (eventtype.equals("deviceRegistered")) {
-            a.addHistoryVar("username",e.getVar("username"));
+            if (e.getVar("username") != null)
+                a.addHistoryVar("username",e.getVar("username"));
         } else if (eventtype.equals("deviceOnService")) {
-            a.addHistoryVar("username",e.getVar("username"));
+            if (e.getVar("username") != null)
+                a.addHistoryVar("username",e.getVar("username"));
         } else if (eventtype.equals("deviceInOperation")) {
             // If there is already a deviceInOperation event for this device
-            // then send a deviceOperation end event
+            // which hasn't ended yet, set the end_time for that event to 
+            // the start_time for this one (minus one minute, to avoid confusion)
+            if (e.getState() == Event.STATE_START) {
+                try {
+                    ResultSet rs = Database.query("SELECT alerthistid FROM alerthist WHERE deviceid = " + e.getDeviceid() + " AND end_time = 'infinity'");
+                    ResultSetMetaData rsmd = rs.getMetaData();
+                    if (rs.next()) {
+                        // There should be only one result from this query as it
+                        // is run every time a new deviceInOperation-start event
+                        // is posted 
+                        try {
+                            // subtract one minute, ugly
+                            Date end_time = new Date(e.getTime().getTime() - 1000*60);
+                            Database.update("UPDATE alerthist SET end_time = '" + end_time + "' WHERE alerthistid = " + rs.getString("alerthistid"));
+                            Database.commit(); 
+                        } catch (SQLException exp) {
+                            Log.e("HANDLE","Unable to update end_time of old deviceInOperation event: " + exp.getMessage());
+                        }
+                    }
+                } catch (SQLException exp) {
+                    Log.e("HANDLE","Error while looking for old deviceInOperation event: " + exp.getMessage());
+                }
+                if (e.getVar("username") != null)
+                    a.addHistoryVar("username",e.getVar("username"));
+                if (e.getVar("sysname") != null)
+                    a.addHistoryVar("sysname",e.getVar("sysname"));
+                if (e.getVar("module") != null)
+                    a.addHistoryVar("module",e.getVar("module"));
+                if (e.getVar("room") != null)
+                    a.addHistoryVar("room",e.getVar("room"));
+            } else if (e.getState() == Event.STATE_END) {
+                // An excplicit "out of operation" event
+                if (e.getVar("username") != null)
+                    a.addHistoryVar("username",e.getVar("username"));
+            }
         } else if (eventtype.equals("deviceError")) {
-            a.addHistoryVar("username",e.getVar("username"));
-            a.addHistoryVar("comment",e.getVar("comment"));
+            if (e.getVar("username") != null)
+                a.addHistoryVar("username",e.getVar("username"));
+            if (e.getVar("comment") != null)
+                a.addHistoryVar("comment",e.getVar("comment"));
         } else if (eventtype.equals("deviceHwUpgrade")) {
-            a.addHistoryVar("description",e.getVar("description"));
+            if (e.getVar("description") != null)
+                a.addHistoryVar("description",e.getVar("description"));
         } else if (eventtype.equals("deviceSwUpgrade")) {
-            a.addHistoryVar("oldversion",e.getVar("oldversion"));
-            a.addHistoryVar("newversion",e.getVar("newversion"));
+            if (e.getVar("oldversion") != null)
+                a.addHistoryVar("oldversion",e.getVar("oldversion"));
+            if (e.getVar("newversion") != null)
+                a.addHistoryVar("newversion",e.getVar("newversion"));
         }
-
-
 
 		// Post the alert
 		try {
 			ddb.postAlert(a);
 		} catch (PostAlertException exp) {
-			errl("DeviceTracker: While posting alert, PostAlertException: " + exp.getMessage());
+			Log.w("HANDLE","While posting alert, PostAlertException: " + exp.getMessage());
 		}
 		
 	}
-	
-	private static void outd(Object o) { if (DEBUG_OUT) System.out.print(o); }
-	private static void outld(Object o) { if (DEBUG_OUT) System.out.println(o); }
-
-	private static void err(Object o) { System.err.print(o); }
-	private static void errl(Object o) { System.err.println(o); }
-
 }
