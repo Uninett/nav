@@ -205,6 +205,7 @@ public class SimpleSnmp
 	 */
 	public Map getAllMapList(String baseOid, int stripCnt) throws TimeoutException {
 		List l = getAll(baseOid);
+		System.err.println("Got list: " + l);
 		return listToMapList(l, stripCnt);
 	}
 	
@@ -231,13 +232,22 @@ public class SimpleSnmp
 				}
 				s[0] = s[0].substring(p, s[0].length());
 			}
-			if (s.length == 3) s[0] = s[2] + s[0];
+			s[0] = convertToIfIndex(s);
 
 			List vl;
 			if ( (vl=(List)m.get(s[0])) == null) m.put(s[0], vl=new ArrayList());
 			vl.add(s[1]);
 		}
 		return m;
+	}
+
+	/**
+	 * Get the ifIndex from the String array. Subclasses can override
+	 * this to do special processing; the default is just to return the
+	 * first element.
+	 */
+	protected String convertToIfIndex(String[] s) {
+		return s[0];
 	}
 
 	/**

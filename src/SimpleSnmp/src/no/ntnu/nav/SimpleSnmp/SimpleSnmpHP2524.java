@@ -47,6 +47,18 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 		return listToMapList(l, stripCnt);
 	}
 
+	/**
+	 * Override to add module number to ifIndex.
+	 */
+	protected String convertToIfIndex(String[] s) {
+		// Construct ifIndex
+		String ifindex = s[0];
+		if (ifindex.length() == 1) ifindex = "0" + ifindex;
+		ifindex = new Integer(Integer.parseInt(s[2])+1) + ifindex;
+		return ifindex;
+	}
+
+
 	// Doc in parent
 	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
 		return getAll(true, baseOid, decodeHex, getNext);
@@ -55,6 +67,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 	// If prependModule is true the module will be prepended to the OID
 	private ArrayList getAll(boolean prependModule, String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
 		if (baseOid == null) return null;
+		//Log.d("SimpleSnmpHP2524", "GET_ALL", "Fetch baseOid: " + baseOid);
 		try {
 			if (checkSnmpContext()) stackList = null;
 		} catch (IOException e) {
@@ -81,7 +94,7 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			stackList = super.getAll(hpStackOid, false, true);
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
-			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() );
+			Log.d("SimpleSnmpHP2524", "GET_ALL", "stackList.size: " + stackList.size() + " Prepend: " + prependModule);
 		}
 
 		String cs_ro = getCs_ro();
@@ -90,15 +103,19 @@ public class SimpleSnmpHP2524 extends SimpleSnmp
 			String[] s = (String[])stackList.get(i);
 			
 			setCs_ro(cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""));
-			String module = s[1].equals("0") ? "" : s[1];
+			String module = s[1];
+			//String modulePrepend = s[1].equals("0") ? "" : s[1];
 			
 			List pl = super.getAll(baseOid, decodeHex, getNext);
 			for (Iterator it = pl.iterator(); it.hasNext();) {
 				s = (String[])it.next();
+				String port = s[0];
+				s = new String[] { s[0], s[1], module, port };
 				if (prependModule) {
-					s[0] = module + s[0];
+					// Construct ifIndex
+					s[0] = convertToIfIndex(s);
 				}
-				s = new String[] { s[0], s[1], module };
+				//System.err.println("Ret s0: " + s[0] + " s1: " + s[1] + " s2: " + s[2] + " s3: " + s[3]);
 				l.add(s);
 			}
 		}
