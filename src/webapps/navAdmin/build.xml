@@ -19,7 +19,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" classpath="${lib}/jsdk22.jar"/>
+    <javac srcdir="${src}" destdir="${build}" debug="yes" classpath="${lib}/jsdk22.jar"/>
   </target>
 
   <target name="dist" depends="compile"
