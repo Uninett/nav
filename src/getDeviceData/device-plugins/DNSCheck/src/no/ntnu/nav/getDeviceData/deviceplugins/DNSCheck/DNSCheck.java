@@ -73,6 +73,8 @@ public class DNSCheck implements DeviceHandler
 			
 		}
 
+		Log.d("HANDLE", "Correct: Sysname ("+nb.getSysname()+") and DNS ("+dnsName+") match!");
+
 	}
 
 }
