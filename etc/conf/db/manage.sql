@@ -346,8 +346,7 @@ CREATE TABLE pkt2rom (
 
 GRANT all ON arp TO navall;
 GRANT all ON arp_arpid_seq TO navall;
-GRANT all ON cam TO navall;
-GRANT all ON cam_camid_seq TO navall;
+GRANT SELECT ON cam TO navall;
 GRANT all ON port2pkt TO navall;
 GRANT all ON port2pkt_id_seq TO navall;
 GRANT all ON pkt2rom TO navall;
