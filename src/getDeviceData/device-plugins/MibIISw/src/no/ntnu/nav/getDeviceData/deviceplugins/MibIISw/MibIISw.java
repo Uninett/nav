@@ -102,6 +102,7 @@ public class MibIISw implements DeviceHandler
 					speedNum = Long.parseLong(s[1]);
 					if (speedNum <= 0) {
 						skipIfindexSet.add(s[0]);
+						sc.ignoreSwport(s[0]);
 					} else {
 						Swport swp = sc.swportFactory(s[0]);
 						swp.setSpeed(String.valueOf( (speedNum/1000000) ));

@@ -132,6 +132,9 @@ public class SwportHandler implements DataHandler {
 				for (Iterator j = md.getSwports(); j.hasNext();) {
 					Swport sd = (Swport)j.next();
 
+					// Check if this swport should be ignored
+					if (sc.getIgnoreSwport(sd.getIfindex())) continue;
+
 					// Finn evt. gammel
 					String swportid;
 					//Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getIfindex());

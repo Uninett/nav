@@ -36,6 +36,7 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	private SwportHandler swh;
 	private List swModuleList = new ArrayList();
 	private Map swportMap = new HashMap();
+	private Set ignoreSet = new HashSet();
 
 	protected SwportContainer(SwportHandler swh) {
 		super(null);
@@ -84,6 +85,18 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 */
 	public Swport swportFactory(String ifindex) {
 		return createOrGetSwport(ifindex);
+	}
+
+	/**
+	 * Specify that the swport for the given ifindex should be ignored
+	 * (not inserted into the database).
+	 */
+	public void ignoreSwport(String ifindex) {
+		ignoreSet.add(ifindex);
+	}
+
+	boolean getIgnoreSwport(String ifindex) {
+		return ignoreSet.contains(ifindex);
 	}
 
 	/**
