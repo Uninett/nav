@@ -1,0 +1,15 @@
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+
+.PHONY: all install clean distclean
+
+all install:
+	$(MAKE) -C src $@
+
+clean:
+	$(MAKE) -C src $@
+	rm -f *~
+
+distclean: clean
+	$(MAKE) -C src $@
+	rm -f Makefile

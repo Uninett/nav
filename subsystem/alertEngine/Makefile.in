@@ -1,0 +1,39 @@
+##
+## Makefile for alertEngine
+##
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+CHEETAH = @CHEETAH@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+localstatedir=@localstatedir@
+perllibdir = @pythonlibdir@
+
+binaries = alertdaemon.pl alertengine.pl
+libraries = Alert.pm AlertsBase.pm Engine.pm EquipmentGroups.pm IP.pm Log.pm NewAlerts.pm QueuedAlerts.pm User.pm UserGroups.pm
+
+.PHONY: all install install-bin install-lib clean distclean
+
+all:
+
+install: install-lib install-bin
+
+install-lib:
+	for file in $(binaries); do \
+	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-bin:
+	for file in $(libraries); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(perllibdir)/$$file || exit 1; \
+	done
+
+clean:
+	rm -f *~
+
+distclean: clean
+	rm -f Makefile

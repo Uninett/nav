@@ -1,0 +1,24 @@
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+
+subdirs = templates src lib bin
+
+
+.PHONY: all install clean distclean
+
+all install:
+	for dir in $(subdirs); do \
+	$(MAKE) -C $$dir $@ || exit 1; \
+	done
+
+clean:
+	for dir in $(subdirs); do \
+	$(MAKE) -C $$dir $@ || exit 1; \
+	done
+	rm -f *~
+
+distclean: clean
+	for dir in $(subdirs); do \
+	$(MAKE) -C $$dir $@ || exit 1; \
+	done
+	rm -f Makefile

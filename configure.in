@@ -59,6 +59,23 @@ AC_OUTPUT(Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
+	subsystem/editdb/Makefile
+	subsystem/editdb/src/Makefile
+	subsystem/status/Makefile
+	subsystem/status/src/Makefile
+	subsystem/eMotd/lib/Makefile
+	subsystem/eMotd/src/Makefile
+	subsystem/eMotd/bin/Makefile
+	subsystem/eMotd/templates/Makefile
+	subsystem/eMotd/Makefile
+	subsystem/deviceManagement/src/Makefile
+	subsystem/deviceManagement/Makefile
+	subsystem/machinetracker/src/Makefile
+	subsystem/machinetracker/Makefile
+	subsystem/report/src/Makefile
+	subsystem/report/Makefile
+	subsystem/alertprofiles/Makefile
+	subsystem/alertEngine/Makefile
 	subsystem/webFront/templates/Makefile
 	subsystem/statTools/Makefile)
 

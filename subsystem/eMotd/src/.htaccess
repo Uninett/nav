@@ -1,5 +1,3 @@
-PythonPath "['/usr/local/nav/navme/apache/webroot/emotd']+sys.path"
 SetHandler python-program
 PythonHandler handler
-PythonHeaderParserHandler nav.web
 DirectoryIndex handler.py

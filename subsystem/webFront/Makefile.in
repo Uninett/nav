@@ -11,7 +11,7 @@ sysconfdir = @sysconfdir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
-.PHONY: all install install-lib install-bin install-web clean distclean
+.PHONY: all install install-lib install-bin install-web install-images clean distclean
 
 all: 
 	$(MAKE) -C templates $@
@@ -31,9 +31,16 @@ install-bin:
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
 	done
 
-install-web:
+install-web: install-images
 	@cd src; \
-	installable=`find . -name '*.py'; find . -name '.htaccess'`; \
+	installable=`find . -name '*.py'; find . -name '.htaccess'; find . -name '*.html'`; \
+	for file in $$installable; do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
+	done
+
+install-images:
+	@cd graphics; \
+	installable=`find . -type f -and -not \( -iregex '.*\.svn.*' -or -name '*~' \)`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
