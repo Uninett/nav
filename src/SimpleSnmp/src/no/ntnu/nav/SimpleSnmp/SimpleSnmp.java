@@ -177,6 +177,23 @@ public class SimpleSnmp
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
 	 * @param decodeHex try to decode returned hex to ASCII
+	 * @return a Map which maps the OIDs to their corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMap(String baseOid, boolean decodeHex) throws TimeoutException
+	{
+		return getAllMap(baseOid, decodeHex, 0);
+	}
+
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree as a
+	 * Map.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 *
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param decodeHex try to decode returned hex to ASCII
 	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
 	 * @return a Map which maps the OIDs to their corresponding values
 	 * @throws TimeoutException if the hosts times out
