@@ -590,7 +590,8 @@ GRANT ALL    ON cam_camid_seq TO getBoksMacs;
 
 GRANT ALL    ON device TO getDeviceData;
 GRANT ALL    ON device_deviceid_seq TO getDeviceData;
-GRANT SELECT,UPDATE ON netbox TO getDeviceData;
+GRANT ALL    ON netbox TO getDeviceData;
+GRANT ALL    ON netbox_netboxid_seq TO getDeviceData;
 GRANT ALL    ON netboxinfo TO getDeviceData;
 GRANT ALL    ON netboxinfo_netboxinfoid_seq TO getDeviceData;
 GRANT SELECT,UPDATE ON type TO getDeviceData;
@@ -612,6 +613,9 @@ GRANT ALL    ON vlan TO getDeviceData;
 GRANT ALL    ON vlan_vlanid_seq TO getDeviceData;
 GRANT ALL    ON typesnmpoid TO getDeviceData;
 GRANT SELECT,UPDATE ON snmpoid TO getDeviceData;
+GRANT ALL ON eventq TO getDeviceData;
+GRANT ALL ON eventq_eventqid_seq TO getDeviceData;
+GRANT ALL ON eventqvar TO getDeviceData;
 
 
 -------- vlanPlot end ------
@@ -642,6 +646,7 @@ INSERT INTO subsystem (name) VALUES ('thresholdMon');
 INSERT INTO subsystem (name) VALUES ('trapParser');
 INSERT INTO subsystem (name) VALUES ('cricket');
 INSERT INTO subsystem (name) VALUES ('deviceTracker');
+INSERT INTO subsystem (name) VALUES ('getDeviceData');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
