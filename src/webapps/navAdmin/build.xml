@@ -74,7 +74,7 @@
   <property file="../../build.properties"/>
 
   <property name="jarinstdir"  location="${javalibdir}/navAdmin"/>
-  <property name="warinstdir"  location="${prefix}/apache/webapps"/>
+  <property name="warinstdir"  location="${webapps}"/>
 	<property name="debug" value="yes"/>
   <property name="build.compiler.emacs" value="yes"/>
 

@@ -26,6 +26,7 @@ if test -z "$ANT"; then
 fi
 
 AC_SUBST(nav_user)
+AC_SUBST(webapps)
 AC_SUBST(webroot)
 AC_SUBST(javalibdir)
 AC_SUBST(pythonlibdir)
@@ -37,6 +38,7 @@ AC_SUBST(crondir)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
+webapps='${prefix}/apache/webapps'
 webroot='${prefix}/apache/webroot'
 pythonlibdir='${libdir}/python'
 javalibdir='${libdir}/java'
