@@ -148,7 +148,7 @@ def getMenu(user,this):
     menu.append(MenuItem("maintenance","Maintenance list"))
     if shouldShow('/emotd/edit',user):
         menu.append(MenuItem("edit","New message",this))
-        menu.append(MenuItem("add","Maintenance Setup",this))
+        menu.append(MenuItem("add","Maintenance",this))
     return menu
 
 def search(req):
@@ -649,12 +649,12 @@ def maintenance(req, id = None):
     args = {}
     form = ''
     body = ''
-    title = 'Set on maintenance'
+    title = 'Maintenance Setup'
     ##menu = getMenu(req)
 
     args['path'] = [('Home','/'),
                     ('Messages',BASEPATH),
-                    ('Maintenance Setup', None)]
+                    (title, None)]
     if not req.session.has_key("message"):
         req.session["message"] = {}
     if id:
@@ -671,7 +671,7 @@ def maintenance(req, id = None):
     # search
     # Make the searchbox
     searchbox = SearchBox.SearchBox(req,
-                'Type a room id, an ip or a (partial) sysname or servicename')
+                'Type a room id, an ip or a (partial) sysname or servicename', form=False)
     searchbox.addSearch('host',
                         'ip or hostname',
                         'Netbox',

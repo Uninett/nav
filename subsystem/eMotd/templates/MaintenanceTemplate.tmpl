@@ -6,7 +6,7 @@
 $makeMenu2("Maintenance Setup")
 ##$emotdid
 <form action="$args['action']" method="post">
-<h1>Maintenance setup</h1>
+<h1>Maintenance Setup</h1>
 
 #if $defined
 $information()
@@ -97,7 +97,7 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 </td>
 <td style="padding: 0px 0px 0px 25px;" valign=bottom>
 #set qs = SearchBoxTemplate()
-    $qs.searchbox($args['searchbox'], form=False)
+    $qs.searchbox($args['searchbox'])
 </td>
 </tr></table>
 #end def
