@@ -4,13 +4,13 @@
 <table width=80%>
 <tr>
 
-<td width=25%><form action=../browse/>Device Browser<br>
+<td width=25%><form action=../browse/>Info<br>
 <input type=text name=netbox size=10>
 <input type=submit value=Find>
 <br><font size=1 color=gray>IP / sysname</font>
 </form></td>
 
-<td width=25%><form action=netbox>Equipment in a room<br>
+<td width=25%><form action=netbox>Room<br>
 <input type=text name=roomid size=10>
 <input type=submit value=Find>
 <br><font size=1 color=gray>room</font>
@@ -41,17 +41,18 @@
 
 <tr><td colspan=2 width=50%>
 <dl>
-Collected information
+<b>Collected information</b>
 <dt><a href=netbox>Devices in Operation (all)</a>
 
 <dt><a href=gw>Routers</a>
 <dd><a href=prefix>Prefixes</a>
-<dt><a href=sw>Core Switches</a>
+<dd><a href=gwport>Router ports</a>
+<dt><a href=sw?catid_op=in&catid=SW,GSW>Core Switches</a>
 <dd><a href=swport?b1.catid=SW>Core switch ports</a></li>
 <dd><a href=swport?b1.catid=SW&s1.trunk=1>Trunked core switch ports</a></li>
 <dd><a href=swportv?b1.catid=SW>Core switch ports (expand trunks to vlan)</a></li>
 
-<dt><a href=edge>Edge Switches and Hubs</a>
+<dt><a href=sw?catid=EDGE>Edge Switches and Hubs</a>
 <dd><a href=swportv?b1.catid=EDGE>Edge switch ports</a></li>
 
 <dt><a href=wlan>Wireless</a>
@@ -66,8 +67,8 @@ Collected information
 </td>
 <td valign=top width=50% colspan=2>
 <dl>
-<dt>Manually updated information
-<dt><a href="../editdb"><i>Update database</i></a>
+<dt><b>Manually updated information</b>
+<dt><a href="../editdb"><i>[Update database]</i></a>
 <br><br>
 <dt><a href=type>Equipment types</a>
 <dt><a href=room>Rooms</a>
