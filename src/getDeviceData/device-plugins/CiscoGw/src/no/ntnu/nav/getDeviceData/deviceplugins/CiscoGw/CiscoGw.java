@@ -271,6 +271,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						(interf == null || interf.startsWith("EOBC") || interf.equals("Vlan0"))) continue;
 
 				// Parse the description (ifAlias)
+				System.err.println("Parsing ifAlias: " + descr);
 				s = descr.split(",");
 				if (descr.startsWith("lan") || descr.startsWith("stam")) {
 					nettype = "lan";
@@ -303,6 +304,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					Matcher m = Pattern.compile(pattern).matcher(interf);
 					m.matches();
 					vlan = m.group(1);
+				}
+
+				// Check that vlan is number:
+				if (vlan != null && !isNumber(vlan)) {
+					System.err.println("Vlan is not a number! " + vlan);
+					vlan = null;
 				}
 
 				// Create Vlan
@@ -341,6 +348,15 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				
 			}
 		}
+	}
+
+	private static boolean isNumber(String s) {
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException) {
+			return false;
+		}
+		return true;
 	}
 
 }
