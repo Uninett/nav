@@ -99,6 +99,7 @@ class ServiceTable:
             # If we only have one netbox, there will be no need
             # to show it's name
             headers.append("Server")
+            headers.append("Org")     
         if len(self.servicenames) != 1:
             # No need to show servicename if we only display
             # one service...
@@ -124,6 +125,12 @@ class ServiceTable:
             if len(self.netboxes) != 1:
                 netbox = urlbuilder.createLink(service.netbox)
                 row.append(netbox)
+                org = service.netbox.org
+                if org:
+                    org = urlbuilder.createLink(org, content=org.descr or org.orgid)
+                    row.append(org)
+                else:
+                    row.append("")
             if len(self.servicenames) != 1:
                 handler = urlbuilder.createLink(division="service",
                                                 id=service.handler)
