@@ -40,7 +40,7 @@ public class Module extends Device
 	protected void update(ResultSet rs) throws SQLException
 	{
 		parentDeviceid = rs.getInt("parent_deviceid");
-		parentBoxid = rs.getInt("parent_boxid");
+		parentBoxid = rs.getInt("parent_netboxid");
 		module = rs.getString("module");
 		do {
 			//errl("Debug " + deviceid + ", Module("+module+"): New port: " + rs.getInt("port"));
@@ -58,7 +58,7 @@ public class Module extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		outld("Module.updateFromDB");
-		ResultSet rs = Database.query("SELECT moduleid+10000 AS deviceid,module.boksid AS parent_deviceid,module.boksid AS parent_boxid,modul AS module,port,boksbak AS boksid_behind,vlan,retning AS direction FROM module JOIN swport ON (module.boksid=swport.boksid AND modulenumber=modul) JOIN swportvlan USING(swportid) WHERE status='up' ORDER BY moduleid,module,port");
+		ResultSet rs = Database.query("SELECT module.deviceid,netbox.deviceid AS parent_deviceid,module.netboxid AS parent_netboxid,module,port,to_netboxid,vlan,direction FROM module JOIN netbox USING (netboxid) JOIN swport USING(moduleid) JOIN swportvlan USING(swportid) WHERE module.up='y' ORDER BY moduleid,module,port");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
@@ -67,7 +67,7 @@ public class Module extends Device
 			if (rs.getInt("parent_deviceid") == 237) {
 				rs.previous();
 				rs.previous();
-				errl("Boksid: " + rs.getInt("parent_deviceid") + " Port: " + rs.getInt("port") + " parent: " + rs.getInt("boksid_behind"));
+				errl("Boxid: " + rs.getInt("parent_deviceid") + " Port: " + rs.getInt("port") + " parent: " + rs.getInt("to_netboxid"));
 				rs.next();
 				rs.next();
 			}

@@ -47,7 +47,7 @@ public class Box extends Device
 
 	protected void update(ResultSet rs) throws SQLException
 	{
-		boxid = rs.getInt("boksid");
+		boxid = rs.getInt("netboxid");
 		ip = rs.getString("ip");
 		sysname = rs.getString("sysname");
 		vlan = rs.getInt("vlan");
@@ -58,7 +58,7 @@ public class Box extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		outld("Box.updateFromDB");
-		ResultSet rs = Database.query("SELECT boksid AS deviceid, boksid,ip,sysname,vlan FROM boks JOIN prefiks USING(prefiksid)");
+		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan FROM netbox JOIN prefix USING(prefixid)");
 
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");

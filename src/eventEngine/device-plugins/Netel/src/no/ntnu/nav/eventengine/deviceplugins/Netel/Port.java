@@ -76,7 +76,7 @@ public class Port
 		String module = rs.getString("module");
 
 		port = rs.getInt("port");
-		boxidBehind = rs.getInt("boksid_behind");
+		boxidBehind = rs.getInt("to_netboxid");
 
 		List vl = new ArrayList();
 		do {
