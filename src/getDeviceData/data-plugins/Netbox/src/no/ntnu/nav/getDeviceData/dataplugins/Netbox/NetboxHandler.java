@@ -113,6 +113,23 @@ public class NetboxHandler implements DataHandler {
 
 		try {
 			String deltaS = oldn != null ? " delta = " + util.format(n.uptimeDelta(oldn),1) + "s" : "";
+			
+			/*
+			if (n.uptimeDelta(oldn) > 0) {
+				ResultSet rs = Database.query("SELECT 'epoch'::timestamp with time zone + ("+n.getUptime()+" || ' seconds')::interval AS upsince");
+				rs.next();
+				System.err.println(n.getSysname() + ": " + util.format(n.uptimeDelta(oldn),1) + " ticks: " + n.getTicks() + " uptime: " + n.getUptime() + " upsince: " + rs.getString("upsince") + " u1: " + n.u1 + " u2: " + n.u2);
+				System.err.println("baseDiff: " + (System.currentTimeMillis()-n.baseTime));
+				if (oldn != null) {
+					rs = Database.query("SELECT 'epoch'::timestamp with time zone + ("+oldn.getUptime()+" || ' seconds')::interval AS upsince");
+					rs.next();
+					System.err.println(oldn.getSysname() + ": " + util.format(oldn.uptimeDelta(n),1) + " ticks: " + oldn.getTicks() + " uptime: " + oldn.getUptime() + " upsince: " + rs.getString("upsince") + " u1: " + oldn.u1 + " u2: " + oldn.u2);
+					System.err.println("baseDiff: " + (System.currentTimeMillis()-oldn.baseTime));
+				}
+				System.err.println();
+			}
+			*/
+
 			Log.d("UPDATE_NETBOX", "devid="+n.getDeviceidS()+" "+n.getSysname() + " ("+netboxid+") ticks=" + n.getTicks() + deltaS);
 				// Check if we need to update netbox
 			if (oldn == null || !n.equalsNetboxData(oldn)) {
@@ -127,12 +144,14 @@ public class NetboxHandler implements DataHandler {
 				Log.i("UPDATE_NETBOX", "Updating netbox " + nb.getSysname() + " ("+n.getSysname()+") ("+netboxid+")," + deltaS + " uptime ticks = "+n.getTicks() + " (" + n.getUpsince()+")");
 
 				// Send event if uptime changed
-				if (!oldn.equalsUptime(n)) {
-					Map varMap = new HashMap();
-					varMap.put("alerttype", "coldStart");
-					varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
-					varMap.put("new_upsince", String.valueOf(n.getUpsince()));
-					EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "boxRestart", Event.STATE_NONE, 0, 0, varMap);
+				if (oldn == null || !oldn.equalsUptime(n)) {
+					if (oldn != null && oldn.uptimeDelta(n) > NetboxData.EVENT_DELTA) {
+						Map varMap = new HashMap();
+						varMap.put("alerttype", "coldStart");
+						varMap.put("old_upsince", String.valueOf((oldn==null?null:oldn.getUpsince())));
+						varMap.put("new_upsince", String.valueOf(n.getUpsince()));
+						EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "boxRestart", Event.STATE_NONE, 0, 0, varMap);
+					}
 
 					// Update DB. We should only do this if the update really
 					// has changed since the value might have wrapped.

@@ -15,7 +15,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 public class NetboxData extends Device
 {
 	// 300 second difference minimum before we change uptime
-	private static final double DELTA = 300.0;
+	public static final double DELTA = 300.0;
+	public static final double EVENT_DELTA = 3600.0;
+
 	private int deviceid;
 
 	private Netbox nb;
@@ -23,6 +25,9 @@ public class NetboxData extends Device
 	private String upsince;
 	private double uptime;
 	//private long curTime;
+	//private long baseTime;
+
+	public long u1,u2;
 
 	/**
 	 * Constructor.
@@ -45,23 +50,24 @@ public class NetboxData extends Device
 	 * Set the uptime in timerticks (100 ticks per second).
 	 */
 	public void setUptimeTicks(long ticks) {
-		uptime = ticksToUptime(ticks);
+		long baseTime = System.currentTimeMillis();
+		uptime = ticksToUptime(ticks, baseTime);
 	}
 
 	/**
 	 * Set the uptime in seconds since the epoch.
 	 */
 	public void setUptime(double uptime) {
+		//long baseTime = System.currentTimeMillis();
 		this.uptime = uptime;
 	}
 
-	private double ticksToUptime(long ticks) {
-		long curTime = System.currentTimeMillis();
-		double uptime = (curTime - (ticks * 10)) / 1000.0;
+	private static double ticksToUptime(long ticks, long baseTime) {
+		double uptime = (baseTime - (ticks * 10)) / 1000.0;
 		return uptime;
 	}
 
-	private long uptimeToTicks(double uptime) {
+	private static long uptimeToTicks(double uptime) {
 		long curTime = System.currentTimeMillis();
 		long ticks = (long) ((curTime - (uptime * 1000)) / 10);
 		return ticks;
@@ -77,7 +83,8 @@ public class NetboxData extends Device
 	Netbox getNetbox() { return nb; }
 	String getSysname() { return sysname; }
 	String getUpsince() { return upsince; }
-	long getTicks() { return uptimeToTicks(uptime); }
+	long getTicks() { return uptimeToTicks(getUptime()); }
+	//double getUptime() { return uptime - (System.currentTimeMillis()-baseTime)/1000.0; }
 	double getUptime() { return uptime; }
 
 	// Doc in parent
