@@ -99,23 +99,24 @@ Oversikt
 3)databaseformat
   Følgende tabeller er lagt til i nav-databasen:
 
-  CREATE TABLE bokskategori {
-    boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
-         ON UPDATE CASCADE ON DELETE CASCADE,
-    kategori  VARCHAR(255) NOT NULL PRIMARY KEY
-    }
-
-  CREATE TABLE boksinterface {
-      boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
-               ON UPDATE CASCADE ON DELETE CASCADE,
-      interf  VARCHAR(50) NOT NULL PRIMARY KEY
-      }
-
-  CREATE TABLE boksdisk {
-    boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks
-	    ON UPDATE CASCADE ON DELETE CASCADE,
-    path  VARCHAR(255) NOT NULL PRIMARY KEY
-    }
+  CREATE TABLE boksdisk (
+    boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+    path VARCHAR(255) NOT NULL,
+    blocksize INT4 NOT NULL DEFAULT 1024,
+    PRIMARY KEY (boksid, path)
+    );
+        
+  CREATE TABLE boksinterface (
+    boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+    interf VARCHAR(50) NOT NULL,
+    PRIMARY KEY (boksid, interf)
+    );
+              
+  CREATE TABLE bokscategory (
+    boksid INT4 NOT NULL REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
+    category VARCHAR(30) NOT NULL,
+    PRIMARY KEY(boksid, category)
+    );              
 
 
   Alle disse tabellene er til hjelp når man automatisk skal generere 
