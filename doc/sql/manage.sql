@@ -655,7 +655,7 @@ CREATE TABLE eventq (
   target VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
   deviceid INT4 REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE,
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
-  subid INT4,
+  subid VARCHAR,
   time TIMESTAMP NOT NULL DEFAULT 'NOW()',
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   state CHAR(1) NOT NULL DEFAULT 'x' CHECK (state='x' OR state='s' OR state='e'), -- x = stateless, s = start, e = end
@@ -756,6 +756,14 @@ CREATE TABLE alertqmsg (
   UNIQUE(alertqid, msgtype, language)
 );
 CREATE INDEX alertqmsg_alertqid_btree ON alertqmsg USING btree (alertqid);
+CREATE TABLE alertqvar (
+  alertqid INT4 REFERENCES alertq ON UPDATE CASCADE ON DELETE CASCADE,
+  var VARCHAR NOT NULL,
+  val TEXT NOT NULL,
+  UNIQUE(alertqid, var) -- only one val per var per event
+);
+CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
+
 
 DROP TABLE alerthist CASCADE;
 DROP SEQUENCE alerthist_alerthistid_seq;
