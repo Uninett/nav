@@ -5,12 +5,7 @@ from mod_python import util, apache
 from mx import DateTime
 from time import strftime
 import re
-#import sys,os,re,copy,string
-import nav
-#import nav.db.manage 
 from nav import db
-#from nav.db.manage import Emotd, Emotd_related, Maintenance 
-#from nav.db.manage import Room, Service, Netbox 
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox,EmotdSelect,redirect,shouldShow
 
@@ -35,14 +30,13 @@ from nav.web.templates.FeederTemplate import FeederTemplate
 title = 'Message of the day'
 menu = ''
 
-EmotdTemplate.path =  [("Home", "/"), ("Messages", "/emotd")]
 DATEFORMAT = "%Y-%m-%d %H:%M"
-BASEPATH = '/emotd/'
+BASEPATH = '/messages/'
 LIMIT = 20
 
 #multiple language support is not part of this release
-#LANG1 = "Norwegian"
-#LANG2 = "English"
+LANG1 = "Norwegian"
+LANG2 = "English"
 
 connection = db.getConnection('webfront','manage')
 database = connection.cursor()
@@ -74,6 +68,8 @@ def handler(req):
         else:
             output = view(req)
     elif path[0] == 'maintenance':
+        output = maintlist(req)
+    elif path[0] == 'maintlist':
         output = maintlist(req)
     elif path[0] == 'rss':
         output = feed(req)
@@ -341,7 +337,7 @@ def home(req,view="active",offset="0"):
     page.title = "%s Messages" % view.capitalize()
     page.menu = getMenu(user,view)
     page.messages = messagelist(user,view,offset)
-    page.path = [('Frontpage','/'),
+    page.path = [('Home','/'),
                  ('Messages',BASEPATH),
                  (page.title,'')]
 
@@ -470,42 +466,154 @@ class MaintElement:
         
 
 def maintlist(req):
-    sql = "select emotd.emotdid, key, value, maint_start, maint_end, title, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' "
+    page = MaintListTemplate()
+    
+    sql = "select emotd.emotdid, title, key, value, maint_start, maint_end, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' and maint_end > now() order by maint_end desc"
+    ## should be either or, not , in the order by clause
+    
     database.execute(sql)
     maints = database.fetchall()
     maintlist = []
-    for (emotdid, key, value, start, end, title, state) in maints:
+    for (emotdid, title,  key, value, start, end, state) in maints:
         if key == 'room':
+            netboxid = ""
+            sysname = ""
             try:
                 database.execute("select descr from room where roomid='%s'" % value)
-                descr = "%s (%s)" % (value,database.fetchone()[0])
+                descr = database.fetchone()[0]
+
             except:
                 descr = value
+                
+            database.execute("select sysname, netboxid from netbox where roomid='%s'" % value)
+
+            for (sysname, netboxid) in database.fetchall():
+
+                mle = MaintListElement(emotdid,title,start,end, key)
+                if netboxid:
+                    mle.setNetbox(netboxid,sysname)
+                mle.setRoom(value,descr)
+                maintlist.append(mle)
+                    
         elif key == 'location':
+            netboxid = ""
+            sysname = ""
+            roomid =""
+            roomdesc = ""
             try:
                 database.execute("select descr from location where locationid='%s'" % value)
-                descr = "%s (%s)" % (value,database.fetchone()[0])
+                descr = database.fetchone()
             except:
                 descr = value
+
+            database.execute("select roomid, descr, netboxid, sysname from room left outer join netbox using (roomid) where locationid='%s'" % value)
+
+            for (roomid, roomdesc, netboxid, sysname) in database.fetchall():
+                mle = MaintListElement(emotdid, title, start, end, key)
+                if netboxid:
+                    mle.setNetbox(netboxid,sysname)
+                mle.setRoom(roomid, roomdesc)
+                mle.setLocation(value,descr)
+ 
+                maintlist.append(mle)
+                
         elif key == 'netbox':
             try:
-                
                 database.execute("select sysname from netbox where netboxid=%d" % int(value))
                 descr = database.fetchone()[0]
             except:
                 descr = key + value
+                
+            mle = MaintListElement(emotdid, title, start, end, key)
+            mle.setNetbox(value,descr)
+           
+            maintlist.append(mle)
+
         elif key == 'service':
+            netboxid = ""
+            sysname = ""
             try:
-                database.execute("select handle from service where serviceid=%d" % int(value))
-                descr = database.fetchone()[0]
+                database.execute("select handle, netbox.netboxid, sysname from service left outer join netbox using (netboxid) where serviceid=%d" % int(value))
+                (descr,netboxid,sysname) = database.fetchone()
             except:
                 descr = key + value
+
+            mle = MaintListElement(emotdid), title, start, end, key
+            if netboxid:
+                mle.setNetbox(netboxid,sysname)
+            mle.setService(value,descr)
+            maintlist.append(mle)
+                
         elif key == 'module':
+            netboxid = ""
+            sysname = ""
+            module =""
             try:
-                database.execute("select module, descr from module where moduleid=%d" % int(value))
+                database.execute("select moduleid, module, descr from module where moduleid=%d" % int(value))
+                (moduleid, module, descr, netboxid, sysname) = database.fetchone()
             except:
-		pass
-		# Jeg er en idiot som skriver uferdig kode.	
+                descr = key + value
+                
+            mle = MaintListElement(emotdid, title, start, end, key)
+            if netboxid:
+                mle.setNetbox(netboxid,sysname)
+            mle.setModule(value,module,descr)
+            maintlist.append(mle)
+
+    page.menu = getMenu(req.session['user'], 'maintenance')
+    page.maintlist = maintlist
+    return page.respond()
+
+class MaintListElement:
+    def __init__(self, message, title, start, end, key):
+        self.message = int(message)
+        self.title = ""
+        self.locationid = ""
+        self.locationdescr =""
+        self.roomid = ""
+        self.roomdescr = ""
+        self.netboxid = 0
+        self.sysname = ""
+        self.serviceid = 0
+        self.handler = ""
+        self.moduleid = 0
+        self.module = ""
+        self.moduledescr = ""
+        self.on = key
+        if start:
+            start = start.strftime(DATEFORMAT)
+        if end:
+            end = end.strftime(DATEFORMAT)
+        self.start = start
+        self.end = end
+
+    def setTitle(self,title):
+        self.title = title
+
+    def setLocation(self,locationid, descr):
+        self.locationid = locationid
+        self.locationdescr = descr
+        
+    def setRoom(self,roomid, descr):
+        self.room = roomid
+        self.roomdescr = descr
+
+    def setNetbox(self,netboxid, sysname):
+        if netboxid:
+            self.netboxid = int(netboxid)
+        self.sysname = sysname
+
+    def setService(self,serviceid,handler):
+        self.serviceid = int(serviceid)
+        self.handler = handler
+
+    def setModule(self,moduleid, module, descr):
+        self.moduleid = int(moduleid)
+        self.module = module
+        self.moduledescr = descr
+
+    def setOn(self,category):
+        self.on = category
 
 def getMaintTime(emotdid=None):
     """ Makes useful representation of maintenance start and maintenance end. Is it still in use?"""

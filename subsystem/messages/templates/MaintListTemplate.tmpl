@@ -2,6 +2,47 @@
 
 #block content
 $makeMenu("Maintenance list")
-$maintList()
-</div>
+
+#set $last_location = True
+#set $last_room = True
+#set $last_message = True
+#set $columns = ("message", "location", "room", "netbox", "service/module", "maintenance end")
+<table style="font-size:0.7em">
+<tr>#slurp
+#for $column in $columns
+<th>$column</th>#slurp
+#end for
+</tr>
+
+#for $element in $maintlist
+<tr>
+#if not $last_message==$element.message
+<td>$element.title</td>#slurp
+#else
+<td></td>#slurp
+#end if
+#if not $last_location==$element.locationid
+<td>$element.locationid</td>#slurp
+#else
+<td></td>#slurp
+#end if
+#if not $last_room==$element.roomid
+<td>$element.roomid</td>#slurp
+#else
+<td></td>#slurp
+#end if
+#set $last_location = $element.locationid
+#set $last_room = $element.roomid
+#set $last_message = $element.message
+<td>$element.sysname</td><td>#slurp
+#if $element.serviceid
+$element.handler#slurp
+#elif $element.module
+$element.module#slurp
+#end if
+</td><td>$element.end</td></tr>
+
+#end for
+</table>
+
 #end block
