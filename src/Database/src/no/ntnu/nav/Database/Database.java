@@ -62,6 +62,8 @@ public class Database
 	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 8;
 	public static final int DEFAULT_THREAD_STATEMENT_BUFFER = 2;
 	public static final int DEFAULT_RECONNECT_WAIT_TIME = 10000;
+	public static final int DEFAULT_MAX_CONNECTIONS = 6;
+	public static final int DEFAULT_MAX_TRANS_CONNECTIONS = 4;
 
 	private static final String dbDriverOracle = "oracle.jdbc.driver.OracleDriver";
 	private static final String dbDriverPostgresql = "org.postgresql.Driver";
@@ -87,6 +89,8 @@ public class Database
 		private LinkedList conQ;
 		private LinkedList conQT;
 		private Map activeTransactions = new HashMap();
+		private int conCnt;
+		private int conTCnt;
 
 		private Map statementMap = Collections.synchronizedMap(new HashMap()); // Maps thread to a LinkedList of statements
 		private LinkedList globStatementQ = new LinkedList();
@@ -126,14 +130,7 @@ public class Database
 		}
 
 		public int getConnectionCount() {
-			int cnt=0;
-			synchronized (conQ) {
-				cnt += conQ.size();
-			}
-			synchronized (conQT) {
-				cnt += conQT.size();
-			}
-			return cnt;
+			return conCnt;
 		}
 
 		// Gets a connection for the current thread
@@ -148,9 +145,12 @@ public class Database
 			cleanConnectionQ();
 			synchronized (conQ) {
 				if (conQ.isEmpty()) {
-					if (!createConnection()) return null;
+					if (conCnt >= DEFAULT_MAX_CONNECTIONS) {
+						waitForConnection(conQ);
+					} else {
+						if (!createConnection()) return null;
+					}
 				}
-
 				return (ConnectionDescr)conQ.removeFirst();
 			}
 		}
@@ -167,10 +167,27 @@ public class Database
 			cleanConnectionQT();
 			synchronized (conQT) {
 				if (conQT.isEmpty()) {
-					if (!createTransConnection()) return null;
+					if (conTCnt >= DEFAULT_MAX_TRANS_CONNECTIONS) {
+						waitForConnection(conQT);
+					} else {
+						if (!createTransConnection()) return null;
+					}
 				}
-
 				return (ConnectionDescr)conQT.removeFirst();
+			}
+		}
+
+		public void waitForConnection(Collection waitQ) {
+			// Wait for a free connection
+			while (true) {
+				try {
+					//System.err.println("Waiting for connection...("+conQ.size()+")");
+					waitQ.wait();
+					//System.err.println("Got notify! ("+conQ.size()+")");
+					if (!waitQ.isEmpty()) break;
+				} catch (InterruptedException e) {
+				}
+				// There should now be a new connection available				
 			}
 		}
 
@@ -184,12 +201,14 @@ public class Database
 			}
 			synchronized (conQ) {
 				conQ.add(cd);
+				conQ.notify();
 			}
 		}
 
 		public void freeTransConnection(ConnectionDescr cd) {
 			synchronized (conQT) {
 				conQT.add(cd);
+				conQT.notify();
 			}
 		}
 
@@ -242,9 +261,11 @@ public class Database
 				closeAllConnections(conQ.iterator());
 				statementMap.clear();
 				globStatementQ.clear();
+				conCnt = 0;
 			}
 			synchronized (conQT) {
 				closeAllConnections(conQT.iterator());
+				conTCnt = 0;
 			}
 			synchronized (activeTransactions) {
 				List l = new ArrayList();
@@ -281,27 +302,32 @@ public class Database
 		}
 
 		private void cleanConnectionQ() throws SQLException {
-			cleanConnectionQ(conQ);
+			synchronized (conQ) {
+				conCnt -= cleanConnectionQ(conQ);
+			}
 		}
 
 		private void cleanConnectionQT() throws SQLException {
-			cleanConnectionQ(conQT);
+			synchronized (conQT) {
+				conTCnt -= cleanConnectionQ(conQT);				
+			}			
 		}
 
-		private void cleanConnectionQ(LinkedList conQ) throws SQLException {
-			synchronized (conQ) {
-				if (conQ.size() > 1) {
-					Iterator it = conQ.iterator();
-					while (it.hasNext()) {
-						ConnectionDescr cd = (ConnectionDescr)it.next();
-						if (System.currentTimeMillis() - cd.lastUsed > CONNECTION_IDLE_TIMEOUT) {
-							cd.close();
-							it.remove();
-							if (conQ.size() == 1) break;
-						}
+		private int cleanConnectionQ(LinkedList conQ) throws SQLException {
+			int remCnt = 0;
+			if (conQ.size() > 1) {
+				Iterator it = conQ.iterator();
+				while (it.hasNext()) {
+					ConnectionDescr cd = (ConnectionDescr)it.next();
+					if (System.currentTimeMillis() - cd.lastUsed > CONNECTION_IDLE_TIMEOUT) {
+						cd.close();
+						it.remove();
+						remCnt++;
+						if (conQ.size() == 1) break;
 					}
 				}
 			}
+			return remCnt;
 		}
 
 		private boolean createConnection() {
@@ -309,6 +335,8 @@ public class Database
 			if (cd != null) {
 				synchronized (conQ) {
 					conQ.add(cd);
+					conCnt++;
+					conQ.notify();
 					return true;
 				}
 			}
@@ -320,6 +348,8 @@ public class Database
 			if (cd != null) {
 				synchronized (conQT) {
 					conQT.add(cd);
+					conTCnt++;
+					conQT.notify();
 					return true;
 				}
 			}
@@ -352,42 +382,44 @@ public class Database
 
 		public void beginTransaction() throws SQLException {
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering beginTransaction");
-			synchronized (activeTransactions) {
-				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* beginTransaction entered");
-				ConnectionDescr cd = getTransactionCon(true);
-				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* getTransCont done..");
-				cd.setAutoCommit(false);
-			}
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* beginTransaction entered");
+			ConnectionDescr cd = getTransactionCon(true);
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"* getTransCont done..");
+			cd.setAutoCommit(false);
 		}
 
 		public void commit() throws SQLException {
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"Entering sync activeTrans");
-			synchronized (activeTransactions) {
-				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit calling getTrans");
-				ConnectionDescr cd = getTransactionCon(false);
-				//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit returned from getTrans");
-				if (cd == null) return;
-				cd.commit();
-				cd.setAutoCommit(true);
-				freeTransactionCon(cd);
-			}
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit calling getTrans");
+			ConnectionDescr cd = getTransactionCon(false);
+			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"commit returned from getTrans");
+			if (cd == null) return;
+			cd.commit();
+			cd.setAutoCommit(true);
+			freeTransactionCon(cd);
 		}
 
 		public void rollback() throws SQLException {
-			synchronized (activeTransactions) {
-				ConnectionDescr cd = getTransactionCon(false);
-				if (cd == null) return;
-				cd.rollback();
-				cd.setAutoCommit(true);
-				freeTransactionCon(cd);
-			}
+			ConnectionDescr cd = getTransactionCon(false);
+			if (cd == null) return;
+			cd.rollback();
+			cd.setAutoCommit(true);
+			freeTransactionCon(cd);
 		}
 
 		private ConnectionDescr getTransactionCon(boolean create) throws SQLException {
 			Thread t = Thread.currentThread();
 			ConnectionDescr cd = null;
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon calling getCon");
-			if ((cd=(ConnectionDescr)activeTransactions.get(t)) == null && create) activeTransactions.put(t, cd = getTransConnection());
+			synchronized (activeTransactions) {
+				cd = (ConnectionDescr)activeTransactions.get(t);
+			}
+			if (cd == null && create) {
+				cd = getTransConnection();
+				synchronized (activeTransactions) {
+					activeTransactions.put(t, cd);
+				}
+			}
 			//System.out.println("["+Integer.toHexString(Thread.currentThread().hashCode())+"] "+"getTransCon *done*");
 			return cd;
 		}
@@ -615,7 +647,7 @@ public class Database
 	 * If returnOnReconnectFail is false (default) a reconnect will be
 	 * tried every few seconds until the connection is restored.  </p>
 	 *
-	 * @param b New value for returnOnReconnectFail
+	 * @param returnOnReconnectFail New value for returnOnReconnectFail
 	 */
 	public static void setReturnOnReconnectFail(String conId, boolean returnOnReconnectFail) {
 		DBDescr db = getDBDescr(conId);
@@ -669,6 +701,16 @@ public class Database
 		defaultKeepOpen = def;
 	}
 	*/
+
+	public static Object getConnection() throws SQLException {
+		DBDescr dbd = getDBDescr(null);
+		return dbd.getConnection();
+	}
+
+	public static void freeConnection(Object o) {
+		DBDescr dbd = getDBDescr(null);
+		dbd.freeConnection((DBDescr.ConnectionDescr)o);
+	}
 
 	/**
 	 * <p> Execute the given query.  </p>
