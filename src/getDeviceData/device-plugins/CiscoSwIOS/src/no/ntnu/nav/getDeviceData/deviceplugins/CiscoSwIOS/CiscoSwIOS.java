@@ -144,15 +144,18 @@ public class CiscoSwIOS implements DeviceHandler
 
 			// Determine and create the module
 			int module = 0;
-			String modulePattern = "(.*?)(\\d+)/.*";
+			String modulePattern = "((.*?)(\\d+))/.*";
+			String moduleName = null;
 			if (portif.matches(modulePattern)) {
 				Matcher m = Pattern.compile(modulePattern).matcher(portif);
 				m.matches();
-				int base = ((Integer)moduleCntMap.get(m.group(1))).intValue();
-				module = base+Integer.parseInt(m.group(2));
+				int base = ((Integer)moduleCntMap.get(m.group(2))).intValue();
+				module = base+Integer.parseInt(m.group(3));
+				moduleName = m.group(1);
 			}
 			SwModule swm = sc.swModuleFactory(module);
 			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
+			swp.setDescr(moduleName);
 
 			String[] modulport = portif.split("/");
 			if (modulport.length > 1) {
