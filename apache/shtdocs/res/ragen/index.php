@@ -2,6 +2,10 @@
 $test = fopen("test.txt","w");
 fwrite($test,date("i:s "));
 
+# preset
+
+$grense = 200; # treff per side
+
 ############
 ## Databasetilkobling
 ############
@@ -107,7 +111,7 @@ if($limit){
     $ar_limit = split(",",$limit);
     //@limit = map rydd($_),@limit;
 } else {
-    $ar_limit = array(200,0);
+    $ar_limit = array($grense,0);
 }
 $sql2.= " LIMIT ".join(",",$ar_limit);
 //print $sql_antall;
@@ -532,7 +536,8 @@ function debug_sql($sql=""){
 function skriv_bilde($tekst="",$storrelse="bildetekst"){
 // overskrift.php
 // bildetekst.php	
-    $filbase = "/pic/ragen/".$storrelse."/".$tekst.".png";
+    $filtekst = strtr($tekst,"זרו ","aoa_");
+    $filbase = "/pic/ragen/".$storrelse."/".$filtekst.".png";
 $filurl = "../local/".$filbase;
 $filnavn = "/usr/local/nav/local/apache/res/".$filbase;
 
