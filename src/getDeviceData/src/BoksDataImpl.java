@@ -10,6 +10,7 @@ public class BoksDataImpl implements BoksData
 	private String boksType;
 	private String sysName;
 	private String kat;
+	private int snmpMajor;
 	private long nextRun;
 	private boolean removed;
 
@@ -37,6 +38,9 @@ public class BoksDataImpl implements BoksData
 
 	public String getKat() { return kat; }
 	public void setKat(String s) { kat = s; }
+
+	public int getSnmpMajor() { return snmpMajor; }
+	public void setSnmpMajor(int i) { snmpMajor = i; }
 
 	/** For scheduling purposes, do not use */
 	public long nextRun() { return nextRun; }
