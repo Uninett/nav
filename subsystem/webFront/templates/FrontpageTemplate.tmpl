@@ -161,7 +161,7 @@ $message.description
 <table style="font-size:13px; border: 1px solid black;" cellspacing="0" width="100%">
   <TR><TD COLSPAN=3 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
   <div style="position: relative; margin-top: -12px;"><img src="/images/emotd/top-l.gif"></div>
-  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;">Messages</div>
+  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;"><a href="/messages/">Messages</a></div>
   </TD></TR>
 #set $farge = "white";
   #for $message in $messages
@@ -172,22 +172,22 @@ $message.description
 	font-weight: bold;
    }
 </style>
-   <tr><td colspan="2">
+   <tr><td colspan="3">
 $newmessage($message)
    </td></tr>
 #set $farge = "white";
 #else
    <tr style="background: $farge;">
-      <td style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
+      <td width="90%" style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
 #if $message.units
-      <td style="padding: 0px 10px;" align="right"><a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a></td>
+      <td style="padding: 0px 10px;" nowrap align="right"><a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a></td>
 #else
       <td style="padding: 0px 10px;">&nbsp;</td>      
 #end if
 #if not $title == "Active Messages"
 #set $start = str($message.publish_start)[0:16]
 #set $end = str($message.publish_end)[0:16]
-      <td style="padding: 0px 10px; font-size:9px;" nowrap>
+      <td style="padding: 0px 10px; font-size:9px;" nowrap align="right">
       <a style="color: black; text-decoration: none;" title="Published at $start">$start[8:10]/$start[5:7]</a> - <a style="color: black; text-decoration: none;" title="Outdated at $end">$end[8:10]/$end[5:7]</a></td>      
 #end if
 #end if
