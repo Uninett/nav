@@ -49,10 +49,14 @@ def handler(req):
     if section and section != "machinetracker":
       c += "The specified section '"+section+"' does not exist"
 
-    c += "<p><h2>Trace Tools</h2></p>Search for:<br>"
-    c += "<a href=ip>ip</a><br>"
-    c += "<a href=mac>mac</a><br>"
-    c += "mac/ip connected to a specific <a href=switchport>switch port</a><br>" 
+    c += "<p><h2>Machine Tracker</h2>"
+
+    c += "The NAV system collects arp and cam information from all registered net devices.<br> Arp data from all routers are inserted into the NAV database every 30. minutes,<br> and mac address tables from all layer2-equipment are collected and inserted every X. minutes.<p> Machine tracker gives you the oppertunity to search these data, to trace the whereabouts of a mac address or an IP address.<br> The reverse search is also possible - to find which mac/ip was registered on a specified switchport in the last days.<p>"
+
+    c += "<h3>Search for: "
+    c += "<a href=ip>IP</a> | "
+    c += "<a href=mac>mac</a> | "
+    c += "<a href=switchport>switch port</a></h3>" 
     page.content = lambda:c
     req.write(page.respond())
 
