@@ -1,86 +1,141 @@
 Target --default--
-	snmp-host       = %server%
-	rrd-ds-type     = GAUGE
-	target-type     = undef
-	snmp-community	= public
-			
+
+        server          = %auto-target-name%
+        snmp-host       = %server%
+        snmp-community        = public
+	short-desc              =       ""
+
 #disk
-OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3  #prints all the disks
-OID    StorageSize              1.3.6.1.2.1.25.2.3.1.5  #the size of the disk
-OID    StorageUsed              1.3.6.1.2.1.25.2.3.1.6  #how much space is used
+OID    StorageDescription       1.3.6.1.2.1.25.2.3.1.3
+OID    storageSize              1.3.6.1.2.1.25.2.3.1.5
+OID    StorageUsed              1.3.6.1.2.1.25.2.3.1.6
 #pros
-OID    numOfPros		1.3.6.1.2.1.25.1.6.0
+OID    numOfPros                 1.3.6.1.2.1.25.1.6.0
 #interface
-#OID    ifIndex                  1.3.6.1.2.1.2.2.1.1  # number of if
+#OID    ifIndex                  1.3.6.1.2.1.2.2.1.1
 OID    ifDescription            1.3.6.1.2.1.2.2.1.2
-OID    interfaceInBit          	1.3.6.1.2.1.2.2.1.10
+OID    interfaceInBit                  1.3.6.1.2.1.2.2.1.10
 OID    interfaceOutBit          1.3.6.1.2.1.2.2.1.16
 OID    interfaceInUcastPackage  1.3.6.1.2.1.2.2.1.11
-OID    interfaceOutUcastPackage	1.3.6.1.2.1.2.2.1.17
-OID    interfaceInError		1.3.6.1.2.1.2.2.1.14
-OID    interfaceOutError	1.3.6.1.2.1.2.2.1.20
-OID    ifInDiscards             1.3.6.1.2.1.2.2.1.12
+OID    interfaceOutUcastPackage        1.3.6.1.2.1.2.2.1.17
+OID    interfaceInError                1.3.6.1.2.1.2.2.1.14
+OID    interfaceOutError        1.3.6.1.2.1.2.2.1.20
+OID    ifInDiscards             1.3.6.1.2.1.2.2.1.13
 OID    ifOutDiscards            1.3.6.1.2.1.2.2.1.19
+#mail
+OID    mailq                    1.3.6.1.2.1.28.1.1.1
 #mem
-OID    totalMem              	1.3.6.1.2.1.25.2.2.0
+OID    totalMem                      1.3.6.1.2.1.25.2.2.0
 #nix
-OID loadnix                     1.3.6.1.4.1.2021.10.1.5.1 #average load last 5 min
-OID memUsagenix			1.3.6.1.4.1.2021.4.6.0
-OID cpunix			1.3.6.1.4.1.2021.11.10
-OID numOfUsersnix		1.3.6.1.2.1.25.1.5.0      #antall brukere på maskinen
+OID loadnix                     1.3.6.1.4.1.2021.10.1.5.1
+OID memUsagenix                        1.3.6.1.4.1.2021.4.6.0
+OID ssCpuRawUser               1.3.6.1.4.1.2021.11.50.0
+OID ssCpuRawSystem             1.3.6.1.4.1.2021.11.52.0
+OID ssCpuRawIdle               1.3.6.1.4.1.2021.11.53.0
+OID numOfUsersnix                1.3.6.1.2.1.25.1.5.0      #antall brukere på maskinen
 
 #windows her har vi brukt spesifike ting for MS og kompilert 
 #opp mib'ene selv , se i doc'en før du koker/forandrer noe her !
-OID sessionTotalwin		1.3.6.1.4.1.311.1.1.3.1.1.13.1.0	
-OID sessionActivewin		1.3.6.1.4.1.311.1.1.3.1.1.13.2.0
-OID sessionInactivewin		1.3.6.1.4.1.311.1.1.3.1.1.13.3.0
-OID memUsagewin			1.3.6.1.4.1.311.1.1.3.1.1.4.3.0
-OID cpuwin			1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.0
+OID sessionTotalwin                1.3.6.1.4.1.311.1.1.3.1.1.21.1.0        
+OID sessionActivewin                1.3.6.1.4.1.311.1.1.3.1.1.21.2.0
+OID sessionInactivewin                1.3.6.1.4.1.311.1.1.3.1.1.21.3.0
+OID memUsagewin                       1.3.6.1.4.1.311.1.1.3.1.1.1.3.0
+OID cpuwin                        1.3.6.1.4.1.311.1.1.3.1.1.2.1.3.1.0
 
-			
-datasource	StorageDescription	ds-source =	snmp://%snmp%/StorageDescription
-datasource	StorageSize		ds-source =	snmp://%snmp%/StorageSize.%inst%		#rrd-ds-type = COUNTER
-datasource	StorageUsed		ds-source =	snmp://%snmp%/StorageUsed.%inst%		#rrd-ds-type = COUNTER
-datasource	numOfUsersnix		ds-source =	snmp://%snmp%/numOfUsersnix
-datasource	numOfPros		ds-source =	snmp://%snmp%/numOfPros
-datasource	interfaceInBit		ds-source =	snmp://%snmp%/interfaceInBit.%inst%		rrd-ds-type =  COUNTER
-datasource	interfaceOutBit		ds-source =	snmp://%snmp%/interfaceOutBit.%inst%		rrd-ds-type =  COUNTER
-datasource	interfaceInUcastPackage	ds-source =	snmp://%snmp%/interfaceInUcastPackage.%inst%	rrd-ds-type =  COUNTER
-datasource	interfaceInError	ds-source =	snmp://%snmp%/interfaceInError.%inst%		rrd-ds-type =  COUNTER
-datasource	interfaceOutError	ds-source = 	snmp://%snmp%/interfaceOutError.%inst%		rrd-ds-type =  COUNTER
-datasource	ifInDiscards		ds-source =	snmp://%snmp%/ifInDiscards.%inst%		rrd-ds-type =  COUNTER
-datasource	ifOutDiscards		ds-source =	snmp://%snmp%/ifOutDiscards.%inst%		rrd-ds-type =  COUNTER
-datasource	totalMem		ds-source =	snmp://%snmp%/totalMem
-datasource	loadnix			ds-source =	snmp://%snmp%/loadnix 
-datasource	memUsagenix		ds-source =	snmp://%snmp%/memUsagenix
-datasource	cpunix			ds-source =	snmp://%snmp%/cpunix
-datasource	sessionTotalwin		ds-source =	snmp://%snmp%/sessionTotalwin
-datasource	sessionActivewin	ds-source =	snmp://%snmp%/sessionActivewin
-datasource	sessionInactivewin	ds-source =	snmp://%snmp%/sessionInactivewin
-datasource	memUsagewin		ds-source =	snmp://%snmp%/memUsagewin
-datasource	cpuwin			ds-source =	snmp://%snmp%/cpuwin
+datasource        storageSize
+     ds-source   =   snmp://%snmp%/storageSize.%inst%
+     rrd-ds-type =   GAUGE
+datasource        StorageUsed
+     ds-source   =   snmp://%snmp%/StorageUsed.%inst%
+     rrd-ds-type =   GAUGE
+datasource        numOfUsersnix
+     ds-source   =   snmp://%snmp%/numOfUsersnix
+     rrd-ds-type =   GAUGE
+datasource        numOfPros
+     ds-source   =   snmp://%snmp%/numOfPros
+     rrd-ds-type =   GAUGE
+datasource        interfaceInBit
+     ds-source   =   snmp://%snmp%/interfaceInBit.%inst%
+     rrd-ds-type =   COUNTER
+datasource        interfaceOutBit
+     ds-source   =   snmp://%snmp%/interfaceOutBit.%inst%
+     rrd-ds-type =   COUNTER
+datasource        interfaceInUcastPackage
+     ds-source   =   snmp://%snmp%/interfaceInUcastPackage.%inst%
+     rrd-ds-type =   COUNTER
+datasource        interfaceOutUcastPackage 
+     ds-source   =   snmp://%snmp%/interfaceOutUcastPackage.%inst%
+     rrd-ds-type =   COUNTER
+datasource        interfaceInError
+     ds-source   =   snmp://%snmp%/interfaceInError.%inst%
+     rrd-ds-type =   COUNTER
+datasource        interfaceOutError
+     ds-source   =   snmp://%snmp%/interfaceOutError.%inst%
+     rrd-ds-type =   COUNTER
+datasource        ifInDiscards
+     ds-source   =   snmp://%snmp%/ifInDiscards.%inst%
+     rrd-ds-type =   COUNTER
+datasource        ifOutDiscards
+     ds-source   =   snmp://%snmp%/ifOutDiscards.%inst%
+     rrd-ds-type =   COUNTER
+datasource        totalMem
+     ds-source   =   snmp://%snmp%/totalMem
+     rrd-ds-type =   GAUGE
+datasource        loadnix 
+     ds-source   =   snmp://%snmp%/loadnix 
+     rrd-ds-type =   GAUGE
+datasource        memUsagenix
+     ds-source   =  snmp://%snmp%/memUsagenix
+     rrd-ds-type =   GAUGE
+datasource ssCpuRawUser
+     ds-source   = snmp://%snmp%/ssCpuRawUser
+     rrd-ds-type = COUNTER
+datasource ssCpuRawSystem
+     ds-source   = snmp://%snmp%/ssCpuRawSystem
+     rrd-ds-type = COUNTER
+datasource ssCpuRawIdle
+     ds-source   = snmp://%snmp%/ssCpuRawIdle
+     rrd-ds-type = COUNTER
+datasource        sessionTotalwin
+     ds-source   =  snmp://%snmp%/sessionTotalwin
+     rrd-ds-type =   GAUGE
+datasource        sessionActivewin
+     ds-source   =  snmp://%snmp%/sessionActivewin
+     rrd-ds-type =   GAUGE
+datasource        sessionInactivewin
+     ds-source   =  snmp://%snmp%/sessionInactivewin
+     rrd-ds-type =   GAUGE
+datasource        memUsagewin
+     ds-source   =  snmp://%snmp%/memUsagewin
+     rrd-ds-type =   GAUGE
+datasource        cpuwin
+     ds-source   =  snmp://%snmp%/cpuwin
+     rrd-ds-type =   GAUGE
+datasource      mailq
+     ds-source   =  snmp://%snmp%/mailq
+     rrd-ds-type =   GAUGE
 
 # PS! read the  rrdtutorial.html section: "What has been created ?" _before_ you change anything here.
 # One pkt per 5 min , reaches 24 timer
 # math ex : 5 (min) * 1 (interval) * 288 (factor) = 1440 , 1440/60(min) = 24 (hours)
-rra             5minAve     AVERAGE:0.5:1:288
+#rra             5minAve     AVERAGE:0.5:1:288
 # et pkt per 30 min går over 7 dager
 #  math ex : 5 (min) * 6 (interval) * 336 (factor) = 10080 ,  10080/60(min) = 168 (hours)
 #                 168/24(hours in one day) = 7 days.
-rra             30minAve        AVERAGE:0.5:6:336
+#rra             30minAve        AVERAGE:0.5:6:336
 # One pkt per 2. time , går over 30 dager
-rra             2hrAve          AVERAGE:0.5:12:720
-rra             2hrMax          MAX:0.5:12:720
+#rra             2hrAve          AVERAGE:0.5:12:720
+#rra             2hrMax          MAX:0.5:12:720
 # et pkt per dag , går over 1 år
-rra             1dayAve         AVERAGE:0.5:288:365
-rra             1dayMax         MAX:0.5:288:365
+#rra             1dayAve         AVERAGE:0.5:288:365
+#rra             1dayMax         MAX:0.5:288:365
 # et pkt per dag , går over 3 år
-rra             1dayAve         AVERAGE:0.5:288:1095
-rra             1dayMax         MAX:0.5:288:1095
+#rra             1dayAve         AVERAGE:0.5:288:1095
+#rra             1dayMax         MAX:0.5:288:1095
 # we will add datasources to each specific target-type later
 
-targetType      --default--
-        rra     =       "5minAve, 30minAve, 2hrAve, 2hrMax, 1dayAve, 1dayMax"
+#targetType      --default--
+#        rra     =       "5minAve, 30minAve, 2hrAve, 2hrMax, 1dayAve, 1dayMax"
 
 map interface-name
     base-oid    =   ifDescription
@@ -89,156 +144,270 @@ map interface-name
 map mount-point
     base-oid    =   StorageDescription
     match       =   %mount-point%
-
-
+targettype mail
+        ds = "mailq"
 targettype disk
-	ds = "StorageSize,StorageUsed"
-targettype interfaceTraffic
-	ds = "interfaceInBit,interfaceOutBit"
-targettype interfaceUnicast
-	ds = "interfaceInUcastPackage,interfaceOutUcastPackage"
-targettype interfaceError
-	ds = "interfaceInError,interfaceOutError"
-targettype interfaceDiscard
-	ds = "ifInDiscards,ifOutDiscards"
+        ds = "storageSize,StorageUsed"
 targettype usersnix
-	ds = "numOfUsersnix"
+        ds = "numOfUsersnix"
 targettype userswin
-	ds = "sessionTotalwin,sessionActivewin,sessionInactivewin"
+        ds = "sessionTotalwin,sessionActivewin,sessionInactivewin"
 targettype processes
-	ds = "numOfPros"
+        ds = "numOfPros"
 targettype memnix
-	ds = "totalMem,memUsagenix"
+        ds = "totalMem,memUsagenix"
 targettype memwin
-	ds = "totalMem,memUsagewin"
+        ds = "totalMem,memUsagewin"
 targettype cpunix
-	ds = "cpunix"
+        ds = "ssCpuRawUser, ssCpuRawSystem, ssCpuRawIdle"
+	view = "CPU: ssCpuRawUser ssCpuRawSystem ssCpuRawIdle"
 targettype cpuwin
-	ds = "cpuwin"
+        ds = "cpuwin"
 targettype loadnix
-	ds = "loadnix"
+        ds = "loadnix"
+targettype interface
+        ds = "interfaceInBit,interfaceOutBit,interfaceInUcastPackage,interfaceOutUcastPackage,interfaceInError,interfaceOutError,ifOutDiscards"
+	view = "Traffic: interfaceInBit interfaceOutBit,
+		Error: interfaceInError interfaceOutError,
+		Discards: ifOutDiscards,
+		Unicast: interfaceInUcastPackage interfaceOutUcastPackage"
+targettype userswin
+        ds = "sessionTotalwin,sessionActivewin,sessionInactivewin"
+	view = "Total sessions: sessionTotalwin,
+	        Active sessions: sessionActivewin,
+                Inactive Sessions: sessionInactivewin"
 
+graph mailq
+      units  = "Numbers"
+      #scale = 7175,/
+      si-units = false
+      color  = dark-green
+      draw-as= LINE3
+      y-axis  =   "Total Number of incoming mails"
+      legend  =   "Total Number of incoming mails"
+      #precision = 0
 
-# graf helvete
-
-#disk
-graph   StorageSize
-     units  = "bytes"
-     color  = dark-green
-     draw-as= AREA
-     #scale = 8,*
-
-graph   StorageUsed
-     units  = "bytes"
-     color  = blue
-     draw-as= AREA
-
-#interface
-graph interfaceInBit
-    units   = "bit"
-    color   = green
-    draw-as = AREA
-
-graph interfaceOutBit
-    units   = "bit"
-    color   = blue
-    draw-as = LINE2
-		
-graph interfaceInUcastPackage
-    units   = "bit"
-    color   = green
-    draw-as = AREA
-
-graph interfaceInUcastPackage
-    units   = "bit"
-    color   = blue
-    draw-as = LINE2
-
-graph interfaceInError
-    units   = "bit"
-    color   = green
-    draw-as = AREA
-
-graph interfaceOutError
-    units   = "bit"
-    color   = blue
-    draw-as = LINE2
-
-graph ifInDiscards
-    units   = "bit"
-    color   = green
-    draw-as = AREA
-
-graph ifOutDiscards
-    units   = "bit"
-    color   = blue
-    draw-as = LINE2
-
-#usersnix
-graph numOfUsers
-    units   = "Antall"
-    color   = dark-green
-    draw-as = AREA
-
-#userswin
 graph sessionTotalwin
-    units   = "totalt antall"
-    color   = dark-green
-    draw-as = AREA
+     units  = "Users"
+     si-units = false
+     color  = dark-green
+     draw-as= LINE2
+     y-axis  =   "Total Number of sessions"
+     legend  =   "Total number of sessions"
+     precision = 0
 
 graph sessionActivewin
-    units   = "active"
-    color   = blue
-    draw-as = LINE2
+     units  = "Users"
+     si-units = false
+     color  = dark-green
+     draw-as= LINE2
+     y-axis  =   "Number of active sessions"
+     legend  =   "Number of active sessions"
+     precision = 0
 
 graph sessionInactivewin
-    units   = "Inactive"
-    color   = dark-blue
-    draw-as = LINE2
+     units  = "Users"
+     si-units = false
+     color  = dark-green
+     draw-as= LINE2
+     y-axis  =   "Number of inactive sessions"
+     legend  =   "Number of inactive sessions"
+     precision = 0
 
-#Processes 
-graph numOfPros
-    units   = "Antall"
-    color   = dark-green
-    draw-as = AREA
+graph ssCpuRawUser
+      scale = 100,/
+      draw-as  = AREA
+      legend   = "User CPU Usage "
+      si-units = false
+      # fixed y-axis, since this is a percentage
+      #y-min   =       0
+      #y-max   =       100
 
-#Memory
-graph totalMem
-    units   = "bytes"
-    color   = green
-    draw-as = AREA
+graph ssCpuRawSystem
+     scale = 100,/
+     draw-as  = STACK
+     legend   = "System CPU Usage "
+     si-units = false
+     #y-min   =       0
+     #y-max   =       100
 
-graph memUsagenix
-    units   = "bytes"
-    color   = blue
-    draw-as = AREA
+graph ssCpuRawIdle
+     scale = 100,/
+     draw-as  = STACK
+     legend   = "System CPU Idle "
+     si-units = false
 
-graph memUsagewin
-    units   = "bytes"
-    color   = blue
-    draw-as = AREA
-    
-
-#cpu
-graph   cpunix
-    units   = "%"
-    color   = blue
-    y-axis  = "Percent CPU utilization"
-    legend  = "5 minute CPU utilization"
-    y-min   = 0
-    y-max   = 100
-
-graph   cpuwin
-    units   = "%"
-    color   = blue
-    y-axis  = "Percent CPU utilization"
-    legend  = "5 minute CPU utilization"
-    y-min   = 0
-    y-max   = 100
+grap  cpuwin
+     units  = "%"
+     si-units = false
+     color  = dark-green
+     draw-as= LINE3
+     y-axis  =   "Percent CPU utilization"
+     legend  =   "CPU utilization"
+     y-min   =       0
+     y-max   =       100
     
 graph loadnix
-   units   = ""
-   color   = dark-green
-   draw-as = AREA
+     scale = 100,/
+     units  = "    "
+     si-units = false
+     color  = dark-green
+     draw-as= AREA
+     y-axis  =   "Load"
+     legend  =   "Load"
+     y-min   =       0
+     precision = 2
+
+graph totalMem
+     units = "MiB  "
+     scale = 1024,/
+     si-units = false
+     color = dark-green
+     draw-as= AREA
+     y-axis  =   "memory"
+     legend  =   "Total amount of memory"
 
 
+graph memUsagenix
+     units = "MiB  "
+     scale = 1024,/
+     si-units = false
+     color = dark-blue
+     draw-as= AREA
+     legend  =   "Total usage of memory"
+
+graph numOfUsersnix
+    units = "Users"
+    rrd-graph-args = "--hei--height 100"
+    si-units = false
+    color = dark-green
+    draw-as= LINE3
+    legend  =   "Number of users"
+    y-axis  =   "Number of users"
+    precision = 0
+
+graph numOfPros
+   units = "Processes"
+   si-units = false
+   color = dark-green
+   draw-as= LINE2
+   legend  =   "Number of processes"
+   y-axis  =   "Number of processes"
+   precision = 0
+
+graph storageSize
+   units = "    "
+   si-units = false
+   color = dark-green
+   draw-as= AREA
+   legend  =   "Disk size"
+   y-axis  =   "disk"
+
+graph StorageUsed
+   units = "    "
+   si-units = false
+   color = blue
+   draw-as= AREA
+   legend  =   "Disk usage"
+
+graph interfaceInBit
+    units = " "
+    si-units = false
+    color = dark-green
+    draw-as= AREA
+    legend  =   "Traffic in"
+
+graph interfaceOutBit
+    units = " "
+    si-units = false
+    color = blue
+    draw-as= Line2
+    legend  =   "Traffic out"
+
+graph interfaceInUcastPackage
+    units = " "
+    si-units = false
+    color = dark-green
+    draw-as= AREA
+    legend  =   "Unicast packages in"
+
+graph  interfaceOutUcastPackage
+    units = " "
+    si-units = false
+    color = blue
+    draw-as= Line2
+    legend  =   "Unicast packages out"
+
+graph interfaceInError
+    units = " "
+    si-units = false
+    color = dark-green
+    draw-as= AREA
+    legend  =  "Error in"
+
+graph  interfaceOutError
+    units = " "
+    si-units = false
+    color = blue
+    draw-as= Line2
+    legend  =  "Error out"
+
+graph ifInDiscards
+    units = " "
+    si-units = false
+    color = dark-green
+    draw-as= AREA
+    legend  = "Discards in"
+
+graph ifOutDiscards
+    units = " "
+    si-units = false
+    color = blue
+    draw-as= Line2
+    legend  = "Discards out"
+
+
+# The HTML dict has bits and pieces of HTML that gets used
+# by the grapher.   
+
+html    body-options    bgcolor=white
+
+html    page-header
+    <!-- you could put your company logo on every page here: -->
+    <!-- <img src="images/company-logo.gif" align=left> -->
+    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
+    <br clear=left>
+
+html    contact-name
+    <a href="mailto:cricket">the MUHAMMED Admins</a>
+
+html    contact
+    For questions or comments about this data, contact
+    %contact-name%.%server%
+
+html    page-footer
+        <table width=100% cellpadding=3>
+                <tr>
+        <td>
+            <a href="http://www.munitions.com/~jra/cricket"><img align=left width=58 height=55 src="images/cricket-sm.gif" border=0></a>
+                </td>
+                <td width=15% valign=center>
+                        <p align=left><font size=+2>
+                        <a href="http://www.munitions.com/~jra/cricket">Cricket</a>
+                        <font size=2><br>Version %auto-short-version%</font>
+                </td>
+                <td>
+                        %contact%
+                </td>
+        <td width=120 valign=center>
+            <center>
+            <a href="http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool"><img width=120 height=34 src="images/rrdtool.gif" border=0></a>
+        </td>
+                </tr>
+        </table>
+    <p>
+        <font color=red>%auto-error%</font>
+    </p>
+
+html    head
+        <title>%auto-title%</title>
