@@ -22,9 +22,12 @@ class SmbChecker(AbstractChecker):
 		host = args.get('hostname',ip)
 		username = args.get('username','')
 		password = args.get('password','')
+		workgroup = args.get('workgroup', '')
 
 		if password and username:
 			s = '-U ' + username + '%' + password
+			if workgroup:
+				s += ' -W %s' % workgroup
 		else:
 			s = '-N'
 

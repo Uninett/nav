@@ -1,2 +1,2 @@
 description=Windows file sharing
-optargs=hostname username password port timeout
+optargs=hostname username password workgroup port timeout
