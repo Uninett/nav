@@ -361,11 +361,13 @@ GRANT all ON pkt2rom_id_seq TO navall;
 CREATE VIEW boksmac AS  
 (SELECT DISTINCT ON (mac) boks.boksid,mac
  FROM arp
- JOIN boks USING (ip))
+ JOIN boks USING (ip)
+ WHERE arp.til='infinity')
 UNION
 (SELECT DISTINCT ON (mac) gwport.boksid,mac
- FROM arp,gwport
- WHERE arp.ip=gwport.gwip);
+ FROM arp
+ JOIN gwport ON (arp.ip=gwport.gwip)
+ WHERE arp.til='infinity');
 
 
 -------- vlanPlot tabeller ------
