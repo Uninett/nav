@@ -66,6 +66,10 @@ def index(req):
             navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
     page.navlinks = lambda:navlinkshtml
 
+    from nav.web.messages.lib import messagelist
+
+    page.messages = messagelist(req.session['user'])
+
     from nav import getstatus
     liste = nav.getstatus.boxesDownSortByNewest()
     numboxesdown = 0
