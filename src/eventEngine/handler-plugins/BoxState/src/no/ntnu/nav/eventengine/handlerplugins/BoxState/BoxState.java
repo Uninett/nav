@@ -1,11 +1,17 @@
 package no.ntnu.nav.eventengine.handlerplugins.BoxState;
 
-import no.ntnu.nav.eventengine.*;
-import no.ntnu.nav.eventengine.deviceplugins.Box.*;
-import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
+/**
+ * BoxState plugin for eventengine. Handles all events dealing with
+ * netboxes and their modules going up/down.
+ */
 
 import java.util.*;
 
+import no.ntnu.nav.ConfigParser.*;
+
+import no.ntnu.nav.eventengine.*;
+import no.ntnu.nav.eventengine.deviceplugins.Box.*;
+import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
 
 public class BoxState implements EventHandler, EventCallback
 {
@@ -19,7 +25,7 @@ public class BoxState implements EventHandler, EventCallback
 		return new String[] { "boxState", "moduleState", "linkState", "coldStart", "warmStart" };
 	}
 
-	public void handle(DeviceDB ddb, Event e)
+	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
 	{
 		outld("BoxState handling event: " + e);
 
@@ -36,7 +42,7 @@ public class BoxState implements EventHandler, EventCallback
 			if (d instanceof Box) {
 				Box b = (Box)d;
 				if (e.getState() == Event.STATE_START) {
-					if (!b.isUp()) {
+					if (!b.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
 						outld("BoxState  Ignoring duplicate down event for Box");
 						e.dispose();
 						return;
@@ -68,14 +74,14 @@ public class BoxState implements EventHandler, EventCallback
 						a = ddb.alertFactory(e, "boxUp");
 						a.addEvent(e);
 
-						// Set time
-						a.addVar("time", e.getTimeS());
-
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
 							errl("BoxState  Error, PostAlertException: " + exp.getMessage());
 						}
+						
+						// Clean up
+						startEventMap.remove(e.getDeviceidI());
 					}
 					b.up();
 				}
@@ -102,7 +108,7 @@ public class BoxState implements EventHandler, EventCallback
 					outld("BoxState  Port: " + p);
 				} else {
 					if (e.getState() == Event.STATE_START) {
-						if (!m.isUp()) {
+						if (!m.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
 							outld("BoxState  Ignoring duplicate down event for Module");
 							e.dispose();
 							return;
@@ -138,6 +144,9 @@ public class BoxState implements EventHandler, EventCallback
 							} catch (PostAlertException exp) {
 								errl("BoxState  Error, PostAlertException: " + exp.getMessage());
 							}
+
+							// Clean up
+							startEventMap.remove(e.getDeviceidI());
 						}
 						m.up();
 					}
@@ -163,10 +172,21 @@ public class BoxState implements EventHandler, EventCallback
 		} else
 		if (callback && !scheduledCB) {
 			lastDownCount = downCount;
-			ddb.scheduleCallback(this, 30000, 3);
+
+			int alertTickLength = 60;
+			int alertTicks = 4;
+
+			try {
+				alertTickLength = Integer.parseInt(cp.get("alertTickLength"));
+			} catch (Exception exp) { }
+
+			try {
+				alertTicks = Integer.parseInt(cp.get("alertTicks"));
+			} catch (Exception exp) { }
+
+			outld("BoxState  Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
+			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
 		}
-
-
 
 	}
 
@@ -180,15 +200,18 @@ public class BoxState implements EventHandler, EventCallback
 
 
 
+	private boolean sentWarning = false;
 
 	public void callback(DeviceDB ddb, int invocationsRemaining)
 	{
 		int downCount = Netel.boxDownCount();
 
-		outld("BoxState callback, lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining);
+		outld("BoxState callback, lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining+ " sentWarning="+sentWarning);
 
-		if (downCount == lastDownCount || invocationsRemaining == 0) {
-			if (invocationsRemaining != 0) ddb.cancelCallback(this);
+		if ( (downCount == lastDownCount && !sentWarning) || invocationsRemaining == 0) {
+			
+			// Just in case alertTicks = 1; in this case we don't send out warnings
+			if (invocationsRemaining == 0 && !sentWarning) sentWarning = true;
 
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
@@ -201,39 +224,48 @@ public class BoxState implements EventHandler, EventCallback
 					if (!n.isUp()) {
 						// The box iself is down, this means we don't report modules down if any
 						// Find the down event
-						Event e = (Event)startEventMap.remove(n.getDeviceidI());
+						Event e = (Event)startEventMap.get(n.getDeviceidI());
 						if (e == null) {
 							errl("BoxState.callback: Error, Netel " + n + " is down, but no start event found!");
 							continue;
 						}
+						if (sentWarning) startEventMap.remove(n.getDeviceidI());
 
 						// Ask the Box to update its status
 						n.updateStatus();
 
 						// Create alert
 						Alert a = ddb.alertFactory(e);
-						a.addEvent(e);
-
-						outld("  added alert: " + a);
 
 						// Set status (down or shadow)
 						a.addVar("status", n.getStatusS());
 
-						// Set time
-						a.addVar("time", e.getTimeS());
-
 						// Update alerttype
+						String alerttype = "";
 						if (n.getStatus() == Box.STATUS_SHADOW) {
-							a.setAlerttype("boxShadow");
+							alerttype = "boxShadow";
 						} else if (n.getStatus() == Box.STATUS_DOWN) {
-							a.setAlerttype("boxDown");
+							alerttype = "boxDown";
 						}
+
+						// First send a warning
+						if (!sentWarning) {
+							a.setState(Event.STATE_NONE);
+							alerttype += "Warning";
+						} else {
+							// Delete 'down' event when alert is posted
+							a.addEvent(e);
+						}
+
+						a.setAlerttype(alerttype);
+
+						outld("  added alert: " + a);
 
 						// Post the alert
 						try {
 							ddb.postAlert(a);
 						} catch (PostAlertException exp) {
-							errl("BoxState.classback: While posting netel down alert, PostAlertException: " + exp.getMessage());
+							errl("BoxState.callback: While posting netel down alert, PostAlertException: " + exp.getMessage());
 						}
 
 
@@ -270,6 +302,8 @@ public class BoxState implements EventHandler, EventCallback
 
 
 			}
+
+			sentWarning = !sentWarning;
 
 			/*
 			if (!eventMap.isEmpty()) {
