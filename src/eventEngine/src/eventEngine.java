@@ -488,15 +488,22 @@ class EventqMonitorTask extends TimerTask
 	{
 		try {
 			ResultSet rs = Database.query("SELECT eventqid,source,deviceid,netboxid,subid,time,eventtypeid,state,value,severity,var,val FROM eventq LEFT JOIN eventqvar USING (eventqid) WHERE eventqid > "+lastEventqid + " AND target='eventEngine' AND severity >= 0 ORDER BY eventqid");
-			if (rs.getFetchSize() > 0) {
-				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched " + rs.getFetchSize() + " rows from eventq");
+
+			List eventList = new ArrayList();
+			while (rs.next()) {
+				eventList.add(DeviceDBImpl.eventFactory(rs));
+			}
+			if (rs.last()) if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getInt("eventqid");
+			
+			if (!eventList.isEmpty()) {
+				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Fetched " + eventList.size() + " events from eventq");
 			} else {
 				return;
 			}
 
 			int eventCnt=0;
-			while (rs.next()) {
-				Event e = DeviceDBImpl.eventFactory(rs);
+			for (Iterator it = eventList.iterator(); it.hasNext();) {
+				Event e = (Event)it.next();
 				eventCnt++;
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Got event: " + e);
 
@@ -515,6 +522,7 @@ class EventqMonitorTask extends TimerTask
 				} else if (handlerCache.containsKey(eventtypeid)) {
 					EventHandler eh = (EventHandler)handlerCache.get(eventtypeid);
 					Log.d("EVENTQ_MONITOR_TASK", "RUN", "Found handler: " + eh.getClass().getName());
+					Database.beginTransaction();
 					try {
 						eh.handle(devDB, e, cfmt.getConfigParser() );
 
@@ -525,14 +533,14 @@ class EventqMonitorTask extends TimerTask
 						// Rollback any database changes
 						Database.rollback();
 					}
+					Database.commit();
+
 				} else {
 					Log.w("EVENTQ_MONITOR_TASK", "RUN", "No handler found for eventtype: " + eventtypeid);
 				}
-
 			}
 
 			Log.d("EVENTQ_MONITOR_TASK", "RUN", "Processed " + eventCnt + " events in this session");
-			if (rs.last()) if (rs.getInt("eventqid") > lastEventqid) lastEventqid = rs.getInt("eventqid");
 
 		} catch (SQLException e) {
 			// Now we are in trouble
