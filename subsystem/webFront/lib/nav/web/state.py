@@ -52,7 +52,10 @@ def setupSession(req):
 
     cookieValue = getSessionCookie(req)
     if (cookieValue):
-        req.session = Session(cookieValue)
+        try:
+            req.session = Session(cookieValue)
+        except cPickle.UnpicklingError:
+            req.session = None
 
     if req.session is None:
         req.session = Session()
