@@ -3,7 +3,7 @@
 Overvåker
 
 $Author: magnun $
-$Id: job.py,v 1.18 2002/06/18 12:19:25 magnun Exp $
+$Id: job.py,v 1.19 2002/06/18 14:15:48 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -136,9 +136,9 @@ class JobHandler:
 	def getVersion(self):
 		return self._version
 	def __eq__(self,obj):
-		if type(obj) in [str,types.IntType]:
-			return self.getId() == int(obj)
-		return self.getId() == obj.getId()
+#		if type(obj) in [str,types.IntType]:
+#			return self.getId() == int(obj)
+		return self.getId() == obj.getId() and self.getArgs() == obj.getArgs()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
@@ -269,8 +269,8 @@ class DnsHandler(JobHandler):
 		d = DNS.DnsRequest(server=server[0], timeout=self.getTimeout())
 		args = self.getArgs()
 		request = args.get("request","").split(",")
-		if not request:
-			# Print valid debug message :)
+		if request == [""]:
+			print "valid debug message :)"
 			return
 		else:
 			timeout = 0
