@@ -55,7 +55,35 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/device-plugins/CiscoGw/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
     <packageset dir="../getDeviceData/device-plugins/CiscoSw1900/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwBasic/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwCAT/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+<!--
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwCGSW/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+-->
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwCL3addon/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwIOS/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/CiscoSwIOSaddon/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 
@@ -67,6 +95,13 @@
       <include name="no/ntnu/nav/**" />
     </packageset>
 
+    <packageset dir="../getDeviceData/device-plugins/MibIISw/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+
+    <packageset dir="../getDeviceData/device-plugins/Server/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
 
 		<!-- eventEngine -->
     <packageset dir="../eventEngine/src" defaultexcludes="yes">
@@ -89,7 +124,13 @@
     <packageset dir="../eventEngine/handler-plugins/ServiceState/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
-    <packageset dir="../eventEngine/handler-plugins/Info/src" defaultexcludes="yes">
+    <packageset dir="../eventEngine/handler-plugins/MaintenanceState/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+    <packageset dir="../eventEngine/handler-plugins/ThresholdState/src" defaultexcludes="yes">
+      <include name="no/ntnu/nav/**" />
+    </packageset>
+    <packageset dir="../eventEngine/handler-plugins/DeviceTracker/src" defaultexcludes="yes">
       <include name="no/ntnu/nav/**" />
     </packageset>
 
