@@ -15,27 +15,55 @@ import os
 import nav
 from nav import web
 
+welcomeFileAnonymous = "/usr/local/nav/navme/apache/webroot/frontpage/welcome-anonymous.txt"
+welcomeFileRegistered = "/usr/local/nav/navme/apache/webroot/frontpage/welcome-registered.txt"
+contactInformationFile = "/usr/local/nav/navme/apache/webroot/frontpage/contact-information.txt"
+externalLinksFile = "/usr/local/nav/navme/apache/webroot/frontpage/external-links.txt"
+navLinksFile = "/usr/local/nav/navme/apache/webroot/frontpage/nav-links.conf"
+
+TIMES = [' seconds', ' minutes', ' hours', ' days', ' years']
+
 def index(req):
     if req.session.has_key('user'):
         name = req.session['user'].name
     else:
         name = req.session.id
 
-    from nav.web.templates.MainTemplate import MainTemplate
+    from nav.web.templates.FrontpageTemplate import FrontpageTemplate
 
-    page = MainTemplate()
-    page.content = lambda: """
-    <a href="/index.py/toolbox">Toolbox is here, %s</a>
-""" %  name
+    page = FrontpageTemplate()
+    page.path = [("Frontpage", False)]
 
-    return page
+    if req.session['user'].id == 0:
+        welcomeFile = welcomeFileAnonymous
+    else:
+        welcomeFile = welcomeFileRegistered
+    page.welcome = lambda:file(welcomeFile).read()
+    page.externallinks = lambda:file(externalLinksFile).read()
+    page.contactinformation = lambda:file(contactInformationFile).read()
 
-def toolbox(req):
-    from nav.web.templates.ToolboxTemplate import ToolboxTemplate
-    page = ToolboxTemplate()
+    navlinks = nav.config.readConfig(navLinksFile)
+    navlinkshtml = ""
+    for name, url in navlinks.items():
+        if (nav.web.linkchecker.shouldShow(url, req.session['user'])):
+            navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
+    page.navlinks = lambda:navlinkshtml
 
-    from nav.web import toolbox
-    page.tools = toolbox.getToolList()
+    from nav import getstatus
+    liste = nav.getstatus.boxesDownSortByNewest()
+    numboxesdown = 0
+    numboxesshadow = 0
+    for box in liste:
+        timeparts = str(box[0]).split(':')
+        time = timeparts[0] + TIMES[len(timeparts)-1]
+        box.append(time)
+        if box[4]:
+            numboxesshadow = numboxesshadow + 1
+        else:
+            numboxesdown = numboxesdown + 1
+    page.boxesdown = liste
+    page.numboxesdown = numboxesdown
+    page.numboxesshadow = numboxesshadow
 
     return page
 
@@ -68,7 +96,8 @@ def login(req, login='', password='', origin=''):
             req.session.save()
 
             # Redirect to the origin page, or to the root if one was
-            # not given.
+            # not given (using the refresh header, so as not to screw
+            # up the client's POST operation)
             if not origin.strip():
                 origin = '/'
             web.redirect(req, origin, seeOther=True)
