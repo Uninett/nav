@@ -307,7 +307,8 @@ CREATE TABLE module (
   descr VARCHAR,
   up CHAR(1) NOT NULL DEFAULT 'y' CHECK (up='y' OR up='n'), -- y=up, n=down
   downsince TIMESTAMP,
-  UNIQUE (netboxid, module)
+  UNIQUE (netboxid, module),
+  UNIQUE(deviceid)
 );
 
 CREATE TABLE mem (
