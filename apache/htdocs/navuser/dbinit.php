@@ -42,7 +42,7 @@ class dbinit {
                     case 'dbport'		: $dport = $value; break;
                     case 'db_navprofile'	: $ddb   = $value; break;
                     case 'script_navprofile' 	: $duser = $value; break;
-                    case 'userpw_navprofile' 	: $dpass = $value; break;
+                    case 'userpw_navprofile'  	: $dpass = $value; break;
                 }
             }
             
@@ -73,8 +73,8 @@ class dbinit {
             // Init variables, in case they dont exist in config file...
             $dhost = "localhost";
             $dport = "5432";
-            $ddb = "manage";
-            $duser = "navprofilemanage";
+            $ddb = "manage_";
+            $duser = "navprofilemanage_";
             $dpass = "";
             
             foreach ($conffile as $confline) {
@@ -86,7 +86,7 @@ class dbinit {
                     case 'dbport'			: $dport = $value; break;
                     case 'db_navprofilemanage'		: $ddb   = $value; break;
                     case 'script_navprofilemanage' 	: $duser = $value; break;
-                    case 'userpw_navprofilemanage' 	: $dpass = $value; break;
+                    case 'userpw_' . $duser 	: $dpass = $value; break;
                 }
                 
             }

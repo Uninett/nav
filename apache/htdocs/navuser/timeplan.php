@@ -111,7 +111,7 @@ if (sizeof($t) == 1) {
 
 // $t time   $m minutt  $col farger $t teller
   for ($i = 0; $i < sizeof($t) ; $i++) {
-
+    
     makeZone($im, $t[$i], $m[$i], 
 	     $t[($i + 1) % sizeof($t)], 
 	     $m[($i + 1) % sizeof($t)], 
