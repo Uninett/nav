@@ -86,7 +86,7 @@ sub Routers {
     my $fil = "$path/routers/Targets";
 
     # Henter alle ruterne fra databasen
-    my $sporring = "SELECT boksid,sysname,ip,type,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
+    my $sporring = "SELECT boksid,sysname,ip,typeid,romid,ro FROM boks WHERE kat='GW' ORDER BY sysname";
     my $getrouters = &db_select($sporring,$dbh);
 
     # Skriver til filen
@@ -118,7 +118,7 @@ sub Routers {
 		}
 
 		# Må finne beskrivelsen til rommet
-		$sporring = "SELECT descr FROM rom WHERE id='$romid'";
+		$sporring = "SELECT descr FROM rom WHERE romid='$romid'";
 		my $getdesc = &db_select($sporring,$dbh);
 		if (!(my $desc = $getdesc->fetchrow)) {
 		    print "Ingen beskrivelse for rom med id=$romid\n";
@@ -158,7 +158,7 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 ORDER BY vlan";
+	my $sporring = "SELECT interf,speed,nettype,orgid,anvid,samband,komm FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 ORDER BY vlan";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
 
@@ -216,7 +216,7 @@ sub Switches {
 
     my $fil = "$path/switches/switches";
 
-    my $sporring = "SELECT boksid, ip, sysName,type,ro FROM boks WHERE kat='SW' ORDER BY sysName";
+    my $sporring = "SELECT boksid, ip, sysName,typeid,ro FROM boks WHERE kat='SW' ORDER BY sysName";
     my $getswitches = &db_select($sporring,$dbh);
 
     open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
@@ -315,7 +315,7 @@ sub gigarouterinterfaces {
 
     my $count = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid";
+    my $sporring = "SELECT b.ip,b.sysname,p.orgid,p.anvid,p.samband,p.komm,g.interf,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid";
     my $getinterfaces = &db_select($sporring,$dbh);
 
     while (my @temp = $getinterfaces->fetchrow) {
@@ -379,7 +379,7 @@ sub gigaswitchports {
     my %test;
     my $count = 0;
 
-    my $sporring = "select b.boksid,b.ip,b.sysname,b.type,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.boksid=s.boksid and s.speed='1000' and portnavn!='' order by b.boksid";
+    my $sporring = "select b.boksid,b.ip,b.sysname,b.typeid,s.modul,s.port,s.portnavn,b.ro from swport s,boks b where b.boksid=s.boksid and s.speed='1000' and portnavn!='' order by b.boksid";
     my $getports = &db_select($sporring,$dbh);
 
     while (my @temp = $getports->fetchrow) {
