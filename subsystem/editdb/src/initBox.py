@@ -24,7 +24,7 @@ class Box:
         (self.hostname,self.ip) = self.getNames(identifier)
         self.typeid = self.getType(identifier,ro)
         self.snmpversion = self.getSnmpVersion(identifier,ro)
-        self.serial = ''
+        self.serial = None
 
 
     def getNames(self,identifier):
@@ -147,17 +147,18 @@ class Box:
             
         devlist = []
         sqlserials = []
-        for ser in serials:
-            sqlserials.append("serial='%s'"%ser)
-        serial = str.join(" or ",sqlserials)
-        sql = "select deviceid,productid from device where %s" % serial
-        handle.execute(sql)
-        for record in handle.fetchall():
-            devlist.append(record[0])
+        if len(serials):
+            for ser in serials:
+                sqlserials.append("serial='%s'"%ser)
+            serial = str.join(" or ",sqlserials)
+            sql = "select deviceid,productid from device where %s" % serial
+            handle.execute(sql)
+            for record in handle.fetchall():
+                devlist.append(record[0])
 
-        if devlist:
-            self.deviceIdList = devlist
-            return devlist
+        #if devlist:
+        self.deviceIdList = devlist
+        return devlist
      
     def getSnmpVersion(self,identifier,ro):
         """
@@ -207,6 +208,6 @@ class Box:
 ##         print "FEIL: " + record[1]+" fikk ikke fornuftig svar"
 ##     print "\n"
 
-#a = Box("129.241.23.14","idija")
-#print a.getDeviceId()
-#print a.serial
+## a = Box("129.241.119.7","--------")
+## print a.getDeviceId()
+## print a.serial
