@@ -851,6 +851,7 @@ INSERT INTO AccountNavbar (accountid, navbarlinkid, positions) VALUES
 
 INSERT INTO Privilege VALUES (1, 'empty_privilege');
 INSERT INTO Privilege VALUES (2, 'web_access');
+INSERT INTO Privilege VALUES (3, 'alert_by');
 
 /*
   Set some default web_access privileges
