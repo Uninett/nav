@@ -555,22 +555,31 @@ public class QueryBoks extends Thread
 			String remoteName = cdps[1];
 			String remoteIf = (String)remoteIfMap.get(ifindex);
 
-			String netboxid = extractNetboxid(remoteName);
-			if (netboxid == null) {
+			String[] netboxidA = extractNetboxid(remoteName);
+			if (netboxidA == null) {
 				Log.d("PROCESS_CDP", "Not found, ("+workingOnBoksid+") "+boksIdName.get(workingOnBoksid)+", Ifindex: " + ifindex + " String: " + remoteName);
 				unrecognizedCDP.add(new String[] { ifindex, remoteName });
 				oldUnrecIfind.remove(ifindex);
 				continue;
 			}
+			String netboxid = netboxidA[0];
 			String sysname = (String)boksIdName.get(netboxid);
 
 			// Opprett record for boksen bak porten
 			PortBoks pm = new PortBoks(ifindex, netboxid, "CDP");
+			if (netboxidA.length > 1) {
+				// Vi har også med modulnummer
+				String zero = "";
+				try {
+					if (Integer.parseInt(remoteIf) < 10) zero = "0";
+				} catch (NumberFormatException exp) { }
+				remoteIf = (Integer.parseInt(netboxidA[1])+1) + zero + remoteIf;
+			}
 			pm.setRemoteIf(remoteIf);
 			l.add(pm);
 
 			foundCDPMp.add(ifindex);
-			Log.d("PROCESS_CDP", "Ifindex: " + ifindex + " CDP: " + sysname);
+			Log.d("PROCESS_CDP", "Ifindex: " + ifindex + " CDP: " + sysname + " remoteIf: " + remoteIf);
 
 			// Nå vet vi at vi har funnet en boks via CDP bak denne porten, og da kan det ikke være andre Cisco eller HP-enheter bak her
 			try {
@@ -615,7 +624,7 @@ public class QueryBoks extends Thread
 	}
 		
 
-	private String extractNetboxid(String s)
+	private String[] extractNetboxid(String s)
 	{
 		// Vi skal prøve å finne en boksid ut fra CDP strengen, som kan f.eks se slik ut:
 
@@ -623,9 +632,14 @@ public class QueryBoks extends Thread
 		// tekno-sw200C01D80CEA4
 		// ntnu-gw2.ntnu.no
 
+		// HP
+		// mar-ans-601-1(000a57-b8d3c0)
+
+		String[] r;
+
 		// Først prøver vi bare strengen
 		if (sysnameMap.containsKey(s)) {
-			return (String)sysnameMap.get(s);
+			return new String[] { (String)sysnameMap.get(s) };
 		}
 
 		// Så sjekker vi etter paranteser
@@ -635,10 +649,18 @@ public class QueryBoks extends Thread
 			if (end != -1) {
 				String n = s.substring(i+1, end);
 				if (sysnameMap.containsKey(n)) {
-					return (String)sysnameMap.get(n);
+					return new String[] { (String)sysnameMap.get(n) };
 				}
-				if ( (n=extractNetboxid(n)) != null) return n;
+				if ( (r=extractNetboxid(n)) != null) return r;
 				s = s.substring(0, i);
+			}
+		}
+
+		// No match so far, check if this is a HP stack member (-#)
+		if (s.matches(".*-\\d")) {
+			String sn = s.substring(0, s.length()-2);
+			if ((r=extractNetboxid(sn)) != null) {
+				return new String[] { r[0], s.substring(s.length()-1, s.length()) };
 			}
 		}
 
@@ -651,7 +673,7 @@ public class QueryBoks extends Thread
 				cur = (String)sysnameMap.get(sb.toString() );
 			}
 		}
-		if (cur != null) return cur;
+		if (cur != null) return new String[] { cur };
 
 		// Så tar vi strengen motsatt vei, bare for sikkerhets skyld
 		sb = new StringBuffer();
@@ -661,7 +683,7 @@ public class QueryBoks extends Thread
 				cur = (String)sysnameMap.get(sb.toString() );
 			}
 		}
-		if (cur != null) return cur;
+		if (cur != null) return new String[] { cur };
 
 		return null;
 	}

@@ -200,6 +200,12 @@ class getBoksMacs
 			}
 		}
 
+		// Alle (HP) stacknames
+		rs = Database.query("SELECT netboxid,val AS stackname FROM netboxinfo WHERE var='stackName'");
+		while (rs.next()) {
+			sysnameMap.put(rs.getString("stackname"), rs.getString("netboxid"));
+		}
+
 		// Og så alle "ekte" sysname
 		rs = Database.query("SELECT netboxid,val AS sysname FROM netboxinfo WHERE var='sysname'");
 		while (rs.next()) {
@@ -336,9 +342,12 @@ class getBoksMacs
 		// netboxid+interface -> swportid
 		QueryBoks.interfaceMap = new HashMap();
 		Map interfaceMap = QueryBoks.interfaceMap;
-		rs = Database.query("SELECT netboxid,interface,swportid FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
+		rs = Database.query("SELECT netboxid,ifindex,interface,swportid FROM swport JOIN module USING(moduleid) ORDER BY ifindex DESC");
 		while (rs.next()) {
-			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("interface"), rs.getString("swportid"));
+			interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), rs.getString("swportid"));
+			if (rs.getString("interface") != null) {
+				interfaceMap.put(rs.getString("netboxid")+":"+rs.getString("interface"), rs.getString("swportid"));
+			}
 		}
 
 		QueryBoks.mpMap = new HashMap();
