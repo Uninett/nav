@@ -174,10 +174,16 @@ sub hent_data
     (undef,my $sv) = split /:/,&snmpwalk("$ro\@$ip",".1.3.6.1.4.1.9.5.1.3.1.1.2"); 
 #sysName
     (my $sn) = &snmpget("$ro\@$ip","sysName");
+
+# Sysname avsluttes ved 1. punktum.
+    my $dummy;
+    ($sn,$dummy) = split(/\./,$sn);
+
+#    print "$ip\t$sn\n";
    
     return 0 if (!$sn);
    
-    unless ($boks{$id}{sysName} =~ /$sn/){
+    unless ($boks{$id}{sysName} eq $sn){
 	$boks{$id}{sysName}= $sn;
 	&oppdater_en("boks","sysName",$sn,"id",$id);
     }
