@@ -5536,7 +5536,7 @@ class bulkdefPrefix:
     table = editTables.Prefix
     uniqueField = 'prefixid'
     enforce_max_fields = True
-    max_num_fields = 6
+    max_num_fields = 7
     min_num_fields = 1
 
     process = True
