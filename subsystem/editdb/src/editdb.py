@@ -4413,9 +4413,10 @@ class bulkdefNetbox:
                 if box.serial:
                     row['serial'] = str(box.serial)
                 else:
-                    row['serial'] = ''
+                    row['serial'] = 'NULL'
             # Make new device
             if row.has_key('serial'):
+                # Hacked by JM to avoid serial
                 #if len(row['serial']):
                 fields = {'serial': row['serial']}
                 # serial shouldn't be inserted into Netbox table
