@@ -13,17 +13,23 @@ initdir = @initdir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
 
-binaries = navdump
+binaries = dump.py
+libraries = dump.py
 
-.PHONY: all install install-bin clean distclean
+.PHONY: all install install-bin install-lib clean distclean install-lib
 
 all: 
 
-install: install-bin
+install: install-bin install-lib
 
 install-bin:
 	@for file in $(binaries); do \
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-lib:
+	@for file in $(libraries); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/$$file || exit 1; \
 	done
 
 clean:
