@@ -26,7 +26,7 @@ public class DeviceTracker implements EventHandler
 
 	public String[] handleEventTypes()
 	{
-		return new String[] { "deviceOrdered", "deviceRegistered", "deviceOnService", "deviceInOperation", "deviceError", "deviceHwUpgrade", "deviceSwUpgrade" };
+		return new String[] { "deviceOrdered", "deviceRegistered", "deviceOnService", "deviceInOperation", "deviceError", "deviceHwUpgrade", "deviceSwUpgrade", "deviceRma" };
 	}
 
 	public void handle(DeviceDB ddb, Event e, ConfigParser cp)
@@ -112,6 +112,13 @@ public class DeviceTracker implements EventHandler
                 a.addHistoryVar("oldversion",e.getVar("oldversion"));
             if (e.getVar("newversion") != null)
                 a.addHistoryVar("newversion",e.getVar("newversion"));
+        } else if (eventtype.equals("deviceRma")) {
+            if (e.getVar("username") != null)
+                a.addHistoryVar("username",e.getVar("username"));
+            if (e.getVar("rmanumber") != null)
+                a.addHistoryVar("rmanumber",e.getVar("rmanumber"));
+            if (e.getVar("comment") != null)
+                a.addHistoryVar("comment",e.getVar("comment"));
         }
 
 		// Post the alert
