@@ -15,7 +15,6 @@ DROP TABLE boksinfo;
 DROP TABLE boks;
 DROP TABLE boksdisk;
 DROP TABLE boksinterface;
-DROP TABLE bokscategory;
 
 DROP TABLE type;
 DROP TABLE prefiks;
@@ -154,7 +153,6 @@ CREATE TABLE boks (
   orgid VARCHAR(10) NOT NULL REFERENCES org,
   ro VARCHAR(10),
   rw VARCHAR(10),
-  ostype VARCHAR(10),
   prefiksid INT4 REFERENCES prefiks ON UPDATE CASCADE ON DELETE SET null,
   boksvia2 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
   boksvia3 integer REFERENCES boks ON UPDATE CASCADE ON DELETE SET null,
@@ -163,6 +161,7 @@ CREATE TABLE boks (
   watch BOOL DEFAULT false,
   skygge BOOL DEFAULT false,
   snmp CHAR(1) DEFAULT '2'
+  snmpagent VARCHAR(20),
 );
 
 
@@ -173,11 +172,6 @@ CREATE TABLE boksinfo (
   function VARCHAR(100)
 );
 
-CREATE TABLE bokscategory {
-  boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  category VARCHAR(15) NOT NULL PRIMARY KEY
-}
-
 CREATE TABLE boksdisk {
   boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
   path VARCHAR(255) NOT NULL PRIMARY KEY
@@ -185,7 +179,7 @@ CREATE TABLE boksdisk {
 
 CREATE TABLE boksinterface {
   boksid INT4 NOT NULL PRIMARY KEY REFERENCES boks ON UPDATE CASCADE ON DELETE CASCADE,
-  interf VARCHAR(30) NOT NULL PRIMARY KEY
+  interf VARCHAR(50) NOT NULL PRIMARY KEY
 }
 
 CREATE TABLE module (
@@ -287,6 +281,8 @@ GRANT ALL ON prefiks TO navall;
 GRANT ALL ON type TO navall;
 GRANT ALL ON boks TO navall;
 GRANT ALL ON boksinfo TO navall;
+GRANT ALL ON boksinterface TO navall;
+GRANT ALL ON boksdisk TO navall;
 GRANT ALL ON module TO navall;
 GRANT ALL ON mem TO navall;
 GRANT ALL ON gwport TO navall;
