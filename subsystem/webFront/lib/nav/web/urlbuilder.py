@@ -125,6 +125,8 @@ def createUrl(object=None, id=None, division=None,
             url += 'org?orgid=%s' % id
         elif division=='type':
             url += 'type?typeid=%s' % id
+        elif division=='swport':
+            url += 'swport?b1.netboxid=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
