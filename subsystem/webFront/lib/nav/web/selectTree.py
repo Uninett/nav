@@ -96,6 +96,7 @@ class selectTree:
                 select.fill()
 
         # Set all selected options and fill updateselect()s
+        firstLoad = True
         for select in self.selectList:
             
             selected = []
@@ -105,12 +106,21 @@ class selectTree:
                     # If only one entry is selected, fieldstorage
                     # returns a string, so we have to make a list of it
                     selected = [selected]
-            
-            # Set preselected entries
-            for preSelected in select.preSelected:
-                # preSelected ids may be ints, so str()
-                if not selected.count(str(preSelected)):
-                    selected.append(str(preSelected))
+                firstLoad = False
+            else: 
+                # Set preselected entries, but only if the form hasn't
+                # got this select (controlName) posted. Ie. only set
+                # preselected entries when the page first loads, then
+                # update normally.
+                for preSelected in select.preSelected:
+                    # preSelected ids may be ints, so str()
+                    if not selected.count(str(preSelected)):
+                        selected.append(str(preSelected))
+                # Set firstLoad=True so that fill() knows that any
+                # entries in the addEntryList must be selected if
+                # they are set to be. If firstLoad is false all
+                # entries in the addEntryList defaults to select=false.
+            select.firstLoad = firstLoad
 
             if not select.prevSelect:
                 # simpleSelect, entries in selected are
@@ -248,7 +258,10 @@ class simpleSelect:
         for entry in self.addEntryList:
             # Check if value (id) is already in select
             if not entry[0] in self.values:
-                option = selectOption(entry[1],entry[0],entry[2])
+                state = entry[2]
+                if not self.firstLoad:
+                    state = False
+                option = selectOption(entry[1],entry[0],state)
                 self.options.append(option)
 
     def parseFormatstring(self,formatString,fetchedRow):
@@ -424,11 +437,14 @@ class updateSelect(simpleSelect):
                 self.options.append(option)
             # Add entries from addEntryList
             for entry in self.addEntryList:
-                if s == entry[0]:
+                if (s == entry[0]):
                     # This is the right optgroup for this entry
                     if not entry[1] in self.values:
                         # Value (id) isn't already present
-                        option = selectOption(entry[2],entry[1],entry[3])
+                        state = entry[3]
+                        if not self.firstLoad:
+                            state = False
+                        option = selectOption(entry[2],entry[1],state)
                         self.options.append(option)
             # Add end of optgroup tag to list of options
             optgroup = selectOption('','',optgroupEnd=True)
