@@ -1,5 +1,16 @@
+"""
+$Id:
+
+    This file is part of the NAV project.
+
+    This module contains functionality related to eMotd and maintenance.
+
+    Copyright (c) 2003 by NTNU, ITEA nettgruppen
+    Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
+
+"""
 #################################################
-## blapp.py
+## handler.py
 
 #################################################
 ## Imports
@@ -8,16 +19,11 @@ from mod_python import util, apache
 from mx import DateTime
 import sys,os,re,copy,string
 import nav
-#from tables import *
-#import forgetHTML as html
-#import forgetSQL
 import nav.db.manage 
 from nav.db.manage import Emotd, Emotd_related, Maintenance, Room, Service, Netbox 
 from nav.web import EmotdSelect
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox
-
-#cursor = database.cursor()
 
 #################################################
 ## Templates
@@ -376,32 +382,38 @@ def maintenance(req):
             maintdict = EmotdSelect.getMaintenance(state='active',access=True)
         if req.form['list'] == 'scheduled':
             maintdict = EmotdSelect.getMaintenance(state='scheduled',access=True)
-        body += '<table width=800><tr><td>\n'
+        body += '<table width=800><tr><th>Room</th><th>Sysname</th><th>Service</th><th>Start time</th><th>End time</th><th>Title</th></tr>\n'
         for maint in maintdict.keys():
-            body += '<table> \n'
-            body += '<tr><td>Maintenanceid: %s </td>\n' % maint
             mstart = maintdict[maint][0]['maint_start']
             mend   = maintdict[maint][0]['maint_end']
-            body += '<td>Started: %s</td><td>Ends at: %s </td></tr>\n' % (mstart,mend)
-            body += '<tr><td>Room</td><td>Netbox</td><td>Service/module</td></tr>'
+            emotdid = maintdict[maint][0]['emotdid']
+            title = Emotd(emotdid).title
+            emotdurl = "<a href=/emotd/view?id=%s> %s </a>" % (emotdid,title) 
+            #roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
+            #netboxurl = "<a href=/browse/%s> %s </a>" % (netbox,sysname) 
+            #serviceurl = "<a href=/browse/service/%s> %s </a>" % (handler,handler) 
             for f in range(len(maintdict[maint])):
                 # One maintenance, can keep severel rooms,netbox,services
                 entry = maintdict[maint][f]
                 if entry['key'] == 'room':
                     room = Room(entry['value']).roomid + "," + Room(entry['value']).descr
-                    body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td></tr>' % (room)
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
+                    body += '<tr><td><b>%s</b></td><td>&nbsp;</td><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (roomurl,mstart,mend,emotdurl)
                 if entry['key'] == 'netbox':
                     room = Netbox(entry['value']).room.roomid + "," + Netbox(entry['value']).room.descr 
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
                     netbox = Netbox(entry['value']).sysname 
-                    body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td></tr>' % (room,netbox)
+                    netboxurl = "<a href=/browse/%s> %s </a>" % (netbox,netbox) 
+                    body += '<tr><td>%s</td><td><b>%s</b><td>&nbsp;</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (roomurl,netboxurl,mstart,mend,emotdurl)
                 if entry['key'] == 'service':
                     netbox = Service(entry['value']).netbox.sysname
                     room = Service(entry['value']).netbox.room.roomid + "," + Service(61).netbox.room.descr
+                    roomurl = "<a href=/report/netbox?roomid=%s> %s </a>" % (room,room) 
                     service = Service(entry['value']).handler
-                    body += '<tr><td>%s</td><td>%s</td><td><b>&s</b></td></tr>\n' % (room,netbox,service)
-            body += '</table><hr>\n'
+                    serviceurl = "<a href=/browse/service/%s> %s </a>" % (service,service) 
+                    body += '<tr><td>%s</td><td>%s</td><td><b>&s</b></td><td>%s</td><td>%s</td><td>%s</td></tr>\n' % (roomurl,netboxurl,serviceurl,mstart,mend,emotdurl)
             # end view of maintenance with this id
-        body += '</td></tr></table>\n'
+        body += '</table>\n'
         # For listing ongoing or scheduled maintenances, we don't show searchBox and selectBox.. present a link maybe?
         searchBox = None
         selectBox = None     
