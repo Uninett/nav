@@ -53,13 +53,20 @@ def _getDivisionByObject(object):
 
 def createUrl(object=None, id=None, division=None, 
               subsystem="devbrowser", mode="view", **kwargs):
+    if id and object:
+        raise "Ambiguous parameters, id and object cannot both be specified"
+
+    if object:
+        division = _getDivisionByObject(object)
+    if division in 'vlan room cat org type'.split():
+        subsystem = 'report'
+        if object:
+            id = object._getID()[0]
+    
     try:
         url = _subsystems[subsystem] + '/'
     except KeyError:
         raise "Unknown subsystem: %s" % subsystem
-    if id and object:
-        raise "Ambiguous parameters, id and object cannot both be specified"
-
 
     if subsystem == 'devbrowser':
         if id and division not in ('service',):
@@ -93,14 +100,23 @@ def createUrl(object=None, id=None, division=None,
                 elif division=="module":
                     url += object.netbox.sysname
                     url += '/module%s' % object.module   
-                elif division=='vlan':
-                    url += str(object.vlan)
                 else:
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
                     url += ','.join(id)
                 url += '/' # make sure we have trailing /    
 
+    elif subsystem == 'report':
+        if division=="vlan":
+            url += 'swportv?vlan=%s' % id
+        elif division=='room':
+            url += 'room?roomid=%s' % id
+        elif division=='cat':    
+            url += 'netbox/?catid=%s' % id
+        elif division=='org':
+            url += 'org/orgid=%s' % id
+        elif division=='type':
+            url += 'netbox/orgid=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
