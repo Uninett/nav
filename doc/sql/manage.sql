@@ -167,6 +167,20 @@ CREATE TABLE product (
   UNIQUE (vendorid,productno)
 );
 
+CREATE TABLE deviceorder (
+  deviceorderid SERIAL PRIMARY KEY,
+  registered TIMESTAMP NOT NULL DEFAULT now(),
+  ordered DATE,
+  arrived TIMESTAMP DEFAULT 'infinity',
+  ordernumber VARCHAR,
+  comment VARCHAR,
+  retailer VARCHAR,
+  username VARCHAR,
+  orgid VARCHAR(30) REFERENCES org (orgid) ON UPDATE CASCADE ON DELETE SET NULL,
+  productid INTEGER REFERENCES product (productid) ON UPDATE CASCADE ON DELETE SET NULL,
+  updatedby VARCHAR,
+  lastupdated DATE);
+
 
 CREATE TABLE device (
   deviceid SERIAL PRIMARY KEY,
@@ -176,6 +190,8 @@ CREATE TABLE device (
   fw_ver VARCHAR,
   sw_ver VARCHAR,
 	auto BOOLEAN NOT NULL DEFAULT false,
+  active BOOLEAN NOT NULL DEFAULT false,
+  deviceorderid INT4 REFERENCES deviceorder (deviceorderid) ON DELETE CASCADE,
   UNIQUE(serial)
 -- productid burde vært NOT NULL, men det går ikke nå
 );
@@ -605,7 +621,9 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
   ('notification','Notification event, typically between NAV systems','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
-    ('deviceChanged','Registers a change on a device','y');
+    ('deviceActive','Lifetime event for a device','y');
+INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
+    ('deviceState','Registers the state of a device','y');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('deviceNotice','Registers a notice on a device','n');
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
@@ -685,13 +703,11 @@ INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxRestart','warmStart','Tells us that a network-unit has done a warmstart.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceChanged','deviceOrdered','Device is ordered or has arrived.');
+  ('deviceState','deviceInIPOperation','Device is in operation as a box.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceChanged','deviceInOperation','Device is in operation.');
+  ('deviceState','deviceInStack','Device is in operation as a module.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceChanged','deviceRma','Rma event for device.');
-INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
-  ('deviceNotice','deviceRegistered','Device is registered with a serial.');
+  ('deviceState','deviceRMA','RMA event for device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('deviceNotice','deviceError','Error situation on device.');
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
