@@ -119,15 +119,12 @@ public class NetboxInfoHandler implements DataHandler {
 					} else {
 						// Var exists, try to update before delete
 
-						// Make a copy of valMap so we don't overwrite our cache
-						valMap = new HashMap(valMap);
-
 						// Remove all equal values (the intersection) from both sets
 						// since we don't need to update those
-						Set intersection = new HashSet(newValMap.keySet());
-						intersection.retainAll(valMap.keySet());
-						newValMap.keySet().removeAll(intersection);
-						valMap.keySet().removeAll(intersection);
+						Map intersection = new HashMap(valMap);
+						intersection.keySet().retainAll(newValMap.keySet());
+						newValMap.keySet().removeAll(intersection.keySet());
+						valMap.keySet().removeAll(intersection.keySet());
 
 						// All remaining values in valMap should no longer be present; if there are
 						// any values left in newValMap, update rows from valMap
@@ -161,6 +158,9 @@ public class NetboxInfoHandler implements DataHandler {
 								Database.update("DELETE FROM netboxinfo WHERE netboxinfoid = '" + valIt.next() + "'");
 							}
 						}
+
+						// Add back the intersection as these values already exist in the database
+						newValMap.putAll(intersection);
 
 					}
 				}
