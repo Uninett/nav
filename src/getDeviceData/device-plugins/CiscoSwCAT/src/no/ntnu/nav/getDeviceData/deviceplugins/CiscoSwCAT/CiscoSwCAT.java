@@ -94,13 +94,13 @@ public class CiscoSwCAT implements DeviceHandler
 		List l;
 
 		HashMap modPortIfindex = new HashMap();
-                List o = sSnmp.getAll(nb.getOid("portIfIndex"));
+		List o = sSnmp.getAll(nb.getOid("portIfIndex"));
 
-                if (o != null) {
-		    HashMap ifModule = new HashMap();
-		    l = sSnmp.getAll(nb.getOid("ifName"), true);
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+		if (o != null) {
+			HashMap ifModule = new HashMap();
+			l = sSnmp.getAll(nb.getOid("ifName"), true);
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 
 			    String ifindex = s[0];
@@ -116,74 +116,74 @@ public class CiscoSwCAT implements DeviceHandler
 					}
 			    SwModule swm = sc.swModuleFactory(module);
 					swm.setDescr(portif.split("/")[0]);
+				}
 			}
-		    }
-		    for (Iterator it = o.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
+			for (Iterator it = o.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
 
-			    String modport = s[0];
-			    String ifindex = s[1];
-			    String[] s2 = s[0].split("\\.");
-			    modPortIfindex.put(s[0],s[1]);
+				String modport = s[0];
+				String ifindex = s[1];
+				String[] s2 = s[0].split("\\.");
+				modPortIfindex.put(s[0],s[1]);
 			
-			    Integer port = (Integer)Integer.getInteger(s2[1]);
-			    sc.swportFactory(ifindex).setPort(port);
-		    }
+				Integer port = (Integer)Integer.getInteger(s2[1]);
+				sc.swportFactory(ifindex).setPort(port);
+			}
 			
-		    l = sSnmp.getAll(nb.getOid("portDuplex"));
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+			l = sSnmp.getAll(nb.getOid("portDuplex"));
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 			    String modport = s[0];
 			    String ifindex = (String)modPortIfindex.get(modport);
 			    char duplex = (s[1].equals("1") ? 'h' : 'f');
 			    sc.swportFactory(ifindex).setDuplex(duplex);
+				}
 			}
-		    }
 
-		    l = sSnmp.getAll(nb.getOid("portPortName"), true);
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+			l = sSnmp.getAll(nb.getOid("portPortName"), true);
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 			    String ifindex = (String) modPortIfindex.get(s[0]);
 			    sc.swportFactory(ifindex).setPortname(s[1]);
+				}
 			}
-		    }
 		    
-		    l = sSnmp.getAll(nb.getOid("portVlan"));
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+			l = sSnmp.getAll(nb.getOid("portVlan"));
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 			    String[] s2 = s[0].split("\\.");
 			    int vlan = 0;
 			    try{
-				vlan = Integer.parseInt(s[1]);
+						vlan = Integer.parseInt(s[1]);
 			    } catch  (NumberFormatException e) {
-					Log.w("PROCESS_CAT", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
+						Log.w("PROCESS_CAT", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
 			    }
 			    String ifindex = (String) modPortIfindex.get(s[0]);
 			    sc.swportFactory(ifindex).setVlan(vlan);
+				}
 			}
-		    }
 		    
-		    l = sSnmp.getAll(nb.getOid("portTrunk"));
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+			l = sSnmp.getAll(nb.getOid("portTrunk"));
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 			    boolean trunk = (s[1].equals("1") ? true : false);
 			    String ifindex = (String) modPortIfindex.get(s[0]);
 			    sc.swportFactory(ifindex).setTrunk(trunk);
+				}
 			}
-		    }
 		    
-		    l = sSnmp.getAll(nb.getOid("portVlansAllowed"));
-		    if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+			l = sSnmp.getAll(nb.getOid("portVlansAllowed"));
+			if (l != null) {
+				for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
 			    String ifindex = (String) modPortIfindex.get(s[0]);
 			    sc.swportFactory(ifindex).setHexstring(s[1]);
+				}
 			}
-		    }
 		    
 		}
 
