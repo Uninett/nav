@@ -31,7 +31,7 @@ public class DeviceData
 	 *
 	 * @param path The path to add
 	 */
-	public void addBoksDisk(String path) { if (path != null) boksDisk.add(path); }
+	public void addBoksDisk(String path, int blocksize) { if (path != null) boksDisk.add(new String[] { path, String.valueOf(blocksize) } ); }
 
 	/**
 	 * Call this method to enable updating of boksdisk. NOTE: If you call this method but

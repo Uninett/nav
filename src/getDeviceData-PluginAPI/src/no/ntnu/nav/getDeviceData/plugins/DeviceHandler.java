@@ -11,7 +11,7 @@ public interface DeviceHandler
 	 * All plugins will be asked if they can handle a given device, and the one that returns
 	 * the highest value greater than zero will be picked.
 	 *
-	 * @argument bd The data describing the device
+	 * @param bd The data describing the device
 	 * @return a value greater than zero (0) if the plugin can handle the given device
 	 */
 	public int canHandleDevice(BoksData bd);
