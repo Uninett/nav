@@ -1,5 +1,5 @@
 """
-$Id: db.py,v 1.6 2003/06/20 09:34:45 magnun Exp $                                                                                                                              
+$Id: db.py,v 1.7 2003/06/23 16:54:00 magnun Exp $                                                                                                                              
 This file is part of the NAV project.
 
 This class is an abstraction of the database operations needed
@@ -13,7 +13,8 @@ Author: Magnus Nordseth <magnun@stud.ntnu.no>
 	Erik Gorset	<erikgors@stud.ntnu.no>
 """
 
-import threading, checkermap, psycopg, Queue, abstractChecker, time, event
+import threading, checkermap, psycopg, Queue, abstractChecker, time
+from event import Event
 from setup import Service
 from debug import debug
 
@@ -107,10 +108,10 @@ class _db(threading.Thread):
 			self.execute(statement)
 			return
 		
-		if event.status == event.UP:
+		if event.status == Event.UP:
 			value = 100
 			state = 'e'
-		elif event.status == event.DOWN:
+		elif event.status == Event.DOWN:
 			value = 1
 			state = 's'
 		else:
@@ -131,7 +132,7 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 		self.execute(statement)
 		statement = "INSERT INTO eventqvar (eventqid, var, val) values (%i, '%s', '%s')" % (nextid, 'descr',event.info.replace("'","\\'"))
 		self.execute(statement)
-
+		debug("Executed: %s" % statement)
 
 	def pingEvent(self, host, state):
 		query = "SELECT netboxid, deviceid FROM netbox WHERE ip='%s'"%host
@@ -201,9 +202,9 @@ values (%i, %i, %i,%i, '%s','%s', %i, '%s','%s' )""" % (nextid, event.serviceid,
 				 }
 			if useDbStatus:
 				if up == 'y':
-					up=event.Event.UP
+					up=Event.UP
 				else:
-					event.up=Event.DOWN
+					up=Event.DOWN
 				newChecker = checker(service, status=up)
 			else:
 				newChecker = checker(service)
