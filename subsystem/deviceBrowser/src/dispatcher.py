@@ -12,6 +12,8 @@ import forgetHTML as html
 # Drrrty read av config
 import nav.config
 
+import nav.web
+
 from nav.web.templates.DeviceBrowserTemplate import DeviceBrowserTemplate
 
 try:
@@ -39,13 +41,15 @@ def handler(req):
         return apache.OK
     try:  
         import nav
-        handler = __import__(request['type'])
+        handler = __import__('nav.web.devBrowser.' + request['type'],
+                             globals(), locals(), ('nav', 'web'))
         handler.process # make sure that there is a process functin
 
     except ImportError, e:
         req.write(str(e))
         return apache.HTTP_NOT_FOUND
-    except AttributeError:
+    except AttributeError, e:
+        raise repr(handler)
         return apache.HTTP_NOT_FOUND
     
     req.session.setdefault('uris', [])
@@ -59,7 +63,7 @@ def handler(req):
     except RedirectError, error:
         redirect(req, error.args[0])
     
-    # postpend the warningsw
+    # postpend the warnings
     if warns:    
         # Wrap it so we can add more
         result = html.Division(result)
@@ -68,8 +72,8 @@ def handler(req):
             result.append(message)
     
     template = DeviceBrowserTemplate()
-    template.content = lambda: result
     # DRRRRRRTYUUUYY
+    template.content = lambda: result
     response = template.respond()
 
     req.send_http_header()
