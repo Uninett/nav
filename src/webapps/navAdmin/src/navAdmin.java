@@ -36,13 +36,15 @@ public class navAdmin extends HttpServlet
 		try {
 			cp = new ConfigParser(navRoot + configFile);
 		} catch (IOException e) {
+			/*
 			out.println("Error, could not read config file: " + navRoot + configFile);
 			return;
+			*/
 		}
 		try {
 			dbCp = new ConfigParser(navRoot + dbConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read config file: " + navRoot + dbConfigFile);
+			out.println("Error, could not read database config file: " + navRoot + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
