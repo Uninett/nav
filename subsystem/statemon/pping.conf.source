@@ -20,6 +20,10 @@ packetsize = 64
 # the last ping request is sent.
 timeout = 5
 
+# Number of requests without answer needed before 
+# marking netbox as unavailable
+nrping = 4
+
 # Delay in ms between each ping request.
 delay = 2
 

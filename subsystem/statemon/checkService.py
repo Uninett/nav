@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 #
 # Copyright 2003 Norwegian University of Science and Technology
 #
@@ -31,7 +31,7 @@ import os
 import getopt
 
 from nav.statemon import debug
-debug.setDebugLevel(0)
+debug.setDebugLevel(7)
 from nav.statemon import abstractChecker
 from nav.statemon import checkermap
 
@@ -102,7 +102,9 @@ service={'id':serviceid,
          'version':version,
          'deviceid':0
          }
-    
-myChecker = checker(service)
-debug.debug(myChecker.execute())
 
+print "checking"
+myChecker = checker(service)
+print myChecker.execute()
+
+print "finished"

@@ -58,7 +58,7 @@ class pinger:
         self.db=db.db(self.dbconf)
         sock = kwargs.get("socket",None)
         self.pinger=megaping.MegaPing(sock)
-        self._nrping = 3 
+        self._nrping = int(self.config.get("nrping" ,3))
         # To keep status...
         self.netboxmap = {} # hash netboxid -> netbox
         self.down = []      # list of netboxids down
@@ -127,7 +127,7 @@ class pinger:
         reportUp = filter(lambda x: x not in downNow, self.down)
         self.down = downNow
 
-        #Rapporter bokser som har gått ned
+        # Reporting netboxes as down
         debug.debug("Starts reporting %i hosts as down" % len(reportDown),7)
         for netboxid in reportDown:
             netbox = self.netboxmap[netboxid]
@@ -140,7 +140,7 @@ class pinger:
                              )
             self.db.newEvent(newEvent)
             debug.debug("%s marked as down." % netbox)
-        #Rapporter bokser som har kommet opp
+        # Reporting netboxes as up
         debug.debug("Starts reporting %i hosts as up" % len(reportUp),7)
         for netboxid in reportUp:
             try:
