@@ -138,16 +138,26 @@ class getDeviceData
 		try {
 			QueryBoks.minBoksRunInterval = Integer.parseInt(cp.get("minBoksRunInterval"));
 		} catch (Exception e) {
-			QueryBoks.minBoksRunInterval = 15; // Default is every 15 minutes
+			QueryBoks.minBoksRunInterval = 60; // Default is every 60 minutes
 		}
 		QueryBoks.minBoksRunInterval *= 60 * 1000; // Convert from minutes to in milliseconds
-
 		// DEBUG
 		//QueryBoks.minBoksRunInterval = 30000; // Every 30 secs
+
+		int loadDataInterval;
+		try {
+			loadDataInterval = Integer.parseInt(cp.get("loadDataInterval"));
+		} catch (Exception e) {
+			loadDataInterval = 5; // Default is every 5 minutes
+		}
+		loadDataInterval *= 60 * 1000; // Convert from minutes to in milliseconds
 
 
 		// Hent data
 		loadData();
+		Timer loadDataTimer = new Timer();
+		loadDataTimer.schedule(new LoadDataTask(), loadDataInterval, loadDataInterval);
+
 
 		// Sett datastrukturer for alle tråder
 		QueryBoks.ERROR_OUT = ERROR_OUT;
@@ -345,7 +355,7 @@ class getDeviceData
 		}
 	}
 
-	private static void loadData() throws SQLException
+	public static void loadData() throws SQLException
 	{
 		if (swportMap == null) loadPermanentData();
 		loadReloadableData();
@@ -442,13 +452,13 @@ class getDeviceData
 		//qNettel = "voll-sw";
 		//qNettel = "voll-sby-982-h2";
 		//qNettel  = "_voll";
-		//qNettel = "_def";
+		qNettel = "_def";
 		//qNettel = "itea-ans3-230-h";
-		qNettel = "iot-stud-313-h2";
+		//qNettel = "iot-stud-313-h2";
 
 		if (qBoks != null) qNettel = qBoks;
 
-		Database.setDefaultKeepOpen(true);
+		//Database.setDefaultKeepOpen(true);
 		if (qNettel.equals("_new")) {
 			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='KANT' or kat='SW') ORDER BY boksid");
 		} else
@@ -474,13 +484,13 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND (kat='SRV' OR typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major FROM boks NATURAL LEFT JOIN type WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE sysName='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
-		Database.setDefaultKeepOpen(false);
+		//Database.setDefaultKeepOpen(false);
 
 		Map bdMapClone;
 		synchronized (bdMap) {
@@ -509,6 +519,7 @@ class getDeviceData
 			bd.setSysname(rs.getString("sysname"));
 			bd.setKat(rs.getString("kat"));
 			bd.setSnmpMajor(rs.getInt("snmp_major"));
+			bd.setSnmpagent(rs.getString("snmpagent"));
 
 			if (newBd) {
 				synchronized (bdFifo) {
@@ -911,6 +922,20 @@ class QueryBoks extends Thread
 					}
 				}
 
+				// Snmpagent
+				if (dd != null) {
+					String snmpagent = dd.getSnmpagent();
+					if (snmpagent != null && snmpagent.length() > 0 && !snmpagent.equals(bd.getSnmpagent())) {
+						// Oppdater
+						try {
+							if (DB_UPDATE) Database.update("UPDATE boks SET snmpagent='"+Database.addSlashes(snmpagent)+"' WHERE boksid='"+bd.getBoksid()+"'");
+							if (DB_COMMIT) Database.commit(); else Database.rollback();
+						} catch (SQLException e) {
+							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
+						}
+					}
+				}
+
 				// boksdisk
 				if (dd != null && dd.getBoksDiskUpdated()) {
 					List l = dd.getBoksDisk();
@@ -1209,6 +1234,18 @@ class BoksReport implements Comparable
 	public int compareTo(Object o)
 	{
 		return new Integer(((BoksReport)o).getUsedTime()).compareTo(new Integer(usedTime));
+	}
+}
+
+class LoadDataTask extends TimerTask
+{
+	public void run()
+	{
+		try {
+			getDeviceData.loadData();
+		} catch (SQLException e) {
+			System.err.println("SQLException in LoadData.run(): " + e.getMessage());
+		}
 	}
 }
 
