@@ -32,6 +32,7 @@ HISTORY_DEFAULT_NO_DAYS = 7
 HISTORY_TYPE_BOXES = 'boxes'
 HISTORY_TYPE_SERVICES = 'services'
 HISTORY_TYPE_MODULES = 'modules'
+HISTORY_TYPE_THRESHOLD = 'thresholds'
 BASEPATH = '/status/'
 INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
 
@@ -121,6 +122,9 @@ class StatusPage:
             elif typeId == 'module':
                 self.sections.append(ModuleSectionBox(controlBaseName,args,\
                 title,filters))
+            elif typeId == 'threshold':
+                self.sections.append(ThresholdSectionBox(controlBaseName,args,\
+                title,filters))
 
         # check http get arguments and sort the lists
         for section in self.sections:
@@ -141,6 +145,8 @@ class StatusPage:
 
 class HistoryPage:
     " Class representing the history page "
+
+    selid = None
 
     def __init__(self,req):
         CNAME_DAYS = 'days'
@@ -164,46 +170,62 @@ class HistoryPage:
             # Default is boxes
             seltype = HISTORY_TYPE_BOXES
 
+        # Get the selected id from form data
+        if req.form.has_key(CNAME_ID):
+            selid = req.form[CNAME_ID]
+        else:
+            selid = None
+
         # Looking at history for one box
-        boxid = None
-        serviceid = None
-        moduleid = None
-        if req.form.has_key(CNAME_ID) and seltype==HISTORY_TYPE_BOXES:
-            boxid = req.form[CNAME_ID]
-            sysname = nav.db.manage.Netbox(boxid).sysname
+        if selid and seltype==HISTORY_TYPE_BOXES:
+            sysname = nav.db.manage.Netbox(selid).sysname
             self.title = 'History for %s' % (sysname,)
-        elif req.form.has_key(CNAME_ID) and seltype==HISTORY_TYPE_SERVICES:
-            serviceid = req.form[CNAME_ID]
-            service = nav.db.manage.Service(serviceid)
+        elif selid and seltype==HISTORY_TYPE_SERVICES:
+            service = nav.db.manage.Service(selid)
             handler = service.handler
             sysname = service.netbox.sysname
             self.title = "History for '%s' on %s" % (handler,sysname) 
-        elif req.form.has_key(CNAME_ID) and seltype==HISTORY_TYPE_MODULES:
-            moduleid = req.form[CNAME_ID]
-            module = nav.db.manage.Module(moduleid)
+        elif selid and seltype==HISTORY_TYPE_MODULES:
+            module = nav.db.manage.Module(selid)
             moduleno = str(module.module)
             sysname = module.netbox.sysname
-            self.title = "History for '%s' on %s" % (handler,sysname) 
+            self.title = "History for module '%s' on %s" % (moduleno,sysname) 
+        elif selid and seltype==HISTORY_TYPE_THRESHOLD:
+            datasource = nav.db.manage.Rrd_datasource(selid)
+            sql = "SELECT sysname FROM rrddatasourcenetbox WHERE " +\
+                  "rrd_datasourceid='%s'" % (selid,)
+            connection = nav.db.getConnection('status', 'manage')
+            database = connection.cursor()
+            database.execute(sql)
+            result = database.fetchone()
+            sysname = ''
+            if result:
+                sysname = result[0]
+                                
+            descr = datasource.descr
+            self.title = "History for datasource '%s' on '%s'" % \
+                         (descr,sysname) 
 
         # Data for the selection bar
         self.action = BASEPATH + 'history/'
         self.method = 'GET'
         self.onChange = 'this.form.submit()'
-
-        self.boxValue = boxid
-        self.boxCname = CNAME_ID
+        self.seltype = seltype
 
         self.typeText = 'Show history for'
         self.typeValue = seltype
         self.typeOptions = [(HISTORY_TYPE_BOXES,'boxes'),
                             (HISTORY_TYPE_SERVICES,'services'),
-                            (HISTORY_TYPE_MODULES,'modules')]
+                            (HISTORY_TYPE_MODULES,'modules'),
+                            (HISTORY_TYPE_THRESHOLD,'thresholds')]
         self.typeCname = CNAME_TYPE
 
+        self.idCname = CNAME_ID
+        self.selid = selid
         self.daysText = ' the last '
         self.daysValue = str(days)
         self.daysCname = CNAME_DAYS
-        self.daysOptions = [('1','1 day')]
+        self.daysOptions = [('1','day')]
         for i in range(2,31):
             self.daysOptions.append((str(i),str(i) + ' days'))
 
@@ -215,13 +237,16 @@ class HistoryPage:
             control = str(counter)
             if seltype == HISTORY_TYPE_BOXES:
                 self.sections.append(NetboxHistoryBox(control,args,date,date,
-                boxid))
+                selid))
             elif seltype == HISTORY_TYPE_SERVICES:
                 self.sections.append(ServiceHistoryBox(control,
-                args,date,date,serviceid))
+                args,date,date,selid))
             elif seltype == HISTORY_TYPE_MODULES:
                 self.sections.append(ModuleHistoryBox(control,
-                args,date,date,moduleid)) 
+                args,date,date,selid)) 
+            elif seltype == HISTORY_TYPE_THRESHOLD:
+                self.sections.append(ThresholdHistoryBox(control,
+                args,date,date,selid))
               
             counter += 1
             now = now - mx.DateTime.oneDay
@@ -249,8 +274,6 @@ class HistoryPage:
             if len(section.rows):
                 keep.append(section)
         self.sections = keep
-
-
 
 #################################################
 ## Other stuff

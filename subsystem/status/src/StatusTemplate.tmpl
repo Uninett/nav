@@ -52,13 +52,13 @@ $default_form_CSS()
 ## This function show the select bar (type=boxes|services|?,days=1-?)
 #def displayStatusAction($bar)
     <form action="$bar.action" method="$bar.method">
-#if $bar.boxValue
-        <input type="hidden" name="$bar.boxCname" value="$bar.boxValue">
+#if $bar.selid
+        <input type="hidden" name="$bar.typeCname" value="$bar.seltype">
 #end if
         <p>
             $bar.typeText
 ## Only show the type select if no special box is selected
-#if not $bar.boxValue
+#if not $bar.selid
             <select name="$bar.typeCname" onchange="$bar.onChange">
 #for $value,$option in $bar.typeOptions
 #if $value == $bar.typeValue
@@ -80,6 +80,10 @@ $default_form_CSS()
 #end for
             </select>
         </p>                   
+## Preserve the id when it is specified
+#if $bar.selid
+        <input type="hidden" name="$bar.idCname" value="$bar.selid">
+#end if
     <form>
 #end def
 
@@ -147,6 +151,7 @@ $listSectionRows($section)
 #def displaySectionBox($SectionBox)
     ##<h3 id="$SectionBox.controlBaseName">$SectionBox.title <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></h3>
 #set $nrofcols = len($SectionBox.headings) + 1
+#if len($SectionBox.rows)
     <td>
         <table id="$SectionBox.controlBaseName" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
             <tr class="title">
@@ -162,7 +167,6 @@ $listSectionRows($section)
                 </td>
                 <td align=right style="background-image:url('/images/arpcam/fill.gif');"><img src="/images/ragen/top-end.gif"></td>
             </tr>
-#if len($SectionBox.rows)
             <tr class="header">
                 <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
 #for $heading, $url, $style, $id in $SectionBox.headings
@@ -208,9 +212,13 @@ $listSectionRows($section)
                 <td>&nbsp;</td>
             </tr>
 #end for
-#end if
         </table>
     </td>
+#else
+<td align="center">
+    $SectionBox.summary&nbsp;<a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a>
+</td>
+#end if
 #end def
 
 ## This renders the preferences page

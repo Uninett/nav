@@ -68,6 +68,29 @@ class SectionBox:
             self.headings.append((text,url,style,self.controlBaseName))
             i+=1
 
+    def sort(self):
+        if self.headingDefs[self.sortBy][1]:
+            compareFunction = self.headingDefs[self.sortBy][1]
+            self.rows.sort(compareFunction)        
+        else:
+            self.rows.sort()
+        if self.sortReverse:
+            self.rows.reverse()
+
+    # Compare function for sorting lists of ip's
+    def ipCompare(self,ip1,ip2):
+        # ip1[0] and ip2[0] are the sort parameter
+        ip1 = ip1[0].split('.')
+        ip2 = ip2[0].split('.')
+        r = 0
+        try:
+            for i in range(0,4):
+                r = cmp(int(ip1[i]),int(ip2[i]))
+                if r != 0:
+                    break
+        except:
+            r = 0
+        return r
 
 #################################################
 ## Sections that inherits from SectionBox
@@ -214,17 +237,21 @@ class ServiceSectionBox(SectionBox):
 
             self.rows.append([line[self.sortBy],row])
 
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
+        self.sort()
 
+        servicesDown = str(servicesDown)
+        servicesShadow = str(servicesShadow)
+        if servicesDown=='0':
+            servicesDown = 'No'
+        if servicesShadow=='0':
+            servicesShadow = 'No'
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = str(servicesDown) + ' services down'
+            self.summary = servicesDown + ' services down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = str(servicesShadow) + ' services in shadow'
+            self.summary = servicesShadow + ' services in shadow'
         else:
-            self.summary = str(servicesDown) + ' services down, ' + \
-                           str(servicesShadow) + ' in shadow'
+            self.summary = servicesDown + ' services down, ' + \
+                           servicesShadow.lower() + ' in shadow'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -277,7 +304,7 @@ class NetboxSectionBox(SectionBox):
 
         self.headings = []
         self.headingDefs = [('Sysname',None),
-                            ('IP',None),
+                            ('IP',self.ipCompare),
                             ('Down since',None),
                             ('Downtime',None),
                             ('',None)]
@@ -408,17 +435,22 @@ class NetboxSectionBox(SectionBox):
 
             self.rows.append([line[self.sortBy],row])
 
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
+        self.sort()
+
+        boxesDown = str(boxesDown)
+        boxesShadow = str(boxesShadow)
+        if boxesDown=='0':
+            boxesDown = 'No'
+        if boxesShadow=='0':
+            boxesShadow = 'No'
 
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = str(boxesDown) + ' boxes down'
+            self.summary = boxesDown + ' boxes down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = str(boxesShadow) + ' boxes in shadow'
+            self.summary = boxesShadow + ' boxes in shadow'
         else:
-            self.summary = str(boxesDown) + ' boxes down, ' + \
-                           str(boxesShadow) + ' in shadow'
+            self.summary = boxesDown + ' boxes down, ' + \
+                           boxesShadow.lower() + ' in shadow'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -471,7 +503,7 @@ class ModuleSectionBox(SectionBox):
 
         self.headings = []
         self.headingDefs = [('Sysname',None),
-                            ('IP',None),
+                            ('IP',self.ipCompare),
                             ('Module',None),
                             ('Down since',None),
                             ('Downtime',None),
@@ -604,17 +636,21 @@ class ModuleSectionBox(SectionBox):
 
             self.rows.append([line[self.sortBy],row])
 
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
+        self.sort()
 
+        modulesDown = str(modulesDown)
+        modulesShadow = str(modulesShadow)
+        if modulesDown=='0':
+            modulesDown = 'No'
+        if modulesShadow=='0':
+            modulesShadow = 'No'
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = str(modulesDown) + ' modules down'
+            self.summary = modulesDown + ' modules down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = str(modulesShadow) + ' modules in shadow'
+            self.summary = modulesShadow + ' modules in shadow'
         else:
-            self.summary = str(modulesDown) + ' modules down, ' + \
-                           str(modulesShadow) + ' modules in shadow'
+            self.summary = modulesDown + ' modules down, ' + \
+                           modulesShadow.lower() + ' in shadow'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -649,6 +685,195 @@ class ModuleSectionBox(SectionBox):
     getFilters = staticmethod(getFilters)
 
 
+class ThresholdSectionBox(SectionBox):
+    " Section displaying threshold events "
+
+    # attribs for preferences
+    name = 'Thresholds exceeded'
+    typeId = 'threshold'
+
+    prefsOptions = None
+
+    defaultSort = 3         # -3, thus sortReverse = True
+    sortReverse = False 
+    sortBy = defaultSort
+
+    def __init__(self, controlBaseName,getArgs,title,filterSettings):
+        # Sort reverse by column 3 (downtime)
+
+        self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('Description',None),
+                            ('Exceeded since',None),
+                            ('Time exceeded',None),
+                            ('',None)]
+        self.rows = []
+        self.summary = None
+        self.historyLink = [BASEPATH + 'history/?type=thresholds','(history)']
+        self.filterSettings = filterSettings
+
+        SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
+        self.addHeadings()
+        return
+ 
+    def fill(self):
+        filterSettings = self.filterSettings
+    
+        sql = "SELECT netbox.sysname," +\
+              "alerthist.start_time,now()-alerthist.start_time," +\
+              "rrd_datasource.descr,rrd_datasource.units," +\
+	          "rrd_datasource.threshold,netbox.netboxid," +\
+              "rrd_datasource.rrd_datasourceid " +\
+              "FROM alerthist,alerttype,netbox,rrd_datasource " + \
+              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
+              "alerthist.end_time='infinity' AND " +\
+              "alerthist.eventtypeid='thresholdState' AND " +\
+              "alerthist.alerttypeid=alerttype.alerttypeid AND " +\
+    	      "alerttype.alerttype='exceededThreshold' AND " +\
+	          "alerthist.subid=rrd_datasource.rrd_datasourceid  "
+ 
+        # parse filter settings
+        where_clause = ''
+        if filterSettings:
+            # orgid
+            if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
+                where_clause += " AND ("
+                first_line = True
+                for org in filterSettings['orgid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.orgid = '" + org + "'"
+                    first_line = False
+                where_clause += ") "
+            # catid
+            if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for cat in filterSettings['catid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.catid = '" + cat + "'"
+                    first_line = False
+                where_clause += ") "
+            # state
+            #self.listStates = filterSettings['type']
+            #if not filterSettings['type'].count(FILTER_ALL_SELECTED):
+            #    where_clause += " and ("
+            #    first_line = True
+            #    for atype in filterSettings['type']:
+            #        if not first_line:
+            #            where_clause += " or "
+            #        where_clause += "alerthist.alerttype = '" + atype + "'"
+            #        first_line = False
+            #    where_clause += ") "
+
+        sql = sql + where_clause + " ORDER BY now()-start_time" 
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+  
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        thresholdsExceeded = 0
+
+        SYSNAME = 0
+        DESCRIPTION = 1
+        STARTTIME = 2
+        DOWNTIME = 3
+        DATASOURCE_DESCR = 4
+        DATASOURCE_UNITS = 5
+        DATASOURCE_THRESHOLD = 6
+        BOXID = 7
+        DATASOURCEID = 8
+        
+        for tmpline in result:
+            # Must insert description (-1 since description isnt there yet)
+            descr = tmpline[DATASOURCE_DESCR-1] + ' exceeded ' +\
+                    tmpline[DATASOURCE_THRESHOLD-1] +\
+                    tmpline[DATASOURCE_UNITS-1]
+            line = list(tmpline[0:1]) + [descr] + list(tmpline[1:8])
+
+            row = []
+            style = None    
+
+            thresholdsExceeded += 1
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
+            # Description
+            row.append((line[DESCRIPTION],None,None,style))
+
+            # Start
+            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),None,None,
+                        style))
+
+            # Downtime
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                       line[DOWNTIME].strftime('%H') + ' h, ' + \
+                       line[DOWNTIME].strftime('%M') + ' m'
+            row.append((downTime,None,None,style))
+
+            # History link
+            row.append((None,
+                        BASEPATH + 'history/?type=thresholds&id=%s' \
+                        % (line[DATASOURCEID],),
+                        ('/images/status/status-history.png',
+                        'View history for this datasource'),
+                        None))
+
+            self.rows.append([line[self.sortBy],row])
+
+        self.sort()
+
+        thresholdsExceeded = str(thresholdsExceeded)
+        if thresholdsExceeded=='0':
+            thresholdsExceeded = 'No'
+        if thresholdsExceeded=='1':
+            self.summary = thresholdsExceeded + ' threshold exceeded'
+        else:
+            self.summary = thresholdsExceeded + ' thresholds exceeded'
+
+    def getFilters(controlBaseName,orgList):
+        """
+        Returns the filters that this section box accepts
+        """
+        filterHeadings = ['Organisation','Category']
+
+        filterSelects = []
+        table = nav.db.manage.Org()
+
+        # Org
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        # Restrict to orgs where user belongs
+        #whereOrg = makeWhereList(orgList)
+        for org in table.getAllIterator(orderBy = 'orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
+        filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
+
+        # Cat
+        table = nav.db.manage.Cat()
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        for cat in table.getAllIterator():
+             optionsList.append((cat.catid,cat.catid,False))
+        filterSelects.append((controlBaseName + '_' + 'catid',optionsList))
+
+        # Alerttype
+        #filterSelects.append((controlBaseName + '_' + 'type',\
+        #[(FILTER_ALL_SELECTED,'All',True),
+        # ('exceededThreshold','exceededThreshold',False),\
+        # ('belowThreshold','belowThreshold',False)]))
+        return (filterHeadings,filterSelects)
+    getFilters = staticmethod(getFilters)
+
+
 ##
 ## History sections
 ##
@@ -667,7 +892,7 @@ class NetboxHistoryBox(SectionBox):
         if boxid:
             # Don't show history icon when we're looking at one box
             self.headingDefs = [('Sysname',None),
-                                ('IP',None),
+                                ('IP',self.ipCompare),
                                 ('From',None),
                                 ('To',None),
                                 ('Downtime',None),
@@ -675,7 +900,7 @@ class NetboxHistoryBox(SectionBox):
                                 
         else:
             self.headingDefs = [('Sysname',None),
-                                ('IP',None),
+                                ('IP',self.ipCompare),
                                 ('From',None),
                                 ('To',None),
                                 ('Downtime',None),
@@ -778,11 +1003,7 @@ class NetboxHistoryBox(SectionBox):
                             style))
             
             self.rows.append([line[self.sortBy],row])
-
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
-        return
+        self.sort()
 
 class ServiceHistoryBox(SectionBox):
     " Section showing history for services "
@@ -899,11 +1120,7 @@ class ServiceHistoryBox(SectionBox):
                             style))
             
             self.rows.append([line[self.sortBy],row])
-
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
-        return
+        self.sort()
 
 
 class ModuleHistoryBox(SectionBox):
@@ -1021,8 +1238,135 @@ class ModuleHistoryBox(SectionBox):
                             style))
             
             self.rows.append([line[self.sortBy],row])
+        self.sort()
 
-        self.rows.sort()
-        if self.sortReverse:
-            self.rows.reverse()
+
+class ThresholdHistoryBox(SectionBox):
+    " Section showing history for threshold "
+    
+    defaultSort = 2
+    sortBy = defaultSort
+    sortReverse = True
+    
+    def __init__(self,controlBaseName,getArgs,title,date,dataid=None):
+        self.headings = []
+        self.rows = []
+        self.date = date
+        self.dataid = dataid
+
+        if dataid:
+            # Don't show history icon when we're looking at one box
+            self.headingDefs = [('Sysname',None),
+                                ('Description',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Time exceeded',None)]
+                                
+        else:
+            self.headingDefs = [('Sysname',None),
+                                ('Description',None),
+                                ('From',None),
+                                ('To',None),
+                                ('Time exceeded',None),
+                                ('',None)]
+
+        SectionBox.__init__(self,controlBaseName,title,getArgs,None) 
+        self.addHeadings()
         return
+ 
+    def fill(self):
+ 
+        sql = "SELECT netbox.sysname," +\
+              "alerthist.start_time,alerthist.end_time,"+\
+              "rrd_datasource.descr,rrd_datasource.units," +\
+              "rrd_datasource.threshold," +\
+              "netbox.netboxid,rrd_datasource.rrd_datasourceid " +\
+              "FROM netbox,rrd_datasource,"+\
+              "alerthist LEFT JOIN alerttype using(alerttypeid) "+\
+              "WHERE alerthist.netboxid = netbox.netboxid AND "+\
+              "alerthist.subid=rrd_datasource.rrd_datasourceid AND " +\
+              "alerthist.eventtypeid='thresholdState' AND " +\
+              "(alerttype.alerttype='exceededThreshold' OR " +\
+              "alerttype.alerttype='belowThreshold') AND " +\
+              "date(start_time) = '%s' " %(self.date,)
+            
+        if self.dataid:
+            sql += " AND rrd_datasource.rrd_datasourceid='%s'" % \
+                   (self.dataid,)
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        SYSNAME = 0
+        DESCR = 1
+        FROM = 2
+        TO = 3
+        DURATION = 4
+        DATASOURCE_DESCR = 5
+        DATASOURCE_UNITS = 6
+        DATASOURCE_THRESHOLD = 7
+        BOXID = 8
+        DATASOURCEID = 9
+        
+        for tmpline in result:
+            # Must insert description (-2 since description isnt there yet)
+            descr = tmpline[DATASOURCE_DESCR-2] + ' exceeded ' +\
+                    tmpline[DATASOURCE_THRESHOLD-2] +\
+                    tmpline[DATASOURCE_UNITS-2]
+            line = list(tmpline[0:1]) + [descr] + list(tmpline[1:10])
+            # Must insert duration
+            if not line[TO] or line[TO]==INFINITY:
+                duration = mx.DateTime.now() - line[FROM]
+            else:
+                duration = line[TO] - line[FROM]
+            line = list(line[0:4]) + [duration] + list(line[4:10])
+            row = []
+
+            style = None
+            #if (line[ALERTTYPE]=='boxShadow' or line[ALERTTYPE]=='boxSunny'):
+            #    style = 'shadow'
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,style))
+
+            # Handler
+            row.append((str(line[DESCR]),None,None,style))
+ 
+
+            # From
+            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
+                       None,None,style))
+
+            # To
+            if not line[TO] or line[TO]==INFINITY:
+                row.append(('Still exceeded',None,None,style))
+            else:
+                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
+                           None,None,style))
+
+            # Duration
+            duration = str(line[DURATION].absvalues()[0]) + ' d, ' + \
+                           line[DURATION].strftime('%H') + ' h, ' +\
+                           line[DURATION].strftime('%M') + ' min'
+            row.append((duration,None,None,style))
+
+            # History
+            if not self.dataid:
+                row.append((None,
+                            BASEPATH + 'history/?type=thresholds&id=%s' \
+                            % (line[DATASOURCEID],),
+                            ('/images/status/status-history.png',
+                            'View history for this datasource'),
+                            style))
+            
+            self.rows.append([line[self.sortBy],row])
+        self.sort()
