@@ -238,9 +238,10 @@ CREATE TABLE netbox (
 );
 
 CREATE TABLE subcat (
-    subcatid VARCHAR PRIMARY KEY,
+    subcatid VARCHAR,
     descr VARCHAR NOT NULL,
-    catid VARCHAR(8) NOT NULL REFERENCES cat(catid)
+    catid VARCHAR(8) NOT NULL REFERENCES cat(catid),
+    PRIMARY KEY (subcatid,catid)
 );
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('AD','Description','SRV');
 INSERT INTO subcat (subcatid,descr,catid) VALUES ('ADC','Description','SRV');
