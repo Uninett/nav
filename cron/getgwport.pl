@@ -318,7 +318,7 @@ sub hent_gwdata {
 
 	$_ = $if{$tnett{$gwip}{ifindeks}}{nettnavn};
 
-	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{ifindeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{maxhosts},$tnett{$gwip}{antmask},$tnett{$gwip}{ospf}];
+	$gwport{$gwip} = [$gwip,$boksid,$tnett{$gwip}{prefiksid},$tnett{$gwip}{ifindeks},$tnett{$gwip}{interf},$tnett{$gwip}{speed},$tnett{$gwip}{ospf}];
     }
 
 }
