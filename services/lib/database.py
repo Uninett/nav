@@ -2,7 +2,7 @@
 database
 
 $Author: magnun $
-$Id: database.py,v 1.6 2002/06/14 12:09:52 magnun Exp $
+$Id: database.py,v 1.7 2002/06/14 12:29:01 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/Attic/database.py,v $
 """
 import thread
@@ -24,7 +24,7 @@ def run():
 		statement = queue.get()
 		c.execute(statement)
 def newEvent(event):
-	print 'new event:',event.id,event.status,event.info
+	print "New event. Id: %i Status: %s Info: %s"% (event.id, event.status, event.info)
 def newVersion(id,version):
 	statement = "UPDATE service SET version = '%s' where id = %i" % (version,id)
 	queue.put(statement)
