@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+# Fjerner gamle innlegg fra databasen
+
+use DBI;
+
+$log = "../log/redigersick_log";
+
+open (LOG, ">>$log") or die "Kunne ikke legge til log $!\n";
+my $dbh = &db_connect("manage","manage","eganam");
+
+chomp ($slettdato = `date --date "7 days ago" +20%y-%m-%d`);
+
+print LOG "いいいいいいいいいいいいいいいいいいいい\n";
+print LOG "Slettedato: $slettdato\n";
+
+$sporring = "delete from status where tilstandsfull=\"Y\" and til is null and fra like \"%$slettdato%\"";
+$ok = &db_execute($sporring,$dbh);
+if ($ok) {
+    print LOG "Sletting ok, $ok filer slettet.\n";
+} else {
+    print LOG "Sletting feilet!\n";
+}
+
+close LOG;
+
+sub db_connect {
+    my $db = $_[0];
+    my $user = $_[1];
+    my $pass = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
+
+sub db_select {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    return $resultat;
+}
+
+sub db_execute {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
+#die er byttet med print
+
+    return $resultat;
+}

@@ -1,0 +1,70 @@
+#!/usr/bin/perl -w
+# Leter gjennom nettel-tabellen og finner nye
+# eiere/org som har dukket opp. Disse legges til
+# i org-tabellen i trapdetect-databasen, uten å 
+# klusse opp med id'ene på de som ligger der fra før.
+#
+# John Magne Bredal 26-07-01
+##################################################
+
+use strict;
+use Pg;
+
+# Kobler til databasen
+my $dbh = &db_connect("manage","manage","eganam");
+my $dbh_t = &db_connect("trapdetect","trapdetect","tcetedpart");
+my $hent_org = &db_select("select * from org",$dbh_t);
+
+# Legger alle org i en hash
+my %org;
+while (my @res = $hent_org->fetchrow) {
+    $org{$res[1]}++;
+}
+
+# Henter alle org som finnes i nettel, her heter det eier
+# Hvis de ikke finnes i org fra før, legges de inn der.
+my $hent_eier = &db_select("select eier from nettel group by eier",$dbh);
+while (my @res = $hent_eier->fetchrow) {
+    my $eier = $res[0];
+    print "Sjekker om $eier finnes fra før...";
+    unless ($org{$eier}) {
+	print "nei - legger inn\n";
+	my $sporring = "insert into org (navn) values ($eier)\n";
+	print "$sporring\n";
+	my $ok = &db_execute($sporring,$dbh_t);
+	unless ($ok) {
+	    print "En feil skjedde under innlegging i databasen...\n";
+	}
+    } else {
+	print "ja\n";
+    }
+}
+
+sub db_connect {
+    my $db = $_[0];
+    my $user = $_[1];
+    my $pass = $_[2];
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
+    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    return $conn;
+}
+
+sub db_select {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
+    return $resultat;
+}
+
+sub db_execute {
+    my $sql = $_[0];
+    my $conn = $_[1];
+    my $resultat = $conn->exec($sql);
+    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+        unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
+#die er byttet med print
+
+    return $resultat;
+}

@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+# Script som kjøres i begynnelsen av hver måned.
+# Sletter alle filer som er to måneder gamle.
+
+$logdir = "/home/trapdet/log";
+
+print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+print `date`;
+
+chomp ($date = `date +%m`);
+
+$slettdato = $date-2;
+if ($slettdato == 0) {
+    $slettdato = 12;
+} elsif ($slettdato == -1) {
+    $slettdato = 11;
+}
+
+&slettFiler($logdir);
+#&slettFiler($statistikkdir);
+#&slettFiler($backupdir);
+#&flyttStat();
+
+########################################
+# Sletter alle traplog og historyfiler
+########################################
+sub slettFiler {
+
+    $dir = shift;
+
+    opendir (DIR, $dir) or die "Kunne ikke åpne $dir";
+    @files = readdir DIR;
+    closedir DIR;
+
+    $teller = 0;
+
+    print "Sletter fra $dir\n";
+    for (@files) {
+	if (/\d{2}(\d{2})\d{2}/) {
+	    if ($slettdato == $1) {
+		`rm -rfv $dir/$_`;
+		$teller++;
+	    }
+	}
+    }
+    print "Antall filer slettet: $teller\n";
+    print "------------------------------------------------\n";
+}
