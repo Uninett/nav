@@ -317,7 +317,8 @@ CREATE TABLE mem (
   memtype VARCHAR NOT NULL,
   device VARCHAR NOT NULL,
   size INT4 NOT NULL,
-  used INT4
+  used INT4,
+  UNIQUE(netboxid, memtype, device)
 );
 
 
