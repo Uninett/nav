@@ -1,0 +1,85 @@
+
+<p>[ <a href="ip">ip</a> | <a href="mac">mac</a> | <a href="swp">swp</a> ]</p>
+
+
+#block content
+
+#if $form.dns=="on"
+#set $checked="checked"
+#else
+#set $checked=""
+#end if 
+#if $form.aip=="on"
+#set $activechecked="checked"
+#else
+#set $activechecked=""
+#end if 
+#if $form.naip=="on"
+#set $inactivechecked="checked"
+#else
+#set $inactivechecked=""
+#end if 
+
+#if $form.search=="mac"
+
+<form action="" method="get">
+	<label>MAC</label><input type=text name=mac value=$form.mac>
+	<label>active</label><input type=checkbox name=aip>
+	<label>inactive</label><input type=checkbox name=naip>
+	<label>dns</label><input type=checkbox name=dns $checked>
+	<label>days</label><input type=text name=days value=$form.days>
+	<input type=submit name=send value="Send">
+</form>
+
+#elif $form.search=="swp"
+<form action="" method="get">
+	<label>Switch</label><input type=text name=switch value=$form.switch>
+	<label>Module</label><input type=text name=module value=$form.module>
+	<label>Port</label><input type=text name=port value=$form.port>
+	<label>active</label><input type=checkbox name=aip>
+	<label>inactive</label><input type=checkbox name=naip>
+	<label>dns</label><input type=checkbox name=dns $checked>
+	<label>days</label><input type=text name=days value=$form.days>
+	<input type=submit name=send value="Send">
+</form>
+
+#else
+
+<form action="" method="get">
+	<label>IP from</label><input type=text name=from_ip value=$form.ip_from>
+	<label>to</label><input type=text name=to_ip value=$form.ip_to>
+	<label>active</label><input type=checkbox name=aip $activechecked>
+	<label>inactive</label><input type=checkbox name=naip $inactivechecked>
+	<label>dns</label><input type=checkbox name=dns $checked>
+	<label>days</label><input type=text name=days value=$form.days>
+	<input type=submit name=send value="Send">
+</form>
+
+#end if
+
+#if $table
+
+<table>
+#for row in $table
+        <tr>
+##for cell in $row
+#if $form.dns=="on":
+		<td>$row.dnsname</td>
+#end if
+##                <td>$cell</td>
+		<td><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns">$row.ipaddr</a></td>
+		<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns">$row.mac</a></td>
+		<td><a href="/browse/$row.switch">$row.switch</a></td>
+		<td>$row.module</td>
+		<td><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a></td>
+		<td>$row.start_time</td>
+		<td>$row.end_time</td>
+##end for
+        </tr>
+#end for
+</table>
+#else
+<p>The NAV system collects arp and cam information from all registered net devices. Arp data from all routers are inserted into the NAV database every 30. minutes, and mac address tables from all layer2-equipment are collected and inserted every X. minutes.</p><p> Machine tracker gives you the opportunity to search these data, to trace the whereabouts of a mac address or an IP address. The reverse search is also possible; to find which mac/ip was registered on a specified switchport in the last days.</p>
+#end if
+
+#end block content
