@@ -1,0 +1,413 @@
+#!/usr/bin/perl -w
+############################################################
+# Script som lager alle target-filene som Cricket bruker
+# ved innsamling av data.
+#
+# Poenget med scriptet er at det ikke skal bruke SNMP 
+# for å spørre enhetene om info, da dette fører til timeout på
+# enheter som er nede, og dermed fører til mangelfull innsamling
+# av data for Cricket.
+#
+# Skrevet av:
+# John Magne Bredal
+# 08-09-2000
+#
+# Sist forandret (major bug...!) 27-10-2000 - JM
+#
+# Oppdatert 23-01-2001 - JM
+# Bruker nå nye navn på tabellene i databasen
+#
+# Oppdatert 26-01-2001 - JM
+# Fikset minor bug der det ikke ble sjekket om community faktisk
+# fantes før routeren ble slengt inn i arrayet. Laget stort sett
+# bare uviktige feilmeldinger.
+############################################################
+
+use DBI;
+use strict;
+
+my $path = "/home/cricket/cricket-config";
+my $default = "/home/cricket/cricket-config_defaults";
+my $listports = "/home/cricket/bin/ntnu_listPorts";
+
+my @ruterliste;
+my @switchliste;
+
+my $dbh = DBI->connect("manage","nett","stotte","mysql");
+
+# Sletter alt for å forhindre at det blir liggende feil igjen fra
+# forrige oppdatering.
+
+print "Sletter tidligere config-filer\n";
+`rm -R $path/router-interfaces/*`;
+`rm -R $path/switch-ports/*`;
+`rm -R $path/giga-router-interfaces/*`;
+`rm -R $path/giga-switch-ports/*`;
+
+print "Kopierer over default verdier\n";
+`cp -R $default/* $path`;
+
+print "Skriver routere\n";
+&Routers;
+print "OK!\n";
+
+print "Skriver ruter-interfaces\n";
+&Routerinterfaces;
+print "OK!\n";
+
+print "Skriver switcher\n";
+&Switches;
+print "OK!\n";
+
+print "Skriver switcheporter\n";
+&Switchports;
+print "OK!\n";
+
+print "Skriver gigarouterinterfaces\n";
+&gigarouterinterfaces;
+print "OK!\n";
+
+print "Skriver gigaswitchports\n";
+&gigaswitchports;
+print "OK!\n";
+
+$dbh->disconnect;
+
+print "Kompilerer nytt config-tre\n";
+system("/home/cricket/cricket/compile");
+
+print "Ferdig!\n";
+
+
+########################################
+# Henter info om ruterne
+########################################
+sub Routers {
+
+    my $fil = "$path/routers/Targets";
+
+    # Henter alle ruterne fra databasen
+    my $getrouters = $dbh->prepare("SELECT id,sysname,ip,type,romid FROM boks WHERE kat='GW' ORDER BY sysname");
+    $getrouters->execute;
+
+    # Skriver til filen
+    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+    while (my ($id, $sysname,$ip,$type,$romid,$community) = $getrouters->fetchrow_array) {
+	# Unngår hvis det er feil i databasen
+	if ($sysname) {
+	    # Hardkoding av unntak....
+	    if ($sysname =~ /(erke-gw|psykiatri-gw|ringve-gw)/) {
+		$sysname = "$sysname-trlos";
+	    }
+
+	    if ($community) {
+		push @ruterliste, [$id, $sysname, $ip, $romid,$community];
+		print FIL "target $sysname\n";
+		print FIL "\tsnmp-host\t=\t$ip\n";
+		print FIL "\tsnmp-community\t=\t$community\n";
+
+		# Unntak for type ruter
+		if ($type =~ /^(IGS|AGS|C2514|C4000|C4700|C1005|C7200|C7500)$/ ) {
+		    print FIL "\ttarget-type\t=\t$type-Router\n";
+		} else {
+		    print FIL "\ttarget-type\t=\tStandard-Router\n";
+		}
+
+		# Må finne beskrivelsen til rommet
+		my $getdesc = $dbh->prepare("SELECT descr FROM rom WHERE id='$romid'");
+		$getdesc->execute;
+		if (!(my $desc = $getdesc->fetchrow_array)) {
+		    print "Ingen beskrivelse for rom med id=$romid\n";
+		    print FIL "\tshort-desc\t=\t\"\"\n\n";
+		} else {
+		    print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
+		}
+	    }
+	}
+    }
+
+    close FIL;
+
+} # sub Routers
+
+########################################
+# Henter info om interfaces, bruker
+# ruterlista.
+########################################
+sub Routerinterfaces {
+
+    my $count = 0;
+    for (@ruterliste) {
+        my %routerint = ();
+
+	my ($ruterid, $sysname, $ip, $rom, $community) = @$_;
+
+	unless (-e "$path/router-interfaces/$sysname") {
+	    mkdir ("$path/router-interfaces/$sysname",0775);
+	}
+
+	my $fil = "$path/router-interfaces/$sysname/interfaces";
+	open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+	print FIL "target --default--\n";
+	print FIL "\trouter = $ip\n";
+	print FIL "\tsnmp-community =\t$community\n";
+
+	# Må finne alle interfacene til ruteren
+	my $getinterfaces = $dbh->prepare("SELECT interf,speed,nettype,org,anv,samband,komm FROM prefiks p,gwport g WHERE g.boksid=54 AND g.prefiksid=p.id ORDER BY vlan");
+	$getinterfaces->execute;
+
+	while (my ($interf,$speed,$type,$org,$anv,$samband,$komm) = $getinterfaces->fetchrow_array) {
+	    unless ($routerint{$interf}) {
+		$routerint{$interf}++;
+		# Vil ikke ha med Loopback-interfacene.
+		unless ($interf =~ /Loopback/) {
+		    $interf =~ s/\//_/g;
+		    print FIL "\ntarget $interf\n";
+		    $interf =~ s/_/\//g;
+		    print FIL "\tinterface-name\t=\t$interf\n";
+
+		    # Må sette sammen en description
+		    my @elementer = ($org, $anv, $samband, $komm);
+		    unless ($sysname =~ /trlos/) {
+			$sysname =~ s/-gw//;
+		    } else {
+			$sysname =~ s/-gw-trlos//;
+		    }
+		    
+		    print FIL "\tshort-desc\t=\t$type,$sysname";
+
+		    for (@elementer) {
+			if ($_) {
+			    print FIL ",$_";
+			}
+		    }
+		    print FIL "\n";
+
+		    # Setter slik at alle capacities har .00 etter seg
+		    if ($speed =~ /\./) {
+			print FIL "\tcapacity\t=\t$speed\n";
+		    } else {
+			print FIL "\tcapacity\t=\t$speed.00\n";
+		    }
+		}
+	    }
+	}
+	$count++;
+	close FIL;
+    }
+    print "$count filer laget\n"    
+
+} # sub Routerinterfaces
+
+########################################
+# Henter info om alle svitsjene.
+# Tar hensyn til at det brukes både
+# svitsjer og rutere...
+########################################
+sub Switches {
+
+    my $fil = "$path/switches/switches";
+
+    my $getswitches = $dbh->prepare("SELECT id, ip, sysName,type,ro FROM boks WHERE kat='SW' ORDER BY sysName");
+    $getswitches->execute;
+
+    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+    while (my ($id,$ip,$sysname, $type, $community) = $getswitches->fetchrow_array) {
+	# Unngår feil i databasen
+	if ($sysname) {
+	    # Hardkoder unntak for rene svitsjer (SW1100|SW3300|SW9300)
+	    if ($type) {
+		unless ($type =~ /(SW|C3000|C3100)/) {
+		    push @switchliste, [$id, $ip, $sysname, $type, $community];
+		    
+		    if ($community) {
+			print FIL "target $sysname\n";
+			print FIL "\tsnmp-community\t=\t$community\n";
+			print FIL "\ttarget-type\t=\t$type\n";
+		    }
+		}
+	    }
+	}
+    }
+    close FIL;
+
+} # sub Switches
+
+
+########################################
+# Henter info om svitsjeportene.
+# Kan bruke ntnulistports for å hente
+# info vha. snmp.
+########################################
+sub Switchports {
+
+    my $count = 0;
+    for (@switchliste) {
+	my ($id, $ip, $switchnavn, $type, $community) = @$_;
+
+	if ($community) {
+
+	    unless (-e "$path/switch-ports/$switchnavn") {
+		mkdir ("$path/switch-ports/$switchnavn", 0775);
+	    }
+
+	    my $fil = "$path/switch-ports/$switchnavn/ports";
+
+	    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+	    print FIL "target --default--\n";
+	    print FIL "\tswitch\t\t=\t$ip\n";
+
+	    print FIL "\tsnmp-community\t=\t$community\n\n";
+
+	    unless ($type =~ /SW/) {
+		# Finner alle portene som er på switchen.
+		my $getports = $dbh->prepare("SELECT mp,portname FROM swport WHERE swid=$id ORDER BY id");
+		$getports->execute;
+
+		my @liste;
+		
+		while (my ($mp, $portname) = $getports->fetchrow_array) {
+		    unless ($portname =~ /(udef|undef)/ or !$mp) {
+			push @liste, [$mp, $portname];
+		    }
+		}
+
+		# Order holder styr på rekkefølgen som Cricket
+		# viser portene i. Høyt tall = høy prioritet.
+		my $order = @liste;
+
+		for (@liste) {
+		    my ($mp, $portname) = @$_;
+		    $mp =~ s/fe/Fa/i;
+		    $mp =~ s/ge/Gi/i;
+		    $mp =~ s/\./_/;
+		    print FIL "target $mp\n";
+		    $mp =~ s/_/\//;
+		    print FIL "\tport-name\t=\t$mp\n";
+		    $portname =~ s/\s/_/g;
+		    print FIL "\tshort-desc\t=\t$portname\n";
+
+		    $order--;
+		    print FIL "\torder\t\t=\t$order\n\n";
+		}
+		$count++;
+	    }
+	}
+	close FIL;
+    }
+    print "$count filer laget\n"
+
+} # sub Switchports
+
+sub gigarouterinterfaces {
+
+    my $count = 0;
+    # Henter alle interfaces som har giga-kapasitet.
+    my $getinterfaces = $dbh->prepare("SELECT b.ip,b.sysname,p.org,p.anv,p.samband,p.komm,g.interf,g.speed,p.nettype FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.id and g.boksid=b.id");
+    $getinterfaces->execute;
+
+    while (my($ip,$sysname,$org,$anv,$samband,$komm,$interf,$speed,$type) = $getinterfaces->fetchrow_array) {
+
+	unless (-e "$path/giga-router-interfaces/$sysname") {
+	    mkdir ("$path/giga-router-interfaces/$sysname",0775);
+	}
+
+	my $fil = "$path/giga-router-interfaces/$sysname/interfaces";
+	if (-e "$path/giga-router-interfaces/$sysname/interfaces") {
+	    open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+	} else {
+	    open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+	    print FIL "target --default--\n";
+	    print FIL "\trouter = $ip\n";
+	    print FIL "\tsnmp-community =\t$community\n";
+	}
+
+	$interf =~ s/\//_/g;
+	print FIL "\ntarget $interf\n";
+	$interf =~ s/_/\//g;
+	print FIL "\tinterface-name\t=\t$interf\n";
+
+	# Må sette sammen en description
+	my @elementer = ($org, $anv, $samband, $komm);
+	unless ($sysname =~ /trlos/) {
+	    $sysname =~ s/-gw//;
+	} else {
+	    $sysname =~ s/-gw-trlos//;
+	}
+		    
+	print FIL "\tshort-desc\t=\t$type,$sysname";
+	
+	for (@elementer) {
+	    if ($_) {
+		print FIL ",$_";
+	    }
+	}
+	print FIL "\n";
+
+	# Setter slik at alle capacities har .00 etter seg
+	if ($speed =~ /\./) {
+	    print FIL "\tcapacity\t=\t$speed\n";
+	} else {
+	    print FIL "\tcapacity\t=\t$speed.00\n";
+	}
+	$count++;
+    }
+
+    close FIL;
+    print "$count filer laget\n"
+
+} # sub gigainterfaces
+
+sub gigaswitchports {
+
+    my %test;
+    my $count = 0;
+
+    my $getports = $dbh->prepare("select nettel.id,nettel.ip,nettel.sysname,nettel.type, swport.mp,swport.portname from swport,nettel where nettel.id=swport.swid and swport.speed=1000 order by nettel.id");
+
+    $getports->execute;
+
+    while (my($id,$ip,$switchnavn,$type,$mp,$portname) = $getports->fetchrow_array) {
+	unless ($type =~ /SW\d{4}/ ) {
+	    unless ($portname =~ /(udef|undef)/ or !$mp) {
+		$test{$id}++;
+		my $getcommunity = $dbh -> prepare("SELECT ro FROM community WHERE nettelid=$id");
+		$getcommunity -> execute;
+		my $community = $getcommunity->fetchrow_array;
+
+		if ($community) {
+		    unless (-e "$path/giga-switch-ports/$switchnavn") {
+			mkdir ("$path/giga-switch-ports/$switchnavn", 0775);
+		    }
+
+		    my $fil = "$path/giga-switch-ports/$switchnavn/ports";
+
+		    if (-e "$path/giga-switch-ports/$switchnavn/ports") {
+			open (FIL, ">>$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+		    } else {
+			open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
+			print FIL "target --default--\n";
+			print FIL "\tswitch\t\t=\t$ip\n";
+			print FIL "\tsnmp-community\t=\t$community\n\n";
+		    }
+
+		    $mp =~ s/fe/Fa/i;
+		    $mp =~ s/ge/Gi/i;
+		    $mp =~ s/\./_/;
+		    print FIL "target $mp\n";
+		    $mp =~ s/_/\//;
+		    print FIL "\tport-name\t=\t$mp\n";
+		    $portname =~ s/\s/_/g;
+		    print FIL "\tshort-desc\t=\t$portname\n";
+		    my $order = $test{$id};
+		    print FIL "\torder\t\t=\t$order\n\n";		
+
+		    close FIL;
+
+		    $count++;
+		}
+	    }
+	}
+    }
+    print "$count filer laget\n"
+}
