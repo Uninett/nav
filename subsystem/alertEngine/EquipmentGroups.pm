@@ -27,7 +27,7 @@
 package NAV::AlertEngine::EquipmentGroups;
 
 use strict;
-use IP;
+use NetAddr::IP;
 use NAV::AlertEngine::Log;
 
 #my $dbh;

@@ -204,11 +204,12 @@ sub status() {
 ####################################################
 
 $_ = shift @ARGV || 'start';
-my $pidfile=$Log::cfg->{pidfile};
+my $pidfile=$NAV::AlertEngine::Log::cfg->{pidfile};
 
 SWITCH : {
-    /^start$/ && do { &launch($Log::cfg->{logfile},$pidfile); last; };
-    /^restart$/ && do { &stop($pidfile); &launch($Log::cfg->{logfile},$pidfile); last; };
+    /^start$/ && do { &launch($NAV::AlertEngine::Log::cfg->{logfile},$pidfile); last; };
+    /^restart$/ && do { &stop($pidfile); 
+                        &launch($NAV::AlertEngine::Log::cfg->{logfile},$pidfile); last; };
     /^stop$/ && do { &stop($pidfile); last; };
     /^status$/ && do { &status($pidfile); last; };    
     print <<END
