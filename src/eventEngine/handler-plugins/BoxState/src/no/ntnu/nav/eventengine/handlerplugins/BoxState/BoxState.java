@@ -231,19 +231,26 @@ public class BoxState implements EventHandler, EventCallback
 		if (callback && !scheduledCB) {
 			lastDownCount = downCount;
 
-			int alertTickLength = 5;
+			int alertTickLength = 60;
 			int alertTicks = 4;
+			warningTicks = 1;
 
 			try {
 				alertTickLength = Integer.parseInt(cp.get("alertTickLength"));
 			} catch (Exception exp) { }
 
 			try {
+				warningTicks = Integer.parseInt(cp.get("alertWarningTicks"));
+			} catch (Exception exp) { }
+
+			try {
 				alertTicks = Integer.parseInt(cp.get("alertTicks"));
 			} catch (Exception exp) { }
-			//alertTickLength = 6; // debug
 
-			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" alertTicks="+alertTicks);
+			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" warningTicks="+warningTicks+" alertTicks="+alertTicks);
+			if (warningTicks <= 0 || alertTicks <= 0) {
+				callback(ddb, alertTicks);
+			}
 			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
 		}
 
@@ -253,6 +260,7 @@ public class BoxState implements EventHandler, EventCallback
 
 
 	private boolean sentWarning = false;
+	private int warningTicks;
 
 	public void callback(DeviceDB ddb, int invocationsRemaining)
 	{
@@ -261,10 +269,11 @@ public class BoxState implements EventHandler, EventCallback
 		int downCount = Netel.boxDownCount();
 		Log.d("CALLBACK", "lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining+ " sentWarning="+sentWarning);
 
-		if ( (downCount == lastDownCount && !sentWarning) || invocationsRemaining == 0) {
+		//if ( (downCount == lastDownCount && !sentWarning && warningTicks-- <= 0) || invocationsRemaining <= 0) {
+		if ( (!sentWarning && --warningTicks <= 0) || invocationsRemaining <= 0) {
 			
 			// Just in case alertTicks = 1; in this case we don't send out warnings
-			if (invocationsRemaining == 0 && !sentWarning) sentWarning = true;
+			if (invocationsRemaining <= 0 && !sentWarning) sentWarning = true;
 
 			// We are now ready to post alerts
 			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
