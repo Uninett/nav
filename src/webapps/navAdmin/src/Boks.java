@@ -19,26 +19,26 @@ class Boks
 	int boksid;
 	Integer boksidI;
 	int gwboksid;
-	ArrayList boksbakList;
-	HashMap mp = new HashMap();
-	HashMap mpCount;
-	HashMap mpBoksbak = new HashMap();
-	HashMap boksbakMp = new HashMap();
+	List boksbakList;
+	Map mp = new HashMap();
+	Map mpCount;
+	Map mpBoksbak = new HashMap();
+	Map boksbakMp = new HashMap();
 
-	HashMap rawBoksbakMp = new HashMap();
+	Map rawBoksbakMp = new HashMap();
 
 	String uplinkMp;
 	Integer uplinkBoksid;
 
-	HashMap bokser;
+	Map bokser;
 	boolean isSW;
 	boolean hasUplink;
 
 	int maxBehindMp;
 	int behindMpCount;
 
-	public static HashMap boksNavn;
-	public static HashMap boksType;
+	public static Map boksNavn;
+	public static Map boksType;
 
 	/*
 	String uplinkPort;
@@ -55,7 +55,7 @@ class Boks
 
 	int numDownlinks;
 
-	public Boks(Com com, int boksid, int gwboksid, ArrayList boksbakList, HashMap bokser, boolean isSW, boolean hasUplink)
+	public Boks(Com com, int boksid, int gwboksid, List boksbakList, Map bokser, boolean isSW, boolean hasUplink)
 	{
 		this.com=com;
 		this.boksid = boksid;
@@ -74,14 +74,13 @@ class Boks
 
 		for (int i=0; i<boksbakList.size(); i++) {
 			String[] s = (String[])boksbakList.get(i);
-			String modul = s[0];
-			String port = s[1];
-			int boksbak = Integer.parseInt(s[2]);
-			String modulbak = s[3];
-			String portbak = s[4];
+			String ifindex = s[0];
+			int boksbak = Integer.parseInt(s[1]);
+			String toIfindex = s[2];
 
-			String mpKey = modul+":"+port;
-			BoksMpBak bmp = new BoksMpBak(new Integer(boksbak), modulbak, portbak);
+			//String mpKey = modul+":"+port;
+			String mpKey = ifindex;
+			BoksMpBak bmp = new BoksMpBak(new Integer(boksbak), new Integer(toIfindex));
 
 			if (mpKey.equals(uplinkMp)) continue; // Ikke legg til for uplink-porten
 
@@ -100,7 +99,7 @@ class Boks
 			}
 
 			//rawBoksbakMp.put(new Integer(boksbak), mpKey);
-			if (modulbak == null || portbak == null) {
+			if (toIfindex == null) {
 				if (rawBoksbakMp.containsKey(new Integer(boksbak))) {
 					// Oh oh, nå er vi i trøbbel, da det er flere linker til denne enheten uten at vi vet mp bak
 					// (og da går vi ut ifra at andre siden heller ikke vet vår mp)
@@ -110,7 +109,7 @@ class Boks
 				}
 			}
 
-			ArrayList l;
+			List l;
 			/*
 			if (!mp.containsKey(mpKey)) {
 				if (DEBUG_OUT) outl("---->Modul: <b>" + modul + "</b> Port: <b>" + port + "</b><br>");
@@ -119,13 +118,12 @@ class Boks
 				l = (ArrayList)mp.get(mpKey);
 			}
 			*/
-			if ( (l=(ArrayList)mp.get(mpKey)) == null) {
-				if (DEBUG_OUT) outl("---->Modul: <b>" + modul + "</b> Port: <b>" + port + "</b><br>");
+			if ( (l=(List)mp.get(mpKey)) == null) {
+				if (DEBUG_OUT) outl("---->ifindex: <b>" + ifindex + "</b><br>");
 				mp.put(mpKey, l = new ArrayList());
 			}
 
-			if (DEBUG_OUT) outl("------>Boksbak("+boksbak+"): <b>" + boksNavn.get(new Integer(boksbak)) + "</b> Modulbak: <b>"+modulbak+"</b> Portbak: <b>"+portbak+"</b><br>");
-			//l.add(new Integer(boksbak));
+			if (DEBUG_OUT) outl("------>Boksbak("+boksbak+"): <b>" + boksNavn.get(new Integer(boksbak)) + "</b> toIfindex: <b>"+toIfindex+"</b><br>");
 			l.add(bmp);
 
 			if (l.size() > maxBehindMp) maxBehindMp = l.size();
@@ -140,7 +138,7 @@ class Boks
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry)iter.next();
 				String mpKey = (String)entry.getKey();
-				ArrayList l = (ArrayList)entry.getValue();
+				List l = (List)entry.getValue();
 				mpCount.put(mpKey, new Integer(l.size()));
 				behindMpCount += l.size();
 			}
@@ -155,13 +153,13 @@ class Boks
 	public boolean proc_mp(int level)
 	{
 		boolean madeChange = false;
-		HashSet removeMp = new HashSet();
+		Set removeMp = new HashSet();
 
 		Iterator iter = mp.entrySet().iterator();
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
 			String mpKey = (String)entry.getKey();
-			ArrayList l = (ArrayList)entry.getValue();
+			List l = (List)entry.getValue();
 
 			/*
 			if (foundUplinkMp() && mpKey.equals(uplinkMp)) {
@@ -204,17 +202,18 @@ class Boks
 				madeChange = true;
 
 				// Porten på denne siden
-				Mp mp = new Mp(mpKey);
-				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
+				//Mp mp = new Mp(mpKey);
+				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
+				BoksMpBak myBmp = new BoksMpBak(getBoksid(), new Integer(mpKey));
 
 				BoksMpBak bmp = (BoksMpBak)l.get(0);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
-				if (bmp.modulbak == null && b.foundUplinkMp()) {
+				if (bmp.toIfindex == null && b.foundUplinkMp()) {
 					// Vi velger bare uplink-porten siden vi er direkte uplink
-					bmp.setMp(b.getUplinkMp());
+					bmp.setToIfindex(b.getUplinkMp());
 				}
 
-				b.addUplinkBoksid(myBmp, bmp.modulbak, bmp.portbak);
+				b.addUplinkBoksid(myBmp, bmp.toIfindex);
 
 				// Sett at vi har link til denne enheten
 				mpBoksbak.put(mpKey, bmp);
@@ -237,7 +236,7 @@ class Boks
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
 			String mpKey = (String)entry.getKey();
-			ArrayList l = (ArrayList)entry.getValue();
+			List l = (List)entry.getValue();
 
 			for (int i=0; i < l.size(); i++) {
 
@@ -262,7 +261,7 @@ class Boks
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
 			String mpKey = (String)entry.getKey();
-			ArrayList l = (ArrayList)entry.getValue();
+			List l = (List)entry.getValue();
 
 			// Prøv å gjette hvilken enhet som er riktig, gå ut ifra at SW alltid står over KANT
 			int bestGuessIndex = -1;
@@ -288,16 +287,17 @@ class Boks
 				// Vi har funnet en kandidat, og velger den
 				BoksMpBak bmp = (BoksMpBak)l.get(bestGuessIndex);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
-				if (bmp.modulbak == null && b.foundUplinkMp()) {
+				if (bmp.toIfindex == null && b.foundUplinkMp()) {
 					// Vi velger bare uplink-porten siden vi er direkte uplink
-					bmp.setMp(b.getUplinkMp());
+					bmp.setToIfindex(b.getUplinkMp());
 				}
 
 				// Porten på denne siden
-				Mp mp = new Mp(mpKey);
-				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
+				//Mp mp = new Mp(mpKey);
+				//BoksMpBak myBmp = new BoksMpBak(getBoksid(), mp.modul, mp.port);
+				BoksMpBak myBmp = new BoksMpBak(getBoksid(), new Integer(mpKey));
 
-				b.addUplinkBoksid(myBmp, bmp.modulbak, bmp.portbak);
+				b.addUplinkBoksid(myBmp, bmp.toIfindex);
 
 				// Sett at vi har link til denne enheten
 				mpBoksbak.put(mpKey, bmp);
@@ -343,8 +343,8 @@ class Boks
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry)iter.next();
 			String mpKey = (String)entry.getKey();
-			ArrayList l = (ArrayList)entry.getValue();
-
+			List l = (List)entry.getValue();
+			
 			if (l.size() == 0) {
 				outl("-->MP: <b>"+mpKey+"</b> <i>Warning</i>, downlink unit not found!<br>");
 				continue;
@@ -392,7 +392,7 @@ class Boks
 
 	}
 
-	public void addToMp(HashMap boksMp)
+	public void addToMp(Map boksMp)
 	{
 		Iterator iter = mpBoksbak.entrySet().iterator();
 		while (iter.hasNext()) {
@@ -567,26 +567,26 @@ class Boks
 	}
 	*/
 
-	public void addUplinkBoksid(BoksMpBak bmp, String myModul, String myPort)
+	public void addUplinkBoksid(BoksMpBak bmp, Integer myIfindex)
 	{
 		/*
 		if (getBoksid() == 716 && bmp.boksbak.equals(new Integer(708))) {
 			System.err.println("boksbak: "+bmp.boksbak+" modulbak: " + bmp.modulbak + " portbak: " + bmp.portbak);
 		}
 		*/
-		String mp = null;
-		if (myModul != null && myPort != null) {
-			mp = myModul+":"+myPort;
+		String ifindex = null;
+		if (myIfindex != null) {
+			ifindex = myIfindex.toString();
 		} else {
-			mp = (String)rawBoksbakMp.get(bmp.boksbak);
+			ifindex = (String)rawBoksbakMp.get(bmp.boksbak);
 		}
 
-		if (mp == null && foundUplinkMp()) mp = uplinkMp;
-		if (mp != null) {
-			if (mp.equals(uplinkMp)) uplinkBoksid = bmp.boksbak;
-			mpBoksbak.put(mp, bmp);
-			boksbakMp.put(bmp.hashKey(), mp);
-			if (DEBUG_OUT) outl("[UPLINK]: Added("+bmp.boksbak+") "+boksNavn.get(bmp.boksbak)+" as a uplink for ("+getBoksid()+") " + getName() + ", MP: " + mp + ", isUplink: " + foundUplinkBoksid() + "<br>");
+		if (ifindex == null && foundUplinkMp()) ifindex = uplinkMp;
+		if (ifindex != null) {
+			if (ifindex.equals(uplinkMp)) uplinkBoksid = bmp.boksbak;
+			mpBoksbak.put(ifindex, bmp);
+			boksbakMp.put(bmp.hashKey(), ifindex);
+			if (DEBUG_OUT) outl("[UPLINK]: Added("+bmp.boksbak+") "+boksNavn.get(bmp.boksbak)+" as a uplink for ("+getBoksid()+") " + getName() + ", ifIndex: " + ifindex + ", isUplink: " + foundUplinkBoksid() + "<br>");
 		} else {
 			uplinkBoksid = bmp.boksbak;
 		}

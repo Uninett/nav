@@ -131,25 +131,9 @@ class NavUtils
 			outl("Generated on: <b>" + currentTime + "</b><br>");
 		}
 
-
-		//fixPrefiks();
-		//if (true) return;
-
-		//String[][] data = db.exece("select nettelid,port,idbak,n1.via3,n1.sysName,n2.sysName from swp_nettel,nettel as n1,nettel as n2 where n1.id=nettelid and n2.id=idbak order by via3,n1.id;");
-		//String[][] data = db.exece("select nettelid,port,idbak,n1.via3,n1.sysName,n2.sysName from swp_nettel,nettel as n1,nettel as n2 where n1.id=nettelid and n2.id=idbak and (n1.via3=8 or n1.via3=14 or n1.via3=19) order by via3,n1.id,port;");
-
-		//String[][] data = db.exece("select nettelid,port,idbak,n1.via3,n1.sysName,n2.sysName from swp_nettel,nettel as n1,nettel as n2 where n1.id=nettelid and n2.id=idbak order by via3,n1.id,port;");
-
-		//String[][] data = db.exece("");
-
-		//SELECT nettelid,port,idbak,n1.via3,n1.sysName,n2.sysName from swp_nettel,nettel as n1,nettel as n2 where n1.id=nettelid and n2.id=idbak order by via3,n1.id,port
-
-		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS via3,b1.sysName,b2.sysName FROM gwport,swp_boks,boks AS b1,boks AS b2 WHERE b1.boksid=swp_boks.boksid AND b2.boksid=boksbak AND b1.prefiksid=gwport.prefiksid AND gwport.hsrppri='1' ORDER BY b1.prefiksid,b1.boksid,modul,port;
-		//String[][] data = db.exece("");
-
-		HashMap boksNavn = new HashMap();
-		HashMap boksType = new HashMap();
-		HashMap boksKat = new HashMap();
+		Map boksNavn = new HashMap();
+		Map boksType = new HashMap();
+		Map boksKat = new HashMap();
 		ResultSet rs = Database.query("SELECT netboxid,sysName,typename,catid FROM netbox LEFT JOIN type USING(typeid)");
 		while (rs.next()) {
 			String sysname = rs.getString("sysName"); // Må være med da sysname kan være null !!
@@ -160,16 +144,7 @@ class NavUtils
 		Boks.boksNavn = boksNavn;
 		Boks.boksType = boksType;
 
-		//SELECT boksid,sysname,typeid,kat FROM boks WHERE NOT EXISTS (SELECT boksid FROM swp_boks WHERE boksid=boks.boksid) AND (kat='KANT' or kat='SW') ORDER BY boksid
-
-		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid,b1.sysName,b2.sysName FROM gwport,swp_boks,boks AS b1,boks AS b2 WHERE b1.boksid=swp_boks.boksid AND b2.boksid=boksbak AND b1.prefiksid=gwport.prefiksid AND gwport.hsrppri='1' ORDER BY b1.prefiksid,b1.boksid,modul,port
-
-		//SELECT DISTINCT ON (gwboksid) swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid FROM (swp_boks JOIN boks USING(boksid)) JOIN gwport USING(prefiksid) WHERE gwport.hsrppri='1' ORDER BY gwboksid,boksid,modul,port
-		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid FROM (swp_boks JOIN boks USING(boksid)) JOIN gwport USING(prefiksid) WHERE gwport.hsrppri='1' ORDER BY boksid,modul,port
-
-		//SELECT swp_boks.boksid,modul,port,boksbak,gwport.boksid AS gwboksid FROM ((swp_boks JOIN boks USING(boksid)) JOIN prefiks USING(prefiksid)) JOIN gwport ON rootgw=gwip ORDER BY boksid,modul,port
-
-		HashSet gwUplink = new HashSet();
+		Set gwUplink = new HashSet();
 		rs = Database.query("SELECT DISTINCT ON (to_netboxid) to_netboxid FROM gwport WHERE to_netboxid IS NOT NULL");
 		while (rs.next()) {
 			gwUplink.add(rs.getString("to_netboxid"));
@@ -177,13 +152,13 @@ class NavUtils
 
 		// Endret for å få med GSW
 		//rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwport ON (rootgwid=gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
-		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.module,port,swp_netbox.to_netboxid,swp_netbox.to_module,swp_netbox.to_port,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwportprefix USING(prefixid) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,module,port");
+		rs = Database.query("SELECT swp_netbox.netboxid,catid,swp_netbox.ifindex,swp_netbox.to_netboxid,swp_netbox.to_swportid,module.netboxid AS gwnetboxid FROM swp_netbox JOIN netbox USING(netboxid) JOIN prefix USING(prefixid) LEFT JOIN gwportprefix USING(prefixid) LEFT JOIN gwport USING(gwportid) LEFT JOIN module USING (moduleid) WHERE gwportid IS NOT NULL OR catid='GSW' ORDER BY netboxid,swp_netbox.ifindex");
 
-		HashMap bokser = new HashMap();
-		ArrayList boksList = new ArrayList();
-		ArrayList l = null;
-		HashSet boksidSet = new HashSet();
-		HashSet boksbakidSet = new HashSet();
+		Map bokser = new HashMap();
+		List boksList = new ArrayList();
+		List l = null;
+		Set boksidSet = new HashSet();
+		Set boksbakidSet = new HashSet();
 
 		//int previd = rs.getInt("boksid");
 		int previd = 0;
@@ -193,18 +168,18 @@ class NavUtils
 				// Ny boks
 				l = new ArrayList();
 				boolean isSW = (rs.getString("catid").equals("SW") ||
-								rs.getString("catid").equals("GW") ||
-								rs.getString("catid").equals("GSW"));
+												rs.getString("catid").equals("GW") ||
+												rs.getString("catid").equals("GSW"));
 				Boks b = new Boks(com, boksid, rs.getInt("gwnetboxid"), l, bokser, isSW, !gwUplink.contains(String.valueOf(boksid)) );
 				boksList.add(b);
 				previd = boksid;
 			}
 			String[] s = {
-				rs.getString("module"),
-				rs.getString("port"),
+				rs.getString("ifindex"),
+				//rs.getString("port"),
 				rs.getString("to_netboxid"),
-				rs.getString("to_module"),
-				rs.getString("to_port")
+				rs.getString("to_ifindex")
+				//rs.getString("to_port")
 			};
 			l.add(s);
 
@@ -231,8 +206,8 @@ class NavUtils
 				errl("Error! kat not found for boksid: " + boksbakid);
 			}
 			boolean isSW = (kat.equals("SW") ||
-							kat.equals("GW") ||
-							kat.equals("GSW"));
+											kat.equals("GW") ||
+											kat.equals("GSW"));
 
 			Boks b = new Boks(com, boksbakid.intValue(), 0, null, bokser, isSW, true);
 			bokser.put(b.getBoksidI(), b);
@@ -412,7 +387,7 @@ class NavUtils
 
 				// Så må vi sjekke om swportbak skal oppdateres
 				boolean swportbakOK = false;
-				if (bmp.modulbak != null && bmp.portbak != null) {
+				if (bmp.toIfindex != null) {
 					// OK, slå opp i swportMap for å finne riktig swportid
 					HashMap swrecBak = (HashMap)swrecMap.get(bmp.hashKey());
 					if (swrecBak != null) {
@@ -431,7 +406,7 @@ class NavUtils
 						}
 					} else {
 						// Feilsitasjon!
-						outl("<font color=\"red\">ERROR:</font> Could not find record in swport,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Modul: <b>" + bmp.modulbak + "</b> Port: <b>" + bmp.portbak + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b><br>");
+						outl("<font color=\"red\">ERROR:</font> Could not find record in swport,  boks("+bmp.boksbak+"): <b>" + boksNavn.get(bmp.boksbak) + "</b> Ifindex: <b>" + bmp.toIfindex + "</b> boksbak: <b>" + boksNavn.get(new Integer(boksid)) + "</b><br>");
 					}
 				}
 
@@ -842,7 +817,7 @@ class NavUtils
 				System.err.println("ERROR, boksKat is null for boksid: " + boksid);
 				continue;
 			}
-			if (((String)boksKat.get(new Integer(boksid))).equalsIgnoreCase("kant") && portnavn.length() == 0 && boksbak.length() == 0) continue;
+			if (((String)boksKat.get(new Integer(boksid))).equalsIgnoreCase("edge") && portnavn.length() == 0 && boksbak.length() == 0) continue;
 
 			String color = "gray";
 			if (change != null && change.startsWith("Error")) {

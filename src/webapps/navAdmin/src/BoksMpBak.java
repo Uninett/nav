@@ -7,23 +7,28 @@ import java.util.*;
 public class BoksMpBak
 {
 	public Integer boksbak;
-	public String modulbak;
-	public String portbak;
+	public Integer toIfindex;
 
 	String hashKey;
 
-	public BoksMpBak(int boksbak, String modulbak, String portbak)
+	public BoksMpBak(int boksbak, int toIfindex)
 	{
-		this(new Integer(boksbak), modulbak, portbak);
+		this(new Integer(boksbak), new Integer(toIfindex));
 	}
-	public BoksMpBak(Integer boksbak, String modulbak, String portbak)
+
+	public BoksMpBak(int boksbak, Integer toIfindex)
+	{
+		this(new Integer(boksbak), toIfindex);
+	}
+
+	public BoksMpBak(Integer boksbak, Integer toIfindex)
 	{
 		this.boksbak = boksbak;
-		this.modulbak = modulbak;
-		this.portbak = portbak;
+		this.toIfindex = toIfindex;
 		calcKey();
 	}
 
+	/*
 	public void setMp(String mp) {
 		StringTokenizer st = new StringTokenizer(mp, ":");
 		if (st.countTokens() != 2) throw new RuntimeException("Error in BoksMpBak.setMp: Malformed mp: " + mp);
@@ -31,10 +36,14 @@ public class BoksMpBak
 		portbak = st.nextToken();
 		calcKey();
 	}
+	*/
+	public void setToIfindex(String toIfindex) {
+		this.toIfindex = new Integer(toIfindex);
+	}
 
 	public String hashKey() { return hashKey; }
-	private void calcKey() { hashKey = boksbak+":"+modulbak+":"+portbak; }
+	private void calcKey() { hashKey = boksbak+":"+toIfindex; }
 	public String toString() {
-		return "BoksMpBak [boksbak="+boksbak+", modulbak="+modulbak+", portbak="+portbak+"]";
+		return "BoksMpBak [boksbak="+boksbak+", toIfindex="+toIfindex+"]";
 	}
 }
