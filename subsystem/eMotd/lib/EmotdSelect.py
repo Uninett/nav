@@ -85,16 +85,19 @@ def fetchAll(orderby=None,where=None,access=False):
         res.append(t)
     return res
 
-def getMaintenance(active=True,orderby=None,where=None,access=False):
-    res = []
+def getMaintenance(state="active",orderby=None,where=None,access=False):
+    res = {}
     if where == None:
         if access == False:
             return res
-    if active == True:
+    if state == 'active':
         where = ["state = 'active'"]
+        cursor.execute("select * from maintenance_view WHERE state = 'active'")
+    if state == 'scheduled':
+        where = ["state = 'scheduled'"]
+        cursor.execute("select * from maintenance_view WHERE state = 'scheduled'")
     #maintlist = nav.db.manage.Maintenance_view.Emotd.getAllIDs(where=where,orderBy=orderby)
     # temp hack, have to put maintenance_view into forgetSQL
-    cursor.execute("select * from maintenance_view WHERE state = 'active'")
     rows = cursor.dictfetchall()
     #for entry in maintlist:
     for row in rows:
@@ -105,7 +108,10 @@ def getMaintenance(active=True,orderby=None,where=None,access=False):
             row['room'] = nav.db.manage.Netbox(row['value']).room
         if row['key'] == 'room':
             row['room'] = row['value']
-        res.append(row)
+        if res.has_key(row['maintenanceid']):
+            res[row['maintenanceid']].append(row)
+        else:
+            res[row['maintenanceid']] = [row['maintenanceid']]
     return res
 
 
