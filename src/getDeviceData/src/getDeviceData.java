@@ -484,10 +484,10 @@ class getDeviceData
 		if (qNettel.equals("_def")) {
 			// USE THIS
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typeid LIKE 'C3000%' OR typeid LIKE 'C1900%')");
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND (kat='SRV' OR typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE watch='f' AND snmp_major > 0 AND (kat='SRV' OR typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw', 'hpsw') )");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE boksid=278");
 		} else {
-			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE sysName='"+qNettel+"'");
+			rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName,snmp_major,snmpagent FROM boks NATURAL LEFT JOIN type WHERE snmp_major > 0 AND sysName='"+qNettel+"'");
 			//rs = Database.query("SELECT ip,ro,boksid,typeid,typegruppe,kat,sysName FROM boks NATURAL JOIN type WHERE sysName IN ('iot-stud-313-h2','hjarl-sw','math-ans-355-h')");
 		}
 		//Database.setDefaultKeepOpen(false);
