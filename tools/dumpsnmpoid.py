@@ -29,6 +29,7 @@ for row in cursor.fetchall():
             newrow.append('NULL')
         else:
             newrow.append("'%s'" % str(col))
+    print "DELETE FROM snmpoid WHERE oidkey=%s;" % newrow[0]
     print "INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex)",
     print "VALUES (%s);" % ",".join(newrow)
     print
