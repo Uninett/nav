@@ -349,7 +349,7 @@ VALUES ('ifLastChange','1.3.6.1.2.1.2.2.1.9','standard','mib-II','0',NULL,'0','i
 
 DELETE FROM snmpoid WHERE oidkey='ifMtu';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('ifMtu','1.3.6.1.2.1.2.2.1.4','standard','mib-II','0',NULL,'0',ifMtu','IF-MIB');
+VALUES ('ifMtu','1.3.6.1.2.1.2.2.1.4','standard','mib-II','0',NULL,'0','ifMtu','IF-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='ifName';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
