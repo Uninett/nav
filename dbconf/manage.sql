@@ -299,8 +299,8 @@ DROP SEQUENCE pkt2rom_id_seq;
 
 CREATE TABLE arp (
   arpid SERIAL PRIMARY KEY,
-  boksid INT4 REFERENCES boks;
-  prefiksid INT4 REFERENCES prefiks;
+  boksid INT4 REFERENCES boks,
+  prefiksid INT4 REFERENCES prefiks,
   ip VARCHAR(15) NOT NULL,
   mac VARCHAR(12) NOT NULL,
   fra TIMESTAMP NOT NULL,
