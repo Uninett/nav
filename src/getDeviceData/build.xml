@@ -34,10 +34,10 @@
     <ant inheritAll="false" dir="device-plugins/3Com"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSw1900"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwMenu"/>
-<!--    <ant inheritAll="false" dir="device-plugins/CiscoSwCAT"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCAT"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwIOS"/>
-    <ant inheritAll="false" dir="device-plugins/CiscoSwCGSW"/>
-    <ant inheritAll="false" dir="device-plugins/CiscoSwCL3"/> -->
+    <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon"/>
     <ant inheritAll="false" dir="device-plugins/HP"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw"/>
   </target>
@@ -100,6 +100,10 @@
     <ant inheritAll="false" dir="device-plugins/3Com" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSw1900" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/CiscoSwMenu" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCAT" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwIOS" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwIOSaddon" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/CiscoSwCL3addon" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/MibIISw" target="clean"/>
   </target>

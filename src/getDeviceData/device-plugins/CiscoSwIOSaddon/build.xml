@@ -1,9 +1,9 @@
-<project name="CL3 plugin" default="copy" basedir=".">
+<project name="Cisco IOS addon plugin" default="copy" basedir=".">     
     <description>
-        build file Cisco CL3 plugin
+        build file Cisco IOS addon plugin
     </description>
   <!-- set global properties for this build -->
-  <property name="jar" value="CiscoSwCL3.jar"/>
+  <property name="jar" value="CiscoSwIOSaddon.jar"/>
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
