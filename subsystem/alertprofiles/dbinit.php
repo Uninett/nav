@@ -21,7 +21,14 @@ class dbinit {
 
     function get_dbh() {
         if ($this->dbh == null) {
-            $filename = PATH_DB . "db.conf";
+            $filename = PATH_DB . "/db.conf";
+            
+           
+            if (!file_exists($filename)) {
+                print "<h1>" . gettext("File access error") . "</h1>";
+                print "<p>" . gettext("Could not find the database configuration file.");
+                exit(0);
+            }
             
             // Get fileconfiglines            
             $conffile = file($filename);
@@ -53,7 +60,7 @@ class dbinit {
    
             if (! $this->dbh_dbcon = pg_connect($cstr) ) {
                 print "<h1>" . gettext("Database error") . "</h1>";
-                print "<p>" . gettext("Due to database error, Alert Profiles is closed.");
+                print "<p>" . gettext("Could not connect to the navprofiles database. The database server could be down, or the logininfo could be corrupt in the database configuration file.");
                 exit(0);
             } 
 
@@ -68,7 +75,14 @@ class dbinit {
     function get_dbhk() {
         if ($this->dbhk == null) {
             // Get fileconfiglines
-            $filename = PATH_DB . "db.conf";
+            $filename = PATH_DB . "/db.conf";
+
+            if (!file_exists($filename)) {
+                print "<h1>" . gettext("File access error") . "</h1>";
+                print "<p>" . gettext("Could not find the database configuration file.");
+                exit(0);
+            }
+
             
             $conffile = file($filename);
             
@@ -101,7 +115,7 @@ class dbinit {
    
             if (! $this->dbhk_dbcon = pg_connect($cstr) ) {
                 print "<h1>" . gettext("Database error") . "</h1>";
-                print "<p>" . gettext("Due to database error, Alert Profiles is closed.");
+                print "<p>" . gettext("Could not connect to the manage database. The database server could be down, or the logininfo could be corrupt in the database configuration file.");
                 exit(0);
             } 
 

@@ -42,8 +42,8 @@ function easysetup($dbh, $uid) {
 	<table width="100%">
 		<tr><td>
 			<img alt="Warning" align="top" src="images/warning.png">
-		</td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts is sent. 
-						You may use the Easy Setup form below to easy setup a new profile.");
+		</td><td>' . gettext("You have not created any profiles. Consequently no profile is active, and no alerts will be sent. 
+						You may use the initial setup for your first profile.");
 	echo '</td></tr>';
 	echo '<tr><td colspan="2">';
 	
