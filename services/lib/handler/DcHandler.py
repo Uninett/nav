@@ -1,5 +1,5 @@
 """
-$Id: DcHandler.py,v 1.1 2002/06/27 11:49:04 magnun Exp $
+$Id: DcHandler.py,v 1.2 2002/07/01 13:10:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/DcHandler.py,v $
 """
 
@@ -28,16 +28,10 @@ class DcHandler(JobHandler):
 		else:
 			return Event.DOWN, result
 
-def checkArgs(args):
+				
+def getRequiredArgs():
 	"""
-	Verify that the required arguments is supplied for this test.
+	Returns a list of required arguments
 	"""
 	requiredArgs = ['username']
-	if type(args) == type({}):
-		missingArgs=[]
-		for eachArg in requiredArgs:
-			if eachArg not in args:
-				missingArgs.append(eachArg)
-
-		return missingArgs
-				
+	return requiredArgs

@@ -1,5 +1,5 @@
 """
-$Id: FtpHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
+$Id: FtpHandler.py,v 1.3 2002/07/01 13:10:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/FtpHandler.py,v $
 """
 from job import JobHandler, Event
@@ -48,3 +48,11 @@ class FtpHandler(JobHandler):
 			return Event.UP,'code 230'
 		else:
 			return Event.DOWN,output.split('\n')[0]
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = []
+	return requiredArgs
+			

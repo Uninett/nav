@@ -1,5 +1,5 @@
 """
-$Id: ImapHandler.py,v 1.2 2002/06/28 01:06:40 magnun Exp $
+$Id: ImapHandler.py,v 1.3 2002/07/01 13:10:02 magnun Exp $
 $Source: /usr/local/cvs/navbak/navme/services/lib/handler/ImapHandler.py,v $
 """
 
@@ -36,6 +36,25 @@ class ImapHandler(JobHandler):
 		ip, port = self.getAddress()
 		passwd = args.get("password","")
 		m = IMAPConnection(self.getTimeout(), ip, port)
+		ver = m.welcome
 		m.login(user, passwd)
 		m.logout()
+		version=''
+		ver=ver.split(' ')
+		if len(ver) >= 2:
+			for i in ver[2:]:
+				if i != "at":
+					version += "%s " % i
+				else:
+					break
+		self.setVersion(version)
+		
 		return Event.UP, "Ok"
+
+def getRequiredArgs():
+	"""
+	Returns a list of required arguments
+	"""
+	requiredArgs = ['username', 'password']
+	return requiredArgs
+			
