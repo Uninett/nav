@@ -141,6 +141,36 @@ ORDER BY " . $sorts[$sort] . " LIMIT 100";
   }
 
 
+    // Liste over filtermatch som er tilgjengelige for valg
+  function listFilterMatchAdm($sort) {
+    
+    $fm = NULL;
+    
+    $sorts = array (
+        'matchfieldid',
+        'name',
+        'valueid');
+		    
+	$querystring = "SELECT matchfieldid, name, valueid 
+FROM MatchField 
+ORDER BY " . $sorts[$sort];
+
+	//print "<pre>" . $querystring . "</pre>";
+
+    if ( $query = pg_exec($this->connection, $querystring) ) {
+		$tot = pg_numrows($query); $row = 0;
+
+	while ( $row < $tot) {
+		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+		$fm[$row][0] = $data["matchfieldid"];
+		$fm[$row][1] = $data["name"];
+		$fm[$row][2] = $data["valueid"];
+		$row++;
+      } 
+    } 
+    
+    return $fm;
+  }
 
 
 
@@ -1302,6 +1332,20 @@ function slettwapkey($uid) {
 
 }
 
+function slettMatchField($mfid) {
+    // Spxrring som legger inn i databasen
+    $querystring = "DELETE FROM MatchField WHERE ( matchfieldid = " . addslashes($mfid) . " )";
+#    print "<p>QUERY:$querystring:";
+	#print "<p>query: $querystring\n brukerid: $brukerid";
+    if ( $query = pg_exec( $this->connection, $querystring)) {
+      return 1;
+    } else {
+      // fikk ikke til å legge i databasen
+      return 0;
+    }
+
+}
+
 
 // Endre navn på profil
 function endreProfil($pid, $navn, $ukedag, $uketidh, $uketidm, $tidh, $tidm) {
@@ -1682,12 +1726,12 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
 
 
 
-  // opprette nytt adm- filter
-  function nyttFilterAdm($navn) {
+  // opprette nytt filter
+  function nyttFilter($navn, $brukerid) {
 
     // Spxrring som legger inn i databasen
     $querystring = "INSERT INTO Utstyrfilter (id, brukerid, navn) VALUES (" . 
-      "nextval('utstyrfilterid'), null, '" . 
+      "nextval('utstyrfilterid'), " . addslashes($brukerid) . ", '" . 
       addslashes($navn) ."' )";
     
 #    print "<p>query: $querystring";
@@ -1698,6 +1742,49 @@ function swapFilter($gid, $a, $b, $ap, $bp) {
       
       // Henter ut id`n til raden og returnerer den.
       $idres = pg_exec( $this->connection, "SELECT id FROM Utstyrfilter WHERE oid = $oid");
+      $idrow = pg_fetch_row($idres, 0);
+      return $idrow[0];
+    } else {
+      // fikk ikke til e legge i databasen
+      return 0;
+    }
+
+  }
+
+    function extrval($value) {
+        if ($value == "." || $value == 'undef') {
+            return "null";
+        } else {
+            return "'" . addslashes($value) . "'";
+        }
+    }
+
+  // opprette nytt matchfelt
+function nyttMatchFelt($name, $descr, $qvaluehelp, $qvalueid, $qvaluename, $qvaluecategory, $qvaluesort, $listlimit, $showlist) {
+
+    $ivalueid 		= $this->extrval($qvalueid);
+    $ivaluename 	= $this->extrval($qvaluename);
+    $ivaluecategory 	= $this->extrval($qvaluecategory);
+    $ivaluesort 	= $this->extrval($qvaluesort);
+    $ivaluehelp		= $this->extrval($qvaluehelp);
+    $idescr		= $this->extrval($descr);
+    $iname		= $this->extrval($name);
+ 
+         // Spxrring som legger inn i databasen
+    $querystring = "INSERT INTO MatchField (name, descr, valuehelp, valueid, valuename, valuecategory, valuesort, listlimit, showlist) VALUES (" .
+    $iname . ", " . $idescr . ", " . $ivaluehelp . ", " . $ivalueid . ", " . 
+    $ivaluename . ", " . $ivaluecategory . ", " . $ivaluesort . ", " .
+      addslashes($listlimit) . ", " . $showlist . " )";
+    
+   // print "<p>query: $querystring";
+   
+    if ( $query = pg_exec( $this->connection, $querystring)) {
+      
+      // Henter ut object id`n til raden.
+      $oid = pg_getlastoid($query);
+      
+      // Henter ut id`n til raden og returnerer den.
+      $idres = pg_exec( $this->connection, "SELECT matchfieldid FROM MatchField WHERE oid = $oid");
       $idrow = pg_fetch_row($idres, 0);
       return $idrow[0];
     } else {
@@ -2115,7 +2202,7 @@ class DBHK {
     return addslashes($r[1]);  
   }
   
-  function listVerdier($valueid, $valuename, $valuecategory, $valuesort) {
+  function listVerdier($valueid, $valuename, $valuecategory, $valuesort, $limit) {
 
     $verdier = null;
     $vtabell = $this->get_table($valueid);
@@ -2130,7 +2217,7 @@ class DBHK {
     }
     $querystring = "SELECT $vid, $vname $vc " . 
     	"FROM $vtabell " .
-    	"ORDER BY $vsort";
+    	"ORDER BY $vsort LIMIT " . addslashes($limit);
 
     //echo "<p>query: " . $querystring;
 
@@ -2153,6 +2240,41 @@ class DBHK {
     return $verdier;  
   
   }
+
+
+  function listFelter() {
+
+    $felter = null;
+
+    $querystring = "SELECT c.relname, a.attname, t.typname 
+FROM pg_class c, pg_attribute a, pg_type t, pg_tables tb 
+WHERE a.attnum > 0 AND a.attrelid = c.oid AND a.atttypid = t.oid AND 
+c.relname = tb.tablename AND tablename not like 'pg_%' 
+ORDER BY c.relname, a.attname;";
+
+    //echo "<p>query: " . $querystring;
+
+    if ( $query = @pg_exec($this->connection, $querystring) ) {
+        $tot = pg_numrows($query); $row = 0;
+
+        while ( $row < $tot) {
+            $data = pg_fetch_array($query, $row, PGSQL_ASSOC);
+            $felter[$data['relname']][$row][0] = $data['attname'];
+            $felter[$data['relname']][$row][1] = $data['typname'];
+            $row++;
+        }
+        
+    }  else {
+        $error = new Error(2);
+        $bruker{'errmsg'}= "Feil med datbasespørring.";
+    }
+
+    
+    return $felter;  
+  
+  }
+
+
 
 
 }

@@ -1,6 +1,6 @@
 <table width="100%" class="mainWindow">
 <tr><td class="mainWindowHead">
-<p><?php echo gettext("Endre utstyrsgrupper"); ?></p>
+<p><?php echo gettext("Endre utstyrsgruppe"); ?></p>
 </td></tr>
 
 <tr><td>
@@ -21,6 +21,7 @@ echo "</a>";
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
+
 
 if ($subaction == 'slett') {
 
@@ -139,7 +140,11 @@ print gettext("Antall filtre: ") . sizeof($filtre);
     	<td width="50%">
 <?php
 print '<select name="filterid">';
-$filtervalg = $dbh->listFiltreFast($uid, session_get('grp_gid'), $sort);
+if (session_get('lastaction') == 'futstyr') {
+    $filtervalg = $dbh->listFiltreFastAdm(session_get('grp_gid'), $sort);
+} else {
+    $filtervalg = $dbh->listFiltreFast($uid, session_get('grp_gid'), $sort);
+}
 for ($i = 0; $i < sizeof($filtervalg); $i++)
 	print "<option value=\"" . $filtervalg[$i][0]. "\">" . $filtervalg[$i][1]. "</option>\n";
 	if ($i == 0) {
@@ -187,6 +192,13 @@ if ($i > 0 ) {
   </table>
 </form>
 
+<?php
+    if (!post_exist('matchfelt') ) {
+        echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
+        echo '<input type="submit" name="Submit" value="' . gettext('Ferdig med å editere utstyrsgruppe') . '">';
+        echo '</form>';
+    }
+?>
 
 </td></tr>
 </table>

@@ -16,7 +16,7 @@ du ønsker å overvåke.");
 echo '<p><a href="#nyttfilter">' . gettext("Legg til nytt filter") . '</A>';
 
 
-
+session_set('lastaction', 'filter');
 $brukernavn = session_get('bruker'); $uid = session_get('uid');
 
 if ($subaction == 'endret') {

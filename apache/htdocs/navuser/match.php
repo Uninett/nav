@@ -133,13 +133,8 @@ echo '<a name="nymatch"></a><p><h3>';
 echo gettext("Legg til ny betingelse");
 echo '</h3>';
 
-/*
-if (isset($matchfelt)) {
-	$sa = "nymatch";
-} else {
-	$sa = "velgtype";
-}
-*/
+
+
 print '<form name="form2" method="post" action="index.php?subaction=velgtype">';
 
 ?>
@@ -166,6 +161,31 @@ foreach ($matchfields AS $matchfield) {
         </td>
    	</tr>
 
+
+<?php
+
+if ( post_exist('matchfelt') ) {
+/*
+	$mf[0] = $data["name"];
+	$mf[1] = $data["descr"];
+	$mf[2] = $data["valuehelp"];
+	$mf[3] = $data["valueid"];
+	$mf[4] = $data["valuename"];
+	$mf[5] = $data["valuecategory"];
+	$mf[6] = $data["valuesort"];
+	$mf[7] = $data["listlimit"];
+	$mf[8] = $data["showlist"];
+*/
+
+    $matchfieldinfo = $dbh->matchFieldInfo(post_get('matchfelt'));
+
+    echo '<tr><td colspan="2"><small><p>';
+    echo $matchfieldinfo[1];
+    echo '</small></td></tr>';
+}
+
+?>
+
     <tr>
 
 <?php
@@ -182,19 +202,7 @@ echo gettext("Velg betingelse");
 echo '</p></td><td width="70%">';
 
 if ( post_exist('matchfelt') ) {
-/*
-	$mf[0] = $data["name"];
-	$mf[1] = $data["descr"];
-	$mf[2] = $data["valuehelp"];
-	$mf[3] = $data["valueid"];
-	$mf[4] = $data["valuename"];
-	$mf[5] = $data["valuecategory"];
-	$mf[6] = $data["valuesort"];
-	$mf[7] = $data["listlimit"];
-	$mf[8] = $data["showlist"];
-*/
 
-    $matchfieldinfo = $dbh->matchFieldInfo(post_get('matchfelt'));
 
         print '<select name="matchtype" id="select">';
     
@@ -216,6 +224,16 @@ if ( post_exist('matchfelt') ) {
 ?>    	
         </td>    	
    	</tr>
+
+<?php
+
+if ( post_exist('matchfelt') ) {
+    echo '<tr><td colspan="2"><small><p>';
+    echo $matchfieldinfo[2];
+    echo '</small></td></tr>';
+}
+
+?>
    	
     <tr>     
     	<td width="30%"><p><?php echo gettext('Sett verdi'); ?></p></td>
@@ -233,7 +251,8 @@ if ( post_exist('matchfelt') ) {
         $matchfieldinfo[3],
         $matchfieldinfo[4],
         $matchfieldinfo[5],
-        $matchfieldinfo[6]
+        $matchfieldinfo[6],
+        $matchfieldinfo[7]
     );
     /*
     echo "<pre>...\n";
@@ -269,6 +288,8 @@ if ( post_exist('matchfelt') ) {
 
         </td></tr>
 
+
+
     <tr>
       <td>&nbsp;</td>
       
@@ -294,6 +315,13 @@ pg_close($dbkcon);
 
 </form>
 
+<?php
+    if (!post_exist('matchfelt') ) {
+        echo '<p><form name="finnished" method="post" action="index.php?action=' . session_get('lastaction') . '">';
+        echo '<input type="submit" name="Submit" value="' . gettext('Ferdig med å editere filteret') . '">';
+        echo '</form>';
+    }
+?>
 
 </td></tr>
 </table>

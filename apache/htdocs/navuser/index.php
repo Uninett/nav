@@ -171,6 +171,7 @@ $meny->newOption(gettext("Brukere"), "admin", 50, array('admin.php') );
 $meny->newOption(gettext("Brukergrupper"), "gruppe", 100, array('gruppe.php') );
 $meny->newOption(gettext("Felles Utst.grp."), "futstyr", 100, array('fellesutstyr.php') );
 $meny->newOption(gettext("Felles Utst.filter"), "ffilter", 100, array('fellesfilter.php') );
+$meny->newOption(gettext("Adm. match-felt"), "filtermatchadm", 100, array('filtermatchadm.php') );
 $meny->newOption(gettext("Logg"), "logg", 20, array('logg.php') );
 
 
