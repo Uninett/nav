@@ -58,7 +58,8 @@ cd ~/cricket/cricket
 sh configure
 cp cricket-config.pl.sample cricket-config.pl
 
-- edit cricket-config.pl and make sure the following parameters are
+- edit cricket-config.pl and make sure the following parameters are or
+  use the file in the NAV-package.
 set (this is all that is needed in the file):
     "
 	package Common::global;
@@ -81,7 +82,7 @@ ln -s ../cricket/lib
 ln -s ../cricket/mini-graph.cgi
 ln -s ../cricket/VERSION
 ln -s grapher.cgi index.cgi
-cp <location of cricket.css> .
+cp TRUNK/subsystem/statTools/cricket/public_html/cricket.css .
 
 - all the rrds are stored in cricket-data
 mkdir /usr/local/nav/navme/cricket/cricket-data
@@ -91,8 +92,7 @@ ln -s /usr/local/nav/navme/cricket/cricket-data
 mkdir /usr/local/nav/navme/cricket/cricket-config
 ln -s /usr/local/nav/navme/cricket/cricket-config
 cd cricket-config
-cp -r <location of templates> .
-rm cricket.css
+cp -r TRUNK/subsystem/statTools/cricket-config .
 
 - all the scripts must be placed somewhere and run.
 - check the path in the scripts too (this is alfa right..)
@@ -100,12 +100,23 @@ rm cricket.css
 cd ~/cricket
 mkdir bin
 cd bin
-cp <location of makecricketconfig.pl> .
-cp <location of filloiddb.pl> .
-cp <location of filltypesnmpoid.pl> .
-cp <location of cricketoids.txt> .
+cp TRUNK/subsystem/statTools/makecricketconfig.pl .
+cp TRUNK/subsystem/statTools/filloiddb.pl .
+cp TRUNK/subsystem/statTools/filltypesnmpoid.pl .
+cp TRUNK/subsystem/statTools/cricketoids.txt .
 ./filloiddb.pl
+
+---
+ALFANOTE: The following step will not be necessary depending on if
+getDeviceData has been run. This script might become obsolete. It
+SHOULD be safe to run it, but the advice is not to run it. Make sure
+gDD has been run, and skip to the compile script.
+
 ./filltypesnmpoid.pl
+
+END OF ALFANOTE
+---
+
 ~/cricket/cricket/compile
 ./makecricketconfig
 
@@ -113,7 +124,8 @@ Running for the first time
 --------------------------
 cd ~/cricket/cricket
 
-- edit the subtree-sets file and make sure the following text are in:
+- edit the subtree-sets file and make sure the following text are in
+  (or use the file distributed with NAV-v3):
   "
   base: cricket-config
   logdir: cricket-logs
@@ -126,5 +138,6 @@ cd ~/cricket/cricket
        /giga-router-interfaces
        /giga-switch-ports
   "
-- run nav start cricket (you must be root to do this)
+- run nav start cricket to put the correct jobs into cron (you must be
+  root to do this)
 - things should happen, if not U zuXX0rz!
