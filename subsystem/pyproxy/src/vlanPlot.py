@@ -33,6 +33,10 @@ def handler(req):
     if req.session.has_key('user') and req.session['user'].id > 0:
         user = req.session['user'].login
 
+    protocolmap = {80:'http',
+                   443:'https',
+                   }
+    protocol = protocolmap.get(req.connection.local_addr[1], 'http')
     doc = html.SimpleDocument()
     body = doc.body
     applet = '<APPLET ARCHIVE="vlanPlot.jar" CODE="vlanPlot.class" CODEBASE="." WIDTH=800 HEIGHT=600>\n'
@@ -49,10 +53,10 @@ def handler(req):
                 pass
 
     params = ""
-    params += '<PARAM NAME="vPServerURL" VALUE="http://%s/vPServer/servlet/vPServer">\n' % server
-    params += '<PARAM NAME="lastURL" VALUE="http://%s/vlanPlot/last.pl">\n' % server
-    params += '<PARAM NAME="cricketURL" VALUE="http://%s/~cricket/">\n' % server
-    params += '<PARAM NAME="netflowURL" VALUE="http://%s">\n' % server
+    params += '<PARAM NAME="vPServerURL" VALUE="%s://%s/vPServer/servlet/vPServer">\n' % (protocol, server)
+    params += '<PARAM NAME="lastURL" VALUE="%s://%s/vlanPlot/last.pl">\n' % (protocol, server)
+    params += '<PARAM NAME="cricketURL" VALUE="%s://%s/~cricket/">\n' % (protocol, server)
+    params += '<PARAM NAME="netflowURL" VALUE="%s://%s">\n' % (protocol, server)
 
     if args.has_key('boksid'):
         params += '<PARAM NAME="gotoBoksid" VALUE="%s"> \n' % args['boksid']
