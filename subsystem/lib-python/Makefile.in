@@ -10,7 +10,7 @@ exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
 sysconfdir = @sysconfdir@
-
+localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
 pathmodule = src/nav/path.py
 
@@ -27,6 +27,7 @@ $(pathmodule): Makefile
 	@echo "libdir=\"$(libdir)\"" >> $(pathmodule)
 	@echo "pythonlibdir=\"$(pythonlibdir)\"" >> $(pathmodule)
 	@echo "sysconfdir=\"$(sysconfdir)\"" >> $(pathmodule)
+	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
 
 install: install-lib
 

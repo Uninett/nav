@@ -16,7 +16,12 @@ import rrdtool as rrd
 import db
 import config
 
-RRDDIR = '/var/rrd'
+try:
+	import nav.path
+	RRDDIR = nav.path.localstatedir + '/rrd'
+except:
+	# Not properly installed
+	RRDDIR = '/var/rrd'
 database = db.db(config.dbconf())
 
 def create(filename, netboxid, serviceid=None, handler=""):

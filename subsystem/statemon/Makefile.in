@@ -12,6 +12,8 @@ pythonlibdir=@pythonlibdir@
 bindir=@bindir@
 sysconfdir=@sysconfdir@
 initdir=@initdir@
+localstatedir=@localstatedir@
+rrddir=$(localstatedir)/rrd
 INITFILES=pping servicemon
 BINS=checkService.py pping.py servicemon.py
 LIBS=
@@ -32,6 +34,8 @@ checker:
 install: install-lib install-bin install-checker install-conf
 
 install-lib: lib
+	mkdir -p $(rrddir)
+	chmod 775 $(rrddir)
 	for file in nav/statemon/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 	for file in nav/statemon/DNS/*.py; do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 install-bin: bin
