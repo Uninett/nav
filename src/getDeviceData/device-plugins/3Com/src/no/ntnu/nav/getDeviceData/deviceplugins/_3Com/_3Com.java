@@ -23,7 +23,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *
  * <p>
  * <ui>
- *  <li>ifDescrl</li>
+ *  <li>ifDescr</li>
  *  <li>3cPS40PortState</li>
  *  <li>3cIfMauType</li>
  *  <li>3cSerial</li>
@@ -49,7 +49,7 @@ public class _3Com implements DeviceHandler
 
 	public int canHandleDevice(Netbox nb) {
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
-		Log.d("HP_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
+		Log.d("3COM_CANHANDLE", "CHECK_CAN_HANDLE", "Can handle device: " + v);
 		return v;
 	}
 
@@ -158,7 +158,6 @@ public class _3Com implements DeviceHandler
 
 		*/
 
-
 		if (type.equals("off8") || type.equals("ps40")) {
 			// OID: 1.3.6.1.2.1.26.1.1.1.6.<modul>.<port>.1 = 3|4
 			// 3 = oppe
@@ -195,9 +194,6 @@ public class _3Com implements DeviceHandler
 						continue;
 					}
 
-					SwModule m = sc.swModuleFactory(module);
-					Swport swp = m.swportFactory(ifindex);
-
 					char link = 'n';
 					try {
 						int n = Integer.parseInt(portState);
@@ -207,12 +203,15 @@ public class _3Com implements DeviceHandler
 						continue;
 					}
 
+					SwModule m = sc.swModuleFactory(module);
+					Swport swp = m.swportFactory(ifindex);
+
 					swp.setPort(port);
 					swp.setLink(link);
 					swp.setSpeed(speed);
 					swp.setDuplex(duplex.charAt(0));
 					swp.setMedia(media);
-					
+
 					Log.d("PROCESS_3COM", "Added port, netbox: "+ netboxid +", " + swp);
 				}				
 			}
@@ -222,7 +221,7 @@ public class _3Com implements DeviceHandler
 		List l;
 
 		// Module data
-		l = sSnmp.getNext(nb.getOid("3cSerial"), 1, true, false);
+		l = sSnmp.getAll(nb.getOid("3cSerial"), true, false);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -231,7 +230,7 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getNext(nb.getOid("3cHwVer"), 1, true, false);
+		l = sSnmp.getAll(nb.getOid("3cHwVer"), true, false);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -239,7 +238,7 @@ public class _3Com implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getNext(nb.getOid("3cSwVer"), 1, true, false);
+		l = sSnmp.getAll(nb.getOid("3cSwVer"), true, false);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -278,7 +277,7 @@ public class _3Com implements DeviceHandler
 
 		// Fetch mauType
 		List mauTypeList = sSnmp.getAll(nb.getOid("3cIfMauType"));
-		if (ifDescrList != null) {
+		if (mauTypeList != null) {
 			String _10BaseT = "10Base-T";
 			if (type.equals("sw3300")) _10BaseT = "100Base-TX"; // 3300 har bare 100Mbit-porter
 			
