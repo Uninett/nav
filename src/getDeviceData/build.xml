@@ -1,6 +1,6 @@
 <project name="getDeviceData" default="dist" basedir=".">
     <description>
-        build file for getDeviceData
+        build file for eventEngine
     </description>
   <!-- set global properties for this build -->
   <property name="jar" value="getDeviceData.jar"/>
@@ -17,33 +17,54 @@
     <mkdir dir="${build}"/>
   </target>
 
+  <target name="data-plugins">
+    <ant inheritAll="false" dir="data-plugins/Swport"/>
+  </target>
+
+  <target name="device-plugins">
+    <ant inheritAll="false" dir="device-plugins/HP"/>
+  </target>
+
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="yes"/>
   </target>
 
-  <target name="dist" depends="compile"
+  <target name="dist" depends="compile,data-plugins,device-plugins"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the getDeviceData.jar file -->
-    <jar jarfile="${dist}/getDeviceData.jar" basedir="${build}" manifest="Main-Class"/>
+    <!-- Put everything in ${build} into the ${jar} file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Main-Class"/>
   </target>
 
   <target name="install" depends="dist">
     <mkdir dir="${instdir}"/>
     <copy file="${dist}/${jar}" todir="${instdir}"/>
+
+    <mkdir dir="${instdir}/data-plugins"/>
+    <copy todir="${instdir}/data-plugins">
+      <fileset dir="data-plugins" includes="*.jar"/>
+    </copy>
+
+    <mkdir dir="${instdir}/device-plugins"/>
+    <copy todir="${instdir}/device-plugins">
+      <fileset dir="device-plugins" includes="*.jar"/>
+    </copy>
   </target>
+
   <target name="uninstall">
     <delete file="${instdir}/${jar}"/>
+    <delete dir="${instdir}/data-plugins"/>
+    <delete dir="${instdir}/device-plugins"/>
   </target>
 
   <target name="dist_debug" depends="dist"
         description="Upload dist to server">
     <exec dir="${dist}" executable="scp" os="Windows 2000">
-      <arg line="${jar} bigbud.itea.ntnu.no:devel/navme/cron/getDeviceData"/>
+      <arg line="${jar} bigbud.itea.ntnu.no:devel/navme/subsystem/getDeviceData"/>
     </exec>
   </target>
 
@@ -52,5 +73,7 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <ant inheritAll="false" dir="data-plugins/Swport" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/HP" target="clean"/>
   </target>
 </project>
