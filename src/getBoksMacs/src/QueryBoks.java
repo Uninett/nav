@@ -202,7 +202,7 @@ public class QueryBoks extends Thread
 							continue;
 						}
 					
-						Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND ifindex='"+pm.getIfindex());
+						Database.update("UPDATE gwport SET to_netboxid = '"+pm.getToNetboxid()+"', to_swportid = "+to_swportid+" WHERE moduleid IN (SELECT moduleid FROM module WHERE netboxid = '"+boksId+"') AND ifindex='" + pm.getIfindex() + "'");
 						if (DB_COMMIT) Database.commit(); else Database.rollback();
 						
 						Log.d("RUN", "[GW] Ifindex: " + pm.getIfindex() + " Interface: " + remoteIf + ", " + boksIdName.get(pm.getToNetboxid()) );
