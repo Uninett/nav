@@ -1,0 +1,286 @@
+package no.ntnu.nav.getDeviceData.dataplugins.Swport;
+
+/**
+ * Store Swport data
+ */
+
+import java.util.*;
+import java.sql.*;
+
+import no.ntnu.nav.logger.*;
+import no.ntnu.nav.Database.*;
+import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.deviceplugins.Netbox;
+
+public class SwportHandler implements DataHandler {
+
+	private static final boolean DB_UPDATE = true;
+	private static final boolean DB_COMMIT = true;
+
+	private static Map deviceMap;
+	private static Map moduleMap;
+	
+
+	/**
+	 * Do init. Usually used for fetching initial data from the database and
+	 * store it in the given persistent storage object.
+	 */
+	public synchronized void init(Map persistentStorage) {
+		if (persistentStorage.containsKey("initDone")) return;
+		persistentStorage.put("initDone", null);
+
+		Map m;
+		ResultSet rs;
+		long dumpBeginTime,dumpUsedTime;
+
+		Log.setDefaultSubsystem("SwportHandler");
+
+		try {
+		
+			// device
+			dumpBeginTime = System.currentTimeMillis();
+			m  = Collections.synchronizedMap(new HashMap());
+			rs = Database.query("SELECT deviceid,serial FROM device");
+			while (rs.next()) {
+				m.put(rs.getString("serial"), rs.getString("deviceid"));
+			}
+			deviceMap = m;
+			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
+			Log.d("INIT", "Dumped device in " + dumpUsedTime + " ms");
+
+			// module, swport
+			dumpBeginTime = System.currentTimeMillis();
+			m = Collections.synchronizedMap(new HashMap());
+			rs = Database.query("SELECT deviceid,serial,hw_ver,sw_ver,moduleid,module,netboxid,submodule,up,swport.swportid,port,ifindex,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM device JOIN module USING (deviceid) LEFT JOIN swport USING (moduleid) LEFT JOIN swportallowedvlan USING (swportid) LEFT JOIN swportvlan ON (trunk='f' AND swport.swportid=swportvlan.swportid) ORDER BY moduleid");
+			while (rs.next()) {
+				Module md = new Module(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				md.setDeviceid(rs.getInt("deviceid"));
+				md.setModuleid(rs.getInt("moduleid"));
+				md.setSubmodule(rs.getString("submodule"));
+
+				int moduleid = rs.getInt("moduleid");
+				if (rs.getString("port") != null && rs.getString("port").length() > 0) {
+					do {
+						Swport sd = new Swport(new Integer(rs.getInt("port")), rs.getString("ifindex"), rs.getString("link").charAt(0), rs.getString("speed"), rs.getString("duplex").charAt(0), rs.getString("media"), rs.getBoolean("trunk"), rs.getString("portname"));
+						sd.setSwportid(rs.getInt("swportid"));
+						sd.setVlan(rs.getInt("vlan") == 0 ? Integer.MIN_VALUE : rs.getInt("vlan"));
+						sd.setHexstring(rs.getString("hexstring"));
+						md.addSwport(sd);
+					} while (rs.next() && rs.getInt("moduleid") == moduleid);
+					rs.previous();
+				}
+
+				String key = rs.getString("netboxid")+":"+md.getKey();
+				m.put(key, md);
+			}
+			moduleMap = m;
+			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
+			Log.d("INIT", "Dumped swport in " + dumpUsedTime + " ms");
+
+		} catch (SQLException e) {
+			Log.e("INIT", "SQLException: " + e.getMessage());
+		}
+
+	}
+
+	/**
+	 * Return a DataContainer object used to return data to this
+	 * DataHandler.
+	 */
+	public DataContainer dataContainerFactory() {
+		return new SwportContainer(this);
+	}
+	
+	/**
+	 * Store the data in the DataContainer in the database.
+	 */
+	public void handleData(Netbox nb, DataContainer dc) {
+		if (!(dc instanceof SwportContainer)) return;
+		SwportContainer sc = (SwportContainer)dc;
+
+		Log.setDefaultSubsystem("SwportHandler");
+
+		try {
+
+			Iterator modules = sc.getModules();
+			// Process returned swports
+			//outld("T"+id+":   DeviceHandler["+dhNum+"] returned MoudleDataList, modules found: : " + moduleDataList.size());
+
+			while (modules.hasNext()) {
+				Module md = (Module)modules.next();
+
+				// Er dette serienummeret i device-tabellen?
+				String deviceid = (String)deviceMap.get(md.getSerial());
+				boolean insertedDevice = false;
+				if (deviceid == null) {
+					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
+					// Først oppretter vi device
+					Log.i("NEW_DEVICE", "New device with serial: " + md.getSerial());
+
+					ResultSet rs = Database.query("SELECT nextval('device_deviceid_seq') AS deviceid");
+					rs.next();
+					deviceid = rs.getString("deviceid");
+
+					String[] insd = {
+						"deviceid", deviceid,
+						"serial", md.getSerial(),
+						"hw_ver", md.getHwVer(),
+						"sw_ver", md.getSwVer()
+					};
+					if (DB_UPDATE) Database.insert("device", insd);
+					insertedDevice = true;
+					deviceMap.put(md.getSerial(), deviceid);
+				}
+				md.setDeviceid(deviceid);
+
+				// OK, først sjekk om denne porten er i swport fra før
+				String moduleKey = nb.getNetboxid()+":"+md.getKey();
+				String moduleid;
+				Module oldmd = (Module)moduleMap.get(moduleKey);
+				moduleMap.put(moduleKey, md);
+
+				if (oldmd == null) {
+					// Sett inn i module
+					Log.i("NEW_MODULE", "New module: " + md.getModule());
+
+					ResultSet rs = Database.query("SELECT nextval('module_moduleid_seq') AS moduleid");
+					rs.next();
+					moduleid = rs.getString("moduleid");
+
+					String[] insm = {
+						"moduleid", moduleid,
+						"deviceid", deviceid,
+						"netboxid", nb.getNetboxid(),
+						"module", md.getModule(),
+						"submodule", md.getSubmodule()
+					};
+					if (DB_UPDATE) Database.insert("module", insm);
+
+				} else {
+					moduleid = oldmd.getModuleidS();
+					if (!oldmd.equals(md)) {
+						// Vi må oppdatere module
+						Log.i("UPDATE_MODULE", "Update moduleid: " + moduleid + " deviceid="+deviceid+" module="+md.getModule());
+
+						String[] set = {
+							"deviceid", deviceid,
+							"module", md.getModule(),
+							"submodule", md.getSubmodule()
+						};
+						String[] where = {
+							"moduleid", moduleid
+						};
+						if (DB_UPDATE) Database.update("module", set, where);
+					}
+				}
+				md.setModuleid(moduleid);
+
+				if (!insertedDevice && (oldmd == null || !oldmd.equalsDevice(md))) {
+					// Oppdater device
+					Log.i("UPDATE_DEVICE", "Update deviceid: " + deviceid + " hw_ver="+md.getHwVer()+" sw_ver="+md.getSwVer());
+
+					String[] set = {
+						"hw_ver", md.getHwVer(),
+						"sw_ver", md.getSwVer()
+					};
+					String[] where = {
+						"deviceid", deviceid
+					};
+					if (DB_UPDATE) Database.update("device", set, where);
+				}
+
+				//outld("T"+id+":   DeviceHandler["+dhNum+"] returned Module["+i+"], swports new: " + md.getSwportCount() + (oldmd==null?" (no old)":" old: " + oldmd.getSwportCount()) );
+
+				// Så alle swportene
+				for (Iterator j = md.getSwports(); j.hasNext();) {
+					Swport sd = (Swport)j.next();
+
+					// Finn evt. gammel
+					String swportid;
+					Swport oldsd = (oldmd == null) ? null : oldmd.getSwport(sd.getPort());
+					if (oldsd == null) {
+						// Sett inn ny
+						Log.i("NEW_SWPORT", "New swport: " + sd.getPort());
+
+						ResultSet rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
+						rs.next();
+						swportid = rs.getString("swportid");
+
+						String[] inss = {
+							"swportid", swportid,
+							"moduleid", moduleid,
+							"port", sd.getPort().toString(),
+							"ifindex", sd.getIfindex(),
+							"link", String.valueOf(sd.getLink()),
+							"speed", sd.getSpeed(),
+							"duplex", sd.getDuplexS(),
+							"media", Database.addSlashes(sd.getMedia()),
+							"trunk", sd.getTrunkS(),
+							"portname", Database.addSlashes(sd.getPortname())
+						};
+						if (DB_UPDATE) Database.insert("swport", inss);
+
+					} else {
+						swportid = oldsd.getSwportidS();
+						if (!oldsd.equals(sd)) {
+							// Vi må oppdatere
+							Log.i("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
+							String[] set = {
+								"ifindex", sd.getIfindex(),
+								"link", String.valueOf(sd.getLink()),
+								"speed", sd.getSpeed(),
+								"duplex", sd.getDuplexS(),
+								"media", Database.addSlashes(sd.getMedia()),
+								"trunk", sd.getTrunkS(),
+								"portname", Database.addSlashes(sd.getPortname())
+							};
+							String[] where = {
+								"swportid", swportid
+							};
+							Database.update("swport", set, where);
+						}
+					}
+					sd.setSwportid(swportid);
+
+					if (!sd.getTrunk()) {
+						if (oldsd != null && oldsd.getTrunk()) {
+							// Går fra trunk -> non-trunk, slett alle så nær som et vlan fra swportvlan
+							Database.update("DELETE FROM swportvlan WHERE swportid="+sd.getSwportid()+" AND vlan!=(SELCT MIN(vlan) FROM swportvlan WHERE swportid="+sd.getSwportid()+" GROUP BY swportid)");
+						}
+
+						// Også oppdater swportvlan
+						if (oldsd == null || oldsd.getVlan() == Integer.MIN_VALUE) {
+							if (sd.getVlan() <= 0) sd.setVlan(1);
+							Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+sd.getSwportid()+"','"+sd.getVlan()+"')");
+						} else if (sd.getVlan() > 0 && oldsd.getVlan() != sd.getVlan()) {
+							Database.update("UPDATE swportvlan SET vlan = '"+sd.getVlan()+"' WHERE swportid = '"+sd.getSwportid()+"'");
+						}
+
+						// Slett evt. fra swportallowedvlan
+						if (oldsd != null && oldsd.getHexstring().length() > 0) {
+							Database.update("DELETE FROM swportallowedvlan WHERE swportid='"+sd.getSwportid()+"'");
+						}
+
+					} else {
+						// Trunk, da må vi evt. oppdatere swportallowedvlan
+						if (sd.getHexstring().length() > 0) {
+							if (oldsd == null || oldsd.getHexstring().length() == 0) {
+								Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+sd.getHexstring()+"')");
+							} else if (!oldsd.getHexstring().equals(sd.getHexstring())) {
+								Database.update("UPDATE swportallowedvlan SET hexstring = '"+sd.getHexstring()+"' WHERE swportid = '"+sd.getSwportid()+"'");
+							}
+						}
+					}
+
+				}
+
+				if (DB_COMMIT) Database.commit(); else Database.rollback();
+
+			}
+
+		} catch (SQLException e) {
+			Log.e("HANDLE", e.getMessage());
+		}
+	}
+
+}
