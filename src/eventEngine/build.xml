@@ -28,6 +28,8 @@
     <ant inheritAll="false" dir="handler-plugins/Info"/>
     <ant inheritAll="false" dir="handler-plugins/BoxState"/>
     <ant inheritAll="false" dir="handler-plugins/ServiceState"/>
+    <ant inheritAll="false" dir="handler-plugins/MaintenanceState"/>
+    <ant inheritAll="false" dir="handler-plugins/ThresholdState"/>
     <ant inheritAll="false" dir="handler-plugins/DeviceTracker"/>
   </target>
 
@@ -83,6 +85,8 @@
     <ant inheritAll="false" dir="device-plugins/Netel" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/Info" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/BoxState" target="clean"/>
+    <ant inheritAll="false" dir="handler-plugins/MaintenanceState" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/ServiceState" target="clean"/>
+    <ant inheritAll="false" dir="handler-plugins/ThresholdState" target="clean"/>
   </target>
 </project>
