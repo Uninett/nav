@@ -511,6 +511,8 @@ CREATE VIEW prefix_max_ip_cnt AS
 CREATE TABLE vp_netbox_grp_info (
   vp_netbox_grp_infoid SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,
+  hideicons BOOL NOT NULL DEFAULT false,
+  iconname VARCHAR,
   x INT4 NOT NULL DEFAULT '0',
   y INT4 NOT NULL DEFAULT '0'
 );
