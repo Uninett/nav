@@ -51,7 +51,12 @@ import getopt
 try:
     from startstop import *
 except ImportError:
-    from nav.startstop import *
+    try:
+        from nav.startstop import *
+    except ImportError:
+        print >> sys.stderr, """Fatal error: Could not find the nav.startstop module.
+Is your PYTHONPATH environment correctly set up?"""
+        sys.exit(1)
 
 try:
     services = ServiceRegistry()
