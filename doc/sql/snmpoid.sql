@@ -574,6 +574,10 @@ DELETE FROM snmpoid WHERE oidkey='sysUpTime';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('sysUpTime','1.3.6.1.2.1.1.3.0','','mib-II','0',NULL,'0','sysUpTime','SNMPv2-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='sysDescr';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('sysDescr','1.3.6.1.2.1.1.1.0','','mib-II','0',NULL,'0','sysDescr','SNMPv2-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='tempInlet';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('tempInlet','1.3.6.1.4.1.9.9.13.1.3.1.3.1','','Cricket','0',NULL,'0','ciscoEnvMonTemperatureStatusValue','CISCO-ENVMON-MIB');
