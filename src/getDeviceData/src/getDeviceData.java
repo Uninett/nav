@@ -713,141 +713,40 @@ class QueryBoks extends Thread
 			int newcnt=0,updcnt=0,remcnt=0;
 			try {
 
-				// Find a handler for this boks
-				DeviceHandler deviceHandler = findHandler(bd);
+				// Find handlers for this boks
+				DeviceHandler[] deviceHandler = findHandlers(bd);
 				if (deviceHandler == null) {
-					throw new NoDeviceHandlerException("T"+id+":   No device handler found boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
+					throw new NoDeviceHandlerException("T"+id+":   No device handlers found boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
 				}
-				outld("T"+id+":   Found deviceHandler for boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
+				outld("T"+id+":   Found " + deviceHandler.length + " deviceHandlers for boksid: " + boksid + " (kat: " + kat + " type: " + boksType + ")");
 
-				DeviceDataListImpl dlist = new DeviceDataListImpl();
-				deviceHandler.handle(bd, sSnmp, navCp, dlist);
-				List swportDataList = dlist.getSwportDataList();
+				for (int dhNum=0; dhNum < deviceHandler.length; dhNum++) {
 
-				//if (!sSnmp.resetGotTimeout() && !portDataList.isEmpty()) synchronized (safeCloseBoksid) { safeCloseBoksid.add(boksid); }
+					DeviceDataListImpl dlist = new DeviceDataListImpl();
+					deviceHandler[dhNum].handle(bd, sSnmp, navCp, dlist);
+					List swportDataList = dlist.getSwportDataList();
 
-				// Process returned swports
-				outld("T"+id+":   DeviceHandler returned SwportDataList, ports found: : " + swportDataList.size());
+					//if (!sSnmp.resetGotTimeout() && !portDataList.isEmpty()) synchronized (safeCloseBoksid) { safeCloseBoksid.add(boksid); }
 
-				boolean DB_UPDATE_BK = DB_UPDATE;
-				boolean DB_COMMIT_BK = DB_COMMIT;
-				DB_UPDATE = false;
-				DB_COMMIT = false;
-				Collections.sort(swportDataList); // Egentlig unødvendig, men kjekt å ha det ferdig sortert i databasen
-				for (int i=0; i < swportDataList.size(); i++) {
-					SwportData pd = (SwportData)swportDataList.get(i);
+					// Process returned swports
+					outld("T"+id+":   DeviceHandler["+dhNum+"] returned SwportDataList, ports found: : " + swportDataList.size());
 
-					// OK, først sjekk om denne porten er i swport fra før
-					String key = boksid+":"+pd.getModul()+":"+pd.getPort();
-					String swportid = (String)swportMap.remove(key);
+					boolean DB_UPDATE_BK = DB_UPDATE;
+					boolean DB_COMMIT_BK = DB_COMMIT;
+					DB_UPDATE = false;
+					DB_COMMIT = false;
+					Collections.sort(swportDataList); // Egentlig unødvendig, men kjekt å ha det ferdig sortert i databasen
+					for (int i=0; i < swportDataList.size(); i++) {
+						SwportData pd = (SwportData)swportDataList.get(i);
 
-					if (swportid == null) {
-						// Ikke fra før, vi må sette inn
-						outl("  [NEW] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
-						String[] insertFields = {
-							"boksid", boksid,
-							"ifindex", pd.getIfindex(),
-							"modul", pd.getModul(),
-							"port", pd.getPort(),
-							"status", pd.getStatus(),
-							"speed", pd.getSpeed(),
-							"duplex", pd.getDuplex(),
-							"media", pd.getMedia(),
-							"trunk", pd.getTrunkS(),
-							"portnavn", Database.addSlashes(pd.getPortnavn())
-						};
-						if (DB_UPDATE) {
-							if (pd.getVlan() == 0) pd.setVlan(1);
+						// OK, først sjekk om denne porten er i swport fra før
+						String key = boksid+":"+pd.getModul()+":"+pd.getPort();
+						String swportid = (String)swportMap.remove(key);
 
-							String sql = "INSERT INTO swportvlan (swportid,vlan) VALUES ((SELECT swportid FROM swport WHERE boksid='"+boksid+"' AND ifindex='"+pd.getIfindex()+"'),'"+pd.getVlan()+"')";
-							try {
-								newcnt += Database.insert("swport", insertFields);
-
-								if (!pd.getTrunk()) {
-									// Sett inn i swportvlan også
-									Database.update(sql);
-								}
-
-								if (DEBUG_OUT) outl("Inserted row: " + pd);
-								if (DB_COMMIT) Database.commit(); else Database.rollback();
-							} catch (SQLException e) {
-								outle("  SQLException in QueryBoks.run(): Cannot insert new record into swport/swportvlan: " + e.getMessage());
-								outle("  SQL: " + sql);
-							}
-						}
-
-					} else {
-						// Eksisterer fra før, da skal vi evt. oppdatere hvis nødvendig
-						boolean needUpdate = true;
-						HashMap hm;
-						synchronized (swportDataMap) {
-							// Ta saken ut fra listen, skal ikke slettes
-							hm = (HashMap)swportDataMap.remove(swportid);
-						}
-						if (hm == null) {
-							outle("  Error in QueryBoks.run(): Should not happen, swportDataMap not found for swportid: " + swportid);
-							continue;
-						}
-
-						/*
-						String[] tt = {
-							"boksid",
-							"ifindex",
-							"modul",
-							"port",
-							"status",
-							"speed",
-							"duplex",
-							"media",
-							"trunk",
-							"portnavn"
-						};
-						for (int j=0;j<tt.length; j++) {
-							if (!hm.containsKey(tt[j]) || hm.get(tt[j]) == null) {
-								outle("tt: " + tt[j] + " key: " + hm.containsKey(tt[j]) + " val: " + hm.get(tt[j]));
-								outle(pd);
-							}
-						}
-						*/
-
-						//outle("boksid: " + hm.containsKey("boksid") + " val: " + hm.get("boksid") );
-						//outle("ifindex: " + hm.containsKey("ifindex") + " val: "+ hm.get("ifindex") );
-						//outle("modul: " + hm.containsKey("modul") + " val: "+ hm.get("modul") );
-
-						//System.err.println("swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
-
-						// Må ikke være null på grunn av sjekkingen her
-						if (hm.get("vlan") == null) hm.put("vlan", "");
-						if (hm.get("hexstring") == null) hm.put("hexstring", "");
-						String hexstring = pd.getVlanAllowHexString();
-
-						// Hvis vlan=0 skal vi ikke endre
-						if (pd.getVlan() == 0) {
-							if (!hm.get("vlan").equals("")) pd.setVlan(Integer.parseInt((String)hm.get("vlan")));
-							else pd.setVlan(1);
-						}
-
-						// FIXME: Meget sært spesialtilfelle for 3Com 9300 der vi ikke endrer trunk automatisk
-						if (boksTypegruppe.equals("3ss9300")) pd.setTrunk(hm.get("trunk").equals("t"));
-
-						if (hm.get("boksid").equals(boksid) &&
-							hm.get("ifindex").equals(pd.getIfindex() ) &&
-							hm.get("modul").equals(pd.getModul() ) &&
-							hm.get("port").equals(pd.getPort() ) &&
-							hm.get("status").equals(pd.getStatus() ) &&
-							hm.get("speed").equals(pd.getSpeed() ) &&
-							hm.get("duplex").equals(pd.getDuplex() ) &&
-							hm.get("media").equals(pd.getMedia() ) &&
-							hm.get("trunk").equals(pd.getTrunkS() ) &&
-							hm.get("portnavn").equals(pd.getPortnavn() ) &&
-							hm.get("vlan").equals(String.valueOf(pd.getVlan()) ) &&
-							hm.get("hexstring").equals(hexstring) ) {
-
-							needUpdate = false;
-						}
-						if (needUpdate) {
-							outl("  [UPD] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
-							String[] updateFields = {
+						if (swportid == null) {
+							// Ikke fra før, vi må sette inn
+							outl("  [NEW] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
+							String[] insertFields = {
 								"boksid", boksid,
 								"ifindex", pd.getIfindex(),
 								"modul", pd.getModul(),
@@ -859,211 +758,310 @@ class QueryBoks extends Thread
 								"trunk", pd.getTrunkS(),
 								"portnavn", Database.addSlashes(pd.getPortnavn())
 							};
-							String[] condFields = {
-								"swportid", swportid
-							};
 							if (DB_UPDATE) {
+								if (pd.getVlan() == 0) pd.setVlan(1);
+
+								String sql = "INSERT INTO swportvlan (swportid,vlan) VALUES ((SELECT swportid FROM swport WHERE boksid='"+boksid+"' AND ifindex='"+pd.getIfindex()+"'),'"+pd.getVlan()+"')";
 								try {
-									updcnt += Database.update("swport", updateFields, condFields);
+									newcnt += Database.insert("swport", insertFields);
 
 									if (!pd.getTrunk()) {
-										// Også oppdater swportvlan
-										if (((String)hm.get("vlan")).length() == 0) {
-											// Må sette inn ny record
-											//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-											Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-										} else {
-											//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-											Database.update("UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-										}
-									} else {
-										// Trunk, da må vi evt. oppdatere swportallowedvlan
-										if (hexstring.length() > 0) {
-											if (((String)hm.get("hexstring")).length() == 0) {
-												// Må sette inn ny record
-												//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
-												Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+swportid+"','"+hexstring+"')");
-											} else {
-												//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
-												Database.update("UPDATE swportallowedvlan SET hexstring = '"+hexstring+"' WHERE swportid = '"+swportid+"'");
-											}
-										}
+										// Sett inn i swportvlan også
+										Database.update(sql);
 									}
 
-									if (DEBUG_OUT) outl("Updated row: " + pd);
+									if (DEBUG_OUT) outl("Inserted row: " + pd);
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
 								} catch (SQLException e) {
-									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update record from swport: " + e.getMessage());
-									//outle("T"+id+":     swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
+									outle("  SQLException in QueryBoks.run(): Cannot insert new record into swport/swportvlan: " + e.getMessage());
+									outle("  SQL: " + sql);
 								}
 							}
+
 						} else {
-							outl("  [DUP] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
-						}
-					}
-				}
-				if (DB_UPDATE_BK) DB_UPDATE = true;
-				if (DB_COMMIT_BK) DB_COMMIT = true;
-
-				// Process boks properties
-				DeviceData dd = dlist.getDeviceData();
-
-				// Sysname
-				if (dd != null) {
-					String sysname = dd.getSysname();
-					if (sysname != null && sysname.length() > 0 && !sysname.equals(bd.getSysname())) {
-						// Oppdater
-						try {
-							if (DB_UPDATE) Database.update("UPDATE boks SET sysname='"+Database.addSlashes(sysname)+"' WHERE boksid='"+bd.getBoksid()+"'");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-							if (DB_UPDATE && DB_COMMIT) bd.setSysname(sysname);
-						} catch (SQLException e) {
-							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update sysname for boksid " + bd.getBoksid() + " to " + Database.addSlashes(sysname) + ": " + e.getMessage());
-						}
-					}
-				}
-
-				// Snmpagent
-				if (dd != null) {
-					String snmpagent = dd.getSnmpagent();
-					if (snmpagent != null && snmpagent.length() > 0 && !snmpagent.equals(bd.getSnmpagent())) {
-						// Oppdater
-						try {
-							if (DB_UPDATE) Database.update("UPDATE boks SET snmpagent='"+Database.addSlashes(snmpagent)+"' WHERE boksid='"+bd.getBoksid()+"'");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-							if (DB_UPDATE && DB_COMMIT) bd.setSnmpagent(snmpagent);
-						} catch (SQLException e) {
-							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
-						}
-					}
-				}
-
-				// boksdisk
-				if (dd != null && dd.getBoksDiskUpdated()) {
-					List l = dd.getBoksDisk();
-					HashMap boksDisk;
-					synchronized (boksDiskMap) {
-						boksDisk = (HashMap)boksDiskMap.get(bd.getBoksid());
-						if (boksDisk == null) boksDiskMap.put(bd.getBoksid(), boksDisk = new HashMap());
-					}
-					HashMap boksDiskClone = (HashMap)boksDisk.clone();
-
-					// Iterate over the list and add/update as needed
-					for (Iterator i = l.iterator(); i.hasNext();) {
-						String[] vals = (String[])i.next();
-						String path = vals[0].trim();
-						String blocksize = vals[1];
-						if (!boksDisk.containsKey(path)) {
-							// Insert new
-							try {
-								String[] ins = {
-									"boksid", boksid,
-									"path", Database.addSlashes(path),
-									"blocksize", blocksize
-								};
-								if (DB_UPDATE) Database.insert("boksdisk", ins);
-								if (DB_COMMIT) Database.commit(); else Database.rollback();
-								if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
-							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+							// Eksisterer fra før, da skal vi evt. oppdatere hvis nødvendig
+							boolean needUpdate = true;
+							HashMap hm;
+							synchronized (swportDataMap) {
+								// Ta saken ut fra listen, skal ikke slettes
+								hm = (HashMap)swportDataMap.remove(swportid);
 							}
-						} else {
-							boksDiskClone.remove(path);
+							if (hm == null) {
+								outle("  Error in QueryBoks.run(): Should not happen, swportDataMap not found for swportid: " + swportid);
+								continue;
+							}
 
-							// Check if values (blocksize) have changed
-							String[] dbVals = (String[])boksDisk.get(path);
-							String dbBlocksize = dbVals[0];
-							if (!dbBlocksize.equals(blocksize)) {
+							/*
+							String[] tt = {
+								"boksid",
+								"ifindex",
+								"modul",
+								"port",
+								"status",
+								"speed",
+								"duplex",
+								"media",
+								"trunk",
+								"portnavn"
+							};
+							for (int j=0;j<tt.length; j++) {
+								if (!hm.containsKey(tt[j]) || hm.get(tt[j]) == null) {
+									outle("tt: " + tt[j] + " key: " + hm.containsKey(tt[j]) + " val: " + hm.get(tt[j]));
+									outle(pd);
+								}
+							}
+							*/
+
+							//outle("boksid: " + hm.containsKey("boksid") + " val: " + hm.get("boksid") );
+							//outle("ifindex: " + hm.containsKey("ifindex") + " val: "+ hm.get("ifindex") );
+							//outle("modul: " + hm.containsKey("modul") + " val: "+ hm.get("modul") );
+
+							//System.err.println("swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
+
+							// Må ikke være null på grunn av sjekkingen her
+							if (hm.get("vlan") == null) hm.put("vlan", "");
+							if (hm.get("hexstring") == null) hm.put("hexstring", "");
+							String hexstring = pd.getVlanAllowHexString();
+
+							// Hvis vlan=0 skal vi ikke endre
+							if (pd.getVlan() == 0) {
+								if (!hm.get("vlan").equals("")) pd.setVlan(Integer.parseInt((String)hm.get("vlan")));
+								else pd.setVlan(1);
+							}
+
+							// FIXME: Meget sært spesialtilfelle for 3Com 9300 der vi ikke endrer trunk automatisk
+							if (boksTypegruppe.equals("3ss9300")) pd.setTrunk(hm.get("trunk").equals("t"));
+
+							if (hm.get("boksid").equals(boksid) &&
+								hm.get("ifindex").equals(pd.getIfindex() ) &&
+								hm.get("modul").equals(pd.getModul() ) &&
+								hm.get("port").equals(pd.getPort() ) &&
+								hm.get("status").equals(pd.getStatus() ) &&
+								hm.get("speed").equals(pd.getSpeed() ) &&
+								hm.get("duplex").equals(pd.getDuplex() ) &&
+								hm.get("media").equals(pd.getMedia() ) &&
+								hm.get("trunk").equals(pd.getTrunkS() ) &&
+								hm.get("portnavn").equals(pd.getPortnavn() ) &&
+								hm.get("vlan").equals(String.valueOf(pd.getVlan()) ) &&
+								hm.get("hexstring").equals(hexstring) ) {
+
+								needUpdate = false;
+							}
+							if (needUpdate) {
+								outl("  [UPD] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
+								String[] updateFields = {
+									"boksid", boksid,
+									"ifindex", pd.getIfindex(),
+									"modul", pd.getModul(),
+									"port", pd.getPort(),
+									"status", pd.getStatus(),
+									"speed", pd.getSpeed(),
+									"duplex", pd.getDuplex(),
+									"media", pd.getMedia(),
+									"trunk", pd.getTrunkS(),
+									"portnavn", Database.addSlashes(pd.getPortnavn())
+								};
+								String[] condFields = {
+									"swportid", swportid
+								};
+								if (DB_UPDATE) {
+									try {
+										updcnt += Database.update("swport", updateFields, condFields);
+
+										if (!pd.getTrunk()) {
+											// Også oppdater swportvlan
+											if (((String)hm.get("vlan")).length() == 0) {
+												// Må sette inn ny record
+												//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
+												Database.update("INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
+											} else {
+												//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
+												Database.update("UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
+											}
+										} else {
+											// Trunk, da må vi evt. oppdatere swportallowedvlan
+											if (hexstring.length() > 0) {
+												if (((String)hm.get("hexstring")).length() == 0) {
+													// Må sette inn ny record
+													//outle("T"+id+":   "+ "INSERT INTO swportvlan (swportid,vlan) VALUES ('"+swportid+"','"+pd.getVlan()+"')");
+													Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+swportid+"','"+hexstring+"')");
+												} else {
+													//outle("T"+id+":   "+ "UPDATE swportvlan SET vlan = '"+pd.getVlan()+"' WHERE swportid = '"+swportid+"'");
+													Database.update("UPDATE swportallowedvlan SET hexstring = '"+hexstring+"' WHERE swportid = '"+swportid+"'");
+												}
+											}
+										}
+
+										if (DEBUG_OUT) outl("Updated row: " + pd);
+										if (DB_COMMIT) Database.commit(); else Database.rollback();
+									} catch (SQLException e) {
+										outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update record from swport: " + e.getMessage());
+										//outle("T"+id+":     swportid: " + swportid + " oldVlan: " + hm.get("vlan") + " newVlan: " + pd.getVlan());
+									}
+								}
+							} else {
+								outl("  [DUP] portData("+boksid+"): ifindex: " + pd.getIfindex() + " Modul: " + pd.getModulS() + " Port: " + pd.getPortS() + " Status: " + pd.getStatus() + " Speed: " + pd.getSpeed() + " Duplex: " + pd.getDuplex() + " Media: " + pd.getMedia() );
+							}
+						}
+					}
+					if (DB_UPDATE_BK) DB_UPDATE = true;
+					if (DB_COMMIT_BK) DB_COMMIT = true;
+
+					// Process boks properties
+					DeviceData dd = dlist.getDeviceData();
+
+					// Sysname
+					if (dd != null) {
+						String sysname = dd.getSysname();
+						if (sysname != null && sysname.length() > 0 && !sysname.equals(bd.getSysname())) {
+							// Oppdater
+							try {
+								if (DB_UPDATE) Database.update("UPDATE boks SET sysname='"+Database.addSlashes(sysname)+"' WHERE boksid='"+bd.getBoksid()+"'");
+								if (DB_COMMIT) Database.commit(); else Database.rollback();
+								if (DB_UPDATE && DB_COMMIT) bd.setSysname(sysname);
+							} catch (SQLException e) {
+								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update sysname for boksid " + bd.getBoksid() + " to " + Database.addSlashes(sysname) + ": " + e.getMessage());
+							}
+						}
+					}
+
+					// Snmpagent
+					if (dd != null) {
+						String snmpagent = dd.getSnmpagent();
+						if (snmpagent != null && snmpagent.length() > 0 && !snmpagent.equals(bd.getSnmpagent())) {
+							// Oppdater
+							try {
+								if (DB_UPDATE) Database.update("UPDATE boks SET snmpagent='"+Database.addSlashes(snmpagent)+"' WHERE boksid='"+bd.getBoksid()+"'");
+								if (DB_COMMIT) Database.commit(); else Database.rollback();
+								if (DB_UPDATE && DB_COMMIT) bd.setSnmpagent(snmpagent);
+							} catch (SQLException e) {
+								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update snmpagent for boksid " + bd.getBoksid() + " to " + Database.addSlashes(snmpagent) + ": " + e.getMessage());
+							}
+						}
+					}
+
+					// boksdisk
+					if (dd != null && dd.getBoksDiskUpdated()) {
+						List l = dd.getBoksDisk();
+						HashMap boksDisk;
+						synchronized (boksDiskMap) {
+							boksDisk = (HashMap)boksDiskMap.get(bd.getBoksid());
+							if (boksDisk == null) boksDiskMap.put(bd.getBoksid(), boksDisk = new HashMap());
+						}
+						HashMap boksDiskClone = (HashMap)boksDisk.clone();
+
+						// Iterate over the list and add/update as needed
+						for (Iterator i = l.iterator(); i.hasNext();) {
+							String[] vals = (String[])i.next();
+							String path = vals[0].trim();
+							String blocksize = vals[1];
+							if (!boksDisk.containsKey(path)) {
+								// Insert new
 								try {
-									String[] cnd = {
+									String[] ins = {
 										"boksid", boksid,
-										"path", Database.addSlashes(path)
-									};
-									String[] upd = {
+										"path", Database.addSlashes(path),
 										"blocksize", blocksize
 									};
-									if (DB_UPDATE) Database.update("boksdisk", upd, cnd);
+									if (DB_UPDATE) Database.insert("boksdisk", ins);
 									if (DB_COMMIT) Database.commit(); else Database.rollback();
 									if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
 								} catch (SQLException e) {
-									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
+									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new path " + path + ", blocksize: " + blocksize + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								}
+							} else {
+								boksDiskClone.remove(path);
+
+								// Check if values (blocksize) have changed
+								String[] dbVals = (String[])boksDisk.get(path);
+								String dbBlocksize = dbVals[0];
+								if (!dbBlocksize.equals(blocksize)) {
+									try {
+										String[] cnd = {
+											"boksid", boksid,
+											"path", Database.addSlashes(path)
+										};
+										String[] upd = {
+											"blocksize", blocksize
+										};
+										if (DB_UPDATE) Database.update("boksdisk", upd, cnd);
+										if (DB_COMMIT) Database.commit(); else Database.rollback();
+										if (DB_UPDATE && DB_COMMIT) boksDisk.put(path, new String[] { blocksize } );
+									} catch (SQLException e) {
+										outle("T"+id+":   SQLException in QueryBoks.run(): Cannot update for boksid " + bd.getBoksid() + ", path " + path + " values blocksize: " + blocksize + ": " + e.getMessage());
+									}
 								}
 							}
+
 						}
 
-					}
-
-					// Remove any remaining paths
-					StringBuffer sb = new StringBuffer();
-					for (Iterator i = boksDiskClone.keySet().iterator(); i.hasNext();) {
-						String path = (String)i.next();
-						sb.append(",'"+Database.addSlashes(path)+"'");
-						if (DB_UPDATE && DB_COMMIT) boksDisk.remove(path);
-					}
-					if (sb.length() > 0) {
-						sb.deleteCharAt(0);
-						try {
-							if (DB_UPDATE) Database.update("DELETE FROM boksdisk WHERE boksid='"+bd.getBoksid()+"' AND path IN ("+sb+")");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-						} catch (SQLException e) {
-							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove paths " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+						// Remove any remaining paths
+						StringBuffer sb = new StringBuffer();
+						for (Iterator i = boksDiskClone.keySet().iterator(); i.hasNext();) {
+							String path = (String)i.next();
+							sb.append(",'"+Database.addSlashes(path)+"'");
+							if (DB_UPDATE && DB_COMMIT) boksDisk.remove(path);
 						}
-					}
-				}
-
-				// boksinterface
-				if (dd != null && dd.getBoksInterfaceUpdated()) {
-					List l = dd.getBoksInterface();
-					HashSet boksInterface;
-					synchronized (boksInterfaceMap) {
-						boksInterface = (HashSet)boksInterfaceMap.get(bd.getBoksid());
-						if (boksInterface == null) boksInterfaceMap.put(bd.getBoksid(), boksInterface = new HashSet());
-					}
-					HashSet boksInterfaceClone = (HashSet)boksInterface.clone();
-
-					// Iterate over the list and add/update as needed
-					for (Iterator i = l.iterator(); i.hasNext();) {
-						String interf = ((String)i.next()).trim();
-						if (!boksInterface.contains(interf)) {
-							// Insert new
+						if (sb.length() > 0) {
+							sb.deleteCharAt(0);
 							try {
-								String[] ins = {
-									"boksid", boksid,
-									"interf", Database.addSlashes(interf)
-								};
-								if (DB_UPDATE) Database.insert("boksinterface", ins);
+								if (DB_UPDATE) Database.update("DELETE FROM boksdisk WHERE boksid='"+bd.getBoksid()+"' AND path IN ("+sb+")");
 								if (DB_COMMIT) Database.commit(); else Database.rollback();
-								if (DB_UPDATE && DB_COMMIT) boksInterface.add(interf);
 							} catch (SQLException e) {
-								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new interf " + interf + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove paths " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
 							}
-						} else {
-							boksInterfaceClone.remove(interf);
 						}
 					}
 
-					// Remove any remaining paths
-					StringBuffer sb = new StringBuffer();
-					for (Iterator i = boksInterfaceClone.iterator(); i.hasNext();) {
-						String interf = (String)i.next();
-						sb.append(",'"+Database.addSlashes(interf)+"'");
-						if (DB_UPDATE && DB_COMMIT) boksInterface.remove(interf);
-					}
-					if (sb.length() > 0) {
-						sb.deleteCharAt(0);
-						try {
-							if (DB_UPDATE) Database.update("DELETE FROM boksinterface WHERE boksid='"+bd.getBoksid()+"' AND interf IN ("+sb+")");
-							if (DB_COMMIT) Database.commit(); else Database.rollback();
-						} catch (SQLException e) {
-							outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove interfs " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+					// boksinterface
+					if (dd != null && dd.getBoksInterfaceUpdated()) {
+						List l = dd.getBoksInterface();
+						HashSet boksInterface;
+						synchronized (boksInterfaceMap) {
+							boksInterface = (HashSet)boksInterfaceMap.get(bd.getBoksid());
+							if (boksInterface == null) boksInterfaceMap.put(bd.getBoksid(), boksInterface = new HashSet());
+						}
+						HashSet boksInterfaceClone = (HashSet)boksInterface.clone();
+
+						// Iterate over the list and add/update as needed
+						for (Iterator i = l.iterator(); i.hasNext();) {
+							String interf = ((String)i.next()).trim();
+							if (!boksInterface.contains(interf)) {
+								// Insert new
+								try {
+									String[] ins = {
+										"boksid", boksid,
+										"interf", Database.addSlashes(interf)
+									};
+									if (DB_UPDATE) Database.insert("boksinterface", ins);
+									if (DB_COMMIT) Database.commit(); else Database.rollback();
+									if (DB_UPDATE && DB_COMMIT) boksInterface.add(interf);
+								} catch (SQLException e) {
+									outle("T"+id+":   SQLException in QueryBoks.run(): Cannot insert new interf " + interf + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+								}
+							} else {
+								boksInterfaceClone.remove(interf);
+							}
+						}
+
+						// Remove any remaining paths
+						StringBuffer sb = new StringBuffer();
+						for (Iterator i = boksInterfaceClone.iterator(); i.hasNext();) {
+							String interf = (String)i.next();
+							sb.append(",'"+Database.addSlashes(interf)+"'");
+							if (DB_UPDATE && DB_COMMIT) boksInterface.remove(interf);
+						}
+						if (sb.length() > 0) {
+							sb.deleteCharAt(0);
+							try {
+								if (DB_UPDATE) Database.update("DELETE FROM boksinterface WHERE boksid='"+bd.getBoksid()+"' AND interf IN ("+sb+")");
+								if (DB_COMMIT) Database.commit(); else Database.rollback();
+							} catch (SQLException e) {
+								outle("T"+id+":   SQLException in QueryBoks.run(): Cannot remove interfs " + sb + " for boksid " + bd.getBoksid() + ": " + e.getMessage());
+							}
 						}
 					}
 				}
-
-
-
-
-
 
 
 			//} catch (SQLException se) {
@@ -1143,37 +1141,43 @@ class QueryBoks extends Thread
 
 	}
 
-	private DeviceHandler findHandler(BoksData bd)
+	private DeviceHandler[] findHandlers(BoksData bd)
 	{
 		try {
 			synchronized (deviceHandlerBdMap) {
-				Class c;
-				if ( (c=(Class)deviceHandlerBdMap.get(bd.getBoksid() )) != null) return (DeviceHandler)c.newInstance();
+				Class[] c;
+				if ( (c=(Class[])deviceHandlerBdMap.get(bd.getBoksid() )) != null) {
+					DeviceHandler[] dh = new DeviceHandler[c.length];
+					for (int i=0; i < c.length; i++) dh[i] = (DeviceHandler)c[i].newInstance();
+					return dh;
+				}
 			}
 
-			// Iterate over all known plugins to find one that can handle this boks
+			// Iterate over all known plugins to find the set of handlers to process this boks
+			// Look at DeviceHandler for docs on the algorithm for selecting handlers
+			TreeMap dbMap = new TreeMap();
 			synchronized (deviceHandlerMap) {
-				int best=0;
-				Class bestHandlerClass = null;
-				DeviceHandler bestHandler = null;
 
+				int high = 0;
 				for (Iterator it=deviceHandlerMap.values().iterator(); it.hasNext();) {
 					Class c = (Class)it.next();
 					Object o = c.newInstance();
-					if (o instanceof DeviceHandler) {
-						DeviceHandler dh = (DeviceHandler)o;
-						int i;
-						if ( (i=dh.canHandleDevice(bd)) > best) {
-							best = i;
-							bestHandlerClass = c;
-							bestHandler = dh;
-						}
+
+					DeviceHandler dh = (DeviceHandler)o;
+					int v = dh.canHandleDevice(bd);
+					if (Math.abs(v) > high) {
+						if (v > high) high = v;
+						dbMap.put(new Integer(Math.abs(v)), c);
 					}
 				}
 
-				if (best > 0) {
-					synchronized (deviceHandlerBdMap) { deviceHandlerBdMap.put(bd.getBoksid(), bestHandlerClass); }
-					return bestHandler;
+				if (!dbMap.isEmpty()) {
+					SortedMap dbSMap = dbMap.tailMap(new Integer(high));
+					Class[] c = new Class[dbSMap.size()];
+					int j=dbSMap.size()-1;
+					for (Iterator i=dbSMap.values().iterator(); i.hasNext(); j--) c[j] = (Class)i.next();
+					synchronized (deviceHandlerBdMap) { deviceHandlerBdMap.put(bd.getBoksid(), c); }
+					return findHandlers(bd);
 				}
 			}
 		} catch (InstantiationException e) {
