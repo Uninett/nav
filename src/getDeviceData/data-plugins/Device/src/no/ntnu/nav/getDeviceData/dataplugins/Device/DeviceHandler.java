@@ -142,7 +142,7 @@ public class DeviceHandler implements DataHandler {
 						Database.update("device", set, where);
 
 						// Now we need to send events if hw_ver or sw_ver changed
-						if (!dev.getHwVer().equals(olddev.getHwVer())) {
+						if (!equals(dev.getHwVer(), olddev.getHwVer())) {
 							Map varMap = new HashMap();
 							varMap.put("deviceid", String.valueOf(devid));
 							varMap.put("old_hwver", String.valueOf(olddev.getHwVer()));
@@ -150,7 +150,7 @@ public class DeviceHandler implements DataHandler {
 							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "deviceHwUpgrade", Event.STATE_NONE, 0, 0, varMap);
 						}
 						
-						if (!dev.getSwVer().equals(olddev.getSwVer())) {
+						if (!equals(dev.getSwVer(), olddev.getSwVer())) {
 							Map varMap = new HashMap();
 							varMap.put("deviceid", String.valueOf(devid));
 							varMap.put("old_swver", String.valueOf(olddev.getSwVer()));
