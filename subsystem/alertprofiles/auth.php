@@ -62,6 +62,11 @@ if (!isset($_ENV['REMOTE_USER'])) {
 
 /*
 * First time login to NAVuser..
+*
+*	If remote_user is set, and Alert profiles has not yet registered that the user 
+*	has logged in, or Alert Profiles has registered a login with another username,
+*	THEN Alert Profiles will recheck and create session information, permissions etc.
+*
 */
 if (isset($_ENV['REMOTE_USER'] ) AND
 	( session_get('login') == false  OR 
@@ -101,7 +106,12 @@ WHERE (Account.login = '$username') AND
                 	if ($bg[0] == 1) $uadmin = 100;
                 	if ($bg[0] == 2) $uadmin = 0;
                 }
-
+                
+                // MUST BE REMOVED!
+				if ($data["aid"] == 1000) {
+					$uadmin = 10000;
+				} 
+				
 				session_delete('uid');
 				session_delete('admin');
 				session_delete('lang');

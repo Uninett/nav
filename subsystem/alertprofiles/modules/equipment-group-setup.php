@@ -2,8 +2,11 @@
 <tr><td class="mainWindowHead">
 <?php
 echo '<p>' . gettext("Setup equipment group") . '</p>';
+
 if (get_exist('gid')) session_set('grp_gid', get_get('gid'));
+
 $utstginfo = $dbh->utstyrgruppeInfo(session_get('grp_gid') );
+
 echo '<div class="subheader">' . $utstginfo[0] . '</div>';
 
 ?>
@@ -57,8 +60,9 @@ if ($subaction == 'slett') {
 if ($subaction == "nyttfilter") {  
   $error = NULL;
   if (($uid > 0) AND (isset($filterid))){ 
+  	$neg = post_get('neg-check') == 1 ? 0 : 1;
     $matchid = $dbh->nyttGrpFilter(session_get('grp_gid'), post_get('filterid'), 
-    	post_get('inkluder'), post_get('invers') );
+		post_get('inkluder'), $neg );
   } else {
     print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new filter is <b>not</b> added.");
   }
@@ -121,9 +125,11 @@ for ($i = 0; $i < sizeof($filtre); $i++) {
 	}
 	
 	if ($filtre[$i][4] == 't') {
-		$negicon = '<img src="icons/pos.gif" border="0" alt="' . gettext("Normal") . '">';
+		//$negicon = '<img src="icons/pos.gif" border="0" alt="' . gettext("Normal") . '">';
+		$negicon = gettext('&nbsp;');
 	} else {
-		$negicon = '<img src="icons/neg.gif" border="0" alt="' . gettext("Inverted") . '">';
+		//$negicon = '<img src="icons/neg.gif" border="0" alt="' . gettext("Inverted") . '">';
+		$negicon = gettext('<b>NOT</b>');		
 	}
 
   $l->addElement( array($inkicon, // inkluder
@@ -172,17 +178,18 @@ print '</select>';
 <img src="icons/pluss.gif" border="0" alt="Inkluder">
 <input name="inkluder" type="radio" value="1" checked><?php echo gettext("Include"); ?><br>
 <img src="icons/minus.gif" border="0" alt="Ekskluder">
-<input name="inkluder" type="radio" value="0"><?php echo gettext("Exclude"); ?>
+<input name="inkluder" type="radio" value="0"><?php echo gettext("Exclude"); ?> 
 </td>
  
 
 <td align="left" valign="center" width="20%">
-<p>
+<p><!--
 <img src="icons/pos.gif" border="0" alt="Vanlig" vspace="0">
 <input type="radio" name="invers" value="1" checked><?php echo gettext("Normal"); ?><br>
 
 <img src="icons/neg.gif" border="0" alt="Invers">
-<input type="radio" name="invers" value="0"><?php echo gettext("Inverted"); ?>
+<input type="radio" name="invers" value="0"><?php echo gettext("Inverted"); ?>-->
+<input name="neg-check" value="1" type="checkbox"><?php echo gettext('Invert filter'); ?>
 </td>
 </tr>
         

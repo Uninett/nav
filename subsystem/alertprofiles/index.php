@@ -10,8 +10,11 @@
 // Report all errors except E_NOTICE
 error_reporting (E_ALL ^ E_NOTICE);
 
-require("session.php");
+	require("config.php");
 require("databaseHandler.php");
+require("session.php");
+
+
 require("dbinit.php");
 require("leading_zero.function.php");
 
@@ -73,7 +76,10 @@ preg_match("/%%%(.*?)<\/body>/", $pyhtml, $footer);
 echo $header[1];
 
 ?>
-<!-- INCLUDE HEADER -->
+<!-- /INCLUDE HEADER -->
+
+
+
 
 <table width="100%">
 <tr><td valign="top" width="20%">
@@ -81,13 +87,17 @@ echo $header[1];
 <?php
 
 /*
+	******************
+	DEGBUGGING Session
+
 print "<p>bruker:" . session_get('bruker');
 print "<br>admin:" . session_get('admin');
 print "<br>uid:" . session_get('uid');
 print "<br>login:" . session_get('login');
 print "<br>visoversikt:" . session_get('visoversikt');
 print "<br>Nlogin:" . $login;
-*/
+ */	
+
 
 
 /* 
@@ -144,11 +154,11 @@ class Meny {
 					print $error->getHTML();
 				}
 			} else { // Vises som default...
-				return array('oversikt.php');
+				return array('modules/overview.php');
 			}
 		} 
 		// Vises til de som ikke er innlogget.
-		return array('velkommen.php');
+		return array('modules/welcome.php');
 
 	}
 	
@@ -171,24 +181,26 @@ if ( get_get('action')  ) {
 
 $meny = NEW Meny($login);
 
-print "<P>";
+echo "<p>";
 $meny->newOption(gettext("Overview"), "oversikt", 0, array('modules/overview.php') );
 $meny->newOption(gettext("Addresses"), "adress", 1,array('modules/address.php') );
-$meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profiles.php') );
+$meny->newOption(gettext("Profiles"), "profil", 1, array('modules/alert-profile.php') );
 $meny->newOption(gettext("Equip. groups"), "utstyr", 1, array('modules/equipment-group-private.php') );
 $meny->newOption(gettext("Equip. filters"), "filter", 1, array('modules/equipment-filter-private.php') );
+$meny->newOption(gettext("Alert language"), "language", 1, array('modules/language-settings.php') );
+$meny->newOption(gettext("WAP setup"), "wap", 1, array('modules/wap-setup.php') );
 $meny->newOption(gettext("Help"), "hjelp", 1, array('modules/help.php') );
 
 /*
 	WAP and password changing disabled 3. Oct 2003, because of integration with NAV.
 	WAP may be enabled again later.
 
-print "<p>";
-$meny->newOption(gettext("WAP-oppsett"), "wap", 1, array('wap.php') );
+echo "<p>";
+
 $meny->newOption(gettext("Endre passord"), "passord", 1, array('endrepassord.php') );
 */
 
-print "<p>";
+echo "<p>";
 $meny->newOption(gettext("Users"), "admin", 1000, array('modules/user-admin.php') );
 $meny->newOption(gettext("User groups"), "gruppe", 1000, array('modules/user-group-admin.php') );
 $meny->newOption(gettext("Pub eq.groups"), "futstyr", 100, array('modules/equipment-group-public.php') );
@@ -199,7 +211,7 @@ $meny->newOption(gettext("Log"), "logg", 20, array('modules/log.php') );
 
 $meny->newModule('periode', 1, array('modules/timeperiod.php') );
 $meny->newModule('utstyrgrp', 1, array('modules/equipment-group-setup.php') );
-//$meny->newModule('futstyrgrp', 100, array('fellesutstyrgrp.php') );
+$meny->newModule('equipment-group-view', 1, array('modules/equipment-group-view.php') );
 $meny->newModule('match', 1, array('modules/equipment-filter-setup.php') );
 $meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php') );
 
@@ -212,55 +224,7 @@ $meny->newModule('brukertilgruppe', 50, array('modules/user-to-group-admin.php')
 
 
 
-<table class="meny">
-<tr><td class="menyHead">
-<p><?php
-	echo gettext("Choose language");
-?>
-</td></tr>
 
-
-<!-- ************* LANGUAGE HANDLING ************* -->
-<tr><td>
-<?php
-
-print '<table width="100%" border="0"><tr><td width="50%"><p align="center">';
-if ($language == 'en') {
-	print '<img src="icons/gbr.png" alt"' . gettext("English") . '">';
-} else {
-	if ($login) { 
-		print '<a href="index.php?langset=en">';
-	}
-	print '<img src="icons/gbrg.png" alt"' . gettext("English") . '">';
-	if ($login) { 
-		print '</a>';
-	}
-
-}
-print '</td><td width="50%"><p align="center">';
-if ($language == 'no') {
-	print '<img src="icons/nor.png" alt"' . gettext("Norwegian") . '">';
-} else {
-	if ($login) { 
-		print '<a href="index.php?langset=no">';
-	}
-	print '<img src="icons/norg.png" alt"' . gettext("Norwegian") . '">';
-	if ($login) { 
-		print '</a>';
-	}
-}
-print '</td></tr></table>';
-
-if ($langset) {
-	echo gettext("Welcome!<p><small>Your language of choice is saved, but at the moment it will only work for Alert Profiles.</small>");
-}
-
-?>
-</td></tr>
-<!-- **************** ***************** -->
-
-
-</table>
 
 
 <div class="noCSS">

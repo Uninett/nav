@@ -8,6 +8,9 @@
 
 <?php
 
+session_set('lastaction', 'oversikt');
+$brukernavn = session_get('bruker'); $uid = session_get('uid');
+
 function helgdescr($helg) {
 	switch($helg) {
 		case 1 : return gettext('All week');
@@ -18,6 +21,46 @@ function helgdescr($helg) {
 }
 
 
+/*
+ * the function eqgroupview() prints out a nice html table showing the requested 
+ * equipment group in i hiearchy, with all equipment filters in detail.
+ *
+ */
+ 
+function eqgroupviewsmall($dbh, $eqid) {
+
+	$t = '<h3>Equipment group composition</h3>';
+
+	$filtre = $dbh->listFiltreGruppe($eqid, 0);
+	
+	for ($i = 0; $i < sizeof($filtre); $i++) {
+
+		/*
+		$filtre[$row][0] = $data["id"]; 
+		$filtre[$row][1] = $data["navn"];
+		$filtre[$row][2] = $data["prioritet"];
+		$filtre[$row][3] = $data["inkluder"];
+		$filtre[$row][4] = $data["positiv"];		
+		*/
+
+		if ($filtre[$i][3] == 't') {
+			$inkicon = '<img style="vertical-align: bottom" src="icons/pluss.gif" border="0" alt="' . gettext("Include") . 
+			'">';
+		} else {
+			$inkicon = '<img style="vertical-align: bottom" src="icons/minus.gif" border="0" alt="' . gettext("Exclude") . 
+			'">';
+		}
+	
+		if ($filtre[$i][4] == 't') {
+			$negicon = '&nbsp;';
+		} else {
+			$negicon = gettext('NOT');
+		}
+		$t .= '<p>' . $inkicon . ' ' . $negicon . ' ' . $filtre[$i][1];
+
+	}
+	return $t;
+}
 
 
 function showTimeTable($dbh, $brukerinfo, $listofhelg) {
@@ -28,7 +71,15 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 	$t_per = $dbh->listPerioder($brukerinfo[4], 0);
 	$rc = 0;
 	$alt[0] = 'even'; $alt[1] = 'odd';
-	foreach ($t_per AS $t_p) {
+	
+	// Fetch all time periods for the weekend type requested, and stuff into new array
+	foreach ($t_per AS $t_p) 
+		if ( in_array($t_p[1], $listofhelg ) ) $actual_tp[] = $t_p;
+	
+	// Traverse all fetched time periods.
+	for ($i = 0; $i < sizeof($actual_tp); $i++) {
+		$t_p = $actual_tp[$i];
+		$t_p['next'] = $actual_tp[ ($i + 1) % sizeof($actual_tp) ];
 
 		if (! in_array($t_p[1], $listofhelg ) ) continue;
 
@@ -40,8 +91,11 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 
 		echo '<td class="clock">';
 		echo '<a class="tt" href="?action=periode&amp;subaction=endre&amp;tid=' . $t_p[0] . '&amp;pid=' . $brukerinfo[4] . '#endre">';
-		echo leading_zero($t_p[2],2) . ":" . leading_zero($t_p[3],2) . 
-			'</a><br><img src="icons/clock.png">' . "</td>";
+		echo leading_zero($t_p[2],2) . ":" . leading_zero($t_p[3],2) . '</a><br>';
+		echo '<img src="icons/clock.png"><br>' ;		
+		echo '<span style="font-size:x-small">-' . leading_zero($t_p['next'][2],2) . ":" . leading_zero($t_p['next'][3], 2) . '</span>';
+
+		echo "</td>";
 			
 		echo '<td class="helg">' . helgdescr($t_p[1]) . '</td>'; // <br><small>(' . $t_p[0] . ')</small>
 		echo '<td class="eqg">';
@@ -51,12 +105,16 @@ function showTimeTable($dbh, $brukerinfo, $listofhelg) {
 		echo '<table class="eqgroup" border="0" cellpadding="0" cellspacing="0">';
 		$rrc = 0; $ecount = 0;
 		foreach ($t_utg AS $t_u) {
-			$estring = '<td class="eqname">';
+			$estring = '<td class="eqname"><div class="hoverelement eqid' . $t_u[0]  . '">';
+			$estring .= '<div class="window">' . eqgroupviewsmall($dbh, $t_u[0] ) . '</div>';
+			
 			$estring .= '<img src="icons/equipment.png">&nbsp;';
 			if ($t_u[4]) $estring .= '<a class="tt" href="?action=utstyrgrp&amp;gid=' . $t_u[0] . '">';
-				else $estring .= '<a class="tt" href="?action=utstyr">';
+				else $estring .= '<a class="tt" href="?action=equipment-group-view&amp;gid=' . $t_u[0] . '">';
 			$estring .= $t_u[1];
-			$estring .= "</a></td>"; 
+			$estring .= "</a>";
+			
+			$estring .= "</div></td>"; 
 			$estring .= '<td class="eqaddress">';
 			
 			$p_adr = $dbh->listVarsleAdresser(session_get('uid'), $t_p[0], $t_u[0], 0);

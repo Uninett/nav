@@ -31,6 +31,33 @@ TABLE.listingTable TH {
 	border-color: #000000
 }
 
+.imglow {
+	background: #ff3333; color: #f00;
+	vertical-align: bottom;
+}
+
+/* Overview popup box */
+
+div.window {
+	padding: 5px;
+	margin-top: 2.5em;
+	margin-left: 25px;
+	position: absolute;
+	float: left;
+	background: url(../images/bluepixel85.png);
+	display: none;
+	border: thin solid black;
+	left: 20%;
+	font-size: medium;
+}
+div.window p,div.window h3 {
+	margin: 0px; padding: 0px;
+}
+div.hoverelement:hover div.window {
+	display: inline;
+}	
+
+
 /* Visual Document */
 
 BODY { 
@@ -106,6 +133,19 @@ P.descr {
 	border : thin solid #666;
 }
 
+DIV.newelement {
+	border: thin solid black; 
+	padding: 2px; 
+	margin: 2px; 
+	background: #eee
+}
+DIV.subheader {
+	border: thin solid black; 
+	padding: 2px; 
+	margin: 2px; 
+	background: #eee
+}
+
 P, TD, TH, TR, LI {
 	font-family: arial, sans-serif;
 	font-size: 1.0em
@@ -178,6 +218,58 @@ h3 {
 /* LISTING */
 
 
+
+/* Oversikt timeplan paa forsiden */
+
+table.timetable, table.timetable table.eqgroup {
+	font-size: x-small;
+}
+table.timetable tr.period td.clock { font-size: medium }
+table.timetable td {
+	vertical-align: top;
+}
+table.timetable tr.period td.clock { width: 8% }
+table.timetable tr.period td.helg { width: 12% }
+table.timetable tr.period td.eqg { width: 80% }
+
+table.timetable tr.period td.eqg table.eqgroup tr td { width: 50% }
+table.timetable tr.period td.eqg table.eqgroup { width: 100% }
+
+table.timetable tr td.helg { text-align: center }
+table.timetable tr td.clock { text-align: center }
+
+table.timetable { border: thin solid #ccc;  width: 100% }
+table.timetable tr.period > td {border-top: thin solid #666 }
+table.timetable tr.period.odd table.eqgroup > tr > td {border-top: thin solid #ccc }
+table.timetable tr.period.odd > td { background: #eee; padding: 2px }
+table.timetable tr.period.odd  table.eqgroup tr.odd td { background: #ddd; padding: 2px }
+table.timetable tr.period.odd  table.eqgroup tr.even td { background: #ccc; padding: 2px }
+table.timetable tr.period.even table.eqgroup > tr > td {border-top: thin solid #888 }
+table.timetable tr.period.even td { background: #aaa; padding: 2px }
+table.timetable tr.period.even table.eqgroup tr.odd td { background: #999; padding: 2px }
+table.timetable tr.period.even table.eqgroup tr.even td { background: #888; padding: 2px }
+
+table.timetable table.eqgroup ul { margin: 0px; padding: 0px }
+table.timetable table.eqgroup li { margin: 0px; padding: 0px }
+li.direct {
+	list-style-image: url('../icons/direct.png') 
+}
+li.queue { 
+	list-style-image: url('../icons/queue.png') 
+}
+li.noalert { 
+	list-style-image: url('../icons/cancel.gif') 
+}
+
+
+
+/* Oversikt timeplan paa forsiden */
+
+
+
+
+
+
 * {
 	font-family: verdana, arial, helvetica, sans-serif;
 }
@@ -188,10 +280,17 @@ BODY {
 	background-color: white; 
 }
 
+img, a { border: none } 
+
 A.navbar         { color: #000000; text-decoration: none; font-size: 13; }
 A.navbar:visited { color: #000000; text-decoration: none; }
 A.navbar:hover   { color: #336699; text-decoration: none; }
 A.navbar:active  { color: #4477AA; text-decoration: none; }
+
+A.tt         { color: #000000; text-decoration: none; }
+A.tt:visited { color: #000000; text-decoration: none; }
+A.tt:hover   { color: #336699; text-decoration: underline; }
+A.tt:active  { color: #4477AA; text-decoration: none; }
 
 A         { color: #336699; text-decoration: none; }
 A:visited { color: #336699; text-decoration: none; }

@@ -10,7 +10,7 @@
 
 class DBH {
 
-  // MÂ ha inn en ferdig oppkoblet databasekobling til postgres
+  // Må ha inn en ferdig oppkoblet databasekobling til postgres
   var $connection;
 
   // Konstruktor
@@ -485,6 +485,7 @@ ORDER BY " . $sorts[$sort];
     
     return $matcher;
   }
+  
 
   // Hent ut info om et matchfield felt.
   function matchFieldInfo($mid) {
@@ -1317,11 +1318,10 @@ WHERE (Utstyrfilter.id = GruppeTilFilter.utstyrfilterid)
 	AND (GruppeTilFilter.utstyrgruppeid = " . addslashes($gid) . ") 
 ORDER BY prioritet";
 
-//  print "<p>$querystring";
+  //print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;
-
       while ( $row < $tot) {
 		$data = pg_fetch_array($query, $row, PGSQL_ASSOC);
 		$filtre[$row][0] = $data["id"]; 
@@ -1331,6 +1331,7 @@ ORDER BY prioritet";
 		$filtre[$row][4] = $data["positiv"];
 		$row++;
       } 
+
     }  else {
       $error = new Error(2);
       $bruker{'errmsg'}= "Feil med datbasespørring.";
@@ -1356,7 +1357,7 @@ ORDER BY prioritet";
     " AND FilterMatch.matchfelt = MatchField.matchfieldid" .
     " ORDER BY " . $sorts[$sort];
 
-    //print "<p>$querystring";
+	//print "<p>$querystring";
 
     if ( $query = @pg_exec($this->connection, $querystring) ) {
       $tot = pg_numrows($query); $row = 0;

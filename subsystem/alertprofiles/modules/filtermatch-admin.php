@@ -166,7 +166,7 @@ echo '<option value="." selected>' . gettext("No reference") . '</option>';
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
     foreach ($catlist AS $catelem) {
-        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
+        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $cat . '.'  . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
     }
     if ($cat != "") echo '</optgroup>';
 }
@@ -185,7 +185,7 @@ echo '<option value="" selected>' . gettext("No references") . '</option>';
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
     foreach ($catlist AS $catelem) {
-        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
+        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $cat . '.'  . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
     }
     if ($cat != "") echo '</optgroup>';
 }
@@ -206,7 +206,7 @@ echo '<option value="" selected>' . gettext("No reference") . '</option>';
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
     foreach ($catlist AS $catelem) {
-        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
+        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $cat . '.'  . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
     }
     if ($cat != "") echo '</optgroup>';
 }
@@ -226,7 +226,7 @@ echo '<option value="" selected>' . gettext("No reference") . '</option>';
 foreach ($f AS $cat => $catlist) {
     if ($cat != "") echo '<optgroup label="' . $cat . '">';
     foreach ($catlist AS $catelem) {
-        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
+        echo ' <option value="' . $cat . '.' . $catelem[0] . '">' . $cat . '.' . $catelem[0] . ' (' .$catelem[1]  . ') </option>' . "\n";
     }
     if ($cat != "") echo '</optgroup>';
 }

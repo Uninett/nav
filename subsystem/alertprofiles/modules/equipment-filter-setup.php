@@ -36,19 +36,6 @@ if ( session_get('admin') < 100 && !$dbh->permissionEquipmentFilter( session_get
 }
 
 
-$type[0] = gettext('equals');
-$type[1] = gettext('is greater');
-$type[2] = gettext('is greater or equal');
-$type[3] = gettext('is less');
-$type[4] = gettext('is less or equal');
-$type[5] = gettext('not equals');
-$type[6] = gettext('starts with');
-$type[7] = gettext('ends with');
-$type[8] = gettext('contains');
-$type[9] = gettext('regexp');
-$type[10] = gettext('wildcard (? og *)');
-
-
 if ($subaction == 'slett') {
 
 	if (session_get('match_fid') > 0) { 
@@ -70,27 +57,27 @@ if ($subaction == 'slett') {
 }
 
 if ($subaction == "nymatch") {
-  print "<h3>" . gettext("Registering new condition...") . "</h3>";
-  
-  $error = NULL;
-  if ($navn == "") $navn = gettext("No name");
-  if ($uid > 0) { 
-    
-    $matchid = $dbh->nyMatch(post_get('matchfelt2'), post_get('matchtype'), 
-    	post_get('verdi'), session_get('match_fid') );
-    print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
-    
-  } else {
-    print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
-  }
-
-  // Viser feilmelding om det har oppstått en feil.
-  if ( $error != NULL ) {
-    print $error->getHTML();
-    $error = NULL;
-  }
-  $subaction = "";
-  unset($matchfelt);
+	print "<h3>" . gettext("Registering new condition...") . "</h3>";
+	
+	$error = NULL;
+	if ($navn == "") $navn = gettext("No name");
+	if ($uid > 0) { 
+	
+		$matchid = $dbh->nyMatch(post_get('matchfelt2'), post_get('matchtype'), 
+		post_get('verdi'), session_get('match_fid') );
+		print "<p><font size=\"+3\">" . gettext("OK</font>, a new condition (match) is added to this filter.");
+	
+	} else {
+		print "<p><font size=\"+3\">" . gettext("An error</font> occured, a new match is  <b>not</b> added.");
+	}
+	
+	// Viser feilmelding om det har oppstått en feil.
+	if ( $error != NULL ) {
+		print $error->getHTML();
+		$error = NULL;
+	}
+	$subaction = "";
+	unset($matchfelt);
   
 }
 
@@ -113,17 +100,18 @@ $match = $dbh->listMatch(session_get('match_fid'), $l->getSort() );
 
 for ($i = 0; $i < sizeof($match); $i++) {
 
-  $valg = '<a href="index.php?subaction=slett&mid=' . 
-  	$match[$i][0] . '">' .
-    '<img alt="Delete" src="icons/delete.gif" border=0>' .
-    '</a>';
-
-
-  $l->addElement( array($match[$i][1],  // felt
-			$type[$match[$i][2]], // type
-			$match[$i][3], // verdi
-			$valg ) 
-		  );
+	$valg = '<a href="index.php?subaction=slett&mid=' . 
+		$match[$i][0] . '">' .
+		'<img alt="Delete" src="icons/delete.gif" border=0>' .
+		'</a>';
+	
+	
+	$l->addElement( array(
+		$match[$i][1],  // felt
+		$type[$match[$i][2]], // type
+		$match[$i][3], // verdi
+		$valg ) 
+	);
 }
 
 print $l->getHTML();
@@ -168,17 +156,17 @@ foreach ($matchfields AS $matchfield) {
 <?php
 
 if ( post_exist('matchfelt') ) {
-/*
-	$mf[0] = $data["name"];
-	$mf[1] = $data["descr"];
-	$mf[2] = $data["valuehelp"];
-	$mf[3] = $data["valueid"];
-	$mf[4] = $data["valuename"];
-	$mf[5] = $data["valuecategory"];
-	$mf[6] = $data["valuesort"];
-	$mf[7] = $data["listlimit"];
-	$mf[8] = $data["showlist"];
-*/
+	/*
+		$mf[0] = $data["name"];
+		$mf[1] = $data["descr"];
+		$mf[2] = $data["valuehelp"];
+		$mf[3] = $data["valueid"];
+		$mf[4] = $data["valuename"];
+		$mf[5] = $data["valuecategory"];
+		$mf[6] = $data["valuesort"];
+		$mf[7] = $data["listlimit"];
+		$mf[8] = $data["showlist"];
+	*/
 
     $matchfieldinfo = $dbh->matchFieldInfo(post_get('matchfelt'));
 
