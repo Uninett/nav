@@ -1,0 +1,446 @@
+## formTemplate
+
+#extends nav.web.templates.MainTemplate
+
+#def additionalCSS
+    TR.header   { background-color: white;
+                  background-image:url('/images/ragen/navbar-fill.gif');
+                  background-repeat: repeat-x;
+                  height: 26px;
+                  padding: 1px 0px 0px 0px;
+                  font-size: 13; }
+
+    TR.evenrow  { font-size: 12; background-color: #eeeeee; }
+    TR.oddrow   { font-size: 12; }
+
+    P.error     { color: #ff0000; }
+    P.status    { color: #00ff00; }
+    P.infotext  { width: 80%;
+                  font-size: 13; }
+$default_form_CSS()
+#end def
+
+#def content
+#if $editList
+$showList($editList)
+#elif $editForm
+$showForm($editForm)
+#else
+$showBody($body)
+#end if
+#end def
+
+## Template function to show a body object
+#def $showBody($body)
+    <h2>$body.title</h2>
+    <p class="infotext">$body.infotext</p>
+    <p>
+#if not $body.showHelp
+        <a href="$body.help[0]">$body.help[1]</a>
+
+#else
+        <a href="$body.nohelp[0]">$body.nohelp[1]</a>
+#end if
+    </p>
+#for $table in $body.tables
+    <h3>$table.title</h3>
+#if $table.infotext
+    <p>$table.infotext</p>
+#end if
+#if $body.showHelp
+    <table style="width: 80%;">
+#else
+    <table style="width: 40%;">
+#end if
+#if $table.headings
+        <tr>
+#for $heading in $table.headings
+            <th>$heading</th>
+#end for
+        </tr>
+#end if
+#set odd = False
+#for $row in $table.rows
+#if odd == True
+#set style = "oddrow"
+#set odd = False
+#else
+#set style = "evenrow"
+#set odd = True
+#end if
+#if $body.showHelp
+#set $rowstyle=['width: 10%;','width: 60%;','','','']
+#else
+#set $rowstyle=['width: 40%;','','width: 15%;','width: 15%;','width: 30%;']
+#end if
+        <tr class="$style" title="$row[1]">
+            <td style="$rowstyle[0]">$row[0]</td>
+#if $body.showHelp
+            <td style="$rowstyle[1]">$row[1]</td>
+#end if
+            <td style="$rowstyle[2]"><a href="$row[2][0]">$row[2][1]</a></td>
+            <td style="$rowstyle[3]"><a href="$row[3][0]">$row[3][1]</a></td>
+            <td style="$rowstyle[4]"><a href="$row[4][0]">$row[4][1]</a></td>
+        </tr>
+#end for
+    </table>
+#end for
+#end def
+
+
+## Template function to display a list for selecting
+## which entries to edit, or delete
+#def showList($list)
+    <H3>$list.title</H3>
+#if $list.error
+    <P class='error'>$list.error</P>
+#end if
+#if $list.status
+    <P class='status'>$list.status</P>
+#end if
+    <FORM method="$list.method" action="$list.action">
+#if $list.hiddenIdValue
+        <INPUT type="hidden" name="$list.cnameHiddenId" value="$list.hiddenIdValue">
+#end if
+#if not $list.isDeleteList
+    $actionBar($list)
+#end if
+        <TABLE border="0" cellspacing="0" cellpadding="5">
+            <TR class="header">
+                <TD bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+#for $heading in $list.headings
+                <TH>$heading</TH>
+#end for
+                <TD bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
+            </TR>
+#set $odd = True
+#for $id,$row in $list.rows
+#if $odd
+#set $rowtype = 'oddrow'
+#set $odd = False
+#else
+#set $rowtype = 'evenrow'
+#set $odd = True
+#end if
+            <TR class="$rowtype">
+                <TD> </TD> ## first column is start gfx (fix)
+#if not ($list.isDeleteList or $list.isBulkList)
+                <TD><INPUT type="checkbox" name="$list.cnameChk" value="$id" align="center"></TD>
+#elif $list.isDeleteList
+                <INPUT type="hidden" name="$list.cnameChk" value="$id">
+#elif $list.isBulkList
+#for $field,$value in $id.items()
+#if not $field == 'error'
+                <INPUT type="hidden" name="$field" value="$value">
+#end if
+#end for
+#end if
+#for $entry,$link in $row
+#if $link
+                <TD><A href="$link">$entry</A></TD>
+#else
+                <TD>$entry</TD>
+#end if
+#end for
+                <TD> </TD> ## last column is end gfx (fix)
+            </TR>
+#end for
+        </TABLE>
+    $actionBar($list)
+    </FORM>
+#if $list.backlink
+#set $url = $list.backlink[0]
+#set $text = $list.backlink[1]
+    <P>
+        <A href="$url">$text</A>
+    </P>
+#end if
+#end def
+
+## This function displays the bar with add/edit/delete buttons
+#def actionBar($list)
+    <P>
+        <TABLE>
+            <TR>
+#if not ($list.isDeleteList or $list.isBulkList)
+                <TD><INPUT type="submit" name="$list.cnameAdd" value="$list.textAdd"></TD>
+                <TD><INPUT type="submit" name="$list.cnameEdit" value="$list.textEdit"></TD>
+                <TD><INPUT type="submit" name="$list.cnameDelete" value="$list.textDelete"</TD>
+#elif $list.isDeleteList
+                <TD><INPUT type="submit" name="$list.cnameDeleteConfirm" value="$list.textDeleteConfirm"></TD>
+#elif $list.isBulkList
+                <TD><INPUT type="submit" name="$list.cnameBulkConfirm" value="$list.textBulkConfirm"></TD>
+#end if
+            </TR>
+        </TABLE>
+    </P>
+#end def
+
+## Template function for displaying a form for adding or editing
+#def showForm($form)
+    <H3>$form.title</H3>
+#if $form.error
+    <P class='error'>$form.error</P>
+#end if
+#if $form.status 
+    <P class='status'>$form.status</P>
+#end if
+    <FORM method="$form.method" action="$form.action" enctype="$form.enctype">
+#for $editbox in $form.editboxes
+        <INPUT type="hidden" name="$editbox.boxName" value="$editbox.boxId">
+        <P>
+#if $editbox.type == 'room'
+            $room($editbox)
+#elif $editbox.type == 'location'
+            $location($editbox)
+#elif $editbox.type == 'org'
+            $org($editbox)
+#elif $editbox.type == 'type'
+            $typebox($editbox)
+#elif $editbox.type == 'vendor'
+            $vendor($editbox)
+#elif $editbox.type == 'netbox'
+            $netbox($editbox)
+#elif $editbox.type == 'bulk'
+            $bulk($editbox)
+#elif $editbox.type == 'usage'
+            $usage($editbox)
+#end if
+        </P>
+#end for
+        <TABLE>
+            <TR>
+                <TD><INPUT type="submit" name="$form.cnameConfirm" value="$form.textConfirm"></TD>
+            </TR>
+        </TABLE>
+    </FORM>
+#if $form.backlink
+#set $text = $form.backlink[0]
+#set $url = $form.backlink[1]
+    <P>
+        <A HREF="$url">$text</A>
+    </P>
+#end if
+#end def
+
+## Template function for adding or editing a netbox
+#def netbox.old($editbox)
+#set $controls = $editbox.controls
+        <TABLE class=header-active>
+            <TR>
+                <TH>IP</TH>
+                <TH>Category</TH>
+                <TH>RO Community</TH>
+                <TH>RW Community</TH>
+            </TR>
+            <TR>
+                <TD class=header-active><</TD>
+                <TD class=header-active><SELECT><OPTION>test</SELECT></TD>
+                <TD class=header-active><INPUT type="text"></TD>
+                <TD class=header-active><INPUT type="text"></TD>
+            </TR>
+            <TR>
+                <TH colspan="2">Room</TH>
+                <TH colspan="2">Organisation</TH>
+            </TR>
+            <TR>
+                <TD colspan="2" class=header-active><SELECT><OPTION>room</SELECT></TD>
+                <TD colspan="2" class=header-active><SELECT><OPTION>org</SELECT></TD>
+            </TR>
+        </TABLE>
+#end def
+
+## Template function for adding or editing a netbox
+#def netbox($editbox)
+#set $fields = $editbox.fields
+        <TABLE class=header-active>
+            <TR>
+                <TH>IP or sysname</TH>
+                <TH>RO Community</TH>
+            </TR>
+            <TR>
+                <TD>$input($fields['sysname'])</TD>
+                <TD>$input($fields['ro'])</TD>
+            </TR>
+        </TABLE>
+#end def
+
+
+
+
+
+## Template function for adding or editing a room
+#def room($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>Room ID</TH>
+            <TH>Location</TH>
+            <TH colspan="2">Description</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['roomid'])</TD>
+            <TD>$input($fields['locationid'])</TD>
+            <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
+        </TR>
+        <TR>
+            <TH>Room 2</TH>
+            <TH>Room 3</TH>
+            <TH>Room 4</TH>
+            <TH>Room 5</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['room2'])</TD>
+            <TD>$input($fields['room3'],'width: 100%;')</TD>
+            <TD>$input($fields['room4'])</TD>
+            <TD>$input($fields['room5'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for adding or editing a location
+#def location($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active" width="50%">
+        <TR>
+            <TH width="30%">Location ID</TH>
+            <TH width="70%">Description</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['locationid'],'width: 100%;')</TD>
+            <TD>$input($fields['descr'],'width: 100%;')</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for adding or editing an org
+#def org($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>Org ID</TH>
+            <TH colspan="2">Parent</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['orgid'])</TD>
+            <TD colspan="2">$input($fields['parent'])</TD>
+        </TR>
+        <TR>
+            <TH colspan="3">Description</TH>
+        </TR>
+        <TR>
+            <TD colspan="3">$input($fields['descr'],'width: 100%;')</TD>
+        </TR>
+        <TR>
+            <TH>Org 2</TH>
+            <TH>Org 3</TH>
+            <TH>Org 4</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['org2'])</TD>
+            <TD>$input($fields['org3'])</TD>
+            <TD>$input($fields['org4'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for adding or editing a type
+#def typebox($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active" width="60%">
+        <TR>
+            <TH>Name</TH>
+            <TH>Vendor</TH>
+            <TH>Typegroup</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['typename'])</TD>
+            <TD>$input($fields['vendorid'])</TD>
+            <TD>$input($fields['typegroupid'])</TD>
+        </TR>
+        <TR>
+            <TH colspan="2" align="center">Description</TH>
+            <TH>Sysoid</TH>
+        </TR>
+        <TR>
+            <TD colspan="2">$input($fields['descr'],'width: 100%;')</TD>
+            <TD>$input($fields['sysobjectid'],'width: 100%;')</TD>
+        </TR>
+</TABLE>
+#end def
+
+## Template function for adding or editing a vendor
+#def vendor($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>Vendor name</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['vendorid'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function for adding or editing a user catefory
+#def usage($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH>User category</TH>
+            <TH>Description</TH>
+        </TR>
+        <TR>
+            <TD>$input($fields['usageid'])</TD>
+            <TD>$input($fields['descr'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+
+## Template function for bulk import
+#def $bulk($editbox)
+#set $fields = $editbox.fields
+    <TABLE class="header-active">
+        <TR>
+            <TH align="left">Import</TH>
+            <TD>$input($fields['table'],'width: 60%;')</TD>
+        </TR>
+        <TR>
+            <TH align="left">Separator</TH>
+            <TD>$input($fields['separator'],'width: 60%;')</TD>
+        </TR>
+        <TR>
+            <TH align="left">Import from file</TH>
+            <TD>$input($fields['file'],'width: 60%;')</TD>
+        </TR>
+        <TR>
+            <TH align="left">Import from text</TH>
+            <TD>$input($fields['textarea'])</TD>
+        </TR>
+    </TABLE>
+#end def
+
+## Template function to display all input fields
+#def $input($control,$style='')
+#set $control = $control[0]
+#if $control.type == 'text'
+<INPUT type="text" style="$style" name="$control.name" value="$control.value">
+#elif $control.type == 'select'
+<SELECT name="$control.name" style="$style">
+#for $id,$option in $control.options
+#if $id == $control.value
+    <OPTION value="$id" selected>$option</OPTION>
+#else
+    <OPTION value="$id">$option</OPTION>
+#end if
+#end for
+</SELECT>
+#elif $control.type == 'file'
+    <INPUT type="file" style="$style" name="$control.name" value="$control.value">
+#elif $control.type == 'textarea'
+    <TEXTAREA name="$control.name" style="$style" rows="$control.rows" cols="$control.cols">$control.value</TEXTAREA>
+#else
+Undefined control
+#end if
+#end def
