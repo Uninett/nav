@@ -21,25 +21,25 @@ cd /usr/local/nav/navme/subsystem/alertEngine
 case "$1" in
 	start)
 		# Start daemons.
-		rc=alertdaemon.pl start
+		rc= /usr/local/nav/navme/subsystem/alertEngine/alertdaemon.pl start
 		echo
-		exit $rc
+		exit $rc;
 		;;
 	stop)
 		# Stop daemons.
-		rc=alertdaemon.pl stop
+		rc= /usr/local/nav/navme/subsystem/alertEngine/alertdaemon.pl stop
 		echo
-		exit $rc
+		exit $rc;
         	;;
 	restart)
-		rc=alertdaemon.pl restart
+		rc= /usr/local/nav/navme/subsystem/alertEngine/alertdaemon.pl restart
 		echo
-		exit $rc
+		exit $rc;
 		;;
 	status)
-		rc=alertdaemon.pl status
+		rc= /usr/local/nav/navme/subsystem/alertEngine/alertdaemon.pl status
 		echo
-		exit $rc
+		exit $rc;
 		;;
 	*)
 		echo "Usage: $0 {start|stop|restart|status}"
