@@ -98,7 +98,7 @@ public class Module extends Device
 			parent = (Netel)d;
 			parent.addModule(this);
 		} else {
-			errl("Module error, parentDeviceid="+parentDeviceid+" is not an instance of Netel!");
+			errl("Module error, parentDeviceid="+parentDeviceid+" is not an instance of Netel ("+d+")!");
 			return;
 		}
 	}
