@@ -1,7 +1,7 @@
 <?php
 ####################
 #
-# $Id: index.php,v 1.6 2002/12/17 15:24:14 gartmann Exp $
+# $Id: index.php,v 1.7 2002/12/17 16:18:30 gartmann Exp $
 # This file is part of the NAV project.
 # index is the main part of the ragen (report generator) web interface.
 # The reports defined in the ragen.conf-file is displayed in this web 
@@ -16,7 +16,7 @@ require("/usr/local/nav/navme/lib/getdb.php");
 
 # preset
 
-$grense = 200; # treff per side
+$limit = 200; # treff per side
 
 ############
 ## Databasetilkobling
@@ -78,29 +78,29 @@ if(preg_match("/SELECT(.*)FROM/is",$sql,$sel)) {
 	}
     }
 }
-if(preg_match("/FROM(.*?)(?:\bWHERE|\bORDER|\bGROUP|\bLIMIT|$)/is",$sql,$sel)) {
+if(preg_match("/FROM(.*?)(?:\bWHERE|\bORDER|\bGROUP|\bLIMIT|\bOFFSET|$)/is",$sql,$sel)) {
     //$sel[1] = preg_replace("/\s/","",$sel[1]); blir bare feil her
     $ar_from = split(",",$sel[1]);
 }
-if(preg_match("/WHERE(.*?)(?:\bORDER|\bGROUP|\bLIMIT|$)/is",$sql,$sel)) {
+if(preg_match("/WHERE(.*?)(?:\bORDER|\bGROUP|\bLIMIT|\bOFFSET|$)/is",$sql,$sel)) {
     $ar_where = array_merge($ar_where,preg_split("/and/i",$sel[1]));
 }
-if(preg_match("/GROUP\ BY(.*?)(?:\bORDER|\bLIMIT|$)/is",$sql,$sel)) {
+if(preg_match("/GROUP\ BY(.*?)(?:\bORDER|\bLIMIT|\bOFFSET|$)/is",$sql,$sel)) {
 //    print $sel[1];
     $ar_group_by = split(",",$sel[1]);
 }
-if(preg_match("/ORDER\ BY(.*?)(?:\bGROUP|\bLIMIT|$)/is",$sql,$sel)) {
+if(preg_match("/ORDER\ BY(.*?)(?:\bGROUP|\bLIMIT|\bOFFSET|$)/is",$sql,$sel)) {
     //print $sel;
     $ar_order_by = split(",",$sel[1]);
 }
 
     //print sizeof($ar_order_by);
 
-if($limit){
-#	     print "hadde limit fra før";
-    $ar_limit = split(",",$limit);
-} elseif(preg_match("/LIMIT(.*?)$/is",$sql,$sel)){
-    $ar_limit = split(",",$sel[1]);
+if(preg_match("/LIMIT(.*?)(?:\bOFFSET|$)/is",$sql,$sel)){
+    $limit = $sel[1];
+}
+if(preg_match("/OFFSET(.*?)$/is",$sql,$sel)){
+    $offset = $sel[1];
 }
 
 $har_from = join(",",$ar_from);
@@ -143,13 +143,11 @@ if($ar_order_by){
     $sql2 .= " ORDER BY ".join(",",$ar_order_by);
 }
 
-if($limit){
-    $ar_limit = split(",",$limit);
-    //@limit = map rydd($_),@limit;
-} else {
-    $ar_limit = array($grense,0);
+if(!isset($offset)){
+    $offset = 0;
 }
-$sql2.= " LIMIT ".join(",",$ar_limit);
+
+$sql2.= " LIMIT ".$limit." OFFSET ".$offset;
 //print $sql_antall;
 $sql = $sql2;
 
@@ -262,7 +260,7 @@ if($begrenset){
     skriv_skjemainnhold($urlselect,$navnparam,$rapport,$skjulte_kolonner,$extra_cols);
 }
 
-print forrigeneste($ar_limit,$peker,$antall_rader,$grense);
+print forrigeneste($limit,$offset,$peker,$antall_rader,$grense);
 print $forklartekst;
 
 if($antall_rader){
@@ -270,7 +268,7 @@ if($antall_rader){
 }
 
 print tabell_bunn();
-print forrigeneste($ar_limit,$peker,$antall_rader,$grense);
+print forrigeneste($limit,$offset,$peker,$antall_rader,$grense);
 print debug_sql($sql);
 pg_close($db);
 
@@ -370,27 +368,31 @@ function tolk_fil($fil,$rapport,$allowed=0){
     return array($filparam,$urlparam,$navnparam,$forklar);
 }
 
-function forrigeneste($sql_limit,$peker,$antall,$grense=200){
+function forrigeneste($limit=200,$offset,$peker,$antall){
     /*
-	sql_limit = limit-delen av sql-kallet (array)
+        limit     = antall treff per side
+	offset    = utdragets startlinje 
 	peker     = generell peker som alltid må bli lagt til lenkene til ragen
 	antall    = antall rader returnert fra databasen
-	grense    = forhåndsdefinert grense for hvor mange treff som skal vises per side
+
 	    */
 
-    $neste = $sql_limit[1]+$grense;
-    $forrige = $sql_limit[1]-$grense;
-    $fra = $sql_limit[1] +1;
-    $til = $sql_limit[1] + $sql_limit[0];
+    $neste = $offset+$limit;
+    $forrige = $offset-$limit;
+    $fra = $offset+1;
+    $til = $offset + $limit;
     
-    if($sql_limit[1]){ 
-	$forrigelink = "<a href=\"?$peker&limit=".$sql_limit[0]."%2c".$forrige."\">Forrige</a> ";
+$peker = preg_replace("/&limit=.*\b/i","",$peker);
+$peker = preg_replace("/&offset=.*\b/i","",$peker);
+
+    if($offset){ 
+	$forrigelink = "<a href=\"?$peker&limit=".$limit."&offset=".$forrige."\">Forrige</a> ";
     } else {
 	$forrigelink = "&nbsp;";
     }
     
-    if($sql_limit[0]+$sql_limit[1]<$antall){
-	$nestelink = " <a href=\"?$peker&limit=".$sql_limit[0]."%2c".$neste."\">Neste</a>";
+    if($limit+$offset<$antall){
+	$nestelink = " <a href=\"?$peker&limit=".$limit."&offset=".$neste."\">Neste</a>";
     } else {
 	$nestelink = "&nbsp;";
     }
