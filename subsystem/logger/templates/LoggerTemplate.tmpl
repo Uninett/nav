@@ -24,64 +24,180 @@
 #extends nav.web.templates.MainTemplate
 
 #block content
+<div id="wrapper">
+<h1>Syslog Analyzer</h1>
+$logform($priority,$type,$category,$origin,$tfrom,$tto)
 
-
+#if $mode == "statistics"
+$statistics($typelist, $originlist, $total, $typedict, $origindict, $type, $origin, $priority, $category, $link)
+#elif $mode == "log"
+$viewlog($log, $total, $type, $origin, $priority, $category)
+#elif $mode == "errors"
+$errorlist($errors, $total)
+#else
+$prioritylist($priorities, $priorityresult, $link)
+#end if
+</div>
 #end block
 
-<h1>Logger</h1>
 
-
-#def select($name, $options, $values, $selected)
-<label></label>
-
-<select name="messagetype" >
-#for $t in $options
-#set selected = ''
-#if $t==$selected
-#set $selected = 'selected="1"'
-#end if
-<option value="$t" $selected>$t</option>
-#end for
-</select>
-#end def
-
-#def priorities
-
-
-
-#end def
-
-#def logform($priority,$type,$category,$origin,$from,$to)
+#def logform($priority,$type,$category,$origin,$tfrom,$tto)
 
 <div id="logform">
-<form action="" method="post">
+<form action="" method="get">
 
-<label for="priorityid">Priority</label>
-<select id="priorityid" name="priorityid">
-	<option>0</option>
+<label for="priority">Priority</label>
+<select id="priority" name="priority">
+#for $p in $priorities
+#if str($p[0]) == str($priority)
+	<option value="$p[0]" selected="1">$p[1]</option>
+#else
+	<option value="$p[0]">$p[1]</option>
+#end if
+#end for
 </select>
-<label for="typeid"><a href="http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002">Message type</a></label>
-<select id="typeid" name="typeid">
-	<option>0</option>
+<label for="type"><a href="http://www.cisco.com/univercd/cc/td/doc/product/software/ios120/12supdoc/12sems/emover.htm#5002">Message type</a></label>
+<select id="type" name="type">
+#for $t in $types
+#if $t[1] == $type
+	<option value="$t[0]" selected="1">$t[1]</option>
+#else
+	<option value="$t[0]">$t[1]</option>
+#end if
+#end for
 </select>
+
+<br />
+
 <label for="category">Category</label>
 <select id="category" name="category">
-	<option>0</option>
+#for $c in $categories
+#if $c[0] == $category
+	<option value="$c[0]" selected="1">$c[0]</option>
+#else
+	<option value="$c[0]">$c[0]</option>
+#end if
+#end for
 </select>
-<label for="originid">Origin</label>
-<select id="originid" nameid="origin">
-	<option>0</option>
+<label for="origin">Origin</label>
+<select id="origin" nameid="origin">
+#for $o in $origins
+#if $o[1] == $origin
+	<option value="$o[0]" selected="1">$o[1]</option>
+#else
+	<option value="$o[0]">$o[1]</option>
+#end if
+#end for
 </select>
 
-<label for="from" title="yyyy-mm-dd HH:MM:SS">From</label>
-<input type="text" name="from" value="$from" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+<br />
 
-<label for="to" title="yyyy-mm-dd HH:MM:SS">From</label>
-<input type="text" name="to" value="$to" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+<label for="tfrom" title="yyyy-mm-dd HH:MM:SS">From</label>
+<input type="text" name="tfrom" value="$tfrom" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+
+<label for="tto" title="yyyy-mm-dd HH:MM:SS">To</label>
+<input type="text" name="tto" value="$tto" title="yyyy-mm-dd HH:MM:SS" size="19" maxlength="19" />
+
+<br />
 
 <input type="submit" name="send" value="Send" />
-
+<input type="reset" name="reset" value="Reset" />
+<input type="button" name="cancel" value="Cancel" onclick="window.location.href='/logger/'"/>
+(Magnar: Ta bort en av disse. Reset går tilbake til forrige submit, cancel er ment å nullstille helt)
 </form>
+
 </div>
+
+#end def
+
+
+#def $prioritylist($pritorities, $priorityresult, $link)
+#if len($priorityresult)
+<table>
+#for $row in $priorities
+#if $priorityresult.has_key($row[0])
+<tr><td><a href="/logger/?$link&amp;priority=$row[0]" title="$row[2]">Priority $row[1]</a></td><td>$priorityresult[$row[0]]</td></tr>
+#elif not $row[0] == "-"
+<tr><td><span title="$row[2]">Priority $row[1]</span></td><td>0</td></tr>
+#end if
+#end for
+</table>
+#else
+<p style="text-align:center; font-size:1.2em">Your search did not return any results</p>
+#end if
+#end def
+
+#def $statistics($typelist, $originlist, $total, $typedict, $origindict, $typeid, $originid, $priorityid, $categoryid, $link)
+<p style="text-align:center;">Total $total matches
+#if $typeid
+of type $typeid
+#elif $priorityid
+of priority $priorityid
+#end if
+#if $originid
+from origin $originid
+#elif $categoryid
+of category $categoryid
+#end if
+</p>
+
+<div style="float:left;">
+#if len($originlist)
+<table>
+#for $o in $originlist
+<tr><td><a href="/logger/?$link&amp;origin=$origindict[$o[0]]">$origindict[$o[0]]</a></td><td>$o[1]</td></tr>
+#end for
+</table>
+#end if
+</div>
+<div style="float:left;">
+#if len($typelist)
+<table>
+#for $t in $typelist
+<tr><td><a href="/logger/?$link&amp;type=$typedict[$t[0]]">$typedict[$t[0]]</a></td><td>$t[1]</td></tr>
+#end for
+</table>
+#end if
+</div>
+#end def
+
+
+#def $viewlog($log, $total, $typeid, $originid, $priorityid, $categoryid)
+<p style="text-align:center;">Total $total matches
+#if $typeid
+of type $typeid
+#elif $priorityid
+of priority $priorityid
+#end if
+#if $originid
+from origin $originid
+#elif $categoryid
+of category $categoryid
+#end if
+</p>
+
+#if len($log)
+<table>
+#for $l in $log
+<tr><td>$l.time</td><td>l.origin</td><td>$l.type</td><td>$l.message</td></tr>
+#end for
+</table>
+#end if
+
+#end def
+
+
+#def $errorlist($errors, $total)
+
+#if len($errors)
+<p style="text-align:center;">Total $total error conditions</p>
+<table>
+#for $e in $errors
+<tr><td>$e[0]</td></tr>
+#end for
+</table>
+#else
+There is not saved any error conditions from the parsing of the syslog files. This probably means all the log messages have been parsed successfully.
+#end if
 
 #end def

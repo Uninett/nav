@@ -1,10 +1,10 @@
 --------------------------------------------------------
 -- priority
--- PrioritY levels and descriptions
+-- Priority levels and descriptions
 --------------------------------------------------------
 
 DROP TABLE priority CASCADE;
-DROP SEQUENCE priority_priority_seq;
+-- DROP SEQUENCE priority_priority_seq;
 
 CREATE TABLE priority (
   priority INTEGER PRIMARY KEY, -- like greit å la den vare tekst
@@ -18,10 +18,14 @@ CREATE TABLE priority (
 --------------------------------------------------------
 
 DROP TABLE type CASCADE;
+DROP SEQUENCE type_type_seq;
 
 CREATE TABLE type (
-  type VARCHAR PRIMARY KEY NOT NULL,
-  priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE
+  type SERIAL PRIMARY KEY NOT NULL,
+  priority INTEGER REFERENCES priority (priority) ON DELETE SET NULL ON UPDATE CASCADE,
+  facility VARCHAR NOT NULL,
+  mnemonic VARCHAR NOT NULL,
+  UNIQUE (priority, facility, mnemonic)
 );
 
 --------------------------------------------------------
@@ -41,10 +45,12 @@ CREATE TABLE category (
 --------------------------------------------------------
 
 DROP TABLE origin CASCADE;
+DROP SEQUENCE origin_origin_seq;
 
 CREATE TABLE origin (
-  origin VARCHAR PRIMARY KEY NOT NULL,
-  category VARCHAR
+  origin SERIAL PRIMARY KEY NOT NULL,
+  name VARCHAR NOT NULL,
+  category VARCHAR REFERENCES category(category) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 --------------------------------------------------------
@@ -59,9 +65,9 @@ DROP SEQUENCE message_id_seq;
 CREATE TABLE message (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  origin VARCHAR NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
-  priority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
-  type VARCHAR NOT NULL REFERENCES type (type) ON UPDATE CASCADE ON DELETE SET NULL,
+  origin INTEGER NOT NULL REFERENCES origin (origin) ON UPDATE CASCADE ON DELETE SET NULL,
+  newpriority INTEGER REFERENCES priority (priority) ON UPDATE CASCADE ON DELETE SET NULL, -- for overlagring av defaultverdier
+  type INTEGER NOT NULL REFERENCES type (type) ON UPDATE CASCADE ON DELETE SET NULL,
   message VARCHAR
 );
 
@@ -93,8 +99,8 @@ CREATE INDEX message_time_btree ON message USING btree (time);
 DROP VIEW message_view;
 
 CREATE VIEW message_view AS
-SELECT origin,type,message.priority,category,time 
-FROM origin INNER JOIN message USING (origin) INNER JOIN type USING (type);
+SELECT origin,type,newpriority,category,time 
+FROM origin INNER JOIN message USING (origin);
 
 --------------------------------------------------------
 -- Setter inn alle prioritetene

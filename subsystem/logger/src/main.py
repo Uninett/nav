@@ -26,8 +26,13 @@ from mod_python import apache,util
 
 from nav import db
 import psycopg
+import re
+from mx import DateTime
+from nav.web.templates.LoggerTemplate import LoggerTemplate
+
 connection = db.getConnection('webfront','logger')
 database = connection.cursor()
+DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
 def handler(req):
 
@@ -35,85 +40,169 @@ def handler(req):
     keep_blank_values = True
     req.form = util.FieldStorage(req,keep_blank_values)
 
+    if req.form.has_key("tfrom") and req.form["tfrom"]:
+        tfrom = DateTime.strptime(req.form["tfrom"], DATEFORMAT)
+    else:
+        tfrom = DateTime.today()
 
-database.execute("select netaddr from prefix inner join vlan using (vlanid) where nettype='scope'")
+    if req.form.has_key("tto") and req.form["tto"]:
+        tto = DateTime.strptime(req.form["tto"], DATEFORMAT)
+    else:
+        tto = DateTime.now()
+
+    database.execute("select origin, name from origin order by origin")
+    origins = []
+    originid2origin = {}
+    origin2originid = {}
+    origins.append((0,"(All)"))
+    for r in database.fetchall():
+        origins.append((r[0], r[1]))
+        origin2originid[r[1]] = r[0]
+        originid2origin[r[0]] = r[1]
+        
+    database.execute("select category from category order by category")
+    categories = database.fetchall()
+    categories.insert(0,("(All)",))
+
+    database.execute("select priority, facility, mnemonic, type from type order by priority, facility, mnemonic")
+    types = []
+    typeid2type = {}
+    type2typeid = {}
+    types.append((0,"(All)","",""))
+    for r in database.fetchall():
+        types.append((r[3], "%s-%d-%s" % (r[1], r[0], r[2])))
+        type2typeid["%s-%d-%s" % (r[1], r[0], r[2])] = r[3]
+        typeid2type[r[3]] = "%s-%d-%s" % (r[1], r[0], r[2])
+
+    database.execute("select priority, keyword, description from priority order by priority")
+    priorities = []
+    priorities.append(("-", "(All)", ""))
+    for r in database.fetchall():
+        priorities.append((r[0], "%s - %s" % (r[0], r[1]), r[2]))
+        
+    origin = None
+    originid = None
+    type = None
+    typeid = None
+    priority = None
+    category = None
+
+    links = []
+    constraints = []
+    constraints.append("time >= '%s'" % tfrom.strftime(DATEFORMAT))
+    constraints.append("time <= '%s'" % tto.strftime(DATEFORMAT))
+    links.append("tfrom=%s" % tfrom.strftime(DATEFORMAT))
+    links.append("tto=%s" %tto.strftime(DATEFORMAT))
+    if req.form.has_key("priority") and not req.form["priority"] == "-":
+        priority = req.form["priority"]
+        constraints.append("newpriority = %s" % priority)
+        links.append("priority=%s" % priority)
+    if req.form.has_key("type") and req.form["type"] and type2typeid.has_key(req.form["type"]):
+        type = req.form["type"]
+        typeid = type2typeid[type]
+        constraints.append("type = %d" % typeid)
+        links.append("type=%s" % type)
+    if req.form.has_key("origin") and req.form["origin"] and origin2originid.has_key(req.form["origin"]):
+        origin = req.form["origin"]
+        originid = origin2originid[origin]
+        constraints.append("origin = %d" % originid)
+        links.append("origin=%s" % origin)
+    if req.form.has_key("category") and req.form["category"] > '0':
+        category = req.form["category"]
+        constraints.append("category = '%s'" % category)
+        links.append("category=%s" % category)
+
+    where = " and ".join(constraints)
+    link = "&amp;".join(links)
+
+    page = LoggerTemplate()
+    page.path = [("Home","/"),("Syslog Analyzer",None)]
+    page.priority = priority
+    page.origin = origin
+    page.originid = originid
+    page.category = category
+    page.type = type
+    page.typeid = type
+    page.tto = tto.strftime(DATEFORMAT)
+    page.tfrom = tfrom.strftime(DATEFORMAT)
+
+    page.priorities = priorities
+    page.types = types
+    page.categories = categories
+    page.origins = origins
+    page.origindict = originid2origin
+    page.typedict = typeid2type
+
+    page.link = link
+    
+    ## vis alt
+    if req.form.has_key("error"):
+        error = 1
+    else:
+        error = 0
+        
+    log = 0
+    if not error:
 
 
-database.execute("select id, name, category from origin order by id")
-origin = database.fetchall()
-#category = []
-#for r in database.fetchall():
-#    origin[r[0]] = r[1]
+        if origin and type or origin and log or type and log:
+            ## log
 
-database.execute("select id, facility, mnemonic, keyword, description from type order by id")
-type = database.fetchall()
-#for r in database.fetchall():
-#    type[r[0]] = r[1]+"("+r[3]+")"+r[2]
+            #where = re.sub("priority","newpriority",where)
+            database.execute("select time, name, newpriority, priority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
+            #raise repr("select time, name, newpriority, facility, mnemonic, message from message inner join type USING (type) inner join origin USING (origin) where %s order by time desc" % where)
+            log = []
+            for l in database.fetchall():
+                log.append(LogMessage(l[0], l[1], l[2], l[3], l[4], l[5], l[6]))
+            page.log = log
+            page.mode = "log"
+            page.total = database.rowcount
 
-database.execute("select id, priority, keyword, description from priority order by id")
-priority = database.fetchall()
-#for r in database.fetchall():
-#    priority[r[0]] = r[1]+" - "+r[2]
+        elif origin or type or priority and not priority == "-":
+            ## statistikk
 
-constraints = []
-if req.form.has_key("from"):
-    constraints.append("time >= %s" % req.form.from)
-if req.form.has_key("to"):
-    constraints.append("time <= %s" % req.form.to)
-if priorityid:
-    constraints.append("priority = %s" % priorityid)
-if category:
-    constraints.append("category = %s" % category)
+            page.mode = "statistics"
+            database.execute("select origin, count(*) as count from message_view where %s group by origin order by count desc" % where)
+            page.originlist = database.fetchall()
 
-where = " and ".join(constraints)
+            database.execute("select type, count(*) as count from message_view where %s group by type order by count desc" % where)
+            page.typelist = database.fetchall()
 
-
-## vis alt
-
-if not error:
-
-
-    if originid and typeid or originid and log or typeid and log:
-        database.execute("select time,originid,facility,type.priorityid,mnemonic,message from message join type on type.id=typeid where %s order by time desc", %s)
-        noerrtable = database.fetchall()
-
-        if len(noerrtable):
-            ### view table
-            pass
+            database.execute("select count(*) from message_view where %s" % where)
+            page.total = database.fetchone()[0]
 
         else:
-            ### nothin
-            pass
+            ## frontpage / priorities
 
-
-
-    elif originid or typeid or priorityid:
-        ## statistikk
-
-        database.execute("select originid, count(*) as count from message_view where %s group by originid order by count desc", where)
-        origins = database.fetchall()
-
-        database.execute("select count(*) from message_view where %s", where)
-        messages = database.fetchall()
-
-        database.execute("select typeid, count(*) as count from message_view where %s group by typeid order by count desc", where)
-        types = database.fetchall()
-
-        if len(origins):
-            ## print origins
-            pass
-        if len(types):
-            ## print types
-            pass
-
+            database.execute("select newpriority, count(*) as count from message_view WHERE %s group by newpriority order by newpriority" % where)
+            page.priorityresult = {}
+            for p in database.fetchall():
+                page.priorityresult[p[0]] = p[1]
+                
+            page.mode = "priority"
 
     else:
-        ## frontpage / priorities
-    pass
-    
-else:
 
-    ## errors
+        ## errors
 
-    database.execute("select message from errorerror order by id")
-    errors = database.fetchall()
+        database.execute("select message from errorerror order by id desc")
+        page.errors = database.fetchall()
+        page.mode = "errors"
+        page.total = database.rowcount
+
+    req.content_type = "text/html"
+    req.write(page.respond())
+
+    return apache.OK
+
+class LogMessage:
+
+    def __init__(self, time, originname, newpriority, priority, facility, mnemonic, message):
+        self.time = time.strftime(DATEFORMAT)
+        self.origin = originname
+        if isinstance(newpriority,int):
+            self.type = "%s-%d(%d)-%s" % (facility, newpriority, priority, mnemonic)
+        else:
+            self.type = "%s-%d-%s" % (facility, priority, mnemonic)
+        self.message = message
+        

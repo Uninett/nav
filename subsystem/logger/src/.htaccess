@@ -1,0 +1,5 @@
+PythonPath "sys.path+['/usr/local/nav/apache/webroot/logger']"
+SetHandler python-program
+PythonHandler main
+DirectoryIndex main.py
+PythonInterpreter logger_1_11
