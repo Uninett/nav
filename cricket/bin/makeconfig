@@ -96,14 +96,13 @@ sub Routers {
 	
 	# Unngår hvis det er feil i databasen
 	if ($sysname) {
-#	    $sysname =~ s/\..+//;
-
 	    if ($community) {
 		push @ruterliste, [$id, $sysname, $ip, $romid,$community];
-		print FIL "target $sysname\n";
-		print FIL "\tsnmp-host\t=\t$ip\n";
-		print FIL "\tsnmp-community\t=\t$community\n";
-		print FIL "\ttarget-type\t=\t$typegruppe{$type}\n";
+		if ($typegruppe{$type}) {
+		    print FIL "target $sysname\n";
+		    print FIL "\tsnmp-host\t=\t$ip\n";
+		    print FIL "\tsnmp-community\t=\t$community\n";
+		    print FIL "\ttarget-type\t=\t$typegruppe{$type}\n";
 
 #  		# Unntak for type ruter
 #  		if ($type =~ /^(IGS|AGS|C2514|C4000|C4700|C1005|C7200|C7500)$/ ) {
@@ -112,14 +111,15 @@ sub Routers {
 #  		    print FIL "\ttarget-type\t=\tStandard-Router\n";
 #  		}
 
-		# Må finne beskrivelsen til rommet
-		$sporring = "SELECT descr FROM rom WHERE romid='$romid'";
-		my $getdesc = &db_select($sporring,$dbh);
-		if (!(my $desc = $getdesc->fetchrow)) {
-		    print "Ingen beskrivelse for rom med id=$romid\n";
-		    print FIL "\tshort-desc\t=\t\"\"\n\n";
-		} else {
-		    print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
+		    # Må finne beskrivelsen til rommet
+		    $sporring = "SELECT descr FROM rom WHERE romid='$romid'";
+		    my $getdesc = &db_select($sporring,$dbh);
+		    if (!(my $desc = $getdesc->fetchrow)) {
+			print "Ingen beskrivelse for rom med id=$romid\n";
+			print FIL "\tshort-desc\t=\t\"\"\n\n";
+		    } else {
+			print FIL "\tshort-desc\t=\t\"$desc\"\n\n";
+		    }
 		}
 	    }
 	}
@@ -152,18 +152,29 @@ sub Routerinterfaces {
 	print FIL "\tsnmp-community =\t$community\n";
 
 	# Må finne alle interfacene til ruteren
-	my $sporring = "SELECT g.interf,g.speed,p.nettype,p.nettident FROM prefiks p,gwport g WHERE g.boksid=$ruterid AND g.prefiksid=p.prefiksid AND speed!=1000 and g.masterindex is null ORDER BY vlan";
+	my $sporring = "SELECT interf,speed,prefiksid FROM gwport WHERE boksid=$ruterid AND speed!=1000 and masterindex is null";
 
 	my $getinterfaces = &db_select($sporring,$dbh);
 	
 	my @liste;
-	my ($interf,$speed,$type,$nettident);
-	while (($interf,$speed,$type,$nettident) = $getinterfaces->fetchrow) {
+	my ($interf,$speed,$nettident,$prefiksid);
+	while (($interf,$speed,$prefiksid) = $getinterfaces->fetchrow) {
 	    unless ($routerint{$interf}) {
 		$routerint{$interf}++;
+		# Spør etter description hvis det finnes
+		if ($prefiksid) {
+		    $sporring = "select nettident from prefiks where prefiksid=$prefiksid";
+		    my $getident = &db_select($sporring,$dbh);
+		    $nettident = $getident->fetchrow;
+		    unless ($nettident) {
+			$nettident = '"Beskrivelse ikke tilgjengelig"';
+		    }
+		} else {
+		    $nettident = '"Beskrivelse ikke tilgjengelig"';
+		}
 		# Vil ikke ha med Loopback-interfacene.
 		unless ($interf =~ /Loopback/) {
-		    push @liste, [$interf,$speed,$type,$nettident];
+		    push @liste, [$interf,$speed,$nettident];
 		}
 	    }
 	}
@@ -172,7 +183,7 @@ sub Routerinterfaces {
 	my $order = @liste;
 
 	for (@liste) {
-	    ($interf,$speed,$type,$nettident) = @$_;
+	    ($interf,$speed,$nettident) = @$_;
 	    $interf =~ s/\//_/g;
 	    print FIL "\ntarget $interf\n";
 	    $interf =~ s/_/\//g;
@@ -315,30 +326,49 @@ sub Switchports {
 sub gigarouterinterfaces {
 
     my $count = 0;
+    my $teller = 0;
     # Henter alle interfaces som har giga-kapasitet.
-    my $sporring = "SELECT b.ip,b.sysname,g.interf,p.nettident,g.speed,p.nettype,b.ro FROM boks b,gwport g,prefiks p WHERE g.speed='1000' and g.prefiksid=p.prefiksid and g.boksid=b.boksid and g.masterindex is null";
+    my $sporring = "SELECT b.ip,b.sysname,g.interf,g.speed,b.ro,g.prefiksid FROM boks b,gwport g WHERE g.speed='1000' and g.boksid=b.boksid and g.masterindex is null ORDER BY sysname";
     my $getinterfaces = &db_select($sporring,$dbh);
+    my $antall_interfaces = $getinterfaces->ntuples;
     
     my $tempip = "0";
     my @liste;
     my @liste_bak;
-    my($ip,$sysname,$interf,$nettident,$speed,$type,$community);
-    while (($ip,$sysname,$interf,$nettident,$speed,$type,$community) = $getinterfaces->fetchrow) {
+    my($ip,$sysname,$interf,$nettident,$speed,$community,$prefiksid);
+    while (($ip,$sysname,$interf,$speed,$community,$prefiksid) = $getinterfaces->fetchrow) {
 #	$sysname =~ s/\..+//;
+	$teller++;
 
-	if ($ip eq $tempip || $tempip eq "0") {
-	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$type,$community];
+	if ($prefiksid) {
+	    $sporring = "select nettident from prefiks where prefiksid=$prefiksid";
+	    my $getident = &db_select($sporring,$dbh);
+	    $nettident = $getident->fetchrow;
+	    unless ($nettident) {
+		$nettident = '"Beskrivelse ikke tilgjengelig"';
+	    }
+	} else {
+	    $nettident = '"Beskrivelse ikke tilgjengelig"';
+	}
+
+	if (($ip eq $tempip || $tempip eq "0") && $teller != $antall_interfaces) {
+	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
 	    $tempip = $ip;
 	} else {
+	    
+	    if ($teller == $antall_interfaces) {
+                push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
+            }
+
 	    @liste = @liste_bak;
 	    @liste_bak = ();
-	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$type,$community];
+	    push @liste_bak, [$ip,$sysname,$interf,$nettident,$speed,$community];
 	    $tempip = $ip;
-	    @liste = &sorter (6,@liste);
+	    @liste = &sorter (2,@liste);
 	    my $order = @liste;
 
 	    for (@liste) {
-		($ip,$sysname,$interf,$nettident,$speed,$type,$community) = @$_;
+		($ip,$sysname,$interf,$nettident,$speed,$community) = @$_;
 
 		unless (-e "$path/giga-router-interfaces/$sysname") {
 		    mkdir ("$path/giga-router-interfaces/$sysname",0775);
@@ -482,30 +512,61 @@ sub sorter {
     my $indeks = shift;
     my @array = @_;
     my %temp;
+    my %eksisterer;
 
-    #print "\n---------- Ny enhet ----------\n";
+#    print "\n---------- Ny enhet ---------- Sorterer på $indeks\n";
 
     for (@array) {
 	my $key = @$_[$indeks];
-	#print "$key ";
-	# Hiver inn en null hvis bare et tall
-	if ($key =~ /_\d{1}/ && $key !~ /_\d{2}/) {
-	    $key =~ s/_(\d)\D/\.0$1/g;
+	# Det kan finnes flere interfacer som har samme navn, vi vil
+	# bare ha et av dem fordi det er tilstrekkelig.
+	unless ($eksisterer{$key}) {
+	    $eksisterer{$key}++;
+
+	    my @tall = ();
+	    if ($key =~ m(/) ) {
+		@tall = split /\//, $key;
+		$key = "";
+		for (@tall) {
+		    #print "$_\n";
+		    unless (m/\d{2}/) {
+			$_ =~ s/(\d)/0$1/;
+		    }
+		    $key .= $_;
+		}
+	    } elsif ($key =~ m/_/) {
+		@tall = split /_/, $key;
+		$key = "";
+		for (@tall) {
+		    #print "$_\n";
+		    unless (m/\d{2}/) {
+			$_ =~ s/(\d)/0$1/;
+		    }
+		    $key .= $_;
+		}
+	    } else {
+		unless ($key =~ m/\d{2}/) {
+		    $key =~ s/(\d)/0$1/;
+		}
+	    }
+
+	    # Hmm, hva gjør vi nå?
+	    my $bokstav = $key;
+	    $key =~ s/\D+//g;
+	    $bokstav =~ s/\d+//g;
+	    $bokstav = ord($bokstav);
+	    $key = $bokstav.$key;
+	    $temp{$key} = [@$_];
 	}
-
-	# Fjerner alle ikke-tall
-	$key =~ s/\D+//g;
-	$temp{$key} = [@$_];
     }
-    
-    #print "\nSorterer...\n";
-
+#    print "\nSorterer...\n";
     my @res = sort numerically keys %temp;
     my @ret;
     for (@res) {
-	#print "$_ ";
-	#print "@{$temp{$_}}\n";
+#	print "$_ ";
+#	print "@{$temp{$_}}\n";
 	push @ret, [@{$temp{$_}}];
+#	print "pusher @{$temp{$_}}\n";
     }
 
     return @ret;
