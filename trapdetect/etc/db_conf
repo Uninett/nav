@@ -71,3 +71,24 @@ boksid int2 not null,
 vtypeid int2 references varseltype on update cascade on delete cascade,
 status varchar(5) not null check (status='minus' or status='pluss')
 );
+
+create table status (
+statusid serial primary key,
+trapsource varchar(30) not null,
+trap varchar(25) not null,
+trapdescr varchar(250),
+tilstandsfull char(1) check (tilstandsfull='Y' or tilstandsfull='N') not null,
+boksid int2,
+fra timestamp not null,
+til timestamp
+);
+
+create table smsutko (
+id serial primary key,
+brukerid int2 not null,
+tidspunkt timestamp not null,
+melding varchar(145) not null,
+sendt char(1) not null default 'N' check (sendt='Y' or sendt='N' or sendt='I'),
+smsid int4,
+tidsendt timestamp 
+);
