@@ -20,18 +20,25 @@ class Executer:
             if not r:
                 # Things timed out. Kill the child
                 os.kill(self.instance.pid, signal.SIGTERM)
-                self.instance.tochild.close()
-                self.instance.fromchild.close()
+                time.sleep(1)
+                try:
+                    pid, sts = os.waitpid(self.instance.pid, os.WNOHANG)
+                    os.kill(self.instance.pid, 9)
+                    print "Killed with -9, %s" % self.cmd
+                except Exception, e:
+                    print e
+                os.close(self.instance.tochild.fileno())
+                os.close(self.instance.fromchild.fileno())
                 # this is a bit ugly, but we need to let the os
                 # actually kill the process.
-                time.sleep(1)
+                
                 # do some cleanup
                 popen2._cleanup()
                 raise Timeout('Timeout while executing %s' % self.cmd)
             else:
                 answer = r[0].read()
-                self.instance.tochild.close()                
-                self.instance.fromchild.close()
+                os.close(self.instance.tochild.fileno())
+                os.close(self.instance.fromchild.fileno())
                 # do some cleanup...
                 popen2._cleanup()
                 return answer
