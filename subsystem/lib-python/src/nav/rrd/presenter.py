@@ -338,7 +338,7 @@ class presentation:
 
             a = rrdtool.info(rrd_filename)
             # HVA I HELVETE SKJER HER!?!?!??!?!
-            if [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))]:
+            if 'MAX' in [a.get('rra')[i].get('cf') for i in range(len(a.get('rra')))]:
                 legend += ' - MAX'
                 params += ['DEF:'+rrd_max_variable+'='+rrd_filename+':'+rrd_datasourcename+':MAX']
                 virtual = 'CDEF:v_'+rrd_max_variable+'='
