@@ -135,7 +135,7 @@ CREATE TABLE prefix (
 --  nettadr varchar(15) NOT NULL,
 --  maske VARCHAR(3) NOT NULL,
 --fjernet under nav2 uten oppdatering av nav3
-  netaddr inet NOT NULL,
+  netaddr CIDR NOT NULL,
   rootgwid INT4 UNIQUE,
   vlan INT4,
 --  antmask INT2,
