@@ -61,6 +61,7 @@ public class SimpleSnmp
 	private SnmpContext context = null;
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
+	private long getNextDelay = 0;
 
 	private Map cache = new HashMap();
 
@@ -104,6 +105,14 @@ public class SimpleSnmp
 		setHost(host);
 		setCs_ro(cs_ro);
 		setBaseOid(baseOid);
+	}
+
+	/**
+	 * Set the delay, in ms, between getNext requests.
+	 */
+	public void setGetNextDelay(long delay)
+	{
+		getNextDelay = delay;
 	}
 
 	/**
@@ -581,6 +590,13 @@ public class SimpleSnmp
 						pdu = new BlockPdu(context);
 						pdu.setPduType(BlockPdu.GETNEXT);
 						pdu.addOid(oid);
+						if (getNextDelay > 0) {
+							try {
+								System.err.println("Sleeping " + getNextDelay + " ms.");
+								Thread.currentThread().sleep(getNextDelay);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 
 				} catch (PduException e) {
