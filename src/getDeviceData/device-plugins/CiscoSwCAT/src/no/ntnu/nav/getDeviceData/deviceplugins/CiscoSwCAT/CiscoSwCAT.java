@@ -97,7 +97,7 @@ public class CiscoSwCAT implements DeviceHandler
 
                 if (o != null) {
 		    HashMap ifModule = new HashMap();
-		    l = sSnmp.getAll(nb.getOid("ifName"));
+		    l = sSnmp.getAll(nb.getOid("ifName"), true);
 		    if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
@@ -135,7 +135,7 @@ public class CiscoSwCAT implements DeviceHandler
 			}
 		    }
 
-		    l = sSnmp.getAll(nb.getOid("portPortName"));
+		    l = sSnmp.getAll(nb.getOid("portPortName"), true);
 		    if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 			    String[] s = (String[])it.next();
