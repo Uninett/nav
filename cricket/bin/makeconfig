@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.15 2002/06/17 10:35:36 stain Exp $
+# $Id: makeconfig,v 1.16 2002/06/19 13:07:07 cricket Exp $
 
 use strict;
 
@@ -24,6 +24,7 @@ use strict;
 use FindBin qw($Bin);
 my $basepath = "$Bin/.."; 
 use lib "$Bin/../../lib"; # Common NAVme-libraries
+#setter denn ut pge testing
 my $path = "$basepath/cricket-config";
 my $default = "$basepath/cricket-config_defaults";
 my $myself = "makeconfig"; # For use with config-hash
@@ -49,47 +50,53 @@ my @switchliste;
 # forrige oppdatering.
 
 print "Sletter tidligere config-filer\n";
-`rm -R $path/router-interfaces/*`;
-`rm -R $path/switch-ports/*`;
-`rm -R $path/giga-router-interfaces/*`;
-`rm -R $path/giga-switch-ports/*`;
-`rm -R $path/switches/*`;
-`rm -R $path/routers/*`;
-`rm -R $path/servers/*`;
+`rm -R $path`;
 
 print "Kopierer over default verdier\n";
 `cp -R $default $path`;
 
 print "Skriver servere\n";
 &Servers;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/[abce-jl-z]*`;
+#`rm -R /home/cricket/navme/cricket/cricket-config/servers/[be-z]*`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/kamelon.stud.ntnu.no`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/kamel.stud.ntnu.no`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/kantstein.stud.ntnu.no`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/katla.stud.ntnu.no`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/kiwi.stud.ntnu.no`;
+`rm -R /home/cricket/navme/cricket/cricket-config/servers/kobra.stud.ntnu.no`;
+`rm -R /home/cricket/cricket-config/Defaults~`;
+`rm -R /home/cricket/cricket-config/servers/Default~`;
+
 print "OK!\n";
 
 print "Skriver routere\n";
-&Routers;
+#&Routers;
 print "OK!\n";
 
+
 print "Skriver ruter-interfaces\n";
-&Routerinterfaces;
+#&Routerinterfaces;
 print "OK!\n";
 
 print "Skriver switcher\n";
-&Switches;
+#&Switches;
 print "OK!\n";
 
 print "Skriver switcheporter\n";
-&Switchports;
+#&Switchports;
 print "OK!\n";
 
 print "Skriver gigarouterinterfaces\n";
-&gigarouterinterfaces;
+#&gigarouterinterfaces;
 print "OK!\n";
 
 print "Skriver gigaswitchports\n";
-&gigaswitchports;
+#&gigaswitchports;
 print "OK!\n";
 
 print "Kompilerer nytt config-tre\n";
-system("$basepath/cricket/compile");
+system("/home/cricket/cricket/compile");
 
 print "Ferdig!\n";
 
@@ -116,13 +123,13 @@ sub Servers {
 
     while (my @temp = $getservers->fetchrow) {
 	my ($id, $sysname,$ip,$type,$romid,$community,$ostype) = @temp;
-	print $community;	
         # Avoid severe errors in the database
 	if ($sysname) {
 	    if ($community) {
-
+		my $server = $sysname;
+		my $sysname = $sysname . '.ntnu.no';
                 mkdir ("$path/servers/$sysname",0775);
-                my $fil = "$path/servers/$sysname/server";
+                my $fil = "$path/servers/$sysname/$server";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 
                 print FIL "target --default--\n";
@@ -142,7 +149,11 @@ sub Servers {
                 print FIL "\n";
 
                 print FIL "target \"users\"\n";
-                print FIL "\ttarget-type = users\n";
+		if($ostype eq "win32") {
+                  print FIL "\ttarget-type = userswin\n";
+		} else {
+		  print FIL "\ttarget-type = usersnix\n";
+	  	}	
                 print FIL "\n";
                 
                 print FIL "target \"processes\"\n";
@@ -165,7 +176,7 @@ sub Servers {
                 print FIL "\n";
                 
 
-                print FIL "target \"memory\"\n";
+                print FIL "target \"cpu\"\n";
                 if($ostype eq "win32") {
                   print FIL "\ttarget-type = cpuwin\n";
                 } else { 
@@ -175,13 +186,17 @@ sub Servers {
                 close FIL;
                 
                 # alle the interfaces
-                $fil = "$path/servers/$sysname/interfaces";
+                mkdir ("$path/servers/$sysname/interface",0775);
+                $fil = "$path/servers/$sysname/interface/interfaces";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT interf FROM boksinterface WHERE boksid=$id";
                 my $getinterfaces = &db_select($query, $dbh);
+		print FIL "target --default--\n";
+		print FIL "\tserver\t=\t$sysname\n";
+		print FIL "\n";
                 while (my $interface = $getinterfaces->fetchrow) {
-                  print FIL "target \"interfaceTraffic\"\n";
-                  print FIL "\ttarget-type = interfaceTraffic\n";
+                  print FIL "target \"$interface\"\n";
+                  print FIL "\ttarget-type = interface\n";
                   print FIL "\tinst = map(interface-name)\n";
                   print FIL "\tinterface-name = \"$interface\"\n";
                   print FIL "\n";
@@ -189,12 +204,23 @@ sub Servers {
                 close FIL;
 
                 # Then all the disks
-                $fil = "$path/servers/$sysname/disks";
+		mkdir ("$path/servers/$sysname/disk",0775);
+                $fil = "$path/servers/$sysname/disk/disks";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT path FROM boksdisk WHERE boksid=$id";
                 my $getpaths = &db_select($query, $dbh);
+                print FIL "target --default--\n";
+                print FIL "\tserver\t=\t$sysname\n";
+                print FIL "\n";
                 while (my $mnt = $getpaths->fetchrow) {
-                  print FIL "target \"disk\"\n";
+	          my $name = $mnt;
+		  if($name eq "/") {
+			  $name = "root";
+		  } else {
+			  $name =~ s,/,_,g;
+			  $name =~ s/^_//;
+		  }
+                  print FIL "target \"$name\"\n";
                   print FIL "\ttarget-type = disk\n";
                   print FIL "\tinst = map(mount-point)\n";
                   print FIL "\tmount-point = \"$mnt\"\n";
