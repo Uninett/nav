@@ -219,7 +219,8 @@ class getBoksMacs
 		// Hent alle aktive vlan
 		out("  vlan...");
 		dumpBeginTime = System.currentTimeMillis();
-		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN swportvlan USING (swportid) JOIN module USING(moduleid) WHERE trunk='f'");
+		//rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN swportvlan USING (swportid) JOIN module USING(moduleid) WHERE trunk='f'");
+		rs = Database.query("SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f'");
 		while (rs.next()) {
 			Set s;
 			String boksid = rs.getString("netboxid");
@@ -227,7 +228,7 @@ class getBoksMacs
 			s.add(new Integer(rs.getInt("vlan")));
 		}
 		{
-			rs = Database.query("SELECT DISTINCT vlan FROM prefix WHERE vlan IS NOT null");
+			rs = Database.query("SELECT DISTINCT vlan FROM prefix JOIN vlan USING(vlanid) WHERE vlan IS NOT null");
 			int[] vlanList = new int[rs.getFetchSize()];
 			for (int i=0; rs.next(); i++) vlanList[i] = rs.getInt("vlan");
 
