@@ -77,17 +77,17 @@ public class CiscoGw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processCiscoGw(nb, netboxid, ip, cs_ro, type, gwc);
+		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, gwc);
 
 		// Commit data
-		gwc.commit();
+		if (fetch) gwc.commit();
 	}
 
 	/*
 	 * CiscoGw
 	 *
 	 */
-	private void processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, GwportContainer gwc) throws TimeoutException {
+	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, GwportContainer gwc) throws TimeoutException {
 
 		/*
 
@@ -201,7 +201,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		});
 
 		if (!oidsNotSupported.isEmpty()) {
-			return;
+			return false;
 		}
 
 		// Check for router OID
@@ -218,7 +218,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 			if (nb.getCat().equals("GW")) {
 				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch data!");
 			}
-			return;
+			return false;
 		}
 		
 		// The card OIDs
@@ -412,6 +412,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				
 			}
 		}
+		return true;
 	}
 
 	private static boolean isNumber(String s) {
