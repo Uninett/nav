@@ -663,6 +663,7 @@ public class GwportHandler implements DataHandler {
 
 	private static void removeGwips(Map removeGwipMap, boolean isStaticCommited) throws SQLException {
 		// Remove all gwips from gwports where they no longer exist.
+		boolean hasDeleted = false;
 		for (Iterator it = removeGwipMap.entrySet().iterator(); it.hasNext();) {
 			Map.Entry me = (Map.Entry)it.next();
 			String gwportid = (String)me.getKey();
@@ -685,10 +686,13 @@ public class GwportHandler implements DataHandler {
 					Database.update("DELETE FROM gwportprefix WHERE gwip='" + rgwip + "'");
 					Log.d("DEL_GWPORTPREFIX", "Deleted " + rgwip + " from gwportprefix("+gwportid+")");
 					gwpDbMap.remove(rgwip);
+					hasDeleted = true;
 				}
 			}
 		}
-
+		if (hasDeleted) {
+			Database.update("DELETE FROM gwport WHERE gwportid NOT IN (SELECT gwportid FROM gwportprefix)");
+		}
 	}
 	
 	private static void createVlan(Vlan vl) throws SQLException {
