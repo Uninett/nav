@@ -154,7 +154,7 @@ Oversikt
   /usr/local/lib/jython , read the source and don't touch !
 
 7)problemer
-  Det er to ting som har vært spesielle:
+  Det er tre ting som har vært spesielle:
   i) NT 
      Vi har ikke klart å hente ut HOST-RESOURCE-MIB fra NT 4.0 boksene våres
      Dette har ført til at vi har droppa innhenting av info fra de boksene 
@@ -188,6 +188,22 @@ Oversikt
      Den nye Map.pm ligger i cvsroot /cricket/bin og må byttes ut med cricket
      sin orignale Map.pm. Alternativt kan kommandoen patch -p0 < cricket.patch kjøres som
      også ligger i cvsroot /cricket/bin.
+
+ iii) NFS og snmp
+     På *nix boksene stopper snmpd opp (dør hen) dersom maskinen som det kjøres spørring 
+     mot har en NFS avhengighet mot en annen boks som er nede.
+     Eksempel :
+     snmpwalk kamel <community> .1.3.6.1.2.1.25.2.3.1.3
+     ......
+     host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.11 = /unit
+     host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.12 = /vol
+     host.hrStorage.hrStorageTable.hrStorageEntry.hrStorageDescr.13 = /cdrom/sunray12
+     Timeout: No Response from kamel
+     her er nummer 14 en NFS avhengighet mot en annen maskin. Denne NFS'en har dødd 
+     dermed henger snmpd en viss stund før den timer ut. 
+
+     Vi har ikke klart å finne noe fornuftig løsning på problemet , snmpd inneholder
+     c kode som er forsøkt tydet men ingen løsning funnet.
 
 8) Vyer
    *hente info fra salmaskiner
