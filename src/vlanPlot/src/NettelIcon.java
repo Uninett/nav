@@ -31,10 +31,9 @@ class NettelIcon implements ImageObserver
 		this.imageName = kat+".gif";
 		this.parent = parent;
 
-		if (!imageName.equals("gw.gif")) com.d("ImageName: " + imageName,2);
-
 		// Hent ikonet
 		if (com.getApplet() != null) {
+			com.d("Icon URL: " + com.getApplet().getDocumentBase() + ", ImageName: " + imageName,2);
 			icon = com.getApplet().getImage(com.getApplet().getDocumentBase(),DIR_PREFIX+imageName);
 		} else {
 			icon = Toolkit.getDefaultToolkit().getImage(DIR_PREFIX+imageName);
