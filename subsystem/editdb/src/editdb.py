@@ -6,7 +6,7 @@
 
 from mod_python import util,apache
 from editdbSQL import *
-from socket import gethostbyaddr,gethostbyname
+from socket import gethostbyaddr,gethostbyname,gaierror
 
 import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
 from nav.web.serviceHelper import getCheckers,getDescription
@@ -33,6 +33,15 @@ BULK_STATUS_YELLOW_ERROR = 2
 BULK_STATUS_RED_ERROR = 3
 # Bulk fieldname for unspecified fields
 BULK_UNSPECIFIED_FIELDNAME = 'excess'
+# List of character encodings which bulk import tries.
+# Browsers should return utf-8 encoded form-data from 
+# the text input since this is the encoding specified
+# in the MainTemplate
+DEFAULT_ENCODING = 'utf_8'
+BULK_TRY_ENCODINGS = ['utf_8',
+                      'utf_16',
+                      'latin_1',        # West Europe
+                      'iso8859_10']     # Nordic languages
 
 # REQ_TRUE: a required field
 # REQ_FALSE: not required
@@ -420,13 +429,25 @@ def bulkImport(req,action):
     # form  submitted?
     if req.form.has_key(form.cnameConfirm) and len(req.form['table']):
         fileName = req.form['file']
-        if len(fileName.value):
-            input = fileName.value
-            #input.decode('utf-8')
-            input = input.split('\n')
-        else:
-            input = req.form['textarea']
-            input = input.split('\n')
+        input = req.form['textarea']
+        if not type(fileName) is str:
+            # Opera returns a str for req.form['file']
+            # when it is left empty. Strange.
+            if len(fileName.value):
+                input = fileName.value
+ 
+        #encoding = None
+        # Try decoding different encodings
+        for encoding in BULK_TRY_ENCODINGS:
+            try:
+                # Work internally with DEFAULT_ENCODING (utf-8)
+                input = input.decode(encoding).encode(DEFAULT_ENCODING)
+                break
+            except UnicodeError:
+                pass
+
+        input = input.split('\n')
+
         # strip cr
         i = []
         for line in input:
@@ -440,6 +461,7 @@ def bulkImport(req,action):
         rows = []
         for p in parsed:
             status,data,remark,line,linenr = p
+
             if status == BULK_STATUS_OK:
                 row = [(['<IMG src="' + BULK_IMG_GREEN + '">'],False),
                        ([linenr],False),
@@ -477,6 +499,11 @@ def bulkImport(req,action):
                 list.hiddenData.append((BULK_HIDDEN_DATA,line))
         list.headings = ['','Line','Input','Remark']
         list.rows = rows
+        # Output charset encoding debug info
+        #if fileName:
+        #    list.status = editdbStatus()
+        #    message = "Read %d lines of %s encoded data" %(len(parsed),encoding)
+        #    list.status.messages.append(message)
         form = None
     elif req.form.has_key(selectList.cnameBulkConfirm):
         # import confirmed after preview
@@ -517,6 +544,7 @@ def bulkInsert(data,bulkdef,separator):
             row[field] = fields[i] 
         # Add extra arguments
         excessCount = 0        
+        i = inputLen
         if len(fields) > len(bulkdef.fields):
             while(i < (len(fields))):
                 field = BULK_UNSPECIFIED_FIELDNAME + str(excessCount)
@@ -4151,7 +4179,7 @@ class bulkdefNetbox:
     min_num_fields = 4
 
     process = True
-    onlyProcess = False
+    onlyProcess = True
     syntax = '#roomid:ip:orgid:catid:[ro:serial:rw:function:subcat1:subcat2..]\n'
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
@@ -4304,7 +4332,7 @@ class bulkdefNetbox:
                     if box.typeid:
                         typeId = str(box.typeid)
                         row['typeid'] = typeId
-                        # Set uptyodate = false
+                        # Set uptyodate = false for this type
                         tifields = {'uptodate': 'f'}
                         updateEntryFields(tifields,'type','typeid',typeId)
                     if box.snmpversion:
@@ -4349,9 +4377,52 @@ class bulkdefNetbox:
                                                   ('deviceid','device_deviceid_seq'))
                 row['deviceid'] = deviceid
             else:
-                # No serial given, and got no serial from snmp,
-                # skip this box. Fix this: give error in preInsert
                 row = None
+
+        #raise(repr(row))
+        if row:
+            # Function
+            netboxFunction = None
+            if row.has_key('function'):
+                if len(row['function']):
+                    netboxFunction = row['function']
+                del(row['function'])
+
+            # Subcat's
+            excessCount = 0
+            excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+            subcatList = []
+            while(row.has_key(excessField)):
+                subcatList.append(row[excessField]) 
+                del(row[excessField])
+                excessCount += 1
+                excessField = BULK_UNSPECIFIED_FIELDNAME + str(excessCount) 
+            
+            netboxId = addEntryFields(row,
+                                      'netbox',
+                                      ('netboxid','netbox_netboxid_seq'))
+
+        
+            # Insert netboxfunction
+            if netboxFunction:
+                fields = {'netboxid': netboxId,
+                          'var': 'function',
+                          'val': netboxFunction}
+                addEntryFields(fields,
+                               'netboxinfo')
+
+            if subcatList:                          
+                for subcat in subcatList:
+                    if len(subcat):
+                        sql = "SELECT subcatid FROM subcat WHERE " +\
+                              "subcatid='%s'" % (subcat,)
+                        result = executeSQLreturn(sql)
+                        if result:
+                            fields = {'netboxid': netboxId,
+                                      'category': subcat}
+                            addEntryFields(fields,
+                                           'netboxcategory')
+
         return row
     preInsert = classmethod(preInsert)
 
@@ -4365,7 +4436,7 @@ class bulkdefService:
 
     process = True
     onlyProcess = True
-    syntax = '#sysname/ip:handler\n'
+    syntax = '#ip/sysname:handler[:arg=value[:arg=value]]\n'
 
     postCheck = False
     # Seperator for optargs arguments
@@ -4385,7 +4456,10 @@ class bulkdefService:
 
         try:
             # Check sysname/ip
-            ip = gethostbyname(data['netboxid'])
+            try:
+                ip = gethostbyname(data['netboxid'])
+            except gaierror:
+                raise ("DNS query for '%s' failed." % (data['netboxid'],)) 
             where = "ip='%s'" % (ip,)
             box = editTables.Netbox.getAll(where)
             if box:
@@ -4458,7 +4532,7 @@ class bulkdefService:
 
         if data:
             fields = {'netboxid': data['netboxid'],
-                  'handler': data['handler']}
+                      'handler': data['handler']}
             serviceid = addEntryFields(fields,
                                       'service',
                                       ('serviceid','service_serviceid_seq'))
