@@ -113,6 +113,25 @@ public class SimpleSnmp
 	}
 
 	/**
+	 * Snmpwalk the given OID and return the entire subtree as a Map.
+	 *
+	 * Note: the baseOid prefix is removed from the returned OIDs.
+	 *
+	 * @return a Map which maps the OIDs to their corresponding values
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public Map getAllMap() throws TimeoutException
+	{
+		List l = getAll();
+		Map m = new HashMap();
+		for (Iterator it = l.iterator(); it.hasNext();) {
+			String[] s = (String[])it.next();
+			m.put(s[0], s[1]);
+		}
+		return m;
+	}
+
+	/**
 	 * Snmpwalk the given OID and return the entire subtree.
 	 *
 	 * Note: the baseOid prefix is removed from the returned OIDs.
