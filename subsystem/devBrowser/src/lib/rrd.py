@@ -140,6 +140,7 @@ def showIndex(req, session):
         session['rrd'] = presenter.page()
         session['rrd'].presentations = []
         session.save()
+        presentations =  session['rrd'].presentations
     if len(presentations):
         return showGraphs(session)
     return treeselect(req, session)
