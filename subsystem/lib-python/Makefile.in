@@ -13,6 +13,7 @@ sysconfdir = @sysconfdir@
 localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
+initdir = @initdir@
 pathmodule = src/nav/path.py
 
 config = rrdBrowser.conf
@@ -32,6 +33,7 @@ $(pathmodule): Makefile
 	@echo "sysconfdir=\"$(sysconfdir)\"" >> $(pathmodule)
 	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
 	@echo "webroot=\"$(webroot)\"" >> $(pathmodule)
+	@echo "initdir=\"$(initdir)\"" >> $(pathmodule)
 
 install: install-lib install-bin install-conf
 

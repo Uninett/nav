@@ -82,6 +82,7 @@ installdirs:
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(prefix)
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(exec_prefix)
 	$(INSTALL) -v -m 0775 -d $(DESTDIR)$(sysconfdir)
+	$(INSTALL) -v -m 0775 -d $(DESTDIR)$(crondir)
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(bindir)
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(docdir)
 	$(INSTALL) -v -m 0755 -d $(DESTDIR)$(libdir)

@@ -130,8 +130,14 @@ class CacheError(Exception):
     pass
 
 # We import some sub-modules because of bugs in mod_python
-import db
-import auth
+try:
+    import db
+except:
+    pass
+try:
+    import auth
+except:
+    pass
 try:
     # This actually belongs in another subsystem
     import web

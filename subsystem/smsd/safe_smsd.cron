@@ -1,0 +1,2 @@
+## info: Restarts the SMS Daemon when it has gone away
+*/5 * * * * $BINDIR/safe_smsd.pl

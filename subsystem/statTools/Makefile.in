@@ -13,16 +13,17 @@ sysconfdir = @sysconfdir@
 webroot = @webroot@
 tooldir = @tooldir@
 docdir = @docdir@
+crondir = @crondir@
 
 binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
 conffiles = cricketoids.txt
 tool = cricket.tool
 
-.PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc
+.PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc install-cron
 
 all: 
 
-install: install-bin install-conf install-web install-doc
+install: install-bin install-conf install-web install-cron install-doc
 
 install-bin:
 	@for file in $(binaries); do \
@@ -47,6 +48,9 @@ install-doc:
 	for file in $$documentation; do                                             \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(docdir)/$$file || exit 1;      \
 	done
+
+install-cron:
+	$(INSTALL) -D -v -m 644 cricket.cron $(DESTDIR)$(crondir)/cricket
 
 clean:
 	rm -f *~

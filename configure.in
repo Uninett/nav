@@ -33,6 +33,7 @@ AC_SUBST(perllibdir)
 AC_SUBST(initdir)
 AC_SUBST(tooldir)
 AC_SUBST(docdir)
+AC_SUBST(crondir)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -43,6 +44,7 @@ perllibdir='${libdir}/perl'
 initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
 docdir='${prefix}/doc'
+crondir='${sysconfdir}/cron.d'
 
 
 AC_OUTPUT(Makefile

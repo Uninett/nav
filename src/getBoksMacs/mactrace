@@ -1,0 +1,4 @@
+## info: Collects cam data from switches
+NUM_THREADS=24
+# Only collecte once an hour for testing purposes
+10 * * * *      $BINDIR/getBoksMacs/getBoksMacs.sh $NUM_THREADS

@@ -9,17 +9,19 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 sysconfdir = @sysconfdir@
-initdir = $(sysconfdir)/init.d
+initdir = @initdir@
+crondir = @crondir@
 
 binaries = smsd.pl safe_smsd.pl
 startscripts = smsd
 conffiles = smsd.conf
+cronfiles = smsd_safe
 
-.PHONY: all install install-bin install-scripts clean distclean install-conf
+.PHONY: all install install-bin install-scripts clean distclean install-conf install-cron
 
 all: 
 
-install: $(startscripts) install-bin install-scripts install-conf
+install: $(startscripts) install-bin install-scripts install-cron install-conf 
 
 install-bin:
 	@for file in $(binaries); do \
@@ -39,6 +41,11 @@ install-conf:
 	  else                                                 \
 	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
 	  fi;                                                  \
+	done
+
+install-cron:
+	@for file in $(cronfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file.cron $(DESTDIR)$(crondir)/$$file || exit 1; \
 	done
 
 clean:

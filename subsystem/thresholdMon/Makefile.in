@@ -9,19 +9,26 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 sysconfdir = @sysconfdir@
+crondir = @crondir@
 
 binaries = fillthresholds.py thresholdMon.py
+cronfiles = thresholdMon
 
-.PHONY: all install install-bin clean distclean
+.PHONY: all install install-bin clean distclean install-cron
 
 
 all: 
 
-install: install-bin
+install: install-bin install-cron
 
 install-bin:
 	@for file in $(binaries); do \
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-cron:
+	@for file in $(cronfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file.cron $(DESTDIR)$(crondir)/$$file || exit 1; \
 	done
 
 clean:

@@ -9,20 +9,28 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 sysconfdir = @sysconfdir@
-initdir = $(sysconfdir)/init.d
+initdir = @initdir@
+libdir = @libdir@
+pythonlibdir = @pythonlibdir@
 
 binaries = nav
+libraries = startstop.py
 startscripts = functions
 
-.PHONY: all install install-bin install-scripts clean distclean
+.PHONY: all install install-bin install-scripts clean distclean install-lib
 
 all: 
 
-install: install-bin install-scripts
+install: install-lib install-bin install-scripts
 
 install-bin:
 	@for file in $(binaries); do \
 	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-lib:
+	@for file in $(libraries); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/$$file || exit 1; \
 	done
 
 install-scripts:

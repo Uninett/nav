@@ -61,6 +61,8 @@
     <mkdir dir="${DESTDIR}${tooldir}"/>
     <copy file="navAdmin.tool" todir="${DESTDIR}${tooldir}" />
     -->
+    <mkdir dir="${DESTDIR}${crondir}"/>
+    <copy file="collect" todir="${DESTDIR}${crondir}" />
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${jarinstdir}/${jar}"/>
@@ -68,6 +70,7 @@
     <!-- The navAdmin tool does not yet exist
     <delete file="${DESTDIR}${tooldir}/navAdmin.tool" />
     -->
+    <delete file="${DESTDIR}${crondir}/collect" />
   </target>
 
   <target name="dist_debug" depends="dist"

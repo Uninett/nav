@@ -8,3 +8,4 @@ javalibdir=@javalibdir@
 localstatedir=@localstatedir@
 webroot=@webroot@
 tooldir=@tooldir@
+crondir=@crondir@

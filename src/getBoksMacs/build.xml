@@ -46,9 +46,15 @@
 
     <mkdir dir="${DESTDIR}${sysconfdir}"/>
     <copy file="getBoksMacs.conf" todir="${DESTDIR}${sysconfdir}"/>
+
+    <mkdir dir="${DESTDIR}${crondir}"/>
+    <copy file="iptrace" todir="${DESTDIR}${crondir}"/>
+    <copy file="mactrace" todir="${DESTDIR}${crondir}"/>
   </target>
   <target name="uninstall">
     <delete file="${DESTDIR}${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${crondir}/iptrace"/>
+    <delete file="${DESTDIR}${crondir}/mactrace"/>
   </target>
 
   <target name="dist_debug" depends="dist"

@@ -1,0 +1,4 @@
+## info: Collects information about the topology of your network
+
+35 * * * *              $BINDIR/navAdmin/runAvledTopologi.sh
+36 * * * *              $BINDIR/navAdmin/runAvledVlan.sh

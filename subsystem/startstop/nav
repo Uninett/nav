@@ -1,370 +1,152 @@
-#!/usr/bin/perl
-####################
+#!/usr/bin/env python
+# -*- coding: ISO8859-1 -*-
 #
-# $Id$
 # This file is part of the NAV project.
-# Common start/stop script for all NAV daemons.  It will also manage
+#
+# Common start/stop script for all NAV services.  It will also manage
 # loading/unloading of cron-based tasks in the NAV system.
 #
-# Copyright (c) 2002 by NTNU, ITEA nettgruppen
+# Copyright (c) 2004 by NTNU, ITEA
 # Authors: Morten Vold <morten.vold@itea.ntnu.no>
 #
-####################
-use English;
+"""This command is your interface to start, stop and query NAV services.
 
-use constant SUB_NONE    => 0;
-use constant SUB_SAME    => 1;
-use constant SUB_DIFF    => 2;
-use constant SUB_UNKNOWN => 255;
+Usage: nav [command] [service ...]
 
-use NAV;
-use NAV::Path;
+The selected command will be applied to all known services, unless you
+specify a list of services after the command.
+Available commands are:
 
-my $NAV_CONF = "$NAV::Path::sysconfdir/nav.conf";
-my $NAVME_ETC = "$NAV::Path::sysconfdir";
-my $NAVME_INIT = "$NAV::Path::initdir";
-my $CRONFILE = "$NAVME_ETC/crontab_navcron.nav";
-my $CRONTAB = 'crontab';
-my $NAVCRON_USER = 'navcron';
-my $PREFIXNAME = '<PREFIX>';
-my @UNKNOWNLIST = ();
+  start   -- Start services.
+  stop    -- Stop services.
+  status  -- Query the status of services.
+  info    -- Display information about/description of services.
+  list    -- Display list of known services.
+  
+  version -- Displays which version of NAV you are running.
+"""
+__id__ = "$Id$"
 
-if ($EUID != 0) {
-    print "You must be root to run this program.\n";
-    exit 1;
-}
+import sys
+import os
+import os.path
+import getopt
+try:
+    from startstop import *
+except ImportError:
+    from nav.startstop import *
 
-die "$CRONFILE does not exist" unless (-f $CRONFILE);
-chdir($NAVME_INIT);
+try:
+    services = ServiceRegistry()
+except OSError, e:
+    print >> sys.stderr, "A problem occurred, which prevented this command from running."
+    print >> sys.stderr, str(e)
+    sys.exit(1)
 
-my %navconf = &NAV::config($NAV_CONF);
+allowNonRoot = False
 
-my %crontasks = &parseCronFile();
-my $tempbuffer = `$CRONTAB -u $NAVCRON_USER -l`;
-my %runningcrontasks = &parseCronBuffer($tempbuffer);
-
-$|=1;
-if ($#ARGV == -1) {
-    &printUsage();
-    exit 1;
-}
-
-my $command = shift;
-if ($#ARGV == -1) {
-    @ARGV = keys %crontasks;
-    push(@ARGV, &listDaemons());
-}
-
-foreach ($command) {
-    /^status$/ && do {
-        print "== NAV Daemons ==\n";
-        &daemonCommand('status', @ARGV);
-        print "== NAV Cron-based tasks ==\n";
-        @ARGV = @UNKNOWNLIST; @UNKNOWNLIST = ();
-        &printCronStatus(@ARGV);
-        last;
-    };
-    /^start$/ && do {
-        print "== NAV Daemons ==\n";
-        &daemonCommand('start', @ARGV);
-        print "== NAV Cron-based tasks ==\n";
-        @ARGV = @UNKNOWNLIST; @UNKNOWNLIST = ();
-        &startCrontasks(@ARGV);
-        last;
-    };
-    /^stop$/ && do {
-        print "== NAV Daemons ==\n";
-        &daemonCommand('stop', @ARGV);
-        print "== NAV Cron-based tasks ==\n";
-        @ARGV = @UNKNOWNLIST; @UNKNOWNLIST = ();
-        &stopCrontasks(@ARGV);
-        last;
-    };
-    /^restart$/ && do {
-        print "== NAV Daemons ==\n";
-        &daemonCommand('restart', @ARGV);
-        @ARGV = @UNKNOWNLIST; @UNKNOWNLIST = ();
-        if (@ARGV) {
-            print "== Stopping NAV Cron-based tasks ==\n";
-            &stopCrontasks(@ARGV);
-            print "== Starting NAV Cron-based tasks ==\n";
-            &startCrontasks(@ARGV);
-        }
-        last;
-    };
-    /^list$/ && do {
-        print "== NAV Daemons ==\n";
-        foreach (&listDaemons()) {
-            print "$_\n";
-        }
-        print "== NAV Cron-based tasks ==\n";
-        foreach (keys %crontasks) {
-            print "$_\n" unless ($_ eq $PREFIXNAME);
-        }
-        last;
-    };
-    /^ver$/ && do {
-        &printNAVVersion();
-        last;
-    };
-
-    # Print error when command is unknown
-    print STDERR "Unknown command '$_'\n";
-    exit 1;
-}
-
-# If service names were unknown to both the daemon and cron systems, they will
-# be listed in the @UNKNOWNLIST array, and we complain about it here.
-if ($#UNKNOWNLIST > -1) {
-    print "\nThe following specified subsystems are unknown:\n";
-    foreach (@UNKNOWNLIST) {
-        print "$_ ";
-    }
-    print "\n";
-}
-
-##########################
-
-sub parseCronBuffer ($)
-{
-    my $buffer = shift;
-    my %crontasks;
-
-    # Nice regex to parse the sectioned crontab file :-)
-    while ($buffer =~ /\n(\#\s*<(.+?)>\s*?\r?\n(.+?)\n\#\s*<\/\2>)/sg) {
-        # If this is the first match, interpret the data preceding the
-        # match as the prefix section.
-        unless (exists($crontasks{$PREFIXNAME})) {
-            $crontasks{$PREFIXNAME} = $`;
-        }
-        $crontasks{$2} = $1;
-    }
-
-    # If no sections were found in the buffer, treat the entire buffer
-    # as the prefix section.
-    unless (exists($crontasks{$PREFIXNAME})) {
-        $crontasks{$PREFIXNAME} = $buffer;
-    }
-    # Drop any comments and empty lines in the prefix section.
-    $crontasks{$PREFIXNAME} =~ s/^\#.*$//mg;
-    while ($crontasks{$PREFIXNAME} =~ s/(\r?\n){2}/\n/sg) {};
-
-    if (defined($navconf{ADMIN_MAIL})) {
-        # Replace internal variables in all chunks...
-        foreach (keys %crontasks) {
-            $crontasks{$_} =~ s/\Q%ADMIN_MAIL%\E/$navconf{ADMIN_MAIL}/sg;
-        }
-    }
-
-    return %crontasks;
-}
-
-sub parseCronFile ()
-{
-    open(my $FD, "<$CRONFILE") || die "Cannot open $CRONFILE ($!)";
-    read($FD, my $buffer, -s $CRONFILE);
-    close($FD);
+def main(args):
+    global services
     
-    return &parseCronBuffer($buffer);
-}
+    try:
+        opts, args = getopt.getopt(args, '', ['nonroot'])
+    except getopt.GetoptError, error:
+        print >> sys.stderr, error
+        usage()
+        sys.exit(1)
 
-sub printUsage ()
-{
-    print <<EOF;
-Usage: nav [command] [subsystem1 ... subsystemN]
-Where [command] is one of:
+    for opt,val in opts:
+        if opt == '--nonroot':
+            global allowNonRoot
+            allowNonRoot = True
 
-        status  - Show status of subsystem(s)
-        start   - Start subsystem(s)
-        stop    - Stop subsystem(s)
-        restart - Stop and then start subsystem(s)
-        list    - List known subsystems
-        ver     - Display NAV version
+    if len(args) == 0:
+        usage()
+        sys.exit(1)
 
-If subsystem is omitted, commands will be performed on all known subsystems.
+    command = args.pop(0)
+    if len(args) == 0:
+        queryList = services.keys()
+    else:
+        queryList = args
 
-EOF
-}
+    # Use reflection to decide whether the command is known, and to
+    # call it if it is.
+    self = sys.modules[__name__]
+    commandFuncName = 'c_' + command
+    if hasattr(self, commandFuncName):
+        commandFunc = self.__dict__[commandFuncName]
+        commandFunc(queryList)
+    else:
+        print >> sys.stderr, "Unknown command: " + command
 
-sub cronStatus ($)
-{
-    my $crontask = shift;
+def checkroot():
+    if not allowNonRoot and os.geteuid() != 0:
+        print >> sys.stderr, "You should be root to run this command."
+        sys.exit(10)
 
-    # If the system does not appear in the navme crontab file, it is
-    # unknown to us.
-    return SUB_UNKNOWN unless (exists($crontasks{$crontask}));
-    
-    if (exists($runningcrontasks{$crontask})) {
-        if ($runningcrontasks{$crontask} eq $crontasks{$crontask}) {
-            return SUB_SAME;
-        } else {
-            return SUB_DIFF;
-        }
-    } else {
-        return SUB_NONE;
-    }
-}
+def c_info(queryList):
+    for service in queryList:
+        if services.has_key(service):
+            print "%s (%s): %s" % (service,
+                                   services[service].__class__.__name__,
+                                   services[service].info)
+        else:
+            print >> sys.stderr, "Unknown service: " + service
 
-sub printCronStatus
-{
-    my %messages = (
-                    &SUB_NONE => "Down",
-                    &SUB_SAME => "Up",
-                    &SUB_DIFF => "Seems to be up, but modified from version on disk",
-                    &SUB_UNKNOWN => "Unknown subsystem!"
-                    );
+def c_list(queryList):
+    for service in queryList:
+        if services.has_key(service):
+            print service
+        else:
+            print >> sys.stderr, "Unknown service: " + service
 
-    my $prefixCheck = 0;
-    while (my $crontask = shift) {
-        if ($crontask eq $PREFIXNAME) {
-            $prefixCheck = 1;
-        } else {
-            my $status = &cronStatus($crontask);
-            if ($status == SUB_UNKNOWN) {
-                push(@UNKNOWNLIST, $crontask);
-            } else {
-                print "$crontask: $messages{$status}\n";
-            }
-        }
-    }
+def c_start(queryList):
+    checkroot()
+    for service in queryList:
+        if services.has_key(service):
+            services[service].start()
+        else:
+            print >> sys.stderr, "Unknown service: " + service
+        
+def c_stop(queryList):
+    checkroot()
+    for service in queryList:
+        if services.has_key(service):
+            services[service].stop()
+        else:
+            print >> sys.stderr, "Unknown service: " + service
 
-    if ($prefixCheck) {
-        # Check the status of the prefix section
-        my $prefixStatus = &cronStatus($PREFIXNAME);
-        if ($prefixStatus != SUB_SAME) {
-            if ($prefixStatus == SUB_DIFF) {
-                print "\nThe running prefix section is different than the one on disk!\n";
-            } elsif ($prefixStatus == SUB_NONE) {
-                print "\nWARNING: The prefix section is missing, NAV might not be functioning properly!\n";
-            } elsif ($prefixStatus == SUB_UNKNOWN) {
-                print "\nWARNING: The prefix section is unknown, something is very wrong with the system!\n";
-            }
-        }
-    }
-}
+def c_restart(queryList):
+    checkroot()
+    for service in queryList:
+        if services.has_key(service):
+            services[service].restart()
+        else:
+            print >> sys.stderr, "Unknown service: " + service
+        
+def c_status(queryList):
+    checkroot()
+    for service in queryList:
+        if services.has_key(service):
+            services[service].isUp()
+        else:
+            print >> sys.stderr, "Unknown service: " + service
 
-sub startCrontasks
-{
-    # Always reload the prefix when adding stuff to the crontab.
-    $runningcrontasks{$PREFIXNAME} = $crontasks{$PREFIXNAME};
+def c_version(queryList):
+    import nav
+    if hasattr(nav, '__version__'):
+        print "NAV " + nav.__version__
+    elif hasattr(nav, 'VERSION'):
+        print "NAV " + nav.VERSION
+    else:
+        print >> sys.stderr, "I cannot find any NAV version information!"
 
-    # This loop updates the %runningcrontasks hash to reflect what the
-    # new crontab will look like.
-    foreach my $crontask (@_) {
-        next if ($crontask eq $PREFIXNAME); # Skip prefix section
+def usage():
+    """ Print a usage screen to stderr."""
+    print >> sys.stderr, __doc__
 
-        my $status = &cronStatus($crontask);
-        if ($status == SUB_UNKNOWN) {
-            push(@UNKNOWNLIST, $crontask);
-            next;
-        }
-
-        print "$crontask: ";
-        if ($status == SUB_SAME) {
-            print "Already up\n";
-        } else {
-            if ($status == SUB_DIFF) {
-                print "Reloading from disk\n";
-            } elsif ($status == SUB_NONE) {
-                print "Adding\n";
-            }
-            $runningcrontasks{$crontask} = $crontasks{$crontask};
-        }
-    }
-
-    &updateCrontab();
-}
-
-sub stopCrontasks
-{
-    # This loop updates the %runningcrontasks hash to reflect what the
-    # new crontab will look like.
-    foreach my $crontask (@_) {
-        next if ($crontask eq $PREFIXNAME); # Skip prefix section
-        print "$crontask: ";
-        my $status = &cronStatus($crontask);
-        if ($status == SUB_UNKNOWN) {
-            print "Unknown subsystem!\n";
-        } elsif ($status == SUB_SAME or $status == SUB_DIFF) {
-            print "Removing\n";
-            delete($runningcrontasks{$crontask});
-        } elsif ($status == SUB_NONE) {
-            print "Not up\n";
-        }
-    }
-    &updateCrontab();
-}
-
-sub updateCrontab
-{
-    # Open pipe to crontab
-    open(my $CRONFD, "| $CRONTAB -u $NAVCRON_USER -") 
-        || die "Cannot run $CRONTAB ($!)(" . ($? >> 8) . ")";
-    
-    print $CRONFD $runningcrontasks{$PREFIXNAME};
-    foreach (keys %runningcrontasks) {
-        next if ($_ eq $PREFIXNAME);
-        print $CRONFD "\n$crontasks{$_}\n";
-    }
-    close($CRONFD);
-    my $exit_status = $? >> 8;
-    if ($exit_status != 0) {
-        print STDERR "ERROR: $CRONTAB exited with a value of $exit_status\n";
-    }
-}
-
-#
-# Return an array of known daemon names.
-#
-sub listDaemons
-{
-    opendir(my $INIT, $NAVME_INIT);
-    # Make a list of found init scripts, excluding files with leading
-    # dots, files with backup prefixes and known non-init files
-    my @entries = grep { /^[^.]/ && !/\~$/ && !/^nav$/ && !/^functions$/ } readdir($INIT);
-    closedir($INIT);
-    return @entries;
-}
-
-#
-# Run a command string through a list of  daemon init scripts.
-#
-sub daemonCommand ($@)
-{
-    my $command = shift;
-    my @targetdaemons = @_;
-    my %daemonlist = map { $_ => 1 } &listDaemons();
-
-    while (my $daemon = shift @targetdaemons) {
-        unless (exists($daemonlist{$daemon})) {
-            push(@UNKNOWNLIST, $daemon);
-        } else {
-            system("./$daemon $command") == 0 
-                or print "Failed to run init script for $daemon ($!, $?)\n";
-        }
-    }
-}
-
-sub printNAVVersion
-{
-    my $verfile = "$NAV_ROOT/navme/version.nav";
-    open(my $FD, "<$verfile") or die "Error opening $verfile ($!)";
-    chomp(my $verstring = <$FD>);
-    close($FD);
-
-    # Remove any CVS keywords (The \Q quotation is to stop CVS from expanding
-    # the regex as a keyword.
-    $verstring =~ s/(\$\QName\E:)?\s*(\S+?)\s*\$/$2/i;
-    # Remove any leading textual name from a CVS tag name
-    $verstring =~ s/\w+-(.+)/$1/;
-    # Replace dashes with dots
-    $verstring =~ tr/-/./;
-
-    print "Your NAV version is: $verstring\n";
-}
-
-### Local Variables: ###
-### Mode: perl ###
-### indent-tabs-mode: nil ###
-### fill-column: 79 ###
-### End: ###
+##############
+# begin here #
+##############
+main(sys.argv[1:])
