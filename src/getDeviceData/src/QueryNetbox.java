@@ -340,17 +340,18 @@ public class QueryNetbox extends Thread
 			// Remove netboxes no longer present
 			for (Iterator it = nbMap.values().iterator(); it.hasNext();) {
 				NetboxImpl nb = (NetboxImpl)it.next();
-				if (!netboxidSet.contains(new Integer(nb.getNetboxid()))) nb.remove();
-				it.remove();
-				delcnt++;
-			} 
-
+				if (!netboxidSet.contains(new Integer(nb.getNetboxid()))) {
+					nb.remove();
+					it.remove();
+					delcnt++;
+				}
+			}
 
 		} catch (SQLException e) {
 			Log.e("UPDATE_NETBOXES", "SQLException: " + e);			
 		}
 
-		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + "(" + newcnt + " new, " + delcnt + " removed)");
+		Log.i("UPDATE_NETBOXES", "Num netboxes: " + netboxCnt + " (" + newcnt + " new, " + delcnt + " removed)");
 
 	}
 
