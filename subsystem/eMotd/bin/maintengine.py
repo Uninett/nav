@@ -3,7 +3,7 @@ $Id:
 
 This file is part of the NAV project.
 
-This module contains functionality related to the web toolbox.
+This module contains functionality related to eMotd and maintenance.
 
 Copyright (c) 2003 by NTNU, ITEA nettgruppen
 Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
@@ -11,11 +11,8 @@ Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>
 
 ##
 # import modules and set path
-import sys
-sys.path = ['/usr/local/nav/navme/lib/python','/usr/local/lib/python2.2/site-packages', '/usr/lib/apache/python/lib/python2.2', '/usr/lib/apache/python/lib/python2.2/plat-linux2', '/usr/lib/apache/python/lib/python2.2/lib-tk', '/usr/lib/apache/python/lib/python2.2/lib-dynload', '/usr/lib/apache/python/lib/python2.2/site-packages', '/usr/local/nav/navme/lib/python', '/usr/local/lib/python2.2/site-packages']
-
 from nav.db.manage import Emotd,Emotd_related,Maintenance
-from nav.db.manage import Eventq,Eventqvar,Eventtype,Netbox
+from nav.db.manage import Eventq,Eventqvar,Eventtype,Netbox,Service,Room
 from mx import DateTime
 
 ##
@@ -25,8 +22,7 @@ states = ['scheduled','active','passed','overridden']
 debug = False
 
 def schedule():
-    ##
-    # check if there are maintenances to be schedule
+    """ Check if there are maintenances to be schedule """
     where = ["maint_start < now()"]
     where.append("maint_end > now()")
     mids = Maintenance.getAllIDs(where)
@@ -41,8 +37,10 @@ def schedule():
                 print 'maintenance with id %s scheduled' % mid
 
 def check_state():
-    ##
-    # check if there are some maintenances to be set active (e.g. send maintenenaceOn)
+    """ 
+    Checks if there are some maintenances to be set active 
+    (e.g. send maintenenaceOn)
+    """
     where = ["maint_start < now()"]
     where.append("maint_end > now()")
     where.append("state = 'scheduled'")
@@ -71,8 +69,7 @@ def check_state():
 
 
 def send_event():
-    ##
-    # send events
+    """ Sends events to EventQueue based on table 'maintenance' """
     if debug:
         print 'debug: Found %s events to send to eventq' % len(events)
         print 'debug: ', events
