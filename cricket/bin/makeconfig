@@ -15,7 +15,7 @@
 # Utallige forandringer gjennomført.
 ############################################################
 
-# $Id: makeconfig,v 1.12 2002/06/11 16:39:59 stain Exp $
+# $Id: makeconfig,v 1.13 2002/06/14 13:30:44 danielsa Exp $
 
 use strict;
 
@@ -110,19 +110,19 @@ sub Servers {
     # Iterates over all the servers in the database marked SNMP, and
     # writes them to various config files.    
 
-    $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,ostype FROM boks
-    WHERE kat='server' AND snmp ORDER BY sysname";
+    $query = "SELECT Boksid,sysname,ip,typeid,romid,ro,'unix' FROM boks
+    WHERE kat='SRV' AND snmp_major > 0 ORDER BY sysname";
     my $getservers = &db_select($query,$dbh);
 
     while (my @temp = $getservers->fetchrow) {
 	my ($id, $sysname,$ip,$type,$romid,$community,$ostype) = @temp;
-	
+	print $community;	
         # Avoid severe errors in the database
 	if ($sysname) {
 	    if ($community) {
 
-                mkdir ("$path/server/$sysname",0775);
-                my $fil = "$path/server/$sysname/server";
+                mkdir ("$path/servers/$sysname",0775);
+                my $fil = "$path/servers/$sysname/server";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 
                 print FIL "target --default--\n";
@@ -175,7 +175,7 @@ sub Servers {
                 close FIL;
                 
                 # alle the interfaces
-                $fil = "$path/server/$sysname/interfaces";
+                $fil = "$path/servers/$sysname/interfaces";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT interf FROM boksinterface WHERE boksid=$id";
                 my $getinterfaces = &db_select($query, $dbh);
@@ -189,7 +189,7 @@ sub Servers {
                 close FIL;
 
                 # Then all the disks
-                $fil = "$path/server/$sysname/disks";
+                $fil = "$path/servers/$sysname/disks";
                 open (FIL, ">$fil") or die "Kunne ikke åpne $fil for skriving $!\n";
                 $query = "SELECT path FROM boksdisk WHERE boksid=$id";
                 my $getpaths = &db_select($query, $dbh);
@@ -623,6 +623,7 @@ sub db_connect {
     my $db_db = $config{'db_'.$db_user};
     my $db_host = $config{'dbhost'};
     my $db_port = $config{'dbport'};
+    print "host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd";
     my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
