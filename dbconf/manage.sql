@@ -325,6 +325,7 @@ GRANT ALL    ON swportvlan TO navadmin;
 GRANT ALL    ON swportvlan_swportvlanid_seq TO navadmin;
 GRANT SELECT,DELETE ON swp_boks TO navadmin;
 GRANT ALL    ON swportallowedvlan TO navadmin;
+GRANT SELECT ON swportblocked TO navadmin;
 
 --### vlanPlot end ###
 
