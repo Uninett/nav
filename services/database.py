@@ -1,8 +1,8 @@
 """
 database
 
-$Author: magnun $
-$Id: database.py,v 1.10 2002/06/18 15:02:54 magnun Exp $
+$Author: erikgors $
+$Id: database.py,v 1.11 2002/06/19 10:02:54 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/database.py,v $
 """
 import thread
@@ -25,7 +25,14 @@ def run():
 		c.execute(statement)
 def newEvent(event):
 	print "New event. Id: %i Status: %s Info: %s"% (event.id, event.status, event.info)
+	if event.status == event.UP:
+		value = 100
+	else:
+		value = 0
+	statement = "INSERT INTO eventq (deviceid,boksid,eventtypeid,statefull,value,descr)" % (event.serviceid, event.boksid, event.type, 't',value,event.info)
+	queue.put(statement)
 def newVersion(serviceid,version):
+	print "New version. Id: %i Version: " % (serviceid,version)
 	statement = "UPDATE service SET version = '%s' where serviceid = %i" % (version,serviceid)
 	queue.put(statement)
 def getJobs():
@@ -40,15 +47,15 @@ def getJobs():
 			property[serviceid] = {}
 		property[serviceid][prop] = value
 
-	query = """SELECT serviceid, handler, version, ip
+	query = """SELECT serviceid ,boksid, handler, version, ip
 	FROM service NATURAL JOIN boks order by serviceid"""
 	c.execute(query)
 	jobs = []
-	for serviceid,handler,version,ip in c.fetchall():
+	for serviceid,boksid,handler,version,ip in c.fetchall():
 		job = jobmap.get(handler,'')
 		if not job:
 			print 'no such handler:',handler
-		newJob = job(serviceid,ip,property.get(serviceid,{}),version)
+		newJob = job(serviceid,boksid,ip,property.get(serviceid,{}),version)
 		print "Property: %s" % property
 		jobs += [newJob]
 	db.commit()

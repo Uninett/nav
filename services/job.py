@@ -2,8 +2,8 @@
 """
 Overvåkeren
 
-$Author: stain $
-$Id: job.py,v 1.22 2002/06/18 15:21:17 stain Exp $
+$Author: erikgors $
+$Id: job.py,v 1.23 2002/06/19 10:02:54 erikgors Exp $
 $Source: /usr/local/cvs/navbak/navme/services/Attic/job.py,v $
 """
 import time,socket,sys,types
@@ -16,9 +16,11 @@ class Timeout(Exception):
 class Event:
 	UP = 'UP'
 	DOWN = 'DOWN'
-	def __init__(self,id,status,info):
+	def __init__(self,serviceid,boksid,type,status,info):
+		self.serviceid = serviceid
+		self.boksid = boksid
+		self.type = type
 		self.status = status
-		self.id = id
 		self.info = info
 
 class Socket:
@@ -70,8 +72,9 @@ class Socket:
 
 
 class JobHandler:
-	def __init__(self,type,id,address,args,version,status = Event.UP):
-		self.setId(id)
+	def __init__(self,type,serviceid,boksid,address,args,version,status = Event.UP):
+		self.setServiceid(serviceid)
+		self.setBoksid(boksid)
 		self.setType(type)
 		self.setAddress(address)
 		self.setStatus(status)
@@ -91,15 +94,19 @@ class JobHandler:
 		self.setUsage(time.time()-start)
 		
 		if status != self.getStatus():
-			database.newEvent(Event(self.getId(),status,info))
+			database.newEvent(Event(self.getServiceid(),self.getBoksid(),self.getType(),status,info))
 			self.setStatus(status)
-		if version != self.getVersion():
-			database.newVersion(self.getId(),self.getVersion())
+		if version != self.getVersion() and self.getStatus() == Event.UP:
+			database.newVersion(self.getServiceid(),self.getVersion())
 		self.setTimestamp()
-	def setId(self,id):
-		self._id = id
-	def getId(self):
+	def setServiceid(self,serviceid):
+		self._serviceid = serviceid
+	def getServiceid(self):
 		return self._id
+	def setBoksid(self,boksid):
+		self._boksid = boksid
+	def getBoksid(self):
+		return self._boksid
 	def getUsage(self):
 		return self._usage
 	def setUsage(self,usage):
@@ -135,15 +142,15 @@ class JobHandler:
 	def getVersion(self):
 		return self._version
 	def __eq__(self,obj):
-		return self.getId() == obj.getId() and self.getArgs() == obj.getArgs()
+		return self.getServiceid() == obj.getServiceid() and self.getArgs() == obj.getArgs()
 	def __cmp__(self,obj):
 		return self.getTimestamp().__cmp__(obj.getTimestamp())
 	def __hash__(self):
-		value = self.getId() + self.getArgs().__str__().__hash__()
+		value = self.getServiceid() + self.getArgs().__str__().__hash__()
 		value = value % 2**31
 		return int(value)
 	def __repr__(self):
-		s = '%i: %s %s %s' % (self.getId(),self.getType(),str(self.getAddress()),str(self.getArgs()))
+		s = '%i: %s %s %s' % (self.getServiceid(),self.getType(),str(self.getAddress()),str(self.getArgs()))
 		return s.ljust(60) + self.getStatus()
 class PortHandler(JobHandler):
 	def __init__(self,*args):
@@ -176,9 +183,9 @@ class HTTPConnection(httplib.HTTPConnection):
 		self.sock = Socket(self.timeout)
 		self.sock.connect((self.host,self.port))
 class HttpHandler(JobHandler):
-	def __init__(self,id,ip,args,version):
+	def __init__(self,serviceid,boksid,ip,args,version):
 		port = args.get('port',80)
-		JobHandler.__init__(self,'http',id,(ip,port),args,version)
+		JobHandler.__init__(self,'http',serviceid,boksid,(ip,port),args,version)
 	def execute(self):
 		i = HTTPConnection(self.getTimeout(),*self.getAddress())
 		path = self.getArgs().get('path',['/'])[0]
@@ -224,9 +231,9 @@ class FtpHandler(JobHandler):
 	password
 	path (ACCT)
 	"""
-	def __init__(self,id,ip,args,version):
+	def __init__(self,serviceid,boksid,ip,args,version):
 		port = args.get('port',21)
-		JobHandler.__init__(self,'ftp',id,(ip,port),args,version)
+		JobHandler.__init__(self,'ftp',serviceid,boksid,(ip,port),args,version)
 	def execute(self):
 		s = FTP(self.getTimeout())
 		ip,port = self.getAddress()
@@ -243,9 +250,9 @@ class FtpHandler(JobHandler):
 class SshHandler(JobHandler):
 	"""
 	"""
-	def __init__(self,id,ip,args,version):
+	def __init__(self,serviceid,boksid,ip,args,version):
 		port = args.get('port',22)
-		JobHandler.__init__(self,'ssh',id,(ip,port),args,version)
+		JobHandler.__init__(self,'ssh',serviceid,boksid,(ip,port),args,version)
 	def execute(self):
 		s = Socket(self.getTimeout())
 		s.connect(self.getAddress())
@@ -259,9 +266,9 @@ class DnsHandler(JobHandler):
 	Valid argument(s): request
 	"""
 
-	def __init__(self, id, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get("port", 42)
-		JobHandler.__init__(self, "dns", id, (ip, port), args, version)
+		JobHandler.__init__(self, "dns", serviceid, boksid, (ip, port), args, version)
 
 	def execute(self):
 		server=self.getAddress()
@@ -296,9 +303,9 @@ class DnsHandler(JobHandler):
 				return Event.DOWN, "Timeout"
 
 class MysqlHandler(JobHandler):
-	def __init__(self, id, ip, args, version):
+	def __init__(self, serviceid, boksid, ip, args, version):
 		port = args.get("port", 3306)
-		JobHandler.__init__(self, "mysql", id, (ip, port), args, version)
+		JobHandler.__init__(self, "mysql", serviceid, boksid, (ip, port), args, version)
 	def execute(self):
 		s = Socket(self.getTimeout())
 		s.connect(self.getAddress())
