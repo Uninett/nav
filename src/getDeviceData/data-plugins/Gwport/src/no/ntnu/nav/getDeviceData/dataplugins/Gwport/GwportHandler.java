@@ -43,12 +43,13 @@ public class GwportHandler implements DataHandler {
 			// module, gwport, prefix, vlan
 			dumpBeginTime = System.currentTimeMillis();
 			m = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT serial,hw_ver,sw_ver,moduleid,module,gwportid,ifindex,interface,masterindex,speed,ospf,prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,gwportid");
+			rs = Database.query("SELECT serial,hw_ver,sw_ver,moduleid,module,descr,gwportid,ifindex,interface,masterindex,speed,ospf,prefixid,gwip,hsrp,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlan,nettype,orgid,usageid,netident,description FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) ORDER BY moduleid,gwportid");
 			while (rs.next()) {
 				// Create module
-				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getString("module"));
+				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
 				gwm.setDeviceid(rs.getInt("deviceid"));
 				gwm.setModuleid(rs.getInt("moduleid"));
+				gwm.setDescr(rs.getString("descr"));
 
 				int moduleid = rs.getInt("moduleid");
 				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {

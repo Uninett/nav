@@ -211,7 +211,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[2]).setSerial(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[2])).setSerial(s[1]);
 				Log.d("PROCESS_HP", "Module: " + s[2] + " Serial: " + s[1]);
 			}
 		}
@@ -220,7 +220,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[2]).setHwVer(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[2])).setHwVer(s[1]);
 			}
 		}
 
@@ -228,7 +228,7 @@ public class HP implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[2]).setSwVer(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[2])).setSwVer(s[1]);
 			}
 		}
 
@@ -243,7 +243,7 @@ public class HP implements DeviceHandler
 				}
 				
 				String ifindex = portType[0];
-				Swport swp = sc.swModuleFactory(portType[2]).swportFactory(ifindex);
+				Swport swp = sc.swModuleFactory(Integer.parseInt(portType[2])).swportFactory(ifindex);
 
 				//System.err.println("ifindex: " + ifindex + ", p0: " + portType[0] + ", p1: " + portType[1] + ", p2: " + portType[2]);
 

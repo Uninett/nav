@@ -1,6 +1,7 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwCAT;
 
 import java.util.*;
+import java.util.regex.*;
 
 import no.ntnu.nav.logger.*;
 import no.ntnu.nav.SimpleSnmp.*;
@@ -104,12 +105,17 @@ public class CiscoSwCAT implements DeviceHandler
 
 			    String ifindex = s[0];
 			    String portif = s[1];
-			    
-			    String[] modulport = portif.split("/");
-			    String module = modulport[0];
-			    module = module.replaceFirst("FastEthernet","Fa");
-			    module = module.replaceFirst("GigabitEthernet","Gi");
-			    sc.swModuleFactory(module);
+
+					// Determine and create the module
+					int module = 0;
+					String modulePattern = ".*(\\d+)/.*";
+					if (portif.matches(modulePattern)) {
+						Matcher m = Pattern.compile(modulePattern).matcher(portif);
+						m.matches();
+						module = Integer.parseInt(m.group(1));
+					}
+			    SwModule swm = sc.swModuleFactory(module);
+					swm.setDescr(portif.split("/")[0]);
 			}
 		    }
 		    for (Iterator it = o.iterator(); it.hasNext();) {

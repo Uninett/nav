@@ -98,7 +98,7 @@ public class CiscoSw1900 implements DeviceHandler
 		*/
 
 		// Module is always 1 on this switch
-		String module = "1";
+		int module = 1;
 		List l;
 
 		// Switch port data

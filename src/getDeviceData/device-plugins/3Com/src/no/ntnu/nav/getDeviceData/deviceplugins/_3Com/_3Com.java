@@ -174,9 +174,10 @@ public class _3Com implements DeviceHandler
 					String[] s = (String[])it.next();
 					String portState = s[1];
 					s = s[0].split(".");
-					String module = s[0];
-					String ifindex = module+s[1];
+					String moduleS = s[0];
+					String ifindex = moduleS+s[1];
 
+					int module;
 					Integer port;
 					try {
 						port = new Integer(s[1]);
@@ -187,10 +188,10 @@ public class _3Com implements DeviceHandler
 					}
 
 					try {
-						int n = Integer.parseInt(module);
-						if (n > 16) continue;
+						module = Integer.parseInt(moduleS);
+						if (module > 16) continue;
 					} catch (NumberFormatException exp) {
-						Log.d("PROCESS_3COM", "NumberFormatException when converting module " + module + " to number, netbox: " + netboxid + ", " + exp);
+						Log.d("PROCESS_3COM", "NumberFormatException when converting module " + moduleS + " to number, netbox: " + netboxid + ", " + exp);
 						continue;
 					}
 
@@ -225,7 +226,7 @@ public class _3Com implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setSerial(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[0])).setSerial(s[1]);
 				Log.d("PROCESS_3COM", "Module: " + s[0] + " Serial: " + s[1]);
 			}
 		}
@@ -234,7 +235,7 @@ public class _3Com implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setHwVer(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[0])).setHwVer(s[1]);
 			}
 		}
 
@@ -242,7 +243,7 @@ public class _3Com implements DeviceHandler
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				sc.swModuleFactory(s[0]).setSwVer(s[1]);
+				sc.swModuleFactory(Integer.parseInt(s[0])).setSwVer(s[1]);
 			}
 		}
 
@@ -259,9 +260,9 @@ public class _3Com implements DeviceHandler
 				if (!m.find()) continue;
 				String port = m.group(1);
 
-				String module = "1";
+				int module = 1;
 				m = Pattern.compile("Unit (\\d+)\\b").matcher(ifdescr);
-				if (m.find()) module = m.group(1);
+				if (m.find()) module = Integer.parseInt(m.group(1));
 
 				SwModule swm = sc.swModuleFactory(module);
 				Swport swp = swm.swportFactory(ifindex);
