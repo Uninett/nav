@@ -13,7 +13,7 @@ use English;
 
 require "/usr/local/nav/navme/etc/conf/path.pl";
 my $lib = &lib();
-require "$lib/database.pl";
+require "$lib/fil.pl";
 
 
 # 1) Lese config-fil
@@ -106,7 +106,7 @@ $p->close();
 
 ###########################################################
 
-$conn = &db_connect("manage","navall","uka97urgf");
+$conn = &db_get('live');
 
 
 ############################################################

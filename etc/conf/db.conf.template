@@ -1,7 +1,7 @@
 #
 # This file contains database configuration setup for NAV.  Please be
 # aware that whitespace is allowed on each side of the = characters.
-# $Id: db.conf.template,v 1.4 2002/07/04 06:25:13 mortenv Exp $
+# $Id: db.conf.template,v 1.5 2002/07/12 06:45:23 mortenv Exp $
 #
 
 # Configure which host is running the postmaster.
@@ -48,12 +48,18 @@ script_bokser = navall
 script_gwporter = navall
 script_swporter = navall
 script_ragen = navall # stygt! hvem som helst kan endre dette til noe bedre (s)
+script_fil = syslogadmin
+script_slett_fra_trapdet_unntak = navall, varsle
 
-# SG på vegne av GA
+# GA
 script_get_boksdata = navall
+script_live = navall
+script_arplogger = navall
 
 # JM
 script_trapdetect=trapdetect,manage
+script_hystereseOn=manage
+script_hystereseOff=manage
 
 # Configure postgresql user passwords.
 # These are of the form: 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ## Name:	arplogger.pl
-## $Id: arplogger.pl,v 1.9 2002/02/15 14:46:20 grohi Exp $
+## $Id: arplogger.pl,v 1.10 2002/07/12 06:45:23 mortenv Exp $
 ## Author:	Stig Venaas   <venaas@itea.ntnu.no>
 ## Uses some code from test/arp by Simon Leinen. test/arp is distributed
 ## with the Perl SNMP library by Simon Leinen <simon@switch.ch> that
@@ -59,8 +59,11 @@ my %OIDS = (
 
 # Hente aktuelle rutere fra databasen.
 
-my $db = "manage";
-my $conn = db_connect($db);
+my %dbconf = &db_readconf();
+my $db = $dbconf{db_nav};
+my $dbuser = $dbconf{script_arplogger};
+my $dbuserpw = $dbconf{'userpw_' . $dbuser};
+my $conn = db_connect($db, $dbuser, $dbuserpw);
 
 
 my $sql = "SELECT boksid,ip,ro,sysName FROM boks WHERE kat=\'GW\'";
@@ -263,10 +266,20 @@ sub and_ip
 
 ###############################################
 
+sub db_readconf {
+    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
+
+    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
+    close(IN);
+
+    return %hash;
+}
 
 sub db_connect {
-    my $db = $_[0];
-    my $conn = Pg::connectdb("dbname=$db user=navall password=uka97urgf");
+    my($db, $user, $pass) = @_;
+    my $conn = Pg::connectdb("dbname=$db user=$user password=$pass");
     die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }

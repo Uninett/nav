@@ -691,6 +691,17 @@ sub db_connect {
     return $conn;
 }
 
+sub db_readconf {
+    my $dbconf = '/usr/local/nav/local/etc/conf/db.conf';
+
+    open(IN, $dbconf) || die "Could not open $dbconf: $!\n";
+    my %hash = map { /\s*(.+?)\s*=\s*(.*?)\s*(\#.*)?$/ && $1 => $2 } 
+    grep { !/^(\s*\#|\s+)$/ && /.+=.*/ } <IN>;
+    close(IN);
+
+    return %hash;
+}
+
 sub db_get {
     my $myself = $_[0];
     my $filename = "/usr/local/nav/local/etc/conf/db.conf";

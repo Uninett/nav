@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+#Lagt inn av KH & JM 18.06.02
+require "/usr/local/nav/navme/lib/database.pl";
+
 #use strict;
 sub log_open {
     open(COLLECTLOG,'>>','/usr/local/nav/local/log/syslog/navmessage.log');
@@ -56,7 +59,12 @@ my %types = &get_types("collect");
 
 sub get_types {
     my $class = $_[0];
-    my $syslogconnection = &db_connect("syslog","syslogadmin","urg20ola");
+    my %hash = &db_readconf();
+    my $script = 'fil';
+    my $user = $hash{'script_' . $script};
+    my $userpw = $hash{'userpw_' . $user};
+
+    my $syslogconnection = &db_connect($hash{db_syslog}, $user, $userpw);
     my %types = &db_hent_hash($syslogconnection,"select id,type,message from messagetemplate where class=\'$class\'");
 
     return %types;

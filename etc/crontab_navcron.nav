@@ -53,3 +53,10 @@ NUM_THREADS=24
 # avledTopologi og avledVlan
 15 * * * *              $CDIR/navAdmin/runAvledTopologi.sh
 16 * * * *              $CDIR/navAdmin/runAvledVlan.sh
+
+# CRICKET (by MV for JMB)
+CRICKETDIR=/home/navcron/cricket
+
+0,5,10,15,20,25,30,35,40,45,50,55 * * * * $CRICKETDIR/cricket/collect-subtrees normal
+0-59 * * * * $CRICKETDIR/cricket/collect-subtrees giga
+12 5 * * * $CRICKETDIR/cron/makeconfig
