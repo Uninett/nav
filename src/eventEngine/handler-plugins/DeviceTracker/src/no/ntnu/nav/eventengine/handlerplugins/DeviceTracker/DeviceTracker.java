@@ -46,22 +46,14 @@ public class DeviceTracker implements EventHandler
 
         // Add history vars for the different events
         if (eventtype.equals("deviceOrdered")) {
-            if (e.getVar("username") != null)
-                a.addHistoryVar("username",e.getVar("username"));
+					a.copyHistoryVar(e, "username");
             if (e.getState() == Event.STATE_START) {
-                if (e.getVar("orgid") != null)
-                    a.addHistoryVar("orgid",e.getVar("orgid"));
-                if (e.getVar("dealer") != null)
-                    a.addHistoryVar("dealer",e.getVar("dealer"));
-                if (e.getVar("orderid") != null)
-                    a.addHistoryVar("orderid",e.getVar("orderid"));
+                a.copyHistoryVars(e, new String[] { "orgid", "dealer", "orderid" });
             }
         } else if (eventtype.equals("deviceRegistered")) {
-            if (e.getVar("username") != null)
-                a.addHistoryVar("username",e.getVar("username"));
+            a.copyHistoryVar(e, "username");
         } else if (eventtype.equals("deviceOnService")) {
-            if (e.getVar("username") != null)
-                a.addHistoryVar("username",e.getVar("username"));
+            a.copyHistoryVar(e, "username");
         } else if (eventtype.equals("deviceInOperation")) {
             // If there is already a deviceInOperation event for this device
             // which hasn't ended yet, set the end_time for that event to 
@@ -86,39 +78,19 @@ public class DeviceTracker implements EventHandler
                 } catch (SQLException exp) {
                     Log.e("HANDLE","Error while looking for old deviceInOperation event: " + exp.getMessage());
                 }
-                if (e.getVar("username") != null)
-                    a.addHistoryVar("username",e.getVar("username"));
-                if (e.getVar("sysname") != null)
-                    a.addHistoryVar("sysname",e.getVar("sysname"));
-                if (e.getVar("module") != null)
-                    a.addHistoryVar("module",e.getVar("module"));
-                if (e.getVar("room") != null)
-                    a.addHistoryVar("room",e.getVar("room"));
+                a.copyHistoryVars(e, new String[] { "username", "sysname", "module", "room" });
             } else if (e.getState() == Event.STATE_END) {
                 // An excplicit "out of operation" event
-                if (e.getVar("username") != null)
-                    a.addHistoryVar("username",e.getVar("username"));
+                a.copyHistoryVar(e, "username");
             }
         } else if (eventtype.equals("deviceError")) {
-            if (e.getVar("username") != null)
-                a.addHistoryVar("username",e.getVar("username"));
-            if (e.getVar("comment") != null)
-                a.addHistoryVar("comment",e.getVar("comment"));
+            a.copyHistoryVars(e, new String[] { "username", "comment" });
         } else if (eventtype.equals("deviceHwUpgrade")) {
-            if (e.getVar("description") != null)
-                a.addHistoryVar("description",e.getVar("description"));
+            a.copyHistoryVar(e, "description");
         } else if (eventtype.equals("deviceSwUpgrade")) {
-            if (e.getVar("oldversion") != null)
-                a.addHistoryVar("oldversion",e.getVar("oldversion"));
-            if (e.getVar("newversion") != null)
-                a.addHistoryVar("newversion",e.getVar("newversion"));
+            a.copyHistoryVars(e, new String[] { "oldversion", "newversion" });
         } else if (eventtype.equals("deviceRma")) {
-            if (e.getVar("username") != null)
-                a.addHistoryVar("username",e.getVar("username"));
-            if (e.getVar("rmanumber") != null)
-                a.addHistoryVar("rmanumber",e.getVar("rmanumber"));
-            if (e.getVar("comment") != null)
-                a.addHistoryVar("comment",e.getVar("comment"));
+            a.copyHistoryVars(e, new String[] { "username", "rmanumber", "comment" });
         }
 
 		// Post the alert
