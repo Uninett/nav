@@ -5,18 +5,26 @@ CHEETAH = @CHEETAH@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
+sysconfdir = @sysconfdir@
+bindir = @bindir@
 
 webroot = @webroot@
 tooldir = @tooldir@
 
+top_srcdir = @top_srcdir@
+
 # Just grab all files, except SVN administrative areas, and a few
 # other source tree-only files.
-files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' -or -name '*.tool' \) )
+files = $(shell find -type f -and -not \( -iregex '.*\.svn.*' -or -name 'INSTALL' -or -name 'Makefile' -or -name 'Makefile.in' -or -name '*~' -or -name '*.tool' -or -name '*.source' \) )
 tool = alertprofiles.tool
 
+export
 .PHONY: all install
 
-all:
+all: config.php
+
+config.php: config.php.source
+	$(top_srcdir)/tools/expand.pl config.php.source > config.php
 
 print:
 	@echo Files
