@@ -85,9 +85,9 @@ CREATE TABLE org (
   orgid VARCHAR(10) PRIMARY KEY,
   parent VARCHAR(10) REFERENCES org (orgid),
   descr VARCHAR,
-  org2 VARCHAR,
-  org3 VARCHAR,
-  org4 VARCHAR
+  opt1 VARCHAR,
+  opt2 VARCHAR,
+  opt3 VARCHAR
 );
 
 
@@ -106,10 +106,10 @@ CREATE TABLE room (
   roomid VARCHAR(10) PRIMARY KEY,
   locationid VARCHAR(12) REFERENCES location,
   descr VARCHAR,
-  room2 VARCHAR,
-  room3 VARCHAR,
-  room4 VARCHAR,
-  room5 VARCHAR
+  opt1 VARCHAR,
+  opt2 VARCHAR,
+  opt3 VARCHAR,
+  opt4 VARCHAR
 );
 
 CREATE TABLE vlan (
