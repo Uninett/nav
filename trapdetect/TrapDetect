@@ -21,9 +21,9 @@ use strict;
 use Pg;
 
 # Filene som brukes av programmet
-my $logfil = "/usr/local/trapdet/log/traplog";
-my $servicefil = "/usr/local/trapdet/etc/serviceList";
-my $smsconfig = "/usr/local/trapdet/etc/smsconfig";
+my $logfil = "/usr/local/trapdetect/log/traplog";
+my $servicefil = "/usr/local/trapdetect/etc/serviceList";
+my $smsconfig = "/usr/local/trapdetect/etc/smsconfig";
 
 # Nye variable som brukes etter nytt system
 my $input_oid;
@@ -51,8 +51,6 @@ my $dbh_t = db_connect("trapdetect","trapdetect","tcetedpart");
 &main();
 
 # Avslutter, skriver litt logg-mat.
-#$dbh_t->disconnect;
-#$dbh->disconnect;
 print LOG "--------------------------------------------------------------------------------\n";
 close LOG;
 
@@ -101,7 +99,7 @@ sub main {
 
 	    # Vi vil ikke ha authenticationfailure-traps eller topologychange-traps, spammer noe sinnsykt. Gjør loggen stor.
 	    if (($OID eq ".1.3.6.1.6.3.1.1.5.5") or ($OID eq ".1.3.6.1.2.1.17.0.2")) {
-#		$dbh->disconnect;
+		print LOG "--------------------------------------------------------------------------------\n";
 		close LOG;
 		exit(0);
 	    }
@@ -336,7 +334,7 @@ sub main {
 	}
 	# Alle gamle innlegg skal nå være borte.
 	# Skriver til databasen
-	print LOG "Kaller leggInnStatus\n";
+	print LOG "Kaller leggInnStatus($kat)\n";
 	&leggInnStatus($kat, @verdiListe);
 	&sendAlarm();
     } elsif ($well) {
@@ -496,12 +494,11 @@ sub sendAlarm {
     while (my @res = $finn_varseltyper->fetchrow) {
 	$varseltype{$res[0]} = $res[1];
     }
-    $finn_varseltyper->finish;
 
     # Henter inn kategori og underkategori for denne enhet.
     # Hvis den ikke finnes i nettel, antas begge som null-verdier.
     my ($kat,$ukat,$active,$eier);
-    my $finn_info = &db_select("SELECT kat,underkat,active,eier FROM boks where id=$nettelid",$dbh);
+    my $finn_info = &db_select("SELECT kat,kat2,active,drifter FROM boks where boksid=$nettelid",$dbh);
     if (($kat,$ukat,$active,$eier) = $finn_info->fetchrow) {
 	if (!$kat) {
 	    $kat = "kat is null";
@@ -514,14 +511,13 @@ sub sendAlarm {
 	    $ukat = "varsel.ukat='$ukat'";
 	}
     } else {
-	print "Finner ikke enhet med nettelid $nettelid\n";
+	print LOG "Finner ikke enhet med nettelid $nettelid\n";
 	$kat = "kat is null";
 	$ukat= "ukat is null";
 	undef $active;
     }
-    $finn_info->finish;
 
-    if ((not defined($active)) || $active =~ /Y/i) {
+    if ((not defined($active)) || $active =~ /t/i) {
 
 	# Sjekker om trap er anhengig av enheter
 	my $avhengig = 0;
@@ -539,7 +535,6 @@ sub sendAlarm {
 	    $sporring = "select brukerid,vtypeid from varsel,trap where varsel.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0";	
 	}
 	my $finn_varsel = &db_select($sporring,$dbh_t);
-	print "$sporring\n";
 
 	# Legger resultat i bruker-hash
 	my %bruker = ();
@@ -547,26 +542,21 @@ sub sendAlarm {
 	    my @unntak = ();
 	    
 	    # Finner unntak som ikke skal legges inn.
-	    my $finn_unntak = &db_select("select unntak.id from unntak,trap where brukerid=$brukerid and unntak.trapid=trap.id and trap.sykoid='$sykoid' and status='minus' and nettelid=$nettelid",$dbh_t);
+	    my $finn_unntak = &db_select("select unntak.id from unntak,trap where brukerid=$brukerid and unntak.trapid=trap.id and trap.sykoid='$sykoid' and status='minus' and boksid=$nettelid",$dbh_t);
 	    @unntak = $finn_unntak->fetchrow;
 	    if (defined($unntak[0])) {
-		print "$unntak[0]\n";
 	    } else {
-		print "Setter $brukerid\n";
 		$bruker{$brukerid} = $varselid;
 	    }
 	}
-	$finn_varsel->finish;
 
 	# Spør etter innlegg i unntak-tabellen som tilsvarer innkommet data
-	$sporring = "select brukerid,vtypeid from unntak,trap where unntak.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and status='pluss' and nettelid=$nettelid";
+	$sporring = "select brukerid,vtypeid from unntak,trap where unntak.trapid=trap.id and trap.sykoid='$sykoid' and vtypeid!=0 and status='pluss' and boksid=$nettelid";
 	$finn_varsel = &db_select($sporring,$dbh_t);
-	print "$sporring\n";
 
 	while (my ($brukerid,$varselid) = $finn_varsel->fetchrow) {
 	    $bruker{$brukerid} = $varselid;
 	}
-	$finn_varsel->finish;
 
 	my %mail_liste;
 	my %sms_liste;
@@ -577,33 +567,35 @@ sub sendAlarm {
 	    my $orgrett = 0;
 	    my $brukerid = $_;
 	    my $varselid = $bruker{$_};
-	    print "$brukerid,$varselid\n";
+	    print LOG "$brukerid,$varselid\n";
 
 	    # Hvis eier eksisterer, henter alle org som bruker er med i og sender beskjed
 	    # hvis han er med i en, hvis ikke gjør ingenting.
 	    if ($eier) {
 		# Hent alle org bruker er med i
 		my $hent_useriorg = &db_select("select orgid,navn from brukeriorg,org where brukerid=$brukerid and orgid=id",$dbh_t);
-		while (my $res = $hent_useriorg->fetchrow_hashref) {
-		    if ($res->{navn} eq $eier) {
-			print "$brukerid er med i $eier: $res->{navn}\n";
+		while (my @res = $hent_useriorg->fetchrow) {
+		    if ($res[1] eq $eier) {
+			print LOG "$brukerid er med i $res[1]\n";
 			$orgrett = 1;
 		    } else {
-			print "$brukerid er IKKE med i $eier: $res->{navn}\n";
+			print LOG "$brukerid er IKKE med i $res[1]\n";
 		    }
 		}
+	    } else {
+		print LOG "Ingen eier\n";
 	    }
 
 	    # Hvis bruker har rett org-tilhørighet til denne enhet, eller
 	    # trap er uavhengig av enheter (mao vi bryr oss ikke om eier)
 	    if (!$eier || $orgrett || !$avhengig) {
 		# Henter info om bruker NB!!!! husk databasene
-		my $hent_brukerinfo = &db_select("select * from bruker where id=$brukerid",$dbh_t);
-		my $brukerinfo = $hent_brukerinfo->fetchrow;
+		my $hent_brukerinfo = &db_select("select status,mail from bruker where id=$brukerid",$dbh_t);
+		my @brukerinfo = $hent_brukerinfo->fetchrow;
 
 		# Legger varslet i den riktige listen
-		my $status = $brukerinfo->{status};
-		my $mail = $brukerinfo->{mail};
+		my $status = $brukerinfo[0];
+		my $mail = $brukerinfo[1];
 		unless ($varseltype{$varselid} =~ /fri/i || $status =~ /fri/i) {
 		    if ($varseltype{$varselid} =~ /mail/i) {
 			$mail_liste{$brukerid} = $mail;
@@ -616,17 +608,16 @@ sub sendAlarm {
 		}
 	    }
 	}
-	$finn_varsel->finish;
 
 	for (keys (%mail_liste)) {
 	    # Sender mail
 #	    &send_mail($mail_liste{$_});
-	    print "Sender mail til $mail_liste{$_}\n";
+	    print LOG "Sender mail til $mail_liste{$_}\n";
 	}
 	for (keys (%sms_liste)) {
 	    # Sender sms, dvs. legger melding inn i database
 #	    &send_sms($_);
-	    print "Sender sms til $_\n";
+	    print LOG "Sender sms til $_\n";
 	}
 	for (keys (%delay_liste)) {
 	    # Sender delayed melding.
@@ -649,11 +640,10 @@ sub sendAlarm {
 
 	    if (($fra > $tid) && ($til < $tid)) {
 #		&send_sms($_);
-		print "Sender sms til $_\n";
+		print LOG "Sender sms til $_\n";
 	    } else {
-		print "Sender ikke sms-beskjed til $_: $fra > $tid > $til\n";
+		print LOG "Sender ikke sms-beskjed til $_: $fra > $tid > $til\n";
 	    }
-	    $sporring->finish;
 	}
     }
 
@@ -674,7 +664,7 @@ sub sjekkDB {
     my (@innlegg,$id,$til);
     my ($trapsource,$ip,$oidnum,$trap,$trenger,$ikke,$disse) = @$element;
 
-    my @temp_oid_liste = hentsuboid($trap);
+    my @temp_oid_liste = &hentsuboid($trap);
 
     my $trapdescr;
     # Hiver alle suboid'er inn i en tekststreng og sjekker.
@@ -684,38 +674,40 @@ sub sjekkDB {
 	    $trapdescr .= "@$element ";
 	}
     }
-
+    
     # Henter nettelid fra database ut fra input_name-variabel
     unless ($nettelid) {
-    $nettelid = &finn_nettelid($input_name);
+	$nettelid = &finn_nettelid($input_name);
     } else {
-    # Fjerner ting som ikke er tall fra nettelid
-    $nettelid =~ s/\D//g;
+	# Fjerner ting som ikke er tall fra nettelid
+	$nettelid =~ s/\D//g;
     }
-
+    
     # Spør først etter hovedfeltene
     unless ($kat == 3) {
-	my $sporring = &db_select("SELECT id,til FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND nettelid=$nettelid AND trapdescr='$trapdescr'",$dbh);
+	my $sporring = &db_select("SELECT statusid,til FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND boksid=$nettelid AND trapdescr='$trapdescr'",$dbh);
 
-	while (($id,$til) = $sporring->fetchrow) {
-	    if ($id && not $til) {
-		# Fant innlegget, returnerer 1
-		#print LOG "Fant innlegget i databasen - $id\n";
-		push @innlegg, $id;
-	    } elsif ($id && $til) {
-		# Fant friskmeldt innlegg
-		#print LOG "Fant friskmeldt innlegg - $id\n";
-		$id = 0;
-	    } else {
-		# Fant ikke innlegget, returnerer 0
-		print LOG "Fant IKKE innlegget i databasen\n";
-		$id = 0;
+	if ($sporring->ntuples == 0) {
+	    # Fant ikke innlegget, returnerer 0
+	    print LOG "Fant IKKE innlegget i databasen\n";
+	    $id = 0;
+	} else {
+	    while (($id,$til) = $sporring->fetchrow) {
+		if ($id && not $til) {
+		    # Fant innlegget, returnerer 1
+		    print LOG "Fant innlegget i databasen - $id\n";
+		    push @innlegg, $id;
+		} elsif ($id && $til) {
+		    # Fant friskmeldt innlegg
+		    print LOG "Fant friskmeldt innlegg - $id\n";
+		    $id = 0;
+		}
 	    }
 	}
     } else {
 	print LOG "Kategori 3 funnet\n";
-#	print LOG "SELECT id,til,trapdescr FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND nettelid=$nettelid\n";
-	my $sporring = &db_select("SELECT id,til,trapdescr FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND nettelid=$nettelid");
+	print LOG "SELECT id,til,trapdescr FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND nettelid=$nettelid\n";
+	my $sporring = &db_select("SELECT statusid,til,trapdescr FROM status WHERE trapsource='$trapsource' AND trap='$trap' AND boksid=$nettelid",$dbh);
 
 	my @temp_oid_liste_bak = &hentsuboid($trap);
 
@@ -775,11 +767,10 @@ sub hentsuboid {
     my $oid = shift @_;
     my @liste;
     
-    my $hent_suboid = &db_select("select navn from subtrap,trap where trapid=trap.id and trap.syknavn='$oid'");
+    my $hent_suboid = &db_select("select navn from subtrap,trap where trapid=trap.id and trap.syknavn='$oid'",$dbh_t);
     while (my @res = $hent_suboid->fetchrow) {
 	push @liste,$res[0];
     }
-    $hent_suboid->finish;
     
     return @liste;
 }
@@ -831,7 +822,7 @@ sub leggInnStatus {
     }
 
     my $ok = 1;
-#    my $ok = &db_execute("insert into status (trapsource,trap,trapdescr,tilstandsfull,nettelid,fra) values ('$trapsource','$trap','$trapdescr','$tilstandsfull',$nettelid,now())",$dbh);
+    my $ok = &db_execute("insert into status (trapsource,trap,trapdescr,tilstandsfull,boksid,fra) values ('$trapsource','$trap','$trapdescr','$tilstandsfull',$nettelid,now())",$dbh);
 
     if ($ok) {
 	print LOG "Innlegg lagt i DB\n";
@@ -847,7 +838,7 @@ sub leggInnStatus {
 sub slettFraDB {
 
     my $id = shift;
-#    &db_execute("DELETE FROM status WHERE id=$id",$dbh);
+    &db_execute("DELETE FROM status WHERE statusid=$id",$dbh);
 
 }
 
@@ -858,7 +849,7 @@ sub slettFraDB {
 sub friskmeld {
 
     my $id = shift;
-#    &db_execute("UPDATE status SET til=now() WHERE id=$id",$dbh);
+    &db_execute("UPDATE status SET til=now() WHERE statusid=$id",$dbh);
 
 }
 
@@ -946,9 +937,11 @@ sub finn_nettelid {
     }
 
     # Slår opp i database og henter nettelid til sysname
-    my $finn_nettelid = &db_execute("SELECT id FROM boks WHERE sysname='$sysname'",$dbh);
+    my $finn_nettelid = &db_select("SELECT boksid FROM boks WHERE sysname='$sysname'",$dbh);
+    print LOG "SELECT boksid FROM boks WHERE sysname='$sysname'\n";
 
-    my $id = $finn_nettelid->fetchrow;
+    my @id = $finn_nettelid->fetchrow;
+    my $id = $id[0];
 
     unless ($id) {
 	print LOG "Setter id til null\n";
@@ -1034,7 +1027,7 @@ sub db_select {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print LOG "DATABASEFEIL: $sql\n".$conn->errorMessage
         unless ($resultat->resultStatus eq PGRES_TUPLES_OK);
     return $resultat;
 }
@@ -1043,7 +1036,7 @@ sub db_execute {
     my $sql = $_[0];
     my $conn = $_[1];
     my $resultat = $conn->exec($sql);
-    print "DATABASEFEIL: $sql\n".$conn->errorMessage
+    print LOG "DATABASEFEIL: $sql\n".$conn->errorMessage
         unless ($resultat->resultStatus eq PGRES_COMMAND_OK);
 #die er byttet med print
 
