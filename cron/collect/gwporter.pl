@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ####################
 #
-# $Id: gwporter.pl,v 1.17 2003/06/05 11:18:30 gartmann Exp $
+# $Id: gwporter.pl,v 1.18 2003/06/06 13:13:04 gartmann Exp $
 # This file is part of the NAV project.
 # gwporter uses the SNMP-protocol to aquire information about the routers and
 # their interfaces. Information about the subnets (prefices) are also aquired.
@@ -141,7 +141,7 @@ foreach my $netaddr (keys %prefix){
 	    }
 
 	    if($vlan){
-		$vlan{$vlan} = [ $vlan, $netident, $nettype, $org, $usage, $kommentar] unless $vlan{$vlan};
+		$vlan{$vlan} = [ $vlan, $nettident, $nettype, $org, $usage, $kommentar] unless $vlan{$vlan};
 		$prefix{$netaddr}[1] = $vlan;
 	    }
 #	    $prefix{$netaddr}[3] = $nettype;
@@ -447,7 +447,7 @@ sub hent_snmpdata {
 	}
     }
     # fyller oversettelsestabell ip->netaddr
-    $netaddr{$ip} = $netaddr unless $netaddr{$ip};
+    $netaddr{$ip} = &find_netaddr($ip) unless $netaddr{$ip};
 
 
     foreach my $gwip (keys %gatewayip)
@@ -573,6 +573,22 @@ sub ant_maskiner {
     return $active_ip_cnt{$prefixid};
 }
 
+sub find_netaddr {
+    # Tar inn ip, splitter opp og and'er med diverse
+    # nettmasker. Målet er å finne en match med en allerede innhentet
+    # prefixid (hash over alle), som så returneres.
+    #print "\nPrøver å finne prefix for ";
+    my $ip = $_[0];
+    #print $ip."\n";
+    my @masker = ("255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0","255.255.248.0","255.255.240.0","255.255.255.224","255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0");
+    foreach my $maske (@masker) {
+	my $netaddr = &and_ip($ip,$maske);
+	my $mask = &mask_bits($maske);
+	$netaddr = &fil_netaddr($netaddr,$mask);
+	return $netaddr;
+    }
+}
+
 sub finn_prefixid {
     # Tar inn ip, splitter opp og and'er med diverse
     # nettmasker. Målet er å finne en match med en allerede innhentet
@@ -585,11 +601,11 @@ sub finn_prefixid {
 #	my $netaddr = &and_ip($ip,$maske);
 #	my $mask = &mask_bits($maske);
 #	$netaddr = &fil_netaddr($netaddr,$mask);
-	$netaddr = $netaddr{$ip}
-	return $netaddr2prefixid{$netaddr} if (defined $netaddr2prefixid{$netaddr});
+    my $netaddr = $netaddr{$ip};
+    return $netaddr2prefixid{$netaddr} if (defined $netaddr2prefixid{$netaddr});
 #    }
     #print "Fant ikke prefixid for $ip\n";
-    return 0;
+    #return 0;
 }
 
 sub oppdater_prefix{
