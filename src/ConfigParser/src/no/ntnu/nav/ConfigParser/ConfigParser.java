@@ -40,7 +40,8 @@ import java.util.*;
 
 public class ConfigParser
 {
-    HashMap map = new HashMap();
+    private HashMap map = new HashMap();
+	private String conffile;
 
     /**
      * Construct a new ConfigParser.
@@ -50,6 +51,7 @@ public class ConfigParser
     public ConfigParser(String confFile) throws IOException
     {
         addDefaults();
+		this.conffile = confFile;
         BufferedReader in = new BufferedReader(new FileReader(confFile));
 
         while (in.ready()) {
@@ -89,4 +91,9 @@ public class ConfigParser
     {
         map.put("SQLServer", "localhost");
     }
+
+	public String toString()
+	{
+		return "ConfigParser("+conffile+")";
+	}
 }
