@@ -22,176 +22,15 @@ import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
 public class GwportHandler implements DataHandler {
 
 	private static final boolean DEBUG_OUT = false;
-
-	private static MultiMap nbGwpMap = new HashMultiMap();
-	private static Map devidMap = Collections.synchronizedMap(new HashMap());
-	private static Map moduleMap;
-
-	private static Map prefixDbMap;
-	private static Map gwpDbMap;
-	private static Map gwportidMap;
-	private static Map gwVlanMap;
-
 	private static ConfigParser navCp;
-
-	// MultiMap from gwportid to gwip,prefixid
-	//private static MultiMap gwipMap;
-	//private static MultiMap prefixidMap;
-	
 
 	/**
 	 * Fetch initial data from module/gwport/prefix/vlan tables.
 	 */
 	public synchronized void init(Map persistentStorage, Map changedDeviceids) {
-		// Remove any devices no longer present
-		if (!changedDeviceids.isEmpty()) {
-			synchronized(getClass()) {
-				Map removeGwipMap = new HashMap();
-				for (Iterator it = changedDeviceids.entrySet().iterator(); it.hasNext();) {
-					Map.Entry me = (Map.Entry)it.next();
-					if (((Integer)me.getValue()).intValue() == DataHandler.DEVICE_DELETED) {
-						GwModule gwm = (GwModule)devidMap.remove(me.getKey());
-						if (gwm != null) {
-							for (Iterator gwIt = gwm.getGwports(); gwIt.hasNext();) {
-								Gwport gwp = (Gwport)gwIt.next();
-								removeGwipMap.put(gwp.getGwportidS(), gwp.gwipSet());
-							}
-						}
-					}
-				}
-				try {
-					removeGwips(removeGwipMap, true);
-				} catch (SQLException e) {
-					Log.e("INIT-REMOVE-GWIP", "SQLException: " + e.getMessage());
-				}
-			}
-		}
 		if (persistentStorage.containsKey("initDone")) return;
 		persistentStorage.put("initDone", null);
 		navCp = (ConfigParser)persistentStorage.get("navCp");
-
-		ResultSet rs;
-		long dumpBeginTime,dumpUsedTime;
-
-		Log.setDefaultSubsystem("GwportHandler");
-
-		try {
-			// gwportid -> netboxid + interface
-			gwportidMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t')");
-			while (rs.next()) {
-				gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")), rs.getString("ifindex") });
-			}
-
-			// Create vlanMap; only used locally to as the prefices stores references to these
-			Map vlanMap = new HashMap();
-			rs = Database.query("SELECT vlanid,vlan,nettype,orgid,usageid,netident,description FROM vlan");
-			while (rs.next()) {
-				// Create vlan
-				Vlan vlan = (Vlan)vlanMap.get(rs.getString("vlanid"));
-				if (vlan == null) {
-					vlan = new Vlan(rs.getString("netident"), rs.getInt("vlan"));
-					vlan.setVlanid(rs.getInt("vlanid"));
-					vlan.setNettype(rs.getString("nettype"));
-					vlan.setOrgid(rs.getString("orgid"));
-					vlan.setUsageid(rs.getString("usageid"));
-					vlan.setDescription(rs.getString("description"));
-					
-					vlanMap.put(rs.getString("vlanid"), vlan);
-				}
-			}				
-
-			// Create prefixDbMap
-			prefixDbMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix");
-			while (rs.next()) {
-				Vlan vl = (Vlan)vlanMap.get(rs.getString("vlanid"));
-				Prefix p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vl);
-				p.setPrefixid(rs.getInt("prefixid"));
-				prefixDbMap.put(rs.getString("cidr"), p);
-			}
-			
-			// Create gwpDbMap
-			gwpDbMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT gwportid,gwip,hsrp,netaddr FROM gwportprefix JOIN prefix USING(prefixid)");
-			while (rs.next()) {
-				Prefix p = (Prefix)prefixDbMap.get(rs.getString("netaddr"));
-				Gwportprefix gp = new Gwportprefix(rs.getString("gwip"), rs.getBoolean("hsrp"), p);
-				p.addGwport(rs.getString("gwportid"));
-				gwpDbMap.put(rs.getString("gwip"), gp);
-			}
-
-			// Fill moduleMap from module, gwport
-			dumpBeginTime = System.currentTimeMillis();
-			Map m = Collections.synchronizedMap(new HashMap());
-			Map gwVlMap = Collections.synchronizedMap(new HashMap());
-			rs = Database.query("SELECT deviceid,serial,hw_ver,fw_ver,sw_ver,moduleid,netboxid,module,model,descr,gwportid,ifindex,interface,masterindex,speed,metric AS ospf,gwip FROM device JOIN module USING(deviceid) LEFT JOIN gwport USING(moduleid) LEFT JOIN gwportprefix USING(gwportid) ORDER BY moduleid,gwportid");
-			while (rs.next()) {
-				// Create module
-				GwModule gwm = new GwModule(rs.getString("serial"), rs.getString("hw_ver"), rs.getString("fw_ver"), rs.getString("sw_ver"), rs.getInt("module"));
-				gwm.setDeviceid(rs.getInt("deviceid"));
-				gwm.setModuleid(rs.getInt("moduleid"));
-				gwm.setModel(rs.getString("model"));
-				gwm.setDescr(rs.getString("descr"));
-
-				int moduleid = rs.getInt("moduleid");
-				if (rs.getString("ifindex") != null && rs.getString("ifindex").length() > 0) {
-					do {
-						// Create gwport
-						Gwport gwp = gwm.gwportFactory(rs.getString("ifindex"), rs.getString("interface"));
-						gwp.setGwportid(rs.getInt("gwportid"));
-						gwp.setMasterindex(rs.getInt("masterindex"));
-						gwp.setSpeed(rs.getDouble("speed"));
-						if (rs.getString("ospf") != null) gwp.setOspf(rs.getInt("ospf"));
-						nbGwpMap.put(rs.getString("netboxid"), gwp);
-
-						int gwportid = rs.getInt("gwportid");
-						do {
-							// Add prefices
-							String gwip = rs.getString("gwip");
-							Gwportprefix gwpp = (Gwportprefix)gwpDbMap.get(gwip);
-							if (gwpp != null) {
-								gwp.addGwportprefix(gwip, gwpp);
-								Vlan vl = gwpp.getPrefix().getVlan();
-								if (vl.getVlan() != null) {
-									String vlKey = rs.getString("netboxid")+":"+gwpp.getPrefix().getVlan().getVlanS();
-									if (gwVlMap.containsKey(vlKey)) {
-										if (vl != gwVlMap.get(vlKey)) {
-											System.err.println("Detected duplicate vlan("+vlKey+") on same gw, deleting ...");
-											Vlan dbvl = (Vlan)gwVlMap.get(vlKey);
-											Prefix dbp = gwpp.getPrefix();
-											System.err.println("  Want to delete: " + vl.getVlanidS()+ ", dbvl: " + dbvl.getVlanidS() + " p: " + dbp.getPrefixidS());
-											Database.update("UPDATE prefix SET vlanid='"+dbvl.getVlanidS()+"' WHERE prefixid='"+dbp.getPrefixidS()+"'");
-											Database.update("DELETE FROM vlan WHERE vlanid='"+vl.getVlanidS()+"'");
-											dbp.setVlan(dbvl);
-										}
-									} else {
-										gwVlMap.put(vlKey, vl);
-									}
-								}
-							}
-
-						} while (rs.next() && rs.getInt("gwportid") == gwportid);
-						rs.previous();
-
-					} while (rs.next() && rs.getInt("moduleid") == moduleid);
-					rs.previous();
-				}
-
-				//String key = rs.getString("netboxid")+":"+rs.getString("moduleid");
-				String key = rs.getString("moduleid");
-				m.put(key, gwm);
-				devidMap.put(gwm.getDeviceidS(), gwm);
-			}
-
-			moduleMap = m;
-			this.gwVlanMap = gwVlMap;
-			dumpUsedTime = System.currentTimeMillis() - dumpBeginTime;
-			Log.d("INIT", "Dumped gwport in " + dumpUsedTime + " ms");
-
-		} catch (SQLException e) {
-			Log.e("INIT", "SQLException: " + e.getMessage());
-		}
 
 	}
 
@@ -201,6 +40,67 @@ public class GwportHandler implements DataHandler {
 	 */
 	public DataContainer dataContainerFactory() {
 		return new GwportContainer(this);
+	}
+
+	Map gwportMap = new HashMap();
+	Map vlanMap = new HashMap();
+	Map prefixMap = new HashMap();
+	Map gwpMap = new HashMap();
+	Map gwVlanMap = new HashMap();
+
+	private Vlan vlanFactory(ResultSet rs) throws SQLException {
+		Vlan vlan = new Vlan(rs.getString("netident"), rs.getInt("vlan"));
+		vlan.setVlanid(rs.getInt("vlanid"));
+		vlan.setNettype(rs.getString("nettype"));
+		vlan.setOrgid(rs.getString("orgid"));
+		vlan.setUsageid(rs.getString("usageid"));
+		vlan.setDescription(rs.getString("description"));
+		vlanMap.put(rs.getString("vlanid"), vlan);
+		return vlan;
+	}
+
+	private Vlan getVlan(String vlanid) throws SQLException {
+		// Create vlan
+		Vlan vlan = (Vlan)vlanMap.get(vlanid);
+		if (vlan == null) {
+			ResultSet rs = Database.query("SELECT vlanid,vlan,nettype,orgid,usageid,netident,description FROM vlan WHERE vlanid='"+vlanid+"'");
+			if (rs.next()) {
+				// Create vlan
+				vlan = new Vlan(rs.getString("netident"), rs.getInt("vlan"));
+				vlan.setVlanid(rs.getInt("vlanid"));
+				vlan.setNettype(rs.getString("nettype"));
+				vlan.setOrgid(rs.getString("orgid"));
+				vlan.setUsageid(rs.getString("usageid"));
+				vlan.setDescription(rs.getString("description"));
+				vlanMap.put(rs.getString("vlanid"), vlan);
+			}
+		}
+		return vlan;
+	}
+
+	private Prefix getPrefix(String cidr) throws SQLException {
+		Prefix p = (Prefix)prefixMap.get(cidr);
+		if (p == null) {
+			ResultSet rs = Database.query("SELECT prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix WHERE netaddr='"+cidr+"'");
+			if (rs.next()) {
+				p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), getVlan(rs.getString("vlanid")));
+				p.setPrefixid(rs.getInt("prefixid"));
+				prefixMap.put(rs.getString("cidr"), p);
+			}
+		}
+		return p;
+	}
+
+	private Gwportprefix getGwportprefix(String gwip) throws SQLException {
+		Gwportprefix gp = (Gwportprefix)gwpMap.get(gwip);
+		if (gp == null) {
+			ResultSet rs = Database.query("SELECT gwportid,gwip,hsrp,netaddr AS cidr FROM gwportprefix JOIN prefix USING(prefixid) WHERE gwip='"+gwip+"'");
+			if (rs.next()) {
+				gp = new Gwportprefix(rs.getString("gwip"), rs.getBoolean("hsrp"), getPrefix(rs.getString("cidr")));
+				gwpMap.put(rs.getString("gwip"), gp);
+			}
+		}
+		return gp;
 	}
 	
 	/**
@@ -223,34 +123,80 @@ public class GwportHandler implements DataHandler {
 			int newcnt = 0, updcnt = 0, newPrefixCnt=0;
 			boolean fixupPrefix = false;
 
-			//errl("Gwports for " + nb);
-			Map foundGwps = new HashMap();
-
 			try {
+				// Fill gwVlanMap
+				{
+					ResultSet rs = Database.query("SELECT vlanid,vlan,nettype,orgid,usageid,netident,description FROM vlan JOIN prefix USING(vlanid) JOIN gwportprefix USING(prefixid) JOIN gwport USING(gwportid) JOIN module USING(moduleid) WHERE vlan IS NOT NULL AND netboxid='"+nb.getNetboxid()+"'");
+					while (rs.next()) {
+						String vlKey = nb.getNetboxid()+":"+rs.getString("vlan");
+						if (gwVlanMap.containsKey(vlKey)) {
+							Vlan vl = (Vlan)gwVlanMap.get(vlKey);
+							if (vl.getVlanid() != rs.getInt("vlanid")) {
+								System.err.println("Detected duplicate vlan("+vlKey+") on same gw, deleting ...");
+								String prefixid = rs.getString("prefixid");
+								System.err.println("  Want to delete: " + rs.getString("vlanid") + ", dbvl: " + vl.getVlanid() + " p: " + rs.getString("prefixid"));
+								Database.update("UPDATE prefix SET vlanid='"+vl.getVlanid()+"' WHERE vlanid='"+rs.getString("vlanid")+"'");
+								Database.update("DELETE FROM vlan WHERE vlanid='"+rs.getString("vlanid")+"'");
+							}
+						} else {
+							gwVlanMap.put(vlKey, vlanFactory(rs));
+						}
+					}
+				}
 
 				Map removeGwipMap = new HashMap();
 				Set prefixUpdateSet = new HashSet();
-				//Map vlanMap = new IdentityHashMap();
 
-				// DB dumped, check if we need to update
 				for (Iterator gwModules = gc.getGwModules(); gwModules.hasNext();) {
 					GwModule gwm = (GwModule)gwModules.next();
 					String moduleid = gwm.getModuleidS();
+					if ("0".equals(moduleid)) {
+						System.err.println("Moduleid is null!! " + gwm);
+					}
 
-					//String gwportKey = nb.getNetboxid()+":"+moduleid;
-					String gwportKey = moduleid;
-					//System.err.println("gwportKey: " + gwportKey);
-					GwModule oldgwm = (GwModule)moduleMap.get(gwportKey);
-					//System.err.println("   GWM: " + gwm);
-					//System.err.println("OLDGWM: " + oldgwm);
-					devidMap.put(gwm.getDeviceidS(), gwm);
-					moduleMap.put(gwportKey, gwm);
+					// Fetch old gwp from database
+					ResultSet rs = Database.query("SELECT gwportid,ifindex,interface,masterindex,speed,metric AS ospf,gwip,hsrp,prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlanid,vlan,nettype,orgid,usageid,netident,description FROM gwport LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE moduleid='"+moduleid+"'");
+					while (rs.next()) {
+						// Create vlan
+						Vlan vlan = (Vlan)vlanMap.get(rs.getString("vlanid"));
+						if (vlan == null && rs.getInt("vlanid") > 0) {
+							vlan = vlanFactory(rs);
+						}
+
+						// Create prefix
+						Prefix p = (Prefix)prefixMap.get(rs.getString("cidr"));
+						if (p == null && rs.getInt("prefixid") > 0) {
+							p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vlan);
+							p.setPrefixid(rs.getInt("prefixid"));
+							prefixMap.put(rs.getString("cidr"), p);
+						}
+
+						// Create gwport
+						Gwport gwp = new Gwport(rs.getString("ifindex"), rs.getString("interface"));
+						gwp.setGwportid(rs.getInt("gwportid"));
+						gwp.setMasterindex(rs.getInt("masterindex"));
+						gwp.setSpeed(rs.getDouble("speed"));
+						if (rs.getString("ospf") != null) gwp.setOspf(rs.getInt("ospf"));
+						gwportMap.put(rs.getString("ifindex"), gwp);
+						
+						if (rs.getString("gwip") != null) {
+							// Create gwpMap
+							if (gwpMap.containsKey(rs.getString("gwip"))) {
+								System.err.println("***** ERROR - duplicate gwip " + rs.getString("gwip"));
+							}
+							Gwportprefix gp = new Gwportprefix(rs.getString("gwip"), rs.getBoolean("hsrp"), p);
+							p.addGwport(rs.getString("gwportid"));
+							gwpMap.put(rs.getString("gwip"), gp);
+							gwp.addGwportprefix(rs.getString("gwip"), gp);
+						}
+					}
 
 					errl("  GwModule: " + gwm);
 				
 					for (Iterator gwPorts = gwm.getGwports(); gwPorts.hasNext();) {
 						Gwport gwp = (Gwport)gwPorts.next();
 						errl("    Gwport: " + gwp);
+						if (gwp.getIfindex().equals("54")) continue;
 
 						// Check if this is a static entry
 						for (Iterator gwportPrefices = gwp.getGwportPrefices(); gwportPrefices.hasNext();) {
@@ -259,16 +205,20 @@ public class GwportHandler implements DataHandler {
 							Vlan vl = p.getVlan();
 							if ("static".equals(vl.getNettype())) {
 								// If nexthop is in gwpDbMap, don't add the static route
-								if (gwpDbMap.containsKey(p.getNexthop())) {
+								rs = Database.query("SELECT prefixid FROM gwportprefix WHERE gwip='"+p.getNexthop()+"'");
+								if (rs.next()) {
 									//System.err.println("Removing nexthop: " + p.getNexthop() + ", " + gwpDbMap.get(p.getNexthop()));
 									gwportPrefices.remove();
-								} else
-								if (prefixDbMap.containsKey(p.getCidr())) {
-									Prefix oldp = (Prefix)prefixDbMap.get(p.getCidr());
-									Vlan oldv = oldp.getVlan();
-									if (!"static".equals(oldv.getNettype())) {
-										//System.err.println("At " + nb.getSysname() + ", removed static prefix: " + p.getCidr() + " + p: " + p + " vl: " + vl + " oldp: " + oldp + " oldvl: " + oldv);
-										gwportPrefices.remove();
+								} else {
+									rs = Database.query("SELECT prefixid FROM prefix WHERE netaddr='"+p.getCidr()+"'");
+									if (rs.next()) {
+										// Don't overwrite a non-static vlan with a static one
+										Prefix oldp = getPrefix(p.getCidr());
+										Vlan oldv = oldp.getVlan();
+										if (!"static".equals(oldv.getNettype())) {
+											//System.err.println("At " + nb.getSysname() + ", removed static prefix: " + p.getCidr() + " + p: " + p + " vl: " + vl + " oldp: " + oldp + " oldvl: " + oldv);
+											gwportPrefices.remove();
+										}
 									}
 								}
 							}
@@ -277,14 +227,13 @@ public class GwportHandler implements DataHandler {
 							//System.err.println("  Not adding gwp because no prefices: " + gwp);
 							continue;
 						}
-						foundGwps.put(gwp.getIfindex(), gwp);
 
 						// Find old if exists
 						String gwportid;
-						Gwport oldgwp = (oldgwm == null) ? null : oldgwm.getGwport(gwp.getIfindex());
 						//System.err.println("   GWP: " + gwp);
 						//System.err.println("OLDGWP: " + oldgwp);
 
+						Gwport oldgwp = (Gwport)gwportMap.remove(gwp.getIfindex());
 						if (oldgwp == null) {
 							// Insert new
 							Log.d("NEW_GWPORT", "Creating gwport: " + gwp);
@@ -302,14 +251,11 @@ public class GwportHandler implements DataHandler {
 								"metric", gwp.getOspfS()
 							};
 							gwportid = Database.insert("gwport", ins, null);
-							gwportidMap.put(gwportid, new String[] { nb.getSysname(), gwp.getInterf(), (gwp.hsrpCount()>0?"true":"false"), gwp.getIfindex() });
-							changedDeviceids.put(gwm.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));							
 							newcnt++;
 
 						} else {
 							gwportid = oldgwp.getGwportidS();
-							if (!gwp.equalsGwport(oldgwp) || gwm.getModuleid() != oldgwm.getModuleid()) {
-								//if (!gwp.equalsGwport(oldgwp)) {
+							if (!gwp.equalsGwport(oldgwp)) {
 								// Vi må oppdatere
 								Log.d("UPDATE_GWPORT", "Update gwportid: "+gwportid+" ifindex="+gwp.getIfindex());
 
@@ -328,7 +274,6 @@ public class GwportHandler implements DataHandler {
 									"gwportid", gwportid
 								};
 								Database.update("gwport", set, where);
-								changedDeviceids.put(gwm.getDeviceidS(), new Integer(DataHandler.DEVICE_UPDATED));
 								updcnt++;
 							}
 
@@ -336,7 +281,7 @@ public class GwportHandler implements DataHandler {
 							// gwp, and remove them from the mentioned gwportprefix
 							// entries
 							Set removeGwip = oldgwp.gwipIntersection(gwp.gwipSet());
-							removeGwipMap.put(gwportid, removeGwip);
+							if (!removeGwip.isEmpty()) removeGwipMap.put(gwportid, removeGwip);
 
 						}
 						gwp.setGwportid(gwportid);
@@ -360,11 +305,11 @@ public class GwportHandler implements DataHandler {
 							errl("      Prefix: " + p);
 							errl("      Vlan: " + vl);
 
-							Gwportprefix oldgp = oldgwp == null ? null : oldgwp.getGwportprefix(gwip);
 							String prefixid;
-							if (!prefixDbMap.containsKey(p.getCidr())) {
+							Prefix oldp = getPrefix(p.getCidr());
+							if (oldp == null) {
 								// There is no old gwportprefix and prefix does not contains the netaddr
-								// Note: the gwpDbMap cannot contain getGwip now, so the next section will also match
+								// Note: the gwpMap cannot contain getGwip now, so the next section will also match
 
 								// Check if the vlan already exists on the gw
 								if (vl.getVlan() != null) {
@@ -380,6 +325,7 @@ public class GwportHandler implements DataHandler {
 								if (vl.getVlanid() == 0) {
 									Log.d("NEW_PREFIX", "Creating vlan: " + vl);
 									createVlan(vl);
+									fixupPrefix = true;
 								}
 							
 								String[] ins = {
@@ -388,78 +334,67 @@ public class GwportHandler implements DataHandler {
 									"vlanid", vl.getVlanidS(),
 								};
 								prefixid = Database.insert("prefix", ins, null);
-								p.setPrefixid(prefixid);
-								prefixDbMap.put(p.getCidr(), p);
+								oldp = getPrefix(p.getCidr());
 								newPrefixCnt++;
+							} else {
+								prefixid = oldp.getPrefixidS();
 							}
-
-							if (!gwpDbMap.containsKey(gp.getGwip())) {
+							p.setPrefixid(prefixid);
+							
+							Gwportprefix oldgp = getGwportprefix(gp.getGwip());
+							if (oldgp == null) {
 								// The prefix exists, but there is no old gwportprefix with the same gwip
 								Log.d("NEW GWPORTPREFIX", "Gwportprefix: " + gp);
-								Prefix dbp = (Prefix)prefixDbMap.get(p.getCidr());
 							
 								String[] ins = {
 									"gwportid", gwportid,
-									"prefixid", dbp.getPrefixidS(),
+									"prefixid", p.getPrefixidS(),
 									"gwip", gp.getGwip(),
 									"hsrp", gp.getHsrp()?"t":"f"
 								};
 								Database.insert("gwportprefix", ins);
-								gwpDbMap.put(gp.getGwip(), gp);
-								gp.setPrefix(dbp);
 
 							} else {
-								// oldgp == null -> gwip moved to other gwport, we must update gwportprefix
-								// oldgp != null -> only update prefix/gwportprefix if changed. oldgp and dbgp are the same reference
-								Gwportprefix dbgp = (Gwportprefix)gwpDbMap.get(gp.getGwip());
-
-								// oldgp must now be equal to dbgp
-								if (oldgp != null && oldgp != dbgp) {
-									Log.d("GWPORTPREFIX", "********* ERROR ********** oldgp != dbgp !!! ("+oldgp+","+dbgp+")");
-									System.err.println("********* ERROR ********** oldgp != dbgp !!! ("+oldgp+","+dbgp+")");
-									return;
-								}
-
-								if (!gp.equalsGwportprefix(oldgp)) {
-									// Update gwportprefix and dbgp object
-									Log.d("UPDATE_GWPORTPREFIX", "Update gwportprefix " + gp);
+								if (gp != oldgp || p != oldp) {
+									// gwip moved to different gwport / prefix changed
 									String[] set = {
 										"gwportid", gwportid,
+										"prefixid", prefixid,
 										"hsrp", gp.getHsrp()?"t":"f",
 									};
 									String[] where = {
 										"gwip", gp.getGwip()
 									};
 									Database.update("gwportprefix", set, where);
-									dbgp.setHsrp(gp.getHsrp());
-									fixupPrefix = true;
+								} else {									
+									if (!gp.equalsGwportprefix(oldgp)) {
+										// Update gwportprefix
+										Log.d("UPDATE_GWPORTPREFIX", "Update gwportprefix " + gp);
+										String[] set = {
+											"hsrp", gp.getHsrp()?"t":"f",
+										};
+										String[] where = {
+											"gwip", gp.getGwip()
+										};
+										Database.update("gwportprefix", set, where);
+										fixupPrefix = true;
+									}
 								}
-								gp = dbgp;
-							}
-
-							// gp must now be equal to dbgp
-							if (gp != gwpDbMap.get(gp.getGwip())) {
-								Log.d("GWPORTPREFIX", "********* ERROR ********** gp != dbgp !!! ("+gp+","+gwpDbMap.get(gp.getGwip())+")");
-								System.err.println("********* ERROR ********** gp != dbgp !!! ("+gp+","+gwpDbMap.get(gp.getGwip())+")");
-								return;
-							}
-
-							Prefix dbp = gp.getPrefix();
-							Vlan dbvl = dbp.getVlan();
-
-							if (dbvl == null) {
-								Log.d("GWPORTPREFIX", "********* ERROR ********** dbvl == null for prefix: " + dbp + " !!!");
-								System.err.println("********* ERROR ********** dbvl == null for prefix: " + dbp + " !!!");
-								return;
 							}
 
 							boolean unknownNettype = vl.getNettype().equals(Vlan.UNKNOWN_NETTYPE);
-
+							
+							Vlan dbvl = oldp.getVlan();
 							if (vl.getVlan() == null || vl.getVlan().equals(dbvl.getVlan())) {
 								if (!vl.equalsVlan(dbvl)) {
 									// Update vlan and dbvl object
 									if (!unknownNettype || !vl.equalsDataVlan(dbvl)) {
-										Log.d("UPDATE_VLAN", "Update vlan " + vl);
+										if (!vl.equalsOrgid(dbvl) || !vl.equalsUsageid(dbvl)) {
+											if (!vl.equalsOrgid(dbvl)) reportMissingOrgid(vl);
+											if (!vl.equalsUsageid(dbvl)) reportMissingUsageid(vl);
+										} else {
+											Log.d("UPDATE_VLAN", "Update vlan " + vl + " db: " + dbvl);
+										}
 										vl.setVlanid(dbvl.getVlanid());
 										updateVlan(vl, unknownNettype);
 										fixupPrefix = true;
@@ -470,8 +405,6 @@ public class GwportHandler implements DataHandler {
 								p.setVlan(vl);
 							} else {
 								// We must create a new vlan
-								//System.err.println("Create 2("+nb.getSysname()+"): " + vl);
-								//System.err.println("  (" + dbvl.getVlanid() + "): " + dbvl);
 								String vlKey = nb.getNetboxid()+":"+vl.getVlanS();
 								if (gwVlanMap.containsKey(vlKey)) {
 									Vlan gwvl = (Vlan)gwVlanMap.get(vlKey);
@@ -479,39 +412,29 @@ public class GwportHandler implements DataHandler {
 								} else {
 									createVlan(vl);
 									gwVlanMap.put(vlKey, vl);
+									fixupPrefix = true;
 								}
 							}
 
-							if (!p.equalsPrefix(dbp)) {
-								// Update prefix and dbp object
-								if (prefixDbMap.containsKey(p.getCidr()) && !dbp.getCidr().equals(p.getCidr())) {
-									Database.update("DELETE FROM prefix WHERE netaddr='"+p.getCidr()+"'");
-								}
-								
-								Log.d("UPDATE_PREFIX", "Update prefix " + p + " (db: " + dbp + ")");
+							if (!p.equalsPrefix(oldp)) {
+								// Update prefix
+								Log.d("UPDATE_PREFIX", "Update prefix " + p + " (db: " + oldp + ")");
 								String[] set = {
-									"netaddr", p.getCidr(),
 									"vlanid", vl.getVlanidS(),
 								};
 								String[] where = {
-									"prefixid", dbp.getPrefixidS()
+									"prefixid", prefixid,
 								};
 								Database.update("prefix", set, where);
-								dbp.setNetaddr(p.getNetaddr());
-								dbp.setMasklen(p.getMasklen());								
-								dbp.setVlan(vl);
 								fixupPrefix = true;
 							}
-							p = dbp;
-
-							// Make sure the gwport refers to the correct gwportprefix
-							gwp.addGwportprefix(gp.getGwip(), (Gwportprefix)gwpDbMap.get(gp.getGwip()));
 
 							// This gwport now points to this prefix
 							p.addGwport(gwportid);
 						
 							// Add prefix for autodetermination of nettype
 							if (unknownNettype) {
+								prefixMap.put(p.getCidr(), p);
 								prefixUpdateSet.add(p.getCidr());
 							} else if (vl.getNettype().equals("elink")) {
 								setElinkNetident(nb, p);
@@ -522,106 +445,114 @@ public class GwportHandler implements DataHandler {
 				}
 
 				// Remove gwports missing
-			    Map oldIfindex = new HashMap();
-				Set oldgwpSet = nbGwpMap.get(nb.getNetboxidS());
-				nbGwpMap.remove(nb.getNetboxidS());
-				for (Iterator it = oldgwpSet.iterator(); it.hasNext();) {
-					Gwport gwp = (Gwport)it.next();
-					oldIfindex.put(gwp.getIfindex(), gwp);
-				}
-				nbGwpMap.putAll(nb.getNetboxidS(), new HashSet(foundGwps.values()));
-				oldIfindex.keySet().removeAll(foundGwps.keySet());
-				
-				for (Iterator it = oldIfindex.values().iterator(); it.hasNext();) {
-					Gwport gwp = (Gwport)it.next();
-					removeGwipMap.put(gwp.getGwportidS(), gwp.gwipSet());
+				if (!gwportMap.isEmpty()) {
+					StringBuffer sb = new StringBuffer();
+					for (Iterator it = gwportMap.values().iterator(); it.hasNext();) {
+						Gwport gwp = (Gwport)it.next();
+						sb.append(gwp.getGwportidS()+",");
+					}
+					sb.deleteCharAt(sb.length()-1);
+					Database.update("DELETE FROM gwport WHERE gwportid IN ("+sb.toString()+")");
+					fixupPrefix = true;
 				}
 
-				if (!removeGwipMap.isEmpty()) fixupPrefix = true;
-				removeGwips(removeGwipMap, gc.isStaticCommited());
+				if (!removeGwipMap.isEmpty()) {
+					fixupPrefix = true;
+					removeGwips(removeGwipMap, gc.isStaticCommited());
+				}
 
 				// Do autodetermination of nettype
-				for (Iterator it = prefixUpdateSet.iterator(); it.hasNext();) {
-					String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
-					Prefix p = (Prefix)prefixDbMap.get(it.next());
-					Vlan vl = p.getVlan();
+				if (!prefixUpdateSet.isEmpty()) {
+					// gwportid -> netboxid + interface
+					Map gwportidMap = new HashMap();
+					ResultSet rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t') WHERE netboxid='"+nb.getNetboxidS()+"'");
+					while (rs.next()) {
+						gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")), rs.getString("ifindex") });
+					}
 
-					String nettype, netident = null;
-					int numGwp = p.gwportCount();
+					for (Iterator it = prefixUpdateSet.iterator(); it.hasNext();) {
+						String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
+						Prefix p = (Prefix)getPrefix((String)it.next());
+						Vlan vl = p.getVlan();
+
+						String nettype, netident = null;
+						int numGwp = p.gwportCount();
 					
-					Set sysnameSet = new HashSet();
-					int hsrpCnt = 0;
-					for (Iterator gwIt = p.getGwportidIterator(); gwIt.hasNext();) {
-						String[] s = (String[])gwportidMap.get(gwIt.next());
-						sysnameSet.add(s[0]);
-						boolean hsrp = s[2].startsWith("t");
-						if (hsrp) hsrpCnt++;
-					}
+						Set sysnameSet = new HashSet();
+						int hsrpCnt = 0;
+						for (Iterator gwIt = p.getGwportidIterator(); gwIt.hasNext();) {
+							String[] s = (String[])gwportidMap.get(gwIt.next());
+							sysnameSet.add(s[0]);
+							boolean hsrp = s[2].startsWith("t");
+							if (hsrp) hsrpCnt++;
+						}
 
-					//System.err.println("Prefix: " + p + ", num: " + numGwp + ", hsrpCnt: " + hsrpCnt + ", sysnames: " + sysnameSet);
+						//System.err.println("Prefix: " + p + ", num: " + numGwp + ", hsrpCnt: " + hsrpCnt + ", sysnames: " + sysnameSet);
 						
-					if (numGwp == 0) {
-						// This can't happen
-						System.err.println("Prefix without any gwports: " + p);
-						Log.e("HANDLE", "Prefix without any gwports, this cannot happen, contact nav support!");
-						Log.d("HANDLE", "Prefix without any gwports: " + p + ", vlan: " + vl);
-						continue;
-					}
-					// Only one gwport = loopback, elink or lan (default)
-					else if (numGwp == 1) {
-						String interf = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[1];
-						if (interf.toLowerCase().indexOf("loopback") >= 0) {
-							nettype = "loopback";
-						} else if (p.getMasklen() == 30) {
-							nettype = "elink";
-							setElinkNetident(nb, p);
-						} else {
+						if (numGwp == 0) {
+							// This can't happen
+							System.err.println("Prefix without any gwports: " + p);
+							Log.e("HANDLE", "Prefix without any gwports, this cannot happen, contact nav support!");
+							Log.d("HANDLE", "Prefix without any gwports: " + p + ", vlan: " + vl);
+							continue;
+						}
+						// Only one gwport = loopback, elink or lan (default)
+						else if (numGwp == 1) {
+							String interf = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[1];
+							if (interf.toLowerCase().indexOf("loopback") >= 0) {
+								nettype = "loopback";
+							} else if (p.getMasklen() == 30) {
+								nettype = "elink";
+								setElinkNetident(nb, p);
+							} else {
+								nettype = "lan";
+							}
+						}
+						// Two different routers + hsrp = lan
+						else if (hsrpCnt > 0 && sysnameSet.size() == 2) {
 							nettype = "lan";
 						}
-					}
-					// Two different routers + hsrp = lan
-					else if (hsrpCnt > 0 && sysnameSet.size() == 2) {
-						nettype = "lan";
-					}
-					// Two gwports from different routers = link
-					else if (numGwp == 2 && sysnameSet.size() == 2 && hsrpCnt == 0) {
-						nettype = "link";
-						Iterator sIt = sysnameSet.iterator();
-						if (vl.getConvention() == Vlan.CONVENTION_NTNU) {
-							netident = util.remove((String)sIt.next(), DOMAIN_SUFFIX) + "," + util.remove((String)sIt.next(), DOMAIN_SUFFIX);
+						// Two gwports from different routers = link
+						else if (numGwp == 2 && sysnameSet.size() == 2 && hsrpCnt == 0) {
+							nettype = "link";
+							Iterator sIt = sysnameSet.iterator();
+							if (vl.getConvention() == Vlan.CONVENTION_NTNU) {
+								netident = util.remove((String)sIt.next(), DOMAIN_SUFFIX) + "," + util.remove((String)sIt.next(), DOMAIN_SUFFIX);
+							}
 						}
-					}
-					// More than two gwports without hsrp = core
-					else {
-						nettype = "core";
-					}
-					/*
-					// More than one gwport + hsrp = lan
-					else if (hsrpCnt > 0 && numGwp > 1) {
+						// More than two gwports without hsrp = core
+						else {
+							nettype = "core";
+						}
+
+						/*
+						// More than one gwport + hsrp = lan
+						else if (hsrpCnt > 0 && numGwp > 1) {
 						nettype = "lan";
-					}
-					// Two gwports from different routers = link
-					else if (numGwp == 2 && sysnameSet.size() == 2) {
+						}
+						// Two gwports from different routers = link
+						else if (numGwp == 2 && sysnameSet.size() == 2) {
 						nettype = "link";
 						Iterator sIt = sysnameSet.iterator();
 						netident = sIt.next()+","+sIt.next();
-					}
-					// More than two gwports without hsrp = core
-					else {
+						}
+						// More than two gwports without hsrp = core
+						else {
 						nettype = "core";
-					}
-					*/
+						}
+						*/
 
-					Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl + " New: " + nettype);
+						Log.d("AUTO_NETTYPE", "Autodetermination of nettype: " + vl + " New: " + nettype);
 
-					if (!Vlan.equals(vl.getNettype(), nettype) ||
-						(netident != null && !netident.equals(vl.getNetident()))) {
-						vl.setNettype(nettype);
-						if (netident != null) vl.setNetident(netident);
+						if (!Vlan.equals(vl.getNettype(), nettype) ||
+							(netident != null && !netident.equals(vl.getNetident()))) {
+							vl.setNettype(nettype);
+							if (netident != null) vl.setNetident(netident);
 					
-						updateVlan(vl, false);
-						fixupPrefix = true;
-						//System.err.println("Update(" + vl.getVlanid() + "): " + vl);
+							updateVlan(vl, false);
+							fixupPrefix = true;
+							//System.err.println("Update(" + vl.getVlanid() + "): " + vl);
+						}
 					}
 				}
 
@@ -646,12 +577,24 @@ public class GwportHandler implements DataHandler {
 		}
 	}
 
+	private void reportMissingOrgid(Vlan vl) throws SQLException {
+		ResultSet rs = Database.query("SELECT orgid FROM org WHERE orgid='"+vl.getOrgid()+"'");
+		if (!rs.next()) {
+			Log.d("MISSING_ORGID", "Orgid " + vl.getOrgid() + " is missing for vlan " + vl.getVlan());
+		}
+	}
+
+	private void reportMissingUsageid(Vlan vl) throws SQLException {
+		ResultSet rs = Database.query("SELECT usageid FROM usage WHERE usageid='"+vl.getUsageid()+"'");
+		if (!rs.next()) {
+			Log.d("MISSING_USAGEID", "Usageid " + vl.getUsageid() + " is missing for vlan " + vl.getVlan());
+		}
+	}
+
 	private void setElinkNetident(Netbox nb, Prefix p) throws SQLException {
 		// Try to find elink name from CDP so we can set netident
 		String DOMAIN_SUFFIX = navCp.get("DOMAIN_SUFFIX");
 		Vlan vl = p.getVlan();
-		String ifindex = ((String[])gwportidMap.get(p.getGwportidIterator().next()))[3];
-		// This is the swport ifindex, we need the gwport ifindex
 		if (vl.getVlan() != null) {
 			ResultSet myrs = Database.query("SELECT ifindex FROM swport JOIN module USING(moduleid) WHERE netboxid="+nb.getNetboxid()+" and vlan='"+vl.getVlan()+"'");
 			if (myrs.next()) {
@@ -663,33 +606,18 @@ public class GwportHandler implements DataHandler {
 
 	private static void removeGwips(Map removeGwipMap, boolean isStaticCommited) throws SQLException {
 		// Remove all gwips from gwports where they no longer exist.
-		boolean hasDeleted = false;
 		for (Iterator it = removeGwipMap.entrySet().iterator(); it.hasNext();) {
 			Map.Entry me = (Map.Entry)it.next();
 			String gwportid = (String)me.getKey();
+			StringBuffer sb = new StringBuffer();
 			for (Iterator gwipIt = ((Set)me.getValue()).iterator(); gwipIt.hasNext();) {
 				String rgwip = (String)gwipIt.next();
-				if (gwpDbMap.containsKey(rgwip)) {
-					Gwportprefix rgwp = (Gwportprefix)gwpDbMap.get(rgwip);
-
-					if (!isStaticCommited) {
-						// Do not remove static entries
-						if ("static".equals(rgwp.getPrefix().getVlan().getNettype())) {
-							System.err.println("Dont delete: " + rgwp);
-							continue;
-						}
-					}
-
-					rgwp.getPrefix().removeGwport(gwportid);
-
-					// Delete it
-					Database.update("DELETE FROM gwportprefix WHERE gwip='" + rgwip + "'");
-					Log.d("DEL_GWPORTPREFIX", "Deleted " + rgwip + " from gwportprefix("+gwportid+")");
-					gwpDbMap.remove(rgwip);
-					hasDeleted = true;
-				}
+				sb.append("'"+rgwip+"',");
 			}
+			sb.deleteCharAt(sb.length()-1);
+			Database.query("DELETE FROM gwportprefix WHERE gwportid='"+gwportid+"' AND gwip IN ("+sb.toString()+") AND gwip NOT IN (SELECT gwip FROM gwportprefix JOIN prefixUSING(prefixid) JOIN vlan USING(vlanid) WHERE nettype='static')");
 		}
+
 		/*
 		if (hasDeleted) {
 			Database.update("DELETE FROM gwport WHERE masterindex IS NOT NULL AND gwportid NOT IN (SELECT gwportid FROM gwportprefix)");

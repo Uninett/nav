@@ -30,7 +30,7 @@ class Gwportprefix
 
 	public boolean equalsGwportprefix(Gwportprefix gp) {
 		return (gp != null &&
-						hsrp == gp.hsrp);
+				hsrp == gp.hsrp);
 	}
 
 	public boolean equals(Object o) {

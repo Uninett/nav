@@ -372,11 +372,18 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				GwModule gwm = gwc.gwModuleFactory(module);
 
 				String nettype = Vlan.UNKNOWN_NETTYPE;
+				/*
 				String netident = "null";
 				String orgid = "null";
 				String usageid = "null";
 				String vlan = "null";
 				String description = "null";
+				*/
+				String netident = null;
+				String orgid = null;
+				String usageid = null;
+				String vlan = null;
+				String description = null;
 				int convention = Vlan.CONVENTION_NTNU;
 
 				// Parse the description (ifAlias)

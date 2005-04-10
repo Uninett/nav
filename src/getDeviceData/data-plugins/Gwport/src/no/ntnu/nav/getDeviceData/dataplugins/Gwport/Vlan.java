@@ -93,6 +93,25 @@ public class Vlan implements Comparable
 		description = s;
 	}
 
+	public boolean equalsOrgid(Vlan vl) {
+		return equals(orgid, vl.orgid);
+	}
+
+	public boolean equalsUsageid(Vlan vl) {
+		return equals(usageid, vl.usageid);
+	}
+
+	public void printEquals(Vlan vl) {
+		System.err.println("Vlan: " + vlan + " (vlanid: " + vlanid+")");
+		System.err.println("vlan: " + (vlan == null || vlan.equals(vl.vlan)));
+		System.err.println("nettype: " + equals(nettype, vl.nettype));
+		System.err.println("orgid: " + equals(orgid, vl.orgid));
+		System.err.println("usageid: " + equals(usageid, vl.usageid));
+		System.err.println("netident: " + equals(netident, vl.netident));
+		System.err.println("descr: " + equals(description, vl.description));
+		System.err.println();
+	}
+
 	public boolean equalsDataVlan(Vlan vl) {
 		return ((equals(orgid, vl.orgid)) &&
 				(equals(usageid, vl.usageid)) &&
@@ -108,7 +127,7 @@ public class Vlan implements Comparable
 
 	public boolean equals(Object o) {
 		return (o instanceof Vlan && 
-						equalsVlan((Vlan)o));
+				equalsVlan((Vlan)o));
 	}
 
 	public int compareTo(Object o) {
