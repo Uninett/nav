@@ -872,10 +872,12 @@ class networkDiscovery
 		//outl("New rows: <b>" + newcnt + "</b> Updated rows: <b>" + updcnt + "</b> Removed rows: <b>"+remcnt+"</b><br>");
 		outl("New rows: <b>" + newcnt + "</b> Updated rows: <b>" + updcnt + "</b><br>");
 		outl("Sum rows: <b>" + swport.size() + "</b><br>");
+		/*
 		if (newcnt > 0 || updcnt > 0 || resetcnt > 0) {
 			if (DEBUG_OUT) outl("** COMMIT ON DATABASE **<br>");
 			Database.commit();
 		}
+		*/
 		//Database.rollback();
 
 
@@ -914,7 +916,7 @@ class networkDiscovery
 		// Vi starter med å sette boksbak til null alle steder hvor status='down', slik at vi unngår løkker
 		{
 			Database.update("UPDATE swport SET to_netboxid = NULL, to_swportid = NULL WHERE link!='y' AND to_netboxid IS NOT NULL");
-			if (DB_COMMIT) Database.commit(); // Vi ruller tilbake lenger ned i koden
+			//if (DB_COMMIT) Database.commit(); // Vi ruller tilbake lenger ned i koden
 		}
 
 		Map dataStructs = new HashMap();
@@ -954,7 +956,7 @@ class networkDiscovery
 
 		// Oversikt over ikke-trunker ut fra hver boks per vlan
 		HashMap nontrunkVlan = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND to_netboxid IS NOT NULL");
+		rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND vlan IS NOT NULL");
 		while (rs.next()) {
 			HashMap nontrunkMap;
 			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -1000,7 +1002,7 @@ class networkDiscovery
 		HashMap activeVlan = new HashMap();
 		// vlan er aktivt på port selv om den er nede, og vi må ta med vlan'et IP'en på selve boksen er på
 		//rs = Database.query("(SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL) UNION (SELECT DISTINCT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL)");
-		rs = Database.query("SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND to_netboxid IS NULL AND vlan IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NULL AND vlan IS NOT NULL");
 		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");
@@ -1024,7 +1026,7 @@ class networkDiscovery
 
 		// Mapping over hvilken swport from befinner seg bak en swport
 		HashMap swportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,vlan,to_swportid FROM swport WHERE trunk='f' AND to_swportid IS NOT NULL");
+		rs = Database.query("SELECT swportid,vlan,to_swportid FROM swport WHERE (trunk='f' OR trunk IS NULL) AND to_swportid IS NOT NULL");
 		while (rs.next()) {
 			HashMap hm = new HashMap();
 			hm.put("vlan", rs.getString("vlan"));
@@ -1035,7 +1037,7 @@ class networkDiscovery
 		// Mapping av hvilket vlan som kjører mellom to bokser der vi ikke har to_swportid
 		Map nbvlanMap = new HashMap();
 		dataStructs.put("nbvlanMap", nbvlanMap);
-		rs = Database.query("SELECT netboxid,to_netboxid,vlan FROM module JOIN swport USING(moduleid) WHERE trunk='f' AND to_netboxid IS NOT NULL AND vlan IS NOT NULL AND to_swportid IS NULL ORDER BY netboxid");
+		rs = Database.query("SELECT netboxid,to_netboxid,vlan FROM module JOIN swport USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND vlan IS NOT NULL AND to_swportid IS NULL ORDER BY netboxid");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("to_netboxid");
 			if (nbvlanMap.containsKey(key)) {
@@ -1051,7 +1053,7 @@ class networkDiscovery
 		Set swportidVlanDupeSet = new HashSet();
 		dataStructs.put("swportidVlanMap", swportidVlanMap);
 		//rs = Database.query("SELECT netbox.sysname,swport.ifindex,vlan.vlan FROM netbox JOIN module USING(netboxid) JOIN swport USING(moduleid) JOIN cam ON (netbox.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) GROUP BY netbox.sysname,swport.ifindex,vlan.vlan");
-		rs = Database.query("SELECT swportid,vlanid,COUNT(*) AS count FROM module JOIN swport USING(moduleid) JOIN cam ON (module.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) WHERE trunk='f' GROUP BY swportid,vlanid ORDER BY swportid,count DESC");
+		rs = Database.query("SELECT swportid,vlanid,COUNT(*) AS count FROM module JOIN swport USING(moduleid) JOIN cam ON (module.netboxid = cam.netboxid AND swport.ifindex = cam.ifindex and cam.end_time = 'infinity') JOIN arp ON (cam.mac = arp.mac AND arp.end_time = 'infinity') JOIN prefix ON (arp.prefixid = prefix.prefixid) JOIN vlan USING(vlanid) WHERE (trunk='f' OR trunk IS NULL) GROUP BY swportid,vlanid ORDER BY swportid,count DESC");
 		while (rs.next()) {
 			String key = rs.getString("swportid")+":"+rs.getString("vlanid");
 			if (swportidVlanDupeSet.add(key)) {
@@ -1078,6 +1080,7 @@ class networkDiscovery
  			String boksid = rs.getString("netboxid");
 			String nettype = (String)vlanidNettype.get(""+vlanid);
 
+			/*
 			if (!doneVlan.add(new Integer(vlanid))) {
 				// Duplicate vlanid, check if we already found this gw
 				if (foundGwSet.contains(boksid+":"+vlanid)) continue;
@@ -1092,6 +1095,7 @@ class networkDiscovery
 				System.err.println("Splitting vlan: " + rs.getString("vlan") + " ("+oldVlanid+"), new vlanid: " + vlanid + ", gwportid: " + rs.getString("gwportid"));
 				Database.update("UPDATE prefix SET vlanid="+vlanid+" WHERE prefixid IN (SELECT prefixid FROM gwportprefix WHERE gwportid="+rs.getString("gwportid")+")");
 			}
+			*/
 			visitedNodeSet.clear();
 
 			//String netaddr = rs.getString("netaddr");
@@ -1365,9 +1369,10 @@ class networkDiscovery
 		*/
 
 		// Then we delete all vlans without either prefices or swports
-		int unusedCnt = Database.update("DELETE FROM vlan WHERE vlanid NOT IN ((SELECT vlanid FROM prefix) UNION (SELECT vlanid FROM swportvlan))");
-		if (newcnt > 0 || updcnt > 0 || remcnt > 0 || renamecnt > 0 || unusedCnt > 0) if (DB_COMMIT) Database.commit(); else Database.rollback();
-		outl("New count: <b>"+newcnt+"</b>, Update count: <b>"+updcnt+"</b> Dup count: <b>"+dupcnt+"</b>, Rem count: <b>"+remcnt+"</b> Unused count: <b>"+unusedCnt+"</b>, Rename vlan count: <b>"+renamecnt+"</b><br>");
+		int delPrefix = Database.update("DELETE FROM prefix WHERE prefixid NOT IN (SELECT prefixid FROM gwportprefix) AND vlanid NOT IN (SELECT vlanid FROM vlan JOIN swportvlan USING(vlanid) UNION SELECT vlanid FROM vlan WHERE nettype='scope')");
+		int delVlan = Database.update("DELETE FROM vlan WHERE vlanid NOT IN (SELECT vlanid FROM prefix UNION SELECT vlanid FROM swportvlan UNION SELECT vlanid FROM vlan WHERE nettype='scope')");
+		//if (newcnt > 0 || updcnt > 0 || remcnt > 0 || renamecnt > 0 || unusedCnt > 0) if (DB_COMMIT) Database.commit(); else Database.rollback();
+		outl("New count: <b>"+newcnt+"</b>, Update count: <b>"+updcnt+"</b> Dup count: <b>"+dupcnt+"</b>, Rem count: <b>"+remcnt+"</b> delPrefix: <b>"+delPrefix+"</b>, delVlan: <b>"+delVlan+"</b>, Rename vlan count: <b>"+renamecnt+"</b><br>");
 
 		//if (!DB_COMMIT) Database.rollback();
 
