@@ -60,6 +60,8 @@ public class MemContainer implements DataContainer {
 
 	public void addMem(String type, String name, long size, long used) {
 		String key = type+":"+name;
+		if (size < 0) size = 0;
+		if (used < 0) used = 0;
 		Object[] data = new Object[] { type, name, new Long(size), new Long(used) };
 		memMap.put(key, data);
 	}

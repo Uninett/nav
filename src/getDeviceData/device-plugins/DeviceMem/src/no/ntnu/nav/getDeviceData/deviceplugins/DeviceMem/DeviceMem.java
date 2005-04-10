@@ -81,6 +81,8 @@ public class DeviceMem implements DeviceHandler
 				if (memUsed != null && memUsed.containsKey(idx) && memFree != null && memFree.containsKey(idx)) {
 					used = Long.parseLong((String)memUsed.get(idx));
 					size = used + Long.parseLong((String)memFree.get(idx));
+					if (size < 0) Log.e("MEM_SIZE", "Invalid mem size: " + size);
+					if (used < 0) Log.e("MEM_USED", "Invalid mem used: " + used);
 				}
 				mc.addMem(MemContainer.TYPE_MEMORY, name, size, used);
 				mc.commit();
@@ -98,8 +100,10 @@ public class DeviceMem implements DeviceHandler
 				long size=0, used=0;
 				if (flashSize != null && flashSize.containsKey(idx)) {
 					size = Long.parseLong((String)flashSize.get(idx));
+					if (size < 0) Log.e("FLASH_SIZE", "Invalid flash size: " + size);
 					if (flashFree != null && flashFree.containsKey(idx)) {
 						used = size - Long.parseLong((String)flashFree.get(idx));
+						if (used < 0) Log.e("FLASH_USED", "Invalid flash used: " + used + " (size: " + flashSize.get(idx) + " free: " + flashFree.get(idx) + ")");
 					}
 				}
 				mc.addMem(MemContainer.TYPE_FLASH, name, size, used);
