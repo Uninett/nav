@@ -3,6 +3,7 @@ package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 import no.ntnu.nav.logger.*;
 
 import java.util.ArrayList;
+import java.util.regex.*;
 
 /**
  * Contain Vlan data
@@ -72,6 +73,16 @@ public class Vlan implements Comparable
 		nettype = s;
 	}
 
+	private String endsWithNumberPattern = "(.*?)\\d+";
+	private String stripNumberEnd(String s) {
+		if (s != null && s.matches(endsWithNumberPattern)) {
+			Matcher m = Pattern.compile(endsWithNumberPattern).matcher(s);
+			m.matches();
+			return m.group(1);
+		}
+		return s;
+	}
+
 	/**
 	 * Set org.
 	 */
@@ -83,6 +94,7 @@ public class Vlan implements Comparable
 	 * Set usage.
 	 */
 	public void setUsageid(String s) {
+		s = stripNumberEnd(s);
 		usageid = s;
 	}
 
