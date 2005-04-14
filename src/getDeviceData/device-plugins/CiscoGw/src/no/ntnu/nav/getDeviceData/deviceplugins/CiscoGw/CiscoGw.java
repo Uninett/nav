@@ -399,7 +399,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 							orgid = s[1];
 							usageid = s[2];
 							netident = orgid+","+usageid;
-							if (s.length >= 4) netident += s[3];
+							if (s.length >= 4) netident += ","+s[3];
 							if (s.length >= 5) description = s[4];
 							if (s.length >= 6) vlan = s[5];
 						} else if (descr.startsWith("link")) {
