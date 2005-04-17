@@ -54,7 +54,7 @@ nbdup = {}
 sysname = []
 
 for ii in range(1, len(sys.argv)-1):
-    sql = "SELECT deviceid,netboxid,sysname,typeid FROM netbox JOIN type USING(typeid) JOIN room USING(roomid) WHERE ip IS NOT NULL";
+    sql = "SELECT deviceid,netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL";
     qn = sys.argv[ii]
     if (qn.startswith("_") or qn.startswith("-") or qn.startswith("%") or qn.find(",") >= 0):
         if (qn.startswith("-")):
