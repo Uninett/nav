@@ -89,6 +89,15 @@ public class Gw extends Netel
 	}
 
 	/**
+	 * Overridden from superclass. Routers are currently never in shadow.
+	 *
+	 */
+	public void updateStatus()
+	{
+
+	}
+
+	/**
 	 * Check if b is reachable from this Netel. Currently, this methods
 	 * always returns REACHABLE_YES for routers (type Gw) if it is up;
 	 * REACHABLE_NO otherwise.
