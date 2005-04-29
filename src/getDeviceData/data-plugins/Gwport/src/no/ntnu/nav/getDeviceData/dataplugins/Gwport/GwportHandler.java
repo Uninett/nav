@@ -81,11 +81,16 @@ public class GwportHandler implements DataHandler {
 	private Prefix getPrefix(String cidr) throws SQLException {
 		Prefix p = (Prefix)prefixMap.get(cidr);
 		if (p == null) {
-			ResultSet rs = Database.query("SELECT prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid FROM prefix WHERE netaddr='"+cidr+"'");
+			ResultSet rs = Database.query("SELECT prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,gwportid FROM prefix LEFT JOIN gwportprefix USING(prefixid) WHERE netaddr='"+cidr+"'");
 			if (rs.next()) {
 				p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), getVlan(rs.getString("vlanid")));
 				p.setPrefixid(rs.getInt("prefixid"));
 				prefixMap.put(rs.getString("cidr"), p);
+				if (rs.getInt("gwportid") != 0) {
+					do {
+						p.addGwport(rs.getString("gwportid"));
+					} while (rs.next());
+				}
 			}
 		}
 		return p;
@@ -146,6 +151,7 @@ public class GwportHandler implements DataHandler {
 
 				Map removeGwipMap = new HashMap();
 				Set prefixUpdateSet = new HashSet();
+				Set gwportidUpdateSet = new HashSet();
 
 				for (Iterator gwModules = gc.getGwModules(); gwModules.hasNext();) {
 					GwModule gwm = (GwModule)gwModules.next();
@@ -164,11 +170,9 @@ public class GwportHandler implements DataHandler {
 						}
 
 						// Create prefix
-						Prefix p = (Prefix)prefixMap.get(rs.getString("cidr"));
-						if (p == null && rs.getInt("prefixid") > 0) {
-							p = new Prefix(rs.getString("netaddr"), rs.getInt("masklen"), vlan);
-							p.setPrefixid(rs.getInt("prefixid"));
-							prefixMap.put(rs.getString("cidr"), p);
+						Prefix p = null;
+						if (rs.getInt("prefixid") > 0) {
+							p = getPrefix(rs.getString("cidr"));
 						}
 
 						// Create gwport
@@ -340,6 +344,7 @@ public class GwportHandler implements DataHandler {
 								prefixid = oldp.getPrefixidS();
 							}
 							p.setPrefixid(prefixid);
+							p.addGwports(oldp);
 							
 							Gwportprefix oldgp = getGwportprefix(gp.getGwip());
 							if (oldgp == null) {
@@ -436,6 +441,7 @@ public class GwportHandler implements DataHandler {
 							if (unknownNettype) {
 								prefixMap.put(p.getCidr(), p);
 								prefixUpdateSet.add(p.getCidr());
+								p.addGwportsTo(gwportidUpdateSet);
 							} else if (vl.getNettype().equals("elink")) {
 								setElinkNetident(nb, p);
 								updateVlan(vl, false);
@@ -465,7 +471,7 @@ public class GwportHandler implements DataHandler {
 				if (!prefixUpdateSet.isEmpty()) {
 					// gwportid -> netboxid + interface
 					Map gwportidMap = new HashMap();
-					ResultSet rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t') WHERE netboxid='"+nb.getNetboxidS()+"'");
+					ResultSet rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t') WHERE gwport.gwportid IN (" + join(gwportidUpdateSet) + ")");
 					while (rs.next()) {
 						gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")), rs.getString("ifindex") });
 					}
@@ -575,6 +581,15 @@ public class GwportHandler implements DataHandler {
 				e.printStackTrace(System.err);
 			}
 		}
+	}
+
+	private String join(Collection c) {
+		StringBuffer sb = new StringBuffer();
+		for (Iterator it = c.iterator(); it.hasNext();) {
+			sb.append("'" + it.next() + "',");
+		}
+		if (sb.length() > 0) sb.deleteCharAt(sb.length()-1);
+		return sb.toString();
 	}
 
 	private void reportMissingOrgid(Vlan vl) throws SQLException {

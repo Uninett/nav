@@ -85,10 +85,12 @@ public class Prefix implements Comparable
 	void setMasklen(int l) { masklen = l; }
 	void setVlan(Vlan v) { vlan = v; }
 
+	void addGwports(Prefix p) { gwportidSet.addAll(p.gwportidSet); }
 	void addGwport(String gwportid) { gwportidSet.add(gwportid); }
 	void removeGwport(String gwportid) { gwportidSet.remove(gwportid); }
 	int gwportCount() { return gwportidSet.size(); }
 	Iterator getGwportidIterator() { return gwportidSet.iterator(); }
+	void addGwportsTo(Set s) { s.addAll(gwportidSet); }
 
 	String getNetaddr() { return netaddr; }
 	int getMasklen() { return masklen; }
@@ -126,7 +128,7 @@ public class Prefix implements Comparable
 	}
 
 	public String toString() {
-		return netaddr + "/" + masklen + " ("+prefixid+")";
+		return netaddr + "/" + masklen + " ("+prefixid+") ("+Integer.toHexString(hashCode())+")";
 	}
 
 }
