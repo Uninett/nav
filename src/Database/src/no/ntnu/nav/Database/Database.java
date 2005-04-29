@@ -59,7 +59,7 @@ public class Database
 
 	public static final int DEFAULT_DRIVER = POSTGRESQL_DRIVER;
 	
-	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 8;
+	public static final int DEFAULT_GLOBAL_STATEMENT_BUFFER = 32;
 	public static final int DEFAULT_THREAD_STATEMENT_BUFFER = 2;
 	public static final int DEFAULT_RECONNECT_WAIT_TIME = 10000;
 	public static final int DEFAULT_MAX_CONNECTIONS = 6;
