@@ -325,7 +325,10 @@ public class QueryNetbox extends Thread
 				String qn = qNetbox;
 
 				if (qn.startsWith("_") || qn.startsWith("-") || qn.indexOf(",") >= 0) {
-					if (qn.startsWith("-")) {
+					if (qn.startsWith("__")) {
+						qn = "";
+						sql += " AND netbox.uptodate=false";
+					} else if (qn.startsWith("-")) {
 						qn = qn.substring(1, qn.length());
 						sql += " AND typeid IN (";
 					} else if (qn.startsWith("_")) {
@@ -335,10 +338,12 @@ public class QueryNetbox extends Thread
 						sql += " AND sysname IN (";
 						randomize = false;
 					}
-					String[] ids = qn.split(",");
-					for (int i=0; i < ids.length; i++) sql += "'" + ids[i] + "',";
-					if (ids.length > 0) sql = sql.substring(0, sql.length()-1);
-					sql += ")";
+					if (qn.length() > 0) {
+						String[] ids = qn.split(",");
+						for (int i=0; i < ids.length; i++) sql += "'" + ids[i] + "',";
+						if (ids.length > 0) sql = sql.substring(0, sql.length()-1);
+						sql += ")";
+					}
 				} else {
 					sql += " AND sysname LIKE '"+qn+"'";
 				}
