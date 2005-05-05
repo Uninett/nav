@@ -286,12 +286,65 @@ public class CiscoModule implements DeviceHandler
 			}
 		}
 
+		// Find module translation using phys OIDs
+		Map modTrans = new HashMap();
+		{
+			Map physClass = sSnmp.getAllMap(nb.getOid("physClass"), false, 0, true); // Ask for oidToModuleMap
+			if (physClass != null) {
+				Map oidToModuleMapping = (Map)physClass.remove("OidToModuleMapping");
+				MultiMap classMap = util.reverse(physClass);
+				// modules
+				for (Iterator it = classMap.get("9").iterator(); it.hasNext();) {
+					String id = (String)it.next();
+					int module;
+					try {
+						if (oidToModuleMapping != null && oidToModuleMapping.containsKey(id)) {
+							module = Integer.parseInt((String)oidToModuleMapping.get(id));						
+						} else {
+							module = Integer.parseInt(id);
+							if (module < 1000 || (module%1000) != 0) continue;
+							// if physName is supported, try to get module number from this
+							String physNameOid = nb.getOid("physName");
+							if (physNameOid != null) {
+								boolean foundMod = false;
+								List physNameL = sSnmp.getNext(physNameOid+"."+(module+1), 1, true, false);
+								if (!physNameL.isEmpty()) {
+									String portif = ((String[])physNameL.get(0))[1];
+									String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
+									if (portif.matches(modulePattern)) {
+										Matcher m = Pattern.compile(modulePattern).matcher(portif);
+										m.matches();
+										int newModule = Integer.parseInt(m.group(3));
+										modTrans.put(""+(module/1000), ""+newModule);
+										foundMod = true;
+									}
+								}
+								if (!foundMod) {
+									physNameL = sSnmp.getNext(physNameOid+"."+(module), 1, true, false);
+									if (!physNameL.isEmpty()) {
+										String portif = ((String[])physNameL.get(0))[1];
+										try {
+											int newModule = Integer.parseInt(portif);
+											modTrans.put(""+(module/1000), ""+newModule);
+										} catch (NumberFormatException exp) {
+										}
+									}
+								}
+							}
+						}
+					} catch (NumberFormatException e) {
+					}
+				}
+			}
+		}
+
 		// cL3*
 		{
 			Set valid;
 			if (cl3Serial != null && !(valid = getValidCL3Modules(cl3Serial)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
+					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
 					if (DEBUG) err("Created module " + module + " from cL3");				
 					mc.moduleFactory(module).setSerial((String)cl3Serial.get(module+"000"));
 				}
@@ -300,6 +353,7 @@ public class CiscoModule implements DeviceHandler
 			if (cl3Model != null && !(valid = getValidCL3Modules(cl3Model)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
+					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
 					mc.moduleFactory(module).setDescr((String)cl3Model.get(module+"000"));
 				}
 			}
@@ -307,6 +361,7 @@ public class CiscoModule implements DeviceHandler
 			if (cl3HwVer != null && !(valid = getValidCL3Modules(cl3HwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
+					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
 					mc.moduleFactory(module).setHwVer((String)cl3HwVer.get(module+"000"));
 				}
 			}
@@ -314,6 +369,7 @@ public class CiscoModule implements DeviceHandler
 			if (cl3FwVer != null && !(valid = getValidCL3Modules(cl3FwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
+					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
 					mc.moduleFactory(module).setFwVer((String)cl3FwVer.get(module+"000"));
 				}
 			}
@@ -321,6 +377,7 @@ public class CiscoModule implements DeviceHandler
 			if (cl3SwVer != null && !(valid = getValidCL3Modules(cl3SwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
+					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
 					mc.moduleFactory(module).setSwVer((String)cl3SwVer.get(module+"000"));
 				}
 			}
@@ -374,7 +431,7 @@ public class CiscoModule implements DeviceHandler
 						module = Integer.parseInt((String)oidToModuleMapping.get(id));						
 					} else {
 						module = Integer.parseInt(id);
-						if (module < 1000) continue;
+						if (module < 1000 || (module%1000) != 0) continue;
 						module /= 1000;
 					}
 				} catch (NumberFormatException e) {
@@ -383,7 +440,8 @@ public class CiscoModule implements DeviceHandler
 					continue;
 				}
 				if (module < 0) module = 0;
-				if (mc.getModule(module) == null) {
+				if (modTrans.containsKey(""+module)) module = Integer.parseInt((String)modTrans.get(""+module));
+				if (mc.getModule(module) == null && !modTrans.containsKey(""+module)) {
 					// Not allowed to create module
 					Log.w("CMOD_PHYSOID", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
 					if (DEBUG) err("Did not create module " + module + " from Phys");				

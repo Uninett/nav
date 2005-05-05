@@ -63,6 +63,9 @@ public class Module extends Device implements Comparable
 
 	public int getModule() { return module; }
 	String getModuleS() { return ((module < 10)?" ":"")+getModule(); }
+	void setModule(int module) {
+		this.module = module;
+	}
 
 	public String getModel() { return model; }
 	public String getDescr() { return descr; }

@@ -31,7 +31,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
-	private Set moduleSet = new HashSet();
+	//private Set moduleSet = new HashSet();
 	protected Map moduleTranslation = new HashMap();
 	private boolean commit = false;
 
@@ -130,6 +130,11 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * Get the set of module numbers.
 	 */
 	public Set getModuleSet() {
+		Set moduleSet = new HashSet();
+		for (Iterator it=moduleList.iterator(); it.hasNext();) {
+			Module m = (Module)it.next();
+			moduleSet.add(""+m.getModule());
+		}
 		return moduleSet;
 	}
 
@@ -181,7 +186,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		// Also add it to the parent
 		addDevice(m);
 		moduleList.add(m);
-		moduleSet.add(""+m.getModule());
+		//moduleSet.add(""+m.getModule());
 		/*
 		if ("1".equals(""+m.getModule())) {
 			new RuntimeException().printStackTrace(System.err);
@@ -191,6 +196,23 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	public void commit() {
 		commit = true;		
+	}
+
+	public void renameModule(int from, int to) {
+		for (Iterator it=moduleList.iterator(); it.hasNext();) {
+			Module m = (Module)it.next();
+			if (m.getModule() == from) {
+				m.setModule(to);
+				return;
+			}
+		}
+	}
+
+	public void fixHighModuleNums() {
+		for (Iterator it=moduleList.iterator(); it.hasNext();) {
+			Module m = (Module)it.next();
+			if (m.getModule() >= 1000) m.setModule(m.getModule() / 1000);
+		}
 	}
 
 	// Doc in parent
