@@ -240,16 +240,18 @@ public class Netel extends Box
 			// Try to find an uplink which has the correct vlan reachable
 			for (Iterator j=m.getPorts(); j.hasNext();) {
 				Port p = (Port)j.next();
+				if (p.getBoxidBehind() == 0) continue;
+
 				int dir = p.vlanDirection(vlan);
-				if (p.getBoxidBehind() != 0) {
-					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
-					if (d instanceof Netel) {
-						Netel n = (Netel)d;
-						outld("    Ifindex: " + p.getIfindex() + " Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
-					} else {
-						System.err.println("    Device is not instance of Netel: " + d);
-					}
-				}
+// 				if (p.getBoxidBehind() != 0) {
+// 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
+// 					if (d instanceof Netel) {
+// 						Netel n = (Netel)d;
+// 						outld("    Ifindex: " + p.getIfindex() + " Port: " + p.getPort() + " dir: " + dir + " behind: " + p.getBoxidBehind() + " dev: " + boxidToDeviceid(p.getBoxidBehind()) + " name: " + (n!=null?n.getSysname():"NA") );
+// 					} else {
+// 						System.err.println("    Device is not instance of Netel: " + d);
+// 					}
+// 				}
 				if (dir != Port.DIRECTION_NONE && dir != Port.DIRECTION_DOWN) {
 					Device d = devDB.getDevice(boxidToDeviceid(p.getBoxidBehind()));
 					if (d instanceof Netel) {
@@ -272,7 +274,8 @@ public class Netel extends Box
 							}
 						}
 					} else {
-						outld("  Error! Device not Netel: " + d);
+						//outld("  Error! Device not Netel: " + d);
+						System.err.println("  Error! Device not Netel: " + d + ", this: " + this + " port: " + p + ", dir: " + dir);
 					}
 				}
 			}
