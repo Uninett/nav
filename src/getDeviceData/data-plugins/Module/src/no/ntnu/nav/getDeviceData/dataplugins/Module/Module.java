@@ -122,5 +122,5 @@ public class Module extends Device implements Comparable
 		Module m = (Module)o;
 		return new Integer(module).compareTo(new Integer(m.module));
 	}
-	public String toString() { return super.toString() + ", " + getModuleS() + " model="+model+" descr="+descr; }
+	public String toString() { return super.toString() + ", moduleid="+moduleid+", " + getModuleS() + " model="+model+" descr="+descr; }
 }

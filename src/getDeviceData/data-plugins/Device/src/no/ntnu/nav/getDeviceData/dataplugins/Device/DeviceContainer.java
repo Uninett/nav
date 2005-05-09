@@ -100,6 +100,7 @@ public class DeviceContainer implements DataContainer {
 
 	// Return an iterator over the devices in this container.
 	Iterator getDevices() {
+		Collections.sort(deviceList);
 		return deviceList.iterator();
 	}
 

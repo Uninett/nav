@@ -181,11 +181,12 @@ public class ModuleHandler implements DataHandler {
 				*/
 				rs = Database.query("SELECT module, moduleid, netboxid FROM module WHERE deviceid='"+md.getDeviceid()+"'");
 				if (rs.next() && (md.getModule() != rs.getInt("module") || nb.getNetboxid() != rs.getInt("netboxid"))) {
-					Log.d("DEL_MODULE", "Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
+					Log.d("DEL_MODULE", "Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module") + " ("+md.getModule()+","+rs.getInt("module")+","+nb.getNetboxid()+","+rs.getInt("netboxid")+")");
 					//System.err.println("Deleting old module("+rs.getString("moduleid")+"), module: " + rs.getString("module"));
 					Database.update("DELETE FROM module WHERE moduleid='"+rs.getString("moduleid")+"'");
 				}
 				if (oldmd != null && md.getDeviceid() != oldmd.getDeviceid()) {
+					Log.d("DEL_MODULE", "Deleting old module: " + oldmd + " new: " + md);
 					Database.update("DELETE FROM module WHERE deviceid='"+oldmd.getDeviceid()+"'");
 					//System.err.println("Deleting old module("+oldmd.getDeviceid()+")");
 					oldmd = null;

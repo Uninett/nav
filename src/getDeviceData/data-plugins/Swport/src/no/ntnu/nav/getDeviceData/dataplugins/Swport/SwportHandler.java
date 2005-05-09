@@ -198,7 +198,7 @@ public class SwportHandler implements DataHandler {
 						rs.next();
 						swportid = rs.getString("swportid");
 
-						Log.d("NEW_SWPORT", "New swport, swportid="+swportid+", moduleid="+moduleid+", port="+sd.getPort()+", ifindex="+sd.getIfindex()+", link="+sd.getLink()+", speed="+sd.getSpeed()+", duplex="+sd.getDuplexS()+", media="+Database.addSlashes(sd.getMedia())+", trunk="+sd.getTrunkS()+", portname="+Database.addSlashes(sd.getPortname()));
+						Log.d("NEW_SWPORT", "New swport, swportid="+swportid+", moduleid="+moduleid+", port="+sd.getPort()+", ifindex="+sd.getIfindex()+", link="+sd.getLink()+", speed="+sd.getSpeed()+", duplex="+sd.getDuplexS()+", media="+Database.addSlashes(sd.getMedia())+", vlan="+sd.getVlanS()+", trunk="+sd.getTrunkS()+", portname="+Database.addSlashes(sd.getPortname()));
 
 						String[] inss = {
 							"swportid", swportid,

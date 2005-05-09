@@ -99,6 +99,7 @@ public class DeviceHandler implements DataHandler {
 		//new RuntimeException().printStackTrace(System.err);
 
 		try {
+			Set seenSerials = new HashSet();
 
 			for (Iterator devices = devc.getDevices(); devices.hasNext();) {
 				Device dev = (Device)devices.next();
@@ -112,7 +113,15 @@ public class DeviceHandler implements DataHandler {
 					String fields = "deviceid,serial,hw_ver,fw_ver,sw_ver FROM device WHERE";
 					ResultSet rs = Database.query("SELECT " + fields + " serial='"+serial+"'");
 					if (rs.next()) {
-						olddev = getDevice(rs);
+						if (seenSerials.add(serial)) {
+							olddev = getDevice(rs);
+						} else {
+							Log.e("DUPLICATE_SERIAL", "Duplicate serial found for device " + dev + ", ignoring serial");
+							if (dev.getDeviceid() == rs.getInt("deviceid")) {
+								deviceid = null;
+							}
+							dev.setSerial(null);
+						}
 						//System.err.println("Found old device: " + olddev);
 					} else {
 						//System.err.println("Not found: " + "SELECT " + fields + " serial='"+serial+"'");
