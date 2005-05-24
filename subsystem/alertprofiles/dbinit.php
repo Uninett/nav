@@ -135,7 +135,13 @@ class dbinit {
                 
             }
             
-            $cstr = "user=$duser password=$dpass dbname=$ddb";          
+            $cstr = "user=$duser password=$dpass dbname=$ddb";  
+			if (isset($dhost)) {
+				$cstr .= " host=$dhost";
+			}
+			if (isset($dport)) {
+				$cstr .= " port=$dport";
+			}            
             //echo "<p>" . $cstr;
    
             if (! $this->dbhk_dbcon = pg_connect($cstr) ) {
