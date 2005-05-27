@@ -630,7 +630,7 @@ public class GwportHandler implements DataHandler {
 				sb.append("'"+rgwip+"',");
 			}
 			sb.deleteCharAt(sb.length()-1);
-			Database.query("DELETE FROM gwportprefix WHERE gwportid='"+gwportid+"' AND gwip IN ("+sb.toString()+") AND gwip NOT IN (SELECT gwip FROM gwportprefix JOIN prefixUSING(prefixid) JOIN vlan USING(vlanid) WHERE nettype='static')");
+			Database.update("DELETE FROM gwportprefix WHERE gwportid='"+gwportid+"' AND gwip IN ("+sb.toString()+") AND gwip NOT IN (SELECT gwip FROM gwportprefix JOIN prefixUSING(prefixid) JOIN vlan USING(vlanid) WHERE nettype='static')");
 		}
 
 		/*
