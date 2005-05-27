@@ -151,7 +151,6 @@ public class GwportHandler implements DataHandler {
 
 				Map removeGwipMap = new HashMap();
 				Set prefixUpdateSet = new HashSet();
-				Set gwportidUpdateSet = new HashSet();
 
 				for (Iterator gwModules = gc.getGwModules(); gwModules.hasNext();) {
 					GwModule gwm = (GwModule)gwModules.next();
@@ -161,7 +160,7 @@ public class GwportHandler implements DataHandler {
 					}
 
 					// Fetch old gwp from database
-					ResultSet rs = Database.query("SELECT gwportid,ifindex,interface,masterindex,speed,metric AS ospf,gwip,hsrp,prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlanid,vlan,nettype,orgid,usageid,netident,description FROM gwport LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE moduleid='"+moduleid+"'");
+					ResultSet rs = Database.query("SELECT gwportid,ifindex,interface,masterindex,speed,metric AS ospf,gwip,hsrp,prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlanid,vlan,nettype,orgid,usageid,netident,description FROM gwport LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE moduleid='"+moduleid+"'", true);
 					while (rs.next()) {
 						// Create vlan
 						Vlan vlan = (Vlan)vlanMap.get(rs.getString("vlanid"));
@@ -194,6 +193,7 @@ public class GwportHandler implements DataHandler {
 							gwp.addGwportprefix(rs.getString("gwip"), gp);
 						}
 					}
+					Database.free(rs);
 
 					errl("  GwModule: " + gwm);
 				
@@ -441,7 +441,6 @@ public class GwportHandler implements DataHandler {
 							if (unknownNettype) {
 								prefixMap.put(p.getCidr(), p);
 								prefixUpdateSet.add(p.getCidr());
-								p.addGwportsTo(gwportidUpdateSet);
 							} else if (vl.getNettype().equals("elink")) {
 								setElinkNetident(nb, p);
 								updateVlan(vl, false);
@@ -471,6 +470,13 @@ public class GwportHandler implements DataHandler {
 				if (!prefixUpdateSet.isEmpty()) {
 					// gwportid -> netboxid + interface
 					Map gwportidMap = new HashMap();
+
+					// Fetch info for all required gwportids
+					Set gwportidUpdateSet = new HashSet();
+					for (Iterator it = prefixUpdateSet.iterator(); it.hasNext();) {
+						Prefix p = (Prefix)getPrefix((String)it.next());
+						p.addGwportsTo(gwportidUpdateSet);
+					}
 					ResultSet rs = Database.query("SELECT gwport.gwportid,sysname,ifindex,interface,hsrp FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) LEFT JOIN gwportprefix ON (gwport.gwportid=gwportprefix.gwportid AND hsrp='t') WHERE gwport.gwportid IN (" + join(gwportidUpdateSet) + ")");
 					while (rs.next()) {
 						gwportidMap.put(rs.getString("gwportid"), new String[] { rs.getString("sysname"), rs.getString("interface"), String.valueOf(rs.getBoolean("hsrp")), rs.getString("ifindex") });
@@ -630,7 +636,7 @@ public class GwportHandler implements DataHandler {
 				sb.append("'"+rgwip+"',");
 			}
 			sb.deleteCharAt(sb.length()-1);
-			Database.update("DELETE FROM gwportprefix WHERE gwportid='"+gwportid+"' AND gwip IN ("+sb.toString()+") AND gwip NOT IN (SELECT gwip FROM gwportprefix JOIN prefixUSING(prefixid) JOIN vlan USING(vlanid) WHERE nettype='static')");
+			Database.update("DELETE FROM gwportprefix WHERE gwportid='"+gwportid+"' AND gwip IN ("+sb.toString()+") AND gwip NOT IN (SELECT gwip FROM gwportprefix JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE nettype='static')");
 		}
 
 		/*
