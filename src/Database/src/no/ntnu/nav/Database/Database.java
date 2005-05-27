@@ -73,6 +73,7 @@ public class Database
 	private static Map activeDB = Collections.synchronizedMap(new HashMap()); // Maps thread -> active connection identifier
 	private static Map dbDescrs = Collections.synchronizedMap(new HashMap()); // Maps user-supplied connection identifier to DB descr
 
+	private static Map statementMap = Collections.synchronizedMap(new IdentityHashMap()); // Used for freeing not autoclose statements
 
 	private static class DBDescr {
 		private int dbDriver;
@@ -213,8 +214,12 @@ public class Database
 		}
 
 		public Statement getStatement() throws SQLException {
+			return getStatement(true);
+		}
+
+		public Statement getStatement(boolean autoclose) throws SQLException {
 			ConnectionDescr cd = getConnection();
-			Statement st = cd.getStatement();
+			Statement st = cd.getStatement(autoclose);
 			freeConnection(cd);
 			return st;
 		}
@@ -499,14 +504,14 @@ public class Database
 				lastUsed = System.currentTimeMillis();
 			}
 
-			public Statement getStatement() throws SQLException {
+			public Statement getStatement(boolean autoclose) throws SQLException {
 				StatementQ stQ = getOrCreateStatementQ();
 				synchronized (globStatementQ) {
 					if (globStatementQ.size() > DEFAULT_GLOBAL_STATEMENT_BUFFER) {
 						((Statement)globStatementQ.removeFirst()).close();
 					}
 				}
-				return stQ.getStatement();
+				return stQ.getStatement(autoclose);
 			}
 
 			public Statement getUpdateStatement() throws SQLException {
@@ -534,12 +539,14 @@ public class Database
 					statementQ = new LinkedList();
 				}
 
-				public Statement getStatement() throws SQLException {
+				public Statement getStatement(boolean autoclose) throws SQLException {
 					Statement st = con.createStatement();
-					statementQ.add(st);
-					if (statementQ.size() > bufferSize) {
-						synchronized (globStatementQ) {
-							globStatementQ.add(statementQ.removeFirst());
+					if (autoclose) {
+						statementQ.add(st);
+						if (statementQ.size() > bufferSize) {
+							synchronized (globStatementQ) {
+								globStatementQ.add(statementQ.removeFirst());
+							}
 						}
 					}
 					lastUsed = System.currentTimeMillis();
@@ -555,8 +562,8 @@ public class Database
 		activeDB.put(Thread.currentThread(), conId);
 	}
 
-	private static Statement getStatement(String conId) throws SQLException {
-		return getDBDescr(conId).getStatement();
+	private static Statement getStatement(String conId, boolean autoclose) throws SQLException {
+		return getDBDescr(conId).getStatement(autoclose);
 	}
 
 	private static Statement getUpdateStatement(String conId) throws SQLException {
@@ -686,22 +693,6 @@ public class Database
 		}
 	}
 
-	/**
-	 * <p> This class keeps a buffer of Statment objects (currently 40),
-	 * and when the buffer is full the first Statment (and its
-	 * ResultSet) object is closed. Use this method to specify that the
-	 * returned ResultSet for all subsequent query requests should never
-	 * be closed.  </p>
-	 *
-	 * @param def specifies if the ResultSet returned for subsequent querys should never be closed.
-	 */
-	/*
-	public static void setDefaultKeepOpen(boolean def)
-	{
-		defaultKeepOpen = def;
-	}
-	*/
-
 	public static Object getConnection() throws SQLException {
 		DBDescr dbd = getDBDescr(null);
 		return dbd.getConnection();
@@ -723,11 +714,25 @@ public class Database
 		return query(statement, false);
 	}
 
+
+	/**
+	 * <p> Free the given resultset.  </p>
+	 *
+	 * @param rs The resultset to free
+	 */
+	public static void free(ResultSet rs) throws SQLException
+	{
+		if (statementMap.containsKey(rs)) {
+			Statement st = (Statement)statementMap.remove(rs);
+			st.close();
+		}
+	}
+
 	/**
 	 * <p> Execute the given query.  </p>
 	 *
 	 * @param statement The SQL query statement to exectute
-	 * @param keepOpen If true, never close the returned ResultSet object
+	 * @param keepOpen If true, the resultset must be closed with the free() method
 	 * @return the result of the query
 	 */
 	public static ResultSet query(String statement, boolean keepOpen) throws SQLException
@@ -736,8 +741,11 @@ public class Database
 		//boolean firstTry = true;
 		while (true) {
 			try {
-				Statement st = getStatement(null);
+				Statement st = getStatement(null, !keepOpen);
 				ResultSet rs = st.executeQuery(statement);
+				if (keepOpen) {
+					statementMap.put(rs, st);
+				}
 				return rs;
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
