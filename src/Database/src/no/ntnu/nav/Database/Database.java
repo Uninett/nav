@@ -842,7 +842,8 @@ public class Database
 	public static String insert(String table, String[] fieldValues, String seqName) throws SQLException {
 		if (seqName == null) seqName = table + "_" + fieldValues[0] + "_seq";
 
-		ResultSet rs = Database.query("SELECT nextval('" + seqName + "') AS seqnum");
+		Statement stUpdate = getUpdateStatement(null);
+		ResultSet rs = stUpdate.executeQuery("SELECT nextval('" + seqName + "') AS seqnum");
 		if (!rs.next()) throw new SQLException("Failed to get a sequence number from " + seqName);
 
 		String seqNum = rs.getString("seqnum");
