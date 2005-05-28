@@ -60,24 +60,34 @@ public class BoxState implements EventHandler, EventCallback
 				} else if (e.getState() == Event.STATE_END) {
 					// Get the down alert
 					Alert a = ddb.getDownAlert(e);
+
+					// Check if the deviceid has changed
+					if (a == null && !startEventMap.containsKey(e.getDeviceidI())) {
+						try {
+							ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
+							if (rs.next()) {
+								Alert oldevent = (Alert)e;
+								oldevent.setDeviceid(rs.getInt("deviceid"));
+								a = ddb.getDownAlert(e);
+
+								// Close it and mark box up
+								//Database.update("UPDATE alerthist SET end_time=NOW() WHERE alerthistid='"+rs.getString("alerthistid")+"'");
+								Log.d("HANDLE", "Deviceid changed for end event, deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
+							} else {
+								Log.d("HANDLE", "Ignoring box up event as no down event was found!");
+							}
+						} catch (SQLException exp) {
+							Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open down event in alerthist, netboxid " + e.getNetboxid());
+						}
+					}
+
 					if (a == null) {
 						// The down event could be in the startEventMap queue
 						Event se = (Event)startEventMap.get(e.getDeviceidI());
 						if (se == null) {
-							// Check if there is any open 'down' event for the same netboxid
-							try {
-								ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
-								if (rs.next()) {
-									// Close it and mark box up
-									Database.update("UPDATE alerthist SET end_time=NOW() WHERE alerthistid='"+rs.getString("alerthistid")+"'");
-									Log.d("HANDLE", "Closed old down alert with different deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
-								} else {
-									Log.d("HANDLE", "Ignoring box up event as no down event was found!");
-								}
-							} catch (SQLException exp) {
-								Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open down event in alerthist, netboxid " + e.getNetboxid());
-							}
+							// No down alert, but we mark the box up just in case
 							e.dispose();
+							Log.d("HANDLE", "No down event found, disposing up event");
 						} else {
 							// For now ignore transient events
 							startEventMap.remove(e.getDeviceidI());
