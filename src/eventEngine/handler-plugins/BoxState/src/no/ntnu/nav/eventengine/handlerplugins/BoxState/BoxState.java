@@ -64,15 +64,27 @@ public class BoxState implements EventHandler, EventCallback
 						// The down event could be in the startEventMap queue
 						Event se = (Event)startEventMap.get(e.getDeviceidI());
 						if (se == null) {
-							Log.d("HANDLE", "Ignoring box up event as no down event was found!");
+							// Check if there is any open 'down' event for the same netboxid
+							try {
+								ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
+								if (rs.next()) {
+									// Close it and mark box up
+									Database.update("UPDATE alerthist SET end_time=NOW() WHERE alerthistid='"+rs.getString("alerthistid")+"'");
+									Log.d("HANDLE", "Closed old down alert with different deviceid="+rs.getString("deviceid") + " for netboxid: " + e.getNetboxid());
+								} else {
+									Log.d("HANDLE", "Ignoring box up event as no down event was found!");
+								}
+							} catch (SQLException exp) {
+								Log.w("BOX_STATE_EVENTHANDLER", "SQLException when checking for open down event in alerthist, netboxid " + e.getNetboxid());
+							}
 							e.dispose();
-							return;
+						} else {
+							// For now ignore transient events
+							startEventMap.remove(e.getDeviceidI());
+							se.dispose();
+							e.dispose();
+							Log.d("HANDLE", "Ignoring transient boxState");
 						}
-						// For now ignore transient events
-						startEventMap.remove(e.getDeviceidI());
-						se.dispose();
-						e.dispose();
-						Log.d("HANDLE", "Ignoring transient boxState");
 					} else {
 						Log.d("HANDLE", "Box going up");
 
