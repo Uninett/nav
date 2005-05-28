@@ -568,12 +568,14 @@ public class QueryNetbox extends Thread
 		synchronized (nbRunQ) {
 			boolean isInitial = !initialQ.isEmpty();
 			boolean rand = Math.random() >= 0.5f; // 50% of picking initial if runQ is not empty
+			if (extraThreadCnt > 0) rand = false; // Don't pick from initial queue when doing immediate netbox runs
 			if (nbRunQ.isEmpty() || (isInitial && rand)) {
 				if (!initialQ.isEmpty()) return initialQ.remove(initialQ.size()-1);
 				return new Long(Long.MAX_VALUE / 2); // Infinity...
 			}
 			Long nextRun = (Long)nbRunQ.firstKey();
 			if (nextRun.longValue() > System.currentTimeMillis()) {
+				// Head of queue is not yet ready to be run
 				if (!initialQ.isEmpty()) return initialQ.remove(initialQ.size()-1);
 				return new Long(nextRun.longValue() - System.currentTimeMillis());
 			}
@@ -591,6 +593,14 @@ public class QueryNetbox extends Thread
  			LinkedList l;
 			Long nextRun = (Long)netboxidRunQMap.get(netboxid);
 			if (nextRun == null) {
+				// Check if the netbox is still in the initialQ
+				for (Iterator it = initialQ.iterator(); it.hasNext();) {
+					NetboxImpl nb = (NetboxImpl)it.next();
+					if (nb.getNetboxidS().equals(netboxid)) {
+						it.remove();
+						return nb;
+					}
+				}
 				Log.d("QUERY_NETBOX", "REMOVE_FROM_RUNQ", "nextRun not found for netboxid " + netboxid);
 				return null;
 			}
