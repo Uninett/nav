@@ -573,7 +573,22 @@ public class SimpleSnmp
 			boolean timeout = false;
 			try {
 				if (getNext) {
-					var = comInterface.retrieveMIBTable(baseOid);
+					if (getAll) {
+						var = comInterface.retrieveMIBTable(baseOid);
+					} else {
+						var = new SNMPVarBindList();
+						String nextoid = baseOid;
+						for (int i=0; i < getCnt; i++) {
+							SNMPVarBindList nextpair = comInterface.getNextMIBEntry(nextoid);
+							SNMPObject snmpobj = nextpair.getSNMPObjectAt(0);
+							if (snmpobj instanceof SNMPNull) break;
+							SNMPSequence pair = (SNMPSequence)snmpobj;
+							SNMPObjectIdentifier snmpOID = (SNMPObjectIdentifier)pair.getSNMPObjectAt(0);
+							nextoid = snmpOID.toString();
+
+							var.addSNMPObject(pair);
+						}
+					}
 				} else {
 					var = comInterface.getMIBEntry(baseOid);
 				}
@@ -624,10 +639,7 @@ public class SimpleSnmp
 					data.trim()
 				};
 				s[0] = strip(s[0], '.', stripCnt, true);
-				l.add(s);
-				
-				if (!getAll && --getCnt == 0) break;
-
+				l.add(s);				
 			}
 
 		} catch (IOException e) {
