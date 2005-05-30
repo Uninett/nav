@@ -573,7 +573,7 @@ public class GwportHandler implements DataHandler {
 					// Check overlapping prefices
 					// select * from prefix a join prefix b on (a.netaddr << b.netaddr) join vlan on (b.vlanid=vlan.vlanid) and nettype not in ('scope','netaddr');
 					// select netboxid,count(*) from netbox join prefix on (ip << netaddr) natural join vlan where nettype not in ('static','scope') group by netboxid having count(*) > 1;
-					Database.update("UPDATE netbox SET prefixid = (SELECT prefixid FROM prefix JOIN vlan USING(vlanid) WHERE ip << netaddr AND nettype NOT IN ('scope','static')) WHERE prefixid IS NULL");
+					Database.update("UPDATE netbox SET prefixid = (SELECT prefixid FROM prefix JOIN vlan USING(vlanid) WHERE ip << netaddr AND nettype NOT IN ('scope','static') ORDER BY masklen(netaddr) DESC LIMIT 1) WHERE prefixid IS NULL");
 				}
 
 				if (fixupPrefix) {
