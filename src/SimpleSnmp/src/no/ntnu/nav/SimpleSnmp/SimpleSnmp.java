@@ -64,6 +64,7 @@ public class SimpleSnmp
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
 	private long getNextDelay = 0;
+	private int socketTimeout = 0;
 
 	private SNMPv1CommunicationInterface comInterface = null;
 	private boolean valid = false;
@@ -138,6 +139,18 @@ public class SimpleSnmp
 	public void setDefaultTimeoutLimit()
 	{
 		timeoutLimit = DEFAULT_TIMEOUT_LIMIT;
+	}
+
+	public void setSocketTimeout(int socketTimeout)
+	{
+		this.socketTimeout = socketTimeout;
+		if (comInterface != null) {
+			try {
+				comInterface.setSocketTimeout(socketTimeout);
+			} catch (SocketException e) {
+				e.printStackTrace(System.err);
+			}
+		}
 	}
 
 	/**
@@ -774,6 +787,7 @@ public class SimpleSnmp
 			InetAddress hostAddress = InetAddress.getByName(host);
 			int version = 0;    // SNMPv1
 			comInterface = new SNMPv1CommunicationInterface(version, hostAddress, cs_ro);
+			if (this.socketTimeout > 0) comInterface.setSocketTimeout(this.socketTimeout);
 			timeoutCnt = 0;
 			valid = true;
 			return true;
