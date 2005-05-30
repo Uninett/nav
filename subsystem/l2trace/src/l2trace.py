@@ -43,9 +43,14 @@ database = connection.cursor()
 
 def isGw(netboxid):
     if netboxid not in gwCache:
-        database.execute("SELECT netboxid FROM netbox WHERE netboxid="+`netboxid`+" AND catid IN ('GW','GSW')")
-        d = database.fetchall()
-        gwCache[netboxid] = len(d) > 0
+        isGw = False
+        try:
+            database.execute("SELECT netboxid FROM netbox WHERE netboxid="+`netboxid`+" AND catid IN ('GW','GSW')")
+            d = database.fetchall()
+            isGw = len(d) > 0
+        except:
+            pass
+        gwCache[netboxid] = isGw
     return gwCache[netboxid]
 
 def getIpSysname(netboxid):
