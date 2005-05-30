@@ -129,6 +129,8 @@ public class QueryBoks extends Thread
 
 	SimpleSnmp sSnmp;
 
+	static long lastActivity = System.currentTimeMillis();
+
 	// Konstruktør
 	public QueryBoks(int num, String id, Stack bdStack, int antBd, HashSet swp, HashMap swp_d)
 	{
@@ -450,6 +452,7 @@ public class QueryBoks extends Thread
 				boksReport.add(new BoksReport((int)boksUsedTime, bd));
 			}
 			
+			lastActivity = System.currentTimeMillis();
 		}
 		
 		long usedTime = System.currentTimeMillis() - beginTime;

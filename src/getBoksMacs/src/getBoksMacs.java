@@ -214,7 +214,7 @@ class getBoksMacs
 			if (isNetel(kat)) {
 				// Stripp etter første '.'
 				int i;
-				if ( (i=sysname.indexOf('.')) != -1) {
+				if (sysname != null && (i=sysname.indexOf('.')) != -1) {
 					sysname = sysname.substring(0, i);
 					sysnameMap.put(sysname, rs.getString("netboxid"));
 				}
@@ -500,6 +500,10 @@ if duplikat
 		// Indikerer om en tråd er ferdig
 		QueryBoks.initThreadDone(NUM_THREADS);
 
+		// Start activity monitor, every minute
+		Timer activityTimer = new Timer();
+		activityTimer.schedule(new ActivityMonitorTask(), 60 * 1000, 60 * 1000);
+
 		// Lag trådene
 		long beginTime = System.currentTimeMillis();
 		Thread[] threads = new Thread[NUM_THREADS];
@@ -735,6 +739,16 @@ if duplikat
 
 }
 
+class ActivityMonitorTask extends TimerTask {
+	public void run() {
+		if (QueryBoks.lastActivity < (System.currentTimeMillis() - 60*60*1000)) {
+			// No activity in the last hour, exit
+			System.err.println("Exiting due to no activity in the last hour");
+			System.err.flush();
+			System.exit(1);
+		}
+	}
+}
 
 
 
