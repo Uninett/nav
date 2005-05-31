@@ -161,7 +161,6 @@ def getPath(host):
             path.append([d[0][0], str(d[0][1]), MP(), MP(), 2])
         else:
             path.append(['Host not active', 'error'])
-
         
     return path
 
