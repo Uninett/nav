@@ -149,11 +149,18 @@ def getPath(host):
         foundGw = getPathToGw(id, mpOut, vlan, False, path)
 
     if not foundGw:
+        path.append(['Path to router not found', 'error'])
         # Didn't find GW, look up gw for this vlan
-        database.execute("SELECT netboxid, vlan FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE '"+ip+"' << netaddr ORDER BY gwip")
-        d = database.fetchall()
+        d = []
+        try:
+            database.execute("SELECT netboxid, vlan FROM netbox JOIN module USING(netboxid) JOIN gwport USING(moduleid) JOIN gwportprefix USING(gwportid) JOIN prefix ON (gwportprefix.prefixid=prefix.prefixid) JOIN vlan USING(vlanid) WHERE '"+ip+"' << netaddr ORDER BY gwip")
+            d = database.fetchall()
+        except:
+            pass
         if len(d) > 0:
             path.append([d[0][0], str(d[0][1]), MP(), MP(), 2])
+        else:
+            path.append(['Host not active', 'error'])
 
         
     return path
@@ -202,6 +209,12 @@ class ResultRow:
         else:
             self.level = 'L3'
         self.idx = idx
+
+        self.hostOk = True
+        if self.vlan == 'error':
+            self.level = ''
+            self.vlan = ''
+            self.hostOk = False
 
         self.ifindexIn = mpIn.ifindex
         self.ifindexOut = mpOut.ifindex
@@ -257,7 +270,7 @@ class l2traceQuery:
                         l1.append(b1)
                         l2 = []
                         for b2 in to_path:
-                            if b1[0] == b2[0] and b1[1]!='trunk' and b1[1] == b2[1]:
+                            if b1[0] == b2[0] and b1[1]!='trunk' and b1[1]!='error' and b1[1] == b2[1]:
                                 # Same box
                                 for x in self.reverse_path_list(l2):
                                     l1.append(x)
@@ -300,11 +313,14 @@ class l2traceForm:
         self.host_to = host_to
 
 def lookupIp(host):
-    try:
-        ip = gethostbyname(host)
-    except:
+    if host is None:
         return None
-    return ip
+    if host not in ipCache:
+        try:
+            ipCache[host] = gethostbyname(host)
+        except:
+            ipCache[host] = None
+    return ipCache[host]
 
 def hostname(ip):
     """Perform a reverse DNS lookup for ip.
@@ -318,5 +334,5 @@ def hostname(ip):
         try:
             hostCache[ip] = gethostbyaddr(ip)[0]
         except:
-            hostCache[ip] = "--"
+            hostCache[ip] = ''
     return hostCache[ip]

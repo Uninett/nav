@@ -128,7 +128,12 @@
 		    <td nowrap >$row.portIn &nbsp;</td>
         #end if
 
-		<td nowrap><a href="/ipinfo/?ip=$row.ipaddr" title="IP info">$row.ipaddr</a> &nbsp;</td>
+        #if $row.hostOk
+		    <td nowrap><a href="/ipinfo/?ip=$row.ipaddr" title="IP info">$row.ipaddr</a> &nbsp;</td>
+        #else
+		    <td nowrap >$row.ipaddr &nbsp;</td>
+        #end if
+
         #if $row.netboxid
 		    <td nowrap><a href="/browse/?netbox=$row.ipaddr" title="Device browser">$row.sysname</a> &nbsp;</td>
         #else
