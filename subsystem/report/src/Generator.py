@@ -91,15 +91,18 @@ class ReportList:
 
         self.reports = []
 
-        reportRe = re.compile("^\s*(\S+)\s*\{.*?\}$",re.M|re.S|re.I)
+        reportRe = re.compile("^\s*(\S+)\s*\{(.*?)\}$",re.M|re.S|re.I)
         fileContents = file(configurationFile).read()
         list = reportRe.findall(fileContents)
 
         configParser = ConfigParser(configurationFile)
-
+        
         for rep in list:
+            configtext = rep[1]
+            rep = rep[0]
             
-            configParser.parseReport(rep)
+            #configParser.parseReport(rep)
+            configParser.parseConfiguration(configtext)
             report = configParser.configuration
             #raise KeyError, report.header
             if report.header:
@@ -108,7 +111,7 @@ class ReportList:
             else:
                 r = ReportListElement(rep)
                 self.reports.append(r.getReportListElement())
-            
+
     def getReportList(self):
         return self.reports
 
@@ -138,8 +141,9 @@ class ConfigParser:
         """
         Loads the configuration file
         """
-        
-        self.config = file(configFile).read()
+
+        self.configFile = configFile
+        self.config = None
         self.configuration = ReportConfig()
         
         
@@ -154,7 +158,9 @@ class ConfigParser:
 
         the access methods will probably fit here
         """
-        
+
+        if self.config is None:
+            self.config = file(self.configFile).read()
         reportRe = re.compile("^\s*"+reportName+"\s*\{(.*?)\}$",re.M|re.S|re.I)
         reResult = reportRe.search(self.config)
         
