@@ -130,6 +130,7 @@ CREATE TABLE vlan (
   netident VARCHAR,
   description VARCHAR
 );  
+CREATE INDEX vlan_vlan_btree ON vlan USING btree (vlan);
 
 CREATE TABLE prefix (
   prefixid SERIAL PRIMARY KEY,
@@ -245,6 +246,7 @@ CREATE TABLE netbox (
   UNIQUE(ip),
   UNIQUE(deviceid)
 );
+CREATE INDEX netbox_prefixid_btree ON netbox USING btree (prefixid);
 
 CREATE TABLE netboxsnmpoid (
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
@@ -258,6 +260,13 @@ CREATE TABLE netbox_vtpvlan (
   vtpvlan INT4,
   UNIQUE(netboxid, vtpvlan)
 );
+
+CREATE TABLE autodisc_mac_scanned (
+  mac CHAR(12) NOT NULL PRIMARY KEY,
+  time INT8 NOT NULL,
+  attempts INT4 DEFAULT 1
+);
+CREATE INDEX autodisc_mac_scanned_attempts_btree ON autodisc_mac_scanned USING btree (attempts);
 
 CREATE TABLE subcat (
     subcatid VARCHAR,
@@ -380,6 +389,8 @@ CREATE TABLE swportvlan (
   direction CHAR(1) NOT NULL DEFAULT 'x', -- u=up, d=down, ...
   UNIQUE (swportid, vlanid)
 );
+CREATE INDEX swportvlan_swportid_btree ON swportvlan USING btree (swportid);
+CREATE INDEX swportvlan_vlanid_btree ON swportvlan USING btree (vlanid);
 
 CREATE TABLE swportallowedvlan (
   swportid INT4 NOT NULL PRIMARY KEY REFERENCES swport ON UPDATE CASCADE ON DELETE CASCADE,
@@ -457,6 +468,7 @@ CREATE INDEX arp_mac_btree ON arp USING btree (mac);
 CREATE INDEX arp_ip_btree ON arp USING btree (ip);
 CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
 CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
+CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
 
 CREATE TABLE cam (
   camid SERIAL PRIMARY KEY,
@@ -504,6 +516,32 @@ CREATE VIEW prefix_max_ip_cnt AS
    ELSE
   POW(2,32-MASKLEN(netaddr))-2 END AS max_ip_cnt
  FROM prefix);
+
+-- These are here because the report generator cannot parse them
+CREATE VIEW prefix_report AS (
+SELECT host(netaddr),masklen(netaddr) as m,
+   vlan,count(gwip) as antgw,nettype,netaddr,netident,orgid,usageid,description,
+   (select active_ip_cnt from prefix_active_ip_cnt where prefix_active_ip_cnt .prefixid=prefix.prefixid) AS act,
+   prefix.prefixid,vlan.vlanid
+    FROM prefix
+    JOIN vlan USING(vlanid)
+    JOIN gwportprefix USING (prefixid)
+    JOIN gwport USING (gwportid)
+    GROUP BY netaddr,vlan,nettype,netident,vlan.orgid,usageid,description,act,prefix.prefixid,vlan.vlanid
+);
+
+CREATE VIEW netbox_report AS (
+SELECT roomid,sysname,ip,catid,
+  (select count(*) from netboxcategory where netboxcategory.netboxid=netbox.netboxid) AS sub,typename,orgid,up,
+  (select count(*) from module where module.netboxid=netbox.netboxid) AS modules,
+  (select count(*) from swport join module using(moduleid) where module.netboxid=netbox.netboxid) AS swport,
+  (select count(*) from gwport join module using(moduleid) where module.netboxid=netbox.netboxid) AS gwport,
+  'Mem'::varchar AS Mem,
+  (select count(*) from netboxsnmpoid where netboxsnmpoid.netboxid=netbox.netboxid) AS snmp,
+  val AS Function,netbox.netboxid,prefixid,typeid
+  FROM netbox join type using(typeid)
+  LEFT JOIN netboxinfo ON (netbox.netboxid=netboxinfo.netboxid AND var='function')
+);
 
 -------- vlanPlot tabeller ------
 CREATE TABLE vp_netbox_grp_info (
