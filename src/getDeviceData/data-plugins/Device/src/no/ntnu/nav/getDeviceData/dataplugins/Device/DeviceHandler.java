@@ -79,6 +79,12 @@ public class DeviceHandler implements DataHandler {
 		return d;
 	}
 
+	private void checkActive(ResultSet rs) throws SQLException {
+		if (!rs.getBoolean("active")) {
+			Database.update("UPDATE device SET active=true WHERE deviceid="+rs.getString("deviceid"));
+		}
+	}
+
 	/**
 	 * Return a DataContainer object used to return data to this
 	 * DataHandler.
@@ -110,9 +116,10 @@ public class DeviceHandler implements DataHandler {
 				String deviceid = dev.getDeviceidS();
 
 				try {
-					String fields = "deviceid,serial,hw_ver,fw_ver,sw_ver FROM device WHERE";
+					String fields = "deviceid,serial,hw_ver,fw_ver,sw_ver,active FROM device WHERE";
 					ResultSet rs = Database.query("SELECT " + fields + " serial='"+serial+"'");
 					if (rs.next()) {
+						checkActive(rs);
 						if (seenSerials.add(serial)) {
 							olddev = getDevice(rs);
 						} else {
@@ -130,6 +137,7 @@ public class DeviceHandler implements DataHandler {
 					if (olddev == null && deviceid != null && !"0".equals(deviceid)) {
 						rs = Database.query("SELECT " + fields + " deviceid='"+deviceid+"'");
 						if (rs.next()) {
+							checkActive(rs);
 							olddev = getDevice(rs);
 							//System.err.println("Found old device2: " + olddev);
 						}
@@ -149,6 +157,7 @@ public class DeviceHandler implements DataHandler {
 						"fw_ver", dev.getFwVer(),
 						"sw_ver", dev.getSwVer(),
 						"auto", "t",
+						"active", "t",
 					};
 					deviceid = Database.insert("device", ins, null);
 					//dev.setDeviceid(deviceid);
