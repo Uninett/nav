@@ -72,7 +72,8 @@ def handler(req):
         page = MainTemplate()
         req.content_type = "text/html"
         req.send_http_header()
-        list = ReportList(configFile).getReportList()
+        #list = ReportList(configFile).getReportList()
+        list = []
         page.path = [("Home", "/"), ("Report", False)]
         page.title = "Report - Index"
         #req.write(pprint.pformat(req.args))
