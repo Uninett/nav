@@ -261,14 +261,6 @@ CREATE TABLE netbox_vtpvlan (
   UNIQUE(netboxid, vtpvlan)
 );
 
-CREATE TABLE autodisc_mac_scanned (
-  mac CHAR(12) NOT NULL PRIMARY KEY,
-  time INT8 NOT NULL,
-  attempts INT4 DEFAULT 1,
-  found_snmp BOOL DEFAULT FALSE
-);
-CREATE INDEX autodisc_mac_scanned_attempts_btree ON autodisc_mac_scanned USING btree (attempts);
-
 CREATE TABLE subcat (
     subcatid VARCHAR,
     descr VARCHAR NOT NULL,
