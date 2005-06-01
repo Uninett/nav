@@ -53,7 +53,7 @@ def handler(req):
     params = ""
     params += '<PARAM NAME="vPServerURL" VALUE="%s://%s/vPServer/servlet/vPServer">\n' % (protocol, server)
     params += '<PARAM NAME="lastURL" VALUE="%s://%s/vlanPlot/last.pl">\n' % (protocol, server)
-    params += '<PARAM NAME="cricketURL" VALUE="%s://%s/~cricket/">\n' % (protocol, server)
+    params += '<PARAM NAME="cricketURL" VALUE="%s://%s/cricket/">\n' % (protocol, server)
     params += '<PARAM NAME="netflowURL" VALUE="%s://%s">\n' % (protocol, server)
 
     if args.has_key('boksid'):
