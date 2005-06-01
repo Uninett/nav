@@ -5,39 +5,62 @@
 <tr>
 
 <td width="25%"><form action="../browse/">
-<label style="display: block; white-space: nowrap">IP Device Center</label>
-<input type="text" name="netbox" size="10">
+<label style="display: block; white-space: nowrap"><b>IP Device Center</b></label>
+<input type="text" name="netbox" size="15">
 <input type="submit" value="Find">
-<div style="font-size: 0.7em; color: gray">IP / sysname</div>
+<div style="font-size: 0.5em;"><i>IP/sysname</i></div>
 </form></td>
 
-<td width="25%"><form action="netbox">
+<td width="25%"><form action="netbox2">
 <label style="display: block; white-space: nowrap">Room search</label>
-<input type="text" name="roomid" size="10">
+<input type="text" name="roomid" size="15">
 <input type="hidden" name="roomid_op" value="like">
 <input type="submit" value="Find">
-<div style="font-size: 0.7em; color: gray">room wildcard:*</div>
+<div style="font-size: 0.5em;"><i>room</i></div>
 </form></td>
 
 <td width="25%"><form action="device">
 <label style="display: block; white-space: nowrap">Device search</label>
-<input type="text" name="serial" size="10">
+<input type="text" name="serial" size="15">
+<input type="hidden" name="serial_op" value="like">
 <input type="submit" value="Find">
-<div style="font-size: 0.7em; color: gray">serial number</div>
+<div style="font-size: 0.5em;"><i>serial number</i></div>
 </form></td>
 
 <td width="25%"><form action="swportv">
 <label style="display: block; white-space: nowrap">Switchports with vlan</label>
-<input type="text" name="vlan.vlan" size="10">
+<input type="text" name="vlan.vlan" size="15">
+<input type="hidden" name="vlan.vlan_op" value="like">
 <input type="submit" value="Find">
-<div style="font-size: 0.7em; color: gray">vlan number</div>
+<div style="font-size: 0.5em;"><i>vlan number</i></div>
 </form></td>
 
+</tr>
+<tr>
+
+<td width="25%"><form action="netbox2">
+<label style="display: block; white-space: nowrap">IP Device report</label>
+<input type="text" name="sysname" size="15">
+<input type="hidden" name="sysname_op" value="like">
+<input type="submit" value="Find">
+<div style="font-size: 0.5em;"><i>Sysname</i></div>
+</form></td>
+
+<td width="25%"><form action="swport">
+<label style="display: block; white-space: nowrap">Portname search</label>
+<input type="text" name="s1.portname" size="15">
+<input type="hidden" name="s1.portname_op" value="like">
+<input type="submit" value="Find">
+<div style="font-size: 0.5em;"><i>text</i></div>
+</form></td>
+
+<td></td>
+<td></td>
 
 </tr>
 </table>
-
-
+<div style="font-size: 0.8em; color: gray"><i><b>Wildcard for all search fields: *</b></i></div>
+<hr>
 <p>
 <a href="matrix"><b>IP address scope - graphical view</b></a>
 <p>
@@ -53,7 +76,7 @@
 <dd><a href="prefix">Prefixes</a>
 <dd><a href="gwport">Router ports</a>
 <dt><a href="sw?catid_op=in&catid=SW,GSW">Core Switches</a>
-<dd><a href="swport?b1.catid=SW">Core switch ports</a></li>
+<dd><a href="swport?b1.catid_op=in&b1.catid=SW,GSW">Core switch ports</a></li>
 <dd><a href="swport?b1.catid=SW&s1.trunk=1">Trunked core switch ports</a></li>
 <dd><a href="swportv?b1.catid=SW">Core switch ports (expand trunks to vlan)</a></li>
 
