@@ -20,6 +20,7 @@ class PopupMenus
 	String menuLabel;
 
 	String nettelName = "";
+	String fullNettelName = "";
 	String ifName = "";
 	double capacity;
 	//String speed = "";
@@ -109,6 +110,9 @@ class PopupMenus
 
 	public void setNettelName (String InNettelName) { nettelName = InNettelName; }
 	public String getNettelName() { return nettelName; }
+
+	public void setFullNettelName (String s) { fullNettelName = s; }
+	public String getFullNettelName() { return nettelName; }
 
 	public void setIfName (String InIfName) { ifName = InIfName.toLowerCase(); }
 	public String getIfName() { return ifName; }

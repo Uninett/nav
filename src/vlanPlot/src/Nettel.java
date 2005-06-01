@@ -45,6 +45,7 @@ class Nettel
 	NettelIcon nettelIcon;
 
 	String name;
+	String fullName;
 	String kat;
 	//String num;
 	int boksid;
@@ -149,6 +150,7 @@ class Nettel
 
 	public void setName(String s)
 	{
+		fullName = s;
 		name = s;
 		int k;
 		while ((k=name.indexOf(Net.domainSuffix)) >= 0) {
@@ -162,6 +164,7 @@ class Nettel
 		keywords.put("sysname".toLowerCase(), name);
 	}
 	public String getName() { return name; }
+	public String getFullName() { return fullName; }
 	public String getShowName() { return name; }
 
 	public void setKat(String s)

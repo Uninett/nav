@@ -209,6 +209,7 @@ class Mouse implements MouseListener
 								}
 
 								activeMenu.setNettelName(n.getName() );
+								activeMenu.setFullNettelName(n.getFullName() );
 								activeMenu.setIfName("" );
 								activeMenu.setIsRouter(router);
 								com.setActiveMenu(activeMenu );
@@ -228,6 +229,7 @@ class Mouse implements MouseListener
 								}
 
 								activeMenu.setNettelName(n.getName() );
+								activeMenu.setFullNettelName(n.getFullName() );
 								activeMenu.setIfName(l.getIfName() );
 								activeMenu.setIsRouter(router);
 								activeMenu.setCapacity(l.getCapacity());
@@ -588,7 +590,7 @@ class PopupMenuListener implements ActionListener
 	private void procCricket(ActionEvent e)
 	{
 		PopupMenus activeMenu = com.getActiveMenu();
-		String nettelName = activeMenu.getNettelName();
+		String nettelName = activeMenu.getFullNettelName();
 		String ifName = activeMenu.getIfName();
 		String ifPrefix = (activeMenu.getCapacity() >= 1000.0) ? "giga-" : "";
 		String cricketUrl = "";
