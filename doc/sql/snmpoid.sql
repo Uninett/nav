@@ -654,6 +654,13 @@ DELETE FROM snmpoid WHERE oidkey='flashFree';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('flashFree','1.3.6.1.4.1.9.9.10.1.1.4.1.1.5','Flash free','cisco',true,NULL,'0','ciscoFlashPartitionFreeSpace','CISCO-FLASH-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='ipNetToMediaPhysAddress';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ipNetToMediaPhysAddress','1.3.6.1.2.1.4.22.1.2','ARP cache','mib-II',true,NULL,'0','ipNetToMediaPhysAddress','RFC1213-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='sysLocation';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('sysLocation','1.3.6.1.2.1.1.6','System location','mib-II',true,NULL,'0','sysLocation','SNMPv2-MIB');
 
 UPDATE snmpoid SET getnext=true;
 UPDATE snmpoid SET uptodate=true;
