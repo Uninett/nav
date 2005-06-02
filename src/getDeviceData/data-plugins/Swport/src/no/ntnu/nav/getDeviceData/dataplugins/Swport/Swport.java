@@ -68,22 +68,22 @@ public class Swport implements Comparable
 	void setSwportid(int i) { swportid = i; }
 	void setSwportid(String s) { swportid = Integer.parseInt(s); }
 
-	Integer getPort() { return port; }
+	public Integer getPort() { return port; }
 	String getPortS() {
 		if (port == null) return null;
 		return ((port.toString().length()==1)?"0":"")+getPort();
 	}
 
-	String getIfindex() { return ifindex; }
+	public String getIfindex() { return ifindex; }
 	String getIfindexS() { return ((ifindex.length()==1)?"0":"")+getIfindex(); }
 
-	String getInterface() { return interf; }
+	public String getInterface() { return interf; }
 
-	Character getLink() { return link; }
+	public Character getLink() { return link; }
 	String getLinkS() { return string(link); }
 
-	String getSpeed() { return speed; }
-	Character getDuplex() { return duplex; }
+	public String getSpeed() { return speed; }
+	public Character getDuplex() { return duplex; }
 	String getDuplexS() {
 		if (duplex == null) return null;
 		String s = String.valueOf(duplex).trim();
@@ -94,7 +94,7 @@ public class Swport implements Comparable
 		return s;
 	}
 
-	String getMedia() { return media; }
+	public String getMedia() { return media; }
 
 	void assignedToModule() { assignedToModule = true; }
 	boolean isAssignedToModule() { return assignedToModule; }
@@ -197,7 +197,7 @@ public class Swport implements Comparable
 		vlanList.add(vlan);
 	}
 
-	String getHexstring() {
+	public String getHexstring() {
 		if (hexstring == null && retEmptyHexstring) hexstring = getVlanAllowHexString();
 		return hexstring;
 	}

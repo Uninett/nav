@@ -83,6 +83,10 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 		return swp;
 	}
 
+	public Iterator swportIterator() {
+		return swportMap.values().iterator();
+	}
+
 	/**
 	 * <p>
 	 * Since the ifIndex number is unique on a Netbox, this method can be used to get an Swport directly if only
