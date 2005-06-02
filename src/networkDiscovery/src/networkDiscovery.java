@@ -20,6 +20,7 @@ import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.event.*;
 import no.ntnu.nav.Path;
+import no.ntnu.nav.util.*;
 
 
 class networkDiscovery
@@ -902,6 +903,9 @@ class networkDiscovery
 		boolean DB_UPDATE = true;
 		boolean DB_COMMIT = true;
 		boolean DEBUG_OUT = false;
+		boolean TIME_OUT = true;
+
+		long beginTime;
 
 		//String debugParam = com.getp("debug");
 		if (debugParam != null && debugParam.equals("yes")) DEBUG_OUT = true;
@@ -918,6 +922,26 @@ class networkDiscovery
 			Database.update("UPDATE swport SET to_netboxid = NULL, to_swportid = NULL WHERE link!='y' AND to_netboxid IS NOT NULL");
 			//if (DB_COMMIT) Database.commit(); // Vi ruller tilbake lenger ned i koden
 		}
+
+		// Find mapping for firewalled VLANs
+		Map fwVlanMap = new HashMap();
+		{
+			beginTime = System.currentTimeMillis();
+			ResultSet rs = Database.query("select vlan,netaddr from vlan join prefix using(vlanid) where vlan not in (select vlan from swport where vlan is not null) and nettype='lan' and prefixid in (select prefixid from arp where end_time='infinity' and mac not in (select mac from netboxmac))", true);
+			while (rs.next()) {
+				String vlan = rs.getString("vlan");
+				String netaddr = rs.getString("netaddr");
+				ResultSet rs2 = Database.query("select cam.sysname,cam.netboxid,cam.ifindex,vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) where ip << '" + netaddr + "' and cam.end_time='infinity' and arp.end_time='infinity' and (trunk=false or trunk is null) and vlan > 1");
+				if (rs2.next()) {
+					fwVlanMap.put(vlan, rs2.getString("vlan"));
+				}
+			}
+			Database.free(rs);
+			if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms finding firewalled VLAN mappings (found " + fwVlanMap.size() + " mappings: " + fwVlanMap + ")<br>");
+		}
+		// select cam.sysname,cam.netboxid,cam.ifindex,vlan from arp join cam using(mac) join swport on (moduleid in (select moduleid from module where module.netboxid=cam.netboxid) and swport.ifindex=cam.ifindex) where ip << '129.241.23.0/26' and cam.end_time='infinity' and arp.end_time='infinity'and vlan > 1;
+
+		beginTime = System.currentTimeMillis();
 
 		Map dataStructs = new HashMap();
 
@@ -956,7 +980,8 @@ class networkDiscovery
 
 		// Oversikt over ikke-trunker ut fra hver boks per vlan
 		HashMap nontrunkVlan = new HashMap();
-		rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND vlan IS NOT NULL");
+		//rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND vlan IS NOT NULL");
+		rs = Database.query("SELECT swportid,netboxid,to_netboxid,to_swportid,COALESCE(vlan,1) AS vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL");
 		while (rs.next()) {
 			HashMap nontrunkMap;
 			String key = rs.getString("netboxid")+":"+rs.getString("vlan");
@@ -1002,7 +1027,7 @@ class networkDiscovery
 		HashMap activeVlan = new HashMap();
 		// vlan er aktivt på port selv om den er nede, og vi må ta med vlan'et IP'en på selve boksen er på
 		//rs = Database.query("(SELECT DISTINCT netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE trunk='f' AND vlan IS NOT NULL) UNION (SELECT DISTINCT netboxid,vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE vlan IS NOT NULL)");
-		rs = Database.query("SELECT DISTINCT swportid,netboxid,vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NULL AND vlan IS NOT NULL");
+		rs = Database.query("SELECT DISTINCT swportid,netboxid,COALESCE(vlan,1) AS vlan FROM swport JOIN module USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NULL");
 		while (rs.next()) {
 			Map m;
 			String netboxid = rs.getString("netboxid");
@@ -1026,7 +1051,7 @@ class networkDiscovery
 
 		// Mapping over hvilken swport from befinner seg bak en swport
 		HashMap swportidMap = new HashMap();
-		rs = Database.query("SELECT swportid,vlan,to_swportid FROM swport WHERE (trunk='f' OR trunk IS NULL) AND to_swportid IS NOT NULL");
+		rs = Database.query("SELECT swportid,COALESCE(vlan,1) AS vlan,to_swportid FROM swport WHERE (trunk='f' OR trunk IS NULL) AND to_swportid IS NOT NULL");
 		while (rs.next()) {
 			HashMap hm = new HashMap();
 			hm.put("vlan", rs.getString("vlan"));
@@ -1037,7 +1062,7 @@ class networkDiscovery
 		// Mapping av hvilket vlan som kjører mellom to bokser der vi ikke har to_swportid
 		Map nbvlanMap = new HashMap();
 		dataStructs.put("nbvlanMap", nbvlanMap);
-		rs = Database.query("SELECT netboxid,to_netboxid,vlan FROM module JOIN swport USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND vlan IS NOT NULL AND to_swportid IS NULL ORDER BY netboxid");
+		rs = Database.query("SELECT netboxid,to_netboxid,COALESCE(vlan,1) AS vlan FROM module JOIN swport USING(moduleid) WHERE (trunk='f' OR trunk IS NULL) AND to_netboxid IS NOT NULL AND to_swportid IS NULL ORDER BY netboxid");
 		while (rs.next()) {
 			String key = rs.getString("netboxid")+":"+rs.getString("to_netboxid");
 			if (nbvlanMap.containsKey(key)) {
@@ -1063,11 +1088,29 @@ class networkDiscovery
 			}
 		}
 
+		/*
+		// All non-trunk swportids
+		Set nontrunkSwportids = new HashSet();
+		rs = Database.query("SELECT swportid FROM swport WHERE (trunk='f' OR trunk IS NULL)");
+		while (rs.next()) {
+			nontrunkSwportids.add(rs.getString("swportid"));
+		}
+		*/
+
+		if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms fetching data from db<br>");
+
 		// Så henter vi ut alle vlan og hvilken switch vlanet "starter på"
 		outl("<pre>");
 		//rs = Database.query("SELECT module.netboxid,vlan,netaddr,sysname,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN gwport ON (rootgwid=gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan IS NOT NULL ORDER BY vlan");
 
+		beginTime = System.currentTimeMillis();
 		rs = Database.query("SELECT DISTINCT module.netboxid,vlanid,vlan.vlan,sysname,gwportid,gwport.to_netboxid,gwport.to_swportid,trunk,hexstring FROM prefix JOIN vlan USING(vlanid) JOIN gwportprefix ON (prefix.prefixid = gwportprefix.prefixid AND (hsrp='t' OR gwip::text IN (SELECT MIN(gwip::text) FROM gwportprefix GROUP BY prefixid HAVING COUNT(DISTINCT hsrp) = 1))) JOIN gwport USING(gwportid) JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swport ON (gwport.to_swportid=swportid) LEFT JOIN swportallowedvlan USING (swportid) WHERE (gwport.to_netboxid IS NOT NULL OR catid='GSW') AND vlan.vlan IS NOT NULL ORDER BY vlan.vlan");
+
+		Set vlansWithRouter = new HashSet();
+		while (rs.next()) {
+			vlansWithRouter.add(rs.getString("vlan"));
+		}
+		rs.beforeFirst();
 
 		ArrayList trunkVlan = new ArrayList();
 		Set doneVlan = new HashSet();
@@ -1076,10 +1119,14 @@ class networkDiscovery
 		// ***** BEGIN DEPTH FIRST SEARCH ***** //
 		while (rs.next()) {
 			int vlan = rs.getInt("vlan");
+			if (fwVlanMap.containsKey(""+vlan) && !vlansWithRouter.contains(fwVlanMap.get(""+vlan))) {
+				if (DEBUG_OUT) outl("Mapping vlan " + vlan + " to " + fwVlanMap.get(""+vlan));
+				vlan = Integer.parseInt((String)fwVlanMap.get(""+vlan));
+			}
 			int vlanid = rs.getInt("vlanid");
  			String boksid = rs.getString("netboxid");
 			String nettype = (String)vlanidNettype.get(""+vlanid);
-
+			doneVlan.add(""+vlan);
 			/*
 			if (!doneVlan.add(new Integer(vlanid))) {
 				// Duplicate vlanid, check if we already found this gw
@@ -1196,12 +1243,21 @@ class networkDiscovery
 			*/
 
 		}
+		outl("</pre>");
 
+		if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms traversing VLANs from router<br>");
 
+		outl("\n<b>VLANs with no router to start from:</b><br>");
+		outl("<pre>");
+
+		updateVlanDb(trunkVlan, vlanidVlan, allowedVlan, boksName, false);
+
+		beginTime = System.currentTimeMillis();
 
 		// Alle vlan som vi ikke finner startpunkt på, hver må vi rett og slett starte alle andre steder for å være sikker på å få med alt
 		// SELECT DISTINCT ON (vlan,boksid) boksid,modul,port,boksbak,vlan,trunk FROM swport NATURAL JOIN swportvlan WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan,boksid
-		if (DEBUG_OUT) outl("\n<b>VLANs with no router to start from:</b><br>");
+		if (DEBUG_OUT) outl("\n<b><h3>VLANs with no router to start from:</h3></b><br>");
+		/*
 		//rs = Database.query("SELECT DISTINCT ON (vlan,boksid) vlan,sysname,boksbak FROM swport NATURAL JOIN swportvlan JOIN boks USING (boksid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan");
 		rs = Database.query("SELECT DISTINCT ON (vlanid,module.netboxid) vlan,vlanid,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM prefix JOIN gwportprefix USING(prefixid) JOIN gwport USING (gwportid) WHERE to_netboxid IS NOT NULL AND vlan IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlanid");
 		HashSet visitNode = null;
@@ -1220,14 +1276,159 @@ class networkDiscovery
 			if (DEBUG_OUT) outl("\n<b>NEW VLAN: " + vlan + "</b>, starting from <b>"+rs.getString("sysname")+"</b> ("+rs.getString("to_netboxid")+")<br>");
 			vlanTraverseLink(vlan, vlanid, null, rs.getString("to_netboxid"), true, false, nontrunkVlan, allowedVlan, activeVlan, swportidMap, spanTreeBlocked, trunkVlan, dataStructs, new ArrayList(), visitNode, 0, DEBUG_OUT, boksGwSet, swportGwVlanMap, boksName);
 		}
+		*/
+		{
+			// Delete mismatching ports
+			// DELETE FROM swport WHERE swportid IN (SELECT swportid FROM swport JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE vlan.vlan != swport.vlan AND direction IN ('x','u'))
+			String[] vlansDone = util.stringArray(doneVlan);
+			Arrays.sort(vlansDone);
+			//String sql = "SELECT swportid,vlan,vlanid,sysname,to_netboxid,to_swportid,trunk FROM swport JOIN module USING(moduleid) JOIN netbox ON (to_netboxid=netbox.netboxid) LEFT JOIN swportvlan USING(swportid) WHERE vlan NOT IN (" + util.join(vlansDone, ",") + ") AND to_netboxid IS NOT NULL AND vlan IS NOT NULL AND (direction IS NULL OR direction IN ('x','u')) ORDER BY vlan, vlanid";
+			String sql = "SELECT DISTINCT netboxid,vlan,vlanid,sysname FROM swport JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swportvlan USING(swportid) WHERE vlan NOT IN (" + util.join(vlansDone, ",") + ") AND vlan IS NOT NULL AND trunk!=TRUE AND (direction IS NULL OR direction IN ('x','u')) ORDER BY vlan, vlanid";
+			rs = Database.query(sql);
+			outl("SQL: " + sql);
+			int prevvlan=-1;
+			int vlanid = -1;
+			HashSet visitNode = null;
+			while (rs.next()) {
+				int vlan = rs.getInt("vlan");
+				if (vlan != prevvlan) {
+					visitNode = new HashSet();
+					prevvlan = vlan;
+					vlanid = rs.getInt("vlanid");
+					if (vlanid == 0) {
+						String[] ins = new String[] {
+							"vlanid", "",
+							"vlan", ""+vlan,
+							"nettype", "lan"
+						};
+						vlanid = Integer.parseInt(Database.insert("vlan", ins, null));
+						vlanidVlan.put(""+vlanid, ""+vlan);
+						outl("\n<b>CREATE NEW VLAN: " + vlan + "</b>, vlanid="+vlanid+", starting from <b>"+rs.getString("sysname")+"</b><br>");
+					} else {
+						outl("\n<b>NEW VLAN: " + vlan + "</b>, vlanid="+vlanid+", starting from <b>"+rs.getString("sysname")+"</b><br>");
+					}
+				}
+				if (visitNode.contains(rs.getString("netboxid"))) continue;
+				vlanTraverseLink(vlan, vlanid, null, rs.getString("netboxid"), false, false, nontrunkVlan, allowedVlan, activeVlan, swportidMap, spanTreeBlocked, trunkVlan, dataStructs, new ArrayList(), visitNode, 0, DEBUG_OUT, boksGwSet, swportGwVlanMap, boksName);
+
+				/*
+				if (rs.getBoolean("trunk") == false) {
+					// Always set active for non-trunk
+					String[] rVlan = {
+						rs.getString("swportid"),
+						String.valueOf(vlanid),
+						"u"
+					};
+					trunkVlan.add(rVlan);
+					
+					String to_swportid = rs.getString("to_swportid");
+					if (to_swportid != null) {
+						String[] tVlan = {
+							to_swportid,
+							String.valueOf(vlanid),
+							"u"
+						};
+						trunkVlan.add(tVlan);
+					}
+				}
+				*/
+
+			}
+		}
 
 		outl("</pre>");
+		if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms traversing VLANs with no router<br>");
 
+		Map activeOnTrunk = updateVlanDb(trunkVlan, vlanidVlan, allowedVlan, boksName, true);
+
+		// Så skriver vi ut en rapport om mismatch mellom swportallowedvlan og det som faktisk kjører
+		outl("<h2>Allowed, but non-active VLANs:</h2>");
+		outl("<h4>(<i><b>Note</b>: VLANs 1 and 1000-1005 are for interswitch control traffic and are always allowed</i>)</h4>");
+		int allowedcnt=0, totcnt=0;
+		Iterator iter = allowedVlan.values().iterator();
+		while (iter.hasNext()) {
+			HashMap boksAllowedMap = (HashMap)iter.next();
+			Iterator iter2 = boksAllowedMap.values().iterator();
+			while (iter2.hasNext()) {
+				HashMap hm = (HashMap)iter2.next();
+				String swportid = (String)hm.get("swportid");
+				String hexstring = (String)hm.get("hexstring");
+
+				HashSet activeVlanOnTrunk = (HashSet)activeOnTrunk.get(swportid);
+				if (activeVlanOnTrunk == null) {
+					//outl("ERROR, swrecTrunk is missing for swportid: " + swportid + "<br>");
+					continue;
+				}
+				totcnt++;
+
+				String boksid = (String)hm.get("netboxid");
+				String modul = (String)hm.get("module");
+				String port = (String)hm.get("port");
+				String boksbak = (String)hm.get("to_netboxid");
+				boolean printMsg = false;
+
+				int startRange=0;
+				boolean markLast=false;
+				int MIN_VLAN = 2;
+				int MAX_VLAN = 999;
+				for (int i=MIN_VLAN; i <= MAX_VLAN+1; i++) {
+					if (isAllowedVlan(hexstring, i) && !activeVlanOnTrunk.contains(String.valueOf(i)) && i != MAX_VLAN+1 ) {
+						if (!markLast) {
+							startRange=i;
+							markLast = true;
+						}
+					} else {
+						if (markLast) {
+							String range = (startRange==i-1) ? String.valueOf(i-1) : startRange+"-"+(i-1);
+							if (!printMsg) {
+								allowedcnt++;
+								outl("Working with trunk From("+boksid+"): <b>"+boksName.get(boksid)+"</b>, Modul: <b>"+modul+"</b> Port: <b>"+port+"</b> To("+boksbak+"): <b>"+boksName.get(boksbak)+"</b><br>");
+								// Skriv ut aktive vlan
+								out("&nbsp;&nbsp;Active VLANs: <b>");
+								Iterator vlanIter = activeVlanOnTrunk.iterator();
+								int[] vlanA = new int[activeVlanOnTrunk.size()];
+								int vlanAi=0;
+								while (vlanIter.hasNext()) vlanA[vlanAi++] = Integer.parseInt((String)vlanIter.next());
+								Arrays.sort(vlanA);
+								boolean first=true;
+								for (vlanAi=0; vlanAi < vlanA.length; vlanAi++) {
+									if (!first) out(", "); else first=false;
+									out(String.valueOf(vlanA[vlanAi]));
+								}
+								outl("</b><br>");
+								//outl("&nbsp;&nbsp;The following VLANs are allowed on the trunk, but does not seem to be active:<br>");
+								printMsg = true;
+								out("&nbsp;&nbsp;Excessive VLANs: <b>"+range+"</b>");
+							} else {
+								out(", <b>"+range+"</b>");
+							}
+							markLast=false;
+						}
+						//startRange=i+1;
+					}
+				}
+				if (printMsg) outl("<br><br>");
+			}
+		}
+
+		outl("A total of <b>"+allowedcnt+"</b> / <b>"+totcnt+"</b> trunks have allowed VLANs that are not active.<br>");
+
+		// Send event to eventengine
+		Map varMap = new HashMap();
+		varMap.put("command", "updateFromDB");
+		EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "notification", Event.STATE_NONE, 0, 0, varMap);
+
+		outl("All done.<br>");
+
+	}
+
+	public Map updateVlanDb(List trunkVlan, Map vlanidVlan, Map allowedVlan, Map boksName, boolean deleteNoDirection) throws SQLException {
 		HashMap swportvlan = new HashMap();
 		HashMap swportvlanNontrunk = new HashMap();
 		HashMap swportvlanDupe = new HashMap();
 		//rs = Database.query("SELECT swportvlanid,swportid,vlan,retning FROM swportvlan JOIN swport USING (swportid) WHERE swport.trunk='t'");
-		rs = Database.query("SELECT swportvlanid,swportid,vlanid,direction,trunk FROM swportvlan JOIN swport USING (swportid)");
+		String sql = "SELECT swportvlanid,swportid,vlanid,direction,trunk FROM swportvlan JOIN swport USING (swportid)";
+		ResultSet rs = Database.query(sql);
 		HashSet reportMultipleVlan = new HashSet();
 		while (rs.next()) {
 			String swportid = rs.getString("swportid");
@@ -1238,7 +1439,7 @@ class networkDiscovery
 			if (!rs.getBoolean("trunk")) {
 				if (swportvlanNontrunk.containsKey(swportid)) {
 					if (!reportMultipleVlan.contains(swportid)) {
-						outl("<font color=\"red\">ERROR!</font> Multiple vlans for non-trunk port, swportid: " + swportid + "<br>");
+						outl("<font color=\"red\">ERROR!</font> Multiple vlans for non-trunk port, swportid: " + key + "<br>");
 						reportMultipleVlan.add(swportid);
 					}
 					continue;
@@ -1313,7 +1514,7 @@ class networkDiscovery
 						"vlanid", vlanid,
 						"direction", direction,
 					};
-					if (DB_UPDATE) Database.insert("swportvlan", fields);
+					Database.insert("swportvlan", fields);
 				}
 			}
 
@@ -1338,14 +1539,19 @@ class networkDiscovery
 			Map.Entry me = (Map.Entry)iter.next();
 			String key = (String)me.getKey();
 			String swportvlanid = (String)me.getValue();
-
+				
 			StringTokenizer st = new StringTokenizer(key, ":");
 			String swportid = st.nextToken();
 			String vlanid = st.nextToken();
 			String vlan = (String)vlanidVlan.get(vlanid);
 
+			if (!deleteNoDirection) {
+				String direction = (String) swportvlanDupe.get(key);
+				if ("x".equals(direction) || "u".equals(direction)) continue;
+			}
+			
 			outl("[REM] swportid: " + swportid + " vlan: <b>"+ vlan +"</b> ("+swportvlanid+")<br>");
-			if (DB_UPDATE) Database.update("DELETE FROM swportvlan WHERE swportvlanid = '"+swportvlanid+"'");
+			Database.update("DELETE FROM swportvlan WHERE swportvlanid = '"+swportvlanid+"'");
 		}
 
 		/*
@@ -1376,84 +1582,7 @@ class networkDiscovery
 
 		//if (!DB_COMMIT) Database.rollback();
 
-		// Så skriver vi ut en rapport om mismatch mellom swportallowedvlan og det som faktisk kjører
-		outl("<h2>Allowed, but non-active VLANs:</h2>");
-		outl("<h4>(<i><b>Note</b>: VLANs 1 and 1000-1005 are for interswitch control traffic and are always allowed</i>)</h4>");
-		int allowedcnt=0, totcnt=0;
-		iter = allowedVlan.values().iterator();
-		while (iter.hasNext()) {
-			HashMap boksAllowedMap = (HashMap)iter.next();
-			Iterator iter2 = boksAllowedMap.values().iterator();
-			while (iter2.hasNext()) {
-				HashMap hm = (HashMap)iter2.next();
-				String swportid = (String)hm.get("swportid");
-				String hexstring = (String)hm.get("hexstring");
-
-				HashSet activeVlanOnTrunk = (HashSet)activeOnTrunk.get(swportid);
-				if (activeVlanOnTrunk == null) {
-					//outl("ERROR, swrecTrunk is missing for swportid: " + swportid + "<br>");
-					continue;
-				}
-				totcnt++;
-
-				String boksid = (String)hm.get("netboxid");
-				String modul = (String)hm.get("module");
-				String port = (String)hm.get("port");
-				String boksbak = (String)hm.get("to_netboxid");
-				boolean printMsg = false;
-
-				int startRange=0;
-				boolean markLast=false;
-				int MIN_VLAN = 2;
-				int MAX_VLAN = 999;
-				for (int i=MIN_VLAN; i <= MAX_VLAN+1; i++) {
-					if (isAllowedVlan(hexstring, i) && !activeVlanOnTrunk.contains(String.valueOf(i)) && i != MAX_VLAN+1 ) {
-						if (!markLast) {
-							startRange=i;
-							markLast = true;
-						}
-					} else {
-						if (markLast) {
-							String range = (startRange==i-1) ? String.valueOf(i-1) : startRange+"-"+(i-1);
-							if (!printMsg) {
-								allowedcnt++;
-								outl("Working with trunk From("+boksid+"): <b>"+boksName.get(boksid)+"</b>, Modul: <b>"+modul+"</b> Port: <b>"+port+"</b> To("+boksbak+"): <b>"+boksName.get(boksbak)+"</b><br>");
-								// Skriv ut aktive vlan
-								out("&nbsp;&nbsp;Active VLANs: <b>");
-								Iterator vlanIter = activeVlanOnTrunk.iterator();
-								int[] vlanA = new int[activeVlanOnTrunk.size()];
-								int vlanAi=0;
-								while (vlanIter.hasNext()) vlanA[vlanAi++] = Integer.parseInt((String)vlanIter.next());
-								Arrays.sort(vlanA);
-								boolean first=true;
-								for (vlanAi=0; vlanAi < vlanA.length; vlanAi++) {
-									if (!first) out(", "); else first=false;
-									out(String.valueOf(vlanA[vlanAi]));
-								}
-								outl("</b><br>");
-								//outl("&nbsp;&nbsp;The following VLANs are allowed on the trunk, but does not seem to be active:<br>");
-								printMsg = true;
-								out("&nbsp;&nbsp;Excessive VLANs: <b>"+range+"</b>");
-							} else {
-								out(", <b>"+range+"</b>");
-							}
-							markLast=false;
-						}
-						//startRange=i+1;
-					}
-				}
-				if (printMsg) outl("<br><br>");
-			}
-		}
-
-		outl("A total of <b>"+allowedcnt+"</b> / <b>"+totcnt+"</b> trunks have allowed VLANs that are not active.<br>");
-
-		// Send event to eventengine
-		Map varMap = new HashMap();
-		varMap.put("command", "updateFromDB");
-		EventQ.createAndPostEvent("getDeviceData", "eventEngine", 0, 0, 0, "notification", Event.STATE_NONE, 0, 0, varMap);
-
-		outl("All done.<br>");
+		return activeOnTrunk;
 	}
 
 	//private boolean vlanTraverseLink(int vlan, String fromid, String boksid, boolean cameFromTrunk, boolean setDirection, HashMap nontrunkVlan, HashMap allowedVlan, HashMap activeVlan, HashMap swportidMap, HashSet spanTreeBlocked, ArrayList trunkVlan, HashSet visitNode, int level, Com com, boolean DEBUG_OUT, HashSet boksGwSet, HashSet swportGwVlanSet, HashMap boksName)
