@@ -30,6 +30,9 @@ import java.util.*;
 import java.io.*;
 import java.text.*;
 
+import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.Path;
+
 /**
  * <p> Class for logging messages in NAV (variation on the Cisco
  * format) log format. </p>
@@ -63,6 +66,10 @@ public class Log {
 	public static final int MSG_INFO = 5;
 	public static final int MSG_DEBUG = 6;	
 
+	private static final String navConfigFile = (Path.sysconfdir + "/nav.conf").replace('/', File.separatorChar);
+	private static int DEBUG_LEVEL = MSG_DEBUG;
+
+
 	/**
 	 * Init the logger with the given filename; if the filename is null stdout is used.
 	 */
@@ -77,6 +84,17 @@ public class Log {
 	public static void init(File f, String system) {
 		if (f != null) log = f;
 		Log.system = system;
+
+		ConfigParser navCp;
+		try {
+			navCp = new ConfigParser(navConfigFile);
+			Log.DEBUG_LEVEL = Integer.parseInt(navCp.get("DEBUG_LEVEL"));
+			String ss = navCp.get("DEBUG_LEVEL_" + system.toUpperCase());
+			if (ss != null) {
+				Log.DEBUG_LEVEL = Integer.parseInt(ss);
+			}
+		} catch (Exception e) {
+		}
 	}
 
 	/**
@@ -213,6 +231,8 @@ public class Log {
 	 * Log message using the given priority
 	 */	
 	public static synchronized void log(int priority, String subsystem, String type, String msg) {
+		if (priority > DEBUG_LEVEL) return;
+
 		// May 27 08:32:58 2002 bokser.pl DBBOX-3-ORG <msg>
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss yyyy");
 
