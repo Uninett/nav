@@ -2047,7 +2047,7 @@ class pageNetbox(editdbPage):
             r = [(None,'Select a room')]
             for room in editTables.Room.getAllIterator(orderBy='roomid'):
                 loc = editTables.Location(room.location).descr
-                r.append((room.roomid,room.roomid + ' (' + loc + ':' + \
+                r.append((room.roomid,room.roomid + ' (' + str(loc) + ':' + \
                           str(room.descr) + ')'))
 
             c = [(None,'Select a category')]
