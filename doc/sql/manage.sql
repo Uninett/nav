@@ -374,6 +374,8 @@ CREATE TABLE gwportprefix (
   hsrp BOOL NOT NULL DEFAULT false,
   UNIQUE(gwip)
 );
+CREATE INDEX gwportprefix_gwportid_btree ON gwportprefix USING btree (gwportid);
+CREATE INDEX gwportprefix_prefixid_btree ON gwportprefix USING btree (prefixid);
 
 CREATE TABLE swportvlan (
   swportvlanid SERIAL PRIMARY KEY,
@@ -492,7 +494,8 @@ CREATE VIEW netboxmac AS
 UNION
 (SELECT DISTINCT ON (mac) module.netboxid,mac
  FROM arp
- JOIN gwportprefix ON (arp.ip=gwportprefix.gwip)
+ JOIN gwportprefix gwp ON
+  (arp.ip=gwp.gwip AND (hsrp=true OR (SELECT COUNT(*) FROM gwportprefix WHERE gwp.prefixid=gwportprefix.prefixid AND hsrp=true) = 0))
  JOIN gwport USING(gwportid)
  JOIN module USING (moduleid)
  WHERE arp.end_time='infinity');
