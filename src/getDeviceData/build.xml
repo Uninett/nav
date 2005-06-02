@@ -54,6 +54,7 @@
     <ant inheritAll="false" dir="device-plugins/Server"/>
     <ant inheritAll="false" dir="device-plugins/StaticRoutes"/>
     <ant inheritAll="false" dir="device-plugins/Typeoid"/>
+    <ant inheritAll="false" dir="device-plugins/GetVlanFromInterface"/>
   </target>
 
   <target name="compile" depends="init"
@@ -150,5 +151,6 @@
     <ant inheritAll="false" dir="device-plugins/Server" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/StaticRoutes" target="clean"/>
     <ant inheritAll="false" dir="device-plugins/Typeoid" target="clean"/>
+    <ant inheritAll="false" dir="device-plugins/GetVlanFromInterface" target="clean"/>
   </target>
 </project>
