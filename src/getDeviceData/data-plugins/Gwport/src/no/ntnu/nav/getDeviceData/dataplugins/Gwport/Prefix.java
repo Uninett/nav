@@ -69,7 +69,7 @@ public class Prefix implements Comparable
 		for (int i=0; i < s.length; i++) {
 			String t = Integer.toString(Integer.parseInt(s[i],fromBase),toBase);
 			if (minDigits > 0) while (t.length() < minDigits) t = "0" + t;
-			ip += t.toUpperCase() + newsep;
+			ip += t.toLowerCase() + newsep;
 		}
 		return ip.substring(0, ip.length()-1);
 	}
