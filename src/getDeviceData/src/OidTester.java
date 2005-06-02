@@ -16,7 +16,7 @@ import no.ntnu.nav.getDeviceData.Netbox;
 
 public class OidTester
 {
-	public static final int DEFAULT_FREQ = 21600;
+	public static int DEFAULT_FREQ = 21600;
 
 	private static Map lockMap = new HashMap();
 	//private static Set dupeSet = new HashSet();

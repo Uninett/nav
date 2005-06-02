@@ -144,6 +144,17 @@ class getDeviceData
 			return;
 		}
 
+		// Set default OID freq
+		int defaultOidFrequency;
+		try {
+			defaultOidFrequency = Integer.parseInt(cp.get("defaultOidFrequency"));
+			if (defaultOidFrequency > 0) {
+				defaultOidFrequency *= 60;
+				OidTester.DEFAULT_FREQ = defaultOidFrequency;
+			}
+		} catch (Exception e) {
+		}
+
 		// Load config
 		int loadDataInterval;
 		try {
