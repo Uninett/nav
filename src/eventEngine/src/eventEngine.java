@@ -588,6 +588,33 @@ INSERT INTO eventq (source,target,subid,eventtypeid,state,severity) VALUES ('eve
 INSERT INTO eventqvar (eventqid,var,val) VALUES ((SELECT eventqid FROM eventq WHERE subid=76543),'command','dumpDeviceList');
 COMMIT;
 
+
+// Down
+sit-sby6-936-h.ntnu.no
+sit-sby6-936-h2.ntnu.no (shadow)
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h.ntnu.no'),'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h2.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h2.ntnu.no'),'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h.ntnu.no'),'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h2.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'sit-sby6-936-h2.ntnu.no'),'boxState','e',100);
+COMMIT;
+
+-- kjemi-369-sw.ntnu.no + wlan-s63-369-ap.wlan.ntnu.no
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'kjemi-369-sw.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'kjemi-369-sw.ntnu.no'),'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'bygg-stud-369-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'bygg-stud-369-h.ntnu.no'),'boxState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'wlan-s63-369-ap.wlan.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'wlan-s63-369-ap.wlan.ntnu.no'),'boxState','s',100);
+COMMIT;
+
+BEGIN;
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'kjemi-369-sw.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'kjemi-369-sw.ntnu.no'),'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'bygg-stud-369-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'bygg-stud-369-h.ntnu.no'),'boxState','e',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'wlan-s63-369-ap.wlan.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname LIKE 'wlan-s63-369-ap.wlan.ntnu.no'),'boxState','e',100);
+COMMIT;
+
 --voll-sby-980-h
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname LIKE 'voll-sby-980-h.%'),'boxState','s',100);
