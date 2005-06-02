@@ -78,9 +78,6 @@ def makeEvent (presobject,datasource,state):
     val = datasource.threshold
     subid = datasource.rrd_datasourceid
 
-    print "Setting var to %s" % var
-    print "Setting val to %s" % val
-    
     if rrdfile.netbox is not None:
         netbox = rrdfile.netbox
         if ll >= 2: print "thresholdalert regarding %s (%s)" %(netbox.sysname,netbox.ip)
