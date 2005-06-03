@@ -61,7 +61,7 @@ class Host:
     self.ip = ip
     self.pkt = icmp.Packet()
     self.pkt.type = icmp.ICMP_ECHO
-    self.pkt.id = os.getpid()
+    self.pkt.id = os.getpid() % 65536
     self.pkt.seq = 0
     self.replies = circbuf.CircBuf()
 
@@ -122,7 +122,7 @@ class MegaPing:
       raise """Packetsize (%s) too small to create a proper cookie.
                Must be at least 44."""%packetsize
     self._packetsize=packetsize
-    self._pid = os.getpid()
+    self._pid = os.getpid() % 65536
     self._elapsedtime=0
     
     # Create our common socket
