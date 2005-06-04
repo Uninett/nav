@@ -138,6 +138,7 @@ CREATE TABLE prefix (
   vlanid INT4 REFERENCES vlan ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE(netaddr)
 );
+CREATE INDEX prefix_vlanid_btree ON prefix USING btree (vlanid);
 
 CREATE TABLE vendor (
   vendorid VARCHAR(15) PRIMARY KEY
@@ -487,11 +488,10 @@ CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 
 -- VIEWs -----------------------
 CREATE VIEW netboxmac AS  
-(SELECT DISTINCT ON (mac) netbox.netboxid,mac
- FROM arp
- JOIN netbox USING (ip)
- WHERE arp.end_time='infinity')
-UNION
+(SELECT DISTINCT ON (mac) netbox.netboxid, arp.mac
+ FROM netbox
+ JOIN arp ON (arp.arpid = (SELECT arp.arpid FROM arp WHERE arp.ip=netbox.ip AND end_time='infinity' LIMIT 1)))
+UNION DISTINCT
 (SELECT DISTINCT ON (mac) module.netboxid,mac
  FROM arp
  JOIN gwportprefix gwp ON
