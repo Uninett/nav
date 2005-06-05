@@ -18,10 +18,6 @@ import no.ntnu.nav.eventengine.deviceplugins.Netel.*;
 
 public class BoxState implements EventHandler, EventCallback
 {
-	private Map startEventMap = new HashMap();
-	private Set sentAlertSet = new HashSet();
-	private int lastDownCount;
-
 	public static final int SHADOW_SEVERITY_DEDUCTION = 20;
 
 	public String[] handleEventTypes()
@@ -34,8 +30,25 @@ public class BoxState implements EventHandler, EventCallback
 		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
 		Log.d("HANDLE", "Event: " + e);
 
+		int warningWaitTime = 60;
+		int alertWaitTime = 240;		
+		try {
+			warningWaitTime = Integer.parseInt(cp.get("warningWaitTime"));
+		} catch (Exception exp) { }
+		try {
+			alertWaitTime = Integer.parseInt(cp.get("alertWaitTime"));
+		} catch (Exception exp) { }
+
+		int moduleWarningWaitTime = 60;
+		int moduleAlertWaitTime = 240;		
+		try {
+			moduleWarningWaitTime = Integer.parseInt(cp.get("moduleWarningWaitTime"));
+		} catch (Exception exp) { }
+		try {
+			moduleAlertWaitTime = Integer.parseInt(cp.get("moduleAlertWaitTime"));
+		} catch (Exception exp) { }
+		
 		String eventtype = e.getEventtypeid();
-		boolean callback = false;
 
 		if (eventtype.equals("boxState")) {
 			Device d = ddb.getDevice(e.getDeviceid());
@@ -48,21 +61,21 @@ public class BoxState implements EventHandler, EventCallback
 				Box b = (Box)d;
 
 				if (e.getState() == Event.STATE_START) {
-					if (!b.isUp() && startEventMap.containsKey(e.getDeviceidI())) {
+					if (!b.isUp() && isInQ(b, eventtype)) {
 						Log.d("HANDLE", "Ignoring duplicate down event for Box");
 						e.dispose();
 						return;
 					}
 					Log.d("HANDLE", "Box going down: " + b);
 					b.down();
-					startEventMap.put(e.getDeviceidI(), e);
-					callback = true;
+					addToQ(b, eventtype, warningWaitTime, alertWaitTime - warningWaitTime, e);
+
 				} else if (e.getState() == Event.STATE_END) {
 					// Get the down alert
 					Alert a = ddb.getDownAlert(e);
 
 					// Check if the deviceid has changed
-					if (a == null && !startEventMap.containsKey(e.getDeviceidI())) {
+					if (a == null && !isInQ(b, eventtype)) {
 						try {
 							ResultSet rs = Database.query("SELECT alerthistid,deviceid FROM alerthist WHERE netboxid='"+e.getNetboxid()+"' AND end_time='infinity' AND eventtypeid='boxState'");
 							if (rs.next()) {
@@ -82,16 +95,15 @@ public class BoxState implements EventHandler, EventCallback
 					}
 
 					if (a == null) {
-						// The down event could be in the startEventMap queue
-						Event se = (Event)startEventMap.get(e.getDeviceidI());
-						if (se == null) {
+						// The down event could be in the queue
+						SendAlertDescr sad = removeFromQ(b, eventtype);
+						if (sad == null) {
 							// No down alert, but we mark the box up just in case
 							e.dispose();
 							Log.d("HANDLE", "No down event found, disposing up event");
 						} else {
 							// For now ignore transient events
-							startEventMap.remove(e.getDeviceidI());
-							se.dispose();
+							sad.event.dispose();
 							e.dispose();
 							Log.d("HANDLE", "Ignoring transient boxState");
 						}
@@ -114,13 +126,12 @@ public class BoxState implements EventHandler, EventCallback
 
 						try {
 							ddb.postAlert(a);
-							sentAlertSet.remove(e.getDeviceidI());
 						} catch (PostAlertException exp) {
 							Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 						}
-						
+
 						// Clean up
-						startEventMap.remove(e.getDeviceidI());
+						removeFromQ(b, eventtype);
 					}
 					b.up();
 				}
@@ -163,29 +174,27 @@ public class BoxState implements EventHandler, EventCallback
 					Log.d("HANDLE", "Port: " + p);
 				} else {
 					if (e.getState() == Event.STATE_START) {
-						if (!m.isUp() && startEventMap.containsKey("m"+e.getDeviceidI())) {
+						if (!m.isUp() && isInQ(m, eventtype)) {
 							Log.d("HANDLE", "Ignoring duplicate down event for Module");
 							e.dispose();
 							return;
 						}
 						Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
 						m.down();
-						startEventMap.put("m"+e.getDeviceidI(), e);
-						callback = true;
+						addToQ(parent, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
 					} else if (e.getState() == Event.STATE_END) {
 						// Get the down alert
 						Alert a = ddb.getDownAlert(e);
 						if (a == null) {
-							// The down event could be in the startEventMap queue
-							Event se = (Event)startEventMap.get("m"+e.getDeviceidI());
-							if (se == null) {
+							// The down event could be in the queue
+							SendAlertDescr sad = removeFromQ(m, eventtype);
+							if (sad == null) {
 								Log.d("HANDLE", "Ignoring module up event as no down event was found!");
 								e.dispose();
 								return;
 							}
 							// For now ignore transient events
-							startEventMap.remove("m"+e.getDeviceidI());
-							se.dispose();
+							sad.event.dispose();
 							e.dispose();
 							Log.d("HANDLE", "Ignoring transient moduleState");
 						} else {
@@ -202,13 +211,12 @@ public class BoxState implements EventHandler, EventCallback
 
 							try {
 								ddb.postAlert(a);
-								sentAlertSet.remove("m"+e.getDeviceidI());
 							} catch (PostAlertException exp) {
 								Log.w("HANDLE", "PostAlertException: " + exp.getMessage());
 							}
 
 							// Clean up
-							startEventMap.remove("m"+e.getDeviceidI());
+							removeFromQ(m, eventtype);
 						}
 						m.up();
 					}
@@ -245,204 +253,251 @@ public class BoxState implements EventHandler, EventCallback
 			return;
 		}
 
-		int downCount = Netel.boxDownCount();
-		boolean scheduledCB = ddb.isScheduledCallback(this);
-		if (downCount == 0 && scheduledCB) {
-			ddb.cancelCallback(this);
-		} else
-		if (callback && !scheduledCB) {
-			lastDownCount = downCount;
+		checkScheduleCallback(ddb);
 
-			int alertTickLength = 60;
-			int alertTicks = 4;
-			warningTicks = 1;
-
-			try {
-				alertTickLength = Integer.parseInt(cp.get("alertTickLength"));
-			} catch (Exception exp) { }
-
-			try {
-				warningTicks = Integer.parseInt(cp.get("alertWarningTicks"));
-			} catch (Exception exp) { }
-
-			try {
-				alertTicks = Integer.parseInt(cp.get("alertTicks"));
-			} catch (Exception exp) { }
-
-			Log.d("HANDLE", "Scheduling  callback, alertTickLength="+alertTickLength+" warningTicks="+warningTicks+" alertTicks="+alertTicks);
-			if (warningTicks <= 0 || alertTicks <= 0) {
-				callback(ddb, alertTicks);
-			}
-			ddb.scheduleCallback(this, alertTickLength * 1000, alertTicks);
-		}
-
-		Log.d("HANDLE", "Finished handling event, startEventMap size="+startEventMap.size() + " callback: " + ddb.isScheduledCallback(this));
+		Log.d("HANDLE", "Finished handling event, queue size="+deviceQ.size() + " callback: " + ddb.isScheduledCallback(this));
 
 	}
 
+	private void checkScheduleCallback(DeviceDB ddb) {
+ 		if (!isEmptyQ()) {
+			long wait = waitTimeQ();
+			if (wait <= 0) wait = 1;
+			Log.d("HANDLE", "Scheduling callback in " + wait + " ms ("+ (wait/1000)+" s)");
+			ddb.scheduleCallback(this, wait, 1);
+		} else {
+			ddb.cancelCallback(this);
+		}
+	}
 
-	private boolean sentWarning = false;
-	private int warningTicks;
 
-	public void callback(DeviceDB ddb, int invocationsRemaining)
-	{
+	public void callback(DeviceDB ddb, int invocationsRemaining) {
 		Log.setDefaultSubsystem("BOX_STATE_EVENTHANDLER");
 
-		int downCount = Netel.boxDownCount();
-		Log.d("CALLBACK", "lastDownCount="+lastDownCount+", downCount="+downCount+", invocationsRemaining="+invocationsRemaining+ " sentWarning="+sentWarning);
+		if (isEmptyQ()) return;
 
-		//if ( (downCount == lastDownCount && !sentWarning && warningTicks-- <= 0) || invocationsRemaining <= 0) {
-		if ( (!sentWarning && --warningTicks <= 0) || invocationsRemaining <= 0) {
-			
-			// Just in case alertTicks = 1; in this case we don't send out warnings
-			if (invocationsRemaining <= 0 && !sentWarning) sentWarning = true;
+		SendAlertDescr sad;
+		int processCnt = 0;
+		while ((sad = removeHeadQ()) != null) {
+			Box b = (Box) sad.device;		
 
-			// We are now ready to post alerts
-			for (Iterator i=Netel.findBoxesDown(); i.hasNext();) {
-				Box b = (Box)i.next();
-				if (sentAlertSet.contains(b.getDeviceidI())) continue;
-
-				if (!b.isUp()) {
-					Log.d("CALLBACK", "Box down: " + b.getSysname());
-
-					// The box iself is down, this means we don't report modules down if any
-					// Find the down event
-					Event e = (Event)startEventMap.get(b.getDeviceidI());
-					if (e == null) {
-						Log.w("CALLBACK", "Box " + b.getSysname() + " is down, but no start event found!");
-						continue;
-					}
-					//if (sentWarning) startEventMap.remove(b.getDeviceidI());
-
-					// Ask the Box to update its status
-					b.updateStatus();
-
-					// Create alert
-					Alert a = ddb.alertFactory(e);
-
-					// Set status (down or shadow)
-					a.addVar("status", b.getStatusS());
-
-					// Update alerttype
-					String alerttype = "";
-					if (b.getStatus() == Box.STATUS_SHADOW) {
-						alerttype = "boxShadow";
-						a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
-					} else if (b.getStatus() == Box.STATUS_DOWN) {
-						alerttype = "boxDown";
-					}
-
-					// Update varMap from database
-					try {
-						ResultSet rs = Database.query("SELECT * FROM module WHERE deviceid = " + e.getDeviceid());
-						ResultSetMetaData rsmd = rs.getMetaData();
-						if (rs.next()) {
-							HashMap hm = Database.getHashFromResultSet(rs, rsmd);
-							a.addVars(hm);
-						}
-					} catch (SQLException exp) {
-						Log.w("BOX_STATE_EVENTHANDLER", "SQLException when fetching data from module("+e.getDeviceid()+"): " + exp.getMessage());
-					}
-
-					// First send a warning
-					if (!sentWarning) {
-						a.setState(Event.STATE_NONE);
-						alerttype += "Warning";
-					} else {
-						// Delete 'down' event when alert is posted
-						a.addEvent(e);
-					}
-
-					a.setAlerttype(alerttype);
-
-					Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added alert: " + a);
-
-					if (b.onMaintenance()) {
-						// Do not post to alertq if box is on maintenace
-						Log.d("HANDLE", "Not posting " + alerttype + " alert to alertq as the box is on maintenance");
-						a.setPostAlertq(false);
-					}
-
-					// Post the alert
-					try {
-						ddb.postAlert(a);
-						if (sentWarning) sentAlertSet.add(e.getDeviceidI());
-					} catch (PostAlertException exp) {
-						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
-					}
-				} else {
-					// Box is up, this means it is a Netbox with modules down
-					if (b instanceof Netel) {
-						Netel n = (Netel)b;
-
-						// The box is up, one or more modules must be down
-						for (Iterator md = n.getModulesDown(); md.hasNext();) {
-							Module m = (Module)md.next();
-							if (m.isUp()) continue;
-							if (sentAlertSet.contains("m"+m.getDeviceidI())) continue;
-
-							Log.d("CALLBACK", "Module down on: " + b.getSysname() + ", " + m.getModule());
-							
-							// Find the down event
-							Event e = (Event)startEventMap.get("m"+m.getDeviceidI());
-							if (e == null) {
-								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found! " + startEventMap.keySet());
-								continue;
-							}
-							//if (sentWarning) startEventMap.remove(m.getDeviceidI());
-							
-							// Create alert
-							Alert a = ddb.alertFactory(e);
-
-							// First send a warning
-							String alerttype = "moduleDown";
-							if (!sentWarning) {
-								a.setState(Event.STATE_NONE);
-								alerttype += "Warning";
-							} else {
-								// Delete 'down' event when alert is posted
-								a.addEvent(e);
-							}
-							a.setAlerttype(alerttype);
-
-							Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added moduleDown alert: " + a);
-
-							if (b.onMaintenance()) {
-								// Do not post to alertq if box is on maintenace
-								Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
-								a.setPostAlertq(false);
-							}
-							
-							// Post the alert
-							try {
-								ddb.postAlert(a);
-								if (sentWarning) sentAlertSet.add("m"+m.getDeviceidI());
-							} catch (PostAlertException exp) {
-								Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
-							}
-						}
-						
-					}
-					
+			if (!b.isUp()) {
+				if (sad.event.getEventtypeid().equals("moduleState")) {
+					// Ignore since we already got a box down in the queue
+					Log.d("CALLBACK", "Ignore box down with moduleState: " + b.getSysname());
+					continue;
 				}
 
+				Log.d("CALLBACK", "Box down: " + b.getSysname());
+
+				// The box iself is down, this means we don't report modules down if any
+				// Find the down event
+				Event e = sad.event;
+				if (e == null) {
+					Log.w("CALLBACK", "Box " + b.getSysname() + " is down, but no start event found!");
+					continue;
+				}
+
+				// Ask the Box to update its status
+				b.updateStatus();
+
+				// Create alert
+				Alert a = ddb.alertFactory(e);
+
+				// Set status (down or shadow)
+				a.addVar("status", b.getStatusS());
+
+				// Update alerttype
+				String alerttype = "";
+				if (b.getStatus() == Box.STATUS_SHADOW) {
+					alerttype = "boxShadow";
+					a.setSeverity(Math.max(e.getSeverity()-SHADOW_SEVERITY_DEDUCTION,0));
+				} else if (b.getStatus() == Box.STATUS_DOWN) {
+					alerttype = "boxDown";
+				}
+
+				// Update varMap from database
+				try {
+					ResultSet rs = Database.query("SELECT * FROM module WHERE deviceid = " + e.getDeviceid());
+					ResultSetMetaData rsmd = rs.getMetaData();
+					if (rs.next()) {
+						HashMap hm = Database.getHashFromResultSet(rs, rsmd);
+						a.addVars(hm);
+					}
+				} catch (SQLException exp) {
+					Log.w("BOX_STATE_EVENTHANDLER", "SQLException when fetching data from module("+e.getDeviceid()+"): " + exp.getMessage());
+				}
+
+				// First send a warning
+				if (!sad.sentWarning) {
+					a.setState(Event.STATE_NONE);
+					alerttype += "Warning";
+
+					// Schedule the real down event
+					sad.sentWarning = true;
+					addToQ(sad, sad.alertWait);
+				
+				} else {
+					// Delete 'down' event when alert is posted
+					a.addEvent(e);
+				}
+
+				a.setAlerttype(alerttype);
+
+				Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added alert: " + a);
+
+				if (b.onMaintenance()) {
+					// Do not post to alertq if box is on maintenace
+					Log.d("HANDLE", "Not posting " + alerttype + " alert to alertq as the box is on maintenance");
+					a.setPostAlertq(false);
+				}
+
+				// Post the alert
+				try {
+					ddb.postAlert(a);
+				} catch (PostAlertException exp) {
+					Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
+				}
+			} else {
+				// Box is up, this means it is a Netbox with modules down
+				if (b instanceof Netel) {
+					Netel n = (Netel)b;
+
+					// The box is up, one or more modules must be down
+					for (Iterator md = n.getModulesDown(); md.hasNext();) {
+						Module m = (Module)md.next();
+						if (m.isUp()) continue;
+
+						Log.d("CALLBACK", "Module down on: " + b.getSysname() + ", " + m.getModule());
+							
+						// Find the down event
+						Event e = sad.event;
+						if (e == null) {
+							Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found!");
+							continue;
+						}
+							
+						// Create alert
+						Alert a = ddb.alertFactory(e);
+
+						// First send a warning
+						String alerttype = "moduleDown";
+						if (!sad.sentWarning) {
+							a.setState(Event.STATE_NONE);
+							alerttype += "Warning";
+
+							// Schedule the real down event
+							sad.sentWarning = true;
+							addToQ(sad, sad.alertWait);
+						} else {
+							// Delete 'down' event when alert is posted
+							a.addEvent(e);
+						}
+						a.setAlerttype(alerttype);
+
+						Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added moduleDown alert: " + a);
+
+						if (b.onMaintenance()) {
+							// Do not post to alertq if box is on maintenace
+							Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
+							a.setPostAlertq(false);
+						}
+							
+						// Post the alert
+						try {
+							ddb.postAlert(a);
+						} catch (PostAlertException exp) {
+							Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
+						}
+					}
+				}
 			}
+			processCnt++;
+		}
+		checkScheduleCallback(ddb);
+		Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Alert processing done, processed " + processCnt + ", queue size " + deviceQ.size());
+	}
 
-			sentWarning = !sentWarning;
+	// Queue handling code
+	private SortedMap deviceQ = new TreeMap();
+	private Map qMap = new HashMap();
 
-			/*
-			if (!eventMap.isEmpty()) {
-				errl("BoxState: Error, eventMap is not empty after alert processing!");
-			}
-			*/
-			Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Alert processing done, startEventMap size=" + startEventMap.size() + " sentWarning="+sentWarning);
+	private class SendAlertDescr {
+		public Device device;
+		public String eventtype;
+		public boolean sentWarning;
+		public long alertWait;
+		public Event event;
 
+		public SendAlertDescr(Device d, String type) {
+			this(d, type, 0, null);
 		}
 
-		lastDownCount = downCount;
+		public SendAlertDescr(Device d, String type, long wait, Event e) {
+			device = d;
+			eventtype = type;
+			sentWarning = false;
+			alertWait = wait;
+			event = e;
+		}
 
+		public boolean equals(Object o) {
+			if (o instanceof SendAlertDescr) {
+				SendAlertDescr sad = (SendAlertDescr)o;
+				return device.getDeviceid() == sad.device.getDeviceid() && eventtype.equals(sad.eventtype);
+			}
+			return false;
+		}
 
+		public String toString() {
+			return "Dev: " + device.getDeviceid() + " type: " + eventtype + " w: " + sentWarning + " alertWait: " + alertWait;
+		}
+	}
 
+	private boolean isEmptyQ() {
+		return deviceQ.isEmpty();
+	}
+	private long waitTimeQ() {
+		if (deviceQ.isEmpty()) return Long.MAX_VALUE;
+
+		Long t = (Long) deviceQ.firstKey();
+		return t.longValue() - System.currentTimeMillis();
+	}
+	private void addToQ(SendAlertDescr sad, long time) {
+		List l;
+		Long t = new Long(System.currentTimeMillis() + time * 1000);
+		if ( (l=(List)deviceQ.get(t)) == null) deviceQ.put(t, l = new ArrayList());
+		l.add(sad);
+		qMap.put(sad.device.getDeviceidI()+":"+sad.eventtype, t);
+	}
+	private SendAlertDescr removeFromQ(Device d, String eventtype) {
+		Long t = (Long) qMap.remove(d.getDeviceidI()+":"+eventtype);
+		if (t == null) return null;
+		List l = (List) deviceQ.get(t);
+		int idx = l.indexOf(new SendAlertDescr(d, eventtype));
+		SendAlertDescr sad = (SendAlertDescr) l.get(idx);
+		l.remove(idx);
+		if (l.isEmpty()) deviceQ.remove(t);
+		return sad;
+	}
+
+	private SendAlertDescr removeHeadQ() {
+		if (deviceQ.isEmpty()) return null;
+
+		Long t = (Long) deviceQ.firstKey();
+		if (t.longValue() > System.currentTimeMillis()) return null;
+		List l = (List) deviceQ.get(t);		
+		SendAlertDescr sad = (SendAlertDescr) l.remove(l.size()-1);
+		if (l.isEmpty()) deviceQ.remove(t);
+		qMap.remove(sad.device.getDeviceidI()+":"+sad.eventtype);
+		return sad;
+	}
+	private void addToQ(Device d, String eventtype, long warningTime, long alertTime, Event e) {
+		addToQ(new SendAlertDescr(d, eventtype, alertTime, e), warningTime);
+	}
+		
+	private boolean isInQ(Device device, String eventtype) {
+		return qMap.containsKey(device.getDeviceidI() + ":" + eventtype);
 	}
 
 }
