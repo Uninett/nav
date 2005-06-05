@@ -432,6 +432,8 @@ DROP TABLE cam CASCADE;
 DROP VIEW netboxmac CASCADE;
 DROP VIEW prefix_active_ip_cnt CASCADE;
 DROP VIEW prefix_max_ip_cnt CASCADE;
+DROP VIEW prefixreport CASCADE;
+DROP VIEW netboxreport CASCADE;
 DROP TABLE eventtype CASCADE;
 
 DROP SEQUENCE arp_arpid_seq; 
@@ -514,7 +516,7 @@ CREATE VIEW prefix_max_ip_cnt AS
  FROM prefix);
 
 -- These are here because the report generator cannot parse them
-CREATE VIEW prefix_report AS (
+CREATE VIEW prefixreport AS (
 SELECT host(netaddr),masklen(netaddr) as m,
    vlan,count(gwip) as antgw,nettype,netaddr,netident,orgid,usageid,description,
    (select active_ip_cnt from prefix_active_ip_cnt where prefix_active_ip_cnt .prefixid=prefix.prefixid) AS act,
@@ -526,7 +528,7 @@ SELECT host(netaddr),masklen(netaddr) as m,
     GROUP BY netaddr,vlan,nettype,netident,vlan.orgid,usageid,description,act,prefix.prefixid,vlan.vlanid
 );
 
-CREATE VIEW netbox_report AS (
+CREATE VIEW netboxreport AS (
 SELECT roomid,sysname,ip,catid,
   (select count(*) from netboxcategory where netboxcategory.netboxid=netbox.netboxid) AS sub,typename,orgid,up,
   (select count(*) from module where module.netboxid=netbox.netboxid) AS modules,
