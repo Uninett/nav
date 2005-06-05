@@ -112,7 +112,7 @@ class PopupMenus
 	public String getNettelName() { return nettelName; }
 
 	public void setFullNettelName (String s) { fullNettelName = s; }
-	public String getFullNettelName() { return nettelName; }
+	public String getFullNettelName() { return fullNettelName; }
 
 	public void setIfName (String InIfName) { ifName = InIfName.toLowerCase(); }
 	public String getIfName() { return ifName; }

@@ -540,7 +540,7 @@ class PopupMenuListener implements ActionListener
 	{
 		String cmd = ae.getActionCommand();
 		PopupMenus activeMenu = com.getActiveMenu();
-		String nettelName = activeMenu.getNettelName();
+		String nettelName = activeMenu.getFullNettelName();
 		String url = Input.rootURL + "/browse/";
 
 		if (cmd.equals(com.getNet().gwMenuText[0] ))
@@ -559,7 +559,7 @@ class PopupMenuListener implements ActionListener
 	{
 		String cmd = ae.getActionCommand();
 		PopupMenus activeMenu = com.getActiveMenu();
-		String nettelName = activeMenu.getNettelName();
+		String nettelName = activeMenu.getFullNettelName();
 		String url = Input.rootURL + "/navAdmin/servlet/navAdmin?section=ni&func=visTopologi&searchField=0.sysname&searchFor=";
 
 		if (cmd.equals(com.getNet().gwMenuText[1] ))
