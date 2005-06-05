@@ -103,7 +103,7 @@ class EventImpl implements Event, Alert
 	//public Set getVar(String var) { return (Set)varMap.get(var); }
 	public String getVar(String var) { return (String)varMap.get(var); }
 	public Iterator getVarIterator() { return varMap.entrySet().iterator(); }
-	public Map getVarMap() { return varMap; }
+	public Map getVarMap() { return new HashMap(varMap); }
 	public void dispose()
 	{
 		if (disposed) return;

@@ -58,6 +58,11 @@ public interface Event
 	public Iterator getVarIterator();
 
 	/**
+	 * Returns a map with all variables in this Event.
+	 */
+	public Map getVarMap();
+
+	/**
 	 * <p> Get the key which identifies this Event. It is composed of:
 	 * </p>
 	 *

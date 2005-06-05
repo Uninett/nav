@@ -89,6 +89,11 @@ public interface EventHandler
 {
 
 	/**
+	 * Special event type matching all events.
+	 */
+	public static final String[] HANDLE_ALL_EVENTS = new String[] { "_all" };
+
+	/**
 	 * Return a String array with each element containing a String with
 	 * the name of an eventtype this plugin can handle.
 	 *

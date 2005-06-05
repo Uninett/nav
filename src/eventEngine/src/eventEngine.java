@@ -51,6 +51,7 @@ class eventEngine
 {
 	//public static final String navRoot = "c:/jprog/itea/".replace('/', File.separatorChar);
 	//public static final String navRoot = "/home/kristian/devel/".replace('/', File.separatorChar);
+	public static final String navConfigFile = (Path.sysconfdir + "/nav.conf").replace('/', File.separatorChar);
 	public static final String dbConfigFile = (Path.sysconfdir + "/db.conf").replace('/', File.separatorChar);
 	public static final String configFile = (Path.sysconfdir + "/eventEngine.conf").replace('/', File.separatorChar);
 	public static final String alertmsgFile = (Path.sysconfdir + "/alertmsg.conf").replace('/', File.separatorChar);
@@ -73,6 +74,7 @@ class eventEngine
 
 	//static HashSet safeCloseBoksid = new HashSet();
 	static String qBoks;
+	static ConfigParser navCp;
 
 	public static void main(String[] args) throws Exception
 	{
@@ -84,6 +86,12 @@ class eventEngine
 			if (f.exists() && !f.isDirectory()) cf = f.getAbsolutePath();
 		}
 
+		try {
+			navCp = new ConfigParser(navConfigFile);
+		} catch (IOException e) {
+			Log.e("INIT", "Could not read config file: " + navConfigFile);
+			return;
+		}
 		ConfigParser dbCp;
 		try {
 			dbCp = new ConfigParser(dbConfigFile);
@@ -104,7 +112,7 @@ class eventEngine
 
 		// Set up the config file monitor
 		if (cf == null) cf = configFile;
-		ConfigFileMonitorTask cfmt = new ConfigFileMonitorTask(cf);
+		ConfigFileMonitorTask cfmt = new ConfigFileMonitorTask(cf, navCp);
 		if (cfmt.cfNotFound()) {
 			System.err.println("Error, could not read config file: " + cf);
 			return;
@@ -189,11 +197,13 @@ class ConfigFileMonitorTask extends TimerTask
 	private ConfigParser cp;
 	private boolean cfNotFound;
 	private long lastMod;
+	private ConfigParser navCp;
 
-	public ConfigFileMonitorTask(String cfPath)
+	public ConfigFileMonitorTask(String cfPath, ConfigParser navCp)
 	{
 		cf = new File(cfPath);
 		if (!cf.isFile()) cfNotFound = true;
+		this.navCp = navCp;
 	}
 
 	public void run()
@@ -204,6 +214,7 @@ class ConfigFileMonitorTask extends TimerTask
 
 		try {
 			cp = new ConfigParser(cf.getAbsolutePath());
+			cp.setObject("navCp", navCp);
 		} catch (IOException e) {
 			Log.w("CONFIG_FILE_MONITOR_TASK", "RUN", "Could not read config file: " + cf);
 			return;
@@ -464,7 +475,8 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 	{
 		//Map cloneMap = (Map) ((HashMap)handlerClassMap).clone();
 		handlerCache.clear();
-		handlerCache.put(handleEventTypes()[0], this);
+		handlerCache.put(handleEventTypes()[0], new ArrayList( Arrays.asList(new Object[] { this }) ));
+		handlerCache.put("_all", new ArrayList());
 		for (Iterator i=handlerClassMap.values().iterator(); i.hasNext();) {
 			Class c = (Class)i.next();
 			EventHandler eh;
@@ -479,7 +491,9 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 			}
 			String[] s = eh.handleEventTypes();
 			for (int j=0; j < s.length; j++) {
-				handlerCache.put(s[j], eh);
+				List l;
+				if ( (l=(List)handlerCache.get(s[j])) == null) handlerCache.put( s[j], l=new ArrayList());
+				l.add(eh);
 			}
 		}
 
@@ -531,9 +545,17 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 				Log.d("EVENTQ_MONITOR_TASK", "RUN", "Got event: " + e);
 
 				String eventtypeid = e.getEventtypeid();
-				EventHandler eh = (EventHandler)handlerCache.get( (handlerCache.containsKey(eventtypeid) ? eventtypeid : "info") ) ;
-
-				if (eh != null) {
+				List eventHandlerList = new ArrayList( (List)handlerCache.get("_all")); // Handlers handling all events
+				{
+					List handlers = (List) handlerCache.get( (handlerCache.containsKey(eventtypeid) ? eventtypeid : "info") ) ;
+					if (handlers != null) eventHandlerList.addAll(handlers);
+				}
+				if (eventHandlerList.isEmpty()) {
+					Log.w("EVENTQ_MONITOR_TASK", "RUN", "No handler found for eventtype: " + eventtypeid);
+					continue;
+				}
+				for (Iterator handlerIt = eventHandlerList.iterator(); handlerIt.hasNext();) {
+					EventHandler eh = (EventHandler) handlerIt.next();
 					Log.d("EVENTQ_MONITOR_TASK", "RUN", "Found handler: " + eh.getClass().getName());
 					Database.beginTransaction();
 					try {
@@ -548,8 +570,6 @@ class EventqMonitorTask extends TimerTask implements EventHandler
 					}
 					Database.commit();
 
-				} else {
-					Log.w("EVENTQ_MONITOR_TASK", "RUN", "No handler found for eventtype: " + eventtypeid);
 				}
 			}
 
@@ -635,13 +655,19 @@ COMMIT;
 
 --test modul
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module ASC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module ASC LIMIT 1),'moduleState','s',100);
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname='bib-stud-407-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname='bib-stud-407-h.ntnu.no'),'boxState','s',100);
+
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no') ORDER BY module ASC LIMIT 1),'moduleState','s',100);
+
+
 COMMIT;
 
 BEGIN;
-INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 't971-6.itea.ntnu.no') ORDER BY module DESC LIMIT 1),'moduleState','e',100);
-COMMIT;
+INSERT INTO eventq (source,target,deviceid,netboxid,subid,eventtypeid,state,severity) VALUES ('moduleMon','eventEngine',(SELECT deviceid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no') ORDER BY module DESC LIMIT 1),(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no'),(SELECT moduleid FROM module WHERE netboxid=(SELECT netboxid FROM netbox WHERE sysname LIKE 'bib-stud-407-h.ntnu.no') ORDER BY module ASC LIMIT 1),'moduleState','e',100);
 
+INSERT INTO eventq (source,target,deviceid,netboxid,eventtypeid,state,severity) VALUES ('pping','eventEngine',(SELECT deviceid FROM netbox WHERE sysname='bib-stud-407-h.ntnu.no'),(SELECT netboxid FROM netbox WHERE sysname='bib-stud-407-h.ntnu.no'),'boxState','e',100);
+
+COMMIT;
 
 --kjemi-384-sw
 BEGIN;
