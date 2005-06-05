@@ -11,16 +11,15 @@ not be installed.
 Dependencies:
 -------------
 
-ConfigParser: 
+ConfigParser:
 Database: Logger
 Event: Database Logger
 eventEngine: ConfigParser Database Event Logger
 getBoksMacs: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 getDeviceData: ConfigParser Database Event Logger NetboxInfo SimpleSnmp
 networkTopology: ConfigParser Database Event Logger NetboxInfo
-Logger: ConfigParser
+Logger: ConfigParser Util
 NetboxInfo: Database Event Logger
 SimpleSnmp: Database Logger
-Util: Database Logger
-vlanPlot: 
-webapps: ConfigParser Database Event Logger Util
+Util:
+webapps/navAdmin: ConfigParser Database Event Logger
