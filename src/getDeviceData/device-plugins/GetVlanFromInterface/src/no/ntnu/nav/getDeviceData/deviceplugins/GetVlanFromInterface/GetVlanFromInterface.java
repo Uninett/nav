@@ -89,8 +89,9 @@ public class GetVlanFromInterface implements DeviceHandler
 		for (Iterator it = sc.swportIterator(); it.hasNext();) {
 			Swport swp = (Swport) it.next();
 			String ifdescr = swp.getInterface();
-			int vlan;
+			if (ifdescr == null) continue;
 
+			int vlan;
 			int trunkVlan = -1;
 			try {
 				ResultSet rs = Database.query("SELECT vlan FROM netbox JOIN prefix USING(prefixid) JOIN vlan USING(vlanid) WHERE netboxid="+nb.getNetboxid());
