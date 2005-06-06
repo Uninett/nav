@@ -200,7 +200,6 @@ public class GwportHandler implements DataHandler {
 					for (Iterator gwPorts = gwm.getGwports(); gwPorts.hasNext();) {
 						Gwport gwp = (Gwport)gwPorts.next();
 						errl("    Gwport: " + gwp);
-						if (gwp.getIfindex().equals("54")) continue;
 
 						// Check if this is a static entry
 						for (Iterator gwportPrefices = gwp.getGwportPrefices(); gwportPrefices.hasNext();) {
