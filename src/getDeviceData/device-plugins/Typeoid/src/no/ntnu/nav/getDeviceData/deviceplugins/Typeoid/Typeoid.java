@@ -66,8 +66,32 @@ public class Typeoid implements DeviceHandler
 			nc = (NetboxContainer)dc;
 		}
 
-		// Fetch the typeoid
 		sSnmp.onlyAskModule("0");
+		sSnmp.setSocketTimeout(500);
+		sSnmp.setTimeoutLimit(1);
+
+		// First we check if the device can support SNMPv2
+		sSnmp.setSnmpVersion(2);
+		int snmpVersion = 1;
+		try {
+			sSnmp.getNext("1", 1, false, true);
+			snmpVersion = 2;
+		} catch (Exception e) {
+			sSnmp.setSnmpVersion(1);
+		}
+		sSnmp.setDefaultTimeoutLimit();
+
+		if (nb.getSnmpVersion() != snmpVersion) {
+			try {
+				Database.update("UPDATE netbox SET snmp_version='" + snmpVersion + "' WHERE netboxid=" + nb.getNetboxid());
+				nu.setSnmpVersion(snmpVersion);
+			} catch (SQLException e) {
+				e.printStackTrace(System.err);
+				Log.e("UPDATE_SNMP_VERSION", "Cannot update SNMP version for " + nb.getSysname());
+			}
+		}
+
+		// Fetch the typeoid
 		List l;
 		try {
 			l = sSnmp.getNext(nb.getOidNoCheck("typeoid"), 1, true, false);
