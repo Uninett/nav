@@ -754,7 +754,10 @@ public class Database
 					String msg = sqle.getMessage();
 					if (msg.indexOf("broken the connection") < 0 &&
 						msg.indexOf("SocketException") < 0 &&
-						msg.indexOf("Connection is closed") < 0) throw sqle;
+						msg.indexOf("Connection is closed") < 0) {
+						System.err.println("SQLException for update statement: " + statement);
+						throw sqle;
+					}
 				}
 				DBDescr db = getDBDescr(null);
 				synchronized (db) {
