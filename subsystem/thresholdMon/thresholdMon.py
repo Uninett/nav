@@ -31,6 +31,7 @@ the nav-database and reports if the threshold is surpassed.
 import time
 
 start = int(time.time())
+date = time.ctime()
 
 import getopt,sys
 import psycopg
@@ -51,7 +52,7 @@ pres = presenter.presentation()
 
 # Globals
 exceptions = ['cpu5min','c5000BandwidthMax']
-ll = 1
+ll = 2
 
 # Print usage when -h option called
 def usage(name):
@@ -140,6 +141,7 @@ try:
 except getopt.GetoptError:
     print "GetoptError %s" % str(getopt.GetoptError)
 
+if ll >= 2: print "Starting thresholdMon at %s" % date
 for option, argument in opt:
     if option == '-h':
         # If -h option set, print usage, exit
@@ -225,3 +227,4 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
 
 end = int(time.time())
 if ll >= 2: print "%s executed in %s seconds." %(sys.argv[0],end-start)
+if ll >= 2: print "------------------------------------------------------------------\n\n"
