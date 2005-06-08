@@ -4,6 +4,7 @@ import java.util.*;
 import java.sql.*;
 
 import no.ntnu.nav.logger.*;
+import no.ntnu.nav.util.*;
 import no.ntnu.nav.Database.*;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
@@ -135,44 +136,65 @@ public class SwportHandler implements DataHandler {
 		int newcnt = 0, updcnt = 0;
 
 		try {
-
+			Set moduleids = new HashSet();
 			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
 				SwModule md = (SwModule)swModules.next();
 				String moduleid = md.getModuleidS();
 				if ("0".equals(moduleid)) {
 					System.err.println("Moduleid is null!! " + md);
+					continue;
 				}
+				moduleids.add(moduleid);
+			}
+			if (moduleids.isEmpty()) {
+				Log.d("UPDATE_SWPORT", "No modules found for " + nb.getSysname());
+				return;
+			}
+			String[] moduleidA = util.stringArray(moduleids);
 
-				// OK, først sjekk om denne porten er i swport fra før
-				/*
-				String moduleKey = nb.getNetboxid()+":"+md.getKey();
-				SwModule oldmd = (SwModule)moduleMap.get(moduleKey);
-				moduleMap.put(moduleKey, md);
-				*/
-				Map swportMap = new HashMap();
-				Map portMap = new HashMap();
-				ResultSet rs = Database.query("SELECT swportid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM swport LEFT JOIN swportallowedvlan USING (swportid) WHERE moduleid='"+moduleid+"'");
-				while (rs.next()) {
-					String ifindex = rs.getString("ifindex");
-					Swport sd = new Swport(ifindex);
-					sd.setSwportid(rs.getInt("swportid"));
+			Map moduleMap = new HashMap();
+			ResultSet rs = Database.query("SELECT swportid,moduleid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM swport LEFT JOIN swportallowedvlan USING (swportid) WHERE moduleid IN ("+ util.join(moduleidA, ",") +")");
+			int previd = -1;
+			Map swportMap = new HashMap();
+			Map portModuleMap = new HashMap();
+			while (rs.next()) {
+				Map portMap;
+				String moduleid = rs.getString("moduleid");
+				if ( (portMap=(Map)portModuleMap.get(moduleid)) == null) portModuleMap.put(moduleid, portMap = new HashMap());
+
+				String ifindex = rs.getString("ifindex");
+				if (swportMap.containsKey(ifindex)) {
+					// Delete old ifindex
+					Log.d("DEL_IFINDEX", "Deleting duplicate ifindex " + ifindex + " on " + nb.getSysname());
+					Database.update("DELETE FROM swport WHERE swportid="+rs.getInt("swportid"));
+					continue;
+				}
+				Swport sd = new Swport(ifindex);
+				sd.setSwportid(rs.getInt("swportid"));
 						
-					if (rs.getString("port") != null) {
-						sd.setPort(new Integer(rs.getInt("port")));
-						portMap.put(new Integer(rs.getInt("port")), rs.getString("swportid"));
-					}
-					if (rs.getString("link") != null) sd.setLink(rs.getString("link").charAt(0));
-					sd.setSpeed(rs.getString("speed"));
-					if (rs.getString("duplex") != null) sd.setDuplex(rs.getString("duplex").charAt(0));
-					sd.setMedia(rs.getString("media"));
-					sd.setPortname(rs.getString("portname"));
-					sd.setInterface(rs.getString("interface"));
-					if (rs.getString("vlan") != null) sd.setVlan(rs.getInt("vlan"));
-					if (rs.getString("trunk") != null) sd.setTrunk(rs.getBoolean("trunk"));
-					sd.setHexstring(rs.getString("hexstring"));
-
-					swportMap.put(ifindex, sd);
+				if (rs.getString("port") != null) {
+					sd.setPort(new Integer(rs.getInt("port")));
+					portMap.put(new Integer(rs.getInt("port")), rs.getString("swportid"));
 				}
+				if (rs.getString("link") != null) sd.setLink(rs.getString("link").charAt(0));
+				sd.setSpeed(rs.getString("speed"));
+				if (rs.getString("duplex") != null) sd.setDuplex(rs.getString("duplex").charAt(0));
+				sd.setMedia(rs.getString("media"));
+				sd.setPortname(rs.getString("portname"));
+				sd.setInterface(rs.getString("interface"));
+				if (rs.getString("vlan") != null) sd.setVlan(rs.getInt("vlan"));
+				if (rs.getString("trunk") != null) sd.setTrunk(rs.getBoolean("trunk"));
+				sd.setHexstring(rs.getString("hexstring"));
+
+				swportMap.put(ifindex, sd);
+			}
+
+			for (Iterator swModules = sc.getSwModules(); swModules.hasNext();) {
+				SwModule md = (SwModule)swModules.next();
+				String moduleid = md.getModuleidS();
+				Map portMap = (Map) portModuleMap.get(moduleid);
+				// This can happen for new modules
+				if (portMap == null) portMap = new HashMap();
 
 				// Så alle swportene
 				String swportid;
@@ -227,6 +249,7 @@ public class SwportHandler implements DataHandler {
 							Log.d("UPDATE_SWPORT", "Old: " + oldsd + ", New: " + sd);
 
 							String[] set = {
+								"moduleid", moduleid,
 								"ifindex", sd.getIfindex(),
 								"port", sd.getPortS(),
 								"interface", Database.addSlashes(sd.getInterface()),
