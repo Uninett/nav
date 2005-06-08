@@ -18,7 +18,7 @@ public interface Netbox
 	public String getType();
 	public String getSysname();
 	public String getCat();
-	public int getSnmpMajor();
+	public int getSnmpVersion();
 	public String getSnmpagent();
 
 	/**

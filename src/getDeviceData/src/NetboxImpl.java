@@ -13,7 +13,7 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	//private String type;
 	private String sysName;
 	private String cat;
-	private int snmpMajor;
+	private int snmpVersion;
 	private String snmpagent;
 	private int numInStack;
 
@@ -88,8 +88,8 @@ public class NetboxImpl implements Netbox, NetboxUpdatable
 	public String getCat() { return cat; }
 	public void setCat(String s) { cat = s; }
 
-	public int getSnmpMajor() { return snmpMajor; }
-	public void setSnmpMajor(int i) { snmpMajor = i; }
+	public int getSnmpVersion() { return snmpVersion; }
+	public void setSnmpVersion(int i) { snmpVersion = i; }
 
 	public String getSnmpagent() { return snmpagent; }
 	public void setSnmpagent(String s) { snmpagent = s; }

@@ -28,6 +28,8 @@ public interface NetboxUpdatable
 
 	public void restart();
 
+	public void setSnmpVersion(int snmpVersion);
+
 	/**
 	 * <p> Remove the netbox; calling this method guarantees that no
 	 * other plugins will process it. This method is typically used if

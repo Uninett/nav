@@ -319,7 +319,7 @@ public class QueryNetbox extends Thread
 			while (rs.next()) numInStackMap.put(rs.getString("netboxid"), rs.getString("numInStack"));
 
 			//String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,typename FROM netbox LEFT JOIN type USING(typeid) WHERE up='y' AND ro IS NOT NULL";
-			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,netbox.uptodate, type.frequency AS typefreq, netboxsnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid FROM netbox LEFT JOIN type USING(typeid) LEFT JOIN netboxsnmpoid USING(netboxid) LEFT JOIN snmpoid USING(snmpoidid) WHERE up='y' AND ro IS NOT NULL";
+			String sql = "SELECT ip,ro,deviceid,netboxid,catid,sysname,typeid,snmp_version,netbox.uptodate,type.frequency AS typefreq, netboxsnmpoid.frequency AS oidfreq, snmpoidid, oidkey, snmpoid FROM netbox LEFT JOIN type USING(typeid) LEFT JOIN netboxsnmpoid USING(netboxid) LEFT JOIN snmpoid USING(snmpoidid) WHERE up='y' AND ro IS NOT NULL";
 			boolean randomize = true;
 			if (qNetbox != null) {
 				String qn = qNetbox;
@@ -407,7 +407,7 @@ public class QueryNetbox extends Thread
 						int numInStack = 1;
 						if (numInStackMap.containsKey(netboxid)) numInStack = Integer.parseInt((String)numInStackMap.get(netboxid));
 						nb.setNumInStack(numInStack);
-						//nb.setSnmpMajor(rs.getInt("snmp_major"));
+						nb.setSnmpVersion(rs.getInt("snmp_version"));
 						//nb.setSnmpagent(rs.getString("snmpagent"));
 
 						///////////////////////////////////////////
@@ -730,7 +730,7 @@ public class QueryNetbox extends Thread
 				String type = nb.getType();
 				String sysName = nb.getSysname();
 				String cat = nb.getCat();
-				int snmpMajor = nb.getSnmpMajor();
+				int snmpVersion = nb.getSnmpVersion();
 
 				Log.setNetbox(sysName);
 
