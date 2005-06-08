@@ -35,7 +35,7 @@
 #
 
 use warnings;
-use vars qw($opt_l $opt_d $opt_t $opt_f $opt_h  $opt_p);
+use vars qw($opt_l $opt_d $opt_t $opt_f $opt_h  $opt_p $opt_r);
 use Getopt::Std;
 use Pg;
 use strict;
@@ -53,11 +53,12 @@ usage: $0 [-hld] [-t days] [-f string] [-p path]
 \th : this helpstring
 \tl : flag to list files
 \td : flag to delete files (CAUTION! This will actually DELETE the files.)
+\tr : flag to reverse-search, do a lookup in the database and delete entry if no rrd-file is found
 \tt days     : selects files that has not been written to in t days
 \tf string   : selects files that match the string
 \tp path     : sets the path where we start looking\n";
 
-getopts('hldt:f:p:');
+getopts('rhldt:f:p:');
 
 # Prints the help-text.
 if ($opt_h) {
@@ -67,6 +68,12 @@ if ($opt_h) {
 
 my $path = $opt_p;
 $path = "/home/navcron/cricket/cricket-data/" unless $path;
+
+
+if ($opt_r) {
+    &reverseSearch();
+    exit(0);
+}
 
 # Checking if both -d and -l option is selected
 if ($opt_d && $opt_l) {
@@ -97,8 +104,7 @@ my $totalsize = 0; # The total size of all files in bytes.
 
 # The general idea is this:
 # If the file has been changed in the specified timeinterval, leave it.
-# If the file has not been changed during the specified timeinterval, but is 
-# in the database, leave it. Otherwise delete.
+# Otherwise delete
 
 foreach my $line (@list) {
 
@@ -120,9 +126,10 @@ foreach my $line (@list) {
     $totalsize += $size;
 
     # Looks in the database for the file.
-    my $query = "SELECT * FROM rrd_file WHERE path='$filepath' AND filename='$filename'";
+    my $query = "SELECT rrd_fileid FROM rrd_file WHERE path='$filepath' AND filename='$filename'";
     my $r = $dbh->exec($query);
     
+    my ($rrd_fileid) = $r->fetchrow;
     if ($r->ntuples > 0) {
 	printf "%s,%s eksisterer i db.\n",$filepath,$filename;
 	$exists = 1;
@@ -134,7 +141,7 @@ foreach my $line (@list) {
     # Lists the files
     if ($opt_l) {
 	printf "%-70s %10s\n", $totalpath,$time;
-    } elsif ($opt_d && !$exists) {
+    } elsif ($opt_d) {
 	# Deletes the files.
 	if (-e "$totalpath") {
 	    print "Deleting $totalpath\n";
@@ -147,6 +154,9 @@ foreach my $line (@list) {
 		`rm -f \"$totalpath\"`;
 	    }
 	}
+	# Deleting from the database
+	my $deleteq = "DELETE FROM rrd_file WHERE rrd_fileid = $rrd_fileid";
+	my $deleter = $dbh->exec($deleteq);
     }
 }
     
@@ -157,3 +167,29 @@ if ($opt_f) {
     print "\n$teller rrd-files found that has not been modified in $days days. $existteller of these are also in the database.\n";
 }
 print "Total size = $totalsize bytes (~$mbytes MB).\n";
+
+
+sub reverseSearch() {
+    my $q = "SELECT rrd_fileid, path, filename FROM rrd_file WHERE subsystem='cricket'";
+    my $r = $dbh->exec($q);
+
+    my $existcounter = 0;
+    my $deletedcounter = 0;
+
+    while (my ($rrd_fileid, $path, $filename) = $r->fetchrow) {
+	my $totalpath = "$path/$filename";
+	if (-e $totalpath) {
+	    $existcounter++;
+	    print "$totalpath exists.\n";
+	} else {
+	    $deletedcounter++;
+	    print "Could not find $totalpath, deleting it from db.\n";
+	    my $deleteq = "DELETE FROM rrd_file WHERE rrd_fileid=$rrd_fileid";
+	    print "$deleteq\n";
+	    my $deleter = $dbh->exec($deleteq);
+	}
+    }
+
+    printf "%s tuples checked, %s deleted, kept %s\n", $existcounter + $deletedcounter, $deletedcounter, $existcounter;
+
+}
