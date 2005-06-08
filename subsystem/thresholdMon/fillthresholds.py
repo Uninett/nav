@@ -51,23 +51,30 @@ def setData (datasource,threshold,max):
     datasource.thresholdstate = "inactive"
     datasource.save()
 
+def openFile (file):
+    try:
+        return open(file)
+    except IOError:
+        return None
+
 # setting default threshold
 default = "90"
 
 # read configfile to check for other value
 confdir = nav.path.sysconfdir
 file = confdir + "/fillthresholds.cfg"
-handle = open (file)
-for line in handle.readlines():
-    if line.startswith("threshold"):
-        default = line.split("=").pop().strip()
-        print "Setting default value to %s" % default
-        break
+handle = openFile (file)
+if handle:
+    for line in handle.readlines():
+        if line.startswith("threshold"):
+            default = line.split("=").pop().strip()
+            print "Setting default value to %s" % default
+            break
 
-handle.close()
+    handle.close()
+    
 
 for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"):
-#for datasource in manage.Rrd_datasource.getAllIterator():
     if datasource.units == '%' or datasource.units == '-%':
         print "Found percent %s: %s, setting threshold=%s, max=100" %(datasource.descr,datasource.units, default)
         setData(datasource,default,"100")
@@ -83,7 +90,6 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"
         try:
             port.load()
         except forgetSQL.NotFound:
-            #print "Faen! %s-%s finnes ikke i databasen???" %(rrdfile.key,rrdfile.value)
             continue
 
         if port.speed:
@@ -93,5 +99,4 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NULL"
         setData(datasource,default+"%",speed)        
     else:
 	pass
-        #print "Fant ingen måte å sette threshold og max på for %s" %datasource.descr
         
