@@ -288,7 +288,6 @@ public class _3Com implements DeviceHandler
 		if (nb.getNumInStack() == 2 && moduleSet.size() == 1) {
 			moduleWithIP = NetboxInfo.getSingleton(nb.getNetboxidS(), null, "ModuleWithIP");
 			String module = (String)moduleSet.iterator().next();
-			System.err.println("module: " + module + " IP: " + moduleWithIP);
 			if (moduleWithIP != null && !module.equals(moduleWithIP)) {
 				// Since there are only two modules we are surely talking to the one with the IP
 				mc.moduleTranslate(module, moduleWithIP);

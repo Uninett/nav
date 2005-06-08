@@ -137,14 +137,10 @@ public class MibIISw implements DeviceHandler
 	private void processMibII(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, NetboxContainer nc, ModuleContainer mc, SwportContainer sc, ModuleMonContainer mmc) throws TimeoutException
 	{
 		if (nb.getNumInStack() > 1) {
-			System.err.println("Do moduleMon: " + nb.getNumInStack());
 			// Do moduleMon
 			// PS40 must use a special OID
 			Map ifindexMap = null;
 			String baseOidAlt = null;
-			if (nb.getSysname().equals("iot-stud-313-h.ntnu.no")) {
-				System.err.println("iot-stud-313-h.ntnu.no: " + nb.getOid("3cPS40PortState") + ", " + nb.getOid("moduleMon"));
-			};
 			if (nb.getOid("3cPS40PortState") != null) {
 				baseOidAlt = nb.getOid("3cPS40PortState");
 				ifindexMap = new HashMap();
@@ -164,7 +160,6 @@ public class MibIISw implements DeviceHandler
 			String baseOid = nb.getOid("moduleMon");
 			String hpMemberStatusOid = nb.getOid("hpStackStatsMemberOperStatus");
 			if (hpMemberStatusOid != null) {
-				System.err.println("Collect hpStackStatsMemberOperStatus");
 				Set modulesUp = new HashSet();
 				Map moduleStatus = new HashMap();
 				sSnmp.onlyAskModule("0");
@@ -192,7 +187,6 @@ public class MibIISw implements DeviceHandler
 						mmc.moduleUp(nb, module);
 					} else {
 						Log.d("MODULE_MON", "HP Module " + module + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
-						System.err.println("HP module down, " + nb + ", " + module + ", " + modulesUp + ", " + moduleStatus);
 						sSnmp.ignoreModule(module);
 						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
 					}
@@ -218,7 +212,7 @@ public class MibIISw implements DeviceHandler
 								mmc.moduleUp(nb, module);
 								down = false;
 							} else {
-								System.err.println("No response on askOid " + askOid + ", trying next (cnt: " + cnt + ")");
+								Log.d("MODULE_MON", "No response on askOid " + askOid + ", trying next (cnt: " + cnt + ")");
 							}
 						} catch (TimeoutException te) {
 							// Assume the module is down
@@ -230,7 +224,6 @@ public class MibIISw implements DeviceHandler
 					if (down) {
 						// Assume down
 						Log.d("MODULE_MON", "Module " + module + " on " + nb.getSysname() + " returned no values");						
-						System.err.println("Module down, " + nb + ", " + module + ", ifindexMap " + ifindexMap);
 						sSnmp.ignoreModule(module);
 						List oidL = new ArrayList();
 						oidL.add("moduleMon");
