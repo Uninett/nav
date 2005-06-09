@@ -1157,7 +1157,7 @@ sub fillRRDdatabase {
 
 	    # If we have something to update or insert, do that, else skip.
 	    if ($rrdfileq) {
-		y $r = $dbh->exec($rrdfileq);
+		$r = $dbh->exec($rrdfileq);
 	    
 		unless ($r->resultStatus eq PGRES_COMMAND_OK) {
 		    printf "ERROR DURING INSERT/UPDATE: %s", $dbh->errorMessage if $ll >= 2;
