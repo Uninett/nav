@@ -255,6 +255,7 @@ CREATE TABLE netboxsnmpoid (
   frequency INT4,
   UNIQUE(netboxid, snmpoidid)
 );  
+CREATE INDEX netboxsnmpoid_snmpoidid_btree ON netboxsnmpoid USING btree (snmpoidid);
 
 CREATE TABLE netbox_vtpvlan (
   netboxid INT4 REFERENCES netbox ON UPDATE CASCADE ON DELETE CASCADE,
