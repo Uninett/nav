@@ -662,6 +662,14 @@ DELETE FROM snmpoid WHERE oidkey='sysLocation';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('sysLocation','1.3.6.1.2.1.1.6','System location','mib-II',true,NULL,'0','sysLocation','SNMPv2-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='ifHCInOctets';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ifHCInOctets','1.3.6.1.2.1.31.1.1.1.6','The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.','mib-II',true,NULL,'0','ifHCInOctets','IF-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='ifHCOutOctets';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ifHCOutOctets','1.3.6.1.2.1.31.1.1.1.10','The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifOutOctets.','mib-II',true,NULL,'0','ifHCOutOctets','IF-MIB');
+
 UPDATE snmpoid SET getnext=true;
 UPDATE snmpoid SET uptodate=true;
 UPDATE netbox SET uptodate=false;
