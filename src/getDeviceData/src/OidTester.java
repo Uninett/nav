@@ -31,7 +31,7 @@ public class OidTester
 		nb.clearSnmpoid();
 		for (; snmpoidIt.hasNext();) {
 			Snmpoid snmpoid = (Snmpoid)snmpoidIt.next();
-			doTest(nb, snmpoid, sSnmp, tmp);
+			doTest(nb, snmpoid, sSnmp, tmp, false);
 		}
 
 		try {
@@ -52,7 +52,7 @@ public class OidTester
 		for (; netboxIt.hasNext();) {
 			NetboxImpl nb = (NetboxImpl)netboxIt.next();
 			sSnmp = SimpleSnmp.simpleSnmpFactory(nb.getTypeT().getVendor(), nb.getTypeT().getTypename());
-			doTest(nb, snmpoid, sSnmp, tmp);
+			doTest(nb, snmpoid, sSnmp, tmp, true);
 			sSnmp.destroy();
 		}
 
@@ -66,7 +66,7 @@ public class OidTester
 		Log.i("OID_TESTER", "TEST_OID", "OID " + snmpoid + " is now up-to-date");
 	}
 
-	private void doTest(NetboxImpl nb, Snmpoid snmpoid, SimpleSnmp sSnmp, Map tmp) {
+	private void doTest(NetboxImpl nb, Snmpoid snmpoid, SimpleSnmp sSnmp, Map tmp, boolean checkSnmpVersion) {
 		boolean dupeType = dupeMap.containsKey(nb.getKey());
 
 		// Return if this has already been checked
@@ -86,6 +86,9 @@ public class OidTester
 
 			sSnmp.setHost(ip);
 			sSnmp.setCs_ro(ro);
+			if (checkSnmpVersion) {
+				sSnmp.checkSnmpVersion();
+			}
 
 			if (t.getTypeid() != Type.UNKNOWN_TYPEID && typeChecked.add(t.getTypeid())) {
 				// Check if we need to test for csAtVlan and chassis
@@ -222,7 +225,12 @@ public class OidTester
 						if (snmpoid.getGetnext()) {
 							// Check if getnext is really necessary
 							l = sSnmp.getAll(snmpoid.getDecodehex(), false);
-							if (!l.isEmpty()) reqGetnext = false;
+							if (!l.isEmpty()) {
+								String[] s = (String[])l.get(0);
+								if (s[0] != null && s[0].length() > 0 && s[1] != null && s[1].length() > 0) {
+									reqGetnext = false;
+								}
+							}
 						}
 						if (reqGetnext) {
 							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());

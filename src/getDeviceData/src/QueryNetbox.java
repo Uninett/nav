@@ -703,6 +703,7 @@ public class QueryNetbox extends Thread
 						sSnmp = SimpleSnmp.simpleSnmpFactory(nb.getTypeT().getVendor(), nb.getType());
 						sSnmp.setHost(nb.getIp());
 						sSnmp.setCs_ro(nb.getCommunityRo());
+						sSnmp.checkSnmpVersion();
 						oidTester.oidTest(nb, oidkeyMap.values().iterator(), sSnmp );
 						//nb.scheduleImmediately();
 					} else if (oidUpdObj instanceof Snmpoid) {

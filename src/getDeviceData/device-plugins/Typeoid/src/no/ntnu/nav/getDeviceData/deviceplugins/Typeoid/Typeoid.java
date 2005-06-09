@@ -66,20 +66,8 @@ public class Typeoid implements DeviceHandler
 			nc = (NetboxContainer)dc;
 		}
 
-		sSnmp.onlyAskModule("0");
-		sSnmp.setSocketTimeout(500);
-		sSnmp.setTimeoutLimit(1);
-
 		// First we check if the device can support SNMPv2
-		sSnmp.setSnmpVersion(2);
-		int snmpVersion = 1;
-		try {
-			sSnmp.getNext("1", 1, false, true);
-			snmpVersion = 2;
-		} catch (Exception e) {
-			sSnmp.setSnmpVersion(1);
-		}
-		sSnmp.setDefaultTimeoutLimit();
+		int snmpVersion = sSnmp.checkSnmpVersion();
 
 		if (nb.getSnmpVersion() != snmpVersion) {
 			try {
@@ -92,6 +80,7 @@ public class Typeoid implements DeviceHandler
 		}
 
 		// Fetch the typeoid
+		sSnmp.onlyAskModule("0");
 		List l;
 		try {
 			l = sSnmp.getNext(nb.getOidNoCheck("typeoid"), 1, true, false);
