@@ -81,7 +81,7 @@ def handler(req):
             database.execute(sql)
             (host,mask) = database.fetchone()[0].split("/")
             from_ip = IP(host).toIP()
-            to_ip = IP(IP(host)+pow(2,32-int(mask)+1)-1).toIP()
+            to_ip = IP(IP(host)+pow(2,32-int(mask))-1).toIP()
             
         else:
             from_ip = args.get("from_ip")
