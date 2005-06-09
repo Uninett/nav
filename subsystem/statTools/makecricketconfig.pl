@@ -232,15 +232,6 @@ open (CHANGELOG, ">$changelog") or warn ("Could not open $changelog for writing:
 chdir ($cricketconfigdir);
 my $cwd = cwd;
 
-# First of all, stop the subsystem - MUST BE IMPLEMENTED (not critical)
-my $ok = 1;
-print "Stopping Cricket..." if $ll >= 2;
-if ($ok) {
-    print "stopped.\n" if $ll >= 2;
-} else {
-    print "could not stop it, error-messages will occur!\n" if $ll >= 2;
-}
-
 # parse main config so we know where to work.
 &parseMainConfig();
 
@@ -258,7 +249,7 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 	next;
     }
 
-    # interfaces are kinda standard so we have a fixed config for them.
+    # interfaces are standard so we have a fixed config for them.
     if ($config{$dir}{'interface'}) {
 	print "---------- MAKING TARGETS ----------\n" if $ll >= 2;
 	&makeinterfaceTargets($dir);
@@ -282,14 +273,6 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 umask 002;
 system("$compiledir/compile");
 
-
-$ok = 1;
-print "Starting Cricket..." if $ll >= 2;
-if ($ok) {
-    print "done.\n" if $ll >= 2;
-} else {
-    print "did not seem to work, check manually if Cricket is running please.\n" if  $ll >= 2;
-}
 
 close CHANGELOG;
 
@@ -563,20 +546,23 @@ sub createTargetTypes {
 	next if $#newtt < 0;
 
 	# checking is this targettype already exists in the config-file
-	if ($targetoidhash{$sysname}) {
-	    print "This targettype already exists, checking if it's equal.\n" if $ll >= 3;
-	    if (&compare($targetoidhash{$sysname}, [ @newtt ] )) {
-		print "They are equal.\n" if $ll >= 3;
-	    } else {
-		print "The new targettype does not match with the old, making new.\n" if $ll >= 3;
-		$newtts{$sysname} = [@newtt];
-		$targetoidhash{$sysname} = [@newtt];
-	    }
-	} else {
+
+	# We temporarily disable this and make new targettypes every time
+
+# 	if ($targetoidhash{$sysname}) {
+# 	    print "This targettype already exists, checking if it's equal.\n" if $ll >= 3;
+# 	    if (&compare($targetoidhash{$sysname}, [ @newtt ] )) {
+# 		print "They are equal.\n" if $ll >= 3;
+# 	    } else {
+# 		print "The new targettype does not match with the old, making new.\n" if $ll >= 3;
+# 		$newtts{$sysname} = [@newtt];
+# 		$targetoidhash{$sysname} = [@newtt];
+# 	    }
+# 	} else {
 	    print "This targettype does not exist, making new.\n" if $ll >= 3;
 	    $newtts{$sysname} = [@newtt];
 	    $targetoidhash{$sysname} = [@newtt];
-	}
+#	}
 
 	@newtt = ();
 
@@ -598,7 +584,7 @@ sub createTargetTypes {
 # --------------------
 # INPUT: filename, directory of work and a hash
 # of the new targettypes to add.
-# RETURNS: 0 on error, else nothing.
+# RETURNS: 0 on error, else 1.
 ##################################################
 sub makeTTs {
     my ($filename, $dir, %input) = @_;
@@ -630,10 +616,11 @@ sub makeTTs {
     my $tt;
 
 
-    # Walks through the file, deleting the old tt's that we don't want, and 
-    # creating new ones after the special "mark". We currently comment out the
-    # new tt because there is no way to automatically set a view, must see 
-    # if we at least can start to gather data.
+    # Walks through the file, deleting the old tt's that we don't want, and
+    # creating new ones after the special "mark".  It only deletes lines
+    # starting with "targettype" and thereafter lines starting with "ds" and
+    # "view".
+
     open (HANDLE, ">$path") or die ("Could not open $path for writing: $!\n ");
     foreach my $line (@lines) {
 	if ($write) {
@@ -647,22 +634,17 @@ sub makeTTs {
 		    print HANDLE "targetType $tt\n";
 		    print HANDLE "\tds\t= \"", join (",", map $oidhash{$_}, @{ $input{$tt} } ), "\"\n";
 		    print HANDLE &makeView( @{ $input{$tt} } );
-		    print HANDLE "\n\n";
+		    print HANDLE "\n";
 		}
 	    } else {
 		print "No new targettypes added.\n" if $ll >= 3;
 	    }
 	    $write = 0;
 	    print HANDLE $line;
-	} elsif ($line =~ m/^\s*targettype\s*([a-zA-ZøæåØÆÅ\-\.]+)/i) {
-	    # if this targettype exists in the hash, delete it
-	    if ($input{$1}) {
-		print "Deleting targettype $1\n" if $ll >= 3;
-		printf CHANGELOG "Deleting targettype %s from %s\n", $1, $path;
-		$delete = 1;
-	    } else {
-		print HANDLE $line;
-	    }
+	} elsif ($line =~ m/^\s*targettype\s*(.*)/i) {
+	    print "Deleting targettype $1\n" if $ll >= 3;
+	    printf CHANGELOG "Deleting targettype %s from %s\n", $1, $path;
+	    $delete = 1;
 	} elsif ($delete && $line =~ m/^\s*ds/) {
 	    # delete
 	    print "Deleting line: $line" if $ll >= 3;
@@ -1110,56 +1092,121 @@ sub fillRRDdatabase {
 	my $newpath = $path;
 	$newpath =~ s/cricket-config/cricket-data/;
 
-	print "--- Creating insert for $path ---\n" if $ll >= 3;
+	print "--- Creating query for $path ---\n" if $ll >= 3;
+
+	# Next step in trying to solve this thing is to select a lot from the
+	# db at once. Here we make a hash with all the neccesary information
+	# in.
+
+	my %bighash = ();
+	my $getallinfo = "SELECT rrd_fileid, filename, netboxid, key, value FROM rrd_file WHERE path = '$newpath'";
+	my $dogetallinfo = $dbh->exec($getallinfo);
+	while (my ($id, $fname, $netbox, $k, $v) = $dogetallinfo->fetchrow) {
+	    $bighash{$id}{'filename'} = $fname;
+	    $bighash{$id}{'netboxid'} = $netbox;
+	    $bighash{$id}{'key'} = $k;
+	    $bighash{$id}{'value'} = $v;
+	    $bighash{$fname}{1} = $id;
+	}
 
 	# For all rrd-files we have in this path, add them to the db.
 
 	my @allfiles = keys ( %{ $rrdhash{$path} });
 	foreach my $filename (@allfiles) {
 
+	    my $exists = 0;
 	    my $newfilename = lc($filename.".rrd");
-	    print "\tFound $filename\n" if $ll >= 3;
+	    print "\tFound rrd-file $filename\n" if $ll >= 3;
 	
 	    my $netboxid = $rrdhash{$path}{$filename}{'netboxid'};
 
 	    # Check if it exists from before:
-	    my $checkq = "SELECT * FROM rrd_file WHERE path='".$newpath."' AND filename='".$newfilename."'";
-	    print "$checkq\n" if $ll >= 3;
-	    my $checkr = $dbh->exec($checkq);
-	    if ($checkr->ntuples > 0) {
+	    my $rrd_fileid = "";
+	    if ($bighash{$newfilename}{1}) {
 		printf "%s/%s does already exist.\n", $path, $filename if $ll >= 3;
-		next;
+		$exists = 1;
+		$rrd_fileid = $bighash{$newfilename}{1};
 	    }
 
-	    my $rrdfileq;
+
+	    # Based on whether this file exists or not, we do a update or
+	    # insert. To save time we just update the records where the
+	    # key/value pairs are wrong.
+
+	    my $rrdfileq = "";
 	    if ($rrdhash{$path}{$filename}{'interface'}) {
 		my $key = $rrdhash{$path}{$filename}{'table'};
 		my $value = $rrdhash{$path}{$filename}{'id'};
-		$rrdfileq = "INSERT INTO rrd_file (path,filename,step,netboxid,subsystem,key,value) VALUES ('$newpath','$newfilename',$step,$netboxid,'$subsystem','$key',$value)";
-	    } else {		
-		$rrdfileq = "INSERT INTO rrd_file (path,filename,step,netboxid,subsystem) VALUES ('$newpath','$newfilename',$step,$netboxid,'$subsystem')";
+
+		if ($exists) {
+		    if ($key ne $bighash{$rrd_fileid}{'key'} or $value != $bighash{$rrd_fileid}{'value'} or $netboxid != $bighash{$rrd_fileid}{'netboxid'})  {
+			$rrdfileq = "UPDATE rrd_file SET step=$step, netboxid=$netboxid, subsystem='$subsystem', key='$key', value=$value WHERE rrd_fileid=$rrd_fileid";
+		    }
+		} else {
+		    $rrdfileq = "INSERT INTO rrd_file (path,filename,step,netboxid,subsystem,key,value) VALUES ('$newpath','$newfilename',$step,$netboxid,'$subsystem','$key',$value)";
+		}
+	    } else {
+		if ($exists) {
+		    if ($netboxid != $bighash{$rrd_fileid}{'netboxid'}) {
+			$rrdfileq = "UPDATE rrd_file SET step=$step, netboxid=$netboxid, subsystem='$subsystem' WHERE rrd_fileid=$rrd_fileid";
+		    }
+		} else {
+		    $rrdfileq = "INSERT INTO rrd_file (path,filename,step,netboxid,subsystem) VALUES ('$newpath','$newfilename',$step,$netboxid,'$subsystem')";
+		}
 	    }
 
-	    my $r = $dbh->exec($rrdfileq);
+	    # If we have something to update or insert, do that, else skip.
+	    if ($rrdfileq) {
+		y $r = $dbh->exec($rrdfileq);
 	    
-	    unless ($r->resultStatus eq PGRES_COMMAND_OK) {
-		printf "ERROR DURING INSERT: %s", $dbh->errorMessage if $ll >= 2;
+		unless ($r->resultStatus eq PGRES_COMMAND_OK) {
+		    printf "ERROR DURING INSERT/UPDATE: %s", $dbh->errorMessage if $ll >= 2;
+		}
+	    
+		print "\t$rrdfileq\n" if $ll >= 3;
+	    } else {
+		print "\tNo rrdfile-query made.\n" if $ll >= 3;
 	    }
-	    
-	    print "\t$rrdfileq\n" if $ll >= 3;
 
 	    # Finding the id of what we just inserted...
-	    my $findid = "SELECT rrd_fileid FROM rrd_file WHERE path='$newpath' AND filename='$newfilename'";
-	    my $findidres = $dbh->exec($findid);
+	    unless ($exists) {
+		my $findid = "SELECT rrd_fileid FROM rrd_file WHERE path='$newpath' AND filename='$newfilename'";
+		my $findidres = $dbh->exec($findid);
 
-	    next if $findidres->ntuples == 0;
-
-	    my ($rrd_fileid) = $findidres->fetchrow;
+		next if $findidres->ntuples == 0;
+		
+		($rrd_fileid) = $findidres->fetchrow;
+	    }
 
 
 	    # TEMP
 	    $path =~ m,$cricketconfigdir(/.*)$,;
 	    my $purepath = $1;
+
+
+	    # We have now inserted or updated in the rrd_file table. Now we
+	    # are going one step down inserting or updating in the
+	    # rrd_datasource table. 
+
+	    # We know that Cricket uses dsx for every ds, where x is a value
+	    # between 0 and upwards. So we use that as key, and update the
+	    # other fields if the values differ.
+
+	    my %bigdshash = ();
+
+	    # Fetch the values from the database.
+	    if ($exists) {
+		my $fetchds = "SELECT rrd_datasourceid, name, descr, dstype FROM rrd_datasource WHERE rrd_fileid=$rrd_fileid";
+		my $dofetchds = $dbh->exec($fetchds);
+		while ( my ($dsid, $dbname, $dbdescr, $dbdstype) = $dofetchds->fetchrow) {
+		    $bigdshash{$dsid}{'descr'} = $dbdescr;
+		    $bigdshash{$dsid}{'dstype'} = $dbdstype;
+		    $bigdshash{$dsid}{'name'} = $dbname;
+		    $bigdshash{$dbname}{1} = $dsid;
+		}
+	    }
+	    
+
 
 	    # IF it's an interface, we have some static things to do
 	    if ($rrdhash{$path}{$filename}{'interface'}) {
@@ -1182,21 +1229,46 @@ sub fillRRDdatabase {
 		    # if there is some critical error, do this, but this should really never happen
 		    $dstype = 'DERIVE' unless $dstype;
 
-		    print "$dstype\n";
 
+		    my $tempdsname = 'ds'.$i;
 		    my $dsq;
 		    if ($units) {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype','$units')";
-		    } else {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype')";
-		    }
-		    
-		    my $r = $dbh->exec($dsq);
-		    print "\t\t$dsq\n" if $ll >= 3;
+			if ($exists) {
 
-		    unless ($r->resultStatus eq PGRES_COMMAND_OK) {
-			printf "ERROR DURING INSERT: %s", $dbh->errorMessage if $ll >= 2;
+			    my $tempid = $bigdshash{$tempdsname}{1};
+			    if ($tempid) {
+				if ($interfacearr[$i] ne $bigdshash{$tempid}{'descr'} or $dstype ne $bigdshash{$tempid}{'dstype'}) {
+				    $dsq = "UPDATE rrd_datasource SET descr='$interfacearr[$i]', dstype='$dstype', units='$units' WHERE rrd_fileid=$rrd_fileid AND name='ds".$i."'";
+				}
+			    }
+			} else {
+			    $dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype','$units')";
+			}
+		    } else {
+			if ($exists) {
+			    my $tempid = $bigdshash{$tempdsname}{1};
+			    if ($tempid) {
+				if ($interfacearr[$i] ne $bigdshash{$tempid}{'descr'} or $dstype ne $bigdshash{$tempid}{'dstype'}) {
+				    $dsq = "UPDATE rrd_datasource SET descr='$interfacearr[$i]', dstype='$dstype' WHERE rrd_fileid=$rrd_fileid AND name='ds".$i."'";
+				}
+			    }
+			} else {
+			    $dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$interfacearr[$i]','$dstype')";
+			}
 		    }
+
+
+		    if ($dsq) {
+			my $r = $dbh->exec($dsq);
+			print "\t\t$dsq\n" if $ll >= 3;
+			
+			unless ($r->resultStatus eq PGRES_COMMAND_OK) {
+			    #printf "ERROR DURING INSERT: %s", $dbh->errorMessage if $ll >= 2;
+			}
+		    } else {
+			print "\t\tNo datasource-query made.\n" if $ll >= 3;
+		    }
+
 
 		}
 
@@ -1222,29 +1294,56 @@ sub fillRRDdatabase {
 		    my $dsRef = $gCT->configHash($purepath, 'datasource', lc($datasource));
 		    my $dstype = $dsRef->{'rrd-ds-type'};
 
+		    my $tempdsname = 'ds'.$i;
 		    my $dsq;
 		    if ($units) {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype','$units')";
+			if ($exists) {
+			    my $tempid = $bigdshash{$tempdsname}{1};
+			    if ($tempid) {
+				if ($datasource ne $bigdshash{$tempid}{'descr'} or $dstype ne $bigdshash{$tempid}{'dstype'}) {
+				    $dsq = "UPDATE rrd_datasource SET descr='$datasource', dstype='$dstype', units='$units' WHERE rrd_fileid=$rrd_fileid AND name='ds".$i."'";
+				}
+			    }
+			} else {
+			    $dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype,units) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype','$units')";
+			}
 		    } else {
-			$dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype')";
+			if ($exists) {
+			    my $tempid = $bigdshash{$tempdsname}{1};
+			    if ($tempid) {
+				if ($datasource ne $bigdshash{$tempid}{'descr'} or $dstype ne $bigdshash{$tempid}{'dstype'}) {
+				    $dsq = "UPDATE rrd_datasource SET descr='$datasource', dstype='$dstype', units='$units' WHERE rrd_fileid=$rrd_fileid AND name='ds".$i."'";
+				}
+			    }
+			} else {
+			    $dsq = "INSERT INTO rrd_datasource (rrd_fileid,name,descr,dstype) VALUES ($rrd_fileid,'ds".$i."','$datasource','$dstype')";
+			}
 		    }
 
-		    my $r = $dbh->exec($dsq);
-		    print "\t\t$dsq\n" if $ll >= 3;
-		    
 
-		    unless ($r->resultStatus eq PGRES_COMMAND_OK) {
-			printf "ERROR DURING INSERT: %s", $dbh->errorMessage if $ll >= 2;
+		    if ($dsq) {
+			my $r = $dbh->exec($dsq);
+			print "\t\t$dsq\n" if $ll >= 3;
+			
+
+			unless ($r->resultStatus eq PGRES_COMMAND_OK) {
+			    printf "ERROR DURING INSERT: %s", $dbh->errorMessage if $ll >= 2;
+			}
+		    }  else {
+			print "\t\tNo datasource-query made.\n" if $ll >= 3;
 		    }
-		}
-	    }
-	}
-    }
+
+		} # end for loop
+	    } # end if ... else
+	} # end foreach @allfiles
+    } # end for @allpaths
 
     print "=> Done running $me <=\n" if $ll >= 2;
     return 1;
 
-}
+} # end sub fillRRDdatabase
+
+
 
 # Still under developement, lacks information in the typesnmpoid to use the
 # standard setup.
