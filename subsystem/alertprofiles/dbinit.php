@@ -25,6 +25,14 @@
  *
  */
 
+
+/**
+ * dbinit
+ * 
+ * The class dbinit handles database connectivitiy initialization.
+ * Among the tasks of this class is to read database connect information from the
+ * config file.
+ */
 class dbinit {
 
     var $dbh;
@@ -48,7 +56,7 @@ class dbinit {
         if ($this->dbh == null) {
             $filename = PATH_DB . "/db.conf";
             
-           
+           // Exit if cannot find db configuration file.
             if (!file_exists($filename)) {
                 print "<h1>" . gettext("File access error") . "</h1>";
                 print "<p>" . gettext("Could not find the database configuration file.");
@@ -65,10 +73,18 @@ class dbinit {
             $duser = "navprofile_";
             $dpass = "";
             
+            
+            // Traverse all entries in db.conf file.
             foreach ($conffile as $confline) {
+            	
+				// Skip comments.
+            		if (preg_match('/^\s*#/', $confline)) next;
+            		
                 $tvar = split('=', trim($confline));
                 if (sizeof($tvar) > 1) {
 					$prop = trim($tvar[0]); $value = trim($tvar[1]);
+					
+					//print "<p>Property [$prop] Value [$value]\n";
 	
 					switch ($prop) {
 						case 'dbhost'		: $dhost = $value; break;
@@ -81,8 +97,14 @@ class dbinit {
             }
             
             $cstr = "user=$duser password=$dpass dbname=$ddb";         
-            //echo "<p>" . $cstr;
-   
+            
+            	if (isset($dhost)) {
+            		$cstr .= " host=$dhost";
+            	}
+            	if (isset($dport)) {
+            		$cstr .= " port=$dport";
+            	}
+            //echo "<p>Connect string: " . $cstr;
             if (! $this->dbh_dbcon = pg_connect($cstr) ) {
                 print "<h1>" . gettext("Database error") . "</h1>";
                 print "<p>" . gettext("Could not connect to the navprofiles database. The database server could be down, or the logininfo could be corrupt in the database configuration file.");
@@ -118,11 +140,18 @@ class dbinit {
             $duser = "navprofilemanage_";
             $dpass = "";
             
+
+            // Traverse all entries in db.conf file.
             foreach ($conffile as $confline) {
+            	
+				// Skip comments.
+            		if (preg_match('/^\s*#/', $confline)) next;
+            		
                 $tvar = split('=', trim($confline));
                 if (sizeof($tvar) > 1) {
-					
 					$prop = trim($tvar[0]); $value = trim($tvar[1]);
+					
+					//print "<p>Property [$prop] Value [$value]\n";
 	
 					switch ($prop) {
 						case 'dbhost'			: $dhost = $value; break;
@@ -131,18 +160,17 @@ class dbinit {
 						case 'script_navprofilemanage' 	: $duser = $value; break;
 						case 'userpw_' . $duser 	: $dpass = $value; break;
 					}
-				}
-                
+                }
             }
             
-            $cstr = "user=$duser password=$dpass dbname=$ddb";  
-			if (isset($dhost)) {
-				$cstr .= " host=$dhost";
-			}
-			if (isset($dport)) {
-				$cstr .= " port=$dport";
-			}            
-            //echo "<p>" . $cstr;
+            $cstr = "user=$duser password=$dpass dbname=$ddb";         
+            
+            	if (isset($dhost)) {
+            		$cstr .= " host=$dhost";
+            	}
+            	if (isset($dport)) {
+            		$cstr .= " port=$dport";
+            	}
    
             if (! $this->dbhk_dbcon = pg_connect($cstr) ) {
                 print "<h1>" . gettext("Database error") . "</h1>";
@@ -155,9 +183,6 @@ class dbinit {
         }
         return $this->dbhk;
     }
-
-
-
 
 
     function closeall() {
