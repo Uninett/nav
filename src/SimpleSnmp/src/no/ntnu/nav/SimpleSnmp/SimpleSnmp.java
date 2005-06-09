@@ -858,6 +858,27 @@ public class SimpleSnmp
 	}
 	*/
 
+	/**
+	 * Check which version of SNMP the active device supports and set it active.
+	 */
+	public int checkSnmpVersion() {
+		// First we check if the device can support SNMPv2
+		onlyAskModule("0");
+		setSocketTimeout(500);
+		setTimeoutLimit(1);
+		setSnmpVersion(2);
+		int snmpVersion = 1;
+		try {
+			getNext("1", 1, false, true);
+			snmpVersion = 2;
+		} catch (Exception e) {
+			setSnmpVersion(1);
+		} finally {
+			onlyAskModule(null);
+			setDefaultTimeoutLimit();
+		}
+		return snmpVersion;
+	}
 
 	public void finalize() {
 		destroy();
