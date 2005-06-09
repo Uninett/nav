@@ -467,6 +467,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 				// Set OSPF
 				if (ospfMap.containsKey(ifindex)) {
+					String ospf = (String)ospfMap.get(ifindex);
+					if (ospf == null || ospf.length() == 0) continue;
 					try {
 						gwp.setOspf(Integer.parseInt((String)ospfMap.get(ifindex)));
 					} catch (NumberFormatException e) {

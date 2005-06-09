@@ -97,7 +97,7 @@ public class NetboxData extends Device
 	 * Add a VTP vlan to the netbox.
 	 */
 	public void addVtpVlan(int vtpVlan) {
-		if (vtpVlan > 0 && vtpVlan <= 999) {
+		if (vtpVlan > 0) {
 			vtpVlanSet.add(""+vtpVlan);
 		}
 	}

@@ -177,7 +177,7 @@ public class CiscoModule implements DeviceHandler
 		// Try to fetch the serial for the chassis
 		if (nc.netboxDataFactory(nb).getSerial() == null) {
 			List chassisIdList = sSnmp.getAll(nb.getOid("cChassisId"), true);
-			if (chassisIdList != null) {
+			if (chassisIdList != null && !chassisIdList.isEmpty()) {
 				String[] s = (String[])chassisIdList.get(0);
 				nc.netboxDataFactory(nb).setSerial(s[1]);
 			}
