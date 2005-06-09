@@ -1,3 +1,66 @@
+Version 3.0_rc1
+(released 09 June 2005)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ Improvements:
+
+ * Eventengine BoxState plugin now uses a queue for boxes down in
+   order to ensure that we don't send out boxdown alerts prematurely.
+
+ * The Gwport plugin of getDeviceData has been rewritten and should
+   be much more stable (less restarts of gDD necessary).
+
+ * Most of the reports in the report generator have been optimized and
+   will display much more quickly than before.
+
+ * Various improvements to Cricket to better cope with changes. This
+   should make vlanPlot display the network load more reliably.
+
+ * Send email for boxShadow and boxSunny.
+
+ * WLAN devices are correctly detected as being in shadow.
+
+ * Only allow editing of prefixes where the nettype table says it's
+   editable.
+
+ * Attempt to fix several instances of bad HTML markup in the report
+   generator, which would break on various browsers.
+
+ * Attempt to get the module number of Cisco devices correct in more
+   cases.
+
+ * Handle the case of duplicate module serials in a graceful manner.
+
+ * gDD collects data every 6 hours by default, although the default
+   is only for new devices. The collection frequency can be changed by
+   setting the 'frequency' field in the netboxsnmpoid table, and the
+   default value can be changed in getDeviceData.conf.
+
+ * Add option for setting the logging level for NAV subsystems in
+   nav.conf.
+
+ * Try to also discover closed / private VLANs.
+
+ * Support for PIDs > 65535 in pping (typical on FreeBSD).
+
+ * Add a 'monitor' thread to the cam-logger which exits the process
+   if it hangs for some reason.
+
+ * Using a separate database server has been tested and all NAV
+   subsystems should now support this.
+
+
 Version 3.0_beta10
 (released 11 February 2005)
 
