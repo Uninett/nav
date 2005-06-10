@@ -56,7 +56,7 @@ class RpcChecker(AbstractChecker):
 			protocol = mapper.get(service, '')
 			if not protocol:
 				return Event.DOWN, "Unknown argument: [%s], can only check %s" % (service, str(mapper.keys()))
-			output = os.popen('/usr/sbin/rpcinfo -%s %s %s' % (protocol,ip,service))
+			output = os.popen('/usr/sbin/rpcinfo -%s %s %s 2>/dev/null' % (protocol,ip,service))
 			output = output.read()
 			if output.find("ready"):
 				continue
