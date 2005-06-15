@@ -31,6 +31,8 @@ use strict;
 use NAV::AlertEngine::Log;
 use diagnostics;
 
+use Data::Dumper;
+
 $User::msgtype[1]="email";
 $User::msgtype[2]="sms";
 
@@ -263,49 +265,69 @@ sub checkAlertQueue()
     my $this=shift;
     my $qa=shift;
     $this->{eG}=shift;
+    
     my $send=0;
     my $c=0;
     
     $this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alerts for user $this->{id}");
     
-    #Get list of queued alerts
+    # Get list of queued alerts
     my $qas=$qa->getUserAlertIDs($this->{id});
     
+    # Loop list of queued alerts
     foreach my $aid (@$qas) {
-	$this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"chekcing queued alert $aid->{alertid}");
-	#Check active profile
-	my $aes=$this->checkActiveProfile($aid->{alertid},$qa);
-	$c=0;
-	$send=0;
-	foreach my $ae (@$aes)
-	{
-	    $c++;
-	    if(!$ae->{queue}){
-		$this->sendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
-		$send++;
-	    } else {
-		#Check daily
-		if($aid->{day} && $ae->{queue}==$this->{DAILY}) {
-		    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
-		    $this->{dbh}->do("update preference set lastsentday=now() where accountid=$this->{id}");    
-		    $send++;
-		} elsif($aid->{week} && $ae->{queue}==$this->{WEEKLY}) {
-		    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
-		    $this->{dbh}->do("update preference set lastsentweek=now() where accountid=$this->{id}");    
-		    $send++;
-		} elsif($aid->{max} && $ae->{queue}==$this->{MAX}) {
-		    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
-		    $send++;
-		}
-	    }
-	}
+		$this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alert $aid->{alertid}");
+		
+		#Check active profile
+		my $aes = $this->checkActiveProfile($aid->{alertid},$qa);
+		$c=0;
+		$send=0;
 
-	if($c==0) {
-	    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$aid->{addressid});
-	}
-	if($send==$c) {	    
-	    $qa->deleteAlert($aid->{alertid},$this->{id},$aid->{addressid});
-	}
+				
+		# Loop alert subscriptions to current profile..
+		foreach my $ae (@$aes)
+		{
+		    $c++;
+		    if(!$ae->{queue}){
+				$this->sendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
+				$send++;
+		    } else {
+		    	
+				#Check daily
+				if($aid->{day} && $ae->{queue}==$this->{DAILY}) {
+				    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
+				    $this->{dbh}->do("update preference set lastsentday=now() where accountid=$this->{id}");    
+				    $send++;
+				    
+				# Check weekly
+				} elsif($aid->{week} && $ae->{queue}==$this->{WEEKLY}) {
+				    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
+				    $this->{dbh}->do("update preference set lastsentweek=now() where accountid=$this->{id}");    
+				    $send++;
+				
+				# Check max queue
+				} elsif($aid->{max} && $ae->{queue}==$this->{MAX}) {
+				    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$ae->{address});
+				    $send++;
+				}
+		    }
+		}
+	
+		# $c is the number of (equipmentgroup, addressid, queuetype) that matches the current alert.
+		# $send is the number of sent messages for this alertID.
+		
+		#$this->{log}->printlog("User","checkAlertQueue",$Log::debugging," Variable Debug: c = $c");
+		#$this->{log}->printlog("User","checkAlertQueue",$Log::debugging," Variable Debug: send = $send");
+		
+		# TODO: Ask Arne if this is neccessary?
+		if($c==0) {
+		    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$aid->{addressid});
+		}
+		
+		
+		if($send > 0) {	    
+		    $qa->deleteAlert($aid->{alertid},$this->{id},$aid->{addressid});
+		}
     }		        
 
     $this->sendPreparedAlerts();
@@ -481,6 +503,9 @@ EOF
     close(SENDMAIL)     or warn "sendmail didn't close nicely";
   }
 
+
+# This function takes an alertID as input, and return a list of (equipment group, address, queuetype) tuples for the current timeperiod,
+#	that matches the alertID.
 sub checkActiveProfile()
   {
     my ($this,$alertid,$alerts)=@_;
@@ -498,14 +523,17 @@ sub checkActiveProfile()
     my $aes=$tp->{aE};
     my $check;
 
-    foreach my $a (@$aes)
-      {
-	  $check=$this->{eG}->checkAlert($a->{eGID},$alerts->getAlert($alertid));
-	  if($check)
-	  {
-	    push @$ae,$a;	    
-	  }
-      }
+    foreach my $a (@$aes) {
+      	# Check if a given alert matches a given equipment group
+		$check=$this->{eG}->checkAlert($a->{eGID},$alerts->getAlert($alertid));
+		
+		# Add to list if so...
+		if($check) {
+			push @$ae,$a;	    
+		}
+	}
+	
+	# Return list of (equipment group, address, queuetype) tuples that matches the current active profile.
     return $ae;
   }
 
