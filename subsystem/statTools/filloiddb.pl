@@ -82,7 +82,15 @@ sub fillfromfile {
 	    $res = $dbh->exec($query);
 
 	    if ($res->ntuples > 0) {
-		my ($key,$oidkey,$snmpoid,$descr,$oidsource) = $res->fetchrow;
+
+		# I want a perlmodule which fills hashes with db-output...
+		my @result = $res->fetchrow;
+
+		my $oidkey = $result[$res->fnumber('oidkey')];
+		my $snmpoid = $result[$res->fnumber('snmpoid')];
+		my $descr = $result[$res->fnumber('descr')];
+		my $oidsource = $result[$res->fnumber('oidsource')];
+
 		if (($oidsource eq $keyword) || ($oidsource eq $keyword2)) {
 		    $foundcounter++;
 		    printf "Found existing row %s,%s,%s,%s\n",$oidkey,$snmpoid,$descr,$oidsource if $ll >= 3;
