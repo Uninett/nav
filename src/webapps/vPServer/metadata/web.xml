@@ -11,34 +11,26 @@
     </description>
 
     <context-param>
-      <param-name>navRoot</param-name>
-      <param-value>/usr/local/nav/</param-value>
-      <description>
-        The NAV root (needs trailing /)
-      </description>
-    </context-param>
-
-    <context-param>
       <param-name>dbConfigFile</param-name>
-      <param-value>etc/db.conf</param-value>
+      <param-value>db.conf</param-value>
       <description>
-        Location of the config file within the NAV root
+        Name of the database config file within the NAV config directory
       </description>
     </context-param>
 
     <context-param>
       <param-name>configFile</param-name>
-      <param-value>etc/vPServer.conf</param-value>
+      <param-value>vPServer.conf</param-value>
       <description>
-        Location of the config file within the NAV root
+        Name of the vPServer config file within the NAV config directory
       </description>
     </context-param>
 
     <context-param>
       <param-name>navConfigFile</param-name>
-      <param-value>etc/nav.conf</param-value>
+      <param-value>nav.conf</param-value>
       <description>
-        Location of the config file within the NAV root
+        Name of the NAV config file within the NAV config directory
       </description>
     </context-param>
 

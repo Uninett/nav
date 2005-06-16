@@ -5,6 +5,7 @@
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.Path;
 
 import java.io.*;
 
@@ -28,14 +29,13 @@ public class navAdmin extends HttpServlet
 		Com com = new Com();
 		ServletOutputStream out = res.getOutputStream();
 
-		String navRoot = getServletContext().getInitParameter("navRoot");
 		String dbConfigFile = getServletContext().getInitParameter("dbConfigFile");
 		String configFile = getServletContext().getInitParameter("configFile");
 		String navConfigFile = getServletContext().getInitParameter("navConfigFile");
 
 		ConfigParser cp, dbCp, navCp;
 		try {
-			cp = new ConfigParser(navRoot + configFile);
+			cp = new ConfigParser(Path.sysconfdir + File.separatorChar + configFile);
 		} catch (IOException e) {
 			cp = null;
 			/*
@@ -44,9 +44,9 @@ public class navAdmin extends HttpServlet
 			*/
 		}
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(Path.sysconfdir + File.separatorChar + dbConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read database config file: " + navRoot + dbConfigFile);
+			out.println("Error, could not read database config file: " + Path.sysconfdir + File.separatorChar + dbConfigFile);
 			return;
 		}
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
@@ -54,9 +54,9 @@ public class navAdmin extends HttpServlet
 			return;
 		}
 		try {
-			navCp = new ConfigParser(navRoot + navConfigFile);
+			navCp = new ConfigParser(Path.sysconfdir + File.separatorChar + navConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read nav config file: " + navRoot + navConfigFile);
+			out.println("Error, could not read nav config file: " + Path.sysconfdir + File.separatorChar + navConfigFile);
 			return;
 		}
 		com.setConf(cp);

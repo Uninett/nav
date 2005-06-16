@@ -9,6 +9,7 @@
 
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.Database.*;
+import no.ntnu.nav.Path;
 
 import java.io.*;
 import java.util.*;
@@ -34,28 +35,27 @@ public class vPServer extends HttpServlet
 		ServletOutputStream out = res.getOutputStream();
 
 
-		String navRoot = getServletContext().getInitParameter("navRoot");
 		String dbConfigFile = getServletContext().getInitParameter("dbConfigFile");
 		String configFile = getServletContext().getInitParameter("configFile");
 		String navConfigFile = getServletContext().getInitParameter("navConfigFile");
 
 		ConfigParser cp, dbCp, navCp;
 		try {
-			cp = new ConfigParser(navRoot + configFile);
+			cp = new ConfigParser(Path.sysconfdir + File.separatorChar + configFile);
 		} catch (IOException e) {
-			out.println("Error, could not read config file: " + navRoot + configFile);
+			out.println("Error, could not read config file: " + Path.sysconfdir + File.separatorChar + configFile);
 			return;
 		}
 		try {
-			dbCp = new ConfigParser(navRoot + dbConfigFile);
+			dbCp = new ConfigParser(Path.sysconfdir + File.separatorChar + dbConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read database config file: " + navRoot + dbConfigFile);
+			out.println("Error, could not read database config file: " + Path.sysconfdir + File.separatorChar + dbConfigFile);
 			return;
 		}
 		try {
-			navCp = new ConfigParser(navRoot + navConfigFile);
+			navCp = new ConfigParser(Path.sysconfdir + File.separatorChar + navConfigFile);
 		} catch (IOException e) {
-			out.println("Error, could not read nav config file: " + navRoot + navConfigFile);
+			out.println("Error, could not read nav config file: " + Path.sysconfdir + File.separatorChar + navConfigFile);
 			return;
 		}
 
@@ -953,11 +953,8 @@ class SqlBoks
 	{
 		List rrd = new ArrayList();
 		try {
-			File hostBin = new File("/usr/bin/python");
-
 			String[] hostCmd = {
-				//hostBin.getAbsolutePath(),
-				navCp.get("NAVROOT") + File.separatorChar + "bin" + File.separatorChar + "vprrd.py",
+				Path.bindir + File.separatorChar + "vprrd.py",
 			};
 
 			Runtime rt = Runtime.getRuntime();
