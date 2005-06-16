@@ -219,7 +219,7 @@ def rma(req,path):
     if form.has_key(CN_ADD_DEVICE):
         if form.has_key(CN_DEVICE):
             deviceidList = form[CN_DEVICE]
-            if type(deviceidList) is str:
+            if type(deviceidList) in (str, unicode, util.StringField):
                 deviceidList = [deviceidList]
     elif form.has_key(CN_ADD_RMA):
         if form.has_key(CN_RMANUMBER):
@@ -228,7 +228,8 @@ def rma(req,path):
                     if len(form[CN_ADDED_DEVICES]):
                         rmanumber = form[CN_RMANUMBER]
                         deviceidsAdded = form[CN_ADDED_DEVICES]
-                        if type(deviceidsAdded) is str:
+                        if type(deviceidsAdded) in (str, unicode,
+                                                    util.StringField):
                             deviceidsAdded = [deviceidsAdded]
                         retailer = None
                         if form.has_key(CN_RMARETAILER):
@@ -261,7 +262,7 @@ def rma(req,path):
         addedDevices = []
         if form.has_key(CN_ADDED_DEVICES):
             addedDevices = form[CN_ADDED_DEVICES]
-            if type(addedDevices) is str:
+            if type(addedDevices) in (str, unicode, util.StringField):
                 addedDevices = [addedDevices]
 
         for deviceid in deviceidList:
@@ -1008,14 +1009,14 @@ def delete(req,path):
         # Delete module pressed
         if form.has_key(CN_MODULE_SELECT):
             deviceidList = form[CN_MODULE_SELECT]
-            if type(deviceidList) is str:
+            if type(deviceidList) in (str, unicode, util.StringField):
                 deviceidList = [deviceidList]
             subpath = 'confirmdelete'
         else:
             page.errors.append('No modules selected')
     elif form.has_key(CN_DELETE_MODULE_CONFIRM):
         deviceidList = form[CN_MODULE_SELECT]
-        if type(deviceidList) is str:
+        if type(deviceidList) in (str, unicode, util.StringField):
             deviceidList = [deviceidList]
  
         if len(form[CN_MOVETO]):
@@ -1055,7 +1056,7 @@ def delete(req,path):
             subpath = 'confirmdelete'
     elif form.has_key(CN_INVENTORY_MOVE):
         deviceidList = form[CN_MODULE_SELECT]
-        if type(deviceidList) is str:
+        if type(deviceidList) in (str, unicode, util.StringField):
             deviceidList = [deviceidList]
         for deviceid in deviceidList:
             # Set device inactive
@@ -1075,7 +1076,7 @@ def delete(req,path):
         page.messages.append('Set as inactive')
     elif form.has_key(CN_INACTIVE_MOVE):
         deviceidList = form[CN_MODULE_SELECT]
-        if type(deviceidList) is str:
+        if type(deviceidList) in (str, unicode, util.StringField):
             deviceidList = [deviceidList]
         for deviceid in deviceidList:
             # Set device active
@@ -1218,7 +1219,7 @@ def delete(req,path):
               "module.netboxid=netbox.netboxid AND " +\
               "alerthist.deviceid=module.deviceid AND " +\
               "module.up='n' AND alerthist.eventtypeid='moduleState' AND " +\
-              "alerthist.end_time='infinity' AND device.active='true' " +\
+              "alerthist.end_time='infinity' " +\
               "ORDER BY alerthist.start_time "
 
         page.widgets['delete'] = Widget(CN_DELETE_MODULE,'submit','Next')
@@ -1264,11 +1265,11 @@ def newWidget(oldWidget):
     return widget
 
 def registerDevices(form,orderid,username,page):
-    if type(form[CN_SERIAL]) is str:
+    if type(form[CN_SERIAL]) in (str, unicode, util.StringField):
         serialList = [form[CN_SERIAL]]
     else:
         serialList = form[CN_SERIAL]
-    if type(form[CN_STATE]) is str:
+    if type(form[CN_STATE]) in (str, unicode, util.StringField):
         stateList = [form[CN_STATE]]
     else:
         stateList = form[CN_STATE]
@@ -2869,7 +2870,7 @@ def registerOrderOld(req,orderId):
         if req.form.has_key('cn_state'):
             states = req.form['cn_state']
             serials = req.form['cn_serial']
-            if type(states) is str:
+            if type(states) in (str, unicode, util.StringField):
                 states = [states]
                 serials = [serials]
 
