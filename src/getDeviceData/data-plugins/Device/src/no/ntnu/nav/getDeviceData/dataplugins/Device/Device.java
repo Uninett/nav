@@ -6,7 +6,7 @@ import java.util.*;
  * Describes a single device. Normally this class will be inherited.
  */
 
-public class Device
+public class Device implements Comparable
 {
 	private static String[] badSerial = {
 		"0",
@@ -141,6 +141,10 @@ public class Device
 						serial.equals(((Device)o).serial));
 	}
 
+	public int compareTo(Object o) {
+		Device d = (Device)o;
+		return new Integer(deviceid).compareTo(new Integer(d.deviceid));
+	}
 	public String toString() { return "devid="+deviceid+" serial="+serial+" hw_ver="+hw_ver+" fw_ver="+fw_ver+" sw_ver="+sw_ver + " ["+super.toString()+"]"; }
 
 }
