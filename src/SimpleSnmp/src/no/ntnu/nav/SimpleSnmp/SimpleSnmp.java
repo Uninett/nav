@@ -659,6 +659,11 @@ public class SimpleSnmp
 				} else {
 					data = snmpValue.toString();
 				}
+				data = data.trim();
+				if (data.length() == 0 && !(snmpValue instanceof SNMPOctetString)) {
+					// Skip empty variables which are not strings
+					continue;
+				}
 
 				String[] s = {
 					oid.length() == baseOid.length() ? "" : oid.substring(baseOid.length()+1, oid.length()),
