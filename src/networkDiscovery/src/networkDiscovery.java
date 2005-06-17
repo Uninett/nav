@@ -1281,9 +1281,13 @@ class networkDiscovery
 			// Delete mismatching ports
 			// DELETE FROM swport WHERE swportid IN (SELECT swportid FROM swport JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE vlan.vlan != swport.vlan AND direction IN ('x','u'))
 			String[] vlansDone = util.stringArray(doneVlan);
-			Arrays.sort(vlansDone);
+			String vlansDoneS = "";
+			if (vlansDone.length > 0) {
+				Arrays.sort(vlansDone);
+				vlansDoneS = "AND vlan NOT IN (" + util.join(vlansDone, ",") + ")";
+			}
 			//String sql = "SELECT swportid,vlan,vlanid,sysname,to_netboxid,to_swportid,trunk FROM swport JOIN module USING(moduleid) JOIN netbox ON (to_netboxid=netbox.netboxid) LEFT JOIN swportvlan USING(swportid) WHERE vlan NOT IN (" + util.join(vlansDone, ",") + ") AND to_netboxid IS NOT NULL AND vlan IS NOT NULL AND (direction IS NULL OR direction IN ('x','u')) ORDER BY vlan, vlanid";
-			String sql = "SELECT DISTINCT netboxid,vlan,vlanid,sysname FROM swport JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swportvlan USING(swportid) WHERE vlan NOT IN (" + util.join(vlansDone, ",") + ") AND vlan IS NOT NULL AND trunk!=TRUE AND (direction IS NULL OR direction IN ('x','u')) ORDER BY vlan DESC, vlanid";
+			String sql = "SELECT DISTINCT netboxid,vlan,vlanid,sysname FROM swport JOIN module USING(moduleid) JOIN netbox USING (netboxid) LEFT JOIN swportvlan USING(swportid) WHERE vlan IS NOT NULL " + vlansDoneS + " AND trunk!=TRUE AND (direction IS NULL OR direction IN ('x','u')) ORDER BY vlan DESC, vlanid";
 			rs = Database.query(sql);
 			outl("SQL: " + sql);
 			int prevvlan=-1;
