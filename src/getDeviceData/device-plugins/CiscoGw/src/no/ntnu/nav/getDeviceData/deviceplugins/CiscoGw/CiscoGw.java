@@ -318,7 +318,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				}
 			}
 
-
 			List l = sSnmp.getAll(nb.getOid("ifDescr"), true);
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -468,11 +467,15 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				// Set OSPF
 				if (ospfMap.containsKey(ifindex)) {
 					String ospf = (String)ospfMap.get(ifindex);
-					if (ospf == null || ospf.length() == 0) continue;
-					try {
-						gwp.setOspf(Integer.parseInt((String)ospfMap.get(ifindex)));
-					} catch (NumberFormatException e) {
-						System.err.println("Malformed OSPF: " + ospfMap.get(ifindex));
+					if (ospf == null || ospf.length() == 0) {
+						System.err.println("Error, ospf is empty for " + nb.getSysname() + " ifindex: " + ifindex);
+						Log.e("PROCESS_CGW", "OSPF is empty for " + nb.getSysname() + " ifindex: " + ifindex);
+					} else {
+						try {
+							gwp.setOspf(Integer.parseInt((String)ospfMap.get(ifindex)));
+						} catch (NumberFormatException e) {
+							System.err.println("Malformed OSPF: " + ospfMap.get(ifindex));
+						}
 					}
 				}
 
@@ -492,7 +495,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 					boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey( Prefix.ipToHex(gwip) );
 					Prefix p = gwp.prefixFactory(gwip, hsrp, mask, vl);
-
 				}
 				
 			}

@@ -227,7 +227,7 @@ public class GwportHandler implements DataHandler {
 							}
 						}
 						if (!gwp.getGwportPrefices().hasNext()) {
-							//System.err.println("  Not adding gwp because no prefices: " + gwp);
+							errl("    Not adding gwp because no prefices: " + gwp);
 							continue;
 						}
 
