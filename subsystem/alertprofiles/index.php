@@ -207,7 +207,7 @@ textdomain($domain);
 require("listing.php");
 ?>
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 
 <head>
@@ -223,7 +223,7 @@ require("listing.php");
 
 </head>
 
-<body bgcolor="#ffffff" text="#000000">
+<body bgcolor="#ffffff" text="#000000" -->
 
 
 <!-- INCLUDE HEADER -->
@@ -241,9 +241,14 @@ $pyhtml = implode("\n",$out);
 if ($retval == 0) {
 	//echo '<h1>' . `which python`. ":::::" .$cmd . 'RetVAL:' . $retval . '</h1><pre>' . $pyhtml . '</pre>';
 	
-	if (preg_match('/<(body|BODY).*?>(.*?)%%%/s', $pyhtml, $header) and
+	
+	if (preg_match('/^(.*)%%%/s', $pyhtml, $header) and
 		preg_match('/%%%(.*?)<\/(body|BODY)>/s', $pyhtml, $footer) ) {
-			echo $header[2];
+			
+			$newheader = $header[1];
+			$newheader = preg_replace('/<head>/', '<head><link rel="Stylesheet" type="text/css" media="all" charset="utf-8" href="css/stil.css">', $newheader);
+			
+			echo $newheader;
 		
 	} else {
 		print '<div style="background: #ffffff; border: thin solid black; width: 100%"><h3>Error creating header. navTemplate.py returns bad content:</h3><textarea style="width: 100%; height: 20%">' . 
