@@ -154,7 +154,6 @@ public class SwportHandler implements DataHandler {
 
 			Map moduleMap = new HashMap();
 			ResultSet rs = Database.query("SELECT swportid,moduleid,ifindex,port,interface,link,speed,duplex,media,trunk,portname,vlan,hexstring FROM swport LEFT JOIN swportallowedvlan USING (swportid) WHERE moduleid IN ("+ util.join(moduleidA, ",") +")");
-			int previd = -1;
 			Map swportMap = new HashMap();
 			Map portModuleMap = new HashMap();
 			while (rs.next()) {
@@ -165,17 +164,26 @@ public class SwportHandler implements DataHandler {
 				String ifindex = rs.getString("ifindex");
 				if (swportMap.containsKey(ifindex)) {
 					// Delete old ifindex
-					Log.d("DEL_IFINDEX", "Deleting duplicate ifindex " + ifindex + " on " + nb.getSysname());
+					Log.d("DEL_DUP_IFINDEX", "Deleting duplicate ifindex " + ifindex + " on " + nb.getSysname());
 					Database.update("DELETE FROM swport WHERE swportid="+rs.getInt("swportid"));
 					continue;
 				}
+
+				if (rs.getString("port") != null) {
+					Integer port = new Integer(rs.getInt("port"));
+					if (portMap.containsKey(port)) {
+						Log.d("DEL_DUP_PORT", "Deleting duplicate port " + port + " on moduleid " + rs.getString("moduleid") + ", " + nb.getSysname());
+						Database.update("DELETE FROM swport WHERE swportid = '"+rs.getString("swportid")+"'");
+						continue;
+					} else {
+						portMap.put(port, rs.getString("swportid"));
+					}
+				}
+
 				Swport sd = new Swport(ifindex);
 				sd.setSwportid(rs.getInt("swportid"));
-						
-				if (rs.getString("port") != null) {
-					sd.setPort(new Integer(rs.getInt("port")));
-					portMap.put(new Integer(rs.getInt("port")), rs.getString("swportid"));
-				}
+				sd.setPort(new Integer(rs.getInt("port")));
+
 				if (rs.getString("link") != null) sd.setLink(rs.getString("link").charAt(0));
 				sd.setSpeed(rs.getString("speed"));
 				if (rs.getString("duplex") != null) sd.setDuplex(rs.getString("duplex").charAt(0));
@@ -208,12 +216,16 @@ public class SwportHandler implements DataHandler {
 
 					Swport oldsd = (Swport)swportMap.get(sd.getIfindex());
 
-					if (oldsd == null) {
-						// If there is an identical port, delete it
-						if (portMap.containsKey(sd.getPort())) {
+					// If there is an identical port, delete it
+					if (sd.getPort() != null && portMap.containsKey(sd.getPort())) {
+						if (oldsd == null || (!oldsd.getSwportidS().equals(portMap.get(sd.getPort())))) {
 							System.err.println("Want to delete port: " + moduleid +  ", " + sd.getPort() + ", " + nb);
+							Log.d("DEL_DUP_PORT", "Deleting old duplicate port " + sd.getPort() + " on module " + moduleid);
 							Database.update("DELETE FROM swport WHERE swportid = '"+portMap.get(sd.getPort())+"'");
 						}
+					}
+
+					if (oldsd == null) {
 
 						// Sett inn ny
 						rs = Database.query("SELECT nextval('swport_swportid_seq') AS swportid");
@@ -230,7 +242,7 @@ public class SwportHandler implements DataHandler {
 							"interface", Database.addSlashes(sd.getInterface()),
 							"link", sd.getLinkS(),
 							"speed", sd.getSpeed(),
-							"duplex", sd.getDuplexS(),
+							"Duplex", sd.getDuplexS(),
 							"media", Database.addSlashes(sd.getMedia()),
 							"vlan", sd.getVlanS(),
 							"trunk", sd.getTrunkS(),
@@ -239,7 +251,6 @@ public class SwportHandler implements DataHandler {
 						Database.insert("swport", inss);
 						//changedDeviceids.put(md.getDeviceidS(), new Integer(DataHandler.DEVICE_ADDED));
 						newcnt++;
-						//portMap.put(portKey, swportid);
 
 					} else {
 						swportid = oldsd.getSwportidS();
@@ -250,7 +261,6 @@ public class SwportHandler implements DataHandler {
 
 							String[] set = {
 								"moduleid", moduleid,
-								"ifindex", sd.getIfindex(),
 								"port", sd.getPortS(),
 								"interface", Database.addSlashes(sd.getInterface()),
 								"link", sd.getLinkS(),
@@ -279,6 +289,7 @@ public class SwportHandler implements DataHandler {
 						}
 					}
 					sd.setSwportid(swportid);
+					if (sd.getPort() != null) portMap.put(sd.getPort(), swportid);
 
 					sd.setRetEmptyHexstring(true);
 					if (sd.getTrunk() != null && !sd.getTrunk().booleanValue()) {
