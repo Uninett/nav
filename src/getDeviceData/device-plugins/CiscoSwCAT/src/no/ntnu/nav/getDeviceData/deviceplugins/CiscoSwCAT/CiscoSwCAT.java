@@ -173,11 +173,13 @@ public class CiscoSwCAT implements DeviceHandler
 
 				String modport = s[0];
 				String ifindex = s[1];
-				String[] s2 = s[0].split("\\.");
+				String[] s2 = modport.split("\\.");
+				Integer module = Integer.valueOf(s2[0]);
+				Integer port = Integer.valueOf(s2[1]);
 				modPortIfindex.put(s[0],s[1]);
 			
-				Integer port = Integer.valueOf(s2[1]);
-				sc.swportFactory(ifindex).setPort(port);
+				SwModule swm = sc.swModuleFactory(module.intValue());
+				swm.swportFactory(ifindex).setPort(port); // Create module <-> ifindex mapping
 			}
 			
 			l = sSnmp.getAll(nb.getOid("portDuplex"));

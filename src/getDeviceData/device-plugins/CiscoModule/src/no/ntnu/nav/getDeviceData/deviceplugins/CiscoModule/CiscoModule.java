@@ -338,47 +338,49 @@ public class CiscoModule implements DeviceHandler
 			}
 		}
 
+		if (DEBUG) err("modTrans: " + modTrans);
+
 		// cL3*
 		{
 			Set valid;
 			if (cl3Serial != null && !(valid = getValidCL3Modules(cl3Serial)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
-					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
-					if (DEBUG) err("Created module " + module + " from cL3");				
-					mc.moduleFactory(module).setSerial((String)cl3Serial.get(module+"000"));
+					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
+					if (DEBUG) err("Created module " + nModule + " from cL3: " + cl3Serial.get(module+"000"));				
+					mc.moduleFactory(nModule).setSerial((String)cl3Serial.get(module+"000"));
 				}
 			}
 
 			if (cl3Model != null && !(valid = getValidCL3Modules(cl3Model)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
-					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
-					mc.moduleFactory(module).setDescr((String)cl3Model.get(module+"000"));
+					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
+					mc.moduleFactory(nModule).setDescr((String)cl3Model.get(module+"000"));
 				}
 			}
 
 			if (cl3HwVer != null && !(valid = getValidCL3Modules(cl3HwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
-					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
-					mc.moduleFactory(module).setHwVer((String)cl3HwVer.get(module+"000"));
+					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
+					mc.moduleFactory(nModule).setHwVer((String)cl3HwVer.get(module+"000"));
 				}
 			}
 
 			if (cl3FwVer != null && !(valid = getValidCL3Modules(cl3FwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
-					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
-					mc.moduleFactory(module).setFwVer((String)cl3FwVer.get(module+"000"));
+					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
+					mc.moduleFactory(nModule).setFwVer((String)cl3FwVer.get(module+"000"));
 				}
 			}
 
 			if (cl3SwVer != null && !(valid = getValidCL3Modules(cl3SwVer)).isEmpty()) {
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
-					if (modTrans.containsKey(module)) module = (String)modTrans.get(module);
-					mc.moduleFactory(module).setSwVer((String)cl3SwVer.get(module+"000"));
+					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
+					mc.moduleFactory(nModule).setSwVer((String)cl3SwVer.get(module+"000"));
 				}
 			}
 		}
@@ -447,7 +449,7 @@ public class CiscoModule implements DeviceHandler
 					if (DEBUG) err("Did not create module " + module + " from Phys");				
 					continue;
 				}
-				if (DEBUG) err("Created module " + module + " from Phys");
+				if (DEBUG) err("Created module " + module + " from Phys: " + physSerial.get(id));
 				Module m = mc.moduleFactory(module);
 
 				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));
