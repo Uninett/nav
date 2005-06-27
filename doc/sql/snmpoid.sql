@@ -432,11 +432,15 @@ VALUES ('ifVlansAllowed','1.3.6.1.4.1.9.9.46.1.6.1.1.4','cL3-sw',NULL,'0',NULL,'
 
 DELETE FROM snmpoid WHERE oidkey='iosDuplex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('iosDuplex','1.3.6.1.4.1.9.9.87.1.4.1.1.32.0','ios-sw',NULL,'0',NULL,'0','c2900PortDuplexStatus','CISCO-C2900-MIB');
+VALUES ('iosDuplex','1.3.6.1.4.1.9.9.87.1.4.1.1.32.0','ios-sw',NULL,true,NULL,'0','c2900PortDuplexStatus','CISCO-C2900-MIB');
+
+DELETE FROM snmpoid WHERE oidkey='iosPortIfindex';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('iosPortIfindex','1.3.6.1.4.1.9.9.87.1.4.1.1.25.0','ios-sw',NULL,true,NULL,'0','c2900PortIfIndex','CISCO-C2900-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='iosTrunk';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('iosTrunk','1.3.6.1.4.1.9.9.87.1.4.1.1.6.0','ios-sw',NULL,'0',NULL,'0','c2900PortMayForwardFrames','CISCO-C2900-MIB');
+VALUES ('iosTrunk','1.3.6.1.4.1.9.9.87.1.4.1.1.6.0','ios-sw',NULL,true,NULL,'0','c2900PortMayForwardFrames','CISCO-C2900-MIB');
 
 DELETE FROM snmpoid WHERE oidkey='ipAdEntIfIndex';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
