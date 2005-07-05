@@ -36,14 +36,14 @@ import time
 
 def main(args):
     dbname = "manage"
-    dbuser = os.getenv('PGUSER')
-    if not dbuser:
-        dbuser = "postgres"
+    dbhost = os.getenv('PGHOST') or 'localhost'
+    dbport = os.getenv('PGPORT') or '5432'
+    dbuser = os.getenv('PGUSER') or 'postgres'
     dbpasswd = os.getenv('PGPASSWORD')
 
     connection = psycopg.connect(
-        'host=localhost dbname=%s user=%s password=%s' %
-        (dbname, dbuser, dbpasswd))
+        'host=%s port=%s dbname=%s user=%s password=%s' %
+        (dbhost, dbport, dbname, dbuser, dbpasswd))
     cursor = connection.cursor()
     cursor.execute("SELECT oidkey, snmpoid, descr, oidsource, getnext, " +
                    "match_regex, decodehex, oidname, mib FROM snmpoid " +
@@ -70,7 +70,7 @@ def main(args):
     # We insert statements that will force getDeviceData to re-test all
     # the boxes, as we've made changed to the list of known snmpoids.
     print
-    print "UPDATE snmpoid SET uptodate=true;"
+    print "UPDATE snmpoid SET getnext=true, uptodate=true;"
     print "UPDATE netbox SET uptodate=false;"
     print
     print "COMMIT;"
