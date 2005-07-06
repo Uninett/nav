@@ -131,24 +131,12 @@ class Report:
 
         returns the new path
         """
-        
+        uri = URI(path)
         stripFields = ['limit','offset']
-
-        if stripFields:
-
-            for field in stripFields:
-
-                path = re.sub("\&?" + field + "=\S+?(?:\&|$)", "", path, re.I)
-
-        res = re.search("\&",path)
-
-        if res:
-            resq = re.search("\?",path)
-
-            if not resq:
-                path = re.sub("\&","?",path,1)
-
-        return path
+        for field in stripFields:
+            if field in uri.args:
+                del uri.args[field]
+        return uri.make()
 
     def fieldNum(self,fields):
         """
