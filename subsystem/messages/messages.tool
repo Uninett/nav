@@ -1,5 +1,5 @@
 name=Messages
 uri=/messages/
 icon=/images/toolbox/tools/emotd.gif
-description=Insert and view information regarding maintainance windows and unscheduled downtime.
+description=Read and publish operational messages, edit equipment maintenance schedules.
 priority=91

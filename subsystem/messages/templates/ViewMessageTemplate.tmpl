@@ -55,7 +55,7 @@ $message.description
 $message.detail</p>
 #end if
 #if $message.equipment
-$equipmentList($message.equipment)
+$equipmentList($message.equipment, $message.emotdid)
 #end if
 #if $message.maint_start and $access
 <p><label class="title">Maintenance window:</label> $message.maint_start - $message.maint_end</p>

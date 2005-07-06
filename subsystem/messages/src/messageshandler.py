@@ -1,5 +1,5 @@
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2003-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -455,7 +455,7 @@ def maintenance(req, id = None):
                                'sysname',
                                'netboxid',
                                'roomid',
-                               multiple=True,
+                               multiple=False,
                                multipleSize=10,
                                preSelected = sr['netboxes'])
 
@@ -768,13 +768,12 @@ def submit(req):
                 messagepublishend = req.session['emotdmessage']['maint_end']
             if req.session['emotdmessage'].has_key('type') and req.session['emotdmessage']['type']:
                 messagetype = req.session['emotdmessage']['type']
-                
-            
-            ### get next emotdid
-            database.execute("select nextval('emotd_emotdid_seq')")
-            emotdid = int(database.fetchone()[0])
 
             if messagetitle and messagedescription:
+                ### get next emotdid
+                database.execute("select nextval('emotd_emotdid_seq')")
+                emotdid = int(database.fetchone()[0])
+
                 database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)", (emotdid, messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
                 #raise repr("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)" % (emotdid, messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
 
@@ -787,7 +786,11 @@ def submit(req):
 
                 if messagemaintstart and messagemaintend:
                     database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
-               
+            else:
+                # For now, just return to the same page if
+                # messagetitle or messagedescription is missing.
+                req.session.save()
+                redirect(req,BASEPATH+"add")
         req.session["equipment"] = {}
         req.session["emotdmessage"] = {}
         connection.commit()

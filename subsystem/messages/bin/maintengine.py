@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: ISO-8859-1 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2003-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -24,10 +24,10 @@
 # Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>, 2003
 #          Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
 #
+"""This program dispatches maintenance events according to the
+maintenance schedule in NAVdb.
 """
-This module contains functionality related to eMotd and maintenance.
-"""
-
+import sys
 from nav import db
 from mx import DateTime
 
@@ -36,7 +36,9 @@ from mx import DateTime
 events = []
 states = ['scheduled','active','passed','overridden']
 debug = False
+boxesOffMaintenance = []
 connection = db.getConnection('eventEngine','manage')
+connection.autocommit(0)
 database = connection.cursor()
 
 
@@ -80,8 +82,14 @@ def send_event():
         type = event['type']
 
         # handle that follow-ups copies manitenance units from its parent
-        sql = "select key,value,type from emotd_related inner join emotd using (emotdid) where emotdid=%d and (emotd.replaces_emotd is null and maintenance.state = 'scheduled' or emotd.replaces_emotd is not null and maintenance.state = 'active')" % int(emotdid)
-        database.execute(sql)
+        sql = """SELECT key, value, type
+                 FROM emotd_related
+                 INNER JOIN emotd USING (emotdid)
+                 WHERE emotdid=%s
+                 AND emotdid NOT IN (SELECT replaces_emotd
+                                     FROM emotd
+                                     WHERE replaces_emotd IS NOT NULL)"""
+        database.execute(sql, (emotdid, ))
         
         for (key,val,emotdtype) in database.fetchall():
             target = 'eventEngine'
@@ -124,6 +132,10 @@ def send_event():
                     #insert sysname into eventqvar
                     database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), key, sysname))
 
+                    # Append to list of boxes taken off maintenance
+                    # during this run
+                    boxesOffMaintenance.append(int(val))
+
             # type room or location
             elif key=='room' or key=='location':
                 if key=='room':
@@ -145,6 +157,10 @@ def send_event():
 
                     #insert sysname into eventqvar
                     database.execute("insert into eventqvar (eventqid,var,val) values (%d, '%s', '%s')" % (int(eventqid), 'netbox', sysname))
+
+                    # Append to list of boxes taken off maintenance
+                    # during this run
+                    boxesOffMaintenance.append(int(netboxid))
 
             #type module
             elif key=='module':
@@ -194,8 +210,92 @@ def send_event():
         #commit transaction
         connection.commit()
 
+def remove_forgotten():
+    """Remove 'forgotten' netboxes from their maintenance state.
+
+    Sometimes, like when netboxes have been deleted from a message
+    during its active maintenance window, we will no longer know that
+    the box has gone on maintenenance and should be taken off.  This
+    function takes all 'forgotten' netboxes off maintenance.
+    """
+    # This SQL retrieves a list of boxes that are supposed to be on
+    # maintenance, according to the schedule.
+    sched = """SELECT n.netboxid, n.deviceid, n.sysname
+               FROM maintenance_view mv
+               INNER JOIN netbox n ON (n.netboxid = mv.value)
+               WHERE mv.key='netbox'
+                 AND mv.state='active'
+
+               UNION
+
+               SELECT n.netboxid, n.deviceid, n.sysname
+               FROM maintenance_view mv
+               INNER JOIN netbox n ON (n.roomid = mv.value)
+               WHERE mv.key='room'
+                 AND mv.state='active'
+
+               UNION
+
+               SELECT n.netboxid, n.deviceid, n.sysname
+               FROM maintenance_view mv
+               INNER JOIN netbox n ON (n.roomid IN
+                                       (SELECT roomid
+                                        FROM room
+                                        WHERE locationid = mv.value))
+               WHERE mv.key='room'
+                 AND mv.state='active'"""
+
+    # This SQL retrieves a list of boxes that are currently on
+    # maintenance, according to the alert history.
+    actual = """SELECT n.netboxid, n.deviceid, n.sysname
+                FROM alerthist a
+                LEFT JOIN netbox n USING (netboxid)
+                WHERE eventtypeid='maintenanceState'
+                  AND end_time = 'infinity'"""
+
+    # The full SQL is a set operation to select all boxes that are
+    # currently on maintenance and subtracts those that are supposed
+    # to be on maintenance - resulting in a list of boxes that should
+    # be taken off maintenance immediately.
+    fullSQL = actual + "\n EXCEPT \n" + sched
+    database.execute(fullSQL);
+
+    target = 'eventEngine'
+    source = 'emotd'
+    severity = 50
+    eventtype = 'maintenanceState'
+    state = 'e'
+    value = 0
+    for (netboxid, deviceid, sysname) in database.fetchall():
+        if int(netboxid) in boxesOffMaintenance:
+            # MaintenenceOff-events posted during this run might not
+            # have been processed by eventEngine yet. We discard these
+            # boxes here.
+            continue
+        print >> sys.stderr, ("Box %s (%d) was on unscheduled " +
+                              "maintenance, taking off maintenance now...") % \
+                              (sysname, netboxid)
+        #get eventqid
+        database.execute("select nextval('eventq_eventqid_seq')")
+        eventqid = database.fetchone()[0]
+
+        #insert into eventq
+        database.execute("""INSERT INTO eventq
+                            (eventqid, target, eventtypeid, netboxid,
+                             deviceid,source,severity,state,value)
+                            VALUES (%d,%s,%s,%s,%s,%s,%d,%s,%d)""",
+                         (int(eventqid), target, eventtype, int(netboxid),
+                          int(deviceid), source, severity, state, value))
+
+        #insert sysname into eventqvar
+        database.execute("""INSERT INTO eventqvar
+                            (eventqid, var, val)
+                            VALUES (%d, %s, %s)""",
+                         (int(eventqid), 'netbox', sysname))
+    connection.commit()
 
 if __name__ == '__main__':
     schedule()
     check_state()
     send_event()
+    remove_forgotten()

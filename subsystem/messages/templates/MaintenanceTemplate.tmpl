@@ -108,7 +108,8 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 </td></tr>
 
 <tr><td>
-<label>Title: </label><br><input type="text" name="messagetitle" size=34 value="$messagetitle" />
+$makeFormField("text","messagetitle",$messagetitle,"Title",1)</td>
+<!-- <label>Title: </label><br><input type="text" name="messagetitle" size=34 value="$messagetitle" />-->
 </td><td>
 <label>Type: </label><br><select name="messagetype" >
 #for $t in ("error","scheduled","info","internal")
@@ -122,7 +123,8 @@ $makeDateTime("End maintenance","maintend",$maintend[0],$maintend[1],$maintend[2
 </td></tr><tr>
 
 <td colspan=2>
-<label>Description: </label><br><textarea name="messagedescription" cols="40" rows="3" >$messagedescription</textarea>
+$makeFormField("mediumtextarea","messagedescription",$messagedescription,"Description",1)</td>
+<!--<label>Description: </label><br><textarea name="messagedescription" cols="40" rows="3" >$messagedescription</textarea>-->
 </td>
 <td style="padding: 0px 0px 0px 25px;" valign=bottom>
 #set qs = SearchBoxTemplate()

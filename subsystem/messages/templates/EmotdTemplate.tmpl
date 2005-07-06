@@ -88,6 +88,8 @@ $default_tabs_CSS();
 #end if
 #if $type == "tinytextarea"
 <textarea name="$name" cols="30" rows="5">$val</textarea>
+#elif $type == "mediumtextarea"
+<textarea name="$name" cols="40" rows="5">$val</textarea>
 #elif $type == "tinyshorttextarea"
 <textarea name="$name" cols="30" rows="2">$val</textarea>
 #elif $type == "textarea"
