@@ -53,6 +53,12 @@ from nav.web.templates.EditTemplate import EditTemplate
 from nav.web.templates.TreeSelectTemplate import TreeSelectTemplate
 from nav.web.templates.FeederTemplate import FeederTemplate
 
+# We do this import because UTF-8 strings in the database seems to be
+# retrieved as a bytestring, and we need to make sure Python treats it
+# as a valid UTF-8 string when utilizing the capitalize() member
+# method.
+mod = __import__('encodings.utf_8',globals(),locals(),'*')
+
 def handler(req):
 
     #fieldstorage variables
@@ -259,7 +265,7 @@ def view(req, view = None, offset="0", lang = None):
         page.path =  [("Home", "/"), ("Messages", BASEPATH),(page.title,"")]
     else:
         if messages:
-            page.title = messages[0].title.capitalize()
+            page.title = messages[0].title.decode('utf-8').capitalize()
             page.path =  [("Home", "/"), ("Messages", BASEPATH),(category.capitalize()+" Messages",BASEPATH+category),(page.title,"")]
         else:
             redirect(req, BASEPATH)
