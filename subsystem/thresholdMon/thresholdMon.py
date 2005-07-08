@@ -53,6 +53,7 @@ pres = presenter.presentation()
 # Globals
 exceptions = ['cpu5min','c5000BandwidthMax']
 ll = 2
+downmodifier = 20
 
 # Print usage when -h option called
 def usage(name):
@@ -167,6 +168,7 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
     # ever in the life of the unit has been, which is totally useless to
     # the thresholdMonitor
     if exceptions.count(datasource.descr):
+        if ll >= 3: print "%s is in exceptions" % datasource.descr
         continue
 
     threshold = datasource.threshold
@@ -194,9 +196,22 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
         if ll >= 3: print "No value returned, are we collecting data to this rrd-file???"
         continue
 
+
     # Checking if it is percent or a normal value we are comparing
     m = re.compile("%$").search(threshold)
     threshold = int(re.sub("%$","",threshold))
+
+    # To prevent oscillation in case the value is just below the threshold
+    # we create a lower limit that has to be passed to really say that the
+    # crisis os over.
+    if datasource.thresholdstate == 'active':
+        if delimiter == '>':
+            threshold = threshold - downmodifier
+        elif delimiter == '<':
+            threshold = threshold + downmodifier
+
+    if ll >= 3: print "Threshold is %s" % threshold
+
     if m:
         if delimiter == '>' and (value / max  * 100) > threshold:
             surpassed = 1
@@ -207,6 +222,7 @@ for datasource in manage.Rrd_datasource.getAllIterator(where="threshold IS NOT N
             surpassed = 1
         elif delimiter == '>' and value > threshold:
             surpassed = 1
+        
 
     if surpassed and datasource.thresholdstate == 'inactive':
         if ll >= 2: print "--------------------"
