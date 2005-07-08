@@ -25,7 +25,6 @@
 """
 This module encompasses modules with web functionality for NAV.
 """
-import nav.web.auth
 import nav
 import time
 import ConfigParser
@@ -43,6 +42,7 @@ def headerparserhandler(req):
     performs authentication and authorization functions for each
     request.
     """
+    import nav.web.auth
     import state
     from mod_python import apache
 
