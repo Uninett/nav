@@ -26,24 +26,22 @@ OID	ifDescr    		1.3.6.1.2.1.2.2.1.2
 OID	ifType     		1.3.6.1.2.1.2.2.1.3
 OID	ifMtu     		1.3.6.1.2.1.2.2.1.4
 OID	ifSpeed    	    	1.3.6.1.2.1.2.2.1.5 
-OID 	ifPhysAddress	1.3.6.1.2.1.2.2.1.6
-OID	ifAdminStatus	1.3.6.1.2.1.2.2.1.7 
-OID	ifOperStatus   	1.3.6.1.2.1.2.2.1.8 
-OID	ifLastChange	1.3.6.1.2.1.2.2.1.9
+OID 	ifPhysAddress		1.3.6.1.2.1.2.2.1.6
+OID	ifAdminStatus		1.3.6.1.2.1.2.2.1.7 
+OID	ifOperStatus   		1.3.6.1.2.1.2.2.1.8 
+OID	ifLastChange		1.3.6.1.2.1.2.2.1.9
 OID	ifInOctets 		1.3.6.1.2.1.2.2.1.10
-OID	ifInUcastPkts	1.3.6.1.2.1.2.2.1.11
-OID	ifInNUcastPkts	1.3.6.1.2.1.2.2.1.12
-OID	ifInDiscards	1.3.6.1.2.1.2.2.1.13
+OID	ifInUcastPkts		1.3.6.1.2.1.2.2.1.11
+OID	ifInNUcastPkts		1.3.6.1.2.1.2.2.1.12
+OID	ifInDiscards		1.3.6.1.2.1.2.2.1.13
 OID	ifInErrors 		1.3.6.1.2.1.2.2.1.14
 OID	ifInUnknownProtos	1.3.6.1.2.1.2.2.1.15
 OID	ifOutOctets		1.3.6.1.2.1.2.2.1.16
-OID	ifOutUcastPkts  1.3.6.1.2.1.2.2.1.17
-OID	ifOutNUcastPkts 1.3.6.1.2.1.2.2.1.18
-OID	ifOutDiscards	1.3.6.1.2.1.2.2.1.19
+OID	ifOutUcastPkts  	1.3.6.1.2.1.2.2.1.17
+OID	ifOutNUcastPkts 	1.3.6.1.2.1.2.2.1.18
+OID	ifOutDiscards		1.3.6.1.2.1.2.2.1.19
 OID	ifOutErrors		1.3.6.1.2.1.2.2.1.20
-OID	ifOutQLen      	1.3.6.1.2.1.2.2.1.21
-OID ifHCInOctets    1.3.6.1.2.1.31.1.1.1.6
-OID ifHCOutOctets   1.3.6.1.2.1.31.1.1.1.10
+OID	ifOutQLen      		1.3.6.1.2.1.2.2.1.21
 
 OID 	ifName			1.3.6.1.2.1.31.1.1.1.1
 OID 	ifAlias			1.3.6.1.2.1.31.1.1.1.18
@@ -63,12 +61,6 @@ dataSource  ifInOctets
 
 dataSource  ifOutOctets
 	ds-source	=	snmp://%snmp%/ifOutOctets.%inst%
-
-dataSource  ifHCInOctets
-	ds-source	=	snmp://%snmp%/ifHCInOctets.%inst%
-
-dataSource  ifHCOutOctets
-	ds-source	=	snmp://%snmp%/ifHCOutOctets.%inst%
 
 datasource ifInErrors
         ds-source       =       snmp://%snmp%/ifInErrors.%inst%
@@ -115,16 +107,12 @@ targetType	--default--
 # Don't change the order of those unless you also change it in the makecricketconfig-script.
 # There really should be no reason to do this...
 targetType  standard-interface
-	ds		=	"ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
-	view	=	"Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+        ds              =       "ifInOctets, ifOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
+        view            =       "Octets: ifInOctets ifOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
 
 targetType  sub-interface
 	ds		=	"ifInOctets, ifOutOctets"
-	view	=	"Octets: ifInOctets ifOutOctets"
-
-targetType  snmpv2-interface
-	ds		=	"ifHCInOctets, ifHCOutOctets, ifInErrors,ifOutErrors, ifInUcastPkts, ifOutUcastPkts"
-	view	=	"Octets: ifHCInOctets ifHCOutOctets, UcastPackets: ifInUcastPkts ifOutUcastPkts, Errors: ifInErrors ifOutErrors"
+	view		=	"Octets: ifInOctets ifOutOctets"
 
 # The HTML dict has bits and pieces of HTML that gets used
 # by the grapher.
@@ -232,11 +220,11 @@ graph   --default--
 
 # global sysUptime setting
 graph sysUptime
-	color		=	dark-green
-	draw-as		=	area
-	legend		=	"uptime in days"
-	y-axis		=	"days"
-	scale		=	8640000,/
+        color           =       dark-green
+        draw-as         =       area
+        legend          =       "uptime in days"
+        y-axis          =       "days"
+        scale           =       8640000,/
 
 # Standard graphing for interfaces.
 graph   ifInOctets
@@ -257,47 +245,30 @@ graph   ifOutOctets
 	bytes		=	true
 
 graph   ifInErrors
-	color		=	dark-green
-	draw-as		=	AREA
-	y-axis		=	"errors per second"
-	units		=	"err/sec"
-	legend		=	"Average Errors In"
+        color           =       dark-green
+        draw-as         =       AREA
+        y-axis          =       "errors per second"
+        units           =       "err/sec"
+        legend          =       "Average Errors In"
 
 graph   ifOutErrors
-	color		=	blue
-	y-axis		=	"errors per second"
-	legend		=	"Average Errors Out"
-	units		=	"err/sec"
+        color           =       blue
+        y-axis          =       "errors per second"
+        legend          =       "Average Errors Out"
+        units           =       "err/sec"
 
 graph   ifInUcastPkts
-	color		=	dark-green
-	draw-as		=	AREA
-	y-axis		=	"packets per second"
-	units		=	"pkt/sec"
-	legend		=	"Average num Packets In"
+        color           =       dark-green
+        draw-as         =       AREA
+        y-axis          =       "packets per second"
+        units           =       "pkt/sec"
+        legend          =       "Average num Packets In"
 
 graph   ifOutUcastPkts
-	color		=	blue
-	y-axis		=	"packets per second"
-	units		=	"pkt/sec"
-	legend		=	"Average num Packets Out"
-
-graph   ifHCInOctets
-    color		=	dark-green
-    draw-as		=	AREA
-    legend		=	"Average bits in"
-    y-axis		=	"bits per second"
-    units		=	"bits/sec"
-    scale		=	8,*
-    bytes		=	true
-
-graph   ifHCOutOctets
-    color		=	blue
-    legend		=	"Average bits out"
-    y-axis		=	"bits per second"
-    units		=	"bits/sec"
-    scale		=	8,*
-    bytes		=	true
+        color           =       blue
+        y-axis          =       "packets per second"
+        units           =       "pkt/sec"
+        legend          =       "Average num Packets Out"
 
 
 # map
