@@ -1,6 +1,6 @@
 ## $Id$
 ##  
-## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2003-2005 Norwegian University of Science and Technology
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -93,16 +93,16 @@ $default_table_CSS()
 
 #set $counter = 0
 #for $a in $report.form
-<tr><td><label for="adv${counter}">$a.title</label></td><td><input type="checkbox" name="${a.raw}_not" id="adv${counter}_not"#slurp
+<tr><td><label for="adv${counter}">$a.title</label></td><td><input type="checkbox" name="not_${a.raw}" id="not_adv${counter}"#slurp
 #if $neg.has_key($a.raw)
  checked="1"#slurp
 #end if
 >
-</td><td><label for="adv${counter}_not">not</label></td><td>
+</td><td><label for="not_adv${counter}">not</label></td><td>
 #if $operator.has_key($a.raw)
-$selectoptiondraw($a.raw+"_op", $operatorlist, $operators,$operator[$a.raw], $descriptions)
+$selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,$operator[$a.raw], $descriptions)
 #else
-$selectoptiondraw($a.raw+"_op", $operatorlist, $operators,"", $descriptions)
+$selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
 #end if
 </td><td><input type="text" name="$a.raw" id="adv${counter}"#slurp
 #if $contents.has_key($a.raw)

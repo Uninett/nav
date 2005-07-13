@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2003-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -34,6 +34,8 @@ class Field:
         self.title = ""
         self.raw = ""
 
+    def __repr__(self):
+        return "<Field %s = %s>" % (self.title, self.raw)
 
 class Report:
     """

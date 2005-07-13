@@ -1,6 +1,6 @@
 ## $Id$
 ##
-## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2003-2005 Norwegian University of Science and Technology
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -101,7 +101,7 @@ $netinfo($subnet[$x][$y])
 #end block
 
 #def $netlink($input1,$input2)
-<a href="/report/prefix?host(netaddr)=${input1}.${input2}.%&host(netaddr)_op=like">${input1}.${input2}</a>
+<a href="/report/prefix?host(netaddr)=${input1}.${input2}.%&op_host(netaddr)=like">${input1}.${input2}</a>
 #end def
 
 #def $netinfo($subnetelement)

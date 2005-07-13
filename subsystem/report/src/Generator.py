@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2003-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -276,12 +276,14 @@ class ArgumentParser:
                         config.uri[gk] = value
                     elif g == "forklar" or g == "explain" or g == "description":
                         config.explain[gk] = value
-                    elif gk == "not":
-                        nott[g] = value
-                    elif gk == "op":
-                        operator[g] = value
-                
-                else:
+                    elif g == "not":
+                        nott[gk] = value
+                    elif g == "op":
+                        operator[gk] = value
+                    else:
+                        reResult = None
+
+                if not reResult:
                     if value and not key == "r4g3n53nd":
                         fields[unquote_plus(key)] = unquote_plus(value)
                 

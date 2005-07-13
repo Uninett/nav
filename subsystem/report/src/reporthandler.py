@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2003-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -51,18 +51,14 @@ def handler(req):
     for r in remo:
         if nuri.args.has_key(r):
             del(nuri.args[r])
-        if nuri.args.has_key(r+"_op"):
-            del(nuri.args[r+"_op"])
-        if nuri.args.has_key(r+"_not"):
-            del(nuri.args[r+"_not"])
+        if nuri.args.has_key("op_"+r):
+            del(nuri.args["op_"+r])
+        if nuri.args.has_key("not_"+r):
+            del(nuri.args["not_"+r])
 
     if len(remo):
-        #join the valid arguments
-        newargs = "&".join([key+"="+value for key,value in nuri.args.items()])
-
-        redirect(req, nuri.path+"?"+newargs)
-
-    #else
+        # Redirect if any arguments were removed
+        redirect(req, nuri.make())
 
     r = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
     reportName = r.group(1)
