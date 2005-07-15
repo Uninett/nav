@@ -88,7 +88,7 @@ def handler(req):
     templatePath = [] # add logical paths to thhis
     request['templatePath'] = templatePath
     templatePath.append(("Home", "/"))
-    templatePath.append(("Device browser", "/report"))
+    templatePath.append(("IP Device Center", "/report"))
 
     # result = handler.process(request)
     req.content_type = "text/html; charset=utf-8"
@@ -125,6 +125,7 @@ def handler(req):
     template.myContent = result
     template.treeselect = None
     template.path = templatePath
+    template.title = templatePath[-1][0]
 
     response = template.respond()
 

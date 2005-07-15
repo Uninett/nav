@@ -34,6 +34,7 @@ import re
 from mx import DateTime
 
 
+import nav.db
 from nav.db import manage
 from nav.web import urlbuilder
 from nav.errors import *
@@ -68,6 +69,36 @@ def distance(a,b):
             
     return current[n]
 
+import types
+def getChildrenIterator(self, forgetter, field=None, where=None, orderBy=None,
+                        useObject=None):
+  """Mimics forgetSQL forgetters' getChildren, except that it returns an
+  iterator, like getAllIterator.
+  """
+  if type(where) in (types.StringType, types.UnicodeType):
+    where = (where,)
+    
+  if not field:
+    for (i_field, i_class) in forgetter._userClasses.items():
+      if isinstance(self, i_class):
+        field = i_field
+        break # first one found is ok :=)
+  if not field:
+    raise "No field found, check forgetter's _userClasses"
+  sqlname = forgetter._sqlFields[field]  
+  myID = self._getID()[0] # assuming single-primary !
+  
+  whereList = ["%s='%s'" % (sqlname, myID)]
+  if where:
+    whereList.extend(where)
+  
+  return forgetter.getAllIterator(whereList, useObject=useObject,
+                                  orderBy=orderBy)
+# Dirrty hack to extend forgetSQL for perfomance reasons
+import forgetSQL
+if not hasattr(forgetSQL.Forgetter, 'getChildrenIterator'):
+    forgetSQL.Forgetter.getChildrenIterator = getChildrenIterator
+
 def findNetboxes(hostname):
     """
     Finds a netbox from sysname or partial sysname. Returns
@@ -79,12 +110,8 @@ def findNetboxes(hostname):
         return [netbox]
     # Now we can try to see if hostname is a substing of
     # a real sysname
-    netboxes = manage.Netbox.getAll()
-    sysnames = [nb.sysname for nb in netboxes]
-    matches = []
-    for sysname in sysnames:
-        if sysname.find(hostname) >= 0:
-            matches.append(manage.getNetbox(sysname))
+    matches = [nb for nb in manage.Netbox.getAllIterator(
+        where="sysname like %s" % nav.db.escape('%'+hostname+'%')) ]
 
     if len(matches) == 1:
         raise RedirectError, urlbuilder.createUrl(matches[0])
@@ -92,18 +119,20 @@ def findNetboxes(hostname):
         return [(match, None) for match in matches] 
     # try mr. levenshtein...
     a=hostname.count('.')
-    for sysname in sysnames:
-        # should be fixed in a better way...
-        if not sysname.find('129.241') >= 0:
-            shortname = '.'.join(sysname.split('.')[:a+1])
-            matches.append((distance(hostname, shortname), sysname))
+    for nb in manage.Netbox.getAllIterator():
+        try:
+            IPy.IP(nb.sysname)
+        except ValueError:
+            # Only accept non-IP sysnames
+            shortname = '.'.join(nb.sysname.split('.')[:a+1])
+            matches.append((distance(hostname, shortname), nb))
     matches.sort()
     result = []
     for match in matches:
-        dist, sysname = match
+        dist, nb = match
         # 5 seems to be a reasonable distance...
         if dist < 5 or len(result) < 1:
-            result.append((manage.getNetbox(sysname), dist))
+            result.append((nb, dist))
         else:
             break
     if len(result) == 1:
@@ -246,14 +275,14 @@ class NetboxInfo(manage.Netbox):
         return vlan
 
     def showSw(self):
-        sw = self.getChildren(manage.Swport, 'to_netbox')
+        sw = self.getChildrenIterator(manage.Swport, 'to_netbox')
         if not sw:
             return 'Unknown'
         vlanList = []
         swList = []
         for i in sw:
             # vlan = i.vlan
-            vlans = i.getChildren(manage.Swportvlan)
+            vlans = i.getChildrenIterator(manage.Swportvlan)
             for vlan in vlans:
                 if i not in swList and vlan.direction=='n':
                     vlanList.append(vlan)
@@ -288,7 +317,8 @@ class NetboxInfo(manage.Netbox):
         if not rrdfiles:
             return "Unknown"
         rrdfile = rrdfiles[0]
-        datasources = rrdfile.getChildren(manage.Rrd_datasource)
+        datasources = [ds for ds in
+                       rrdfile.getChildrenIterator(manage.Rrd_datasource)]
         if not datasources:
             return "Unknown"
         statusDS = None
@@ -327,9 +357,10 @@ class NetboxInfo(manage.Netbox):
         return value
 
     def showAlerts(self):
-        alerts = self.getChildren(manage.Alerthist, orderBy='start_time',
-                                    where= """end_time = 'infinity' OR
-                                    (now() - end_time) < '1 week' """)
+        alerts = self.getChildren(manage.Alerthist,
+                                  orderBy='start_time',
+                                  where= """end_time = 'infinity' OR
+                                  (now() - end_time) < '1 week' """)
         alerts.reverse()
         # dirty dirty, we just requested ALL alerts from the database..
         if len(alerts) > 15:
@@ -352,8 +383,9 @@ class NetboxInfo(manage.Netbox):
             else:
                 type = str(alert.eventtype)
 
-            msg = alert.getChildren(manage.Alerthistmsg,
-                                    where="""msgtype='sms' """)
+            msg = [m for m in
+                   alert.getChildrenIterator(manage.Alerthistmsg,
+                                             where="""msgtype='sms' """)]
 
             if msg:
                 type = html.TableCell(type)
@@ -405,10 +437,10 @@ class NetboxInfo(manage.Netbox):
 
     def showLinks(self):
         # Vi må hente ifra swport-tabellen istedet!
-        up = self.getChildren(manage.Swport, 'to_netbox')
+        up = self.getChildrenIterator(manage.Swport, 'to_netbox')
         down = []
-        for module in self.getChildren(manage.Module):
-            modLinks = module.getChildren(manage.Swport, 'module')
+        for module in self.getChildrenIterator(manage.Module):
+            modLinks = module.getChildrenIterator(manage.Swport, 'module')
             down.extend(modLinks)
         if not (up or down):
             return None
@@ -458,7 +490,7 @@ class NetboxInfo(manage.Netbox):
         return info                    
 
     def showRrds(self):
-        rrdfiles = self.getChildren(manage.Rrd_file,
+        rrdfiles = self.getChildrenIterator(manage.Rrd_file,
                    where="not subsystem in ('pping', 'serviceping')")
         if not rrdfiles:
             return None
@@ -480,7 +512,7 @@ class NetboxInfo(manage.Netbox):
                         port.module.module,
                         port.port)
                        
-            for ds in rrd.getChildren(manage.Rrd_datasource):
+            for ds in rrd.getChildrenIterator(manage.Rrd_datasource):
                 link = urlbuilder.createLink(subsystem='rrd',
                                              id=ds.rrd_datasourceid,
                                              division="datasources",
@@ -506,7 +538,7 @@ class NetboxInfo(manage.Netbox):
         # ugly, but only those categorys have swports...
         if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
             return None
-        modules = self.getChildren(module.ModuleInfo)
+        modules = [m for m in self.getChildrenIterator(module.ModuleInfo)]
         if not modules:
             return None
         isNum = lambda x: x and re.match("^[0-9]+$",str(x))
