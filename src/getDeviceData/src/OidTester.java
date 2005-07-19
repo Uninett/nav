@@ -227,8 +227,9 @@ public class OidTester
 							l = sSnmp.getAll(snmpoid.getDecodehex(), false);
 							if (!l.isEmpty()) {
 								String[] s = (String[])l.get(0);
-								if (s[0] != null && s[0].length() > 0 && s[1] != null && s[1].length() > 0) {
+								if (s[1] != null && s[1].length() > 0) {
 									reqGetnext = false;
+									Log.d("TEST_GETNEXT", "Switch getnext from true to false");
 								}
 							}
 						}
