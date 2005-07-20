@@ -1,3 +1,50 @@
+Version 3.0_rc2
+(released 20 July 2005)
+
+ Improvements:
+
+ * More data for the snmpoid table, please run the new snmpoid.sql to
+   ensure your system will work after an upgrade.
+
+ * The Service Monitor's RPC plugin no longer complains loudly to
+   stderr.
+
+ * The Messages and Report web interfaces will no longer
+   intermittently cross-over mysteriously.
+
+ * The alert message texts have been updated to contain messages for
+   all known alerts.
+
+ * Overlapping time periods in an alert profile will no longer cause
+   double alerts to be sent.
+
+ * Modules that are down can now actually be found and deleted in the
+   Device Management interface.
+
+ * The Traffic Map system and Network Explorer can now be properly
+   configured to run without a single NAV root directory.
+
+ * Alert Profiles web pages now include the correct stylesheets, so it
+   won't look as funny.
+
+ * Several getDeviceData-related problems were ironed out.
+
+ * The menu on Messages' maintenance list is no longer ugly.
+
+ * IP devices put on maintenance will now be taken off maintenance,
+   instead of remaining on maintenance forever.
+
+ * Maintenance-scheduled IP devices can now be properly deleted from
+   messages.
+
+ * Next/previous page-links in reports will now work properly even
+   when using advanced search options.  Also, advanced searching on
+   database fields that contain underscores (like sw_ver) will now
+   work.
+
+ * Performance improvements in the IP Device Center.
+
+
 Version 3.0_rc1
 (released 09 June 2005)
 
