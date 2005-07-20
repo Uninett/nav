@@ -540,7 +540,7 @@ public class Database
 				}
 
 				public Statement getStatement(boolean autoclose) throws SQLException {
-					Statement st = con.createStatement();
+					Statement st = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 					if (autoclose) {
 						statementQ.add(st);
 						if (statementQ.size() > bufferSize) {
