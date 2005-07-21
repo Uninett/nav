@@ -258,7 +258,8 @@ o For hver ruter (GW/GSW)
 		boolean addedRoute = false;
 		for (Iterator it = routes.iterator(); it.hasNext();) {
 			String r = Prefix.hexToIp((String)it.next());
-			String alias = (String)ifAlias.get(r);
+			String alias = null;
+			if (ifAlias != null) alias = (String)ifAlias.get(r);
 			String dest = Prefix.hexToIp((String)routeDest.get(r));
 			String nexthop = Prefix.hexToIp((String)routeNextHop.get(r));
 			String mask = Prefix.hexToIp((String)routeMask.get(r));
