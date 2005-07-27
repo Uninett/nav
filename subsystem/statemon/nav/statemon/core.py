@@ -1,3 +1,4 @@
+# -*- coding: ISO8859-1 -*-
 """
 core - kjøre jobber som prosesser i stedet for tråder
 

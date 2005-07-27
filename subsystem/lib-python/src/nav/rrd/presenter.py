@@ -1,3 +1,4 @@
+# -*- coding: ISO8859-1 -*-
 # $Id$
 #
 # Copyright 2003 Norwegian University of Science and Technology

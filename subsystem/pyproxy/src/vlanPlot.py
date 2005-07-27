@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: ISO8859-1 -*-
 #
 # $Id: proxy.py 2719 2004-05-20 13:54:20Z mortenv $
 #

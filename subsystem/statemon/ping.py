@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: ISO8859-1 -*-
 #
 # Copyright 2004 Norwegian University of Science and Technology
 #

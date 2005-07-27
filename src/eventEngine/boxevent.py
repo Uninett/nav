@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: ISO8859-1 -*-
 #
 # $Id: report.py 2674 2004-04-28 13:03:41Z mortenv $
 #
