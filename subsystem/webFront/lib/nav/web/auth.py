@@ -74,7 +74,8 @@ def _find_user_preferences(user, req):
                 user.preferences.qlink1.append(Link(link.name, link.uri))
             if pref.positions.count('qlink2'): # does 'positions'-string contain 'qlink2'
                 user.preferences.qlink2.append(Link(link.name, link.uri))
-        req.session.save() # remember this to next time
+        if req:
+            req.session.save() # remember this to next time
 
 def authenticate(req):
     """

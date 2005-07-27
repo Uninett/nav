@@ -29,6 +29,7 @@ and fill the contents of the MainTemplate Cheetah template.
 
 import sys, os
 from nav import db, web
+import nav.web.auth
 from nav.db import navprofiles
 from nav.web.templates.MainTemplate import MainTemplate
 
@@ -55,10 +56,7 @@ def main(argv):
                 account.load()
             except ValueError, TypeError:
                 account = navprofiles.Account.loadByLogin(value)
-            try:
-                web.auth._find_user_preferences(account, None)
-            except:
-                pass
+            nav.web.auth._find_user_preferences(account, None)
             page.user = account
         elif key == "content":
             func = lambda : vars['content']
