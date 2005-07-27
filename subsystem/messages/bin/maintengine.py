@@ -39,6 +39,8 @@ debug = False
 boxesOffMaintenance = []
 connection = db.getConnection('eventEngine','manage')
 connection.autocommit(0)
+# Make sure isolation level is "read committed", not "serialized"
+connection.set_isolation_level(1)
 database = connection.cursor()
 
 
@@ -251,6 +253,7 @@ def remove_forgotten():
                 FROM alerthist a
                 LEFT JOIN netbox n USING (netboxid)
                 WHERE eventtypeid='maintenanceState'
+                  AND netboxid IS NOT NULL
                   AND end_time = 'infinity'"""
 
     # The full SQL is a set operation to select all boxes that are
