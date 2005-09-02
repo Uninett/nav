@@ -493,7 +493,7 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
             account.login = login
         if name != account.name:
             account.name = name
-        if password is not None:
+        if password:
             account.setPassword(password)
             
         try:
@@ -504,6 +504,7 @@ def accountsubmit(req, id=None, login=None, name=None, password=None, passwordCo
             redir = 'account?id=%s' % account.id
             req.session['statusMessage'] = "Account successfully stored"
 
+    req.session.save()
     web.redirect(req, redir, seeOther=True)
 
 def accountdel(req, id=None, confirm=False):
