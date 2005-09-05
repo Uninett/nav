@@ -391,11 +391,10 @@ class ArgumentParser:
     
 
     def intstr(self,arg):
-        #try:
-        #    arg = int(arg)
-        #    arg = str(arg)
-        #except ValueError:
-        arg = "'" + arg + "'"
+        try:
+            arg = str(int(arg))
+        except ValueError:
+            arg = "'" + str(arg) + "'"        
         return arg
 
 
