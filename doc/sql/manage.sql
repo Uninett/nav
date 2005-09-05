@@ -219,6 +219,7 @@ CREATE TABLE snmpoid (
   getnext BOOLEAN NOT NULL DEFAULT true,
   decodehex BOOLEAN NOT NULL DEFAULT false,
   match_regex VARCHAR,
+  defaultfreq INT4 NOT NULL DEFAULT 21600,
   uptodate BOOLEAN NOT NULL DEFAULT false,
   descr VARCHAR,
   oidname VARCHAR,
@@ -435,7 +436,10 @@ DROP VIEW prefix_active_ip_cnt CASCADE;
 DROP VIEW prefix_max_ip_cnt CASCADE;
 DROP VIEW prefixreport CASCADE;
 DROP VIEW netboxreport CASCADE;
+DROP VIEW allowedvlan_both CASCADE;
+DROP VIEW allowedvlan CASCADE;
 DROP TABLE eventtype CASCADE;
+DROP TABLE range CASCADE;
 
 DROP SEQUENCE arp_arpid_seq; 
 DROP SEQUENCE cam_camid_seq; 
@@ -541,6 +545,35 @@ SELECT roomid,sysname,ip,catid,
   FROM netbox join type using(typeid)
   LEFT JOIN netboxinfo ON (netbox.netboxid=netboxinfo.netboxid AND var='function')
 );
+
+-- This view gives the allowed vlan for a given hexstring i swportallowedvlan
+CREATE TABLE range (
+  num INT NOT NULL PRIMARY KEY
+);
+INSERT INTO range VALUES (0);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+INSERT INTO range (SELECT num+(SELECT COUNT(*) FROM range) FROM range);
+DELETE FROM range WHERE num >= 1000;
+
+CREATE VIEW allowedvlan AS
+  (SELECT swportid,num AS allowedvlan FROM swportallowedvlan CROSS JOIN range
+    WHERE num < length(decode(hexstring,'hex'))*8 AND (CASE WHEN length(hexstring)=256
+    THEN get_bit(decode(hexstring,'hex'),(num/8)*8+7-(num%8))
+    ELSE get_bit(decode(hexstring,'hex'),(length(decode(hexstring,'hex'))*8-num+7>>3<<3)-8+(num%8))
+    END)=1);
+
+CREATE VIEW allowedvlan_both AS
+  (select swportid,swportid as swportid2,allowedvlan from allowedvlan ORDER BY allowedvlan) union
+  (select  swport.swportid,to_swportid as swportid2,allowedvlan from swport join allowedvlan
+    on (swport.to_swportid=allowedvlan.swportid) ORDER BY allowedvlan);
 
 -------- vlanPlot tabeller ------
 CREATE TABLE vp_netbox_grp_info (
