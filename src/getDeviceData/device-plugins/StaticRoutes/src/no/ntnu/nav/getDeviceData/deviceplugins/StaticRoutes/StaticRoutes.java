@@ -114,7 +114,7 @@ public class StaticRoutes implements DeviceHandler
 			}
 			sc = (SwportContainer)dc;
 		}
-
+		gwc.copyTranslateFrom(mc);
 
 		String netboxid = nb.getNetboxidS();
 		String ip = nb.getIp();

@@ -194,7 +194,10 @@ public class CiscoSwIOS implements DeviceHandler
 				// If submodule then we add the submodule number to module as a string
 				if (util.groupCountNotNull(m) >= 6) {
 					String submod = m.group(4);
-					module = Integer.parseInt(module + submod);
+					String newmodule = module + submod;
+					mc.moduleTranslate(""+module, newmodule);
+					sc.moduleTranslate(""+module, newmodule);
+					module = Integer.parseInt(newmodule);
 					realModule = module;
 					mc.moduleFactory(module);
 				}

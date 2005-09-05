@@ -204,12 +204,14 @@ public class SwportHandler implements DataHandler {
 				// This can happen for new modules
 				if (portMap == null) portMap = new HashMap();
 
+				//System.err.println("Module: " + md);
+
 				// Så alle swportene
 				String swportid;
 				for (Iterator j = md.getSwports(); j.hasNext();) {
 					Swport sd = (Swport)j.next();
 
-					//System.err.println("  Swport: " + sd + " ("+sc.getIgnoreSwport(sd.getIfindex())+")");
+					//System.err.println(" Swport: " + sd + " ("+sc.getIgnoreSwport(sd.getIfindex())+")");
 
 					// Check if this swport should be ignored
 					if (sc.getIgnoreSwport(sd.getIfindex())) continue;

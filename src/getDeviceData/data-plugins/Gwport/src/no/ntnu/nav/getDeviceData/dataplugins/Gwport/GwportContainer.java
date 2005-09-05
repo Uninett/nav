@@ -59,6 +59,7 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	 * Return an GwModule object which is used to describe one router module.
 	 */
 	public GwModule gwModuleFactory(int module) {
+		module = translateModule(module);
 		GwModule m = new GwModule(module);
 		int k;
 		if ( (k=gwModuleList.indexOf(m)) >= 0) {
@@ -75,6 +76,7 @@ public class GwportContainer extends ModuleContainer implements DataContainer {
 	 * module already exists.
 	 */
 	public GwModule gwModuleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		module = translateModule(module);
 		GwModule m = new GwModule(serial, hw_ver, fw_ver, sw_ver, module);
 		int k;
 		if ( (k=gwModuleList.indexOf(m)) >= 0) {

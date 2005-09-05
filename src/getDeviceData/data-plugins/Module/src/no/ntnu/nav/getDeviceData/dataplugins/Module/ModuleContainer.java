@@ -31,8 +31,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	private ModuleHandler mh;
 	private List moduleList = new ArrayList();
-	//private Set moduleSet = new HashSet();
-	protected Map moduleTranslation = new HashMap();
+	private Map moduleTranslation = new HashMap();
 	private boolean commit = false;
 
 	protected ModuleContainer(ModuleHandler mh) {
@@ -61,8 +60,20 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	}
 
 	public void moduleTranslate(String from, String to) {
-		System.err.println("Translate from " + from + " to " + to);
 		moduleTranslation.put(from, to);
+		// Rename module
+		int f = Integer.parseInt(from);
+		for (Iterator it = moduleList.iterator(); it.hasNext();) {
+			Module m = (Module)it.next();
+			if (f == m.getModule()) m.setModule(Integer.parseInt(to));
+		}
+	}
+
+	public void copyTranslateFrom(ModuleContainer mc) {
+		for (Iterator it = mc.moduleTranslation.entrySet().iterator(); it.hasNext();) { 
+			Map.Entry me = (Map.Entry)it.next();
+			moduleTranslate((String)me.getKey(), (String)me.getValue());
+		}
 	}
 
 	/**
@@ -80,11 +91,17 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 		return new Module(0);
 	}
 
+	protected int translateModule(int module) {
+		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
+		return module;
+	}
+
+
 	/**
 	 * Return a Module object which is used to describe a single module.
 	 */
 	public Module moduleFactory(int module) {
-		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
+		module = translateModule(module);
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
@@ -101,7 +118,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * module already exists.
 	 */
 	public Module moduleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
-		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
+		module = translateModule(module);
 		Module m = new Module(serial, hw_ver, fw_ver, sw_ver, module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
@@ -117,7 +134,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * moduleFactory, or return null if the module does not exist.
 	 */
 	public Module getModule(int module) {
-		if (moduleTranslation.containsKey(""+module)) module = Integer.parseInt((String)moduleTranslation.get(""+module));
+		module = translateModule(module);
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
