@@ -184,7 +184,7 @@ public class DeviceHandler implements DataHandler {
 						//changedDeviceids.put(deviceid, new Integer(DataHandler.DEVICE_UPDATED));
 
 						// Now we need to send events if hw_ver, fw_ver or sw_ver changed
-						if (!equals(dev.getHwVer(), olddev.getHwVer())) {
+						if (!equalsNN(dev.getHwVer(), olddev.getHwVer())) {
 							Map varMap = new HashMap();
 							varMap.put("alerttype", "deviceHwVerChanged");
 							varMap.put("deviceid", deviceid);
@@ -193,7 +193,7 @@ public class DeviceHandler implements DataHandler {
 							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 						
-						if (!equals(dev.getFwVer(), olddev.getFwVer())) {
+						if (!equalsNN(dev.getFwVer(), olddev.getFwVer())) {
 							Map varMap = new HashMap();
 							varMap.put("alerttype", "deviceFwVerChanged");
 							varMap.put("deviceid", deviceid);
@@ -202,7 +202,7 @@ public class DeviceHandler implements DataHandler {
 							EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 						}
 						
-						if (!equals(dev.getSwVer(), olddev.getSwVer())) {
+						if (!equalsNN(dev.getSwVer(), olddev.getSwVer())) {
 							Map varMap = new HashMap();
 							varMap.put("alerttype", "deviceSwVerChanged");
 							varMap.put("deviceid", deviceid);
@@ -227,6 +227,13 @@ public class DeviceHandler implements DataHandler {
 
 	private boolean equals(String s1, String s2) {
 		if (s1 == null && s2 == null) return true;
+		if (s1 != null) return s1.equals(s2);
+		return s2.equals(s1);
+	}
+
+	// Returns true if either string is null
+	private boolean equalsNN(String s1, String s2) {
+		if (s1 == null || s2 == null) return true;
 		if (s1 != null) return s1.equals(s2);
 		return s2.equals(s1);
 	}
