@@ -26,7 +26,6 @@ public class DataContainersImpl implements DataContainers {
 	void addContainer(DataContainer dc) {
 		String name = dc.getName();
 		if (name != null) {
-			Log.d("DataContainers", "ADD_CONTAINER", "Added container: " + name);
 			containers.put(name, dc);
 		}
 	}
