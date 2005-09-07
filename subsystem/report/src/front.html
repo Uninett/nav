@@ -5,7 +5,7 @@
 <tr>
 
 <td width="25%"><form action="../browse/">
-<label style="display: block; white-space: nowrap"><b>IP Device Center</b></label>
+<label style="display: block; white-space: nowrap">IP Device Center</label>
 <input type="text" name="netbox" size="15">
 <input type="submit" value="Find">
 <div style="font-size: 0.5em;"><i>IP/sysname</i></div>
@@ -54,7 +54,16 @@
 <div style="font-size: 0.5em;"><i>text</i></div>
 </form></td>
 
-<td></td>
+<td>
+<form action="gwport">
+<label style="display: block; white-space: nowrap">Prefix search</label>
+<input type="text" name="netident" size="15">
+<input type="hidden" name="op_netident" value="like">
+<input type="submit" value="Find">
+<div style="font-size: 0.5em;"><i>text</i></div>
+</form>
+</td>
+
 <td></td>
 
 </tr>
@@ -62,7 +71,8 @@
 <div style="font-size: 0.8em; color: gray"><i><b>Wildcard for all search fields: *</b></i></div>
 <hr>
 <p>
-<a href="matrix"><b>IP address scope - graphical view</b></a>
+<a href="matrix"><b>IP address scope - graphical view</b></a><br>
+<a href="/browse/service/allMatrix"><b>Services - graphical view</b></a>
 <p>
 
 <table width=80% border=0 cellspacing=1 cellpadding=10>
