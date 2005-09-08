@@ -13,19 +13,16 @@ public class Snmpoid
 	boolean decodehex;
 	String matchRegex;
 
-	int defaultfreq;
-
 	boolean uptodate;
 
 	Map typeMap;
 
-	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, boolean decodehex, String matchRegex, int defaultfreq, boolean uptodate) {
+	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, boolean decodehex, String matchRegex, boolean uptodate) {
 		this.snmpoidid = snmpoidid;
 		this.oidkey = oidkey;
 		this.snmpoid = snmpoid;
 		this.getnext = getnext;
 		this.decodehex = decodehex;
-		this.defaultfreq = defaultfreq;
 		this.matchRegex = matchRegex;
 		this.uptodate = uptodate;
 		typeMap = new HashMap();
@@ -57,10 +54,6 @@ public class Snmpoid
 
 	public String getMatchRegex() {
 		return matchRegex;
-	}
-
-	public int getDefaultfreq() {
-		return defaultfreq;
 	}
 
 	public boolean getUptoDate() {

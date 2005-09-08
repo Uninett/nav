@@ -266,7 +266,7 @@ public class QueryNetbox extends Thread
 			}
 
 			// Now fetch all OIDs
-			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, defaultfreq, uptodate AS oiduptodate FROM snmpoid");
+			rs = Database.query("SELECT snmpoidid, oidkey, snmpoid, getnext, decodehex, match_regex, uptodate AS oiduptodate FROM snmpoid");
 			while (rs.next()) {
 				String snmpoidid = rs.getString("snmpoidid");
 				String oidkey = rs.getString("oidkey");
@@ -274,10 +274,9 @@ public class QueryNetbox extends Thread
 				boolean getnext = rs.getBoolean("getnext");
 				boolean decodehex = rs.getBoolean("decodehex");
 				String matchRegex = rs.getString("match_regex");
-				int defaultfreq = rs.getInt("defaultfreq");
 				boolean oiduptodate = rs.getBoolean("oiduptodate");
 				
-				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, defaultfreq, oiduptodate);
+				Snmpoid snmpoid = new Snmpoid(snmpoidid, oidkey, oid, getnext, decodehex, matchRegex, oiduptodate);
 				oidkeyM.put(oidkey, snmpoid);
 				if (!oiduptodate && oidKeySet.add(oidkey)) {
 					OidTester.clearDupe(snmpoid);
