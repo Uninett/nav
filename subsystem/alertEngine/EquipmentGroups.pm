@@ -208,8 +208,15 @@ sub checkMatch()
     my $ret;
     $ret=0;
 
+	
+
     #Get correct info from alert
     my $info=$alert->getInfo($fm->{valueid});
+
+	unless (defined($fm->{value}) and defined($info) and $info ne '') {
+		$this->{log}->printlog("EquipmentGroups","checkMatch",$Log::debugging, "Checking undefined value not allowed.");
+		return 0;
+	}
 
     if($fm->{datatype}==$this->{datatype}{string}) {
 	$ret=$this->checkString($fm->{type},$fm->{value},$info);

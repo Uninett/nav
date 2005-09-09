@@ -483,10 +483,10 @@ sub sendemail()
     $subject=$1;
     $msg=~s/^Subject: (.*)\n//;
     $body=$msg;
-    if(length($subject)==0)
+    if(!defined($subject) || length($subject)==0)
     {
-	$this->{log}->printlog("User","sendEmail",$Log::error,"no subject defined");
-	return;
+		$this->{log}->printlog("User","sendEmail",$Log::error,"no subject defined");
+		$subject = "Generic NAV Alert (no subject defined, contact sysadm)";
     }
     
     $this->{log}->printlog("User","sendEmail",$Log::informational,"EMAIL $to\tSubject: $subject");

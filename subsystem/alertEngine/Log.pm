@@ -62,6 +62,7 @@ sub printlog()
     if($log=~/$level/) {
         print "$time alertEngine $class-$level-$func: $msg\n";
     }
+    
 }
 
 $Log::emergency=0;

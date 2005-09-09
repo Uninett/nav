@@ -58,6 +58,7 @@ sub runEngine() {
 
 sub launch() {
     my $logfile=shift;
+    my $errlogfile=shift;
     my $pidfile=shift;
 
 	if (-f $pidfile) {
@@ -89,7 +90,7 @@ sub launch() {
 	open STDOUT, '>> '.$logfile || 
 		die "Can't write to /dev/null: $!";
 	
-	open STDERR, '>> '.$logfile || 
+	open STDERR, '>> '.$errlogfile || 
 		die "Can't write to /dev/null: $!";
 
     select(STDOUT);
@@ -207,13 +208,13 @@ $_ = shift @ARGV || 'start';
 my $pidfile=$NAV::AlertEngine::Log::cfg->{pidfile};
 
 SWITCH : {
-    /^start$/ && do { &launch($NAV::AlertEngine::Log::cfg->{logfile},$pidfile); last; };
+    /^start$/ && do { &launch($NAV::AlertEngine::Log::cfg->{logfile},$NAV::AlertEngine::Log::cfg->{errlogfile},$pidfile); last; };
     /^restart$/ && do { &stop($pidfile); 
-                        &launch($NAV::AlertEngine::Log::cfg->{logfile},$pidfile); last; };
+                        &launch($NAV::AlertEngine::Log::cfg->{logfile},$NAV::AlertEngine::Log::cfg->{errlogfile},$pidfile); last; };
     /^stop$/ && do { &stop($pidfile); last; };
     /^status$/ && do { &status($pidfile); last; };    
     print <<END
-Usage: alertengine.pl [option]
+Usage: alertdaemon.pl [option]
 
 [option] :
 	start	- launch alertengine if not already running
