@@ -1,3 +1,43 @@
+Version 3.0.0
+(released xx September 2005)
+
+ Improvements:
+
+ * Fixed a bug in maintengine which prevented it from doing it's job when the
+   database was busy/overloaded.
+
+ * Fixed a bug in the integration between Alert Profiles (PHP) and the Cheetah
+   templating system (Python), which would cause the Alert Profiles web
+   interface to act up.
+
+ * Character coding information added to all NAV-original Python programs.
+
+ * Fixed a bug which cleared a user's password if the account editing form of
+   Useradmin was submitted without changes.
+
+ * NetworkDiscovery now only checks for closed vlans on active ports.
+
+ * Fixed a NullPointerException in getDeviceData.
+
+ * Fixed various problems with Cisco module/submodule translation in
+   getDeviceData.
+
+ * Fixed a AlertEngine/getDeviceData combination bug which caused AlertEngine
+   to log loads of long error messages on events that lacked an alerttype
+   suggestion.
+
+ * New option to have AlertEngine log error messages to a separate error log.
+
+ * AlertEngine now sends error alerts if an alerttype has no configured subject
+   line in alertmsg.conf.
+
+ * Added report shortcut to search for strings in prefix-netident (added to the
+   front.html config file)
+
+ * Added link from Report to the previously hidden feature "service matrix" of
+   the IP Device Center (added to the front.html config file)
+
+
 Version 3.0_rc2
 (released 20 July 2005)
 
