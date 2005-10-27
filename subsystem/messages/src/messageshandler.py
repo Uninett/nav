@@ -860,6 +860,7 @@ def placemessage(req, lang = None):
     page.type = type    
     page.equipment_list = eql
     ##page.emotds = (req.session['user'],1)#EmotdSelect.fetchAll()
+    req.session.save()
     return page.respond()
 
 def selectmessagelist():
@@ -1061,19 +1062,24 @@ def commitplacement(req):
         redirect(req,BASEPATH+"edit")
     else:
         if req.form["id"] and req.session.has_key("equipment"):
+            try:
+                reqId = int(req.form["id"])
+            except TypeError:
+                raise "id must be an integer"
+
             el = req.session["equipment"]
             for type,ids in el.items():
                 for id in ids:
-                    database.execute("select emotdid from emotd_related where emotdid=%d and key='%s' and value='%s'" % (int(req.form["id"]), type, id))
+                    database.execute("select emotdid from emotd_related where emotdid=%d and key='%s' and value='%s'" % (reqId, type, id))
                     already_exists = database.fetchone()
                     if not already_exists:
-                        database.execute("insert into emotd_related (emotdid, key, value) values (%d, %s, %s)", (req.form["id"], type, id))
+                        database.execute("insert into emotd_related (emotdid, key, value) values (%d, %s, %s)", (reqId, type, id))
             req.session["equipment"] = {}
             req.session.save()
             connection.commit()
             redirect(req,BASEPATH+"view/"+req.form["id"])
         else:
-            raise "noe skjedde"
+            raise "Error in parameters"
 
 
 def remove(req,emotdid = 0):
