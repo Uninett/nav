@@ -258,7 +258,10 @@ class MegaPing:
       self._requests[identifier] = host
       packet = host.makePacket(cookie)
       host.nextseq()
-      mySocket.sendto(packet, (host.ip, 0))
+      try:
+        mySocket.sendto(packet, (host.ip, 0))
+      except Exception, e:
+        print "Failed to ping %s [%s]" % (host.ip, str(e))
       time.sleep(self._delay)
     self._senderFinished = time.time()
 
