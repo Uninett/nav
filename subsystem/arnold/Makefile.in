@@ -1,0 +1,64 @@
+SHELL = @SHELL@
+INSTALL = @INSTALL@
+CHEETAH = @CHEETAH@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+
+pythonlibdir = @pythonlibdir@
+perllibdir = ${libdir}/perl
+templatedir = ${pythonlibdir}/nav/web/templates
+webroot = @webroot@
+
+templates = ArnoldTemplate.py
+libfiles = Arnold.pm
+webfiles = arnoldhandler.py .htaccess
+binfiles = arnold.pl autoenable.pl start_arnold.pl t1000.pl
+conffiles = arnold.cfg nonblock.cfg mailtemplates/README 
+
+.PHONY: all install install-lib install-web install-bin clean distclean
+
+all: $(templates)
+
+$(templates): %.py: %.tmpl
+	$(CHEETAH) compile $<
+
+install: install-bin install-lib install-web install-conf
+
+install-bin:
+	for file in $(binfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	done
+
+install-conf:
+	for file in $(conffiles); do \
+	  target=$(DESTDIR)$(sysconfdir)/arnold/$$file; \
+	  if [ -f "$$target" ]; then \
+            echo Skipping installation of config file $$file; \
+          else \
+	    $(INSTALL) -v -D -m 644 config/$$file $$target || exit 1; \
+	  fi; \
+	done
+
+install-lib: $(templates)
+	for file in $(templates); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(templatedir)/$$file || exit 1; \
+	done
+	for file in $(libfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(perllibdir)/NAV/$$file || exit 1; \
+	done
+
+install-web:
+	for file in $(webfiles); do \
+	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/arnold/$$file || exit 1; \
+	done
+
+clean:
+	rm -f *~
+	rm -f $(templates)
+
+distclean: clean
+	rm -f Makefile

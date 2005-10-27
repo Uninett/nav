@@ -1,0 +1,114 @@
+CREATE TABLE blocked_reason (
+blocked_reasonid SERIAL PRIMARY KEY,
+text VARCHAR
+);
+
+CREATE TABLE identity (
+identityid SERIAL PRIMARY KEY,
+mac VARCHAR NOT NULL, -- MAC-address of computer
+blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled'),
+blocked_reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE SET NULL, -- reason of block
+swportid INT NOT NULL, -- FK to swport-table. We find sysname,ip,module and port from this
+swsysname VARCHAR, -- current sysname of switch, kept for consistency check
+swvendor VARCHAR, -- vendor of switch, used to determine snmp-query
+swip INET, -- current ip of switch, kept for consistency check
+swmodule VARCHAR, -- current module, kept for consistency check
+swport INT, -- current port, kept for consistency check
+swifindex INT, -- current ifindex, kept for consistency check
+community VARCHAR, -- community of switch
+ip INET, -- current ip of computer
+dns VARCHAR, -- current dns-name of computer
+netbios VARCHAR, -- current netbios-name of computer
+starttime TIMESTAMP NOT NULL, -- time of first event on this computer-swport combo
+lastchanged TIMESTAMP NOT NULL, -- time of last current event on this computer-swport combo
+autoenable TIMESTAMP, -- time for autoenable
+autoenablestep INT, -- number of days to wait for autoenable
+multiple INT, -- stores the amount of computers detected behind this port
+mail VARCHAR, -- the mail address the warning was sent to
+secret CHAR(1), -- flag this tuple as visible only to members of the secret club
+userlock VARCHAR, -- lock this tuple to the specified user, it is visible but not possible to enable by other users
+orgid VARCHAR,
+determined CHAR(1), -- set to y if this is mac/port combo is blocked with the -d option.
+UNIQUE (mac,swportid)
+);
+
+CREATE TABLE event (
+eventid SERIAL PRIMARY KEY,
+identityid INT REFERENCES identity ON UPDATE CASCADE ON DELETE CASCADE,
+event_comment VARCHAR,
+blocked_status VARCHAR CHECK (blocked_status='enabled' OR blocked_status='disabled'),
+blocked_reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE SET NULL, -- reason of block
+eventtime TIMESTAMP NOT NULL,
+autoenablestep INT,
+username VARCHAR NOT NULL
+);
+
+-- A block, of lack of better name, is a run where we do automatic blocking 
+-- of computers based on input ip-list.
+CREATE TABLE block (
+blockid SERIAL PRIMARY KEY,
+blocktitle VARCHAR NOT NULL, -- title of block
+blockdesc VARCHAR, -- description of block
+mailfile VARCHAR, -- path to mailfile to use to send mail when blocking
+reasonid INT REFERENCES blocked_reason ON UPDATE CASCADE ON DELETE CASCADE,
+private CHAR(1), -- if set uses the -k parameter in Arnold
+determined CHAR(1), -- if set uses the -d parameter in Arnold
+incremental CHAR(1), -- if set uses the -e parameter in Arnold
+blocktime INT NOT NULL, -- days from block to autoenable
+userid VARCHAR, -- the user that blocks the ip-adresses
+active CHAR(1) CHECK (active='y' OR active='n'), -- if set to n will not do blocking of this kind
+lastedited TIMESTAMP NOT NULL, -- timestamp of last time this block was edited
+lastedituser VARCHAR NOT NULL, -- username of user who last edited this block
+inputfile VARCHAR -- path to file where list of ip-adresses is, if applicable
+);
+
+
+------------------------------------------------------------------------------------------
+-- GRANTS AND GRUNTS
+------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION nav_grant(TEXT, BOOL) RETURNS INTEGER AS '
+  DECLARE
+    tables_rec   RECORD;
+    counter      INTEGER;
+    user_name    ALIAS FOR $1;
+    write_access ALIAS FOR $2;
+    use_priv     TEXT := ''SELECT'';
+  BEGIN
+    counter := 0;
+    IF write_access THEN
+      use_priv := ''ALL'';
+    END IF;
+
+    FOR tables_rec IN SELECT * FROM pg_tables WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.tablename)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_views WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.viewname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    FOR tables_rec IN SELECT * FROM pg_statio_all_sequences WHERE schemaname=''public'' LOOP
+      EXECUTE ''GRANT '' || use_priv
+               || '' ON '' || quote_ident(tables_rec.relname)
+               || '' TO '' || quote_ident(user_name)
+               || '';'';
+      counter := counter + 1;
+    END LOOP;
+
+    RETURN counter;
+  END;
+' LANGUAGE 'plpgsql';
+
+
+SELECT nav_grant('navread', false);
+SELECT nav_grant('navwrite', true);

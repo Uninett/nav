@@ -662,6 +662,7 @@ DELETE FROM snmpoid WHERE oidkey='vtpVlanState';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('vtpVlanState','1.3.6.1.4.1.9.9.46.1.3.1.1.2','The state of this VLAN','cisco','1',NULL,'0','vtpVlanState','CISCO-VTP-MIB');
 
+UPDATE snmpoid SET defaultfreq=3600 WHERE oidkey IN ('moduleMon', '3cPS40PortState', 'hpStackStatsMemberOperStatus');
 
 UPDATE snmpoid SET getnext=true, uptodate=true;
 UPDATE netbox SET uptodate=false;

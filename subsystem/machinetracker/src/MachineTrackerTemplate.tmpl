@@ -144,9 +144,9 @@
 
 #def arpTable($table)
   #if $form.dns == "on":
-    #set $columns = ('DNS', 'IP', 'MAC', 'Start time', 'End time')
+    #set $columns = ('DNS', 'IP', '', 'MAC', 'Start time', 'End time')
   #else 
-    #set $columns = ('IP', 'MAC', 'Start time', 'End time')
+    #set $columns = ('IP', '', 'MAC', 'Start time', 'End time')
   #end if
   #set $columnCount = len($columns)
 
@@ -168,6 +168,14 @@
 		<td nowrap>$row.dnsname &nbsp;</td>
     #end if
 		<td nowrap><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns" title="Search again for this IP address">$row.ipaddr</a> &nbsp;</td>
+		<td nowrap>#slurp
+                #if $row.ipaddr
+                  <a href="/ipinfo/?ip=${row.ipaddr}" #slurp
+                     title="Show information about this particular IP address"
+                  ><img src="$imagefolder/arpcam/ipinfolink.png" #slurp
+                  width="11" height="11" alt="IP Info" style="border: none;"></a>&nbsp;
+                #end if
+                </td>
 		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$row.mac</a> &nbsp;</td>
 ##		<td nowrap><a href="/browse/$row.switch">$row.switch</a> &nbsp;</td>
 ##		<td nowrap align="center">$row.module &nbsp;</td>

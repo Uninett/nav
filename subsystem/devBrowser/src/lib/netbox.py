@@ -1,5 +1,5 @@
 # -*- coding: ISO8859-1 -*-
-# Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright 2002-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -27,6 +27,8 @@ Includes generic information (hostname, ip), ping statistics, switch
 modules, statistics (RRD), services monitored, network connectivity,
 vlans, etc."""
 
+import sys
+import time
 import IPy
 from mod_python import apache
 import forgetHTML as html
@@ -42,6 +44,7 @@ from nav.rrd import presenter
 from nav.web import tableview
 import module
 from nav.web.devBrowser.servicetable import ServiceTable
+from nav.event import EventQ, Event
 
 _statusTranslator = {'y':'Up',
                      'n':'Down',
@@ -184,7 +187,15 @@ def process(request):
     #for i in netbox._sqlFields.keys():
     #    line = "%s: %s\n" % (i, getattr(netbox, i))
     #    result.append(html.Division(line))
-    
+
+    # This is a stupid way to match the query parameters,
+    # but then the request dictionary sucks as well.
+
+    if request['query'] and re.match(r'\brefresh\b', request['query']):
+        refresh = RefreshHandler(request, netbox)
+        if not refresh.isDone():
+            return refresh.process()
+
     # Ok, instanciate our NetboxInfo using netbox
     info = NetboxInfo(netbox)
     result = html.Division()
@@ -207,6 +218,109 @@ def process(request):
     if ports:
         result.append(ports)
     return result
+
+class RefreshHandler:
+    refreshVar = 'devBrowseRefresh'
+    
+    def __init__(self, request, netbox):
+        self.request = request
+        self.netbox = netbox
+        self.session = self.request['session']
+        self.postRefresh()
+
+    def postRefresh(self):
+        if self.refreshVar not in self.session:
+            # Post the event here
+            refreshTime = time.time()
+            refreshId = '%d%d' % (self.netbox.netboxid,refreshTime)
+            refreshId = long(refreshId) % sys.maxint
+
+            event = Event(source='devBrowse', target='getDeviceData',
+                          netboxid=self.netbox.netboxid, subid=refreshId,
+                          eventtypeid='notification')
+            event['command'] = 'runNetbox'
+            req = self.request['request']
+            req.log_error('Posting refresh event for IP Device ' +
+                          '%s, refreshID=%s' % (self.netbox.sysname,
+                                                refreshId),
+                          apache.APLOG_DEBUG)
+            event.post()
+
+            self.session[self.refreshVar] = (refreshId, refreshTime)
+            self.session.save()
+
+    def cancelRefresh(self):
+        if self.refreshVar in self.session:
+            del self.session[self.refreshVar]
+
+        result = html.Division()
+        result.append(html.Paragraph('Refresh cancelled...'))
+        backUrl = urlbuilder.createUrl(division='netbox',
+                                       id=self.netbox.netboxid)
+        refreshMeta = '<meta http-equiv="refresh" content="0;url=%s" />\n'
+        self.request['template'].additionalMeta = lambda: refreshMeta % backUrl
+        return result
+
+    def isDone(self):
+        "If received, consume reply event and return true"
+        req = self.request['request']
+        def deleteStale(events):
+            staleMinutes = 5
+            staleTime = DateTime.now() - DateTime.oneMinute * staleMinutes
+            stale = [event for event in events
+                     if event.time < staleTime \
+                     and event['command'] == 'runNetboxDone']
+            for event in stale:
+                age = (DateTime.now() - event.time).minutes
+                req.log_error('Deleting stale refresh reply event ' +
+                              '%s (%.01f minutes old)' % (event.eventqid,
+                                                          age),
+                              apache.APLOG_DEBUG)
+                event.dispose()
+
+        # Only check for replies if we actually know that we've posted an event
+        if self.refreshVar in self.session:
+            (refreshId, refreshTime) = self.session[self.refreshVar]
+            events = EventQ.consumeEvents(target='devBrowse')
+            req.log_error('Checking for refresh replies, found ' +
+                          '%s events directed at me' % len(events),
+                          apache.APLOG_DEBUG)
+            deleteStale(events)
+            # Get the event(s) directed at this refresh instance
+            forMe = [event for event in events
+                     if int(event.subid) == int(refreshId)]
+            if len(forMe) > 0:
+                req.log_error('Got reply event for refreshId=%s' % refreshId,
+                              apache.APLOG_DEBUG)
+                event = forMe[0]
+                event.dispose()
+                del self.session[self.refreshVar]
+                self.session.save()
+                return True
+        return False
+
+    def process(self):
+        if self.request['query'] and re.match(r'\brefresh=cancel\b',
+                                              self.request['query']):
+            return self.cancelRefresh()
+        return self._waitPage()
+    
+    def _waitPage(self):
+        "Wait for gDD to reply to our refresh request"
+        result = html.Division()
+        timeElapsed = time.time() - self.session[self.refreshVar][1]
+        waitString = '(%d seconds elapsed)' % timeElapsed
+        result.append(html.Paragraph('Please wait for collector to ' + \
+                                     'refresh swport data from %s %s...' %
+                                     (self.netbox.sysname, waitString)))
+        self.request['templatePath'][-1] = \
+                                         ('Refreshing ' + \
+                                          self.request['templatePath'][-1][0],
+                                          None)
+        refreshMeta = '<meta http-equiv="refresh" content="5" />\n'
+        self.request['template'].additionalMeta = lambda: refreshMeta
+        return result
+
 
 class NetboxInfo(manage.Netbox):
     def __init__(self, netbox):
@@ -534,6 +648,11 @@ class NetboxInfo(manage.Netbox):
                                     id=self.netboxid.netboxid,
                                     content='Switchports')
         div.append(html.Header(link, level=2))
+        refreshUrl = urlbuilder.createUrl(division='netbox',
+                                          id=self.netboxid.netboxid) + \
+                                          '?refresh=1'
+        refreshLink = html.Anchor('Refresh swport data', href=refreshUrl)
+        div.append(html.Paragraph(refreshLink))
         div.append(module.showModuleLegend())
         # ugly, but only those categorys have swports...
         if self.cat.catid not in ('SW', 'GSW', 'EDGE'):

@@ -16,7 +16,7 @@ import no.ntnu.nav.getDeviceData.Netbox;
 
 public class OidTester
 {
-	public static int DEFAULT_FREQ = 21600;
+	public static int DEFAULT_FREQ = 21600; // Used only for "virtual" oids (e.g. typeoid, dnscheck)
 
 	private static Map lockMap = new HashMap();
 	//private static Set dupeSet = new HashSet();
@@ -250,7 +250,7 @@ public class OidTester
 									String[] ins = {
 										"netboxid", nb.getNetboxidS(),
 										"snmpoidid", snmpoid.getSnmpoidid(),
-										"frequency", ""+DEFAULT_FREQ
+										"frequency", ""+snmpoid.getDefaultfreq(),
 									};
 									Database.insert("netboxsnmpoid", ins);
 
@@ -266,7 +266,7 @@ public class OidTester
 									}
 								}
 								supported = true;
-								nb.addSnmpoid(DEFAULT_FREQ, snmpoid);
+								nb.addSnmpoid(snmpoid.getDefaultfreq(), snmpoid);
 								break;
 							}
 						}

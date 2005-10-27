@@ -1,5 +1,5 @@
 # -*- coding: ISO8859-1 -*-
-# Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright 2002-2005 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -60,7 +60,7 @@ def handler(req):
         warns.append(warning)
     warnings.showwarning = showwarning
 
-    request = classifyUri(req.uri)
+    request = classifyRequest(req)
     if not request:
         if req.args:
             #  quick patch to except
@@ -90,6 +90,11 @@ def handler(req):
     templatePath.append(("Home", "/"))
     templatePath.append(("IP Device Center", "/report"))
 
+    # Instantiate the template early, we want to pass it as part of
+    # the request
+    template = DeviceBrowserTemplate()
+    request['template'] = template
+    
     # result = handler.process(request)
     req.content_type = "text/html; charset=utf-8"
     try:
@@ -117,7 +122,6 @@ def handler(req):
             message = html.Pre(warn, _class="warning")
             result.append(message)
     
-    template = DeviceBrowserTemplate()
     template.path = []
 
     # Our template defines the variable myContent and treeselect.
@@ -137,7 +141,8 @@ def redirect(req, url):
     req.headers_out.add("Location", url)
     raise apache.SERVER_RETURN, apache.HTTP_MOVED_PERMANENTLY
 
-def classifyUri(uri):
+def classifyRequest(req):
+    uri = req.uri
     request = {}
     splitted = uri.split("/")
     # Note! Removes the first two elements! =) (perl style!)    
@@ -177,6 +182,7 @@ def classifyUri(uri):
             
     
     request['args'] = splitted # the rest
+    request['request'] = req
     
     return request
     

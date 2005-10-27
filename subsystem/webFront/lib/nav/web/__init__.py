@@ -68,6 +68,14 @@ def headerparserhandler(req):
 
     return apache.OK
 
+def cleanuphandler(req):
+    from nav import db
+    # Let's make sure we commit any open transactions at the end of each
+    # request
+    conns = [v.object for v in db._connectionCache.values()]
+    for conn in conns:
+        conn.commit()
+    return 0
 
 def redirect(req, url, temporary=False, seeOther=False):
     """

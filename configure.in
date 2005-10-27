@@ -65,6 +65,8 @@ AC_OUTPUT(Makefile
 	subsystem/lib-python/Makefile
 	subsystem/webFront/Makefile
 	subsystem/devBrowser/Makefile
+	subsystem/ipinfo/Makefile
+	subsystem/ipinfo/templates/Makefile
 	subsystem/statemon/Makefile
 	subsystem/statemon/pping
 	subsystem/statemon/servicemon
@@ -97,6 +99,7 @@ AC_OUTPUT(Makefile
 	subsystem/smsd/smsd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
+	subsystem/arnold/Makefile
 	subsystem/statTools/Makefile)
 
 echo

@@ -1,0 +1,2 @@
+SetHandler python-program
+PythonHandler nav.web.ipinfo

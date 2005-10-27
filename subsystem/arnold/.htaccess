@@ -1,0 +1,3 @@
+SetHandler python-program
+PythonHandler arnoldhandler
+DirectoryIndex arnoldhandler.py

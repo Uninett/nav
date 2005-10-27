@@ -1,0 +1,21 @@
+IUSE=jallalanguage
+
+DESCRIPTION="Machine tracking tool of the NAVv3 package"
+
+DEPEND=nav.web.URI
+
+PREPARE{
+	mkdir $APACHE/webroot/l2trace
+}
+DIR=$APACHE/webroot/l2trace
+
+COPY{
+	cp src/l2trace.py web $DIR/l2trace.py
+	cp src/htaccess $DIR/l2trace.py
+}
+
+CHEETAH-COMPILE{
+	cheetah-compile src/l2traceTemplate.tmpl $DIR/l2traceTemplate
+}
+
+

@@ -1,0 +1,30 @@
+In this directory we have the mail-templates. The templates are used
+when Arnold sends out mails to the people responsible for a computer.
+
+You specify the name of the template Arnold uses on the website. Or if
+you manually run Arnold use the -m option. 
+
+A template is easy to make. It consist of a from-address, a subject
+and whatever text you want to include. There are some variales
+available for you to make the template more informative:
+
+$reason - the reason for this block
+$list - the list of ip-addresses blocked
+
+A mailtemplate may look like this (the START and EOF are for your
+readability only):
+
+
+START
+noreply@university.com
+Computers blocked because of $reason.
+
+Some informative text.
+
+The following computers have been blocked:
+
+$list
+
+
+Contact-information.
+EOF

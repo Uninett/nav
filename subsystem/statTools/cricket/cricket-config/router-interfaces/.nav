@@ -11,5 +11,5 @@
 type = GW,GSW
 interface = 1
 name = interface
-descr = select nettype,netident from gwportprefix left join prefix using (prefixid) left join vlan using (vlan) where gwportid=$id and netident is not null
+descr = SELECT nettype, netident, description, type.descr, room.locationid, room.roomid, room.descr FROM gwport LEFT JOIN module USING (moduleid) LEFT JOIN netbox USING (netboxid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) LEFT JOIN gwportprefix USING (gwportid) LEFT JOIN prefix ON (prefix.prefixid=gwportprefix.prefixid) LEFT JOIN vlan USING (vlanid) WHERE gwportid=$id AND vlan > 1 ORDER BY vlan DESC limit 1
 table = gwport

@@ -1,0 +1,520 @@
+## Cheetah!
+## $Id$
+##
+## Copyright 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Authors: John Magne Bredal <john.m.bredal@ntnu.no>
+##
+
+
+#extends nav.web.templates.MainTemplate.MainTemplate
+
+
+##################################################
+## Start of maincontent
+##################################################
+#block content
+##################################################
+
+<p>
+$printLinks($buttons,$buttonnames)
+</p>
+
+#if $action == 'search'
+  <div class='infobox'>
+    <h5>Usage:</h5>
+
+    <br>
+
+    Search by choosing searchfield and then enter a value. Choose if
+    what you are searching for is enabled, disabled or both. Enter the
+    number of days back in time (0 being today) you want to limit your
+    search to.
+
+    <ul>
+      <li>IP-format: Standard inet-values accepted (e.g. 129.241.xxx.xxx, 129.241.xxx.xxx/xx)</li>
+      <li>MAC-format: Hexadecimal values with no padding.</li>
+      <li>Netbios, DNS and Orgid accept all characters and words.</li>
+    </ul>
+
+  </div>
+
+  <br>
+
+  $printSearch()
+
+#elif $action == 'showdetails'
+  $printList($headertext, "", $list, $headersList, $headers, 1, 0)
+  <h3>History</h3>
+  $printList($headertext2, $hitstext2, $list2, $headersList2, $headers2, $hits2, 1)
+
+#elif $action == 'addreason'
+  $printAddreason($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
+
+#elif $action == 'history'
+  <form action='history' method='GET'>
+    <input type='text' name='days' size='3' value='$days'>days of history (based on lastchanged)
+  </form>
+  $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
+
+#elif $action == 'blockedports'
+  #if $output
+    <p class='red'>$output</p>
+  #end if
+  $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
+
+#elif $action == 'manualblock'
+  <div class='infobox'>
+    <h5>Usage:</h5>
+
+    <br>
+
+    Enter ip-address to block and choose reason for block. If you want
+    you can add a comment. Autoenable is the number of days until the port
+    will be automatically enabled. If not entered, the port will stay
+    blocked until manually opened.
+
+  </div>
+
+  
+
+  #if $output
+    <p class='red'>$output</p>
+  #end if
+
+  <br>
+
+  $printManualblock($reasons)
+
+#elif $action == 'blocktypes'
+  <p><a href='addBlocktype'>Add new blocktype</a></p>
+  $printList($headertext, $hitstext, $list, $headersList, $headers, $hits, 1)
+
+#elif $action == 'addBlocktype'
+  $addBlocktype($blockreasons)
+
+#elif $action == 'printError'
+  <p>$error</p>
+
+#end if
+
+#end block
+
+
+
+##################################################
+##################################################
+##                  Functions                   ##
+##################################################
+##################################################
+
+
+
+## Print the links in the $buttons-array
+##################################################
+#def printLinks($buttons,$buttonnames)
+##################################################
+
+#set sep  = ''
+#for $button in $buttonnames
+  $sep <a href="$buttons[$button]">$button</a>
+#set $sep = " | "
+#end for
+
+#end def
+
+
+##################################################
+# Generic function that prints a table based on input
+#def printList($headertext, $hitstext, $list, $headersList, $headers, $hits, $printHits)
+##################################################
+
+
+#set $rowspan = $hits + 1
+#set $colspan = $len($headersList) + 1
+
+<table border="0" cellspacing="0" cellpadding="0">
+
+  ## HEADER WITH TITLE
+  <tr class="title">
+    <td class="title" align="center" colspan="$colspan" style="background-image:url('/images/bar-fill.gif'); background-repeat: no-repeat;">  
+
+    
+    <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+      <tr class="navigation">
+        <td class="previous">
+          <img src="/images/blank.gif" width="31" height="31" alt="" />
+
+          <img src="/images/blank.gif" width="5" height="1" alt="" />
+        </td>
+        <td class="current">
+          <div class="title">$headertext</div>
+          #if $printHits
+            $hits $hitstext
+          #end if
+        </td>
+        <td class="next">
+          <img src="/images/blank.gif" width="5" height="1" alt="" />
+          <img src="/images/blank.gif" width="31" height="31" alt="" />
+        </td>
+      </tr>
+    </table>
+
+    </td>
+    <td align=right style="background-image:url('/images/arpcam/fill.gif');"><img src="/images/bar-end.gif"></td>
+
+  </tr>
+
+
+## HEADERS / ROW DESCRIPTIONS
+
+  <tr class="header">
+    <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rowspan">
+      <img src="/images/blank.gif" width="14" height="1" alt="" />
+    </td>
+
+    #for $entry in $headersList
+    <td class="header" valign="top" bgcolor=white nowrap >
+
+      #if $sort and $action == 'history'
+      <a href="$section?sort=$entry&days=$days" class="navbar" title="">
+        $headers[$entry]
+      </a>&nbsp;
+      #elif $sort
+      <a href="$section?sort=$entry" class="navbar" title="">
+        $headers[$entry]
+      </a>&nbsp;
+      #else
+        $headers[$entry]
+      #end if
+      
+
+    </td>
+    #end for
+
+    <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rowspan">
+      <img src="/images/blank.gif" width="14" height="1" alt="" />
+    </td>
+
+  </tr>
+
+
+## THE INFORMATION / TABLE
+
+  #set global $class = 'even'
+
+  #for $listitem in $list
+  
+  #if $class == 'even'
+    #set global $class = 'odd'
+  #else
+    #set global $class = 'even'
+  #end if
+
+  <tr class='${class}row'>
+
+    #for $entry in $headersList
+    <td nowrap class="${class}cell" style="padding: 0px 10px 0px 0px">
+      $listitem[$entry]
+    </td>
+    #end for
+
+  </tr>
+  #end for
+
+</table>
+
+#end def
+
+
+##################################################
+#def printSearch()
+##################################################
+
+
+<form action="search" method="GET">
+
+<table border=0 cellpadding=0 cellspacing=4>
+  <tr>
+    <td>
+      <select name="searchfield">
+	#for $entry in $searchfields
+	  #if $entry == $searchfield
+          <option value="$entry" selected>$entry</option>
+          #else
+          <option value="$entry">$entry</option>
+          #end if
+	#end for
+      </select>
+      = <input type="text" name="searchtext" value='$searchtext' size="20">
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      #for $item in $statusfields
+        #if $item == $status
+          <input type='radio' name='status' value='$item' checked>$item
+        #else
+          <input type='radio' name='status' value='$item'>$item
+        #end if
+      #end for
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      From now and <input type='text' name='days' value='$days' size='4' maxsize='4'> days back
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan='2'>
+      <input type="submit" value="Search">
+    </td>
+  </tr>
+
+</table>
+
+<input type="hidden" name="action" value="dosearch">
+</form>
+
+#if $searchresults
+$printList($headertext, $hitstext, $searchresults, $headersList, $headers, $hits, 1)
+#elif $searchtext
+<p>$headertext</p>
+#end if
+
+#end def
+
+##################################################
+#def printAddreason ($blockreasonheadersList, $blockreasonheaders, $blockreasons, $hits)
+##################################################
+
+
+  <form action='doaddblockreason' method='GET'>
+    <input type='text' name='blockreason' size='30'>
+    <input type='submit' value='Add reason'>
+  </form>
+
+
+  $printList($headertext, $hitstext, $blockreasons, $blockreasonheadersList, $blockreasonheaders, $hits, 1)
+
+
+#end def
+
+##################################################
+#def printManualblock($reasons)
+##################################################
+
+<table>
+
+<form action='domanualblock' method='GET'>
+
+  <tr>
+    <td>IP-address to block</td>
+    <td>Reason</td>
+    <td>Comment</td>
+    <td>Autoenable</td>
+    <td>&nbsp;</td>
+  </tr>
+
+  <tr>
+    <td><input type='text' name='ipadresse'></td>
+
+    <td>
+      <select name='reason'>
+      #for $reason in $reasons
+        <option value='$reason['id']'>$reason['text']</option>
+      #end for
+      </select>
+    </td>
+
+    <td><input type='text' name='comment'></td>
+    <td><input type='text' name='autoenable' size='3'></td>
+    <td><input type='submit' value='Block'></td>
+  </tr>
+
+</form>
+
+</table>
+
+#end def
+
+
+##################################################
+#def addBlocktype($blockreasons)
+##################################################
+
+<small>(Red fields indicates that a value must be entered)</small>
+
+<table border='0'>
+
+<form action='doaddblock' method='GET'>
+  <input type='hidden' name='blockid' value='$blockinfo['blockid']'>
+
+  #if $blockinfo['blockid']
+  <tr>
+    <td>ID</td>
+    <td>$blockinfo['blockid']</td>
+  </tr>
+  #end if
+
+  <tr>
+    <td class='red'>Title</td>
+    <td><input class='blocktype' type='text' name='blocktitle' value='$blockinfo['blocktitle']'></td>
+  </tr>
+
+  <tr>
+    <td>Description</td>
+    <td><textarea class='blocktype' name='description'>$blockinfo['blockdesc']</textarea></td>
+  </tr>
+
+  <tr>
+    <td class='red'>Reason</td>
+    <td>
+      <select class='blocktype' name='reasonid'>
+	#if $blockinfo['reasonid'] == 0
+	  <option value='0' selected>--- Select reason ---</option>
+  	#end if
+
+        #for $element in $blockreasons
+	  #if $blockinfo['reasonid'] == $element['id']
+	    <option value='$element['id']' selected>$element['text']</option>
+	  #else
+	    <option value='$element['id']'>$element['text']</option>
+          #end if
+	#end for
+      </select>
+    </td>
+  </tr>
+
+  #if not $blockinfo['blockid']
+  <tr>
+    <td>&nbsp;</td>
+    <td>or <input class='blocktype2' type='text' name='newreason' value='-- Create new blockreason --'></td>
+  </tr>
+  #end if
+
+  <tr>
+    <td class='red'>Path to mailfile</td>
+    <td><input class='blocktype' type='text' name='mailfile' value='$blockinfo['mailfile']'></td>
+  </tr>
+
+  <tr>
+    <td>Path to inputfile</td>
+    <td><input class='blocktype' type='text' name='inputfile' value='$blockinfo['inputfile']'></td>
+  </tr>
+
+  <tr>
+    <td>Block pursuit</td>
+    <td>
+      #if $blockinfo['determined'] == 'y'
+        <input type='radio' name='pursuit' value='n'>Open on move
+        <input type='radio' name='pursuit' value='y' checked>All closed
+      #else
+        <input type='radio' name='pursuit' value='n' checked>Open on move
+        <input type='radio' name='pursuit' value='y'>All closed
+      #end if
+    </td>
+  </tr>
+
+  <tr>
+    <td>Exponential increase</td>
+    #if $blockinfo['incremental'] == 'y'
+      <td><input type='checkbox' name='eincrease' checked></td>
+    #else
+      <td><input type='checkbox' name='eincrease'></td>
+    #end if
+  </tr>
+
+  <tr>
+    <td class='red'>Block duration</td>
+    <td><input size='3' type='text' name='duration' value='$blockinfo['blocktime']'> days</td>
+  </tr>
+
+  <tr>
+    <td>Active</td>
+    #if $blockinfo['active'] == 'y'
+      <td><input type='checkbox' name='active' checked></td>
+    #else
+      <td><input type='checkbox' name='active'></td>
+    #end if
+  </tr>
+
+  <tr>
+    <td>User</td>
+    <td><input type='text' name='user' value='$blockinfo['userid']' size='10'></td>
+  </tr>
+
+  <tr>
+  #if $blockinfo['blockid']
+    <td><input type='submit' value='Save changes'></td>
+  #else 
+    <td><input type='submit' value='Make new block'></td>
+  #end if
+    <td>&nbsp;</td>
+  </tr>
+
+</form>
+
+</table>
+
+#if $blockinfo['blockid']
+  <p>Last changed $blockinfo['lastedited'] by $blockinfo['lastedituser']</p>
+#end if
+
+#end def
+
+
+##################################################
+#def additionalCSS ()
+##################################################
+
+  $default_table_CSS()
+
+  #set $w = '300px'
+  #set $w2 = '278px'
+
+  input.blocktype    { width: $w;  }
+  input.blocktype2   { width: $w2; }
+  select.blocktype   { width: $w;  }
+  textarea.blocktype { width: $w;  }
+  td.red             { color:red;  }
+
+  p.red             { color: red; }
+
+  .infobox {
+    width: 800px;
+    font-size: 12px;
+    background-color: #eeeeee;
+    padding: 0.5em;
+    border: 1px solid #cccccc;
+    -moz-border-radius: 12px;
+  }
+
+  .infobox h5 {
+    display: inline;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-bottom: 1px solid rgb(51,102,153);
+  }
+
+#end def

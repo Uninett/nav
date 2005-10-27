@@ -46,7 +46,8 @@ subdirs = src \
 	subsystem/statTools \
 	subsystem/status \
 	subsystem/thresholdMon \
-	subsystem/webFront
+	subsystem/webFront \
+	subsystem/arnold
 
 # Make sure we export make variables to the environment
 export

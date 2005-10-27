@@ -12,5 +12,5 @@ type = SW,GSW
 interface = 1
 name = module,port
 join = _
-descr = select portname from swport where swportid=$id and portname is not null
+descr = SELECT portname, type.descr, room.locationid, room.roomid, room.descr FROM swport LEFT JOIN module USING (moduleid) LEFT JOIN netbox USING (netboxid) LEFT JOIN type USING (typeid) LEFT JOIN room USING (roomid) WHERE swportid=$id
 table = swport

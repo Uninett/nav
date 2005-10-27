@@ -1,0 +1,215 @@
+## $Id: MachineTrackerTemplate.tmpl 3106 2005-01-20 10:47:13Z mortenv $
+##
+## Copyright 2003, 2004 Norwegian University of Science and Technology
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Kristian Eide <kreide@gmail.com>
+##
+
+#extends MainTemplate
+
+#attr $path =  [("Home", "/"), ("L2 trace", "/l2trace/")]
+
+#block content
+
+<div id="l2trace" style="font-size: 13px;">
+
+
+<p><b>Level 2 MAC Trace</b></p>
+<div id="forms">
+
+<form id="l2traceform" action="" method="get">
+<table style="font-size: 13px;">
+ <tr>
+  <td><label>From </label></td>
+  <td><input type=text name=host_from value=$form.host_from></td>
+  <td><label>To </label></td>
+  <td><input type=text name=host_to value=$form.host_to></td>
+ </tr>
+ <tr>
+  <td></td>
+  <td colspan=2>
+   	<input type=submit name=send value="Trace">
+  </td>
+  <td align="center">(optional)</td>
+ </tr>
+</table>
+</form>
+
+</div> <!-- forms -->
+
+#def tableTitle($title, $hits, $columnCount)
+  #set $columnCount += 1
+<p>
+<table cellspacing="0" cellpadding="0" border="0">
+<!------------------------- TITLE  ---->
+    <tr class="title">
+      <th class="title" align="center" colspan="$columnCount"
+          style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
+        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
+          <tr class="navigation">
+            <td class="current">
+              <p class="title"><font color="black">$title</font></p>
+              $hits rows
+            </td>
+          </tr>
+        </table>
+      </th>
+      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+    </tr>
+#end def
+
+#def tableHeader($rowCount, $columns)
+  #set $rowCount = $rowCount + 2
+    <tr class="header">
+      <th bgcolor="white"
+          style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px"
+          rowspan="$rowCount">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </th>
+  #for $column in $columns
+      <th class="header" valign="top" bgcolor="white" nowrap >
+          $column &nbsp;
+      </th>
+  #end for
+
+      <th bgcolor="white"
+          style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;"
+          rowspan="$rowCount">
+        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
+      </th>
+    </tr>
+#end def
+
+#def l2traceTable($table)
+  #set $columns = ('#', 'Level', 'Vlan', 'Port In', 'IP', 'Sysname', 'Port Out')
+  #set $columnCount = len($columns)
+
+  $tableTitle("L2 Trace results", len($table), $columnCount)
+  $tableHeader(len($table), $columns)
+
+  #set $rowtype = "evenrow"
+  #for $row in $table
+    #if $rowtype == "evenrow"
+      #set $rowtype = "oddrow"
+    #else
+      #set $rowtype = "evenrow"
+    #end if
+
+        <tr class="$rowtype">
+		<td nowrap align="right">$row.idx &nbsp;</td>
+		<td nowrap align="center">$row.level &nbsp;</td>
+
+        #if $row.vlan == "trunk"
+		    <td nowrap align="right">$row.vlan &nbsp;</td>
+        #else
+		    <td nowrap align="right"><a href="/report/prefix?vlan=$row.vlan" title="Vlan report">$row.vlan</a> &nbsp;</td>
+        #end if
+
+        #if $row.netboxid
+		    <td nowrap><a href="/report/swport?b1.netboxid=$row.netboxid" title="Switch ports">$row.portIn</a> &nbsp;</td>
+        #else
+		    <td nowrap >$row.portIn &nbsp;</td>
+        #end if
+
+        #if $row.hostOk
+		    <td nowrap><a href="/ipinfo/?ip=$row.ipaddr" title="IP info">$row.ipaddr</a> &nbsp;</td>
+        #else
+		    <td nowrap >$row.ipaddr &nbsp;</td>
+        #end if
+
+        #if $row.netboxid
+		    <td nowrap><a href="/browse/?netbox=$row.ipaddr" title="Device browser">$row.sysname</a> &nbsp;</td>
+        #else
+		    <td nowrap >$row.sysname &nbsp;</td>
+        #end if
+
+        #if $row.netboxid
+		    <td nowrap><a href="/report/swport?b1.netboxid=$row.netboxid" title="Switch ports">$row.portOut</a> &nbsp;</td>
+        #else
+		    <td nowrap >$row.portOut &nbsp;</td>
+        #end if
+
+        </tr>
+  #end for
+  </table>
+#end def
+
+<div id="results">
+#if $l2tracer
+    $l2traceTable($l2tracer.table)
+#end if
+
+#if not $l2tracer
+  #set $noresults = 0
+
+  #if $noresults
+<p>Your search did not return any results</p>
+  #else
+<div class="infobox">
+<h5>L2 Trace usage</h5>
+<ul>
+  <li>Enter a hostname or IP address and trace up to its router.
+  </li>
+
+  <li>Optionally enter a destination hostname or IP address and trace between the two.
+  </li>
+
+  <li>Press the Trace button to start.
+  </li>
+
+</ul>
+</div>
+
+  #end if
+#end if
+</div> <!-- results -->
+
+
+</div> <!-- l2trace -->
+
+#end block content
+
+#block additionalCSS
+$default_table_CSS
+th.header { 
+  text-align: center;
+  font-size: 13;
+  font-weight: normal;
+}
+p.title {
+  font-size: 15;
+  font-weight: bold;
+  text-align: center;
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+}
+.infobox {
+  background-color: #eeeeee;
+  padding: 0.5em;
+  border: 1px solid #cccccc;
+  -moz-border-radius: 12px;
+}
+.infobox h5 { 
+  display: inline;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border-bottom: 1px solid rgb(51, 102, 153); 
+}
+#end block additionalCSS
