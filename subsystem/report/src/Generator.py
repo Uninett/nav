@@ -29,6 +29,7 @@ from urlparse import urlsplit
 from urllib import unquote_plus
 from DatabaseResult import DatabaseResult
 from Report import Report
+import nav.db
 
 class Generator:
     """
@@ -391,11 +392,7 @@ class ArgumentParser:
     
 
     def intstr(self,arg):
-        try:
-            arg = str(int(arg))
-        except ValueError:
-            arg = "'" + str(arg) + "'"        
-        return arg
+        return nav.db.escape(arg)
 
 
 class ReportConfig:
