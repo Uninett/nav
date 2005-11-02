@@ -249,7 +249,7 @@ def remove_forgotten():
 
     # This SQL retrieves a list of boxes that are currently on
     # maintenance, according to the alert history.
-    actual = """SELECT n.netboxid, n.deviceid, n.sysname
+    actual = """SELECT n.netboxid, a.deviceid, n.sysname
                 FROM alerthist a
                 LEFT JOIN netbox n USING (netboxid)
                 WHERE eventtypeid='maintenanceState'
