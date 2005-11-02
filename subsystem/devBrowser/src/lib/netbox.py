@@ -311,7 +311,7 @@ class RefreshHandler:
         timeElapsed = time.time() - self.session[self.refreshVar][1]
         waitString = '(%d seconds elapsed)' % timeElapsed
         result.append(html.Paragraph('Please wait for collector to ' + \
-                                     'refresh swport data from %s %s...' %
+                                     'refresh data from %s %s...' %
                                      (self.netbox.sysname, waitString)))
         self.request['templatePath'][-1] = \
                                          ('Refreshing ' + \
@@ -348,6 +348,7 @@ class NetboxInfo(manage.Netbox):
             info.add('Type', urlbuilder.createLink(self.type))
         info.add('Organisation', urlbuilder.createLink(self.org))
         info.add('Room', urlbuilder.createLink(self.room))
+        info.add('Last updated', self.showLastUpdate())
         result.append(info)
         return result
     def setPrefix(self):
@@ -648,11 +649,6 @@ class NetboxInfo(manage.Netbox):
                                     id=self.netboxid.netboxid,
                                     content='Switchports')
         div.append(html.Header(link, level=2))
-        refreshUrl = urlbuilder.createUrl(division='netbox',
-                                          id=self.netboxid.netboxid) + \
-                                          '?refresh=1'
-        refreshLink = html.Anchor('Refresh swport data', href=refreshUrl)
-        div.append(html.Paragraph(refreshLink))
         div.append(module.showModuleLegend())
         # ugly, but only those categorys have swports...
         if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
@@ -673,3 +669,27 @@ class NetboxInfo(manage.Netbox):
                 div.append(moduleView)
         return div
 
+    def showLastUpdate(self):
+        unixEpoch = DateTime.DateTime(1970)
+        refreshUrl = urlbuilder.createUrl(division='netbox',
+                                          id=self.netboxid.netboxid) + \
+                                          '?refresh=1'
+        refreshLink = html.Anchor('(Force refresh)', href=refreshUrl)
+
+        infoBits = [i for i in
+                    self.getChildrenIterator(manage.Netboxinfo,
+                                             where="var='lastUpdated'")]
+        if len(infoBits) > 0:
+            try:
+                lastUpdated = long(infoBits[0].val)
+            except ValueError:
+                return '(Invalid value in database)'
+            
+            # lastUpdated value is actually the number of milliseconds since
+            # the epoch (apparently UTC time, not local), we use DateTime to
+            # calculate a usable timestamp.
+            lastUpdated = unixEpoch + \
+                          DateTime.oneSecond * (lastUpdated / 1000.0)
+            return "%s %s" % (str(lastUpdated.localtime()), refreshLink)
+        else:
+            return "N/A " + refreshLink
