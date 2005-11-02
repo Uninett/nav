@@ -30,6 +30,7 @@ import nav
 import time
 import ConfigParser
 import os.path, nav.path
+import base64
 
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
@@ -54,6 +55,7 @@ def headerparserhandler(req):
 
     state.setupSession(req)
     nav.web.auth.authenticate(req)
+    user = req.session['user']
 
     # Make sure the user's session file has its mtime updated every
     # once in a while, even though no new data is saved to the session
@@ -64,7 +66,19 @@ def headerparserhandler(req):
     # Make sure the main web template knows which user to produce
     # output for.
     from nav.web.templates.MainTemplate import MainTemplate
-    MainTemplate.user = req.session['user']
+    MainTemplate.user = user
+
+    # Fake a HTTP Authorization header, with username and an empty
+    # password, for third-party and non-Python apps running om this
+    # server.  This way NAV can authenticate for them
+    authHeader = 'Authorization'
+    if authHeader in req.headers_in:
+        # Delete any existing Authorization headers
+        del req.headers_in[authHeader]
+    if user.id > 0:
+        # Only fake the header if we're not the public user
+        basicCookie = base64.encodestring(user.login + ':').strip()
+        req.headers_in.add(authHeader, 'Basic ' + basicCookie)
 
     return apache.OK
 
