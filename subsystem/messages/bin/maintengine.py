@@ -260,7 +260,7 @@ def remove_forgotten():
     # currently on maintenance and subtracts those that are supposed
     # to be on maintenance - resulting in a list of boxes that should
     # be taken off maintenance immediately.
-    fullSQL = actual + "\n EXCEPT \n" + sched
+    fullSQL = "(%s) \n EXCEPT \n (%s)" % (actual, sched)
     database.execute(fullSQL);
 
     target = 'eventEngine'
