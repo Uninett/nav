@@ -893,7 +893,7 @@ INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS al
 
 -- Default system accounts
 INSERT INTO Account (id, login, name, password) VALUES (0, 'default', 'Default User', '');
-INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', 'admin');
+INSERT INTO Account (id, login, name, password) VALUES (1, 'admin', 'NAV Administrator', '{sha1}s3F6XX/D$L3vU8Rs2bTJ4zArBLVIPbh7cN9Q=');
 
 INSERT INTO AccountInGroup (accountid, groupid) VALUES (1, 1);
 

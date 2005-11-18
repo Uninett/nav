@@ -27,6 +27,7 @@ to the Account system.
 """
 import nav.db
 from nav.db.forgotten.navprofiles import *
+import nav.pwhash
 import md5
 
 class Account(nav.db.forgotten.navprofiles.Account):
@@ -107,9 +108,19 @@ class Account(nav.db.forgotten.navprofiles.Account):
         whatever.
         """
         if len(self.password.strip()) > 0:
-            # If the stored password is indicated to be an md5 hash,
-            # we compute the md5 hash of the supplied password for
-            # comparison.
+            stored_hash = nav.pwhash.Hash()
+            try:
+                stored_hash.set_hash(self.password)
+            except nav.pwhash.InvalidHashStringError:
+                # Probably an old style NAV password hash, get out
+                # of here and check it the old way
+                pass
+            else:
+                return stored_hash.verify(password)
+            
+            # If the stored password looks like an old-style NAV MD5
+            # hash we compute the MD5 hash of the supplied password
+            # for comparison.
             if self.password[:3] == 'md5':
                 hash = md5.md5(password)
                 return (hash.hexdigest() == self.password[3:])
@@ -120,10 +131,10 @@ class Account(nav.db.forgotten.navprofiles.Account):
 
     def setPassword(self, password):
         """Set the password of this account. The password parameter is
-        the plaintext password.  Physically, the password field might
-        be an md5 hash of the plaintext password."""
+        the plaintext password."""
         if len(password.strip()) > 0:
-            self.password = "md5%s" % md5.md5(password).hexdigest()
+            hash = nav.pwhash.Hash(password=password)
+            self.password = str(hash)
         else:
             self.password = ""
 
