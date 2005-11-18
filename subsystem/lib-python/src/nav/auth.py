@@ -31,6 +31,7 @@ from nav import ip
 
 ADMINGROUP = 1
 ANONYMOUSGROUP = 2
+AUTHENTICATEDGROUP = 3
 
 _orgPrivs = ['org_access']
 
@@ -56,6 +57,11 @@ def hasPrivilege(user, action, target):
     if not ANONYMOUSGROUP in groupIds:
         groupIds.append(ANONYMOUSGROUP)
 
+    # Make sure an authenticated user is always considered a member
+    # of the "Authenticated users" group
+    if user.id > 0 and AUTHENTICATEDGROUP not in groupIds:
+        groupIds.append(AUTHENTICATEDGROUP)
+        
     # If user is a member of the Administrators group, we grant
     # him/her whatever privilege is asked for.
     if ADMINGROUP in groupIds:

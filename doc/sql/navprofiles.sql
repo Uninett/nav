@@ -885,6 +885,7 @@ CREATE VIEW PrivilegeByGroup AS (
 
 INSERT INTO AccountGroup (id, name, descr) VALUES (1, 'NAV Administrators', 'Full access to everything');
 INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauthenticated users (not logged in)');
+INSERT INTO AccountGroup (id, name, descr) VALUES (3, 'Authenticated users', 'Any authenticated user (logged in)');
 
 -- Some default example groups
 INSERT INTO AccountGroup (name, descr) VALUES ('ReadAll', 'Read access to most things');
