@@ -79,6 +79,8 @@ AC_OUTPUT(Makefile
 	subsystem/messages/bin/Makefile
 	subsystem/messages/templates/Makefile
 	subsystem/messages/Makefile
+	subsystem/l2trace/Makefile
+	subsystem/l2trace/src/Makefile
 	subsystem/logger/src/Makefile
 	subsystem/logger/templates/Makefile
 	subsystem/logger/bin/Makefile

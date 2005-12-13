@@ -35,7 +35,9 @@ subdirs = src \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
 	subsystem/editdb \
+	subsystem/ipinfo \
 	subsystem/messages \
+	subsystem/l2trace \
 	subsystem/logger \
 	subsystem/machinetracker \
 	subsystem/pyproxy \
