@@ -1,4 +1,4 @@
-%define version 3.0_rc1
+%define version 3.1.0_devel
 %define _prefix /usr/local/nav
 
 Summary: Powerful network administration tool
@@ -81,14 +81,18 @@ fi
 %defattr(0664,root,nav)
 %config(noreplace) %{_prefix}/etc/alertengine.cfg
 %config(noreplace) %{_prefix}/etc/alertmsg.conf
+%config(noreplace) %{_prefix}/etc/arnold/arnold.cfg
+%config(noreplace) %{_prefix}/etc/arnold/nonblock.cfg
 %config(noreplace) %{_prefix}/etc/cricketoids.txt
 %config(noreplace) %{_prefix}/etc/cricket-views.conf
 %config(noreplace) %{_prefix}/etc/db.conf
 %config(noreplace) %{_prefix}/etc/devbrowser.conf
 %config(noreplace) %{_prefix}/etc/editdb.conf
 %config(noreplace) %{_prefix}/etc/eventEngine.conf
+%config(noreplace) %{_prefix}/etc/fillthresholds.conf
 %config(noreplace) %{_prefix}/etc/getBoksMacs.conf
 %config(noreplace) %{_prefix}/etc/getDeviceData.conf
+%config(noreplace) %{_prefix}/etc/l2trace.conf
 %config(noreplace) %{_prefix}/etc/logger.conf
 %config(noreplace) %{_prefix}/etc/machinetracker.conf
 %config(noreplace) %{_prefix}/etc/nav.conf
@@ -103,6 +107,7 @@ fi
 %config(noreplace) %{_prefix}/etc/report/matrix.conf
 %config(noreplace) %{_prefix}/etc/webfront/contact-information.txt
 %config(noreplace) %{_prefix}/etc/webfront/external-links.txt
+%config(noreplace) %{_prefix}/etc/webfront/ipinfo.conf
 %config(noreplace) %{_prefix}/etc/webfront/nav-links.conf
 %config(noreplace) %{_prefix}/etc/webfront/webfront.conf
 %config(noreplace) %{_prefix}/etc/webfront/welcome-anonymous.txt
@@ -111,6 +116,6 @@ fi
 
 
 %changelog
-* Fri Jan 21 2005  <morten.vold@ntnu.no>
+* Tue Dec 13 2005  <morten.vold@ntnu.no>
 
-- First SuSE specific RPM release, NAV 3.0_beta9
+- Grabbed HEAD revision from trunk.
