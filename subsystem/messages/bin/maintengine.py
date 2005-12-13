@@ -244,7 +244,7 @@ def remove_forgotten():
                                        (SELECT roomid
                                         FROM room
                                         WHERE locationid = mv.value))
-               WHERE mv.key='room'
+               WHERE mv.key='location'
                  AND mv.state='active'"""
 
     # This SQL retrieves a list of boxes that are currently on
