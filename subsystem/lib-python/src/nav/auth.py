@@ -42,59 +42,41 @@ def hasPrivilege(user, action, target):
     None or an instance of nav.db.navprofiles.Account (e.g. taken from
     req.session['user'])
     """
-
     if type(user) is navprofiles.Account:
-        # Get list of user's group memberships
-        links = user.getChildren(navprofiles.Accountingroup)
-        groupIds = [int(link.group) for link in links]
+        # Verify that the account object already has cached privilege
+        # data; cache them if not.
+        try:
+            user._privDict
+        except:
+            user.cachePrivileges()
+        privileges = user._privDict
+        groupIds = user._groupList
     elif not user:
+        privileges = {}
         groupIds = []
     else:
         raise "user parameter is of invalid type %s" % type(user)
 
-    # Make sure the user is always considered a member of the
-    # Anonymous group.
-    if not ANONYMOUSGROUP in groupIds:
-        groupIds.append(ANONYMOUSGROUP)
-
-    # Make sure an authenticated user is always considered a member
-    # of the "Authenticated users" group
-    if user.id > 0 and AUTHENTICATEDGROUP not in groupIds:
-        groupIds.append(AUTHENTICATEDGROUP)
-        
     # If user is a member of the Administrators group, we grant
-    # him/her whatever privilege is asked for.
+    # him/her any privilege asked for.
     if ADMINGROUP in groupIds:
         return True
 
-    # Construct and execute an SQL statement to retrieve any rows
-    # matching the named privilege (action) for this user's
-    # groups. We don't match the target directly, since this may
-    # be open to interpretation based on what the action is.
-    # E.g. if the action is 'web_access', we must treat the
-    # registered targets as regular expressions to match against
-    # the target that was asked for.
-    groupString = ','.join([str(id) for id in groupIds])
-    sql = """
-    SELECT *
-    FROM PrivilegeByGroup
-    WHERE accountgroupid IN (%s)
-          AND action = '%s'
-    """ % (groupString, action)
-    cursor = navprofiles.Account.cursor()
-    cursor.execute(sql)
-
-    privileges = cursor.dictfetchall()
-
+    # We don't match the target directly, since this may be open to
+    # interpretation based on what the action is.  E.g. if the
+    # action is 'web_access', we must treat the registered targets
+    # as regular expressions to match against the target that was
+    # asked for.
     # If we know an action needs tailored parsing of the target
     # attribute, we provide for that here.  Anything unknown is
     # matched as plaintext.
-    if action == 'web_access':
-        return _matchRegexpTarget(target, privileges)
+    if action == 'web_access' and action in privileges:
+        return _matchRegexpTarget(target, privileges[action])
     elif action in _orgPrivs:
+        # This lint has never been used
         return _hasOrgPrivileges(user, target)
     else:
-        return _matchBasicTarget(target, privileges)
+        return action in privileges and target in privileges[action]
 
 def _hasOrgPrivileges(user, target):
     """
@@ -134,24 +116,51 @@ def _hasOrgPrivileges(user, target):
             if targetAddr in net:
                 return True
     return False
-    
-def _matchBasicTarget(target, dictList):
-    """
-    Run through a list of rows from a privilege search and return
-    true if plaintext target exists among the privilege rows.
-    """
-    for row in dictList:
-        if row['target'] == target:
-            return True
-    return False
 
-def _matchRegexpTarget(target, dictList):
+def _matchRegexpTarget(target, regexpList):
+    """Run through a list of regexp expressions and return true if
+    the target matches any of the regexps in the privilege rows.
     """
-    Run through a list of rows from a privilege search and return
-    true if the target matches any of the regexps in the privilege rows.
-    """
-    for row in dictList:
-        regexp = re.compile(row['target'])
+    for r in regexpList:
+        regexp = re.compile(r)
         if regexp.search(target):
             return True
     return False
+
+def cachePrivileges(account):
+    """Load and cache from the database all privileges associated
+    with this account"""
+    from nav.db import navprofiles
+
+    groups = account.getChildren(navprofiles.Accountingroup)
+    groupIds = [int(group.group) for group in groups]
+    # Make sure the user is always considered a member of the
+    # Anonymous group.
+    if ANONYMOUSGROUP not in groupIds: groupIds.append(ANONYMOUSGROUP)
+    # Make sure an authenticated user is always considered a member
+    # of the "Authenticated users" group
+    if account.id > 0: groupIds.append(AUTHENTICATEDGROUP)
+
+    groupString = ','.join([str(id) for id in groupIds])
+    sql = """SELECT DISTINCT action, target
+             FROM privilegebygroup
+             WHERE accountgroupid IN (%s)""" % (groupString)
+    cursor = account.cursor()
+    cursor.execute(sql)
+
+    # Create a dictionary of privileges
+    privDict = {}
+    for action, target in cursor.fetchall():
+        if action not in privDict:
+            privDict[action] = []
+        privDict[action].append(target)
+
+    # Cache both the privilege dictionary and the group id list in
+    # the account object
+    account._groupList = groupIds
+    account._privDict = privDict
+
+try:
+    navprofiles.Account.cachePrivileges
+except:
+    navprofiles.Account.cachePrivileges = cachePrivileges
