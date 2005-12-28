@@ -79,7 +79,7 @@ class Account(nav.db.forgotten.navprofiles.Account):
                     orgList.extend([row[0] for row in manageCursor.fetchall()])
 
         return orgList
-        
+
 
     def loadByLogin(cls, login):
         """
@@ -117,7 +117,7 @@ class Account(nav.db.forgotten.navprofiles.Account):
                 pass
             else:
                 return stored_hash.verify(password)
-            
+
             # If the stored password looks like an old-style NAV MD5
             # hash we compute the MD5 hash of the supplied password
             # for comparison.
@@ -145,7 +145,7 @@ class Accountgroup(Accountgroup):
         Accountgroup.
         """
         links = self.getChildren(Accountingroup)
-        return [Account(link.account) for link in links]    
+        return [Account(link.account) for link in links]
 
 def _customizeTables():
     """
@@ -180,6 +180,12 @@ def _customizeTables():
 
     # Fix Accountproperty
     Accountproperty._sqlPrimary = ('account','property','value',)
+
+    # connection with database
+    def navprofilesCursor(dummy):
+        conn = nav.db.getConnection('default', 'navprofile')
+        return conn.cursor()
+    setCursorMethod(navprofilesCursor)
 
 def setCursorMethod(cursor):
     import forgotten.navprofiles

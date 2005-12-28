@@ -52,14 +52,14 @@ def _customizeTables():
     del Swport._sqlFields['to_swportid']
     # this is not a reference to the Type-table =)
     del Emotd._userClasses['type']
-    
+
     # some nice descriptive fields
     Netbox._shortView = ('sysname',)
     Room._shortView = ('roomid', 'location', 'descr')
     Location._shortView = ('descr',)
     Org._shortView = ('orgid', 'descr',)
     Cat._shortView = ('catid', 'descr',)
-    Type._shortView = ('vendor', 'typename', 'descr') 
+    Type._shortView = ('vendor', 'typename', 'descr')
     Vlan._shortView = ('vlan','netident')
 
     # Link tables needs primary key
@@ -76,7 +76,10 @@ def _customizeTables():
     Netboxcategory._sqlPrimary = ('netbox', 'category')
 
     # connection with database
-    forgotten.manage._Wrapper.cursor = nav.db.cursor
+    def manageCursor(dummy):
+        conn = nav.db.getConnection('default', 'manage')
+        return conn.cursor()
+    forgotten.manage._Wrapper.cursor = manageCursor
     forgotten.manage._Wrapper._dbModule = nav.db.driver
 
 
@@ -93,7 +96,7 @@ def getNetbox(address):
             return None
     elif _isIP.match(address):
         query = "ip=%s" % nav.db.escape(address)
-    else:    
+    else:
         # eat our default domain until database is correct..
         #address = address.replace(".ntnu.no", "")
         hostname = nav.db.escape(address)
@@ -156,18 +159,18 @@ class RrdDataSourceFile(Rrd_datasource):
 class NetboxSnmpoid(Snmpoid):
     """A join of Snmpoid and Typesnmpoid"""
     _sqlFields ={
-		# from Smnpoid
-		'descr': 'descr',
-		'oidkey': 'oidkey',
-		'snmpoid': 'snmpoid',
-		'snmpoidid': 'snmpoidid',
-		# from Typesnmpoid
-		'frequency': 'typesnmpoid.frequency',
-		'type': 'typesnmpoid.typeid'
-		}
+        # from Smnpoid
+        'descr': 'descr',
+        'oidkey': 'oidkey',
+        'snmpoid': 'snmpoid',
+        'snmpoidid': 'snmpoidid',
+        # from Typesnmpoid
+        'frequency': 'typesnmpoid.frequency',
+        'type': 'typesnmpoid.typeid'
+        }
     _sqlLinks =	(
-		('snmpoidid', 'typesnmpoid.snmpoidid'),
-		)
+        ('snmpoidid', 'typesnmpoid.snmpoidid'),
+        )
     _userClasses = {'type': Type}
     _sqlPrimary = ('oidkey', 'type')
 
@@ -227,7 +230,7 @@ def _getOrgIntermediate():
     relationships of the organizational hierarchy.  The intermediate
     dictionary returned can be fed to _buildOrgTree() which will
     return a tree representation of the hierarchy."""
-    
+
     orgObject = Org()
     intermediate = {}
     iterator = Org.getAllIterator(useObject = orgObject)
@@ -243,7 +246,7 @@ def getOrgTree():
     orgTree = {}
     _buildOrgTree(orgTree, _getOrgIntermediate())
     return orgTree
-    
+
 _isIP = re.compile(r"^(\d{1,3}(\.\d{1,3}){3})$")
 _isNum = re.compile(r"^\d+$")
 
