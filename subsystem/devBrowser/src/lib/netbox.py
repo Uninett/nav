@@ -692,4 +692,4 @@ class NetboxInfo(manage.Netbox):
                           DateTime.oneSecond * (lastUpdated / 1000.0)
             return "%s %s" % (str(lastUpdated.localtime()), refreshLink)
         else:
-            return "N/A " + refreshLink
+            return "N/A " + str(refreshLink)
