@@ -79,7 +79,7 @@ def _customizeTables():
     def manageCursor(dummy):
         conn = nav.db.getConnection('default', 'manage')
         return conn.cursor()
-    forgotten.manage._Wrapper.cursor = manageCursor
+    forgotten.manage._Wrapper.cursor = classmethod(manageCursor)
     forgotten.manage._Wrapper._dbModule = nav.db.driver
 
 

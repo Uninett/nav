@@ -185,7 +185,7 @@ def _customizeTables():
     def navprofilesCursor(dummy):
         conn = nav.db.getConnection('default', 'navprofile')
         return conn.cursor()
-    setCursorMethod(navprofilesCursor)
+    setCursorMethod(classmethod(navprofilesCursor))
 
 def setCursorMethod(cursor):
     import forgotten.navprofiles
