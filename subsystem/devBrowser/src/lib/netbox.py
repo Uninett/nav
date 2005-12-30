@@ -159,12 +159,9 @@ def showMatches(netboxes):
 
 def process(request):
     args = request['args']
-    query = request['query']
-    sortBy = 2
-    if query:
-        query = query.split("=")
-    if query and query[0]=='sort' and query[1:]:
-        sortBy = query[1]
+    fields = request['fields']
+    if 'sort' in fields:
+        sortBy = fields.getfirst('sort')
     try:
         sortBy = int(sortBy)
     except:
@@ -188,10 +185,7 @@ def process(request):
     #    line = "%s: %s\n" % (i, getattr(netbox, i))
     #    result.append(html.Division(line))
 
-    # This is a stupid way to match the query parameters,
-    # but then the request dictionary sucks as well.
-
-    if request['query'] and re.match(r'\brefresh\b', request['query']):
+    if 'refresh' in request['fields']:
         refresh = RefreshHandler(request, netbox)
         if not refresh.isDone():
             return refresh.process()
@@ -214,14 +208,19 @@ def process(request):
 ##    links = info.showLinks()    
 ##    if links:
 ##        result.append(links)
-    ports = info.showPorts()
+
+    interval = fields.getfirst('interval', '30')
+    interval = interval.isdigit() and int(interval) or 30
+    ports = info.showPorts(activePerspective=
+                           fields.getfirst('perspective', 'standard'),
+                           interval=interval)
     if ports:
         result.append(ports)
     return result
 
 class RefreshHandler:
     refreshVar = 'devBrowseRefresh'
-    
+
     def __init__(self, request, netbox):
         self.request = request
         self.netbox = netbox
@@ -300,8 +299,9 @@ class RefreshHandler:
         return False
 
     def process(self):
-        if self.request['query'] and re.match(r'\brefresh=cancel\b',
-                                              self.request['query']):
+        fields = self.request['fields']
+        if 'refresh' in fields \
+               and fields.getfirst('refresh') == 'cancel':
             return self.cancelRefresh()
         return self._waitPage()
     
@@ -326,7 +326,7 @@ class NetboxInfo(manage.Netbox):
     def __init__(self, netbox):
         manage.Netbox.__init__(self,netbox)
         self.setPrefix()
-    
+
     def showInfo(self):
         result = html.Division()
         title = html.Header("%s - General information" % self.sysname, level=2)
@@ -642,32 +642,78 @@ class NetboxInfo(manage.Netbox):
         result.append(html.Division(link))
         return result                
 
-    def showPorts(self):
+    def showPorts(self, activePerspective='standard', interval=30):
+        # ugly, but only those categorys have swports...
+        if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
+            return None
+
         div = html.Division(_class="ports")
         link = urlbuilder.createLink(subsystem='report',
                                     division='swport',
                                     id=self.netboxid.netboxid,
                                     content='Switchports')
         div.append(html.Header(link, level=2))
-        div.append(module.showModuleLegend())
-        # ugly, but only those categorys have swports...
-        if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
+
+        def perspectiveToggler(active):
+            list = html.UnorderedList(_class='tabs')
+            for p in (('Port status', 'portstatus', 'standard'),
+                      ('Port activity', 'activeports', 'active')):
+                if active == p[2]:
+                    list.append(html.ListItem(
+                        html.Anchor(p[0]), _class='current'))
+                else:
+                    list.append(html.ListItem(
+                        html.Anchor(p[0], href='#',
+                                    onClick="showPorts('%s'); return false" %
+                                    p[1])))
+            return list
+
+        def intervalForm():
+            form = html.Form(method="GET", action="")
+            form.append(html.Hidden(name='perspective', value='active'))
+            label = html.Label('Interval (in days):')
+            label['for'] ='interval'
+            form.append(label)
+            form.append(html.Textfield(id='interval', name='interval',
+                                       value=interval, size=3))
+            form.append(html.Submit(value='Recheck activity'))
+            return form
+
+        def showPerspective(perspective, id):
+            div = html.Division(id=id, _class='tabs')
+            div.append(perspectiveToggler(perspective))
+            div.append(module.showModuleLegend(perspective=perspective,
+                                               interval=interval))
+
+            if perspective == 'active':
+                div.append(intervalForm())
+            modules = [m for m in self.getChildrenIterator(module.ModuleInfo)]
+            if not modules:
+                return None
+            isNum = lambda x: x and re.match("^[0-9]+$",str(x))
+            # høhø
+            modules.sort(lambda a,b:
+                # sort by number - if possible
+                (isNum(a.module) and isNum(b.module)
+                 and cmp(int(a.module), int(b.module)))
+                or cmp(a.module,b.module))
+            for mod in modules:
+                moduleView = mod.showModule(perspective=perspective,
+                                            interval=interval)
+                if moduleView:
+                    div.append(moduleView)
+            return div
+
+        std = showPerspective('standard', 'portstatus')
+        act = showPerspective('active', 'activeports')
+        if not std or not act:
             return None
-        modules = [m for m in self.getChildrenIterator(module.ModuleInfo)]
-        if not modules:
-            return None
-        isNum = lambda x: x and re.match("^[0-9]+$",str(x))
-        # høhø
-        modules.sort(lambda a,b:
-            # sort by number - if possible
-            (isNum(a.module) and isNum(b.module) 
-             and cmp(int(a.module), int(b.module))) 
-            or cmp(a.module,b.module)) 
-        for mod in modules:
-            moduleView = mod.showModule()
-            if moduleView:
-                div.append(moduleView)
-        return div
+        else:
+            hiddenTab = activePerspective == 'active' and std or act
+            hiddenTab['style'] = 'display: none;'
+            div.append(std)
+            div.append(act)
+            return div
 
     def showLastUpdate(self):
         unixEpoch = DateTime.DateTime(1970)
@@ -684,7 +730,7 @@ class NetboxInfo(manage.Netbox):
                 lastUpdated = long(infoBits[0].val)
             except ValueError:
                 return '(Invalid value in database)'
-            
+
             # lastUpdated value is actually the number of milliseconds since
             # the epoch (apparently UTC time, not local), we use DateTime to
             # calculate a usable timestamp.

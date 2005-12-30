@@ -31,6 +31,7 @@ import sys
 import warnings
 import traceback
 from mod_python import apache
+from mod_python.util import FieldStorage
 from nav.errors import *
 
 import forgetHTML as html
@@ -79,6 +80,7 @@ def handler(req):
         return apache.HTTP_NOT_FOUND
     
     req.session.setdefault('uris', [])
+    request['fields'] = FieldStorage(req)
     request['query'] = req.args
     request['session'] = req.session
     request['req'] = req # in case som might need it. 

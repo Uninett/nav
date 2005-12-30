@@ -30,8 +30,13 @@ Displays the module as a stack of ports, include simple port information
 from mod_python import apache
 from nav.db import manage
 from nav.web import urlbuilder
+from nav import util
 import forgetHTML as html
 #import warnings
+
+# Color range for port activity tab
+color_recent = (0, 175, 0 )
+color_longago = (208, 255, 208)
 
 def process(request):
     # PYTHON IMPORTS ZUCZ=RZZZ!!
@@ -69,7 +74,7 @@ def findModule(netbox, moduleName):
     return modules[0]
 
 class ModuleInfo(manage.Module):
-    def showModule(self):
+    def showModule(self, perspective='standard', interval=30):
         def findDisplayWidth(ports):
             # Normally we'll show 12 ports in a row, but
             # sometimes (?) 16 could be the one.
@@ -79,53 +84,15 @@ class ModuleInfo(manage.Module):
                     return x
             return 12
 
-        ports = self.getChildren(manage.Swport, orderBy=('port'))
-        if not ports:
-            type = "gw"
-        else:
-            type = "sw"
-        #ports += self.getChildren(manage.Gwport)
-
-        if not ports:
-            return None
-
-        moduleView = html.Division(_class="module")
-        if type == "gw":
-            moduleView['class'] += ' gw'
-        moduleView.append(html.Header(str(self.module), level=3))
-        # calc width
-        width = findDisplayWidth(ports)
-        count = 0
-        portTable = html.Table()
-        moduleView.append(portTable)
-        row = html.TableRow()
-        for port in ports:
-            if count and not count % width:
-                portTable.append(row)
-                row = html.TableRow()
-            count += 1
-            if type=="gw":
-                if port.masterindex:
-                    portNr = "%s-%s" % (port.masterindex, port.ifindex)
-                else:
-                    portNr = port.ifindex
-            else:
-                # Hmmmmmm what's the difference between these?
-                # portNr = (port.ifindex is not None and port.ifindex) or port.port
-                portNr = port.port
-                if not portNr:
-                    # warnings.warn("Unknown portNr for %s" % port)
-                    continue
-            portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
-            row.append(portView)
+        def perspectiveStandard(port, portView):
+            """Return module view from the standard status perspective"""
             titles = []
-            portView['title'] = ""
             if port.speed:
                 portView['class'] += ' Mb%d' % port.speed
                 title = '%d Mbit' % port.speed
-                if port.to_netbox:    
+                if port.to_netbox:
                     title +=' -> %s' % port.to_netbox
-                titles.append(title)    
+                titles.append(title)
             if type == 'sw':
                 if port.link == 'd':
                     portView['class'] += 'disabled'
@@ -156,6 +123,109 @@ class ModuleInfo(manage.Module):
             if type == 'gw':
                 for item in port._values.items():
                     titles.append("%s %s" % item)
+            return titles
+
+        def perspectiveActive(port, portView):
+            """Return module view from the 'last active ports' perspective"""
+            titles = []
+            if port.ifindex in active:
+                daysago = int(active[port.ifindex])
+                if daysago > 1:
+                    titles.append("%d days ago" % active[port.ifindex])
+                elif daysago == 1:
+                    titles.append("%d day ago" % active[port.ifindex])
+                else:
+                    titles.append("used today")
+                bgcolor = gradient[daysago]
+                portView['style'] = 'background-color: #%s;' % \
+                                    util.colortohex(bgcolor)
+                portView['class'] +=  ' active'
+            if port.link == 'y':
+                titles.append('active now')
+                try:
+                    portView['style']
+                except:
+                    portView['style'] = 'background-color: #%s;' % \
+                                        util.colortohex(gradient[0])
+                portView['class'] +=  ' active link'
+            if portView['class'].count('active') == 0:
+                titles.append('free')
+                portView['style'] = 'background-color: white;'
+                portView['class'] +=  ' inactive'
+            return titles
+
+        def getActive():
+            """Return a dictionary of CAM activity per ifindex.
+
+            ifindex => days since last CAM entry
+            """
+            sql = \
+                """
+                SELECT ifindex,
+                       EXTRACT(days FROM
+                               CASE WHEN MAX(end_time) = 'infinity' THEN interval '0 days'
+                               ELSE NOW() - MAX(end_time)
+                               END) AS days_ago
+                FROM cam
+                WHERE end_time > NOW() - interval '%d days'
+                AND netboxid=%s
+                GROUP BY ifindex
+                ORDER BY ifindex"""
+            cursor = self.cursor()
+            cursor.execute(sql, (interval, self.netbox.netboxid,))
+            active = dict(cursor.fetchall())
+            return active
+
+        ports = self.getChildren(manage.Swport, orderBy=('port'))
+        if not ports:
+            type = "gw"
+        else:
+            type = "sw"
+        #ports += self.getChildren(manage.Gwport)
+
+        if not ports:
+            return None
+
+        moduleView = html.Division(_class="module")
+        if type == "gw":
+            moduleView['class'] += ' gw'
+        moduleView.append(html.Header(str(self.module), level=3))
+        # calc width
+        width = findDisplayWidth(ports)
+        count = 0
+        portTable = html.Table()
+        moduleView.append(portTable)
+        row = html.TableRow()
+        if perspective == 'active':
+            active = getActive()
+            gradient = util.color_gradient(color_recent, color_longago,
+                                           interval)
+
+        for port in ports:
+            if count and not count % width:
+                portTable.append(row)
+                row = html.TableRow()
+            count += 1
+            if type=="gw":
+                if port.masterindex:
+                    portNr = "%s-%s" % (port.masterindex, port.ifindex)
+                else:
+                    portNr = port.ifindex
+            else:
+                # Hmmmmmm what's the difference between these?
+                # portNr = (port.ifindex is not None and port.ifindex) or port.port
+                portNr = port.port
+                if not portNr:
+                    # warnings.warn("Unknown portNr for %s" % port)
+                    continue
+            portView = html.TableCell(urlbuilder.createLink(port, content=portNr), _class="port")
+            row.append(portView)
+            portView['title'] = ""
+            if perspective == 'active':
+                titles = perspectiveActive(port, portView)
+            else:
+                titles = perspectiveStandard(port, portView)
+
             if titles:
                 # beautiful! but .capitalize() lowercases everything first
                 titles[0] = titles[0][0].upper() + titles[0][1:]
@@ -165,22 +235,36 @@ class ModuleInfo(manage.Module):
         portTable.append(row)
         return moduleView
 
-def showModuleLegend():
+def showModuleLegend(perspective='standard', interval=30):
     legend = html.Division(_class="legend")
     legend.append(html.Header("Legend", level=3))
-    def mkLegend(name, descr):
+    def mkLegend(name, descr, style=None):
         port = html.Span("1")
         port['class'] = "port %s" % name
+        if style: port['style'] = style
         legend.append(port)
         legend.append(descr)
         legend.append(" ")
-    mkLegend("passive", "Not active")
-    mkLegend("hduplex", "Half duplex")
-    mkLegend("blocked", "Blocked")
-    mkLegend("Mb10", "10 Mbit")
-    mkLegend("Mb100", "100 Mbit")
-    mkLegend("Mb1000", "1 Gbit")
-    mkLegend("trunk", "Trunk")
+    def legendStandard():
+        mkLegend("passive", "Not active")
+        mkLegend("hduplex", "Half duplex")
+        mkLegend("blocked", "Blocked")
+        mkLegend("Mb10", "10 Mbit")
+        mkLegend("Mb100", "100 Mbit")
+        mkLegend("Mb1000", "1 Gbit")
+        mkLegend("trunk", "Trunk")
+    def legendActive():
+        mkLegend("inactive", "Not used in %d days" % interval)
+        mkLegend("active", "Used %d days ago" % interval,
+                 "background-color: %s" % util.colortohex(color_longago))
+        mkLegend("active", "Used today",
+                 "background-color: %s" % util.colortohex(color_recent))
+        mkLegend("active link", "Active now",
+                 "background-color: %s" % util.colortohex(color_recent))
+    if perspective == 'active':
+        legendActive()
+    else:
+        legendStandard()
     legend.append(html.Break())
     legend.append(html.Emphasis("Hold mouse over port for info, click for details"))
     return legend

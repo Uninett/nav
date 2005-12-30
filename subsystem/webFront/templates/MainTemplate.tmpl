@@ -340,3 +340,57 @@ You are logged in as <a href="/index/userinfo">$user.name</a>.
   }
 
 #end def default_tabs_CSS
+
+#def default_tabs_CSS2
+
+  div.tabs {
+    border: 1px solid black; 
+    margin: 33px 0px; 
+    padding: 0px 19px;
+  }
+
+  ul.tabs {
+    float:left;
+    width:100%;
+    font-size:11px;
+    line-height:normal;
+
+    margin: -24px -10px;
+    padding:1px 0px 0;
+    list-style:none;
+  }
+
+  ul.tabs li {
+    float:left;
+    background:url("$imagefolder/tabs/yellow-r.png") no-repeat right top;
+    margin:0;
+    padding:0;
+    white-space:nowrap;
+  }
+
+  ul.tabs a {
+    display:block;
+    background:url("$imagefolder/tabs/yellow-l.png") no-repeat left top;
+    padding:5px 14px 4px;
+    text-decoration:none;
+    color:#663;
+    border-bottom: 1px solid black;
+    float:left;
+  }
+
+  ul.tabs a:hover {
+    color:black;
+  }
+
+  ul.tabs li.current {
+    background-image:url("$imagefolder/tabs/white-r.png");
+  }
+
+  ul.tabs li.current a {
+    background-image:url("$imagefolder/tabs/white-l.png");
+    color:black;
+    padding-bottom: 5px;
+    border-bottom: none;
+  }
+
+#end def default_tabs_CSS2

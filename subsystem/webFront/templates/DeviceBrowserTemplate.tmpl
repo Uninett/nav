@@ -28,6 +28,8 @@
 
 #block additionalCSS
 ## $default_table_CSS()
+$default_tabs_CSS2()
+
       table.serviceNetboxes {
         border-collapse: collapse;
         padding: 0;
@@ -128,6 +130,13 @@
       .port a:visited { color: black; text-decoration: none; }
       .port a:hover   { color: black; text-decoration: underline; }
 
+      .inactive {
+        border-color: #999;
+      }
+      .link {
+        border-width: 3px;
+        margin: 3px;
+      }
       .trunk {
         border-width: 3px;
         margin: 3px;
@@ -223,6 +232,45 @@
 #end block additionalCSS      
 
 #block additionalJavaScript
+function changeDisplay( elementId, setTo ) {
+    if( document.getElementById ) {
+        //DOM
+        var theElement = document.getElementById( elementId );
+    } else {
+        if( document.all ) {
+            //Proprietary DOM
+            var theElement = document.all[ elementId ];
+        } else {
+            //Create an object to prevent errors further on
+            var theElement = new Object();
+        }
+    }
+    if( !theElement ) {
+        /* The page has not loaded or the browser claims to support
+        document.getElementById or document.all but cannot actually
+        use either */
+        return;
+    }
+    //Reference the style ...
+    if( theElement.style ) { theElement = theElement.style; }
+    if( typeof( theElement.display ) == 'undefined' &&
+    !( window.ScriptEngine && ScriptEngine().indexOf('InScript') + 1 ) ) {
+      //The browser does not allow us to change the display style
+      //Alert something sensible (not what I have here ...)
+      window.alert( 'Your browser is crap' );
+      return;
+    }
+    //Change the display style
+    theElement.display = setTo;
+}
+
+function showPorts(elementId) {
+    known = ['activeports', 'portstatus'];
+    for (i=0;i<known.length;i++) {
+        changeDisplay(known[i], known[i] == elementId ? 'block' : 'none');
+    }
+}
+
 #end block additionalJavaScript
 
 #block content
