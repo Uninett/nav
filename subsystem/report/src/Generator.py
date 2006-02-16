@@ -292,6 +292,8 @@ class ArgumentParser:
 
             if not operator.has_key(key):
                 operator[key] = "eq"
+            # Set a default operator
+            operat = "="
 
             if nott.has_key(key):
                 neg = "not "
@@ -317,7 +319,7 @@ class ArgumentParser:
                         value = self.intstr(value)
                     elif operator[key] == "like":
                         operat = "ilike"
-                        value = "'" + re.sub("\*","%",value) + "'"
+                        value = self.intstr(value.replace("*","%"))
                     elif operator[key] == "gt":
                         if neg:
                             operat = "<="
