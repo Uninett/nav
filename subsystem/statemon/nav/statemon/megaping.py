@@ -261,7 +261,7 @@ class MegaPing:
       try:
         mySocket.sendto(packet, (host.ip, 0))
       except Exception, e:
-        print "Failed to ping %s [%s]" % (host.ip, str(e))
+        debug("Failed to ping %s [%s]" % (host.ip, str(e)), 5)
       time.sleep(self._delay)
     self._senderFinished = time.time()
 

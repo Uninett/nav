@@ -23,8 +23,11 @@
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #
 
-from nav.statemon.abstractChecker import AbstractChecker, Event
-import ftplib, Socket
+from nav.statemon.abstractChecker import AbstractChecker
+from nav.statemon.event import Event
+from nav.statemon import Socket
+import ftplib
+
 class FTP(ftplib.FTP):
 	def __init__(self,timeout,host='',user='',passwd='',acct=''):
 		ftplib.FTP.__init__(self)
@@ -41,7 +44,7 @@ class FTP(ftplib.FTP):
 		if port: self.port = port
 		msg = "getaddrinfo returns an empty list"
 		self.sock = Socket.Socket(self.timeout)
-		self.sock.connect((self.host,self.port))
+		self.sock.connect((self.host, self.port))
 		self.file = self.sock.makefile('rb')
 		self.welcome = self.getresp()
 		return self.welcome
@@ -53,18 +56,19 @@ class FtpChecker(AbstractChecker):
 	password
 	path (ACCT)
 	"""
-	def __init__(self,serviceid,boksid,ip,args,version):
-		port = args.get('port',21)
-		AbstractChecker.__init__(self,'ftp',serviceid,boksid,(ip,port),args,version)
+	def __init__(self,service, **kwargs):
+		AbstractChecker.__init__(self, "ftp", service, port=0, **kwargs)
+
 	def execute(self):
 		s = FTP(self.getTimeout())
-		ip,port = self.getAddress()
-		output = s.connect(ip,port)
+		ip, port = self.getAddress()
+		output = s.connect(ip,port or 21)
 		args = self.getArgs()
 		username = args.get('username','')
 		password = args.get('password','')
 		path = args.get('path','')
 		output = s.login(username,password,path)
+		print output
 		if output[:3] == '230':
 			return Event.UP,'code 230'
 		else:
