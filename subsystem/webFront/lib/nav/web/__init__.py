@@ -89,6 +89,13 @@ def cleanuphandler(req):
     conns = [v.object for v in db._connectionCache.values()]
     for conn in conns:
         conn.commit()
+    # Also make sure the session data is fully persisted
+    try:
+        req.session
+    except:
+        pass
+    else:
+        req.session.save()
     return 0
 
 def redirect(req, url, temporary=False, seeOther=False):
