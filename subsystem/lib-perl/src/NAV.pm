@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: $
+# $Id$
 # Contains common subroutines for all NAV perl scripts.
 #
 # Authors: Sigurd Gartmann <gartmann+itea@pvv.ntnu.no>
@@ -76,7 +76,7 @@ sub connection {
     my $db_port = $hash{'dbport'};
 						    
     my $conn = Pg::connectdb("host=$db_host port=$db_port dbname=$db_db user=$db_user password=$db_passwd");
-    die $conn->errorMessage unless PGRES_CONNECTION_OK eq $conn->status;
+    die $conn->errorMessage unless &PGRES_CONNECTION_OK eq $conn->status;
     return $conn;
 }
 
@@ -93,7 +93,7 @@ sub execute {
     } else {
 
 	my $resultat = $conn->exec($sql);
-	unless ($resultat->resultStatus eq (PGRES_COMMAND_OK||PGRES_TUPLES_OK)){
+	unless ($resultat->resultStatus eq (&PGRES_COMMAND_OK||&PGRES_TUPLES_OK)){
 	    die($conn->errorMessage);
 	}
 	return 1;
