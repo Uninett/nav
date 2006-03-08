@@ -914,7 +914,7 @@ public class QueryBoks extends Thread
 							}
 						}
 					}
-					if (macVlan.size() == 0) continue;
+					if (macVlan == null || macVlan.size() == 0) continue;
 
 					if (!csAtVlan) vlan = "[all]";
 					Log.d("MAC_ENTRY", "Querying vlan: " + vlan + ", MACs: " + macVlan.size() + " Mappings: " + portIndexMap.size() + " Blocked: " + blockedCnt + " / " + mpBlocked.size() );
