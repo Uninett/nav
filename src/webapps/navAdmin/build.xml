@@ -101,10 +101,6 @@
                        "compile" targets will generate their output.
                        Defaults to "build".
 
-  catalina.home        The directory in which you have installed
-                       a binary distribution of Tomcat 5.  This will
-                       be used by the "deploy" target.
-
   dist.home            The name of the base directory in which
                        distribution files are created.
                        Defaults to "dist".
@@ -128,7 +124,6 @@
   <property name="app.path"      value="/${app.name}"/>
   <property name="app.version"   value="1.0"/>
   <property name="build.home"    value="${basedir}/build"/>
-  <property name="catalina.home" value="/usr/local/jakarta-tomcat-5.0.16"/> <!-- UPDATE THIS! -->
   <property name="dist.home"     value="${basedir}/dist"/>
   <property name="docs.home"     value="${basedir}/docs"/>
   <property name="manager.url"   value="http://localhost:8080/manager"/>
@@ -136,34 +131,6 @@
   <property name="web.home"      value="${basedir}/web"/>
   <property name="manager.username"      value="manager"/>
   <property name="manager.password"      value="manager"/>
-
-
-<!-- ================== Custom Ant Task Definitions ======================= -->
-
-
-<!--
-
-  These properties define custom tasks for the Ant build tool that interact
-  with the "/manager" web application installed with Tomcat 5.  Before they
-  can be successfully utilized, you must perform the following steps:
-
-  - Copy the file "server/lib/catalina-ant.jar" from your Tomcat 5
-    installation into the "lib" directory of your Ant installation.
-
-  - Create a "build.properties" file in your application's top-level
-    source directory (or your user login home directory) that defines
-    appropriate values for the "manager.password", "manager.url", and
-    "manager.username" properties described above.
-
-  For more information about the Manager web application, and the functionality
-  of these tasks, see <http://localhost:8080/tomcat-docs/manager-howto.html>.
-
--->
-
-  <taskdef name="deployTomcat"   classname="org.apache.catalina.ant.DeployTask"/>
-  <taskdef name="list"     classname="org.apache.catalina.ant.ListTask"/>
-  <taskdef name="reload"   classname="org.apache.catalina.ant.ReloadTask"/>
-  <taskdef name="undeployTomcat" classname="org.apache.catalina.ant.UndeployTask"/>
 
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -233,19 +200,6 @@
 <!--
     <pathelement location="${foo.jar}"/>
 -->
-
-    <!-- Include all elements that Tomcat exposes to applications -->
-    <pathelement location="${catalina.home}/common/classes"/>
-    <fileset dir="${catalina.home}/common/endorsed">
-      <include name="*.jar"/>
-    </fileset>
-    <fileset dir="${catalina.home}/common/lib">
-      <include name="*.jar"/>
-    </fileset>
-    <pathelement location="${catalina.home}/shared/classes"/>
-    <fileset dir="${catalina.home}/shared/lib">
-      <include name="*.jar"/>
-    </fileset>
 
   </path>
 
@@ -374,60 +328,6 @@
 
 
 
-<!-- ==================== Deploy Target ==================================== -->
-
-<!--
-
-  The "deploy" target tells the specified Tomcat 5 installation to dynamically
-  install this web application and make it available for execution.  It does
-  *not* cause the existence of this web application to be remembered across
-  Tomcat restarts; if you restart the server, you will need to re-install all
-  this web application.
-
-  If you have already installed this application, and simply want Tomcat to
-  recognize that you have updated Java classes (or the web.xml file), use the
-  "reload" target instead.
-
-  NOTE:  This target will only succeed if it is run from the same server that
-  Tomcat is running on.
-
-  NOTE:  This is the logical opposite of the "remove" target.
-
--->
-
-  <target name="deploy" depends="dist"
-   description="Install application to servlet container">
-
-    <deployTomcat url="${manager.url}"
-       username="${manager.username}"
-       password="${manager.password}"
-           path="${app.path}"
-            war="file://${dist.home}/${app.name}.war"/>
-
-  </target>
-
-
-<!-- ====================== List Target =================================== -->
-
-<!--
-
-  The "list" target asks the specified Tomcat 5 installation to list the
-  currently running web applications, either loaded at startup time or
-  installed dynamically.  It is useful to determine whether or not the
-  application you are currently developing has been installed.
-
--->
-
-  <target name="list"
-   description="List installed applications on servlet container">
-
-    <list    url="${manager.url}"
-        username="${manager.username}"
-        password="${manager.password}"/>
-
-  </target>
-
-
 <!-- ==================== Prepare Target ================================== -->
 
 <!--
@@ -469,49 +369,6 @@
 
     <!-- Copy static files from external dependencies as needed -->
     <!-- *** CUSTOMIZE HERE AS REQUIRED BY YOUR APPLICATION *** -->
-
-  </target>
-
-
-<!-- ==================== Reload Target =================================== -->
-
-<!--
-
-  The "reload" target tells the specified Tomcat 5 installation to dynamically
-  reload this web application, to reflect changes in the underlying classes or
-  the "web.xml" deployment descriptor.
-
--->
-
-  <target name="reload" depends="dist"
-   description="Reload application on servlet container">
-
-    <reload url="${manager.url}"
-       username="${manager.username}"
-       password="${manager.password}"
-           path="${app.path}"/>
-
-  </target>
-
-
-<!-- ==================== Remove Target =================================== -->
-
-<!--
-
-  The "remove" target tells the specified Tomcat 5 installation to dynamically
-  remove this web application from service.
-
-  NOTE:  This is the logical opposite of the "deploy" target.
-
--->
-
-  <target name="remove"
-   description="Remove application on servlet container">
-
-    <undeployTomcat url="${manager.url}"
-         username="${manager.username}"
-         password="${manager.password}"
-             path="${app.path}"/>
 
   </target>
 
