@@ -42,7 +42,6 @@ def checkAuthorization(user, uri):
     # First make sure we are connected to the navprofile database.
     conn = db.getConnection('navprofile', 'navprofile')
     cursor = conn.cursor()
-    navprofiles.setCursorMethod(conn.cursor)
 
     # When the connection has been made, we make use of the privilege
     # system to discover whether the user has access to this uri or
@@ -61,7 +60,6 @@ def _find_user_preferences(user, req):
         # if user preferences is not loaded, it's time to do so
         user.preferences = Preferences()
         conn = nav.db.getConnection('navprofile', 'navprofile')
-        nav.db.navprofiles.setCursorMethod(conn.cursor)
         prefs = user.getChildren(Accountnavbar)
         if not prefs:
             # if user has no preferences set, use default preferences
@@ -91,7 +89,6 @@ def authenticate(req):
         # synonym for Anonymous user)
         conn = db.getConnection('navprofile', 'navprofile')
         cursor = conn.cursor()
-        navprofiles.setCursorMethod(conn.cursor)
         req.session['user'] = Account(0)
 
     user = req.session['user']

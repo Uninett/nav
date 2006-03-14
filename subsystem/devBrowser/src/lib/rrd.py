@@ -418,7 +418,6 @@ def graph(req,id):
                                 
 def save(session, name):
     conn = nav.db.getConnection('navprofile', 'navprofile')
-    navprofiles.setCursorMethod(conn.cursor)
     key="rrdPage"
     user = session['user']
     result = html.Division("user: %s " %user)
@@ -460,7 +459,6 @@ def load(session, name):
     user = session['user']
     key="rrdPage"
     conn = nav.db.getConnection('navprofile', 'navprofile')
-    navprofiles.setCursorMethod(conn.cursor)
     property = navprofiles.Accountproperty.getAll(where="accountid=%s AND property='%s'" % (user, key))
     if property:
         property = property[0]

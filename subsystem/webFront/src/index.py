@@ -107,7 +107,6 @@ def login(req, login='', password='', origin=''):
         from nav import db
         conn = db.getConnection('navprofile', 'navprofile')
         from nav.db import navprofiles
-        navprofiles.setCursorMethod(conn.cursor)
         from nav.db.navprofiles import Account
 
         try:

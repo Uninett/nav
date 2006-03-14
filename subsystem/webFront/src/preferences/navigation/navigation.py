@@ -48,7 +48,6 @@ def _find_user_preferences(user, req):
     # if user preferences is not loaded, it's time to do so
     user.preferences = Preferences()
     conn = nav.db.getConnection('navprofile', 'navprofile')
-    nav.db.navprofiles.setCursorMethod(conn.cursor)
     prefs = user.getChildren(Accountnavbar)
     if not prefs:
       # if user has no preferences set, use default preferences
@@ -86,7 +85,6 @@ def index(req):
     # if user has no preferences set, make them according to default user
     conn = nav.db.getConnection('navprofile', 'navprofile')
     conn.autocommit(1)
-    nav.db.navprofiles.setCursorMethod(conn.cursor)
     for pref in default.getChildren(Accountnavbar):
       newpref = Accountnavbar()
       newpref.account = user.id
@@ -123,7 +121,6 @@ def editlink(req, id):
   req.content_type = "text/html"
   req.send_http_header()
   conn = nav.db.getConnection('navprofile', 'navprofile')
-  nav.db.navprofiles.setCursorMethod(conn.cursor)
   template.link = Navbarlink(id)
   user = _find_pref_user()
   if user.id == 0:
@@ -134,7 +131,6 @@ def editlink(req, id):
 def deletelink(req, id):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
-  nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
   link = Navbarlink(id)
   if link.account == user.id or link.account.id == user.id:
@@ -145,7 +141,6 @@ def deletelink(req, id):
 def saveprefs(req):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
-  nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
   # first delete all preferences
   for oldpref in user.getChildren(Accountnavbar):
@@ -163,7 +158,6 @@ def saveprefs(req):
 def savenewlink(req, name, url, usein):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
-  nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
   newlink = Navbarlink()
   newlink.account = user.id
@@ -182,7 +176,6 @@ def savenewlink(req, name, url, usein):
 def updatelink(req, id, name, url):
   conn = nav.db.getConnection('navprofile', 'navprofile')
   conn.autocommit(1)
-  nav.db.navprofiles.setCursorMethod(conn.cursor)
   user = _find_pref_user()
   changedlink = Navbarlink(id)
   if changedlink.account == user.id or changedlink.account.id == user.id:

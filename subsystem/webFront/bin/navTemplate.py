@@ -49,7 +49,6 @@ def main(argv):
         # Make some special considerations for special variable names.  Anything
         if key == "user":
             conn = db.getConnection('navprofile', 'navprofile')
-            navprofiles.setCursorMethod(conn.cursor)
 
             try:
                 id = int(value)

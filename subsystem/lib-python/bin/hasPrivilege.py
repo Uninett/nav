@@ -52,7 +52,6 @@ def main(args):
     try:
         conn = db.getConnection('navprofile', 'navprofile')
         cursor = conn.cursor()
-        navprofiles.setCursorMethod(conn.cursor)
     except Exception, error:
         print >> sys.stderr, "There was an error connecting to the database"
         sys.exit(10)
