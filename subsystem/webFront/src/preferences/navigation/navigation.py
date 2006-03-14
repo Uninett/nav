@@ -84,13 +84,13 @@ def index(req):
   if not accountnavbars:
     # if user has no preferences set, make them according to default user
     conn = nav.db.getConnection('navprofile', 'navprofile')
-    conn.autocommit(1)
     for pref in default.getChildren(Accountnavbar):
       newpref = Accountnavbar()
       newpref.account = user.id
       newpref.navbarlink = pref.navbarlink
       newpref.positions = pref.positions
       newpref.save()
+    conn.commit()
     accountnavbars = user.getChildren(Accountnavbar)
   checked = {}
   for an in accountnavbars:
@@ -130,17 +130,16 @@ def editlink(req, id):
 
 def deletelink(req, id):
   conn = nav.db.getConnection('navprofile', 'navprofile')
-  conn.autocommit(1)
   user = _find_pref_user()
   link = Navbarlink(id)
   if link.account == user.id or link.account.id == user.id:
     link.delete()
     _force_reload_of_user_preferences(req)
+    conn.commit()
   return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def saveprefs(req):
   conn = nav.db.getConnection('navprofile', 'navprofile')
-  conn.autocommit(1)
   user = _find_pref_user()
   # first delete all preferences
   for oldpref in user.getChildren(Accountnavbar):
@@ -153,11 +152,11 @@ def saveprefs(req):
     newpref.positions = str(req.form[key])
     newpref.save()
   _force_reload_of_user_preferences(req)
+  conn.commit()
   return nav.web.redirect(req, "/", seeOther=True)
 
 def savenewlink(req, name, url, usein):
   conn = nav.db.getConnection('navprofile', 'navprofile')
-  conn.autocommit(1)
   user = _find_pref_user()
   newlink = Navbarlink()
   newlink.account = user.id
@@ -171,11 +170,11 @@ def savenewlink(req, name, url, usein):
     newuse.positions = usein
     newuse.save()
   _force_reload_of_user_preferences(req)
+  conn.commit()
   return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
 
 def updatelink(req, id, name, url):
   conn = nav.db.getConnection('navprofile', 'navprofile')
-  conn.autocommit(1)
   user = _find_pref_user()
   changedlink = Navbarlink(id)
   if changedlink.account == user.id or changedlink.account.id == user.id:
@@ -183,4 +182,5 @@ def updatelink(req, id, name, url):
     changedlink.uri = url
     changedlink.save()
     _force_reload_of_user_preferences(req)
+    conn.commit()
   return nav.web.redirect(req, "/preferences/navigation/navigation", seeOther=True)
