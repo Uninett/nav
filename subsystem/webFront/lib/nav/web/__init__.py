@@ -1,6 +1,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -31,6 +32,7 @@ import time
 import ConfigParser
 import os.path, nav.path
 import base64
+import cgi
 
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
@@ -126,3 +128,12 @@ def shouldShow(link, user):
     """
     startsWithHTTP = link.lower()[:7] == 'http://' or link.lower()[:8] == 'https://'
     return startsWithHTTP or nav.auth.hasPrivilege(user, 'web_access', link)
+
+def escape(s):
+    """Replace special characters '&', '<' and '>' by SGML entities.
+    Wraps cgi.escape, but allows False values of s to be converted to
+    empty strings."""
+    if s:
+        return cgi.escape(str(s))
+    else:
+        return ''
