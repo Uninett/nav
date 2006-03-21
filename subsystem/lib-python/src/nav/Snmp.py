@@ -2,6 +2,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,21 +20,26 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Sigurd Gartmann
+#          Morten Vold <morten.vold@uninett.no>
+#
+"""This module is a higher level interface to SNMP query functionality
+for NAV, as pysnmp2 is quite low-level and tedious to work with.
 
-import re,pysnmp,exceptions
-from pysnmp.proto import v1, v2c
-from pysnmp.proto.api import generic
-from pysnmp.mapping.udp import role
-import pysnmp.proto.cli.ucd
-#from pysnmp.asn1.univ import Null
-#import types
-
+The module uses the version 2 branch of pysnmp.
+"""
+import re
+import exceptions
+import pysnmp # Version 2
+from pysnmp import role, v1, v2c, asn1
+# Ugly hack to escape inconsistencies in pysnmp2
+try:
+    v1.RESPONSE
+except:
+    v1.RESPONSE = v1.GETRESPONSE
+    
 class TimeOutException(exceptions.Exception):
-    """Base class for PySNMP error handlers
-    """
     def __init__(self, err_msg=None):
-        """
-        """
         exceptions.Exception.__init__(self)
 
         if err_msg is not None:
@@ -42,21 +48,13 @@ class TimeOutException(exceptions.Exception):
             self.err_msg = ''
 
     def __str__(self):
-        """
-        """
         return self.err_msg
 
     def __repr__(self):
-        """
-        """
         return self.__class__.__name__ + '(' + self.err_msg + ')'
     
 class NameResolverException(exceptions.Exception):
-    """Base class for PySNMP error handlers
-    """
     def __init__(self, err_msg=None):
-        """
-        """
         exceptions.Exception.__init__(self)
 
         if err_msg is not None:
@@ -65,26 +63,22 @@ class NameResolverException(exceptions.Exception):
             self.err_msg = ''
 
     def __str__(self):
-        """
-        """
         return self.err_msg
 
     def __repr__(self):
-        """
-        """
         return self.__class__.__name__ + '(' + self.err_msg + ')'
     
 
-class Snmp:
+class Snmp(object):
+    """Simple class that provides snmpget, snmpwalk and snmpjog(tm)
+    functionality.  Snmpget returns the result as one string.
+    Snmpwalk returns the subtree as an array containing OID,
+    value-pairs.  Snmpjog returns the result as snmpwalk does, the
+    difference is that snmpjog chops off (each line) the OID-prefix
+    used in the query.
     """
-    Simple class that provides snmpget, snmpwalk and snmpjog(tm) functionality.
-    Snmpget returns the result as one string.
-    Snmpwalk returns the subtree as an array containing OID, value-pairs.
-    Snmpjog returns the result as snmpwalk does, the difference is that snmpjog chops off (each line) the OID-prefix used in the query.
-    """
-
-
-    def __init__(self,host,community="public",version="1",port=161,retries=3,timeout=1,reporttype=None):
+    def __init__(self, host, community="public", version="1", port=161,
+                 retries=3, timeout=1, reporttype=None):
         """
         Makes a new Snmp-object.
         host: hostname
@@ -118,193 +112,139 @@ class Snmp:
         try:
             snmp = eval('v' + self.version)
         except (NameError, AttributeError):
-            print 'Unsupported SNMP protocol version: %s' % (self.version)
-            #sys.exit(-1)
-            return
+            raise 'Unsupported SNMP protocol version: %s' % (self.version)
 
-        args = [ self.host, self.community, query]
+        objectid = asn1.OBJECTID()
+        oid = objectid.encode(query)
 
         # Create SNMP GET request
-        req = snmp.GetRequest()
-
-        # Initialize request message from C/L params
-        req.cliUcdSetArgs(args[1:])
+        req = snmp.GETREQUEST()
+        req['community'] = self.community
+        req['encoded_oids'] = [oid]
 
         # Create SNMP response message framework
-        rsp = snmp.Response()
-
-        result = []
-
-        def cb_fun(answer, src):
-            """This is meant to verify inbound messages against out-of-order
-               messages
-            """
-            # Decode message
-            rsp.decode(answer)
-
-            # Make sure response matches request
-            if req.match(rsp):
-                return 1
+        rsp = snmp.RESPONSE()
 
         # Encode SNMP request message and try to send it to SNMP agent and
         # receive a response
-
-        weiter = 0
         try:
-            (answer, src) = self.handle.send_and_receive(req.encode(), (None, 0), cb_fun)
-            weiter = 1
-        except pysnmp.mapping.udp.error.NoResponseError, e:
+            (answer, src) = self.handle.send_and_receive(req.encode())
+        except role.NoResponse, e:
             #timeout
             raise TimeOutException(e)
-        except pysnmp.mapping.udp.error.NetworkError, n:
+        except role.NetworkError, n:
             #dns
             raise NameResolverException(n)
 
-        if weiter:
+        # Decode raw response/answer
+        rsp.decode(answer)
+        # Fetch Object ID's and associated values
+        oids = [objectid.decode(o)[0] for o in rsp['encoded_oids']]
+        values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
 
-            # Fetch Object ID's and associated values
-            vars = rsp.apiGenGetPdu().apiGenGetVarBind()
+        # Check for remote SNMP agent failure
+        if rsp['error_status']:
+            raise "Snmp error %s at %s (%s, %s)" % \
+                  (rsp['error_status'],
+                   rsp['error_index'],
+                   oids[rsp['error_index']-1],
+                   values[rsp['error_index']-1])
 
-            # Check for remote SNMP agent failure
-            if rsp.apiGenGetPdu().apiGenGetErrorStatus():
-                raise str(rsp['pdu'].values()[0]['error_status']) + ' at '\
-                      + str(vars[rsp.apiGenGetPdu().apiGenGetErrorIndex()-1][0])
+        # Since we're only asking for one value, only return the first
+        # result, decoded to its correct Python data type
+        return values[0]()
 
-            # Print out results
-            #for (oid, val) in vars:
-            try:
-                value = vars[0][1].get()
-            except TypeError:
-                # stygg hack, skulle da strengt tatt ikke være nødvendig å be om typen til objektet. Skulle holdt å kalle get en gang uten parametre. Da hadde man også sluppet try-except
-                value = vars[0][1].get('internet').get()
 
-            return value
-
-        else:
-            return
-
-    
     def walk(self,query = "1.3.6.1.2.1.1.1.0"):
         """
         Does snmpwalk on the host.
         query: OID to use in the query
 
-        returns an array containing key-value-pairs, where the returned OID is the key.
+        returns an array containing key-value-pairs, where the
+        returned OID is the key.
         """
-
         if not query.startswith("."):
             query = "." + query
-        result = []
         
         try:
             snmp = eval('v' + self.version)
-
         except (NameError, AttributeError):
-            print 'Unsupported SNMP protocol version: %s' % (self.version)
-            #sys.exit(-1)
+            raise 'Unsupported SNMP protocol version: %s' % (self.version)
+
+        result = []
+        root_oid = asn1.OBJECTID()
+        root_oid.encode(query)
+
         # Create SNMP GET/GETNEXT request
-        req = snmp.GetRequest(); nextReq = snmp.GetNextRequest()
-
-        #s
-        args = [ self.host, self.community, query]
-        #args = ['',self.host,self.community,query,self.port,self.retries,self.timeout,self.version, self.reporttype]
-
-        # Initialize request message from C/L params
-        req.cliUcdSetArgs(args[1:]); nextReq.cliUcdSetArgs(args[1:])
+        req = snmp.GETREQUEST()
+        nextReq = snmp.GETNEXTREQUEST()
+        for r in (req, nextReq):
+            r['community'] = self.community
+            r['encoded_oids'] = [root_oid.encode()]
 
         # Create a response message framework
-        rsp = snmp.Response()
-
-        # Store tables headers
-        headVars = map(lambda x: x[0], req.apiGenGetPdu().apiGenGetVarBind())
+        rsp = snmp.RESPONSE()
 
         # Traverse agent MIB
         while 1:
-            def cb_fun(answer, src):
-                """This is meant to verify inbound messages against out-of-order
-                   messages
-                """
-                # Decode message
-                rsp.decode(answer)
-
-                # Make sure response matches request
-                if req.match(rsp):
-                    return 1
-
             # Encode SNMP request message and try to send it to SNMP agent and
             # receive a response
             try:
-                (answer, src) = self.handle.send_and_receive(req.encode(), (None, 0), cb_fun)
-            except pysnmp.mapping.udp.error.NoResponseError, e:
+                (answer, src) = self.handle.send_and_receive(req.encode())
+            except role.NoResponse, e:
                 raise TimeOutException(e)
-            except pysnmp.mapping.udp.error.NetworkError, n:
+            except role.NetworkError, n:
                 raise NameResolverException(n)
 
 
+            # Decode raw response/answer
+            rsp.decode(answer)
             # Fetch Object ID's and associated values
-            vars = rsp.apiGenGetPdu().apiGenGetVarBind()
+            oids = [asn1.OBJECTID().decode(o)[0] for o in rsp['encoded_oids']]
+            values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
 
             # Check for remote SNMP agent failure
-            if rsp.apiGenGetPdu().apiGenGetErrorStatus():
+            if rsp['error_status']:
                 # SNMP agent reports 'no such name' when walk is over
-                if rsp.apiGenGetPdu().apiGenGetErrorStatus() == 2:
+                if rsp['error_status'] == 2:
                     # Switch over to GETNEXT req on error
                     # XXX what if one of multiple vars fails?
                     if not (req is nextReq):
                         req = nextReq
                         continue
-                    # One of the tables exceeded
-                    for l in vars, headVars:
-                        del l[rsp['pdu'].values()[0]['error_index'].get()-1]
-                    if not vars:
-                        print "feilet"
-                        #sys.exit(0)
-                        break
                 else:
-                    raise str(rsp['pdu'].values()[0]['error_status']) + ' at '\
-                          + str(vars[rsp.apiGenGetPdu().apiGenGetErrorIndex()-1][0])
+                    raise "Snmp error %s at %s (%s, %s)" % \
+                          (rsp['error_status'],
+                           rsp['error_index'],
+                           oids[rsp['error_index']-1],
+                           values[rsp['error_index']-1])
 
-            # Exclude completed var-binds
-            while 1:
-                for idx in range(len(headVars)):
-                    if not snmp.ObjectIdentifier(headVars[idx]).isaprefix(vars[idx][0]):
-                        # One of the tables exceeded
-                        for l in vars, headVars:
-                            del l[idx]
-                        break
-                else:
-                    break
-
-            if not headVars:
+            # If the current GETNEXT response came from outside the
+            # tree we are traversing, get the hell out of here, we're
+            # done walking the subtree.
+            if not root_oid.isaprefix(oids[0]):
                 return result
-                #sys.exit(0)
-
-            # Print out results
-            for (oid, val) in vars:
-                try:
-                    value = val.get()
-                except TypeError:
-                    # stygg hack, skulle da strengt tatt ikke være nødvendig å be om typen til objektet. Skulle holdt å kalle get en gang uten parametre. Da hadde man også sluppet try-except
-                    value = val.get('internet').get()
-                result.append((oid,value))
+            else:
+                result.append((oids[0], values[0]()))
 
             # Update request ID
-            req.apiGenGetPdu().apiGenSetRequestId(req.apiGenGetPdu().apiGenGetRequestId()+1)
+            req['request_id'] += 1
 
             # Switch over GETNEXT PDU for if not done
             if not (req is nextReq):
                 req = nextReq
 
-            # Load get-next'ed vars into new req
-            req.apiGenGetPdu().apiGenSetVarBind(vars)
-
+            # Load the next request with the OID received in the last response
+            req['encoded_oids'] = rsp['encoded_oids']
     
     def jog(self,query = "1.3.6.1.2.1.1.1.0"):
-        """
-        Does a modified snmpwalk on the host. The query OID is chopped off the returned OID for each line in the result.
+        """Does a modified snmpwalk on the host. The query OID is
+        chopped off the returned OID for each line in the result.
         query: OID to use in the query
 
-        returns an array containing key-value-pairs, where the key is the returned OID minus the OID in the query, i.e query: 1.2.3, snmpwalk returned oid:1.2.3.4.5, snmpjog returned key: 4.5
+        returns an array containing key-value-pairs, where the key is
+        the returned OID minus the OID in the query, i.e query: 1.2.3,
+        snmpwalk returned oid:1.2.3.4.5, snmpjog returned key: 4.5
         """
         walked = self.walk(query)
         result = []
