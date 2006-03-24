@@ -43,6 +43,7 @@ sub new
     my $this={};
 
     $this->{id}=shift;
+    $this->{login}=shift;
     $this->{dbh}=shift;
 #    $this->{dbh_alert}=shift;
     my $cfg=shift;
@@ -269,7 +270,7 @@ sub checkAlertQueue()
     my $send=0;
     my $c=0;
     
-    $this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alerts for user $this->{id}");
+    $this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alerts for user $this->{login}($this->{id})");
     
     # Get list of queued alerts
     my $qas=$qa->getUserAlertIDs($this->{id});
@@ -341,7 +342,7 @@ sub checkNewAlerts()
     ($this->{nA},$this->{uG},$this->{eG})=@_;
     my $alertsnum=$this->{nA}->getAlertNum();
     
-    $this->{log}->printlog("User","checkNewAlerts",$Log::debugging, "processing new alerts for user $this->{id}");
+    $this->{log}->printlog("User","checkNewAlerts",$Log::debugging, "processing new alerts for user $this->{login}($this->{id})");
 
     for(my $c=0;$c<$alertsnum;$c++)
     {
@@ -511,7 +512,7 @@ sub checkActiveProfile()
     my ($this,$alertid,$alerts)=@_;
     my $ae;
 
-    $this->{log}->printlog("User","checkActiveProfile",$Log::debugging, "checking active profile for user $this->{id}");
+    $this->{log}->printlog("User","checkActiveProfile",$Log::debugging, "checking active profile for user $this->{login}($this->{id})");
 
     #Get time periods
     if(!defined $this->{timePeriod})
@@ -541,7 +542,7 @@ sub checkRights()
   {
     my ($this,$alertid)=@_;
 
-    $this->{log}->printlog("User","checkRights",$Log::debugging, "checking rights for user $this->{id}");
+    $this->{log}->printlog("User","checkRights",$Log::debugging, "checking rights for user $this->{login}($this->{id})");
     
     #Get user groups
     if(!defined $this->{usergroups})

@@ -32,14 +32,14 @@ from mod_python import util, apache
 from mx import DateTime
 from time import strftime
 import re
-from nav import db
+import nav.db
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 from nav.web import SearchBox,redirect,shouldShow
 from nav.web.messages.lib import Message, MessageListMessage, messagelist, equipmentlist, equipmentformat, textpara, MaintListElement, getMaintTime, MaintTree, MaintTreeMessage, Location, Room, Netbox, Service
 from nav.web.messages.menu import Menu
 
 ## Configuration
-from nav.web.messages.conf import DATEFORMAT, BASEPATH, LANG1, LANG2, connection, database
+from nav.web.messages.conf import DATEFORMAT, BASEPATH, LANG1, LANG2
 
 ## Templates
 from nav.web.templates.EmotdTemplate import EmotdTemplate
@@ -158,11 +158,13 @@ def feed(req):
     '''
 
     page = FeederTemplate()
-    database.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc")
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+    cursor.execute("select emotdid, title, description from emotd where publish_end > now() and publish_start < now() and type != 'internal' order by publish_end desc, last_changed desc")
     page.title = "NAV Messages of the Day"
     page.link = BASEPATH
     page.description = "NAV Messages of the Day is the place to find messages from the Network Administrators."
-    page.messages = database.fetchall()
+    page.messages = cursor.fetchall()
 
     page.server = req.server.server_hostname
 
@@ -230,9 +232,11 @@ def view(req, view = None, offset="0", lang = None):
 
     # relate units to messages. first get the units.
     sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) %s order by publish_end desc" % where
-    database.execute(sql)
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+    cursor.execute(sql)
     equipment = {}
-    for (emotdid, key, value) in database.fetchall():
+    for (emotdid, key, value) in cursor.fetchall():
         if not equipment.has_key(emotdid):
             equipment[emotdid] = {}
         if not equipment[emotdid].has_key(key):
@@ -242,11 +246,11 @@ def view(req, view = None, offset="0", lang = None):
     # then get the messages
     sql = "select emotd.emotdid, emotd.type, emotd.publish_start, emotd.publish_end, emotd.last_changed, emotd.author, emotd.title, emotd.description, emotd.detail, emotd.affected, emotd.downtime, emotd.replaces_emotd,e2.title, maint_start, maint_end, state from emotd left outer join maintenance using (emotdid) left outer join emotd as e2 on emotd.replaces_emotd=e2.emotdid %s order by publish_end desc, emotd.last_changed desc" % where
 
-    database.execute(sql)
+    cursor.execute(sql)
 
     now = DateTime.now()
     messages = []
-    for (emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, replaces_title, maint_start, maint_end, state) in database.fetchall():
+    for (emotdid, type, publish_start, publish_end, last_changed, author, title, description, detail, affected, downtime, replaces_emotd, replaces_title, maint_start, maint_end, state) in cursor.fetchall():
         if not list:
             if publish_end < now:
                 category = "historic"
@@ -313,8 +317,10 @@ def maintlist(req):
     sql = "select emotd.emotdid, title, key, value, maint_start, maint_end, state from emotd_related left outer join emotd using (emotdid) left outer join maintenance using (emotdid) where type != 'internal' and maint_end > now() and maint_start < now() order by maint_end desc"
     ## should be either or, not , in the order by clause
 
-    database.execute(sql)
-    maints = database.fetchall()
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    maints = cursor.fetchall()
     t = MaintTree()
 
     for (emotdid, title,  key, value, start, end, state) in maints:
@@ -334,8 +340,8 @@ def maintlist(req):
             raise repr("Key «%s» not recognized" % key)
         
         ## state brukes ikke
-        database.execute("select locationid, location.descr, roomid, room.descr, netboxid, sysname, serviceid, handler, moduleid, module from location left outer join room using (locationid) left outer join netbox using (roomid) left outer join service using (netboxid) left outer join module using (netboxid) where %s" % where)
-        results = database.fetchall()
+        cursor.execute("select locationid, location.descr, roomid, room.descr, netboxid, sysname, serviceid, handler, moduleid, module from location left outer join room using (locationid) left outer join netbox using (roomid) left outer join service using (netboxid) left outer join module using (netboxid) where %s" % where)
+        results = cursor.fetchall()
         m = t.getMessage(emotdid, title, start, end)
 
         for (locationid, locationdescr, roomid, roomdescr, netboxid, sysname, serviceid, handler, moduleid, module) in results:
@@ -373,6 +379,8 @@ def maintenance(req, id = None):
     body = ''
     title = 'Maintenance Setup'
     ##menu = getMenu(req)
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
 
     args['path'] = [('Home','/'),
                     ('Messages',BASEPATH),
@@ -468,8 +476,8 @@ def maintenance(req, id = None):
 
     catid = None
     if req.form.has_key("cn_netbox") and req.form["cn_netbox"]:
-        database.execute("select catid from netbox where netboxid=%s", (req.form["cn_netbox"],))
-        result = database.fetchone()
+        cursor.execute("select catid from netbox where netboxid=%s", (req.form["cn_netbox"],))
+        result = cursor.fetchone()
         if result:
             catid = result[0]
     
@@ -645,8 +653,8 @@ def maintenance(req, id = None):
             page.remove = 1
             page.defined = 1
             page.equipment = equipmentlist(emotdid)
-            database.execute("select title, description, type from emotd where emotdid=%d",(int(emotdid),))
-            (page.messagetitle,page.messagedescription,messagetype) = database.fetchone()
+            cursor.execute("select title, description, type from emotd where emotdid=%d",(int(emotdid),))
+            (page.messagetitle,page.messagedescription,messagetype) = cursor.fetchone()
         else:
             page.messagelist = selectmessagelist()
             emotdid = 0
@@ -673,6 +681,8 @@ def submit(req):
     """ A lot of parsing and session and data handling. This method is run when the SUBMIT button is pressed. """
     
     emotdid = 0
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
 
     if req.session.has_key("emotdmessage"): #do something
 
@@ -688,9 +698,9 @@ def submit(req):
 
             if req.session.has_key("equipment"):
                 equipment = req.session["equipment"]
-                database.execute("select key,value from emotd_related where emotdid=%d",(emotdid,))
+                cursor.execute("select key,value from emotd_related where emotdid=%d",(emotdid,))
                 old = {"location":[], "room":[], "netbox":[], "module":[], "service":[], "module":[]}
-                for (key,value) in database.fetchall():
+                for (key,value) in cursor.fetchall():
                     old[key].append(value)
 
                 for key,values in equipment.items():
@@ -699,12 +709,12 @@ def submit(req):
                 #            equipment[key].remove(v)
                 #            old[key].remove(v)
                 #        else:
-                            database.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
+                            cursor.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
                 #            equipment[key].remove(v)
 
                 #for keys,values in old.items():
                 #    for v in values:
-                #        database.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
+                #        cursor.execute("delete from emotd_related where emotdid=%s and key=%s and value=%s", (emotdid, key, v))
             messagemaintstart = ""
             messagemaintend = ""
             if req.session['emotdmessage'].has_key('maint_start') and req.session['emotdmessage']['maint_start']:
@@ -712,19 +722,19 @@ def submit(req):
             if req.session['emotdmessage'].has_key('maint_end') and req.session['emotdmessage']['maint_end']:
                 messagemaintend = req.session['emotdmessage']['maint_end']
             if messagemaintstart and messagemaintend:
-                database.execute("select publish_end from emotd where emotdid=%s", (emotdid,))
-                publish = database.fetchone()
+                cursor.execute("select publish_end from emotd where emotdid=%s", (emotdid,))
+                publish = cursor.fetchone()
                 if publish:
                     publishend = publish[0]
                     if publishend < messagemaintend: ## if the maintenance window ends after publish window
-                        database.execute("update emotd set publish_end = %s where emotdid=%s", (messagemaintend, emotdid)) ## expands the publish window
+                        cursor.execute("update emotd set publish_end = %s where emotdid=%s", (messagemaintend, emotdid)) ## expands the publish window
                         
-                database.execute("select emotdid from maintenance where emotdid=%s",(emotdid,))
-                maintenance = database.fetchone()
+                cursor.execute("select emotdid from maintenance where emotdid=%s",(emotdid,))
+                maintenance = cursor.fetchone()
                 if maintenance:
-                    database.execute("update maintenance set maint_start=%s, maint_end=%s where emotdid=%s",(messagemaintstart,messagemaintend,emotdid))
+                    cursor.execute("update maintenance set maint_start=%s, maint_end=%s where emotdid=%s",(messagemaintstart,messagemaintend,emotdid))
                 else:
-                    database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
+                    cursor.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
         else: #new
 
             messagetitle = ""
@@ -778,21 +788,21 @@ def submit(req):
 
             if messagetitle and messagedescription:
                 ### get next emotdid
-                database.execute("select nextval('emotd_emotdid_seq')")
-                emotdid = int(database.fetchone()[0])
+                cursor.execute("select nextval('emotd_emotdid_seq')")
+                emotdid = int(cursor.fetchone()[0])
 
-                database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)", (emotdid, messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
+                cursor.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)", (emotdid, messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
                 #raise repr("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s, %s)" % (emotdid, messageauthor, messagedescription, messagedetail, messagetitle, messageaffected, messagedowntime, messagetype, messagepublishstart, messagepublishend, messagelast))
 
                 if req.session.has_key("equipment"):
                     equipment = req.session["equipment"]
                     for key,values in equipment.items():
                         for v in values:
-                            database.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
+                            cursor.execute("insert into emotd_related (emotdid, key, value) values (%s,%s,%s)",(emotdid, key, v))
                             equipment[key].remove(v)
 
                 if messagemaintstart and messagemaintend:
-                    database.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
+                    cursor.execute("insert into maintenance (emotdid, maint_start, maint_end) values (%s, %s ,%s)", (emotdid, messagemaintstart, messagemaintend))
             else:
                 # For now, just return to the same page if
                 # messagetitle or messagedescription is missing.
@@ -850,35 +860,40 @@ def placemessage(req, lang = None):
 ##         sql = "select emotdid, title_en, description_en from emotd where publish_end>now() order by publish_end desc"
 ##     else:
 ##         sql = "select emotdid, title, description from emotd where  publish_end>now() order by publish_end desc"
-##     database.execute(sql)
+##     cursor.execute(sql)
 
 ##     messages = []
-##     for (emotdid,title,description) in database.fetchall():
+##     for (emotdid,title,description) in cursor.fetchall():
 ##         messages.append((emotdid, title, description))
 
     page.emotds = selectmessagelist()
     page.type = type    
     page.equipment_list = eql
     ##page.emotds = (req.session['user'],1)#EmotdSelect.fetchAll()
+    req.session.save()
     return page.respond()
 
 def selectmessagelist():
-
-    database.execute("select emotdid, title, description from emotd where publish_end>now() order by publish_end desc")
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+    cursor.execute("select emotdid, title, description from emotd where publish_end>now() order by publish_end desc")
     messages = []
-    for (emotdid,title,description) in database.fetchall():
+    for (emotdid,title,description) in cursor.fetchall():
         messages.append((emotdid, title, description))
     return messages
     
 
 def retire(req, id):
     """ Retire a message. The message gets the new status "historical"."""
-
     id = int(id)
-    database.execute("select publish_end from emotd where emotdid=%d",(id,))
-    publish_end = database.fetchone()[0]
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+
+    cursor.execute("select publish_end from emotd where emotdid=%d",(id,))
+    publish_end = cursor.fetchone()[0]
     if publish_end > DateTime.now():
-        database.execute("update emotd set publish_end=now() where emotdid=%d",(id,))
+        cursor.execute("update emotd set publish_end=now() where emotdid=%d",(id,))
+        connection.commit()
     redirect(req,BASEPATH+"view"+str(id))
     
 
@@ -892,14 +907,17 @@ def edit(req, id = None):
     page.parent_id = None
     page.emotdid = None
     
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+
     if id:
         #finnes fra før
         page.emotdid = int(id)
         #sql = "select author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end from emotd where emotdid=%d" % page.emotdid
         sql = "select author, description, detail, title, affected, downtime, type, publish_start, publish_end from emotd where emotdid=%d" % page.emotdid
-        database.execute(sql)
+        cursor.execute(sql)
         #(page.author, page.description, page.description_en, page.detail, page.detail_en, page.title, page.title_en, page.affected, page.affected_en, page.downtime, page.downtime_en, page.type, page.publish_start, page.publish_end) = database.fetchone()
-        (page.author, page.description, page.detail, page.title, page.affected, page.downtime, page.type, page.publish_start, page.publish_end) = database.fetchone()
+        (page.author, page.description, page.detail, page.title, page.affected, page.downtime, page.type, page.publish_start, page.publish_end) = cursor.fetchone()
 
         change = 0
         if req.session['user'].login == page.author:
@@ -949,6 +967,8 @@ def edit(req, id = None):
 
 def committime(req):
     """(deprecated)"""
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
     
     if req.form.has_key("id"):
         req.emotdid = int(req.form["id"])
@@ -960,12 +980,12 @@ def committime(req):
         end = DateTime.DateTime(int(req.form["end_year"]),int(req.form["end_month"]),int(req.form["end_day"]),int(req.form["end_hour"]),int(req.form["end_minute"]))
         if hasattr(req,"ny") and req.ny:
             sql = "insert into maintenance (emotdid,maint_start,maint_end) values (%d,%s,%s)"
-            database.execute(sql, (req.emotdid, str(start), str(end)))
+            cursor.execute(sql, (req.emotdid, str(start), str(end)))
             connection.commit()
             redirect(req,"%sadd/%s" % (BASEPATH,req.emotdid))
         else:
             sql = "update maintenance set maint_start=%s, maint_end=%s where emotdid=%d"
-            database.execute(sql, (str(start), str(end), req.emotdid))
+            cursor.execute(sql, (str(start), str(end), req.emotdid))
             connection.commit()
             redirect(req,"%sview/%s" % (BASEPATH,req.emotdid))
 
@@ -999,39 +1019,41 @@ def commit(req):
     #detail_en = req.form['detail_en']
     emotdid = 0
 
+    connection = nav.db.getConnection('webfront')
+    cursor = connection.cursor()
+
     # Save new or existing MOTD
     if req.form.has_key("parent_id") and req.form["parent_id"]:
         replaces = int(req.form["parent_id"])
         #oppdater published end
-        database.execute("update emotd set publish_end=%s where emotdid=%d",
+        cursor.execute("update emotd set publish_end=%s where emotdid=%d",
            (str(DateTime.now()) ,replaces))
         #lag ny
-        database.execute("select nextval('emotd_emotdid_seq')")
-        emotdid = int(database.fetchone()[0])
-        #database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, parent_id, last_changed))
-        database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), replaces, str(last_changed)))
-        database.execute("select key, value from emotd_related where emotdid=%d", (replaces,))
-        for (key, value) in database.fetchall():
-            database.execute("insert into emotd_related (emotdid, key, value) values (%d,%s,%s)",(emotdid, key, value))
+        cursor.execute("select nextval('emotd_emotdid_seq')")
+        emotdid = int(cursor.fetchone()[0])
+        cursor.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, replaces_emotd, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), replaces, str(last_changed)))
+        cursor.execute("select key, value from emotd_related where emotdid=%d", (replaces,))
+        for (key, value) in cursor.fetchall():
+            cursor.execute("insert into emotd_related (emotdid, key, value) values (%d,%s,%s)",(emotdid, key, value))
     
     elif req.form.has_key('emotdid') and req.form["emotdid"]:
         emotdid = int(req.form["emotdid"])
         #database.execute("update emotd set description='%s', description_en='%s', detail='%s', detail_en='%s', title='%s', title_en='%s', affected='%s', affected_en='%s', downtime='%s', downtime_en='%s', type='%s', publish_start='%s', publish_end='%s', last_changed='%s' where emotdid=%d" % (description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed, emotdid))
-        database.execute("select maint_end from maintenance where emotdid=%s", (emotdid,))
-        maintend = database.fetchone()
+        cursor.execute("select maint_end from maintenance where emotdid=%s", (emotdid,))
+        maintend = cursor.fetchone()
         if maintend:
             maintend = maintend[0]
             if maintend > end:  ## publish end has to be the largest of these
                 end = maintend
-        database.execute("update emotd set description=%s, detail=%s, title=%s, affected=%s, downtime=%s, type=%s, publish_start=%s, publish_end=%s, last_changed=%s where emotdid=%d", (description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed), emotdid))
+        cursor.execute("update emotd set description=%s, detail=%s, title=%s, affected=%s, downtime=%s, type=%s, publish_start=%s, publish_end=%s, last_changed=%s where emotdid=%d", (description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed), emotdid))
         
     else:
         if req.form.has_key("cn_save"):
             # if no id, make a new MOTD
-            database.execute("select nextval('emotd_emotdid_seq')")
-            emotdid = int(database.fetchone()[0])
+            cursor.execute("select nextval('emotd_emotdid_seq')")
+            emotdid = int(cursor.fetchone()[0])
             # database.execute("insert into emotd (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, publish_start, publish_end, last_changed) values (%d, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" % (emotdid, author, description, description_en, detail, detail_en, title, title_en, affected, affected_en, downtime, downtime_en, type, start, end, last_changed))
-            database.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
+            cursor.execute("insert into emotd (emotdid, author, description, detail, title, affected, downtime, type, publish_start, publish_end, last_changed) values (%d, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (emotdid, author, description, detail, title, affected, downtime, type, str(start), str(end), str(last_changed)))
         elif req.form.has_key("cn_save_and_add"):
             if not req.session.has_key("emotdmessage") or not isinstance(req.session["emotdmessage"],dict):
                 req.session["emotdmessage"] = {}
@@ -1061,32 +1083,42 @@ def commitplacement(req):
         redirect(req,BASEPATH+"edit")
     else:
         if req.form["id"] and req.session.has_key("equipment"):
+            try:
+                reqId = int(req.form["id"])
+            except TypeError:
+                raise "id must be an integer"
+
+            connection = nav.db.getConnection('webfront')
+            cursor = connection.cursor()
+
             el = req.session["equipment"]
             for type,ids in el.items():
                 for id in ids:
-                    database.execute("select emotdid from emotd_related where emotdid=%d and key='%s' and value='%s'" % (int(req.form["id"]), type, id))
-                    already_exists = database.fetchone()
+                    cursor.execute("select emotdid from emotd_related where emotdid=%d and key='%s' and value='%s'" % (reqId, type, id))
+                    already_exists = cursor.fetchone()
                     if not already_exists:
-                        database.execute("insert into emotd_related (emotdid, key, value) values (%d, %s, %s)", (req.form["id"], type, id))
+                        cursor.execute("insert into emotd_related (emotdid, key, value) values (%d, %s, %s)", (reqId, type, id))
             req.session["equipment"] = {}
             req.session.save()
             connection.commit()
             redirect(req,BASEPATH+"view/"+req.form["id"])
         else:
-            raise "noe skjedde"
+            raise "Error in parameters"
 
 
 def remove(req,emotdid = 0):
     if emotdid:
         emotdid = int(emotdid)
     if req.args:
+        connection = nav.db.getConnection('webfront')
+        cursor = connection.cursor()
         params = req.args
         types = params.split("&")
         for t in types:
             (key,vals) = t.split("=")
             for val in vals.split(","):
                 if emotdid:
-                    database.execute("delete from emotd_related " + 
+                    cursor.execute("delete from emotd_related " + 
                         "where emotdid=%d and key=%s and value=%s",
                      (emotdid, key, val))
                 elif req.session.has_key("equipment") and req.session["equipment"].has_key(key):

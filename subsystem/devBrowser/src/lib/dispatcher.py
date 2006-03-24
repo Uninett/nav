@@ -27,10 +27,7 @@ descriptive URLs like "/browse/machine.domain.com" and
 "/browse/machine.domain.com/module15/" etc.
 """
 
-import os
 import sys
-import time
-import profile
 import warnings
 import traceback
 from mod_python import apache

@@ -113,11 +113,11 @@ sub checkAlerts()
     my $qa=NAV::AlertEngine::QueuedAlerts->new($this->{dbh_alert},$this->{dbh_user});
 
     #Get list of users
-    my $users=$this->{dbh_user}->selectall_arrayref("select id from account a, preference p where a.id=p.accountid and p.activeprofile is not NULL") || $this->{log}->printlog("Engine","checkAlerts",$Log::error, "could not get list of active users");
+    my $users=$this->{dbh_user}->selectall_arrayref("select id, login from account a, preference p where a.id=p.accountid and p.activeprofile is not NULL") || $this->{log}->printlog("Engine","checkAlerts",$Log::error, "could not get list of active users");
 
    foreach my $userid (@$users)
       {
-	my $user=NAV::AlertEngine::User->new($userid->[0],$this->{dbh_user},$this->{cfg});
+	my $user=NAV::AlertEngine::User->new($userid->[0],$userid->[1],$this->{dbh_user},$this->{cfg});
 	$user->checkAlertQueue($qa,$eG);
 	if($num)
 	  #If there are new active alarts

@@ -1,6 +1,6 @@
 <p>
   <font size=+2>
-     Welcome to NAV v3.0 beta!
+     Welcome to NAV v3.0!
   </font><br>
 </p>
 

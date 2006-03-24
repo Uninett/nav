@@ -26,13 +26,14 @@
 The library part of the Messages subsystem.
 """
 
-from conf import BASEPATH, DATEFORMAT, LIMIT, connection, database
+from conf import BASEPATH, DATEFORMAT, LIMIT
 
 import re
 from mx import DateTime
 from time import strftime
 
 from nav.web import shouldShow
+import nav.db
 
 class Message:
     """Defines the communication format that is used between the scripts and the templates"""
@@ -121,13 +122,15 @@ def messagelist(user,view="active",offset=0):
     else:
         time = "publish_end > now() and publish_start < now()"
 
+    conn = nav.db.getConnection('webfront')
+    cursor = conn.cursor()
     if access:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time,LIMIT,offset*LIMIT))
+        cursor.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time,LIMIT,offset*LIMIT))
     else:
-        database.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time, LIMIT, offset*LIMIT))
+        cursor.execute("select emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime, count(value) as units from emotd left outer join emotd_related using (emotdid) where %s and type != 'internal' group by emotd.emotdid, title, description, last_changed, author, type, publish_start, publish_end, affected, downtime order by last_changed desc, publish_end desc limit %d offset %d" %(time, LIMIT, offset*LIMIT))
 
     messages = []
-    for (id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units) in database.fetchall():
+    for (id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units) in cursor.fetchall():
         messages.append(MessageListMessage(id, titile, description, last_changed, author, type, publish_start, publish_end, affected, downtime, units))
         
     return messages
@@ -135,11 +138,13 @@ def messagelist(user,view="active",offset=0):
 def equipmentlist(emotdid):
     """ Makes a list of equipment used by maintenance/. """
 
+    conn = nav.db.getConnection('webfront')
+    cursor = conn.cursor()
     sql = "select emotdid, key, value from emotd left outer join emotd_related using (emotdid) where emotdid=%d order by publish_end desc" % int(emotdid)
-    database.execute(sql)
+    cursor.execute(sql)
     
     equipment = {}
-    for (emotdid, key, value) in database.fetchall():
+    for (emotdid, key, value) in cursor.fetchall():
         if not equipment.has_key(emotdid):
             equipment[emotdid] = {}
         if not equipment[emotdid].has_key(key):
@@ -156,15 +161,17 @@ def equipmentlist(emotdid):
 
 def equipmentformat(eqdict):
     """ Makes a nice representation of the units in assosiated lists, ex: {netbox: [1,2,3,4], location: [10,20]. Gathers extra representational data from database."""
-    
+    conn = nav.db.getConnection('webfront')
+    cursor = conn.cursor()
+
     resdict = {}
     if eqdict:
         if eqdict.has_key("location"):
             resdict["location"] = []
             for l in eqdict["location"]:
                 try:
-                    database.execute("select descr from location where locationid = '%s'" % l)
-                    resdict["location"].append((l, "%s (%s)" % (l,database.fetchone()[0])))
+                    cursor.execute("select descr from location where locationid = '%s'" % l)
+                    resdict["location"].append((l, "%s (%s)" % (l,cursor.fetchone()[0])))
                 except:
                     resdict["location"].append((l,l))
 
@@ -172,8 +179,8 @@ def equipmentformat(eqdict):
             resdict["room"] = []
             for l in eqdict["room"]:
                 try:
-                    database.execute("select descr from room where roomid = '%s'" % l)
-                    resdict["room"].append((l,"%s (%s)" % (l,database.fetchone()[0])))
+                    cursor.execute("select descr from room where roomid = '%s'" % l)
+                    resdict["room"].append((l,"%s (%s)" % (l,cursor.fetchone()[0])))
                 except:
                     resdict["room"].append((l,l))
                     
@@ -181,16 +188,16 @@ def equipmentformat(eqdict):
             resdict["netbox"] = []
             for l in eqdict["netbox"]:
                 try:
-                    database.execute("select sysname from netbox where netboxid = '%s'" % l)
-                    resdict["netbox"].append((l,database.fetchone()[0]))
+                    cursor.execute("select sysname from netbox where netboxid = '%s'" % l)
+                    resdict["netbox"].append((l,cursor.fetchone()[0]))
                 except:
                     resdict["netbox"].append((l,l))
         if eqdict.has_key("service"):
             resdict["service"] = []
             for l in eqdict["service"]:
                 try:
-                    database.execute("select sysname from handler, netbox inner join service using (netboxid) where serviceid = '%s'" % l)
-                    resultat = database.fetchone()
+                    cursor.execute("select sysname from handler, netbox inner join service using (netboxid) where serviceid = '%s'" % l)
+                    resultat = cursor.fetchone()
                     resdict["service"].append((l,"%s (%s)" % (resultat[0], resultat[1])))
                 except:
                     resdict["service"].append((l,l))
@@ -198,8 +205,8 @@ def equipmentformat(eqdict):
             resdict["module"] = []
             for l in eqdict["module"]:
                 try:
-                    database.execute("select sysname, module from module inner join  netbox using (netboxid) where moduleid = '%s'" % l)
-                    resultat = database.fetchone()
+                    cursor.execute("select sysname, module from module inner join  netbox using (netboxid) where moduleid = '%s'" % l)
+                    resultat = cursor.fetchone()
                     resdict["module"].append((l,"%s (%s)" % (resultat[1], resultat[0])))
                 except:
                     resdict["module"].append((l,l))
@@ -381,21 +388,23 @@ def getMaintTime(emotdid=None):
     """ Makes useful representation of maintenance start and maintenance end. Is it still in use?"""
     
     maintenance = None
+    conn = nav.db.getConnection('webfront')
+    cursor = conn.cursor()
     if emotdid:
         try:
             emotdid = int(emotdid)
         except:
             emotdid = None
     if emotdid:
-        database.execute("select maint_start,maint_end from maintenance where emotdid=%d" % int(emotdid))
-        maintenance = database.fetchone()
+        cursor.execute("select maint_start,maint_end from maintenance where emotdid=%d" % int(emotdid))
+        maintenance = cursor.fetchone()
         if maintenance:
             start = maintenance[0]
             end = maintenance[1]
         else:
-            database.execute("select publish_start,publish_end from emotd where emotdid=%d" % int(emotdid))
+            cursor.execute("select publish_start,publish_end from emotd where emotdid=%d" % int(emotdid))
             if maintenance:
-                maintenance = database.fetchone()
+                maintenance = cursor.fetchone()
                 start = maintenance[0]
                 end = maintenance[1]
             else:

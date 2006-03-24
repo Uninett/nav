@@ -227,7 +227,8 @@ $content()
 <div id="footer">
 <hr noshade size="1" color="#cccccc">
 <p class="copyright">
-NAV - Copyright &copy; 2003-2005 NTNU ITEA <br>
+<a href="http://metanav.ntnu.no/">Network Administration Visualized</a> 
+- Created by <a href="http://www.ntnu.no/indexe.php">NTNU</a><br>
 #if $user.id == 0
 You are not logged in.
 #else
@@ -248,6 +249,8 @@ You are logged in as <a href="/index/userinfo">$user.name</a>.
       TD.previous   { text-align: right; }
       TD.current    { text-align: center; }
       TD.next       { text-align: left; }
+      TH.header,
+      TD.header,
       TR.header     { background-color: white;
                       background-image:url('$imagefolder/ragen/navbar-fill.gif');
                       background-repeat: repeat-x;

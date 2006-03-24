@@ -2,6 +2,9 @@ package no.ntnu.nav.eventengine.handlerplugins.MaintenanceState;
 
 import java.util.*;
 
+import no.ntnu.nav.Database.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import no.ntnu.nav.ConfigParser.*;
 import no.ntnu.nav.logger.*;
 
@@ -42,6 +45,12 @@ public class MaintenanceState implements EventHandler
 			} else if (e.getState() == Event.STATE_END) {
 				b.onMaintenance(false);
 				a = ddb.alertFactory(e, "offMaintenance");
+
+				// The Box may have been replaced by a different
+				// physical device during the maintenance period.  Look
+				// up the original device id from the alerthist table
+				int deviceid = getOriginalDeviceId(b);
+				a.setDeviceid(deviceid);
 			} else {
 				Log.w("HANDLE", "MaintenanceState events cannot be stateless, ignoring event");
 				return;
@@ -61,4 +70,18 @@ public class MaintenanceState implements EventHandler
 		}
 	}
 
+	protected int getOriginalDeviceId(Box box)
+	{
+		try {
+			ResultSet rs = Database.query("SELECT deviceid FROM alerthist WHERE end_time='infinity' AND netboxid=" + box.getBoxid() + " AND eventtypeid='maintenanceState'");
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			Log.e("HANDLE", "Error while looking for old deviceid of box " + box.getBoxid() + "(" + box.getSysname() + "):" + e.getMessage());
+		}
+		// If, for some reason, we couldn't find the down alert, use
+		// the posted device id
+		return box.getDeviceid();
+	}
 }

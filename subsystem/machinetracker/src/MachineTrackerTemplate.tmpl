@@ -1,6 +1,7 @@
 ## $Id$
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2006 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -24,6 +25,7 @@
 ##
 
 #extends MainTemplate
+#from nav.web import escape
 
 #attr $path =  [("Home", "/"), ("Machine Tracker", "/machinetracker/")]
 
@@ -33,6 +35,17 @@
 
 
 <p>Machine tracker: <a href="ip">IP Search</a> | <a href="mac">MAC Search</a> | <a href="swp">Switch Search</a></p>
+
+#if len($errors) > 0
+<div class="errors">
+  <ul>
+#for $error in $errors
+    <li>$escape($error)</li>
+#end for
+  </ul>
+</div>
+#end if
+
 <div id="forms">
 #if $form.dns=="on"
 #set $checked="checked"
@@ -52,48 +65,48 @@
 
 #if $form.search=="mac"
 <form id="macform" action="" method="get">
-	<label>MAC </label><input type=text name=mac value=$form.mac>
+	<label>MAC </label><input type="text" name="mac" value="$escape($form.mac)">
 ##	<input type=checkbox name=aip $activechecked><label>active</label>
 ##	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
-	<input type=checkbox name=dns $checked><label>dns</label>
+	<input type="checkbox" name="dns" $checked><label>dns</label>
 #if $form.days
-	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
 #else
-	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
 #end if
-	<input type=submit name=send value="Search">
+	<input type="submit" name="send" value="Search">
 </form>
 
 #elif $form.search=="swp"
 <form id="swpform" action="" method="get">
-	<label>Switch </label><input type=text name=switch value=$form.switch>
-	<label>Module </label><input type=text name=module size=3 value=$form.module>
-	<label>Port </label><input type=text name=port size=3 value=$form.port>
+	<label>Switch </label><input type="text" name="switch" value="$escape($form.switch)">
+	<label>Module </label><input type="text" name="module" size="3" value="$form.module">
+	<label>Port </label><input type="text" name="port" size="3" value="$form.port">
 ##	<input type=checkbox name=aip $activechecked><label>active</label>
 ##	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
-	<input type=checkbox name=dns $checked><label>dns</label>
+	<input type="checkbox" name="dns" $checked><label>dns</label>
 #if $form.days
-	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
 #else
-	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
 #end if
-	<input type=submit name=send value="Search">
+	<input type="submit" name="send" value="Search">
 </form>
 
 #else
 
 <form id="ipform" action="" method="get">
-	<label>IP from </label><input type=text name=from_ip value=$form.ip_from>
-	<label>to </label><input type=text name=to_ip value=$form.ip_to>
-	<input type=checkbox name=aip $activechecked><label>active</label>
-	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
-	<input type=checkbox name=dns $checked><label>dns</label>
+	<label>IP from </label><input type="text" name="from_ip" value="$escape($form.ip_from)">
+	<label>to </label><input type="text" name="to_ip" value="$escape($form.ip_to)">
+	<input type="checkbox" name="aip" $activechecked><label>active</label>
+	<input type="checkbox" name="naip" $inactivechecked><label>inactive</label>
+	<input type="checkbox" name="dns" $checked><label>dns</label>
 #if $form.days
-	<input type=text size=3 style="text-align: center;" name=days value=$form.days><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="$form.days"><label> days</label>
 #else
-	<input type=text size=3 style="text-align: center;" name=days value=7><label> days</label>
+	<input type="text" size="3" style="text-align: center;" name="days" value="7"><label> days</label>
 #end if
-	<input type=submit name=send value="Search">
+	<input type="submit" name="send" value="Search">
 </form>
 
 #end if
@@ -116,7 +129,7 @@
           </tr>
         </table>
       </th>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
+      <td align="right" style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
     </tr>
 #end def
 
@@ -291,5 +304,8 @@ p.title {
   margin-top: 0px;
   margin-bottom: 0px;
   border-bottom: 1px solid rgb(51, 102, 153); 
+}
+div.errors ul li {
+  color: red;
 }
 #end block additionalCSS

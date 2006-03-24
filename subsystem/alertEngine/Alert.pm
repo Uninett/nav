@@ -148,7 +148,7 @@ sub getInfo()
 	}
 	elsif($db eq "alerttype") {
 		if (!defined($this->{alertq}->{alerttypeid})) {
-			$this->{log}->printlog("Alert","getInfo",$Log::warning, "Alerttypeid is not set for this alert!");
+			$this->{log}->printlog("Alert","getInfo",$Log::warning, "Alerttypeid is not set for alertid=$this->{alertq}->{alertqid}");
 		} else {
 	    		$this->collecttable($db,"select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}");
 		}
@@ -237,7 +237,7 @@ sub delete()
     if(!$this->{queued})
     {
 	$this->{log}->printlog("Alert","delete",$Log::debugging, "deleted alertqid=$this->{id}");	
-	#$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
+	$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
     }
 }
 

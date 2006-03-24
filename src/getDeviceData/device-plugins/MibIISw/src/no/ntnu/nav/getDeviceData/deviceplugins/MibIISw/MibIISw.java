@@ -272,14 +272,14 @@ public class MibIISw implements DeviceHandler
 			// sysname (dnsname) should start with the collected sysname
 			String[] s = (String[])l.get(0);
 			String netboxSysname = s[1];
-			if (!nb.getSysname().startsWith(netboxSysname)) {
+			if (!nb.getSysname().trim().toLowerCase().startsWith(netboxSysname.trim().toLowerCase())) {
 				// Log
 				Log.i("HANDLE", "Sysname (DNS) ("+nb.getSysname()+") does not start with the collected sysname ("+netboxSysname+")");
 
 				Map varMap = new HashMap();
 				varMap.put("alerttype", "dnsMismatch");
 				varMap.put("dnsname", String.valueOf(nb.getSysname()));
-				varMap.put("sysname", String.valueOf(s[1]));
+				varMap.put("snmpsysname", String.valueOf(s[1]));
 				EventQ.createAndPostEvent("getDeviceData", "eventEngine", nb.getDeviceid(), nb.getNetboxid(), 0, "info", Event.STATE_NONE, 0, 0, varMap);
 			} else {
 				Log.d("HANDLE", "Correct: Sysname (DNS) ("+nb.getSysname()+") starts with the collected sysname ("+s[1]+")");

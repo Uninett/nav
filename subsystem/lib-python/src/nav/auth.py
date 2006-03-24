@@ -27,12 +27,9 @@ Provides simple authorization API for NAV.
 """
 from nav.db import navprofiles
 import re
-from nav import ip
 
 ADMINGROUP = 1
 ANONYMOUSGROUP = 2
-
-_orgPrivs = ['org_access']
 
 def hasPrivilege(user, action, target):
     """
@@ -85,59 +82,8 @@ def hasPrivilege(user, action, target):
     # matched as plaintext.
     if action == 'web_access':
         return _matchRegexpTarget(target, privileges)
-    elif action in _orgPrivs:
-        return _hasOrgPrivileges(user, target)
     else:
         return _matchBasicTarget(target, privileges)
-
-def _hasOrgPrivileges(user, target):
-    """
-    Determine whether the user has organizational privileges to the
-    given target, usually an IP address or range/prefix.
-    """
-    from nav import db
-    from nav.db import navprofiles
-    from nav.db import manage
-
-    targetAddr = ip.IPv4(target)
-    conn = db.getConnection('webfront', 'manage')
-    manageCursor = conn.cursor()
-
-    # First, get the organizational units this user has an explicit or
-    # implicit membership in.
-    orgList = user.getImplicitOrgIds()
-    
-    if len(orgList) > 0:
-        # Now we deduce which vlans, and therefrom which subnet prefixes,
-        # belong to this set of organizations.
-        orgString = ",".join(["'%s'" % org for org in orgList])
-        sql = \
-            """
-            SELECT DISTINCT b.netaddr
-            FROM vlan a, prefix b
-            WHERE a.vlan=b.vlan
-            AND a.orgid IN (%s);
-            """ % orgString
-        manageCursor.execute(sql)
-
-        # Walk through each prefix (netaddr) and check whether the target
-        # is contained in it.
-        prefixes = manageCursor.dictfetchall()
-        for prefix in prefixes:
-            net = ip.IPv4(prefix['netaddr'])
-            if targetAddr in net:
-                return True
-    return False
-    
-def _matchBasicTarget(target, dictList):
-    """
-    Run through a list of rows from a privilege search and return
-    true if plaintext target exists among the privilege rows.
-    """
-    for row in dictList:
-        if row['target'] == target:
-            return True
-    return False
 
 def _matchRegexpTarget(target, dictList):
     """

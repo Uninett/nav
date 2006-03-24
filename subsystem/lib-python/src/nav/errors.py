@@ -34,7 +34,7 @@ class GeneralException(Exception):
         result = self.__doc__
         if args:
             result += ": %s" % args
-        return args    
+        return result
 
 class ConfigurationError(GeneralException):
     "Configuration error"

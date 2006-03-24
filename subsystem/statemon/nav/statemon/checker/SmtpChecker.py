@@ -27,6 +27,8 @@ from nav.statemon.abstractChecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.statemon.Socket import Socket
 import smtplib
+import sre as re
+
 class SMTP(smtplib.SMTP):
 	def __init__(self,timeout, host = '',port = 25):
 		self.timeout = timeout
@@ -37,6 +39,12 @@ class SMTP(smtplib.SMTP):
 		return self.getreply()
 
 class SmtpChecker(AbstractChecker):
+	# Regexp for matching version strings:
+	# Most SMTP servers add a date after one of the characters
+	# ",", ";" or "#", we don't need that part of the version
+	# string
+	versionMatch = re.compile(r'([^;,#]+)')
+	
 	def __init__(self,service, **kwargs):
 		AbstractChecker.__init__(self, "smtp", service,port=25, **kwargs)
 	def execute(self):
@@ -45,20 +53,13 @@ class SmtpChecker(AbstractChecker):
 		code,msg = s.connect(ip,port)
 		if code != 220:
 			return Event.DOWN,msg
-		version = msg.split()[2:]
-		if len(version) >= 1:
-			s = version[0]
-			for i in version[1:]:
-				# smtp servers tend to display the version
-				# and time/date seperated by a , or ;
-				if ',' in i:
-					break
-				s += ' ' + i
-				if ';' in s:
-					break
-			version = s
-		else:
+		try:
+			domain, version = msg.strip().split(' ', 1)
+		except ValueError:
 			version = ''
+		match = self.versionMatch.match(version)
+		if match:
+			version = match.group(0)
 		self.setVersion(version)
 		return Event.UP,msg
 

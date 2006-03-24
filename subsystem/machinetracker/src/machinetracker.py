@@ -2,6 +2,7 @@
 # $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -37,6 +38,7 @@ import re
 from nav import db
 from nav.web.URI import URI
 from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
+import IPy
 
 connection = db.getConnection('webfront', 'manage')
 database = connection.cursor()
@@ -56,6 +58,7 @@ def handler(req):
     page.tableCam = None
     page.tableArp = None
     page.tableSwp = None
+    page.errors = []
     tracker = None
 
     if section.lower() == "mac":
@@ -77,20 +80,32 @@ def handler(req):
     else:
         prefixid = args.get("prefixid")
         if prefixid:
-            sql = "select netaddr from prefix where prefixid=%s" % prefixid
-            database.execute(sql)
-            (host,mask) = database.fetchone()[0].split("/")
-            from_ip = IP(host).toIP()
-            to_ip = IP(IP(host)+pow(2,32-int(mask))-1).toIP()
+            sql = "select netaddr from prefix where prefixid=%s"
+            database.execute(sql, (prefixid,))
+            subnet = IPy.IP(database.fetchone()[0])
+            from_ip = subnet[0]
+            to_ip = subnet[-1]
             
         else:
             from_ip = args.get("from_ip")
+            if from_ip:
+                try:
+                    from_ip = IPy.IP(from_ip)
+                except ValueError:
+                    page.errors.append('%s is not a valid IP address' % \
+                                       repr(from_ip))
             to_ip = args.get("to_ip")
+            if to_ip:
+                try:
+                    to_ip = IPy.IP(to_ip)
+                except ValueError:
+                    page.errors.append('%s is not a valid IP address' % \
+                                       repr(to_ip))
 
         page.form = IPForm(from_ip, to_ip, args.get("days"), args.get("dns"),
                            args.get("aip"), args.get("naip"))
-                
-        if from_ip or to_ip:
+
+        if len(page.errors) == 0 and (from_ip or to_ip):
             # If only one IP field was filled, use the same value for
             # both from- and to-fields.  Perform the old switcheroo if
             # the latter IP is greater than the former.
@@ -98,10 +113,8 @@ def handler(req):
                 to_ip = from_ip
             elif to_ip and not from_ip:
                 from_ip = to_ip
-            elif IP(from_ip) > IP(to_ip):
-                temp_ip = to_ip
-                to_ip = from_ip
-                from_ip = temp_ip
+            elif from_ip > to_ip:
+                (from_ip, to_ip) = (to_ip, from_ip)
             
             tracker = IPSQLQuery(from_ip, to_ip, args.get("days"))
             page.tableArp = tracker
@@ -237,8 +250,6 @@ class IPSQLQuery(MachineTrackerSQLQuery):
                        "end_time AS end FROM arp")
 
         if not macTracker:
-            ip_from = re.sub("[^0-9.]+","",ip_from)
-            ip_to = re.sub("[^0-9.]+","",ip_to)
             self.ip_from = ip_from
             self.ip_to = ip_to
 
@@ -268,9 +279,9 @@ class IPSQLQuery(MachineTrackerSQLQuery):
 
     def getRows(self, dns=False, active=False, nonActive=False):
         currentRow = 0 # Counts current row in SQL result set
-        firstIP = IP(self.ip_from)
-        lastIP = IP(self.ip_to)
-        ipCounter = IP(self.ip_from)
+        firstIP = self.ip_from
+        lastIP = self.ip_to
+        ipCounter = self.ip_from
         lastKey = None
 
         while ipCounter <= lastIP:
@@ -281,7 +292,7 @@ class IPSQLQuery(MachineTrackerSQLQuery):
                     key = (ipaddr, mac)
                 except IndexError:
                     break
-                if IP(ipaddr) == ipCounter:
+                if IPy.IP(ipaddr) == ipCounter:
                     isActive = True
                     currentRow += 1
                     if active:
@@ -296,9 +307,9 @@ class IPSQLQuery(MachineTrackerSQLQuery):
                     break
 
             if nonActive and not isActive:
-                yield ResultRow(ipCounter.toIP(), None, None, None, None,
+                yield ResultRow(ipCounter, None, None, None, None,
                                 None, None, dns)
-            ipCounter += 1
+            ipCounter = IPy.IP(ipCounter.ip + 1)
             
         
 class SwPortSQLQuery(MACSQLQuery):
@@ -350,42 +361,6 @@ class SwPortForm (MachineTrackerForm):
         self.module = module
         self.port = port
         self.search = "swp" 
-
-class IP(long):
-    def __new__(cls, value):
-        if type(value) == str and value.count('.') == 3:
-            return cls.fromIP(value)
-        return long.__new__(cls, value)
-
-    def fromIP(cls, value):
-        splitted = value.split('.')
-        result = 0
-        for part in splitted:
-            # Shift 1 byte
-            result <<= 8      
-            result += long(part)
-        return long.__new__(cls, result)
-
-    fromIP = classmethod(fromIP)
-
-    def toIP(self):
-        number = self        
-        result = []
-        while number >0:
-            result.append(str(number % 256))
-            number >>= 8
-        # Ok -- extend with 0s
-        result.extend(["0"] * (4-len(result)))
-        result.reverse()
-        return '.'.join(result)
-    def __repr__(self):
-        return self.toIP()
-    def __add__(self, value):
-        return IP(long.__add__(self, value))
-    def __sub__(self, value):
-        return IP(long.__sub__(self, value))
-        return IP(long.__add__(self, value))
-
 
 def hostname(ip):
     """Perform a reverse DNS lookup for ip.

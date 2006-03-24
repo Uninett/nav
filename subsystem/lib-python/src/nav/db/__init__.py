@@ -25,6 +25,7 @@
 """
 Provides common database functionality for NAV.
 """
+import atexit
 import psycopg
 import nav
 from nav import config
@@ -97,7 +98,21 @@ def setDefaultConnection(conn):
     cursor = db.cursor
     db.autocommit(1)
 
+def closeConnections():
+    """Close all cached database connections"""
+    for connection in _connectionCache.values():
+        try:
+            connection.object.close()
+        except psycopg.InterfaceError:
+            pass
+
 ###### Initialization ######
 
 if not db:
     setDefaultConnection(getConnection('default'));
+
+# Psycopg doesn't seem to close connections when they are garbage
+# collected. Here we try to clean up our act on system exit, to
+# avoid the numerous "unexpected EOF on client connection" that NAV
+# seems to generate in the PostgreSQL logs.
+atexit.register(closeConnections)
