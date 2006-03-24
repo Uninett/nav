@@ -2,6 +2,7 @@
 # $Id$
 #
 # Copyright 2003 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -26,6 +27,7 @@
 Provides common database functionality for NAV.
 """
 import atexit
+import time
 import psycopg
 import nav
 from nav import config
@@ -39,15 +41,45 @@ class ConnectionObject(nav.CacheableObject):
     Specialization of nav.CacheableObject to implement psycopg
     connection caching.
     """
+    # Minimum number of seconds to wait between validating
+    # connections.
+    validation_interval = 60
+    
     def __init__(self, object, key):
         super(ConnectionObject, self).__init__(object)
         self.key = key
+        self.lastValidated = time.time()
 
     def isInvalid(self):
-        try:
-            cursor = self.object.cursor()
-            cursor.execute('SELECT 1')
+        """Attempt to check whether the database connection has become
+        invalid, which would typically be caused by the connection
+        having been terminated without our knowledge or consent.
+        """
+        # This method will be called almost every time a getConnection
+        # call is executed, resulting in a ping or SELECT 1 being
+        # executed quite often.  If no transaction is open in this
+        # connection, executing SELECT 1 will start a new transaction.
+        # Since the isolation level is READ COMMITTED, any further use
+        # of this connection will see the database as it was at the
+        # time the transaction was started, which could potentially be
+        # bad for your health.
+        #
+        # To mitigate this somewhat, we make sure to never ping the
+        # connection more often than once every 60 seconds.  This
+        # means less connection overhead, and less running into idle
+        # transactions (hopefully).
+        #
+        # Of course, this is all an ugly hack, but we do it becase
+        # psycopg will not let us check the connection status or tell
+        # us whether we are currently inside an open transaction.
+        if time.time() < self.lastValidated + self.validation_interval:
+            # Not invalid
             return False
+        
+        try:
+            if self.ping():
+                self.lastValidated = time.time()
+                return False
         except (psycopg.ProgrammingError, psycopg.OperationalError):
             import sys
             sys.stderr.write('DB-DEBUG: Invalid connection object (%s), age=%s\n' % (repr(self.key), self.age()))
@@ -57,6 +89,17 @@ class ConnectionObject(nav.CacheableObject):
             import sys
             sys.stderr.write('DB-DEBUG: Connection may already be closed (%s)\n' % repr(self.key))
             return True
+
+    def ping(self):
+        """'ping' the database connection.
+
+        Executes a simple query, like SELECT 1.  If no exceptions are
+        raised, the database connection should still be up.
+        """
+        cursor = self.object.cursor()
+        cursor.execute('SELECT 1')
+        # If we got this far withouth exceptions, we did OK
+        return 1
 
 def escape(string):
     return str(psycopg.QuotedString(string))
