@@ -148,7 +148,7 @@ sub getInfo()
 	}
 	elsif($db eq "alerttype") {
 		if (!defined($this->{alertq}->{alerttypeid})) {
-			$this->{log}->printlog("Alert","getInfo",$Log::warning, "Alerttypeid is not set for this alert!");
+			$this->{log}->printlog("Alert","getInfo",$Log::warning, "Alerttypeid is not set for alertid=$this->{alertq}->{alertqid}");
 		} else {
 	    		$this->collecttable($db,"select * from alerttype where alerttypeid=$this->{alertq}->{alerttypeid}");
 		}
