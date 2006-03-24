@@ -237,7 +237,7 @@ sub delete()
     if(!$this->{queued})
     {
 	$this->{log}->printlog("Alert","delete",$Log::debugging, "deleted alertqid=$this->{id}");	
-	#$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
+	$this->{dbh}->do("delete from alertq where alertqid=$this->{id}");    
     }
 }
 
