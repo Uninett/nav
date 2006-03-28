@@ -705,8 +705,8 @@ INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_v
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW1100','1.3.6.1.4.1.43.10.27.4.1.2.1','Portsvitsj 1100','f','f','3600','f');
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW3300','1.3.6.1.4.1.43.10.27.4.1.2.2','Portsvitsj 3300','f','f','3600','f');
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('3com','SW9300','1.3.6.1.4.1.43.1.16.2.2.2.1','Portsvitsj 9300','f','f','3600','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','catalyst297024TS','1.3.6.1.4.1.9.1.561','Cisco 2970','t','t','3600','f');
-INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','catalyst37xxStack','1.3.6.1.4.1.9.1.516','Cisco 3750','t','t','3600','f');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','catalyst297024TS','1.3.6.1.4.1.9.1.561','Cisco 2970','t','t','3600','t');
+INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','catalyst37xxStack','1.3.6.1.4.1.9.1.516','Cisco 3750','t','t','3600','t');
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat2924XL','1.3.6.1.4.1.9.1.183','Catalyst 2924 XL switch','t','t','3600','t');
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat2924XLv','1.3.6.1.4.1.9.1.217','Catalyst 2924 XLv switch','t','t','3600','t');
 INSERT INTO type (vendorid,typename,sysobjectid,descr,cdp,tftp,frequency,cs_at_vlan) VALUES ('cisco','cat295024G','1.3.6.1.4.1.9.1.428','Catalyst 2950G-24-E1 svitsj','t','t','3600','t');
