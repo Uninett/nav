@@ -96,6 +96,7 @@ def login(req, login='', password='', origin=''):
     """
     Handles the login page
     """
+    req.content_type = 'text/html'
     if login:
         # The user is attempting to log in, and we want to be sure
         # that any existing Account objects in this session are
