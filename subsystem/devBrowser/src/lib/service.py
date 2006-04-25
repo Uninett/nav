@@ -93,7 +93,8 @@ def getServices(netbox):
 def showIndex(showAll=0):
     result = html.Division()
     result.append(html.Header("All services", level=1))
-    curs = db.cursor()
+    conn = db.getConnection('default')
+    curs = conn.cursor()
     # We'll do this manually to do it alot quicker (and smoother)
     curs.execute("""SELECT handler, count(serviceid) 
                     FROM service 
@@ -109,7 +110,8 @@ def showIndex(showAll=0):
     return result
 
 def showAllMatrix(request, sort):
-    curs = db.cursor()
+    conn = db.getConnection('default')
+    curs = conn.cursor()
     curs.execute("""SELECT DISTINCT handler
                     FROM service 
                     ORDER BY handler""")

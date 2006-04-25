@@ -105,7 +105,8 @@ class ServiceTable:
             FROM rrd_datasource JOIN rrd_file ON
                 (rrd_file.rrd_fileid=rrd_datasource.rrd_fileid) 
             WHERE key='serviceid' and value IN (%s)""" % serviceIDs
-        cursor = db.cursor()
+        connection = db.getConnection('default')
+        cursor = connection.cursor()
         cursor.execute(allDataSourcesSQL)
         result = cursor.fetchall()
         for row in result:

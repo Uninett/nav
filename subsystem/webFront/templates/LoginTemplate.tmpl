@@ -24,24 +24,30 @@
 ## Authors: Magnar Sveen <magnars@stud.ntnu.no>
 ##          Morten Vold <morten.vold@itea.ntnu.no>
 ##
-
 #attr $origin = ""
 #attr $message = ""
+<html>
+<head>
+<title>NAV Login</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+
 <body onLoad="document.getElementById('username').focus();">
-<table height=40% border=0 width=100%><tr valign=middle><td valign=middle align=center>
+<table height="40%" border="0" width="100%"><tr valign="middle"><td valign="middle" align="center">
 
 <br><br><br>
-<font face=verdana size=1>
+<font face="verdana" size="1">
 <form method="POST" action="/index/login">
 <img src="/images/login/navlogo.gif"><br>
 #if $message
-<br><font color=#FF0000>$message</font>
+<br><font color="#FF0000">$message</font>
 #end if
-<br><input id="username" type="text" name="login" style="border: 1px solid #99c;"><br><font color=#6699CC>username</font>
-<br><input type="password" name="password" style="border: 1px solid #99c;"><br><font color=#6699CC>password</font>
+<br><input id="username" type="text" name="login" style="border: 1px solid #99c;"><br><font color="#6699CC">username</font>
+<br><input type="password" name="password" style="border: 1px solid #99c;"><br><font color="#6699CC">password</font>
 <input type="hidden" name="origin" value="$origin">
 <br><br><input type="submit" value="Log in">
 </form>
 </font>
 </td></tr></table>
 </body>
+</html>
