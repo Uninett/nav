@@ -41,9 +41,6 @@ conn = db.getConnection('thresholdmon','manage')
 
 from nav.db import manage
 
-nav.db.forgotten.manage._Wrapper.cursor = conn.cursor
-nav.db.forgotten.manage._Wrapper._dbModule = psycopg
-
 def setData (datasource,threshold,max):
     datasource.threshold = threshold
     datasource.max = max

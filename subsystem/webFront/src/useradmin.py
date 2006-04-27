@@ -34,13 +34,10 @@ from nav.web.templates.useradmin import *
 
 def _profileCursor():
     _profileConn = db.getConnection('navprofile', 'navprofile')
-    navprofiles.setCursorMethod(_profileConn.cursor)
     return _profileConn.cursor()
 
 def _manageCursor():
     _manageConn = db.getConnection('webfront', 'manage')
-    import nav.db.forgotten.manage
-    nav.db.forgotten.manage._Wrapper.cursor = _manageConn.cursor
     return _manageConn.cursor()
 
 def _accountsToTemplate(accounts):

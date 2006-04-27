@@ -140,7 +140,6 @@ def _customizeTables():
     """
     Customize the output from forgetSQL
     """
-    nav.db.forgotten.navprofiles._Wrapper.cursor = nav.db.cursor
     nav.db.forgotten.navprofiles._Wrapper._dbModule = nav.db.driver
 
     # Fix Privilege
@@ -170,9 +169,12 @@ def _customizeTables():
     # Fix Accountproperty
     Accountproperty._sqlPrimary = ('account','property','value',)
 
-def setCursorMethod(cursor):
+    # connection with database
+    def navprofilesCursor(dummy):
+        conn = nav.db.getConnection('default', 'navprofile')
+        return conn.cursor()
     import forgotten.navprofiles
-    forgotten.navprofiles._Wrapper.cursor = cursor
+    forgotten.navprofiles._Wrapper.cursor = classmethod(navprofilesCursor)
 
 
 class NoSuchAccountError(Exception):
