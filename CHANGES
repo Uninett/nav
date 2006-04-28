@@ -1,8 +1,74 @@
+Version 3.0.1
+(released xx April 2006)
+
+ Security fixes:
+
+ * The report interface failed to properly sanitize user input,
+   potentially allowing for SQL injections.
+
+ Bugfixes:
+
+ * Some modules import python profiling modules that aren't always
+   part of the standard distribution.
+
+ * pping would crash if there was no route to a host.
+
+ * SQL Errors in the server and trunked core switch ports reports.
+
+ * Some devices would never be taken off maintenance.
+
+ * The default web greeting still mentioned the word "beta"
+
+ * The SMTP service checker didn't properly extract version
+   information from all SMTP server banners.
+
+ * Registering mixed case device names as sysnames or DNS names would
+   result in dnsMismatch alerts.
+
+ * dnsMismatch alert text would use the DNS name as both the sysname
+   and DNS name values, confusing the receiver as to what the actual
+   problem was.
+
+ * getBoksMacs/mactrace would crash under specific, hard to reproduce
+   circumstances.
+
+ * There were potential syntax errors in the NAV perl API with newer
+   Perl versions.
+
+ * Some NAV processes would not gracefully close database connections
+   on exit.
+
+ * Several parts of the web interface would report InterfaceErrors if
+   a database connection was temporarily dropped by the database
+   server.  Please report any further occurrences of these errors.
+
+ * Newer versions of Firefox would not properly render the table
+   graphics of the web interface.
+
+ * The machine tracker would not properly sanitize user input IP
+   addresses, leading to strange errors and backtraces in the web
+   interface.
+
+ * The Alert Engine would did not delete processed entries from the
+   alert queue, which caused the database table to grow indefinitely.
+
+ * Much of the Alert Engine's debug logs were unreadable because they
+   referred to many entities by their internal database IDs.
+ 
+ * The type information shipped with NAV incorrectly specified that
+   Cisco 3750 and 2970 based devices did not support the cs@vlan
+   convention, thus disabling proper CAM table collection from these
+   devices.
+
+ * The HTML on the NAV login page would be sent as plain text under
+   newer versions of mod_python.
+
+
 Version 3.0.0
 (released 16 September 2005)
 
  Improvements:
-
+ 
  * Fixed a bug in maintengine which prevented it from doing it's job when the
    database was busy/overloaded.
 
