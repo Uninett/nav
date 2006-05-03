@@ -2431,8 +2431,9 @@ class pageNetbox(editdbPage):
                                              ') with the serial \'' +\
                                              str(serial) +\
                                              '\' already exists.')
-                        templateform.add(pageNetbox.editbox(formData=form,
-                                                      disabled=True))
+                        templateform.add(pageNetbox.editbox(pageNetbox,
+                                                            formData=form,
+                                                            disabled=True))
                         templateform.showConfirm = True
                         templateform.add(pageNetbox.editboxSerial(
                                                       gotRo=False,
