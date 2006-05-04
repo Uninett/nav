@@ -30,7 +30,7 @@ install: install-bin install-lib install-web install-conf
 
 install-bin:
 	for file in $(binfiles); do \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
+	  $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; \
 	done
 
 install-conf:

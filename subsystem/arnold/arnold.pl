@@ -203,7 +203,7 @@ if ($action eq 'disable') {
 	print LOG "Setting reason to $opt_r.\n";
 	$reason = $opt_r;
     } else {
-	print "You must specify a reason, use the -l parameter to watch them all.\n";
+	print "You must specify a reason, use the -l parameter to list them.\n";
 	exit;
     }
     
@@ -321,6 +321,7 @@ if ($action eq 'enable') {
     print LOG "Running enable\n";
     # Run the enable-sub on all ports that this computer has disabled
 
+    # z specifies that only this id must be unblocked
     if ($opt_z) {
 	if (&enable($id)) {
 	    print LOG "Enabling of $id successful.\n";
@@ -338,7 +339,7 @@ if ($action eq 'enable') {
 
 	while (my ($id) = $rgetall->fetchrow) {
 	    if (&enable($id)) {
-		print LOG "Enabling of $id successfully.\n";
+		print LOG "Enabling of $id successful.\n";
 	    } else {
 		print LOG "Enabling if $id NOT successful.\n";
 	    }
@@ -824,10 +825,8 @@ sub send_mail {
     my ($email, @complist) = @_;
     my $text;
 
-    $email = "john.m.bredal\@ntnu.no";
-
     my @temptext = @mailconfig;
-    chomp (my $from = shift @temptext);
+    my $from = $cfg{'fromaddress'};
     chomp (my $subject = shift @temptext);
     $subject =~ s/\$reason/$reasons{$reason}/g;
 
@@ -1130,8 +1129,10 @@ sub mailnonblocked {
 
     # Send mail for computers not blocked
 
+    unless ($cfg{'nonblockmail'}) { return; }
+
     my $email = $cfg{'nonblockmail'};
-    my $from = "arnold\@itea.ntnu.no";
+    my $from = $cfg{'fromaddress'};
     my $subject = "Maskiner ikke blokkert av Arnold.";
     my $text = "The following ip-addresses where not blocked because they are in the nonblock-list:\n\n";
     $text .= join "\n", @nonblockedip;
