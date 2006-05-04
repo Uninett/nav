@@ -159,7 +159,6 @@ def handler(req):
             if cur.rowcount < 1:
                 cur.execute("INSERT INTO blocked_reason (text) VALUES ('" + text + "')")
                 conn.commit()
-        conn.close()
         redirect(req, 'addreason')
 
     elif section == 'doaddblock':
@@ -206,7 +205,6 @@ def handler(req):
             cur.execute("INSERT INTO block (blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, userid, active, lastedited, lastedituser, inputfile) VALUES ('%s','%s','%s',%s,'%s','%s',%s,'%s','%s',now(),'%s','%s')" %(blocktitle, blockdesc, mailfile, reasonid, determined, incremental, blocktime, userid, active, lasteditedby, inputfile))
 
         conn.commit()
-        conn.close()
         if blockid:
             redirect(req,'addBlocktype?blockid=%s' %blockid)
         else:
@@ -230,7 +228,6 @@ def handler(req):
 
     req.write(page.respond())
 
-    conn.close()
     return apache.OK
 
 
