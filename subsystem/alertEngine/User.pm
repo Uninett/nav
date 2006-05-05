@@ -323,6 +323,7 @@ sub checkAlertQueue()
 		# TODO: Ask Arne if this is neccessary?
 		if($c==0) {
 		    $this->prepareSendAlert($qa->getAlert($aid->{alertid}),$aid->{addressid});
+		    $send++;
 		}
 		
 		
@@ -456,17 +457,35 @@ sub sendAlert()
 sub sendsms()
 {
     my($this,$to,$msg,$alert)=@_;
-    if(length($msg)==0)
+    my $msglength = length($msg);
+
+    if ($msglength == 0)
     {
 	$this->{log}->printlog("User","sendSMS",$Log::error,"no SMS message defined");
 	return;
+    } elsif ($msglength > 145) {
+	# The message is too long for one SMS, truncate it (the
+	# database table is limited to 145 characters, since a
+	# timestamp of up to 15 characters is added to each outgoing
+	# SMS by the smsd)
+	my $appendix = "(...)";
+	$msg = substr($msg, 0, 145-length($appendix)) . $appendix;
+	$this->{log}->printlog("User", "sendSMS", $Log::debugging,
+			       "$msglength character SMS too long, truncated");
     }
-
     $this->{log}->printlog("User","sendSMS",$Log::informational,"SMS $to: $msg");
 
-    my $severity=$alert->getSeverity();
+    # smsd ignores severity, so this is not very significant. $alert
+    # may be undefined if the message to send does not relate directly
+    # to a single alert.
+    my $severity = defined($alert) ? $alert->getSeverity() : 50;
 
-    $this->{dbh}->do("insert into smsq (phone,msg,severity,time) values($to,'$msg',$severity,now())");
+    $this->{dbh}->do(q{
+	INSERT INTO smsq (phone,msg,severity,time)
+	VALUES (?, ?, ?, now())
+    }, undef, $to, $msg, $severity) or 
+    $this->{log}->printlog("User", "sendSMS", $Log::error, 
+			   "Error inserting to smsq: $this->{dbh}->errstr");
 }
 
 sub sendemail()
