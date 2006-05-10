@@ -98,7 +98,7 @@ sub collectInfo()
     $this->{sms}=system("$NAV::Path::bindir/hasPrivilege.py $info->[3] alerttype sms");
 
     if(!$this->{lang}) {
-	$this->{log}->printlog("User","collectInfo",$Log::error,"no language defined for acountid=$this->{id}");
+	$this->{log}->printlog("User","collectInfo",$Log::error,"$this->{login}($this->{id}); No language defined for accountid");
     }
 
     return 1;
@@ -113,7 +113,7 @@ sub collectAddresses()
 
     if($DBI::errstr)
       {
-	$this->{log}->printlog("User","collectAddresses",$Log::error,"could not get information about addresses for acount id=$this->{id}");
+	$this->{log}->printlog("User","collectAddresses",$Log::error,"$this->{login}($this->{id}); Could not get information about addresses for account");
 	return 0;
       }
 
@@ -133,7 +133,7 @@ sub collectTimePeriod()
     my $tps;
     
     if(!$this->{activeProfile}) {
-		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no active profile");
+		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"$this->{login}($this->{id}); No active profile");
 		return;
     }
 
@@ -178,13 +178,13 @@ sub collectTimePeriod()
     my $tp=$tps->[0];
 
     if(!defined $tp) {
-		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"no time period available");
+		$this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"$this->{login}($this->{id}); No time period available");
 		return;
     }
 
     if($DBI::errstr)
       {
-	  $this->{log}->printlog("User","collectTimePeriod",$Log::error,"could not get information about time periods");
+	  $this->{log}->printlog("User","collectTimePeriod",$Log::error,"$this->{login}($this->{id}); Could not get information about time periods");
 	  return 0;
       }
 
@@ -194,7 +194,7 @@ sub collectTimePeriod()
 
 	if($DBI::errstr)
 	{
-		$this->{log}->printlog("User","collectTimePeriod",$Log::error,"could not get information about addresses");
+		$this->{log}->printlog("User","collectTimePeriod",$Log::error,"$this->{login}($this->{id}); Could not get information about addresses");
 		return 0;
 	}
 
@@ -207,10 +207,10 @@ sub collectTimePeriod()
 	$c2++;
       }
 
-    $this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"collected $c2 alarm addresses");
+    $this->{log}->printlog("User","collectTimePeriod",$Log::debugging,"$this->{login}($this->{id}); Collected $c2 alarm addresses");
 
     if($c2==0) {
-	$this->{log}->printlog("User","collectTimePeriod",$Log::warning,"could not get information about addresses for timeperiodid=$tp->[0]");
+	$this->{log}->printlog("User","collectTimePeriod",$Log::warning,"$this->{login}($this->{id}); Could not get information about addresses for timeperiodid=$tp->[0]");
 	return 0;
     }
 
@@ -226,7 +226,7 @@ sub collectUserGroups()
 
     if($DBI::errstr)
       {
-	  $this->{log}->printlog("User","collectUserGroups",$Log::error,"could not get information about user groups");
+	  $this->{log}->printlog("User","collectUserGroups",$Log::error,"$this->{login}($this->{id}); Could not get information about user groups");
 	return 0;
       }
 
@@ -247,7 +247,7 @@ sub collectEquipmentGroups()
 
     if($DBI::errstr)
       {
-	  $this->{log}->printlog("User","collectEquipmentGroups",$Log::error,"could not get information about time periods");
+	  $this->{log}->printlog("User","collectEquipmentGroups",$Log::error,"$this->{login}($this->{id}); Could not get information about time periods");
 	return 0;
       }
 
@@ -270,14 +270,14 @@ sub checkAlertQueue()
     my $send=0;
     my $c=0;
     
-    $this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alerts for user $this->{login}($this->{id})");
+    $this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"$this->{login}($this->{id}); Checking queued alerts for user");
     
     # Get list of queued alerts
     my $qas=$qa->getUserAlertIDs($this->{id});
     
     # Loop list of queued alerts
     foreach my $aid (@$qas) {
-		$this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"checking queued alert $aid->{alertid}");
+		$this->{log}->printlog("User","checkAlertQueue",$Log::debugging,"$this->{login}($this->{id}); Checking queued alert $aid->{alertid}");
 		
 		#Check active profile
 		my $aes = $this->checkActiveProfile($aid->{alertid},$qa);
@@ -343,7 +343,7 @@ sub checkNewAlerts()
     ($this->{nA},$this->{uG},$this->{eG})=@_;
     my $alertsnum=$this->{nA}->getAlertNum();
     
-    $this->{log}->printlog("User","checkNewAlerts",$Log::debugging, "processing new alerts for user $this->{login}($this->{id})");
+    $this->{log}->printlog("User","checkNewAlerts",$Log::debugging, "$this->{login}($this->{id}); Processing new alerts for user");
 
     for(my $c=0;$c<$alertsnum;$c++)
     {
@@ -386,7 +386,7 @@ sub queueAlert()
     $alert->queued();
     
 #    print "Queue alert $alertid\n";
-    $this->{log}->printlog("User","queueAlert",$Log::informational,"queued alert $alertid to address $addressid");
+    $this->{log}->printlog("User","queueAlert",$Log::informational,"$this->{login}($this->{id}); Queued alert $alertid to address $addressid");
 
     my $sth=$this->{dbh}->prepare("insert into queue (accountid,addrid,alertid,time) select $this->{id},$addressid,$alertid,now() where not exists(select accountid from queue where accountid=$this->{id} and alertid=$alertid and addrid=$addressid)");
     $sth->execute();
@@ -403,7 +403,7 @@ sub prepareSendAlert()
 
     my $alertid=$alert->getID();
 
-    $this->{log}->printlog("User","prepareSendAlert",$Log::debugging,"prepared queued alert $alertid for sending");
+    $this->{log}->printlog("User","prepareSendAlert",$Log::debugging,"$this->{login}($this->{id}); Prepared queued alert $alertid for sending");
 
     #Check address type
     my $addr=$this->{addrs}[$addressid];
@@ -422,7 +422,7 @@ sub sendPreparedAlerts()
     foreach my $addrid (keys(%{$this->{prepareSendAlert}})) {
 	my $addr=$this->{addrs}[$addrid];
 	my $func=\&{"send$User::msgtype[$addr->{type}]"};
-	$this->{log}->printlog("User","sendPreparedAlerts",$Log::debugging,"sending prepared alerts");
+	$this->{log}->printlog("User","sendPreparedAlerts",$Log::debugging,"$this->{login}($this->{id}); Sending prepared alerts");
 	if(length($User::msgtype[$addr->{type}])>0) {
 	    $this->$func($addr->{address},$this->{prepareSendAlert}{$addrid}->[0]);
 	}
@@ -444,7 +444,7 @@ sub sendAlert()
       my $addr=$this->{addrs}[$addressid];
       
       if(!$addr->{type}) {
-	  $this->{log}->printlog("User","sendAlert",$Log::error,"no address type defined");
+	  $this->{log}->printlog("User","sendAlert",$Log::error,"$this->{login}($this->{id}); No address type defined");
 	  return;
       }
 
@@ -461,7 +461,7 @@ sub sendsms()
 
     if ($msglength == 0)
     {
-	$this->{log}->printlog("User","sendSMS",$Log::error,"no SMS message defined");
+	$this->{log}->printlog("User","sendSMS",$Log::error,"$this->{login}($this->{id}); No SMS message defined");
 	return;
     } elsif ($msglength > 145) {
 	# The message is too long for one SMS, truncate it (the
@@ -471,9 +471,10 @@ sub sendsms()
 	my $appendix = "(...)";
 	$msg = substr($msg, 0, 145-length($appendix)) . $appendix;
 	$this->{log}->printlog("User", "sendSMS", $Log::debugging,
-			       "$msglength character SMS too long, truncated");
+			       "$this->{login}($this->{id}); $msglength " .
+			       "character SMS too long, truncated");
     }
-    $this->{log}->printlog("User","sendSMS",$Log::informational,"SMS $to: $msg");
+    $this->{log}->printlog("User","sendSMS",$Log::informational,"$this->{login}($this->{id}); SMS $to: $msg");
 
     # smsd ignores severity, so this is not very significant. $alert
     # may be undefined if the message to send does not relate directly
@@ -485,7 +486,8 @@ sub sendsms()
 	VALUES (?, ?, ?, now())
     }, undef, $to, $msg, $severity) or 
     $this->{log}->printlog("User", "sendSMS", $Log::error, 
-			   "Error inserting to smsq: $this->{dbh}->errstr");
+			   "$this->{login}($this->{id}); Error inserting to " .
+			   "smsq: $this->{dbh}->errstr");
 }
 
 sub sendemail()
@@ -495,7 +497,7 @@ sub sendemail()
     my($subject,$body);
 
     if(!defined $msg) {
-	$this->{log}->printlog("User","sendEmail",$Log::error,"no msg defined");
+	$this->{log}->printlog("User","sendEmail",$Log::error,"$this->{login}($this->{id}); No msg defined");
 	return;
     }
 
@@ -505,11 +507,11 @@ sub sendemail()
     $body=$msg;
     if(!defined($subject) || length($subject)==0)
     {
-		$this->{log}->printlog("User","sendEmail",$Log::error,"no subject defined");
+		$this->{log}->printlog("User","sendEmail",$Log::error,"$this->{login}($this->{id}); No subject defined");
 		$subject = "Generic NAV Alert (no subject defined, contact sysadm)";
     }
     
-    $this->{log}->printlog("User","sendEmail",$Log::informational,"EMAIL $to\tSubject: $subject");
+    $this->{log}->printlog("User","sendEmail",$Log::informational,"$this->{login}($this->{id}); EMAIL $to\tSubject: $subject");
 
     open(SENDMAIL, "|$this->{sendmail}")
       or die "Can't fork for sendmail: $!\n";
@@ -531,7 +533,7 @@ sub checkActiveProfile()
     my ($this,$alertid,$alerts)=@_;
     my $ae;
 
-    $this->{log}->printlog("User","checkActiveProfile",$Log::debugging, "checking active profile for user $this->{login}($this->{id})");
+    $this->{log}->printlog("User","checkActiveProfile",$Log::debugging, "$this->{login}($this->{id}); Checking active profile for user");
 
     #Get time periods
     if(!defined $this->{timePeriod})
@@ -561,7 +563,7 @@ sub checkRights()
   {
     my ($this,$alertid)=@_;
 
-    $this->{log}->printlog("User","checkRights",$Log::debugging, "checking rights for user $this->{login}($this->{id})");
+    $this->{log}->printlog("User","checkRights",$Log::debugging, "$this->{login}($this->{id}); Checking rights for user");
     
     #Get user groups
     if(!defined $this->{usergroups})
@@ -601,7 +603,7 @@ sub checkRights()
 	  }
       }
 
-    $this->{log}->printlog("User","checkRights",$Log::debugging,"no rights: $alertid");
+    $this->{log}->printlog("User","checkRights",$Log::debugging,"$this->{login}($this->{id}); No rights: $alertid");
     return 0;
   }
 
