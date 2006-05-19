@@ -135,12 +135,12 @@ public class DNSCheck implements DeviceHandler
 			if (s.indexOf("not found") >= 0) return ip;
 
 			// Extract DNS name
-			String pat = ".*domain name pointer +(\\S{3,})";
+			String pat = "(?s)(.*domain name pointer|Name:) +(\\S{3,}).*";
 
 			if (s.matches(pat)) {
 				Matcher m = Pattern.compile(pat).matcher(s);
 				m.matches();
-				String host = m.group(1);
+				String host = m.group(2);
 				if (host.endsWith(".")) host = host.substring(0, host.length()-1);
 				return host;
 			}
