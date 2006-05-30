@@ -254,6 +254,7 @@ o For hver ruter (GW/GSW)
 		Map ifAlias = sSnmp.getAllMap(nb.getOid("ifAlias"), true);
 		Map admStatusMap = sSnmp.getAllMap(nb.getOid("ifAdminStatus"));
 		Map speedMap = sSnmp.getAllMap(nb.getOid("ifSpeed"));
+		Map highSpeedMap = sSnmp.getAllMap(nb.getOid("ifHighSpeed"));
 
 		boolean addedRoute = false;
 		for (Iterator it = routes.iterator(); it.hasNext();) {
@@ -351,7 +352,14 @@ o For hver ruter (GW/GSW)
 			sc.ignoreSwport(ifindex);
 
 			// Set speed from Mib-II
-			double speed = speedMap.containsKey(ifindex) ? Long.parseLong((String)speedMap.get(ifindex)) / 1000000.0 : 0.0;
+			double speed;
+			// If the ifSpeed value is maxed out (a 32 bit unsigned value), get the speed value from ifHighSpeed (if available)
+			if (speedMap.containsKey(ifindex) && Long.parseLong((String)speedMap.get(ifindex)) == 4294967295L && highSpeedMap.containsKey(ifindex)) {
+				speed = Long.parseLong((String)highSpeedMap.get(ifindex));
+				Log.d("PROCESS_SRT", "Set gwport speed from ifHighSpeed for ifindex " + ifindex);
+			} else {
+				speed = speedMap.containsKey(ifindex) ? Long.parseLong((String)speedMap.get(ifindex)) / 1000000.0 : 0.0;
+			}
 			gwp.setSpeed(speed);
 
 			// Create prefix

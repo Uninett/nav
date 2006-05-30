@@ -426,6 +426,10 @@ DELETE FROM snmpoid WHERE oidkey='ifSpeed';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifSpeed','1.3.6.1.2.1.2.2.1.5','standard','mib-II','1',NULL,'0','ifSpeed','IF-MIB');
 
+DELETE FROM snmpoid WHERE oidkey='ifHighSpeed';
+INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
+VALUES ('ifHighSpeed','1.3.6.1.2.1.31.1.1.1.15','Interface speed as a number of Mbps','mib-II','1',NULL,'0','ifHighSpeed','IF-MIB');
+
 DELETE FROM snmpoid WHERE oidkey='ifTrunk';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('ifTrunk','1.3.6.1.4.1.9.9.46.1.6.1.1.14','cL3-sw',NULL,'1',NULL,'0','vlanTrunkPortDynamicStatus','CISCO-VTP-MIB');

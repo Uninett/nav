@@ -33,6 +33,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
  *   <li>sysUpTime</li>
  *   <li>ifIndex (not used)</li>
  *   <li>ifSpeed</li>
+ *   <li>ifHighSpeed</li>
  *   <li>ifAdminStatus</li>
  *   <li>ifOperStatus</li>
  *   <li>ifDescr</li>
@@ -51,6 +52,7 @@ public class MibIISw implements DeviceHandler
 		"sysname",
 		"sysUpTime",
 		"ifSpeed",
+		"ifHighSpeed",
 		"ifAdminStatus",
 		"ifOperStatus",
 		"ifDescr",
@@ -305,6 +307,7 @@ public class MibIISw implements DeviceHandler
 
 		// Set speed
 		List speedList = sSnmp.getAll(nb.getOid("ifSpeed"));
+		Map highSpeedMap = sSnmp.getAllMap(nb.getOid("ifHighSpeed"));
 		if (speedList != null) {
 			for (Iterator it = speedList.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
@@ -316,9 +319,15 @@ public class MibIISw implements DeviceHandler
 					continue;
 				}
 				
-				long speedNum;
+				double speedNum = 0.0;
 				try {
-					speedNum = Long.parseLong(s[1]) / 1000000;
+					// If the ifSpeed value is maxed out (a 32 bit unsigned value), get the speed value from ifHighSpeed (if available)
+					if (Long.parseLong(s[1]) == 4294967295L && highSpeedMap.containsKey(s[0])) {
+						speedNum = Long.parseLong((String)highSpeedMap.get(s[0]));
+						Log.d("PROCESS_MIB_II_SW", "Set gwport speed from ifHighSpeed for ifindex " + s[0]);
+					} else {
+						speedNum = Long.parseLong(s[1]) / 1000000;
+					}
 					if (speedNum <= 0) {
 						skipIfindexSet.add(s[0]);
 						sc.ignoreSwport(s[0]);
@@ -327,7 +336,7 @@ public class MibIISw implements DeviceHandler
 						swp.setSpeed(String.valueOf( speedNum ));
 					}
 				} catch (NumberFormatException e) {
-					Log.w("PROCESS_HP", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on speed: " + s[1]);
+					Log.w("PROCESS_MIB_II_SW", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on speed: " + s[1]);
 				}
 			}
 		}
