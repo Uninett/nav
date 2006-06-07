@@ -36,6 +36,7 @@
     <ant inheritAll="false" dir="handler-plugins/MaintenanceState"/>
     <ant inheritAll="false" dir="handler-plugins/ThresholdState"/>
     <ant inheritAll="false" dir="handler-plugins/DeviceTracker"/>
+    <ant inheritAll="false" dir="handler-plugins/CallScript"/>
   </target>
 
   <target name="compile" depends="init"
@@ -116,5 +117,6 @@
     <ant inheritAll="false" dir="handler-plugins/MaintenanceState" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/ServiceState" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/ThresholdState" target="clean"/>
+    <ant inheritAll="false" dir="handler-plugins/CallScript" target="clean"/>
   </target>
 </project>

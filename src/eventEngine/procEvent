@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+# Copyright 2005 Norwegian University of Science and Technology
+#
+# This file is part of Network Administration Visualized (NAV)
+#
+# NAV is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# NAV is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NAV; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# Authors: Kristian Eide <kreide@online.no>
+#
+"""
+Scrip to be executed by eventengine
+
+To have a script executed by eventengine, follow these steps:
+
+  1. Make a copy of this script named <eventtypeid>, where <eventtypeid> is
+     the eventtypeid of the events you wish the script to process.
+	 
+  2. Change the script to do what you want.
+
+  3. Copy the script into NAVROOT/bin/eventengine/scripts/
+
+  4. Remember to set the script executable with chmod.
+"""
+
+from sys import argv
+
+eventVars = {}
+for var in argv:
+    x = var.split('=')
+    if len(x) > 1:
+        eventVars[x[0]] = x[1]
+
+# At this point eventVars contains all the variables associated with the event
