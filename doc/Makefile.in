@@ -13,6 +13,7 @@ INSTALL = @INSTALL@
 docfiles = sql/logger.sql \
            sql/manage.sql \
            sql/navprofiles.sql \
+           sql/arnold.sql \
            sql/README \
            sql/snmpoid.sql \
            sql/upgrades/3.0_beta7.sql \
