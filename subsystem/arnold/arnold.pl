@@ -515,6 +515,19 @@ sub disable {
     if ($res->ntuples == 1) {
 	($swip, $community, $kat, $sysname, $mac, $vendorid, $typename, $swportid, $ifindex, $module, $port) = $res->fetchrow;
 
+	# Setting allowedok to 1 if we find match of netboxtype in config-file.
+	my $allowedok = 0;
+	foreach my $confkat (split(/,/,$cfg{'allowtypes'})) {
+	    if ($kat eq $confkat) {
+		$allowedok = 1;
+	    }
+	}
+
+	unless ($allowedok) {
+	    &reporterror($ip,$netbios,$dns,"$kat is not an allowed equipmenttype for blocking - skipping block.");
+	    return 0;
+	}
+
 	if ($kat ne 'EDGE') {
 	    &reporterror($ip,$netbios,$dns,"$sysname is not an edge-switch, we do not want to close ports there - skipping.");
 	    return 0;
