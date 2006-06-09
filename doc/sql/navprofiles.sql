@@ -888,7 +888,6 @@ INSERT INTO AccountGroup (id, name, descr) VALUES (2, 'Anonymous users', 'Unauth
 INSERT INTO AccountGroup (id, name, descr) VALUES (3, 'Authenticated users', 'Any authenticated user (logged in)');
 
 -- Some default example groups
-INSERT INTO AccountGroup (name, descr) VALUES ('ReadAll', 'Read access to most things');
 INSERT INTO AccountGroup (name, descr) VALUES ('SMS', 'Allowed to receive SMS alerts');
 
 -- Default system accounts
@@ -942,9 +941,8 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vlanPlot\\b');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/vPServer/servlet/vPServer\\b');
 
--- Give read access to most informational tools for ReadAll group
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
-       VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 2, '^/(report|status|emotd|alertprofiles|machinetracker|browse|preferences|cricket)/?');
+-- Define minimum privileges for authenticated users
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (3, 2, '^/(report|status|emotd|alertprofiles|machinetracker|browse|preferences|cricket)/?');
 
 -- Give alert_by privilege to SMS group
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) 
