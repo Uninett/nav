@@ -28,31 +28,31 @@ web.
 
 Usage: smsd [-h] [-c] [-d sec] [-t phone no.]
 
-  -h,   --help      -- Show this help text
-  -c,   --cancel    -- Cancel (mark as ignored) all unsent messages
-  -d,   --delay     -- Set delay (in seconds) between queue checks
-  -t,   --test      -- Send a test message to <phone no.>
+  -h, --help            Show this help text
+  -c, --cancel          Cancel (mark as ignored) all unsent messages
+  -d, --delay           Set delay (in seconds) between queue checks
+  -t, --test            Send a test message to <phone no.>
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id:$"
+__id__ = "$Id$"
 
 import sys
 import os
 import os.path
 import getopt
+import email
+import logging  # requires Python >= 2.3
 
-try:
-    import nav.path
-except:
-    # If the path module was not found, just pick default directories
-    # below CWD
-    LOCALSTATEDIR = '/usr/local/nav/var'
-else:
-    LOCALSTATEDIR = nav.path.localstatedir
+import nav.config
+import nav.db
+import nav.path
 
+### VARIABLES
+
+delay = 30
 
 ### WORKFLOW (modeled after the old smsd.pl)
 #
@@ -74,8 +74,6 @@ else:
 #       Get all unsent messages for a user
 #       Format SMS
 #       Send SMS
-#       Sleep 60s (.pl legacy. Why do we do sleep before the next user?)
-#   Get unsent messages from queue (.pl lagacy. This is redundant!)
 #   Sleep $delay
 # Loop end
 # Exit
@@ -84,7 +82,54 @@ def main(args):
     if len(args) == 0:
         usage()
         sys.exit(1)
+
+    try:
+        opts, args = getopt.getopt(args, 'hcd:t:',
+         ['help', 'cancel', 'delay=', 'test='])
+    except getopt.GetoptError, error:
+        print >> sys.stderr, error
+        print >> sys.stderr, "Try `" + sys.argv[0] + " --help' for more information."
+        sys.exit(1)
+
+    for opt, val in opts:
+        if opt in ('-h', '--help'):
+            usage()
+            sys.exit(0)
+        if opt in ('-c', '--cancel'):
+            print "'--cancel' not implemented" # FIXME
+            sys.exit(1)
+        if opt in ('-d', '--delay'):
+            # FIXME: Check if val is an int
+            delay = val
+            print delay
+        if opt in ('-t', '--test'):
+            print "'--test' not implemented" # FIXME
+            sys.exit(1)
+
     raise "Not Implemented"
+
+
+### COMMON FUNCTIONS (functions we may want to move to the NAV API)
+#
+# Send mail (import email)
+#   Get address, subject and body from args
+#   Send mail
+#
+# Log (import logging)
+#   Get message from args
+#   Write message to log
+#
+# Error
+#   Get message from args
+#   Log message
+#   Send mail to contact (system-wide via nav.conf) with message
+#
+# Demonize
+#   Release STDIN, STDOUT, STDERR
+#   Move to the background as a deaemon
+#   Write pid to pid file
+
+
 
 ### INIT FUNCTIONS
 #
@@ -96,7 +141,7 @@ def main(args):
 #   Else
 #       Error 
 #
-# Check if already running
+# Check if already running (justme)
 #   If pid file
 #       If corrupt pid file
 #           Die with error (which is caught by cron and mailed?)
@@ -107,12 +152,7 @@ def main(args):
 #   Else
 #       Do nothing (in other words, the startup process continues)
 #
-# Get DB connection (imported)
-#
-# Demonize (is it reasonable to have a function for this?)
-#   Release STDIN, STDOUT, STDERR
-#   Move to the background as a deaemon
-#   Write pid to pid file
+# Get DB connection (import nav.db)
 
 def usage():
     """Print a usage screen to stderr."""
@@ -147,23 +187,6 @@ def usage():
 #       Log
 #   Else
 #       Error (log and mail)
-#   
-
-
-### COMMON FUNCTIONS (eg. should be general and imported from somewhere)
-#
-# Send mail
-#   Get address, subject and body from args
-#   Send mail
-#
-# Log
-#   Get message from args
-#   Write message to log
-#
-# Error
-#   Get message from args
-#   Log message
-#   Send mail to error (system-wide?) contact with message
 
 
 ### Dispatcher plugins
