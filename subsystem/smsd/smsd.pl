@@ -354,7 +354,9 @@ sub sorter_sms {
     close(LOGFIL);
     
     # Sjekker om det har kommet noen nye meldinger i mens en har holdt på å sende.
-    &sjekk_ko;
+    # This is done by the neverending loop after $forsinkelse seconds, so this
+    # just creates unneccesary recursion. Out with it!
+    #&sjekk_ko; 
 }
 
 
