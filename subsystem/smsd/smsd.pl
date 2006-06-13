@@ -41,7 +41,7 @@
 # Både meldinger som blir sendt og meldinger som ikke sendes
 # skrives til logg. 
 #
-# Det skrives til logg og sendes mail vist vist det oppstår 
+# Det skrives til logg og sendes mail hvis det oppstår 
 # feil under sendigen av sms'en
 
 # Innparametere som kan brukes er
