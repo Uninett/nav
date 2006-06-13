@@ -32,12 +32,12 @@ use NAV;
 use NAV::Path;
 
 my %navconf = &NAV::config("$NAV::Path::sysconfdir/nav.conf");
-my $MAILDRIFT = $navconf{ADMIN_MAIL} || 'postmaster@localhost';
+my $MAILTO = $navconf{ADMIN_MAIL} || 'postmaster@localhost';
 my $pidfil = "$NAV::Path::vardir/run/smsd.pl.pid";
-my $dato = strftime "%d\.%m\.%Y %H:%M:%S", localtime; 
+my $date = strftime "%d\.%m\.%Y %H:%M:%S", localtime; 
 my ($pid, $res); 
 
-# Mangler pid filen sjekkes det ikke at smsd kjører. 
+# If the pid file is missing, we don't check if smsd is running 
 if (open PIDFIL, "<$pidfil") {
   	$pid = <PIDFIL>;
 	close($pid);
@@ -46,8 +46,8 @@ if (open PIDFIL, "<$pidfil") {
 
 	    $res = `$NAV::Path::initdir/smsd restart` || die $!;
 	    # Send mail
-	    open(MAIL, "|mail -s 'Restartet smsd' $MAILDRIFT");
-	    print MAIL "$dato\tstartet smsd på nytt\n";
+	    open(MAIL, "|mail -s 'NAV smsd restarted' $MAILTO");
+	    print MAIL "$date\tThe NAV SMS daemon (smsd) was restarted.\n";
 	    print MAIL "$res\n";
 	    close(MAIL);
 	}
