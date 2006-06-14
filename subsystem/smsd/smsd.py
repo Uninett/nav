@@ -41,12 +41,13 @@ __id__ = "$Id$"
 
 import sys
 import os
-import os.path
 import pwd
 import grp
 import getopt
 import email
+import smtplib
 import logging  # requires Python >= 2.3
+import socket
 
 import nav.config
 import nav.db
@@ -57,6 +58,8 @@ import nav.path
 delay = 30
 username = 'navcron'
 pidfile = nav.path.localstatedir + '/run/smsd.py.pid';
+adminmail = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
+adminmail = 'jodal@localhost' # for devel
 
 ### WORKFLOW (modeled after the old smsd.pl)
 #
@@ -127,11 +130,26 @@ def main(args):
 
 
 ### COMMON FUNCTIONS (functions we may want to move to the NAV API)
-#
-# Send mail (import email)
-#   Get address, subject and body from args
-#   Send mail
-#
+
+def sendmail(to, subject, body):
+    """Send mail.
+
+    Pseudo code:
+    Get address, subject and body from args
+    Send mail"""
+
+    localuser = pwd.getpwuid(os.getuid())[0] 
+    hostname = socket.gethostname()
+    sender = localuser + '@' + hostname
+
+    headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % \
+     (sender, to, subject)
+    message = headers + body
+    server = smtplib.SMTP('localhost')
+    # FIXME: Check for exceptions here?
+    server.sendmail(sender, to, message)
+    server.quit()
+
 # Log (import logging)
 #   Get message from args
 #   Write message to log
