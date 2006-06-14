@@ -42,6 +42,8 @@ __id__ = "$Id$"
 import sys
 import os
 import os.path
+import pwd
+import grp
 import getopt
 import email
 import logging  # requires Python >= 2.3
@@ -53,9 +55,12 @@ import nav.path
 ### VARIABLES
 
 delay = 30
+username = 'navcron'
+pidfile = nav.path.localstatedir + '/run/smsd.py.pid';
 
 ### WORKFLOW (modeled after the old smsd.pl)
 #
+# Get command line arguments
 # Switch user to navcron
 # Check if already running
 # Get DB connection
@@ -79,10 +84,7 @@ delay = 30
 # Exit
 
 def main(args):
-    if len(args) == 0:
-        usage()
-        sys.exit(1)
-
+    # Get command line arguments
     try:
         opts, args = getopt.getopt(args, 'hcd:t:',
          ['help', 'cancel', 'delay=', 'test='])
@@ -97,16 +99,32 @@ def main(args):
             sys.exit(0)
         if opt in ('-c', '--cancel'):
             print "'--cancel' not implemented" # FIXME
-            sys.exit(1)
         if opt in ('-d', '--delay'):
-            # FIXME: Check if val is an int
-            delay = val
+            setdelay(val)
             print delay
         if opt in ('-t', '--test'):
             print "'--test' not implemented" # FIXME
-            sys.exit(1)
 
-    raise "Not Implemented"
+    # Switch user to navcron
+    switchuser(username)
+
+    # Check if already running
+    justme()
+
+    # Get DB connection
+    dbconn = nav.db.getConnection('navprofile')
+
+    # Act upon command line arguments
+    pass # FIXME
+
+    # Daemonize
+    pass # FIXME
+
+    # Loop forever
+    pass # FIXME
+
+    # Exit
+    sys.exit(0)
 
 
 ### COMMON FUNCTIONS (functions we may want to move to the NAV API)
@@ -132,32 +150,87 @@ def main(args):
 
 
 ### INIT FUNCTIONS
-#
-# Switch user to navcron (will only work if we are running as root)
-#   If navcron user exists
-#       Change user to navcron (remember to change groups too)
-#       If failed
-#           Die "unable to change uid"
-#   Else
-#       Error 
-#
-# Check if already running (justme)
-#   If pid file
-#       If corrupt pid file
-#           Die with error (which is caught by cron and mailed?)
-#       Get pid
-#       Send SIGNAL 0 to proccess with $pid
-#       If alive
-#           Bail out and die nicely
-#   Else
-#       Do nothing (in other words, the startup process continues)
-#
-# Get DB connection (import nav.db)
+
+def usergroups(username):
+    """Find all non-primary groups an user is member of."""
+    
+    gids = []
+    for (name, passwd, gid, members) in grp.getgrall():
+        if username in members:
+            gids.append(gid)
+    return gids
+
+def switchuser(username):
+    """Switch user the process is running as to given username, normally 'navcron'.
+
+    Will only work if we are running as root.
+
+    Pseudo code:
+    If navcron user exists
+        Change user to navcron
+        Change groups to navcron's groups
+        If failed
+            Die "unable to change uid/gids"
+    Else
+        Error"""
+
+    print os.getuid(), os.geteuid(), os.getgid(), os.getegid() # Debug
+
+    try:
+        name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
+    except KeyError, error:
+        print >> sys.stderr, error, \
+         "(User '" + username + "' not found. Running as root!)"
+    else:
+        if os.getuid() != uid:
+            gids = usergroups(username)
+            try:
+                os.setuid(uid)
+                os.setgid(gid)
+                os.setgroups(gids)
+            except OSError, error:
+                print >> sys.stderr, error, \
+                 "(Trying to change process uid/gid from", \
+                 os.getuid(), "/", os.getgid(), \
+                 "to", uid, "/", gid, ")"
+            else:
+                # FIXME: Log successfull uid/gid change?
+                pass
+        else:
+            pass # We're already running as the correct user
+
+    print os.getuid(), os.geteuid(), os.getgid(), os.getegid() # Debug
+
+def justme():
+    """Check if already running.
+
+    Pseudo code:
+    If pid file
+        If corrupt pid file
+            Die with error (which is caught by cron and mailed?)
+        Get pid
+        Send SIGNAL 0 to proccess with $pid
+        If alive
+            Bail out and die nicely
+    Else
+        Do nothing (in other words, the startup process continues)"""
+
+    global pidfile
+    # FIXME: continue here
+
+
+# Command line argument processing
 
 def usage():
     """Print a usage screen to stderr."""
     print >> sys.stderr, __doc__
 
+def setdelay(sec):
+    """Set delay (in seconds) between queue checks."""
+    global delay
+    # FIXME: Check if val is an int
+    delay = sec
+    
 
 ### LOOP FUNCTIONS
 #
