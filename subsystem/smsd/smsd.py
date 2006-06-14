@@ -174,8 +174,6 @@ def switchuser(username):
     Else
         Error"""
 
-    print os.getuid(), os.geteuid(), os.getgid(), os.getegid() # Debug
-
     try:
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
@@ -183,11 +181,12 @@ def switchuser(username):
          "(User '" + username + "' not found. Running as root!)"
     else:
         if os.getuid() != uid:
-            gids = usergroups(username)
             try:
-                os.setuid(uid)
                 os.setgid(gid)
-                os.setgroups(gids)
+                gids = usergroups(username)
+                if len(gids) > 0:
+                    os.setgroups(gids)
+                os.setuid(uid)
             except OSError, error:
                 print >> sys.stderr, error, \
                  "(Trying to change process uid/gid from", \
@@ -199,8 +198,6 @@ def switchuser(username):
         else:
             pass # We're already running as the correct user
 
-    print os.getuid(), os.geteuid(), os.getgid(), os.getegid() # Debug
-
 def justme():
     """Check if already running.
 
@@ -208,7 +205,7 @@ def justme():
     If pid file
         If corrupt pid file
             Die with error (which is caught by cron and mailed?)
-        Get pid
+        Get pid from file
         Send SIGNAL 0 to proccess with $pid
         If alive
             Bail out and die nicely
@@ -216,7 +213,29 @@ def justme():
         Do nothing (in other words, the startup process continues)"""
 
     global pidfile
-    # FIXME: continue here
+    if os.access(pidfile, os.R_OK):
+        fd = file(pidfile, 'r')
+        pid = fd.readline()
+        fd.close()
+
+        if pid.isdigit():
+            pid = int(pid) 
+        else:
+            print >> sys.stderr, "Can't parse pid file,", \
+             "don't know if process is already running, bailing out."
+            os.exit(1)
+
+        try:
+            os.kill(pid, 0)
+        except OSError, error:
+            # Normally "No such process", and thus we continue
+            pass
+        else:
+            # We assume the process lives and bails out
+            print >> sys.stderr, sys.argv[0], \
+             "already running (pid", pid, "), bailing out."
+    else:
+        pass # No pidfile, assume we're alone and continue
 
 
 # Command line argument processing
