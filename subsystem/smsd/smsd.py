@@ -55,9 +55,12 @@ import nav.path
 
 ### VARIABLES
 
-delay = 30
+delay = 30 # Change at run-time with --delay
 username = 'navcron'
-pidfile = nav.path.localstatedir + '/run/smsd.py.pid';
+pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
+logfile = nav.path.localstatedir + '/log/smsd.py.log'
+loglevel = logging.DEBUG
+mailwarnlevel = logging.ERROR
 adminmail = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
 adminmail = 'jodal@localhost' # for devel
 
@@ -92,8 +95,8 @@ def main(args):
         opts, args = getopt.getopt(args, 'hcd:t:',
          ['help', 'cancel', 'delay=', 'test='])
     except getopt.GetoptError, error:
-        print >> sys.stderr, error
-        print >> sys.stderr, "Try `" + sys.argv[0] + " --help' for more information."
+        print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
+         (error, sys.argv[0])
         sys.exit(1)
 
     for opt, val in opts:
@@ -132,11 +135,13 @@ def main(args):
 ### COMMON FUNCTIONS (functions we may want to move to the NAV API)
 
 def sendmail(to, subject, body):
-    """Send mail.
+    """Send mail with subject and body to recipient.
 
     Pseudo code:
-    Get address, subject and body from args
-    Send mail"""
+    Get addresses, subject and body from args and system
+    Connect to SMTP server
+    Send mail
+    Close SMTP connection"""
 
     localuser = pwd.getpwuid(os.getuid())[0] 
     hostname = socket.gethostname()
@@ -145,20 +150,80 @@ def sendmail(to, subject, body):
     headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % \
      (sender, to, subject)
     message = headers + body
-    server = smtplib.SMTP('localhost')
-    # FIXME: Check for exceptions here?
-    server.sendmail(sender, to, message)
-    server.quit()
 
-# Log (import logging)
-#   Get message from args
-#   Write message to log
-#
-# Error
-#   Get message from args
-#   Log message
-#   Send mail to contact (system-wide via nav.conf) with message
-#
+    try:
+        server = smtplib.SMTP('localhost')
+        server.sendmail(sender, to, message)
+        server.quit()
+    except Exception, error:
+        log("Failed to send mail. (%s)" % error, logging.ERROR)
+
+def log(msg, level = logging.NOTSET, destination = 'file'):
+    """Write message to log.
+    
+    level can be any of NOTSET, DEBUG, INFO, WARNING, ERROR, and CRITICAL, in
+    order of increasing importance. Default is NOTSET.
+    
+    destination supports 'file' for logging to logfiles, and 'console' for
+    logging to console/stderr. Default is 'file'."""
+
+    global logfile, loglevel
+
+    # Get a log
+    logging.basicConfig() # Does not take arguments in Python < 2.4
+    logger = logging.getLogger('smsd')
+
+    if destination == 'file':
+        # Log to file
+        try:
+            handler = logging.FileHandler(logfile, 'a')
+        except IOError, error:
+            print >> sys.stderr, \
+             "Failed writing to logfile. Exiting. (%s)" % error
+            sys.exit(error.errno)
+        format = '%(asctime)s %(levelname)-8s %(message)s'
+    elif destination == 'console':
+        # Log to console/stderr
+        try:
+            handler = logging.StreamHandler(sys.stderr)
+        except IOError, error:
+            print >> sys.stderr, \
+             "Failed writing to stderr. Exiting. (%s)" % error
+            sys.exit(error.errno)
+        format = '%(levelname)s %(message)s'
+
+    # Set a log format
+    formatter = logging.Formatter(format)
+
+    # Connect the pieces
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(loglevel)
+
+    # Log the message
+    logger.log(level, msg)
+    # FIXME: Default format ouput is coming to console for all destinations in
+    # addition to going to the right place in the right format
+
+def reportError(msg, level = logging.NOTSET, destination = 'file'):
+    """Log and mail error message.
+
+    Pseudo code:
+    Get message from args
+    Log message
+    Send mail to admin with message"""
+
+    global adminmail, mailwarnlevel
+
+    # Pass on for logging
+    log(msg, level, destination)
+
+    # Notify admin by mail
+    # FIXME: Replace with logging.SMTPHandler ... <3 logging <3
+    if adminmail is not False and level >= mailwarnlevel:
+        # FIXME: More info in the msg?
+        sendmail(adminmail, 'NAV SMS daemon error report', msg)
+
 # Demonize
 #   Release STDIN, STDOUT, STDERR
 #   Move to the background as a deaemon
@@ -191,13 +256,16 @@ def switchuser(username):
     Else
         Error"""
 
+    olduid = os.getuid()
+    oldgid = os.getgid()
+
     try:
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
-        print >> sys.stderr, "User %s not found. Running as root! (%s)" % \
-         (username, error)
+        reportError("User %s not found. Running as root! (%s)" % \
+         (username, error), logging.WARNING, 'console')
     else:
-        if os.getuid() != uid:
+        if olduid != uid:
             try:
                 os.setgid(gid)
                 gids = usergroups(username)
@@ -205,14 +273,16 @@ def switchuser(username):
                     os.setgroups(gids)
                 os.setuid(uid)
             except OSError, error:
-                print >> sys.stderr, \
-                 "Failed changing uid/gid from %d/%d to %d/%d. (%s)" % \
-                 (os.getuid(), os.getgid(), uid, gid, error)
+                reportError("Failed changing uid/gid from %d/%d to %d/%d. (%s)" % \
+                 (olduid, oldgid, uid, gid, error), \
+                 logging.ERROR, 'console')
+                sys.exit(error.errno)
             else:
-                # FIXME: Log successfull uid/gid change?
-                pass
+                reportError("uid/gid successfully changed from %d/%d to %d/%d." \
+                 % (olduid, oldgid, uid, gid), logging.INFO)
         else:
-            pass # We're already running as the correct user
+            reportError("Already running as uid/gid %d/%d." \
+             % (olduid, oldgid), logging.INFO)
 
 def justme():
     """Check if already running.
@@ -220,7 +290,7 @@ def justme():
     Pseudo code:
     If pid file
         If corrupt pid file
-            Die with error (which is caught by cron and mailed?)
+            Die with error (which is caught by e.g. startstop.py)
         Get pid from file
         Send SIGNAL 0 to proccess with $pid
         If alive
@@ -237,8 +307,9 @@ def justme():
         if pid.isdigit():
             pid = int(pid) 
         else:
-            print >> sys.stderr, "Can't read pid from pid file " + pidfile \
-             + ". Don't know if process is already running, thus bailing out."
+            reportError("Can't read pid from pid file " + pidfile \
+             + ". Don't know if process is already running, thus bailing out.", \
+             logging.ERROR, 'console')
             sys.exit(1)
 
         try:
@@ -248,9 +319,9 @@ def justme():
             pass
         else:
             # We assume the process lives and bails out
-            print >> sys.stderr, \
-             "%s already running (pid %d), bailing out." % \
-             (sys.argv[0], pid)
+            reportError("%s already running (pid %d), bailing out." % \
+             (sys.argv[0], pid), logging.ERROR, 'console')
+            sys.exit(1)
     else:
         pass # No pidfile, assume we're alone and continue
 
@@ -267,7 +338,8 @@ def setdelay(sec):
     if sec.isdigit():
         delay = int(sec)
     else:
-        print >> sys.stderr, "Given delay not a digit. Using default."
+        reportError("Given delay not a digit. Using default.", \
+         logging.WARNING, 'console')
     
 
 ### LOOP FUNCTIONS
