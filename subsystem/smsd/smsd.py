@@ -101,7 +101,6 @@ def main(args):
             print "'--cancel' not implemented" # FIXME
         if opt in ('-d', '--delay'):
             setdelay(val)
-            print delay
         if opt in ('-t', '--test'):
             print "'--test' not implemented" # FIXME
 
@@ -177,8 +176,8 @@ def switchuser(username):
     try:
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
-        print >> sys.stderr, error, \
-         "(User '" + username + "' not found. Running as root!)"
+        print >> sys.stderr, "User %s not found. Running as root! (%s)" % \
+         (username, error)
     else:
         if os.getuid() != uid:
             try:
@@ -188,10 +187,9 @@ def switchuser(username):
                     os.setgroups(gids)
                 os.setuid(uid)
             except OSError, error:
-                print >> sys.stderr, error, \
-                 "(Trying to change process uid/gid from", \
-                 os.getuid(), "/", os.getgid(), \
-                 "to", uid, "/", gid, ")"
+                print >> sys.stderr, \
+                 "Failed changing uid/gid from %d/%d to %d/%d. (%s)" % \
+                 (os.getuid(), os.getgid(), uid, gid, error)
             else:
                 # FIXME: Log successfull uid/gid change?
                 pass
@@ -221,19 +219,20 @@ def justme():
         if pid.isdigit():
             pid = int(pid) 
         else:
-            print >> sys.stderr, "Can't parse pid file,", \
-             "don't know if process is already running, bailing out."
-            os.exit(1)
+            print >> sys.stderr, "Can't read pid from pid file " + pidfile \
+             + ". Don't know if process is already running, thus bailing out."
+            sys.exit(1)
 
         try:
-            os.kill(pid, 0)
+            os.kill(pid, 0) # Sending signal 0 to check if process is alive
         except OSError, error:
             # Normally "No such process", and thus we continue
             pass
         else:
             # We assume the process lives and bails out
-            print >> sys.stderr, sys.argv[0], \
-             "already running (pid", pid, "), bailing out."
+            print >> sys.stderr, \
+             "%s already running (pid %d), bailing out." % \
+             (sys.argv[0], pid)
     else:
         pass # No pidfile, assume we're alone and continue
 
@@ -247,8 +246,10 @@ def usage():
 def setdelay(sec):
     """Set delay (in seconds) between queue checks."""
     global delay
-    # FIXME: Check if val is an int
-    delay = sec
+    if sec.isdigit():
+        delay = int(sec)
+    else:
+        print >> sys.stderr, "Given delay not a digit. Using default."
     
 
 ### LOOP FUNCTIONS
