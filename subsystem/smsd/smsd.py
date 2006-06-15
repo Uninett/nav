@@ -39,15 +39,16 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
-import sys
-import os
-import pwd
+import email
 import grp
 import getopt
-import email
-import smtplib
 import logging  # requires Python >= 2.3
+import os
+import pwd
+import smtplib
 import socket
+import sys
+import time
 
 import nav.config
 import nav.db
@@ -99,16 +100,11 @@ def main(args):
          (error, sys.argv[0])
         sys.exit(1)
 
+    # Print help and exit
     for opt, val in opts:
         if opt in ('-h', '--help'):
             usage()
             sys.exit(0)
-        if opt in ('-c', '--cancel'):
-            print "'--cancel' not implemented" # FIXME
-        if opt in ('-d', '--delay'):
-            setdelay(val)
-        if opt in ('-t', '--test'):
-            print "'--test' not implemented" # FIXME
 
     # Switch user to navcron
     switchuser(username)
@@ -117,16 +113,25 @@ def main(args):
     justme()
 
     # Get DB connection
+    # FIXME: Check for exceptions here?
     dbconn = nav.db.getConnection('navprofile')
 
     # Act upon command line arguments
-    pass # FIXME
+    for opt, val in opts:
+        if opt in ('-c', '--cancel'):
+            print "'--cancel' not implemented" # FIXME
+        if opt in ('-d', '--delay'):
+            setdelay(val)
+        if opt in ('-t', '--test'):
+            print "'--test' not implemented" # FIXME
 
     # Daemonize
-    pass # FIXME
+    daemonize()
 
     # Loop forever
-    pass # FIXME
+    while True:
+        time.sleep(delay)
+        break # FIXME
 
     # Exit
     sys.exit(0)
@@ -224,11 +229,15 @@ def reportError(msg, level = logging.NOTSET, destination = 'file'):
         # FIXME: More info in the msg?
         sendmail(adminmail, 'NAV SMS daemon error report', msg)
 
-# Demonize
-#   Release STDIN, STDOUT, STDERR
-#   Move to the background as a deaemon
-#   Write pid to pid file
+def daemonize():
+    """Move the process to the background as a daemon.
 
+
+    Release STDIN, STDOUT, STDERR
+    Move to the background as a deaemon
+    Write pid to pid file"""
+
+    pass # FIXME
 
 
 ### INIT FUNCTIONS
@@ -336,7 +345,10 @@ def setdelay(sec):
     """Set delay (in seconds) between queue checks."""
     global delay
     if sec.isdigit():
-        delay = int(sec)
+        sec = int(sec)
+        delay = sec
+        reportError("Setting delay to %d seconds." % sec, \
+         logging.INFO, 'file')
     else:
         reportError("Given delay not a digit. Using default.", \
          logging.WARNING, 'console')
