@@ -20,7 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-"""The NAV SMS daemon (smsd)
+"""
+The NAV SMS daemon (smsd)
 
 smsd dispatches SMS messages from the database to users' phones with the help
 of plugins using Gammu and a cell on the COM port, or free SMS services on the
@@ -42,7 +43,8 @@ __id__ = "$Id$"
 import email
 import grp
 import getopt
-import logging  # requires Python >= 2.3
+import logging # requires Python >= 2.3
+import logging.handlers # requires Python >= 2.3
 import os
 import pwd
 import smtplib
@@ -64,7 +66,7 @@ logfile = nav.path.localstatedir + '/log/smsd.py.log'
 loglevel = logging.DEBUG
 mailwarnlevel = logging.ERROR
 adminmail = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
-adminmail = 'jodal@localhost' # for devel
+adminmail = 'stein.magnus@jodal.no' # for devel
 
 ### WORKFLOW (modeled after the old smsd.pl)
 #
@@ -92,8 +94,17 @@ adminmail = 'jodal@localhost' # for devel
 # Exit
 
 def main(args):
+    # Initialize logger
+    global logger, logfile, loglevel, adminmail, mailwarnlevel
+    logger = loginit('nav.smsd', logfile, loglevel, adminmail, mailwarnlevel)
+    logger.info("smsd started.")
+
+    # FIXME: Seems like messages below WARNING (30) doesn't come through
+#    print logger.getEffectiveLevel()
+
     # Get command line arguments
-    optcancel, opttest = False, False
+    optcancel = False
+    opttest = False
     try:
         opts, args = getopt.getopt(args, 'hcd:t:',
          ['help', 'cancel', 'delay=', 'test='])
@@ -136,7 +147,6 @@ def main(args):
 
     # Daemonize
     daemonize(pidfile)
-    print >> sys.stderr, "DEBUG: test"
 
     # Loop forever
     while True:
@@ -145,116 +155,68 @@ def main(args):
 
     # Clean up and exit
     daemonexit(pidfile)
-    reportError("End of program. Exiting.", logging.INFO)
+    logger.info("End of program. Exiting.")
     sys.exit(0)
-
-
-### COMMON FUNCTIONS (functions we may want to move to the NAV API)
-
-def sendmail(to, subject, body):
-    """
-    Send mail with subject and body to recipient.
-
-    Pseudo code:
-    Get addresses, subject and body from args and system
-    Connect to SMTP server
-    Send mail
-    Close SMTP connection
-    """
-
-    localuser = pwd.getpwuid(os.getuid())[0] 
-    hostname = socket.gethostname()
-    sender = localuser + '@' + hostname
-
-    headers = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % \
-     (sender, to, subject)
-    message = headers + body
-
-    try:
-        server = smtplib.SMTP('localhost')
-        server.sendmail(sender, to, message)
-        server.quit()
-    except Exception, error:
-        log("Failed to send mail. (%s)" % error, logging.ERROR)
-
-def log(msg, level = logging.NOTSET, destination = 'file'):
-    """
-    Write message to log.
-    
-    level can be any of NOTSET, DEBUG, INFO, WARNING, ERROR, and CRITICAL, in
-    order of increasing importance. Default is NOTSET.
-    
-    destination supports 'file' for logging to logfiles, and 'console' for
-    logging to console/stderr. Default is 'file'.
-    """
-
-    global logfile, loglevel
-
-    # Get a log
-    logger = logging.getLogger('smsd')
-
-    if destination == 'file':
-        # Log to file
-        try:
-            handler = logging.FileHandler(logfile, 'a')
-        except IOError, error:
-            print >> sys.stderr, \
-             "Failed writing to logfile. Exiting. (%s)" % error
-            sys.exit(error.errno)
-        format = '%(asctime)s %(levelname)-8s %(message)s'
-    elif destination == 'console':
-        # Log to console/stderr
-        try:
-            handler = logging.StreamHandler(sys.stderr)
-        except IOError, error:
-            print >> sys.stderr, \
-             "Failed writing to stderr. Exiting. (%s)" % error
-            sys.exit(error.errno)
-        format = '%(levelname)s %(message)s'
-
-    # Set a log format
-    formatter = logging.Formatter(format)
-
-    # Connect the pieces
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(loglevel)
-
-    # Log the message
-    logger.log(level, msg)
-
-def reportError(msg, level = logging.NOTSET, destination = 'file'):
-    """
-    Log and mail error message.
-
-    Pseudo code:
-    Get message from args
-    Log message
-    Send mail to admin with message
-    """
-
-    global adminmail, mailwarnlevel
-
-    # Pass on for logging
-    log(msg, level, destination)
-
-    # Notify admin by mail
-    # FIXME: Replace with logging.SMTPHandler ... <3 logging <3
-    if adminmail is not False and level >= mailwarnlevel:
-        # FIXME: More info in the msg?
-        sendmail(adminmail, 'NAV SMS daemon error report', msg)
 
 
 ### INIT FUNCTIONS
 
-def usergroups(username):
-    """Find all non-primary groups an user is member of."""
+def loginit(logname, logfile, loglevel, toaddr, mailwarnlevel):
+    """
+    Initalize the logging engine.
+
+    Logs are delivered to three channels: logfile, stderr and mail.
+    The two first are always tried when importance >= loglevel, while mail is
+    always sent when importance >= mailwarnlevel.
+    """
+
+    fileformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+    stderrformat = '%(levelname)s %(message)s'
+    mailformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+
+    try:
+        filehandler = logging.FileHandler(logfile, 'a')
+    except IOError, error:
+        print >> sys.stderr, \
+         "Failed creating file loghandler. Exiting. (%s)" % error
+        sys.exit(error.errno)
+    fileformatter = logging.Formatter(fileformat)
+    filehandler.setFormatter(fileformatter)
+    filehandler.setLevel(loglevel)
     
-    gids = []
-    for (name, passwd, gid, members) in grp.getgrall():
-        if username in members:
-            gids.append(gid)
-    return gids
+    try:
+        stderrhandler = logging.StreamHandler(sys.stderr)
+    except IOError, error:
+        print >> sys.stderr, \
+         "Failed creating stderr loghandler. Exiting. (%s)" % error
+        sys.exit(error.errno)
+    stderrformatter = logging.Formatter(stderrformat)
+    stderrhandler.setFormatter(stderrformatter)
+    stderrhandler.setLevel(loglevel)
+
+    localuser = pwd.getpwuid(os.getuid())[0] 
+    hostname = socket.gethostname()
+    fromaddr = localuser + '@' + hostname
+    try:
+        mailhandler = logging.handlers.SMTPHandler('localhost', fromaddr, \
+         toaddr, 'NAV SMS daemon warning from ' + hostname)
+    except Exception, error:
+        print >> sys.stderr, \
+         "Failed creating SMTP loghandler. Exiting. (%s)" % error
+        sys.exit(error.errno)
+    mailformatter = logging.Formatter(mailformat)
+    mailhandler.setFormatter(mailformatter)
+    mailhandler.setLevel(mailwarnlevel)
+
+    # Configure the root logger
+    logger = logging.getLogger()
+    logger.addHandler(filehandler)
+    logger.addHandler(stderrhandler)
+    logger.addHandler(mailhandler)
+
+    # Return the $logname logger for our own logging
+    logger = logging.getLogger(logname)
+    return logger
 
 def switchuser(username):
     """
@@ -278,27 +240,52 @@ def switchuser(username):
     try:
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
-        reportError("User %s not found. Running as root! (%s)" % \
-         (username, error), logging.WARNING, 'console')
+        logger.warning("User %s not found. Running as root! (%s)", \
+         username, error)
     else:
         if olduid != uid:
             try:
+                # Set primary group
                 os.setgid(gid)
-                gids = usergroups(username)
+
+                # Set non-primary groups
+                gids = []
+                for (name, passwd, gid, members) in grp.getgrall():
+                    if username in members:
+                        gids.append(gid)
                 if len(gids) > 0:
                     os.setgroups(gids)
+
+                # Set user id
                 os.setuid(uid)
             except OSError, error:
-                reportError("Failed changing uid/gid from %d/%d to %d/%d. (%s)" % \
-                 (olduid, oldgid, uid, gid, error), \
-                 logging.ERROR, 'console')
+                logger.error("Failed changing uid/gid from %d/%d to %d/%d. (%s)", \
+                 olduid, oldgid, uid, gid, error)
                 sys.exit(error.errno)
             else:
-                reportError("uid/gid successfully changed from %d/%d to %d/%d." \
-                 % (olduid, oldgid, uid, gid), logging.INFO)
+                logger.info("uid/gid successfully changed from %d/%d to %d/%d.", \
+                 olduid, oldgid, uid, gid)
         else:
-            reportError("Already running as uid/gid %d/%d." \
-             % (olduid, oldgid), logging.INFO)
+            logger.info("Already running as uid/gid %d/%d.", olduid, oldgid)
+
+def usage():
+    """Print a usage screen to stderr."""
+    print >> sys.stderr, __doc__
+
+def setdelay(sec):
+    """Set delay (in seconds) between queue checks."""
+    global delay
+    if sec.isdigit():
+        sec = int(sec)
+        delay = sec
+        logger.info("Setting delay to %d seconds.", sec)
+        return True
+    else:
+        logger.warning("Given delay not a digit. Using default.")
+        return False
+
+
+### DAEMON FUNCTIONS
 
 def justme(pidfile):
     """
@@ -324,20 +311,19 @@ def justme(pidfile):
         if pid.isdigit():
             pid = int(pid) 
         else:
-            reportError("Can't read pid from pid file " + pidfile \
-             + ". Don't know if process is already running, thus bailing out.", \
-             logging.ERROR, 'console')
+            logger.error("Can't read pid from pid file %s. Bailing out.", \
+             pidfile)
             sys.exit(1)
 
         try:
             os.kill(pid, 0) # Sending signal 0 to check if process is alive
         except OSError, error:
             # Normally "No such process", and thus we continue
-            pass
+            return True
         else:
             # We assume the process lives and bails out
-            reportError("%s already running (pid %d), bailing out." % \
-             (sys.argv[0], pid), logging.ERROR, 'console')
+            logger.error("%s already running (pid %d), bailing out.", \
+             sys.argv[0], pid)
             sys.exit(1)
     else:
         # No pidfile, assume we're alone
@@ -360,17 +346,18 @@ def daemonize(pidfile):
         try:
             fd = file(pidfile, 'w')
         except IOError, error:
-            printError("Cannot write to pidfile %s. Exiting. (%s)" % \
-             (pidfile, error), logging.ERROR)
+            logger.error("Cannot write to pidfile %s. Exiting. (%s)",  \
+             pidfile, error)
         fd.write(str(pid))
         fd.close()
+        logger.info("Parent exiting.")
         sys.exit(0)
     else:
         # We're the child. Disconnect from terminal and continue
         # FIXME: Redirect stdout and stderr to /dev/null instead?
-        sys.stdin.close()
-        sys.stdout.close()
-        sys.stderr.close()
+#        sys.stdin.close()
+#        sys.stdout.close()
+#        sys.stderr.close()
         return True
 
 def daemonexit(pidfile):
@@ -382,45 +369,17 @@ def daemonexit(pidfile):
         Remove pidfile
     """
 
-    reportError("foo1", logging.DEBUG)
+    logger.debug("foo1")
     if os.access(pidfile, os.W_OK):
-        reportError("foo2", logging.DEBUG)
+        logger.debug("foo2")
         try:
-            reportError("foo3", logging.DEBUG)
-            remove(pidfile)
+            logger.debug("foo3")
+            os.remove(pidfile)
         except IOError, error:
-            reportError("Can't remove pidfile. Exiting.", logging.ERROR)
-
-# Command line argument processing
-
-def usage():
-    """Print a usage screen to stderr."""
-    print >> sys.stderr, __doc__
-
-def setdelay(sec):
-    """Set delay (in seconds) between queue checks."""
-    global delay
-    if sec.isdigit():
-        sec = int(sec)
-        delay = sec
-        reportError("Setting delay to %d seconds." % sec, \
-         logging.INFO, 'file')
-        return True
-    else:
-        reportError("Given delay not a digit. Using default.", \
-         logging.WARNING, 'console')
-        return False
+            logger.error("Can't remove pidfile. Exiting.")
     
 
 ### LOOP FUNCTIONS
-#
-# Check DB connection
-#   If connection
-#       Do nothing
-#   Else
-#       Get error message
-#       Log error message
-#       Mail error message
 #
 # Get unsent messages from queue
 #   Check DB connection
@@ -442,5 +401,5 @@ def setdelay(sec):
 #       Error (log and mail)
 
 
-### Begin program
+### BEGIN
 main(sys.argv[1:])
