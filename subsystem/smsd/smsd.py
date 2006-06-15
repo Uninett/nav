@@ -51,10 +51,9 @@ import sys
 import time
 
 import nav.config
-import nav.db
 import nav.path
 import nav.smsd.queuenavdb
-import nav.smsd.dispatchergammu
+import nav.smsd.dispatchgammu
 
 ### VARIABLES
 
@@ -94,6 +93,7 @@ adminmail = 'jodal@localhost' # for devel
 
 def main(args):
     # Get command line arguments
+    optcancel, opttest = False, False
     try:
         opts, args = getopt.getopt(args, 'hcd:t:',
          ['help', 'cancel', 'delay=', 'test='])
@@ -101,54 +101,66 @@ def main(args):
         print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
          (error, sys.argv[0])
         sys.exit(1)
-
-    # Print help and exit
     for opt, val in opts:
         if opt in ('-h', '--help'):
             usage()
             sys.exit(0)
+        if opt in ('-c', '--cancel'):
+            optcancel = True
+        if opt in ('-d', '--delay'):
+            setdelay(val)
+        if opt in ('-t', '--test'):
+            opttest = True
 
     # Switch user to navcron
     switchuser(username)
 
     # Check if already running
-    justme()
+    justme(pidfile)
 
-    # Get DB connection
-    # FIXME: Check for exceptions here?
-    dbconn = nav.db.getConnection('navprofile')
+    # Initialize dispatcher
+    dispatcher = False # FIXME
 
-    # Act upon command line arguments
-    for opt, val in opts:
-        if opt in ('-c', '--cancel'):
-            print "'--cancel' not implemented" # FIXME
-        if opt in ('-d', '--delay'):
-            setdelay(val)
-        if opt in ('-t', '--test'):
-            print "'--test' not implemented" # FIXME
+    # Send test message
+    if opttest:
+        print "'--test' not implemented" # FIXME
+        sys.exit(0)
+
+    # Initialize queue
+    queue = False # FIXME
+
+    # Ignore unsent messages
+    if optcancel:
+        print "'--cancel' not implemented" # FIXME
+        sys.exit(0)
 
     # Daemonize
-    daemonize()
+    daemonize(pidfile)
+    print >> sys.stderr, "DEBUG: test"
 
     # Loop forever
     while True:
         time.sleep(delay)
-        break # FIXME
+        break # FIXME: Devel only
 
-    # Exit
+    # Clean up and exit
+    daemonexit(pidfile)
+    reportError("End of program. Exiting.", logging.INFO)
     sys.exit(0)
 
 
 ### COMMON FUNCTIONS (functions we may want to move to the NAV API)
 
 def sendmail(to, subject, body):
-    """Send mail with subject and body to recipient.
+    """
+    Send mail with subject and body to recipient.
 
     Pseudo code:
     Get addresses, subject and body from args and system
     Connect to SMTP server
     Send mail
-    Close SMTP connection"""
+    Close SMTP connection
+    """
 
     localuser = pwd.getpwuid(os.getuid())[0] 
     hostname = socket.gethostname()
@@ -166,13 +178,15 @@ def sendmail(to, subject, body):
         log("Failed to send mail. (%s)" % error, logging.ERROR)
 
 def log(msg, level = logging.NOTSET, destination = 'file'):
-    """Write message to log.
+    """
+    Write message to log.
     
     level can be any of NOTSET, DEBUG, INFO, WARNING, ERROR, and CRITICAL, in
     order of increasing importance. Default is NOTSET.
     
     destination supports 'file' for logging to logfiles, and 'console' for
-    logging to console/stderr. Default is 'file'."""
+    logging to console/stderr. Default is 'file'.
+    """
 
     global logfile, loglevel
 
@@ -210,12 +224,14 @@ def log(msg, level = logging.NOTSET, destination = 'file'):
     logger.log(level, msg)
 
 def reportError(msg, level = logging.NOTSET, destination = 'file'):
-    """Log and mail error message.
+    """
+    Log and mail error message.
 
     Pseudo code:
     Get message from args
     Log message
-    Send mail to admin with message"""
+    Send mail to admin with message
+    """
 
     global adminmail, mailwarnlevel
 
@@ -227,16 +243,6 @@ def reportError(msg, level = logging.NOTSET, destination = 'file'):
     if adminmail is not False and level >= mailwarnlevel:
         # FIXME: More info in the msg?
         sendmail(adminmail, 'NAV SMS daemon error report', msg)
-
-def daemonize():
-    """Move the process to the background as a daemon.
-
-
-    Release STDIN, STDOUT, STDERR
-    Move to the background as a deaemon
-    Write pid to pid file"""
-
-    pass # FIXME
 
 
 ### INIT FUNCTIONS
@@ -251,7 +257,8 @@ def usergroups(username):
     return gids
 
 def switchuser(username):
-    """Switch user the process is running as to given username, normally 'navcron'.
+    """
+    Switch user the process is running as to given username, normally 'navcron'.
 
     Will only work if we are running as root.
 
@@ -262,7 +269,8 @@ def switchuser(username):
         If failed
             Die "unable to change uid/gids"
     Else
-        Error"""
+        Error
+    """
 
     olduid = os.getuid()
     oldgid = os.getgid()
@@ -292,8 +300,9 @@ def switchuser(username):
             reportError("Already running as uid/gid %d/%d." \
              % (olduid, oldgid), logging.INFO)
 
-def justme():
-    """Check if already running.
+def justme(pidfile):
+    """
+    Check if already running.
 
     Pseudo code:
     If pid file
@@ -304,9 +313,9 @@ def justme():
         If alive
             Bail out and die nicely
     Else
-        Do nothing (in other words, the startup process continues)"""
+        Do nothing (in other words, the startup process continues)
+    """
 
-    global pidfile
     if os.access(pidfile, os.R_OK):
         fd = file(pidfile, 'r')
         pid = fd.readline()
@@ -331,8 +340,56 @@ def justme():
              (sys.argv[0], pid), logging.ERROR, 'console')
             sys.exit(1)
     else:
-        pass # No pidfile, assume we're alone and continue
+        # No pidfile, assume we're alone
+        return True
 
+def daemonize(pidfile):
+    """
+    Move the process to the background as a daemon.
+
+    Pseudo code:
+    Release STDIN, STDOUT, STDERR
+    Move to the background as a deaemon
+    Write pid to pid file
+    """
+
+    # Move to background as a daemon
+    pid = os.fork()
+    if pid > 0:
+        # We're the parent. Save to pidfile and exit
+        try:
+            fd = file(pidfile, 'w')
+        except IOError, error:
+            printError("Cannot write to pidfile %s. Exiting. (%s)" % \
+             (pidfile, error), logging.ERROR)
+        fd.write(str(pid))
+        fd.close()
+        sys.exit(0)
+    else:
+        # We're the child. Disconnect from terminal and continue
+        # FIXME: Redirect stdout and stderr to /dev/null instead?
+        sys.stdin.close()
+        sys.stdout.close()
+        sys.stderr.close()
+        return True
+
+def daemonexit(pidfile):
+    """
+    Clean up after daemon process.
+
+    Pseudo code:
+    If pidfile
+        Remove pidfile
+    """
+
+    reportError("foo1", logging.DEBUG)
+    if os.access(pidfile, os.W_OK):
+        reportError("foo2", logging.DEBUG)
+        try:
+            reportError("foo3", logging.DEBUG)
+            remove(pidfile)
+        except IOError, error:
+            reportError("Can't remove pidfile. Exiting.", logging.ERROR)
 
 # Command line argument processing
 
@@ -348,9 +405,11 @@ def setdelay(sec):
         delay = sec
         reportError("Setting delay to %d seconds." % sec, \
          logging.INFO, 'file')
+        return True
     else:
         reportError("Given delay not a digit. Using default.", \
          logging.WARNING, 'console')
+        return False
     
 
 ### LOOP FUNCTIONS
