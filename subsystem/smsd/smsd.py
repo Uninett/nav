@@ -175,7 +175,6 @@ def log(msg, level = logging.NOTSET, destination = 'file'):
     global logfile, loglevel
 
     # Get a log
-    logging.basicConfig() # Does not take arguments in Python < 2.4
     logger = logging.getLogger('smsd')
 
     if destination == 'file':
@@ -207,8 +206,6 @@ def log(msg, level = logging.NOTSET, destination = 'file'):
 
     # Log the message
     logger.log(level, msg)
-    # FIXME: Default format ouput is coming to console for all destinations in
-    # addition to going to the right place in the right format
 
 def reportError(msg, level = logging.NOTSET, destination = 'file'):
     """Log and mail error message.
@@ -383,14 +380,6 @@ def setdelay(sec):
 #   Else
 #       Error (log and mail)
 
-
-### Dispatcher plugins
-# FIXME: Move the plugin classes into modules
-
-class GammuDispatcher(object):
-    """The Gammu dispatcher plugin."""
-    def __init__(self, file):
-        raise "Not Implemented"
 
 ### Begin program
 main(sys.argv[1:])
