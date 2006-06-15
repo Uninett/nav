@@ -53,6 +53,8 @@ import time
 import nav.config
 import nav.db
 import nav.path
+import nav.smsd.queuenavdb
+import nav.smsd.dispatchergammu
 
 ### VARIABLES
 
