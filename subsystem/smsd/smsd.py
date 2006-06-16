@@ -40,6 +40,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
+import atexit
 import email
 import grp
 import getopt
@@ -65,8 +66,9 @@ pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
 logfile = nav.path.localstatedir + '/log/smsd.py.log'
 loglevel = logging.DEBUG
 mailwarnlevel = logging.ERROR
-adminmail = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
-adminmail = 'stein.magnus@jodal.no' # for devel
+mailserver = 'localhost'
+mailaddr = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
+mailaddr = 'stein.magnus@jodal.no' # for devel
 
 ### WORKFLOW (modeled after the old smsd.pl)
 #
@@ -96,7 +98,8 @@ adminmail = 'stein.magnus@jodal.no' # for devel
 def main(args):
     # Initialize logger
     global logger
-    logger = loginit('nav.smsd', logfile, loglevel, adminmail, mailwarnlevel)
+    logger = loginit('nav.smsd', logfile, loglevel, mailaddr, mailserver,
+     mailwarnlevel)
     logger.info("smsd started.")
 
     # Get command line arguments
@@ -150,15 +153,13 @@ def main(args):
         time.sleep(delay)
         break # FIXME: Devel only
 
-    # Clean up and exit
-    daemonexit(pidfile)
-    logger.info("End of program. Exiting.")
+    # Exit nicely
     sys.exit(0)
 
 
 ### INIT FUNCTIONS
 
-def loginit(logname, logfile, loglevel, toaddr, mailwarnlevel):
+def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
     """
     Initalize the logging engine.
 
@@ -195,8 +196,8 @@ def loginit(logname, logfile, loglevel, toaddr, mailwarnlevel):
     hostname = socket.gethostname()
     fromaddr = localuser + '@' + hostname
     try:
-        mailhandler = logging.handlers.SMTPHandler('localhost', fromaddr, \
-         toaddr, 'NAV SMS daemon warning from ' + hostname)
+        mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
+         mailaddr, 'NAV smsd warning from ' + hostname)
     except Exception, error:
         print >> sys.stderr, \
          "Failed creating SMTP loghandler. Exiting. (%s)" % error
@@ -238,7 +239,7 @@ def switchuser(username):
     try:
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
-        logger.warning("User %s not found. Running as root! (%s)", \
+        logger.warning("User %s not found. Running as root! (%s)",
          username, error)
     else:
         if olduid != uid:
@@ -257,11 +258,11 @@ def switchuser(username):
                 # Set user id
                 os.setuid(uid)
             except OSError, error:
-                logger.error("Failed changing uid/gid from %d/%d to %d/%d. (%s)", \
+                logger.error("Failed changing uid/gid from %d/%d to %d/%d. (%s)",
                  olduid, oldgid, uid, gid, error)
                 sys.exit(error.errno)
             else:
-                logger.info("uid/gid changed from %d/%d to %d/%d.", \
+                logger.info("uid/gid changed from %d/%d to %d/%d.",
                  olduid, oldgid, uid, gid)
         else:
             logger.info("Already running as uid/gid %d/%d.", olduid, oldgid)
@@ -309,7 +310,7 @@ def justme(pidfile):
         if pid.isdigit():
             pid = int(pid) 
         else:
-            logger.error("Can't read pid from pid file %s. Bailing out.", \
+            logger.error("Can't read pid from pid file %s. Bailing out.",
              pidfile)
             sys.exit(1)
 
@@ -320,14 +321,14 @@ def justme(pidfile):
             return True
         else:
             # We assume the process lives and bails out
-            logger.error("%s already running (pid %d), bailing out.", \
+            logger.error("%s already running (pid %d), bailing out.",
              sys.argv[0], pid)
             sys.exit(1)
     else:
         # No pidfile, assume we're alone
         return True
 
-def daemonize(pidfile, stdout = '/dev/null', stderr = None, \
+def daemonize(pidfile, stdout = '/dev/null', stderr = None,
  stdin = '/dev/null'):
     """
     Move the process to the background as a daemon and write the pid of the
@@ -383,11 +384,14 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None, \
     try:
         fd = file(pidfile, 'w+')
     except IOError, error:
-        logger.error("Cannot open pidfile %s for writing. Exiting. (%s)", \
+        logger.error("Cannot open pidfile %s for writing. Exiting. (%s)",
          pidfile, error)
         sys.exit(error.errno)
     fd.write("%d\n" % pid)
     fd.close()
+
+    # Set cleanup function to be run at exit so pidfile always is removed
+    atexit.register(daemonexit, pidfile)
     
     # Close newfds before dup2-ing them
     sys.stdout.flush()
@@ -412,11 +416,12 @@ def daemonexit(pidfile):
         Remove pidfile
     """
 
-    logger.info("Cleaning up after daemon.")
+    logger.info("Daemon is exiting. Cleaning up...")
     try:
         os.remove(pidfile)
     except Exception, error:
         logger.error("Can't remove pidfile. Exiting. (%s)", error)
+        # This will not start a loop, even if we're exiting from an exitfunc
         sys.exit(error.errno)
     logger.info("pidfile (%s) removed.", pidfile)
     
