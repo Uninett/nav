@@ -95,12 +95,9 @@ adminmail = 'stein.magnus@jodal.no' # for devel
 
 def main(args):
     # Initialize logger
-    global logger, logfile, loglevel, adminmail, mailwarnlevel
+    global logger
     logger = loginit('nav.smsd', logfile, loglevel, adminmail, mailwarnlevel)
     logger.info("smsd started.")
-
-    # FIXME: Seems like messages below WARNING (30) doesn't come through
-#    print logger.getEffectiveLevel()
 
     # Get command line arguments
     optcancel = False
@@ -216,6 +213,7 @@ def loginit(logname, logfile, loglevel, toaddr, mailwarnlevel):
 
     # Return the $logname logger for our own logging
     logger = logging.getLogger(logname)
+    logger.setLevel(1) # Let all info through to the root node
     return logger
 
 def switchuser(username):
@@ -263,7 +261,7 @@ def switchuser(username):
                  olduid, oldgid, uid, gid, error)
                 sys.exit(error.errno)
             else:
-                logger.info("uid/gid successfully changed from %d/%d to %d/%d.", \
+                logger.info("uid/gid changed from %d/%d to %d/%d.", \
                  olduid, oldgid, uid, gid)
         else:
             logger.info("Already running as uid/gid %d/%d.", olduid, oldgid)
@@ -329,36 +327,81 @@ def justme(pidfile):
         # No pidfile, assume we're alone
         return True
 
-def daemonize(pidfile):
+def daemonize(pidfile, stdout = '/dev/null', stderr = None, \
+ stdin = '/dev/null'):
     """
-    Move the process to the background as a daemon.
+    Move the process to the background as a daemon and write the pid of the
+    daemon to the pidfile.
 
-    Pseudo code:
-    Release STDIN, STDOUT, STDERR
-    Move to the background as a deaemon
-    Write pid to pid file
+    Inspired by http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
     """
 
-    # Move to background as a daemon
-    pid = os.fork()
-    if pid > 0:
-        # We're the parent. Save to pidfile and exit
-        try:
-            fd = file(pidfile, 'w')
-        except IOError, error:
-            logger.error("Cannot write to pidfile %s. Exiting. (%s)",  \
-             pidfile, error)
-        fd.write(str(pid))
-        fd.close()
-        logger.info("Parent exiting.")
-        sys.exit(0)
-    else:
-        # We're the child. Disconnect from terminal and continue
-        # FIXME: Redirect stdout and stderr to /dev/null instead?
-#        sys.stdin.close()
-#        sys.stdout.close()
-#        sys.stderr.close()
-        return True
+    # FIXME: When we require Python 2.4, replace '/dev/null' with
+    # os.path.devnull in the default argument values above
+
+    # Do first fork
+    # (allow shell to return, and permit us to call setsid())
+    try:
+        pid = os.fork()
+        if pid > 0:
+            # We're the first parent. Exit!
+            logger.info("First parent exiting. Second has pid %d.", pid)
+            sys.exit(0)
+    except OSError, error:
+        logger.error("Fork #1 failed. Exiting. (%s)", error)
+        sys.exit(error.errno)
+
+    # Decouple from parent environment
+    os.chdir('/') # In case the dir we started in are removed
+    os.umask(0)
+    os.setsid()
+
+    # Do second fork
+    # (prevent us from accidentally reacquiring a controlling terminal)
+    try:
+        pid = os.fork()
+        if pid > 0:
+            # We're the second parent. Exit!
+            logger.info("Second parent exiting. Daemon has pid %d.", pid)
+            sys.exit(0)
+    except OSError, error:
+        logger.error("Fork #2 failed. Exiting. (%s)", error)
+        sys.exit(error.errno)
+
+    # Now only the child is left :-)
+
+    # Open file descriptors
+    if not stderr:
+        stderr = stdout
+    si = file(stdin, 'r')
+    so = file(stdout, 'a+')
+    se = file(stderr, 'a+', 0)
+    pid = os.getpid()
+    logger.info("Daemon started with pid %d.", pid)
+
+    # Write pidfile
+    try:
+        fd = file(pidfile, 'w+')
+    except IOError, error:
+        logger.error("Cannot open pidfile %s for writing. Exiting. (%s)", \
+         pidfile, error)
+        sys.exit(error.errno)
+    fd.write("%d\n" % pid)
+    fd.close()
+    
+    # Close newfds before dup2-ing them
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.close(sys.stdin.fileno())
+    os.close(sys.stdout.fileno())
+    os.close(sys.stderr.fileno())
+
+    # Redirect standard file descriptors
+    os.dup2(si.fileno(), sys.stdin.fileno())
+    os.dup2(so.fileno(), sys.stdout.fileno())
+    os.dup2(se.fileno(), sys.stderr.fileno())
+
+    return True
 
 def daemonexit(pidfile):
     """
@@ -369,14 +412,13 @@ def daemonexit(pidfile):
         Remove pidfile
     """
 
-    logger.debug("foo1")
-    if os.access(pidfile, os.W_OK):
-        logger.debug("foo2")
-        try:
-            logger.debug("foo3")
-            os.remove(pidfile)
-        except IOError, error:
-            logger.error("Can't remove pidfile. Exiting.")
+    logger.info("Cleaning up after daemon.")
+    try:
+        os.remove(pidfile)
+    except Exception, error:
+        logger.error("Can't remove pidfile. Exiting. (%s)", error)
+        sys.exit(error.errno)
+    logger.info("pidfile (%s) removed.", pidfile)
     
 
 ### LOOP FUNCTIONS
