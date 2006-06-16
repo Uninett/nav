@@ -35,5 +35,29 @@ __id__ = "$Id$"
 
 class dispatchgammu(object):
     "The smsd dispatcher for Gammu."
-    def __init__(self, file):
-        raise "Not Implemented"
+    def __init__(self):
+        """Constructor."""
+        pass # FIXME
+
+    def formatsms(self, msgs):
+        """
+        Format a SMS from one or more messages.
+
+        Pseudo code:
+        If one message
+            SMS = message
+        If multiple messages
+            SMS = as many msgs as possible + how many was ignored
+        """
+
+        sms = False # FIXME
+        return sms # and what was sent and ignored
+
+    def sendsms(self, sms):
+        """
+        Send SMS using Gammu
+        """
+
+        status = False # FIXME
+        return status
+

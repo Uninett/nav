@@ -58,11 +58,16 @@ import nav.path
 import nav.smsd.queuenavdb
 import nav.smsd.dispatchgammu
 
+
 ### VARIABLES
 
-delay = 30 # Change at run-time with --delay
+delay = 5 # Change at run-time with --delay
 username = 'navcron'
+
+# Daemonizing
 pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
+
+# Logging
 logfile = nav.path.localstatedir + '/log/smsd.py.log'
 loglevel = logging.DEBUG
 mailwarnlevel = logging.ERROR
@@ -70,30 +75,8 @@ mailserver = 'localhost'
 mailaddr = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
 mailaddr = 'stein.magnus@jodal.no' # for devel
 
-### WORKFLOW (modeled after the old smsd.pl)
-#
-# Get command line arguments
-# Switch user to navcron
-# Check if already running
-# Get DB connection
-# Act upon command line arguments
-#   Help
-#   Ignore all unsent messagesa (-c, --cancel)
-#   Test (-t, --test)
-#       Format SMS
-#       Send SMS
-#   Set $delay (-d, --delay)
-# Daemonize
-# Loop forever
-#   Get unsent messages from queue
-#   Sort messages by cell number
-#   Loop over users (one cell number == one user)
-#       Get all unsent messages for a user
-#       Format SMS
-#       Send SMS
-#   Sleep $delay
-# Loop end
-# Exit
+
+### MAIN FUNCTION
 
 def main(args):
     # Initialize logger
@@ -130,19 +113,22 @@ def main(args):
     justme(pidfile)
 
     # Initialize dispatcher
-    dispatcher = False # FIXME
+    dispatcher = nav.smsd.dispatchgammu.dispatchgammu()
 
-    # Send test message
+    # Send test message (in other words: test the dispatcher)
     if opttest:
-        print "'--test' not implemented" # FIXME
+        # FIXME: Format SMS
+        # FIXME: Send SMS
+        print "'--test' not implemented"
         sys.exit(0)
 
     # Initialize queue
-    queue = False # FIXME
+    queue = nav.smsd.queuenavdb.queuenavdb()
 
     # Ignore unsent messages
     if optcancel:
-        print "'--cancel' not implemented" # FIXME
+        # FIXME: Ask queue to ignore unsent messages
+        print "'--cancel' not implemented"
         sys.exit(0)
 
     # Daemonize
@@ -150,8 +136,27 @@ def main(args):
 
     # Loop forever
     while True:
+        # FIXME: Implement queue and dispatcher
+        
+        # Queue: Get users with unsent messages
+
+        # Loop over cell numbers
+            # Queue: Get unsent messages for a user ordered by severity desc
+
+            # Which dispatcher do we want to use? Depends on profile.
+            # Dispatcher: Format SMS
+            # Dispatcher: Send SMS
+            # If success
+                # Queue: Mark as sent/ignored
+                # Log info
+            # Else
+                # Log error
+
+        # Sleep a bit before the next run
         time.sleep(delay)
-        break # FIXME: Devel only
+
+        # FIXME: Devel only
+        break
 
     # Exit nicely
     sys.exit(0)
@@ -424,28 +429,6 @@ def daemonexit(pidfile):
         # This will not start a loop, even if we're exiting from an exitfunc
         sys.exit(error.errno)
     logger.info("pidfile (%s) removed.", pidfile)
-    
-
-### LOOP FUNCTIONS
-#
-# Get unsent messages from queue
-#   Check DB connection
-#   Get messages from DB where status = 'N'
-#
-# Format SMS (dispatcher may need to be known before formatting)
-#   If one message
-#       SMS = message
-#   If multiple messages
-#       SMS = as many msgs as possible + how many was ignored
-#
-# Send SMS
-#   Which dispatcher do we want to use? Integration with profiles?
-#   Send SMS using dispatcher
-#   If sending successfull
-#       Mark as sent/ignored, with timestamp, in DB
-#       Log
-#   Else
-#       Error (log and mail)
 
 
 ### BEGIN

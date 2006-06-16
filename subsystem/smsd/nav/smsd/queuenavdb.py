@@ -34,12 +34,24 @@ __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
 import nav.db
+dbconn = nav.db.getConnection('navprofile')
+from nav.db.navprofiles import Smsq
 
 class queuenavdb(object):
     "The smsd queue for the NAV database."
-    def __init__(self, file):
-        # Get DB connection
-        # FIXME: Check for exceptions here?
-        dbconn = nav.db.getConnection('navprofile')
-        
-        raise "Not Implemented"
+    def __init__(self):
+        """Constructor."""
+        pass # FIXME
+
+    def cancel(self):
+        """Mark all unsent messages as ignored."""
+        pass # FIXME
+
+    def getusers(self, status):
+        """Get users which has messages with status (normally unsent)."""
+        pass # FIXME
+
+    def getusermsgs(self, user, status):
+        """Get the users messages which has status (normally unsent)."""
+        pass # FIXME
+
