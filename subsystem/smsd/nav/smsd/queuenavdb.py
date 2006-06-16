@@ -45,11 +45,21 @@ class queuenavdb(object):
 
     def cancel(self):
         """Mark all unsent messages as ignored."""
-        pass # FIXME
 
-    def getusers(self, status):
+        allUnsent = Smsq.getAll(where = "sent='N'")
+        for message in allUnsent:
+            message.sent = 'I'
+
+        allIgnored = Smsq.getAll(where = "sent='N'")
+        for message in allIgnored:
+            print message.msg, message.sent
+        # FIXME: This doesn't seem to work, as the database is not changed.
+
+    def getusers(self, status = None):
         """Get users which has messages with status (normally unsent)."""
-        pass # FIXME
+        
+        messages = Smsq.getAll(where = "sent='%s'" % status, order = 'phone')
+        # FIXME
 
     def getusermsgs(self, user, status):
         """Get the users messages which has status (normally unsent)."""

@@ -127,8 +127,8 @@ def main(args):
 
     # Ignore unsent messages
     if optcancel:
-        # FIXME: Ask queue to ignore unsent messages
-        print "'--cancel' not implemented"
+        queue.cancel()
+        logger.info("All unsent messages are ignored.")
         sys.exit(0)
 
     # Daemonize
