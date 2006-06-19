@@ -26,6 +26,8 @@ The smsd queue for the NAV database.
 This smsd queue takes care of all communication between smsd and the NAV
 database. Replacing the NAV database with some other queue/input should be
 possible by implementing the interface seen in this class.
+
+Generally, a phone number is a user and vice versa.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
@@ -34,34 +36,86 @@ __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
 import nav.db
-dbconn = nav.db.getConnection('navprofile')
-from nav.db.navprofiles import Smsq
 
 class queuenavdb(object):
     "The smsd queue for the NAV database."
     def __init__(self):
         """Constructor."""
-        pass # FIXME
+        pass
 
     def cancel(self):
-        """Mark all unsent messages as ignored."""
-
-        allUnsent = Smsq.getAll(where = "sent='N'")
-        for message in allUnsent:
-            message.sent = 'I'
-
-        allIgnored = Smsq.getAll(where = "sent='N'")
-        for message in allIgnored:
-            print message.msg, message.sent
-        # FIXME: This doesn't seem to work, as the database is not changed.
-
-    def getusers(self, status = None):
-        """Get users which has messages with status (normally unsent)."""
+        """
+        Mark all unsent messages as ignored.
         
-        messages = Smsq.getAll(where = "sent='%s'" % status, order = 'phone')
-        # FIXME
+        Returns number of messages changed.
+        """
 
-    def getusermsgs(self, user, status):
-        """Get the users messages which has status (normally unsent)."""
-        pass # FIXME
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
 
+        sql = "UPDATE smsq SET sent = 'I' WHERE sent = 'N'"
+        db.execute(sql)
+        dbconn.commit()
+
+        return db.rowcount
+
+    def getUsers(self, sent = 'N'):
+        """
+        Get users which has messages with given sent status (normally unsent).
+        
+        Returns a sorted list with the phone numbers for all users with
+        messages with given sent status.
+        """
+        
+        users = []
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        sql = "SELECT DISTINCT phone FROM smsq " + \
+            "WHERE sent = '%s' " % sent + \
+            "ORDER BY phone"
+        db.execute(sql)
+        result = db.fetchall()
+
+        # Create a simple list without the tuples
+        for row in result:
+            users.append(row[0])
+
+        return users
+
+    def getUserMsgs(self, user, sent = 'N'):
+        """
+        Get the users messages which has given sent status (normally unsent).
+        
+        Returns a list of messsages ordered with the most severe first. Each
+        message is a tuple with the ID, text, and severity of the message.
+        """
+
+        messages = []
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        sql = "SELECT id, msg, severity FROM smsq " + \
+            "WHERE phone = '%s' AND sent = '%s' " % (user, sent) + \
+            "ORDER BY severity DESC, time ASC"
+        db.execute(sql)
+        result = db.fetchall()
+
+        return result
+
+    def setSentStatus(self, id, sent):
+        """
+        Set the sent status of a message given ID and status.
+
+        Returns number of messages changed.
+        """
+
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        db = dbconn.cursor()
+
+        sql = "UPDATE smsq SET sent = '%s' " % sent + \
+            "WHERE id = '%d'" % id
+        db.execute(sql)
+        dbconn.commit()
+
+        return db.rowcount

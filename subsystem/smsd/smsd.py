@@ -127,8 +127,8 @@ def main(args):
 
     # Ignore unsent messages
     if optcancel:
-        queue.cancel()
-        logger.info("All unsent messages are ignored.")
+        ignCount = queue.cancel()
+        logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
 
     # Daemonize
@@ -139,15 +139,21 @@ def main(args):
         # FIXME: Implement queue and dispatcher
         
         # Queue: Get users with unsent messages
+        users = queue.getUsers('N')
+        logger.info("Found %d user(s) with unsent messages.", len(users))
 
         # Loop over cell numbers
+        for user in users:
             # Queue: Get unsent messages for a user ordered by severity desc
+            msgs = queue.getUserMsgs(user, 'N')
+            logger.info("Found %d unsent message(s) for user %s.", len(msgs), user)
 
             # Which dispatcher do we want to use? Depends on profile.
             # Dispatcher: Format SMS
             # Dispatcher: Send SMS
             # If success
                 # Queue: Mark as sent/ignored
+                #queue.setSentStatus(id, sent)
                 # Log info
             # Else
                 # Log error
