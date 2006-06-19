@@ -123,7 +123,11 @@ def main(args):
         sys.exit(0)
 
     # Initialize queue
-    queue = nav.smsd.queuenavdb.queuenavdb()
+    try:
+        queue = nav.smsd.queuenavdb.queuenavdb()
+    except Exception, error:
+        logger.error("Queue failed to initialize. Exiting. (%s)", error)
+        sys.exit(1)
 
     # Ignore unsent messages
     if optcancel:
@@ -146,7 +150,8 @@ def main(args):
         for user in users:
             # Queue: Get unsent messages for a user ordered by severity desc
             msgs = queue.getUserMsgs(user, 'N')
-            logger.info("Found %d unsent message(s) for user %s.", len(msgs), user)
+            logger.info("Found %d unsent message(s) for user %s.",
+             len(msgs), user)
 
             # Which dispatcher do we want to use? Depends on profile.
             # Dispatcher: Format SMS

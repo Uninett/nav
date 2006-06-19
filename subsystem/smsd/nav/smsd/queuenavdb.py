@@ -41,7 +41,9 @@ class queuenavdb(object):
     "The smsd queue for the NAV database."
     def __init__(self):
         """Constructor."""
-        pass
+
+        # Open DB connection early so we can check for exceptions
+        dbconn = nav.db.getConnection('smsd', 'navprofile')
 
     def cancel(self):
         """
