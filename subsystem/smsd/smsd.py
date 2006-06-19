@@ -83,7 +83,7 @@ def main(args):
     global logger
     logger = loginit('nav.smsd', logfile, loglevel, mailaddr, mailserver,
      mailwarnlevel)
-    logger.info("smsd started.")
+    logger.info("-- smsd started --")
 
     # Get command line arguments
     optcancel = False
@@ -122,15 +122,15 @@ def main(args):
         print "'--test' not implemented"
         sys.exit(0)
 
-    # Initialize queue
-    try:
-        queue = nav.smsd.queuenavdb.queuenavdb()
-    except Exception, error:
-        logger.error("Queue failed to initialize. Exiting. (%s)", error)
-        sys.exit(1)
-
     # Ignore unsent messages
     if optcancel:
+        # Initialize queue
+        try:
+            queue = nav.smsd.queuenavdb.queuenavdb()
+        except Exception, error:
+            logger.error("Queue failed to initialize. Exiting. (%s)", error)
+            sys.exit(1)
+
         ignCount = queue.cancel()
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
@@ -138,10 +138,17 @@ def main(args):
     # Daemonize
     daemonize(pidfile)
 
+    # Initialize queue
+    try:
+        queue = nav.smsd.queuenavdb.queuenavdb()
+    except Exception, error:
+        logger.error("Queue failed to initialize. Exiting. (%s)", error)
+        sys.exit(1)
+
     # Loop forever
     while True:
-        # FIXME: Implement queue and dispatcher
-        
+        logger.info("Starting loop.")
+
         # Queue: Get users with unsent messages
         users = queue.getUsers('N')
         logger.info("Found %d user(s) with unsent messages.", len(users))
@@ -150,20 +157,33 @@ def main(args):
         for user in users:
             # Queue: Get unsent messages for a user ordered by severity desc
             msgs = queue.getUserMsgs(user, 'N')
-            logger.info("Found %d unsent message(s) for user %s.",
+            logger.info("Found %d unsent message(s) for %s.",
              len(msgs), user)
 
-            # Which dispatcher do we want to use? Depends on profile.
+            # FIXME: Which dispatcher do we want to use? Depends on profile?
+
             # Dispatcher: Format SMS
+            (sms, sent, ignored) = dispatcher.formatSMS(msgs)
+            logger.info("Formatted SMS for %s: %s", user, sms)
+
             # Dispatcher: Send SMS
-            # If success
-                # Queue: Mark as sent/ignored
-                #queue.setSentStatus(id, sent)
-                # Log info
-            # Else
-                # Log error
+            result = dispatcher.sendSMS(sms, user)
+
+            if result:
+                logger.info("SMS sent to %s: %s", user, sms)
+
+                for msgid in sent:
+                    queue.setSentStatus(msgid, 'Y')
+                for msgid in ignored:
+                    queue.setSentStatus(msgid, 'I')
+                logger.info("%d messages was sent and %d ignored.",
+                 len(sent), len(ignored))
+            else:
+                logger.error("Error while sending SMS to %s.", user)
+                # FIXME: Exit?
 
         # Sleep a bit before the next run
+        logger.info("Sleeping for %d seconds.", delay)
         time.sleep(delay)
 
         # FIXME: Devel only
