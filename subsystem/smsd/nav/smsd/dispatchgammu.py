@@ -33,6 +33,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
+import gammu
 import logging
 
 class dispatchgammu(object):
@@ -117,11 +118,17 @@ class dispatchgammu(object):
 
         return (sms, sent, ignored)
 
-    def sendSMS(self, sms, phone):
+    def sendSMS(self, phone, sms):
         """
         Send SMS using Gammu
         """
 
-        status = False # FIXME
-        return status
+        # WHOHO! We got a python-gammu binding :-)
+        sm = gammu.StateMachine()
+        sm.ReadConfig() # FIXME: Create a gammurc
+        sm.Init()
+
+        # ...
+        
+        return False
 

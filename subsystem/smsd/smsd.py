@@ -161,7 +161,7 @@ def main(args):
             logger.info("Formatted SMS for %s: %s", user, sms)
 
             # Dispatcher: Send SMS
-            result = dispatcher.sendSMS(sms, user)
+            result = dispatcher.sendSMS(user, sms)
 
             if result:
                 logger.info("SMS sent to %s: %s", user, sms)
