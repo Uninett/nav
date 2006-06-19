@@ -35,6 +35,7 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
+import logging
 import nav.db
 
 class queuenavdb(object):
@@ -42,8 +43,16 @@ class queuenavdb(object):
     def __init__(self):
         """Constructor."""
 
-        # Open DB connection early so we can check for exceptions
-        dbconn = nav.db.getConnection('smsd', 'navprofile')
+        # Create logger
+        self.logger = logging.getLogger("nav.smsd.queue")
+
+        # Open DB connection early so we can detect errors early
+        try:
+            dbconn = nav.db.getConnection('smsd', 'navprofile')
+        except Exception, error:
+            self.logger.exception("Queue failed to initialize. Exiting. (%s)",
+             error)
+            sys.exit(1)
 
     def cancel(self):
         """

@@ -117,20 +117,15 @@ def main(args):
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
-        # FIXME: Format SMS
+        msg = (0, "This is a test message from NAV smsd.", 0)
+        sms = dispatcher.formatSMS(msg)
         # FIXME: Send SMS
         print "'--test' not implemented"
         sys.exit(0)
 
     # Ignore unsent messages
     if optcancel:
-        # Initialize queue
-        try:
-            queue = nav.smsd.queuenavdb.queuenavdb()
-        except Exception, error:
-            logger.error("Queue failed to initialize. Exiting. (%s)", error)
-            sys.exit(1)
-
+        queue = nav.smsd.queuenavdb.queuenavdb()
         ignCount = queue.cancel()
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
@@ -139,11 +134,10 @@ def main(args):
     daemonize(pidfile)
 
     # Initialize queue
-    try:
-        queue = nav.smsd.queuenavdb.queuenavdb()
-    except Exception, error:
-        logger.error("Queue failed to initialize. Exiting. (%s)", error)
-        sys.exit(1)
+    # Note: If we're initalizing a queue with a DB connection before
+    # daemonizing we've experienced that the daemon dies silently upon trying
+    # to use the DB connection after becoming a daemon
+    queue = nav.smsd.queuenavdb.queuenavdb()
 
     # Loop forever
     while True:
@@ -228,7 +222,9 @@ def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
     stderrhandler.setFormatter(stderrformatter)
     stderrhandler.setLevel(loglevel)
 
-    localuser = pwd.getpwuid(os.getuid())[0] 
+    # localuser will be root if smsd was started as root, since switchuser() is
+    # first called at a later time
+    localuser = pwd.getpwuid(os.getuid())[0]
     hostname = socket.gethostname()
     fromaddr = localuser + '@' + hostname
     try:
@@ -294,8 +290,8 @@ def switchuser(username):
                 # Set user id
                 os.setuid(uid)
             except OSError, error:
-                logger.error("Failed changing uid/gid from %d/%d to %d/%d. (%s)",
-                 olduid, oldgid, uid, gid, error)
+                logger.exception("Failed changing uid/gid from %d/%d to %d/%d. \
+                 (%s)", olduid, oldgid, uid, gid, error)
                 sys.exit(error.errno)
             else:
                 logger.info("uid/gid changed from %d/%d to %d/%d.",
@@ -353,7 +349,7 @@ def justme(pidfile):
         try:
             os.kill(pid, 0) # Sending signal 0 to check if process is alive
         except OSError, error:
-            # Normally "No such process", and thus we continue
+            # Normally this means "No such process", and thus we're alone
             return True
         else:
             # We assume the process lives and bails out
@@ -385,7 +381,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
             logger.info("First parent exiting. Second has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.error("Fork #1 failed. Exiting. (%s)", error)
+        logger.exception("Fork #1 failed. Exiting. (%s)", error)
         sys.exit(error.errno)
 
     # Decouple from parent environment
@@ -402,7 +398,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
             logger.info("Second parent exiting. Daemon has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.error("Fork #2 failed. Exiting. (%s)", error)
+        logger.exception("Fork #2 failed. Exiting. (%s)", error)
         sys.exit(error.errno)
 
     # Now only the child is left :-)
@@ -420,7 +416,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
     try:
         fd = file(pidfile, 'w+')
     except IOError, error:
-        logger.error("Cannot open pidfile %s for writing. Exiting. (%s)",
+        logger.exception("Cannot open pidfile %s for writing. Exiting. (%s)",
          pidfile, error)
         sys.exit(error.errno)
     fd.write("%d\n" % pid)
@@ -456,7 +452,7 @@ def daemonexit(pidfile):
     try:
         os.remove(pidfile)
     except Exception, error:
-        logger.error("Can't remove pidfile. Exiting. (%s)", error)
+        logger.exception("Can't remove pidfile. Exiting. (%s)", error)
         # This will not start a loop, even if we're exiting from an exitfunc
         sys.exit(error.errno)
     logger.info("pidfile (%s) removed.", pidfile)
