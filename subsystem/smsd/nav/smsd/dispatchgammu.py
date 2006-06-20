@@ -120,7 +120,9 @@ class dispatchgammu(object):
 
     def sendSMS(self, phone, sms):
         """
-        Send SMS using Gammu
+        Send SMS using Gammu.
+
+        Returns an integer which is the message reference from Gammu.
         """
 
         # WHOHO! We got a python-gammu binding :-)
@@ -128,7 +130,8 @@ class dispatchgammu(object):
         sm.ReadConfig() # FIXME: Create a gammurc
         sm.Init()
 
-        # ...
-        
-        return False
+        # FIXME: Not tested
+        message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
+        result = sm.sendSMS(message)
+        return result
 
