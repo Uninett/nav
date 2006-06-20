@@ -104,7 +104,7 @@ def main(args):
         if opt in ('-d', '--delay'):
             setdelay(val)
         if opt in ('-t', '--test'):
-            opttest = True
+            opttest = val
 
     # Switch user to navcron
     switchuser(username)
@@ -113,19 +113,23 @@ def main(args):
     justme(pidfile)
 
     # Initialize dispatcher
-    dispatcher = nav.smsd.dispatchgammu.dispatchgammu()
+    dispatcher = nav.smsd.dispatchgammu.DispatchGammu()
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
-        msg = (0, "This is a test message from NAV smsd.", 0)
-        sms = dispatcher.formatSMS(msg)
-        # FIXME: Send SMS
-        print "'--test' not implemented"
-        sys.exit(0)
+        msg = [(0, "This is a test message from NAV smsd.", 0)]
+        sms = dispatcher.formatsms(msg)
+        result = dispatcher.sendsms(opttest, sms)
+        if isdigit(result):
+            logger.info("SMS sent. Dispatcher returned reference %d.", result)
+            sys.exit(0)
+        else:
+            logger.error("SMS sending failed.")
+            sys.exit(1)
 
     # Ignore unsent messages
     if optcancel:
-        queue = nav.smsd.queuenavdb.queuenavdb()
+        queue = nav.smsd.queuenavdb.QueueNAVDB()
         ignCount = queue.cancel()
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
@@ -144,32 +148,32 @@ def main(args):
         logger.info("Starting loop.")
 
         # Queue: Get users with unsent messages
-        users = queue.getUsers('N')
+        users = queue.getusers('N')
         logger.info("Found %d user(s) with unsent messages.", len(users))
 
         # Loop over cell numbers
         for user in users:
             # Queue: Get unsent messages for a user ordered by severity desc
-            msgs = queue.getUserMsgs(user, 'N')
+            msgs = queue.getusermsgs(user, 'N')
             logger.info("Found %d unsent message(s) for %s.",
              len(msgs), user)
 
             # FIXME: Which dispatcher do we want to use? Depends on profile?
 
             # Dispatcher: Format SMS
-            (sms, sent, ignored) = dispatcher.formatSMS(msgs)
+            (sms, sent, ignored) = dispatcher.formatsms(msgs)
             logger.info("Formatted SMS for %s: %s", user, sms)
 
             # Dispatcher: Send SMS
-            result = dispatcher.sendSMS(user, sms)
+            result = dispatcher.sendsms(user, sms)
 
             if result:
                 logger.info("SMS sent to %s: %s", user, sms)
 
                 for msgid in sent:
-                    queue.setSentStatus(msgid, 'Y')
+                    queue.setsentstatus(msgid, 'Y', smsid)
                 for msgid in ignored:
-                    queue.setSentStatus(msgid, 'I')
+                    queue.setsentstatus(msgid, 'I', smsid)
                 logger.info("%d messages was sent and %d ignored.",
                  len(sent), len(ignored))
             else:

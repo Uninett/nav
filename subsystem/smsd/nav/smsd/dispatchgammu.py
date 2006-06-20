@@ -35,8 +35,9 @@ __id__ = "$Id$"
 
 import gammu
 import logging
+import sys
 
-class dispatchgammu(object):
+class DispatchGammu(object):
     "The smsd dispatcher for Gammu."
     def __init__(self):
         """Constructor."""
@@ -48,7 +49,7 @@ class dispatchgammu(object):
         # Max length of ignored message. 15 gives us up to four digits.
         self.ignlen = 15
 
-    def formatSMS(self, msgs):
+    def formatsms(self, msgs):
         """
         Format a SMS from one or more messages.
 
@@ -118,7 +119,7 @@ class dispatchgammu(object):
 
         return (sms, sent, ignored)
 
-    def sendSMS(self, phone, sms):
+    def sendsms(self, phone, sms):
         """
         Send SMS using Gammu.
 
@@ -127,11 +128,21 @@ class dispatchgammu(object):
 
         # WHOHO! We got a python-gammu binding :-)
         sm = gammu.StateMachine()
-        sm.ReadConfig() # FIXME: Create a gammurc
+        try:
+            # FIXME: Create an example gammurc
+            sm.ReadConfig()
+        except IOError, error:
+            self.logger.exception("Error while reading Gammu config. Exiting. (%s)",
+             error)
+            sys.exit(1)
         sm.Init()
 
         # FIXME: Not tested
         message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
-        result = sm.sendSMS(message)
-        return result
+        smsid = sm.sendSMS(message)
+        if smsid:
+            result = True
+        else:
+            result = False
+        return (result, smsid)
 

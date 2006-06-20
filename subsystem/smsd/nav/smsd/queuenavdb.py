@@ -38,7 +38,7 @@ __id__ = "$Id$"
 import logging
 import nav.db
 
-class queuenavdb(object):
+class QueueNAVDB(object):
     "The smsd queue for the NAV database."
     def __init__(self):
         """Constructor."""
@@ -70,7 +70,7 @@ class queuenavdb(object):
 
         return db.rowcount
 
-    def getUsers(self, sent = 'N'):
+    def getusers(self, sent = 'N'):
         """
         Get users which has messages with given sent status (normally unsent).
         
@@ -94,7 +94,7 @@ class queuenavdb(object):
 
         return users
 
-    def getUserMsgs(self, user, sent = 'N'):
+    def getusermsgs(self, user, sent = 'N'):
         """
         Get the users messages which has given sent status (normally unsent).
         
@@ -114,7 +114,7 @@ class queuenavdb(object):
 
         return result
 
-    def setSentStatus(self, id, sent):
+    def setsentstatus(self, id, sent, smsid = 0):
         """
         Set the sent status of a message given ID and status.
 
@@ -124,7 +124,7 @@ class queuenavdb(object):
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
-        sql = "UPDATE smsq SET sent = '%s' " % sent + \
+        sql = "UPDATE smsq SET sent = '%s', smsid = '%d' " % (sent, smsid) + \
             "WHERE id = '%d'" % id
         db.execute(sql)
         dbconn.commit()
