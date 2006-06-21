@@ -372,7 +372,7 @@ def hostname(ip):
         return None
     if ip not in hostCache:
         try:
-            hostCache[ip] = gethostbyaddr(ip)[0]
+            hostCache[ip] = gethostbyaddr(str(ip))[0]
         except herror:
             hostCache[ip] = "--"
     return hostCache[ip]
