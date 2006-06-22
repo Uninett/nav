@@ -21,10 +21,7 @@
 #
 
 """
-Formatter for SMS messages.
-
-This formatter takes a message queue and returns a formatted SMS with the most
-important messages.
+Class with common functions inherited/overrided by other dispatchers.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
@@ -35,7 +32,7 @@ __id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 import logging
 import sys
 
-class SMSFormatter(object):
+class Dispatcher(object):
     "The SMS formatter."
     def __init__(self):
         """Constructor."""
@@ -117,3 +114,18 @@ class SMSFormatter(object):
 
         return (sms, sent, ignored)
 
+    def sendsms(self, phone, sms):
+        """
+        Empty shell for the sendsms method implemented by subclasses.
+        
+        Takes phonen number and the SMS message as input.
+
+        Returns two values:
+            A boolean which is true for success and false for failure.
+            An integer which is the sending ID if available or 0 otherwise.
+        """
+
+        result = False
+        smsid = 0
+
+        return (result, smsid)

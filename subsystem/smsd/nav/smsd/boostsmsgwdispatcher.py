@@ -28,62 +28,72 @@ a username and password to send SMS using the SOAP interface.
 
 Contact http://www.boostcom.no/ to setup a contract.
 The remote service is called ExternalSender.
+
+Depends on SOAPpy/python-soappy.
 """
 
 __copyright__ = "Copyright 2006 Bjørn Ove Grøtan"
 __license__ = "GPL"
-__author__ = "Bjørn Ove Grøtan (bjorn.ove@grotan.com)"
+__author__ = "Bjørn Ove Grøtan (bjorn.ove@grotan.com),", \
+    "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id: boostsmsgwdispatcher.py 3464 2006-06-22 08:58:05Z bgrotan $"
 
 import logging
 import sys
+import nav.smsd.dispatcher
 
 try:
     from SOAPpy import SOAPProxy
-except ImportError,ie:
+except ImportError, ie:
     print 'SOAPpy not installed or misconfigured.'
-    sys.exit(255)
+    sys.exit(1)
 
-class BoostSMSGWDispatcher(object):
+class BoostSMSGWDispatcher(nav.smsd.dispatcher.Dispatcher):
     "The smsd dispatcher for BoostCom."
     def __init__(self):
         """Constructor."""
 
-        # Create logger
-        self.logger = logging.getLogger("nav.smsd.dispatcher")
+        # Call mother's init
+        nav.smsd.dispatcher.Dispatcher.__init__(self)
+
         # Remote address for gateway
-        self._url = "https://secure.boostcom.net/axis/services/ExternalSender"
-        # FIXME: generalize and fetch from config-file
+        self.url = "https://secure.boostcom.net/axis/services/ExternalSender"
+
+        # FIXME: Read the rest from config
+
         # Username for WebService
-        self._username = None # FIXME: fetch from config-file
+        self.username = None
         # Password for WebService
-        self._password = None # FIXME; fetch from config-file
+        self.password = None
         # Our phonenumber
-        self._sender = None # FIXME: fetch from config-file
+        self.sender = None
 
         # Initiate connector to Boost
         try:
-            self._service = SOAPProxy(self._url)
+            self.service = SOAPProxy(self.url)
         except:
             # FIXME: what kinds of exceptions can we get?
             print 'An error occured.. ayee'
-            sys.exit(255)
+            sys.exit(1)
 
     def sendsms(self, receiver, message):
         """
         Send SMS using Boost's SMS gateway.
 
-        Returns true/false if success or not.
+        Returns two values:
+            A boolean which is true for success and false for failure.
+            An integer which is the sending ID if available or 0 otherwise.
         """
 
-        result = self._service.sendMessage(
-                    self._username,
-                    self._password,
-                    self._sender,
+        result = self.service.sendMessage(
+                    self.username,
+                    self.password,
+                    self.sender,
                     receiver,
                     message)
         if result:
             result = True
         else:
             result = False
-        return (result,0)
+
+        return (result, 0)

@@ -56,7 +56,6 @@ import time
 import nav.config
 import nav.path
 import nav.smsd.navdbqueue
-import nav.smsd.smsformatter
 import nav.smsd.gammudispatcher
 import nav.smsd.uninettsmsgwdispatcher
 
@@ -114,14 +113,13 @@ def main(args):
     # Check if already running
     justme(pidfile)
 
-    # Initialize formatter and dispatcher
-    formatter = nav.smsd.smsformatter.SMSFormatter()
+    # Initialize dispatcher
     dispatcher = nav.smsd.uninettsmsgwdispatcher.UninettSMSGWDispatcher()
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
-        (sms, sent, ignored) = formatter.formatsms(msg)
+        (sms, sent, ignored) = dispatcher.formatsms(msg)
         (result, smsid) = dispatcher.sendsms(opttest, sms)
 
         if result:
@@ -165,7 +163,7 @@ def main(args):
             # FIXME: Which dispatcher do we want to use? Depends on profile?
 
             # Dispatcher: Format SMS
-            (sms, sent, ignored) = formatter.formatsms(msgs)
+            (sms, sent, ignored) = dispatcher.formatsms(msgs)
             logger.info("Formatted SMS for %s: '%s'", user, sms)
 
             # Dispatcher: Send SMS

@@ -32,20 +32,22 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
-import logging
 import os
 import pwd
 import smtplib
 import socket
-import sys
+import nav.smsd.dispatcher
 
-class UninettSMSGWDispatcher(object):
+class UninettSMSGWDispatcher(nav.smsd.dispatcher.Dispatcher):
     "The smsd dispatcher for Gammu."
     def __init__(self):
         """Constructor."""
 
-        # Create logger
-        self.logger = logging.getLogger("nav.smsd.dispatcher")
+        # Call mother's init
+        nav.smsd.dispatcher.Dispatcher.__init__(self)
+
+        # FIXME: Read the rest from config
+
         # Mail adress for gateway
         self.mailaddr = 'sms@uninett.no'
 
@@ -53,11 +55,14 @@ class UninettSMSGWDispatcher(object):
         """
         Send SMS using UNINETT's mail/SMS gateway.
 
-        Returns true/false if success or not, and a message ID if it exists.
+        Returns two values:
+            A boolean which is true for success and false for failure.
+            An integer which is the sending ID if available or 0 otherwise.
         """
 
         # FIXME: This dispatcher should be made a general
         # SMS-via-mail-dispatcher if there is any wish for it.
+        # This includes supporting various formats for the mail.
 
         sender = "%s@%s" % (pwd.getpwuid(os.getuid())[0], socket.gethostname())
         headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % \

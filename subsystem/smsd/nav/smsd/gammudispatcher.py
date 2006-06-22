@@ -27,6 +27,8 @@ This dispatcher takes care of all communication between smsd and Gammu. Gammu
 is used to send SMS messages via a cell phone connected to the server with a
 serial cable, USB cable, IR or Bluetooth. See http://www.gammu.org/ for more
 information.
+
+Depends on python-gammu.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
@@ -37,20 +39,23 @@ __id__ = "$Id$"
 import gammu
 import logging
 import sys
+import nav.smsd.dispatcher
 
-class GammuDispatcher(object):
+class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
     "The smsd dispatcher for Gammu."
     def __init__(self):
         """Constructor."""
 
-        # Create logger
-        self.logger = logging.getLogger("nav.smsd.dispatcher")
+        # Call mother's init
+        nav.smsd.dispatcher.Dispatcher.__init__(self)
 
     def sendsms(self, phone, sms):
         """
         Send SMS using Gammu.
 
-        Returns an integer which is the message reference from Gammu.
+        Returns two values:
+            A boolean which is true for success and false for failure.
+            An integer which is the sending ID if available or 0 otherwise.
         """
 
         # We got a python-gammu binding :-)
