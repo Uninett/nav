@@ -56,12 +56,14 @@ import time
 import nav.config
 import nav.path
 import nav.smsd.navdbqueue
+import nav.smsd.smsformatter
 import nav.smsd.gammudispatcher
+import nav.smsd.uninettsmsgwdispatcher
 
 
 ### VARIABLES
 
-delay = 5 # Change at run-time with --delay
+delay = 30 # Change at run-time with --delay
 username = 'navcron'
 
 # Daemonizing
@@ -112,16 +114,18 @@ def main(args):
     # Check if already running
     justme(pidfile)
 
-    # Initialize dispatcher
-    dispatcher = nav.smsd.gammudispatcher.GammuDispatcher()
+    # Initialize formatter and dispatcher
+    formatter = nav.smsd.smsformatter.SMSFormatter()
+    dispatcher = nav.smsd.uninettsmsgwdispatcher.UninettSMSGWDispatcher()
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
-        sms = dispatcher.formatsms(msg)
-        result = dispatcher.sendsms(opttest, sms)
-        if isdigit(result):
-            logger.info("SMS sent. Dispatcher returned reference %d.", result)
+        (sms, sent, ignored) = formatter.formatsms(msg)
+        (result, smsid) = dispatcher.sendsms(opttest, sms)
+
+        if result:
+            logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
             sys.exit(0)
         else:
             logger.error("SMS sending failed.")
@@ -145,7 +149,7 @@ def main(args):
 
     # Loop forever
     while True:
-        logger.info("Starting loop.")
+        logger.debug("Starting loop.")
 
         # Queue: Get users with unsent messages
         users = queue.getusers('N')
@@ -161,14 +165,14 @@ def main(args):
             # FIXME: Which dispatcher do we want to use? Depends on profile?
 
             # Dispatcher: Format SMS
-            (sms, sent, ignored) = dispatcher.formatsms(msgs)
+            (sms, sent, ignored) = formatter.formatsms(msgs)
             logger.info("Formatted SMS for %s: '%s'", user, sms)
 
             # Dispatcher: Send SMS
-            result = dispatcher.sendsms(user, sms)
+            (result, smsid) = dispatcher.sendsms(user, sms)
 
             if result:
-                logger.info("SMS sent to %s: %s", user, sms)
+                logger.info("SMS sent to %s.", user)
 
                 for msgid in sent:
                     queue.setsentstatus(msgid, 'Y', smsid)
@@ -184,8 +188,8 @@ def main(args):
         logger.info("Sleeping for %d seconds.", delay)
         time.sleep(delay)
 
-        # FIXME: Devel only
-        break
+        # Devel only
+        #break
 
     # Exit nicely
     sys.exit(0)
@@ -301,7 +305,7 @@ def switchuser(username):
                 logger.info("uid/gid changed from %d/%d to %d/%d.",
                  olduid, oldgid, uid, gid)
         else:
-            logger.info("Already running as uid/gid %d/%d.", olduid, oldgid)
+            logger.debug("Already running as uid/gid %d/%d.", olduid, oldgid)
 
 def usage():
     """Print a usage screen to stderr."""
@@ -382,7 +386,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
         pid = os.fork()
         if pid > 0:
             # We're the first parent. Exit!
-            logger.info("First parent exiting. Second has pid %d.", pid)
+            logger.debug("First parent exiting. Second has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
         logger.exception("Fork #1 failed. Exiting. (%s)", error)
@@ -399,7 +403,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
         pid = os.fork()
         if pid > 0:
             # We're the second parent. Exit!
-            logger.info("Second parent exiting. Daemon has pid %d.", pid)
+            logger.debug("Second parent exiting. Daemon has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
         logger.exception("Fork #2 failed. Exiting. (%s)", error)
@@ -414,7 +418,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
     so = file(stdout, 'a+')
     se = file(stderr, 'a+', 0)
     pid = os.getpid()
-    logger.info("Daemon started with pid %d.", pid)
+    logger.debug("Daemon started with pid %d.", pid)
 
     # Write pidfile
     try:

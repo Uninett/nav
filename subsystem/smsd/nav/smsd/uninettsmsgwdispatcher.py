@@ -21,55 +21,59 @@
 #
 
 """
-The smsd dispatcher for Gammu.
+The UNINETT mail/SMS gateway dispatcher for Gammu.
 
-This dispatcher takes care of all communication between smsd and Gammu. Gammu
-is used to send SMS messages via a cell phone connected to the server with a
-serial cable, USB cable, IR or Bluetooth. See http://www.gammu.org/ for more
-information.
+This dispatcher sends SMS via UNINETT's existing mail/SMS gateway. The mail
+must be sent from a uninett.no host, so this is of little use for others.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id$"
+__id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
-import gammu
 import logging
+import os
+import pwd
+import smtplib
+import socket
 import sys
 
-class GammuDispatcher(object):
+class UninettSMSGWDispatcher(object):
     "The smsd dispatcher for Gammu."
     def __init__(self):
         """Constructor."""
 
         # Create logger
         self.logger = logging.getLogger("nav.smsd.dispatcher")
+        # Mail adress for gateway
+        self.mailaddr = 'sms@uninett.no'
 
     def sendsms(self, phone, sms):
         """
-        Send SMS using Gammu.
+        Send SMS using UNINETT's mail/SMS gateway.
 
-        Returns an integer which is the message reference from Gammu.
+        Returns true/false if success or not, and a message ID if it exists.
         """
 
-        # We got a python-gammu binding :-)
-        sm = gammu.StateMachine()
-        try:
-            # FIXME: Create an example gammurc
-            sm.ReadConfig()
-        except IOError, error:
-            self.logger.exception("Error while reading Gammu config. Exiting. (%s)",
-             error)
-            sys.exit(1)
-        sm.Init()
+        # FIXME: This dispatcher should be made a general
+        # SMS-via-mail-dispatcher if there is any wish for it.
 
-        # FIXME: Not tested
-        message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
-        smsid = sm.sendSMS(message)
-        if smsid:
-            result = True
-        else:
-            result = False
+        localuser = pwd.getpwuid(os.getuid())[0] 
+        hostname = socket.gethostname()
+        sender = localuser + '@' + hostname
+
+        headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % \
+         (sender, self.mailaddr, phone)
+        message = headers + sms
+        server = smtplib.SMTP('localhost')
+        # FIXME: Check for exceptions here?
+        server.sendmail(sender, self.mailaddr, message)
+        server.quit()
+
+        # FIXME: Give these a bit more resonable values ;-)
+        result = True
+        smsid = 0
+
         return (result, smsid)
 
