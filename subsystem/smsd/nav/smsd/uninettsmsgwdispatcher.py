@@ -59,10 +59,7 @@ class UninettSMSGWDispatcher(object):
         # FIXME: This dispatcher should be made a general
         # SMS-via-mail-dispatcher if there is any wish for it.
 
-        localuser = pwd.getpwuid(os.getuid())[0] 
-        hostname = socket.gethostname()
-        sender = localuser + '@' + hostname
-
+        sender = "%s@%s" % (pwd.getpwuid(os.getuid())[0], socket.gethostname())
         headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % \
          (sender, self.mailaddr, phone)
         message = headers + sms
