@@ -98,7 +98,6 @@ AC_OUTPUT(Makefile
 	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
 	subsystem/smsd/Makefile
-	subsystem/smsd/smsd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile

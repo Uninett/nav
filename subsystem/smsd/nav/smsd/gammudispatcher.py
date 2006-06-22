@@ -37,7 +37,7 @@ import gammu
 import logging
 import sys
 
-class DispatchGammu(object):
+class GammuDispatcher(object):
     "The smsd dispatcher for Gammu."
     def __init__(self):
         """Constructor."""

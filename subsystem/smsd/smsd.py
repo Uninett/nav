@@ -55,8 +55,8 @@ import time
 
 import nav.config
 import nav.path
-import nav.smsd.queuenavdb
-import nav.smsd.dispatchgammu
+import nav.smsd.navdbqueue
+import nav.smsd.gammudispatcher
 
 
 ### VARIABLES
@@ -113,7 +113,7 @@ def main(args):
     justme(pidfile)
 
     # Initialize dispatcher
-    dispatcher = nav.smsd.dispatchgammu.DispatchGammu()
+    dispatcher = nav.smsd.gammudispatcher.GammuDispatcher()
 
     # Send test message (in other words: test the dispatcher)
     if opttest:
@@ -129,7 +129,7 @@ def main(args):
 
     # Ignore unsent messages
     if optcancel:
-        queue = nav.smsd.queuenavdb.QueueNAVDB()
+        queue = nav.smsd.navdbqueue.NAVDBQueue()
         ignCount = queue.cancel()
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
@@ -141,7 +141,7 @@ def main(args):
     # Note: If we're initalizing a queue with a DB connection before
     # daemonizing we've experienced that the daemon dies silently upon trying
     # to use the DB connection after becoming a daemon
-    queue = nav.smsd.queuenavdb.queuenavdb()
+    queue = nav.smsd.navdbqueue.NAVDBQueue()
 
     # Loop forever
     while True:
@@ -162,7 +162,7 @@ def main(args):
 
             # Dispatcher: Format SMS
             (sms, sent, ignored) = dispatcher.formatsms(msgs)
-            logger.info("Formatted SMS for %s: %s", user, sms)
+            logger.info("Formatted SMS for %s: '%s'", user, sms)
 
             # Dispatcher: Send SMS
             result = dispatcher.sendsms(user, sms)

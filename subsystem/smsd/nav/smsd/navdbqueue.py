@@ -38,7 +38,7 @@ __id__ = "$Id$"
 import logging
 import nav.db
 
-class QueueNAVDB(object):
+class NAVDBQueue(object):
     "The smsd queue for the NAV database."
     def __init__(self):
         """Constructor."""
