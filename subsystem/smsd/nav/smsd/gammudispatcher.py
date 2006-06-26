@@ -60,18 +60,26 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
 
         # We got a python-gammu binding :-)
         sm = gammu.StateMachine()
+
         try:
-            # FIXME: Create an example gammurc
+            # Typically ~root/.gammurc or ~navcron/.gammurc
             sm.ReadConfig()
         except IOError, error:
             self.logger.exception("Error while reading Gammu config. Exiting. (%s)",
              error)
-            sys.exit(1)
-        sm.Init()
 
-        # FIXME: Not tested
+        try:
+            # Fails if e.g. phone is not connected
+            # See http://www.gammu.org/wiki/index.php?title=Gammu:Error_Codes
+            # for complete list of errors fetched here
+            sm.Init()
+        except gammu.GSMError, error:
+            self.logger.exception("GSM error %d: %s", error[0]['Code'], error[0]['Text'])
+
+        # Tested with Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
         message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
-        smsid = sm.sendSMS(message)
+        smsid = sm.SendSMS(message)
+
         if smsid:
             result = True
         else:
