@@ -345,7 +345,7 @@ def justme(pidfile):
         pid = fd.readline()
         fd.close()
 
-        if pid.isdigit():
+        if pid.strip().isdigit():
             pid = int(pid) 
         else:
             logger.error("Can't read pid from pid file %s. Bailing out.",

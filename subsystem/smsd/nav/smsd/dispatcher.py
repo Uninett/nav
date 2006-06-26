@@ -32,8 +32,17 @@ __id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 import logging
 import sys
 
+class DispatcherException(Exception):
+    """Base class for all exceptions raised by dispatchers."""
+
+    def __init__(self, msg, code = -1):
+        self.msg = msg
+        self.code = code
+        self.args = (msg, code)
+
 class Dispatcher(object):
-    "The SMS formatter."
+    """The SMS formatter."""
+
     def __init__(self):
         """Constructor."""
 

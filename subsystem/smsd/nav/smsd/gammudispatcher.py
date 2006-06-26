@@ -67,6 +67,7 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
         except IOError, error:
             self.logger.exception("Error while reading Gammu config. Exiting. (%s)",
              error)
+            #raise nav.smsd.dispatcher.DispatcherException, error, error.errno
 
         try:
             # Fails if e.g. phone is not connected
