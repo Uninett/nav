@@ -41,6 +41,7 @@ __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
 import atexit
+import ConfigParser # parts requires Python >= 2.3
 import email
 import grp
 import getopt
@@ -57,9 +58,7 @@ import nav.config
 import nav.path
 import nav.smsd.navdbqueue
 from nav.smsd.dispatcher import DispatcherError
-#import nav.smsd.gammudispatcher
-import nav.smsd.uninettsmsgwdispatcher
-#import nav.smsd.boostsmsgwdispatcher
+# Dispatchers are imported later according to config
 
 
 ### VARIABLES
@@ -67,8 +66,8 @@ import nav.smsd.uninettsmsgwdispatcher
 delay = 30 # Change at run-time with --delay
 username = 'navcron'
 
-# Daemonizing
-pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
+# Config
+configfile = nav.path.sysconfdir + '/smsd.conf'
 
 # Logging
 logfile = nav.path.localstatedir + '/log/smsd.py.log'
@@ -78,10 +77,16 @@ mailserver = 'localhost'
 mailaddr = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
 mailaddr = 'stein.magnus@jodal.no' # for devel
 
+# Daemonizing
+pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
+
 
 ### MAIN FUNCTION
 
 def main(args):
+    # Read main config
+    mainconfig = getconfig('main')
+
     # Initialize logger
     global logger
     logger = loginit('nav.smsd', logfile, loglevel, mailaddr, mailserver,
@@ -115,9 +120,37 @@ def main(args):
     # Check if already running
     justme(pidfile)
 
-    # Initialize dispatcher
-    dispatcher = nav.smsd.uninettsmsgwdispatcher.UninettSMSGWDispatcher()
+    # Get dispatchers
+    dispatchers = []
+    for pri in range(len(mainconfig) + 1):
+        key = 'dispatcher' + str(pri)
+        if key in mainconfig:
+            dispatcher = mainconfig[key]
+            logger.debug("Init dispatcher %d: %s", pri, dispatcher)
 
+            # Import dispatcher module
+            module = 'nav.smsd.' + dispatcher.lower()
+            try:
+                module = importbyname(module)
+            except DispatcherError, error:
+                logger.warning("Failed to import %s: %s", dispatcher, error)
+                continue
+
+            # Get dispatcher config
+            defaults = None
+            try:
+                defaults = module.defaults
+            except AttributeError, error:
+                pass
+            config = getconfig(dispatcher, defaults)
+
+            # Initialize dispatcher
+            instance = eval(module.__name__ + '.' + dispatcher + '(config)')
+            dispatchers.append((instance, None))
+            logger.debug("Loaded dispatcher: %s", dispatcher)
+    
+    sys.exit(1) # FIXME: Rewrite rest of code to support multiple dispatchers
+    
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
@@ -196,6 +229,20 @@ def main(args):
 
 
 ### INIT FUNCTIONS
+
+def getconfig(section, defaults = None):
+    """
+    Get config section as dict.
+    """
+
+    config = ConfigParser.SafeConfigParser(defaults)
+    config.read(configfile)
+    configsection = config.items(section)
+
+    configdict = {}
+    for opt, val in configsection:
+        configdict[opt] = val
+    return configdict
 
 def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
     """
@@ -306,6 +353,14 @@ def switchuser(username):
                  olduid, oldgid, uid, gid)
         else:
             logger.debug("Already running as uid/gid %d/%d.", olduid, oldgid)
+
+def importbyname(name):
+    """Import module given by name."""
+    mod = __import__(name)
+    components = name.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
 
 def usage():
     """Print a usage screen to stderr."""

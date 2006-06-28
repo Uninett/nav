@@ -39,7 +39,7 @@ localstatedir = @localstatedir@
 INITFILES =
 BINS = smsd.py
 LIBS = $(wildcard nav/smsd/*.py)
-CONFFILES =
+CONFFILES = smsd.conf
 
 .PHONY: install-lib install-bin install-conf
 
@@ -48,7 +48,7 @@ lib:
 bin:
 conf:
 
-install: install-lib install-bin
+install: install-lib install-bin install-conf
 
 install-lib: lib
 	for file in $(LIBS); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
@@ -58,13 +58,13 @@ install-bin: bin
 	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file	|| exit 1; done
 
 install-conf: conf
-	@for file in $(CONFFILES); do
-		target=$(DESTDIR)$(sysconfdir)/$$file
-		if [ -f "$$target" ]; then
-			echo Skipping installation of config file $$file
-		else
-			$(INSTALL) -v -D -m 644 $$file $$target || exit 1;
-		fi
+	@for file in $(CONFFILES); do \
+		target=$(DESTDIR)$(sysconfdir)/$$file; \
+		if [ -f "$$target" ]; then \
+			echo "Skipping installation of config file $$file"; \
+		else \
+			$(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
+		fi \
 	done
 
 uninstall:

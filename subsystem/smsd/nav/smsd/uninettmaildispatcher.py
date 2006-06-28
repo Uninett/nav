@@ -21,30 +21,30 @@
 #
 
 """
-The UNINETT mail/SMS gateway dispatcher for Gammu.
+A dispatcher for UNINETT's mail-to-SMS gateway.
 
-This dispatcher sends SMS via UNINETT's existing mail/SMS gateway. The mail
-must be sent from a uninett.no host, so this is of little use for others.
+This dispatcher sends SMS via UNINETT's mail-to-SMS gateway. The mail must be
+sent from a uninett.no host, so this is of little use for others.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
+__id__ = "$Id: uninettmaildispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
 import os
 import pwd
 import smtplib
 import socket
-import nav.smsd.dispatcher
+from nav.smsd.dispatcher import *
 
-class UninettSMSGWDispatcher(nav.smsd.dispatcher.Dispatcher):
+class UninettMailDispatcher(Dispatcher):
     "The smsd dispatcher for Gammu."
-    def __init__(self):
+    def __init__(self, config):
         """Constructor."""
 
         # Call mother's init
-        nav.smsd.dispatcher.Dispatcher.__init__(self)
+        Dispatcher.__init__(self)
 
         # FIXME: Read the rest from config
 
@@ -53,7 +53,7 @@ class UninettSMSGWDispatcher(nav.smsd.dispatcher.Dispatcher):
 
     def sendsms(self, phone, sms):
         """
-        Send SMS using UNINETT's mail/SMS gateway.
+        Send SMS using UNINETT's mail-to-SMS gateway.
 
         Returns two values:
             A boolean which is true for success and false for failure.

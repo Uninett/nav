@@ -36,18 +36,21 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
-import gammu
-import logging
-import sys
-import nav.smsd.dispatcher
+from nav.smsd.dispatcher import *
 
-class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
-    "The smsd dispatcher for Gammu."
-    def __init__(self):
+try:
+    import gammu
+except ImportError, error:
+    raise DispatcherError, 'python-gammu not installed or misconfigured.'
+
+class GammuDispatcher(Dispatcher):
+    """The smsd dispatcher for Gammu."""
+
+    def __init__(self, config):
         """Constructor."""
 
         # Call mother's init
-        nav.smsd.dispatcher.Dispatcher.__init__(self)
+        Dispatcher.__init__(self)
 
     def sendsms(self, phone, sms):
         """
@@ -65,9 +68,8 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
             # Typically ~root/.gammurc or ~navcron/.gammurc
             sm.ReadConfig()
         except IOError, error:
-#            self.logger.exception("Error while reading Gammu config. (%s)",
-#             error)
-            raise nav.smsd.dispatcher.DispatcherError, "blah"
+            raise DispatcherError, \
+             "Error while reading Gammu config. (%s)" % error
 
         try:
             # Fails if e.g. phone is not connected
@@ -75,8 +77,8 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
             # for complete list of errors fetched here
             sm.Init()
         except gammu.GSMError, error:
-            self.logger.exception("GSM error %d: %s", error[0]['Code'], error[0]['Text'])
-            raise nav.smsd.dispatcher.DispatcherException, error
+            raise DispatcherError, \
+             "GSM error %d: %s" % (error[0]['Code'], error[0]['Text'])
 
         # Tested with Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
         message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}

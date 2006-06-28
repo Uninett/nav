@@ -21,9 +21,9 @@
 #
 
 """
-The Boost Communication SMS gateway dispatcher.
+Dispatcher for Boost Communications' External Sender product.
 
-This dispatcher sends SMS via Boost Communications WebService (SOAP). Requires
+This dispatcher sends SMS via Boost Communications' WebService (SOAP). Requires
 a username and password to send SMS using the SOAP interface.
 
 Contact http://www.boostcom.no/ to setup a contract.
@@ -38,29 +38,27 @@ __author__ = "Bjørn Ove Grøtan (bjorn.ove@grotan.com),", \
     "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id: boostdispatcher.py 3464 2006-06-22 08:58:05Z bgrotan $"
 
-import logging
-import sys
-import nav.smsd.dispatcher
+from nav.smsd.dispatcher import *
 
 try:
     from SOAPpy import SOAPProxy
 except ImportError, ie:
-    print 'SOAPpy not installed or misconfigured.'
-    sys.exit(1)
+    raise DispatcherError, \
+     'SOAPpy not installed or misconfigured.'
 
-class BoostDispatcher(nav.smsd.dispatcher.Dispatcher):
-    "The smsd dispatcher for BoostCom."
-    def __init__(self):
+class BoostDispatcher(Dispatcher):
+    """The smsd dispatcher for BoostCom."""
+
+    def __init__(self, config):
         """Constructor."""
 
         # Call mother's init
-        nav.smsd.dispatcher.Dispatcher.__init__(self)
-
-        # Remote address for gateway
-        self.url = "https://secure.boostcom.net/axis/services/ExternalSender"
+        Dispatcher.__init__(self)
 
         # FIXME: Read the rest from config
 
+        # Remote address for gateway
+        self.url = "https://secure.boostcom.net/axis/services/ExternalSender"
         # Username for WebService
         self.username = None
         # Password for WebService
@@ -71,10 +69,8 @@ class BoostDispatcher(nav.smsd.dispatcher.Dispatcher):
         # Initiate connector to Boost
         try:
             self.service = SOAPProxy(self.url)
-        except:
-            # FIXME: what kinds of exceptions can we get?
-            print 'An error occured.. ayee'
-            sys.exit(1)
+        except Exception, error:
+            raise DispatcherError, "Failed to initialize SOAPProxy: %s" % error
 
     def sendsms(self, receiver, message):
         """
@@ -85,6 +81,7 @@ class BoostDispatcher(nav.smsd.dispatcher.Dispatcher):
             An integer which is the sending ID if available or 0 otherwise.
         """
 
+        # FIXME: Check for any exceptions here?
         result = self.service.sendMessage(
                     self.username,
                     self.password,
