@@ -348,6 +348,7 @@ class NetboxInfo(manage.Netbox):
             info.add('Type', urlbuilder.createLink(self.type))
         info.add('Organisation', urlbuilder.createLink(self.org))
         info.add('Room', urlbuilder.createLink(self.room))
+        info.add('Software', self.showSoftware())
         info.add('Last updated', self.showLastUpdate())
         result.append(info)
         return result
@@ -739,3 +740,6 @@ class NetboxInfo(manage.Netbox):
             return "%s %s" % (str(lastUpdated.localtime()), refreshLink)
         else:
             return "N/A " + str(refreshLink)
+
+    def showSoftware(self):
+        return str(self.device.sw_ver or "N/A")
