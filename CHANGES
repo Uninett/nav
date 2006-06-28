@@ -1,5 +1,135 @@
+Version 3.1.0
+(released xx June 2006)
+
+ New features and improvements:
+
+ * Arnold, a subsystem to block users' switch ports by using NAV's
+   Machine Tracker data.
+
+ * IP Information Center web tool, displays any information NAV has on
+   single IP addresses.
+
+ * Extra tab on IP Device Center to illustrate switch port usage.
+
+ * The IP Device Center will now display a device's software version,
+   and a timestamp of the last update made by getDeviceData.  
+
+ * A "refresh" link on the IP Device Center allows the user to trigger
+   a new collection run to refresh the device data.
+
+ * l2trace web tool, enables users to trace network paths on layer
+   two.
+
+ * Autodiscovery command line tool added to contrib.  This tool will
+   try to discover every managed network device within your network,
+   and add them to NAV.
+
+ * All logged in users are now considered members of the new system
+   group "Authenticated Users".  Minimum privileges for authenticated
+   users can be granted to this group.
+
+ * Password hashes stored in the account database are now salted, for
+   slightly enhanced security.
+
+ * NAV now supports reading interface speeds from the ifHighSpeed OID,
+   thus supporting speeds above 4.2Gbps.
+
+ * Initial db setup now suggests creating only one database user,
+   instead of the previous two.
+
+ Bugfixes:
+
+ * Dependency on pysnmp=3.3.5 (the unstable dev branch) has been
+   removed, please downgrade to pysnmp 2.
+
+ * EditDB no longer crashes when adding devices that report duplicate
+   serial numbers.
+
+ * AlertEngine would crash when concatenating several queued alerts
+   into one SMS message.
+
+ * AlertEngine would, under certain circumstances, not delete a user's
+   queued alerts, resulting in constant retransmission of the same
+   queued alerts.
+
+ * Some improved debug logging in AlertEngine.
+
+ * DNS lookups in getDeviceData are slightly more robust.
+
+ * The cam logger now runs 4 times an hour, as opposed to once every
+   hour, which was not a very good default.
+
+ * Missing Traffic Map icons were added.
+
+
+Version 3.0.1
+(released 28 April 2006)
+
+ Security fixes:
+
+ * The report interface failed to properly sanitize user input,
+   potentially allowing for SQL injections.
+
+ Bugfixes:
+
+ * Some modules import python profiling modules that aren't always
+   part of the standard distribution.
+
+ * pping would crash if there was no route to a host.
+
+ * SQL Errors in the server and trunked core switch ports reports.
+
+ * Some devices would never be taken off maintenance.
+
+ * The default web greeting still mentioned the word "beta"
+
+ * The SMTP service checker didn't properly extract version
+   information from all SMTP server banners.
+
+ * Registering mixed case device names as sysnames or DNS names would
+   result in dnsMismatch alerts.
+
+ * dnsMismatch alert text would use the DNS name as both the sysname
+   and DNS name values, confusing the receiver as to what the actual
+   problem was.
+
+ * getBoksMacs/mactrace would crash under specific, hard to reproduce
+   circumstances.
+
+ * There were potential syntax errors in the NAV perl API with newer
+   Perl versions.
+
+ * Some NAV processes would not gracefully close database connections
+   on exit.
+
+ * Several parts of the web interface would report InterfaceErrors if
+   a database connection was temporarily dropped by the database
+   server.  Please report any further occurrences of these errors.
+
+ * Newer versions of Firefox would not properly render the table
+   graphics of the web interface.
+
+ * The machine tracker would not properly sanitize user input IP
+   addresses, leading to strange errors and backtraces in the web
+   interface.
+
+ * The Alert Engine would did not delete processed entries from the
+   alert queue, which caused the database table to grow indefinitely.
+
+ * Much of the Alert Engine's debug logs were unreadable because they
+   referred to many entities by their internal database IDs.
+ 
+ * The type information shipped with NAV incorrectly specified that
+   Cisco 3750 and 2970 based devices did not support the cs@vlan
+   convention, thus disabling proper CAM table collection from these
+   devices.
+
+ * The HTML on the NAV login page would be sent as plain text under
+   newer versions of mod_python.
+
+
 Version 3.0.0
-(released xx September 2005)
+(released 16 September 2005)
 
  Improvements:
 
