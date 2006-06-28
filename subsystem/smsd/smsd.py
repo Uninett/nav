@@ -145,9 +145,13 @@ def main(args):
             config = getconfig(dispatcher, defaults)
 
             # Initialize dispatcher
-            instance = eval(module.__name__ + '.' + dispatcher + '(config)')
-            dispatchers.append((instance, None))
-            logger.debug("Loaded dispatcher: %s", dispatcher)
+            try:
+                instance = eval(module.__name__ + '.' + dispatcher + '(config)')
+                dispatchers.append((instance, None))
+                logger.debug("Loaded dispatcher: %s", dispatcher)
+            except DispatcherError, error:
+                logger.warning("Failed to init %s: %s", dispatcher, error)
+                continue
     
     sys.exit(1) # FIXME: Rewrite rest of code to support multiple dispatchers
     

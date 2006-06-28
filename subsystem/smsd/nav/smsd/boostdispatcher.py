@@ -47,7 +47,7 @@ except ImportError, ie:
      'SOAPpy not installed or misconfigured.'
 
 class BoostDispatcher(Dispatcher):
-    """The smsd dispatcher for BoostCom."""
+    """The smsd dispatcher for Boost Communications' External Sender."""
 
     def __init__(self, config):
         """Constructor."""
@@ -55,16 +55,18 @@ class BoostDispatcher(Dispatcher):
         # Call mother's init
         Dispatcher.__init__(self)
 
-        # FIXME: Read the rest from config
-
-        # Remote address for gateway
-        self.url = "https://secure.boostcom.net/axis/services/ExternalSender"
-        # Username for WebService
-        self.username = None
-        # Password for WebService
-        self.password = None
-        # Our phonenumber
-        self.sender = None
+        # Get config
+        try:
+            # Remote address for gateway
+            self.url = config['url']
+            # Username for WebService
+            self.username = config['username']
+            # Password for WebService
+            self.password = config['password']
+            # Our phonenumber
+            self.sender = config['sender']
+        except KeyError, error:
+            raise DispatcherError, "Config option not found: %s" % error
 
         # Initiate connector to Boost
         try:
@@ -81,7 +83,7 @@ class BoostDispatcher(Dispatcher):
             An integer which is the sending ID if available or 0 otherwise.
         """
 
-        # FIXME: Check for any exceptions here?
+        # FIXME: Check for exceptions here
         result = self.service.sendMessage(
                     self.username,
                     self.password,

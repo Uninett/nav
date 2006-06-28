@@ -39,17 +39,20 @@ import socket
 from nav.smsd.dispatcher import *
 
 class UninettMailDispatcher(Dispatcher):
-    "The smsd dispatcher for Gammu."
+    """The smsd dispatcher for UNINETT's mail-to-SMS gateway."""
+
     def __init__(self, config):
         """Constructor."""
 
         # Call mother's init
         Dispatcher.__init__(self)
 
-        # FIXME: Read the rest from config
-
-        # Mail adress for gateway
-        self.mailaddr = 'sms@uninett.no'
+        # Get config
+        try:
+            # Mail adress for gateway
+            self.mailaddr = config['mailaddr']
+        except KeyError, error:
+            raise DispatcherError, "Config option not found: %s" % error
 
     def sendsms(self, phone, sms):
         """
