@@ -56,8 +56,10 @@ import time
 import nav.config
 import nav.path
 import nav.smsd.navdbqueue
-import nav.smsd.gammudispatcher
+from nav.smsd.dispatcher import DispatcherError
+#import nav.smsd.gammudispatcher
 import nav.smsd.uninettsmsgwdispatcher
+#import nav.smsd.boostsmsgwdispatcher
 
 
 ### VARIABLES
@@ -187,7 +189,7 @@ def main(args):
         time.sleep(delay)
 
         # Devel only
-        #break
+        break
 
     # Exit nicely
     sys.exit(0)
@@ -465,4 +467,5 @@ def daemonexit(pidfile):
 
 
 ### BEGIN
-main(sys.argv[1:])
+if __name__ == '__main__':
+    main(sys.argv[1:])

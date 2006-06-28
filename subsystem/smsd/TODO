@@ -2,12 +2,15 @@ NAV smsd TODO
 $Id$
 
 - Fix all FIXMEs
-D Make sure smsd removes pids and exits properly if HUP'ed or killed.
-D General dispatcher class to inherit from
-- A DispatcherError Exception so we can use several dispatchers in a
-  prioritizedsequense with failover to the less wanted dispatchers
+- A DispatcherError Exception so we can try-and-fail dispatchers
+- Config file for dispatcher options
 - Write unit tests
 - Write unit tests that are ment to fail and trig the exceptions
+- Write README and/or INSTALL
+
+DONE
 D Create dispatcher for the Boost Communications API. Bjørn Ove got docs and
   Perl implementation.
-- Write REAME and/or INSTALL
+D Make sure smsd removes pids and exits properly if HUP'ed or killed.
+D General dispatcher class to inherit from
+

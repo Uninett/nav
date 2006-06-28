@@ -65,9 +65,9 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
             # Typically ~root/.gammurc or ~navcron/.gammurc
             sm.ReadConfig()
         except IOError, error:
-            self.logger.exception("Error while reading Gammu config. Exiting. (%s)",
-             error)
-            #raise nav.smsd.dispatcher.DispatcherException, error, error.errno
+#            self.logger.exception("Error while reading Gammu config. (%s)",
+#             error)
+            raise nav.smsd.dispatcher.DispatcherError, "blah"
 
         try:
             # Fails if e.g. phone is not connected
@@ -76,6 +76,7 @@ class GammuDispatcher(nav.smsd.dispatcher.Dispatcher):
             sm.Init()
         except gammu.GSMError, error:
             self.logger.exception("GSM error %d: %s", error[0]['Code'], error[0]['Text'])
+            raise nav.smsd.dispatcher.DispatcherException, error
 
         # Tested with Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
         message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}

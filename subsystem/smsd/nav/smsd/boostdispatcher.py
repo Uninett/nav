@@ -36,7 +36,7 @@ __copyright__ = "Copyright 2006 Bjørn Ove Grøtan"
 __license__ = "GPL"
 __author__ = "Bjørn Ove Grøtan (bjorn.ove@grotan.com),", \
     "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id: boostsmsgwdispatcher.py 3464 2006-06-22 08:58:05Z bgrotan $"
+__id__ = "$Id: boostdispatcher.py 3464 2006-06-22 08:58:05Z bgrotan $"
 
 import logging
 import sys
@@ -48,7 +48,7 @@ except ImportError, ie:
     print 'SOAPpy not installed or misconfigured.'
     sys.exit(1)
 
-class BoostSMSGWDispatcher(nav.smsd.dispatcher.Dispatcher):
+class BoostDispatcher(nav.smsd.dispatcher.Dispatcher):
     "The smsd dispatcher for BoostCom."
     def __init__(self):
         """Constructor."""
