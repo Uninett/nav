@@ -12,12 +12,14 @@ pythonlibdir = @pythonlibdir@
 perllibdir = ${libdir}/perl
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
+tooldir = @tooldir@
 
 templates = ArnoldTemplate.py
 libfiles = Arnold.pm
 webfiles = arnoldhandler.py .htaccess
 binfiles = arnold.pl autoenable.pl start_arnold.pl t1000.pl
 conffiles = arnold.cfg nonblock.cfg mailtemplates/README 
+tool = arnold.tool
 
 .PHONY: all install install-lib install-web install-bin clean distclean
 
@@ -55,6 +57,7 @@ install-web:
 	for file in $(webfiles); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/arnold/$$file || exit 1; \
 	done
+	$(INSTALL) -D -v -m 644 $(tool) $(DESTDIR)$(tooldir)/$(tool)
 
 clean:
 	rm -f *~

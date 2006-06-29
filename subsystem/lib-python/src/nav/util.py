@@ -30,7 +30,9 @@ def gradient(start, stop, steps):
 
     The more steps, the smoother the gradient."""
     distance = (stop - start)
-    steps -= 1 # Reduce by 1 step to include both endpoints
+    # Reduce by 1 step to include both endpoints, but never reduce it
+    # to zero (we always want at least to values)
+    steps = steps > 1 and steps-1 or 1
     increment = distance / float(steps)
     grad = []
     for i in xrange(steps):

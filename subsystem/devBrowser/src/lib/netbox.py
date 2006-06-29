@@ -301,7 +301,7 @@ class RefreshHandler:
     def process(self):
         fields = self.request['fields']
         if 'refresh' in fields \
-               and fields.getfirst('refresh') == 'cancel':
+               and fields.getfirst('refresh').lower() == 'cancel':
             return self.cancelRefresh()
         return self._waitPage()
     
@@ -313,6 +313,9 @@ class RefreshHandler:
         result.append(html.Paragraph('Please wait for collector to ' + \
                                      'refresh data from %s %s...' %
                                      (self.netbox.sysname, waitString)))
+        cancelForm = html.Form(method="GET", action="")
+        cancelForm.append(html.Submit(name="refresh", value="Cancel"))
+        result.append(cancelForm)
         self.request['templatePath'][-1] = \
                                          ('Refreshing ' + \
                                           self.request['templatePath'][-1][0],
@@ -348,6 +351,7 @@ class NetboxInfo(manage.Netbox):
             info.add('Type', urlbuilder.createLink(self.type))
         info.add('Organisation', urlbuilder.createLink(self.org))
         info.add('Room', urlbuilder.createLink(self.room))
+        info.add('Software', self.showSoftware())
         info.add('Last updated', self.showLastUpdate())
         result.append(info)
         return result
@@ -739,3 +743,6 @@ class NetboxInfo(manage.Netbox):
             return "%s %s" % (str(lastUpdated.localtime()), refreshLink)
         else:
             return "N/A " + str(refreshLink)
+
+    def showSoftware(self):
+        return str(self.device.sw_ver or "N/A")

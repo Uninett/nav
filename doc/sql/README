@@ -6,6 +6,8 @@ This directory contains SQL scripts to create the initial NAV databases.
 Files
 =====
 manage.sql       - Creates the manage database
+types.sql        - Initializes the equipment vendor and type tables of the
+                   manage database
 snmpoid.sql      - Initializes the SNMP OID registry of the manage database
 logger.sql       - Creates the navlog database
 navprofiles.sql  - Creates the navprofiles database
@@ -37,6 +39,7 @@ nav user you created above, so you will be prompted for the password
 you chose.
 
   psql -f manage.sql manage nav
+  psql -f types.sql manage nav
   psql -f snmpoid.sql manage nav
   psql -f navprofiles.sql navprofiles nav
   psql -f logger.sql logger nav

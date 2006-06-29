@@ -5,9 +5,12 @@ To build NAV, you need at least the following:
 
 make
 autoconf
+ant
 Perl >= 5.6.0
 Python >= 2.2.0
 Java 2 SDK >= 1.4.0
+Tomcat >= 4 (or compatible Java Servlet API)
+JavaSnmp >= 1.4
 Cheetah
 
 
@@ -29,6 +32,18 @@ to have the files installed in a physically different location (a
 temporary build directory) than what you configured the package for.
 In this case, you should specify this build directory by adding
 "DESTDIR=/your/build/directory" to "make install" command.
+
+Java Servlet API
+----------------
+
+If a Java Servlet API library is not available on the Java classpath
+at build time, the build will fail.  You need to explicitly set the
+classpath to point to this library before running `make` above.  If
+the servlet API is, for example, located in
+/usr/share/java/servletapi5.jar on your system, you should issue the
+following on the bash command prompt before running make:
+
+  export CLASSPATH=/usr/share/java/servletapi5.jar
 
 
 Configuring NAV
