@@ -1,8 +1,7 @@
 NAV smsd TODO
 $Id$
 
-- Fix all FIXMEs (working on it)
-- Support multiple dispatchers (working on it)
+- Fix all FIXMEs (almost done)
 - Write unit tests
 - Write unit tests that are ment to fail and trig the exceptions
 - Write README and/or INSTALL
@@ -14,3 +13,4 @@ D Make sure smsd removes pids and exits properly if HUP'ed or killed.
 D General dispatcher class to inherit from
 D A DispatcherError Exception so we can try-and-fail dispatchers
 D Config file for dispatcher options
+D Support multiple dispatchers

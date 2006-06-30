@@ -74,25 +74,48 @@ class BoostDispatcher(Dispatcher):
         except Exception, error:
             raise DispatcherError, "Failed to initialize SOAPProxy: %s" % error
 
-    def sendsms(self, receiver, message):
+    def sendsms(self, phone, msgs):
         """
-        Send SMS using Boost's SMS gateway.
+        Send SMS using Boost Communications' External Sender.
 
-        Returns two values:
+        Arguments:
+            ``phone'' is the phone number the messages are to be dispatched to.
+            ``msgs'' is a list of messages ordered with the most severe first.
+            Each message is a tuple with ID, text and severity of the message.
+
+        Returns five values:
+            The formatted SMS.
+            A list of IDs of sent messages.
+            A list of IDs of ignored messages.
             A boolean which is true for success and false for failure.
             An integer which is the sending ID if available or 0 otherwise.
         """
 
-        # FIXME: Check for exceptions here
-        result = self.service.sendMessage(
-                    self.username,
-                    self.password,
-                    self.sender,
-                    receiver,
-                    message)
+        # Format SMS
+        (sms, sent, ignored) = self.formatsms(msgs)
+
+        # Send SMS
+        try:
+            # FIXME: With '-t phone' result is 0, but during normal operation
+            # we get the following exception here:
+            # faultType: <Fault soapenv:Server.userException:
+            # org.xml.sax.SAXException: Bad types (boolean -> class
+            # java.lang.String): >
+            result = self.service.sendMessage(
+                        self.username,
+                        self.password,
+                        self.sender,
+                        phone,
+                        sms)
+            self.logger.debug("BoostDispatcher result: %s", result)
+        except Exception, error:
+            self.logger.exception(error)
+
         if result:
             result = True
         else:
             result = False
+        smsid = 0
 
-        return (result, 0)
+        return (sms, sent, ignored, result, smsid)
+

@@ -52,14 +52,25 @@ class GammuDispatcher(Dispatcher):
         # Call mother's init
         Dispatcher.__init__(self)
 
-    def sendsms(self, phone, sms):
+    def sendsms(self, phone, msgs):
         """
         Send SMS using Gammu.
 
-        Returns two values:
+        Arguments:
+            ``phone'' is the phone number the messages are to be dispatched to.
+            ``msgs'' is a list of messages ordered with the most severe first.
+            Each message is a tuple with ID, text and severity of the message.
+
+        Returns five values:
+            The formatted SMS.
+            A list of IDs of sent messages.
+            A list of IDs of ignored messages.
             A boolean which is true for success and false for failure.
             An integer which is the sending ID if available or 0 otherwise.
         """
+
+        # Format SMS
+        (sms, sent, ignored) = self.formatsms(msgs)
 
         # We got a python-gammu binding :-)
         sm = gammu.StateMachine()
@@ -68,8 +79,7 @@ class GammuDispatcher(Dispatcher):
             # Typically ~root/.gammurc or ~navcron/.gammurc
             sm.ReadConfig()
         except IOError, error:
-            raise DispatcherError, \
-             "Error while reading Gammu config. (%s)" % error
+            raise DispatcherError, error
 
         try:
             # Fails if e.g. phone is not connected
@@ -88,5 +98,6 @@ class GammuDispatcher(Dispatcher):
             result = True
         else:
             result = False
-        return (result, smsid)
+
+        return (sms, sent, ignored, result, smsid)
 

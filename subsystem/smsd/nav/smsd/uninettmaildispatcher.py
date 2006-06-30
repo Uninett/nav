@@ -54,31 +54,50 @@ class UninettMailDispatcher(Dispatcher):
         except KeyError, error:
             raise DispatcherError, "Config option not found: %s" % error
 
-    def sendsms(self, phone, sms):
+    def sendsms(self, phone, msgs):
         """
         Send SMS using UNINETT's mail-to-SMS gateway.
 
-        Returns two values:
+        Arguments:
+            ``phone'' is the phone number the messages are to be dispatched to.
+            ``msgs'' is a list of messages ordered with the most severe first.
+            Each message is a tuple with ID, text and severity of the message.
+
+        Returns five values:
+            The formatted SMS.
+            A list of IDs of sent messages.
+            A list of IDs of ignored messages.
             A boolean which is true for success and false for failure.
             An integer which is the sending ID if available or 0 otherwise.
         """
 
-        # FIXME: This dispatcher should be made a general
+        # NOTE: This dispatcher should be made a general
         # SMS-via-mail-dispatcher if there is any wish for it.
         # This includes supporting various formats for the mail.
 
+        # Format SMS
+        (sms, sent, ignored) = self.formatsms(msgs)
+
+        # Send SMS
         sender = "%s@%s" % (pwd.getpwuid(os.getuid())[0], socket.gethostname())
         headers = "From: %s\r\nTo: %s\r\nSubject: sms %s\r\n\r\n" % \
          (sender, self.mailaddr, phone)
         message = headers + sms
-        server = smtplib.SMTP('localhost')
-        # FIXME: Check for exceptions here?
-        server.sendmail(sender, self.mailaddr, message)
-        server.quit()
 
-        # FIXME: Give these a bit more resonable values ;-)
-        result = True
+        try:
+            server = smtplib.SMTP('localhost')
+            result = server.sendmail(sender, self.mailaddr, message)
+            server.quit()
+        except SMTPException, error:
+            raise DispatcherError, "SMTP error: %s" % error
+
+        if len(result) == 0:
+            # No errors
+            result = True
+        else:
+            # If anything failed the SMTPException above should handle it
+            result = False
         smsid = 0
 
-        return (result, smsid)
+        return (sms, sent, ignored, result, smsid)
 

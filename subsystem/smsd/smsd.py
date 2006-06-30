@@ -84,8 +84,8 @@ pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
 ### MAIN FUNCTION
 
 def main(args):
-    # Read main config
-    mainconfig = getconfig('main')
+    # Read config file
+    config = getconfig()
 
     # Initialize logger
     global logger
@@ -117,56 +117,21 @@ def main(args):
     # Switch user to navcron
     switchuser(username)
 
-    # Check if already running
-    justme(pidfile)
-
-    # Get dispatchers
-    dispatchers = []
-    for pri in range(len(mainconfig) + 1):
-        key = 'dispatcher' + str(pri)
-        if key in mainconfig:
-            dispatcher = mainconfig[key]
-            logger.debug("Init dispatcher %d: %s", pri, dispatcher)
-
-            # Import dispatcher module
-            module = 'nav.smsd.' + dispatcher.lower()
-            try:
-                module = importbyname(module)
-            except DispatcherError, error:
-                logger.warning("Failed to import %s: %s", dispatcher, error)
-                continue
-
-            # Get dispatcher config
-            defaults = None
-            try:
-                defaults = module.defaults
-            except AttributeError, error:
-                pass
-            config = getconfig(dispatcher, defaults)
-
-            # Initialize dispatcher
-            try:
-                instance = eval(module.__name__ + '.' + dispatcher + '(config)')
-                dispatchers.append((instance, None))
-                logger.debug("Loaded dispatcher: %s", dispatcher)
-            except DispatcherError, error:
-                logger.warning("Failed to init %s: %s", dispatcher, error)
-                continue
-    
-    sys.exit(1) # FIXME: Rewrite rest of code to support multiple dispatchers
+    # Let the dispatcherhandler take care of our dispatchers
+    dh = nav.smsd.dispatcher.DispatcherHandler(config)
     
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
-        (sms, sent, ignored) = dispatcher.formatsms(msg)
-        (result, smsid) = dispatcher.sendsms(opttest, sms)
 
-        if result:
-            logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
-            sys.exit(0)
-        else:
-            logger.error("SMS sending failed.")
+        try:
+            (sms, sent, ignored, smsid) = dh.sendsms(opttest, msg)
+        except DispatcherError, error:
+            logger.critical("Sending failed. Exiting. (%s)", error)
             sys.exit(1)
+
+        logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
+        sys.exit(0)
 
     # Ignore unsent messages
     if optcancel:
@@ -174,6 +139,9 @@ def main(args):
         ignCount = queue.cancel()
         logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
+
+    # Check if already running
+    justme(pidfile)
 
     # Daemonize
     daemonize(pidfile)
@@ -199,34 +167,28 @@ def main(args):
             logger.info("Found %d unsent message(s) for %s.",
              len(msgs), user)
 
-            # FIXME: Which dispatcher do we want to use? Depends on profile?
+            # Dispatcher: Format and send SMS
+            try:
+                (sms, sent, ignored, smsid) = dh.sendsms(opttest, msgs)
+            except DispatcherError, error:
+                logger.critical("Sending failed. Exiting. (%s)", error)
+                sys.exit(1)
 
-            # Dispatcher: Format SMS
-            (sms, sent, ignored) = dispatcher.formatsms(msgs)
-            logger.info("Formatted SMS for %s: '%s'", user, sms)
+            logger.info("SMS sent to %s.", user)
 
-            # Dispatcher: Send SMS
-            (result, smsid) = dispatcher.sendsms(user, sms)
-
-            if result:
-                logger.info("SMS sent to %s.", user)
-
-                for msgid in sent:
-                    queue.setsentstatus(msgid, 'Y', smsid)
-                for msgid in ignored:
-                    queue.setsentstatus(msgid, 'I', smsid)
-                logger.info("%d messages was sent and %d ignored.",
-                 len(sent), len(ignored))
-            else:
-                logger.error("Error while sending SMS to %s.", user)
-                # FIXME: Exit?
+            for msgid in sent:
+                queue.setsentstatus(msgid, 'Y', smsid)
+            for msgid in ignored:
+                queue.setsentstatus(msgid, 'I', smsid)
+            logger.info("%d messages was sent and %d ignored.",
+             len(sent), len(ignored))
 
         # Sleep a bit before the next run
-        logger.info("Sleeping for %d seconds.", delay)
+        logger.debug("Sleeping for %d seconds.", delay)
         time.sleep(delay)
 
         # Devel only
-        break
+        #break
 
     # Exit nicely
     sys.exit(0)
@@ -234,18 +196,34 @@ def main(args):
 
 ### INIT FUNCTIONS
 
-def getconfig(section, defaults = None):
+def getconfig(section = None, defaults = None):
     """
-    Get config section as dict.
+    Read whole config or a config section from file.
+    
+    section can be omitted to get whole config. Defaults are passed on to
+    configparser before reading config.
+    
+    For the whole config, it returns a list of tuples with section names and
+    dicts with the sections' content. For a section it only returns the dict.
     """
 
     config = ConfigParser.SafeConfigParser(defaults)
     config.read(configfile)
-    configsection = config.items(section)
+
+    if section:
+        sections = section
+    else:
+        sections = config.sections()
 
     configdict = {}
-    for opt, val in configsection:
-        configdict[opt] = val
+
+    for section in sections:
+        configsection = config.items(section)
+        sectiondict = {}
+        for opt, val in configsection:
+            sectiondict[opt] = val
+        configdict[section] = sectiondict
+
     return configdict
 
 def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
@@ -356,15 +334,7 @@ def switchuser(username):
                 logger.info("uid/gid changed from %d/%d to %d/%d.",
                  olduid, oldgid, uid, gid)
         else:
-            logger.debug("Already running as uid/gid %d/%d.", olduid, oldgid)
-
-def importbyname(name):
-    """Import module given by name."""
-    mod = __import__(name)
-    components = name.split('.')
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
-    return mod
+            logger.debug("Running as uid/gid %d/%d.", olduid, oldgid)
 
 def usage():
     """Print a usage screen to stderr."""
@@ -436,7 +406,7 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
     Inspired by http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
     """
 
-    # FIXME: When we require Python 2.4, replace '/dev/null' with
+    # NOTE: When we require Python 2.4, replace '/dev/null' with
     # os.path.devnull in the default argument values above
 
     # Do first fork

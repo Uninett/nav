@@ -31,23 +31,131 @@ __id__ = "$Id: gammudispatcher.py 3464 2006-06-22 08:58:05Z jodal $"
 
 import logging
 import sys
+import time
+import nav.smsd # eval() wants it
 
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
 
-#    def __init__(self, msg, code = -1):
-#        self.msg = msg
-#        self.code = code
-#        self.args = (msg, code)
+class DispatcherHandler(object):
+    """
+    Handler for communication with the dispatchers.
+    
+    This layer makes it possible to use multiple dispatchers which works as
+    failovers for each other.
+    """
+
+    def __init__(self, config):
+        """Constructor."""
+
+        # Create logger
+        self.logger = logging.getLogger("nav.smsd.dispatcher")
+
+        # Get config
+        try:
+            self.dispatcherretry = config['main']['dispatcherrretry']
+        except KeyError, error:
+            self.dispatcherretry = 300 # 5 min
+            self.logger.info("Dispatcher retry time not set, using default.")
+
+        # Get dispatchers
+        self.dispatchers = []
+        for pri in range(len(config['main']) + 1):
+            key = 'dispatcher' + str(pri)
+            if key in config['main']:
+                dispatcher = config['main'][key]
+                self.logger.debug("Init dispatcher %d: %s", pri, dispatcher)
+
+                # Import dispatcher module
+                modulename = 'nav.smsd.' + dispatcher.lower()
+                try:
+                    module = self.importbyname(modulename)
+                    self.logger.debug("Imported module %s", modulename)
+                except DispatcherError, error:
+                    self.logger.warning("Failed to import %s: %s",
+                     dispatcher, error)
+                    continue 
+
+                # Initialize dispatcher 
+                try:
+                    instance = eval("%s.%s(%s)" % \
+                     (module.__name__, dispatcher, config[dispatcher]))
+                    self.dispatchers.append((dispatcher, instance))
+                    self.logger.debug("Dispatcher loaded: %s", dispatcher)
+                except DispatcherError, error:
+                    self.logger.warning("Failed to init %s: %s",
+                     dispatcher, error)
+                    continue
+
+    def importbyname(self, name):
+        """Import module given by name."""
+        mod = __import__(name)
+        components = name.split('.')
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
+
+    def sendsms(self, phone, msgs):
+        """
+        Formats and sends with help of the wanted dispatcher.
+        
+        Arguments:
+            ``phone'' is the phone number the messages are to be dispatched to.
+            ``msgs'' is a list of messages ordered with the most severe first.
+            Each message is a tuple with ID, text and severity of the message.
+
+        Returns four values:
+            The formatted SMS.
+            A list of IDs of sent messages.
+            A list of IDs of ignored messages.
+            An integer which is the sending ID if available or 0 otherwise.
+
+        Raises a DispatcherError if it doesn't find a working dispatcher and
+        succeeds in sending the SMS.
+        """
+
+        for dispatchername, dispatcher in self.dispatchers:
+
+            if dispatcher.lastfailed:
+                # FIXME: Test if this block acctually works
+                sincelastfail = int(time.time()) - dispatcher.lastfailed
+                if sincelastfail < self.dispatcherretry:
+                    self.logger.debug("Last failed %ds ago. Skipping.", 
+                     sincelastfail)
+                    continue # Skip this dispatcher for now
+
+            try:
+                self.logger.debug("Trying %s...", dispatchername)
+                (sms, sent, ignored, result, smsid) = \
+                 dispatcher.sendsms(phone, msgs)
+            except DispatcherError, error:
+                self.logger.warning("%s failed to send SMS: %s",
+                 dispatchername, error)
+                dispatcher.lastfail = int(time.time())
+                continue # Skip to next dispatcher
+
+            if result is False:
+                self.logger.warning("%s failed to send SMS: Returned false.",
+                 dispatchername)
+                dispatcher.lastfailed = int(time.time())
+                continue # Skip to next dispatcher
+            
+            # No exception and true result? Success!
+            return (sms, sent, ignored, smsid)
+
+        # Still running? All dispatchers failed!
+        raise DispatcherError, "All dispatchers failed to send SMS."
 
 class Dispatcher(object):
-    """The SMS formatter."""
+    """The SMS dispatcher mother class."""
 
     def __init__(self):
         """Constructor."""
 
         # Create logger
-        self.logger = logging.getLogger("nav.smsd.formatter")
+        self.logger = logging.getLogger("nav.smsd.dispatcher")
+        # Field for last failed timestamp
+        self.lastfailed = None
         # Max length of SMS
         self.maxlen = 160
         # Max length of ignored message. 15 gives us up to four digits.
@@ -123,18 +231,29 @@ class Dispatcher(object):
 
         return (sms, sent, ignored)
 
-    def sendsms(self, phone, sms):
+    def sendsms(self, phone, msgs):
         """
         Empty shell for the sendsms method implemented by subclasses.
         
-        Takes phone number and the SMS message as input.
+        Arguments:
+            ``phone'' is the phone number the messages are to be dispatched to.
+            ``msgs'' is a list of messages ordered with the most severe first.
+            Each message is a tuple with ID, text and severity of the message.
 
-        Returns two values:
+        Returns five values:
+            The formatted SMS.
+            A list of IDs of sent messages.
+            A list of IDs of ignored messages.
             A boolean which is true for success and false for failure.
             An integer which is the sending ID if available or 0 otherwise.
         """
 
+        # Format SMS
+        (sms, sent, ignored) = self.formatsms(msgs)
+
+        # Send SMS
         result = False
         smsid = 0
 
-        return (result, smsid)
+        return (sms, sent, ignored, result, smsid)
+
