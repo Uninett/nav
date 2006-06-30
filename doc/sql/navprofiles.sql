@@ -1174,7 +1174,6 @@ INSERT INTO filtermatch (id, utstyrfilterid, matchfelt, matchtype, verdi) VALUES
 -- Table: Rettighet
 
 INSERT INTO rettighet (accountgroupid, utstyrgruppeid) VALUES (1, 71);
-INSERT INTO rettighet (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 71);
 
 
 -- Table: defaultutstyr
@@ -1200,27 +1199,6 @@ INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 82);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 83);
 INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES (1, 84);
 
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 71);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 62);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 63);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 64);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 65);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 68);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 69);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 70);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 72);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 73);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 74);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 75);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 76);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 77);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 78);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 79);
---INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 80);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 81);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 82);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 83);
-INSERT INTO defaultutstyr (accountgroupid, utstyrgruppeid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 84);
 
 
 -- Table: defaultfilter
@@ -1246,27 +1224,6 @@ INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 21);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 23);
 INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES (1, 24);
 
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 13);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 29);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 30);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 31);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 32);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 33);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 34);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 35);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 36);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 14);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 15);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 25);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 16);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 26);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 27);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 28);
---INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 19);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 20);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 21);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 23);
-INSERT INTO defaultfilter (accountgroupid, utstyrfilterid) VALUES ((SELECT id FROM AccountGroup WHERE name='ReadAll'), 24);
 
 
 
