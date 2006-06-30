@@ -1,0 +1,39 @@
+Release notes for NAV 3.1
+=========================
+Please report bugs at http://sourceforge.net/projects/nav
+
+
+Upgrading from NAV 3.0
+----------------------
+pysnmp must be downgraded to version 2.  Any release from the major version 2
+will do, as of this writing the latest version is 2.0.9.
+
+You must remember to upgrade your database scheme. The new Arnold subsystem
+requires its own database.  Please read doc/sql/README for instructions on how
+to create this database and initialize it.  Use the script and instructions
+provided in doc/sql/upgrades/3.1.0.sql to upgrade the rest of the database
+schema.
+
+The recommended database setup has changed.  Previously, the README suggested
+creating two database users `navread` and `navwrite`.  It then suggested
+creating the NAV databases as the postgres superuser, while the provided sql
+scripts would grant read/write privileges on the tables to the navread and
+navwrite users.  The new recommendation is to create only one database user
+called `nav`, and specify this user as the owner of the databases when
+creating them.  Hence, the provided db.conf has been changed to reference only
+this one user.
+
+PostgreSQL versions before 8.0 do not have a command to change a database's
+owner, so if you run an old PostgreSQL version you are probably better off
+leaving the user scheme as it is.  PostgreSQL will allow you to grant table
+CREATE privileges, which you might want to do for the `navwrite user`.  If you
+are running _PostgreSQL 8.0_ or newer, you can create the `nav` user as
+suggested in the README, and the use the following SQL commands to make it the
+owner of the NAV databases:
+
+  ALTER DATABASE manage OWNER TO nav;
+  ALTER DATABASE navprofiles OWNER TO nav;
+  ALTER DATABASE logger OWNER TO nav;
+
+Which ever solution you choose, make sure to update your db.conf to at least
+include the bits about Arnold in the db.conf supplied with this version.
