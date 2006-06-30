@@ -1,13 +1,14 @@
-Release notes for NAV 3.1
-=========================
+===========================
+ Release notes for NAV 3.1
+===========================
 Please report bugs at http://sourceforge.net/projects/nav
 
 
 Upgrading from NAV 3.0
-----------------------
-pysnmp must be downgraded to version 2.  Any release from the major version 2
-will do, as of this writing the latest version is 2.0.9.
+======================
 
+Database upgrade
+----------------
 You must remember to upgrade your database scheme. The new Arnold subsystem
 requires its own database.  Please read doc/sql/README for instructions on how
 to create this database and initialize it.  Use the script and instructions
@@ -37,3 +38,19 @@ owner of the NAV databases:
 
 Which ever solution you choose, make sure to update your db.conf to at least
 include the bits about Arnold in the db.conf supplied with this version.
+
+
+pysnmp
+------
+pysnmp must be downgraded to version 2.  Any release from the major version 2
+will do, as of this writing the latest version is 2.0.9.
+
+
+forgetSQL
+---------
+forgetSQL 0.5.1 has a bug which may affect the web interface of NAV 3.1 in
+weird ways (looks like a deadlock, which makes page loads hang forever). The
+upstream author is working on making a bugfix release, but if you're an
+impatient expert, you can manually patch your forgetSQL 0.5.1 installation.
+The patch is contained in contrib/patches/forgetSQL-0.5.1.patch (this is the
+same patch that was sent upstream).
