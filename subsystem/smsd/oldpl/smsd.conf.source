@@ -1,4 +1,0 @@
-# Configuration for the NAV SMS daemon
-logfil=@localstatedir@/log/smsd.log
-maildrift=root@localhost
-
