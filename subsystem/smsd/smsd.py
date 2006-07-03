@@ -117,6 +117,13 @@ def main(args):
     # Switch user to navcron
     switchuser(username)
 
+    # Ignore unsent messages
+    if optcancel:
+        queue = nav.smsd.navdbqueue.NAVDBQueue()
+        ignCount = queue.cancel()
+        logger.info("All %d unsent messages ignored.", ignCount)
+        sys.exit(0)
+
     # Let the dispatcherhandler take care of our dispatchers
     dh = nav.smsd.dispatcher.DispatcherHandler(config)
     
@@ -131,13 +138,6 @@ def main(args):
             sys.exit(1)
 
         logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
-        sys.exit(0)
-
-    # Ignore unsent messages
-    if optcancel:
-        queue = nav.smsd.navdbqueue.NAVDBQueue()
-        ignCount = queue.cancel()
-        logger.info("All %d unsent messages ignored.", ignCount)
         sys.exit(0)
 
     # Check if already running
@@ -169,7 +169,7 @@ def main(args):
 
             # Dispatcher: Format and send SMS
             try:
-                (sms, sent, ignored, smsid) = dh.sendsms(opttest, msgs)
+                (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except DispatcherError, error:
                 logger.critical("Sending failed. Exiting. (%s)", error)
                 sys.exit(1)

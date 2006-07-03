@@ -96,11 +96,6 @@ class BoostDispatcher(Dispatcher):
 
         # Send SMS
         try:
-            # FIXME: With '-t phone' result is 0, but during normal operation
-            # we get the following exception here:
-            # faultType: <Fault soapenv:Server.userException:
-            # org.xml.sax.SAXException: Bad types (boolean -> class
-            # java.lang.String): >
             result = self.service.sendMessage(
                         self.username,
                         self.password,

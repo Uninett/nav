@@ -117,11 +117,10 @@ class DispatcherHandler(object):
         for dispatchername, dispatcher in self.dispatchers:
 
             if dispatcher.lastfailed:
-                # FIXME: Test if this block acctually works
                 sincelastfail = int(time.time()) - dispatcher.lastfailed
                 if sincelastfail < self.dispatcherretry:
-                    self.logger.debug("Last failed %ds ago. Skipping.", 
-                     sincelastfail)
+                    self.logger.debug("%s last failed %ds ago. Skipping.", 
+                     dispatchername, sincelastfail)
                     continue # Skip this dispatcher for now
 
             try:
@@ -131,7 +130,7 @@ class DispatcherHandler(object):
             except DispatcherError, error:
                 self.logger.warning("%s failed to send SMS: %s",
                  dispatchername, error)
-                dispatcher.lastfail = int(time.time())
+                dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
 
             if result is False:
