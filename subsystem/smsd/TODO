@@ -3,14 +3,3 @@ $Id$
 
 - Write unit tests
 - Write unit tests that are ment to fail and trig the exceptions
-
-DONE
-D Create dispatcher for the Boost Communications API. Bjørn Ove got docs and
-  Perl implementation.
-D Make sure smsd removes pids and exits properly if HUP'ed or killed.
-D General dispatcher class to inherit from
-D A DispatcherError Exception so we can try-and-fail dispatchers
-D Config file for dispatcher options
-D Support multiple dispatchers
-D Fix all FIXMEs
-D Write README and/or INSTALL

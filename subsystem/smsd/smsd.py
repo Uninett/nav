@@ -55,6 +55,7 @@ import sys
 import time
 
 import nav.config
+import nav.daemon
 import nav.path
 import nav.smsd.navdbqueue
 from nav.smsd.dispatcher import DispatcherError
@@ -115,7 +116,7 @@ def main(args):
             opttest = val
 
     # Switch user to navcron
-    switchuser(username)
+    nav.daemon.switchuser(username)
 
     # Ignore unsent messages
     if optcancel:
@@ -141,10 +142,10 @@ def main(args):
         sys.exit(0)
 
     # Check if already running
-    justme(pidfile)
+    nav.daemon.justme(pidfile)
 
     # Daemonize
-    daemonize(pidfile)
+    nav.daemon.daemonize(pidfile)
 
     # Initialize queue
     # Note: If we're initalizing a queue with a DB connection before
@@ -285,215 +286,6 @@ def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
     logger = logging.getLogger(logname)
     logger.setLevel(1) # Let all info through to the root node
     return logger
-
-def switchuser(username):
-    """
-    Switch user the process is running as to given username, normally 'navcron'.
-
-    Will only work if we are running as root.
-
-    Pseudo code:
-    If navcron user exists
-        Change user to navcron
-        Change groups to navcron's groups
-        If failed
-            Die "unable to change uid/gids"
-    Else
-        Error
-    """
-
-    olduid = os.getuid()
-    oldgid = os.getgid()
-
-    try:
-        name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
-    except KeyError, error:
-        logger.warning("User %s not found. Running as root! (%s)",
-         username, error)
-    else:
-        if olduid != uid:
-            try:
-                # Set primary group
-                os.setgid(gid)
-
-                # Set non-primary groups
-                gids = []
-                for (name, passwd, gid, members) in grp.getgrall():
-                    if username in members:
-                        gids.append(gid)
-                if len(gids) > 0:
-                    os.setgroups(gids)
-
-                # Set user id
-                os.setuid(uid)
-            except OSError, error:
-                logger.exception("Failed changing uid/gid from %d/%d to %d/%d. \
-                 (%s)", olduid, oldgid, uid, gid, error)
-                sys.exit(error.errno)
-            else:
-                logger.info("uid/gid changed from %d/%d to %d/%d.",
-                 olduid, oldgid, uid, gid)
-        else:
-            logger.debug("Running as uid/gid %d/%d.", olduid, oldgid)
-
-def usage():
-    """Print a usage screen to stderr."""
-    print >> sys.stderr, __doc__
-
-def setdelay(sec):
-    """Set delay (in seconds) between queue checks."""
-    global delay
-    if sec.isdigit():
-        sec = int(sec)
-        delay = sec
-        logger.info("Setting delay to %d seconds.", sec)
-        return True
-    else:
-        logger.warning("Given delay not a digit. Using default.")
-        return False
-
-
-### DAEMON FUNCTIONS
-
-def justme(pidfile):
-    """
-    Check if already running.
-
-    Pseudo code:
-    If pid file
-        If corrupt pid file
-            Die with error (which is caught by e.g. startstop.py)
-        Get pid from file
-        Send SIGNAL 0 to proccess with $pid
-        If alive
-            Bail out and die nicely
-    Else
-        Do nothing (in other words, the startup process continues)
-    """
-
-    if os.access(pidfile, os.R_OK):
-        fd = file(pidfile, 'r')
-        pid = fd.readline()
-        fd.close()
-
-        if pid.strip().isdigit():
-            pid = int(pid) 
-        else:
-            logger.error("Can't read pid from pid file %s. Bailing out.",
-             pidfile)
-            sys.exit(1)
-
-        try:
-            os.kill(pid, 0) # Sending signal 0 to check if process is alive
-        except OSError, error:
-            # Normally this means "No such process", and thus we're alone
-            return True
-        else:
-            # We assume the process lives and bails out
-            logger.error("%s already running (pid %d), bailing out.",
-             sys.argv[0], pid)
-            sys.exit(1)
-    else:
-        # No pidfile, assume we're alone
-        return True
-
-def daemonize(pidfile, stdout = '/dev/null', stderr = None,
- stdin = '/dev/null'):
-    """
-    Move the process to the background as a daemon and write the pid of the
-    daemon to the pidfile.
-
-    Inspired by http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
-    """
-
-    # NOTE: When we require Python 2.4, replace '/dev/null' with
-    # os.path.devnull in the default argument values above
-
-    # Do first fork
-    # (allow shell to return, and permit us to call setsid())
-    try:
-        pid = os.fork()
-        if pid > 0:
-            # We're the first parent. Exit!
-            logger.debug("First parent exiting. Second has pid %d.", pid)
-            sys.exit(0)
-    except OSError, error:
-        logger.exception("Fork #1 failed. Exiting. (%s)", error)
-        sys.exit(error.errno)
-
-    # Decouple from parent environment
-    os.chdir('/') # In case the dir we started in are removed
-    os.umask(0)
-    os.setsid()
-
-    # Do second fork
-    # (prevent us from accidentally reacquiring a controlling terminal)
-    try:
-        pid = os.fork()
-        if pid > 0:
-            # We're the second parent. Exit!
-            logger.debug("Second parent exiting. Daemon has pid %d.", pid)
-            sys.exit(0)
-    except OSError, error:
-        logger.exception("Fork #2 failed. Exiting. (%s)", error)
-        sys.exit(error.errno)
-
-    # Now only the child is left :-)
-
-    # Open file descriptors
-    if not stderr:
-        stderr = stdout
-    si = file(stdin, 'r')
-    so = file(stdout, 'a+')
-    se = file(stderr, 'a+', 0)
-    pid = os.getpid()
-    logger.debug("Daemon started with pid %d.", pid)
-
-    # Write pidfile
-    try:
-        fd = file(pidfile, 'w+')
-    except IOError, error:
-        logger.exception("Cannot open pidfile %s for writing. Exiting. (%s)",
-         pidfile, error)
-        sys.exit(error.errno)
-    fd.write("%d\n" % pid)
-    fd.close()
-
-    # Set cleanup function to be run at exit so pidfile always is removed
-    atexit.register(daemonexit, pidfile)
-    
-    # Close newfds before dup2-ing them
-    sys.stdout.flush()
-    sys.stderr.flush()
-    os.close(sys.stdin.fileno())
-    os.close(sys.stdout.fileno())
-    os.close(sys.stderr.fileno())
-
-    # Redirect standard file descriptors
-    os.dup2(si.fileno(), sys.stdin.fileno())
-    os.dup2(so.fileno(), sys.stdout.fileno())
-    os.dup2(se.fileno(), sys.stderr.fileno())
-
-    return True
-
-def daemonexit(pidfile):
-    """
-    Clean up after daemon process.
-
-    Pseudo code:
-    If pidfile
-        Remove pidfile
-    """
-
-    logger.info("Daemon is exiting. Cleaning up...")
-    try:
-        os.remove(pidfile)
-    except Exception, error:
-        logger.exception("Can't remove pidfile. Exiting. (%s)", error)
-        # This will not start a loop, even if we're exiting from an exitfunc
-        sys.exit(error.errno)
-    logger.info("pidfile (%s) removed.", pidfile)
-
 
 ### BEGIN
 if __name__ == '__main__':
