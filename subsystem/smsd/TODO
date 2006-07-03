@@ -3,7 +3,6 @@ $Id$
 
 - Write unit tests
 - Write unit tests that are ment to fail and trig the exceptions
-- Write README and/or INSTALL
 
 DONE
 D Create dispatcher for the Boost Communications API. Bjørn Ove got docs and
@@ -14,3 +13,4 @@ D A DispatcherError Exception so we can try-and-fail dispatchers
 D Config file for dispatcher options
 D Support multiple dispatchers
 D Fix all FIXMEs
+D Write README and/or INSTALL
