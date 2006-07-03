@@ -41,12 +41,12 @@ __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
 import atexit
-import ConfigParser # parts requires Python >= 2.3
+import ConfigParser # parts require Python >= 2.3
 import email
 import grp
 import getopt
-import logging # requires Python >= 2.3
-import logging.handlers # requires Python >= 2.3
+import logging # require Python >= 2.3
+import logging.handlers # require Python >= 2.3
 import os
 import pwd
 import smtplib
@@ -62,31 +62,36 @@ from nav.smsd.dispatcher import DispatcherError
 # Dispatchers are imported later according to config
 
 
-### VARIABLES
+### PATHS
 
-delay = 30 # Change at run-time with --delay
-username = 'navcron'
-
-# Config
 configfile = nav.path.sysconfdir + '/smsd.conf'
-
-# Logging
-logfile = nav.path.localstatedir + '/log/smsd.py.log'
-loglevel = logging.DEBUG
-mailwarnlevel = logging.ERROR
-mailserver = 'localhost'
-mailaddr = nav.config.readConfig('nav.conf')['ADMIN_MAIL']
-mailaddr = 'stein.magnus@jodal.no' # for devel
-
-# Daemonizing
-pidfile = nav.path.localstatedir + '/run/smsd.py.pid'
+logfile = nav.path.localstatedir + '/log/smsd.log'
+pidfile = nav.path.localstatedir + '/run/smsd.pid'
 
 
 ### MAIN FUNCTION
 
 def main(args):
+    # Set config defaults
+    defaults = {
+        'username': 'navcron',
+        'delay': '30',
+        'loglevel': 'INFO',
+        'mailwarnlevel': 'ERROR',
+        'mailserver': 'localhost',
+        'mailaddr': nav.config.readConfig('nav.conf')['ADMIN_MAIL']
+    }
+
     # Read config file
-    config = getconfig()
+    config = getconfig(defaults)
+
+    # Set variables
+    username = config['main']['username']
+    delay = config['main']['delay']
+    loglevel = eval('logging.' + config['main']['loglevel'])
+    mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
+    mailserver = config['main']['mailserver']
+    mailaddr = config['main']['mailaddr']
 
     # Initialize logger
     global logger
@@ -197,25 +202,22 @@ def main(args):
 
 ### INIT FUNCTIONS
 
-def getconfig(section = None, defaults = None):
+def getconfig(defaults = None):
     """
-    Read whole config or a config section from file.
+    Read whole config from file.
     
-    section can be omitted to get whole config. Defaults are passed on to
-    configparser before reading config.
+    Arguments:
+        ``defaults'' are passed on to configparser before reading config.
     
-    For the whole config, it returns a list of tuples with section names and
-    dicts with the sections' content. For a section it only returns the dict.
+    Returns:
+        Returns a dict, with sections names as keys and a dict for each
+        section as values.
     """
 
     config = ConfigParser.SafeConfigParser(defaults)
     config.read(configfile)
 
-    if section:
-        sections = section
-    else:
-        sections = config.sections()
-
+    sections = config.sections()
     configdict = {}
 
     for section in sections:
@@ -287,6 +289,8 @@ def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
     logger.setLevel(1) # Let all info through to the root node
     return logger
 
+
 ### BEGIN
 if __name__ == '__main__':
     main(sys.argv[1:])
+
