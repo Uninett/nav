@@ -87,7 +87,7 @@ def main(args):
 
     # Set variables
     username = config['main']['username']
-    delay = config['main']['delay']
+    delay = int(config['main']['delay'])
     loglevel = eval('logging.' + config['main']['loglevel'])
     mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']

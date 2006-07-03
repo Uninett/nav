@@ -53,17 +53,17 @@ class DispatcherHandler(object):
 
         # Get config
         try:
-            self.dispatcherretry = config['main']['dispatcherretry']
+            self.dispatcherretry = config['dispatcher']['dispatcherretry']
         except KeyError, error:
             self.dispatcherretry = 300 # 5 min
             self.logger.debug("Dispatcher retry time not set, using default.")
 
         # Get dispatchers
         self.dispatchers = []
-        for pri in range(len(config['main']) + 1):
+        for pri in range(len(config['dispatcher']) + 1):
             key = 'dispatcher' + str(pri)
-            if key in config['main']:
-                dispatcher = config['main'][key]
+            if key in config['dispatcher']:
+                dispatcher = config['dispatcher'][key]
                 self.logger.debug("Init dispatcher %d: %s", pri, dispatcher)
 
                 # Import dispatcher module
