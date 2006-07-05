@@ -61,6 +61,7 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 
 	public void moduleTranslate(String from, String to) {
 		moduleTranslation.put(from, to);
+		Log.d("ModuleHandler", "MODULE-TRANSLATE", "Translating module '" + from + "' to '" + to + "'");
 		// Rename module
 		int f = Integer.parseInt(from);
 		for (Iterator it = moduleList.iterator(); it.hasNext();) {
@@ -101,13 +102,16 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * Return a Module object which is used to describe a single module.
 	 */
 	public Module moduleFactory(int module) {
+		Log.d("ModuleHandler", "MODULE-FACTORY", "Asked to create module " + module);
 		module = translateModule(module);
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
 			m = (Module)moduleList.get(k);
+			Log.d("ModuleHandler", "MODULE-FACTORY", "Got existing module " + module + " (" + m +")");
 		} else {
 			addModule(m);
+			Log.d("ModuleHandler", "MODULE-FACTORY", "Created module " + module + " (" + m +")");
 		}
 		return m;
 	}
@@ -118,13 +122,16 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * module already exists.
 	 */
 	public Module moduleFactory(String serial, String hw_ver, String fw_ver, String sw_ver, int module) {
+		Log.d("ModuleHandler", "MODULE-FACTORY", "Asked to create module " + module + " with serial=" + serial);
 		module = translateModule(module);
 		Module m = new Module(serial, hw_ver, fw_ver, sw_ver, module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
 			m = (Module)moduleList.get(k);
+			Log.d("ModuleHandler", "MODULE-FACTORY", "Got existing module " + module + " (" + m +")");
 		} else {
 			addModule(m);
+			Log.d("ModuleHandler", "MODULE-FACTORY", "Created module " + module + " (" + m +")");
 		}
 		return m;
 	}

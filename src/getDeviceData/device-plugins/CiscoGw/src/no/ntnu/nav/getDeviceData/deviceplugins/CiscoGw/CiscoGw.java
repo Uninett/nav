@@ -394,6 +394,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 						for (int i=0; i < s.length; i++) if (s[i] != null) s[i] = s[i].trim();
 
 						// Try to recognize NTNU description
+						// FIXME!!!! Nettype should be core when descr starts with stam or core
 						if (descr.startsWith("lan") || descr.startsWith("stam") || descr.startsWith("core")) {
 							nettype = "lan";
 							orgid = s[1];

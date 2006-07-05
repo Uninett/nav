@@ -26,14 +26,20 @@
 
 package no.ntnu.nav.netboxinfo;
 
-import java.util.*;
-import java.io.*;
-import java.text.*;
-import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.logger.*;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p> This class supports the storage of string values in a variable

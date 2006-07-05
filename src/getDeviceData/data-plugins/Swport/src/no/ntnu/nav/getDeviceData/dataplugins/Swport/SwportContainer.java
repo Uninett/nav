@@ -5,6 +5,7 @@ import java.util.*;
 import no.ntnu.nav.getDeviceData.dataplugins.*;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p>
@@ -123,13 +124,16 @@ public class SwportContainer extends ModuleContainer implements DataContainer {
 	 * Return an SwModule object which is used to describe one switch module.
 	 */
 	public SwModule swModuleFactory(int module) {
+		Log.d("SwPortHandler", "SWMODULE-FACTORY", "Asked to create module " + module);
 		module = translateModule(module);
 		SwModule m = new SwModule(module, this);
 		int k;
 		if ( (k=swModuleList.indexOf(m)) >= 0) {
 			m = (SwModule)swModuleList.get(k);
+			Log.d("SwPortHandler", "SWMODULE-FACTORY", "Got existing module " + module + " (" + m +")");
 		} else {
 			addSwModule(m);
+			Log.d("SwPortHandler", "SWMODULE-FACTORY", "Created module " + module + " (" + m +")");
 		}
 		return m;
 	}

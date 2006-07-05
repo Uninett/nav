@@ -116,6 +116,7 @@ public class CiscoSwCAT implements DeviceHandler
 			HashMap ifModule = new HashMap();
 			l = sSnmp.getAll(nb.getOid("ifName"), true);
 			if (l != null) {
+				Log.d("PROCESS_CAT", "portIfIndex reported " + o.size() + " ports, ifName reported " + l.size() + " ports");
 				// Count number of modules
 				Set moduleCntSet = new HashSet();
 				for (Iterator it = l.iterator(); it.hasNext();) {
@@ -128,6 +129,7 @@ public class CiscoSwCAT implements DeviceHandler
 						moduleCntSet.add(m.group(3));
 					}
 				}
+				Log.d("PROCESS_CAT", "Port name matching suggests " + moduleCntSet.size() + " modules");
 
 				for (Iterator it = l.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();

@@ -24,7 +24,7 @@ public class SwModule extends Module implements Comparable
 		super(serial, hwVer, fwVer, swVer, module);
 		this.sc = sc;
 	}
-
+	
 	public void setSerial(String s) {
 		super.setSerial(s);
 	}

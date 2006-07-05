@@ -1,13 +1,9 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Netbox;
 
-import java.util.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.logger.*;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataHandler;
+import no.ntnu.nav.getDeviceData.dataplugins.NetboxUpdatable;
 import no.ntnu.nav.getDeviceData.dataplugins.Device.DeviceContainer;
 
 /**

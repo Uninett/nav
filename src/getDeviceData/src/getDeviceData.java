@@ -24,22 +24,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-import java.io.*;
-import java.util.*;
-import java.util.jar.*;
-import java.net.*;
-import java.text.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
 
-import java.sql.*;
-
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
 import no.ntnu.nav.Path;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.logger.Log;
 
 /**
  * getDeviceData is the central SNMP data collection daemon in NAV.
@@ -53,7 +50,7 @@ import no.ntnu.nav.Path;
 // SELECT DISTINCT typeid FROM swport JOIN boks USING(boksid) WHERE swport.static='t';
 
 
-// For å slette alle swportvlan records dette scriptet fyller inn
+// For ï¿½ slette alle swportvlan records dette scriptet fyller inn
 // DELETE FROM swportvlan WHERE swportid IN (SELECT swportid FROM swport JOIN boks USING(boksid) NATURAL JOIN type WHERE watch='f' AND (typegruppe LIKE '3%' OR typegruppe IN ('catmeny-sw', 'cat1900-sw')))
 
 class getDeviceData

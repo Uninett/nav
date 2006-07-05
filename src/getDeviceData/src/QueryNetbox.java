@@ -1,20 +1,33 @@
-import java.io.*;
-import java.util.*;
-import java.util.jar.*;
-import java.net.*;
-import java.text.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 
-import java.sql.*;
-
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.event.*;
-import no.ntnu.nav.netboxinfo.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
+import no.ntnu.nav.event.Event;
+import no.ntnu.nav.event.EventQ;
+import no.ntnu.nav.event.EventQListener;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataHandler;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.netboxinfo.NetboxInfo;
 
 /**
  * This class schedules the netboxes, assigns them to threads and runs

@@ -1,11 +1,15 @@
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.Map;
 
-import no.ntnu.nav.event.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
 import no.ntnu.nav.Path;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.event.Event;
+import no.ntnu.nav.event.EventQ;
+import no.ntnu.nav.event.EventQListener;
 
 /**
  * Tests the EventQ class.
@@ -29,7 +33,7 @@ class testEventQ implements EventQListener {
 		}
 
 		EventQ.init(100);
-		Thread.currentThread().sleep(1000);
+		Thread.sleep(1000);
 		EventQ.init(1000, false);
 
 		// Set up a listener

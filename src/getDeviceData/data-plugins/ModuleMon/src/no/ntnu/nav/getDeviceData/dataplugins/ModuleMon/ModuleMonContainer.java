@@ -1,13 +1,21 @@
 package no.ntnu.nav.getDeviceData.dataplugins.ModuleMon;
 
-import java.util.*;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.Database.Database;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataHandler;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p>

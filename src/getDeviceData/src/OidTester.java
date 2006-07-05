@@ -1,14 +1,23 @@
-import java.util.*;
-import java.util.regex.*;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.util.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.SimpleSnmp.*;
-
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.HashMultiMap;
+import no.ntnu.nav.util.MultiMap;
 
 /**
  * This class tests netboxes for OID compatibility.
@@ -132,9 +141,9 @@ public class OidTester
 						e.printStackTrace(System.err);
 					}
 						
-					if (t.getCsAtVlan() == t.CS_AT_VLAN_UNKNOWN) {
+					if (t.getCsAtVlan() == Type.CS_AT_VLAN_UNKNOWN) {
 						if ("3com".equals(t.getVendor())) {
-							t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
+							t.setCsAtVlan(Type.CS_AT_VLAN_FALSE);
 						} else {
 							// Do test
 							try {
@@ -143,11 +152,11 @@ public class OidTester
 								sSnmp.getNext("1", 1, false, true);
 								
 								// OK, supported
-								t.setCsAtVlan(t.CS_AT_VLAN_TRUE);
+								t.setCsAtVlan(Type.CS_AT_VLAN_TRUE);
 								
 							} catch (Exception e) {
 								// Not supported
-								t.setCsAtVlan(t.CS_AT_VLAN_FALSE);
+								t.setCsAtVlan(Type.CS_AT_VLAN_FALSE);
 								Log.d("OID_TESTER", "CS_AT_VLAN", "Type " + t + ", Exception " + e);
 							}
 							sSnmp.setDefaultTimeoutLimit();
@@ -166,7 +175,7 @@ public class OidTester
 				} else {
 					tmp.put("atVlan", atVlan = new ArrayList());
 					atVlan.add("");
-					if (t.getCsAtVlan() == t.CS_AT_VLAN_TRUE) {
+					if (t.getCsAtVlan() == Type.CS_AT_VLAN_TRUE) {
 						sSnmp.setTimeoutLimit(1);
 
 						// Try to find the vlan of the netbox's IP

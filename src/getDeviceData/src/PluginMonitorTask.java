@@ -1,18 +1,19 @@
-import java.io.*;
-import java.util.*;
-import java.util.jar.*;
-import java.net.*;
-import java.text.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
-import java.sql.*;
-
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
+import no.ntnu.nav.logger.Log;
 
 /**
  * Loads plugins from disk.

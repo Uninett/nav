@@ -35,6 +35,11 @@ package no.ntnu.nav.SimpleSnmp;
 
 public class TimeoutException extends RuntimeException
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public TimeoutException(String s)
 	{
 		super(s);

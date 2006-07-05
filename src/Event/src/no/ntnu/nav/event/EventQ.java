@@ -26,14 +26,17 @@
 
 package no.ntnu.nav.event;
 
-import java.util.*;
-import java.io.*;
-import java.text.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.logger.*;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p> Class for working with the event queue. </p>

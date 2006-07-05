@@ -1,18 +1,29 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoModule;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
-import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.ModuleMonContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.NetboxContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.NetboxData;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.MultiMap;
+import no.ntnu.nav.util.util;
 
 /**
  * <p>
@@ -214,7 +225,7 @@ public class CiscoModule implements DeviceHandler
 			for (Iterator it = catModModel.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
 				String module = (String)me.getKey();
-				if (DEBUG) err("Created module " + module + " from catModModel");
+				Log.d("CATMOD_OID", "Created module " + module + " from catModModel");
 				mc.moduleFactory(module).setModel((String)me.getValue());
 			}
 		}
@@ -276,7 +287,7 @@ public class CiscoModule implements DeviceHandler
 					System.err.println("Error, module is not a number: " + module);
 					e.printStackTrace(System.err);
 				}
-				if (DEBUG) err("Created module " + module + " from cCard");				
+				Log.d("CCARD_OID", "Created module " + module + " from cCard");
 				Module m = mc.moduleFactory(module);
 				
 				if (cardDescr != null && m.getDescr() == null) m.setDescr((String)cardDescr.get(cardIndex));
@@ -327,6 +338,7 @@ public class CiscoModule implements DeviceHandler
 											int newModule = Integer.parseInt(portif);
 											modTrans.put(""+(module/1000), ""+newModule);
 										} catch (NumberFormatException exp) {
+											Log.e("CMOD_PHYSOID", "The module number '" + portif + "' is not a valid integer (" + nb.getSysname() + ")");
 										}
 									}
 								}
@@ -338,7 +350,7 @@ public class CiscoModule implements DeviceHandler
 			}
 		}
 
-		if (DEBUG) err("modTrans: " + modTrans);
+		Log.d("MODTRANS", "" + modTrans);
 
 		// cL3*
 		{
@@ -347,7 +359,7 @@ public class CiscoModule implements DeviceHandler
 				for (Iterator it = valid.iterator(); it.hasNext();) {
 					String module = (String)it.next();
 					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
-					if (DEBUG) err("Created module " + nModule + " from cL3: " + cl3Serial.get(module+"000"));				
+					Log.d("CL3_OID", "Created module " + nModule + " from cL3: " + cl3Serial.get(module+"000"));				
 					mc.moduleFactory(nModule).setSerial((String)cl3Serial.get(module+"000"));
 				}
 			}
@@ -446,10 +458,9 @@ public class CiscoModule implements DeviceHandler
 				if (mc.getModule(module) == null && !modTrans.containsKey(""+module)) {
 					// Not allowed to create module
 					Log.w("CMOD_PHYSOID", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
-					if (DEBUG) err("Did not create module " + module + " from Phys");				
 					continue;
 				}
-				if (DEBUG) err("Created module " + module + " from Phys: " + physSerial.get(id));
+				Log.d("CMOD_PHYSOID", "Created module " + module + " from Phys: " + physSerial.get(id));
 				Module m = mc.moduleFactory(module);
 
 				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));
@@ -498,10 +509,6 @@ public class CiscoModule implements DeviceHandler
 			return false;
 		}
 		return true;
-	}
-
-	private static void err(String s) {
-		System.err.println(s);
 	}
 
 }

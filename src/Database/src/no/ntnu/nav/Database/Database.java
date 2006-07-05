@@ -32,10 +32,15 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.net.SocketException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import no.ntnu.nav.logger.Log;
 
@@ -779,7 +784,7 @@ public class Database
 
 					while (!db.verifyConnection()) {
 						try {
-							Thread.currentThread().sleep(DEFAULT_RECONNECT_WAIT_TIME);
+							Thread.sleep(DEFAULT_RECONNECT_WAIT_TIME);
 							//System.out.println("Done sleeping, reconnect..");
 							db.reconnect();
 						} catch (InterruptedException ie) {
@@ -1029,7 +1034,7 @@ public class Database
 
 					while (!db.verifyConnection()) {
 						try {
-							Thread.currentThread().sleep(DEFAULT_RECONNECT_WAIT_TIME);
+							Thread.sleep(DEFAULT_RECONNECT_WAIT_TIME);
 							//System.out.println("Done sleeping, reconnect..");
 							db.reconnect();
 						} catch (InterruptedException ie) {

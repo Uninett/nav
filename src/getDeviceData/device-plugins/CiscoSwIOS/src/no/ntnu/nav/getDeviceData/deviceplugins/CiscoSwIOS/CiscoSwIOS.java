@@ -107,33 +107,13 @@ public class CiscoSwIOS implements DeviceHandler
 
 		List l;
 
-		//String stackOid = "1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1";//?
-
-		String ifIndexOid = ".1.3.6.1.2.1.2.2.1.1";
-		String ifSpeedOid = ".1.3.6.1.2.1.2.2.1.5";
-		String ifAdmStatusOid = ".1.3.6.1.2.1.2.2.1.7";
-		String ifOperStatusOid = ".1.3.6.1.2.1.2.2.1.8";
-		//String ifPortOid = ".1.3.6.1.2.1.31.1.1.1.1";
-
-		//String serialOid = ".1.3.6.1.4.1.9.5.1.3.1.1.26";
-		//String hwOid = ".1.3.6.1.4.1.9.5.1.3.1.1.18";
-		//String swOid = ".1.3.6.1.4.1.9.5.1.3.1.1.20";
-
-		//String portIfOid = ".1.3.6.1.4.1.9.5.1.4.1.1.11";
-		String ifPortOid = ".1.3.6.1.2.1.2.2.1.2";
-		String ifDuplexOid = ".1.3.6.1.4.1.9.9.87.1.4.1.1.32.0";
-		//String portTypeOid = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.2";
-		String portNameOid = ".1.3.6.1.4.1.9.2.2.1.1.28";
-		String ifTrunkOid = ".1.3.6.1.4.1.9.9.87.1.4.1.1.6.0";
-		String vlanHexOid = ".1.3.6.1.4.1.9.9.46.1.6.1.1.4";
-		String vlanOid = ".1.3.6.1.4.1.9.9.68.1.2.2.1.2";
-
 		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
 
 		// Check which interfaces match our pattern
 		Set matchIfindex = new HashSet();
 		Set moduleCntSet = new HashSet();
 		if (l != null) {
+			Log.d("PROCESS_IOS", "ifDescr reported " + l.size() + " ports");
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 			
@@ -147,6 +127,7 @@ public class CiscoSwIOS implements DeviceHandler
 					moduleCntSet.add(m.group(3));
 				}
 			}
+			Log.d("PROCESS_IOS", "Port name matching suggests " + moduleCntSet.size() + " modules");
 		}
 		if (matchIfindex.isEmpty()) return;
 

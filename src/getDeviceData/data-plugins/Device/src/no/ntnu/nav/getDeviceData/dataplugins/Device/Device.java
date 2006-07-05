@@ -65,7 +65,7 @@ public class Device implements Comparable
 	public String getFwVer() { return fw_ver; }
 	public String getSwVer() { return sw_ver; }
 
-	boolean getIgnore() { return ignore; }
+	public boolean getIgnore() { return ignore; }
 
 	private boolean isValidSerial(String serial) {
 		if (serial == null || serial.length() == 0) return false;

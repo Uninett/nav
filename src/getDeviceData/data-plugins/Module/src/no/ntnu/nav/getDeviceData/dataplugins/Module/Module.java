@@ -1,9 +1,5 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Module;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import no.ntnu.nav.getDeviceData.dataplugins.Device.Device;
 
 /**

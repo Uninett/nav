@@ -4,12 +4,18 @@
  * </p>
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.DataHandler;
+import no.ntnu.nav.logger.Log;
 
 
 public class DataContainersImpl implements DataContainers {
