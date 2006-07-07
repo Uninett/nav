@@ -21,7 +21,7 @@
 #
 
 """
-Help functions for daemonizing a process.
+Help functions for daemonizing a process
 
 The normal usage sequence for the functions is:
     1. switchuser(username)
@@ -34,6 +34,8 @@ The normal usage sequence for the functions is:
     4. daemonexit(pidfile)
         Clean up and delete the pidfile
 
+All exceptions raised subclasses DaemonError.
+
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
@@ -42,12 +44,79 @@ __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id: daemon.py 3494 2006-07-03 09:12:11Z jodal $"
 
 import atexit
+import grp
 import logging # Requires Python >= 2.3
 import os
 import pwd
 import sys
 
 logger = logging.getLogger('nav.daemon')
+
+class DaemonError(Exception):
+    """Base class for all exceptions raised by nav.daemon."""
+    pass
+
+class UserNotFoundError(DaemonError):
+    """Raised if requested user is not found and we have to run as root."""
+
+    def __init__(self, username):
+        self.username = username
+
+    def __str__(self):
+        return "User (%s) not found, can't switch process user." \
+         % self.username
+
+class SwitchUserError(DaemonError):
+    """Raised if user switch failes, e.g. we don't have enough permissions."""
+
+    def __init__(self, olduid, oldgid, newuid, newgid):
+        self.olduid = olduid
+        self.oldgid = oldgid
+        self.newuid = newuid
+        self.newgid = newgid
+
+    def __str__(self):
+        return "Failed to switch uid/gid from %d/%d to %d/%d." \
+         % (self.olduid, self.oldgid, self.newuid, self.newgid)
+
+class AlreadyRunningError(DaemonError):
+    """Raised if the daemon is alrady running."""
+
+    def __init__(self, pid):
+        self.pid = pid
+
+    def __str__(self):
+        return "Daemon is already running with pid %d." % self.pid
+
+class PidFileReadError(DaemonError):
+    """Raised if we can't read a numeric pid from the pidfile."""
+
+    def __init__(self, pidfile):
+        self.pidfile = pidfile
+
+    def __str__(self):
+        return "Can't read pid from pidfile (%s)." % self.pidfile
+
+class PidFileWriteError(DaemonError):
+    """Raised if we can't write the pid to the pidfile."""
+
+    def __init__(self, pidfile, error):
+        self.pidfile = pidfile
+        self.error = error
+
+    def __str__(self):
+        return "Can't write pid to or remove pidfile (%s). (%s)" \
+         % (self.pidfile, self.error)
+
+class ForkError(DaemonError):
+    """Raised if a fork fails."""
+
+    def __init__(self, forkno, error):
+        self.forkno = forkno
+        self.error = error
+
+    def __str__(self):
+        return "Failed fork #%d. (%s)" % (self.forkno, self.error)
 
 def switchuser(username):
     """
@@ -60,9 +129,9 @@ def switchuser(username):
 
     Returns/raises:
         If switch is a success, returns True.
-        If user is unknown and we're still running as root, returns False.
-        If failing to switch, exits program.
-        FIXME: Raise exceptions instead of exiting
+        If user is unknown and we're still running as root, raises
+        UserNotFoundError.
+        If failing to switch, raises SwitchUserError.
 
     """
 
@@ -74,9 +143,7 @@ def switchuser(username):
         # Try to get information about the given username
         name, passwd, uid, gid, gecos, dir, shell = pwd.getpwnam(username)
     except KeyError, error:
-        logger.warning("User %s not found. Running as root! (%s)",
-         username, error)
-        return False
+        raise UserNotFoundError(username)
     else:
         if olduid != uid:
             try:
@@ -93,13 +160,14 @@ def switchuser(username):
 
                 # Set user id
                 os.setuid(uid)
-            except OSError, error:
-                logger.exception("Failed changing uid/gid from %d/%d to %d/%d. \
-                 (%s)", olduid, oldgid, uid, gid, error)
-                sys.exit(error.errno)
+            except OSError:
+                # Failed changing uid/gid
+                logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
+                 olduid, oldgid, uid, gid)
+                raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
                 # Switch successfull
-                logger.info("uid/gid changed from %d/%d to %d/%d.",
+                logger.debug("uid/gid changed from %d/%d to %d/%d.",
                  olduid, oldgid, uid, gid)
                 return True
         else:
@@ -116,8 +184,9 @@ def justme(pidfile):
         ``pidfile'' is the path to the process' pidfile.
 
     Returns/raises:
-        If success returns True, else exits program with exitvalue 1.
-        FIXME: Should raise exceptions instead.
+        If we're alone, returns True.
+        If pidfile is unreadable, raises PidFileUnreadableError
+        If daemon is already running, raises AlreadyRunningError.
 
     """
 
@@ -131,9 +200,8 @@ def justme(pidfile):
         if pid.isdigit():
             pid = int(pid) 
         else:
-            logger.error("Can't read pid from pid file %s. Bailing out.",
-             pidfile)
-            sys.exit(1)
+            logger.debug("Can't read pid from pid file %s.", pidfile)
+            raise PidFileReadError(pidfile)
 
         try:
             # Sending signal 0 to check if process is alive
@@ -143,9 +211,9 @@ def justme(pidfile):
             return True
         else:
             # We assume the process lives and bails out
-            logger.error("%s already running (pid %d), bailing out.",
+            logger.debug("%s already running with pid %d.",
              sys.argv[0], pid)
-            sys.exit(1)
+            raise AlreadyRunningError(pid)
     else:
         # No pidfile, assume we're alone
         return True
@@ -167,9 +235,9 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
         ``stdin'' is where to redirect stdin. Defaults to /dev/null.
 
     Returns/raises:
-        If success returns True, else exits program with exitvalue of the
-        preceding error.
-        FIXME: Should raise exceptions instead.
+        If success, returns True.
+        If fork fails, raises ForkError.
+        If writing of pidfile fails, raises PidFileWriteError.
 
     """
 
@@ -185,8 +253,8 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
             logger.debug("First parent exiting. Second has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.exception("Fork #1 failed. Exiting. (%s)", error)
-        sys.exit(error.errno)
+        logger.debug("Fork #1 failed. (%s)", error)
+        raise ForkError(1, error)
 
     # Decouple from parent environment
     os.chdir('/') # In case the dir we started in are removed
@@ -202,8 +270,8 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
             logger.debug("Second parent exiting. Daemon has pid %d.", pid)
             sys.exit(0)
     except OSError, error:
-        logger.exception("Fork #2 failed. Exiting. (%s)", error)
-        sys.exit(error.errno)
+        logger.exception("Fork #2 failed. (%s)", error)
+        raise ForkError(2, error)
 
     # Now only the child is left :-)
 
@@ -220,9 +288,10 @@ def daemonize(pidfile, stdout = '/dev/null', stderr = None,
     try:
         fd = file(pidfile, 'w+')
     except IOError, error:
-        logger.exception("Cannot open pidfile %s for writing. Exiting. (%s)",
+        logger.debug("Cannot open pidfile %s for writing. Exiting. (%s)",
          pidfile, error)
-        sys.exit(error.errno)
+        raise PidFileWriteError(pidfile, error)
+
     fd.write("%d\n" % pid)
     fd.close()
 
@@ -253,19 +322,19 @@ def daemonexit(pidfile):
         ``pidfile'' is the path to the process' pidfile.
 
     Returns/raises:
-        FIXME
+        If success, returns True.
+        If removal of pidfile fails, raises PidFileWriteError.
 
     """
 
-    logger.info("Daemon is exiting. Cleaning up...")
+    logger.debug("Daemon is exiting. Cleaning up...")
 
     try:
         os.remove(pidfile)
     except Exception, error:
-        logger.exception("Can't remove pidfile. Exiting. (%s)", error)
-        # This is tested to not start an infinite loop, even if we're exiting
-        # from an exitfunc
-        sys.exit(error.errno)
+        logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
+        raise PidFileWriteError(pidfile, error)
 
-    logger.info("pidfile (%s) removed.", pidfile)
+    logger.debug("pidfile (%s) removed.", pidfile)
     return True
+
