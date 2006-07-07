@@ -24,8 +24,8 @@ various modules in nav.smsd and the well documented source code.
 What message queues are available?
 ==================================
 At this point only the NAVDBQueue is available, as this is all that is needed
-to use the SMS daemon in a NAV setup. The queue is allthough separated so it
-shouldn't require a large rewrite to use the SMS daemon in a totally different
+to use the SMS daemon in a NAV setup. The queue is although separated so it
+should not require a large rewrite to use the SMS daemon in a totally different
 setup than NAV.
 
 What dispatchers are available?
@@ -44,7 +44,7 @@ Pros:
 	Works as long as the mobile carrier is up and running, independent of
 	your own network.
 Cons:
-	You'll need a dedicated mobile phone.
+	You will need a dedicated mobile phone.
 
 BoostDispatcher
 ---------------
@@ -57,7 +57,7 @@ Depends:
 	Contact http://www.boostcom.no/ to setup a contract for their External
 	Sender product.
 Pros:
-	Doesn't need a dedicated mobile phone.
+	Does not need a dedicated mobile phone.
 Cons:
 	Depends on a working network connection between you and Boost
 	Communcations.
@@ -74,9 +74,9 @@ Depends:
 Pros:
 	No extra setup cost to get the daemon sending SMS messages.
 Cons:
-	Only works if you're UNINETT or you've implemented a similar
-	mail-to-SMS gateway. If you have you're own mail-to-SMS gateway, take
-	contact, and we'll find a way to generalize this into a MailDispatcher.
+	Only works for UNINETT or if you have implemented a similar mail-to-SMS
+	gateway. If you have your own mail-to-SMS gateway, take contact, and we
+	will find a way to generalize this into a MailDispatcher.
 
 
 -- Stein Magnus Jodal <stein.magnus@jodal.no>, 2006-07-03
