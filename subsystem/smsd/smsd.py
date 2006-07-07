@@ -43,7 +43,6 @@ __id__ = "$Id$"
 import atexit
 import ConfigParser # parts require Python >= 2.3
 import email
-import grp
 import getopt
 import logging # require Python >= 2.3
 import logging.handlers # require Python >= 2.3
@@ -72,6 +71,28 @@ pidfile = nav.path.localstatedir + '/run/smsd.pid'
 ### MAIN FUNCTION
 
 def main(args):
+    # Get command line arguments
+    optcancel = False
+    optdelay = False
+    opttest = False
+    try:
+        opts, args = getopt.getopt(args, 'hcd:t:',
+         ['help', 'cancel', 'delay=', 'test='])
+    except getopt.GetoptError, error:
+        print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
+         (error, sys.argv[0])
+        sys.exit(1)
+    for opt, val in opts:
+        if opt in ('-h', '--help'):
+            usage()
+            sys.exit(0)
+        if opt in ('-c', '--cancel'):
+            optcancel = True
+        if opt in ('-d', '--delay'):
+            optdelay = val
+        if opt in ('-t', '--test'):
+            opttest = val
+
     # Set config defaults
     defaults = {
         'username': 'navcron',
@@ -95,33 +116,13 @@ def main(args):
 
     # Initialize logger
     global logger
-    logger = loginit('nav.smsd', logfile, loglevel, mailaddr, mailserver,
-     mailwarnlevel)
-    logger.info("-- smsd started --")
+    logger = logging.getLogger('nav.smsd')
+    logger.setLevel(1) # Let all info through to the root node
+    loginitstderr(loglevel)
 
-    # Get command line arguments
-    optcancel = False
-    opttest = False
-    try:
-        opts, args = getopt.getopt(args, 'hcd:t:',
-         ['help', 'cancel', 'delay=', 'test='])
-    except getopt.GetoptError, error:
-        print >> sys.stderr, "%s\nTry `%s --help' for more information." % \
-         (error, sys.argv[0])
-        sys.exit(1)
-    for opt, val in opts:
-        if opt in ('-h', '--help'):
-            usage()
-            sys.exit(0)
-        if opt in ('-c', '--cancel'):
-            optcancel = True
-        if opt in ('-d', '--delay'):
-            setdelay(val)
-        if opt in ('-t', '--test'):
-            opttest = val
-
-    # Switch user to navcron
-    nav.daemon.switchuser(username)
+    # Set custom loop delay
+    if opttest:
+        setdelay(val)
 
     # Ignore unsent messages
     if optcancel:
@@ -146,14 +147,37 @@ def main(args):
         logger.info("SMS sent. Dispatcher returned reference %d.", smsid)
         sys.exit(0)
 
+    # Switch user to navcron (only works if we're root)
+    try:
+        nav.daemon.switchuser(username)
+    except nav.daemon.DaemonError, error:
+        logger.error("%s Run as root or %s to enter daemon mode. " \
+         + "Try `%s --help' for more information.",
+         error, username, sys.argv[0])
+        sys.exit(1)
+
+    # Init daemon loggers
+    if not loginitfile(loglevel, logfile):
+        sys.exit(1)
+    if not loginitsmtp(mailwarnlevel, mailaddr, mailserver):
+        sys.exit(1)
+
     # Check if already running
-    nav.daemon.justme(pidfile)
+    try:
+        nav.daemon.justme(pidfile)
+    except nav.daemon.DaemonError, error:
+        logger.error(error)
+        sys.exit(1)
 
     # Daemonize
-    nav.daemon.daemonize(pidfile)
+    try:
+        nav.daemon.daemonize(pidfile)
+    except nav.daemon.DaemonError, error:
+        logger.error(error)
+        sys.exit(1)
 
     # Initialize queue
-    # Note: If we're initalizing a queue with a DB connection before
+    # NOTE: If we're initalizing a queue with a DB connection before
     # daemonizing we've experienced that the daemon dies silently upon trying
     # to use the DB connection after becoming a daemon
     queue = nav.smsd.navdbqueue.NAVDBQueue()
@@ -229,66 +253,82 @@ def getconfig(defaults = None):
 
     return configdict
 
-def loginit(logname, logfile, loglevel, mailaddr, mailserver, mailwarnlevel):
-    """
-    Initalize the logging engine.
-
-    Logs are delivered to three channels: logfile, stderr and mail.
-    The two first are always tried when importance >= loglevel, while mail is
-    always sent when importance >= mailwarnlevel.
-    """
-
-    fileformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
-    stderrformat = '%(levelname)s %(message)s'
-    mailformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+def loginitfile(loglevel, logfile):
+    """Initalize the logging handler for logfile."""
 
     try:
         filehandler = logging.FileHandler(logfile, 'a')
+        fileformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+        fileformatter = logging.Formatter(fileformat)
+        filehandler.setFormatter(fileformatter)
+        filehandler.setLevel(loglevel)
+        logger = logging.getLogger()
+        logger.addHandler(filehandler)
+        return True
     except IOError, error:
         print >> sys.stderr, \
-         "Failed creating file loghandler. Exiting. (%s)" % error
-        sys.exit(error.errno)
-    fileformatter = logging.Formatter(fileformat)
-    filehandler.setFormatter(fileformatter)
-    filehandler.setLevel(loglevel)
-    
+         "Failed creating file loghandler. Daemon mode disabled. (%s)" \
+         % error
+        return False
+
+def loginitstderr(loglevel):
+    """Initalize the logging handler for stderr."""
+
     try:
         stderrhandler = logging.StreamHandler(sys.stderr)
+        stderrformat = '%(levelname)s %(message)s'
+        stderrformatter = logging.Formatter(stderrformat)
+        stderrhandler.setFormatter(stderrformatter)
+        stderrhandler.setLevel(loglevel)
+        logger = logging.getLogger()
+        logger.addHandler(stderrhandler)
+        return True
     except IOError, error:
         print >> sys.stderr, \
-         "Failed creating stderr loghandler. Exiting. (%s)" % error
-        sys.exit(error.errno)
-    stderrformatter = logging.Formatter(stderrformat)
-    stderrhandler.setFormatter(stderrformatter)
-    stderrhandler.setLevel(loglevel)
+         "Failed creating stderr loghandler. Daemon mode disabled. (%s)" \
+         % error
+        return False
 
-    # localuser will be root if smsd was started as root, since switchuser() is
-    # first called at a later time
-    localuser = pwd.getpwuid(os.getuid())[0]
-    hostname = socket.gethostname()
-    fromaddr = localuser + '@' + hostname
+def loginitsmtp(loglevel, mailaddr, mailserver):
+    """Initalize the logging handler for SMTP."""
+
     try:
+        # localuser will be root if smsd was started as root, since
+        # switchuser() is first called at a later time
+        localuser = pwd.getpwuid(os.getuid())[0]
+        hostname = socket.gethostname()
+        fromaddr = localuser + '@' + hostname
+
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
          mailaddr, 'NAV smsd warning from ' + hostname)
+        mailformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+        mailformatter = logging.Formatter(mailformat)
+        mailhandler.setFormatter(mailformatter)
+        mailhandler.setLevel(loglevel)
+        logger = logging.getLogger()
+        logger.addHandler(mailhandler)
+        return True
     except Exception, error:
         print >> sys.stderr, \
-         "Failed creating SMTP loghandler. Exiting. (%s)" % error
-        sys.exit(error.errno)
-    mailformatter = logging.Formatter(mailformat)
-    mailhandler.setFormatter(mailformatter)
-    mailhandler.setLevel(mailwarnlevel)
+         "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" \
+         % error
+        return False
 
-    # Configure the root logger
-    logger = logging.getLogger()
-    logger.addHandler(filehandler)
-    logger.addHandler(stderrhandler)
-    logger.addHandler(mailhandler)
+def usage():
+    """Print a usage screen to stderr."""
+    print >> sys.stderr, __doc__
 
-    # Return the $logname logger for our own logging
-    logger = logging.getLogger(logname)
-    logger.setLevel(1) # Let all info through to the root node
-    return logger
-
+def setdelay(sec):
+    """Set delay (in seconds) between queue checks."""
+    global delay
+    if sec.isdigit():
+        sec = int(sec)
+        delay = sec
+        logger.info("Setting delay to %d seconds.", sec)
+        return True
+    else:
+        logger.warning("Given delay not a digit. Using default.")
+        return False
 
 ### BEGIN
 if __name__ == '__main__':
