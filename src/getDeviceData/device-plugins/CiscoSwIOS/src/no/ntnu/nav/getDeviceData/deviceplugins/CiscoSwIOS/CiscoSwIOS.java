@@ -1,17 +1,30 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwIOS;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.util.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwModule;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.Swport;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.HashMultiMap;
+import no.ntnu.nav.util.MultiMap;
+import no.ntnu.nav.util.util;
 
 /**
  * <p>
@@ -45,7 +58,7 @@ public class CiscoSwIOS implements DeviceHandler
 			"ifPortName",
 	};
 
-	private SimpleSnmp sSnmp;
+	SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
 		int v = nb.isSupportedOids(canHandleOids) ? ALWAYS_HANDLE : NEVER_HANDLE;
@@ -94,17 +107,15 @@ public class CiscoSwIOS implements DeviceHandler
 		//String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		processIOS(nb, netboxid, ip, cs_ro, type, mc, sc);
+		processIOS(nb, mc, sc);
 
 		// Commit data
 		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
-
-	private void processIOS(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, ModuleContainer mc, SwportContainer sc) throws TimeoutException
+	
+	void processIOS(Netbox nb, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
-		typeid = typeid.toLowerCase();
-
 		List l;
 
 		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
@@ -124,7 +135,8 @@ public class CiscoSwIOS implements DeviceHandler
 					matchIfindex.add(s[0]);
 					Matcher m = Pattern.compile(modulePattern).matcher(portif);
 					m.matches();
-					moduleCntSet.add(m.group(3));
+					String submodule = m.group(3);
+					moduleCntSet.add(submodule);
 				}
 			}
 			Log.d("PROCESS_IOS", "Port name matching suggests " + moduleCntSet.size() + " modules");
@@ -244,7 +256,7 @@ public class CiscoSwIOS implements DeviceHandler
 				try{
 					vlan = Integer.parseInt(s[1]);
 				} catch	 (NumberFormatException e) {
-					Log.w("PROCESS_IOS", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
+					Log.w("PROCESS_IOS", "netboxid: " + nb.getNetboxid() + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
 				}
 				sc.swportFactory(ifindex).setVlan(vlan);
 			}
@@ -284,7 +296,6 @@ public class CiscoSwIOS implements DeviceHandler
 
 	private String composeModuleName(int module, Set names) {
 		Set ls = new HashSet(names);
-		String n = "";
 		String pat = "([a-zA-z]+)Ethernet(\\d+)";
 		List nl = new ArrayList();
 		boolean eth  = false;
@@ -298,6 +309,7 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 		Collections.sort(nl);
+		String n = "";
 		for (Iterator it = nl.iterator(); it.hasNext();) {
 			n += it.next();
 		}

@@ -1,18 +1,33 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoGw;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwModule;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Gwport;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwportContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Prefix;
+import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Vlan;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.MultiMap;
+import no.ntnu.nav.util.util;
 
 /**
  * <p>
@@ -138,19 +153,19 @@ A) For hver ruter (kat=GW eller kat=GSW)
 	 Lag gwport record dersom
 
             a) * ifindex ligger i adresseromhash.
-                 (Her er har vi altså ip adresserom)
+                 (Her er har vi altsÃ¥ ip adresserom)
                OG   
                * interf NOT like 'EOBC%' AND interf <> 'Vlan0'
-                 (EOBC kommer med fra 6509 native, de ønsker vi ikke)  
+                 (EOBC kommer med fra 6509 native, de Ã¸nsker vi ikke)  
          ELLER
             b) interfacet er et masterinterface med subinterface
                under seg. Se 3.2b) for indikasjon.
 
            
    3.2   SETT MASTERINDEX
-         (Masterindex er kun et hjelpemiddel for å fortelle cricket
+         (Masterindex er kun et hjelpemiddel for Ã¥ fortelle cricket
          at den skal hente last fra masterinterface dersom det
-         ikke er octet-telling på subinterfacet)              
+         ikke er octet-telling pÃ¥ subinterfacet)              
 
          For en opprettet gwport, sett gwport.masterindex dersom:
 
@@ -158,13 +173,13 @@ A) For hver ruter (kat=GW eller kat=GSW)
          OG 
             b) ifdescr indikerer subinterface
 
-         Indikasjon på subinterface sees ved å splitte ut det
-         før punktum og se om man har funnet et annet interf.
+         Indikasjon pÃ¥ subinterface sees ved Ã¥ splitte ut det
+         fÃ¸r punktum og se om man har funnet et annet interf.
          F.eks:  GigabitEthernet1/0/1.9 er subinterface under
                  GigabitEthernet1/0/1 
 
    3.3   LAG PREFIKS RECORD
-   Lag prefiksrecord når:
+   Lag prefiksrecord nÃ¥r:
             a) ny gwport lages 
          OG 
             b) denne har ip adresserom
@@ -173,12 +188,12 @@ A) For hver ruter (kat=GW eller kat=GSW)
             c) prefikset ikke allerede er opprettet
                (sett uansett gwport.prefiksid)
 
-    3.4 SETT VLAN-verdi i prefiks - første forsøk
+    3.4 SETT VLAN-verdi i prefiks - fÃ¸rste forsÃ¸k
 
-        Sett prefiks.vlan basert på ruterdata om mulig:
+        Sett prefiks.vlan basert pÃ¥ ruterdata om mulig:
          
         a) Dersom gwport.interf = 'Vlanx' 
-           (vi har et virtuelt interface på en RSM/MSFC)
+           (vi har et virtuelt interface pÃ¥ en RSM/MSFC)
           => sett prefiks.vlan = x
 
         b) Dersom gwport.interf inneholder '.' (punktum)
@@ -189,7 +204,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
    3.5  TOLK DESCRIPTION
         Hent description-felt-streng fra ruterport (ifalias) 
         
-        3.5.1 Dersom konvensjon er forsøkt fulgt dvs at man
+        3.5.1 Dersom konvensjon er forsÃ¸kt fulgt dvs at man
               gjenkjenner nettype=(lan,link,elink,stam,tun):
 
               a) Sett det man klarer i prefiksrecord av:
@@ -202,7 +217,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
                  Dersom orgid,anvid ikke kan settes 
                  => warning til NAVlogg.
 
-            b) SETT VLAN - andre forsøk
+            b) SETT VLAN - andre forsÃ¸k
                * Dersom prefiks.vlan ikke er satt 
                OG 
                * Dersom vlan er angitt i description 5. felt, 
@@ -217,10 +232,10 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 4) LAG GWPORTER FOR EVT HSRP-ADRESSER
    Sjekk om det finnes hsrp-adresser for ruteren
-   * Dersom det finnes hsrp-adresser så lages det gwport for disse
+   * Dersom det finnes hsrp-adresser sÃ¥ lages det gwport for disse
      - Her settes gwport.hsrp=true.
      - gwport.prefiksid knytter seg til aktuelle prefiks
-       (som skal være opprettet)
+       (som skal vÃ¦re opprettet)
 		*/
 		// Check for standard OID support
 		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
@@ -286,7 +301,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					   link,$tilruter[,$kommentar,$vlan] 
 					Hvis $netttype = 'elink': 
 					   elink,$tilruter,$tilorg[,$kommentar,$vlan] 
-					$netttype = 'loopback' utgår, ingen description her.
+					$netttype = 'loopback' utgÃ¥r, ingen description her.
 			*/
 
 			Map ifAliasMap = sSnmp.getAllMap(nb.getOid("ifAlias"), true);

@@ -1,21 +1,32 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.MibIISw;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.util.*;
-import no.ntnu.nav.event.*;
-import no.ntnu.nav.netboxinfo.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
+import no.ntnu.nav.event.Event;
+import no.ntnu.nav.event.EventQ;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
-import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.ModuleMon.ModuleMonContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.NetboxContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.NetboxData;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.Swport;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.netboxinfo.NetboxInfo;
 
 /**
  * <p>
@@ -328,6 +339,7 @@ public class MibIISw implements DeviceHandler
 					} else {
 						speedNum = Long.parseLong(s[1]) / 1000000;
 					}
+					// XXX: Ports with ifSpeed=0 do not have any concept of bandwidth, and will most likely not be a physical port or be able to carry any traffic (according to RFC 2233).  We ignore them here. 
 					if (speedNum <= 0) {
 						skipIfindexSet.add(s[0]);
 						sc.ignoreSwport(s[0]);

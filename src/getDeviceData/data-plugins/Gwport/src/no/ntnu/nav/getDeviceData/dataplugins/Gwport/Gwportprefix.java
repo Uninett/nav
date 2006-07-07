@@ -1,9 +1,5 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import java.util.*;
-
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.util.*;
 
 /**
  * Contain Gwportprefix data

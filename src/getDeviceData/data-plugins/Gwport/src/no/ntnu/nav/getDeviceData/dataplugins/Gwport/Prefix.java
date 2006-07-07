@@ -1,8 +1,9 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import java.util.*;
-
-import no.ntnu.nav.logger.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * Contain Prefix data

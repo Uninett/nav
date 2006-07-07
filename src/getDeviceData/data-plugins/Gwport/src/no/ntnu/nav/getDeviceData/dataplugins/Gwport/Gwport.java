@@ -1,8 +1,10 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import java.util.*;
-
-import no.ntnu.nav.logger.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Contain Gwport data

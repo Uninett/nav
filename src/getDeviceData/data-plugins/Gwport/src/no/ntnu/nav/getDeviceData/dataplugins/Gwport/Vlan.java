@@ -1,9 +1,7 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import no.ntnu.nav.logger.*;
-
-import java.util.ArrayList;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Contain Vlan data
