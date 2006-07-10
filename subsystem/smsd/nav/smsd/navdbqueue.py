@@ -125,7 +125,7 @@ class NAVDBQueue(object):
         db = dbconn.cursor()
 
         timesent = ''
-        if sent == 'Y':
+        if sent == 'Y' or sent == 'I':
             timesent = ', timesent = now()'
 
         sql = "UPDATE smsq SET sent = '%s', smsid = '%d'%s WHERE id = '%d'" \
