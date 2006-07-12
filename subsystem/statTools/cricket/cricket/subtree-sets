@@ -17,5 +17,5 @@ set normal:
 	/servers
 
 set giga:
-	/giga-router-interfaces
-	/giga-switch-ports
+	/router-interfaces-snmpv1-and-giga
+	/switch-ports-snmpv1-and-giga
