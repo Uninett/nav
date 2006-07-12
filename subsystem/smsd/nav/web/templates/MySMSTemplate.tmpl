@@ -24,11 +24,80 @@
 ##
 
 #extends MainTemplate
+#import datetime
 
-#attr $path = [("Home", "/"), ("User info", "/userinfo"), ("My SMS", "/mysms")]
+#attr $title = 'My SMS'
+#attr $path = [("Home", "/"), ("AlertProfiles", "/alertprofiles/"), ("My SMS",
+"")]
+
+#def add_message($message, $row)
+	<tr class="$row">
+		<td>$message['time'].strftime('%Y-%m-%d %H:%M:%S')</td>
+	#if $message['timesent']:
+		<td>$message['timesent'].strftime('%Y-%m-%d %H:%M:%S')</td>
+	#else
+		<td></td>
+	#end if
+		<td>$message['phone']</td>
+		<td>$message['msg']</td>
+		<td>$message['severity']</td>
+	#if $message['sent'] == 'Y':
+		<td style="color: green">Sent</td>
+	#else if $message['sent'] == 'N':
+		<td style="color: red">Not sent</td>
+	#else if $message['sent'] == 'I':
+		<td style="color: gray">Ignored</td>
+	#end if
+	</tr>
+#end def
 
 #block content
 
-<div>Hello world!</div>
+<h2>My SMS</h2>
+
+<form name="searchform" action="" method="get">
+	Show messages from the last
+	<input type="text" name="days" size="3" value="$days" />
+	days for the phone numbers: $phones.
+	<input type="submit" value="Search" />
+</form>
+
+
+<table id="results" width="100%" cellspacing="0" cellpadding="0" border="0">
+
+#set $rows = len($messages)
+	<caption>
+		<div class="cornerkludge"></div>
+		<div class="title">Message list</div>
+		<div class="subtitle">$rows messages</div>
+	</caption>
+
+#set $rows = len($messages) + 2
+	<tr class="header">
+		<td class="leftkludge" rowspan="$rows"></td>
+		<th>Time</th>
+		<th>Time Sent</th>
+		<th>Phone No.</th>
+		<th>Message</th>
+		<th>Severity</th>
+		<th>Status</th>
+		<td class="rightkludge" rowspan="$rows"></td>
+	</tr>
+
+#set $row = "oddrow"
+#for $message in $messages
+$add_message($message, $row)
+	#if $row == "evenrow"
+		#set $row = "oddrow"
+	#else
+		#set $row = "evenrow"
+	#end if
+#end for
+
+</table>
 
 #end block content
+
+#block additionalCSS
+$default_table_CSS
+#end block additionalCSS
