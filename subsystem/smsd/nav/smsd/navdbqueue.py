@@ -87,6 +87,9 @@ class NAVDBQueue(object):
             "ORDER BY phone"
         db.execute(sql)
         result = db.fetchall()
+        # Rollback so we don't have old open transactions which foobars the
+        # usage of now() in setsentstatus()
+        dbconn.rollback()
 
         # Create a simple list without the tuples
         for row in result:
@@ -111,6 +114,9 @@ class NAVDBQueue(object):
             "ORDER BY severity DESC, time ASC"
         db.execute(sql)
         result = db.fetchall()
+        # Rollback so we don't have old open transactions which foobars the
+        # usage of now() in setsentstatus()
+        dbconn.rollback()
 
         return result
 
