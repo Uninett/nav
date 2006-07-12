@@ -1,6 +1,7 @@
 ## $Id$
 ##
 ## Copyright 2003-2005 Norwegian University of Science and Technology
+## Copyright 2006 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -20,6 +21,7 @@
 ##
 ##
 ## Authors: Magnar Sveen <magnars@idi.ntnu.no>
+##          Stein Magnus Jodal <stein.magnus@jodal.no>
 ##
 
 ##
@@ -55,99 +57,93 @@
 ## defaults to "/images".
 ##
 
-#from nav.web import shouldShow
+#from nav.web import shouldShow, cycler
 
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
 #attr $title = ""
 #attr $path = False
 
-<html>
-  <head>
-    <meta HTTP-EQUIV="content-type" CONTENT="text/html; charset=UTF-8">
+#set global $rowcycler = cycler.cycler('evenrow', 'oddrow')
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 #def additionalMeta
 #end def additionalMeta
 $additionalMeta()
-    <title>
+
 #if $title
-      NAV - $title
+    #set $title = "NAV - " + $title
 #else
-      NAV
+    #set $title = "NAV"
 #end if
-    </title>
-    <style type="text/css">
+    <title>$title</title>
+
 #def standardCSS
-      BODY { 
-        font-family: verdana, arial, helvetica, sans-serif;
+    <link rel="stylesheet" type="text/css" href="/style/default.css" />
 #if $user.preferences.hidelogo
-        background-image:url('$imagefolder/main/background-fill-nologo.gif');
-#else
-        background-image:url('$imagefolder/main/background-fill.gif');
+    <link rel="stylesheet" type="text/css" href="/style/nologo.css" />
 #end if
-        background-repeat: repeat-x;
-        background-color: white; 
-      }
-
-      A.navbar         { color: #000000; text-decoration: none; font-size: 13; }
-      A.navbar:visited { color: #000000; text-decoration: none; }
-      A.navbar:hover   { color: #336699; text-decoration: none; }
-      A.navbar:active  { color: #4477AA; text-decoration: none; }
-
-      A         { color: #336699; text-decoration: none; }
-      A:visited { color: #336699; text-decoration: none; }
-      A:hover   { color: #000000; text-decoration: underline; }
-      A:active  { color: #6699CC; text-decoration: none; }
-
-      div#footer { clear: left; text-align: center; }
-      .copyright { font-size: x-small; color: #999999; }
 #end def standardCSS
 $standardCSS()
 
+#def default_table_CSS
+    <link rel="stylesheet" type="text/css" href="/style/table.css" />
+#end def default_table_CSS
+#def default_form_CSS
+    <link rel="stylesheet" type="text/css" href="/style/form.css" />
+#end def default_form_CSS
+#def default_tabs_CSS
+    <link rel="stylesheet" type="text/css" href="/style/tabs.css" />
+#end def default_tabs_CSS
+#def default_tabs_CSS2
+    <link rel="stylesheet" type="text/css" href="/style/tabs2.css" />
+#end def default_tabs_CSS2
 #def additionalCSS
 #end def additionalCSS
 $additionalCSS()
-    </style>
-    <script language="JavaScript" type="text/javascript">
-      <!-- begin
 
-      function jump(fe) {
-        var opt_key = fe.selectedIndex;
-        var uri_val = fe.options[opt_key].value;
-        if (uri_val) {
-          window.location = uri_val;
-        }
-        return false;
-      }
+    <script type="text/javascript" src="/js/default.js"></script>
 #def additionalJavaScript
 #end def additionalJavaScript
+<script type="text/javascript">
+<!--
 $additionalJavaScript()
-      // end -->
-    </script>
-  </head>
-  <body $bodyOnLoad>
+//-->
+</script>
+</head>
+
+<body $bodyOnLoad>
 #if $user.preferences.hidelogo
     <div style="position:absolute; left: 30px; top: 0px; width: 95%; margin: 0px; padding: 0px">
 #else
-    <div onClick="window.location='/';" style="cursor: hand; position:absolute; right:0px; top: 0px; width: 100%; height: 71; background-image:url('$imagefolder/main/navlogo+background.gif'); background-repeat: no-repeat; "></div>
+    <div style="position: absolute; left: 0px; top: 0px; max-width: 100%;"><a href="/"><img src="$imagefolder/main/navlogo+background.gif" alt="NAV" width="1600" height="71" /></a></div>
     <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
 #end if
-      <table cellspacing="0" cellpadding="0" border="0" width="100%">
+      <table style="border-collapse: collapse; padding: 0; width: 100%; vertical-align: top;">
         <tr>
 #set $separate = False
 #for $link in $user.preferences.navbar
 #if shouldShow($link.uri, $user)
   #if $separate
-          <td width="0%" valign="top"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+          <td style="vertical-align: top;"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
   #end if
-          <td width="0%" valign="top" style="padding: 1px 15px 0px 5px;" nowrap><a class="navbar" href="$link.uri">$link.name</a></td>
+          <td style="vertical-align: top; padding: 1px 15px 0px 5px; white-space: nowrap;"><a class="navbar" href="$link.uri">$link.name</a></td>
   #set $separate = True
 #end if
 #end for
 #if $user.preferences.qlink1
-          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-          <td width="0%" valign="top" style="background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
-          <select onChange="return jump(this);">
-            <option style="color: #669" selected> Quicklink #1 </option>
+          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+          <td style="vertical-align: top; background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
+          <select onchange="return jump(this);">
+            <option style="color: #669" selected="selected"> Quicklink #1 </option>
   #for $link in $user.preferences.qlink1
   #if shouldShow($link.uri, $user)
             <option value="$link.uri"> $link.name </option>
@@ -155,13 +151,13 @@ $additionalJavaScript()
   #end for
 	  </select>
           </td>
-          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
 #end if
 #if $user.preferences.qlink2
-          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-          <td width="0%" valign="top" style="background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
+          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+          <td style="vertical-align: top; background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
           <select onChange="return jump(this);">
-            <option style="color: #669" selected> Quicklink #2 </option>
+            <option style="color: #669" selected="selected"> Quicklink #2 </option>
   #for $link in $user.preferences.qlink2
   #if shouldShow($link.uri, $user)
             <option value="$link.uri"> $link.name </option>
@@ -169,13 +165,13 @@ $additionalJavaScript()
   #end for
 	  </select>
           </td>
-          <td width="0%" valign="top"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
 #end if
-          <td width="100%" valign="top" align="right"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+          <td style="width: 100%; vertical-align: top; text-align: right;"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
 #if $user.id > 0
-          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/logout">Logout&nbsp;$user.login</a></td>
+          <td style="vertical-align: top; padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/logout">Logout&nbsp;$user.login</a></td>
 #else
-          <td width="0%" valign="top" style="padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/login">Login</a></td>
+          <td style="vertical-align: top; padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/login">Login</a></td>
 #end if          
       </tr>
     </table>
@@ -189,10 +185,10 @@ $additionalJavaScript()
 #end if
 #if $path
 #set $separate = False
-<font color=#999999>Current path: </font>
+<span style="color: #999999;">Current path: </span>
 #for $step in $path
 #if $separate
->
+&gt;
 #end if
 #if $step[1]
     <a href="$step[1]">$step[0]</a>
@@ -214,186 +210,27 @@ $additionalJavaScript()
 $showPath(True)
 
 #if $user.preferences.hidelogo
-  <img src="$imagefolder/blank.gif" height="19" alt="" /><br/>
+  <div><img src="$imagefolder/blank.gif" height="19" alt="" /></div>
 #else
-  <img src="$imagefolder/blank.gif" height="104" alt="" /><br/>
+  <div><img src="$imagefolder/blank.gif" height="104" alt="" /></div>
 #end if
 
 #def content
-  <br/><center>
-  <font size="2" color="#666">This space intentionally left blank.</font>
-<br>$user.name<br>$user.id
-  </center>
+    <h2>This space intentionally left blank</h2>
+    <p>$user.name / $user.id</p>
 #end def content
 $content()
 
-<div id="footer">
-<hr noshade size="1" color="#cccccc">
-<p class="copyright">
+<div id="footer"><hr /><p class="copyright">
 <a href="http://metanav.ntnu.no/">Network Administration Visualized</a> 
-- Created by <a href="http://www.ntnu.no/indexe.php">NTNU</a><br>
+- Created by <a href="http://www.ntnu.no/indexe.php">NTNU</a><br />
 #if $user.id == 0
 You are not logged in.
 #else
 You are logged in as <a href="/index/userinfo">$user.name</a>.
 #end if
-</p>
-</div>
+</p></div>
 
-  </body>
+</body>
 </html>
 
-#def default_table_CSS
-      DIV.title     { font-size: 15;
-                      font-weight: bold;
-                      text-align: center;
-                      padding: 0px 0px 0px 0px; }
-      TR.navigation { font-size: 11; }
-      TD.previous   { text-align: right; }
-      TD.current    { text-align: center; }
-      TD.next       { text-align: left; }
-      TH.header,
-      TD.header,
-      TR.header     { background-color: white;
-                      background-image:url('$imagefolder/ragen/navbar-fill.gif');
-                      background-repeat: repeat-x;
-                      height: 26px;
-                      padding: 1px 0px 0px 0px;
-                      font-size: 13; }
-      TR.footer     { font-size: 13; font-weight: bold; background-color: white; }
-      TR.evenrow    { font-size: 11; background-color: #eeeeee; }
-      TR.oddrow     { font-size: 11; }
-#end def default_table_CSS
-
-#def default_form_CSS
-      table.header-active   { border: 1px solid #666; background-image:url('$imagefolder/form/fill-active.gif');   background-color:#ccf; font-size: 13px; }
-      table.header-inactive { border: 1px solid #666; background-image:url('$imagefolder/form/fill-inactive.gif'); background-color:#eee; font-size: 13px; }
-      table.header-disabled { border: 1px solid #666; background-image:url('$imagefolder/form/fill-inactive.gif'); background-color:#eee; font-size: 13px; }
-      table.header-submit   { border: 1px solid #666; background-image:url('$imagefolder/form/fill-submit.gif');   background-color:#ddf; font-size: 13px; }
-      table.header-white    { border: 1px solid #666;                                                              background-color:#fff; font-size: 13px; }
-      td.header-active      { border: 1px solid #69c; background-image:url('$imagefolder/form/fill-active.gif');   text-align: center; }
-      td.header-inactive    { border: 1px solid #bcd; background-image:url('$imagefolder/form/fill-inactive.gif'); text-align: center; }
-      td.header-disabled    { border: 1px solid #ccc; background-image:url('$imagefolder/form/fill-inactive.gif'); text-align: center; color: #999}
-      td.header-submit      { border: 1px solid #9cf; background-image:url('$imagefolder/form/fill-submit.gif');   text-align: center; }
-      td.header-white       { border: 1px solid #ccc;                                                              text-align: center; }
-#end def default_form_CSS
-
-#def default_tabs_CSS
-#tabs {
-    float:left;
-    width:100%;
-    font-size:11px;
-    line-height:normal;
-    }
-
-  #tabs ul {
-    margin:0;
-    padding:1px 0px 0;
-    list-style:none;
-    }
-
-  #tabs li {
-    float:left;
-    background:url("$imagefolder/tabs/blue-r.png") no-repeat right top;
-    margin:0;
-    padding:0;
-    white-space:nowrap;
-    }
-
-  #tabs a {
-    display:block;
-    background:url("$imagefolder/tabs/blue-l.png") no-repeat left top;
-    padding:5px 14px 4px;
-    text-decoration:none;
-    color:#369;
-    border-bottom: 1px solid black;
-    float:left;
-    }
-
-/* Commented Backslash Hack hides rule from IE5-Mac \*/
-  #header a {float:none;}
-/* End IE5-Mac hack */
-
-  #tabs a:hover {
-    color:black;
-  }
-
-  #tabs #current {
-    background-image:url("$imagefolder/tabs/white-r.png");
-    }
-
-  #tabs #current a {
-    background-image:url("$imagefolder/tabs/white-l.png");
-    color:black;
-    padding-bottom: 5px;
-    border-bottom: none;
-    }
-
-  #tabs #same {
-    background-image:url("$imagefolder/tabs/yellow-r.png");
-    }
-
-  #tabs #same a {
-    background-image:url("$imagefolder/tabs/yellow-l.png");
-    color:#663;
-    }
-
-  #tabs #same a:hover {
-    color:black;
-  }
-
-#end def default_tabs_CSS
-
-#def default_tabs_CSS2
-
-  div.tabs {
-    border: 1px solid black; 
-    margin: 33px 0px; 
-    padding: 0px 19px;
-  }
-
-  ul.tabs {
-    float:left;
-    width:100%;
-    font-size:11px;
-    line-height:normal;
-
-    margin: -24px -10px;
-    padding:1px 0px 0;
-    list-style:none;
-  }
-
-  ul.tabs li {
-    float:left;
-    background:url("$imagefolder/tabs/yellow-r.png") no-repeat right top;
-    margin:0;
-    padding:0;
-    white-space:nowrap;
-  }
-
-  ul.tabs a {
-    display:block;
-    background:url("$imagefolder/tabs/yellow-l.png") no-repeat left top;
-    padding:5px 14px 4px;
-    text-decoration:none;
-    color:#663;
-    border-bottom: 1px solid black;
-    float:left;
-  }
-
-  ul.tabs a:hover {
-    color:black;
-  }
-
-  ul.tabs li.current {
-    background-image:url("$imagefolder/tabs/white-r.png");
-  }
-
-  ul.tabs li.current a {
-    background-image:url("$imagefolder/tabs/white-l.png");
-    color:black;
-    padding-bottom: 5px;
-    border-bottom: none;
-  }
-
-#end def default_tabs_CSS2

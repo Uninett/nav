@@ -43,18 +43,17 @@ install-bin:
 
 install-web: install-images
 	@cd src; \
-	installable=`find . -name '*.py'; find . -name '.htaccess'; find . -name '*.html'`; \
+	installable=`find . -name '*.py' -or -name '.htaccess' -or -name '*.html' -or -name '*.css' -or -name '*.js'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
 	for file in $(tools); do \
 	  $(INSTALL) -D -v -m 644 $$file $(DESTDIR)$(tooldir)/$$file || exit 1; \
 	done
-	$(INSTALL) -v -m 644 src/.htaccess $(DESTDIR)$(webroot)/.htaccess
 
 install-images:
 	@cd graphics; \
-	installable=`find . -type f -and -not \( -iregex '.*\.svn.*' -or -name '*~' \)`; \
+	installable=`find . -name '.htaccess' -or -name '*.png' -or -name '*.gif'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done

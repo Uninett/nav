@@ -1,0 +1,86 @@
+/* Default stylesheet for NAV
+ *
+ * Copyright 2003-2005 Norwegian University of Science and Technology
+ * Copyright 2006 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * Authors: Magnar Sveen <magnars@idi.ntnu.no>
+ *          Stein Magnus Jodal <stein.magnus@jodal.no>
+ */
+
+#tabs {
+	float: left;
+	width: 100%;
+	font-size: 11px;
+	line-height: normal;
+}
+
+#tabs ul {
+	margin: 0;
+	padding: 1px 0px 0;
+	list-style: none;
+}
+
+#tabs li {
+	float: left;
+	background-image: url("/images/tabs/blue-r.png");
+	background-repeat: no-repeat;
+	background-position: right top;
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+#tabs a {
+	display: block;
+	background-image: url("/images/tabs/blue-l.png");
+	background-repeat: no-repeat;
+	background-position: left top;
+	padding: 5px 14px 4px;
+	text-decoration: none;
+	color: #369;
+	border-bottom: 1px solid black;
+	float: left;
+}
+
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#header a { float: none; }
+/* End IE5-Mac hack */
+
+#tabs a:hover {
+	color: black;
+}
+#tabs #current {
+	background-image: url("/images/tabs/white-r.png");
+}
+#tabs #current a {
+	background-image: url("/images/tabs/white-l.png");
+	color: black;
+	padding-bottom: 5px;
+	border-bottom: none;
+}
+#tabs #same {
+	background-image: url("/images/tabs/yellow-r.png");
+}
+#tabs #same a {
+	background-image: url("/images/tabs/yellow-l.png");
+	color: #663;
+}
+#tabs #same a:hover {
+	color: black;
+}

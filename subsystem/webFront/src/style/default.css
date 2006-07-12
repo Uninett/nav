@@ -1,0 +1,92 @@
+/* Default stylesheet for NAV
+ *
+ * Copyright 2003-2005 Norwegian University of Science and Technology
+ * Copyright 2006 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * Authors: Magnar Sveen <magnars@idi.ntnu.no>
+ *          Stein Magnus Jodal <stein.magnus@jodal.no>
+ */
+
+body { 
+	background-image: url('/images/main/background-fill.gif');
+	background-repeat: repeat-x;
+	background-color: white; 
+	color: black;
+	font-family: verdana, arial, helvetica, sans-serif;
+}
+
+h1, h2 {
+	font-family: Verdana, Arial, Helvetica, Sans-serif;
+	font-weight: normal;
+}
+
+a.navbar {
+	color: black;
+	font-size: 13px;
+	text-decoration: none;
+}
+
+a.navbar:visited {
+	color: black;
+	text-decoration: none;
+}
+a.navbar:hover {
+	color: #369;
+	text-decoration: none;
+}
+a.navbar:active {
+	color: #47A;
+	text-decoration: none;
+}
+
+a {
+	color: #369;
+	text-decoration: none;
+}
+a:visited {
+	color: #369;
+	text-decoration: none;
+}
+a:hover {
+	color: black;
+	text-decoration: underline;
+}
+a:active {
+	color: #69C;
+	text-decoration: none;
+}
+
+a img {
+	border: 0;
+}
+
+div#footer {
+	clear: left;
+	text-align: center;
+}
+div#footer hr {
+	background-color: #ccc;
+	border: 0;
+	height: 1px;
+}
+div#footer .copyright {
+	color: #999;
+	font-size: x-small;
+}
+
