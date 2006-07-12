@@ -383,6 +383,11 @@ $meny->newOption(gettext("Profiles"), "profil", session_get('action'), 1, array(
 $meny->newOption(gettext("Filter groups"), "utstyr", session_get('action'), 1, array('modules/equipment-group-private.php') );
 $meny->newOption(gettext("Filters"), "filter", session_get('action'), 1, array('modules/equipment-filter-private.php') );
 
+if (access_sms(session_get('bruker'))) {
+	// Just creating a simple link, as the menu class isn't usable for
+	// linking to other subsystems.
+	print '<a href="/mysms/">' . gettext("My SMS") . "</a><br>\n";
+}
 
 echo "<hr><p>";
 $meny->newOption(gettext("My permissions"), "account-info", session_get('action'), 1, array('modules/account-info.php') );
