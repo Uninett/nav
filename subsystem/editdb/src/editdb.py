@@ -1989,9 +1989,9 @@ class pageNetbox(editdbPage):
                                       ('Type',True,None),
                                       ('Serial',True,None)]
 
-            subcatTooltip = [['SELECT netboxid,' + \
-                             'netboxcategory.category FROM netbox ' + \
-                             'WHERE netboxcategory.netboxid=netboxid',
+            subcatTooltip = [['SELECT n.netboxid,' + \
+                             'nc.category FROM netbox n, netboxcategory nc' + \
+                             'WHERE nc.netboxid=n.netboxid',
                              ('Subcategories:','{$1}'),None],
                              ['SELECT netboxid,val FROM netboxinfo ' + \
                              'WHERE var=\'function\'',
