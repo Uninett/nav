@@ -38,6 +38,7 @@ def handler(req):
     page.title = "Preferences"
     page.content = lambda:file(frontFile).read()
     page.additionalCSS = lambda:"""
+    <style type="text/css">
     td.name {
        padding: 3px 10px 6px 10px;
        vertical-align: top;
@@ -50,6 +51,7 @@ def handler(req):
        padding: 3px 10px 6px 10px;
        border: 1px solid #ccc;
     }
+    </style>
     """
     req.write(page.respond())
     return apache.OK

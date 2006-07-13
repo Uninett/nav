@@ -26,11 +26,11 @@
 
 ##
 ## Every other template extends this one. It contains the header-information,
-## NAV-logo and navigation-bar. It also contains default_table_CSS and
-## default_form_CSS.
+## NAV-logo and navigation-bar.
 ##
 ## The content-block should be replaced by all templates. CSS or JavaScript
-## can be added by replacing the additionalCSS or additionalJavaScript blocks.
+## can be added by replacing the additionalCSS or additionalJavaScript blocks
+## with a <link> tag refering to the new stylesheet or script file.
 ##
 ## To use without making a separate template, do this:
 ##
@@ -38,7 +38,8 @@
 ##   page = MainTemplate()
 ##   page.content = lambda: "<h1>Foo</h1>Bar"
 ##
-## The navbar is built according to the users preferences, with data in this form:
+## The navbar is built according to the users preferences, with data in this
+## form:
 ##
 ## $user
 ##   +-- preferences
@@ -121,103 +122,93 @@ $additionalJavaScript()
 </head>
 
 <body $bodyOnLoad>
-#if $user.preferences.hidelogo
-    <div style="position:absolute; left: 30px; top: 0px; width: 95%; margin: 0px; padding: 0px">
-#else
-    <div style="position: absolute; left: 0px; top: 0px; max-width: 100%;"><a href="/"><img src="$imagefolder/main/navlogo+background.gif" alt="NAV" width="1600" height="71" /></a></div>
-    <div style="position:absolute; left: 30px; top: 71px; width: 95%; margin: 0px; padding: 0px">
+
+<div id="header">
+
+#if not $user.preferences.hidelogo
+<div id="navlogo" onclick="document.location='/';"><!-- kludgy ;-) --></div>
 #end if
-      <table style="border-collapse: collapse; padding: 0; width: 100%; vertical-align: top;">
-        <tr>
+
+<div id="navbar">
+<table>
+    <tr>
 #set $separate = False
 #for $link in $user.preferences.navbar
 #if shouldShow($link.uri, $user)
   #if $separate
-          <td style="vertical-align: top;"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+        <td><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
   #end if
-          <td style="vertical-align: top; padding: 1px 15px 0px 5px; white-space: nowrap;"><a class="navbar" href="$link.uri">$link.name</a></td>
+        <td class="entry"><a class="navbar" href="$link.uri">$link.name</a></td>
   #set $separate = True
 #end if
 #end for
 #if $user.preferences.qlink1
-          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-          <td style="vertical-align: top; background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
-          <select onchange="return jump(this);">
-            <option style="color: #669" selected="selected"> Quicklink #1 </option>
+        <td><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+        <td class="list">
+            <select onchange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #1 </option>
   #for $link in $user.preferences.qlink1
   #if shouldShow($link.uri, $user)
-            <option value="$link.uri"> $link.name </option>
+                <option value="$link.uri"> $link.name </option>
   #end if
   #end for
-	  </select>
-          </td>
-          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+            </select>
+        </td>
+        <td><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
 #end if
 #if $user.preferences.qlink2
-          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
-          <td style="vertical-align: top; background-image:url('$imagefolder/main/quicklink-fill.gif'); background-repeat: none">
-          <select onChange="return jump(this);">
-            <option style="color: #669" selected="selected"> Quicklink #2 </option>
+        <td><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
+        <td class="list">
+            <select onChange="return jump(this);">
+                <option style="color: #669" selected="selected"> Quicklink #2 </option>
   #for $link in $user.preferences.qlink2
   #if shouldShow($link.uri, $user)
-            <option value="$link.uri"> $link.name </option>
+                <option value="$link.uri"> $link.name </option>
   #end if
   #end for
-	  </select>
-          </td>
-          <td style="vertical-align: top;"><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
+            </select>
+        </td>
+        <td><img src="$imagefolder/main/quicklink-end.gif" alt="" /></td>
 #end if
-          <td style="width: 100%; vertical-align: top; text-align: right;"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
+        <td class="spacer"><img src="$imagefolder/main/navbar-separator.gif" alt="" /></td>
 #if $user.id > 0
-          <td style="vertical-align: top; padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/logout">Logout&nbsp;$user.login</a></td>
+        <td class="entry"><a class="navbar" href="/index/logout">Logout $user.login</a></td>
 #else
-          <td style="vertical-align: top; padding: 1px 5px 0px 5px;"><a class="navbar" href="/index/login">Login</a></td>
+        <td class="entry"><a class="navbar" href="/index/login">Login</a></td>
 #end if          
-      </tr>
-    </table>
-  </div>
+    </tr>
+</table>
+</div> <!-- navbar end -->
 
-#def showPath($absolute)
-#if $absolute
-  <div style="position:absolute; left: 5px; top: 97px; margin: 0px; padding: 0px; font-family: verdana, arial, helvetica, sans-serif; font-size: 11px;">
-#else
-  <div style="font-family: verdana, arial, helvetica, sans-serif; font-size: 11px;">
-#end if
+<div id="navpath">
 #if $path
-#set $separate = False
-<span style="color: #999999;">Current path: </span>
-#for $step in $path
-#if $separate
-&gt;
-#end if
-#if $step[1]
+    #set $separate = False
+    <span>Current path:</span>
+    #for $step in $path
+        #if $separate
+    &gt;
+        #end if
+        #if $step[1]
     <a href="$step[1]">$step[0]</a>
-#else
+        #else
     $step[0]
-#end if
-#set $separate = True
-#end for
-  </div>
+        #end if
+        #set $separate = True
+    #end for
 #else
-#set $separate = False
-<font color=#FF000> No current path is set! Find out how here: </font>
-<font color=#FFFFF> template.path = [("Home", "/"), ("Tools", "/toolbox/"), ("Status", False)] 
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-</font>
-  </div>
+    #set $separate = False
+    <p class="error"> No current path is set! Find out how here:</p>
+    <pre>template.path = [("Home", "/"), ("Tools", "/toolbox/"), ("Status", False)]</pre>
 #end if
-#end def
-$showPath(True)
+</div> <!-- navpath end -->
 
-#if $user.preferences.hidelogo
-  <div><img src="$imagefolder/blank.gif" height="19" alt="" /></div>
-#else
-  <div><img src="$imagefolder/blank.gif" height="104" alt="" /></div>
-#end if
+</div> <!-- header end -->
+
+<div id="navbody">
 
 #def content
-    <h2>This space intentionally left blank</h2>
-    <p>$user.name / $user.id</p>
+<h2>This space intentionally left blank</h2>
+<p>$user.name / $user.id</p>
 #end def content
 $content()
 
@@ -230,6 +221,8 @@ You are not logged in.
 You are logged in as <a href="/index/userinfo">$user.name</a>.
 #end if
 </p></div>
+
+</div> <!-- navbody end -->
 
 </body>
 </html>

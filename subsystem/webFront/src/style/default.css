@@ -23,37 +23,22 @@
  *          Stein Magnus Jodal <stein.magnus@jodal.no>
  */
 
+/* Block elements */
+
 body { 
 	background-image: url('/images/main/background-fill.gif');
 	background-repeat: repeat-x;
 	background-color: white; 
 	color: black;
-	font-family: verdana, arial, helvetica, sans-serif;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	margin: 0px;
 }
 
 h1, h2 {
-	font-family: Verdana, Arial, Helvetica, Sans-serif;
 	font-weight: normal;
 }
 
-a.navbar {
-	color: black;
-	font-size: 13px;
-	text-decoration: none;
-}
-
-a.navbar:visited {
-	color: black;
-	text-decoration: none;
-}
-a.navbar:hover {
-	color: #369;
-	text-decoration: none;
-}
-a.navbar:active {
-	color: #47A;
-	text-decoration: none;
-}
+/* Inline elements */
 
 a {
 	color: #369;
@@ -61,7 +46,6 @@ a {
 }
 a:visited {
 	color: #369;
-	text-decoration: none;
 }
 a:hover {
 	color: black;
@@ -69,12 +53,87 @@ a:hover {
 }
 a:active {
 	color: #69C;
-	text-decoration: none;
 }
-
 a img {
 	border: 0;
 }
+a.navbar {
+	color: black;
+	font-size: 13px;
+}
+
+a.navbar:visited {
+	color: black;
+}
+a.navbar:hover {
+	color: #369;
+	text-decoration: none;
+}
+a.navbar:active {
+	color: #47A;
+}
+
+.error {
+	color: red;
+}
+
+/* Header section */
+
+div#header {
+	width: 100%;
+}
+
+div#navlogo {
+	background-image: url('/images/main/navlogo+background.gif');
+	background-repeat: none;
+	cursor: pointer;
+	position: relative;
+	height: 71px;
+	width: 100%;
+}
+
+div#navbar {
+	font-size: 13px;
+	margin: 0em 2em 0em 2em;
+}
+div#navbar table {
+	border-collapse: collapse;
+	width: 100%;
+}
+div#navbar table td {
+	padding: 0px;
+	vertical-align: top;
+}
+div#navbar table td.entry {
+	padding: 1px 15px 0px 5px;
+	white-space: nowrap;
+}
+div#navbar table td.list {
+	background-image: url('/images/main/quicklink-fill.gif');
+	background-repeat: none;
+}
+div#navbar table td.separator {
+}
+div#navbar table td.spacer {
+	text-align: right;
+	width: 100%;
+}
+
+div#navpath {
+	font-size: smaller;
+	padding: 0em 8px 0.5em 8px;
+}
+div#navpath span {
+	color: gray;
+}
+
+/* Content section */
+
+div#navbody {
+	padding: 0em 8px 0em 8px;
+}
+
+/* Footer section */
 
 div#footer {
 	clear: left;
