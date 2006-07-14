@@ -33,14 +33,13 @@ $displayPrefs($prefs)
 #end if
 
 #if $status
-    <h2>$status.title</h2>
-    <table>
+<h2>$status.title</h2>
+
+<table>
 #for $SectionBox in $status.sections
-        <tr>
-$displaySectionBox($SectionBox)
-        </tr>
+    $displaySectionBox($SectionBox)
 #end for
-    </table>
+</table>
 #end if
 
 #if $history
@@ -109,133 +108,117 @@ $default_form_CSS()
 ## in one table (can do this since the number of columns is
 ## equal for all sections)
 #def displaySectionBoxes($page)
-    <table border="0" cellpadding="0" cellspacing="0" style="padding: 0px 5px 0px 5px;">
-#for $section in $page.sections
-$listSectionRows($section)
-#end for
-    </table>
+<table>
+    #for $section in $page.sections
+        $listSectionRows($section)
+    #end for
+</table>
 #end def
 
 ## This renders the rows in a sectionbox
 #def listSectionRows($SectionBox)
-        <tr class="title">
-            <th colspan="2" id="$SectionBox.controlBaseName">$SectionBox.title</th>
-        <tr>
-        <tr class="header">
-            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+<tr><td>
+
+<table class="horiztable" style="width: 100%;">
+    <caption id="$SectionBox.controlBaseName">
+        <span class="cornerkludge"></span>
+        $SectionBox.title
+    </caption>
+
+    <tr class="header">
+        <td class="leftkludge">
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-            <td class="header" valign="top" id="$id" align=left><a href="$url">$heading</a>&nbsp;</td>
+        <th id="$id"><a href="$url">$heading</a></th>
 #else
-            <td class="header" valign="top" id="$id" align=left>$heading&nbsp;</td>
+        <th id="$id">$heading</th>
 #end if
 #end for
-            <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
-        </tr>
-#set $odd = True
+        <td class="rightkludge">
+    </tr>
+
 #for $row in $SectionBox.rows
-#if $odd
-#set $rowstyle = 'oddrow'
-#set $odd = False
-#else
-#set $rowstyle = 'evenrow'
-#set $odd = True
-#end if
-        <tr class="$rowstyle">
-            <td style="background: #fff;">&nbsp;</td>
+    <tr class="$rowcycler">
+        <td style="background: white;"></td>
 ## $row[0] is sort data
 #set $row = row[1]
 #for $data, $url, $image, $style in $row
-            <td class="$style">
+        <td class="$style">
 #if $url
-                <a href="$url">
+            <a href="$url">
 #end if
 #if $image
-                <img border="0" title="$image[1]" src="$image[0]">
+            <img border="0" title="$image[1]" src="$image[0]" />
 #end if
-                $data
+            $data
 #if $url
-                </a>
+            </a>
 #end if
-            &nbsp;&nbsp;</td>
+        </td>
 #end for
-            <td style="background: #fff;">&nbsp;&nbsp;</td>
-        </tr>
+        <td style="background: white;"></td>
+    </tr>
 #end for
+</table>
+
+</td></tr>
 #end def
 
 ## This renders each sectionbox
 #def displaySectionBox($SectionBox)
-    ##<h3 id="$SectionBox.controlBaseName">$SectionBox.title <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></h3>
-#set $nrofcols = len($SectionBox.headings) + 1
-#if len($SectionBox.rows)
-    <td>
-        <table id="$SectionBox.controlBaseName" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-            <tr class="title">
-                <td class="title" align="center" colspan="$nrofcols" style="background-image:url('/images/status/statuslogo+fill.gif'); background-repeat: no-repeat;">  
-                    <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-                        <tr class="navigation">
-                            <td class="current">
-                                <div class="title">$SectionBox.title&nbsp;<a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a></div>
-                                $SectionBox.summary
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td align=right style="background-image:url('/images/arpcam/fill.gif');"><img src="/images/ragen/top-end.gif"></td>
-            </tr>
-            <tr class="header">
-                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px">
+#set $colscount = len($SectionBox.headings)
+<tr><td>
+
+<table id="$SectionBox.controlBaseName" class="horiztable" style="width: 100%;">
+
+    <caption>
+        <span class="cornerkludge"></span>
+        $SectionBox.title
+        <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a><br />
+        <span class="subtitle">$SectionBox.summary</span>
+    </caption>
+
+    <tr class="header">
+        <td class="leftkludge"></td>
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-                <td class="header" valign="top" id="$id"><a href="$url">$heading</a>&nbsp;</td>
+        <th id="$id"><a href="$url">$heading</a></th>
 #else
-                <td class="header" valign="top" id="$id">$heading&nbsp;</td>
+        <th id="$id">$heading</th>
 #end if
 #end for
-                <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;">
-            </tr>
-#set $odd = True
+        <td class="rightkludge"></td>
+    </tr>
+
 #for $row in $SectionBox.rows
 ## $row[0] is data for sorting
 #set $row = $row[1]
-#if $odd
-#set $rowstyle = 'oddrow'
-#set $odd = False
-#else
-#set $rowstyle = 'evenrow'
-#set $odd = True
-#end if
-            <tr class="$rowstyle">
-                <td>&nbsp;</td>
+    <tr class="$rowcycler">
+        <td style="background: white;"></td>
 #for $col in $row
 #set $data = $col[0]
 #set $url = $col[1]
 #set $image = $col[2]
 #set $style = $col[3]
-                <td class="$style">
+        <td class="$style">
 #if $url
-                    <a href="$url">
+            <a href="$url">
 #end if
 #if $image
-                    <img border="0" title="$image[1]" src="$image[0]">
+            <img title="$image[1]" src="$image[0]" />
 #end if
-                    $data
+            $data
 #if $url
-                    </a>
+            </a>
 #end if
-                &nbsp;&nbsp;</td>
+        </td>
 #end for
-                <td>&nbsp;</td>
-            </tr>
+        <td style="background: white;"></td>
+    </tr>
 #end for
-        </table>
-    </td>
-#else
-<td align="center">
-    $SectionBox.summary&nbsp;<a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a>
-</td>
-#end if
+</table>
+
+</td></tr>
 #end def
 
 ## This renders the preferences page
