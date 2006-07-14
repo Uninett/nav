@@ -35,8 +35,3 @@ syslog:@localstatedir@/log/cisco.log
 # 
 # the most specific exceptions are considered most important
 #
-LINEPROTO-5-UPDOWN@erke-gw-trlos.ntnu.no:2
-LINEPROTO-5-UPDOWN:4
-ISDN-6-LAYER2DOWN@ANY:2
-erke-gw-trlos.ntnu.no:1
-ANY@sb-gsw.ntnu.no:0
