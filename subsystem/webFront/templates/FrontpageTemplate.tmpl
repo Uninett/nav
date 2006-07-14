@@ -81,65 +81,43 @@
 #end def
 
 #def status
-  <br>
-<table width="100%" cellspacing="0" cellpadding="0" border="0">
-<!------------------------- STATUS TITLE  ---->
-    <tr class="title">
-      <td class="title" align="center" colspan="5" style="background-image:url('$imagefolder/status/statuslogo+fill.gif'); background-repeat: no-repeat;">  
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <div class="title"><a href="/status/"><font color="black">Status Now</font></a></div>
-              $numboxesdown boxes down, $numboxesshadow in shadow
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
-    </tr>
-<!------------------------- STATUS HEADER ---->
+
+<br />
+
+#set $rowcount = len($boxesdown)
+
+<table class="horiztable">
+    <caption>
+        <span class="cornerkludge"></span>
+        <a href="/status/">Status Now</a><br />
+        <span class="subtitle">$numboxesdown boxes down,
+        $numboxesshadow in shadow</span>
+    </caption>
+
     <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="11">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Sysname &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          IP &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Downtime &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Down since &nbsp;
-      </td>
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="11">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
+        <td class="leftkludge" rowspan="$rowcount"></td>
+        <th>Sysname</th>
+        <th>IP</th>
+        <th>Downtime</th>
+        <th>Down since</th>
+        <td class="rightkludge" rowspan="$rowcount"></td>
     </tr>
 
 #set $numberdown = 0
-#set $row = "oddrow"
 #for $box in $boxesdown
 #if not $box[4]
   #if $numberdown < $numberOfBoxesShown
-    <tr class="$row">
+    <tr class="$rowcycler">
     #if shouldShow("/browse/$box[1]", $user)
-      <td><a href="/browse/$box[1]">$box[1]</a>&nbsp;&nbsp;</td>
+      <td><a href="/browse/$box[1]">$box[1]</a></td>
     #else
-      <td>$box[1]&nbsp;&nbsp;</td>
+      <td>$box[1]</td>
     #end if
-      <td>$box[2]&nbsp;&nbsp;</td>
-      <td align="right"><a title="$box[0]"><font color="black">$box[5]</font></a>&nbsp;&nbsp;</td>
+      <td>$box[2]</td>
+      <td style="text-align: right;"><a title="$box[0]">$box[5]</a></td>
       #set $since = $box[3].strftime('%d/%m/%Y %H:%M')
       <td>$since</td>
     </tr>
-    #if $row == "evenrow"
-      #set $row = "oddrow"
-    #else
-      #set $row = "evenrow"
-    #end if
   #end if
   #set $numberdown = $numberdown + 1
 #end if
@@ -150,8 +128,12 @@
 #else
   #set $linktext = "(to status page)"
 #end if
-<tr><td colspan="6" align="center"><font size="-2"><a href="/status/">$linktext</td></tr>
 
+    <tr>
+        <td colspan="6" style="text-align: center; font-size: smaller;">
+            <a href="/status/">$linktext</a>
+        </td>
+    </tr>
 </table>
 
 #end def
