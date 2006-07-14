@@ -27,67 +27,40 @@
 
 #extends UserAdmin
 
-#def add_account($account, $row)
-   <tr class="$row">
-      <td><a href="/useradmin/account?id=$account.id">$account.login</a> &nbsp;</td>
-      <td nowrap>$account.name</td>
-      <td nowrap>$account.ext_sync</td>
-      <td align="middle" width="0%">$account.groupcount</td>
-   </tr>
+#def add_account($account)
+    <tr class="$rowcycler">
+        <td><a href="/useradmin/account?id=$account.id">$account.login</a></td>
+        <td>$account.name</td>
+        <td>$account.ext_sync</td>
+        <td style="text-align: center;">$account.groupcount</td>
+    </tr>
 #end def
 
 
 #block useradmin
 
-<table width="100%" cellspacing="0" cellpadding="0" border="0">
-<!------------------------- TITLE  ---->
-#set $rows = len($accounts)
-    <tr class="title">
-      <td class="title" align="center" colspan="5" style="background-image:url('$imagefolder/adminlogo+fill.gif'); background-repeat: no-repeat;">  
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <div class="title"><font color="black">Account List</font></div>
-              $rows accounts : <a href="account">Create new user</a>
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
-    </tr>
-<!------------------------- HEADER ---->
-#set $rows = len($accounts) + 2
+<table class="horiztable">
+#set $accountcount = len($accounts)
+    <caption>
+        <span class="cornerkludge"></span>
+        Account List<br />
+        <span class="subtitle">$accountcount accounts :
+        <a href="account">Create new user</a></span>
+    </caption>
+
+#set $rowcount = len($accounts) + 2
     <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Login &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          Name &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap >
-          External &nbsp;
-      </td>
-      <td class="header" valign="top" bgcolor="white" nowrap width="0%" align="right">
-          # of groups &nbsp;
-      </td>
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
+        <td class="leftkludge" rowspan="$rowcount"></td>
+        <th>Login</th>
+        <th>Name</th>
+        <th>External</th>
+        <th style="text-align: center;"># of groups</th>
+        <td class="rightkludge" rowspan="$rowcount"></td>
     </tr>
 
-#set $row = "oddrow"
 #for $account in $accounts
-    $add_account($account, $row)
-    #if $row == "evenrow"
-      #set $row = "oddrow"
-    #else
-      #set $row = "evenrow"
-    #end if
+    $add_account($account)
 #end for
-
-   </table>
+</table>
 
 #end block useradmin
