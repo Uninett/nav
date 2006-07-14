@@ -83,7 +83,7 @@ div#header {
 
 div#navlogo {
 	background-image: url('/images/main/background-navlogo.gif');
-	background-repeat: none;
+	background-repeat: no-repeat;
 	cursor: pointer;
 	position: relative;
 	height: 71px;
