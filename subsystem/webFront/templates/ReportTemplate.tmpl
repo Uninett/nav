@@ -61,22 +61,20 @@
 
 #extends MainTemplate
 
-#attr $logo = "ragen/logo+fill.gif"
-
 #block additionalCSS
 $default_table_CSS()
 #end block additionalCSS
 
 #block additionalJavaScript
 ## preload images for navigation images onMouseOver
-      image1 = new Image();
-      image1.src = "$imagefolder/ragen/previous-active.gif";
-      image2 = new Image();
-      image2.src = "$imagefolder/ragen/next-active.gif";
-      image3 = new Image();
-      image3.src = "$imagefolder/ragen/bottom-previous-active.gif";
-      image4 = new Image();
-      image4.src = "$imagefolder/ragen/bottom-next-active.gif";
+      imgprev = new Image();
+      imgprev.src = "$imagefolder/ragen/previous-active.gif";
+      imgnext = new Image();
+      imgnext.src = "$imagefolder/ragen/next-active.gif";
+      imgprevb = new Image();
+      imgprevb.src = "$imagefolder/ragen/bottom-previous-active.gif";
+      imgnextb = new Image();
+      imgnextb.src = "$imagefolder/ragen/bottom-next-active.gif";
 #end block additionalJavaScript
 
 #block content
@@ -116,197 +114,118 @@ $selectoptiondraw("op_"+$a.raw, $operatorlist, $operators,"", $descriptions)
 <tr><td></td><td></td><td><input type="hidden" name="adv" value="1"/></td><td><input type="submit" name="r4g3n53nd" value="Send"/></table></form>
 
 #else
-<a href="${old_uri}adv=1">Advanced Search</a>
+<p><a href="${old_uri}adv=1">Advanced Search</a></p>
 #end if
 ## ----------------------------------------------------------------------- REPORT ---- ##
 #if $report
-#set $rows = len($report.table.rows) + 2
-  <table border="0" cellspacing="0" cellpadding="0">
+#set $rowcount = len($report.table.rows) + 1
+#set $columncount = len($report.table.header.cells)
 
-## -------------------------------------------------------------------- TITLE ROW ---- ##
-#set $columns = len($report.table.header.cells) + 1
-    <tr class="title">
-      <td class="title" align="center" colspan="$columns" style="background-image:url('$imagefolder/$logo'); background-repeat: no-repeat;">  
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="previous">
+  <table class="horiztable">
+
+## --- TITLE ROW ---- ##
+    <caption>
+        <span class="cornerkludge"></span>
+
 #if $report.navigator.previous
-              <a title="previous page" href="$report.navigator.previous"
-                 onmouseover="image1.src='$imagefolder/ragen/previous-active.gif';"
-                 onmouseout="image1.src='$imagefolder/ragen/previous.gif';">
-              <img name="image1" src="$imagefolder/ragen/previous.gif" border="0" alt="&lt;&lt; previous" title="previous page" /></a>
-#else
-              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+        <span class="previous">
+        <a title="previous page" href="$report.navigator.previous"
+            onmouseover="imgprev.src='$imagefolder/ragen/previous-active.gif';"
+            onmouseout="imgprev.src='$imagefolder/ragen/previous.gif';">
+        <img id="imgprev" src="$imagefolder/ragen/previous.gif"
+            alt="&lt;&lt; previous" /></a></span>
 #end if
-              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
-            </td>
-            <td class="current">
-              <div class="title">$report.header</div>
-              $report.navigator.view
-            </td>
-            <td class="next">
-              <img src="$imagefolder/blank.gif" width="5" height="1" alt="" />
 #if $report.navigator.next
-              <a title="next page" href="$report.navigator.next"
-                 onmouseover="image2.src='$imagefolder/ragen/next-active.gif';"
-                 onmouseout="image2.src='$imagefolder/ragen/next.gif';">
-              <img name="image2" src="$imagefolder/ragen/next.gif" border="0" alt="next &gt;&gt;" title="next page" /></a>
-#else
-              <img src="$imagefolder/blank.gif" width="31" height="31" alt="" />
+        <span class="next">
+        <a title="next page" href="$report.navigator.next"
+            onmouseover="imgnext.src='$imagefolder/ragen/next-active.gif';"
+            onmouseout="imgnext.src='$imagefolder/ragen/next.gif';">
+        <img id="imgnext" src="$imagefolder/ragen/next.gif"
+            alt="next &gt;&gt;" /></a></span>
 #end if
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td align=right style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif" alt=""></td>
-    </tr>
-## ------------------------------------------------------------------- HEADER ROW ---- ##
+
+        $report.header<br />
+        <span class="subtitle">$report.navigator.view</span>
+    </caption>
+
+## --- HEADER ROW ---- ##
     <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
+        <td class="leftkludge" rowspan="$rowcount"></td>
 #for $cell in $report.table.header.cells
-      <td class="header" valign="top" bgcolor=white nowrap >
 #if $cell.uri
-        <a href="$cell.uri" class="navbar" title="$cell.explanation">
+        <th><a class="navbar" href="$cell.uri" title="$cell.explanation">$cell.text</a></th>
 #else
-        <a class="navbar" title="$cell.explanation">
+        <th><a class="navbar" title="$cell.explanation">$cell.text</a></th>
 #end if
-          $cell.text
-        </a>&nbsp;
-      </td>
 #end for
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rows">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </td>
+        <td class="rightkludge" rowspan="$rowcount"></td>
     </tr>
-## -------------------------------------------------------------------- DATA ROWS ---- ##
-#set $evenrow = 0
+
+## --- DATA ROWS ---- ##
 #for $row in $report.table.rows
-#if $evenrow
-    <tr class="evenrow">
-#set $evenrow = 0
-#else
-    <tr class="oddrow">
-#set $evenrow = 1
-#end if
-#set $evencell = 0
+    <tr class="$rowcycler">
 #for $cell in $row.cells
-#if $evencell
-      <td nowrap class="evencell" style="padding: 0px 10px 0px 0px">
-#set $evencell = 0
+        <td class="$cellcycler">
+#if $cell.uri
+            <a href="$cell.uri">$cell.text</a>
 #else
-      <td nowrap class="oddcell" style="padding: 0px 10px 0px 0px">
-#set $evencell = 1
+            $cell.text
 #end if
-#if $cell.uri
-        <a href="$cell.uri">
-#end if
-          $cell.text
-#if $cell.uri
-        </a>
-#end if
-      </td>
+        </td>
 #end for
     </tr>
 #end for
+
+## --- FOOTER ---- ##
 #if $report.table.footer
-## ------------------------------------------------------------------- BLACK LINE ---- ##
 #set $cols = len($report.table.header.cells)
-    <tr bgcolor="black"><td colspan="$cols"><img src="$imagefolder/blank.gif" height="1" width="1" alt="" /></td></tr>
-## ----------------------------------------------------------------------- FOOTER ---- ##
-    <tr class="footer">
+    <tr class="tablesum">
+        <td></td>
 #for $cell in $report.table.footer.cells
-      <td class="footer">
+        <th>
 #if $cell.sum
         $cell.sum
 #end if
-      </td>
+        </th>
 #end for
+        <td></td>
     </tr>
 #end if
-## ------------------------------------------------------------ FOOTER NAVIGATION ---- ##
-    <tr class="navigation" style="background-image:url('$imagefolder/ragen/bottom-fill.gif'); background-repeat: repeat-x;">
-      <td class="navigation" colspan="$columns" bgcolor="white" align="center" style="background-image:url('$imagefolder/ragen/bottom-start.gif'); background-repeat: no-repeat; ">
-        <table cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="previous">
+
+## --- FOOTER NAVIGATION ---- ##
+    <tr class="footer">
+        <td class="leftkludge"></td>
+        <th colspan="$columncount">
 #if $report.navigator.previous
-              <img src="$imagefolder/blank.gif" width="1" height="1" alt="" /><br/>
-              <a title="previous page" href="$report.navigator.previous"
-                 onmouseover="image3.src='$imagefolder/ragen/bottom-previous-active.gif';"
-                 onmouseout="image3.src='$imagefolder/ragen/bottom-previous.gif';">
-              <img name="image3" src="$imagefolder/ragen/bottom-previous.gif" border="0" alt="&lt;&lt; previous" title="previous page" /></a>
-#else
-              <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
+            <span class="previous">
+            <a title="previous page" href="$report.navigator.previous"
+                onmouseover="imgprevb.src='$imagefolder/ragen/bottom-previous-active.gif';"
+                onmouseout="imgprevb.src='$imagefolder/ragen/bottom-previous.gif';">
+            <img id="imgprevb" src="$imagefolder/ragen/bottom-previous.gif"
+                alt="&lt;&lt; previous" /></a></span>
 #end if
-              <img src="$imagefolder/blank.gif" width="3" height="1" alt="" />
-            </td>
-            <td class="current">
-	      $report.navigator.view
-            </td>
-            <td class="next">
-              <img src="$imagefolder/blank.gif" width="1" height="1" alt="" /><br />
 #if $report.navigator.next
-              <img src="$imagefolder/blank.gif" width="3" height="1" alt="" />
-              <a title="next page" href="$report.navigator.next"
-                 onmouseover="image4.src='$imagefolder/ragen/bottom-next-active.gif';"
-                 onmouseout="image4.src='$imagefolder/ragen/bottom-next.gif';">
-              <img name="image4" src="$imagefolder/ragen/bottom-next.gif" border="0" alt="next &gt;&gt;" title="next page" /></a>
-#else
-              <img src="$imagefolder/blank.gif" width="19" height="19" alt="" />
+            <span class="next">
+            <a title="next page" href="$report.navigator.next"
+                onmouseover="imgnextb.src='$imagefolder/ragen/bottom-next-active.gif';"
+                onmouseout="imgnextb.src='$imagefolder/ragen/bottom-next.gif';">
+            <img id="imgnextb" src="$imagefolder/ragen/bottom-next.gif" alt="next &gt;&gt;" /></a></span>
 #end if
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/bottom-end.gif'); background-repeat: no-repeat; width: 10px"></td>
+            <span>$report.navigator.view</span>
+        </th>
+        <td class="rightkludge"></td>
     </tr>
-  </table>
+
+</table>
 #else 
-
-  <table class="title" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-image:url('$imagefolder/ragen/logo+fill.gif'); background-repeat: no-repeat; ">
-    <tr class="title">
-      <td width="9"> </td>
-      <td class="title" align="center">
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <div class="title">&nbsp;</div>
-            </td>
-          </tr>
-        </table>
-      </td>
-      <td style="background-image:url('$imagefolder/ragen/top-end.gif');" width="9"> </td>
-    </tr>
-  </table>
-  <table class="results" width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr class="header">
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="2"></td>
-      <td class="header" valign="top">
-        &nbsp;
-      </td>
-      <td bgcolor="white" style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-repeat: no-repeat; width: 14px;" rowspan="2"></td>
-    </tr>
-    <tr class="oddrow">
-      <td class="oddcell">
-        <br/>
-        <center>
-          <font size="3">
-            No results found!
-          </font>
-        </center>
-      </td>
-    </tr>
-  </table>
-
+<p class="error">No results found!</p>
 #end if
 #end block content
 
 #def selectoptiondraw($name, $elementlist, $elementdict, $selected="", $descriptiondict=None)
 <select name="$name">
 #for $element in $elementlist
-<option value="$element"#slurp
+    <option value="$element"#slurp
 #if $element == $selected
  selected="1"#slurp
 #end if

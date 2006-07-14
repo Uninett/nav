@@ -27,7 +27,6 @@ table.horiztable {
 	border: 0;
 	border-collapse: collapse;
 	caption-side: top;
-	width: 100%;
 }
 
 /* Table title */
@@ -52,6 +51,14 @@ table.horiztable caption span.subtitle {
 	font-size: 11px;
 	font-weight: normal;
 }
+table.horiztable caption span.previous {
+	float: left;
+	margin-left: 1em;
+}
+table.horiztable caption span.next {
+	float: right;
+	margin-right: 1em;
+}
 
 /* Table column titles */
 table.horiztable tr.header {
@@ -67,6 +74,7 @@ table.horiztable tr.header th {
 	text-align: left;
 	vertical-align: top;
 	white-space: nowrap;
+	padding-right: 1em;
 }
 table.horiztable tr.header td {
 	background-color: white;
@@ -84,31 +92,51 @@ table.horiztable tr.header td.rightkludge {
 }
 
 /* Table body */
-table.horiztable tbody tr.evenrow {
+table.horiztable tr.evenrow {
 	background-color: #eee;
 	color: black;
 	font-size: 11px;
 }
-table.horiztable tbody tr.oddrow {
+table.horiztable tr.oddrow {
 	background-color: white;
 	color: black;
 	font-size: 11px;
 }
+table.horiztable tr.evenrow td, table.horiztable tr.oddrow td {
+	padding-right: 1em;
+}
 
 /* Table footer */
 table.horiztable tr.footer {
+	background-image: url('/images/ragen/bottom-fill.gif');
+	background-repeat: repeat-x;
 	background-color: white;
+	height: 21px;
+}
+table.horiztable tr.footer th {
 	color: black;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: bold;
-}
-table.horiztable tr.footer td.previous {
-	text-align: right;
-}
-table.horiztable tr.footer td.current {
 	text-align: center;
+	vertical-align: top;
 }
-table.horiztable tr.footer td.next {
-	text-align: left;
+table.horiztable tr.footer td.leftkludge {
+	background-image: url('/images/ragen/bottom-start.gif');
+	background-repeat: no-repeat;
+	background-position: top left;
+	padding: 0px;
+}
+table.horiztable tr.footer td.rightkludge {
+	background-image: url('/images/ragen/bottom-end.gif');
+	background-repeat: no-repeat;
+	background-position: top right;
+}
+table.horiztable tr.footer span.previous {
+	float: left;
+	top: 0px;
+}
+table.horiztable tr.footer span.next {
+	float: right;
+	top: 0px;
 }
 
