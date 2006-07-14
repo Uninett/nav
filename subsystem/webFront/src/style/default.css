@@ -26,8 +26,6 @@
 /* Block elements */
 
 body { 
-	background-image: url('/images/main/background-fill.gif');
-	background-repeat: repeat-x;
 	background-color: white; 
 	color: black;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -84,7 +82,7 @@ div#header {
 }
 
 div#navlogo {
-	background-image: url('/images/main/navlogo+background.gif');
+	background-image: url('/images/main/background-navlogo.gif');
 	background-repeat: none;
 	cursor: pointer;
 	position: relative;
@@ -93,8 +91,10 @@ div#navlogo {
 }
 
 div#navbar {
+	background-image: url('/images/main/background-navbar.gif');
+	background-repeat: repeat-x;
 	font-size: 13px;
-	margin: 0em 2em 0em 2em;
+	padding: 0em 2em 0em 2em;
 }
 div#navbar table {
 	border-collapse: collapse;
