@@ -150,97 +150,45 @@ $printLinks($buttons,$buttonnames)
 #set $rowspan = $hits + 1
 #set $colspan = $len($headersList) + 1
 
-<table border="0" cellspacing="0" cellpadding="0">
+<table class="horiztable">
 
-  ## HEADER WITH TITLE
-  <tr class="title">
-    <td class="title" align="center" colspan="$colspan" style="background-image:url('/images/bar-fill.gif'); background-repeat: no-repeat;">  
-
-    
-    <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-      <tr class="navigation">
-        <td class="previous">
-          <img src="/images/blank.gif" width="31" height="31" alt="" />
-
-          <img src="/images/blank.gif" width="5" height="1" alt="" />
-        </td>
-        <td class="current">
-          <div class="title">$headertext</div>
-          #if $printHits
-            $hits $hitstext
-          #end if
-        </td>
-        <td class="next">
-          <img src="/images/blank.gif" width="5" height="1" alt="" />
-          <img src="/images/blank.gif" width="31" height="31" alt="" />
-        </td>
-      </tr>
-    </table>
-
-    </td>
-    <td align=right style="background-image:url('/images/arpcam/fill.gif');"><img src="/images/bar-end.gif"></td>
-
-  </tr>
-
+    <caption>
+        <span class="cornerkludge"></span>
+        $headertext<br />
+#if $printHits
+        <span class="subtitle">$hits $hitstext</span>
+#end if
+    </caption>
 
 ## HEADERS / ROW DESCRIPTIONS
 
-  <tr class="header">
-    <td bgcolor="white" style="background-image:url('/images/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px" rowspan="$rowspan">
-      <img src="/images/blank.gif" width="14" height="1" alt="" />
-    </td>
-
-    #for $entry in $headersList
-    <td class="header" valign="top" bgcolor=white nowrap >
-
-      #if $sort and $action == 'history'
-      <a href="$section?sort=$entry&days=$days" class="navbar" title="">
-        $headers[$entry]
-      </a>&nbsp;
-      #elif $sort
-      <a href="$section?sort=$entry" class="navbar" title="">
-        $headers[$entry]
-      </a>&nbsp;
-      #else
-        $headers[$entry]
-      #end if
-      
-
-    </td>
-    #end for
-
-    <td bgcolor="white" style="background-image:url('/images/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;" rowspan="$rowspan">
-      <img src="/images/blank.gif" width="14" height="1" alt="" />
-    </td>
-
-  </tr>
+    <tr class="header">
+        <td class="leftkludge"></td>
+#for $entry in $headersList
+        <th>
+    #if $sort and $action == 'history'
+            <a href="$section?sort=$entry&days=$days" class="navbar" title="">$headers[$entry]</a>
+    #elif $sort
+            <a href="$section?sort=$entry" class="navbar" title="">$headers[$entry]</a>
+    #else
+            $headers[$entry]
+    #end if
+        </th>
+#end for
+        <td class="rightkludge"></td>
+    </tr>
 
 
 ## THE INFORMATION / TABLE
 
-  #set global $class = 'even'
-
-  #for $listitem in $list
-  
-  #if $class == 'even'
-    #set global $class = 'odd'
-  #else
-    #set global $class = 'even'
-  #end if
-
-  <tr class='${class}row'>
-
+#for $listitem in $list
+    <tr class="$rowcycler">
     #for $entry in $headersList
-    <td nowrap class="${class}cell" style="padding: 0px 10px 0px 0px">
-      $listitem[$entry]
-    </td>
+        <td class="$cellcycler">$listitem[$entry]</td>
     #end for
-
-  </tr>
-  #end for
-
+    </tr>
+#end for
 </table>
-
 #end def
 
 
