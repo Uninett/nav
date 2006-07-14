@@ -3,9 +3,6 @@
 -- Priority levels and descriptions
 --------------------------------------------------------
 
-DROP TABLE priority CASCADE;
--- DROP SEQUENCE priority_priority_seq;
-
 CREATE TABLE priority (
   priority INTEGER PRIMARY KEY, -- like greit å la den vare tekst
   keyword VARCHAR UNIQUE NOT NULL,
@@ -16,9 +13,6 @@ CREATE TABLE priority (
 -- type
 -- Types of messages, ala syslog
 --------------------------------------------------------
-
-DROP TABLE type CASCADE;
-DROP SEQUENCE type_type_seq;
 
 CREATE TABLE type (
   type SERIAL PRIMARY KEY NOT NULL,
@@ -33,8 +27,6 @@ CREATE TABLE type (
 -- Categorising of origins
 --------------------------------------------------------
 
-DROP TABLE category CASCADE;
-
 CREATE TABLE category (
   category VARCHAR PRIMARY KEY NOT NULL
 );
@@ -43,9 +35,6 @@ CREATE TABLE category (
 -- origin
 -- Origins, senders of messages
 --------------------------------------------------------
-
-DROP TABLE origin CASCADE;
-DROP SEQUENCE origin_origin_seq;
 
 CREATE TABLE origin (
   origin SERIAL PRIMARY KEY NOT NULL,
@@ -59,9 +48,6 @@ CREATE TABLE origin (
 -- time, origin, priority, type and message text.
 --------------------------------------------------------
 
-DROP TABLE message CASCADE;
-DROP SEQUENCE message_id_seq;
-
 CREATE TABLE message (
   id SERIAL PRIMARY KEY,
   time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -73,12 +59,9 @@ CREATE TABLE message (
 
 --------------------------------------------------------
 -- errorerror
--- Feilmeldinger som ikke er på riktig format blir blant
--- lagt her. Andre ting også.
+-- Error messages that couldn't be parsed correctly are
+-- put here.  Other stuff also.
 --------------------------------------------------------
-
-DROP TABLE errorerror CASCADE;
-DROP SEQUENCE errorerror_id_seq;
 
 CREATE TABLE errorerror (
   id SERIAL PRIMARY KEY,
@@ -86,7 +69,7 @@ CREATE TABLE errorerror (
 );
 
 --------------------------------------------------------
--- Oppretter indeksering
+-- Some table indexes
 --------------------------------------------------------
 
 CREATE INDEX message_type_hash ON message USING hash (type);
@@ -94,16 +77,15 @@ CREATE INDEX message_origin_hash ON message USING hash (origin);
 CREATE INDEX message_time_btree ON message USING btree (time);
 
 --------------------------------------------------------
--- Oppretter et view
+-- Create a view (wow, really?)
 --------------------------------------------------------
-DROP VIEW message_view;
 
 CREATE VIEW message_view AS
 SELECT origin,type,newpriority,category,time 
 FROM origin INNER JOIN message USING (origin);
 
 --------------------------------------------------------
--- Setter inn alle prioritetene
+-- Insert default priority levels
 --------------------------------------------------------
 
 insert into priority(priority, keyword, description) values (0,'emergencies','System unusable');

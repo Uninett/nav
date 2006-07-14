@@ -1,65 +1,26 @@
--- Slette alle tabeller
+/*
+=============================================
+        manage
+    SQL Initialization script for NAV's
+    manage database.  Read the README file
+    for more info.
+    
+    Run the command:
+    psql manage -f manage.sql
+    
+	!! WARNING !!
 
-DROP TABLE mem CASCADE;
-DROP TABLE swportblocked CASCADE;
-DROP TABLE swportallowedvlan CASCADE;
-DROP TABLE swportvlan CASCADE;
-DROP TABLE gwport CASCADE;
-DROP TABLE vlan CASCADE;
-DROP TABLE prefix CASCADE;
-DROP TABLE gwportprefix CASCADE;
-DROP TABLE swport CASCADE;
-DROP TABLE module CASCADE;
-DROP TABLE netboxcategory;
-DROP TABLE netboxinfo;
-DROP TABLE netbox CASCADE;
-DROP TABLE emotd CASCADE;
-DROP TABLE maintenance CASCADE;
-DROP TABLE emotd_related CASCADE;
-DROP TABLE cat CASCADE;
-DROP TABLE device CASCADE;
-DROP TABLE product CASCADE;
-DROP TABLE vendor CASCADE;
-DROP TABLE type CASCADE;
-DROP TABLE snmpoid CASCADE;
-DROP TABLE typegroup CASCADE;
-DROP TABLE room CASCADE;
-DROP TABLE location CASCADE;
-DROP TABLE usage CASCADE;
-DROP TABLE org CASCADE;
-DROP TABLE port2off CASCADE;
+	This SQL script is encoded as unicode (UTF-8), before you do make
+	changes and commit, be 100% sure that your editor does not mess it up.
+    
+    Check 1 : These norwegian letters looks nice:
+    ! Ã¦Ã¸Ã¥Ã†Ã˜Ã… !
+    Check 2 : This is the Euro currency sign: 
+    ! â‚¬ !
+=============================================
+*/
 
-DROP TABLE swp_netbox CASCADE;
-DROP TABLE alertengine;
-
--------VP - fingra fra fatet, Sigurd:
-DROP TABLE vp_netbox_xy CASCADE;
-DROP TABLE vp_netbox_grp CASCADE;
-DROP TABLE vp_netbox_grp_info CASCADE;
-
--- Slette alle sekvenser
-DROP SEQUENCE netbox_netboxid_seq;
-DROP SEQUENCE gwport_gwportid_seq;
-DROP SEQUENCE prefix_prefixid_seq;
-DROP SEQUENCE type_typeid_seq;
-DROP SEQUENCE swport_swportid_seq;
-DROP SEQUENCE swp_netbox_swp_netboxid_seq;
-DROP SEQUENCE device_deviceid_seq;
-DROP SEQUENCE product_productid_seq;
-DROP SEQUENCE module_moduleid_seq;
-DROP SEQUENCE mem_memid_seq;
-DROP SEQUENCE emotd_emotdid_seq;
-DROP SEQUENCE maintenance_maintenanceid_seq;
-
--------------
-DROP SEQUENCE vp_netbox_grp_vp_netbox_grp_seq;
-DROP SEQUENCE vp_netbox_xy_vp_netbox_xyid_seq;
-
--- Slette alle indekser
-
-DROP TABLE status CASCADE;
-DROP SEQUENCE status_statusid_seq;
-
+-- This table has possibly gone unused since NAV 2
 CREATE TABLE status (
   statusid SERIAL PRIMARY KEY,
   trapsource VARCHAR NOT NULL,
@@ -70,8 +31,6 @@ CREATE TABLE status (
   fra TIMESTAMP NOT NULL,
   til TIMESTAMP
 );
-
-------------------------------------------------------------------------------------------
 
 CREATE TABLE org (
   orgid VARCHAR(30) PRIMARY KEY,
@@ -192,9 +151,7 @@ CREATE TABLE device (
   active BOOLEAN NOT NULL DEFAULT false,
   deviceorderid INT4 REFERENCES deviceorder (deviceorderid) ON DELETE CASCADE,
   UNIQUE(serial)
--- productid burde vært NOT NULL, men det går ikke nå
 );
--- tror ikke uniquene jeg har lagt inn skader.
 
 CREATE TABLE type (
   typeid SERIAL PRIMARY KEY,
@@ -429,25 +386,10 @@ UNIQUE(swportid,cablingid));
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 
-DROP TABLE arp CASCADE;
-DROP TABLE cam CASCADE;
-DROP VIEW netboxmac CASCADE;
-DROP VIEW prefix_active_ip_cnt CASCADE;
-DROP VIEW prefix_max_ip_cnt CASCADE;
-DROP VIEW prefixreport CASCADE;
-DROP VIEW netboxreport CASCADE;
-DROP VIEW allowedvlan_both CASCADE;
-DROP VIEW allowedvlan CASCADE;
-DROP TABLE eventtype CASCADE;
-DROP TABLE range CASCADE;
 
-DROP SEQUENCE arp_arpid_seq; 
-DROP SEQUENCE cam_camid_seq; 
-
-DROP FUNCTION netboxid_null_upd_end_time();
-
--- arp og cam trenger en spesiell funksjon for å være sikker på at records alltid blir avsluttet
--- Merk at "createlang -U manage -d manage plpgsql" må kjøres først (passord må skrives inn flere ganger!!)
+-- Attach a trigger to arp and cam, to make sure records are closed as
+-- netboxes are deleted.
+-- The pl/pgsql scripting language must be installed on this database first.
 CREATE FUNCTION netboxid_null_upd_end_time () RETURNS opaque AS
   'BEGIN
      IF old.netboxid IS NOT NULL AND new.netboxid IS NULL THEN
@@ -575,7 +517,7 @@ CREATE VIEW allowedvlan_both AS
   (select  swport.swportid,to_swportid as swportid2,allowedvlan from swport join allowedvlan
     on (swport.to_swportid=allowedvlan.swportid) ORDER BY allowedvlan);
 
--------- vlanPlot tabeller ------
+-------- vlanPlot tables ------
 CREATE TABLE vp_netbox_grp_info (
   vp_netbox_grp_infoid SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,
@@ -584,7 +526,7 @@ CREATE TABLE vp_netbox_grp_info (
   x INT4 NOT NULL DEFAULT '0',
   y INT4 NOT NULL DEFAULT '0'
 );
--- Default nett
+-- Default network
 INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',true);
 
 CREATE TABLE vp_netbox_grp (
@@ -602,26 +544,12 @@ CREATE TABLE vp_netbox_xy (
   UNIQUE(pnetboxid, vp_netbox_grp_infoid)
 );
 
--- vPServer bruker
--- CREATE USER vpserver WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
--- CREATE USER navadmin WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
--- CREATE USER getboksmacs WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
--- CREATE USER getportdata WITH PASSWORD '' NOCREATEDB NOCREATEUSER;
-
-
 
 -------- vlanPlot end ------
 
-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -- rrd metadb tables
-------------------------------------------------------------------------------------------
-
-DROP TABLE subsystem CASCADE;
-DROP TABLE rrd_file CASCADE;
-DROP TABLE rrd_datasource CASCADE;
-
-DROP SEQUENCE rrd_file_seq;
-DROP SEQUENCE rrd_datasource_seq;
+------------------------------------------------------------------------------
 
 -- This table contains the different systems that has rrd-data.
 -- Replaces table eventprocess
@@ -716,10 +644,6 @@ INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
 INSERT INTO eventtype (eventtypeid,eventtypedesc,stateful) VALUES
     ('maintenanceState','Tells us if something is set on maintenance','y');
 
-DROP TABLE eventq CASCADE;
-DROP SEQUENCE eventq_eventqid_seq;
-DROP TABLE eventqvar CASCADE;
-
 CREATE TABLE eventq (
   eventqid SERIAL PRIMARY KEY,
   source VARCHAR(32) NOT NULL REFERENCES subsystem (name) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -745,9 +669,6 @@ CREATE INDEX eventqvar_eventqid_btree ON eventqvar USING btree (eventqid);
 
 
 -- alert tables
-DROP TABLE alertq CASCADE;
-DROP SEQUENCE alertq_alertqid_seq;
-DROP TABLE alertqmsg CASCADE;
 
 CREATE TABLE alerttype (
   alerttypeid SERIAL PRIMARY KEY,
@@ -837,11 +758,6 @@ CREATE TABLE alertqvar (
 );
 CREATE INDEX alertqvar_alertqid_btree ON alertqvar USING btree (alertqid);
 
-
-DROP TABLE alerthist CASCADE;
-DROP SEQUENCE alerthist_alerthistid_seq;
-DROP TABLE alerthistmsg CASCADE;
-DROP TABLE alerthistvar CASCADE;
 
 CREATE TABLE alerthist (
   alerthistid SERIAL PRIMARY KEY,
@@ -934,13 +850,9 @@ CREATE OR REPLACE VIEW maintenance_view AS
 
 
 
-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 -- servicemon tables
-------------------------------------------------------------------------------------------
-
-DROP TABLE service CASCADE;
-DROP TABLE serviceproperty CASCADE;
-DROP SEQUENCE service_serviceid_seq;
+------------------------------------------------------------------------------
 
 CREATE TABLE service (
   serviceid SERIAL PRIMARY KEY,
