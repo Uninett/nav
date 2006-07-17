@@ -6356,9 +6356,9 @@ class bulkdefNetbox:
                 # remove it from the row
                 del(row['serial'])
 
-            # Got serial from snmp?
-            if box:
-                # (overrides manual serial)
+            # If we got a serial by SNMP and none was specified in the bulk
+            # data, use the one retrieved by SNMP
+            if box and not newSerial:
                 if box.serial:
                     newSerial = str(box.serial)
 
