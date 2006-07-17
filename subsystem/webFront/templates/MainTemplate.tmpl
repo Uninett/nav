@@ -152,7 +152,7 @@ $additionalJavaScript()
 #if $user.preferences.qlink2
         <td><img src="$imagefolder/main/quicklink-start.gif" alt="" /></td>
         <td class="list">
-            <select onChange="return jump(this);">
+            <select onchange="return jump(this);">
                 <option style="color: #669" selected="selected"> Quicklink #2 </option>
   #for $link in $user.preferences.qlink2
   #if shouldShow($link.uri, $user)
@@ -191,7 +191,7 @@ $additionalJavaScript()
 #else
     #set $separate = False
     <p class="error"> No current path is set! Find out how here:</p>
-    <pre>template.path = [("Home", "/"), ("Tools", "/toolbox/"), ("Status", False)]</pre>
+    <pre>template.path = [("Home", "/"), ("Status", False)]</pre>
 #end if
 </div> <!-- navpath end -->
 

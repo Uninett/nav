@@ -35,9 +35,9 @@
    <table border="0" cellspacing="0" cellpadding="0">
      <tr>
        <td valign="top" width="190">
-	$navlinksbox <br>
-	$externallinksbox <br>
-	$contactinformationbox <br>
+	$navlinksbox <br />
+	$externallinksbox <br />
+	$contactinformationbox <br />
        </td>
        <td><img src='$imagefolder/blank.gif' width="10"></td>
        <td valign="top">
@@ -141,19 +141,19 @@
 
 #def newmessage($message)
 <div style="padding: 5px 10px;">
-<a href="/messages/view/$message.id"><font size=3><b>$message.title</b></font></a><br>
+<a href="/messages/view/$message.id"><font size=3><b>$message.title</b></font></a><br />
 #if $message.description
 $message.description
 #end if
-<br>
+<br />
 #if $message.affected
-<br><label class="title">Affected end users:</label> $message.affected
+<br /><label class="title">Affected end users:</label> $message.affected
 #end if
 #if $message.downtime
-<br><label class="title">Estimated downtime:</label> $message.downtime
+<br /><label class="title">Estimated downtime:</label> $message.downtime
 #end if
 #if $message.units
-<br><label class="title">Units on maintenance:</label> <a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a>
+<br /><label class="title">Units on maintenance:</label> <a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a>
 #end if
 </div>
 #end def
