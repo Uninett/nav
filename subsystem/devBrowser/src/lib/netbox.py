@@ -45,6 +45,9 @@ from nav.web import tableview
 import module
 from nav.web.devBrowser.servicetable import ServiceTable
 from nav.event import EventQ, Event
+import logging
+
+logger = logging.getLogger("nav.web.devBrowser.netbox")
 
 _statusTranslator = {'y':'Up',
                      'n':'Down',
@@ -239,10 +242,8 @@ class RefreshHandler:
                           eventtypeid='notification')
             event['command'] = 'runNetbox'
             req = self.request['request']
-            req.log_error('Posting refresh event for IP Device ' +
-                          '%s, refreshID=%s' % (self.netbox.sysname,
-                                                refreshId),
-                          apache.APLOG_DEBUG)
+            logger.debug("Posting refresh event for IP Device %s, "
+                         "refreshID=%s", self.netbox.sysname, refreshId)
             event.post()
 
             self.session[self.refreshVar] = (refreshId, refreshTime)
@@ -271,26 +272,22 @@ class RefreshHandler:
                      and event['command'] == 'runNetboxDone']
             for event in stale:
                 age = (DateTime.now() - event.time).minutes
-                req.log_error('Deleting stale refresh reply event ' +
-                              '%s (%.01f minutes old)' % (event.eventqid,
-                                                          age),
-                              apache.APLOG_DEBUG)
+                logger.debug("Deleting stale refresh reply event "
+                             "%s (%.01f minutes old)", event.eventqid, age)
                 event.dispose()
 
         # Only check for replies if we actually know that we've posted an event
         if self.refreshVar in self.session:
             (refreshId, refreshTime) = self.session[self.refreshVar]
             events = EventQ.consumeEvents(target='devBrowse')
-            req.log_error('Checking for refresh replies, found ' +
-                          '%s events directed at me' % len(events),
-                          apache.APLOG_DEBUG)
+            logger.debug("Checking for refresh replies, found %d events "
+                         "directed at me", len(events))
             deleteStale(events)
             # Get the event(s) directed at this refresh instance
             forMe = [event for event in events
                      if int(event.subid) == int(refreshId)]
             if len(forMe) > 0:
-                req.log_error('Got reply event for refreshId=%s' % refreshId,
-                              apache.APLOG_DEBUG)
+                logger.debug("Got reply event for refreshId=%s", refreshId)
                 event = forMe[0]
                 event.dispose()
                 del self.session[self.refreshVar]

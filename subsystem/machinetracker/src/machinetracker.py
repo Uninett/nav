@@ -39,7 +39,9 @@ from nav import db
 from nav.web.URI import URI
 from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
 import IPy
+import logging
 
+logger = logging.getLogger("nav.web.machinetracker")
 connection = db.getConnection('webfront', 'manage')
 database = connection.cursor()
 
@@ -158,14 +160,11 @@ class MachineTrackerSQLQuery:
     def execute(self):
         sql = self.sql()
         if apache:
-            apache.log_error("MachineTracker query: " + sql,
-                             apache.APLOG_NOTICE)
+            logger.debug("Executing SQL query: %s", sql)
         database.execute(sql)
         self.result = database.fetchall()
         if self.result and apache:
-            apache.log_error("MachineTracker query returned %d results" %
-                             len(self.result),
-                             apache.APLOG_NOTICE)
+            logger.debug("Query returned %d results", len(self.result))
         return self.result
 
     def getRows(self, dns=False, active=False, nonActive=False):

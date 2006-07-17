@@ -38,7 +38,9 @@ import sys
 import fcntl
 import nav.errors
 import nav.web
+import logging
 
+logger = logging.getLogger("nav.web.state")
 sessionCookieName = 'nav_sessid'
 tempDir = '/tmp'
 serialPrefix = '%s_' % sessionCookieName
@@ -78,8 +80,7 @@ def setupSession(req):
     if timenow > (_timestamp + 5*60):
         expireCount = cleanup()
         if (expireCount > 0):
-            apache.log_error("Expired %d NAV sessions" % expireCount,
-                             apache.APLOG_NOTICE, req.server)
+            logger.info("Expired %d NAV sessions", expireCount)
         _timestamp = timenow
 
     cookieValue = getSessionCookie(req)
@@ -89,16 +90,20 @@ def setupSession(req):
         except cPickle.UnpicklingError:
             # Some weird unpickling error took place, we'll silently
             # create a new session after this
+            logger.debug("Exception occurred while unpickling session id=%s",
+                         cookieValue, exc_info=True)
             req.session = None
         except NoSuchSessionError, e:
             # The session didn't exist, it probably expired.  We make
             # sure to set a warning about this inside the new session
             # that is generated, and re-authentication is necessary,
             # the login page will display this warning message.
+            logger.info("Unknown session ID %s", cookieValue)
             message = "Your previous login session expired"
 
     if req.session is None:
         req.session = Session()
+        logger.debug("Created new session id=%s", req.session.id)
         if message is not None:
             req.session['message'] = message
             req.session.save()

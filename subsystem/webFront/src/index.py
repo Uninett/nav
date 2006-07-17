@@ -31,6 +31,9 @@ import os, os.path, sys
 import nav, nav.path
 from nav import web
 from nav.web import ldapAuth
+import logging
+
+logger = logging.getLogger("nav.web.index")
 
 webConfDir = os.path.join(nav.path.sysconfdir, "webfront")
 welcomeFileAnonymous = os.path.join(webConfDir, "welcome-anonymous.txt")
@@ -114,9 +117,8 @@ def login(req, login='', password='', origin=''):
             account = Account.loadByLogin(login)
         except nav.db.navprofiles.NoSuchAccountError:
             account = None
-            apache.log_error('Account %s not found in NAVdb' % login,
-                             apache.APLOG_NOTICE, req.server)
-            
+            logger.error("Account %s not found in NAVdb", login)
+
         authenticated = False
         if account is None:
             # If we did not find the account in the NAVdb, we try to
@@ -125,12 +127,12 @@ def login(req, login='', password='', origin=''):
                 try:
                     authenticated = ldapAuth.authenticate(login, password)
                 except ldapAuth.NoAnswerError, e:
+                    logger.error("Could not contact the LDAP server")
                     return _getLoginPage(origin, "Login failed<br>(Unable to make contact with the LDAP server)")
                 else:
                     if not authenticated:
                         return _getLoginPage(origin, "Login failed")
-                    apache.log_error('Account %s authenticated through LDAP' % login,
-                                     apache.APLOG_NOTICE, req.server)
+                    logger.info("New account %s authenticated through LDAP", login)
                     # The login name was authenticated through our LDAP
                     # setup, so we create a new account in the NAVdb for
                     # this user.
@@ -157,8 +159,7 @@ def login(req, login='', password='', origin=''):
                     authenticated = ldapAuth.authenticate(login, password)
                     # If we were authenticated, we update the stored password hash
                     if authenticated:
-                        apache.log_error('Account %s authenticated through LDAP' % login,
-                                         apache.APLOG_NOTICE, req.server)
+                        logger.info("Account %s authenticated through LDAP", login)
                         account.setPassword(password)
                         account.save()
                 except ldapAuth.NoAnswerError, e:
@@ -172,8 +173,7 @@ def login(req, login='', password='', origin=''):
                 authenticated = account.authenticate(password)
 
         if authenticated:
-            apache.log_error('Account %s successfully logged in' % login,
-                             apache.APLOG_NOTICE, req.server)
+            logger.info("Account %s successfully logged in", login)
             # Place the Account object in the session dictionary
             req.session['user'] = account
             req.session.save()
@@ -185,8 +185,7 @@ def login(req, login='', password='', origin=''):
                 origin = '/'
             web.redirect(req, origin, seeOther=True)
         else:
-            apache.log_error('Account %s failed login' % login,
-                             apache.APLOG_WARNING, req.server)
+            logger.warning("Account %s failed to log in", login)
             return _getLoginPage(origin, "Login failed")
     else:
         if req.session.has_key('message'):
@@ -218,11 +217,13 @@ def logout(req):
     Expires the current session, removes the session cookie and redirects to the index page.
     """
     # Expire and remove session
+    login = req.session['user'].login
     req.session.expire()
     del req.session
     from nav.web import state
     state.deleteSessionCookie(req)
 
+    logger.info("User %s logged out", login) 
     # Redirect user to root page
     req.headers_out['Location'] = '/'
     req.status = apache.HTTP_TEMPORARY_REDIRECT

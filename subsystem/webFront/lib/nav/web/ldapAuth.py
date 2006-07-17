@@ -29,6 +29,9 @@ import sys
 from nav import web
 from mod_python import apache
 import nav.errors
+import logging
+
+logger = logging.getLogger("nav.web.ldapAuth")
 
 try:
     import ldap
@@ -36,8 +39,7 @@ try:
 except ImportError,e:
     available = 0
     ldap = None
-    apache.log_error("Python LDAP module is not available - " + str(e),
-                     apache.APLOG_WARNING)
+    logger.warning("Python LDAP module is not available (%s) ", e)
 
 # Determine whether the config file enables ldap functionality or not
 if not web.webfrontConfig.has_option('ldap', 'enabled'):
@@ -71,12 +73,12 @@ def authenticate(login, password):
     except ldap.SERVER_DOWN, e:
         raise NoAnswerError, uri
     except ldap.INVALID_CREDENTIALS, e:
-        apache.log_error('LDAP did not authenticate account ' + login,
-                         apache.APLOG_WARNING)
+        logger.warning("Server %s reported invalid credentials for user %s",
+                       uri, login)
         return False
     except ldap.LDAPError,e:
-        apache.log_error('An LDAP error occurred during authentication: ' + str(e),
-                         apache.APLOG_ERR)
+        logger.error("An LDAP error occurred when authenticating user %s "
+                     "against server %s", login, uri,  exc_info=True)
         return False
 
 def getUserName(login):

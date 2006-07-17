@@ -33,7 +33,10 @@ import ConfigParser
 import os.path, nav.path
 import base64
 import cgi
+import logging
+import nav.logconfig
 
+logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
 webfrontConfig.read(os.path.join(nav.path.sysconfdir, 'webfront', 'webfront.conf'))
 
@@ -76,6 +79,7 @@ def headerparserhandler(req):
     authHeader = 'Authorization'
     if authHeader in req.headers_in:
         # Delete any existing Authorization headers
+        logger.debug("Request already had an Authorization header, removing it")
         del req.headers_in[authHeader]
     if user.id > 0:
         # Only fake the header if we're not the public user
@@ -116,6 +120,7 @@ def redirect(req, url, temporary=False, seeOther=False):
     else:
         status = apache.HTTP_MOVED_PERMANENTLY
     
+    logger.debug("Redirect to %s using status code %s", url, status)
     req.headers_out['Location'] = url
     req.status = status
     raise apache.SERVER_RETURN, status
@@ -137,3 +142,36 @@ def escape(s):
         return cgi.escape(str(s))
     else:
         return ''
+
+def loginit():
+    """Initialize a logging setup for the web interface"""
+    global _loginited
+    try:
+        # Make sure we don't initialize logging setup several times (in case
+        # of module reloads and such)
+        if _loginited:
+            return
+    except:
+        pass
+    
+    root = logging.getLogger('')
+
+    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s")
+    logfile = os.path.join(nav.path.localstatedir, 'log', 'webfront.log')
+    handler = logging.FileHandler(logfile)
+    handler.setFormatter(formatter)
+
+    root.addHandler(handler)
+    nav.logconfig.setLogLevels()
+    _loginited = True
+    
+
+
+# Module initialization
+try:
+    from mod_python import apache
+except:
+    # Not running inside mod_python - do nothing
+    pass
+else:
+    loginit()

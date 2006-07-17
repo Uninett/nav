@@ -28,11 +28,14 @@ Contains web authentication functionality for NAV.
 import base64, urllib
 import sys, os, re
 import nav
+import logging
 
 from nav import db
 from nav.db import navprofiles
 from nav.web.preferences import Preferences, Link
 from nav.db.navprofiles import Account, Accountnavbar, Navbarlink
+
+logger = logging.getLogger("nav.web.auth")
 
 def checkAuthorization(user, uri):
     """
@@ -92,9 +95,13 @@ def authenticate(req):
         req.session['user'] = Account(0)
 
     user = req.session['user']
+    logger.debug("Request for %s authenticated as user=%s", req.unparsed_uri,
+                 user.login)
     _find_user_preferences(user, req)
     
     if not checkAuthorization(user, req.unparsed_uri):
+        logger.warn("User %s denied access to %s", user.login,
+                    req.unparsed_uri)
         redirectToLogin(req)
     else:
         if not user.id == 0:
