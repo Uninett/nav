@@ -114,44 +114,24 @@
 
 #def tableTitle($title, $hits, $columnCount)
   #set $columnCount += 1
-<p>
-<table cellspacing="0" cellpadding="0" border="0">
-<!------------------------- TITLE  ---->
-    <tr class="title">
-      <th class="title" align="center" colspan="$columnCount"
-          style="background-image:url('$imagefolder/arpcam/mtlogo+fill.gif'); background-repeat: no-repeat;">  
-        <table class="navigation" cellspacing="0" cellpadding="0" border="0">
-          <tr class="navigation">
-            <td class="current">
-              <p class="title"><font color="black">$title</font></p>
-              $hits hits
-            </td>
-          </tr>
-        </table>
-      </th>
-      <td align="right" style="background-image:url('$imagefolder/arpcam/fill.gif');"><img src="$imagefolder/ragen/top-end.gif"></td>
-    </tr>
+<br />
+
+<table class="horiztable">
+    <caption>
+        <span class="cornerkludge"></span>
+        $title<br />
+        <span class="subtitle">$hits hits</span>
+    </caption>
 #end def
 
 #def tableHeader($rowCount, $columns)
-  #set $rowCount = $rowCount + 2
+  #set $rowCount = $rowCount + 1
     <tr class="header">
-      <th bgcolor="white"
-          style="background-image:url('$imagefolder/ragen/navbar-start.gif'); background-repeat: no-repeat; width: 14px"
-          rowspan="$rowCount">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </th>
+        <td class="leftkludge" rowspan="$rowCount"></td>
   #for $column in $columns
-      <th class="header" valign="top" bgcolor="white" nowrap >
-          $column &nbsp;
-      </th>
+        <th>$column</th>
   #end for
-
-      <th bgcolor="white"
-          style="background-image:url('$imagefolder/ragen/navbar-end.gif'); background-position: top right; background-repeat: no-repeat; width: 14px;"
-          rowspan="$rowCount">
-        <img src="$imagefolder/blank.gif" width="14" height="1" alt="" />
-      </th>
+        <td class="rightkludge" rowspan="$rowCount"></td>
     </tr>
 #end def
 
@@ -166,38 +146,23 @@
   $tableTitle("IP Search results", len($table), $columnCount)
   $tableHeader(len($table), $columns)
 
-  #set $rowtype = "evenrow"
   #for $row in $table
-    #if $row.ipaddr
-      #if $rowtype == "evenrow"
-        #set $rowtype = "oddrow"
-      #else
-        #set $rowtype = "evenrow"
-      #end if
-    #end if
-
-        <tr class="$rowtype">
+    <tr class="$rowcycler">
     #if $form.dns=="on":
-		<td nowrap>$row.dnsname &nbsp;</td>
+        <td>$row.dnsname</td>
     #end if
-		<td nowrap><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns" title="Search again for this IP address">$row.ipaddr</a> &nbsp;</td>
-		<td nowrap>#slurp
-                #if $row.ipaddr
-                  <a href="/ipinfo/?ip=${row.ipaddr}" #slurp
-                     title="Show information about this particular IP address"
-                  ><img src="$imagefolder/arpcam/ipinfolink.png" #slurp
-                  width="11" height="11" alt="IP Info" style="border: none;"></a>&nbsp;
-                #end if
-                </td>
-		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$row.mac</a> &nbsp;</td>
-##		<td nowrap><a href="/browse/$row.switch">$row.switch</a> &nbsp;</td>
-##		<td nowrap align="center">$row.module &nbsp;</td>
-##		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns">$row.port</a> &nbsp;</td>
-		<td nowrap >$row.start_time &nbsp;</td>
-		<td nowrap >$row.end_time &nbsp;</td>
-        </tr>
+        <td><a href="ip?from_ip=$row.ipaddr&days=$form.days&dns=$form.dns" title="Search again for this IP address">$row.ipaddr</a></td>
+	<td>#slurp
+        #if $row.ipaddr
+            <a href="/ipinfo/?ip=${row.ipaddr}" title="Show information about this particular IP address"><img src="$imagefolder/arpcam/ipinfolink.png" width="11" height="11" alt="IP Info"></a>
+        #end if
+        </td>
+	<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$row.mac</a></td>
+        <td>$row.start_time</td>
+        <td>$row.end_time</td>
+    </tr>
   #end for
-  </table>
+</table>
 #end def
 
 #def camTable($table)
@@ -207,26 +172,17 @@
   $tableTitle("MAC Search results", len($table), $columnCount)
   $tableHeader(len($table), $columns)
 
-  #set $rowtype = "evenrow"
   #for $row in $table
-    #if $row.mac
-      #if $rowtype == "evenrow"
-        #set $rowtype = "oddrow"
-      #else
-        #set $rowtype = "evenrow"
-      #end if
-    #end if
-
-        <tr class="$rowtype">
-		<td nowrap><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a> &nbsp;</td>
-		<td nowrap><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a> &nbsp;</td>
-		<td nowrap align="center">$row.module &nbsp;</td>
-		<td nowrap align="center"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a> &nbsp;</td>
-		<td nowrap >$row.start_time &nbsp;</td>
-		<td nowrap >$row.end_time &nbsp;</td>
-        </tr>
+    <tr class="$rowcycler">
+        <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$row.mac</a></td>
+	<td><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a></td>
+	<td style="text-align: center;">$row.module</td>
+        <td style="text-align: center;"><a href="swp?switch=$row.switch&module=$row.module&port=$row.port&days=$form.days&dns=$form.dns" title="Search for other machines on this port">$row.port</a></td>
+	<td>$row.start_time</td>
+	<td>$row.end_time</td>
+    </tr>
   #end for
-  </table>
+</table>
 #end def
 
 <div id="results">
