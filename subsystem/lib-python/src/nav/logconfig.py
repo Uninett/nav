@@ -34,6 +34,8 @@ def setLogLevels():
     config = ConfigParser.ConfigParser()
     config.read(logConfFile)
     
+    if 'levels' not in config.sections():
+        return
     for loggerName in config.options('levels'):
         level = config.get('levels', loggerName)
         # Allow the config file to specify the root logger as 'root'
