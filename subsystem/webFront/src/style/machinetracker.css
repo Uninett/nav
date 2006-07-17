@@ -26,11 +26,11 @@
 
 th.header {
 	text-align: left;
-	font-size: 13;
+	font-size: 13px;
 	font-weight: normal;
 }
 p.title { 
-	font-size: 15;
+	font-size: 15px;
 	font-weight: bold;
 	text-align: center;
 	padding: 0px 0px 0px 0px;
