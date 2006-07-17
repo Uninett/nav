@@ -48,10 +48,10 @@ public class SwModule extends Module implements Comparable
 	 * Return an Swport-object which is used to describe a single switch port.
 	 */
 	public Swport swportFactory(String ifindex) {
-		Swport swp = sc.createOrGetSwport(ifindex);
-		swp.assignedToModule();
-		swports.put(ifindex, swp);
-		return swp;
+		Swport sw = sc.createOrGetSwport(ifindex);
+		sw.assignedToModule();
+		swports.put(ifindex, sw);
+		return sw;
 	}
 
 }

@@ -102,13 +102,11 @@ public class ModuleContainer extends DeviceContainer implements DataContainer {
 	 * Return a Module object which is used to describe a single module.
 	 */
 	public Module moduleFactory(int module) {
-		Log.d("ModuleHandler", "MODULE-FACTORY", "Asked to create module " + module);
 		module = translateModule(module);
 		Module m = new Module(module);
 		int k;
 		if ( (k=moduleList.indexOf(m)) >= 0) {
 			m = (Module)moduleList.get(k);
-			Log.d("ModuleHandler", "MODULE-FACTORY", "Got existing module " + module + " (" + m +")");
 		} else {
 			addModule(m);
 			Log.d("ModuleHandler", "MODULE-FACTORY", "Created module " + module + " (" + m +")");
