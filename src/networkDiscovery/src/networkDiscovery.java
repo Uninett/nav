@@ -1,5 +1,5 @@
 /*
- * $Id:$
+ * $Id$
  *
  * Copyright 2004-2005 Norwegian University of Science and Technology
  * 
@@ -22,20 +22,35 @@
  *
  * Physical and vlan topology discovery
  * Authors: Kristian Eide <kreide@online.no>
+ * 
+ * Please, if you want to hack this code but cannot read Norwegian, use the
+ * mailing lists and have someone put in the effort of translating the
+ * comments in this file :-P
+ * 
  */
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-import java.text.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
-import java.sql.*;
-
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.event.*;
 import no.ntnu.nav.Path;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.event.Event;
+import no.ntnu.nav.event.EventQ;
 
 
 class networkDiscovery
@@ -1262,6 +1277,10 @@ class networkDiscovery
 
 		if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms traversing VLANs from router<br>");
 
+		// XXX: The below commented out code is an attempt at support for private (i.e. non-routed) VLANs.
+		//      Unfortunately it does not work at all and has an ugly tendency to mess up people's NAV installs,
+		//      thus its current commented out state. May be cleaned up at some future date.
+		/*
 		outl("\n<b>VLANs with no router to start from:</b><br>");
 		outl("<pre>");
 
@@ -1272,26 +1291,6 @@ class networkDiscovery
 		// Alle vlan som vi ikke finner startpunkt på, hver må vi rett og slett starte alle andre steder for å være sikker på å få med alt
 		// SELECT DISTINCT ON (vlan,boksid) boksid,modul,port,boksbak,vlan,trunk FROM swport NATURAL JOIN swportvlan WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan,boksid
 		if (DEBUG_OUT) outl("\n<b><h3>VLANs with no router to start from:</h3></b><br>");
-		/*
-		//rs = Database.query("SELECT DISTINCT ON (vlan,boksid) vlan,sysname,boksbak FROM swport NATURAL JOIN swportvlan JOIN boks USING (boksid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM (prefiks JOIN gwport USING (prefiksid)) JOIN boks USING (boksid) WHERE boksbak IS NOT NULL AND vlan IS NOT NULL) AND boksbak IS NOT NULL ORDER BY vlan");
-		rs = Database.query("SELECT DISTINCT ON (vlanid,module.netboxid) vlan,vlanid,sysname,to_netboxid FROM swport JOIN module USING(moduleid) JOIN swportvlan USING(swportid) JOIN netbox ON (to_netboxid=netbox.netboxid) WHERE vlan NOT IN (SELECT DISTINCT vlan FROM prefix JOIN gwportprefix USING(prefixid) JOIN gwport USING (gwportid) WHERE to_netboxid IS NOT NULL AND vlan IS NOT NULL) AND to_netboxid IS NOT NULL ORDER BY vlanid");
-		HashSet visitNode = null;
-		int prevVlanid=-1;
-		while (rs.next()) {
-			int vlan = rs.getInt("vlan");
-			int vlanid = rs.getInt("vlanid");
-			if (doneVlan.contains(new Integer(vlanid))) {
-				//errl("Vlan " + vlan + " already processed");
-				continue;
-			}
-			if (vlanid != prevVlanid) {
-				visitNode = new HashSet();
-				prevVlanid = vlanid;
-			}
-			if (DEBUG_OUT) outl("\n<b>NEW VLAN: " + vlan + "</b>, starting from <b>"+rs.getString("sysname")+"</b> ("+rs.getString("to_netboxid")+")<br>");
-			vlanTraverseLink(vlan, vlanid, null, rs.getString("to_netboxid"), true, false, nontrunkVlan, allowedVlan, activeVlan, swportidMap, spanTreeBlocked, trunkVlan, dataStructs, new ArrayList(), visitNode, 0, DEBUG_OUT, boksGwSet, swportGwVlanMap, boksName);
-		}
-		*/
 		{
 			// Delete mismatching ports
 			// DELETE FROM swport WHERE swportid IN (SELECT swportid FROM swport JOIN swportvlan USING(swportid) JOIN vlan USING(vlanid) WHERE vlan.vlan != swport.vlan AND direction IN ('x','u'))
@@ -1330,34 +1329,14 @@ class networkDiscovery
 				if (visitNode.contains(rs.getString("netboxid"))) continue;
 				vlanTraverseLink(vlan, vlanid, null, rs.getString("netboxid"), false, false, nontrunkVlan, allowedVlan, activeVlan, swportidMap, spanTreeBlocked, trunkVlan, dataStructs, new ArrayList(), visitNode, 0, DEBUG_OUT, boksGwSet, swportGwVlanMap, boksName);
 
-				/*
-				if (rs.getBoolean("trunk") == false) {
-					// Always set active for non-trunk
-					String[] rVlan = {
-						rs.getString("swportid"),
-						String.valueOf(vlanid),
-						"u"
-					};
-					trunkVlan.add(rVlan);
-					
-					String to_swportid = rs.getString("to_swportid");
-					if (to_swportid != null) {
-						String[] tVlan = {
-							to_swportid,
-							String.valueOf(vlanid),
-							"u"
-						};
-						trunkVlan.add(tVlan);
-					}
-				}
-				*/
 
 			}
 		}
 
 		outl("</pre>");
 		if (TIME_OUT) outl("Spent " + (System.currentTimeMillis()-beginTime) + " ms traversing VLANs with no router<br>");
-
+		*/
+		
 		Map activeOnTrunk = updateVlanDb(trunkVlan, vlanidVlan, allowedVlan, boksName, true);
 
 		// Så skriver vi ut en rapport om mismatch mellom swportallowedvlan og det som faktisk kjører
