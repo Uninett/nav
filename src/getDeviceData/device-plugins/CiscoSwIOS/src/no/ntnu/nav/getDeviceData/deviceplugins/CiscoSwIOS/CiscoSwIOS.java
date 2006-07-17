@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,142 +117,97 @@ public class CiscoSwIOS implements DeviceHandler
 	
 	void processIOS(Netbox nb, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
-		List l;
-
-		l = sSnmp.getAll(nb.getOid("ifDescr"), true);
-
-		// Check which interfaces match our pattern
-		Set matchIfindex = new HashSet();
-		Set moduleCntSet = new HashSet();
-		if (l != null) {
-			Log.d("PROCESS_IOS", "ifDescr reported " + l.size() + " ports");
-			for (Iterator it = l.iterator(); it.hasNext();) {
-				String[] s = (String[])it.next();
-			
-				String portif = s[1];
-				String modulePattern = "((.*)(\\d+))/(\\d+)";
-
-				if (portif.matches(modulePattern)) {
-					matchIfindex.add(s[0]);
-					Matcher m = Pattern.compile(modulePattern).matcher(portif);
-					m.matches();
-					String submodule = m.group(3);
-					moduleCntSet.add(submodule);
-				}
-			}
-			Log.d("PROCESS_IOS", "Port name matching suggests " + moduleCntSet.size() + " modules");
+		Pattern interfacePattern = Pattern.compile("((.*?)(\\d+))/(\\d+)(/(\\d+))?");
+		List ifDescriptions = sSnmp.getAll(nb.getOid("ifDescr"), true);
+		// This nice OID, if supported, returns a list of module/port-numbers assigned to ifIndexes
+		Map portIfindexes = sSnmp.getAllMap(nb.getOid("portIfIndex"));
+		MultiMap portIfindexMap = null;
+		if (portIfindexes != null) {
+			portIfindexMap = util.reverse(portIfindexes);
 		}
-		if (matchIfindex.isEmpty()) return;
-
-		//int highModule = -1; // Highest module number seen so far
-		//Map moduleNumMap = new HashMap();
-
-		MultiMap modPortMM = new HashMultiMap();
-		MultiMap modNames = new HashMultiMap();
-		for (Iterator it = l.iterator(); it.hasNext();) {
-			String[] s = (String[])it.next();
-			
-			String ifindex = s[0];
-			if (!matchIfindex.contains(ifindex)) continue;
-			String portif = s[1];
-
-			// Determine and create the module
-			// Use *? because otherwise two digit numbers won't work!
-			int module = 0;
-			int realModule = 0;
-			String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
-			String moduleNamePattern = "((.*)(\\d+))/(\\d+)";
-
-			String moduleName = null;
-			if (portif.matches(modulePattern)) {
-				Matcher m = Pattern.compile(moduleNamePattern).matcher(portif);
-				m.matches();
-				moduleName = m.group(1);
-
-				m = Pattern.compile(modulePattern).matcher(portif);
-				m.matches();
-				module = Integer.parseInt(m.group(3));
-				realModule = module;
-				/*
-				if (!moduleNumMap.containsKey(moduleName)) {
-					if (module > highModule) {
-						highModule = module;
-					} else {
-						module = ++highModule;
-					}
-					moduleNumMap.put(moduleName, new Integer(module));
-				} else {
-					module = ((Integer)moduleNumMap.get(moduleName)).intValue();
-				}
-				*/
-				// If submodule then we add the submodule number to module as a string
-				if (util.groupCountNotNull(m) >= 6) {
-					String submod = m.group(4);
-					String newmodule = module + submod;
-					mc.moduleTranslate(""+module, newmodule);
-					sc.moduleTranslate(""+module, newmodule);
-					module = Integer.parseInt(newmodule);
-					realModule = module;
-					mc.moduleFactory(module);
-				}
-			}
-
-			Module md = mc.getModule(module);
-			if (md == null) {
-				if (module == 0 && moduleCntSet.size() == 1) {
-					module = 1;
-					md = mc.moduleFactory(1);
-				} else {
-					// Not allowed to create module
-					Log.w("PROCESS_IOS", "Module " + module + " ("+moduleName+") does not exist on netbox " + nb.getSysname() + ", skipping");
-					continue;
-				}
-			}
-			SwModule swm = sc.swModuleFactory(module);
-			Module mm = mc.moduleFactory(module);
-			Swport swp = swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-			if (moduleName != null) {
-				boolean composed = false;
-				if (!modNames.put(new Integer(module), moduleName)) {
-					String cModuleName = composeModuleName(realModule, modNames.get(new Integer(module)));
-					if (!moduleName.equals(cModuleName)) {
-						composed = true;
-						moduleName = cModuleName;
-					}
-				}
-				if ((mm.getDescr() == null && md.getDescr() == null) || composed) {
-					md.setDescr(moduleName);
-				}
-			}
-
-			String[] modulport = portif.split("/");
-			if (modulport.length > 1) {
-				try {
-					// If we have a submodule the port is one index higher
-					Integer port = modulport.length > 2 ? Integer.valueOf(modulport[2]) : Integer.valueOf(modulport[1]);
-					if (!modPortMM.put(new Integer(module), port)) {
-						port = new Integer(Integer.parseInt(ifindex));
-					}
-					swp.setPort(port);
-				} catch (NumberFormatException e) { }
-			}
-		}
-
-		/*		l = sSnmp.getAll(nb.getOid("ifDuplex"));
-					if (l != null) {
-					for (Iterator it = l.iterator(); it.hasNext();) {
-					String[] s = (String[])it.next();
-					String ifindex = s[0];
-					char duplex = (s[1].equals("1") ? 'f' : 'h');
-					sc.swportFactory(ifindex).setDuplex(duplex);
-					}
-					}*/
-		l = sSnmp.getAll(nb.getOid("ifVlan"));
-		if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+		
+		Set matchedIfindexes = new HashSet();
+		MultiMap moduleDescriptions = new HashMultiMap();
+		MultiMap modulePortMM = new HashMultiMap();
+		// Only add interfaces matching our ifDescr pattern
+		if (ifDescriptions != null) {
+			Log.d("PROCESS_IOS", "ifDescr reported " + ifDescriptions.size() + " interfaces");
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
-				if (!matchIfindex.contains(ifindex)) continue;
+				String ifdescr = s[1];
+				
+				Matcher matcher = interfacePattern.matcher(ifdescr);
+				if (matcher.matches()) {
+					// Proceed with adding this port to this box
+					matchedIfindexes.add(ifindex);
+					
+					int moduleNumber;
+					int portNumber;
+					// Assign a module and port number to the interface
+					if (portIfindexMap != null && portIfindexMap.containsKey(ifindex)) {
+						// use the portIfIndex OID to extract module and port number
+						// value pattern is "module.port", e.g. "2.13"
+						String moduleDotPort = (String) portIfindexMap.getFirst(ifindex);
+						Log.d("PROCESS_IOS", "Port " + ifdescr + " maps to " + moduleDotPort);
+						
+						String[] mdp = moduleDotPort.split("\\.");
+						moduleNumber = Integer.parseInt(mdp[0]);
+						portNumber = Integer.parseInt(mdp[1]);
+					} else {
+						// otherwise, guesstimate it from the ifDescr value
+						moduleNumber = Integer.parseInt(matcher.group(3));
+						String portNum = matcher.group(4);
+
+						if (util.groupCountNotNull(matcher) >= 6) {
+							// submodule numbering is in use
+							// let's be wild and crazy and concatenate all digits to a port number
+							portNum = matcher.group(3) + portNum + matcher.group(6);
+						}
+						portNumber = Integer.parseInt(portNum);
+					}
+					
+					String moduleDescription = matcher.group(1);
+					Module module = mc.moduleFactory(moduleNumber);
+					SwModule swModule = sc.swModuleFactory(moduleNumber);
+					Swport swPort = swModule.swportFactory(ifindex); // Create module <-> ifindex mapping
+
+					// Compose a module description by concatenating distinct interface type names such as "FastEthernet" and "GigabitEthernet"
+					if (moduleDescription != null) {
+						boolean composed = false;
+						if (!moduleDescriptions.put(new Integer(moduleNumber), moduleDescription)) {
+							String composedDescr = composeModuleDescription(moduleNumber, moduleDescriptions.get(new Integer(moduleNumber)));
+							if (!moduleDescription.equals(composedDescr)) {
+								composed = true;
+								moduleDescription = composedDescr;
+							}
+						}
+						// Only set if we composed a new description, or no description was previously set
+						if (module.getDescr() == null || composed) {
+							module.setDescr(moduleDescription);
+						}
+					}
+					
+					// Assign the chosen port number
+					if (modulePortMM.put(new Integer(moduleNumber), new Integer(portNumber))) {
+						swPort.setPort(new Integer(portNumber));
+					} else {
+						// The port number has already been used on this module, fall back to using ifindex as port number
+						// (and hope to your deities that it works)
+						swPort.setPort(Integer.valueOf(ifindex));
+					}
+				}
+			}
+		}
+		// We didn't find any acceptable interfaces, so we bail out
+		if (matchedIfindexes.isEmpty()) return;
+		
+		ifDescriptions = sSnmp.getAll(nb.getOid("ifVlan"));
+		if (ifDescriptions != null) {
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String ifindex = s[0];
+				if (!matchedIfindexes.contains(ifindex)) continue;
 				int vlan = 0;
 				try{
 					vlan = Integer.parseInt(s[1]);
@@ -262,39 +218,39 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getAll(nb.getOid("ifTrunk"));
-		if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+		ifDescriptions = sSnmp.getAll(nb.getOid("ifTrunk"));
+		if (ifDescriptions != null) {
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
-				if (!matchIfindex.contains(ifindex)) continue;
+				if (!matchedIfindexes.contains(ifindex)) continue;
 
 				boolean trunk = (s[1].equals("1") ? true : false);
 				sc.swportFactory(ifindex).setTrunk(trunk);
 			}
 		}
 
-		l = sSnmp.getAll(nb.getOid("ifVlansAllowed"));
-		if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+		ifDescriptions = sSnmp.getAll(nb.getOid("ifVlansAllowed"));
+		if (ifDescriptions != null) {
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				if (!matchIfindex.contains(s[0])) continue;
+				if (!matchedIfindexes.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setHexstring(s[1]);
 			}
 		}
 		
-		l = sSnmp.getAll(nb.getOid("ifPortName"), true);
-		if (l != null) {
-			for (Iterator it = l.iterator(); it.hasNext();) {
+		ifDescriptions = sSnmp.getAll(nb.getOid("ifPortName"), true);
+		if (ifDescriptions != null) {
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-				if (!matchIfindex.contains(s[0])) continue;
+				if (!matchedIfindexes.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setPortname(s[1]);
 			}
 		}
 
 	}
 
-	private String composeModuleName(int module, Set names) {
+	private String composeModuleDescription(int module, Set names) {
 		Set ls = new HashSet(names);
 		String pat = "([a-zA-z]+)Ethernet(\\d+)";
 		List nl = new ArrayList();
