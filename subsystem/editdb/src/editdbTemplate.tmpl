@@ -26,106 +26,12 @@
 #from nav.web.templates.selectTreeTemplate import selectTreeTemplate
 
 #def additionalCSS
-<style type="text/css">
-    ## CSS Tooltip
-    a.info      { position: relative;
-                  z-index: 24;
-                  background-color: #ccc,
-                  color: #0f0;
-                  text-decoration: none}
-    
-    a.info:hover { 
-                  z-index: 25;
-                  background-color: #ff0}
-
-    a.info span {display: none}
-
-    a.info:hover span {
-                  display: block;
-                  position: absolute;
-                  top: 2em;
-                  left: 2em;
-                  width: 15em;
-                  padding: 4px;
-                  border: 1px solid #000;
-                  background-color: #588;
-                  color: #000;}
-    
-    ## Table style 
-    tr.header   { background-color: white;
-                  background-image:url('/images/ragen/navbar-fill.gif');
-                  background-repeat: repeat-x;
-                  height: 26px;
-                  padding: 1px 0px 0px 0px;
-                  font-size: 13; }
-
-    tr.evenrow  { font-size: 12; background-color: #eeeeee; }
-    tr.oddrow   { font-size: 12; }
-
-    td.startheader {
-                  background-color: white;
-                  background-image: url('/images/ragen/navbar-start.gif');
-                  background-repeat: no-repeat;
-                  width: 14px}
-
-    td.endheader { 
-                  background-color: white;
-                  background-image:url('/images/ragen/navbar-end.gif');
-                  background-position: top right;
-                  background-repeat: no-repeat;
-                  width: 14px}
-
-    ## Status and error style
-    p.error     { color: #ff0000; }
-    p.status    { color: #00bb00; }
-    p.infotext  { width: 80%;
-                  font-size: 13; }
-</style>
+<link rel="stylesheet" type="text/css" href="/style/editdbTemplate.css" />
 $default_form_CSS()
 #end def
 
 #block additionalJavaScript
-
-function updateDisplay(select) {
-    var options = select.options;
-    for (optIndex = 0; optIndex < options.length; optIndex++) {
-        option = options.item(optIndex);
-        setElementDisplay(option.value,option.selected);
-    }    
-}
-
-function setElementDisplay(elementId,display) {
-    if (document.getElementById) {
-        var element = document.getElementById(elementId);
-        if (element) {
-            if (display) {
-                element.style.display = '';
-            } else {
-                element.style.display = 'none';
-            }
-        }
-    }
-}
-
-function toggleDisabled(select,elementId) {
-    var options = select.options;
-    var somethingSelected = false;
-    for (optIndex = 0; optIndex < options.length; optIndex++) {
-        option = options.item(optIndex);
-        if (option.selected == true) {
-            somethingSelected = true;
-            break;
-        }
-    }    
-    if (document.getElementById) {
-        var element = document.getElementById(elementId);
-        if (somethingSelected = true) {
-            element.disabled = false;
-        } else {
-            element.disabled = true;
-        }
-    }
-}
+<script type="text/javascript" src="/js/editdbTemplate.js"></script>
 #end block additionalJavaScript
 
 #def content

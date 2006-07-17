@@ -18,7 +18,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ##
-## $Id:$
+## $Id$
 ## Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
 ##          Magnar Sveen <magnars@idi.ntnu.no>
 ##
@@ -27,18 +27,7 @@
 
 
 #block additionalJavaScript
-function checkForm(form) {
-   if (form.title.value == "") {
-      alert("Please fill in a title.");
-      form.title.focus();
-   } else if (form.description.value == "") {
-      alert("Please fill in a description.");
-      form.description.focus();
-   } else {
-      return true;
-   }
-   return false;
-}
+<script type="text/javascript" src="/js/EditTemplate.js"></script>
 #end block
 
 #block content

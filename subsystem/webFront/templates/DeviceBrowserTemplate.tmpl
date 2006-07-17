@@ -33,45 +33,7 @@ $default_tabs_CSS2()
 #end block additionalCSS      
 
 #block additionalJavaScript
-function changeDisplay( elementId, setTo ) {
-    if( document.getElementById ) {
-        //DOM
-        var theElement = document.getElementById( elementId );
-    } else {
-        if( document.all ) {
-            //Proprietary DOM
-            var theElement = document.all[ elementId ];
-        } else {
-            //Create an object to prevent errors further on
-            var theElement = new Object();
-        }
-    }
-    if( !theElement ) {
-        /* The page has not loaded or the browser claims to support
-        document.getElementById or document.all but cannot actually
-        use either */
-        return;
-    }
-    //Reference the style ...
-    if( theElement.style ) { theElement = theElement.style; }
-    if( typeof( theElement.display ) == 'undefined' &&
-    !( window.ScriptEngine && ScriptEngine().indexOf('InScript') + 1 ) ) {
-      //The browser does not allow us to change the display style
-      //Alert something sensible (not what I have here ...)
-      window.alert( 'Your browser is crap' );
-      return;
-    }
-    //Change the display style
-    theElement.display = setTo;
-}
-
-function showPorts(elementId) {
-    known = ['activeports', 'portstatus'];
-    for (i=0;i<known.length;i++) {
-        changeDisplay(known[i], known[i] == elementId ? 'block' : 'none');
-    }
-}
-
+<script type="text/javascript" src="/js/DeviceBrowserTemplate.css"></script>
 #end block additionalJavaScript
 
 #block content
