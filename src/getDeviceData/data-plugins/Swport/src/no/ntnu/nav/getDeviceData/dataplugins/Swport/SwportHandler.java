@@ -1,3 +1,29 @@
+/*
+ * $Id$
+ *
+ * Copyright 2003-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
+ * 
+ */
+
 package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
 import java.util.*;
@@ -206,7 +232,7 @@ public class SwportHandler implements DataHandler {
 
 				//System.err.println("Module: " + md);
 
-				// Så alle swportene
+				// SÃ¥ alle swportene
 				String swportid;
 				for (Iterator j = md.getSwports(); j.hasNext();) {
 					Swport sd = (Swport)j.next();
@@ -257,7 +283,7 @@ public class SwportHandler implements DataHandler {
 					} else {
 						swportid = oldsd.getSwportidS();
 						if (!sd.equalsSwport(oldsd)) {
-							// Vi må oppdatere
+							// Vi mÃ¥ oppdatere
 							Log.d("UPDATE_SWPORT", "Update swportid: "+swportid+" ifindex="+sd.getIfindex());
 							Log.d("UPDATE_SWPORT", "Old: " + oldsd + ", New: " + sd);
 
@@ -301,7 +327,7 @@ public class SwportHandler implements DataHandler {
 						}
 
 					} else if (sd.getTrunk() != null) {
-						// Trunk, da må vi evt. oppdatere swportallowedvlan
+						// Trunk, da mÃ¥ vi evt. oppdatere swportallowedvlan
 						if (sd.getHexstring().length() > 0) {
 							if (oldsd == null || oldsd.getHexstring() == null || oldsd.getHexstring().length() == 0) {
 								Database.update("INSERT INTO swportallowedvlan (swportid,hexstring) VALUES ('"+sd.getSwportid()+"','"+Database.addSlashes(sd.getHexstring())+"')");
