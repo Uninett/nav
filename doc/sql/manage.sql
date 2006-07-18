@@ -874,4 +874,42 @@ serviceid INT4 NOT NULL REFERENCES service ON UPDATE CASCADE ON DELETE CASCADE,
   PRIMARY KEY(serviceid, property)
 );
 
+------------------------------------------------------------------------------
+-- messages/maintenance v2 tables
+------------------------------------------------------------------------------
 
+CREATE TABLE message (
+    messageid SERIAL PRIMARY KEY,
+    title VARCHAR NOT NULL,
+    description TEXT NOT NULL,
+    tech_description TEXT,
+    publish_start TIMESTAMP,
+    publish_end TIMESTAMP,
+    author VARCHAR NOT NULL,
+    last_changed TIMESTAMP,
+    replaces_message INT REFERENCES message
+);
+
+CREATE TABLE maint_task (
+    maint_taskid SERIAL PRIMARY KEY,
+    maint_start TIMESTAMP NOT NULL,
+    maint_end TIMESTAMP NOT NULL,
+    description TEXT NOT NULL,
+    author VARCHAR NOT NULL,
+    state VARCHAR NOT NULL
+);
+
+CREATE TABLE maint_component (
+    maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE,
+    key VARCHAR NOT NULL,
+    value VARCHAR NOT NULL,
+    PRIMARY KEY(maint_taskid, key, value)
+);
+
+CREATE TABLE message_to_maint_task (
+    messageid INT NOT NULL REFERENCES message ON UPDATE CASCADE ON DELETE CASCADE,
+    maint_taskid INT NOT NULL REFERENCES maint_task ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE OR REPLACE VIEW maint AS
+    SELECT * FROM maint_task NATURAL JOIN maint_component;
