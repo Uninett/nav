@@ -33,9 +33,61 @@
 
 <h2>Messages</h2>
 
+<p>Insert tabs here.</p>
+
+<h3>Active messages</h2>
+
+#if len($msgs)
+    #for $msg in $msgs
+<table class="vertitable">
+    <caption>$msg.title</caption>
+    <tr class="$rowcycler">
+        <th>Published</th>
+        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M:%S')</td>
+    </tr>
+        #if $msg.last_changed
+    <tr class="$rowcycler">
+        <th>Last changed</th>
+        <td>$msg.last_changed.strftime('%Y-%m-%d %H:%M:%S')</td>
+    </tr>
+        #end if
+    <tr class="$rowcycler">
+        <th>Author</th>
+        <td>$msg.author</th>
+    </tr>
+        #set rowstyle = $rowcycler.__str__()
+    <tr class="$rowstyle">
+        <th colspan="2">Description</th>
+    </tr>
+    <tr class="$rowstyle">
+        <td colspan="2">$msg.description</td>
+    </tr>
+## FIXME: Only show tech_descr to logged in users
+        #if $msg.tech_description
+            #set rowstyle = $rowcycler.__str__()
+    <tr class="$rowstyle">
+        <th colspan="2">Technical description</th>
+    </tr>
+    <tr class="$rowstyle">
+        <td colspan="2">$msg.tech_description</td>
+    </tr>
+        #end if
+## FIXME: Only show actions to logged in users
+        #if True
+    <tr class="$rowcycler">
+        <th>Actions</th>
+        <td>[<a href="#">Edit</a>] [<a href="#">Followup</a>] [<a href="#">Expire</a>]</td>
+    </tr>
+        #end if
+</table>
+    #end for
+#else
+<p>No messages found.</p>
+#end if
 
 #end block content
 
 #block additionalCSS
-##$default_table_CSS
+$default_tabs_CSS
+$default_table_CSS
 #end block additionalCSS

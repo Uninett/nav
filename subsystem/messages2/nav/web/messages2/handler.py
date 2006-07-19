@@ -48,7 +48,28 @@ def handler(req):
     req.content_type = 'text/html'
     req.send_http_header()
 
+    page.msgs = msgsquery()
    
     req.write(page.respond())
     return apache.OK
 
+def msgsquery(where = []):
+    select = "SELECT messageid, title, description, tech_description, publish_start, publish_end, author, last_changed, replaces_message FROM message"
+    where = " AND ".join(where)
+
+    if len(where):
+        sql = "%s WHERE %s" % (select, where)
+    else:
+        sql = select
+
+    if apache:
+        apache.log_error("Messages2 query: " + sql, apache.APLOG_NOTICE)
+
+    db.execute(sql)
+    result = db.dictfetchall()
+
+    if result and apache:
+        apache.log_error("Messages2 query returned %d results." % 
+         len(result), apache.APLOG_NOTICE)
+
+    return result
