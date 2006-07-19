@@ -140,3 +140,23 @@ table.horiztable tr.footer span.next {
 	top: 0px;
 }
 
+
+table.vertitable {
+	border: 0;
+	caption-side: top;
+	font-size: smaller;
+}
+table.vertitable caption {
+	font-size: large;
+	text-align: left;
+	padding-bottom: 0.3em;
+}
+table.vertitable tr {
+	text-align: left;
+}
+table.vertitable tr.oddrow {
+	background-color: #eee;
+}
+table.vertitable tr.evenrow {
+	background-color: white;
+}
