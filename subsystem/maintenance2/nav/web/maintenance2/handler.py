@@ -27,7 +27,7 @@ FIXME
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id$"
+__id__ = "$Id:$"
 
 from mod_python import apache
 
