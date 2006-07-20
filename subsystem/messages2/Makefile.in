@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Authors: Stein Magnus Jodal <stein.magnus@jodal.no>
-# ID: $Id$
+# ID: $Id:$
 #
 
 # Programs
@@ -48,7 +48,7 @@ BINS =
 LIBS = $(wildcard nav/web/messages2/*.py)
 CONFFILES =
 TOOLS = messages2.tool
-TEMPLATES = nav/web/templates/Messages2Template.py
+TEMPLATES = nav/web/templates/Messages2Template.py nav/web/templates/Messages2ListTemplate.py
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 

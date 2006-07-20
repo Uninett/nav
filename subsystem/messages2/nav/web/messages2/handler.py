@@ -27,13 +27,13 @@ FIXME
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
-__id__ = "$Id$"
+__id__ = "$Id:$"
 
 from mod_python import apache
 
 import nav.db
 from nav.web.URI import URI
-from nav.web.templates.Messages2Template import Messages2Template
+from nav.web.templates.Messages2ListTemplate import Messages2ListTemplate
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -43,24 +43,49 @@ def handler(req):
 
     args = URI(req.unparsed_uri)
 
-    # Setup template
-    page = Messages2Template()
+    section = 'active' # FIXME
+
+    if section == 'active':
+        page = Messages2ListTemplate()
+        page.title = 'Active messages'
+        page.msgs = msgsquery(['publish_start < now()', 'publish_end > now()'])
+    elif section == 'planned':
+        page = Messages2ListTemplate()
+        page.title = 'Planned messages'
+        page.msgs = msgsquery(['publish_start > now()'])
+    elif section == 'historic':
+        page = Messages2ListTemplate()
+        page.title = 'Historic messages'
+        page.msgs = msgsquery(['publish_end < now()'])
+    elif section == 'new':
+        page = Messages2NewTemplate() # FIXME
+        page.title = 'New message'
+    else:
+        page = Messages2ListTemplate()
+        page.title = 'All messages'
+        page.msgs = msgsquery()
+
+    # Create menu
+    page.menu = [{'link': 'all', 'text': 'All'},
+                {'link': 'active', 'text': 'Active'},
+                {'link': 'planned', 'text': 'Planned'},
+                {'link': 'historic', 'text': 'Historic'},
+                {'link': 'new', 'text': 'New message'}]
+  
     req.content_type = 'text/html'
     req.send_http_header()
-
-    page.msgs = msgsquery()
-   
     req.write(page.respond())
     return apache.OK
 
 def msgsquery(where = []):
     select = "SELECT messageid, title, description, tech_description, publish_start, publish_end, author, last_changed, replaces_message FROM message"
     where = " AND ".join(where)
+    order = "publish_start DESC"
 
     if len(where):
-        sql = "%s WHERE %s" % (select, where)
+        sql = "%s WHERE %s ORDER BY %s" % (select, where, order)
     else:
-        sql = select
+        sql = "%s ORDER BY %s" % (select, order)
 
     if apache:
         apache.log_error("Messages2 query: " + sql, apache.APLOG_NOTICE)
