@@ -32,8 +32,21 @@ body {
 	margin: 0px;
 }
 
-h1, h2, h3 {
+h1 {
 	font-weight: normal;
+	margin-bottom: 0.2em;
+}
+h2 {
+	font-weight: normal;
+	margin-bottom: 0.2em;
+}
+h3 {
+	font-weight: normal;
+	margin-bottom: 0.1em;
+}
+h4 {
+	font-weight: bold;
+	margin-bottom: 0.1em;
 }
 
 /* Inline elements */
@@ -88,6 +101,10 @@ div#navlogo {
 	position: relative;
 	height: 71px;
 	width: 100%;
+}
+div#navlogo h1 {
+	/* h1 is needed for semantic reasons and non-graphical browsers */
+	display: none;
 }
 
 div#navbar {

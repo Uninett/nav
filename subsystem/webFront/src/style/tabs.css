@@ -26,8 +26,8 @@
 #tabs {
 	float: left;
 	width: 100%;
-	font-size: 11px;
 	line-height: normal;
+	font-size: smaller;
 }
 
 #tabs ul {
@@ -73,12 +73,13 @@
 	color: black;
 	padding-bottom: 5px;
 	border-bottom: none;
+	font-weight: bold;
 }
 #tabs #same {
-	background-image: url("/images/tabs/yellow-r.png");
+	background-image: url("/images/tabs/white-r.png");
 }
 #tabs #same a {
-	background-image: url("/images/tabs/yellow-l.png");
+	background-image: url("/images/tabs/white-l.png");
 	color: #663;
 }
 #tabs #same a:hover {
