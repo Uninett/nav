@@ -58,7 +58,7 @@ public class CiscoSwIOS implements DeviceHandler
 			"ifVlansAllowed", 
 			"ifPortName",
 	};
-
+	private static Pattern interfacePattern = Pattern.compile("((.*?)(\\d+))/(\\d+)(/(\\d+))?");
 	SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
@@ -117,7 +117,6 @@ public class CiscoSwIOS implements DeviceHandler
 	
 	void processIOS(Netbox nb, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
-		Pattern interfacePattern = Pattern.compile("((.*?)(\\d+))/(\\d+)(/(\\d+))?");
 		List ifDescriptions = sSnmp.getAll(nb.getOid("ifDescr"), true);
 		// This nice OID, if supported, returns a list of module/port-numbers assigned to ifIndexes
 		Map portIfindexes = sSnmp.getAllMap(nb.getOid("portIfIndex"));
@@ -125,13 +124,14 @@ public class CiscoSwIOS implements DeviceHandler
 		if (portIfindexes != null) {
 			portIfindexMap = util.reverse(portIfindexes);
 		}
+		int moduleCount = getModuleCount(ifDescriptions);
 		
 		Set matchedIfindexes = new HashSet();
 		MultiMap moduleDescriptions = new HashMultiMap();
-		MultiMap modulePortMM = new HashMultiMap();
+		MultiMap modulePortMM = new HashMultiMap();		
 		// Only add interfaces matching our ifDescr pattern
 		if (ifDescriptions != null) {
-			Log.d("PROCESS_IOS", "ifDescr reported " + ifDescriptions.size() + " interfaces");
+			Log.d("PROCESS_IOS", "ifDescr reported " + ifDescriptions.size() + " interfaces (guessed "+ moduleCount +" modules)");
 			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
@@ -166,9 +166,25 @@ public class CiscoSwIOS implements DeviceHandler
 						}
 						portNumber = Integer.parseInt(portNum);
 					}
-					
+
 					String moduleDescription = matcher.group(1);
-					Module module = mc.moduleFactory(moduleNumber);
+					Module module = mc.getModule(moduleNumber);
+					if (module == null) {
+						/* This is some sort of old heuristic.  If we 
+						 * somehow think this interface belongs to the yet
+						 * non-existant module 0, and we guessed that there
+						 * exists only one module on this box, we create
+						 * module 1 and attach the port there instead.
+						 */
+						if (moduleNumber == 0 && moduleCount == 1) {
+							moduleNumber = 1;
+							module = mc.moduleFactory(1);
+						} else {
+							// Normally, we don't allow module creation here, so ignore this port if we couldn't attach it anywhere
+							Log.w("PROCESS_IOS", "Module " + moduleNumber + " (parsed from "+ ifdescr +") does not exist, skipping");
+							continue;
+						}
+					}
 					SwModule swModule = sc.swModuleFactory(moduleNumber);
 					Swport swPort = swModule.swportFactory(ifindex); // Create module <-> ifindex mapping
 
@@ -283,5 +299,29 @@ public class CiscoSwIOS implements DeviceHandler
 			n += "Ethernet" + module;
 		}
 		return n;
+	}
+	
+	/**
+	 * Guesstimates a module count for the current device, based on ifDescr pattern matching.
+	 * @param ifDescriptions A List of ifDescription SNMP responses
+	 * @return A guesstimated number of modules.
+	 */
+	private int getModuleCount(List ifDescriptions) {
+		HashSet modules = new HashSet();
+		if (ifDescriptions != null) {
+			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+				String[] s = (String[])it.next();
+				String ifindex = s[0];
+				String ifdescr = s[1];
+				
+				Matcher matcher = interfacePattern.matcher(ifdescr);
+				if (matcher.matches()) {		
+					// guesstimate a module number from the ifDescr value
+					Integer moduleNumber = Integer.valueOf(matcher.group(3));
+					modules.add(moduleNumber);
+				}
+			}
+		}
+		return modules.size();
 	}
 }
