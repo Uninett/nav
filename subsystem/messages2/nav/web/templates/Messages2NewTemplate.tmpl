@@ -1,5 +1,5 @@
 ## -*- coding: ISO8859-1 -*-
-## $Id: $
+## $Id:$
 ##
 ## Copyright 2006 UNINETT AS
 ##
@@ -23,43 +23,13 @@
 ## Author: Stein Magnus Jodal <stein.magnus@jodal.no>
 ##
 
-#extends MainTemplate
-
-##attr $title = 'Messages'
-#attr $path = [("Home", "/"), ("Messages", "")]
-
-#def $makeMenu($menu, $current = False)
-<div style="border: 1px solid black; margin: 36px 0px 15px 0px; padding: 0px 19px;">
-<div id="tabs" style="margin: -24px -10px;">
-<ul>
-#for $item in $menu:
-    #if $item.link == $current:
-    <li id="current"><a>$item.text</a></li>
-    #elif $item.admin:
-    <li><a href="$item.link">$item.text</a></li>
-    #else:
-    <li id="same"><a href="$item.link">$item.text</a></li>
-    #end if
-#end for
-</ul>
-</div>
-#end def
-
-#block content
-
-$makeMenu($menu, $current)
-
-<h2>$title</h2>
+#extends Messages2Template
+#import datetime
 
 #block tabcontent
-<p>Intentionally left blank.</p>
+
+<h3>Create new message</h3>
+
+<p>FIXME</p>
+
 #end block tabcontent
-
-</div> <!-- tab area -->
-
-#end block content
-
-#block additionalCSS
-$default_tabs_CSS
-$default_table_CSS
-#end block additionalCSS

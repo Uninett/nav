@@ -48,7 +48,8 @@ BINS =
 LIBS = $(wildcard nav/web/messages2/*.py)
 CONFFILES =
 TOOLS = messages2.tool
-TEMPLATES = nav/web/templates/Messages2Template.py nav/web/templates/Messages2ListTemplate.py
+TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
+TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
 
 .PHONY: all lib bin conf web install install-lib install-bin install-conf install-web uninstall clean distclean
 

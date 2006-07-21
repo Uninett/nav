@@ -34,6 +34,7 @@ from mod_python import apache
 import nav.db
 from nav.web.URI import URI
 from nav.web.templates.Messages2ListTemplate import Messages2ListTemplate
+from nav.web.templates.Messages2NewTemplate import Messages2NewTemplate
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -41,10 +42,16 @@ db = dbconn.cursor()
 def handler(req):
     """Handler for the Messages 2 subsystem."""
 
+    # Get arguments
     args = URI(req.unparsed_uri)
 
-    section = 'active' # FIXME
+    # Get section
+    if len(args.path.split('/')[-1]):
+        section = args.path.split('/')[-1]
+    else:
+        section = 'all'
 
+    # Create section page
     if section == 'active':
         page = Messages2ListTemplate()
         page.title = 'Active messages'
@@ -58,7 +65,7 @@ def handler(req):
         page.title = 'Historic messages'
         page.msgs = msgsquery(['publish_end < now()'])
     elif section == 'new':
-        page = Messages2NewTemplate() # FIXME
+        page = Messages2NewTemplate() # FIXME: Create template
         page.title = 'New message'
     else:
         page = Messages2ListTemplate()
@@ -66,12 +73,14 @@ def handler(req):
         page.msgs = msgsquery()
 
     # Create menu
-    page.menu = [{'link': 'all', 'text': 'All'},
-                {'link': 'active', 'text': 'Active'},
-                {'link': 'planned', 'text': 'Planned'},
-                {'link': 'historic', 'text': 'Historic'},
-                {'link': 'new', 'text': 'New message'}]
+    page.menu = [{'link': 'all', 'text': 'All', 'admin': False},
+                {'link': 'active', 'text': 'Active', 'admin': False},
+                {'link': 'planned', 'text': 'Planned', 'admin': False},
+                {'link': 'historic', 'text': 'Historic', 'admin': False},
+                {'link': 'new', 'text': 'Create new', 'admin': True}]
+    page.current = section
   
+    # Done, output the page
     req.content_type = 'text/html'
     req.send_http_header()
     req.write(page.respond())
@@ -98,3 +107,4 @@ def msgsquery(where = []):
          len(result), apache.APLOG_NOTICE)
 
     return result
+
