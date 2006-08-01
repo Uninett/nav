@@ -24,12 +24,183 @@
 ##
 
 #extends Messages2Template
-#import datetime
+#import math
+#import time
 
 #block tabcontent
 
-<h3>Create new message</h3>
+#if $submit
+## Print form errors
 
-<p>FIXME</p>
+<p>The following errors occured while creating message:</p>
+
+<ul>
+#for $error in $errors
+    <li>$error</li>
+#end for
+</ul>
+
+<p>Please <a href="javascript:history.go(-1)">go back</a> and try again.</p>
+
+#else
+## Print form
+
+<form action="new" method="post">
+
+<table class="vertitable">
+    <tr>
+        <th>Title *</th>
+        <td><input type="text" name="title" size="72" /></td>
+    </tr>
+    <tr>
+        <th>Description *</th>
+        <td><textarea name="description" cols="72" rows="5"></textarea></td>
+    </tr>
+    <tr>
+        <th>Technical description</th>
+        <td><textarea name="tech_description" cols="72" rows="5"></textarea></td>
+    </tr>
+    <tr>
+        <th>Publish from</th>
+#set $current_year = int(time.strftime('%Y'))
+#set $current_month = int(time.strftime('%m'))
+#set $current_day = int(time.strftime('%d'))
+#set $current_hour = int(time.strftime('%H'))
+#set $current_min = int(math.floor(int(time.strftime('%M')) / 5) * 5)
+        <td>
+            <select name="start_year">
+#for $year in xrange($current_year - 1, $current_year + 5)
+    #if $year == $current_year
+                <option value="$year" selected="selected">$year</option>
+    #else
+                <option value="$year">$year</option>
+    #end if
+#end for
+            </select>
+            <select name="start_month">
+#for $month in xrange(1, 1 + 12)
+    #if $month == $current_month
+                <option value="$month" selected="selected">$month</option>
+    #else
+                <option value="$month">$month</option>
+    #end if
+#end for
+            </select>
+            <select name="start_day">
+#for $day in xrange(1, 1 + 31)
+    #if $day == $current_day
+                <option value="$day" selected="selected">$day</option>
+    #else
+                <option value="$day">$day</option>
+    #end if
+#end for
+            </select>
+            at
+            <select name="start_hour">
+#for $hour in xrange(0, 24)
+    #if $hour == $current_hour
+                <option value="$hour" selected="selected">$hour</option>
+    #else
+                <option value="$hour">$hour</option>
+    #end if
+#end for
+            </select>
+            <select name="start_min">
+#for $min in xrange(0, 60, 5)
+    #if $min == $current_min
+                <option value="$min" selected="selected">$min</option>
+    #else
+                <option value="$min">$min</option>
+    #end if
+#end for
+            </select>
+        </td>
+    </tr>
+## Default to one week into the future
+#set $totime = time.localtime(int(time.time()) + 7*24*60*60)
+#set $current_year = int(time.strftime('%Y', $totime))
+#set $current_month = int(time.strftime('%m', $totime))
+#set $current_day = int(time.strftime('%d', $totime))
+#set $current_hour = int(time.strftime('%H', $totime))
+#set $current_min = int(math.floor(int(time.strftime('%M', $totime)) / 5) * 5)
+    <tr>
+        <th>Publish to</th>
+        <td>
+            <select name="end_year">
+#for $year in xrange($current_year - 1, $current_year + 5)
+    #if $year == $current_year
+                <option value="$year" selected="selected">$year</option>
+    #else
+                <option value="$year">$year</option>
+    #end if
+#end for
+            </select>
+            <select name="end_month">
+#for $month in xrange(1, 1 + 12)
+    #if $month == $current_month
+                <option value="$month" selected="selected">$month</option>
+    #else
+                <option value="$month">$month</option>
+    #end if
+#end for
+            </select>
+            <select name="end_day">
+#for $day in xrange(1, 1 + 31)
+    #if $day == $current_day
+                <option value="$day" selected="selected">$day</option>
+    #else
+                <option value="$day">$day</option>
+    #end if
+#end for
+            </select>
+            at
+            <select name="end_hour">
+#for $hour in xrange(0, 24)
+    #if $hour == $current_hour
+                <option value="$hour" selected="selected">$hour</option>
+    #else
+                <option value="$hour">$hour</option>
+    #end if
+#end for
+            </select>
+            <select name="end_min">
+#for $min in xrange(0, 60, 5)
+    #if $min == $current_min
+                <option value="$min" selected="selected">$min</option>
+    #else
+                <option value="$min">$min</option>
+    #end if
+#end for
+            </select>
+            (default: one week)
+        </td>
+    </tr>
+    <tr>
+        <th style="white-space: normal;">Select 0..N maintenance tasks for this message<br />
+            (select multiple with CTRL)</th>
+        <td>
+            <select name="maint_tasks" size="5" multiple="multiple">
+                <option value="none" selected="selected">(none)</option>
+#for $task in $tasks
+    #if len($task.description) > 50
+        #set $desc = '%-50s...' % $task.description
+    #else
+        #set $desc = $task.description
+    #end if
+    #set $date = $task.maint_start.strftime('%Y-%m-%d')
+                <option value="$task.maint_taskid">$date: $desc</option>
+#end for
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td><input type="submit" name="new-do" value="Create New Message" /></td>
+    </tr>
+</table>
+
+</form>
+
+#end if
 
 #end block tabcontent

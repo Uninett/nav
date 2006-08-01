@@ -49,32 +49,25 @@
     </tr>
     <tr>
         <th>Description</th>
-        <td></td>
-    </tr>
-    <tr>
-        <td colspan="2">$msg.description</td>
+        <td>$msg.description</td>
     </tr>
         #if $user.login
             #if $msg.tech_description
     <tr>
         <th>Technical description</th>
-        <td></td>
-    </tr>
-    <tr>
-        <td colspan="2">$msg.tech_description</td>
+        <td>$msg.tech_description</td>
     </tr>
             #end if
             #if $msg.publish_end
     <tr>
         <th>Expires</th>
-        <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M:%S')</td>
+        <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M:%S') | <a href="expire?id=$msg.messageid">Expire now</a></td>
     </tr>
             #end if
     <tr>
         <th>Actions</th>
         <td><a href="edit?id=$msg.messageid">Edit</a> |
-            <a href="followup?id=$msg.messageid">Followup</a> |
-            <a href="expire?id=$msg.messageid">Expire</a></td>
+            <a href="followup?id=$msg.messageid">Followup</a>
     </tr>
         #end if
 </table>

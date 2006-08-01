@@ -145,6 +145,7 @@ table.vertitable {
 	border: 1px solid #ccc;
 	caption-side: top;
 	font-size: smaller;
+	margin-bottom: 1em;
 }
 table.vertitable caption {
 	font-size: large;
@@ -153,6 +154,7 @@ table.vertitable caption {
 }
 table.vertitable tr {
 	text-align: left;
+	vertical-align: top;
 }
 table.vertitable tr th {
 	background-color: #eee;
