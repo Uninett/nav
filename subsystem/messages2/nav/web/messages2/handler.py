@@ -36,6 +36,8 @@ import nav.db
 from nav.web.URI import URI
 from nav.web.templates.Messages2ListTemplate import Messages2ListTemplate
 from nav.web.templates.Messages2NewTemplate import Messages2NewTemplate
+from nav.web.messages2 import messages2
+from nav.web.maintenance2 import maintenance2
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -60,24 +62,24 @@ def handler(req):
     if section == 'active':
         page = Messages2ListTemplate()
         page.title = 'Active Messages'
-        page.msgs = getMsgs(['publish_start < now()', 'publish_end > now()'])
+        page.msgs = messages2.getMsgs(['publish_start < now()', 'publish_end > now()'])
     elif section == 'planned':
         page = Messages2ListTemplate()
         page.title = 'Planned Messages'
-        page.msgs = getMsgs(['publish_start > now()'])
+        page.msgs = messages2.getMsgs(['publish_start > now()'])
     elif section == 'historic':
         page = Messages2ListTemplate()
         page.title = 'Historic Messages'
-        page.msgs = getMsgs(['publish_end < now()'])
+        page.msgs = messages2.getMsgs(['publish_end < now()'])
     elif section == 'view' and args.get('id').isdigit():
         page = Messages2ListTemplate()
         page.title = 'Message'
         viewid = int(args.get('id'))
-        page.msgs = getMsgs(['messageid = %d' % viewid])
+        page.msgs = messages2.getMsgs(['messageid = %d' % viewid])
     elif section == 'new':
         page = Messages2NewTemplate()
         page.title = 'Create New Message'
-        page.tasks = getTasks(['maint_end > now()'])
+        page.tasks = maintenance2.getTasks(['maint_end > now()'])
         page.submit = req.form.has_key('new-do')
         if page.submit:
             page.errors = []
@@ -133,7 +135,7 @@ def handler(req):
 
             if len(page.errors) == 0:
                 # Insert message
-                newid = setMsg(title, description, tech_description,
+                msgid = messages2.setMsg(title, description, tech_description,
                  publish_start, publish_end, author, replaces_message)
 
                 # Connect with task
@@ -151,7 +153,7 @@ def handler(req):
     else:
         page = Messages2ListTemplate()
         page.title = 'All messages'
-        page.msgs = getMsgs()
+        page.msgs = messages2.getMsgs()
 
     # Create menu
     page.menu = [{'link': 'all', 'text': 'All', 'admin': False},
@@ -166,126 +168,3 @@ def handler(req):
     req.send_http_header()
     req.write(page.respond())
     return apache.OK
-
-def getMsgs(where = []):
-    select = "SELECT messageid, title, description, tech_description, publish_start, publish_end, author, last_changed, replaces_message FROM message"
-    where = " AND ".join(where)
-    order = "publish_start DESC"
-
-    if len(where):
-        sql = "%s WHERE %s ORDER BY %s" % (select, where, order)
-    else:
-        sql = "%s ORDER BY %s" % (select, order)
-
-    if apache:
-        apache.log_error("Messages2 query: " + sql, apache.APLOG_NOTICE)
-
-    db.execute(sql)
-    result = db.dictfetchall()
-
-    if result and apache:
-        apache.log_error("Messages2 query returned %d results." % 
-         len(result), apache.APLOG_NOTICE)
-
-    return result
-
-def setMsg(title, description, tech_description, publish_start,
- publish_end, author, replaces_message):
-    sql = """INSERT INTO message (
-            title,
-            description,
-            tech_description,
-            publish_start,
-            publish_end,
-            author,
-            replaces_message
-        ) VALUES (
-            %(title)s,
-            %(description)s,
-            %(tech_description)s,
-            %(publish_start)s,
-            %(publish_end)s,
-            %(author)s,
-            %(replaces_message)s
-        )"""
-
-    data = {
-        'title': title,
-        'description': description,
-        'tech_description': tech_description or None,
-        'publish_start': time.strftime('%Y-%m-%d %H:%M:%S', publish_start),
-        'publish_end': time.strftime('%Y-%m-%d %H:%M:%S', publish_end),
-        'author': author,
-        'replaces_message': replaces_message or None
-    }
-
-    if apache:
-        apache.log_error("Messages2 query: " + sql % data, apache.APLOG_NOTICE)
-
-    db.execute(sql, data)
-    db.execute("SELECT CURRVAL('message_messageid_seq')")
-    id = db.dictfetchone()['currval']
-
-    if id and apache:
-        apache.log_error("Messages2 query returned ID %d." % id,
-         apache.APLOG_NOTICE)
-
-    return id
-
-def getTasks(where = []):
-    select = "SELECT maint_taskid, maint_start, maint_end, description, author, state FROM maint_task"
-    where = " AND ".join(where)
-    order = "maint_start DESC"
-
-    if len(where):
-        sql = "%s WHERE %s ORDER BY %s" % (select, where, order)
-    else:
-        sql = "%s ORDER BY %s" % (select, order)
-
-    if apache:
-        apache.log_error("Messages2 query: " + sql, apache.APLOG_NOTICE)
-
-    db.execute(sql)
-    result = db.dictfetchall()
-
-    if result and apache:
-        apache.log_error("Messages2 query returned %d results." % 
-         len(result), apache.APLOG_NOTICE)
-
-    return result
-
-def setTask(maint_start, maint_end, description, author, state):
-    sql = """INSERT INTO maint_task (
-            maint_start,
-            maint_end,
-            description,
-            author,
-            state
-        ) VALUES (
-            %(maint_start)s,
-            %(maint_end)s,
-            %(description)s,
-            %(author)s,
-            %(state)s
-        )"""
-
-    data = {
-        'maint_start': maint_start,
-        'maint_end': maint_end,
-        'description': description,
-        'author': author,
-        'state': state
-    }
-
-    if apache:
-        apache.log_error("Messages2 query: " + sql % date, apache.APLOG_NOTICE)
-    
-    db.execute(sql, data)
-    db.execute("SELECT CURRVAL('maint_task_maint_taskid_seq')")
-    id = db.dictfetchone()['currval']
-
-    if id and apache:
-        apache.log_error("Messages2 query returned ID %d." % id,
-         apache.APLOG_NOTICE)
-
-    return id
