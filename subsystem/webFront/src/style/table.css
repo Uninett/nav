@@ -159,10 +159,14 @@ table.vertitable tr {
 table.vertitable tr th {
 	background-color: #eee;
 	padding: 0.1em 0.2em;
-	width: 5%; /* Something small */
-	white-space: nowrap;
+	width: 10%; /* Something small */
 }
 table.vertitable tr td {
 	background-color: white;
 	padding: 0.1em 0.2em;
+}
+table.vertitable tr td ul {
+	list-style-type: square;
+	margin: 0;
+	padding: 0 0 0 1.5em;
 }
