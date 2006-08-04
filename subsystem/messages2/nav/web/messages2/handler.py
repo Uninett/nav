@@ -56,14 +56,10 @@ def handler(req):
     if len(args.path.split('/')[-1]):
         section = args.path.split('/')[-1]
     else:
-        section = 'all'
-
+        section = 'active'
+    
     # Create section page
-    if section == 'active':
-        page = Messages2ListTemplate()
-        page.title = 'Active Messages'
-        page.msgs = messages2.getMsgs(['publish_start < now()', 'publish_end > now()'])
-    elif section == 'planned':
+    if section == 'planned':
         page = Messages2ListTemplate()
         page.title = 'Planned Messages'
         page.msgs = messages2.getMsgs(['publish_start > now()'])
@@ -85,16 +81,19 @@ def handler(req):
             page.errors = []
             if req.form.has_key('title') and req.form['title']:
                 title = req.form['title']
+                page.formtitle = title
             else:
                 page.errors.append('You did not supply a title.')
 
             if req.form.has_key('description') and req.form['description']:
                 description = req.form['description']
+                page.description = description
             else:
                 page.errors.append('You did not supply a description.')
 
             if req.form.has_key('tech_description') and len(req.form['tech_description']) > 0:
                 tech_description = req.form['tech_description']
+                page.tech_description = tech_description
             else:
                 tech_description = False
 
@@ -108,6 +107,12 @@ def handler(req):
                  int(req.form['start_day']), int(req.form['start_hour']),
                  int(req.form['start_min']))
                 publish_start = time.strptime(publish_start, '%Y-%m-%d %H:%M')
+
+                page.start_year = int(req.form['start_year'])
+                page.start_month = int(req.form['start_month'])
+                page.start_day = int(req.form['start_day'])
+                page.start_hour = int(req.form['start_hour'])
+                page.start_min = int(req.form['start_min'])
             else:
                 publish_start = time.localtime()
             
@@ -121,14 +126,27 @@ def handler(req):
                  int(req.form['end_day']), int(req.form['end_hour']),
                  int(req.form['end_min']))
                 publish_end = time.strptime(publish_end, '%Y-%m-%d %H:%M')
+
+                page.end_year = int(req.form['end_year'])
+                page.end_month = int(req.form['end_month'])
+                page.end_day = int(req.form['end_day'])
+                page.end_hour = int(req.form['end_hour'])
+                page.end_min = int(req.form['end_min'])
             else:
                 publish_end = time.localtime(int(time.time()) + 7*24*60*60)
+
+            if publish_start > publish_end:
+                page.errors.append('Publish end is before start.')
 
             if req.form.has_key('maint_tasks'):
                 maint_tasks = req.form['maint_tasks']
                 if type(maint_tasks) is not list:
                     maint_tasks = [maint_tasks]
-                maint_tasks.remove('none')
+                try:
+                    maint_tasks.remove('none')
+                except ValueError, error:
+                    pass
+                page.maint_tasks = maint_tasks
 
             author = req.session['user'].login
             replaces_message = False
@@ -140,24 +158,25 @@ def handler(req):
 
                 # Connect with task
                 for taskid in maint_tasks:
-                    pass
+                    messages2.setMsgTask(msgid, int(taskid))
 
                 # Redirect to view?id=$newid and exit
-                req.headers_out['location'] = 'view?id=' + str(newid)
+                req.headers_out['location'] = 'view?id=' + str(msgid)
                 req.status = apache.HTTP_MOVED_TEMPORARILY
                 req.send_http_header()
                 return apache.OK
-            else:
-                # Print errors
-                pass # FIXME
+    elif section == 'expire':
+        page = Messages2ListTemplate()
+        page.title = 'Create New Message'
+        page.tasks = maintenance2.getTasks(['maint_end > now()'])
+        page.submit = req.form.has_key('new-do')
     else:
         page = Messages2ListTemplate()
-        page.title = 'All messages'
-        page.msgs = messages2.getMsgs()
+        page.title = 'Active Messages'
+        page.msgs = messages2.getMsgs(['publish_start < now()', 'publish_end > now()'])
 
     # Create menu
-    page.menu = [{'link': 'all', 'text': 'All', 'admin': False},
-                {'link': 'active', 'text': 'Active', 'admin': False},
+    page.menu = [{'link': 'active', 'text': 'Active', 'admin': False},
                 {'link': 'planned', 'text': 'Planned', 'admin': False},
                 {'link': 'historic', 'text': 'Historic', 'admin': False},
                 {'link': 'new', 'text': 'Create new', 'admin': True}]

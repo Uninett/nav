@@ -51,6 +51,19 @@ $makeMenu($menu, $current)
 
 <h2>$title</h2>
 
+#set $errors = $getVar('errors', [])
+#if len($errors)
+<p>The following errors occured:</p>
+
+<ul>
+#for $error in $errors
+    <li>$error</li>
+#end for
+</ul>
+
+<p>Please <a href="javascript:history.go(-1)">go back</a> and try again.</p>
+#end if
+
 #block tabcontent
 <p>Intentionally left blank.</p>
 #end block tabcontent

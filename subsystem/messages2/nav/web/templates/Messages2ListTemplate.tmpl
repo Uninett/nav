@@ -28,8 +28,10 @@
 
 #block tabcontent
 
-#if len($msgs)
-    #for $msg in $msgs
+#if len($msgs) == 0
+<p>No messages found.</p>
+#else
+#for $msg in $msgs
 <h3>$msg.title</h3>
 
 <table class="vertitable">
@@ -37,12 +39,12 @@
         <th>Published</th>
         <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M:%S')</td>
     </tr>
-        #if $msg.last_changed
+#if $msg.last_changed
     <tr>
         <th>Last changed</th>
         <td>$msg.last_changed.strftime('%Y-%m-%d %H:%M:%S')</td>
     </tr>
-        #end if
+#end if
     <tr>
         <th>Author</th>
         <td>$msg.author</th>
@@ -51,30 +53,43 @@
         <th>Description</th>
         <td>$msg.description</td>
     </tr>
-        #if $user.login
-            #if $msg.tech_description
+#if $user.login
+    #if $msg.tech_description
     <tr>
         <th>Technical description</th>
         <td>$msg.tech_description</td>
     </tr>
-            #end if
-            #if $msg.publish_end
+    #end if
+    #if type($msg.tasks) is list
+    <tr>
+        <th>Related maintenance tasks</th>
+        <td><ul>
+        #for $task in $msg.tasks
+            <li><a href="/maintenance2/view?id=$task.maint_taskid">$task.description</a>,
+            from $task.maint_start.strftime('%Y-%m-%d %H:%M:%S')
+            to $task.maint_end.strftime('%Y-%m-%d %H:%M:%S'),
+            state is '$task.state'</li>
+        #end for
+        </ul></td>
+    #end if
+    #if $msg.publish_end
     <tr>
         <th>Expires</th>
         <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M:%S') | <a href="expire?id=$msg.messageid">Expire now</a></td>
     </tr>
-            #end if
+    #end if
     <tr>
         <th>Actions</th>
-        <td><a href="edit?id=$msg.messageid">Edit</a> |
-            <a href="followup?id=$msg.messageid">Followup</a>
+        <td><a href="edit?id=$msg.messageid">Edit</a>
+            | <a href="followup?id=$msg.messageid">Followup</a>
+    #if not $msg.publish_end
+            | <a href="expire?id=$msg.messageid">Expire now</a>
+    #end if
+        </td>
     </tr>
-        #end if
+#end if
 </table>
-    #end for
-<br />
-#else
-<p>No messages found.</p>
+#end for
 #end if
 
 #end block tabcontent

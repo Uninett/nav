@@ -37,7 +37,9 @@ dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
 def getMsgs(where = []):
-    select = "SELECT messageid, title, description, tech_description, publish_start, publish_end, author, last_changed, replaces_message FROM message"
+    select = """SELECT messageid, title, description, tech_description,
+        publish_start, publish_end, author, last_changed, replaces_message
+        FROM message"""
     where = " AND ".join(where)
     order = "publish_start DESC"
 
@@ -46,35 +48,25 @@ def getMsgs(where = []):
     else:
         sql = "%s ORDER BY %s" % (select, order)
 
-    if apache:
-        apache.log_error("Messages2 query: " + sql, apache.APLOG_NOTICE)
-
+    # FIXME: Log query
     db.execute(sql)
-    result = db.dictfetchall()
+    results = db.dictfetchall()
+    # FIXME: Log result
 
-    if result and apache:
-        apache.log_error("Messages2 query returned %d results." % 
-         len(result), apache.APLOG_NOTICE)
-
-    return result
+    # Attach tasks connected to this message
+    for i, result in enumerate(results):
+        results[i]['tasks'] = getMsgTasks(results[i]['messageid']) or None
+    
+    return results
 
 def setMsg(title, description, tech_description, publish_start,
  publish_end, author, replaces_message):
     sql = """INSERT INTO message (
-            title,
-            description,
-            tech_description,
-            publish_start,
-            publish_end,
-            author,
-            replaces_message
+            title, description, tech_description, publish_start, publish_end,
+            author, replaces_message
         ) VALUES (
-            %(title)s,
-            %(description)s,
-            %(tech_description)s,
-            %(publish_start)s,
-            %(publish_end)s,
-            %(author)s,
+            %(title)s, %(description)s, %(tech_description)s,
+            %(publish_start)s, %(publish_end)s, %(author)s,
             %(replaces_message)s
         )"""
 
@@ -88,18 +80,36 @@ def setMsg(title, description, tech_description, publish_start,
         'replaces_message': replaces_message or None
     }
 
-    if apache:
-        apache.log_error("Messages2 query: " + sql % data, apache.APLOG_NOTICE)
-
+    # FIXME: Log query
     db.execute(sql, data)
     db.execute("SELECT CURRVAL('message_messageid_seq')")
     id = db.dictfetchone()['currval']
-
-    if id and apache:
-        apache.log_error("Messages2 query returned ID %d." % id,
-         apache.APLOG_NOTICE)
-
+    # FIXME: Log result
     return id
 
-def getMsgTasks(where = []):
-    select = "SELECT ..." # FIXME
+def getMsgTasks(msgid):
+    sql = """SELECT maint_taskid, maint_start, maint_end, description,
+        author, state
+        FROM maint_task NATURAL JOIN message_to_maint_task
+        WHERE messageid = %(messageid)s
+        ORDER BY maint_start, description"""
+    data = {'messageid': msgid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    result = db.dictfetchall()
+    # FIXME: Log result
+    return result
+
+def setMsgTask(msgid, taskid):
+    sql = """INSERT INTO message_to_maint_task (
+            messageid, maint_taskid
+        ) VALUES (
+            %(messageid)d, %(maint_taskid)d
+        )"""
+
+    data = {'messageid': msgid, 'maint_taskid': taskid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    # FIXME: Log result
