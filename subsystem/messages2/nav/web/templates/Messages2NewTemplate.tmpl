@@ -166,7 +166,7 @@
             (select multiple with CTRL)</th>
         <td>
             <select name="maint_tasks" size="5" multiple="multiple">
-#if len($maint_tasks)
+#if len($tasks)
                 <option value="none">(none)</option>
 #else
                 <option value="none" selected="selected">(none)</option>
@@ -178,7 +178,7 @@
         #set $desc = $task.description
     #end if
     #set $date = $task.maint_start.strftime('%Y-%m-%d')
-    #if $maint_tasks.count(str($task.maint_taskid))
+    #if $tasks.count(str($task.maint_taskid))
                 <option value="$task.maint_taskid" selected="selected">$date: $desc</option>
     #else
                 <option value="$task.maint_taskid">$date: $desc</option>
