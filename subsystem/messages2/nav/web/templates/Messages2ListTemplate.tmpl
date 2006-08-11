@@ -24,25 +24,31 @@
 ##
 
 #extends Messages2Template
-#import datetime
+#import mx.DateTime
 
 #block tabcontent
 
 #if len($msgs) == 0
 <p>No messages found.</p>
 #else
-#for $msg in $msgs
+    ## $verbosemsgs may be adjusted according to preference
+    #set $verbosemsgs = 5
+    #set $msgcount = 0
+    #for $msg in $msgs
+        #set $msgcount += 1
+        #if $msgcount <= $verbosemsgs
+
 <h3>$msg.title</h3>
 
 <table class="vertitable">
     <tr>
         <th>Published</th>
-        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M:%S')</td>
+        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
     </tr>
 #if $msg.last_changed
     <tr>
         <th>Last changed</th>
-        <td>$msg.last_changed.strftime('%Y-%m-%d %H:%M:%S')</td>
+        <td>$msg.last_changed.strftime('%Y-%m-%d %H:%M')</td>
     </tr>
 #end if
     <tr>
@@ -51,13 +57,13 @@
     </tr>
     <tr>
         <th>Description</th>
-        <td>$msg.description</td>
+        <td>$msg.description.replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
 #if $user.login
     #if $msg.tech_description
     <tr>
         <th>Technical description</th>
-        <td>$msg.tech_description</td>
+        <td>$msg.tech_description.replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
     #end if
     #if type($msg.tasks) is list
@@ -66,16 +72,42 @@
         <td><ul>
         #for $task in $msg.tasks
             <li><a href="/maintenance2/view?id=$task.maint_taskid">$task.description</a>,
-            from $task.maint_start.strftime('%Y-%m-%d %H:%M:%S')
-            to $task.maint_end.strftime('%Y-%m-%d %H:%M:%S'),
-            state is '$task.state'</li>
+            from $task.maint_start.strftime('%Y-%m-%d %H:%M')
+            to $task.maint_end.strftime('%Y-%m-%d %H:%M'),
+            current state is <em>$task.state</em></li>
         #end for
         </ul></td>
     #end if
     #if $msg.publish_end
     <tr>
+        #if $msg.publish_end > mx.DateTime.now()
         <th>Expires</th>
-        <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M:%S') | <a href="expire?id=$msg.messageid">Expire now</a></td>
+        #else
+        <th>Expired</th>
+        #end if
+        <td>$msg.publish_end.strftime('%Y-%m-%d %H:%M') 
+        #if $msg.publish_end > mx.DateTime.now()
+            | <a href="expire?id=$msg.messageid">Expire now</a>
+        #end if
+        </td>
+    </tr>
+    #end if
+    #if $msg.replaces_message
+    <tr>
+        <th>Replaces message</th>
+        <td>
+            <a href="view?id=$msg.replaces_message">$msg.replaces_message_title</a>
+            by $msg.replaces_message_author
+        </td>
+    </tr>
+    #end if
+    #if $msg.replaced_by
+    <tr>
+        <th>Replaced by</th>
+        <td>
+            <a href="view?id=$msg.replaced_by">$msg.replaced_by_title</a>
+            by $msg.replaced_by_author
+        </td>
     </tr>
     #end if
     <tr>
@@ -89,7 +121,38 @@
     </tr>
 #end if
 </table>
+
+        #else
+
+        #if $msgcount == $verbosemsgs+1
+<h3>Older Messages</h3>
+
+<table class="vertilist">
+    <tr>
+        <th>Published</th>
+        <th>Title</th>
+        <th>Description</th>
+    </tr>
+        #end if
+
+        #if len($msg.description) > 80 
+            #set $desc = $msg.description[:80] + '...'
+        #else
+            #set $desc = $msg.description
+        #end if
+    <tr>
+        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
+        <td><a href="view?id=$msg.messageid">$msg.title</a></td>
+        <td>$desc</td>
+    </tr>
+    #end if
 #end for
+
+## End of 'Older Messages' table
+#if $msgcount > $verbosemsgs
+</table>
+#end if
+
 #end if
 
 #end block tabcontent

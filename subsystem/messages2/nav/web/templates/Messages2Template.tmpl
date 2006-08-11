@@ -51,6 +51,15 @@ $makeMenu($menu, $current)
 
 <h2>$title</h2>
 
+#set $infomsgs = $getVar('infomsgs', [])
+#if len($infomsgs)
+<ul>
+#for $infomsg in $infomsgs
+    <li>$infomsg</li>
+#end for
+</ul>
+#end if
+
 #set $errors = $getVar('errors', [])
 #if len($errors)
 <p>The following errors occured:</p>
@@ -60,8 +69,6 @@ $makeMenu($menu, $current)
     <li>$error</li>
 #end for
 </ul>
-
-<p>Please <a href="javascript:history.go(-1)">go back</a> and try again.</p>
 #end if
 
 #block tabcontent

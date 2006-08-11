@@ -31,7 +31,11 @@
 
 ## Print form
 
-<form action="new" method="post">
+<form action="" method="post">
+#set $edit_messageid = $getVar('edit_messageid', False)
+#if $edit_messageid
+<input type="hidden" name="edit_messageid" value="$edit_messageid" />
+#end if
 
 <table class="vertitable">
     <tr>
@@ -48,15 +52,12 @@
     </tr>
     <tr>
         <th>Publish from</th>
-#set $current_year = int(time.strftime('%Y'))
-#set $current_month = int(time.strftime('%m'))
-#set $current_day = int(time.strftime('%d'))
-#set $current_hour = int(time.strftime('%H'))
-#set $current_min = int(math.floor(int(time.strftime('%M')) / 5) * 5)
         <td>
             <select name="start_year">
+#set $current_year = int(time.strftime('%Y'))
+#set $selected_year = $getVar('start_year', $current_year)
 #for $year in xrange($current_year - 1, $current_year + 5)
-    #if $year == $getVar('start_year', $current_year)
+    #if $year == $selected_year
                 <option value="$year" selected="selected">$year</option>
     #else
                 <option value="$year">$year</option>
@@ -64,8 +65,10 @@
 #end for
             </select>
             <select name="start_month">
+#set $current_month = int(time.strftime('%m'))
+#set $selected_month = $getVar('start_month', $current_month)
 #for $month in xrange(1, 1 + 12)
-    #if $month == $getVar('start_month', $current_month)
+    #if $month == $selected_month
                 <option value="$month" selected="selected">$month</option>
     #else
                 <option value="$month">$month</option>
@@ -73,18 +76,22 @@
 #end for
             </select>
             <select name="start_day">
+#set $current_day = int(time.strftime('%d'))
+#set $selected_day =$getVar('start_day', $current_day)
 #for $day in xrange(1, 1 + 31)
-    #if $day == $getVar('start_day', $current_day)
+    #if $day == $selected_day
                 <option value="$day" selected="selected">$day</option>
     #else
                 <option value="$day">$day</option>
-    #end if
+     #end if
 #end for
             </select>
             at
             <select name="start_hour">
+#set $current_hour = int(time.strftime('%H'))
+#set $selected_hour = $getVar('start_hour', $current_hour)
 #for $hour in xrange(0, 24)
-    #if $hour == $getVar('start_hour', $current_hour)
+    #if $hour == $selected_hour
                 <option value="$hour" selected="selected">$hour</option>
     #else
                 <option value="$hour">$hour</option>
@@ -92,8 +99,11 @@
 #end for
             </select>
             <select name="start_min">
+#set $current_min = int(math.floor(int(time.strftime('%M')) / 5) * 5)
+#set $selected_min = $getVar('start_min', $current_min)
+#set $selected_min = int(math.floor($selected_min / 5) * 5)
 #for $min in xrange(0, 60, 5)
-    #if $min == $getVar('start_min', $current_min)
+    #if $min == $selected_min
                 <option value="$min" selected="selected">$min</option>
     #else
                 <option value="$min">$min</option>
@@ -104,17 +114,14 @@
     </tr>
 ## Default to one week into the future
 #set $totime = time.localtime(int(time.time()) + 7*24*60*60)
-#set $current_year = int(time.strftime('%Y', $totime))
-#set $current_month = int(time.strftime('%m', $totime))
-#set $current_day = int(time.strftime('%d', $totime))
-#set $current_hour = int(time.strftime('%H', $totime))
-#set $current_min = int(math.floor(int(time.strftime('%M', $totime)) / 5) * 5)
     <tr>
         <th>Publish to</th>
         <td>
             <select name="end_year">
+#set $current_year = int(time.strftime('%Y', $totime))
+#set $selected_year = $getVar('end_year', $current_year)
 #for $year in xrange($current_year - 1, $current_year + 5)
-    #if $year == $getVar('end_year', $current_year)
+    #if $year == $selected_year
                 <option value="$year" selected="selected">$year</option>
     #else
                 <option value="$year">$year</option>
@@ -122,8 +129,10 @@
 #end for
             </select>
             <select name="end_month">
+#set $current_month = int(time.strftime('%m', $totime))
+#set $selected_month = $getVar('end_month', $current_month)
 #for $month in xrange(1, 1 + 12)
-    #if $month == $getVar('end_month', $current_month)
+    #if $month == $selected_month
                 <option value="$month" selected="selected">$month</option>
     #else
                 <option value="$month">$month</option>
@@ -131,8 +140,10 @@
 #end for
             </select>
             <select name="end_day">
+#set $current_day = int(time.strftime('%d', $totime))
+#set $selected_day = $getVar('end_day', $current_day)
 #for $day in xrange(1, 1 + 31)
-    #if $day == $getVar('end_day', $current_day)
+    #if $day == $selected_day
                 <option value="$day" selected="selected">$day</option>
     #else
                 <option value="$day">$day</option>
@@ -141,8 +152,10 @@
             </select>
             at
             <select name="end_hour">
+#set $current_hour = int(time.strftime('%H', $totime))
+#set $selected_hour = $getVar('end_hour', $current_hour)
 #for $hour in xrange(0, 24)
-    #if $hour == $getVar('end_hour', $current_hour)
+    #if $hour == $selected_hour
                 <option value="$hour" selected="selected">$hour</option>
     #else
                 <option value="$hour">$hour</option>
@@ -150,8 +163,11 @@
 #end for
             </select>
             <select name="end_min">
+#set $current_min = int(math.floor(int(time.strftime('%M', $totime)) / 5) * 5)
+#set $selected_min = $getVar('end_min', $current_min)
+#set $selected_min = int(math.floor($selected_min / 5) * 5)
 #for $min in xrange(0, 60, 5)
-    #if $min == $getVar('end_min', $current_min)
+    #if $min == $selected_min
                 <option value="$min" selected="selected">$min</option>
     #else
                 <option value="$min">$min</option>
@@ -165,20 +181,21 @@
         <th style="white-space: normal;">Select 0..N maintenance tasks for this message<br />
             (select multiple with CTRL)</th>
         <td>
+#set $maint_tasks = $getVar('maint_tasks', [])
             <select name="maint_tasks" size="5" multiple="multiple">
-#if len($tasks)
+#if len($tasks) and len($maint_tasks)
                 <option value="none">(none)</option>
 #else
                 <option value="none" selected="selected">(none)</option>
 #end if
 #for $task in $tasks
     #if len($task.description) > 50
-        #set $desc = '%-50s...' % $task.description
+        #set $desc = $task.description[:50] + '...'
     #else
         #set $desc = $task.description
     #end if
     #set $date = $task.maint_start.strftime('%Y-%m-%d')
-    #if $tasks.count(str($task.maint_taskid))
+    #if $maint_tasks.count(str($task.maint_taskid))
                 <option value="$task.maint_taskid" selected="selected">$date: $desc</option>
     #else
                 <option value="$task.maint_taskid">$date: $desc</option>
@@ -187,9 +204,20 @@
             </select>
         </td>
     </tr>
+#set $replaces_messageid = $getVar('replaces_messageid', False)
+#if $replaces_messageid
+    <tr>
+        <th>Replaces message</th>
+        <td>
+            <input type="hidden" name="replaces_messageid" value="$replaces_messageid" />
+            <a href="view?id=$replaces_messageid">$replaces_message.title</a>
+            by $replaces_message.author
+        </td>
+    </tr>
+#end if
     <tr>
         <th></th>
-        <td><input type="submit" name="new-do" value="Create New Message" /></td>
+        <td><input type="submit" name="submit" value="$submittext" /></td>
     </tr>
 </table>
 
