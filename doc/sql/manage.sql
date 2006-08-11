@@ -887,7 +887,7 @@ CREATE TABLE message (
     publish_end TIMESTAMP,
     author VARCHAR NOT NULL,
     last_changed TIMESTAMP,
-    replaces_message INT REFERENCES message
+    replaces_message INT REFERENCES message,
     replaced_by INT REFERENCES message
 );
 
@@ -925,7 +925,6 @@ CREATE OR REPLACE FUNCTION message_replace() RETURNS TRIGGER AS '
         END;
     ' language 'plpgsql';
 
-DROP TRIGGER trig_message_replace ON message;
 CREATE TRIGGER trig_message_replace
 	AFTER INSERT OR UPDATE ON message
 	FOR EACH ROW
