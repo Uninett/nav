@@ -146,6 +146,7 @@ table.vertitable {
 	caption-side: top;
 	font-size: smaller;
 	margin-bottom: 1em;
+	width: 100%;
 }
 table.vertitable caption {
 	font-size: large;
@@ -170,3 +171,23 @@ table.vertitable tr td ul {
 	margin: 0;
 	padding: 0 0 0 1.5em;
 }
+
+table.vertilist {
+	border: 1px solid #ccc;
+	caption-side: top;
+	font-size: smaller;
+	margin-bottom: 1em;
+	width: 100%;
+}
+table.vertilist tr {
+	text-align: left;
+	vertical-align: top;
+}
+table.vertilist tr th {
+	background-color: #eee;
+	padding: 0.1em 0.2em;
+}
+table.vertilist tr td {
+        background-color: white;
+        padding: 0.1em 0.2em;
+}       
