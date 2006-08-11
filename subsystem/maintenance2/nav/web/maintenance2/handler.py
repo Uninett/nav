@@ -19,9 +19,12 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+#
+# Author: Stein Magnus Jodal <stein.magnus@jodal.no>
+#
 
 """
-FIXME
+mod_python handler for Maintenance2 subsystem.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"

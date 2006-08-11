@@ -19,6 +19,9 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+#
+# Author: Stein Magnus Jodal <stein.magnus@jodal.no>
+#
 
 """
 Package placeholder. If you remove it, the package won't work.
