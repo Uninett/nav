@@ -111,6 +111,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
                 publish_start = %(publish_start)s,
                 publish_end = %(publish_end)s,
                 author = %(author)s,
+                last_changed = now(),
                 replaces_message = %(replaces_message)d
             WHERE
                 messageid = %(messageid)d"""

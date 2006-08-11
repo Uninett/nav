@@ -28,7 +28,7 @@
 
 #block tabcontent
 
-#if len($msgs) == 0
+#if not $msgs
 <p>No messages found.</p>
 #else
     ## $verbosemsgs may be adjusted according to preference

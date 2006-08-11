@@ -183,10 +183,13 @@
         <td>
 #set $maint_tasks = $getVar('maint_tasks', [])
             <select name="maint_tasks" size="5" multiple="multiple">
-#if len($tasks) and len($maint_tasks)
+#if $tasks and $maint_tasks
                 <option value="none">(none)</option>
 #else
                 <option value="none" selected="selected">(none)</option>
+#end if
+#if type($tasks) is not list
+    #set tasks = []
 #end if
 #for $task in $tasks
     #if len($task.description) > 50
