@@ -39,7 +39,7 @@ import nav.db
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
-def getTasks(where = False):
+def getTasks(where = False, order = 'maint_end DESC'):
     """
     Get maintenance tasks
 
@@ -52,8 +52,9 @@ def getTasks(where = False):
 
     """
 
-    select = "SELECT maint_taskid, maint_start, maint_end, description, author, state FROM maint_task"
-    order = "maint_start DESC"
+    select = """SELECT maint_taskid, maint_start, maint_end, description,
+        author, state
+        FROM maint_task"""
 
     if where:
         sql = "%s WHERE %s ORDER BY %s" % (select, where, order)
@@ -64,10 +65,15 @@ def getTasks(where = False):
     db.execute(sql)
     if not db.rowcount:
         return False
-    result = db.dictfetchall()
+    results = db.dictfetchall()
     # FIXME: Log result
 
-    return result
+    # Attach components belonging to this message
+    for i, result in enumerate(results):
+        results[i]['components'] = getComponents(results[i]['maint_taskid']) \
+            or None
+
+    return results
 
 def setTask(taskid, maint_start, maint_end, description, author, state):
     """
@@ -113,8 +119,8 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
 
     data = {
         'maint_taskid': taskid,
-        'maint_start': maint_start,
-        'maint_end': maint_end,
+        'maint_start': time.strftime('%Y-%m-%d %H:%M:%S', maint_start),
+        'maint_end': time.strftime('%Y-%m-%d %H:%M:%S', maint_end),
         'description': description,
         'author': author,
         'state': state
@@ -128,3 +134,29 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
     # FIXME: Log result
 
     return taskid
+
+def getComponents(taskid):
+    """
+    Get maintenance components belonging to a maintenance task
+
+    Input:
+        taskid  ID of maintenance task
+
+    Returns:
+        If components found, returns dictionary with results
+        If no compononets found, returns false
+
+    """
+
+    sql = """SELECT key, value
+        FROM maint_component
+        WHERE maint_taskid = %(maint_taskid)d"""
+    data = {'maint_taskid': taskid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    if not db.rowcount:
+        return False
+    result = db.dictfetchall()
+    # FIXME: Log result
+    return result

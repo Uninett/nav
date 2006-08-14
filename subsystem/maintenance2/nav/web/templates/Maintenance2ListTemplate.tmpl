@@ -1,0 +1,124 @@
+## -*- coding: ISO8859-1 -*-
+## $Id:$
+##
+## Copyright 2006 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Stein Magnus Jodal <stein.magnus@jodal.no>
+##
+
+#extends Maintenance2Template
+#import mx.DateTime
+
+#block tabcontent
+
+#if not $tasks
+<p>No maintenance tasks found.</p>
+#else
+    ## $verbosetasks may be adjusted to according to preference
+    #set $verbosetasks = 5
+    #set $taskcount = 0
+    #for $task in $tasks
+        #set $taskcount += 1
+        #if $taskcount <= $verbosetasks
+
+<h3>$task.description[:50]</h3>
+
+<table class="vertitable">
+    <tr>
+        <th>Start</th>
+        <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+    <tr>
+        <th>End</th>
+        <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>$task.description</td>
+    </tr>
+    #if type($task.components) is list
+    <tr>
+        <th>Components</th>
+        <td><ul>
+        #for $component in $task.components
+            <li>$component.key: $component.value</li>
+        #end for
+        </ul></td>
+    </tr>
+    #end if
+    <tr>
+        <th>Author</th>
+        <td>$task.author</td>
+    </tr>
+    <tr>
+        <th>State</th>
+        <td>$task.state</td>
+    </tr>
+    <tr>
+        <th>Actions</th>
+        <td><a href="edit?id=$task.maint_taskid">Edit</a></td>
+    </tr>
+</table>
+
+        #else
+        
+        #if $taskcount == $verbosetasks+1
+<h3>Older Maintenance Tasks</h3>
+
+<table class="vertilist">
+    <tr>
+        <th>Start</th>
+        <th>End</th>
+        <th>Description</th>
+        <th>Components</th>
+        <th>Author</th>
+        <th>State</th>
+    </tr>
+        #end if
+
+        #if len($task.description) > 50 
+            #set $desc = $task.description[:50] + '...'
+        #else
+            #set $desc = $task.description
+        #end if
+        #if type($task.components) is list
+            #set $comp = len($task.components)
+        #else
+            #set $comp = 0
+        #end if
+    <tr>
+        <td>$task.maint_start.strftime('%Y-%m-%d %H:%M')</td>
+        <td>$task.maint_end.strftime('%Y-%m-%d %H:%M')</td>
+        <td><a href="view?id=$task.maint_taskid">$desc</a></td>
+        <td><a href="view?id=$task.maint_taskid">$comp</a></td>
+        <td>$task.author</td>
+        <td>$task.state</td>
+    </tr>
+        #end if
+    #end for
+
+## End of 'Older Maintenace Tasks' table
+#if $taskcount > $verbosetasks
+</table>
+#end if
+
+#end if
+
+#end block tabcontent
