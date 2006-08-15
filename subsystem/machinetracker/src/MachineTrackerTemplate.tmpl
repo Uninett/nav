@@ -163,7 +163,7 @@
              $row.mac[10:12])
         #else
             #set $macformatted = $row.mac
-        #end fi
+        #end if
 	<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$macformatted</a></td>
         <td>$row.start_time</td>
         <td>$row.end_time</td>
@@ -187,7 +187,7 @@
              $row.mac[10:12])
         #else
             #set $macformatted = $row.mac
-        #end fi
+        #end if
         <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$macformatted</a></td>
 	<td><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a></td>
 	<td style="text-align: center;">$row.module</td>
