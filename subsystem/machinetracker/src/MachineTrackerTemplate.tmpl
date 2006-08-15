@@ -157,9 +157,13 @@
             <a href="/ipinfo/?ip=${row.ipaddr}" title="Show information about this particular IP address"><img src="$imagefolder/arpcam/ipinfolink.png" width="11" height="11" alt="IP Info"></a>
         #end if
         </td>
-        #set $macformatted = '%s:%s:%s:%s:%s:%s' % ($row.mac[0:2],
-         $row.mac[2:4], $row.mac[4:6], $row.mac[6:8], $row.mac[8:10],
-         $row.mac[10:12])
+        #if type($row.mac) is str
+            #set $macformatted = '%s:%s:%s:%s:%s:%s' % ($row.mac[0:2],
+             $row.mac[2:4], $row.mac[4:6], $row.mac[6:8], $row.mac[8:10],
+             $row.mac[10:12])
+        #else
+            #set $macformatted = $row.mac
+        #end fi
 	<td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search for this MAC address">$macformatted</a></td>
         <td>$row.start_time</td>
         <td>$row.end_time</td>
@@ -177,9 +181,13 @@
 
   #for $row in $table
     <tr class="$rowcycler">
-        #set $macformatted = '%s:%s:%s:%s:%s:%s' % ($row.mac[0:2],
-         $row.mac[2:4], $row.mac[4:6], $row.mac[6:8], $row.mac[8:10],
-         $row.mac[10:12])
+        #if type($row.mac) is str
+            #set $macformatted = '%s:%s:%s:%s:%s:%s' % ($row.mac[0:2],
+             $row.mac[2:4], $row.mac[4:6], $row.mac[6:8], $row.mac[8:10],
+             $row.mac[10:12])
+        #else
+            #set $macformatted = $row.mac
+        #end fi
         <td><a href="mac?mac=$row.mac&days=$form.days&dns=$form.dns" title="Search again for this MAC address">$macformatted</a></td>
 	<td><a href="/browse/$row.switch" title="Browse this switch (IP device)">$row.switch</a></td>
 	<td style="text-align: center;">$row.module</td>
