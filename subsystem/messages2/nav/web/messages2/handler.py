@@ -134,9 +134,23 @@ def handler(req):
             else:
                 msgid = int(args.get('id'))
                 page.replaces_messageid = msgid
-                page.replaces_message = messages2.getMsgs('messageid = %d' \
+
+                msg = messages2.getMsgs('messageid = %d' \
                     % msgid)[0]
-                page.formtitle = page.replaces_message['title']
+                page.replaces_message = msg
+                page.formtitle = msg['title']
+
+                page.start_year = int(msg['publish_start'].strftime('%Y'))
+                page.start_month = int(msg['publish_start'].strftime('%m'))
+                page.start_day = int(msg['publish_start'].strftime('%d'))
+                page.start_hour = int(msg['publish_start'].strftime('%H'))
+                page.start_min = int(msg['publish_start'].strftime('%M'))
+
+                page.end_year = int(msg['publish_end'].strftime('%Y'))
+                page.end_month = int(msg['publish_end'].strftime('%m'))
+                page.end_day = int(msg['publish_end'].strftime('%d'))
+                page.end_hour = int(msg['publish_end'].strftime('%H'))
+                page.end_min = int(msg['publish_end'].strftime('%M'))
 
         # Edit
         if section == 'edit':

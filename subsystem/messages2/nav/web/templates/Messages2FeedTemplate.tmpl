@@ -30,9 +30,9 @@
 
 <rss version="2.0">
     <channel>
-        <title>$channeltitle</title>
+        <title>$channeltitle.replace('<', '&lt;').replace('>', '&gt;')</title>
         <link>$channellink</link>
-        <description>$channeldesc</description>
+        <description>$channeldesc.replace('<', '&lt;').replace('>', '&gt;')</description>
         <language>$channellang</language>
         <pubDate>$pubDate.strftime('%a, %d %b %Y %H:%M:%S %Z')</pubDate>
         <lastBuildDate>$lastBuildDate</lastBuildDate>
@@ -41,7 +41,7 @@
         #set msgs = $getVar('msgs', [])
         #for msg in msgs
         <item>
-            <title>$msg.title</title>
+            <title>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</title>
             <pubDate>$msg.publish_start.strftime('%a, %d %b %Y %H:%M:%S %Z')</pubDate>
             <link>$msg.link</link>
             <guid>$msg.guid</guid>
