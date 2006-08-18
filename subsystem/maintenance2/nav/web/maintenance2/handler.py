@@ -40,6 +40,7 @@ from nav.web.URI import URI
 from nav.web.templates.Maintenance2ListTemplate import Maintenance2ListTemplate
 from nav.web.templates.Maintenance2NewTemplate import Maintenance2NewTemplate
 from nav.web.maintenance2 import maintenance2
+from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -82,6 +83,90 @@ def handler(req):
         page = Maintenance2NewTemplate()
         page.title = 'Create New Maintenance Task'
         page.errors = []
+
+        # Create select tree
+        selectbox = TreeSelect()
+
+        sr = {"locations":[],"rooms":[],"netboxes":[], "services":[]}
+        if req.form.has_key('sb_submit'):
+            sr = searchbox.getResults(req)
+
+        select1 = Select('cn_location',
+                        'Location',
+                        multiple = True,
+                        multipleSize = 10,
+                        initTable='Location',
+                        initTextColumn='descr',
+                        initIdColumn='locationid',
+                        preSelected = sr['locations'],
+                        optionFormat = '$v ($d)',
+                        orderByValue = True)
+
+        select2 = UpdateableSelect(select1,
+                                   'cn_room',
+                                   'Room',
+                                   'Room',
+                                   'descr',
+                                   'roomid',
+                                   'locationid',
+                                   multiple=True,
+                                   multipleSize=10,
+                                   preSelected = sr['rooms'],
+                                   optionFormat = '$v ($d)',
+                                   orderByValue = True)
+
+        select3 = UpdateableSelect(select2,
+                                   'cn_netbox',
+                                   'Box',
+                                   'Netbox',
+                                   'sysname',
+                                   'netboxid',
+                                   'roomid',
+                                   multiple=False,
+                                   multipleSize=10,
+                                   preSelected = sr['netboxes'])
+
+        catid = None
+        if req.form.has_key("cn_netbox") and req.form["cn_netbox"]:
+            cursor.execute("select catid from netbox where netboxid=%s", (req.form["cn_netbox"],))
+            result = cursor.fetchone()
+            if result:
+                catid = result[0]
+
+        if catid == "SRV":
+            select4 = UpdateableSelect(select3,
+                                       'cn_service',
+                                       'Service',
+                                       'Service',
+                                       'handler',
+                                       'serviceid',
+                                       'netboxid',
+                                       multiple = True,
+                                       multipleSize=10,
+                                       optgroupFormat = '$d',
+                                       preSelected = sr['services'])
+        else:
+            select4 = UpdateableSelect(select3,
+                                       'cn_module',
+                                       'Module',
+                                       'Module',
+                                       'module',
+                                       'moduleid',
+                                       'netboxid',
+                                       multiple = True,
+                                       multipleSize=10,
+                                       optgroupFormat = '$d')
+        #preSelected = sr['services'])
+
+        selectbox.addSelect(select1)
+        selectbox.addSelect(select2)
+        selectbox.addSelect(select3)
+        selectbox.addSelect(select4)
+
+        # Update the selectboxes based on form data
+        selectbox.update(req.form)
+
+        page.selectbox = selectbox
 
         # Edit
         if section == 'edit':
@@ -206,11 +291,20 @@ def handler(req):
         page.title = 'Active Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_start < now() AND maint_end > now()')
 
+    # Check if user is logged in
+    if req.session['user'].id != 0:
+        page.authorized = True
+    else:
+        page.authorized = False
+
     # Create menu
-    page.menu = [{'link': 'active', 'text': 'Active', 'admin': False},
-                {'link': 'planned', 'text': 'Planned', 'admin': False},
-                {'link': 'historic', 'text': 'Historic', 'admin': False},
-                {'link': 'new', 'text': 'Create new', 'admin': True}]
+    page.menu = []
+    page.menu.append({'link': 'active', 'text': 'Active', 'admin': False})
+    page.menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
+    page.menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    if page.authorized:
+        page.menu.append({'link': 'new', 'text': 'Create new', 'admin': True})
+
     if not page.hasVar('current'):
         page.current = section
     if not page.hasVar('submittext'):

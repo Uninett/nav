@@ -67,6 +67,7 @@
         <th>Author</th>
         <td>$task.author</td>
     </tr>
+#if $authorized
     <tr>
         <th>State</th>
         <td>$task.state</td>
@@ -75,6 +76,7 @@
         <th>Actions</th>
         <td><a href="edit?id=$task.maint_taskid">Edit</a></td>
     </tr>
+#end if
 </table>
 
         #else
