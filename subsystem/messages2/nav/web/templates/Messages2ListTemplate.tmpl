@@ -38,7 +38,7 @@
         #set $msgcount += 1
         #if $msgcount <= $verbosemsgs
 
-<h3>$msg.title</h3>
+<h3>$msg.title.replace('<', '&lt;').replace('>', '&gt;')</h3>
 
 <table class="vertitable">
     <tr>
@@ -57,13 +57,13 @@
     </tr>
     <tr>
         <th>Description</th>
-        <td>$msg.description.replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
+        <td>$msg.description.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
 #if $authorized
     #if $msg.tech_description
     <tr>
         <th>Technical description</th>
-        <td>$msg.tech_description.replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
+        <td>$msg.tech_description.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
     #end if
     #if type($msg.tasks) is list
@@ -142,8 +142,8 @@
         #end if
     <tr>
         <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
-        <td><a href="view?id=$msg.messageid">$msg.title</a></td>
-        <td>$desc</td>
+        <td><a href="view?id=$msg.messageid">$msg.title.replace('<', '&lt;').replace('>', '&gt;')</a></td>
+        <td>$desc.replace('<', '&lt;').replace('>', '&gt;')</td>
     </tr>
     #end if
 #end for

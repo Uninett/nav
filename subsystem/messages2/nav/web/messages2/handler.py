@@ -136,6 +136,7 @@ def handler(req):
                 page.replaces_messageid = msgid
                 page.replaces_message = messages2.getMsgs('messageid = %d' \
                     % msgid)[0]
+                page.formtitle = page.replaces_message['title']
 
         # Edit
         if section == 'edit':

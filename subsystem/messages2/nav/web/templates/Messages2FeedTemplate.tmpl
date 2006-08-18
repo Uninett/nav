@@ -46,7 +46,7 @@
             <link>$msg.link</link>
             <guid>$msg.guid</guid>
             <comments />
-            <description>$msg.description</description>
+            <description>$msg.description.replace('<', '&lt;').replace('>', '&gt;')</description>
         </item>
         #end for
     </channel>
