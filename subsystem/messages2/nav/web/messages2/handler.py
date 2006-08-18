@@ -34,11 +34,13 @@ __id__ = "$Id:$"
 
 import time
 from mod_python import apache, util
+import mx.DateTime
 
 import nav.db
 from nav.web.URI import URI
 from nav.web.templates.Messages2ListTemplate import Messages2ListTemplate
 from nav.web.templates.Messages2NewTemplate import Messages2NewTemplate
+from nav.web.templates.Messages2FeedTemplate import Messages2FeedTemplate
 from nav.web.messages2 import messages2
 from nav.web.maintenance2 import maintenance2
 
@@ -62,8 +64,32 @@ def handler(req):
         section = 'active'
  
     ### SECTIONS
+    # RSS 2.0 feed
+    if section == 'rss':
+        page = Messages2FeedTemplate()
+        page.msgs = messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
+
+        page.channeltitle = 'NAV Message Feed from ' + req.hostname
+        page.channeldesc = page.channeltitle
+        page.channellink = 'http://' + req.hostname + args.path
+
+        page.pubDate = 0
+        for i, msg in enumerate(page.msgs):
+            if msg['publish_start'] > page.pubDate:
+                page.pubDate = msg['publish_start']
+            page.msgs[i]['link'] = 'http://' + req.hostname \
+                + '/messages2/view?id=' + str(page.msgs[i]['messageid'])
+            page.msgs[i]['guid'] = page.msgs[i]['link']
+        if page.pubDate == 0:
+            page.pubDate = mx.DateTime.now()
+
+        # Done, output the page
+        req.content_type = 'text/xml'
+        req.send_http_header()
+        req.write(page.respond())
+        return apache.OK
     # Planned messages (not yet reached publishing time)
-    if section == 'planned':
+    elif section == 'planned':
         page = Messages2ListTemplate()
         page.title = 'Planned Messages'
         page.msgs = messages2.getMsgs('publish_start > now() AND publish_end > now() AND replaced_by IS NULL')
@@ -289,16 +315,25 @@ def handler(req):
         page.title = 'Active Messages'
         page.msgs = messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
+    # Check if user is logged in
+    if req.session['user'].id != 0:
+        page.authorized = True
+    else:
+        page.authorized = False
+
     # Create menu
-    page.menu = [{'link': 'active', 'text': 'Active', 'admin': False},
-                {'link': 'planned', 'text': 'Planned', 'admin': False},
-                {'link': 'historic', 'text': 'Historic', 'admin': False},
-                {'link': 'new', 'text': 'Create new', 'admin': True}]
+    page.menu = []
+    page.menu.append({'link': 'active', 'text': 'Active', 'admin': False})
+    page.menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
+    page.menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    if page.authorized:
+        page.menu.append({'link': 'new', 'text': 'Create new', 'admin': True})
+
     if not page.hasVar('current'):
         page.current = section
     if not page.hasVar('submittext'):
         page.submittext = page.title
-  
+
     # Done, output the page
     req.content_type = 'text/html'
     req.send_http_header()

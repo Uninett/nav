@@ -59,7 +59,7 @@
         <th>Description</th>
         <td>$msg.description.replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
-#if $user.login
+#if $authorized
     #if $msg.tech_description
     <tr>
         <th>Technical description</th>
