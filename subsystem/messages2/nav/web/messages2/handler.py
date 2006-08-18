@@ -72,6 +72,8 @@ def handler(req):
         page.channeltitle = 'NAV Message Feed from ' + req.hostname
         page.channeldesc = page.channeltitle
         page.channellink = 'http://' + req.hostname + args.path
+        page.channellang = 'en-us'
+        page.channelttl = '60'
 
         page.pubDate = 0
         for i, msg in enumerate(page.msgs):
