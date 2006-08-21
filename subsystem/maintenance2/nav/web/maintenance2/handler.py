@@ -37,6 +37,7 @@ from mod_python import apache, util
 
 import nav.db
 from nav.web.URI import URI
+from nav.web.templates.Maintenance2CalTemplate import Maintenance2CalTemplate
 from nav.web.templates.Maintenance2ListTemplate import Maintenance2ListTemplate
 from nav.web.templates.Maintenance2NewTemplate import Maintenance2NewTemplate
 from nav.web.maintenance2 import maintenance2
@@ -61,9 +62,21 @@ def handler(req):
     else:
         section = 'active'
 
+    # Create initial menu, more is appended depending on context
+    menu = []
+    menu.append({'link': 'calendar', 'text': 'Calendar', 'admin': False})
+    menu.append({'link': 'active', 'text': 'Active', 'admin': False})
+    menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
+    menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+
     ### SECTIONS
+    # Show active maintenance tasks (public tasks)
+    if section == 'active':
+        page = Maintenance2ListTemplate()
+        page.title = 'Active Maintenance Tasks'
+        page.tasks = maintenance2.getTasks('maint_start < now() AND maint_end > now()')
     # Planned maintenance tasks (not yet reached activation time)
-    if section == 'planned':
+    elif section == 'planned':
         page = Maintenance2ListTemplate()
         page.title = 'Planned Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_start > now() AND maint_end > now()')
@@ -73,9 +86,10 @@ def handler(req):
         page.title = 'Historic Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_end < now()', 'maint_end DESC')
     # View a maintenance task
-    elif section == 'view' and args.get('id').isdigit():
+    elif section == 'view' and args.get('id'):
         page = Maintenance2ListTemplate()
         page.title = 'Maintenance Task'
+        menu.append({'link': 'view', 'text': 'View', 'admin': False})
         taskid = int(args.get('id'))
         page.tasks = maintenance2.getTasks('maint_taskid = %d' % taskid)
     # New and edit
@@ -84,7 +98,7 @@ def handler(req):
         page.title = 'Create New Maintenance Task'
         page.errors = []
 
-        # Create select tree
+        # Create select tree - FIXME: Not done
         selectbox = TreeSelect()
 
         sr = {"locations":[],"rooms":[],"netboxes":[], "services":[]}
@@ -172,7 +186,9 @@ def handler(req):
         if section == 'edit':
             page.title = 'Edit Maintenance Task'
             page.submitttext = 'Save Maintenance Task'
-            if not args.get('id').isdigit():
+            menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
+
+            if not args.get('id'):
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
@@ -285,23 +301,41 @@ def handler(req):
                 req.send_http_header()
                 return apache.OK
 
-    # Default: Show active maintenance tasks (public tasks)
+    # Default: Show task calendar
     else:
-        page = Maintenance2ListTemplate()
-        page.title = 'Active Maintenance Tasks'
-        page.tasks = maintenance2.getTasks('maint_start < now() AND maint_end > now()')
+        page = Maintenance2CalTemplate()
+        page.title = 'Maintenance Schedule'
 
+        # Get input arguments
+        if args.get('y'):
+            page.year = int(args.get('y'))
+        else:
+            page.year = int(time.strftime('%Y'))
+        if args.get('m'):
+            page.month = int(args.get('m'))
+        else:
+            page.month = int(time.strftime('%m'))
+
+        # Get tasks
+        tasks = maintenance2.getTasks("maint_start > '%04d-%02d-01'" \
+            % (page.year, page.month), 'maint_start') or []
+        
+        # Group tasks by start date
+        page.tasks = {}
+        for task in tasks:
+            date = task['maint_start'].strftime('%Y-%m-%d')
+            if not page.tasks.has_key(date):
+                page.tasks[date] = []
+            page.tasks[date].append(task)
+        
     # Check if user is logged in
     if req.session['user'].id != 0:
         page.authorized = True
     else:
         page.authorized = False
 
-    # Create menu
-    page.menu = []
-    page.menu.append({'link': 'active', 'text': 'Active', 'admin': False})
-    page.menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
-    page.menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    # Push menu to page
+    page.menu = menu
     if page.authorized:
         page.menu.append({'link': 'new', 'text': 'Create new', 'admin': True})
 

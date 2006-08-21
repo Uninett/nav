@@ -26,7 +26,7 @@
 #extends MainTemplate
 
 ##attr $title = 'Maintenance'
-#attr $path = [("Home", "/"), ("Maintenance", "")]
+#attr $path = [("Home", "/"), ("Maintenance Tasks", "")]
 
 #def $makeMenu($menu, $current = False)
 <div style="border: 1px solid black; margin: 36px 0px 15px 0px; padding: 0px 19px;">
@@ -82,4 +82,5 @@ $makeMenu($menu, $current)
 #block additionalCSS
 $default_tabs_CSS
 $default_table_CSS
+$default_calendar_CSS
 #end block additionalCSS
