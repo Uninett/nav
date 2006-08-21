@@ -63,6 +63,12 @@ def handler(req):
     else:
         section = 'active'
  
+    # Create initial menu, more is appended depending on context
+    menu = []
+    menu.append({'link': 'active', 'text': 'Active', 'admin': False})
+    menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
+    menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+
     ### SECTIONS
     # RSS 2.0 feed
     if section == 'rss':
@@ -106,6 +112,7 @@ def handler(req):
     elif section == 'view' and args.get('id').isdigit():
         page = Messages2ListTemplate()
         page.title = 'Message'
+        menu.append({'link': 'view', 'text': 'View', 'admin': False})
         msgid = int(args.get('id'))
         page.msgs = messages2.getMsgs('messageid = %d' % msgid)
 
@@ -113,6 +120,7 @@ def handler(req):
     elif section == 'expire' and args.get('id').isdigit():
         page = Messages2ListTemplate()
         page.title = 'Expire message'
+        menu.append({'link': 'expire', 'text': 'Expire', 'admin': True})
         page.infomsgs = []
         msgid = int(args.get('id'))
         messages2.expireMsg(msgid)
@@ -156,6 +164,7 @@ def handler(req):
         if section == 'edit':
             page.title = 'Edit Message'
             page.submittext = 'Save Message'
+            menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
             if not args.get('id').isdigit():
                 page.errors.append('Message ID in request is not a digit.')
             else:
@@ -338,11 +347,8 @@ def handler(req):
     else:
         page.authorized = False
 
-    # Create menu
-    page.menu = []
-    page.menu.append({'link': 'active', 'text': 'Active', 'admin': False})
-    page.menu.append({'link': 'planned', 'text': 'Planned', 'admin': False})
-    page.menu.append({'link': 'historic', 'text': 'Historic', 'admin': False})
+    # Push menu to page
+    page.menu = menu
     if page.authorized:
         page.menu.append({'link': 'new', 'text': 'Create new', 'admin': True})
 
