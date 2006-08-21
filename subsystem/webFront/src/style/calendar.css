@@ -1,0 +1,53 @@
+/* Calendar stylesheet for NAV
+ *
+ * Copyright 2006 UNINETT AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * Authors: Stein Magnus Jodal <stein.magnus@jodal.no>
+ */
+
+table.calendar {
+	border: 1px solid #ccc;
+	caption-side: top;
+	font-size: smaller;
+	margin-bottom: 1em;
+	width: 100%;
+}
+table.calendar caption {
+	font-size: large;
+	text-align: center;
+	padding-bottom: 0.3em;
+}
+table.calendar tr {
+	text-align: left;
+	vertical-align: top;
+}
+table.calendar tr th {
+	background-color: #eee;
+	padding: 0.1em 0.2em;
+	width: 14%;
+}
+table.calendar tr td {
+	background-color: white;
+	border: 1px solid #ccc;
+}
+table.calendar tr td div.dayheader {
+	background-color: #ddf;
+	padding: 0.1em 0.2em;
+	text-align: right;
+}
