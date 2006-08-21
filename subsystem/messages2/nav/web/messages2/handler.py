@@ -109,7 +109,7 @@ def handler(req):
         page.msgs = messages2.getMsgs('publish_end < now() OR replaced_by IS NOT NULL', 'publish_end DESC')
 
     # View a message
-    elif section == 'view' and args.get('id').isdigit():
+    elif section == 'view' and args.get('id'):
         page = Messages2ListTemplate()
         page.title = 'Message'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
@@ -117,7 +117,7 @@ def handler(req):
         page.msgs = messages2.getMsgs('messageid = %d' % msgid)
 
     # Expire a message
-    elif section == 'expire' and args.get('id').isdigit():
+    elif section == 'expire' and args.get('id'):
         page = Messages2ListTemplate()
         page.title = 'Expire message'
         menu.append({'link': 'expire', 'text': 'Expire', 'admin': True})
@@ -137,7 +137,7 @@ def handler(req):
         # Followup
         if section == 'followup':
             page.current = 'new' # Just to mark the menu tab
-            if not args.get('id').isdigit():
+            if not args.get('id'):
                 page.errors.append('Message ID in request is not a digit.')
             else:
                 msgid = int(args.get('id'))
@@ -165,7 +165,7 @@ def handler(req):
             page.title = 'Edit Message'
             page.submittext = 'Save Message'
             menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
-            if not args.get('id').isdigit():
+            if not args.get('id'):
                 page.errors.append('Message ID in request is not a digit.')
             else:
                 msgid = int(args.get('id'))
