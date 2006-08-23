@@ -71,10 +71,10 @@ public class QueryBoks extends Thread
 	// Denne inneholder alle "boksid:ifindex" fra swport som er trunk-porter
 	//public static HashSet boksIfindexTrunkSet;
 
-	// Mengde av vlan som må sjekkes på Cisco-boksene
+	// Mengde av vlan som mÃ¥ sjekkes pÃ¥ Cisco-boksene
 	public static Map vlanBoksid;
 
-	// Hvilke porter det står en GW|SW|EDGE bak, som gitt i swp_boks-tabellen
+	// Hvilke porter det stÃ¥r en GW|SW|EDGE bak, som gitt i swp_boks-tabellen
 	static HashSet foundBoksBakSwp;
 	public static void setFoundBoksBakSwp(HashSet hs) { foundBoksBakSwp = hs; }
 
@@ -88,10 +88,10 @@ public class QueryBoks extends Thread
 	public static HashMap unclosedCam;
 	public static HashSet safeCloseBoksid;
 	public static HashSet watchMacs;
-	// Per-tråd variabler for CAM
+	// Per-trÃ¥d variabler for CAM
 	private List camInsertQueue = new ArrayList();
 	private List camResetQueue = new ArrayList();
-	private Set dupeMacSet = new HashSet(); // For å unngå at duplikate rapporteringer gir duplikater i tabellen
+	private Set dupeMacSet = new HashSet(); // For Ã¥ unngÃ¥ at duplikate rapporteringer gir duplikater i tabellen
 
 	private int camNewCnt;
 
@@ -109,12 +109,12 @@ public class QueryBoks extends Thread
 	}
 	public static int getCamResetMisscnt() { return camResetMisscnt; }
 
-	// Køen som inneholder alle boksene, delt mellom trådene
+	// KÃ¸en som inneholder alle boksene, delt mellom trÃ¥dene
 	Stack bdStack;
-	// Hvilke tråder som er ferdig
+	// Hvilke trÃ¥der som er ferdig
 	static boolean[] threadDone;
 
-	// Rapport når en boks er ferdigbehandlet
+	// Rapport nÃ¥r en boks er ferdigbehandlet
 	static ArrayList boksReport = new ArrayList();
 
 	// Objekt-spesifikke data
@@ -131,7 +131,7 @@ public class QueryBoks extends Thread
 
 	static long lastActivity = System.currentTimeMillis();
 
-	// Konstruktør
+	// KonstruktÃ¸r
 	public QueryBoks(int num, String id, Stack bdStack, int antBd, HashSet swp, HashMap swp_d)
 	{
 		this.num = num;
@@ -175,7 +175,7 @@ public class QueryBoks extends Thread
 					bd = (BoksData)bdStack.pop();
 					bdRemaining = bdStack.size();
 				} else {
-					// Stack er tom, altså er vi ferdig
+					// Stack er tom, altsÃ¥ er vi ferdig
 					break;
 				}
 			}
@@ -208,7 +208,7 @@ public class QueryBoks extends Thread
 			// Liste over porter der vi har funnet boks via CDP
 			foundCDPMp.clear();
 
-			// OK, prøv å spørre
+			// OK, prÃ¸v Ã¥ spÃ¸rre
 			try {
 				if (cdp) {
 					List l = processCDP(boksId);
@@ -271,7 +271,7 @@ public class QueryBoks extends Thread
 					macListe = processCisco1Q(boksId, ip, cs_ro, boksType);
 					} else
 					if (boksTypegruppe.equals("cat-sw") || boksTypegruppe.equals("ios-sw")) {
-					// Cisco utstyr der man må hente per vlan
+					// Cisco utstyr der man mÃ¥ hente per vlan
 					macListe = processCisco2Q(boksId, ip, cs_ro, boksTypegruppe, boksType, ifindexMp);
 				} else
 				if (boksTypegruppe.equals("3hub") || boksTypegruppe.equals("3ss") || boksTypegruppe.equals("3ss9300")) {
@@ -286,12 +286,12 @@ public class QueryBoks extends Thread
 					}
 				*/
 				
-				// Før MAC-listen kan legges til boksListe må alle konflikter med CDP tas bort
+				// FÃ¸r MAC-listen kan legges til boksListe mÃ¥ alle konflikter med CDP tas bort
 				for (Iterator macIt = macList.iterator(); macIt.hasNext();) {
 					PortBoks pm = (PortBoks)macIt.next();
 					String ifindex = pm.getIfindex();
 					if (foundCDPMp.contains(ifindex)) {
-						// Vi har funnet CDP på denne porten, støtter denne også CDP tar vi den bort
+						// Vi har funnet CDP pÃ¥ denne porten, stÃ¸tter denne ogsÃ¥ CDP tar vi den bort
 						if (cdpBoks.contains(pm.getToNetboxid())) {
 							Log.d("RUN", "[CDP-DEL] ifindex: " + ifindex + ", " + boksIdName.get(pm.getToNetboxid()) );
 							continue;
@@ -362,7 +362,7 @@ public class QueryBoks extends Thread
 						}
 					}
 					if (swp_boksid != null && misscnt > 0) {
-						// Nå må vi også resette misscnt i recorden i swp_boks
+						// NÃ¥ mÃ¥ vi ogsÃ¥ resette misscnt i recorden i swp_boks
 						try {
 							String[] updateFields = {
 								"misscnt", "0"
@@ -379,7 +379,7 @@ public class QueryBoks extends Thread
 					}
 
 					if (new_to_swportid != null) {
-						// Nå må vi sjekke om ifindex feltet har endret seg
+						// NÃ¥ mÃ¥ vi sjekke om ifindex feltet har endret seg
 						if (!new_to_swportid.equals(to_swportid)) {
 							try {
 								if (swp_boksid == null || swp_boksid.length() == 0) {
@@ -406,7 +406,7 @@ public class QueryBoks extends Thread
 					continue;
 				}
 
-				// Legg til i listen så vi ikke får duplikater
+				// Legg til i listen sÃ¥ vi ikke fÃ¥r duplikater
 				synchronized (swp) {
 					swp.add(key);
 				}
@@ -511,7 +511,7 @@ public class QueryBoks extends Thread
 		ArrayList l = new ArrayList();
 
 		/*
-		 * Først henter vi ut antall i stack'en med MIB:
+		 * FÃ¸rst henter vi ut antall i stack'en med MIB:
 		 *
 		 * .1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1
 		 *
@@ -524,7 +524,7 @@ public class QueryBoks extends Thread
 		String remoteIfOid = ".1.3.6.1.4.1.9.9.23.1.2.1.1.7";
 		ArrayList stackList;
 
-		// Henter først antallet i stack'en:
+		// Henter fÃ¸rst antallet i stack'en:
 		sSnmp.setParams(ip, cs_ro, stackOid);
 		stackList = sSnmp.getAll();
 
@@ -543,7 +543,7 @@ public class QueryBoks extends Thread
 			ArrayList cdpList = sSnmp.getAll(true);
 			if (cdpList.size() == 0) continue;
 
-			// Vi har fått noe via CDP, da kan vi trygt lukke CAM records
+			// Vi har fÃ¥tt noe via CDP, da kan vi trygt lukke CAM records
 			safeCloseBoksidAdd(workingOnBoksid);
 
 			sSnmp.setParams(ip, cs_ro+(!stack[1].equals("0")?"@sw"+stack[1]:""), remoteIfOid);
@@ -557,7 +557,7 @@ public class QueryBoks extends Thread
 
 				String port = cdps[0].substring(0, cdps[0].indexOf("."));
 
-				// Hent ut mp på andre siden
+				// Hent ut mp pÃ¥ andre siden
 				if (cdpRMpList.size() <= j) continue;
 				String[] remoteIf = (String[])cdpRMpList.get(j);
 
@@ -588,7 +588,7 @@ public class QueryBoks extends Thread
 			return l;
 		}
 
-		// Vi har fått noe via CDP, da kan vi trygt lukke CAM records
+		// Vi har fÃ¥tt noe via CDP, da kan vi trygt lukke CAM records
 		safeCloseBoksidAdd(workingOnBoksid);
 
 		Map remoteIfMap = sSnmp.getAllMap(getOid("cdpRemoteIf"), true, 1);
@@ -628,7 +628,7 @@ public class QueryBoks extends Thread
 			// Opprett record for boksen bak porten
 			PortBoks pm = new PortBoks(ifindex, netboxid, "CDP");
 			if (netboxidA.length > 1) {
-				// Vi har også med modulnummer
+				// Vi har ogsÃ¥ med modulnummer
 				String zero = "";
 				try {
 					if (Integer.parseInt(remoteIf) < 10) zero = "0";
@@ -641,7 +641,7 @@ public class QueryBoks extends Thread
 			foundCDPMp.add(ifindex);
 			Log.d("PROCESS_CDP", "Ifindex: " + ifindex + " CDP: " + sysname + " remoteIf: " + remoteIf);
 
-			// Nå vet vi at vi har funnet en boks via CDP bak denne porten, og da kan det ikke være andre Cisco eller HP-enheter bak her
+			// NÃ¥ vet vi at vi har funnet en boks via CDP bak denne porten, og da kan det ikke vÃ¦re andre Cisco eller HP-enheter bak her
 			try {
 				ResultSet rs = Database.query("SELECT COUNT(*) AS count FROM swp_netbox WHERE netboxid='"+workingOnBoksid+"' AND ifindex='"+ifindex+"' AND to_netboxid!='"+pm.getToNetboxid()+"' AND to_netboxid IN (SELECT netboxid FROM netbox JOIN type USING(typeid) WHERE cdp='t')");
 				if (rs.next() && rs.getInt("count") > 0) {
@@ -655,7 +655,7 @@ public class QueryBoks extends Thread
 				e.printStackTrace(System.err);
 			}
 			
-			// Dersom denne porten går fra ikke-gw (sw,kant) til gw må vi slå remote interface opp i gwport
+			// Dersom denne porten gÃ¥r fra ikke-gw (sw,kant) til gw mÃ¥ vi slÃ¥ remote interface opp i gwport
 			// slik at vi kan sette boksbak og swportbak.
 			if (!boksGwSet.contains(workingOnBoksid) && boksGwSet.contains(pm.getToNetboxid())) {
 				// OK, ikke-gw -> gw
@@ -686,7 +686,7 @@ public class QueryBoks extends Thread
 
 	private String[] extractNetboxid(String s)
 	{
-		// Vi skal prøve å finne en boksid ut fra CDP strengen, som kan f.eks se slik ut:
+		// Vi skal prÃ¸ve Ã¥ finne en boksid ut fra CDP strengen, som kan f.eks se slik ut:
 
 		// 069003402(hb-sw)
 		// tekno-sw200C01D80CEA4
@@ -697,12 +697,12 @@ public class QueryBoks extends Thread
 
 		String[] r;
 
-		// Først prøver vi bare strengen
+		// FÃ¸rst prÃ¸ver vi bare strengen
 		if (sysnameMap.containsKey(s)) {
 			return new String[] { (String)sysnameMap.get(s) };
 		}
 
-		// Så sjekker vi etter paranteser
+		// SÃ¥ sjekker vi etter paranteser
 		int i;
 		if ( (i=s.indexOf("(")) != -1) {
 			int end = s.indexOf(")");
@@ -725,7 +725,7 @@ public class QueryBoks extends Thread
 		}
 
 		// Brute-force, legg til ett og ett tegn fra starten og sjekk
-		String cur = null; // Hvis vi får flere matcher legger vi til det med flest tegn
+		String cur = null; // Hvis vi fÃ¥r flere matcher legger vi til det med flest tegn
 		StringBuffer sb = new StringBuffer();
 		for (i=0; i < s.length(); i++) {
 			sb.append(s.charAt(i));
@@ -735,7 +735,7 @@ public class QueryBoks extends Thread
 		}
 		if (cur != null) return new String[] { cur };
 
-		// Så tar vi strengen motsatt vei, bare for sikkerhets skyld
+		// SÃ¥ tar vi strengen motsatt vei, bare for sikkerhets skyld
 		sb = new StringBuffer();
 		for (i=s.length()-1; i >= 0; i--) {
 			sb.insert(0, s.charAt(i));
@@ -753,7 +753,7 @@ public class QueryBoks extends Thread
 	private List processMacEntry(String netboxid, String ip, String cs_ro, String type, boolean csAtVlan) throws TimeoutException {
 		List l = new ArrayList();
 
-		// HashSet for å sjekke for duplikater
+		// HashSet for Ã¥ sjekke for duplikater
 		HashSet dupCheck = new HashSet();
 		HashSet foundBoksBak = new HashSet();
 
@@ -773,7 +773,7 @@ public class QueryBoks extends Thread
 			vlanSet.add("");
 		}
 
-		// Så vi ikke venter så lenge dersom vi ikke får svar fra et vlan
+		// SÃ¥ vi ikke venter sÃ¥ lenge dersom vi ikke fÃ¥r svar fra et vlan
 		sSnmp.setTimeoutLimit(1);
 
 		for (Iterator it = vlanSet.iterator(); it.hasNext();) {
@@ -796,7 +796,7 @@ public class QueryBoks extends Thread
 					}
 					
 					if (mpBlocked.size() == 0) {
-						// Nå vet vi at ingen porter er blokkert på denne enheten på dette vlan
+						// NÃ¥ vet vi at ingen porter er blokkert pÃ¥ denne enheten pÃ¥ dette vlan
 						HashMap blockedIfind = (HashMap)spanTreeBlocked.get(netboxid+":"+vlan);
 						if (blockedIfind != null) {
 							// Slett eksisterende innslag i databasen
@@ -814,7 +814,7 @@ public class QueryBoks extends Thread
 					}
 				}
 
-				// Hent macadresser på dette vlan
+				// Hent macadresser pÃ¥ dette vlan
 				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_VALUE);
 				List macVlan = sSnmp.getAll(getOid("macPortEntry"));
 				sSnmp.setIfindexIs(SimpleSnmp.IFINDEX_OID);
@@ -853,17 +853,17 @@ public class QueryBoks extends Thread
 					int blockedCnt=0;
 					if (mpBlocked.size() > 0) {
 						Map blockedIfind = (Map)spanTreeBlocked.get(netboxid+":"+vlan);
-						if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert på dette vlan
+						if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert pÃ¥ dette vlan
 							
 						for (Iterator blockIt = mpBlocked.iterator(); blockIt.hasNext();) {
 							String s = (String)blockIt.next();
 							String ifindex = (String)portIndexMap.get(s);
 							if (ifindex == null) continue;
 								
-							// OK, nå kan vi sjekke om denne eksisterer fra før
+							// OK, nÃ¥ kan vi sjekke om denne eksisterer fra fÃ¸r
 							String swportid = (String)blockedIfind.remove(ifindex);
 							if (swportid == null) {
-								// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
+								// Eksisterer ikke fra fÃ¸r, mÃ¥ settes inn, hvis den eksisterer i swport
 								swportid = (String)swportidMap.get(netboxid+":"+ifindex);
 								if (swportid != null) {
 									// Find correct vlan
@@ -892,7 +892,7 @@ public class QueryBoks extends Thread
 								blockedCnt++;
 							}
 						}
-						// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så de må slettes
+						// NÃ¥ har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, sÃ¥ de mÃ¥ slettes
 						for (Iterator iter = blockedIfind.entrySet().iterator(); iter.hasNext();) {
 							Map.Entry me = (Map.Entry)iter.next();
 							String swportid = (String)me.getKey();
@@ -929,8 +929,8 @@ public class QueryBoks extends Thread
 						}
 						//Log.d("MAC_ENTRY", "Found mac: " + mac + " portIndex: " + s[1] + "("+ boksIdName.get(macBoksId.get(mac)) +")");
 							
-						// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
-						// Dette skjer på C35* enhetene.
+						// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spÃ¸r
+						// Dette skjer pÃ¥ C35* enhetene.
 						if (netboxid.equals(macBoksId.get(mac))) continue;
 							
 						// Finn ifIndex
@@ -942,7 +942,7 @@ public class QueryBoks extends Thread
 							continue;
 						}
 							
-						// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+						// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 						safeCloseBoksidAdd(netboxid);
 							
 						// Prosesser Mac (CAM)
@@ -966,12 +966,12 @@ public class QueryBoks extends Thread
 				}
 
 			} catch (TimeoutException te) {
-				// Vi gjør ingenting her, ikke svar på dette vlan
+				// Vi gjÃ¸r ingenting her, ikke svar pÃ¥ dette vlan
 				continue;
 			}
 
 		}
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(netboxid, foundBoksBak);
 
 		sSnmp.setDefaultTimeoutLimit();
@@ -989,9 +989,9 @@ public class QueryBoks extends Thread
 		String baseOid = ".1.3.6.1.2.1.17.4.3.1.2";
 
 		// Get the list of macs
-		// Vi får ut alle MAC-adressene tre ganger, under <baseOid>.1, .2 og .3. Den første kobler desimal-mac til hex-mac
+		// Vi fÃ¥r ut alle MAC-adressene tre ganger, under <baseOid>.1, .2 og .3. Den fÃ¸rste kobler desimal-mac til hex-mac
 		// Den andre kobler desimal-mac til port, og det er denne som brukes her. Desimal-mac'en blir konvertert til hex
-		// istedenfor å hente ut i hex-format fra enheten. Den tredje angir status, dette benyttes ikke her.
+		// istedenfor Ã¥ hente ut i hex-format fra enheten. Den tredje angir status, dette benyttes ikke her.
 		//ArrayList macList = getOIDs(ip, cs_ro, baseOid);
 		sSnmp.setParams(ip, cs_ro, baseOid);
 		ArrayList macList = sSnmp.getAll();
@@ -1012,7 +1012,7 @@ public class QueryBoks extends Thread
 				String modul = mp[0];
 				String port = mp[1];
 
-				// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+				// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 				safeCloseBoksidAdd(boksid);
 
 				// Prosesser Mac-adressen (CAM)
@@ -1030,7 +1030,7 @@ public class QueryBoks extends Thread
 			}
 		}
 
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(boksid, foundBoksBak);
 
 		return l;
@@ -1048,7 +1048,7 @@ public class QueryBoks extends Thread
 		sSnmp.setParams(ip, cs_ro, baseOid);
 		ArrayList macList = sSnmp.getAll();
 
-		// Modul er alltid 1 på denne typen enhet
+		// Modul er alltid 1 pÃ¥ denne typen enhet
 		String modul = "1";
 
 		HashSet foundBoksBak = new HashSet();
@@ -1064,7 +1064,7 @@ public class QueryBoks extends Thread
 
 			String mac = decimalToHexMac(deciMac);
 
-			// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+			// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 			safeCloseBoksidAdd(boksid);
 
 			// Prosesser Mac (CAM)
@@ -1081,7 +1081,7 @@ public class QueryBoks extends Thread
 			}
 		}
 
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(boksid, foundBoksBak);
 
 		return l;
@@ -1094,7 +1094,7 @@ public class QueryBoks extends Thread
 		String ciscoMacBaseOid = ".1.3.6.1.2.1.17.4.3.1.2";
 		String spanningTreeOid = ".1.3.6.1.2.1.17.2.15.1.3";
 
-		// HashSet for å sjekke for duplikater
+		// HashSet for Ã¥ sjekke for duplikater
 		HashSet dupCheck = new HashSet();
 		HashSet foundBoksBak = new HashSet();
 
@@ -1104,7 +1104,7 @@ public class QueryBoks extends Thread
 		Set vlanSet = (Set)vlanBoksid.get(boksid);
 		if (vlanSet == null) return l;
 
-		// Så vi ikke venter så lenge dersom vi ikke får svar fra et vlan
+		// SÃ¥ vi ikke venter sÃ¥ lenge dersom vi ikke fÃ¥r svar fra et vlan
 		sSnmp.setTimeoutLimit(1);
 
 		for (Iterator it = vlanSet.iterator(); it.hasNext();) {
@@ -1119,7 +1119,7 @@ public class QueryBoks extends Thread
 			try {
 				spanningTree = sSnmp.getAll();
 			} catch (TimeoutException te) {
-				// Vi gjør ingenting her, ikke svar på dette vlan
+				// Vi gjÃ¸r ingenting her, ikke svar pÃ¥ dette vlan
 				outl("timeout");
 				continue;
 			}
@@ -1131,13 +1131,13 @@ public class QueryBoks extends Thread
 				if (s[1].equals("2")) mpBlocked.add(s[0]);
 			}
 
-			// Hent macadresser på dette vlan
+			// Hent macadresser pÃ¥ dette vlan
 			//ArrayList macVlan = getOIDs(ip, cs_ro+"@"+vlan, ciscoMacBaseOid);
 			sSnmp.setParams(ip, cs_ro+"@"+vlan, ciscoMacBaseOid);
 			ArrayList macVlan = sSnmp.getAll();
 
 			if (mpBlocked.size() == 0) {
-				// Nå vet vi at ingen porter er blokkert på denne enheten på dette vlan
+				// NÃ¥ vet vi at ingen porter er blokkert pÃ¥ denne enheten pÃ¥ dette vlan
 				HashMap blockedIfind = (HashMap)spanTreeBlocked.get(boksid+":"+vlan);
 				if (blockedIfind != null) {
 					// Slett eksisterende innslag i databasen
@@ -1167,17 +1167,17 @@ public class QueryBoks extends Thread
 			int blockedCnt=0;
 			if (mpBlocked.size() > 0) {
 				HashMap blockedIfind = (HashMap)spanTreeBlocked.get(boksid+":"+vlan);
-				if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert på dette vlan
+				if (blockedIfind == null) blockedIfind = new HashMap(); // Ingen porter er blokkert pÃ¥ dette vlan
 
 				for (int j=0; j < mpBlocked.size(); j++) {
 					String s = (String)mpBlocked.get(j);
 					String ifind = (String)hIndexMap.get(s);
 					if (ifind == null) continue;
 
-					// OK, nå kan vi sjekke om denne eksisterer fra før
+					// OK, nÃ¥ kan vi sjekke om denne eksisterer fra fÃ¸r
 					String swportid = (String)blockedIfind.remove(ifind);
 					if (swportid == null) {
-						// Eksisterer ikke fra før, må settes inn, hvis den eksisterer i swport
+						// Eksisterer ikke fra fÃ¸r, mÃ¥ settes inn, hvis den eksisterer i swport
 						// Finn porten
 						String[] mp = (String[])ifindexMp.get(ifind);
 						if (mp == null) {
@@ -1205,7 +1205,7 @@ public class QueryBoks extends Thread
 						blockedCnt++;
 					}
 				}
-				// Nå har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, så det må slettes
+				// NÃ¥ har vi tatt bort alle porter som fortsatt er blokkert, og resten er da ikke blokkert, sÃ¥ det mÃ¥ slettes
 				Iterator iter = blockedIfind.values().iterator();
 				while (iter.hasNext()) {
 					String swportid = (String)iter.next();
@@ -1230,8 +1230,8 @@ public class QueryBoks extends Thread
 				String[] s = (String[])macVlan.get(j);
 				String mac = decimalToHexMac(s[0]);
 
-				// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spør
-				// Dette skjer på C35* enhetene.
+				// Sjekk om MAC adressen vi har funnet er dem samme som den for enheten vi spÃ¸r
+				// Dette skjer pÃ¥ C35* enhetene.
 				if (boksid.equals(macBoksId.get(mac))) continue;
 
 				// Finn ifIndex
@@ -1250,7 +1250,7 @@ public class QueryBoks extends Thread
 				String modul = mp[0];
 				String port = mp[1];
 
-				// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+				// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 				safeCloseBoksidAdd(boksid);
 
 				// Prosesser Mac (CAM)
@@ -1280,7 +1280,7 @@ public class QueryBoks extends Thread
 				if (!b) { unitVlanCnt++; b=true; }
 			}
 		}
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(boksid, foundBoksBak);
 
 		sSnmp.setDefaultTimeoutLimit();
@@ -1367,7 +1367,7 @@ public class QueryBoks extends Thread
 			return l;
 		}
 
-		// Angir om vi har funnet en boks bak porten, gjør vi det skal CAM-data ikke logges på porten
+		// Angir om vi har funnet en boks bak porten, gjÃ¸r vi det skal CAM-data ikke logges pÃ¥ porten
 		HashSet foundBoksBak = new HashSet();
 
 		// Get the list of macs
@@ -1388,7 +1388,7 @@ public class QueryBoks extends Thread
 			String formatMac = formatMac(s[1].toLowerCase());
 			//outl("Raw MAC: " + s[1].toLowerCase() + " Found MAC: " + formatMac);
 
-			// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+			// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 			safeCloseBoksidAdd(boksid);
 
 			// For testing av CAM
@@ -1414,7 +1414,7 @@ public class QueryBoks extends Thread
 			}
 		}
 
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(boksid, foundBoksBak);
 
 		return l;
@@ -1425,7 +1425,7 @@ public class QueryBoks extends Thread
 		ArrayList l = new ArrayList();
 
 		/*
-		 * Først henter vi ut antall i stack'en med MIB:
+		 * FÃ¸rst henter vi ut antall i stack'en med MIB:
 		 *
 		 * .1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1
 		 *
@@ -1436,7 +1436,7 @@ public class QueryBoks extends Thread
          * .1.3.6.1.2.1.17.4.3.1.2.<desimal-mac> = portnummer
          * .1.3.6.1.2.1.17.4.3.1.3.<desimal-mac> = status
 		 *
-		 * Kun status=3 er interessant, da disse er MAC'ene switchen "lærer"
+		 * Kun status=3 er interessant, da disse er MAC'ene switchen "lÃ¦rer"
 		 *
 		 */
 
@@ -1447,13 +1447,13 @@ public class QueryBoks extends Thread
 		//String statusMacOid = "1.3.6.1.2.1.17.4.3.1.3";
 		String macOid = "1.3.6.1.2.1.17.4.3.1";
 
-		// Angir om vi har funnet en boks bak porten, gjør vi det skal CAM-data ikke logges på porten
+		// Angir om vi har funnet en boks bak porten, gjÃ¸r vi det skal CAM-data ikke logges pÃ¥ porten
 		HashSet foundBoksBak = new HashSet();
 
 		ArrayList stackList, macList;
 
 		try {
-			// Henter først antallet i stack'en:
+			// Henter fÃ¸rst antallet i stack'en:
 			sSnmp.setParams(ip, cs_ro, stackOid);
 			stackList = sSnmp.getAll();
 
@@ -1471,7 +1471,7 @@ public class QueryBoks extends Thread
 				sSnmp.setParams(ip, cs_ro+(!s[1].equals("0")?"@sw"+s[1]:""), macOid);
 				macList = sSnmp.getAll();
 
-				// Først dytter vi all MAC inn i en hash
+				// FÃ¸rst dytter vi all MAC inn i en hash
 				HashMap macMap = new HashMap();
 				int j;
 				for (j=0; j<macList.size(); j++) {
@@ -1486,7 +1486,7 @@ public class QueryBoks extends Thread
 
 					outld("processHP:     Key: " + key + " MAC: " + formatMac);
 
-					// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+					// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
 					safeCloseBoksidAdd(boksid);
 				}
 
@@ -1502,7 +1502,7 @@ public class QueryBoks extends Thread
 					portMap.put(key, new Integer(s[1]));
 				}
 
-				// Til slutt går vi gjennom og registrerer alle MAC der status=3
+				// Til slutt gÃ¥r vi gjennom og registrerer alle MAC der status=3
 				for (; j<macList.size(); j++) {
 					s = (String[])macList.get(j);
 
@@ -1550,7 +1550,7 @@ public class QueryBoks extends Thread
 			return l;
 		}
 
-		// Nå kan vi sjekke om CAM-køen skal settes inn i cam-tabellen eller ikke
+		// NÃ¥ kan vi sjekke om CAM-kÃ¸en skal settes inn i cam-tabellen eller ikke
 		runCamQueue(boksid, foundBoksBak);
 
 		return l;
@@ -1563,7 +1563,7 @@ public class QueryBoks extends Thread
 	 *
 	 */
 	private void processMac(String netboxid, String ifindex, String mac) {
-		// Først sjekker vi om vi har en uavsluttet CAM-record for denne MAC'en
+		// FÃ¸rst sjekker vi om vi har en uavsluttet CAM-record for denne MAC'en
 		String key = netboxid+":"+ifindex.trim()+":"+mac.trim();
 
 		// Ignorer duplikater
@@ -1580,12 +1580,12 @@ public class QueryBoks extends Thread
 		}
 
 		if (s != null) {
-			// Har CAM-record, og siden vi fant MAC'en igjen her så skal den fortsatt være åpen dersom
+			// Har CAM-record, og siden vi fant MAC'en igjen her sÃ¥ skal den fortsatt vÃ¦re Ã¥pen dersom
 			// det ikke er en boks bak denne porten
 			camResetQueue.add(new String[] { ifindex, key, s[0], s[1] } );
 
 		} else {
-			// Nei, da er denne MAC'en ny på porten, og vi må sette inn en record i cam-tabellen
+			// Nei, da er denne MAC'en ny pÃ¥ porten, og vi mÃ¥ sette inn en record i cam-tabellen
 			s = (String[])mpMap.get(netboxid+":"+ifindex);
 			if (s == null) s = new String[2];
 			String[] insertData = {
@@ -1601,7 +1601,7 @@ public class QueryBoks extends Thread
 		}
 	}
 	private void runCamQueue(String netboxid, Set foundBoksBak) {
-		// Først resetter vi eksisterende records der vi ikke har boksbak
+		// FÃ¸rst resetter vi eksisterende records der vi ikke har boksbak
 		for (Iterator it = camResetQueue.iterator(); it.hasNext();) {
 			String[] s = (String[])it.next();
 			String ifindex = s[0];
@@ -1623,7 +1623,7 @@ public class QueryBoks extends Thread
 			}
 
 			if (misscnt > 0) {
-				// til-feltet må settes tilbake til infinity, og misscnt tilbake til 0
+				// til-feltet mÃ¥ settes tilbake til infinity, og misscnt tilbake til 0
 				String[] updateFields = {
 					"end_time", "infinity",
 					"misscnt", "0"
@@ -1643,7 +1643,7 @@ public class QueryBoks extends Thread
 		}
 		camResetQueue.clear();
 
-		// Så setter vi inn evt. nye records i cam
+		// SÃ¥ setter vi inn evt. nye records i cam
 		for (int i=0; i < camInsertQueue.size(); i++) {
 			String[] insertData = (String[])camInsertQueue.get(i);
 			String ifindex = insertData[5];
@@ -1668,8 +1668,8 @@ public class QueryBoks extends Thread
 		camInsertQueue.clear();
 	}
 	private void safeCloseBoksidAdd(String netboxid) {
-		// Nå har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
-		// og vi kan lukke CAM-record på den
+		// NÃ¥ har vi funnet minst en MAC fra denne enheten, og da sier vi at den er oppe og aktiv,
+		// og vi kan lukke CAM-record pÃ¥ den
 		synchronized (safeCloseBoksid) {
 			if (!safeCloseBoksid.contains(netboxid)) {
 				safeCloseBoksid.add(netboxid);

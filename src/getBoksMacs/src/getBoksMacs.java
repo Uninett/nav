@@ -209,10 +209,10 @@ class getBoksMacs
 			String sysname = rs.getString("sysname");
 			sysnameMap.put(sysname, rs.getString("netboxid"));
 
-			// Ta med denne også for sikkerhets skyld
+			// Ta med denne ogsÃ¥ for sikkerhets skyld
 			String kat = rs.getString("catid").toLowerCase();
 			if (isNetel(kat)) {
-				// Stripp etter første '.'
+				// Stripp etter fÃ¸rste '.'
 				int i;
 				if (sysname != null && (i=sysname.indexOf('.')) != -1) {
 					sysname = sysname.substring(0, i);
@@ -227,7 +227,7 @@ class getBoksMacs
 			sysnameMap.put(rs.getString("stackname"), rs.getString("netboxid"));
 		}
 
-		// Og så alle "ekte" sysname
+		// Og sÃ¥ alle "ekte" sysname
 		rs = Database.query("SELECT netboxid,val AS sysname FROM netboxinfo WHERE var='sysname'");
 		while (rs.next()) {
 			sysnameMap.put(rs.getString("sysname"), rs.getString("netboxid"));
@@ -354,7 +354,7 @@ class getBoksMacs
 			HashMap hm = getHashFromResultSet(rs, rsmd, false);
 			swp_d.put(key, hm);
 
-			// Vi trenger å vite om det befinner seg en GW|SW|KANT bak en gitt enhet
+			// Vi trenger Ã¥ vite om det befinner seg en GW|SW|KANT bak en gitt enhet
 			String boksBakKat = (String)boksidKat.get(rs.getString("to_netboxid"));
 			if (boksBakKat == null || isNetel(boksBakKat)) {
 				foundBoksBakSwp.add(rs.getString("netboxid")+":"+rs.getString("ifindex"));
@@ -474,7 +474,7 @@ if duplikat
 		}
 		int antBd = bdStack.size();
 
-		// Sett datastrukturer for alle tråder
+		// Sett datastrukturer for alle trÃ¥der
 		QueryBoks.DB_COMMIT = DB_COMMIT;
 
 		QueryBoks.macBoksId = macBoksId;
@@ -497,14 +497,14 @@ if duplikat
 		QueryBoks.safeCloseBoksid = safeCloseBoksid;
 		QueryBoks.watchMacs = watchMacs;
 
-		// Indikerer om en tråd er ferdig
+		// Indikerer om en trÃ¥d er ferdig
 		QueryBoks.initThreadDone(NUM_THREADS);
 
 		// Start activity monitor, every minute
 		Timer activityTimer = new Timer();
 		activityTimer.schedule(new ActivityMonitorTask(), 60 * 1000, 60 * 1000);
 
-		// Lag trådene
+		// Lag trÃ¥dene
 		long beginTime = System.currentTimeMillis();
 		Thread[] threads = new Thread[NUM_THREADS];
 		int digits = String.valueOf(NUM_THREADS-1).length();
@@ -545,7 +545,7 @@ if duplikat
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			} else {
 				missinc++;
-				// Øk misscnt med 1
+				// Ã˜k misscnt med 1
 				Database.update("UPDATE swp_netbox SET misscnt=misscnt+1 WHERE swp_netboxid = '"+swp_boksid+"'");
 				if (DB_COMMIT) Database.commit(); else Database.rollback();
 			}
@@ -592,7 +592,7 @@ if duplikat
 
 	// Lukker records i CAM-tabellen
 	private static int[] finishCam(final int MAX_MISSCNT) {
-		// Nå går vi gjennom og lukker alle records vi ikke har funnet igjen
+		// NÃ¥ gÃ¥r vi gjennom og lukker alle records vi ikke har funnet igjen
 		int missInc=0,remCnt=0;
 		Iterator iter = unclosedCam.entrySet().iterator();
 		while (iter.hasNext()) {
@@ -613,7 +613,7 @@ if duplikat
 			misscnt++;
 
 			if (misscnt > MAX_MISSCNT) {
-				// Nå skal vi virkelig lukke denne recorden
+				// NÃ¥ skal vi virkelig lukke denne recorden
 				try {
 					String[] updateFields = {
 						"misscnt", "null"
@@ -628,7 +628,7 @@ if duplikat
 				}
 				remCnt++;
 			} else {
-				// Misscnt-feltet økes med en; dersom det var 0 fra før skal til settes til NOW()
+				// Misscnt-feltet Ã¸kes med en; dersom det var 0 fra fÃ¸r skal til settes til NOW()
 				try {
 					String[] updateFields;
 					if (misscnt == 1) {
