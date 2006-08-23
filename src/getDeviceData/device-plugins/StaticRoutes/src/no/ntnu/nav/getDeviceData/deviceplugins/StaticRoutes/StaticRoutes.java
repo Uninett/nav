@@ -149,21 +149,21 @@ o For hver ruter (GW/GSW)
      o Av disse UNNLAT ruter der:
        - ipRouteDest = '0.0.0.0' (default ruta fra en kantruter)
        - ipRouteNextHop = 'Null0' (tror de utelates i utgangspunktet)
-       - Dersom ipRouteDest/ipRouteMask (altså prefixet) finnes fra før,
-         da med en nettype som er dynamisk, altså en som har
+       - Dersom ipRouteDest/ipRouteMask (altsÃ¥ prefixet) finnes fra fÃ¸r,
+         da med en nettype som er dynamisk, altsÃ¥ en som har
          nettype.edit='f'
          (dette kan bl.a. inntreffe ved "flytende statiske ruter", slik
           ntnu fra f.eks. sb-gsw mot erke-gw)
        - Dersom masken er veldig grov, dvs mask <=16
-         (bør ikke opptre, men dersom man ikke kjører classless ruting)
-       - Man kan vurdere å unnlate mask=32, altså hostruter, ta de med
-         i første runde. Tror ikke de kompliserer.
+         (bÃ¸r ikke opptre, men dersom man ikke kjÃ¸rer classless ruting)
+       - Man kan vurdere Ã¥ unnlate mask=32, altsÃ¥ hostruter, ta de med
+         i fÃ¸rste runde. Tror ikke de kompliserer.
 
      o For rutene man da har igjen:
        - plukk ut ipRouteDest, ipRouteMask, ipRouteNextHop
        - lag ny/oppdater prefix og vlan-post som beskrevet over.
 
-   o Motsatt må du ha logikk for å slette statiske ruter som er fjernet
+   o Motsatt mÃ¥ du ha logikk for Ã¥ slette statiske ruter som er fjernet
      fra ruteren.
 
 		*/
@@ -337,7 +337,7 @@ o For hver ruter (GW/GSW)
 			//System.err.println("  Route ok, module: " + module);
 		
 			// Create Vlan
-			// netident = 'sysname-til-ruteren-du-spør,ipRouteNextHop'
+			// netident = 'sysname-til-ruteren-du-spÃ¸r,ipRouteNextHop'
 			String DOMAIN_SUFFIX = ((ConfigParser)cp.getObject("navCp")).get("DOMAIN_SUFFIX");
 			String netident = util.remove(nb.getSysname(), DOMAIN_SUFFIX) +","+nexthop;
 			Vlan vl = gwm.vlanFactory(netident);
