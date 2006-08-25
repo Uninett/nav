@@ -26,13 +26,14 @@
 #extends Maintenance2Template
 #import mx.DateTime
 
+## $verbosetasks may be adjusted to according to preference
+#attr $verbosetasks = 5
+
 #block tabcontent
 
 #if not $tasks
 <p>No maintenance tasks found.</p>
 #else
-    ## $verbosetasks may be adjusted to according to preference
-    #set $verbosetasks = 5
     #set $taskcount = 0
     #for $task in $tasks
         #set $taskcount += 1

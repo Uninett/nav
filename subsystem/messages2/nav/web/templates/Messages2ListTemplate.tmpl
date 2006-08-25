@@ -26,13 +26,14 @@
 #extends Messages2Template
 #import mx.DateTime
 
+## $verbosemsgs may be adjusted according to preference
+#attr $verbosemsgs = 5
+
 #block tabcontent
 
 #if not $msgs
 <p>No messages found.</p>
 #else
-    ## $verbosemsgs may be adjusted according to preference
-    #set $verbosemsgs = 5
     #set $msgcount = 0
     #for $msg in $msgs
         #set $msgcount += 1
