@@ -52,8 +52,9 @@ def getTasks(where = False, order = 'maint_end DESC'):
 
     """
 
-    select = """SELECT maint_taskid, maint_start, maint_end, description,
-        author, state
+    select = """SELECT maint_taskid, maint_start, maint_end,
+        maint_end - maint_start AS interval,
+        description, author, state
         FROM maint_task"""
 
     if where:
@@ -150,8 +151,61 @@ def getComponents(taskid):
 
     sql = """SELECT key, value
         FROM maint_component
-        WHERE maint_taskid = %(maint_taskid)d"""
+        WHERE maint_taskid = %(maint_taskid)d
+        ORDER BY key, value"""
     data = {'maint_taskid': taskid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    if not db.rowcount:
+        return False
+    results = db.dictfetchall()
+    # FIXME: Log result
+
+    # Attach netboxes belonging to this component
+    for i, result in enumerate(results):
+        if results[i]['key'] == 'location':
+            results[i]['extra'] = getLocation(results[i]['value']) or None
+        if results[i]['key'] == 'room':
+            results[i]['extra'] = getRoom(results[i]['value']) or None
+        if results[i]['key'] == 'netbox':
+            results[i]['extra'] = getNetbox(results[i]['value']) or None
+        if results[i]['key'] == 'service':
+            results[i]['extra'] = getService(results[i]['value']) or None
+
+    sortedresults = []
+    for i, result in enumerate(results):
+        if results[i]['key'] == 'location':
+            sortedresults.append(results[i])
+    for i, result in enumerate(results):
+        if results[i]['key'] == 'room':
+            sortedresults.append(results[i])
+    for i, result in enumerate(results):
+        if results[i]['key'] == 'netbox':
+            sortedresults.append(results[i])
+    for i, result in enumerate(results):
+        if results[i]['key'] == 'service':
+            sortedresults.append(results[i])
+
+    return sortedresults
+
+def getLocation(locationid):
+    """
+    Get location (part of maintenance component)
+
+    Input:
+        locationid    ID of location
+
+    Returns:
+        If location found, returns dictionary with results
+        If no location found, returns false
+
+    """
+
+    sql = """SELECT l.locationid, l.descr AS locationdescr
+        FROM location l
+        WHERE locationid = %(locationid)s"""
+    data = {'locationid': locationid}
 
     # FIXME: Log query
     db.execute(sql, data)
@@ -159,4 +213,94 @@ def getComponents(taskid):
         return False
     result = db.dictfetchall()
     # FIXME: Log result
-    return result
+    return result[0]
+
+def getRoom(roomid):
+    """
+    Get room (part of maintenance component)
+
+    Input:
+        roomid    ID of room
+
+    Returns:
+        If room found, returns dictionary with results
+        If no room found, returns false
+
+    """
+
+    sql = """SELECT
+            r.roomid, r.descr AS roomdescr,
+            l.locationid, l.descr AS locationdescr
+        FROM room r JOIN location l ON (r.locationid = l.locationid)
+        WHERE roomid = %(roomid)s"""
+    data = {'roomid': roomid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    if not db.rowcount:
+        return False
+    result = db.dictfetchall()
+    # FIXME: Log result
+    return result[0]
+
+
+def getNetbox(netboxid):
+    """
+    Get netbox (part of maintenance component)
+
+    Input:
+        netboxid    ID of netbox
+
+    Returns:
+        If netbox found, returns dictionary with results
+        If no netbox found, returns false
+
+    """
+
+    sql = """SELECT
+            n.netboxid, n.sysname, n.ip,
+            r.roomid, r.descr AS roomdescr,
+            l.locationid, l.descr AS locationdescr
+        FROM netbox n NATURAL JOIN room r
+            JOIN location l ON (r.locationid = l.locationid)
+        WHERE netboxid = %(netboxid)d"""
+    data = {'netboxid': int(netboxid)}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    if not db.rowcount:
+        return False
+    result = db.dictfetchall()
+    # FIXME: Log result
+    return result[0]
+
+def getService(serviceid):
+    """
+    Get service (part of maintenance component)
+
+    Input:
+        serviceid   ID of service
+
+    Returns:
+        If service found, returns dictionary with results
+        If no service found, returns false
+
+    """
+    
+    sql = """SELECT
+            s.serviceid, s.handler,
+            n.netboxid, n.sysname, n.ip,
+            r.roomid, r.descr AS roomdescr,
+            l.locationid, l.descr AS locationdescr
+        FROM service s NATURAL JOIN netbox n NATURAL JOIN room r
+            JOIN location l ON (r.locationid = l.locationid)
+        WHERE s.serviceid = %(serviceid)d"""
+    data = {'serviceid': int(serviceid)}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    if not db.rowcount:
+        return False
+    result = db.dictfetchall()
+    # FIXME: Log result
+    return result[0]

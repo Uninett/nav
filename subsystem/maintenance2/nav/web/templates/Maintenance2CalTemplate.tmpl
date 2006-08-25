@@ -61,7 +61,13 @@
         #else
             #set $date = '%04d-%02d-%02d' % ($year, $month, $day)
         <td>
+            #if $date == $today
+                #set $todays = 'Today - '
+            <div class="dayheader" style="background: #beb;">
+            #else
+                #set $todays = ''
             <div class="dayheader">
+            #end if
             #if calendar.weekday($year, $month, $day) == 5
                 <span style="color: gray;">
             #elif calendar.weekday($year, $month, $day) == 6
@@ -69,22 +75,25 @@
             #else
                 <span>
             #end if
-            #if $date == $today
-                <strong>Today - $day</strong>
-            #else
-                $day
-            #end if
+                <strong>$todays$day</strong>
             </span></div>
             #if $tasks.has_key($date)
                 #for $task in $tasks[$date]
             <strong>$task.maint_start.strftime('%H:%M'):</strong>
-            <a href="view?id=$task.maint_taskid">
-                    #if len($task.description) > 20
-            $task.description[:20]...
+            <a href="view?id=$task.maint_taskid" title="$task.description">
+                    #if len($task.description) > 16
+            $task.description[:16]...</a>
                     #else
-            $task.description
+            $task.description</a>
                     #end if
-            </a><br />
+                    #if int($task.interval.strftime('%d')) > 0
+                        #set $interval = int($task.interval.strftime('%d'))
+            ($(interval)d)
+                    #else
+                        #set $interval = int($task.interval.strftime('%H'))
+            ($(interval)h)
+                    #end if
+            <br />
                 #end for
             #else
             &nbsp;
