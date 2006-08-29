@@ -84,8 +84,8 @@ def showInfo(port):
  
     table = html.SimpleTable()            
     info.append(table)
-    for field in \
-        'port duplex ifindex portname media link speed trunk'.split():
+    for field in ('port', 'interface', 'duplex', 'ifindex', 'portname',
+                  'media', 'link', 'speed', 'trunk'):
         value = getattr(port, field)
         if type(value) == bool:
             # convert to a string 

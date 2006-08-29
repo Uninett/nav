@@ -87,6 +87,9 @@ class ModuleInfo(manage.Module):
         def perspectiveStandard(port, portView):
             """Return module view from the standard status perspective"""
             titles = []
+            if port.interface:
+                # Add the interface name to the popup title
+                titles.append(port.interface)
             if port.speed:
                 portView['class'] += ' Mb%d' % port.speed
                 title = '%d Mbit' % port.speed
@@ -128,6 +131,9 @@ class ModuleInfo(manage.Module):
         def perspectiveActive(port, portView):
             """Return module view from the 'last active ports' perspective"""
             titles = []
+            if port.interface:
+                # Add the interface name to the popup title
+                titles.append(port.interface)
             if port.ifindex in active:
                 daysago = int(active[port.ifindex])
                 if daysago > 1:
