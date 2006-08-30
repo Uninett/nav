@@ -367,13 +367,8 @@ public class MibIISw implements DeviceHandler
 				Swport swp = sc.swportFactory(ifindex);
 
 				// Some heuristics for choosing either ifdescr or ifname
-				// We prefer ifname if it exists, unless ifdescr contains the string "Ethernet"
-				String interf;
-				if (ifdescr.indexOf("Ethernet") >= 0) {
-					interf = ifdescr;
-				} else {
-					interf = (ifname != null && ifname.length() > 0 ? ifname : ifdescr);
-				}
+				// We prefer ifname if it exists
+				String interf = (ifname != null && ifname.length() > 0 ? ifname : ifdescr);
 
 				swp.setInterface(interf);
 
