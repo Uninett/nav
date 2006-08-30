@@ -504,7 +504,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				// Set speed from Mib-II
 				double speed;
 				// If the ifSpeed value is maxed out (a 32 bit unsigned value), get the speed value from ifHighSpeed (if available)
-				if (speedMap.containsKey(ifindex) && Long.parseLong((String)speedMap.get(ifindex)) == 4294967295L && highSpeedMap.containsKey(ifindex)) {
+				if (speedMap.containsKey(ifindex) && Long.parseLong((String)speedMap.get(ifindex)) == 4294967295L && highSpeedMap != null && highSpeedMap.containsKey(ifindex)) {
 					speed = Long.parseLong((String)highSpeedMap.get(ifindex));
 					Log.d("PROCESS_CGW", "Set gwport speed from ifHighSpeed for ifindex " + ifindex);
 				} else {
