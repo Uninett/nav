@@ -31,6 +31,7 @@ subdirs = src \
 	subsystem/lib-python \
 	subsystem/alertEngine \
 	subsystem/alertprofiles \
+	subsystem/arnold \
 	subsystem/dbTools \
 	subsystem/devBrowser \
 	subsystem/deviceManagement \
@@ -40,6 +41,8 @@ subdirs = src \
 	subsystem/l2trace \
 	subsystem/logger \
 	subsystem/machinetracker \
+	subsystem/maintenance2 \
+	subsystem/messages2 \
 	subsystem/pyproxy \
 	subsystem/report \
 	subsystem/smsd \
@@ -48,8 +51,7 @@ subdirs = src \
 	subsystem/statTools \
 	subsystem/status \
 	subsystem/thresholdMon \
-	subsystem/webFront \
-	subsystem/arnold
+	subsystem/webFront
 
 # Make sure we export make variables to the environment
 export
