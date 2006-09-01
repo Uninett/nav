@@ -20,6 +20,7 @@
 ##
 ##
 ## Authors: Magnar Sveen <magnars@stud.ntnu.no>
+##          Stein Magnus Jodal <stein.magnus@jodal.no>
 ##
 
 #extends MainTemplate
@@ -31,23 +32,31 @@
 
 #from nav.web import shouldShow
 
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/FrontpageTemplate.css" />
+$default_table_CSS
+#end block
+
 #block content
-   <table border="0" cellspacing="0" cellpadding="0">
-     <tr>
-       <td valign="top" width="190">
-	$navlinksbox <br />
-	$externallinksbox <br />
-	$contactinformationbox <br />
-       </td>
-       <td><img src='$imagefolder/blank.gif' width="10"></td>
-       <td valign="top">
-	$welcome
-        <table border="0" cellspacing="0" cellpadding="0"><tr><td>
-	$emotd() </td></tr><tr><td>
-	$status </td></tr></table>
-       </td>
-     </tr>
-   </table>
+<table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td valign="top" width="190">
+
+$navlinksbox <br />
+$externallinksbox <br />
+$contactinformationbox <br />
+
+        </td>
+        <td style="width: 10px";></td>
+        <td valign="top">
+
+$welcome
+$messages2
+$status
+
+        </td>
+    </tr>
+</table>
 #end block
 
 #def navlinksbox
@@ -80,12 +89,82 @@
 #def welcome
 #end def
 
-#def status
+#def sideboxstart($title)
+  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
+    <tr>
+      <td class="sideboxtitle">
+        $title
+      </td>
+    </tr>
+    <tr>
+      <td class="sideboxlinks">
+#end def
 
+#def sideboxend
+      </td>
+    </tr>
+  </table>
+#end def
+
+
+#def messages2
+#set $msgs = $getVar('msgs', [])
+#set $msgcount = len($msgs)
+#set $rowcount = $msgcount + 1
+
+#if len($msgs)
+<table class="horiztable">
+    <caption>
+        <span class="cornerkludge"></span>
+        <a href="/messages2/">Messages</a><br />
+        #if $msgcount == 1
+        <span class="subtitle">$msgcount active message</span>
+        #else
+        <span class="subtitle">$msgcount active messages</span>
+        #end if
+    </caption>
+
+    <tr class="header">
+        <td class="leftkludge" rowspan="$rowcount"></td>
+        <th>Published</th>
+        <th>Title</th>
+        <th style="white-space: normal;">Description</th>
+        <th>Tasks</th>
+        <td class="rightkludge" rowspan="$rowcount"></td>
+    </tr>
+
+    #for $msg in $msgs
+        #if len($msg.description) > 80 
+            #set $desc = $msg.description[:80] + '...'
+        #else
+            #set $desc = $msg.description
+        #end if
+        #if $msg.tasks
+            #set $tasks = len($msg.tasks)
+        #else
+            #set $tasks = 0
+        #end if
+    <tr class="$rowcycler">
+        <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
+        <td><a href="/messages2/view?id=$msg.messageid">$msg.title.replace('<', '&lt;').replace('>', '&gt;')</a></td>
+        <td>$desc.replace('<', '&lt;').replace('>', '&gt;')</td>
+        #if $tasks
+        <td><a href="/messages2/view?id=$msg.messageid">
+            <img src="/images/wrench.gif" width="10" height="10" alt="Tasks">
+            $tasks</a></td>
+        #else
+        <td>&nbsp;</td>
+        #end if
+    </tr>
+    #end for
+</table>
 <br />
+#end if
+#end def
 
+
+#def status
 #set $rowcount = len($boxesdown) + 1
-
 <table class="horiztable">
     <caption>
         <span class="cornerkludge"></span>
@@ -115,7 +194,7 @@
     #end if
       <td>$box[2]</td>
       <td style="text-align: right;"><a title="$box[0]">$box[5]</a></td>
-      #set $since = $box[3].strftime('%d/%m/%Y %H:%M')
+      #set $since = $box[3].strftime('%Y-%m-%d %H:%M')
       <td>$since</td>
     </tr>
   #end if
@@ -135,100 +214,5 @@
         </td>
     </tr>
 </table>
-
-#end def
-
-
-#def newmessage($message)
-<div style="padding: 5px 10px;">
-<a href="/messages/view/$message.id"><font size=3><b>$message.title</b></font></a><br />
-#if $message.description
-$message.description
-#end if
 <br />
-#if $message.affected
-<br /><label class="title">Affected end users:</label> $message.affected
-#end if
-#if $message.downtime
-<br /><label class="title">Estimated downtime:</label> $message.downtime
-#end if
-#if $message.units
-<br /><label class="title">Units on maintenance:</label> <a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a>
-#end if
-</div>
 #end def
-
-
-
-#def emotd
-
-
-#if $messages:
-<table style="font-size:13px; border: 1px solid black;" cellspacing="0" width="100%">
-  <TR><TD COLSPAN=3 STYLE="BACKGROUND: URL('/images/emotd/top-r.gif') REPEAT-X;">
-  <div style="position: relative; margin-top: -12px;"><img src="/images/emotd/top-l.gif"></div>
-  <div style="position: relative; margin: -25px 0px 0px 50px; padding-bottom: 8px;font-size:15px;"><a href="/messages/">Messages</a></div>
-  </TD></TR>
-#set $farge = "white";
-  #for $message in $messages
-
-#if $message.new
-<style>
-   label.title {
-	font-weight: bold;
-   }
-</style>
-   <tr><td colspan="3">
-$newmessage($message)
-   </td></tr>
-#set $farge = "white";
-#else
-   <tr style="background: $farge;">
-      <td width="90%" style="padding: 0px 10px;"><a href="/messages/view/$message.id">$message.title</a></td>
-#if $message.units
-      <td style="padding: 0px 10px;" nowrap align="right"><a href="/messages/add/$message.id" title="Units on maintenance: $message.units"><img src="/images/wrench.gif" border="0">$message.units</a></td>
-#else
-      <td style="padding: 0px 10px;">&nbsp;</td>      
-#end if
-#if not $title == "Active Messages"
-#set $start = str($message.publish_start)[0:16]
-#set $end = str($message.publish_end)[0:16]
-      <td style="padding: 0px 10px; font-size:9px;" nowrap align="right">
-      <a style="color: black; text-decoration: none;" title="Published at $start">$start[8:10]/$start[5:7]</a> - <a style="color: black; text-decoration: none;" title="Outdated at $end">$end[8:10]/$end[5:7]</a></td>      
-#end if
-#end if
-
-#if $farge == "white":
-#set $farge = "#eeeeee"
-#else:
-#set $farge = "white"
-#end if
-   </tr>
-  #end for
-</table>
-#end if
-
-#end def
-<a href="/messages/" style="text-align:center">(messages of the day)</a>
-
-#def sideboxstart($title)
-  <table border="0" cellspacing="0" cellpadding="3" width="100%" class="sidebox">
-    <tr>
-      <td class="sideboxtitle">
-        $title
-      </td>
-    </tr>
-    <tr>
-      <td class="sideboxlinks">
-#end def
-
-#def sideboxend
-      </td>
-    </tr>
-  </table>
-#end def
-
-#block additionalCSS
-<link rel="stylesheet" type="text/css" href="/style/FrontpageTemplate.css" />
-$default_table_CSS
-#end block

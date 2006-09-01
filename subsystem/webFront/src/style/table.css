@@ -31,7 +31,7 @@ table.horiztable {
 
 /* Table title */
 table.horiztable caption {
-	background-color: white;
+	background-color: #eee;
 	background-image: url('/images/bar-fill.gif');
 	background-repeat: no-repeat;
 	color: black;

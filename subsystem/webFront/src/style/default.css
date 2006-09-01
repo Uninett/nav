@@ -95,6 +95,7 @@ div#header {
 }
 
 div#navlogo {
+	background-color: #ddf;
 	background-image: url('/images/main/background-navlogo.gif');
 	background-repeat: no-repeat;
 	cursor: pointer;
@@ -108,6 +109,7 @@ div#navlogo h1 {
 }
 
 div#navbar {
+	background-color: #eee;
 	background-image: url('/images/main/background-navbar.gif');
 	background-repeat: repeat-x;
 	font-size: 13px;

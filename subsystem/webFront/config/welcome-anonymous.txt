@@ -1,8 +1,4 @@
-<p>
-  <font size=+2>
-     Welcome to NAV v3.2!
-  </font><br>
-</p>
+<h2>Welcome to NAV v3.2!</h2>
 
 <p>This is where you can put a welcome message and some information
 about your NAV installation for anonymous users.</p>
