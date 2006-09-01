@@ -67,6 +67,7 @@
         <td>$msg.tech_description.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('  ', '&nbsp;&nbsp;')</td>
     </tr>
     #end if
+#end if
     #if type($msg.tasks) is list
     <tr>
         <th>Related maintenance tasks</th>
@@ -80,6 +81,7 @@
         </ul></td>
     </tr>
     #end if
+#if $authorized
     #if $msg.publish_end
     <tr>
         #if $msg.publish_end > mx.DateTime.now()
