@@ -129,7 +129,7 @@ div#navbar table td.entry {
 }
 div#navbar table td.list {
 	background-image: url('/images/main/quicklink-fill.gif');
-	background-repeat: none;
+	background-repeat: no-repeat;
 }
 div#navbar table td.separator {
 }
