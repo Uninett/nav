@@ -108,11 +108,10 @@ $status
 
 
 #def messages2
-#set $msgs = $getVar('msgs', [])
-#set $msgcount = len($msgs)
-#set $rowcount = $msgcount + 1
-
-#if len($msgs)
+#set $msgs = $getVar('msgs', False)
+#if $msgs
+    #set $msgcount = len($msgs)
+    #set $rowcount = $msgcount + 1
 <table class="horiztable">
     <caption>
         <span class="cornerkludge"></span>
