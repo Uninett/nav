@@ -121,6 +121,13 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+--------------------
+--- Data changes ---
+--------------------
+UPDATE snmpoid 
+SET oidkey='hpFwVer', desc='Firmware revision number' 
+WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
+  AND oidkey='hpHwVer';
 
 
 \c navprofiles

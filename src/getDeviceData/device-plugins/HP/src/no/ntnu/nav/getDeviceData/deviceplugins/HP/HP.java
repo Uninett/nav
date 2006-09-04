@@ -25,7 +25,7 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  * <p>
  * <ui>
  *  <li>ifSerial</li>
- *  <li>hpHwVer</li>
+ *  <li>hpFwVer</li>
  *  <li>hpSwVer</li>
  *  <li>hpPortType</li>
  *  <li>hpVlan</li>
@@ -44,7 +44,7 @@ public class HP implements DeviceHandler
 
 	private static String[] canHandleOids = {
 		"ifSerial",
-		"hpHwVer",
+		"hpFwVer",
 		"hpSwVer",
 		"hpPortType",
 		"hpVlan"
@@ -129,7 +129,7 @@ public class HP implements DeviceHandler
 		HP 2524:
 		=====
 
-		Først henter vi ut antall i stack'en med MIB:
+		FÃ¸rst henter vi ut antall i stack'en med MIB:
 
 		.1.3.6.1.4.1.11.2.14.11.5.1.10.4.1.1
 
@@ -291,12 +291,12 @@ public class HP implements DeviceHandler
 			}
 		}
 
-		l = sSnmp.getNext(nb.getOid("hpHwVer"), 1, true, false);
+		l = sSnmp.getNext(nb.getOid("hpFwVer"), 1, true, false);
 		if (l != null) {
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String module = (s.length >= 3 ? s[2] : "0");
-				sc.swModuleFactory(Integer.parseInt(module)).setHwVer(s[1]);
+				sc.swModuleFactory(Integer.parseInt(module)).setFwVer(s[1]);
 			}
 		}
 
