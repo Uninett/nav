@@ -36,7 +36,7 @@
 	list-style: none;
 }
 
-#tabs li {
+#tabs li, #tabs li.admin {
 	float: left;
 	background-image: url("/images/tabs/blue-r.png");
 	background-repeat: no-repeat;
@@ -46,7 +46,7 @@
 	white-space: nowrap;
 }
 
-#tabs a {
+#tabs a, #tabs .admin a {
 	display: block;
 	background-image: url("/images/tabs/blue-l.png");
 	background-repeat: no-repeat;
@@ -75,13 +75,13 @@
 	border-bottom: none;
 	font-weight: bold;
 }
-#tabs #same {
+#tabs #same, #tabs li.open {
 	background-image: url("/images/tabs/white-r.png");
 }
-#tabs #same a {
+#tabs #same a, #tabs li.open a {
 	background-image: url("/images/tabs/white-l.png");
 	color: #663;
 }
-#tabs #same a:hover {
+#tabs #same a:hover, #tabs li.open a:hover {
 	color: black;
 }

@@ -269,7 +269,7 @@ class Select:
         """
         attribs = 'size="' + str(self.multipleSize) + '"'
         if self.multiple:
-            attribs += ' multiple' 
+            attribs += ' multiple="multiple"' 
         return attribs
 
 
