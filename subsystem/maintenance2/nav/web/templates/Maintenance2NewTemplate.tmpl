@@ -32,7 +32,7 @@
 
 ## Print form
 
-<form action="" method="post">
+<form action="$current" method="post" id="newform">
 #set $edit_taskid = $getVar('edit_taskid', False)
 #if $edit_taskid
 <input type="hidden" name="edit_taskid" value="$edit_taskid" />
@@ -42,7 +42,14 @@
 #set ts = TreeSelectTemplate()
     <tr>
         <th>Components *</th>
-        <td>$ts.treeselect($selectbox)</td>
+        <td>
+            $ts.treeselect($selectbox)
+#if $selectsubmit.enabled
+            <input type="submit" name="$selectsubmit.control" value="$selectsubmit.value" />
+#else
+            <input disabled="disabled" type="submit" name="$selectsubmit.control" value="$selectsubmit.value" />
+#end if
+        </td>
     </tr>
     <tr>
         <th>Start maintenance</th>
@@ -177,8 +184,10 @@
     </tr>
     <tr>
         <th></th>
-        <td><input type="submit" name="submit" value="$submittext" /></td>
+        <td><input type="submit" name="submit_final" value="$submittext" /></td>
     </tr>
 </table>
+
+</form>
 
 #end block tabcontent

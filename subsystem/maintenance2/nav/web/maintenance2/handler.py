@@ -98,10 +98,11 @@ def handler(req):
         page.title = 'Create New Maintenance Task'
         page.errors = []
 
-        # Create select tree - FIXME: Not done
+
+        # Create select tree
         selectbox = TreeSelect()
 
-        sr = {"locations":[],"rooms":[],"netboxes":[], "services":[]}
+        sr = {"locations": [], "rooms": [], "netboxes": [], "services": []}
         if req.form.has_key('sb_submit'):
             sr = searchbox.getResults(req)
 
@@ -110,10 +111,11 @@ def handler(req):
                         multiple = True,
                         multipleSize = 10,
                         initTable='Location',
-                        initTextColumn='descr',
-                        initIdColumn='locationid',
+                        initTextColumn = 'descr',
+                        initIdColumn = 'locationid',
                         preSelected = sr['locations'],
                         optionFormat = '$v ($d)',
+                        optgroupFormat = '$v ($d)',
                         orderByValue = True)
 
         select2 = UpdateableSelect(select1,
@@ -123,10 +125,11 @@ def handler(req):
                                    'descr',
                                    'roomid',
                                    'locationid',
-                                   multiple=True,
-                                   multipleSize=10,
+                                   multiple = True,
+                                   multipleSize = 10,
                                    preSelected = sr['rooms'],
                                    optionFormat = '$v ($d)',
+                                   optgroupFormat = '$v ($d)',
                                    orderByValue = True)
 
         select3 = UpdateableSelect(select2,
@@ -136,41 +139,22 @@ def handler(req):
                                    'sysname',
                                    'netboxid',
                                    'roomid',
-                                   multiple=False,
-                                   multipleSize=10,
+                                   multiple = True,
+                                   multipleSize = 10,
+                                   optgroupFormat = '$v ($d)',
                                    preSelected = sr['netboxes'])
 
-        catid = None
-        if req.form.has_key("cn_netbox") and req.form["cn_netbox"]:
-            cursor.execute("select catid from netbox where netboxid=%s", (req.form["cn_netbox"],))
-            result = cursor.fetchone()
-            if result:
-                catid = result[0]
-
-        if catid == "SRV":
-            select4 = UpdateableSelect(select3,
-                                       'cn_service',
-                                       'Service',
-                                       'Service',
-                                       'handler',
-                                       'serviceid',
-                                       'netboxid',
-                                       multiple = True,
-                                       multipleSize=10,
-                                       optgroupFormat = '$d',
-                                       preSelected = sr['services'])
-        else:
-            select4 = UpdateableSelect(select3,
-                                       'cn_module',
-                                       'Module',
-                                       'Module',
-                                       'module',
-                                       'moduleid',
-                                       'netboxid',
-                                       multiple = True,
-                                       multipleSize=10,
-                                       optgroupFormat = '$d')
-        #preSelected = sr['services'])
+        select4 = UpdateableSelect(select3,
+                                   'cn_service',
+                                   'Service',
+                                   'Service',
+                                   'handler',
+                                   'serviceid',
+                                   'netboxid',
+                                   multiple = True,
+                                   multipleSize = 10,
+                                   optgroupFormat = '$d',
+                                   preSelected = sr['services'])
 
         selectbox.addSelect(select1)
         selectbox.addSelect(select2)
@@ -179,8 +163,37 @@ def handler(req):
 
         # Update the selectboxes based on form data
         selectbox.update(req.form)
-
         page.selectbox = selectbox
+
+        # Update component submit button
+        buttontext = "Add to task"
+        buttonkey = "cn_add"
+        buttonenabled = False
+        if len(select4.selectedList):
+            validSelect = True
+            buttontext = "Add service(s) to task"
+            buttonkey = "cn_add_services"
+            buttonenabled = True
+        elif len(select3.selectedList):
+            validSelect = True
+            buttontext = "Add netbox(es) to task"
+            buttonkey = "cn_add_netboxes"
+            buttonenabled = True
+        elif len(select2.selectedList):
+            validSelect = True
+            buttontext = "Add room(s) to task"
+            buttonkey = "cn_add_rooms"
+            buttonenabled = True
+        elif len(select1.selectedList):
+            validSelect = True
+            buttontext = "Add location(s) to task"
+            buttonkey = "cn_add_locations"
+            buttonenabled = True
+        page.selectsubmit = { 'control': buttonkey,
+                              'value': buttontext,
+                              'enabled': buttonenabled }
+
+        # FIXME: Continue here!
 
         # Edit
         if section == 'edit':
@@ -212,7 +225,7 @@ def handler(req):
                 # FIXME: Components
 
         # Form submitted
-        page.submit = req.form.has_key('submit')
+        page.submit = req.form.has_key('submit_final')
         if page.submit:
             # Descriptions
             if req.form.has_key('description') and req.form['description']:

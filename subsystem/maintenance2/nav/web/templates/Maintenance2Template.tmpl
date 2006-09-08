@@ -36,9 +36,9 @@
     #if $item.link == $current:
     <li id="current"><a>$item.text</a></li>
     #elif $item.admin:
-    <li><a href="$item.link">$item.text</a></li>
+    <li class="admin"><a href="$item.link">$item.text</a></li>
     #else:
-    <li id="same"><a href="$item.link">$item.text</a></li>
+    <li class="open"><a href="$item.link">$item.text</a></li>
     #end if
 #end for
 </ul>
