@@ -12,19 +12,16 @@ sysconfdir = @sysconfdir@
 initdir = @initdir@
 libdir = @libdir@
 pythonlibdir = @pythonlibdir@
-crondir = @crondir@
 localstatedir = @localstatedir@
 
-binaries = dump.py pg_backup.pl navclean.py
+binaries = dump.py navclean.py
 libraries = dump.py
-cronfiles = backup.cron
-conffiles = pg_backup.conf
 
-.PHONY: all install install-bin install-lib clean distclean install-lib install-cron install-conf
+.PHONY: all install install-bin install-lib clean distclean install-lib
 
 all: 
 
-install: install-bin install-lib install-cron install-conf
+install: install-bin install-lib
 
 install-bin:
 	@for file in $(binaries); do \
@@ -35,22 +32,6 @@ install-bin:
 install-lib:
 	@for file in $(libraries); do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/nav/$$file || exit 1; \
-	done
-
-install-cron:
-	@for file in $(cronfiles); do \
-	  targetfile=`echo $$file | sed 's/\.cron//'`; \
-	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(crondir)/$$targetfile || exit 1; \
-	done
-
-install-conf:
-	@for file in $(conffiles); do                          \
-	  target=$(DESTDIR)$(sysconfdir)/$$file;               \
-	  if [ -f "$$target" ]; then                           \
-	    echo Skipping installation of config file $$file;  \
-	  else                                                 \
-	    $(INSTALL) -v -D -m 644 $$file $$target || exit 1; \
-	  fi;                                                  \
 	done
 
 clean:

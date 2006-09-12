@@ -6,6 +6,3 @@ dump.py      -- Dumps seed information from the database into text
 
 navclean.py  -- Removes expired CAM/ARP records from the database to
                 save disk space.
-
-pg_backup.pl -- Makes backups of your entire PostgreSQL database and
-                rotates backup files for specified periods of time.

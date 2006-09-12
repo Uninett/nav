@@ -1,3 +1,0 @@
-## info: Runs a nightly backup of the PostgreSQL database
-# Backups are also rotated
-58 4 * * * $BINDIR/pg_backup.pl
