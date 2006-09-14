@@ -158,13 +158,18 @@ def loginit():
 
     formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s")
     logfile = os.path.join(nav.path.localstatedir, 'log', 'webfront.log')
-    handler = logging.FileHandler(logfile)
-    handler.setFormatter(formatter)
+    try:
+        handler = logging.FileHandler(logfile)
+    except IOError, e:
+        # Most likely, we were denied access to the log file.
+        # We silently ignore it and log nothing :-P
+        pass
+    else:
+        handler.setFormatter(formatter)
 
-    root.addHandler(handler)
-    nav.logconfig.setLogLevels()
-    _loginited = True
-    
+        root.addHandler(handler)
+        nav.logconfig.setLogLevels()
+        _loginited = True
 
 
 # Module initialization
