@@ -23,14 +23,21 @@
  * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-public class ServerFetchException extends RuntimeException
+class Vlan
 {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	int vlan;
+	String navn;
 
-	public ServerFetchException(String msg) {
-		super(msg);
+	public Vlan(int vlan, String navn)
+	{
+		this.vlan = vlan;
+		this.navn = navn;
+	}
+
+	public int getVlan() { return vlan; }
+
+	public String toString()
+	{
+		return vlan + " ("+navn+")";
 	}
 }

@@ -1,14 +1,28 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
 
 class LayoutXY
 {
@@ -148,160 +162,6 @@ class LayoutXY
 
 		return ret;
 	}
-
-
-/*
-	private void calcVt()
-	{
-		if (borderX + (sizeX+spaceX) * total > canvasX)
-		{
-			layers = (borderX + (sizeX+spaceX)) * total / canvasX + 1;
-			prLayer = total / layers;
-
-			if (total/layers*layers != total)
-			{
-				prLayer += 1;
-			}
-
-		}
-
-		if (link == UPLINK)
-		{
-			retY = canvasY / borderDivider;
-
-		} else
-		if (link == DNLINK)
-		{
-			retY = (int) (canvasY * (1.0 - 1.0/(float)borderDivider) );
-			retY -= Nettel.sizeY;
-		}
-	}
-*/
-
-/*
-	private void calcHz()
-	{
-		int availableX = canvasX - Nettel.sizeX*3 - borderX*2;
-
-		if ((sizeX+spaceX) * total > availableX)
-		{
-			layers = (sizeX+spaceX) * total / availableX + 1;
-			prLayer = total / layers;
-
-			if (total/layers*layers != total)
-			{
-				prLayer += 1;
-			}
-
-			// sørg for partall prLayer
-			if ( (prLayer/2)*2 != prLayer)
-			{
-				// oddetall, fix
-				prLayer--;
-				layers = total / prLayer;
-
-				if (total/prLayer*prLayer != total)
-				{
-					layers += 1;
-				}
-			}
-
-		}
-
-		retY = canvasY/2 - sizeY/2;
-		retY -= (hzSpaceY+sizeY)*(layers-1) / 2;
-
-		com.d("calcHz, availX: " + availableX + " layers: " + layers + " prLayer: " + prLayer, 6);
-
-	}
-*/
-
-
-
-/*
-	private void checkNextLayerVt()
-	{
-		if (tellerX > prLayer)
-		{
-			// X-koordinat
-			tellerX = 1;
-			tellerY++;
-
-			// Y-koordinat
-			if (link == UPLINK)
-			{
-				//retY += tellerY*(Nettel.sizeY+spaceY);
-				retY += (Nettel.sizeY+spaceY);
-			} else
-			if (link == DNLINK)
-			{
-				//retY -= tellerY*(Nettel.sizeY+spaceY);
-				retY -= (Nettel.sizeY+spaceY);
-			}
-		}
-
-	}
-*/
-/*
-	private void checkNextLayerHz()
-	{
-
-		if (tellerX > prLayer)
-		{
-			// X-koordinat
-			tellerX = 1;
-			tellerY++;
-
-			retY += (sizeY+hzSpaceY);
-
-		}
-
-	}
-*/
-
-/*
-	private int[] getHz()
-	{
-		if ( (tellerX/2)*2 != tellerX)
-		{
-			// oddetall, boks på venstre side
-
-			//retX = canvasX*(tellerX/2+1)/(prLayer+1) - Nettel.sizeX/2;
-
-			retX = borderX+(spaceX+sizeX)*(tellerX/2);
-
-
-		} else
-		{
-			// partall, boks på høyre side
-			//retX = canvasX*(tellerX/2)/(prLayer+1) - Nettel.sizeX/2;
-			//retX = canvasX - retX - Nettel.sizeX;
-
-			retX = borderX+(spaceX+sizeX)*((tellerX-1)/2);
-			retX = canvasX - retX - sizeX;
-
-		}
-
-		com.d("   XY: " + teller + " av " + total + ", " + tellerX + " av " + prLayer + ", lag: " + tellerY + " antLag: " + (total/prLayer+1), 6);
-		com.d("   retX: " + retX + ", retY: " + retY + " canvasX: " + canvasX + " canvasY: " + canvasY, 6);
-
-
-		tellerX++;
-		teller++;
-
-		int[] ret = new int[2];
-		ret[0] = retX;
-		ret[1] = retY;
-
-		return ret;
-
-	}
-*/
-
-
-
-
-
 
 
 }

@@ -1,18 +1,49 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Canvas;
+import java.awt.Choice;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Polygon;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Stack;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 
 class Net extends Canvas implements ItemListener
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	// Config
 	public static final boolean APPLY_LAST_BYNETT = true;
 	public static final boolean APPLY_LAST_VLANV = true;
@@ -37,7 +68,6 @@ class Net extends Canvas implements ItemListener
 	int lasty = 0;
 
 	Nettel visNettel = null;
-	//boolean busy;
 	int visVlan = 0; // hvilket vlan det fokuseres på
 	int visGruppe = -1; // hvilken gruppe det fokuseres på
 	String visGruppeNavn = "";
@@ -51,9 +81,6 @@ class Net extends Canvas implements ItemListener
 
 	Stack history = new Stack();
 
-	//Polygon bynett;
-	//Polygon kjernenett;
-	//Polygon testnett;
 	Polygon backKnapp;
 
 	// Layout
@@ -130,42 +157,8 @@ class Net extends Canvas implements ItemListener
 
 	}
 
-/*
-	public void refetchStrukturInput()
-	{
-		com.getInput().getDefaultInput();
-		com.d("StrukturFetch done.", 1);
-		needReset = true;
-	}
-
-	public void refetchLastInput()
-	{
-		//com.getInput().getDefaultLast();
-		applyLast();
-		com.d("LastFetch done.", 1);
-		needReset = true;
-	}
-*/
-
-/*
-	public void fetchDone(int k)
-	{
-		switch (k)
-		{
-			case STRUKTUR_DONE:
-				buildBynett();
-			break;
-
-			case LAST_DONE:
-				applyLast();
-			break;
-		}
-	}
-*/
 	public void buildBynett()
 	{
-		//String name = (visGruppe < netNames.length) ? netNames[visGruppe] : "nettgruppe "+visGruppe;
-
 		if (visGruppe < 0) {
 			visGruppe = 0;
 			visGruppeNavn = "";
@@ -227,8 +220,6 @@ class Net extends Canvas implements ItemListener
 				{
 					String[] linkIdS = misc.tokenize(link[j], ",");
 					String boksid = linkIdS[1];
-					//int linkId = Integer.parseInt(linkIdS[0] );
-					//int boksId = Integer.parseInt(linkIdS[1] );
 
 					if (!lRouters.containsKey(boksid)) continue;
 					tmp.put(boksid, lRouters.get(boksid) );
@@ -260,25 +251,11 @@ class Net extends Canvas implements ItemListener
 			lRouters = tmp;
 		}
 
-		/*
-		{
-			// Debug
-			Enumeration e = lRouterXY.elements();
-			while (e.hasMoreElements()) {
-				String[] s = (String[])e.nextElement();
-				com.d("Key: " + s[0] + " X: " + s[1] + " Y: " + s[2], 8);
-			}
-		}
-		*/
-
 		// Legg til rutere
 		Enumeration e = lRouters.elements();
 		int topLayoutCnt=0;
 		while (e.hasMoreElements()) {
 			String[] s = (String[])e.nextElement();
-
-			//com.d("   " + s[0] + ", " + s[1] + "-" + s[3], 3);
-			//com.d("   " + s[0] + ", " + s[1] + ", type: " + s[2], 3);
 
 			Nettel n = new Nettel(com, Integer.parseInt(s[0]), s[1], s[2], "1", 0);
 
@@ -294,8 +271,6 @@ class Net extends Canvas implements ItemListener
 				int[] topXY = topRowLayout(topLayoutCnt++);
 				xy[1] = ""+topXY[0];
 				xy[2] = ""+topXY[1];
-				//xy[1] = "" + (10 + (int)(Math.random()*500));
-				//xy[2] = "" + (25 + (int)(Math.random()*500));
 			} else {
 				n.locationSet();
 			}
@@ -342,8 +317,7 @@ class Net extends Canvas implements ItemListener
 					int[] topXY = topRowLayout(topLayoutCnt++);
 					x = topXY[0];
 					y = topXY[1];
-					//x = (10 + (int)(Math.random()*500));
-					//y = (25 + (int)(Math.random()*500));
+
 				}
 				grp.setXY(x, y);
 			}
@@ -457,7 +431,6 @@ class Net extends Canvas implements ItemListener
 		}
 
 		com.d("Behandler listRouterLinkText", 2);
-		//Hashtable lRouterLinkText = (Hashtable)h.get("listLinkText");
 		tcnt=0;
 		while ( (tList = (String[])lRouterLinkText.get("t"+tcnt)) != null) {
 			String text = tList[1];
@@ -473,7 +446,6 @@ class Net extends Canvas implements ItemListener
 					continue;
 				}
 				String pText = l.processText(text, data);
-				//com.d("  Added text: " + pText, 6);
 			}
 			tcnt++;
 		}
@@ -768,21 +740,6 @@ class Net extends Canvas implements ItemListener
 			String[] s = (String[])e.nextElement();
 			if (s[0].equals("cn")) continue;
 
-			/*
-			// Finn rett linktype
-			String linkType = s[0];
-			com.d(" Jobber med linktype: " + linkType,5);
-
-			// Finn rett layout-objekt
-			LayoutNettel layoutNettel;
-			if (linkType.equals("up")) layoutNettel = lnTop; else
-			if (linkType.equals("hz")) layoutNettel = lnMiddle; else
-			if (linkType.equals("dn")) layoutNettel = lnBottom; else
-									   continue;
-			layoutNettel.reset();
-			//layoutNettel.reset(linkType, antBokser);
-			*/
-
 			if (s.length != 3) {
 				com.d("Error, s[] has wrong length: " + s.length + ", s[0] = " + s[0],3);
 				continue;
@@ -835,10 +792,8 @@ class Net extends Canvas implements ItemListener
 			if (!selectVlan) linkTo.setDrawVlan(true); // Skal tegne vlan-bokser på linkene når det er gw i sentrum
 
 			if (boksInfo.length >= 4 && !boksInfo[3].equals("0")) {
-				//com.d("      s[3]: " + boksInfo[3], 6);
 				st = new StringTokenizer(boksInfo[3], ",");
 				if (st.countTokens() == 2) {
-					//com.d("      isclickable: true", 6);
 					linkTo.setIsClickable(true);
 					linkTo.setClickId(Integer.parseInt(st.nextToken()) );
 					linkTo.setClickKat(st.nextToken() );
@@ -1038,17 +993,13 @@ class Net extends Canvas implements ItemListener
 
 	private void showBynett()
 	{
-		//com.getInput().getDefaultInputNotify(visGruppe);
 		buildBynett();
-		//applyLast();
 	}
 	private void showNettel()
 	{
 		visNettel.setSelected(true);
 		visNettel.resetLink();
 		getNettelLinks(visNettel); // lager en ny nettel Vector med de nye nettel-objektene
-		//applyLast();
-		//group = new Vector(); // blanker grupper
 		group.removeAllElements();
 	}
 
@@ -1073,8 +1024,6 @@ class Net extends Canvas implements ItemListener
 		if (history.isEmpty()) return;
 		String s = (String)history.pop();
 		com.d("Reverse to: " + s,5);
-		//String[] h = misc.tokenize(s, ",");
-		//int k = Integer.parseInt(h[0]);
 		int k = Integer.parseInt(s);
 		recordHistory = false;
 
@@ -1084,7 +1033,6 @@ class Net extends Canvas implements ItemListener
 
 			// Oppdater GUI-menyen med rett gruppe
 			com.getLeft().setNettIndex(k);
-			//com.getNet().setVisNettel(null);
 			String grpNavn = (String)history.pop();
 			com.getNet().setVisGruppe(k, grpNavn);
 			com.d("Refresh nettel...",6);
@@ -1109,7 +1057,6 @@ class Net extends Canvas implements ItemListener
 			com.getNet().setVisNettel(n);
 			com.d("Refresh nettel...",6);
 			com.getNet().refreshNettel();
-			//com.getNet().repaint();
 		}
 		recordHistory = true;
 	}
@@ -1128,13 +1075,6 @@ class Net extends Canvas implements ItemListener
 		
 		drawBackKnapp(g);
 		drawOverskrift(g);
-
-		/*
-		if (busy)
-		{
-			drawBusy(g);
-		}
-		*/
 
 		for (int i = 0; i < group.size(); i++) {
 			Grp grp = (Grp)group.elementAt(i);
@@ -1172,15 +1112,12 @@ class Net extends Canvas implements ItemListener
 
 		com.d(" ->Bytter nett til: " + nett + " ("+nettNavn+")", 2);
 
-		//com.getNet().setVisNettel(null);
 		com.getNet().setVisGruppe(nett, nettNavn);
 		com.getNet().refreshNettel();
 	}
 
 	public void drawErrorMsg(Graphics g, String msg)
 	{
-		//int startX = 243;
-		//int startY = 1;
 		int startX = 15;
 		int startY = 15;
 
@@ -1191,8 +1128,6 @@ class Net extends Canvas implements ItemListener
 
 	public void drawBackKnapp(Graphics g)
 	{
-		//int startX = 243;
-		//int startY = 1;
 		int startX = 15;
 		int startY = 3;
 		int sizeX = 45;
@@ -1219,7 +1154,6 @@ class Net extends Canvas implements ItemListener
 
 	public void drawOverskrift(Graphics g)
 	{
-		//int startX = 310;
 		int startX = 70;
 		int startY = 5;
 
@@ -1247,7 +1181,6 @@ class Net extends Canvas implements ItemListener
 		return ((Integer)gruppeIdMap.get(visGruppeNavn)).intValue();
 	}
 
-	//public void setNeedRefetch(boolean b) { needRefetch = b; }
 	public void setNeedReset(boolean b) { needReset = b; }
 
 	public void setOverskrift(String s) { overskrift = s; }
@@ -1257,7 +1190,6 @@ class Net extends Canvas implements ItemListener
 		color = c;
 	}
 
-	//public Vector getNettel() { return nettel; }
 	public Vector getGrp() { return group; }
 	public Hashtable getNettelHash() { return nh; }
 	public Hashtable getLinkHash() { return lh; }
@@ -1299,25 +1231,6 @@ class Net extends Canvas implements ItemListener
 
 
 
-}
-
-class Vlan
-{
-	int vlan;
-	String navn;
-
-	public Vlan(int vlan, String navn)
-	{
-		this.vlan = vlan;
-		this.navn = navn;
-	}
-
-	public int getVlan() { return vlan; }
-
-	public String toString()
-	{
-		return vlan + " ("+navn+")";
-	}
 }
 
 

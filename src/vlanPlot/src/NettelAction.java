@@ -23,14 +23,32 @@
  * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-public class ServerFetchException extends RuntimeException
+class NettelAction extends Thread
 {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	Nettel n;
+	boolean end = false;
 
-	public ServerFetchException(String msg) {
-		super(msg);
+	public NettelAction(Nettel InN)
+	{
+		n = InN;
+	}
+
+	public void run()
+	{
+		try {
+			sleep(500);
+		} catch (Exception e) { }
+
+		if (end) return;
+
+		if (n.getMouseOver()) {
+			n.setDrawPopup(true);
+		}
+	}
+
+	public void end()
+	{
+		end = true;
 	}
 }
+

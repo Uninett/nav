@@ -1,28 +1,44 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 class Input
 {
 	// Default verdier
-	//public static String vPServerURLDefault = "http://www.nav.ntnu.no/vPServerNG/servlet/vPServer";
 	public static String vPServerURLDefault = "https://beta.nav.ntnu.no/vPServer/servlet/vPServer";
 	public static String lastURLDefault = "http://www.nav.ntnu.no/vlanPlotNG/common/vPLast/last_ny.pl";
 	public static String cricketURLDefault = "http://www.nav.ntnu.no/~cricket/";
 	public static String netflowURLDefault = "http://manwe.itea.ntnu.no/";
-
-	//http://www.nav.ntnu.no/vPServer/servlet/vPServer?section=boks&request=listBoks&boksid=271&kat=sw
-	//http://www.nav.ntnu.no/vPServerNG/servlet/vPServer?section=boks&boksid=271&kat=&request=listConfig,listRouterGroups,listBoks
-
 
 	// URL for vPServer-modulen
 	public static String vPServerURL;
@@ -76,21 +92,10 @@ class Input
 
 	public void getDefaultInputNotify(int grp)
 	{
-		//if(!ht.containsKey(new Integer(grp)))
-		//{
-
-
 	}
 
 	public Hashtable getDefaultInput(int grp)
 	{
-		/*
-		if(netCache.containsKey(new Integer(grp))) {
-			com.d("Found grp " + grp + " in cache! :-)", 2);
-			return (Hashtable)netCache.get(new Integer(grp));
-		}
-		*/
-
 		// Ikke i cache, så vi må hente struktur-info fra server
 		Vector v = new Vector();
 		if (!Net.setConfig) v.addElement("listConfig");
@@ -123,14 +128,6 @@ class Input
 	}
 	public Hashtable fetch(String[] req, String param, String serverURL, String hashKey)
 	{
-		// Check if we have this in boksCache
-		/*
-		if (hashKey != null && boksCache.containsKey(hashKey)) {
-			com.d("fetch(): Found hashKey: " + hashKey + " in cache", 2);
-			return (Hashtable)boksCache.get(hashKey);
-		}
-		*/
-
 		Hashtable ret;
 
 		try
@@ -161,8 +158,6 @@ class Input
 				b.append("&" + (com.getTidAvg() ? "type=avg" : "type=max"));
 			}
 
-			//b.append("&");
-			//b.append("send=Send\n");
 
 			com.d("URL: " + b.toString(), 2);
 			URL url = new URL(b.toString() );
@@ -264,9 +259,6 @@ class Input
 
 		com.d("Now in getDefaultLast", 4);
 
-		//Hashtable h = getDefaultInput(com.getNet().getVisGruppe());
-		//h = (Hashtable)h.get("listRouterLinks");
-
 		com.d("  Adding links", 4);
 
 		// Legg til linkId'ene
@@ -292,20 +284,9 @@ class Input
 				dup.put(""+l.getId(),"");
 			}
 
-			/*
-			if (l.getKat().equals("net"))
-			{
-				net.append(l.getId() + ",");
-			} else
-			if (l.getKat().equals("sw"))
-			{
-				sw.append(l.getId() + ",");
-			}
-			*/
 		}
 
-		//if (!net.toString().equals("net=")) net.setLength(net.length()-1); else net.append("0");
-		//if (!sw.toString().equals("sw=")) sw.setLength(sw.length()-1); else sw.append("0");
+
 		if (!b.toString().equals(type)) b.setLength(b.length()-1); else b.append("0");
 
 		if (com.getNet().getVisNettel() == null || com.getNet().getVisNettel().getKat().equals("gw"))
@@ -322,108 +303,10 @@ class Input
 		param[2] = "time=" + lastInterval[0] + ",";
 		param[2] += (lastInterval[1] >= 0) ? "now" : ""+lastInterval[1];
 		param[3] = com.getTidAvg() ? "type=avg" : "type=max";
-		/*
-		if (lastTid[1] >= 0)
-		{
-			param[2] = "time=" + lastTid[0] + ",now";
-		} else
-		{
-			param[2] = "time=" + lastTid[0] + "," + lastTid[1];
-		}
-		*/
-
-
-		/*
-		if (com.getTidAvg())
-		{
-			param[3] = "type=avg";
-		} else
-		{
-			param[3] = "type=max";
-		}
-		*/
-
-		//com.d("Fetching last from: " + lastURL, 3);
 
 		Hashtable h = fetch(param, lastURL);
 
-		/*
-		//if (true) return h;
-
-		Hashtable link = (Hashtable)h.get("listLinkLast");
-		Hashtable cpu = (Hashtable)h.get("listCPULast");
-		Hashtable tmp;
-
-		// Put listSwitchlast inn i listCPUlast
-		tmp = (Hashtable)h.get("listSwitchLast");
-		e = tmp.elements();
-		while (e.hasMoreElements())
-		{
-			String[] s = (String[])e.nextElement();
-			cpu.put(s[0], s);
-		}
-
-		// Put listStamLast inn i listLinkLast
-		tmp = (Hashtable)h.get("listStamLast");
-		e = tmp.elements();
-		while (e.hasMoreElements())
-		{
-			String[] s = (String[])e.nextElement();
-			link.put(s[0], s);
-		}
-
-		// Put listElinkLast inn i listLinkLast
-		tmp = (Hashtable)h.get("listElinkLast");
-		e = tmp.elements();
-		while (e.hasMoreElements())
-		{
-			String[] s = (String[])e.nextElement();
-			link.put(s[0], s);
-		}
-
-		// Put listLanLast inn i listLinkLast
-		tmp = (Hashtable)h.get("listLanLast");
-		e = tmp.elements();
-		while (e.hasMoreElements())
-		{
-			String[] s = (String[])e.nextElement();
-			link.put(s[0], s);
-		}
-
-		// Put listSwitchPortlast inn i listLinkLast
-		tmp = (Hashtable)h.get("listSwitchPortLast");
-		e = tmp.elements();
-		while (e.hasMoreElements())
-		{
-			String[] s = (String[])e.nextElement();
-			link.put(s[0], s);
-		}
-		*/
-
-
 		return h;
-
-
-
-/*
-		listCPULast = v[4];
-		listLinkLast = v[0];
-		listNetLast = v[2];
-		Vector elinkLast = v[3];
-
-		// putt elink inn i netLast
-		for (int i = 0; i < elinkLast.size(); i++)
-		{
-			listNetLast.addElement(elinkLast.elementAt(i));
-		}
-
-
-		for (int i = 0; i < listCPULast.size(); i++)
-		{
-			com.d("" + i + ": " + ((String[])listCPULast.elementAt(i))[0] + ", " + ((String[])listCPULast.elementAt(i))[1] ,1 );
-
-		}
-*/
 
 	}
 
@@ -450,7 +333,6 @@ class Input
 				}
 
 			}
-			//b.append("send=Send\n");
 
 			com.d("URL: " + b.toString(), 2);
 

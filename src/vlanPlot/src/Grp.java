@@ -1,14 +1,32 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Polygon;
+import java.util.Vector;
 
 
 class Grp
@@ -57,8 +75,6 @@ class Grp
 
 	public void drawSelf(Graphics g)
 	{
-		//g.setColor(Color.black);
-		//g.drawOval(x+1, y+1, r*2-1, r*2-1);
 		if (!hideicons) {
 			g.setColor(bg);
 			g.fillOval(x, y, r*2, r*2);
@@ -92,8 +108,7 @@ class Grp
 		for (int i=0; i < members.size(); i++) {
 			Nettel n = (Nettel)members.elementAt(i);
 			if (!n.getLocationSet()) continue;
-			//int dx = (int) (Math.cos(v - inc*i) * (r - rMedlem));
-			//int dy = (int) (Math.sin(v - inc*i) * (r - rMedlem));
+
 			double dx = Math.cos(v - inc*i);
 			double dy = Math.sin(v - inc*i);
 			if (Math.abs(dx) < 0.00001) dx = 0;

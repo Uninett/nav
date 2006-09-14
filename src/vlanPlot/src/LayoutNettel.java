@@ -1,14 +1,33 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Canvas;
+import java.awt.Scrollbar;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.util.Vector;
 
 
 class LayoutNettel implements AdjustmentListener
@@ -49,13 +68,9 @@ class LayoutNettel implements AdjustmentListener
 		if (list.size() <= layoutXY.getAntVisible())
 		{
 			sb.setVisible(false);
-			//com.d("SET SCROLL " + linkType + " FALSE!!!",2);
-			//com.getMainPanel().validate();
-			//com.getMainPanel().validate();
 		} else
 		{
 			sb.setVisible(true);
-			//com.d("SET SCROLL " + linkType + " TRUE!!!",2);
 			com.getMainPanel().validate();
 		}
 
@@ -70,8 +85,6 @@ class LayoutNettel implements AdjustmentListener
 		sb.setMaximum(sbTotal);
 		sb.setVisibleAmount(sbVisible);
 
-		//com.d("LayoutNettel.activate(): LinkType: " + linkType + " Max: " + sbTotal + " VisibleAmount: " + sb.getMaximum() ,2);
-
 		refresh();
 	}
 
@@ -84,7 +97,6 @@ class LayoutNettel implements AdjustmentListener
 	{
 		layoutXY.reset();
 
-		//int sbMax = Math.min(sb.getMaximum(),list.size());
 		int sbMax = list.size();
 		int sbValue = sb.getValue();
 		int sbVisible = sb.getVisibleAmount();
@@ -104,10 +116,8 @@ class LayoutNettel implements AdjustmentListener
 				n.setXY(XY[0], XY[1]);
 				n.setVisible(true);
 				n.recalcLink();
-				//com.d("LAYOUT: Nettel: " + n.getName() + " Visible: YES" + " X: " + XY[0] + " Y: " + XY[1],2);
 			} else {
 				n.setVisible(false);
-				//com.d("LAYOUT: Nettel: " + n.getName() + " Visible: NO",2);
 			}
 		}
 		com.getNet().getVisNettel().recalcLink();
@@ -122,7 +132,6 @@ class LayoutNettel implements AdjustmentListener
 		} else
 		if (linkType.equals("hz"))
 		{
-			//canvas.repaint(1, 1, canvasX, canvasY);
 			canvas.repaint(1, canvasY/4, canvasX, canvasY/2);
 		}
 		if (linkType.equals("dn"))
@@ -151,22 +160,16 @@ class LayoutNettel implements AdjustmentListener
 				Nettel tmp = (Nettel)v.elementAt(i);
 				int j = i;
 
-				//while (j >= incr && tmp.angle() < ((vect)v.elementAt(j - incr)).angle() )
 				while (j >= incr && tmp.compareTo( (Nettel)v.elementAt(j - incr) ) < 0 )
 				{
-					//v.setElementAt(v.elementAt(j - incr), j);
 					v.setElementAt( v.elementAt(j-incr), j);
-					//s[j] = s[j - incr];
 					j -= incr;
 				}
-				//v.setElementAt(tmp, j);
 				v.setElementAt(tmp, j);
-				//s[j] = tmp;
 			}
 			incr /= 2;
 		}
 
-		//return s;
 	}
 
 

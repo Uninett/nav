@@ -23,14 +23,28 @@
  * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-public class ServerFetchException extends RuntimeException
+import java.awt.GridLayout;
+import java.awt.Panel;
+
+
+class LogoPanel extends Panel
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	Com com;
 
-	public ServerFetchException(String msg) {
-		super(msg);
+	public LogoPanel(Com InCom)
+	{
+		com = InCom;
+
+		Logo logo = new Logo(com);
+		setLayout(new GridLayout(1, 1));
+		add(logo);
+
+
 	}
+
+
 }

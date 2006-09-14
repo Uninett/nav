@@ -1,14 +1,37 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 class Nettel
@@ -20,7 +43,6 @@ class Nettel
 	public static int POPUP_FONT_SIZE = 13;
 	Font nf = new Font("Helvetica",Font.PLAIN, FONT_SIZE);
 	public static Font popupFont = new Font("Arial",Font.PLAIN, POPUP_FONT_SIZE);
-	//Font popupFont = new Font("Serif",Font.PLAIN, 12);
 
 	private static int canvasTopSpaceY = 25; // plass til overskrift
 
@@ -47,15 +69,12 @@ class Nettel
 	String name;
 	String fullName;
 	String kat;
-	//String num;
 	int boksid;
 	int vlan;
 
 	String hashKey;
 
-	//int displayId;
 	int clickId;
-	//String displayName = null;
 	String clickKat;
 
 	boolean groupMember = false;
@@ -105,30 +124,12 @@ class Nettel
 	public Nettel(Com com, int boksid, String name, String kat, String InNum, int vlan)
 	{
 		this.com = com;
-		//this.boksid = boksid;
-		//this.name = name;
-		//this.kat = kat;
 		setBoksid(boksid);
 		setName(name);
 		setKat(kat);
-		/*
-		if (InNum.equals("1"))
-		{
-			num = "";
-		} else
-		{
-			num = InNum;
-		}
-		*/
 		this.vlan = vlan;
 
-		//nettelIcon = new NettelIcon(com, this, kat);
-
 		if (kat.equals("gw") || kat.equals("gsw") || kat.equals("sw") || kat.equals("edge") ) isClickable = true;
-		//if (vlan == 0 || com.getNet().getVisVlan() != 0) setDrawVlan(false);
-
-
-
 	}
 
 	private void setBoksid(int i)
@@ -156,11 +157,7 @@ class Nettel
 		while ((k=name.indexOf(Net.domainSuffix)) >= 0) {
 			name = name.substring(0, k) + name.substring(k+Net.domainSuffix.length(), name.length());
 		}
-		/*
-		if (name != null && name.endsWith(Net.domainSuffix)) {
-			name = name.substring(0, name.length() - Net.domainSuffix.length());
-		}
-		*/
+
 		keywords.put("sysname".toLowerCase(), name);
 	}
 	public String getName() { return name; }
@@ -168,8 +165,7 @@ class Nettel
 	public String getShowName() { return name; }
 
 	public void setKat(String s)
-	{
-		//com.d("setKat() called, old: " + kat + " new: " + s,4);
+	{		
 		if (kat == null || !kat.equals(s)) {
 			kat = s;
 			com.d("Nettel.setKat(): Creating new nettelIcon for nettel: " + getName() + " Kat: " + kat, 5);
@@ -178,9 +174,6 @@ class Nettel
 		}
 	}
 	public String getKat() { return kat; }
-
-	//public String getFullName() { return name + "-" + type + num; }
-	//public String getFullName() { return name; }
 
 	public int getVlan() { return vlan; }
 	public void setVlan(int i) { vlan = i; }
@@ -246,7 +239,6 @@ class Nettel
 			// ikke skriv navn for FDDI-ringen
 			if (name.equalsIgnoreCase("fddi")) return;
 
-			//g.setColor(LastColor.getColor(nettelLastPst) );
 			g.setFont(nf);
 			FontMetrics fontMetrics = g.getFontMetrics(nf);
 
@@ -263,7 +255,6 @@ class Nettel
 			g.setColor(new Color(255, 255, 225) );
 			g.fillPolygon(p);
 
-			//if (nettelIcon.getDrawLast() )
 			if (nettelLastPst > 0) {
 				// Nettel-bokser skal alltid farges relativt
 				LastColor.setTmpSkala(LastColor.RELATIV_SKALA);
@@ -323,7 +314,6 @@ class Nettel
 					}
 
 					if (drawVlan) {
-						//com.d("   " + getFullName() + " drawVlan", 7);
 						g.setColor(new Color(255, 255, 225) );
 						g.fillRect(tx, ty, vlanBoxSizeX, vlanBoxSizeY);
 						g.setColor(Color.black);
@@ -339,10 +329,7 @@ class Nettel
 						g.drawString("" + vlanNr, tx+1, ty-1 +vlanBoxSizeY);
 
 					} else if (((Link)link.elementAt(i)).getIsTrunk() && vlan != 0 ) {
-						//com.d("   " + getFullName() + " drawTrunk", 7);
 						String text = "Trunk";
-					//text = ((Link)link.elementAt(i)).getNettelTo().getName() + "-"+((Link)link.elementAt(i)).isVisible();
-					//com.d("  Now at: " + getName() + ", drawing trunk to: " + ((Link)link.elementAt(i)).getNettelTo().getName() + ", visible: " + ((Link)link.elementAt(i)).getNettelTo().getVisible() + " link visible: " + ((Link)link.elementAt(i)).isVisible() ,1);
 						FontMetrics fontMetrics = g.getFontMetrics(nf);
 						int fontWidth = fontMetrics.stringWidth(text);
 
@@ -373,13 +360,6 @@ class Nettel
 				l.drawPopup(g);
 			}
 
-			/*
-			if (drawPopup)
-			{
-				desc.drawSelf(g);
-			}
-			*/
-
 		}
 
 	}
@@ -394,69 +374,8 @@ class Nettel
 	public void setVisible(boolean visible)
 	{
 		// Sett visible-status for denne nettel
-	//System.out.println("        Setting nettel: " + getName() + " to visible-status: " + visible);
 		isVisible = visible;
-
-		// Sette visible-status for alle linker til denne nettel
-		/*
-		for (int i = 0; i < linkNettel.size(); i++)
-		{
-			Nettel n = (Nettel)linkNettel.elementAt(i);
-	//System.out.println("        Now chekcing links to: " + n.getName());
-			n.setVisibleLinksTo(n, visible);
-		}
-		*/
 	}
-	/*
-	public void setVisibleLinksTo(Nettel n, boolean visible)
-	{
-		for (int i = 0; i < link.size(); i++)
-		{
-			Link l = (Link)link.elementAt(i);
-	//System.out.println("        Now chekcing link to: " + l.getNettelTo().getName());
-			if (l.getNettelTo().getName().equals(n.getName()) && l.getNettelTo().getVlan() == n.getVlan() )
-			{
-	//System.out.println("        FOUND! Setting link to: " + n.getName() + " to visible-status: " + visible);
-				l.setVisible(visible);
-			}
-		}
-	}
-	*/
-
-	/*
-	public String getShowName()
-	{
-		if (!showDesc()) return name;
-		return name;
-	}
-	public String getDescName()
-	{
-		if (!showDesc())
-		{
-			return getShowName() + " (" + kat + ")";
-		} else
-		if (kat.equals("h"))
-		{
-			return getShowName() + " (SNMP hub)";
-		}
-		return getShowName();
-	}
-	private boolean showDesc()
-	{
-		if (kat.equals("elink") ||
-			kat.equals("stam") ||
-			kat.equals("lan") ||
-			kat.equals("hub") ||
-			kat.equals("srv") ||
-			kat.equals("mas") ||
-			kat.equals("pc") ||
-			kat.equals("undef") )
-		{
-			return false;
-		}
-		return true;
-	}
-	*/
 
 	public void transform()
 	{
@@ -469,8 +388,6 @@ class Nettel
 
 	public void setXY(int InX, int InY)
 	{
-		//com.d("SET XY UPDATE, nettel: " + getFullName(),6);
-
 		int canvasX = com.getNet().getMinimumSize().width;
 		int canvasY = com.getNet().getMinimumSize().height;
 
@@ -613,7 +530,6 @@ class Nettel
 	public void setSelected(boolean InSelected)
 	{
 		setSelected = InSelected;
-		//com.d("SELECTED UPDATE, Nettel: " + getFullName() + " selected: " + setSelected,5);
 
 		if (setSelected)
 		{
@@ -626,10 +542,6 @@ class Nettel
 			int y = (canvasY - sizeY) / 2;
 
 			setXY(x, y);
-
-			//System.out.println("x: " + canvasX);
-			//System.out.println("y: " + canvasY);
-
 		}
 	}
 
@@ -683,18 +595,10 @@ class Nettel
 
 	}
 
-	/*
-	public void recalcLink_old()
-	{
-		recalcLink(true, this);
-	}
-	*/
-
 	public void recalcLink()
 	{
 		for (int i = 0; i < link.size(); i++)
 		{
-			//((Link)link.elementAt(i)).recalc();
 			Link l = (Link)link.elementAt(i);
 			l.recalc();
 			l.getLinkOtherWay().recalc();
@@ -723,16 +627,12 @@ class Nettel
 	}
 	public void setMove(int moveX, int moveY, boolean refresh)
 	{
-		//System.out.println(name + ": x: " + moveX + " y: " + moveY);
-
 		if (setMove)
 		{
 			lastX = moveX - x;
 			lastY = moveY - y;
 			setMove = false;
 		}
-
-		//System.out.println("moveX: " + moveX + " x: " + x + " lastX: " + lastX);
 
 		int oldX = x;
 		int oldY = y;
@@ -818,36 +718,6 @@ class Nettel
 
 	public String toString() {
 		return getName();
-	}
-}
-
-
-class NettelAction extends Thread
-{
-	Nettel n;
-	boolean end = false;
-
-	public NettelAction(Nettel InN)
-	{
-		n = InN;
-	}
-
-	public void run()
-	{
-		try {
-			sleep(500);
-		} catch (Exception e) { }
-
-		if (end) return;
-
-		if (n.getMouseOver()) {
-			n.setDrawPopup(true);
-		}
-	}
-
-	public void end()
-	{
-		end = true;
 	}
 }
 

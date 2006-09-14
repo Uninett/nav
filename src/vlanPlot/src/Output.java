@@ -1,14 +1,35 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 class Output
@@ -67,125 +88,6 @@ class Output
 		com.getLeft().setMsg(msg);
 	}
 
-/*
-	public void saveNettel_old(Hashtable nettel, Vector group)
-	{
-		Vector link = new Vector();
-		Vector net = new Vector();
-
-		Enumeration e = nettel.elements();
-		//for (int i = 0; i < nettel.size(); i++)
-		while (e.hasMoreElements())
-		{
-			//Nettel n = (Nettel)nettel.elementAt(i);
-			Nettel n = (Nettel)e.nextElement();
-
-			if (n.getType().equals("stam") || n.getType().equals("elink") )
-			{
-				net.addElement(n);
-			} else
-			{
-				link.addElement(n);
-			}
-		}
-
-		int[] index = new int[link.size()];
-		int[] x = new int[link.size()];
-		int[] y = new int[link.size()];
-		int[] netIndex = new int[net.size()];
-		int[] netX = new int[net.size()];
-		int[] netY = new int[net.size()];
-
-		for (int i = 0; i < link.size(); i++)
-		{
-			Nettel n = (Nettel)link.elementAt(i);
-			index[i] = n.getId();
-			x[i] = n.getX();
-			y[i] = n.getY();
-		}
-		for (int i = 0; i < net.size(); i++)
-		{
-			Nettel n = (Nettel)net.elementAt(i);
-			netIndex[i] = n.getId();
-			if (netIndex[i] < 0) netIndex[i] *= -1;
-			netX[i] = n.getX();
-			netY[i] = n.getY();
-		}
-
-
-		int[] grpIndex = new int[group.size()];
-		int[] grpX = new int[group.size()];
-		int[] grpY = new int[group.size()];
-
-		for (int i = 0; i < group.size(); i++)
-		{
-			Grp g = (Grp)group.elementAt(i);
-
-			grpIndex[i] = g.getId();
-			grpX[i] = g.getX();
-			grpY[i] = g.getY();
-		}
-
-		try
-		{
-
-			StringBuffer b = new StringBuffer();
-
-			// lag URL
-			b.append("http://bigbud.itea.ntnu.no/vlanPlot/vPServer/vPServer");
-			b.append("?section=admin&");
-			b.append("request=saveNettelXY&");
-			b.append("gruppeId=" + com.getNet().getVisGruppe() + "&");
-			b.append("pw=" + com.getAdmin().getPw() + "&");
-
-			// vanlige rutere
-			for (int i = 0; i < index.length; i++)
-			{
-				b.append("nettel" + i + "=" + index[i] + "¤" + x[i] + "¤" + y[i] + "&");
-			}
-
-			// net rutere (stam/elink)
-			for (int i = 0; i < netIndex.length; i++)
-			{
-				b.append("net" + i + "=" + netIndex[i] + "¤" + netX[i] + "¤" + netY[i] + "&");
-			}
-
-			// grupper
-			for (int i = 0; i < grpIndex.length; i++)
-			{
-				b.append("grp" + i + "=" + grpIndex[i] + "¤" + grpX[i] + "¤" + grpY[i] + "&");
-			}
-
-			b.append("send=Send\n");
-
-			System.out.println("URL: " + b.toString() );
-
-			URL url = new URL(b.toString() );
-			URLConnection connection = url.openConnection();
-			connection.connect();
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			String line;
-			while ((line = in.readLine()) != null)
-			{
-				if (line.equals("Error, wrong user/pw!"))
-				{
-					// wrong pw
-				}
-			}
-
-
-
-		}
-		catch (Exception exp)
-		{
-			System.out.println("Error (class Output): " + exp.getMessage());
-		}
-
-
-
-	}
-*/
 
 	private boolean sendUpdate(String s)
 	{

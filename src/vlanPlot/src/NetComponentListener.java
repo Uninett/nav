@@ -23,14 +23,28 @@
  * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-public class ServerFetchException extends RuntimeException
-{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
-	public ServerFetchException(String msg) {
-		super(msg);
+
+class NetComponentListener extends ComponentAdapter
+{
+	Net net;
+	public NetComponentListener(Net net)
+	{
+		this.net = net;
+	}
+
+	public void componentResized(ComponentEvent e)
+	{
+		net.refreshNettel();
 	}
 }
+
+
+
+
+
+
+
+

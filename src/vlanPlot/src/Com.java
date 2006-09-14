@@ -1,8 +1,26 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
 import java.util.*;
@@ -38,9 +56,6 @@ class Com
 
 	public void setDebugLevel(int InDebugLevel) { debugLevel = InDebugLevel; }
 
-	//public void setDocumentBase(URL InDocumentBase) { documentBase = InDocumentBase; }
-	//public URL getDocumentBase() { return documentBase; }
-
 	public void setApplet(Applet InApplet) { applet = InApplet; }
 	public Applet getApplet() { return applet; }
 
@@ -54,10 +69,6 @@ class Com
 
 	public void setMouseMove(MouseMove Inmv) { mv = Inmv; }
 	public MouseMove getMouseMove() { return mv; }
-
-
-	//public void setCnf(Cnf InCnf) { cnf = InCnf; }
-	//public Cnf getCnf() { return cnf; }
 
 
 	// Menyer
@@ -105,9 +116,6 @@ class Com
 	public void setAdmin(Admin InAdmin) { admin = InAdmin; }
 	public Admin getAdmin() { return admin; }
 
-	//public void setAdminPanel(AdminPanel InAdminPanel) { adminPanel = InAdminPanel; }
-	//public AdminPanel getAdminPanel() { return adminPanel; }
-
 
 	public void setLogo(Logo InLogo) { logo = InLogo; }
 	public Logo getLogo() { return logo; }
@@ -144,19 +152,6 @@ class Com
 	public void setMainPanel(panel p) { mainPanel = p; }
 	public panel getMainPanel() { return mainPanel; }
 
-	/*
-	AdminListener adminListener;
-	public void setAdminListener(AdminListener al) { adminListener = al; }
-	public AdminListener getAdminListener() { return adminListener; }
-	*/
-
-
-
-
-
-
-
-
 	// vars
 	Keyl keyl;
 	Mouse mouse;
@@ -181,8 +176,6 @@ class Com
 	Net net;
 	Input input;
 	Admin admin;
-	//AdminPanel adminPanel;
-	//Cnf cnf;
 
 	LayoutNettel layoutNettel;
 	Scrollbar topScroll;

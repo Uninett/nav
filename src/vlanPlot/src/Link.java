@@ -1,14 +1,36 @@
 /*
- * NTNU ITEA Nettnu prosjekt
+ * $Id$ 
  *
- * Skrvet av: Kristian Eide
+ * Copyright 2000-2005 Norwegian University of Science and Technology
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ *
+ * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.util.Hashtable;
+import java.util.Vector;
 
 class Link
 {
@@ -136,66 +158,6 @@ class Link
 		return to.getLinkTo(from);
 	}
 
-	// OSPF
-	/*
-	public void setOspf(String s) { ospf = s; }
-	public String getOspf()
-	{
-		if (ospf == null) return null;
-		if (ospf.equals("0")) return "OSPF cost: NA";
-
-		return "OSPF cost: " + ospf;
-	}
-	*/
-
-	// Metoder for IP adresse-rom
-	/*
-	public void addIpRom(String gwip, String bits, String maxhosts, String antmask)
-	{
-		ipRom.addElement(gwip + "," + bits + "," + maxhosts + "," + antmask);
-	}
-	public String getIpRom()
-	{
-		if (ipRom.size() == 0)
-		{
-			return null;
-		}
-		String ipRomString = "IP address-space:\n";
-		for (int i = 0; i < ipRom.size(); i++)
-		{
-			String s = (String)ipRom.elementAt(i);
-			String gwip = (misc.tokenize(s, ","))[0];
-			String bits = (misc.tokenize(s, ","))[1];
-			String maxhosts = (misc.tokenize(s, ","))[2];
-			String antmask = (misc.tokenize(s, ","))[3];
-
-			s = "  " + gwip + "/" + bits + ", in use: " + antmask + "/" + maxhosts;
-			if (i != 0)
-			{
-				ipRomString += "\n";
-			}
-			ipRomString += s;
-		}
-		return ipRomString;
-	}
-	public Vector getIpRomV()
-	{
-		if (ipRom.size() == 0) return new Vector();
-		Vector v = new Vector();
-
-		for (int i = 0; i < ipRom.size(); i++)
-		{
-			String s = (String)ipRom.elementAt(i);
-			String gwip = (misc.tokenize(s, ","))[0];
-			String bits = (misc.tokenize(s, ","))[1];
-
-			s = gwip + "/" + bits;
-			v.addElement(s);
-		}
-		return v;
-	}
-	*/
-
 	public PopupMessage showPopup(int x, int y, Graphics g, Com com)
 	{
 		activePopup = (vlanDesc != null && vlanRect.contains(x, y)) ? vlanDesc : desc;
@@ -220,8 +182,6 @@ class Link
 		if (vlanList.size() > 1 && !allVlansEqual) {
 			vlanDesc = new PopupMessage(notify, popupFont);
 			for (int i=0; i < vlanList.size(); i++) {
-				//Integer vlan = (Integer)vlanList.elementAt(i);
-				//vlanDesc.addMessage(String.valueOf(vlan));
 				String vlan = (String)vlanList.elementAt(i);
 				vlanDesc.addMessage(vlan);
 			}
@@ -252,16 +212,7 @@ class Link
 	public void drawSelf(Graphics g)
 	{
 		if (!isVisible()) return;
-		//if (capacity >= 1000)
-		//{
-		//	g.setColor(Color.black);
-		//	g.fillPolygon(border);
-		//}
 
-		/*
-		g.setColor(color);
-		g.fillPolygon(line);
-		*/
 		if (graphics2DSupport) {
 			if (drawAntiAlias == null) drawAntiAlias = new DrawAntiAlias();
 			drawAntiAlias.drawAntiAliased(g, line, color);
@@ -322,7 +273,6 @@ class Link
 		}
 
 		line = calcLine(fromX, fromY, toX, toY, linjekap);
-		//border = calcLine(fromX, fromY, toX, toY, linjekap+5);
 		popupLine = calcLine(fromX, fromY, toX, toY, POPUP_WIDTH);
 	}
 
@@ -351,70 +301,6 @@ class Link
 		return p;
 	}
 
-
-	/*
-	private Polygon calcLine_old(int x1, int y1, int x2, int y2, double width)
-	{
-		Polygon p = new Polygon();
-
-		// sjekk om denne boksen er nærmest 0,0
-		boolean b = false;
-		if (x1+y1 < x2+y2) {
-			b = true;
-		} else
-		if (x1+y1 == x2+y2) {
-			if (x1 < x2) {
-				b = true;
-			}
-		}
-
-		if (b) {
-			int tx, ty;
-
-			tx = x2;
-			ty = y2;
-
-			x2 = x1;
-			y2 = y1;
-
-			x1 = tx;
-			y1 = ty;
-		}
-
-		double deltax,deltay,alfa,beta;
-
-	    alfa = Math.atan(((double)(y2-y1)/(double)(x2-x1)));
-	    beta = Math.PI/2. - alfa;
-
-	    deltax = (Math.cos(beta)*(double)width)/2.;
-	    deltay = (Math.sin(beta)*(double)width)/2.;
-
-
-	    int xm = (x2-x1)/2 +x1;
-	    int ym = (y2-y1)/2 +y1;
-
-
-		if (b) {
-			int xt = x2-x1;
-			int yt = y2-y1;
-
-		    p.addPoint(x1+(int)deltax + xt,y1-(int)deltay + yt);
-		    p.addPoint(xm+(int)deltax,ym-(int)deltay);
-
-		    p.addPoint(xm,ym);
-		    p.addPoint(x1 + xt,y1 + yt);
-		} else {
-		    p.addPoint(x1+(int)deltax,y1-(int)deltay);
-		    p.addPoint(xm+(int)deltax,ym-(int)deltay);
-
-		    p.addPoint(xm,ym);
-		    p.addPoint(x1,y1);
-		}
-
-
-		return p;
-	}
-	*/
 
 	private Polygon calcBlockedLine(int x1, int y1, int x2, int y2, double length, double width)
 	{

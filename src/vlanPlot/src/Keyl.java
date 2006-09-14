@@ -23,14 +23,31 @@
  * Authors: Kristian Eide <kreide@gmail.com>
  */
 
-public class ServerFetchException extends RuntimeException
-{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-	public ServerFetchException(String msg) {
-		super(msg);
+
+class Keyl implements KeyListener
+{
+	Com com;
+
+	public Keyl(Com InCom)
+	{
+		com = InCom;
 	}
+
+
+	public void keyPressed(KeyEvent evt)
+	{}
+
+	public void keyReleased(KeyEvent evt)
+	{
+		if (evt.getKeyCode() == KeyEvent.VK_ENTER)
+		{
+			com.d("Trykker 'Enter'", 8);
+		}
+	}
+
+	public void keyTyped(KeyEvent evt)
+	{}
 }
