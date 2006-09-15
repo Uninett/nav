@@ -86,7 +86,6 @@ public class vlanPlot extends Applet
 
 		setLayout(new GridLayout(1, 1));
 		add(new panel(com));
-		// FIXME: Reload config or set "config loaded" to false
 	}
 }
 
