@@ -32,23 +32,29 @@
 
 ## Print form
 
-<form action="$current" method="post" id="newform">
+<form action="" method="post" id="newform">
 #set $edit_taskid = $getVar('edit_taskid', False)
 #if $edit_taskid
 <input type="hidden" name="edit_taskid" value="$edit_taskid" />
 #end if
 
 <table class="vertitable">
-#set ts = TreeSelectTemplate()
     <tr>
-        <th>Components *</th>
+        <th>Add components</th>
         <td>
+            #set ts = TreeSelectTemplate()
             $ts.treeselect($selectbox)
-#if $selectsubmit.enabled
+            #if $selectsubmit.enabled
             <input type="submit" name="$selectsubmit.control" value="$selectsubmit.value" />
-#else
+            #else
             <input disabled="disabled" type="submit" name="$selectsubmit.control" value="$selectsubmit.value" />
-#end if
+            #end if
+        </td>
+    </tr>
+    <tr>
+        <th>Selected components *</th>
+        <td>
+            $listComponents($components, True)
         </td>
     </tr>
     <tr>

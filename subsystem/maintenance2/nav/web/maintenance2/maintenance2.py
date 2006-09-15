@@ -72,7 +72,7 @@ def getTasks(where = False, order = 'maint_end DESC'):
     # Attach components belonging to this message
     for i, result in enumerate(results):
         results[i]['components'] = getComponents(results[i]['maint_taskid']) \
-            or None
+            or []
 
     return results
 
@@ -145,7 +145,7 @@ def getComponents(taskid):
 
     Returns:
         If components found, returns dictionary with results
-        If no compononets found, returns false
+        If no components found, returns false
 
     """
 
@@ -162,32 +162,71 @@ def getComponents(taskid):
     results = db.dictfetchall()
     # FIXME: Log result
 
-    # Attach netboxes belonging to this component
+    # Attach extra information about the components
     for i, result in enumerate(results):
-        if results[i]['key'] == 'location':
-            results[i]['extra'] = getLocation(results[i]['value']) or None
-        if results[i]['key'] == 'room':
-            results[i]['extra'] = getRoom(results[i]['value']) or None
-        if results[i]['key'] == 'netbox':
-            results[i]['extra'] = getNetbox(results[i]['value']) or None
-        if results[i]['key'] == 'service':
-            results[i]['extra'] = getService(results[i]['value']) or None
+        results[i]['extra'] = getComponentExtra(results[i]['key'],
+                                                results[i]['value']) or None
 
-    sortedresults = []
-    for i, result in enumerate(results):
-        if results[i]['key'] == 'location':
-            sortedresults.append(results[i])
-    for i, result in enumerate(results):
-        if results[i]['key'] == 'room':
-            sortedresults.append(results[i])
-    for i, result in enumerate(results):
-        if results[i]['key'] == 'netbox':
-            sortedresults.append(results[i])
-    for i, result in enumerate(results):
-        if results[i]['key'] == 'service':
-            sortedresults.append(results[i])
+    # Sort components
+    results = sortComponents(results)
 
-    return sortedresults
+    return results
+
+def sortComponents(components):
+    """
+    Sort components in the following order:
+    location, room, netbox, service
+
+    Input:
+        components  List of components to be sorted
+    
+    Returns:
+        A sorted list of the components
+
+    """
+
+    results = []
+
+    for i, component in enumerate(components):
+        if components[i]['key'] == 'location':
+            results.append(components[i])
+
+    for i, component in enumerate(components):
+        if components[i]['key'] == 'room':
+            results.append(components[i])
+
+    for i, component in enumerate(components):
+        if components[i]['key'] == 'netbox':
+            results.append(components[i])
+
+    for i, component in enumerate(components):
+        if components[i]['key'] == 'service':
+            results.append(components[i])
+
+    return results
+    
+def getComponentExtra(key, value):
+    """
+    Get extra information about component
+
+    Input:
+        key     Type of component
+        value   Componenent ID
+
+    Returns:
+        If component found, returns dictionary with results
+        If no component found, returns false
+
+    """
+    
+    if key == 'location':
+        return getLocation(value)
+    if key == 'room':
+        return getRoom(value)
+    if key == 'netbox':
+        return getNetbox(value)
+    if key == 'service':
+        return getService(value)
 
 def getLocation(locationid):
     """
@@ -231,7 +270,8 @@ def getRoom(roomid):
     sql = """SELECT
             r.roomid, r.descr AS roomdescr,
             l.locationid, l.descr AS locationdescr
-        FROM room r JOIN location l ON (r.locationid = l.locationid)
+        FROM room r
+            JOIN location l ON (r.locationid = l.locationid)
         WHERE roomid = %(roomid)s"""
     data = {'roomid': roomid}
 
@@ -261,7 +301,8 @@ def getNetbox(netboxid):
             n.netboxid, n.sysname, n.ip,
             r.roomid, r.descr AS roomdescr,
             l.locationid, l.descr AS locationdescr
-        FROM netbox n NATURAL JOIN room r
+        FROM netbox n
+            JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
         WHERE netboxid = %(netboxid)d"""
     data = {'netboxid': int(netboxid)}
@@ -292,7 +333,9 @@ def getService(serviceid):
             n.netboxid, n.sysname, n.ip,
             r.roomid, r.descr AS roomdescr,
             l.locationid, l.descr AS locationdescr
-        FROM service s NATURAL JOIN netbox n NATURAL JOIN room r
+        FROM service s 
+            JOIN netbox n ON (s.netboxid = n.netboxid)
+            JOIN room r ON (n.roomid = r.roomid)
             JOIN location l ON (r.locationid = l.locationid)
         WHERE s.serviceid = %(serviceid)d"""
     data = {'serviceid': int(serviceid)}

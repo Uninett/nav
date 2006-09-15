@@ -97,6 +97,7 @@ def handler(req):
         page = Maintenance2NewTemplate()
         page.title = 'Create New Maintenance Task'
         page.errors = []
+        page.components = []
 
 
         # Create select tree
@@ -193,12 +194,10 @@ def handler(req):
                               'value': buttontext,
                               'enabled': buttonenabled }
 
-        # FIXME: Continue here!
-
         # Edit
         if section == 'edit':
             page.title = 'Edit Maintenance Task'
-            page.submitttext = 'Save Maintenance Task'
+            page.submittext = 'Save Maintenance Task'
             menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
 
             if not args.get('id'):
@@ -207,9 +206,10 @@ def handler(req):
                 taskid = int(args.get('id'))
                 task = maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
 
-                page.edit_taskid = taskid
-                page.description = task['description']
+                # Maintenance components
+                page.components = task['components']
 
+                # Maintenance times
                 page.start_year = int(task['maint_start'].strftime('%Y'))
                 page.start_month = int(task['maint_start'].strftime('%m'))
                 page.start_day = int(task['maint_start'].strftime('%d'))
@@ -222,18 +222,87 @@ def handler(req):
                 page.end_hour = int(task['maint_end'].strftime('%H'))
                 page.end_min = int(task['maint_end'].strftime('%M'))
 
-                # FIXME: Components
+                # Description
+                page.edit_taskid = taskid
+                page.description = task['description']
+
+
+        # Init components
+        if req.form.has_key('component-0'):
+            # Use submitted data instead of defaults or the components from the
+            # task we are editing
+            components = []
+            for field in req.form.list:
+                if field.name[:len('component')] == 'component':
+                    key, value = field.value.split(',')
+                    components.append({'key': key, 'value': value,
+                        'extra': maintenance2.getComponentExtra(key, value)})
+        else:
+            # Nothing submitted, using values from default or the task we are
+            # editing
+            components = page.components
+
+        # Add components
+        for field in req.form.list:
+            if (req.form.has_key('cn_add_services')
+             and field.name == 'cn_service'):
+                key = 'service'
+                value = field.value
+                component = {
+                    'key': key, 'value': value,
+                    'extra': maintenance2.getComponentExtra(key, value)}
+                if components.count(component) == 0:
+                    components.append(component)
+            elif (req.form.has_key('cn_add_netboxes')
+             and field.name == 'cn_netbox'):
+                key = 'netbox'
+                value = field.value
+                component = {
+                    'key': key, 'value': value,
+                    'extra': maintenance2.getComponentExtra(key, value)}
+                if components.count(component) == 0:
+                    components.append(component)
+            elif (req.form.has_key('cn_add_rooms')
+             and field.name == 'cn_room'):
+                key = 'room'
+                value = field.value
+                component = {
+                    'key': key, 'value': value,
+                    'extra': maintenance2.getComponentExtra(key, value)}
+                if components.count(component) == 0:
+                    components.append(component)
+            elif (req.form.has_key('cn_add_locations')
+             and field.name == 'cn_location'):
+                key = 'location'
+                value = field.value
+                component = {
+                    'key': key, 'value': value,
+                    'extra': maintenance2.getComponentExtra(key, value)}
+                if components.count(component) == 0:
+                    components.append(component)
+
+        # Remove components
+        if req.form.has_key('comp_remove'):
+            for field in req.form.list:
+                if field.name[:len('remove')] == 'remove':
+                    key, value = field.value.split(',')
+                    components.remove({'key': key, 'value': value,
+                        'extra': maintenance2.getComponentExtra(key, value)})
+
+        # Set components
+        components = maintenance2.sortComponents(components)
+        page.components = components
+
 
         # Form submitted
         page.submit = req.form.has_key('submit_final')
         if page.submit:
-            # Descriptions
-            if req.form.has_key('description') and req.form['description']:
-                description = req.form['description']
-                page.description = description
+            # Maintenance components
+            if (req.form.has_key('component-0') and req.form['component-0']):
+                pass # components already contains everything we want
             else:
-                page.errors.append('You did not supply a description.')
-
+                page.error.append('No maintenance tasks selected.')
+            
             # Maintenance times
             if (req.form.has_key('start_year') and req.form['start_year']
                 and req.form.has_key('start_month') and req.form['start_month']
@@ -276,6 +345,13 @@ def handler(req):
             if maint_start > maint_end:
                 page.errors.append('Maintenance end is before start.')
 
+            # Description
+            if req.form.has_key('description') and req.form['description']:
+                description = req.form['description']
+                page.description = description
+            else:
+                page.errors.append('You did not supply a description.')
+
             # Get ID of message edited
             if section == 'edit':
                 if req.form.has_key('edit_taskid') \
@@ -306,7 +382,7 @@ def handler(req):
                     description, author, state)
 
                 # Update/insert maintenance components
-                # FIXME
+                # FIXME: continue here
 
                 # Redirect to view?id=$newid and exit
                 req.headers_out['location'] = 'view?id=' + str(taskid)

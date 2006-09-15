@@ -54,42 +54,10 @@
         <th>Description</th>
         <td>$task.description</td>
     </tr>
-    #if type($task.components) is list
     <tr>
         <th>Components</th>
-        <td><ul>
-        #for $component in $task.components
-            <li>$component.key:
-            #if $component.key in ('location', 'room', 'netbox', 'service')
-                <a href="/report/room?locationid=$component.extra.locationid"
-                    title="$component.extra.locationdescr">
-                    $component.extra.locationid</a>
-            #end if
-            #if $component.key in ('room', 'netbox', 'service')
-                &rarr;
-                <a href="/report/netbox2?roomid=$component.extra.roomid"
-                    title="$component.extra.roomdescr">
-                    $component.extra.roomid</a>
-            #end if
-            #if $component.key in ('netbox', 'service')
-                &rarr;
-                <a href="/browse/$component.extra.sysname"
-                    title="$component.extra.ip">
-                    $component.extra.sysname</a>
-            #end if
-            #if $component.key in ('service')
-                &rarr;
-                $component.extra.handler
-            #end if
-            #if $component.key not in ('location', 'room', 'netbox', 'service')
-                $component.value
-                (Warning: Modules can no longer be a maintenance component.)
-            #end if
-            </li>
-        #end for
-        </ul></td>
+        <td>$listComponents($task.components)</td>
     </tr>
-    #end if
     <tr>
         <th>Author</th>
         <td>$task.author</td>
