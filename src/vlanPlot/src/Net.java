@@ -28,6 +28,7 @@ import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -119,6 +120,11 @@ class Net extends Canvas implements ItemListener
 	public static final String linkMenuText[] = { "Load", "Packets", "Drops", "Errors" };
 	public static final String linkGwMenuText[] = { "Load", "Packets", "Drops", "Errors", "|"};
 
+	// Buffer drawing related variables
+	private int bufferWidth;
+	private int bufferHeight;
+	private Image bufferImage;
+	private Graphics bufferGraphics;
 
 	// FIXME: Denne skal være dynamisk!
 	//public static final String netNames[] = { "Bynett", "Kjernenett", "Testnett" };
@@ -1066,6 +1072,22 @@ class Net extends Canvas implements ItemListener
 
 	public void paint(Graphics g)
 	{
+		// Initialize or reset the off-screen buffer if needed
+		if (bufferWidth != getSize().width || bufferHeight != getSize().height || bufferImage == null || bufferGraphics == null)
+			resetBuffer();
+		
+		if (bufferGraphics != null) {
+			// Clear the off-screen buffer
+			bufferGraphics.clearRect(0, 0, bufferWidth, bufferHeight);
+			// Paint an off-screen image 
+			paintBuffer(bufferGraphics);
+			// Dump the buffered image onto the canvas
+			g.drawImage(bufferImage, 0,0, this);
+		}
+	}
+
+	public void paintBuffer(Graphics g)
+	{
 		final int ANTALL_PASS = 5;
 
 		if (error) {
@@ -1229,6 +1251,32 @@ class Net extends Canvas implements ItemListener
 		vlanMenu.show(this, x, y);
 	}
 
+	public void update(Graphics g) 
+	{
+		paint(g);
+	}
+
+	private void resetBuffer()
+	{
+		// Make sure the buffer is always the same size as the panel
+		bufferWidth = getSize().width;
+		bufferHeight = getSize().height;
+
+		// Clean up the old image
+		if (bufferGraphics != null) {
+			bufferGraphics.dispose();
+			bufferGraphics = null;
+		}
+		if (bufferImage != null) {
+			bufferImage.flush();
+			bufferImage = null;
+		}
+		System.gc();
+
+		// Create the new buffer with the size of the panel
+		bufferImage = createImage(bufferWidth, bufferHeight);
+		bufferGraphics = bufferImage.getGraphics();
+	}
 
 
 }
