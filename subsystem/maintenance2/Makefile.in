@@ -36,6 +36,7 @@ sysconfdir = @sysconfdir@
 initdir = @initdir@
 localstatedir = @localstatedir@
 tooldir = @tooldir@
+crondir = @crondir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 
@@ -43,10 +44,11 @@ webroot = @webroot@
 WEBNAME = maintenance2
 
 # Files
-INITFILES =
-BINS =
+BINS = # $(wildcard bin/*.py)
 LIBS = $(wildcard nav/web/maintenance2/*.py)
 CONFFILES =
+CRONFILES = # $(wildcard *.cron)
+INITFILES =
 TOOLS = maintenance2.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
 TEMPLATES = $(TEMPLATESSRC:%.tmpl=%.py)
@@ -68,8 +70,9 @@ install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 
 install-bin: bin
-	for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
+	for file in $(notdir $(BINS)); do $(INSTALL) -v -D -m 755 bin/$$file $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file	|| exit 1; done
+	for file in $(basename $(CRONFILES)); do $(INSTALL) -v -D -m 644 $$file.cron $(DESTDIR)$(crondir)/$$file || exit 1; done
 
 install-conf: conf
 	@for file in $(CONFFILES); do \
