@@ -382,7 +382,9 @@ def handler(req):
                     description, author, state)
 
                 # Update/insert maintenance components
-                # FIXME: continue here
+                compstatus = maintenance2.setComponents(taskid, components)
+                if not compstatus:
+                    page.error.append('Failed adding components.')
 
                 # Redirect to view?id=$newid and exit
                 req.headers_out['location'] = 'view?id=' + str(taskid)

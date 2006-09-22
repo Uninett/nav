@@ -172,6 +172,52 @@ def getComponents(taskid):
 
     return results
 
+def setComponents(taskid, components):
+    """
+    Remove all components connected to a task and add this new set of
+    components instead.
+
+    Input:
+        taskid      ID of maintenance task
+        components  List of component key/value pairs
+
+    Returns:
+        If function completes, returns True
+
+    """
+
+    # Remove old components
+    sql = """DELETE FROM maint_component
+        WHERE maint_taskid = %(maint_taskid)d"""
+    data = { 'maint_taskid': taskid }
+    # FIXME: Log query
+    db.execute(sql, data)
+    # FIXME: Log result
+
+    # Insert new components
+    sql = """INSERT INTO maint_component (
+            maint_taskid,
+            key,
+            value
+        ) VALUES (
+            %(maint_taskid)d,
+            %(key)s,
+            %(value)s
+        )"""
+
+    for component in components:
+        data = {
+            'maint_taskid': taskid,
+            'key': component['key'],
+            'value': component['value']
+        }
+
+        # FIXME: Log query
+        db.execute(sql, data)
+        # FIXME: Log result
+
+    return True
+
 def sortComponents(components):
     """
     Sort components in the following order:
