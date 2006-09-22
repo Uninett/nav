@@ -60,25 +60,25 @@
         #end if
             $component.key:
         #if $component.key in ('location', 'room', 'netbox', 'service')
-            <a href="/report/room?locationid=$component.extra.locationid"
-                title="$component.extra.locationdescr">
-                $component.extra.locationid</a>
+            <a href="/report/room?locationid=$component.info.locationid"
+                title="$component.info.locationdescr">
+                $component.info.locationid</a>
         #end if
         #if $component.key in ('room', 'netbox', 'service')
             &rarr;
-            <a href="/report/netbox2?roomid=$component.extra.roomid"
-                title="$component.extra.roomdescr">
-                $component.extra.roomid</a>
+            <a href="/report/netbox2?roomid=$component.info.roomid"
+                title="$component.info.roomdescr">
+                $component.info.roomid</a>
         #end if
         #if $component.key in ('netbox', 'service')
             &rarr;
-            <a href="/browse/$component.extra.sysname"
-                title="$component.extra.ip">
-                $component.extra.sysname</a>
+            <a href="/browse/$component.info.sysname"
+                title="$component.info.ip">
+                $component.info.sysname</a>
         #end if
         #if $component.key in ('service')
             &rarr;
-            $component.extra.handler
+            $component.info.handler
         #end if
         #if $component.key not in ('location', 'room', 'netbox', 'service')
             $component.value

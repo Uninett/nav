@@ -236,7 +236,7 @@ def handler(req):
                 if field.name[:len('component')] == 'component':
                     key, value = field.value.split(',')
                     components.append({'key': key, 'value': value,
-                        'extra': maintenance2.getComponentExtra(key, value)})
+                        'info': maintenance2.getComponentInfo(key, value)})
         else:
             # Nothing submitted, using values from default or the task we are
             # editing
@@ -250,7 +250,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'extra': maintenance2.getComponentExtra(key, value)}
+                    'info': maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_netboxes')
@@ -259,7 +259,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'extra': maintenance2.getComponentExtra(key, value)}
+                    'info': maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_rooms')
@@ -268,7 +268,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'extra': maintenance2.getComponentExtra(key, value)}
+                    'info': maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_locations')
@@ -277,7 +277,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'extra': maintenance2.getComponentExtra(key, value)}
+                    'info': maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
 
@@ -287,7 +287,7 @@ def handler(req):
                 if field.name[:len('remove')] == 'remove':
                     key, value = field.value.split(',')
                     components.remove({'key': key, 'value': value,
-                        'extra': maintenance2.getComponentExtra(key, value)})
+                        'info': maintenance2.getComponentInfo(key, value)})
 
         # Set components
         components = maintenance2.sortComponents(components)

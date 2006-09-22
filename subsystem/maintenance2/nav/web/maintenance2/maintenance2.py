@@ -162,10 +162,10 @@ def getComponents(taskid):
     results = db.dictfetchall()
     # FIXME: Log result
 
-    # Attach extra information about the components
+    # Attach information about the components
     for i, result in enumerate(results):
-        results[i]['extra'] = getComponentExtra(results[i]['key'],
-                                                results[i]['value']) or None
+        results[i]['info'] = getComponentInfo(results[i]['key'],
+                                              results[i]['value']) or None
 
     # Sort components
     results = sortComponents(results)
@@ -251,9 +251,9 @@ def sortComponents(components):
 
     return results
     
-def getComponentExtra(key, value):
+def getComponentInfo(key, value):
     """
-    Get extra information about component
+    Get information about component
 
     Input:
         key     Type of component
