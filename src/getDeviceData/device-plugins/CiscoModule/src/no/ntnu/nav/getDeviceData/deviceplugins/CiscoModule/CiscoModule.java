@@ -71,7 +71,7 @@ public class CiscoModule implements DeviceHandler
 		"physModelName",
 	};
 
-	private SimpleSnmp sSnmp;
+	SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
 		int v = nb.isSupportedOids(canHandleOids) ? HANDLE_PRI_MODULE : NEVER_HANDLE;
@@ -126,15 +126,9 @@ public class CiscoModule implements DeviceHandler
 		}
 
 
-		String netboxid = nb.getNetboxidS();
-		String ip = nb.getIp();
-		String cs_ro = nb.getCommunityRo();
-		String type = nb.getType();
-		String sysName = nb.getSysname();
-		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoModule(nb, netboxid, ip, cs_ro, type, nc, mc, mmc);
+		boolean fetch = processCiscoModule(nb, nc, mc, mmc);
 			
 		// Commit data
 		if (fetch) {
@@ -146,7 +140,7 @@ public class CiscoModule implements DeviceHandler
 	 * Cisco modules
 	 *
 	 */
-	private boolean processCiscoModule(Netbox nb, String netboxid, String ip, String cs_ro, String type, NetboxContainer nc, ModuleContainer mc, ModuleMonContainer mmc) throws TimeoutException {
+	boolean processCiscoModule(Netbox nb, NetboxContainer nc, ModuleContainer mc, ModuleMonContainer mmc) throws TimeoutException {
 
 		/*
 		  "catModuleModel",
@@ -200,6 +194,7 @@ public class CiscoModule implements DeviceHandler
 			if (chassisVerList != null && !chassisVerList.isEmpty()) {
 				String[] s = (String[])chassisVerList.get(0);
 				nc.netboxDataFactory(nb).setHwVer(s[1]);
+				Log.d("CATMOD_OID", "Set chassis HwVer to " + s[1]);
 			}
 		}
 
@@ -235,6 +230,7 @@ public class CiscoModule implements DeviceHandler
 				Map.Entry me = (Map.Entry)it.next();
 				String module = (String)me.getKey();
 				mc.moduleFactory(module).setHwVer((String)me.getValue());
+				Log.d("CATMOD_OID", "Set HwVer for module " + module + " to " + (String)me.getValue());
 			}
 		}
 
@@ -292,7 +288,10 @@ public class CiscoModule implements DeviceHandler
 				
 				if (cardDescr != null && m.getDescr() == null) m.setDescr((String)cardDescr.get(cardIndex));
 				if (cardSerial != null && m.getSerial() == null) m.setSerial((String)cardSerial.get(cardIndex));
-				if (cardHwVer != null && m.getHwVer() == null) m.setHwVer((String)cardHwVer.get(cardIndex));
+				if (cardHwVer != null && m.getHwVer() == null) {
+					m.setHwVer((String)cardHwVer.get(cardIndex));
+					Log.d("CCARD_OID", "Set HwVer for module " + m.getModule() + " to " + (String)cardHwVer.get(cardIndex));
+				}
 				if (cardSwVer != null && m.getSwVer() == null) m.setSwVer((String)cardSwVer.get(cardIndex));
 			}
 		}
@@ -377,6 +376,7 @@ public class CiscoModule implements DeviceHandler
 					String module = (String)it.next();
 					String nModule = modTrans.containsKey(module) ? (String)modTrans.get(module) : module;
 					mc.moduleFactory(nModule).setHwVer((String)cl3HwVer.get(module+"000"));
+					Log.d("CL3_OID", "Set HwVer for module " + nModule + " to " + (String)cl3HwVer.get(module+"000"));
 				}
 			}
 
@@ -430,7 +430,10 @@ public class CiscoModule implements DeviceHandler
 				String id = (String)it.next();
 				NetboxData nd = nc.netboxDataFactory(nb);
 				if (nd.getSerial() == null && physSerial != null && physSerial.containsKey(id)) nd.setSerial((String)physSerial.get(id));
-				if (physHwVer != null && physHwVer.containsKey(id)) nd.setHwVer((String)physHwVer.get(id));
+				if (physHwVer != null && physHwVer.containsKey(id)) {
+					nd.setHwVer((String)physHwVer.get(id));
+					Log.d("CMOD_PHYSOID", "Set HwVer for chassis to " + (String)physHwVer.get(id));
+				}
 				if (physFwVer != null && physFwVer.containsKey(id)) nd.setFwVer((String)physFwVer.get(id));
 				if (physSwVer != null && physSwVer.containsKey(id)) nd.setSwVer((String)physSwVer.get(id));
 				break; // Only do first
@@ -464,7 +467,10 @@ public class CiscoModule implements DeviceHandler
 				Module m = mc.moduleFactory(module);
 
 				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));
-				if (physHwVer != null && physHwVer.containsKey(id) && m.getHwVer() == null) m.setHwVer((String)physHwVer.get(id));
+				if (physHwVer != null && physHwVer.containsKey(id) && m.getHwVer() == null) {
+					m.setHwVer((String)physHwVer.get(id));
+					Log.d("CMOD_PHYSOID", "Set HwVer for module " + m.getModule() + " to " + (String)physHwVer.get(id));
+				}
 				if (physFwVer != null && physFwVer.containsKey(id) && m.getFwVer() == null) m.setFwVer((String)physFwVer.get(id));
 				if (physSwVer != null && physSwVer.containsKey(id) && m.getSwVer() == null) m.setSwVer((String)physSwVer.get(id));
 
