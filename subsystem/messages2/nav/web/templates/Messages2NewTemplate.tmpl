@@ -214,6 +214,7 @@
         <td>
             <input type="hidden" name="replaces_messageid" value="$replaces_messageid" />
             <a href="view?id=$replaces_messageid">$replaces_message.title</a>
+            from $replaces_message.publish_start.strftime('%Y-%m-%d %H:%M')
             by $replaces_message.author
         </td>
     </tr>

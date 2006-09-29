@@ -101,6 +101,7 @@
         <th>Replaces message</th>
         <td>
             <a href="view?id=$msg.replaces_message">$msg.replaces_message_title</a>
+            from $msg.replaces_message_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaces_message_author
         </td>
     </tr>
@@ -110,6 +111,7 @@
         <th>Replaced by</th>
         <td>
             <a href="view?id=$msg.replaced_by">$msg.replaced_by_title</a>
+            from $msg.replaced_by_publish_start.strftime('%Y-%m-%d %H:%M')
             by $msg.replaced_by_author
         </td>
     </tr>

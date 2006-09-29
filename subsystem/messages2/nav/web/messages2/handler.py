@@ -264,8 +264,8 @@ def handler(req):
             else:
                 publish_end = time.localtime(int(time.time()) + 7*24*60*60)
 
-            if publish_start > publish_end:
-                page.errors.append('Publish end is before start, ' \
+            if publish_start >= publish_end:
+                page.errors.append('Publish end is before or same as start, ' \
                     + 'message will never be published.')
             
             # Maintenance tasks
