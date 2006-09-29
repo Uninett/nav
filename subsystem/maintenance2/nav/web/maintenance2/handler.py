@@ -282,7 +282,7 @@ def handler(req):
                     components.append(component)
 
         # Remove components
-        if req.form.has_key('comp_remove'):
+        if req.form.has_key('submit_comp_remove'):
             for field in req.form.list:
                 if field.name[:len('remove')] == 'remove':
                     key, value = field.value.split(',')
@@ -293,6 +293,26 @@ def handler(req):
         components = maintenance2.sortComponents(components)
         page.components = components
 
+        # For any non-final submit button pressed, keep entered dates and
+        # descriptions
+        page.submit = (len(req.form.list)
+            and not req.form.has_key('submit_final'))
+        if page.submit:
+            # Maintenance times
+            page.start_year = int(req.form['start_year'])
+            page.start_month = int(req.form['start_month'])
+            page.start_day = int(req.form['start_day'])
+            page.start_hour = int(req.form['start_hour'])
+            page.start_min = int(req.form['start_min'])
+
+            page.end_year = int(req.form['end_year'])
+            page.end_month = int(req.form['end_month'])
+            page.end_day = int(req.form['end_day'])
+            page.end_hour = int(req.form['end_hour'])
+            page.end_min = int(req.form['end_min'])
+
+            # Description
+            page.description = req.form['description']
 
         # Form submitted
         page.submit = req.form.has_key('submit_final')
@@ -301,7 +321,7 @@ def handler(req):
             if (req.form.has_key('component-0') and req.form['component-0']):
                 pass # components already contains everything we want
             else:
-                page.error.append('No maintenance tasks selected.')
+                page.errors.append('No maintenance components selected.')
             
             # Maintenance times
             if (req.form.has_key('start_year') and req.form['start_year']
@@ -342,8 +362,9 @@ def handler(req):
             else:
                 maint_end = time.localtime(int(time.time()) + 7*24*60*60)
 
-            if maint_start > maint_end:
-                page.errors.append('Maintenance end is before start.')
+            if maint_start >= maint_end:
+                page.errors.append('Maintenance end is before or same as ' \
+                    + 'start, task will never be scheduled.')
 
             # Description
             if req.form.has_key('description') and req.form['description']:
