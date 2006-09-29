@@ -294,8 +294,8 @@ def handler(req):
         page.components = components
 
         # For any non-final submit button pressed, keep entered dates and
-        # descriptions
-        page.submit = (len(req.form.list)
+        # descriptions (> 1 because of edit?id=X)
+        page.submit = (len(req.form.list) > 1
             and not req.form.has_key('submit_final'))
         if page.submit:
             # Maintenance times
@@ -378,6 +378,7 @@ def handler(req):
                 if req.form.has_key('edit_taskid') \
                     and req.form['edit_taskid']:
                     edit_taskid = int(req.form['edit_taskid'])
+                    edit_task = maintenance2.getTasks('maint_taskid = %d' % edit_taskid)[0]
                 else:
                     page.errors.append('ID of edited maintenance task is missing.')
 
@@ -391,12 +392,23 @@ def handler(req):
             # No errors, update database
             else:
                 if section == 'edit':
-                    taskid = edit_taskid
+                    # Edited task
+                    taskid = edit_taskid 
+                    ### FIXME: Broken, need to think
+#                    if edit_task['state'] == 'passed' or maint_end < time.gmtime():
+#                        state = 'passed'
+#                    elif edit_task['state'] == 'active':
+#                        state = 'active'
+#                    elif edit_task['state'] == 'scheduled' or maint_start >= time.gmtime():
+#                        state = 'scheduled'
+#                    maint_start < time.gmtime() and edit_task['state'] != 'active':
+#                    else:
+#                        state = edit_task['state']
+                    state = edit_task['state']
                 else:
+                    # New task, always scheduled
                     taskid = False
-
-                # Always scheduled, only changed by other subsystems
-                state = 'scheduled'
+                    state = 'scheduled'
 
                 # Update/insert maintenance task
                 taskid = maintenance2.setTask(taskid, maint_start, maint_end,
