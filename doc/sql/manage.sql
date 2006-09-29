@@ -569,6 +569,7 @@ INSERT INTO subsystem (name) VALUES ('deviceTracker');
 INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('emotd');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
+INSERT INTO subsystem (name) VALUES ('maintenance');
 
 -- Each rrdfile should be registered here. We need the path to find it,
 -- and also a link to which unit or service it has data about to easily be
