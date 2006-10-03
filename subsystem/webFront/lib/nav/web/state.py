@@ -195,7 +195,7 @@ def sessionFilename(session):
 
     if not validate_sid(sessid):
         apache.log_error("Invalid session ID: %s" % sessid,
-                         apache.APLOG_ERROR)
+                         apache.APLOG_ERR)
         raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
     return path.join(tempDir, '%s%s' % (serialPrefix, sessid))
