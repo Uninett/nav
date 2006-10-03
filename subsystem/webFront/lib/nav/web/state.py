@@ -39,6 +39,11 @@ import fcntl
 import nav.errors
 import nav.web
 import logging
+import sre as re
+try:
+    from mod_python import apache
+except:
+    pass
 
 logger = logging.getLogger("nav.web.state")
 sessionCookieName = 'nav_sessid'
@@ -53,6 +58,9 @@ def getUniqueString(entropy=''):
     'entropy' parameter.  It's not really magic, it just picks the
     current system time and a pseudo random number and returns the md5
     digest of these put together."""
+    # This function returns a 32 character md5 hash string.  The validate_sid
+    # function will validate ids accordingly.  If you change this
+    # implementation, you must also change the validate_sid implementation.
     hash = md5.new()
     hash.update(str(time.time()))
     hash.update(str(random.random()))
@@ -61,6 +69,16 @@ def getUniqueString(entropy=''):
         hash.update(entropy)
     return hash.hexdigest()
 
+session_valid_re = re.compile('[0-9a-f]{32}$')
+def validate_sid(sid):
+    """Verifies the validity of a session id.
+
+    A valid session ID consists of exactly 32 characters, and must only
+    contain the characters 0-9 and a-f.  Invalid session identifiers supplied
+    by clients may result in directory traversal attacks (they might contain /
+    and .. sequences).
+    """    
+    return session_valid_re.match(sid)
 
 def setupSession(req):
     """
@@ -179,6 +197,11 @@ def sessionFilename(session):
         sessid = session
     else:
         sessid = session.id
+
+    if not validate_sid(sessid):
+        logger.error("Invalid session ID: %s", sessid)
+        raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+        
     return path.join(tempDir, '%s%s' % (serialPrefix, sessid))
 
 class Session(dict):
