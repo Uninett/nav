@@ -6172,7 +6172,7 @@ class bulkdefNetbox:
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
               ('ip',0,True,True),
-              ('orgid',10,True,True),
+              ('orgid',30,True,True),
               ('catid',8,True,True),
               ('ro',0,False,True),
               ('serial',0,False,False),
