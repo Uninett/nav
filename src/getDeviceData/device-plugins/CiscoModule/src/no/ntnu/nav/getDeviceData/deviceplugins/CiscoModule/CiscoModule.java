@@ -463,7 +463,7 @@ public class CiscoModule implements DeviceHandler
 					Log.w("CMOD_PHYSOID", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
 					continue;
 				}
-				Log.d("CMOD_PHYSOID", "Created module " + module + " from Phys: " + physSerial.get(id));
+				Log.d("CMOD_PHYSOID", "Created module " + module + " from Phys: " + (String)(physSerial != null ? physSerial.get(id) : "null"));
 				Module m = mc.moduleFactory(module);
 
 				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));
