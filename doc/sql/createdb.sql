@@ -38,3 +38,6 @@ SET search_path = arnold;
 
 ALTER DATABASE nav SET search_path = manage,profiles,logger,arnold;
 RESET search_path;
+
+-- Build indexes now
+\i indexes.sql

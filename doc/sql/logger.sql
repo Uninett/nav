@@ -69,14 +69,6 @@ CREATE TABLE errorerror (
 );
 
 --------------------------------------------------------
--- Some table indexes
---------------------------------------------------------
-
-CREATE INDEX message_type_btree ON message USING btree (type);
-CREATE INDEX message_origin_btree ON message USING btree (origin);
-CREATE INDEX message_time_btree ON message USING btree (time);
-
---------------------------------------------------------
 -- Create a view (wow, really?)
 --------------------------------------------------------
 
