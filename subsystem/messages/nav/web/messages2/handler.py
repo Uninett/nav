@@ -24,7 +24,7 @@
 #
 
 """
-mod_python handler for the Message2 subsystem.
+mod_python handler for the Messages subsystem.
 """
 
 __copyright__ = "Copyright 2006 UNINETT AS"
@@ -37,18 +37,18 @@ from mod_python import apache, util
 import mx.DateTime
 
 import nav.db
-import nav.messages2
-import nav.maintenance2
+import nav.messages
+import nav.maintenance
 from nav.web.URI import URI
-from nav.web.templates.Messages2ListTemplate import Messages2ListTemplate
-from nav.web.templates.Messages2NewTemplate import Messages2NewTemplate
-from nav.web.templates.Messages2FeedTemplate import Messages2FeedTemplate
+from nav.web.templates.MessagesListTemplate import MessagesListTemplate
+from nav.web.templates.MessagesNewTemplate import MessagesNewTemplate
+from nav.web.templates.MessagesFeedTemplate import MessagesFeedTemplate
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
 
 def handler(req):
-    """Handler for the Messages 2 subsystem."""
+    """Handler for the Messages subsystem."""
 
     # Initialize form
     keep_blank_values = True
@@ -72,8 +72,8 @@ def handler(req):
     ### SECTIONS
     # RSS 2.0 feed
     if section == 'rss':
-        page = Messages2FeedTemplate()
-        page.msgs = nav.messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
+        page = MessagesFeedTemplate()
+        page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
         page.channeltitle = 'NAV Message Feed from ' + req.hostname
         page.channeldesc = page.channeltitle
@@ -86,7 +86,7 @@ def handler(req):
             if msg['publish_start'] > page.pubDate:
                 page.pubDate = msg['publish_start']
             page.msgs[i]['link'] = 'http://' + req.hostname \
-                + '/messages2/view?id=' + str(page.msgs[i]['messageid'])
+                + '/messages/view?id=' + str(page.msgs[i]['messageid'])
             page.msgs[i]['guid'] = page.msgs[i]['link']
         if page.pubDate == 0:
             page.pubDate = mx.DateTime.now()
@@ -98,40 +98,40 @@ def handler(req):
         return apache.OK
     # Planned messages (not yet reached publishing time)
     elif section == 'planned':
-        page = Messages2ListTemplate()
+        page = MessagesListTemplate()
         page.title = 'Planned Messages'
-        page.msgs = nav.messages2.getMsgs('publish_start > now() AND publish_end > now() AND replaced_by IS NULL')
+        page.msgs = nav.messages.getMsgs('publish_start > now() AND publish_end > now() AND replaced_by IS NULL')
 
     # Historic and replaced messages
     elif section == 'historic':
-        page = Messages2ListTemplate()
+        page = MessagesListTemplate()
         page.title = 'Historic Messages'
-        page.msgs = nav.messages2.getMsgs('publish_end < now() OR replaced_by IS NOT NULL', 'publish_end DESC')
+        page.msgs = nav.messages.getMsgs('publish_end < now() OR replaced_by IS NOT NULL', 'publish_end DESC')
 
     # View a message
     elif section == 'view' and args.get('id'):
-        page = Messages2ListTemplate()
+        page = MessagesListTemplate()
         page.title = 'Message'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         msgid = int(args.get('id'))
-        page.msgs = nav.messages2.getMsgs('messageid = %d' % msgid)
+        page.msgs = nav.messages.getMsgs('messageid = %d' % msgid)
 
     # Expire a message
     elif section == 'expire' and args.get('id'):
-        page = Messages2ListTemplate()
+        page = MessagesListTemplate()
         page.title = 'Expire message'
         menu.append({'link': 'expire', 'text': 'Expire', 'admin': True})
         page.infomsgs = []
         msgid = int(args.get('id'))
-        nav.messages2.expireMsg(msgid)
+        nav.messages.expireMsg(msgid)
         page.infomsgs.append('The following message was expired.')
-        page.msgs = nav.messages2.getMsgs('messageid = %d' % msgid)
+        page.msgs = nav.messages.getMsgs('messageid = %d' % msgid)
 
     # New, followup and edit message
     elif section == 'new' or section == 'edit' or section == 'followup':
-        page = Messages2NewTemplate()
+        page = MessagesNewTemplate()
         page.title = 'Create New Message'
-        page.tasks = nav.maintenance2.getTasks('maint_end > now()')
+        page.tasks = nav.maintenance.getTasks('maint_end > now()')
         page.errors = []
 
         # Followup
@@ -143,7 +143,7 @@ def handler(req):
                 msgid = int(args.get('id'))
                 page.replaces_messageid = msgid
 
-                msg = nav.messages2.getMsgs('messageid = %d' \
+                msg = nav.messages.getMsgs('messageid = %d' \
                     % msgid)[0]
                 page.replaces_message = msg
                 page.formtitle = msg['title']
@@ -169,7 +169,7 @@ def handler(req):
                 page.errors.append('Message ID in request is not a digit.')
             else:
                 msgid = int(args.get('id'))
-                msg = nav.messages2.getMsgs('messageid = %d' % msgid)[0]
+                msg = nav.messages.getMsgs('messageid = %d' % msgid)[0]
 
                 page.edit_messageid = msgid
                 page.formtitle = msg['title']
@@ -190,7 +190,7 @@ def handler(req):
 
                 if type(msg['replaces_message']) is int:
                     page.replaces_messageid = msg['replaces_message']
-                    page.replaces_message = nav.messages2.getMsgs('messageid = %d' \
+                    page.replaces_message = nav.messages.getMsgs('messageid = %d' \
                         % page.replaces_messageid)[0]
                 else:
                     page.replaces_messageid = False
@@ -312,22 +312,22 @@ def handler(req):
                     msgid = False
 
                 # Update/Insert message
-                msgid = nav.messages2.setMsg(msgid, title, description,
+                msgid = nav.messages.setMsg(msgid, title, description,
                     tech_description, publish_start, publish_end, author,
                     replaces_messageid)
 
                 # For updates, remove all existing task connections
                 if section == 'edit':
-                    nav.messages2.removeMsgTasks(msgid)
+                    nav.messages.removeMsgTasks(msgid)
 
                 # Connect with task
                 for taskid in maint_tasks:
-                    nav.messages2.setMsgTask(msgid, int(taskid))
+                    nav.messages.setMsgTask(msgid, int(taskid))
 
                 # Expire replaced messages
                 # If a msg is "unreplaced" it will still be expired
                 #if replaces_messageid:
-                #    nav.messages2.expireMsg(replaces_messageid)
+                #    nav.messages.expireMsg(replaces_messageid)
 
                 # Redirect to view?id=$newid and exit
                 req.headers_out['location'] = 'view?id=' + str(msgid)
@@ -337,9 +337,9 @@ def handler(req):
 
     # Default: Show active messages (public messages)
     else:
-        page = Messages2ListTemplate()
+        page = MessagesListTemplate()
         page.title = 'Active Messages'
-        page.msgs = nav.messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
+        page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
     # Check if user is logged in
     if req.session['user'].id != 0:

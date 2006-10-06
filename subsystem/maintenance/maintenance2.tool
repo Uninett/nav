@@ -1,5 +1,5 @@
 name=Maintenance Tasks
-uri=/maintenance2/calendar
+uri=/maintenance/calendar
 icon=/images/toolbox/tools/emotd.gif
 description=Create and edit equipment maintenance schedules.
-priority=1
+priority=90

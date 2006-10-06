@@ -23,7 +23,7 @@
 ## Author: Stein Magnus Jodal <stein.magnus@jodal.no>
 ##
 
-#extends Messages2Template
+#extends MessagesTemplate
 #import mx.DateTime
 
 ## $verbosemsgs may be adjusted according to preference
@@ -73,7 +73,7 @@
         <th>Related maintenance tasks</th>
         <td><ul>
         #for $task in $msg.tasks
-            <li><a href="/maintenance2/view?id=$task.maint_taskid">$task.description</a>,
+            <li><a href="/maintenance/view?id=$task.maint_taskid">$task.description</a>,
             from $task.maint_start.strftime('%Y-%m-%d %H:%M')
             to $task.maint_end.strftime('%Y-%m-%d %H:%M'),
             current state is <em>$task.state</em></li>

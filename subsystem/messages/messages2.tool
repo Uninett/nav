@@ -1,5 +1,5 @@
 name=Messages
-uri=/messages2/active
+uri=/messages/active
 icon=/images/toolbox/tools/emotd.gif
 description=Read and publish operational messages.
-priority=2
+priority=91

@@ -1,5 +1,5 @@
 # $Id:$
 
 SetHandler python-program
-PythonHandler nav.web.maintenance2.handler
+PythonHandler nav.web.maintenance.handler
 DirectoryIndex index

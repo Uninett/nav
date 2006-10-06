@@ -1,5 +1,5 @@
 # $Id:$
 
 SetHandler python-program
-PythonHandler nav.web.messages2.handler
+PythonHandler nav.web.messages.handler
 DirectoryIndex index
