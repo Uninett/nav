@@ -212,6 +212,24 @@ def start(nofork):
         pid=os.fork()
         if pid > 0:
             os.sys.exit()
+
+        # Decouple from parent environment
+        os.chdir('/') # In case the cwd we started in is removed
+        os.setsid()
+
+        # Do second fork
+        # (prevent us from accidentally reacquiring a controlling terminal)
+        pid=os.fork()
+        if pid > 0:
+            os.sys.exit()
+
+        # Close the underlying OS file descriptors
+        os.sys.stdout.flush()
+        os.sys.stderr.flush()
+        os.close(os.sys.stdin.fileno())
+        os.close(os.sys.stdout.fileno())
+        os.close(os.sys.stderr.fileno())
+
         logfile = conf.get("logfile","pping.log")
         os.sys.stdout = open(logfile,"a")
         os.sys.stderr = open(logfile,"a")
