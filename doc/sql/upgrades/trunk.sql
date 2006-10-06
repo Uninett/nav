@@ -121,6 +121,10 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
+-- EMOTD DATABASE
+-- Optionally, you can drop the tables emotd, maintenance, emotd_related and
+-- the view maintenance_view from the database. These are no longer in use
+-- after the replacement of the old messages/emotd subsystem.
 
 --------------------
 --- Data changes ---
@@ -131,6 +135,7 @@ WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
   AND oidkey='hpHwVer';
 
 INSERT INTO subsystem (name) VALUES ('maintenance');
+DELETE FROM subsystem WHERE name = 'emotd';
 
 \c navprofiles
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');

@@ -567,7 +567,6 @@ INSERT INTO subsystem (name) VALUES ('trapParser');
 INSERT INTO subsystem (name) VALUES ('cricket');
 INSERT INTO subsystem (name) VALUES ('deviceTracker');
 INSERT INTO subsystem (name) VALUES ('getDeviceData');
-INSERT INTO subsystem (name) VALUES ('emotd');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');
 
@@ -793,63 +792,6 @@ CREATE TABLE alerthistvar (
   UNIQUE(alerthistid, state, var) -- only one val per var per state per alert
 );
 CREATE INDEX alerthistvar_alerthistid_btree ON alerthistvar USING btree (alerthistid);
-
-
-CREATE TABLE emotd (
-    emotdid SERIAL PRIMARY KEY,
-    replaces_emotd INT NULL REFERENCES emotd ON UPDATE CASCADE ON DELETE SET NULL,
-    -- internal message?
-    -- author is username (login) from navprofiles-db
-    author VARCHAR NOT NULL,
-    last_changed TIMESTAMP NOT NULL,
-    title VARCHAR NOT NULL,
-    title_en VARCHAR,
-    description TEXT NOT NULL,
-    description_en TEXT,
-    -- a more technical description
-    detail TEXT,
-    detail_en TEXT,
-    -- which users
-    affected TEXT,
-    affected_en TEXT,
-    publish_start TIMESTAMP,
-    publish_end TIMESTAMP,
-    -- email sent?
-    published BOOLEAN NOT NULL DEFAULT False,
-    -- estimated downtime
-    downtime VARCHAR,
-    downtime_en VARCHAR,
-    -- "info" or "error"
-    type VARCHAR NOT NULL
-);                  
-
--- scheduled - ongoing or old maintenance periods
-CREATE TABLE maintenance (
-    maintenanceid SERIAL PRIMARY KEY,
-    emotdid INT NOT NULL REFERENCES emotd ON UPDATE CASCADE ON DELETE CASCADE,
-    maint_start TIMESTAMP NOT NULL,
-    maint_end TIMESTAMP NOT NULL,
-    state VARCHAR CHECK (state IN ('scheduled','active','passed','overridden'))   
-);
-
--- references to netbox/room/etc.
-CREATE TABLE emotd_related (
-    emotdid INT REFERENCES emotd ON UPDATE CASCADE ON DELETE CASCADE,
-    -- typically "device", "room", etc., normally table name
-    key VARCHAR NOT NULL,
-    -- the identificator (primary key) of the referenced object
-    value VARCHAR NOT NULL,
-    PRIMARY KEY(emotdid,key,value)
-);
-
--- maintenanceview, joined maintenance with emotd_related
-CREATE OR REPLACE VIEW maintenance_view AS 
-    SELECT maintenance.maintenanceid, emotd_related.emotdid, 
-    emotd_related.key, emotd_related.value, maintenance.maint_start, 
-    maintenance.maint_end, maintenance.state FROM maintenance, 
-    emotd_related WHERE (emotd_related.emotdid = maintenance.emotdid);
-
-
 
 ------------------------------------------------------------------------------
 -- servicemon tables
