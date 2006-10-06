@@ -37,12 +37,11 @@ subdirs = src \
 	subsystem/deviceManagement \
 	subsystem/editdb \
 	subsystem/ipinfo \
-	subsystem/messages \
 	subsystem/l2trace \
 	subsystem/logger \
 	subsystem/machinetracker \
-	subsystem/maintenance2 \
-	subsystem/messages2 \
+	subsystem/maintenance \
+	subsystem/messages \
 	subsystem/pyproxy \
 	subsystem/report \
 	subsystem/smsd \

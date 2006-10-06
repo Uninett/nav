@@ -51,7 +51,7 @@ $contactinformationbox <br />
         <td valign="top">
 
 $welcome
-$messages2
+$messages
 $status
 
         </td>
@@ -107,7 +107,7 @@ $status
 #end def
 
 
-#def messages2
+#def messages
 #set $msgs = $getVar('msgs', False)
 #if $msgs
     #set $msgcount = len($msgs)
@@ -115,7 +115,7 @@ $status
 <table class="horiztable">
     <caption>
         <span class="cornerkludge"></span>
-        <a href="/messages2/">Messages</a><br />
+        <a href="/messages/">Messages</a><br />
         #if $msgcount == 1
         <span class="subtitle">$msgcount active message</span>
         #else
@@ -145,10 +145,10 @@ $status
         #end if
     <tr class="$rowcycler">
         <td>$msg.publish_start.strftime('%Y-%m-%d %H:%M')</td>
-        <td><a href="/messages2/view?id=$msg.messageid">$msg.title.replace('<', '&lt;').replace('>', '&gt;')</a></td>
+        <td><a href="/messages/view?id=$msg.messageid">$msg.title.replace('<', '&lt;').replace('>', '&gt;')</a></td>
         <td>$desc.replace('<', '&lt;').replace('>', '&gt;')</td>
         #if $tasks
-        <td><a href="/messages2/view?id=$msg.messageid">
+        <td><a href="/messages/view?id=$msg.messageid">
             <img src="/images/wrench.gif" width="10" height="10" alt="Tasks">
             $tasks</a></td>
         #else

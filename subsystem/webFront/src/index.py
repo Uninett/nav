@@ -71,8 +71,8 @@ def index(req):
             navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
     page.navlinks = lambda:navlinkshtml
 
-    import nav.messages2
-    page.msgs = nav.messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
+    import nav.messages
+    page.msgs = nav.messages.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
     from nav import getstatus
     liste = nav.getstatus.boxesDownSortByNewest()
