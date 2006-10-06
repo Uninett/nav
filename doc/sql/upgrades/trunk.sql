@@ -17,7 +17,7 @@
 
 \c manage
 ------------------------------------------------------------------------------
--- messages/maintenance v2 tables
+-- messages/maintenance tables
 ------------------------------------------------------------------------------
 
 CREATE TABLE message (
@@ -135,5 +135,8 @@ INSERT INTO subsystem (name) VALUES ('maintenance');
 \c navprofiles
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/style/.*');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages2/(active|historic|planned|view|rss)\\b');
-INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/maintenance2/(calendar|active|historic|planned|view)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages/(active|historic|planned|view|rss)\\b');
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/maintenance/(calendar|active|historic|planned|view)\\b');
+-- Remove old message subsystem ACL-s
+DELETE FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/messages/?$';
+DELETE FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/messages/(main\\.py|rss|historic|active|planned|view|maintenance)\\b';

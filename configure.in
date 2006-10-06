@@ -74,10 +74,7 @@ AC_OUTPUT(Makefile
 	subsystem/editdb/src/Makefile
 	subsystem/status/Makefile
 	subsystem/status/src/Makefile
-	subsystem/messages/lib/Makefile
-	subsystem/messages/src/Makefile
-	subsystem/messages/bin/Makefile
-	subsystem/messages/templates/Makefile
+	subsystem/maintenance/Makefile
 	subsystem/messages/Makefile
 	subsystem/l2trace/Makefile
 	subsystem/l2trace/src/Makefile
@@ -101,9 +98,7 @@ AC_OUTPUT(Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
 	subsystem/statTools/Makefile
-	subsystem/smsd/Makefile
-	subsystem/messages2/Makefile
-	subsystem/maintenance2/Makefile)
+	subsystem/smsd/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"
