@@ -69,7 +69,11 @@
     </tr>
     <tr>
         <th>Actions</th>
-        <td><a href="edit?id=$task.maint_taskid">Edit</a></td>
+        <td><a href="edit?id=$task.maint_taskid">Edit</a>
+    #if not $task.state == 'cancelled'
+            | <a href="cancel?id=$task.maint_taskid">Cancel now</a>
+    #end if
+        </td>
     </tr>
 #end if
 </table>

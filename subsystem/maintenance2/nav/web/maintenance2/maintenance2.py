@@ -393,3 +393,25 @@ def getService(serviceid):
     result = db.dictfetchall()
     # FIXME: Log result
     return result[0]
+
+def cancelTask(taskid):
+    """
+    Cancel a maintenance task by setting state to 'canceled'
+
+    Input:
+        msgid   ID of maintenance task to be canceled
+
+    Returns:
+        Always returns true, unless some error occurs.
+
+    """
+
+    sql = """UPDATE maint_task SET state = 'canceled'
+        WHERE maint_taskid = %(maint_taskid)d"""
+
+    data = {'maint_taskid': taskid}
+
+    # FIXME: Log query
+    db.execute(sql, data)
+    # FIXME: Log result
+    return True

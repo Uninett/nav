@@ -75,16 +75,19 @@ def handler(req):
         page = Maintenance2ListTemplate()
         page.title = 'Active Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_start < now() AND maint_end > now()')
+
     # Planned maintenance tasks (not yet reached activation time)
     elif section == 'planned':
         page = Maintenance2ListTemplate()
         page.title = 'Planned Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_start > now() AND maint_end > now()')
+
     # Historic maintenance tasks
     elif section == 'historic':
         page = Maintenance2ListTemplate()
         page.title = 'Historic Maintenance Tasks'
         page.tasks = maintenance2.getTasks('maint_end < now()', 'maint_end DESC')
+
     # View a maintenance task
     elif section == 'view' and args.get('id'):
         page = Maintenance2ListTemplate()
@@ -92,6 +95,18 @@ def handler(req):
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         taskid = int(args.get('id'))
         page.tasks = maintenance2.getTasks('maint_taskid = %d' % taskid)
+
+    # Cancel a maintenance task
+    elif section == 'cancel' and args.get('id'):
+        page = Maintenance2ListTemplate()
+        page.title = 'Cancel maintenance task'
+        menu.append({'link': 'cancel', 'text': 'Cancel', 'admin': True})
+        page.infomsgs = []
+        taskid = int(args.get('id'))
+        maintenance2.cancelTask(taskid)
+        page.infomsgs.append('The following maintenance task was canceled.')
+        page.tasks = maintenance2.getTasks('maint_taskid = %d' % taskid)
+
     # New and edit
     elif section == 'new' or section =='edit':
         page = Maintenance2NewTemplate()
@@ -375,10 +390,12 @@ def handler(req):
                 page.errors.append('You did not supply a description.')
 
             # Edit task 
-            if req.form.has_key('edit_taskid') and req.form['edit_taskid'].isdigit():
+            if (req.form.has_key('edit_taskid')
+                and req.form['edit_taskid'].isdigit()):
                 # Get ID of edited message
                 taskid = int(req.form['edit_taskid'])
-                edit_task = maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
+                edit_task = maintenance2.getTasks('maint_taskid = %d' %
+                    taskid)[0]
 
                 # Find new state
                 now = time.localtime()
