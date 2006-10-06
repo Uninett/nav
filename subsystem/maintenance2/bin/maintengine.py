@@ -43,7 +43,7 @@ from mx import DateTime
 
 # Placeholders
 events = []
-states = ['scheduled', 'active', 'passed', 'overridden']
+states = ['scheduled', 'active', 'passed', 'canceled']
 debug = False
 boxesOffMaintenance = []
 dbconn = nav.db.getConnection('eventEngine', 'manage')
@@ -58,7 +58,7 @@ def schedule():
 
     sql = """UPDATE maint_task SET state = 'scheduled'
         WHERE state IS NULL
-        OR state NOT IN ('scheduled', 'active', 'passed', 'overridden')"""
+        OR state NOT IN ('scheduled', 'active', 'passed', 'canceled')"""
     db.execute(sql)
     dbconn.commit()
     
