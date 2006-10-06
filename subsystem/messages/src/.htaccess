@@ -1,4 +1,0 @@
-PythonPath "sys.path+['/usr/local/nav/apache/webroot/messages']"
-SetHandler python-program
-PythonHandler messageshandler
-DirectoryIndex messageshandler.py
