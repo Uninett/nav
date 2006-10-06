@@ -200,7 +200,7 @@ def process(request):
     result.append(urlbuilder.createLink(netbox, 
                             subsystem='editdb', content="[Edit]"))
     result.append(urlbuilder.createLink(netbox,
-                                        subsystem='messages',
+                                        subsystem='maintenance',
                                         content='[Schedule maintenance]'))
     services = info.showServices(sortBy)
     if services:
