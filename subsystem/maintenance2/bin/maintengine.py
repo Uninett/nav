@@ -194,7 +194,7 @@ def send_event():
                 event['val'] = netbox['qval']
 
                 # Add event to eventq
-                print event
+                # FIXME: Log event posting
                 event.post()
 
         # Update state
@@ -222,34 +222,37 @@ def remove_forgotten():
 
     # This SQL retrieves a list of boxes that are supposed to be on
     # maintenance, according to the schedule.
-    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname,
+                integer '0' AS subid
             FROM maint m INNER JOIN netbox n ON (n.netboxid = m.value)
             WHERE m.key = 'netbox' AND m.state = 'active'
 
             UNION
 
-            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+            SELECT n.netboxid, n.deviceid, n.sysname, integer '0' AS subid
             FROM maint m INNER JOIN netbox n ON (n.roomid = m.value)
             WHERE m.key = 'netbox' AND m.state = 'active'
 
             UNION
     
-            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+            SELECT n.netboxid, n.deviceid, n.sysname, integer '0' AS subid
             FROM maint m INNER JOIN netbox n ON (n.roomid IN
                 (SELECT roomid FROM room WHERE locationid = m.value))
             WHERE m.key = 'location' AND m.state = 'active'
 
             UNION
-
-            SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
+            
+            SELECT n.netboxid, n.deviceid, n.sysname,
+                to_number(m.value, '999999') AS subid
             FROM maint m INNER JOIN netbox n ON (n.netboxid IN
-                (SELECT netboxid FROM service WHERE serviceid = m.value))
+                (SELECT netboxid FROM service WHERE
+                    serviceid LIKE m.value))
             WHERE m.key = 'service' AND m.state = 'active'"""
 
     # This SQL retrieves a list of boxes that are currently on
     # maintenance, according to the alert history.
     sqlactual = """SELECT n.netboxid, n.deviceid, n.sysname,
-            trim(to_char(s.serviceid, '999999')) AS subid
+            s.serviceid AS subid
         FROM alerthist a LEFT JOIN netbox n USING (netboxid)
             LEFT JOIN service s USING (netboxid)
         WHERE eventtypeid='maintenanceState' AND netboxid IS NOT NULL
@@ -277,19 +280,20 @@ def remove_forgotten():
             # boxes here.
             continue
 
+        # FIXME: Use NAV logger
         print >> sys.stderr, ("Box %s (%d) was on unscheduled " +
                               "maintenance, taking off maintenance now...") % \
                               (sysname, netboxid)
 
-        # FIXME: If it's a service, we have to set subid also
+        # If it's a service, we have to set subid also
         if subid is None:
             subid = False
             qvar = 'netbox'
             qval = sysname
         else:
+            subid = int(subid)
             qvar = 'service'
             qval = subid
-        print (netboxid, deviceid, sysname, subid, qvar, qval)
 
         # Create event
         event = nav.event.Event(source=source, target=target,
@@ -297,6 +301,7 @@ def remove_forgotten():
             eventtypeid=eventtype, state=state, value=value, severity=severity)
         event['var'] = qvar
         event['val'] = qval
+        event.post()
 
     # Commit transaction
     dbconn.commit()

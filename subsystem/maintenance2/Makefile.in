@@ -44,10 +44,10 @@ webroot = @webroot@
 WEBNAME = maintenance2
 
 # Files
-BINS = # $(wildcard bin/*.py)
+BINS = $(wildcard bin/*.py)
 LIBS = $(wildcard nav/web/maintenance2/*.py)
 CONFFILES =
-CRONFILES = # $(wildcard *.cron)
+CRONFILES = $(wildcard *.cron)
 INITFILES =
 TOOLS = maintenance2.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)
