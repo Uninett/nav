@@ -194,17 +194,18 @@ def handler(req):
                               'value': buttontext,
                               'enabled': buttonenabled }
 
-        # Edit
+        # Edit: Fill page with existing data
         if section == 'edit':
             page.title = 'Edit Maintenance Task'
             page.submittext = 'Save Maintenance Task'
             menu.append({'link': 'edit', 'text': 'Edit', 'admin': True})
 
-            if not args.get('id'):
+            if not args.get('id') or not args.get('id').isdigit():
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
                 task = maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
+                page.edit_taskid = taskid
 
                 # Maintenance components
                 page.components = task['components']
@@ -223,7 +224,6 @@ def handler(req):
                 page.end_min = int(task['maint_end'].strftime('%M'))
 
                 # Description
-                page.edit_taskid = taskid
                 page.description = task['description']
 
 
@@ -242,7 +242,7 @@ def handler(req):
             # editing
             components = page.components
 
-        # Add components
+        # Handle added components
         for field in req.form.list:
             if (req.form.has_key('cn_add_services')
              and field.name == 'cn_service'):
@@ -281,7 +281,7 @@ def handler(req):
                 if components.count(component) == 0:
                     components.append(component)
 
-        # Remove components
+        # Handle removed components
         if req.form.has_key('submit_comp_remove'):
             for field in req.form.list:
                 if field.name[:len('remove')] == 'remove':
@@ -289,9 +289,10 @@ def handler(req):
                     components.remove({'key': key, 'value': value,
                         'info': maintenance2.getComponentInfo(key, value)})
 
-        # Set components
+        # Fill page with components
         components = maintenance2.sortComponents(components)
         page.components = components
+
 
         # For any non-final submit button pressed, keep entered dates and
         # descriptions (> 1 because of edit?id=X)
@@ -314,7 +315,7 @@ def handler(req):
             # Description
             page.description = req.form['description']
 
-        # Form submitted
+        # Form submitted: prepare rest of the needed data
         page.submit = req.form.has_key('submit_final')
         if page.submit:
             # Maintenance components
@@ -373,14 +374,28 @@ def handler(req):
             else:
                 page.errors.append('You did not supply a description.')
 
-            # Get ID of message edited
-            if section == 'edit':
-                if req.form.has_key('edit_taskid') \
-                    and req.form['edit_taskid']:
-                    edit_taskid = int(req.form['edit_taskid'])
-                    edit_task = maintenance2.getTasks('maint_taskid = %d' % edit_taskid)[0]
-                else:
-                    page.errors.append('ID of edited maintenance task is missing.')
+            # Edit task 
+            if req.form.has_key('edit_taskid') and req.form['edit_taskid'].isdigit():
+                # Get ID of edited message
+                taskid = int(req.form['edit_taskid'])
+                edit_task = maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
+
+                # Find new state
+                now = time.localtime()
+                if maint_start >= now:
+                    state = 'scheduled'
+                elif maint_start < now:
+                    if maint_end > now:
+                        if edit_task['state'] == 'active':
+                            state = 'active'
+                        else:
+                            state = 'scheduled'
+                    elif maint_end <= now:
+                        state = 'passed'
+            # New task
+            else:
+                taskid = False
+                state = 'scheduled'
 
             # Get session data
             author = req.session['user'].login
@@ -391,25 +406,6 @@ def handler(req):
                 pass
             # No errors, update database
             else:
-                if section == 'edit':
-                    # Edited task
-                    taskid = edit_taskid 
-                    ### FIXME: Broken, need to think
-#                    if edit_task['state'] == 'passed' or maint_end < time.gmtime():
-#                        state = 'passed'
-#                    elif edit_task['state'] == 'active':
-#                        state = 'active'
-#                    elif edit_task['state'] == 'scheduled' or maint_start >= time.gmtime():
-#                        state = 'scheduled'
-#                    maint_start < time.gmtime() and edit_task['state'] != 'active':
-#                    else:
-#                        state = edit_task['state']
-                    state = edit_task['state']
-                else:
-                    # New task, always scheduled
-                    taskid = False
-                    state = 'scheduled'
-
                 # Update/insert maintenance task
                 taskid = maintenance2.setTask(taskid, maint_start, maint_end,
                     description, author, state)
@@ -425,7 +421,7 @@ def handler(req):
                 req.send_http_header()
                 return apache.OK
 
-    # Default: Show task calendar
+    # Default section: Show task calendar
     else:
         page = Maintenance2CalTemplate()
         page.title = 'Maintenance Schedule'
@@ -452,6 +448,7 @@ def handler(req):
                 page.tasks[date] = []
             page.tasks[date].append(task)
         
+
     # Check if user is logged in
     if req.session['user'].id != 0:
         page.authorized = True
