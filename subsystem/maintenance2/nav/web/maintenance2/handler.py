@@ -36,11 +36,11 @@ import time
 from mod_python import apache, util
 
 import nav.db
+import nav.maintenance2
 from nav.web.URI import URI
 from nav.web.templates.Maintenance2CalTemplate import Maintenance2CalTemplate
 from nav.web.templates.Maintenance2ListTemplate import Maintenance2ListTemplate
 from nav.web.templates.Maintenance2NewTemplate import Maintenance2NewTemplate
-from nav.web.maintenance2 import maintenance2
 from nav.web.TreeSelect import TreeSelect, Select, UpdateableSelect
 
 dbconn = nav.db.getConnection('webfront', 'manage')
@@ -74,19 +74,19 @@ def handler(req):
     if section == 'active':
         page = Maintenance2ListTemplate()
         page.title = 'Active Maintenance Tasks'
-        page.tasks = maintenance2.getTasks('maint_start < now() AND maint_end > now()')
+        page.tasks = nav.maintenance2.getTasks('maint_start < now() AND maint_end > now()')
 
     # Planned maintenance tasks (not yet reached activation time)
     elif section == 'planned':
         page = Maintenance2ListTemplate()
         page.title = 'Planned Maintenance Tasks'
-        page.tasks = maintenance2.getTasks('maint_start > now() AND maint_end > now()')
+        page.tasks = nav.maintenance2.getTasks('maint_start > now() AND maint_end > now()')
 
     # Historic maintenance tasks
     elif section == 'historic':
         page = Maintenance2ListTemplate()
         page.title = 'Historic Maintenance Tasks'
-        page.tasks = maintenance2.getTasks('maint_end < now()', 'maint_end DESC')
+        page.tasks = nav.maintenance2.getTasks('maint_end < now()', 'maint_end DESC')
 
     # View a maintenance task
     elif section == 'view' and args.get('id'):
@@ -94,7 +94,7 @@ def handler(req):
         page.title = 'Maintenance Task'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         taskid = int(args.get('id'))
-        page.tasks = maintenance2.getTasks('maint_taskid = %d' % taskid)
+        page.tasks = nav.maintenance2.getTasks('maint_taskid = %d' % taskid)
 
     # Cancel a maintenance task
     elif section == 'cancel' and args.get('id'):
@@ -103,9 +103,9 @@ def handler(req):
         menu.append({'link': 'cancel', 'text': 'Cancel', 'admin': True})
         page.infomsgs = []
         taskid = int(args.get('id'))
-        maintenance2.cancelTask(taskid)
+        nav.maintenance2.cancelTask(taskid)
         page.infomsgs.append('The following maintenance task was canceled.')
-        page.tasks = maintenance2.getTasks('maint_taskid = %d' % taskid)
+        page.tasks = nav.maintenance2.getTasks('maint_taskid = %d' % taskid)
 
     # New and edit
     elif section == 'new' or section =='edit':
@@ -219,7 +219,7 @@ def handler(req):
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
-                task = maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
+                task = nav.maintenance2.getTasks('maint_taskid = %d' % taskid)[0]
                 page.edit_taskid = taskid
 
                 # Maintenance components
@@ -251,7 +251,7 @@ def handler(req):
                 if field.name[:len('component')] == 'component':
                     key, value = field.value.split(',')
                     components.append({'key': key, 'value': value,
-                        'info': maintenance2.getComponentInfo(key, value)})
+                        'info': nav.maintenance2.getComponentInfo(key, value)})
         else:
             # Nothing submitted, using values from default or the task we are
             # editing
@@ -265,7 +265,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'info': maintenance2.getComponentInfo(key, value)}
+                    'info': nav.maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_netboxes')
@@ -274,7 +274,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'info': maintenance2.getComponentInfo(key, value)}
+                    'info': nav.maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_rooms')
@@ -283,7 +283,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'info': maintenance2.getComponentInfo(key, value)}
+                    'info': nav.maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
             elif (req.form.has_key('cn_add_locations')
@@ -292,7 +292,7 @@ def handler(req):
                 value = field.value
                 component = {
                     'key': key, 'value': value,
-                    'info': maintenance2.getComponentInfo(key, value)}
+                    'info': nav.maintenance2.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
 
@@ -302,10 +302,10 @@ def handler(req):
                 if field.name[:len('remove')] == 'remove':
                     key, value = field.value.split(',')
                     components.remove({'key': key, 'value': value,
-                        'info': maintenance2.getComponentInfo(key, value)})
+                        'info': nav.maintenance2.getComponentInfo(key, value)})
 
         # Fill page with components
-        components = maintenance2.sortComponents(components)
+        components = nav.maintenance2.sortComponents(components)
         page.components = components
 
 
@@ -394,7 +394,7 @@ def handler(req):
                 and req.form['edit_taskid'].isdigit()):
                 # Get ID of edited message
                 taskid = int(req.form['edit_taskid'])
-                edit_task = maintenance2.getTasks('maint_taskid = %d' %
+                edit_task = nav.maintenance2.getTasks('maint_taskid = %d' %
                     taskid)[0]
 
                 # Find new state
@@ -424,11 +424,11 @@ def handler(req):
             # No errors, update database
             else:
                 # Update/insert maintenance task
-                taskid = maintenance2.setTask(taskid, maint_start, maint_end,
-                    description, author, state)
+                taskid = nav.maintenance2.setTask(taskid, maint_start,
+                    maint_end, description, author, state)
 
                 # Update/insert maintenance components
-                compstatus = maintenance2.setComponents(taskid, components)
+                compstatus = nav.maintenance2.setComponents(taskid, components)
                 if not compstatus:
                     page.error.append('Failed adding components.')
 
@@ -454,7 +454,7 @@ def handler(req):
             page.month = int(time.strftime('%m'))
 
         # Get tasks
-        tasks = maintenance2.getTasks("maint_start > '%04d-%02d-01'" \
+        tasks = nav.maintenance2.getTasks("maint_start > '%04d-%02d-01'" \
             % (page.year, page.month), 'maint_start') or []
         
         # Group tasks by start date

@@ -45,7 +45,7 @@ WEBNAME = messages2
 # Files
 INITFILES =
 BINS =
-LIBS = $(wildcard nav/web/messages2/*.py)
+LIBS = $(wildcard nav/*.py nav/web/messages2/*.py)
 CONFFILES =
 TOOLS = messages2.tool
 TEMPLATESSRC = $(wildcard nav/web/templates/*.tmpl)

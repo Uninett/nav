@@ -45,7 +45,7 @@ WEBNAME = maintenance2
 
 # Files
 BINS = $(wildcard bin/*.py)
-LIBS = $(wildcard nav/web/maintenance2/*.py)
+LIBS = $(wildcard nav/*.py nav/web/maintenance2/*.py)
 CONFFILES =
 CRONFILES = $(wildcard *.cron)
 INITFILES =

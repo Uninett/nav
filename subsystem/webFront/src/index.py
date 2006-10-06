@@ -50,6 +50,7 @@ def index(req):
     else:
         name = req.session.id
 
+    import nav.config
     from nav.web.templates.FrontpageTemplate import FrontpageTemplate
 
     page = FrontpageTemplate()
@@ -70,8 +71,8 @@ def index(req):
             navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
     page.navlinks = lambda:navlinkshtml
 
-    from nav.web.messages2 import messages2
-    page.msgs = messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
+    import nav.messages2
+    page.msgs = nav.messages2.getMsgs('publish_start < now() AND publish_end > now() AND replaced_by IS NULL')
 
     from nav import getstatus
     liste = nav.getstatus.boxesDownSortByNewest()
