@@ -1,3 +1,30 @@
+/*
+ * $Id:$ 
+ *
+ * Copyright 2003-2005 Norwegian University of Science and Technology
+ * Copyright 2006 UNINETT AS
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ * Authors: Sigurd Gartmann
+ *          Kristian Eide <kreide@gmail.com>
+ *          Morten Vold <morten.vold@uninett.no>
+ */
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwIOS;
 
 import java.util.ArrayList;
@@ -40,7 +67,6 @@ import no.ntnu.nav.util.util;
  *	<li>From Cisco IOS</li>
  *	<ul>
  *	 <li>ifDescr</li>
- *	 <li>ifName</li>
  *	 <li>ifVlan</li>
  *	 <li>ifVlansAllowed</li>
  *	 <li>portPortName</li>
@@ -218,9 +244,9 @@ public class CiscoSwIOS implements DeviceHandler
 		// We didn't find any acceptable interfaces, so we bail out
 		if (matchedIfindexes.isEmpty()) return;
 		
-		ifDescriptions = sSnmp.getAll(nb.getOid("ifVlan"));
-		if (ifDescriptions != null) {
-			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+		List ifVlans = sSnmp.getAll(nb.getOid("ifVlan"));
+		if (ifVlans != null) {
+			for (Iterator it = ifVlans.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
 				if (!matchedIfindexes.contains(ifindex)) continue;
@@ -234,9 +260,9 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 
-		ifDescriptions = sSnmp.getAll(nb.getOid("ifTrunk"));
-		if (ifDescriptions != null) {
-			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+		List ifTrunks = sSnmp.getAll(nb.getOid("ifTrunk"));
+		if (ifTrunks != null) {
+			for (Iterator it = ifTrunks.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				String ifindex = s[0];
 				if (!matchedIfindexes.contains(ifindex)) continue;
@@ -246,18 +272,18 @@ public class CiscoSwIOS implements DeviceHandler
 			}
 		}
 
-		ifDescriptions = sSnmp.getAll(nb.getOid("ifVlansAllowed"));
-		if (ifDescriptions != null) {
-			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+		List ifVlansAllowed = sSnmp.getAll(nb.getOid("ifVlansAllowed"));
+		if (ifVlansAllowed != null) {
+			for (Iterator it = ifVlansAllowed.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				if (!matchedIfindexes.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setHexstring(s[1]);
 			}
 		}
 		
-		ifDescriptions = sSnmp.getAll(nb.getOid("ifPortName"), true);
-		if (ifDescriptions != null) {
-			for (Iterator it = ifDescriptions.iterator(); it.hasNext();) {
+		List ifPortNames = sSnmp.getAll(nb.getOid("ifPortName"), true);
+		if (ifPortNames != null) {
+			for (Iterator it = ifPortNames.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				if (!matchedIfindexes.contains(s[0])) continue;
 				sc.swportFactory(s[0]).setPortname(s[1]);
