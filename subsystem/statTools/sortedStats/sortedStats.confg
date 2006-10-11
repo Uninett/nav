@@ -1,0 +1,50 @@
+# Configfile for sortedStats webutility
+
+# Make your own views if you want. Make sure:
+# - that the viewname (the one in brackets) and the name is not taken
+# - that name, path and dsdescr are set.
+#
+
+# The values here are in seconds. If someone wants to see a view and
+# the cache is older than this, it will fetch live data.
+
+[ss_general]
+# 5 minutes
+cachetimeouthour: 300
+# 2 hours
+cachetimeoutday: 7200
+# 1 day
+cachetimeoutweek: 86400
+# 1 day
+cachetimeoutmonth: 86400
+
+[cpurouters]
+name: CPU Routers
+path: routers
+dsdescr: cpu5min
+units: percent
+
+[cpuswitches]
+name: CPU Switches
+path: switches
+dsdescr: cpu5min
+
+[uptimeswitches]
+name: Sysuptime Switches
+path: switches
+dsdescr: sysuptime
+units: days
+modifier: / 100 / 86400 
+
+[ifinoctetsgigaswitchports]
+name: Traffic in on gigaswitchports
+path: giga-switch-ports
+dsdescr: ifinoctets
+units: bits/s
+modifier: * 8
+
+[temprouters]
+name: Temperature Routers 
+path: routers 
+dsdescr: tempinlet 
+

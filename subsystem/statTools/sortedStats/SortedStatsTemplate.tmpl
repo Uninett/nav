@@ -1,0 +1,98 @@
+
+#extends nav.web.templates.MainTemplate
+
+#def content
+
+
+<h3>Sorted Statistics</h3>
+
+<form action='' method='GET'>
+<table>
+<tr><td>Choose view</td><td>Timeframe</td><td>Rows</td><td>Live</td><td>&nbsp;</td></tr>
+<tr>
+
+## Drop-down to choose view
+
+
+<td><select name='view'>
+
+#set $sectionslist = $config.sections()
+$sectionslist.sort()
+#for $s in $sectionslist
+
+#if $s == 'ss_general'
+#continue
+#end if
+
+## If we have a view, mark it as selected, else don't bother.
+#if $view == $s
+<option value="$s" selected>$config.get($s, 'name')</option>
+#else
+<option value="$s">$config.get($s, 'name')</option>
+#end if
+
+#end for
+</select></td>
+
+
+<td><select name='fromtime'>
+#for $t in $fromtimes.keys()
+
+#if $fromtime == $t
+<option value='$t' selected>$fromtimes[$t]</option>
+#else
+<option value='$t'>$fromtimes[$t]</option>
+#end if
+
+#end for
+</select></td>
+
+
+<td><input type='text' name='numrows' value='$numrows' size='3'></td>
+
+#if $forcedview == '1'
+<td><input type="checkbox" name="forcedview" value="1" checked></td>
+#else
+<td><input type="checkbox" name="forcedview" value="1"></td>
+#end if
+
+<td><input type="submit" name="normalview" value="View"></td>
+
+</form>
+
+</tr></table>
+
+
+#if $showArr
+<table>
+Sorted statistics for $config.get($view, 'name') $fromtimes[$fromtime].
+## Walk the sortedkeys and print the values
+#set $counter = 1
+
+
+#for $line in $sortedKeys
+
+## Format the values. 
+
+#set value = "%.2f" %($showArr[$line])
+<tr><td>$counter</td><td>$line</td><td align='right'>$value</td><td>$units</td></tr>
+#set $counter += 1
+
+#if $counter > int($numrows)
+#break
+#end if
+
+#end for
+
+
+
+</table>
+#end if
+
+#if $exetime != 0
+<p>Got data in $exetime seconds ($footer).</p>
+#end if
+
+
+
+#end def
