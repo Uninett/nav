@@ -3,6 +3,9 @@ package no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwCAT;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import no.ntnu.nav.ConfigParser.ConfigParser;
 import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
@@ -51,6 +54,11 @@ public class CiscoSwCAT implements DeviceHandler
 			"portPortName",
 	};
 
+	/**
+	 * This pattern should match things like Fa1/0/1 or Gi0/5.  Use group number
+	 * 2 to get the port number part.
+	 */
+	private static Pattern portPattern = Pattern.compile("(.*/(\\d+))$");
 	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
@@ -112,6 +120,7 @@ public class CiscoSwCAT implements DeviceHandler
 	{
 		HashMap modPortIfindex = new HashMap();
 		List portIfIndexes = sSnmp.getAll(nb.getOid("portIfIndex"));
+		Map ifNames = sSnmp.getAllMap(nb.getOid("ifName"));
 
 		if (portIfIndexes != null) {
 			// Iterate the portIfIndex response to enumerate modules/ports
@@ -122,7 +131,19 @@ public class CiscoSwCAT implements DeviceHandler
 				
 				String[] s2 = moduleDotPort.split("\\.");
 				Integer module = Integer.valueOf(s2[0]);
-				Integer port = Integer.valueOf(s2[1]);
+				// Default the port number to the ifindex, which will be our fallback
+				Integer port = Integer.valueOf(ifindex);
+				if (ifNames == null) {
+					// Get the port number from the portIfIndex OID
+					port = Integer.valueOf(s2[1]);
+				} else if (ifNames.containsKey(ifindex)) {
+					// Interpret the ifName string to get a port number
+					String ifName = (String) ifNames.get(ifindex);
+					Matcher matcher = portPattern.matcher(ifName);
+					if (matcher.matches()) {
+						port = Integer.valueOf(matcher.group(2));
+					}
+				}
 				modPortIfindex.put(moduleDotPort, ifindex);
 				Log.d("PROCESS_CAT", "ifIndex " + ifindex+ " maps to " + moduleDotPort);
 				
