@@ -403,10 +403,7 @@ def handler(req):
                     state = 'scheduled'
                 elif maint_start < now:
                     if maint_end > now:
-                        if edit_task['state'] == 'active':
-                            state = 'active'
-                        else:
-                            state = 'scheduled'
+                        state = 'scheduled'
                     elif maint_end <= now:
                         state = 'passed'
             # New task
