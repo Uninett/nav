@@ -37,7 +37,7 @@ units = {
       3 : ('k', 'kilo'),
       6 : ('M', 'mega'),
       9 : ('G', 'giga'),
-     12 : ('T', 'terra'),
+     12 : ('T', 'tera'),
      15 : ('P', 'peta'),
      18 : ('E', 'exa'),
      21 : ('Z', 'zetta'),
