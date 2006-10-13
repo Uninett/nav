@@ -303,8 +303,75 @@ class ServiceSectionBox(SectionBox):
     getFilters = staticmethod(getFilters)
 
 
+class ServiceMaintenanceSectionBox(SectionBox):
+    " Section displaying services that are on maintenance "
+
+    name = 'Services on maintenance'
+    typeId = 'servicemaint'
+
+    prefsOptions = None
+
+    defaultSort = 3
+    sortReverse = False 
+    sortBy = defaultSort
+
+    def __init__(self, controlBaseName, getArgs, title, filterSettings):
+        # Sort reverse by column 4 (downtime)
+
+        self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('Handler',None),
+                            ('Down since',None),
+                            ('Downtime',None),
+                            ('',None)]
+        self.rows = []
+        self.summary = None
+        self.historyLink = ['/maintenance/calendar', '(maintenance schedule)']
+        self.filterSettings = filterSettings
+
+        SectionBox.__init__(self, controlBaseName, title, getArgs, None)
+        self.addHeadings()
+        return
+
+    def fill(self):
+        pass # FIXME
+
+    def getFilters(controlBaseName, orgList):
+        """
+        Return the filters that this section box accepts
+        """
+
+        filterHeadings = ['Organisation','Service','State']
+
+        filterSelects = []
+        table = nav.db.manage.Org
+
+        # Org
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        # Restrict to orgs where user belongs
+        #whereOrg = makeWhereList(orgList)
+        for org in table.getAllIterator(orderBy = 'orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
+        filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
+
+        # Handler
+        optionsList = [(FILTER_ALL_SELECTED,'All')]
+        filterSelects.append((controlBaseName + '_' + 'handler',\
+        [(FILTER_ALL_SELECTED,'All',True),('dns','dns',False),\
+        ('imaps','imaps',False),('imap','imap',False),('http','http',False),
+        ('pop3','pop3',False),('rpc','rpc',False),('smb','smb',False),
+        ('ssh','ssh',False),('smtp','smtp',False)]))
+
+        # State
+        filterSelects.append((controlBaseName + '_' + 'state',\
+        [(FILTER_ALL_SELECTED,'All',True),('n','Down',False),\
+        ('s','Shadow',False)]))
+        return (filterHeadings,filterSelects)
+    getFilters = staticmethod(getFilters)
+
+
 class NetboxSectionBox(SectionBox):
-    " Section displaying services that are down or in shadow "
+    " Section displaying netboxes that are down or in shadow "
 
     # attribs for preferences
     name = 'IP Devices down'
@@ -468,6 +535,72 @@ class NetboxSectionBox(SectionBox):
         else:
             self.summary = boxesDown + ' IP devices down, ' + \
                            boxesShadow.lower() + ' in shadow'
+
+    def getFilters(controlBaseName,orgList):
+        """
+        Return the filters that this section accepts
+        """
+
+        filterHeadings = ['Organisation','Category','State']
+
+        filterSelects = []
+
+        # Org
+        table = nav.db.manage.Org
+        # Restrict to orgs where user belongs
+        #whereOrg = makeWhereList(orgList)
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        for org in table.getAllIterator(orderBy='orgid'):
+            optionsList.append((org.orgid,org.orgid,False))
+        filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
+
+        # Cat
+        table = nav.db.manage.Cat
+        optionsList = [(FILTER_ALL_SELECTED,'All',True)]
+        for cat in table.getAllIterator():
+             optionsList.append((cat.catid,cat.catid,False))
+        filterSelects.append((controlBaseName + '_' + 'catid',optionsList))
+
+        # State
+        filterSelects.append((controlBaseName + '_' + 'state',\
+        [(FILTER_ALL_SELECTED,'All',True),('n','Down',False),\
+        ('s','Shadow',False)]))
+        return (filterHeadings,filterSelects)
+    getFilters = staticmethod(getFilters)
+
+
+class NetboxMaintenanceSectionBox(SectionBox):
+    " Section displaying netboxes that are on maintenance "
+
+    name = 'IP devices on maintenance'
+    typeId = 'netboxmaint'
+
+    prefsOptions = None
+
+    defaultSort = 3
+    sortReverse = False 
+    sortBy = defaultSort
+
+    def __init__(self, controlBaseName, getArgs, title, filterSettings):
+        # Sort reverse by column 4 (downtime)
+
+        self.headings = []
+        self.headingDefs = [('Sysname',None),
+                            ('IP',self.ipCompare),
+                            ('Down since',None),
+                            ('Downtime',None),
+                            ('',None)]
+        self.rows = []
+        self.summary = None
+        self.historyLink = ['/maintenance/calendar', '(maintenance schedule)']
+        self.filterSettings = filterSettings
+
+        SectionBox.__init__(self, controlBaseName, title, getArgs, None)
+        self.addHeadings()
+        return
+
+    def fill(self):
+        pass # FIXME
 
     def getFilters(controlBaseName,orgList):
         """

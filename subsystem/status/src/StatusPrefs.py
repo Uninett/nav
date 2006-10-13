@@ -85,7 +85,9 @@ class HandleStatusPrefs:
         # Make a list of the available SectionBox types
         sectionBoxTypeList = []
         sectionBoxTypeList.append(NetboxSectionBox)
+        sectionBoxTypeList.append(NetboxMaintenanceSectionBox)
         sectionBoxTypeList.append(ServiceSectionBox)
+        sectionBoxTypeList.append(ServiceMaintenanceSectionBox)
         sectionBoxTypeList.append(ModuleSectionBox)
 	sectionBoxTypeList.append(ThresholdSectionBox)
         # Make a dictionary of typeId,SectionBox

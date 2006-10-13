@@ -131,17 +131,23 @@ class StatusPage:
             controlBaseName, typeId, title, filters = section
 
             if typeId == 'netbox':
-                self.sections.append(NetboxSectionBox(controlBaseName,args,\
-                title,filters))
+                self.sections.append(NetboxSectionBox(controlBaseName, args,
+                    title, filters))
+            elif typeId == 'netboxmaint':
+                self.sections.append(NetboxMaintenanceSectionBox(
+                    controlBaseName, args, title, filters))
             elif typeId == 'service':
-                self.sections.append(ServiceSectionBox(controlBaseName,args,\
-                title,filters))
+                self.sections.append(ServiceSectionBox(controlBaseName, args,
+                    title, filters))
+            elif typeId == 'servicemaint':
+                self.sections.append(ServiceMaintenanceSectionBox(
+                    controlBaseName, args, title, filters))
             elif typeId == 'module':
-                self.sections.append(ModuleSectionBox(controlBaseName,args,\
-                title,filters))
+                self.sections.append(ModuleSectionBox(controlBaseName, args,
+                    title, filters))
             elif typeId == 'threshold':
-                self.sections.append(ThresholdSectionBox(controlBaseName,args,\
-                title,filters))
+                self.sections.append(ThresholdSectionBox(controlBaseName, args,
+                    title, filters))
 
         # check http get arguments and sort the lists
         for section in self.sections:
