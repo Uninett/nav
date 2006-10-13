@@ -53,7 +53,7 @@ install-web: install-images
 
 install-images:
 	@cd graphics; \
-	installable=`find . -name '.htaccess' -or -name '*.png' -or -name '*.gif'`; \
+	installable=`find . -name '.htaccess' -or -name '*.png' -or -name '*.gif' -or -name '*.jpg'`; \
 	for file in $$installable; do \
 	  $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(webroot)/$$file || exit 1; \
 	done
