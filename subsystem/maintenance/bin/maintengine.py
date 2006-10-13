@@ -128,7 +128,7 @@ def send_event():
                 elif key == 'room':
                     sql = """SELECT netboxid, sysname, deviceid
                         FROM netbox
-                        WHERE roomid = %(roomid)d"""
+                        WHERE roomid = %(roomid)s"""
                     data = { 'roomid': val }
                     db.execute(sql, data)
                 for (netboxid, sysname, deviceid) in db.fetchall():
