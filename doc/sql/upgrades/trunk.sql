@@ -138,6 +138,7 @@ INSERT INTO subsystem (name) VALUES ('maintenance');
 DELETE FROM subsystem WHERE name = 'emotd';
 
 \c navprofiles
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/about/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/style/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/messages/(active|historic|planned|view|rss)\\b');

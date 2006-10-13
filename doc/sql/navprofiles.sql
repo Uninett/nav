@@ -820,6 +820,7 @@ INSERT INTO Privilege VALUES (4, 'report_access');
 */
 -- Anonymous users need access to a few things, like the login page and images
 -- and soforth
+INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/about/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/images/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/style/.*');
