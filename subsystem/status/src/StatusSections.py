@@ -600,7 +600,137 @@ class NetboxMaintenanceSectionBox(SectionBox):
         return
 
     def fill(self):
-        pass # FIXME
+        filterSettings = self.filterSettings
+
+        sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
+                    now() - ah.start_time AS downtime, n.up, at.alerttype,
+                    n.netboxid
+                FROM alerthist AS ah, netbox AS n, alerttype AS at
+                WHERE ah.netboxid = n.netboxid
+                        AND ah.alerttypeid = at.alerttypeid
+                        AND ah.end_time = 'infinity'
+                        AND ah.eventtypeid = 'maintenanceState'"""
+
+        where_clause = ''
+        if filterSettings: # FIXME: Not quite done here
+            # orgid
+            if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for org in filterSettings['orgid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.orgid = '" + org + "'"
+                    first_line = False
+                where_clause += ") "
+            # catid
+            if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for cat in filterSettings['catid']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.catid = '" + cat + "'"
+                    first_line = False
+                where_clause += ") "
+            # state
+            self.listStates = filterSettings['state']
+            if not filterSettings['state'].count(FILTER_ALL_SELECTED):
+                where_clause += " and ("
+                first_line = True
+                for state in filterSettings['state']:
+                    if not first_line:
+                        where_clause += " or "
+                    where_clause += "netbox.up = '" + state + "'"
+                    first_line = False
+                where_clause += ") "
+
+        sql = sql + where_clause + " ORDER BY now()-start_time"
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()
+
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        boxesMaintenance = 0
+        boxesMaintenanceUp = 0
+        boxesMaintenanceDown = 0
+        boxesMaintenanceShadow = 0
+
+        SYSNAME = 0
+        IP = 1
+        STARTTIME = 2
+        DOWNTIME = 3
+        UP = 4
+        ALERTTYPE = 5
+        BOXID = 6
+
+        for line in result:
+            row = []
+            style = None
+
+            boxesMaintenance += 1
+            if line[UP] == 'y':
+                boxesMaintenanceUp += 1
+            elif line[UP] == 'n':
+                boxesMaintenanceDown += 1
+            else:
+                boxesMaintenanceShadow += 1
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
+                        None,
+                        style))
+
+            # Ip
+            row.append((line[IP],None,None,style))
+
+            # Down since
+            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                        None,None,style))
+
+            # Downtime
+            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                       line[DOWNTIME].strftime('%H') + ' h, ' + \
+                       line[DOWNTIME].strftime('%M') + ' m'
+
+            row.append((downTime,None,None,style))
+
+            # History icon
+            # FIXME: Add wrench icon with link to maintenance details
+            row.append((None,
+                        BASEPATH + 'history/?type=boxes&id=%s' % (line[BOXID],),
+                        ('/images/status/status-history.png',
+                        'View history for this box'),
+                        None))
+
+            self.rows.append([line[self.sortBy],row])
+
+        self.sort()
+
+        boxesMaintenance = str(boxesMaintenance)
+        boxesMaintenanceUp = str(boxesMaintenanceUp)
+        boxesMaintenanceDown = str(boxesMaintenanceDown)
+        boxesMaintenanceShadow = str(boxesMaintenanceShadow)
+        if boxesMaintenance == '0':
+            boxesMaintenance = 'No'
+        if boxesMaintenanceUp == '0':
+            boxesMaintenanceUp = 'No'
+        if boxesMaintenanceDown == '0':
+            boxesMaintenanceDown = 'No'
+        if boxesMaintenanceShadow == '0':
+            boxesMaintenanceShadow = 'No'
+
+        self.summary = boxesMaintenance + ' IP devices on maintenance (' + \
+            boxesMaintenanceUp + ' up, ' + \
+            boxesMaintenanceDown + ' down, ' + \
+            boxesMaintenanceShadow + ' in shadow)'
 
     def getFilters(controlBaseName,orgList):
         """
