@@ -136,7 +136,9 @@ class ServiceSectionBox(SectionBox):
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = [BASEPATH + 'history/?type=services','(history)']
+        self.historyLink = []
+        self.historyLink.append((BASEPATH + 'history/?type=services',
+                                 'history'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
@@ -235,8 +237,8 @@ class ServiceSectionBox(SectionBox):
                         division='service'),None,style))
  
             # Start
-            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),None,None,
-                        style))
+            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                        None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -323,10 +325,15 @@ class ServiceMaintenanceSectionBox(SectionBox):
                             ('Handler',None),
                             ('Down since',None),
                             ('Downtime',None),
+                            ('',None),
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = ['/maintenance/calendar', '(maintenance schedule)']
+        self.historyLink = []
+        self.historyLink.append(('/maintenance/calendar',
+                                 'maintenance schedule'))
+        self.historyLink.append(('/browse/service/allMatrix',
+                                 'service status'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName, title, getArgs, None)
@@ -334,7 +341,160 @@ class ServiceMaintenanceSectionBox(SectionBox):
         return
 
     def fill(self):
-        pass # FIXME
+        filterSettings = self.filterSettings
+    
+        sql = """SELECT DISTINCT n.sysname, s.handler, ah.start_time,
+                now() - ah.start_time AS downtime, s.up, s.serviceid,
+                n.netboxid, mc.maint_taskid
+            FROM alerthist AS ah, netbox AS n, service AS s,
+                maint_component AS mc NATURAL JOIN maint_task AS mt
+            WHERE ah.netboxid = n.netboxid
+                AND ah.subid = s.serviceid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'maintenanceState'
+                AND mc.key = 'service'
+                AND mc.value = ah.subid
+                AND mt.maint_start < now()
+                AND mt.maint_end > now()"""
+ 
+        where_clause = ''
+        if filterSettings: # FIXME: Not quite done here
+            # orgid
+            if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
+                where_clause += " AND ("
+                first_line = True
+                for org in filterSettings['orgid']:
+                    if not first_line:
+                        where_clause += " OR "
+                    where_clause += "netbox.orgid = '" + org + "'"
+                    first_line = False
+                where_clause += ") "
+            # catid
+            if not filterSettings['handler'].count(FILTER_ALL_SELECTED):
+                where_clause += " AND ("
+                first_line = True
+                for handler in filterSettings['handler']:
+                    if not first_line:
+                        where_clause += " OR "
+                    where_clause += "service.handler = '" + handler + "'"
+                    first_line = False
+                where_clause += ") "
+            # state
+            self.listStates = filterSettings['state']
+            if not filterSettings['state'].count(FILTER_ALL_SELECTED):
+                where_clause += " AND ("
+                first_line = True
+                for state in filterSettings['state']:
+                    if not first_line:
+                        where_clause += " OR "
+                    where_clause += "service.up = '" + state + "'"
+                    first_line = False
+                where_clause += ") "
+
+        sql = sql + where_clause + " ORDER BY now()-start_time" 
+
+        connection = nav.db.getConnection('status', 'manage')
+        database = connection.cursor()
+        database.execute(sql)
+        result = database.fetchall()        
+  
+        height = len(result)
+        if self.maxHeight:
+            if height > self.maxHeight:
+                height = self.maxHeight
+
+        servicesMaintenance = 0
+        servicesMaintenanceUp = 0
+        servicesMaintenanceDown = 0
+        servicesMaintenanceShadow = 0
+
+        SYSNAME = 0
+        HANDLER = 1
+        STARTTIME = 2
+        DOWNTIME = 3
+        UP = 4
+        SERVICEID = 5
+        BOXID = 6
+        MAINTID = 7
+        
+        for line in result:
+            row = []
+            style = None    
+
+            servicesMaintenance += 1
+            if line[UP] == 'y':
+                servicesMaintenanceUp += 1
+            elif line[UP] == 'n':
+                servicesMaintenanceDown += 1
+            else:
+                servicesMaintenanceShadow += 1
+
+            # Sysname
+            row.append((line[SYSNAME],
+                        urlbuilder.createUrl(id=line[BOXID],
+                                             division='netbox'),
+                        None, style))
+
+            # Handler
+            row.append((line[HANDLER],
+                        urlbuilder.createUrl(id=line[HANDLER],
+                                             division='service'),
+                        None, style))
+ 
+            # Start
+            if line[UP] == 'y':
+                row.append(('Up', None, None, style))
+            else:
+                # FIXME: Time since down, not maintance
+                row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                            None, None, style))
+
+            # Downtime
+            if line[UP] == 'y':
+                row.append(('', None, None, style))
+            else:
+                # FIXME: Time since down, not maintance
+                downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                           line[DOWNTIME].strftime('%H') + ' h, ' + \
+                           line[DOWNTIME].strftime('%M') + ' m'
+                row.append((downTime, None, None, style))
+
+            # Wrench icon
+            row.append((None,
+                        '/maintenance/view?id=%s' % line[MAINTID],
+                        ('/images/wrench.gif',
+                        'Maintenance details'),
+                        None))
+
+            # History link
+            row.append((None,
+                        BASEPATH + 'history/?type=services&id=%s' \
+                        % (line[SERVICEID],),
+                        ('/images/status/status-history.png',
+                        'View history for this service'),
+                        None))
+
+            self.rows.append([line[self.sortBy], row])
+
+        self.sort()
+
+        servicesMaintenance = str(servicesMaintenance)
+        servicesMaintenanceUp = str(servicesMaintenanceUp)
+        servicesMaintenanceDown = str(servicesMaintenanceDown)
+        servicesMaintenanceShadow = str(servicesMaintenanceShadow)
+        if servicesMaintenance == '0':
+            servicesMaintenance = 'No'
+        if servicesMaintenanceUp == '0':
+            servicesMaintenanceUp = 'No'
+        if servicesMaintenanceDown == '0':
+            servicesMaintenanceDown = 'No'
+        if servicesMaintenanceShadow == '0':
+            servicesMaintenanceShadow = 'No'
+
+        self.summary = servicesMaintenance + ' services on maintenance (' + \
+            servicesMaintenanceUp + ' up, ' + \
+            servicesMaintenanceDown + ' down, ' + \
+            servicesMaintenanceShadow + ' in shadow)'
 
     def getFilters(controlBaseName, orgList):
         """
@@ -394,7 +554,9 @@ class NetboxSectionBox(SectionBox):
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = [BASEPATH + 'history/?type=boxes','(history)']
+        self.historyLink = []
+        self.historyLink.append((BASEPATH + 'history/?type=boxes',
+                                 'history'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
@@ -500,8 +662,8 @@ class NetboxSectionBox(SectionBox):
             row.append((line[IP],None,None,style))
  
             # Down since
-            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),
-                        None,None,style))
+            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                        None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -589,10 +751,13 @@ class NetboxMaintenanceSectionBox(SectionBox):
                             ('IP',self.ipCompare),
                             ('Down since',None),
                             ('Downtime',None),
+                            ('',None),
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = ['/maintenance/calendar', '(maintenance schedule)']
+        self.historyLink = []
+        self.historyLink.append(('/maintenance/calendar',
+                                 'maintenance schedule'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName, title, getArgs, None)
@@ -603,44 +768,49 @@ class NetboxMaintenanceSectionBox(SectionBox):
         filterSettings = self.filterSettings
 
         sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
-                    now() - ah.start_time AS downtime, n.up, at.alerttype,
-                    n.netboxid
-                FROM alerthist AS ah, netbox AS n, alerttype AS at
-                WHERE ah.netboxid = n.netboxid
-                        AND ah.alerttypeid = at.alerttypeid
-                        AND ah.end_time = 'infinity'
-                        AND ah.eventtypeid = 'maintenanceState'"""
+                now() - ah.start_time AS downtime, n.up, at.alerttype,
+                n.netboxid, mc.maint_taskid
+            FROM alerthist AS ah, netbox AS n, alerttype AS at,
+                maint_component AS mc NATURAL JOIN maint_task AS mt
+            WHERE ah.netboxid = n.netboxid
+                AND ah.alerttypeid = at.alerttypeid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'maintenanceState'
+                AND mc.key = 'netbox'
+                AND mc.value = ah.netboxid
+                AND mt.maint_start < now()
+                AND mt.maint_end > now()"""
 
         where_clause = ''
         if filterSettings: # FIXME: Not quite done here
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
             if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for cat in filterSettings['catid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
             self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for state in filterSettings['state']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
@@ -669,6 +839,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
         UP = 4
         ALERTTYPE = 5
         BOXID = 6
+        MAINTID = 7
 
         for line in result:
             row = []
@@ -684,33 +855,46 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
             # Sysname
             row.append((line[SYSNAME],
-                        urlbuilder.createUrl(id=line[BOXID],division='netbox'),
-                        None,
-                        style))
+                        urlbuilder.createUrl(id=line[BOXID], division='netbox'),
+                        None, style))
 
             # Ip
-            row.append((line[IP],None,None,style))
+            row.append((line[IP], None, None, style))
 
             # Down since
-            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
-                        None,None,style))
+            if line[UP] == 'y':
+                row.append(('Up', None, None, style))
+            else:
+                # FIXME: Time since down, not maintance
+                row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                            None, None, style))
 
             # Downtime
-            downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                       line[DOWNTIME].strftime('%H') + ' h, ' + \
-                       line[DOWNTIME].strftime('%M') + ' m'
+            if line[UP] == 'y':
+                row.append(('', None, None, style))
+            else:
+                # FIXME: Time since down, not maintance
+                downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
+                           line[DOWNTIME].strftime('%H') + ' h, ' + \
+                           line[DOWNTIME].strftime('%M') + ' m'
 
-            row.append((downTime,None,None,style))
+                row.append((downTime, None, None, style))
+
+            # Wrench icon
+            row.append((None,
+                        '/maintenance/view?id=%s' % line[MAINTID],
+                        ('/images/wrench.gif',
+                        'Maintenance details'),
+                        None))
 
             # History icon
-            # FIXME: Add wrench icon with link to maintenance details
             row.append((None,
-                        BASEPATH + 'history/?type=boxes&id=%s' % (line[BOXID],),
+                        BASEPATH + 'history/?type=boxes&id=%s' % line[BOXID],
                         ('/images/status/status-history.png',
                         'View history for this box'),
                         None))
 
-            self.rows.append([line[self.sortBy],row])
+            self.rows.append([line[self.sortBy], row])
 
         self.sort()
 
@@ -790,7 +974,9 @@ class ModuleSectionBox(SectionBox):
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = [BASEPATH + 'history/?type=modules','(history)']
+        self.historyLink = []
+        self.historyLink.append((BASEPATH + 'history/?type=modules',
+                                 'history'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
@@ -896,7 +1082,7 @@ class ModuleSectionBox(SectionBox):
             row.append((str(line[MODULE]),None,None,style))
 
             # Down since
-            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),
+            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
                         None,None,style))
 
             # Downtime
@@ -989,7 +1175,9 @@ class ThresholdSectionBox(SectionBox):
                             ('',None)]
         self.rows = []
         self.summary = None
-        self.historyLink = [BASEPATH + 'history/?type=thresholds','(history)']
+        self.historyLink = []
+        self.historyLink.append((BASEPATH + 'history/?type=thresholds',
+                                 'history'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
@@ -1099,8 +1287,8 @@ class ThresholdSectionBox(SectionBox):
             row.append((line[DESCRIPTION],None,None,style))
 
             # Start
-            row.append((line[STARTTIME].strftime('%H:%M %d-%m-%y'),None,None,
-                        style))
+            row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
+                        None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -1261,15 +1449,15 @@ class NetboxHistoryBox(SectionBox):
  
 
             # From
-            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
-                       None,None,style))
+            row.append((line[FROM].strftime('%Y-%m-%d %H:%M'),
+                       None, None, style))
 
             # To
             if not line[TO] or line[TO]==INFINITY:
                 row.append(('Still down',None,None,style))
             else:
-                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
-                           None,None,style))
+                row.append((line[TO].strftime('%Y-%m-%d %H:%M'),
+                           None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -1381,15 +1569,15 @@ class ServiceHistoryBox(SectionBox):
  
 
             # From
-            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
-                       None,None,style))
+            row.append((line[FROM].strftime('%Y-%m-%d %H:%M'),
+                       None, None, style))
 
             # To
             if not line[TO] or line[TO]==INFINITY:
                 row.append(('Still down',None,None,style))
             else:
-                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
-                           None,None,style))
+                row.append((line[TO].strftime('%Y-%m-%d %H:%M'),
+                           None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -1501,15 +1689,15 @@ class ModuleHistoryBox(SectionBox):
  
 
             # From
-            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
-                       None,None,style))
+            row.append((line[FROM].strftime('%Y-%m-%d %H:%M'),
+                       None, None, style))
 
             # To
             if not line[TO] or line[TO]==INFINITY:
                 row.append(('Still down',None,None,style))
             else:
-                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
-                           None,None,style))
+                row.append((line[TO].strftime('%Y-%m-%d %H:%M'),
+                           None, None, style))
 
             # Downtime
             downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
@@ -1640,15 +1828,15 @@ class ThresholdHistoryBox(SectionBox):
  
 
             # From
-            row.append((line[FROM].strftime('%H:%M %d-%m-%y'),
-                       None,None,style))
+            row.append((line[FROM].strftime('%Y-%m-%d %H:%M'),
+                       None, None, style))
 
             # To
             if not line[TO] or line[TO]==INFINITY:
                 row.append(('Still exceeded',None,None,style))
             else:
-                row.append((line[TO].strftime('%H:%M %d-%m-%y'),
-                           None,None,style))
+                row.append((line[TO].strftime('%Y-%m-%d %H:%M'),
+                           None, None, style))
 
             # Duration
             duration = str(line[DURATION].absvalues()[0]) + ' d, ' + \

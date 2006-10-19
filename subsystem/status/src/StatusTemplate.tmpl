@@ -174,7 +174,10 @@ $default_form_CSS()
     <caption>
         <span class="cornerkludge"></span>
         $SectionBox.title
-        <a href="$SectionBox.historyLink[0]">$SectionBox.historyLink[1]</a><br />
+    #for $url, $text in $SectionBox.historyLink
+        (<a href="$url">$text</a>)
+    #end for
+        <br />
         <span class="subtitle">$SectionBox.summary</span>
     </caption>
 
