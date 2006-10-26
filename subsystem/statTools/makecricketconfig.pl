@@ -1083,10 +1083,16 @@ sub fillRRDdatabase {
 
     # Then we go through each and every one of these and fill the database:
 
+    # The cricket datadir, according to Cricket's config tree
+    my $cricketdatadir = $gCT->configHash('/','target','filler','HASH')->{'datadir'};
+
     foreach my $path (@allpaths) {
 
-	my $newpath = $path;
-	$newpath =~ s/cricket-config/cricket-data/;
+	# Create datapath
+	my $tmppath = $path;
+	$tmppath =~ s/$cricketconfigdir//;
+	my $newpath = $cricketdatadir . "/" . $tmppath;
+	$newpath =~ s/\/{2,}/\//g; # Remove redundant slashes
 
 	print "--- Creating query for $path ---\n" if $ll >= 3;
 
