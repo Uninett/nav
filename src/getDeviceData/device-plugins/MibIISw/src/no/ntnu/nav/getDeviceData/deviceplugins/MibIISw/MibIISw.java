@@ -199,6 +199,7 @@ public class MibIISw implements DeviceHandler
 					if (modulesUp.contains(module)) {
 						mmc.moduleUp(nb, module);
 					} else {
+						mmc.moduleDown(nb, module);
 						Log.d("MODULE_MON", "HP Module " + module + " on " + nb.getSysname() + " is down ("+moduleStatus.get(module)+")");
 						sSnmp.ignoreModule(module);
 						mmc.rescheduleNetbox(nb, module, "hpStackStatsMemberOperStatus");
@@ -229,6 +230,7 @@ public class MibIISw implements DeviceHandler
 							}
 						} catch (TimeoutException te) {
 							// Assume the module is down
+							mmc.moduleDown(nb, module);
 							Log.i("MODULE_MON", "Module " + module + ", ifindex " + ifindex + " on " + nb.getSysname() + " is not responding");
 							sSnmp.ignoreModule(module);
 							break;
@@ -236,6 +238,7 @@ public class MibIISw implements DeviceHandler
 					}
 					if (down) {
 						// Assume down
+						mmc.moduleDown(nb, module);
 						Log.d("MODULE_MON", "Module " + module + " on " + nb.getSysname() + " returned no values");						
 						sSnmp.ignoreModule(module);
 						List oidL = new ArrayList();

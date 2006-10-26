@@ -485,7 +485,9 @@ public class CiscoModule implements DeviceHandler
 				String module = (String)it.next();
 				mmc.moduleUp(nb, module);
 			}
-			//System.err.println("modulesUp: " + moduleSet);
+			Log.d("CMOD_MON", "modulesUp: " + moduleSet);
+			// Previously seen modules that we didn't find now, should be considered as down
+			mmc.setUnknownDown(true);
 			mmc.commit();
 			return true;
 		}
