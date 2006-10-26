@@ -30,17 +30,27 @@ from sys import stdin
 import os.path
 import shlex
 
-cr = stdin.readline().strip()
+consolidation = stdin.readline().strip()
 time = stdin.readline().strip().split(",")
+
 for line in stdin:
     if len(line.strip()) == 0: continue
     t = shlex.split(line)
     if os.path.isfile(t[0]):
         if (len(t) == 2):
-            r = rrdtool.graph('-','-s '+time[0]+':'+time[1],'DEF:value='+t[0]+':'+t[1]+':AVERAGE','PRINT:value:'+cr+':%6.2lf')
-            print r[2][0].strip()
+            r = rrdtool.graph('-', '-s ' + time[0] + ':' + time[1],
+                              'DEF:value=' + t[0] + ':' + t[1] + ':AVERAGE',
+                              'PRINT:value:' + consolidation + ':%6.2lf')
+            value = r[2][0].strip()
+            print value
         elif (len(t) == 3):
-            r = rrdtool.graph('-','-s '+time[0]+':'+time[1],'DEF:value1='+t[0]+':'+t[1]+':AVERAGE','DEF:value2='+t[0]+':'+t[2]+':AVERAGE','PRINT:value1:'+cr+':%6.2lf','PRINT:value2:'+cr+':%6.2lf')
-            print r[2][0].strip() + ' ' + r[2][1].strip()
+            r = rrdtool.graph('-', '-s ' + time[0] + ':' + time[1],
+                              'DEF:value1=' + t[0] + ':' + t[1] + ':AVERAGE',
+                              'DEF:value2=' + t[0] + ':' + t[2] + ':AVERAGE',
+                              'PRINT:value1:' + consolidation + ':%6.2lf',
+                              'PRINT:value2:' + consolidation + ':%6.2lf')
+            value1 = r[2][0].strip()
+            value2 = r[2][1].strip()
+            print value1 + ' ' + value2
     else:
         print 'fnf'
