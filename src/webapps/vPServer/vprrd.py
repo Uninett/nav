@@ -28,12 +28,13 @@ Fetch RRD data (used by vPServer)
 import rrdtool
 from sys import stdin
 import os.path
+import shlex
 
 cr = stdin.readline().strip()
 time = stdin.readline().strip().split(",")
 for line in stdin:
     if len(line.strip()) == 0: continue
-    t = line.split()
+    t = shlex.split(line)
     if os.path.isfile(t[0]):
         if (len(t) == 2):
             r = rrdtool.graph('-','-s '+time[0]+':'+time[1],'DEF:value='+t[0]+':'+t[1]+':AVERAGE','PRINT:value:'+cr+':%6.2lf')

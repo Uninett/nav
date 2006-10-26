@@ -883,7 +883,7 @@ class SqlBoks
 			List ff = new ArrayList();
 			for (Iterator it = fnMap.entrySet().iterator(); it.hasNext();) {
 				Map.Entry me = (Map.Entry)it.next();
-				String fn = (String)me.getKey();
+				String fn = "\"" + (String)me.getKey() + "\"";
 				List l = (List)me.getValue();
 				ff.add(l.remove(0));
 				for (Iterator lIt = l.iterator(); lIt.hasNext();) {
