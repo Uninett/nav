@@ -294,17 +294,38 @@ class ServiceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
+        # FIXME: The handler list should be dynamic (see editdb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
-        [(FILTER_ALL_SELECTED,'All',True),('dns','dns',False),\
-        ('imaps','imaps',False),('imap','imap',False),('http','http',False),
-        ('pop3','pop3',False),('rpc','rpc',False),('smb','smb',False),
-        ('ssh','ssh',False),('smtp','smtp',False)]))
+            [(FILTER_ALL_SELECTED, 'All', True),
+            ('dc', 'dc', False),
+            ('dns', 'dns', False),
+            ('dummy', 'dummy', False),
+            ('ftp', 'ftp', False),
+            ('http', 'http', False),
+            ('https', 'https', False),
+            ('imap', 'imap', False),
+            ('imaps', 'imaps', False),
+            ('ldap', 'ldap', False),
+            ('mysql', 'mysql', False),
+            ('oracle', 'oracle', False),
+            ('pop3', 'pop3', False),
+            ('postgresql', 'postgresql', False),
+            ('radius', 'radius', False),
+            ('rpc', 'rpc', False),
+            ('smb', 'smb', False),
+            ('smtp', 'smtp', False),
+            ('ssh', 'ssh', False)]
+        ))
+
 
         # State
         filterSelects.append((controlBaseName + '_' + 'state',\
-        [(FILTER_ALL_SELECTED,'All',True),('n','Down',False),\
-        ('s','Shadow',False)]))
+            [(FILTER_ALL_SELECTED, 'All', True),
+            ('y', 'Up', False),
+            ('n', 'Down', False),
+            ('s', 'Shadow', False)]
+        ))
         return (filterHeadings,filterSelects)
     getFilters = staticmethod(getFilters)
 
@@ -370,17 +391,17 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 for org in filterSettings['orgid']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.orgid = '" + org + "'"
+                    where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
-            # catid
+            # handler (service)
             if not filterSettings['handler'].count(FILTER_ALL_SELECTED):
                 where_clause += " AND ("
                 first_line = True
                 for handler in filterSettings['handler']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "service.handler = '" + handler + "'"
+                    where_clause += "s.handler = '" + handler + "'"
                     first_line = False
                 where_clause += ") "
             # state
@@ -391,7 +412,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "service.up = '" + state + "'"
+                    where_clause += "s.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
 
@@ -542,17 +563,37 @@ class ServiceMaintenanceSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Handler
+        # FIXME: The handler list should be dynamic (see editdb.py for example)
         optionsList = [(FILTER_ALL_SELECTED,'All')]
         filterSelects.append((controlBaseName + '_' + 'handler',\
-        [(FILTER_ALL_SELECTED,'All',True),('dns','dns',False),\
-        ('imaps','imaps',False),('imap','imap',False),('http','http',False),
-        ('pop3','pop3',False),('rpc','rpc',False),('smb','smb',False),
-        ('ssh','ssh',False),('smtp','smtp',False)]))
+            [(FILTER_ALL_SELECTED, 'All', True),
+            ('dc', 'dc', False),
+            ('dns', 'dns', False),
+            ('dummy', 'dummy', False),
+            ('ftp', 'ftp', False),
+            ('http', 'http', False),
+            ('https', 'https', False),
+            ('imap', 'imap', False),
+            ('imaps', 'imaps', False),
+            ('ldap', 'ldap', False),
+            ('mysql', 'mysql', False),
+            ('oracle', 'oracle', False),
+            ('pop3', 'pop3', False),
+            ('postgresql', 'postgresql', False),
+            ('radius', 'radius', False),
+            ('rpc', 'rpc', False),
+            ('smb', 'smb', False),
+            ('smtp', 'smtp', False),
+            ('ssh', 'ssh', False)]
+        ))
 
         # State
         filterSelects.append((controlBaseName + '_' + 'state',\
-        [(FILTER_ALL_SELECTED,'All',True),('n','Down',False),\
-        ('s','Shadow',False)]))
+            [(FILTER_ALL_SELECTED, 'All', True),
+            ('y', 'Up', False),
+            ('n', 'Down', False),
+            ('s', 'Shadow', False)]
+        ))
         return (filterHeadings,filterSelects)
     getFilters = staticmethod(getFilters)
 
@@ -811,7 +852,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 AND mt.maint_end > now()"""
 
         where_clause = ''
-        if filterSettings: # FIXME: Not quite done here
+        if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
                 where_clause += " AND ("
@@ -819,7 +860,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 for org in filterSettings['orgid']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.orgid = '" + org + "'"
+                    where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
@@ -829,7 +870,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 for cat in filterSettings['catid']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.catid = '" + cat + "'"
+                    where_clause += "n.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
@@ -840,7 +881,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.up = '" + state + "'"
+                    where_clause += "n.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
 
