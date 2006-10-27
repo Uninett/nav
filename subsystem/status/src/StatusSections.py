@@ -2,6 +2,7 @@
 # $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -21,6 +22,7 @@
 #
 #
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+#          Stein Magnus Jodal <stein.magnus@jodal.no>
 #
 """
 Contains classes representing different sections (netboxes down,
@@ -59,7 +61,7 @@ class SectionBox:
     sortId = None
 
     def __init__(self, controlBaseName, title, getArgs, maxHeight = None,\
-    urlRoot = 'status.py'):
+    urlRoot = 'status'):
         self.controlBaseName = controlBaseName
         self.sortId = controlBaseName + 'sort'
         self.getArgs = getArgs
@@ -201,6 +203,8 @@ class ServiceSectionBox(SectionBox):
         database.execute(sql)
         result = database.fetchall()        
   
+        # FIXME: Filter out components that is on maintenance
+
         height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
@@ -397,7 +401,20 @@ class ServiceMaintenanceSectionBox(SectionBox):
         database = connection.cursor()
         database.execute(sql)
         result = database.fetchall()        
-  
+
+        # If components is down, get down since and downtime
+        sql = """SELECT DISTINCT n.sysname, s.handler, ah.start_time,
+                now() - ah.start_time AS downtime, s.up, s.serviceid,
+                n.netboxid
+            FROM alerthist AS ah, netbox AS n, service AS s
+            WHERE ah.netboxid = n.netboxid
+                AND ah.subid = s.serviceid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'serviceState'"""
+        sql = sql + where_clause + " ORDER BY now()-start_time"
+        database.execute(sql)
+        result_down = database.fetchall()
+ 
         height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
@@ -416,6 +433,11 @@ class ServiceMaintenanceSectionBox(SectionBox):
         SERVICEID = 5
         BOXID = 6
         MAINTID = 7
+
+        downtimes = {}
+        for line in result_down:
+            downtimes[(line[SYSNAME], line[HANDLER])] = \
+                (line[STARTTIME], line[DOWNTIME])
         
         for line in result:
             row = []
@@ -441,23 +463,23 @@ class ServiceMaintenanceSectionBox(SectionBox):
                                              division='service'),
                         None, style))
  
-            # Start
             if line[UP] == 'y':
+                # Down since
                 row.append(('Up', None, None, style))
-            else:
-                # FIXME: Time since down, not maintance
-                row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
-                            None, None, style))
-
-            # Downtime
-            if line[UP] == 'y':
+                # Downtime
                 row.append(('', None, None, style))
             else:
-                # FIXME: Time since down, not maintance
-                downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                           line[DOWNTIME].strftime('%H') + ' h, ' + \
-                           line[DOWNTIME].strftime('%M') + ' m'
-                row.append((downTime, None, None, style))
+                (starttime, downtime) = \
+                    downtimes[(line[SYSNAME], line[HANDLER])]
+                # Down since
+                row.append((starttime.strftime('%Y-%m-%d %H:%M'),
+                            None, None, style))
+                # Downtime
+                downtime = '%s d, %s h, %s m' % (
+                    str(downtime.absvalues()[0]),
+                    downtime.strftime('%H'),
+                    downtime.strftime('%M'))
+                row.append((downtime, None, None, style))
 
             # Wrench icon
             row.append((None,
@@ -474,7 +496,12 @@ class ServiceMaintenanceSectionBox(SectionBox):
                         'View history for this service'),
                         None))
 
-            self.rows.append([line[self.sortBy], row])
+            if line[UP] != 'y' and self.sortBy == STARTTIME:
+                self.rows.append([starttime, row])
+            elif line[UP] != 'y' and self.sortBy == DOWNTIME:
+                self.rows.append([downtime, row])
+            else:
+                self.rows.append([line[self.sortBy], row])
 
         self.sort()
 
@@ -625,6 +652,8 @@ class NetboxSectionBox(SectionBox):
         database = connection.cursor()
         database.execute(sql)
         result = database.fetchall()        
+
+        # FIXME: Filter out components that is on maintenance
  
         height = len(result)
         if self.maxHeight:
@@ -822,6 +851,19 @@ class NetboxMaintenanceSectionBox(SectionBox):
         database.execute(sql)
         result = database.fetchall()
 
+        # If components is down, get down since and downtime
+        sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
+                now() - ah.start_time AS downtime, n.up, at.alerttype,
+                n.netboxid
+            FROM alerthist AS ah, netbox AS n, alerttype AS at
+            WHERE ah.netboxid = n.netboxid
+                AND ah.alerttypeid = at.alerttypeid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'boxState'"""
+        sql = sql + where_clause + " ORDER BY now()-start_time"
+        database.execute(sql)
+        result_down = database.fetchall()
+
         height = len(result)
         if self.maxHeight:
             if height > self.maxHeight:
@@ -840,6 +882,11 @@ class NetboxMaintenanceSectionBox(SectionBox):
         ALERTTYPE = 5
         BOXID = 6
         MAINTID = 7
+
+        downtimes = {}
+        for line in result_down:
+            downtimes[(line[SYSNAME], line[IP])] = \
+                (line[STARTTIME], line[DOWNTIME])
 
         for line in result:
             row = []
@@ -861,24 +908,23 @@ class NetboxMaintenanceSectionBox(SectionBox):
             # Ip
             row.append((line[IP], None, None, style))
 
-            # Down since
             if line[UP] == 'y':
+                # Down since
                 row.append(('Up', None, None, style))
-            else:
-                # FIXME: Time since down, not maintance
-                row.append((line[STARTTIME].strftime('%Y-%m-%d %H:%M'),
-                            None, None, style))
-
-            # Downtime
-            if line[UP] == 'y':
+                # Downtime
                 row.append(('', None, None, style))
             else:
-                # FIXME: Time since down, not maintance
-                downTime = str(line[DOWNTIME].absvalues()[0]) + ' d, ' + \
-                           line[DOWNTIME].strftime('%H') + ' h, ' + \
-                           line[DOWNTIME].strftime('%M') + ' m'
-
-                row.append((downTime, None, None, style))
+                (starttime, downtime) = \
+                    downtimes[(line[SYSNAME], line[IP])]
+                # Down since
+                row.append((starttime.strftime('%Y-%m-%d %H:%M'),
+                            None, None, style))
+                # Downtime
+                downtime = '%s d, %s h, %s m' % (
+                    str(downtime.absvalues()[0]),
+                    downtime.strftime('%H'),
+                    downtime.strftime('%M'))
+                row.append((downtime, None, None, style))
 
             # Wrench icon
             row.append((None,
@@ -894,7 +940,12 @@ class NetboxMaintenanceSectionBox(SectionBox):
                         'View history for this box'),
                         None))
 
-            self.rows.append([line[self.sortBy], row])
+            if line[UP] != 'y' and self.sortBy == STARTTIME:
+                self.rows.append([starttime, row])
+            elif line[UP] != 'y' and self.sortBy == DOWNTIME:
+                self.rows.append([downtime, row])
+            else:
+                self.rows.append([line[self.sortBy], row])
 
         self.sort()
 
