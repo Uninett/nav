@@ -155,6 +155,14 @@ class Box:
         This function returns all deviceids for all serial numbers for all
         serial number oids that the device responded on.
         """
+        def is_ascii(s):
+            """Verify that a string is ASCII encodeable"""
+            try:
+                s.encode("ascii")
+            except UnicodeDecodeError, e:
+                return False
+            else:
+                return True
         
         connection = nav.db.getConnection("bokser")
         handle = connection.cursor()
@@ -167,7 +175,8 @@ class Box:
 
         devlist = []
         if len(serials):
-            escapedSerials = [nav.db.escape(ser) for ser in serials]
+            escapedSerials = [nav.db.escape(ser.strip()) for ser in serials
+                              if is_ascii(ser)]
             whereSerials = ",".join(escapedSerials)
             sql = "SELECT deviceid, productid " \
                   "FROM device " \
