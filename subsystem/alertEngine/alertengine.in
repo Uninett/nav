@@ -27,24 +27,24 @@ cd ${bindir}
 case "$1" in
 	start)
 		# Start daemons.
-		rc= su - ${user} -c "${bindir}/alertdaemon.pl start"
+		echo -n "Starting alertengine: "
+		rc= daemon "su - ${user} -c ${bindir}/alertdaemon.pl start"
 		echo
 		exit $rc;
 		;;
 	stop)
 		# Stop daemons.
-		rc= ${bindir}/alertdaemon.pl stop
+		echo -n "Shutting down alertengine: "
+		rc= daemon "su - ${user} -c ${bindir}/alertdaemon.pl stop"
 		echo
 		exit $rc;
         	;;
 	restart)
-		rc= su - ${user} -c "${bindir}/alertdaemon.pl restart"
-		echo
-		exit $rc;
+		$0 stop
+		$0 start
 		;;
 	status)
-		rc= ${bindir}/alertdaemon.pl status
-		echo
+		rc= status alertengine
 		exit $rc;
 		;;
 	*)
