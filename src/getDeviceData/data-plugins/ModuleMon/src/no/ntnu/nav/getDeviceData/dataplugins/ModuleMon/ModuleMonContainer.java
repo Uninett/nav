@@ -23,10 +23,15 @@ public class ModuleMonContainer implements DataContainer {
 
 	private ModuleMonHandler mmh;
 	private boolean commit = false;
+	/**
+	 * Should modules with unknown status be considered down?
+	 */
+	private boolean unknownDown = false;
 
 	//private MultiMap queryIfindices;
 	//private Map moduleToIfindex;
 	private Set moduleUpSet = new HashSet();
+	private Set moduleDownSet = new HashSet();
 
 	protected ModuleMonContainer(ModuleMonHandler mmh) {
 		this.mmh = mmh;
@@ -69,12 +74,18 @@ public class ModuleMonContainer implements DataContainer {
 	}
 
 	/**
-	 * <p> Give a list of ifindices to query.  </p>
+	 * <p> Returns a list of ifindices to query for a box.  </p>
 	 */
 	public Iterator getQueryIfindices(String netboxid) {
 		Map m = new HashMap();
 		try {
-			ResultSet rs = Database.query("SELECT ifindex, module FROM module JOIN swport USING(moduleid) WHERE netboxid='"+netboxid+"' ORDER BY module, port IS NOT NULL DESC, RANDOM()");
+			// Get ifindices of all swports and gwports on this netbox
+			ResultSet rs = Database.query("SELECT * " +
+					"FROM " +
+					"((SELECT ifindex, module FROM module JOIN swport USING(moduleid) WHERE netboxid='"+netboxid+"') " +
+					"UNION " +
+					"(SELECT ifindex, module FROM module JOIN gwport USING(moduleid) WHERE netboxid='"+netboxid+"')) AS ports " +
+					"ORDER BY module DESC, RANDOM()");
 			while (rs.next()) {
 				List l;
 				String module = rs.getString("module");
@@ -144,6 +155,16 @@ public class ModuleMonContainer implements DataContainer {
 		nb.set(module, 0);
 	}
 
+	/**
+	 * <p> Register that the given module is down on the netbox.
+	 * </p>
+	 *
+	 * @param module The up module
+	 */
+	public void moduleDown(Netbox nb, String module) {
+		moduleDownSet.add(module);
+	}
+
 	public void commit() {
 		commit = true;		
 	}
@@ -162,6 +183,34 @@ public class ModuleMonContainer implements DataContainer {
 
 	public int modulesUpCount() {
 		return moduleUpSet.size();
+	}
+
+	public Iterator getModulesDown() {
+		return moduleDownSet.iterator();
+	}
+
+	Set getModulesDownSet() {
+		return moduleDownSet;
+	}
+
+	public int modulesDownCount() {
+		return moduleDownSet.size();
+	}
+
+	/**
+	 * @return True if modules with unknown status will be considered as down.
+	 */
+	public boolean isUnknownDown() {
+		return unknownDown;
+	}
+
+	/**
+	 * <p>Decide whether modules with unknown status are considered as down or not</p>
+	 * 
+	 * @param unknownDown Set to true if modules with unknown status should be considered down, set to false if not.
+	 */
+	public void setUnknownDown(boolean unknownDown) {
+		this.unknownDown = unknownDown;
 	}
 
 

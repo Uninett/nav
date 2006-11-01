@@ -144,27 +144,26 @@ public class CiscoSwIOS implements DeviceHandler
 					
 					int moduleNumber;
 					int portNumber;
-					// Assign a module and port number to the interface
+					// Assign a module number to the interface
 					if (portIfindexMap != null && portIfindexMap.containsKey(ifindex)) {
 						// use the portIfIndex OID to extract module and port number
 						// value pattern is "module.port", e.g. "2.13"
 						String moduleDotPort = (String) portIfindexMap.getFirst(ifindex);
-						Log.d("PROCESS_IOS", "Port " + ifdescr + " maps to " + moduleDotPort);
+						Log.d("PROCESS_IOS", "portIfIndex maps port " + ifdescr + " to " + moduleDotPort);
 						
 						String[] mdp = moduleDotPort.split("\\.");
 						moduleNumber = Integer.parseInt(mdp[0]);
-						portNumber = Integer.parseInt(mdp[1]);
 					} else {
 						// otherwise, guesstimate it from the ifDescr value
 						moduleNumber = Integer.parseInt(matcher.group(3));
-						String portNum = matcher.group(4);
-
-						if (util.groupCountNotNull(matcher) >= 6) {
-							// submodule numbering is in use
-							// let's be wild and crazy and concatenate all digits to a port number
-							portNum = matcher.group(3) + portNum + matcher.group(6);
-						}
-						portNumber = Integer.parseInt(portNum);
+					}
+					// Do not use port numbers from the portIfIndex OID, as this breaks with the old port numbering scheme
+					// Instead, we parse a possible port number from the ifDescr value
+					if (util.groupCountNotNull(matcher) >= 6) {
+						// submodule numbering is in use
+						portNumber = Integer.parseInt(matcher.group(6));
+					} else {
+						portNumber = Integer.parseInt(matcher.group(4));
 					}
 
 					String moduleDescription = matcher.group(1);

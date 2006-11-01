@@ -19,8 +19,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.*;
 
 public class ModuleMonHandler implements DataHandler {
 
-	private static boolean DEBUG = false;
-
 	private static Map moduleMap;
 	private static Map modidMap;
 	private static MultiMap modules;
@@ -147,10 +145,11 @@ public class ModuleMonHandler implements DataHandler {
 		}
 
 		int severity = 50;
-		if (DEBUG) err("  Modules up: " + mmc.getModulesUpSet());
+		Log.d("MODULE_MON", "Modules up: " + mmc.getModulesUpSet());
 		for (Iterator it = mmc.getModulesUp(); it.hasNext();) {
 			String module = (String)it.next();
 			String up = (String)modules.remove(module);
+			// Apparently, this module hasn't been seen on this box before
 			if (up == null) continue;
 
 			if ("n".equals(""+up)) {
@@ -160,23 +159,48 @@ public class ModuleMonHandler implements DataHandler {
 				sendEvent(nb, deviceid, moduleid, Event.STATE_END, severity);
 			}
 		}
-
-		// All remaining modules are now considered down; send event
-		if (DEBUG) err("  Remaining modules: " + modules);
-		if (!modules.isEmpty()) Log.d("MODULE_MON", "REPORT_DOWN", "Reporting modules down: " + modules);
-		for (Iterator it = modules.entrySet().iterator(); it.hasNext();) {
-			Map.Entry me = (Map.Entry)it.next();
-			String module = (String)me.getKey();
-			String up = (String)me.getValue();
+		
+		/**
+		 * Modules that were somehow marked as both up and down, are 
+		 * considered up (let's give them the benefit of the doubt).  Remove
+		 * any duplicates from the set of modules that are down.
+		 */
+		mmc.getModulesDownSet().removeAll(mmc.getModulesUpSet());
+		
+		Log.d("MODULE_MON", "Modules down: " + mmc.getModulesDownSet());
+		for (Iterator it = mmc.getModulesDown(); it.hasNext();) {
+			String module = (String)it.next();
+			String up = (String)modules.remove(module);
+			// Apparently, this module hasn't been seen on this box before
+			if (up == null) continue;
 
 			if ("y".equals(""+up)) {
-				// Module is going down, send down event
+				// The module is going down, send down event
 				String deviceid = (String)deviceMap.get(module);
 				String moduleid = (String)moduleMap.get(module);
-				Log.d("MODULE_MON", "REPORT_DOWN", "Module("+moduleid+","+deviceid+") is down, sending event");
 				sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
 			}
-			
+		}
+
+		if (mmc.isUnknownDown()) {
+			// All remaining modules (those we've seen before, but are uncertain about now) are now considered down; send event
+			Log.d("MODULE_MON", "Remaining modules: " + modules);
+			if (!modules.isEmpty()) Log.d("MODULE_MON", "REPORT_DOWN", "Reporting modules down (uncertainly): " + modules);
+			for (Iterator it = modules.entrySet().iterator(); it.hasNext();) {
+				Map.Entry me = (Map.Entry)it.next();
+				String module = (String)me.getKey();
+				String up = (String)me.getValue();
+
+				if ("y".equals(""+up)) {
+					// Module is going down, send down event
+					String deviceid = (String)deviceMap.get(module);
+					String moduleid = (String)moduleMap.get(module);
+					sendEvent(nb, deviceid, moduleid, Event.STATE_START, severity);
+				}
+				
+			}
+		} else if (!modules.isEmpty()) {
+			Log.d("MODULE_MON", "Ignoring modules: " + modules);
 		}
 	}
 
@@ -185,10 +209,6 @@ public class ModuleMonHandler implements DataHandler {
 		if (!EventQ.createAndPostEvent("moduleMon", "eventEngine", Integer.parseInt(deviceid), nb.getNetboxid(), Integer.parseInt(moduleid), "moduleState", state, -1, severity, null)) {
 			Log.c("MODULE_MON", "SEND_EVENT", "Error sending moduleUp|Down event for " + nb + ", moduleid: " + moduleid);
 		}
-	}
-
-	private static void err(String s) {
-		System.err.println(s);
 	}
 
 }

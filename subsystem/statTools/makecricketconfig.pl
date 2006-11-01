@@ -23,7 +23,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: John Magne Bredal <bredal@itea.ntnu.no>
+# Authors: John Magne Bredal <john.m.bredal@itea.ntnu.no>
 #
 
 # TODO:
@@ -49,17 +49,17 @@ BEGIN {
 
     getopts('hl:c:');
 
-    # Checking for Cricket if c-option not set.
-    my @defaultcricketdirs = ("/home/navcron/cricket","/usr/local/cricket","/usr/local/nav/cricket");
+    # Checking for cricket-conf.pl if c-option not set.
+    my @defaultcricketdirs = ("/home/navcron/cricket/cricket","/etc/cricket","/etc/","/usr/local/nav/cricket/cricket/");
     if ($opt_c) {
 	print "Setting cricketdir to $opt_c.\n";
 	$cricketdir = $opt_c;
     } else {
-	print "No path to Cricket specified, searching default paths...\n" if $ll >= 2;
+	print "No path to cricket-conf.pl specified, searching default paths...\n" if $ll >= 2;
 	foreach my $dir (@defaultcricketdirs) {
 	    print "Searching in $dir.\n" if $ll >= 2;
-	    if (-e $dir) {
-		print "Found cricket in $dir.\n" if $ll >= 2;
+	    if (-e $dir."/cricket-conf.pl") {
+		print "Found cricket-conf.pl in $dir.\n" if $ll >= 2;
 		$cricketdir = $dir;
 		last;
 	    }
@@ -70,7 +70,7 @@ BEGIN {
 	}
     }
 
-    eval "require '$cricketdir/cricket/cricket-conf.pl'";
+    eval "require '$cricketdir/cricket-conf.pl'";
 
 }
 
@@ -102,8 +102,7 @@ use NAV::Path;
 my $usage = "USAGE: $0 [-h] [-l loglevel] [-c pathtocricket]
 This script makes the config-tree for Cricket
 \th: help, prints this
-\tc: location of Cricket, if not set we search in default directories
-\t\t(/usr/local/cricket /home/navcon/cricket /usr/local/nav/cricket) 
+\tc: location of cricket-conf, if not set we search in default directories
 \tl: loglevel (1 - silent, 2 - default, 3 - debug)
 
 Made by John Magne Bredal - ITEA NTNU 2003
@@ -115,10 +114,10 @@ if ($opt_h) {
 }
 
 # some vars
-my $cricketconfigdir = "$cricketdir/cricket-config";
-my $compiledir = "$cricketdir/cricket";
+#my $cricketconfigdir = "$cricketdir/cricket-config";
+my $cricketconfigdir = "$Common::global::gConfigRoot";
 my $configfile = ".nav";
-my $changelog = "$cricketdir/cricket-logs/changelog";
+my $changelog = $NAV::Path::localstatedir."/log/cricket-changelog";
 
 my $viewfile = $NAV::Path::sysconfdir."/cricket-views.conf";
 
@@ -269,10 +268,7 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 
 &fillRRDdatabase();
 
-#compiling
 umask 002;
-system("$compiledir/compile");
-
 
 close CHANGELOG;
 
@@ -1087,10 +1083,16 @@ sub fillRRDdatabase {
 
     # Then we go through each and every one of these and fill the database:
 
+    # The cricket datadir, according to Cricket's config tree
+    my $cricketdatadir = $gCT->configHash('/','target','filler','HASH')->{'datadir'};
+
     foreach my $path (@allpaths) {
 
-	my $newpath = $path;
-	$newpath =~ s/cricket-config/cricket-data/;
+	# Create datapath
+	my $tmppath = $path;
+	$tmppath =~ s/$cricketconfigdir//;
+	my $newpath = $cricketdatadir . "/" . $tmppath;
+	$newpath =~ s/\/{2,}/\//g; # Remove redundant slashes
 
 	print "--- Creating query for $path ---\n" if $ll >= 3;
 
