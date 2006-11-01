@@ -31,7 +31,9 @@ public class vlanPlot extends Applet
 	// For å kjøre programmet som applet
 	public void init()
 	{
-//		setLocation(150, 150);
+		// Make sure we fetch config from vPServer each time the applet is initialized
+		Net.setConfig = false;
+
 		setSize(800, 600);
 
 		Com com = new Com();

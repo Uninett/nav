@@ -266,9 +266,9 @@ DELETE FROM snmpoid WHERE oidkey='flashSize';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
 VALUES ('flashSize','1.3.6.1.4.1.9.9.10.1.1.4.1.1.4','Flash size','cisco','1',NULL,'0','ciscoFlashPartitionSize','CISCO-FLASH-MIB');
 
-DELETE FROM snmpoid WHERE oidkey='hpHwVer';
+DELETE FROM snmpoid WHERE oidkey='hpFwVer';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)
-VALUES ('hpHwVer','1.3.6.1.4.1.11.2.14.11.5.1.1.4.0','Hardware version number','hp','0',NULL,'0',NULL,NULL);
+VALUES ('hpFwVer','1.3.6.1.4.1.11.2.14.11.5.1.1.4.0','Firmware revision number','hp','0',NULL,'0',NULL,NULL);
 
 DELETE FROM snmpoid WHERE oidkey='hpModules';
 INSERT INTO snmpoid (oidkey, snmpoid, descr, oidsource, getnext, match_regex, decodehex, oidname, mib)

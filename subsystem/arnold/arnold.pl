@@ -528,11 +528,6 @@ sub disable {
 	    return 0;
 	}
 
-	if ($kat ne 'EDGE') {
-	    &reporterror($ip,$netbios,$dns,"$sysname is not an edge-switch, we do not want to close ports there - skipping.");
-	    return 0;
-	}
-
 	if (&skip($vendorid,$typename)) {
 	    &reporterror($ip,$netbios,$dns,"$vendorid-$typename is not supported.");
 	    return 0;

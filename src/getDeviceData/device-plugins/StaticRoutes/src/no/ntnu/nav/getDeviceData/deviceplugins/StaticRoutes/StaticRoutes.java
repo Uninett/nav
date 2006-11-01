@@ -256,6 +256,10 @@ o For hver ruter (GW/GSW)
 		Map speedMap = sSnmp.getAllMap(nb.getOid("ifSpeed"));
 		Map highSpeedMap = sSnmp.getAllMap(nb.getOid("ifHighSpeed"));
 
+		if (admStatusMap == null) {
+			Log.w("PROCESS_SRT", "Could not get ifAdminStatus map");
+		}
+		
 		boolean addedRoute = false;
 		for (Iterator it = routes.iterator(); it.hasNext();) {
 			String r = Prefix.hexToIp((String)it.next());
@@ -287,7 +291,7 @@ o For hver ruter (GW/GSW)
 			//System.err.println("Check static route " + dest+"/"+mask + ", " + nexthop + ", ifindex " + ifindex);
 
 			// Ignore any admDown interfaces
-			String link = (String)admStatusMap.get(ifindex);
+			String link = admStatusMap != null ? (String)admStatusMap.get(ifindex) : "";
 			//System.err.println("  Link: " + link);
 			if (!"1".equals(link)) {
 				Log.d("ADM_DOWN", "Interface " + ifindex + " is admDown, skipping");
@@ -354,7 +358,7 @@ o For hver ruter (GW/GSW)
 			// Set speed from Mib-II
 			double speed;
 			// If the ifSpeed value is maxed out (a 32 bit unsigned value), get the speed value from ifHighSpeed (if available)
-			if (speedMap.containsKey(ifindex) && Long.parseLong((String)speedMap.get(ifindex)) == 4294967295L && highSpeedMap.containsKey(ifindex)) {
+			if (speedMap.containsKey(ifindex) && Long.parseLong((String)speedMap.get(ifindex)) == 4294967295L && highSpeedMap != null && highSpeedMap.containsKey(ifindex)) {
 				speed = Long.parseLong((String)highSpeedMap.get(ifindex));
 				Log.d("PROCESS_SRT", "Set gwport speed from ifHighSpeed for ifindex " + ifindex);
 			} else {

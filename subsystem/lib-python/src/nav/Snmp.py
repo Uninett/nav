@@ -206,11 +206,13 @@ class Snmp(object):
             if rsp['error_status']:
                 # SNMP agent reports 'no such name' when walk is over
                 if rsp['error_status'] == 2:
-                    # Switch over to GETNEXT req on error
-                    # XXX what if one of multiple vars fails?
+                    # Switch to using GETNEXT requests if GET request failed
                     if not (req is nextReq):
                         req = nextReq
                         continue
+                    else:
+                        # If GETNEXT also failed, we return whatever we got
+                        return result
                 else:
                     raise "Snmp error %s at %s (%s, %s)" % \
                           (rsp['error_status'],

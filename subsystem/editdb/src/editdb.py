@@ -1989,9 +1989,9 @@ class pageNetbox(editdbPage):
                                       ('Type',True,None),
                                       ('Serial',True,None)]
 
-            subcatTooltip = [['SELECT netboxid,' + \
-                             'netboxcategory.category FROM netbox ' + \
-                             'WHERE netboxcategory.netboxid=netboxid',
+            subcatTooltip = [['SELECT n.netboxid, nc.category ' + \
+                             'FROM netbox n, netboxcategory nc ' + \
+                             'WHERE nc.netboxid=n.netboxid',
                              ('Subcategories:','{$1}'),None],
                              ['SELECT netboxid,val FROM netboxinfo ' + \
                              'WHERE var=\'function\'',
@@ -6172,7 +6172,7 @@ class bulkdefNetbox:
     # list of (fieldname,max length,not null,use field)
     fields = [('roomid',0,True,True),
               ('ip',0,True,True),
-              ('orgid',10,True,True),
+              ('orgid',30,True,True),
               ('catid',8,True,True),
               ('ro',0,False,True),
               ('serial',0,False,False),
@@ -6356,9 +6356,9 @@ class bulkdefNetbox:
                 # remove it from the row
                 del(row['serial'])
 
-            # Got serial from snmp?
-            if box:
-                # (overrides manual serial)
+            # If we got a serial by SNMP and none was specified in the bulk
+            # data, use the one retrieved by SNMP
+            if box and not newSerial:
                 if box.serial:
                     newSerial = str(box.serial)
 

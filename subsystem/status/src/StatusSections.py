@@ -277,7 +277,7 @@ class ServiceSectionBox(SectionBox):
         filterHeadings = ['Organisation','Service','State']
 
         filterSelects = []
-        table = nav.db.manage.Org()
+        table = nav.db.manage.Org
 
         # Org
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -479,7 +479,7 @@ class NetboxSectionBox(SectionBox):
         filterSelects = []
 
         # Org
-        table = nav.db.manage.Org()
+        table = nav.db.manage.Org
         # Restrict to orgs where user belongs
         #whereOrg = makeWhereList(orgList)
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -488,7 +488,7 @@ class NetboxSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
-        table = nav.db.manage.Cat()
+        table = nav.db.manage.Cat
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
              optionsList.append((cat.catid,cat.catid,False))
@@ -679,7 +679,7 @@ class ModuleSectionBox(SectionBox):
         filterSelects = []
 
         # Org
-        table = nav.db.manage.Org()
+        table = nav.db.manage.Org
         # Restrict to orgs where user belongs
         #whereOrg = makeWhereList(orgList)
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -688,7 +688,7 @@ class ModuleSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
-        table = nav.db.manage.Cat()
+        table = nav.db.manage.Cat
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
              optionsList.append((cat.catid,cat.catid,False))
@@ -872,7 +872,7 @@ class ThresholdSectionBox(SectionBox):
         filterHeadings = ['Organisation','Category']
 
         filterSelects = []
-        table = nav.db.manage.Org()
+        table = nav.db.manage.Org
 
         # Org
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
@@ -883,7 +883,7 @@ class ThresholdSectionBox(SectionBox):
         filterSelects.append((controlBaseName + '_' + 'orgid',optionsList))
 
         # Cat
-        table = nav.db.manage.Cat()
+        table = nav.db.manage.Cat
         optionsList = [(FILTER_ALL_SELECTED,'All',True)]
         for cat in table.getAllIterator():
              optionsList.append((cat.catid,cat.catid,False))

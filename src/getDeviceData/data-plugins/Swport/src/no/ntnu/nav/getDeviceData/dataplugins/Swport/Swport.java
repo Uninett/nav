@@ -2,8 +2,8 @@ package no.ntnu.nav.getDeviceData.dataplugins.Swport;
 
 import java.util.ArrayList;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.util.util;
 
 
 /**
@@ -215,6 +215,19 @@ public class Swport implements Comparable
 		}
 	}
 
+	/**
+	 * <p>Compute a Cisco proprietary hex string to describe which VLANs are
+	 * allowed on this port.</p>
+	 * 
+	 * <p>The algorithm is described at 
+	 * <a href="http://tools.cisco.com/Support/SNMP/do/BrowseOID.do?local=en&translate=Translate&objectInput=1.3.6.1.4.1.9.5.1.9.3.1.5">
+	 * Cisco's SNMP object navigator</a>.  The algorithm is described only for
+	 * VLAN values up to 1023, so this function will sadly ignore any allowed
+	 * VLANs above this value.<p>
+	 * 
+	 * @return A hexadecimal string of 512 digits. If this is not a trunk port, an empty string is returned.
+	 * 
+	 */
 	String getVlanAllowHexString()
 	{
 		if (!getTrunkB()) return "";
@@ -224,6 +237,10 @@ public class Swport implements Comparable
 
 		for (int i=0; i < vlanList.size(); i++) {
 			int vlan = Integer.parseInt((String)vlanList.get(i));
+			if (vlan > 1023) {
+				Log.d("SWPORT", "VLAN_ALLOWED_HEXSTRING", "Ignoring vlan " + vlan + " when computing hex string for ifindex " + ifindex + " (interface:" + interf + " / portname:" + portname + ")");
+				continue; // Ignore VLANs above 1023
+			}
 
 			int index = vlan / 4;
 			a[index] ^= (1<<3-(vlan%4));

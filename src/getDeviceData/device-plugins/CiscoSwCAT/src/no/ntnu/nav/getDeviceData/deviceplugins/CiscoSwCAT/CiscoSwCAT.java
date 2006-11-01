@@ -1,17 +1,20 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoSwCAT;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.util.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwModule;
+import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p>
@@ -26,7 +29,6 @@ import no.ntnu.nav.getDeviceData.dataplugins.Swport.*;
  *	<li>From Cisco CAT</li>
  *	<ul>
  *	 <li>portIfIndex</li>
- *	 <li>ifName</li>
  *	 <li>portDuplex</li>
  *	 <li>portVlan</li>
  *	 <li>portVlansAllowed</li>
@@ -90,104 +92,47 @@ public class CiscoSwCAT implements DeviceHandler
 			sc = (SwportContainer)dc;
 		}
 
-		String netboxid = nb.getNetboxidS();
-		String ip = nb.getIp();
-		String cs_ro = nb.getCommunityRo();
-		String type = nb.getType();
 		this.sSnmp = sSnmp;
 
-		processCAT(nb, netboxid, ip, cs_ro, type, mc, sc);
+		processCAT(nb, mc, sc);
 
 		// Commit data
 		if (mc.isCommited()) sc.setEqual(mc);
 		sc.commit();
 	}
-	
-	private void processCAT(Netbox nb, String netboxid, String ip, String cs_ro, String typeid, ModuleContainer mc, SwportContainer sc) throws TimeoutException
+
+	/**
+	 * <p>Collects and processes data from a Cisco Switch running CatOS (or otherwise OID compatible box).</p>
+	 * 
+	 * <p>As opposed to the CiscoSwCAT plugin, this one requires the portIfIndex OID to be supported, or
+	 * no interfaces will be collected.</p>
+	 * 
+	 */
+	private void processCAT(Netbox nb, ModuleContainer mc, SwportContainer sc) throws TimeoutException
 	{
-		typeid = typeid.toLowerCase();
-
-		List l;
-
 		HashMap modPortIfindex = new HashMap();
-		List o = sSnmp.getAll(nb.getOid("portIfIndex"));
+		List portIfIndexes = sSnmp.getAll(nb.getOid("portIfIndex"));
 
-		if (o != null) {
-			HashMap ifModule = new HashMap();
-			l = sSnmp.getAll(nb.getOid("ifName"), true);
-			if (l != null) {
-				// Count number of modules
-				Set moduleCntSet = new HashSet();
-				for (Iterator it = l.iterator(); it.hasNext();) {
-					String[] s = (String[])it.next();
-					String portif = s[1];
-					String modulePattern = "((.*)(\\d+))/(\\d+)";
-					if (portif.matches(modulePattern)) {
-						Matcher m = Pattern.compile(modulePattern).matcher(portif);
-						m.matches();
-						moduleCntSet.add(m.group(3));
-					}
-				}
-
-				for (Iterator it = l.iterator(); it.hasNext();) {
-					String[] s = (String[])it.next();
-
-					String ifindex = s[0];
-					String portif = s[1];
-
-					// Determine and create the module
-					// Use *? because otherwise two digit numbers won't work!
-					//String modulePattern = ".*?(\\d+)/(\\d+)";
-					String modulePattern = "((.*?)(\\d+))/(\\d+)(/(\\d+))?";
-					if (portif.matches(modulePattern)) {
-						Matcher m = Pattern.compile(modulePattern).matcher(portif);
-						m.matches();
-						int module = Integer.parseInt(m.group(3));
-
-						// If submodule then we add the submodule number to module as a string
-						if (util.groupCountNotNull(m) >= 6) {
-							String submod = m.group(4);
-							String newmodule = module + submod;
-							mc.moduleTranslate(""+module, newmodule);
-							sc.moduleTranslate(""+module, newmodule);
-							module = Integer.parseInt(newmodule);
-							mc.moduleFactory(module);
-						}
-
-						if (mc.getModule(module) == null) {
-							if (module == 0 && moduleCntSet.size() == 1) {
-								module = 1;
-								mc.moduleFactory(1);
-							} else {
-								// Not allowed to create module
-								Log.w("PROCESS_CAT", "Module " + module + " does not exist on netbox " + nb.getSysname() + ", skipping");
-								continue;
-							}
-						}
-
-						SwModule swm = sc.swModuleFactory(module);
-						swm.swportFactory(ifindex); // Create module <-> ifindex mapping
-						//swm.setDescr(portif.split("/")[0]);
-					}
-				}
-			}
-			for (Iterator it = o.iterator(); it.hasNext();) {
+		if (portIfIndexes != null) {
+			// Iterate the portIfIndex response to enumerate modules/ports
+			for (Iterator it = portIfIndexes.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
-
-				String modport = s[0];
+				String moduleDotPort = s[0];
 				String ifindex = s[1];
-				String[] s2 = modport.split("\\.");
+				
+				String[] s2 = moduleDotPort.split("\\.");
 				Integer module = Integer.valueOf(s2[0]);
 				Integer port = Integer.valueOf(s2[1]);
-				modPortIfindex.put(s[0],s[1]);
-			
+				modPortIfindex.put(moduleDotPort, ifindex);
+				Log.d("PROCESS_CAT", "ifIndex " + ifindex+ " maps to " + moduleDotPort);
+				
 				SwModule swm = sc.swModuleFactory(module.intValue());
 				swm.swportFactory(ifindex).setPort(port); // Create module <-> ifindex mapping
 			}
 			
-			l = sSnmp.getAll(nb.getOid("portDuplex"));
-			if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+			List response = sSnmp.getAll(nb.getOid("portDuplex"));
+			if (response != null) {
+				for (Iterator it = response.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String modport = s[0];
 					String ifindex = (String)modPortIfindex.get(modport);
@@ -196,34 +141,33 @@ public class CiscoSwCAT implements DeviceHandler
 				}
 			}
 
-			l = sSnmp.getAll(nb.getOid("portPortName"), true);
-			if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+			response = sSnmp.getAll(nb.getOid("portPortName"), true);
+			if (response != null) {
+				for (Iterator it = response.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String ifindex = (String) modPortIfindex.get(s[0]);
 					sc.swportFactory(ifindex).setPortname(s[1]);
 				}
 			}
 				
-			l = sSnmp.getAll(nb.getOid("portVlan"));
-			if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+			response = sSnmp.getAll(nb.getOid("portVlan"));
+			if (response != null) {
+				for (Iterator it = response.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
-					String[] s2 = s[0].split("\\.");
 					int vlan = 0;
 					try{
 						vlan = Integer.parseInt(s[1]);
 					} catch	 (NumberFormatException e) {
-						Log.w("PROCESS_CAT", "netboxid: " + netboxid + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
+						Log.w("PROCESS_CAT", "netboxid: " + nb.getNetboxid() + " ifindex: " + s[0] + " NumberFormatException on vlan: " + s[1]);
 					}
 					String ifindex = (String) modPortIfindex.get(s[0]);
 					sc.swportFactory(ifindex).setVlan(vlan);
 				}
 			}
 
-			l = sSnmp.getAll(nb.getOid("portTrunk"));
-			if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+			response = sSnmp.getAll(nb.getOid("portTrunk"));
+			if (response != null) {
+				for (Iterator it = response.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					boolean trunk = (s[1].equals("1") ? true : false);
 					String ifindex = (String) modPortIfindex.get(s[0]);
@@ -231,9 +175,9 @@ public class CiscoSwCAT implements DeviceHandler
 				}
 			}
 
-			l = sSnmp.getAll(nb.getOid("portVlansAllowed"));
-			if (l != null) {
-				for (Iterator it = l.iterator(); it.hasNext();) {
+			response = sSnmp.getAll(nb.getOid("portVlansAllowed"));
+			if (response != null) {
+				for (Iterator it = response.iterator(); it.hasNext();) {
 					String[] s = (String[])it.next();
 					String ifindex = (String) modPortIfindex.get(s[0]);
 					sc.swportFactory(ifindex).setHexstring(s[1]);

@@ -449,7 +449,7 @@ public class CiscoModule implements DeviceHandler
 					if (DEBUG) err("Did not create module " + module + " from Phys");				
 					continue;
 				}
-				if (DEBUG) err("Created module " + module + " from Phys: " + physSerial.get(id));
+				Log.d("CMOD_PHYSOID", "Created module " + module + " from Phys: " + (String)(physSerial != null ? physSerial.get(id) : "null"));
 				Module m = mc.moduleFactory(module);
 
 				if (physSerial != null && physSerial.containsKey(id) && m.getSerial() == null) m.setSerial((String)physSerial.get(id));

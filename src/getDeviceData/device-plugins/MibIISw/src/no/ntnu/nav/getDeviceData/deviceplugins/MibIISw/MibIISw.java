@@ -322,7 +322,7 @@ public class MibIISw implements DeviceHandler
 				double speedNum = 0.0;
 				try {
 					// If the ifSpeed value is maxed out (a 32 bit unsigned value), get the speed value from ifHighSpeed (if available)
-					if (Long.parseLong(s[1]) == 4294967295L && highSpeedMap.containsKey(s[0])) {
+					if (Long.parseLong(s[1]) == 4294967295L && highSpeedMap != null && highSpeedMap.containsKey(s[0])) {
 						speedNum = Long.parseLong((String)highSpeedMap.get(s[0]));
 						Log.d("PROCESS_MIB_II_SW", "Set gwport speed from ifHighSpeed for ifindex " + s[0]);
 					} else {

@@ -1,0 +1,78 @@
+<project name="autodiscovery" default="dist" basedir=".">
+    <description>
+        build file for eventEngine
+    </description>
+  <!-- set global properties for this build -->
+  <property name="jar" value="autodiscovery.jar"/>
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+
+  <!-- Get installation target directories from build.properties.  When
+  actually installing files in a file system, the property DESTDIR should
+  always be prepended -->
+  <property file="../build.properties"/>
+
+  <property name="instdir"  location="${javalibdir}/autodiscovery"/>
+	<property name="debug" value="yes"/>
+  <property name="build.compiler.emacs" value="yes"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" source="1.4" target="1.4" debug="${debug}"/>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+
+    <!-- Put everything in ${build} into the ${jar} file -->
+    <jar jarfile="${dist}/${jar}" basedir="${build}" manifest="Main-Class"/>
+  </target>
+
+  <target name="install" depends="dist">
+    <!-- The point of the following is to set the isUnix property to
+    os.name if os.family is unix.  Later, we use isUnix in os lists to
+    exec when calling chmod on files -->
+    <condition property="isUnix" value="${os.name}">
+      <os family="unix" />
+    </condition>
+
+    <mkdir dir="${DESTDIR}${instdir}"/>
+    <copy file="${dist}/${jar}" todir="${DESTDIR}${instdir}"/>
+
+    <mkdir dir="${DESTDIR}${bindir}"/>
+    <copy file="autodiscovery.sh" todir="${DESTDIR}${bindir}"/>
+    <exec dir="${DESTDIR}${bindir}" executable="chmod" os="${isUnix}">
+      <arg line="755 autodiscovery.sh" />
+    </exec>
+
+    <mkdir dir="${DESTDIR}${initdir}" />
+    <copy file="autodiscovery" todir="${DESTDIR}${initdir}" />
+    <exec dir="${DESTDIR}${initdir}" executable="chmod" os="${isUnix}">
+      <arg line="755 autodiscovery" />
+    </exec>
+    <copy file="autodiscovery.conf" todir="${DESTDIR}${sysconfdir}"/>
+  </target>
+
+  <target name="uninstall">
+    <delete file="${DESTDIR}${instdir}/${jar}"/>
+    <delete file="${DESTDIR}${bindir}/autodiscovery.sh"/>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>
