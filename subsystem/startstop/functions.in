@@ -70,8 +70,10 @@ status() {
     local pid=`pidofproc $1`
     if [ "$pid" != "" ] ; then
         echo "$1 (pid $pid) is running...";
+        return 0
     else
         echo "$1 does not seem to be running...";
+        return 1
     fi
 }
 

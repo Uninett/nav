@@ -2,6 +2,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2004 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -24,7 +25,7 @@
 # This is the Common start/stop script for all NAV services.  It will
 # also manage loading/unloading of cron-based tasks in the NAV system.
 #
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
+# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 """This command is your interface to start, stop and query NAV services.
 
@@ -89,6 +90,7 @@ def main(args):
     command = args.pop(0)
     if len(args) == 0:
         queryList = services.keys()
+        queryList.sort()
     else:
         queryList = args
 
@@ -108,11 +110,53 @@ def checkroot():
         sys.exit(10)
 
 def serviceIterator(queryList, func):
-    for service in queryList:
-        if services.has_key(service):
-            func(services[service])
+    """Iterate through a list of service names, look up each service instance
+    and call func using this instance as its argument.
+    """
+    unknowns = []
+    for name in queryList:
+        if name in services:
+            func(services[name])
         else:
-            print >> sys.stderr, "Unknown service: " + service
+            unknowns.append(name)
+    if len(unknowns):
+        sys.stderr.write("Unknown services: %s\n" % " ".join(unknowns))
+
+def actionIterator(queryList, action, okString, failString):
+    """Iterate through a list of service names, performing an action on each
+    of them.
+    """
+    failed = []
+    unknowns = []
+    errors = []
+
+    anyOk = False
+    for name in queryList:
+        if name in services:
+            method = eval('services[name].%s' % action)
+            try:
+                if method(silent=True):
+                    if not anyOk:
+                        anyOk = True
+                        print okString + ":",
+                    print name,
+                    sys.stdout.flush()
+                else:
+                    failed.append(name)
+            except CommandFailedError, error:
+                errors.append((name, error))
+        else:
+            unknowns.append(name)
+    if anyOk:
+        print
+    
+    if len(failed):
+        print "%s: %s" % (failString, " ".join(failed))
+    if len(unknowns):
+        print "Unknown: %s" % " ".join(unknown)
+    if len(errors):
+        print "Errors:",
+        print " ".join(["%s (%s)" % error for error in errors])
 
 def c_info(queryList):
     def helper(service):
@@ -127,40 +171,21 @@ def c_list(queryList):
     serviceIterator(queryList, helper)
 
 def c_start(queryList):
-    def helper(service):
-        try:
-            service.start()
-        except CommandFailedError, e:
-            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
-    serviceIterator(queryList, helper)
+    actionIterator(queryList, "start", "Starting", "Failed")
         
 def c_stop(queryList):
-    def helper(service):
-        try:
-            service.stop()
-        except CommandFailedError, e:
-            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
-    serviceIterator(queryList, helper)
+    actionIterator(queryList, "stop", "Stopping", "Failed")
 
 def c_restart(queryList):
-    def helper(service):
-        try:
-            service.restart()
-        except CommandFailedError, e:
-            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
-    serviceIterator(queryList, helper)
+    c_stop(queryList)
+    c_start(queryList)
         
 def c_status(queryList):
-    def helper(service):
-        try:
-            service.isUp()
-        except CommandFailedError, e:
-            print >> sys.stderr, "Shell command ended with non-zero exitcode: " + str(e)
     checkroot()
-    serviceIterator(queryList, helper)
+    actionIterator(queryList, "isUp", "Up", "Down")
 
 def c_version(queryList):
     import nav
@@ -178,4 +203,5 @@ def usage():
 ##############
 # begin here #
 ##############
-main(sys.argv[1:])
+if __name__ == '__main__':
+    main(sys.argv[1:])

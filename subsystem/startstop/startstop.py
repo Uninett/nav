@@ -1,6 +1,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -19,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Morten Vold <morten.vold@itea.ntnu.no>
+# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 """Contains service start/stop functionality for NAV."""
 __id__ = "$Id:$"
@@ -108,21 +109,43 @@ class DaemonService(Service):
 
     def start(self, silent=False):
         if not self.command('start', silent=silent):
-            raise CommandFailedError, self.status
+            if self.status >> 8 == 1:
+                return False
+            else:
+                raise CommandFailedError, self.status
+        else:
+            return True
         
     def stop(self, silent=False):
         if not self.command('stop', silent=silent):
-            raise CommandFailedError, self.status
+            if self.status >> 8 == 1:
+                return False
+            else:
+                raise CommandFailedError, self.status
+        else:
+            return True
 
     def restart(self, silent=False):
         if not self.command('restart', silent=silent):
-            raise CommandFailedError, self.status
+            if self.status >> 8 == 1:
+                return False
+            else:
+                raise CommandFailedError, self.status
+        else:
+            return True
 
     def isUp(self, silent=False):
-        return self.command('status', silent=silent)
+        if not self.command('status', silent=silent):
+            if self.status >> 8 == 1:
+                return False
+            else:
+                raise CommandFailedError, self.status
+        else:
+            return True
 
     def command(self, command, silent=False):
-        self.status = os.system(self.source + ' ' + command)
+        silence = silent and ' > /dev/null 2> /dev/null' or ''
+        self.status = os.system(self.source + ' ' + command + silence)
         return (self.status == 0)
 
 
@@ -167,6 +190,7 @@ class CronService(Service):
         else:
             if not silent:
                 print "Ok"
+            return True
         
     def stop(self, silent=False):
         if not silent:
@@ -175,13 +199,16 @@ class CronService(Service):
             del CronService.crontab[self.name]
             CronService.crontab.save()
         except CrontabError, e:
-            print "Failed"
+            if not silent:
+                print "Failed"
             raise e
         except KeyError, e:
-            print "Not running"
+            if not silent:
+                print "Not running"
         else:
             if not silent:
                 print "Ok"
+            return True
 
     def restart(self, silent=False):
         self.stop(silent=silent)
