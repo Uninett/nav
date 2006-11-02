@@ -1,7 +1,26 @@
-===========================
- Release notes for NAV 3.1
-===========================
+=============================
+ Release notes for NAV 3.1.1
+=============================
 Please report bugs at http://sourceforge.net/projects/nav
+
+Upgrading from NAV 3.0.1
+========================
+
+An old error, confusing HP hardware versions with firmware versions, caused
+storms of incorrect devHwVerChanged alerts for HP equipment in previous
+versions of NAV.  The fix in version 3.1.1 involves changing an entry in the
+NAVdb's snmpoid table - the entry for oidkey='hpHwVer' should be changed to
+'hpFwVer'.
+
+The new hpFwVer OID will be inserted into the snmpoid table when you re-run
+the `snmpoid.sql` script, but to make sure the existing entry is renamed, the
+following SQL command should be performed on the manage database using psql
+(running `psql manage` as the postgres user):
+
+  UPDATE snmpoid 
+  SET oidkey='hpFwVer', descr='Firmware revision number' 
+  WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
+    AND oidkey='hpHwVer';
 
 
 Upgrading from NAV 3.0
@@ -16,21 +35,30 @@ provided in doc/sql/upgrades/3.1.0.sql to upgrade the rest of the database
 schema.
 
 The recommended database setup has changed.  Previously, the README suggested
-creating two database users `navread` and `navwrite`.  It then suggested
-creating the NAV databases as the postgres superuser, while the provided sql
-scripts would grant read/write privileges on the tables to the navread and
-navwrite users.  The new recommendation is to create only one database user
-called `nav`, and specify this user as the owner of the databases when
-creating them.  Hence, the provided db.conf has been changed to reference only
-this one user.
+creating two database users `navread` and `navwrite`, and sometimes even a
+`manage` superuser.  It then suggested creating the NAV databases as the
+postgres/manage superuser, while the provided sql scripts would grant
+read/write privileges on the tables to the navread and navwrite users.  The
+new recommendation is to create only one database user called `nav`, and
+specify this user as the owner of the databases when creating them.  Hence,
+the provided db.conf has been changed to reference only this one user.
 
-PostgreSQL versions before 8.0 do not have a command to change a database's
-owner, so if you run an old PostgreSQL version you are probably better off
-leaving the user scheme as it is.  PostgreSQL will allow you to grant table
-CREATE privileges, which you might want to do for the `navwrite user`.  If you
-are running _PostgreSQL 8.0_ or newer, you can create the `nav` user as
-suggested in the README, and the use the following SQL commands to make it the
-owner of the NAV databases:
+PostgreSQL versions prior to 8.0 do not have explicit commands to change a
+database's owner.  Because of this, we've prepared an SQL script which should
+be suitable to use for upgrading to the new user scheme on both PostgreSQL 7.4
+and 8.  Be warned though, that this script will create a new database user
+called nav, DELETE the old users and reset all privileges on the NAV tables.
+If you've made any customizations here, they will be *lost* by running the
+script.
+
+The script is located in `doc/sql/upgrades/3.0-to-3.1-users.sql`.  To run it,
+simply perform the following as the postgres user:
+
+  psql -f doc/sql/upgrades/3.0-to-3.1-users.sql template1
+
+If you don't want to use this script, and you are running _PostgreSQL 8.0_ or
+newer, you can create the `nav` user as suggested in the README, and the use
+the following SQL commands to make it the owner of the NAV databases:
 
   ALTER DATABASE manage OWNER TO nav;
   ALTER DATABASE navprofiles OWNER TO nav;
