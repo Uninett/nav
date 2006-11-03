@@ -32,9 +32,12 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id:$"
 
+import logging
 import time
 from mod_python import apache, util
 import nav.db
+
+logger = logging.getLogger('nav.maintenance')
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -62,12 +65,12 @@ def getTasks(where = False, order = 'maint_end DESC'):
     else:
         sql = "%s ORDER BY %s" % (select, order)
 
-    # FIXME: Log query
+    logger.debug("getTask() query: %s", sql)
     db.execute(sql)
+    logger.debug("getTask() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     results = db.dictfetchall()
-    # FIXME: Log result
 
     # Attach components belonging to this message
     for i, result in enumerate(results):
@@ -127,12 +130,12 @@ def setTask(taskid, maint_start, maint_end, description, author, state):
         'state': state
     }
 
-    # FIXME: Log query
+    logger.debug("setTask() query: %s", sql % data)
     db.execute(sql, data)
     if not taskid:
         db.execute("SELECT CURRVAL('maint_task_maint_taskid_seq')")
         taskid = db.dictfetchone()['currval']
-    # FIXME: Log result
+    logger.debug("setTask() number of results: %d", db.rowcount)
 
     return taskid
 
@@ -155,12 +158,12 @@ def getComponents(taskid):
         ORDER BY key, value"""
     data = {'maint_taskid': taskid}
 
-    # FIXME: Log query
+    logger.debug("getComponents() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getComponents() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     results = db.dictfetchall()
-    # FIXME: Log result
 
     # Attach information about the components
     for i, result in enumerate(results):
@@ -190,9 +193,9 @@ def setComponents(taskid, components):
     sql = """DELETE FROM maint_component
         WHERE maint_taskid = %(maint_taskid)d"""
     data = { 'maint_taskid': taskid }
-    # FIXME: Log query
+    logger.debug("setComponents() query: %s", sql % data)
     db.execute(sql, data)
-    # FIXME: Log result
+    logger.debug("setComponents() number of results: %d", db.rowcount)
 
     # Insert new components
     sql = """INSERT INTO maint_component (
@@ -212,9 +215,9 @@ def setComponents(taskid, components):
             'value': component['value']
         }
 
-        # FIXME: Log query
+        logger.debug("setComponents() query: %s", sql % data)
         db.execute(sql, data)
-        # FIXME: Log result
+        logger.debug("setComponents() number of results: %d", db.rowcount)
 
     return True
 
@@ -292,12 +295,13 @@ def getLocation(locationid):
         WHERE locationid = %(locationid)s"""
     data = {'locationid': locationid}
 
-    # FIXME: Log query
+    logger.debug("getLocation() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getLocation() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    # FIXME: Log result
+    
     return result[0]
 
 def getRoom(roomid):
@@ -321,12 +325,13 @@ def getRoom(roomid):
         WHERE roomid = %(roomid)s"""
     data = {'roomid': roomid}
 
-    # FIXME: Log query
+    logger.debug("getRoom() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getRoom() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    # FIXME: Log result
+
     return result[0]
 
 
@@ -353,12 +358,13 @@ def getNetbox(netboxid):
         WHERE netboxid = %(netboxid)d"""
     data = {'netboxid': int(netboxid)}
 
-    # FIXME: Log query
+    logger.debug("getNetbox() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getNetbox() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    # FIXME: Log result
+
     return result[0]
 
 def getService(serviceid):
@@ -386,12 +392,13 @@ def getService(serviceid):
         WHERE s.serviceid = %(serviceid)d"""
     data = {'serviceid': int(serviceid)}
 
-    # FIXME: Log query
+    logger.debug("getService() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getService() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    # FIXME: Log result
+
     return result[0]
 
 def cancelTask(taskid):
@@ -411,7 +418,8 @@ def cancelTask(taskid):
 
     data = {'maint_taskid': taskid}
 
-    # FIXME: Log query
+    logger.debug("cancelTask() query: %s", sql % data)
     db.execute(sql, data)
-    # FIXME: Log result
+    logger.debug("cancelTask() number of results: %d", db.rowcount)
+
     return True
