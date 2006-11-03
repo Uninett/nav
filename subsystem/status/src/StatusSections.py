@@ -717,7 +717,6 @@ class NetboxSectionBox(SectionBox):
         result = database.fetchall()        
 
         # If components is on maintenance, do not show them
-        # FIXME: Include components in locations and rooms
         sql = """SELECT n.sysname, n.ip, ah.start_time,
                 now() - ah.start_time AS downtime, n.up, at.alerttype,
                 n.netboxid
@@ -885,7 +884,6 @@ class NetboxMaintenanceSectionBox(SectionBox):
     def fill(self):
         filterSettings = self.filterSettings
 
-        # FIXME: Include components in locations and rooms
         sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
                 now() - ah.start_time AS downtime, n.up, at.alerttype,
                 n.netboxid, mc.maint_taskid
@@ -899,6 +897,18 @@ class NetboxMaintenanceSectionBox(SectionBox):
                 AND mc.value = ah.netboxid
                 AND mt.maint_start < now()
                 AND mt.maint_end > now()"""
+
+        # FIXME: Get maint_taskid from alerthistvar. Depends on a small change
+        # in the MaintenanceState plugin of EventEngine.
+
+        sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
+                now() - ah.start_time AS downtime, n.up, at.alerttype,
+                n.netboxid, 0 AS maint_taskid
+            FROM alerthist AS ah, netbox AS n, alerttype AS at
+            WHERE ah.netboxid = n.netboxid
+                AND ah.alerttypeid = at.alerttypeid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'maintenanceState'"""
 
         where_clause = ''
         if filterSettings:
