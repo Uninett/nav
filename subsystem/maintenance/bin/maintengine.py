@@ -36,21 +36,57 @@ __license__ = "GPL"
 __author__ = "Bjørn Ove Grøtan (bjorn.grotan@itea.ntnu.no), Sigurd Gartmann (sigurd-nav@brogar.org), Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id$"
 
+import logging
+import os.path
 import sys
 import nav.db
 import nav.event
+import nav.logconfig
 from mx import DateTime
+
+logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
+logformat = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s"
+logger = logging.getLogger('maintengine')
 
 # Placeholders
 events = []
 states = ['scheduled', 'active', 'passed', 'canceled']
 debug = False
 boxesOffMaintenance = []
+
 dbconn = nav.db.getConnection('eventEngine', 'manage')
 dbconn.autocommit(0)
 # Make sure isolation level is "read committed", not "serialized"
 dbconn.set_isolation_level(1)
 db = dbconn.cursor()
+
+
+def loginit():
+    """Initialize logging setup"""
+
+    global _loginited
+    try:
+        # Make sure we don't initialize logging setup several times (in case
+        # of module reloads and such)
+        if _loginited:
+            return
+    except:
+        pass
+
+    root = logging.getLogger('')
+
+    formatter = logging.Formatter(logformat)
+    try:
+        handler = logging.FileHandler(logfile)
+    except IOError, e:
+        # Most likely, we were denied access to the log file.
+        # We silently ignore it and log nothing :-P
+        pass
+    else:
+        handler.setFormatter(formatter)
+        root.addHandler(handler)
+        nav.logconfig.setLogLevels()
+        _loginited = True
 
 
 def schedule():
@@ -169,9 +205,7 @@ def send_event():
                                       'qval': handler })
             elif key == 'module':
                 # Unsupported as of NAV 3.2
-                raise "Deprecated component key" # FIXME: Should be class
-            else:
-                raise "Unsupported component key" # FIXME: Should be class
+                raise DeprecationWarning, "Deprecated component key"
 
             # Create events for all related netboxes
             for netbox in netboxes:
@@ -194,8 +228,8 @@ def send_event():
                 event['val'] = netbox['qval']
 
                 # Add event to eventq
-                # FIXME: Log event posting
-                event.post()
+                result = event.post()
+                logger.debug("Event: %s, Result: %s", event, result)
 
         # Update state
         sql = """UPDATE maint_task
@@ -222,28 +256,26 @@ def remove_forgotten():
 
     # This SQL retrieves a list of boxes that are supposed to be on
     # maintenance, according to the schedule.
-    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname,
-                integer '0' AS subid
+    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
             FROM maint m INNER JOIN netbox n ON (n.netboxid = m.value)
             WHERE m.key = 'netbox' AND m.state = 'active'
 
             UNION
 
-            SELECT n.netboxid, n.deviceid, n.sysname, integer '0' AS subid
+            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
             FROM maint m INNER JOIN netbox n ON (n.roomid = m.value)
             WHERE m.key = 'netbox' AND m.state = 'active'
 
             UNION
     
-            SELECT n.netboxid, n.deviceid, n.sysname, integer '0' AS subid
+            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
             FROM maint m INNER JOIN netbox n ON (n.roomid IN
                 (SELECT roomid FROM room WHERE locationid = m.value))
             WHERE m.key = 'location' AND m.state = 'active'
 
             UNION
             
-            SELECT n.netboxid, n.deviceid, n.sysname,
-                to_number(m.value, '999999') AS subid
+            SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
             FROM maint m INNER JOIN netbox n ON (n.netboxid IN
                 (SELECT netboxid FROM service WHERE
                     serviceid LIKE m.value))
@@ -251,10 +283,8 @@ def remove_forgotten():
 
     # This SQL retrieves a list of boxes that are currently on
     # maintenance, according to the alert history.
-    sqlactual = """SELECT n.netboxid, n.deviceid, n.sysname,
-            s.serviceid AS subid
-        FROM alerthist a LEFT JOIN netbox n USING (netboxid)
-            LEFT JOIN service s USING (netboxid)
+    sqlactual = """SELECT ah.netboxid, ah.deviceid, n.sysname, subid 
+        FROM alerthist ah LEFT JOIN netbox n USING (netboxid)
         WHERE eventtypeid='maintenanceState' AND netboxid IS NOT NULL
         AND end_time = 'infinity'"""
 
@@ -263,7 +293,7 @@ def remove_forgotten():
     # to be on maintenance - resulting in a list of boxes that should
     # be taken off maintenance immediately.
     sqlfull = "(%s) \n EXCEPT \n (%s)" % (sqlactual, sqlsched)
-    db.execute(sqlfull);
+    db.execute(sqlfull)
 
     target = 'eventEngine'
     subsystem = 'maintenance'
@@ -280,17 +310,17 @@ def remove_forgotten():
             # boxes here.
             continue
 
-        # FIXME: Use NAV logger
-        print >> sys.stderr, ("Box %s (%d) was on unscheduled " +
-                              "maintenance, taking off maintenance now...") % \
-                              (sysname, netboxid)
-
         # If it's a service, we have to set subid also
         if subid is None:
+            logger.info("Box %s (%d) is on unscheduled maintenance. " +
+                        "Taking off maintenance now.", sysname, netboxid)
             subid = False
             qvar = 'netbox'
             qval = sysname
         else:
+            logger.info("Service (%d) at box %s (%d) is on unscheduled " +
+                        "maintenance. Taking off maintenance...",
+                        subid, sysname, netboxid)
             subid = int(subid)
             qvar = 'service'
             qval = subid
@@ -301,13 +331,16 @@ def remove_forgotten():
             eventtypeid=eventtype, state=state, value=value, severity=severity)
         event['var'] = qvar
         event['val'] = qval
-        event.post()
+
+        result = event.post()
+        logger.debug("Event: %s, Result: %s", event, result)
 
     # Commit transaction
     dbconn.commit()
 
 
 if __name__ == '__main__':
+    loginit()
     schedule()
     check_state()
     send_event()
