@@ -6,7 +6,7 @@
 # This script controls start/stop/status of the NAV SMS Daemon.
 #
 # Copyright 2006 UNINETT AS
-# Authors: Morten Vold <morten.vold@uninett.no>
+# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 ####################
 prefix=@prefix@
