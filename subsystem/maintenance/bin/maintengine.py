@@ -178,8 +178,8 @@ def send_event():
                     netboxes.append({ 'netboxid': netboxid,
                                       'sysname': sysname,
                                       'deviceid': deviceid,
-                                      'qvar': 'netbox',
-                                      'qval': sysname })
+                                      'cvar': 'netbox',
+                                      'cval': sysname })
             elif key == 'netbox':
                 sql = """SELECT netboxid, sysname, deviceid
                     FROM netbox
@@ -196,8 +196,8 @@ def send_event():
                     netboxes.append({ 'netboxid': netboxid,
                                       'sysname': sysname,
                                       'deviceid': deviceid,
-                                      'qvar': 'netbox',
-                                      'qval': sysname })
+                                      'cvar': 'netbox',
+                                      'cval': sysname })
             elif key == 'service':
                 sql = """SELECT netboxid, sysname, deviceid, handler
                     FROM service INNER JOIN netbox USING (netboxid)
@@ -216,8 +216,8 @@ def send_event():
                                       'deviceid': deviceid,
                                       'serviceid': int(val),
                                       'servicename': handler,
-                                      'qvar': 'service',
-                                      'qval': handler })
+                                      'cvar': 'service',
+                                      'cval': handler })
             elif key == 'module':
                 # Unsupported as of NAV 3.2
                 raise DeprecationWarning, "Deprecated component key"
@@ -239,8 +239,8 @@ def send_event():
                     netboxid=netbox['netboxid'], subid=subid,
                     eventtypeid=eventtype, state=state, value=value,
                     severity=severity)
-                event['var'] = netbox['qvar']
-                event['val'] = netbox['qval']
+                event[netbox['cvar']] = netbox['cval']
+                event['maint_taskid'] = taskid
 
                 # Add event to eventq
                 result = event.post()
@@ -330,22 +330,16 @@ def remove_forgotten():
             logger.info("Box %s (%d) is on unscheduled maintenance. " +
                         "Taking off maintenance now.", sysname, netboxid)
             subid = False
-            qvar = 'netbox'
-            qval = sysname
         else:
             logger.info("Service (%d) at box %s (%d) is on unscheduled " +
                         "maintenance. Taking off maintenance...",
                         subid, sysname, netboxid)
             subid = int(subid)
-            qvar = 'service'
-            qval = subid
 
         # Create event
         event = nav.event.Event(source=source, target=target,
             deviceid=deviceid, netboxid=netboxid, subid=subid,
             eventtypeid=eventtype, state=state, value=value, severity=severity)
-        event['var'] = qvar
-        event['val'] = qval
 
         result = event.post()
         logger.debug("Event: %s, Result: %s", event, result)
