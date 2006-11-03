@@ -141,6 +141,8 @@ class ServiceSectionBox(SectionBox):
         self.historyLink = []
         self.historyLink.append((BASEPATH + 'history/?type=services',
                                  'history'))
+        self.historyLink.append(('/browse/service/allMatrix',
+                                 'service status'))
         self.filterSettings = filterSettings
 
         SectionBox.__init__(self, controlBaseName,title,getArgs,None) 
@@ -150,14 +152,13 @@ class ServiceSectionBox(SectionBox):
     def fill(self):
         filterSettings = self.filterSettings
     
-        sql = "SELECT netbox.sysname,service.handler," +\
-              "alerthist.start_time,now()-alerthist.start_time," +\
-              "service.up,service.serviceid,netbox.netboxid " +\
-              "FROM alerthist,netbox,service " + \
-              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
-              "alerthist.subid=service.serviceid AND " +\
-              "alerthist.end_time='infinity' AND " +\
-              "alerthist.eventtypeid='serviceState' "
+        sql = """SELECT DISTINCT n.sysname, s.handler, ah.start_time,
+                now() - ah.start_time AS downtime, s.up, s.serviceid, n.netboxid
+            FROM alerthist AS ah, netbox AS n, service AS s
+            WHERE ah.netboxid = n.netboxid
+                AND ah.subid = s.serviceid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'serviceState'"""
  
         # parse filter settings
         where_clause = ''
@@ -169,7 +170,7 @@ class ServiceSectionBox(SectionBox):
                 for org in filterSettings['orgid']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "netbox.orgid = '" + org + "'"
+                    where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
@@ -179,7 +180,7 @@ class ServiceSectionBox(SectionBox):
                 for handler in filterSettings['handler']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "service.handler = '" + handler + "'"
+                    where_clause += "s.handler = '" + handler + "'"
                     first_line = False
                 where_clause += ") "
             # state
@@ -190,7 +191,7 @@ class ServiceSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "service.up = '" + state + "'"
+                    where_clause += "s.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
             else: 
@@ -203,7 +204,17 @@ class ServiceSectionBox(SectionBox):
         database.execute(sql)
         result = database.fetchall()        
   
-        # FIXME: Filter out components that is on maintenance
+        # If components is on maintenance, do not show them
+        sql = """SELECT n.sysname, s.handler, ah.start_time,
+                now() - ah.start_time AS downtime, s.up, s.serviceid,
+                n.netboxid
+            FROM alerthist AS ah, netbox AS n, service AS s
+            WHERE ah.netboxid = n.netboxid
+                AND ah.subid = s.serviceid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'maintenanceState'"""
+        database.execute(sql)
+        result_maint = database.fetchall()        
 
         height = len(result)
         if self.maxHeight:
@@ -220,10 +231,19 @@ class ServiceSectionBox(SectionBox):
         UP = 4
         SERVICEID = 5
         BOXID = 6
+
+        # Create list of components on maintenance
+        onmaint = {}
+        for line in result_maint:
+            onmaint[(line[BOXID], line[SERVICEID])] = True
         
         for line in result:
+            # If on maintenance, skip this component
+            if (line[BOXID], line[SERVICEID]) in onmaint:
+                continue
+
             row = []
-            style = None    
+            style = None
 
             if line[UP] == 's':
                 servicesShadow += 1
@@ -383,7 +403,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                 AND mt.maint_end > now()"""
  
         where_clause = ''
-        if filterSettings: # FIXME: Not quite done here
+        if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
                 where_clause += " AND ("
@@ -634,15 +654,14 @@ class NetboxSectionBox(SectionBox):
     def fill(self):
         filterSettings = self.filterSettings
     
-        sql = "SELECT netbox.sysname,netbox.ip," +\
-              "alerthist.start_time,now()-alerthist.start_time," +\
-              "netbox.up,alerttype.alerttype,netbox.netboxid FROM " + \
-              "alerthist,netbox,alerttype " + \
-              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
-              "alerttype.alerttypeid=alerthist.alerttypeid AND " +\
-              "alerthist.end_time='infinity' AND " +\
-              "alerthist.eventtypeid='boxState' AND " +\
-              "(netbox.up='n' OR netbox.up='s') "
+        sql = """SELECT n.sysname, n.ip, ah.start_time, now() - ah.start_time
+                    AS downtime, n.up, at.alerttype, n.netboxid
+                FROM alerthist AS ah, netbox AS n, alerttype AS at
+                WHERE ah.netboxid = n.netboxid
+                    AND at.alerttypeid = ah.alerttypeid
+                    AND ah.end_time = 'infinity'
+                    AND ah.eventtypeid = 'boxState'
+                    AND (n.up = 'n' OR n.up = 's')"""
  
         where_clause = ''
         if filterSettings:
@@ -653,7 +672,7 @@ class NetboxSectionBox(SectionBox):
                 for org in filterSettings['orgid']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "netbox.orgid = '" + org + "'"
+                    where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
@@ -663,7 +682,7 @@ class NetboxSectionBox(SectionBox):
                 for cat in filterSettings['catid']:
                     if not first_line:
                         where_clause += " or "
-                    where_clause += "netbox.catid = '" + cat + "'"
+                    where_clause += "n.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
@@ -680,12 +699,12 @@ class NetboxSectionBox(SectionBox):
                     elif state=='s':
                         # Shadow
                         state = 'boxShadow'
-                    where_clause += "alerttype.alerttype = '" + state + "'"
+                    where_clause += "at.alerttype = '" + state + "'"
                     first_line = False
                 where_clause += ") "
             else:
-                where_clause += " AND (alerttype.alerttype='boxDown' or " +\
-                                "alerttype.alerttype='boxShadow') "
+                where_clause += " AND (at.alerttype='boxDown' or " +\
+                                "at.alerttype='boxShadow') "
 
         sql = sql + where_clause + " ORDER BY now()-start_time" 
 
@@ -694,7 +713,18 @@ class NetboxSectionBox(SectionBox):
         database.execute(sql)
         result = database.fetchall()        
 
-        # FIXME: Filter out components that is on maintenance
+        # If components is on maintenance, do not show them
+        # FIXME: Include components in locations and rooms
+        sql = """SELECT n.sysname, n.ip, ah.start_time,
+                now() - ah.start_time AS downtime, n.up, at.alerttype,
+                n.netboxid
+            FROM alerthist AS ah, netbox AS n, alerttype AS at
+            WHERE ah.netboxid = n.netboxid
+                AND ah.alerttypeid = at.alerttypeid
+                AND ah.end_time = 'infinity'
+                AND ah.eventtypeid = 'maintenanceState'"""
+        database.execute(sql)
+        result_maint = database.fetchall()        
  
         height = len(result)
         if self.maxHeight:
@@ -703,6 +733,7 @@ class NetboxSectionBox(SectionBox):
 
         boxesDown = 0
         boxesShadow = 0
+        boxesMaintenance = 0
 
         SYSNAME = 0
         IP = 1
@@ -712,9 +743,19 @@ class NetboxSectionBox(SectionBox):
         ALERTTYPE = 5
         BOXID = 6
 
+        # Create list of components on maintenance
+        onmaint = {}
+        for line in result_maint:
+            onmaint[line[BOXID]] = True
+
         for line in result:
+            # If on maintenance, skip this component
+            if line[BOXID] in onmaint:
+                boxesMaintenance += 1
+                continue
+            
             row = []
-            style = None    
+            style = None
 
             if line[ALERTTYPE] == 'boxShadow':
                 boxesShadow += 1
@@ -755,18 +796,25 @@ class NetboxSectionBox(SectionBox):
 
         boxesDown = str(boxesDown)
         boxesShadow = str(boxesShadow)
-        if boxesDown=='0':
+        boxesMaintenance = str(boxesMaintenance)
+
+        if boxesDown == '0':
             boxesDown = 'No'
-        if boxesShadow=='0':
+        if boxesShadow == '0':
             boxesShadow = 'No'
+        if boxesMaintenance == '0':
+            boxesMaintenance = 'No'
 
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = boxesDown + ' IP devices down'
+            self.summary = boxesDown + ' IP devices down' + ' (' + \
+                           boxesMaintenance + ' IP devices on maintenance)'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = boxesShadow + ' IP devices in shadow'
+            self.summary = boxesShadow + ' IP devices in shadow' + ' (' + \
+                           boxesMaintenance + ' IP devices on maintenance)'
         else:
             self.summary = boxesDown + ' IP devices down, ' + \
-                           boxesShadow.lower() + ' in shadow'
+                           boxesShadow.lower() + ' in shadow (' + \
+                           boxesMaintenance + ' on maintenance)'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -837,6 +885,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
     def fill(self):
         filterSettings = self.filterSettings
 
+        # FIXME: Include components in locations and rooms
         sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
                 now() - ah.start_time AS downtime, n.up, at.alerttype,
                 n.netboxid, mc.maint_taskid
