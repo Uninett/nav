@@ -32,9 +32,12 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
 __id__ = "$Id:$"
 
+import logging
 import time
 from mod_python import apache, util
 import nav.db
+
+logger = logging.getLogger('nav.messages')
 
 dbconn = nav.db.getConnection('webfront', 'manage')
 db = dbconn.cursor()
@@ -71,12 +74,12 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     else:
         sql = "%s ORDER BY %s" % (select, order)
 
-    # FIXME: Log query
+    logger.debug("getMsgs() query: %s", sql)
     db.execute(sql)
+    logger.debug("getMsgs() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     results = db.dictfetchall()
-    # FIXME: Log result
 
     # Attach tasks connected to this message
     for i, result in enumerate(results):
@@ -136,12 +139,13 @@ def setMsg(msgid, title, description, tech_description, publish_start,
         'replaces_message': replaces_message or None
     }
 
-    # FIXME: Log query
+    logger.debug("setMsg() query: %s", sql % data)
     db.execute(sql, data)
     if not msgid:
         db.execute("SELECT CURRVAL('message_messageid_seq')")
         msgid = db.dictfetchone()['currval']
-    # FIXME: Log result
+    logger.debug("setMsg() number of results: %d", db.rowcount)
+    
     return msgid
 
 def getMsgTasks(msgid):
@@ -164,12 +168,12 @@ def getMsgTasks(msgid):
         ORDER BY maint_start, description"""
     data = {'messageid': msgid}
 
-    # FIXME: Log query
+    logger.debug("getMsgTasks() query: %s", sql % data)
     db.execute(sql, data)
+    logger.debug("getMsgTasks() number of results: %d", db.rowcount)
     if not db.rowcount:
         return False
     result = db.dictfetchall()
-    # FIXME: Log result
     return result
 
 def setMsgTask(msgid, taskid):
@@ -192,9 +196,9 @@ def setMsgTask(msgid, taskid):
     sql = """SELECT messageid, maint_taskid
         FROM message_to_maint_task
         WHERE messageid = %(messageid)d AND maint_taskid = %(maint_taskid)d"""
-    # FIXME: Log query
+    logger.debug("setMsgTask() #1 query: %s", sql % data)
     db.execute(sql, data)
-    # FIXME: Log result
+    logger.debug("setMsgTask() #1 number of results: %d", db.rowcount)
 
     if db.rowcount:
         return False
@@ -205,9 +209,9 @@ def setMsgTask(msgid, taskid):
                 %(messageid)d, %(maint_taskid)d
             )"""
 
-        # FIXME: Log query
+        logger.debug("setMsgTask() #2 query: %s", sql % data)
         db.execute(sql, data)
-        # FIXME: Log result
+        logger.debug("setMsgTask() #2 number of results: %d", db.rowcount)
         return True
 
 def removeMsgTasks(msgid):
@@ -226,9 +230,9 @@ def removeMsgTasks(msgid):
     data = {'messageid': msgid}
     sql = "DELETE FROM message_to_maint_task WHERE messageid = %(messageid)d"
 
-    # FIXME: Log query
+    logger.debug("removeMsgTasks() query: %s", sql % data)
     db.execute(sql, data)
-    # FIXME: Log result
+    logger.debug("removeMsgTasks() number of results: %d", db.rowcount)
 
     if db.rowcount:
         return True
@@ -252,7 +256,8 @@ def expireMsg(msgid):
 
     data = {'messageid': msgid}
 
-    # FIXME: Log query
+    logger.debug("expireMsg() query: %s", sql % data)
     db.execute(sql, data)
-    # FIXME: Log result
+    logger.debug("expireMsg() number of results: %d", db.rowcount)
+
     return True
