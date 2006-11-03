@@ -223,6 +223,7 @@ class ServiceSectionBox(SectionBox):
 
         servicesDown = 0
         servicesShadow = 0
+        servicesMaintenance = 0
 
         SYSNAME = 0
         HANDLER = 1
@@ -240,6 +241,7 @@ class ServiceSectionBox(SectionBox):
         for line in result:
             # If on maintenance, skip this component
             if (line[BOXID], line[SERVICEID]) in onmaint:
+                servicesMaintenance += 1
                 continue
 
             row = []
@@ -284,6 +286,7 @@ class ServiceSectionBox(SectionBox):
 
         servicesDown = str(servicesDown)
         servicesShadow = str(servicesShadow)
+        servicesMaintenance = str(servicesMaintenance)
         if servicesDown=='0':
             servicesDown = 'No'
         if servicesShadow=='0':
@@ -561,8 +564,8 @@ class ServiceMaintenanceSectionBox(SectionBox):
 
         self.summary = servicesMaintenance + ' services on maintenance (' + \
             servicesMaintenanceUp + ' up, ' + \
-            servicesMaintenanceDown + ' down, ' + \
-            servicesMaintenanceShadow + ' in shadow)'
+            servicesMaintenanceDown.lower() + ' down, ' + \
+            servicesMaintenanceShadow.lower() + ' in shadow)'
 
     def getFilters(controlBaseName, orgList):
         """
@@ -806,15 +809,12 @@ class NetboxSectionBox(SectionBox):
             boxesMaintenance = 'No'
 
         if not self.listStates.count('s') and self.listStates.count('n'):
-            self.summary = boxesDown + ' IP devices down' + ' (' + \
-                           boxesMaintenance + ' IP devices on maintenance)'
+            self.summary = boxesDown + ' IP devices down'
         elif not self.listStates.count('n') and self.listStates.count('s'):
-            self.summary = boxesShadow + ' IP devices in shadow' + ' (' + \
-                           boxesMaintenance + ' IP devices on maintenance)'
+            self.summary = boxesShadow + ' IP devices in shadow'
         else:
             self.summary = boxesDown + ' IP devices down, ' + \
-                           boxesShadow.lower() + ' in shadow (' + \
-                           boxesMaintenance + ' on maintenance)'
+                           boxesShadow.lower() + ' in shadow'
 
     def getFilters(controlBaseName,orgList):
         """
@@ -1054,8 +1054,8 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
         self.summary = boxesMaintenance + ' IP devices on maintenance (' + \
             boxesMaintenanceUp + ' up, ' + \
-            boxesMaintenanceDown + ' down, ' + \
-            boxesMaintenanceShadow + ' in shadow)'
+            boxesMaintenanceDown.lower() + ' down, ' + \
+            boxesMaintenanceShadow.lower() + ' in shadow)'
 
     def getFilters(controlBaseName,orgList):
         """
