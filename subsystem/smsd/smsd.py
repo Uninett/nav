@@ -47,6 +47,7 @@ import getopt
 import logging # require Python >= 2.3
 import logging.handlers # require Python >= 2.3
 import os
+import os.path
 import pwd
 import smtplib
 import socket
@@ -63,9 +64,9 @@ from nav.smsd.dispatcher import DispatcherError
 
 ### PATHS
 
-configfile = nav.path.sysconfdir + '/smsd.conf'
-logfile = nav.path.localstatedir + '/log/smsd.log'
-pidfile = nav.path.localstatedir + '/run/smsd.pid'
+configfile = os.path.join(nav.path.sysconfdir, 'smsd.conf')
+logfile = os.path.join(nav.path.localstatedir, 'log', 'smsd.log')
+pidfile = os.path.join(nav.path.localstatedir, 'run', 'smsd.pid')
 
 
 ### MAIN FUNCTION
@@ -258,7 +259,7 @@ def loginitfile(loglevel, logfile):
 
     try:
         filehandler = logging.FileHandler(logfile, 'a')
-        fileformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+        fileformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         fileformatter = logging.Formatter(fileformat)
         filehandler.setFormatter(fileformatter)
         filehandler.setLevel(loglevel)
@@ -301,7 +302,7 @@ def loginitsmtp(loglevel, mailaddr, mailserver):
 
         mailhandler = logging.handlers.SMTPHandler(mailserver, fromaddr,
          mailaddr, 'NAV smsd warning from ' + hostname)
-        mailformat = '%(asctime)s %(process)d %(levelname)s %(message)s'
+        mailformat = '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
