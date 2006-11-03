@@ -160,13 +160,20 @@ def send_event():
                         FROM netbox INNER JOIN room USING (roomid)
                         WHERE locationid = %(locationid)s"""
                     data = { 'locationid': val }
+
+                    logger.debug("location query: %s", sql % data)
                     db.execute(sql, data)
+                    logger.debug("location number of results: %d", db.rowcount)
                 elif key == 'room':
                     sql = """SELECT netboxid, sysname, deviceid
                         FROM netbox
                         WHERE roomid = %(roomid)s"""
                     data = { 'roomid': val }
+
+                    logger.debug("room query: %s", sql % data)
                     db.execute(sql, data)
+                    logger.debug("room number of results: %d", db.rowcount)
+
                 for (netboxid, sysname, deviceid) in db.fetchall():
                     netboxes.append({ 'netboxid': netboxid,
                                       'sysname': sysname,
@@ -178,8 +185,12 @@ def send_event():
                     FROM netbox
                     WHERE netboxid = %(netboxid)d"""
                 data = { 'netboxid': int(val) }
+
+                logger.debug("netbox query: %s", sql % data)
                 db.execute(sql, data)
+                logger.debug("netbox number of results: %d", db.rowcount)
                 result = db.fetchone()
+
                 if result:
                     (netboxid, sysname, deviceid) = result
                     netboxes.append({ 'netboxid': netboxid,
@@ -192,8 +203,12 @@ def send_event():
                     FROM service INNER JOIN netbox USING (netboxid)
                     WHERE serviceid = %(serviceid)d"""
                 data = { 'serviceid': int(val) }
+
+                logger.debug("service query: %s", sql % data)
                 db.execute(sql, data)
+                logger.debug("service number of results: %d", db.rowcount)
                 result = db.fetchone()
+
                 if result:
                     (netboxid, sysname, deviceid, handler) = result
                     netboxes.append({ 'netboxid': netboxid,
@@ -254,39 +269,39 @@ def remove_forgotten():
 
     """
 
-    # This SQL retrieves a list of boxes that are supposed to be on
-    # maintenance, according to the schedule.
-    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
-            FROM maint m INNER JOIN netbox n ON (n.netboxid = m.value)
-            WHERE m.key = 'netbox' AND m.state = 'active'
-
-            UNION
-
-            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
-            FROM maint m INNER JOIN netbox n ON (n.roomid = m.value)
-            WHERE m.key = 'netbox' AND m.state = 'active'
-
-            UNION
-    
-            SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
-            FROM maint m INNER JOIN netbox n ON (n.roomid IN
-                (SELECT roomid FROM room WHERE locationid = m.value))
-            WHERE m.key = 'location' AND m.state = 'active'
-
-            UNION
-            
-            SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
-            FROM maint m INNER JOIN netbox n ON (n.netboxid IN
-                (SELECT netboxid FROM service WHERE
-                    serviceid LIKE m.value))
-            WHERE m.key = 'service' AND m.state = 'active'"""
-
     # This SQL retrieves a list of boxes that are currently on
     # maintenance, according to the alert history.
     sqlactual = """SELECT ah.netboxid, ah.deviceid, n.sysname, subid 
         FROM alerthist ah LEFT JOIN netbox n USING (netboxid)
         WHERE eventtypeid='maintenanceState' AND netboxid IS NOT NULL
         AND end_time = 'infinity'"""
+
+    # This SQL retrieves a list of boxes that are supposed to be on
+    # maintenance, according to the schedule.
+    sqlsched = """SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+        FROM maint m INNER JOIN netbox n ON (n.netboxid = m.value)
+        WHERE m.key = 'netbox' AND m.state = 'active'
+
+        UNION
+
+        SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+        FROM maint m INNER JOIN netbox n ON (n.roomid = m.value)
+        WHERE m.key = 'room' AND m.state = 'active'
+
+        UNION
+
+        SELECT n.netboxid, n.deviceid, n.sysname, NULL AS subid
+        FROM maint m INNER JOIN netbox n ON (n.roomid IN
+            (SELECT roomid FROM room WHERE locationid = m.value))
+        WHERE m.key = 'location' AND m.state = 'active'
+
+        UNION
+        
+        SELECT n.netboxid, n.deviceid, n.sysname, m.value AS subid
+        FROM maint m INNER JOIN netbox n ON (n.netboxid IN
+            (SELECT netboxid FROM service WHERE
+                serviceid LIKE m.value))
+        WHERE m.key = 'service' AND m.state = 'active'"""
 
     # The full SQL is a set operation to select all boxes that are
     # currently on maintenance and subtracts those that are supposed
