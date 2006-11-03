@@ -14,7 +14,8 @@ localstatedir=@localstatedir@
 pythonlibdir = @pythonlibdir@
 webroot = @webroot@
 initdir = @initdir@
-pathmodule = src/nav/path.py
+VERSION = @VERSION@
+pathmodule = src/nav/buildconf.py
 
 config = rrdBrowser.conf
 
@@ -34,6 +35,7 @@ $(pathmodule): Makefile
 	@echo "localstatedir=\"$(localstatedir)\"" >> $(pathmodule)
 	@echo "webroot=\"$(webroot)\"" >> $(pathmodule)
 	@echo "initdir=\"$(initdir)\"" >> $(pathmodule)
+	@echo "VERSION=\"$(VERSION)\"" >> $(pathmodule)
 
 install: install-lib install-bin install-conf
 

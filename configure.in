@@ -24,6 +24,9 @@ AC_PATH_PROG(ANT,ant)
 if test -z "$ANT"; then
   AC_MSG_WARN([No Ant found, you need this to build java software])
 fi
+AC_PATH_PROG(SED, sed)
+AC_PATH_PROG(GREP, grep)
+AC_PATH_PROG(SVN, svn)
 
 AC_SUBST(nav_user)
 AC_SUBST(webapps)
@@ -35,6 +38,7 @@ AC_SUBST(initdir)
 AC_SUBST(tooldir)
 AC_SUBST(docdir)
 AC_SUBST(crondir)
+AC_SUBST(VERSION)
 
 dnl Setting some default variables for NAV
 nav_user=navcron
@@ -47,6 +51,11 @@ initdir='${sysconfdir}/init.d'
 tooldir='${prefix}/apache/tools'
 docdir='${prefix}/doc'
 crondir='${sysconfdir}/cron.d'
+VERSION=`cat VERSION`
+if $GREP -q devel VERSION && ! test -z "$SVN" && test -e .svn
+then
+	VERSION=r`$SVN info . | $GREP ^Revision | $SED 's/[[^0-9]]//g'`
+fi
 
 
 AC_OUTPUT(Makefile
