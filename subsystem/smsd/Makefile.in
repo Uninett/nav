@@ -43,7 +43,7 @@ webroot = @webroot@
 WEBNAME = mysms
 
 # Files
-INITFILES =
+INITFILES = smsd
 BINS = smsd.py
 LIBS = $(wildcard nav/smsd/*.py nav/web/mysms/*.py)
 CONFFILES = smsd.conf
@@ -66,7 +66,7 @@ install: all install-lib install-bin install-conf install-web
 install-lib: lib $(TEMPLATES)
 	for file in $(LIBS) $(TEMPLATES); do $(INSTALL) -v -D -m 644 $$file $(DESTDIR)$(pythonlibdir)/$$file || exit 1; done
 
-install-bin: bin
+install-bin: bin $(INITFILES)
 	for file in $(BINS); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(bindir)/$$file || exit 1; done
 	for file in $(INITFILES); do $(INSTALL) -v -D -m 755 $$file $(DESTDIR)$(initdir)/$$file	|| exit 1; done
 
