@@ -21,6 +21,7 @@ docfiles = sql/logger.sql \
            sql/upgrades/3.0_beta8.sql \
            sql/upgrades/3.0_beta10.sql \
            sql/upgrades/3.0_rc1.sql \
+           sql/upgrades/3.1.0.sql \
            sql/upgrades/README \
            getting-started.txt
 
