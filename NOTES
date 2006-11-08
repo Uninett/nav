@@ -6,6 +6,20 @@ Please report bugs at http://sourceforge.net/projects/nav
 Upgrading from NAV 3.0.1
 ========================
 
+Non-existant modules
+--------------------
+Because of the previous problems with module detection, and especially because
+of NAV's previous attempts to map Cisco submodules into NAV's data model by
+assigning them two-digit module numbers, you may experience that some
+non-existant modules remain associated with your IP devices in NAV.
+
+Usually, such modules will be marked as down, and you can manually delete them
+from the Device Management tool.  If they remain online, you can get rid of
+them by deleting and re-adding your IP device in the Edit Database tool
+(Advanced users can tinker around with SQL to remove only the modules
+associated with the IP device).
+
+
 HP hardware/firmware confusion
 ------------------------------
 An old error, confusing HP hardware versions with firmware versions, caused
