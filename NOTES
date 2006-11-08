@@ -6,6 +6,8 @@ Please report bugs at http://sourceforge.net/projects/nav
 Upgrading from NAV 3.0.1
 ========================
 
+HP hardware/firmware confusion
+------------------------------
 An old error, confusing HP hardware versions with firmware versions, caused
 storms of incorrect devHwVerChanged alerts for HP equipment in previous
 versions of NAV.  The fix in version 3.1.1 involves changing an entry in the
@@ -21,6 +23,25 @@ following SQL command should be performed on the manage database using psql
   SET oidkey='hpFwVer', descr='Firmware revision number' 
   WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
     AND oidkey='hpHwVer';
+
+
+Cricket configuration
+---------------------
+NAV 3.1.0 shipped with an error in it's cricket-config tree.
+Makecricketconfig reads configuration directives from `.nav` files in the
+cricket-config tree, and the top-level `.nav` file tells it which
+subdirectories to descend into.
+
+Two of the cricket-config subdirectories changed names in NAV 3.1.0:
+
+  giga-switch-interfaces -> switch-interfaces-snmpv1-and-giga
+  giga-router-poirts     -> router-ports-snmpv1-and-giga
+
+The top-level `.nav` file was not properly modified to include these two
+renamed directories.  If you utilized the cricket-config tree that was
+supplied with NAV 3.1.0, you should update the top-level `.nav` file with the
+one supplied in this release.  Also make sure your Cricket's `subtree-sets`
+file contains the correct subdirectory names.
 
 
 Upgrading from NAV 3.0
