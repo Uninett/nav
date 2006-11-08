@@ -1,5 +1,5 @@
 Version 3.1.1
-(released xx November 2006)
+(released 08 November 2006)
 
  Security fixes:
 
@@ -12,24 +12,6 @@ Version 3.1.1
 
  Bugfixes:
 
- * Build/install errors related to Arnold were fixed.
-
- * Initial Cricket/makecricketconfig setup was botched after directory
-   restructuing.  Makecricketconfig is now more flexible when locating a
-   system's cricket installation, and where its config and data are placed.
-
- * Autodiscovery contrib was moved to the proper contrib location.
-
- * Some SQL errors in EditDB were fixed.
-
- * Fixed bugs in SNMP getnext handling in EditDB.
-
- * Fixed an EditDB hardcoded limitiation of 10 characters in an IP devices
-   orgid field - the database allows up to 30 characters.
-
- * EditDB would crash when inserting devices that happened to return non-ASCII
-   serial numbers.  Non-ASCII serial numbers are now ignored.
-
  * getDeviceData no longer attempts to map Cisco submodules into NAV's data
    model.  This solves several Cisco related module problems.
 
@@ -38,22 +20,38 @@ Version 3.1.1
    as down for five hours, go up for one hour, then down again for another
    five (#1583453).
 
- * gDD threads working with equipment that enabled VLANs above 1023 would
-   crash, causing incomplete information to be collected from these devices..
-   It no longer crashes, but NAV still will not properly support more than
-   1024 vlans (#1518783)
+ * getDeviceData threads working with equipment that enabled VLANs above 1023
+   would crash, causing incomplete information to be collected from these
+   devices..  It no longer crashes, but NAV still will not properly support
+   more than 1024 vlans (#1518783)
 
- * gDD should no longer generate repeated, incorrect deviceHwVerChanged alerts
-   for HP equipment (#1550393).
+ * getDeviceData should no longer generate repeated, incorrect
+   deviceHwVerChanged alerts for HP equipment (#1550393).
 
- * Fixed bug that would cause a gDD collector thread to crash when a device
-   appeared not to support the ifHighSpeed OID.
+ * Fixed bug that would cause a getDeviceData collector thread to crash when a
+   device appeared not to support the ifHighSpeed OID.
 
- * A couple of gDD plugins had NullPointerExceptions.
+ * A couple of getDeviceData plugins had NullPointerExceptions.
+
+ * Initial Cricket/makecricketconfig setup was botched after directory
+   restructuing.  Makecricketconfig is now more flexible when locating a
+   system's cricket installation, and where its config and data are placed.
+
+ * Some SQL errors in EditDB were fixed.
+
+ * Fixed bugs in SNMP getnext handling in EditDB.
+
+ * Fixed an EditDB hardcoded limitation of 10 characters in an IP device's
+   orgid field - the database allows up to 30 characters.
+
+ * EditDB would crash when inserting devices that happened to return non-ASCII
+   serial numbers.  Non-ASCII serial numbers are now ignored.
 
  * Removed code from networkDiscovery that attempted to traverse non-routed
    VLANs.  This code was not properly tested, and potentially caused several
    topology related problems.
+
+ * Build/install errors related to Arnold were fixed.
 
  * A bug caused by hardcoded values in Arnold prevented it from blocking ports
    on equipment of other categories than EDGE, even if it was configured to
@@ -74,10 +72,10 @@ Version 3.1.1
    had collected proper ifName/ifDescr values for the ports in question.
 
  * The pping and servicemon processes now properly perform a double fork and
-   detach completely from the controlling terminal when daemonized.  This bug
-   would sometimes cause users' SSH sessions to hang on logout, after these
-   daemons had been started/restarted.
- 
+   detach completely from the controlling terminal when daemonized.  When the
+   daemons had been started/restarted in an SSH session, this bug would
+   sometimes cause said SSH session to hang on logout.
+
  * Fixed a bug which rendered NAV's Cheetah templates incompatible with
    Cheetah 2.
 
