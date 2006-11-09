@@ -859,8 +859,7 @@ FROM (SELECT id, navn, descr, true AS min
     $querystring = "SELECT DISTINCT ON (id) id, navn, descr 
 FROM accountingroup, Rettighet, Utstyrgruppe 
 WHERE (AccountInGroup.accountid = " . addslashes($uid) . ") AND 
-	(AccountInGroup.groupid = AccountGroup.id) AND 
-	(AccountGroup.id = Rettighet.accountgroupid) AND 
+	(AccountInGroup.groupid = Rettighet.accountgroupid) AND 
 	(Rettighet.utstyrgruppeid = Utstyrgruppe.id)";
 
  //print "<p>$querystring";
