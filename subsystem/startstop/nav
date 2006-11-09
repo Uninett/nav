@@ -153,7 +153,7 @@ def actionIterator(queryList, action, okString, failString):
     if len(failed):
         print "%s: %s" % (failString, " ".join(failed))
     if len(unknowns):
-        print "Unknown: %s" % " ".join(unknown)
+        print "Unknown: %s" % " ".join(unknowns)
     if len(errors):
         print "Errors:",
         print " ".join(["%s (%s)" % error for error in errors])
