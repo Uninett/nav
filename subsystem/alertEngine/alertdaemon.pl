@@ -99,7 +99,7 @@ sub launch() {
 	if ($pid = fork()) {
 	    print "PID: $pidfile\n";
 		open pid_file, '> '.$pidfile || die "Could not open pid file $pidfile";
-		print pid_file $pid . " " . time();
+		print pid_file $pid;
 		close(pid_file);
 		exit(0);
 	}
@@ -110,32 +110,6 @@ sub launch() {
 
 
 	&runEngine();
-}
-
-sub datediff() {
-	my $diff = shift;
-	
-	my $secs = $diff % 60;
-	$diff = ($diff - $secs) / 60;
-	
-	my $mins = $diff % 60;
-	$diff = ($diff - $mins) / 60;	
-
-	my $hrs = $diff % 60;
-	$diff = ($diff - $hrs) / 60;
-	
-	my $days = $diff;
-	
-	my $ds = "";
-	
-	if ($days > 0) {
-		$ds = $days . " days and " . $hrs . " hours";
-	} elsif ($hrs > 0) {
-		$ds = $hrs . " hours and " . $mins . " minutes";
-	} else {
-		$ds = $mins . " minutes and " . $secs . " seconds";
-	}
-	return $ds;
 }
 
 sub stop() {
@@ -154,10 +128,9 @@ sub stop() {
 			die "Could not delete pidfile\n";
 		    return(0);
 		}
-		my $dif = time() - $tid;
 		unlink($pidfile) ||
 			die "Could not delete pidfile\n";
-		print "Trying to stop alertengine. It has been running for " . &datediff($dif) . ".\n";
+		print "Trying to stop alertengine.\n";
 		print "Please wait for it to gracefully flush queue to database etc...\n";
 		my $status = kill 15 => $pid;
 		if ($status > 0) {
@@ -185,8 +158,6 @@ sub status() {
 	close(ps_file);
 	if($count>0) {	   
 	    print "Alertengine is running with process id $pid.\n";
-	    my $dif = time() - $tid;
-	    print "It has been running for " . &datediff($dif) . ".\n";
 	} else {
 	    print "Alertengine is not running.\n";
 	    unlink($pidfile) ||
