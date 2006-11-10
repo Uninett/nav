@@ -393,18 +393,15 @@ class ServiceMaintenanceSectionBox(SectionBox):
     
         sql = """SELECT DISTINCT n.sysname, s.handler, ah.start_time,
                 now() - ah.start_time AS downtime, s.up, s.serviceid,
-                n.netboxid, mc.maint_taskid
-            FROM alerthist AS ah, netbox AS n, service AS s,
-                maint_component AS mc NATURAL JOIN maint_task AS mt
+                n.netboxid, ahv.val AS maint_taskid
+            FROM alerthist AS ah NATURAL JOIN alerthistvar AS ahv,
+                netbox AS n, service AS s
             WHERE ah.netboxid = n.netboxid
                 AND ah.subid = s.serviceid
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'maintenanceState'
-                AND mc.key = 'service'
-                AND mc.value = ah.subid
-                AND mt.maint_start < now()
-                AND mt.maint_end > now()"""
- 
+                AND ahv.var = 'maint_taskid'"""
+
         where_clause = ''
         if filterSettings:
             # orgid
@@ -439,7 +436,7 @@ class ServiceMaintenanceSectionBox(SectionBox):
                     first_line = False
                 where_clause += ") "
 
-        sql = sql + where_clause + " ORDER BY now()-start_time" 
+        sql = sql + where_clause + " ORDER BY now()-ah.start_time" 
 
         connection = nav.db.getConnection('status', 'manage')
         database = connection.cursor()
@@ -886,29 +883,14 @@ class NetboxMaintenanceSectionBox(SectionBox):
 
         sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
                 now() - ah.start_time AS downtime, n.up, at.alerttype,
-                n.netboxid, mc.maint_taskid
-            FROM alerthist AS ah, netbox AS n, alerttype AS at,
-                maint_component AS mc NATURAL JOIN maint_task AS mt
+                n.netboxid, ahv.val AS maint_taskid
+            FROM alerthist AS ah NATURAL JOIN alerthistvar AS ahv,
+                netbox AS n, alerttype AS at
             WHERE ah.netboxid = n.netboxid
                 AND ah.alerttypeid = at.alerttypeid
                 AND ah.end_time = 'infinity'
                 AND ah.eventtypeid = 'maintenanceState'
-                AND mc.key = 'netbox'
-                AND mc.value = ah.netboxid
-                AND mt.maint_start < now()
-                AND mt.maint_end > now()"""
-
-        # FIXME: Get maint_taskid from alerthistvar. Depends on a small change
-        # in the MaintenanceState plugin of EventEngine.
-
-        sql = """SELECT DISTINCT n.sysname, n.ip, ah.start_time,
-                now() - ah.start_time AS downtime, n.up, at.alerttype,
-                n.netboxid, 0 AS maint_taskid
-            FROM alerthist AS ah, netbox AS n, alerttype AS at
-            WHERE ah.netboxid = n.netboxid
-                AND ah.alerttypeid = at.alerttypeid
-                AND ah.end_time = 'infinity'
-                AND ah.eventtypeid = 'maintenanceState'"""
+                AND ahv.var = 'maint_taskid'"""
 
         where_clause = ''
         if filterSettings:
@@ -944,7 +926,7 @@ class NetboxMaintenanceSectionBox(SectionBox):
                     first_line = False
                 where_clause += ") "
 
-        sql = sql + where_clause + " ORDER BY now()-start_time"
+        sql = sql + where_clause + " ORDER BY now()-ah.start_time"
 
         connection = nav.db.getConnection('status', 'manage')
         database = connection.cursor()
