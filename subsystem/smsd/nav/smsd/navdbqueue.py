@@ -136,7 +136,7 @@ class NAVDBQueue(object):
         db = dbconn.cursor()
 
         data = { 'phone': user, 'sent': sent }
-        sql = "SELECT id, msg, severity
+        sql = """SELECT id, msg, severity
             FROM smsq
             WHERE phone = %(phone)s AND sent = %(sent)s
             ORDER BY severity DESC, time ASC"""
