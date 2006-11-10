@@ -338,6 +338,7 @@ class NetboxInfo(manage.Netbox):
         info['class'] = "netboxinfo"
         info.add('Status', _statusTranslator.get(self.up, self.up))
         info.add('Availability', self.availability())
+        info.add('Uptime', self.showUptime())
         info.add('Ip address', self.showIp())
         info.add('Vlan', self.showVlan())
         info.add('Gateway', self.showGw())
@@ -349,9 +350,11 @@ class NetboxInfo(manage.Netbox):
         info.add('Organisation', urlbuilder.createLink(self.org))
         info.add('Room', urlbuilder.createLink(self.room))
         info.add('Software', self.showSoftware())
+        info.add('Serial number', self.showSerialNumber())
         info.add('Last updated', self.showLastUpdate())
         result.append(info)
         return result
+
     def setPrefix(self):
         prefixes = manage.Prefix.getAll(where="'%s' << netaddr" % self.ip,
                                         orderBy='netaddr')
@@ -421,8 +424,24 @@ class NetboxInfo(manage.Netbox):
             div.append(swLink)
             result.append(div)
         return result
-        
-        
+
+    def showUptime(self):
+        uptime = (DateTime.now() - self.upsince)
+        formatted = ''
+        if uptime.day == 1:
+            formatted += '1 day '
+        if uptime.day > 1:
+            formatted += str(uptime.day) + ' days '
+        if uptime.hour == 1:
+            formatted += '1 hour '
+        if uptime.hour > 1:
+            formatted += str(uptime.hour) + ' hours '
+        if uptime.minute == 1:
+            formatted += '1 minute'
+        if uptime.minute > 1:
+            formatted += str(uptime.minute) + ' minutes'
+        return formatted
+
     def showIp(self):
         return str(self.ip)
 
@@ -743,3 +762,6 @@ class NetboxInfo(manage.Netbox):
 
     def showSoftware(self):
         return str(self.device.sw_ver or "N/A")
+
+    def showSerialNumber(self):
+        return self.device.serial
