@@ -27,8 +27,6 @@
 a.info {
 	position: relative;
 	z-index: 24;
-	background-color: #ccc;
-	color: #0f0;
 	text-decoration: none;
 }
 a.info:hover {
