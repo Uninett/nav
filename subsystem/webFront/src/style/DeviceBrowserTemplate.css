@@ -178,6 +178,9 @@ table {
 .Mb1000{
 	background-color: #89F;
 }
+.Mb10000{
+	background-color: #70F;
+}
 .passive {
 	background-color: #EEE;
 	/* normalize */
@@ -196,14 +199,15 @@ div.legend .port {
 div.legend {
 	width: auto;
 	border: 1px solid black;
-	font-size: 85%;
 	padding: 0.2em;
-	margin-top: 1em;
-	text-align: justify;
+	margin: 1em 0;
 }
 div.legend h3 {
-	font-size: 85%;
-	margin: 0;
+	font-size: 1.1em;
+	margin: 0.2em 0 0.1em 0;
+}
+div.legend p {
+	margin-bottom: 0;
 }
 td.y {
 	background: #8c8;

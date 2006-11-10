@@ -35,7 +35,7 @@ import forgetHTML as html
 #import warnings
 
 # Color range for port activity tab
-color_recent = (0, 175, 0 )
+color_recent = (0, 175, 0)
 color_longago = (208, 255, 208)
 
 def process(request):
@@ -243,34 +243,40 @@ class ModuleInfo(manage.Module):
 
 def showModuleLegend(perspective='standard', interval=30):
     legend = html.Division(_class="legend")
-    legend.append(html.Header("Legend", level=3))
     def mkLegend(name, descr, style=None):
-        port = html.Span("1")
+        port = html.Span("11")
         port['class'] = "port %s" % name
-        if style: port['style'] = style
+        if style:
+            port['style'] = style
         legend.append(port)
+        legend.append("&nbsp;")
         legend.append(descr)
-        legend.append(" ")
+        legend.append("&nbsp;&nbsp;")
     def legendStandard():
+        legend.append(html.Header("Color legend", level=3))
         mkLegend("passive", "Not active")
-        mkLegend("hduplex", "Half duplex")
-        mkLegend("blocked", "Blocked")
         mkLegend("Mb10", "10 Mbit")
         mkLegend("Mb100", "100 Mbit")
         mkLegend("Mb1000", "1 Gbit")
+        mkLegend("Mb10000", "10 Gbit")
+        legend.append(html.Header("Frame legend", level=3))
+        mkLegend("hduplex", "Half duplex")
+        mkLegend("fduplex", "Full duplex")
         mkLegend("trunk", "Trunk")
+        mkLegend("blocked", "Blocked")
     def legendActive():
+        legend.append(html.Header("Legend", level=3))
         mkLegend("inactive", "Not used in %d days" % interval)
         mkLegend("active", "Used %d days ago" % interval,
-                 "background-color: %s" % util.colortohex(color_longago))
+                 "background-color: #%s" % util.colortohex(color_longago))
         mkLegend("active", "Used today",
-                 "background-color: %s" % util.colortohex(color_recent))
+                 "background-color: #%s" % util.colortohex(color_recent))
         mkLegend("active link", "Active now",
-                 "background-color: %s" % util.colortohex(color_recent))
+                 "background-color: #%s" % util.colortohex(color_recent))
     if perspective == 'active':
         legendActive()
     else:
         legendStandard()
     legend.append(html.Break())
-    legend.append(html.Emphasis("Hold mouse over port for info, click for details"))
+    legend.append(html.Paragraph(html.Emphasis("Hold mouse over port for info, click for details")))
     return legend
