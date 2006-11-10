@@ -52,7 +52,7 @@ class NAVDBQueue(object):
             dbconn = nav.db.getConnection('smsd', 'navprofile')
         except Exception, error:
             self.logger.exception("Queue failed to initialize. Exiting. (%s)",
-             error)
+                                  error)
             sys.exit(1)
 
     def cancel(self, minage = '0'):
@@ -106,10 +106,12 @@ class NAVDBQueue(object):
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
-        sql = "SELECT DISTINCT phone FROM smsq " + \
-            "WHERE sent = '%s' " % sent + \
-            "ORDER BY phone"
-        db.execute(sql)
+        data = { 'sent': sent }
+        sql = """SELECT DISTINCT phone
+            FROM smsq
+            WHERE sent = %(sent)s
+            ORDER BY phone"""
+        db.execute(sql, data)
         result = db.fetchall()
         # Rollback so we don't have old open transactions which foobars the
         # usage of now() in setsentstatus()
@@ -133,10 +135,12 @@ class NAVDBQueue(object):
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
-        sql = "SELECT id, msg, severity FROM smsq " + \
-            "WHERE phone = '%s' AND sent = '%s' " % (user, sent) + \
-            "ORDER BY severity DESC, time ASC"
-        db.execute(sql)
+        data = { 'phone': user, 'sent': sent }
+        sql = "SELECT id, msg, severity
+            FROM smsq
+            WHERE phone = %(phone)s AND sent = %(sent)s
+            ORDER BY severity DESC, time ASC"""
+        db.execute(sql, data)
         result = db.fetchall()
         # Rollback so we don't have old open transactions which foobars the
         # usage of now() in setsentstatus()
@@ -158,10 +162,11 @@ class NAVDBQueue(object):
         if sent == 'Y' or sent == 'I':
             timesent = ', timesent = now()'
 
-        sql = "UPDATE smsq SET sent = '%s', smsid = '%d'%s WHERE id = '%d'" \
-         % (sent, smsid, timesent, id)
-
-        db.execute(sql)
+        data = { 'sent': sent, 'smsid': smsid, 'timesent': timesent, 'id': id }
+        sql = """UPDATE smsq
+            SET sent = %(sent)s, smsid = %(smsid)d%(timesent)s
+            WHERE id = %(id)d"""
+        db.execute(sql, data)
         dbconn.commit()
 
         return db.rowcount
