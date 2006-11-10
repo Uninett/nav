@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2006 UNINETT AS
 #
@@ -37,6 +37,7 @@ __id__ = "$Id$"
 
 import logging
 import nav.db
+import sys
 
 class NAVDBQueue(object):
     "The smsd queue for the NAV database."
@@ -54,18 +55,41 @@ class NAVDBQueue(object):
              error)
             sys.exit(1)
 
-    def cancel(self):
+    def cancel(self, minage = '0'):
         """
         Mark all unsent messages as ignored.
+
+        Input:
+            minage  Minimum age required for canceling message, default '0'.
+                    Format as PostgreSQL interval type, e.g. '1 day 12 hours'.
         
-        Returns number of messages changed.
+        Returns number of messages canceled.
         """
 
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
-        sql = "UPDATE smsq SET sent = 'I' WHERE sent = 'N'"
-        db.execute(sql)
+        data = { 'minage': str(minage) }
+
+        # Test minage
+        if minage != '0':
+            sql = "SELECT interval %(minage)s"
+            try:
+                db.execute(sql, data)
+            except nav.db.driver.ProgrammingError, error:
+                self.logger.warning("'autocancel' value (%s) is not valid. " +
+                                    "Check config for errors.",
+                                    minage)
+                return 0
+            except Exception, error:
+                self.logger.error("Unknown exception caught in cancel(). " +
+                                  "Exiting.")
+                sys.exit(1)
+
+        # Ignore messages
+        sql = """UPDATE smsq SET sent = 'I'
+            WHERE sent = 'N' AND time < now() - interval %(minage)s"""
+        db.execute(sql, data)
         dbconn.commit()
 
         return db.rowcount

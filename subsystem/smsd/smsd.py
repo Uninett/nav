@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: ISO8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2006 UNINETT AS
 #
@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Authors: Stein Magnus Jodal <stein.magnus@jodal.no>
 #
 
 """
@@ -98,6 +100,7 @@ def main(args):
     defaults = {
         'username': 'navcron',
         'delay': '30',
+        'autocancel': '0',
         'loglevel': 'INFO',
         'mailwarnlevel': 'ERROR',
         'mailserver': 'localhost',
@@ -110,6 +113,7 @@ def main(args):
     # Set variables
     username = config['main']['username']
     delay = int(config['main']['delay'])
+    autocancel = config['main']['autocancel']
     loglevel = eval('logging.' + config['main']['loglevel'])
     mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
     mailserver = config['main']['mailserver']
@@ -134,7 +138,7 @@ def main(args):
 
     # Let the dispatcherhandler take care of our dispatchers
     dh = nav.smsd.dispatcher.DispatcherHandler(config)
-    
+ 
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
@@ -182,6 +186,12 @@ def main(args):
     # daemonizing we've experienced that the daemon dies silently upon trying
     # to use the DB connection after becoming a daemon
     queue = nav.smsd.navdbqueue.NAVDBQueue()
+
+    # Automatically cancel unsent messages older than a given interval
+    if autocancel != '0':
+        ignCount = queue.cancel(autocancel)
+        logger.info("%d unsent messages older than '%s' autocanceled.",
+                    ignCount, autocancel)
 
     # Loop forever
     while True:

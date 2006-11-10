@@ -1,5 +1,3 @@
-# $Id$
-
 SetHandler python-program
 PythonHandler nav.web.mysms.handler
 DirectoryIndex index
