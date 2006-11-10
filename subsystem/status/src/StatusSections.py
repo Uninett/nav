@@ -169,7 +169,7 @@ class ServiceSectionBox(SectionBox):
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
@@ -179,23 +179,23 @@ class ServiceSectionBox(SectionBox):
                 first_line = True
                 for handler in filterSettings['handler']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "s.handler = '" + handler + "'"
                     first_line = False
                 where_clause += ") "
             # state
             self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for state in filterSettings['state']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "s.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
             else: 
-              where_clause += "AND (service.up = 'n' OR service.up='s') "
+              where_clause += " AND (s.up = 'n' OR s.up = 's') "
 
         sql = sql + where_clause + " ORDER BY now()-start_time" 
 
@@ -670,32 +670,32 @@ class NetboxSectionBox(SectionBox):
         if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
             if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for cat in filterSettings['catid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "n.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
             self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for state in filterSettings['state']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     if state=='n':
                         # Down
                         state = 'boxDown'
@@ -1153,32 +1153,32 @@ class ModuleSectionBox(SectionBox):
         if filterSettings:
             # orgid
             if not filterSettings['orgid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
             if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for cat in filterSettings['catid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
             self.listStates = filterSettings['state']
             if not filterSettings['state'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for state in filterSettings['state']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "module.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
@@ -1360,17 +1360,17 @@ class ThresholdSectionBox(SectionBox):
                 first_line = True
                 for org in filterSettings['orgid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
             if not filterSettings['catid'].count(FILTER_ALL_SELECTED):
-                where_clause += " and ("
+                where_clause += " AND ("
                 first_line = True
                 for cat in filterSettings['catid']:
                     if not first_line:
-                        where_clause += " or "
+                        where_clause += " OR "
                     where_clause += "netbox.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
