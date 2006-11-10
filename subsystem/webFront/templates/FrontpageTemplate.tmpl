@@ -176,8 +176,8 @@ $status
         <td class="leftkludge" rowspan="$rowcount"></td>
         <th>Sysname</th>
         <th>IP</th>
-        <th>Downtime</th>
         <th>Down since</th>
+        <th>Downtime</th>
         <td class="rightkludge" rowspan="$rowcount"></td>
     </tr>
 
@@ -192,9 +192,9 @@ $status
       <td>$box[1]</td>
     #end if
       <td>$box[2]</td>
-      <td style="text-align: right;"><a title="$box[0]">$box[5]</a></td>
       #set $since = $box[3].strftime('%Y-%m-%d %H:%M')
       <td>$since</td>
+      <td style="text-align: right;"><span title="$box[0]">$box[5]</span></td>
     </tr>
   #end if
   #set $numberdown = $numberdown + 1
