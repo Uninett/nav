@@ -42,6 +42,9 @@ public class MaintenanceState implements EventHandler
 			if (e.getState() == Event.STATE_START) {
 				b.onMaintenance(true);
 				a = ddb.alertFactory(e, "onMaintenance");
+				// Copy all variables from start event to the alert history
+				// This makes sure the alert in alerthist can be correlated to a maintenance task
+				a.addHistoryVars(e.getVarMap());
 			} else if (e.getState() == Event.STATE_END) {
 				b.onMaintenance(false);
 				a = ddb.alertFactory(e, "offMaintenance");
