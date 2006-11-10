@@ -59,6 +59,7 @@
 ##
 
 #from nav.web import shouldShow, cycler
+#import nav.buildconf
 
 #attr $imagefolder = "/images"
 #attr $bodyOnLoad = ""
@@ -211,8 +212,9 @@ $additionalHead()
 #end def content
 $content()
 
+#set $version = $nav.buildconf.VERSION
 <div id="footer"><hr /><p class="copyright">
-<a href="/about/">Network Administration Visualized</a><br />
+<a href="/about/">Network Administration Visualized</a> $version<br />
 #if $user.id == 0
 You are not logged in.
 #else
