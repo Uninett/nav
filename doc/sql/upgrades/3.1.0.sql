@@ -24,7 +24,10 @@
 BEGIN;
 \echo Changing manage schema
 
-ALTER TABLE snmpoid ADD COLUMN defaultfreq INT4 NOT NULL DEFAULT 21600;
+ALTER TABLE snmpoid ADD COLUMN defaultfreq INT4;
+ALTER TABLE snmpoid ALTER COLUMN defaultfreq SET DEFAULT 21600;
+UPDATE snmpoid SET defaultfreq=21600;
+ALTER TABLE snmpoid ALTER COLUMN defaultfreq SET NOT NULL;
 
 -- This view gives the allowed vlan for a given hexstring i swportallowedvlan
 CREATE TABLE range (
