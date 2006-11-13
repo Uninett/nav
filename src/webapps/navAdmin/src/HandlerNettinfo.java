@@ -1139,10 +1139,9 @@ class HandlerNettinfo
 		//com.outl("    <td colspan=50 align=\"left\">");
 		com.out(typeIcon);
 
-		if (nodeType.equals("service")) {
-			com.outl("<div id=\"t" + tooltipsCnt + "\" class=\"tip\">" + swrec.get("version") + "</div>");
-			sysname = "<a href=\"#\" onmouseout=\"popUp(event,'t" + tooltipsCnt +"')\" onmouseover=\"popUp(event,'t" + tooltipsCnt + "')\" onclick=\"return false\">" + sysname + "</a>";
-			tooltipsCnt++;
+		// Append service version information, if available
+		if (nodeType.equals("service") && swrec.get("version") != null) {
+			sysname += " (" + swrec.get("version") + ")";
 		}
 
 		com.outl("      " + fontBegin + "" + sysname + mpBak + netaddr + fontEnd);
@@ -1151,7 +1150,6 @@ class HandlerNettinfo
 		com.out("  </tr>");
 
 	}
-	int tooltipsCnt = 0;
 
 	private void printDepth(int depth, String strek, boolean searchHit)
 	{
