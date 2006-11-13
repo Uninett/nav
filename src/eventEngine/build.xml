@@ -117,6 +117,7 @@
     <ant inheritAll="false" dir="handler-plugins/MaintenanceState" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/ServiceState" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/ThresholdState" target="clean"/>
+    <ant inheritAll="false" dir="handler-plugins/DeviceTracker" target="clean"/>
     <ant inheritAll="false" dir="handler-plugins/CallScript" target="clean"/>
   </target>
 </project>
