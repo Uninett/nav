@@ -321,7 +321,6 @@
         <include name="lib/**"/>
       </lib>
       <zipfileset dir="gfx" prefix="gfx"/>
-      <zipfileset dir="tooltips" prefix="tooltips"/>
     </war>
 
   </target>
