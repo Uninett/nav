@@ -71,7 +71,7 @@ def handler(req):
     else:
         remoteanswer = response.read()
         req.content_type = response.msg.get('content-type', 'text/html')
-        if not req.content_type.startswith('text') or \
+        if not req.content_type.startswith('text/html') or \
                req.uri.startswith("/vPServer"):
             req.send_http_header()
             req.write(remoteanswer)
