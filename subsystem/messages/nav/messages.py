@@ -139,7 +139,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
         'replaces_message': replaces_message or None
     }
 
-    logger.debug("setMsg() query: %s", sql % data)
+    logger.debug("setMsg() query: %s, data: %s", (sql, data))
     db.execute(sql, data)
     if not msgid:
         db.execute("SELECT CURRVAL('message_messageid_seq')")
