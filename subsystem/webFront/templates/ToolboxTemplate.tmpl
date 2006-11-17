@@ -51,10 +51,10 @@
 #else
         <td style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; width: 50px;"><img src="$imagefolder/blank.gif" width="47" height="54" alt="" /></td>
 #end if
-        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px;" nowrap><a class="navbar" href="$tool.uri">$tool.name</a></td>
+        <td width="250" style="background-image:url('$imagefolder/toolbox/module-bar-fill.gif'); background-repeat: repeat-x; padding: 1px 0px 0px 5px;" nowrap="nowrap"><a class="navbar" href="$tool.uri">$tool.name</a></td>
         <td><img src="$imagefolder/toolbox/module-bar-end.gif" alt="" /></td>
       </tr>
-      <tr valign="top" height="100">
+      <tr valign="top" style="height: 100px;">
         <td style="background-image:url('$imagefolder/toolbox/module-fill-start.gif'); background-repeat: repeat-y; "></td>
         <td colspan="2" style="background-image:url('$imagefolder/toolbox/module-fill.gif'); background-repeat: repeat; font-size: 13px; padding: 0px 0px 0px 10px">
           $tool.description
@@ -71,8 +71,9 @@
 
 #block content
 <table cellspacing="0" cellpadding="0" border="0">
-#set $rowplace = 1
+#set $rowplace = 0
 #for $tool in $tools
+#set $rowplace = $rowplace + 1
 #if $rowplace == 1
   <tr>
 #end if
@@ -83,8 +84,13 @@ $add_tool($tool)
   </tr>
   #set $rowplace = 0
 #end if
-#set $rowplace = $rowplace + 1
 #end for
+#if $rowplace != $boxesPerRow
+  #for i in range($boxesPerRow - $rowplace)
+    <td></td>
+  #end for
+  </tr>
+#end if
 </table>
 #end block content
 
