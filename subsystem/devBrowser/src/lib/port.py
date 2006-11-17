@@ -103,7 +103,7 @@ def showInfo(port):
         table.add(title, urlbuilder.createLink(value))
 
     # Actions
-    machinetracker = '[<a href="/machinetracker/swp?switch=%s&module=%s&port=%s">Track MAC behind port</a>]' \
+    machinetracker = '[<a href="/machinetracker/swp?switch=%s&amp;module=%s&amp;port=%s">Track MAC behind port</a>]' \
         % (module.netbox, module.module, port.port)
     actions = '<p>%s</p>' % machinetracker
     info.append(actions)
