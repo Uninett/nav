@@ -68,7 +68,7 @@ def index(req):
     navlinkshtml = ""
     for name, url in navlinks.items():
         if (nav.web.shouldShow(url, req.session['user'])):
-            navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br>" % (url, name)
+            navlinkshtml = navlinkshtml + "<a href=\"%s\">%s</a><br />" % (url, name)
     page.navlinks = lambda:navlinkshtml
 
     import nav.messages
@@ -128,7 +128,7 @@ def login(req, login='', password='', origin=''):
                     authenticated = ldapAuth.authenticate(login, password)
                 except ldapAuth.NoAnswerError, e:
                     logger.error("Could not contact the LDAP server")
-                    return _getLoginPage(origin, "Login failed<br>(Unable to make contact with the LDAP server)")
+                    return _getLoginPage(origin, "Login failed<br />(Unable to make contact with the LDAP server)")
                 else:
                     if not authenticated:
                         return _getLoginPage(origin, "Login failed")
@@ -191,7 +191,7 @@ def login(req, login='', password='', origin=''):
         if req.session.has_key('message'):
             # Whatever sent us here has left a message for the user in
             # the session dictionary (probably an expired session)
-            message = "%s<br>" % req.session['message']
+            message = "%s<br />" % req.session['message']
             del req.session['message']
             req.session.save()
         else:
@@ -199,7 +199,7 @@ def login(req, login='', password='', origin=''):
         # The user requested only the login page
         if origin:
             return _getLoginPage(origin,
-                                 """%sYou are not authorized to access<br>%s""" % (message, origin))
+                                 """%sYou are not authorized to access<br />%s""" % (message, origin))
         else:
             return _getLoginPage('', message)
 
