@@ -764,4 +764,4 @@ class NetboxInfo(manage.Netbox):
         return str(self.device.sw_ver or "N/A")
 
     def showSerialNumber(self):
-        return self.device.serial
+        return str(self.device.serial or "N/A")
