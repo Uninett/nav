@@ -445,44 +445,13 @@ graph ifOutDiscards
 # The HTML dict has bits and pieces of HTML that gets used
 # by the grapher.   
 
-html    body-options    bgcolor=white
-
 html    page-header
-    <!-- you could put your company logo on every page here: -->
-    <!-- <img src="images/company-logo.gif" align=left> -->
-    <h1>%auto-title%<br>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
-    <br clear=left>
+	<table width=100%>
+	<tr class=header>
+		<td width=33% align=left class=header>%auto-title%</td>
+		<td width=33% align=center class=header2>NAV-v3</td>
+		<td width=33% align=right><a href=/>Back to NAV</a></td>
+	</tr>
+	</table>
+	<h1>%auto-target-path%/%auto-target-name%<br>%short-desc%</h1>
 
-html    contact-name
-    <a href="mailto:cricket">the MUHAMMED Admins</a>
-
-html    contact
-    For questions or comments about this data, contact
-    %contact-name%.%server%
-
-html    page-footer
-        <table width=100% cellpadding=3>
-                <tr>
-        <td>
-            <a href="http://www.munitions.com/~jra/cricket"><img align=left width=58 height=55 src="images/cricket-sm.gif" border=0></a>
-                </td>
-                <td width=15% valign=center>
-                        <p align=left><font size=+2>
-                        <a href="http://www.munitions.com/~jra/cricket">Cricket</a>
-                        <font size=2><br>Version %auto-short-version%</font>
-                </td>
-                <td>
-                        %contact%
-                </td>
-        <td width=120 valign=center>
-            <center>
-            <a href="http://ee-staff.ethz.ch/~oetiker/webtools/rrdtool"><img width=120 height=34 src="images/rrdtool.gif" border=0></a>
-        </td>
-                </tr>
-        </table>
-    <p>
-        <font color=red>%auto-error%</font>
-    </p>
-
-html    head
-        <title>%auto-title%</title>
