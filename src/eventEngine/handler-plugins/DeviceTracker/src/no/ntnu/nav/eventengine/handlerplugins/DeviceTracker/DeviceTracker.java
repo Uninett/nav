@@ -1,6 +1,6 @@
 /*
  *  DeviceTracker plugin for eventEngine
- *  Hans Jørgen Hoel (hansjorg@orakel.ntnu.no)
+ *  Hans JÃ¸rgen Hoel (hansjorg@orakel.ntnu.no)
  *
  */
 

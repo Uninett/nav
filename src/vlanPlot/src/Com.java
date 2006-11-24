@@ -206,7 +206,7 @@ class Com
 	public int getJavaMinorVersion() { return javaMinorVersion; }
 	public int getJavaRevisionVersion() { return javaRevisionVersion; }
 
-    // Åpne browser med en URL
+    // Ã…pne browser med en URL
     public void showURL(String urlS)
     {
 		URL url = null;

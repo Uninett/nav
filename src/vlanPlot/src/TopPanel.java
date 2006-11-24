@@ -172,7 +172,7 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 		for (int i = year-1; i <= year; i++) { fraYear.addItem(""+i); tilYear.addItem(""+i); }
 
 
-		// jepp, gridbag må til
+		// jepp, gridbag mÃ¥ til
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
 		GridBagConstraints c = new GridBagConstraints();
@@ -486,7 +486,7 @@ class TopPanel extends Panel implements ItemListener,ActionListener
 
 		com.d("   Ny tid, fra: " + beginInterval + " til: " + endInterval, 3);
 
-		// Først lager vi starttidspunktet
+		// FÃ¸rst lager vi starttidspunktet
 		Date beginDate = new Date(currentTime.getTime() + (beginInterval*1000));
 		Date endDate = new Date(currentTime.getTime() + (endInterval*1000));
 		com.setBeginLastDate(beginDate);

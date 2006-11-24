@@ -114,7 +114,7 @@ class PopupMenuListener implements ActionListener
 		String ifPrefix = (activeMenu.getCapacity() >= 1000.0) ? "giga-" : "";
 		String cricketUrl = "";
 
-		// Litt formatering av ifName er nødvendig
+		// Litt formatering av ifName er nÃ¸dvendig
 		ifName = ifName.toLowerCase();
 
 		String kommando = e.getActionCommand();
@@ -231,7 +231,7 @@ class PopupMenuListener implements ActionListener
 			netflowUrl = "report.html?router=All&ip=" + ip + "&list=10&from=" + start + "&to=" + end;
 
 		} else {
-			// bruk script for siste døgn
+			// bruk script for siste dÃ¸gn
 			SimpleDateFormat tid = new SimpleDateFormat("HHmm");
 			netflowUrl = "report2.html?router=All&ip=" + ip + "&list=10&from=" + tid.format(startTid)+ "&to=" + tid.format(endTid);
 

@@ -367,7 +367,7 @@ public class SimpleSnmp
 	 * OIDs.  </p>
 	 *
 	 * @param baseOid Override the baseOid; if null a null value is returned
-	 * @param stripCnt Strip this many elements (separated by .) from the end OIDs
+	 *Â @param stripCnt Strip this many elements (separated by .) from the end OIDs
 	 * @return a Map which maps the OIDs to a List of corresponding values
 	 * @throws TimeoutException if the hosts times out
 	 */
@@ -717,7 +717,7 @@ public class SimpleSnmp
 						// Reset timeoutCnt
 						timeoutCnt = 0;
 
-						// Behandle svaret vi har fått
+						// Behandle svaret vi har fÃ¥tt
 						String data;
 						{
 							AsnObject o = vb.getValue();
@@ -782,7 +782,7 @@ public class SimpleSnmp
 					}
 				}
 
-				// Ferdig å hente meldinger
+				// Ferdig Ã¥ hente meldinger
 				break;
 
 			} // while

@@ -740,7 +740,7 @@ BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',1253,1253,'boxState','e',100);
 COMMIT;
 
-- Prøv noe enkelt, voll-sby-980-h (238) står i skygge for voll-sw (237)
+- PrÃ¸v noe enkelt, voll-sby-980-h (238) stÃ¥r i skygge for voll-sw (237)
 
 BEGIN;
 INSERT INTO eventq (source,target,deviceid,boksid,eventtypeid,state,severity) VALUES ('pping','eventEngine',238,238,'boxState','s',100);
@@ -761,16 +761,16 @@ COMMIT;
 - sb-351-sw
 
 
-- Hva gjøres i tilfellet der man har f.eks to like etterfølgende info-events, skal event engine ignorere den siste?
-- Hva gjøres for tilstandsfulle events som aldri oppheves (f.eks en linkDown event der kabelen kobles over på annen port)?
-- Skal transienter rapporteres, dvs. boxDown og boxUp i rask rekkefølge?
+- Hva gjÃ¸res i tilfellet der man har f.eks to like etterfÃ¸lgende info-events, skal event engine ignorere den siste?
+- Hva gjÃ¸res for tilstandsfulle events som aldri oppheves (f.eks en linkDown event der kabelen kobles over pÃ¥ annen port)?
+- Skal transienter rapporteres, dvs. boxDown og boxUp i rask rekkefÃ¸lge?
 - Hvordan skal coldStart og warmStart behandles?
-- linkState events går ikke til alertq/alerthist
-- Dersom en boks går ned, skal moduleDown rapporteres til alertq, evt. med skygge?
+- linkState events gÃ¥r ikke til alertq/alerthist
+- Dersom en boks gÃ¥r ned, skal moduleDown rapporteres til alertq, evt. med skygge?
 
 ---
-Algoritmen for down|shadow sjekker ikke om en ruter er nåbar hvis alt er oppe, dvs.
-har ikke topologiavlederen funnet all info så vil boksen alltid være i skygge uansett.
+Algoritmen for down|shadow sjekker ikke om en ruter er nÃ¥bar hvis alt er oppe, dvs.
+har ikke topologiavlederen funnet all info sÃ¥ vil boksen alltid vÃ¦re i skygge uansett.
 ---
 
 BEGIN;

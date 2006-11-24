@@ -41,7 +41,7 @@ class Left extends Panel
 	{
 		com = InCom;
 
-		// jepp, gridbag må til
+		// jepp, gridbag mÃ¥ til
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
 		GridBagConstraints c = new GridBagConstraints();

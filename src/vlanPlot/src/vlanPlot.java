@@ -24,9 +24,9 @@
  */
 
 /*
- * Dette programmet er laget slik at det kan kjøres både som en vanlig
- * applikasjon og som en applet. Merk at programmet må ha nødvendig
- * tilgang dersom det kjøres som applet.
+ * Dette programmet er laget slik at det kan kjÃ¸res bÃ¥de som en vanlig
+ * applikasjon og som en applet. Merk at programmet mÃ¥ ha nÃ¸dvendig
+ * tilgang dersom det kjÃ¸res som applet.
  *
  */
 
@@ -54,7 +54,7 @@ public class vlanPlot extends Applet
 	 */
 	private static final long serialVersionUID = 1L;
 
-	// For å kjøre programmet som applikasjon
+	// For Ã¥ kjÃ¸re programmet som applikasjon
 	public static void main(String[] args)
 	{
 		Frame f = new frame();
@@ -62,7 +62,7 @@ public class vlanPlot extends Applet
 		f.show();
 	}
 
-	// For å kjøre programmet som applet
+	// For Ã¥ kjÃ¸re programmet som applet
 	public void init()
 	{
 		// Make sure we fetch config from vPServer each time the applet is initialized
@@ -175,7 +175,7 @@ class panel extends Panel
 		// Sett parametere fra HTML-filen, hvis dette er en applet, ellers brukes default-verdier
 		initParameters();
 
-		// jepp, gridbag må til
+		// jepp, gridbag mÃ¥ til
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
 		GridBagConstraints c = new GridBagConstraints();
@@ -260,7 +260,7 @@ class panel extends Panel
 			Input.sessionid = a.getParameter("nav_sessid");
 			Input.authuser = a.getParameter("user");
 
-			// Skal vi starte på en bestemt boksid?
+			// Skal vi starte pÃ¥ en bestemt boksid?
 			String gotoBoksid = a.getParameter("gotoBoksid");
 			if (gotoBoksid != null && gotoBoksid.length() > 0) {
 				String gotoVlan = a.getParameter("gotoVlan");

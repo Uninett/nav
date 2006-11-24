@@ -260,7 +260,7 @@ class HandlerMain
 	*/
 
 	/* [/main.loopNr]
-	 * Viser nummeret på loop i template-fil
+	 * Viser nummeret pÃ¥ loop i template-fil
 	 */
 	private void loopNr()
 	{

@@ -90,7 +90,7 @@ public class CiscoSwMenu implements DeviceHandler
 	 */
 	private void processCMenu(Netbox nb, String netboxid, String ip, String cs_ro, String type, SwportContainer sc) throws TimeoutException {
 		/*
-		Støtter C3000/C3100
+		StÃ¸tter C3000/C3100
 
 	ifindex:
 		1.3.6.1.4.1.9.5.14.4.1.1.4 = ifindex
@@ -238,9 +238,9 @@ public class CiscoSwMenu implements DeviceHandler
 		}
 	}
 
-	// Vi får inn en hexstreng, f.eks: FF 0E 8A 00 Teller man fra
-	// venstre vil hver bit angi om vlanet kjører på porten Funksjonen
-	// legger altså bare til posisjonen til alle bit'ene som er 1 til en
+	// Vi fÃ¥r inn en hexstreng, f.eks: FF 0E 8A 00 Teller man fra
+	// venstre vil hver bit angi om vlanet kjÃ¸rer pÃ¥ porten Funksjonen
+	// legger altsÃ¥ bare til posisjonen til alle bit'ene som er 1 til en
 	// liste.
 	private static List getPortVlan(String s) {
 		List l = new ArrayList();

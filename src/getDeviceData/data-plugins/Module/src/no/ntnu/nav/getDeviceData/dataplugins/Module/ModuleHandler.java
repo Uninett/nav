@@ -240,7 +240,7 @@ public class ModuleHandler implements DataHandler {
 					}
 
 					if (!md.equalsModule(oldmd)) {
-						// Vi må oppdatere module
+						// Vi mÃ¥ oppdatere module
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+md.getDeviceidS()+" module="+md.getModule()+" model="+md.getModel()+" descr="+md.getDescr());
 						Log.i("UPDATE_MODULE", "moduleid="+moduleid+" deviceid="+oldmd.getDeviceidS()+" module="+oldmd.getModule()+" model="+oldmd.getModel()+" descr="+oldmd.getDescr());
 

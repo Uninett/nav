@@ -142,7 +142,7 @@ public class _3Com implements DeviceHandler
 		======
 	IfIndex:
 		Tolkes fra ifDescr:
-		.1.3.6.1.2.1.2.2.1.2.ifindex = tekststring av litt diverse typer. Må
+		.1.3.6.1.2.1.2.2.1.2.ifindex = tekststring av litt diverse typer. MÃ¥
 		plukke ut de som inneholder ordene 'unit' og 'port'. Tungvint, men har
 		ikke noe bedre :(
 

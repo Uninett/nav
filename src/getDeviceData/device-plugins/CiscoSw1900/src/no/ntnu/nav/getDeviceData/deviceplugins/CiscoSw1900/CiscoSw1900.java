@@ -93,7 +93,7 @@ public class CiscoSw1900 implements DeviceHandler
 	Portnavn:
 		1.3.6.1.4.1.437.1.1.3.3.1.1.3 = portnavn
 
-		FIXME: Mangler info om media. Bruker vlan=1 på alle porter
+		FIXME: Mangler info om media. Bruker vlan=1 pÃ¥ alle porter
 
 		*/
 

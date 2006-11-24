@@ -101,8 +101,8 @@ class Boks
 			//rawBoksbakMp.put(new Integer(boksbak), mpKey);
 			if (toIfindex == null) {
 				if (rawBoksbakMp.containsKey(new Integer(boksbak))) {
-					// Oh oh, nå er vi i trøbbel, da det er flere linker til denne enheten uten at vi vet mp bak
-					// (og da går vi ut ifra at andre siden heller ikke vet vår mp)
+					// Oh oh, nÃ¥ er vi i trÃ¸bbel, da det er flere linker til denne enheten uten at vi vet mp bak
+					// (og da gÃ¥r vi ut ifra at andre siden heller ikke vet vÃ¥r mp)
 					outl("---->[<font color=red>WARNING</font>]: Boks(" + boksid + "): <b>" + boksNavn.get(boksidI) + "</b>, mer enn en link til boks("+boksbak+") "+boksNavn.get(new Integer(boksbak))+", uten at vi vet mp i andre enden.<br>");
 				} else {
 					rawBoksbakMp.put(new Integer(boksbak), mpKey);
@@ -131,7 +131,7 @@ class Boks
 
 		//if (uplinkMp != null) mp.remove(uplinkMp);
 
-		// HashMap som brukes til å hente ut antall enheter bak hver port
+		// HashMap som brukes til Ã¥ hente ut antall enheter bak hver port
 		{
 			mpCount = new HashMap();
 			Iterator iter = mp.entrySet().iterator();
@@ -173,7 +173,7 @@ class Boks
 			//if ( ((ArrayList)mpCount.get(mpKey)).size() != level) continue;
 			/*
 			for (int i=0; i < l.size(); i++) {
-				// Sjekk om vi allerede har funnet uplink for denne enheten, i så tilfellet tar vi den ut fra listen
+				// Sjekk om vi allerede har funnet uplink for denne enheten, i sÃ¥ tilfellet tar vi den ut fra listen
 
 				Integer boksbak = (Integer)l.get(i);
 				//outl("Trying to find boksbak: <b>" + boksbak + "</b><br>");
@@ -190,7 +190,7 @@ class Boks
 			}
 			*/
 
-			// Sjekk om vi kan sjekke denne porten på denne level
+			// Sjekk om vi kan sjekke denne porten pÃ¥ denne level
 			if ( ((Integer)mpCount.get(mpKey)).intValue() != level && level != PROC_UPLINK_LEVEL) {
 				//int mpCnt = ((Integer)mpCount.get(mpKey)).intValue();
 				//if (DEBUG_OUT) outl("<font color=blue>[Level]</font> Boks("+getBoksid()+"): <b>" + getName() + "</b> Mp: <b>"+mpKey+"</b> --><b>"+mpCnt+" != " + level + "</b><br>");
@@ -198,10 +198,10 @@ class Boks
 			}
 
 			if (l.size() == 1) {
-				// Funnet en port med kun en enhet, og vi må derfor ha direkte downlink til den
+				// Funnet en port med kun en enhet, og vi mÃ¥ derfor ha direkte downlink til den
 				madeChange = true;
 
-				// Porten på denne siden
+				// Porten pÃ¥ denne siden
 				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
 				BoksMpBak bmp = (BoksMpBak)l.get(0);
 
@@ -228,7 +228,7 @@ class Boks
 
 				if (DEBUG_OUT) outl("<font color=green>[Found]</font> Boks("+getBoksid()+"): <b>" + getName() + "</b> Mp: <b>"+mpKey+"</b> Boksbak("+b.getBoksid()+"</b>): <b>" + b.getName() + "</b> bmp: " + bmp + "<br>");
 
-				// Vi kan nå ta bort hele listen
+				// Vi kan nÃ¥ ta bort hele listen
 				removeMp.add(mpKey);
 			}
 		}
@@ -247,7 +247,7 @@ class Boks
 
 			for (int i=0; i < l.size(); i++) {
 
-				// Sjekk om vi allerede har funnet uplink for denne enheten, i så tilfellet tar vi den ut fra listen
+				// Sjekk om vi allerede har funnet uplink for denne enheten, i sÃ¥ tilfellet tar vi den ut fra listen
 				BoksMpBak bmp = (BoksMpBak)l.get(i);
 				//Integer boksbak = (Integer)l.get(i);
 				Boks b = (Boks)bokser.get(bmp.boksbak);
@@ -270,7 +270,7 @@ class Boks
 			String mpKey = (String)entry.getKey();
 			List l = (List)entry.getValue();
 
-			// Prøv å gjette hvilken enhet som er riktig, gå ut ifra at SW alltid står over KANT
+			// PrÃ¸v Ã¥ gjette hvilken enhet som er riktig, gÃ¥ ut ifra at SW alltid stÃ¥r over KANT
 			int bestGuessIndex = -1;
 			for (int i=0; i < l.size(); i++) {
 				Boks b = (Boks)bokser.get( ((BoksMpBak)l.get(i)).boksbak );
@@ -279,7 +279,7 @@ class Boks
 				}
 			}
 			if (bestGuessIndex < 0) {
-				// Mer enn en SW, gjett på den med høyest antall connections
+				// Mer enn en SW, gjett pÃ¥ den med hÃ¸yest antall connections
 				int cnt=0;
 				for (int i=0; i < l.size(); i++) {
 					Boks b = (Boks)bokser.get( ((BoksMpBak)l.get(i)).boksbak );
@@ -291,7 +291,7 @@ class Boks
 			}
 
 			if (bestGuessIndex >= 0) {
-				// Porten på denne siden
+				// Porten pÃ¥ denne siden
 				BoksMpBak myBmp = new BoksMpBak(getBoksid(), mpKey);
 
 				// Vi har funnet en kandidat, og velger den
@@ -321,7 +321,7 @@ class Boks
 
 			com.outl("-->MP: <b>"+mpKey+"</b> Candidates: <b>"+l.size()+"</b>"+bestGuess+"<br>");
 			for (int i=0; i < l.size(); i++) {
-				// Sjekk om vi allerede har funnet uplink for denne enheten, i så tilfellet tar vi den ut fra listen
+				// Sjekk om vi allerede har funnet uplink for denne enheten, i sÃ¥ tilfellet tar vi den ut fra listen
 
 				Integer boksbak = (Integer)l.get(i);
 				//outl("Trying to find boksbak: <b>" + boksbak + "</b><br>");
@@ -356,7 +356,7 @@ class Boks
 				continue;
 			}
 
-			// Prøv å gjette hvilken enhet som er riktig, gå ut ifra at SW alltid står over KANT
+			// PrÃ¸v Ã¥ gjette hvilken enhet som er riktig, gÃ¥ ut ifra at SW alltid stÃ¥r over KANT
 			int bestGuessIndex = -1;
 			for (int i=0; i < l.size(); i++) {
 				Boks b = (Boks)bokser.get( ((BoksMpBak)l.get(i)).boksbak );
@@ -365,7 +365,7 @@ class Boks
 				}
 			}
 			if (bestGuessIndex < 0) {
-				// Mer enn en SW, gjett på den med høyest antall connections
+				// Mer enn en SW, gjett pÃ¥ den med hÃ¸yest antall connections
 				int cnt=0;
 				for (int i=0; i < l.size(); i++) {
 					Boks b = (Boks)bokser.get( ((BoksMpBak)l.get(i)).boksbak );
@@ -384,7 +384,7 @@ class Boks
 
 			outl("-->MP: <b>"+mpKey+"</b> Candidates: <b>"+l.size()+"</b>"+bestGuess+"<br>");
 			for (int i=0; i < l.size(); i++) {
-				// Sjekk om vi allerede har funnet uplink for denne enheten, i så tilfellet tar vi den ut fra listen
+				// Sjekk om vi allerede har funnet uplink for denne enheten, i sÃ¥ tilfellet tar vi den ut fra listen
 
 				//Integer boksbak = (Integer)l.get(i);
 				BoksMpBak bmp = (BoksMpBak)l.get(i);
@@ -603,11 +603,11 @@ class Boks
 	{
 		Integer boksbak = new Integer(boksid);
 		String mp = null;
-		// Først sjekker vi om vi finner enheten på noe annet enn uplink-porten
+		// FÃ¸rst sjekker vi om vi finner enheten pÃ¥ noe annet enn uplink-porten
 		if (rawBoksbakMp.containsKey(boksbak)) mp = (String)rawBoksbakMp.get(boksbak);
 
 			//if (foundUplinkMp() && mp.equals(uplinkMp)) {
-			//	// Enheten er funnet på uplink-porten
+			//	// Enheten er funnet pÃ¥ uplink-porten
 			//	uplinkBoksid = boksbak;
 			//}
 			//mpBoksbak.put(mp, boksbak);
@@ -651,7 +651,7 @@ class Boks
 
 	public boolean isSW() { return isSW; }
 
-	// Returnerer det støreste antall enheter bak en port på denne boksen
+	// Returnerer det stÃ¸reste antall enheter bak en port pÃ¥ denne boksen
 	public int maxBehindMp() { return maxBehindMp; }
 
 

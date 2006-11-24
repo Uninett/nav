@@ -74,7 +74,7 @@ class Link
 	PopupMessage desc;
 	String descText;
 
-	// Brukes for å sjekke om muspekeren er over en vlan-boks på en link
+	// Brukes for Ã¥ sjekke om muspekeren er over en vlan-boks pÃ¥ en link
 	Rectangle vlanRect = new Rectangle();
 	PopupMessage vlanDesc;
 	Vector vlanList = new Vector();
@@ -201,7 +201,7 @@ class Link
 
 	public void addVlan(String vlan) {
 		vlanList.addElement(vlan);
-		// Litt mer komplisert kode fordi hvis all vlan er like så skal vi ikke behandle linken som en trunk
+		// Litt mer komplisert kode fordi hvis all vlan er like sÃ¥ skal vi ikke behandle linken som en trunk
 		if (allVlansEqual && vlanList.size() > 1) {
 			if (!((String)vlanList.elementAt(0)).equals(vlan)) allVlansEqual = false;
 		}
@@ -306,12 +306,12 @@ class Link
 	{
 		Polygon p = new Polygon();
 
-		// Trenger punkt 2/7 ut på linjen
+		// Trenger punkt 2/7 ut pÃ¥ linjen
 		double xp = 2*(x2-x1)/7.0 + x1;
 		double yp = 2*(y2-y1)/7.0 + y1;
 
-		// Lager en vektor som står vinkelrett på linjen fra x1,y1 til x2,y2 ved å snu
-		// koordinatene. Deretter endres lengden på vektoren til width/2
+		// Lager en vektor som stÃ¥r vinkelrett pÃ¥ linjen fra x1,y1 til x2,y2 ved Ã¥ snu
+		// koordinatene. Deretter endres lengden pÃ¥ vektoren til width/2
 
 		// Vektoren fra xp,yp til x2,y2
 		double vx = x2-xp;

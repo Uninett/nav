@@ -59,7 +59,7 @@ public class vPServer extends HttpServlet
 			return;
 		}
 
-		// Åpne databasen
+		// Ã…pne databasen
 		if (!Database.openConnection(dbCp.get("dbhost"), dbCp.get("dbport"), dbCp.get("db_nav"), dbCp.get("script_"+scriptName), dbCp.get("userpw_"+dbCp.get("script_"+scriptName)))) {
 			out.println("Error, could not connect to database!");
 			return;
@@ -170,7 +170,7 @@ class SqlBoks
 
 	}
 
-	// Lister ut alle routere på topp-nivå og linker/vlan mellom dem
+	// Lister ut alle routere pÃ¥ topp-nivÃ¥ og linker/vlan mellom dem
 	static void listRouters() throws SQLException
 	{
 		HashMap text = new HashMap();
@@ -372,7 +372,7 @@ class SqlBoks
 		//ArrayList otherLinkIds = new ArrayList();
 
 
-		// Gå gjennom data fra databasen og legg det i datastrukturene klar for å skrives ut
+		// GÃ¥ gjennom data fra databasen og legg det i datastrukturene klar for Ã¥ skrives ut
 		HashSet boksDupe = new HashSet();
 		while (rs.next()) {
 			Integer gwportid = new Integer(rs.getString("gwportid"));
@@ -394,7 +394,7 @@ class SqlBoks
 					String[] s = { nettident, nettype };
 					sysNames.put("-"+prefiksid, s);
 
-					// Egen sær ting for tekst på ikke-gw bokser
+					// Egen sÃ¦r ting for tekst pÃ¥ ikke-gw bokser
 					String[] fields = (String[])text.get(nettype+"Boks");
 					if (fields == null) fields = (String[])text.get("defBoks");
 					if (fields == null) continue; // fail-safe
@@ -706,7 +706,7 @@ class SqlBoks
 	}
 
 	/*
-	// Lister ut alle routere på topp-nivå og linker/vlan mellom dem
+	// Lister ut alle routere pÃ¥ topp-nivÃ¥ og linker/vlan mellom dem
 	static void listRouters2() throws SQLException
 	{
 		// listRouters, listRouterLinks, list
@@ -1048,7 +1048,7 @@ class SqlBoks
 		if (thisBoksid == null) return;
 
 		if (thisKat == null || thisKat.length() == 0) {
-			// Må koste på oss et SQL kall ekstra
+			// MÃ¥ koste pÃ¥ oss et SQL kall ekstra
 			ResultSet rs = Database.query("SELECT catid FROM netbox WHERE netboxid='"+Database.addSlashes(thisBoksid)+"'");
 			if (!rs.next()) return; // boksid eksisterer ikke
 			thisKat = rs.getString("catid");
@@ -1070,7 +1070,7 @@ class SqlBoks
 
 		// Vi har egentlig tre tilfeller her:
 		// kat=gw -> vi henter info fra gwport og prefiks
-		// kat=lan -> det er egentlig en switch vi skal vise, så vi må sjekke id'en for denne og så gå i swport
+		// kat=lan -> det er egentlig en switch vi skal vise, sÃ¥ vi mÃ¥ sjekke id'en for denne og sÃ¥ gÃ¥ i swport
 		// kat=<alt annet> -> Vi regner med at info finnes i swport
 
 		if (thisKat.equalsIgnoreCase("gw")) {
@@ -1183,7 +1183,7 @@ class SqlBoks
 				text.put("def-defLink", s);
 			}
 
-			// Vi må vite hvilken kat en gitt boks er slik at vP kan oppgi dette når den spør om LAN'et
+			// Vi mÃ¥ vite hvilken kat en gitt boks er slik at vP kan oppgi dette nÃ¥r den spÃ¸r om LAN'et
 			HashMap boksKatMap = new HashMap();
 			ResultSet rs = Database.query("SELECT netboxid,catid FROM netbox WHERE netboxid IN (SELECT to_netboxid FROM gwport JOIN gwportprefix USING(gwportid) WHERE prefixid IN (SELECT prefixid FROM gwport JOIN module USING(moduleid) JOIN gwportprefix USING(gwportid) WHERE netboxid='"+thisBoksid+"'))");
 			while (rs.next()) boksKatMap.put(rs.getString("netboxid"), rs.getString("catid").toLowerCase());
@@ -1232,7 +1232,7 @@ class SqlBoks
 				String retning = "o"; // Up er default
 				netboxidSet.add(boksidTo);
 
-				// Først legger vi til boksen som den er for å være sikker på at den alltid kommer med
+				// FÃ¸rst legger vi til boksen som den er for Ã¥ vÃ¦re sikker pÃ¥ at den alltid kommer med
 				if (boksDupe.add(boksidTo)) {
 					if (!nettype.equals("link") && boksbak != null) {
 						outl(boksidTo+"^"+sysname+"^"+katTo+"^"+boksbak+","+boksKatMap.get(boksbak));
@@ -1255,9 +1255,9 @@ class SqlBoks
 					l.add(s);
 				}
 
-				// Har vi en ikke-link ut fra boksen så skriver vi om slik at boksen blir det vi har link til
+				// Har vi en ikke-link ut fra boksen sÃ¥ skriver vi om slik at boksen blir det vi har link til
 				if (thisBoksid.equals(boksidTo) && !nettype.equals("link") ) {
-					// lan, elink, stam eller tilsvarende. Nå skal det bare være en enkelt link, så vi bare skriver ut
+					// lan, elink, stam eller tilsvarende. NÃ¥ skal det bare vÃ¦re en enkelt link, sÃ¥ vi bare skriver ut
 					// og legger til linken.
 					String nettident = rs.getString("netident");
 					if (nettident == null) nettident = "(null)";
@@ -1281,7 +1281,7 @@ class SqlBoks
 				} else {
 					ArrayList l;
 					if ( (l=(ArrayList)linkMap.get(prefiksid)) == null) linkMap.put(prefiksid, l=new ArrayList());
-					// Linken ut skal komme først
+					// Linken ut skal komme fÃ¸rst
 					if (thisBoksid.equals(boksidTo)) {
 						l.add(0, gwportid);
 					} else {
@@ -1291,7 +1291,7 @@ class SqlBoks
 					//up.add(gwportid+","+boksidTo);
 				}
 
-				// Hvis vi har fått en "ny" boks må vi evt. legge til boksinfo for den
+				// Hvis vi har fÃ¥tt en "ny" boks mÃ¥ vi evt. legge til boksinfo for den
 				if (boksDupe.add(boksidTo)) {
 					if (!nettype.equals("link") && boksbak != null) {
 						outl(boksidTo+"^"+sysname+"^"+katTo+"^"+boksbak+","+boksKatMap.get(boksbak));
@@ -1340,7 +1340,7 @@ class SqlBoks
 				}
 
 				if (!nettype.equals("link")) {
-					// Vi må også legge til tekst for linken andre veien
+					// Vi mÃ¥ ogsÃ¥ legge til tekst for linken andre veien
 					String[] fields = (String[])text.get(katTo+"-"+thisKat+"Link");
 					if (fields == null) fields = (String[])text.get(katTo+"-defLink");
 					if (fields == null) fields = (String[])text.get("def-defLink");
@@ -1360,7 +1360,7 @@ class SqlBoks
 
 			}
 
-			// Nå går vi gjennom linkMap og legger inn linkene, der det er to gwportid'er per link
+			// NÃ¥ gÃ¥r vi gjennom linkMap og legger inn linkene, der det er to gwportid'er per link
 			Iterator iter = linkMap.values().iterator();
 			while (iter.hasNext()) {
 				ArrayList l = (ArrayList)iter.next();
@@ -1373,7 +1373,7 @@ class SqlBoks
 
 		} else
 		if (thisKat.equalsIgnoreCase("lan")) {
-			// Først må vi vite id
+			// FÃ¸rst mÃ¥ vi vite id
 
 
 		} else {
@@ -1516,15 +1516,15 @@ class SqlBoks
 				text.put("def-defLink", s);
 			}
 
-			// Hent høyste boksid
+			// Hent hÃ¸yste boksid
 			ResultSet rs = Database.query("SELECT MAX(netboxid) AS maxboksid FROM netbox");
 			rs.next();
 			int maxBoksid = rs.getInt("maxboksid");
 
-			// Vi trenger å vite hvilken gw som er rootgw for et gitt prefiks
+			// Vi trenger Ã¥ vite hvilken gw som er rootgw for et gitt prefiks
 			//rs = Database.query("SELECT boksid FROM prefiks JOIN gwport ON (rootgwid=gwportid)");
 
-			// Vi trenger kobling mellom boksid og kat for å vite hvilken tekst som skal på en link ut fra senter-enheten
+			// Vi trenger kobling mellom boksid og kat for Ã¥ vite hvilken tekst som skal pÃ¥ en link ut fra senter-enheten
 			HashMap boksidKatMap = new HashMap();
 			rs = Database.query("SELECT netboxid,catid FROM netbox WHERE netboxid IN (SELECT netboxid FROM module JOIN swport USING (moduleid) WHERE to_netboxid="+thisBoksid+")");
 			while (rs.next()) boksidKatMap.put(rs.getString("netboxid"), rs.getString("catid").toLowerCase() );
@@ -1577,7 +1577,7 @@ class SqlBoks
 				boksDupe.add(boksid);
 			}
 
-			// Så er det resten, da har vi info om linken også, så legg til alle felter vi skal ha med
+			// SÃ¥ er det resten, da har vi info om linken ogsÃ¥, sÃ¥ legg til alle felter vi skal ha med
 			cFields = "";
 			{
 				HashSet hs = new HashSet();
@@ -1596,8 +1596,8 @@ class SqlBoks
 				}
 			}
 
-			// Så henter vi alle bokser vi må eksplistitt hente info fra boks for
-			// SELECT * da vi ikke vet hva som skal være med
+			// SÃ¥ henter vi alle bokser vi mÃ¥ eksplistitt hente info fra boks for
+			// SELECT * da vi ikke vet hva som skal vÃ¦re med
 			HashSet boksSet = new HashSet();
 			rs = Database.query("SELECT * FROM netbox WHERE netboxid IN (SELECT netboxid FROM module JOIN swport USING(moduleid) WHERE netboxid="+thisBoksid+") AND netboxid NOT IN (SELECT netboxid FROM module JOIN swport USING(moduleid) WHERE to_netboxid="+thisBoksid+")");
 			while (rs.next()) {
@@ -1644,7 +1644,7 @@ class SqlBoks
 
 				String katBak;
 				if (thisBoksid.equals(boksid)) {
-					// Link ut fra enheten, så vi må endre kat
+					// Link ut fra enheten, sÃ¥ vi mÃ¥ endre kat
 					if (boksbak == null) {
 						String[] katSysname = decodeBoksbak(null, rs.getString("portname"));
 						katBak = katSysname[0];
@@ -1653,7 +1653,7 @@ class SqlBoks
 						String sysnameBak =katSysname[1];
 						outl(boksidBak+"^"+sysnameBak+"^"+katBak);
 
-						// Vi må også legge til tekst for enheten
+						// Vi mÃ¥ ogsÃ¥ legge til tekst for enheten
 						String[] fields = (String[])text.get(katBak+"Boks");
 						if (fields == null) fields = (String[])text.get("defBoks");
 						if (fields == null) continue; // fail-safe
@@ -1698,18 +1698,18 @@ class SqlBoks
 					l.add(s);
 				}
 
-				// Så sjekker vi linken
+				// SÃ¥ sjekker vi linken
 				if (linkDupe.add(swportid)) {
 					String key = (thisBoksid.equals(boksid)) ? boksbak : boksid;
-					// Vi lagrer linker per vlan, da det kan være flere fysiske linker mellom to enheter, men
-					// de vil alltid være på forskjellig vlan
+					// Vi lagrer linker per vlan, da det kan vÃ¦re flere fysiske linker mellom to enheter, men
+					// de vil alltid vÃ¦re pÃ¥ forskjellig vlan
 					key += ":"+vlan;
 
-					// Legg til selve linken, litt styr fordi begge swportid'ene skal være med i samme link ut fra midten
+					// Legg til selve linken, litt styr fordi begge swportid'ene skal vÃ¦re med i samme link ut fra midten
 					{
 						ArrayList l;
 						if ( (l=(ArrayList)linkMap.get(key)) == null) linkMap.put(key, l=new ArrayList());
-						// Linken ut skal komme først
+						// Linken ut skal komme fÃ¸rst
 						if (thisBoksid.equals(boksid)) {
 							//l.add(0, retning);
 							l.add(0, swportid);
@@ -1808,21 +1808,21 @@ class SqlBoks
 
 			}
 
-			// Nå går vi gjennom linkMap og legger inn linkene, det er to swportid'er per link
+			// NÃ¥ gÃ¥r vi gjennom linkMap og legger inn linkene, det er to swportid'er per link
 			Iterator iter = linkMap.values().iterator();
 			while (iter.hasNext()) {
 				String retning, swportidUt, swportidInn;
 				ArrayList l = (ArrayList)iter.next();
 				if (l.size() == 2) {
-					// Nå har vi det tilfellet der vi har har funnet linken ut, det skjer for uplink til gw
+					// NÃ¥ har vi det tilfellet der vi har har funnet linken ut, det skjer for uplink til gw
 					// og for endel servere
-					// Vi har retning og swportid på ene siden, men vi bruker også den samme id'en andre veien da
+					// Vi har retning og swportid pÃ¥ ene siden, men vi bruker ogsÃ¥ den samme id'en andre veien da
 					// last hentes bare fra ene siden
 					//retning = (String)l.get(0);
 					swportidUt = (String)l.get(0);
 					String boksbak = (String)l.get(1);
 					swportidInn = swportidUt+"^"+boksbak;
-					// Vi har imidlertid ingen info, så legg enheten til en liste over enheter vi må hente info for, fra gwport
+					// Vi har imidlertid ingen info, sÃ¥ legg enheten til en liste over enheter vi mÃ¥ hente info for, fra gwport
 					//gwboksL.add(boksbak);
 				} else if (l.size() < 3) {
 					continue;
@@ -1868,7 +1868,7 @@ class SqlBoks
 			loadMap.put("listBoxLoad", newMap);
 		}
 
-		// Så skrives linkene ut
+		// SÃ¥ skrives linkene ut
 		outl("listBoksLinks");
 		Set linkIdSet = new HashSet();
 		for (int i=0; i < link.size(); i++) {
@@ -1966,9 +1966,9 @@ class SqlBoks
 		reqQ.add("listLoad");
 	}
 
-	// Henter ut sysname og kat ved å se på vpkatbak og portnavn
+	// Henter ut sysname og kat ved Ã¥ se pÃ¥ vpkatbak og portnavn
 	// Er vpkatbak definert brukes den, ellers brukers portnavn, det
-	// skilles da på ":". Eksisterer ikke denne sjekker det for komma-notasjon
+	// skilles da pÃ¥ ":". Eksisterer ikke denne sjekker det for komma-notasjon
 	private static String[] decodeBoksbak(String vpkatbak, String portnavn)
 	{
 		String kat = vpkatbak;
@@ -2048,7 +2048,7 @@ class SqlAdmin
 		String boks = getp("boks");
 
 		if (gruppeid == null || boks == null) return;
-		// Vi må være sikker på at gruppeid er et tall
+		// Vi mÃ¥ vÃ¦re sikker pÃ¥ at gruppeid er et tall
 		try {
 			Integer.parseInt(gruppeid);
 		} catch (NumberFormatException e) {
@@ -2077,7 +2077,7 @@ class SqlAdmin
 			int[] xy;
 			if ( (xy = (int[])boksXYMap.remove(boksid)) != null) {
 				if (xy[0] != x || xy[1] != y) {
-					// Må oppdatere
+					// MÃ¥ oppdatere
 					String[] updateFields = {
 						"x", String.valueOf(x),
 						"y", String.valueOf(y)
@@ -2090,7 +2090,7 @@ class SqlAdmin
 					updcnt++;
 				}
 			} else {
-				// Må sette inn
+				// MÃ¥ sette inn
 				String[] insertFields = {
 					"pnetboxid", boksid,
 					"x", String.valueOf(x),
@@ -2140,7 +2140,7 @@ class SqlAdmin
 				int[] xy;
 				if ( (xy = (int[])grpXYMap.get(grpid)) != null) {
 					if (xy[0] != x || xy[1] != y) {
-						// Må oppdatere
+						// MÃ¥ oppdatere
 						String[] updateFields = {
 							"x", String.valueOf(x),
 							"y", String.valueOf(y)
@@ -2420,7 +2420,7 @@ class sqlNettel
 		} else
 		if (s.equals("listLinkInfo"))
 		{
-			// liste over info for hver link (listRouterLinks og listNetLinks må kalles først)
+			// liste over info for hver link (listRouterLinks og listNetLinks mÃ¥ kalles fÃ¸rst)
 			com.outl("listLinkInfo");
 
 
@@ -2775,8 +2775,8 @@ class sqlNettel
 					}
 
 					// andre porter ut fra switch (srv, mas, feil, uspesifisert osv)
-					// liten hack, for å unngå duplikat id
-					link = db.exec("select id from nettel order by id desc limit 1;"); // finner høyste ID i bruk i nettel
+					// liten hack, for Ã¥ unngÃ¥ duplikat id
+					link = db.exec("select id from nettel order by id desc limit 1;"); // finner hÃ¸yste ID i bruk i nettel
 					int baseId = Integer.parseInt(link[0]);
 
 					data = db.exece("select id,portname,speed,mp,vlan from swport where swid='" + id + "' and (idbak is null or idbak='0') and status='Up' and portname not like 'link:%' order by id;");
@@ -2847,17 +2847,17 @@ class sqlNettel
 			// liste over linkene fra en bestemt nettel-boks
 			com.out("listNettelLinks\n");
 
-			// først alle uplinker
+			// fÃ¸rst alle uplinker
 			com.out("up^");
 			com.printString(up, "^");
 			com.out("\n");
 
-			// først alle uplinker
+			// fÃ¸rst alle uplinker
 			com.out("hz^");
 			com.printString(hz, "^");
 			com.out("\n");
 
-			// først alle uplinker
+			// fÃ¸rst alle uplinker
 			com.out("dn^");
 			com.printString(dn, "^");
 			com.out("\n");
@@ -2865,11 +2865,11 @@ class sqlNettel
 		} else
 		if (s.equals("listLinkVlans"))
 		{
-			// liste over vlan på linker fra en bestemt nettel-boks
+			// liste over vlan pÃ¥ linker fra en bestemt nettel-boks
 			com.out("listLinkVlans\n");
 			Vector v = new Vector();
 
-			// hvis gw kan vi gå ut fra ingen up, kun hz med 1 vlan og normal dn
+			// hvis gw kan vi gÃ¥ ut fra ingen up, kun hz med 1 vlan og normal dn
 			if (gw)
 			{
 				String[] link;
@@ -2889,12 +2889,12 @@ class sqlNettel
 								com.out(link[0].substring(4, link[0].length() ) + "\n");
 							} else
 							{
-								// ikke vlan, altså noe ethernet (direkte)
+								// ikke vlan, altsÃ¥ noe ethernet (direkte)
 								com.out("0" + "\n");
 							}
 						} else
 						{
-							// går ut ifra port ut fra router til stam/elink.
+							// gÃ¥r ut ifra port ut fra router til stam/elink.
 							com.out("^" + (String)utFraRouter.elementAt(utFraRouterTeller) + "\n");
 							utFraRouterTeller++;
 						}
@@ -2905,7 +2905,7 @@ class sqlNettel
 				{
 					//int begin = 0;
 
-					// så skriv ut vlan for alle LAN (kun RSM så langt)
+					// sÃ¥ skriv ut vlan for alle LAN (kun RSM sÃ¥ langt)
 					//link = db.exec("select id from subnet where ruter='" + id + "' and type='lan' order by id;");
 					String[] vlan = db.exec("select vlan from subnet where ruter='" + id + "' and type='lan' group by interf order by interf;");
 					for (int i = 0; i < dn.length; i++)
@@ -2933,7 +2933,7 @@ class sqlNettel
 
 				return;
 			}
-			// ikke gw, altså sw. up/hz/dn behandles nå likt
+			// ikke gw, altsÃ¥ sw. up/hz/dn behandles nÃ¥ likt
 
 			if (up != null)
 			{
@@ -2996,7 +2996,7 @@ class sqlNettel
 					}
 				} else
 				{
-					// går ut ifra port ut fra switch, til lan/srv/mas osv.
+					// gÃ¥r ut ifra port ut fra switch, til lan/srv/mas osv.
 					String vlan = (String)utFraSwitch.elementAt(utFraSwitchTeller);
 					if (vlan.equals("Trunk")) vlan = "-1";
 					com.out("^" + vlan + "\n");
@@ -3169,7 +3169,7 @@ class sqlNettel
 			String[][] data;
 			if (s[0].equals("nettel"))
 			{
-				// trenger ikke å joine tabeller
+				// trenger ikke Ã¥ joine tabeller
 				data = db.exece("select id," + s[2] + " from nettel where kat='GW' order by id;");
 			} else
 			{

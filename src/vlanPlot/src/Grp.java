@@ -103,7 +103,7 @@ class Grp
 		double v = Math.PI*2;
 		double inc = Math.PI*2 / members.size();
 		// cos(v) = hosligende
-		// sin(v) = motstående
+		// sin(v) = motstÃ¥ende
 		com.d("Grp pos at: ("+x+","+y+",r="+r+")",3);
 		for (int i=0; i < members.size(); i++) {
 			Nettel n = (Nettel)members.elementAt(i);

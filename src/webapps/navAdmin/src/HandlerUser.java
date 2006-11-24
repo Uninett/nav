@@ -121,7 +121,7 @@ class HandlerUser
 			throw new PError("passNoMatch");
 		}
 
-		// sjekk om nødvendige felter er på plass
+		// sjekk om nÃ¸dvendige felter er pÃ¥ plass
 		if (com.getp("fornavn").equals("") )
 		{
 			throw new PError("missingFirst");
@@ -190,7 +190,7 @@ class HandlerUser
 		}
 
 
-		// sjekk om nødvendige felter er på plass
+		// sjekk om nÃ¸dvendige felter er pÃ¥ plass
 		if (com.getp("login").equals("") )
 		{
 			throw new PError("missingLogin");
@@ -337,7 +337,7 @@ class HandlerUser
 			throw new PError("dupUser");
 		}
 
-		// sjekk om nødvendige felter er på plass
+		// sjekk om nÃ¸dvendige felter er pÃ¥ plass
 		if (com.getp("login").equals("") )
 		{
 			throw new PError("missingLogin");
@@ -472,7 +472,7 @@ class HandlerUser
 			throw new PError("passNoMatch");
 		}
 
-		// sjekk om nødvendige felter er på plass
+		// sjekk om nÃ¸dvendige felter er pÃ¥ plass
 		if (com.getp("fornavn").equals("") )
 		{
 			throw new PError("missingFirst");

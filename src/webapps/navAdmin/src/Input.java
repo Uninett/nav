@@ -400,7 +400,7 @@ public class Input
 
 			if (info[0] != null)
 			{
-				// sett ny path til øvingen
+				// sett ny path til Ã¸vingen
 				com.getDb().exec("update ovinger set oving='" + outf.getAbsolutePath() + "' where login='" + com.getUser().getLogin()
 							+ "' and klasse='" + com.getUser().getKlasse() + "' and ovingnr='" + ovingnr + "';");
 

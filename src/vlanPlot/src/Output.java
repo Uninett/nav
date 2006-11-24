@@ -71,7 +71,7 @@ class Output
 
 		if (visGruppe == 0) {
 			cnt++;
-			// Vi må også sende med XY koordinater for gruppene
+			// Vi mÃ¥ ogsÃ¥ sende med XY koordinater for gruppene
 			Vector group = com.getNet().getGrp();
 			if (group.size() > 0) sb.append("&gruppe=");
 			for (int i=0; i < group.size(); i++) {

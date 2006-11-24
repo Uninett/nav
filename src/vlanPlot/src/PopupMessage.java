@@ -34,7 +34,7 @@ import java.util.Vector;
 class PopupMessage
 {
 	// BEgin configurasjon
-	final int spaceX = 3; // mellomrom på hver side
+	final int spaceX = 3; // mellomrom pÃ¥ hver side
 	final int spaceY = 3; // mellomrom fra toppen og bunnen
 	// End configuration
 
@@ -59,7 +59,7 @@ class PopupMessage
 	{
 		if (s != null)
 		{
-			// masse kode for å behandle \n (linjeskift) rett
+			// masse kode for Ã¥ behandle \n (linjeskift) rett
 			int index = 0;
 			index = s.indexOf("\n");
 
@@ -109,7 +109,7 @@ class PopupMessage
 		g.setFont(font);
 		FontMetrics fontMetrics = g.getFontMetrics(font);
 
-		// bestem høyde/bredde
+		// bestem hÃ¸yde/bredde
 		int height = fontMetrics.getHeight()*message.size();
 		//int fontWidth = fontMetrics.stringWidth((String)message.elementAt(0) );
 		int fontWidth=0;

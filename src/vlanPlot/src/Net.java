@@ -69,8 +69,8 @@ class Net extends Canvas implements ItemListener
 	int lasty = 0;
 
 	Nettel visNettel = null;
-	int visVlan = 0; // hvilket vlan det fokuseres på
-	int visGruppe = -1; // hvilken gruppe det fokuseres på
+	int visVlan = 0; // hvilket vlan det fokuseres pÃ¥
+	int visGruppe = -1; // hvilken gruppe det fokuseres pÃ¥
 	String visGruppeNavn = "";
 	Hashtable gruppeIdMap = new Hashtable(); // Convert between gruppe navn and gruppe id (db)
 
@@ -126,7 +126,7 @@ class Net extends Canvas implements ItemListener
 	private Image bufferImage;
 	private Graphics bufferGraphics;
 
-	// FIXME: Denne skal være dynamisk!
+	// FIXME: Denne skal vÃ¦re dynamisk!
 	//public static final String netNames[] = { "Bynett", "Kjernenett", "Testnett" };
 
 	public Net(Com InCom)
@@ -178,7 +178,7 @@ class Net extends Canvas implements ItemListener
 		com.getMidScroll().setVisible(false);
 		com.getBottomScroll().setVisible(false);
 
-		// Klargjør for å bygge opp "verden" på nytt
+		// KlargjÃ¸r for Ã¥ bygge opp "verden" pÃ¥ nytt
 		com.d("Reseter group-vector", 1);
 		nh.clear();
 		lh.clear();
@@ -209,7 +209,7 @@ class Net extends Canvas implements ItemListener
 
 		if (visGruppe > 0)
 		{
-			// Bare ta med enheter som skal være med
+			// Bare ta med enheter som skal vÃ¦re med
 			Hashtable tmp = new Hashtable();
 			//Hashtable tmp2 = new Hashtable();
 			String[] s = (String[])lRouterGroups.get(""+visGruppeId);
@@ -231,7 +231,7 @@ class Net extends Canvas implements ItemListener
 					tmp.put(boksid, lRouters.get(boksid) );
 				}
 			}
-			// Så må vi søke gjennom alle stam||elink for å sjekke om noen av dem skal være med
+			// SÃ¥ mÃ¥ vi sÃ¸ke gjennom alle stam||elink for Ã¥ sjekke om noen av dem skal vÃ¦re med
 			{
 				Enumeration e = lRouterLinks.elements();
 				while (e.hasMoreElements())
@@ -319,7 +319,7 @@ class Net extends Canvas implements ItemListener
 				int x = Integer.parseInt(s[2]);
 				int y = Integer.parseInt(s[3]);
 				if (x == 0 && y == 0) {
-					// Pen layout på topp
+					// Pen layout pÃ¥ topp
 					int[] topXY = topRowLayout(topLayoutCnt++);
 					x = topXY[0];
 					y = topXY[1];
@@ -344,7 +344,7 @@ class Net extends Canvas implements ItemListener
 			grp.autoLayout();
 		}
 		com.getLeft().addNettNavn(null); // Listen blir sortert og lukket
-		setOverskrift(preHeader + com.getLeft().getNettNavn(visGruppe)); // Nå kan vi sette overskrift
+		setOverskrift(preHeader + com.getLeft().getNettNavn(visGruppe)); // NÃ¥ kan vi sette overskrift
 
 		// legg til linker
 		e = lRouterLinks.elements();
@@ -414,7 +414,7 @@ class Net extends Canvas implements ItemListener
 
 	private synchronized void applyText(Hashtable lRouterText, Hashtable lRouterLinkText)
 	{
-		// Så legger vi til tekst for alle bokser
+		// SÃ¥ legger vi til tekst for alle bokser
 		String[] tList;
 		int tcnt=0;
 		//Hashtable lRouterText = (Hashtable)h.get("listBoksText");
@@ -526,7 +526,7 @@ class Net extends Canvas implements ItemListener
 				if (s.length == 3) {
 					// Det er gitt last begge veier her
 					if (lh.containsKey("-"+s[0]) ) {
-						// Vi forventet også last begge veier, så det er riktig
+						// Vi forventet ogsÃ¥ last begge veier, sÃ¥ det er riktig
 						l = (Link)lh.get("-"+s[0]);
 						l.setLast( Double.valueOf(s[2]).doubleValue() );
 						l.recalc();
@@ -600,7 +600,7 @@ class Net extends Canvas implements ItemListener
 				if (s.length == 3) {
 					// Det er gitt last begge veier her
 					if (lh.containsKey("-"+s[0]) ) {
-						// Vi forventet også last begge veier, så det er riktig
+						// Vi forventet ogsÃ¥ last begge veier, sÃ¥ det er riktig
 						l = (Link)lh.get("-"+s[0]);
 						l.setLast( Double.valueOf(s[2]).doubleValue() );
 						l.recalc();
@@ -626,7 +626,7 @@ class Net extends Canvas implements ItemListener
 	{
 		com.d("Viser sentrisk rundt: " + n.getName() + " Boksid: " + n.getBoksid() + " Type: " + n.getKat() + " Vlan: " + n.getVlan(), 2);
 
-		// Klargjør for å bygge opp "verden" på nytt
+		// KlargjÃ¸r for Ã¥ bygge opp "verden" pÃ¥ nytt
 		nh.clear();
 		lh.clear();
 		n.transform();
@@ -695,11 +695,11 @@ class Net extends Canvas implements ItemListener
 			}
 		}
 
-		// Sjekk om vi skal vise et bestemt vlan eller alle (kun på gw-nivå)
+		// Sjekk om vi skal vise et bestemt vlan eller alle (kun pÃ¥ gw-nivÃ¥)
 		visVlan = n.getVlan();
 		boolean selectVlan = !n.getKat().equalsIgnoreCase("gw");
 		if (selectVlan && visVlan == 0) {
-			// Vlan ikke spesifisert, da tar vi bare det første over 1 hvis det eksisterer, ellers 1
+			// Vlan ikke spesifisert, da tar vi bare det fÃ¸rste over 1 hvis det eksisterer, ellers 1
 			Enumeration e = lVlanNames.elements();
 			while (e.hasMoreElements()) {
 				String[] s = (String[])e.nextElement();
@@ -735,11 +735,11 @@ class Net extends Canvas implements ItemListener
 			vlanVandring = false;
 		}
 
-		// Gjør klar for å legge til enheter
+		// GjÃ¸r klar for Ã¥ legge til enheter
 		lnTop.reset();
 		lnBottom.reset();
 
-		// Det er kun en link til hver enhet, vi går derfor over linkene og legger til enhetene fortløpende
+		// Det er kun en link til hver enhet, vi gÃ¥r derfor over linkene og legger til enhetene fortlÃ¸pende
 		Enumeration e = lNettelLinks.elements();
 		while (e.hasMoreElements())
 		{
@@ -755,21 +755,21 @@ class Net extends Canvas implements ItemListener
 			String linkIdInn = s[1];
 			String boksidTo = s[2];
 
-			// Ser kun på vlan på utgående link
+			// Ser kun pÃ¥ vlan pÃ¥ utgÃ¥ende link
 			String[] vlanA = (String[])lLinkVlans.get(linkIdUt);
 			if (vlanA == null) {
 				com.d("Error, vlan not found for linkIdUt: " + linkIdUt,4);
 				continue;
 			}
 
-			StringTokenizer st = new StringTokenizer(vlanA[1], ","); // Som default velger vi bare det første vlanet
+			StringTokenizer st = new StringTokenizer(vlanA[1], ","); // Som default velger vi bare det fÃ¸rste vlanet
 			String vlan = st.nextToken();
 			String retning = st.nextToken();
 
 			int curVlan = (vlan.equals("null")) ? -1 : Integer.parseInt(vlan);
 			Vector curVlanList = new Vector();
 			if (selectVlan) {
-				// Sjekk om enheten virkelig er på dette vlanet
+				// Sjekk om enheten virkelig er pÃ¥ dette vlanet
 				boolean ok = false;
 				for (int j=1; j<vlanA.length; j++) {
 					st = new StringTokenizer(vlanA[j], ",");
@@ -795,7 +795,7 @@ class Net extends Canvas implements ItemListener
 			// Lag enhet
 			com.d("   Legger til Nettel, id: " + boksInfo[0] + ", " + boksInfo[1] + ", type: " + boksInfo[2] + " Retning: " + retning + " Vlan: " + curVlan, 5);
 			Nettel linkTo = new Nettel(com, Integer.parseInt(boksInfo[0]), boksInfo[1], boksInfo[2], "1", curVlan);
-			if (!selectVlan) linkTo.setDrawVlan(true); // Skal tegne vlan-bokser på linkene når det er gw i sentrum
+			if (!selectVlan) linkTo.setDrawVlan(true); // Skal tegne vlan-bokser pÃ¥ linkene nÃ¥r det er gw i sentrum
 
 			if (boksInfo.length >= 4 && !boksInfo[3].equals("0")) {
 				st = new StringTokenizer(boksInfo[3], ",");
@@ -814,11 +814,11 @@ class Net extends Canvas implements ItemListener
 			String[] linkInfoUt = (String[])lNettelLinkInfo.get(linkIdUt);
 			String[] linkInfoInn = (String[])lNettelLinkInfo.get(linkIdInn);
 			if (linkInfoUt == null || linkInfoInn == null) continue;
-			// FIXME: Skal ikke være nødvendig
+			// FIXME: Skal ikke vÃ¦re nÃ¸dvendig
 			if (linkInfoUt[1].equals("null")) linkInfoUt[1] = (!linkInfoInn[1].equals("null")) ? linkInfoInn[1] : "-1";
 			if (linkInfoInn[1].equals("null")) linkInfoInn[1] = linkInfoUt[1];
 
-			// Vi får oppgitt interface navn per link
+			// Vi fÃ¥r oppgitt interface navn per link
 			String ifNameUt = (linkInfoUt.length >= 3) ? linkInfoUt[2] : "";
 			String ifNameInn = (linkInfoInn.length >= 3) ? linkInfoInn[2] : "";
 
@@ -837,7 +837,7 @@ class Net extends Canvas implements ItemListener
 				linkInn.setIsBlocked(true);
 			}
 
-			// Legg til vlan, kun på linken ut
+			// Legg til vlan, kun pÃ¥ linken ut
 			if (curVlanList.size() > 1) {
 				com.d("     curVlanList.size() =  " + curVlanList.size(), 8);
 				Com.quickSort(curVlanList);
@@ -867,7 +867,7 @@ class Net extends Canvas implements ItemListener
 		// Oppdater PopupMenu med liste over mulige vlan
 		e = vlanSet.elements();
 		vlanMenu.clear();
-		vlanMenu.setMenuLabel("Skift vlan på "+n.getName());
+		vlanMenu.setMenuLabel("Skift vlan pÃ¥ "+n.getName());
 		com.d("vlanSet size: " + vlanSet.size(), 5);
 		while (e.hasMoreElements())
 		{
@@ -888,7 +888,7 @@ class Net extends Canvas implements ItemListener
 			applyLast(lBoksText, lLinkText);
 		}
 
-		// Så legger vi til tekst for alle bokser
+		// SÃ¥ legger vi til tekst for alle bokser
 		String[] tList;
 		int tcnt=0;
 		while ( (tList = (String[])lBoksText.get("t"+tcnt)) != null) {
@@ -1020,7 +1020,7 @@ class Net extends Canvas implements ItemListener
 			com.d("Record history: " + "-"+visGruppe,5);
 		} else
 		{
-			// Vis befinner oss på en nettel, record den
+			// Vis befinner oss pÃ¥ en nettel, record den
 			history.push(visNettel.getHashKey());
 			com.d("Record history: " + visNettel.getHashKey(),5);
 		}
@@ -1162,13 +1162,13 @@ class Net extends Canvas implements ItemListener
 		backKnapp.addPoint(startX+sizeX, startY+sizeY);
 		backKnapp.addPoint(startX, startY+sizeY);
 
-		// kant-linjen på knappen
+		// kant-linjen pÃ¥ knappen
 		g.setColor(Color.black);
 		g.drawPolygon(backKnapp);
-		// bakgrunns-fargen på knappen
+		// bakgrunns-fargen pÃ¥ knappen
 		g.setColor(Color.lightGray);
 		g.fillPolygon(backKnapp);
-		// teksten på knappen
+		// teksten pÃ¥ knappen
 		g.setColor(Color.black);
 		g.drawString("Back", startX+3, startY+15);
 
@@ -1224,7 +1224,7 @@ class Net extends Canvas implements ItemListener
 		if (needReset) recordHistory();
 		if (needReset && InVisNettel != null)
 		{
-			visGruppe = -1; // Vi viser nå ingen gruppe
+			visGruppe = -1; // Vi viser nÃ¥ ingen gruppe
 		}
 		visNettel = InVisNettel;
 	}

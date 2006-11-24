@@ -142,14 +142,14 @@ class LayoutXY
 
 	private int[] getHz()
 	{
-		// oddetall, boxen settes på venstre side
-		// partall, boxen settes på høyre side
+		// oddetall, boxen settes pÃ¥ venstre side
+		// partall, boxen settes pÃ¥ hÃ¸yre side
 		int retX = ((current&1)!=0) ? borderHz : canvasX - borderHz - Nettel.sizeX;
 
 		int antRader = (Math.min(getTotal(), getAntVisible() )+1)/2;
 		retY = canvasY/2 - antRader*(Nettel.sizeY+spaceY)/2 + spaceY/2;
 
-		// kun øk Y-verdi dersom oddetall
+		// kun Ã¸k Y-verdi dersom oddetall
 		int t = current;
 		if ((t&1)==0) t--;
 		retY += (Nettel.sizeY+spaceY)* ((t-1)/2);

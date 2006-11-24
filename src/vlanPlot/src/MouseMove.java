@@ -65,7 +65,7 @@ class MouseMove implements MouseMotionListener
 		com.setMouseX(e.getX() );
 		com.setMouseY(e.getY() );
 
-		// Vi ønsker ikke å si ifra at muspekeren har beveget på seg når vi er i move-mode
+		// Vi Ã¸nsker ikke Ã¥ si ifra at muspekeren har beveget pÃ¥ seg nÃ¥r vi er i move-mode
 		if (!com.getAdmin().getMoveMode())
 		{
 

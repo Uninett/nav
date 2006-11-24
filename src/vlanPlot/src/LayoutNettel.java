@@ -64,7 +64,7 @@ class LayoutNettel implements AdjustmentListener
 		quickSort(list);
 		layoutXY = new LayoutXY(com, linkType, list.size() );
 
-		// Sjekk om scrollbar er nødvendig
+		// Sjekk om scrollbar er nÃ¸dvendig
 		if (list.size() <= layoutXY.getAntVisible())
 		{
 			sb.setVisible(false);

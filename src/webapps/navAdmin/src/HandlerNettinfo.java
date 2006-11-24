@@ -293,7 +293,7 @@ class HandlerNettinfo
 			String domainSuffix = com.getNavConf().get("DOMAIN_SUFFIX");
 			if (domainSuffix == null) domainSuffix = "";
 
-			// Hent gw'ene som danner røttene i treet
+			// Hent gw'ene som danner rÃ¸ttene i treet
 			//ResultSet rs = Database.query("SELECT gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY sysname,vlan,interf");
 			//ResultSet rs = Database.query("SELECT DISTINCT ON (boksid,vlan) gwport.boksid,sysname,interf,vlan,gwport.boksbak,gwport.swportbak,modul AS modulbak,port AS portbak FROM boks JOIN gwport USING (boksid) JOIN prefiks ON (gwport.prefiksid=prefiks.prefiksid) LEFT JOIN swport ON (gwport.swportbak=swportid) WHERE gwport.boksbak IS NOT NULL ORDER BY boksid,vlan,interf");
 
@@ -308,7 +308,7 @@ class HandlerNettinfo
 				String kat = rs.getString("catid");
 				String vlan = rs.getString("vlan");
 
-				// GSW'er er både GW og SW i samme enhet
+				// GSW'er er bÃ¥de GW og SW i samme enhet
 				String gsw = "";
 				if (kat.equals("GSW")) {
 					boksbak = boksid;
@@ -704,7 +704,7 @@ class HandlerNettinfo
 		boolean searchFound = false;
 		//swrec.put("portname", boksbak);
 
-		// Hvis ikke boksbak så vises ikke porten i det hele tatt
+		// Hvis ikke boksbak sÃ¥ vises ikke porten i det hele tatt
 		//if (boksbak == null) return;
 
 		// sjekk om vi skal traverse videre
@@ -771,9 +771,9 @@ class HandlerNettinfo
 		}
 
 		if (depth == 0 && kat != null && kat.equals("GSW")) {
-			// Vi legger ikke til i visitSet i først rekursjon da vi treffer på samme enhet ett nivå ned
+			// Vi legger ikke til i visitSet i fÃ¸rst rekursjon da vi treffer pÃ¥ samme enhet ett nivÃ¥ ned
 		} else
-		// Pass på at vi ikke går i løkke
+		// Pass pÃ¥ at vi ikke gÃ¥r i lÃ¸kke
 		if (!visitSet.add(boksbak)) {
 			//com.outl("** swportExpand, boksid: "+ boksid + " boksbak: " + swrec.get("boksbak") + " return");
 			return searchFound;
@@ -786,7 +786,7 @@ class HandlerNettinfo
 
 		//com.outl("swportExpand called, boksid: " + boksid + " vlan: "+ vlan + " depth: " + depth + "<br>");
 
-		// Hent ut listen over porter tilhørende denne enheten
+		// Hent ut listen over porter tilhÃ¸rende denne enheten
 		if (portList == null)
 		{
 			//printNode(id, swName, port, findPortBak(swName, null, parentName, false), parentId, parentName, depth, "n", "sw", REDCROSS, true);
@@ -1225,7 +1225,7 @@ class HandlerNettinfo
 		{
 			String[] s = new String[data.length];
 			for (int j = 0; j < data.length; j++) s[j] = data[j][i];
-				// spesialtilfelle hvis portname=udef og status=down så leggers det ikke til
+				// spesialtilfelle hvis portname=udef og status=down sÃ¥ leggers det ikke til
 				if ( (s[4].toLowerCase().equals("udef") || s[4].toLowerCase().equals("undef")) && s[5].toLowerCase().equals("down") ) continue;
 			swport.put(s[1]+":"+s[4], s);
 			swportIds.add(s[1]);
@@ -1248,7 +1248,7 @@ class HandlerNettinfo
 		long dumpTime = new GregorianCalendar().getTime().getTime() - beginTime; beginTime += dumpTime;
 
 
-		// Gå gjennom nettel først
+		// GÃ¥ gjennom nettel fÃ¸rst
 		for (int i = 0; i < n_id.length; i++)
 		{
 			// sjekk for feil i selve nettel
@@ -1286,7 +1286,7 @@ class HandlerNettinfo
 					if (n_kat[i] != null && n_kat[i].equals("HUB")) err.setErrType("Notice");
 					nettelError.addElement(err);
 				} else
-				// Sjekk om oppføring i swport er tilstedet
+				// Sjekk om oppfÃ¸ring i swport er tilstedet
 				if (n_kat[i].equals("GW") && !subnetIds.contains(n_id[i]))
 				{
 					swError err = new swError(n_id[i]);
@@ -1300,7 +1300,7 @@ class HandlerNettinfo
 
 
 
-		// Gå gjennom swport
+		// GÃ¥ gjennom swport
 		Iterator iter = swport.values().iterator();
 		while (iter.hasNext())
 		{
@@ -1343,7 +1343,7 @@ class HandlerNettinfo
 			String sysName = ((String[])nettel.get(swid))[1];
 			err.setSysName(sysName);
 
-			// først sjekker vi om porten er udef og nede
+			// fÃ¸rst sjekker vi om porten er udef og nede
 			if ((portname.toLowerCase().equals("udef") || portname.toLowerCase().equals("undef")) && status.toLowerCase().equals("down")) continue;
 			if ((portname.toLowerCase().equals("udef") || portname.toLowerCase().equals("undef")) && status.toLowerCase().equals("up"))
 			{
@@ -1360,7 +1360,7 @@ class HandlerNettinfo
 				swportError.add(err); continue;
 			}
 
-			// så sjekker vi om portname følger ?: konvensjonen
+			// sÃ¥ sjekker vi om portname fÃ¸lger ?: konvensjonen
 			String[] type = misc.tokenizel(portname, ":");
 			if (type.length <= 1)
 			{
@@ -1370,11 +1370,11 @@ class HandlerNettinfo
 				swportError.add(err); continue;
 			}
 
-			// sjekk om name følger *,* konvensjonen
+			// sjekk om name fÃ¸lger *,* konvensjonen
 			String[] nameBak = misc.tokenize(type[1], ",");
 			if (nameBak.length > 1)
 			{
-				// ja, idbak MÅ nå være 0
+				// ja, idbak MÃ… nÃ¥ vÃ¦re 0
 				if (!idbak.equals("0"))
 				{
 					err.setErrType("Error");
@@ -1387,7 +1387,7 @@ class HandlerNettinfo
 				// nei, sjekk hvilken type link vi har
 				if (type[0].charAt(0) != 'n' && !type[0].equals("h") && !type[0].equals("link") && type[0].charAt(0) != 'o')
 				{
-					// nå må idbak være 0
+					// nÃ¥ mÃ¥ idbak vÃ¦re 0
 					if (!idbak.equals("0"))
 					{
 						// finn nameBak
@@ -1403,7 +1403,7 @@ class HandlerNettinfo
 					continue;
 				}
 
-				// nå kan ikke idbak være 0
+				// nÃ¥ kan ikke idbak vÃ¦re 0
 				if (idbak.equals("0"))
 				{
 					err.setErrType("Error");
@@ -1411,7 +1411,7 @@ class HandlerNettinfo
 					swportError.add(err); continue;
 				}
 
-				// sjekk om det er en gw på andre siden
+				// sjekk om det er en gw pÃ¥ andre siden
 				nameBak = misc.tokenizel(portname, "-");
 				if (nameBak.length <= 1)
 				{
@@ -1492,7 +1492,7 @@ class HandlerNettinfo
 		long swportTime = new GregorianCalendar().getTime().getTime() - beginTime; beginTime += swportTime;
 
 
-		// Gå gjennom subnet
+		// GÃ¥ gjennom subnet
 		iter = subnet.values().iterator();
 		while (iter.hasNext())
 		{
@@ -1553,9 +1553,9 @@ class HandlerNettinfo
 
 		//////////////////////////////////////////////////////////////////////////////////
 		//com.outl("<pre>");
-		//com.outl("Starter å bygge tre");
-		// Sjekk for løkker i tre-strukturen i swport
-		// Først lag en tre-struktur
+		//com.outl("Starter Ã¥ bygge tre");
+		// Sjekk for lÃ¸kker i tre-strukturen i swport
+		// FÃ¸rst lag en tre-struktur
 		String[] high = db.exec("select id from nettel order by id desc limit 1;");
 		int ant = (high[0] != null) ? Integer.parseInt(high[0]) : 0;
 		ArrayList[] vertex = new ArrayList[ant];
@@ -1593,8 +1593,8 @@ class HandlerNettinfo
 		//vertex[76-1].add(new Integer(365));
 		long treeTime = new GregorianCalendar().getTime().getTime() - beginTime; beginTime += treeTime;
 
-		// Kjør algoritme for å finne løkke
-		//com.outl("Kjører algoritme");
+		// KjÃ¸r algoritme for Ã¥ finne lÃ¸kke
+		//com.outl("KjÃ¸rer algoritme");
 		final int BFS_WHITE = 0;
 		final int BFS_GRAY = 1;
 		final int BFS_BLACK = 2;
@@ -1819,8 +1819,8 @@ class HandlerNettinfo
 
 		if (updateDb != null || com.getData("checkErrorSwError") == null || com.getData("checkErrorPortError") == null || ((Vector)com.getData("checkErrorSwError")).size() <= 0 )
 		{
-			// Start feil-søk
-			// først henter vi ut hele nettel og sjekker om alle enheter har tilsvarende gyldig oppføring i swport
+			// Start feil-sÃ¸k
+			// fÃ¸rst henter vi ut hele nettel og sjekker om alle enheter har tilsvarende gyldig oppfÃ¸ring i swport
 			String[][] data = db.exece("select id,sysName,kat from nettel order by id;");
 			String[] id = data[0];
 			String[] sysName = data[1];
@@ -1856,7 +1856,7 @@ class HandlerNettinfo
 					swError.addElement(err);
 				}
 
-				// sjekk om oppføring i swport er riktig
+				// sjekk om oppfÃ¸ring i swport er riktig
 				data = db.exece("select mp,portname,status,duplex,speed,porttype,idbak,portBak from swport where swid='" + id[i] + "';");
 				String[] port = data[0];
 				String[] portname = data[1];
@@ -1881,7 +1881,7 @@ class HandlerNettinfo
 					//swError.addElement(err);
 				} else
 				{
-					// oppføring funnet, sjekk om det stemmer
+					// oppfÃ¸ring funnet, sjekk om det stemmer
 					for (int j = 0; j < port.length; j++)
 					{
 						swError portErr = verifySwRecord(id[i], sysName[i], port[j], portname[j], status[j], duplex[j], speed[j], porttype[j], idbak[j], portBak[j]);
@@ -2023,7 +2023,7 @@ class HandlerNettinfo
 		err.setNameBak("");
 		err.setPortBak(portBak);
 
-		// først sjekker vi om porten er udef og nede
+		// fÃ¸rst sjekker vi om porten er udef og nede
 		if ((portname.toLowerCase().equals("udef") || portname.toLowerCase().equals("undef")) && status.toLowerCase().equals("down"))
 		{
 			// alt ok
@@ -2045,7 +2045,7 @@ class HandlerNettinfo
 		}
 
 
-		// så sjekker vi om portname følger ?: konvensjonen
+		// sÃ¥ sjekker vi om portname fÃ¸lger ?: konvensjonen
 		String[] type = misc.tokenizel(portname, ":");
 		if (type.length <= 1)
 		{
@@ -2055,11 +2055,11 @@ class HandlerNettinfo
 			return err;
 		}
 
-		// sjekk om name følger *,* konvensjonen
+		// sjekk om name fÃ¸lger *,* konvensjonen
 		String[] nameBak = misc.tokenize(type[1], ",");
 		if (nameBak.length > 1)
 		{
-			// ja, idbak MÅ nå være 0
+			// ja, idbak MÃ… nÃ¥ vÃ¦re 0
 			if (!idbak.equals("0"))
 			{
 				err.setErrType("Error");
@@ -2072,7 +2072,7 @@ class HandlerNettinfo
 			// nei, sjekk hvilken type link vi har
 			if (type[0].charAt(0) != 'n' && !type[0].equals("h") && !type[0].equals("link") && type[0].charAt(0) != 'o')
 			{
-				// nå må idbak være 0
+				// nÃ¥ mÃ¥ idbak vÃ¦re 0
 				if (!idbak.equals("0"))
 				{
 					// finn nameBak
@@ -2087,7 +2087,7 @@ class HandlerNettinfo
 				return null;
 			}
 
-			// nå kan ikke idbak være 0
+			// nÃ¥ kan ikke idbak vÃ¦re 0
 			if (idbak.equals("0"))
 			{
 				err.setErrType("Error");
@@ -2095,7 +2095,7 @@ class HandlerNettinfo
 				return err;
 			}
 
-			// sjekk om det er en gw på andre siden
+			// sjekk om det er en gw pÃ¥ andre siden
 			nameBak = misc.tokenizel(portname, "-");
 			if (nameBak.length <= 1)
 			{
@@ -2571,7 +2571,7 @@ class HandlerNettinfo
 	*/
 
 	/* [/ni.searchSwport]
-	 * Søker etter nettel-enheter og viser dem via listSwport
+	 * SÃ¸ker etter nettel-enheter og viser dem via listSwport
 	 */
 	private void searchSwport()
 	{

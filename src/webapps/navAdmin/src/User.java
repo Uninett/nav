@@ -37,7 +37,7 @@ public class User
 			name = req.getRemoteUser();
 		}
 
-		// først name
+		// fÃ¸rst name
 		if ( (cname != null) && (name != null) )
 		{
 			loginParam = true;

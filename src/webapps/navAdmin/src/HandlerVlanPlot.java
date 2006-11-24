@@ -178,8 +178,8 @@ class HandlerVlanPlot
 
 				for (int j = 0; j < txt[i].length(); j++)
 				{
-					// fint index for ¤
-					int index = txt[i].indexOf('¤', j);
+					// fint index for Â¤
+					int index = txt[i].indexOf('Â¤', j);
 					if (index == -1)
 					{
 						// just print the rest of the string
@@ -187,11 +187,11 @@ class HandlerVlanPlot
 						j = txt[i].length();
 					} else
 					{
-						// print everything before ¤
+						// print everything before Â¤
 						com.out( txt[i].substring(j, index) );
 
 						// find end of keyword
-						int end = txt[i].indexOf('¤', index+1);
+						int end = txt[i].indexOf('Â¤', index+1);
 						if (end == -1)
 						{
 							// the rest of the string is a keyword

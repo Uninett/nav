@@ -59,7 +59,7 @@ class Logo extends Canvas
 			int xstart = 20;
 			int ystart = 8;
 
-		    // Tykkelse på linjer
+		    // Tykkelse pÃ¥ linjer
 		    g.setColor(Color.black);
 		    g.fillRect(xstart,ystart,30,3);
 		    g.fillRect(xstart,ystart+9,30,5);

@@ -259,7 +259,7 @@ public class GwportHandler implements DataHandler {
 						} else {
 							gwportid = oldgwp.getGwportidS();
 							if (!gwp.equalsGwport(oldgwp)) {
-								// Vi må oppdatere
+								// Vi mÃ¥ oppdatere
 								Log.d("UPDATE_GWPORT", "Update gwportid: "+gwportid+" ifindex="+gwp.getIfindex());
 
 								String masterindex = null;

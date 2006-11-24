@@ -149,7 +149,7 @@ public class DeviceHandler implements DataHandler {
 
 				if (olddev == null) {
 					// FIXME: Skal gi feilmelding her hvis vi ikke oppretter devicer automatisk!
-					// Først oppretter vi device
+					// FÃ¸rst oppretter vi device
 					String[] ins = {
 						"deviceid", "",
 						"serial", dev.getSerial(),

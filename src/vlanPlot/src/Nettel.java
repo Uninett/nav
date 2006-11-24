@@ -90,10 +90,10 @@ class Nettel
 	String descText;
 	boolean popupUpToDate = false;
 
-	int descSizeX, descSizeY; // størrelse på
+	int descSizeX, descSizeY; // stÃ¸rrelse pÃ¥
 
 	Polygon nettel; 	// selve boxen
-	Polygon nettelLast; // last på boxen
+	Polygon nettelLast; // last pÃ¥ boxen
 
 
 	// state-variabler for objektet
@@ -114,7 +114,7 @@ class Nettel
 	int mouseOverLink;
 	NettelAction nc = null;
 
-	int x = 0,y = 25; // koordinater, y settes lik 25 som default så den kommer under knappene på toppen
+	int x = 0,y = 25; // koordinater, y settes lik 25 som default sÃ¥ den kommer under knappene pÃ¥ toppen
 	int lastX = 0, lastY = 0;
 	boolean locationSet = false;
 
@@ -278,7 +278,7 @@ class Nettel
 		} else if (pass == 4) {
 			// kalkuler og tegn alle vlan til andre boxer
 			for (int i = 0; i < linkNettel.size(); i++) {
-				// Hvis ikke linken er synlig er det ingenting å gjøre
+				// Hvis ikke linken er synlig er det ingenting Ã¥ gjÃ¸re
 				if (!((Link)link.elementAt(i)).isVisible()) continue;
 
 				Nettel n = (Nettel)linkNettel.elementAt(i);
@@ -353,7 +353,7 @@ class Nettel
 		}
 		if (pass == 5)
 		{
-			// tegn bokser som bare dukker opp ved å holde musen over noe i en viss tid
+			// tegn bokser som bare dukker opp ved Ã¥ holde musen over noe i en viss tid
 			if (desc != null) desc.drawSelf(g);
 			for (int i = 0; i < link.size(); i++) {
 				Link l = (Link)link.elementAt(i);
@@ -511,7 +511,7 @@ class Nettel
 		}
 	}
 
-	// Vi ønsker kun at en popup skal vises samtidig, så når en ny popup tas evt. gamle bort
+	// Vi Ã¸nsker kun at en popup skal vises samtidig, sÃ¥ nÃ¥r en ny popup tas evt. gamle bort
 	private static Vector popupList = new Vector();
 	private static void addPopup(PopupMessage pm) { popupList.addElement(pm); }
 	private static void hideAllPopups()
@@ -533,7 +533,7 @@ class Nettel
 
 		if (setSelected)
 		{
-			// må finne size på canavas
+			// mÃ¥ finne size pÃ¥ canavas
 			Dimension d = com.getNet().getMinimumSize();
 			int canvasX = d.width;
 			int canvasY = d.height;
@@ -702,7 +702,7 @@ class Nettel
 		if (descText != null) {
 			desc.addMessage(descText);
 		}
-		// Så oppdaterer vi alle linker
+		// SÃ¥ oppdaterer vi alle linker
 		for (int i=0; i < link.size(); i++) {
 			Link l = (Link)link.elementAt(i);
 			com.d("  Calling updatePopup on link", 7);

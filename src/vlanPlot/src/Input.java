@@ -96,7 +96,7 @@ class Input
 
 	public Hashtable getDefaultInput(int grp)
 	{
-		// Ikke i cache, så vi må hente struktur-info fra server
+		// Ikke i cache, sÃ¥ vi mÃ¥ hente struktur-info fra server
 		Vector v = new Vector();
 		if (!Net.setConfig) v.addElement("listConfig");
 
@@ -669,9 +669,9 @@ com.d("put OK", 1);
 	{
 		// && = variabelnavn fra hashtable, ## = bytt ut med gitt verdi, !! = \n
 		int i, tagLen="##".length();
-		int cnt=1; // data starter på andre element (det første er en id)
+		int cnt=1; // data starter pÃ¥ andre element (det fÃ¸rste er en id)
 
-		// Først bytter vi ut alle ##
+		// FÃ¸rst bytter vi ut alle ##
 		while ( (i=text.indexOf("##")) != -1) {
 			if (cnt == data.length) {
 				// Error, flere ## enn elementer i data
@@ -680,10 +680,10 @@ com.d("put OK", 1);
 			text = text.substring(0, i)+data[cnt++]+text.substring(i+tagLen, text.length());
 		}
 
-		// Så sjekker vi for && og evt. bytter ut fra keywords
+		// SÃ¥ sjekker vi for && og evt. bytter ut fra keywords
 		while ( (i=text.indexOf("&&")) != -1) {
-			// Dersom teksten inneholder "!!", ")" eller " " etter && tar vi den som er nærmest,
-			// i motsatt fall slutten på strengen
+			// Dersom teksten inneholder "!!", ")" eller " " etter && tar vi den som er nÃ¦rmest,
+			// i motsatt fall slutten pÃ¥ strengen
 			int end = text.indexOf("!!", i);
 			int end2 = text.indexOf(")", i);
 			int end3 = text.indexOf(" ", i);
@@ -709,7 +709,7 @@ com.d("put OK", 1);
 			//System.out.println("WORD: " + word);
 		}
 
-		// Så setter vi inn linjeskift
+		// SÃ¥ setter vi inn linjeskift
 		while ( (i=text.indexOf("!!")) != -1) text = text.substring(0, i)+"\n"+text.substring(i+tagLen, text.length());
 
 		return text;

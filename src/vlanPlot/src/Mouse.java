@@ -64,7 +64,7 @@ class Mouse implements MouseListener
 		int y = e.getY();
 
 		if (!overNet && button1 && !button2 && y < 100) {
-			// Klikket på ikonet
+			// Klikket pÃ¥ ikonet
 			com.showURL(Net.netLink);
 			return;
 		}
@@ -92,7 +92,7 @@ class Mouse implements MouseListener
 						boolean router = !n.getClickKat().equals("sw");
 
 						if (button1)
-						{ // venstre-klikk på nettel/link
+						{ // venstre-klikk pÃ¥ nettel/link
 							if (n.getIsClickable() )
 							{
 								n.disablePopup();
@@ -107,11 +107,11 @@ class Mouse implements MouseListener
 							}
 						} else
 						if (button2 && n.getIsClickable() && (n.getKat().equals("gw") || n.getKat().equals("gsw") || n.getKat().equals("sw")) )
-						{ // høyre-klikk på nettel/link
+						{ // hÃ¸yre-klikk pÃ¥ nettel/link
 							n.disablePopup();
 
 							if (n.containsNettel(x, y))
-							{ // høyre-klikket på nettel
+							{ // hÃ¸yre-klikket pÃ¥ nettel
 								PopupMenus activeMenu;
 								com.d("  Right-click on nettel: " + n.getName() + " Vlan: " + n.getVlan(), 1 );
 								if (router) {
@@ -129,7 +129,7 @@ class Mouse implements MouseListener
 								activeMenu.show(com.getNet(), x, y);
 
 							} else
-							{ // høyre-klikket på link
+							{ // hÃ¸yre-klikket pÃ¥ link
 								Link l = n.getLink(x, y);
 								PopupMenus activeMenu;
 								if (router)
@@ -159,7 +159,7 @@ class Mouse implements MouseListener
 
 				if (!overNettel && button2) {
 					com.d("  Show vlanMenu", 4);
-					// Høyreklikk, da viser vi vlan-menyen hvis vi er på vlan-vandring
+					// HÃ¸yreklikk, da viser vi vlan-menyen hvis vi er pÃ¥ vlan-vandring
 					if (com.getNet().getVlanVandring()) com.getNet().showVlanPopupMenu(x, y);
 				}
 
