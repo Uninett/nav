@@ -1,16 +1,23 @@
 package no.ntnu.nav.getDeviceData.dataplugins.Gwport;
 
-import java.util.*;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.util.*;
-import no.ntnu.nav.netboxinfo.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.Database.Database;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataHandler;
 import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleHandler;
+import no.ntnu.nav.logger.Log;
+import no.ntnu.nav.netboxinfo.NetboxInfo;
+import no.ntnu.nav.util.util;
 
 /**
  * DataHandler plugin for getDeviceData; provides an interface for storing
@@ -160,7 +167,7 @@ public class GwportHandler implements DataHandler {
 					}
 
 					// Fetch old gwp from database
-					ResultSet rs = Database.query("SELECT gwportid,ifindex,interface,masterindex,speed,metric AS ospf,gwip,hsrp,prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlanid,vlan,nettype,orgid,usageid,netident,description FROM gwport LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE moduleid='"+moduleid+"'", true);
+					ResultSet rs = Database.query("SELECT gwportid,ifindex,interface,masterindex,speed,metric AS ospf,portname,gwip,hsrp,prefixid,netaddr AS cidr,host(netaddr) AS netaddr,masklen(netaddr) AS masklen,vlanid,vlanid,vlan,nettype,orgid,usageid,netident,description FROM gwport LEFT JOIN gwportprefix USING(gwportid) LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) WHERE moduleid='"+moduleid+"'", true);
 					while (rs.next()) {
 						// Create vlan
 						Vlan vlan = (Vlan)vlanMap.get(rs.getString("vlanid"));
@@ -180,6 +187,7 @@ public class GwportHandler implements DataHandler {
 						gwp.setMasterindex(rs.getInt("masterindex"));
 						gwp.setSpeed(rs.getDouble("speed"));
 						if (rs.getString("ospf") != null) gwp.setOspf(rs.getInt("ospf"));
+						gwp.setPortname(rs.getString("portname"));
 						gwportMap.put(rs.getString("ifindex"), gwp);
 						
 						if (rs.getString("gwip") != null) {
@@ -251,7 +259,8 @@ public class GwportHandler implements DataHandler {
 								"masterindex", masterindex,
 								"interface", Database.addSlashes(gwp.getInterf()),
 								"speed", gwp.getSpeedS(),
-								"metric", gwp.getOspfS()
+								"metric", gwp.getOspfS(),
+								"portname", gwp.getPortname()
 							};
 							gwportid = Database.insert("gwport", ins, null);
 							newcnt++;
@@ -259,7 +268,7 @@ public class GwportHandler implements DataHandler {
 						} else {
 							gwportid = oldgwp.getGwportidS();
 							if (!gwp.equalsGwport(oldgwp)) {
-								// Vi må oppdatere
+								// We must update
 								Log.d("UPDATE_GWPORT", "Update gwportid: "+gwportid+" ifindex="+gwp.getIfindex());
 
 								String masterindex = null;
@@ -271,7 +280,8 @@ public class GwportHandler implements DataHandler {
 									"masterindex", masterindex,
 									"interface", Database.addSlashes(gwp.getInterf()),
 									"speed", gwp.getSpeedS(),
-									"metric", gwp.getOspfS()
+									"metric", gwp.getOspfS(),
+									"portname", gwp.getPortname()
 								};
 								String[] where = {
 									"gwportid", gwportid

@@ -403,8 +403,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				int convention = Vlan.CONVENTION_NTNU;
 
 				// Parse the description (ifAlias)
+				String descr = null;
 				if (ifAliasMap != null) {
-					String descr = (String)ifAliasMap.get(ifindex);
+					descr = (String)ifAliasMap.get(ifindex);
 					try {
 						s = descr.split(",");
 						for (int i=0; i < s.length; i++) if (s[i] != null) s[i] = s[i].trim();
@@ -483,6 +484,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				// We can now ignore this ifindex as an swport
 				sc.ignoreSwport(ifindex);
 
+				// Set port name (ifAlias)
+				gwp.setPortname(descr);
+				
 				// Set OSPF
 				if (ospfMap.containsKey(ifindex)) {
 					String ospf = (String)ospfMap.get(ifindex);

@@ -37,6 +37,7 @@ public class Gwport implements Comparable
 	private String masterinterf;
 	private Double speed;
 	private Integer ospf;
+	private String portname;
 
 	private Map gwportprefixMap = new HashMap();
 
@@ -154,6 +155,7 @@ public class Gwport implements Comparable
 						(masterindex == null || masterindex.equals(gw.masterindex)) &&
 						(masterinterf == null || masterinterf.equals(masterinterf)) &&
 						(speed == null || speed.equals(gw.speed)) &&
+						(portname == null || portname.equals(gw.portname)) &&
 						(ospf == null || ospf.equals(gw.ospf)));
 	}
 
@@ -174,6 +176,22 @@ public class Gwport implements Comparable
 	private String string(Object o) {
 		if (o == null) return null;
 		return String.valueOf(o);
+	}
+
+	public String getPortname() {
+		return portname;
+	}
+
+	/**
+	 * Set the portname of this gwport. Usually corresponds with the ifAlias value.
+	 * @param s A string to use as portname.
+	 */
+	public void setPortname(String s) {
+		if (s != null && s.trim().length() > 0) {
+			portname = s.trim();
+		} else {
+			portname = null;
+		}
 	}
 
 }
