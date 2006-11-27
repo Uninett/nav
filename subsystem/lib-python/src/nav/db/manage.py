@@ -50,8 +50,6 @@ def _customizeTables():
     del Swp_netbox._sqlFields['to_netboxid']
     del Swport._sqlFields['to_netboxid']
     del Swport._sqlFields['to_swportid']
-    # this is not a reference to the Type-table =)
-    del Emotd._userClasses['type']
 
     # some nice descriptive fields
     Netbox._shortView = ('sysname',)
@@ -69,7 +67,6 @@ def _customizeTables():
     Alerthistvar._sqlPrimary = ('alerthist', 'var', 'val','state')
     Module._sqlPrimary = ('moduleid',)
     Swportallowedvlan._sqlPrimary = ('swport', 'hexstring')
-    Emotd_related._sqlPrimary = ('emotd', 'key', 'value')
     Netboxinfo._sqlPrimary = ('key', 'var', 'val')
     Gwportprefix._sqlPrimary = ('gwip',)
     Serviceproperty._sqlPrimary = ('service', 'property')

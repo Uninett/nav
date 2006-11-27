@@ -126,6 +126,9 @@ CREATE OR REPLACE VIEW maint AS
 -- the view maintenance_view from the database. These are no longer in use
 -- after the replacement of the old messages/emotd subsystem.
 
+
+ALTER TABLE gwport ADD COLUMN portname VARCHAR;
+
 --------------------
 --- Data changes ---
 --------------------

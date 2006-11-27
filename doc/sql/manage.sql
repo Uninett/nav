@@ -321,6 +321,7 @@ CREATE TABLE gwport (
   interface VARCHAR,
   speed DOUBLE PRECISION NOT NULL,
   metric INT4,
+  portname VARCHAR,
   to_netboxid INT4 REFERENCES netbox (netboxid) ON UPDATE CASCADE ON DELETE SET NULL,
   to_swportid INT4 REFERENCES swport (swportid) ON UPDATE CASCADE ON DELETE SET NULL,
   UNIQUE(moduleid, ifindex)
