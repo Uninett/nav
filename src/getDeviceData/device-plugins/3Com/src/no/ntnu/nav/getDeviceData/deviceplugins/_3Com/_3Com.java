@@ -353,6 +353,7 @@ public class _3Com implements DeviceHandler
 			for (Iterator it = l.iterator(); it.hasNext();) {
 				String[] s = (String[])it.next();
 				sc.swModuleFactory(Integer.parseInt(s[0])).setHwVer(s[1]);
+				Log.d("PROCESS_3COM", "Set HwVer for module " + s[0] + " to " + s[1]);
 			}
 		}
 
