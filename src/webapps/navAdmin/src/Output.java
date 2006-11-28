@@ -141,7 +141,6 @@ public class Output
 		catch (java.io.IOException e)
 		{
 			// Config-fil mangler, bruker kun default-verdier. Skriver likevel en advarsel.
-			//System.out.println("Konfigurasjonsfil 'Bowling.conf' mangler. Bruker standard-konfigurasjon.");
 			error("Error1: " + e.getMessage());
 		}
 
@@ -268,7 +267,6 @@ public class Output
 			catch (java.io.IOException e)
 			{
 				// Config-fil mangler, bruker kun default-verdier. Skriver likevel en advarsel.
-				//System.out.println("Konfigurasjonsfil 'Bowling.conf' mangler. Bruker standard-konfigurasjon.");
 				error("Error1: " + e.getMessage());
 			}
 

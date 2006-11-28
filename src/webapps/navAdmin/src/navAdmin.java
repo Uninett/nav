@@ -38,10 +38,6 @@ public class navAdmin extends HttpServlet
 			cp = new ConfigParser(Path.sysconfdir + File.separatorChar + configFile);
 		} catch (IOException e) {
 			cp = null;
-			/*
-			out.println("Error, could not read config file: " + navRoot + configFile);
-			return;
-			*/
 		}
 		try {
 			dbCp = new ConfigParser(Path.sysconfdir + File.separatorChar + dbConfigFile);
@@ -62,20 +58,6 @@ public class navAdmin extends HttpServlet
 		com.setConf(cp);
 		com.setNavConf(navCp);
 
-		/*
-		out.println("gfx, " + getServletContext().getResourceAsStream("gfx/dumhub.gif"));
-		InputStream is = getServletContext().getResourceAsStream("WEB-INF/html/cpdata.bat");
-		if (is != null) {
-			BufferedReader bf = new BufferedReader(new InputStreamReader(is));
-			//out.println("cpdata.bat ->" + is.available() );
-			//int i=is.available();
-			//while (i-- > 0) { int c = is.read(); out.println("char: " + (char)c + " int: " + c); i++; }
-			while (bf.ready()) out.print((char)bf.read());
-			//out.println("cpdata.bat ->Done");
-		}
-		*/
-		//out.println("getContextPath(), " + req.getContextPath() );
-		//out.println("getServletPath(), " + req.getServletPath() );
 
 		HttpSession session = req.getSession(true);
 
@@ -85,8 +67,6 @@ public class navAdmin extends HttpServlet
 		com.setSes(session);
 		com.setOut(out);
 
-		//com.outl("Found auth: " + req.getAuthType() );
-		//com.outl("Found user: " + req.getRemoteUser() );
 
 		User u = new User(req, res, com);
 		u.begin();

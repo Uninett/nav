@@ -6,7 +6,6 @@ class HandlerLink
 		com = Icom;
 		tempNr = InTempNr;
 		num = InNum;
-		//PATH = com.getConf().get("ServletPath");
 		PATH = com.getReq().getContextPath() + com.getReq().getServletPath();
 	//}
 
@@ -21,23 +20,9 @@ class HandlerLink
 		if (s.length >= 2)
 		{
 			// identify sub-levels
-			if (s[1].equals("admin"))
-			{
-				if (linkAdmin()) return;
-
-			}
-
 
 			// handle functions on this level
 			// (admin)
-			if (s[1].equals("mailpw"))
-			{
-				linkMailPw();
-			} else
-			if (s[1].equals("param"))
-			{
-				//adminParam();
-			} else
 			{
 				// default link
 				com.out(PATH);
@@ -59,63 +44,6 @@ class HandlerLink
 		}
 		//return false;
 	}
-
-	/************************************************************
-	* Level 2 handler											*
-	* link.admin.*												*
-	************************************************************/
-
-	private boolean linkAdmin()
-	{
-		if (s.length >= 3)
-		{
-			// identify sub-levels
-
-
-			// handle functions on this level
-			if (s[2].equals("get_all"))
-			{
-				linkAdminGetAll();
-				return true;
-			}
-
-		}
-		return false;
-	}
-
-	/************************************************************
-	* Level 1 functions											*
-	* link.*													*
-	************************************************************/
-
-	private void linkMailPw()
-	{
-		String login = com.getReq().getParameter("login");
-
-		if (login != null)
-		{
-			com.out(PATH + "?");
-			com.out("mailpw=" + login);
-		}
-
-	}
-
-
-	/************************************************************
-	* Level 2 functions											*
-	* link.admin.*												*
-	************************************************************/
-
-	private void linkAdminGetAll()
-	{
-		com.out(PATH);
-		com.out("/AlleOving" + tempNr + ".zip");
-		com.out("?");
-
-		com.out("section=" + s[1]);
-		com.out("&func=get_all");
-	}
-
 
 	// class vars
 	final String PATH;

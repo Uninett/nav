@@ -23,15 +23,6 @@ public class BoksMpBak
 		calcKey();
 	}
 
-	/*
-	public void setMp(String mp) {
-		StringTokenizer st = new StringTokenizer(mp, ":");
-		if (st.countTokens() != 2) throw new RuntimeException("Error in BoksMpBak.setMp: Malformed mp: " + mp);
-		modulbak = st.nextToken();
-		portbak = st.nextToken();
-		calcKey();
-	}
-	*/
 	public void setToIfindex(String toIfindex) {
 		this.toIfindex = toIfindex;
 		calcKey();
