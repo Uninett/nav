@@ -22,10 +22,7 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import java.io.*;
-import java.util.*;
-import java.text.*;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletRequest;
 
 
 public class Input

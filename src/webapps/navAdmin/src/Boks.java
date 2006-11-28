@@ -22,11 +22,13 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import java.io.*;
-import java.util.*;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 class Boks
 {
@@ -401,14 +403,6 @@ class Boks
 			System.out.println(s);
 		} else {
 			com.outl(s);
-		}
-	}
-	private void out(String s)
-	{
-		if (com == null) {
-			System.out.print(s);
-		} else {
-			com.out(s);
 		}
 	}
 

@@ -22,13 +22,18 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import no.ntnu.nav.ConfigParser.*;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.Vector;
 
-import java.io.*;
-import java.util.*;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
 
 public class Com
 {

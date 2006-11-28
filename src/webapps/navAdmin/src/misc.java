@@ -22,7 +22,7 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
+import java.util.StringTokenizer;
 
 
 class misc

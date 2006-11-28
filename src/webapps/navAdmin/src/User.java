@@ -23,10 +23,10 @@
  */
 
 
-import java.io.*;
-import java.util.*;
+import java.util.Vector;
 
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class User
 {

@@ -22,14 +22,8 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import java.io.*;
-import java.util.*;
-
-import java.net.*;
-import java.io.*;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 
 public class Handler
 {
@@ -48,17 +42,17 @@ public class Handler
 		return null;
 	}
 
-	public String handle(String h) throws PError
+	public String handle(String h)
 	{
 		return handle(h, 0, 0);
 	}
 
-	public void handle(String h, int num) throws PError
+	public void handle(String h, int num)
 	{
 		handle(h, num, 0);
 	}
 
-	public String handle(String h, int num, int tempNr) throws PError
+	public String handle(String h, int num, int tempNr)
 	{
 		String[] s = misc.tokenize(h, ".");
 

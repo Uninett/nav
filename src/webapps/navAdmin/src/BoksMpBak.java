@@ -22,7 +22,6 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import java.util.*;
 
 public class BoksMpBak
 {

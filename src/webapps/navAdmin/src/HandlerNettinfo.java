@@ -22,12 +22,24 @@
  * Author: Kristian Eide <kreide@gmail.com>
  */
 
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.util.util;
+import java.io.PrintStream;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
-import java.io.*;
-import java.util.*;
-import java.sql.*;
+import no.ntnu.nav.Database.Database;
+import no.ntnu.nav.util.util;
 
 class HandlerNettinfo
 {
@@ -42,7 +54,7 @@ class HandlerNettinfo
 		gfxRoot = com.getReq().getContextPath() + "/gfx";
 	}
 
-	public String begin() throws PError
+	public String begin()
 	{
 		/************************************************************
 		* Level 1 handler											*
@@ -105,71 +117,6 @@ class HandlerNettinfo
 	* user.*													*
 	************************************************************/
 
-	private void ifRapporter()
-	{
-		String user = com.getUser().getLogin();
-		if (user == null || !user.equals("kristian")) {
-			if (s.length >= 3) com.outl("-->");
-			else com.outl("<!--");
-		}
-	}
-
-	private void fixPrefiks() throws SQLException
-	{
-		com.outl("Fixing prefiks...<br>");
-		ResultSet rs = Database.query("SELECT prefiksid,nettadr FROM prefiks");
-		HashMap prefiks = new HashMap();
-		while (rs.next()) prefiks.put(rs.getString("nettadr"), rs.getString("prefiksid"));
-
-		rs = Database.query("SELECT boksid,ip,prefiksid FROM boks ORDER BY boksid");
-
-		String[] masker = {
-			"255.255.255.255","255.255.255.254","255.255.255.252","255.255.255.248","255.255.255.240","255.255.255.224",
-			"255.255.255.192","255.255.255.128","255.255.255.0","255.255.254.0","255.255.252.0"
-		};
-
-		while (rs.next()) {
-			String prefiksid = rs.getString("prefiksid");
-			if (prefiksid != null && prefiksid.length()>0) continue;
-
-
-			String boksid = rs.getString("boksid");
-			String ip = rs.getString("ip");
-
-			for (int i=0;i<masker.length;i++) {
-				String netadr = and_ip(ip, masker[i]);
-
-				if (prefiks.containsKey(netadr)) {
-					prefiksid = (String)prefiks.get(netadr);
-					String sql = "UPDATE boks SET prefiksid = '"+prefiksid+"' WHERE boksid = '"+boksid+"'";
-
-					String[] feltVerdi = {
-						"prefiksid", prefiksid
-					};
-					String[] feltNavnVerdi = {
-						"boksid", boksid
-					};
-					Database.update("boks", feltVerdi, feltNavnVerdi);
-					Database.commit();
-					com.outl("SQL: " + sql + "<br>");
-					break;
-				}
-			}
-
-		}
-	}
-
-	private String and_ip(String ip, String maske)
-	{
-		StringTokenizer a = new StringTokenizer(ip, ".");
-		StringTokenizer b = new StringTokenizer(maske, ".");
-		String and_ip = "";
-
-		while (a.hasMoreTokens()) {
-			and_ip += "."+(Integer.parseInt(a.nextToken())&Integer.parseInt(b.nextToken()));
-		}
-		return and_ip.substring(1, and_ip.length());
-	}
 
 	HashMap sysnameMap = null;
 	private synchronized HashMap[] getPortMap() throws SQLException {
@@ -433,8 +380,6 @@ class HandlerNettinfo
 			String s = com.get("ni.visTopologi.searchblocked");
 			if (s != null && s.equals("checked")) searchblocked = true;
 		}
-
-		//com.outl("<div id=\"t1\" class=\"tip\">This is a Javascript Tooltip</div>");
 
 		String name = "<b>Network&nbsp;</b>";
 		String imgRoot = "<img border=0 src=\"" + gfxRoot + "/";
@@ -762,7 +707,6 @@ class HandlerNettinfo
 			break;
 		}
 
-		String katItalic = "<i>" + kat + ": </i>";
 		com.outl("  <tr>");
 
 		printDepth(depth, strekVertical, searchHit);
@@ -869,20 +813,6 @@ class HandlerNettinfo
 	}
 
 
-	/* [/ni.searchSwport]
-	 * Søker etter nettel-enheter og viser dem via listSwport
-	 */
-	private void searchSwport()
-	{
-
-
-
-
-	}
-
-
-
-
 	private static HashMap getHashFromResultSet(ResultSet rs, ResultSetMetaData md, boolean convertNull) throws SQLException {
 		HashMap hm = new HashMap();
 		for (int i=md.getColumnCount(); i > 0; i--) {
@@ -979,18 +909,6 @@ class HandlerNettinfo
 				html = "html/ni/checkError.html";
 
 			} else
-			if (subSect.equals("searchSwport"))
-			{
-				try
-				{
-					com.getHandler().handle("ni.searchSwport");
-				} catch (PError e)
-				{
-
-				}
-
-				html = "html/ni/listSwport.html";
-			} else
 			if (subSect.equals("findMissingLinks"))
 			{
 				html = "html/ni/findMissingLinks.html";
@@ -1018,13 +936,7 @@ class HandlerNettinfo
 
 	private void link(String s)
 	{
-		try
-		{
-			com.getHandler().handle(s);
-		} catch (PError e)
-		{
-			com.outl("Error: " + e.getMessage() );
-		}
+		com.getHandler().handle(s);
 	}
 
 

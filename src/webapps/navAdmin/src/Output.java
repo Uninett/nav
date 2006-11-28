@@ -23,11 +23,14 @@
  */
 
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Stack;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletContext;
 
 public class Output
 {
@@ -214,12 +217,7 @@ public class Output
 
 				} else
 				{
-					try
-					{
-						h.handle(s.toString(), num, tempNr);
-					}
-					catch (PError p)
-					{ }
+					h.handle(s.toString(), num, tempNr);
 				}
 			}
 
