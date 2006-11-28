@@ -30,7 +30,7 @@
      set to the current working directory.
 -->
 
-<project name="navAdmin" default="compile" basedir=".">
+<project name="navAdmin" default="dist" basedir=".">
 
 
 
