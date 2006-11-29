@@ -14,29 +14,42 @@ if test -z "$JAVA_HOME"; then
     JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
 fi
 
+if test -z "$JAVA_HOME"; then
+    JAVA=`which java`
+else
+    JAVA="$JAVA_HOME/bin/java"
+fi
+
+if ! test -x "$JAVA"; then
+    echo "Could not find a suitable Java environment." >&2
+    echo "Maybe you should set the JAVA_HOME variable?" >&2
+    exit 1
+fi
+
 CUR_DIR=${javalibdir}/getDeviceData
 LOG_DIR="${localstatedir}/log/getDeviceData"
 PIDFILE=${localstatedir}/run/getDeviceData.pid
 OUTLOG=${LOG_DIR}/getDeviceData-stdout.log
 ERRLOG=${LOG_DIR}/getDeviceData-stderr.log
+JVM_OPTS="-Xincgc -Xmx536870912 -Djava.ext.dirs=${javalibdir}"
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
     if (ps -p "${pidnum}" >/dev/null); then
-	echo "getDeviceData already running!"
+	echo "getDeviceData already running!" >&2
 	exit 1
     fi
 fi
 
 # If error log exists and has content, we rename it before creating a
 # new one
-if [ -s ${ERRLOG} ]; then
+if test -s "${ERRLOG}"; then
     newname="${ERRLOG}.`date +'%Y-%m-%d-%H%M'`.log"
     mv ${ERRLOG} ${newname}
 fi
 
 cd $CUR_DIR
 # Run script
-$JAVA_HOME/bin/java -Xincgc -Xmx536870912 -cp "getDeviceData.jar:$CLASSPATH" getDeviceData $1 >> ${OUTLOG} 2> ${ERRLOG} &
+$JAVA $JVM_OPTS -jar getDeviceData.jar $* >> ${OUTLOG} 2> ${ERRLOG} < /dev/null & 
 pidno="$!"
 echo $pidno > $PIDFILE

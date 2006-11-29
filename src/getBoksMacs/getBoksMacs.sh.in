@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Relativt komplisert script på grunn av at java-prosessen kan henge seg opp,
-# og da må den drepes - men kun hvis den har gjort seg ferdig, som indikert
-# med job-finished filen.
+# This script is relatively complicated.  The getBoksMacs process sometimes
+# hangs, and instead of fixing the bug that causes this problem, an elaborate
+# hack to kill the process has been written instead.  getBoksMacs indicates
+# that its work is done by creating the $JOB_FINISHED file.
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -13,18 +14,31 @@ javalibdir=@javalibdir@
 
 NAV_CONF="${sysconfdir}/nav.conf"
 
-if [ "$JAVA_HOME" == "" ]; then
-	JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+if test -z "$JAVA_HOME"; then 
+    JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+fi
+
+if test -z "$JAVA_HOME"; then
+    JAVA=`which java`
+else
+    JAVA="$JAVA_HOME/bin/java"
+fi
+
+if ! test -x "$JAVA"; then
+    echo "Could not find a suitable Java environment." >&2
+    echo "Maybe you should set the JAVA_HOME variable?" >&2
+    exit 1
 fi
 
 CUR_DIR=${javalibdir}/getBoksMacs
 LOG_DIR="${localstatedir}/log"
 PIDFILE=${localstatedir}/run/getBoksMacs.pid
 JOB_FINISHED=${localstatedir}/run/boksmacs-finished.flag
+JVM_OPTS="-Xmx268435456 -Djava.ext.dirs=${javalibdir}"
 
 
 getpid() {
-    if [ -f $PIDFILE ]; then
+    if test -f "$PIDFILE"; then
 	local pidnum=`cat $PIDFILE`
 	if (ps -p "${pidnum}" >/dev/null); then
 	    echo $pidnum
@@ -32,30 +46,30 @@ getpid() {
     fi
 }
 
-if [ -z `getpid` ] || [ -f $JOB_FINISHED ]; then
+if test -z `getpid` || test -f "$JOB_FINISHED"; then
     cd $CUR_DIR
-    if [ -f $JOB_FINISHED ]; then
+    if test -f "$JOB_FINISHED"; then
         # Must kill old script
 	kill -9 $pidnum
-	rm -f $JOB_FINISHED
+	rm -f "$JOB_FINISHED"
 	sleep 2
     fi
 
     # Check again that getBoksMacs is not already running
-    if [ -z `getpid` ]; then
-        # Now run script
-	$JAVA_HOME/bin/java -Xmx268435456 -cp "getBoksMacs.jar:$CLASSPATH" getBoksMacs $1 >> "$LOG_DIR/getBoksMacs.log" &
+    if test -z `getpid`; then
+        # Now run the camlogger
+	$JAVA $JVM_OPTS -jar getBoksMacs.jar $1 >> "$LOG_DIR/getBoksMacs.log" &
 	pidno="$!"
 	echo $pidno >$PIDFILE
 	wait $pidno
-	if [ -f $JOB_FINISHED ]; then
-	    rm -f $JOB_FINISHED
+	if test -f "$JOB_FINISHED"; then
+	    rm -f "$JOB_FINISHED"
 	fi
 	rm $PIDFILE
     else
-	echo "ERROR, kill -9 of previous getBoksMacs failed!"
+	echo "ERROR, kill -9 of previous getBoksMacs failed!" >&2
+	exit 1
     fi
 else
-    # echo "getBoksMacsMulti already running (and not finished)"
-    echo -n ""
+    echo "Previous instance of getBoksMacs is still not finished" >&2
 fi
