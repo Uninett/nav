@@ -82,8 +82,8 @@ class NAVDBQueue(object):
                                     minage)
                 return 0
             except Exception, error:
-                self.logger.error("Unknown exception caught in cancel(). " +
-                                  "Exiting.")
+                self.logger.exception("Unknown exception caught in " +
+                                      "cancel(). Exiting.")
                 sys.exit(1)
 
         # Ignore messages
