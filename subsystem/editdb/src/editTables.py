@@ -23,10 +23,10 @@
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
 #
 
+from nav.db import manage
+import forgetSQL
 
-from nav.db.manage import *
-
-class editdbLocation(Location):
+class editdbLocation(manage.Location):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='locationid'):
@@ -35,7 +35,7 @@ class editdbLocation(Location):
         return options       
     getOptions = classmethod(getOptions)
 
-class editdbOrg(Org):
+class editdbOrg(manage.Org):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='orgid'):
@@ -44,7 +44,7 @@ class editdbOrg(Org):
         return options       
     getOptions = classmethod(getOptions)
 
-class editdbVendor(Vendor):
+class editdbVendor(manage.Vendor):
     def getOptions(cls):
         options = []
         for entry in cls.getAllIterator(orderBy='vendorid'):
@@ -52,17 +52,9 @@ class editdbVendor(Vendor):
         return options       
     getOptions = classmethod(getOptions)
 
-#class editdbTypegroup(Typegroup):
-#    def getOptions(cls):
-#        options = []
-#        for entry in cls.getAllIterator(orderBy='typegroupid'):
-#            text = entry.typegroupid + ': ' + entry.descr
-#            options.append((entry.typegroupid,text))    
-#        return options       
-#    getOptions = classmethod(getOptions)
 
 
-class editdbNetbox(Netbox):
+class editdbNetbox(manage.Netbox):
     # added catid
     _sqlFields =  {'catid': 'catid',
                    'cat': 'catid',
@@ -84,18 +76,18 @@ class editdbNetbox(Netbox):
                    'up': 'up',
                    'serial': 'device.serial'}
     _sqlLinks =  (('deviceid', 'device.deviceid'),)
-    _userClasses =  {'cat': Cat,
-                    'device': Device,
-                    'org': Org,
-                    'prefix': Prefix,
-                    'room': Room,
-                    'subcat': Subcat,
-                    'type': Type}
+    _userClasses =  {'cat': manage.Cat,
+                    'device': manage.Device,
+                    'org': manage.Org,
+                    'prefix': manage.Prefix,
+                    'room': manage.Room,
+                    'subcat': manage.Subcat,
+                    'type': manage.Type}
     _sqlPrimary =  ('netboxid',)
     _shortView =  ()
                                                         
 
-class editdbProduct(Product):
+class editdbProduct(manage.Product):
     # adds vendorid
     _sqlFields =  {'descr': 'descr',
                   'productid': 'productid',
@@ -103,7 +95,7 @@ class editdbProduct(Product):
                   'vendor': 'vendorid',
                   'vendorid': 'vendorid'}
                                                           
-class editdbType(Type):
+class editdbType(manage.Type):
     # adds typegroupid and vendorid
     _sqlFields =  {'cdp': 'cdp',
                    'descr': 'descr',
@@ -115,7 +107,7 @@ class editdbType(Type):
                    'vendor': 'vendorid',
                    'vendorid': 'vendorid'}
 
-class editdbRoom(Room):
+class editdbRoom(manage.Room):
     _sqlFields =  {'descr': 'descr',
                   'locationid': 'locationid',
                   'location': 'locationid',
@@ -132,7 +124,7 @@ class editdbRoom(Room):
     _sqlTable =  'room'
     _descriptions =  {}
 
-class editdbPrefixVlan(Prefix):
+class editdbPrefixVlan(manage.Prefix):
     _sqlFields =  {'prefixid': 'prefixid',
                    'vlan': 'vlanid', 
                    'netaddr': 'netaddr',
@@ -143,12 +135,12 @@ class editdbPrefixVlan(Prefix):
                    'description': 'vlan.description',
                    'usageid': 'vlan.usageid'}
     _sqlLinks = (('vlanid','vlan.vlanid'),)
-    _userClasses = {'vlan': Vlan}
+    _userClasses = {'vlan': manage.Vlan}
     _shortView = ()
     _sqlTable = 'prefix'
     _descriptions = {}
 
-class editdbVlan(Vlan):
+class editdbVlan(manage.Vlan):
     _sqlFields =  {'description': 'description',
                    'netident': 'netident',
                    'nettype': 'nettype',
@@ -159,13 +151,13 @@ class editdbVlan(Vlan):
                    'vlan': 'vlan',
                    'vlanid': 'vlanid'}
     _sqlLinks =  {}
-    _userClasses =  {'usage': Usage, 'org': Org}
+    _userClasses =  {'usage': manage.Usage, 'org': manage.Org}
     _sqlPrimary =  ('vlanid',)
     _shortView =  ()
     _sqlTable =  'vlan'
     _descriptions =  {}
 
-class editdbSubcat(Subcat):
+class editdbSubcat(manage.Subcat):
     _sqlFields =  {'subcatid': 'subcatid', 'descr': 'descr', 'catid': 'catid'}
     _sqlLinks =  {}
     _userClasses =  {}
@@ -174,7 +166,7 @@ class editdbSubcat(Subcat):
     _sqlTable =  'subcat'
     _descriptions =  {}
                             
-class editdbService(Service):
+class editdbService(manage.Service):
     _sqlFields =  {'active': 'active',
                    'handler': 'handler',
                    'netboxid': 'netboxid',
@@ -183,20 +175,11 @@ class editdbService(Service):
                    'up': 'up',
                    'version': 'version'}
     _sqlLinks =  {}
-    _userClasses =  {'netbox': Netbox}
+    _userClasses =  {'netbox': manage.Netbox}
     _sqlPrimary =  ('serviceid',)
     _shortView =  ()
     _sqlTable =  'service'
     _descriptions =  {}
 
-## class editdbNetboxsnmpoid(Netboxsnmpoid):
-##     _sqlFields =  {'frequency': 'frequency',
-##                    'netbox': 'netboxid',
-##                    'snmpoid': 'snmpoidid'}
-##     _sqlLinks =  {}
-##     _sqlPrimary = ('typeid',)
-##     _userClasses =  {'netbox': 'Netbox', 'snmpoid': 'Snmpoid'}
-##     _shortView =  ()
-##     _sqlTable =  'netboxsnmpoid'
-##     _descriptions =  {}
-                                                 
+
+forgetSQL.prepareClasses(locals())

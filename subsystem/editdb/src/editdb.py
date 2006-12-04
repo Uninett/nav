@@ -27,6 +27,7 @@
 ## Imports
 
 import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
+from nav.db import manage
 
 from mod_python import util,apache
 from editdbSQL import *
@@ -2032,7 +2033,7 @@ class pageNetbox(editdbPage):
             if editId:
                 # Preserve the selected id
                 self.addHidden(selectList.cnameChk,editId)
-                self.sysname = editTables.Netbox(editId).sysname
+                self.sysname = manage.Netbox(editId).sysname
                 self.editId = editId
                 self.path = EDITPATH + [('IP devices','/editdb/netbox/list'),
                                         ('Edit',False)]
@@ -2041,17 +2042,17 @@ class pageNetbox(editdbPage):
                                         ('Add',False)]
      
             o = [(None,'Select an organisation')]
-            for org in editTables.Org.getAllIterator(orderBy='orgid'):
+            for org in manage.Org.getAllIterator(orderBy='orgid'):
                 o.append((org.orgid,org.orgid + ' (' + str(org.descr) + ')'))
 
             r = [(None,'Select a room')]
-            for room in editTables.Room.getAllIterator(orderBy='roomid'):
-                loc = editTables.Location(room.location).descr
+            for room in manage.Room.getAllIterator(orderBy='roomid'):
+                loc = manage.Location(room.location).descr
                 r.append((room.roomid,room.roomid + ' (' + str(loc) + ':' + \
                           str(room.descr) + ')'))
 
             c = [(None,'Select a category')]
-            for cat in editTables.Cat.getAllIterator(orderBy='catid'):
+            for cat in manage.Cat.getAllIterator(orderBy='catid'):
                 c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
 
             # Field definitions {field name: [input object, required]}
@@ -2092,7 +2093,7 @@ class pageNetbox(editdbPage):
             # Set info fields
             self.sysname = sysname
             if typeid:
-                self.typename = editTables.Type(typeid).typename
+                self.typename = manage.Type(typeid).typename
             else:
                 self.typename = 'n/a'
             if snmpversion:
@@ -2151,7 +2152,7 @@ class pageNetbox(editdbPage):
         def __init__(self,catid,editId=None,showHelp=True):
             self.hiddenFields = {}
             subcategories = False
-            if len(editTables.Subcat.getAll(where="catid='" + catid + "'")):
+            if len(manage.Subcat.getAll(where="catid='" + catid + "'")):
                 subcategories = True
 
             self.help = None
@@ -2169,7 +2170,7 @@ class pageNetbox(editdbPage):
                                 'function of this IP device.'
 
             o = []
-            for subcat in editTables.Subcat.getAllIterator(where="catid='" + \
+            for subcat in manage.Subcat.getAllIterator(where="catid='" + \
                                                            catid + "'"):
                 o.append((subcat.subcatid,subcat.subcatid + ' (' + \
                           subcat.descr + ')'))
@@ -2281,14 +2282,14 @@ class pageNetbox(editdbPage):
             # Check if sysname or ip is already present in db
             if not error:
                 where = "ip = '" + ip + "'"
-                box = editTables.Netbox.getAll(where)
+                box = manage.Netbox.getAll(where)
                 if box:
                     box = box[0]
                     error = 'IP already exists in database (' + box.sysname + ')' 
                 else:
                     # If IP isn't duplicate, check sysname
                     where = "sysname = '" + sysname + "'"
-                    box = editTables.Netbox.getAll(where)
+                    box = manage.Netbox.getAll(where)
                     if box:
                         error = 'Sysname ' + sysname + ' (' + box[0].ip + \
                                 ') already exists in database'
@@ -2298,7 +2299,7 @@ class pageNetbox(editdbPage):
                 templateform.add(pageNetbox.editbox(pageNetbox,formData=form))
                 return (status,action,templateform,None)
 
-            if editTables.Cat(form['catid']).req_snmp == True:
+            if manage.Cat(form['catid']).req_snmp == True:
                 # SNMP required by the selected category
                 if len(form['ro']):
                     # RO specified, check SNMP
@@ -2416,13 +2417,13 @@ class pageNetbox(editdbPage):
             if len(serial):
                 # Any devices in the database with this serial?
                 where = "serial = '" + str(serial) + "'"
-                device = editTables.Device.getAll(where)
+                device = manage.Device.getAll(where)
                 if device:
                     # Found a device with this serial
                     deviceId = str(device[0].deviceid)
                     # Must check if there already is a box with this serial
                     where = "deviceid = '" + deviceId + "'"
-                    box = editTables.Netbox.getAll(where)
+                    box = manage.Netbox.getAll(where)
                     if box:
                         # A box with this serial already exists
                         # in the database. Ask for serial again.
@@ -2554,13 +2555,13 @@ class pageNetbox(editdbPage):
             if oldBox.ip != ip and (not error):
                 # If IP differs from the old, check for uniqueness
                 where = "ip = '" + ip + "'"
-                box = editTables.Netbox.getAll(where)
+                box = manage.Netbox.getAll(where)
                 if box:
                     error = 'IP already exists in database'
                 if not error:
                     # If IP isn't duplicate, check if (new) sysname is unique
                     where = "sysname = '" + sysname + "'"
-                    box = editTables.Netbox.getAll(where)
+                    box = manage.Netbox.getAll(where)
                     if box:
                         error = 'Sysname ' + sysname + ' (' + box[0].ip + \
                                 ') already exists in database'
@@ -2571,7 +2572,7 @@ class pageNetbox(editdbPage):
                                                       formData=form))
                 return (status,action,templateform,selected)
 
-            if editTables.Cat(form['catid']).req_snmp == True:
+            if manage.Cat(form['catid']).req_snmp == True:
                 # SNMP required by this category
                 if len(form['ro']):
                     # RO specified, check SNMP
@@ -2745,13 +2746,13 @@ class pageNetbox(editdbPage):
                 if serial != newSerial:
                     # Any other devices in the database with this serial?
                     where = "serial = '" + str(newSerial) + "'"
-                    device = editTables.Device.getAll(where)
+                    device = manage.Device.getAll(where)
                     if device:
                         # Found a device with this serial
                         deviceId = str(device[0].deviceid)
                         # Must check if there already is a box with this serial
                         where = "deviceid = '" + deviceId + "'"
-                        box = editTables.Netbox.getAll(where)
+                        box = manage.Netbox.getAll(where)
                         if box:
                             # A box with this serial already exists
                             # in the database. Ask for serial again.
@@ -2896,11 +2897,11 @@ class pageOrg(editdbPage):
     plural = 'organisations'
 
     # Delete dependencies
-    dependencies = [(editTables.Org,
+    dependencies = [(manage.Org,
                     'organisations',
                     'parent',
                     '/report/org/?parent='),
-                    (editTables.Netbox,
+                    (manage.Netbox,
                     'boxes',
                     'orgid',
                     '/report/netbox/?orgid=')]
@@ -3522,7 +3523,7 @@ class pagePrefix(editdbPage):
                 orgs.append((o.orgid,o.orgid + ' (' + str(o.descr) + ')'))
 
             usageids = [('','No usage')]
-            for usage in editTables.Usage.getAllIterator(orderBy='usageid'):
+            for usage in manage.Usage.getAllIterator(orderBy='usageid'):
                 usageids.append((usage.usageid,usage.usageid + ' (' + \
                                 usage.descr + ')'))
 
@@ -3668,7 +3669,7 @@ class pagePrefix(editdbPage):
 
             prefixfields = {'netaddr': data['netaddr']}
           
-            vlanid = editTables.Prefix(updateid).vlan.vlanid 
+            vlanid = manage.Prefix(updateid).vlan.vlanid 
             updateEntryFields(vlanfields,'vlan','vlanid',str(vlanid))
             updateEntryFields(prefixfields,'prefix','prefixid',updateid)
 
@@ -5864,7 +5865,7 @@ class bulkdefLocation:
     """ Contains defintion of fields for bulk importing locations """
     # number of fields
     tablename = 'location'
-    table = editTables.Location
+    table = manage.Location
     uniqueField = 'locationid'
     enforce_max_fields = True
     max_num_fields = 2
@@ -5891,7 +5892,7 @@ class bulkdefRoom:
     """ Contains defintion of fields for bulk importing rooms """
     # number of fields
     tablename = 'room'
-    table = editTables.Room
+    table = manage.Room
     uniqueField = 'roomid'
     enforce_max_fields = True
     max_num_fields = 7
@@ -5920,7 +5921,7 @@ class bulkdefRoom:
             if data:
                 if len(data):
                     try:
-                        editTables.Location(data).load()
+                        manage.Location(data).load()
                     except forgetSQL.NotFound:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Location '" + data + "' not found in database"
@@ -5930,7 +5931,7 @@ class bulkdefRoom:
 class bulkdefOrg:
     """ Contains field definitions for bulk importing orgs. """
     tablename = 'org'
-    table = editTables.Org
+    table = manage.Org
     uniqueField = 'orgid'
     enforce_max_fields = True
     max_num_fields = 6
@@ -5956,7 +5957,7 @@ class bulkdefOrg:
         remark = None
         if field == 'parent' and len(data):
              try:
-                editTables.Org(data).load()
+                manage.Org(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Parent '" + data + "' not found in database"  
@@ -5967,7 +5968,7 @@ class bulkdefUsage:
     """ Contains field definitions for bulk importing usage. """
     # number of fields
     tablename = 'usage'
-    table = editTables.Usage
+    table = manage.Usage
     uniqueField = 'usageid'
     enforce_max_fields = True
     max_num_fields = 2
@@ -5994,7 +5995,7 @@ class bulkdefVendor:
     """ Contains field information for bulk importing vendors. """
     # number of fields
     tablename = 'vendor'
-    table = editTables.Vendor
+    table = manage.Vendor
     uniqueField = 'vendorid'
     enforce_max_fields = True
     max_num_fields = 1
@@ -6019,7 +6020,7 @@ class bulkdefVendor:
 class bulkdefSubcat:
     """ Contains field information for bulk importing subcats. """
     tablename = 'subcat'
-    table = editTables.Subcat
+    table = manage.Subcat
     uniqueField = 'subcatid'
     enforce_max_fields = True
     max_num_fields = 3
@@ -6043,7 +6044,7 @@ class bulkdefSubcat:
 
         if field == 'catid':
              try:
-                editTables.Cat(data).load()
+                manage.Cat(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Category '" + data + "' not found in database"  
@@ -6056,7 +6057,7 @@ class bulkdefType:
     """ Contains field defintions for bulk importing types. """
     # number of fields
     tablename = 'type'
-    table = editTables.Type
+    table = manage.Type
     uniqueField = 'typename'
     enforce_max_fields = True
     max_num_fields = 7
@@ -6085,7 +6086,7 @@ class bulkdefType:
 
         if field == 'vendorid':
             try:
-                editTables.Vendor(data).load()
+                manage.Vendor(data).load()
             except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Vendor '" + data + "' not found in database"  
@@ -6115,7 +6116,7 @@ class bulkdefProduct:
     """ Contains field definitions for bulk importing products. """
     # number of fields
     tablename = 'product'
-    table = editTables.Product
+    table = manage.Product
     uniqueField = 'productno'
     enforce_max_fields = True
     max_num_fields = 3
@@ -6139,7 +6140,7 @@ class bulkdefProduct:
 
         if field == 'vendorid':
              try:
-                editTables.Vendor(data).load()
+                manage.Vendor(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Vendor '" + data + "' not found in database"  
@@ -6159,7 +6160,7 @@ class bulkdefProduct:
 class bulkdefNetbox:
     """ Contains field definitions for bulk importing boxes. """
     tablename = 'netbox'
-    table = editTables.Netbox
+    table = manage.Netbox
     uniqueField = 'ip'
     # number of fields
     enforce_max_fields = False
@@ -6195,7 +6196,7 @@ class bulkdefNetbox:
                 if len(data['serial']):
                    hasSerial = True
 
-            if (not hasRO) and editTables.Cat(data['catid']).req_snmp:
+            if (not hasRO) and manage.Cat(data['catid']).req_snmp:
                 status = BULK_STATUS_YELLOW_ERROR
                 raise("This category requires an RO community")
 
@@ -6216,14 +6217,14 @@ class bulkdefNetbox:
 #                        status = BULK_STATUS_YELLOW_ERROR
 #                        error = "No serial returned by SNMP, and no serial given."
                     if (not box.typeid):
-                        if editTables.Cat(data['catid']).req_snmp:
+                        if manage.Cat(data['catid']).req_snmp:
                             status = BULK_STATUS_YELLOW_ERROR
                             error = "Got SNMP response, but couldn't get type which is required for IP devices of this category. Add type manually."
                         else:
                             status = BULK_STATUS_OK
                             error = "Got SNMP response, but couldn't get type (type isn't required for this category)."
                 except nav.Snmp.TimeOutException:
-                    if editTables.Cat(data['catid']).req_snmp:
+                    if manage.Cat(data['catid']).req_snmp:
                         # Snmp failed, but is required by this CAT
                         status = BULK_STATUS_YELLOW_ERROR
                         raise("RO given, but failed to contact IP device by SNMP (IP devices of this category are required to answer).")
@@ -6260,32 +6261,32 @@ class bulkdefNetbox:
                 remark = "DNS lookup failed, using '" + data + "' as sysname"
         if field == 'roomid':
              try:
-                editTables.Room(data).load()
+                manage.Room(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Room '" + data + "' not found in database"  
         if field == 'orgid':
              try:
-                editTables.Org(data).load()
+                manage.Org(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Organisation '" + data + "' not found in database"
         if field == 'catid':
              try:
-                editTables.Cat(data).load()
+                manage.Cat(data).load()
              except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid category '" + data + "'"
         if field == 'serial':
             if len(data):
                 where = "serial='%s'" % (data,)
-                device = editTables.Device.getAll(where)
+                device = manage.Device.getAll(where)
                 if device:
                     # There exists a device with this serial,
                     # must check if any netbox is connected with this
                     # device
                     where = "deviceid='%s'" % (device[0].deviceid,)
-                    netbox = editTables.Netbox.getAll(where)
+                    netbox = manage.Netbox.getAll(where)
                     if netbox:
                         status = BULK_STATUS_RED_ERROR
                         remark = "An IP device with the serial '" + data + \
@@ -6295,7 +6296,7 @@ class bulkdefNetbox:
             # Need to check not only if the subcat exists, but
             # also if the cat is correct
             try:
-                editTables.Subcat(data).load()
+                manage.Subcat(data).load()
             except forgetSQL.NotFound:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid subcat '" + data + "'"
@@ -6369,7 +6370,7 @@ class bulkdefNetbox:
 
                 # Must check if a device with this serial is already present
                 where = "serial='%s'" % (fields['serial'])
-                device = editTables.Device.getAll(where)
+                device = manage.Device.getAll(where)
                 if device:
                     # Found device, and it is unique (serial must be unique)
                     deviceid = str(device[0].deviceid)
@@ -6432,7 +6433,7 @@ class bulkdefNetbox:
 class bulkdefService:
     """ Contains field definitions for bulk importing services. """
     tablename = 'service'
-    table = editTables.Service
+    table = manage.Service
     uniqueField = None
     enforce_max_fields = False
     max_num_fields = 2
@@ -6466,7 +6467,7 @@ class bulkdefService:
             except gaierror:
                 raise ("DNS query for '%s' failed." % (data['netboxid'],)) 
             where = "ip='%s'" % (ip,)
-            box = editTables.Netbox.getAll(where)
+            box = manage.Netbox.getAll(where)
             if box:
                 data['netboxid'] = str(box[0].netboxid)
             else:
@@ -6529,7 +6530,7 @@ class bulkdefService:
         try:
             ip = gethostbyname(data['netboxid'])
             where = "ip='%s'" % (ip,)
-            box = editTables.Netbox.getAll(where)
+            box = manage.Netbox.getAll(where)
             if box:
                 data['netboxid'] = str(box[0].netboxid)
             else:
@@ -6571,7 +6572,7 @@ class bulkdefService:
 class bulkdefPrefix:
     """ Contains field definitions for bulk importing prefixes. """
     tablename = 'prefix'
-    table = editTables.Prefix
+    table = manage.Prefix
     uniqueField = 'prefixid'
     enforce_max_fields = True
     max_num_fields = 7
@@ -6604,7 +6605,7 @@ class bulkdefPrefix:
 
                 # Already present?
                 where = "netaddr='%s'" % (data,)
-                prefixes = editTables.Prefix.getAll(where)
+                prefixes = manage.Prefix.getAll(where)
                 if prefixes:
                     status = BULK_STATUS_YELLOW_ERROR
                     remark = "CIDR already present in database."
@@ -6615,7 +6616,7 @@ class bulkdefPrefix:
         if field == 'nettype':
             # Only add nettypes we're allowed to
             where = "nettypeid='%s' and edit='t'" % (data,)
-            result = editTables.Nettype.getAll(where)
+            result = manage.Nettype.getAll(where)
             if not result:
                 status = BULK_STATUS_RED_ERROR
                 remark = "Invalid nettype '" + data + "'"
@@ -6623,7 +6624,7 @@ class bulkdefPrefix:
             if data:
                 if len(data):
                     try:
-                        editTables.Org(data).load()
+                        manage.Org(data).load()
                     except forgetSQL.NotFound:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Organisation '" + data + "' not found in database"
@@ -6631,7 +6632,7 @@ class bulkdefPrefix:
             if data:
                 if len(data):
                     try:
-                        editTables.Usage(data).load()
+                        manage.Usage(data).load()
                     except forgetSQL.NotFound:
                         status = BULK_STATUS_RED_ERROR
                         remark = "Usage '" + data + "' not found in database"
