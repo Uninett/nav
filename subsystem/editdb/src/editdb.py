@@ -735,7 +735,7 @@ class entryList:
             self.sortingOn = True
 
     def fill(self,req):
-        ''' Fill the list with data from the database. '''
+        """ Fill the list with data from the database. """
         
         # No filters if this is a delete list
         if self.deleteWhere:
@@ -868,7 +868,7 @@ class entryList:
                     self.rows.reverse()
 
     def parse(self,parseString,currentRow,url=False):
-        ''' Parses format strings used by the list definitions. '''
+        """ Parses format strings used by the list definitions. """
         result = None
         if type(parseString) is int:
             # parseString refers to integer column
@@ -942,9 +942,9 @@ class entryList:
 
 # Class representing a form, used by the template
 class editForm:
-    ''' Class representing a form element, the main component of every
+    """ Class representing a form element, the main component of every
         edit page. Each form element can have any number of editbox
-        objects added to it. '''
+        objects added to it. """
     
     # For the template
     method = 'post'
@@ -978,11 +978,11 @@ class editForm:
         self.editboxes = []
 
     def add(self,box):
-        ''' Add an editbox object to this form element. '''
+        """ Add an editbox object to this form element. """
         self.editboxes.append(box)
 
 class inputText:
-    ''' Class representing a textinput html control. '''
+    """ Class representing a textinput html control. """
 
     type = 'text'
     name = None
@@ -996,8 +996,8 @@ class inputText:
             self.maxlength = str(maxlength)
 
 class inputTreeSelect:
-    ''' Container class for treeselects. Used to get treeselect in the 
-        same format as all the other inputs used by the template. '''
+    """ Container class for treeselects. Used to get treeselect in the 
+        same format as all the other inputs used by the template. """
 
     type = 'treeselect'
     name = None
@@ -1009,7 +1009,7 @@ class inputTreeSelect:
         self.treeselect = treeselect
 
 class inputSelect:
-    ''' Class representing a select input html control. '''
+    """ Class representing a select input html control. """
 
     type = 'select'
     name = None
@@ -1024,7 +1024,7 @@ class inputSelect:
             self.options = table.getOptions() 
 
 class inputMultipleSelect:
-    ''' Class representing a multiple select input html control. '''
+    """ Class representing a multiple select input html control. """
     type = 'multipleselect'
     name = None
     value = []
@@ -1036,7 +1036,7 @@ class inputMultipleSelect:
             self.options = table.getOptions() 
 
 class inputFile:
-    ''' Class representing a file upload input control. '''
+    """ Class representing a file upload input control. """
 
     type = 'file'
     name = None
@@ -1046,7 +1046,7 @@ class inputFile:
         pass
 
 class inputTextArea:
-    ''' Class representing a textarea input html control. '''
+    """ Class representing a textarea input html control. """
 
     type = 'textarea'
     name = None
@@ -1058,7 +1058,7 @@ class inputTextArea:
         self.disabled = False
 
 class inputCheckbox:
-    ''' Class representing a checkbox input html control. '''
+    """ Class representing a checkbox input html control. """
 
     type = 'checkbox'
     name = None
@@ -1068,7 +1068,7 @@ class inputCheckbox:
         self.disabled = disabled
 
 class inputHidden:
-    ''' Class representing a hidden input html control. '''
+    """ Class representing a hidden input html control. """
     type = 'hidden'
     name = None
     disabled = False
@@ -1078,8 +1078,8 @@ class inputHidden:
 
 
 class inputServiceProperties:
-    ''' Contains a list of inputServiceProperty inputs. 
-        (used by pageService) '''
+    """ Contains a list of inputServiceProperty inputs. 
+        (used by pageService) """
 
     type = 'serviceproperties'
     disabled = False
@@ -1088,8 +1088,8 @@ class inputServiceProperties:
         self.propertyList = propertyList
 
 class inputServiceProperty:
-    ''' Class representing a serviceproperty input box. 
-        (used by pageService) '''
+    """ Class representing a serviceproperty input box. 
+        (used by pageService) """
 
     type = 'serviceproperty'
     disabled = False
@@ -1102,7 +1102,7 @@ class inputServiceProperty:
         self.optargs = optargs
 
 class editbox:
-    ''' Parent class for all the different editboxes which are all added 
+    """ Parent class for all the different editboxes which are all added 
         to an editform object. There are normally one editbox per page, but
         for some pages there are more (there are created three editboxes for
         the netbox page for example, editbox(main),editboxserial and
@@ -1110,7 +1110,7 @@ class editbox:
         
         The editbox contains field defitions used by the template to render
         the forms and functions to fill the form with data from either the
-        database or from a previous http post. '''
+        database or from a previous http post. """
 
     boxName = ADDNEW_ENTRY
     boxId = 0
@@ -1120,7 +1120,7 @@ class editbox:
     #currentBoxNumber = 0
 
     def fill(self):
-        ''' Fill this form with data from the database (entry = editId). '''
+        """ Fill this form with data from the database (entry = editId). """
         entry = self.table(self.editId)
        
         # Set the name of this box to reflect that we are
@@ -1167,7 +1167,7 @@ class editbox:
                     desc[0].value = str(value)
 
     def setControlNames(self,controlList=None):
-        ''' Set controlnames for the inputs to the same as the fieldnames. '''
+        """ Set controlnames for the inputs to the same as the fieldnames. """
         if not controlList:
             controlList = self.fields
 
@@ -1175,8 +1175,8 @@ class editbox:
             desc[0].name = fieldname
 
     def verifyFields(self,req,status):
-        ''' Verify that data entered into fields are of correct type.
-            Eg. integers in FIELD_INTEGER fields. '''
+        """ Verify that data entered into fields are of correct type.
+            Eg. integers in FIELD_INTEGER fields. """
 
         for field,desc in self.fields.items():
             if req.form.has_key(field):
@@ -1206,11 +1206,11 @@ class editbox:
         return status
 
     def hasMissing(self,req):
-        ''' Check if any of the required fields are missing in the req.form
+        """ Check if any of the required fields are missing in the req.form
             Returns the name the first missing field, or False
             
             Note: keep_blank_values (mod_python) must be True or empty fields 
-                  won't be present in the form  '''
+                  won't be present in the form  """
         missing = False
         for field,desc in self.fields.items():
             # Keep blank values must be switched on, or else the next line
@@ -1243,16 +1243,16 @@ class editbox:
         return missing
 
     def addHidden(self,fieldname,value):
-        ''' Add hidden html input control to the editbox. '''
+        """ Add hidden html input control to the editbox. """
         self.hiddenFields[fieldname] = [inputHidden(value),False]
         self.hiddenFields[fieldname][0].name = fieldname
 
     def addDisabled(self):
-        ''' Since fields which are disabled, aren't posted (stupid HTML)
+        """ Since fields which are disabled, aren't posted (stupid HTML)
             we must add them as hidden fields.
            
             This only goes for textinputs (?!) so we must also change
-            controlnames to avoid getting double values for selects, etc. '''
+            controlnames to avoid getting double values for selects, etc. """
 
         for fieldname,definition in self.fields.items():
             if definition[0].disabled and (not definition[0].type=='hidden'):
@@ -1260,11 +1260,11 @@ class editbox:
                 definition[0].name = definition[0].name + '_disabled'
 
     def formFill(self,formData):
-        ''' Fill this editbox with data from the form.
+        """ Fill this editbox with data from the form.
 
             This is used by intermediate steps (like register serial)
             to remember field values and for refilling a form if an error
-            is encountered and the user has to resubmit a form. '''
+            is encountered and the user has to resubmit a form. """
 
         if not hasattr(editbox,'currentBoxNumber'):
             editbox.currentBoxNumber = 0
@@ -1300,7 +1300,7 @@ class editbox:
                 editbox.currentBoxNumber = 0
 
 class editboxHiddenOrMessage(editbox):
-    ''' This editbox can display a message and contain hidden inputs. '''
+    """ This editbox can display a message and contain hidden inputs. """
     page = 'hiddenormessage'
 
     def __init__(self,message=None):
@@ -1313,7 +1313,7 @@ class editboxHiddenOrMessage(editbox):
 
 
 class editdbPage:
-    ''' The main editing class. Every edit page inherits from this class.
+    """ The main editing class. Every edit page inherits from this class.
 
         Contains functions for adding, updating and describing entries.
         Default functions can be overriden by children to do more specific
@@ -1331,11 +1331,11 @@ class editdbPage:
                  |+-- def update
                  |+-- def delete
                  |+-- def describe
-    '''
+    """
 
 
     def add(self,req,outputForm,action):
-        ''' Called when 'Add' is clicked on an edit page.
+        """ Called when 'Add' is clicked on an edit page.
 
             Takes the formdata from the request object and inserts
             an entry in the database.
@@ -1346,7 +1346,7 @@ class editdbPage:
 
             req: request object containing a form
             outputForm: form with editboxes
-                        manipulated directly by eg. editNetbox.add() '''
+                        manipulated directly by eg. editNetbox.add() """
 
         error = None
         status = editdbStatus()
@@ -1424,9 +1424,9 @@ class editdbPage:
 
       
     def update(self,req,outputForm,selected):
-        ''' Updates one or more entries in the database. Takes data
+        """ Updates one or more entries in the database. Takes data
             from form in request object. Overriden by some subclasses 
-            such as pageNetbox. '''
+            such as pageNetbox. """
 
         status = editdbStatus()
         sqllist = []
@@ -1552,7 +1552,7 @@ class editdbPage:
         return (status,action,outputForm,selected)
  
     def describe(self,id):
-        ''' Gives a textual description of a database entry.
+        """ Gives a textual description of a database entry.
             Used when adding, deleting and updating entries to tell the user
             exactly what entries were altered (useful when the id field 
             of the table only contains a numerical key).
@@ -1562,7 +1562,7 @@ class editdbPage:
             passed to the function.
 
             Remember to only use NOT NULL fields when writing descrFormats
-            to avoid malformed descriptions. '''
+            to avoid malformed descriptions. """
  
         description = ''
         
@@ -1635,7 +1635,7 @@ class editdbPage:
 
         
 class pageCabling(editdbPage):
-    ''' Describes editing of the cabling table. '''
+    """ Describes editing of the cabling table. """
     
     basePath = BASEPATH + 'cabling/'
     table = nav.db.manage.Cabling
@@ -1674,7 +1674,7 @@ class pageCabling(editdbPage):
     pathList = EDITPATH + [('Cabling',False)]
 
     class listDef(entryList):
-        ''' Describes the format of the list view of cablings. '''
+        """ Describes the format of the list view of cablings. """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -1722,8 +1722,8 @@ class pageCabling(editdbPage):
                                      (6,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing cabling entries.
-            The template uses this field information to draw the form. '''
+        """ Describes fields for adding and editing cabling entries.
+            The template uses this field information to draw the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -1763,7 +1763,7 @@ class pageCabling(editdbPage):
                 self.formFill(formData)
 
 class pageContainer(editdbPage):
-    ''' Describes editing of containers (vp_netbox_grp_info). '''
+    """ Describes editing of containers (vp_netbox_grp_info). """
     
     basePath = BASEPATH + 'container/'
     table = nav.db.manage.Vp_netbox_grp_info
@@ -1794,7 +1794,7 @@ class pageContainer(editdbPage):
     pathList = EDITPATH + [('Container',False)]
 
     class listDef(entryList):
-        ''' Describes the format of the list view of containers. '''
+        """ Describes the format of the list view of containers. """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -1814,8 +1814,8 @@ class pageContainer(editdbPage):
                                      (1,'{p}edit/{id}',None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing vendor entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing vendor entries.
+            The template uses this field information to display the form. """
     
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -1833,7 +1833,7 @@ class pageContainer(editdbPage):
                 self.formFill(formData)
             
 class pageLocation(editdbPage):
-    ''' Describes editing of the location table. '''
+    """ Describes editing of the location table. """
     
     basePath = BASEPATH + 'location/'
     table = nav.db.manage.Location
@@ -1866,7 +1866,7 @@ class pageLocation(editdbPage):
     pathList = EDITPATH + [('Location',False)]
 
     class listDef(entryList):
-        ''' Describes location list view '''
+        """ Describes location list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -1889,8 +1889,8 @@ class pageLocation(editdbPage):
                                      (2,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing location entries.
-            The template uses this field information to draw the form. '''
+        """ Describes fields for adding and editing location entries.
+            The template uses this field information to draw the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -1923,7 +1923,7 @@ class pageLocation(editdbPage):
 
 
 class pageNetbox(editdbPage):
-    ''' Describes editing of the netbox table '''
+    """ Describes editing of the netbox table """
 
     basePath = BASEPATH + 'netbox/'
     table = nav.db.manage.Netbox
@@ -1950,11 +1950,11 @@ class pageNetbox(editdbPage):
     pathList = EDITPATH + [('IP devices',False)]
 
     class listDef(entryList):
-        ''' Describes the format of the list view of netboxes. '''
+        """ Describes the format of the list view of netboxes. """
 
         def ipCompare(self,ip1,ip2):
-            ''' Function for comparing two ip's. Used for sorting the
-                netbox list. '''
+            """ Function for comparing two ip's. Used for sorting the
+                netbox list. """
 
             # ip1[0] and ip2[0] are the sort parameter
             ip1 = ip1[0].split('.')
@@ -2021,8 +2021,8 @@ class pageNetbox(editdbPage):
 
 
     class editbox(editbox):
-        ''' This is the first editbox on the edit netbox page. It asks
-            for ip,ro,rw,cat,org and room. '''    
+        """ This is the first editbox on the edit netbox page. It asks
+            for ip,ro,rw,cat,org and room. """    
         def __init__(self,page,req=None,editId=None,formData=None,
                      disabled=False):
             self.editId = editId
@@ -2082,8 +2082,8 @@ class pageNetbox(editdbPage):
                 self.addDisabled()
 
     class editboxSerial(editbox):
-        ''' This editbox for inputing serials (or showing a serial if 
-            it was found by snmp). '''
+        """ This editbox for inputing serials (or showing a serial if 
+            it was found by snmp). """
         page = 'netboxserial'
 
         def __init__(self,gotRo,serial='',sysname=None,typeid=None,
@@ -2145,7 +2145,7 @@ class pageNetbox(editdbPage):
             self.boxName = IGNORE_BOX
 
     class editboxCategory(editbox):
-        ''' This editbox is for editing function and subcategories. '''
+        """ This editbox is for editing function and subcategories. """
         page = 'netboxcategory'
 
         def __init__(self,catid,editId=None,showHelp=True):
@@ -2223,7 +2223,7 @@ class pageNetbox(editdbPage):
 
     # Overrides default add function
     def add(self,req,templateform,action):
-        ''' Adds a netbox. Overrides the default add function. '''
+        """ Adds a netbox. Overrides the default add function. """
         ADD_TYPE_URL = BASEPATH + 'type/edit/'
         STEP_1 = 1
         STEP_2 = 2
@@ -2488,7 +2488,7 @@ class pageNetbox(editdbPage):
 
     # Overloads default update function
     def update(self,req,templateform,selected):
-        ''' Updates a netbox, overrides the default update function. '''
+        """ Updates a netbox, overrides the default update function. """
         selected = selected[0]
         ADD_TYPE_URL = BASEPATH + 'type/edit/'
         STEP_1 = 1
@@ -2873,7 +2873,7 @@ class pageNetbox(editdbPage):
         return (status,action,templateform,selected)
 
 class pageOrg(editdbPage):
-    ''' Describes editing of the org table. '''
+    """ Describes editing of the org table. """
     
     basePath = BASEPATH + 'org/'
     table = nav.db.manage.Org
@@ -2911,7 +2911,7 @@ class pageOrg(editdbPage):
     pathList = EDITPATH + [('Organisation',False)]
 
     class listDef(entryList):
-        ''' Describes org list view '''
+        """ Describes org list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -2942,8 +2942,8 @@ class pageOrg(editdbPage):
                                      (6,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing org entries.
-            The template uses this field information to draw the form. '''
+        """ Describes fields for adding and editing org entries.
+            The template uses this field information to draw the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -2975,7 +2975,7 @@ class pageOrg(editdbPage):
 
 
 class pagePatch(editdbPage):
-    ''' Describes editing of the patch table. '''
+    """ Describes editing of the patch table. """
     
     basePath = BASEPATH + 'patch/'
     table = nav.db.manage.Patch
@@ -3020,7 +3020,7 @@ class pagePatch(editdbPage):
     pathList = EDITPATH + [('Patch',False)]
 
     class listDef(entryList):
-        ''' Describes patch list view '''
+        """ Describes patch list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -3076,10 +3076,10 @@ class pagePatch(editdbPage):
                                      (6,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing patch entries.
+        """ Describes fields for adding and editing patch entries.
             The template uses this field information to display the form. 
             This box uses the selectTree classes and updates itself
-            instead of using editdbPage.formFill(). '''
+            instead of using editdbPage.formFill(). """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -3300,7 +3300,7 @@ class pagePatch(editdbPage):
             self.setControlNames()
 
     def add(self,req,templateForm,action):
-            ''' Adds patch entries. Overrides the default add function. '''
+            """ Adds patch entries. Overrides the default add function. """
             error = None
             status = editdbStatus()
 
@@ -3365,7 +3365,7 @@ class pagePatch(editdbPage):
             return (status,action,templateForm,patchId)
 
     def update(self,req,outputForm,selected):
-        ''' Updates patch entries. Overrides the default update function. '''
+        """ Updates patch entries. Overrides the default update function. """
 
         status = editdbStatus()
         error = None
@@ -3432,8 +3432,8 @@ class pagePatch(editdbPage):
  
 
 class pagePrefix(editdbPage):
-    ''' Describes editing of the prefix table for nettypes of 'static'
-        'reserved' or 'scope'. '''
+    """ Describes editing of the prefix table for nettypes of 'static'
+        'reserved' or 'scope'. """
 
     basePath = BASEPATH + 'prefix/'
     table = nav.db.manage.Prefix
@@ -3464,7 +3464,7 @@ class pagePrefix(editdbPage):
     pathList = EDITPATH + [('Prefix',False)]
 
     class listDef(entryList):
-        ''' Describes prefix list view '''
+        """ Describes prefix list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -3503,8 +3503,8 @@ class pagePrefix(editdbPage):
                                      (7,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing patch entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. """
            
         # must get most of the fields from the vlan table
         additionalSQL = ' AND prefix.vlanid=vlan.vlanid'
@@ -3552,7 +3552,7 @@ class pagePrefix(editdbPage):
                 self.formFill(formData)
 
     def add(self,req,templateForm,action):
-        ''' Adds prefix entries. Overrides the default add function. '''
+        """ Adds prefix entries. Overrides the default add function. """
         error = None
         status = editdbStatus()
 
@@ -3577,7 +3577,7 @@ class pagePrefix(editdbPage):
         return (status,action,templateForm,None)
 
     def insertPrefix(self,data):
-        ''' Inserts prefixes into the database. Used by pagePrefix.add() '''
+        """ Inserts prefixes into the database. Used by pagePrefix.add() """
         error = None
 
         # Add new vlan
@@ -3616,7 +3616,7 @@ class pagePrefix(editdbPage):
         return error
 
     def update(self,req,templateform,selected):
-        ''' Updates prefix entries. Overrides the default update function.  '''
+        """ Updates prefix entries. Overrides the default update function.  """
         error = None
         status = editdbStatus()
         formdata = {}
@@ -3683,7 +3683,7 @@ class pagePrefix(editdbPage):
         return (status,action,templateform,selected)
 
 class pageProduct(editdbPage):
-    ''' Describes editing of the product table. '''
+    """ Describes editing of the product table. """
     
     basePath = BASEPATH + 'product/'
     table = nav.db.manage.Product
@@ -3714,7 +3714,7 @@ class pageProduct(editdbPage):
     pathList = EDITPATH + [('Product',False)]
 
     class listDef(entryList):
-        ''' Describes product list view '''
+        """ Describes product list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -3739,8 +3739,8 @@ class pageProduct(editdbPage):
                                      (3,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing product entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing product entries.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -3762,7 +3762,7 @@ class pageProduct(editdbPage):
                 self.formFill(formData)
 
 class pageRic(editdbPage):
-    ''' Describes editing of routers in containers (vp_netbox_grp). '''
+    """ Describes editing of routers in containers (vp_netbox_grp). """
     
     basePath = BASEPATH + 'ric/'
     table = nav.db.manage.Vp_netbox_grp
@@ -3795,7 +3795,7 @@ class pageRic(editdbPage):
     pathList = EDITPATH + [(ric,False)]
 
     class listDef(entryList):
-        ''' Describes product list view '''
+        """ Describes product list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -3821,8 +3821,8 @@ class pageRic(editdbPage):
                                      (2,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing routers to containers.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing routers to containers.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -3904,8 +3904,8 @@ class pageRic(editdbPage):
                 self.addDisabled()
 
     def add(self,req,templateForm,action):
-            ''' Adds routers in containers. Overrides the default add 
-                function. '''
+            """ Adds routers in containers. Overrides the default add 
+                function. """
             error = None
             status = editdbStatus()
 
@@ -3933,8 +3933,8 @@ class pageRic(editdbPage):
             return (status,action,templateForm,None)
 
     def update(self,req,templateForm,selected):
-        ''' Updates routers in containers. Overrides the default update 
-            function in editdbPage '''
+        """ Updates routers in containers. Overrides the default update 
+            function in editdbPage """
 
         action = 'list'
         status = editdbStatus()
@@ -3967,7 +3967,7 @@ class pageRic(editdbPage):
 
 
 class pageRoom(editdbPage):
-    ''' Describes editing of the room table. '''
+    """ Describes editing of the room table. """
     
     basePath = BASEPATH + 'room/'
     table = nav.db.manage.Room
@@ -4003,7 +4003,7 @@ class pageRoom(editdbPage):
     pathList = EDITPATH + [('Room',False)]
 
     class listDef(entryList):
-        ''' Describes room list view '''
+        """ Describes room list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -4037,8 +4037,8 @@ class pageRoom(editdbPage):
                                      (7,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing room entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing room entries.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -4078,7 +4078,7 @@ class pageRoom(editdbPage):
                 self.addDisabled()
 
 class pageService(editdbPage):
-    ''' Describes editing of the service table. '''
+    """ Describes editing of the service table. """
     
     basePath = BASEPATH + 'service/'
     table = nav.db.manage.Service
@@ -4110,7 +4110,7 @@ class pageService(editdbPage):
     pathList = EDITPATH + [('Service',False)]
 
     class listDef(entryList):
-        ''' Describes service list view '''
+        """ Describes service list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -4135,8 +4135,8 @@ class pageService(editdbPage):
                                      (3,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing service entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing service entries.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None,
                      disabled=False):
@@ -4315,11 +4315,11 @@ class pageService(editdbPage):
 
         def makePropertyInput(self,handler,form,selectedHandlers=None,
                               serviceId=None):
-            ''' Used by init to make property inputs
+            """ Used by init to make property inputs
                 handler = handler/checker name (string)
                 form    = form/value (dict)
                 selectedHandler = list of handlers already selected in add 
-                serviceId = fill fields with this service '''
+                serviceId = fill fields with this service """
             properties = getDescription(handler)
             propertyInput = None
 
@@ -4383,11 +4383,11 @@ class pageService(editdbPage):
                 return propertyInput
    
     def checkRequiredProperties(self,handler,form,serviceId=None):
-        ''' Check if all the required properties of handler is present
+        """ Check if all the required properties of handler is present
             in the form data. 
             handler = handler/checker name (string)
             form = form data dict
-            serviceId = id to append to field names if we're editing (string)'''
+            serviceId = id to append to field names if we're editing (string)"""
         properties = getDescription(handler)
         if properties:
             if properties.has_key('args'):
@@ -4409,11 +4409,11 @@ class pageService(editdbPage):
                     i += 1
     
     def insertProperties(self,handler,form,serviceId,editing=False):
-        ''' Insert service properties for a serviceId from form data.
+        """ Insert service properties for a serviceId from form data.
             handler   = service handler (string)
             form      = form data (dict)
             serviceId = service id the properties belong to (string)
-            editing   = if we're editing then add serviceId to field names '''
+            editing   = if we're editing then add serviceId to field names """
         properties = getDescription(handler)
         if properties:
             if properties.has_key('args'):
@@ -4451,8 +4451,8 @@ class pageService(editdbPage):
                     i += 1
 
     def add(self,req,templateForm,action):
-        ''' Adds a service entry. Overrides the default add function of
-            editdbPage. '''
+        """ Adds a service entry. Overrides the default add function of
+            editdbPage. """
 
         action = 'add'
         status = editdbStatus()
@@ -4487,8 +4487,8 @@ class pageService(editdbPage):
         return (status,action,templateForm,None)
 
     def update(self,req,templateForm,selected):
-        ''' Updates service entries. Overrides the default update function
-            in editdbPage '''
+        """ Updates service entries. Overrides the default update function
+            in editdbPage """
 
         action = 'edit'
         status = editdbStatus()
@@ -4656,7 +4656,7 @@ class pageService(editdbPage):
         return (status,action,templateForm,selected)
 
 class pageSnmpoid(editdbPage):
-    ''' Describes adding to the snmpoid table. '''
+    """ Describes adding to the snmpoid table. """
     
     basePath = BASEPATH + 'snmpoid/'
     table = nav.db.manage.Snmpoid
@@ -4683,12 +4683,12 @@ class pageSnmpoid(editdbPage):
     pathAdd = EDITPATH + [('Snmpoid',False),('Add',False)]
 
     class listDef(entryList):
-        ''' Dummy class. No list view defined for for the snmpoid page. '''
+        """ Dummy class. No list view defined for for the snmpoid page. """
         pass
 
     class editbox(editbox):
-        ''' Describes fields for adding snmpoid entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding snmpoid entries.
+            The template uses this field information to display the form. """
            
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -4722,8 +4722,8 @@ class pageSnmpoid(editdbPage):
 
 
     def add(self,req,outputForm,action):
-        ''' Dummy function which calls editdbPage.add and then sets action
-            to redirect (to the menu page). '''
+        """ Dummy function which calls editdbPage.add and then sets action
+            to redirect (to the menu page). """
 
         status,action,outputForm,addedId = editdbPage.add(self,req,
                                                           outputForm,action)
@@ -4732,7 +4732,7 @@ class pageSnmpoid(editdbPage):
         return (status,action,outputForm,addedId)
 
 class pageSubcat(editdbPage):
-    ''' Describes editing of the subcat table. '''
+    """ Describes editing of the subcat table. """
     
     basePath = BASEPATH + 'subcat/'
     table = nav.db.manage.Subcat
@@ -4764,7 +4764,7 @@ class pageSubcat(editdbPage):
     pathList = EDITPATH + [('Subcategory',False)]
 
     class listDef(entryList):
-        ''' Describes subcat list view '''
+        """ Describes subcat list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -4789,8 +4789,8 @@ class pageSubcat(editdbPage):
                                      (3,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing patch entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -4815,7 +4815,7 @@ class pageSubcat(editdbPage):
                 self.formFill(formData) 
 
 class pageType(editdbPage):
-    ''' Describes editing of the type table. '''
+    """ Describes editing of the type table. """
     
     basePath = BASEPATH + 'type/'
     table = nav.db.manage.Type
@@ -4846,7 +4846,7 @@ class pageType(editdbPage):
     pathList = EDITPATH + [('Type',False)]
 
     class listDef(entryList):
-        ''' Describes room list view '''
+        """ Describes room list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -4884,8 +4884,8 @@ class pageType(editdbPage):
                                      (7,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing type entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing type entries.
+            The template uses this field information to display the form. """
  
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -4914,7 +4914,7 @@ class pageType(editdbPage):
 
 
 class pageUsage(editdbPage):
-    ''' Describes editing of the usage table. '''
+    """ Describes editing of the usage table. """
     
     basePath = BASEPATH + 'usage/'
     table = nav.db.manage.Usage
@@ -4946,7 +4946,7 @@ class pageUsage(editdbPage):
     pathList = EDITPATH + [('Usage',False)]
 
     class listDef(entryList):
-        ''' Describes usage list view '''
+        """ Describes usage list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -4969,8 +4969,8 @@ class pageUsage(editdbPage):
                                      (2,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing patch entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing patch entries.
+            The template uses this field information to display the form. """
            
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -4990,7 +4990,7 @@ class pageUsage(editdbPage):
                 self.formFill(formData)
 
 class pageVendor(editdbPage):
-    ''' Describes editing of the vendor table. '''
+    """ Describes editing of the vendor table. """
     
     basePath = BASEPATH + 'vendor/'
     table = nav.db.manage.Vendor
@@ -5027,7 +5027,7 @@ class pageVendor(editdbPage):
     pathList = EDITPATH + [('Vendor',False)]
 
     class listDef(entryList):
-        ''' Describes vendor list view '''
+        """ Describes vendor list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -5048,8 +5048,8 @@ class pageVendor(editdbPage):
                                      (1,'{p}edit/{id}',None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing vendor entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing vendor entries.
+            The template uses this field information to display the form. """
     
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -5068,8 +5068,8 @@ class pageVendor(editdbPage):
                 self.formFill(formData)
 
 class pageVlan(editdbPage):
-    ''' Describes editing of the vlan table (no adding or 
-        deleting allowed). '''
+    """ Describes editing of the vlan table (no adding or 
+        deleting allowed). """
     
     basePath = BASEPATH + 'vlan/'
     table = nav.db.manage.Vlan
@@ -5104,7 +5104,7 @@ class pageVlan(editdbPage):
     pathList = EDITPATH + [('Vlan',False)]
 
     class listDef(entryList):
-        ''' Describes vlan list view '''
+        """ Describes vlan list view """
         def __init__(self,req,struct,sort,deleteWhere=None):
             # Do general init
             entryList.__init__(self,req,struct,sort,deleteWhere)
@@ -5139,8 +5139,8 @@ class pageVlan(editdbPage):
                                      (prefixSQL,None,None,None,None)])]
 
     class editbox(editbox):
-        ''' Describes fields for adding and editing vlan entries.
-            The template uses this field information to display the form. '''
+        """ Describes fields for adding and editing vlan entries.
+            The template uses this field information to display the form. """
 
         def __init__(self,page,req=None,editId=None,formData=None):
             self.page = page.pageName
@@ -5210,7 +5210,7 @@ pageList = {'cabling': pageCabling,
 
 
 class editboxBulk(editbox):
-    ''' Editbox used by the template to disaply the main bulk import page. '''
+    """ Editbox used by the template to disaply the main bulk import page. """
 
     page = 'bulk'
 
@@ -5247,10 +5247,10 @@ class editboxBulk(editbox):
         self.setControlNames()
 
 def bulkImportParse(input,bulkdef,separator):
-    ''' Parses a list of input data.
+    """ Parses a list of input data.
         input = list of rows to import
         bulkdef = bulk defintion class
-        separator = field separator chosen '''
+        separator = field separator chosen """
     commentChar = '#'
     # Any number of spaces followed by a # is a comment
     comment = re.compile('\s*%s' % commentChar)
@@ -5348,7 +5348,7 @@ def bulkImportParse(input,bulkdef,separator):
 
 
 def bulkImport(req,action):
-    ''' Main bulk import function. Displays menu and starts parsing. '''
+    """ Main bulk import function. Displays menu and starts parsing. """
     # Cnames for hidden inputs
     BULK_HIDDEN_DATA = 'blk_hd'
     BULK_TABLENAME = 'blk_tbl'
@@ -5493,7 +5493,7 @@ def bulkImport(req,action):
 
 #Function for bulk inserting
 def bulkInsert(data,bulkdef,separator):
-    ''' Inserts data when bulk importing. '''
+    """ Inserts data when bulk importing. """
     if not type(data) is list:
         data = [data]
 
@@ -5556,7 +5556,7 @@ def bulkInsert(data,bulkdef,separator):
 
 # Classes describing the fields for bulk import
 class bulkdefCabling:
-    ''' Contains defintion of fields for bulk importing cabling '''
+    """ Contains defintion of fields for bulk importing cabling """
     tablename = 'cabling'
     table = nav.db.manage.Cabling
     uniqueField = ['roomid','jack']
@@ -5604,7 +5604,7 @@ class bulkdefCabling:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Inserts default value for category. '''
+        """ Inserts default value for category. """
         if not row.has_key('category'):
             # Set default category
             row['category'] = CATEGORY_LIST[0][0]
@@ -5630,7 +5630,7 @@ class bulkdefCabling:
 
 
 class bulkdefPatch:
-    ''' Contains defintion of fields for bulk importing patches '''
+    """ Contains defintion of fields for bulk importing patches """
     tablename = 'patch'
     table = nav.db.manage.Patch
     uniqueField = ['swportid','cablingid']
@@ -5653,7 +5653,7 @@ class bulkdefPatch:
               ('split',0,False,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity (eg. existance) of input fields.'''
+        """ Checks validity (eg. existance) of input fields."""
         status = BULK_STATUS_OK
         remark = None
         if field == 'roomid':
@@ -5774,7 +5774,7 @@ class bulkdefPatch:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Gets required data from db before inserting row. '''
+        """ Gets required data from db before inserting row. """
         # Check if sysname is given as ip or sysname
         result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$',
                           row['sysname'])
@@ -5861,7 +5861,7 @@ class bulkdefPatch:
 
 
 class bulkdefLocation:
-    ''' Contains defintion of fields for bulk importing locations '''
+    """ Contains defintion of fields for bulk importing locations """
     # number of fields
     tablename = 'location'
     table = editTables.Location
@@ -5881,14 +5881,14 @@ class bulkdefLocation:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of fields. (No need for location). '''
+        """ Checks validity of fields. (No need for location). """
         status = True
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefRoom:
-    ''' Contains defintion of fields for bulk importing rooms '''
+    """ Contains defintion of fields for bulk importing rooms """
     # number of fields
     tablename = 'room'
     table = editTables.Room
@@ -5928,7 +5928,7 @@ class bulkdefRoom:
     checkValidity = classmethod(checkValidity)
 
 class bulkdefOrg:
-    ''' Contains field definitions for bulk importing orgs. '''
+    """ Contains field definitions for bulk importing orgs. """
     tablename = 'org'
     table = editTables.Org
     uniqueField = 'orgid'
@@ -5951,7 +5951,7 @@ class bulkdefOrg:
               ('opt3',0,False,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
         if field == 'parent' and len(data):
@@ -5964,7 +5964,7 @@ class bulkdefOrg:
     checkValidity = classmethod(checkValidity)
 
 class bulkdefUsage:
-    ''' Contains field definitions for bulk importing usage. '''
+    """ Contains field definitions for bulk importing usage. """
     # number of fields
     tablename = 'usage'
     table = editTables.Usage
@@ -5984,14 +5984,14 @@ class bulkdefUsage:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefVendor:
-    ''' Contains field information for bulk importing vendors. '''
+    """ Contains field information for bulk importing vendors. """
     # number of fields
     tablename = 'vendor'
     table = editTables.Vendor
@@ -6010,14 +6010,14 @@ class bulkdefVendor:
     fields = [('vendorid',15,True,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
         return (status,remark)
     checkValidity = classmethod(checkValidity)
 
 class bulkdefSubcat:
-    ''' Contains field information for bulk importing subcats. '''
+    """ Contains field information for bulk importing subcats. """
     tablename = 'subcat'
     table = editTables.Subcat
     uniqueField = 'subcatid'
@@ -6037,7 +6037,7 @@ class bulkdefSubcat:
               ('descr',0,True,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
 
@@ -6053,7 +6053,7 @@ class bulkdefSubcat:
 
 
 class bulkdefType:
-    ''' Contains field defintions for bulk importing types. '''
+    """ Contains field defintions for bulk importing types. """
     # number of fields
     tablename = 'type'
     table = editTables.Type
@@ -6079,7 +6079,7 @@ class bulkdefType:
               ('tftp',0,False,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
 
@@ -6094,8 +6094,8 @@ class bulkdefType:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Alter fields before inserting. (set correct value for cdp
-            and tftp if anything is input in those fields) '''
+        """ Alter fields before inserting. (set correct value for cdp
+            and tftp if anything is input in those fields) """
         if row.has_key('cdp'):
             if len(row['cdp']):
                 if not row['cdp'].lower() == 'no':
@@ -6112,7 +6112,7 @@ class bulkdefType:
     preInsert = classmethod(preInsert)
 
 class bulkdefProduct:
-    ''' Contains field definitions for bulk importing products. '''
+    """ Contains field definitions for bulk importing products. """
     # number of fields
     tablename = 'product'
     table = editTables.Product
@@ -6133,7 +6133,7 @@ class bulkdefProduct:
               ('descr',0,False,True)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
 
@@ -6147,8 +6147,8 @@ class bulkdefProduct:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Alter fields before inserting. (set correct value for cdp
-            and tftp if anything is input in those fields) '''
+        """ Alter fields before inserting. (set correct value for cdp
+            and tftp if anything is input in those fields) """
         if row.has_key('cdp'):
             row['cdp'] = '1'
         if row.has_key('tftp'):
@@ -6157,7 +6157,7 @@ class bulkdefProduct:
     preInsert = classmethod(preInsert)
 
 class bulkdefNetbox:
-    ''' Contains field definitions for bulk importing boxes. '''
+    """ Contains field definitions for bulk importing boxes. """
     tablename = 'netbox'
     table = editTables.Netbox
     uniqueField = 'ip'
@@ -6180,8 +6180,8 @@ class bulkdefNetbox:
               ('function',0,False,False)]
 
     def postCheck(cls,data):
-        ''' Checks each box before inserting. Tries to connect with snmp
-            if ro is specified. '''
+        """ Checks each box before inserting. Tries to connect with snmp
+            if ro is specified. """
         status = BULK_STATUS_OK
         remark = None
 
@@ -6249,7 +6249,7 @@ class bulkdefNetbox:
     postCheck = classmethod(postCheck)
 
     def checkValidity(cls,field,data):
-        ''' Checks the validity of the input fields. '''
+        """ Checks the validity of the input fields. """
         status = BULK_STATUS_OK
         remark = None
                  
@@ -6303,7 +6303,7 @@ class bulkdefNetbox:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Changes rows before inserting. Gets required data from db. '''
+        """ Changes rows before inserting. Gets required data from db. """
         # Get sysname
         try:
             sysname = gethostbyaddr(row['ip'])[0]
@@ -6430,7 +6430,7 @@ class bulkdefNetbox:
     preInsert = classmethod(preInsert)
 
 class bulkdefService:
-    ''' Contains field definitions for bulk importing services. '''
+    """ Contains field definitions for bulk importing services. """
     tablename = 'service'
     table = editTables.Service
     uniqueField = None
@@ -6455,7 +6455,7 @@ class bulkdefService:
     insert = classmethod(insert)
 
     def postCheck(cls,data):
-        ''' Changes row data before inserting. Does DNS lookup etc. '''
+        """ Changes row data before inserting. Does DNS lookup etc. """
         status = BULK_STATUS_OK
         remark = None
 
@@ -6513,7 +6513,7 @@ class bulkdefService:
     postCheck = classmethod(postCheck)
            
     def checkValidity(cls,field,data):
-        ''' Checks validity of input fields. '''
+        """ Checks validity of input fields. """
         status = BULK_STATUS_OK
         remark = None
        
@@ -6525,7 +6525,7 @@ class bulkdefService:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,data):
-        ''' Fills in all missing data before inserting entry. '''
+        """ Fills in all missing data before inserting entry. """
         try:
             ip = gethostbyname(data['netboxid'])
             where = "ip='%s'" % (ip,)
@@ -6569,7 +6569,7 @@ class bulkdefService:
 
 
 class bulkdefPrefix:
-    ''' Contains field definitions for bulk importing prefixes. '''
+    """ Contains field definitions for bulk importing prefixes. """
     tablename = 'prefix'
     table = editTables.Prefix
     uniqueField = 'prefixid'
@@ -6593,7 +6593,7 @@ class bulkdefPrefix:
               ('vlan',0,False,False)]
 
     def checkValidity(cls,field,data):
-        ''' Checks validity of fields '''
+        """ Checks validity of fields """
         status = BULK_STATUS_OK
         remark = None
         if field == 'netaddr':
@@ -6640,7 +6640,7 @@ class bulkdefPrefix:
     checkValidity = classmethod(checkValidity)
 
     def preInsert(cls,row):
-        ''' Changes row data before inserting. Removes empty fields. '''
+        """ Changes row data before inserting. Removes empty fields. """
         fields = {}
         if row.has_key('nettype'):
             if len(row['nettype']):
@@ -6686,9 +6686,9 @@ class bulkdefPrefix:
 
 # Class representing a list of entries, used by the template
 class selectList:
-    ''' Used by the template to display a list of entries. Only used by
+    """ Used by the template to display a list of entries. Only used by
         bulk import. Could be replaced by the more flexible entryList
-        class for this purpose. '''
+        class for this purpose. """
 
     # Text and controlnames for the action bar
     textAdd = 'Add new'
