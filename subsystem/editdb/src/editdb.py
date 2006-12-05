@@ -2558,7 +2558,7 @@ class pageNetbox(editdbPage):
                 box = manage.Netbox.getAll(where)
                 if box:
                     error = 'IP already exists in database'
-                if not error:
+                if oldBox.sysname != sysname and not error:
                     # If IP isn't duplicate, check if (new) sysname is unique
                     where = "sysname = '" + sysname + "'"
                     box = manage.Netbox.getAll(where)
