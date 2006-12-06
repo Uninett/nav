@@ -1613,7 +1613,10 @@ class editdbPage:
                                            (self.singular,deletedName))
             except psycopg.IntegrityError:
                 # Got integrity error while deleting, must check what
-                # dependencies are blocking
+                # dependencies are blocking.  But firstly, we roll back the
+                # failed transaction.
+                rollbackSQL()
+
                 error = "Error while deleting %s '%s': " % (self.singular,
                                                             deletedName)
                 errorState = False

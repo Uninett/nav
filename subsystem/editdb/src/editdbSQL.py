@@ -46,6 +46,10 @@ def executeSQLreturn(sql):
     connection.commit()
     return database.fetchall()
 
+def rollbackSQL():
+    connection = nav.db.getConnection('editdb','manage')
+    connection.rollback()
+
 def addEntryBulk(data,table):
     sqllist = []
     for row in data:
