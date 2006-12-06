@@ -359,12 +359,18 @@ if ($action eq 'enable') {
 	# Check if it must be skipped
 	next if &skip($ip,0);
 
-	# Running nmblookup on computer
-	print LOG "Running nmblookup on $ip...";
-	my $netbios = `nmblookup -A $ip -T | grep -v '<GROUP>' | grep -m1 '<00>'`;
-	$netbios =~ s/\s+(\S+).*\n.*/$1/;
-	print LOG "done\n";
-	
+	my $netbios = "";
+    my $nmbtest = `which nmblookup 2> /dev/null`;
+	if ($? == 0) {
+		chomp $nmbtest;
+		# Running nmblookup on comp	uter
+		print LOG "Running nmblookup on $ip...";
+		$netbios = `$nmbtest -A $ip -T | grep -v '<GROUP>' | grep -m1 '<00>'`;
+		$netbios =~ s/\s+(\S+).*\n.*/$1/;
+		print LOG "done\n";
+	} else {
+		print LOG "Could not find nmblookup.\n";
+	}
 	unless ($netbios) {$netbios = "N/A";}
 	
 	# Running host on computer
@@ -887,6 +893,14 @@ sub setHP {
 
     my ($flag,$ip,$modul,$ifindex,$community) = @_;
     my $mibstring = "interfaces.ifTable.ifEntry.ifAdminStatus";
+    
+    # Fix for wrong ifindex in database. HP has lokal ifindexes even when stacked, but
+    # NAV doesn't support that. So NAV pads the ifindexes to make them unique.
+    # We get the two last characters and pray it's the ifindex. 
+    $ifindex =~ s/.*(..)$/$1/;
+    
+    # Make it a number (because 101 -> 01 which is not usable as an ifindex)
+    $ifindex += 0;
     
     my $response;
 
