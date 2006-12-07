@@ -129,6 +129,15 @@ CREATE OR REPLACE VIEW maint AS
 
 ALTER TABLE gwport ADD COLUMN portname VARCHAR;
 
+---------------------
+--- Index changes ---
+---------------------
+\c logger
+DROP INDEX message_type_hash;
+DROP INDEX message_origin_hash;
+CREATE INDEX message_type_btree ON message USING btree (type);
+CREATE INDEX message_origin_btree ON message USING btree (origin);
+
 --------------------
 --- Data changes ---
 --------------------
