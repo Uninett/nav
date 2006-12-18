@@ -97,7 +97,7 @@ def getMsg(msgid):
     Input:
         msgid               Message ID
 
-    Output:
+    Returns:
         If message found, return dictionary with results
         If no message found, returns false
 
