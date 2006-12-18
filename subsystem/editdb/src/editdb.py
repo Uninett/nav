@@ -1136,7 +1136,7 @@ class editbox:
             # Uses psycopg to fill field values
             page = pageList[self.page]
 
-            sql = "SELECT "
+            select = ''
             first = True
             keyNumber = {}
             i = 0
@@ -1144,15 +1144,18 @@ class editbox:
                 keyNumber[key] = i
                 i+=1
                 if not first:
-                    sql += ','
-                sql += key
+                    select += ', '
+                select += key
                 first = False
-            sql += " FROM " + page.tableName + " WHERE "
-            sql += page.tableIdKey + "='" + self.editId + "'"
+            tables = page.tableName
+            where = page.tableIdKey + "='" + self.editId + "'"
             # For the benefit of pagePrefix (which must select from vlan too)
             if hasattr(self,'additionalSQL'):
-                sql += self.additionalSQL
-                
+                tables += ', vlan'
+                where += self.additionalSQL
+
+            sql = "SELECT %s FROM %s WHERE %s" % (select, tables, where)
+
             result = executeSQLreturn(sql)
             result = result[0]
 
