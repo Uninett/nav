@@ -94,7 +94,7 @@ def handler(req):
         page.title = 'Maintenance Task'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         taskid = int(args.get('id'))
-        page.tasks = nav.maintenance.getTasks('maint_taskid = %d' % taskid)
+        page.tasks = nav.maintenance.getTask(taskid)
 
     # Cancel a maintenance task
     elif section == 'cancel' and args.get('id'):
@@ -105,7 +105,7 @@ def handler(req):
         taskid = int(args.get('id'))
         nav.maintenance.cancelTask(taskid)
         page.infomsgs.append('The following maintenance task was canceled.')
-        page.tasks = nav.maintenance.getTasks('maint_taskid = %d' % taskid)
+        page.tasks = nav.maintenance.getTask(taskid)
 
     # New and edit
     elif section == 'new' or section =='edit':
@@ -219,7 +219,7 @@ def handler(req):
                 page.errors.append('Maintenance task ID in request is not a digit.')
             else:
                 taskid = int(args.get('id'))
-                task = nav.maintenance.getTasks('maint_taskid = %d' % taskid)[0]
+                task = nav.maintenance.getTask(taskid)[0]
                 page.edit_taskid = taskid
 
                 # Maintenance components
@@ -394,8 +394,7 @@ def handler(req):
                 and req.form['edit_taskid'].isdigit()):
                 # Get ID of edited message
                 taskid = int(req.form['edit_taskid'])
-                edit_task = nav.maintenance.getTasks('maint_taskid = %d' %
-                    taskid)[0]
+                edit_task = nav.maintenance.getTask(taskid)[0]
 
                 # Find new state
                 now = time.localtime()

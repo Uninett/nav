@@ -47,7 +47,8 @@ def getTasks(where = False, order = 'maint_end DESC'):
     Get maintenance tasks
 
     Input:
-        where   Where clause of query
+        where   Where clause of query. Do NOT use user supplied data in the
+                where clause without proper sanitation.
 
     Returns:
         If tasks found, returns dictionary with results
@@ -78,6 +79,24 @@ def getTasks(where = False, order = 'maint_end DESC'):
             or []
 
     return results
+
+def getTask(taskid):
+    """
+    Get one maintenance task
+
+    getTasks() wrapper which ensures sanitation of the where argument.
+
+    Input:
+        taskid      Maintenance task ID
+
+    Returns:
+        If task found, returns dictionary with results
+        If no task found, returns false
+
+    """
+
+    where = 'maint_taskid = %d' % int(taskid)
+    return getTasks(where)
 
 def setTask(taskid, maint_start, maint_end, description, author, state):
     """
