@@ -197,11 +197,23 @@ def process(request):
     info = NetboxInfo(netbox)
     result = html.Division()
     result.append(info.showInfo())
-    result.append(urlbuilder.createLink(netbox, 
+
+    actions = html.Paragraph()
+    actions.append(urlbuilder.createLink(netbox, 
                             subsystem='editdb', content="[Edit]"))
-    result.append(urlbuilder.createLink(netbox,
+    actions.append(urlbuilder.createLink(netbox,
                                         subsystem='maintenance',
                                         content='[Schedule maintenance]'))
+    result.append(actions)
+
+    interval = fields.getfirst('interval', '30')
+    interval = interval.isdigit() and int(interval) or 30
+    ports = info.showPorts(activePerspective=
+                           fields.getfirst('perspective', 'standard'),
+                           interval=interval)
+    if ports:
+        result.append(ports)
+
     services = info.showServices(sortBy)
     if services:
         result.append(services)
@@ -212,13 +224,6 @@ def process(request):
 ##    if links:
 ##        result.append(links)
 
-    interval = fields.getfirst('interval', '30')
-    interval = interval.isdigit() and int(interval) or 30
-    ports = info.showPorts(activePerspective=
-                           fields.getfirst('perspective', 'standard'),
-                           interval=interval)
-    if ports:
-        result.append(ports)
     return result
 
 class RefreshHandler:
@@ -671,8 +676,8 @@ class NetboxInfo(manage.Netbox):
         link = urlbuilder.createLink(subsystem='report',
                                     division='swport',
                                     id=self.netboxid.netboxid,
-                                    content='Switchports')
-        div.append(html.Header(link, level=2))
+                                    content='Switch ports')
+        div.append(html.Header(link, level=3))
 
         def perspectiveToggler(active):
             list = html.UnorderedList(_class='tabs')
