@@ -44,10 +44,11 @@ db = dbconn.cursor()
 
 def getMsgs(where = False, order = 'publish_start DESC'):
     """
-    Get message with connected tasks
+    Get messages with connected tasks
 
     Input:
-        where   Where clause for the query
+        where   Where clause for the query. Do NOT use user supplied data in
+                the where clause without proper sanitation.
         order   Result order
 
     Returns:
@@ -86,6 +87,24 @@ def getMsgs(where = False, order = 'publish_start DESC'):
         results[i]['tasks'] = getMsgTasks(results[i]['messageid']) or None
     
     return results
+
+def getMsg(msgid):
+    """
+    Get one message with connected tasks
+
+    getMsgs() wrapper which ensures sanitation of the where argument.
+
+    Input:
+        msgid               Message ID
+
+    Output:
+        If message found, return dictionary with results
+        If no message found, returns false
+
+    """
+
+    where = 'messageid = %d' % int(msgid)
+    return getMsgs(where)
 
 def setMsg(msgid, title, description, tech_description, publish_start,
     publish_end, author, replaces_message):

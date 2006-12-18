@@ -114,7 +114,7 @@ def handler(req):
         page.title = 'Message'
         menu.append({'link': 'view', 'text': 'View', 'admin': False})
         msgid = int(args.get('id'))
-        page.msgs = nav.messages.getMsgs('messageid = %d' % msgid)
+        page.msgs = nav.messages.getMsg(msgid)
 
     # Expire a message
     elif section == 'expire' and args.get('id'):
@@ -125,7 +125,7 @@ def handler(req):
         msgid = int(args.get('id'))
         nav.messages.expireMsg(msgid)
         page.infomsgs.append('The following message was expired.')
-        page.msgs = nav.messages.getMsgs('messageid = %d' % msgid)
+        page.msgs = nav.messages.getMsg(msgid)
 
     # New, followup and edit message
     elif section == 'new' or section == 'edit' or section == 'followup':
@@ -143,8 +143,7 @@ def handler(req):
                 msgid = int(args.get('id'))
                 page.replaces_messageid = msgid
 
-                msg = nav.messages.getMsgs('messageid = %d' \
-                    % msgid)[0]
+                msg = nav.messages.getMsg(msgid)[0]
                 page.replaces_message = msg
                 page.formtitle = msg['title']
 
@@ -169,7 +168,7 @@ def handler(req):
                 page.errors.append('Message ID in request is not a digit.')
             else:
                 msgid = int(args.get('id'))
-                msg = nav.messages.getMsgs('messageid = %d' % msgid)[0]
+                msg = nav.messages.getMsg(msgid)[0]
 
                 page.edit_messageid = msgid
                 page.formtitle = msg['title']
@@ -190,8 +189,8 @@ def handler(req):
 
                 if type(msg['replaces_message']) is int:
                     page.replaces_messageid = msg['replaces_message']
-                    page.replaces_message = nav.messages.getMsgs('messageid = %d' \
-                        % page.replaces_messageid)[0]
+                    page.replaces_message = \
+                        nav.messages.getMsg(page.replaces_messageid)[0]
                 else:
                     page.replaces_messageid = False
 
