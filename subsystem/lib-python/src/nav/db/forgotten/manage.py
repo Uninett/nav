@@ -191,6 +191,7 @@ class Device(_Wrapper):
                         'auto': 'auto',
                         'deviceid': 'deviceid',
                         'deviceorder': 'deviceorderid',
+                        'discovered': 'discovered',
                         'fw_ver': 'fw_ver',
                         'hw_ver': 'hw_ver',
                         'product': 'productid',
@@ -384,6 +385,7 @@ class Netbox(_Wrapper):
                           'type': 'Type'}
         _sqlFields =  {'cat': 'catid',
                         'device': 'deviceid',
+                        'discovered': 'discovered',
                         'ip': 'ip',
                         'netboxid': 'netboxid',
                         'org': 'orgid',

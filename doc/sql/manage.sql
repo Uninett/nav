@@ -150,6 +150,7 @@ CREATE TABLE device (
 	auto BOOLEAN NOT NULL DEFAULT false,
   active BOOLEAN NOT NULL DEFAULT false,
   deviceorderid INT4 REFERENCES deviceorder (deviceorderid) ON DELETE CASCADE,
+  discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(serial)
 );
 
@@ -202,6 +203,7 @@ CREATE TABLE netbox (
   snmp_agent VARCHAR,
   upsince TIMESTAMP NOT NULL DEFAULT NOW(),
   uptodate BOOLEAN NOT NULL DEFAULT false, 
+  discovered TIMESTAMP NULL DEFAULT NOW(),
   UNIQUE(ip),
   UNIQUE(deviceid)
 );

@@ -129,6 +129,11 @@ CREATE OR REPLACE VIEW maint AS
 
 ALTER TABLE gwport ADD COLUMN portname VARCHAR;
 
+ALTER TABLE device ADD COLUMN discovered TIMESTAMP;
+ALTER TABLE device ALTER COLUMN discovered SET DEFAULT NOW();
+ALTER TABLE netbox ADD COLUMN discovered TIMESTAMP;
+ALTER TABLE netbox ALTER COLUMN discovered SET DEFAULT NOW();
+
 UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 
 ---------------------
