@@ -776,23 +776,27 @@ class NetboxInfo(manage.Netbox):
         return str(self.device.serial or "N/A")
 
     def showModuleCount(self):
-        return len(manage.Module.getAllIDs(where='netboxid=%d'
-                                           % self.netbox.netboxid))
+        count = len(manage.Module.getAllIDs(where='netboxid=%d'
+                                            % self.netbox.netboxid))
+        return '<a href="/report/modules?sysname=%s">%d</a>' \
+            % (self.sysname, count)
 
     def showSwportCount(self):
-        swportcount = 0
+        count = 0
         modules = manage.Module.getAllIterator(where='netboxid=%d'
                                                % self.netbox.netboxid)
         for module in modules:
-            swportcount += len(manage.Swport.getAllIDs(where='moduleid=%d'
-                                                       % module.moduleid))
-        return swportcount
+            count += len(manage.Swport.getAllIDs(where='moduleid=%d'
+                                                 % module.moduleid))
+        return '<a href="/report/swport?b1.netboxid=%d">%d</a>' \
+            % (self.netbox.netboxid, count)
 
     def showGwportCount(self):
-        gwportcount = 0
+        count = 0
         modules = manage.Module.getAllIterator(where='netboxid=%d'
                                                % self.netbox.netboxid)
         for module in modules:
-            gwportcount += len(manage.Gwport.getAllIDs(where='moduleid=%d'
-                                                       % module.moduleid))
-        return gwportcount
+            count += len(manage.Gwport.getAllIDs(where='moduleid=%d'
+                                                 % module.moduleid))
+        return '<a href="/report/gwport?netboxid=%d">%d</a>' \
+            % (self.netbox.netboxid, count)
