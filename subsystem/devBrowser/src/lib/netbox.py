@@ -331,7 +331,6 @@ class NetboxInfo(manage.Netbox):
     def __init__(self, netbox):
         manage.Netbox.__init__(self, netbox)
         self.setPrefix()
-        self.netbox = netbox
 
     def showInfo(self):
         result = html.Division()
@@ -361,6 +360,7 @@ class NetboxInfo(manage.Netbox):
         info.add('# of switch ports', self.showSwportCount())
         info.add('# of router ports', self.showGwportCount())
         info.add('Last updated', self.showLastUpdate())
+        info.add('First discovered', self.showFirstDiscovered())
         result.append(info)
         return result
 
@@ -777,26 +777,30 @@ class NetboxInfo(manage.Netbox):
 
     def showModuleCount(self):
         count = len(manage.Module.getAllIDs(where='netboxid=%d'
-                                            % self.netbox.netboxid))
+                                            % self.netboxid.netboxid))
         return '<a href="/report/modules?sysname=%s">%d</a>' \
             % (self.sysname, count)
 
     def showSwportCount(self):
         count = 0
         modules = manage.Module.getAllIterator(where='netboxid=%d'
-                                               % self.netbox.netboxid)
+                                               % self.netboxid.netboxid)
         for module in modules:
             count += len(manage.Swport.getAllIDs(where='moduleid=%d'
                                                  % module.moduleid))
         return '<a href="/report/swport?b1.netboxid=%d">%d</a>' \
-            % (self.netbox.netboxid, count)
+            % (self.netboxid.netboxid, count)
 
     def showGwportCount(self):
         count = 0
         modules = manage.Module.getAllIterator(where='netboxid=%d'
-                                               % self.netbox.netboxid)
+                                               % self.netboxid.netboxid)
         for module in modules:
             count += len(manage.Gwport.getAllIDs(where='moduleid=%d'
                                                  % module.moduleid))
         return '<a href="/report/gwport?netboxid=%d">%d</a>' \
-            % (self.netbox.netboxid, count)
+            % (self.netboxid.netboxid, count)
+
+    def showFirstDiscovered(self):
+        return str(self.netboxid.discovered or 'N/A')
+
