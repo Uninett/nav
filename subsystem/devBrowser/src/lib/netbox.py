@@ -329,8 +329,9 @@ class RefreshHandler:
 
 class NetboxInfo(manage.Netbox):
     def __init__(self, netbox):
-        manage.Netbox.__init__(self,netbox)
+        manage.Netbox.__init__(self, netbox)
         self.setPrefix()
+        self.netbox = netbox
 
     def showInfo(self):
         result = html.Division()
@@ -356,6 +357,9 @@ class NetboxInfo(manage.Netbox):
         info.add('Room', urlbuilder.createLink(self.room))
         info.add('Software', self.showSoftware())
         info.add('Serial number', self.showSerialNumber())
+        info.add('# of modules', self.showModuleCount())
+        info.add('# of switch ports', self.showSwportCount())
+        info.add('# of router ports', self.showGwportCount())
         info.add('Last updated', self.showLastUpdate())
         result.append(info)
         return result
@@ -770,3 +774,25 @@ class NetboxInfo(manage.Netbox):
 
     def showSerialNumber(self):
         return str(self.device.serial or "N/A")
+
+    def showModuleCount(self):
+        return len(manage.Module.getAllIDs(where='netboxid=%d'
+                                           % self.netbox.netboxid))
+
+    def showSwportCount(self):
+        swportcount = 0
+        modules = manage.Module.getAllIterator(where='netboxid=%d'
+                                               % self.netbox.netboxid)
+        for module in modules:
+            swportcount += len(manage.Swport.getAllIDs(where='moduleid=%d'
+                                                       % module.moduleid))
+        return swportcount
+
+    def showGwportCount(self):
+        gwportcount = 0
+        modules = manage.Module.getAllIterator(where='netboxid=%d'
+                                               % self.netbox.netboxid)
+        for module in modules:
+            gwportcount += len(manage.Gwport.getAllIDs(where='moduleid=%d'
+                                                       % module.moduleid))
+        return gwportcount
