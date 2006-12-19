@@ -129,6 +129,8 @@ CREATE OR REPLACE VIEW maint AS
 
 ALTER TABLE gwport ADD COLUMN portname VARCHAR;
 
+UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
+
 ---------------------
 --- Index changes ---
 ---------------------
