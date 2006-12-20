@@ -128,11 +128,11 @@ class Box:
                     if result:
                         for r in result:
                             if r[1]:
-                                walkserials.append(r[1])
+                                walkserials.append(str(r[1]))
                 else:
                     result = snmp.get(oid.strip()).strip()
                     if result:
-                        serials.append(result)
+                        serials.append(str(result))
 
             except:
                 pass
