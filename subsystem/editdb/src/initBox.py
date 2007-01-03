@@ -158,7 +158,7 @@ class Box:
         def is_ascii(s):
             """Verify that a string is ASCII encodeable"""
             try:
-                s.encode("ascii")
+                str(s).encode("ascii")
             except UnicodeDecodeError, e:
                 return False
             else:
