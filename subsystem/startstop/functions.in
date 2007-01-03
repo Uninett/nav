@@ -35,14 +35,14 @@ bindir=@bindir@
 localstatedir=@localstatedir@
 
 daemon() {
-    $1 >/dev/null
+    $1
     rc=$?
-    if [ $rc = 0 ]; then
+    if [ $rc -eq 0 ]; then
         echo -n "Ok"
-        return 1
+        return 0
     else
         echo -n "Failed"
-        return 0
+        return 1
     fi
 }
 

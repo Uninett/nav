@@ -31,7 +31,7 @@ LOG_DIR="${localstatedir}/log/getDeviceData"
 PIDFILE=${localstatedir}/run/getDeviceData.pid
 OUTLOG=${LOG_DIR}/getDeviceData-stdout.log
 ERRLOG=${LOG_DIR}/getDeviceData-stderr.log
-JVM_OPTS="-Xincgc -Xmx536870912 -Djava.ext.dirs=${javalibdir}"
+JVM_OPTS="-Xincgc -Xmx512m -Djava.ext.dirs=${javalibdir}"
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
@@ -49,7 +49,14 @@ if test -s "${ERRLOG}"; then
 fi
 
 cd $CUR_DIR
-# Run script
+# Run program
 $JAVA $JVM_OPTS -jar getDeviceData.jar $* >> ${OUTLOG} 2> ${ERRLOG} < /dev/null & 
 pidno="$!"
 echo $pidno > $PIDFILE
+
+# Check whether it exited immediately
+sleep 1
+if ! ps -p $pidno >/dev/null; then
+    cat $ERRLOG >&2
+    exit 1
+fi

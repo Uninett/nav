@@ -35,7 +35,8 @@ case "$1" in
 		else
 		    SU="su - ${user} -c "
 		fi
-		rc= daemon "${SU}${bindir}/getDeviceData.sh"
+		daemon "${SU}${bindir}/getDeviceData.sh"
+		rc=$?
 		echo
 		exit $rc
 		;;

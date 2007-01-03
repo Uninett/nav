@@ -269,14 +269,12 @@ class Crontab(object):
         variables and such."""
         timeString = time.strftime("%Y-%m-%d %H:%M:%S",
                                    time.localtime(time.time()))
-        envVars = ('PERL5LIB', 'PYTHONPATH', 'CLASSPATH')
+        envVars = ('PERL5LIB', 'PYTHONPATH', 'CLASSPATH', 'PATH')
         initBlock = ['# NAV updated this crontab at: ' + timeString]
         for var in envVars:
             if os.environ.has_key(var):
                 val = os.environ[var]
-            else:
-                val = ''
-            initBlock.append('%s="%s"' % (var, val))
+                initBlock.append('%s="%s"' % (var, val))
 
         initBlock.append('BINDIR=' + BINDIR)
         initBlock.append('LOCALSTATEDIR=' + LOCALSTATEDIR)

@@ -31,7 +31,7 @@ LOG_DIR="${localstatedir}/log/eventEngine"
 PIDFILE=${localstatedir}/run/eventEngine.pid
 OUTLOG=${LOG_DIR}/eventEngine-stdout.log
 ERRLOG=${LOG_DIR}/eventEngine-stderr.log
-JVM_OPTS="-Xincgc -Xmx268435456 -Djava.ext.dirs=${javalibdir}"
+JVM_OPTS="-Xincgc -Xmx256m -Djava.ext.dirs=${javalibdir}"
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
@@ -49,7 +49,14 @@ if test -s "${ERRLOG}"; then
 fi
 
 cd $CUR_DIR
-# Run script
+# Run program
 $JAVA $JVM_OPTS -jar eventEngine.jar $1 >> ${OUTLOG} 2> ${ERRLOG} < /dev/null & 
 pidno="$!"
 echo $pidno > $PIDFILE
+
+# Check whether it exited immediately
+sleep 1
+if ! ps -p $pidno >/dev/null; then
+    cat $ERRLOG >&2
+    exit 1
+fi

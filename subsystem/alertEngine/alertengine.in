@@ -28,14 +28,16 @@ case "$1" in
 	start)
 		# Start daemons.
 		echo -n "Starting alertengine: "
-		rc= daemon "su - ${user} -c ${bindir}/alertdaemon.pl start"
+		daemon "su - ${user} -c ${bindir}/alertdaemon.pl start"
+		rc=$?
 		echo
 		exit $rc;
 		;;
 	stop)
 		# Stop daemons.
 		echo -n "Shutting down alertengine: "
-		rc= daemon "su - ${user} -c ${bindir}/alertdaemon.pl stop"
+		daemon "su - ${user} -c ${bindir}/alertdaemon.pl stop"
+		rc=$?
 		echo
 		exit $rc;
         	;;

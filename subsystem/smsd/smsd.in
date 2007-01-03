@@ -26,7 +26,8 @@ case "$1" in
 	start)
 		# Start daemons (it will switch to an unprivileged user itself)
 		echo -n "Starting smsd: "
-		rc= daemon $SMSD
+		daemon $SMSD
+		rc=$?
 		echo
 		exit $rc
 		;;
