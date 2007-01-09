@@ -1,24 +1,41 @@
+/*
+ * $Id$ 
+ *
+ * Copyright 2004 Norwegian University of Science and Technology
+ * Copyright 2007 UNINETT AS
+ * 
+ * This file is part of Network Administration Visualized (NAV)
+ * 
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 package no.ntnu.nav.getDeviceData.deviceplugins.DNSCheck;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.regex.*;
-
-import no.ntnu.nav.logger.*;
-import no.ntnu.nav.SimpleSnmp.*;
-import no.ntnu.nav.ConfigParser.*;
-import no.ntnu.nav.Database.*;
-import no.ntnu.nav.event.*;
-import no.ntnu.nav.util.*;
+import no.ntnu.nav.ConfigParser.ConfigParser;
+import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
+import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.deviceplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.*;
-import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
+import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Netbox.NetboxContainer;
+import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
+import no.ntnu.nav.logger.Log;
 
 /**
  * <p>
- * DeviceHandler for checking that the sysname and DNS record of a netbox corresponds.
+ * DeviceHandler for checking that the sysname and DNS record of a netbox correspond.
  * </p>
  *
  * <p>
@@ -30,6 +47,9 @@ import no.ntnu.nav.getDeviceData.dataplugins.Netbox.*;
  * </ul>
  * </p>
  *
+ * @version $Id$
+ * @author Kristian Eide &lt;kreide@gmail.com&gt;,
+ *         Morten Brekkevold &lt;morten.brekkevold@uninett.no&gt;
  */
 
 public class DNSCheck implements DeviceHandler
@@ -37,19 +57,6 @@ public class DNSCheck implements DeviceHandler
 	private static String[] canHandleOids = {
 		"dnscheck",
 	};
-
-	private static String[] hostBinCandidates = {
-		"/bin/host",
-		"/sbin/host",
-		"/usr/bin/host",
-		"/usr/sbin/host",
-		"/usr/local/bin/host",
-		"/usr/local/sbin/host",
-	};
-	private static File hostBin;
-		
-
-	private SimpleSnmp sSnmp;
 
 	public int canHandleDevice(Netbox nb) {
 		// DNS should run second, after Typeoid
@@ -76,80 +83,14 @@ public class DNSCheck implements DeviceHandler
 			nc = (NetboxContainer)dc;
 		}
 
-		// Do DNS lookup
-		InetAddress ia = null;
-		try {
-			ia = InetAddress.getByName(nb.getIp());
-		} catch (UnknownHostException e) {
-			// Cannot happen as we always supply an IP address
+		// Do reverse DNS lookup
+		String name = DNSResolver.reverseLookup(nb.getIp());
+		if (name.equals(nb.getIp())) {
+			Log.e("HANDLE", "Reverse DNS lookup failed for " + nb.getIp());
 		}
-		String dnsName = ia.getCanonicalHostName();
-		if (dnsName.equals(nb.getIp())) {
-			Log.d("HANDLE", "Java DNS lookup failed for " + nb);
-
-			dnsName = doHostReverseDNS(nb.getIp());
-			if (dnsName.equals(nb.getIp())) {
-				// DNS lookup failed
-				Log.i("HANDLE", "DNS lookup failed for " + nb);
-			}
-		}
-
-		nc.netboxDataFactory(nb).setSysname(dnsName);
+		
+		nc.netboxDataFactory(nb).setSysname(name);
 		nc.commit();
-
-	}
-
-	private String doHostReverseDNS(String ip) {
-		try {
-			if (hostBin == null) {
-				for (int i=0; i < hostBinCandidates.length; i++) {
-					File f = new File(hostBinCandidates[i]);
-					if (f.exists() && f.isFile()) {
-						hostBin = f;
-						break;
-					}
-				}
-			}
-
-			String[] hostCmd = {
-				hostBin.getAbsolutePath(),
-				ip
-			};
-
-			Runtime rt = Runtime.getRuntime();
-			Process p = rt.exec(hostCmd);
-			BufferedInputStream in = new BufferedInputStream(p.getInputStream());
-			try {
-				p.waitFor();
-			} catch (InterruptedException e) {
-				System.err.println("InterruptedException: " + e);
-				e.printStackTrace(System.err);
-				return ip;
-			}
-
-			byte[] b = new byte[1024];
-			in.read(b, 0, 1024);
-			String s = new String(b).trim();
-
-			// Check if found
-			if (s.indexOf("not found") >= 0) return ip;
-
-			// Extract DNS name
-			String pat = "(?s)(.*domain name pointer|Name:) +(\\S{3,}).*";
-
-			if (s.matches(pat)) {
-				Matcher m = Pattern.compile(pat).matcher(s);
-				m.matches();
-				String host = m.group(2);
-				if (host.endsWith(".")) host = host.substring(0, host.length()-1);
-				return host;
-			}
-
-		} catch (IOException e) {
-			System.err.println("IOException: " + e);
-			e.printStackTrace(System.err);
-		}
-		return ip;
 	}
 
 }
