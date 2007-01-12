@@ -84,12 +84,13 @@ my %OIDS = (
 
 my $conn = NAV::connection("arplogger", "manage");
 
-my $sql = "SELECT netboxid,ip,ro,sysname FROM netbox WHERE catid=\'GW\' OR catid=\'GSW\'";
+my $sql = "SELECT netboxid,ip,ro,sysname FROM netbox WHERE catid IN ('GW', 'GSW') AND up='y'";
 
 my $resultat = NAV::select($conn, $sql);
 
 while(my @line = $resultat->fetchrow) 
 {
+    print "@line\n";
     push(@arguments,$line[0],$line[1],$line[2]);
     $sysName{$line[0]} = $line[3];
 }
