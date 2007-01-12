@@ -90,7 +90,6 @@ my $resultat = NAV::select($conn, $sql);
 
 while(my @line = $resultat->fetchrow) 
 {
-    print "@line\n";
     push(@arguments,$line[0],$line[1],$line[2]);
     $sysName{$line[0]} = $line[3];
 }
