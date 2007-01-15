@@ -19,7 +19,7 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# Authors: Stein Magnus Jodal <stein.magnus@jodal.no>
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 """
@@ -39,7 +39,7 @@ Usage: smsd [-h] [-c] [-d sec] [-t phone no.]
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 import atexit

@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Author: Stein Magnus Jodal <stein.magnus@jodal.no>
+# Author: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 """
@@ -29,5 +29,5 @@ Package placeholder. If you remove it, the package won't work.
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id: __init__.py 3445 2006-06-15 08:32:39Z jodal $"

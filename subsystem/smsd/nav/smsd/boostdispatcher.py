@@ -35,7 +35,7 @@ Depends on SOAPpy/python-soappy.
 __copyright__ = "Copyright 2006 Bjørn Ove Grøtan"
 __license__ = "GPL"
 __author__ = "Bjørn Ove Grøtan (bjorn.ove@grotan.com),", \
-    "Stein Magnus Jodal (stein.magnus@jodal.no)"
+    "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id: boostdispatcher.py 3464 2006-06-22 08:58:05Z bgrotan $"
 
 from nav.smsd.dispatcher import *

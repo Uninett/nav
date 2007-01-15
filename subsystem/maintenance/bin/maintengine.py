@@ -23,7 +23,7 @@
 #
 # Authors: Bjørn Ove Grøtan <bjorn.grotan@itea.ntnu.no>, 2003
 #          Sigurd Gartmann <sigurd-nav@brogar.org>, 2004
-#          Stein Magnus Jodal <stein.magnus@jodal.no>, 2006
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>, 2006
 #
 
 """
@@ -33,7 +33,7 @@ schedule in NAVdb.
 
 __copyright__ = "Copyright 2003-2005 NTNU, 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Bjørn Ove Grøtan (bjorn.grotan@itea.ntnu.no), Sigurd Gartmann (sigurd-nav@brogar.org), Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Bjørn Ove Grøtan (bjorn.grotan@itea.ntnu.no), Sigurd Gartmann (sigurd-nav@brogar.org), Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"
 
 import logging

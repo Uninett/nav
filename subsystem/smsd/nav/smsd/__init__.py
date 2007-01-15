@@ -26,5 +26,5 @@ Package placeholder. If you remove it, the package won't work.
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id$"

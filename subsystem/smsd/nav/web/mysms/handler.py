@@ -29,7 +29,7 @@ given number of past days.
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id: mysms.py 3464 2006-06-22 08:58:05Z jodal $"
 
 from mod_python import apache
