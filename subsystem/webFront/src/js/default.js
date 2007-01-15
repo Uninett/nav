@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * Authors: Magnar Sveen <magnars@idi.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus@jodal.no>
+ *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
 function jump(fe) {

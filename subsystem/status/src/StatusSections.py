@@ -22,7 +22,7 @@
 #
 #
 # Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
-#          Stein Magnus Jodal <stein.magnus@jodal.no>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 """
 Contains classes representing different sections (netboxes down,

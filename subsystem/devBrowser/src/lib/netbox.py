@@ -20,6 +20,7 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 """Top level view of a netbox.

@@ -40,7 +40,7 @@ All exceptions raised subclasses DaemonError.
 
 __copyright__ = "Copyright 2006 UNINETT AS"
 __license__ = "GPL"
-__author__ = "Stein Magnus Jodal (stein.magnus@jodal.no)"
+__author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id: daemon.py 3494 2006-07-03 09:12:11Z jodal $"
 
 import atexit

@@ -21,7 +21,7 @@
  * 
  * Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
  *          Magnar Sveen <magnars@idi.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus@jodal.no>
+ *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
 function checkForm(form) {

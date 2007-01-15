@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Stein Magnus Jodal <stein.magnus@jodal.no>
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 from mod_python import apache,util
