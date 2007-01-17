@@ -14,8 +14,12 @@ javalibdir=@javalibdir@
 
 NAV_CONF="${sysconfdir}/nav.conf"
 
+function getopt() {
+  awk -F= "/$1/"' && $1!~/#.*/{gsub("^[\t ]+", "", $2); gsub("[\t ]+$", "", $2); print $2}' $NAV_CONF
+}
+
 if test -z "$JAVA_HOME"; then 
-    JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+    JAVA_HOME=`getopt JAVA_HOME`
 fi
 
 if test -z "$JAVA_HOME"; then
@@ -30,11 +34,16 @@ if ! test -x "$JAVA"; then
     exit 1
 fi
 
+JVM_OPTS=`getopt JVM_OPTS_GETBOKSMACS`
+if test -z "$JVM_OPTS"; then
+  JVM_OPTS="-Xmx256m"
+fi
+JVM_OPTS="$JVM_OPTS -Djava.ext.dirs=${javalibdir}"
+
 CUR_DIR=${javalibdir}/getBoksMacs
 LOG_DIR="${localstatedir}/log"
 PIDFILE=${localstatedir}/run/getBoksMacs.pid
 JOB_FINISHED=${localstatedir}/run/boksmacs-finished.flag
-JVM_OPTS="-Xmx268435456 -Djava.ext.dirs=${javalibdir}"
 
 
 getpid() {

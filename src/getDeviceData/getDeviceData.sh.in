@@ -10,8 +10,12 @@ javalibdir=@javalibdir@
 
 NAV_CONF="${sysconfdir}/nav.conf"
 
+function getopt() {
+  awk -F= "/$1/"' && $1!~/#.*/{gsub("^[\t ]+", "", $2); gsub("[\t ]+$", "", $2); print $2}' $NAV_CONF
+}
+
 if test -z "$JAVA_HOME"; then 
-    JAVA_HOME=`awk -F= '/JAVA_HOME/ && $1!~/#.*/{gsub("[\t ]", "", $2); print $2}' $NAV_CONF`
+    JAVA_HOME=`getopt JAVA_HOME`
 fi
 
 if test -z "$JAVA_HOME"; then
@@ -26,12 +30,17 @@ if ! test -x "$JAVA"; then
     exit 1
 fi
 
+JVM_OPTS=`getopt JVM_OPTS_GETDEVICEDATA`
+if test -z "$JVM_OPTS"; then
+  JVM_OPTS="-Xmx512m"
+fi
+JVM_OPTS="$JVM_OPTS -Djava.ext.dirs=${javalibdir}"
+
 CUR_DIR=${javalibdir}/getDeviceData
 LOG_DIR="${localstatedir}/log/getDeviceData"
 PIDFILE=${localstatedir}/run/getDeviceData.pid
 OUTLOG=${LOG_DIR}/getDeviceData-stdout.log
 ERRLOG=${LOG_DIR}/getDeviceData-stderr.log
-JVM_OPTS="-Xincgc -Xmx512m -Djava.ext.dirs=${javalibdir}"
 
 if test -f $PIDFILE; then
     pidnum=`cat $PIDFILE`
