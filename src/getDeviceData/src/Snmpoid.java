@@ -17,9 +17,11 @@ public class Snmpoid
 
 	boolean uptodate;
 
+	String mib;
+	
 	Map typeMap;
 
-	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, boolean decodehex, String matchRegex, int defaultfreq, boolean uptodate) {
+	public Snmpoid(String snmpoidid, String oidkey, String snmpoid, boolean getnext, boolean decodehex, String matchRegex, int defaultfreq, boolean uptodate, String mib) {
 		this.snmpoidid = snmpoidid;
 		this.oidkey = oidkey;
 		this.snmpoid = snmpoid;
@@ -93,6 +95,10 @@ public class Snmpoid
 			e.printStackTrace(System.err);
 		}
 		return null;
+	}
+
+	public String getMib() {
+		return mib;
 	}
 
 }

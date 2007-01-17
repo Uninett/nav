@@ -245,7 +245,7 @@ public class OidTester
 						if (reqGetnext) {
 							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
 						}
-						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (reqGetnext: "+reqGetnext+", vl: " + atVl+")");
+						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (oid: " + snmpoid.getOidkey() + ", reqGetnext: "+reqGetnext+", vl: " + atVl+")");
 					
 						String regex = snmpoid.getMatchRegex();
 						for (Iterator i = l.iterator(); i.hasNext();) {
@@ -288,7 +288,20 @@ public class OidTester
 					}
 
 					if (supported) break;
-
+					
+					/**
+					 * cs@vlan AKA cs_at_vlan AKA community string indexing for vlans
+					 * is only necessary when retrieving multiple instances of the 
+					 * BRIDGE-MIB on Cisco switches.  See the following URL for doc:
+					 * 
+					 * http://www.cisco.com/en/US/tech/tk648/tk362/technologies_tech_note09186a00801576ff.shtml
+					 * 
+					 * If the snmpoid we are currently testing is _not_ from the
+					 * BRIDGE-MIB, then we shouldn't waste time on checking every
+					 * possible vlan in the world - i.e. break out of the vlan loop.
+					 */
+					if (!"BRIDGE-MIB".equals(snmpoid.getMib()))
+						break;
 				}
 
 				if (!supported) {
