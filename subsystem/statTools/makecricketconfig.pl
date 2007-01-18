@@ -819,7 +819,7 @@ sub makeinterfaceTargets {
 	print "$q\n" if $ll >= 3;
 
 	next if $r->ntuples == 0;
-
+	
 	# make a subdirectory for each sysname
 	umask 002;
 	unless (-e $path) {
@@ -870,6 +870,7 @@ sub makeinterfaceTargets {
 	    # This is basically a select-sentence, therefore we must filter on
 	    # select to avoid mischief.
 	    @tmp = ();
+	    my @descrarr = ();
 	    my $descrq = $descrsentence;
 	    if ($descrq =~ /^select/i) {
 		$descrq =~ s/\;//;
@@ -878,11 +879,15 @@ sub makeinterfaceTargets {
 		print "\tQuerying for description: $descrq\n" if $ll >= 3;
 		my $descrres = $dbh->exec($descrq);
 		@tmp = $descrres->fetchrow;
+
+		foreach my $m (@tmp) {
+		    if ($m) { push (@descrarr, $m)};
+		}
 	    }
 
-	    my $lengthoftmp = @tmp;
+	    my $lengthoftmp = @descrarr;
 	    if ($lengthoftmp > 0) {
-		$descr = join (", ", @tmp);
+		$descr = join (", ", @descrarr);
 		$descr = "\"$descr\"";
 	    }
 
@@ -901,7 +906,7 @@ sub makeinterfaceTargets {
 	    $rrdhash{"$cricketconfigdir/$dir/$sysname"}{$name}{'table'} = $table;
 
 	    $filetext .= "target \"$name\"\n";
-	    if ($interface =~ m/(.*)\.\d+/) {
+	    if ($interface && $interface =~ m/(.*)\.\d+/) {
 		$filetext .= "\ttarget-type\t=\tsub-interface\n";
 	    }
 	    $filetext .= "\torder\t=\t$order\n";
