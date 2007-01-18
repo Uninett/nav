@@ -792,12 +792,12 @@ sub makeinterfaceTargets {
     printf "Deleting all the directories in %s\n", $cricketconfigdir."/".$dir if $ll >= 3;
     `rm -rf $cricketconfigdir/$dir/*/`;
 
-    my $query = "SELECT netboxid,ip,sysname,ro,vendorid FROM netbox LEFT JOIN type USING (typeid) WHERE (". join ( " OR " , @types ) . ") AND up='y' ORDER BY sysname";
+    my $query = "SELECT netboxid,ip,sysname,ro,vendorid,snmp_version FROM netbox LEFT JOIN type USING (typeid) WHERE (". join ( " OR " , @types ) . ") AND up='y' AND ro IS NOT NULL ORDER BY sysname";
     my $res = $dbh->exec($query);
 
     # For each unit, check if it has any interfaces to gather data from, make
     # a subdir for it and place the targets there.
-    while (my($netboxid,$ip,$sysname,$ro,$vendor) = $res->fetchrow) {
+    while (my($netboxid,$ip,$sysname,$ro,$vendor,$snmpversion) = $res->fetchrow) {
 	my %ifindexhash = (); # to make sure we don't create a target for the same if twice
 	my @changes = ();
 
@@ -806,11 +806,8 @@ sub makeinterfaceTargets {
 	my $targetfile = "$path/$file";
 
 	my $q;
-	if ($giga) {
-	    $q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed = 1000";
-	} else {
-	    $q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid AND speed != 1000";
-	}
+
+	$q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid";
 	
 	foreach my $parameter (@nameparameters) {
 	    $q .= " AND $parameter IS NOT NULL";
@@ -834,6 +831,10 @@ sub makeinterfaceTargets {
 	# create default target
 	$filetext .= "target --default--\n";
 	$filetext .= "\tsnmp-host\t=\t$ip\n";
+	if ($snmpversion == 2) {
+	    $filetext .= "\tsnmp-version\t=\t2c\n";
+	    $filetext .= "\ttarget-type\t=\tsnmpv2-interface\n";
+	}
 	$filetext .= "\tsnmp-community\t=\t$ro\n\n";
 
 	my $numberofports = $r->ntuples;
