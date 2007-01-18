@@ -19,7 +19,6 @@ Target	--default--
 	snmp-backoff            = 1.0
 	snmp-version            = 1
 	snmp                    = %snmp-community%@%snmp-host%:%snmp-port%:%snmp-timeout%:%snmp-retries%:%snmp-backoff%:%snmp-version%
-	snmp			= %snmp-community%@%snmp-host%:%snmp-port%
 	directory-desc		= "Graphs for %auto-target-name%"
 	show-path 		= yes
 
