@@ -47,8 +47,8 @@ use NAV::AlertEngine::Engine;
 
 sub runEngine() {
 
-	my $e = NAV::AlertEngine::Engine->new($NAV::AlertEngine::Log::cfg);
-	$e->run();
+    my $e = NAV::AlertEngine::Engine->new($NAV::AlertEngine::Log::cfg);
+    $e->run();
 
 }
 
@@ -61,81 +61,81 @@ sub launch() {
     my $errlogfile=shift;
     my $pidfile=shift;
 
-	if (-f $pidfile) {
-	    open pid_file, '< '.$pidfile ||
-		die "Cannot open pidfile";
-	    my ($pid, $tid) = split / /, <pid_file>;
-	    close(pid_file);
-	    if (kill(0, $pid) == 0) {
-		unlink($pidfile) ||
-		    die "Could not delete pidfile\n";
-	    } else {
-		print "It seems like alertengine is already running.\n";
-		exit(0);
-	    }
-	}
+    if (-f $pidfile) {
+        open pid_file, '< '.$pidfile ||
+            die "Cannot open pidfile";
+        my ($pid, $tid) = split / /, <pid_file>;
+        close(pid_file);
+        if (kill(0, $pid) == 0) {
+            unlink($pidfile) ||
+                die "Could not delete pidfile\n";
+        } else {
+            print "It seems like alertengine is already running.\n";
+            exit(0);
+        }
+    }
 
-	print "Starting alertengine...\n";
-	
-	chdir '/' ||
-		die "Can't chdir to /: $!";
-	umask 0;
-	
-	open STDIN, '/dev/null' ||
-		die "Can't read /dev/null: $!";
-		
-	open STDOUT, '>> '.$logfile || 
-		die "Can't write to /dev/null: $!";
-	
-	open STDERR, '>> '.$errlogfile || 
-		die "Can't write to /dev/null: $!";
+    print "Starting alertengine...\n";
+
+    chdir '/' ||
+        die "Can't chdir to /: $!";
+    umask 0;
+
+    open STDIN, '/dev/null' ||
+        die "Can't read /dev/null: $!";
+
+    open STDOUT, '>> '.$logfile || 
+        die "Can't write to /dev/null: $!";
+
+    open STDERR, '>> '.$errlogfile || 
+        die "Can't write to /dev/null: $!";
 
     select(STDOUT);
     
-	my $pid = 0;
-	if ($pid = fork()) {
-	    print "PID: $pidfile\n";
-		open pid_file, '> '.$pidfile || die "Could not open pid file $pidfile";
-		print pid_file $pid;
-		close(pid_file);
-		exit(0);
-	}
-	if ($pid < 0) { die "Can't fork: $!"; }
-	
-	setsid || 
-		die "Can't start a new session: $!";
+    my $pid = 0;
+    if ($pid = fork()) {
+        print "PID: $pidfile\n";
+        open pid_file, '> '.$pidfile || die "Could not open pid file $pidfile";
+        print pid_file $pid;
+        close(pid_file);
+        exit(0);
+    }
+    if ($pid < 0) { die "Can't fork: $!"; }
+    
+    setsid || 
+        die "Can't start a new session: $!";
 
 
-	&runEngine();
+    &runEngine();
 }
 
 sub stop() {
     my $pidfile=shift;
-	if (-f $pidfile) {
-		open pid_file, '< '.$pidfile ||
-			die "Cannot open pidfile";
-		my ($pid, $tid) = split / /, <pid_file>;
-		close(pid_file);
-		if (kill(0, $pid) == 0) {
-		    print "Alertengine is not running.\n";
-		    unlink($pidfile) ||
-			die "Could not delete pidfile\n";
-		    return(0);
-		}
-		unlink($pidfile) ||
-			die "Could not delete pidfile\n";
-		print "Trying to stop alertengine.\n";
-		print "Please wait for it to gracefully flush queue to database etc...\n";
-		my $status = kill 15 => $pid;
-		if ($status > 0) {
-			print "Alertengine is successfully shut down.\n";
-		} else {
-			print "Sorry, could not shut down alertengine.\n";
-		}
-		
-	} else {
-		print "Alertengine is not running.\n";
-	}
+    if (-f $pidfile) {
+        open pid_file, '< '.$pidfile ||
+            die "Cannot open pidfile";
+        my ($pid, $tid) = split / /, <pid_file>;
+        close(pid_file);
+        if (kill(0, $pid) == 0) {
+            print "Alertengine is not running.\n";
+            unlink($pidfile) ||
+                die "Could not delete pidfile\n";
+            return(0);
+        }
+        unlink($pidfile) ||
+                die "Could not delete pidfile\n";
+        print "Trying to stop alertengine.\n";
+        print "Please wait for it to gracefully flush queue to database etc...\n";
+        my $status = kill 15 => $pid;
+        if ($status > 0) {
+            print "Alertengine is successfully shut down.\n";
+        } else {
+            print "Sorry, could not shut down alertengine.\n";
+        }
+        
+    } else {
+        print "Alertengine is not running.\n";
+    }
 
 }
 
@@ -143,22 +143,22 @@ sub stop() {
 sub status() {
     my $pidfile=shift;
     if (-f $pidfile) {
-	open pid_file, '< '.$pidfile ||
-	    die "Cannot open pidfile";
-	my ($pid, $tid) = split / /, <pid_file>;
-	close(pid_file);
-	if (kill(0, $pid) > 0) {	   
-	    print "Alertengine is running with process id $pid.\n";
-	} else {
-	    print "Alertengine is not running.\n";
-	    unlink($pidfile) ||
-		die "Could not delete pidfile\n";
-	}
-    }     
-    else {
-	print "Alertengine is not running.\n";
+        open pid_file, '< '.$pidfile ||
+            die "Cannot open pidfile";
+        my ($pid, $tid) = split / /, <pid_file>;
+        close(pid_file);
+        if (kill(0, $pid) > 0) {
+            print "Alertengine is running with process id $pid.\n";
+        } else {
+            print "Alertengine is not running.\n";
+            unlink($pidfile) ||
+                die "Could not delete pidfile\n";
+        }
     }
-    
+    else {
+        print "Alertengine is not running.\n";
+    }
+
 }
 
 
@@ -179,10 +179,10 @@ SWITCH : {
 Usage: alertdaemon.pl [option]
 
 [option] :
-	start	- launch alertengine if not already running
-	stop	- stops alertengine if running
-	restart	- stops alertenige if running, and then launch it
-	status	- tells if alertengine is running or not
+        start   - launch alertengine if not already running
+        stop    - stops alertengine if running
+        restart - stops alertenige if running, and then launch it
+        status  - tells if alertengine is running or not
 
 END
 }
