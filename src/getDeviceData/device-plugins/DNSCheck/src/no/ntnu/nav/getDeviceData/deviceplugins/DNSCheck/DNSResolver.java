@@ -141,6 +141,11 @@ public class DNSResolver {
 		ictx = new InitialDirContext(env);
 		attrs = ictx.getAttributes(addrstring, new String[] {"PTR"});
 		Attribute ptr = attrs.get("PTR");
-		return (String) ptr.get(0);
+		String hostname = (String) ptr.get(0);
+		// Reverse records typically end with a period, we'll chop this off..
+		if (hostname.endsWith("."))
+			return hostname.substring(0, hostname.length()-1);
+		else 
+			return hostname;
 	}
 }
