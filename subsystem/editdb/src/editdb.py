@@ -2062,7 +2062,7 @@ class pageNetbox(editdbPage):
                 c.append((cat.catid,cat.catid + ' (' + str(cat.descr) + ')'))
 
             # Field definitions {field name: [input object, required]}
-            f = {'ip': [inputText(disabled=disabled),REQ_TRUE,'Ip or hostname',
+            f = {'ip': [inputText(disabled=disabled),REQ_TRUE,'IP or hostname',
                         FIELD_STRING],
                  'catid': [inputSelect(options=c,disabled=disabled),REQ_TRUE,
                            'Category',FIELD_STRING],
