@@ -36,7 +36,7 @@ from nav.errors import *
 
 import forgetHTML as html
 
-# Drrrty read av config
+# Dirty read of config
 import nav.config
 
 import nav.web

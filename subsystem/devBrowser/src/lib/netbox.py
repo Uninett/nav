@@ -1,5 +1,6 @@
 # -*- coding: ISO8859-1 -*-
 # Copyright 2002-2005 Norwegian University of Science and Technology
+# Copyright 2006 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
