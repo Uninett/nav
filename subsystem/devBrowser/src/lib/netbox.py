@@ -139,10 +139,22 @@ def findNetboxes(hostname):
     for match in matches:
         dist, nb = match
         # 5 seems to be a reasonable distance...
-        if dist < 5 or len(result) < 1:
+        if dist < 5:
             result.append((nb, dist))
         else:
             break
+
+    # If no matches have low enough Levenstein, just show the five closest
+    # matches
+    if len(result) == 0:
+        for i, match in enumerate(matches):
+            if i < 5:
+                dist, nb = match
+                result.append((nb, dist))
+                i += 1
+            else:
+                break
+
     if len(result) == 1:
         raise RedirectError, urlbuilder.createUrl(result[0][0])
     return result
