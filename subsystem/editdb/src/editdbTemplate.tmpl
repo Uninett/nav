@@ -493,8 +493,11 @@ $showBody($body)
             <tr>
                 <td><input type="submit" name="$form.cnameConfirm" value="$form.textConfirm" /></td>
 #if $form.showCancel
-             <td><input type="submit" name="$form.cnameCancel" value="$form.textCancel" /></td>
+                <td><input type="submit" name="$form.cnameCancel" value="$form.textCancel" /></td>
 #end if 
+#if $editbox.page == 'netbox'
+                <td><input type="submit" name="$form.cnameDelete" value="$form.textDelete" /></td>
+#end if
             </tr>
         </table>
     </form>

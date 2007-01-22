@@ -966,6 +966,13 @@ class editForm:
     showCancel = True
     actionCancel = BASEPATH
 
+    # Only used for netboxes (see template)
+    # 'submit_delete' is fetched by the same handler as when deleting multiple
+    # entities from a list
+    textDelete = 'Delete'
+    cnameDelete = 'submit_delete'
+    showDelete = True
+
     # Used by edit netbox in the intermediate
     CNAME_CONTINUE = 'cname_continue'
 
