@@ -480,6 +480,7 @@ def editPage(req,page,request,unicodeError):
     if action == 'predefined':
         # Action is predefined by addNetbox() or updateNetbox()
         outputForm.textConfirm = 'Continue'
+        outputForm.action = action
         outputForm.status = status
         listView = None
     elif action == 'edit':
@@ -490,6 +491,7 @@ def editPage(req,page,request,unicodeError):
         else:
             title += page.singular
         outputForm.title = title
+        outputForm.action = action
         outputForm.status = status
         outputForm.textConfirm = 'Update'
         if page.editMultipleAllowed:
@@ -504,6 +506,7 @@ def editPage(req,page,request,unicodeError):
         listView = None
     elif action == 'add':
         path = page.pathAdd
+        outputForm.action = action
         outputForm.status = status
         outputForm.title = 'Add ' + page.singular
         outputForm.textConfirm = 'Add ' + page.singular
