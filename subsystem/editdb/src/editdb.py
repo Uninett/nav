@@ -667,6 +667,7 @@ class entryList:
     CNAME_EDIT = 'submit_edit'
     CNAME_DELETE = 'submit_delete'
     CNAME_CONFIRM_DELETE = 'confirm_delete'
+    CNAME_CANCEL = 'form_cancel'
     
     # Class variables used by the template
     title = None
@@ -730,7 +731,8 @@ class entryList:
             self.title = title + '?'
             self.sortingOn = False
             self.buttonsTop = None
-            self.buttonsBottom = [(self.CNAME_CONFIRM_DELETE,'Delete')]
+            self.buttonsBottom = [(self.CNAME_CONFIRM_DELETE, 'Delete'),
+                                  (self.CNAME_CANCEL, 'Cancel')]
         else:
             self.title = 'Edit ' + struct.plural
             self.sortingOn = True

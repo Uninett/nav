@@ -495,7 +495,7 @@ $showBody($body)
 #if $form.showCancel
                 <td><input type="submit" name="$form.cnameCancel" value="$form.textCancel" /></td>
 #end if 
-#if $editbox.page == 'netbox'
+#if $editbox.page == 'netbox' and $form.showDelete
                 <td><input type="submit" name="$form.cnameDelete" value="$form.textDelete" /></td>
 #end if
             </tr>
