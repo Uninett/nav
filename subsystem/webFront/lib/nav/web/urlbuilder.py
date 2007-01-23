@@ -127,7 +127,9 @@ def createUrl(object=None, id=None, division=None,
                 url += '/' # make sure we have trailing /    
 
     elif subsystem == 'maintenance':
-        url += "new"
+        if object:
+            id = object._getID()[0]
+        url += "new?netbox=%s" % id
     elif subsystem == 'editdb':
         if object:
             id = object._getID()[0]

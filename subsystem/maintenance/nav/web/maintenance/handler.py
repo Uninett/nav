@@ -268,8 +268,11 @@ def handler(req):
                     'info': nav.maintenance.getComponentInfo(key, value)}
                 if components.count(component) == 0:
                     components.append(component)
-            elif (req.form.has_key('cn_add_netboxes')
-             and field.name == 'cn_netbox'):
+            elif ((req.form.has_key('cn_add_netboxes')
+             and field.name == 'cn_netbox')
+             or field.name == 'netbox'):
+             # 'cn_netbox' passed through POST (e.g. from Maintenance)
+             # 'netbox' passed through GET (e.g. from IP Device Center)
                 key = 'netbox'
                 value = field.value
                 component = {
