@@ -306,7 +306,6 @@ A) For hver ruter (kat=GW eller kat=GSW)
 
 			Map ifAliasMap = sSnmp.getAllMap(nb.getOid("ifAlias"), true);
 			Map ifDescrMap = sSnmp.getAllMap(nb.getOid("ifDescr"), true);
-			Map ifNameMap = sSnmp.getAllMap(nb.getOid("ifName"), true);
 
 			// Masterindex
 			Set masterinterfSet = new HashSet();
@@ -476,9 +475,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				vl.setDescription(description);
 				vl.setConvention(convention);
 
-				// Create Gwport - use ifName as interface name, or ifDescr if ifName is empty.
-				String ifName = (String) (ifNameMap != null && ifNameMap.containsKey(ifindex) ? ifNameMap.get(ifindex) : ifDescrMap.get(ifindex));
-				Gwport gwp = gwm.gwportFactory(ifindex, ifName);
+				// Create Gwport
+				Gwport gwp = gwm.gwportFactory(ifindex, (String)ifDescrMap.get(ifindex));
 				addedGwport = true;
 
 				// We can now ignore this ifindex as an swport
