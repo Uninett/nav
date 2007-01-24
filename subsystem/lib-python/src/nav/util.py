@@ -1,6 +1,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2005 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,9 +21,10 @@
 #
 #
 # $Id$
-# Authors: Morten Vold <morten.vold@ntnu.no>
+# Authors: Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 """General utility functions for Network Administration Visualized"""
+import IPy
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -57,3 +59,20 @@ def colortohex(triplet):
     Useful for converting internal color triplets to web
     representation."""
     return ('%02x'*3) % triplet
+
+def isValidIP(ip):
+    """Verifies that a string is a single, valid IPv4 or IPv6 address.
+
+    A cleaned up version of the IP address string is returned if it is
+    verified, otherwise a false value is returned.
+
+    Uses the IPy library to verify addresses.
+    """
+    if isinstance(ip, (str, unicode)) and not ip.isdigit():
+        try:
+            validIP = IPy.IP(ip)
+            if len(validIP) == 1:
+                return str(validIP)
+        except ValueError:
+            pass
+    return False

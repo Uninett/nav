@@ -28,6 +28,7 @@
 
 import editTables,nav.Snmp,sys,re,copy,initBox,forgetSQL,nav.web
 from nav.db import manage
+import nav.util
 
 from mod_python import util,apache
 from editdbSQL import *
@@ -2277,10 +2278,10 @@ class pageNetbox(editdbPage):
 
         if step == STEP_1:
             # Look up sysname in DNS
-            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
-                              form['ip'])
+            validIP = nav.util.isValidIP(form['ip'])
             ip = form['ip']
-            if result:
+            if validIP:
+                ip = validIP
                 # This is an IP
                 try:
                     sysname = gethostbyaddr(ip)[0]
@@ -2548,10 +2549,10 @@ class pageNetbox(editdbPage):
         if step == STEP_1:
             # Look up sysname in DNS, it might have changed
             # since the box was initially added
-            result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})',
-                              form['ip'])
+            validIP = nav.util.isValidIP(form['ip'])
             ip = form['ip']
-            if result:
+            if validIP:
+                ip = validIP
                 # This is an IP
                 try:
                     sysname = gethostbyaddr(ip)[0]
@@ -5318,17 +5319,7 @@ def bulkImportParse(input,bulkdef,separator):
                             remark = "Syntax error: Field '" + fn + \
                                      "' exceeds max field length"
                             break
-                        # if this is the id field, 
-                        # check if it's unique in the db
-                        if type(bulkdef.uniqueField) is str:
-                            if fn == bulkdef.uniqueField:
-                                where = bulkdef.uniqueField+"='"+fields[i] + "'"
-                                result = bulkdef.table.getAllIDs(where=where)
-                                if result:
-                                    status = BULK_STATUS_YELLOW_ERROR
-                                    remark = "Not unique: An entry with " +fn + \
-                                             "=" + fields[i] + " already exists"
-                                    break
+
                     else:
                         # This field isn't specified in the bulkdef
                         # Used by netbox for adding any number of subcats
@@ -5344,6 +5335,19 @@ def bulkImportParse(input,bulkdef,separator):
 
                     if status != BULK_STATUS_OK:
                         break
+
+                    # Check the uniqueness of id fields _after_ validity checking
+                    if i < bulkdef.max_num_fields and \
+                       type(bulkdef.uniqueField) is str and \
+                       fn == bulkdef.uniqueField:
+                        where = bulkdef.uniqueField+"='"+fields[i] + "'"
+                        result = bulkdef.table.getAllIDs(where=where)
+                        if result:
+                            status = BULK_STATUS_YELLOW_ERROR
+                            remark = "Not unique: An entry with " +fn + \
+                                     "=" + fields[i] + " already exists"
+                            break
+
                     # use this field if no error (status==BULK_STATUS_OK)
                     # and if it's marked to be used (use == true)                   
                     if fn=='serial' and status==BULK_STATUS_OK:
@@ -5697,12 +5701,11 @@ class bulkdefPatch:
             if data:
                 if len(data):
                     # Check if switch is given as ip or sysname
-                    result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$',
-                                      data)
+                    validIP = nav.util.isValidIP(data)
                     ip = None
-                    if result:
+                    if validIP:
                         # This is an IP
-                        ip = data
+                        ip = validIP
                     else:
                         # Not an IP, possibly a hostname
                         try:
@@ -5795,12 +5798,12 @@ class bulkdefPatch:
     def preInsert(cls,row):
         """ Gets required data from db before inserting row. """
         # Check if sysname is given as ip or sysname
-        result = re.match('^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$',
-                          row['sysname'])
+        validIP = nav.util.isValidIP(row['sysname'])
+
         ip = None
-        if result:
+        if validIP:
             # This is an IP
-            ip = row['sysname']
+            ip = validIP
         else:
             # Not an IP, possibly a hostname
             try:
@@ -6273,10 +6276,9 @@ class bulkdefNetbox:
         remark = None
                  
         if field == 'ip':
-            try:
-                sysname = gethostbyaddr(data)[0]
-            except:
-                remark = "DNS lookup failed, using '" + data + "' as sysname"
+            if not nav.util.isValidIP(data):
+                remark = "Invalid IP address"
+                status = BULK_STATUS_RED_ERROR
         if field == 'roomid':
              try:
                 manage.Room(data).load()
