@@ -59,30 +59,34 @@
             #set $compcounter += 1
         #end if
             $component.key:
-        #if $component.key in ('location', 'room', 'netbox', 'service')
+        #if $component.info is None:
+            ID $component.value (Details not available)
+        #else
+            #if $component.key in ('location', 'room', 'netbox', 'service')
             <a href="/report/room?locationid=$component.info.locationid"
                 title="$component.info.locationdescr">
                 $component.info.locationid</a>
-        #end if
-        #if $component.key in ('room', 'netbox', 'service')
+            #end if
+            #if $component.key in ('room', 'netbox', 'service')
             &rarr;
-            <a href="/report/netbox2?roomid=$component.info.roomid"
+            <a href="/report/netbox?roomid=$component.info.roomid"
                 title="$component.info.roomdescr">
                 $component.info.roomid</a>
-        #end if
-        #if $component.key in ('netbox', 'service')
+            #end if
+            #if $component.key in ('netbox', 'service')
             &rarr;
             <a href="/browse/$component.info.sysname"
                 title="$component.info.ip">
                 $component.info.sysname</a>
-        #end if
-        #if $component.key in ('service')
+            #end if
+            #if $component.key in ('service')
             &rarr;
             $component.info.handler
-        #end if
-        #if $component.key not in ('location', 'room', 'netbox', 'service')
-            $component.value
-            (Warning: Modules can no longer be a maintenance component.)
+            #end if
+            #if $component.key not in ('location', 'room', 'netbox', 'service')
+                $component.value
+                (Warning: Modules can no longer be a maintenance component.)
+            #end if
         #end if
         </li>
     #end for
