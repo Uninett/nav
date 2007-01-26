@@ -61,8 +61,8 @@ def handler(req):
     req.content_type = "text/html"
     req.send_http_header()
 
-    page.path = [("Home","/"), ("local", "/local-nav"), ("sortedStats", False)]
-    page.title = "sortedStats"
+    page.path = [("Home","/"), ("Sorted Statistics", False)]
+    page.title = "Sorted Statistics"
 
 
     # Read configfile, give template config-object.
