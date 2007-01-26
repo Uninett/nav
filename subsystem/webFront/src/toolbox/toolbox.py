@@ -37,7 +37,7 @@ def handler(req):
 
     from nav.web import toolbox
     page.tools = toolbox.filterToolList(toolbox.getToolList(), req.session['user'])
-    page.path = [("Home", "/"), ("Tools", False)]
+    page.path = [("Home", "/"), ("Toolbox", False)]
     req.content_type = "text/html"
     req.write(page.respond())
     return apache.OK
