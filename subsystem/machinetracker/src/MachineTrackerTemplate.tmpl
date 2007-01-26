@@ -34,8 +34,11 @@
 
 <div id="machinetracker" style="font-size: 13px;">
 
+<h1>Machine Tracker</h1>
 
-<p>Machine tracker: <a href="ip">IP Search</a> | <a href="mac">MAC Search</a> | <a href="swp">Switch Search</a></p>
+<p><a href="ip">IP Search</a>
+| <a href="mac">MAC Search</a>
+| <a href="swp">Switch Search</a></p>
 
 #if len($errors) > 0
 <div class="errors">
@@ -113,9 +116,10 @@
 #end if
 </div> <!-- forms -->
 
+<br />
+
 #def tableTitle($title, $hits, $columnCount)
   #set $columnCount += 1
-<br />
 
 <table class="horiztable">
     <caption>
@@ -231,22 +235,35 @@
 <p>Your search did not return any results</p>
   #else
 <div class="infobox">
-<h5>Machine tracker search hints</h5>
+
+<h2>Machine Tracker Search Hints</h2>
 <ul>
   <li>MAC search allows wildcard searching, e.g. you can search for
       &quot;<tt>00aabbcc*</tt>&quot;</li>
-
   <li>Switch search will search for switches having a sysname that
       starts with whatever you enter as switch name.  E.g. searching
       for &quot;<tt>blapp-sw</tt>&quot; will retrieve both
       &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
       &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;</li>
-
   <li>Leaving the <i>module</i> or <i>port</i> fields empty in the
       switch search will find any module or port that have matching
       records for your selected switch.</li>
-
 </ul>
+
+<h2>Accuracy of the Machine Tracker Results</h2>
+<ul>
+    <li>IP search results are based on ARP data from routers. Typically ARP
+    data entries are kept by the routers 4 hours after the last packet seen.
+    Also keep in mind, the ARP collector only runs twice an hour (0,30).
+    Subtracting 4-4.5 hours from the end time gives you a fairly good
+    idea.</li>
+    <li>MAC search results are based on switch bridge tables. Default timeout
+    for bridge table entries may vary, in many cases it is 5 minutes. The
+    bridge table collector runs every 15 minutes (11,26,41,59) which also
+    introduces some inaccuracy. In other words, the results may be 5-20 minutes
+    off.</li>
+</ul>
+
 </div>
 
   #end if

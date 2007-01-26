@@ -42,11 +42,11 @@ p.title {
 	border: 1px solid #cccccc;
 	-moz-border-radius: 12px;
 } 
-.infobox h5 {
-	display: inline;
+.infobox h2 {
+	font-size: 1.2em;
+	font-weight: bold;
 	margin-top: 0px;
 	margin-bottom: 0px;
-	border-bottom: 1px solid rgb(51, 102, 153);
 }
 div.errors ul li {
 	color: red;
