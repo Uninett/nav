@@ -19,6 +19,8 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+#
 
 """
 Help functions for daemonizing a process
@@ -51,6 +53,9 @@ import pwd
 import sys
 
 logger = logging.getLogger('nav.daemon')
+
+
+# Exception classes
 
 class DaemonError(Exception):
     """Base class for all exceptions raised by nav.daemon."""
@@ -118,6 +123,9 @@ class ForkError(DaemonError):
     def __str__(self):
         return "Failed fork #%d. (%s)" % (self.forkno, self.error)
 
+
+# Daemon functions
+
 def switchuser(username):
     """
     Switch user the process is running as.
@@ -184,9 +192,10 @@ def justme(pidfile):
         ``pidfile'' is the path to the process' pidfile.
 
     Returns/raises:
-        If we're alone, returns True.
-        If pidfile is unreadable, raises PidFileUnreadableError
+        If daemon is not running, returns True.
         If daemon is already running, raises AlreadyRunningError.
+        If pidfile is unreadable, raises PidFileReadError.
+        If pidfile is empty, but unremovable, raises PidFileWriteError.
 
     """
 
@@ -195,6 +204,16 @@ def justme(pidfile):
         fd = file(pidfile, 'r')
         pid = fd.readline().strip()
         fd.close()
+
+        # Check if pidfile is empty (obscure, but we should handle it)
+        if pid == '':
+            # Remove pidfile and assume we're alone
+            try:
+                os.remove(pidfile)
+            except OSError, error:
+                logger.debug("Unable to remove empty pidfile: %s", error)
+                raise PidFileWriteError(pidfile, error)
+            return True
 
         # Check if pid is readable
         if pid.isdigit():
