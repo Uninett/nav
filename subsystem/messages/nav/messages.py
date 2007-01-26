@@ -34,7 +34,6 @@ __id__ = "$Id:$"
 
 import logging
 import time
-from mod_python import apache, util
 import nav.db
 
 logger = logging.getLogger('nav.messages')
