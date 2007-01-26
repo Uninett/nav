@@ -118,6 +118,7 @@ div#navbar {
 div#navbar table {
 	border-collapse: collapse;
 	width: 100%;
+	height: 33px;
 }
 div#navbar table td {
 	padding: 0px;
