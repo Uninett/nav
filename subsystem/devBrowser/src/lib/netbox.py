@@ -812,7 +812,7 @@ class NetboxInfo(manage.Netbox):
         for module in modules:
             count += len(manage.Gwport.getAllIDs(where='moduleid=%d'
                                                  % module.moduleid))
-        return '<a href="/report/gwport?netboxid=%d">%d</a>' \
+        return '<a href="/report/gwport?netbox.netboxid=%d">%d</a>' \
             % (self.netboxid.netboxid, count)
 
     def showFirstDiscovered(self):
