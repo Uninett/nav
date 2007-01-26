@@ -25,8 +25,8 @@
 #extends nav.web.templates.MainTemplate
 
 #block content
+<h2>Syslog Analyzer</h2>
 <div id="wrapper">
-<h1>Syslog Analyzer</h1>
 $logform($priority,$type,$category,$origin,$tfrom,$tto)
 
 #if $mode == "statistics"
@@ -105,7 +105,7 @@ $prioritylist($priorities, $priorityresult, $link)
 
 <input type="submit" name="send" value="Send" />
 <input type="button" name="reset" value="Reset" onclick="window.location.href='/logger/'"/>
- · <a href="/logger/?error">parsing errors</a> · <a href="/logger/?exception">priority exceptions</a> ·
+ - <a href="/logger/?error">parsing errors</a> - <a href="/logger/?exception">priority exceptions</a> -
 </form>
 
 </div>
@@ -125,7 +125,7 @@ $prioritylist($priorities, $priorityresult, $link)
 #end for
 </table>
 #else
-<p style="text-align:center; font-size:1.2em">Your search did not return any results</p>
+<p>Your search did not return any results.</p>
 #end if
 #end def
 
@@ -210,7 +210,9 @@ of category $categoryid
 #end for
 </table>
 #else
-There is not saved any error conditions from the parsing of the syslog files. This probably means all the log messages have been parsed successfully.
+<p>There is not saved any error conditions from the parsing of the syslog
+files. This probably means all the log messages have been parsed
+successfully.</p>
 #end if
 
 #end def

@@ -210,7 +210,7 @@ def index(req,showHelp=False,status=None):
     
     body.status = status
 
-    body.title = 'Modify seed information for the NAV database'
+    body.title = 'Edit Database - Modify seed information for the NAV database'
     body.infotext = 'Here you can add, delete or edit seed information ' +\
                     'that are needed for the NAV database. Keep in mind ' +\
                     'that most of the data in  the NAV database are ' +\
