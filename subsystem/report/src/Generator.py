@@ -505,7 +505,7 @@ class ReportConfig:
         elif self.sql_limit:
             limit = self.sql_limit
         else:
-            limit = "100"
+            limit = "1000"
         return " LIMIT " + limit + " OFFSET " + offset
        
  
