@@ -92,11 +92,11 @@ class Report:
 
     def setLimit(self,config):
         """
-        returns the limit according to the configuration or the default (100)
+        returns the limit according to the configuration or the default (1000)
 
         - config : the limit of the configuration
 
-        returns the limit of the configuration or 100
+        returns the limit of the configuration or 1000
         """
         
         if config:
@@ -105,7 +105,7 @@ class Report:
         
         else:
 
-            return 100
+            return 1000
 
     def setOffset(self,config):
         """
