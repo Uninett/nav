@@ -141,6 +141,25 @@ UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 DROP VIEW prefixreport;
 DROP VIEW netboxreport;
 
+-- Give proper names to netbox foreign keys (and add cascading to a couple of them)
+-- This *MUST* happen inside a transaction!
+BEGIN;
+ALTER TABLE netbox DROP CONSTRAINT "$1";
+ALTER TABLE netbox DROP CONSTRAINT "$2";
+ALTER TABLE netbox DROP CONSTRAINT "$3";
+ALTER TABLE netbox DROP CONSTRAINT "$4";
+ALTER TABLE netbox DROP CONSTRAINT "$5";
+ALTER TABLE netbox DROP CONSTRAINT "$6";
+
+ALTER TABLE netbox ADD CONSTRAINT netbox_room_fkey   FOREIGN KEY (roomid)   REFERENCES room ON UPDATE CASCADE;
+ALTER TABLE netbox ADD CONSTRAINT netbox_type_fkey   FOREIGN KEY (typeid)   REFERENCES type ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE netbox ADD CONSTRAINT netbox_device_fkey FOREIGN KEY (deviceid) REFERENCES device ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE netbox ADD CONSTRAINT netbox_cat_fkey    FOREIGN KEY (catid)    REFERENCES cat ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE netbox ADD CONSTRAINT netbox_org_fkey    FOREIGN KEY (orgid)    REFERENCES org ON UPDATE CASCADE;
+ALTER TABLE netbox ADD CONSTRAINT netbox_prefix_fkey FOREIGN KEY (prefixid) REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null;
+
+COMMIT;
+
 ---------------------
 --- Index changes ---
 ---------------------

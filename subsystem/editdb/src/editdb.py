@@ -3996,7 +3996,7 @@ class pageRoom(editdbPage):
     tableIdKey = 'roomid'
     sequence = None
     editMultipleAllowed = True
-    editIdAllowed = False
+    editIdAllowed = True
 
     # Description format used by describe(id)
     # Example: room 021 (descr) to jack 123, building, office
@@ -4066,7 +4066,7 @@ class pageRoom(editdbPage):
             self.hiddenFields = {}
 
             disabled = False
-            if editId:
+            if editId and not pageRoom.editIdAllowed:
                 disabled = True
 
             locations = [('','Select a location')]
