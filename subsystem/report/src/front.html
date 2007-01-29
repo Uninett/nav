@@ -11,7 +11,7 @@
 <div style="font-size: 0.5em;"><i>IP/sysname</i></div>
 </form></td>
 
-<td width="25%"><form action="netbox2">
+<td width="25%"><form action="netbox">
 <label style="display: block; white-space: nowrap">Room search</label>
 <input type="text" name="roomid" size="15">
 <input type="hidden" name="op_roomid" value="like">
@@ -27,7 +27,7 @@
 <div style="font-size: 0.5em;"><i>serial number</i></div>
 </form></td>
 
-<td width="25%"><form action="swportv">
+<td width="25%"><form action="swporttrunk">
 <label style="display: block; white-space: nowrap">Switchports with vlan</label>
 <input type="text" name="vlan.vlan" size="15">
 <input type="hidden" name="op_vlan.vlan" value="like">
@@ -38,7 +38,7 @@
 </tr>
 <tr>
 
-<td width="25%"><form action="netbox2">
+<td width="25%"><form action="netbox">
 <label style="display: block; white-space: nowrap">IP Device report</label>
 <input type="text" name="sysname" size="15">
 <input type="hidden" name="op_sysname" value="like">
@@ -55,7 +55,7 @@
 </form></td>
 
 <td>
-<form action="gwport">
+<form action="prefix">
 <label style="display: block; white-space: nowrap">Prefix search</label>
 <input type="text" name="netident" size="15">
 <input type="hidden" name="op_netident" value="like">
@@ -82,23 +82,23 @@
 <b>Collected information</b>
 <dt><a href=netbox>All IP Devices</a>
 
-<dt><a href="gw">Routers</a>
+<dt><a href="netbox?catid=GW%2CGSW&op_catid=in">Routers</a>
 <dd><a href="prefix">Prefixes</a>
 <dd><a href="gwport">Router ports</a>
-<dt><a href="sw">Core Switches</a>
+<dt><a href="netbox?catid=SW%2CGSW&op_catid=in">Core Switches</a>
 <dd><a href="swport?op_b1.catid=in&b1.catid=SW,GSW">Core switch ports</a></li>
 <dd><a href="swport?b1.catid=SW&s1.trunk=t">Trunked core switch ports</a></li>
-<dd><a href="swportv?b1.catid=SW">Core switch ports (expand trunks to vlan)</a></li>
+<dd><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to vlan)</a></li>
 
-<dt><a href="edge">Edge Switches and Hubs</a>
-<dd><a href="swportv?b1.catid=EDGE">Edge switch ports</a></li>
+<dt><a href="netbox?catid=WLAN">Edge Switches and Hubs (who uses those anyway??)</a>
+<dd><a href="swporttrunk?b1.catid=EDGE">Edge switch ports</a></li>
 
-<dt><a href="wlan">Wireless</a>
+<dt><a href="netbox?catid=WLAN">Wireless</a>
 
 <dt><a href="srv">Servers</a>
 <dd><a href="servicemon">Services</a>
 
-<dt><a href="other">Other devices</a>
+<dt><a href="netbox?catid=OTHER">Other devices</a>
 <dt><a href="modules">Modules</a>
 <dt><a href="mem">Memory</a>
 </dl>

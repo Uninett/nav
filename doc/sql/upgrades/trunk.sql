@@ -136,6 +136,11 @@ ALTER TABLE netbox ALTER COLUMN discovered SET DEFAULT NOW();
 
 UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 
+-- Drop obsolete views, the report system has supported the complex SQL
+-- queries they represent for a long time.
+DROP VIEW prefixreport;
+DROP VIEW netboxreport;
+
 ---------------------
 --- Index changes ---
 ---------------------

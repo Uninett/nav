@@ -465,32 +465,6 @@ CREATE VIEW prefix_max_ip_cnt AS
   POW(2,32-MASKLEN(netaddr))-2 END AS max_ip_cnt
  FROM prefix);
 
--- These are here because the report generator cannot parse them
-CREATE VIEW prefixreport AS (
-SELECT host(netaddr),masklen(netaddr) as m,
-   vlan,count(gwip) as antgw,nettype,netaddr,netident,orgid,usageid,description,
-   (select active_ip_cnt from prefix_active_ip_cnt where prefix_active_ip_cnt .prefixid=prefix.prefixid) AS act,
-   prefix.prefixid,vlan.vlanid
-    FROM prefix
-    JOIN vlan USING(vlanid)
-    JOIN gwportprefix USING (prefixid)
-    JOIN gwport USING (gwportid)
-    GROUP BY netaddr,vlan,nettype,netident,vlan.orgid,usageid,description,act,prefix.prefixid,vlan.vlanid
-);
-
-CREATE VIEW netboxreport AS (
-SELECT roomid,sysname,ip,catid,
-  (select count(*) from netboxcategory where netboxcategory.netboxid=netbox.netboxid) AS sub,typename,orgid,up,
-  (select count(*) from module where module.netboxid=netbox.netboxid) AS modules,
-  (select count(*) from swport join module using(moduleid) where module.netboxid=netbox.netboxid) AS swport,
-  (select count(*) from gwport join module using(moduleid) where module.netboxid=netbox.netboxid) AS gwport,
-  'Mem'::varchar AS Mem,
-  (select count(*) from netboxsnmpoid where netboxsnmpoid.netboxid=netbox.netboxid) AS snmp,
-  val AS Function,netbox.netboxid,prefixid,typeid
-  FROM netbox join type using(typeid)
-  LEFT JOIN netboxinfo ON (netbox.netboxid=netboxinfo.netboxid AND var='function')
-);
-
 -- This view gives the allowed vlan for a given hexstring i swportallowedvlan
 CREATE TABLE range (
   num INT NOT NULL PRIMARY KEY
