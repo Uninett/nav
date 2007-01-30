@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="38.400002"
-   height="38.400002"
+   width="45"
+   height="45"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -216,17 +216,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="23.958332"
-     inkscape:cx="19.200001"
-     inkscape:cy="19.200001"
+     inkscape:zoom="20.822222"
+     inkscape:cx="22.5"
+     inkscape:cy="22.5"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="1600"
      inkscape:window-height="1129"
      inkscape:window-x="0"
      inkscape:window-y="25"
-     width="38.400002px"
-     height="38.400002px" />
+     width="45px"
+     height="45px" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -235,7 +235,25 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Magnifying Glass</dc:title>
+        <dc:date></dc:date>
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Michał Pecyna</dc:title>
+          </cc:Agent>
+        </dc:creator>
       </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
     </rdf:RDF>
   </metadata>
   <g
@@ -244,7 +262,7 @@
      id="layer1">
     <g
        id="g2267"
-       transform="matrix(0.309515,0,0,0.390344,-0.848922,-4.010714)">
+       transform="matrix(0.364202,0,0,0.459313,-1.108828,-4.854707)">
       <path
          sodipodi:nodetypes="cssssscccccsccccscssc"
          id="path2224"
