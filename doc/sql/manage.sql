@@ -504,7 +504,7 @@ CREATE TABLE vp_netbox_grp_info (
   y INT4 NOT NULL DEFAULT '0'
 );
 -- Default network
-INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',true);
+INSERT INTO vp_netbox_grp_info (vp_netbox_grp_infoid,name,hideicons) VALUES (0,'_Top',false);
 
 CREATE TABLE vp_netbox_grp (
   vp_netbox_grp_infoid INT4 REFERENCES vp_netbox_grp_info ON UPDATE CASCADE ON DELETE CASCADE,
