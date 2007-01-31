@@ -111,7 +111,6 @@ class PopupMenuListener implements ActionListener
 		PopupMenus activeMenu = com.getActiveMenu();
 		String nettelName = activeMenu.getFullNettelName();
 		String ifName = activeMenu.getIfName();
-		String ifPrefix = (activeMenu.getCapacity() >= 1000.0) ? "giga-" : "";
 		String cricketUrl = "";
 
 		// Litt formatering av ifName er nødvendig
@@ -184,10 +183,10 @@ class PopupMenuListener implements ActionListener
 		{ // link
 			if (activeMenu.getIsRouter() )
 			{
-				cricketUrl = "index.cgi?target=%2F"+ifPrefix+"router-interfaces%2F" + nettelName + "%2F" + ifName.replace('/','_') + "&ranges=d%3Aw&view=" + kommando;
+				cricketUrl = "index.cgi?target=%2Frouter-interfaces%2F" + nettelName + "%2F" + ifName.replace('/','_') + "&ranges=d%3Aw&view=" + kommando;
 			} else
 			{
-				cricketUrl = "index.cgi?target=%2F"+ifPrefix+"switch-ports%2F" + nettelName + "%2F" + ifName + "&ranges=d%3Aw&view=" + kommando;
+				cricketUrl = "index.cgi?target=%2Fswitch-ports%2F" + nettelName + "%2F" + ifName + "&ranges=d%3Aw&view=" + kommando;
 			}
 		}
 
