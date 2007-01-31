@@ -1,5 +1,101 @@
+Version 3.1.1
+(released 08 November 2006)
+
+ Security fixes:
+
+ * The session mechanism of the web interface contained a potential directory
+   traversal vulnerability.  A mitigating factor was that an attacker would
+   first need write access to the local file system of the NAV server.  The
+   vulnerability was discovered by Jim Gallacher, and is similar to a
+   vulnerability discovered in mod_python:
+   http://issues.apache.org/jira/browse/MODPYTHON-135
+
+ Bugfixes:
+
+ * getDeviceData no longer attempts to map Cisco submodules into NAV's data
+   model.  This solves several Cisco related module problems.
+
+ * Any module without switch ports would erroneously be detected as down when
+   the module monitor ran single handedly.  Typically, they would stay marked
+   as down for five hours, go up for one hour, then down again for another
+   five (#1583453).
+
+ * getDeviceData threads working with equipment that enabled VLANs above 1023
+   would crash, causing incomplete information to be collected from these
+   devices..  It no longer crashes, but NAV still will not properly support
+   more than 1024 vlans (#1518783)
+
+ * getDeviceData should no longer generate repeated, incorrect
+   deviceHwVerChanged alerts for HP equipment (#1550393).
+
+ * Fixed bug that would cause a getDeviceData collector thread to crash when a
+   device appeared not to support the ifHighSpeed OID.
+
+ * A couple of getDeviceData plugins had NullPointerExceptions.
+
+ * Initial Cricket/makecricketconfig setup was botched after directory
+   restructuing.  Makecricketconfig is now more flexible when locating a
+   system's cricket installation, and where its config and data are placed.
+
+ * Some SQL errors in EditDB were fixed.
+
+ * Fixed bugs in SNMP getnext handling in EditDB.
+
+ * Fixed an EditDB hardcoded limitation of 10 characters in an IP device's
+   orgid field - the database allows up to 30 characters.
+
+ * EditDB would crash when inserting devices that happened to return non-ASCII
+   serial numbers.  Non-ASCII serial numbers are now ignored.
+
+ * Removed code from networkDiscovery that attempted to traverse non-routed
+   VLANs.  This code was not properly tested, and potentially caused several
+   topology related problems.
+
+ * Build/install errors related to Arnold were fixed.
+
+ * A bug caused by hardcoded values in Arnold prevented it from blocking ports
+   on equipment of other categories than EDGE, even if it was configured to
+   allow this.
+
+ * Status page preferences no longer crashes with a Python traceback
+   (#1521695).
+
+ * The Traffic Map admin buttons no longer disappear when the Traffic Map
+   applet is reloaded (#1495566).
+ 
+ * The traffic map would never display any load data for links on interfaces
+   with spaces in their names (such as ATM interfaces on Cisco devices).
+
+ * The "black load" syndrome of the Traffic Map has been compensated for. 
+
+ * The cam collector would not insert port numbers in cam records unless NAV
+   had collected proper ifName/ifDescr values for the ports in question.
+
+ * The pping and servicemon processes now properly perform a double fork and
+   detach completely from the controlling terminal when daemonized.  When the
+   daemons had been started/restarted in an SSH session, this bug would
+   sometimes cause said SSH session to hang on logout.
+
+ * Fixed a bug which rendered NAV's Cheetah templates incompatible with
+   Cheetah 2.
+
+ * Various other small bugfixes and cosmetic changes.
+
+
 Version 3.1.0
-(released xx June 2006)
+(released 30 June 2006)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
 
  New features and improvements:
 
