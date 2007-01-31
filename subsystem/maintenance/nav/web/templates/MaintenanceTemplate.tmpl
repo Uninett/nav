@@ -58,7 +58,11 @@
             <input type="checkbox" name="remove-$compcounter" value="$component.key,$component.value" />
             #set $compcounter += 1
         #end if
-            $component.key:
+        #if $component.key == 'netbox':
+            IP device:
+        #else
+            $component.key.capitalize():
+        #end if
         #if $component.info is None:
             ID $component.value (Details not available)
         #else
