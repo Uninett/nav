@@ -93,8 +93,6 @@ if (! $gCT->init()) {
     die("Failed to open compiled config tree from gConfigRoot/config.db: $!\n If this is the first time you run makecricketconfig, try compile cricket ($cricketdir/cricket/compile)\n");
 }
 
-umask 007;
-
 use strict;
 use NAV;
 use NAV::Path;
@@ -267,8 +265,6 @@ foreach my $dir (@{ $config{'dirs'} } ) {
 
 
 &fillRRDdatabase();
-
-umask 002;
 
 close CHANGELOG;
 
@@ -821,12 +817,10 @@ sub makeinterfaceTargets {
 	next if $r->ntuples == 0;
 	
 	# make a subdirectory for each sysname
-	umask 002;
 	unless (-e $path) {
 	    print "Making dir $path\n" if $ll >= 3;
 	    mkdir ($path) or warn ("Could not make directory $path: $!");
 	}
-	umask 007;
 
 	# create default target
 	$filetext .= "target --default--\n";
