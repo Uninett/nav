@@ -43,12 +43,14 @@ import ConfigParser
 from nav.web.templates import SortedStatsTemplate
 
 import logging
-logpath = nav.path.localstatedir + "/log"
-logfile = '/sortedStats.log'
-loglevel = 10 # debug
+logger = logging.getLogger('nav.web.sortedStats')
 
 totalskip = 0 # The total number of skipped rrd-datasources.
 configfile = nav.path.sysconfdir + "/sortedStats.confg"
+
+# Read configfile
+config = ConfigParser.ConfigParser()
+config.read(configfile)
 
 def handler(req):
 
@@ -70,9 +72,6 @@ def handler(req):
     page.title = "Sorted Statistics"
 
 
-    # Read configfile, give template config-object.
-    config = ConfigParser.ConfigParser()
-    config.read(configfile)
     page.config = config
 
 
@@ -220,7 +219,7 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     totalskip = 0
 
     # Query database based on parameters in chosen section
-    finddatasources = "SELECT path, rrd_fileid, filename, rrd_datasourceid, units FROM rrd_file LEFT JOIN rrd_datasource USING (rrd_fileid) WHERE path LIKE '%%%s%%' AND descr ~* '%s'" %(path, dsdescr)
+    finddatasources = "SELECT path, rrd_fileid, filename, rrd_datasourceid, units FROM rrd_file LEFT JOIN rrd_datasource USING (rrd_fileid) WHERE path LIKE '%%%s%%' AND netboxid IS NOT NULL AND descr ~* '%s'" %(path, dsdescr)
     cur.execute(finddatasources)
 
 
@@ -374,7 +373,7 @@ def getRRDValues(dslist, valuelist, fromtime):
         logger.debug("Value: %s" %(str(value)))
 
     except ValueError, (errstr):
-        logger.debug("Could not average values %s, %s" %(errno,errstr))
+        logger.debug("Could not average values %s" %(errstr))
         return
 
 
@@ -393,26 +392,4 @@ def getRRDValues(dslist, valuelist, fromtime):
         logger.debug("Putting %s on %s" %(v, filename))
 
     
-def initLogging (logfile, level):
-    """
-    Initialise logging
-    """
-    
-    handler = logging.FileHandler(logfile)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)-9s %(message)s')
-    
-    handler.setFormatter(formatter)
-                
-    rootlogger = logging.getLogger("")
-    rootlogger.addHandler(handler)
-                    
-    l = logging.getLogger('nav.web.sortedStats')
-    l.setLevel(level)
-    
-    return l
 
-
-
-
-logger = initLogging(logpath + logfile, loglevel)
-logger.debug('Logger started')

@@ -22,8 +22,10 @@ tool = cricket.tool
 .PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc install-cron
 
 all: 
+	$(MAKE) -C sortedStats $@
 
 install: install-bin install-conf install-web install-cron install-doc
+	$(MAKE) -C sortedStats $@
 
 install-bin:
 	@for file in $(binaries); do \
@@ -54,6 +56,8 @@ install-cron:
 
 clean:
 	rm -f *~
+	$(MAKE) -C sortedStats $@
 
 distclean: clean
 	rm -f Makefile
+	$(MAKE) -C sortedStats $@

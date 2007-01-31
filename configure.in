@@ -108,6 +108,7 @@ AC_OUTPUT(Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
 	subsystem/statTools/Makefile
+	subsystem/statTools/sortedStats/Makefile
 	subsystem/smsd/Makefile)
 
 echo
