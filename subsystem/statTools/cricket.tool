@@ -1,6 +1,6 @@
 name=Statistics
-uri=/cricket/
+uri=/sortedStats/
 icon=/images/toolbox/tools/stats.png
-description=Load statistics on switch ports and router interfaces.
+description=Sorted statistics and link to the Cricket website.
 priority=84
 
