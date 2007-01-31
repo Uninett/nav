@@ -867,7 +867,7 @@ class Net extends Canvas implements ItemListener
 		// Oppdater PopupMenu med liste over mulige vlan
 		e = vlanSet.elements();
 		vlanMenu.clear();
-		vlanMenu.setMenuLabel("Skift vlan på "+n.getName());
+		vlanMenu.setMenuLabel("View other vlan at "+n.getName());
 		com.d("vlanSet size: " + vlanSet.size(), 5);
 		while (e.hasMoreElements())
 		{
