@@ -8,6 +8,3 @@ set normal:
 	/router-interfaces
 	/servers
 
-set giga:
-	/router-interfaces-snmpv1-and-giga
-	/switch-ports-snmpv1-and-giga
