@@ -127,15 +127,15 @@ $default_form_CSS()
     </caption>
 
     <tr class="header">
-        <td class="leftkludge">
+        <td class="leftkludge"></td>
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-        <th id="$id"><a href="$url">$heading</a></th>
+        <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
 #else
-        <th id="$id">$heading</th>
+        <th>$heading</th>
 #end if
 #end for
-        <td class="rightkludge">
+        <td class="rightkludge"></td>
     </tr>
 
 #for $row in $SectionBox.rows
@@ -146,7 +146,7 @@ $default_form_CSS()
 #for $data, $url, $image, $style in $row
         <td class="$style">
 #if $url
-            <a href="$url">
+            <a href="$url.replace('&', '&amp;')">
 #end if
 #if $image
             <img border="0" title="$image[1]" src="$image[0]" />
@@ -176,7 +176,7 @@ $default_form_CSS()
         <span class="cornerkludge"></span>
         $SectionBox.title
     #for $url, $text in $SectionBox.historyLink
-        (<a href="$url">$text</a>)
+        (<a href="$url.replace('&', '&amp;')">$text</a>)
     #end for
         <br />
         <span class="subtitle">$SectionBox.summary</span>
@@ -186,9 +186,9 @@ $default_form_CSS()
         <td class="leftkludge"></td>
 #for $heading, $url, $style, $id in $SectionBox.headings
 #if $url
-        <th id="$id"><a href="$url">$heading</a></th>
+        <th><a href="$url.replace('&', '&amp;')">$heading</a></th>
 #else
-        <th id="$id">$heading</th>
+        <th>$heading</th>
 #end if
 #end for
         <td class="rightkludge"></td>
@@ -206,10 +206,10 @@ $default_form_CSS()
 #set $style = $col[3]
         <td class="$style">
 #if $url
-            <a href="$url">
+            <a href="$url.replace('&', '&amp;')">
 #end if
 #if $image
-            <img title="$image[1]" src="$image[0]" />
+            <img title="$image[1]" alt="$image[1]" src="$image[0]" />
 #end if
             $data
 #if $url
