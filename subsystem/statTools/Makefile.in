@@ -17,7 +17,7 @@ crondir = @crondir@
 
 binaries = cleanrrds.pl filloiddb.pl makecricketconfig.pl
 conffiles = cricketoids.txt cricket-views.conf
-tool = cricket.tool
+tool = stats.tool
 
 .PHONY: all install install-lib install-bin install-conf install-web clean distclean install-doc install-cron
 

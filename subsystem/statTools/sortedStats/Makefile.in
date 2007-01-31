@@ -41,7 +41,7 @@ install-conf:
 	done
 
 install-web:
-	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/sortedStats/.htaccess
+	$(INSTALL) -v -D -m 644 htaccess $(DESTDIR)$(webroot)/stats/.htaccess
 
 install-lib: $(templates)
 	for file in $(templates); do \

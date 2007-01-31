@@ -9,7 +9,14 @@ $default_table_CSS()
 
 #def content
 
-<h3>Sorted Statistics</h3>
+<h2>Statistics</h2>
+
+<ul>
+    <li><a href="/cricket/">Cricket</a> - Traffic statistics from router
+    interfaces and switch ports, CPU utilization, memory usage and more</li>
+</ul>
+
+<h3>Ranked Statistics</h3>
 
 <form action="" method="get">
 
@@ -66,7 +73,7 @@ $sectionslist.sort()
 <table class="horiztable">
     <caption>
         <span class="cornerkludge"></span>
-        Sorted Statistics for $config.get($view, 'name')<br />
+        Ranked Statistics for $config.get($view, 'name')<br />
         <span class="subtitle">$fromtimes[$fromtime]</span>
     </caption>
 
