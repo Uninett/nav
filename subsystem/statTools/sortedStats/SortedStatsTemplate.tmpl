@@ -71,12 +71,32 @@ Sorted statistics for $config.get($view, 'name') $fromtimes[$fromtime].
 #set $counter = 1
 
 
+#import re
+
+
 #for $line in $sortedKeys
 
-## Format the values. 
+## Find target to use when making link.
+#if $linkview
+#set $target = $re.search("cricket-data(/.*)", $line).groups()[0]
+#end if
+
+## Format the values.
+#set $output = $re.sub(".*/([^\/]+/[^\/]+)$","\\1", $line)
+
 
 #set value = "%.2f" %($showArr[$line])
-<tr><td>$counter</td><td>$line</td><td align='right'>$value</td><td>$units</td></tr>
+<tr><td>$counter</td><td>
+
+## If we got a linkview from the config-file, add a link
+#if $linkview
+<a href='/cricket/?target=$target;view=$linkview'>$output</a>
+#else
+$output
+#end if
+
+</td><td align='right'>$value</td><td>$units</td></tr>
+
 #set $counter += 1
 
 #if $counter > int($numrows)

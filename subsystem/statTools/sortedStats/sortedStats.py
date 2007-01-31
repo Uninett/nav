@@ -36,17 +36,23 @@ import re
 
 import nav.rrd.presenter
 import nav.db
+import nav.path
 
 import ConfigParser
 
-#from nav.web.templates import SortedStatsTemplate
-import SortedStatsTemplate
+from nav.web.templates import SortedStatsTemplate
 
+import logging
+logpath = nav.path.localstatedir + "/log"
+logfile = '/sortedStats.log'
+loglevel = 10 # debug
 
 totalskip = 0 # The total number of skipped rrd-datasources.
 configfile = nav.path.sysconfdir + "/sortedStats.confg"
 
 def handler(req):
+
+    logger.debug("sortedstats started at %s" %time.ctime())
 
     # Some variables
     defaultnumrows = 20
@@ -54,7 +60,6 @@ def handler(req):
     defaultfromtime = 'day'
 
     reload(SortedStatsTemplate)
-
     page = SortedStatsTemplate.SortedStatsTemplate()
 
     # Set some page-info
@@ -89,7 +94,7 @@ def handler(req):
     if args.get('view'):
         view = args.get('view')
         page.view = view
-
+        
 
         # Cachetimeout is fetched from config-file.
         cachetimeoutvariable = "cachetimeout" + fromtime
@@ -106,13 +111,28 @@ def handler(req):
         except:
             pass
 
+        try:
+            linkview = config.get(view, 'linkview')
+            page.linkview = linkview
+        except:
+            page.linkview = False
+            pass
 
         # If forcedview is checked, ask getData to get values live.
         forcedview = bool(args.get('forcedview'))
+        page.forcedview = args.get('forcedview')
+
+        
+        # LOG
+        logger.debug ("forcedview: %s, path: %s, dsdescr: %s, fromtime: %s, view: %s, cachetimeout: %s, modifier: %s\n" %(str(forcedview), config.get(view, 'path'), config.get(view, 'dsdescr'), fromtime, view, cachetimeout, modifier))
+
+
+        # Get data
         values, exetime, units, cachetime, cached = getData(forcedview, config.get(view, 'path'), config.get(view, 'dsdescr'), fromtime, view, cachetimeout, modifier)
 
 
-        page.forcedview = args.get('forcedview')
+        # LOG
+        logger.debug("VALUES: %s\n" %(str(values)))
 
 
         sorted = sortbyvalue(values)
@@ -133,7 +153,7 @@ def handler(req):
         page.sortedKeys = sorted
         page.units = units
         if cached:
-            page.footer = "using cached data"
+            page.footer = "using cached data from %s" %(cachetime)
         else:
             page.footer = "using live data"
 
@@ -146,6 +166,7 @@ def handler(req):
         page.showArr = ""
         page.exetime = 0
         page.forcedview = "0"
+
 
     req.write(page.respond())
     return apache.OK
@@ -166,15 +187,19 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
 
     if not forced:
         # Check if we have data cached 
-        b, valuelist, units, epoch = checkCache(view, fromtime, cachetimeout, modifier)
+        b, valuelist, units, epoch = checkCache(view, fromtime, cachetimeout)
 
         exetime = "%.2f" %(time.time() - starttime) # Time we used to fetch data from cache
-        cachetime = "%.2f" %(time.time() - float(epoch)) # Time since last write of cache
+        cachetime = time.ctime(float(epoch)) # Time since last write of cache
 
-        # If b i true it means we got data from cache, else we fetch
+        # If b is true it means we got data from cache, else we fetch
         # live data.
 
         if b:
+            # Apply modifier if any
+            if modifier:
+                for k in valuelist.keys():
+                    valuelist[k] = eval (str(valuelist[k]) + modifier)
             return valuelist, exetime, units, cachetime, True
 
     cachetime = ""
@@ -199,60 +224,38 @@ def getData(forced, path, dsdescr, fromtime, view, cachetimeout, modifier):
     cur.execute(finddatasources)
 
 
+    # LOG
+    logger.debug("Query for data: %s\n" %(finddatasources))
+
     dslist = []
     units = ""
     # Put each ds in a dict with descriptor
     for row in cur.dictfetchall():
         units = row['units']
         directory = row['path']
-        directory = re.sub(".*/([^\/]+)$", "\\1", directory)
+        #directory = re.sub(".*/([^\/]+)$", "\\1", directory)
         fileid = row['rrd_fileid']
         filename = directory + "/" + row['filename']
         dslist.append((filename, row['rrd_datasourceid']))
 
 
-    # Size of slice
-    slicesize = len(dslist) / numthreads
-    sliceindex = 0
-
-    # Start threads
-    for i in range(1, numthreads + 1):
-        print "Starting thread %s" %i
-
-        # We slice the dslist into roughly equal sizes and give each
-        # thread one slice each.
-
-        slice = []
-        if i == numthreads:
-            slice = dslist[sliceindex:len(dslist)]
-            print "T%s got %s:%s" %(i, sliceindex, len(dslist))
-        else: 
-            slice = dslist[sliceindex:slicesize+sliceindex]
-            print "T%s got %s:%s" %(i, sliceindex, slicesize + sliceindex)
-        
-        sliceindex += slicesize
-
-        # Start thread
-        t = getRRDvalue(i, slice, valuelist, fromtime, modifier)
-        threads.append(t)
-        t.start()
-
-
-    # Wait for threads to finish
-    for thread in threads:
-        thread.join()
-
+    getRRDValues(dslist, valuelist, fromtime)
 
     exetime = "%.2f" %(time.time() - starttime) # Time used to fetch data
 
     saveCache(view, fromtime, valuelist, units)
+
+    # Apply modifier if any
+    if modifier:
+        for k in valuelist.keys():
+            valuelist[k] = eval (str(valuelist[k]) + modifier)
 
     # Return list of values
     return valuelist, exetime, units, cachetime, False
 
 
 
-def checkCache (view, fromtime, cachetimeout, modifier):
+def checkCache (view, fromtime, cachetimeout):
     """
     Checks if values are cached, returns true with list if so,
     otherwise false
@@ -279,13 +282,10 @@ def checkCache (view, fromtime, cachetimeout, modifier):
 
         # Fill valuelist with values from file
         for line in f:
-            key, value = line.split()
+            line = line.rstrip()
+            key, value = line.split(';;')
 
-            # Apply modifer and eval expression for result
-            if modifier:
-                value = eval(value + modifier)
-            else:
-                value = float(value)
+            value = float(value)
                 
             valuelist[key] = value
 
@@ -311,7 +311,7 @@ def saveCache (view, fromtime, valuelist, units):
         f.write(epoch + "\n")
 
         for v in valuelist.keys():
-            f.write(str(v) + " " + str(valuelist[v]) + "\n")
+            f.write(str(v) + ";;" + str(valuelist[v]) + "\n")
 
         f.close()
     except IOError:
@@ -342,66 +342,77 @@ def formatTime(seconds):
     return timestring
 
 
-# Create a threaded class that queries an rrd-file for a datasource in
-# a given interval
+def getRRDValues(dslist, valuelist, fromtime):
+    """ Get rrd-value from the datasources listed in the dslist. """
 
-class getRRDvalue (threading.Thread):
-    """
-    This class uses the presenter-module in NAV to fetch values from
-    multiple rrd-files in one go. The values returned are put on
-    the valuelist-dict.
-    """
-
-    def __init__(self, threadid, dslist, valuelist, fromtime, modifier):
-        threading.Thread.__init__(self)
-        self.threadid = threadid
-        self.starttime = time.time()
-        self.dslist = dslist
-        self.valuelist = valuelist
-        self.fromtime = fromtime
-        self.modifier = modifier
+    # How many files did we not get a value from
+    skip = 0
+    
+    # Let the presenter-module fetch value from the rrd-file
+    pres = nav.rrd.presenter.presentation()
+    filenames = []
+    
+    logger.debug("dslist: %s\n" %str(dslist))
 
 
-    def run(self):
-        # How many files did we not get a value from
-        skip = 0
-
-        # Let the presenter-module fetch value from the rrd-file
-        pres = nav.rrd.presenter.presentation()
-        filenames = []
+    # Foreach datasource in the dslist, add it to the presenter list. This way we fetch the values from all datasources at once.
+    for slicepart in dslist:
+        (filename, dsid) = slicepart
+            
+        logger.debug("Got %s, %s from list" %(filename, dsid))
         
-        # Foreach datasource in the dslist, add it to the presenter list. This way we fetch the values from all datasources at once.
-        for slice in self.dslist:
-            (filename, dsid) = slice
-            
-            print "T%s: Got %s, %s from list" %(self.threadid, filename, dsid)
-            
-            pres.addDs(dsid)
-            
-            filename = filename.replace(".rrd", "")
-            filenames.append(filename)
+        a = pres.addDs(dsid)
+        filename = filename.replace(".rrd", "")
+        #filenames.append((filename,dsid))
+        filenames.append(filename)
                 
 
-        pres.timeLast(self.fromtime)
-        try:
-            value = pres.average()            
+    pres.timeLast(fromtime)
 
-        except ValueError:
-            print "T%s: Could not get values from %s (DS %s)" %(self.threadid, filename, dsid)
+    try:
+        value = pres.average()
+        logger.debug("Value: %s" %(str(value)))
+
+    except ValueError, (errstr):
+        logger.debug("Could not average values %s, %s" %(errno,errstr))
+        return
 
 
-        # Reverse filenames-list so that we can pop the list (in stead of shift)
-        filenames.reverse()
+    # Reverse filenames-list so that we can pop the list (in stead of shift)
+    filenames.reverse()
+    
+    for v in value:
+        # Put value in a list
+        #(filename,dsid) = filenames.pop()
+        filename = filenames.pop()
+        if v == 'nan' or v == 0:
+            skip += 1
+        else:
+            valuelist[filename] = v
 
-        for v in value:
-            # Put value in a list
-            filename = filenames.pop()
-            if v == 'nan' or v == 0:
-                skip += 1
-            else:
-                if self.modifier:
-                    v = eval (str(v) + self.modifier)
+        logger.debug("Putting %s on %s" %(v, filename))
+
+    
+def initLogging (logfile, level):
+    """
+    Initialise logging
+    """
+    
+    handler = logging.FileHandler(logfile)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)-9s %(message)s')
+    
+    handler.setFormatter(formatter)
                 
-            self.valuelist[filename] = v
+    rootlogger = logging.getLogger("")
+    rootlogger.addHandler(handler)
+                    
+    l = logging.getLogger('nav.web.sortedStats')
+    l.setLevel(level)
+    
+    return l
 
 
+
+
+logger = initLogging(logpath + logfile, loglevel)
+logger.debug('Logger started')

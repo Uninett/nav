@@ -36,9 +36,9 @@ dsdescr: sysuptime
 units: days
 modifier: / 100 / 86400 
 
-[ifinoctetsgigaswitchports]
-name: Traffic in on gigaswitchports
-path: giga-switch-ports
+[ifinoctetsswitchports]
+name: Traffic in on switchports
+path: switch-ports
 dsdescr: ifinoctets
 units: bits/s
 modifier: * 8
