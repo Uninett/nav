@@ -226,7 +226,7 @@ class AbstractChecker:
 		if self._sysname:
 			return self._sysname
 		else:
-			return self.geIp()
+			return self.getIp()
 	def setResponsetime(self,usage):
 		"""Sets the responsetime of this service. Is updated by self.run() """
 		self._usage = usage
