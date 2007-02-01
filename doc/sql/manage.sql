@@ -453,10 +453,11 @@ UNION DISTINCT
  WHERE arp.end_time='infinity');
 
 CREATE VIEW prefix_active_ip_cnt AS
-(SELECT prefixid,COUNT(*) AS active_ip_cnt
- FROM arp
- WHERE end_time='infinity'
- GROUP BY prefixid);
+(SELECT prefix.prefixid, COUNT(arp.ip) AS active_ip_cnt
+ FROM prefix
+ LEFT JOIN arp ON arp.ip << prefix.netaddr
+ WHERE arp.end_time = 'infinity'
+ GROUP BY prefix.prefixid);
 
 CREATE VIEW prefix_max_ip_cnt AS
 (SELECT prefixid,
