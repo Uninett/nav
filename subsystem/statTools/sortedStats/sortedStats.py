@@ -46,7 +46,7 @@ import logging
 logger = logging.getLogger('nav.web.sortedStats')
 
 totalskip = 0 # The total number of skipped rrd-datasources.
-configfile = nav.path.sysconfdir + "/sortedStats.confg"
+configfile = nav.path.sysconfdir + "/sortedStats.conf"
 
 # Read configfile
 config = ConfigParser.ConfigParser()
