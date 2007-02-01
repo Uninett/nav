@@ -22,6 +22,8 @@ Version 3.2.0
     Existing plugins for Gammu, Boost Communications (www.boostcom.no) and
     e-mail gateways.
 
+  * New link from alert profiles enables users to see their own SMS queues.
+
   * More information and links in the IP Device Browser. Among other things:
     New color for 10gig ports, display "first seen by NAV" date/time for
     devices.
