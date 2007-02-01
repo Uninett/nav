@@ -141,6 +141,15 @@ UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 DROP VIEW prefixreport;
 DROP VIEW netboxreport;
 
+-- Redefine the prefix_active_ip_cnt view, as the prefix foreign key of the
+-- arp table may not always be reliably set.  Unfortunately, this is slower.
+CREATE OR REPLACE VIEW prefix_active_ip_cnt AS
+(SELECT prefix.prefixid, COUNT(arp.ip) AS active_ip_cnt
+ FROM prefix
+ LEFT JOIN arp ON arp.ip << prefix.netaddr
+ WHERE arp.end_time = 'infinity'
+ GROUP BY prefix.prefixid);
+
 -- Give proper names to netbox foreign keys (and add cascading to a couple of them)
 -- This *MUST* happen inside a transaction!
 BEGIN;

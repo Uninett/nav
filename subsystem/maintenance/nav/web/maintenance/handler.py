@@ -150,7 +150,7 @@ def handler(req):
 
         select3 = UpdateableSelect(select2,
                                    'cn_netbox',
-                                   'Box',
+                                   'IP Device',
                                    'Netbox',
                                    'sysname',
                                    'netboxid',
@@ -192,7 +192,7 @@ def handler(req):
             buttonenabled = True
         elif len(select3.selectedList):
             validSelect = True
-            buttontext = "Add netbox(es) to task"
+            buttontext = "Add IP device(s) to task"
             buttonkey = "cn_add_netboxes"
             buttonenabled = True
         elif len(select2.selectedList):
