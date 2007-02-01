@@ -1,24 +1,25 @@
 /*
  *
- * This preliminary SQL script is designed to upgrade your NAV database from
- * version 3.1 to the current trunk revision.  Please update this with every
- * change you make to the database initialization scripts.  It will eventually
- * become the update script for the next release.
+ * This SQL script is designed to upgrade your NAV database from
+ * version 3.1 to 3.2
  *
- * Also, if you are keeping your installation in sync with trunk, you should
- * watch this file for changes and run them when updating (check the diffs!)
+ * Run the script as the nav database user like this:
  *
- * Connect to PostgreSQL as the postgres superuser or the nav database user
- * like this:
+ *  psql -f 3.2.0.sql manage nav
  *
- *  psql -f trunk.sql manage <username>
+ * Also make sure to run types.sql and snmpoid.sql to make sure your type and
+ * snmpoid tables are up-to-date:
+ *
+ *  psql -f types.sql manage nav
+ *  psql -f snmpoid.sql manage nav
  *
 */
 
 \c manage
 ------------------------------------------------------------------------------
--- messages/maintenance tables
+-- Tables for the rewritten messages/maintenance subsystems
 ------------------------------------------------------------------------------
+BEGIN;
 
 CREATE TABLE message (
     messageid SERIAL PRIMARY KEY,
@@ -121,20 +122,19 @@ CREATE TABLE message_to_maint_task (
 CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
--- EMOTD DATABASE
--- Optionally, you can drop the tables emotd, maintenance, emotd_related and
--- the view maintenance_view from the database. These are no longer in use
--- after the replacement of the old messages/emotd subsystem.
+-- Drop the tables and view of the old messages system.
+DROP TABLE emotd;
+DROP TABLE maintenance;
+DROP TABLE emotd_related
+DROP VIEW maintenance_view;
 
-
+-- Other schema changes:
 ALTER TABLE gwport ADD COLUMN portname VARCHAR;
 
 ALTER TABLE device ADD COLUMN discovered TIMESTAMP;
 ALTER TABLE device ALTER COLUMN discovered SET DEFAULT NOW();
 ALTER TABLE netbox ADD COLUMN discovered TIMESTAMP;
 ALTER TABLE netbox ALTER COLUMN discovered SET DEFAULT NOW();
-
-UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 
 -- Drop obsolete views, the report system has supported the complex SQL
 -- queries they represent for a long time.
@@ -151,8 +151,6 @@ CREATE OR REPLACE VIEW prefix_active_ip_cnt AS
  GROUP BY prefix.prefixid);
 
 -- Give proper names to netbox foreign keys (and add cascading to a couple of them)
--- This *MUST* happen inside a transaction!
-BEGIN;
 ALTER TABLE netbox DROP CONSTRAINT "$1";
 ALTER TABLE netbox DROP CONSTRAINT "$2";
 ALTER TABLE netbox DROP CONSTRAINT "$3";
@@ -167,20 +165,11 @@ ALTER TABLE netbox ADD CONSTRAINT netbox_cat_fkey    FOREIGN KEY (catid)    REFE
 ALTER TABLE netbox ADD CONSTRAINT netbox_org_fkey    FOREIGN KEY (orgid)    REFERENCES org ON UPDATE CASCADE;
 ALTER TABLE netbox ADD CONSTRAINT netbox_prefix_fkey FOREIGN KEY (prefixid) REFERENCES prefix ON UPDATE CASCADE ON DELETE SET null;
 
-COMMIT;
+---------------------------
+--- manage Data changes ---
+---------------------------
+UPDATE nettype SET edit=FALSE WHERE nettypeid='static';
 
----------------------
---- Index changes ---
----------------------
-\c logger
-DROP INDEX message_type_hash;
-DROP INDEX message_origin_hash;
-CREATE INDEX message_type_btree ON message USING btree (type);
-CREATE INDEX message_origin_btree ON message USING btree (origin);
-
---------------------
---- Data changes ---
---------------------
 UPDATE snmpoid 
 SET oidkey='hpFwVer', descr='Firmware revision number' 
 WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
@@ -189,7 +178,24 @@ WHERE snmpoid = '1.3.6.1.4.1.11.2.14.11.5.1.1.4.0'
 INSERT INTO subsystem (name) VALUES ('maintenance');
 DELETE FROM subsystem WHERE name = 'emotd';
 
+COMMIT;
+
+----------------------------
+--- logger Index changes ---
+----------------------------
+\c logger
+BEGIN;
+DROP INDEX message_type_hash;
+DROP INDEX message_origin_hash;
+CREATE INDEX message_type_btree ON message USING btree (type);
+CREATE INDEX message_origin_btree ON message USING btree (origin);
+COMMIT;
+
+--------------------------------
+--- navprofiles Data changes ---
+--------------------------------
 \c navprofiles
+BEGIN;
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/about/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/js/.*');
 INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (2, 2, '^/style/.*');
@@ -198,3 +204,5 @@ INSERT INTO AccountGroupPrivilege (accountgroupid, privilegeid, target) VALUES (
 -- Remove old message subsystem ACL-s
 DELETE FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/messages/?$';
 DELETE FROM AccountGroupPrivilege WHERE accountgroupid = 2 AND privilegeid = 2 AND target = '^/messages/(main\\.py|rss|historic|active|planned|view|maintenance)\\b';
+COMMIT;
+
