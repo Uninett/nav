@@ -6,18 +6,33 @@ Please report bugs at http://sourceforge.net/projects/nav
 Upgrading from NAV 3.1.1
 ========================
 
+New messages and maintenance subsystems
+---------------------------------------
+NAV 3.2 introduces new messages and maintenance systems, rewritten from
+scratch.  These also utilize new database tables.  There is no migration
+strategy for these systems, which means that any maintenance schedules and
+messages you have in your old NAV installation will be lost during the database
+upgrade.
+
+
 Update Cricket configuration
 ----------------------------
 NAV 3.2 finally configures Cricket to exclusively use 64-bit traffic counters
 for SNMPv2-enabled devices.  This also means you must update your Cricket
-configuration tree with new Defaults files from NAV.
+configuration tree with new Defaults- and .nav-files from NAV.
 
 NAV's initial Cricket configuration tree is found in the source code under the
 subsystem/statTools/cricket/cricket-config/ subdirectory.  Copy this
-recursively to your active cricket-config directory, e.g.:
+recursively to your active cricket-config directory (and make sure to also copy
+the hidden .nav files as well).  If your cricket-config directory is
+/usr/local/cricket/cricket-config/ , you can do it like this:
 
-  cp -r subsystem/statTools/cricket/cricket-config/* \
-        /usr/local/cricket/cricket-config/
+  cp -rv subsystem/statTools/cricket/cricket-config \
+         /usr/local/cricket/
+
+Also, you can update your Cricket installation's 'subtree-sets' file, which is
+contained in the same directory as cricket-conf.pl.  Remove the 'giga' subtree.
+Nothing should break if you forget to, however.
 
 
 Cricket data migration
@@ -59,4 +74,3 @@ RRD file database:
 
 You may notice discontinuities in your gigabit traffic graphs at the time of
 the upgrade, due to the switch from 32-bit to 64-bit counters.
-
