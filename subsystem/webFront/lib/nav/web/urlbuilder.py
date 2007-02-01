@@ -138,7 +138,7 @@ def createUrl(object=None, id=None, division=None,
         if object:
             id = object._getID()[0]
         if division=="vlan":
-            url += 'swportv?vlanid=%s' % id
+            url += 'swporttrunk?vlanid=%s' % id
         elif division=='room':
             url += 'netbox?roomid=%s' % id
         elif division=='cat':    
