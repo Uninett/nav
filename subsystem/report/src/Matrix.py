@@ -22,6 +22,13 @@
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
 #
+"""Builds the prefix matrix.
+
+BUGS
+----
+The code looks awful, should be rewritten to use IPy for improved readability
+(and fewer bugs)
+"""
 import string
 import os
 import re
@@ -67,7 +74,7 @@ class Matrix:
         subnet = self.subnet
         big_net_rowspan = self.big_net_rowspan
 
-        sql = "select prefixid, netaddr, vlan, active_ip_cnt, max_ip_cnt, nettype, description, orgid from prefix left outer join vlan using (vlanid) left outer join prefix_active_ip_cnt using (prefixid) left outer join prefix_max_ip_cnt using (prefixid) order by netaddr"
+        sql = "select prefixid, netaddr, vlan, active_ip_cnt, max_ip_cnt, nettype, description, orgid from prefix left outer join vlan using (vlanid) left outer join prefix_active_ip_cnt using (prefixid) left outer join prefix_max_ip_cnt using (prefixid) where nettype <> 'scope' order by netaddr"
         database.execute(sql)
 
         prefices = database.fetchall()
