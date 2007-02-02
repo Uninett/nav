@@ -1,5 +1,5 @@
 Version 3.2.0
-(released xx February 2007)
+(released 02 February 2007)
 
 #####################################################################
 ##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
@@ -16,7 +16,8 @@ Version 3.2.0
  New features and improvements:
 
   * New messages and maintenance web tools, rewritten from scratch, replace the
-    old messages system.
+    old messages system. The maintenance tool features a calendar for ease of
+    use.
 
   * SMS Daemon rewritten in Python, now extensible with dispatcher plugins.
     Existing plugins for Gammu, Boost Communications (www.boostcom.no) and
@@ -25,8 +26,8 @@ Version 3.2.0
   * New link from alert profiles enables users to see their own SMS queues.
 
   * More information and links in the IP Device Browser. Among other things:
-    New color for 10gig ports, display "first seen by NAV" date/time for
-    devices.
+    New color for 10gig ports, displays serial number, displays software
+    version and displays "first discovered by NAV" time.
 
   * Full description (ifAlias) string now stored for gwports too.
 
