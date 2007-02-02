@@ -123,10 +123,10 @@ CREATE OR REPLACE VIEW maint AS
     SELECT * FROM maint_task NATURAL JOIN maint_component;
 
 -- Drop the tables and view of the old messages system.
-DROP TABLE emotd;
-DROP TABLE maintenance;
-DROP TABLE emotd_related
 DROP VIEW maintenance_view;
+DROP TABLE maintenance;
+DROP TABLE emotd_related;
+DROP TABLE emotd;
 
 -- Other schema changes:
 ALTER TABLE gwport ADD COLUMN portname VARCHAR;
