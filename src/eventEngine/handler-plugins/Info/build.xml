@@ -20,7 +20,7 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" classpath="${classpath}" source="1.4" target="1.4" debug="yes"/>
+    <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" classpath="${classpath}" source="1.4" target="1.4" debug="yes"/>
   </target>
 
   <target name="dist" depends="compile"
