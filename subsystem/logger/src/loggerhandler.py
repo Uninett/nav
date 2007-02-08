@@ -48,7 +48,7 @@ def handler(req):
     if req.form.has_key("tfrom") and req.form["tfrom"]:
         tfrom = DateTime.strptime(req.form["tfrom"], DATEFORMAT)
     else:
-        tfrom = DateTime.today()
+        tfrom = DateTime.now() - DateTime.oneDay
 
     if req.form.has_key("tto") and req.form["tto"]:
         tto = DateTime.strptime(req.form["tto"], DATEFORMAT)
