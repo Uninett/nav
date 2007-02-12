@@ -66,13 +66,14 @@ def handler(req):
             phones = "%s, %s" % (phones, phone[0])
         else:
             phones = phone[0]
-    page.phones = phones
 
-    # Pass messages to the template
+    # Pass phone numbers and messages to the template
     if phones:
+        page.phones = phones
         page.messages = smsdbquery(phones, days)
     else:
-        page.messages = None
+        page.phones = 'No numbers found in user profile'
+        page.messages = []
     
     req.write(page.respond())
     return apache.OK
