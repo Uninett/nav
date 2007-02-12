@@ -32,12 +32,14 @@ __license__ = "GPL"
 __author__ = "Stein Magnus Jodal (stein.magnus.jodal@uninett.no)"
 __id__ = "$Id: mysms.py 3464 2006-06-22 08:58:05Z jodal $"
 
+import logging
 from mod_python import apache
 
 import nav.db
 from nav.web.URI import URI
 from nav.web.templates.MySMSTemplate import MySMSTemplate
 
+logger = logging.getLogger('nav.web.mysms')
 dbconn = nav.db.getConnection('webfront', 'navprofile')
 db = dbconn.cursor()
 
@@ -98,15 +100,15 @@ def phonesdbquery(userid):
 
     sql = "%s WHERE %s" % (select, where)
 
-    if apache:
-        apache.log_error("My SMS query: " + sql, apache.APLOG_NOTICE)
+    logging.debug("My SMS number query: %s", sql)
 
     db.execute(sql)
     result = db.fetchall()
 
-    if result and apache:
-        apache.log_error("My SMS query returned %d results." %
-         len(result), apache.APLOG_NOTICE)
+    if result:
+        logger.debug("My SMS number query returned %d results.", len(result))
+    else:
+        logger.debug("My SMS number query returned no results.")
 
     return result
 
@@ -126,15 +128,15 @@ def smsdbquery(phones, days = 7, orderby = ''):
 
     sql = "%s WHERE %s ORDER BY %s" % (select, where, orderby)
 
-    if apache:
-        apache.log_error("My SMS query: " + sql, apache.APLOG_NOTICE)
+    logger.debug("My SMS message query: %s", sql)
 
     db.execute(sql)
     result = db.dictfetchall()
 
-    if result and apache:
-        apache.log_error("My SMS query returned %d results." %
-         len(result), apache.APLOG_NOTICE)
+    if result:
+        logger.debug("My SMS message query returned %d results.", len(result))
+    else:
+        logger.debug("My SMS message query returned no results.")
 
     return result
 
