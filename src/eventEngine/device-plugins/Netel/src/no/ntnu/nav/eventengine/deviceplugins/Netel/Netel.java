@@ -62,7 +62,18 @@ public class Netel extends Box
 		}
 
 		Log.d("NETEL_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all netboxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid) WHERE catid IN ('SW','EDGE','WLAN','SRV','OTHER')");
+		ResultSet rs = Database.query(
+				"SELECT deviceid,netboxid,ip,sysname,vlan,up, " +
+				"       CASE WHEN maintenance > 0 THEN TRUE ELSE FALSE END AS on_maintenance " +
+				"FROM netbox " +
+				"LEFT JOIN prefix USING(prefixid) " +
+				"LEFT JOIN vlan USING(vlanid) " +
+				"LEFT JOIN (SELECT netboxid, count(*) as maintenance " +
+				"           FROM alerthist " +
+				"           WHERE eventtypeid='maintenanceState' " +
+				"             AND end_time='infinity' " +
+				"           GROUP BY netboxid) maintaggr USING (netboxid) " +
+				"WHERE catid IN ('SW','EDGE','WLAN','SRV','OTHER')");
 
 		while (rs.next()) {
 			try {
