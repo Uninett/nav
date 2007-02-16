@@ -6,6 +6,7 @@ Version 3.2.1
   * SF#1661327 (Makecricketconfig uses 64-bit counters where not supported)
   * SF#1660516 (eventEngine does not work in NAV 3.2.0)
   * SF#1649947 (My SMS crashes if user has no sms alert address)
+  * SF#1661381 (SMSD's database queue fails with SQL syntax error)
 
 Version 3.2.0
 (released 02 February 2007)
