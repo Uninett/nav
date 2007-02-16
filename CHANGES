@@ -1,3 +1,12 @@
+Version 3.2.1
+(released 16 February 2007)
+
+ Bugfixes:
+
+  * SF#1661327 (Makecricketconfig uses 64-bit counters where not supported)
+  * SF#1660516 (eventEngine does not work in NAV 3.2.0)
+  * SF#1649947 (My SMS crashes if user has no sms alert address)
+
 Version 3.2.0
 (released 02 February 2007)
 
