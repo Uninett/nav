@@ -158,14 +158,16 @@ class NAVDBQueue(object):
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
 
-        timesent = ''
         if sent == 'Y' or sent == 'I':
-            timesent = ', timesent = now()'
+            sql = """UPDATE smsq
+                SET sent = %(sent)s, smsid = %(smsid)d, timesent = now()
+                WHERE id = %(id)d"""
+        else:
+            sql = """UPDATE smsq
+                SET sent = %(sent)s, smsid = %(smsid)d
+                WHERE id = %(id)d"""
 
-        data = { 'sent': sent, 'smsid': smsid, 'timesent': timesent, 'id': id }
-        sql = """UPDATE smsq
-            SET sent = %(sent)s, smsid = %(smsid)d%(timesent)s
-            WHERE id = %(id)d"""
+        data = { 'sent': sent, 'smsid': smsid, 'id': id }
         db.execute(sql, data)
         dbconn.commit()
 
