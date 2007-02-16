@@ -805,6 +805,15 @@ sub makeinterfaceTargets {
 
 	$q = "SELECT ".$table."id,ifindex,interface,". join (",",@nameparameters) . " FROM $table LEFT JOIN module USING (moduleid) WHERE netboxid=$netboxid";
 	
+	# Check if 64-bits counters are supported on this netbox.
+	my $support64bits = 0;
+	my $snmpq = "SELECT oidkey FROM netboxsnmpoid LEFT JOIN snmpoid USING (snmpoidid) WHERE netboxid=$netboxid AND oidkey ~* 'ifHC'";
+	my $snmpqres = $dbh->exec($snmpq);
+	if ($snmpqres->ntuples > 0) {
+	    $support64bits = 1;
+	}
+
+
 	foreach my $parameter (@nameparameters) {
 	    $q .= " AND $parameter IS NOT NULL";
 	}
@@ -825,9 +834,12 @@ sub makeinterfaceTargets {
 	# create default target
 	$filetext .= "target --default--\n";
 	$filetext .= "\tsnmp-host\t=\t$ip\n";
-	if ($snmpversion == 2) {
+	if ($snmpversion == 2 && $support64bits) {
+	    print "$sysname supports 64-bits counters\n" if $ll >= 3;
 	    $filetext .= "\tsnmp-version\t=\t2c\n";
 	    $filetext .= "\ttarget-type\t=\tsnmpv2-interface\n";
+	} else {
+	    print "$sysname does not support 64-bits counters\n" if $ll >= 3;	    
 	}
 	$filetext .= "\tsnmp-community\t=\t$ro\n\n";
 

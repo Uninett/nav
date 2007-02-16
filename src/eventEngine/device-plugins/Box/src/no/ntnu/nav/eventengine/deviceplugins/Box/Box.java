@@ -23,7 +23,6 @@ public class Box extends Device
 	//protected int gwdeviceid;
 	protected int vlan;
 
-	protected String maintenanceState;
 	protected boolean onMaintenance;
 
 	// Translate boxid -> deviceid
@@ -55,8 +54,7 @@ public class Box extends Device
 		ip = rs.getString("ip");
 		sysname = rs.getString("sysname");
 		vlan = rs.getInt("vlan");
-		maintenanceState = rs.getString("maintenanceState");
-		if ("active".equals(maintenanceState)) onMaintenance = true;
+		onMaintenance = rs.getBoolean("on_maintenance");
 		char up = rs.getString("up").charAt(0);
 		switch (up) {
 			case 'y': status = STATUS_UP; break;
@@ -70,8 +68,18 @@ public class Box extends Device
 	public static void updateFromDB(DeviceDB ddb) throws SQLException
 	{
 		Log.d("BOX_DEVICEPLUGIN", "UPDATE_FROM_DB", "Fetching all boxes from database");
-		ResultSet rs = Database.query("SELECT deviceid,netboxid,ip,sysname,vlan,up,state AS maintenanceState FROM netbox LEFT JOIN prefix USING(prefixid) LEFT JOIN vlan USING(vlanid) LEFT JOIN emotd_related ON (netboxid=value) LEFT JOIN maintenance USING(emotdid)");
-
+		ResultSet rs = Database.query(
+				"SELECT deviceid,netboxid,ip,sysname,vlan,up, " +
+				"       CASE WHEN maintenance > 0 THEN TRUE ELSE FALSE END AS on_maintenance " +
+				"FROM netbox " +
+				"LEFT JOIN prefix USING(prefixid) " +
+				"LEFT JOIN vlan USING(vlanid) " +
+				"LEFT JOIN (SELECT netboxid, count(*) as maintenance " +
+				"           FROM alerthist " +
+				"           WHERE eventtypeid='maintenanceState' " +
+				"             AND end_time='infinity' " +
+				"           GROUP BY netboxid) maintaggr USING (netboxid)");
+	       
 		while (rs.next()) {
 			int deviceid = rs.getInt("deviceid");
 
@@ -101,13 +109,6 @@ public class Box extends Device
 	public String getSysname()
 	{
 		return sysname;
-	}
-
-	/**
-	 * Returns the maintenance state; may be null.
-	 */
-	public String getMaintenanceState() {
-		return maintenanceState;
 	}
 
 	/**
