@@ -269,18 +269,17 @@ $renderFormattedList($page.orderList)
 
 #def history(page)
 #if $page.subname == 'history':
-<p>
+<form action="" method="get">
 <table style="font-size: 13px;">
     <tr>
         <th align="left">From</th>
         <td>$renderwidget($page.widgets['startdate'])</td>
-    </tr>
-    <tr>
         <th align="left">To</th>
         <td>$renderwidget($page.widgets['enddate'])</td>
+        <td>$renderwidget($page.widgets['searchdate'])</td>
     </tr>
 </table>
-</p>
+</form>
 #for $box in $page.boxList
 $renderFormattedList($box)
 #end for
@@ -334,9 +333,7 @@ $submitButton($page.submit)
 #end def
 
 #def makeSubMenu($menu)
-<br>
-<font size="1">
-[
+<p>
 #set $first = True
 #for $item in $menu
 #if not $first
@@ -349,8 +346,7 @@ $item[0]
 #end if
 #set $first = False
 #end for
-]
-</font>
+</p>
 #end def
 
 #def $orderDetails($data)

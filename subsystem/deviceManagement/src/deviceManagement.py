@@ -356,16 +356,19 @@ def history(req,deviceorderid=None):
                        'a (partial) serialnumber, hostname, ip or room.'
     page.widgets = {}
 
-    page.widgets['startdate'] = Widget([CN_DAY,CN_MONTH,CN_YEAR],'date',
-                                       'Order date',
+    page.widgets['startdate'] = Widget(['start_day', 'start_month', 'start_year'],
+                                       'date',
+                                       'Start date',
                                        ['2004',
                                         '01',
                                         '01'])
-    page.widgets['enddate'] = Widget([CN_DAY,CN_MONTH,CN_YEAR],'date',
-                                       'Order date',
+    page.widgets['enddate'] = Widget(['end_day', 'end_month', 'end_year'],
+                                       'date',
+                                       'End date',
                                        [None,
                                         None,
                                         None])
+    page.widgets['searchdate'] = Widget('date_submit', 'submit', 'Search')
 
 
 
