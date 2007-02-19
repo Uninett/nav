@@ -46,6 +46,20 @@ Pros:
 Cons:
 	You will need a dedicated mobile phone.
 
+HttpGetDispatcher
+-----------------
+Description:
+	Originally contributed by USIT, UiO for use with their HTTP-to-SMS
+	gateway. Generalized to be useful for similar gateways without UiO's
+	exact URL syntax. Supports both HTTP and HTTPS.
+Depends:
+	Depends on urllib and urllib2, which both are parts of core Python.
+Pros:
+	Does not need a dedicated mobile phone.
+Cons:
+	Depends on a working network connection between you and your
+	HTTP-to-SMS gateway. Does not support POST or HTTP Basic Auth.
+
 BoostDispatcher
 ---------------
 Description:
@@ -67,9 +81,9 @@ UninettMailDispatcher
 Description:
 	This dispatcher sends SMS via UNINETT's mail-to-SMS gateway. The mail
 	must be sent from a uninett.no host, so this is of little use for
-	others.
+	others, but is useful as a proof of concept.
 Depends:
-	Only depends on smtplib which is a part on core Python.
+	Only depends on smtplib which is a part of core Python.
 	And, of course, on a working SMTP server.
 Pros:
 	No extra setup cost to get the daemon sending SMS messages.
@@ -80,3 +94,4 @@ Cons:
 
 
 -- Stein Magnus Jodal <stein.magnus.jodal@uninett.no>, 2006-07-03
+   Updated 2007-02-19.
