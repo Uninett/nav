@@ -249,7 +249,7 @@ def getconfig(defaults = None):
         section as values.
     """
 
-    config = ConfigParser.SafeConfigParser(defaults)
+    config = ConfigParser.RawConfigParser(defaults)
     config.read(configfile)
 
     sections = config.sections()
