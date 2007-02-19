@@ -15,4 +15,17 @@
  *
 */
 
--- Nothing here yet.
+-- Close invalid moduleState states in alerthist.
+UPDATE alerthist SET end_time=now()
+WHERE eventtypeid = 'moduleState' 
+  AND subid IS NOT NULL
+  AND subid NOT IN (SELECT moduleid FROM module) 
+  AND end_time = 'infinity';
+
+-- New rule to automatically close module related alert states when modules
+-- are deleted.
+CREATE RULE close_alerthist_modules AS ON DELETE TO module
+  DO UPDATE alerthist SET end_time=NOW() 
+     WHERE eventtypeid='moduleState' 
+       AND end_time='infinity'
+       AND subid=OLD.moduleid;
