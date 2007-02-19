@@ -1119,17 +1119,16 @@ class ModuleSectionBox(SectionBox):
     def fill(self):
         filterSettings = self.filterSettings
     
-        sql = "SELECT netbox.sysname,netbox.ip," +\
-              "module.module,alerthist.start_time," +\
-              "now()-alerthist.start_time,netbox.up," +\
-              "alerttype.alerttype,module.moduleid,netbox.netboxid FROM " + \
-              "alerthist,netbox,alerttype,module " + \
-              "WHERE alerthist.netboxid=netbox.netboxid AND " +\
-              "alerthist.subid = module.moduleid AND " +\
-              "alerttype.alerttypeid=alerthist.alerttypeid AND " +\
-              "alerthist.end_time='infinity' AND " +\
-              "alerthist.eventtypeid='moduleState' AND " +\
-              "alerttype.alerttype='moduleDown' "
+        sql = """SELECT n.sysname, n.ip, m.module, ah.start_time,
+                    now() - ah.start_time, n.up, at.alerttype, m.moduleid,
+                    n.netboxid
+                FROM alerthist AS ah, netbox AS n, alerttype AS at, module AS m
+                WHERE ah.netboxid = n.netboxid
+                    AND ah.subid = m.moduleid
+                    AND ah.end_time = 'infinity'
+                    AND ah.eventtypeid = 'moduleState'
+                    AND ah.alerttypeid = at.alerttypeid
+                    AND at.alerttype = 'moduleDown'"""
  
         where_clause = ''
         if filterSettings:
@@ -1140,7 +1139,7 @@ class ModuleSectionBox(SectionBox):
                 for org in filterSettings['orgid']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.orgid = '" + org + "'"
+                    where_clause += "n.orgid = '" + org + "'"
                     first_line = False
                 where_clause += ") "
             # catid
@@ -1150,7 +1149,7 @@ class ModuleSectionBox(SectionBox):
                 for cat in filterSettings['catid']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "netbox.catid = '" + cat + "'"
+                    where_clause += "n.catid = '" + cat + "'"
                     first_line = False
                 where_clause += ") "
             # state
@@ -1161,13 +1160,13 @@ class ModuleSectionBox(SectionBox):
                 for state in filterSettings['state']:
                     if not first_line:
                         where_clause += " OR "
-                    where_clause += "module.up = '" + state + "'"
+                    where_clause += "m.up = '" + state + "'"
                     first_line = False
                 where_clause += ") "
             else:
-              where_clause += "AND (module.up='n' OR module.up='s') "
+              where_clause += "AND (m.up='n' OR m.up='s') "
 
-        sql = sql + where_clause + " ORDER BY now()-start_time" 
+        sql = sql + where_clause + " ORDER BY now() - start_time" 
 
         connection = nav.db.getConnection('status', 'manage')
         database = connection.cursor()
