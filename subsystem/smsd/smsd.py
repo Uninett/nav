@@ -212,8 +212,7 @@ def main(args):
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except DispatcherError, error:
-                logger.critical("Sending failed. Exiting. (%s)", error)
-                sys.exit(1)
+                logger.critical("Sending failed. (%s)", error)
 
             logger.info("SMS sent to %s.", user)
 
