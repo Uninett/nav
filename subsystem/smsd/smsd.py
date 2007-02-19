@@ -213,6 +213,7 @@ def main(args):
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except DispatcherError, error:
                 logger.critical("Sending failed. (%s)", error)
+                break # End this run
 
             logger.info("SMS sent to %s.", user)
 
