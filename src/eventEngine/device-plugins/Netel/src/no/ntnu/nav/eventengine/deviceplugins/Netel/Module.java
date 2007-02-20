@@ -240,5 +240,8 @@ public class Module extends Device
 		return sb.toString();
 	}
 
+	public Netel getParent() {
+		return parent;
+	}
 
 }
