@@ -652,7 +652,8 @@ CREATE TABLE alerttype (
   alerttypeid SERIAL PRIMARY KEY,
   eventtypeid VARCHAR(32) NOT NULL REFERENCES eventtype ON UPDATE CASCADE ON DELETE CASCADE,
   alerttype VARCHAR,
-  alerttypedesc VARCHAR
+  alerttypedesc VARCHAR,
+  CONSTRAINT alerttype_eventalert_unique UNIQUE (eventtypeid, alerttype)
 );
 INSERT INTO alerttype (eventtypeid,alerttype,alerttypedesc) VALUES
   ('boxState','boxDownWarning','Warning sent before declaring the box down.');

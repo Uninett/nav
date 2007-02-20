@@ -29,3 +29,7 @@ CREATE RULE close_alerthist_modules AS ON DELETE TO module
      WHERE eventtypeid='moduleState' 
        AND end_time='infinity'
        AND subid=OLD.moduleid;
+
+-- Added constraint to prevent accidental duplicates in the alerttype table.
+ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
+(eventtypeid, alerttype);
