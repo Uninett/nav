@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: ISO8859-1 -*-
 #
-# $Id: report.py 2674 2004-04-28 13:03:41Z mortenv $
+# $Id$
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
 #
@@ -95,3 +95,5 @@ if (state=="e"): updown = "up"
 else: updown="down"
 print "Devices going " + updown + ": " + `sysname`
 handler(nb, state)
+connection.commit()
+
