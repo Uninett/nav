@@ -1,54 +1,94 @@
 Dependencies
 ============
-This section should specify what packages are needed to build and run NAV.
+This section should specify what packages are needed to build and run NAV.  Be
+aware that many of these packages have dependencies of their own.
+
+Build requirements
+------------------
 To build NAV, you need at least the following:
 
-make
-autoconf
-ant
-Perl >= 5.6.0
-Python >= 2.3.0
-Java 2 SDK >= 1.4.0
-Tomcat >= 4 (or compatible Java Servlet API)
-JavaSnmp >= 1.4
-Cheetah
+ * make
+ * autoconf
+ * ant
+ * Perl >= 5.6.0
+ * Python >= 2.3.0
+ * Java 2 SDK >= 1.4.0
+ * Tomcat >= 4 (or compatible Java Servlet API)
+ * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
+ * Cheetah Templates
+
+Runtime requirements
+--------------------
+To run NAV, these software packages are required:
+
+ * Apache2
+ * mod_python
+ * mod_php >= 4
+ * Cricket
+ * PostgreSQL >= 7.4
+ * rrdtool
+ * Cheetah Templates
+ * Tomcat >= 4 (or compatible Java Servlet Container)
+ * Java 2 SDK >= 1.4.0
+ * Perl >= 5.6.0
+ * Python >= 2.3.0
+ 
+The following PHP extensions are required:
+
+ * php-gd
+ * php-pgsql
+
+The following Perl modules are required:
+
+ * DBD::Pg
+ * Pg
+ * SNMP_Session (with SNMP_util, BER)
+
+The following Java librares are required:
+
+ * PostgreSQL JDBC driver
+ * JavaSnmp >= 1.4 (A.K.A Drexel SNMP)
+
+The following python modules are required:
+
+ * pysnmp2
+ * egenix-mxdatetime
+ * forgethtml
+ * forgetsql
+ * ipy
+ * ldap
+ * psycopg
+ * rrd
 
 
 Installing NAV
 ==============
-To install NAV, do the following:
+To install NAV, do the following::
 
-# ./configure
-# make
-# make install
+  ./configure
+  make
+  make install
 
-If you wish to configure NAV to run from a different location than the
-default /usr/local/nav you should specify a new directory using the
---prefix= option of the configure script, e.g. "./configure
---prefix=/opt/nav".
+If you wish to configure NAV to run from a different location than the default
+/usr/local/nav you should specify a new directory using the --prefix= option of
+the configure script, e.g. "./configure --prefix=/opt/nav".
 
-If you are building an RPM package (or similar) of NAV, you may wish
-to have the files installed in a physically different location (a
-temporary build directory) than what you configured the package for.
-In this case, you should specify this build directory by adding
-"DESTDIR=/your/build/directory" to "make install" command.
+If you are building an RPM package (or similar) of NAV, you may wish to have
+the files installed in a physically different location (a temporary build
+directory) than what you configured the package for.  In this case, you should
+specify this build directory by adding "DESTDIR=/your/build/directory" to "make
+install" command. You should also have a look at whatever .spec files you can
+find below the packages/ directory. 
 
-Java Servlet API
-----------------
+Java libraries
+--------------
+Before building, you must make sure that the JavaSNMP (from drexel.edu) and the
+Java Servlet API are both available on your JVM's CLASSPATH.  If they are not,
+you need to explicitly add them to the CLASSPATH environment variable before
+running `make` as described above.
 
-If a Java Servlet API library is not available on the Java classpath
-at build time, the build will fail.  You need to explicitly set the
-classpath to point to this library before running `make` above.  If
-the servlet API is, for example, located in
-/usr/share/java/servletapi5.jar on your system, you should issue the
-following on the bash command prompt before running make:
+If both libraries are located in /usr/share/java/, then something like this
+should be appropriate::
 
-  export CLASSPATH=/usr/share/java/servletapi5.jar
+  export CLASSPATH=/usr/share/java/servletapi.jar:/usr/share/java/libsnmp.jar
 
-
-Configuring NAV
-===============
-After installation, there is still a lot of configuration to do before you can
-start using NAV.
-
-TODO: Write up configuration procedures.
