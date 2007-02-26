@@ -61,6 +61,15 @@ The following python modules are required:
  * rrd
 
 
+Recommended add-ons
+-------------------
+If you want to connect a mobile phone to your NAV server and enable SMS alerts
+in alert profiles, you will need to install the Gammu and python-gammu
+packages.  The SMS damon can use plugins to dispatch SMS'es through other
+means, but using Gammu as an SMS dispatcher is the default.
+
+
+
 Installing NAV
 ==============
 To install NAV, do the following::
