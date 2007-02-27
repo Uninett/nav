@@ -380,9 +380,10 @@ public class MibIISw implements DeviceHandler
 
 				swp.setInterface(interf);
 
-				String vlanPattern = "VLAN (\\d+)";				
-				if (ifdescr.matches(vlanPattern) ||
-						interf.matches(vlanPattern) ||
+				// Some interfaces on Cisco devices are not physical ports, or are not eligible as switchports.  We ignore them.
+				String vlanPattern = "VLAN\\s?(\\d+)";				
+				if (ifdescr.toUpperCase().matches(vlanPattern) ||
+						interf.toUpperCase().matches(vlanPattern) ||
 						interf.startsWith("EO") ||
 						interf.startsWith("Nu")) {
 					sc.ignoreSwport(ifindex);
