@@ -126,8 +126,8 @@ def main(args):
     loginitstderr(loglevel)
 
     # Set custom loop delay
-    if opttest:
-        setdelay(val)
+    if optdelay:
+        setdelay(optdelay)
 
     # Ignore unsent messages
     if optcancel:
