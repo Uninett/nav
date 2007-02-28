@@ -66,7 +66,7 @@ sub launch() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) == 0) {
+        if ((kill 0 => $pid) == 0) {
             unlink($pidfile) ||
                 die "Could not delete pidfile\n";
         } else {
@@ -116,7 +116,7 @@ sub stop() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) == 0) {
+        if ((kill 0 => $pid) == 0) {
             print "Alertengine is not running.\n";
             unlink($pidfile) ||
                 die "Could not delete pidfile\n";
@@ -147,7 +147,7 @@ sub status() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) > 0) {
+        if ((kill 0 => $pid) > 0) {
             print "Alertengine is running with process id $pid.\n";
         } else {
             print "Alertengine is not running.\n";
