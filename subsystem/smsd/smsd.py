@@ -60,7 +60,7 @@ import nav.config
 import nav.daemon
 import nav.path
 import nav.smsd.navdbqueue
-from nav.smsd.dispatcher import DispatcherError
+from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
 # Dispatchers are imported later according to config
 
 
@@ -211,9 +211,15 @@ def main(args):
             # Dispatcher: Format and send SMS
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
+            except PermanentDispatcherError, error:
+                logger.critical("Sending failed permanently. Exiting. (%s)",
+                                error)
+                sys.exit(1)
             except DispatcherError, error:
                 logger.critical("Sending failed. (%s)", error)
                 break # End this run
+            except Exception, error:
+                logger.exception("Unknown exception: %s", error)
 
             logger.info("SMS sent to %s.", user)
 

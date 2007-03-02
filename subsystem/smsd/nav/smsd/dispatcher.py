@@ -37,6 +37,9 @@ import nav.smsd # eval() wants it
 class DispatcherError(Exception):
     """Base class for all exceptions raised by dispatchers."""
 
+class PermanentDispatcherError(DispatcherError):
+    """Thrown for permanent errors in dispatchers."""
+
 class DispatcherHandler(object):
     """
     Handler for communication with the dispatchers.
@@ -75,6 +78,8 @@ class DispatcherHandler(object):
                     self.logger.warning("Failed to import %s: %s",
                      dispatcher, error)
                     continue 
+                except Exception, error:
+                    self.logger.exception("Unknown exception: %s", error)
 
                 # Initialize dispatcher 
                 try:
@@ -86,6 +91,8 @@ class DispatcherHandler(object):
                     self.logger.warning("Failed to init %s: %s",
                      dispatcher, error)
                     continue
+                except Exception, error:
+                    self.logger.exception("Unknown exception: %s", error)
 
     def importbyname(self, name):
         """Import module given by name."""
@@ -114,7 +121,7 @@ class DispatcherHandler(object):
         succeeds in sending the SMS.
         """
 
-        for dispatchername, dispatcher in self.dispatchers:
+        for i, (dispatchername, dispatcher) in enumerate(self.dispatchers):
 
             if dispatcher.lastfailed:
                 sincelastfail = int(time.time()) - dispatcher.lastfailed
@@ -127,11 +134,20 @@ class DispatcherHandler(object):
                 self.logger.debug("Trying %s...", dispatchername)
                 (sms, sent, ignored, result, smsid) = \
                  dispatcher.sendsms(phone, msgs)
+            except PermanentDispatcherError, error:
+                self.logger.error("%s failed permanently to send SMS: %s",
+                 dispatchername, error)
+                self.logger.info("Removing failed dispatcher %s.",
+                 dispatchername)
+                del self.dispatchers[i]
+                continue # Skip to next dispatcher
             except DispatcherError, error:
                 self.logger.warning("%s failed to send SMS: %s",
                  dispatchername, error)
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
+            except Exception, error:
+                self.logger.exception("Unknown exception: %s", error)
 
             if result is False:
                 self.logger.warning("%s failed to send SMS: Returned false.",
@@ -141,6 +157,12 @@ class DispatcherHandler(object):
             
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)
+
+        # Still running? All dispatchers failed permanently.
+        if len(self.dispatchers) == 0:
+            raise PermanentDispatcherError, \
+                  "No dispatchers available. None configured " + \
+                  "or all dispatchers failed permanently."
 
         # Still running? All dispatchers failed!
         raise DispatcherError, "All dispatchers failed to send SMS."
