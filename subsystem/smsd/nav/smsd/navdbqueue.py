@@ -62,7 +62,7 @@ class NAVDBQueue(object):
         Input:
             minage  Minimum age required for canceling message, default '0'.
                     Format as PostgreSQL interval type, e.g. '1 day 12 hours'.
-        
+
         Returns number of messages canceled.
         """
 
@@ -97,11 +97,11 @@ class NAVDBQueue(object):
     def getusers(self, sent = 'N'):
         """
         Get users which has messages with given sent status (normally unsent).
-        
+
         Returns a sorted list with the phone numbers for all users with
         messages with given sent status.
         """
-        
+
         users = []
         dbconn = nav.db.getConnection('smsd', 'navprofile')
         db = dbconn.cursor()
@@ -126,7 +126,7 @@ class NAVDBQueue(object):
     def getusermsgs(self, user, sent = 'N'):
         """
         Get the users messages which has given sent status (normally unsent).
-        
+
         Returns a list of messsages ordered with the most severe first. Each
         message is a tuple with the ID, text, and severity of the message.
         """

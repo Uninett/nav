@@ -138,7 +138,7 @@ def main(args):
 
     # Let the dispatcherhandler take care of our dispatchers
     dh = nav.smsd.dispatcher.DispatcherHandler(config)
- 
+
     # Send test message (in other words: test the dispatcher)
     if opttest:
         msg = [(0, "This is a test message from NAV smsd.", 0)]
@@ -246,10 +246,10 @@ def main(args):
 def getconfig(defaults = None):
     """
     Read whole config from file.
-    
+
     Arguments:
         ``defaults'' are passed on to configparser before reading config.
-    
+
     Returns:
         Returns a dict, with sections names as keys and a dict for each
         section as values.

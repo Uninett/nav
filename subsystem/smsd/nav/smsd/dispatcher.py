@@ -43,7 +43,7 @@ class PermanentDispatcherError(DispatcherError):
 class DispatcherHandler(object):
     """
     Handler for communication with the dispatchers.
-    
+
     This layer makes it possible to use multiple dispatchers which works as
     failovers for each other.
     """
@@ -77,11 +77,11 @@ class DispatcherHandler(object):
                 except DispatcherError, error:
                     self.logger.warning("Failed to import %s: %s",
                      dispatcher, error)
-                    continue 
+                    continue
                 except Exception, error:
                     self.logger.exception("Unknown exception: %s", error)
 
-                # Initialize dispatcher 
+                # Initialize dispatcher
                 try:
                     instance = eval("%s.%s(%s)" % \
                      (module.__name__, dispatcher, config[dispatcher]))
@@ -105,7 +105,7 @@ class DispatcherHandler(object):
     def sendsms(self, phone, msgs):
         """
         Formats and sends with help of the wanted dispatcher.
-        
+
         Arguments:
             ``phone'' is the phone number the messages are to be dispatched to.
             ``msgs'' is a list of messages ordered with the most severe first.
@@ -126,7 +126,7 @@ class DispatcherHandler(object):
             if dispatcher.lastfailed:
                 sincelastfail = int(time.time()) - dispatcher.lastfailed
                 if sincelastfail < self.dispatcherretry:
-                    self.logger.debug("%s last failed %ds ago. Skipping.", 
+                    self.logger.debug("%s last failed %ds ago. Skipping.",
                      dispatchername, sincelastfail)
                     continue # Skip this dispatcher for now
 
@@ -154,7 +154,7 @@ class DispatcherHandler(object):
                  dispatchername)
                 dispatcher.lastfailed = int(time.time())
                 continue # Skip to next dispatcher
-            
+
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)
 
@@ -255,7 +255,7 @@ class Dispatcher(object):
     def sendsms(self, phone, msgs):
         """
         Empty shell for the sendsms method implemented by subclasses.
-        
+
         Arguments:
             ``phone'' is the phone number the messages are to be dispatched to.
             ``msgs'' is a list of messages ordered with the most severe first.
