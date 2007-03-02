@@ -87,14 +87,27 @@ class GammuDispatcher(Dispatcher):
             # for complete list of errors fetched here
             sm.Init()
         except gammu.GSMError, error:
-            raise DispatcherError, \
-             "GSM error %d: %s" % (error[0]['Code'], error[0]['Text'])
+            raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
+                                                            error[0]['Code'],
+                                                            error[0]['Text'])
 
-        # Tested with Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
-        message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
-        smsid = sm.SendSMS(message)
+        message = {
+            'Text': sms,
+            'SMSC': {'Location': 1},
+            'Number': phone
+        }
 
-        if smsid:
+        try:
+            # Tested with:
+            # - Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
+            # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
+            smsid = sm.SendSMS(message)
+        except gammu.GSMError, error:
+            raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
+                                                            error[0]['Code'],
+                                                            error[0]['Text'])
+
+        if type(smsid) == int:
             result = True
         else:
             result = False
