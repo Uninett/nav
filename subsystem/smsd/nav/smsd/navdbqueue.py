@@ -125,7 +125,7 @@ class NAVDBQueue(object):
 
     def getusermsgs(self, user, sent = 'N'):
         """
-        Get the users messages which has given sent status (normally unsent).
+        Get the user's messages which has given sent status (normally unsent).
 
         Returns a list of messsages ordered with the most severe first. Each
         message is a tuple with the ID, text, and severity of the message.
