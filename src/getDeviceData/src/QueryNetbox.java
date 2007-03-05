@@ -687,11 +687,13 @@ public class QueryNetbox extends Thread
 	public QueryNetbox(String tid, NetboxImpl initialNb)
 	{
 		this.tid = tid;
+		this.setName("QueryNetbox-" + tid);
 		this.nb = initialNb;
 	}
 
 	public QueryNetbox(String tid, Object oidUpdObj) {
 		this.tid = tid;
+		this.setName("QueryNetbox-" + tid);
 		this.oidUpdObj = oidUpdObj;
 	}
 
