@@ -38,6 +38,9 @@ import forgetHTML as html
 color_recent = (0, 175, 0)
 color_longago = (208, 255, 208)
 
+# Active result set cache
+active_cache = {}
+
 def process(request):
     # PYTHON IMPORTS ZUCZ=RZZZ!!
     import netbox
@@ -165,6 +168,12 @@ class ModuleInfo(manage.Module):
 
             ifindex => days since last CAM entry
             """
+
+            # Cache result set. Reduces page response time by about 75%.
+            global active_cache
+            if len(active_cache) > 0:
+                return active_cache
+
             sql = \
                 """
                 SELECT ifindex,
@@ -179,8 +188,8 @@ class ModuleInfo(manage.Module):
                 ORDER BY ifindex"""
             cursor = self.cursor()
             cursor.execute(sql, (interval, self.netbox.netboxid,))
-            active = dict(cursor.fetchall())
-            return active
+            active_cache = dict(cursor.fetchall())
+            return active_cache
 
         ports = self.getChildren(manage.Swport, orderBy=('port'))
         if not ports:
