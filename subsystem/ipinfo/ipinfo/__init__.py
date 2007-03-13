@@ -88,9 +88,9 @@ class IPInformation(UserDict):
         'ip': 'IP',
         'dns': 'DNS name',
         'mac': 'Last seen with MAC',
-        'switch': 'Last seen on switch',
-        'module': 'Last seen on module',
-        'port': 'Last seen on port'
+        'switch': 'MAC last seen on switch',
+        'module': 'MAC last seen on module',
+        'port': 'MAC last seen on port'
         }
     
     def __init__(self, target):
