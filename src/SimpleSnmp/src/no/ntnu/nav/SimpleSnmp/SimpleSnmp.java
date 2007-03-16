@@ -664,10 +664,10 @@ public class SimpleSnmp
 					// Skip empty variables which are not strings
 					continue;
 				}
-
+				String strippedOid = oid.startsWith(baseOid) ? oid.substring(baseOid.length()) : oid;
 				String[] s = {
-					oid.length() == baseOid.length() ? "" : oid.substring(baseOid.length()+1, oid.length()),
-					data.trim()
+					strippedOid.length() > 0 && strippedOid.charAt(0) == '.' ? strippedOid.substring(1) : strippedOid,
+					data
 				};
 				s[0] = strip(s[0], '.', stripCnt, true);
 				l.add(s);				
