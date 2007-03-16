@@ -173,7 +173,7 @@ public class SimpleSnmpHP extends SimpleSnmp
 			}
 
 			// Get the number of devices in the stack
-			stackList = super.getAll(hpStackOid, 0, false, true, 0);
+			stackList = super.getAll(hpStackOid, 0, false, true, true, 0);
 
 			if (stackList.isEmpty()) stackList.add(new String[] { "", "0" });
 
@@ -191,7 +191,7 @@ public class SimpleSnmpHP extends SimpleSnmp
 			String module = s[1];
 			//String modulePrepend = s[1].equals("0") ? "" : s[1];
 
-			List pl = super.getAll(baseOid, getCnt, decodeHex, getNext, stripCnt);
+			List pl = super.getAll(baseOid, getCnt, decodeHex, getNext, true, stripCnt);
 			for (Iterator it = pl.iterator(); it.hasNext();) {
 				s = (String[])it.next();
 				String port = s[0];
