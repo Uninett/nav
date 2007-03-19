@@ -15,7 +15,7 @@ webroot = @webroot@
 
 sources = $(wildcard *.tmpl) $(wildcard useradmin/*.tmpl)
 templates = $(patsubst %.tmpl,%.py, $(sources))
-backups = $(patsubst %.py,%.py_bak, $(templates))
+backups = $(patsubst %.py,%.py.bak, $(templates))
 
 .PHONY: all install install-lib clean distclean print
 
