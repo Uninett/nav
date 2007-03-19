@@ -1,7 +1,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003, 2004 Norwegian University of Science and Technology
-# Copyright 2006 UNINETT AS
+# Copyright 2006, 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -27,6 +27,8 @@
 """
 This module encompasses modules with web functionality for NAV.
 """
+import sys
+import traceback
 import nav
 import time
 import ConfigParser
@@ -171,6 +173,39 @@ def loginit():
         nav.logconfig.setLogLevels()
         _loginited = True
 
+def exceptionhandler(handler):
+    """Decorator for mod_python handler functions, to catch unhandled
+    exceptions and display them in a "pretty" template ;-)
+    """
+    from mod_python import apache
+    def handlerfunc(req, *args, **kwargs):
+        try:
+            result = handler(req, *args, **kwargs)
+        except Exception, e:
+            tracelines = traceback.format_exception(*sys.exc_info())
+            # We don't want to see the exception handler itself in the
+            # traceback data, remove it:
+            del tracelines[1]
+
+            if req.sent_bodyct > 0:
+                # We've already sent body data to the client, so there is
+                # no use in trying to output a full HTML template now.. 
+                # Just print it as raw text enclosed in a <pre> element.
+                req.write("<pre>\nUnhandled NAV Exception occurred:\n\n")
+                req.write(escape("\n".join(tracelines)))
+                req.write("\n</pre>\n")
+            else:
+                from nav.web.templates.ExceptionTemplate import ExceptionTemplate
+                page = ExceptionTemplate()
+                page.traceback = escape("\n".join(tracelines))
+                page.path = [("Home", "/"), ("NAV Exception", False)]
+                req.content_type = 'text/html'
+                req.status = apache.HTTP_INTERNAL_SERVER_ERROR 
+                req.write(page.respond())
+            return apache.OK
+        else:
+            return result
+    return handlerfunc
 
 # Module initialization
 try:
