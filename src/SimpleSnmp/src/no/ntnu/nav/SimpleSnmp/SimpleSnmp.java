@@ -614,7 +614,20 @@ public class SimpleSnmp
 			try {
 				if (getNext) {
 					if (getAll) {
-						var = comInterface.retrieveMIBTable(baseOid);
+						// Do our own subtree walk routine, to avoid a known bug in drexel snmp
+						var = new SNMPVarBindList();
+						String nextoid = baseOid;
+						while (true) {
+							SNMPVarBindList nextpair = comInterface.getNextMIBEntry(nextoid);
+							SNMPObject snmpobj = nextpair.getSNMPObjectAt(0);
+							if (snmpobj instanceof SNMPNull) break;
+							SNMPSequence pair = (SNMPSequence)snmpobj;
+							SNMPObjectIdentifier snmpOID = (SNMPObjectIdentifier)pair.getSNMPObjectAt(0);
+							nextoid = snmpOID.toString();
+							if (!nextoid.startsWith(baseOid) || nextoid.equals(baseOid)) break;
+							
+							var.addSNMPObject(pair);
+						}
 					} else {
 						var = new SNMPVarBindList();
 						String nextoid = baseOid;
