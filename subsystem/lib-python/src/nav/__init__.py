@@ -27,7 +27,7 @@ Provides a common root package for the NAV python library.
 """
 import time
 # Import all path symbols from the path module (generated at build time)
-from path import *
+from buildconf import *
 
 class ObjectCache(dict):
     def __setitem__(self, key, item):
