@@ -1,11 +1,8 @@
 /*
- * SimpleSnmp
- * 
- * $LastChangedRevision$
- *
- * $LastChangedDate$
+ * $Id$
  *
  * Copyright 2002-2004 Norwegian University of Science and Technology
+ * Copyright 2007 UNINETT AS
  * 
  * This file is part of Network Administration Visualized (NAV)
  * 
@@ -55,8 +52,9 @@ public class SimpleSnmp
 	public static final int IFINDEX_NONE = 3;
 	public static final int IFINDEX_DEFAULT = IFINDEX_OID;
 
-	private final int DEFAULT_TIMEOUT_LIMIT = 4;
-	private int timeoutLimit = 4;
+	private static final int DEFAULT_RETRIES = 4;
+	private int retries = DEFAULT_RETRIES;
+	private int backoff = 2;
 
 	private String host = "127.0.0.1";
 	private String cs_ro = "community";
@@ -64,7 +62,7 @@ public class SimpleSnmp
 	private int timeoutCnt = 0;
 	private boolean gotTimeout = false;
 	private long getNextDelay = 0;
-	private int socketTimeout = 0;
+	private int socketTimeout = 1000; // milliseconds
 	private int snmpVersion = 0;
 
 	private SNMPv1CommunicationInterface comInterface = null;
@@ -149,30 +147,47 @@ public class SimpleSnmp
 
 	/**
 	 * Set how many times the device can time out before a TimeoutException is thrown.
+	 * 
+	 * @deprecated Use the more aptly named {@link #setRetries(int)} method.
 	 */
 	public void setTimeoutLimit(int limit)
 	{
-		timeoutLimit = Math.max(1,limit);
+		setRetries(limit);
 	}
 
 	/**
 	 * Set the timeout limit to the default value (currently 4).
+	 * 
+	 * @deprecated Use the more aptly named {@link #setDefaultRetries()} method.
 	 */
 	public void setDefaultTimeoutLimit()
 	{
-		timeoutLimit = DEFAULT_TIMEOUT_LIMIT;
+		setDefaultRetries();
 	}
 
+	/**
+	 * Set the number of times the device may time out before a TimeoutException is thrown.
+	 */
+	public void setRetries(int limit)
+	{
+		retries = Math.max(1,limit);
+	}
+
+	/**
+	 * Set the number of retries to the default value, as defined by the static value DEFAULT_RETRIES
+	 */
+	public void setDefaultRetries()
+	{
+		retries = DEFAULT_RETRIES;
+	}
+
+	/**
+	 * Set the UDP socket timeout for the following requests.
+	 * @param socketTimeout A value in milliseconds.
+	 */
 	public void setSocketTimeout(int socketTimeout)
 	{
 		this.socketTimeout = socketTimeout;
-		if (comInterface != null) {
-			try {
-				comInterface.setSocketTimeout(socketTimeout);
-			} catch (SocketException e) {
-				e.printStackTrace(System.err);
-			}
-		}
 	}
 
 	/**
@@ -604,22 +619,24 @@ public class SimpleSnmp
 			return new ArrayList((Collection)cache.get(cacheKey));
 		}
 
-		ArrayList l = getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripPrefix, stripCnt);
+		ArrayList l = getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripPrefix, stripCnt, socketTimeout);
 		cache.put(cacheKey, l);
 		return l;
 	}
 
-	private ArrayList getAllJavaSnmp(String baseOid, int getCnt, boolean decodeHex, boolean getNext, boolean stripPrefix, int stripCnt) throws TimeoutException {
+	private ArrayList getAllJavaSnmp(String baseOid, int getCnt, boolean decodeHex, boolean getNext, boolean stripPrefix, int stripCnt, int timeout) throws TimeoutException {
 		ArrayList l = new ArrayList();
 
 		try {
 			checkSnmpContext();
-
+			if (timeout < 1) timeout = 1000; // Prevent infinite waiting for response
+			comInterface.setSocketTimeout(timeout);
+			
 			// Should we get the entire subtree?
 			boolean getAll = getCnt == 0;
 
 			SNMPVarBindList	var = null;
-			boolean timeout = false;
+			boolean timedOut = false;
 			try {
 				if (getNext) {
 					if (getAll) {
@@ -654,8 +671,8 @@ public class SimpleSnmp
 				} else {
 					var = comInterface.getMIBEntry(baseOid);
 				}
-			} catch (SocketException exp) {
-				timeout = true;
+			} catch (SocketTimeoutException exp) {
+				timedOut = true;
 			} catch (SNMPBadValueException exp) {
 				System.err.println("SNMPBadValueException: " + exp);
 				return l;
@@ -664,21 +681,15 @@ public class SimpleSnmp
 					System.err.println("SNMPException: " + exp);
 				}
 				return l;
-			} catch (IOException exp) {
-				if (exp.getMessage() != null && exp.getMessage().indexOf("Receive timed out") >= 0) {
-					timeout = true;
-				} else {
-					throw exp;
-				}
 			}
 
-			if (timeout) {
+			if (timedOut) {
 				timeoutCnt++;
-				if (timeoutCnt >= timeoutLimit) {
-					throw new TimeoutException("Too many timeouts, giving up");
+				if (timeoutCnt >= retries) {
+					throw new TimeoutException("Timed out " + timeoutCnt + " times, giving up");
 				} else {
-					// Re-try operation
-					return getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripPrefix, stripCnt);
+					// Re-try operation, but back off on the timeout value
+					return getAllJavaSnmp(baseOid, getCnt, decodeHex, getNext, stripPrefix, stripCnt, timeout*backoff);
 				}
 			}
 			timeoutCnt = 0;
@@ -905,7 +916,6 @@ public class SimpleSnmp
 	public int checkSnmpVersion() {
 		// First we check if the device can support SNMPv2
 		onlyAskModule("0");
-		setSocketTimeout(1000);
 		setSnmpVersion(2);
 		int snmpVersion = 1;
 		try {
@@ -928,5 +938,28 @@ public class SimpleSnmp
 
 	private static void err(String s) { System.err.print(s); }
 	private static void errl(String s) { System.err.println(s); }
+
+	/**
+	 * @return The backoff factor
+	 * @see #setBackoff(int)
+	 */
+	public int getBackoff() {
+		return backoff;
+	}
+
+	/**
+	 * Sets the backoff factor for retries.
+	 * 
+	 * <p>Whenever a request times out, the timeout limit 
+	 * of each retry attempt will be multiplied by this factor.
+	 * If set to 1, no timeout backoff will occur.</p>
+	 * 
+	 *  <p>The default factor is 2.</p>
+	 * 
+	 * @param backoff An integer backoff factor.
+	 */
+	public void setBackoff(int backoff) {
+		this.backoff = backoff;
+	}
 }
 
