@@ -242,9 +242,25 @@ public class OidTester
 									Log.d("TEST_GETNEXT", "Switch getnext from true to false");
 								}
 							}
+						} else {
+							l = sSnmp.getAll(snmpoid.getDecodehex(), false);						
 						}
-						if (reqGetnext) {
-							l = sSnmp.getAll(snmpoid.getDecodehex(), snmpoid.getGetnext());
+						if (snmpoid.getGetnext() && reqGetnext) {
+							// If we need to do regex matching against the values in the subtree, 
+							// get all values.  If not, just get the first value of the subtree.
+							int getCnt = snmpoid.getMatchRegex() == null ? 1 : 0;
+							l = sSnmp.getNext(getCnt, snmpoid.getDecodehex(), true, false);
+							if (getCnt == 1 && l.size() > 0) {
+								// Make sure the retrieved OID is in the subtree. If not, we consider the response not valid.
+								String[] response = (String[]) l.get(0);
+								if (!response[0].startsWith(snmpoid.getSnmpoid())) {
+									Log.d("OID_TESTER", "DO_TEST", "GET-NEXT Response "+response[0]+" was outside baseOid " + snmpoid.getSnmpoid() + " (" + snmpoid.getOidkey() + "), ignoring.");
+									l.clear();
+								} else if (response[0].equals(snmpoid.getSnmpoid())) {
+									Log.d("OID_TESTER", "DO_TEST", "GET-NEXT of " + snmpoid.getOidkey() + " was apparently outside the mib view");
+									l.clear();
+								}
+							}
 						}
 						Log.d("OID_TESTER", "DO_TEST", "Got results from " + sysname + ", length: " + l.size() + " (oid: " + snmpoid.getOidkey() + ", reqGetnext: "+reqGetnext+", vl: " + atVl+")");
 					
