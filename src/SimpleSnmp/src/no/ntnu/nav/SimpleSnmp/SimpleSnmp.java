@@ -905,8 +905,7 @@ public class SimpleSnmp
 	public int checkSnmpVersion() {
 		// First we check if the device can support SNMPv2
 		onlyAskModule("0");
-		setSocketTimeout(500);
-		setTimeoutLimit(1);
+		setSocketTimeout(1000);
 		setSnmpVersion(2);
 		int snmpVersion = 1;
 		try {
@@ -916,7 +915,6 @@ public class SimpleSnmp
 			setSnmpVersion(1);
 		} finally {
 			onlyAskModule(null);
-			setDefaultTimeoutLimit();
 		}
 		return snmpVersion;
 	}
