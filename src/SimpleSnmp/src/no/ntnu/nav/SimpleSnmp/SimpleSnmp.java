@@ -599,7 +599,7 @@ public class SimpleSnmp
 		if (baseOid == null) return null;
 		if (baseOid.charAt(0) == '.') baseOid = baseOid.substring(1, baseOid.length());
 
-		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripCnt;
+		String cacheKey = host+":"+cs_ro+":"+baseOid+":"+decodeHex+":"+getNext+":"+stripPrefix+":"+stripCnt;
 		if (cache.containsKey(cacheKey)) {
 			return new ArrayList((Collection)cache.get(cacheKey));
 		}
