@@ -38,6 +38,7 @@ public class OidTester
 		// Call test for all OIDs to this type
 		Map tmp = new HashMap();
 		nb.clearSnmpoid();
+		Log.d("OID_TESTER", "DO_TEST", "Using SNMP version " + sSnmp.getSnmpVersion() + " for " + nb.getSysname());
 		for (; snmpoidIt.hasNext();) {
 			Snmpoid snmpoid = (Snmpoid)snmpoidIt.next();
 			doTest(nb, snmpoid, sSnmp, tmp, false);

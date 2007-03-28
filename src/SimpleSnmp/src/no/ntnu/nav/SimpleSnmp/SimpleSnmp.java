@@ -118,8 +118,9 @@ public class SimpleSnmp
 		setBaseOid(baseOid);
 	}
 
-	/*
-	 * Set the SNMP version to use. 1 = SNMPv1, 2 = SNMPv2c.
+	/**
+	 * Set the SNMP version to use.
+	 * @param version 1 = SNMPv1, 2 = SNMPv2c.
 	 */	
 	public void setSnmpVersion(int version) {
 		if (version < 1 || version > 2) throw new RuntimeException("Invalid SNMP version: " + version);
@@ -128,6 +129,14 @@ public class SimpleSnmp
 			valid = false;
 			snmpVersion = version;
 		}
+	}
+
+	/**
+	 * Return the SNMP version used for communication by this instance.
+	 * @return 1 for SNMP v1 and 2 for SNMP v2c
+	 */
+	public int getSnmpVersion() {
+		return snmpVersion+1;
 	}
 
 	/**
