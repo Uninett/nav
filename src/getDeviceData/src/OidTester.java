@@ -250,7 +250,7 @@ public class OidTester
 						String regex = snmpoid.getMatchRegex();
 						for (Iterator i = l.iterator(); i.hasNext();) {
 							String[] s = (String[])i.next();
-							if (s[1] != null && s[1].length() > 0 && (regex == null || s[1].matches(regex))) {
+							if (s[1] != null && (regex == null || s[1].matches(regex))) {
 								// Update db
 								Log.d("OID_TESTER", "DO_TEST", "Match: " + regex + ", val: " + s[1]);
 
