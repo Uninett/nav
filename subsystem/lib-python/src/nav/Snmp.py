@@ -1,7 +1,7 @@
 # -*- coding: ISO8859-1 -*-
 #
 # Copyright 2003 Norwegian University of Science and Technology
-# Copyright 2006 UNINETT AS
+# Copyright 2006, 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Authors: Sigurd Gartmann
-#          Morten Vold <morten.vold@uninett.no>
+#          Morten Brekkevold <morten.brekkevold@uninett.no>
 #
 """This module is a higher level interface to SNMP query functionality
 for NAV, as pysnmp2 is quite low-level and tedious to work with.
@@ -28,7 +28,6 @@ for NAV, as pysnmp2 is quite low-level and tedious to work with.
 The module uses the version 2 branch of pysnmp.
 """
 import re
-import exceptions
 import pysnmp # Version 2
 from pysnmp import role, v1, v2c, asn1
 # Ugly hack to escape inconsistencies in pysnmp2
@@ -36,36 +35,31 @@ try:
     v1.RESPONSE
 except:
     v1.RESPONSE = v1.GETRESPONSE
+from nav.errors import GeneralException
     
-class TimeOutException(exceptions.Exception):
-    def __init__(self, err_msg=None):
-        exceptions.Exception.__init__(self)
+class SnmpError(GeneralException):
+    """SNMP Error"""
 
-        if err_msg is not None:
-            self.err_msg = str(err_msg)
-        else:
-            self.err_msg = ''
-
-    def __str__(self):
-        return self.err_msg
-
-    def __repr__(self):
-        return self.__class__.__name__ + '(' + self.err_msg + ')'
+class TimeOutException(SnmpError):
+    """Timed out waiting for SNMP response"""
     
-class NameResolverException(exceptions.Exception):
-    def __init__(self, err_msg=None):
-        exceptions.Exception.__init__(self)
+class NameResolverException(SnmpError):
+    """NameResolverException"""
 
-        if err_msg is not None:
-            self.err_msg = str(err_msg)
-        else:
-            self.err_msg = ''
+class NetworkError(SnmpError):
+    """NetworkError"""
 
-    def __str__(self):
-        return self.err_msg
+class AgentError(SnmpError):
+    """SNMP agent responded with error"""
 
-    def __repr__(self):
-        return self.__class__.__name__ + '(' + self.err_msg + ')'
+class EndOfMibViewError(AgentError):
+    """SNMP request was outside the agent's MIB view"""
+
+class UnsupportedSnmpVersionError(SnmpError):
+    """Unsupported SNMP protocol version"""
+
+class NoSuchObjectError(SnmpError):
+    """SNMP agent did not know of this object"""
     
 
 class Snmp(object):
@@ -111,7 +105,7 @@ class Snmp(object):
         try:
             snmp = eval('v' + self.version)
         except (NameError, AttributeError):
-            raise 'Unsupported SNMP protocol version: %s' % (self.version)
+            raise UnsupportedSnmpVersionError(self.version)
 
         objectid = asn1.OBJECTID()
         oid = objectid.encode(query)
@@ -129,29 +123,22 @@ class Snmp(object):
         try:
             (answer, src) = self.handle.send_and_receive(req.encode())
         except role.NoResponse, e:
-            #timeout
             raise TimeOutException(e)
         except role.NetworkError, n:
-            #dns
-            raise NameResolverException(n)
+            raise NetworkError(n)
+
 
         # Decode raw response/answer
         rsp.decode(answer)
-        # Fetch Object ID's and associated values
-        oids = [objectid.decode(o)[0] for o in rsp['encoded_oids']]
-        values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
 
-        # Check for remote SNMP agent failure
-        if rsp['error_status']:
-            raise "Snmp error %s at %s (%s, %s)" % \
-                  (rsp['error_status'],
-                   rsp['error_index'],
-                   oids[rsp['error_index']-1],
-                   values[rsp['error_index']-1])
+        # Check for errors in the response
+        self._error_check(rsp)
 
-        # Since we're only asking for one value, only return the first
-        # result, decoded to its correct Python data type
-        return values[0]()
+        # Fetch the value from the response
+        rsp_value = asn1.decode(rsp['encoded_vals'][0])[0]
+
+        # Return the value as a proper Python type:
+        return rsp_value()
 
 
     def walk(self,query = "1.3.6.1.2.1.1.1.0"):
@@ -165,25 +152,25 @@ class Snmp(object):
         if not query.startswith("."):
             query = "." + query
         
+        # Choose protocol version specific module
         try:
             snmp = eval('v' + self.version)
         except (NameError, AttributeError):
-            raise 'Unsupported SNMP protocol version: %s' % (self.version)
+            raise UnsupportedSnmpVersionError(self.version)
 
         result = []
         root_oid = asn1.OBJECTID()
         root_oid.encode(query)
 
-        # Create SNMP GET/GETNEXT request
-        req = snmp.GETREQUEST()
-        nextReq = snmp.GETNEXTREQUEST()
-        for r in (req, nextReq):
-            r['community'] = self.community
-            r['encoded_oids'] = [root_oid.encode()]
+        # Create SNMP GETNEXT request
+        req = snmp.GETNEXTREQUEST()
+        req['community'] = self.community
+        req['encoded_oids'] = [root_oid.encode()]
 
         # Create a response message framework
         rsp = snmp.RESPONSE()
 
+        current_oid = root_oid
         # Traverse agent MIB
         while 1:
             # Encode SNMP request message and try to send it to SNMP agent and
@@ -193,50 +180,45 @@ class Snmp(object):
             except role.NoResponse, e:
                 raise TimeOutException(e)
             except role.NetworkError, n:
-                raise NameResolverException(n)
+                raise NetworkError(n)
 
 
             # Decode raw response/answer
             rsp.decode(answer)
-            # Fetch Object ID's and associated values
-            oids = [asn1.OBJECTID().decode(o)[0] for o in rsp['encoded_oids']]
-            values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
 
-            # Check for remote SNMP agent failure
-            if rsp['error_status']:
-                # SNMP agent reports 'no such name' when walk is over
-                if rsp['error_status'] == 2:
-                    # Switch to using GETNEXT requests if GET request failed
-                    if not (req is nextReq):
-                        req = nextReq
-                        continue
-                    else:
-                        # If GETNEXT also failed, we return whatever we got
-                        return result
-                else:
-                    raise "Snmp error %s at %s (%s, %s)" % \
-                          (rsp['error_status'],
-                           rsp['error_index'],
-                           oids[rsp['error_index']-1],
-                           values[rsp['error_index']-1])
+            # Check for errors in the response
+            try:
+                self._error_check(rsp)
+            except EndOfMibViewError:
+                # We just fell off the face of the earth (or walked outside the
+                # agent's MIB view).  Return whatever results we got.
+                return result
 
-            # If the current GETNEXT response came from outside the
-            # tree we are traversing, get the hell out of here, we're
-            # done walking the subtree.
-            if not root_oid.isaprefix(oids[0]):
+            # Fetch the (first) Object ID and value pair from the response,
+            # (there shouldn't be more than one pair)
+            rsp_oid = asn1.decode(rsp['encoded_oids'][0])[0]
+            rsp_value = asn1.decode(rsp['encoded_vals'][0])[0]
+
+            # Check for reasons to stop walking
+            if not root_oid.isaprefix(rsp_oid()):
+                # If the current GETNEXT response came from outside the
+                # tree we are traversing, get the hell out of here, we're
+                # done walking the subtree.
+                return result
+            elif rsp_oid == current_oid:
+                # If the GETNEXT response contains the same object ID as the
+                # request, something has gone wrong, and we didn't see it
+                # further up.  Just return whatever results we got.
                 return result
             else:
-                result.append((oids[0], values[0]()))
+                result.append((rsp_oid(), rsp_value()))
 
             # Update request ID
             req['request_id'] += 1
 
-            # Switch over GETNEXT PDU for if not done
-            if not (req is nextReq):
-                req = nextReq
-
             # Load the next request with the OID received in the last response
             req['encoded_oids'] = rsp['encoded_oids']
+            current_oid = rsp_oid
     
     def jog(self,query = "1.3.6.1.2.1.1.1.0"):
         """Does a modified snmpwalk on the host. The query OID is
@@ -256,3 +238,32 @@ class Snmp(object):
                 result.append((key,value))
         
         return result
+
+    def _error_check(self, rsp):
+        """Check a decoded response structure for agent errors or exceptions,
+        and raise Python exceptions accordingly."""
+        # Check for remote SNMP agent failure (v1)
+        if rsp['error_status']:
+            error_index = rsp['error_index']-1
+            error_oid = asn1.decode(rsp['encoded_oids'][error_index])[0]
+            error_value = asn1.decode(rsp['encoded_oids'][error_index])[0]
+            # Error status 2 means noSuchName (i.e. the OID asked for
+            # doesn't exist in the agent's MIB view)
+            if rsp['error_status'] == 2:
+               raise NoSuchObjectError(error_oid())
+            else:
+               raise AgentError("Error code %s at index %s (%s, %s)" % \
+                                (rsp['error_status'],
+                                 rsp['error_index'],
+                                 error_oid,
+                                 error_value))
+
+        rsp_oids = [asn1.decode(o)[0] for o in rsp['encoded_oids']]
+        rsp_values = [asn1.decode(v)[0] for v in rsp['encoded_vals']]
+
+        for rsp_oid, rsp_value in zip(rsp_oids, rsp_values):
+            # Check for SNMP v2c agent exceptions
+            if isinstance(rsp_value, (asn1.noSuchObject, asn1.noSuchInstance)):
+                raise NoSuchObjectError(rsp_oid)
+            elif isinstance(rsp_value, asn1.endOfMibView):
+                raise EndOfMibViewError(rsp_oid())
