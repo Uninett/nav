@@ -55,9 +55,11 @@ import smtplib
 import socket
 import sys
 import time
+import signal
 
 import nav.config
 import nav.daemon
+import nav.logs
 import nav.path
 import nav.smsd.navdbqueue
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
@@ -181,6 +183,9 @@ def main(args):
         logger.error(error)
         sys.exit(1)
 
+    # Reopen log files on SIGHUP
+    signal.signal(signal.SIGHUP, signalhandler)
+
     # Initialize queue
     # NOTE: If we're initalizing a queue with a DB connection before
     # daemonizing we've experienced that the daemon dies silently upon trying
@@ -240,6 +245,14 @@ def main(args):
     # Exit nicely
     sys.exit(0)
 
+def signalhandler(signum, frame):
+    """
+    Signal handler to close and reopen log file(s) on HUP.
+    """
+    if signum == signal.SIGHUP:
+        logger.info("SIGHUP received; reopening log files")
+        nav.logs.reopen_log_files()
+        logger.info("Log files reopened")
 
 ### INIT FUNCTIONS
 
