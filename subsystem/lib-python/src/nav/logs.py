@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2006 UNINETT AS
+# Copyright 2006, 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,9 +18,12 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-"""Logging configuration related functions for the Python parts of NAV."""
+"""
+NAV related logging functionality
+"""
 
-__author__ = "Morten Vold <morten.vold@uninett.no>"
+__author__ = "Morten Brekkevold (morten.brekkevold@uninett.no)"
+__version__ = "$Id"
 
 import os.path
 import logging
@@ -53,3 +56,28 @@ def setLogLevels():
             # Default to INFO
             level = logging.INFO
         logger.setLevel(level)
+
+
+def reopen_log_files():
+    """
+    Function to iterate over all FileHandlers in the logger hierarchy, close
+    their streams and reopen them.
+    """
+    # Get the manager of the root logger
+    root = logging.getLogger()
+    manager = root.manager
+    mylog = logging.getLogger('nav.logs')
+    for logger in [root] + manager.loggerDict.values():
+        try:
+            for h in logger.handlers:
+                if isinstance(h, logging.FileHandler):
+                    mylog.debug("Reopening " + h.baseFilename)
+                    h.flush()
+                    h.acquire()
+                    h.stream.close()
+                    h.stream = open(h.baseFilename, h.mode)
+                    h.release()
+                    mylog.debug("Reopened " + h.baseFilename)
+        except AttributeError:
+            pass
+

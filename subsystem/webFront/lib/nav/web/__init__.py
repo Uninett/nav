@@ -36,7 +36,7 @@ import os.path, nav.path
 import base64
 import cgi
 import logging
-import nav.logconfig
+import nav.logs
 
 logger = logging.getLogger("nav.web")
 webfrontConfig = ConfigParser.ConfigParser()
@@ -170,7 +170,7 @@ def loginit():
         handler.setFormatter(formatter)
 
         root.addHandler(handler)
-        nav.logconfig.setLogLevels()
+        nav.logs.setLogLevels()
         _loginited = True
 
 def exceptionhandler(handler):
