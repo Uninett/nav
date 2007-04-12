@@ -63,12 +63,20 @@ class FtpChecker(AbstractChecker):
 		s = FTP(self.getTimeout())
 		ip, port = self.getAddress()
 		output = s.connect(ip,port or 21)
+
+		# Get server version from the banner.
+		version = ''
+		for line in s.welcome.split('\n'):
+			if line.startswith('220 '):
+				version = line[4:].strip()
+		self.setVersion(version)
+			
 		args = self.getArgs()
 		username = args.get('username','')
 		password = args.get('password','')
 		path = args.get('path','')
 		output = s.login(username,password,path)
-		print output
+
 		if output[:3] == '230':
 			return Event.UP,'code 230'
 		else:

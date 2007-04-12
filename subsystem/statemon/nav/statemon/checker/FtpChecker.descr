@@ -1,0 +1,2 @@
+description=FTP
+optargs=username password path
