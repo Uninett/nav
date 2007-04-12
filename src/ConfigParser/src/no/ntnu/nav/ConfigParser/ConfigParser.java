@@ -26,8 +26,13 @@
 
 package no.ntnu.nav.ConfigParser;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * Class for parsing a config file in &lt;key&gt; = &lt;value&gt;
@@ -53,7 +58,7 @@ public class ConfigParser
     {
         addDefaults();
 		this.conffile = confFile;
-        BufferedReader in = new BufferedReader(new FileReader(confFile));
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(confFile), "UTF-8"));
 
         while (in.ready()) {
             String line = in.readLine().trim();
