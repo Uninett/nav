@@ -95,7 +95,7 @@ while (my ($identityid,$mac,$blocked_reason,$swsysname,$swmodule,$swport,$determ
 
 
     # If it is active, block the port it is connected to
-    my $q = "SELECT sysname,modul,port FROM cam WHERE mac='$mac' AND til='infinity'";
+    my $q = "SELECT sysname,modul,port FROM cam WHERE mac='$mac' AND end_time='infinity'";
     my $r = $dbh_manage->exec($q);
 
     if ($r->ntuples == 1) {
@@ -141,7 +141,7 @@ while (my ($identityid,$mac,$blocked_reason,$swsysname,$swmodule,$swport,$determ
 
 
 	# Find the ip-address
-	$q = "SELECT ip FROM arp WHERE mac='$mac' AND til='infinity'";
+	$q = "SELECT ip FROM arp WHERE mac='$mac' AND end_time='infinity'";
 	$r = $dbh_manage->exec($q);
 
 	print LOG "$q\n" if $ll >= 2;

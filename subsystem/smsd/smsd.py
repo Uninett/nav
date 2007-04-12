@@ -55,12 +55,14 @@ import smtplib
 import socket
 import sys
 import time
+import signal
 
 import nav.config
 import nav.daemon
+import nav.logs
 import nav.path
 import nav.smsd.navdbqueue
-from nav.smsd.dispatcher import DispatcherError
+from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
 # Dispatchers are imported later according to config
 
 
@@ -126,8 +128,8 @@ def main(args):
     loginitstderr(loglevel)
 
     # Set custom loop delay
-    if opttest:
-        setdelay(val)
+    if optdelay:
+        setdelay(optdelay)
 
     # Ignore unsent messages
     if optcancel:
@@ -181,6 +183,9 @@ def main(args):
         logger.error(error)
         sys.exit(1)
 
+    # Reopen log files on SIGHUP
+    signal.signal(signal.SIGHUP, signalhandler)
+
     # Initialize queue
     # NOTE: If we're initalizing a queue with a DB connection before
     # daemonizing we've experienced that the daemon dies silently upon trying
@@ -211,9 +216,15 @@ def main(args):
             # Dispatcher: Format and send SMS
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
-            except DispatcherError, error:
-                logger.critical("Sending failed. Exiting. (%s)", error)
+            except PermanentDispatcherError, error:
+                logger.critical("Sending failed permanently. Exiting. (%s)",
+                                error)
                 sys.exit(1)
+            except DispatcherError, error:
+                logger.critical("Sending failed. (%s)", error)
+                break # End this run
+            except Exception, error:
+                logger.exception("Unknown exception: %s", error)
 
             logger.info("SMS sent to %s.", user)
 
@@ -234,6 +245,14 @@ def main(args):
     # Exit nicely
     sys.exit(0)
 
+def signalhandler(signum, frame):
+    """
+    Signal handler to close and reopen log file(s) on HUP.
+    """
+    if signum == signal.SIGHUP:
+        logger.info("SIGHUP received; reopening log files")
+        nav.logs.reopen_log_files()
+        logger.info("Log files reopened")
 
 ### INIT FUNCTIONS
 

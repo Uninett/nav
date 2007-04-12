@@ -194,7 +194,7 @@ public class CiscoModule implements DeviceHandler
 			if (chassisVerList != null && !chassisVerList.isEmpty()) {
 				String[] s = (String[])chassisVerList.get(0);
 				nc.netboxDataFactory(nb).setHwVer(s[1]);
-				Log.d("CATMOD_OID", "Set chassis HwVer to " + s[1]);
+				Log.d("CCARD_OID", "Set chassis HwVer to " + s[1]);
 			}
 		}
 
@@ -433,6 +433,21 @@ public class CiscoModule implements DeviceHandler
 				if (physHwVer != null && physHwVer.containsKey(id)) {
 					nd.setHwVer((String)physHwVer.get(id));
 					Log.d("CMOD_PHYSOID", "Set HwVer for chassis to " + (String)physHwVer.get(id));
+					/* 
+					 * Adjust module hwver if chassis is also a module.  
+					 * A Cisco bug causes different HwVers in OLD-CISCO-CHASSIS-MIB and ENTITY-MIB for the same device.
+					 * A getDeviceData design problem makes it possible to have a netbox instance and a module instance that both
+					 * represent the same physical device, and we don't want to set different HwVers for these, as it causes 
+					 * deviceHwVerChanged alert storms.
+					 */
+					for (Iterator modIt = mc.getModules(); modIt.hasNext();) {
+						Module m = (Module) modIt.next();
+						if (m.getDeviceid() == nd.getDeviceid()) {
+							m.setHwVer((String)physHwVer.get(id));
+							Log.d("CMOD_PHYSOID", "Module " + m.getModule() + " is the chassis, also setting HwVer for this to " + (String)physHwVer.get(id));							
+							break; // there can only be one module=chassis!
+						}
+					}
 				}
 				if (physFwVer != null && physFwVer.containsKey(id)) nd.setFwVer((String)physFwVer.get(id));
 				if (physSwVer != null && physSwVer.containsKey(id)) nd.setSwVer((String)physSwVer.get(id));

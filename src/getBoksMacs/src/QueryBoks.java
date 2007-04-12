@@ -141,6 +141,7 @@ public class QueryBoks extends Thread
 		this.swp = swp;
 		this.swp_d = swp_d;
 		Log.setDefaultSubsystem("QUERYBOKS");
+		this.setName("QueryBoks-" + id);
 	}
 
 	public static void initThreadDone(final int NUM_THREADS)
@@ -153,7 +154,7 @@ public class QueryBoks extends Thread
 
 	private String getOid(String oidkey) {
 		if (!oidkeys.containsKey(oidkey)) {
-			Log.d("GET_OID", "OID is missing for oidkey: " + oidkey);
+			Log.d("GET_OID", "This device does not support this oidkey: " + oidkey);
 			return null;
 		}
 		return (String)oidkeys.get(oidkey);
@@ -179,6 +180,7 @@ public class QueryBoks extends Thread
 					break;
 				}
 			}
+			Log.setNetbox(bd.sysName);
 
 			String ip = bd.ip;
 			String cs_ro = bd.cs_ro;

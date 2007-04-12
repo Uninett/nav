@@ -41,7 +41,7 @@ import os.path
 import sys
 import nav.db
 import nav.event
-import nav.logconfig
+import nav.logs
 from mx import DateTime
 
 logfile = os.path.join(nav.path.localstatedir, 'log', 'maintengine.log')
@@ -85,7 +85,7 @@ def loginit():
     else:
         handler.setFormatter(formatter)
         root.addHandler(handler)
-        nav.logconfig.setLogLevels()
+        nav.logs.setLogLevels()
         _loginited = True
 
 

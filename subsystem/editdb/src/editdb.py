@@ -1368,10 +1368,6 @@ class editdbPage:
         error = None
         status = editdbStatus()
 
-        # Get database connection
-        connection = nav.db.getConnection('editdb','manage')
-        database = connection.cursor()
-       
         id = None
         nextId = None 
         if self.sequence:
@@ -1380,8 +1376,7 @@ class editdbPage:
             # In the case that sequence=None, idfield is already
             # present in the field data
             sql = "SELECT nextval('%s')" % (self.sequence,)
-            database.execute(sql)
-            result = database.fetchall()
+            result = executeSQLreturn(sql)
             nextId = str(result[0][0])
 
         sql = 'INSERT INTO ' + self.tableName + ' ('
@@ -1410,10 +1405,9 @@ class editdbPage:
             sql += ",'" + nextId + "'"
         sql += ')'
         try:
-            database.execute(sql)
-            connection.commit()
-        except (psycopg.IntegrityError,psycopg.ProgrammingError),e:
-            # Earlier versions of psycopg always returned IntegrityError
+            executeSQL([sql])
+        except psycopg.IntegrityError, e:
+            rollbackSQL()
             if type(self.unique) is list:
                 error = 'There already exists an entry with '
                 first = True
@@ -1520,6 +1514,7 @@ class editdbPage:
                 executeSQL([sql])
             except psycopg.IntegrityError:
                 # Assumes tableIdKey = the unique field
+                rollbackSQL()
                 if type(self.unique) is list:
                     error = 'There already exists an entry with '
                     first = True
@@ -1531,7 +1526,7 @@ class editdbPage:
                     status.errors.append(error)
                 else:
                     error = "There already exists an entry with the value '" + \
-                            req.form[self.unique][i] + \
+                            req.form[self.unique] + \
                             "' for the unique field '" + self.unique + "'"
                     status.errors.append(error)
          

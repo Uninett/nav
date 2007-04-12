@@ -395,7 +395,7 @@ class AlertmsgParser
 		if (alertmsgFile == null || alertmsgFile.lastModified() == alertmsgLastModified) return;
 		alertmsgLastModified = alertmsgFile.lastModified();
 
-		BufferedReader in = new BufferedReader(new FileReader(alertmsgFile));
+		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(alertmsgFile), "UTF-8"));
 
 		int lineno = 0;
 		int state = EXP_EVENTTYPEID;

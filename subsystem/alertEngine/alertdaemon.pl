@@ -37,6 +37,7 @@ use POSIX qw(setsid);
 use IO::Handle;
 
 use NAV::AlertEngine::Engine;
+use NAV::AlertEngine::Log;
 
 #BEGIN {require "alertengine.cfg";}
 
@@ -44,10 +45,32 @@ use NAV::AlertEngine::Engine;
 ## Engine 
 ####################################################
 
+sub hup_handler() {
+    my $engine=shift;
+
+    return sub {
+        my $signal_recv = shift;
+        my $log = $engine->{log};
+        my $logfile = $engine->{cfg}{logfile};
+        my $errlogfile = $engine->{cfg}{errlogfile};
+        $log->printlog("alertdaemon", "hup_handler", 6, "Got SIGHUP: Reopening log files");
+
+        close(STDOUT);
+        close(STDERR);
+        open STDOUT, '>> '.$logfile || 
+            die "Can't write to $logfile: $!";
+
+        open STDERR, '>> '.$errlogfile || 
+            die "Can't write to $errlogfile: $!";
+
+        $log->printlog("alertdaemon", "hup_handler", 6, "Log files reopened");
+    }
+}
 
 sub runEngine() {
 
     my $e = NAV::AlertEngine::Engine->new($NAV::AlertEngine::Log::cfg);
+    $SIG{HUP} = &hup_handler($e);
     $e->run();
 
 }
@@ -66,7 +89,7 @@ sub launch() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) == 0) {
+        if ((kill 0 => $pid) == 0) {
             unlink($pidfile) ||
                 die "Could not delete pidfile\n";
         } else {
@@ -85,10 +108,10 @@ sub launch() {
         die "Can't read /dev/null: $!";
 
     open STDOUT, '>> '.$logfile || 
-        die "Can't write to /dev/null: $!";
+        die "Can't write to $logfile: $!";
 
     open STDERR, '>> '.$errlogfile || 
-        die "Can't write to /dev/null: $!";
+        die "Can't write to $errlogfile: $!";
 
     select(STDOUT);
     
@@ -116,7 +139,7 @@ sub stop() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) == 0) {
+        if ((kill 0 => $pid) == 0) {
             print "Alertengine is not running.\n";
             unlink($pidfile) ||
                 die "Could not delete pidfile\n";
@@ -147,7 +170,7 @@ sub status() {
             die "Cannot open pidfile";
         my ($pid, $tid) = split / /, <pid_file>;
         close(pid_file);
-        if (kill(0, $pid) > 0) {
+        if ((kill 0 => $pid) > 0) {
             print "Alertengine is running with process id $pid.\n";
         } else {
             print "Alertengine is not running.\n";

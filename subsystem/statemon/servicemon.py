@@ -51,7 +51,6 @@ from nav.statemon import debug
 class controller:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
-        signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.conf=config.serviceconf()
         debug.setDebugLevel(self.conf.get('debuglevel',4))
@@ -160,10 +159,10 @@ class controller:
             debug.debug( "Caught SIGTERM. Exiting.")
             self._runqueue.terminate()
             os.sys.exit(0)
-        elif signum == signal.SIGUSR1:
+        elif signum == signal.SIGHUP:
             # reopen the logfile
             logfile=self.conf.get("logfile", "servicemon.log")
-            debug.debug("Caught SIGUSR1. Reopening logfile...")
+            debug.debug("Caught SIGHUP. Reopening logfile...")
             os.sys.stdout.close()
             os.sys.stderr.close()
             os.sys.stdout = open(logfile,'a')

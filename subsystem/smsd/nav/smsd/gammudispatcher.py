@@ -41,7 +41,8 @@ from nav.smsd.dispatcher import *
 try:
     import gammu
 except ImportError, error:
-    raise DispatcherError, 'python-gammu not installed or misconfigured.'
+    raise PermanentDispatcherError, \
+          'python-gammu not installed or misconfigured.'
 
 class GammuDispatcher(Dispatcher):
     """The smsd dispatcher for Gammu."""
@@ -71,6 +72,7 @@ class GammuDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent, ignored) = self.formatsms(msgs)
+        sms = sms.decode('UTF-8')
 
         # We got a python-gammu binding :-)
         sm = gammu.StateMachine()
@@ -79,7 +81,7 @@ class GammuDispatcher(Dispatcher):
             # Typically ~root/.gammurc or ~navcron/.gammurc
             sm.ReadConfig()
         except IOError, error:
-            raise DispatcherError, error
+            raise PermanentDispatcherError, error
 
         try:
             # Fails if e.g. phone is not connected
@@ -87,14 +89,30 @@ class GammuDispatcher(Dispatcher):
             # for complete list of errors fetched here
             sm.Init()
         except gammu.GSMError, error:
-            raise DispatcherError, \
-             "GSM error %d: %s" % (error[0]['Code'], error[0]['Text'])
+            raise PermanentDispatcherError, \
+                  "GSM %s error %d: %s" % (error[0]['Where'],
+                                           error[0]['Code'],
+                                           error[0]['Text'])
 
-        # Tested with Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
-        message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
-        smsid = sm.SendSMS(message)
+        message = {
+            'Text': sms,
+            'SMSC': {'Location': 1},
+            'Number': phone
+        }
 
-        if smsid:
+        try:
+            # Tested with:
+            # - Nokia 6610, Tekram IRmate 410U and Gammu 1.07.00
+            # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
+            smsid = sm.SendSMS(message)
+        except gammu.GSMError, error:
+            raise DispatcherError, "GSM %s error %d: %s" % (error[0]['Where'],
+                                                            error[0]['Code'],
+                                                            error[0]['Text'])
+        except Exception, error:
+            self.logger.critical('blipp blopp: %s', error)
+
+        if type(smsid) == int:
             result = True
         else:
             result = False

@@ -120,7 +120,8 @@ public class CiscoSwCAT implements DeviceHandler
 	{
 		HashMap modPortIfindex = new HashMap();
 		List portIfIndexes = sSnmp.getAll(nb.getOid("portIfIndex"));
-		Map ifNames = sSnmp.getAllMap(nb.getOid("ifName"));
+		Map ifNames = sSnmp.getAllMap(nb.getOid("ifName"), true);
+		Map ifIndices = sSnmp.getAllMap(nb.getOid("ifIndex"));
 
 		if (portIfIndexes != null) {
 			// Iterate the portIfIndex response to enumerate modules/ports
@@ -128,15 +129,21 @@ public class CiscoSwCAT implements DeviceHandler
 				String[] s = (String[])it.next();
 				String moduleDotPort = s[0];
 				String ifindex = s[1];
+
+				/* Tests reveal that some switches report non-real ifindices in 
+				 * this table, so we verify the existence of the ifindex before
+				 * proceeding:
+				 */
+				if (!ifIndices.containsKey(ifindex)) {
+					Log.w("PROCESS_CAT", "Ignoring non-existant ifindex " + ifindex + " from portIfIndex map");
+					continue;
+				}
 				
 				String[] s2 = moduleDotPort.split("\\.");
 				Integer module = Integer.valueOf(s2[0]);
-				// Default the port number to the ifindex, which will be our fallback
-				Integer port = Integer.valueOf(ifindex);
-				if (ifNames == null) {
-					// Get the port number from the portIfIndex OID
-					port = Integer.valueOf(s2[1]);
-				} else if (ifNames.containsKey(ifindex)) {
+				// Set the initial port number from the portIfIndex OID
+				Integer port = Integer.valueOf(s2[1]);
+				if (ifNames != null && ifNames.containsKey(ifindex)) {
 					// Interpret the ifName string to get a port number
 					String ifName = (String) ifNames.get(ifindex);
 					Matcher matcher = portPattern.matcher(ifName);

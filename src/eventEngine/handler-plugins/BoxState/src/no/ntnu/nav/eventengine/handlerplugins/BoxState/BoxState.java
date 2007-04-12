@@ -181,7 +181,7 @@ public class BoxState implements EventHandler, EventCallback
 						}
 						Log.d("HANDLE", "Module going down (" + m.getDeviceid()+")");
 						m.down();
-						addToQ(parent, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
+						addToQ(m, eventtype, moduleWarningWaitTime, moduleAlertWaitTime - moduleWarningWaitTime, e);
 					} else if (e.getState() == Event.STATE_END) {
 						// Get the down alert
 						Alert a = ddb.getDownAlert(e);
@@ -279,15 +279,12 @@ public class BoxState implements EventHandler, EventCallback
 		SendAlertDescr sad;
 		int processCnt = 0;
 		while ((sad = removeHeadQ()) != null) {
-			Box b = (Box) sad.device;		
+			Box b = null;
+			if (sad.device instanceof Box) {
+				b = (Box) sad.device;						
+			}
 
-			if (!b.isUp()) {
-				if (sad.event.getEventtypeid().equals("moduleState")) {
-					// Ignore since we already got a box down in the queue
-					Log.d("CALLBACK", "Ignore box down with moduleState: " + b.getSysname());
-					continue;
-				}
-
+			if (b != null && !b.isUp()) {
 				Log.d("CALLBACK", "Box down: " + b.getSysname());
 
 				// The box iself is down, this means we don't report modules down if any
@@ -359,56 +356,55 @@ public class BoxState implements EventHandler, EventCallback
 					Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting netel down alert, PostAlertException: " + exp.getMessage());
 				}
 			} else {
-				// Box is up, this means it is a Netbox with modules down
-				if (b instanceof Netel) {
-					Netel n = (Netel)b;
-
-					// The box is up, one or more modules must be down
-					for (Iterator md = n.getModulesDown(); md.hasNext();) {
-						Module m = (Module)md.next();
-						if (m.isUp()) continue;
-
+				if (sad.device instanceof Module) {
+					Module m = (Module)sad.device;
+					b = (Box) m.getParent();
+					if (!b.isUp()) {
+						// Ignore moduleDown when box is down
+						Log.d("CALLBACK", "Ignoring module down (" + m.getModule() + "), as the box is down (" + b.getSysname() +")");
+						continue;
+					} else {
 						Log.d("CALLBACK", "Module down on: " + b.getSysname() + ", " + m.getModule());
-							
-						// Find the down event
-						Event e = sad.event;
-						if (e == null) {
-							Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found!");
-							continue;
-						}
-							
-						// Create alert
-						Alert a = ddb.alertFactory(e);
+					}
+					
+					// Find the down event
+					Event e = sad.event;
+					if (e == null) {
+						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", m + " ("+m.getDeviceid()+") is down, but no start event found!");
+						continue;
+					}
+						
+					// Create alert
+					Alert a = ddb.alertFactory(e);
 
-						// First send a warning
-						String alerttype = "moduleDown";
-						if (!sad.sentWarning) {
-							a.setState(Event.STATE_NONE);
-							alerttype += "Warning";
+					// First send a warning
+					String alerttype = "moduleDown";
+					if (!sad.sentWarning) {
+						a.setState(Event.STATE_NONE);
+						alerttype += "Warning";
 
-							// Schedule the real down event
-							sad.sentWarning = true;
-							addToQ(sad, sad.alertWait);
-						} else {
-							// Delete 'down' event when alert is posted
-							a.addEvent(e);
-						}
-						a.setAlerttype(alerttype);
+						// Schedule the real down event
+						sad.sentWarning = true;
+						addToQ(sad, sad.alertWait);
+					} else {
+						// Delete 'down' event when alert is posted
+						a.addEvent(e);
+					}
+					a.setAlerttype(alerttype);
 
-						Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added moduleDown alert: " + a);
+					Log.d("BOX_STATE_EVENTHANDLER", "CALLBACK", "Added moduleDown alert: " + a);
 
-						if (b.onMaintenance()) {
-							// Do not post to alertq if box is on maintenace
-							Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
-							a.setPostAlertq(false);
-						}
-							
-						// Post the alert
-						try {
-							ddb.postAlert(a);
-						} catch (PostAlertException exp) {
-							Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
-						}
+					if (b.onMaintenance()) {
+						// Do not post to alertq if box is on maintenace, only register in alerthist
+						Log.d("HANDLE", "Not posting moduleDown alert to alertq as the box is on maintenance");
+						a.setPostAlertq(false);
+					}
+						
+					// Post the alert
+					try {
+						ddb.postAlert(a);
+					} catch (PostAlertException exp) {
+						Log.w("BOX_STATE_EVENTHANDLER", "CALLBACK", "While posting module down alert, PostAlertException: " + exp.getMessage());
 					}
 				}
 			}

@@ -45,7 +45,6 @@ from nav.statemon.netbox import Netbox
 class pinger:
     def __init__(self, **kwargs):
         signal.signal(signal.SIGHUP, self.signalhandler)
-        signal.signal(signal.SIGUSR1, self.signalhandler)
         signal.signal(signal.SIGTERM, self.signalhandler)
         self.config=config.pingconf()
         debug.setDebugLevel(int(self.config.get("debuglevel",5)))
@@ -185,6 +184,15 @@ class pinger:
         if signum == signal.SIGTERM:
             debug.debug("Caught SIGTERM. Exiting.",1)
             os.sys.exit(0)
+        elif signum == signal.SIGHUP:
+            # reopen the logfile
+            logfile=self.config.get("logfile", "pping.log")
+            debug.debug("Caught SIGHUP. Reopening logfile...")
+            os.sys.stdout.close()
+            os.sys.stderr.close()
+            os.sys.stdout = open(logfile,'a')
+            os.sys.stderr = open(logfile,'a')
+            debug.debug("Reopened logfile: %s" % logfile)
         else:
             debug.debug( "Caught %s. Resuming operation." % (signum),2)
 
