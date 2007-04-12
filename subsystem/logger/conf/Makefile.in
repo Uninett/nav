@@ -33,7 +33,7 @@ install-web:
 
 clean:
 	rm -f *~
-	rm logger.conf
+	rm -f logger.conf
 
 distclean: clean
 	rm -f Makefile
