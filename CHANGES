@@ -1,3 +1,119 @@
+Version 3.2.1
+(released 16 February 2007)
+
+ Bugfixes:
+
+  * SF#1661327 (Makecricketconfig uses 64-bit counters where not supported)
+  * SF#1660516 (eventEngine does not work in NAV 3.2.0)
+  * SF#1649947 (My SMS crashes if user has no sms alert address)
+  * SF#1661381 (SMSD's database queue fails with SQL syntax error)
+
+Version 3.2.0
+(released 02 February 2007)
+
+#####################################################################
+##  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  ##
+#####################################################################
+##                                                                 ##
+## This release makes changes to the NAV database. If you are      ##
+## upgrading from a previous release you also need to upgrade your ##
+## database schema. For information on how to upgrade the database ##
+## schema, please take a look in doc/sql/upgrades for more         ##
+## information.                                                    ##
+##                                                                 ##
+#####################################################################
+
+ New features and improvements:
+
+  * New messages and maintenance web tools, rewritten from scratch, replace the
+    old messages system. The maintenance tool features a calendar for ease of
+    use.
+
+  * SMS Daemon rewritten in Python, now extensible with dispatcher plugins.
+    Existing plugins for Gammu, Boost Communications (www.boostcom.no) and
+    e-mail gateways.
+
+  * New link from alert profiles enables users to see their own SMS queues.
+
+  * More information and links in the IP Device Browser. Among other things:
+    New color for 10gig ports, displays serial number, displays software
+    version and displays "first discovered by NAV" time.
+
+  * Full description (ifAlias) string now stored for gwports too.
+
+  * All reports have been revised.  A new report lists unrecognized CDP
+    neighbours seen by NAV.  Reports now display 1000 rows per page by default,
+    instead of 100.
+
+  * The status page now shows devices and services on maintenance.
+
+  * A new tool to show ranked statistical data collected by NAV/Cricket.
+    Useful for checking which routers/switches have the highest CPU
+    utilization, which interfaces have the most traffic, etc.
+
+  * NAV now configures Cricket to utilize 64-bit traffic counters where
+    applicable, preventing counter wrap-around problems for saturated links and
+    reducing collection frequency for gigabit interfaces from once a 1 minute
+    to once every 5 minutes.
+
+  * Room IDs can now be changed in EditDB
+
+  * The OID tester component of getDeviceData now runs faster, by not issuing
+    unnecessary indexed community snmp queries.
+
+  * New About-page in web interface.
+
+  * HTML templates restructured, much of the web interface will now validate as
+    XHTML 1.0 Transitional.
+
+  * NAV installation can now properly report its own version number.
+
+  * JVM options can now be configured individually for Java bases subsystems in
+    nav.conf.  Java subsystems can now also be configured to use an alternate
+    JVM installation using the JAVA_HOME variable in nav.conf.
+
+  * Cleaned up output from nav start/stop/status commands, to increase
+    legibility.
+
+  * Removed gDD dependency on the system's /usr/bin/host program.
+
+  * Arplogger now ignores routers that are known to be down, instead of spewing
+    SNMP query errors by e-mail.
+
+  * IP Devices can now be deleted directly from the Edit IP Device form in
+    EditDB.
+
+  * Nice, new icons for several web tools, now with SVG source files.
+
+ Bugfixes:
+
+  * Many SQL errors related to missing tables in FROM clauses fixed.
+
+  * Fixed bug #1551839 (Cannot change IP address in EditDB)
+  
+  * Fixed bug #1602315 (EditDB crashes when attempting to delete rooms in use)
+
+  * Fixed bug #1643321 (EditDB crashes when entering invalid IP address)
+
+  * Fixed bug which crashed EditDB when devices returned SNMP Integer values as
+    serial numbers.
+
+  * Arnold now properly blocks switch ports on HP equipment.
+
+  * Changed inefficient hash indexes which caused the logengine (syslog
+    analyzer) to run extremely slowly and PostgreSQL to run up an insane server
+    load.
+
+  * Fixed bug that occurred spuriously, causing the Prefix Matrix to believe an
+    entire network scope was a subnet on its own.
+
+  * makecricketconfig.pl would set strange umask values when writing
+    cricket-config, which would cause permission problems and possibly make
+    graphs disappear from the Cricket web interface.
+
+  * ... and various other small bugs.
+
+
 Version 3.1.1
 (released 08 November 2006)
 
