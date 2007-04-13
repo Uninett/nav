@@ -11,6 +11,7 @@ sysconfdir = @sysconfdir@
 pythonlibdir = @pythonlibdir@
 templatedir = ${pythonlibdir}/nav/web/templates
 webroot = @webroot@
+localstatedir = @localstatedir@
 
 top_srcdir = @top_srcdir@
 
@@ -32,6 +33,7 @@ install-web:
 
 clean:
 	rm -f *~
+	rm -f logger.conf
 
 distclean: clean
 	rm -f Makefile

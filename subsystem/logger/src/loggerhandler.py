@@ -33,13 +33,13 @@ from mx import DateTime
 from ConfigParser import ConfigParser
 from nav.web.templates.LoggerTemplate import LoggerTemplate
 
-connection = db.getConnection('webfront','logger')
-database = connection.cursor()
 DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 DOMAIN_SUFFICES = [s.strip() for s in nav.config.readConfig("nav.conf")["DOMAIN_SUFFIX"].split(",")]
 
 
 def handler(req):
+    connection = db.getConnection('webfront','logger')
+    database = connection.cursor()
 
     #fieldstorage variables
     keep_blank_values = True
