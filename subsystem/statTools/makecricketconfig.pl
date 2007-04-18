@@ -624,7 +624,7 @@ sub makeTTs {
 		    print "Adding targettype $tt to file.\n" if $ll >= 3;
 		    printf CHANGELOG "Adding targettype %s to %s.\n", $tt, $path;
 		    print HANDLE "targetType $tt\n";
-		    print HANDLE "\tds\t= \"", join (",", map $oidhash{$_}, @{ $input{$tt} } ), "\"\n";
+		    print HANDLE "\tds\t= \"", join (",", sort( map ( $oidhash{$_}, @{ $input{$tt} } ) ) ), "\"\n";
 		    print HANDLE &makeView( @{ $input{$tt} } );
 		    print HANDLE "\n";
 		}
