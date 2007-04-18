@@ -101,13 +101,14 @@ class ModuleInfo(manage.Module):
                 titles.append(title)
             if type == 'sw':
                 if port.link == 'd':
-                    portView['class'] += 'disabled'
+                    portView['class'] += ' disabled'
+                    titles.append('disabled')
                 elif port.link <> 'y':
-                    portView['class'] += 'passive'
+                    portView['class'] += ' passive'
                     titles.append('inactive')
                 if port.trunk:
                     portView['class'] += ' trunk'
-                    titles.append(", trunk")
+                    titles.append("trunk")
                 portView['class'] += ' %sduplex' % port.duplex
                 if port.duplex == 'h':
                     titles.append("half duplex")
@@ -264,6 +265,7 @@ def showModuleLegend(perspective='standard', interval=30):
     def legendStandard():
         legend.append(html.Header("Color legend", level=3))
         mkLegend("passive", "Not active")
+        mkLegend("disabled", "Disabled")
         mkLegend("Mb10", "10 Mbit")
         mkLegend("Mb100", "100 Mbit")
         mkLegend("Mb1000", "1 Gbit")

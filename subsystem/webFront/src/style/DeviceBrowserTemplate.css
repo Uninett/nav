@@ -1,7 +1,7 @@
 /* Subsystem stylesheet for NAV
  *
  * Copyright 2003-2004 Norwegian University of Science and Technology
- * Copyright 2006 UNINETT AS
+ * Copyright 2006,2007 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -166,9 +166,6 @@ table {
 .hduplex {
 	border-color: #999;
 }
-.disabled {
-	background-color: #C99;
-}
 .Mb10 {
 	background-color: #CDF;
 }
@@ -187,6 +184,9 @@ table {
 	border-style: solid;
 	border-width: 2px;
 	margin: 5px;
+}
+.disabled {
+	background-color: #C99;
 }
 div.legend .port {
 	width: 1.5em;
