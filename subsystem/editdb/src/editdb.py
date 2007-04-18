@@ -445,7 +445,7 @@ def editPage(req,page,request,unicodeError):
     if hasattr(page,'action'):
         outputForm.action = page.action
     else:
-        outputForm.action = page.basePath + 'edit/'
+        outputForm.action = page.basePath + 'edit'
 
     # List definition, get sorting parameter
     sort = None
@@ -719,8 +719,8 @@ class entryList:
         self.tableIdKey = struct.tableIdKey
         self.basePath = struct.basePath
         self.deleteWhere = deleteWhere
-        self.formAction = self.basePath + 'edit/'
-        self.filterAction = self.basePath + 'list/'
+        self.formAction = self.basePath + 'edit'
+        self.filterAction = self.basePath + 'list'
 
         if deleteWhere:
             self.buttonTypeOverride = entryListCell.HIDDEN
@@ -765,7 +765,7 @@ class entryList:
             if i == currentOrder:
                 # Reverse sort?
                 s = -i
-            url = self.basePath + 'list/?sort=' + str(s)
+            url = self.basePath + 'list?sort=' + str(s)
             if sortlink and self.sortingOn:
                 self.headings.append(entryListCell(heading,
                                                     url))
@@ -2239,7 +2239,7 @@ class pageNetbox(editdbPage):
     # Overrides default add function
     def add(self,req,templateform,action):
         """ Adds a netbox. Overrides the default add function. """
-        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        ADD_TYPE_URL = BASEPATH + 'type/edit'
         STEP_1 = 1
         STEP_2 = 2
         CNAME_STEP = 'step' 
@@ -2505,7 +2505,7 @@ class pageNetbox(editdbPage):
     def update(self,req,templateform,selected):
         """ Updates a netbox, overrides the default update function. """
         selected = selected[0]
-        ADD_TYPE_URL = BASEPATH + 'type/edit/'
+        ADD_TYPE_URL = BASEPATH + 'type/edit'
         STEP_1 = 1
         STEP_2 = 2
         CNAME_STEP = 'step' 
@@ -3004,7 +3004,7 @@ class pagePatch(editdbPage):
     # Set action which makes browser jump to the first
     # selectTree layoutbox. Makes editing easier on screens
     # with low y resolution.
-    action = basePath + 'edit/#top'
+    action = basePath + 'edit#top'
 
     # Unique fields (for errormessages from add/update)
     # Set to none since this page checks this in it's own 
