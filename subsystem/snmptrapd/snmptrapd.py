@@ -114,7 +114,7 @@ def main():
         # Initialize deamonlogger
         traplogger = logging.getLogger('nav.snmptrapd.traplog')
         logger = logging.getLogger('nav.snmptrapd')
-        logger.setLevel(logging.INFO) # Let all info through to the root node
+        logger.setLevel(logging.DEBUG) # Let all info through to the root node
 
         if not loginitfile(logfile, traplogfile):
             sys.exit(-1)
@@ -194,6 +194,7 @@ def listen (server, community):
         for (oid, val) in map(None, oids, vals):
             varbinds[oid] = str(val)
 
+        community = req['community']
         version = str(req['version'] + 1)
         src = src[0]
 
@@ -240,6 +241,7 @@ def loginitfile(logfile, traplogfile):
         filehandler.setFormatter(fileformatter)
         logger = logging.getLogger()
         logger.addHandler(filehandler)
+        logger.setLevel(1)
 
         filehandler = logging.FileHandler(traplogfile, 'a')
         filehandler.setFormatter(fileformatter)
@@ -273,9 +275,12 @@ def trapHandler(trap):
         handlermodules.append(mod)
 
     for mod in handlermodules:
-        accepted = mod.handleTrap(trap, config=config)
-        if accepted:
-            logger.debug ("Module %s accepted trap" %mod.__name__)
+        try:
+            accepted = mod.handleTrap(trap, config=config)
+            if accepted:
+                logger.debug ("Module %s accepted trap" %mod.__name__)
+        except Exception, why:
+            logger.error("Error when handling trap with %s: %s" %(mod.__name__, why))
         
 
 class SNMPTrap:
@@ -308,14 +313,13 @@ class SNMPTrap:
     def trapText(self):
         """Creates a textual description of the trap suitable for printing to log or stdout."""
         text = "Got snmp version %s trap\n" %self.version
-        text = text + "Src: %s, Uptime: %s\n" %(self.src, self.uptime)
+        text = text + "Src: %s, Community: %s, Uptime: %s\n" %(self.src, self.community, self.uptime)
         text = text + "Type %s, snmpTrapOID: %s\n" %(self.genericType, self.snmpTrapOID)
 
         keys = self.varbinds.keys()
         keys.sort()
         for key in keys:
             val = self.varbinds[key]
-                
             text = text + "%s -> %s\n" %(key, val)
 
         return text
