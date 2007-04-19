@@ -239,6 +239,102 @@ class Snmp(object):
         
         return result
 
+    def bulkwalk(self,query = "1.3.6.1.2.1.1.1.0", strip_prefix=False):
+        """
+        Performs an SNMP walk on the host, using GETBULK requests.
+        Will raise an UnsupportedSnmpVersionError if the current
+        version is anything other than 2c.
+        
+          query: OID to use in the query
+
+          strip_prefix: If True, strips the query OID prefix from the
+                        response OIDs.
+
+        returns an array containing key-value-pairs, where the
+        returned OID is the key.
+        """
+        if str(self.version) != "2c":
+            raise UnsupportedSnmpVersionError(
+                "Cannot use BULKGET in SNMP version " + self.version)
+        
+        if not query.startswith("."):
+            query = "." + query
+        
+        # Choose protocol version specific module
+        snmp = v2c
+
+        result = []
+        root_oid = asn1.OBJECTID()
+        root_oid.encode(query)
+
+        # Create SNMP GETNEXT request
+        req = snmp.GETBULKREQUEST()
+        req['community'] = self.community
+        req['encoded_oids'] = [root_oid.encode()]
+        req['max_repetitions'] = 256
+
+        # Create a response message framework
+        rsp = snmp.RESPONSE()
+
+        current_oid = root_oid
+        # Traverse agent MIB
+        while 1:
+            # Encode SNMP request message and try to send it to SNMP agent and
+            # receive a response
+            try:
+                (answer, src) = self.handle.send_and_receive(req.encode())
+            except role.NoResponse, e:
+                raise TimeOutException(e)
+            except role.NetworkError, n:
+                raise NetworkError(n)
+
+            # Decode raw response/answer
+            rsp.decode(answer)
+
+            # Check for errors in the response
+            try:
+                self._error_check(rsp)
+            except EndOfMibViewError:
+                # Since we are retrieving multiple values, this SNMP
+                # exception must be handled in the loop below instead
+                pass
+
+            last_response_oid = None
+            for encoded_oid, encoded_val in \
+                    zip(rsp['encoded_oids'], rsp['encoded_vals']):
+                rsp_oid = asn1.decode(encoded_oid)[0]
+                rsp_value = asn1.decode(encoded_val)[0]
+
+                # Check for reasons to stop walking
+                if isinstance(rsp_value, asn1.endOfMibView):
+                    # Nothing more to see here, move along
+                    return result
+                if not root_oid.isaprefix(rsp_oid()):
+                    # If the current value came from outside the tree we
+                    # are traversing, get the hell out of here, we're done
+                    # walking the subtree.
+                    return result
+                elif rsp_oid == current_oid:
+                    # If the GETNEXT response contains the same object
+                    # ID as the request, something has gone wrong, and
+                    # we didn't see it further up.  Just return
+                    # whatever results we got.
+                    return result
+                else:
+                    oid = rsp_oid()
+                    if strip_prefix:
+                        oid = oid[len(query)+1:]
+                    result.append((oid, rsp_value()))
+                    last_response_oid = rsp_oid
+
+            # Update request ID
+            req['request_id'] += 1
+
+            # Load the next request with the last OID received in the
+            # last response
+            req['encoded_oids'] = rsp['encoded_oids'][-1:]
+            current_oid = last_response_oid
+
     def _error_check(self, rsp):
         """Check a decoded response structure for agent errors or exceptions,
         and raise Python exceptions accordingly."""
