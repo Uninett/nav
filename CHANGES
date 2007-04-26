@@ -18,6 +18,7 @@ Version 3.2.2
   * SF#1677074 (Router temperature over 300M degrees Celsius in Cricket)
   * SF#1702860 (EditDB crashes when attempting to add a service)
   * SF#1661395 (SMSD's BoostDispatcher crashes)
+  * SF#1704164 (Confusing label "Last seen on switch" in IP info center)
 
  Also various other small improvements.
 
