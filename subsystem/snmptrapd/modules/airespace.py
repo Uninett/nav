@@ -10,9 +10,10 @@ __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
+db = nav.db.getConnection('default')
+
 def handleTrap(trap, config=None):
 
-    db = nav.db.getConnection('default')
     c = db.cursor()
 
     bsnAPCurrentChannelChanged = '.1.3.6.1.4.1.14179.2.6.3.16'
@@ -28,6 +29,8 @@ def handleTrap(trap, config=None):
     bsnAPIfUp = '.1.3.6.1.4.1.14179.2.6.3.9'
     bsnAPDot3MacAddress = '.1.3.6.1.4.1.14179.2.2.1.1.1'
 
+    heartbeatLossTrap = '.1.3.6.1.4.1.14179.2.6.3.88'
+
     oid = trap.snmpTrapOID
 
     # Init eventvariables
@@ -40,9 +43,13 @@ def handleTrap(trap, config=None):
         query = "SELECT * FROM netbox WHERE ip = '%s'" %(trap.src)
         #logger.debug(query)
         c.execute(query)
-        res = c.dictfetchone()
-        netboxid = res['netboxid']
-        deviceid = res['deviceid']
+        if (c.rowcount > 0):
+            res = c.dictfetchone()
+            netboxid = res['netboxid']
+            deviceid = res['deviceid']
+        else:
+            logger.info("Could not find netbox with ip %s in database, returning" %(trap.src))
+            return False
     except Exception, why:
         logger.exception("Error when querying database: %s" %why)
         return False
@@ -111,6 +118,15 @@ def handleTrap(trap, config=None):
 
         return True
 
+    elif oid == heartbeatLossTrap:
+        # This trap will be generated when controller loses connection
+        # with the Supervisor Switch in which it is physically
+        # embedded and doesn't hear the heartbeat keepalives from the
+        # Supervisor.
+
+        logger.info("Controller %s reports no connection to supervisor switch" %(trap.src))
+
+        return True
         
     else:
         return False
@@ -122,3 +138,30 @@ def postEvent(e):
     except nav.errors.GeneralException, e:
         logger.error(e)
         return False
+
+def verifyEventtype ():
+    c = db.cursor()
+
+    sql = """
+    INSERT INTO eventtype (
+    SELECT 'apState','Tells us whether an access point has disassociated from the controller or associated','y' WHERE NOT EXISTS (
+    SELECT * FROM eventtype WHERE eventtypeid = 'apState'));
+
+    INSERT INTO alertType (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'apState', 'apUp', 'AP associated with controller' WHERE NOT EXISTS (
+    SELECT * FROM alerttype WHERE alerttype = 'apUp'));
+
+    INSERT INTO alertType (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'apState', 'apDown', 'AP disassociated from controller' WHERE NOT EXISTS (
+    SELECT * FROM alerttype WHERE alerttype = 'apDown'));
+    """
+
+    queries = sql.split(';')
+    for q in queries:
+        if len(q.rstrip()) > 0:
+            c.execute(q)
+
+    db.commit()
+        
+
+verifyEventtype()

@@ -29,6 +29,7 @@ import os
 import sys
 import string
 from optparse import OptionParser
+from nav.db import getConnection
 import ConfigParser
 import logging
 
@@ -47,6 +48,9 @@ logfile = nav.buildconf.localstatedir + "/log/snmptrapd.log"
 
 
 def main():
+
+    # Verify subsystem
+    verifySubsystem()
 
     # Initialize defaults
     port = 162
@@ -82,7 +86,7 @@ def main():
         community = args[1]
 
     # Check if already running 
-    pidfile = nav.buildconf.localstatedir + "/run/" + config.get('general','pidfile')
+    pidfile = nav.buildconf.localstatedir + "/run/snmptrapd.pid"
     try:
         daemon.justme(pidfile)
     except daemon.DaemonError, why:
@@ -286,7 +290,7 @@ def trapHandler(trap):
             mod = __import__(name, globals(), locals(), [parent])
             handlermodules.append(mod)
         except Exception, why:
-            logger.error("Module %s did not compile." %(name))
+            logger.exception("Module %s did not compile - %s" %(name, why))
 
     for mod in handlermodules:
         try:
@@ -294,8 +298,18 @@ def trapHandler(trap):
             if accepted:
                 logger.debug ("Module %s accepted trap" %mod.__name__)
         except Exception, why:
-            logger.error("Error when handling trap with %s: %s" %(mod.__name__, why))
-        
+            logger.exception("Error when handling trap with %s: %s" %(mod.__name__, why))
+
+
+def verifySubsystem ():
+    """Verify that subsystem exists, if not insert it into database"""
+    db = getConnection('default')
+    c = db.cursor()
+
+    sql = "INSERT INTO subsystem (SELECT 'snmptrapd', '' WHERE NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"
+    c.execute(sql)
+    db.commit()
+    
 
 class SNMPTrap:
     """Generic trap-class"""
@@ -334,7 +348,8 @@ class SNMPTrap:
             text = text + "%s -> %s\n" %(key, val)
 
         return text
-    
+
+
 
 if __name__ == '__main__':
     main()

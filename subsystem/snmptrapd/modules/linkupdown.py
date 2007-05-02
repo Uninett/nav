@@ -12,9 +12,13 @@ __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
+
+global db
+db = getConnection('default')
+
+
 def handleTrap(trap, config=None):
 
-    db = getConnection('default')
     c = db.cursor()
 
     if trap.genericType in ['LINKUP','LINKDOWN']:
@@ -25,8 +29,17 @@ def handleTrap(trap, config=None):
         target = 'eventEngine'
         eventtypeid = 'linkState'
 
+        ifindex = ''
+        portOID = config.get('linkupdown','portOID')
+        for key, val in trap.varbinds.items():
+            if key.find(portOID) >= 0:
+                ifindex = val
+
+
         netboxid = 0
         deviceid = 0
+
+        # Find netbox and deviceid for this ip-address.
         try:
             query = "SELECT * FROM netbox LEFT JOIN type USING (typeid) WHERE ip = '%s'" %(trap.src)
             logger.debug(query)
@@ -36,11 +49,12 @@ def handleTrap(trap, config=None):
             netboxid = res['netboxid']
             deviceid = res['deviceid']
 
+            module = '0'
             if res['vendorid'] == 'hp':
                 # Do a new query to get deviceid based on community in trap
                 community = trap.community
 
-                if community.find('@'):
+                if community.find('@') >= 0:
                     try:
                         logger.debug("Moduleinfo %s" %community)
                         module = re.search('\@sw(\d+)', community).groups()[0]
@@ -54,22 +68,30 @@ def handleTrap(trap, config=None):
                     c.execute(deviceq)
                     r = c.dictfetchone()
                     deviceid = r['deviceid']
+
+                # Ugly hack to find nav's ifindex
+                ifindex = "%s%02d" %(str(int(module) + 1), int(ifindex))
+
                 
         except Exception, why:
             logger.error("Error when querying database: %s" %why)
 
-        # Get config
-        port = ''
-        portOID = config.get('linkupdown','portOID')
-        for key, val in trap.varbinds.items():
-            if key.find(portOID) >= 0:
-                port = val
 
+        # Find swportid
+        idquery = "SELECT * FROM netbox LEFT JOIN module USING (netboxid) LEFT JOIN swport USING (moduleid) WHERE ip='%s' AND ifindex = %s" %(trap.src, ifindex)
+        logger.debug(idquery)
+        c.execute(idquery)
+        idres = c.dictfetchone()
 
-        subid = val
-        ending = ""
+        # Subid is swportid in this case
+        subid = idres['swportid']
 
-        # Check for traptype, post event on queue
+        # Todo: Make sure the events are actually forwarded to alertq
+        # for alerting.  It seems like the BoxState-handlerplugin of
+        # eventEngine accepts this event but does nothing with it.
+        # Thus an alert will never trigger of the events.
+
+        # Check for traptype, post event on queue        
         if trap.genericType == 'LINKUP':
             state = 'e'
             ending = 'up'
@@ -77,6 +99,7 @@ def handleTrap(trap, config=None):
             e = Event(source=source, target=target, netboxid=netboxid, deviceid=deviceid,
                       subid=subid, eventtypeid=eventtypeid, state=state)
             e['alerttype'] = 'linkUp'
+            e['module'] = module
 
             try:
                 e.post()
@@ -93,6 +116,7 @@ def handleTrap(trap, config=None):
                       eventtypeid=eventtypeid, state=state)
 
             e['alerttype'] = 'linkDown'
+            e['module'] = module
 
             try:
                 e.post()
@@ -101,8 +125,36 @@ def handleTrap(trap, config=None):
                 return False
 
 
-        logger.info("Port %s on %s is %s." %(port, trap.src, ending))
+        logger.info("Ifindex %s on %s is %s." %(ifindex, trap.src, ending))
 
         return True
     else:
         return False
+
+
+def verifyEventtype ():
+    c = db.cursor()
+
+    sql = """
+    INSERT INTO eventtype (
+    SELECT 'linkState','Tells us whether a link is up or down.','y' WHERE NOT EXISTS (
+    SELECT * FROM eventtype WHERE eventtypeid = 'linkState'));
+
+    INSERT INTO alertType (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkUp', 'Link active' WHERE NOT EXISTS (
+    SELECT * FROM alerttype WHERE alerttype = 'linkUp'));
+
+    INSERT INTO alertType (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkDown', 'Link inactive' WHERE NOT EXISTS (
+    SELECT * FROM alerttype WHERE alerttype = 'linkDown'));
+    """
+
+    queries = sql.split(';')
+    for q in queries:
+        if len(q.rstrip()) > 0:
+            c.execute(q)
+
+    db.commit()
+        
+
+verifyEventtype()
