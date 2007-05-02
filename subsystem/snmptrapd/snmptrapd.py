@@ -111,14 +111,24 @@ def main():
     # If we are to demonize, do it here.
     if opts.d:
 
+        loglevel = config.get('general', 'loglevel')
+        if not loglevel.isdigit():
+            loglevel = logging.getLevelName(loglevel)
+
+        try:
+            loglevel = int(loglevel)
+        except ValueError:
+            #default to loglevel INFO
+            loglevel = 20
+
         # Initialize deamonlogger
+        if not loginitfile(logfile, traplogfile, loglevel):
+            sys.exit(-1)
+
         traplogger = logging.getLogger('nav.snmptrapd.traplog')
         logger = logging.getLogger('nav.snmptrapd')
-        logger.setLevel(logging.DEBUG) # Let all info through to the root node
 
-        if not loginitfile(logfile, traplogfile):
-            sys.exit(-1)
-        
+
         try:
             print "Going into daemonmode..."
             daemon.daemonize(pidfile)
@@ -231,7 +241,7 @@ def transform(req):
 
     
 
-def loginitfile(logfile, traplogfile):
+def loginitfile(logfile, traplogfile, loglevel):
     """Initalize the logging handler for logfile."""
 
     try:
@@ -241,7 +251,8 @@ def loginitfile(logfile, traplogfile):
         filehandler.setFormatter(fileformatter)
         logger = logging.getLogger()
         logger.addHandler(filehandler)
-        logger.setLevel(1)
+        logger.setLevel(loglevel)
+        #logger.setLevel(loglevel)
 
         filehandler = logging.FileHandler(traplogfile, 'a')
         filehandler.setFormatter(fileformatter)
@@ -271,8 +282,11 @@ def trapHandler(trap):
         name = "nav.snmptrapd." + name
         parts = name.split('.')
         parent = '.'.join(parts[:-1])
-        mod = __import__(name, globals(), locals(), [parent])
-        handlermodules.append(mod)
+        try:
+            mod = __import__(name, globals(), locals(), [parent])
+            handlermodules.append(mod)
+        except Exception, why:
+            logger.error("Module %s did not compile." %(name))
 
     for mod in handlermodules:
         try:
@@ -306,9 +320,6 @@ class SNMPTrap:
     def __str__(self):
         text = self.trapText()
         return text
-
-    def run(self):
-        pass
 
     def trapText(self):
         """Creates a textual description of the trap suitable for printing to log or stdout."""
