@@ -98,7 +98,7 @@ def main():
     server.open()
 
     # We have bound to a port and can safely swith user
-    runninguser = config.get('general','runninguser')
+    runninguser = config.get('snmptrapd','runninguser')
     try:
         daemon.switchuser(runninguser)
     except daemon.DaemonError, why:
@@ -115,7 +115,7 @@ def main():
     # If we are to demonize, do it here.
     if opts.d:
 
-        loglevel = config.get('general', 'loglevel')
+        loglevel = config.get('snmptrapd', 'loglevel')
         if not loglevel.isdigit():
             loglevel = logging.getLevelName(loglevel)
 
@@ -283,7 +283,7 @@ def trapHandler(trap):
     handlermodules = []
     modulelist = config.get('snmptrapd','handlermodules').split(',')
     for name in modulelist:
-        name = "nav.snmptrapd." + name
+        name = name.strip()
         parts = name.split('.')
         parent = '.'.join(parts[:-1])
         try:
