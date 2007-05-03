@@ -18,9 +18,15 @@ db = getConnection('default')
 
 
 def handleTrap(trap, config=None):
+    """
+    handleTrap is run by snmptrapd every time it receives a
+    trap. Return False to signal trap was discarded, True if trap was
+    accepted.
+    """
 
     c = db.cursor()
 
+    # Linkstate-traps are generictypes. Check for linkup/down and post events on eventq.
     if trap.genericType in ['LINKUP','LINKDOWN']:
         logger.debug("Module linkupdown got trap %s %s" %(trap.snmpTrapOID, trap.genericType))
 
@@ -34,7 +40,6 @@ def handleTrap(trap, config=None):
         for key, val in trap.varbinds.items():
             if key.find(portOID) >= 0:
                 ifindex = val
-
 
         netboxid = 0
         deviceid = 0
@@ -50,9 +55,13 @@ def handleTrap(trap, config=None):
             deviceid = res['deviceid']
 
             module = '0'
+
+            # If this is a hp-device we need to create the ifindex according to NAV-standard.
             if res['vendorid'] == 'hp':
-                # Do a new query to get deviceid based on community in trap
                 community = trap.community
+
+                # Community in traps from HP-equipment comes in the
+                # format sw@[number] where number is the stackmember. 
 
                 if community.find('@') >= 0:
                     try:
@@ -133,6 +142,11 @@ def handleTrap(trap, config=None):
 
 
 def verifyEventtype ():
+    """
+    Safe way of verifying that the event- and alarmtypes exist in the
+    database. Should be run when module is imported.
+    """
+
     c = db.cursor()
 
     sql = """
@@ -157,4 +171,5 @@ def verifyEventtype ():
     db.commit()
         
 
+# Run verifyeventtype at import
 verifyEventtype()

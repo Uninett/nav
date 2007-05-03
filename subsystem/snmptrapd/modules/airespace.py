@@ -10,11 +10,21 @@ __copyright__ = "Copyright 2007 UNINETT AS"
 __license__ = "GPL"
 __author__ = "John-Magne Bredal (john.m.bredal@ntnu.no)"
 
+global db
 db = nav.db.getConnection('default')
 
 def handleTrap(trap, config=None):
+    """
+    handleTrap is run by snmptrapd every time it receives a
+    trap. Return False to signal trap was discarded, True if trap was
+    accepted.
+    """
 
     c = db.cursor()
+
+    # Define oids. Visit
+    # http://tools.cisco.com/Support/SNMP/do/BrowseOID.do for more
+    # documentation.
 
     bsnAPCurrentChannelChanged = '.1.3.6.1.4.1.14179.2.6.3.16'
     bsnAPChannelNumberTrapVariable = '.1.3.6.1.4.1.14179.2.6.2.23'
@@ -33,15 +43,19 @@ def handleTrap(trap, config=None):
 
     oid = trap.snmpTrapOID
 
-    # Init eventvariables
+
+    # Init eventvariables, used when posting an event.
+
     source = 'snmptrapd'
     target = 'eventEngine'
     eventtypeid = 'apState'
-    
+
+
+    # Find deviceid and netboxid
+
     netboxid = 0
     try:
         query = "SELECT * FROM netbox WHERE ip = '%s'" %(trap.src)
-        #logger.debug(query)
         c.execute(query)
         if (c.rowcount > 0):
             res = c.dictfetchone()
@@ -55,6 +69,7 @@ def handleTrap(trap, config=None):
         return False
 
 
+    # Trap for channel changed on ap
     if oid == bsnAPCurrentChannelChanged:
         for key, val in trap.varbinds.items():
             if key.find(bsnAPChannelNumberTrapVariable) >= 0:
@@ -65,7 +80,9 @@ def handleTrap(trap, config=None):
         #logger.info("%s changed channel to %s" %(mac, channel))
         
         return True
+
     elif oid == bsnSignatureAttackDetected:
+        # Signatureattack trap. These are quite spammy. 
         for key, val in trap.varbinds.items():
             if key.find(bsnSignatureDescription) >= 0:
                 signature = val
@@ -132,14 +149,20 @@ def handleTrap(trap, config=None):
         return False
 
 def postEvent(e):
-    
+    """Posts an event and catches errors."""
     try:
         e.post()
     except nav.errors.GeneralException, e:
         logger.error(e)
         return False
 
+
 def verifyEventtype ():
+    """
+    Safe way of verifying that the event- and alarmtypes exist in the
+    database. Should be run when module is imported.
+    """
+    
     c = db.cursor()
 
     sql = """
@@ -164,4 +187,5 @@ def verifyEventtype ():
     db.commit()
         
 
+# Run verifyeventtype at import
 verifyEventtype()
