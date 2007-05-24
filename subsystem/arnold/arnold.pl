@@ -159,7 +159,7 @@ if ($action eq 'disable') {
 
     if ($opt_f) {
 	print LOG "Setting filename = $datapath/$opt_f.\n";
-	$filename = $datapath/$opt_f;
+	$filename = "$datapath/$opt_f";
 
 	my $digestfile = "$filename.md5";
 	my $sum = "0";
