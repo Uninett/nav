@@ -141,6 +141,70 @@ class Snmp(object):
         return rsp_value()
 
 
+    def set(self, query, type, value):
+        """
+        Does snmpset query on the host.
+        query: oid to use in snmpset
+        type: type of value to set. This may be
+        i: INTEGER
+        u: unsigned INTEGER
+        t: TIMETICKS
+        a: IPADDRESS
+        o: OBJID
+        s: STRING
+        U: COUNTER64 (version 2 and above)
+        value: the value to set. Must ofcourse match type: i = 2, s = 'string'
+        
+        Heavily influenced by:
+        http://pysnmp.sourceforge.net/examples/2.x/snmpset.html
+        """
+
+        if not query.startswith("."):
+            query = "." + query
+            
+        # Choose protocol version specific module
+        try:
+            snmp = eval('v' + self.version)
+        except (NameError, AttributeError):
+            raise UnsupportedSnmpVersionError(self.version)
+
+        # Translate type to fit asn1 library
+        if type == 'i': type = 'INTEGER'
+        if type == 'u': type = 'UNSIGNED32'
+        if type == 't': type = 'TIMETICKS'
+        if type == 'a': type = 'IPADDRESS'
+        if type == 'o': type = 'OBJECTID'
+        if type == 's': type = 'OCTETSTRING'
+        if type == 'U': type = 'COUNTER64'
+
+        # Make request and responsehandler
+        req = snmp.SETREQUEST()
+        req['community'] = self.community
+        rsp = snmp.GETRESPONSE()
+            
+        # Encode oids and values
+        encoded_oids = []
+        encoded_vals = []
+            
+        encoded_oids.append(asn1.OBJECTID().encode(query))
+        encoded_vals.append(eval('asn1.'+type+'()').encode(value))
+            
+        # Try to send query and get response
+        try:
+            (answer, src) = self.handle.send_and_receive(
+                req.encode(
+                encoded_oids=encoded_oids, encoded_vals=encoded_vals))
+                
+            # Decode response (an octet-string) into an snmp-message
+            rsp.decode(answer)
+                
+            if rsp['error_status']:
+                raise AgentError, str(snmp.SNMPError(rsp['error_status']))
+            
+        except (role.NoResponse, role.NetworkError), why:
+            raise NetworkError, why
+            
+            
     def walk(self,query = "1.3.6.1.2.1.1.1.0"):
         """
         Does snmpwalk on the host.
