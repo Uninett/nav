@@ -46,8 +46,8 @@ class Box:
         self.deviceIdList = []
         self.ro = ro
         (self.hostname,self.ip) = self.getNames(identifier)
-        self.typeid = self.getType(identifier,ro)
         self.snmpversion = self.getSnmpVersion(identifier,ro)
+        self.typeid = self.getType(identifier,ro)
         self.serial = None
 
 
@@ -88,7 +88,7 @@ class Box:
         returns typeid
         """
         
-        snmp = Snmp(identifier, ro)
+        snmp = Snmp(identifier, ro, self.snmpversion)
 
         sql = "select snmpoid from snmpoid where oidkey='typeoid'"
         connection = nav.db.getConnection("bokser")
@@ -209,7 +209,7 @@ class Box:
             version = "2c"
         except TimeOutException:
 
-            snmp = Snmp(identifier,ro)
+            snmp = Snmp(identifier,ro, "1")
             try:
                 sysname = snmp.get("1.3.6.1.2.1.1.5.0")
                 version = "1"
