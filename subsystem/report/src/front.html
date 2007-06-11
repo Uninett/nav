@@ -1,86 +1,80 @@
-
 <h2>Reports</h2>
 
-<table width="80%">
+<p>Use * as wildcard for all search fields.</p>
+
+<table style="border-spacing: 1em;">
 <tr>
 
-<td width="25%"><form action="../browse/">
-<label style="display: block; white-space: nowrap">IP Device Center</label>
-<input type="text" name="netbox" size="15" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>IP/sysname</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="../browse/">
+	<div>IP Device Center</div>
+	<input type="text" name="netbox" size="15" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>IP/sysname</i></div>
 </form></td>
 
-<td width="25%"><form action="netbox">
-<label style="display: block; white-space: nowrap">Room search</label>
-<input type="text" name="roomid" size="15" />
-<input type="hidden" name="op_roomid" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>room</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="netbox">
+	<label style="display: block; white-space: nowrap">Room search</label>
+	<input type="text" name="roomid" size="15" />
+	<input type="hidden" name="op_roomid" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>room</i></div>
 </form></td>
 
-<td width="25%"><form action="device">
-<label style="display: block; white-space: nowrap">Device search</label>
-<input type="text" name="serial" size="15" />
-<input type="hidden" name="op_serial" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>serial number</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="device">
+	<label style="display: block; white-space: nowrap">Device search</label>
+	<input type="text" name="serial" size="15" />
+	<input type="hidden" name="op_serial" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>serial number</i></div>
 </form></td>
 
-<td width="25%"><form action="swporttrunk">
-<label style="display: block; white-space: nowrap">Switchports with vlan</label>
-<input type="text" name="vlan.vlan" size="15" />
-<input type="hidden" name="op_vlan.vlan" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>vlan number</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="swporttrunk">
+	<label style="display: block; white-space: nowrap">Switchports with VLAN</label>
+	<input type="text" name="vlan.vlan" size="15" />
+	<input type="hidden" name="op_vlan.vlan" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>vlan number</i></div>
 </form></td>
 
 </tr>
 <tr>
 
-<td width="25%"><form action="netbox">
-<label style="display: block; white-space: nowrap">IP Device report</label>
-<input type="text" name="sysname" size="15" />
-<input type="hidden" name="op_sysname" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>Sysname</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="netbox">
+	<label style="display: block; white-space: nowrap">IP Device report</label>
+	<input type="text" name="sysname" size="15" />
+	<input type="hidden" name="op_sysname" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>sysname</i></div>
 </form></td>
 
-<td width="25%"><form action="swport">
-<label style="display: block; white-space: nowrap">Portname search</label>
-<input type="text" name="s1.portname" size="15" />
-<input type="hidden" name="op_s1.portname" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>text</i></div>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="swport">
+	<label style="display: block; white-space: nowrap">Portname search</label>
+	<input type="text" name="s1.portname" size="15" />
+	<input type="hidden" name="op_s1.portname" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>text</i></div>
 </form></td>
 
-<td>
-<form action="prefix">
-<label style="display: block; white-space: nowrap">Prefix search</label>
-<input type="text" name="netident" size="15" />
-<input type="hidden" name="op_netident" value="like" />
-<input type="submit" value="Find" />
-<div style="font-size: 0.5em;"><i>text</i></div>
-</form>
-</td>
+<td style="border: 1px solid gray; padding: 0.5em;"><form action="prefix">
+	<label style="display: block; white-space: nowrap">Prefix search</label>
+	<input type="text" name="netident" size="15" />
+	<input type="hidden" name="op_netident" value="like" />
+	<input type="submit" value="Find" />
+	<div style="font-size: 0.8em;"><i>text</i></div>
+</form></td>
 
 <td></td>
 
 </tr>
 </table>
-<div style="font-size: 0.8em; color: gray"><i><b>Wildcard for all search fields: *</b></i></div>
-<hr />
-<p>
-<a href="matrix"><b>IP address scope - graphical view</b></a><br />
-<a href="/browse/service/allMatrix"><b>Services - graphical view</b></a>
-</p>
 
-<table width="80%" border="0" cellspacing="1" cellpadding="10">
+<table><tr><td valign="top">
 
-<tr><td colspan="2" width="50%">
-<h4>Collected information</h4>
+<h3>Collected information</h2>
+
 <ul style="list-style: none; padding-left: 0em;">
-<li><a href="netbox">All IP Devices</a></li>
+	<li><a href="netbox">All IP Devices</a></li>
+	<li><a href="matrix">IP address scope - graphical view</a></li>
 
 <li><a href="netbox?catid=GW%2CGSW&amp;op_catid=in">Routers</a>
   <ul style="list-style: none;">
@@ -93,22 +87,22 @@
   <ul style="list-style: none;">
     <li><a href="swport?op_b1.catid=in&amp;b1.catid=SW,GSW">Core switch ports</a></li>
     <li><a href="swport?b1.catid=SW&amp;s1.trunk=t">Trunked core switch ports</a></li>
-    <li><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to vlan)</a></li>
+    <li><a href="swporttrunk?b1.catid=SW">Core switch ports (expand trunks to VLAN)</a></li>
   </ul>
 </li>
 
-<li><a href="netbox?catid=EDGE">Edge Switches and Hubs (who uses those anyway??)</a>
+<li><a href="netbox?catid=EDGE">Edge Switches and Hubs (who uses those anyway?)</a>
   <ul style="list-style: none;">
     <li><a href="swporttrunk?b1.catid=EDGE">Edge switch ports</a></li>
   </ul>
 </li>
-
 
 <li><a href="netbox?catid=WLAN">Wireless</a></li>
 
 <li><a href="srv">Servers</a>
   <ul style="list-style: none;">
     <li><a href="servicemon">Services</a></li>
+    <li><a href="/browse/service/allMatrix">Services - graphical view</a></li>
   </ul>
 </li>
 
@@ -118,24 +112,19 @@
 <li><a href="unrecognizedCDP">Unrecognized CDP neighbours</a></li>
 </ul>
 
-</td>
-<td valign="top" width="50%" colspan="2">
-<h4>Manually updated information</h4>
+</td><td valign="top">
+
+<h3>Manually updated information</h3>
 
 <ul style="list-style: none; padding-left: 0em;">
-<li><a href="../editdb"><i>[Update database]</i></a>
-<br /><br /></li>
-
-<li><a href="type">Equipment types</a></li>
-<li><a href="room">Rooms</a></li>
-<li><a href="location">Locations</a></li>
-<li><a href="org">Organisations</a></li>
-<li><a href="usage">User groups</a></li>
-<li><a href="vendor">Vendors</a></li>
-<li><a href="product">Products</a></li>
-
+	<li><a href="../editdb/"><i>[Edit database]</i></a></li>
+	<li><a href="type">Equipment types</a></li>
+	<li><a href="room">Rooms</a></li>
+	<li><a href="location">Locations</a></li>
+	<li><a href="org">Organisations</a></li>
+	<li><a href="usage">User groups</a></li>
+	<li><a href="vendor">Vendors</a></li>
+	<li><a href="product">Products</a></li>
 </ul>
 
-</td></tr>
-</table>
-
+</td></tr></table>
