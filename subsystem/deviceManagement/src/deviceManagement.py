@@ -30,13 +30,20 @@ by the deviceTracker, and is also the default handler.
 #################################################
 ## Imports
 
-import nav.db.manage,mx.DateTime,re,forgetSQL,psycopg
+import nav.db.manage
+import mx.DateTime
+import re
+import forgetSQL
+import psycopg
 
 from mod_python import util,apache
 from nav.web.templates.deviceManagementTemplate import deviceManagementTemplate
 #from deviceManagementTemplate import deviceManagementTemplate
 from nav.web.TreeSelect import TreeSelect,Select,UpdateableSelect,Option,SimpleSelect
 from nav.web import urlbuilder,SearchBox
+
+import logging
+logger = logging.getLogger('nav.web.devicemanager')
 
 #################################################
 ## Constants (read from config file)
@@ -57,9 +64,8 @@ MAIN_MENU = [['Device history',BASEPATH,'Browse and view device history'],
              ['Register error event',BASEPATH + 'error/','Register an error event with a comment on a location, room, box or module'], 
              ['Module delete',BASEPATH + 'delete/','Manually delete any modules that are flagged as down']]
 
-CURRENT_PATH = [('Home','/'),
-                ('Tools','/toolbox'),
-                ('Device Management',None)]
+CURRENT_PATH = [('Home', '/'),
+                ('Device Management', BASEPATH)]
 
 # Controlnames for TreeSelect
 CN_LOCATION = 'location'
@@ -344,7 +350,7 @@ def registerRMA(deviceidList,rmanumber,year,month,day,retailer,
             event.addVar('comment',comment)
         event.post()
 
-  
+
 def history(req,deviceorderid=None):
     page = Page()
     form = req.form
@@ -353,24 +359,59 @@ def history(req,deviceorderid=None):
     page.title = 'Device history'
     page.description = 'Select and view device history for a location, ' + \
                        'room, box or module. Use quicksearch to search for '+\
-                       'a (partial) serialnumber, hostname, ip or room.'
+                       'a (partial) serialnumber, hostname, IP or room.'
     page.widgets = {}
 
-    page.widgets['startdate'] = Widget(['start_day', 'start_month', 'start_year'],
+    if (form.has_key('startday')
+        and form.has_key('startmonth')
+        and form.has_key('startyear')):
+        startdate_value = [form['startyear'],
+                           form['startmonth'],
+                           form['startday']]
+    else:
+        startdate_value = [None, None, None]
+
+    if (form.has_key('endday')
+        and form.has_key('endmonth')
+        and form.has_key('endyear')):
+        enddate_value = [form['endyear'],
+                         form['endmonth'],
+                         form['endday']]
+    else:
+        enddate_value = [None, None, None]
+
+    page.widgets['tf_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
                                        'date',
                                        'Start date',
-                                       ['2004',
-                                        '01',
-                                        '01'])
-    page.widgets['enddate'] = Widget(['end_day', 'end_month', 'end_year'],
+                                       startdate_value)
+    page.widgets['tf_enddate'] = Widget(['endday', 'endmonth', 'endyear'],
                                        'date',
                                        'End date',
-                                       [None,
-                                        None,
-                                        None])
-    page.widgets['searchdate'] = Widget('date_submit', 'submit', 'Search')
+                                       enddate_value)
+    page.widgets['tf_submit'] = Widget('history', 'submit', 'Search')
 
+    # Add data from treeselect to hidden fields in the time frame form
+    page.timeframeform = {}
 
+    if form.has_key('location'):
+        page.timeframeform['location'] = form['location']
+    else:
+        page.timeframeform['location'] = ''
+
+    if form.has_key('room'):
+        page.timeframeform['room'] = form['room']
+    else:
+        page.timeframeform['room'] = ''
+
+    if form.has_key('box'):
+        page.timeframeform['box'] = form['box']
+    else:
+        page.timeframeform['box'] = ''
+
+    if form.has_key('module'):
+        page.timeframeform['module'] = form['module']
+    else:
+        page.timeframeform['module'] = ''
 
     submenu = [('Browse devices','Browse or search for devices',
                 BASEPATH),
@@ -438,7 +479,7 @@ def history(req,deviceorderid=None):
         #if form.has_key(CN_LOCATION):
         #    # If a location has been selected, allow submit
         #    validSubmit = True
-        
+
         page.submit = {'control': 'history',
                        'value': 'View history',
                        'enabled': True}
@@ -2009,11 +2050,12 @@ class Widget:
               'August','September','October','November','December']
 
     # Widget 'struct' for the template
-    def __init__(self,controlname,type,name=None,value=None,options={},
+    def __init__(self,controlname,type,name=None,value=None,options=None,
                  required=False):
         self.controlname = controlname
         self.type = type
         self.name = name
+        if options is None: options = {}
         self.options = options
         self.required = required
         self.value = value
@@ -2038,17 +2080,17 @@ class Widget:
                 setdate = mx.DateTime.now()
 
             monthOptions = []
-            i = 1
-            for month in self.MONTHS:
+            for i, month in enumerate(self.MONTHS):
+                i += 1
                 thisMonth = False
                 if self.valueM:
                     if self.valueM == str(i):
                         thisMonth = True
                 else:
-                   if i == setdate.month:
+                   if setdate.month == i:
                        thisMonth = True
                 monthOptions.append((str(i),month,thisMonth))
-                i += 1
+
             dayOptions = []
             for d in range(1,32):
                 thisDay = False
@@ -2059,6 +2101,7 @@ class Widget:
                     if d == setdate.day:
                         thisDay = True
                 dayOptions.append((str(d),str(d),thisDay))
+
             yearOptions = []
             for y in range(startYear,endYear+1):
                 thisYear = False
@@ -2067,9 +2110,9 @@ class Widget:
                         thisYear = True
                 else:
                     if y == setdate.year:
-                        thisYear = True 
+                        thisYear = True
                 yearOptions.append((str(y),str(y),thisYear))
-            
+
             self.options['months'] = monthOptions
             self.options['days'] = dayOptions
             self.options['years'] = yearOptions

@@ -270,15 +270,27 @@ $renderFormattedList($page.orderList)
 #def history(page)
 #if $page.subname == 'history':
 <form action="" method="get">
-<table style="font-size: 13px;">
-    <tr>
-        <th align="left">From</th>
-        <td>$renderwidget($page.widgets['startdate'])</td>
-        <th align="left">To</th>
-        <td>$renderwidget($page.widgets['enddate'])</td>
-        <td>$renderwidget($page.widgets['searchdate'])</td>
-    </tr>
-</table>
+    #if len($page.timeframeform['location'])
+    <input type="hidden" name="location" value="$page.timeframeform['location']" />
+    #end if
+    #if len($page.timeframeform['room'])
+    <input type="hidden" name="room" value="$page.timeframeform['room']" />
+    #end if
+    #if len($page.timeframeform['box'])
+    <input type="hidden" name="box" value="$page.timeframeform['box']" />
+    #end if
+    #if len($page.timeframeform['module'])
+    <input type="hidden" name="module" value="$page.timeframeform['module']" />
+    #end if
+    <table style="font-size: 13px;">
+        <tr>
+            <th align="left">From</th>
+            <td>$renderwidget($page.widgets['tf_startdate'])</td>
+            <th align="left">To</th>
+            <td>$renderwidget($page.widgets['tf_enddate'])</td>
+            <td>$renderwidget($page.widgets['tf_submit'])</td>
+        </tr>
+    </table>
 </form>
 #for $box in $page.boxList
 $renderFormattedList($box)
@@ -466,69 +478,68 @@ $item[0]
 #if $widget.name
     $widget.name
 #if $widget.required
-    <span style="color: #ff0000">*</span>
+    <span style="color: red;">*</span>
 #end if
 #end if
 #end def
 
 #def renderwidget($widget)
 #if $widget.value
-#set $value = $widget.value
+    #set $value = $widget.value
 #else
-#set $value = ''
+    #set $value = ''
 #end if
 #if $widget.options.has_key('style')
-#set $style = $widget.options['style']
+    #set $style = $widget.options['style']
 #else
-#set $style = ''
+    #set $style = ''
 #end if
 #if $widget.type == 'text'
-#if $widget.options.has_key('size')
-#set size = $widget.options['size']
-#else
-#set size='30'
-#end if
+    #if $widget.options.has_key('size')
+        #set size = $widget.options['size']
+    #else
+        #set size = '30'
+    #end if
     <input type="text" name="$widget.controlname" value="$value" style="$style" size="$size">
 #elif $widget.type == 'select'
     <select name="$widget.controlname" style="$style">
-#for $id,$option,$selected in $widget.options['options']
-#if $value == $id
-#set $selected = True
-#end if
-#if $selected
-        <option selected value="$id">$option</option>
-#else
+    #for $id, $option, $selected in $widget.options['options']
+        #if $value == $id
+            #set $selected = True
+        #end if
+        #if $selected
+        <option value="$id" selected="selected">$option</option>
+        #else
         <option value="$id">$option</option>
-#end if 
-#end for
+        #end if
+    #end for
     </select>
 #elif $widget.type == 'date'
-#set i = 0
-#for $options in [$widget.options['days'],$widget.options['months'],$widget.options['years']]
-    <select name="$widget.controlname[i]" style="$style">
-#set i += 1
-#for $id,$option,$selected in $options
-#if $selected
-        <option selected value="$id">$option</option>
-#else
-         <option value="$id">$option</option>
-#end if 
-#end for
+    #set $i = 0
+    #for $options in [$widget.options['days'],$widget.options['months'],$widget.options['years']]
+    <select name="$widget.controlname[$i]" style="$style">
+        #set $i += 1
+        #for $id, $option, $selected in $options
+            #if $selected
+        <option value="$id" selected="selected">$option</option>
+            #else
+        <option value="$id">$option</option>
+            #end if
+        #end for
     </select>
-#end for
+    #end for
 #elif $widget.type == 'submit'
-
-#set $enabled = True
-#if $widget.options.has_key('enabled')
-#if not $widget.options['enabled']
-#set $enabled = False
-#end if
-#end if
-#if $enabled
+    #set $enabled = True
+    #if $widget.options.has_key('enabled')
+        #if not $widget.options['enabled']
+            #set $enabled = False
+        #end if
+    #end if
+    #if $enabled
     <input type="submit" name="$widget.controlname" value="$widget.name">
-#else
+    #else
     <input type="submit" disbled name="$widget.controlname" value="$widget.name">
-#end if
+    #end if
 #elif $widget.type == 'checkbox'
     <input type="checkbox" name="$widget.controlname" value="$widget.value">
 #elif $widget.type == 'textarea'
@@ -540,7 +551,7 @@ $item[0]
 #def showErrors($page)
 #if $page.errors
 #for $error in $page.errors
-    <span style="color: #ff0000;">$error</span><br>
+    <span style="color: red;">$error</span><br>
 #end for
 #end if
 #if $page.messages
