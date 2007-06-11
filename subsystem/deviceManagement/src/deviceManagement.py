@@ -362,23 +362,32 @@ def history(req,deviceorderid=None):
                        'a (partial) serialnumber, hostname, IP or room.'
     page.widgets = {}
 
-    if (form.has_key('startday')
-        and form.has_key('startmonth')
-        and form.has_key('startyear')):
+    if (form.has_key('startday') and form['startday'].isdigit()
+        and form.has_key('startmonth') and form['startmonth'].isdigit()
+        and form.has_key('startyear')) and form['startyear'].isdigit():
         startdate_value = [form['startyear'],
                            form['startmonth'],
                            form['startday']]
+        startTime = mx.DateTime.Date(int(form['startyear']),
+                                     int(form['startmonth']),
+                                     int(form['startday']))
     else:
         startdate_value = [None, None, None]
+        startTime = None
 
-    if (form.has_key('endday')
-        and form.has_key('endmonth')
-        and form.has_key('endyear')):
+    if (form.has_key('endday') and form['endday'].isdigit()
+        and form.has_key('endmonth') and form['endmonth'].isdigit()
+        and form.has_key('endyear')) and form['endyear'].isdigit():
         enddate_value = [form['endyear'],
                          form['endmonth'],
                          form['endday']]
+        endTime = mx.DateTime.Date(int(form['endyear']),
+                                   int(form['endmonth']),
+                                   int(form['endday']),
+                                   23, 59, 59)
     else:
         enddate_value = [None, None, None]
+        endTime = None
 
     page.widgets['tf_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
                                        'date',
@@ -450,7 +459,7 @@ def history(req,deviceorderid=None):
             unitList = form[historyType]
             if not type(unitList) is list:
                 unitList = [unitList]
-            page.boxList = makeHistory(form,historyType,unitList)
+            page.boxList = makeHistory(form, historyType, unitList, startTime, endTime)
             page.searchbox = None
             page.subname = 'history'
         else:
@@ -464,7 +473,7 @@ def history(req,deviceorderid=None):
             unitList = []
             for row in result:
                 unitList.append(row[0])
-            page.boxList = makeHistory(form,historyType,unitList)
+            page.boxList = makeHistory(form, historyType, unitList, startTime, endTime)
             page.searchbox = None
             page.subname = 'history'
         else:
@@ -1622,30 +1631,30 @@ def makeMainMenu(selected):
         i += 1
     return menu
 
-def makeHistory(form,historyType,unitList):
+def makeHistory(form, historyType, unitList, startTime, endTime):
     boxList = []
 
     for unitid in unitList:
         if historyType == CN_MODULE:
-            boxList.append(ModuleHistoryBox(unitid))
+            boxList.append(ModuleHistoryBox(unitid, startTime, endTime))
         elif historyType == CN_BOX:
-            boxList.append(NetboxHistoryBox(unitid))
+            boxList.append(NetboxHistoryBox(unitid, startTime, endTime))
         elif historyType == CN_ROOM:
-            boxList.append(RoomHistoryBox(unitid))
+            boxList.append(RoomHistoryBox(unitid, startTime, endTime))
         elif historyType == CN_LOCATION:
-            boxList.append(LocationHistoryBox(unitid))
+            boxList.append(LocationHistoryBox(unitid, startTime, endTime))
         elif historyType == CN_DEVICE:
             where = "deviceid='%s'" % (unitid,)
             box = nav.db.manage.Netbox.getAll(where=where)
             module = nav.db.manage.Module.getAll(where=where)
             if box:
                 box = box[0]
-                boxList.append(NetboxHistoryBox(box.netboxid))
+                boxList.append(NetboxHistoryBox(box.netboxid, startTime, endTime))
             elif module:
                 module = module[0]
-                boxList.append(ModuleHistoryBox(module.moduleid))
+                boxList.append(ModuleHistoryBox(module.moduleid, startTime, endTime))
             else:
-                boxList.append(DeviceHistoryBox(unitid))
+                boxList.append(DeviceHistoryBox(unitid, startTime, endTime))
     return boxList
 
 def makeTreeSelectRMA(req):
@@ -1989,7 +1998,7 @@ class EventCollector:
             else:
                 sql += "AND "
             sql += "(alerthist.start_time>='%s') " %\
-                   (self.startTime.strftime('%Y-%m-%d'))  
+                   (self.startTime.strftime('%Y-%m-%d'))
 
         # Limit on end time
         if self.endTime:
@@ -1999,7 +2008,7 @@ class EventCollector:
             else:
                 sql += "AND "
             sql += "(alerthist.end_time<='%s') " %\
-                   (self.endTime.strftime('%Y-%m-%d'))  
+                   (self.endTime.strftime('%Y-%m-%d'))
 
         # Add order by
         if self.orderBy:
@@ -2305,7 +2314,7 @@ class HistoryBox:
                     endTime = event.end_time.strftime(TIMEFORMAT)
 
                 descr = self.format(formatString,event)
-                            
+
                 self.rows.append([[startTime],[endTime],descr])
 
     def format(self,formatList,event):
@@ -2341,15 +2350,16 @@ class HistoryBox:
         return formattedList
 
 class LocationHistoryBox(HistoryBox):
-    def __init__(self,locationid):
+    def __init__(self, locationid, startTime, endTime):
         loc = nav.db.manage.Location(locationid)
         self.title = loc.descr
 
-        ec = EventCollector(orderBy='start_time desc')
+        ec = EventCollector(orderBy='start_time desc',
+                            startTime=startTime, endTime=endTime)
         vars = [['locationid',locationid]]
         self.events = ec.getEventsByVar(vars)
         self.fill()
-    
+
     def getFormatting(self,event):
         formatString = None
         if event.eventtypeid == 'deviceActive':
@@ -2365,11 +2375,12 @@ class LocationHistoryBox(HistoryBox):
         return formatString
 
 class RoomHistoryBox(HistoryBox):
-    def __init__(self,roomid):
+    def __init__(self, roomid, startTime, endTime):
         room = nav.db.manage.Room(roomid)
         self.title = str(roomid) + ' (' + room.descr + ')'
 
-        ec = EventCollector(orderBy='start_time desc')
+        ec = EventCollector(orderBy='start_time desc',
+                            startTime=startTime, endTime=endTime)
         vars = [['roomid',roomid]]
         self.events = ec.getEventsByVar(vars)
         self.fill()
@@ -2388,14 +2399,13 @@ class RoomHistoryBox(HistoryBox):
                                         DeviceEvent.STATE_NONE)
         return formatString
 
-
-         
 class NetboxHistoryBox(HistoryBox):
-    def __init__(self,netboxid):
+    def __init__(self, netboxid, startTime, endTime):
         box = nav.db.manage.Netbox(netboxid)
         self.title = box.sysname
 
-        ec = EventCollector(orderBy='start_time desc')
+        ec = EventCollector(orderBy='start_time desc',
+                            startTime=startTime, endTime=endTime)
         try:
             deviceid = nav.db.manage.Netbox(netboxid).device.deviceid
         except forgetSQL.NotFound:
@@ -2422,13 +2432,14 @@ class NetboxHistoryBox(HistoryBox):
 
 
 class ModuleHistoryBox(HistoryBox):
-    def __init__(self,moduleid):
+    def __init__(self, moduleid, startTime, endTime):
         module = nav.db.manage.Module(moduleid)
-        
+
         self.title = 'Module ' + str(module.module) + ' in ' + \
                       module.netbox.sysname
 
-        ec = EventCollector(orderBy='start_time desc')
+        ec = EventCollector(orderBy='start_time desc',
+                            startTime=startTime, endTime=endTime)
         try:
             deviceid = nav.db.manage.Module(moduleid).device.deviceid
         except forgetSQL.NotFound:
@@ -2455,11 +2466,12 @@ class ModuleHistoryBox(HistoryBox):
         return formatString
 
 class DeviceHistoryBox(HistoryBox):
-    def __init__(self,deviceid):
+    def __init__(self, deviceid, startTime, endTime):
         device = nav.db.manage.Device(deviceid)
         self.title = 'Device not currently in operation (%s)' % (device.serial,)
 
-        ec = EventCollector(orderBy='start_time desc')
+        ec = EventCollector(orderBy='start_time desc',
+                            startTime=startTime, endTime=endTime)
         self.events = ec.getEventsByDeviceid([deviceid])
         self.fill()
     
@@ -2476,11 +2488,6 @@ class DeviceHistoryBox(HistoryBox):
                 unitType = event.getVar('unittype',
                                         DeviceEvent.STATE_NONE)
         return formatString
-
-
-
-
-## EOF
 
 class GetEvents:
     def __init__(self,eventtypeId,alerttype,where=None,orderBy=None,limit=None):
