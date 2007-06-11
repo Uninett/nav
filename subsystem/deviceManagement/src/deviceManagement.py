@@ -1990,25 +1990,22 @@ class EventCollector:
                 first = False
             sql += ") "
 
-        # Limit on start time
-        if self.startTime:
+        # Limit on time interval
+        if self.startTime and self.endTime:
             if not addedWhere:
                 sql += "WHERE "
                 addedWhere = True
             else:
                 sql += "AND "
-            sql += "(alerthist.end_time >= '%s' OR alerthist.end_time IS NULL) " %\
-                   (self.startTime.strftime('%Y-%m-%d'))
-
-        # Limit on end time
-        if self.endTime:
-            if not addedWhere:
-                sql += "WHERE "
-                addedWhere = True
-            else:
-                sql += "AND "
-            sql += "(alerthist.start_time <= '%s') " %\
-                   (self.endTime.strftime('%Y-%m-%d'))
+            # Get all events with event start < interval end, and event end >
+            # interval start. In the case of a stateless event (end = NULL),
+            # also check that event start > interval start.
+            sql += """(alerthist.start_time <= '%(end)s')
+                      AND (alerthist.end_time >= '%(start)s'
+                           OR (alerthist.end_time IS NULL
+                               AND alerthist.start_time >= '%(start)s')) """ % \
+                   {'start': self.startTime.strftime('%Y-%m-%d'),
+                    'end': self.endTime.strftime('%Y-%m-%d')}
 
         # Add order by
         if self.orderBy:
