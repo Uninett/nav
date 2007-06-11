@@ -1997,7 +1997,7 @@ class EventCollector:
                 addedWhere = True
             else:
                 sql += "AND "
-            sql += "(alerthist.start_time>='%s') " %\
+            sql += "(alerthist.end_time >= '%s' OR alerthist.end_time IS NULL) " %\
                    (self.startTime.strftime('%Y-%m-%d'))
 
         # Limit on end time
@@ -2007,7 +2007,7 @@ class EventCollector:
                 addedWhere = True
             else:
                 sql += "AND "
-            sql += "(alerthist.end_time<='%s') " %\
+            sql += "(alerthist.start_time <= '%s') " %\
                    (self.endTime.strftime('%Y-%m-%d'))
 
         # Add order by
