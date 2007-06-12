@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 # $Id:$
 #
 # Copyright 2006 UNINETT AS
