@@ -4,6 +4,7 @@
 ## interface.
 ##
 ## Copyright 2003, 2004 Norwegian University of Science and Technology
+## Copyright 2007 UNINETT AS
 ##
 ## This file is part of Network Administration Visualized (NAV)
 ##
@@ -27,28 +28,44 @@
 ##
 #attr $origin = ""
 #attr $message = ""
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
 <html>
 <head>
-<title>NAV Login</title>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>NAV Login</title>
+    <link rel="stylesheet" type="text/css" href="/style/login.css" />
 </head>
 
 <body onLoad="document.getElementById('username').focus();">
-<table height="40%" border="0" width="100%"><tr valign="middle"><td valign="middle" align="center">
 
-<br><br><br>
-<font face="verdana" size="1">
-<form method="POST" action="/index/login">
-<img src="/images/login/navlogo.gif"><br>
+<div id="container">
+
+<img src="/images/login/navlogo.gif">
+
 #if $message
-<br><font color="#FF0000">$message</font>
+<p class="message">$message</p>
 #end if
-<br><input id="username" type="text" name="login" style="border: 1px solid #99c;"><br><font color="#6699CC">username</font>
-<br><input type="password" name="password" style="border: 1px solid #99c;"><br><font color="#6699CC">password</font>
-<input type="hidden" name="origin" value="$origin">
-<br><br><input type="submit" value="Log in">
+
+<form method="post" action="/index/login">
+    <input type="hidden" name="origin" value="$origin" />
+
+    <p>
+    <input type="text" name="login" id="username" class="intext" /><br />
+    username<br />
+    <input type="password" name="password" class="intext" /><br />
+    password
+    </p>
+
+    <p><input type="submit" value="Log in" /></p>
 </form>
-</font>
-</td></tr></table>
+
+</div>
+
 </body>
 </html>
