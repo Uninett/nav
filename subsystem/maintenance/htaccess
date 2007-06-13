@@ -1,4 +1,4 @@
-# $Id:$
+# $Id$
 
 SetHandler python-program
 PythonHandler nav.web.maintenance.handler
