@@ -68,8 +68,11 @@ def history(req,deviceorderid=None):
                                      int(form['startmonth']),
                                      int(form['startday']))
     else:
-        startdate_value = [None, None, None]
-        startTime = None
+        weekago = mx.DateTime.now() - mx.DateTime.oneWeek
+        startdate_value = [str(weekago.year),
+                           str(weekago.month),
+                           str(weekago.day)]
+        startTime = weekago
 
     if (form.has_key('endday') and form['endday'].isdigit()
         and form.has_key('endmonth') and form['endmonth'].isdigit()
@@ -82,8 +85,11 @@ def history(req,deviceorderid=None):
                                    int(form['endday']),
                                    23, 59, 59)
     else:
-        enddate_value = [None, None, None]
-        endTime = None
+        now = mx.DateTime.now()
+        enddate_value = [str(now.year),
+                         str(now.month),
+                         str(now.day)]
+        endTime = now
 
     page.widgets['tf_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
                                        'date',
