@@ -168,8 +168,7 @@ def rma(req,path):
 
         page.widgets['adddevice'] = Widget(CN_ADD_DEVICE,'submit','Add device')
         page.widgets['addrma'] = Widget(CN_ADD_RMA,'submit','Add RMA')
-
-    if not subpath:
+    else:
         # Main page
         sql = "SELECT device.deviceid,serial,serial " +\
               "FROM device,alerthist WHERE " +\

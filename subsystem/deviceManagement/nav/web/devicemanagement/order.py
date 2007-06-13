@@ -435,8 +435,7 @@ def order(req,path):
 
         page.orderList = FormattedList('orders','Order history',headings,
                                        colformat,sql)
-
-    if subpath=='main':
+    else:
         # Main page
         page.description = 'Currently active orders. Register arrival of ' +\
                            'devices in an order by selecting arrival. '
