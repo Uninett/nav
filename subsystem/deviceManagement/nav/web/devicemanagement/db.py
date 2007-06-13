@@ -1,4 +1,4 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 # $Id$
 #
 # Copyright 2003 Norwegian University of Science and Technology
@@ -20,14 +20,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Hans Jørgen Hoel <hansjorg@orakel.ntnu.no>
+# Authors: Hans JÃ¸rgen Hoel <hansjorg@orakel.ntnu.no>
 #
 """
-Contains custom forgetSQL classes used by the deviceTracker.
+Custom forgetSQL classes for Device Management
 """
 
+### Imports
 
 from nav.db.manage import *
+
+### Classes
 
 class DeviceDt(Device):
     def getNetbox(self):
@@ -37,14 +40,14 @@ class DeviceDt(Device):
             return netbox[0]
         else:
             return False
+
     def getModule(self):
         where = ["deviceid=%s" % (self._getID()[0],)]
         module = Module.getAll(where)
         if len(module):
             return module[0]
         else:
-            return False    
-
+            return False
 
 class AlerthistDt(Alerthist):
     _userClasses = {'device': DeviceDt, 'eventtype': Eventtype}

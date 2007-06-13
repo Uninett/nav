@@ -1,0 +1,5 @@
+# $Id$
+
+SetHandler python-program
+PythonHandler nav.web.devicemanagement.handler
+DirectoryIndex index
