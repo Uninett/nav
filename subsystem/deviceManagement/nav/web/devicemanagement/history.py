@@ -118,13 +118,15 @@ def history(req,deviceorderid=None):
     else:
         page.timeframeform['module'] = ''
 
-    submenu = [('Browse devices','Browse or search for devices',
-                BASEPATH),
-               ('Show active devices','Show all devices in operation',
-                BASEPATH),
-               ('Show devices with registered errors',
-                'Show all devices with registered errors',
-                BASEPATH)]
+    # FIXME: Vidar, what are these links supposed to point to?
+    #submenu = [('Browse devices','Browse or search for devices',
+    #            BASEPATH),
+    #           ('Show active devices','Show all devices in operation',
+    #            BASEPATH),
+    #           ('Show devices with registered errors',
+    #            'Show all devices with registered errors',
+    #            BASEPATH)]
+    submenu = []
     if deviceorderid:
         submenu.append(('Order history','Go back to order history',
                         BASEPATH+'order/history'))
