@@ -44,7 +44,7 @@ def handler(req):
 
 #connection = getConnection()
 
-conn = psycopg.connect("dbname=manage user=nav password=lieHanJiWu")
+conn = psycopg.connect("")
 c = conn.cursor()
 
 netboxes = getData(c)
