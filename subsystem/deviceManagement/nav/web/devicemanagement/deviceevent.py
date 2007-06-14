@@ -39,7 +39,7 @@ class DeviceEvent:
     STATE_START = 's'
     STATE_END = 'e'
 
-    source = 'deviceTracker'
+    source = 'deviceManagement'
     target = 'eventEngine'
     severity = 0
 

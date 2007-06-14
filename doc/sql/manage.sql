@@ -543,7 +543,7 @@ INSERT INTO subsystem (name) VALUES ('moduleMon');
 INSERT INTO subsystem (name) VALUES ('thresholdMon');
 INSERT INTO subsystem (name) VALUES ('trapParser');
 INSERT INTO subsystem (name) VALUES ('cricket');
-INSERT INTO subsystem (name) VALUES ('deviceTracker');
+INSERT INTO subsystem (name) VALUES ('deviceManagement');
 INSERT INTO subsystem (name) VALUES ('getDeviceData');
 INSERT INTO subsystem (name) VALUES ('devBrowse');
 INSERT INTO subsystem (name) VALUES ('maintenance');

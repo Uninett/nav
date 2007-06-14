@@ -33,3 +33,7 @@ CREATE RULE close_alerthist_modules AS ON DELETE TO module
 -- Added constraint to prevent accidental duplicates in the alerttype table.
 ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
 (eventtypeid, alerttype);
+
+-- Renamed eventengine source from deviceTracker to deviceManagement
+DELETE FROM subsystem WHERE name = 'deviceTracker';
+INSERT INTO subsystem (name) VALUES ('deviceManagement');

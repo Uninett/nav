@@ -37,13 +37,13 @@ class testEventQ implements EventQListener {
 		EventQ.init(1000, false);
 
 		// Set up a listener
-		EventQ.addEventQListener("deviceTracker", "getDeviceData", new testEventQ() );
+		EventQ.addEventQListener("deviceManagement", "getDeviceData", new testEventQ() );
 
 		// Get event
 		Map m = new HashMap();
 		m.put("testVar1", "testVal1");
 		m.put("testVar2", "testVal2");
-		Event e = EventQ.eventFactory("deviceTracker", "getDeviceData", deviceid, netboxid, 0, "info", Event.STATE_START, -1, -1, m);
+		Event e = EventQ.eventFactory("deviceManagement", "getDeviceData", deviceid, netboxid, 0, "info", Event.STATE_START, -1, -1, m);
 		EventQ.postEvent(e);
 		outl("Event posted");
 
