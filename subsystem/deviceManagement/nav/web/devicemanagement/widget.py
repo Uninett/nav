@@ -58,7 +58,7 @@ class Widget:
             if options.has_key('startyear'):
                 startYear = options['startyear']
             else:
-                startYear = now.year - 1
+                startYear = now.year - 5
             if options.has_key('endyear'):
                 endYear = options['endyear']
             else:
