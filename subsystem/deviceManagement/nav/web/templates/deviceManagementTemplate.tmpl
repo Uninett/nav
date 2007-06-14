@@ -271,25 +271,33 @@ $renderFormattedList($page.orderList)
 #def history(page)
 #if $page.subname == 'history':
 <form action="" method="get">
-    #if len($page.timeframeform['location'])
-    <input type="hidden" name="location" value="$page.timeframeform['location']" />
+    #if len($page.filterform['location'])
+    <input type="hidden" name="location" value="$page.filterform['location']" />
     #end if
-    #if len($page.timeframeform['room'])
-    <input type="hidden" name="room" value="$page.timeframeform['room']" />
+    #if len($page.filterform['room'])
+    <input type="hidden" name="room" value="$page.filterform['room']" />
     #end if
-    #if len($page.timeframeform['box'])
-    <input type="hidden" name="box" value="$page.timeframeform['box']" />
+    #if len($page.filterform['box'])
+    <input type="hidden" name="box" value="$page.filterform['box']" />
     #end if
-    #if len($page.timeframeform['module'])
-    <input type="hidden" name="module" value="$page.timeframeform['module']" />
+    #if len($page.filterform['module'])
+    <input type="hidden" name="module" value="$page.filterform['module']" />
     #end if
-    <table style="font-size: 13px;">
+    <table>
         <tr>
-            <th align="left">From</th>
-            <td>$renderwidget($page.widgets['tf_startdate'])</td>
-            <th align="left">To</th>
-            <td>$renderwidget($page.widgets['tf_enddate'])</td>
-            <td>$renderwidget($page.widgets['tf_submit'])</td>
+            <td>From</td>
+            <td>$renderwidget($page.widgets['filter_startdate'])</td>
+        </tr>
+            <td>To</td>
+            <td>$renderwidget($page.widgets['filter_enddate'])</td>
+        </tr>
+        <tr>
+            <td>Event type</td>
+            <td>$renderwidget($page.widgets['filter_eventtype'])</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>$renderwidget($page.widgets['filter_submit'])</td>
         </tr>
     </table>
 </form>
