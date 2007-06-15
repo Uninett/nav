@@ -1,6 +1,6 @@
 # -*- coding: ISO8859-1 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,6 +18,7 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Kristian Klette <klette@samfundet.no>
 
 import psycopg
 
@@ -93,11 +94,14 @@ ORDER BY gwportid, swportid, netboxid, swport.port;
         if not netboxes[row['netboxid']].modules[row['moduleid']].swports.has_key(row['swportid']):
             netboxes[row['netboxid']].modules[row['moduleid']].swports[row['swportid']] = \
                 SWPort(row['swportid'], row['swport'], row['swlink'], row['swinterface'], row['swspeed'], row['sw_to_netboxid'], row['sw_to_swportid'])
-
+            if not netboxes[row['netboxid']].linked_to.has_key(row['sw_to_netboxid']):
+                netboxes[row['netboxid']].linked_to[row['sw_to_netboxid']] = True
         # Add gwport to the module
         if not netboxes[row['netboxid']].modules[row['moduleid']].gwports.has_key(row['gwportid']):
             netboxes[row['netboxid']].modules[row['moduleid']].gwports[row['gwportid']] = \
                 GWPort(row['gwportid'], row['gwip'], row['gwlink'], row['gwinterface'], row['gwspeed'], row['gw_to_netboxid'], row['gw_to_swportid'])
+            if not netboxes[row['netboxid']].linked_to.has_key(row['gw_to_netboxid']):
+                netboxes[row['netboxid']].linked_to[row['gw_to_netboxid']] = True
 
     # Fetch netbox of the box the ports are connected to.
     for box in netboxes.values():
@@ -107,10 +111,14 @@ ORDER BY gwportid, swportid, netboxid, swport.port;
                     db_cursor.execute("SELECT netboxid FROM swport JOIN module USING(moduleid) WHERE swportid = %i LIMIT 1" % port.connected_swport)
                     res = db_cursor.fetchall()
                     port.connected_to = res[0][0]
+                    if not box.linked_to.has_key(res[0][0]):
+                        box.linked_to[res[0][0]] = True
             for port in module.gwports.values():
                 if port.connected_swport:
                     db_cursor.execute("SELECT netboxid FROM swport JOIN module USING(moduleid) WHERE swportid = %i LIMIT 1" % port.connected_swport)
                     res = db_cursor.fetchall()
                     port.connected_to = res[0][0]
+                    if not box.linked_to.has_key(res[0][0]):
+                        box.linked_to[res[0][0]] = True
 
     return netboxes

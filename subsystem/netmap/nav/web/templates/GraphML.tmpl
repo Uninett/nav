@@ -1,0 +1,76 @@
+#encoding UTF-8
+## $Id$
+##
+## Copyright 2007 UNINETT AS
+##
+## This file is part of Network Administration Visualized (NAV)
+##
+## NAV is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## NAV is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with NAV; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+##
+## Author: Kristian Klette
+##
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
+             http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+
+## Defined GraphML-attributes
+## TODO: Add more attributes
+<key id="sysname" for="node" attr.name="sysname" attr.type="string"/>
+<key id="ip" for="node" attr.name="ip" attr.type="string"/>
+<key id="category" for="node" attr.name="category" attr.type="string"/>
+<key id="cpuload" for="node" attr.name="cpuload" attr.type="string"/>
+<key id="room" for="node" attr.name="room" attr.type="string"/>
+<key id="location" for="node" attr.name="location" attr.type="string"/>
+<key id="uptime" for="node" attr.name="uptime" attr.type="string"/>
+<key id="up" for="node" attr.name="up" attr.type="string"/>
+
+<graph id="main" edgedefault="undirected">
+	#for $box in $netboxes.values()
+	<node id="$box.netboxid">
+		<data key="sysname">$box.sysname</data>
+		<data key="ip">$box.ip</data>
+		<data key="category">$box.catid</data>
+		<data key="room">$box.roomid</data>
+		<data key="uptime">$box.uptime</data>
+		<data key="up">$box.up</data>
+		## Not implemented yet
+		<data key="location">-</data>
+		<data key="cpuload">-1.0</data>
+	</node>
+	    #if len($box.linked_to.keys()) > 1
+            #for $linked_to in $box.linked_to.keys()
+                #if $linked_to
+                ## Ok, this is a bit ugly, but as we generate the GraphML
+                ## here, and graphml doesnt allow non-existing targets,
+                ## we have to do some looping..
+                    #set $found = False
+                    #for $tbox in $netboxes.values()
+                        #if $tbox.netboxid == $linked_to
+                            #set $found = True
+                            #break
+                        #end if
+                    #end for
+                    #if $found
+    <edge id="$box.netboxid-$linked_to" source="$box.netboxid" target="$linked_to" />
+                    #end if
+                #end if
+		    #end for
+        #end if
+	#end for
+</graph>
+</graphml>

@@ -20,31 +20,27 @@
 #
 # Authors: Kristian Klette <klette@samfundet.no>
 
-# A small web-service to output structured output of netpoints and the links between them.
 import sys
 import psycopg
 import nav.db
 
-from common import *
-from dataCollector import *
-from output import *
+from nav.web.netmapserver.common import *
+from nav.web.netmapserver.datacollector import *
+from nav.web.netmapserver.output import *
 
-# Try-catch hack so we can use console as well..
-console = False
-try:
-    from mod_python import apache, util
-except:
-    console = True
-    pass
+from mod_python import apache, util
+
+from nav.web.templates.GraphML import GraphML
 
 def handler(req):
-    connection = nav.db.getConnection()
+    connection = nav.db.getConnection('netmapserver', 'manage')
     db = connection.cursor()
 
-    netboxes = getData(db)
-
-    req.content_type="text/txt"
-
-    req.write( returnSimpleXML(netboxes) );
+    page = GraphML()
+    page.netboxes = getData(db)
+    req.content_type="text/xml"
+    req.send_http_header()
+    # Convert the data to readable output and send to the browser
+    req.write(page.respond());
 
     return apache.OK

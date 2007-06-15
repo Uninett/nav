@@ -1,6 +1,6 @@
 # -*- coding: ISO8859-1 -*-
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -18,10 +18,12 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
+# Authors: Kristian Klette <klette@samfundet.no>
 
 
 def returnSimpleXML(data = None):
-    ret = ""
+    ret = """<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+                <netpoints>"""
     for box in data.values():
         ret += """
 <netpoint>
@@ -54,4 +56,6 @@ def returnSimpleXML(data = None):
     </connected_to>
 </netpoint>
         """
+    ret += "</netpoints>"
     return ret
+
