@@ -36,8 +36,8 @@ import mx.DateTime
 # Should be read from config file
 
 BASEPATH = '/devicemanagement/'
-DATEFORMAT = '%d-%m-%Y'
-TIMEFORMAT = '%d-%m-%Y %H:%M'
+DATEFORMAT = '%Y-%m-%d'
+TIMEFORMAT = '%Y-%m-%d %H:%M'
 TIMESTAMP = '%Y-%m-%d %H:%M:%S'
 INFINITY = mx.DateTime.DateTime(999999,12,31,0,0,0)
 MAX_NUMBER_OF_DEVICES_ORDERED = 20

@@ -298,7 +298,10 @@ class HistoryBox:
                 startTime = event.start_time.strftime(TIMEFORMAT)
                 endTime = None
                 if event.end_time:
-                    endTime = event.end_time.strftime(TIMEFORMAT)
+                    if event.end_time == INFINITY:
+                        endTime = 'Still active'
+                    else:
+                        endTime = event.end_time.strftime(TIMEFORMAT)
 
                 descr = self.format(formatString,event)
 
@@ -307,11 +310,6 @@ class HistoryBox:
     def format(self,formatList,event):
         formattedList = []
         for formatString in formatList:
-            #if type(formatString) == type(mx.DateTime.now()):
-            #    formatString = formatString.strftime(TIMEFORMAT)
-            #elif not type(formatString) is str:
-            #    formatString = str(formatString)
-
             regexp = re.compile("\$(\w+)\$")
 
             while regexp.search(formatString):
@@ -861,8 +859,8 @@ FROM
                       AND (alerthist.end_time >= '%(start)s'
                            OR (alerthist.end_time IS NULL
                                AND alerthist.start_time >= '%(start)s')) """ % \
-                   {'start': self.startTime.strftime('%Y-%m-%d'),
-                    'end': self.endTime.strftime('%Y-%m-%d')}
+                   {'start': self.startTime.strftime('%Y-%m-%d 00:00:00'),
+                    'end': self.endTime.strftime('%Y-%m-%d 23:59:59')}
 
         # Add order by
         if self.orderBy:
