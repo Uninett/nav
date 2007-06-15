@@ -33,6 +33,7 @@
 <link rel="stylesheet" type="text/css" href="/style/deviceManagement.css" />
 $default_form_CSS()
 $default_tabs_CSS()
+$default_table_CSS()
 #end def
 
 #def content
@@ -300,6 +301,7 @@ $renderFormattedList($page.orderList)
         </tr>
     </table>
 </form>
+<p></p>
 #for $box in $page.boxList
 $renderFormattedList($box)
 #end for
@@ -436,40 +438,46 @@ $item[0]
 #end def
 
 #def renderFormattedList($flist)
-<h3>$flist.title</h3>
-<table border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;white-space: nowrap;">
+    #set $numrows = len($flist.rows)
+<table class="horiztable">
+    <caption>
+        <span class="cornerkludge"></span>
+        $flist.title<br />
+        <span class="subtitle">$numrows entries</span>
+    </caption>
+    #set $numrows += 1
+
     <tr class="header">
-        <td class="startheader"></td>
-#for $h,$url in $flist.headings
-        <td valign="top">
-#if $url
+        <td class="leftkludge" rowspan="$numrows">
+    #for $h,$url in $flist.headings
+        <th>
+        #if $url
              <a href="$url">$h</a>&nbsp;
-#else
+        #else
              $h&nbsp;
-#end if
-        </td>
-#end for
-        <td class="endheader"></td>
+        #end if
+        </th>
+    #end for
+        <td class="rightkludge" rowspan="$numrows">
     </tr>
-#for $row in $flist.rows
-    <tr>
-        <td></td>
-#for $col in $row
+
+    #for $row in $flist.rows
+    <tr class="$rowcycler">
+        #for $col in $row
         <td>
-#for $part in $col
-            $renderFormatString($part)&nbsp;&nbsp;
-#end for 
+            #for $part in $col
+            $renderFormatString($part)
+            #end for
         </td>
-#end for
-        <td></td>
+        #end for
     </tr>
-#end for
+    #end for
 </table>
 #end def
 
 #def renderFormatString($fstring)
 #if type($fstring) is str:
-    $fstring
+    $fstring.replace('\n', '<br />')
 #elif type($fstring) is list:
 #set $ftype = $fstring[0]
 #if $ftype == 'url'

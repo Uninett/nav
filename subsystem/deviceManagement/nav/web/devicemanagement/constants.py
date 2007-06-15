@@ -108,6 +108,7 @@ CN_INACTIVE_MOVE = 'd_inmoveto'
 G_EVENTTYPE = '%et%'
 G_ALERTTYPE = '%at%'
 G_ALLVARS = '%av%'
+G_ALLMSGS = '%am%'
 
 # deviceActive
 # deviceState

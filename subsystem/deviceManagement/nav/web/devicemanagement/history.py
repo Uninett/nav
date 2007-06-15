@@ -271,8 +271,8 @@ class HistoryBox:
 
     globalVars = {G_EVENTTYPE: 'eventtypeid',
                   G_ALERTTYPE: 'alerttype',
-                  G_ALLVARS: 'allvars'}
-
+                  G_ALLVARS: 'allvars',
+                  G_ALLMSGS: 'allmsgs'}
 
     headings = [('Start',''),
                 ('End',''),
@@ -286,8 +286,10 @@ class HistoryBox:
            for event in self.events:
                 # Default description formatting (used if no format
                 # string is returned by getFormatting()
-                default = [G_EVENTTYPE + ", " +\
-                           G_ALERTTYPE + ", " + G_ALLVARS]
+                default = ['Event: ' + G_EVENTTYPE + ', '
+                           'Alert: ' + G_ALERTTYPE + ' '
+                           #'Vars: ' + G_ALLVARS +
+                           '\n' + G_ALLMSGS]
 
                 formatString = self.getFormatting(event)
                 if not formatString:
@@ -771,26 +773,23 @@ class EventCollector:
         # idsql: sql that selects list of alerthist ids
         # where: where clause to add
 
-        # Constants
-        ALERTHISTID = 0
-        SOURCE = 1
-        DEVICEID = 2
-        NETBOXID = 3
-        SUBID = 4
-        START_TIME = 5
-        END_TIME = 6
-        EVENTTYPEID = 7
-        VALUE = 8
-        SEVERITY = 9
-        ALERTTYPEID = 10
-        ALERTTYPE = 11
-
-        sql = "SELECT alerthist.alerthistid,alerthist.source," +\
-              "alerthist.deviceid,alerthist.netboxid,alerthist.subid," +\
-              "alerthist.start_time,alerthist.end_time," +\
-              "alerthist.eventtypeid,alerthist.value,alerthist.severity," +\
-              "alerthist.alerttypeid,alerttype.alerttype FROM alerthist " +\
-              "LEFT JOIN alerttype using (alerttypeid) "
+        sql = """
+SELECT
+    alerthist.alerthistid,
+    alerthist.source,
+    alerthist.deviceid,
+    alerthist.netboxid,
+    alerthist.subid,
+    alerthist.start_time,
+    alerthist.end_time,
+    alerthist.eventtypeid,
+    alerthist.value,
+    alerthist.severity,
+    alerthist.alerttypeid,
+    alerttype.alerttype
+FROM
+    alerthist LEFT JOIN alerttype USING (alerttypeid)
+"""
 
         addedWhere = False
 
@@ -871,39 +870,53 @@ class EventCollector:
 
         # Add limit
         if self.limit:
-            sql += "LIMIT %s " % (self.limit,) 
+            sql += "LIMIT %s " % (self.limit,)
 
         # Add offset
         if self.offset:
-            sql += "OFFSET %s " % (self.limit,) 
+            sql += "OFFSET %s " % (self.limit,)
 
         connection = nav.db.getConnection('devicemanagement','manage')
         database = connection.cursor()
         database.execute(sql)
-        result = database.fetchall() 
+        result = database.dictfetchall()
 
         events = []
         if result:
             for row in result:
-                event = DeviceEvent(row[EVENTTYPEID],
-                                    row[ALERTTYPE])
-                event.alerthistid = row[ALERTHISTID]
-                event.source = row[SOURCE]
-                event.deviceid = row[DEVICEID]
-                event.netboxid = row[NETBOXID]
-                event.subid = row[SUBID]
-                event.start_time = row[START_TIME]
-                event.end_time = row[END_TIME]
-                event.value = row[VALUE]
-                event.severity = row[SEVERITY]
+                event = DeviceEvent(row['eventtypeid'], row['alerttype'])
+                event.alerthistid = row['alerthistid']
+                event.source = row['source']
+                event.deviceid = row['deviceid']
+                event.netboxid = row['netboxid']
+                event.subid = row['subid']
+                event.start_time = row['start_time']
+                event.end_time = row['end_time']
+                event.value = row['value']
+                event.severity = row['severity']
 
                 # get alerthistvars
-                sql = "SELECT state,var,val FROM alerthistvar WHERE " +\
-                      "alerthistid='%s'" % (event.alerthistid,)
+                sql = """
+SELECT state, var, val
+FROM alerthistvar
+WHERE alerthistid='%s'""" % event.alerthistid
                 database.execute(sql)
-                vars = database.fetchall() 
+                vars = database.dictfetchall()
                 if vars:
                     for var in vars:
-                        event.addVar(var[1],var[2],var[0])
+                        event.addVar(var['var'], var['val'], var['state'])
+
+                # get alerthistmsgs
+                sql = """
+SELECT state, msg
+FROM alerthistmsg
+WHERE msgtype='sms' AND language='en' AND alerthistid='%s'""" % \
+                    event.alerthistid
+                database.execute(sql)
+                msgs = database.dictfetchall()
+                if msgs:
+                    for msg in msgs:
+                        event.addMsg(msg['msg'], msg['state'])
+
                 events.append(event)
         return events

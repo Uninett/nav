@@ -53,6 +53,9 @@ class DeviceEvent:
     # String containing list of all vars
     allvars = ''
 
+    # String with all msgs
+    allmsgs = ''
+
     def __init__(self,eventtypeid,alerttype=None):
         self.eventtypeid = eventtypeid
         self.alerttype = alerttype
@@ -67,6 +70,9 @@ class DeviceEvent:
         # set alerttype var
         if self.alerttype:
             self.addVar("alerttype",self.alerttype)
+
+        # alerthistmsgs
+        self.msgs = {}
 
     def post(self):
         connection = nav.db.getConnection('devicemanagement','manage')
@@ -141,3 +147,25 @@ class DeviceEvent:
         else:
             value = ''
         return value
+
+    def addMsg(self, msg, state):
+        self.msgs[state] = msg
+
+        # Stateless
+        if self.msgs.has_key(self.STATE_NONE):
+            self.allmsgs = msg
+
+        # Open state
+        if self.msgs.has_key(self.STATE_START) and not self.msgs.has_key(self.STATE_END):
+            self.allmsgs = "Start: %s" % self.msgs[self.STATE_START]
+
+        # Closed state
+        if self.msgs.has_key(self.STATE_START) and self.msgs.has_key(self.STATE_END):
+            self.allmsgs = "Start: %s\nEnd: %s" % (self.msgs[self.STATE_START],
+                                                    self.msgs[self.STATE_END])
+
+    def getMsg(self, state):
+        if self.msgs.has_key(state):
+            return self.msgs[state]
+        else:
+            return None
