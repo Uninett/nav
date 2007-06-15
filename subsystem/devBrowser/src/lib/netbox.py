@@ -581,6 +581,7 @@ class NetboxInfo(manage.Netbox):
         div.append(table)
         if moreAlerts:
             div.append(html.Emphasis(html.Small("More alerts exists for this time frame.")))
+        div.append(html.Division('See <a href="/devicemanagement/?box=%d&history=1">Device History</a> for more details.' % self.netboxid.netboxid))
         return div 
 
     def showServices(self, sort):
