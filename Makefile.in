@@ -29,7 +29,7 @@ PACKAGE=$(NAME)-$(VERSION)
 subdirs = src \
 	subsystem/lib-perl \
 	subsystem/lib-python \
-	subsystem/alertEngine \
+	subsystem/alertengine \
 	subsystem/alertprofiles \
 	subsystem/arnold \
 	subsystem/dbTools \
