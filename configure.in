@@ -102,13 +102,13 @@ AC_OUTPUT(Makefile
 	subsystem/alertEngine/alertengine
 	subsystem/webFront/templates/Makefile
 	subsystem/thresholdMon/Makefile
+	subsystem/smsd/Makefile
 	subsystem/smsd/smsd
 	subsystem/startstop/Makefile
 	subsystem/startstop/functions
 	subsystem/arnold/Makefile
 	subsystem/statTools/Makefile
-	subsystem/statTools/sortedStats/Makefile
-	subsystem/smsd/Makefile)
+	subsystem/statTools/sortedStats/Makefile)
 
 echo
 echo "Now run 'make' to build NAV"
