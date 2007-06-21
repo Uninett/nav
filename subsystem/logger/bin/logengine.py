@@ -83,7 +83,7 @@ def get_exception_dicts(config):
 
 def createMessage(line):
 
-    typicalmatch = re.search("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+\.\w+)\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+).*%(.*?):\s*(.*)$",line)
+    typicalmatch = re.search("^(\w+)\s+(\d+)\s+(\d+)\:(\d+):\d+\W+(\S+)\W+(?:(\d{4})|.*)\s+\W*(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+).*%(.*?):\s*(.*)$",line)
 
     if typicalmatch:
         servmonth = find_month(typicalmatch.group(1))
