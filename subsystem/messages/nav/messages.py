@@ -38,9 +38,6 @@ import nav.db
 
 logger = logging.getLogger('nav.messages')
 
-dbconn = nav.db.getConnection('webfront', 'manage')
-db = dbconn.cursor()
-
 def getMsgs(where = False, order = 'publish_start DESC'):
     """
     Get messages with connected tasks
@@ -55,6 +52,9 @@ def getMsgs(where = False, order = 'publish_start DESC'):
         If no messages found, returns false
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     select = """SELECT
         messageid, title, description, tech_description,
@@ -84,7 +84,7 @@ def getMsgs(where = False, order = 'publish_start DESC'):
     # Attach tasks connected to this message
     for i, result in enumerate(results):
         results[i]['tasks'] = getMsgTasks(results[i]['messageid']) or None
-    
+
     return results
 
 def getMsg(msgid):
@@ -123,6 +123,9 @@ def setMsg(msgid, title, description, tech_description, publish_start,
     Returns:
         msgid               ID of updated or inserted message
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     if msgid:
         sql = """UPDATE message SET
@@ -163,7 +166,7 @@ def setMsg(msgid, title, description, tech_description, publish_start,
         db.execute("SELECT CURRVAL('message_messageid_seq')")
         msgid = db.dictfetchone()['currval']
     logger.debug("setMsg() number of results: %d", db.rowcount)
-    
+
     return msgid
 
 def getMsgTasks(msgid):
@@ -178,6 +181,9 @@ def getMsgTasks(msgid):
         If no messages found, returns false
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     sql = """SELECT maint_taskid, maint_start, maint_end, description,
         author, state
@@ -207,6 +213,9 @@ def setMsgTask(msgid, taskid):
         If connection was created, reeturns True
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     data = {'messageid': msgid, 'maint_taskid': taskid}
 
@@ -244,7 +253,10 @@ def removeMsgTasks(msgid):
         If no connections removed, returns False
 
     """
-    
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
+
     data = {'messageid': msgid}
     sql = "DELETE FROM message_to_maint_task WHERE messageid = %(messageid)d"
 
@@ -268,6 +280,9 @@ def expireMsg(msgid):
         Always returns true, unless some error occurs.
 
     """
+
+    dbconn = nav.db.getConnection('webfront', 'manage')
+    db = dbconn.cursor()
 
     sql = """UPDATE message SET publish_end = now()
         WHERE messageid = %(messageid)d"""
