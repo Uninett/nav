@@ -218,6 +218,7 @@ def process(request):
     actions.append(urlbuilder.createLink(netbox,
                                         subsystem='maintenance',
                                         content='[Schedule maintenance]'))
+    actions.append('<a href="/devicemanagement/?box=%d&history=1">[Device history]</a>' % netbox.netboxid)
     result.append(actions)
 
     interval = fields.getfirst('interval', '30')
