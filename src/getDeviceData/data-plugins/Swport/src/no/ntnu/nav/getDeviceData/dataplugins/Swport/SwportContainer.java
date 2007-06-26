@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: SwportContainer.java 3555 2006-07-17 14:28:20Z mortenv $
  *
  * Copyright 2003-2005 Norwegian University of Science and Technology
  * 
