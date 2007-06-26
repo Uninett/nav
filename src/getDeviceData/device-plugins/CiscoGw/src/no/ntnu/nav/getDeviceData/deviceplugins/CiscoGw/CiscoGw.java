@@ -1,34 +1,6 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoGw;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import no.ntnu.nav.ConfigParser.ConfigParser;
-import no.ntnu.nav.SimpleSnmp.SimpleSnmp;
-import no.ntnu.nav.SimpleSnmp.TimeoutException;
-import no.ntnu.nav.getDeviceData.Netbox;
-import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
-import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwModule;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Gwport;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwportContainer;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Prefix;
-import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Vlan;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.Module;
-import no.ntnu.nav.getDeviceData.dataplugins.Module.ModuleContainer;
-import no.ntnu.nav.getDeviceData.dataplugins.Swport.SwportContainer;
-import no.ntnu.nav.getDeviceData.deviceplugins.DeviceHandler;
-import no.ntnu.nav.logger.Log;
-import no.ntnu.nav.util.HashMultiMap;
-import no.ntnu.nav.util.MultiMap;
-import no.ntnu.nav.util.util;
 
 /**
  * <p>
@@ -242,7 +214,9 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		
 		
 		boolean ipv4Supported = true;
-		boolean ipv6Supported = true;
+		boolean ciscoIpv6Supported = true;
+		boolean ietfIpv6Supported = true;
+		boolean ipv6Supported;
 		
 		// Check for standard OID support
 		Set oidsNotSupported = nb.oidsNotSupported(new String[] {
@@ -279,9 +253,22 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		
 		
 		if(!oidsNotSupported.isEmpty()) {
+			ciscoIpv6Supported = false;
+		}
+		
+		oidsNotSupported = nb.oidsNotSupported(new String[] {
+			"ipv6AddrPfxLength",
+		});
+		
+		if(!oidsNotSupported.isEmpty()) {
+			ietfIpv6Supported = false;
+		}
+		
+		ipv6Supported = ciscoIpv6Supported || ietfIpv6Supported;
+		
+		if(!ipv6Supported) {
 			if (nb.getCat().equals("GW") || nb.getCat().equals("GSW"))
-				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + " are required for IPv6, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch IPv6 data!");
-			ipv6Supported = false;
+				Log.w("PROCESS_CGW", "Oidkeys " + oidsNotSupported + ", cIpAddressPrefix, are required for IPv6, but not supported by " + nb.getSysname() + ", type " + nb.getType() + ", unable to fetch IPv6 data!");
 		}
 		
 		if(!ipv4Supported && !ipv6Supported) {		
@@ -293,10 +280,11 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		MultiMap hsrpIpMap = null;
 		if(ipv4Supported)
 			hsrpIpMap = util.reverse(sSnmp.getAllMap(nb.getOid("cHsrpGrpVirtualIpAddr")));
-			//FIXME: Need HSRP MIB for IPv6! NB: an if sentence at the end of the for loop from hell
-			//		 assumes that IPv6 will be on short format as returned by ipv6Formatter in this map.
+			//TODO: Need HSRP MIB for IPv6! NB: an if sentence at the end of the for loop from hell
+			//		 assumes that IPv6 will be on short format as returned by ipv6Formatter in hsrpIpMap.
+			//		26/6/07: MIB not released yet
 
-		// Prefixes and mapping to ifindex
+		// Prefices and mapping to ifindex
 		Map ipMap = null;
 		MultiMap prefixMap = null;
 		if(ipv4Supported)
@@ -305,7 +293,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		if(ipMap != null)
 			prefixMap = util.reverse(ipMap);
 		
-		if(ipv6Supported) {
+		if(ciscoIpv6Supported) {
 			ipMap = sSnmp.getAllMap(nb.getOid("cIpAddressIfIndex") + ".2.16");
 			MultiMap ipv6TemporaryPrefixMap = util.reverse(ipMap);
 			
@@ -320,18 +308,27 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					prefixMap.put(key, ipv6Formatter((String)jt.next()));
 			}
 		}
+		
+		if(ietfIpv6Supported) {
+			ipMap = sSnmp.getAllMap(nb.getOid("ipv6AddrPfxLength"));
+			for(Iterator it = ipMap.keySet().iterator(); it.hasNext();) {
+				String key = (String)it.next();
+				String idx = key.substring(0,key.indexOf("."));
+				String decIp = key.substring(key.indexOf(".")+1);
+				prefixMap.put(idx, ipv6Formatter(decIp));
+			}
+		}
 			
 		boolean addedGwport = false;
 		if (prefixMap != null) {
 			Map netmaskMap = null;
-			Map ipv6NetmaskLengthMap = null;
+			Map ipv6NetmaskLengthMap = new HashMap();
 			
 			if(ipv4Supported)
 				netmaskMap = sSnmp.getAllMap(nb.getOid("ipAdEntIfNetMask"));
 			
-			if(ipv6Supported) {
+			if(ciscoIpv6Supported) {
 				Map netmaskIpv6TemporaryMap = sSnmp.getAllMap(nb.getOid("cIpAddressPrefix") + ".2.16");
-				ipv6NetmaskLengthMap = new HashMap();
 				for(Iterator it = netmaskIpv6TemporaryMap.keySet().iterator(); it.hasNext();) {
 					String decIp = (String)it.next(); //ex 32.1.7.0.0.0.255.244.0.0.0.0.0.0.0.1
 					String decMask = (String)netmaskIpv6TemporaryMap.get(decIp); //ex 1.3.6.1.4.1.9.10.86.1.1.1.1.5.14.2.16.32.1.7.0.0.0.255.244.0.0.0.0.0.0.0.0.64
@@ -348,7 +345,26 @@ A) For hver ruter (kat=GW eller kat=GSW)
 					netmaskMap.put(hexIp,hexMask);
 					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
 				}
-		}
+			}
+			
+			if(ietfIpv6Supported) {
+				Map ipPfxLengthMap = sSnmp.getAllMap(nb.getOid("ipv6AddrPfxLength"));
+				for(Iterator it = ipPfxLengthMap.keySet().iterator(); it.hasNext();) {
+					String key = (String)it.next();
+					String decIp = key.substring(key.indexOf(".")+1);
+					
+					String hexIp = ipv6Formatter(decIp);
+					int maskLength = Integer.parseInt((String)ipPfxLengthMap.get(key));
+					
+					//see last method
+					if(maskLength == 0)
+						maskLength = 64;
+					
+					String hexMask = getIpv6Mask(decIp, maskLength);
+					netmaskMap.put(hexIp, hexMask);
+					ipv6NetmaskLengthMap.put(hexIp,new Integer(maskLength));
+				}
+			}
 
 
 			// Collect ospf
