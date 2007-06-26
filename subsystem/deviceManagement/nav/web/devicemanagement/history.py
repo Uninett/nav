@@ -30,6 +30,7 @@ History page with helper classes of Device Management
 
 ### Imports
 
+import calendar
 import forgetSQL
 import mx.DateTime
 import re
@@ -62,12 +63,14 @@ def history(req,deviceorderid=None):
     if (form.has_key('startday') and form['startday'].isdigit()
         and form.has_key('startmonth') and form['startmonth'].isdigit()
         and form.has_key('startyear')) and form['startyear'].isdigit():
-        startdate_value = [form['startyear'],
-                           form['startmonth'],
-                           form['startday']]
-        startTime = mx.DateTime.Date(int(form['startyear']),
-                                     int(form['startmonth']),
-                                     int(form['startday']))
+        startyear = int(form['startyear'])
+        startmonth = int(form['startmonth'])
+        startday = int(form['startday'])
+        startdaymax = calendar.monthrange(startyear, startmonth)[1]
+        if startday > startdaymax:
+            startday = startdaymax
+        startdate_value = [str(startyear), str(startmonth), str(startday)]
+        startTime = mx.DateTime.Date(startyear, startmonth, startday)
     else:
         weekago = mx.DateTime.now() - mx.DateTime.oneWeek
         startdate_value = [str(weekago.year),
@@ -78,13 +81,14 @@ def history(req,deviceorderid=None):
     if (form.has_key('endday') and form['endday'].isdigit()
         and form.has_key('endmonth') and form['endmonth'].isdigit()
         and form.has_key('endyear')) and form['endyear'].isdigit():
-        enddate_value = [form['endyear'],
-                         form['endmonth'],
-                         form['endday']]
-        endTime = mx.DateTime.Date(int(form['endyear']),
-                                   int(form['endmonth']),
-                                   int(form['endday']),
-                                   23, 59, 59)
+        endyear = int(form['endyear'])
+        endmonth = int(form['endmonth'])
+        endday = int(form['endday'])
+        enddaymax = calendar.monthrange(endyear, endmonth)[1]
+        if endday > enddaymax:
+            endday = enddaymax
+        enddate_value = [str(endyear), str(endmonth), str(endday)]
+        endTime = mx.DateTime.Date(endyear, endmonth, endday, 23, 59, 59)
     else:
         now = mx.DateTime.now()
         enddate_value = [str(now.year),
