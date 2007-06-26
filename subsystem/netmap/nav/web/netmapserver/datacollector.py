@@ -70,7 +70,6 @@ FROM netbox
     LEFT OUTER JOIN gwport USING(moduleid)
     LEFT OUTER JOIN gwportprefix USING(gwportid)
     LEFT OUTER JOIN swport USING(moduleid)
-WHERE sysname != 'voldsminde.uninett.no'
 ORDER BY gwportid, swportid, netboxid, swport.port;
     """
 

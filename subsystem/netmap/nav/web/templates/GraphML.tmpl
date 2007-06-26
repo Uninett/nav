@@ -38,8 +38,9 @@
 <key id="location" for="node" attr.name="location" attr.type="string"/>
 <key id="uptime" for="node" attr.name="uptime" attr.type="string"/>
 <key id="up" for="node" attr.name="up" attr.type="string"/>
+<key id="is_linked" for="node" attr.name="is_linked" attr.type="string"/>
 
-<graph id="main" edgedefault="undirected">
+<graph id="main" edgedefault="directed">
 	#for $box in $netboxes.values()
 	<node id="$box.netboxid">
 		<data key="sysname">$box.sysname</data>
@@ -51,7 +52,10 @@
 		## Not implemented yet
 		<data key="location">-</data>
 		<data key="cpuload">-1.0</data>
-	</node>
+        #if len($box.linked_to.keys()) > 1
+            <data key="is_linked">true</data>
+        #end if
+    </node>
 	    #if len($box.linked_to.keys()) > 1
             #for $linked_to in $box.linked_to.keys()
                 #if $linked_to
