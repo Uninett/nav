@@ -91,6 +91,7 @@ def getConnection(scriptName, database='manage'):
 
     # Get the config setup for the requested connection
     conf = config.readConfig('db.conf')
+    port   = conf['dbport']
     dbname = conf['db_%s' % database]
     user   = conf['script_%s' % scriptName]
     pw     = conf['userpw_%s' % user]
@@ -102,8 +103,9 @@ def getConnection(scriptName, database='manage'):
     try:
         connection = _connectionCache[cacheKey].object
     except KeyError:
-        connection = psycopg.connect('host=%s dbname=%s user=%s password=%s' %
-                                     (conf['dbhost'], dbname, user, pw))
+        connection = psycopg.connect('host=%s port=%s dbname=%s user=%s '
+                                     'password=%s' % (conf['dbhost'], port,
+                                                      dbname, user, pw))
         logger.debug("Opened a new database connection, dbname=%s, user=%s" %
                       (dbname, user))
         connection.autocommit(0)
