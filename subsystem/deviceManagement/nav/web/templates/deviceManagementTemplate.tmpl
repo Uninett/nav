@@ -292,7 +292,7 @@ $renderFormattedList($page.orderList)
             <td>$renderwidget($page.widgets['filter_enddate'])</td>
         </tr>
         <tr>
-            <td>Event type</td>
+            <td>Type</td>
             <td>$renderwidget($page.widgets['filter_eventtype'])</td>
         </tr>
         <tr>
@@ -527,6 +527,35 @@ $item[0]
         <option value="$id" selected="selected">$option</option>
         #else
         <option value="$id">$option</option>
+        #end if
+    #end for
+    </select>
+#elif $widget.type == 'selectoptgroup'
+    <select name="$widget.controlname" style="$style">
+    #for $type, $id, $option, $typedata in $widget.options['options']
+        #if $type == 'grp'
+            <optgroup label="$option">
+            #for $type, $id, $option, $selected in $typedata
+                #if $value == $id
+                    #set $selected = True
+                #end if
+                #if $selected
+                <option value="$id" selected="selected">$option</option>
+                #else
+                <option value="$id">$option</option>
+                #end if
+            #end for
+            </optgroup>
+        #else
+            #set $selected = $typedata
+            #if $value == $id
+                #set $selected = True
+            #end if
+            #if $selected
+            <option value="$id" selected="selected">$option</option>
+            #else
+            <option value="$id">$option</option>
+            #end if
         #end if
     #end for
     </select>

@@ -96,34 +96,49 @@ def history(req,deviceorderid=None):
                          str(now.day)]
         endTime = now
 
-    if form.has_key('eventtype') and form['eventtype'] != 'All':
-        eventtype_value = form['eventtype']
-        eventtype_filter = [form['eventtype']]
+    if form.has_key('type') and form['type'] != 'All':
+        type_value = form['type']
     else:
-        eventtype_value = 'All'
+        type_value = 'All'
+    if type_value.startswith('e_'):
+        eventtype_filter = [type_value[2:]]
+    else:
         eventtype_filter = []
+    if type_value.startswith('a_'):
+        alerttype_filter = [type_value[2:]]
+    else:
+        alerttype_filter = []
 
-    eventtype_options = {'options': []}
-    for eventtype in ['All'] + nav.db.manage.Eventtype.getAllIDs():
-        if eventtype == eventtype_value:
+    type_options = {'options': [('opt', 'All', 'All', False)]}
+    for eventtype in nav.db.manage.Eventtype.getAllIDs():
+        if type_value.startswith('e_') and type_value.endswith(eventtype):
             selected = True
         else:
             selected = False
-        eventtype_options['options'].append((eventtype, eventtype, selected))
+        optgroup = [('opt', 'e_%s' % eventtype, 'All %s' % eventtype, selected)]
+        for alerttype in nav.db.manage.Alerttype.getAllIDs(
+                            where="eventtypeid='%s'" % eventtype,
+                            orderBy='alerttype'):
+            if type_value.startswith('a_') and type_value.endswith(alerttype):
+                selected = True
+            else:
+                selected = False
+            optgroup.append(('opt', 'a_%s' % alerttype, alerttype, selected))
+        type_options['options'].append(('grp', eventtype, eventtype, optgroup))
 
     # Create filter form widgets
     page.widgets['filter_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
-                                       'date',
-                                       'Start date',
-                                       startdate_value)
+                                              'date',
+                                              'Start date',
+                                              startdate_value)
     page.widgets['filter_enddate'] = Widget(['endday', 'endmonth', 'endyear'],
-                                       'date',
-                                       'End date',
-                                       enddate_value)
-    page.widgets['filter_eventtype'] = Widget('eventtype',
-                                              'select',
-                                              'Event type',
-                                              options=eventtype_options)
+                                            'date',
+                                            'End date',
+                                            enddate_value)
+    page.widgets['filter_eventtype'] = Widget('type',
+                                              'selectoptgroup',
+                                              'Type',
+                                              options=type_options)
     page.widgets['filter_submit'] = Widget('history', 'submit', 'Filter')
 
     # Add data from treeselect to hidden fields in the filter form
@@ -189,7 +204,8 @@ def history(req,deviceorderid=None):
             if not type(unitList) is list:
                 unitList = [unitList]
             page.boxList = makeHistory(form, historyType, unitList,
-                                       startTime, endTime, eventtype_filter)
+                                       startTime, endTime, eventtype_filter,
+                                       alerttype_filter)
             page.searchbox = None
             page.subname = 'history'
         else:
@@ -204,7 +220,8 @@ def history(req,deviceorderid=None):
             for row in result:
                 unitList.append(row[0])
             page.boxList = makeHistory(form, historyType, unitList,
-                                       startTime, endTime, eventtype_filter)
+                                       startTime, endTime, eventtype_filter,
+                                       alerttype_filter)
             page.searchbox = None
             page.subname = 'history'
         else:
@@ -229,22 +246,23 @@ def history(req,deviceorderid=None):
     template.path = CURRENT_PATH
     return template.respond()
 
-def makeHistory(form, historyType, unitList, startTime, endTime, eventtypes):
+def makeHistory(form, historyType, unitList, startTime, endTime,
+                eventtypes, alerttypes):
     boxList = []
 
     for unitid in unitList:
         if historyType == CN_MODULE:
             boxList.append(ModuleHistoryBox(unitid, startTime, endTime,
-                                            eventtypes))
+                                            eventtypes, alerttypes))
         elif historyType == CN_BOX:
             boxList.append(NetboxHistoryBox(unitid, startTime, endTime,
-                                            eventtypes))
+                                            eventtypes, alerttypes))
         elif historyType == CN_ROOM:
             boxList.append(RoomHistoryBox(unitid, startTime, endTime,
-                                          eventtypes))
+                                          eventtypes, alerttypes))
         elif historyType == CN_LOCATION:
             boxList.append(LocationHistoryBox(unitid, startTime, endTime,
-                                              eventtypes))
+                                              eventtypes, alerttypes))
         elif historyType == CN_DEVICE:
             where = "deviceid='%s'" % (unitid,)
             box = nav.db.manage.Netbox.getAll(where=where)
@@ -252,14 +270,17 @@ def makeHistory(form, historyType, unitList, startTime, endTime, eventtypes):
             if box:
                 box = box[0]
                 boxList.append(NetboxHistoryBox(box.netboxid, startTime,
-                                                endTime, eventtypes))
+                                                endTime,
+                                                eventtypes,
+                                                alerttypes))
             elif module:
                 module = module[0]
                 boxList.append(ModuleHistoryBox(module.moduleid, startTime,
-                                                endTime, eventtypes))
+                                                endTime, eventtypes,
+                                                alerttypes))
             else:
                 boxList.append(DeviceHistoryBox(unitid, startTime, endTime,
-                                                eventtypes))
+                                                eventtypes, alerttypes))
     return boxList
 
 ### Classes
@@ -339,13 +360,13 @@ class HistoryBox:
         return formattedList
 
 class LocationHistoryBox(HistoryBox):
-    def __init__(self, locationid, startTime, endTime, eventtypes):
+    def __init__(self, locationid, startTime, endTime, eventtypes, alerttypes):
         loc = nav.db.manage.Location(locationid)
         self.title = loc.descr
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
-                            eventtypes=eventtypes)
+                            eventtypes=eventtypes, alerttypes=alerttypes)
         vars = [['locationid',locationid]]
         self.events = ec.getEventsByVar(vars)
         self.fill()
@@ -365,13 +386,13 @@ class LocationHistoryBox(HistoryBox):
         return formatString
 
 class RoomHistoryBox(HistoryBox):
-    def __init__(self, roomid, startTime, endTime, eventtypes):
+    def __init__(self, roomid, startTime, endTime, eventtypes, alerttypes):
         room = nav.db.manage.Room(roomid)
         self.title = str(roomid) + ' (' + room.descr + ')'
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
-                            eventtypes=eventtypes)
+                            eventtypes=eventtypes, alerttypes=alerttypes)
         vars = [['roomid',roomid]]
         self.events = ec.getEventsByVar(vars)
         self.fill()
@@ -391,13 +412,13 @@ class RoomHistoryBox(HistoryBox):
         return formatString
 
 class NetboxHistoryBox(HistoryBox):
-    def __init__(self, netboxid, startTime, endTime, eventtypes):
+    def __init__(self, netboxid, startTime, endTime, eventtypes, alerttypes):
         box = nav.db.manage.Netbox(netboxid)
         self.title = box.sysname
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
-                            eventtypes=eventtypes)
+                            eventtypes=eventtypes, alerttypes=alerttypes)
         try:
             deviceid = nav.db.manage.Netbox(netboxid).device.deviceid
         except forgetSQL.NotFound:
@@ -424,7 +445,7 @@ class NetboxHistoryBox(HistoryBox):
 
 
 class ModuleHistoryBox(HistoryBox):
-    def __init__(self, moduleid, startTime, endTime, eventtypes):
+    def __init__(self, moduleid, startTime, endTime, eventtypes, alerttypes):
         module = nav.db.manage.Module(moduleid)
 
         self.title = 'Module ' + str(module.module) + ' in ' + \
@@ -432,7 +453,7 @@ class ModuleHistoryBox(HistoryBox):
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
-                            eventtypes=eventtypes)
+                            eventtypes=eventtypes, alerttypes=alerttypes)
         try:
             deviceid = nav.db.manage.Module(moduleid).device.deviceid
         except forgetSQL.NotFound:
@@ -459,13 +480,13 @@ class ModuleHistoryBox(HistoryBox):
         return formatString
 
 class DeviceHistoryBox(HistoryBox):
-    def __init__(self, deviceid, startTime, endTime, eventtypes):
+    def __init__(self, deviceid, startTime, endTime, eventtypes, alerttypes):
         device = nav.db.manage.Device(deviceid)
         self.title = 'Device not currently in operation (%s)' % (device.serial,)
 
         ec = EventCollector(orderBy='start_time desc',
                             startTime=startTime, endTime=endTime,
-                            eventtypes=eventtypes)
+                            eventtypes=eventtypes, alerttypes=alerttypes)
         self.events = ec.getEventsByDeviceid([deviceid])
         self.fill()
 
@@ -845,7 +866,7 @@ FROM
                 atidsql = "(SELECT alerttypeid FROM alerttype WHERE " +\
                           "alerttype='%s')" % (alerttype,)
 
-                sql += "alerthist.alerthistid='%s'" % (atidsql,)
+                sql += "alerthist.alerttypeid=%s" % (atidsql,)
                 first = False
             sql += ") "
 
