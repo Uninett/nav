@@ -15,6 +15,8 @@
  *
 */
 
+\c manage
+
 -- Close invalid moduleState states in alerthist.
 UPDATE alerthist SET end_time=now()
 WHERE eventtypeid = 'moduleState' 
@@ -35,5 +37,9 @@ ALTER TABLE alerttype ADD CONSTRAINT alerttype_eventalert_unique UNIQUE
 (eventtypeid, alerttype);
 
 -- Renamed eventengine source from deviceTracker to deviceManagement
-DELETE FROM subsystem WHERE name = 'deviceTracker';
-INSERT INTO subsystem (name) VALUES ('deviceManagement');
+UPDATE subsystem SET name = 'deviceManagement' WHERE name = 'deviceTracker';
+
+-- Create index on alerthist.start_time
+CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
+
+\c navprofiles

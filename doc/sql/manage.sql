@@ -751,6 +751,7 @@ CREATE TABLE alerthist (
   value INT4 NOT NULL,
   severity INT4 NOT NULL
 );
+CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
 CREATE INDEX alerthist_end_time_btree ON alerthist USING btree (end_time);
 
 -- Rule to automatically close module related alert states when modules are
