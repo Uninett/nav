@@ -35,6 +35,7 @@ import forgetSQL
 import mx.DateTime
 import re
 
+import nav.db
 import nav.db.manage
 from nav.web import urlbuilder
 from nav.web.templates.deviceManagementTemplate import deviceManagementTemplate
@@ -58,6 +59,16 @@ def history(req,deviceorderid=None):
                        'room, box or module. Use quicksearch to search for '+\
                        'a (partial) serialnumber, hostname, IP or room.'
     page.widgets = {}
+
+    dbconn = nav.db.getConnection('devicemanagement', 'manage')
+    db = dbconn.cursor()
+
+    # Get year of first entry in alerthist
+    date_options = {}
+    sql = 'SELECT min(start_time) FROM alerthist'
+    db.execute(sql)
+    if db.rowcount:
+        date_options['startyear'] = db.dictfetchall()[0]['min'].year
 
     # Get filter values
     if (form.has_key('startday') and form['startday'].isdigit()
@@ -129,15 +140,17 @@ def history(req,deviceorderid=None):
     # Create filter form widgets
     page.widgets['filter_startdate'] = Widget(['startday', 'startmonth', 'startyear'],
                                               'date',
-                                              'Start date',
-                                              startdate_value)
+                                              name='Start date',
+                                              value=startdate_value,
+                                              options=date_options)
     page.widgets['filter_enddate'] = Widget(['endday', 'endmonth', 'endyear'],
                                             'date',
-                                            'End date',
-                                            enddate_value)
+                                            name='End date',
+                                            value=enddate_value,
+                                            options=date_options)
     page.widgets['filter_eventtype'] = Widget('type',
                                               'selectoptgroup',
-                                              'Type',
+                                              name='Type',
                                               options=type_options)
     page.widgets['filter_submit'] = Widget('history', 'submit', 'Filter')
 
