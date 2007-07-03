@@ -1,258 +1,122 @@
-# -*- coding: ISO8859-1 -*-
-# $Id$
-#
-# Copyright 2003, 2004 Norwegian University of Science and Technology
-#
-# This file is part of Network Administration Visualized (NAV)
-#
-# NAV is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# NAV is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NAV; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
-#
-# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
-#
-"""Builds the prefix matrix.
-
-BUGS
-----
-The code looks awful, should be rewritten to use IPy for improved readability
-(and fewer bugs)
-"""
-import string
-import os
-import re
-import nav.path
-import ConfigParser
-
+from IPy import IP
 from nav import db
+from copy import deepcopy
+from DBUtils import ResultSetIterator
 
-from nav.web.templates.MatrixTemplate import MatrixTemplate
+from __future__ import nested_scopes
 
 connection = db.getConnection('webfront','manage')
-database = connection.cursor()
-configfile = os.path.join(nav.path.sysconfdir,'report/matrix.conf')
+database_cursor = connection.cursor()
 
 class Matrix:
 
-    def __init__(self, network=None):
+	def __init__(self, start_net, end_net=None, bits_in_matrix=3):
+		if end_net is None:
+			end_net = self.getLastSubnet(start_net)
+		self.start_net = start_net
+		self.end_net = end_net
+		self.bits_in_matrix = bits_in_matrix
+		self.tree = self.buildTree()
+	
+	def getTemplateResponse(self):
+		abstract()
 
-        if not network:
-            #temporary out of order
-            #must be fixed in database
-            #database.execute("select netaddr, nettype from prefix inner join vlan using (vlanid) where nettype='scope'")
-            #network = database.fetchone()[0]
-            network = "129.241.0.0/16"
-            
-        self.this_net = NetworkAddress(network)
-        self.unntak = {}
-        self.subnet = {}
-        self.big_net_rowspan = {}
-        self.numbers = (0,32,64,96,128,160,192,224)
-        self.bnet = self.this_net.bnet
-        self.start = self.this_net.startnet
-        self.end = self.this_net.endnet
-        self.network = network
-        self.configuration = Configuration(configfile)
+	def extractMatrixNets(self):
+		return extractSubnetsWithPrefixLength(end_net.prefixlen()-bits_in_matrix)
 
-    def makeMatrix(self):
+	def extractSubnetsWithPrefixLength(self,prefixlen):
+		def Iterator(tree, prefixlen, acc):
+			for net in tree:
+				if net.prefixlen() == prefixlen:
+					acc.append(net)
+				if net.prefixlen() > prefixlen:
+					Iterator(tree[net],prefixlen,acc)
+		acc = []
+		Iterator(self.tree,prefixlen,acc)
+		return acc
 
-        page = MatrixTemplate()
+	def extractTreeNets(self):
+		def deleteSubnets(tree,limit):
+			oldTree = deepcopy(tree)
+			for ip in oldTree:
+				if ip.prefixlen() >= limit:
+					del tree[ip]
+			for ip in tree:
+				deleteSubnets(tree[ip],limit)
+		treeNets = deepcopy(self.tree)
+		deleteSubnets(treeNets,self.end_net.prefixlen()-self.bits_in_matrix+1)
+		return treeNets
 
-        whole_net = self.this_net
-        unntak = self.unntak
-        subnet = self.subnet
-        big_net_rowspan = self.big_net_rowspan
+	def containsIp(self,ip,tree=None):
+		"""Returns true if tree contains ip."""
+		if tree is None:
+			tree = self.tree
+		for net in tree:
+			if net == ip:
+				return ip
+			return self.containsIp(ip,tree[net])
 
-        sql = "select prefixid, netaddr, vlan, active_ip_cnt, max_ip_cnt, nettype, description, orgid from prefix left outer join vlan using (vlanid) left outer join prefix_active_ip_cnt using (prefixid) left outer join prefix_max_ip_cnt using (prefixid) where nettype <> 'scope' order by netaddr"
-        database.execute(sql)
+	def buildTree(self):
+		abstract()
 
-        prefices = database.fetchall()
-        lastnetaddr = "0"
+	def sort_nets(self,nets):
+		decorate = [(net.prefixlen(),net) for net in nets]
+		decorate.sort()
+		result = [i[-1] for i in decorate]
+		return result
 
-        for prefix in prefices:
-            if not prefix[1] == lastnetaddr:
-                lastnetaddr = prefix[1]
+	def getLastSubnet(self, network, last_network_prefix_len=None):
+		""" Retrieves the last _possible_ subnet of the argument ``network''.
+			Does not care whether the subnet exists or not.
 
-                small_net = NetworkAddress(lastnetaddr)
+			Arguments:
+				``network'': The network in question
+				``last_network_prefix_len'': An optional specification of the prefix length
+											 of the last network. Defaults to 32 for IPv6
+											 and 128 for IPv6
+		"""
+		if last_network_prefix_len is None:
+			last_network_prefix_len = network.netmask().prefixlen()
+		return IP(''.join([network.net().strNormal(),"/",str(last_network_prefix_len)]))
 
-                tip = [ int(small_net.net_splitted[i]) & int(whole_net.mask_splitted[i]) for i in range(0,len(small_net.net_splitted))]
-                a = string.join([str(t) for t in tip],".")
-                #raise repr(a+whole_net.b)
-            
-                #check that actual netaddr is in the address scope
-                if a==whole_net.b and small_net.masklen >= whole_net.masklen:
-                    #raise repr(a+whole_net.b)
-                    tip[2] = int(small_net.net_splitted[2]) & int(small_net.mask_splitted[2])
-                    tip[3] = int(small_net.net_splitted[3]) & int(small_net.mask_splitted[3])
-                    if small_net.masklen > 27:
-                        unntak[tip[2]] = str(tip[2])
+	def getSubnets(self,network, min_length=None, max_length=128):
+		"""Retrieves all the subnets of network
 
-                    else:
-                        if not subnet.has_key(tip[2]):
-                            subnet[tip[2]] = {}
-                        subnet[tip[2]][tip[3]] = Subnet(small_net, prefix[0], prefix[2], prefix[3], prefix[4], prefix[5], prefix[6], prefix[7])
+		Arguments:
+			``min_length'': minimum subnet mask length, defaults to network.prefixlen().
+			``max_length'': maximum subnet mask length, defaults to 128.
 
-                        if small_net.masklen < 24:
-                            big_net_rowspan[tip[2]] = pow(2,24-small_net.masklen)
-        
-        page.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
-        page.start = self.start
-        page.end = self.end
-        page.unntak = self.unntak
-        page.colspan = {20: 8, 21: 8,  22: 8, 23: 8, 24: 8, 25: 4, 26: 2, 27: 1}
-        page.big_net_rowspan = self.big_net_rowspan
-        page.subnet = self.subnet
-        page.bnet = self.bnet
-        page.network = self.network
-        page.numbers = self.numbers
-        page.configuration = self.configuration
+		Returns:
+			DBUtils.ResulSetIterator
+		"""
 
-        return page.respond()
+		if min_length is None:
+			min_length = network.prefixlen()
+		assert min_length < max_length
+		sql = "SELECT netaddr FROM prefix WHERE family(netaddr)=%d AND netaddr << '%s' AND masklen(netaddr) >= %d AND masklen(netaddr) < %d" \
+				% (network.version(),str(network),min_length,max_length)
+		database_cursor.execute(sql)
+		return [IP(i[0]) for i in database_cursor.fetchall()]
 
-class Subnet:
+	def getSubnetsInRange(self, from_network, to_network):
+		assert to_network.prefixlen() > from_network.prefixlen()
+		return getSubnets(from_network,max_length=to_network.prefixlen())
 
-    def __init__(self,network,prefixid,vlan,machines,max,nettype,description,orgid):
-        self.bits = network.masklen
-        self.vlan = vlan
-        self.machines = 0
-        if machines:
-            self.machines = int(machines)
-        self.max = None
-        if max:
-            self.max = int(max)
-        self.ip = network.net
-        self.suffix = string.join(network.net_splitted[2:3],".")
-        self.prefixid = prefixid
-        self.nettype = nettype
-        if not description:
-            self.description = orgid
-        else:
-            self.description = description
-        self.percent = 0
-        if self.machines and self.max:
-            self.percent = self.machines*100/self.max
+	def getNearestSubnets(self, network):
+		"""Retrieves the subnets of network with the lowest netmask (ie. the "nearest")"""
 
-class NetworkAddress:
+		sql = """SELECT netaddr FROM prefix p WHERE family(p.netaddr)=%d AND p.netaddr << '%s' AND 1 =
+					(SELECT count(*) FROM prefix p2 WHERE family(p2.netaddr)=family(p.netaddr) AND p.netaddr << p2.netaddr
+					AND p2.netaddr <<= '%s')""" \
+				% (network.version(),str(network),str(network))
+		database_cursor.execute(sql)
+		return ResultSetIterator(database_cursor)
+			
+	def getCursor(self):
+		return database_cursor
 
-    def __init__(self,inet_quad):
-        splitted = inet_quad.split("/")
-        self.net = splitted[0]
-        if len(splitted) > 1:
-            self.masklen = int(splitted[1])
-        else:
-            self.masklen = 32
-
-        self.mask = self.bits_mask(self.masklen)
-
-        net_splitted = self.net.split(".")
-        mask_splitted = self.mask.split(".")
-        
-        self.startnet = int(net_splitted[2])
-        self.endnet = 255 - int(mask_splitted[2])
-
-        self.b = string.join([str(int(net_splitted[i]) & int(mask_splitted[i])) for i in range (0, len(net_splitted))],".")
-
-        self.net_splitted = net_splitted
-        self.mask_splitted = mask_splitted
-        
-        self.bnet = string.join(net_splitted[0:2], ".")
-
-    def bits_mask(self, number_of_bits):
-
-        if number_of_bits == 32:
-            return "255.255.255.255"
-        elif number_of_bits == 31:
-            return "255.255.255.254"
-        elif number_of_bits == 30:
-            return "255.255.255.252"
-        elif number_of_bits == 29:
-            return "255.255.255.248"
-        elif number_of_bits == 28:
-            return "255.255.255.240"
-        elif number_of_bits == 27:
-            return "255.255.255.224"
-        elif number_of_bits == 26:
-            return "255.255.255.192"
-        elif number_of_bits == 25:
-            return "255.255.255.128"
-        elif number_of_bits == 24:
-            return "255.255.255.0"
-        elif number_of_bits == 23:
-            return "255.255.254.0"
-        elif number_of_bits == 22:
-            return "255.255.252.0"
-        elif number_of_bits == 21:
-            return "255.255.248.0"
-        elif number_of_bits == 20:
-            return "255.255.240.0"
-        elif number_of_bits == 19:
-            return "255.255.224.0"
-        elif number_of_bits == 18:
-            return "255.255.192.0"
-        elif number_of_bits == 17:
-            return "255.255.128.0"
-        elif number_of_bits == 16:
-            return "255.255.0.0"
-        elif number_of_bits == 15:
-            return "255.254.0.0"
-        elif number_of_bits == 14:
-            return "255.252.0.0"
-        elif number_of_bits == 13:
-            return "255.248.0.0"
-        elif number_of_bits == 12:
-            return "255.240.0.0"
-        elif number_of_bits == 11:
-            return "255.224.0.0"
-        elif number_of_bits == 10:
-            return "255.192.0.0"
-        elif number_of_bits == 9:
-            return "255.128.0.0"
-        elif number_of_bits == 8:
-            return "255.0.0.0"
-        elif number_of_bits == 7:
-            return "254.0.0.0"
-        elif number_of_bits == 6:
-            return "252.0.0.0"
-        elif number_of_bits == 5:
-            return "248.0.0.0"
-        elif number_of_bits == 4:
-            return "240.0.0.0"
-        elif number_of_bits == 3:
-            return "224.0.0.0"
-        elif number_of_bits == 2:
-            return "196.0.0.0"
-        elif number_of_bits == 1:
-            return "128.0.0.0"
-        elif number_of_bits == 0:
-            return "0.0.0.0"
-        else:
-            raise ValueError(str(number_of_bits)+" is not an accepted value for mask")
-
-class Configuration:
-    def __init__(self,path):
-
-        config = file(path).readlines()
-        limits = {}
-        extras = {}
-        for line in config:
-            limitmatch = re.search("^\s*\>\=?\s*(\d+)\s*:\s*(\S+)",line)
-            if limitmatch:
-                limits[limitmatch.group(1)] = limitmatch.group(2)
-            else:
-                wordmatch = re.search("^\s*(\w+)\s*:\s*(\S+)",line)
-                if wordmatch:
-                    extras[wordmatch.group(1)] = wordmatch.group(2)
-
-        self.extras = extras
-        self.limits = limits
+#because I'm a Java guy
+def abstract():
+	import inspect
+	caller = inspect.getouterframes(inspect.currentframe())[1][3]
+	raise NotImplementedException(" ".join(caller,"must be implemented in subclass"))

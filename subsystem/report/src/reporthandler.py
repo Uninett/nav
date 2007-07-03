@@ -20,7 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+# Authors:	Sigurd Gartmann <sigurd-nav@brogar.org>
+#			Jostein Gogstad <jostein.gogstad@idi.ntnu.no>
 #
 from mod_python import apache,util
 
@@ -32,7 +33,10 @@ from nav.web.URI import URI
 from nav.web import redirect
 
 from Generator import Generator,ReportList
-from Matrix import Matrix
+from MatrixIpv4 import MatrixIpv4
+from MatrixIpv6 import MatrixIpv6
+
+from IPy import IP
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
@@ -105,9 +109,15 @@ def handler(req):
                     argsdict[c] = d
 
         if argsdict.has_key("scope") and argsdict["scope"]:
-            matrix = Matrix(argsdict["scope"])
+			scope = IP(scope)
+			matrix = None
+			if scope.version() == 4:
+				matrix = MatrixIpv4(scope)
+			else if scope.version() == 6:
+				matrix = MatrixIpv6(scope)
+			else:
+				raise UnknownNetworkTypeException()
             req.write(matrix.makeMatrix())
-            
             
         else:
 
@@ -200,3 +210,5 @@ def selectoptiondraw(name,elementlist,elementdict,selectedvalue="",descriptiondi
         ret += '<option value="%s"%s%s>%s</option>'%(element,description,selected,elementdict[element])
     ret+= '</selected>'
     return ret
+
+class UnknownNetworkTypeException(Exception): pass
