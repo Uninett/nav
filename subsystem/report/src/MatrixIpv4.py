@@ -76,6 +76,16 @@ class MatrixIpv4(Matrix):
 		for i in range(0,4-len(ip_builder.split("."))):
 			ip_builder = ".".join([ip_builder,"0"])
 		return IP("/".join([ip_builder,str(bit_count)]))
+	
+	def sort_nets_by_address(self, nets):
+		def makeTupleList(net):
+			a = net.net().strNormal().split(".")+[net]
+			return tuple(a)
+		decorate = map(makeTupleList,nets)
+		decorate.sort()
+		result = [i[-1] for i in decorate]
+		return result
+
 
 def contains(list, element):
 	try:

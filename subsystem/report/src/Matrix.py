@@ -21,10 +21,12 @@ class Matrix:
 			end_net = self.getLastSubnet(start_net)
 		self.start_net = start_net
 		self.end_net = end_net
+		self.prefix_map = None #maps netaddrs to prefices
 		self.bits_in_matrix = bits_in_matrix
 		self.tree = self.buildTree()
 		self.tree_nets = self.extractTreeNets()
 		self.matrix_nets = self.extractMatrixNets()
+		self.max_diff_before_dots = 6
 	
 	def getTemplateResponse(self):
 		abstract()
@@ -34,6 +36,12 @@ class Matrix:
 
 		Note: method getSubnets might be usefull."""
 		abstract()
+	
+	def has_too_small_nets(self,net):
+		for net in self.getSubtree(net):
+			if net.prefixlen() > self.end_net.prefixlen():
+				return True
+		return False
 
 	def extractMatrixNets(self):
 		"""These should be shown as horizontal rows in the matrix."""
@@ -83,12 +91,22 @@ class Matrix:
 		printT(self.tree,depth)
 
 
-	def sort_nets(self,nets):
+	def sort_nets_by_prefixlength(self,nets):
 		"""Sorts a list with IP instances."""
 		decorate = [(net.prefixlen(),net) for net in nets]
 		decorate.sort()
 		result = [i[-1] for i in decorate]
 		return result
+
+	def sort_nets_by_address(self,nets):
+		"""Sorts a list with IP instances."""
+		abstract()
+	
+	def net_diff(self,net1,net2):
+		assert net1.prefixlen()==net2.prefixlen()
+		if net1 > net2:
+			(net1,net2) = (net2,net1)
+		return [IP("/".join([str(net),str(net1.prefixlen())])) for net in range(net1.int(), net2.int(), 256)]
 
 	def extractSubtreesWithPrefixLength(self,prefixlen):
 		"""Returns a map of subtrees with length prefixlen. Generated from
@@ -102,7 +120,8 @@ class Matrix:
 	def extractSubnetsWithPrefixLength(self,prefixlen):
 		"""Returns a list of subtrees with length prefix lehgth.
 
-		Note: Use extractSubtreesWithPrefixLength if you want the trees."""
+		Note: Use extractSubtreesWithPrefixLength if you want the trees
+			and not the IPs."""
 
 		def Iterator(tree, prefixlen, acc):
 			for net in tree.keys():
@@ -142,10 +161,14 @@ class Matrix:
 		if min_length is None:
 			min_length = network.prefixlen()
 		assert min_length < max_length
-		sql = "SELECT netaddr FROM prefix WHERE family(netaddr)=%d AND netaddr << '%s' AND masklen(netaddr) >= %d AND masklen(netaddr) < %d" \
+		sql = "SELECT prefix,netaddr FROM prefix WHERE family(netaddr)=%d AND netaddr << '%s' AND masklen(netaddr) >= %d AND masklen(netaddr) < %d" \
 				% (network.version(),str(network),min_length,max_length)
 		database_cursor.execute(sql)
-		return [IP(i[0]) for i in database_cursor.fetchall()]
+		db_result = database_cursor.fetchall()
+		prefix_list = [i[0] for i in db_result]
+		netaddr_list = [IP(i[1]) for i in db_result]
+		self.prefix_map.update(zip(netaddr_list,prefix_list))
+		return netaddr_list
 
 	def getCursor(self):
 		return database_cursor
