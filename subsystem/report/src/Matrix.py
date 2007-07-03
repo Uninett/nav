@@ -8,6 +8,12 @@ from __future__ import nested_scopes
 connection = db.getConnection('webfront','manage')
 database_cursor = connection.cursor()
 
+#TODO:	Extract the tree utilities to an own module
+#			getSubnets needs in that case to be reimplemented to take arbitrary sql
+#			for subnet extraction.
+#
+#		Standardize documentation style.
+
 class Matrix:
 
 	def __init__(self, start_net, end_net=None, bits_in_matrix=3):
@@ -17,53 +23,96 @@ class Matrix:
 		self.end_net = end_net
 		self.bits_in_matrix = bits_in_matrix
 		self.tree = self.buildTree()
+		self.tree_nets = self.extractTreeNets()
+		self.matrix_nets = self.extractMatrixNets()
 	
 	def getTemplateResponse(self):
 		abstract()
 
-	def extractMatrixNets(self):
-		return extractSubnetsWithPrefixLength(end_net.prefixlen()-bits_in_matrix)
-
-	def extractSubnetsWithPrefixLength(self,prefixlen):
-		def Iterator(tree, prefixlen, acc):
-			for net in tree:
-				if net.prefixlen() == prefixlen:
-					acc.append(net)
-				if net.prefixlen() > prefixlen:
-					Iterator(tree[net],prefixlen,acc)
-		acc = []
-		Iterator(self.tree,prefixlen,acc)
-		return acc
-
-	def extractTreeNets(self):
-		def deleteSubnets(tree,limit):
-			oldTree = deepcopy(tree)
-			for ip in oldTree:
-				if ip.prefixlen() >= limit:
-					del tree[ip]
-			for ip in tree:
-				deleteSubnets(tree[ip],limit)
-		treeNets = deepcopy(self.tree)
-		deleteSubnets(treeNets,self.end_net.prefixlen()-self.bits_in_matrix+1)
-		return treeNets
-
-	def containsIp(self,ip,tree=None):
-		"""Returns true if tree contains ip."""
-		if tree is None:
-			tree = self.tree
-		for net in tree:
-			if net == ip:
-				return ip
-			return self.containsIp(ip,tree[net])
-
 	def buildTree(self):
+		"""Builds a tree of subnets.
+
+		Note: method getSubnets might be usefull."""
 		abstract()
 
+	def extractMatrixNets(self):
+		"""These should be shown as horizontal rows in the matrix."""
+
+		return self.extractSubtreesWithPrefixLength(self.end_net.prefixlen()-self.bits_in_matrix)
+
+	def extractTreeNets(self):
+		"""These should be listed vertically in the leftmost column.""" 
+
+		return self.removeSubnetsWithPrefixLength(self.end_net.prefixlen()-self.bits_in_matrix+1)
+
+	def removeSubnetsWithPrefixLength(self, prefixlen):
+		"""Generates a new tree from self.tree, but without subnets with
+		prefix length >= prefixlen."""
+	
+		def deleteSubnets(tree,limit):
+			oldTree = deepcopy(tree)
+			for ip in oldTree.keys():
+				if ip.prefixlen() >= limit:
+					del tree[ip]
+			for ip in tree.keys():
+				deleteSubnets(tree[ip],limit)
+		treeNets = deepcopy(self.tree)
+		deleteSubnets(treeNets,prefixlen)
+		return treeNets
+
+	def getSubtree(self,ip):
+		"""Returns the subtree identified by the arguments ``ip''.
+		None if not found."""
+
+		def searchTree(tree,goal):
+			"""DFS in tree for goal."""
+			for node in tree.keys():
+				if node == goal:
+					return tree[node]
+				else:
+					result = searchTree(tree[node],goal)
+					if result is not None:
+						return result
+		return searchTree(self.tree,ip)
+
+	def printTree(self, depth=0):
+		def printT(tree,depth):
+			for net in tree:
+				print 3*depth*" " + str(net)
+				printT(tree[net],depth+1)
+		printT(self.tree,depth)
+
+
 	def sort_nets(self,nets):
+		"""Sorts a list with IP instances."""
 		decorate = [(net.prefixlen(),net) for net in nets]
 		decorate.sort()
 		result = [i[-1] for i in decorate]
 		return result
+
+	def extractSubtreesWithPrefixLength(self,prefixlen):
+		"""Returns a map of subtrees with length prefixlen. Generated from
+		self.tree"""
+		keys = self.extractSubnetsWithPrefixLength(prefixlen)
+		map = {}
+		for key in keys:
+			map[key] = self.getSubtree(key)
+		return map
+
+	def extractSubnetsWithPrefixLength(self,prefixlen):
+		"""Returns a list of subtrees with length prefix lehgth.
+
+		Note: Use extractSubtreesWithPrefixLength if you want the trees."""
+
+		def Iterator(tree, prefixlen, acc):
+			for net in tree.keys():
+				if net.prefixlen() == prefixlen:
+					acc.append(net)
+				if net.prefixlen() < prefixlen:
+					Iterator(tree[net],prefixlen,acc)
+		acc = []
+		Iterator(self.tree,prefixlen,acc)
+		return acc
 
 	def getLastSubnet(self, network, last_network_prefix_len=None):
 		""" Retrieves the last _possible_ subnet of the argument ``network''.
@@ -80,7 +129,7 @@ class Matrix:
 		return IP(''.join([network.net().strNormal(),"/",str(last_network_prefix_len)]))
 
 	def getSubnets(self,network, min_length=None, max_length=128):
-		"""Retrieves all the subnets of network
+		"""Retrieves all the subnets of the argument ``network''.
 
 		Arguments:
 			``min_length'': minimum subnet mask length, defaults to network.prefixlen().
@@ -98,20 +147,6 @@ class Matrix:
 		database_cursor.execute(sql)
 		return [IP(i[0]) for i in database_cursor.fetchall()]
 
-	def getSubnetsInRange(self, from_network, to_network):
-		assert to_network.prefixlen() > from_network.prefixlen()
-		return getSubnets(from_network,max_length=to_network.prefixlen())
-
-	def getNearestSubnets(self, network):
-		"""Retrieves the subnets of network with the lowest netmask (ie. the "nearest")"""
-
-		sql = """SELECT netaddr FROM prefix p WHERE family(p.netaddr)=%d AND p.netaddr << '%s' AND 1 =
-					(SELECT count(*) FROM prefix p2 WHERE family(p2.netaddr)=family(p.netaddr) AND p.netaddr << p2.netaddr
-					AND p2.netaddr <<= '%s')""" \
-				% (network.version(),str(network),str(network))
-		database_cursor.execute(sql)
-		return ResultSetIterator(database_cursor)
-			
 	def getCursor(self):
 		return database_cursor
 
@@ -119,4 +154,4 @@ class Matrix:
 def abstract():
 	import inspect
 	caller = inspect.getouterframes(inspect.currentframe())[1][3]
-	raise NotImplementedException(" ".join(caller,"must be implemented in subclass"))
+	raise NotImplementedError(" ".join([caller,"must be implemented in subclass"]))

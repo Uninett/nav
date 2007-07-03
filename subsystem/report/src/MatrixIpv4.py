@@ -3,18 +3,22 @@ from IPy import IP
 from nav.web.templates.MatrixTemplate import MatrixTemplate
 from Matrix import Matrix
 
+from __future__ import nested_scopes
+
+#TODO: Fininsh getTemplateResponse
+
 class MatrixIpv4(Matrix):
 	
 	def __init__(self,start_net,end_net=None):
 		Matrix.__init__(self,start_net,end_net)
-		self.column_headings = self.__getColumnHeaders()
+		self.column_headings = self._getColumnHeaders()
 
 	def getTemplateResponse(self):
 		template = MatrixTemplate()
 		template.network = self.start_net
 		template.headings = self.column_headings
 
-	def __getColumnHeaders(self):
+	def _getColumnHeaders(self):
 		msb = 8 - (self.end_net.prefixlen()-self.bits_in_matrix) % 8
 		lsb = msb - self.bits_in_matrix
 		if lsb <= 0:
@@ -49,11 +53,6 @@ class MatrixIpv4(Matrix):
 				return
 		tree[ip] = {}
 	
-	def printTree(self,tree,depth=0):
-		for net in tree:
-			print 3*depth*" " + str(net)
-			self.printTree(tree[net],depth+1)
-
 	def andIpMask(self,ip,mask):
 		ip_split = ip.net().strNormal().split(".")
 		mask_split = mask.net().strNormal().split(".")
@@ -63,16 +62,6 @@ class MatrixIpv4(Matrix):
 			andOp = int(ip_split[i]) & int(mask_split[i])
 			supernet = ".".join([supernet,str(andOp)])
 		return IP("/".join([supernet[1:],str(mask.prefixlen())]))
-
-	def searchTree(self,tree,goal):
-		"""DFS in tree for goal."""
-		for node in tree.keys():
-			if node == goal:
-				return node
-			else:
-				result = self.searchTree(tree[node],goal)
-				if result is not None:
-					return result
 	
 	def getMask(self,bit_count):
 		ip_builder = ""
