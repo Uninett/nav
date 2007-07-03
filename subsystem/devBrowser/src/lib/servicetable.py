@@ -29,7 +29,10 @@ time), and to be cached for rapid sorting and recurrent display.
 to do to often)
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import random
 import time
 import forgetHTML as html

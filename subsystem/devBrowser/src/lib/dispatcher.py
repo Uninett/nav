@@ -30,8 +30,11 @@ descriptive URLs like "/browse/machine.domain.com" and
 import sys
 import warnings
 import traceback
-from mod_python import apache
-from mod_python.util import FieldStorage
+try:
+    from mod_python import apache
+    from mod_python.util import FieldStorage
+except:
+    pass
 from nav.errors import *
 
 import forgetHTML as html

@@ -48,6 +48,7 @@ _divisionClasses = {
     'type': manage.Type,
     'location': manage.Location,
     'port': manage.Swport,
+    'gwport': manage.Gwport,
     'module': manage.Module,
     'vlan':  manage.Vlan,
 }

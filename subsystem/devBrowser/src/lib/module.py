@@ -20,14 +20,17 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
-# 
+#
 
 """Presentation logic for switchport modules.
 Displays the module as a stack of ports, include simple port information
 (duplex, speed) in CSS style and for mouse hovering.
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 from nav.db import manage
 from nav.web import urlbuilder
 from nav import util
@@ -42,25 +45,24 @@ color_longago = (208, 255, 208)
 active_cache = {}
 
 def process(request):
-    # PYTHON IMPORTS ZUCZ=RZZZ!!
     import netbox
     netbox = netbox.findNetboxes(request['hostname'])
     if len(netbox) > 1:
         return
     netbox=netbox[0]
     module = findModule(netbox, request['module'])
-    request['templatePath'].append((str(netbox), 
+    request['templatePath'].append((str(netbox),
                                     urlbuilder.createUrl(netbox)))
     request['templatePath'].append(('Module %s' % module.module, None))
     result = html.Division()
-    result.append("Module %s, netbox %s" % 
+    result.append("Module %s, netbox %s" %
                    (module.module,
                    urlbuilder.createLink(module.netbox)))
-    result.append(showModuleLegend())                
+    result.append(showModuleLegend())
     moduleInfo = ModuleInfo(module)
-    result.append(moduleInfo.showModule())               
-    return result               
-    
+    result.append(moduleInfo.showModule())
+    return result
+
 def findModule(netbox, moduleName):
     moduleName = moduleName.replace("module", "")
     try:
@@ -97,7 +99,7 @@ class ModuleInfo(manage.Module):
                 portView['class'] += ' Mb%d' % port.speed
                 title = '%d Mbit' % port.speed
                 if port.to_netbox:
-                    title +=' -> %s' % port.to_netbox
+                    title += ' -> %s' % port.to_netbox
                 titles.append(title)
             if type == 'sw':
                 if port.link == 'd':
@@ -128,8 +130,8 @@ class ModuleInfo(manage.Module):
                     vlans = [str(block.vlan) for block in blocked]
                     titles.append("blocked " + ','.join(vlans))
             if type == 'gw':
-                for item in port._values.items():
-                    titles.append("%s %s" % item)
+                if port.portname:
+                    titles.append(port.portname)
             return titles
 
         def perspectiveActive(port, portView):
@@ -192,12 +194,51 @@ class ModuleInfo(manage.Module):
             active_cache = dict(cursor.fetchall())
             return active_cache
 
-        ports = self.getChildren(manage.Swport, orderBy=('port'))
-        if not ports:
+        def sortGwports(ports):
+            """Do natural sort on gwports"""
+
+            import nav.natsort
+
+            map = {}
+            list = []
+            for port in ports:
+                map[port.interface] = port
+                list.append(port.interface)
+            list.sort(nav.natsort.inatcmp)
+            result = []
+            for port in list:
+                result.append(map[port])
+            return result
+
+        def filterGwportNames(name):
+            """Filter gwport names from ifDescr to ifName style"""
+
+            filters = (
+                ('Vlan', 'Vl'),
+                ('TenGigabitEthernet', 'Te'),
+                ('GigabitEthernet', 'Gi'),
+                ('FastEthernet', 'Fa'),
+                ('Ethernet', 'Et'),
+                ('Loopback', 'Lo'),
+                ('Tunnel', 'Tun'),
+                ('Serial', 'Se'),
+                ('Dialer', 'Di'),
+                ('-802.1Q vLAN subif', ''),
+                ('-ISL vLAN subif', ''),
+                ('-aal5 layer', ''),
+            )
+
+            for old, new in filters:
+                name = name.replace(old, new)
+            return name
+
+        if perspective.startswith('gw'):
+            ports = self.getChildren(manage.Gwport, orderBy=('interface'))
+            ports = sortGwports(ports)
             type = "gw"
         else:
+            ports = self.getChildren(manage.Swport, orderBy=('port'))
             type = "sw"
-        #ports += self.getChildren(manage.Gwport)
 
         if not ports:
             return None
@@ -206,12 +247,14 @@ class ModuleInfo(manage.Module):
         if type == "gw":
             moduleView['class'] += ' gw'
         moduleView.append(html.Header(str(self.module), level=3))
+
         # calc width
         width = findDisplayWidth(ports)
         count = 0
         portTable = html.Table()
         moduleView.append(portTable)
         row = html.TableRow()
+
         if perspective == 'active':
             active = getActive()
             gradient = util.color_gradient(color_recent, color_longago,
@@ -222,11 +265,9 @@ class ModuleInfo(manage.Module):
                 portTable.append(row)
                 row = html.TableRow()
             count += 1
-            if type=="gw":
-                if port.masterindex:
-                    portNr = "%s-%s" % (port.masterindex, port.ifindex)
-                else:
-                    portNr = port.ifindex
+            if type == 'gw':
+                portNr = port.interface
+                portNr = filterGwportNames(portNr)
             else:
                 # Hmmmmmm what's the difference between these?
                 # portNr = (port.ifindex is not None and port.ifindex) or port.port
@@ -262,7 +303,7 @@ def showModuleLegend(perspective='standard', interval=30):
         legend.append("&nbsp;")
         legend.append(descr)
         legend.append("&nbsp;&nbsp;")
-    def legendStandard():
+    def legendSpeed():
         legend.append(html.Header("Color legend", level=3))
         mkLegend("passive", "Not active")
         mkLegend("disabled", "Disabled")
@@ -270,6 +311,8 @@ def showModuleLegend(perspective='standard', interval=30):
         mkLegend("Mb100", "100 Mbit")
         mkLegend("Mb1000", "1 Gbit")
         mkLegend("Mb10000", "10 Gbit")
+    def legendStandard():
+        legendSpeed()
         legend.append(html.Header("Frame legend", level=3))
         mkLegend("hduplex", "Half duplex")
         mkLegend("fduplex", "Full duplex")
@@ -284,8 +327,12 @@ def showModuleLegend(perspective='standard', interval=30):
                  "background-color: #%s" % util.colortohex(color_recent))
         mkLegend("active link", "Active now",
                  "background-color: #%s" % util.colortohex(color_recent))
+    def legendGwStandard():
+        legendSpeed()
     if perspective == 'active':
         legendActive()
+    elif perspective == 'gwstandard':
+        legendGwStandard()
     else:
         legendStandard()
     legend.append(html.Break())

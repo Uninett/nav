@@ -30,7 +30,10 @@ TODO:
 Author: Magnus Nordseth <magnun@stud.ntnu.no>
 """
 
-from mod_python import apache, util
+try:
+    from mod_python import apache, util
+except:
+    pass
 import nav.config
 import os
 from nav.web.TreeSelect import TreeSelect, Option, Select, UpdateableSelect

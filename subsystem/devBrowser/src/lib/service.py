@@ -30,7 +30,10 @@ specific type, etc.
 Shows current status, parameters, uptime statistics, etc.
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import forgetHTML as html
 from nav import db
 from nav.db import manage 

@@ -58,7 +58,7 @@ function changeDisplay(elementId, setTo) {
 }
 
 function showPorts(elementId) {
-	known = ['activeports', 'portstatus'];
+	known = ['activeports', 'portstatus', 'gwportstatus'];
 	for (i=0;i<known.length;i++) {
 		changeDisplay(known[i], known[i] == elementId ? 'block' : 'none');
 	}

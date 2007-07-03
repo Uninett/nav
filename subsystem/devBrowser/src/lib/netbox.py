@@ -32,7 +32,10 @@ vlans, etc."""
 import sys
 import time
 import IPy
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import forgetHTML as html
 import re
 from mx import DateTime
@@ -688,21 +691,27 @@ class NetboxInfo(manage.Netbox):
         return result                
 
     def showPorts(self, activePerspective='standard', interval=30):
-        # ugly, but only those categorys have swports...
-        if self.cat.catid not in ('SW', 'GSW', 'EDGE'):
+        # ugly, but only those categorys have swports or gwports
+        if self.cat.catid not in ('GW', 'GSW', 'SW', 'EDGE'):
             return None
 
         div = html.Division(_class="ports")
-        link = urlbuilder.createLink(subsystem='report',
-                                    division='swport',
-                                    id=self.netboxid.netboxid,
-                                    content='Switch ports')
-        div.append(html.Header(link, level=3))
+        div.append(html.Header('Port view', level=3))
 
         def perspectiveToggler(active):
             list = html.UnorderedList(_class='tabs')
-            for p in (('Port status', 'portstatus', 'standard'),
-                      ('Port activity', 'activeports', 'active')):
+
+            perspectives = []
+            if self.cat.catid in ('GSW', 'SW', 'EDGE'):
+                perspectives.append(
+                    ('Switch port status', 'portstatus', 'standard'))
+                perspectives.append(
+                    ('Switch port activity', 'activeports', 'active'))
+            if self.cat.catid in ('GW', 'GSW'):
+                perspectives.append(
+                    ('Router port status', 'gwportstatus', 'gwstandard'))
+
+            for p in perspectives:
                 if active == p[2]:
                     list.append(html.ListItem(
                         html.Anchor(p[0]), _class='current'))
@@ -749,16 +758,33 @@ class NetboxInfo(manage.Netbox):
                     div.append(moduleView)
             return div
 
-        std = showPerspective('standard', 'portstatus')
-        act = showPerspective('active', 'activeports')
-        if not std or not act:
-            return None
+        if self.cat.catid == 'GW':
+            activePerspective = 'gwstandard'
+
+        if self.cat.catid in ('GSW', 'SW', 'EDGE'):
+            std = showPerspective('standard', 'portstatus')
+            act = showPerspective('active', 'activeports')
         else:
-            hiddenTab = activePerspective == 'active' and std or act
-            hiddenTab['style'] = 'display: none;'
+            std = None
+            act = None
+        if self.cat.catid in ('GW', 'GSW'):
+            gwstd = showPerspective('gwstandard', 'gwportstatus')
+        else:
+            gwstd = None
+
+        if std:
+            if not activePerspective == 'standard':
+                std['style'] = 'display: none;'
             div.append(std)
+        if act:
+            if not activePerspective == 'active':
+                act['style'] = 'display: none;'
             div.append(act)
-            return div
+        if gwstd:
+            if not activePerspective == 'gwstandard':
+                gwstd['style'] = 'display: none;'
+            div.append(gwstd)
+        return div
 
     def showLastUpdate(self):
         unixEpoch = DateTime.DateTime(1970)

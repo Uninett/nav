@@ -27,7 +27,10 @@ In-depth view, includes states, links, vlans
 and statistics (RRD).
 """
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 import forgetHTML as html
 from nav.db import manage
 from nav.web import urlbuilder
