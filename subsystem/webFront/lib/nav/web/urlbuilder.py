@@ -98,10 +98,9 @@ def createUrl(object=None, id=None, division=None,
             except:
                 raise "Unknown object type"
         if division:
-            if not (subsystem == 'devbrowser' and 
-                division in 'netbox port module'.split()):
+            if not division in 'netbox port gwport module'.split():
                 url += division + '/'
-            if id and subsystem=='devbrowser' and division=='service':
+            if division == 'service' and id:
                url += id + '/'
                return url
             if object:
@@ -113,19 +112,22 @@ def createUrl(object=None, id=None, division=None,
                 if division=="netbox":
                     # nice url
                     url += object.sysname
-                elif division=="port":
+                elif division == "port" or division == "gwport":
                     module = object.module
                     url += module.netbox.sysname
-                    url += '/module%s' % module.module   
-                    url += '/port%s' % object.port
+                    url += '/module%s' % module.module
+                    if division == "port":
+                        url += '/port%s' % object.port
+                    else:
+                        url += '/gwport%s' % object.gwportid
                 elif division=="module":
                     url += object.netbox.sysname
-                    url += '/module%s' % object.module   
+                    url += '/module%s' % object.module
                 else:
                     # Turn into strings, possibly join with ,
                     id = [str(x) for x in object._getID()]
                     url += ','.join(id)
-                url += '/' # make sure we have trailing /    
+                url += '/' # make sure we have trailing /
 
     elif subsystem == 'maintenance':
         if object:
