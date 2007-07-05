@@ -1,4 +1,4 @@
-#endoding=UTF-8
+#encoding=UTF-8
 #extends nav.web.templates.MainTemplate
 
 <h1>Tabular view of $network</h1>
@@ -12,41 +12,69 @@
 	<th>$heading</th>
 #end for
 #end block
-
-#block matrix
 </tr>
+$extract_matrix($subnet,0)
+</table>
 
+#def $printDepth($depth)
+	#for $i in $range(0,$depth)
+		&nbsp;#slurp
+	#end for
+#end def
+
+#def $netlink($ip,$removeLastNetOctets=True)
+	#if $removeLastNetOctets
+		#set $nip = $metainfo($ip).extractNetIp()
+		<a href="/report/prefix?host(netaddr)=$nip:%&op_host(netaddr)=like">$nip</a>
+	#else
+		<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$str(ip.net())</a>
+	#end if
+#end def	
+
+#def $matrixlink($ip)
+	<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$metainfo($ip).extractNetIp()</a>
+#end def
+
+#def $colspan($ip)
+	#import math
+	$math.pow(2,($end_net.prefixlen()-$ip.prefixlen()))
+#end def
+
+#block extract_matrix
 #def $extract_matrix($subnet,$depth)
-	#set $keys = $sort_nets($subnet.keys())
+	#set $keys = $sort_nets_by_address($subnet.keys())
+	#set $lastnet = None
 	#for $net in $keys
 		#if $matrix_nets.has_key($net)
+			#if $lastnet = None
+				#set $lastnet = $net
+			#end if
+
 			#set $diff = $net_diff($net,$lastnet)
 			#if $len($diff) > 1
 				#if $len($diff) > $max_diff_before_dots
-					#for i in range(0,3)
-						<tr><td>.</td></tr>
-					#end for
+					...
 				#else
 					#for $ip in $diff
 						<tr>
-						<td>$netlink($ip,False)</td>
+						<td>$printDepth() $netlink($ip,False)</td>
 						</tr>
 					#end for
 				#end if
-				#return
+				#continue
 			#end if
 
 			#if $has_too_small_nets($net)
 				#set $cols= 2**$bits_in_matrix
 				<tr>
-				<td colspan="$cols" style="text-align:center;background-color:$load(0,'large')">Many small subnets</td>
+				<td colspan="$cols" style="text-align:center;background-color:$load_color(0,'large')">Many small subnets</td>
 				</tr>
 			#else
 				<tr>
-				#for $ip in $sort_nets($matrix_nets[$net])
+				#for $ip in $sort_nets_by_address($matrix_nets[$net])
 					<td>$netlink($net)</td>
-					<td colspan="$colspan(net)" style="background-color:$load($netype($net),$utilization($net).percent); text-align:center;">
-					$ip.prefixlen() $utilization($ip).percent
+					<td colspan="$colspan(net)" style="background-color:$load_color($netype($net),$metainfo($net).percent); text-align:center;">
+					$ip.prefixlen() $metainfo($ip).percent
 					</td>
 				#end for
 				</tr>
@@ -54,35 +82,12 @@
 		#else
 			<tr>
 			<td>
-			#for $i in range(0,depth)
-				&nbsp;#slurp
-			#end for
-			$netlink($net,False)
+			$printDepth() $netlink($net,False)
 			</td>
 			</tr>
-			$extract_matrix($net,depth+1)
+			$extract_matrix($subnet[$net],depth+1)
 		#end if
 	#end for
 #end def
 
-#def $makeMatrixRow($net)
-#end def
 #end block
-</table>
-
-#def $netlink($ip,$removeLastNetOctets=True)
-	#if $removeLastNetOctets
-		$nip = $extractNetOctets($ip)
-		<a href="/report/prefix?host(netaddr)=$nip.%&op_host(netaddr)=like">$nip</a>
-	#else
-		<a href="/report/prefix?prefixid=$getPrefix($ip)">#str(ip.net())</a>
-	#end if
-#end def
-
-#def $matrixlink($ip)
-	<a href="/report/prefix?prefixid=$getPrefix($ip)">$getLastNetOctets($ip)</a>
-
-#def $colspan($ip)
-	2**($end_net.prefixlen()-$ip.prefixlen())
-#end def
-			
