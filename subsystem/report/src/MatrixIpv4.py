@@ -31,16 +31,20 @@ class MatrixIpv4(Matrix):
 		result = {self.start_net:{}}
 		subnets = self.getSubnets(self.start_net)
 		mask = self.getMask(self.end_net.prefixlen()-self.bits_in_matrix)
-		sorted_subnets = self.sort_nets(subnets)
+		sorted_subnets = self.sort_nets_by_prefixlength(subnets)
+		#append supernodes to the list of sorted subnets. The supernodes
+		#should be blocks containing the network shown in the matrix body
+		#(i.e. the last rows in the matrix "tree" (to the left)
 		for ip in sorted_subnets:
 			if ip.prefixlen() <= mask.prefixlen():
 				continue
 			supernet = self.andIpMask(ip,mask)
-			if not contains(sorted_subnets,supernet):
+			if not self.contains(sorted_subnets,supernet):
 				sorted_subnets.append(supernet)
 				 
-		sorted_subnets = self.sort_nets(sorted_subnets)
+		sorted_subnets = self.sort_nets_by_prefixlength(sorted_subnets)
 		
+		#build tree
 		for ip in sorted_subnets:
 			self._insertIntoTree(result,ip)
 
@@ -76,21 +80,4 @@ class MatrixIpv4(Matrix):
 		for i in range(0,4-len(ip_builder.split("."))):
 			ip_builder = ".".join([ip_builder,"0"])
 		return IP("/".join([ip_builder,str(bit_count)]))
-	
-	def sort_nets_by_address(self, nets):
-		def makeTupleList(net):
-			a = net.net().strNormal().split(".")+[net]
-			return tuple(a)
-		decorate = map(makeTupleList,nets)
-		decorate.sort()
-		result = [i[-1] for i in decorate]
-		return result
-
-
-def contains(list, element):
-	try:
-		list.index(element)
-		return True
-	except ValueError:
-		return False
 

@@ -21,7 +21,6 @@ class Matrix:
 			end_net = self.getLastSubnet(start_net)
 		self.start_net = start_net
 		self.end_net = end_net
-		self.prefix_map = None #maps netaddrs to prefices
 		self.bits_in_matrix = bits_in_matrix
 		self.tree = self.buildTree()
 		self.tree_nets = self.extractTreeNets()
@@ -29,6 +28,14 @@ class Matrix:
 		self.max_diff_before_dots = 6
 	
 	def getTemplateResponse(self):
+		abstract()
+	
+	def extractNet(self,ip):
+		"""Extract the network octets (or words) from the ip address.
+
+		Returns a string with the octets.
+
+		This method is needed by the template."""
 		abstract()
 
 	def buildTree(self):
@@ -161,17 +168,32 @@ class Matrix:
 		if min_length is None:
 			min_length = network.prefixlen()
 		assert min_length < max_length
-		sql = "SELECT prefix,netaddr FROM prefix WHERE family(netaddr)=%d AND netaddr << '%s' AND masklen(netaddr) >= %d AND masklen(netaddr) < %d" \
+		sql = "SELECT netaddr FROM prefix WHERE family(netaddr)=%d AND netaddr << '%s' AND masklen(netaddr) >= %d AND masklen(netaddr) < %d" \
 				% (network.version(),str(network),min_length,max_length)
 		database_cursor.execute(sql)
 		db_result = database_cursor.fetchall()
-		prefix_list = [i[0] for i in db_result]
-		netaddr_list = [IP(i[1]) for i in db_result]
-		self.prefix_map.update(zip(netaddr_list,prefix_list))
-		return netaddr_list
+		return [IP(i[0]) for i in db_result]
 
 	def getCursor(self):
 		return database_cursor
+
+	def sort_nets_by_address(self, nets):
+		def makeTupleList(net):
+			a = net.net().strNormal().split(".")+[net]
+			return tuple(a)
+		decorate = map(makeTupleList,nets)
+		decorate.sort()
+		result = [i[-1] for i in decorate]
+		return result
+ 
+ 
+	def contains(self,list, element):
+		try:
+			list.index(element)
+			return True
+		except ValueError:
+			return False
+
 
 #because I'm a Java guy
 def abstract():
