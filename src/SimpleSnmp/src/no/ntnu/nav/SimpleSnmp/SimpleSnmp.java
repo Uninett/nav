@@ -247,7 +247,7 @@ public class SimpleSnmp
 	 */
 	public ArrayList getNext(int getCnt, boolean decodeHex) throws TimeoutException
 	{
-		return getAll(baseOid, getCnt, decodeHex, true, true, 0);
+		return getAll(baseOid, getCnt, decodeHex, true, 0);
 	}
 
 	/**
@@ -265,7 +265,7 @@ public class SimpleSnmp
 	 */
 	public ArrayList getNext(int getCnt, boolean decodeHex, boolean getNext) throws TimeoutException
 	{
-		return getAll(baseOid, getCnt, decodeHex, getNext, true, 0);
+		return getAll(baseOid, getCnt, decodeHex, getNext, 0);
 	}
 
 	/**
@@ -300,7 +300,7 @@ public class SimpleSnmp
 	 */
 	public ArrayList getNext(String baseOid, int getCnt, boolean decodeHex, boolean getNext) throws TimeoutException
 	{
-		return getAll(baseOid, getCnt, decodeHex, getNext, true, 0);
+		return getAll(baseOid, getCnt, decodeHex, getNext, 0);
 	}
 
 	/**
@@ -595,9 +595,27 @@ public class SimpleSnmp
 	 * @throws TimeoutException if the hosts times out
 	 */
 	public ArrayList getAll(String baseOid, boolean decodeHex, boolean getNext) throws TimeoutException {
-		return getAll(baseOid, 0, decodeHex, getNext, true, 0);
+		return getAll(baseOid, 0, decodeHex, getNext, 0);
 	}
 
+	/**
+	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
+	 *
+	 * <p> Note: the baseOid prefix will be removed from any returned
+	 * OIDs.  </p>
+	 * 
+	 * @param baseOid Override the baseOid; if null a null value is returned
+	 * @param getCnt The maximum number of OIDs to get; 0 or less means get as much as possible
+	 * @param decodeHex Try to decode returned hex to ASCII
+	 * @param getNext Send GETNEXT in first packet, this will not work if you specify an exact OID
+	 * @param stripCnt Strip this many elements (separated by .) from the start of OIDs
+	 * @return an ArrayList containing String arrays of two elements; OID and value
+	 * @throws TimeoutException if the hosts times out
+	 */
+	public ArrayList getAll(String baseOid, int getCnt, boolean decodeHex, boolean getNext, int stripCnt) throws TimeoutException {
+		return getAll(baseOid, getCnt, decodeHex, getNext, true, stripCnt);
+	}
+	
 	/**
 	 * <p> Snmpwalk the given OID and return the entire subtree.  </p>
 	 *
