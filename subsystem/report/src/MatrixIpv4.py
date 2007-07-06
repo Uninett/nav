@@ -5,16 +5,17 @@ from Matrix import Matrix
 
 from __future__ import nested_scopes
 
-#TODO: Fininsh getTemplateResponse
+#TODO: Finish getTemplateResponse
 
 class MatrixIpv4(Matrix):
 	
 	def __init__(self,start_net,end_net=None):
-		Matrix.__init__(self,start_net,end_net)
+		Matrix.__init__(self,start_net,end_net=end_net)
 		self.column_headings = self._getColumnHeaders()
 
 	def getTemplateResponse(self):
 		template = MatrixTemplate()
+		template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 		template.network = self.start_net
 		template.headings = self.column_headings
 

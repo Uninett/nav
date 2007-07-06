@@ -2,21 +2,31 @@ from IPy import IP
 from nav import db
 from copy import deepcopy
 from DBUtils import ResultSetIterator
+from nav.web.templates.MatrixTemplate import MatrixTemplate
+from MetaIp import MetaIp
 
 from __future__ import nested_scopes
 
 connection = db.getConnection('webfront','manage')
 database_cursor = connection.cursor()
 
-#TODO:	Extract the tree utilities to an own module
-#			getSubnets needs in that case to be reimplemented to take arbitrary sql
-#			for subnet extraction.
+#TODO:	Separate datastructure operators and Matrix functions in
+#		different modules.
 #
 #		Standardize documentation style.
 
 class Matrix:
 
 	def __init__(self, start_net, end_net=None, bits_in_matrix=3):
+		"""This class is "abstract" and should not be instansiated directly.
+
+		Superclass with usefull methods for IP matrices.
+		
+		Direct known subclasses:
+				MatrixIpv6
+				MatrixIpv4
+		""" 
+
 		if end_net is None:
 			end_net = self.getLastSubnet(start_net)
 		self.start_net = start_net
@@ -27,6 +37,9 @@ class Matrix:
 		self.matrix_nets = self.extractMatrixNets()
 		self.max_diff_before_dots = 6
 	
+		self.template = MatrixTemplate()
+		self._setupDefaultTemplateAttributes()
+
 	def getTemplateResponse(self):
 		abstract()
 	
@@ -43,6 +56,46 @@ class Matrix:
 
 		Note: method getSubnets might be usefull."""
 		abstract()
+
+	def sort_nets_by_address(self, list):
+		delimiter = None
+		
+		def tuplefy(address):
+			list = map(lambda x: int(x,16),address.net().strFullsize().split(delimiter)) + [address]
+			return tuple(list)
+		
+		if len(list) < 1:
+			return list
+
+		if list[0].version() == 6:
+			delimiter = ':'
+		elif list[0].version() == 4:
+			delimiter = '.'
+
+		decorate = map(tuplefy,list)
+		decorate.sort()
+		return [i[-1] for i in decorate]
+
+	def _setupDefaultTemplateAttributes(self):
+		"""Setup the template functions and path variable.
+
+		NB! Make sure the subclass has implemented all abstract methods!"""
+
+		self.template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
+		self.template.sort_nets_by_address = getattr(self,"sort_nets_by_address")
+		self.template.net_diff = getattr(self,"net_diff")
+		self.template.has_too_small_nets = getattr(self,"has_too_small_nets")
+		self.template.metainfo = getattr(self,"metainfo")
+	
+	def metainfo(self,ip):
+		return MetaIp(ip)
+
+	def sort_nets_by_prefixlength(self,nets):
+		"""Sorts a list with IP instances."""
+		decorate = [(net.prefixlen(),net) for net in nets]
+		decorate.sort()
+		result = [i[-1] for i in decorate]
+		return result
 	
 	def has_too_small_nets(self,net):
 		for net in self.getSubtree(net):
@@ -97,18 +150,6 @@ class Matrix:
 				printT(tree[net],depth+1)
 		printT(self.tree,depth)
 
-
-	def sort_nets_by_prefixlength(self,nets):
-		"""Sorts a list with IP instances."""
-		decorate = [(net.prefixlen(),net) for net in nets]
-		decorate.sort()
-		result = [i[-1] for i in decorate]
-		return result
-
-	def sort_nets_by_address(self,nets):
-		"""Sorts a list with IP instances."""
-		abstract()
-	
 	def net_diff(self,net1,net2):
 		assert net1.prefixlen()==net2.prefixlen()
 		if net1 > net2:
@@ -177,16 +218,6 @@ class Matrix:
 	def getCursor(self):
 		return database_cursor
 
-	def sort_nets_by_address(self, nets):
-		def makeTupleList(net):
-			a = net.net().strNormal().split(".")+[net]
-			return tuple(a)
-		decorate = map(makeTupleList,nets)
-		decorate.sort()
-		result = [i[-1] for i in decorate]
-		return result
- 
- 
 	def contains(self,list, element):
 		try:
 			list.index(element)

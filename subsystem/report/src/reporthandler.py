@@ -109,15 +109,17 @@ def handler(req):
                     argsdict[c] = d
 
         if argsdict.has_key("scope") and argsdict["scope"]:
-			scope = IP(scope)
+			scope = IP(argsdict["scope"])
 			matrix = None
-			if scope.version() == 4:
-				matrix = MatrixIpv4(scope)
-			else if scope.version() == 6:
-				matrix = MatrixIpv6(scope)
+			if scope.version() == 6:
+				#next line is hardcoded end_net = start_net with prefixlength+=16
+				end_net = IP("/".join([scope.net().strCompressed(),str(scope.prefixlen()+16)]))
+				matrix = MatrixIpv6(scope,end_net=end_net)
+			elif scope.version() == 4:
+				raise UnknownNetworkTypeException
 			else:
-				raise UnknownNetworkTypeException()
-            req.write(matrix.makeMatrix())
+				raise UnknownNetworkTypeException
+			req.write(matrix.getTemplateResponse())
             
         else:
 

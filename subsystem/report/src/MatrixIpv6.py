@@ -1,19 +1,28 @@
 from IPy import IP
-from nav.web.templates.MatrixTemplate import MatrixTemplate
 from Matrix import Matrix
+from ColorConfiguration import ColorConfiguration
+
+import nav.path
+import os
+import string
+import ConfigParser
+
+configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
 class MatrixIpv6(Matrix):
 
 	def __init__(self,start_net,end_net=None):
-		Matrix.__init__(self,start_net,end_net,4)
+		Matrix.__init__(self,start_net,end_net=end_net,bits_in_matrix=4)
 		self.column_headings = ["%X" % i for i in range(0,16)]
 
 	def getTemplateResponse(self):
-		template = MatrixTemplate()
-		template.subnet= self.start_net
-		template.headings = self.column_headings
-		template.bits_in_matrix = self.bits_in_matrix
-		return template.respond()
+		self.template.start_net = self.start_net
+		self.template.tree_nets = self.tree_nets
+		self.template.matrix_nets = self.matrix_nets
+		self.template.column_headings = self.column_headings
+		self.template.bits_in_matrix = self.bits_in_matrix
+		self.template.color_configuration = ColorConfiguration(configfile)
+		return self.template.respond()
 
 	def buildTree(self):
 		result = {self.start_net:{}}
@@ -24,6 +33,9 @@ class MatrixIpv6(Matrix):
 		#append supernodes to the list of sorted subnets. The supernodes
 		#should be blocks containing the network shown in the matrix body
 		#(i.e. the last rows in the matrix "tree" (to the left)
+
+		#TODO: Reimplement this to respect that the list is allready sorted,
+		#	   that way we won't have to sort the list again.
 		for ip in sorted_subnets:
 			if ip.prefixlen() <= mask.prefixlen():
 				continue
@@ -53,7 +65,7 @@ class MatrixIpv6(Matrix):
 		``mask'': IPy.IP"""
 		ip_split = str(ip.net()).split(":")
 		mask_split = str(mask.net()).split(":")
-		assert len(ip_split) == len(mask_split)==8
+		assert len(ip_split) == len(mask_split) == 8
 		supernet = ""
 		for i in range(0,len(ip_split)):
 			andOp = self.hexAnd(ip_split[i],mask_split[i])
@@ -91,3 +103,4 @@ class MatrixIpv6(Matrix):
 		if masklength < 112:
 			result = "".join([result,"::"])
 		return IP("/".join([result,str(masklength)]))
+

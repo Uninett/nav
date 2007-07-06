@@ -9,9 +9,10 @@ class MetaIp:
 		self.prefixid = None
 		self.active_ip_cnt = None
 		self.max_ip_cnt = None
-		self.nettype = None
-		
-		self.__setup()
+		self.nettype = None	
+		self.usage_percent = None
+
+		self._setup()
 	
 	def extractNetIp(self):
 		"""Extract only the octets (or words) of the IP address which
@@ -22,28 +23,35 @@ class MetaIp:
 		This function is needed by the template."""
 
 		if self.ip.version() == 6:
-			return self.__extractNetIpIpv6()
+			return self._extractNetIpIpv6()
 		
-	def __extractNetIpIpv6(self):
+	def _extractNetIpIpv6(self):
 		ip_string = ip.net().strCompressed()
 		bits_not_in_net = 16 - ip.prefixlen() % 16
 		nybbles_not_in_net = bits_not_in_net / 4
 		return ip_string[:-nybbles_not_in_net]
 
-	def __setup(self):
+	def _setup(self):
 		sql = """SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype
-				 FROM prefix JOIN prefix_active_ip_cnt USING(prefixid)
-							 JOIN prefix_max_ip_cnt USING(prefixid)
-							 JOIN vlan USING(vlanid)
-				 WHERE netaddr=self.netaddr and nettype != 'scope'"""
+				 FROM prefix LEFT OUTER JOIN prefix_active_ip_cnt USING(prefixid)
+							 LEFT OUTER JOIN prefix_max_ip_cnt USING(prefixid)
+							 LEFT OUTER JOIN vlan USING(vlanid)
+				 WHERE netaddr='%s'""" % str(self.netaddr)
 		con = db.getConnection('webfront','manage')
 		cursor = con.cursor()
 
 		cursor.execute(sql)
-		info = cursor.fetchall()
-		if len(info) > 1:
+		rows = cursor.fetchall()
+		if len(rows) > 1:
 			raise SeveralPreficesOnOneIpError
+		info = rows[0]
+
 		self.prefixid = info[0]
 		self.active_ip_cnt = info[1]
 		self.max_ip_cnt = info[2]
-		self.netaddr = info[3]
+		self.nettype= info[3]
+
+		if self.active_ip_cnt > 0 and self.max_ip_cnt > 0:
+			self.usage_percent = float(self.active_ip_cnt)/self.max_ip_cnt
+		else:
+			self.usage_percent = "ERR: Negative number"
