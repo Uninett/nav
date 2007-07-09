@@ -130,7 +130,7 @@ table {
 	background-color; #d4d3f0; /* unknown speed */
 	font-size: 85%;
 	border: 2px solid black;
-	margin: 15px;
+	margin: 5px;
 	width: 2em;
 	height: 2em;
 	text-align: center;
@@ -154,11 +154,9 @@ table {
 }
 .link {
 	border-width: 3px;
-	margin: 3px;
 }
 .trunk {
 	border-width: 3px;
-	margin: 3px;
 }
 .fduplex {
 }
@@ -182,7 +180,6 @@ table {
 	/* normalize */
 	border-style: solid;
 	border-width: 2px;
-	margin: 5px;
 }
 .disabled {
 	background-color: #C99;
@@ -190,7 +187,7 @@ table {
 div.legend .port {
 	width: 1.5em;
 	height: 1.5em;
-	margin: 0;
+	margin-right: 0.5em;
 }
 .blocked {
 	text-decoration: line-through;
