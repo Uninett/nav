@@ -78,8 +78,10 @@ def process(request):
 
     moduleInfo = ModuleInfo(module)
     for header, perspective in perspectives:
-        result.append(html.Header(header, level=3))
-        result.append(moduleInfo.showModule(perspective))
+        module = moduleInfo.showModule(perspective)
+        if module:
+            result.append(html.Header(header, level=3))
+            result.append(module)
 
     return result
 
@@ -266,7 +268,9 @@ class ModuleInfo(manage.Module):
         moduleView = html.Division(_class="module")
         if type == "gw":
             moduleView['class'] += ' gw'
-        moduleView.append(html.Header(str(self.module), level=3))
+        moduleView.append(html.Header(
+            urlbuilder.createLink(self, content=self.module),
+            level=3))
 
         # calc width
         width = findDisplayWidth(ports)

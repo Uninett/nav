@@ -753,10 +753,13 @@ class NetboxInfo(manage.Netbox):
                  and cmp(int(a.module), int(b.module)))
                 or cmp(a.module,b.module))
             for mod in modules:
-                moduleView = mod.showModule(perspective=perspective,
-                                            interval=interval)
-                if moduleView:
-                    div.append(moduleView)
+                try:
+                    moduleView = mod.showModule(perspective=perspective,
+                                                interval=interval)
+                    if moduleView:
+                        div.append(moduleView)
+                except AttributeError:
+                    pass
             return div
 
         if self.cat.catid == 'GW':
