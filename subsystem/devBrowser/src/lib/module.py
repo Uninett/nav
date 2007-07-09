@@ -1,5 +1,7 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,6 +22,7 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 """Presentation logic for switchport modules.
@@ -36,6 +39,7 @@ from nav.web import urlbuilder
 from nav import util
 import forgetHTML as html
 #import warnings
+from sets import Set
 
 # Color range for port activity tab
 color_recent = (0, 175, 0)
@@ -55,12 +59,28 @@ def process(request):
                                     urlbuilder.createUrl(netbox)))
     request['templatePath'].append(('Module %s' % module.module, None))
     result = html.Division()
-    result.append("Module %s, netbox %s" %
-                   (module.module,
-                   urlbuilder.createLink(module.netbox)))
-    result.append(showModuleLegend())
+    header = html.Header("Module %s at %s" %
+                         (module.module,
+                         urlbuilder.createLink(module.netbox)), level=2)
+    result.append(header)
+
+    perspectives = []
+    if netbox.cat.catid in ('GSW', 'SW', 'EDGE'):
+        perspectives.append(('Switch port status', 'standard'))
+        perspectives.append(('Switch port activity', 'active'))
+    if netbox.cat.catid in ('GW', 'GSW'):
+        perspectives.append(('Router port status', 'gwstandard'))
+
+    legends = []
+    for header, perspective in perspectives:
+        legends.append(perspective)
+    result.append(showModuleLegend(legends))
+
     moduleInfo = ModuleInfo(module)
-    result.append(moduleInfo.showModule())
+    for header, perspective in perspectives:
+        result.append(html.Header(header, level=3))
+        result.append(moduleInfo.showModule(perspective))
+
     return result
 
 def findModule(netbox, moduleName):
@@ -293,48 +313,72 @@ class ModuleInfo(manage.Module):
         return moduleView
 
 def showModuleLegend(perspective='standard', interval=30):
-    legend = html.Division(_class="legend")
+    result = html.Division(_class="legend")
+    legendtable = html.Table()
+
     def mkLegend(name, descr, style=None):
         port = html.Span("11")
         port['class'] = "port %s" % name
         if style:
             port['style'] = style
-        legend.append(port)
-        legend.append("&nbsp;")
-        legend.append(descr)
-        legend.append("&nbsp;&nbsp;")
+        legenditem = html.TableCell()
+        legenditem.append(port)
+        legenditem.append(descr)
+        return legenditem
+
     def legendSpeed():
-        legend.append(html.Header("Color legend", level=3))
-        mkLegend("passive", "Not active")
-        mkLegend("disabled", "Disabled")
-        mkLegend("Mb10", "10 Mbit")
-        mkLegend("Mb100", "100 Mbit")
-        mkLegend("Mb1000", "1 Gbit")
-        mkLegend("Mb10000", "10 Gbit")
-    def legendStandard():
-        legendSpeed()
-        legend.append(html.Header("Frame legend", level=3))
-        mkLegend("hduplex", "Half duplex")
-        mkLegend("fduplex", "Full duplex")
-        mkLegend("trunk", "Trunk")
-        mkLegend("blocked", "Blocked")
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Speed legend")))
+        legend.append(mkLegend("passive", "Not active"))
+        legend.append(mkLegend("disabled", "Disabled"))
+        legend.append(mkLegend("Mb10", "10 Mbit"))
+        legend.append(mkLegend("Mb100", "100 Mbit"))
+        legend.append(mkLegend("Mb1000", "1 Gbit"))
+        legend.append(mkLegend("Mb10000", "10 Gbit"))
+        legendtable.append(legend)
+
+    def legendFrame():
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Frame legend")))
+        legend.append(mkLegend("hduplex", "Half duplex"))
+        legend.append(mkLegend("fduplex", "Full duplex"))
+        legend.append(mkLegend("trunk", "Trunk"))
+        legend.append(mkLegend("blocked", "Blocked"))
+        legend.append(html.TableCell())
+        legend.append(html.TableCell())
+        legendtable.append(legend)
+
     def legendActive():
-        legend.append(html.Header("Legend", level=3))
-        mkLegend("inactive", "Not used in %d days" % interval)
-        mkLegend("active", "Used %d days ago" % interval,
-                 "background-color: #%s" % util.colortohex(color_longago))
-        mkLegend("active", "Used today",
-                 "background-color: #%s" % util.colortohex(color_recent))
-        mkLegend("active link", "Active now",
-                 "background-color: #%s" % util.colortohex(color_recent))
-    def legendGwStandard():
-        legendSpeed()
-    if perspective == 'active':
-        legendActive()
-    elif perspective == 'gwstandard':
-        legendGwStandard()
-    else:
-        legendStandard()
-    legend.append(html.Break())
-    legend.append(html.Paragraph(html.Emphasis("Hold mouse over port for info, click for details")))
-    return legend
+        legend = html.TableRow()
+        legend.append(html.TableCell(html.Big("Activity legend")))
+        legend.append(mkLegend("inactive", "Not used in %d days" % interval))
+        legend.append(mkLegend("active", "Used last %d days" % interval,
+            "background-color: #%s" % util.colortohex(color_longago)))
+        legend.append(mkLegend("active", "Used today",
+            "background-color: #%s" % util.colortohex(color_recent)))
+        legend.append(mkLegend("active link", "Active now",
+            "background-color: #%s" % util.colortohex(color_recent)))
+        legend.append(html.TableCell())
+        legend.append(html.TableCell())
+        legendtable.append(legend)
+
+    if not type(perspective) is list:
+        perspective = [perspective]
+
+    legends = Set()
+    if 'gwstandard' in perspective:
+        legends.add((1, legendSpeed))
+    if 'standard' in perspective:
+        legends.add((1, legendSpeed))
+        legends.add((2, legendFrame))
+    if 'active' in perspective:
+        legends.add((3, legendActive))
+
+    legends = list(legends)
+    legends.sort()
+    for order, legend in legends:
+        legend()
+
+    result.append(html.Division(legendtable))
+    result.append(html.Paragraph(html.Emphasis("Hold mouse over port for info, click for details")))
+    return result
