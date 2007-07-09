@@ -17,6 +17,7 @@ class MatrixIpv6(Matrix):
 
 	def getTemplateResponse(self):
 		self.template.start_net = self.start_net
+		self.template.end_net = self.end_net
 		self.template.tree_nets = self.tree_nets
 		self.template.matrix_nets = self.matrix_nets
 		self.template.column_headings = self.column_headings
@@ -32,7 +33,7 @@ class MatrixIpv6(Matrix):
 
 		#append supernodes to the list of sorted subnets. The supernodes
 		#should be blocks containing the network shown in the matrix body
-		#(i.e. the last rows in the matrix "tree" (to the left)
+		#(i.e. the last rows in the matrix "tree" (to the left))
 
 		#TODO: Reimplement this to respect that the list is allready sorted,
 		#	   that way we won't have to sort the list again.
@@ -50,6 +51,21 @@ class MatrixIpv6(Matrix):
 			self.insertIntoTree(result,ip)
 
 		return result
+
+	def getNybblesMap(self,ip_list):
+		"""See Matrix.py for doc"""
+		from math import ceil
+		start_nybble_index = None
+		end_nybble_index = None
+
+		if ip_list[0].prefixlen() < 112:
+			start_nybble_index = -2 - int(ceil(float(self.bits_in_matrix)/4))
+			end_nybble_index = start_nybble_index + int(ceil(float(self.bits_in_matrix)/4))
+		else:
+			start_nybble_index = -int(ceil(float(self.bits_in_matrix)/4))
+			end_nybble_index = start_nybble_index + int(ceil(float(self.bits_in_matrix)/4))
+
+		return dict(zip([i.net().strCompressed()[start_nybble_index:end_nybble_index] for i in ip_list],ip_list))
 
 	def insertIntoTree(self,tree,ip):
 		for ip_item in tree:

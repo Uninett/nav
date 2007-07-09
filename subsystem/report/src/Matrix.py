@@ -86,6 +86,8 @@ class Matrix:
 		self.template.net_diff = getattr(self,"net_diff")
 		self.template.has_too_small_nets = getattr(self,"has_too_small_nets")
 		self.template.metainfo = getattr(self,"metainfo")
+		self.template.getNybblesMap = getattr(self,"getNybblesMap")
+		self.template.getTreeNet = getattr(MetaIp,"getTreeNet")
 	
 	def metainfo(self,ip):
 		return MetaIp(ip)
@@ -224,6 +226,18 @@ class Matrix:
 			return True
 		except ValueError:
 			return False
+	
+	def getNybblesMap(self,ip_list):
+		"""Returns a mapping between the last nybble and
+		the whole IP address.
+
+		Assumes:
+			Unique nybbles
+			Fixed prefix length
+		
+		Used by the presentation logic for column-to-IP mapping
+		"""
+		abstract()
 
 
 #because I'm a Java guy
