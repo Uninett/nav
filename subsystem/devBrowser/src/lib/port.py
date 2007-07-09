@@ -1,5 +1,7 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
+# Copyright 2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -20,6 +22,7 @@
 #
 # Authors: Magnus Nordseth <magnun@itea.ntnu.no>
 #          Stian Soiland <stain@itea.ntnu.no>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
 
 """Detailed view of a specific switchport.

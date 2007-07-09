@@ -1,6 +1,7 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2005 Norwegian University of Science and Technology
-# Copyright 2006 UNINETT AS
+# Copyright 2006-2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -599,7 +600,7 @@ class NetboxInfo(manage.Netbox):
         return div
 
     def showLinks(self):
-        # Vi må hente ifra swport-tabellen istedet!
+        # Vi mÃ¥ hente ifra swport-tabellen istedet!
         up = self.getChildrenIterator(manage.Swport, 'to_netbox')
         down = []
         for module in self.getChildrenIterator(manage.Module):
@@ -745,7 +746,7 @@ class NetboxInfo(manage.Netbox):
             if not modules:
                 return None
             isNum = lambda x: x and re.match("^[0-9]+$",str(x))
-            # høhø
+            # hÃ¸hÃ¸
             modules.sort(lambda a,b:
                 # sort by number - if possible
                 (isNum(a.module) and isNum(b.module)

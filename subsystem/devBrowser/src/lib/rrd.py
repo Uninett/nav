@@ -1,4 +1,5 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
+#
 # Copyright 2002-2004 Norwegian University of Science and Technology
 #
 # This file is part of Network Administration Visualized (NAV)
@@ -91,7 +92,7 @@ def process(request):
         try:
             id = query['id']
         except:
-            return html.Division('Dette gikk dårlig')
+            return html.Division('Dette gikk dÃ¥rlig')
             #return showGraphs(session)
         remove(session, id)
         raise RedirectError, urlbuilder.createUrl(division="rrd")
