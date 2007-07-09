@@ -43,3 +43,5 @@ UPDATE subsystem SET name = 'deviceManagement' WHERE name = 'deviceTracker';
 CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
 
 \c navprofiles
+-- Fix error in sysname matching
+UPDATE matchfield SET valueid='netbox.sysname' WHERE matchfieldid=15;

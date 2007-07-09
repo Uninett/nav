@@ -887,7 +887,7 @@ INSERT INTO Operator (operatorid, matchfieldid) VALUES (0, 14);
 INSERT INTO Operator (operatorid, matchfieldid) VALUES (11, 14);
 
 INSERT INTO MatchField (matchfieldid, datatype, name, valueid, valuename, valuecategory, valuesort, showlist, descr, valuehelp) VALUES 
-(15, 0, 'Sysname', 'netbox.netboxid', null, null, null, false, 
+(15, 0, 'Sysname', 'netbox.sysname', null, null, null, false, 
 'Sysname: Limit your alarms based on sysname.',
 'Sysname examples:<blockquote>
 <b>Starts with:</b> samson.<br>
