@@ -2,7 +2,7 @@
 #extends nav.web.templates.MainTemplate
 
 #block content
-<h1>Tabular view of $start_net</h1>
+<h1>Tabular view of $start_net.strCompressed()</h1>
 <p>This table shows how the subnets are utilized.</p>
 
 <table style="border: 1px solid black; font-size: 0.8em;">
@@ -12,9 +12,47 @@
 	<th>$heading</th>
 #end for
 </tr>
-$extract_matrix($tree_nets,0)
+#set $nodes = $sort_nets_by_address($tree_nets.keys)
+#for $net in $nodes
+	<tr>
+	<td>$net.strCompressed()</td>
+	<td colspan="8">&nbsp;</td>
+	</tr>
+	$writeSubnets($tree_nets[$net],1)
+#end for
+
 </table>
 #end block
+
+#def $writeSubnets($net,$depth)
+	#set $nodes = $sort_nets_by_address($net.keys)
+	#for $subnet in $nodes
+		#if $matrix_nets.has_key($subnet)
+			<tr>
+			<td>$printDepth($depth) $netlink($subnet)</td>
+			#set $host_nybbles_map = $getNybblesMap($matrix_nets[$subnet].keys)
+			#for $i in $column_headings
+				#set $i = $i.lower()
+				#if $host_nybbles_map.has_key($i)
+					#set $meta = $metainfo($host_nybbles_map[$i])
+					#set $ip = $host_nybbles_map[$i]
+					<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.net_type); text-align:center;">#slurp
+					$matrixlink($ip)#slurp
+					</td>
+				#else
+					<td colspan="1">&nbsp;</td>
+				#endif
+			#end for
+			</tr>
+		#else
+			<tr>
+			<td>$$subnet.strCompressed() aba</td>
+			<td colspan="8">&nbsp;</td>
+			</tr>
+			$writeSubnets($net[$subnet])
+		#end if
+	#end for
+#end def
 
 #def $printDepth($depth)
 	#for $i in $range(0,$depth)
@@ -22,22 +60,19 @@ $extract_matrix($tree_nets,0)
 	#end for
 #end def
 
-#def $netlink($ip,$removeLastNetOctets=True)
-	#if $removeLastNetOctets
-		#set $nip = $metainfo($ip).extractNetIp()
-		<a href="/report/prefix?host(netaddr)=$nip:%&op_host(netaddr)=like">$nip</a>
-	#else
-		<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$str(ip.net())</a>
-	#end if
+#def $netlink($ip)
+	##Returns a link to a site that will list all sub
+	#set $nip = $metainfo($ip).getTreeNet()
+	<a href="/report/prefix?host(netaddr)=$nip:%&op_host(netaddr)=like">$nip</a>
 #end def	
 
 #def $matrixlink($ip)
-	<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$metainfo($ip).extractNetIp()</a>
+	<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$ip.prefixlen</a>
 #end def
 
 #def $colspan($ip)
 	#import math
-	$math.pow(2,$end_net.prefixlen()-$ip.prefixlen())
+	$int($math.pow(2,$end_net.prefixlen-$ip.prefixlen))#slurp
 #end def
 
 #def $loadColor($percent,$nettype)
@@ -54,68 +89,13 @@ $extract_matrix($tree_nets,0)
 	#else
 		#set $lims = $color_configuration.limits
 		#set $limkeys = $color_configuration.limits.keys
-		$limkeys.sort()#slurp
-		$limkeys.reverse()#slurp
+		#silent $limkeys.sort()
+		#silent $limkeys.reverse()
 		#for $limit in $limkeys
-			#if int($percent)>=int($limit)
-				$lims[$limit]#slurp
+			#if $percent>=int($limit)
+				#silent $lims[$limit]
 				#break
 			#end if
 		#end for
 	#end if
 #end def
-
-#def $extract_matrix($subnet,$depth)
-	#set $nodes = $sort_nets_by_address($subnet.keyss)
-	#set $lastnet = None
-	#for $net in $nodes
-		#if $matrix_nets.has_key($net)
-			#if $lastnet == None
-				#set $lastnet = $net
-			#end if
-
-			#set $diff = $net_diff($net,$lastnet)
-			#if $len($diff) > 1
-				#if $len($diff) > $max_diff_before_dots
-					...
-				#else
-					#for $ip in $diff
-						<tr>
-						<td>$printDepth(depth) $netlink($ip,False)</td>
-						</tr>
-					#end for
-				#end if
-				#continue
-			#end if
-
-			#if $has_too_small_nets($net)
-				#set $cols= 2**$bits_in_matrix
-				<tr>
-				<td colspan="$cols" style="text-align:center;background-color:$loadColor(0,'large')">Many small subnets</td>
-				</tr>
-			#else
-				<tr>
-				#for $ip in $sort_nets_by_address($matrix_nets[$net])
-					#set $meta = $metainfo($ip)
-					<td>$netlink($net)</td>
-					<td colspan="$colspan(net)" style="background-color:$loadColor($meta.netype,$meta.usage_percent); text-align:center;">
-					$ip.prefixlen() $meta.usage_percent
-					</td>
-				#end for
-				</tr>
-			#end if
-		#else
-			<tr>
-			<td>
-			$printDepth(depth)#slurp
-			$netlink($net,False)
-			</td>
-			</tr>
-			$extract_matrix($subnet[$net],depth+1)
-		#end if
-	#end for
-#end def
-
-#block additionalCSS
-	<link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
-#end block
