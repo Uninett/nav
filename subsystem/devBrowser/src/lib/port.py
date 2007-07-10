@@ -210,15 +210,18 @@ def getPrefixInfo(porttype, port):
 
     gwportprefixes = port.getChildren(manage.Gwportprefix)
 
-    prefixes = []
+    netaddrs = []
+    prefixes = {}
     for gwportprefix in gwportprefixes:
-        prefixes.append(gwportprefix.prefix.netaddr)
+        netaddrs.append(gwportprefix.prefix.netaddr)
+        prefixes[gwportprefix.prefix.netaddr] = gwportprefix.prefix
 
     # Sort prefixes using natural sort
-    prefixes.sort(natsort.inatcmp)
+    netaddrs.sort(natsort.inatcmp)
 
-    for prefix in prefixes:
-        prefixList.append(html.ListItem(prefix))
+    for netaddr in netaddrs:
+        link = urlbuilder.createLink(prefixes[netaddr],                                                              content=netaddr)
+        prefixList.append(html.ListItem(link))
 
     return gwportInfo
 
