@@ -35,6 +35,7 @@ try:
 except:
     pass
 import forgetHTML as html
+from nav import natsort
 from nav.db import manage
 from nav.web import urlbuilder
 import re
@@ -94,16 +95,18 @@ def findPort(module, portName):
 def showInfo(porttype, port):
     info = html.Division()
     module = port.module
+
     if porttype == 'sw':
         portname = port.port
         portid = port.port
     elif porttype == 'gw':
         portname = port.interface
         portid = port.gwportid
+
     info.append(html.Header("Device %s, module %s, port %s" %
                 (urlbuilder.createLink(module.netbox),
                 urlbuilder.createLink(module, content=module.module),
-                portname)))
+                portname), level=2))
 
     table = html.SimpleTable()
     info.append(table)
@@ -133,15 +136,23 @@ def showInfo(porttype, port):
     if porttype == 'sw':
         machinetracker = '[<a href="/machinetracker/swp?switch=%s&amp;module=%s&amp;port=%s">Track MAC behind port</a>]' \
             % (module.netbox, module.module, portid)
-        actions = '<p>%s</p>' % machinetracker
-        info.append(actions)
+        actions = html.Paragraph('%s' % machinetracker)
+    else:
+        actions = html.Paragraph()
+    info.append(actions)
 
     rrd = showRrds(porttype, port)
     if rrd:
         info.append(rrd)
+
     vlanInfo = getVlanInfo(porttype, port)
     if vlanInfo:
         info.append(vlanInfo)
+
+    prefixInfo = getPrefixInfo(porttype, port)
+    if prefixInfo:
+        info.append(prefixInfo)
+
     return info
 
 def getVlanInfo(porttype, port):
@@ -160,7 +171,7 @@ def getVlanInfo(porttype, port):
         return None # Nothing to show
 
     vlanInfo = html.Division()
-    vlanInfo.append(html.Header("VLANs", level=2))
+    vlanInfo.append(html.Header("VLANs", level=3))
     if vlans:
         for vlanlink in vlans:
             vlan = manage.Vlan(vlanlink.vlan)
@@ -176,18 +187,41 @@ def getVlanInfo(porttype, port):
                                     "Unknown %s" % vlanlink.direction))
             vlanInfo.append(line)
     if blocked:
-        vlanInfo.append(html.Header("Blocked", level=3))
+        vlanInfo.append(html.Header("Blocked", level=4))
         for vlanlink in blocked:
-            vlan = manage.Vlan(vlanlink.vlan)
-            div = html.Division()
             try:
+                vlan = manage.Vlan(vlanlink.vlan)
+                div = html.Division()
                 div.append(urlbuilder.createLink(vlan))
+                vlanInfo.append(div)
             except:
-                #raise str(vlan.vlanid)
                 pass
-            vlanInfo.append(div)
 
     return vlanInfo
+
+def getPrefixInfo(porttype, port):
+    if not porttype == 'gw':
+        return None
+
+    gwportInfo = html.Division()
+    gwportInfo.append(html.Header('Prefixes', level=3))
+    prefixList = html.UnorderedList()
+    gwportInfo.append(prefixList)
+
+    gwportprefixes = port.getChildren(manage.Gwportprefix)
+
+    prefixes = []
+    for gwportprefix in gwportprefixes:
+        prefixes.append(gwportprefix.prefix.netaddr)
+
+    # Sort prefixes using natural sort
+    prefixes.sort(natsort.inatcmp)
+
+    for prefix in prefixes:
+        prefixList.append(html.ListItem(prefix))
+
+    return gwportInfo
+
 
 def showRrds(porttype, port):
     netbox = port.module.netbox
@@ -203,16 +237,21 @@ def showRrds(porttype, port):
             % (key, value))
     if not rrdfiles:
         return None
+
     result = html.Division()
-    result.append(html.Header("Statistics", level=2))
+    result.append(html.Header("Statistics", level=3))
+    rrdlist = html.UnorderedList()
+
     all = []
     for rrd in rrdfiles:
         for ds in rrd.getChildren(manage.Rrd_datasource):
             link = urlbuilder.createLink(subsystem='rrd',
                 id=ds.rrd_datasourceid, division="datasources", content=(ds.descr or "(unknown)"))
             all.append(ds.rrd_datasourceid)
-            result.append(html.Division(link))
+            rrdlist.append(html.ListItem(link))
+
     link = urlbuilder.createLink(subsystem='rrd',
                 id=all, division="datasources", content="[All]")
-    result.append(html.Division(link))
+    rrdlist.append(html.ListItem(link))
+    result.append(rrdlist)
     return result
