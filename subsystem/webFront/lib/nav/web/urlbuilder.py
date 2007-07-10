@@ -51,6 +51,7 @@ _divisionClasses = {
     'gwport': manage.Gwport,
     'module': manage.Module,
     'vlan':  manage.Vlan,
+    'prefix': manage.Prefix,
 }
 
 def _getObjectByDivision(division, id):
@@ -79,7 +80,7 @@ def createUrl(object=None, id=None, division=None,
     if object:
         division = _getDivisionByObject(object)
     # redirect, these things are done by report, not devbrowser    
-    if subsystem=='devbrowser' and division in 'vlan room cat org type'.split():
+    if subsystem=='devbrowser' and division in 'vlan room cat org type prefix'.split():
         subsystem = 'report'
         if object:
             id = object._getID()[0]
@@ -152,6 +153,8 @@ def createUrl(object=None, id=None, division=None,
             url += 'type?typeid=%s' % id
         elif division=='swport':
             url += 'swport?b1.netboxid=%s' % id
+        elif division=='prefix':
+            url += 'prefix?prefix.prefixid=%s' % id
     elif subsystem == 'rrd':
         # MØKKAKODEDRITFAEN!
         url += division
