@@ -35,8 +35,12 @@ from nav.web import redirect
 from Generator import Generator,ReportList
 from MatrixIpv4 import MatrixIpv4
 from MatrixIpv6 import MatrixIpv6
+from Matrix import suggestEndNet
 
 from IPy import IP
+
+#OLD
+from MatrixIpv4Original import Matrix
 
 configFile = os.path.join(nav.path.sysconfdir, "report/report.conf")
 frontFile = os.path.join(nav.path.sysconfdir, "report/front.html")
@@ -113,12 +117,12 @@ def handler(req):
 			matrix = None
 			if scope.version() == 6:
 				#next line is hardcoded end_net = start_net with prefixlength+=16
-				end_net = IP("/".join([scope.net().strCompressed(),str(scope.prefixlen()+16)]))
+				end_net = suggestEndNet(scope)
 				matrix = MatrixIpv6(scope,end_net=end_net)
 			elif scope.version() == 4:
-				raise UnknownNetworkTypeException
+				raise UnknownNetworkTypeException, "IPv4 matrix not supported yet."
 			else:
-				raise UnknownNetworkTypeException
+				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
             
         else:

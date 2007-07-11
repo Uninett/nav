@@ -30,6 +30,10 @@ class MetaIp:
 		else:
 			netaddr = self.netaddr.net().strCompressed()
 
+		#in case .strCompressed() compressed it too much
+		while netaddr.count(":") < hexlets_in_address-1:
+			netaddr = ":".join([netaddr,"0"])
+
 		first_hexlets = netaddr[:netaddr.rfind(":")]
 		long_last_hexlet = self.netaddr.net().strFullsize().split(":")[hexlets_in_address-1]
 		return ":".join([first_hexlets,long_last_hexlet[:-1]])
@@ -47,8 +51,9 @@ class MetaIp:
 
 			self.prefixid = info[0]
 			self.net_type = info[1]
-			#DEBUG ONLY
-			self.usage_percent = 100
+			#DEBUG ONLY, remove this line and alter the sql when active_ip_cnt and max_ip_cnt
+			#has been fixed to support IPv6.
+			self.usage_percent = 4
 
 	def _setupIpv4(self):
 		sql = """SELECT prefixid, active_ip_cnt, max_ip_cnt, nettype

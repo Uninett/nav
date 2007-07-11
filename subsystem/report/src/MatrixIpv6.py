@@ -1,5 +1,7 @@
 from IPy import IP
 from Matrix import Matrix
+from Matrix import contains
+from Matrix import database_cursor
 from ColorConfiguration import ColorConfiguration
 
 import nav.path
@@ -41,7 +43,7 @@ class MatrixIpv6(Matrix):
 			if ip.prefixlen() <= mask.prefixlen():
 				continue
 			supernet = self.andIpMask(ip,mask)
-			if not self.contains(sorted_subnets,supernet):
+			if not contains(sorted_subnets,supernet):
 				sorted_subnets.append(supernet)
 
 		sorted_subnets = self.sort_nets_by_prefixlength(sorted_subnets)
@@ -110,7 +112,7 @@ class MatrixIpv6(Matrix):
 			last_nybble_dec = sum([2**(4-i) for i in range(1,last_nybble+1)])
 			mask_string = "".join([mask_string,"%x" % last_nybble_dec])
 
-		result = [mask_string[4*i:4+4*i] for i in range(0,int(float(masklength)/16+0.5))] # +0.5 for roundoff to nearest int
+		result = [mask_string[4*i:4+4*i] for i in range(0,int(float(masklength)/16+0.5))]
 		if len(result[-1]) < 4:
 			for i in range(0,4-len(result[-1])):
 				result[-1] = "".join([result[-1],"0"])

@@ -80,6 +80,8 @@ class Matrix:
 		"""Setup the template functions and path variable.
 
 		NB! Make sure the subclass has implemented all abstract methods!"""
+		import Matrix
+		import Util
 
 		self.template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 		self.template.sort_nets_by_address = getattr(self,"sort_nets_by_address")
@@ -88,6 +90,8 @@ class Matrix:
 		self.template.metainfo = getattr(self,"metainfo")
 		self.template.getNybblesMap = getattr(self,"getNybblesMap")
 		self.template.getTreeNet = getattr(MetaIp,"getTreeNet")
+		self.template.contains = getattr(Matrix,"contains")
+		self.template.sub = getattr(Util,"sub")
 	
 	def metainfo(self,ip):
 		return MetaIp(ip)
@@ -107,12 +111,10 @@ class Matrix:
 
 	def extractMatrixNets(self):
 		"""These should be shown as horizontal rows in the matrix."""
-
 		return self.extractSubtreesWithPrefixLength(self.end_net.prefixlen()-self.bits_in_matrix)
 
 	def extractTreeNets(self):
 		"""These should be listed vertically in the leftmost column.""" 
-
 		return self.removeSubnetsWithPrefixLength(self.end_net.prefixlen()-self.bits_in_matrix+1)
 
 	def removeSubnetsWithPrefixLength(self, prefixlen):
@@ -220,13 +222,6 @@ class Matrix:
 	def getCursor(self):
 		return database_cursor
 
-	def contains(self,list, element):
-		try:
-			list.index(element)
-			return True
-		except ValueError:
-			return False
-	
 	def getNybblesMap(self,ip_list):
 		"""Returns a mapping between the last nybble and
 		the whole IP address.
@@ -239,6 +234,31 @@ class Matrix:
 		"""
 		abstract()
 
+
+def suggestEndNet(start_net):
+	max_prefix_length = None
+	if start_net.version == 4:
+		max_prefix_length = 32
+	else:
+		max_prefix_length = 128 
+
+	sql = """SELECT MAX(masklen(netaddr))
+			 FROM prefix
+			 WHERE netaddr << '%s' AND masklen(netaddr) < %d""" \
+					 % (str(start_net),max_prefix_length)
+	database_cursor.execute(sql)
+	end_net_prefix_len = database_cursor.fetchall()[0][0]
+	if end_net_prefix_len == None:
+		return IP("/".join([str(start_net.net()),str(128)]))
+	else:
+		return IP("/".join([str(start_net.net()),str(end_net_prefix_len)]))
+
+def contains(list, element):
+	try:
+		list.index(element)
+		return True
+	except ValueError:
+		return False
 
 #because I'm a Java guy
 def abstract():

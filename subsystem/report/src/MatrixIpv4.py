@@ -2,6 +2,7 @@ from DBUtils import ResultSetIterator
 from IPy import IP
 from nav.web.templates.MatrixTemplate import MatrixTemplate
 from Matrix import Matrix
+from Matrix import contains
 
 from __future__ import nested_scopes
 
@@ -40,7 +41,7 @@ class MatrixIpv4(Matrix):
 			if ip.prefixlen() <= mask.prefixlen():
 				continue
 			supernet = self.andIpMask(ip,mask)
-			if not self.contains(sorted_subnets,supernet):
+			if not contains(sorted_subnets,supernet):
 				sorted_subnets.append(supernet)
 				 
 		sorted_subnets = self.sort_nets_by_prefixlength(sorted_subnets)
