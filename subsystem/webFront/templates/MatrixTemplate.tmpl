@@ -1,13 +1,15 @@
 #encoding=UTF-8
+
 #extends nav.web.templates.MainTemplate
 
 #block content
 <h1>Tabular view of $start_net.strCompressed()</h1>
-<p>This table shows how the subnets are utilized.</p>
+<p>This table shows how the subnets with masklengths from $start_net.prefixlen#slurp
+ to $end_net.prefixlen are utilized.</p>
 
 <table style="border: 1px solid black; font-size: 0.8em;">
 <tr>
-<td>&nbsp;</td>
+<td style="text-align:center;">$start_net.prefixlen ... $sub($end_net.prefixlen,$bits_in_matrix)</td>
 #for $heading in $column_headings
 	<th>$heading</th>
 #end for
@@ -16,7 +18,7 @@
 #for $net in $nodes
 	<tr>
 	<td>$net.strCompressed()</td>
-	<td colspan="8">&nbsp;</td>
+	<td colspan="16">&nbsp;</td>
 	</tr>
 	$writeSubnets($tree_nets[$net],1)
 #end for
@@ -31,25 +33,41 @@
 			<tr>
 			<td>$printDepth($depth) $netlink($subnet)</td>
 			#set $host_nybbles_map = $getNybblesMap($matrix_nets[$subnet].keys)
+			#set $next_header_idx = -1
 			#for $i in $column_headings
+				#if $column_headings.index($i) < $next_header_idx
+					#continue
+				#end if
+
 				#set $i = $i.lower()
 				#if $host_nybbles_map.has_key($i)
 					#set $meta = $metainfo($host_nybbles_map[$i])
 					#set $ip = $host_nybbles_map[$i]
 					<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.net_type); text-align:center;">#slurp
-					$matrixlink($ip)#slurp
+					$matrixlink($i,$ip)#slurp
 					</td>
+
+					#set $next_header_idx = $column_headings.index($i.upper)+$int($colspan($ip))
 				#else
 					<td colspan="1">&nbsp;</td>
 				#endif
 			#end for
 			</tr>
 		#else
+			#set $meta = $metainfo($subnet)
 			<tr>
-			<td>$$subnet.strCompressed() aba</td>
-			<td colspan="8">&nbsp;</td>
+			<td>$printDepth($depth)$netlink($subnet,True)</td>
+			<td colspan="16" style="background-color:$loadColor($meta.usage_percent,$meta.net_type);">
+			&nbsp;
+			</td>
 			</tr>
-			$writeSubnets($net[$subnet])
+			##<tr>
+			##<td>$printDepth($depth)$netlink($subnet)</td>
+			##<td colspan="16" style="background-color:$loadColor($meta.usage_percent,$meta.net_type); text-align:center;">#slurp
+			##0::/$subnet.prefixlen#slurp
+			##</td>
+			##</tr>
+			$writeSubnets($net[$subnet],$depth+1)
 		#end if
 	#end for
 #end def
@@ -60,14 +78,19 @@
 	#end for
 #end def
 
-#def $netlink($ip)
+#def $netlink($ip,$append_term_and_prefix=False)
 	##Returns a link to a site that will list all sub
 	#set $nip = $metainfo($ip).getTreeNet()
-	<a href="/report/prefix?host(netaddr)=$nip:%&op_host(netaddr)=like">$nip</a>
+	#if $append_term_and_prefix
+		#set $nip = $nip + "0"
+		<a href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
+	#else
+		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$nip</a>
+	#end if
 #end def	
 
-#def $matrixlink($ip)
-	<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$ip.prefixlen</a>
+#def $matrixlink($nybble,$ip)
+	<a href="/report/prefix?prefixid=$metainfo($ip).prefixid">$nybble::/$ip.prefixlen</a>
 #end def
 
 #def $colspan($ip)
@@ -93,9 +116,13 @@
 		#silent $limkeys.reverse()
 		#for $limit in $limkeys
 			#if $percent>=int($limit)
-				#silent $lims[$limit]
+				$lims[$limit]
 				#break
 			#end if
 		#end for
 	#end if
 #end def
+
+#block additionalCSS
+<link rel="stylesheet" type="text/css" href="/style/MatrixTemplate.css" />
+#end block
