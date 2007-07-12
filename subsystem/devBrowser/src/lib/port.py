@@ -172,10 +172,12 @@ def getVlanInfo(porttype, port):
 
     vlanInfo = html.Division()
     vlanInfo.append(html.Header("VLANs", level=3))
+    vlanList = html.UnorderedList()
+    vlanInfo.append(vlanList)
     if vlans:
         for vlanlink in vlans:
             vlan = manage.Vlan(vlanlink.vlan)
-            line = html.Division()
+            line = html.ListItem()
             try:
                 line.append(urlbuilder.createLink(vlan))
             except:
@@ -185,15 +187,17 @@ def getVlanInfo(porttype, port):
                 line.append("(direction %s)" %
                     _directions.get(vlanlink.direction,
                                     "Unknown %s" % vlanlink.direction))
-            vlanInfo.append(line)
+            vlanList.append(line)
     if blocked:
         vlanInfo.append(html.Header("Blocked", level=4))
+        vlanBlockedList = html.UnorderedList()
+        vlanInfo.append(vlanBlockedList)
         for vlanlink in blocked:
             try:
                 vlan = manage.Vlan(vlanlink.vlan)
-                div = html.Division()
-                div.append(urlbuilder.createLink(vlan))
-                vlanInfo.append(div)
+                line = html.ListItem()
+                line.append(urlbuilder.createLink(vlan))
+                vlanBlockedList.append(list)
             except:
                 pass
 
