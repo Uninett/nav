@@ -1,0 +1,57 @@
+#encoding=UTF-8
+
+#extends nav.web.templates.MatrixTemplate
+
+#def $netlink($ip,$append_term_and_prefix=False)
+	##Returns a link to a site that will list all sub
+	#set $nip = $MetaIP($ip).getTreeNet()
+	#if $append_term_and_prefix
+		<a href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
+	#else
+		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$nip</a>
+	#end if
+#end def	
+
+#def $matrixlink($nybble,$ip)
+	<a href="/report/prefix?prefixid=$MetaIP($ip).prefixid">$nybble::/$ip.prefixlen</a>
+#end def
+
+#def $writeSubnets($net,$depth)
+	#set $nodes = $sort_nets_by_address($net.keys)
+	#for $subnet in $nodes
+		#if $matrix_nets.has_key($subnet)
+			<tr>
+			<td>$printDepth($depth) $netlink($subnet)</td>
+			#set $host_nybbles_map = $getLastbitsIpMap($matrix_nets[$subnet].keys)
+			#set $next_header_idx = -1
+			#for $i in $column_headings
+				#if $column_headings.index($i) < $next_header_idx
+					#continue
+				#end if
+
+				#set $i = $i.lower()
+				#if $host_nybbles_map.has_key($i)
+					#set $meta = $MetaIP($host_nybbles_map[$i])
+					#set $ip = $host_nybbles_map[$i]
+					<td colspan="$colspan($ip)" style="background-color:$loadColor($meta.usage_percent,$meta.net_type); text-align:center;">#slurp
+					$matrixlink($i,$ip)#slurp
+					</td>
+
+					#set $next_header_idx = $column_headings.index($i.upper)+$int($colspan($ip))
+				#else
+					<td colspan="1">&nbsp;</td>
+				#endif
+			#end for
+			</tr>
+		#else
+			#set $meta = $MetaIP($subnet)
+			<tr>
+			<td>$printDepth($depth)$netlink($subnet,True)</td>
+			<td colspan="$len($column_headings)">
+			&nbsp;
+			</td>
+			</tr>
+			$writeSubnets($net[$subnet],$depth+1)
+		#end if
+	#end for
+#end def
