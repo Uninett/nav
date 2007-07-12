@@ -57,7 +57,7 @@
 			#set $meta = $metainfo($subnet)
 			<tr>
 			<td>$printDepth($depth)$netlink($subnet,True)</td>
-			<td colspan="16" style="background-color:$loadColor($meta.usage_percent,$meta.net_type);">
+			<td colspan="16">
 			&nbsp;
 			</td>
 			</tr>
@@ -82,7 +82,6 @@
 	##Returns a link to a site that will list all sub
 	#set $nip = $metainfo($ip).getTreeNet()
 	#if $append_term_and_prefix
-		#set $nip = $nip + "0"
 		<a href="/report/matrix?scope=$nip::/$ip.prefixlen">$nip::/$ip.prefixlen</a>
 	#else
 		<a href="/report/prefix?host(netaddr)=$nip%&op_host(netaddr)=like">$nip</a>
