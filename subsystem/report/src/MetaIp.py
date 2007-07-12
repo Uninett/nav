@@ -34,9 +34,11 @@ class MetaIp:
 		while netaddr.count(":") < hexlets_in_address-1:
 			netaddr = ":".join([netaddr,"0"])
 
+		#leading zero
 		first_hexlets = netaddr[:netaddr.rfind(":")]
 		long_last_hexlet = self.netaddr.net().strFullsize().split(":")[hexlets_in_address-1]
-		return ":".join([first_hexlets,long_last_hexlet[:-1]])
+		return netaddr
+		#return ":".join([first_hexlets,long_last_hexlet[:-1]])
 
 	def _setupIpv6(self):
 		sql = """SELECT prefixid,nettype
