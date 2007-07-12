@@ -191,7 +191,7 @@ class getBoksMacs
 		//ResultSet rs = Database.query("SELECT mac,boksid,sysName FROM boksmac NATURAL JOIN boks");
 		out("  netboxmac...");
 		dumpBeginTime = System.currentTimeMillis();
-		ResultSet rs = Database.query("SELECT netboxid,mac FROM netboxmac");
+		ResultSet rs = Database.query("SELECT netboxid,REPLACE(mac::text, ':', '') AS mac FROM netboxmac");
 		while (rs.next()) {
 			macBoksId.put(rs.getString("mac"), rs.getString("netboxid"));
 		}
@@ -410,7 +410,7 @@ class getBoksMacs
 		if (DUMP_CAM) {
 			out("  cam...");
 			dumpBeginTime = System.currentTimeMillis();
-			rs = Database.query("SELECT camid,netboxid,ifindex,mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL ORDER BY end_time");
+			rs = Database.query("SELECT camid,netboxid,ifindex,REPLACE(mac::text, ':', '') AS mac,misscnt FROM cam WHERE (end_time = 'infinity' OR misscnt >= 0) AND netboxid IS NOT NULL ORDER BY end_time");
 			while (rs.next()) {
 				String key = rs.getString("netboxid")+":"+rs.getString("ifindex")+":"+rs.getString("mac");
 				String[] oldkey;

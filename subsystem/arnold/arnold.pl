@@ -509,7 +509,7 @@ sub disable {
 
     # Find information about which switchport the box lies behind, mac-adress and so on.
     # The variable names should explain the meaning.
-    my $query = "SELECT netbox.ip, netbox.rw, netbox.catid, cam.sysname, mac, type.vendorid, type.typename, swport.swportid, swport.ifindex, module.module, swport.port FROM arp LEFT JOIN cam USING (mac) LEFT JOIN netbox ON (cam.netboxid = netbox.netboxid) LEFT JOIN type USING (typeid) LEFT JOIN module ON (module.netboxid=netbox.netboxid) LEFT JOIN swport ON (module.moduleid=swport.moduleid) WHERE arp.ip='$ip' AND arp.end_time='infinity' AND cam.end_time = 'infinity' AND swport.ifindex=cam.ifindex AND swport.ifindex IS NOT NULL";
+    my $query = "SELECT netbox.ip, netbox.rw, netbox.catid, cam.sysname, REPLACE(mac::text, ':', '') AS mac, type.vendorid, type.typename, swport.swportid, swport.ifindex, module.module, swport.port FROM arp LEFT JOIN cam USING (mac) LEFT JOIN netbox ON (cam.netboxid = netbox.netboxid) LEFT JOIN type USING (typeid) LEFT JOIN module ON (module.netboxid=netbox.netboxid) LEFT JOIN swport ON (module.moduleid=swport.moduleid) WHERE arp.ip='$ip' AND arp.end_time='infinity' AND cam.end_time = 'infinity' AND swport.ifindex=cam.ifindex AND swport.ifindex IS NOT NULL";
     my $res = $dbh_manage->exec($query);
 
     #print "$query\n";
