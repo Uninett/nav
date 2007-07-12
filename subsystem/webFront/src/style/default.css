@@ -18,35 +18,63 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Magnar Sveen <magnars@idi.ntnu.no>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
 
 /* Block elements */
 
-body { 
-	background-color: white; 
+body {
+	background-color: white;
 	color: black;
-	font-family: Verdana, Arial, Helvetica, sans-serif;
-	margin: 0px;
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
 }
 
+h1, h2, h3, h4 {
+	font-family: Arial, Helvetica, sans-serif;
+}
 h1 {
+	font-size: 1.6em;
 	font-weight: normal;
+	margin-top: 0.5em;
 	margin-bottom: 0.2em;
 }
 h2 {
+	font-size: 1.5em;
 	font-weight: normal;
+	margin-top: 0.5em;
 	margin-bottom: 0.2em;
 }
 h3 {
-	font-weight: normal;
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-top: 0.3em;
 	margin-bottom: 0.1em;
 }
 h4 {
+	font-size: 1.0em;
 	font-weight: bold;
+	margin-top: 0.3em;
 	margin-bottom: 0.1em;
+}
+
+p {
+	margin: 0.5em 0;
+}
+
+ol, ul {
+	margin: 0.5em 0;
+}
+ol {
+	list-style: decimal outside;
+}
+ul {
+	list-style: square outside;
+}
+li {
+	margin-left: 1.5em;
+	margin-bottom: 0.3em;
 }
 
 /* Inline elements */
@@ -57,6 +85,7 @@ a {
 }
 a:visited {
 	color: #369;
+	text-decoration: none;
 }
 a:hover {
 	color: black;
@@ -64,9 +93,7 @@ a:hover {
 }
 a:active {
 	color: #69C;
-}
-a img {
-	border: 0;
+	text-decoration: none;
 }
 a.navbar {
 	color: black;
@@ -75,6 +102,7 @@ a.navbar {
 
 a.navbar:visited {
 	color: black;
+	text-decoration: none;
 }
 a.navbar:hover {
 	color: #369;
@@ -82,6 +110,7 @@ a.navbar:hover {
 }
 a.navbar:active {
 	color: #47A;
+	text-decoration: none;
 }
 
 .error {
