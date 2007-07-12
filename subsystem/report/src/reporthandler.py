@@ -120,7 +120,8 @@ def handler(req):
 				end_net = suggestEndNet(scope)
 				matrix = MatrixIpv6(scope,end_net=end_net)
 			elif scope.version() == 4:
-				raise UnknownNetworkTypeException, "IPv4 matrix not supported yet."
+				end_net = suggestEndNet(scope)
+				matrix = MatrixIpv4(scope,end_net=end_net)
 			else:
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
