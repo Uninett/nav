@@ -424,7 +424,7 @@ CREATE TABLE cam (
   sysname VARCHAR NOT NULL,
   ifindex INT4 NOT NULL,
   module VARCHAR(4),
-  port INT4,
+  port VARCHAR,
   mac MACADDR NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL DEFAULT 'infinity',

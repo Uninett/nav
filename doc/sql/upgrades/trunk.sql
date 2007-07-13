@@ -44,6 +44,7 @@ CREATE INDEX alerthist_start_time_btree ON alerthist USING btree (start_time);
 
 
 -- Now, change the datatype of cam.mac and arp.mac from CHAR(12) to MACADDR.
+-- Also change the datatype of cam.port from INT to VARCHAR.
 -- This operation will only work on PostgreSQL 8 and newer.  An alternative
 -- way to convert the tables, suitable for PostgreSQL 7.4, can be found in the
 -- comments below (NOTE however, that using this method on PostgreSQL 7.4 may
@@ -54,19 +55,25 @@ LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
 
 -- First, the cam table
 ALTER TABLE cam ALTER COLUMN mac TYPE macaddr USING mac::macaddr;
+ALTER TABLE cam ALTER COLUMN port TYPE varchar;
 
 -- -- Alternative method for PostgreSQL 7.4:
 -- BEGIN;
 -- LOCK TABLE cam IN ACCESS EXCLUSIVE MODE;
 -- ALTER TABLE cam ADD COLUMN mac2 macaddr;
--- UPDATE cam SET mac2 = mac::text::macaddr;
+-- ALTER TABLE cam ADD COLUMN port2 VARCHAR;
+-- UPDATE cam SET mac2 = mac::text::macaddr, port2 = port::VARCHAR;
 -- ALTER TABLE cam DROP COLUMN mac;
+-- ALTER TABLE cam DROP COLUMN port;
 -- ALTER TABLE cam RENAME COLUMN mac2 TO mac;
+-- ALTER TABLE cam RENAME COLUMN port2 TO port;
 -- ALTER TABLE cam ALTER COLUMN mac SET NOT NULL;
 -- CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 -- ALTER TABLE cam ADD CONSTRAINT cam_unique UNIQUE (netboxid,sysname,module,port,mac,start_time);
 -- END;
 
+-- Alter the port value for all open cam entries, set it to be the interface name.
+UPDATE cam SET port=interface FROM swport JOIN module USING (moduleid) WHERE cam.netboxid=module.netboxid AND swport.ifindex=cam.ifindex AND end_time='infinity';
 
 -- Then the arp table, but we need to drop the netboxmac view first, since it
 -- depends on the mac column

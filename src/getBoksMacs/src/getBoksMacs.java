@@ -400,9 +400,9 @@ class getBoksMacs
 
 		QueryBoks.mpMap = new HashMap();
 		Map mpMap = QueryBoks.mpMap;
-		rs = Database.query("SELECT netboxid,ifindex,module,port FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
+		rs = Database.query("SELECT netboxid,ifindex,module,interface FROM swport JOIN module USING(moduleid) WHERE interface IS NOT NULL");
 		while (rs.next()) {
-			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("port") } );
+			mpMap.put(rs.getString("netboxid")+":"+rs.getString("ifindex"), new String[] { rs.getString("module"), rs.getString("interface") } );
 		}
 
 

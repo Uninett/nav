@@ -85,7 +85,7 @@
 <form id="swpform" action="" method="get">
 	<label>Switch </label><input type="text" name="switch" value="$escape($form.switch)">
 	<label>Module </label><input type="text" name="module" size="3" value="$form.module">
-	<label>Port </label><input type="text" name="port" size="3" value="$form.port">
+	<label>Interface </label><input type="text" name="port" size="16" value="$form.port">
 ##	<input type=checkbox name=aip $activechecked><label>active</label>
 ##	<input type=checkbox name=naip $inactivechecked><label>inactive</label>
 	<input type="checkbox" name="dns" $checked><label>dns</label>
@@ -171,7 +171,7 @@
 #end def
 
 #def camTable($table)
-  #set $columns = ('MAC', 'Switch', 'Module', 'Port', 'Start time', 'End time')
+  #set $columns = ('MAC', 'Switch', 'Module', 'Interface', 'Start time', 'End time')
   #set $columnCount = len($columns)
 
   $tableTitle("MAC Search results", len($table), $columnCount)
@@ -231,8 +231,8 @@
       for &quot;<tt>blapp-sw</tt>&quot; will retrieve both
       &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
       &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;</li>
-  <li>Leaving the <i>module</i> or <i>port</i> fields empty in the
-      switch search will find any module or port that have matching
+  <li>Leaving the <i>module</i> or <i>interface</i> fields empty in the
+      switch search will find any module or interface that have matching
       records for your selected switch.</li>
 </ul>
 
@@ -248,6 +248,10 @@
     bridge table collector runs every 15 minutes (11,26,41,59) which also
     introduces some inaccuracy. In other words, the results may be 5-20 minutes
     off.</li>
+    <li>Port numbers have recently been removed from the search in favor of
+    interface names.  Historical search results will still contain port
+    numbers instead of interface names, as historical port number data cannot
+    be accurately mapped to interface names.</li>
 </ul>
 
 </div>
