@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
  *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
  */
@@ -32,4 +32,9 @@ td {
 
 th {
 	text-align: left;
+}
+
+table {
+	border-collapse: separate;
+	border-spacing: 2px;
 }

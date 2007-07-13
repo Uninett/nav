@@ -28,7 +28,8 @@
 body {
 	background-color: white;
 	color: black;
-	font-family: Tahoma, Arial, Helvetica, sans-serif;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px; /* Global default. Adjust relatively with % and em elsewhere. */
 }
 
 h1, h2, h3, h4 {
@@ -36,34 +37,27 @@ h1, h2, h3, h4 {
 }
 h1 {
 	font-size: 1.6em;
-	font-weight: normal;
 	margin-top: 0.5em;
 	margin-bottom: 0.2em;
 }
 h2 {
-	font-size: 1.5em;
-	font-weight: normal;
+	font-size: 1.6em;
 	margin-top: 0.5em;
 	margin-bottom: 0.2em;
 }
 h3 {
 	font-size: 1.2em;
 	font-weight: bold;
-	margin-top: 0.3em;
+	margin-top: 0.5em;
 	margin-bottom: 0.1em;
 }
 h4 {
-	font-size: 1.0em;
 	font-weight: bold;
 	margin-top: 0.3em;
 	margin-bottom: 0.1em;
 }
 
-p {
-	margin: 0.5em 0;
-}
-
-ol, ul {
+p, ol, ul, form {
 	margin: 0.5em 0;
 }
 ol {
@@ -97,7 +91,6 @@ a:active {
 }
 a.navbar {
 	color: black;
-	font-size: 13px;
 }
 
 a.navbar:visited {
@@ -115,6 +108,9 @@ a.navbar:active {
 
 .error {
 	color: red;
+}
+.status {
+	color: #0b0;
 }
 
 /* Header section */
@@ -141,7 +137,6 @@ div#navbar {
 	background-color: #eee;
 	background-image: url('/images/main/background-navbar.gif');
 	background-repeat: repeat-x;
-	font-size: 13px;
 	padding: 0em 2em 0em 2em;
 }
 div#navbar table {
@@ -169,7 +164,6 @@ div#navbar table td.spacer {
 }
 
 div#navpath {
-	font-size: smaller;
 	padding: 0em 8px 0.5em 8px;
 }
 div#navpath span {
@@ -195,6 +189,13 @@ div#footer hr {
 }
 div#footer .copyright {
 	color: #999;
-	font-size: x-small;
+	font-size: 0.8em;
 }
 
+/* Generic tables */
+.oddrow {
+	background-color: #eee;
+}
+.evenrow {
+	background-color: white;
+}

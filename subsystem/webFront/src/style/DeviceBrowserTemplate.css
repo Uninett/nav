@@ -38,21 +38,18 @@ table.serviceNetbox tr {
 	  margin-left: 0;
 	  margin-right: 0;
 }
-table.serviceNetbox th { 
+table.serviceNetbox th {
 	  background-color: white;
 	  background-image:url('/images/ragen/navbar-fill.gif');
 	  background-repeat: repeat-x;
 	  height: 26px;
 	  padding: 1px 0px 0px 0px;
-	  font-size: 95%; 
 	  font-weight: normal;
 }
 table.serviceNetbox tr.even {
-	  font-size: 90%; 
 	  background-color: #eee;
 }
 table.serviceNetbox tr.odd {
-	  font-size: 90%;
 }
 
 th.col0 {
@@ -64,7 +61,6 @@ td.col1 {
 }
 
 table.netboxinfo {
-	font-size: 0.8em;
 	padding-bottom: 15px;
 }
 
@@ -94,7 +90,6 @@ div.alerts table {
 }
 div.alerts td {
 	padding: 0.2em;
-	font-size: 85%;
 }
 div.alerts .stillDown {
 	background-color: #fff;
@@ -124,7 +119,6 @@ table {
 }
 .port {
 	background-color; #d4d3f0; /* unknown speed */
-	font-size: 85%;
 	border: 2px solid black;
 	margin: 5px;
 	width: 2em;
@@ -195,7 +189,6 @@ div.legend {
 	margin: 1em 0;
 }
 div.legend h3 {
-	font-size: 1.1em;
 	margin: 0.2em 0 0.1em 0;
 }
 div.legend p {
