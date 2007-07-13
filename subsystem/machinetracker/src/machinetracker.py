@@ -1,8 +1,8 @@
-# -*- coding: ISO8859-1 -*-
+# -*- coding: UTF-8 -*-
 # $Id$
 #
-# Copyright 2003, 2004 Norwegian University of Science and Technology
-# Copyright 2006 UNINETT AS
+# Copyright 2003-2004 Norwegian University of Science and Technology
+# Copyright 2006-2007 UNINETT AS
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -22,7 +22,9 @@
 #
 #
 # Authors: Sigurd Gartmann <sigurd-nav@brogar.org>
+#          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
 #
+
 from __future__ import generators
 # Catch the test case where we import this module outside the
 # mod_python environment
@@ -31,15 +33,16 @@ if 'apache' not in globals():
         from mod_python import apache
     except ImportError:
         apache = None
-from pprint import pprint,pformat
+from pprint import pprint, pformat
 from mx import DateTime
-from socket import gethostbyaddr,gethostbyname,herror
+from socket import gethostbyaddr, gethostbyname, herror
 import re
+import IPy
+import logging
+
 from nav import db
 from nav.web.URI import URI
 from nav.web.templates.MachineTrackerTemplate import MachineTrackerTemplate
-import IPy
-import logging
 
 logger = logging.getLogger("nav.web.machinetracker")
 connection = db.getConnection('webfront', 'manage')
@@ -48,15 +51,22 @@ database = connection.cursor()
 def handler(req):
     global hostCache
     hostCache = {}
-    
-    args = URI(req.unparsed_uri) 
-    
+
+    args = URI(req.unparsed_uri)
+
     section = ""
-    s = re.search("\/(\w+?)(?:\/$|\?|\&|$)",req.uri)
-    if s:   
+    s = re.search("\/(\w+?)(?:\/$|\?|\&|$)", req.uri)
+    if s:
         section = s.group(1)
 
+    # Create initial menu
+    menu = []
+    menu.append({'link': 'ip', 'text': 'IP Search', 'admin': False})
+    menu.append({'link': 'mac', 'text': 'MAC Search', 'admin': False})
+    menu.append({'link': 'swp', 'text': 'Switch Search', 'admin': False})
+
     page = MachineTrackerTemplate()
+    page.menu = menu
     page.tableCam = None
     page.tableArp = None
     page.tableSwp = None
@@ -64,6 +74,8 @@ def handler(req):
     tracker = None
 
     if section.lower() == "mac":
+        page.current = 'mac'
+        page.title = 'MAC Search'
         page.form = MACForm(args.get("mac"), args.get("days"), args.get("dns"),
                             args.get("aip"), args.get("naip"))
         if args.get("mac"):
@@ -71,6 +83,8 @@ def handler(req):
             page.tableCam = tracker
     elif section.lower() in ("switchports", "switchport", "swport", "port",
                                  "swp"):
+        page.current = 'swp'
+        page.title = 'Switch Search'
         page.form = SwPortForm(args.get("switch"), args.get("module"),
                                args.get("port"), args.get("days"),
                                args.get("dns"), args.get("aip"),
@@ -80,6 +94,9 @@ def handler(req):
                                      args.get("port"), args.get("days"))
             page.tableSwp = tracker
     else:
+        page.current = 'ip'
+        page.title = 'IP Search'
+
         prefixid = args.get("prefixid")
         if prefixid:
             sql = "select netaddr from prefix where prefixid=%s"
@@ -87,7 +104,7 @@ def handler(req):
             subnet = IPy.IP(database.fetchone()[0])
             from_ip = subnet[0]
             to_ip = subnet[-1]
-            
+
         else:
             from_ip = args.get("from_ip")
             if from_ip:
@@ -117,7 +134,7 @@ def handler(req):
                 from_ip = to_ip
             elif from_ip > to_ip:
                 (from_ip, to_ip) = (to_ip, from_ip)
-            
+
             tracker = IPSQLQuery(from_ip, to_ip, args.get("days"))
             page.tableArp = tracker
 
@@ -132,7 +149,6 @@ def handler(req):
 
     req.content_type = "text/html"
     req.send_http_header()
-
     req.write(page.respond())
     return apache.OK
 
@@ -145,12 +161,12 @@ class MachineTrackerSQLQuery:
         from_time = DateTime.today()-(int(days)*DateTime.oneDay)
         from_time = from_time.strftime("%Y-%m-%d")
         self.where = ["end_time  > '%s'" % from_time]
-        
+
         if not order_by:
             order_by = "arp.ip,arp.mac,cam.sysname,module,port,start_time"
         self.order_by = order_by
         self.select = ""
-            
+
     def sql(self):
         where = " AND ".join(self.where)
         return """%s WHERE %s ORDER BY %s""" % (self.select,
@@ -191,7 +207,7 @@ class ResultRow:
         self.switch = switch
         self.module = module
         self.port = port
-        
+
         if start_time is not None:
             self.start_time = start_time.strftime("%Y-%m-%d %H:%M")
         else:
@@ -213,15 +229,18 @@ class ResultRow:
 
 class MACSQLQuery(MachineTrackerSQLQuery):
 
-    def __init__(self,mac=None,days=7):
+    def __init__(self, mac=None, days=7):
         MachineTrackerSQLQuery.__init__(self, days)
         self.select = ("SELECT mac, sysname, module, port, start_time,  " +
                        "end_time FROM cam")
         if mac:
-            mac = re.sub("[^0-9a-fA-F%*]+","",mac)
+            mac = re.sub("[^0-9a-fA-F]+", "", mac)
             mac = mac.lower()
-            if mac.startswith("*") or mac.endswith("*"):
-                self.where.append("mac ILIKE '%s'" % mac.replace("*","%"))
+            if len(mac) < 12:
+                mac_min = mac + '0' * (12 - len(mac))
+                mac_max = mac + 'f' * (12 - len(mac))
+                self.where.append("mac >= '%s' and mac <= '%s'" % (
+                        mac_min, mac_max))
             else:
                 self.where.append("mac = '%s'" % mac)
         self.order_by = "mac,sysname,module,port,start_time DESC"
@@ -309,8 +328,8 @@ class IPSQLQuery(MachineTrackerSQLQuery):
                 yield ResultRow(ipCounter, None, None, None, None,
                                 None, None, dns)
             ipCounter = IPy.IP(ipCounter.ip + 1)
-            
-        
+
+
 class SwPortSQLQuery(MACSQLQuery):
 
     def __init__(self, ip, module, port, days=7):
@@ -325,7 +344,7 @@ class SwPortSQLQuery(MACSQLQuery):
 
 class MachineTrackerForm:
 
-    def __init__(self,days="",dns="",active="",nonActive=""):
+    def __init__(self, days="", dns="", active="", nonActive=""):
         offon = ['off', 'on']
         self.dns = offon[bool(dns)]
         self.days = days
@@ -338,15 +357,15 @@ class MachineTrackerForm:
 
 class IPForm (MachineTrackerForm):
 
-    def __init__(self,ip_from,ip_to,days,dns,active,nonActive): 
+    def __init__(self, ip_from, ip_to, days, dns, active, nonActive):
         MachineTrackerForm.__init__(self,days,dns,active,nonActive)
         self.ip_from = ip_from
         self.ip_to = ip_to
         self.search = "ip"
 
 class MACForm (MachineTrackerForm):
-    
-    def __init__(self,mac,days,dns,active,nonActive):
+
+    def __init__(self, mac, days, dns, active, nonActive):
         MachineTrackerForm.__init__(self,days,dns,active,nonActive)
         self.mac = mac
         self.search = "mac"
@@ -359,7 +378,7 @@ class SwPortForm (MachineTrackerForm):
         self.switch = switch
         self.module = module
         self.port = port
-        self.search = "swp" 
+        self.search = "swp"
 
 def hostname(ip):
     """Perform a reverse DNS lookup for ip.
