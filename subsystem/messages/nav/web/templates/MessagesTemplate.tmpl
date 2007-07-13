@@ -34,12 +34,12 @@
 #end def additionalHead
 
 #def $makeMenu($menu, $current = False)
-<div style="border: 1px solid black; margin: 36px 0px 15px 0px; padding: 0px 19px;">
-<div id="tabs" style="margin: -24px -10px;">
+<div class="tabcontainer">
+<div class="tabs">
 <ul>
 #for $item in $menu:
     #if $item.link == $current:
-    <li id="current"><a>$item.text</a></li>
+    <li class="current"><a>$item.text</a></li>
     #elif $item.admin:
     <li><a href="$item.link">$item.text</a></li>
     #else:
