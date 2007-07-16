@@ -1,14 +1,9 @@
-from IPy import IP
-from nav import db
-
 from IPTree import buildTree
 from IPTree import getSubtree
 from IPTree import removeSubnetsWithPrefixLength
 from IPTree import extractSubtreesWithPrefixLength
 
 from IPTools import getLastSubnet
-
-#TODO:	Standardize documentation style.
 
 class Matrix:
 
@@ -30,12 +25,12 @@ class Matrix:
 		self.tree = buildTree(start_net, end_net, bits_in_matrix=bits_in_matrix, add_missing_nets=True)
 		self.tree_nets = self.extractTreeNets()
 		self.matrix_nets = self.extractMatrixNets()
-		self.max_diff_before_dots = 6
 
 	def getTemplateResponse(self):
 		abstract()
 	
 	def has_too_small_nets(self,net):
+		"""Returns true if argument ``net'' has too many small subnets for the matrix."""
 		for net in getSubtree(self.tree,net):
 			if net.prefixlen() > self.end_net.prefixlen():
 				return True
@@ -48,26 +43,6 @@ class Matrix:
 	def extractTreeNets(self):
 		"""These should be listed vertically in the leftmost column.""" 
 		return removeSubnetsWithPrefixLength(self.tree,self.end_net.prefixlen()-self.bits_in_matrix+1)
-
-def suggestEndNet(start_net):
-	max_prefix_length = None
-	if start_net.version == 4:
-		max_prefix_length = 32
-	else:
-		max_prefix_length = 128 
-
-	sql = """SELECT MAX(masklen(netaddr))
-			 FROM prefix
-			 WHERE netaddr << '%s' AND masklen(netaddr) < %d""" \
-					 % (str(start_net),max_prefix_length)
-
-	db_cursor = db.getConnection('webfront','manage').cursor()
-	db_cursor.execute(sql)
-	end_net_prefix_len = db_cursor.fetchall()[0][0]
-	if end_net_prefix_len == None:
-		return IP("/".join([str(start_net.net()),str(128)]))
-	else:
-		return IP("/".join([str(start_net.net()),str(end_net_prefix_len)]))
 
 #because I'm a Java guy
 def abstract():

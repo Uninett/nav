@@ -5,7 +5,6 @@ from nav.web.templates.MatrixIpv6Template import MatrixIpv6Template
 import nav.path
 import os
 import string
-import ConfigParser
 
 configfile = os.path.join(nav.path.sysconfdir,"report/matrix.conf")
 
@@ -20,6 +19,7 @@ class MatrixIpv6(Matrix):
 		import Utils
 		import IPTools
 		import MetaIP
+
 		template = MatrixIpv6Template()
 		template.path = [("Home", "/"), ("Report", "/report/"), ("Prefix Matrix",False)]
 
@@ -28,6 +28,7 @@ class MatrixIpv6(Matrix):
 		template.MetaIP = getattr(MetaIP,"MetaIP")
 		template.getLastbitsIpMap = getattr(IPTools,"getLastbitsIpMap")
 		template.sub = getattr(Utils,"sub")
+		template.stringDotJoin = getattr(string,"join")
 
 		#variables
 		template.start_net = self.start_net

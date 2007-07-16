@@ -35,8 +35,8 @@ from nav.web import redirect
 from Generator import Generator,ReportList
 from MatrixIpv4 import MatrixIpv4
 from MatrixIpv6 import MatrixIpv6
-from Matrix import suggestEndNet
-
+from IPTree import getMaxLeaf
+from IPTree import buildTree
 from IPy import IP
 
 #OLD
@@ -114,14 +114,31 @@ def handler(req):
 
         if argsdict.has_key("scope") and argsdict["scope"]:
 			scope = IP(argsdict["scope"])
+			show_unused_addresses = False
+
+			if argsdict.has_key("show_unused_addresses"):
+				boolstring = argsdict["show_unused_addresses"]
+				if boolstring == "True":
+					show_unused_addresses = True
+				elif boolstring == "False":
+					show_unused_addresses = False
+
 			matrix = None
+			tree = buildTree(scope)
+
 			if scope.version() == 6:
-				#next line is hardcoded end_net = start_net with prefixlength+=16
-				end_net = suggestEndNet(scope)
+				end_net = getMaxLeaf(tree)
 				matrix = MatrixIpv6(scope,end_net=end_net)
 			elif scope.version() == 4:
-				end_net = suggestEndNet(scope)
-				matrix = MatrixIpv4(scope,end_net=end_net)
+				end_net = None
+				if scope.prefixlen() < 24:
+					end_net = IP("/".join([scope.net().strNormal(),"27"]))
+					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=end_net)
+				else:
+					max_leaf = getMaxLeaf(tree)
+					bits_in_matrix = max_leaf.prefixlen()-scope.prefixlen()
+					
+					matrix = MatrixIpv4(scope,show_unused_addresses,end_net=max_leaf,bits_in_matrix=bits_in_matrix)
 			else:
 				raise UnknownNetworkTypeException, "version: " + str(scope.version())
 			req.write(matrix.getTemplateResponse())
