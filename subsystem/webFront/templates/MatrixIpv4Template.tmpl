@@ -2,6 +2,21 @@
 
 #extends nav.web.templates.MatrixTemplate
 
+#block address_box
+	<p>
+	<form>
+	#if $show_unused_addresses is True
+		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=False"
+		<input type="checkbox" onclick="window.location='$loc'; return true;" checked> Show unused addresses
+	#else
+		#set $loc = "/report/matrix?scope=" + $start_net.strNormal + "&show_unused_addresses=True"
+		<input type="checkbox" onclick="window.location='$loc'; return true;"> Show unused addresses
+	#end if
+	<br><br>
+	</form>
+	</p>
+#end block
+		
 #def $netlink($ip,$append_term_and_prefix=False)
 	##Returns a link to a site that will list all sub
 	#set $nip = $MetaIP($ip).getTreeNet()
@@ -46,31 +61,29 @@
 		#return
 	#end if
 
-	#if $depth > 0
-		#set $tTree = $tree
-		#set $subtree = $getSubtree($tTree,$ip)
-		#set $matrix_net_prefixlen = $matrix_nets.keys[0].prefixlen
-		#set $nets = $generateMatrixNets($ip)
+	#set $tTree = $tree
+	#set $subtree = $getSubtree($tTree,$ip)
+	#set $matrix_net_prefixlen = $matrix_nets.keys[0].prefixlen
+	#set $nets = $generateMatrixNets($ip)
 
-		#for $net in $nets
-			#set $overlap = False
-			#for $subnet in $subtree.keys
-				#if $subnet.overlaps($net) == 1
-					#set $overlap = True
-					#continue
-				#end if
-			#end for
-
-			#if $overlap or $search($subtree,$net)
+	#for $net in $nets
+		#set $overlap = False
+		#for $subnet in $subtree.keys
+			#if $subnet.overlaps($net) == 1
+				#set $overlap = True
 				#continue
-			#else
-				<tr>#slurp
-				<td>$printDepth($depth) $netlink($net)</td>#slurp
-				<td colspan="$len($column_headings)">&nbsp;</td>#slurp
-				</tr>
 			#end if
 		#end for
-	#end if
+
+		#if $overlap or $search($subtree,$net)
+			#continue
+		#else
+			<tr>#slurp
+			<td>$printDepth($depth) $netlink($net)</td>#slurp
+			<td colspan="$len($column_headings)">&nbsp;</td>#slurp
+			</tr>
+		#end if
+	#end for
 #end def
 
 #def $writeSubnets($net,$depth)
@@ -122,6 +135,7 @@
 				#end for
 			#end if
 			</tr>
+
 		#else ##matrix_nets does not have key (ie. super node in the tree)
 			#if $lastnet.prefixlen < $matrix_nets.keys[0].prefixlen
 				#set $mnets = $generateMatrixNets($lastnet)
@@ -141,4 +155,3 @@
 		#end if
 	#end for
 #end def
-

@@ -7,14 +7,9 @@
 <p>This table shows how the subnets with masklengths from $start_net.prefixlen#slurp
  to $end_net.prefixlen are utilized.</p>
 
-<p>
-<form>
-<script type="text/javascript">
-args = mainURL.split('?')[1].split('&')
-document.write("<input type=checkbox name=\"sua\" onclick=\"window.location=\'/report/matrix?scope=" +
-args[0] + "&show_unused_addresses=" + sua.value + "\'; return true;\"> Show unused addresses")
-</script>
-</form></p>
+#block address_box
+&nbsp;
+#end block
 
 <table style="border: 1px solid black; font-size: 0.8em;">
 <tr>
