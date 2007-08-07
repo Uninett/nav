@@ -1,7 +1,6 @@
-/* Default stylesheet for NAV
+/* Stylesheet for tables in NAV style
  *
- * Copyright 2003-2005 Norwegian University of Science and Technology
- * Copyright 2006 UNINETT AS
+ * Copyright 2007 UNINETT AS
  *
  * This file is part of Network Administration Visualized (NAV)
  *
@@ -19,72 +18,50 @@
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Magnar Sveen <magnars@idi.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
  */
 
-.tabcontainer {
-	/* This class is not used in all places using tabs, but should be. */
-	border: 1px solid black;
-	margin: 2.5em 0 1em 0;
-	padding: 0 1em;
-}
+/* The following tabs CSS are tested to work with Firefox 2.0.0.6 on Linux,
+ * Opera 9.20 on Linux and Internet Explorer 6.0 on Windows */
 
-.tabs, #tabs {
-	float: left;
-	width: 100%;
-	line-height: normal;
-	margin: -2em 0;
+.tabs {
+	margin-top: 1em;
 }
-
-.tabs ul, #tabs ul {
-	margin: 0;
-	padding: 1px 0px 0;
-	list-style: none;
-}
-
-.tabs li, .tabs li.admin, #tabs li, #tabs li.admin {
-	float: left;
-	background-image: url("/images/tabs/blue-r.png");
-	background-repeat: no-repeat;
-	background-position: right top;
+.tabs ul {
 	margin: 0;
 	padding: 0;
-	white-space: nowrap;
 }
-
-.tabs a, .tabs .admin a, #tabs a, #tabs .admin a {
-	display: block;
-	background-image: url("/images/tabs/blue-l.png");
-	background-repeat: no-repeat;
-	background-position: left top;
-	padding: 5px 14px 4px;
+.tabs ul li {
+	display: inline;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.tabs ul li a {
+	background: #dae1e6;
+	border: 1px solid #999;
+	color: #333;
+	margin: 0;
+	padding-left: 1em;
+	padding-right: 1em;
 	text-decoration: none;
-	color: #369;
-	border-bottom: 1px solid black;
-	float: left;
+}
+.tabs ul li a:hover {
+	background: #e6e6e6;
+	color: black;
+}
+.tabs ul li.tabactive a, .tabs ul li.tabactive a:hover {
+	background: white;
+	border-bottom: 1px solid white;
+	color: black;
+}
+.tabs ul, .tabs ul li, .tabs ul li a {
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
 }
 
-.tabs a:hover, #tabs a:hover {
-	color: black;
-}
-.tabs .current, #tabs #current {
-	background-image: url("/images/tabs/white-r.png");
-}
-.tabs .current a, #tabs #current a {
-	background-image: url("/images/tabs/white-l.png");
-	color: black;
-	padding-bottom: 5px;
-	border-bottom: none;
-	font-weight: bold;
-}
-.tabs .same, .tabs li.open, #tabs #same, #tabs li.open {
-	background-image: url("/images/tabs/white-r.png");
-}
-.tabs .same a, .tabs li.open a, #tabs #same a, #tabs li.open a {
-	background-image: url("/images/tabs/white-l.png");
-	color: #663;
-}
-.tabs .same a:hover, .tabs li.open a:hover, #tabs #same a:hover, #tabs li.open a:hover {
-	color: black;
+.tabcontent {
+	border: 1px solid #999;
+	padding: 1em;
 }

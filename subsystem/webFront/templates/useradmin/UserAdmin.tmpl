@@ -37,12 +37,22 @@
 #block content
 <h2>User Administration</h2>
 
-<p>
- <a href="accountlist">Account List</a> | 
- <a href="grouplist">Group List</a> |
- <a href="account">New account</a> | 
- <a href="group">New group</a>
-</p>
+#set $menu = (('accountlist', 'Account List'), ('grouplist', 'Group List'), ('account', 'New account'), ('group', 'New group'))
+
+<div class="tabs">
+<ul>
+#set $current = $getVar('current', 'accountlist')
+#for $slug, $name in $menu
+    #if $slug == $current
+    <li class="tabactive"><a href="$slug">$name</a></li>
+    #else
+    <li><a href="$slug">$name</a></li>
+    #end if
+#end for
+</ul>
+</div>
+
+<div class="tabcontent">
 
 #if $varExists('information')
 <h3>$information</h3>
@@ -53,8 +63,10 @@
 #end if
 
 $useradmin()
+</div> <!-- tabcontent -->
 #end block content
 
 #block additionalCSS
 $default_table_CSS
+$default_tabs_CSS
 #end block additionalCSS

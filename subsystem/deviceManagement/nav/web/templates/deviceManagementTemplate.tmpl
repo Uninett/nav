@@ -36,8 +36,8 @@ $default_table_CSS()
 #end def
 
 #def content
-<div style="border: 1px solid #666; margin:33px 0px; padding: 0px 19px;">
 $makeMenu($page.menu)
+<div class="tabcontent">
 #if $page.searchbox
 $displaySearchBox($page.searchbox)
 #end if
@@ -607,19 +607,14 @@ $item[0]
 #end def
 
 #def makeMenu($menu)
-<div id="tabs" style="margin: -24px -10px;">
+<div class="tabs">
 <ul>
-#set $first = True
 #for $item,$url,$help in $menu
-#if $url
-<li>
-<a title="$help" href="$url">$item</a>
-#else
-<li id="current">
-<a>$item</a>
-#end if
-#set $first = False
-</li>
+    #if $url
+    <li><a title="$help" href="$url">$item</a></li>
+    #else
+    <li class="tabactive"><a>$item</a></li>
+    #end if
 #end for
 </ul>
 </div>

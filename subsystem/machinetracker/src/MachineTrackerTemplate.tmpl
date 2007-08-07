@@ -38,16 +38,13 @@ $default_table_CSS
 #end block additionalCSS
 
 #def $makeMenu($menu, $current = False)
-<div class="tabcontainer">
 <div class="tabs">
 <ul>
 #for $item in $menu:
     #if $item.link == $current:
-    <li class="current"><a>$item.text</a></li>
-    #elif $item.admin:
-    <li><a href="$item.link">$item.text</a></li>
+    <li class="tabactive"><a href="$item.link">$item.text</a></li>
     #else:
-    <li class="open"><a href="$item.link">$item.text</a></li>
+    <li><a href="$item.link">$item.text</a></li>
     #end if
 #end for
 </ul>
@@ -131,6 +128,8 @@ $default_table_CSS
 <h2>Machine Tracker</h2>
 
 $makeMenu($menu, $current)
+
+<div class="tabcontent">
 
 #if len($errors)
 <div class="errors">
@@ -287,6 +286,6 @@ $makeMenu($menu, $current)
 #end if
 </div> <!-- results -->
 
-</div> <!-- tab area -->
+</div> <!-- tabcontent -->
 
 #end block content

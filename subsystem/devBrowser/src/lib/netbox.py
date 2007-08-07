@@ -702,7 +702,9 @@ class NetboxInfo(manage.Netbox):
         div.append(html.Header('Port view', level=3))
 
         def perspectiveToggler(active):
-            list = html.UnorderedList(_class='tabs')
+            div = html.Division(_class="tabs")
+            list = html.UnorderedList()
+            div.append(list)
 
             perspectives = []
             if self.cat.catid in ('GSW', 'SW', 'EDGE'):
@@ -717,13 +719,13 @@ class NetboxInfo(manage.Netbox):
             for p in perspectives:
                 if active == p[2]:
                     list.append(html.ListItem(
-                        html.Anchor(p[0]), _class='current'))
+                        html.Anchor(p[0]), _class='tabactive'))
                 else:
                     list.append(html.ListItem(
                         html.Anchor(p[0], href='#',
                                     onClick="showPorts('%s'); return false" %
                                     p[1])))
-            return list
+            return div
 
         def intervalForm():
             form = html.Form(method="GET", action="")
@@ -737,8 +739,10 @@ class NetboxInfo(manage.Netbox):
             return form
 
         def showPerspective(perspective, id):
-            div = html.Division(id=id, _class='tabs')
-            div.append(perspectiveToggler(perspective))
+            result = html.Division(id=id)
+            result.append(perspectiveToggler(perspective))
+            div = html.Division(_class='tabcontent')
+            result.append(div)
             div.append(module.showModuleLegend(perspective=perspective,
                                                interval=interval))
 
@@ -762,7 +766,7 @@ class NetboxInfo(manage.Netbox):
                         div.append(moduleView)
                 except AttributeError:
                     pass
-            return div
+            return result
 
         if self.cat.catid == 'GW':
             activePerspective = 'gwstandard'
