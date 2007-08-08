@@ -22,7 +22,7 @@
  */
 
 table.calendar {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
 	border-collapse: separate;
 	border-spacing: 2px;
 	caption-side: top;
@@ -45,10 +45,10 @@ table.calendar tr th {
 }
 table.calendar tr td {
 	background-color: white;
-	border: 1px solid #ccc;
+	border: 1px solid #999;
 }
 table.calendar tr td div.dayheader {
-	background-color: #ddf;
+	background-color: #eee;
 	padding: 0.1em 0.2em;
 	text-align: right;
 }

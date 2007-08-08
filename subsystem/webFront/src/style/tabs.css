@@ -48,7 +48,7 @@
 	text-decoration: none;
 }
 .tabs ul li a:hover {
-	background: #e6e6e6;
+	background: #eee;
 	color: black;
 }
 .tabs ul li.tabactive a, .tabs ul li.tabactive a:hover {

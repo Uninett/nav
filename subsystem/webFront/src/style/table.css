@@ -141,7 +141,7 @@ table.horiztable tr.footer span.next {
 
 /* New style details table */
 table.vertitable {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
 	border-collapse: separate;
 	border-spacing: 2px;
 	caption-side: top;
@@ -172,7 +172,7 @@ table.vertitable tr td ul {
 
 /* New style list table */
 table.vertilist {
-	border: 1px solid #ccc;
+	border: 1px solid #999;
 	border-collapse: separate;
 	border-spacing: 2px;
 	caption-side: top;
