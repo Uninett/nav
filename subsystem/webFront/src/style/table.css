@@ -162,6 +162,9 @@ table.vertitable tr th {
 	padding: 0.1em 0.2em;
 	width: 10%; /* Something small */
 }
+table.vertitable tr th a {
+	color: black;
+}
 table.vertitable tr td {
 	background-color: white;
 	padding: 0.1em 0.2em;
@@ -186,6 +189,9 @@ table.vertilist tr {
 table.vertilist tr th {
 	background-color: #eee;
 	padding: 0.1em 0.2em;
+}
+table.vertilist tr th a {
+	color: black;
 }
 table.vertilist tr td {
         background-color: white;
