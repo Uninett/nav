@@ -108,8 +108,19 @@ def showInfo(porttype, port):
                 urlbuilder.createLink(module, content=module.module),
                 portname), level=2))
 
+    # Actions
+    if porttype == 'sw':
+        machinetracker = '[<a href="/machinetracker/swp?switch=%s&amp;module=%s&amp;port=%s">Track MAC behind port</a>]' \
+            % (module.netbox, module.module, portid)
+        actions = html.Paragraph('%s' % machinetracker)
+    else:
+        actions = html.Paragraph()
+    info.append(actions)
+
     table = html.SimpleTable()
+    table['class'] = 'vertitable'
     info.append(table)
+
     for field in ('port', 'interface', 'duplex', 'ifindex', 'portname',
                   'media', 'link', 'speed', 'trunk'):
         try:
@@ -131,15 +142,6 @@ def showInfo(porttype, port):
             continue
         title = field.replace("_", " ").capitalize()
         table.add(title, urlbuilder.createLink(value))
-
-    # Actions
-    if porttype == 'sw':
-        machinetracker = '[<a href="/machinetracker/swp?switch=%s&amp;module=%s&amp;port=%s">Track MAC behind port</a>]' \
-            % (module.netbox, module.module, portid)
-        actions = html.Paragraph('%s' % machinetracker)
-    else:
-        actions = html.Paragraph()
-    info.append(actions)
 
     rrd = showRrds(porttype, port)
     if rrd:

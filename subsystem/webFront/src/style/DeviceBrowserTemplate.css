@@ -18,191 +18,131 @@
  * You should have received a copy of the GNU General Public License
  * along with NAV; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * Authors: Stian Søiland <stain@itea.ntnu.no>
- *          Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
+ * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
  */
 
-table.serviceNetboxes {
-	border-collapse: collapse;
-	padding: 0;
-	margin: 0;
+.legend table {
+	border: 1px solid #999;
+	border-collapse: separate;
+	border-spacing: 2px;
 }
-table.serviceNetboxes td {
-	padding: 0.2em;
+.legend table td {
+	padding: 0.3em;
+	padding-right: 1em;
 }
-table.serviceNetbox {
-	  border-collapse: collapse;
-}
-table.serviceNetbox tr {
-	  margin-left: 0;
-	  margin-right: 0;
-}
-table.serviceNetbox th {
-	  background-color: white;
-	  background-image:url('/images/ragen/navbar-fill.gif');
-	  background-repeat: repeat-x;
-	  height: 26px;
-	  padding: 1px 0px 0px 0px;
-	  font-weight: normal;
-}
-table.serviceNetbox tr.even {
-	  background-color: #eee;
-}
-table.serviceNetbox tr.odd {
+.legend table td .port {
+	margin-right: 0.5em;
+	padding: 0.3em;
 }
 
-th.col0 {
-	padding-right: 5px;
-	border-right: 1px solid #ccc;
-}
-td.col1 {
-	padding-left: 5px;
-}
-
-table.netboxinfo {
-	padding-bottom: 15px;
-}
-
-table.serviceNetbox td {
-	padding: 0.2em;
-}
-table.netboxinfo th {
-	text-align: left;
-}
-table.serviceNetbox th#activeSort {
-	font-weight: bold;
-}
-table.serviceNetboxes th {
-	text-align: left;
-}
-
-div.alerts {
-	width: auto;
-	float: right;
-	padding: 0.2em;
-	border: 1px solid black;
-	background-color: #ccc;
-}
-div.alerts table {
-	margin: 0;
-	border-collapse: collapse;
-}
-div.alerts td {
-	padding: 0.2em;
-}
-div.alerts .stillDown {
-	background-color: #fff;
-	color:red;
-}
-
-div.module {
-	background-color: #EEE;
+.module {
+	background: #eee;
+	border: 1px solid #999;
 	line-height: 2em;
-	margin-bottom: 1em;
+	margin-top: 1em;
 	position: relative;
 }
-div.gw {
-	background-color: #fed;
-}
-div.module h3 {
-	text-transform: uppercase;
-	padding: 0px 0px 0px 5px;
-	margin: 0;
-	position: relative;
+.module h3 {
 	float: left;
+	margin: 0;
+	padding: 0.2em 0.5em;
 	text-align: center;
-	font-weight: normal;
 }
-table {
-	cell-spacing: 5px;
+.module table {
+	border-collapse: separate;
+	border-spacing: 2px;
 }
-.port {
-	background-color; #d4d3f0; /* unknown speed */
-	border: 2px solid black;
-	margin: 5px;
-	width: 2em;
-	height: 2em;
+.module table td {
 	text-align: center;
-	vertical-align: center;
-}
-.port a	{
-	color: black;
-	text-decoration: none;
-}
-.port a:visited {
-	color: black;
-	text-decoration: none;
-}
-.port a:hover {
-	color: black;
-	text-decoration: underline;
+	vertical-align: middle;
 }
 
-.inactive {
-	border-color: #999;
+.port {
+	background: white;
+	border: 1px solid #666;
 }
-.link {
-	border-width: 3px;
+.port a {
+	color: black;
+	display: block;
+	padding: 0.3em 0.5em;
+	text-align: center;
+	text-decoration: none;
+	vertical-align: middle;
 }
-.trunk {
-	border-width: 3px;
-}
-.fduplex {
-}
-.hduplex {
-	border-color: #999;
-}
-.Mb10 {
-	background-color: #CDF;
-}
-.Mb100{
-	background-color: #9CF;
-}
-.Mb1000{
-	background-color: #89F;
-}
-.Mb10000{
-	background-color: #70F;
-}
+
+/* Speed legend */
 .passive {
-	background-color: #EEE;
-	/* normalize */
-	border-style: solid;
-	border-width: 2px;
+	background: #ccc;
 }
 .disabled {
-	background-color: #C99;
+	background: #c99;
 }
-div.legend .port {
-	width: 1.5em;
-	height: 1.5em;
-	margin-right: 0.5em;
+.Mb10 {
+	background: #deebf7;
+}
+.Mb100 {
+	background: #c6dbef;
+}
+.Mb1000 {
+	background: #aecae1;
+}
+.Mb10000 {
+	background: #8baed6;
+}
+
+/* Frame legend */
+.hduplex {
+	border: 1px dashed #666;
+}
+.fduplex {
+	border: 1px solid #666;
+}
+.trunk {
+	border: 3px double #666;
 }
 .blocked {
 	text-decoration: line-through;
 }
-div.legend {
+
+/* Activity legend */
+.inactive {
+	border: 1px dashed #666;
+}
+.active {
+	border: 2px dashed #333;
+}
+.link {
+	border: 1px solid #666;
+}
+
+/* Alerts */
+div.alerts {
+	border: 1px solid #999;
+	float: right;
+	padding: 1em;
+	background-color: #eee;
 	width: auto;
-	border: 1px solid black;
-	padding: 0.2em;
+}
+div.alerts table {
+	border: 1px solid #999;
+	border-collapse: separate;
 	margin: 1em 0;
 }
-div.legend h3 {
-	margin: 0.2em 0 0.1em 0;
+div.alerts th {
+	font-weight: bold;
+	padding: 0.3em;
 }
-div.legend p {
-	margin-bottom: 0;
+div.alerts td {
+	border-right: 1px solid #999;
+	padding: 0.3em;
 }
-td.y {
-	background: #8c8;
+div.alerts .stillDown {
+	background: #ebb;
 }
-td.n {
-	background: #c88;
-}
-td.s {
-	background: #cc8;
-}
+
+/* Statistics */
 table#rrdgraphs {
 	padding: 0;
 	border-collapse: collapse;
@@ -233,8 +173,3 @@ table#rrdgraphs td.actionselectbottom {
 	text-align: right;
 	border: 1px solid black;
 }
-pre.warning {
-	border: 3px dotted #d33;
-	padding: 2em;
-}
-

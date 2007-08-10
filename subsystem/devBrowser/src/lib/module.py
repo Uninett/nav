@@ -42,8 +42,8 @@ import forgetHTML as html
 from sets import Set
 
 # Color range for port activity tab
-color_recent = (0, 175, 0)
-color_longago = (208, 255, 208)
+color_recent = (116, 196, 118)
+color_longago = (229, 245, 224)
 
 # Active result set cache
 active_cache = {}
@@ -133,7 +133,8 @@ class ModuleInfo(manage.Module):
                 if port.trunk:
                     portView['class'] += ' trunk'
                     titles.append("trunk")
-                portView['class'] += ' %sduplex' % port.duplex
+                if port.duplex:
+                    portView['class'] += ' %sduplex' % port.duplex
                 if port.duplex == 'h':
                     titles.append("half duplex")
                 elif port.duplex == 'f':
@@ -184,7 +185,6 @@ class ModuleInfo(manage.Module):
                 portView['class'] +=  ' active link'
             if portView['class'].count('active') == 0:
                 titles.append('free')
-                portView['style'] = 'background-color: white;'
                 portView['class'] +=  ' inactive'
             return titles
 

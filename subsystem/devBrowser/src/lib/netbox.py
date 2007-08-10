@@ -212,20 +212,10 @@ def process(request):
             return refresh.process()
 
     # Ok, instanciate our NetboxInfo using netbox
-    info = NetboxInfo(netbox)
     result = html.Division()
-    result.append(info.showInfo())
 
-    actions = html.Paragraph()
-    actions.append('[%s]' % urlbuilder.createLink(netbox,
-                                                  subsystem='editdb',
-                                                  content="Edit"))
-    actions.append('[%s]' % urlbuilder.createLink(netbox,
-                                                  subsystem='maintenance',
-                                                  content='Schedule maintenance'))
-    actions.append('[<a href="/devicemanagement/?box=%d&history=1">Device history</a>]'
-                   % netbox.netboxid)
-    result.append(actions)
+    info = NetboxInfo(netbox)
+    result.append(info.showInfo())
 
     interval = fields.getfirst('interval', '30')
     interval = interval.isdigit() and int(interval) or 30
@@ -353,17 +343,18 @@ class NetboxInfo(manage.Netbox):
 
     def showInfo(self):
         result = html.Division()
-        title = html.Header("%s - General information" % self.sysname, level=2)
+        title = html.Header(self.sysname, level=2)
         result.append(title)
+        result.append(self.showActions())
         alerts = self.showAlerts()
         if alerts:
             result.append(alerts)
         info = html.SimpleTable()
-        info['class'] = "netboxinfo"
+        info['class'] = 'vertitable'
         info.add('Status', _statusTranslator.get(self.up, self.up))
         info.add('Availability', self.availability())
         info.add('Uptime', self.showUptime())
-        info.add('Ip address', self.showIp())
+        info.add('IP address', self.showIp())
         info.add('Vlan', self.showVlan())
         info.add('Gateway', self.showGw())
         info.add('Uplink', self.showSw())
@@ -595,7 +586,7 @@ class NetboxInfo(manage.Netbox):
         except NoServicesFound:
             return None
         div = html.Division()
-        div.append(html.Header("Service availability", level=2))
+        div.append(html.Header("Service availability", level=3))
         div.append(table.html)
         return div
 
@@ -856,3 +847,14 @@ class NetboxInfo(manage.Netbox):
     def showFirstDiscovered(self):
         return str(self.netboxid.discovered or 'N/A')
 
+    def showActions(self):
+        actions = html.Paragraph()
+        actions.append('[%s]' % urlbuilder.createLink(self.netboxid,
+                                                      subsystem='editdb',
+                                                      content="Edit"))
+        actions.append('[%s]' % urlbuilder.createLink(self.netboxid,
+                                                      subsystem='maintenance',
+                                                      content='Schedule maintenance'))
+        actions.append('[<a href="/devicemanagement/?box=%d&history=1">Device history</a>]'
+                       % self.netboxid.netboxid)
+        return actions
