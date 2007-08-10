@@ -133,7 +133,10 @@ def createUrl(object=None, id=None, division=None,
     elif subsystem == 'maintenance':
         if object:
             id = object._getID()[0]
-        url += "new?netbox=%s" % id
+        if division == 'netbox':
+            url += "new?netbox=%s" % id
+        elif division == 'service':
+            url += "new?service=%s" % id
     elif subsystem == 'editdb':
         if object:
             id = object._getID()[0]
