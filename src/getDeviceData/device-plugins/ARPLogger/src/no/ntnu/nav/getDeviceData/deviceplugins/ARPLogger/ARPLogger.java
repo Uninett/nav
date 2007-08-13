@@ -2,9 +2,11 @@ package no.ntnu.nav.getDeviceData.deviceplugins.ARPLogger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import no.ntnu.nav.ConfigParser.ConfigParser;
@@ -103,11 +105,11 @@ public class ARPLogger implements DeviceHandler {
 			ac = (ArpContainer)dc;
 		}
 
-		ac.setIpMacMap(fetchIpMacMapping(nb,sSnmp,supportedOidsMap));
+		ac.setIpMacMap(fetchIpMacMapping(nb,sSnmp,cp,supportedOidsMap));
 		ac.commit();
 	}
 	
-	private Map<InetAddress,String> fetchIpMacMapping(Netbox nb, SimpleSnmp sSnmp, Map<String,Integer> supportedOidsMap) {
+	private Map<InetAddress,String> fetchIpMacMapping(Netbox nb, SimpleSnmp sSnmp, ConfigParser cp, Map<String,Integer> supportedOidsMap) {
 		Map<InetAddress,String> result = new HashMap<InetAddress, String>();
 		
 		for(Iterator<String> it = supportedOidsMap.keySet().iterator(); it.hasNext();) {
@@ -131,8 +133,8 @@ public class ARPLogger implements DeviceHandler {
 					Log.e("ARPLogger", "Error while parsing IP address.");
 					e.printStackTrace();
 				}
-				
-				result.put(ip, mac);
+				if(!Util.shouldIgnoreIp(ip, cp))
+					result.put(ip, mac);
 			}
 		}
 		return result;

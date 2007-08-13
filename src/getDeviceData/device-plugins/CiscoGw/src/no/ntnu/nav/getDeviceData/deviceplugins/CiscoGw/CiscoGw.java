@@ -1,5 +1,8 @@
 package no.ntnu.nav.getDeviceData.deviceplugins.CiscoGw;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import no.ntnu.nav.SimpleSnmp.TimeoutException;
 import no.ntnu.nav.getDeviceData.Netbox;
 import no.ntnu.nav.getDeviceData.dataplugins.DataContainer;
 import no.ntnu.nav.getDeviceData.dataplugins.DataContainers;
+import no.ntnu.nav.getDeviceData.dataplugins.Arp.Util;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwModule;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.Gwport;
 import no.ntnu.nav.getDeviceData.dataplugins.Gwport.GwportContainer;
@@ -131,7 +135,7 @@ public class CiscoGw implements DeviceHandler
 		String cat = nb.getCat();
 		this.sSnmp = sSnmp;
 
-		boolean fetch = processCiscoGw(nb, netboxid, ip, cs_ro, type, mc, gwc, sc);
+		boolean fetch = processCiscoGw(nb, cp, netboxid, ip, cs_ro, type, mc, gwc, sc);
 			
 		// Commit data
 		if (fetch) {
@@ -144,7 +148,7 @@ public class CiscoGw implements DeviceHandler
 	 * CiscoGw
 	 *
 	 */
-	private boolean processCiscoGw(Netbox nb, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
+	private boolean processCiscoGw(Netbox nb, ConfigParser cp, String netboxid, String ip, String cs_ro, String type, ModuleContainer mc, GwportContainer gwc, SwportContainer sc) throws TimeoutException {
 
 		/*
 
@@ -660,6 +664,8 @@ A) For hver ruter (kat=GW eller kat=GSW)
 				for (Iterator prefixIt = prefixMap.get(ifindex).iterator(); prefixIt.hasNext();) {
 					String gwip = (String)prefixIt.next();
 					String mask = (String)netmaskMap.get(gwip);
+					if(Util.shouldIgnoreIp(Util.getInetAddress(gwip), cp))
+						continue;
 					
 					if(gwip.indexOf(":") < 0) { //gwip == IPv4
 						boolean hsrp = hsrpIpMap != null && hsrpIpMap.containsKey( Prefix.ipToHex(gwip) );
@@ -677,7 +683,7 @@ A) For hver ruter (kat=GW eller kat=GSW)
 		return addedGwport;
 	}
 	
-	/*
+	/**
 	 * @param ipv6 ipv6 address in decimal, dot separated, long notation.
 	 * @param maskLength length of the netmask.
 	 * 
